@@ -20,7 +20,7 @@ Supported agents
   <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
 Common behavior
-- Reads llm_rules/*.md (skips README.md)
+- Reads llm_rules/*.md (skips documentation files: README.md, CHANGELOG.md, CONTRIBUTING.md)
 - Parses metadata from leading markdown header lines:
   - **Description:**
   - **Auto-attach:**
@@ -196,7 +196,9 @@ class AgentRuleGenerator:
         self.destination.mkdir(parents=True, exist_ok=True)
         stale_found = False
         for md_path in sorted(self.source.glob("*.md")):
-            if md_path.name.lower() == "readme.md":
+            # Skip documentation files that are not rules
+            filename_lower = md_path.name.lower()
+            if filename_lower in ("readme.md", "changelog.md", "contributing.md"):
                 continue
             is_stale = self._process_file(md_path)
             stale_found = stale_found or is_stale

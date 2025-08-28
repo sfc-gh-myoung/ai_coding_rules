@@ -1,0 +1,13 @@
+repos:
+    - repo: local
+      hooks:
+        - id: entro-secret-scan
+          name: Entro Secret Scan
+          entry: "bash -c '#!/bin/bash\n\necho \"Running entro security custom pre-commit hook...\"\n\nif git config --bool entro.skipSecretScan; then\n  echo \"Custom Hook: \U0001F6D1 Skipping secret scan due to git config 'entro.skipSecretScan' is true.\"\n  exit 0\nfi\n\necho \"Custom Hook: ✅ 'entro.skipSecretScan' is NOT true. Proceeding with scan.\"\n\n entro scan pre-commit . --fail-on-findings || { # '||' means: if previous command fails (non-zero exit)\n  echo \"Custom Hook: ❌ entro cli scan FAILED! Please fix issues before committing.\"\n  exit 1\n}\n\necho \"Custom Hook: ✅ entro cli scan completed successfully.\"\nexit 0'"
+          language: system
+          pass_filenames: false
+          always_run: true
+          stages:
+            - pre-commit
+          args:
+            - --fail-on-findings

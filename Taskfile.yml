@@ -1,0 +1,251 @@
+version: '3'
+# Taskfile v3 for AI Coding Rules
+# Usage: install Task and run `task -l` to list available tasks.
+# Common commands: `task deps:dev`, `task lint`, `task rule:cursor`
+
+tasks:
+  # Default task: list all available tasks in this Taskfile
+  default:
+    desc: "List all available tasks"
+    cmds:
+      - task -l
+  
+  # Initialize uv-managed environment and pin Python version
+  uv:pin:
+    desc: "Pin Python (3.11) and create uv venv if missing"
+    status:
+      - test -d .venv
+    cmds:
+      - uv python install 3.11
+      - uv python pin 3.11
+      - uv venv
+  
+  # Install and sync dependencies with uv (includes dev tools via dependency groups)
+  deps:dev:
+    desc: "Sync dev dependencies with uv (uses dependency groups defined in pyproject.toml)"
+    deps:
+      - uv:pin
+    cmds:
+      - uv lock
+      - uv sync --all-groups
+
+  # ============================================================================
+  # Code Quality Tasks
+  # ============================================================================
+
+  # Ruff lint (checks only; no changes)
+  lint:
+    desc: "Ruff lint (checks only)"
+    cmds:
+      - uvx ruff check .
+
+  # Ruff format (checks only; no changes)
+  format:
+    desc: "Ruff format (checks only)"
+    cmds:
+      - uvx ruff format --check .
+
+  # Ruff lint autofix (applies lint fixes only)
+  lint:fix:
+    desc: "Ruff lint with automatic fixes"
+    cmds:
+      - uvx ruff check --fix .
+
+  # Ruff format apply (applies formatting only)
+  format:fix:
+    desc: "Ruff format (apply changes)"
+    cmds:
+      - uvx ruff format .
+
+  # Ruff autofix limited to a specific rule code via CODE variable
+  lint:fix:select:
+    desc: "Ruff lint autofix for a specific rule (usage: task lint:fix:select CODE=E501)"
+    deps:
+      - uv:pin
+    requires:
+      vars: [CODE]
+    cmds:
+      - uvx ruff check --fix --select {{.CODE}} .
+
+  # Ruff autofix limited to a specific rule code via CODE enable unsafe fixes.
+  lint:fix:select:unsafe:
+    desc: "Ruff lint autofix for a specific rule with unsafe fixes (usage: task lint:fix:select:unsafe CODE=E501)"
+    deps:
+      - uv:pin
+    requires:
+      vars: [CODE]
+    cmds:
+      - uvx ruff check --fix --select {{.CODE}} --unsafe-fixes .
+
+  # Run comprehensive quality checks
+  quality:
+    desc: "Run all quality checks (lint + format)"
+    cmds:
+      - task: lint
+      - task: format
+      - echo "✅ All quality checks passed"
+
+  # Fix all quality issues automatically
+  quality:fix:
+    desc: "Fix all quality issues automatically"
+    cmds:
+      - task: lint:fix
+      - task: format:fix
+      - echo "✅ All quality issues fixed"
+
+  # ============================================================================
+  # Testing Tasks
+  # ============================================================================
+
+  # Run unit tests via pytest (uses dev dependencies)
+  test:
+    desc: "Run pytest suite"
+    deps:
+      - deps:dev
+    cmds:
+      - uv run pytest tests/ --tb=short
+
+  # Run tests with coverage reporting
+  test:coverage:
+    desc: "Run tests with coverage reporting"
+    deps:
+      - deps:dev
+    cmds:
+      - uv run pytest --cov=generate_agent_rules --cov-report=term-missing --cov-report=html tests/
+
+  # ============================================================================
+  # Rule Generation Tasks
+  # ============================================================================
+
+  # Generate Cursor .mdc files from *.md rules
+  rule:cursor:
+    desc: "Generate Cursor .mdc files from *.md rules"
+    cmds:
+      - uv run generate_agent_rules.py --agent cursor --source .
+
+  # Generate GitHub Copilot instruction files from *.md rules  
+  rule:copilot:
+    desc: "Generate GitHub Copilot instruction files from *.md rules"
+    cmds:
+      - uv run generate_agent_rules.py --agent copilot --source .
+
+  # Dry run rule generation to preview changes
+  rule:cursor:dry:
+    desc: "Dry run Cursor rule generation (preview changes)"
+    cmds:
+      - uv run generate_agent_rules.py --agent cursor --source . --dry-run
+
+  rule:copilot:dry:
+    desc: "Dry run Copilot rule generation (preview changes)"
+    cmds:
+      - uv run generate_agent_rules.py --agent copilot --source . --dry-run
+
+  # Check if rule outputs are current/valid
+  rule:cursor:check:
+    desc: "Check if Cursor rule outputs are current"
+    cmds:
+      - uv run generate_agent_rules.py --agent cursor --source . --check
+
+  rule:copilot:check:
+    desc: "Check if Copilot rule outputs are current"
+    cmds:
+      - uv run generate_agent_rules.py --agent copilot --source . --check
+
+  # Generate all rule formats
+  rule:all:
+    desc: "Generate all IDE-specific rule formats"
+    cmds:
+      - task: rule:cursor
+      - task: rule:copilot
+      - echo "✅ Generated all rule formats"
+
+  # ============================================================================
+  # Development Utilities
+  # ============================================================================
+
+  # Remove the local virtual environment
+  clean:venv:
+    desc: "Remove virtual environment"
+    cmds:
+      - rm -rf .venv
+      - echo "✅ Virtual environment removed"
+
+  # Clean generated rule files
+  clean:rules:
+    desc: "Remove generated rule files"
+    cmds:
+      - rm -rf .cursor/
+      - rm -rf .github/instructions/
+      - echo "✅ Generated rule files removed"
+
+  # Full cleanup
+  clean:all:
+    desc: "Remove all generated files and virtual environment"
+    cmds:
+      - task: clean:venv
+      - task: clean:rules
+      - rm -rf __pycache__/
+      - rm -rf .pytest_cache/
+      - rm -rf htmlcov/
+      - rm -rf .coverage
+      - echo "✅ Full cleanup completed"
+
+  # ============================================================================
+  # Validation & CI Tasks
+  # ============================================================================
+
+  # Run all validation checks (quality + tests + rule generation)
+  validate:
+    desc: "Run all validation checks for CI/CD"
+    cmds:
+      - task: quality
+      - task: test
+      - task: rule:cursor:check
+      - task: rule:copilot:check
+      - echo "✅ All validation checks passed"
+
+  # Prepare for release (fix issues + generate rules)
+  release:prepare:
+    desc: "Prepare repository for release"
+    cmds:
+      - task: quality:fix
+      - task: rule:all
+      - task: test
+      - echo "✅ Repository prepared for release"
+
+  # Show project status and next steps
+  status:
+    desc: "Show project status and available commands"
+    silent: true
+    cmds:
+      - |
+        echo "📋 AI Coding Rules - Project Status"
+        echo
+        echo "🔧 Quality:"
+        if task lint --silent >/dev/null 2>&1; then
+          echo "  ✅ Linting passed"
+        else
+          echo "  ❌ Linting issues found (run 'task lint:fix')"
+        fi
+        if task format --silent >/dev/null 2>&1; then
+          echo "  ✅ Formatting passed"
+        else
+          echo "  ❌ Formatting issues found (run 'task format:fix')"
+        fi
+        echo
+        echo "🎯 Rule Generation:"
+        if task rule:cursor:check --silent >/dev/null 2>&1; then
+          echo "  ✅ Cursor rules are current"
+        else
+          echo "  ⚠️  Cursor rules need updating (run 'task rule:cursor')"
+        fi
+        if task rule:copilot:check --silent >/dev/null 2>&1; then
+          echo "  ✅ Copilot rules are current"
+        else
+          echo "  ⚠️  Copilot rules need updating (run 'task rule:copilot')"
+        fi
+        echo
+        echo "🚀 Quick Commands:"
+        echo "  task quality:fix    # Fix all code quality issues"
+        echo "  task rule:all       # Generate all IDE rule formats"
+        echo "  task validate       # Run full validation suite"

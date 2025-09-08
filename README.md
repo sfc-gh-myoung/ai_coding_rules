@@ -60,7 +60,41 @@ Concatenate selected `.md` files for use with LLM tools like Claude Projects, Ch
 ### Core Foundation (00-09)
 - **`00-global-core.md`** — Universal operating principles and safety protocols
 - **`01-cursor-memory-bank.md`** — Project memory management for AI assistants  
-- **`02-rules-governance.md`** — Rule creation, naming, and maintenance standards
+- **`02-cursor-rules-governance.md`** — Comprehensive rule authoring governance: creation standards, naming conventions, structure requirements, and validation workflows
+
+#### Universal Rule Authoring Best Practices
+
+The following best practices apply to all AI coding assistants and development environments:
+
+**Structure Standards**
+- Use a single `#` H1 title for each rule file
+- Keep rules focused and concise (target 150-300 lines, max 500 lines)
+- Split large topics into multiple composable rules
+- Include clear metadata at the top with description and scope
+
+**Content Guidelines**  
+- Use explicit directive language: `Requirement`, `Always`, `Avoid`, `Rule`, `Consider`
+- Avoid content duplication across rules; reference other files instead
+- Include links to current, relevant documentation for validation
+- Provide practical examples and usage patterns
+
+**Naming & Organization**
+- Use snake-case naming with `.md` extension (e.g., `my_rule_name.md`)
+- Place universal rules in the canonical directory structure
+- Group related rules by domain/technology (10-19 for Snowflake, 20-29 for Python, etc.)
+- Use consistent numbering for logical ordering
+
+**Scope Management**
+- Keep rule scope tightly focused on specific domains or technologies
+- Prefer on-demand (Agent Requested) pattern over auto-attach for specialized rules
+- Only global core rules should auto-attach universally
+- Design rules to be composable and reusable across projects
+
+**Validation & Maintenance**
+- Test rules with multiple AI models and development environments
+- Verify syntax, best practices, and API usage against current documentation
+- Regularly update rules to reflect evolving best practices
+- Remove outdated content and consolidate overlapping guidance
 
 ### Data Platform - Snowflake (10-19)
 - **`10-snowflake-core.md`** — Core Snowflake guidelines (SQL, performance, security)

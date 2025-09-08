@@ -121,6 +121,122 @@ Rules support embedded metadata in Markdown:
 **Last updated:** 2024-01-15
 ```
 
+## 🧠 Memory Bank System
+
+The Memory Bank is a project-level documentation system that enables AI assistants to maintain context and continuity across sessions. Since AI assistants reset their memory between sessions, the Memory Bank serves as the critical link for understanding project state, decisions, and ongoing work.
+
+### Overview
+
+The Memory Bank addresses a fundamental challenge in AI-assisted development: **memory reset between sessions**. When an AI assistant starts a new session, it has no knowledge of previous work, decisions, or project context. The Memory Bank solves this by maintaining a structured set of documentation files that capture:
+
+- **Project foundation** — Core requirements, goals, and scope
+- **System architecture** — Technical decisions and design patterns  
+- **Current context** — Active work, recent changes, and next steps
+- **Development progress** — What works, what's left to build, known issues
+
+### File Structure
+
+The Memory Bank uses a hierarchical structure with required core files:
+
+```
+memory-bank/
+├── projectbrief.md      # Foundation document (project scope & goals)
+├── productContext.md    # Why project exists, problems solved
+├── systemPatterns.md    # Architecture & technical decisions  
+├── techContext.md       # Technologies, setup, constraints
+├── activeContext.md     # Current work focus & recent changes
+├── progress.md          # Status, what works, known issues
+└── [additional]/        # Optional: features, APIs, testing docs
+```
+
+#### Core Files (Required)
+
+| File | Purpose |
+|------|---------|
+| `projectbrief.md` | Foundation document defining core requirements and project scope |
+| `productContext.md` | Business context: why project exists, problems solved, user experience goals |
+| `systemPatterns.md` | System architecture, key technical decisions, design patterns |
+| `techContext.md` | Technologies used, development setup, technical constraints |
+| `activeContext.md` | Current work focus, recent changes, next steps, active decisions |
+| `progress.md` | Current status, what works, what's left to build, known issues |
+
+### Memory Bank Commands
+
+#### Initialization
+For new projects, create the memory bank structure:
+
+```bash
+# Create memory bank directory
+mkdir memory-bank
+
+# Initialize core files (manual creation)
+touch memory-bank/{projectbrief,productContext,systemPatterns,techContext,activeContext,progress}.md
+```
+
+#### Update Commands
+The Memory Bank updates automatically during development, triggered by:
+
+1. **Explicit user request**: `"update memory bank"`
+2. **After significant changes**: Major feature implementations or architectural decisions
+3. **Context clarification needs**: When project understanding requires documentation
+4. **Pattern discovery**: New technical patterns or workflow insights
+
+### Workflow Integration
+
+#### Plan Mode Workflow
+```mermaid
+flowchart TD
+    Start[New Session] --> Read[Read ALL Memory Bank Files]
+    Read --> Check{Files Complete?}
+    Check -->|No| Plan[Create Missing Files]
+    Check -->|Yes| Context[Verify Current Context]
+    Context --> Strategy[Develop Work Strategy]
+    Strategy --> Present[Present Approach to User]
+```
+
+#### Act Mode Workflow  
+```mermaid
+flowchart TD
+    Start[Execute Task] --> Context[Check Memory Bank]
+    Context --> Work[Perform Development Work]
+    Work --> Document[Update Documentation]
+    Document --> Rules[Update IDE Rules if Needed]
+    Rules --> Complete[Mark Task Complete]
+```
+
+### Usage Examples
+
+#### Starting a New Session
+```bash
+# AI assistant workflow (automatic)
+1. Read all memory-bank/*.md files
+2. Understand current project state  
+3. Review activeContext.md for recent work
+4. Check progress.md for known issues
+5. Proceed with informed context
+```
+
+#### Updating Memory Bank
+```bash
+# User command
+"update memory bank"
+
+# AI assistant workflow (automatic)
+1. Review ALL memory bank files
+2. Update current state in activeContext.md
+3. Record progress in progress.md  
+4. Document new patterns in systemPatterns.md
+5. Update technical context if needed
+```
+
+#### Best Practices
+
+- **Always read**: Memory Bank files at session start (non-optional)
+- **Update frequently**: After major changes or discoveries
+- **Keep current**: Focus on activeContext.md and progress.md
+- **Be precise**: Accuracy directly impacts work effectiveness
+- **Stay organized**: Use additional files for complex features
+
 ## 🎯 Key Features
 
 - **🔄 Universal Compatibility** — Works with Claude, ChatGPT, Copilot, Cursor, and more
@@ -207,7 +323,7 @@ Use the generated `.md` files with VS Code AI extensions or copy content for cus
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details.
 
 ## 🆘 Support
 

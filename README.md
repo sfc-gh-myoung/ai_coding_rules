@@ -199,11 +199,11 @@ Use the generated `.md` files with VS Code AI extensions or copy content for cus
 | LLM/Tool | Direct Rules | Generated Rules | Status |
 |----------|--------------|-----------------|--------|
 | **Claude (API/Web)** | ✅ Markdown | ➖ Native | Full Support |
+| **Gemini (API/Web)** | ✅ Markdown | ➖ Native | Full Support |
 | **ChatGPT** | ✅ Markdown | ➖ Native | Full Support |
 | **GitHub Copilot** | ➖ Limited | ✅ Instructions | Full Support |
 | **Cursor** | ✅ Markdown | ✅ .mdc Rules | Full Support |
 | **Cline/Claude Dev** | ✅ Markdown | ➖ Native | Full Support |
-| **Continue.dev** | ✅ Markdown | ➖ Native | Experimental |
 
 ## 📄 License
 

@@ -14,7 +14,8 @@ This project was inspired by: [how-to-add-cline-memory-bank-feature-to-your-curs
 
 ### Prerequisites
 
-- **Python 3.11+** (recommended: install via [uv](https://github.com/astral-sh/uv))
+- **Python 3.11+** (required: pin to 3.11 for consistency)
+- **uv** (recommended: [install uv](https://github.com/astral-sh/uv) for fast dependency management)  
 - **Task** (recommended: install via `brew install go-task/tap/go-task` or [other methods](https://taskfile.dev/installation/))
 
 ### Installation
@@ -109,8 +110,10 @@ The following best practices apply to all AI coding assistants and development e
 - **`19-snowflake-notebooks.md`** — Jupyter notebook standards
 
 ### Software Engineering - Python (20-29)
-- **`20-python-core.md`** — Modern Python engineering with `uv` and Ruff
-- **`21-python-lint-format.md`** — Code quality and formatting standards
+- **`20-python-core.md`** — Modern Python engineering with `uv` and Ruff (environment management, code structure, reliability)
+- **`21-python-lint-format.md`** — Authoritative linting and formatting with Ruff (code quality and consistency)
+- **`22-yaml-config-best-practices.md`** — YAML and configuration file syntax safety (preventing parsing errors)
+- **`23-python-project-setup.md`** — Python project setup and packaging best practices (avoiding build issues)
 
 ### Data Science & Analytics (30-39)
 - **`30-data-science-analytics.md`** — ML lifecycle, feature engineering, and analytics
@@ -124,7 +127,7 @@ The following best practices apply to all AI coding assistants and development e
 ### Project Management (60-79)
 - **`60-changelog-rules.md`** — Changelog governance using Conventional Commits
 - **`65-contributing-rules.md`** — Contribution workflow and PR standards
-- **`70-taskfile-automation.md`** — Project automation with Taskfile
+- **`70-taskfile-automation.md`** — Project automation with Taskfile (YAML-safe task orchestration)
 
 ### Demo & Synthetic Data (80-89)
 - **`80-demo-creation.md`** — Realistic demo application development
@@ -279,6 +282,8 @@ flowchart TD
 - **🤖 Auto-Generation** — Transform universal rules into IDE-specific formats
 - **📊 Data-Focused** — Comprehensive coverage of data engineering and analytics
 - **🛡️ Production-Ready** — Battle-tested patterns for reliability and performance
+- **⚡ Modern Tooling** — Built for `uv`, Ruff, and contemporary Python development
+- **🔧 Configuration Safety** — YAML syntax safety and build error prevention
 
 ## 🤝 Contributing
 
@@ -300,24 +305,54 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed gu
 - Include relevant documentation links
 - Test with the rule generator before submitting
 
+### Configuration Safety Guidelines
+
+- **YAML Safety**: Avoid Unicode characters (•, ✓) that cause parsing errors
+- **Shell Quoting**: Quote arguments with special characters: `".[dev]"` not `.[dev]`
+- **Taskfile Validation**: Always test with `task --list` after YAML changes
+- **Python Packaging**: Ensure `__init__.py` files exist before `uv pip install -e .`
+
 ## 📋 Development Commands
 
+### Environment Setup
 ```bash
-# Environment setup
+# Python environment with uv (recommended)
 task deps:dev              # Install development dependencies
 task uv:pin               # Pin Python version and create venv
 
-# Code quality
+# Alternative with pip (fallback)
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+pip install -e ".[dev]"
+```
+
+### Code Quality & Linting
+```bash
+# Ruff (primary linter and formatter)
 task lint                 # Check code with Ruff
 task format              # Check formatting
 task lint:fix            # Auto-fix linting issues
 task format:fix          # Apply formatting
 
-# Rule generation
+# Manual commands (if task unavailable)
+uvx ruff check .          # Check linting
+uvx ruff format --check . # Check formatting
+uvx ruff format .         # Apply formatting
+```
+
+### Rule Generation & Validation
+```bash
+# Generate IDE-specific rules
 task rule:cursor         # Generate Cursor rules
 task rule:copilot        # Generate Copilot rules
 
-# Utilities  
+# Validate configurations
+task --list              # Validate Taskfile syntax
+uv run generate_agent_rules.py --dry-run  # Test rule generation
+```
+
+### Utilities  
+```bash
 task clean_venv          # Remove virtual environment
 task -l                  # List all available tasks
 ```

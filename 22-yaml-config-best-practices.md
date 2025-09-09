@@ -71,9 +71,9 @@ cmds:
 
 ### TOML Configuration (pyproject.toml)
 - **Always:** Use proper TOML section headers: `[tool.ruff.lint]`
-- **Critical:** Update deprecated configurations (e.g., ruff top-level to `[tool.ruff.lint]`).
 - **Always:** Group related configurations logically.
 - **Always:** Use arrays for multiple values: `select = ["E", "W", "F"]`
+- **Reference:** See `21-python-lint-format.md` for complete Ruff configuration patterns.
 
 ## 5. Common Parsing Errors and Solutions
 

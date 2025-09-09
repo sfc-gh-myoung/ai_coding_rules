@@ -186,6 +186,9 @@ $RECYCLE.BIN/
 .cursor/
 .github/instructions/
 
+# Cursor memory bank
+memory-bank/
+
 # Output directories
 output/
 temp/

@@ -43,7 +43,12 @@
 - **Requirement:** Do not remove existing comments or reformat unrelated code. The goal is to produce a clean, focused diff.
 - **Requirement:** Use fenced code blocks with language tags for all files (including `.md`).
 
-## RULE ORGANIZATION & REUSE
-- **Requirement:** Detailed, language-specific, and domain-specific rules are located in the canonical `llm_rules/` directory. Optional mirrors may exist in editor- or tool-specific folders (e.g., `.cursor/rules/`, `.vscode/ai-rules/`).
-- **Always:** When a task involves a specific technology (e.g., Snowflake, Python), reference and follow the corresponding rule file from the `llm_rules/` directory.
+## 4. Professional Communication
+- **Requirement:** Do not use emojis or GIF images in code, documentation, or responses unless explicitly requested by the user.
+- **Rule:** Maintain professional, technical tone consistent with senior engineering standards.
+- **Exception:** Use emojis or visual elements only when the user specifically asks for them.
+
+## 5. RULE ORGANIZATION & REUSE
+- **Requirement:** Detailed, language-specific, and domain-specific rules are located in the canonical `ai_coding_rules/` directory. Optional mirrors may exist in editor- or tool-specific folders (e.g., `.cursor/rules/`, `.vscode/ai-rules/`).
+- **Always:** When a task involves a specific technology (e.g., Snowflake, Python), reference and follow the corresponding rule file from the `ai_coding_rules/` directory.
 - **Requirement:** Use a consistent naming convention like `XX-topic-description.md` for all referenced rules.

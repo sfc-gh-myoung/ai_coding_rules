@@ -10,7 +10,7 @@ This repository provides a comprehensive collection of engineering rules designe
 
 This project was inspired by: [how-to-add-cline-memory-bank-feature-to-your-cursor](https://forum.cursor.com/t/how-to-add-cline-memory-bank-feature-to-your-cursor/67868) and [cline memory bank](https://docs.cline.bot/prompting/cline-memory-bank)
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -56,7 +56,7 @@ uv run generate_agent_rules.py --agent copilot --check
 #### Option 3: System Prompt Integration
 Concatenate selected `.md` files for use with LLM tools like Claude Projects, ChatGPT custom instructions, or other AI coding assistants.
 
-## 📁 Rule Categories
+## Rule Categories
 
 ### Core Foundation (00-09)
 - **`00-global-core.md`** — Universal operating principles and safety protocols
@@ -114,6 +114,11 @@ The following best practices apply to all AI coding assistants and development e
 - **`21-python-lint-format.md`** — Authoritative linting and formatting with Ruff (code quality and consistency)
 - **`22-yaml-config-best-practices.md`** — YAML and configuration file syntax safety (preventing parsing errors)
 - **`23-python-project-setup.md`** — Python project setup and packaging best practices (avoiding build issues)
+- **`24-python-fastapi-core.md`** — FastAPI core patterns (application structure, async programming, Pydantic validation)
+- **`25-python-fastapi-security.md`** — FastAPI security patterns (authentication, authorization, CORS, middleware)
+- **`26-python-fastapi-testing.md`** — FastAPI testing strategies (TestClient, pytest-asyncio, comprehensive API testing)
+- **`27-python-fastapi-deployment.md`** — FastAPI deployment and documentation (Docker, ASGI servers, OpenAPI customization)
+- **`28-python-fastapi-monitoring.md`** — FastAPI monitoring and performance (health checks, logging, caching, observability)
 
 ### Data Science & Analytics (30-39)
 - **`30-data-science-analytics.md`** — ML lifecycle, feature engineering, and analytics
@@ -135,7 +140,7 @@ The following best practices apply to all AI coding assistants and development e
 ### Templates
 - **`universal_prompt.md`** — Universal response guidelines template
 
-## 🔧 Rule Generator Architecture
+## Rule Generator Architecture
 
 The project includes a sophisticated rule generator (`generate_agent_rules.py`) that transforms universal Markdown rules into IDE-specific formats:
 
@@ -158,7 +163,7 @@ Rules support embedded metadata in Markdown:
 **Last updated:** 2024-01-15
 ```
 
-## 🧠 Memory Bank System
+## Memory Bank System
 
 The Memory Bank is a project-level documentation system that enables AI assistants to maintain context and continuity across sessions. Since AI assistants reset their memory between sessions, the Memory Bank serves as the critical link for understanding project state, decisions, and ongoing work.
 
@@ -209,6 +214,10 @@ mkdir memory-bank
 # Initialize core files (manual creation)
 touch memory-bank/{projectbrief,productContext,systemPatterns,techContext,activeContext,progress}.md
 ```
+
+The Memory Bank can be automatically created triggered by:
+
+1. **Explicit user request**: `"initialize memory bank"`
 
 #### Update Commands
 The Memory Bank updates automatically during development, triggered by:
@@ -274,18 +283,18 @@ flowchart TD
 - **Be precise**: Accuracy directly impacts work effectiveness
 - **Stay organized**: Use additional files for complex features
 
-## 🎯 Key Features
+## Key Features
 
-- **🔄 Universal Compatibility** — Works with Claude, ChatGPT, Copilot, Cursor, and more
-- **📋 Structured Directive Language** — Clear `Requirement`, `Always`, `Avoid` patterns  
-- **🏗️ Modular Architecture** — Mix and match rules by domain/technology
-- **🤖 Auto-Generation** — Transform universal rules into IDE-specific formats
-- **📊 Data-Focused** — Comprehensive coverage of data engineering and analytics
-- **🛡️ Production-Ready** — Battle-tested patterns for reliability and performance
-- **⚡ Modern Tooling** — Built for `uv`, Ruff, and contemporary Python development
-- **🔧 Configuration Safety** — YAML syntax safety and build error prevention
+- **Universal Compatibility** — Works with Claude, ChatGPT, Copilot, Cursor, and more
+- **Structured Directive Language** — Clear `Requirement`, `Always`, `Avoid` patterns  
+- **Modular Architecture** — Mix and match rules by domain/technology
+- **Auto-Generation** — Transform universal rules into IDE-specific formats
+- **Data-Focused** — Comprehensive coverage of data engineering and analytics
+- **Production-Ready** — Battle-tested patterns for reliability and performance
+- **Modern Tooling** — Built for `uv`, Ruff, and contemporary Python development
+- **Configuration Safety** — YAML syntax safety and build error prevention
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
@@ -307,12 +316,12 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed gu
 
 ### Configuration Safety Guidelines
 
-- **YAML Safety**: Avoid Unicode characters (•, ✓) that cause parsing errors
+- **YAML Safety**: Avoid Unicode characters (bullets, checkmarks) that cause parsing errors
 - **Shell Quoting**: Quote arguments with special characters: `".[dev]"` not `.[dev]`
 - **Taskfile Validation**: Always test with `task --list` after YAML changes
 - **Python Packaging**: Ensure `__init__.py` files exist before `uv pip install -e .`
 
-## 📋 Development Commands
+## Development Commands
 
 ### Environment Setup
 ```bash
@@ -357,7 +366,7 @@ task clean_venv          # Remove virtual environment
 task -l                  # List all available tasks
 ```
 
-## 🔍 IDE Integration Examples
+## IDE Integration Examples
 
 ### Cursor IDE
 ```bash
@@ -379,32 +388,33 @@ Add selected `.md` rule files to your Claude project knowledge base for consiste
 ### VS Code Extensions
 Use the generated `.md` files with VS Code AI extensions or copy content for custom instructions.
 
-## 📊 Compatibility Matrix
+## Compatibility Matrix
 
 | LLM/Tool | Direct Rules | Generated Rules | Status |
 |----------|--------------|-----------------|--------|
-| **Claude (API/Web)** | ✅ Markdown | ➖ Native | Full Support |
-| **Gemini (API/Web)** | ✅ Markdown | ➖ Native | Full Support |
-| **ChatGPT** | ✅ Markdown | ➖ Native | Full Support |
-| **GitHub Copilot** | ➖ Limited | ✅ Instructions | Full Support |
-| **Cursor** | ✅ Markdown | ✅ .mdc Rules | Full Support |
-| **Cline/Claude Dev** | ✅ Markdown | ➖ Native | Full Support |
+| **Claude (API/Web)** | Yes Markdown | No Native | Full Support |
+| **Gemini (API/Web)** | Yes Markdown | No Native | Full Support |
+| **ChatGPT** | Yes Markdown | No Native | Full Support |
+| **GitHub Copilot** | No Limited | Yes Instructions | Full Support |
+| **Cursor** | Yes Markdown | Yes .mdc Rules | Full Support |
+| **Cline/Claude Dev** | Yes Markdown | No Native | Full Support |
 
-## 📄 License
+## License
 
 This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details.
 
-## 🆘 Support
+## Support
 
-- **Issues**: [GitHub Issues](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git/issues)  
-- **Discussions**: [GitHub Discussions](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git/discussions)
+- **Issues**: [GitLab Issues](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git/issues)  
+- **Discussions**: [GitLab Discussions](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git/discussions)
 - **Documentation**: All rules include links to official documentation
 
-## 🗺️ Roadmap
+## Roadmap
 
+- [x] **FastAPI Framework Support** — Comprehensive FastAPI patterns (Completed)
 - [ ] **Multi-language Support** — Rules for Go, JavaScript, Rust
 - [ ] **Cloud Platform Rules** — AWS, Azure, GCP best practices  
-- [ ] **Framework-Specific Rules** — FastAPI, Django, React patterns
+- [ ] **Framework-Specific Rules** — Django, React patterns
 - [ ] **IDE Plugin Development** — Native integrations beyond file generation
 - [ ] **Community Rule Registry** — User-contributed specialized rules
 

@@ -29,6 +29,12 @@
 - **Requirement:** Include comprehensive type hints.
 - **Requirement:** Use Google-style docstrings for public modules, classes, and methods.
 
-## 5. Related Specialized Rules
+## 5. Modern Python Patterns
+- **Critical:** Use `datetime.now(UTC)` instead of deprecated `datetime.utcnow()` for timezone-aware timestamps.
+- **Always:** Import from `collections.abc` instead of `typing` for abstract base classes (e.g., `AsyncGenerator`).
+- **Always:** Use `dict` and `list` for type annotations instead of `Dict` and `List` from typing.
+- **Always:** Follow Python 3.12+ patterns and avoid deprecated functionality.
+
+## 6. Related Specialized Rules
 - **Rule:** For deeper guidance, see:
   - **Linting & Formatting:** `21-python-lint-format.md` (Ruff policy).

@@ -52,3 +52,18 @@
 - **Requirement:** Detailed, language-specific, and domain-specific rules are located in the canonical `ai_coding_rules/` directory. Optional mirrors may exist in editor- or tool-specific folders (e.g., `.cursor/rules/`, `.vscode/ai-rules/`).
 - **Always:** When a task involves a specific technology (e.g., Snowflake, Python), reference and follow the corresponding rule file from the `ai_coding_rules/` directory.
 - **Requirement:** Use a consistent naming convention like `XX-topic-description.md` for all referenced rules.
+
+## 6. README MAINTENANCE
+- **Mandatory:** Update the project README.md after any of the following actions:
+  - Adding, removing, or significantly modifying rule files
+  - Changes to project structure or file organization
+  - Updates to development workflows or commands
+  - Memory bank modifications that affect project context
+  - Feature completion that moves items from roadmap to implemented
+- **Requirement:** Review and update these README sections as needed:
+  - **Rule Categories** (📁) - Reflect current rule files and organization
+  - **Memory Bank System** (🧠) - Update if memory bank structure changes
+  - **Development Commands** (📋) - Add new commands or workflows
+  - **Roadmap** (🗺️) - Move completed features, add new planned features
+- **Always:** Validate README accuracy by checking that all referenced files and commands exist and work correctly.
+- **Rule:** Include README updates as part of the task completion confirmation.

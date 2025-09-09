@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Utility: Generate agent-specific rule files from llm_rules/*.md
+Utility: Generate agent-specific rule files from *.md
 
 Supported agents
 - cursor: writes .cursor/rules/<name>.mdc with YAML header and Cursor docs comment:
@@ -20,7 +20,7 @@ Supported agents
   <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
 Common behavior
-- Reads llm_rules/*.md (skips documentation files: README.md, CHANGELOG.md, CONTRIBUTING.md)
+- Reads *.md (skips documentation files: README.md, CHANGELOG.md, CONTRIBUTING.md)
 - Parses metadata from leading markdown header lines:
   - **Description:**
   - **Auto-attach:**
@@ -32,13 +32,13 @@ Common behavior
 
 Usage
   # Generate Cursor rules (writes only when output changes)
-  python llm_rules/generate_agent_rules.py --agent cursor [--dry-run]
+  python ai_coding_rules/generate_agent_rules.py --agent cursor [--dry-run]
 
   # Generate Copilot rules (writes only when output changes)
-  python llm_rules/generate_agent_rules.py --agent copilot [--dry-run]
+  python ai_coding_rules/generate_agent_rules.py --agent copilot [--dry-run]
 
   # CI check mode: exit non-zero if any outputs are stale/missing
-  python llm_rules/generate_agent_rules.py --agent cursor --check
+  python ai_coding_rules/generate_agent_rules.py --agent cursor --check
 """
 
 from __future__ import annotations
@@ -156,7 +156,7 @@ class AgentSpec:
 
 
 class AgentRuleGenerator:
-    """Generate agent-specific rule files from llm_rules/*.md."""
+    """Generate agent-specific rule files from *.md."""
 
     def __init__(self, agent: str, source: Path, destination: Path, dry_run: bool = False) -> None:
         self.agent = agent
@@ -188,7 +188,7 @@ class AgentRuleGenerator:
             raise ValueError("agent must be one of: 'cursor', 'copilot'")
 
     def run(self) -> None:
-        """Execute generation for all llm_rules/*.md files.
+        """Execute generation for all *.md files.
 
         In normal mode, writes files only when content changes.
         In --check mode, exits with non-zero status if any outputs are stale or missing.
@@ -289,14 +289,14 @@ class AgentRuleGenerator:
 
 def main() -> None:
     """CLI entry point for agent rules generation."""
-    parser = argparse.ArgumentParser(description="Generate agent rules from llm_rules/*.md")
+    parser = argparse.ArgumentParser(description="Generate agent rules from *.md")
     parser.add_argument(
         "--agent", choices=["cursor", "copilot"], required=True, help="Target agent"
     )
     parser.add_argument(
         "--source",
-        default=str(Path("llm_rules")),
-        help="Source directory containing .md rule files (default: llm_rules)",
+        default=str(Path("ai_coding_rules")),
+        help="Source directory containing .md rule files (default: ai_coding_rules)",
     )
     parser.add_argument(
         "--destination",

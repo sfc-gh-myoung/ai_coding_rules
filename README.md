@@ -130,8 +130,9 @@ The following best practices apply to all AI coding assistants and development e
 - **`50-business-analytics.md`** — Business-oriented reporting and visualization
 
 ### Project Management (60-79)
-- **`60-changelog-rules.md`** — Changelog governance using Conventional Commits
-- **`65-contributing-rules.md`** — Contribution workflow and PR standards
+- **`60-project-changelog-rules.md`** — Changelog governance using Conventional Commits
+- **`61-project-readme-rules.md`** — Professional README.md structure and content standards
+- **`65-project-contributing-rules.md`** — Contribution workflow and PR standards
 - **`70-taskfile-automation.md`** — Project automation with Taskfile (YAML-safe task orchestration)
 
 ### Demo & Synthetic Data (80-89)

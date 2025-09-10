@@ -1,6 +1,8 @@
 **Description:** FastAPI security patterns for authentication, authorization, CORS, and security middleware.
-**Applies to:** `**/auth*.py`, `**/security*.py`, `**/middleware*.py`, `**/routers/**`, `**/services/**`
-**Auto-attach:** false
+**AppliesTo:** `**/auth*.py`, `**/security*.py`, `**/middleware*.py`, `**/routers/**`, `**/services/**`
+**AutoAttach:** false
+**Version:** 1.0
+**LastUpdated:** 2025-09-10
 
 # FastAPI Security Patterns
 

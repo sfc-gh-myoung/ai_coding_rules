@@ -1,6 +1,8 @@
 **Description:** YAML and configuration file syntax best practices to prevent parsing errors and ensure reliability.
-**Applies to:** `**/*.yml`, `**/*.yaml`, `**/pyproject.toml`, `**/.env*`
-**Auto-attach:** false
+**AppliesTo:** `**/*.yml`, `**/*.yaml`, `**/pyproject.toml`, `**/.env*`
+**AutoAttach:** false
+**Version:** 1.0
+**LastUpdated:** 2025-09-10
 
 # YAML and Configuration Best Practices
 

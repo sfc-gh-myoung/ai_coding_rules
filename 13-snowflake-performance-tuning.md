@@ -1,6 +1,8 @@
 **Description:** Rules for profiling, optimizing, and fine-tuning Snowflake queries and warehouse usage.
-**Applies to:** `**/*.sql`
-**Auto-attach:** false
+**AppliesTo:** `**/*.sql`
+**AutoAttach:** false
+**Version:** 1.0
+**LastUpdated:** 2025-09-10
 
 # Snowflake Performance Tuning
 

@@ -1,6 +1,8 @@
 **Description:** FastAPI production deployment with Docker, ASGI servers, and API documentation patterns.
-**Applies to:** `gunicorn.conf.py`, `Dockerfile`, `docker-compose.yml`, `**/docs/**`
-**Auto-attach:** false
+**AppliesTo:** `gunicorn.conf.py`, `Dockerfile`, `docker-compose.yml`, `**/docs/**`
+**AutoAttach:** false
+**Version:** 1.0
+**LastUpdated:** 2025-09-10
 
 # FastAPI Deployment and Documentation
 

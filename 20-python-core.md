@@ -1,6 +1,8 @@
 **Description:** Core Python engineering policies for a consistent, reliable, and performant codebase using modern tools like `uv` and Ruff.
-**Applies to:** `**/*.py`, `streamlit/**/*`, `scripts/**/*`
-**Auto-attach:** false
+**AppliesTo:** `**/*.py`, `streamlit/**/*`, `scripts/**/*`
+**AutoAttach:** false
+**Version:** 1.0
+**LastUpdated:** 2025-09-10
 
 # Python Core Engineering Directives
 

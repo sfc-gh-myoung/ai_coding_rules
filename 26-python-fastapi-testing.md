@@ -1,6 +1,8 @@
 **Description:** FastAPI testing strategies with TestClient, pytest-asyncio, and comprehensive API testing patterns.
-**Applies to:** `**/tests/**`, `**/test_*.py`, `**/conftest.py`
-**Auto-attach:** false
+**AppliesTo:** `**/tests/**`, `**/test_*.py`, `**/conftest.py`
+**AutoAttach:** false
+**Version:** 1.0
+**LastUpdated:** 2025-09-10
 
 # FastAPI Testing Strategies
 

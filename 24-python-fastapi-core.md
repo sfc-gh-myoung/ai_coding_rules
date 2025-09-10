@@ -1,6 +1,8 @@
 **Description:** Comprehensive FastAPI best practices for building modern, performant, and maintainable web APIs and applications.
-**Applies to:** `**/*.py`, `**/main.py`, `**/routers/**`, `**/models/**`, `**/services/**`, `**/database/**`
-**Auto-attach:** false
+**AppliesTo:** `**/*.py`, `**/main.py`, `**/routers/**`, `**/models/**`, `**/services/**`, `**/database/**`
+**AutoAttach:** false
+**Version:** 1.0
+**LastUpdated:** 2025-09-10
 
 # FastAPI Best Practices
 

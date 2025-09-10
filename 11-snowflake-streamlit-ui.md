@@ -1,6 +1,8 @@
 **Description:** Directives for creating modern, performant, and maintainable Streamlit applications for Snowflake.
-**Applies to:** `**/*.py`, `streamlit/**/*`
-**Auto-attach:** false
+**AppliesTo:** `**/*.py`, `streamlit/**/*`
+**AutoAttach:** false
+**Version:** 1.0
+**LastUpdated:** 2025-09-10
 
 # Streamlit UI/UX Directives
 

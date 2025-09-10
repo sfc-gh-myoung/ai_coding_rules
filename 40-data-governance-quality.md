@@ -1,6 +1,8 @@
 **Description:** Comprehensive directives for ensuring data quality, governance, and operational reliability throughout the data lifecycle.
-**Applies to:** `**/*.py`, `**/*.sql`, `docs/**/*`
-**Auto-attach:** false
+**AppliesTo:** `**/*.py`, `**/*.sql`, `docs/**/*`
+**AutoAttach:** false
+**Version:** 1.0
+**LastUpdated:** 2025-09-10
 
 # Data Governance & Quality Directives
 

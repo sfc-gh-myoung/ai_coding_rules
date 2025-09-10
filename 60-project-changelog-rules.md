@@ -1,6 +1,8 @@
 **Description:** Directives for maintaining a high-signal, audit-friendly `CHANGELOG.md` using Conventional Commits.
-**Applies to:** `CHANGELOG.md`
-**Auto-attach:** false
+**AppliesTo:** `CHANGELOG.md`
+**AutoAttach:** false
+**Version:** 1.0
+**LastUpdated:** 2025-09-10
 
 # Changelog Governance Directives
 

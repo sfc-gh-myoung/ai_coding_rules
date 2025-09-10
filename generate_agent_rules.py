@@ -124,6 +124,45 @@ def serialize_list_yaml(key: str, values: list[str], default: str) -> str:
     return "\n".join(lines)
 
 
+def convert_md_references_to_mdc(text: str) -> str:
+    """Convert *.md references to *.mdc for Cursor rules.
+
+    Converts patterns like:
+    - filename.md -> filename.mdc
+    - @filename.md -> @filename.mdc
+    - path/to/file.md -> path/to/file.mdc
+
+    Preserves documentation files like README.md, CHANGELOG.md, CONTRIBUTING.md
+    """
+    # Preserve common documentation files
+    preserved_files = {
+        "readme.md",
+        "changelog.md",
+        "contributing.md",
+        "license.md",
+        "authors.md",
+        "security.md",
+    }
+
+    def replace_md_ref(match):
+        full_match = match.group(0)
+        filename = match.group(2).lower()  # Get the filename part in lowercase
+
+        # Don't convert preserved documentation files
+        if filename in preserved_files:
+            return full_match
+
+        # Convert .md to .mdc
+        return match.group(1) + match.group(2)[:-3] + ".mdc"
+
+    # Pattern matches: optional @ + filename + .md
+    # Group 1: prefix (including @)
+    # Group 2: filename.md
+    pattern = r"(@?)([\w\-/]+\.md)(?=\s|$|[^\w\-/.])"
+
+    return re.sub(pattern, replace_md_ref, text, flags=re.IGNORECASE)
+
+
 @dataclass
 class AgentSpec:
     name: str
@@ -213,6 +252,10 @@ class AgentRuleGenerator:
         # Clean body
         body = strip_existing_yaml_header(src_text)
         body = strip_markdown_metadata_lines(body)
+
+        # Convert *.md references to *.mdc for Cursor rules only
+        if self.agent == "cursor":
+            body = convert_md_references_to_mdc(body)
 
         # Parse metadata
         description, _, always_apply = self._parse_description_and_autoattach(

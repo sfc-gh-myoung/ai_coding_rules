@@ -1,6 +1,8 @@
 **Description:** Python project setup and packaging best practices to avoid common build and dependency issues.
-**Applies to:** `**/pyproject.toml`, `**/setup.py`, `**/requirements*.txt`, `**/__init__.py`
-**Auto-attach:** false
+**AppliesTo:** `**/pyproject.toml`, `**/setup.py`, `**/requirements*.txt`, `**/__init__.py`
+**AutoAttach:** false
+**Version:** 1.0
+**LastUpdated:** 2025-09-10
 
 
 # Python Project Setup and Packaging

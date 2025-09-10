@@ -1,6 +1,8 @@
 **Description:** Industry-standard README.md structure, content guidelines, and quality assurance patterns for professional project documentation.
-**Applies to:** `**/README.md`, `**/readme.md`
-**Auto-attach:** false
+**AppliesTo:** `**/README.md`, `**/readme.md`
+**AutoAttach:** false
+**Version:** 1.0
+**LastUpdated:** 2025-09-10
 
 # README Best Practices: Professional Project Documentation
 

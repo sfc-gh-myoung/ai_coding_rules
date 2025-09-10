@@ -1,6 +1,8 @@
 **Description:** Directives for creating business-oriented queries, reports, and visualizations for a business audience.
-**Applies to:** `**/*.sql`, `reports/**/*`
-**Auto-attach:** false
+**AppliesTo:** `**/*.sql`, `reports/**/*`
+**AutoAttach:** false
+**Version:** 1.0
+**LastUpdated:** 2025-09-10
 
 # Business Analytics & Reporting Directives
 

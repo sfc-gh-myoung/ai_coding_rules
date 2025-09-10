@@ -1,6 +1,8 @@
 **Description:** FastAPI health checks, logging, monitoring, and performance optimization patterns.
-**Applies to:** `**/health.py`, `**/logging/**`, `**/middleware/**`, `**/cache/**`
-**Auto-attach:** false
+**AppliesTo:** `**/health.py`, `**/logging/**`, `**/middleware/**`, `**/cache/**`
+**AutoAttach:** false
+**Version:** 1.0
+**LastUpdated:** 2025-09-10
 
 # FastAPI Monitoring and Performance
 

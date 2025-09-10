@@ -42,11 +42,11 @@ Open any `.md` rule file directly in your IDE and follow the directive language 
 ```bash
 # Generate Cursor project rules
 task rule:cursor
-# Creates .cursor/rules/*.mdc files
+# Creates .cursor/rules/*.mdc files with automatic *.md → *.mdc reference conversion
 
 # Generate GitHub Copilot instructions  
 task rule:copilot
-# Creates .github/instructions/*.md files
+# Creates .github/instructions/*.md files with preserved *.md references
 
 # Manual generation with options
 uv run generate_agent_rules.py --agent cursor --dry-run
@@ -143,14 +143,29 @@ The following best practices apply to all AI coding assistants and development e
 
 ## Rule Generator Architecture
 
-The project includes a sophisticated rule generator (`generate_agent_rules.py`) that transforms universal Markdown rules into IDE-specific formats:
+The project includes a sophisticated rule generator (`generate_agent_rules.py`) that transforms universal Markdown rules into IDE-specific formats with intelligent content adaptation:
 
 ### Supported Output Formats
 
 | IDE/Tool | Output Format | Location | Features |
 |----------|---------------|----------|----------|
-| **Cursor** | `.mdc` files | `.cursor/rules/` | YAML frontmatter with globs, auto-apply |
-| **GitHub Copilot** | `.md` files | `.github/instructions/` | YAML frontmatter with appliesTo patterns |
+| **Cursor** | `.mdc` files | `.cursor/rules/` | YAML frontmatter with globs, auto-apply, automatic `*.md` → `*.mdc` reference conversion |
+| **GitHub Copilot** | `.md` files | `.github/instructions/` | YAML frontmatter with appliesTo patterns, preserves original `*.md` references |
+
+### Reference Conversion Feature
+
+The rule generator automatically converts cross-references for consistency:
+
+**For Cursor Rules (`.mdc` files):**
+- `21-python-lint-format.md` → `21-python-lint-format.mdc`
+- `@some-rule.md` → `@some-rule.mdc`
+- `path/to/file.md` → `path/to/file.mdc`
+- **Preserves**: `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, and other documentation files
+
+**For Copilot Rules (`.md` files):**
+- All references remain unchanged as `*.md`
+
+This ensures that generated Cursor rules reference the correct `.mdc` file format while maintaining compatibility with standard documentation files.
 
 ### Metadata Parsing
 
@@ -289,7 +304,7 @@ flowchart TD
 - **Universal Compatibility** — Works with Claude, ChatGPT, Copilot, Cursor, and more
 - **Structured Directive Language** — Clear `Requirement`, `Always`, `Avoid` patterns  
 - **Modular Architecture** — Mix and match rules by domain/technology
-- **Auto-Generation** — Transform universal rules into IDE-specific formats
+- **Intelligent Auto-Generation** — Transform universal rules into IDE-specific formats with automatic reference conversion
 - **Data-Focused** — Comprehensive coverage of data engineering and analytics
 - **Production-Ready** — Battle-tested patterns for reliability and performance
 - **Modern Tooling** — Built for `uv`, Ruff, and contemporary Python development

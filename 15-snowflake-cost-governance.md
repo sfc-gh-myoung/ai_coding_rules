@@ -1,6 +1,8 @@
 **Description:** Rules for managing and optimizing Snowflake costs, including resource monitors and workload right-sizing.
-**Applies to:** `**/*.sql`
-**Auto-attach:** false
+**AppliesTo:** `**/*.sql`
+**AutoAttach:** false
+**Version:** 1.0
+**LastUpdated:** 2025-09-10
 
 # Snowflake Cost Governance
 

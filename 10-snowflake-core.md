@@ -1,6 +1,8 @@
 **Description:** Comprehensive rules for all Snowflake tasks, ensuring consistent, performant, and secure solutions.
-**Applies to:** `**/*.sql`, `**/*.scl`
-**Auto-attach:** false
+**AppliesTo:** `**/*.sql`, `**/*.scl`
+**AutoAttach:** false
+**Version:** 1.0
+**LastUpdated:** 2025-09-10
 
 # Snowflake Core Directives
 

@@ -23,10 +23,10 @@ Common behavior
 - Reads *.md (skips documentation files: README.md, CHANGELOG.md, CONTRIBUTING.md)
 - Parses metadata from leading markdown header lines:
   - **Description:**
-  - **Auto-attach:**
-  - **Applies to:** (backticks or comma/space-separated)
+  - **AutoAttach:**
+  - **AppliesTo:** (backticks or comma/space-separated)
   - **Version:**
-  - **Last updated:**
+  - **LastUpdated:**
 - Strips the above metadata lines and any existing YAML frontmatter from the body
 - Defaults globs/appliesTo to ["**/*"] when absent
 
@@ -50,10 +50,10 @@ from dataclasses import dataclass
 from pathlib import Path
 
 RE_DESCRIPTION = re.compile(r"^\*\*Description:\*\*\s*(.*)$", re.IGNORECASE)
-RE_APPLIES = re.compile(r"^\*\*Applies to:\*\*\s*(.*)$", re.IGNORECASE)
-RE_AUTO_ATTACH = re.compile(r"^\*\*Auto-attach:\*\*\s*(true|false|.*)$", re.IGNORECASE)
+RE_APPLIES = re.compile(r"^\*\*AppliesTo:\*\*\s*(.*)$", re.IGNORECASE)
+RE_AUTO_ATTACH = re.compile(r"^\*\*AutoAttach:\*\*\s*(true|false|.*)$", re.IGNORECASE)
 RE_VERSION = re.compile(r"^\*\*Version:\*\*\s*(.*)$", re.IGNORECASE)
-RE_LAST_UPDATED = re.compile(r"^\*\*Last updated:\*\*\s*(.*)$", re.IGNORECASE)
+RE_LAST_UPDATED = re.compile(r"^\*\*LastUpdated:\*\*\s*(.*)$", re.IGNORECASE)
 
 
 def strip_existing_yaml_header(text: str) -> str:
@@ -67,7 +67,7 @@ def strip_existing_yaml_header(text: str) -> str:
 
 
 def strip_markdown_metadata_lines(text: str) -> str:
-    """Remove specific markdown header lines (Description, Auto-attach, Applies to, Version, Last updated)."""
+    """Remove specific markdown header lines (Description, AutoAttach, AppliesTo, Version, LastUpdated)."""
     out_lines: list[str] = []
     for line in text.splitlines():
         ls = line.strip()
@@ -84,7 +84,7 @@ def strip_markdown_metadata_lines(text: str) -> str:
 
 
 def parse_applies_to(text: str) -> list[str]:
-    """Parse `**Applies to:**` into a list of globs.
+    """Parse `**AppliesTo:**` into a list of globs.
 
     Supports backtick-delimited entries or comma/whitespace separated tokens.
     """

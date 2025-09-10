@@ -1,12 +1,14 @@
 **Description:** How to create new `.md` project rule files for AI coding assistants (editor- and model-agnostic).
-**Auto-attach:** true
+**AutoAttach:** true
+**Version:** 1.0
+**LastUpdated:** 2025-09-10
 
 # Rule Governance: Directives for the Agent
 
 ## Rule Creation & Naming Constraints
 - **Requirement:** Place universal rule files in the canonical `ai_coding_rules/` directory. Optional mirrors may exist in editor-specific folders (e.g., `.cursor/rules/`).
 - **Requirement:** Use a snake-case naming convention with a `.md` extension (e.g., `your_rule_name.md`).
-- **Requirement:** Include a clear description and, if needed, scope notes at the top of the file. Optional metadata like `id`, `version`, and `lastUpdated` may also be included in plain text.
+- **Requirement:** Include a clear description and, if needed, scope notes at the top of the file. Optional metadata like `id`, `Version`, and `LastUpdated` may also be included in plain text.
 
 ## Content & Structure Constraints
 - **Requirement:** Every rule file must have a single `#` H1 title.

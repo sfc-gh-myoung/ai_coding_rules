@@ -97,7 +97,7 @@ The following best practices apply to all AI coding assistants and development e
 - Regularly update rules to reflect evolving best practices
 - Remove outdated content and consolidate overlapping guidance
 
-### Data Platform - Snowflake (10-19)
+### Data Platform - Snowflake (10-19, 20)
 - **`10-snowflake-core.md`** — Core Snowflake guidelines (SQL, performance, security)
 - **`11-snowflake-streamlit-ui.md`** — Modern Streamlit application development
 - **`12-snowflake-sql-best-practices.md`** — Advanced SQL authoring patterns
@@ -108,6 +108,7 @@ The following best practices apply to all AI coding assistants and development e
 - **`17-snowflake-security-governance.md`** — Security policies and access control
 - **`18-snowflake-data-loading.md`** — Data ingestion best practices
 - **`19-snowflake-notebooks.md`** — Jupyter notebook standards
+- **`20-snowflake-spcs.md`** — Snowpark Container Services best practices (containerized applications, compute pools, service management)
 
 ### Software Engineering - Python (20-29)
 - **`20-python-core.md`** — Modern Python engineering with `uv` and Ruff (environment management, code structure, reliability)

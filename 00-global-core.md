@@ -1,6 +1,7 @@
 **Description:** The core, universally-applied operating contract for a reliable and safe workflow.
-**Auto-attach:** true
+**AutoAttach:** true
 **Version:** 6.0
+**LastUpdated:** 2025-09-10
 
 # Global Core Guidelines
 

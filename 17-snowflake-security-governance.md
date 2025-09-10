@@ -1,6 +1,8 @@
 **Description:** Rules for enforcing data security and access control using Snowflake's governance features.
-**Applies to:** `**/*.sql`
-**Auto-attach:** false
+**AppliesTo:** `**/*.sql`
+**AutoAttach:** false
+**Version:** 1.0
+**LastUpdated:** 2025-09-10
 
 # Snowflake Security Governance
 

@@ -1,6 +1,8 @@
 **Description:** Authoritative Python linting and formatting policy using Ruff for code quality and consistency.
-**Applies to:** `**/*.py`, `streamlit/**/*`
-**Auto-attach:** false
+**AppliesTo:** `**/*.py`, `streamlit/**/*`
+**AutoAttach:** false
+**Version:** 1.0
+**LastUpdated:** 2025-09-10
 
 # Python Linting & Formatting (uvx ruff-first, with fallbacks)
 

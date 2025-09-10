@@ -1,6 +1,8 @@
 **Description:** Rules for performing data science and analytics on Snowflake, focusing on model lifecycle, advanced SQL, and specialized data types.
-**Applies to:** `notebooks/**/*.ipynb`, `streamlit/**/*`, `models/**/*`
-**Auto-attach:** false
+**AppliesTo:** `notebooks/**/*.ipynb`, `streamlit/**/*`, `models/**/*`
+**AutoAttach:** false
+**Version:** 1.0
+**LastUpdated:** 2025-09-10
 
 # Data Science & Analytics Principles
 

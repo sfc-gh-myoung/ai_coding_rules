@@ -1,5 +1,7 @@
 **Description:** Universal Prompt: Update Task-Specific Instructions before using.
-**Auto-attach:** false
+**AutoAttach:** false
+**Version:** 1.0
+**LastUpdated:** 2025-09-10
 
 # Universal Response Guidelines
 

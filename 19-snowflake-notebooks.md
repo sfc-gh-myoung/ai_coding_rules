@@ -1,6 +1,8 @@
 **Description:** Rules for building reproducible, secure, and maintainable Jupyter Notebooks in the Snowflake environment.
-**Applies to:** `**/*.ipynb`, `notebooks/**/*.py`
-**Auto-attach:** false
+**AppliesTo:** `**/*.ipynb`, `notebooks/**/*.py`
+**AutoAttach:** false
+**Version:** 1.0
+**LastUpdated:** 2025-09-10
 
 # Snowflake Notebook Directives
 

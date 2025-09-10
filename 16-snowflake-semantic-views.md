@@ -1,6 +1,8 @@
 **Description:** Rules for creating a structured and maintainable data model using a layered view strategy.
-**Applies to:** `**/*.sql`
-**Auto-attach:** false
+**AppliesTo:** `**/*.sql`
+**AutoAttach:** false
+**Version:** 1.0
+**LastUpdated:** 2025-09-10
 
 # Snowflake Semantic Views
 

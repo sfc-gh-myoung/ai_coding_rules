@@ -1,6 +1,7 @@
 **Description:** Rules for managing and optimizing Snowflake costs, including resource monitors and workload right-sizing.
 **AppliesTo:** `**/*.sql`
 **AutoAttach:** false
+**Type:** Agent Requested
 **Version:** 1.0
 **LastUpdated:** 2025-09-10
 

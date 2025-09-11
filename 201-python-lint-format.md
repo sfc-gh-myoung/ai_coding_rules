@@ -1,6 +1,7 @@
 **Description:** Authoritative Python linting and formatting policy using Ruff for code quality and consistency.
 **AppliesTo:** `**/*.py`, `streamlit/**/*`
 **AutoAttach:** false
+**Type:** Agent Requested
 **Version:** 1.0
 **LastUpdated:** 2025-09-10
 

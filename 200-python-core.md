@@ -1,6 +1,7 @@
 **Description:** Core Python engineering policies for a consistent, reliable, and performant codebase using modern tools like `uv` and Ruff.
 **AppliesTo:** `**/*.py`, `streamlit/**/*`, `scripts/**/*`
 **AutoAttach:** false
+**Type:** Agent Requested
 **Version:** 1.0
 **LastUpdated:** 2025-09-10
 
@@ -128,4 +129,4 @@ lint:
 
 ## 8. Related Specialized Rules
 - **Rule:** For deeper guidance, see:
-  - **Linting & Formatting:** `21-python-lint-format.md` (Ruff policy).
+  - **Linting & Formatting:** `201-python-lint-format.md` (Ruff policy).

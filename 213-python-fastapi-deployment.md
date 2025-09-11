@@ -1,6 +1,7 @@
 **Description:** FastAPI production deployment with Docker, ASGI servers, and API documentation patterns.
 **AppliesTo:** `gunicorn.conf.py`, `Dockerfile`, `docker-compose.yml`, `**/docs/**`
 **AutoAttach:** false
+**Type:** Agent Requested
 **Version:** 1.0
 **LastUpdated:** 2025-09-10
 
@@ -336,12 +337,10 @@ volumes:
 
 ### Development Commands
 - **Always:** Follow Python core rules from `200-python-core.md` for all commands.
-- **Always:** Apply linting rules from `21-python-lint-format.md`.
+- **Always:** Apply linting rules from `201-python-lint-format.md`.
 
 ```bash
-# Development server (following 200-python-core.md)
-uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-
+# See 200-python-core.md for development commands
 # Production deployment
 uv run gunicorn app.main:app -c gunicorn.conf.py
 
@@ -356,5 +355,5 @@ docker-compose up --build
 - **Gunicorn Configuration**: https://docs.gunicorn.org/en/stable/configure.html
 - **Docker Best Practices**: https://docs.docker.com/develop/best-practices/
 - **FastAPI OpenAPI**: https://fastapi.tiangolo.com/advanced/extending-openapi/
-- **FastAPI Core Patterns**: `24-python-fastapi-core.md`
-- **FastAPI Security**: `25-python-fastapi-security.md`
+- **FastAPI Core Patterns**: `210-python-fastapi-core.md`
+- **FastAPI Security**: `211-python-fastapi-security.md`

@@ -1,6 +1,7 @@
 **Description:** Rules for enforcing data security and access control using Snowflake's governance features.
 **AppliesTo:** `**/*.sql`
 **AutoAttach:** false
+**Type:** Agent Requested
 **Version:** 1.0
 **LastUpdated:** 2025-09-10
 

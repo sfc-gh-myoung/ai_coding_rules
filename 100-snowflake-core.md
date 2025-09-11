@@ -1,6 +1,7 @@
 **Description:** Comprehensive rules for all Snowflake tasks, ensuring consistent, performant, and secure solutions.
 **AppliesTo:** `**/*.sql`, `**/*.scl`
 **AutoAttach:** false
+**Type:** Agent Requested
 **Version:** 1.0
 **LastUpdated:** 2025-09-10
 
@@ -54,12 +55,12 @@
 
 ## 7. Related Specialized Rules
 - **Rule:** For deeper guidance, reference the following specialized rules:
-  - `11-snowflake-streamlit-ui.md`: Modern, performant, and maintainable Streamlit UIs
-  - `12-snowflake-sql-best-practices.md`: Advanced SQL authoring patterns (CTEs, VARIANT extraction, cardinality control).
-  - `13-snowflake-performance-tuning.md`: Profiling, pruning, warehouse sizing, clustering justification.
-  - `14-snowflake-streams-tasks.md`: Incremental pipelines with Streams + Tasks, idempotency, monitoring.
-  - `15-snowflake-cost-governance.md`: Workload isolation, resource monitors, right-sizing, anomaly detection.
-  - `16-snowflake-semantic-views.md`: Layering (staging/core/semantic), naming conventions, and slim views.
-  - `17-snowflake-security-governance.md`: Masking policies, row access, tagging, and role strategies.
-  - `18-snowflake-data-loading.md`: Stages, `COPY INTO`, and Snowpipe best practices.
-  - `19-snowflake-notebooks.md`: Jupyter Notebooks in Snowflake best practices.
+  - `101-snowflake-streamlit-ui.md`: Modern, performant, and maintainable Streamlit UIs
+  - `102-snowflake-sql-best-practices.md`: Advanced SQL authoring patterns (CTEs, VARIANT extraction, cardinality control).
+  - `103-snowflake-performance-tuning.md`: Profiling, pruning, warehouse sizing, clustering justification.
+  - `104-snowflake-streams-tasks.md`: Incremental pipelines with Streams + Tasks, idempotency, monitoring.
+  - `105-snowflake-cost-governance.md`: Workload isolation, resource monitors, right-sizing, anomaly detection.
+  - `106-snowflake-semantic-views.md`: Layering (staging/core/semantic), naming conventions, and slim views.
+  - `107-snowflake-security-governance.md`: Masking policies, row access, tagging, and role strategies.
+  - `108-snowflake-data-loading.md`: Stages, `COPY INTO`, and Snowpipe best practices.
+  - `109-snowflake-notebooks.md`: Jupyter Notebooks in Snowflake best practices.

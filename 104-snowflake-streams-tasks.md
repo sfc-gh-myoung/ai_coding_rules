@@ -1,6 +1,7 @@
 **Description:** Guidance for building robust, incremental data pipelines using Snowflake Streams and Tasks.
 **AppliesTo:** `**/*.sql`
 **AutoAttach:** false
+**Type:** Agent Requested
 **Version:** 1.0
 **LastUpdated:** 2025-09-10
 

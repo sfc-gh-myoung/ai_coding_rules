@@ -1,6 +1,7 @@
 **Description:** Rules for building reproducible, secure, and maintainable Jupyter Notebooks in the Snowflake environment.
 **AppliesTo:** `**/*.ipynb`, `notebooks/**/*.py`
 **AutoAttach:** false
+**Type:** Agent Requested
 **Version:** 1.0
 **LastUpdated:** 2025-09-10
 
@@ -24,7 +25,7 @@
 
 ## 3. Data & Performance
 - **Requirement:** Never hard-code credentials or sensitive information. Use environment variables or a secrets manager.
-- **Always:** Follow the rules in `10-snowflake-core.md` for performant, cost-effective queries.
+- **Always:** Follow the rules in `100-snowflake-core.md` for performant, cost-effective queries.
 - **Requirement:** For large datasets, push computation to Snowflake via Snowpark DataFrames; avoid large local pulls.
 - **Requirement:** Refactor production-ready code out of the notebook into `.py` or `.sql` files; notebooks serve as reports or exploratory tools.
 

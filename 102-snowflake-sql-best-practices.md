@@ -1,6 +1,7 @@
 **Description:** Advanced SQL authoring patterns for Snowflake, focusing on CTEs, VARIANT extraction, and cardinality control.
 **AppliesTo:** `**/*.sql`
 **AutoAttach:** false
+**Type:** Agent Requested
 **Version:** 1.0
 **LastUpdated:** 2025-09-10
 

@@ -1,6 +1,7 @@
 **Description:** Directives for a professional contribution workflow: commits, pull requests, and changelog discipline.
 **AppliesTo:** `CONTRIBUTING.md`, `README.md`, `.github/**/*`
 **AutoAttach:** false
+**Type:** Agent Requested
 **Version:** 1.0
 **LastUpdated:** 2025-09-10
 

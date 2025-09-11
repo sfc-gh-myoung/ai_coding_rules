@@ -1,6 +1,7 @@
 **Description:** Best practices for loading data into Snowflake using Stages, COPY INTO, and Snowpipe.
 **AppliesTo:** `**/*.sql`
 **AutoAttach:** false
+**Type:** Agent Requested
 **Version:** 1.0
 **LastUpdated:** 2025-09-10
 

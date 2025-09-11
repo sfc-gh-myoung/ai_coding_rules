@@ -1,5 +1,6 @@
 **Description:** The core, universally-applied operating contract for a reliable and safe workflow.
 **AutoAttach:** true
+**Type:** Auto-attach
 **Version:** 6.0
 **LastUpdated:** 2025-09-10
 

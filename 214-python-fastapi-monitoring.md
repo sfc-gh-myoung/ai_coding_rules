@@ -334,7 +334,7 @@ class MetricsMiddleware(BaseHTTPMiddleware):
 ## 5. Integration with Core Rules
 
 ### Development Commands
-- **Always:** Follow Python core rules from `20-python-core.md`.
+- **Always:** Follow Python core rules from `200-python-core.md`.
 - **Always:** Apply linting rules from `21-python-lint-format.md`.
 
 ```bash
@@ -381,4 +381,4 @@ class Settings(BaseSettings):
 - **Redis Async**: https://redis-py.readthedocs.io/en/stable/
 - **Prometheus FastAPI**: https://github.com/trallnag/prometheus-fastapi-instrumentator
 - **FastAPI Core Patterns**: `24-python-fastapi-core.md`
-- **Python Core Rules**: `20-python-core.md`
+- **Python Core Rules**: `200-python-core.md`

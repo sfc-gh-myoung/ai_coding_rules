@@ -121,7 +121,7 @@ check_untyped_defs = true
 - **Always:** Use application factory pattern (see `24-python-fastapi-core.md` for detailed patterns).
 - **Always:** Separate main application module from entry point script.
 - **Always:** Use proper import paths: `from app.main import app` not relative imports.
-- **Always:** Use module execution for uvicorn (following `20-python-core.md` uv patterns).
+- **Always:** Use module execution for uvicorn (following `200-python-core.md` uv patterns).
 
 ### Command-Line Applications
 - **Always:** Use `src/` layout for CLI apps to avoid import conflicts.

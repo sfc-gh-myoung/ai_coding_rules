@@ -1,6 +1,7 @@
 **Description:** Rules for profiling, optimizing, and fine-tuning Snowflake queries and warehouse usage.
 **AppliesTo:** `**/*.sql`
 **AutoAttach:** false
+**Type:** Agent Requested
 **Version:** 1.0
 **LastUpdated:** 2025-09-10
 

@@ -1,6 +1,7 @@
 **Description:** Directives for creating business-oriented queries, reports, and visualizations for a business audience.
 **AppliesTo:** `**/*.sql`, `reports/**/*`
 **AutoAttach:** false
+**Type:** Agent Requested
 **Version:** 1.0
 **LastUpdated:** 2025-09-10
 

@@ -1,6 +1,7 @@
 **Description:** Comprehensive FastAPI best practices for building modern, performant, and maintainable web APIs and applications.
 **AppliesTo:** `**/*.py`, `**/main.py`, `**/routers/**`, `**/models/**`, `**/services/**`, `**/database/**`
 **AutoAttach:** false
+**Type:** Agent Requested
 **Version:** 1.0
 **LastUpdated:** 2025-09-10
 
@@ -33,7 +34,7 @@ Provide comprehensive FastAPI development best practices, organized into focused
 - Integration with Python core rules
 
 ### 🔐 Security and Authentication  
-**Rule:** `25-python-fastapi-security.md`
+**Rule:** `211-python-fastapi-security.md`
 - JWT token authentication
 - Role-based access control
 - Security middleware (CORS, rate limiting)
@@ -60,7 +61,7 @@ uv run uvicorn app.main:app --reload
 # Testing  
 uv run pytest tests/ -v --cov=app
 
-# Linting (following 21-python-lint-format.md)
+# Linting (see 201-python-lint-format.md for complete configuration)
 uvx ruff check . && uvx ruff format .
 ```
 
@@ -356,26 +357,19 @@ def get_settings() -> Settings:
 - **Always:** Follow project setup patterns from `203-python-project-setup.md`.
 
 ### Development Commands
-- **Always:** Follow Python core rules from `200-python-core.md` for all commands.
+- **Always:** Follow Python core rules from `200-python-core.md` for all uv commands.
 - **Always:** Apply linting and formatting rules from `201-python-lint-format.md`.
-
-```bash
-# Development server (see 200-python-core.md for uv usage patterns)
-uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-
-# Testing (see 212-python-fastapi-testing.md for comprehensive testing patterns)
-uv run pytest tests/ -v --cov=app
-
-# Linting and formatting (see 201-python-lint-format.md for complete configuration)
-uvx ruff check .
-uvx ruff format .
-```
+- **FastAPI Specific:** Use `uv run uvicorn app.main:app --reload` for development server.
 
 ## References
-- **FastAPI Documentation**: https://fastapi.tiangolo.com/
-- **Pydantic v2 Documentation**: https://docs.pydantic.dev/latest/
-- **SQLAlchemy Async**: https://docs.sqlalchemy.org/en/20/orm/extensions/asyncio.html
-- **Python Core Rules**: `200-python-core.md`
+
+### External Documentation
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
+- [Pydantic v2 Documentation](https://docs.pydantic.dev/latest/)
+- [SQLAlchemy Async](https://docs.sqlalchemy.org/en/20/orm/extensions/asyncio.html)
+
+### Related Rules
+- **Python Core**: `200-python-core.md`
 - **Python Project Setup**: `203-python-project-setup.md`
 - **FastAPI Security**: `211-python-fastapi-security.md`
 - **FastAPI Testing**: `212-python-fastapi-testing.md`

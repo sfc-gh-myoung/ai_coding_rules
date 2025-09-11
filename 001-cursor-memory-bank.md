@@ -1,5 +1,6 @@
 **Description:** Implementing a project-level memory bank for AI assistants across LLMs and IDEs.
 **AutoAttach:** true
+**Type:** Auto-attach
 **Version:** 1.0
 **LastUpdated:** 2025-09-10
 

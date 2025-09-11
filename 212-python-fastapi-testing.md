@@ -195,11 +195,11 @@ def auth_headers():
 ## 4. Integration with Core Rules
 
 ### Development Commands
-- **Always:** Follow Python core rules from `20-python-core.md` for testing commands.
+- **Always:** Follow Python core rules from `200-python-core.md` for testing commands.
 - **Always:** Apply linting rules from `21-python-lint-format.md` to test code.
 
 ```bash
-# Testing (following 20-python-core.md)
+# Testing (following 200-python-core.md)
 uv run pytest tests/ -v --cov=app
 
 # Test-specific linting
@@ -231,4 +231,4 @@ markers = [
 - **Pytest Documentation**: https://docs.pytest.org/
 - **Pytest-asyncio**: https://pytest-asyncio.readthedocs.io/
 - **FastAPI Core Patterns**: `24-python-fastapi-core.md`
-- **Python Core Rules**: `20-python-core.md`
+- **Python Core Rules**: `200-python-core.md`

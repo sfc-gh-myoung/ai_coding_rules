@@ -249,7 +249,7 @@ spec:
 
 ## Rule Type and Scope
 
-- **Type:** Agent Requested (use `@20-snowflake-spcs.md` to apply)
+- **Type:** Agent Requested (use `@120-snowflake-spcs.md` to apply)
 - **Scope:** Snowflake Snowpark Container Services, containerized applications, microservices
 - **Applies to:** Container specifications, service definitions, compute pool configurations
 - **Validation:** Service deployment testing and performance monitoring

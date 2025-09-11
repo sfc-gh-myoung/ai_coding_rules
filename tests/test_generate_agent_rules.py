@@ -194,9 +194,9 @@ class TestAgentRuleGenerator:
 def test_rule_files_exist():
     """Test that expected rule files exist in the repository."""
     expected_rules = [
-        "00-global-core.md",
-        "10-snowflake-core.md",
-        "20-python-core.md",
+        "000-global-core.md",
+        "100-snowflake-core.md",
+        "200-python-core.md",
         "generate_agent_rules.py",
         "README.md",
     ]

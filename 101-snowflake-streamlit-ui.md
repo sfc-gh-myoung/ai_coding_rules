@@ -1,6 +1,7 @@
 **Description:** Directives for creating modern, performant, and maintainable Streamlit applications for Snowflake.
 **AppliesTo:** `**/*.py`, `streamlit/**/*`
 **AutoAttach:** false
+**Type:** Agent Requested
 **Version:** 1.0
 **LastUpdated:** 2025-09-10
 

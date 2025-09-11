@@ -1,6 +1,7 @@
 **Description:** Directives for creating realistic, deterministic, and effective demo applications, from data generation to narrative and visual clarity.
 **AppliesTo:** `scripts/**/*`, `data/**/*`, `streamlit/**/*`, `demos/**/*`
 **AutoAttach:** false
+**Type:** Agent Requested
 **Version:** 1.0
 **LastUpdated:** 2025-09-10
 

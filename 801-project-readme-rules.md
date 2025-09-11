@@ -1,6 +1,7 @@
 **Description:** Industry-standard README.md structure, content guidelines, and quality assurance patterns for professional project documentation.
 **AppliesTo:** `**/README.md`, `**/readme.md`
 **AutoAttach:** false
+**Type:** Agent Requested
 **Version:** 1.0
 **LastUpdated:** 2025-09-10
 
@@ -267,7 +268,7 @@ Click [here](https://example.com/docs) for more info.
 
 ## Rule Type and Scope
 
-- **Type:** Agent Requested (use `@61-project-readme-rules.md` to apply)
+- **Type:** Agent Requested (see header metadata - use `@801-project-readme-rules.md` to apply)
 - **Scope:** Project documentation, technical writing, developer experience
 - **Applies to:** All README.md files, project documentation
 - **Validation:** Manual review and automated markdown checking

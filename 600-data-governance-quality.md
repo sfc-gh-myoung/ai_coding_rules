@@ -1,6 +1,7 @@
 **Description:** Comprehensive directives for ensuring data quality, governance, and operational reliability throughout the data lifecycle.
 **AppliesTo:** `**/*.py`, `**/*.sql`, `docs/**/*`
 **AutoAttach:** false
+**Type:** Agent Requested
 **Version:** 1.0
 **LastUpdated:** 2025-09-10
 

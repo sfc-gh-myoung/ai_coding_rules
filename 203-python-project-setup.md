@@ -1,6 +1,7 @@
 **Description:** Python project setup and packaging best practices to avoid common build and dependency issues.
 **AppliesTo:** `**/pyproject.toml`, `**/setup.py`, `**/requirements*.txt`, `**/__init__.py`
 **AutoAttach:** false
+**Type:** Agent Requested
 **Version:** 1.0
 **LastUpdated:** 2025-09-10
 
@@ -118,7 +119,7 @@ check_untyped_defs = true
 ## 6. Application-Specific Setup
 
 ### FastAPI Applications
-- **Always:** Use application factory pattern (see `24-python-fastapi-core.md` for detailed patterns).
+- **Always:** Use application factory pattern (see `210-python-fastapi-core.md` for detailed patterns).
 - **Always:** Separate main application module from entry point script.
 - **Always:** Use proper import paths: `from app.main import app` not relative imports.
 - **Always:** Use module execution for uvicorn (following `200-python-core.md` uv patterns).

@@ -1,6 +1,7 @@
 **Description:** YAML and configuration file syntax best practices to prevent parsing errors and ensure reliability.
 **AppliesTo:** `**/*.yml`, `**/*.yaml`, `**/pyproject.toml`, `**/.env*`
 **AutoAttach:** false
+**Type:** Agent Requested
 **Version:** 1.0
 **LastUpdated:** 2025-09-10
 
@@ -75,7 +76,7 @@ cmds:
 - **Always:** Use proper TOML section headers: `[tool.ruff.lint]`
 - **Always:** Group related configurations logically.
 - **Always:** Use arrays for multiple values: `select = ["E", "W", "F"]`
-- **Reference:** See `21-python-lint-format.md` for complete Ruff configuration patterns.
+- **Reference:** See `201-python-lint-format.md` for complete Ruff configuration patterns.
 
 ## 5. Common Parsing Errors and Solutions
 

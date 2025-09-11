@@ -63,18 +63,21 @@ task format
 
 ### File Naming Convention
 
-Follow the established numbering system:
+Follow the established 3-digit numbering system:
 
-- **00-09**: Core foundation rules
-- **10-19**: Data platform rules (Snowflake)
-- **20-29**: Software engineering rules (Python)
-- **30-39**: Data science and analytics
-- **40-49**: Data governance
-- **50-59**: Business intelligence
-- **60-79**: Project management
-- **80-89**: Demo and synthetic data
+- **000-099**: Core foundation rules
+- **100-199**: Data platform rules (Snowflake)
+- **200-299**: Software engineering rules (Python)
+  - **210-219**: FastAPI framework subsection
+- **300-399**: Software engineering rules (JavaScript/TypeScript)
+- **400-499**: Software engineering rules (Go)
+- **500-599**: Data science and analytics
+- **600-699**: Data governance
+- **700-799**: Business intelligence
+- **800-899**: Project management
+- **900-999**: Demo and synthetic data
 
-Use format: `XX-topic-description.md`
+Use format: `XXX-topic-description.md` (3-digit number)
 
 ### Rule Structure
 

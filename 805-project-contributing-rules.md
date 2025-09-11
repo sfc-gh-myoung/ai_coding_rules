@@ -18,7 +18,7 @@
 - **Requirement:** SQL must use uppercase keywords and explicit identifiers (avoid `SELECT *`).
 - **Always:** New behavior should include at least one happy-path test and one negative/edge case test.
 - **Requirement:** Test function names follow `test_<function>_when_<condition>_should_<result>`.
-- **Always:** Reference specialized rules as needed (e.g., `20-python-core.md`).
+- **Always:** Reference specialized rules as needed (e.g., `200-python-core.md`).
 
 ## 3. Pull Requests & Branching
 - **Requirement:** PR titles must follow Conventional Commits.

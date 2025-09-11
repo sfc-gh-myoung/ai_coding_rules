@@ -335,11 +335,11 @@ volumes:
 ## 3. Integration with Core Rules
 
 ### Development Commands
-- **Always:** Follow Python core rules from `20-python-core.md` for all commands.
+- **Always:** Follow Python core rules from `200-python-core.md` for all commands.
 - **Always:** Apply linting rules from `21-python-lint-format.md`.
 
 ```bash
-# Development server (following 20-python-core.md)
+# Development server (following 200-python-core.md)
 uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 # Production deployment

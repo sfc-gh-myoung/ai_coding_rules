@@ -1,6 +1,7 @@
 **Description:** FastAPI testing strategies with TestClient, pytest-asyncio, and comprehensive API testing patterns.
 **AppliesTo:** `**/tests/**`, `**/test_*.py`, `**/conftest.py`
 **AutoAttach:** false
+**Type:** Agent Requested
 **Version:** 1.0
 **LastUpdated:** 2025-09-10
 
@@ -196,16 +197,9 @@ def auth_headers():
 
 ### Development Commands
 - **Always:** Follow Python core rules from `200-python-core.md` for testing commands.
-- **Always:** Apply linting rules from `21-python-lint-format.md` to test code.
+- **Always:** Apply linting rules from `201-python-lint-format.md` to test code.
 
-```bash
-# Testing (following 200-python-core.md)
-uv run pytest tests/ -v --cov=app
-
-# Test-specific linting
-uvx ruff check tests/
-uvx ruff format tests/
-```
+# See 200-python-core.md for complete uv command patterns
 
 ### Test Configuration
 ```toml
@@ -230,5 +224,5 @@ markers = [
 - **FastAPI Testing**: https://fastapi.tiangolo.com/tutorial/testing/
 - **Pytest Documentation**: https://docs.pytest.org/
 - **Pytest-asyncio**: https://pytest-asyncio.readthedocs.io/
-- **FastAPI Core Patterns**: `24-python-fastapi-core.md`
+- **FastAPI Core Patterns**: `210-python-fastapi-core.md`
 - **Python Core Rules**: `200-python-core.md`

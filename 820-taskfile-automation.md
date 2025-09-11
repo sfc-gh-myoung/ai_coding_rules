@@ -1,6 +1,7 @@
 **Description:** Directives for creating, modifying, and maintaining project automation using `Taskfile.yml`.
 **AppliesTo:** `**/*.yml`, `Taskfile.yml`
 **AutoAttach:** false
+**Type:** Agent Requested
 **Version:** 1.0
 **LastUpdated:** 2025-09-10
 

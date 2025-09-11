@@ -332,7 +332,7 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed gu
 
 1. **Fork** the repository
 2. **Create** a feature branch: `git checkout -b feature/my-new-rule`
-3. **Follow** the rule authoring guidelines in `02-rules-governance.md`
+3. **Follow** the rule authoring guidelines in `002-cursor-rules-governance.md`
 4. **Test** your changes: `task lint` and `task rule:cursor --dry-run`
 5. **Submit** a pull request
 

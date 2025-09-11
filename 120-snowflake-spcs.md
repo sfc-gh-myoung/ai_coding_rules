@@ -1,6 +1,7 @@
 **Description:** Comprehensive best practices for Snowflake Snowpark Container Services (SPCS), covering containerized application deployment, management, and optimization.
 **AppliesTo:** `**/*.yaml`, `**/*.yml`, `**/*.sql`, `**/*.py`, `**/Dockerfile*`
 **AutoAttach:** false
+**Type:** Agent Requested
 **Version:** 1.0
 **LastUpdated:** 2025-09-10
 
@@ -249,7 +250,7 @@ spec:
 
 ## Rule Type and Scope
 
-- **Type:** Agent Requested (use `@120-snowflake-spcs.md` to apply)
+- **Type:** Agent Requested (see header metadata - use `@120-snowflake-spcs.md` to apply)
 - **Scope:** Snowflake Snowpark Container Services, containerized applications, microservices
 - **Applies to:** Container specifications, service definitions, compute pool configurations
 - **Validation:** Service deployment testing and performance monitoring

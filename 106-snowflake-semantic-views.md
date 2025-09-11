@@ -1,6 +1,7 @@
 **Description:** Rules for creating a structured and maintainable data model using a layered view strategy.
 **AppliesTo:** `**/*.sql`
 **AutoAttach:** false
+**Type:** Agent Requested
 **Version:** 1.0
 **LastUpdated:** 2025-09-10
 

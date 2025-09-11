@@ -1,6 +1,7 @@
 **Description:** FastAPI security patterns for authentication, authorization, CORS, and security middleware.
 **AppliesTo:** `**/auth*.py`, `**/security*.py`, `**/middleware*.py`, `**/routers/**`, `**/services/**`
 **AutoAttach:** false
+**Type:** Agent Requested
 **Version:** 1.0
 **LastUpdated:** 2025-09-10
 
@@ -437,12 +438,16 @@ def create_secure_app() -> FastAPI:
 ```
 
 ## References
-- **FastAPI Security**: https://fastapi.tiangolo.com/tutorial/security/
-- **OAuth2 with JWT**: https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/
-- **CORS**: https://fastapi.tiangolo.com/tutorial/cors/
-- **Passlib Documentation**: https://passlib.readthedocs.io/
-- **Python-JOSE**: https://python-jose.readthedocs.io/
-- **Pydantic v2 Validators**: https://docs.pydantic.dev/latest/concepts/validators/
-- **FastAPI Core Patterns**: `24-python-fastapi-core.md`
-- **FastAPI Testing**: `26-python-fastapi-testing.md`
-- **FastAPI Deployment**: `27-python-fastapi-deployment.md`
+
+### External Documentation
+- [FastAPI Security](https://fastapi.tiangolo.com/tutorial/security/)
+- [OAuth2 with JWT](https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/)
+- [CORS](https://fastapi.tiangolo.com/tutorial/cors/)
+- [Passlib Documentation](https://passlib.readthedocs.io/)
+- [Python-JOSE](https://python-jose.readthedocs.io/)
+- [Pydantic v2 Validators](https://docs.pydantic.dev/latest/concepts/validators/)
+
+### Related Rules
+- **FastAPI Core**: `210-python-fastapi-core.md`
+- **FastAPI Testing**: `212-python-fastapi-testing.md`
+- **FastAPI Deployment**: `213-python-fastapi-deployment.md`

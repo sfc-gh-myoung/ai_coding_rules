@@ -1,5 +1,6 @@
 **Description:** How to create new `.md` project rule files for AI coding assistants (editor- and model-agnostic).
 **AutoAttach:** true
+**Type:** Auto-attach
 **Version:** 1.0
 **LastUpdated:** 2025-09-10
 
@@ -15,7 +16,7 @@
 - **Requirement:** Keep each rule file concise and focused (target 150–300 lines; max 500 lines).
 - **Recommended:** Split large topics into multiple composable rules.
 - **Requirement:** Avoid duplication across rules; reference other rules or `@path/to/file` instead.
-- **Always:** For all agent interactions, follow the core rules in `00-global-core.md`.
+- **Always:** For all agent interactions, follow the core rules in `000-global-core.md`.
 
 ## Rule Scoping and Type
 - **Requirement:** Only the global core rule should auto-attach universally.

@@ -1,6 +1,7 @@
 **Description:** FastAPI health checks, logging, monitoring, and performance optimization patterns.
 **AppliesTo:** `**/health.py`, `**/logging/**`, `**/middleware/**`, `**/cache/**`
 **AutoAttach:** false
+**Type:** Agent Requested
 **Version:** 1.0
 **LastUpdated:** 2025-09-10
 
@@ -335,7 +336,7 @@ class MetricsMiddleware(BaseHTTPMiddleware):
 
 ### Development Commands
 - **Always:** Follow Python core rules from `200-python-core.md`.
-- **Always:** Apply linting rules from `21-python-lint-format.md`.
+- **Always:** Apply linting rules from `201-python-lint-format.md`.
 
 ```bash
 # Health check testing
@@ -380,5 +381,5 @@ class Settings(BaseSettings):
 - **Python Logging**: https://docs.python.org/3/library/logging.html
 - **Redis Async**: https://redis-py.readthedocs.io/en/stable/
 - **Prometheus FastAPI**: https://github.com/trallnag/prometheus-fastapi-instrumentator
-- **FastAPI Core Patterns**: `24-python-fastapi-core.md`
+- **FastAPI Core Patterns**: `210-python-fastapi-core.md`
 - **Python Core Rules**: `200-python-core.md`

@@ -54,7 +54,7 @@ Provide comprehensive FastAPI development best practices, organized into focused
 
 ### Development Workflow
 ```bash
-# Setup (following 20-python-core.md)
+# Setup (following 200-python-core.md)
 uv run uvicorn app.main:app --reload
 
 # Testing  
@@ -350,23 +350,23 @@ def get_settings() -> Settings:
 ## 6. Integration with Python Core Rules
 
 ### Compliance with Existing Rules
-- **Always:** Follow all directives from `20-python-core.md` for Python best practices.
+- **Always:** Follow all directives from `200-python-core.md` for Python best practices.
 - **Always:** Use `uv run uvicorn` instead of bare `uvicorn` for development.
-- **Always:** Apply linting and formatting rules from `21-python-lint-format.md`.
-- **Always:** Follow project setup patterns from `23-python-project-setup.md`.
+- **Always:** Apply linting and formatting rules from `201-python-lint-format.md`.
+- **Always:** Follow project setup patterns from `203-python-project-setup.md`.
 
 ### Development Commands
-- **Always:** Follow Python core rules from `20-python-core.md` for all commands.
-- **Always:** Apply linting and formatting rules from `21-python-lint-format.md`.
+- **Always:** Follow Python core rules from `200-python-core.md` for all commands.
+- **Always:** Apply linting and formatting rules from `201-python-lint-format.md`.
 
 ```bash
-# Development server (see 20-python-core.md for uv usage patterns)
+# Development server (see 200-python-core.md for uv usage patterns)
 uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
-# Testing (see 26-python-fastapi-testing.md for comprehensive testing patterns)
+# Testing (see 212-python-fastapi-testing.md for comprehensive testing patterns)
 uv run pytest tests/ -v --cov=app
 
-# Linting and formatting (see 21-python-lint-format.md for complete configuration)
+# Linting and formatting (see 201-python-lint-format.md for complete configuration)
 uvx ruff check .
 uvx ruff format .
 ```
@@ -375,9 +375,9 @@ uvx ruff format .
 - **FastAPI Documentation**: https://fastapi.tiangolo.com/
 - **Pydantic v2 Documentation**: https://docs.pydantic.dev/latest/
 - **SQLAlchemy Async**: https://docs.sqlalchemy.org/en/20/orm/extensions/asyncio.html
-- **Python Core Rules**: `20-python-core.md`
-- **Python Project Setup**: `23-python-project-setup.md`
-- **FastAPI Security**: `25-python-fastapi-security.md`
-- **FastAPI Testing**: `26-python-fastapi-testing.md`
-- **FastAPI Deployment**: `27-python-fastapi-deployment.md`
-- **FastAPI Monitoring**: `28-python-fastapi-monitoring.md`
+- **Python Core Rules**: `200-python-core.md`
+- **Python Project Setup**: `203-python-project-setup.md`
+- **FastAPI Security**: `211-python-fastapi-security.md`
+- **FastAPI Testing**: `212-python-fastapi-testing.md`
+- **FastAPI Deployment**: `213-python-fastapi-deployment.md`
+- **FastAPI Monitoring**: `214-python-fastapi-monitoring.md`

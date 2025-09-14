@@ -131,6 +131,9 @@ The following best practices apply to all AI coding assistants and development e
 - **`230-python-pydantic.md`** — Pydantic data validation (models, settings, serialization, FastAPI integration)
 - **`240-python-faker.md`** — Faker data generation (providers, localization, testing integration, performance)
 
+#### Web Frameworks (250-259)
+- **`250-python-flask.md`** — Flask web framework (application structure, blueprints, security, database integration, deployment)
+
 ### Software Engineering - Shell Scripts (300-399)
 
 #### Bash Scripting (300-309)

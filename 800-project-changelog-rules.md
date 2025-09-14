@@ -16,7 +16,7 @@
 - **Rule:** Use consistent scope patterns aligned with project structure:
   - Core: `core`, `governance`, `memory-bank`
   - Snowflake: `snowflake`, `sql`, `streamlit`, `spcs`
-  - Python: `python`, `fastapi`, `lint`, `setup`, `cli`, `typer`
+  - Python: `python`, `fastapi`, `lint`, `setup`, `cli`, `typer`, `pydantic`, `faker`
   - Shell: `bash`, `zsh`, `shell`
   - Project: `changelog`, `readme`, `contributing`, `taskfile`
   - Analytics: `data-science`, `governance`, `business`
@@ -41,6 +41,15 @@ feat(cli): add progress bars for long-running operations
 feat(typer): implement async command support
 fix(cli): handle keyboard interrupts gracefully
 docs(typer): add CLI testing examples
+```
+
+### Data Validation and Testing Changes
+```
+feat(pydantic): add comprehensive model validation patterns
+feat(faker): implement localized data generation providers
+fix(pydantic): resolve serialization issues with nested models
+test(faker): add performance benchmarks for large datasets
+docs(pydantic): add FastAPI integration examples
 ```
 
 ### Rule File Changes

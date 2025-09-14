@@ -2,8 +2,8 @@
 **AppliesTo:** `CHANGELOG.md`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-09-10
+**Version:** 1.1
+**LastUpdated:** 2025-09-14
 
 # Changelog Governance Directives
 
@@ -13,6 +13,13 @@
 - **Requirement:** On release, move entries from Unreleased to `## [x.y.z] - YYYY-MM-DD`.
 - **Requirement:** Group entries under: Added/Features, Fixed/Bugfixes, Changed/Refactored, Documentation/Content, Styling/UI, Chore/Tooling, Deployment/CI, Data/Enhancements.
 - **Requirement:** Each entry is a single line in Conventional Commit format: `<type>(<scope>): <summary>`.
+- **Rule:** Use consistent scope patterns aligned with project structure:
+  - Core: `core`, `governance`, `memory-bank`
+  - Snowflake: `snowflake`, `sql`, `streamlit`, `spcs`
+  - Python: `python`, `fastapi`, `lint`, `setup`, `cli`, `typer`
+  - Shell: `bash`, `zsh`, `shell`
+  - Project: `changelog`, `readme`, `contributing`, `taskfile`
+  - Analytics: `data-science`, `governance`, `business`
 - **Always:** Collapse iterative micro-fixes into one meaningful entry.
 
 ## 2. Quality and Content
@@ -26,5 +33,29 @@
 - **Always:** On release, finalize Unreleased, add the new version heading, and move entries.
 - **Always:** If available, validate the structure with `scripts/validate_changelog_structure.py`.
 
-## 4. Documentation
+## 4. Scope Examples for New Domains
+
+### CLI Application Changes
+```
+feat(cli): add progress bars for long-running operations
+feat(typer): implement async command support
+fix(cli): handle keyboard interrupts gracefully
+docs(typer): add CLI testing examples
+```
+
+### Rule File Changes
+```
+feat(rules): add comprehensive Typer CLI development patterns
+docs(contributing): update with new numbering scheme patterns
+refactor(rules): split oversized bash rule into focused components
+```
+
+### Cross-Domain Changes
+```
+feat(python,cli): integrate Typer with uv project setup patterns
+chore(rules): update all Python rules for CLI consistency
+```
+
+## 5. Documentation
 - **Always:** Reference Conventional Commits: https://www.conventionalcommits.org/en/v1.0.0/#specification
+- **Always:** Follow contributing guidelines: `@805-project-contributing-rules.md`

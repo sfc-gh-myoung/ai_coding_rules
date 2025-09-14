@@ -8,7 +8,8 @@
 
 This repository provides a comprehensive collection of engineering rules designed to work seamlessly with AI coding assistants including Claude, ChatGPT, GitHub Copilot, Cursor, and others. The rules cover everything from Python and SQL best practices to data engineering, analytics, and project governance.
 
-This project was inspired by: [how-to-add-cline-memory-bank-feature-to-your-cursor](https://forum.cursor.com/t/how-to-add-cline-memory-bank-feature-to-your-cursor/67868) and [cline memory bank](https://docs.cline.bot/prompting/cline-memory-bank)
+This project was inspired, in part, by: [how-to-add-cline-memory-bank-feature-to-your-cursor](https://forum.cursor.com/t/how-to-add-cline-memory-bank-feature-to-your-cursor/67868) and [cline memory bank](https://docs.cline.bot/prompting/cline-memory-bank)
+
 
 ## Quick Start
 
@@ -123,10 +124,17 @@ The following best practices apply to all AI coding assistants and development e
 - **`213-python-fastapi-deployment.md`** — FastAPI deployment and documentation (Docker, ASGI servers, OpenAPI customization)
 - **`214-python-fastapi-monitoring.md`** — FastAPI monitoring and performance (health checks, logging, caching, observability)
 
-### Software Engineering - Bash Scripts (300-399)
+### Software Engineering - Shell Scripts (300-399)
+
+#### Bash Scripting (300-309)
 - **`300-bash-scripting-core.md`** — Foundation bash scripting patterns (script structure, variables, functions, essential error handling)
 - **`301-bash-security.md`** — Security best practices (input validation, path security, permissions, credential management)
 - **`302-bash-testing-tooling.md`** — Testing frameworks, debugging, ShellCheck integration, and CI/CD workflows
+
+#### Zsh Scripting (310-319)
+- **`310-zsh-scripting-core.md`** — Foundation zsh patterns (unique features, advanced arrays, parameter expansion, globbing)
+- **`311-zsh-advanced-features.md`** — Advanced zsh capabilities (completion system, hooks, modules, performance optimization)
+- **`312-zsh-compatibility.md`** — Cross-shell compatibility (bash migration, portable scripting, mixed environments)
 
 ### Data Science & Analytics (500-599)
 - **`500-data-science-analytics.md`** — ML lifecycle, feature engineering, and analytics

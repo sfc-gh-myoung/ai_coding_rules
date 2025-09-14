@@ -127,6 +127,10 @@ The following best practices apply to all AI coding assistants and development e
 #### CLI Applications (220-229)
 - **`220-python-typer-cli.md`** — Typer CLI development (setup, design patterns, testing, async commands, packaging)
 
+#### Data Validation & Testing (230-249)
+- **`230-python-pydantic.md`** — Pydantic data validation (models, settings, serialization, FastAPI integration)
+- **`240-python-faker.md`** — Faker data generation (providers, localization, testing integration, performance)
+
 ### Software Engineering - Shell Scripts (300-399)
 
 #### Bash Scripting (300-309)

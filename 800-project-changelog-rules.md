@@ -16,7 +16,7 @@
 - **Rule:** Use consistent scope patterns aligned with project structure:
   - Core: `core`, `governance`, `memory-bank`
   - Snowflake: `snowflake`, `sql`, `streamlit`, `spcs`
-  - Python: `python`, `fastapi`, `lint`, `setup`, `cli`, `typer`, `pydantic`, `faker`
+  - Python: `python`, `fastapi`, `lint`, `setup`, `cli`, `typer`, `pydantic`, `faker`, `flask`
   - Shell: `bash`, `zsh`, `shell`
   - Project: `changelog`, `readme`, `contributing`, `taskfile`
   - Analytics: `data-science`, `governance`, `business`
@@ -50,6 +50,15 @@ feat(faker): implement localized data generation providers
 fix(pydantic): resolve serialization issues with nested models
 test(faker): add performance benchmarks for large datasets
 docs(pydantic): add FastAPI integration examples
+```
+
+### Web Framework Changes
+```
+feat(flask): add application factory pattern with blueprints
+feat(flask): implement comprehensive security middleware
+fix(flask): resolve CSRF token validation in AJAX requests
+perf(flask): optimize database query patterns in services
+docs(flask): add deployment and production configuration examples
 ```
 
 ### Rule File Changes

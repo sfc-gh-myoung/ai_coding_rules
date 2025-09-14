@@ -124,6 +124,9 @@ The following best practices apply to all AI coding assistants and development e
 - **`213-python-fastapi-deployment.md`** — FastAPI deployment and documentation (Docker, ASGI servers, OpenAPI customization)
 - **`214-python-fastapi-monitoring.md`** — FastAPI monitoring and performance (health checks, logging, caching, observability)
 
+#### CLI Applications (220-229)
+- **`220-python-typer-cli.md`** — Typer CLI development (setup, design patterns, testing, async commands, packaging)
+
 ### Software Engineering - Shell Scripts (300-399)
 
 #### Bash Scripting (300-309)

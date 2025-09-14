@@ -123,16 +123,10 @@ The following best practices apply to all AI coding assistants and development e
 - **`213-python-fastapi-deployment.md`** — FastAPI deployment and documentation (Docker, ASGI servers, OpenAPI customization)
 - **`214-python-fastapi-monitoring.md`** — FastAPI monitoring and performance (health checks, logging, caching, observability)
 
-### Software Engineering - JavaScript (300-399)
-*Future expansion area for JavaScript/TypeScript rules*
-- **`300-javascript-core.md`** — Core JavaScript/TypeScript patterns (planned)
-- **`310-javascript-react-core.md`** — React framework patterns (planned)
-- **`320-javascript-node-core.md`** — Node.js server patterns (planned)
-
-### Software Engineering - Go (400-499)
-*Future expansion area for Go language rules*
-- **`400-go-core.md`** — Core Go programming patterns (planned)
-- **`410-go-web-frameworks.md`** — Go web framework patterns (planned)
+### Software Engineering - Bash Scripts (300-399)
+- **`300-bash-scripting-core.md`** — Foundation bash scripting patterns (script structure, variables, functions, essential error handling)
+- **`301-bash-security.md`** — Security best practices (input validation, path security, permissions, credential management)
+- **`302-bash-testing-tooling.md`** — Testing frameworks, debugging, ShellCheck integration, and CI/CD workflows
 
 ### Data Science & Analytics (500-599)
 - **`500-data-science-analytics.md`** — ML lifecycle, feature engineering, and analytics
@@ -443,9 +437,9 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 
 - [x] **FastAPI Framework Support** — Comprehensive FastAPI patterns (Completed)
 - [x] **3-Digit Numbering System** — Scalable rule organization with conflict resolution (Completed)
-- [ ] **Multi-language Support** — Rules for Go (400+), JavaScript (300+), Rust
+- [ ] **Multi-language Support** — Rules for Go, JavaScript/TypeScript, Rust
 - [ ] **Cloud Platform Rules** — AWS, Azure, GCP best practices  
-- [ ] **Framework-Specific Rules** — Django, React patterns
+- [ ] **Framework-Specific Rules** — Django, React, Vue patterns
 - [ ] **IDE Plugin Development** — Native integrations beyond file generation
 - [ ] **Community Rule Registry** — User-contributed specialized rules
 

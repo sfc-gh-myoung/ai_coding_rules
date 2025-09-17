@@ -2,8 +2,8 @@
 **AppliesTo:** `notebooks/**/*.ipynb`, `streamlit/**/*`, `models/**/*`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-09-10
+**Version:** 1.2
+**LastUpdated:** 2025-09-16
 
 # Data Science & Analytics Principles
 
@@ -49,3 +49,11 @@ Establish comprehensive rules for performing data science and analytics on Snowf
 - **Requirement:** Ensure visualizations are clear and purposeful; avoid clutter or misleading designs.
 - **Always:** Include clear titles, labeled axes, and legends where necessary.
 - **Always:** Choose the right chart type (e.g., line for trends, bar for comparisons).
+
+## References
+
+### External Documentation
+- [Snowflake for Data Science](https://docs.snowflake.com/en/user-guide/data-science) - Data science workflows and best practices in Snowflake
+- [Snowflake Cortex AI](https://docs.snowflake.com/en/user-guide/snowflake-cortex) - AI and machine learning capabilities in Snowflake
+- [Snowflake ML Documentation](https://docs.snowflake.com/en/developer-guide/snowflake-ml/overview) - Machine learning development guide
+- [Data Visualization Best Practices](https://www.tableau.com/learn/articles/data-visualization) - Principles of effective data visualization

@@ -221,8 +221,12 @@ markers = [
 ```
 
 ## References
-- **FastAPI Testing**: https://fastapi.tiangolo.com/tutorial/testing/
-- **Pytest Documentation**: https://docs.pytest.org/
-- **Pytest-asyncio**: https://pytest-asyncio.readthedocs.io/
-- **FastAPI Core Patterns**: `210-python-fastapi-core.md`
-- **Python Core Rules**: `200-python-core.md`
+
+### External Documentation
+- [FastAPI Testing Guide](https://fastapi.tiangolo.com/tutorial/testing/) - Official testing patterns with TestClient and async support
+- [Pytest Documentation](https://docs.pytest.org/) - Comprehensive testing framework guide and API reference
+- [Pytest-asyncio Plugin](https://pytest-asyncio.readthedocs.io/) - Async test support and fixture management
+
+### Internal References
+- `210-python-fastapi-core.md` - Core FastAPI development patterns
+- `200-python-core.md` - Python development fundamentals

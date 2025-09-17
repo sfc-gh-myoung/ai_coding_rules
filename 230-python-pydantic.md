@@ -476,12 +476,13 @@ class TestUserModel:
 - **`@210-python-fastapi-core.md`** - FastAPI integration patterns
 - **`@800-project-changelog-rules.md`** - Changelog discipline for data model changes
 
-## References and Resources
+## References
 
-- [Pydantic Documentation](https://docs.pydantic.dev/latest/) - Official Pydantic documentation
-- [Pydantic Settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) - Settings management
-- [FastAPI with Pydantic](https://fastapi.tiangolo.com/tutorial/body/) - FastAPI integration
-- [Pydantic Performance](https://docs.pydantic.dev/latest/concepts/performance/) - Performance optimization
+### External Documentation
+- [Pydantic Documentation](https://docs.pydantic.dev/latest/) - Complete guide to data validation and serialization
+- [Pydantic Settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) - Configuration management and environment variables
+- [FastAPI with Pydantic](https://fastapi.tiangolo.com/tutorial/body/) - Request/response models and API integration
+- [Pydantic Performance](https://docs.pydantic.dev/latest/concepts/performance/) - Optimization techniques and benchmarking
 
 ## Rule Type and Scope
 

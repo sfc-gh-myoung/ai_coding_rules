@@ -10,6 +10,12 @@
 ## Purpose
 Establish monitoring, logging, and performance optimization patterns for FastAPI applications including health checks, structured logging, caching, and observability.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** FastAPI health checks, logging, monitoring, and performance optimization patterns
+
+
 ## Key Principles
 1. **Health Monitoring** - Implement comprehensive health checks for load balancers and orchestration
 2. **Structured Logging** - Use JSON logging with correlation IDs for distributed tracing
@@ -379,11 +385,11 @@ class Settings(BaseSettings):
 ## References
 
 ### External Documentation
-- [FastAPI Middleware Guide](https://fastapi.tiangolo.com/tutorial/middleware/) - Custom middleware, CORS, and request processing
-- [Python Logging Documentation](https://docs.python.org/3/library/logging.html) - Structured logging, handlers, and formatters
+- [FastAPI Middleware Guide](https://fastapi.tiangolo.com/tutorial/middleware/) - Custom middleware, CORS, and request processing                                                                                       
+- [Python Logging Documentation](https://docs.python.org/3/library/logging.html) - Structured logging, handlers, and formatters                                                                                         
 - [Redis Python Async](https://redis-py.readthedocs.io/en/stable/) - Async Redis operations and connection pooling
-- [Prometheus FastAPI Instrumentator](https://github.com/trallnag/prometheus-fastapi-instrumentator) - Metrics collection and monitoring integration
 
-### Internal References
-- `210-python-fastapi-core.md` - Core FastAPI development patterns
-- **Python Core Rules**: `200-python-core.md`
+### Related Rules
+- **FastAPI Core**: `210-python-fastapi-core.md`
+- **FastAPI Deployment**: `213-python-fastapi-deployment.md`
+- **Python Core**: `200-python-core.md`

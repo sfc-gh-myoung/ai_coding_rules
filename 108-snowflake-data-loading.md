@@ -10,6 +10,12 @@
 ## Purpose
 Provide comprehensive best practices for efficiently loading data into Snowflake using Stages, COPY INTO, and Snowpipe, optimizing for performance, reliability, and cost-effectiveness in both batch and streaming scenarios.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** Snowflake data loading with Stages, COPY INTO, and Snowpipe for bulk and streaming ingestion
+
+
 ## Key Principles
 - Stage files first; use dedicated stages per source; manage with PUT/GET for internal stages.
 - Use COPY INTO for bulk loads; Snowpipe for continuous ingestion; be explicit about ON_ERROR and file formats.
@@ -32,6 +38,11 @@ Provide comprehensive best practices for efficiently loading data into Snowflake
 ## References
 
 ### External Documentation
-- [COPY INTO Command](https://docs.snowflake.com/en/sql-reference/sql/copy-into-table) - Bulk data loading syntax and options
-- [Snowpipe Introduction](https://docs.snowflake.com/en/user-guide/data-load-snowpipe-intro) - Continuous data ingestion and automation
+- [COPY INTO Command](https://docs.snowflake.com/en/sql-reference/sql/copy-into-table) - Bulk data loading syntax and options                                                                                           
+- [Snowpipe Introduction](https://docs.snowflake.com/en/user-guide/data-load-snowpipe-intro) - Continuous data ingestion and automation                                                                                 
 - [Data Loading Stages](https://docs.snowflake.com/en/user-guide/data-load-stages-intro) - Internal and external stage management
+
+### Related Rules
+- **Snowflake Core**: `100-snowflake-core.md`
+- **Streams and Tasks**: `104-snowflake-streams-tasks.md`
+- **Performance Tuning**: `103-snowflake-performance-tuning.md`

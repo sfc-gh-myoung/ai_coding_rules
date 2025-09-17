@@ -10,6 +10,12 @@
 ## Purpose
 Establish comprehensive bash scripting security practices covering input validation, path security, permissions, and secure coding patterns to prevent vulnerabilities and ensure safe script execution.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** Shell script security, input validation, access control
+
+
 ## 1. Input Validation and Sanitization
 
 ### User Input Validation
@@ -449,14 +455,10 @@ test_security() {
 ## References
 
 ### External Documentation
-- [OWASP Command Injection Prevention](https://owasp.org/www-community/attacks/Command_Injection) - Security vulnerabilities and mitigation strategies
+- [OWASP Command Injection Prevention](https://owasp.org/www-community/attacks/Command_Injection) - Security vulnerabilities and mitigation strategies                                                                  
 - [CIS Security Controls](https://www.cisecurity.org/controls/) - Industry security configuration standards
 - [NIST Cybersecurity Framework](https://www.nist.gov/cyberframework) - Comprehensive security risk management
-- [Bash Security Guide](https://mywiki.wooledge.org/BashGuide/Practices#Security_considerations) - Shell scripting security best practices
 
-## Rule Type and Scope
-
-- **Type:** Agent Requested (use `@301-bash-security.md` to apply)
-- **Scope:** Shell script security, input validation, access control
-- **Applies to:** Security-critical bash scripts, system administration scripts
-- **Validation:** Security code review, penetration testing
+### Related Rules
+- **Bash Core**: `300-bash-scripting-core.md`
+- **Bash Testing**: `302-bash-testing-tooling.md`

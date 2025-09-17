@@ -7,6 +7,9 @@
 
 # Snowflake Notebook Directives
 
+## Purpose
+Establish best practices for building reproducible, secure, and maintainable Jupyter Notebooks within the Snowflake environment, ensuring deterministic execution, proper state management, and seamless transition to production code.
+
 ## TL;DR
 - Deterministic notebooks; one environment with pinned versions; imports centralized at top.
 - Parameterize runs; narrative in Markdown cells; keep code cells focused and avoid hidden state.

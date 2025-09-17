@@ -7,6 +7,9 @@
 
 # Python Faker Data Generation Best Practices
 
+## Purpose
+Establish comprehensive patterns for generating realistic test data using Python's Faker library, covering setup, providers, localization, testing integration, and performance optimization to create maintainable and deterministic test suites.
+
 ## 1. Installation and Setup
 
 ### Dependencies and Environment

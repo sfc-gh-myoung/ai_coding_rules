@@ -9,6 +9,13 @@
 ## Purpose
 Establish the foundational operating contract for all AI coding assistants, ensuring reliable, safe, and consistent workflows through mode-based operations, task confirmation protocols, and professional communication standards.
 
+## Key Principles
+- Plan mode (read-only) → user approval → Act mode (file modifications)
+- Always confirm task list before making changes; user must type "ACT" to authorize
+- Professional communication; concise, code-first solutions; minimal surgical changes
+- Maintain project intelligence through memory bank and rule documentation
+- Update README when modifying project structure or workflows
+
 ## CRITICAL: CONFIRMATION & SAFETY
 
 ### Mode-Based Workflow

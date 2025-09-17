@@ -18,12 +18,35 @@
 - You will print `# Mode: PLAN` when in plan mode and `# Mode: ACT` when in act mode at the beginning of each response.
 - Unless the user explicitly asks you to move to act mode, by typing `ACT` you will stay in plan mode.
 - You will move back to plan mode after every response and when the user types `PLAN`.
-- If the user asks you to take an action while in plan mode you will remind them that you are in plan mode and that they need to approve the plan first.
+- **CRITICAL:** In PLAN mode, you are FORBIDDEN from using ANY file-modifying tools including but not limited to: `write`, `search_replace`, `MultiEdit`, `edit_notebook`, `delete_file`, or any tool that creates, modifies, or deletes files.
+- **CRITICAL:** In PLAN mode, you may ONLY use read-only tools: `read_file`, `list_dir`, `grep`, `codebase_search`, `glob_file_search`, `run_terminal_cmd` (read-only commands only), and `todo_write` for planning purposes.
+- If the user asks you to take an action while in plan mode you will remind them that you are in PLAN mode and that they need to type "ACT" to approve the plan first.
 - When in plan mode always output the full updated plan in every response.
 
+### Tool Usage by Mode
+- **PLAN Mode - READ ONLY:**
+  - ✅ `read_file`, `list_dir`, `grep`, `codebase_search`, `glob_file_search`
+  - ✅ `run_terminal_cmd` (read-only commands like `ls`, `cat`, `grep` only)
+  - ✅ `todo_write` (for planning and task management)
+  - ✅ `web_search`, `fetch_rules` (information gathering)
+  - ❌ **FORBIDDEN:** `write`, `search_replace`, `MultiEdit`, `edit_notebook`, `delete_file`
+  - ❌ **FORBIDDEN:** Any `run_terminal_cmd` that modifies files or system state
+
+- **ACT Mode - FULL ACCESS:**
+  - ✅ All tools available after user types "ACT"
+  - ✅ File modifications, creations, deletions permitted
+  - ✅ System-modifying terminal commands permitted
+
 ### Task Confirmation
-- **Mandatory:** Always ask for explicit user confirmation of the **TASK LIST** before performing any file-modifying actions.
-- **Exception:** Proceed without confirmation only if the user has explicitly overridden the request (e.g., "proceed without asking").
+- **MANDATORY:** You MUST ask for explicit user confirmation of the **TASK LIST** before performing ANY file-modifying actions.
+- **MANDATORY:** User must type "ACT" to authorize moving from PLAN mode to ACT mode.
+- **MANDATORY:** If you use any file-modifying tool while in PLAN mode, this is a CRITICAL VIOLATION of core workflow rules.
+- **Exception:** Proceed without confirmation only if the user has explicitly overridden the request (e.g., "proceed without asking" AND "ACT").
+
+### Mode Violation Prevention
+- **Self-Check:** Before using any tool, verify your current mode and tool permissions.
+- **Violation Response:** If you catch yourself about to violate mode restrictions, STOP immediately and remind the user of your current mode.
+- **Error Recovery:** If you accidentally violate mode restrictions, immediately acknowledge the violation, explain what happened, and ask the user how they want to proceed.
 
 
 ## CORE OPERATING PRINCIPLES

@@ -26,4 +26,6 @@
 
 ## 3. Documentation
 - **Always:** Reference official documentation:
-  - **Views**: https://docs.snowflake.com/en/sql-reference/sql-view
+  - **Semantic View SQL Reference**: https://docs.snowflake.com/en/sql-reference/constructs/semantic_view
+  - ** Semantic View Documentation**: https://docs.snowflake.com/en/user-guide/views-semantic/overview
+

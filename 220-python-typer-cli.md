@@ -7,6 +7,9 @@
 
 # Python Typer CLI Development Best Practices
 
+## Purpose
+Provide comprehensive guidance for building robust, user-friendly command-line applications using Typer, covering project setup, argument handling, testing strategies, and deployment patterns for maintainable CLI tools.
+
 ## 1. Project Setup and Structure
 
 ### Installation and Dependencies

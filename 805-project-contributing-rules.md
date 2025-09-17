@@ -10,6 +10,12 @@
 ## Purpose
 Establish directives for a professional contribution workflow covering commits, pull requests, changelog discipline, and rule authoring standards to ensure consistent project collaboration and quality.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** Professional contribution workflows for commits, pull requests, and rule authoring standards
+
+
 ## 1. Commit & Changelog Discipline
 - **Requirement:** Follow Conventional Commits: `<type>(<scope>): <imperative summary>`.
 - **Requirement:** Valid types: `feat`, `fix`, `perf`, `refactor`, `style`, `docs`, `chore`, `build`, `ci`, `test`.
@@ -116,7 +122,12 @@ Demo & Templates (900-999)
 ## References
 
 ### External Documentation
-- [GitHub Contributing Guidelines](https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/setting-guidelines-for-repository-contributors) - GitHub's guide for contribution workflows
+- [GitHub Contributing Guidelines](https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/setting-guidelines-for-repository-contributors) - GitHub's guide for contribution workflows 
 - [Open Source Guides](https://opensource.guide/) - Best practices for open source project management
 - [Conventional Commits](https://www.conventionalcommits.org/) - Standardized commit message format
-- [Git Workflow Best Practices](https://www.atlassian.com/git/tutorials/comparing-workflows) - Git branching and collaboration strategies
+
+### Related Rules
+- **Global Core**: `000-global-core.md`
+- **Changelog Rules**: `800-project-changelog-rules.md`
+- **README Rules**: `801-project-readme-rules.md`
+- **Rules Governance**: `002-cursor-rules-governance.md`

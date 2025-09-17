@@ -9,6 +9,11 @@
 ## Purpose
 Establish the foundational operating contract for all AI coding assistants, ensuring reliable, safe, and consistent workflows through mode-based operations, task confirmation protocols, and professional communication standards.
 
+## Rule Type and Scope
+
+- **Type:** Auto-attach
+- **Scope:** Universal foundational guidelines for all AI coding assistants across all editors and technologies
+
 ## Key Principles
 - Plan mode (read-only) → user approval → Act mode (file modifications)
 - Always confirm task list before making changes; user must type "ACT" to authorize
@@ -143,3 +148,7 @@ Establish the foundational operating contract for all AI coding assistants, ensu
 - [Cursor Rules Guide](https://docs.cursor.com/en/context/rules) - Project rules and context management
 - [Professional Technical Writing](https://developers.google.com/tech-writing) - Google's technical writing standards and best practices
 - [Conventional Commits](https://www.conventionalcommits.org/) - Standardized commit message format for automated changelog generation
+
+### Related Rules
+- **Memory Bank System**: `001-cursor-memory-bank.md`
+- **Rules Governance**: `002-cursor-rules-governance.md`

@@ -10,6 +10,11 @@
 ## Purpose
 Provide systematic approaches for profiling, optimizing, and fine-tuning Snowflake queries and warehouse usage to achieve optimal performance while managing costs effectively.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** Snowflake query performance tuning, warehouse optimization, and cost management
+
 ## Key Principles
 - Use Query Profile to find bottlenecks; maximize pruning; avoid functions in WHERE.
 - Right-size warehouses; enable AUTO_SUSPEND/RESUME; consider clustering only with clear justification.
@@ -31,3 +36,8 @@ Provide systematic approaches for profiling, optimizing, and fine-tuning Snowfla
 - [Query Profile Guide](https://docs.snowflake.com/en/user-guide/ui-query-profile) - Query execution analysis and performance diagnostics
 - [Virtual Warehouse Management](https://docs.snowflake.com/en/user-guide/warehouses) - Warehouse sizing, scaling, and cost optimization
 - [Clustering Keys](https://docs.snowflake.com/en/user-guide/tables-clustering-keys) - Table clustering for query performance optimization
+
+### Related Rules
+- **Snowflake Core**: `100-snowflake-core.md`
+- **SQL Best Practices**: `102-snowflake-sql-best-practices.md`
+- **Cost Governance**: `105-snowflake-cost-governance.md`

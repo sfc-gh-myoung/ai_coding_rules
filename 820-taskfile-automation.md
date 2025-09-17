@@ -10,6 +10,12 @@
 ## Purpose
 Provide directives for creating, modifying, and maintaining project automation using Taskfile.yml as the primary orchestrator, ensuring consistent, portable, and well-documented task management across development workflows.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** Project automation using Taskfile.yml for consistent development workflows
+
+
 ## 1. Core Principles
 - **Requirement:** Prefer a single source of truth for automation (`Taskfile.yml` recommended). Acceptable equivalents: `Makefile`, `npm scripts`, `justfile`.
 - **Requirement:** Do not hard-code commands in docs or scripts if they can be run via the orchestrator.
@@ -96,4 +102,8 @@ cmds:
 - [Taskfile Documentation](https://taskfile.dev/) - Official Task runner documentation and syntax guide
 - [YAML Specification](https://yaml.org/spec/) - YAML syntax reference for Taskfile configuration
 - [Make Documentation](https://www.gnu.org/software/make/manual/) - GNU Make manual for Makefile alternatives
-- [Just Command Runner](https://just.systems/) - Alternative task runner documentation
+
+### Related Rules
+- **YAML Config**: `202-yaml-config-best-practices.md`
+- **Bash Core**: `300-bash-scripting-core.md`
+- **Python Core**: `200-python-core.md`

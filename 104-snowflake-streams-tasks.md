@@ -10,6 +10,12 @@
 ## Purpose
 Establish patterns for building robust, incremental data pipelines using Snowflake Streams and Tasks, covering change data capture, scheduling, idempotency, and monitoring for reliable data processing workflows.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** Snowflake Streams and Tasks for incremental data pipelines and automated workflows
+
+
 ## Key Principles
 - Capture changes with STREAM; apply with TASK-driven MERGE; chain tasks for DAGs.
 - Ensure idempotency; consume stream at end of transaction; monitor with Task History.
@@ -28,6 +34,12 @@ Establish patterns for building robust, incremental data pipelines using Snowfla
 ## References
 
 ### External Documentation
-- [Streams Management](https://docs.snowflake.com/en/user-guide/streams-manage) - Change data capture with streams for incremental processing
-- [Tasks Introduction](https://docs.snowflake.com/en/user-guide/tasks-intro) - Scheduled task execution and workflow automation
+- [Streams Management](https://docs.snowflake.com/en/user-guide/streams-manage) - Change data capture with streams for incremental processing                                                                           
+- [Tasks Introduction](https://docs.snowflake.com/en/user-guide/tasks-intro) - Scheduled task execution and workflow automation                                                                                         
 - [Idempotent DDL](https://docs.snowflake.com/en/sql-reference/sql-ddl-idempotent) - CREATE OR REPLACE patterns for reliable automation
+
+### Related Rules
+- **Snowflake Core**: `100-snowflake-core.md`
+- **SQL Best Practices**: `102-snowflake-sql-best-practices.md`
+- **Performance Tuning**: `103-snowflake-performance-tuning.md`
+- **Data Loading**: `108-snowflake-data-loading.md`

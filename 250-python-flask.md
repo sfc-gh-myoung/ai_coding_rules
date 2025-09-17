@@ -10,6 +10,12 @@
 ## Purpose
 Provide comprehensive Flask development best practices, organized into focused patterns that cover all aspects of modern web application development including application architecture, security, templating, database integration, and deployment for building maintainable, secure web applications.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** Flask web application development with modern patterns, security, and maintainable architecture
+
+
 ## Key Principles
 1. **Application Factory Pattern** - Use factory functions for app creation and configuration
 2. **Blueprint Modularization** - Organize code into logical, reusable blueprints

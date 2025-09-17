@@ -10,6 +10,12 @@
 ## Purpose
 This rule establishes comprehensive standards for README.md files following widely accepted industry best practices. It ensures consistent, professional, and accessible project documentation that serves both technical and non-technical audiences.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** Project documentation, technical writing, developer experience
+
+
 ## Essential README Structure
 
 ### Required Sections (In Order)
@@ -261,15 +267,11 @@ Click [here](https://example.com/docs) for more info.
 ## References
 
 ### External Documentation
-- [GitHub README Guide](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes) - Official GitHub documentation standards
+- [GitHub README Guide](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes) - Official GitHub documentation standards                    
 - [Make a README](https://www.makeareadme.com/) - Interactive README creation guide and best practices
 - [Awesome README Examples](https://github.com/matiassingers/awesome-readme) - Curated collection of excellent README examples
-- [Markdown Guide](https://www.markdownguide.org/) - Complete Markdown syntax reference and formatting guide
-- [Conventional Commits](https://www.conventionalcommits.org/) (for changelog integration)
 
-## Rule Type and Scope
-
-- **Type:** Agent Requested (see header metadata - use `@801-project-readme-rules.md` to apply)
-- **Scope:** Project documentation, technical writing, developer experience
-- **Applies to:** All README.md files, project documentation
-- **Validation:** Manual review and automated markdown checking
+### Related Rules
+- **Global Core**: `000-global-core.md`
+- **Changelog Rules**: `800-project-changelog-rules.md`
+- **Contributing Guidelines**: `805-project-contributing-rules.md`

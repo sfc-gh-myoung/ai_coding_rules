@@ -10,6 +10,11 @@
 ## Purpose
 Establish comprehensive foundational practices for all Snowflake development work, ensuring cost-effective, performant, and secure solutions through proper SQL authoring, object naming, security policies, and architectural patterns.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** Foundational Snowflake development practices across all SQL, data modeling, and platform features
+
 ## Key Principles
 - Cost-first; fully qualify objects; prefer set-based SQL with clear CTEs and explicit joins.
 - Push filters early, minimize data movement; parse VARIANT at the edge.
@@ -75,3 +80,10 @@ Establish comprehensive foundational practices for all Snowflake development wor
 - [Snowflake SQL Reference](https://docs.snowflake.com/en/sql-reference) - Complete SQL command reference and syntax guide
 - [Snowflake Best Practices](https://docs.snowflake.com/en/user-guide/best-practices) - Official performance and cost optimization guidelines
 - [Snowflake Security Guide](https://docs.snowflake.com/en/user-guide/security) - Comprehensive security features and implementation guide
+
+### Related Rules
+- **SQL Best Practices**: `102-snowflake-sql-best-practices.md`
+- **Performance Tuning**: `103-snowflake-performance-tuning.md`
+- **Cost Governance**: `105-snowflake-cost-governance.md`
+- **Security Governance**: `107-snowflake-security-governance.md`
+- **Data Loading**: `108-snowflake-data-loading.md`

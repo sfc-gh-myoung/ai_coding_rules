@@ -10,6 +10,12 @@
 ## Purpose
 Establish directives for creating realistic, deterministic, and effective demo applications, covering data generation, narrative design, and visual clarity to deliver compelling demonstrations that showcase product capabilities.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** Realistic, deterministic, and effective demo application creation with narrative clarity
+
+
 ## 1. Core Principles
 - **Requirement:** Make demos story-first, leading with a customer problem and clear outcome.
 - **Requirement:** Ensure data is reproducible and deterministic via consistent seeding.
@@ -43,7 +49,12 @@ Establish directives for creating realistic, deterministic, and effective demo a
 ## References
 
 ### External Documentation
-- [Demo Design Best Practices](https://www.salesforce.com/resources/articles/sales-demo/) - Effective demonstration techniques and strategies
+- [Demo Design Best Practices](https://www.salesforce.com/resources/articles/sales-demo/) - Effective demonstration techniques and strategies                                                                           
 - [Faker Documentation](https://faker.readthedocs.io/) - Synthetic data generation library documentation
 - [Streamlit Demo Gallery](https://streamlit.io/gallery) - Examples of effective data application demonstrations
-- [Data Storytelling Guide](https://www.tableau.com/learn/articles/data-storytelling) - Principles of narrative-driven data presentations
+
+### Related Rules
+- **Snowflake Core**: `100-snowflake-core.md`
+- **Streamlit UI**: `101-snowflake-streamlit-ui.md`
+- **Faker**: `240-python-faker.md`
+- **Data Science Analytics**: `500-data-science-analytics.md`

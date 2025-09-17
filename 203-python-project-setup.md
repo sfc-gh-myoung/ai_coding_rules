@@ -11,6 +11,12 @@
 ## Purpose
 Provide essential Python project setup and packaging guidance to avoid common build and dependency issues, covering package structure, pyproject.toml configuration, and proper dependency management practices.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** Python project setup, packaging, and dependency management with modern build tools
+
+
 ## 1. Package Structure Requirements
 
 ### Critical Package Setup
@@ -179,6 +185,10 @@ addopts = [
 
 ### External Documentation
 - [Python Packaging User Guide](https://packaging.python.org/) - Official Python packaging documentation
-- [pyproject.toml Specification](https://peps.python.org/pep-0621/) - PEP 621 specification for project metadata
+- [pyproject.toml Specification](https://peps.python.org/pep-0621/) - PEP 621 specification for project metadata                                                                                                        
 - [Hatchling Documentation](https://hatch.pypa.io/latest/) - Modern Python build system and package manager
-- [uv Documentation](https://docs.astral.sh/uv/) - Fast Python package installer and resolver
+
+### Related Rules
+- **Python Core**: `200-python-core.md`
+- **Python Linting**: `201-python-lint-format.md`
+- **YAML Config**: `202-yaml-config-best-practices.md`

@@ -10,6 +10,12 @@
 ## Purpose
 Provide comprehensive guidance for building robust, user-friendly command-line applications using Typer, covering project setup, argument handling, testing strategies, and deployment patterns for maintainable CLI tools.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** Python CLI development, command-line applications, user interfaces
+
+
 ## 1. Project Setup and Structure
 
 ### Installation and Dependencies
@@ -475,13 +481,10 @@ def main(
 
 ### External Documentation
 - [Typer Documentation](https://typer.tiangolo.com/) - Modern CLI framework with automatic help generation
-- [Rich Documentation](https://rich.readthedocs.io/) - Terminal styling, progress bars, and rich text rendering
+- [Rich Documentation](https://rich.readthedocs.io/) - Terminal styling, progress bars, and rich text rendering                                                                                                         
 - [Click Documentation](https://click.palletsprojects.com/) - Underlying CLI framework and advanced patterns
-- [Python Packaging Guide](https://packaging.python.org/) - Distribution, entry points, and packaging best practices
 
-## Rule Type and Scope
-
-- **Type:** Agent Requested (use `@220-python-typer-cli.md` to apply)
-- **Scope:** Python CLI development, command-line applications, user interfaces
-- **Applies to:** CLI applications, command-line tools, interactive scripts
-- **Validation:** CLI testing, user experience testing, cross-platform validation
+### Related Rules
+- **Python Core**: `200-python-core.md`
+- **Python Project Setup**: `203-python-project-setup.md`
+- **Pydantic**: `230-python-pydantic.md`

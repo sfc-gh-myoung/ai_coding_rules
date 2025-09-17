@@ -10,6 +10,12 @@
 ## Purpose
 Establish authoritative Python code quality standards using Ruff as the primary tool for linting and formatting, with fallback strategies to ensure consistent code style, quality, and maintainability across all Python projects.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** Python code linting and formatting with Ruff for consistent code quality and style
+
+
 ## 1. Core Policy
 - **Requirement:** Ruff is the authoritative default for linting and formatting.
 - **Requirement:** Centralize Ruff configuration in `pyproject.toml`.
@@ -70,6 +76,9 @@ lint:
 
 ### External Documentation
 - [Ruff Documentation](https://docs.astral.sh/ruff/) - Complete linter and formatter configuration guide
-- [Ruff Rules Reference](https://docs.astral.sh/ruff/rules/) - Comprehensive list of linting rules and error codes
+- [Ruff Rules Reference](https://docs.astral.sh/ruff/rules/) - Comprehensive list of linting rules and error codes                                                                                                      
 - [Python Code Style PEP 8](https://peps.python.org/pep-0008/) - Official Python style guide standards
-- [Black Code Style](https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html) - Code formatting principles (Ruff compatible)
+
+### Related Rules
+- **Python Core**: `200-python-core.md`
+- **Project Setup**: `203-python-project-setup.md`

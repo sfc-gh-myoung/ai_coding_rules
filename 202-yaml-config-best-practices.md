@@ -46,7 +46,7 @@ cmds:
 - **Always:** Use double quotes for consistency in YAML context.
 
 ### Command Chaining
-- **Recommended:** Use `&&` for dependent commands: `cmd1 && cmd2`
+- **Consider:** Use `&&` for dependent commands: `cmd1 && cmd2`
 - **Always:** Test complex shell commands outside YAML first.
 - **Critical:** Escape quotes properly in nested contexts: `"echo \"Hello World\""`
 
@@ -105,7 +105,7 @@ cmds:
 ### YAML Validation
 - **Always:** Test YAML syntax after changes: `task --list` for Taskfiles.
 - **Always:** Use YAML linters in CI/CD pipelines.
-- **Recommended:** Use IDE extensions for real-time YAML validation.
+- **Consider:** Use IDE extensions for real-time YAML validation.
 
 ### Configuration Testing
 - **Always:** Test configuration loading in application startup.
@@ -117,7 +117,7 @@ cmds:
 ### YAML Comments
 - **Always:** Use `#` for comments in YAML files.
 - **Always:** Document complex configurations with inline comments.
-- **Recommended:** Add header comments explaining file purpose.
+- **Consider:** Add header comments explaining file purpose.
 
 ### Configuration Documentation
 - **Always:** Document required environment variables.
@@ -135,4 +135,4 @@ cmds:
 ### Configuration Validation
 - **Always:** Validate configuration values at application startup.
 - **Always:** Provide clear error messages for missing required configuration.
-- **Recommended:** Use configuration schemas for validation (e.g., Pydantic Settings).
+- **Consider:** Use configuration schemas for validation (e.g., Pydantic Settings).

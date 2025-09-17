@@ -132,7 +132,7 @@ check_untyped_defs = true
 - **Always:** Define console scripts in `pyproject.toml`: `[project.scripts]` section.
 - **Always:** Use Click or argparse for command-line interface parsing.
 - **Always:** Separate CLI parsing from business logic (keep in different modules).
-- **Recommended:** Use `uv run python -m myapp` for module execution.
+- **Consider:** Use `uv run python -m myapp` for module execution.
 
 #### Console Scripts Configuration
 ```toml

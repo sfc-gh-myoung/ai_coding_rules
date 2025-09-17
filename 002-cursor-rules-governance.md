@@ -19,14 +19,14 @@ Establish comprehensive governance for creating, maintaining, and organizing AI 
 - **Requirement:** Every rule file must include a `## Purpose` section immediately after the H1 title that clearly explains what the rule accomplishes and why it exists.
 - **Requirement:** Rule files should include a `## Key Principles` section after the Purpose section when the rule contains core concepts that benefit from quick reference (recommended for foundational rules, technology-specific rules, and complex topics).
 - **Requirement:** Keep each rule file concise and focused (target 150–300 lines; max 500 lines).
-- **Recommended:** Split large topics into multiple composable rules.
+- **Consider:** Split large topics into multiple composable rules.
 - **Requirement:** Avoid duplication across rules; reference other rules or `@path/to/file` instead.
 - **Always:** For all agent interactions, follow the core rules in `000-global-core.md`.
 
 ## Rule Scoping and Type
 - **Requirement:** Only the global core rule should auto-attach universally.
 - **Requirement:** Limit scope tightly to avoid auto-attaching rules unnecessarily.
-- **Recommended:** Prefer an on-demand (Agent Requested) pattern for specialized topics to control context cost across IDEs and CLI tools.
+- **Consider:** Prefer an on-demand (Agent Requested) pattern for specialized topics to control context cost across IDEs and CLI tools.
 
 ## Required Section Structure
 Every rule file must follow this structure:
@@ -48,7 +48,7 @@ Every rule file must follow this structure:
 
 **When to include Key Principles:**
 - **Required:** Foundational rules (core, language-specific, major frameworks)
-- **Recommended:** Complex topics with multiple interconnected concepts
+- **Consider:** Complex topics with multiple interconnected concepts
 - **Optional:** Simple, focused rules with straightforward implementation
 
 ## Documentation & Validation

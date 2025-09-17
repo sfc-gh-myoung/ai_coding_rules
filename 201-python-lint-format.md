@@ -7,6 +7,9 @@
 
 # Python Linting & Formatting (uvx ruff-first, with fallbacks)
 
+## Purpose
+Establish authoritative Python code quality standards using Ruff as the primary tool for linting and formatting, with fallback strategies to ensure consistent code style, quality, and maintainability across all Python projects.
+
 ## 1. Core Policy
 - **Requirement:** Ruff is the authoritative default for linting and formatting.
 - **Requirement:** Centralize Ruff configuration in `pyproject.toml`.

@@ -7,6 +7,9 @@
 
 # Python Pydantic Data Validation Best Practices
 
+## Purpose
+Establish comprehensive data validation and serialization patterns using Pydantic v2, covering model design, settings management, custom validators, and integration strategies for building type-safe, validated Python applications.
+
 ## 1. Installation and Setup
 
 ### Dependencies and Environment

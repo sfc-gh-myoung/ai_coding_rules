@@ -10,6 +10,12 @@
 ## Purpose
 Provide comprehensive bash testing, debugging, and modern tooling integration including ShellCheck, CI/CD workflows, and development practices to ensure script quality and reliability.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** Bash testing, debugging, development workflows, CI/CD
+
+
 ## 1. Static Analysis with ShellCheck
 
 ### ShellCheck Integration
@@ -440,14 +446,10 @@ generate_function_docs() {
 ## References
 
 ### External Documentation
-- [ShellCheck Documentation](https://github.com/koalaman/shellcheck/wiki) - Static analysis tool for shell scripts and best practices
-- [BATS Testing Framework](https://github.com/bats-core/bats-core) - Bash Automated Testing System for unit testing
+- [ShellCheck Documentation](https://github.com/koalaman/shellcheck/wiki) - Static analysis tool for shell scripts and best practices                                                                                   
+- [BATS Testing Framework](https://github.com/bats-core/bats-core) - Bash Automated Testing System for unit testing                                                                                                     
 - [Google Shell Testing Guide](https://google.github.io/styleguide/shellguide.html#s7-tests) - Professional shell script testing standards
-- [Advanced Bash Debugging](https://tldp.org/LDP/abs/html/debugging.html) - Debugging techniques and troubleshooting methods
 
-## Rule Type and Scope
-
-- **Type:** Agent Requested (use `@302-bash-testing-tooling.md` to apply)
-- **Scope:** Bash testing, debugging, development workflows, CI/CD
-- **Applies to:** Development environments, testing frameworks, automation pipelines
-- **Validation:** Automated testing, ShellCheck integration, CI/CD validation
+### Related Rules
+- **Bash Core**: `300-bash-scripting-core.md`
+- **Bash Security**: `301-bash-security.md`

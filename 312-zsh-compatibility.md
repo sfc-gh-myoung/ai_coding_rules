@@ -10,6 +10,12 @@
 ## Purpose
 Establish zsh compatibility strategies, bash migration patterns, and cross-shell scripting best practices for mixed environments, ensuring seamless transitions and portable script solutions.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** Cross-shell compatibility, migration strategies, mixed environments
+
+
 ## 1. Bash to Zsh Migration Strategies
 
 ### Compatibility Assessment
@@ -546,14 +552,11 @@ benchmark_function() {
 ## References
 
 ### External Documentation
-- [Zsh Compatibility Guide](http://zsh.sourceforge.net/Doc/Release/Compatibility.html) - Cross-shell compatibility and migration strategies
-- [Bash Compatibility Mode](https://www.gnu.org/software/bash/manual/html_node/Shell-Compatibility-Mode.html) - Bash emulation and feature differences
+- [Zsh Compatibility Guide](http://zsh.sourceforge.net/Doc/Release/Compatibility.html) - Cross-shell compatibility and migration strategies                                                                             
+- [Bash Compatibility Mode](https://www.gnu.org/software/bash/manual/html_node/Shell-Compatibility-Mode.html) - Bash emulation and feature differences                                                                  
 - [POSIX Shell Standard](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html) - Portable shell scripting specification
-- [Portable Shell Programming](https://www.gnu.org/software/autoconf/manual/html_node/Portable-Shell.html) - Cross-platform scripting best practices
 
-## Rule Type and Scope
-
-- **Type:** Agent Requested (use `@312-zsh-compatibility.md` to apply)
-- **Scope:** Cross-shell compatibility, migration strategies, mixed environments
-- **Applies to:** Multi-shell projects, migration scenarios, portable scripts
-- **Validation:** Multi-shell testing, compatibility analysis tools
+### Related Rules
+- **Zsh Core**: `310-zsh-scripting-core.md`
+- **Zsh Advanced Features**: `311-zsh-advanced-features.md`
+- **Bash Core**: `300-bash-scripting-core.md`

@@ -16,6 +16,8 @@ Establish comprehensive governance for creating, maintaining, and organizing AI 
 
 ## Content & Structure Constraints
 - **Requirement:** Every rule file must have a single `#` H1 title.
+- **Requirement:** Every rule file must include a `## Purpose` section immediately after the H1 title that clearly explains what the rule accomplishes and why it exists.
+- **Requirement:** Rule files should include a `## Key Principles` section after the Purpose section when the rule contains core concepts that benefit from quick reference (recommended for foundational rules, technology-specific rules, and complex topics).
 - **Requirement:** Keep each rule file concise and focused (target 150–300 lines; max 500 lines).
 - **Recommended:** Split large topics into multiple composable rules.
 - **Requirement:** Avoid duplication across rules; reference other rules or `@path/to/file` instead.
@@ -26,11 +28,34 @@ Establish comprehensive governance for creating, maintaining, and organizing AI 
 - **Requirement:** Limit scope tightly to avoid auto-attaching rules unnecessarily.
 - **Recommended:** Prefer an on-demand (Agent Requested) pattern for specialized topics to control context cost across IDEs and CLI tools.
 
+## Required Section Structure
+Every rule file must follow this structure:
+
+```markdown
+# Rule Title
+
+## Purpose
+[1-2 sentences clearly explaining what this rule accomplishes and why it exists]
+
+## Key Principles (when applicable)
+- [Concise bullet point summarizing key concept]
+- [Another essential principle or practice]
+- [Additional core concepts as needed]
+
+## 1. Detailed Section
+[Comprehensive implementation details]
+```
+
+**When to include Key Principles:**
+- **Required:** Foundational rules (core, language-specific, major frameworks)
+- **Recommended:** Complex topics with multiple interconnected concepts
+- **Optional:** Simple, focused rules with straightforward implementation
+
 ## Documentation & Validation
 - **Always:** Include links to relevant, current product documentation for reference.
 - **Requirement:** Before finalizing any rule or code, verify syntax, best practices, and API usage against the linked docs.
 
 ## Change Workflow
-- **Always:** When creating a new rule, include a purpose, chosen rule type, and a brief 5–7 item checklist of key principles.
+- **Always:** When creating a new rule, include a clear `## Purpose` section and, when appropriate, a `## Key Principles` section with 3-7 concise bullet points summarizing core concepts.
 - **Always:** When refactoring, split oversized rules and remove content duplication.
 - **Always:** Before finalizing a rule, validate it against current, vendor-agnostic documentation and your primary IDE/tooling documentation for compliance (e.g., Visual Studio Code, Cursor, Claude Code, Gemini CLI, Cline).

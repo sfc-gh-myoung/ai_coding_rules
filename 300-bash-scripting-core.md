@@ -10,6 +10,13 @@
 ## Purpose
 Establish foundational bash scripting patterns covering script structure, variables, functions, and essential error handling practices to create reliable, maintainable, and portable shell scripts.
 
+## Key Principles
+- Use `#!/usr/bin/env bash` shebang and `set -euo pipefail` for strict error handling
+- Include script metadata, help functions, and proper signal trapping
+- Quote variables, validate inputs, and use local variables in functions
+- Implement comprehensive error handling with meaningful exit codes
+- Follow consistent style with proper documentation and modular design
+
 ## 1. Script Foundation & Safety
 
 ### Shebang and Interpreter

@@ -7,6 +7,9 @@
 
 # Changelog Governance Directives
 
+## Purpose
+Establish directives for maintaining a high-signal, audit-friendly CHANGELOG.md using Conventional Commits, ensuring consistent documentation of project changes for stakeholders and maintainers.
+
 ## 1. Required Structure & Format
 - **Requirement:** Maintain a single `CHANGELOG.md` at the project root.
 - **Requirement:** Keep a top-level `## [Unreleased]` section for new changes.

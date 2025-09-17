@@ -7,6 +7,9 @@
 
 # Zsh Advanced Features and Optimization
 
+## Purpose
+Provide comprehensive guidance on zsh's advanced features including the completion system, modules, hooks, and performance optimization techniques to build sophisticated and efficient zsh environments.
+
 ## 1. Zsh Completion System
 
 ### Completion System Setup

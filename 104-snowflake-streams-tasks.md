@@ -25,8 +25,9 @@ Establish patterns for building robust, incremental data pipelines using Snowfla
 - **Always:** Consume the `STREAM` at the end of the transaction so its offset advances correctly.
 - **Always:** Monitor task execution and status using Snowsight's Task History.
 
-## 3. Documentation
-- **Always:** Reference the official documentation:
-  - **Streams**: https://docs.snowflake.com/en/user-guide/streams-manage
-  - **Tasks**: https://docs.snowflake.com/en/user-guide/tasks-intro
-  - **Idempotency**: https://docs.snowflake.com/en/sql-reference/sql-ddl-idempotent
+## References
+
+### External Documentation
+- [Streams Management](https://docs.snowflake.com/en/user-guide/streams-manage) - Change data capture with streams for incremental processing
+- [Tasks Introduction](https://docs.snowflake.com/en/user-guide/tasks-intro) - Scheduled task execution and workflow automation
+- [Idempotent DDL](https://docs.snowflake.com/en/sql-reference/sql-ddl-idempotent) - CREATE OR REPLACE patterns for reliable automation

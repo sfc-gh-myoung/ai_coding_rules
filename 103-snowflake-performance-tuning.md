@@ -7,6 +7,9 @@
 
 # Snowflake Performance Tuning
 
+## Purpose
+Provide systematic approaches for profiling, optimizing, and fine-tuning Snowflake queries and warehouse usage to achieve optimal performance while managing costs effectively.
+
 ## TL;DR
 - Use Query Profile to find bottlenecks; maximize pruning; avoid functions in WHERE.
 - Right-size warehouses; enable AUTO_SUSPEND/RESUME; consider clustering only with clear justification.

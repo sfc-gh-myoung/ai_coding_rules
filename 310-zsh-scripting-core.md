@@ -10,6 +10,12 @@
 ## Purpose
 Establish foundational zsh scripting patterns covering unique zsh features, script structure, variables, functions, and essential practices to leverage zsh's advanced capabilities while maintaining compatibility.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** Foundation zsh scripting patterns and essential practices
+
+
 ## 1. Script Foundation & Zsh Setup
 
 ### Shebang and Environment
@@ -559,14 +565,11 @@ EOF
 ## References
 
 ### External Documentation
-- [Zsh Manual](http://zsh.sourceforge.net/Doc/) - Complete official documentation for zsh features and syntax
+- [Zsh Manual](http://zsh.sourceforge.net/Doc/) - Complete official documentation for zsh features and syntax                                                                                                           
 - [Zsh User Guide](https://zsh-guide.hyperreal.coffee/) - Comprehensive tutorial and best practices guide
 - [Oh My Zsh Framework](https://ohmyz.sh/) - Popular plugin and theme framework for zsh
-- [Zsh Advanced Tips](https://grml.org/zsh/zsh-lovers.html) - Power user techniques and advanced usage patterns
 
-## Rule Type and Scope
-
-- **Type:** Agent Requested (use `@310-zsh-scripting-core.md` to apply)
-- **Scope:** Foundation zsh scripting patterns and essential practices
-- **Applies to:** All zsh scripts, zsh configuration files, interactive zsh usage
-- **Validation:** Manual code review, zsh syntax checking
+### Related Rules
+- **Zsh Advanced Features**: `311-zsh-advanced-features.md`
+- **Zsh Compatibility**: `312-zsh-compatibility.md`
+- **Bash Core**: `300-bash-scripting-core.md`

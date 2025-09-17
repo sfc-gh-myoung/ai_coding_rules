@@ -10,6 +10,12 @@
 ## Purpose
 Provide comprehensive FastAPI development best practices, organized into focused patterns that cover all aspects of modern web API development including application architecture, async programming, request/response handling, and error management for building maintainable, performant web APIs.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** FastAPI web API development with modern Python patterns, async/await, and Pydantic integration
+
+
 ## Key Principles
 1. **Modular Architecture** - Organize code into logical, testable modules
 2. **Async-First Development** - Leverage Python's async capabilities for performance

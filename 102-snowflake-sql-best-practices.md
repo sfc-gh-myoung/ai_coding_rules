@@ -26,7 +26,9 @@ Establish advanced SQL authoring patterns specifically for Snowflake, focusing o
 - **Requirement:** Avoid repeated casting or navigation of `VARIANT` columns; perform extraction once.
 - **Consider:** For high-cardinality operations, use `APPROX_COUNT_DISTINCT` instead of `COUNT(DISTINCT ...)` when exact precision is not required.
 
-## 3. Documentation
+## References
+
+### External Documentation
 - **Always:** Reference the official Snowflake documentation:
-  - **SQL Reference**: https://docs.snowflake.com/en/sql-reference
-  - **Querying Semi-Structured Data**: https://docs.snowflake.com/en/sql-reference/data-types-semistructured
+- [Snowflake SQL Reference](https://docs.snowflake.com/en/sql-reference) - Complete SQL command reference and syntax guide
+- [Querying Semi-Structured Data](https://docs.snowflake.com/en/sql-reference/data-types-semistructured) - VARIANT, OBJECT, and ARRAY data type handling

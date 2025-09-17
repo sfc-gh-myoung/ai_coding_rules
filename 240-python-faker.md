@@ -498,12 +498,13 @@ def test_with_seeded_data():
 - **`@230-python-pydantic.md`** - Pydantic integration for data validation
 - **`@800-project-changelog-rules.md`** - Changelog discipline for testing changes
 
-## References and Resources
+## References
 
-- [Faker Documentation](https://faker.readthedocs.io/en/stable/) - Official Faker documentation
-- [pytest-faker](https://pypi.org/project/pytest-faker/) - Pytest integration
-- [Factory Boy](https://factoryboy.readthedocs.io/) - Test data factories
-- [Faker Providers](https://faker.readthedocs.io/en/master/providers.html) - Available data providers
+### External Documentation
+- [Faker Documentation](https://faker.readthedocs.io/en/stable/) - Comprehensive guide to fake data generation
+- [pytest-faker Plugin](https://pypi.org/project/pytest-faker/) - Pytest fixtures and integration patterns
+- [Factory Boy](https://factoryboy.readthedocs.io/) - Object factory patterns for complex test data
+- [Faker Providers](https://faker.readthedocs.io/en/master/providers.html) - Complete list of available data generators
 
 ## Rule Type and Scope
 

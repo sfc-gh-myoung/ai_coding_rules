@@ -140,3 +140,11 @@ lint:
 ## 8. Related Specialized Rules
 - **Rule:** For deeper guidance, see:
   - **Linting & Formatting:** `201-python-lint-format.md` (Ruff policy).
+
+## References
+
+### External Documentation
+- [Python 3.11+ Documentation](https://docs.python.org/3/) - Official Python language reference and standard library
+- [uv Package Manager](https://docs.astral.sh/uv/) - Modern Python package and project management
+- [Ruff Linter Documentation](https://docs.astral.sh/ruff/) - Fast Python linter and formatter configuration
+- [Python Packaging Guide](https://packaging.python.org/) - Authoritative guide to Python packaging and distribution

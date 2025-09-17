@@ -446,12 +446,13 @@ test_security() {
 }
 ```
 
-## References and Resources
+## References
 
-- [OWASP Command Injection Prevention](https://owasp.org/www-community/attacks/Command_Injection)
-- [CIS Controls for Secure Configuration](https://www.cisecurity.org/controls/)
-- [NIST Cybersecurity Framework](https://www.nist.gov/cyberframework)
-- [Bash Security Best Practices](https://mywiki.wooledge.org/BashGuide/Practices#Security_considerations)
+### External Documentation
+- [OWASP Command Injection Prevention](https://owasp.org/www-community/attacks/Command_Injection) - Security vulnerabilities and mitigation strategies
+- [CIS Security Controls](https://www.cisecurity.org/controls/) - Industry security configuration standards
+- [NIST Cybersecurity Framework](https://www.nist.gov/cyberframework) - Comprehensive security risk management
+- [Bash Security Guide](https://mywiki.wooledge.org/BashGuide/Practices#Security_considerations) - Shell scripting security best practices
 
 ## Rule Type and Scope
 

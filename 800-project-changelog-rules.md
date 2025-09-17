@@ -2,8 +2,8 @@
 **AppliesTo:** `CHANGELOG.md`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.1
-**LastUpdated:** 2025-09-14
+**Version:** 1.3
+**LastUpdated:** 2025-09-16
 
 # Changelog Governance Directives
 
@@ -80,3 +80,11 @@ chore(rules): update all Python rules for CLI consistency
 ## 5. Documentation
 - **Always:** Reference Conventional Commits: https://www.conventionalcommits.org/en/v1.0.0/#specification
 - **Always:** Follow contributing guidelines: `@805-project-contributing-rules.md`
+
+## References
+
+### External Documentation
+- [Conventional Commits](https://www.conventionalcommits.org/) - Standardized commit message format specification
+- [Keep a Changelog](https://keepachangelog.com/) - Changelog format and best practices guide
+- [Semantic Versioning](https://semver.org/) - Version numbering scheme for software releases
+- [Git Commit Best Practices](https://chris.beams.io/posts/git-commit/) - Writing effective Git commit messages

@@ -2,8 +2,8 @@
 **AppliesTo:** `**/*.py`, `**/app.py`, `**/wsgi.py`, `**/blueprints/**`, `**/models/**`, `**/forms/**`, `**/templates/**`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-09-17
+**Version:** 1.1
+**LastUpdated:** 2025-09-16
 
 # Flask Best Practices
 

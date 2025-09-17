@@ -2,8 +2,8 @@
 **AppliesTo:** `**/*.yaml`, `**/*.yml`, `**/*.sql`, `**/*.py`, `**/Dockerfile*`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-09-10
+**Version:** 1.1
+**LastUpdated:** 2025-09-16
 
 # Snowflake Snowpark Container Services (SPCS) Best Practices
 

@@ -2,8 +2,8 @@
 **AppliesTo:** `**/*.sh`, `**/*.bash`, `scripts/**/*`, `bin/**/*`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-09-13
+**Version:** 1.1
+**LastUpdated:** 2025-09-16
 
 # Bash Testing and Tooling Best Practices
 

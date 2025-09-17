@@ -2,8 +2,8 @@
 **AppliesTo:** `**/*.yml`, `Taskfile.yml`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-09-10
+**Version:** 1.2
+**LastUpdated:** 2025-09-16
 
 # ️Automation Directives (Taskfile-first, with equivalents)
 
@@ -89,3 +89,11 @@ cmds:
 
 ## 7. Documentation
 - **Always:** Reference Taskfile docs: https://taskfile.dev/
+
+## References
+
+### External Documentation
+- [Taskfile Documentation](https://taskfile.dev/) - Official Task runner documentation and syntax guide
+- [YAML Specification](https://yaml.org/spec/) - YAML syntax reference for Taskfile configuration
+- [Make Documentation](https://www.gnu.org/software/make/manual/) - GNU Make manual for Makefile alternatives
+- [Just Command Runner](https://just.systems/) - Alternative task runner documentation

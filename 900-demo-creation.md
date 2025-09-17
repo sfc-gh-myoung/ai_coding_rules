@@ -2,8 +2,8 @@
 **AppliesTo:** `scripts/**/*`, `data/**/*`, `streamlit/**/*`, `demos/**/*`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-09-10
+**Version:** 1.2
+**LastUpdated:** 2025-09-16
 
 # Demo & Synthetic Data Generation Directives
 
@@ -39,3 +39,11 @@ Establish directives for creating realistic, deterministic, and effective demo a
 - **Avoid:** Fully random independent columns.
 - **Avoid:** A single monolithic generator for all data regardless of industry.
 - **Avoid:** Row-by-row data loading.
+
+## References
+
+### External Documentation
+- [Demo Design Best Practices](https://www.salesforce.com/resources/articles/sales-demo/) - Effective demonstration techniques and strategies
+- [Faker Documentation](https://faker.readthedocs.io/) - Synthetic data generation library documentation
+- [Streamlit Demo Gallery](https://streamlit.io/gallery) - Examples of effective data application demonstrations
+- [Data Storytelling Guide](https://www.tableau.com/learn/articles/data-storytelling) - Principles of narrative-driven data presentations

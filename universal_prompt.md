@@ -1,7 +1,7 @@
 **Description:** Universal Prompt: Update Task-Specific Instructions before using.
 **AutoAttach:** false
-**Version:** 1.0
-**LastUpdated:** 2025-09-10
+**Version:** 1.2
+**LastUpdated:** 2025-09-16
 
 # Universal Response Guidelines
 
@@ -26,3 +26,8 @@ Provide universal response guidelines and task-specific instruction templates fo
 
 **4. Task-Specific Instructions**
 - Before proceeding, ask the user for task-specific guidance if a clear task or instruction hasn't been provided.
+
+## References
+
+### External Documentation
+- [AI Prompt Engineering Guide](https://www.promptingguide.ai/) - Comprehensive guide to effective prompt design

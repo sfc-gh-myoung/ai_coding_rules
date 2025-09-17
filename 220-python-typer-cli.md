@@ -2,8 +2,8 @@
 **AppliesTo:** `**/*.py`, `**/cli/**/*`, `**/commands/**/*`, `pyproject.toml`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-09-14
+**Version:** 1.1
+**LastUpdated:** 2025-09-16
 
 # Python Typer CLI Development Best Practices
 

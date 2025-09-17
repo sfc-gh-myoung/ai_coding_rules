@@ -2,8 +2,8 @@
 **AppliesTo:** `**/*.py`, `**/models/**/*`, `**/schemas/**/*`, `pyproject.toml`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-09-14
+**Version:** 1.1
+**LastUpdated:** 2025-09-16
 
 # Python Pydantic Data Validation Best Practices
 

@@ -2,8 +2,8 @@
 **AppliesTo:** `**/*.yml`, `**/*.yaml`, `**/pyproject.toml`, `**/.env*`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-09-10
+**Version:** 1.2
+**LastUpdated:** 2025-09-16
 
 # YAML and Configuration Best Practices
 
@@ -136,3 +136,11 @@ cmds:
 - **Always:** Validate configuration values at application startup.
 - **Always:** Provide clear error messages for missing required configuration.
 - **Consider:** Use configuration schemas for validation (e.g., Pydantic Settings).
+
+## References
+
+### External Documentation
+- [YAML Specification](https://yaml.org/spec/) - Official YAML specification and syntax reference
+- [TOML Specification](https://toml.io/) - TOML format specification for configuration files
+- [Python YAML Library](https://pyyaml.org/wiki/PyYAMLDocumentation) - PyYAML documentation for Python YAML processing
+- [Configuration Best Practices](https://12factor.net/config) - The Twelve-Factor App configuration methodology

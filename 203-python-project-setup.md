@@ -2,8 +2,8 @@
 **AppliesTo:** `**/pyproject.toml`, `**/setup.py`, `**/requirements*.txt`, `**/__init__.py`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-09-10
+**Version:** 1.2
+**LastUpdated:** 2025-09-16
 
 
 # Python Project Setup and Packaging
@@ -174,3 +174,11 @@ addopts = [
 - **Always:** Test package installation with `uv run python -c "import app"` (FastAPI) or `uv run python -c "import myapp"` (CLI) after setup.
 - **Always:** Verify all `__init__.py` files exist with `find . -name "__init__.py"`.
 - **Always:** For CLI apps, test console scripts: `uv run myapp --help` after installation.
+
+## References
+
+### External Documentation
+- [Python Packaging User Guide](https://packaging.python.org/) - Official Python packaging documentation
+- [pyproject.toml Specification](https://peps.python.org/pep-0621/) - PEP 621 specification for project metadata
+- [Hatchling Documentation](https://hatch.pypa.io/latest/) - Modern Python build system and package manager
+- [uv Documentation](https://docs.astral.sh/uv/) - Fast Python package installer and resolver

@@ -2,8 +2,8 @@
 **AppliesTo:** `**/*.py`, `**/main.py`, `**/routers/**`, `**/models/**`, `**/services/**`, `**/database/**`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-09-10
+**Version:** 1.1
+**LastUpdated:** 2025-09-16
 
 # FastAPI Best Practices
 

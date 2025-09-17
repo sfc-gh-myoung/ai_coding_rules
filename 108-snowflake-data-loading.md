@@ -10,7 +10,7 @@
 ## Purpose
 Provide comprehensive best practices for efficiently loading data into Snowflake using Stages, COPY INTO, and Snowpipe, optimizing for performance, reliability, and cost-effectiveness in both batch and streaming scenarios.
 
-## TL;DR
+## Key Principles
 - Stage files first; use dedicated stages per source; manage with PUT/GET for internal stages.
 - Use COPY INTO for bulk loads; Snowpipe for continuous ingestion; be explicit about ON_ERROR and file formats.
 - Target 100–250MB compressed files; prepare semi-structured data for subcolumnarization.

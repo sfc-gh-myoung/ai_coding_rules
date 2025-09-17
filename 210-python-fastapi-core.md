@@ -10,7 +10,7 @@
 ## Purpose
 Provide comprehensive FastAPI development best practices, organized into focused patterns that cover all aspects of modern web API development including application architecture, async programming, request/response handling, and error management for building maintainable, performant web APIs.
 
-## Key Principles Checklist
+## Key Principles
 1. **Modular Architecture** - Organize code into logical, testable modules
 2. **Async-First Development** - Leverage Python's async capabilities for performance
 3. **Security by Design** - Implement authentication, authorization, and input validation

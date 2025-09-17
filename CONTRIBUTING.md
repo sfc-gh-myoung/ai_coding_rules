@@ -92,7 +92,7 @@ Each rule file must follow this structure:
 
 # Rule Title
 
-## TL;DR
+## Key Principles
 - Brief bullet points summarizing key concepts
 
 ## 1. Core Section

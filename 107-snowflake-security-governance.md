@@ -10,7 +10,7 @@
 ## Purpose
 Establish comprehensive data security and access control practices using Snowflake's governance features, including RBAC, data masking, row-level security, and object tagging for enterprise-grade data protection.
 
-## TL;DR
+## Key Principles
 - Enforce least-privilege RBAC; use role hierarchies; map roles to business responsibilities.
 - Protect data with masking policies, row access policies, and object tagging.
 - Reference official docs for RBAC, masking, row access, and tagging.

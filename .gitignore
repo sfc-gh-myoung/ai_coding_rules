@@ -185,6 +185,7 @@ $RECYCLE.BIN/
 # Generated rule files (IDE-specific outputs)
 .cursor/
 .github/instructions/
+.clinerules/
 
 # Cursor memory bank
 memory-bank/

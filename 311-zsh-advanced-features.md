@@ -511,12 +511,13 @@ run_tests() {
 }
 ```
 
-## References and Resources
+## References
 
-- [Zsh Manual - Completion System](http://zsh.sourceforge.net/Doc/Release/Completion-System.html)
-- [Zsh Manual - Expansion](http://zsh.sourceforge.net/Doc/Release/Expansion.html)
-- [Zsh Manual - Modules](http://zsh.sourceforge.net/Doc/Release/Zsh-Modules.html)
-- [Zsh Line Editor (ZLE)](http://zsh.sourceforge.net/Doc/Release/Zsh-Line-Editor.html)
+### External Documentation
+- [Zsh Completion System](http://zsh.sourceforge.net/Doc/Release/Completion-System.html) - Advanced tab completion configuration and customization
+- [Zsh Parameter Expansion](http://zsh.sourceforge.net/Doc/Release/Expansion.html) - String manipulation and variable expansion techniques
+- [Zsh Modules](http://zsh.sourceforge.net/Doc/Release/Zsh-Modules.html) - Loadable modules for extended functionality
+- [Zsh Line Editor (ZLE)](http://zsh.sourceforge.net/Doc/Release/Zsh-Line-Editor.html) - Command line editing and key binding customization
 
 ## Rule Type and Scope
 

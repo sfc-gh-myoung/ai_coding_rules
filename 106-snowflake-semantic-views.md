@@ -27,8 +27,9 @@ Establish a structured and maintainable data modeling approach using layered vie
 - **Requirement:** Avoid deep view nesting to prevent performance issues and complexity.
 - **Requirement:** Add `COMMENT` metadata to all views to describe their purpose.
 
-## 3. Documentation
-- **Always:** Reference official documentation:
-  - **Semantic View SQL Reference**: https://docs.snowflake.com/en/sql-reference/constructs/semantic_view
-  - ** Semantic View Documentation**: https://docs.snowflake.com/en/user-guide/views-semantic/overview
+## References
+
+### External Documentation
+- [Views and Materialized Views](https://docs.snowflake.com/en/user-guide/views-introduction) - View creation, management, and best practices
+- [Database and Schema Design](https://docs.snowflake.com/en/user-guide/database-schemas) - Layered data modeling strategies
 

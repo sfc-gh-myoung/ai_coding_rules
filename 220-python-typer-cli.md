@@ -471,12 +471,13 @@ def main(
 - **`@203-python-project-setup.md`** - Python project structure and packaging
 - **`@800-project-changelog-rules.md`** - Changelog discipline for CLI changes
 
-## References and Resources
+## References
 
-- [Typer Documentation](https://typer.tiangolo.com/) - Official Typer documentation
-- [Rich Documentation](https://rich.readthedocs.io/) - Rich text and formatting library
-- [Click Documentation](https://click.palletsprojects.com/) - Underlying CLI framework
-- [Python Packaging User Guide](https://packaging.python.org/) - Python packaging best practices
+### External Documentation
+- [Typer Documentation](https://typer.tiangolo.com/) - Modern CLI framework with automatic help generation
+- [Rich Documentation](https://rich.readthedocs.io/) - Terminal styling, progress bars, and rich text rendering
+- [Click Documentation](https://click.palletsprojects.com/) - Underlying CLI framework and advanced patterns
+- [Python Packaging Guide](https://packaging.python.org/) - Distribution, entry points, and packaging best practices
 
 ## Rule Type and Scope
 

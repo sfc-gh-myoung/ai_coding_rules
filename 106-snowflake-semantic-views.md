@@ -10,7 +10,7 @@
 ## Purpose
 Establish a structured and maintainable data modeling approach using layered view strategies to separate concerns, promote reusability, and create purpose-built semantic interfaces for downstream consumption.
 
-## TL;DR
+## Key Principles
 - Use layered modeling: staging → core → semantic views; avoid recomputing across layers.
 - Consistent naming; avoid deep nesting; ensure views have COMMENT metadata.
 - Reference Snowflake view docs; keep semantic views slim and purpose-built.

@@ -10,6 +10,13 @@
 ## Purpose
 Establish foundational Python development practices using modern tooling like `uv` and Ruff to ensure consistent, reliable, and performant codebases with proper dependency management, linting, formatting, and project structure.
 
+## Key Principles
+- Use `uv` for all dependency and environment management; `uvx` for isolated tool execution
+- Pin Python 3.11+ and centralize configuration in `pyproject.toml`
+- Apply Ruff linting and formatting on every file modification
+- Structure code with clear modules, proper error handling, and modern Python patterns
+- Integrate with Taskfile for consistent automation across projects
+
 ## 1. Environment & Tooling
 - **Requirement:** Use `uv` for all dependency and environment management.
 - **Requirement:** Pin Python to 3.11+ in `.python-version` and `pyproject.toml`.

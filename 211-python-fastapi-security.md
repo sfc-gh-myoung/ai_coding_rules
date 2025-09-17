@@ -10,7 +10,7 @@
 ## Purpose
 Establish comprehensive security practices for FastAPI applications including authentication, authorization, CORS configuration, and security middleware to protect APIs and user data.
 
-## Key Principles Checklist
+## Key Principles
 1. **Authentication First** - Implement proper JWT-based authentication with secure token handling
 2. **Authorization Controls** - Use dependency injection for role-based access control
 3. **Password Security** - Hash passwords with bcrypt; never store plaintext credentials

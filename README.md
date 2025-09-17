@@ -38,7 +38,7 @@ task rule:cline     # For Cline AI assistant
 ### Basic Usage
 
 #### Option 1: Direct Rule Usage
-Open any `.md` rule file directly in your IDE and follow the directive language (`Requirement`, `Always`, `Avoid`, `Rule`, `Consider`).
+Open any `.md` rule file directly in your IDE and follow the directive language (`Critical`, `Mandatory`, `Always`, `Requirement`, `Rule`, `Consider`, `Avoid`).
 
 #### Option 2: Generate IDE-Specific Rules
 ```bash
@@ -81,7 +81,7 @@ The following best practices apply to all AI coding assistants and development e
 - Include clear metadata at the top with description and scope
 
 **Content Guidelines**  
-- Use explicit directive language: `Requirement`, `Always`, `Avoid`, `Rule`, `Consider`
+- Use explicit directive language: `Critical`, `Mandatory`, `Always`, `Requirement`, `Rule`, `Consider`, `Avoid`
 - Avoid content duplication across rules; reference other files instead
 - Include links to current, relevant documentation for validation
 - Provide practical examples and usage patterns
@@ -172,6 +172,42 @@ The following best practices apply to all AI coding assistants and development e
 
 ### Templates
 - **`universal_prompt.md`** — Universal response guidelines template
+
+## Directive Language Hierarchy
+
+The rules use a structured directive language with clear priority levels to guide both AI agents and human developers:
+
+### Behavioral Control Directives (By Strictness)
+
+```
+├── Critical        [System Safety]      🔴 Must never violate
+├── Mandatory       [Non-negotiable]     🟠 Must always follow  
+├── Always          [Universal Practice] 🟡 Should be consistent
+├── Requirement     [Technical Standard] 🔵 Should implement
+├── Rule            [Best Practice]      🟢 Recommended pattern
+└── Consider        [Optional]           ⚪ Suggestions & alternatives
+```
+
+### Informational Directives
+
+```
+├── Error           [Problem Description]  - Troubleshooting guidance
+├── Exception       [Special Case]        - Override conditions
+├── Forbidden       [Explicit Prohibition] - Explicitly prohibited actions
+└── Note            [Additional Info]     - Cross-references and context
+```
+
+### Usage Examples
+
+- **Critical:** `Critical: In PLAN mode, you are FORBIDDEN from using ANY file-modifying tools`
+- **Mandatory:** `Mandatory: You MUST ask for explicit user confirmation of the TASK LIST`
+- **Always:** `Always: Reference the most recent online official documentation`
+- **Requirement:** `Requirement: Use fenced code blocks with language tags`
+- **Rule:** `Rule: Act as a senior, pragmatic software engineer`
+- **Consider:** `Consider: Use tables for structured information`
+- **Avoid:** `Avoid: Mixing business logic and UI rendering in a single function`
+
+This hierarchy ensures consistent interpretation across different AI models and provides clear guidance on the relative importance of each directive.
 
 ## Rule Generator Architecture
 
@@ -335,7 +371,7 @@ flowchart TD
 ## Key Features
 
 - **Universal Compatibility** — Works with Claude, ChatGPT, Copilot, Cursor, and more
-- **Structured Directive Language** — Clear `Requirement`, `Always`, `Avoid` patterns  
+- **Structured Directive Language** — Clear hierarchical directive patterns from `Critical` to `Consider`  
 - **Modular Architecture** — Mix and match rules by domain/technology
 - **Intelligent Auto-Generation** — Transform universal rules into IDE-specific formats with automatic reference conversion
 - **Data-Focused** — Comprehensive coverage of data engineering and analytics
@@ -358,7 +394,7 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed gu
 ### Rule Authoring Guidelines
 
 - Use standard Markdown headings (`#`, `##`, `###`) for structure
-- Use explicit directive words: `Requirement`, `Always`, `Avoid`, `Rule`, `Consider`
+- Use explicit directive words: `Critical`, `Mandatory`, `Always`, `Requirement`, `Rule`, `Consider`, `Avoid`
 - Keep rules focused and under 500 lines
 - Include relevant documentation links
 - Test with the rule generator before submitting

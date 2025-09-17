@@ -10,6 +10,12 @@
 ## Purpose
 Establish comprehensive directives for ensuring data quality, governance, and operational reliability throughout the data lifecycle, using code-based validation, schema evolution management, and automated quality gates.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** Data quality, governance, and operational reliability throughout the data lifecycle
+
+
 ## 1. Data Quality as Code
 - **Requirement:** Treat data quality as code. Version expectation suites and integrate into CI/CD.
 - **Requirement:** Layer expectations: start with schema/basic validity, then add business rules.
@@ -49,7 +55,12 @@ Establish comprehensive directives for ensuring data quality, governance, and op
 ## References
 
 ### External Documentation
-- [Data Management Body of Knowledge (DMBOK)](https://www.dama.org/cpages/body-of-knowledge) - Comprehensive data management framework
-- [Data Quality Assessment](https://www.dataversity.net/data-quality-assessment/) - Data quality evaluation methodologies
+- [Data Management Body of Knowledge (DMBOK)](https://www.dama.org/cpages/body-of-knowledge) - Comprehensive data management framework                                                                                  
+- [Data Quality Assessment](https://www.dataversity.net/data-quality-assessment/) - Data quality evaluation methodologies                                                                                               
 - [Incident Response Best Practices](https://www.sans.org/white-papers/incident-response/) - SANS incident response guidelines
-- [Data Governance Framework](https://www.datagovernance.com/data-governance-framework/) - Structured approach to data governance
+
+### Related Rules
+- **Snowflake Core**: `100-snowflake-core.md`
+- **Snowflake Security**: `107-snowflake-security-governance.md`
+- **Semantic Views**: `106-snowflake-semantic-views.md`
+- **Data Science Analytics**: `500-data-science-analytics.md`

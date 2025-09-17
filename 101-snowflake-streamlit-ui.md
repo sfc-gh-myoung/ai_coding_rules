@@ -10,6 +10,11 @@
 ## Purpose
 Provide comprehensive guidance for building modern, performant, and maintainable Streamlit applications within the Snowflake ecosystem, focusing on user experience, performance optimization, and modular architecture patterns.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** Snowflake Streamlit application development, UI/UX patterns, and performance optimization
+
 ## Key Principles
 - Fast First Paint (<2s), modular architecture, deterministic state; cache data/resources appropriately.
 - Use page config, pages/ structure, components/ for reuse; avoid raw loops and re-creating connections.
@@ -61,3 +66,8 @@ Provide comprehensive guidance for building modern, performant, and maintainable
 - [Streamlit API Reference](https://docs.streamlit.io/library/api-reference) - Complete API reference for all Streamlit components
 - [Snowflake Streamlit Guide](https://docs.snowflake.com/en/developer-guide/streamlit/about-streamlit) - Snowflake-specific Streamlit integration documentation
 - [Streamlit Performance](https://docs.streamlit.io/library/advanced-features/caching) - Caching and performance optimization techniques
+
+### Related Rules
+- **Snowflake Core**: `100-snowflake-core.md`
+- **Snowflake Notebooks**: `109-snowflake-notebooks.md`
+- **Python Core**: `200-python-core.md`

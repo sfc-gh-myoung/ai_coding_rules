@@ -10,6 +10,12 @@
 ## Purpose
 Establish safe YAML and configuration file practices to prevent parsing errors, ensure reliability, and maintain consistency across project configuration files including YAML, TOML, and environment files.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** YAML and configuration file best practices to prevent parsing errors and ensure reliability
+
+
 ## 1. YAML Syntax Safety
 
 ### Critical Character Restrictions
@@ -143,4 +149,8 @@ cmds:
 - [YAML Specification](https://yaml.org/spec/) - Official YAML specification and syntax reference
 - [TOML Specification](https://toml.io/) - TOML format specification for configuration files
 - [Python YAML Library](https://pyyaml.org/wiki/PyYAMLDocumentation) - PyYAML documentation for Python YAML processing
-- [Configuration Best Practices](https://12factor.net/config) - The Twelve-Factor App configuration methodology
+
+### Related Rules
+- **Python Core**: `200-python-core.md`
+- **Project Setup**: `203-python-project-setup.md`
+- **Taskfile Automation**: `820-taskfile-automation.md`

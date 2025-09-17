@@ -2,8 +2,8 @@
 **AppliesTo:** `CONTRIBUTING.md`, `README.md`, `.github/**/*`, `**/*-*.md`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 2.0
-**LastUpdated:** 2025-09-14
+**Version:** 2.2
+**LastUpdated:** 2025-09-16
 
 # Contribution Workflow
 
@@ -112,3 +112,11 @@ Demo & Templates (900-999)
 - **Always:** Follow rule governance: `@002-cursor-rules-governance.md`
 - **Always:** Use README standards: `@801-project-readme-rules.md`
 - **Always:** Follow changelog discipline: `@800-project-changelog-rules.md`
+
+## References
+
+### External Documentation
+- [GitHub Contributing Guidelines](https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/setting-guidelines-for-repository-contributors) - GitHub's guide for contribution workflows
+- [Open Source Guides](https://opensource.guide/) - Best practices for open source project management
+- [Conventional Commits](https://www.conventionalcommits.org/) - Standardized commit message format
+- [Git Workflow Best Practices](https://www.atlassian.com/git/tutorials/comparing-workflows) - Git branching and collaboration strategies

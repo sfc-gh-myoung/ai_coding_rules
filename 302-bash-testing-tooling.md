@@ -7,6 +7,9 @@
 
 # Bash Testing and Tooling Best Practices
 
+## Purpose
+Provide comprehensive bash testing, debugging, and modern tooling integration including ShellCheck, CI/CD workflows, and development practices to ensure script quality and reliability.
+
 ## 1. Static Analysis with ShellCheck
 
 ### ShellCheck Integration

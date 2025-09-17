@@ -7,6 +7,9 @@
 
 # Demo & Synthetic Data Generation Directives
 
+## Purpose
+Establish directives for creating realistic, deterministic, and effective demo applications, covering data generation, narrative design, and visual clarity to deliver compelling demonstrations that showcase product capabilities.
+
 ## 1. Core Principles
 - **Requirement:** Make demos story-first, leading with a customer problem and clear outcome.
 - **Requirement:** Ensure data is reproducible and deterministic via consistent seeding.

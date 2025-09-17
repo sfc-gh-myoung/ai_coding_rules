@@ -7,6 +7,9 @@
 
 # Bash Security Best Practices
 
+## Purpose
+Establish comprehensive bash scripting security practices covering input validation, path security, permissions, and secure coding patterns to prevent vulnerabilities and ensure safe script execution.
+
 ## 1. Input Validation and Sanitization
 
 ### User Input Validation

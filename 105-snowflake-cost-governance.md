@@ -7,6 +7,9 @@
 
 # Snowflake Cost Governance
 
+## Purpose
+Establish comprehensive cost management and optimization strategies for Snowflake environments, including resource monitoring, warehouse right-sizing, and governance policies to control and predict cloud data warehouse spending.
+
 ## TL;DR
 - Treat cost as a first-class constraint; right-size warehouses; enable AUTO_SUSPEND.
 - Use Resource Monitors and anomaly detection; set quotas and triggers.

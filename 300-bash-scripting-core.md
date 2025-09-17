@@ -7,6 +7,9 @@
 
 # Bash Scripting Core Best Practices
 
+## Purpose
+Establish foundational bash scripting patterns covering script structure, variables, functions, and essential error handling practices to create reliable, maintainable, and portable shell scripts.
+
 ## 1. Script Foundation & Safety
 
 ### Shebang and Interpreter

@@ -8,6 +8,9 @@
 
 # Python Project Setup and Packaging
 
+## Purpose
+Provide essential Python project setup and packaging guidance to avoid common build and dependency issues, covering package structure, pyproject.toml configuration, and proper dependency management practices.
+
 ## 1. Package Structure Requirements
 
 ### Critical Package Setup

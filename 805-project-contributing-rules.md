@@ -7,6 +7,9 @@
 
 # Contribution Workflow
 
+## Purpose
+Establish directives for a professional contribution workflow covering commits, pull requests, changelog discipline, and rule authoring standards to ensure consistent project collaboration and quality.
+
 ## 1. Commit & Changelog Discipline
 - **Requirement:** Follow Conventional Commits: `<type>(<scope>): <imperative summary>`.
 - **Requirement:** Valid types: `feat`, `fix`, `perf`, `refactor`, `style`, `docs`, `chore`, `build`, `ci`, `test`.

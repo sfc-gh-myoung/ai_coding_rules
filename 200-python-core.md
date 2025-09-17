@@ -7,6 +7,9 @@
 
 # Python Core Engineering Directives
 
+## Purpose
+Establish foundational Python development practices using modern tooling like `uv` and Ruff to ensure consistent, reliable, and performant codebases with proper dependency management, linting, formatting, and project structure.
+
 ## 1. Environment & Tooling
 - **Requirement:** Use `uv` for all dependency and environment management.
 - **Requirement:** Pin Python to 3.11+ in `.python-version` and `pyproject.toml`.

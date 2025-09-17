@@ -6,6 +6,9 @@
 
 # Rule Governance: Directives for the Agent
 
+## Purpose
+Establish comprehensive governance for creating, maintaining, and organizing AI coding rule files to ensure consistency, discoverability, and effectiveness across different editors and AI models.
+
 ## Rule Creation & Naming Constraints
 - **Requirement:** Place universal rule files in the canonical `ai_coding_rules/` directory. Optional mirrors may exist in editor-specific folders (e.g., `.cursor/rules/`).
 - **Requirement:** Use a snake-case naming convention with a `.md` extension (e.g., `your_rule_name.md`).

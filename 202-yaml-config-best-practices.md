@@ -7,6 +7,9 @@
 
 # YAML and Configuration Best Practices
 
+## Purpose
+Establish safe YAML and configuration file practices to prevent parsing errors, ensure reliability, and maintain consistency across project configuration files including YAML, TOML, and environment files.
+
 ## 1. YAML Syntax Safety
 
 ### Critical Character Restrictions

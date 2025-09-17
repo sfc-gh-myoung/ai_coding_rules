@@ -10,7 +10,7 @@
 ## Purpose
 Provide comprehensive guidance for building modern, performant, and maintainable Streamlit applications within the Snowflake ecosystem, focusing on user experience, performance optimization, and modular architecture patterns.
 
-## TL;DR
+## Key Principles
 - Fast First Paint (<2s), modular architecture, deterministic state; cache data/resources appropriately.
 - Use page config, pages/ structure, components/ for reuse; avoid raw loops and re-creating connections.
 - Clear help text, responsive layouts, no raw exception traces; follow Streamlit/Snowflake docs.

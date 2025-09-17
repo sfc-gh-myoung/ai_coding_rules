@@ -1,8 +1,8 @@
 **Description:** Implementing a project-level memory bank for AI assistants across LLMs and IDEs.
 **AutoAttach:** true
 **Type:** Auto-attach
-**Version:** 1.1
-**LastUpdated:** 2025-09-16
+**Version:** 2.0
+**LastUpdated:** 2025-09-17
 
 # AI Assistant Memory Bank
 
@@ -13,6 +13,17 @@ As an AI assistant, an expert software engineer with a unique characteristic: my
 
 - **Requirement:** Read ALL memory bank files at the start of EVERY task - this is not optional.
 - **Rule:** Memory Bank accuracy directly determines work effectiveness after session resets.
+
+## Key Principles
+
+- **Rapid Recovery:** AI must be productive within first 20 lines of reading
+- **Signal Maximization:** Every line must earn its place through actionable value
+- **Forward-Looking Focus:** activeContext.md contains ONLY what's next, not what's done
+- **Zero Redundancy:** Each piece of information lives in exactly ONE file
+- **Aggressive Pruning:** Ruthlessly remove outdated or redundant content
+- **Structured Communication:** Lists, tables, and bullets over narrative prose
+- **Reference Over Duplication:** Link to existing docs rather than copying content
+- **Temporal Boundaries:** Clear separation between current, recent, and historical context
 
 ## 1. Memory Bank Structure
 
@@ -76,7 +87,29 @@ flowchart TD
   - Testing strategies
   - Deployment procedures
 
-## 2. Core Workflows
+## 2. Performance Targets
+
+### File Size Budgets
+- **Critical:** Each memory bank file must meet specific line limits:
+  - projectbrief.md: ≤120 lines (stable, scope only)
+  - productContext.md: ≤120 lines (stable, vision only)  
+  - activeContext.md: ≤100 lines (current + last session only)
+  - systemPatterns.md: ≤150 lines (patterns and decisions)
+  - techContext.md: ≤150 lines (stack and constraints)
+  - progress.md: ≤140 lines (status and compressed history)
+
+### Context Efficiency Targets
+- **Mandatory:** Total memory bank ≤ 600 lines (20% reduction from baseline)
+- **Rule:** Zero redundant information across files
+- **Always:** Reference external files instead of duplicating content
+- **Target:** AI productivity within 20 lines of reading
+
+### Session Recovery Performance
+- **Measurement:** Time from session start to first meaningful output
+- **Target:** ≤ 1 minute for complex projects, ≤ 30 seconds for familiar projects
+- **Method:** Quick Start protocol in activeContext.md
+
+## 3. Core Workflows
 
 ### Plan Mode
 ```mermaid
@@ -102,7 +135,68 @@ flowchart TD
     Execute --> Document[Document Changes]
 ```
 
-## 3. Documentation Updates
+## 4. File Content Guidelines
+
+### activeContext.md (≤100 lines) - MOST CRITICAL
+**Structure Required:**
+1. Quick Start section (lines 1-30)
+2. Current work focus (≤2 paragraphs)
+3. Active decisions (blocking current work only)
+4. Dependencies & blockers (current only)
+5. Session change log (≤5 entries)
+
+**DO:**
+- Start with Quick Start section (primary objective, next steps, validation)
+- Keep only current + last session content
+- Update after every task completion
+- Archive older content to history/
+
+**DON'T:**
+- Include historical accomplishments (→ progress.md)
+- Duplicate setup instructions (→ reference techContext.md)
+- Keep completed work details (→ archive)
+- Mix current focus with historical context
+
+### systemPatterns.md (≤150 lines)
+**DO:**
+- Architecture decisions with rationale
+- Key design patterns currently in use
+- Technology choices (why, not how)
+- Integration points and relationships
+
+**DON'T:**
+- Detailed code examples (→ reference README or code)
+- Setup instructions (→ techContext.md)
+- Historical decisions no longer relevant
+- Implementation tutorials (→ external docs)
+
+### techContext.md (≤150 lines)
+**DO:**
+- Technology stack list (table format)
+- Key constraints (bullet points)
+- Essential commands (table format)
+- Development workflow (diagram/list)
+
+**DON'T:**
+- Detailed setup tutorials (→ reference README)
+- Verbose explanations (→ use bullets)
+- Duplicate architecture info (→ systemPatterns.md)
+- Command examples (→ reference Taskfile)
+
+### progress.md (≤140 lines)
+**DO:**
+- Current state summary (high-level)
+- Compressed accomplishment log (one line per item)
+- Known issues list (current technical debt)
+- Immediate roadmap items (next 2-3 sprints)
+
+**DON'T:**
+- Detailed historical narratives (→ archive)
+- Current focus (→ activeContext.md)
+- Long-term roadmap (→ reference README)
+- Verbose session logs (→ compress or archive)
+
+## 5. Documentation Updates
 
 - **Requirement:** Memory Bank updates occur when:
   1. Discovering new project patterns
@@ -171,7 +265,3 @@ flowchart TD
 ## References
 
 ### External Documentation
-- [Documentation Best Practices](https://developers.google.com/tech-writing) - Google's comprehensive technical writing guide
-- [Project Documentation Standards](https://www.writethedocs.org/guide/) - Professional documentation practices and strategies
-- [Markdown Guide](https://www.markdownguide.org/) - Complete Markdown syntax and formatting reference
-- [Git Workflow Documentation](https://git-scm.com/doc) - Version control best practices for documentation management

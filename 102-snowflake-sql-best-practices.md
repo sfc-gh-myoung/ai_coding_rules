@@ -7,6 +7,9 @@
 
 # Snowflake SQL Best Practices
 
+## Purpose
+Establish advanced SQL authoring patterns specifically for Snowflake, focusing on CTEs, VARIANT data extraction, cardinality control, and query optimization techniques for maintainable and performant data processing.
+
 ## TL;DR
 - Use CTEs to segment logic; control join cardinality; prefer QUALIFY over nested subqueries for window filters.
 - Extract/flatten VARIANT once in an early CTE; avoid repeated casts.

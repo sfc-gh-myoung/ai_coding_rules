@@ -7,6 +7,9 @@
 
 # Data Governance & Quality Directives
 
+## Purpose
+Establish comprehensive directives for ensuring data quality, governance, and operational reliability throughout the data lifecycle, using code-based validation, schema evolution management, and automated quality gates.
+
 ## 1. Data Quality as Code
 - **Requirement:** Treat data quality as code. Version expectation suites and integrate into CI/CD.
 - **Requirement:** Layer expectations: start with schema/basic validity, then add business rules.

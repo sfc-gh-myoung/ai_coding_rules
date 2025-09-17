@@ -6,6 +6,9 @@
 
 # Global Core Guidelines
 
+## Purpose
+Establish the foundational operating contract for all AI coding assistants, ensuring reliable, safe, and consistent workflows through mode-based operations, task confirmation protocols, and professional communication standards.
+
 ## CRITICAL: CONFIRMATION & SAFETY
 
 ### Mode-Based Workflow

@@ -7,6 +7,9 @@
 
 # ️Automation Directives (Taskfile-first, with equivalents)
 
+## Purpose
+Provide directives for creating, modifying, and maintaining project automation using Taskfile.yml as the primary orchestrator, ensuring consistent, portable, and well-documented task management across development workflows.
+
 ## 1. Core Principles
 - **Requirement:** Prefer a single source of truth for automation (`Taskfile.yml` recommended). Acceptable equivalents: `Makefile`, `npm scripts`, `justfile`.
 - **Requirement:** Do not hard-code commands in docs or scripts if they can be run via the orchestrator.

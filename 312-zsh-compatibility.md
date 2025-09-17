@@ -7,6 +7,9 @@
 
 # Zsh Compatibility and Cross-Shell Scripting
 
+## Purpose
+Establish zsh compatibility strategies, bash migration patterns, and cross-shell scripting best practices for mixed environments, ensuring seamless transitions and portable script solutions.
+
 ## 1. Bash to Zsh Migration Strategies
 
 ### Compatibility Assessment

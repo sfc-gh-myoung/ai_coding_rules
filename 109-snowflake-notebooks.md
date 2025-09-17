@@ -10,6 +10,12 @@
 ## Purpose
 Establish best practices for building reproducible, secure, and maintainable Jupyter Notebooks within the Snowflake environment, ensuring deterministic execution, proper state management, and seamless transition to production code.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** Jupyter Notebooks in Snowflake with Snowpark for Python and reproducible data science workflows
+
+
 ## Key Principles
 - Deterministic notebooks; one environment with pinned versions; imports centralized at top.
 - Parameterize runs; narrative in Markdown cells; keep code cells focused and avoid hidden state.
@@ -35,5 +41,11 @@ Establish best practices for building reproducible, secure, and maintainable Jup
 ## References
 
 ### External Documentation
-- [Snowpark for Python](https://docs.snowflake.com/en/developer-guide/snowpark/python) - DataFrames, functions, and distributed computing
+- [Snowpark for Python](https://docs.snowflake.com/en/developer-guide/snowpark/python) - DataFrames, functions, and distributed computing                                                                               
 - [Python Connector](https://docs.snowflake.com/en/developer-guide/python-connector) - Database connectivity and authentication patterns
+
+### Related Rules
+- **Snowflake Core**: `100-snowflake-core.md`
+- **Streamlit UI**: `101-snowflake-streamlit-ui.md`
+- **Python Core**: `200-python-core.md`
+- **Data Science Analytics**: `500-data-science-analytics.md`

@@ -10,6 +10,11 @@
 ## Purpose
 Provide comprehensive guidance for deploying, managing, and optimizing containerized applications using Snowflake Snowpark Container Services, covering architecture patterns, security, performance optimization, and operational best practices.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** Snowflake Snowpark Container Services, containerized applications, microservices
+
 ## Key Principles
 - Use OCI-compliant images; leverage Snowflake's managed image registry for secure storage.
 - Design services for high availability with proper health checks and resource limits.
@@ -246,15 +251,13 @@ spec:
 ## References
 
 ### External Documentation
-- [Snowpark Container Services Overview](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/overview) - Architecture, concepts, and getting started guide
-- [SPCS Tutorials](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/tutorials) - Step-by-step implementation examples
-- [Service Specification Reference](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/specification-reference) - YAML service definition schema and options
-- [SPCS SQL Commands](https://docs.snowflake.com/en/sql-reference/sql/create-service) - CREATE SERVICE and related SQL command reference
+- [Snowpark Container Services Overview](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/overview) - Architecture, concepts, and getting started guide                                        
+- [SPCS Tutorials](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/tutorials) - Step-by-step implementation examples                                                                          
+- [Service Specification Reference](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/specification-reference) - YAML service definition schema and options                                     
+- [SPCS SQL Commands](https://docs.snowflake.com/en/sql-reference/sql/create-service) - CREATE SERVICE and related SQL command reference                                                                                
 - [SPCS Cost Management](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/costs) - Pricing model and cost optimization strategies
 
-## Rule Type and Scope
-
-- **Type:** Agent Requested (see header metadata - use `@120-snowflake-spcs.md` to apply)
-- **Scope:** Snowflake Snowpark Container Services, containerized applications, microservices
-- **Applies to:** Container specifications, service definitions, compute pool configurations
-- **Validation:** Service deployment testing and performance monitoring
+### Related Rules
+- **Snowflake Core**: `100-snowflake-core.md`
+- **Cost Governance**: `105-snowflake-cost-governance.md`
+- **Security Governance**: `107-snowflake-security-governance.md`

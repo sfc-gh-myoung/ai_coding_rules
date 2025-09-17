@@ -10,6 +10,12 @@
 ## Purpose
 Establish comprehensive cost management and optimization strategies for Snowflake environments, including resource monitoring, warehouse right-sizing, and governance policies to control and predict cloud data warehouse spending.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** Snowflake cost management, resource monitors, and credit usage optimization
+
+
 ## Key Principles
 - Treat cost as a first-class constraint; right-size warehouses; enable AUTO_SUSPEND.
 - Use Resource Monitors and anomaly detection; set quotas and triggers.
@@ -28,5 +34,10 @@ Establish comprehensive cost management and optimization strategies for Snowflak
 ## References
 
 ### External Documentation
-- [Cost Management Guide](https://docs.snowflake.com/en/guides-overview-cost) - Comprehensive cost optimization strategies and monitoring
+- [Cost Management Guide](https://docs.snowflake.com/en/guides-overview-cost) - Comprehensive cost optimization strategies and monitoring                                                                               
 - [Resource Monitors](https://docs.snowflake.com/en/user-guide/resource-monitors) - Credit usage tracking, quotas, and automated controls
+
+### Related Rules
+- **Snowflake Core**: `100-snowflake-core.md`
+- **Performance Tuning**: `103-snowflake-performance-tuning.md`
+- **Security Governance**: `107-snowflake-security-governance.md`

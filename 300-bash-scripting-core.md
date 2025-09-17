@@ -10,6 +10,12 @@
 ## Purpose
 Establish foundational bash scripting patterns covering script structure, variables, functions, and essential error handling practices to create reliable, maintainable, and portable shell scripts.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** Foundation bash scripting patterns and essential practices
+
+
 ## Key Principles
 - Use `#!/usr/bin/env bash` shebang and `set -euo pipefail` for strict error handling
 - Include script metadata, help functions, and proper signal trapping
@@ -498,12 +504,10 @@ calculate_hash() {
 
 ### External Documentation
 - [Bash Manual](https://www.gnu.org/software/bash/manual/) - Complete reference for Bash features and syntax
-- [Google Shell Style Guide](https://google.github.io/styleguide/shellguide.html) - Professional shell scripting standards and conventions
+- [Google Shell Style Guide](https://google.github.io/styleguide/shellguide.html) - Professional shell scripting standards and conventions                                                                              
 - [Bash Pitfalls](https://mywiki.wooledge.org/BashPitfalls) - Common scripting mistakes and how to avoid them
 
-## Rule Type and Scope
-
-- **Type:** Agent Requested (use `@300-bash-scripting-core.md` to apply)
-- **Scope:** Foundation bash scripting patterns and essential practices
-- **Applies to:** All bash scripts, basic shell automation
-- **Validation:** ShellCheck static analysis, manual code review
+### Related Rules
+- **Bash Security**: `301-bash-security.md`
+- **Bash Testing**: `302-bash-testing-tooling.md`
+- **Taskfile Automation**: `820-taskfile-automation.md`

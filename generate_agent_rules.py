@@ -19,6 +19,9 @@ Supported agents
   ---
   <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
+- cline: writes .clinerules/<name>.md with plain Markdown and Cline docs comment:
+  <!-- Generated for Cline rules. See https://docs.cline.bot/features/cline-rules -->
+
 Common behavior
 - Reads *.md (skips documentation files: README.md, CHANGELOG.md, CONTRIBUTING.md)
 - Parses metadata from leading markdown header lines:
@@ -36,6 +39,9 @@ Usage
 
   # Generate Copilot rules (writes only when output changes)
   python ai_coding_rules/generate_agent_rules.py --agent copilot [--dry-run]
+
+  # Generate Cline rules (writes only when output changes)
+  python ai_coding_rules/generate_agent_rules.py --agent cline [--dry-run]
 
   # CI check mode: exit non-zero if any outputs are stale/missing
   python ai_coding_rules/generate_agent_rules.py --agent cursor --check
@@ -188,6 +194,9 @@ class AgentSpec:
             lines.append(f"alwaysApply: {always_val}")
             lines.append("---\n")
             return "\n".join(lines)
+        elif self.name == "cline":
+            # Cline uses plain Markdown with no YAML header
+            return ""
         # copilot: simple list YAML (no extra fields)
         # Ensure all patterns are quoted and safe
         safe_patterns = [p.replace("\\", "\\\\").replace('"', '\\"') for p in (patterns or [])]
@@ -223,8 +232,18 @@ class AgentRuleGenerator:
                     "See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->\n\n"
                 ),
             )
+        elif agent == "cline":
+            self.spec = AgentSpec(
+                name="cline",
+                dest_dir=destination,
+                header_key="",  # Cline doesn't use header keys
+                prepend_comment=(
+                    "<!-- Generated for Cline rules. "
+                    "See https://docs.cline.bot/features/cline-rules -->\n\n"
+                ),
+            )
         else:
-            raise ValueError("agent must be one of: 'cursor', 'copilot'")
+            raise ValueError("agent must be one of: 'cursor', 'copilot', 'cline'")
 
     def run(self) -> None:
         """Execute generation for all *.md files.
@@ -334,7 +353,7 @@ def main() -> None:
     """CLI entry point for agent rules generation."""
     parser = argparse.ArgumentParser(description="Generate agent rules from *.md")
     parser.add_argument(
-        "--agent", choices=["cursor", "copilot"], required=True, help="Target agent"
+        "--agent", choices=["cursor", "copilot", "cline"], required=True, help="Target agent"
     )
     parser.add_argument(
         "--source",
@@ -344,7 +363,7 @@ def main() -> None:
     parser.add_argument(
         "--destination",
         help=(
-            "Destination directory. Defaults: .cursor/rules for cursor; .github/instructions for copilot"
+            "Destination directory. Defaults: .cursor/rules for cursor; .github/instructions for copilot; .clinerules for cline"
         ),
     )
     parser.add_argument(
@@ -365,11 +384,15 @@ def main() -> None:
             if args.destination
             else (Path(".cursor") / "rules").resolve()
         )
-    else:
+    elif args.agent == "copilot":
         destination = (
             Path(args.destination).resolve()
             if args.destination
             else (Path(".github") / "instructions").resolve()
+        )
+    else:  # cline
+        destination = (
+            Path(args.destination).resolve() if args.destination else Path(".clinerules").resolve()
         )
 
     generator = AgentRuleGenerator(

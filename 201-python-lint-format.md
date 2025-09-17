@@ -65,3 +65,11 @@ lint:
 - **Benefit:** Avoids conflicts with project dependencies.
 - **Benefit:** Faster execution without project environment overhead.
 - **Rule:** Use `uvx` for development tools, `uv run` for project code execution.
+
+## References
+
+### External Documentation
+- [Ruff Documentation](https://docs.astral.sh/ruff/) - Complete linter and formatter configuration guide
+- [Ruff Rules Reference](https://docs.astral.sh/ruff/rules/) - Comprehensive list of linting rules and error codes
+- [Python Code Style PEP 8](https://peps.python.org/pep-0008/) - Official Python style guide standards
+- [Black Code Style](https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html) - Code formatting principles (Ruff compatible)

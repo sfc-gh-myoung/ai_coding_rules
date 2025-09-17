@@ -543,12 +543,13 @@ benchmark_function() {
 }
 ```
 
-## References and Resources
+## References
 
-- [Zsh Manual - Compatibility](http://zsh.sourceforge.net/Doc/Release/Compatibility.html)
-- [Bash Manual - Shell Compatibility Mode](https://www.gnu.org/software/bash/manual/html_node/Shell-Compatibility-Mode.html)
-- [POSIX Shell Command Language](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html)
-- [Autotools Portable Shell Programming](https://www.gnu.org/software/autoconf/manual/html_node/Portable-Shell.html)
+### External Documentation
+- [Zsh Compatibility Guide](http://zsh.sourceforge.net/Doc/Release/Compatibility.html) - Cross-shell compatibility and migration strategies
+- [Bash Compatibility Mode](https://www.gnu.org/software/bash/manual/html_node/Shell-Compatibility-Mode.html) - Bash emulation and feature differences
+- [POSIX Shell Standard](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html) - Portable shell scripting specification
+- [Portable Shell Programming](https://www.gnu.org/software/autoconf/manual/html_node/Portable-Shell.html) - Cross-platform scripting best practices
 
 ## Rule Type and Scope
 

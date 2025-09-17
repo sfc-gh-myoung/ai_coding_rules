@@ -7,6 +7,9 @@
 
 # Snowflake Streams and Tasks
 
+## Purpose
+Establish patterns for building robust, incremental data pipelines using Snowflake Streams and Tasks, covering change data capture, scheduling, idempotency, and monitoring for reliable data processing workflows.
+
 ## TL;DR
 - Capture changes with STREAM; apply with TASK-driven MERGE; chain tasks for DAGs.
 - Ensure idempotency; consume stream at end of transaction; monitor with Task History.

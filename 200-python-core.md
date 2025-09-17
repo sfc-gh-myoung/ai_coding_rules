@@ -10,6 +10,12 @@
 ## Purpose
 Establish foundational Python development practices using modern tooling like `uv` and Ruff to ensure consistent, reliable, and performant codebases with proper dependency management, linting, formatting, and project structure.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** Foundational Python development practices with modern tooling (uv, Ruff) and project structure
+
+
 ## Key Principles
 - Use `uv` for all dependency and environment management; `uvx` for isolated tool execution
 - Pin Python 3.11+ and centralize configuration in `pyproject.toml`
@@ -144,7 +150,11 @@ lint:
 ## References
 
 ### External Documentation
-- [Python 3.11+ Documentation](https://docs.python.org/3/) - Official Python language reference and standard library
+- [Python 3.11+ Documentation](https://docs.python.org/3/) - Official Python language reference and standard library                                                                                                    
 - [uv Package Manager](https://docs.astral.sh/uv/) - Modern Python package and project management
 - [Ruff Linter Documentation](https://docs.astral.sh/ruff/) - Fast Python linter and formatter configuration
-- [Python Packaging Guide](https://packaging.python.org/) - Authoritative guide to Python packaging and distribution
+
+### Related Rules
+- **Python Linting**: `201-python-lint-format.md`
+- **Project Setup**: `203-python-project-setup.md`
+- **YAML Config**: `202-yaml-config-best-practices.md`

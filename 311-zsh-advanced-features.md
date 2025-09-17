@@ -10,6 +10,12 @@
 ## Purpose
 Provide comprehensive guidance on zsh's advanced features including the completion system, modules, hooks, and performance optimization techniques to build sophisticated and efficient zsh environments.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** Advanced zsh features, performance optimization, complex scripting patterns
+
+
 ## 1. Zsh Completion System
 
 ### Completion System Setup
@@ -514,14 +520,10 @@ run_tests() {
 ## References
 
 ### External Documentation
-- [Zsh Completion System](http://zsh.sourceforge.net/Doc/Release/Completion-System.html) - Advanced tab completion configuration and customization
-- [Zsh Parameter Expansion](http://zsh.sourceforge.net/Doc/Release/Expansion.html) - String manipulation and variable expansion techniques
+- [Zsh Completion System](http://zsh.sourceforge.net/Doc/Release/Completion-System.html) - Advanced tab completion configuration and customization                                                                      
+- [Zsh Parameter Expansion](http://zsh.sourceforge.net/Doc/Release/Expansion.html) - String manipulation and variable expansion techniques                                                                              
 - [Zsh Modules](http://zsh.sourceforge.net/Doc/Release/Zsh-Modules.html) - Loadable modules for extended functionality
-- [Zsh Line Editor (ZLE)](http://zsh.sourceforge.net/Doc/Release/Zsh-Line-Editor.html) - Command line editing and key binding customization
 
-## Rule Type and Scope
-
-- **Type:** Agent Requested (use `@311-zsh-advanced-features.md` to apply)
-- **Scope:** Advanced zsh features, performance optimization, complex scripting patterns
-- **Applies to:** Complex zsh scripts, interactive zsh configuration, zsh frameworks
-- **Validation:** Manual testing, performance benchmarking
+### Related Rules
+- **Zsh Core**: `310-zsh-scripting-core.md`
+- **Zsh Compatibility**: `312-zsh-compatibility.md`

@@ -10,6 +10,12 @@
 ## Purpose
 Establish comprehensive testing strategies for FastAPI applications using TestClient, pytest-asyncio, and modern testing patterns to ensure reliability and maintainability.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** FastAPI testing strategies with TestClient, pytest-asyncio, and comprehensive API testing patterns
+
+
 ## Key Principles
 1. **Test-Driven Development** - Use TestClient and pytest-asyncio for comprehensive API testing
 2. **Async Testing** - Properly handle async operations in tests
@@ -223,10 +229,12 @@ markers = [
 ## References
 
 ### External Documentation
-- [FastAPI Testing Guide](https://fastapi.tiangolo.com/tutorial/testing/) - Official testing patterns with TestClient and async support
+- [FastAPI Testing Guide](https://fastapi.tiangolo.com/tutorial/testing/) - Official testing patterns with TestClient and async support                                                                                 
 - [Pytest Documentation](https://docs.pytest.org/) - Comprehensive testing framework guide and API reference
 - [Pytest-asyncio Plugin](https://pytest-asyncio.readthedocs.io/) - Async test support and fixture management
 
-### Internal References
-- `210-python-fastapi-core.md` - Core FastAPI development patterns
-- `200-python-core.md` - Python development fundamentals
+### Related Rules
+- **FastAPI Core**: `210-python-fastapi-core.md`
+- **FastAPI Security**: `211-python-fastapi-security.md`
+- **Python Core**: `200-python-core.md`
+- **Faker**: `240-python-faker.md`

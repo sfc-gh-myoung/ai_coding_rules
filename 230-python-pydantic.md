@@ -10,6 +10,12 @@
 ## Purpose
 Establish comprehensive data validation and serialization patterns using Pydantic v2, covering model design, settings management, custom validators, and integration strategies for building type-safe, validated Python applications.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** Python data validation, model definition, settings management
+
+
 ## 1. Installation and Setup
 
 ### Dependencies and Environment
@@ -479,14 +485,12 @@ class TestUserModel:
 ## References
 
 ### External Documentation
-- [Pydantic Documentation](https://docs.pydantic.dev/latest/) - Complete guide to data validation and serialization
-- [Pydantic Settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) - Configuration management and environment variables
+- [Pydantic Documentation](https://docs.pydantic.dev/latest/) - Complete guide to data validation and serialization                                                                                                     
+- [Pydantic Settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) - Configuration management and environment variables                                                                                
 - [FastAPI with Pydantic](https://fastapi.tiangolo.com/tutorial/body/) - Request/response models and API integration
-- [Pydantic Performance](https://docs.pydantic.dev/latest/concepts/performance/) - Optimization techniques and benchmarking
 
-## Rule Type and Scope
-
-- **Type:** Agent Requested (use `@230-python-pydantic.md` to apply)
-- **Scope:** Python data validation, model definition, settings management
-- **Applies to:** Data models, API schemas, configuration management, validation logic
-- **Validation:** Model testing, schema validation, performance testing
+### Related Rules
+- **Python Core**: `200-python-core.md`
+- **FastAPI Core**: `210-python-fastapi-core.md`
+- **Typer CLI**: `220-python-typer-cli.md`
+- **Flask**: `250-python-flask.md`

@@ -10,6 +10,12 @@
 ## Purpose
 Establish comprehensive data security and access control practices using Snowflake's governance features, including RBAC, data masking, row-level security, and object tagging for enterprise-grade data protection.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** Snowflake security governance, RBAC, data masking, and access control policies
+
+
 ## Key Principles
 - Enforce least-privilege RBAC; use role hierarchies; map roles to business responsibilities.
 - Protect data with masking policies, row access policies, and object tagging.
@@ -28,7 +34,12 @@ Establish comprehensive data security and access control practices using Snowfla
 ## References
 
 ### External Documentation
-- [Access Control Overview](https://docs.snowflake.com/en/user-guide/security-access-control-overview) - RBAC, roles, and privilege management
-- [Column-Level Security](https://docs.snowflake.com/en/user-guide/security-column-intro) - Dynamic data masking and column-level policies
-- [Row-Level Security](https://docs.snowflake.com/en/user-guide/security-row-intro) - Row access policies and conditional data access
+- [Access Control Overview](https://docs.snowflake.com/en/user-guide/security-access-control-overview) - RBAC, roles, and privilege management                                                                          
+- [Column-Level Security](https://docs.snowflake.com/en/user-guide/security-column-intro) - Dynamic data masking and column-level policies                                                                              
+- [Row-Level Security](https://docs.snowflake.com/en/user-guide/security-row-intro) - Row access policies and conditional data access                                                                                   
 - [Object Tagging](https://docs.snowflake.com/en/user-guide/object-tagging) - Metadata tagging for governance and classification
+
+### Related Rules
+- **Snowflake Core**: `100-snowflake-core.md`
+- **Cost Governance**: `105-snowflake-cost-governance.md`
+- **Data Governance**: `600-data-governance-quality.md`

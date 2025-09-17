@@ -10,6 +10,12 @@
 ## Purpose
 Establish directives for maintaining a high-signal, audit-friendly CHANGELOG.md using Conventional Commits, ensuring consistent documentation of project changes for stakeholders and maintainers.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** High-signal, audit-friendly changelog maintenance using Conventional Commits
+
+
 ## 1. Required Structure & Format
 - **Requirement:** Maintain a single `CHANGELOG.md` at the project root.
 - **Requirement:** Keep a top-level `## [Unreleased]` section for new changes.
@@ -84,7 +90,11 @@ chore(rules): update all Python rules for CLI consistency
 ## References
 
 ### External Documentation
-- [Conventional Commits](https://www.conventionalcommits.org/) - Standardized commit message format specification
+- [Conventional Commits](https://www.conventionalcommits.org/) - Standardized commit message format specification                                                                                                       
 - [Keep a Changelog](https://keepachangelog.com/) - Changelog format and best practices guide
 - [Semantic Versioning](https://semver.org/) - Version numbering scheme for software releases
-- [Git Commit Best Practices](https://chris.beams.io/posts/git-commit/) - Writing effective Git commit messages
+
+### Related Rules
+- **Global Core**: `000-global-core.md`
+- **Contributing Guidelines**: `805-project-contributing-rules.md`
+- **README Rules**: `801-project-readme-rules.md`

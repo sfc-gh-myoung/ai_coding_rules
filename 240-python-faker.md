@@ -10,6 +10,12 @@
 ## Purpose
 Establish comprehensive patterns for generating realistic test data using Python's Faker library, covering setup, providers, localization, testing integration, and performance optimization to create maintainable and deterministic test suites.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** Python testing, data generation, test fixtures, development utilities
+
+
 ## 1. Installation and Setup
 
 ### Dependencies and Environment
@@ -501,14 +507,11 @@ def test_with_seeded_data():
 ## References
 
 ### External Documentation
-- [Faker Documentation](https://faker.readthedocs.io/en/stable/) - Comprehensive guide to fake data generation
+- [Faker Documentation](https://faker.readthedocs.io/en/stable/) - Comprehensive guide to fake data generation                                                                                                          
 - [pytest-faker Plugin](https://pypi.org/project/pytest-faker/) - Pytest fixtures and integration patterns
 - [Factory Boy](https://factoryboy.readthedocs.io/) - Object factory patterns for complex test data
-- [Faker Providers](https://faker.readthedocs.io/en/master/providers.html) - Complete list of available data generators
 
-## Rule Type and Scope
-
-- **Type:** Agent Requested (use `@240-python-faker.md` to apply)
-- **Scope:** Python testing, data generation, test fixtures, development utilities
-- **Applies to:** Test suites, data seeding, development tools, mock data generation
-- **Validation:** Test data quality, performance testing, reproducibility verification
+### Related Rules
+- **Python Core**: `200-python-core.md`
+- **FastAPI Testing**: `212-python-fastapi-testing.md`
+- **Demo Creation**: `900-demo-creation.md`

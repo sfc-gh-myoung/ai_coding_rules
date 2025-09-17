@@ -10,6 +10,11 @@
 ## Purpose
 Establish advanced SQL authoring patterns specifically for Snowflake, focusing on CTEs, VARIANT data extraction, cardinality control, and query optimization techniques for maintainable and performant data processing.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** Advanced Snowflake SQL authoring patterns, CTEs, VARIANT handling, and query optimization
+
 ## Key Principles
 - Use CTEs to segment logic; control join cardinality; prefer QUALIFY over nested subqueries for window filters.
 - Extract/flatten VARIANT once in an early CTE; avoid repeated casts.
@@ -32,3 +37,8 @@ Establish advanced SQL authoring patterns specifically for Snowflake, focusing o
 
 - [Snowflake SQL Reference](https://docs.snowflake.com/en/sql-reference) - Complete SQL command reference and syntax guide
 - [Querying Semi-Structured Data](https://docs.snowflake.com/en/sql-reference/data-types-semistructured) - VARIANT, OBJECT, and ARRAY data type handling
+
+### Related Rules
+- **Snowflake Core**: `100-snowflake-core.md`
+- **Performance Tuning**: `103-snowflake-performance-tuning.md`
+- **Semantic Views**: `106-snowflake-semantic-views.md`

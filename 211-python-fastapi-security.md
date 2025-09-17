@@ -10,6 +10,12 @@
 ## Purpose
 Establish comprehensive security practices for FastAPI applications including authentication, authorization, CORS configuration, and security middleware to protect APIs and user data.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** FastAPI security patterns for authentication, authorization, CORS, and security middleware
+
+
 ## Key Principles
 1. **Authentication First** - Implement proper JWT-based authentication with secure token handling
 2. **Authorization Controls** - Use dependency injection for role-based access control

@@ -16,7 +16,7 @@ Establish the foundational operating contract for all AI coding assistants, ensu
 - Maintain project intelligence through memory bank and rule documentation
 - Update README when modifying project structure or workflows
 
-## CRITICAL: CONFIRMATION & SAFETY
+## Critical: Confirmation & Safety
 
 ### Mode-Based Workflow
 - **Mandatory:** You have two modes of operation:
@@ -28,8 +28,8 @@ Establish the foundational operating contract for all AI coding assistants, ensu
 - You will print `# Mode: PLAN` when in plan mode and `# Mode: ACT` when in act mode at the beginning of each response.
 - Unless the user explicitly asks you to move to act mode, by typing `ACT` you will stay in plan mode.
 - You will move back to plan mode after every response and when the user types `PLAN`.
-- **CRITICAL:** In PLAN mode, you are FORBIDDEN from using ANY file-modifying tools including but not limited to: `write`, `search_replace`, `MultiEdit`, `edit_notebook`, `delete_file`, or any tool that creates, modifies, or deletes files.
-- **CRITICAL:** In PLAN mode, you may ONLY use read-only tools: `read_file`, `list_dir`, `grep`, `codebase_search`, `glob_file_search`, `run_terminal_cmd` (read-only commands only), and `todo_write` for planning purposes.
+- **Critical:** In PLAN mode, you are FORBIDDEN from using ANY file-modifying tools including but not limited to: `write`, `search_replace`, `MultiEdit`, `edit_notebook`, `delete_file`, or any tool that creates, modifies, or deletes files.
+- **Critical:** In PLAN mode, you may ONLY use read-only tools: `read_file`, `list_dir`, `grep`, `codebase_search`, `glob_file_search`, `run_terminal_cmd` (read-only commands only), and `todo_write` for planning purposes.
 - If the user asks you to take an action while in plan mode you will remind them that you are in PLAN mode and that they need to type "ACT" to approve the plan first.
 - When in plan mode always output the full updated plan in every response.
 
@@ -39,8 +39,8 @@ Establish the foundational operating contract for all AI coding assistants, ensu
   - ✅ `run_terminal_cmd` (read-only commands like `ls`, `cat`, `grep` only)
   - ✅ `todo_write` (for planning and task management)
   - ✅ `web_search`, `fetch_rules` (information gathering)
-  - ❌ **FORBIDDEN:** `write`, `search_replace`, `MultiEdit`, `edit_notebook`, `delete_file`
-  - ❌ **FORBIDDEN:** Any `run_terminal_cmd` that modifies files or system state
+  - ❌ **Forbidden:** `write`, `search_replace`, `MultiEdit`, `edit_notebook`, `delete_file`
+  - ❌ **Forbidden:** Any `run_terminal_cmd` that modifies files or system state
 
 - **ACT Mode - FULL ACCESS:**
   - ✅ All tools available after user types "ACT"
@@ -48,9 +48,10 @@ Establish the foundational operating contract for all AI coding assistants, ensu
   - ✅ System-modifying terminal commands permitted
 
 ### Task Confirmation
-- **MANDATORY:** You MUST ask for explicit user confirmation of the **TASK LIST** before performing ANY file-modifying actions.
-- **MANDATORY:** User must type "ACT" to authorize moving from PLAN mode to ACT mode.
-- **MANDATORY:** If you use any file-modifying tool while in PLAN mode, this is a CRITICAL VIOLATION of core workflow rules.
+- **Mandatory:** You MUST ask for explicit user confirmation of the **TASK LIST** before performing ANY file-modifying actions.
+- **Mandatory:** User must type "ACT" to authorize moving from PLAN mode to ACT mode.
+- **Mandatory:** If you use any file-modifying tool while in PLAN mode, this is a Critical VIOLATION of core workflow rules.
+- **Mandatory:** Include README update assessment in your task list when applicable.
 - **Exception:** Proceed without confirmation only if the user has explicitly overridden the request (e.g., "proceed without asking" AND "ACT").
 
 ### Mode Violation Prevention
@@ -67,12 +68,14 @@ Establish the foundational operating contract for all AI coding assistants, ensu
 
 ## 2. General Workflow
 - **Mandatory:** Start by clarifying all requirements and presenting a clear **TASK LIST**.
+- **Mandatory:** Include README update assessment in task list for changes that affect project structure, commands, or features.
 - **Mandatory:** Reference current official documentation for all technologies involved before providing solutions.
 - **Mandatory:** After receiving confirmation, provide a minimal contract (inputs, outputs, side-effects).
 - **Recommended:** Show only the changed code (a "delta"). Do not repeat unchanged code.
 - **Mandatory:** For multi-file changes, list each file's purpose, then provide its delta.
 - **Mandatory:** After a task is done, provide validation guidance (e.g., test commands).
 - **Mandatory:** Before finishing, confirm every task on the list is complete or explicitly deferred.
+- **Critical:** Before marking tasks complete, explicitly verify README maintenance requirements were addressed.
 
 ## 3. Code Modification and Output
 - **Mandatory:** When modifying existing code, make only surgical, minimal changes required to fulfill the request.
@@ -91,19 +94,46 @@ Establish the foundational operating contract for all AI coding assistants, ensu
 - **Requirement:** Use a consistent naming convention like `XX-topic-description.md` for all referenced rules.
 
 ## 6. README MAINTENANCE
+
+### README Update Triggers
 - **Mandatory:** Update the project README.md after any of the following actions:
   - Adding, removing, or significantly modifying rule files
   - Changes to project structure or file organization
   - Updates to development workflows or commands
   - Memory bank modifications that affect project context
   - Feature completion that moves items from roadmap to implemented
+  - Adding new IDE/agent support (e.g., Cursor, Copilot, Cline)
+  - Modifying generation scripts or automation tools
+
+### README Update Checklist
+- **Critical:** Before marking any task as complete, verify README updates using this checklist:
+  - [ ] **Quick Start section** - Updated with new commands/workflows
+  - [ ] **Basic Usage examples** - Added new tool/agent examples
+  - [ ] **Rule Generator Architecture** - Updated supported formats table
+  - [ ] **Development Commands** - Added new task commands
+  - [ ] **IDE Integration Examples** - Added new IDE/tool sections
+  - [ ] **Compatibility Matrix** - Updated tool support status
+  - [ ] **Roadmap** - Moved completed items, added new planned features
+
+### README Section Requirements
 - **Requirement:** Review and update these README sections as needed:
   - **Rule Categories** (📁) - Reflect current rule files and organization
   - **Memory Bank System** (🧠) - Update if memory bank structure changes
   - **Development Commands** (📋) - Add new commands or workflows
+  - **IDE Integration Examples** - Add new tools and usage patterns
+  - **Compatibility Matrix** - Update tool support and features
   - **Roadmap** (🗺️) - Move completed features, add new planned features
+
+### README Validation Requirements
 - **Always:** Validate README accuracy by checking that all referenced files and commands exist and work correctly.
-- **Rule:** Include README updates as part of the task completion confirmation.
+- **Always:** Test all command examples in the README to ensure they work.
+- **Always:** Verify all links and references are current and accessible.
+
+### Task Completion Protocol
+- **Mandatory:** README updates are NOT optional - they are part of core task completion.
+- **Mandatory:** Before responding with "task complete", explicitly confirm README sections were reviewed and updated.
+- **Mandatory:** Include a brief summary of what README sections were updated in the task completion response.
+- **Rule:** If no README updates were needed, explicitly state why (e.g., "No README updates required - changes were internal only").
 
 ## References
 

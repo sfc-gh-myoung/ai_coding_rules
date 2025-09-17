@@ -32,6 +32,7 @@ task deps:dev
 # Generate IDE-specific rule files
 task rule:cursor    # For Cursor IDE
 task rule:copilot   # For GitHub Copilot
+task rule:cline     # For Cline AI assistant
 ```
 
 ### Basic Usage
@@ -49,9 +50,14 @@ task rule:cursor
 task rule:copilot
 # Creates .github/instructions/*.md files with preserved *.md references
 
+# Generate Cline rules
+task rule:cline
+# Creates .clinerules/*.md files with plain Markdown (no YAML frontmatter)
+
 # Manual generation with options
 uv run generate_agent_rules.py --agent cursor --dry-run
 uv run generate_agent_rules.py --agent copilot --check
+uv run generate_agent_rules.py --agent cline --dry-run
 ```
 
 #### Option 3: System Prompt Integration
@@ -177,6 +183,7 @@ The project includes a sophisticated rule generator (`generate_agent_rules.py`) 
 |----------|---------------|----------|----------|
 | **Cursor** | `.mdc` files | `.cursor/rules/` | YAML frontmatter with globs, auto-apply, automatic `*.md` → `*.mdc` reference conversion |
 | **GitHub Copilot** | `.md` files | `.github/instructions/` | YAML frontmatter with appliesTo patterns, preserves original `*.md` references |
+| **Cline** | `.md` files | `.clinerules/` | Plain Markdown (no YAML frontmatter), all files automatically processed |
 
 ### Reference Conversion Feature
 
@@ -396,6 +403,7 @@ uvx ruff format .         # Apply formatting
 # Generate IDE-specific rules
 task rule:cursor         # Generate Cursor rules
 task rule:copilot        # Generate Copilot rules
+task rule:cline          # Generate Cline rules
 
 # Validate configurations
 task --list              # Validate Taskfile syntax
@@ -424,6 +432,14 @@ task rule:copilot
 # Configure via .github/instructions/*.md files
 ```
 
+### Cline AI Assistant
+```bash
+task rule:cline
+# Generate rules for Cline AI assistant
+# Configure via .clinerules/*.md files
+# All Markdown files in .clinerules/ are automatically processed
+```
+
 ### Claude Projects
 Add selected `.md` rule files to your Claude project knowledge base for consistent code generation.
 
@@ -439,7 +455,7 @@ Use the generated `.md` files with VS Code AI extensions or copy content for cus
 | **ChatGPT** | Yes Markdown | No Native | Full Support |
 | **GitHub Copilot** | No Limited | Yes Instructions | Full Support |
 | **Cursor** | Yes Markdown | Yes .mdc Rules | Full Support |
-| **Cline/Claude Dev** | Yes Markdown | No Native | Full Support |
+| **Cline** | Yes Markdown | Yes .clinerules | Full Support |
 
 ## License
 

@@ -2,8 +2,8 @@
 **AppliesTo:** `**/*.sql`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-09-10
+**Version:** 1.1
+**LastUpdated:** 2025-09-16
 
 # Snowflake SQL Best Practices
 
@@ -29,6 +29,6 @@ Establish advanced SQL authoring patterns specifically for Snowflake, focusing o
 ## References
 
 ### External Documentation
-- **Always:** Reference the official Snowflake documentation:
+
 - [Snowflake SQL Reference](https://docs.snowflake.com/en/sql-reference) - Complete SQL command reference and syntax guide
 - [Querying Semi-Structured Data](https://docs.snowflake.com/en/sql-reference/data-types-semistructured) - VARIANT, OBJECT, and ARRAY data type handling

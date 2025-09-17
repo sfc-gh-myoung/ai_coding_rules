@@ -2,8 +2,8 @@
 **AppliesTo:** `**/*.py`, `streamlit/**/*`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-09-10
+**Version:** 1.2
+**LastUpdated:** 2025-09-16
 
 # Streamlit UI/UX Directives
 
@@ -53,3 +53,11 @@ Provide comprehensive guidance for building modern, performant, and maintainable
   - **Layouts**: https://docs.streamlit.io/develop/api-reference/layout
   - **API Reference**: https://docs.streamlit.io/develop/api-reference
 - **Requirement:** When building for Snowflake, cross-reference Streamlit in Snowflake docs for differences in behavior, security context, and supported features: https://docs.snowflake.com/en/developer-guide/streamlit/about-streamlit
+
+## References
+
+### External Documentation
+- [Streamlit Documentation](https://docs.streamlit.io/) - Official Streamlit application development guide
+- [Streamlit API Reference](https://docs.streamlit.io/library/api-reference) - Complete API reference for all Streamlit components
+- [Snowflake Streamlit Guide](https://docs.snowflake.com/en/developer-guide/streamlit/about-streamlit) - Snowflake-specific Streamlit integration documentation
+- [Streamlit Performance](https://docs.streamlit.io/library/advanced-features/caching) - Caching and performance optimization techniques

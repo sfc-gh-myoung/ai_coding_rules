@@ -29,8 +29,9 @@ Provide comprehensive best practices for efficiently loading data into Snowflake
 - **Requirement:** Aim for compressed file sizes between 100–250 MB for performance and cost.
 - **Requirement:** For semi-structured data, ensure consistent data types within elements to enable subcolumnarization.
 
-## 4. Documentation
-- **Always:** Reference official documentation:
-  - **COPY INTO**: https://docs.snowflake.com/en/sql-reference/sql/copy-into-table
-  - **Snowpipe**: https://docs.snowflake.com/en/user-guide/data-load-snowpipe-intro
-  - **Stages**: https://docs.snowflake.com/en/user-guide/data-load-stages-intro
+## References
+
+### External Documentation
+- [COPY INTO Command](https://docs.snowflake.com/en/sql-reference/sql/copy-into-table) - Bulk data loading syntax and options
+- [Snowpipe Introduction](https://docs.snowflake.com/en/user-guide/data-load-snowpipe-intro) - Continuous data ingestion and automation
+- [Data Loading Stages](https://docs.snowflake.com/en/user-guide/data-load-stages-intro) - Internal and external stage management

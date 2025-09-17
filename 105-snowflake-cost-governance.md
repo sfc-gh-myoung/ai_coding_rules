@@ -25,7 +25,8 @@ Establish comprehensive cost management and optimization strategies for Snowflak
 - **Always:** Create resource monitors with specific `CREDIT_QUOTA` and `TRIGGERS` to suspend or notify on thresholds.
 - **Always:** Use Snowflake's anomaly detection features to monitor for unexpected credit spikes.
 
-## 3. Documentation
-- **Always:** Reference the official documentation:
-  - **Cost Management**: https://docs.snowflake.com/en/guides-overview-cost
-  - **Resource Monitors**: https://docs.snowflake.com/en/user-guide/resource-monitors
+## References
+
+### External Documentation
+- [Cost Management Guide](https://docs.snowflake.com/en/guides-overview-cost) - Comprehensive cost optimization strategies and monitoring
+- [Resource Monitors](https://docs.snowflake.com/en/user-guide/resource-monitors) - Credit usage tracking, quotas, and automated controls

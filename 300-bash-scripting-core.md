@@ -494,11 +494,12 @@ calculate_hash() {
 - **`@301-bash-security.md`** - Comprehensive security practices, input validation, and access control
 - **`@302-bash-testing-tooling.md`** - Testing frameworks, debugging, ShellCheck integration, and CI/CD
 
-## References and Resources
+## References
 
-- [Bash Manual](https://www.gnu.org/software/bash/manual/) - Official Bash documentation
-- [Google Shell Style Guide](https://google.github.io/styleguide/shellguide.html) - Industry standard style guide
-- [Bash Pitfalls](https://mywiki.wooledge.org/BashPitfalls) - Common mistakes to avoid
+### External Documentation
+- [Bash Manual](https://www.gnu.org/software/bash/manual/) - Complete reference for Bash features and syntax
+- [Google Shell Style Guide](https://google.github.io/styleguide/shellguide.html) - Professional shell scripting standards and conventions
+- [Bash Pitfalls](https://mywiki.wooledge.org/BashPitfalls) - Common scripting mistakes and how to avoid them
 
 ## Rule Type and Scope
 

@@ -437,12 +437,13 @@ generate_function_docs() {
 }
 ```
 
-## References and Resources
+## References
 
-- [ShellCheck Documentation](https://github.com/koalaman/shellcheck/wiki)
-- [Bash Automated Testing System (BATS)](https://github.com/bats-core/bats-core)
-- [Google Shell Style Guide - Testing](https://google.github.io/styleguide/shellguide.html#s7-tests)
-- [Advanced Bash-Scripting Guide - Testing](https://tldp.org/LDP/abs/html/debugging.html)
+### External Documentation
+- [ShellCheck Documentation](https://github.com/koalaman/shellcheck/wiki) - Static analysis tool for shell scripts and best practices
+- [BATS Testing Framework](https://github.com/bats-core/bats-core) - Bash Automated Testing System for unit testing
+- [Google Shell Testing Guide](https://google.github.io/styleguide/shellguide.html#s7-tests) - Professional shell script testing standards
+- [Advanced Bash Debugging](https://tldp.org/LDP/abs/html/debugging.html) - Debugging techniques and troubleshooting methods
 
 ## Rule Type and Scope
 

@@ -350,10 +350,12 @@ docker-compose up --build
 ```
 
 ## References
-- **FastAPI Deployment**: https://fastapi.tiangolo.com/deployment/
-- **Uvicorn Deployment**: https://www.uvicorn.org/deployment/
-- **Gunicorn Configuration**: https://docs.gunicorn.org/en/stable/configure.html
-- **Docker Best Practices**: https://docs.docker.com/develop/best-practices/
-- **FastAPI OpenAPI**: https://fastapi.tiangolo.com/advanced/extending-openapi/
+
+### External Documentation
+- [FastAPI Deployment Guide](https://fastapi.tiangolo.com/deployment/) - Production deployment strategies and server configurations
+- [Uvicorn Deployment](https://www.uvicorn.org/deployment/) - ASGI server deployment and process management
+- [Gunicorn Configuration](https://docs.gunicorn.org/en/stable/configure.html) - Worker processes, timeouts, and production settings
+- [Docker Best Practices](https://docs.docker.com/develop/best-practices/) - Multi-stage builds, security, and optimization
+- [OpenAPI Customization](https://fastapi.tiangolo.com/advanced/extending-openapi/) - API documentation and schema customization
 - **FastAPI Core Patterns**: `210-python-fastapi-core.md`
 - **FastAPI Security**: `211-python-fastapi-security.md`

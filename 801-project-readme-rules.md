@@ -258,12 +258,13 @@ Click [here](https://example.com/docs) for more info.
 - **Consider:** Automated link checking and badge updates
 - **Always:** Include README in documentation deployment process
 
-## References and Resources
+## References
 
-- [GitHub's README Guide](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes)
-- [Make a README](https://www.makeareadme.com/)
-- [Awesome README Examples](https://github.com/matiassingers/awesome-readme)
-- [Markdown Guide](https://www.markdownguide.org/)
+### External Documentation
+- [GitHub README Guide](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes) - Official GitHub documentation standards
+- [Make a README](https://www.makeareadme.com/) - Interactive README creation guide and best practices
+- [Awesome README Examples](https://github.com/matiassingers/awesome-readme) - Curated collection of excellent README examples
+- [Markdown Guide](https://www.markdownguide.org/) - Complete Markdown syntax reference and formatting guide
 - [Conventional Commits](https://www.conventionalcommits.org/) (for changelog integration)
 
 ## Rule Type and Scope

@@ -377,9 +377,13 @@ class Settings(BaseSettings):
 ```
 
 ## References
-- **FastAPI Middleware**: https://fastapi.tiangolo.com/tutorial/middleware/
-- **Python Logging**: https://docs.python.org/3/library/logging.html
-- **Redis Async**: https://redis-py.readthedocs.io/en/stable/
-- **Prometheus FastAPI**: https://github.com/trallnag/prometheus-fastapi-instrumentator
-- **FastAPI Core Patterns**: `210-python-fastapi-core.md`
+
+### External Documentation
+- [FastAPI Middleware Guide](https://fastapi.tiangolo.com/tutorial/middleware/) - Custom middleware, CORS, and request processing
+- [Python Logging Documentation](https://docs.python.org/3/library/logging.html) - Structured logging, handlers, and formatters
+- [Redis Python Async](https://redis-py.readthedocs.io/en/stable/) - Async Redis operations and connection pooling
+- [Prometheus FastAPI Instrumentator](https://github.com/trallnag/prometheus-fastapi-instrumentator) - Metrics collection and monitoring integration
+
+### Internal References
+- `210-python-fastapi-core.md` - Core FastAPI development patterns
 - **Python Core Rules**: `200-python-core.md`

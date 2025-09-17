@@ -25,9 +25,10 @@ Establish comprehensive data security and access control practices using Snowfla
 - **Always:** Use row access policies to enforce row-level security based on a user's role or other session context.
 - **Always:** Apply object tagging to classify data for governance purposes (e.g., PII, `SENSITIVITY_LEVEL`).
 
-## 3. Documentation
-- **Always:** Reference the official documentation:
-  - **RBAC**: https://docs.snowflake.com/en/user-guide/security-access-control-overview
-  - **Masking Policies**: https://docs.snowflake.com/en/user-guide/security-column-intro
-  - **Row Access Policies**: https://docs.snowflake.com/en/user-guide/security-row-intro
-  - **Object Tagging**: https://docs.snowflake.com/en/user-guide/object-tagging
+## References
+
+### External Documentation
+- [Access Control Overview](https://docs.snowflake.com/en/user-guide/security-access-control-overview) - RBAC, roles, and privilege management
+- [Column-Level Security](https://docs.snowflake.com/en/user-guide/security-column-intro) - Dynamic data masking and column-level policies
+- [Row-Level Security](https://docs.snowflake.com/en/user-guide/security-row-intro) - Row access policies and conditional data access
+- [Object Tagging](https://docs.snowflake.com/en/user-guide/object-tagging) - Metadata tagging for governance and classification

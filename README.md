@@ -132,7 +132,7 @@ The following best practices apply to all AI coding assistants and development e
 - **`240-python-faker.md`** — Faker data generation (providers, localization, testing integration, performance)
 
 #### Web Frameworks (250-259)
-- **`250-python-flask.md`** — Flask web framework (application structure, blueprints, security, database integration, deployment)
+- **`250-python-flask.md`** — Flask web framework (application factory pattern, blueprints, security, Jinja2 templates, SQLAlchemy integration)
 
 ### Software Engineering - Shell Scripts (300-399)
 

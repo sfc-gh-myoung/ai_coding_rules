@@ -2,8 +2,8 @@
 **AppliesTo:** `**/*.zsh`, `**/.zshrc`, `**/.zshenv`, `scripts/**/*`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-09-14
+**Version:** 1.1
+**LastUpdated:** 2025-09-16
 
 # Zsh Scripting Core Best Practices
 

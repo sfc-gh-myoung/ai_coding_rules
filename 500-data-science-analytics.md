@@ -7,6 +7,9 @@
 
 # Data Science & Analytics Principles
 
+## Purpose
+Establish comprehensive rules for performing data science and analytics on Snowflake, focusing on model lifecycle management, advanced SQL techniques, and specialized data types to ensure reproducible and reliable analytical workflows.
+
 ## 1. Model Lifecycle & MLOps
 - **Requirement:** Ensure reproducibility: pin dependencies, log seeds, and use a dataset snapshot or hash.
 - **Requirement:** Use a model registry to store metadata for each version (parameters, metrics, data hash).

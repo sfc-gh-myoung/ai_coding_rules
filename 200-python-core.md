@@ -29,8 +29,8 @@ Establish foundational Python development practices using modern tooling like `u
 - **Recommended:** If `uv` is unavailable, use `pip` + `pip-tools` or `poetry`. Provide equivalent commands when giving setup instructions.
 
 ## 2. Virtual Environment Activation
-- **CRITICAL:** Always use `uv run` to execute Python code in projects. Never run `python` directly.
-- **CRITICAL:** All Python execution must go through the proper virtual environment to avoid `ModuleNotFoundError`.
+- **Critical:** Always use `uv run` to execute Python code in projects. Never run `python` directly.
+- **Critical:** All Python execution must go through the proper virtual environment to avoid `ModuleNotFoundError`.
 - **Requirement:** Use `uv run python` instead of bare `python` for all scripts, imports, and testing.
 - **Requirement:** Use `uv run uvicorn` instead of bare `uvicorn` for FastAPI/ASGI servers.
 - **Requirement:** Use `uv run pytest` instead of bare `pytest` for testing.

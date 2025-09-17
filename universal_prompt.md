@@ -5,6 +5,9 @@
 
 # Universal Response Guidelines
 
+## Purpose
+Provide universal response guidelines and task-specific instruction templates for AI coding assistants, ensuring consistent communication style, code standards, and structured responses across different contexts and domains.
+
 **1. Response Structure**
 - Lead with the core solution or primary code block.
 - Follow with a detailed explanation of the "why," including trade-offs and alternatives.

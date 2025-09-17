@@ -25,8 +25,9 @@ Provide systematic approaches for profiling, optimizing, and fine-tuning Snowfla
 - **Always:** Enable `AUTO_SUSPEND` and `AUTO_RESUME` on all warehouses.
 - **Requirement:** Consider clustering keys only with clear justification based on query patterns.
 
-## 3. Documentation
-- **Always:** Reference official documentation:
-  - **Query Profiling**: https://docs.snowflake.com/en/user-guide/ui-query-profile
-  - **Warehouse Management**: https://docs.snowflake.com/en/user-guide/warehouses
-  - **Clustering**: https://docs.snowflake.com/en/user-guide/tables-clustering-keys
+## References
+
+### External Documentation
+- [Query Profile Guide](https://docs.snowflake.com/en/user-guide/ui-query-profile) - Query execution analysis and performance diagnostics
+- [Virtual Warehouse Management](https://docs.snowflake.com/en/user-guide/warehouses) - Warehouse sizing, scaling, and cost optimization
+- [Clustering Keys](https://docs.snowflake.com/en/user-guide/tables-clustering-keys) - Table clustering for query performance optimization

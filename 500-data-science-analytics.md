@@ -10,6 +10,12 @@
 ## Purpose
 Establish comprehensive rules for performing data science and analytics on Snowflake, focusing on model lifecycle management, advanced SQL techniques, and specialized data types to ensure reproducible and reliable analytical workflows.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** Data science and analytics on Snowflake with ML lifecycle and advanced SQL patterns
+
+
 ## 1. Model Lifecycle & MLOps
 - **Requirement:** Ensure reproducibility: pin dependencies, log seeds, and use a dataset snapshot or hash.
 - **Requirement:** Use a model registry to store metadata for each version (parameters, metrics, data hash).
@@ -53,7 +59,12 @@ Establish comprehensive rules for performing data science and analytics on Snowf
 ## References
 
 ### External Documentation
-- [Snowflake for Data Science](https://docs.snowflake.com/en/user-guide/data-science) - Data science workflows and best practices in Snowflake
-- [Snowflake Cortex AI](https://docs.snowflake.com/en/user-guide/snowflake-cortex) - AI and machine learning capabilities in Snowflake
+- [Snowflake for Data Science](https://docs.snowflake.com/en/user-guide/data-science) - Data science workflows and best practices in Snowflake                                                                          
+- [Snowflake Cortex AI](https://docs.snowflake.com/en/user-guide/snowflake-cortex) - AI and machine learning capabilities in Snowflake                                                                                  
 - [Snowflake ML Documentation](https://docs.snowflake.com/en/developer-guide/snowflake-ml/overview) - Machine learning development guide
-- [Data Visualization Best Practices](https://www.tableau.com/learn/articles/data-visualization) - Principles of effective data visualization
+
+### Related Rules
+- **Snowflake Core**: `100-snowflake-core.md`
+- **Snowflake Notebooks**: `109-snowflake-notebooks.md`
+- **Python Core**: `200-python-core.md`
+- **Data Governance**: `600-data-governance-quality.md`

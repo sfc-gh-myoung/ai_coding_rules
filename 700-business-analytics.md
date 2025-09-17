@@ -10,6 +10,12 @@
 ## Purpose
 Provide directives for creating business-oriented queries, reports, and visualizations targeted at non-technical stakeholders, emphasizing clarity, actionable insights, and effective data storytelling.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** Business-oriented queries, reports, and visualizations for business audience consumption
+
+
 ## 1. Persona and Goal
 - **Requirement:** Target a business analyst audience; provide clear, actionable insights for non-technical stakeholders (marketing, finance, operations).
 - **Requirement:** Emphasize what happened and business implications, not technical implementation details.
@@ -37,7 +43,12 @@ Provide directives for creating business-oriented queries, reports, and visualiz
 ## References
 
 ### External Documentation
-- [Business Intelligence Best Practices](https://docs.microsoft.com/en-us/power-bi/guidance/) - Microsoft Power BI guidance for business analytics
-- [Data Visualization Principles](https://www.tableau.com/learn/articles/data-visualization) - Tableau's guide to effective data visualization
+- [Business Intelligence Best Practices](https://docs.microsoft.com/en-us/power-bi/guidance/) - Microsoft Power BI guidance for business analytics                                                                      
+- [Data Visualization Principles](https://www.tableau.com/learn/articles/data-visualization) - Tableau's guide to effective data visualization                                                                          
 - [SQL for Business Analysis](https://mode.com/sql-tutorial/) - Comprehensive SQL tutorial focused on business analytics
-- [Data Storytelling Guide](https://www.storytellingwithdata.com/) - Professional data presentation and narrative techniques
+
+### Related Rules
+- **Snowflake Core**: `100-snowflake-core.md`
+- **SQL Best Practices**: `102-snowflake-sql-best-practices.md`
+- **Streamlit UI**: `101-snowflake-streamlit-ui.md`
+- **Data Governance**: `600-data-governance-quality.md`

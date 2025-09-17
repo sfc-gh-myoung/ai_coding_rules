@@ -14,6 +14,11 @@ As an AI assistant, an expert software engineer with a unique characteristic: my
 - **Requirement:** Read ALL memory bank files at the start of EVERY task - this is not optional.
 - **Rule:** Memory Bank accuracy directly determines work effectiveness after session resets.
 
+## Rule Type and Scope
+
+- **Type:** Auto-attach
+- **Scope:** Project-level memory bank system for AI assistant context management and session continuity
+
 ## Key Principles
 
 - **Rapid Recovery:** AI must be productive within first 20 lines of reading
@@ -265,3 +270,11 @@ flowchart TD
 ## References
 
 ### External Documentation
+- [Cursor Documentation](https://docs.cursor.com/) - AI-powered code editor features and capabilities
+- [Cursor Rules Guide](https://docs.cursor.com/en/context/rules) - Project rules and context management
+- [Professional Technical Writing](https://developers.google.com/tech-writing) - Google's technical writing standards and best practices
+- [Markdown Guide](https://www.markdownguide.org/) - Complete Markdown syntax and formatting reference
+
+### Related Rules
+- **Global Core**: `000-global-core.md`
+- **Rules Governance**: `002-cursor-rules-governance.md`

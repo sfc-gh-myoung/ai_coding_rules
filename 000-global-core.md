@@ -71,7 +71,7 @@ Establish the foundational operating contract for all AI coding assistants, ensu
 - **Mandatory:** Include README update assessment in task list for changes that affect project structure, commands, or features.
 - **Mandatory:** Reference current official documentation for all technologies involved before providing solutions.
 - **Mandatory:** After receiving confirmation, provide a minimal contract (inputs, outputs, side-effects).
-- **Recommended:** Show only the changed code (a "delta"). Do not repeat unchanged code.
+- **Consider:** Show only the changed code (a "delta"). Do not repeat unchanged code.
 - **Mandatory:** For multi-file changes, list each file's purpose, then provide its delta.
 - **Mandatory:** After a task is done, provide validation guidance (e.g., test commands).
 - **Mandatory:** Before finishing, confirm every task on the list is complete or explicitly deferred.

@@ -2,8 +2,8 @@
 **AppliesTo:** `**/*.sql`, `**/*.scl`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-09-10
+**Version:** 1.2
+**LastUpdated:** 2025-09-16
 
 # Snowflake Core Directives
 
@@ -67,3 +67,11 @@ Establish comprehensive foundational practices for all Snowflake development wor
   - `107-snowflake-security-governance.md`: Masking policies, row access, tagging, and role strategies.
   - `108-snowflake-data-loading.md`: Stages, `COPY INTO`, and Snowpipe best practices.
   - `109-snowflake-notebooks.md`: Jupyter Notebooks in Snowflake best practices.
+
+## References
+
+### External Documentation
+- [Snowflake Documentation](https://docs.snowflake.com/) - Complete Snowflake platform documentation
+- [Snowflake SQL Reference](https://docs.snowflake.com/en/sql-reference) - Complete SQL command reference and syntax guide
+- [Snowflake Best Practices](https://docs.snowflake.com/en/user-guide/best-practices) - Official performance and cost optimization guidelines
+- [Snowflake Security Guide](https://docs.snowflake.com/en/user-guide/security) - Comprehensive security features and implementation guide

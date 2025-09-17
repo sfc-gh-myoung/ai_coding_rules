@@ -2,8 +2,8 @@
 **AppliesTo:** `**/auth*.py`, `**/security*.py`, `**/middleware*.py`, `**/routers/**`, `**/services/**`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-09-10
+**Version:** 1.1
+**LastUpdated:** 2025-09-16
 
 # FastAPI Security Patterns
 

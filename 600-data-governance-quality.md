@@ -2,8 +2,8 @@
 **AppliesTo:** `**/*.py`, `**/*.sql`, `docs/**/*`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-09-10
+**Version:** 1.2
+**LastUpdated:** 2025-09-16
 
 # Data Governance & Quality Directives
 
@@ -45,3 +45,11 @@ Establish comprehensive directives for ensuring data quality, governance, and op
 - **Always:** Ensure all changes comply with these rules.
 - **Always:** Confirm the solution addresses the problem with a clear plan.
 - **Always:** Verify that the solution promotes data quality, stewardship, and reliability.
+
+## References
+
+### External Documentation
+- [Data Management Body of Knowledge (DMBOK)](https://www.dama.org/cpages/body-of-knowledge) - Comprehensive data management framework
+- [Data Quality Assessment](https://www.dataversity.net/data-quality-assessment/) - Data quality evaluation methodologies
+- [Incident Response Best Practices](https://www.sans.org/white-papers/incident-response/) - SANS incident response guidelines
+- [Data Governance Framework](https://www.datagovernance.com/data-governance-framework/) - Structured approach to data governance

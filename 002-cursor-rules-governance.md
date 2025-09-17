@@ -1,8 +1,8 @@
 **Description:** How to create new `.md` project rule files for AI coding assistants (editor- and model-agnostic).
 **AutoAttach:** true
 **Type:** Auto-attach
-**Version:** 1.0
-**LastUpdated:** 2025-09-10
+**Version:** 1.2
+**LastUpdated:** 2025-09-16
 
 # Rule Governance: Directives for the Agent
 
@@ -12,7 +12,7 @@ Establish comprehensive governance for creating, maintaining, and organizing AI 
 ## Rule Creation & Naming Constraints
 - **Requirement:** Place universal rule files in the canonical `ai_coding_rules/` directory. Optional mirrors may exist in editor-specific folders (e.g., `.cursor/rules/`).
 - **Requirement:** Use a snake-case naming convention with a `.md` extension (e.g., `your_rule_name.md`).
-- **Requirement:** Include a clear description and, if needed, scope notes at the top of the file. Optional metadata like `id`, `Version`, and `LastUpdated` may also be included in plain text.
+- **Requirement:** Include a clear description and, if needed, scope notes at the top of the file. Mandatory metadata `Version` and `LastUpdated` must be included in plain text. Optional metadata like `id` may also be included.
 
 ## Content & Structure Constraints
 - **Requirement:** Every rule file must have a single `#` H1 title.
@@ -57,5 +57,15 @@ Every rule file must follow this structure:
 
 ## Change Workflow
 - **Always:** When creating a new rule, include a clear `## Purpose` section and, when appropriate, a `## Key Principles` section with 3-7 concise bullet points summarizing core concepts.
+- **Mandatory:** When creating a new rule, include `Version: 1.0` and `LastUpdated` with current date in YYYY-MM-DD format.
+- **Mandatory:** When updating any rule file, increment the version number and update `LastUpdated` to the current date in YYYY-MM-DD format.
 - **Always:** When refactoring, split oversized rules and remove content duplication.
 - **Always:** Before finalizing a rule, validate it against current, vendor-agnostic documentation and your primary IDE/tooling documentation for compliance (e.g., Visual Studio Code, Cursor, Claude Code, Gemini CLI, Cline).
+
+## References
+
+### External Documentation
+- [Cursor Documentation](https://docs.cursor.com/) - AI-powered code editor features and capabilities
+- [Cursor Rules Guide](https://docs.cursor.com/en/context/rules) - Project rules and context management
+- [Professional Technical Writing](https://developers.google.com/tech-writing) - Google's technical writing standards and best practices
+- [Markdown Guide](https://www.markdownguide.org/) - Complete Markdown syntax and formatting reference

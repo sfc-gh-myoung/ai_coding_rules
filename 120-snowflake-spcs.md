@@ -10,7 +10,7 @@
 ## Purpose
 Provide comprehensive guidance for deploying, managing, and optimizing containerized applications using Snowflake Snowpark Container Services, covering architecture patterns, security, performance optimization, and operational best practices.
 
-## TL;DR
+## Key Principles
 - Use OCI-compliant images; leverage Snowflake's managed image registry for secure storage.
 - Design services for high availability with proper health checks and resource limits.
 - Optimize compute pools for workload patterns; use GPUs for ML/AI workloads.

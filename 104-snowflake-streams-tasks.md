@@ -10,7 +10,7 @@
 ## Purpose
 Establish patterns for building robust, incremental data pipelines using Snowflake Streams and Tasks, covering change data capture, scheduling, idempotency, and monitoring for reliable data processing workflows.
 
-## TL;DR
+## Key Principles
 - Capture changes with STREAM; apply with TASK-driven MERGE; chain tasks for DAGs.
 - Ensure idempotency; consume stream at end of transaction; monitor with Task History.
 - Follow official docs for implementation details and idempotent DDL.

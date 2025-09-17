@@ -7,6 +7,9 @@
 
 # Zsh Scripting Core Best Practices
 
+## Purpose
+Establish foundational zsh scripting patterns covering unique zsh features, script structure, variables, functions, and essential practices to leverage zsh's advanced capabilities while maintaining compatibility.
+
 ## 1. Script Foundation & Zsh Setup
 
 ### Shebang and Environment

@@ -7,6 +7,9 @@
 
 # Business Analytics & Reporting Directives
 
+## Purpose
+Provide directives for creating business-oriented queries, reports, and visualizations targeted at non-technical stakeholders, emphasizing clarity, actionable insights, and effective data storytelling.
+
 ## 1. Persona and Goal
 - **Requirement:** Target a business analyst audience; provide clear, actionable insights for non-technical stakeholders (marketing, finance, operations).
 - **Requirement:** Emphasize what happened and business implications, not technical implementation details.

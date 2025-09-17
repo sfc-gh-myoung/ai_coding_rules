@@ -7,6 +7,9 @@
 
 # Snowflake Core Directives
 
+## Purpose
+Establish comprehensive foundational practices for all Snowflake development work, ensuring cost-effective, performant, and secure solutions through proper SQL authoring, object naming, security policies, and architectural patterns.
+
 ## TL;DR
 - Cost-first; fully qualify objects; prefer set-based SQL with clear CTEs and explicit joins.
 - Push filters early, minimize data movement; parse VARIANT at the edge.

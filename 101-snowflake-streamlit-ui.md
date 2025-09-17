@@ -7,6 +7,9 @@
 
 # Streamlit UI/UX Directives
 
+## Purpose
+Provide comprehensive guidance for building modern, performant, and maintainable Streamlit applications within the Snowflake ecosystem, focusing on user experience, performance optimization, and modular architecture patterns.
+
 ## TL;DR
 - Fast First Paint (<2s), modular architecture, deterministic state; cache data/resources appropriately.
 - Use page config, pages/ structure, components/ for reuse; avoid raw loops and re-creating connections.

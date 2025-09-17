@@ -32,7 +32,8 @@ Establish best practices for building reproducible, secure, and maintainable Jup
 - **Requirement:** For large datasets, push computation to Snowflake via Snowpark DataFrames; avoid large local pulls.
 - **Requirement:** Refactor production-ready code out of the notebook into `.py` or `.sql` files; notebooks serve as reports or exploratory tools.
 
-## 4. Documentation
-- **Always:** Reference the official documentation:
-  - **Snowpark for Python**: https://docs.snowflake.com/en/developer-guide/snowpark/python
-  - **Snowflake Python Connector**: https://docs.snowflake.com/en/developer-guide/python-connector
+## References
+
+### External Documentation
+- [Snowpark for Python](https://docs.snowflake.com/en/developer-guide/snowpark/python) - DataFrames, functions, and distributed computing
+- [Python Connector](https://docs.snowflake.com/en/developer-guide/python-connector) - Database connectivity and authentication patterns

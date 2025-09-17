@@ -67,6 +67,7 @@ Establish the foundational operating contract for all AI coding assistants, ensu
 
 ## 2. General Workflow
 - **Mandatory:** Start by clarifying all requirements and presenting a clear **TASK LIST**.
+- **Mandatory:** Reference current official documentation for all technologies involved before providing solutions.
 - **Mandatory:** After receiving confirmation, provide a minimal contract (inputs, outputs, side-effects).
 - **Recommended:** Show only the changed code (a "delta"). Do not repeat unchanged code.
 - **Mandatory:** For multi-file changes, list each file's purpose, then provide its delta.
@@ -75,6 +76,7 @@ Establish the foundational operating contract for all AI coding assistants, ensu
 
 ## 3. Code Modification and Output
 - **Mandatory:** When modifying existing code, make only surgical, minimal changes required to fulfill the request.
+- **Requirement:** Verify all code patterns, syntax, and best practices against current official documentation before implementation.
 - **Requirement:** Do not remove existing comments or reformat unrelated code. The goal is to produce a clean, focused diff.
 - **Requirement:** Use fenced code blocks with language tags for all files (including `.md`).
 
@@ -102,3 +104,12 @@ Establish the foundational operating contract for all AI coding assistants, ensu
   - **Roadmap** (🗺️) - Move completed features, add new planned features
 - **Always:** Validate README accuracy by checking that all referenced files and commands exist and work correctly.
 - **Rule:** Include README updates as part of the task completion confirmation.
+
+## References
+
+### External Documentation
+- **Always:** Reference the most recent online official documentation for all technologies, frameworks, and tools involved in every solution.
+- [Cursor Documentation](https://docs.cursor.com/) - AI-powered code editor features and capabilities
+- [Cursor Rules Guide](https://docs.cursor.com/en/context/rules) - Project rules and context management
+- [Professional Technical Writing](https://developers.google.com/tech-writing) - Google's technical writing standards and best practices
+- [Conventional Commits](https://www.conventionalcommits.org/) - Standardized commit message format for automated changelog generation

@@ -243,13 +243,14 @@ spec:
 - **Avoid:** New connections per request (use pooling); processing large datasets in memory without streaming.
 - **Avoid:** Ignoring resource limits; using synchronous processing for long-running operations.
 
-## References and Documentation
+## References
 
-- **Official Snowflake SPCS Documentation:** https://docs.snowflake.com/en/developer-guide/snowpark-container-services/overview
-- **SPCS Tutorials:** https://docs.snowflake.com/en/developer-guide/snowpark-container-services/tutorials
-- **Service Specification Reference:** https://docs.snowflake.com/en/developer-guide/snowpark-container-services/specification-reference
-- **SPCS SQL Commands:** https://docs.snowflake.com/en/sql-reference/sql/create-service
-- **SPCS Cost Management:** https://docs.snowflake.com/en/developer-guide/snowpark-container-services/costs
+### External Documentation
+- [Snowpark Container Services Overview](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/overview) - Architecture, concepts, and getting started guide
+- [SPCS Tutorials](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/tutorials) - Step-by-step implementation examples
+- [Service Specification Reference](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/specification-reference) - YAML service definition schema and options
+- [SPCS SQL Commands](https://docs.snowflake.com/en/sql-reference/sql/create-service) - CREATE SERVICE and related SQL command reference
+- [SPCS Cost Management](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/costs) - Pricing model and cost optimization strategies
 
 ## Rule Type and Scope
 

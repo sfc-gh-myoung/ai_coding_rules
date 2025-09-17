@@ -10,7 +10,7 @@
 ## Purpose
 Establish comprehensive foundational practices for all Snowflake development work, ensuring cost-effective, performant, and secure solutions through proper SQL authoring, object naming, security policies, and architectural patterns.
 
-## TL;DR
+## Key Principles
 - Cost-first; fully qualify objects; prefer set-based SQL with clear CTEs and explicit joins.
 - Push filters early, minimize data movement; parse VARIANT at the edge.
 - Enforce security policies; never use SELECT *; avoid deep view nesting and DISTINCT as a band-aid.

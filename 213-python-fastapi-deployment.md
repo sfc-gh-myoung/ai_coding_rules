@@ -10,6 +10,12 @@
 ## Purpose
 Establish production deployment patterns and API documentation practices for FastAPI applications using Docker, ASGI servers, and OpenAPI customization.
 
+## Rule Type and Scope
+
+- **Type:** Agent Requested
+- **Scope:** FastAPI production deployment with Docker, ASGI servers, and API documentation patterns
+
+
 ## Key Principles
 1. **Production Ready** - Deploy with Uvicorn/Gunicorn and proper process management
 2. **Container Deployment** - Use Docker with multi-stage builds and security best practices
@@ -352,10 +358,12 @@ docker-compose up --build
 ## References
 
 ### External Documentation
-- [FastAPI Deployment Guide](https://fastapi.tiangolo.com/deployment/) - Production deployment strategies and server configurations
+- [FastAPI Deployment Guide](https://fastapi.tiangolo.com/deployment/) - Production deployment strategies and server configurations                                                                                     
 - [Uvicorn Deployment](https://www.uvicorn.org/deployment/) - ASGI server deployment and process management
 - [Gunicorn Configuration](https://docs.gunicorn.org/en/stable/configure.html) - Worker processes, timeouts, and production settings
-- [Docker Best Practices](https://docs.docker.com/develop/best-practices/) - Multi-stage builds, security, and optimization
-- [OpenAPI Customization](https://fastapi.tiangolo.com/advanced/extending-openapi/) - API documentation and schema customization
-- **FastAPI Core Patterns**: `210-python-fastapi-core.md`
+
+### Related Rules
+- **FastAPI Core**: `210-python-fastapi-core.md`
 - **FastAPI Security**: `211-python-fastapi-security.md`
+- **FastAPI Monitoring**: `214-python-fastapi-monitoring.md`
+- **Python Core**: `200-python-core.md`

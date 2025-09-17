@@ -33,3 +33,11 @@ Provide directives for creating business-oriented queries, reports, and visualiz
 - **Requirement:** Include a business-oriented explanation of findings; translate technical outputs into plain language answering a business question.
 - **Always:** Provide guidance on filters/parameters.
 - **Always:** State assumptions (e.g., data freshness, filtering criteria).
+
+## References
+
+### External Documentation
+- [Business Intelligence Best Practices](https://docs.microsoft.com/en-us/power-bi/guidance/) - Microsoft Power BI guidance for business analytics
+- [Data Visualization Principles](https://www.tableau.com/learn/articles/data-visualization) - Tableau's guide to effective data visualization
+- [SQL for Business Analysis](https://mode.com/sql-tutorial/) - Comprehensive SQL tutorial focused on business analytics
+- [Data Storytelling Guide](https://www.storytellingwithdata.com/) - Professional data presentation and narrative techniques

@@ -26,7 +26,7 @@ Establish foundational Python development practices using modern tooling like `u
 - **Requirement:** Use `uv lock` for dependency resolution and updates.
 - **Requirement:** Use an authoritative linter and formatter.
 - **Requirement:** Centralize dependencies and configuration in `pyproject.toml`.
-- **Recommended:** If `uv` is unavailable, use `pip` + `pip-tools` or `poetry`. Provide equivalent commands when giving setup instructions.
+- **Consider:** If `uv` is unavailable, use `pip` + `pip-tools` or `poetry`. Provide equivalent commands when giving setup instructions.
 
 ## 2. Virtual Environment Activation
 - **Critical:** Always use `uv run` to execute Python code in projects. Never run `python` directly.

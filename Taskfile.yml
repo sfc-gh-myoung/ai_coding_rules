@@ -129,6 +129,12 @@ tasks:
     cmds:
       - uv run generate_agent_rules.py --agent copilot --source .
 
+  # Generate Cline rule files from *.md rules
+  rule:cline:
+    desc: "Generate Cline rule files from *.md rules"
+    cmds:
+      - uv run generate_agent_rules.py --agent cline --source .
+
   # Dry run rule generation to preview changes
   rule:cursor:dry:
     desc: "Dry run Cursor rule generation (preview changes)"
@@ -139,6 +145,11 @@ tasks:
     desc: "Dry run Copilot rule generation (preview changes)"
     cmds:
       - uv run generate_agent_rules.py --agent copilot --source . --dry-run
+
+  rule:cline:dry:
+    desc: "Dry run Cline rule generation (preview changes)"
+    cmds:
+      - uv run generate_agent_rules.py --agent cline --source . --dry-run
 
   # Check if rule outputs are current/valid
   rule:cursor:check:
@@ -151,12 +162,18 @@ tasks:
     cmds:
       - uv run generate_agent_rules.py --agent copilot --source . --check
 
+  rule:cline:check:
+    desc: "Check if Cline rule outputs are current"
+    cmds:
+      - uv run generate_agent_rules.py --agent cline --source . --check
+
   # Generate all rule formats
   rule:all:
     desc: "Generate all IDE-specific rule formats"
     cmds:
       - task: rule:cursor
       - task: rule:copilot
+      - task: rule:cline
       - echo "✅ Generated all rule formats"
 
   # ============================================================================
@@ -176,6 +193,7 @@ tasks:
     cmds:
       - rm -rf .cursor/
       - rm -rf .github/instructions/
+      - rm -rf .clinerules/
       - echo "✅ Generated rule files removed"
 
   # Full cleanup
@@ -202,6 +220,7 @@ tasks:
       - task: test
       - task: rule:cursor:check
       - task: rule:copilot:check
+      - task: rule:cline:check
       - echo "✅ All validation checks passed"
 
   # Prepare for release (fix issues + generate rules)
@@ -243,6 +262,11 @@ tasks:
           echo "  ✅ Copilot rules are current"
         else
           echo "  ⚠️  Copilot rules need updating (run 'task rule:copilot')"
+        fi
+        if task rule:cline:check --silent >/dev/null 2>&1; then
+          echo "  ✅ Cline rules are current"
+        else
+          echo "  ⚠️  Cline rules need updating (run 'task rule:cline')"
         fi
         echo
         echo "🚀 Quick Commands:"

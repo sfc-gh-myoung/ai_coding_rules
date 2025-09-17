@@ -10,7 +10,7 @@
 ## Purpose
 Establish comprehensive testing strategies for FastAPI applications using TestClient, pytest-asyncio, and modern testing patterns to ensure reliability and maintainability.
 
-## Key Principles Checklist
+## Key Principles
 1. **Test-Driven Development** - Use TestClient and pytest-asyncio for comprehensive API testing
 2. **Async Testing** - Properly handle async operations in tests
 3. **Fixture Management** - Create reusable test fixtures and utilities

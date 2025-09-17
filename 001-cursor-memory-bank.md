@@ -69,7 +69,7 @@ flowchart TD
   - Known issues
 
 ### Additional Context
-- **Recommended:** Create additional files/folders within memory-bank/ when they help organize:
+- **Consider:** Create additional files/folders within memory-bank/ when they help organize:
   - Complex feature documentation
   - Integration specifications
   - API documentation

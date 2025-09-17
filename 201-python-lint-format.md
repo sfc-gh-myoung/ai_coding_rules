@@ -20,7 +20,7 @@ Establish authoritative Python code quality standards using Ruff as the primary 
 - **Always:** On every Python file modification or creation, run the linter and formatter.
 - **Always:** Use `uvx ruff check .` and `uvx ruff format --check .` for isolated tool execution.
 - **Always:** Use `uvx ruff check --fix .` and `uvx ruff format .` to apply fixes.
-- **Recommended:** If Ruff is unavailable, use `flake8 .` and `black --check .`; fix with `black .` and `isort .`.
+- **Consider:** If Ruff is unavailable, use `flake8 .` and `black --check .`; fix with `black .` and `isort .`.
 - **Requirement:** Ensure imports are organized and unused code is removed.
 - **Rule:** Never use project-installed ruff via `uv run`; always use isolated `uvx ruff` for consistency.
 

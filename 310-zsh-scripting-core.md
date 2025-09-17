@@ -556,12 +556,13 @@ EOF
 - **`@312-zsh-compatibility.md`** - Cross-shell compatibility and migration strategies
 - **`@300-bash-scripting-core.md`** - Bash scripting fundamentals for comparison
 
-## References and Resources
+## References
 
-- [Zsh Manual](http://zsh.sourceforge.net/Doc/) - Official zsh documentation
-- [Zsh Guide](https://zsh-guide.hyperreal.coffee/) - Comprehensive zsh guide
-- [Oh My Zsh](https://ohmyz.sh/) - Popular zsh framework
-- [Zsh Lovers](https://grml.org/zsh/zsh-lovers.html) - Advanced zsh tips and tricks
+### External Documentation
+- [Zsh Manual](http://zsh.sourceforge.net/Doc/) - Complete official documentation for zsh features and syntax
+- [Zsh User Guide](https://zsh-guide.hyperreal.coffee/) - Comprehensive tutorial and best practices guide
+- [Oh My Zsh Framework](https://ohmyz.sh/) - Popular plugin and theme framework for zsh
+- [Zsh Advanced Tips](https://grml.org/zsh/zsh-lovers.html) - Power user techniques and advanced usage patterns
 
 ## Rule Type and Scope
 

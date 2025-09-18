@@ -116,6 +116,7 @@ The following best practices apply to all AI coding assistants and development e
 - **`108-snowflake-data-loading.md`** — Data ingestion best practices
 - **`109-snowflake-notebooks.md`** — Jupyter notebook standards
 - **`110-snowflake-model-registry.md`** — ML model lifecycle, versioning, and governance
+- **`111-snowflake-observability.md`** — Comprehensive telemetry, logging, tracing, and metrics best practices
 - **`120-snowflake-spcs.md`** — Snowpark Container Services best practices (containerized applications, compute pools, service management)
 
 ### Software Engineering - Python (200-299)

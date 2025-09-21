@@ -1,7 +1,7 @@
 **Description:** How to create new `.md` project rule files for AI coding assistants (editor- and model-agnostic).
 **AutoAttach:** true
 **Type:** Auto-attach
-**Version:** 1.5
+**Version:** 1.6
 **LastUpdated:** 2025-09-21
 
 # Rule Governance: Directives for the Agent
@@ -29,6 +29,10 @@ Establish comprehensive governance for creating, maintaining, and organizing AI 
 - **Consider:** Split large topics into multiple composable rules.
 - **Requirement:** Avoid duplication across rules; reference other rules or `@path/to/file` instead.
 - **Requirement:** Follow professional communication standards from `000-global-core.md`: no emojis or GIF images in rule files unless explicitly requested by the user.
+- **Mandatory:** Include a machine-readable `## Contract` section that specifies Inputs/Prereqs, Allowed tools, Forbidden tools, Required steps, Output format, and Validation steps.
+- **Mandatory:** Include a `## Validation` section with explicit pass/fail checks and at least one negative test.
+- **Mandatory:** Include a `## Response Template` section that shows the expected output format (e.g., diff-only, SQL-only, CLI-only).
+- **Mandatory:** Include a `## Quick Compliance Checklist` with 5–10 MUST items that an agent can verify before acting.
 - **Always:** For all agent interactions, follow the core rules in `000-global-core.md`.
 
 ## Rule Scoping and Type
@@ -50,6 +54,14 @@ Every rule file must follow this structure:
 - **Type:** [Auto-attach | Agent Requested]
 - **Scope:** [Description of what the rule covers and applies to]
 
+## Contract
+- **Inputs/Prereqs:** [Required context, files, env vars]
+- **Allowed Tools:** [List tools permitted for this rule]
+- **Forbidden Tools:** [List tools not allowed]
+- **Required Steps:** [Ordered, explicit steps the agent must follow]
+- **Output Format:** [Exact expected output format]
+- **Validation Steps:** [Checks the agent must run to confirm success]
+
 ## Key Principles (when applicable)
 - [Concise bullet point summarizing key concept]
 - [Another essential principle or practice]
@@ -57,6 +69,20 @@ Every rule file must follow this structure:
 
 ## 1. Detailed Section
 [Comprehensive implementation details]
+
+## Quick Compliance Checklist
+- [ ] Item 1 (must be true before proceeding)
+- [ ] Item 2
+- [ ] Item 3
+
+## Validation
+- Success checks: [How to verify]
+- Negative tests: [What should fail and how to detect]
+
+## Response Template
+```<LANG>
+<Minimal, copy-pasteable template showing expected output format>
+```
 
 ## References
 

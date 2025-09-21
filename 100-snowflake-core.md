@@ -2,10 +2,27 @@
 **AppliesTo:** `**/*.sql`, `**/*.scl`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.2
-**LastUpdated:** 2025-09-16
+**Version:** 1.3
+**LastUpdated:** 2025-09-21
 
 # Snowflake Core Directives
+
+## Contract
+- **Inputs/Prereqs:** Target database/schema; warehouse context; table/view inventory; access roles
+- **Allowed Tools:** SQL authoring; Snowflake UI/CLI profiling; read-only inspection of schemas
+- **Forbidden Tools:** `SELECT *` in production; `DISTINCT` as a dedupe band-aid; repeated VARIANT extraction
+- **Required Steps:**
+  1. Define explicit columns and joins; add early filters
+  2. Normalize VARIANT once in a dedicated CTE
+  3. Prefer set-based ops; avoid row-wise loops
+  4. For mutable large tables, design Streams + Tasks incremental pattern with idempotency
+  5. Validate with Query Profile before scaling warehouse
+- **Output Format:** SQL snippets or task definitions only; no narrative unless requested
+- **Validation Steps:**
+  - Query Profile shows pruning and minimized data movement
+  - No `SELECT *`; columns are explicit
+  - Incremental pattern present for mutable facts
+  - Security policies (masking/row access) applied where needed
 
 ## Purpose
 Establish comprehensive foundational practices for all Snowflake development work, ensuring cost-effective, performant, and secure solutions through proper SQL authoring, object naming, security policies, and architectural patterns.
@@ -60,6 +77,30 @@ Establish comprehensive foundational practices for all Snowflake development wor
   - Is an incremental pattern used for mutable, large tables?
   - Are security policies or masks applied where needed?
   - Are anti-patterns absent?
+
+## Validation
+- Run and inspect Query Profile for each critical query; ensure early filters and pruning.
+- Verify no `SELECT *` and no `DISTINCT`-based deduplication.
+- Confirm VARIANT fields are parsed once in a CTE.
+- For pipelines, demonstrate Streams + Tasks with idempotency and late-arrival handling.
+
+## Response Template
+```sql
+-- Explicit column selection, early filters, and single VARIANT extraction CTE
+WITH src AS (
+  SELECT v:customer_id::string AS customer_id,
+         v:order_ts::timestamp_ntz AS order_ts,
+         v:total_amount::number AS total_amount
+  FROM RAW_DB.STAGE.ORDERS_JSON
+  WHERE v:order_ts::timestamp_ntz >= DATEADD(day, -7, CURRENT_TIMESTAMP())
+),
+agg AS (
+  SELECT customer_id, COUNT(*) AS num_orders, SUM(total_amount) AS total_amount
+  FROM src
+  GROUP BY customer_id
+)
+SELECT * FROM agg;
+```
 
 ## 7. Related Specialized Rules
 - **Rule:** For deeper guidance, reference the following specialized rules:

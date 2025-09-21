@@ -55,9 +55,20 @@ task rule:cline
 # Creates .clinerules/*.md files with plain Markdown (no YAML frontmatter)
 
 # Manual generation with options
-uv run generate_agent_rules.py --agent cursor --dry-run
-uv run generate_agent_rules.py --agent copilot --check
-uv run generate_agent_rules.py --agent cline --dry-run
+uv run generate_agent_rules.py --agent cursor --source . --dry-run
+uv run generate_agent_rules.py --agent copilot --source . --check
+uv run generate_agent_rules.py --agent cline --source . --dry-run
+
+# Generate to custom base directory 
+# The --destination parameter specifies a base directory where agent-specific subdirectories are created
+uv run generate_agent_rules.py --agent cursor --source . --destination /path/to/output
+# Creates: /path/to/output/.cursor/rules/*.mdc
+
+uv run generate_agent_rules.py --agent copilot --source . --destination ../parent
+# Creates: ../parent/.github/instructions/*.md
+
+uv run generate_agent_rules.py --agent cline --source . --destination ~/projects/my-app
+# Creates: ~/projects/my-app/.clinerules/*.md
 ```
 
 #### Option 3: System Prompt Integration
@@ -445,7 +456,7 @@ task rule:cline          # Generate Cline rules
 
 # Validate configurations
 task --list              # Validate Taskfile syntax
-uv run generate_agent_rules.py --dry-run  # Test rule generation
+uv run generate_agent_rules.py --source . --dry-run  # Test rule generation
 ```
 
 ### Utilities  

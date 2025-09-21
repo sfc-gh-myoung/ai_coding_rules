@@ -347,10 +347,10 @@ run_multi_shell_tests() {
         ((total++))
         
         if "$shell" "$script"; then
-            echo "✓ $shell: PASS"
+            echo "$shell: PASS"
             ((passed++))
         else
-            echo "✗ $shell: FAIL"
+            echo "$shell: FAIL"
         fi
     done
     
@@ -432,7 +432,7 @@ migration_wizard() {
     local issues=($(analyze_bash_script "$script"))
     
     if (( ${#issues} == 0 )); then
-        echo "✓ No migration issues detected"
+        echo "No migration issues detected"
         return 0
     fi
     

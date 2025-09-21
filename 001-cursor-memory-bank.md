@@ -157,9 +157,9 @@ flowchart TD
 - Archive older content to history/
 
 **DON'T:**
-- Include historical accomplishments (→ progress.md)
-- Duplicate setup instructions (→ reference techContext.md)
-- Keep completed work details (→ archive)
+- Include historical accomplishments (see progress.md)
+- Duplicate setup instructions (reference techContext.md)
+- Keep completed work details (archive them)
 - Mix current focus with historical context
 
 ### systemPatterns.md (≤150 lines)
@@ -170,10 +170,10 @@ flowchart TD
 - Integration points and relationships
 
 **DON'T:**
-- Detailed code examples (→ reference README or code)
-- Setup instructions (→ techContext.md)
+- Detailed code examples (reference README or code)
+- Setup instructions (see techContext.md)
 - Historical decisions no longer relevant
-- Implementation tutorials (→ external docs)
+- Implementation tutorials (link to external docs)
 
 ### techContext.md (≤150 lines)
 **DO:**
@@ -183,10 +183,10 @@ flowchart TD
 - Development workflow (diagram/list)
 
 **DON'T:**
-- Detailed setup tutorials (→ reference README)
-- Verbose explanations (→ use bullets)
-- Duplicate architecture info (→ systemPatterns.md)
-- Command examples (→ reference Taskfile)
+- Detailed setup tutorials (reference README)
+- Verbose explanations (use bullets)
+- Duplicate architecture info (see systemPatterns.md)
+- Command examples (reference Taskfile)
 
 ### progress.md (≤140 lines)
 **DO:**
@@ -196,10 +196,10 @@ flowchart TD
 - Immediate roadmap items (next 2-3 sprints)
 
 **DON'T:**
-- Detailed historical narratives (→ archive)
-- Current focus (→ activeContext.md)
-- Long-term roadmap (→ reference README)
-- Verbose session logs (→ compress or archive)
+- Detailed historical narratives (archive them)
+- Current focus (see activeContext.md)
+- Long-term roadmap (reference README)
+- Verbose session logs (compress or archive)
 
 ## 5. Documentation Updates
 

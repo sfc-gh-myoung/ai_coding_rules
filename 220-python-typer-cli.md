@@ -193,7 +193,7 @@ def risky_operation(
                 raise typer.Exit(0)
         
         # Perform operation
-        console.print("[green]✓[/green] Operation completed successfully")
+        console.print("[green]SUCCESS[/green] Operation completed successfully")
         
     except PermissionError:
         handle_processing_error(
@@ -354,7 +354,7 @@ def long_operation(items: int = 100):
             # Simulate work
             time.sleep(0.1)
             progress.update(task, advance=1)
-    console.print("[green]✓[/green] Complete!")
+    console.print("[green]SUCCESS[/green] Complete!")
 ```
 
 ### Async Command Support

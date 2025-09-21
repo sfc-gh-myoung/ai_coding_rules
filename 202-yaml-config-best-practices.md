@@ -19,7 +19,7 @@ Establish safe YAML and configuration file practices to prevent parsing errors, 
 ## 1. YAML Syntax Safety
 
 ### Critical Character Restrictions
-- **Critical:** Avoid Unicode bullet characters (•, ✓, ★) in YAML strings as they cause parsing errors.
+- **Critical:** Avoid Unicode bullet characters (bullets, checkmarks, stars) in YAML strings as they cause parsing errors.
 - **Critical:** Avoid using `-` or `:` at the start of multi-line text that could be interpreted as YAML syntax.
 - **Critical:** Quote strings containing special characters: `description: "API docs at: http://localhost:8000/docs"`.
 - **Always:** Use consistent indentation (2 spaces recommended for YAML).
@@ -28,7 +28,7 @@ Establish safe YAML and configuration file practices to prevent parsing errors, 
 ```yaml
 # Problematic - Unicode and YAML conflicts
 cmds:
-  - echo "• Item 1"
+  - echo "- Item 1"
   - echo "- Sub-item"  # Conflicts with YAML list syntax
 
 # Safe alternatives

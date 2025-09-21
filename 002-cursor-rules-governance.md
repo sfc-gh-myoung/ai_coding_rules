@@ -1,8 +1,8 @@
 **Description:** How to create new `.md` project rule files for AI coding assistants (editor- and model-agnostic).
 **AutoAttach:** true
 **Type:** Auto-attach
-**Version:** 1.4
-**LastUpdated:** 2025-09-17
+**Version:** 1.5
+**LastUpdated:** 2025-09-21
 
 # Rule Governance: Directives for the Agent
 
@@ -28,6 +28,7 @@ Establish comprehensive governance for creating, maintaining, and organizing AI 
 - **Requirement:** Keep each rule file concise and focused (target 150–300 lines; max 500 lines).
 - **Consider:** Split large topics into multiple composable rules.
 - **Requirement:** Avoid duplication across rules; reference other rules or `@path/to/file` instead.
+- **Requirement:** Follow professional communication standards from `000-global-core.md`: no emojis or GIF images in rule files unless explicitly requested by the user.
 - **Always:** For all agent interactions, follow the core rules in `000-global-core.md`.
 
 ## Rule Scoping and Type
@@ -96,6 +97,7 @@ Every rule file must follow this structure:
 - **Mandatory:** When creating a new rule, include `Version: 1.0` and `LastUpdated` with current date in YYYY-MM-DD format.
 - **Mandatory:** When updating any rule file, increment the version number and update `LastUpdated` to the current date in YYYY-MM-DD format.
 - **Always:** When refactoring, split oversized rules and remove content duplication.
+- **Always:** When creating or updating rules, verify compliance with professional communication standards (no emojis, GIFs, or visual elements unless requested).
 - **Always:** Validate Related Rules cross-references for accuracy and ensure they represent logical relationships.
 - **Always:** Before finalizing a rule, validate it against current, vendor-agnostic documentation and your primary IDE/tooling documentation for compliance (e.g., Visual Studio Code, Cursor, Claude Code, Gemini CLI, Cline).
 

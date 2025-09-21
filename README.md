@@ -77,6 +77,7 @@ Concatenate selected `.md` files for use with LLM tools like Claude Projects, Ch
 ## Rule Categories
 
 ### Core Foundation (000-099)
+- See the consolidated index: `RULES_INDEX.md`
 - **`000-global-core.md`** — Universal operating principles and safety protocols
 - **`001-cursor-memory-bank.md`** — Project memory management for AI assistants  
 - **`002-cursor-rules-governance.md`** — Comprehensive rule authoring governance: creation standards, naming conventions, structure requirements, and validation workflows
@@ -457,6 +458,7 @@ task rule:cline          # Generate Cline rules
 # Validate configurations
 task --list              # Validate Taskfile syntax
 uv run generate_agent_rules.py --source . --dry-run  # Test rule generation
+task rules:validate-structure  # Ensure all rules contain required sections
 ```
 
 ### Utilities  

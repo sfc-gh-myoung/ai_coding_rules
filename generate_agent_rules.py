@@ -34,14 +34,17 @@ Common behavior
 - Defaults globs/appliesTo to ["**/*"] when absent
 
 Usage
-  # Generate Cursor rules (writes only when output changes)
+  # Generate Cursor rules (writes to ./.cursor/rules by default)
   python ai_coding_rules/generate_agent_rules.py --agent cursor [--dry-run]
 
-  # Generate Copilot rules (writes only when output changes)
+  # Generate Copilot rules (writes to ./.github/instructions by default)
   python ai_coding_rules/generate_agent_rules.py --agent copilot [--dry-run]
 
-  # Generate Cline rules (writes only when output changes)
+  # Generate Cline rules (writes to ./.clinerules by default)
   python ai_coding_rules/generate_agent_rules.py --agent cline [--dry-run]
+
+  # Generate to custom base directory (creates ../parent/.cursor/rules)
+  python ai_coding_rules/generate_agent_rules.py --agent cursor --destination ../parent
 
   # CI check mode: exit non-zero if any outputs are stale/missing
   python ai_coding_rules/generate_agent_rules.py --agent cursor --check
@@ -363,7 +366,8 @@ def main() -> None:
     parser.add_argument(
         "--destination",
         help=(
-            "Destination directory. Defaults: .cursor/rules for cursor; .github/instructions for copilot; .clinerules for cline"
+            "Base directory for output. Agent-specific subdirectories will be created within this directory. "
+            "Defaults to current directory, creating .cursor/rules, .github/instructions, or .clinerules as appropriate."
         ),
     )
     parser.add_argument(
@@ -378,22 +382,16 @@ def main() -> None:
     if not source.exists():
         raise SystemExit(f"Source directory not found: {source}")
 
+    # Determine base directory
+    base_dir = Path(args.destination).resolve() if args.destination else Path(".").resolve()
+
+    # Create agent-specific subdirectory within base
     if args.agent == "cursor":
-        destination = (
-            Path(args.destination).resolve()
-            if args.destination
-            else (Path(".cursor") / "rules").resolve()
-        )
+        destination = base_dir / ".cursor" / "rules"
     elif args.agent == "copilot":
-        destination = (
-            Path(args.destination).resolve()
-            if args.destination
-            else (Path(".github") / "instructions").resolve()
-        )
+        destination = base_dir / ".github" / "instructions"
     else:  # cline
-        destination = (
-            Path(args.destination).resolve() if args.destination else Path(".clinerules").resolve()
-        )
+        destination = base_dir / ".clinerules"
 
     generator = AgentRuleGenerator(
         agent=args.agent, source=source, destination=destination, dry_run=args.dry_run

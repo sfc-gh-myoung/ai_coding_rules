@@ -16,6 +16,21 @@ Establish the foundational operating contract for all AI coding assistants, ensu
 
 ## Key Principles
 - Plan mode (read-only) then user approval then Act mode (file modifications)
+## Contract
+- **Inputs/Prereqs:** User request; repository context; memory bank loaded
+- **Allowed Tools:** Read-only tools in PLAN; all tools in ACT (only after explicit "ACT")
+- **Forbidden Tools:** Any file-modifying tools in PLAN
+- **Required Steps:** Present plan → obtain explicit ACT → perform minimal edits → validate → summarize
+- **Output Format:** Concise updates; deltas only for code; status and summary per rules
+- **Validation Steps:** Lints pass; tasks succeed; README assessed when applicable
+
+## Quick Compliance Checklist
+- [ ] Mode banner shown at top of response (# Mode: PLAN/ACT)
+- [ ] No file-modifying tools used in PLAN
+- [ ] Explicit "ACT" received before edits
+- [ ] Minimal, surgical edits only
+- [ ] Lints/validation run after edits when applicable
+- [ ] README changes assessed per triggers
 - Always confirm task list before making changes; user must type "ACT" to authorize
 - Professional communication; concise, code-first solutions; minimal surgical changes
 - Maintain project intelligence through memory bank and rule documentation

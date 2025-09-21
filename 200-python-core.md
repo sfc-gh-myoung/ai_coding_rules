@@ -112,7 +112,7 @@ ruff check .                        # Should use uvx for isolation
 - **Requirement:** Use `uv run` prefix for all Python commands in Taskfile tasks.
 - **Requirement:** Use `uvx` for all development tools (ruff, pytest, mypy, safety).
 - **Always:** Include environment setup tasks with status checks to avoid redundant operations.
-- **Pattern:** Structure tasks as: `uv:pin` → `install` (with `uv sync`) → execution tasks.
+- **Pattern:** Structure tasks as: `uv:pin` then `install` (with `uv sync`) then execution tasks.
 
 ### Taskfile Example Pattern
 ```yaml

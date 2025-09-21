@@ -16,7 +16,7 @@ Establish comprehensive observability practices for Snowflake environments throu
 - **Scope:** Snowflake observability, telemetry configuration, logging, tracing, metrics, and event table management
 
 ## Key Principles
-- Configure telemetry levels hierarchically (Account → Database → Schema → Object) with cost-conscious data volume management.
+- Configure telemetry levels hierarchically (Account then Database then Schema then Object) with cost-conscious data volume management.
 - Use standard logging libraries with strategic placement; prefer WARN+ for production, DEBUG for development.
 - Implement distributed tracing with custom spans for performance analysis and bottleneck identification.
 - Enable system metrics collection; organize objects by database/schema for simplified telemetry management.
@@ -25,7 +25,7 @@ Establish comprehensive observability practices for Snowflake environments throu
 ## 1. Telemetry Configuration
 
 ### Telemetry Level Hierarchy
-- **Always:** Understand the telemetry hierarchy: Account → Database → Schema → Object, and Session overrides.
+- **Always:** Understand the telemetry hierarchy: Account then Database then Schema then Object, and Session overrides.
 - **Rule:** Set account-level defaults, override at database/schema for specific workloads, and use session overrides for debugging.
 - **Always:** Use the most verbose level when both session and object parameters are set.
 

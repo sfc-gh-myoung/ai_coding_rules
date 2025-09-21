@@ -223,6 +223,22 @@ tasks:
       - task: rule:cline:check
       - echo "✅ All validation checks passed"
 
+  # Validate that all rule files include mandatory sections (Contract, Validation, Response Template, Checklist)
+  rules:validate-structure:
+    desc: "Validate all rules contain Contract, Validation, Response Template, and Quick Compliance Checklist"
+    cmds:
+      - |
+        missing=false
+        for f in *.md; do \
+          case "$f" in README.md|CHANGELOG.md|CONTRIBUTING.md|RULES_INDEX.md|universal_prompt.md) continue ;; esac; \
+          if ! grep -q "^## Contract\b" "$f"; then echo "Missing Contract: $f"; missing=true; fi; \
+          if ! grep -q "^## Validation\b" "$f"; then echo "Missing Validation: $f"; missing=true; fi; \
+          if ! grep -q "^## Response Template\b" "$f"; then echo "Missing Response Template: $f"; missing=true; fi; \
+          if ! grep -q "^## Quick Compliance Checklist\b" "$f"; then echo "Missing Quick Compliance Checklist: $f"; missing=true; fi; \
+        done; \
+        if [ "$missing" = true ]; then echo "One or more rule files are missing required sections"; exit 1; fi; \
+        echo "All rule files contain required sections"
+
   # Prepare for release (fix issues + generate rules)
   release:prepare:
     desc: "Prepare repository for release"

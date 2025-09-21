@@ -17,7 +17,7 @@ Establish a structured and maintainable data modeling approach using layered vie
 
 
 ## Key Principles
-- Use layered modeling: staging → core → semantic views; avoid recomputing across layers.
+- Use layered modeling: staging then core then semantic views; avoid recomputing across layers.
 - Consistent naming; avoid deep nesting; ensure views have COMMENT metadata.
 - Reference Snowflake view docs; keep semantic views slim and purpose-built.
 

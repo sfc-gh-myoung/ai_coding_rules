@@ -212,7 +212,7 @@ WHERE START_TIME >= DATEADD(day, -7, CURRENT_TIMESTAMP());
 ### CI/CD and Testing Strategies
 - **Rule:** Implement automated testing for images and specifications; use infrastructure as code.
 - **Always:** Test services in isolated compute pools; implement integration and synthetic monitoring tests.
-- **Rule:** Use proper environment promotion workflows (dev → test → prod) with approval gates.
+- **Rule:** Use proper environment promotion workflows (dev then test then prod) with approval gates.
 - **Always:** Test disaster recovery scenarios; maintain deployment runbooks.
 
 ## 8. ML/AI Workloads and Advanced Patterns

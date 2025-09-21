@@ -470,7 +470,7 @@ assert_equals() {
     (( ++test_count ))
     
     if [[ "$expected" == "$actual" ]]; then
-        echo "✓ PASS: $message"
+        echo "PASS: $message"
         (( ++test_passed ))
     else
         echo "✗ FAIL: $message"
@@ -484,7 +484,7 @@ assert_contains() {
     (( ++test_count ))
     
     if [[ "$haystack" == *"$needle"* ]]; then
-        echo "✓ PASS: $message"
+        echo "PASS: $message"
         (( ++test_passed ))
     else
         echo "✗ FAIL: $message"
@@ -508,10 +508,10 @@ run_tests() {
     echo "Results: $test_passed/$test_count tests passed"
     
     if (( test_passed == test_count )); then
-        echo "All tests passed! ✓"
+        echo "All tests passed!"
         return 0
     else
-        echo "Some tests failed! ✗"
+        echo "Some tests failed!"
         return 1
     fi
 }

@@ -354,7 +354,7 @@ EOF
 ### Zsh Configuration
 - **Rule:** Understand startup files:
 ```zsh
-# Startup order: zshenv → zprofile → zshrc → zlogin
+# Startup order: zshenv then zprofile then zshrc then zlogin
 
 # Check shell type
 [[ -o interactive ]] && echo "Interactive shell"

@@ -31,7 +31,7 @@ Provide directives for creating, modifying, and maintaining project automation u
 
 ## 3. YAML Syntax and Shell Safety
 - **Critical:** Add `silent: true` to tasks that contain informational echo commands to prevent verbose output showing command execution.
-- **Critical:** Avoid special Unicode characters (•, ✓, etc.) in echo strings as they can cause YAML parsing errors.
+- **Critical:** Avoid special Unicode characters (bullets, checkmarks, etc.) in echo strings as they can cause YAML parsing errors.
 - **Critical:** **COLON HANDLING:** Avoid colons (`:`) in echo statements as they cause YAML parsing errors. Use alternatives:
   - Replace `"Step 1: Creating database"` with `"Step 1 - Creating database"`
   - Replace `"Status: Connected"` with `"Status - Connected"`
@@ -59,37 +59,37 @@ Provide directives for creating, modifying, and maintaining project automation u
 
 ### Colon Problems
 ```yaml
-# ❌ WRONG - Causes "invalid keys in command" error
+# WRONG - Causes "invalid keys in command" error
 cmds:
   - echo "Step 1: Creating database"
   - echo "Status: Connected"
 
-# ✅ CORRECT - Use dashes instead
+# CORRECT - Use dashes instead
 cmds:
   - echo "Step 1 - Creating database" 
   - echo "Status - Connected"
 
-# ✅ ALTERNATIVE - Use template syntax when colons needed
+# ALTERNATIVE - Use template syntax when colons needed
 cmds:
   - echo "Next steps{{":"}} task spcs-setup"
 ```
 
 ### Unicode Character Problems
 ```yaml
-# ❌ WRONG - Unicode can cause parsing errors
+# WRONG - Unicode can cause parsing errors
 cmds:
-  - echo "✅ Setup complete"
-  - echo "• Step 1 complete"
+  - echo "Setup complete"
+  - echo "Step 1 complete"
 
-# ✅ CORRECT - Use ASCII alternatives
+# CORRECT - Use ASCII alternatives
 cmds:
   - echo "Setup complete"
   - echo "- Step 1 complete"
 ```
 
 ### Troubleshooting YAML Errors
-- **Error:** `invalid keys in command` → Check for unescaped colons in echo statements
-- **Error:** `yaml: line X: mapping values are not allowed` → Check for unquoted special characters
+- **Error:** `invalid keys in command` - Check for unescaped colons in echo statements
+- **Error:** `yaml: line X: mapping values are not allowed` - Check for unquoted special characters
 - **Always:** Run `task --list` after any Taskfile changes to validate syntax
 - **Always:** Use `task --dry <task-name>` to test individual task parsing
 

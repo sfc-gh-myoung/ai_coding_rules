@@ -90,10 +90,10 @@ assert_equals() {
     local expected="$1" actual="$2" name="${3:-test}"
     ((TESTS_RUN++))
     if [[ "$expected" == "$actual" ]]; then
-        echo "✓ PASS: $name"
+        echo "PASS: $name"
         ((TESTS_PASSED++))
     else
-        echo "✗ FAIL: $name (expected '$expected', got '$actual')"
+        echo "FAIL: $name (expected '$expected', got '$actual')"
     fi
 }
 

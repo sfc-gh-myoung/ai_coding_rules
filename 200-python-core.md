@@ -2,10 +2,22 @@
 **AppliesTo:** `**/*.py`, `streamlit/**/*`, `scripts/**/*`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.1
-**LastUpdated:** 2025-09-16
+**Version:** 1.2
+**LastUpdated:** 2025-09-21
 
 # Python Core Engineering Directives
+
+## Contract
+- **Inputs/Prereqs:** Python 3.11+; `uv` installed; `pyproject.toml` present
+- **Allowed Tools:** `uv run`, `uvx` for tools; Taskfile tasks
+- **Forbidden Tools:** Bare `python`, `pytest`, `ruff` without `uv run`/`uvx`
+- **Required Steps:**
+  1. Pin and sync environment with `uv`
+  2. Execute Python and tests via `uv run`
+  3. Lint/format via `uvx ruff`
+  4. Centralize config in `pyproject.toml`
+- **Output Format:** Commands, diffs, or code snippets only (no narrative unless requested)
+- **Validation Steps:** `uvx ruff check .` passes; `uvx ruff format --check .` passes; `uv run pytest` passes
 
 ## Purpose
 Establish foundational Python development practices using modern tooling like `uv` and Ruff to ensure consistent, reliable, and performant codebases with proper dependency management, linting, formatting, and project structure.
@@ -113,6 +125,23 @@ ruff check .                        # Should use uvx for isolation
 - **Requirement:** Use `uvx` for all development tools (ruff, pytest, mypy, safety).
 - **Always:** Include environment setup tasks with status checks to avoid redundant operations.
 - **Pattern:** Structure tasks as: `uv:pin` then `install` (with `uv sync`) then execution tasks.
+
+## Validation
+- Run: `uvx ruff check .` and `uvx ruff format --check .` (must pass)
+- Run tests: `uv run pytest`
+- Spot-check: `uv run python -c "import importlib; print('ok')"`
+
+## Response Template
+```bash
+# Environment
+uv python pin 3.11 && uv lock && uv sync --all-groups
+
+# Quality
+uvx ruff check . && uvx ruff format --check .
+
+# Tests
+uv run pytest -q
+```
 
 ### Taskfile Example Pattern
 ```yaml

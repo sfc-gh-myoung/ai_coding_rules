@@ -123,7 +123,7 @@ The following best practices apply to all AI coding assistants and development e
 - **`103-snowflake-performance-tuning.md`** — Query optimization and warehouse tuning
 - **`104-snowflake-streams-tasks.md`** — Incremental data pipelines
 - **`105-snowflake-cost-governance.md`** — Cost optimization and resource management
-- **`106-snowflake-semantic-views.md`** — Layered data modeling architecture
+- **`106-snowflake-semantic-views.md`** — Semantic models and semantic views (Cortex Analyst)
 - **`107-snowflake-security-governance.md`** — Security policies and access control
 - **`108-snowflake-data-loading.md`** — Data ingestion best practices
 - **`109-snowflake-notebooks.md`** — Jupyter notebook standards

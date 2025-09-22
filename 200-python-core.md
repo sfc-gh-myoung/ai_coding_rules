@@ -2,8 +2,8 @@
 **AppliesTo:** `**/*.py`, `streamlit/**/*`, `scripts/**/*`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.2
-**LastUpdated:** 2025-09-21
+**Version:** 1.3
+**LastUpdated:** 2025-09-22
 
 # Python Core Engineering Directives
 
@@ -53,6 +53,40 @@ Establish foundational Python development practices using modern tooling like `u
 - **Requirement:** Use `uv run uvicorn` instead of bare `uvicorn` for FastAPI/ASGI servers.
 - **Requirement:** Use `uv run pytest` instead of bare `pytest` for testing.
 - **Requirement:** Use `uv run mypy` instead of bare `mypy` for type checking.
+
+### 2.1 Tool Isolation vs Project Environment (uv run vs uvx)
+
+- **Rule:** Use `uv run` when the command needs access to the project environment (installed dependencies, project package imports, or plugins declared in `pyproject.toml`).
+- **Rule:** Use `uvx` for standalone tools that do not import your project code and do not require project-installed plugins.
+
+When to use `uv run` (project venv):
+- The command imports your project package/modules (e.g., `pytest`, `uvicorn app.main:app`, `python -m yourpkg`).
+- The tool relies on plugins or integrations defined in `pyproject.toml` or installed in the project venv (e.g., `pytest` plugins, `mypy` plugins, Sphinx extensions).
+- You need the exact dependency set and versions pinned by your project lockfile.
+
+Examples (project environment):
+- `uv run pytest tests/`  # discovers and loads project/third-party pytest plugins
+- `uv run mypy src/`      # uses mypy plugins/config from project dependencies
+- `uv run uvicorn app.main:app --reload`  # imports your app package
+- `uv run python -m yourpkg.tool`         # runs code that imports your package
+
+When to use `uvx` (isolated tool context):
+- The tool is self-contained and does not import your project code.
+- The tool does not require project-installed plugins; any needed integrations are provided by the tool itself.
+
+Examples (isolated tools):
+- `uvx ruff check .` and `uvx ruff format .`  # linter/formatter runs independently
+- `uvx black .`                               # formatter without importing project code
+- `uvx safety check`                          # dependency vulnerability scan
+
+Common pitfalls and guidance:
+- **Important:** `uvx` runs tools in an isolated context. It does not automatically include your project venv or its extra modules/plugins. If a tool fails to find a plugin or cannot import your package, switch to `uv run`.
+- If a command needs both a standalone tool and project imports, prefer `uv run` to ensure your project environment is available.
+- Keep configuration centralized in `pyproject.toml`, but remember that only `uv run` guarantees access to project-installed integrations referenced there.
+
+Quick decision guide:
+- Imports project code or needs project plugins? → Use `uv run ...`
+- Pure external tool, no project imports/plugins? → Use `uvx ...`
 
 ### Command Patterns
 **CORRECT:**

@@ -1,9 +1,9 @@
-**Description:** Rules for enforcing data security and access control using Snowflake's governance features.
+**Description:** Rules for enforcing data security, access control, and data quality monitoring using Snowflake governance features.
 **AppliesTo:** `**/*.sql`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.1
-**LastUpdated:** 2025-09-16
+**Version:** 1.2
+**LastUpdated:** 2025-09-22
 
 # Snowflake Security Governance
 
@@ -13,13 +13,16 @@ Establish comprehensive data security and access control practices using Snowfla
 ## Rule Type and Scope
 
 - **Type:** Agent Requested
-- **Scope:** Snowflake security governance, RBAC, data masking, and access control policies
+- **Scope:** Snowflake security governance, RBAC, data masking, access control policies, and data quality monitoring best practices
 
 
 ## Key Principles
 - Enforce least-privilege RBAC; use role hierarchies; map roles to business responsibilities.
 - Protect data with masking policies, row access policies, and object tagging.
 - Reference official docs for RBAC, masking, row access, and tagging.
+- Integrate data quality monitoring using Data Metric Functions (DMFs) with clear expectations and alerts.
+- Apply least privilege for DMF execution (EXECUTE DATA METRIC FUNCTION) and ownership.
+- Use data profiling to baseline and discover issues; do not substitute for security policies.
 
 ## 1. Access Control
 - **Requirement:** Implement Role-Based Access Control (RBAC) following least privilege.
@@ -31,6 +34,29 @@ Establish comprehensive data security and access control practices using Snowfla
 - **Always:** Use row access policies to enforce row-level security based on a user's role or other session context.
 - **Always:** Apply object tagging to classify data for governance purposes (e.g., PII, `SENSITIVITY_LEVEL`).
 
+## 3. Data Quality Monitoring (DMFs)
+- **Always:** Use Data Metric Functions (DMFs) to measure and monitor quality metrics (e.g., NULL counts, duplicates, freshness). System DMFs are available in `SNOWFLAKE.CORE`; create custom DMFs for domain-specific checks.
+- **Requirement:** Associate DMFs to supported objects (tables, views, dynamic tables, external tables, Iceberg tables, materialized views, event tables) and schedule evaluations; results are recorded in the dedicated event table for DMFs.
+- **Always:** Define expectations for each DMF association to determine pass/fail thresholds. Use alerts to notify owners on failures to drive remediation.
+- **Rule:** Enterprise Edition is required. DMFs use serverless compute; billing appears under “Data Quality Monitoring”. Unscheduled ad-hoc SELECTs of DMFs are not billed.
+- **Rule:** Monitor consumption and performance via `DATA_QUALITY_MONITORING_USAGE_HISTORY` and Snowsight monitoring pages.
+- **Requirement:** Enforce least privilege for DMFs. The table/view owner role must have the global `EXECUTE DATA METRIC FUNCTION` privilege. Database roles cannot receive global privileges; transfer ownership to an account-scoped role if needed.
+- **Requirement:** Document and operate within limitations: maximum 10,000 DMF-object associations per account; cannot set DMFs on shared objects or in reader accounts; cannot set DMFs on object tags.
+- **Rule:** Establish a remediation workflow: investigate failures, triage severity, correct data/process, and track resolution SLAs.
+- **Avoid:** Relying on DMFs alone for protection. Combine DMFs with masking, row access, and tags for comprehensive governance.
+
+## 4. Data Profiling
+- **Always:** Use Snowflake Data Profile to baseline datasets (distributions, distinct counts, NULLs) and to inform policy design and DMF selection.
+- **Rule:** Profile sensitive datasets in segregated roles/warehouses to minimize blast radius and ensure least privilege during exploration.
+- **Rule:** Use profiling insights to refine masking policies, row access rules, and to prioritize DMFs for high-risk columns.
+- **Avoid:** Treating profiling as a one-time activity; re-profile after schema or source changes.
+
+## 5. Operational Monitoring & Cost
+- **Always:** Track DMF schedules, results, and alerts in Snowsight; review event table outputs for trends and recurrence of failures.
+- **Rule:** Monitor serverless credits under the “Data Quality Monitoring” category and the logging service (“Logging”). Right-size schedules and scopes to control cost.
+- **Rule:** Version and review DMF definitions alongside application code; maintain owners, runbooks, and SLAs.
+- **Requirement:** Separate duties: creators of DMFs and operators of alerts should be distinct from data producers when feasible.
+
 ## References
 
 ### External Documentation
@@ -38,6 +64,9 @@ Establish comprehensive data security and access control practices using Snowfla
 - [Column-Level Security](https://docs.snowflake.com/en/user-guide/security-column-intro) - Dynamic data masking and column-level policies                                                                              
 - [Row-Level Security](https://docs.snowflake.com/en/user-guide/security-row-intro) - Row access policies and conditional data access                                                                                   
 - [Object Tagging](https://docs.snowflake.com/en/user-guide/object-tagging) - Metadata tagging for governance and classification
+- [Introduction to data quality and DMFs](https://docs.snowflake.com/en/user-guide/data-quality-intro) - Data metric functions, expectations, scheduling, billing
+- [Data Profile](https://docs.snowflake.com/en/user-guide/data-quality-profile) - Profiling datasets to baseline and discover issues
+- [Working with data quality](https://docs.snowflake.com/en/user-guide/data-quality-working) - Associate, schedule, monitor, and manage DMFs
 
 ### Related Rules
 - **Snowflake Core**: `100-snowflake-core.md`

@@ -19,7 +19,7 @@ This index helps agents select the correct rule quickly. Documentation files lik
 | `103-snowflake-performance-tuning.md` | Agent Requested | Query profiling and warehouse tuning | Performance | `100-snowflake-core.md` |
 | `104-snowflake-streams-tasks.md` | Agent Requested | Incremental pipelines with Streams + Tasks | Pipelines | `100-snowflake-core.md` |
 | `105-snowflake-cost-governance.md` | Agent Requested | Cost optimization and monitors | Cost governance | `100-snowflake-core.md` |
-| `106-snowflake-semantic-views.md` | Agent Requested | Layered view architecture | Modeling | `100-snowflake-core.md` |
+| `106-snowflake-semantic-views.md` | Agent Requested | Semantic models and semantic views (Cortex Analyst) | Modeling | `100-snowflake-core.md` |
 | `107-snowflake-security-governance.md` | Agent Requested | Masking, row access, and tagging | Security | `100-snowflake-core.md` |
 | `108-snowflake-data-loading.md` | Agent Requested | Stages, COPY INTO, Snowpipe | Ingestion | `100-snowflake-core.md` |
 | `109-snowflake-notebooks.md` | Agent Requested | Notebook best practices | Notebooks | `100-snowflake-core.md` |

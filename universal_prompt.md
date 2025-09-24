@@ -40,4 +40,4 @@ Provide universal response guidelines and task-specific instruction templates fo
 
 ### Related Rules
 - **Global Core**: `000-global-core.md`
-- **Rules Governance**: `002-cursor-rules-governance.md`
+- **Rules Governance**: `002-rule-governance.md`

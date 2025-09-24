@@ -53,7 +53,7 @@
 
 ### Related Rules
 - **Core Rule Name**: `000-global-core.md`
-- **Governance**: `002-cursor-rules-governance.md`
+- **Governance**: `002-rule-governance.md`
 
 > Note: Follow professional communication standards from `000-global-core.md` (no emojis or GIF images in rule files unless explicitly requested by the user).
 

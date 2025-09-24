@@ -11,8 +11,8 @@ This index helps agents select the correct rule quickly. Documentation files lik
 | File | Type | Purpose (one line) | Scope | Depends On |
 |------|------|---------------------|-------|------------|
 | `000-global-core.md` | Auto-attach | Global operating contract (PLAN/ACT, safety, validation) | Universal | — |
-| `001-cursor-memory-bank.md` | Agent Requested | Memory bank structure and maintenance | Project continuity | `000-global-core.md` |
-| `002-cursor-rules-governance.md` | Auto-attach | Rule authoring governance and conformance | All rules | `000-global-core.md` |
+| `001-memory-bank.md` | Auto-attach | Universal memory bank for AI context continuity | Project continuity | `000-global-core.md` |
+| `002-rule-governance.md` | Auto-attach | Rule authoring governance and conformance | All rules | `000-global-core.md` |
 | `100-snowflake-core.md` | Agent Requested | Foundational Snowflake practices (cost, performance, security) | Snowflake SQL & modeling | `000-global-core.md` |
 | `101-snowflake-streamlit-ui.md` | Agent Requested | Streamlit UI best practices for Snowflake | Streamlit apps | `100-snowflake-core.md` |
 | `102-snowflake-sql-best-practices.md` | Agent Requested | Advanced SQL authoring patterns | SQL authorship | `100-snowflake-core.md` |
@@ -53,6 +53,6 @@ This index helps agents select the correct rule quickly. Documentation files lik
 | `805-project-contributing-rules.md` | Agent Requested | Contribution workflow standards | Contributing | `000-global-core.md` |
 | `820-taskfile-automation.md` | Agent Requested | Taskfile automation practices | Automation | `202-yaml-config-best-practices.md` |
 | `900-demo-creation.md` | Agent Requested | Demo creation directives | Demos | — |
-| `universal_prompt.md` | Agent Requested | Universal response guidelines | Prompting | `000-global-core.md` |
+| `UNIVERSAL_PROMPT.md` | Agent Requested | Universal response guidelines | Prompting | `000-global-core.md` |
 
 

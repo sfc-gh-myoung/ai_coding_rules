@@ -160,6 +160,18 @@ ruff check .                        # Should use uvx for isolation
 - **Always:** Include environment setup tasks with status checks to avoid redundant operations.
 - **Pattern:** Structure tasks as: `uv:pin` then `install` (with `uv sync`) then execution tasks.
 
+## Quick Compliance Checklist
+- [ ] Python 3.11+ is pinned in .python-version file
+- [ ] Dependencies managed through uv (pyproject.toml with dependency-groups)
+- [ ] Ruff configured in pyproject.toml with target-version = "py311"
+- [ ] Code passes `uvx ruff check .` and `uvx ruff format --check .`
+- [ ] Tests run with `uv run pytest` and pass
+- [ ] Virtual environment created with `uv venv` (not python -m venv)
+- [ ] Dependencies synced with `uv sync --all-groups`
+- [ ] No bare pip install commands in documentation
+- [ ] Import paths use absolute imports where possible
+- [ ] Project follows modern Python packaging standards
+
 ## Validation
 - Run: `uvx ruff check .` and `uvx ruff format --check .` (must pass)
 - Run tests: `uv run pytest`

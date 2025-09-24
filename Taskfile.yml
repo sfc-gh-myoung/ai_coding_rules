@@ -230,7 +230,7 @@ tasks:
       - |
         missing=false
         for f in *.md; do \
-          case "$f" in README.md|CHANGELOG.md|CONTRIBUTING.md|RULES_INDEX.md|universal_prompt.md) continue ;; esac; \
+          case "$f" in README.md|CHANGELOG.md|CONTRIBUTING.md|RULES_INDEX.md|UNIVERSAL_PROMPT.md) continue ;; esac; \
           if ! grep -q "^## Contract\b" "$f"; then echo "Missing Contract: $f"; missing=true; fi; \
           if ! grep -q "^## Validation\b" "$f"; then echo "Missing Validation: $f"; missing=true; fi; \
           if ! grep -q "^## Response Template\b" "$f"; then echo "Missing Response Template: $f"; missing=true; fi; \

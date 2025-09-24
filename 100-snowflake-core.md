@@ -84,6 +84,18 @@ Establish comprehensive foundational practices for all Snowflake development wor
 - Confirm VARIANT fields are parsed once in a CTE.
 - For pipelines, demonstrate Streams + Tasks with idempotency and late-arrival handling.
 
+## Quick Compliance Checklist
+- [ ] All queries use explicit column selection (no SELECT *)
+- [ ] WHERE clauses applied early to reduce scan size
+- [ ] VARIANT fields parsed once in dedicated CTE
+- [ ] Warehouse size appropriate for workload and auto-suspend configured
+- [ ] Query Profile reviewed for performance bottlenecks
+- [ ] Row Access Policies or Dynamic Data Masking applied for PII
+- [ ] Resource monitors configured for cost governance
+- [ ] Streams and Tasks used for incremental processing where applicable
+- [ ] SQL keywords in UPPERCASE for consistency
+- [ ] No DISTINCT used for deduplication (use ROW_NUMBER() instead)
+
 ## Response Template
 ```sql
 -- Explicit column selection, early filters, and single VARIANT extraction CTE

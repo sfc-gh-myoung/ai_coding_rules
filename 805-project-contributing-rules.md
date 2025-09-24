@@ -78,8 +78,8 @@ Establish directives for a professional contribution workflow covering commits, 
 ```
 Core Foundation (000-099)
 ├── 000-global-core.md
-├── 001-cursor-memory-bank.md
-└── 002-cursor-rules-governance.md
+├── 001-memory-bank.md
+└── 002-rule-governance.md
 
 Snowflake (100-199)
 ├── 100-109: Core Snowflake
@@ -111,11 +111,11 @@ Demo & Templates (900-999)
 - **Rule:** Use next available number in sequence within the range
 - **Rule:** For new frameworks, reserve 10-number subrange (e.g., 220-229 for Django)
 - **Always:** Update README.md rule categories section
-- **Always:** Validate rule follows governance standards in `@002-cursor-rules-governance.md`
+- **Always:** Validate rule follows governance standards in `@002-rule-governance.md`
 
 ## 6. Documentation References
 - **Always:** Reference Conventional Commits: https://www.conventionalcommits.org/en/v1.0.0/#specification
-- **Always:** Follow rule governance: `@002-cursor-rules-governance.md`
+- **Always:** Follow rule governance: `@002-rule-governance.md`
 - **Always:** Use README standards: `@801-project-readme-rules.md`
 - **Always:** Follow changelog discipline: `@800-project-changelog-rules.md`
 
@@ -130,4 +130,4 @@ Demo & Templates (900-999)
 - **Global Core**: `000-global-core.md`
 - **Changelog Rules**: `800-project-changelog-rules.md`
 - **README Rules**: `801-project-readme-rules.md`
-- **Rules Governance**: `002-cursor-rules-governance.md`
+- **Rules Governance**: `002-rule-governance.md`

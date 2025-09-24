@@ -41,8 +41,8 @@ This is the actual rule content.
     def test_strip_markdown_metadata_lines(self):
         """Test removing metadata lines from markdown content."""
         content = """**Description:** This is a test rule
-**Applies to:** `**/*.py`, `**/*.sql`
-**Auto-attach:** true
+**AppliesTo:** `**/*.py`, `**/*.sql`
+**AutoAttach:** true
 **Version:** 1.0
 
 # Test Rule
@@ -58,14 +58,14 @@ This is the rule content.
         assert result == expected
 
     def test_parse_applies_to(self):
-        """Test parsing 'Applies to' patterns."""
+        """Test parsing 'AppliesTo' patterns."""
         # Test backtick format
-        content_backticks = "**Applies to:** `**/*.py`, `**/*.sql`"
+        content_backticks = "**AppliesTo:** `**/*.py`, `**/*.sql`"
         result = gar.parse_applies_to(content_backticks)
         assert result == ["**/*.py", "**/*.sql"]
 
         # Test comma-separated format
-        content_comma = "**Applies to:** *.py, *.sql, *.md"
+        content_comma = "**AppliesTo:** *.py, *.sql, *.md"
         result = gar.parse_applies_to(content_comma)
         assert result == ["*.py", "*.sql", "*.md"]
 
@@ -170,7 +170,7 @@ class TestAgentRuleGenerator:
     def test_parse_description_and_autoattach(self):
         """Test parsing description and auto-attach from content."""
         content = """**Description:** Test rule description
-**Auto-attach:** true
+**AutoAttach:** true
 
 # Rule Content
 """
@@ -213,10 +213,10 @@ def test_readme_has_required_sections():
 
         required_sections = [
             "# AI Coding Rules",
-            "## 🚀 Quick Start",
-            "## 📁 Rule Categories",
-            "## 🔧 Rule Generator Architecture",
-            "## 🤝 Contributing",
+            "## Quick Start",
+            "## Rule Categories", 
+            "## Rule Generator Architecture",
+            "## Contributing",
         ]
 
         for section in required_sections:

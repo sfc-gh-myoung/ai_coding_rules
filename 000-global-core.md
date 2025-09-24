@@ -185,6 +185,32 @@ Establish the foundational operating contract for all AI coding assistants, ensu
 - **Mandatory:** Include a brief summary of what README sections were updated in the task completion response.
 - **Rule:** If no README updates were needed, explicitly state why (e.g., "No README updates required - changes were internal only").
 
+## Validation
+- **Success Checks:** All code produces expected results; tests pass; lint checks pass; README sections are current; cross-references work; agent follows mode restrictions correctly
+- **Negative Tests:** Code with syntax errors fails validation; missing README updates cause task failure; mode violations (using file-modifying tools in PLAN mode) are caught and corrected
+
+## Response Template
+```markdown
+## Mode: [PLAN/ACT]
+
+## Analysis
+- **Current State**: [Brief assessment]
+- **Requirements**: [What needs to be accomplished]
+- **Approach**: [Strategy and next steps]
+
+## Implementation
+[Code/changes/recommendations based on current mode]
+
+## Validation
+- [ ] Code tested and working
+- [ ] Dependencies verified
+- [ ] README updated if needed
+- [ ] Cross-references validated
+
+## README Updates
+[Summary of README changes made, or "No README updates required - reason"]
+```
+
 ## References
 
 ### External Documentation
@@ -195,5 +221,5 @@ Establish the foundational operating contract for all AI coding assistants, ensu
 - [Conventional Commits](https://www.conventionalcommits.org/) - Standardized commit message format for automated changelog generation
 
 ### Related Rules
-- **Memory Bank System**: `001-cursor-memory-bank.md`
-- **Rules Governance**: `002-cursor-rules-governance.md`
+- **Memory Bank System**: `001-memory-bank.md`
+- **Rules Governance**: `002-rule-governance.md`

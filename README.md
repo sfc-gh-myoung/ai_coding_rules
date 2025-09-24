@@ -79,8 +79,8 @@ Concatenate selected `.md` files for use with LLM tools like Claude Projects, Ch
 ### Core Foundation (000-099)
 - See the consolidated index: `RULES_INDEX.md`
 - **`000-global-core.md`** — Universal operating principles and safety protocols
-- **`001-cursor-memory-bank.md`** — Project memory management for AI assistants  
-- **`002-cursor-rules-governance.md`** — Comprehensive rule authoring governance: creation standards, naming conventions, structure requirements, and validation workflows
+- **`001-memory-bank.md`** — Universal memory bank for AI context continuity  
+- **`002-rule-governance.md`** — Comprehensive rule authoring governance: creation standards, naming conventions, structure requirements, and validation workflows
 
 #### Universal Rule Authoring Best Practices
 
@@ -185,7 +185,7 @@ The following best practices apply to all AI coding assistants and development e
 - **`900-demo-creation.md`** — Realistic demo application development
 
 ### Templates
-- **`universal_prompt.md`** — Universal response guidelines template
+- **`UNIVERSAL_PROMPT.md`** — Universal response guidelines template
 
 ## Directive Language Hierarchy
 
@@ -401,7 +401,7 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed gu
 
 1. **Fork** the repository
 2. **Create** a feature branch: `git checkout -b feature/my-new-rule`
-3. **Follow** the rule authoring guidelines in `002-cursor-rules-governance.md`
+3. **Follow** the rule authoring guidelines in `002-rule-governance.md`
 4. **Test** your changes: `task lint` and `task rule:cursor --dry-run`
 5. **Submit** a pull request
 

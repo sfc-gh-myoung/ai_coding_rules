@@ -15,6 +15,18 @@ Establish comprehensive cost management and optimization strategies for Snowflak
 - **Type:** Agent Requested
 - **Scope:** Snowflake cost management, resource monitors, and credit usage optimization
 
+## Contract
+- **Inputs/Prereqs:** Snowflake account with ACCOUNTADMIN privileges; understanding of workload patterns; cost baseline
+- **Allowed Tools:** Snowflake SQL commands; resource monitor configuration; warehouse management commands
+- **Forbidden Tools:** Commands that create oversized warehouses without justification; disabling resource monitors
+- **Required Steps:**
+  1. Analyze workload patterns and resource usage
+  2. Configure resource monitors with appropriate credit quotas
+  3. Right-size warehouses based on workload requirements
+  4. Implement auto-suspend and auto-resume settings
+  5. Set up cost notification and alerting systems
+- **Output Format:** SQL DDL for resource monitors; warehouse configuration commands; cost governance policies
+- **Validation Steps:** Resource monitors active; credit usage within expected ranges; warehouses auto-suspend correctly
 
 ## Key Principles
 - Treat cost as a first-class constraint; right-size warehouses; enable AUTO_SUSPEND.
@@ -30,6 +42,47 @@ Establish comprehensive cost management and optimization strategies for Snowflak
 - **Always:** Use Resource Monitors to track and control credit usage.
 - **Always:** Create resource monitors with specific `CREDIT_QUOTA` and `TRIGGERS` to suspend or notify on thresholds.
 - **Always:** Use Snowflake's anomaly detection features to monitor for unexpected credit spikes.
+
+## Quick Compliance Checklist
+- [ ] All warehouses have AUTO_SUSPEND configured (≤ 5 minutes for interactive, ≤ 1 minute for batch)
+- [ ] Resource monitors created with appropriate credit quotas for account/warehouse level
+- [ ] Notification triggers set at 75% and 90% of credit quota
+- [ ] Suspend triggers configured at 100% of quota to prevent overruns
+- [ ] Warehouses right-sized for workload (start small, scale up as needed)
+- [ ] Clustering keys applied only to tables with proven skew issues
+- [ ] Time Travel retention period appropriate for data recovery needs (not default 1 day for all)
+- [ ] Automatic scaling policies configured for variable workloads
+- [ ] Cost monitoring dashboards and alerts configured
+- [ ] Regular review process established for credit usage patterns
+
+## Validation
+- **Success Checks:** Resource monitors are active and tracking usage; warehouses suspend automatically after idle period; credit usage aligns with expectations; cost alerts trigger appropriately; warehouse sizes match workload requirements
+- **Negative Tests:** Oversized warehouses fail cost review; missing resource monitors allow unchecked spending; disabled auto-suspend causes unnecessary credit consumption; inadequate monitoring misses cost spikes
+
+## Response Template
+```sql
+-- Resource Monitor Setup
+CREATE RESOURCE MONITOR IF NOT EXISTS warehouse_monitor
+  WITH CREDIT_QUOTA = 1000
+  FREQUENCY = MONTHLY
+  START_TIMESTAMP = IMMEDIATELY
+  TRIGGERS 
+    ON 75 PERCENT DO NOTIFY
+    ON 90 PERCENT DO NOTIFY
+    ON 100 PERCENT DO SUSPEND;
+
+-- Warehouse Configuration
+CREATE OR REPLACE WAREHOUSE analytics_wh
+  WITH WAREHOUSE_SIZE = 'MEDIUM'
+       AUTO_SUSPEND = 300
+       AUTO_RESUME = TRUE
+       MIN_CLUSTER_COUNT = 1
+       MAX_CLUSTER_COUNT = 3
+       SCALING_POLICY = 'STANDARD';
+
+-- Apply monitor to warehouse
+ALTER WAREHOUSE analytics_wh SET RESOURCE_MONITOR = warehouse_monitor;
+```
 
 ## References
 

@@ -14,6 +14,23 @@
 - **Use surgical, minimal edits only** - make only the changes required to fulfill the request
 - **Professional communication** - concise, code-first solutions with no emojis unless requested
 
+## Contract validation requirements
+- **Always define before starting:** Inputs/Prerequisites, Allowed tools, Forbidden tools, Required steps, Output format, Validation steps
+- **Include compliance checklist** with 5-10 verification items before proceeding
+- **Specify response template** showing expected output format for consistency
+- **Validate completion** using explicit pass/fail criteria and negative test cases
+
+## Enhanced mode verification
+- **Pre-tool verification:** State current mode before every tool invocation
+- **Mode state tracking:** Maintain mode awareness throughout response chains
+- **Violation protocol:** Execute 5-step recovery process for any mode violations:
+  1. Stop all tool execution immediately
+  2. Acknowledge violation: "CRITICAL VIOLATION: Used [tool] in PLAN mode"
+  3. Explain which rule was broken and why it matters
+  4. Return to PLAN mode immediately
+  5. Ask user how to proceed
+- **Continuous awareness:** Display mode banner in every response
+
 ## Rule system architecture
 - **49+ specialized rule files** organized by category (000-900)
 - **Use `RULES_INDEX.md`** to quickly find relevant rules for specific technologies
@@ -34,6 +51,13 @@
 - **Snowflake validation**: Use Query Profile to validate performance and cost
 - **README maintenance**: Required for changes affecting project structure, commands, or features
 - **Pre-commit validation**: Ensure all automated checks pass before completion
+
+## Efficiency and performance standards
+- **Context budgets**: Total rule context ≤600 lines when applicable; prioritize signal over noise
+- **Response format**: Surgical edits only, delta-focused output showing only changed code
+- **Validation timing**: Run lints/tests immediately after modifications, not in batches
+- **Session recovery**: AI must be productive within 20 lines of reading project context
+- **Minimal redundancy**: Each piece of information should exist in exactly one place
 
 ## Development environment
 - **Python version**: 3.11+ pinned in `.python-version`

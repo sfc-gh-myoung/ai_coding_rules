@@ -46,6 +46,7 @@ This index helps agents select the correct rule quickly. Documentation files lik
 | `310-zsh-scripting-core.md` | Agent Requested | Zsh fundamentals | Zsh | `300-bash-scripting-core.md` |
 | `311-zsh-advanced-features.md` | Agent Requested | Advanced Zsh patterns | Zsh advanced | `310-zsh-scripting-core.md` |
 | `312-zsh-compatibility.md` | Agent Requested | Cross-shell compatibility | Zsh portability | `300-bash-scripting-core.md` |
+| `400-docker-best-practices.md` | Agent Requested | Docker and Dockerfile best practices | Containers & Docker | `202-yaml-config-best-practices.md` |
 | `500-data-science-analytics.md` | Agent Requested | DS/analytics practices | Analytics | `200-python-core.md` |
 | `600-data-governance-quality.md` | Agent Requested | Data quality & governance | Governance | — |
 | `700-business-analytics.md` | Agent Requested | Business reporting & visualization | BI | — |

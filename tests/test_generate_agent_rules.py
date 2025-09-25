@@ -214,7 +214,7 @@ def test_readme_has_required_sections():
         required_sections = [
             "# AI Coding Rules",
             "## Quick Start",
-            "## Rule Categories", 
+            "## Rule Categories",
             "## Rule Generator Architecture",
             "## Contributing",
         ]

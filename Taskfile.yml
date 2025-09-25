@@ -80,18 +80,20 @@ tasks:
   # Run comprehensive quality checks
   quality:
     desc: "Run all quality checks (lint + format)"
+    silent: true
     cmds:
       - task: lint
       - task: format
-      - echo "✅ All quality checks passed"
+      - echo "[OK] All quality checks passed"
 
   # Fix all quality issues automatically
   quality:fix:
     desc: "Fix all quality issues automatically"
+    silent: true
     cmds:
       - task: lint:fix
       - task: format:fix
-      - echo "✅ All quality issues fixed"
+      - echo "[OK] All quality issues fixed"
 
   # ============================================================================
   # Testing Tasks
@@ -180,7 +182,18 @@ tasks:
       - task: rule:cline
         vars:
           DEST: "{{.DEST}}"
-      - echo "✅ Generated all rule formats"
+      - echo "[OK] Generated all rule formats"
+
+  # ============================================================================
+  # Snowflake CLI
+  # ============================================================================
+
+  snow:
+    desc: "Run Snowflake CLI via pinned uvx (pass args with CLI_ARGS)"
+    cmds:
+      - uvx --from=snowflake-cli==3.12 snow {{.CLI_ARGS}}
+    vars:
+      CLI_ARGS: "--help"
 
   # ============================================================================
   # Development Utilities
@@ -191,7 +204,7 @@ tasks:
     desc: "Remove virtual environment"
     cmds:
       - rm -rf .venv
-      - echo "✅ Virtual environment removed"
+      - echo "[OK] Virtual environment removed"
 
   # Clean generated rule files
   clean:rules:
@@ -200,7 +213,7 @@ tasks:
       - rm -rf .cursor/
       - rm -rf .github/instructions/
       - rm -rf .clinerules/
-      - echo "✅ Generated rule files removed"
+      - echo "[OK] Generated rule files removed"
 
   # Full cleanup
   clean:all:
@@ -212,7 +225,7 @@ tasks:
       - rm -rf .pytest_cache/
       - rm -rf htmlcov/
       - rm -rf .coverage
-      - echo "✅ Full cleanup completed"
+      - echo "[OK] Full cleanup completed"
 
   # ============================================================================
   # Validation & CI Tasks
@@ -228,7 +241,7 @@ tasks:
       - task: rule:cursor:check
       - task: rule:copilot:check
       - task: rule:cline:check
-      - echo "✅ All validation checks passed"
+      - echo "[OK] All validation checks passed"
 
   # Validate that all rule files include mandatory sections (Contract, Validation, Response Template, Checklist)
   rules:validate-structure:
@@ -254,7 +267,7 @@ tasks:
       - task: quality:fix
       - task: rule:all
       - task: test
-      - echo "✅ Repository prepared for release"
+      - echo "[OK] Repository prepared for release"
 
   # Show project status and next steps
   status:
@@ -262,38 +275,38 @@ tasks:
     silent: true
     cmds:
       - |
-        echo "📋 AI Coding Rules - Project Status"
+        echo "AI Coding Rules - Project Status"
         echo
-        echo "🔧 Quality:"
+        echo "Quality:"
         if task lint --silent >/dev/null 2>&1; then
-          echo "  ✅ Linting passed"
+          echo "  [OK] Linting passed"
         else
-          echo "  ❌ Linting issues found (run 'task lint:fix')"
+          echo "  [FAIL] Linting issues found (run 'task lint:fix')"
         fi
         if task format --silent >/dev/null 2>&1; then
-          echo "  ✅ Formatting passed"
+          echo "  [OK] Formatting passed"
         else
-          echo "  ❌ Formatting issues found (run 'task format:fix')"
+          echo "  [FAIL] Formatting issues found (run 'task format:fix')"
         fi
         echo
-        echo "🎯 Rule Generation:"
+        echo "Rule Generation:"
         if task rule:cursor:check --silent >/dev/null 2>&1; then
-          echo "  ✅ Cursor rules are current"
+          echo "  [OK] Cursor rules are current"
         else
-          echo "  ⚠️  Cursor rules need updating (run 'task rule:cursor')"
+          echo "  [WARN] Cursor rules need updating (run 'task rule:cursor')"
         fi
         if task rule:copilot:check --silent >/dev/null 2>&1; then
-          echo "  ✅ Copilot rules are current"
+          echo "  [OK] Copilot rules are current"
         else
-          echo "  ⚠️  Copilot rules need updating (run 'task rule:copilot')"
+          echo "  [WARN] Copilot rules need updating (run 'task rule:copilot')"
         fi
         if task rule:cline:check --silent >/dev/null 2>&1; then
-          echo "  ✅ Cline rules are current"
+          echo "  [OK] Cline rules are current"
         else
-          echo "  ⚠️  Cline rules need updating (run 'task rule:cline')"
+          echo "  [WARN] Cline rules need updating (run 'task rule:cline')"
         fi
         echo
-        echo "🚀 Quick Commands:"
+        echo "Quick Commands:"
         echo "  task quality:fix    # Fix all code quality issues"
         echo "  task rule:all       # Generate all IDE rule formats"
         echo "  task validate       # Run full validation suite"

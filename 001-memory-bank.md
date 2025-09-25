@@ -2,8 +2,8 @@
 **AppliesTo:** `memory-bank/**/*`, project context files
 **AutoAttach:** true
 **Type:** Auto-attach
-**Version:** 2.0
-**LastUpdated:** 2025-09-24
+**Version:** 2.1
+**LastUpdated:** 2025-09-25
 
 # Universal Memory Bank System
 
@@ -20,13 +20,14 @@ Establish universal principles for maintaining project context and ensuring AI e
 - **Allowed Tools:** Read-only context tools; documentation tools; structured update tools
 - **Forbidden Tools:** Tools that duplicate information across contexts; unstructured narrative documentation
 - **Required Steps:** 
-  1. Read all relevant context at session start (non-optional)
-  2. Maintain single source of truth per information type
-  3. Update context after significant changes
-  4. Prune outdated information aggressively
-  5. Structure information for rapid context recovery
+  1. Initialize memory bank if not already initialized: ensure `memory-bank/` exists (run "initialize memory bank" task first); all write operations must be scoped under `memory-bank/` only
+  2. Read all relevant context at session start (non-optional)
+  3. Maintain single source of truth per information type
+  4. Update context after significant changes
+  5. Prune outdated information aggressively
+  6. Structure information for rapid context recovery
 - **Output Format:** Structured documentation with clear sections, minimal redundancy, forward-looking focus
-- **Validation Steps:** Context completeness check; information uniqueness verification; productivity within 20 lines test
+- **Validation Steps:** Initialization verified; `memory-bank/` folder exists; no writes occurred outside `memory-bank/`; context completeness check; information uniqueness verification; productivity within 20 lines test
 
 ## Key Principles
 
@@ -150,6 +151,9 @@ flowchart TD
     P4 --> P5[Prune Outdated Content]
 ```
 
+Pre-step: If `memory-bank/` does not exist, run "initialize memory bank" to create the folder before proceeding.
+
+0. **Initialize If Needed**: Ensure `memory-bank/` exists and restrict writes to this directory
 1. **Review All Contexts**: Check each context type for relevance
 2. **Document Current State**: Capture new patterns and decisions  
 3. **Clarify Next Steps**: Update active context with immediate priorities
@@ -169,6 +173,8 @@ flowchart TD
 
 **Critical:** Read ALL memory bank files at the start of EVERY session - this is not optional.
 
+**Precondition:** Verify the `memory-bank/` folder exists. If missing, run "initialize memory bank" before any write operation.
+
 ## 5. IDE Integration
 
 ### Project Intelligence Rules
@@ -185,6 +191,9 @@ flowchart TD
 
 ## Quick Compliance Checklist
 - [ ] All core memory bank files exist and are within size budgets
+- [ ] Initialization run before updates (or previously initialized)
+- [ ] `memory-bank/` directory exists
+- [ ] All writes are scoped under `memory-bank/` (no writes elsewhere)
 - [ ] activeContext.md updated after significant changes
 - [ ] No information duplication across contexts
 - [ ] Quick start information readily accessible in activeContext.md
@@ -196,12 +205,13 @@ flowchart TD
 - [ ] AI can resume work effectively using only context files
 
 ## Validation
-- **Success Checks**: AI can resume work effectively using only context files; no duplicate information exists; all references work; productivity achieved within 20 lines of reading; context load completes within time targets
-- **Negative Tests**: Context files with missing quick start fail effectiveness test; duplicate information causes confusion and wasted time; broken references impede progress; oversized contexts delay session recovery
+- **Success Checks**: Initialization confirmed; `memory-bank/` exists; writes limited to `memory-bank/`; AI can resume work effectively using only context files; no duplicate information exists; all references work; productivity achieved within 20 lines of reading; context load completes within time targets
+- **Negative Tests**: Update attempted before initialization; files written outside `memory-bank/`; context files with missing quick start fail effectiveness test; duplicate information causes confusion and wasted time; broken references impede progress; oversized contexts delay session recovery
 
 ## Response Template
 ```markdown
 ## Memory Bank Analysis
+- **Precondition**: Memory bank initialized and `memory-bank/` folder exists
 - **Session Status**: [New session / Continuing work]
 - **Context Health**: [Complete / Missing files / Needs updates]
 - **Active Focus**: [Current priority from activeContext.md]  

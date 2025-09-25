@@ -121,59 +121,65 @@ tasks:
   rule:cursor:
     desc: "Generate Cursor .mdc files from *.md rules"
     cmds:
-      - uv run generate_agent_rules.py --agent cursor --source .
+      - uv run generate_agent_rules.py --agent cursor --source .{{if .DEST}} --destination {{.DEST}}{{end}}
 
   # Generate GitHub Copilot instruction files from *.md rules  
   rule:copilot:
     desc: "Generate GitHub Copilot instruction files from *.md rules"
     cmds:
-      - uv run generate_agent_rules.py --agent copilot --source .
+      - uv run generate_agent_rules.py --agent copilot --source .{{if .DEST}} --destination {{.DEST}}{{end}}
 
   # Generate Cline rule files from *.md rules
   rule:cline:
     desc: "Generate Cline rule files from *.md rules"
     cmds:
-      - uv run generate_agent_rules.py --agent cline --source .
+      - uv run generate_agent_rules.py --agent cline --source .{{if .DEST}} --destination {{.DEST}}{{end}}
 
   # Dry run rule generation to preview changes
   rule:cursor:dry:
     desc: "Dry run Cursor rule generation (preview changes)"
     cmds:
-      - uv run generate_agent_rules.py --agent cursor --source . --dry-run
+      - uv run generate_agent_rules.py --agent cursor --source . --dry-run{{if .DEST}} --destination {{.DEST}}{{end}}
 
   rule:copilot:dry:
     desc: "Dry run Copilot rule generation (preview changes)"
     cmds:
-      - uv run generate_agent_rules.py --agent copilot --source . --dry-run
+      - uv run generate_agent_rules.py --agent copilot --source . --dry-run{{if .DEST}} --destination {{.DEST}}{{end}}
 
   rule:cline:dry:
     desc: "Dry run Cline rule generation (preview changes)"
     cmds:
-      - uv run generate_agent_rules.py --agent cline --source . --dry-run
+      - uv run generate_agent_rules.py --agent cline --source . --dry-run{{if .DEST}} --destination {{.DEST}}{{end}}
 
   # Check if rule outputs are current/valid
   rule:cursor:check:
     desc: "Check if Cursor rule outputs are current"
     cmds:
-      - uv run generate_agent_rules.py --agent cursor --source . --check
+      - uv run generate_agent_rules.py --agent cursor --source . --check{{if .DEST}} --destination {{.DEST}}{{end}}
 
   rule:copilot:check:
     desc: "Check if Copilot rule outputs are current"
     cmds:
-      - uv run generate_agent_rules.py --agent copilot --source . --check
+      - uv run generate_agent_rules.py --agent copilot --source . --check{{if .DEST}} --destination {{.DEST}}{{end}}
 
   rule:cline:check:
     desc: "Check if Cline rule outputs are current"
     cmds:
-      - uv run generate_agent_rules.py --agent cline --source . --check
+      - uv run generate_agent_rules.py --agent cline --source . --check{{if .DEST}} --destination {{.DEST}}{{end}}
 
   # Generate all rule formats
   rule:all:
     desc: "Generate all IDE-specific rule formats"
     cmds:
       - task: rule:cursor
+        vars:
+          DEST: "{{.DEST}}"
       - task: rule:copilot
+        vars:
+          DEST: "{{.DEST}}"
       - task: rule:cline
+        vars:
+          DEST: "{{.DEST}}"
       - echo "✅ Generated all rule formats"
 
   # ============================================================================

@@ -1,8 +1,8 @@
 **Description:** Top-level index of rule files with purpose, scope, and dependencies.
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-09-21
+**Version:** 1.1
+**LastUpdated:** 2025-09-25
 
 # Rules Index
 
@@ -25,6 +25,7 @@ This index helps agents select the correct rule quickly. Documentation files lik
 | `109-snowflake-notebooks.md` | Agent Requested | Notebook best practices | Notebooks | `100-snowflake-core.md` |
 | `110-snowflake-model-registry.md` | Agent Requested | Model lifecycle and governance | ML registry | `100-snowflake-core.md` |
 | `111-snowflake-observability.md` | Agent Requested | Telemetry, logging, tracing, metrics | Observability | `100-snowflake-core.md` |
+| `112-snowflake-snowcli.md` | Agent Requested | Snowflake CLI best practices with pinned uvx execution | Snowflake CLI | `100-snowflake-core.md` |
 | `120-snowflake-spcs.md` | Agent Requested | Snowpark Container Services best practices | SPCS | `100-snowflake-core.md` |
 | `200-python-core.md` | Agent Requested | Modern Python engineering with uv/Ruff | Python | `000-global-core.md` |
 | `201-python-lint-format.md` | Agent Requested | Ruff linting/formatting policy | Linting | `200-python-core.md` |

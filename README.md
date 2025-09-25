@@ -54,6 +54,11 @@ task rule:copilot
 task rule:cline
 # Creates .clinerules/*.md files with plain Markdown (no YAML frontmatter)
 
+# Optional: write outputs to a custom base directory using DEST
+task rule:cursor DEST=/path/to/output     # Creates /path/to/output/.cursor/rules/*.mdc
+task rule:copilot DEST=../                # Creates ../.github/instructions/*.md
+task rule:cline DEST=~/projects/my-app    # Creates ~/projects/my-app/.clinerules/*.md
+
 # Manual generation with options
 uv run generate_agent_rules.py --agent cursor --source . --dry-run
 uv run generate_agent_rules.py --agent copilot --source . --check
@@ -64,8 +69,8 @@ uv run generate_agent_rules.py --agent cline --source . --dry-run
 uv run generate_agent_rules.py --agent cursor --source . --destination /path/to/output
 # Creates: /path/to/output/.cursor/rules/*.mdc
 
-uv run generate_agent_rules.py --agent copilot --source . --destination ../parent
-# Creates: ../parent/.github/instructions/*.md
+uv run generate_agent_rules.py --agent copilot --source . --destination ../
+# Creates: ../.github/instructions/*.md
 
 uv run generate_agent_rules.py --agent cline --source . --destination ~/projects/my-app
 # Creates: ~/projects/my-app/.clinerules/*.md
@@ -129,6 +134,7 @@ The following best practices apply to all AI coding assistants and development e
 - **`109-snowflake-notebooks.md`** — Jupyter notebook standards
 - **`110-snowflake-model-registry.md`** — ML model lifecycle, versioning, and governance
 - **`111-snowflake-observability.md`** — Comprehensive telemetry, logging, tracing, and metrics best practices
+- **`112-snowflake-snowcli.md`** — Snowflake CLI usage best practices with pinned `uvx` execution
 - **`120-snowflake-spcs.md`** — Snowpark Container Services best practices (containerized applications, compute pools, service management)
 
 ### Software Engineering - Python (200-299)
@@ -454,6 +460,9 @@ uvx ruff format .         # Apply formatting
 task rule:cursor         # Generate Cursor rules
 task rule:copilot        # Generate Copilot rules
 task rule:cline          # Generate Cline rules
+
+# Optional DEST variable to change base output directory
+task rule:all DEST=/custom/output
 
 # Validate configurations
 task --list              # Validate Taskfile syntax

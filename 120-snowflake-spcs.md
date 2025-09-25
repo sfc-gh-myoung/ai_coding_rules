@@ -58,7 +58,7 @@ docker push <account>.registry.snowflakecomputing.com/my_db/my_schema/my_app_rep
 ```sql
 -- Compute pool examples
 CREATE COMPUTE POOL my_app_pool MIN_NODES = 1 MAX_NODES = 5 INSTANCE_FAMILY = CPU_X64_XS;
-CREATE COMPUTE POOL ml_training_pool MIN_NODES = 0 MAX_NODES = 3 INSTANCE_FAMILY = GPU_NV_S;
+CREATE COMPUTE POOL ml_training_pool MIN_NODES = 1 MAX_NODES = 3 INSTANCE_FAMILY = GPU_NV_S;
 ```
 
 ## 3. Service Specifications and Security

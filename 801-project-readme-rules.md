@@ -264,6 +264,26 @@ Click [here](https://example.com/docs) for more info.
 - **Consider:** Automated link checking and badge updates
 - **Always:** Include README in documentation deployment process
 
+## Contract
+- **Inputs/Prereqs:** [Context, files, dependencies needed]
+- **Allowed Tools:** [Tools permitted for this domain]
+- **Forbidden Tools:** [Tools not allowed for this domain]
+- **Required Steps:** [Ordered steps the agent must follow]
+- **Output Format:** [Expected output format]
+- **Validation Steps:** [Checks to confirm success]
+
+## Quick Compliance Checklist
+- [ ] Required dependencies and context verified
+- [ ] Appropriate tools selected and validated
+- [ ] Implementation follows established patterns
+- [ ] Output format matches requirements
+- [ ] Validation steps completed successfully
+
+## Response Template
+```
+[Minimal, copy-pasteable template showing expected output format]
+```
+
 ## References
 
 ### External Documentation

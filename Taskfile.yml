@@ -215,6 +215,7 @@ tasks:
   # Run all validation checks (quality + tests + rule generation)
   validate:
     desc: "Run all validation checks for CI/CD"
+    silent: true
     cmds:
       - task: quality
       - task: test
@@ -226,6 +227,7 @@ tasks:
   # Validate that all rule files include mandatory sections (Contract, Validation, Response Template, Checklist)
   rules:validate-structure:
     desc: "Validate all rules contain Contract, Validation, Response Template, and Quick Compliance Checklist"
+    silent: true
     cmds:
       - |
         missing=false

@@ -15,6 +15,8 @@ This project was inspired, in part, by: [how-to-add-cline-memory-bank-feature-to
 
 ### Prerequisites
 
+This project assumes that you are using `uv` and `uvx` for python venv management and tooling.  The assumption is that you are using Taskfile for task management instead of Makefiles or shell scripts.
+
 - **Python 3.11+** (required: pin to 3.11 for consistency)
 - **uv** (recommended: [install uv](https://github.com/astral-sh/uv) for fast dependency management)  
 - **Task** (recommended: install via `brew install go-task/tap/go-task` or [other methods](https://taskfile.dev/installation/))

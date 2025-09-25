@@ -70,3 +70,45 @@
 - **Follow security policies** from `107-snowflake-security-governance.md` for data access
 - **Validate input/output** using patterns from security-focused rules
 - **Apply principle of least privilege** in all implementations
+
+## Quick Compliance Checklist
+- [ ] Start in PLAN mode with read-only tools before making changes
+- [ ] User authorization ("ACT") obtained before file modifications
+- [ ] Contract validation completed with all required sections present
+- [ ] Surgical, minimal edits applied preserving existing patterns
+- [ ] Lint and typecheck commands executed successfully
+- [ ] Mode awareness maintained throughout response chains
+- [ ] Professional communication standards followed (no emojis unless requested)
+- [ ] TODO list utilized for complex multi-step tasks
+- [ ] All dependencies installed via `uv` commands
+- [ ] Rule generation validated with appropriate agent format
+
+## Validation
+- **Success checks:** PLAN/ACT mode transitions work correctly, lint/test commands pass, generated rules match expected format, all file modifications preserve existing structure
+- **Negative tests:** Attempt to modify files without ACT authorization (should fail), run incomplete contract validation (should catch missing sections), test with malformed rule files (should report validation errors)
+
+## Response Template
+```markdown
+**MODE: PLAN** 
+
+I'll help you [task description]. Let me first gather information using read-only tools.
+
+[Tool usage for understanding context]
+
+Based on my analysis, here's what I found:
+- [Key finding 1]
+- [Key finding 2]
+
+To proceed, I need your authorization to make file changes. Please type "ACT" to authorize modifications.
+
+---
+
+**MODE: ACT** (after user authorization)
+
+I'll now implement the changes:
+
+[Tool usage for modifications]
+
+✅ Changes completed successfully
+**MODE: PLAN** (return to plan mode)
+```

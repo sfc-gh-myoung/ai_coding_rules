@@ -174,6 +174,9 @@ The following best practices apply to all AI coding assistants and development e
 - **`311-zsh-advanced-features.md`** — Advanced zsh capabilities (completion system, hooks, modules, performance optimization)
 - **`312-zsh-compatibility.md`** — Cross-shell compatibility (bash migration, portable scripting, mixed environments)
 
+### Software Engineering - Containers (400-499)
+- **`400-docker-best-practices.md`** — Docker and Dockerfile best practices (builds, security, supply chain, runtime, Compose)
+
 ### Data Science & Analytics (500-599)
 - **`500-data-science-analytics.md`** — ML lifecycle, feature engineering, and analytics
 

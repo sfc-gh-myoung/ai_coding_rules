@@ -14,6 +14,25 @@ Establish the foundational operating contract for all AI coding assistants, ensu
 - **Type:** Auto-attach
 - **Scope:** Universal foundational guidelines for all AI coding assistants across all editors and technologies
 
+## Contract
+- **Inputs/Prereqs:** Project workspace access; tool availability; up-to-date rule files; user requirements; environment with read/write permissions when authorized
+- **Allowed Tools:**
+  - PLAN: `read_file`, `list_dir`, `grep`, `codebase_search`, `glob_file_search`, `run_terminal_cmd` (read-only), `todo_write`, `web_search`, `fetch_rules`
+  - ACT: All tools permitted after explicit user `ACT` authorization, including file edits, deletions, and system-modifying commands
+- **Forbidden Tools:**
+  - PLAN: Any file-modifying tool or system-modifying command; notebook edits; deletions
+  - ACT: None, beyond project-specific security restrictions (no secrets exposure)
+- **Required Steps:**
+  1. Start in PLAN mode: gather context; propose a clear TASK LIST and Contract
+  2. Await explicit `ACT` from user before any file modifications
+  3. Perform minimal, surgical edits; keep deltas focused and scoped
+  4. Validate immediately (lint/tests/commands) after edits; update README when triggers apply
+  5. Mark tasks complete; return to PLAN mode
+- **Output Format:**
+  - Use mode banner; concise analysis; delta-focused implementation notes; fenced code blocks for changed snippets; brief validation checklist
+- **Validation Steps:**
+  - Verify PLAN/ACT rules honored; confirm lints/tests pass; ensure README updates applied when required; cross-references and links valid; todo list reconciled
+
 ## Key Principles
 - Core workflow: PLAN mode → user "ACT" authorization → minimal edits → validate → return to PLAN
 - Detailed workflow specifications are in `AGENTS.md`

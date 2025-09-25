@@ -64,7 +64,7 @@ class TestRuleStructureValidation:
                 error_msg += f"  {issue['file']}: {', '.join(issue['missing'])}\n"
             pytest.fail(error_msg)
 
-    @pytest.mark.skip(reason="Full codebase validation - many files not yet compliant")  
+    @pytest.mark.skip(reason="Full codebase validation - many files not yet compliant")
     def test_rule_files_have_proper_metadata(self):
         """Test that rule files have required metadata."""
         rule_files = self.get_rule_files()
@@ -122,7 +122,7 @@ class TestRuleStructureValidation:
             )
             pytest.fail(error_msg)
 
-    @pytest.mark.skip(reason="Full codebase validation - many files not yet compliant")  
+    @pytest.mark.skip(reason="Full codebase validation - many files not yet compliant")
     def test_contract_section_has_required_fields(self):
         """Test that Contract sections have all required fields."""
         rule_files = self.get_rule_files()

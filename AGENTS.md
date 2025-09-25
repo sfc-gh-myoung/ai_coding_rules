@@ -63,7 +63,7 @@
 - **Python version**: 3.11+ pinned in `.python-version`
 - **Dependency management**: Use `uv` for all Python operations
 - **Task automation**: Use `task` commands from `Taskfile.yml` when available
-- **Rule maintenance**: Keep rules up-to-date and follow template from `003-rule-template.md`
+- **Rule maintenance**: Keep rules up-to-date and follow template from `002-rule-governance.md` section 9
 
 ## Security considerations
 - **Never commit secrets** or expose credentials in code or logs

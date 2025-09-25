@@ -80,7 +80,7 @@ Concatenate selected `.md` files for use with LLM tools like Claude Projects, Ch
 - See the consolidated index: `RULES_INDEX.md`
 - **`000-global-core.md`** — Universal operating principles and safety protocols
 - **`001-memory-bank.md`** — Universal memory bank for AI context continuity  
-- **`002-rule-governance.md`** — Comprehensive rule authoring governance: creation standards, naming conventions, structure requirements, and validation workflows
+- **`002-rule-governance.md`** — Comprehensive rule authoring governance: creation standards, naming conventions, structure requirements, validation workflows, and rule creation template
 
 #### Universal Rule Authoring Best Practices
 
@@ -401,7 +401,7 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed gu
 
 1. **Fork** the repository
 2. **Create** a feature branch: `git checkout -b feature/my-new-rule`
-3. **Follow** the rule authoring guidelines in `002-rule-governance.md`
+3. **Follow** the rule authoring guidelines in `002-rule-governance.md` section 9 (Rule Creation Template)
 4. **Test** your changes: `task lint` and `task rule:cursor --dry-run`
 5. **Submit** a pull request
 

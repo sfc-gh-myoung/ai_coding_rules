@@ -56,6 +56,7 @@ import argparse
 import re
 import sys
 from dataclasses import dataclass
+import os
 from pathlib import Path
 
 RE_DESCRIPTION = re.compile(r"^\*\*Description:\*\*\s*(.*)$", re.IGNORECASE)
@@ -318,7 +319,12 @@ class AgentRuleGenerator:
             return True
 
         dst_path.write_text(out_text, encoding="utf-8")
-        print(f"Wrote {dst_path.relative_to(Path.cwd()) if dst_path.is_absolute() else dst_path}")
+        # Print a friendly relative path when possible, otherwise absolute path
+        try:
+            rel = os.path.relpath(dst_path, start=Path.cwd())
+            print(f"Wrote {rel}")
+        except Exception:
+            print(f"Wrote {dst_path}")
         return True
 
     @staticmethod

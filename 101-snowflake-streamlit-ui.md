@@ -2,8 +2,8 @@
 **AppliesTo:** `**/*.py`, `streamlit/**/*`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.2
-**LastUpdated:** 2025-09-16
+**Version:** 1.4
+**LastUpdated:** 2025-09-25
 
 # Streamlit UI/UX Directives
 
@@ -16,7 +16,7 @@ Provide comprehensive guidance for building modern, performant, and maintainable
 - **Scope:** Snowflake Streamlit application development, UI/UX patterns, and performance optimization
 
 ## Contract
-- **Inputs/Prereqs:** Python 3.11+, Streamlit 1.28+, Snowflake connection, project structure with pages/ and components/
+- **Inputs/Prereqs:** Python 3.11+, Streamlit 1.46+, Snowflake connection, project structure with pages/ and components/, deployment mode identified (SiS vs OSS on SPCS)
 - **Allowed Tools:** st.cache_data, st.cache_resource, st.session_state, Snowflake connector, pandas/polars
 - **Forbidden Tools:** raw SQL loops, custom CSS blocks, unhandled exceptions in UI
 - **Required Steps:** 1) Set page config, 2) Initialize session state, 3) Cache data operations, 4) Implement error handling
@@ -28,6 +28,11 @@ Provide comprehensive guidance for building modern, performant, and maintainable
 - Use page config, pages/ structure, components/ for reuse; avoid raw loops and re-creating connections.
 - Clear help text, responsive layouts, no raw exception traces; follow Streamlit/Snowflake docs.
 
+## Deployment Modes: Streamlit in Snowflake (SiS) vs Open-source (SPCS)
+- **Streamlit in Snowflake (SiS):** Runs inside Snowflake with a managed runtime and security context. Use the Snowflake Streamlit docs for capabilities, limitations, auth, and secrets handling. Packaging and deployment differ from open-source.
+- **Open-source Streamlit on SPCS:** Deployed as a containerized app via Snowpark Container Services (SPCS). Follow SPCS deployment, networking, image build, and secrets guidance. Configuration, environment, and recommended patterns can differ from SiS.
+- **Always verify the deployment mode first** and apply the correct configuration, best practices, and documentation. Do not mix SiS and open-source Streamlit recommendations.
+
 ## 1. Core Principles
 - **Requirement:** Prioritize Fast First Paint and performant interactions (target <2s initial load).
 - **Requirement:** Use a modular architecture separating UI components, business logic, and page navigation.
@@ -37,7 +42,7 @@ Provide comprehensive guidance for building modern, performant, and maintainable
 ## 2. Setup and Structure
 - **Always:** Call `st.set_page_config` in the entry point to set title, icon, and wide layout.
 - **Always:** Initialize session state once at the top level to keep state consistent across re-runs.
-- **Always:** Organize multi-page applications using the `pages/` directory structure.
+- **Always:** Organize multi-page applications using the `pages/` directory structure ([Multipage Apps tutorial](https://docs.streamlit.io/get-started/tutorials/create-a-multipage-app)).
 - **Always:** Place reusable UI elements (charts, forms) in a `components/` directory.
 
 ## 3. Performance and Caching
@@ -58,14 +63,16 @@ Provide comprehensive guidance for building modern, performant, and maintainable
 - **Mandatory:** Never show raw exception traces to users. Use `st.error()` with a clear, actionable message.
 - **Avoid:** Recreating database connections on every interaction.
 - **Avoid:** Embedding custom CSS or HTML style blocks in Python code.
+- **Avoid:** Mixing SiS and open-source Streamlit (SPCS) configurations, best practices, and deployment guidance.
 
 ## 6. Documentation
 - **Always:** Reference the official documentation:
   - **Caching**: https://docs.streamlit.io/develop/concepts/architecture/caching
-  - **Session State**: https://docs.streamlit.com/develop/concepts/architecture/session-state
+  - **Session State**: https://docs.streamlit.io/develop/concepts/architecture/session-state
   - **Layouts**: https://docs.streamlit.io/develop/api-reference/layout
   - **API Reference**: https://docs.streamlit.io/develop/api-reference
 - **Requirement:** When building for Snowflake, cross-reference Streamlit in Snowflake docs for differences in behavior, security context, and supported features: https://docs.snowflake.com/en/developer-guide/streamlit/about-streamlit
+- **Requirement:** When deploying open-source Streamlit via SPCS, follow SPCS docs for container build, networking, and runtime specifics: https://docs.snowflake.com/en/developer-guide/snowpark-container-services
 
 ## Quick Compliance Checklist
 - [ ] App loads in under 2 seconds (Fast First Paint achieved)
@@ -78,6 +85,7 @@ Provide comprehensive guidance for building modern, performant, and maintainable
 - [ ] No raw exception traces shown to users
 - [ ] Help text provided for complex widgets
 - [ ] Navigation uses st.page_link, not buttons
+- [ ] Deployment type verified (SiS vs open-source on SPCS) and correct docs followed
 
 ## Validation
 - **Success checks:** App loads <2s, caching reduces query time, responsive on mobile/desktop, error states handled gracefully
@@ -122,10 +130,12 @@ except Exception as e:
 ### External Documentation
 - [Streamlit Documentation](https://docs.streamlit.io/) - Official Streamlit application development guide
 - [Streamlit API Reference](https://docs.streamlit.io/library/api-reference) - Complete API reference for all Streamlit components
+- [Streamlit Multipage Apps](https://docs.streamlit.io/get-started/tutorials/create-a-multipage-app) - Tutorial on multi-page structure, naming, and navigation
 - [Snowflake Streamlit Guide](https://docs.snowflake.com/en/developer-guide/streamlit/about-streamlit) - Snowflake-specific Streamlit integration documentation
-- [Streamlit Performance](https://docs.streamlit.io/library/advanced-features/caching) - Caching and performance optimization techniques
+- [Snowpark Container Services (SPCS)](https://docs.snowflake.com/en/developer-guide/snowpark-container-services) - Deploying and operating containerized apps (open-source Streamlit) on Snowflake
 
 ### Related Rules
 - **Snowflake Core**: `100-snowflake-core.md`
 - **Snowflake Notebooks**: `109-snowflake-notebooks.md`
 - **Python Core**: `200-python-core.md`
+- **Snowpark Container Services**: `120-snowflake-spcs.md`

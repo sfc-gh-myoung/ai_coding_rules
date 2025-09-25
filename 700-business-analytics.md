@@ -40,6 +40,30 @@ Provide directives for creating business-oriented queries, reports, and visualiz
 - **Always:** Provide guidance on filters/parameters.
 - **Always:** State assumptions (e.g., data freshness, filtering criteria).
 
+## Contract
+- **Inputs/Prereqs:** [Context, files, dependencies needed]
+- **Allowed Tools:** [Tools permitted for this domain]
+- **Forbidden Tools:** [Tools not allowed for this domain]
+- **Required Steps:** [Ordered steps the agent must follow]
+- **Output Format:** [Expected output format]
+- **Validation Steps:** [Checks to confirm success]
+
+## Quick Compliance Checklist
+- [ ] Required dependencies and context verified
+- [ ] Appropriate tools selected and validated
+- [ ] Implementation follows established patterns
+- [ ] Output format matches requirements
+- [ ] Validation steps completed successfully
+
+## Validation
+- **Success checks:** [How to verify correct implementation]
+- **Negative tests:** [What should fail and how to detect failures]
+
+## Response Template
+```
+[Minimal, copy-pasteable template showing expected output format]
+```
+
 ## References
 
 ### External Documentation

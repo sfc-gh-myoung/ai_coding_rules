@@ -15,6 +15,14 @@ Provide comprehensive guidance for building modern, performant, and maintainable
 - **Type:** Agent Requested
 - **Scope:** Snowflake Streamlit application development, UI/UX patterns, and performance optimization
 
+## Contract
+- **Inputs/Prereqs:** Python 3.11+, Streamlit 1.28+, Snowflake connection, project structure with pages/ and components/
+- **Allowed Tools:** st.cache_data, st.cache_resource, st.session_state, Snowflake connector, pandas/polars
+- **Forbidden Tools:** raw SQL loops, custom CSS blocks, unhandled exceptions in UI
+- **Required Steps:** 1) Set page config, 2) Initialize session state, 3) Cache data operations, 4) Implement error handling
+- **Output Format:** Streamlit app with <2s load time, modular architecture, accessible UI
+- **Validation Steps:** Test caching behavior, verify responsive design, check error handling, validate accessibility
+
 ## Key Principles
 - Fast First Paint (<2s), modular architecture, deterministic state; cache data/resources appropriately.
 - Use page config, pages/ structure, components/ for reuse; avoid raw loops and re-creating connections.
@@ -58,6 +66,56 @@ Provide comprehensive guidance for building modern, performant, and maintainable
   - **Layouts**: https://docs.streamlit.io/develop/api-reference/layout
   - **API Reference**: https://docs.streamlit.io/develop/api-reference
 - **Requirement:** When building for Snowflake, cross-reference Streamlit in Snowflake docs for differences in behavior, security context, and supported features: https://docs.snowflake.com/en/developer-guide/streamlit/about-streamlit
+
+## Quick Compliance Checklist
+- [ ] App loads in under 2 seconds (Fast First Paint achieved)
+- [ ] Page config set with title, icon, and layout
+- [ ] Session state initialized explicitly at app start
+- [ ] Database queries cached with appropriate TTL
+- [ ] Error handling implemented with user-friendly messages
+- [ ] Responsive layout using st.columns and container_width=True
+- [ ] Modular structure with pages/ and components/ directories
+- [ ] No raw exception traces shown to users
+- [ ] Help text provided for complex widgets
+- [ ] Navigation uses st.page_link, not buttons
+
+## Validation
+- **Success checks:** App loads <2s, caching reduces query time, responsive on mobile/desktop, error states handled gracefully
+- **Negative tests:** Break database connection (should show error message), disable cache (should show performance impact), test with malformed data (should not crash)
+
+## Response Template
+```python
+import streamlit as st
+from snowflake.connector import connect
+
+# Page configuration
+st.set_page_config(
+    page_title="App Name",
+    page_icon="📊",
+    layout="wide"
+)
+
+# Initialize session state
+if 'data_loaded' not in st.session_state:
+    st.session_state.data_loaded = False
+
+@st.cache_resource
+def get_snowflake_connection():
+    return connect(**st.secrets["snowflake"])
+
+@st.cache_data(ttl=300)
+def load_data():
+    conn = get_snowflake_connection()
+    return conn.cursor().execute("SELECT * FROM table").fetchall()
+
+# Main app logic with error handling
+try:
+    with st.spinner("Loading data..."):
+        data = load_data()
+    st.success("Data loaded successfully!")
+except Exception as e:
+    st.error("Unable to load data. Please try again later.")
+```
 
 ## References
 

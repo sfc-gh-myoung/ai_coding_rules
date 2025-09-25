@@ -12,7 +12,7 @@ This index helps agents select the correct rule quickly. Documentation files lik
 |------|------|---------------------|-------|------------|
 | `000-global-core.md` | Auto-attach | Global operating contract (PLAN/ACT, safety, validation) | Universal | — |
 | `001-memory-bank.md` | Auto-attach | Universal memory bank for AI context continuity | Project continuity | `000-global-core.md` |
-| `002-rule-governance.md` | Auto-attach | Rule authoring governance and conformance | All rules | `000-global-core.md` |
+| `002-rule-governance.md` | Auto-attach | Rule authoring governance, standards, and creation template | All rules | `000-global-core.md` |
 | `100-snowflake-core.md` | Agent Requested | Foundational Snowflake practices (cost, performance, security) | Snowflake SQL & modeling | `000-global-core.md` |
 | `101-snowflake-streamlit-ui.md` | Agent Requested | Streamlit UI best practices for Snowflake | Streamlit apps | `100-snowflake-core.md` |
 | `102-snowflake-sql-best-practices.md` | Agent Requested | Advanced SQL authoring patterns | SQL authorship | `100-snowflake-core.md` |

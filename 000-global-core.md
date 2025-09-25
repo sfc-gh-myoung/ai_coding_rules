@@ -15,58 +15,31 @@ Establish the foundational operating contract for all AI coding assistants, ensu
 - **Scope:** Universal foundational guidelines for all AI coding assistants across all editors and technologies
 
 ## Key Principles
-- Plan mode (read-only) then user approval then Act mode (file modifications)
-## Contract
-- **Inputs/Prereqs:** User request; repository context; memory bank loaded
-- **Allowed Tools:** Read-only tools in PLAN; all tools in ACT (only after explicit "ACT")
-- **Forbidden Tools:** Any file-modifying tools in PLAN
-- **Required Steps:** Present plan → obtain explicit ACT → perform minimal edits → validate → summarize
-- **Output Format:** Concise updates; deltas only for code; status and summary per rules
-- **Validation Steps:** Lints pass; tasks succeed; README assessed when applicable
+- Core workflow: PLAN mode → user "ACT" authorization → minimal edits → validate → return to PLAN
+- Detailed workflow specifications are in `AGENTS.md`
 
 ## Quick Compliance Checklist
+- **Reference:** Complete compliance checklist is available in `AGENTS.md`
 - [ ] Mode banner shown at top of response (# Mode: PLAN/ACT)
 - [ ] No file-modifying tools used in PLAN
 - [ ] Explicit "ACT" received before edits
 - [ ] Minimal, surgical edits only
-- [ ] Lints/validation run after edits when applicable
-- [ ] README changes assessed per triggers
-- Always confirm task list before making changes; user must type "ACT" to authorize
-- Professional communication; concise, code-first solutions; minimal surgical changes
-- Maintain project intelligence through memory bank and rule documentation
-- Update README when modifying project structure or workflows
+- [ ] README changes assessed per triggers below
 
 ## Critical: Confirmation & Safety
 
 ### Mode-Based Workflow
-- **Mandatory:** You have two modes of operation:
-
-1. Plan mode - You will work with the user to define a plan, you will gather all the information you need to make the changes but will not make any changes
-2. Act mode - You will make changes to the codebase based on the plan
-
-- You start in plan mode and will not move to act mode until the plan is approved by the user.
-- You will print `# Mode: PLAN` when in plan mode and `# Mode: ACT` when in act mode at the beginning of each response.
-- **Critical:** ONLY the exact word "ACT" (all uppercase) transitions from PLAN to ACT mode - no exceptions.
-- **Rule:** Variations like "go ahead", "proceed", "do it", "start", "begin" do NOT authorize ACT mode.
-- **Mandatory:** You will move back to PLAN mode immediately after completing any file modifications.
-- You will also move back to plan mode when the user types `PLAN`.
-- **Critical:** In PLAN mode, you are FORBIDDEN from using ANY file-modifying tools including but not limited to: `write`, `search_replace`, `MultiEdit`, `edit_notebook`, `delete_file`, or any tool that creates, modifies, or deletes files.
-- **Critical:** In PLAN mode, you may ONLY use read-only tools: `read_file`, `list_dir`, `grep`, `codebase_search`, `glob_file_search`, `run_terminal_cmd` (read-only commands only), and `todo_write` for planning purposes.
-- If the user asks you to take an action while in plan mode you will remind them that you are in PLAN mode and that they need to type "ACT" to approve the plan first.
-- When in plan mode always output the full updated plan in every response.
+- **Reference:** Core workflow specifications are detailed in `AGENTS.md`
+- **Critical:** Mode transitions and tool restrictions as specified in `AGENTS.md` apply universally
 
 ### Pre-Tool Verification Protocol
-- **Mandatory:** Before invoking ANY tool, explicitly state "Current mode: [PLAN/ACT]"
-- **Mandatory:** Before invoking ANY tool, verify the tool is allowed in current mode according to Tool Usage by Mode section
-- **Critical:** If tool is forbidden in current mode, STOP immediately and remind user of mode restrictions
-- **Rule:** No exceptions - every single tool call must be preceded by mode verification
-- **Critical:** This verification must happen even for read-only tools to build consistent habits
+- **Reference:** Pre-tool verification requirements are detailed in `AGENTS.md`
+- **Mandatory:** Before invoking ANY tool, verify the tool is allowed in current mode according to Tool Usage by Mode section below
 
 ### Continuous Mode Awareness
-- **Mandatory:** Display current mode at the start of every response using "# Mode: PLAN" or "# Mode: ACT"
-- **Mandatory:** When presenting task lists in PLAN mode, remind user to type "ACT" to proceed with implementation
-- **Rule:** Include mode verification reminders in workflow sections that mention tool usage
-- **Always:** Be explicit about current mode when asked to take actions or use tools
+- **Reference:** Mode awareness requirements are detailed in `AGENTS.md`
+- **Mandatory:** Display current mode at the start of every response
+- **Mandatory:** Include mode verification reminders in workflow sections that mention tool usage
 
 ### Tool Usage by Mode
 - **PLAN Mode - READ ONLY:**
@@ -90,24 +63,13 @@ Establish the foundational operating contract for all AI coding assistants, ensu
 - **Exception:** Proceed without confirmation only if the user has explicitly overridden the request (e.g., "proceed without asking" AND "ACT").
 
 ### Enhanced Violation Response Protocol
-- **Critical:** Any use of file-modifying tools (`write`, `search_replace`, `MultiEdit`, `edit_notebook`, `delete_file`) in PLAN mode is a CRITICAL VIOLATION
-- **Mandatory:** Upon any mode violation, immediately execute this 5-step protocol:
-  1. Stop all tool execution immediately
-  2. Acknowledge the violation explicitly: "CRITICAL VIOLATION: Used [tool] in PLAN mode"
-  3. Explain which rule was broken and why it's important
-  4. Return to PLAN mode immediately
-  5. Ask user how to proceed and whether to continue with the task
-- **Rule:** Multiple violations in a session may require user intervention to reset the workflow
-- **Always:** Treat violations as serious safety issues, not minor mistakes
-- **Recovery:** After violation acknowledgment, present corrected plan and wait for explicit "ACT" before proceeding
+- **Reference:** Detailed violation protocol is specified in `AGENTS.md`
+- **Critical:** All mode violations must follow the 5-step recovery process as defined in `AGENTS.md`
 
 ### Mode State Management
-- **Mandatory:** Track and display mode state continuously throughout each response
-- **Rule:** Mode state persists across tool calls within the same response batch
+- **Reference:** Mode state tracking requirements are detailed in `AGENTS.md`
 - **Critical:** Default mode is ALWAYS PLAN unless user has explicitly typed "ACT"  
 - **Mandatory:** Return to PLAN mode immediately after completing any file modifications
-- **Rule:** Mode transitions are explicit and logged - never assume or inherit mode from context
-- **Always:** When uncertain about current mode, default to PLAN mode and ask for clarification
 
 
 ## CORE OPERATING PRINCIPLES
@@ -128,15 +90,14 @@ Establish the foundational operating contract for all AI coding assistants, ensu
 - **Critical:** Before marking tasks complete, explicitly verify README maintenance requirements were addressed.
 
 ## 3. Code Modification and Output
+- **Reference:** Surgical editing principles are detailed in `AGENTS.md`
 - **Mandatory:** When modifying existing code, make only surgical, minimal changes required to fulfill the request.
 - **Requirement:** Verify all code patterns, syntax, and best practices against current official documentation before implementation.
-- **Requirement:** Do not remove existing comments or reformat unrelated code. The goal is to produce a clean, focused diff.
 - **Requirement:** Use fenced code blocks with language tags for all files (including `.md`).
 
 ## 4. Professional Communication
-- **Requirement:** Do not use emojis or GIF images in code, documentation, or responses unless explicitly requested by the user.
-- **Rule:** Maintain professional, technical tone consistent with senior engineering standards.
-- **Exception:** Use emojis or visual elements only when the user specifically asks for them.
+- **Reference:** Professional communication standards are detailed in `AGENTS.md`
+- **Requirement:** Maintain professional, technical tone consistent with senior engineering standards
 
 ## 5. RULE ORGANIZATION & REUSE
 - **Requirement:** Detailed, language-specific, and domain-specific rules are located in the canonical `ai_coding_rules/` directory. Optional mirrors may exist in editor- or tool-specific folders (e.g., `.cursor/rules/`, `.vscode/ai-rules/`).
@@ -191,24 +152,20 @@ Establish the foundational operating contract for all AI coding assistants, ensu
 
 ## Response Template
 ```markdown
+**Reference:** Complete response template is available in `AGENTS.md`
+
 ## Mode: [PLAN/ACT]
 
 ## Analysis
 - **Current State**: [Brief assessment]
 - **Requirements**: [What needs to be accomplished]
-- **Approach**: [Strategy and next steps]
 
 ## Implementation
 [Code/changes/recommendations based on current mode]
 
 ## Validation
 - [ ] Code tested and working
-- [ ] Dependencies verified
 - [ ] README updated if needed
-- [ ] Cross-references validated
-
-## README Updates
-[Summary of README changes made, or "No README updates required - reason"]
 ```
 
 ## References

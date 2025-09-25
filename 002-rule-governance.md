@@ -76,6 +76,7 @@ Every rule file must follow this structure:
 ## Validation
 - **Success Checks:** [How to verify rule compliance]
 - **Negative Tests:** [What should fail and how to detect it]
+```
 
 ## Response Template
 ```<LANG>
@@ -89,7 +90,6 @@ Every rule file must follow this structure:
 
 ### Related Rules
 - **Rule Name**: `filename.md`
-```
 
 ### Section Requirements
 
@@ -205,6 +205,73 @@ Every rule file must follow this structure:
 - **Always:** Validate Related Rules cross-references for accuracy and ensure they represent logical relationships
 - **Always:** Before finalizing a rule, validate it against current, vendor-agnostic documentation and your primary IDE/tooling documentation for compliance (e.g., Visual Studio Code, Cursor, Claude Code, Gemini CLI, Cline)
 - **Always:** For all agent interactions, follow the core rules in `000-global-core.md`
+
+## 9. Rule Creation Template
+
+Use this template when creating new rule files. Copy the entire template below and replace all placeholders with appropriate content:
+
+```markdown
+**Description:** [Brief description of what this rule accomplishes]
+**AppliesTo:** [File patterns, technologies, or contexts where this rule applies]
+**AutoAttach:** [true | false]
+**Type:** [Auto-attach | Agent Requested]
+**Version:** 1.0
+**LastUpdated:** [YYYY-MM-DD]
+
+# Rule Title (Replace with Descriptive Title)
+
+## Purpose
+[1-2 sentences clearly explaining what this rule accomplishes and why it exists]
+
+## Rule Type and Scope
+
+- **Type:** [Auto-attach | Agent Requested]
+- **Scope:** [Description of what the rule covers and applies to]
+
+## Contract
+- **Inputs/Prereqs:** [Required context, files, env vars]
+- **Allowed Tools:** [List tools permitted for this rule]
+- **Forbidden Tools:** [List tools not allowed]
+- **Required Steps:** [Ordered, explicit steps the agent must follow]
+- **Output Format:** [Exact expected output format]
+- **Validation Steps:** [Checks the agent must run to confirm success]
+
+## Key Principles
+- [Concise bullet point summarizing key concept]
+- [Another essential principle or practice]
+- [Additional core concepts as needed]
+
+## 1. Detailed Section
+[Comprehensive implementation details]
+
+## Quick Compliance Checklist
+- [ ] Item 1 (must be true before proceeding)
+- [ ] Item 2 (specific verification check)
+- [ ] Item 3 (actionable validation item)
+- [ ] Item 4 (compliance requirement)
+- [ ] Item 5 (final verification step)
+
+## Validation
+- **Success Checks:** [How to verify correct implementation]
+- **Negative Tests:** [What should fail and how to detect failures]
+
+## Response Template
+    ```<LANG>
+    [Minimal, copy-pasteable template showing expected output format]
+    ```
+
+## References
+
+### External Documentation
+- [Official Documentation](https://example.com/) - Description of the resource
+- [Additional Resource](https://example.com/) - Another relevant external link
+
+### Related Rules
+- **Core Rule Name**: `000-global-core.md`
+- **Governance**: `002-rule-governance.md`
+
+> **Note:** Follow professional communication standards from `000-global-core.md` (no emojis or GIF images in rule files unless explicitly requested by the user).
+```
 
 ## Quick Compliance Checklist
 - [ ] Rule follows mandatory section structure

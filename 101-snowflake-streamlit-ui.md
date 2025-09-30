@@ -68,14 +68,59 @@ Provide comprehensive guidance for building modern, performant, and maintainable
 - **Requirement:** Manage state predictably with `st.session_state` and callbacks for complex updates.
 - **Requirement:** Use responsive layouts with `st.columns`, `st.sidebar`, and `use_container_width=True` for charts.
 
-## 6. Anti-Patterns
+## 6. Data Loading from Snowflake - Critical Column Name Gotcha
+
+### Column Name Normalization
+- **Critical:** Snowflake returns column names in **UPPERCASE** by default, which causes `KeyError` when accessing with lowercase.
+- **Always:** Normalize column names to lowercase immediately after loading data from Snowflake.
+- **Rule:** Apply normalization in data loader functions, not in UI code, to ensure consistency.
+
+**Problem:**
+```python
+# ❌ This will fail with KeyError: 'asset_type'
+df = session.table('GRID_ASSETS').to_pandas()
+transformers = df[df['asset_type'] == 'TRANSFORMER']  # KeyError!
+```
+
+**Solution:**
+```python
+# ✓ Correct - Normalize column names to lowercase
+df = session.table('UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS').to_pandas()
+df.columns = [col.lower() for col in df.columns]  # Critical!
+transformers = df[df['asset_type'] == 'TRANSFORMER']  # Works!
+```
+
+### Best Practices for Data Loaders
+- **Always:** Normalize column names in cached data loader functions:
+  ```python
+  @st.cache_data(ttl=600)
+  def load_grid_assets() -> pd.DataFrame:
+      session = get_snowflake_session()
+      df = session.table('UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS').to_pandas()
+      # Normalize to lowercase for consistency
+      df.columns = [col.lower() for col in df.columns]
+      return df
+  ```
+
+- **Always:** Use fully qualified table names (`DATABASE.SCHEMA.TABLE`) to avoid context issues
+- **Always:** Apply normalization to both `session.table().to_pandas()` and `session.sql(query).to_pandas()` results
+- **Rule:** Document this normalization in function docstrings to inform other developers
+
+### Why This Matters
+- **Consistency:** Python code conventionally uses lowercase for column names (snake_case)
+- **Portability:** Local dev environments may use lowercase; Snowflake uses uppercase
+- **Error Prevention:** Prevents `KeyError` exceptions that are hard to debug in production
+- **Best Practice:** Single normalization point in data loaders vs. scattered `.upper()` calls in UI code
+
+## 7. Anti-Patterns
 - **Avoid:** Mixing business logic and UI rendering in a single large function.
 - **Mandatory:** Never show raw exception traces to users. Use `st.error()` with a clear, actionable message.
 - **Avoid:** Recreating database connections on every interaction.
 - **Avoid:** Embedding custom CSS or HTML style blocks in Python code; use config.toml for theming instead.
 - **Avoid:** Mixing SiS and open-source Streamlit (SPCS) configurations, best practices, and deployment guidance.
+- **Avoid:** Accessing DataFrame columns without normalizing Snowflake's UPPERCASE column names first.
 
-## 7. Documentation
+## 8. Documentation
 - **Always:** Reference the official documentation:
   - **Configuration**: https://docs.streamlit.io/develop/concepts/configuration
   - **Configuration and Theming Tutorial**: https://docs.streamlit.io/develop/tutorials/configuration-and-theming
@@ -99,7 +144,8 @@ Provide comprehensive guidance for building modern, performant, and maintainable
 - [ ] Modular structure with pages/ and components/ directories
 - [ ] No raw exception traces shown to users
 - [ ] Help text provided for complex widgets
-- [ ] Navigation uses st.page_link, not buttons
+- [ ] Column names normalized to lowercase after loading from Snowflake
+- [ ] Navigation uses st.page_link, not buttons (Note: st.page_link may not be available in all SiS versions)
 - [ ] Deployment type verified (SiS vs open-source on SPCS) and correct docs followed
 - [ ] Configuration compatibility verified for deployment target (SiS vs SPCS)
 

@@ -59,7 +59,7 @@ reg = Registry(
 mv = reg.log_model(
     model=trained_model,
     model_name="customer_churn_predictor",
-    version_name="v1.2.0",
+    version_name="v1_2_0",  # Use underscores - periods not allowed in SQL identifiers
     comment="Improved feature engineering with 95% accuracy",
     conda_dependencies=["scikit-learn==1.3.0", "pandas==2.0.3"],
     sample_input_data=X_sample,
@@ -68,7 +68,8 @@ mv = reg.log_model(
 ```
 
 ### Versioning Strategy
-- **Rule:** Use semantic versioning (MAJOR.MINOR.PATCH) for model versions
+- **Rule:** Use semantic versioning pattern (MAJOR_MINOR_PATCH) for model versions
+- **Critical:** Version names must be valid SQL identifiers - use underscores instead of periods (e.g., `"v1_2_0"` not `"v1.2.0"`)
 - **Rule:** Increment versions systematically:
   - MAJOR: Breaking changes to model interface or significant architecture changes
   - MINOR: New features, improved performance, or backward-compatible changes

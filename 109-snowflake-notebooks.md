@@ -32,34 +32,78 @@ Establish best practices for building reproducible, secure, and maintainable Jup
 - **Requirement:** Do not use code cells for documentation or static text.
 - **Always:** Keep code cells focused on a single task; avoid mixing ingestion, transformation, and visualization.
 
-## 3. Data & Performance
+## 3. Cell Naming & Organization
+- **Requirement:** Use descriptive, user-friendly cell names that reflect the cell's purpose, not generic names like `cell1`, `cell2`.
+- **Always:** Name cells with clear, action-oriented descriptions (e.g., `setup_snowpark_session`, `load_customer_data`, `calculate_monthly_metrics`).
+- **Requirement:** Use consistent naming patterns: `action_subject` format with lowercase and underscores.
+- **Always:** Group related cells with consistent prefixes (e.g., `data_ingestion_customers`, `data_ingestion_orders`).
+- **Requirement:** For parameterized notebooks, use descriptive parameter cell names (e.g., `config_environment_settings`, `params_date_range`).
+
+## 4. Data & Performance
 - **Requirement:** Never hard-code credentials or sensitive information. Use environment variables or a secrets manager.
 - **Always:** Follow the rules in `100-snowflake-core.md` for performant, cost-effective queries.
 - **Requirement:** For large datasets, push computation to Snowflake via Snowpark DataFrames; avoid large local pulls.
 - **Requirement:** Refactor production-ready code out of the notebook into `.py` or `.sql` files; notebooks serve as reports or exploratory tools.
 
 ## Contract
-- **Inputs/Prereqs:** [Context, files, dependencies needed]
-- **Allowed Tools:** [Tools permitted for this domain]
-- **Forbidden Tools:** [Tools not allowed for this domain]
-- **Required Steps:** [Ordered steps the agent must follow]
-- **Output Format:** [Expected output format]
-- **Validation Steps:** [Checks to confirm success]
+- **Inputs/Prereqs:** Snowflake account access; Snowpark for Python environment; Jupyter notebook environment; virtual environment with pinned dependencies
+- **Allowed Tools:** `edit_notebook`, `read_file`, `run_terminal_cmd` (for notebook execution), `codebase_search`, `write` (for .py/.sql refactoring)
+- **Forbidden Tools:** Direct database credential exposure; notebook execution without environment validation
+- **Required Steps:** 
+  1. Validate environment and dependencies
+  2. Implement descriptive cell naming conventions
+  3. Structure notebook with proper Markdown documentation
+  4. Push computation to Snowflake via Snowpark
+  5. Refactor production code to separate files
+- **Output Format:** Jupyter notebook (.ipynb) with named cells, Markdown documentation, and optional refactored .py/.sql files
+- **Validation Steps:** Verify cell names follow naming conventions; validate deterministic execution; confirm no hardcoded secrets; test Snowpark connectivity
 
 ## Quick Compliance Checklist
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
+- [ ] All cells have descriptive, user-friendly names (not cell1, cell2, etc.)
+- [ ] Cell naming follows action_subject pattern with underscores
+- [ ] Environment and dependencies properly configured and pinned
+- [ ] No hardcoded credentials or sensitive information present
+- [ ] Computation pushed to Snowflake via Snowpark DataFrames
+- [ ] Markdown cells provide clear narrative and documentation
+- [ ] Notebook executes deterministically without hidden state
+- [ ] Production code refactored to separate .py/.sql files when appropriate
 
 ## Validation
-- **Success checks:** [How to verify correct implementation]
-- **Negative tests:** [What should fail and how to detect failures]
+- **Success checks:** Cell names are descriptive and follow naming conventions; notebook runs deterministically from top to bottom; all Snowpark connections work; no secrets exposed; production logic extracted to .py/.sql files
+- **Negative tests:** Generic cell names (cell1, cell2) should be flagged; notebooks with execution order dependencies should fail; hardcoded credentials should be detected; large local data pulls should be avoided
 
 ## Response Template
-```
-[Minimal, copy-pasteable template showing expected output format]
+```python
+# Cell: setup_environment_and_imports
+import snowflake.snowpark as snowpark
+from snowflake.snowpark.functions import col, sum, avg
+import os
+
+# Cell: config_snowflake_connection
+connection_params = {
+    "account": os.getenv("SNOWFLAKE_ACCOUNT"),
+    "user": os.getenv("SNOWFLAKE_USER"),
+    "password": os.getenv("SNOWFLAKE_PASSWORD"),
+    "warehouse": "COMPUTE_WH",
+    "database": "ANALYTICS_DB",
+    "schema": "PUBLIC"
+}
+
+# Cell: create_snowpark_session
+session = snowpark.Session.builder.configs(connection_params).create()
+
+# Cell: load_customer_data
+customers_df = session.table("CUSTOMERS").select(
+    col("CUSTOMER_ID"),
+    col("CUSTOMER_NAME"), 
+    col("REGISTRATION_DATE")
+)
+
+# Cell: calculate_monthly_metrics
+monthly_summary = customers_df.group_by("REGISTRATION_MONTH").agg(
+    sum("TOTAL_ORDERS").alias("MONTHLY_ORDERS"),
+    avg("ORDER_VALUE").alias("AVG_ORDER_VALUE")
+)
 ```
 
 ## References

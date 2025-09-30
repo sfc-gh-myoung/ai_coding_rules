@@ -1,6 +1,6 @@
 **Description:** Top-level index of rule files with purpose, scope, and dependencies.
-**AutoAttach:** false
-**Type:** Agent Requested
+**AutoAttach:** true
+**Type:** Auto-attach
 **Version:** 1.1
 **LastUpdated:** 2025-09-25
 

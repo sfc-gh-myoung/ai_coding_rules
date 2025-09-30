@@ -1,3 +1,6 @@
+**AutoAttach:** true
+**Type:** Auto-attach
+
 # AGENTS.md
 
 ## Setup commands

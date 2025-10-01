@@ -112,7 +112,78 @@ transformers = df[df['asset_type'] == 'TRANSFORMER']  # Works!
 - **Error Prevention:** Prevents `KeyError` exceptions that are hard to debug in production
 - **Best Practice:** Single normalization point in data loaders vs. scattered `.upper()` calls in UI code
 
-## 7. Anti-Patterns
+## 7. Streamlit in Snowflake (SiS) Feature Compatibility
+
+### Current SiS Support
+- **Streamlit Version:** 1.46 (GA as of August 12, 2025) - [Release Notes](https://docs.snowflake.com/en/release-notes/streamlit-in-snowflake)
+- **Python Versions:** 3.8, 3.9, 3.10, 3.11 (default: 3.11 since 2024_08 bundle) - [BCR-1804](https://docs.snowflake.com/en/release-notes/bcr-bundles/2024_08/bcr-1804)
+- **Recommendation:** Pin versions in `environment.yml` for consistency
+
+**Supported Features (Streamlit 1.26+):**
+- ✅ `st.column_config.*` - Available since Streamlit 1.26.0 (March 2024)
+- ✅ `st.data_editor` - Available since 1.26.0
+- ✅ `st.chat_message` / `st.chat_input` - Available since 1.26.0
+- ✅ `st.file_uploader` - GA as of March 12, 2025
+- ✅ Custom components - Preview as of August 6, 2025
+
+**Features with Compatibility Notes:**
+- ⚠️ `st.page_link()` - Verify availability in your SiS version
+- ⚠️ `hide_index` parameter - May not be supported in all versions
+- ⚠️ Some newer Streamlit 1.46+ features may have delayed availability in SiS
+
+### Version Pinning Best Practice
+- **Critical:** Do NOT pin Python version in environment.yml (causes SQL compilation error)
+- **Rule:** Python version is managed by Snowflake (default: 3.11), set via Snowsight UI if needed
+- **Always:** CAN pin Streamlit version in environment.yml for consistency
+
+```yaml
+# environment.yml - Correct version pinning for SiS
+name: utility_streamlit
+channels:
+  - snowflake
+dependencies:
+  # ✓ Streamlit version CAN be pinned
+  - streamlit=1.46
+  
+  # ✓ Other packages can be pinned
+  - snowflake-snowpark-python
+  - pandas
+  - altair
+  
+  # ❌ Do NOT pin Python version here
+  # Python managed by Snowflake (default: 3.11)
+  # Set via Snowsight UI if different version needed
+```
+
+**Error if Python pinned:**
+```
+Error: [391546] SQL compilation error: Cannot create a Python function 
+with the specified packages. Packages not found: - python==3.11
+```
+
+**Solution:** Remove `python=X.XX` from dependencies; let Snowflake manage Python version.
+
+### PyDeck Compatibility Issues
+- **Critical:** PyDeck in SiS has strict DataFrame serialization requirements
+- **Always:** Pass only minimal columns (`[['latitude', 'longitude']]`) to PyDeck layers
+- **Always:** Use explicit color arrays, not DataFrame columns with list values
+- **Avoid:** Passing full DataFrames with many columns to PyDeck layers
+
+**Problem:**
+```python
+# ❌ Causes TypeError: vars() error during serialization
+assets['color_rgb'] = assets['status'].apply(get_color_function)  # Column with lists
+layer = pdk.Layer('ScatterplotLayer', data=assets, get_color='color_rgb')
+```
+
+**Solution:**
+```python
+# ✓ Works - Minimal data, explicit colors
+minimal_data = assets[['latitude', 'longitude']].reset_index(drop=True)
+layer = pdk.Layer('ScatterplotLayer', data=minimal_data, get_color=[255, 0, 0, 200])
+```
+
+## 9. Anti-Patterns
 - **Avoid:** Mixing business logic and UI rendering in a single large function.
 - **Mandatory:** Never show raw exception traces to users. Use `st.error()` with a clear, actionable message.
 - **Avoid:** Recreating database connections on every interaction.
@@ -120,7 +191,7 @@ transformers = df[df['asset_type'] == 'TRANSFORMER']  # Works!
 - **Avoid:** Mixing SiS and open-source Streamlit (SPCS) configurations, best practices, and deployment guidance.
 - **Avoid:** Accessing DataFrame columns without normalizing Snowflake's UPPERCASE column names first.
 
-## 8. Documentation
+## 10. Documentation
 - **Always:** Reference the official documentation:
   - **Configuration**: https://docs.streamlit.io/develop/concepts/configuration
   - **Configuration and Theming Tutorial**: https://docs.streamlit.io/develop/tutorials/configuration-and-theming
@@ -145,6 +216,8 @@ transformers = df[df['asset_type'] == 'TRANSFORMER']  # Works!
 - [ ] No raw exception traces shown to users
 - [ ] Help text provided for complex widgets
 - [ ] Column names normalized to lowercase after loading from Snowflake
+- [ ] No st.column_config usage (not available in SiS managed runtime)
+- [ ] No hide_index parameter in st.dataframe (not available in SiS)
 - [ ] Navigation uses st.page_link, not buttons (Note: st.page_link may not be available in all SiS versions)
 - [ ] Deployment type verified (SiS vs open-source on SPCS) and correct docs followed
 - [ ] Configuration compatibility verified for deployment target (SiS vs SPCS)

@@ -2,8 +2,8 @@
 **AppliesTo:** `**/*.py`, `streamlit/**/*`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.5
-**LastUpdated:** 2025-09-26
+**Version:** 1.6
+**LastUpdated:** 2025-10-01
 
 # Streamlit UI/UX Directives
 
@@ -16,43 +16,43 @@ Provide comprehensive guidance for building modern, performant, and maintainable
 - **Scope:** Snowflake Streamlit application development, UI/UX patterns, and performance optimization
 
 ## Contract
-- **Inputs/Prereqs:** Python 3.11+, Streamlit 1.46+, Snowflake connection, project structure with pages/ and components/, deployment mode identified (SiS vs OSS on SPCS), .streamlit/config.toml for theming
-- **Allowed Tools:** st.cache_data, st.cache_resource, st.session_state, st.set_page_config, config.toml, theme configuration, Snowflake connector, pandas/polars
-- **Forbidden Tools:** raw SQL loops, inline custom CSS blocks, unhandled exceptions in UI, hardcoded theme values
-- **Required Steps:** 1) Set page config with theme-aware settings, 2) Configure .streamlit/config.toml if needed, 3) Initialize session state, 4) Cache data operations, 5) Implement error handling
-- **Output Format:** Streamlit app with <2s load time, modular architecture, accessible UI, consistent theming
-- **Validation Steps:** Test caching behavior, verify responsive design and theming, check error handling, validate accessibility, confirm configuration loading
+- **Inputs/Prereqs:** Python 3.11+, Streamlit 1.46+, Snowflake connection, project structure with pages/ and components/, deployment mode identified (SiS vs OSS on SPCS), .streamlit/config.toml for theming, virtual environment for dependency management, secrets configured for sensitive data
+- **Allowed Tools:** st.cache_data, st.cache_resource, st.session_state, st.set_page_config, config.toml, theme configuration, Snowflake connector, pandas/polars, st.chat_message, st.chat_input, st.image, st.video, st.audio, st.secrets, pytest for testing
+- **Forbidden Tools:** raw SQL loops, inline custom CSS blocks, unhandled exceptions in UI, hardcoded theme values, hardcoded secrets/credentials, buttons for navigation
+- **Required Steps:** 1) Set page config with theme-aware settings, 2) Configure .streamlit/config.toml if needed, 3) Initialize session state, 4) Cache data operations, 5) Implement error handling, 6) Validate and sanitize user inputs, 7) Normalize column names from Snowflake, 8) Write unit tests for data processing functions, 9) Configure secrets management
+- **Output Format:** Streamlit app with <2s load time, modular architecture, accessible UI, consistent theming, validated inputs, secure secrets handling, comprehensive error messages, passing tests
+- **Validation Steps:** Test caching behavior, verify responsive design and theming, check error handling, validate accessibility, confirm configuration loading, test input validation, verify secrets loading, run unit tests, test with production-like data volumes, validate media asset loading, test chat persistence
 
 ## Key Principles
-- Fast First Paint (<2s), modular architecture, deterministic state; cache data/resources appropriately.
-- Use page config, pages/ structure, components/ for reuse; avoid raw loops and re-creating connections.
-- Centralized configuration via config.toml; consistent theming across deployment modes (SiS vs SPCS).
-- Clear help text, responsive layouts, no raw exception traces; follow Streamlit/Snowflake docs.
+- **Performance:** Fast First Paint (<2s), modular architecture, deterministic state; cache data/resources appropriately.
+- **Architecture:** Use page config, pages/ structure, components/ for reuse; avoid raw loops and re-creating connections.
+- **Configuration:** Centralized configuration via config.toml; consistent theming across deployment modes (SiS vs SPCS).
+- **User Experience:** Clear help text, responsive layouts, no raw exception traces; appropriate status feedback.
+- **Security:** Validate all inputs, use st.secrets for credentials, never hardcode sensitive data.
+- **Testing:** Write unit tests for data processing, test edge cases, validate with production-like data.
+- **Documentation:** Inline help, tooltips, clear error messages; reference official docs and tutorial series.
+- **Data Handling:** Normalize Snowflake column names, implement proper error handling, optimize media assets.
 
 ## Deployment Modes: Streamlit in Snowflake (SiS) vs Open-source (SPCS)
 - **Streamlit in Snowflake (SiS):** Runs inside Snowflake with a managed runtime and security context. Use the Snowflake Streamlit docs for capabilities, limitations, auth, and secrets handling. Packaging and deployment differ from open-source.
 - **Open-source Streamlit on SPCS:** Deployed as a containerized app via Snowpark Container Services (SPCS). Follow SPCS deployment, networking, image build, and secrets guidance. Configuration, environment, and recommended patterns can differ from SiS.
 - **Always verify the deployment mode first** and apply the correct configuration, best practices, and documentation. Do not mix SiS and open-source Streamlit recommendations.
 
-## 1. Core Principles
-- **Requirement:** Prioritize Fast First Paint and performant interactions (target <2s initial load).
-- **Requirement:** Use a modular architecture separating UI components, business logic, and page navigation.
-- **Requirement:** Ensure deterministic application state. Initialize session state explicitly and avoid hidden globals.
-- **Requirement:** Design for accessibility (aim for WCAG AA compliance).
-
-## 2. Setup and Structure
+## 1. Setup and Structure
 - **Always:** Call `st.set_page_config` in the entry point to set title, icon, and wide layout.
 - **Always:** Initialize session state once at the top level to keep state consistent across re-runs.
 - **Always:** Organize multi-page applications using the `pages/` directory structure ([Multipage Apps tutorial](https://docs.streamlit.io/get-started/tutorials/create-a-multipage-app)).
 - **Always:** Place reusable UI elements (charts, forms) in a `components/` directory.
 
-## 3. Performance and Caching
+## 2. Performance and Caching
 - **Requirement:** Cache database queries and data fetches with `@st.cache_data` and an appropriate `ttl`.
 - **Requirement:** Cache expensive objects and connections (e.g., Snowflake connections) using `@st.cache_resource`.
-- **Always:** For slow operations (>1s), show user feedback via `st.spinner` or `st.status`.
+- **Always:** Show user feedback for operations that may take time:
+  - **2-5 seconds:** Use `st.spinner()` with descriptive message
+  - **>5 seconds:** Use `st.progress()` with `st.status()` for detailed progress tracking
 - **Requirement:** Avoid raw database query loops; fetch all needed data at once and cache it.
 
-## 4. Configuration and Theming
+## 3. Configuration and Theming
 - **Requirement:** Use `.streamlit/config.toml` for centralized configuration management and theme customization.
 - **Requirement:** Define theme colors consistently using `[theme]` section: `primaryColor`, `backgroundColor`, `secondaryBackgroundColor`, `textColor`.
 - **Requirement:** Configure fonts via `font` option ("sans serif", "serif", "monospace") for consistent typography.
@@ -61,14 +61,14 @@ Provide comprehensive guidance for building modern, performant, and maintainable
 - **Always:** For SPCS deployments, ensure config.toml is properly included in container image.
 - **Avoid:** Hardcoding theme values in Python code; use centralized configuration instead.
 
-## 5. UI/UX Design and State Management
+## 4. UI/UX Design and State Management
 - **Requirement:** Use `st.page_link` for navigation and `st.button` for actions; do not use buttons for navigation.
 - **Requirement:** Centralize design tokens (colors, icons) in config.toml rather than hard-coding values.
 - **Requirement:** Provide clear help text (`help="..."`) for complex widgets.
 - **Requirement:** Manage state predictably with `st.session_state` and callbacks for complex updates.
 - **Requirement:** Use responsive layouts with `st.columns`, `st.sidebar`, and `use_container_width=True` for charts.
 
-## 6. Data Loading from Snowflake - Critical Column Name Gotcha
+## 5. Data Loading from Snowflake - Critical Column Name Gotcha
 
 ### Column Name Normalization
 - **Critical:** Snowflake returns column names in **UPPERCASE** by default, which causes `KeyError` when accessing with lowercase.
@@ -112,7 +112,7 @@ transformers = df[df['asset_type'] == 'TRANSFORMER']  # Works!
 - **Error Prevention:** Prevents `KeyError` exceptions that are hard to debug in production
 - **Best Practice:** Single normalization point in data loaders vs. scattered `.upper()` calls in UI code
 
-## 7. Streamlit in Snowflake (SiS) Feature Compatibility
+## 6. Streamlit in Snowflake (SiS) Feature Compatibility
 
 ### Current SiS Support
 - **Streamlit Version:** 1.46 (GA as of August 12, 2025) - [Release Notes](https://docs.snowflake.com/en/release-notes/streamlit-in-snowflake)
@@ -183,15 +183,316 @@ minimal_data = assets[['latitude', 'longitude']].reset_index(drop=True)
 layer = pdk.Layer('ScatterplotLayer', data=minimal_data, get_color=[255, 0, 0, 200])
 ```
 
-## 9. Anti-Patterns
+## 7. Media Elements
+
+### Images, Videos, and Audio
+- **Always:** Use `st.image()` for displaying images with proper sizing parameters (`width`, `use_column_width`)
+- **Always:** Use `st.video()` and `st.audio()` for media playback with appropriate controls
+- **Requirement:** Optimize media assets before deployment to reduce load times
+- **Requirement:** Provide alt text for images to improve accessibility
+- **Consider:** Use `st.logo()` for consistent branding across pages (Streamlit 1.29+)
+
+**Best Practices:**
+```python
+# ✓ Optimized image display
+st.image(
+    "assets/logo.png",
+    width=200,
+    caption="Company Logo"
+)
+
+# ✓ Video with start time
+st.video("https://example.com/video.mp4", start_time=10)
+
+# ✓ Audio with loop option
+st.audio("assets/background.mp3", loop=True)
+```
+
+### Asset Management
+- **Requirement:** Store static assets in dedicated `assets/` or `static/` directory
+- **Always:** For SiS deployments, ensure assets are included in deployment package
+- **Always:** For SPCS deployments, include assets in container image with proper paths
+- **Consider:** Use CDN for large media files to improve performance
+
+## 8. Chat Interfaces
+
+### Building Conversational UIs
+- **Requirement:** Use `st.chat_message()` to display messages with avatar and role
+- **Requirement:** Use `st.chat_input()` for user message entry
+- **Requirement:** Store conversation history in `st.session_state` for persistence
+- **Always:** Show typing indicators during processing with `st.spinner()` or `st.status()`
+
+**Basic Chat Pattern:**
+```python
+# Initialize chat history
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+# Display chat history
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.write(message["content"])
+
+# Handle user input
+if prompt := st.chat_input("Ask a question..."):
+    # Add user message
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.write(prompt)
+    
+    # Generate and display response
+    with st.chat_message("assistant"):
+        with st.spinner("Thinking..."):
+            response = generate_response(prompt)
+            st.write(response)
+    st.session_state.messages.append({"role": "assistant", "content": response})
+```
+
+### Chat Best Practices
+- **Requirement:** Limit conversation history size to prevent memory issues (e.g., last 50 messages)
+- **Always:** Clear conversation history with explicit user action (button with confirmation)
+- **Consider:** Add export functionality for chat transcripts
+- **Always:** Validate and sanitize user inputs before processing
+- **Consider:** Implement rate limiting for API-backed chat responses
+
+## 9. Status and Feedback Elements
+
+### User Feedback Patterns
+- **Requirement:** Use appropriate status elements for different message types:
+  - `st.success()` - Successful operations
+  - `st.error()` - Errors requiring user attention
+  - `st.warning()` - Warnings or cautionary messages
+  - `st.info()` - Informational messages
+- **Requirement:** Use `st.spinner()` for operations taking 2-5 seconds
+- **Requirement:** Use `st.progress()` with `st.status()` for operations taking >5 seconds
+- **Always:** Provide clear, actionable messages in all status elements
+
+**Effective Status Usage:**
+```python
+# ✓ Clear feedback for operations
+with st.spinner("Loading data from Snowflake..."):
+    data = load_data()
+st.success(f"Loaded {len(data):,} records successfully!")
+
+# ✓ Progress tracking for long operations
+progress_bar = st.progress(0)
+status_text = st.empty()
+for i, batch in enumerate(data_batches):
+    status_text.text(f"Processing batch {i+1}/{len(data_batches)}...")
+    process_batch(batch)
+    progress_bar.progress((i + 1) / len(data_batches))
+status_text.empty()
+progress_bar.empty()
+st.success("All batches processed!")
+
+# ✓ Error with actionable guidance
+try:
+    result = risky_operation()
+except Exception as e:
+    st.error("Operation failed. Please check your input and try again.")
+    with st.expander("Technical details"):
+        st.code(str(e))
+```
+
+## 10. Testing and Debugging
+
+### Testing Strategies
+- **Requirement:** Write unit tests for data processing functions using pytest
+- **Requirement:** Test cached functions to ensure proper cache invalidation
+- **Consider:** Use Streamlit's AppTest for end-to-end UI testing (Streamlit 1.28+)
+- **Always:** Test with various input combinations and edge cases
+
+**Testing Pattern:**
+```python
+# test_app.py
+import pytest
+from your_app import load_data, process_data
+
+def test_load_data_returns_dataframe():
+    result = load_data()
+    assert isinstance(result, pd.DataFrame)
+    assert len(result) > 0
+
+def test_process_data_handles_empty_input():
+    result = process_data(pd.DataFrame())
+    assert result is not None
+```
+
+### Common Debugging Issues
+- **App Crashes or Freezes:**
+  - Avoid infinite loops in widget callbacks
+  - Use `@st.cache_data` to prevent redundant data loading
+  - Check for blocking operations without feedback
+  
+- **Slow Performance:**
+  - Profile with `st.write(st.experimental_get_query_params())` to check rerun frequency
+  - Optimize expensive operations with proper caching
+  - Use lazy loading for large datasets
+  - Sample data for development/testing
+  
+- **Widget State Issues:**
+  - Initialize all session state variables explicitly
+  - Use widget keys for stable identity across reruns
+  - Avoid overwriting session state in widget callbacks
+  
+- **Memory Issues:**
+  - Clear large cached objects when no longer needed
+  - Limit conversation history and data in session state
+  - Use pagination for large result sets
+
+### Performance Profiling
+- **Always:** Monitor rerun frequency and identify unnecessary reruns
+- **Consider:** Use Python profilers (cProfile, line_profiler) for computational bottlenecks
+- **Always:** Test with production-like data volumes during development
+
+## 11. Security and Input Validation
+
+### Input Validation
+- **Mandatory:** Validate and sanitize all user inputs before processing
+- **Mandatory:** Use type hints and validation for structured inputs
+- **Always:** Set reasonable bounds on numeric inputs (min, max values)
+- **Always:** Validate file uploads for type, size, and content
+
+**Input Validation Pattern:**
+```python
+# ✓ Validated numeric input
+age = st.number_input("Age", min_value=0, max_value=120, value=25)
+
+# ✓ File upload validation
+uploaded_file = st.file_uploader("Upload CSV", type=['csv'])
+if uploaded_file:
+    if uploaded_file.size > 10 * 1024 * 1024:  # 10MB limit
+        st.error("File too large. Maximum size is 10MB.")
+    else:
+        df = pd.read_csv(uploaded_file)
+
+# ✓ Text input sanitization
+import re
+user_input = st.text_input("Enter name")
+if user_input:
+    # Remove special characters
+    sanitized = re.sub(r'[^a-zA-Z0-9\s]', '', user_input)
+    if sanitized != user_input:
+        st.warning("Special characters were removed from input.")
+```
+
+### Secrets Management
+- **Mandatory:** Use `st.secrets` for all sensitive configuration (API keys, passwords, tokens)
+- **Mandatory:** Never hardcode credentials in source code
+- **Always:** For SiS, use Snowflake secrets management
+- **Always:** For SPCS, use Kubernetes secrets or environment variables
+- **Always:** Validate that required secrets exist before use
+
+**Secrets Pattern:**
+```python
+# ✓ Proper secrets usage
+try:
+    api_key = st.secrets["api"]["key"]
+    db_password = st.secrets["database"]["password"]
+except KeyError as e:
+    st.error(f"Missing required secret: {e}")
+    st.stop()
+
+# ❌ Never do this
+api_key = "sk-1234567890abcdef"  # Hardcoded secret!
+```
+
+### Deployment Security
+- **Always:** Deploy production apps using HTTPS
+- **Consider:** Implement authentication for sensitive applications
+- **Always:** Use Snowflake's role-based access control (RBAC) for data access
+- **Consider:** Add audit logging for sensitive operations
+- **Always:** Keep dependencies updated for security patches
+
+## 12. Documentation and User Guidance
+
+### Inline Documentation
+- **Requirement:** Provide clear instructions within the app using `st.markdown()` or `st.write()`
+- **Always:** Use `help` parameter in widgets to provide quick guidance
+- **Consider:** Add tooltips and expanders for detailed explanations
+- **Always:** Include examples for complex inputs
+
+**Documentation Pattern:**
+```python
+# ✓ Clear guidance
+st.markdown("""
+### Data Upload
+Upload a CSV file with the following columns:
+- `date` (YYYY-MM-DD format)
+- `value` (numeric)
+- `category` (text)
+""")
+
+uploaded_file = st.file_uploader(
+    "Choose a file",
+    type=['csv'],
+    help="Maximum file size: 10MB"
+)
+
+# ✓ Contextual help
+with st.expander("ℹ️ How to interpret this chart"):
+    st.write("""
+    - **Blue line**: Actual values
+    - **Red line**: Predicted values
+    - **Gray area**: Confidence interval
+    """)
+```
+
+### User Manuals and Help Sections
+- **Consider:** Add dedicated help page for complex applications
+- **Always:** Provide contact information or support links
+- **Consider:** Include sample data or templates for download
+- **Always:** Document known limitations or browser requirements
+
+## 13. Development Workflow
+
+### Environment Management
+- **Requirement:** Use virtual environments (venv, conda) for dependency isolation
+- **Always:** Pin dependency versions in `requirements.txt` or `environment.yml`
+- **Always:** For SiS, use `environment.yml` with Snowflake-managed channels
+- **Always:** Test with production Python version locally before deployment
+
+**Environment Setup:**
+```bash
+# ✓ Create isolated environment
+python -m venv venv
+source venv/bin/activate  # or `venv\Scripts\activate` on Windows
+pip install -r requirements.txt
+
+# ✓ For conda
+conda env create -f environment.yml
+conda activate your_env_name
+```
+
+### Code Organization Best Practices
+- **Requirement:** Separate concerns into distinct modules:
+  - `data_loaders.py` - Data fetching and caching
+  - `transformations.py` - Data processing logic
+  - `visualizations.py` - Chart and plot functions
+  - `utils.py` - Helper functions
+- **Always:** Use consistent naming conventions (snake_case for functions/variables)
+- **Always:** Add docstrings to functions with complex logic
+- **Consider:** Use type hints for better IDE support and validation
+
+### Staying Current
+- **Always:** Review Streamlit changelog for new features and deprecations
+- **Consider:** Participate in Streamlit community forums for best practices
+- **Always:** Update dependencies periodically for performance and security improvements
+- **Always:** Test thoroughly after updating major dependencies
+
+## 14. Anti-Patterns
 - **Avoid:** Mixing business logic and UI rendering in a single large function.
 - **Mandatory:** Never show raw exception traces to users. Use `st.error()` with a clear, actionable message.
 - **Avoid:** Recreating database connections on every interaction.
 - **Avoid:** Embedding custom CSS or HTML style blocks in Python code; use config.toml for theming instead.
 - **Avoid:** Mixing SiS and open-source Streamlit (SPCS) configurations, best practices, and deployment guidance.
 - **Avoid:** Accessing DataFrame columns without normalizing Snowflake's UPPERCASE column names first.
+- **Avoid:** Using buttons for navigation; use `st.page_link()` or `st.switch_page()` instead.
+- **Avoid:** Storing large objects in session state without cleanup strategy.
+- **Avoid:** Ignoring user input validation; always validate and sanitize.
+- **Avoid:** Hardcoding secrets or credentials in source code.
 
-## 10. Documentation
+## 15. Documentation and Learning Resources
 - **Always:** Reference the official documentation:
   - **Configuration**: https://docs.streamlit.io/develop/concepts/configuration
   - **Configuration and Theming Tutorial**: https://docs.streamlit.io/develop/tutorials/configuration-and-theming
@@ -201,30 +502,69 @@ layer = pdk.Layer('ScatterplotLayer', data=minimal_data, get_color=[255, 0, 0, 2
   - **API Reference**: https://docs.streamlit.io/develop/api-reference
 - **Requirement:** When building for Snowflake, cross-reference Streamlit in Snowflake docs for differences in behavior, security context, and supported features: https://docs.snowflake.com/en/developer-guide/streamlit/about-streamlit
 - **Requirement:** When deploying open-source Streamlit via SPCS, follow SPCS docs for container build, networking, and runtime specifics: https://docs.snowflake.com/en/developer-guide/snowpark-container-services
+- **Consider:** Review the [Streamlit 101 Tutorial Series](https://dev.to/jamesbmour/series/28657) for comprehensive, practical examples covering text elements, data display, input widgets, media, visualizations, layouts, chat interfaces, status elements, and page navigation
 
 ## Quick Compliance Checklist
+
+### Performance & Setup
 - [ ] App loads in under 2 seconds (Fast First Paint achieved)
 - [ ] Page config set with title, icon, and layout
+- [ ] Session state initialized explicitly at app start
+- [ ] Database queries cached with appropriate TTL
+- [ ] Column names normalized to lowercase after loading from Snowflake
+- [ ] Virtual environment used for dependency isolation
+
+### Configuration & Theming
 - [ ] Theme configuration defined in .streamlit/config.toml when customization needed
 - [ ] Consistent color scheme using primaryColor, backgroundColor, secondaryBackgroundColor, textColor
 - [ ] Font selection appropriate for application context (sans serif, serif, monospace)
-- [ ] Session state initialized explicitly at app start
-- [ ] Database queries cached with appropriate TTL
-- [ ] Error handling implemented with user-friendly messages
-- [ ] Responsive layout using st.columns and container_width=True
-- [ ] Modular structure with pages/ and components/ directories
-- [ ] No raw exception traces shown to users
-- [ ] Help text provided for complex widgets
-- [ ] Column names normalized to lowercase after loading from Snowflake
-- [ ] No st.column_config usage (not available in SiS managed runtime)
-- [ ] No hide_index parameter in st.dataframe (not available in SiS)
-- [ ] Navigation uses st.page_link, not buttons (Note: st.page_link may not be available in all SiS versions)
-- [ ] Deployment type verified (SiS vs open-source on SPCS) and correct docs followed
 - [ ] Configuration compatibility verified for deployment target (SiS vs SPCS)
 
+### Architecture & Code Organization
+- [ ] Modular structure with pages/ and components/ directories
+- [ ] Business logic separated from UI rendering
+- [ ] Reusable functions extracted to separate modules (data_loaders, visualizations, utils)
+- [ ] Consistent naming conventions followed (snake_case)
+
+### User Experience
+- [ ] Error handling implemented with user-friendly messages
+- [ ] No raw exception traces shown to users
+- [ ] Help text provided for complex widgets
+- [ ] Responsive layout using st.columns and container_width=True
+- [ ] Appropriate status elements used (success, error, warning, info)
+- [ ] Progress indicators shown for operations 2-5s (spinner) and >5s (progress bar)
+
+### Media & Assets
+- [ ] Images include alt text for accessibility
+- [ ] Media assets optimized before deployment
+- [ ] Assets stored in dedicated directory (assets/ or static/)
+
+### Security & Validation
+- [ ] All user inputs validated and sanitized
+- [ ] Secrets managed via st.secrets (never hardcoded)
+- [ ] File uploads validated for type and size
+- [ ] Numeric inputs have reasonable bounds (min/max)
+
+### Testing & Debugging
+- [ ] Unit tests written for data processing functions
+- [ ] Cache invalidation tested
+- [ ] App tested with edge cases and error conditions
+- [ ] Performance tested with production-like data volumes
+
+### Documentation
+- [ ] Inline instructions provided for complex features
+- [ ] Help parameter used in widgets
+- [ ] Known limitations documented
+
+### Deployment
+- [ ] Deployment type verified (SiS vs open-source on SPCS)
+- [ ] Correct documentation followed for deployment target
+- [ ] Dependencies pinned in requirements.txt or environment.yml
+- [ ] Navigation uses st.page_link or st.switch_page, not buttons
+
 ## Validation
-- **Success checks:** App loads <2s, caching reduces query time, responsive on mobile/desktop, error states handled gracefully, theme applied consistently, configuration loaded properly
-- **Negative tests:** Break database connection (should show error message), disable cache (should show performance impact), test with malformed data (should not crash), test with invalid config.toml (should use defaults gracefully)
+- **Success checks:** App loads <2s, caching reduces query time, responsive on mobile/desktop, error states handled gracefully, theme applied consistently, configuration loaded properly, media assets load correctly, chat history persists across interactions, input validation prevents invalid data, user feedback clear and actionable, unit tests pass for data processing functions, secrets loaded without errors
+- **Negative tests:** Break database connection (should show user-friendly error), disable cache (should show performance impact), test with malformed data (should not crash), test with invalid config.toml (should use defaults gracefully), submit invalid file uploads (should reject with clear message), test missing secrets (should fail gracefully), test with oversized inputs (should enforce limits), test chat with history overflow (should truncate properly)
 
 ## Response Template
 
@@ -289,6 +629,7 @@ except Exception as e:
 - [Configuration and Theming Tutorial](https://docs.streamlit.io/develop/tutorials/configuration-and-theming) - Step-by-step tutorial on customizing app themes and configuration
 - [Streamlit API Reference](https://docs.streamlit.io/library/api-reference) - Complete API reference for all Streamlit components
 - [Streamlit Multipage Apps](https://docs.streamlit.io/get-started/tutorials/create-a-multipage-app) - Tutorial on multi-page structure, naming, and navigation
+- [Streamlit 101 Tutorial Series](https://dev.to/jamesbmour/series/28657) - Comprehensive tutorial series covering text elements, data display, input widgets, media elements, data visualization, layouts, chat interfaces, status elements, and page navigation with practical examples
 - [Snowflake Streamlit Guide](https://docs.snowflake.com/en/developer-guide/streamlit/about-streamlit) - Snowflake-specific Streamlit integration documentation
 - [Snowpark Container Services (SPCS)](https://docs.snowflake.com/en/developer-guide/snowpark-container-services) - Deploying and operating containerized apps (open-source Streamlit) on Snowflake
 

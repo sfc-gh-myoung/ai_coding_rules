@@ -142,6 +142,11 @@ ruff check .                        # Should use uvx for isolation
 - **Requirement:** Avoid broad `except:` clauses or silently passing exceptions.
 - **Requirement:** Do not swallow exceptions; re-raise with added context when necessary.
 
+### 4.1 Syntax Validation
+- **Requirement:** Before completing any task involving Python code changes, verify that all modified files are syntactically correct.
+- **Rule:** Use `python -m py_compile` as a definitive check for syntax errors, in addition to linter feedback. This ensures the Python interpreter can parse the file without error. If a file fails to compile, the issue must be resolved.
+- **Command:** `uv run python -m py_compile -q <path-to-file-or-dir>`
+
 ## 5. Performance & Best Practices
 - **Requirement:** Separate I/O and CPU concerns. Prefer set-based SQL and vectorization over Python loops.
 - **Requirement:** Ensure code is idiomatic and follows PEP 8.
@@ -166,6 +171,7 @@ ruff check .                        # Should use uvx for isolation
 - [ ] Ruff configured in pyproject.toml with target-version = "py311"
 - [ ] Code passes `uvx ruff check .` and `uvx ruff format --check .`
 - [ ] Tests run with `uv run pytest` and pass
+- [ ] All Python files are syntactically valid (checked with `py_compile`)
 - [ ] Virtual environment created with `uv venv` (not python -m venv)
 - [ ] Dependencies synced with `uv sync --all-groups`
 - [ ] No bare pip install commands in documentation
@@ -173,63 +179,10 @@ ruff check .                        # Should use uvx for isolation
 - [ ] Project follows modern Python packaging standards
 
 ## Validation
-- Run: `uvx ruff check .` and `uvx ruff format --check .` (must pass)
-- Run tests: `uv run pytest`
-- Spot-check: `uv run python -c "import importlib; print('ok')"`
+- **Syntax Check:** `uv run python -m py_compile -q .` (must pass)
+- **Lint & Format:** `uvx ruff check .` and `uvx ruff format --check .` (must pass)
+- **Tests:** `uv run pytest`
+- **Import Check:** `uv run python -c "import importlib; print('ok')"`
 
 ## Response Template
-```bash
-# Environment
-uv python pin 3.11 && uv lock && uv sync --all-groups
-
-# Quality
-uvx ruff check . && uvx ruff format --check .
-
-# Tests
-uv run pytest -q
 ```
-
-### Taskfile Example Pattern
-```yaml
-uv:pin:
-  desc: "Pin Python (3.11) and create uv venv if missing"
-  status:
-    - test -d .venv
-  cmds:
-    - uv python install 3.11
-    - uv python pin 3.11
-    - uv venv
-
-install:
-  desc: "Set up development environment"
-  deps: [uv:pin]
-  cmds:
-    - uv lock
-    - uv sync --all-groups
-
-test:
-  desc: "Run tests"
-  cmds:
-    - uv run pytest tests/
-
-lint:
-  desc: "Lint code"
-  cmds:
-    - uvx ruff check .
-```
-
-## 8. Related Specialized Rules
-- **Rule:** For deeper guidance, see:
-  - **Linting & Formatting:** `201-python-lint-format.md` (Ruff policy).
-
-## References
-
-### External Documentation
-- [Python 3.11+ Documentation](https://docs.python.org/3/) - Official Python language reference and standard library                                                                                                    
-- [uv Package Manager](https://docs.astral.sh/uv/) - Modern Python package and project management
-- [Ruff Linter Documentation](https://docs.astral.sh/ruff/) - Fast Python linter and formatter configuration
-
-### Related Rules
-- **Python Linting**: `201-python-lint-format.md`
-- **Project Setup**: `203-python-project-setup.md`
-- **YAML Config**: `202-yaml-config-best-practices.md`

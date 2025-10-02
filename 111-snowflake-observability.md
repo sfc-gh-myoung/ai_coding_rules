@@ -502,3 +502,4 @@ WHERE ABS(DATEDIFF(second, t.timestamp, l.timestamp)) < 10;
 - [Snowflake Builders Observability](https://docs.snowflake.com/en/developer-guide/builders/observability) - Best practices for building observable applications
 - [Snowflake Event Tables](https://docs.snowflake.com/en/sql-reference/sql/create-event-table) - Event table creation and management
 - [Snowflake Query Profile](https://docs.snowflake.com/en/user-guide/ui-query-profile) - Query performance analysis and optimization
+ - [Snowflake AI Observability (Cortex)](https://docs.snowflake.com/en/user-guide/snowflake-cortex/ai-observability) - Evaluate and trace generative AI applications with evaluations, comparisons, and tracing features

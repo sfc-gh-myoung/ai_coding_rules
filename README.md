@@ -137,6 +137,11 @@ The following best practices apply to all AI coding assistants and development e
 - **`110-snowflake-model-registry.md`** — ML model lifecycle, versioning, and governance
 - **`111-snowflake-observability.md`** — Comprehensive telemetry, logging, tracing, and metrics best practices
 - **`112-snowflake-snowcli.md`** — Snowflake CLI usage best practices with pinned `uvx` execution
+- **`114-snowflake-cortex-aisql.md`** — Cortex AISQL functions (cost, batching, governance, SQL/Snowpark examples)
+- **`115-snowflake-cortex-agents.md`** — Cortex Agents (grounding, tools, RBAC, observability)
+- **`116-snowflake-cortex-search.md`** — Cortex Search (indexing, metadata filters, hybrid retrieval)
+- **`117-snowflake-cortex-analyst.md`** — Cortex Analyst & Semantic Views (modeling, governance, prompts)
+- **`118-snowflake-cortex-rest-api.md`** — Cortex REST API (auth, retries, streaming, cost)
 - **`120-snowflake-spcs.md`** — Snowpark Container Services best practices (containerized applications, compute pools, service management)
 
 ### Software Engineering - Python (200-299)
@@ -424,6 +429,43 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed gu
 - Include relevant documentation links
 - Test with the rule generator before submitting
 
+### Improving Existing Rules
+
+It is not unexpected to run into a scenario where an agent or LLM fails to follow one or more of the rules you are using.  In these scenarios, the best approach is to prompt the agent/llm within the same session the following:
+
+```
+MODE PLAN:
+
+My rule files should have prevented this behavior or outcome.  Thoroughly review all rule files in the project and the currently selected rule files for this session.  Determine what specific improvements I can make to the rules to ensure this does not happen again.
+```
+
+For this to be affective, you should have a copy of this project repo `ai_coding_rules/` within your project directory, even if only temporarily to make changes to the rule file templates which are used to generate the final IDE-specific rule files.  It is also important to verify that `002-rule-governance.md` is an actively selected rule in the project.  It should be auto attached, but it never hurts to verify.  This will ensure any rule changes will follow best practices and structure laid out for the `ai_coding_rules/` project.
+
+Available LLMs are always evolving and improving in their capabilities.  You should periodically ask your LLM of choice to review and make recommendations on rule improvements using the following prompt:
+
+```
+MODE PLAN:
+
+Thoroughly review all of the rule files in the project directory.  Ensure all of the rules are consistent with 002-rule-governance.md and follow the prescribed rule structure and format.  Determine if there are any improvements that can be made to any rule files which will improve rule effectiveness while ensuring good management of context size with an emphasis on reducing duplicate and/or conflicting guidance.
+```
+
+Using `MODE PLAN:` is a best practice and directly uses the functionality from `000-global-core.md` to reduce the chances of the agent from making unverify or unconfirmed changes.  This ensures that you have an opportunity to review the proposed task list and suggest changes in plan for the changes are implemented.  In most scenarios, the agent/llm should move forward with implementing the plan when you type `ACT`.
+
+### Generating New Rules
+
+There will be times when you determine that you need to add a new rule to follow best practices for a specific framework or library, often when you introduce new frameworks or libraries.  In these scenarios, the best approach is to prompt the agent/llm with the following:
+
+```
+MODE PLAN:
+
+Create a rule for < INSERT FEATURE/FRAMEWORK/LIBRARY> best practices consistent with my rule repository in `ai_coding_rules/`.  Determine if a single rule file is the best approach, or if there should be multiple rule files. Use the following documentation as primary points of reference:
+@URL1
+@URL2
+@URL3
+```
+
+In my experience, you will get consistently better results when you provide live reference links to documentation and any reference links that specifically cover best practices, syntax, etc.  If you let the agent/llm try to determine their own references, you are likely to incorporate innaccruate or dated reference information that results in less than ideal rules being generated.
+
 ### Configuration Safety Guidelines
 
 - **YAML Safety**: Avoid Unicode characters (bullets, checkmarks) that cause parsing errors
@@ -531,16 +573,6 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 - **Issues**: [GitLab Issues](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git/issues)  
 - **Discussions**: [GitLab Discussions](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git/discussions)
 - **Documentation**: All rules include links to official documentation
-
-## Roadmap
-
-- [x] **FastAPI Framework Support** — Comprehensive FastAPI patterns (Completed)
-- [x] **3-Digit Numbering System** — Scalable rule organization with conflict resolution (Completed)
-- [ ] **Multi-language Support** — Rules for Go, JavaScript/TypeScript, Rust
-- [ ] **Cloud Platform Rules** — AWS, Azure, GCP best practices  
-- [ ] **Framework-Specific Rules** — Django, React, Vue patterns
-- [ ] **IDE Plugin Development** — Native integrations beyond file generation
-- [ ] **Community Rule Registry** — User-contributed specialized rules
 
 ---
 

@@ -108,6 +108,27 @@ CREATE OR REPLACE TABLE my_table (
 );
 ```
 
+### Internal Named Stage Privileges
+- **Critical:** Internal named stages do NOT support `USAGE` grants. Grant `READ` and/or `WRITE` instead.
+- **Rule:** Use `GRANT READ, WRITE ON STAGE <DB>.<SCHEMA>.<STAGE> TO ROLE <role>` as needed.
+- **Note:** Access still requires appropriate `USAGE` on the parent database and schema; always reference the stage with a fully qualified name in CLI workflows.
+
+**Incorrect:**
+```sql
+-- ❌ USAGE is not valid on internal named stages
+GRANT USAGE ON STAGE my_db.my_schema.my_stage TO ROLE app_role;
+```
+
+**Correct:**
+```sql
+-- ✓ Grant appropriate privileges on internal named stage
+GRANT READ, WRITE ON STAGE my_db.my_schema.my_stage TO ROLE app_role;
+
+-- ✓ Fully qualified PUT/GET paths in CLI automation
+PUT 'file://local/path/file.csv' @my_db.my_schema.my_stage AUTO_COMPRESS=FALSE;
+GET @my_db.my_schema.my_stage file://local/downloads/;
+```
+
 ### Fully Qualified Object Names
 - **Critical:** Always use fully qualified object names (DATABASE.SCHEMA.OBJECT) in production code and automation
 - **Critical:** In CLI automation, each command runs in a separate session - USE DATABASE/SCHEMA don't persist
@@ -170,7 +191,8 @@ COPY INTO prod_db.raw.my_table FROM @prod_db.staging.my_stage/data.csv;
 - [ ] CREATE VIEW has COMMENT before AS keyword (not after query)
 - [ ] Join cardinality controlled with distinct keys or semi-joins
 - [ ] QUALIFY used for window function filters (instead of subqueries)
-- [ ] SQL syntax validated against Snowflake documentation
+ - [ ] SQL syntax validated against Snowflake documentation
+ - [ ] Internal named stages use READ/WRITE grants (not USAGE); fully qualified stage references in CLI
 
 ## Validation
 - **Success checks:** 

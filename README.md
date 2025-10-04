@@ -149,6 +149,7 @@ The following best practices apply to all AI coding assistants and development e
 - **`201-python-lint-format.md`** — Authoritative linting and formatting with Ruff (code quality and consistency)
 - **`202-yaml-config-best-practices.md`** — YAML and configuration file syntax safety (preventing parsing errors)
 - **`203-python-project-setup.md`** — Python project setup and packaging best practices (avoiding build issues)
+ - **`204-python-docs-comments.md`** — Python documentation, comments, and docstring standards with Ruff enforcement
 
 #### FastAPI Framework (210-219)
 - **`210-python-fastapi-core.md`** — FastAPI core patterns (application structure, async programming, Pydantic validation)

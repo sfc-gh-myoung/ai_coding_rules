@@ -37,6 +37,7 @@ This index helps agents select the correct rule quickly. Documentation files lik
 | `201-python-lint-format.md` | Agent Requested | Ruff linting/formatting policy | Linting | `200-python-core.md` |
 | `202-yaml-config-best-practices.md` | Agent Requested | YAML safety and reliability | YAML/config | — |
 | `203-python-project-setup.md` | Agent Requested | Packaging and setup practices | Python setup | `200-python-core.md` |
+| `204-python-docs-comments.md` | Agent Requested | Docs, comments, and docstring standards with Ruff enforcement | Python docs & comments | `200-python-core.md`, `201-python-lint-format.md` |
 | `210-python-fastapi-core.md` | Agent Requested | FastAPI core patterns | FastAPI | `200-python-core.md` |
 | `211-python-fastapi-security.md` | Agent Requested | Auth, CORS, security middleware | FastAPI security | `210-python-fastapi-core.md` |
 | `212-python-fastapi-testing.md` | Agent Requested | API testing strategies | Testing | `210-python-fastapi-core.md` |

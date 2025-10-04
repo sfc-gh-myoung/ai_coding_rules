@@ -21,6 +21,7 @@ Establish authoritative Python code quality standards using Ruff as the primary 
 - **Requirement:** Centralize Ruff configuration in `pyproject.toml`.
 - **Requirement:** Set `target-version = "py311"` and exclude directories like `.venv`, `notebooks`, and `output`.
 - **Always:** If Ruff is unavailable, fall back to `flake8` (lint) and `black` + `isort` (format/imports) with equivalent configuration. Document the chosen fallback in the PR.
+ - **Requirement:** Enable pydocstyle (D) rules and set a single convention (`google` or `numpy`) consistent with `204-python-docs-comments.md`.
 
 ## 2. Agent Workflow
 - **Always:** On every Python file modification or creation, run the linter and formatter.
@@ -29,6 +30,20 @@ Establish authoritative Python code quality standards using Ruff as the primary 
 - **Consider:** If Ruff is unavailable, use `flake8 .` and `black --check .`; fix with `black .` and `isort .`.
 - **Requirement:** Ensure imports are organized and unused code is removed.
 - **Rule:** Never use project-installed ruff via `uv run`; always use isolated `uvx ruff` for consistency.
+
+### 2.1 Docstring Lint Configuration (Ruff)
+Add the following to `pyproject.toml`:
+```toml
+[tool.ruff]
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "C4", "UP", "D"]
+ignore = []
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"  # or "numpy"
+```
 
 ## 3. Compliance Checklist
 - **Always:** Before finalizing any Python code and after any Python file edit, run repo-wide checks that verify:
@@ -106,3 +121,4 @@ lint:
 ### Related Rules
 - **Python Core**: `200-python-core.md`
 - **Project Setup**: `203-python-project-setup.md`
+ - **Python Docs & Comments**: `204-python-docs-comments.md`

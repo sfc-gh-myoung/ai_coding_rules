@@ -151,7 +151,7 @@ ruff check .                        # Should use uvx for isolation
 - **Requirement:** Separate I/O and CPU concerns. Prefer set-based SQL and vectorization over Python loops.
 - **Requirement:** Ensure code is idiomatic and follows PEP 8.
 - **Requirement:** Include comprehensive type hints.
-- **Requirement:** Use Google-style docstrings for public modules, classes, and methods.
+- **Requirement:** Follow Python documentation standards from `204-python-docs-comments.md` (Google-style docstrings for all public APIs, enforced via Ruff D-rules).
 
 ## 6. Modern Python Patterns
 - **Critical:** Use `datetime.now(UTC)` instead of deprecated `datetime.utcnow()` for timezone-aware timestamps.

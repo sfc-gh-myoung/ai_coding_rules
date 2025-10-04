@@ -2,8 +2,8 @@
 **AppliesTo:** `**/*.yml`, `Taskfile.yml`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.2
-**LastUpdated:** 2025-09-16
+**Version:** 1.3
+**LastUpdated:** 2025-10-04
 
 # ️Automation Directives (Taskfile-first, with equivalents)
 
@@ -48,6 +48,52 @@ Provide directives for creating, modifying, and maintaining project automation u
 - **Requirement:** For multi-line commands, use YAML pipe (`|`) or chevron (`>`) for readability.
 - **Always:** Remove unneeded tasks to avoid clutter.
 - **Always:** Use `silent: true` for tasks with multiple echo statements to provide clean user output.
+
+## 4.1 Subtask Files and Includes
+- **Requirement:** Organize domain-focused tasks into subtask files under a `task/` directory to keep the root `Taskfile.yml` lean and discoverable. Common domains include `dev`, `db`, `docker`, `ci`, `release`, `docs`.
+- **Requirement:** Use `includes` with explicit namespaces to import subtask files. Prefer directory-based modules with `dir:` pointing to a folder containing `Taskfile.yml`.
+- **Requirement:** Avoid `flatten` unless you intentionally curate a collision-free, public API of tasks. Namespacing is the default and safest pattern.
+- **Always:** Use `optional: true` for environment- or tool-specific modules (e.g., `ci`, `android`, `ios`) that might not exist locally.
+- **Always:** Use short, lowercase, hyphen-case namespaces and, where helpful, add `aliases` for ergonomics.
+- **Guidance:** Mark non-CLI-facing tasks inside each Taskfile as `internal: true` at the task level so they won't appear in `task --list`.
+- **Guidance:** Place cross-project reusable modules under `task/` and include them via namespaces instead of duplicating task logic.
+
+Example include patterns:
+
+```yaml
+version: '3'
+
+includes:
+  dev:
+    dir: ./task/dev              # uses ./task/dev/Taskfile.yml
+  db:
+    taskfile: ./task/db.yml      # explicit file include
+    optional: true               # safe if file is absent
+  ci:
+    dir: ./task/ci
+    aliases: [pipeline]
+  docker:
+    dir: ./task/docker
+    # flatten: true              # avoid unless tasks are collision-free and curated
+
+tasks:
+  default:
+    desc: Show help
+    cmds:
+      - task --list
+```
+
+Invocation examples:
+- `task db:migrate` runs `migrate` from `task/db.yml`
+- `task dev:setup` runs `setup` from `task/dev/Taskfile.yml`
+- `task pipeline:build` uses the `ci` module via its alias
+
+When to create a subtask file (use 2+ as a strong signal):
+- The root `Taskfile.yml` approaches 150–200 lines or becomes hard to navigate
+- You have clearly distinct domains (dev, db, docker, ci, release)
+- The same tasks are reused across multiple repos or packages
+- You need OS/toolchain-specific variants or optional modules
+- You want to isolate vendor/integration-specific logic
 
 ## 5. Shell Command Guidelines
 - **Critical:** Quote shell arguments that contain special characters: `uv pip install -e ".[dev]"`
@@ -96,6 +142,22 @@ cmds:
 ## 7. Documentation
 - **Always:** Reference Taskfile docs: https://taskfile.dev/
 
+## 8. Common Taskfile Mistakes and Prevention
+- **Mistake:** Overloading the root `Taskfile.yml` with many unrelated tasks.
+  - **Prevention:** Split into domain modules under `task/` and include via namespaces.
+- **Mistake:** Using `flatten: true` on includes and causing task name collisions or surfacing internal tasks.
+  - **Prevention:** Keep includes namespaced; only use `flatten` for a carefully curated, unique public API.
+- **Mistake:** Duplicating task logic across modules or repositories.
+  - **Prevention:** Extract reusable logic into shared modules under `task/` and include them.
+- **Mistake:** Missing `desc` on public tasks, making `task --list` unhelpful.
+  - **Prevention:** Add concise `desc` to all CLI-facing tasks; mark non-CLI tasks `internal: true` at the task level.
+- **Mistake:** OS-specific commands without guards or parameterization.
+  - **Prevention:** Gate with `platforms:` or parameterize commands; prefer cross-platform tooling where possible.
+- **Mistake:** Assuming included files always exist.
+  - **Prevention:** Use `optional: true` for non-essential includes.
+- **Mistake:** Not validating includes and YAML structure after changes.
+  - **Prevention:** Run `task --list` and `task --dry-run <task>` after edits.
+
 ## Contract
 - **Inputs/Prereqs:** [Context, files, dependencies needed]
 - **Allowed Tools:** [Tools permitted for this domain]
@@ -110,6 +172,11 @@ cmds:
 - [ ] Implementation follows established patterns
 - [ ] Output format matches requirements
 - [ ] Validation steps completed successfully
+ - [ ] Includes validated with `task --list`; dry-run tested for key tasks
+ - [ ] Namespaces used for includes; `flatten` avoided or explicitly justified
+ - [ ] Optional modules marked with `optional: true` where appropriate
+ - [ ] Public tasks have `desc`; non-CLI tasks marked `internal: true`
+ - [ ] `task/` directory used to organize domain-specific Taskfiles
 
 ## Validation
 - **Success checks:** [How to verify correct implementation]
@@ -124,6 +191,7 @@ cmds:
 
 ### External Documentation
 - [Taskfile Documentation](https://taskfile.dev/) - Official Task runner documentation and syntax guide
+ - [Taskfile Includes](https://taskfile.dev/usage/#including-other-taskfiles) - Namespacing, `dir`/`taskfile`, `aliases`, `optional`, `flatten`
 - [YAML Specification](https://yaml.org/spec/) - YAML syntax reference for Taskfile configuration
 - [Make Documentation](https://www.gnu.org/software/make/manual/) - GNU Make manual for Makefile alternatives
 

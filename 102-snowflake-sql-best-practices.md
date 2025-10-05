@@ -2,8 +2,8 @@
 **AppliesTo:** `**/*.sql`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.2
-**LastUpdated:** 2025-09-30
+**Version:** 1.4
+**LastUpdated:** 2025-10-05
 
 # Snowflake SQL Best Practices
 
@@ -22,6 +22,7 @@ Establish advanced SQL authoring patterns specifically for Snowflake, focusing o
 - Always use fully qualified object names (DATABASE.SCHEMA.OBJECT) in production and automation; USE statements don't persist across CLI sessions.
 - Place COMMENT before AS in CREATE VIEW; keep ON_ERROR outside FILE_FORMAT in COPY INTO.
 - Link to Snowflake docs for syntax; keep queries readable and maintainable.
+- Document objects with COMMENT wherever supported; verify comment syntax per object type.
 
 ## 1. Advanced SQL Authoring
 - **Requirement:** Use CTEs to modularize complex queries. Avoid excessive nesting (cap ~6 levels).
@@ -108,6 +109,50 @@ CREATE OR REPLACE TABLE my_table (
 );
 ```
 
+### Commenting Other Object Types
+- **Requirement:** Add descriptive `COMMENT` for objects whenever supported (e.g., databases, schemas, stages, file formats, tasks, pipes, streams, sequences, functions/procedures, views, tables, and columns).
+- **Critical:** Comment syntax and placement vary by object type. Always verify the exact DDL syntax in Snowflake documentation for the specific object before use.
+
+General patterns (verify per object type):
+
+```sql
+-- CREATE with table-like options (many objects support COMMENT as an option)
+CREATE OR REPLACE <OBJECT_TYPE> <fully_qualified_name>
+  [ ... object-specific options ... ]
+  COMMENT = 'Purpose/ownership/lineage';
+
+-- ALTER to add or update a comment (common pattern)
+ALTER <OBJECT_TYPE> <fully_qualified_name>
+  SET COMMENT = 'Updated description';
+```
+
+Examples (illustrative only; confirm syntax for your object type):
+
+```sql
+-- Schema
+CREATE OR REPLACE SCHEMA my_db.my_schema COMMENT = 'Business entities for analytics';
+ALTER SCHEMA my_db.my_schema SET COMMENT = 'Primary analytics schema';
+
+-- Stage
+CREATE OR REPLACE STAGE my_db.ingest.ext_stage COMMENT = 'External files landing';
+ALTER STAGE my_db.ingest.ext_stage SET COMMENT = 'Raw file landing zone';
+
+-- File format
+CREATE OR REPLACE FILE FORMAT my_db.util.csv_fmt
+  TYPE = CSV
+  SKIP_HEADER = 1
+  COMMENT = 'Standard CSV imports';
+ALTER FILE FORMAT my_db.util.csv_fmt SET COMMENT = 'CSV with header row';
+
+-- Task (syntax varies across versions/options)
+CREATE OR REPLACE TASK my_db.ops.load_task
+  WAREHOUSE = wh_xsmall
+  SCHEDULE = '5 MINUTE'
+  COMMENT = 'Loads incrementals into raw layer'
+AS
+  CALL my_db.ops.load_proc();
+```
+
 ### Internal Named Stage Privileges
 - **Critical:** Internal named stages do NOT support `USAGE` grants. Grant `READ` and/or `WRITE` instead.
 - **Rule:** Use `GRANT READ, WRITE ON STAGE <DB>.<SCHEMA>.<STAGE> TO ROLE <role>` as needed.
@@ -174,6 +219,56 @@ PUT file://data.csv @prod_db.staging.my_stage;
 COPY INTO prod_db.raw.my_table FROM @prod_db.staging.my_stage/data.csv;
 ```
 
+## 4. SQL File Naming Conventions
+
+- **Scope:** Applies to `**/*.sql` files in demos, automation, and CI/CD.
+- **Goal:** Human clarity for simple demos and deterministic ordering for complex/automated flows.
+
+### 4.1 Demo-friendly conventions (simple/quickstarts)
+- Use `setup.sql` to create required objects and `teardown.sql` (or `cleanup.sql`) to remove them.
+- For multi-step demos, prefix with numbers to enforce order (optionally reserve a high number for teardown):
+
+```text
+setup.sql
+teardown.sql
+
+01_setup_infra.sql
+02_create_objects.sql
+03_load_data.sql
+99_teardown.sql
+
+projectname_setup.sql
+projectname_teardown.sql
+```
+
+### 4.2 Strict, ordered convention (recommended for complex demos and CI/CD)
+- **Pattern:** `NNN_<mode>-<schema_or_object>[ -<short_desc> ].sql`
+  - `NNN`: 3-digit, zero-padded numeric sequence starting at `001_`; strictly increasing; unique within repository (or per module if modules are documented).
+  - `<mode>`: one of `ddl`, `dml`, `grant`, `ops`.
+  - `<schema_or_object>`: lowercase; characters `[a-z0-9._-]+`; no spaces. Use a schema (e.g., `analytics`) or a fully qualified intent (e.g., `analytics.customer_orders`).
+  - Optional `-<short_desc>`: brief, hyphenated descriptor (e.g., `-add_indexes`).
+  - Case policy: filenames are lowercase; use underscores and hyphens only as shown.
+
+Examples:
+
+```text
+001_ddl-analytics.customer_orders.sql
+002_dml-analytics.customer_orders.sql
+003_grant-analytics.sql
+004_ops-util.csv_format.sql
+005_ddl-raw.customer_events-add_indexes.sql
+```
+
+Validation regex for strict convention:
+
+```text
+^[0-9]{3}_(ddl|dml|grant|ops)-[a-z0-9._-]+\.sql$
+```
+
+Rationale:
+- Zero-padded prefixes ensure lexical sort equals execution order, aligning with widely adopted migration tooling patterns (e.g., Flyway, Liquibase).
+- Mode and target in the filename improve reviewability and change auditing.
+
 ## Contract
 - **Inputs/Prereqs:** [Context, files, dependencies needed]
 - **Allowed Tools:** [Tools permitted for this domain]
@@ -189,6 +284,11 @@ COPY INTO prod_db.raw.my_table FROM @prod_db.staging.my_stage/data.csv;
 - [ ] No USE DATABASE/SCHEMA statements in CLI automation (session context doesn't persist)
 - [ ] COPY INTO uses ON_ERROR outside FILE_FORMAT clause (or omits it for default)
 - [ ] CREATE VIEW has COMMENT before AS keyword (not after query)
+- [ ] Comments added to supported objects (tables, views, schemas, stages, etc.)
+- [ ] Comment syntax verified per object type against Snowflake documentation
+- [ ] SQL filenames follow approved convention: demo (`setup.sql`/`teardown.sql`) or strict `NNN_<mode>-<schema_or_object>[ -<short_desc> ].sql`
+- [ ] Strict convention uses 3-digit zero-padded unique, sequential prefixes starting at `001_`
+- [ ] Filenames are lowercase; only `[a-z0-9._-]` used; modes limited to `ddl|dml|grant|ops`
 - [ ] Join cardinality controlled with distinct keys or semi-joins
 - [ ] QUALIFY used for window function filters (instead of subqueries)
  - [ ] SQL syntax validated against Snowflake documentation
@@ -202,12 +302,19 @@ COPY INTO prod_db.raw.my_table FROM @prod_db.staging.my_stage/data.csv;
   - No USE statements in CLI automation scripts
   - COPY INTO statements have correct parameter placement
   - CREATE VIEW statements have COMMENT before AS
+  - Objects have descriptive comments where supported (DDL uses correct syntax per object)
+  - Comment DDL verified against Snowflake docs for targeted object types
+  - SQL filenames match the selected convention:
+    - Demo: `setup.sql`/`teardown.sql` (and optional numeric-prefixed steps)
+    - Strict: matches `^[0-9]{3}_(ddl|dml|grant|ops)-[a-z0-9._-]+\.sql$`
   - SQL executes without compilation errors in CLI and Snowsight
 - **Negative tests:** 
   - USE DATABASE/SCHEMA in separate CLI commands should fail with "object does not exist"
   - ON_ERROR inside FILE_FORMAT should cause "invalid parameter" error
   - COMMENT after AS in CREATE VIEW should cause "unexpected COMMENT" syntax error
+  - Incorrect COMMENT placement for a specific object type should raise a syntax error
   - Repeated VARIANT casting should impact query performance
+  - Strict naming violations: missing/short numeric prefix, invalid mode, uppercase letters, spaces, duplicate sequence numbers
 
 ## Response Template
 ```sql
@@ -249,6 +356,8 @@ FROM my_db.raw.source_table;
 
 - [Snowflake SQL Reference](https://docs.snowflake.com/en/sql-reference) - Complete SQL command reference and syntax guide
 - [Querying Semi-Structured Data](https://docs.snowflake.com/en/sql-reference/data-types-semistructured) - VARIANT, OBJECT, and ARRAY data type handling
+- [Flyway Migrations - Naming](https://documentation.red-gate.com/fd/concepts/migrations#Migrations-Typesofmigrations) - Versioned migration naming and ordering principles
+- [Liquibase Changelogs](https://docs.liquibase.com/concepts/changelogs/changelogs.html) - Organizing changes and deterministic execution ordering
 
 ### Related Rules
 - **Snowflake Core**: `100-snowflake-core.md`

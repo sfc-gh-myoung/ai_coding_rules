@@ -124,7 +124,7 @@ The following best practices apply to all AI coding assistants and development e
 - Remove outdated content and consolidate overlapping guidance
 
 ### Data Platform - Snowflake (100-199)
-- **`100-snowflake-core.md`** — Core Snowflake guidelines (SQL, performance, security)
+- **`100-snowflake-core.md`** — Core Snowflake guidelines (SQL, performance, security, DDL object naming conventions)
 - **`101-snowflake-streamlit-ui.md`** — Modern Streamlit application development
 - **`102-snowflake-sql-best-practices.md`** — Advanced SQL authoring patterns
 - **`103-snowflake-performance-tuning.md`** — Query optimization and warehouse tuning

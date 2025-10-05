@@ -82,6 +82,27 @@ Include time grain in results when summarizing over time.
 - **Success checks:** Analyst answers align with business definitions; joins respect grain; access rules enforced
 - **Negative tests:** Ambiguous measures cause rejected PRs; missing comments or SELECT * flagged by review
 
+## Response Template
+```sql
+-- Semantic View (explicit columns, comments; COMMENT before AS)
+CREATE OR REPLACE VIEW <DB>.<SCHEMA>.semantic_sales
+COMMENT = 'Sales facts with conformed customer dimension keys'
+AS
+SELECT
+  f.sale_id COMMENT 'Surrogate key',
+  f.customer_id,
+  d.customer_name,
+  f.sale_date,
+  f.amount AS measure_amount
+FROM <DB>.CORE.sales f
+JOIN <DB>.DIM.customers d ON d.customer_id = f.customer_id;
+```
+
+```text
+# Analyst Prompt Template
+Answer using the semantic definitions in <DB>.<SCHEMA>.semantic_*. Prefer measure_* fields. Include time grain when summarizing.
+```
+
 ## References
 
 ### External Documentation

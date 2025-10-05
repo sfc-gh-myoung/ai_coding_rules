@@ -100,6 +100,26 @@ $$;
 - **Success checks:** Evaluation meets targets; traces show bounded tool use; costs stable
 - **Negative tests:** Prompt injections fail; unauthorized tool/data access blocked; oversized prompts rejected
 
+## Response Template
+```markdown
+## Cortex Agent Plan
+- Objective: <clear objective>
+- Model: <smallest sufficient model>
+- Grounding: <semantic views / indices>
+- Tools (allowlist): [tool_a, tool_b]
+- RBAC: <roles/allowed objects>
+- Cost/Latency: <budgets, caps>
+- Evaluation: <gold Qs, assertions>
+
+## Agent Changes
+- System prompt: <summary>
+- Tool schema updates: <diff/highlights>
+- Observability: <traces/metrics enabled>
+
+## Validation
+- Eval score >= <threshold>; tool calls bounded; costs within budget
+```
+
 ## References
 
 ### External Documentation

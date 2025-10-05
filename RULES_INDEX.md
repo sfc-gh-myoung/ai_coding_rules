@@ -2,7 +2,7 @@
 **AutoAttach:** true
 **Type:** Auto-attach
 **Version:** 1.2
-**LastUpdated:** 2025-10-01
+**LastUpdated:** 2025-10-05
 
 # Rules Index
 
@@ -65,5 +65,7 @@ This index helps agents select the correct rule quickly. Documentation files lik
 | `820-taskfile-automation.md` | Agent Requested | Taskfile automation practices | Automation | `202-yaml-config-best-practices.md` |
 | `900-demo-creation.md` | Agent Requested | Demo creation directives | Demos | — |
 | `UNIVERSAL_PROMPT.md` | Agent Requested | Universal response guidelines | Prompting | `000-global-core.md` |
+
+| `SNOVA.md` | Auto-attach | Agent rules for Snowflake Snova (Cursor agent) | Agents | `000-global-core.md`, `AGENTS.md` |
 
 

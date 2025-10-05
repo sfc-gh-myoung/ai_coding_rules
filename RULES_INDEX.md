@@ -47,6 +47,7 @@ This index helps agents select the correct rule quickly. Documentation files lik
 | `230-python-pydantic.md` | Agent Requested | Pydantic models/settings | Validation | `200-python-core.md` |
 | `240-python-faker.md` | Agent Requested | Faker data generation | Test data | `200-python-core.md` |
 | `250-python-flask.md` | Agent Requested | Flask best practices | Flask | `200-python-core.md` |
+| `205-python-classes.md` | Agent Requested | Python class design and usage best practices | Python classes | `200-python-core.md`, `201-python-lint-format.md`, `204-python-docs-comments.md` |
 | `300-bash-scripting-core.md` | Agent Requested | Bash scripting fundamentals | Bash | `000-global-core.md` |
 | `301-bash-security.md` | Agent Requested | Shell security best practices | Bash security | `300-bash-scripting-core.md` |
 | `302-bash-testing-tooling.md` | Agent Requested | Shell testing & tooling | Bash testing | `300-bash-scripting-core.md` |

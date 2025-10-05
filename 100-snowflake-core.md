@@ -2,8 +2,8 @@
 **AppliesTo:** `**/*.sql`, `**/*.scl`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.3
-**LastUpdated:** 2025-09-21
+**Version:** 1.4
+**LastUpdated:** 2025-10-05
 
 # Snowflake Core Directives
 
@@ -94,6 +94,7 @@ Establish comprehensive foundational practices for all Snowflake development wor
 - [ ] Resource monitors configured for cost governance
 - [ ] Streams and Tasks used for incremental processing where applicable
 - [ ] SQL keywords in UPPERCASE for consistency
+- [ ] Object names follow DDL naming conventions (see section 8)
 - [ ] No DISTINCT used for deduplication (use ROW_NUMBER() instead)
 
 ## Response Template
@@ -125,6 +126,40 @@ SELECT * FROM agg;
   - `107-snowflake-security-governance.md`: Masking policies, row access, tagging, and role strategies.
   - `108-snowflake-data-loading.md`: Stages, `COPY INTO`, and Snowpipe best practices.
   - `109-snowflake-notebooks.md`: Jupyter Notebooks in Snowflake best practices.
+
+## 8. Object Naming Conventions (DDL)
+
+- **Rule:** Use the pattern `[OBJECT_TYPE]_[DESCRIPTOR]`. Prefer `VW_MY_VIEW` over `MY_VIEW_VW` so objects group by type in explorers (e.g., Snowsight). Above all, be consistent.
+
+### Databases, Schemas, and Warehouses
+- **Rule (Databases):** Prefix with environment: `DEV_`, `QA_`, `PROD_`.
+  - Examples: `DEV_RAW`, `PROD_ANALYTICS`.
+- **Rule (Schemas):** Name by function or source system.
+  - Examples: `SALESFORCE`, `MARKETING`, `STG` (staging), `ODS` (operational data store).
+- **Rule (Warehouses):** Prefix with `WH_` and describe workload/team; optionally add size suffix (`_S`, `_M`, `_L`).
+  - Examples: `WH_LOADING`, `WH_BI_TOOLS`, `WH_DATA_SCIENCE_L`.
+
+### Tables and Views
+- **Rule (Tables):** Prefer no prefix within well-named schemas (e.g., `STG`, `RAW`, `PROD`). If explicit, use `TBL_`.
+  - Examples: `CUSTOMERS` or `TBL_CUSTOMERS`.
+- **Rule (Dynamic Tables):** Prefix with `DT_`.
+  - Example: `DT_REALTIME_SALES_AGG`.
+- **Rule (Views):** Prefix standard views with `VW_`.
+  - Example: `VW_ACTIVE_USERS`.
+- **Rule (Materialized Views):** Prefix with `MV_`.
+  - Example: `MV_HOURLY_SALES_SUMMARY`.
+- **Consider (Semantic Views/Models):** Use `SEM_` or `MODEL_` when you must distinguish for BI/business semantics.
+  - Example: `SEM_CUSTOMER_LIFETIME_VALUE`.
+
+### Data Loading and Integration Objects
+- **Rule (Stages):** Prefix with `STG_`; include source system and data type when useful.
+  - Examples: `STG_S3_SALESFORCE_JSON`, `STG_INTERNAL_USER_AVATARS`.
+- **Rule (File Formats):** Prefix with `FF_`.
+  - Examples: `FF_CSV_WITH_HEADER`, `FF_PARQUET_SNAPPY`.
+- **Rule (Pipes):** Prefix with `PIPE_`.
+  - Example: `PIPE_LOAD_S3_SALESFORCE_JSON`.
+- **Rule (Integrations):** Prefix by type: `SINT_` (Storage), `NINT_` (Notification), `APIINT_` (API).
+  - Examples: `SINT_S3_PROD_BUCKET`, `NINT_AWS_SNS_PIPE_ALERTS`.
 
 ## References
 

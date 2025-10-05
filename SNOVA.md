@@ -132,11 +132,18 @@ I'll now implement the changes:
     - `taskfile-refactoring-modularization-2025-10-05.md`
     - `sql-file-renaming-teardown-script-2025-10-05.md`
     - `documentation-enhancement-coding-standards-alignment-2025-10-05.md`
+  
+  - Last Update line (mandatory, update-on-save):
+    - On every save, ensure a top-of-file line with the exact format:
+      `Last Update: YYYY-MM-DD HH:MM:SS` (local time, computed in real time)
+    - Placement: first non-empty line after the H1 title if present; otherwise the very first line
+    - Existing file handling: if a `Last Update:` line exists anywhere, replace its value and move it (if needed) so it is the first non-empty line after the H1
+    - Formatting: plain text only (no bold or code fencing); exactly `Last Update: ` prefix followed by a single space and the timestamp; no trailing spaces
 
 **File Header**
 - At top of file, include:
-  - Optional date or session date line (when helpful)
-  - `Last Update: YYYY-MM-DD HH:MM:SS` (local time, computed in real time)
+  - `Last Update: YYYY-MM-DD HH:MM:SS` (mandatory; always updated on save)
+  - Optional: a separate `Date:` or `Session Date:` line when helpful
 
 **Contents (recommended sections and ordering)**
 - Title (H1): short human-readable session title
@@ -154,6 +161,13 @@ I'll now implement the changes:
 - Prefer markdown headings (H1/H2/H3), lists, and tables as in existing summaries.
 - Use fenced code blocks for commands and code.
 - Keep sections concise; emphasize outcomes and verification.
+
+**Validation / Post-write check**
+- Re-open the file and assert:
+  - A single `Last Update: YYYY-MM-DD HH:MM:SS` line exists
+  - It appears as the first non-empty line after the H1 (if any), otherwise as the first line
+  - The timestamp is within the current minute of local time
+- If validation fails, fix placement/format and write again
 
 **Notes**
 - Write-only operation; do not modify existing summaries unless asked.

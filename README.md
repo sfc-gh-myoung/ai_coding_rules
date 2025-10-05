@@ -150,6 +150,7 @@ The following best practices apply to all AI coding assistants and development e
 - **`202-yaml-config-best-practices.md`** — YAML and configuration file syntax safety (preventing parsing errors)
 - **`203-python-project-setup.md`** — Python project setup and packaging best practices (avoiding build issues)
  - **`204-python-docs-comments.md`** — Python documentation, comments, and docstring standards with Ruff enforcement
+ - **`205-python-classes.md`** — Python class design and usage best practices (composition, dataclasses, properties, ABCs/Protocols)
 
 #### FastAPI Framework (210-219)
 - **`210-python-fastapi-core.md`** — FastAPI core patterns (application structure, async programming, Pydantic validation)

@@ -33,6 +33,43 @@ Provide universal response guidelines and task-specific instruction templates fo
 **4. Task-Specific Instructions**
 - Before proceeding, ask the user for task-specific guidance if a clear task or instruction hasn't been provided.
 
+## Contract
+- **Inputs/Prereqs:** Clear task definition or willingness to collect clarifications; access to relevant repository/code/context when applicable
+- **Allowed Tools:** Read-only tools in PLAN; file modifications only after explicit ACT per `000-global-core.md`
+- **Forbidden Tools:** Any file-modifying actions in PLAN; unsafe or secret-leaking outputs
+- **Required Steps:**
+  1. Confirm current mode (PLAN/ACT) and gather minimal context
+  2. Present concise TASK LIST; request ACT before edits
+  3. Provide the core solution first, then brief rationale and best practices
+  4. Validate outcome and note follow-ups
+- **Output Format:** Concise, skimmable response with code-first output; minimal narrative; use fenced blocks where appropriate
+- **Validation Steps:** Ensure response has core solution, brief rationale, best-practice notes; confirm mode and safety constraints were respected
+
+## Quick Compliance Checklist
+- [ ] Mode declared (PLAN/ACT) and respected
+- [ ] Task list presented for non-trivial requests
+- [ ] Core solution provided first (code or direct answer)
+- [ ] Brief rationale/trade-offs included
+- [ ] Best practices/security/performance notes included
+- [ ] Validation steps or how-to-verify included
+
+## Validation
+- **Success Checks:** Response is actionable, concise, code-first, and mode-safe; user can execute/verify with minimal extra steps
+- **Negative Tests:** Missing core solution; excessive verbosity; performing edits in PLAN; leaking secrets or unsafe instructions
+
+## Response Template
+```markdown
+## Mode: [PLAN/ACT]
+
+<core solution or primary code>
+
+Brief rationale/trade-offs.
+
+Best practices and pitfalls.
+
+Validation: how to confirm it works.
+```
+
 ## References
 
 ### External Documentation

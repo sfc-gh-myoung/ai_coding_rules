@@ -122,7 +122,21 @@ I'll now implement the changes:
 - Save a concise session summary to `<project root>/snova/summaries` for auditability and recall.
 
 **Trigger Phrase**
-- Say: `save summary`
+- User says: `save summary`
+- **CRITICAL**: When user says "save summary", you MUST:
+  1. Read SNOVA.md section "Save Snova Session Summary" first (this section)
+  2. Verify/create directory: `snova/summaries/` (NOT `.snova/` or other locations)
+  3. Follow filename convention exactly (kebab-case with date suffix)
+  4. Include `Last Update:` timestamp as first line after H1
+  5. Use concise session summary format (not exhaustive technical documentation)
+
+**Mandatory Pre-Save Checklist**
+- [ ] Read this SNOVA.md section before writing file
+- [ ] Directory is `snova/summaries/` (not `.snova/`, `docs/`, or other)
+- [ ] Filename uses kebab-case with date: `desc-part-desc-part-YYYY-MM-DD.md`
+- [ ] File starts with H1, then `Last Update: YYYY-MM-DD HH:MM:SS` on next line
+- [ ] Content is session summary (not exhaustive technical report)
+- [ ] Validation: re-read file to confirm timestamp format and placement
 
 **Behavior**
 - Create a markdown file in `snova/summaries` using filename format:
@@ -139,6 +153,15 @@ I'll now implement the changes:
     - Placement: first non-empty line after the H1 title if present; otherwise the very first line
     - Existing file handling: if a `Last Update:` line exists anywhere, replace its value and move it (if needed) so it is the first non-empty line after the H1
     - Formatting: plain text only (no bold or code fencing); exactly `Last Update: ` prefix followed by a single space and the timestamp; no trailing spaces
+
+**Anti-Patterns to Avoid**
+- ❌ Saving to `.snova/`, `docs/`, or any directory other than `snova/summaries/`
+- ❌ Using snake_case filenames (`my_file_name.md`)
+- ❌ Omitting date suffix from filename (must be `-YYYY-MM-DD.md`)
+- ❌ Missing `Last Update:` timestamp line
+- ❌ Wrong timestamp placement (must be first line after H1)
+- ❌ Writing detailed technical reports instead of concise summaries
+- ❌ Not validating file structure after write
 
 **File Header**
 - At top of file, include:

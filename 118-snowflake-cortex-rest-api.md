@@ -94,6 +94,27 @@ for chunk in client.complete_stream(model="llama3.1-8b", prompt=prompt, max_toke
 - **Success checks:** SLO latency met; low error rates; duplicate request safety via idempotency
 - **Negative tests:** Simulated timeouts and 429/5xx retried successfully; oversized prompts rejected
 
+## Response Template
+```bash
+# Minimal client invocation (idempotency + timeouts)
+curl -sS -X POST "$CORTEX_URL/complete" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Idempotency-Key: $(uuidgen)" \
+  -H 'Content-Type: application/json' \
+  --max-time 15 \
+  -d '{"model":"llama3.1-8b","prompt":"Hello","max_tokens":64}'
+```
+
+```python
+# Retry with backoff (sketch)
+def call_complete(client, payload):
+    return client.complete(**payload)
+
+resp = with_retry(lambda: call_complete(client, {
+    "model": "llama3.1-8b", "prompt": prompt, "max_tokens": 64
+}))
+```
+
 ## References
 
 ### External Documentation

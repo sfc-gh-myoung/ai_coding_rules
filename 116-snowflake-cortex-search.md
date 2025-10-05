@@ -100,6 +100,22 @@ LIMIT 10;
 - **Success checks:** Retrieval returns relevant, access-compliant results; evaluation metrics meet targets
 - **Negative tests:** Queries without filters fail access checks; stale content removed from results after refresh
 
+## Response Template
+```sql
+-- Prepare search-ready view with metadata (no SELECT *)
+CREATE OR REPLACE VIEW <DB>.<SCHEMA>.docs_prepared AS
+SELECT doc_id, chunk_id, content_clean, source, author, published_at, access_tier
+FROM <DB>.<SCHEMA>.docs_chunked;
+
+-- Example query with filters and tuned top_k
+SELECT doc_id, chunk_id, score
+FROM <DB>.<SCHEMA>.docs_index
+WHERE QUERY = :query
+  AND FILTERS = OBJECT_CONSTRUCT('access_tier', 'public')
+ORDER BY score DESC
+LIMIT 10;
+```
+
 ## References
 
 ### External Documentation

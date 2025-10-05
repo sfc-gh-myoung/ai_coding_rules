@@ -267,6 +267,7 @@ id_dsa
 - Compose Spec: https://compose-spec.io/
 - SLSA Provenance: https://slsa.dev/
 - OCI Image/Artifacts: https://github.com/opencontainers/image-spec
+- UV Dockerfile Documentation: https://docs.astral.sh/uv/guides/integration/docker/#non-editable-installs
 
 ### Related Rules
 - **YAML Best Practices**: `202-yaml-config-best-practices.md`

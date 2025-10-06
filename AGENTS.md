@@ -115,3 +115,83 @@ I'll now implement the changes:
 ✅ Changes completed successfully
 **MODE: PLAN** (return to plan mode)
 ```
+
+## Save Agent Session Summary
+
+**Purpose**
+- Save a concise session summary to `<project root>/agent/summaries` for auditability and recall.
+
+**Trigger Phrase**
+- User says: `save summary` or `save session summary`
+- **CRITICAL**: When user says "save summary" or "save session summary", you MUST:
+  1. Read AGENT.md section "Save Agent Session Summary" first (this section)
+  2. Verify/create directory: `agent/summaries/` (NOT `.agent/` or other locations)
+  3. Follow filename convention exactly (kebab-case with date suffix)
+  4. Include `Last Update:` timestamp as first line after H1
+  5. Use concise session summary format (not exhaustive technical documentation)
+
+**Mandatory Pre-Save Checklist**
+- [ ] Read this AGENTS.md section before writing file
+- [ ] Directory is `agent/summaries/` (not `.agent/`, `docs/`, or other)
+- [ ] Filename uses kebab-case with date: `desc-part-desc-part-YYYY-MM-DD.md`
+- [ ] File starts with H1, then `Last Update: YYYY-MM-DD HH:MM:SS` on next line
+- [ ] Content is session summary (not exhaustive technical report)
+- [ ] Validation: re-read file to confirm timestamp format and placement
+
+**Behavior**
+- Create a markdown file in `agent/summaries` using filename format:
+  `<desc-part>-<desc-part>[-<desc-part>[-<desc-part>[-<desc-part>]]]-YYYY-MM-DD.md`
+  - Use 2–5 short, kebab-case description parts summarizing the session focus.
+  - Good examples:
+    - `taskfile-refactoring-modularization-2025-10-05.md`
+    - `sql-file-renaming-teardown-script-2025-10-05.md`
+    - `documentation-enhancement-coding-standards-alignment-2025-10-05.md`
+  
+  - Last Update line (mandatory, update-on-save):
+    - On every save, ensure a top-of-file line with the exact format:
+      `Last Update: YYYY-MM-DD HH:MM:SS` (local time, computed in real time)
+    - Placement: first non-empty line after the H1 title if present; otherwise the very first line
+    - Existing file handling: if a `Last Update:` line exists anywhere, replace its value and move it (if needed) so it is the first non-empty line after the H1
+    - Formatting: plain text only (no bold or code fencing); exactly `Last Update: ` prefix followed by a single space and the timestamp; no trailing spaces
+
+**Anti-Patterns to Avoid**
+- ❌ Saving to `.agent/`, `docs/`, or any directory other than `agent/summaries/`
+- ❌ Using snake_case filenames (`my_file_name.md`)
+- ❌ Omitting date suffix from filename (must be `-YYYY-MM-DD.md`)
+- ❌ Missing `Last Update:` timestamp line
+- ❌ Wrong timestamp placement (must be first line after H1)
+- ❌ Writing detailed technical reports instead of concise summaries
+- ❌ Not validating file structure after write
+
+**File Header**
+- At top of file, include:
+  - `Last Update: YYYY-MM-DD HH:MM:SS` (mandatory; always updated on save)
+  - Optional: a separate `Date:` or `Session Date:` line when helpful
+
+**Contents (recommended sections and ordering)**
+- Title (H1): short human-readable session title
+- Session metadata block (any of): Date, Session Type/Focus, Agent/Mode/Status
+- Horizontal rule `---`
+- Session Overview (2–4 sentences)
+- Objectives (numbered list)
+- Changes Implemented / Work Completed (subsections as needed)
+- Validation / Results (commands, tables, or bullets)
+- Impact / Benefits (optional)
+- Next Steps (1–5 bullets)
+- References (optional links/files)
+
+**Formatting Notes**
+- Prefer markdown headings (H1/H2/H3), lists, and tables as in existing summaries.
+- Use fenced code blocks for commands and code.
+- Keep sections concise; emphasize outcomes and verification.
+
+**Validation / Post-write check**
+- Re-open the file and assert:
+  - A single `Last Update: YYYY-MM-DD HH:MM:SS` line exists
+  - It appears as the first non-empty line after the H1 (if any), otherwise as the first line
+  - The timestamp is within the current minute of local time
+- If validation fails, fix placement/format and write again
+
+**Notes**
+- Write-only operation; do not modify existing summaries unless asked.
+- Avoid secrets/PII in summaries.

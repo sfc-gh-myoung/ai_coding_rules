@@ -318,4 +318,5 @@ ORDER BY days_since_update DESC;
 - **Data Science Analytics**: `500-data-science-analytics.md`
 - **Snowflake Security**: `107-snowflake-security-governance.md`
 - **Snowflake Cost Governance**: `105-snowflake-cost-governance.md`
+- **Warehouse Management**: `119-snowflake-warehouse-management.md`
 - **Snowflake Notebooks**: `109-snowflake-notebooks.md`

@@ -26,9 +26,8 @@ Provide systematic approaches for profiling, optimizing, and fine-tuning Snowfla
 - **Requirement:** Avoid functions in `WHERE` clauses when they prevent pruning.
 
 ## 2. Warehouse Sizing & Clustering
-- **Always:** Right-size warehouses: larger for parallel complex queries; smaller for simple, highly concurrent tasks.
-- **Always:** Enable `AUTO_SUSPEND` and `AUTO_RESUME` on all warehouses.
-- **Requirement:** Consider clustering keys only with clear justification based on query patterns.
+- **Always:** Follow comprehensive warehouse sizing guidance in `119-snowflake-warehouse-management.md` including type selection (CPU/GPU/High-Memory), sizing strategy, auto-suspend configuration, and cost governance.
+- **Requirement:** Consider clustering keys only with clear justification based on query patterns and Query Profile evidence of poor pruning.
 
 ## Contract
 - **Inputs/Prereqs:** [Context, files, dependencies needed]
@@ -65,3 +64,4 @@ Provide systematic approaches for profiling, optimizing, and fine-tuning Snowfla
 - **Snowflake Core**: `100-snowflake-core.md`
 - **SQL Best Practices**: `102-snowflake-sql-best-practices.md`
 - **Cost Governance**: `105-snowflake-cost-governance.md`
+- **Warehouse Management**: `119-snowflake-warehouse-management.md`

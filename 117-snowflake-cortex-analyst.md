@@ -5,6 +5,9 @@
 **Version:** 1.0
 **LastUpdated:** 2025-10-03
 
+**TokenBudget:** ~300
+**ContextTier:** Medium
+
 # Snowflake Cortex Analyst & Semantic Views Best Practices
 
 ## Purpose

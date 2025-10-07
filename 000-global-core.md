@@ -4,6 +4,9 @@
 **Version:** 6.2
 **LastUpdated:** 2025-09-21
 
+**TokenBudget:** ~450
+**ContextTier:** Critical
+
 # Global Core Guidelines
 
 ## Purpose

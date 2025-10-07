@@ -5,6 +5,9 @@
 **Version:** 1.1
 **LastUpdated:** 2025-09-16
 
+**TokenBudget:** ~650
+**ContextTier:** Medium
+
 # Snowflake Snowpark Container Services (SPCS) Best Practices
 
 ## Purpose

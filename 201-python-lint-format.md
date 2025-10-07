@@ -5,6 +5,9 @@
 **Version:** 1.1
 **LastUpdated:** 2025-09-16
 
+**TokenBudget:** ~300
+**ContextTier:** High
+
 # Python Linting & Formatting (uvx ruff-first, with fallbacks)
 
 ## Purpose

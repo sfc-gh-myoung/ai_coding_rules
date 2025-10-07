@@ -5,6 +5,9 @@
 **Version:** 1.3
 **LastUpdated:** 2025-09-22
 
+**TokenBudget:** ~450
+**ContextTier:** High
+
 # Python Core Engineering Directives
 
 ## Contract
@@ -183,6 +186,21 @@ ruff check .                        # Should use uvx for isolation
 - **Lint & Format:** `uvx ruff check .` and `uvx ruff format --check .` (must pass)
 - **Tests:** `uv run pytest`
 - **Import Check:** `uv run python -c "import importlib; print('ok')"`
+
+## References
+
+### External Documentation
+- [Python Official Documentation](https://docs.python.org/3/) - Official Python documentation
+- [uv Documentation](https://github.com/astral-sh/uv) - Fast Python package installer and resolver
+- [Ruff Documentation](https://docs.astral.sh/ruff/) - Extremely fast Python linter and formatter
+- [Python Packaging User Guide](https://packaging.python.org/) - Authoritative packaging guidelines
+- [PEP 8 Style Guide](https://peps.python.org/pep-0008/) - Python style guide
+
+### Related Rules
+- **Linting & Formatting**: `201-python-lint-format.md`
+- **Project Setup**: `203-python-project-setup.md`
+- **YAML Safety**: `202-yaml-config-best-practices.md`
+- **Global Core**: `000-global-core.md`
 
 ## Response Template
 ```

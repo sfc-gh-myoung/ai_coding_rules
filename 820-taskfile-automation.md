@@ -5,6 +5,9 @@
 **Version:** 1.3
 **LastUpdated:** 2025-10-04
 
+**TokenBudget:** ~500
+**ContextTier:** Medium
+
 # ️Automation Directives (Taskfile-first, with equivalents)
 
 ## Purpose

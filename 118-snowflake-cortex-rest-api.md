@@ -5,6 +5,9 @@
 **Version:** 1.0
 **LastUpdated:** 2025-10-03
 
+**TokenBudget:** ~350
+**ContextTier:** Medium
+
 # Snowflake Cortex REST API Best Practices
 
 ## Purpose

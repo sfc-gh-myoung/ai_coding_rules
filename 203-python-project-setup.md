@@ -6,6 +6,9 @@
 **LastUpdated:** 2025-09-16
 
 
+**TokenBudget:** ~500
+**ContextTier:** High
+
 # Python Project Setup and Packaging
 
 ## Purpose

@@ -5,6 +5,9 @@
 **Version:** 1.2
 **LastUpdated:** 2025-10-07
 
+**TokenBudget:** ~200
+**ContextTier:** Medium
+
 # Snowflake Data Loading
 
 ## Purpose

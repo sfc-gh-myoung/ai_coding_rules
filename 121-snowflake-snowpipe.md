@@ -5,6 +5,9 @@
 **Version:** 1.0
 **LastUpdated:** 2025-10-07
 
+**TokenBudget:** ~2200
+**ContextTier:** Medium
+
 # Snowflake Snowpipe and Snowpipe Streaming
 
 ## Purpose

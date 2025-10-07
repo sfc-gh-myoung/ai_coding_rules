@@ -5,6 +5,9 @@
 **Version:** 1.2
 **LastUpdated:** 2025-09-16
 
+**TokenBudget:** ~400
+**ContextTier:** Medium
+
 # YAML and Configuration Best Practices
 
 ## Purpose

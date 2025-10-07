@@ -5,6 +5,9 @@
 **Version:** 1.0
 **LastUpdated:** 2025-10-03
 
+**TokenBudget:** ~500
+**ContextTier:** Medium
+
 # Snowflake Cortex AISQL Best Practices
 
 ## Purpose

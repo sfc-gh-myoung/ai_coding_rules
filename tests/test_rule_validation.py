@@ -1,7 +1,7 @@
 """Tests for rule structure validation and cross-reference checks.
 
 Updated to validate against 002-rule-governance.md v2.1 standards:
-- Required sections: Purpose, Rule Type and Scope, Contract, Validation, 
+- Required sections: Purpose, Rule Type and Scope, Contract, Validation,
   Response Template, Quick Compliance Checklist, References
 - Required metadata: Version, LastUpdated, TokenBudget, ContextTier
 - XML semantic tags (optional but recommended)
@@ -208,11 +208,14 @@ class TestRuleStructureValidation:
             line_count = len(content.splitlines())
 
             # Rules over 300 lines are considered "complex"
-            if line_count > 300:
-                if "## Anti-Patterns" not in content and "anti_pattern_examples" not in content:
-                    complex_rules_without_antipatterns.append(
-                        {"file": rule_file.name, "lines": line_count}
-                    )
+            if (
+                line_count > 300
+                and "## Anti-Patterns" not in content
+                and "anti_pattern_examples" not in content
+            ):
+                complex_rules_without_antipatterns.append(
+                    {"file": rule_file.name, "lines": line_count}
+                )
 
         if complex_rules_without_antipatterns:
             # Don't fail, just report
@@ -228,7 +231,6 @@ class TestRuleStructureValidation:
         rule_files = self.get_rule_files()
 
         # Allowed functional emojis
-        allowed_emojis = {"🔥", "⚠️", "✅", "❌", "📊", "🆕"}
 
         # Common decorative emojis to detect
         decorative_emojis = {"🎉", "🥳", "🎊", "💯", "💪", "👍", "😀", "😎", "😅", "🤔"}
@@ -245,9 +247,7 @@ class TestRuleStructureValidation:
                     found_decorative.append(emoji)
 
             if found_decorative:
-                rules_with_decorative.append(
-                    {"file": rule_file.name, "emojis": found_decorative}
-                )
+                rules_with_decorative.append({"file": rule_file.name, "emojis": found_decorative})
 
         if rules_with_decorative:
             print(f"\n⚠️  {len(rules_with_decorative)} rules with decorative emojis:")

@@ -17,7 +17,6 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 
 @dataclass
@@ -171,7 +170,7 @@ class RuleValidator:
         clean_files = sum(1 for r in results if r.is_clean)
 
         # Print summary
-        print(f"\n📊 Summary:")
+        print("\n📊 Summary:")
         print(f"  Total files validated: {total_files}")
         print(f"  ✅ Clean files: {clean_files}")
         print(f"  ⚠️  Files with warnings: {files_with_warnings}")
@@ -179,7 +178,7 @@ class RuleValidator:
 
         # Print detailed results for files with issues
         if files_with_errors > 0 or files_with_warnings > 0:
-            print(f"\n📝 Detailed Results:")
+            print("\n📝 Detailed Results:")
             print("-" * 80)
 
             for result in results:
@@ -276,4 +275,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-

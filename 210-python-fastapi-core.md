@@ -5,6 +5,9 @@
 **Version:** 1.1
 **LastUpdated:** 2025-09-16
 
+**TokenBudget:** ~900
+**ContextTier:** Medium
+
 # FastAPI Best Practices
 
 ## Purpose

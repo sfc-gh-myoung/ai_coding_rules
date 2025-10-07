@@ -5,6 +5,9 @@
 **Version:** 2.2
 **LastUpdated:** 2025-09-16
 
+**TokenBudget:** ~400
+**ContextTier:** Medium
+
 # Contribution Workflow
 
 ## Purpose

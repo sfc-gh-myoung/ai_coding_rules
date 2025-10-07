@@ -509,6 +509,7 @@ training_data = fs.generate_dataset(
 - **Model Registry**: `110-snowflake-model-registry.md`
 - **SQL Best Practices**: `102-snowflake-sql-best-practices.md`
 - **Performance Tuning**: `103-snowflake-performance-tuning.md`
+- **Warehouse Management**: `119-snowflake-warehouse-management.md`
 - **Data Governance**: `107-snowflake-security-governance.md`
 - **Python Core**: `200-python-core.md`
 

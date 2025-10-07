@@ -285,3 +285,4 @@ spec:
 - **Snowflake Core**: `100-snowflake-core.md`
 - **Cost Governance**: `105-snowflake-cost-governance.md`
 - **Security Governance**: `107-snowflake-security-governance.md`
+- **Warehouse Management**: `119-snowflake-warehouse-management.md`

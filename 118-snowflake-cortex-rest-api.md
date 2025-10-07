@@ -126,6 +126,7 @@ resp = with_retry(lambda: call_complete(client, {
 - **Snowflake Core**: `100-snowflake-core.md`
 - **AISQL**: `114-snowflake-cortex-aisql.md`
 - **Cost Governance**: `105-snowflake-cost-governance.md`
+- **Warehouse Management**: `119-snowflake-warehouse-management.md`
 - **Observability**: `111-snowflake-observability.md`
 
 

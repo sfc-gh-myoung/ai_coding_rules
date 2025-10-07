@@ -95,4 +95,5 @@ Establish comprehensive data security and access control practices using Snowfla
 ### Related Rules
 - **Snowflake Core**: `100-snowflake-core.md`
 - **Cost Governance**: `105-snowflake-cost-governance.md`
+- **Warehouse Management**: `119-snowflake-warehouse-management.md`
 - **Data Governance**: `600-data-governance-quality.md`

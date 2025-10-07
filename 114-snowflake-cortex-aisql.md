@@ -206,5 +206,6 @@ FROM src;
 - **Semantic Views**: `106-snowflake-semantic-views.md`
 - **Observability**: `111-snowflake-observability.md`
 - **Snowflake CLI**: `112-snowflake-snowcli.md`
+- **Warehouse Management**: `119-snowflake-warehouse-management.md`
 
 

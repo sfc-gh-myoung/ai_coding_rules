@@ -1,8 +1,8 @@
 **Description:** Top-level index of rule files with purpose, scope, and dependencies.
 **AutoAttach:** true
 **Type:** Auto-attach
-**Version:** 1.2
-**LastUpdated:** 2025-10-06
+**Version:** 1.3
+**LastUpdated:** 2025-10-07
 
 # Rules Index
 
@@ -32,6 +32,7 @@ This index helps agents select the correct rule quickly. Documentation files lik
 | `117-snowflake-cortex-analyst.md` | Agent Requested | Cortex Analyst & Semantic Views modeling and governance | Analyst & Semantics | `100-snowflake-core.md`, `106-snowflake-semantic-views.md`, `105-snowflake-cost-governance.md`, `111-snowflake-observability.md` |
 | `118-snowflake-cortex-rest-api.md` | Agent Requested | Cortex REST API usage: auth, retries, streaming, costs | REST API | `100-snowflake-core.md`, `105-snowflake-cost-governance.md`, `111-snowflake-observability.md`, `112-snowflake-snowcli.md` |
 | `113-snowflake-feature-store.md` | Agent Requested | Feature engineering, entity modeling, feature views, ML integration | Feature Store (Enterprise) | `100-snowflake-core.md`, `110-snowflake-model-registry.md` |
+| `119-snowflake-warehouse-management.md` | Agent Requested | Warehouse creation, type selection (CPU/GPU/High-Memory), sizing, tagging, cost governance | Virtual warehouses | `100-snowflake-core.md`, `103-snowflake-performance-tuning.md`, `105-snowflake-cost-governance.md` |
 | `120-snowflake-spcs.md` | Agent Requested | Snowpark Container Services best practices | SPCS | `100-snowflake-core.md` |
 | `200-python-core.md` | Agent Requested | Modern Python engineering with uv/Ruff | Python | `000-global-core.md` |
 | `201-python-lint-format.md` | Agent Requested | Ruff linting/formatting policy | Linting | `200-python-core.md` |

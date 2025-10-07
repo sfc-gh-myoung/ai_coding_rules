@@ -35,8 +35,8 @@ Establish comprehensive cost management and optimization strategies for Snowflak
 
 ## 1. Cost Optimization Principles
 - **Requirement:** Treat cost as a primary design factor.
-- **Always:** Right-size virtual warehouses based on workload type (smaller for concurrency, larger for performance-critical jobs).
-- **Requirement:** Enable `AUTO_SUSPEND` on all virtual warehouses.
+- **Always:** Follow comprehensive warehouse management practices in `119-snowflake-warehouse-management.md` for type selection, sizing, tagging, and configuration.
+- **Requirement:** Verify all warehouses follow mandatory tagging and resource monitor association requirements.
 
 ## 2. Resource Management
 - **Always:** Use Resource Monitors to track and control credit usage.
@@ -44,11 +44,11 @@ Establish comprehensive cost management and optimization strategies for Snowflak
 - **Always:** Use Snowflake's anomaly detection features to monitor for unexpected credit spikes.
 
 ## Quick Compliance Checklist
-- [ ] All warehouses have AUTO_SUSPEND configured (≤ 5 minutes for interactive, ≤ 1 minute for batch)
+- [ ] All warehouse creation follows `119-snowflake-warehouse-management.md` (type, size, tags, auto-suspend)
 - [ ] Resource monitors created with appropriate credit quotas for account/warehouse level
 - [ ] Notification triggers set at 75% and 90% of credit quota
 - [ ] Suspend triggers configured at 100% of quota to prevent overruns
-- [ ] Warehouses right-sized for workload (start small, scale up as needed)
+- [ ] Warehouses have mandatory tags applied (COST_CENTER, WORKLOAD_TYPE, ENVIRONMENT, OWNER_TEAM)
 - [ ] Clustering keys applied only to tables with proven skew issues
 - [ ] Time Travel retention period appropriate for data recovery needs (not default 1 day for all)
 - [ ] Automatic scaling policies configured for variable workloads
@@ -62,8 +62,8 @@ Establish comprehensive cost management and optimization strategies for Snowflak
 ## Response Template
 ```sql
 -- Resource Monitor Setup
-CREATE RESOURCE MONITOR IF NOT EXISTS warehouse_monitor
-  WITH CREDIT_QUOTA = 1000
+CREATE RESOURCE MONITOR IF NOT EXISTS rm_analytics_monthly
+  WITH CREDIT_QUOTA = 5000
   FREQUENCY = MONTHLY
   START_TIMESTAMP = IMMEDIATELY
   TRIGGERS 
@@ -71,17 +71,11 @@ CREATE RESOURCE MONITOR IF NOT EXISTS warehouse_monitor
     ON 90 PERCENT DO NOTIFY
     ON 100 PERCENT DO SUSPEND;
 
--- Warehouse Configuration
-CREATE OR REPLACE WAREHOUSE analytics_wh
-  WITH WAREHOUSE_SIZE = 'MEDIUM'
-       AUTO_SUSPEND = 300
-       AUTO_RESUME = TRUE
-       MIN_CLUSTER_COUNT = 1
-       MAX_CLUSTER_COUNT = 3
-       SCALING_POLICY = 'STANDARD';
+-- For warehouse creation with tagging and resource monitors,
+-- see complete examples in 119-snowflake-warehouse-management.md
 
--- Apply monitor to warehouse
-ALTER WAREHOUSE analytics_wh SET RESOURCE_MONITOR = warehouse_monitor;
+-- Apply monitor to existing warehouse
+ALTER WAREHOUSE WH_ANALYTICS_M SET RESOURCE_MONITOR = rm_analytics_monthly;
 ```
 
 ## References
@@ -93,4 +87,5 @@ ALTER WAREHOUSE analytics_wh SET RESOURCE_MONITOR = warehouse_monitor;
 ### Related Rules
 - **Snowflake Core**: `100-snowflake-core.md`
 - **Performance Tuning**: `103-snowflake-performance-tuning.md`
+- **Warehouse Management**: `119-snowflake-warehouse-management.md`
 - **Security Governance**: `107-snowflake-security-governance.md`

@@ -88,7 +88,7 @@ Establish comprehensive foundational practices for all Snowflake development wor
 - [ ] All queries use explicit column selection (no SELECT *)
 - [ ] WHERE clauses applied early to reduce scan size
 - [ ] VARIANT fields parsed once in dedicated CTE
-- [ ] Warehouse size appropriate for workload and auto-suspend configured
+- [ ] Warehouse configuration follows `119-snowflake-warehouse-management.md` (type, size, auto-suspend, tags, resource monitor)
 - [ ] Query Profile reviewed for performance bottlenecks
 - [ ] Row Access Policies or Dynamic Data Masking applied for PII
 - [ ] Resource monitors configured for cost governance
@@ -119,7 +119,8 @@ SELECT * FROM agg;
 - **Rule:** For deeper guidance, reference the following specialized rules:
   - `101-snowflake-streamlit-ui.md`: Modern, performant, and maintainable Streamlit UIs
   - `102-snowflake-sql-best-practices.md`: Advanced SQL authoring patterns (CTEs, VARIANT extraction, cardinality control).
-  - `103-snowflake-performance-tuning.md`: Profiling, pruning, warehouse sizing, clustering justification.
+  - `103-snowflake-performance-tuning.md`: Profiling, pruning, clustering justification.
+  - `119-snowflake-warehouse-management.md`: Comprehensive warehouse creation, type selection (CPU/GPU/High-Memory), sizing, tagging, and cost governance.
   - `104-snowflake-streams-tasks.md`: Incremental pipelines with Streams + Tasks, idempotency, monitoring.
   - `105-snowflake-cost-governance.md`: Workload isolation, resource monitors, right-sizing, anomaly detection.
   - `106-snowflake-semantic-views.md`: Layering (staging/core/semantic), naming conventions, and slim views.
@@ -136,8 +137,7 @@ SELECT * FROM agg;
   - Examples: `DEV_RAW`, `PROD_ANALYTICS`.
 - **Rule (Schemas):** Name by function or source system.
   - Examples: `SALESFORCE`, `MARKETING`, `STG` (staging), `ODS` (operational data store).
-- **Rule (Warehouses):** Prefix with `WH_` and describe workload/team; optionally add size suffix (`_S`, `_M`, `_L`).
-  - Examples: `WH_LOADING`, `WH_BI_TOOLS`, `WH_DATA_SCIENCE_L`.
+- **Rule (Warehouses):** See `119-snowflake-warehouse-management.md` for comprehensive warehouse naming, sizing, type selection, and management guidance.
 
 ### Tables and Views
 - **Rule (Tables):** Prefer no prefix within well-named schemas (e.g., `STG`, `RAW`, `PROD`). If explicit, use `TBL_`.
@@ -175,3 +175,4 @@ SELECT * FROM agg;
 - **Cost Governance**: `105-snowflake-cost-governance.md`
 - **Security Governance**: `107-snowflake-security-governance.md`
 - **Data Loading**: `108-snowflake-data-loading.md`
+- **Warehouse Management**: `119-snowflake-warehouse-management.md`

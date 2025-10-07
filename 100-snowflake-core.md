@@ -125,7 +125,8 @@ SELECT * FROM agg;
   - `105-snowflake-cost-governance.md`: Workload isolation, resource monitors, right-sizing, anomaly detection.
   - `106-snowflake-semantic-views.md`: Layering (staging/core/semantic), naming conventions, and slim views.
   - `107-snowflake-security-governance.md`: Masking policies, row access, tagging, and role strategies.
-  - `108-snowflake-data-loading.md`: Stages, `COPY INTO`, and Snowpipe best practices.
+  - `108-snowflake-data-loading.md`: Stages and `COPY INTO` for bulk loading.
+  - `121-snowflake-snowpipe.md`: Snowpipe and Snowpipe Streaming for continuous near-real-time ingestion.
   - `109-snowflake-notebooks.md`: Jupyter Notebooks in Snowflake best practices.
 
 ## 8. Object Naming Conventions (DDL)
@@ -175,4 +176,5 @@ SELECT * FROM agg;
 - **Cost Governance**: `105-snowflake-cost-governance.md`
 - **Security Governance**: `107-snowflake-security-governance.md`
 - **Data Loading**: `108-snowflake-data-loading.md`
+- **Snowpipe**: `121-snowflake-snowpipe.md`
 - **Warehouse Management**: `119-snowflake-warehouse-management.md`

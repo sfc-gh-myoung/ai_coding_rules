@@ -5,6 +5,9 @@
 **Version:** 1.0
 **LastUpdated:** 2025-09-17
 
+**TokenBudget:** ~1100
+**ContextTier:** High
+
 # Snowflake Observability
 
 ## Purpose

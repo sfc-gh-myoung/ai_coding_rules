@@ -5,6 +5,9 @@
 **Version:** 1.3
 **LastUpdated:** 2025-09-16
 
+**TokenBudget:** ~300
+**ContextTier:** Medium
+
 # Changelog Governance Directives
 
 ## Purpose

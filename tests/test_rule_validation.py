@@ -1,4 +1,12 @@
-"""Tests for rule structure validation and cross-reference checks."""
+"""Tests for rule structure validation and cross-reference checks.
+
+Updated to validate against 002-rule-governance.md v2.1 standards:
+- Required sections: Purpose, Rule Type and Scope, Contract, Validation, 
+  Response Template, Quick Compliance Checklist, References
+- Required metadata: Version, LastUpdated, TokenBudget, ContextTier
+- XML semantic tags (optional but recommended)
+- Anti-Patterns section (recommended for complex rules)
+"""
 
 import re
 from pathlib import Path
@@ -7,7 +15,7 @@ import pytest
 
 
 class TestRuleStructureValidation:
-    """Test that all rule files follow required structure standards."""
+    """Test that all rule files follow required structure standards per 002-rule-governance.md v2.1."""
 
     @classmethod
     def get_rule_files(cls) -> list[Path]:
@@ -18,6 +26,7 @@ class TestRuleStructureValidation:
             "CONTRIBUTING.md",
             "RULES_INDEX.md",
             "UNIVERSAL_PROMPT.md",
+            "AGENTS.md",  # Added per updated validation
         }
 
         rule_files = []
@@ -27,9 +36,9 @@ class TestRuleStructureValidation:
 
         return sorted(rule_files)
 
-    @pytest.mark.skip(reason="Full codebase validation - many files not yet compliant")
+    @pytest.mark.skip(reason="Full codebase validation - many files not yet compliant with v2.1")
     def test_all_rules_have_required_sections(self):
-        """Test that all rule files contain mandatory sections."""
+        """Test that all rule files contain mandatory sections per 002-rule-governance.md v2.1."""
         rule_files = self.get_rule_files()
         assert len(rule_files) > 0, "No rule files found"
 
@@ -39,7 +48,7 @@ class TestRuleStructureValidation:
             content = rule_file.read_text()
             file_issues = []
 
-            # Check for required sections
+            # Check for required sections (v2.1 requirements)
             required_sections = [
                 r"^## Purpose\b",
                 r"^## Rule Type and Scope\b",
@@ -59,14 +68,14 @@ class TestRuleStructureValidation:
                 missing_sections.append({"file": rule_file.name, "missing": file_issues})
 
         if missing_sections:
-            error_msg = "Rule files missing required sections:\n"
+            error_msg = "Rule files missing required sections (v2.1 governance):\n"
             for issue in missing_sections:
                 error_msg += f"  {issue['file']}: {', '.join(issue['missing'])}\n"
             pytest.fail(error_msg)
 
-    @pytest.mark.skip(reason="Full codebase validation - many files not yet compliant")
+    @pytest.mark.skip(reason="Full codebase validation - many files not yet compliant with v2.1")
     def test_rule_files_have_proper_metadata(self):
-        """Test that rule files have required metadata."""
+        """Test that rule files have required metadata per 002-rule-governance.md v2.1."""
         rule_files = self.get_rule_files()
 
         missing_metadata = []
@@ -75,13 +84,15 @@ class TestRuleStructureValidation:
             content = rule_file.read_text()
             file_issues = []
 
-            # Check for required metadata
+            # Check for required metadata (v2.1 requirements)
             metadata_patterns = [
                 r"^\*\*Description:\*\*",
                 r"^\*\*AutoAttach:\*\*",
                 r"^\*\*Type:\*\*",
                 r"^\*\*Version:\*\*",
                 r"^\*\*LastUpdated:\*\*",
+                r"^\*\*TokenBudget:\*\*",  # New in v2.1
+                r"^\*\*ContextTier:\*\*",  # New in v2.1
             ]
 
             for pattern in metadata_patterns:
@@ -93,7 +104,7 @@ class TestRuleStructureValidation:
                 missing_metadata.append({"file": rule_file.name, "missing": file_issues})
 
         if missing_metadata:
-            error_msg = "Rule files missing required metadata:\n"
+            error_msg = "Rule files missing required metadata (v2.1 governance):\n"
             for issue in missing_metadata:
                 error_msg += f"  {issue['file']}: {', '.join(issue['missing'])}\n"
             pytest.fail(error_msg)
@@ -121,6 +132,127 @@ class TestRuleStructureValidation:
                 f"  {issue}" for issue in title_issues
             )
             pytest.fail(error_msg)
+
+    def test_002_rule_governance_is_compliant(self):
+        """Test that 002-rule-governance.md itself follows v2.1 standards."""
+        governance_file = Path("002-rule-governance.md")
+        if not governance_file.exists():
+            pytest.skip("002-rule-governance.md not found")
+
+        content = governance_file.read_text()
+
+        # Check for v2.1 required sections (use partial matches for numbered sections)
+        required_section_patterns = [
+            "## Purpose",
+            "## Rule Type and Scope",
+            "## Contract",
+            "## Key Principles",
+            "Semantic Markup and XML Tags",  # May be "## 2. Semantic Markup..."
+            "Anti-Patterns Library",  # May be "### Anti-Patterns Library..."
+            "Investigation-First Protocol",  # May be "### Investigation-First..."
+            "Emoji Usage in Rules",  # May be "### Emoji Usage..."
+            "## Quick Compliance Checklist",
+            "## Validation",
+            "## Response Template",
+            "## References",
+        ]
+
+        missing = []
+        for pattern in required_section_patterns:
+            if pattern not in content:
+                missing.append(pattern)
+
+        assert len(missing) == 0, f"002-rule-governance.md missing sections: {missing}"
+
+        # Check for v2.1 metadata
+        assert "**TokenBudget:**" in content, "Missing TokenBudget metadata"
+        assert "**ContextTier:**" in content, "Missing ContextTier metadata"
+        assert "**Version:**" in content, "Missing Version metadata"
+        assert "**LastUpdated:**" in content, "Missing LastUpdated metadata"
+
+    @pytest.mark.skip(reason="Informational check - not all rules require XML tags yet")
+    def test_rules_have_xml_semantic_tags(self):
+        """Test that rules include XML semantic tags (recommended in v2.1)."""
+        rule_files = self.get_rule_files()
+
+        rules_without_xml = []
+
+        for rule_file in rule_files:
+            content = rule_file.read_text()
+
+            # Check for any XML semantic tags
+            has_section_metadata = "<section_metadata>" in content
+            has_directive_strength = "<directive_strength>" in content
+            has_investigate = "<investigate_before_answering>" in content
+
+            if not (has_section_metadata or has_directive_strength or has_investigate):
+                rules_without_xml.append(rule_file.name)
+
+        if rules_without_xml:
+            # Don't fail, just report
+            print(f"\n⚠️  {len(rules_without_xml)} rules without XML semantic tags:")
+            for rule in rules_without_xml[:10]:  # Show first 10
+                print(f"  - {rule}")
+            if len(rules_without_xml) > 10:
+                print(f"  ... and {len(rules_without_xml) - 10} more")
+
+    @pytest.mark.skip(reason="Informational check - not all rules require anti-patterns yet")
+    def test_complex_rules_have_anti_patterns(self):
+        """Test that complex rules (>300 lines) include Anti-Patterns section."""
+        rule_files = self.get_rule_files()
+
+        complex_rules_without_antipatterns = []
+
+        for rule_file in rule_files:
+            content = rule_file.read_text()
+            line_count = len(content.splitlines())
+
+            # Rules over 300 lines are considered "complex"
+            if line_count > 300:
+                if "## Anti-Patterns" not in content and "anti_pattern_examples" not in content:
+                    complex_rules_without_antipatterns.append(
+                        {"file": rule_file.name, "lines": line_count}
+                    )
+
+        if complex_rules_without_antipatterns:
+            # Don't fail, just report
+            print(
+                f"\n⚠️  {len(complex_rules_without_antipatterns)} complex rules without Anti-Patterns section:"
+            )
+            for rule in complex_rules_without_antipatterns[:5]:
+                print(f"  - {rule['file']} ({rule['lines']} lines)")
+
+    @pytest.mark.skip(reason="Informational check - checks emoji usage guidelines")
+    def test_emoji_usage_follows_guidelines(self):
+        """Test that rules follow emoji usage guidelines (v2.1 standards)."""
+        rule_files = self.get_rule_files()
+
+        # Allowed functional emojis
+        allowed_emojis = {"🔥", "⚠️", "✅", "❌", "📊", "🆕"}
+
+        # Common decorative emojis to detect
+        decorative_emojis = {"🎉", "🥳", "🎊", "💯", "💪", "👍", "😀", "😎", "😅", "🤔"}
+
+        rules_with_decorative = []
+
+        for rule_file in rule_files:
+            content = rule_file.read_text()
+
+            # Check for decorative emojis
+            found_decorative = []
+            for emoji in decorative_emojis:
+                if emoji in content:
+                    found_decorative.append(emoji)
+
+            if found_decorative:
+                rules_with_decorative.append(
+                    {"file": rule_file.name, "emojis": found_decorative}
+                )
+
+        if rules_with_decorative:
+            print(f"\n⚠️  {len(rules_with_decorative)} rules with decorative emojis:")
+            for rule in rules_with_decorative[:5]:
+                print(f"  - {rule['file']}: {''.join(rule['emojis'])}")
 
     @pytest.mark.skip(reason="Full codebase validation - many files not yet compliant")
     def test_contract_section_has_required_fields(self):

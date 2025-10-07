@@ -3,6 +3,9 @@
 **Version:** 1.0
 **LastUpdated:** 2025-09-25
 
+**TokenBudget:** ~650
+**ContextTier:** Medium
+
 # Docker and Dockerfile Best Practices
 
 ## Purpose

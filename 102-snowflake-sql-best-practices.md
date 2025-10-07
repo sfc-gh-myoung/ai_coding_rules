@@ -5,6 +5,9 @@
 **Version:** 1.4
 **LastUpdated:** 2025-10-05
 
+**TokenBudget:** ~800
+**ContextTier:** High
+
 # Snowflake SQL Best Practices
 
 ## Purpose

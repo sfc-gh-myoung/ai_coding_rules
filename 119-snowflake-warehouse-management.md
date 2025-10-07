@@ -5,6 +5,9 @@
 **Version:** 1.0
 **LastUpdated:** 2025-10-07
 
+**TokenBudget:** ~1500
+**ContextTier:** High
+
 # Snowflake Warehouse Management
 
 ## Purpose

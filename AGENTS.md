@@ -1,6 +1,9 @@
 **AutoAttach:** true
 **Type:** Auto-attach
 
+**TokenBudget:** ~450
+**ContextTier:** Critical
+
 # AGENTS.md
 
 ## Setup commands

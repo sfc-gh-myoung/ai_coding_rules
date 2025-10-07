@@ -3,6 +3,8 @@
 **Version:** 1.2
 **LastUpdated:** 2025-09-16
 
+**TokenBudget:** ~200
+**ContextTier:** Low
 # Universal Response Guidelines
 
 ## Purpose

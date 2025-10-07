@@ -5,6 +5,9 @@
 **Version:** 1.0
 **LastUpdated:** 2025-10-05
 
+**TokenBudget:** ~500
+**ContextTier:** High
+
 # Python Testing with pytest: Best Practices
 
 ## Purpose

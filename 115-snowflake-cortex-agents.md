@@ -130,6 +130,7 @@ $$;
 - **Snowflake Core**: `100-snowflake-core.md`
 - **Semantic Views**: `106-snowflake-semantic-views.md`
 - **Cost Governance**: `105-snowflake-cost-governance.md`
+- **Warehouse Management**: `119-snowflake-warehouse-management.md`
 - **Observability**: `111-snowflake-observability.md`
 
 

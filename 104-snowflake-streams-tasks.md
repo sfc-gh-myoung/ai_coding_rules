@@ -25,6 +25,7 @@ Establish patterns for building robust, incremental data pipelines using Snowfla
 - **Requirement:** Use a `STREAM` to capture change data (`INSERT`, `UPDATE`, `DELETE`) on a source table.
 - **Requirement:** Use a `TASK` to schedule a `MERGE` that consumes the stream and applies changes to the target.
 - **Requirement:** Build task graphs (DAGs) for multi-step pipelines with explicit dependencies.
+- **Always:** Assign tasks to appropriate warehouses following `119-snowflake-warehouse-management.md` sizing and configuration guidance.
 
 ## 2. Idempotency and Monitoring
 - **Requirement:** Tasks and DML must be idempotent. Use `CREATE OR REPLACE` for DDL and ensure re-runs do not duplicate data.
@@ -66,4 +67,5 @@ Establish patterns for building robust, incremental data pipelines using Snowfla
 - **Snowflake Core**: `100-snowflake-core.md`
 - **SQL Best Practices**: `102-snowflake-sql-best-practices.md`
 - **Performance Tuning**: `103-snowflake-performance-tuning.md`
+- **Warehouse Management**: `119-snowflake-warehouse-management.md`
 - **Data Loading**: `108-snowflake-data-loading.md`

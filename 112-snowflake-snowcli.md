@@ -153,6 +153,7 @@ uvx --from=snowflake-cli==3.12 snow sql -q "select 1 as ok"
 - **SQL Best Practices**: `102-snowflake-sql-best-practices.md`
 - **Cost Governance**: `105-snowflake-cost-governance.md`
 - **Security Governance**: `107-snowflake-security-governance.md`
+- **Warehouse Management**: `119-snowflake-warehouse-management.md`
 - **SPCS Best Practices**: `120-snowflake-spcs.md`
 
 

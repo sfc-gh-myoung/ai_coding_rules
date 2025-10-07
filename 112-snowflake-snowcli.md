@@ -5,6 +5,9 @@
 **Version:** 1.0
 **LastUpdated:** 2025-09-25
 
+**TokenBudget:** ~350
+**ContextTier:** Medium
+
 # Snowflake SnowCLI (snow) Usage Best Practices
 
 ## Purpose

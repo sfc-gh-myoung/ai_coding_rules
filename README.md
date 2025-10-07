@@ -145,6 +145,7 @@ Concatenate selected `.md` files for use with LLM tools like Claude Projects, Ch
 - **`000-global-core.md`** — Universal operating principles and safety protocols
 - **`001-memory-bank.md`** — Universal memory bank for AI context continuity  
 - **`002-rule-governance.md`** — Comprehensive rule authoring governance: creation standards, naming conventions, structure requirements, validation workflows, and rule creation template
+- **`AGENTS.md`** — Agent operating workflow (PLAN/ACT), setup commands, validation, and development guidelines
 
 #### Universal Rule Authoring Best Practices
 
@@ -194,21 +195,24 @@ The following best practices apply to all AI coding assistants and development e
 - **`110-snowflake-model-registry.md`** — ML model lifecycle, versioning, and governance
 - **`111-snowflake-observability.md`** — Comprehensive telemetry, logging, tracing, and metrics best practices
 - **`112-snowflake-snowcli.md`** — Snowflake CLI usage best practices with pinned `uvx` execution
+- **`113-snowflake-feature-store.md`** — Feature Store best practices (feature engineering, entity modeling, feature views, ML pipeline integration)
 - **`114-snowflake-cortex-aisql.md`** — Cortex AISQL functions (cost, batching, governance, SQL/Snowpark examples)
 - **`115-snowflake-cortex-agents.md`** — Cortex Agents (grounding, tools, RBAC, observability)
 - **`116-snowflake-cortex-search.md`** — Cortex Search (indexing, metadata filters, hybrid retrieval)
 - **`117-snowflake-cortex-analyst.md`** — Cortex Analyst & Semantic Views (modeling, governance, prompts)
 - **`118-snowflake-cortex-rest-api.md`** — Cortex REST API (auth, retries, streaming, cost)
+- **`119-snowflake-warehouse-management.md`** — Warehouse management best practices (creation, type selection CPU/GPU/High-Memory, sizing, tagging, cost governance)
 - **`120-snowflake-spcs.md`** — Snowpark Container Services best practices (containerized applications, compute pools, service management)
+- **`121-snowflake-snowpipe.md`** — Snowpipe and Snowpipe Streaming best practices (continuous near-real-time ingestion, auto-ingest, REST API, SDK)
 
 ### Software Engineering - Python (200-299)
 - **`200-python-core.md`** — Modern Python engineering with `uv` and Ruff (environment management, code structure, reliability)
 - **`201-python-lint-format.md`** — Authoritative linting and formatting with Ruff (code quality and consistency)
 - **`202-yaml-config-best-practices.md`** — YAML and configuration file syntax safety (preventing parsing errors)
 - **`203-python-project-setup.md`** — Python project setup and packaging best practices (avoiding build issues)
- - **`204-python-docs-comments.md`** — Python documentation, comments, and docstring standards with Ruff enforcement
- - **`205-python-classes.md`** — Python class design and usage best practices (composition, dataclasses, properties, ABCs/Protocols)
- - **`206-python-pytest.md`** — pytest testing best practices (fixtures, parametrization, isolation, markers, CI)
+- **`204-python-docs-comments.md`** — Python documentation, comments, and docstring standards with Ruff enforcement
+- **`205-python-classes.md`** — Python class design and usage best practices (composition, dataclasses, properties, ABCs/Protocols)
+- **`206-python-pytest.md`** — pytest testing best practices (fixtures, parametrization, isolation, markers, CI)
 
 #### FastAPI Framework (210-219)
 - **`210-python-fastapi-core.md`** — FastAPI core patterns (application structure, async programming, Pydantic validation)
@@ -460,10 +464,13 @@ flowchart TD
 
 ## Key Features
 
-- **Universal Compatibility** — Works with Claude, ChatGPT, Copilot, Cursor, and more
+- **Universal Compatibility** — Works with Claude 4.x, GPT-4, Gemini, Copilot, Cursor, Cline, and more
+- **Claude 4 Optimized** — Native support for XML semantic tags, context awareness, and explicit behavior specifications
+- **LLM-Optimized Format** — Token budgets, anti-pattern libraries, and investigation-first protocols minimize hallucinations
 - **Structured Directive Language** — Clear hierarchical directive patterns from `Critical` to `Consider`  
-- **Modular Architecture** — Mix and match rules by domain/technology
+- **Modular Architecture** — Mix and match rules by domain/technology with declared dependencies
 - **Intelligent Auto-Generation** — Transform universal rules into IDE-specific formats with automatic reference conversion
+- **Multi-Session Support** — State tracking patterns for long-horizon reasoning across multiple context windows
 - **Data-Focused** — Comprehensive coverage of data engineering and analytics
 - **Production-Ready** — Battle-tested patterns for reliability and performance
 - **Modern Tooling** — Built for `uv`, Ruff, and contemporary Python development
@@ -567,14 +574,25 @@ uvx ruff format .         # Apply formatting
 task rule:cursor         # Generate Cursor rules
 task rule:copilot        # Generate Copilot rules
 task rule:cline          # Generate Cline rules
+task rule:all            # Generate all IDE-specific rules
 
 # Optional DEST variable to change base output directory
 task rule:all DEST=/custom/output
 
-# Validate configurations
+# Validate rule structure (002-rule-governance.md v2.1 compliance)
+task rules:validate         # Standard validation (fails on critical errors)
+task rules:validate:verbose # Show all files including clean ones
+task rules:validate:strict  # Strict mode (fail on warnings too)
+
+# Direct validation script usage
+uv run python validate_agent_rules.py              # Standard validation
+uv run python validate_agent_rules.py --verbose    # Verbose output
+uv run python validate_agent_rules.py --fail-on-warnings  # Strict mode
+uv run python validate_agent_rules.py --help       # Show all options
+
+# Other validations
 task --list              # Validate Taskfile syntax
 uv run generate_agent_rules.py --source . --dry-run  # Test rule generation
-task rules:validate-structure  # Ensure all rules contain required sections
 ```
 
 ### Utilities  

@@ -115,5 +115,6 @@ Answer using the semantic definitions in <DB>.<SCHEMA>.semantic_*. Prefer measur
 - **Semantic Views**: `106-snowflake-semantic-views.md`
 - **AISQL**: `114-snowflake-cortex-aisql.md`
 - **Agents**: `115-snowflake-cortex-agents.md`
+- **Warehouse Management**: `119-snowflake-warehouse-management.md`
 
 

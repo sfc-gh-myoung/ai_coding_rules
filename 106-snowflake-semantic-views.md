@@ -18,7 +18,7 @@ Provide authoritative guidance for designing and maintaining Snowflake Semantic 
 ## Contract
 - **Inputs/Prereqs:**
   - Target DATABASE.SCHEMA
-  - Warehouse context and roles with appropriate privileges
+  - Warehouse context and roles with appropriate privileges (see `119-snowflake-warehouse-management.md`)
   - Source physical tables/views inventory
   - Naming conventions and business glossary (for synonyms and metrics)
 - **Allowed Tools:**
@@ -204,5 +204,6 @@ WHERE <optional_filter>;
 ### Related Rules
 - **Snowflake Core**: `100-snowflake-core.md`
 - **SQL Best Practices**: `102-snowflake-sql-best-practices.md`
+- **Warehouse Management**: `119-snowflake-warehouse-management.md`
 - **Data Governance**: `600-data-governance-quality.md`
 

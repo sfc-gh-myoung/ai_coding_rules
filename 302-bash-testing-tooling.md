@@ -5,6 +5,9 @@
 **Version:** 1.1
 **LastUpdated:** 2025-09-16
 
+**TokenBudget:** ~1100
+**ContextTier:** Medium
+
 # Bash Testing and Tooling Best Practices
 
 ## Purpose

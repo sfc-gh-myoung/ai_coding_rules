@@ -5,6 +5,9 @@
 **Version:** 1.2
 **LastUpdated:** 2025-09-22
 
+**TokenBudget:** ~500
+**ContextTier:** Medium
+
 # Snowflake Semantic Models and Semantic Views
 
 ## Purpose

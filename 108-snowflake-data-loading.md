@@ -1,38 +1,40 @@
-**Description:** Best practices for loading data into Snowflake using Stages, COPY INTO, and Snowpipe.
+**Description:** Best practices for loading data into Snowflake using Stages and COPY INTO for bulk loading. For continuous ingestion, see 121-snowflake-snowpipe.md.
 **AppliesTo:** `**/*.sql`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.1
-**LastUpdated:** 2025-09-16
+**Version:** 1.2
+**LastUpdated:** 2025-10-07
 
 # Snowflake Data Loading
 
 ## Purpose
-Provide comprehensive best practices for efficiently loading data into Snowflake using Stages, COPY INTO, and Snowpipe, optimizing for performance, reliability, and cost-effectiveness in both batch and streaming scenarios.
+Provide comprehensive best practices for efficiently staging and bulk loading data into Snowflake using Stages and COPY INTO commands, optimizing for performance, reliability, and cost-effectiveness in batch loading scenarios.
 
 ## Rule Type and Scope
 
 - **Type:** Agent Requested
-- **Scope:** Snowflake data loading with Stages, COPY INTO, and Snowpipe for bulk and streaming ingestion
+- **Scope:** Snowflake data staging and bulk loading with Stages and COPY INTO commands (for continuous ingestion with Snowpipe, see `121-snowflake-snowpipe.md`)
 
 
 ## Key Principles
 - Stage files first; use dedicated stages per source; manage with PUT/GET for internal stages.
-- Use COPY INTO for bulk loads; Snowpipe for continuous ingestion; be explicit about ON_ERROR and file formats.
-- Target 100–250MB compressed files; prepare semi-structured data for subcolumnarization.
+- Use COPY INTO for bulk, scheduled, and one-time loads; target 100–250MB compressed files.
+- For continuous near-real-time ingestion, use Snowpipe (see `121-snowflake-snowpipe.md`).
+- Prepare semi-structured data for subcolumnarization; be explicit about ON_ERROR and file formats.
 
 ## 1. Stages
 - **Requirement:** Stage data files in an internal or external stage before loading.
 - **Requirement:** Use a separate, dedicated stage for each external data source for organization and security.
 - **Always:** Use `PUT` and `GET` to manage files in internal stages.
 
-## 2. Data Ingestion
-- **Requirement:** Use `COPY INTO` for bulk, one-time loads.
-- **Requirement:** Use Snowpipe for continuous, near-real-time ingestion.
-- **Requirement:** With `COPY INTO`, be explicit about error handling (`ON_ERROR = CONTINUE`) and file formats.
+## 2. Bulk Data Loading with COPY INTO
+- **Requirement:** Use `COPY INTO` for bulk, one-time, and scheduled batch loads.
+- **Always:** For continuous, near-real-time ingestion, use Snowpipe instead (see `121-snowflake-snowpipe.md`).
+- **Requirement:** Be explicit about error handling (`ON_ERROR = CONTINUE`, `SKIP_FILE`, or `ABORT_STATEMENT`).
+- **Requirement:** Specify file formats explicitly with `FILE_FORMAT` parameter.
 
 ## 3. File Preparation and Optimization
-- **Requirement:** Aim for compressed file sizes between 100–250 MB for performance and cost.
+- **Requirement:** Aim for compressed file sizes between 100–250 MB for optimal performance and cost.
 - **Requirement:** For semi-structured data, ensure consistent data types within elements to enable subcolumnarization.
 
 ## Contract
@@ -63,10 +65,12 @@ Provide comprehensive best practices for efficiently loading data into Snowflake
 
 ### External Documentation
 - [COPY INTO Command](https://docs.snowflake.com/en/sql-reference/sql/copy-into-table) - Bulk data loading syntax and options                                                                                           
-- [Snowpipe Introduction](https://docs.snowflake.com/en/user-guide/data-load-snowpipe-intro) - Continuous data ingestion and automation                                                                                 
 - [Data Loading Stages](https://docs.snowflake.com/en/user-guide/data-load-stages-intro) - Internal and external stage management
+- [Data Loading Best Practices](https://docs.snowflake.com/en/user-guide/data-load-considerations) - File sizing and optimization guidance
 
 ### Related Rules
 - **Snowflake Core**: `100-snowflake-core.md`
+- **Snowpipe and Snowpipe Streaming**: `121-snowflake-snowpipe.md` - Continuous near-real-time ingestion
 - **Streams and Tasks**: `104-snowflake-streams-tasks.md`
 - **Performance Tuning**: `103-snowflake-performance-tuning.md`
+- **Warehouse Management**: `119-snowflake-warehouse-management.md`

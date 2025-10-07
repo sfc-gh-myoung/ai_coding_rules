@@ -243,22 +243,23 @@ tasks:
       - task: rule:cline:check
       - echo "[OK] All validation checks passed"
 
-  # Validate that all rule files include mandatory sections (Contract, Validation, Response Template, Checklist)
-  rules:validate-structure:
-    desc: "Validate all rules contain Contract, Validation, Response Template, and Quick Compliance Checklist"
-    silent: true
+  # Validate that all rule files follow updated governance standards (002-rule-governance.md v2.1)
+  rules:validate:
+    desc: "Validate all rules contain required sections per 002-rule-governance.md"
     cmds:
-      - |
-        missing=false
-        for f in *.md; do \
-          case "$f" in README.md|CHANGELOG.md|CONTRIBUTING.md|RULES_INDEX.md|UNIVERSAL_PROMPT.md) continue ;; esac; \
-          if ! grep -q "^## Contract\b" "$f"; then echo "Missing Contract: $f"; missing=true; fi; \
-          if ! grep -q "^## Validation\b" "$f"; then echo "Missing Validation: $f"; missing=true; fi; \
-          if ! grep -q "^## Response Template\b" "$f"; then echo "Missing Response Template: $f"; missing=true; fi; \
-          if ! grep -q "^## Quick Compliance Checklist\b" "$f"; then echo "Missing Quick Compliance Checklist: $f"; missing=true; fi; \
-        done; \
-        if [ "$missing" = true ]; then echo "One or more rule files are missing required sections"; exit 1; fi; \
-        echo "All rule files contain required sections"
+      - uv run python validate_agent_rules.py
+
+  # Validate with verbose output (shows clean files too)
+  rules:validate:verbose:
+    desc: "Validate all rules with verbose output"
+    cmds:
+      - uv run python validate_agent_rules.py --verbose
+
+  # Validate and fail on warnings (strict mode for CI/CD)
+  rules:validate:strict:
+    desc: "Validate all rules in strict mode (fail on warnings)"
+    cmds:
+      - uv run python validate_agent_rules.py --fail-on-warnings
 
   # Prepare for release (fix issues + generate rules)
   release:prepare:

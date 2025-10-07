@@ -5,6 +5,9 @@
 **Version:** 2.1
 **LastUpdated:** 2025-09-25
 
+**TokenBudget:** ~550
+**ContextTier:** Critical
+
 # Universal Memory Bank System
 
 ## Purpose

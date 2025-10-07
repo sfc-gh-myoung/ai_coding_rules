@@ -5,6 +5,9 @@
 **Version:** 1.4
 **LastUpdated:** 2025-10-05
 
+**TokenBudget:** ~400
+**ContextTier:** High
+
 # Snowflake Core Directives
 
 ## Contract

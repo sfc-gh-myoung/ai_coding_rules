@@ -5,6 +5,9 @@
 **Version:** 1.0
 **LastUpdated:** 2025-10-05
 
+**TokenBudget:** ~550
+**ContextTier:** Medium
+
 # Python Classes: Design and Usage Best Practices
 
 ## Purpose

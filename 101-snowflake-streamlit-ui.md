@@ -5,6 +5,9 @@
 **Version:** 1.6
 **LastUpdated:** 2025-10-01
 
+**TokenBudget:** ~1700
+**ContextTier:** Medium
+
 # Streamlit UI/UX Directives
 
 ## Purpose

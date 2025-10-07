@@ -119,27 +119,27 @@ I'll now implement the changes:
 ## Save Agent Session Summary
 
 **Purpose**
-- Save a concise session summary to `<project root>/agent/summaries` for auditability and recall.
+- Save a concise session summary to `<project root>/docs` for auditability and recall.
 
 **Trigger Phrase**
 - User says: `save summary` or `save session summary`
 - **CRITICAL**: When user says "save summary" or "save session summary", you MUST:
   1. Read AGENT.md section "Save Agent Session Summary" first (this section)
-  2. Verify/create directory: `agent/summaries/` (NOT `.agent/` or other locations)
+  2. Verify/create directory: `docs/` (NOT `.docs/` or other locations)
   3. Follow filename convention exactly (kebab-case with date suffix)
   4. Include `Last Update:` timestamp as first line after H1
   5. Use concise session summary format (not exhaustive technical documentation)
 
 **Mandatory Pre-Save Checklist**
 - [ ] Read this AGENTS.md section before writing file
-- [ ] Directory is `agent/summaries/` (not `.agent/`, `docs/`, or other)
+- [ ] Directory is `docs/` (not `.docs/`, `docs/`, or other)
 - [ ] Filename uses kebab-case with date: `desc-part-desc-part-YYYY-MM-DD.md`
 - [ ] File starts with H1, then `Last Update: YYYY-MM-DD HH:MM:SS` on next line
 - [ ] Content is session summary (not exhaustive technical report)
 - [ ] Validation: re-read file to confirm timestamp format and placement
 
 **Behavior**
-- Create a markdown file in `agent/summaries` using filename format:
+- Create a markdown file in `docs/` using filename format:
   `<desc-part>-<desc-part>[-<desc-part>[-<desc-part>[-<desc-part>]]]-YYYY-MM-DD.md`
   - Use 2–5 short, kebab-case description parts summarizing the session focus.
   - Good examples:
@@ -155,7 +155,7 @@ I'll now implement the changes:
     - Formatting: plain text only (no bold or code fencing); exactly `Last Update: ` prefix followed by a single space and the timestamp; no trailing spaces
 
 **Anti-Patterns to Avoid**
-- ❌ Saving to `.agent/`, `docs/`, or any directory other than `agent/summaries/`
+- ❌ Saving to `.docs/` or any directory other than `docs/`
 - ❌ Using snake_case filenames (`my_file_name.md`)
 - ❌ Omitting date suffix from filename (must be `-YYYY-MM-DD.md`)
 - ❌ Missing `Last Update:` timestamp line

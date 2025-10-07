@@ -5,6 +5,9 @@
 **Version:** 1.0
 **LastUpdated:** 2025-10-04
 
+**TokenBudget:** ~350
+**ContextTier:** Medium
+
 # Python Documentation, Comments, and Docstrings
 
 ## Purpose

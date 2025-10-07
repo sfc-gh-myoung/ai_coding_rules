@@ -5,6 +5,9 @@
 **Version:** 1.1
 **LastUpdated:** 2025-09-16
 
+**TokenBudget:** ~700
+**ContextTier:** Medium
+
 # README Best Practices: Professional Project Documentation
 
 ## Purpose

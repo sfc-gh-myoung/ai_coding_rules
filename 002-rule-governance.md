@@ -2,8 +2,8 @@
 **AppliesTo:** `**/*-*.md` rule files, documentation standards
 **AutoAttach:** true
 **Type:** Auto-attach
-**Version:** 2.1
-**LastUpdated:** 2025-10-07
+**Version:** 2.2
+**LastUpdated:** 2025-10-08
 
 # Rule Governance: Universal Standards for AI Coding Rules
 
@@ -466,6 +466,7 @@ When applying this rule:
 
 ### Maintenance Responsibilities
 - **Version Tracking:** Update version number and LastUpdated date for changes
+- **Token Budget Review:** Review and update TokenBudget after significant content changes to reflect actual file size
 - **Dependency Updates:** Update cross-references when related rules change
 - **Content Pruning:** Remove outdated information and broken links
 - **Scope Verification:** Ensure rules remain focused and don't overlap
@@ -603,6 +604,7 @@ Do not use placeholders or guess missing parameters - wait for actual results.
 - **Mandatory:** When creating a new rule, include `Version: 1.0` and `LastUpdated` with current date in YYYY-MM-DD format
 - **Mandatory:** When creating a new rule, declare `TokenBudget` and `ContextTier` in metadata
 - **Mandatory:** When updating any rule file, increment the version number and update `LastUpdated` to the current date in YYYY-MM-DD format
+- **Mandatory:** When updating any rule file, review and update `TokenBudget` to reflect current file size and content (use token budget tiers in Section 5 as guidance: <300 tokens/~150 lines = small, 300-600 tokens/~300 lines = medium, >600 tokens/~500 lines = large)
 - **Always:** When refactoring, split oversized rules and remove content duplication
 - **Always:** When creating or updating rules, verify compliance with emoji usage guidelines (standardized functional markers only: 🔥⚠️✅❌📊🆕)
 - **Forbidden:** Decorative emojis, celebratory emojis, face emojis, or GIF images in rule files
@@ -738,7 +740,7 @@ When applying this rule:
 ## Quick Compliance Checklist
 - [ ] Rule follows mandatory section structure (all 9+ required sections)
 - [ ] Purpose clearly states what rule accomplishes and why
-- [ ] TokenBudget and ContextTier declared in metadata
+- [ ] TokenBudget and ContextTier declared in metadata and reflect current file size
 - [ ] XML tags used for semantic markup (section_metadata, directive_strength)
 - [ ] Contract specifies inputs, tools, steps, output format, and validation with explicit instructions
 - [ ] Anti-Patterns section included with 2-5 examples (CRITICAL for Claude 4)

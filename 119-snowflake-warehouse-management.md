@@ -155,8 +155,6 @@ CREATE OR REPLACE WAREHOUSE WH_BI_TOOLS_GEN2_M
   COMMENT = 'GEN 2 warehouse for BI tools - improved price-performance';
 ```
 
-**Note:** As of 2025, GEN 2 is increasingly the default for new warehouses in supported regions. Always verify your account's warehouse edition settings and explicitly request GEN 2 if options exist.
-
 ## 3. Warehouse Sizing Guidelines
 
 ### 3.1 Size Selection Strategy

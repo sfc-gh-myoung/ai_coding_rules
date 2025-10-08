@@ -2,10 +2,10 @@
 **AppliesTo:** `**/*.py`, `streamlit/**/*`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.6
-**LastUpdated:** 2025-10-01
+**Version:** 1.8
+**LastUpdated:** 2025-10-08
 
-**TokenBudget:** ~1700
+**TokenBudget:** ~1900
 **ContextTier:** Medium
 
 # Streamlit UI/UX Directives
@@ -28,7 +28,7 @@ Provide comprehensive guidance for building modern, performant, and maintainable
 
 ## Key Principles
 - **Performance:** Fast First Paint (<2s), modular architecture, deterministic state; cache data/resources appropriately.
-- **Architecture:** Use page config, pages/ structure, components/ for reuse; avoid raw loops and re-creating connections.
+- **Architecture:** Use st.navigation() for multipage apps, components/ for reusable UI elements, modular code organization; avoid raw loops and re-creating connections.
 - **Configuration:** Centralized configuration via config.toml; consistent theming across deployment modes (SiS vs SPCS).
 - **User Experience:** Clear help text, responsive layouts, no raw exception traces; appropriate status feedback.
 - **Security:** Validate all inputs, use st.secrets for credentials, never hardcode sensitive data.
@@ -41,11 +41,91 @@ Provide comprehensive guidance for building modern, performant, and maintainable
 - **Open-source Streamlit on SPCS:** Deployed as a containerized app via Snowpark Container Services (SPCS). Follow SPCS deployment, networking, image build, and secrets guidance. Configuration, environment, and recommended patterns can differ from SiS.
 - **Always verify the deployment mode first** and apply the correct configuration, best practices, and documentation. Do not mix SiS and open-source Streamlit recommendations.
 
-## 1. Setup and Structure
-- **Always:** Call `st.set_page_config` in the entry point to set title, icon, and wide layout.
+## 1. Setup, Structure, and Navigation
+
+### Basic Setup
+- **Always:** Call `st.set_page_config` in the entrypoint file to set title, icon, and layout (call only once, never in individual pages).
 - **Always:** Initialize session state once at the top level to keep state consistent across re-runs.
-- **Always:** Organize multi-page applications using the `pages/` directory structure ([Multipage Apps tutorial](https://docs.streamlit.io/get-started/tutorials/create-a-multipage-app)).
 - **Always:** Place reusable UI elements (charts, forms) in a `components/` directory.
+
+### Multipage Navigation (Streamlit 1.26+)
+- **Requirement:** Use `st.navigation()` in your entrypoint file for dynamic multipage apps (**recommended pattern**)
+- **Alternative:** Use `pages/` directory for very simple apps (legacy pattern with no customization)
+- **Critical:** When `st.navigation()` is used, the `pages/` directory is ignored across all sessions
+- **Always:** The entrypoint file (passed to `streamlit run`) acts as a router and executes on every rerun
+- **Always:** Call `.run()` on the returned page object to execute the selected page
+
+**Basic Navigation Example:**
+```python
+# streamlit_app.py (entrypoint)
+import streamlit as st
+
+st.set_page_config(page_title="My App", page_icon="📊", layout="wide")
+
+# Define pages
+home = st.Page("pages/home.py", title="Home", icon="🏠", default=True)
+settings = st.Page("pages/settings.py", title="Settings", icon="⚙️")
+
+# Configure and run
+pg = st.navigation([home, settings])
+pg.run()
+```
+
+**Grouped Navigation:**
+```python
+# Use dictionary for sections
+pages = {
+    "Account": [
+        st.Page("create.py", title="Create Account"),
+        st.Page("manage.py", title="Manage Account"),
+    ],
+    "Resources": [
+        st.Page("learn.py", title="Learn"),
+    ],
+}
+pg = st.navigation(pages, position="sidebar")  # or "top" or "hidden"
+pg.run()
+```
+
+**Navigation Position Options:**
+- `position="sidebar"` (default): Vertical sidebar navigation
+- `position="top"`: Horizontal top navigation with collapsible sections
+- `position="hidden"`: No UI (programmatic navigation only)
+- `expanded=True/False`: Control sidebar expansion (sidebar only)
+
+**Shared Widgets Across Pages:**
+```python
+# Define in entrypoint file with explicit keys
+st.sidebar.selectbox("Environment", ["Dev", "Prod"], key="env_filter")
+
+pg = st.navigation([page1, page2])
+pg.run()
+
+# Access in any page: st.session_state.env_filter
+```
+
+**st.Page() Parameters:**
+- `page`: File path or callable function
+- `title`: Display name (auto-generated if omitted)
+- `icon`: Emoji or Material icon (e.g., `:material/home:`)
+- `url_path`: URL routing (auto-generated if omitted)
+- `default`: Set as default page (first page if omitted)
+
+**Page Definition Styles:**
+```python
+# File path, callable, or st.Page() object
+pg = st.navigation([
+    "page_1.py",                                    # Auto title/icon
+    my_function,                                    # Callable
+    st.Page("page_3.py", title="Custom", icon="✨") # Explicit
+])
+pg.run()
+```
+
+**Navigation Methods:**
+- Use `st.page_link()` for inline links within page content
+- Use `st.switch_page()` for programmatic navigation (e.g., after form submission)
+- Never use `st.button()` for navigation (use for actions only)
 
 ## 2. Performance and Caching
 - **Requirement:** Cache database queries and data fetches with `@st.cache_data` and an appropriate `ttl`.
@@ -65,7 +145,8 @@ Provide comprehensive guidance for building modern, performant, and maintainable
 - **Avoid:** Hardcoding theme values in Python code; use centralized configuration instead.
 
 ## 4. UI/UX Design and State Management
-- **Requirement:** Use `st.page_link` for navigation and `st.button` for actions; do not use buttons for navigation.
+- **Reference:** See Section 1 for comprehensive navigation guidance (st.navigation(), st.page_link(), st.switch_page())
+- **Critical:** Use `st.button()` for actions only, never for page navigation
 - **Requirement:** Centralize design tokens (colors, icons) in config.toml rather than hard-coding values.
 - **Requirement:** Provide clear help text (`help="..."`) for complex widgets.
 - **Requirement:** Manage state predictably with `st.session_state` and callbacks for complex updates.
@@ -123,7 +204,7 @@ transformers = df[df['asset_type'] == 'TRANSFORMER']  # Works!
 - **Fallback:** Altair and Matplotlib are acceptable alternatives when Plotly/Pydeck don't meet specific needs
 
 ### Plotly for Charts
-- **Requirement:** Use Plotly Express (`plotly.express`) for most chart types (line, bar, scatter, histogram, box, etc.)
+- **Requirement:** Use Plotly Express (`plotly.express`) for most chart types (interactive, performant, works in both SiS and SPCS)
 - **Always:** Use `st.plotly_chart(fig, use_container_width=True)` for responsive charts
 - **Always:** Configure charts with clear titles, axis labels, and legends
 - **Consider:** Use Plotly Graph Objects (`plotly.graph_objects`) for complex custom visualizations
@@ -162,15 +243,8 @@ fig.update_layout(
 st.plotly_chart(fig, use_container_width=True)
 ```
 
-**Why Plotly:**
-- **Interactivity:** Built-in hover, zoom, pan, and selection tools
-- **Performance:** Efficient rendering for large datasets
-- **Consistency:** Uniform API across chart types
-- **Compatibility:** Works seamlessly in both SiS and SPCS deployments
-- **Customization:** Extensive styling and configuration options
-
 ### Pydeck for Maps
-- **Requirement:** Use Pydeck for all geospatial visualizations (points, heatmaps, hexagons, paths)
+- **Requirement:** Use Pydeck for all geospatial visualizations (GPU-accelerated, rich layer support, 3D capable)
 - **Always:** Pass minimal data to layers (only required columns: latitude, longitude, and needed attributes)
 - **Always:** Use explicit color arrays rather than DataFrame columns with list values
 - **Always:** Reset DataFrame index before passing to Pydeck layers
@@ -219,13 +293,6 @@ deck = pdk.Deck(
 )
 st.pydeck_chart(deck)
 ```
-
-**Why Pydeck:**
-- **Performance:** GPU-accelerated rendering for large geospatial datasets
-- **Layer Support:** Rich set of layer types (scatter, hexagon, heatmap, arc, path)
-- **3D Capabilities:** Support for elevation and 3D visualizations
-- **Deck.gl Integration:** Built on Uber's powerful deck.gl framework
-- **Snowflake Integration:** Native support in Streamlit for Snowflake deployments
 
 ### Visualization Anti-Patterns
 - **Avoid:** Using Altair or Matplotlib for new charts when Plotly meets requirements
@@ -285,27 +352,11 @@ with the specified packages. Packages not found: - python==3.11
 
 **Solution:** Remove `python=X.XX` from dependencies; let Snowflake manage Python version.
 
-### PyDeck Compatibility Issues
-- **Critical:** PyDeck in SiS has strict DataFrame serialization requirements
-- **Always:** Pass only minimal columns (`[['latitude', 'longitude']]`) to PyDeck layers
-- **Always:** Use explicit color arrays, not DataFrame columns with list values
-- **Avoid:** Passing full DataFrames with many columns to PyDeck layers
+### PyDeck Compatibility in SiS
+- **Critical:** PyDeck in SiS has strict DataFrame serialization requirements - see Section 6 Pydeck guidance for details
+- **Always:** Pass minimal columns, use explicit color arrays (not DataFrame columns with list values)
 
-**Problem:**
-```python
-# ❌ Causes TypeError: vars() error during serialization
-assets['color_rgb'] = assets['status'].apply(get_color_function)  # Column with lists
-layer = pdk.Layer('ScatterplotLayer', data=assets, get_color='color_rgb')
-```
-
-**Solution:**
-```python
-# ✓ Works - Minimal data, explicit colors
-minimal_data = assets[['latitude', 'longitude']].reset_index(drop=True)
-layer = pdk.Layer('ScatterplotLayer', data=minimal_data, get_color=[255, 0, 0, 200])
-```
-
-## 7. Media Elements
+## 8. Media Elements
 
 ### Images, Videos, and Audio
 - **Always:** Use `st.image()` for displaying images with proper sizing parameters (`width`, `use_column_width`)
@@ -336,7 +387,7 @@ st.audio("assets/background.mp3", loop=True)
 - **Always:** For SPCS deployments, include assets in container image with proper paths
 - **Consider:** Use CDN for large media files to improve performance
 
-## 8. Chat Interfaces
+## 9. Chat Interfaces
 
 ### Building Conversational UIs
 - **Requirement:** Use `st.chat_message()` to display messages with avatar and role
@@ -377,7 +428,7 @@ if prompt := st.chat_input("Ask a question..."):
 - **Always:** Validate and sanitize user inputs before processing
 - **Consider:** Implement rate limiting for API-backed chat responses
 
-## 9. Status and Feedback Elements
+## 10. Status and Feedback Elements
 
 ### User Feedback Patterns
 - **Requirement:** Use appropriate status elements for different message types:
@@ -416,7 +467,7 @@ except Exception as e:
         st.code(str(e))
 ```
 
-## 10. Testing and Debugging
+## 11. Testing and Debugging
 
 ### Testing Strategies
 - **Requirement:** Write unit tests for data processing functions using pytest
@@ -467,7 +518,7 @@ def test_process_data_handles_empty_input():
 - **Consider:** Use Python profilers (cProfile, line_profiler) for computational bottlenecks
 - **Always:** Test with production-like data volumes during development
 
-## 11. Security and Input Validation
+## 12. Security and Input Validation
 
 ### Input Validation
 - **Mandatory:** Validate and sanitize all user inputs before processing
@@ -526,7 +577,7 @@ api_key = "sk-1234567890abcdef"  # Hardcoded secret!
 - **Consider:** Add audit logging for sensitive operations
 - **Always:** Keep dependencies updated for security patches
 
-## 12. Documentation and User Guidance
+## 13. Documentation and User Guidance
 
 ### Inline Documentation
 - **Requirement:** Provide clear instructions within the app using `st.markdown()` or `st.write()`
@@ -566,7 +617,7 @@ with st.expander("ℹ️ How to interpret this chart"):
 - **Consider:** Include sample data or templates for download
 - **Always:** Document known limitations or browser requirements
 
-## 13. Development Workflow
+## 14. Development Workflow
 
 ### Environment Management
 - **Requirement:** Use virtual environments (venv, conda) for dependency isolation
@@ -602,19 +653,63 @@ conda activate your_env_name
 - **Always:** Update dependencies periodically for performance and security improvements
 - **Always:** Test thoroughly after updating major dependencies
 
-## 14. Anti-Patterns
+## 15. Anti-Patterns
+
+### Navigation Anti-Patterns
+- **❌ Using buttons for navigation:**
+  ```python
+  if st.button("Go to Settings"):
+      st.switch_page("pages/settings.py")  # Unreliable UX
+  ```
+  **✅ Correct:**
+  ```python
+  # Primary navigation in entrypoint
+  pg = st.navigation([home, settings])
+  pg.run()
+  
+  # Or inline link in content
+  st.page_link("pages/settings.py", label="Settings", icon="⚙️")
+  ```
+
+- **❌ Mixing st.navigation() with pages/ directory:**
+  ```python
+  pg = st.navigation([...])  # This disables pages/ directory!
+  ```
+  **✅ Correct - Choose one pattern:**
+  ```python
+  # Recommended: st.navigation()
+  pg = st.navigation(pages)
+  pg.run()
+  ```
+
+- **❌ Not calling pg.run() or setting page config in child pages:**
+  ```python
+  pg = st.navigation([home, settings])
+  # Missing pg.run() - page won't execute!
+  
+  # In pages/dashboard.py
+  st.set_page_config(...)  # Error - only in entrypoint!
+  ```
+  **✅ Correct:**
+  ```python
+  # Entrypoint file only
+  st.set_page_config(title="My App", layout="wide")
+  pg = st.navigation([home, settings])
+  pg.run()  # Critical!
+  ```
+
+### General Anti-Patterns
 - **Avoid:** Mixing business logic and UI rendering in a single large function.
 - **Mandatory:** Never show raw exception traces to users. Use `st.error()` with a clear, actionable message.
 - **Avoid:** Recreating database connections on every interaction.
 - **Avoid:** Embedding custom CSS or HTML style blocks in Python code; use config.toml for theming instead.
 - **Avoid:** Mixing SiS and open-source Streamlit (SPCS) configurations, best practices, and deployment guidance.
 - **Avoid:** Accessing DataFrame columns without normalizing Snowflake's UPPERCASE column names first.
-- **Avoid:** Using buttons for navigation; use `st.page_link()` or `st.switch_page()` instead.
 - **Avoid:** Storing large objects in session state without cleanup strategy.
 - **Avoid:** Ignoring user input validation; always validate and sanitize.
 - **Avoid:** Hardcoding secrets or credentials in source code.
 
-## 15. Documentation and Learning Resources
+## 16. Documentation and Learning Resources
 - **Always:** Reference the official documentation:
   - **Configuration**: https://docs.streamlit.io/develop/concepts/configuration
   - **Configuration and Theming Tutorial**: https://docs.streamlit.io/develop/tutorials/configuration-and-theming
@@ -687,11 +782,20 @@ conda activate your_env_name
 - [ ] Help parameter used in widgets
 - [ ] Known limitations documented
 
+### Navigation & Multipage
+- [ ] Multipage apps use st.navigation() in entrypoint file (recommended) OR pages/ directory (legacy)
+- [ ] st.Page() used to customize page titles, icons, and URL paths when using st.navigation()
+- [ ] Navigation position configured appropriately (sidebar/top/hidden)
+- [ ] Shared widgets defined in entrypoint file with session state keys
+- [ ] pg.run() called to execute selected page
+- [ ] st.set_page_config() called only once in entrypoint file (not in child pages)
+- [ ] Navigation methods used correctly: st.page_link() for links, st.switch_page() for programmatic navigation, never buttons for navigation
+- [ ] Not mixing st.navigation() with pages/ directory pattern
+
 ### Deployment
 - [ ] Deployment type verified (SiS vs open-source on SPCS)
 - [ ] Correct documentation followed for deployment target
 - [ ] Dependencies pinned in requirements.txt or environment.yml
-- [ ] Navigation uses st.page_link or st.switch_page, not buttons
 
 ## Validation
 - **Success checks:** App loads <2s, caching reduces query time, responsive on mobile/desktop, error states handled gracefully, theme applied consistently, configuration loaded properly, media assets load correctly, chat history persists across interactions, input validation prevents invalid data, user feedback clear and actionable, unit tests pass for data processing functions, secrets loaded without errors
@@ -717,7 +821,7 @@ port = 8501
 gatherUsageStats = false
 ```
 
-### Main Application
+### Single-Page Application
 ```python
 import streamlit as st
 from snowflake.connector import connect
@@ -752,6 +856,56 @@ except Exception as e:
     st.error("Unable to load data. Please try again later.")
 ```
 
+### Multipage Application with st.navigation()
+```python
+# streamlit_app.py (entrypoint file)
+import streamlit as st
+
+# Page configuration (only in entrypoint!)
+st.set_page_config(
+    page_title="My App",
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# Initialize session state
+if 'authenticated' not in st.session_state:
+    st.session_state.authenticated = False
+
+# Shared widgets (stateful across pages)
+with st.sidebar:
+    environment = st.selectbox(
+        "Environment",
+        ["Development", "Production"],
+        key="env_filter"
+    )
+    st.divider()
+
+# Define pages with customization
+pages = {
+    "Main": [
+        st.Page("pages/home.py", title="Home", icon="🏠", default=True),
+        st.Page("pages/dashboard.py", title="Dashboard", icon="📊"),
+        st.Page("pages/analytics.py", title="Analytics", icon="📈")
+    ],
+    "Account": [
+        st.Page("pages/profile.py", title="Profile", icon="👤"),
+        st.Page("pages/settings.py", title="Settings", icon="⚙️")
+    ],
+    "Help": [
+        st.Page("pages/docs.py", title="Documentation", icon="📚"),
+        st.Page("pages/support.py", title="Support", icon="💬")
+    ]
+}
+
+# Configure and run navigation
+pg = st.navigation(pages, position="sidebar", expanded=True)
+pg.run()
+```
+
+**Note:** Individual page files follow standard patterns: normalize column names (Section 5), use Plotly for charts (Section 6), implement error handling (Section 10).
+
 ## References
 
 ### External Documentation
@@ -759,6 +913,11 @@ except Exception as e:
 - [Streamlit Configuration](https://docs.streamlit.io/develop/concepts/configuration) - Complete guide to Streamlit configuration options and theming
 - [Configuration and Theming Tutorial](https://docs.streamlit.io/develop/tutorials/configuration-and-theming) - Step-by-step tutorial on customizing app themes and configuration
 - [Streamlit API Reference](https://docs.streamlit.io/library/api-reference) - Complete API reference for all Streamlit components
+- [Streamlit Navigation and Pages](https://docs.streamlit.io/develop/api-reference/navigation) - Modern multipage navigation API overview
+- [st.navigation()](https://docs.streamlit.io/develop/api-reference/navigation/st.navigation) - Configure pages and navigation UI with dynamic control
+- [st.Page()](https://docs.streamlit.io/develop/api-reference/navigation/st.page) - Define and customize individual pages with titles, icons, and paths
+- [st.page_link()](https://docs.streamlit.io/develop/api-reference/navigation/st.page_link) - Create inline links between pages in content
+- [st.switch_page()](https://docs.streamlit.io/develop/api-reference/navigation/st.switch_page) - Programmatic page navigation for workflows
 - [Streamlit Multipage Apps](https://docs.streamlit.io/get-started/tutorials/create-a-multipage-app) - Tutorial on multi-page structure, naming, and navigation
 - [Streamlit 101 Tutorial Series](https://dev.to/jamesbmour/series/28657) - Comprehensive tutorial series covering text elements, data display, input widgets, media elements, data visualization, layouts, chat interfaces, status elements, and page navigation with practical examples
 - [Plotly Documentation](https://plotly.com/python/) - Official Plotly Python graphing library documentation

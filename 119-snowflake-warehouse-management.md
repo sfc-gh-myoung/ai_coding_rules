@@ -2,10 +2,10 @@
 **AppliesTo:** `**/*.sql`, `**/*.scl`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-10-07
+**Version:** 1.2
+**LastUpdated:** 2025-10-08
 
-**TokenBudget:** ~1500
+**TokenBudget:** ~1100
 **ContextTier:** High
 
 # Snowflake Warehouse Management
@@ -44,9 +44,27 @@ Establish comprehensive best practices for creating, configuring, and managing S
 - **Cost Integration:** Every warehouse must be associated with a resource monitor
 - **Monitor and Optimize:** Continuously review warehouse usage and right-size based on Query Profile data
 
-## 1. Warehouse Types and Selection Matrix
+## 1. Warehouse Types and Resource Constraints
 
-### 1.1 Warehouse Type Decision Matrix
+### 1.1 Resource Constraint Options (GEN 2 Mandate)
+
+**Rule:** ALWAYS use `RESOURCE_CONSTRAINT = 'STANDARD_GEN_2'` for new standard warehouses when available (generally available in most AWS/Azure regions, Enterprise Edition+).
+
+**Why GEN 2:** 20-30% better price-performance, ARM architecture, improved query optimization, better concurrency handling.
+
+**Available Resource Constraints:**
+
+| Type | Constraint | Architecture | Memory | Use When |
+|------|-----------|--------------|--------|----------|
+| **Standard GEN 1** | `STANDARD_GEN_1` | x86 | Standard | Legacy/compatibility only |
+| **Standard GEN 2** ✅ | `STANDARD_GEN_2` | ARM | Standard | **Default for all new warehouses** |
+| **High-Memory** | `MEMORY_16X` | ARM | 16X (256GB @ LARGE) | Memory-intensive queries (prove need first) |
+| **High-Memory x86** | `MEMORY_16X_x86` | x86 | 16X | x86-specific compatibility + memory |
+| **Snowpark GPU** | *(implicit)* | GPU | Standard | ML training, GPU UDFs (set WAREHOUSE_TYPE) |
+
+**Note:** Snowpark-Optimized uses `WAREHOUSE_TYPE = 'SNOWPARK-OPTIMIZED'` (GPU implicit, no RESOURCE_CONSTRAINT needed).
+
+### 1.2 Warehouse Type Decision Matrix
 
 | Workload Type | Warehouse Type | Use Cases | Notes |
 |---------------|----------------|-----------|-------|
@@ -56,7 +74,7 @@ Establish comprehensive best practices for creating, configuring, and managing S
 | **ETL/Data Loading** | Standard (CPU) | COPY INTO, data transformation, incremental pipelines | Size based on data volume and SLAs |
 | **Streaming/Real-Time** | Standard (CPU) | Snowpipe, continuous data ingestion, low-latency queries | Keep running or very short auto-suspend |
 
-### 1.2 When to Use GPU (Snowpark-Optimized) Warehouses
+### 1.3 When to Use GPU (Snowpark-Optimized) Warehouses
 
 **Use GPU warehouses for:**
 - Snowpark ML model training with large datasets
@@ -90,7 +108,7 @@ ALTER WAREHOUSE WH_ML_TRAINING_GPU_M SET TAG
   OWNER_TEAM = 'DATA_SCIENCE';
 ```
 
-### 1.3 When to Use High-Memory Warehouses
+### 1.4 When to Use High-Memory Warehouses
 
 **Use High-Memory warehouses for:**
 - Queries with massive intermediate result sets
@@ -109,8 +127,9 @@ ALTER WAREHOUSE WH_ML_TRAINING_GPU_M SET TAG
 ```sql
 -- High-memory warehouse for complex analytics
 CREATE OR REPLACE WAREHOUSE WH_ANALYTICS_HIMEM_L
-  WAREHOUSE_TYPE = 'STANDARD'  -- Type is STANDARD, size includes HIMEM
-  WAREHOUSE_SIZE = 'LARGE_HIMEM'  -- High-memory variant
+  WAREHOUSE_TYPE = 'STANDARD'
+  WAREHOUSE_SIZE = 'LARGE'
+  RESOURCE_CONSTRAINT = 'MEMORY_16X'  -- 16X memory (256 GB for LARGE)
   AUTO_SUSPEND = 300
   AUTO_RESUME = TRUE
   INITIALLY_SUSPENDED = TRUE
@@ -124,40 +143,9 @@ ALTER WAREHOUSE WH_ANALYTICS_HIMEM_L SET TAG
   OWNER_TEAM = 'ANALYTICS';
 ```
 
-## 2. GEN 2 Warehouse Mandate
+## 2. Warehouse Sizing Guidelines
 
-### 2.1 Always Prefer GEN 2
-
-**Rule:** ALWAYS create new warehouses using GEN 2 edition when available in your Snowflake region and account type.
-
-**Why GEN 2:**
-- Better price-performance ratio (typically 20-30% improvement)
-- Improved query optimization and execution
-- Enhanced resource management
-- Better handling of concurrent queries
-- Reduced query queueing
-
-**GEN 2 Availability:**
-- Check regional availability: `SHOW REGIONS;`
-- Enterprise Edition and higher accounts typically have GEN 2 access
-- Use `WAREHOUSE_EDITION = 'GEN2'` parameter (upcoming/available based on account)
-
-**Example GEN 2 Warehouse:**
-```sql
--- GEN 2 warehouse creation (when explicitly settable)
-CREATE OR REPLACE WAREHOUSE WH_BI_TOOLS_GEN2_M
-  WAREHOUSE_TYPE = 'STANDARD'
-  WAREHOUSE_SIZE = 'MEDIUM'
-  -- WAREHOUSE_EDITION = 'GEN2'  -- Set explicitly when parameter available
-  AUTO_SUSPEND = 300
-  AUTO_RESUME = TRUE
-  INITIALLY_SUSPENDED = TRUE
-  COMMENT = 'GEN 2 warehouse for BI tools - improved price-performance';
-```
-
-## 3. Warehouse Sizing Guidelines
-
-### 3.1 Size Selection Strategy
+### 2.1 Size Selection Strategy
 
 **Start Small, Scale Up:**
 1. Begin with XSMALL or SMALL for new workloads
@@ -176,95 +164,55 @@ CREATE OR REPLACE WAREHOUSE WH_BI_TOOLS_GEN2_M
 | **XLARGE** | 16 / 16 | Very large datasets, time-critical workloads | Critical ETL, real-time analytics |
 | **2X/3X/4XLARGE** | 32-128 / 32-128 | Massive parallel processing, extreme performance needs | Rare; requires executive approval |
 
-### 3.2 Multi-Cluster Warehouses
+### 2.2 Multi-Cluster Warehouses
 
-**Use multi-cluster warehouses for:**
-- High concurrency workloads (many users, same queries)
-- BI tools with unpredictable concurrent users
-- Production dashboards with variable traffic
+**Use multi-cluster for:** High concurrency (many users, unpredictable traffic). **Scaling policies:** STANDARD (immediate, favor performance) vs ECONOMY (delayed, favor cost).
 
-**Configuration Pattern:**
 ```sql
--- Multi-cluster warehouse for BI concurrency
 CREATE OR REPLACE WAREHOUSE WH_BI_PRODUCTION_M
   WAREHOUSE_TYPE = 'STANDARD'
   WAREHOUSE_SIZE = 'MEDIUM'
+  RESOURCE_CONSTRAINT = 'STANDARD_GEN_2'
   MIN_CLUSTER_COUNT = 1
   MAX_CLUSTER_COUNT = 5
-  SCALING_POLICY = 'STANDARD'  -- Or 'ECONOMY' for less aggressive scaling
+  SCALING_POLICY = 'STANDARD'  -- Or 'ECONOMY'
   AUTO_SUSPEND = 300
   AUTO_RESUME = TRUE
   INITIALLY_SUSPENDED = TRUE
-  COMMENT = 'Multi-cluster warehouse for production BI - scales 1-5 clusters based on queue depth';
-
--- Apply tags
-ALTER WAREHOUSE WH_BI_PRODUCTION_M SET TAG
-  COST_CENTER = 'BUSINESS_INTELLIGENCE',
-  WORKLOAD_TYPE = 'BI_INTERACTIVE',
-  ENVIRONMENT = 'PROD',
-  OWNER_TEAM = 'BI_PLATFORM';
+  COMMENT = 'Multi-cluster BI warehouse - scales 1-5 clusters';
+-- Apply tags (see Section 4 for tag setup)
 ```
 
-**Scaling Policy Selection:**
-- **STANDARD:** Starts additional clusters immediately when query queue detected (favor performance)
-- **ECONOMY:** Waits to start additional clusters (favor cost, tolerates brief queuing)
+## 3. Auto-Suspend and Auto-Resume Configuration
 
-## 4. Auto-Suspend and Auto-Resume Configuration
-
-### 4.1 Auto-Suspend Best Practices
-
-**Rule:** ALWAYS enable auto-suspend on all warehouses. Never leave warehouses running indefinitely without documented business justification.
+**Rule:** ALWAYS enable auto-suspend. ALWAYS set `AUTO_RESUME = TRUE` (except deprecated warehouses or emergency cost control).
 
 **Recommended Auto-Suspend Settings:**
 
-| Workload Type | Auto-Suspend (seconds) | Rationale |
-|---------------|------------------------|-----------|
-| **Interactive BI/Dashboards** | 300-600 (5-10 min) | Balance between user experience and cost |
-| **Scheduled ETL/Batch** | 60-120 (1-2 min) | Quick shutdown after job completion |
-| **Development/Testing** | 60-180 (1-3 min) | Minimize cost during inactive periods |
-| **Real-time/Streaming** | 60 (1 min) | Short timeout for near-continuous workloads |
-| **ML Training (long jobs)** | 300-600 (5-10 min) | Accommodate interactive experimentation |
-| **Production (24/7 critical)** | 600+ (10+ min) | Balance availability with cost control |
+| Workload Type | Seconds | Rationale |
+|---------------|---------|-----------|
+| **Interactive BI** | 300-600 (5-10 min) | Balance UX and cost |
+| **Batch ETL** | 60-120 (1-2 min) | Quick shutdown post-job |
+| **Dev/Test** | 60-180 (1-3 min) | Minimize dev costs |
+| **Streaming** | 60 (1 min) | Near-continuous use |
+| **ML Training** | 300-600 (5-10 min) | Interactive experimentation |
+| **24/7 Critical** | 600+ (10+ min) | Balance availability/cost |
 
-**Example Configurations:**
 ```sql
--- Interactive BI warehouse
+-- Example: Interactive BI with 5-min timeout
 CREATE OR REPLACE WAREHOUSE WH_INTERACTIVE_BI_M
+  WAREHOUSE_TYPE = 'STANDARD'
   WAREHOUSE_SIZE = 'MEDIUM'
-  AUTO_SUSPEND = 300  -- 5 minutes
+  RESOURCE_CONSTRAINT = 'STANDARD_GEN_2'
+  AUTO_SUSPEND = 300  -- Adjust per workload type above
   AUTO_RESUME = TRUE
   INITIALLY_SUSPENDED = TRUE
-  COMMENT = 'Interactive BI warehouse - 5 min auto-suspend for user experience';
-
--- Batch ETL warehouse
-CREATE OR REPLACE WAREHOUSE WH_ETL_BATCH_L
-  WAREHOUSE_SIZE = 'LARGE'
-  AUTO_SUSPEND = 60  -- 1 minute
-  AUTO_RESUME = TRUE
-  INITIALLY_SUSPENDED = TRUE
-  COMMENT = 'Batch ETL warehouse - aggressive 1 min auto-suspend for cost control';
-
--- Development warehouse
-CREATE OR REPLACE WAREHOUSE WH_DEV_SANDBOX_XS
-  WAREHOUSE_SIZE = 'XSMALL'
-  AUTO_SUSPEND = 120  -- 2 minutes
-  AUTO_RESUME = TRUE
-  INITIALLY_SUSPENDED = TRUE
-  COMMENT = 'Development sandbox - 2 min auto-suspend to minimize dev costs';
+  COMMENT = 'Interactive BI - 5min auto-suspend';
 ```
 
-### 4.2 Auto-Resume Configuration
+## 4. Mandatory Tagging Standards
 
-**Rule:** ALWAYS set `AUTO_RESUME = TRUE` unless there's a specific reason to prevent automatic resumption.
-
-**When to disable auto-resume (rare):**
-- Deprecated warehouses being phased out
-- Emergency cost control measures (prefer resource monitors instead)
-- Warehouses requiring manual approval before use
-
-## 5. Mandatory Tagging Standards
-
-### 5.1 Required Tags for All Warehouses
+### 4.1 Required Tags for All Warehouses
 
 **Rule:** EVERY warehouse MUST have the following tags applied for cost tracking, governance, and lifecycle management.
 
@@ -279,61 +227,33 @@ CREATE OR REPLACE WAREHOUSE WH_DEV_SANDBOX_XS
 | **DATA_CLASSIFICATION** | Data sensitivity | PUBLIC, INTERNAL, CONFIDENTIAL, RESTRICTED | Recommended |
 | **LIFECYCLE_STAGE** | Operational status | ACTIVE, DEPRECATED, EXPERIMENTAL | Recommended |
 
-### 5.2 Tag Creation and Application
+### 4.2 Tag Schema Setup and Application
 
-**Create Tag Schema (one-time setup):**
 ```sql
--- Create governance schema for tags
+-- One-time tag schema setup
 CREATE SCHEMA IF NOT EXISTS GOVERNANCE.TAGS;
 
--- Create mandatory warehouse tags
 CREATE TAG IF NOT EXISTS GOVERNANCE.TAGS.COST_CENTER
-  ALLOWED_VALUES 'FINANCE', 'MARKETING', 'DATA_SCIENCE', 'ENGINEERING', 'OPERATIONS', 'SALES'
-  COMMENT = 'Cost center for chargeback allocation';
+  ALLOWED_VALUES 'FINANCE', 'MARKETING', 'DATA_SCIENCE', 'ENGINEERING', 'OPERATIONS', 'SALES';
 
 CREATE TAG IF NOT EXISTS GOVERNANCE.TAGS.WORKLOAD_TYPE
   ALLOWED_VALUES 'BI_INTERACTIVE', 'BI_SCHEDULED', 'ETL_BATCH', 'ETL_STREAMING', 
-                 'ML_TRAINING', 'ML_INFERENCE', 'ANALYTICS', 'DATA_LOADING', 'DEVELOPMENT'
-  COMMENT = 'Workload type classification for optimization';
+                 'ML_TRAINING', 'ML_INFERENCE', 'ANALYTICS', 'DATA_LOADING', 'DEVELOPMENT';
 
 CREATE TAG IF NOT EXISTS GOVERNANCE.TAGS.ENVIRONMENT
-  ALLOWED_VALUES 'DEV', 'QA', 'STAGING', 'PROD'
-  COMMENT = 'Deployment environment';
+  ALLOWED_VALUES 'DEV', 'QA', 'STAGING', 'PROD';
 
-CREATE TAG IF NOT EXISTS GOVERNANCE.TAGS.OWNER_TEAM
-  COMMENT = 'Team responsible for warehouse management and costs';
+CREATE TAG IF NOT EXISTS GOVERNANCE.TAGS.OWNER_TEAM;
 
-CREATE TAG IF NOT EXISTS GOVERNANCE.TAGS.DATA_CLASSIFICATION
-  ALLOWED_VALUES 'PUBLIC', 'INTERNAL', 'CONFIDENTIAL', 'RESTRICTED'
-  COMMENT = 'Highest data classification level processed';
-
-CREATE TAG IF NOT EXISTS GOVERNANCE.TAGS.LIFECYCLE_STAGE
-  ALLOWED_VALUES 'ACTIVE', 'DEPRECATED', 'EXPERIMENTAL', 'DECOMMISSIONED'
-  COMMENT = 'Operational lifecycle stage';
+-- Apply tags to warehouses (after creation)
+ALTER WAREHOUSE WH_[NAME] SET TAG
+  GOVERNANCE.TAGS.COST_CENTER = '[VALUE]',
+  GOVERNANCE.TAGS.WORKLOAD_TYPE = '[VALUE]',
+  GOVERNANCE.TAGS.ENVIRONMENT = '[VALUE]',
+  GOVERNANCE.TAGS.OWNER_TEAM = '[VALUE]';
 ```
 
-**Apply Tags to Warehouses:**
-```sql
--- Complete warehouse creation with tagging
-CREATE OR REPLACE WAREHOUSE WH_MARKETING_ANALYTICS_M
-  WAREHOUSE_TYPE = 'STANDARD'
-  WAREHOUSE_SIZE = 'MEDIUM'
-  AUTO_SUSPEND = 300
-  AUTO_RESUME = TRUE
-  INITIALLY_SUSPENDED = TRUE
-  COMMENT = 'Marketing analytics warehouse for campaign reporting and attribution';
-
--- Apply all mandatory tags
-ALTER WAREHOUSE WH_MARKETING_ANALYTICS_M SET TAG
-  GOVERNANCE.TAGS.COST_CENTER = 'MARKETING',
-  GOVERNANCE.TAGS.WORKLOAD_TYPE = 'BI_INTERACTIVE',
-  GOVERNANCE.TAGS.ENVIRONMENT = 'PROD',
-  GOVERNANCE.TAGS.OWNER_TEAM = 'MARKETING_ANALYTICS',
-  GOVERNANCE.TAGS.DATA_CLASSIFICATION = 'CONFIDENTIAL',
-  GOVERNANCE.TAGS.LIFECYCLE_STAGE = 'ACTIVE';
-```
-
-### 5.3 Tag Validation Query
+### 4.3 Tag Validation Query
 
 ```sql
 -- Verify all warehouses have required tags
@@ -378,254 +298,93 @@ WHERE w.deleted IS NULL
 ORDER BY w.name, rt.tag_name;
 ```
 
-## 6. Cost Governance and Resource Monitor Integration
+## 5. Cost Governance and Resource Monitors
 
-### 6.1 Resource Monitor Association
+**Rule:** EVERY production warehouse MUST be associated with a resource monitor.
 
-**Rule:** EVERY production warehouse MUST be associated with a resource monitor. Development warehouses SHOULD have monitors with appropriate quotas.
-
-**Resource Monitor Strategy:**
 ```sql
--- Account-level resource monitor (safety net)
+-- Account-level monitor (safety net)
 CREATE RESOURCE MONITOR IF NOT EXISTS RM_ACCOUNT_MONTHLY
-  WITH CREDIT_QUOTA = 50000  -- Adjust based on contract
+  WITH CREDIT_QUOTA = 50000
   FREQUENCY = MONTHLY
   START_TIMESTAMP = IMMEDIATELY
-  TRIGGERS 
-    ON 75 PERCENT DO NOTIFY
-    ON 90 PERCENT DO NOTIFY
-    ON 100 PERCENT DO SUSPEND;
+  TRIGGERS ON 75 PERCENT DO NOTIFY, ON 100 PERCENT DO SUSPEND;
 
--- Set account-level monitor
 ALTER ACCOUNT SET RESOURCE_MONITOR = RM_ACCOUNT_MONTHLY;
 
 -- Workload-specific monitors
 CREATE RESOURCE MONITOR IF NOT EXISTS RM_BI_WORKLOADS
-  WITH CREDIT_QUOTA = 5000
-  FREQUENCY = MONTHLY
-  START_TIMESTAMP = IMMEDIATELY
-  TRIGGERS 
-    ON 75 PERCENT DO NOTIFY
-    ON 90 PERCENT DO NOTIFY
-    ON 100 PERCENT DO SUSPEND;
+  WITH CREDIT_QUOTA = 5000 FREQUENCY = MONTHLY
+  TRIGGERS ON 75 PERCENT DO NOTIFY, ON 100 PERCENT DO SUSPEND;
 
-CREATE RESOURCE MONITOR IF NOT EXISTS RM_DEV_WORKLOADS
-  WITH CREDIT_QUOTA = 500
-  FREQUENCY = MONTHLY
-  START_TIMESTAMP = IMMEDIATELY
-  TRIGGERS 
-    ON 80 PERCENT DO NOTIFY
-    ON 100 PERCENT DO SUSPEND_IMMEDIATE;  -- Aggressive for dev
-
-CREATE RESOURCE MONITOR IF NOT EXISTS RM_ML_WORKLOADS
-  WITH CREDIT_QUOTA = 3000
-  FREQUENCY = MONTHLY
-  START_TIMESTAMP = IMMEDIATELY
-  TRIGGERS 
-    ON 75 PERCENT DO NOTIFY
-    ON 90 PERCENT DO NOTIFY
-    ON 100 PERCENT DO SUSPEND;
-
--- Associate warehouses with monitors
-ALTER WAREHOUSE WH_BI_PRODUCTION_M SET RESOURCE_MONITOR = RM_BI_WORKLOADS;
-ALTER WAREHOUSE WH_DEV_SANDBOX_XS SET RESOURCE_MONITOR = RM_DEV_WORKLOADS;
-ALTER WAREHOUSE WH_ML_TRAINING_GPU_M SET RESOURCE_MONITOR = RM_ML_WORKLOADS;
+-- Associate warehouse with monitor
+ALTER WAREHOUSE WH_[NAME] SET RESOURCE_MONITOR = RM_BI_WORKLOADS;
 ```
 
-### 6.2 Cost Monitoring Queries
-
-**Daily warehouse cost tracking:**
+**Key cost monitoring query (see `111-snowflake-observability.md` for complete monitoring suite):**
 ```sql
--- Daily warehouse costs (last 30 days)
-SELECT 
-  warehouse_name,
-  DATE_TRUNC('day', start_time) AS usage_date,
-  SUM(credits_used) AS daily_credits,
-  COUNT(DISTINCT query_id) AS query_count,
-  AVG(execution_time) / 1000 AS avg_execution_seconds
-FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY
-WHERE start_time >= DATEADD(day, -30, CURRENT_TIMESTAMP())
-GROUP BY warehouse_name, DATE_TRUNC('day', start_time)
-ORDER BY warehouse_name, usage_date DESC;
-
--- Warehouse efficiency analysis
-SELECT 
-  warehouse_name,
-  SUM(credits_used) AS total_credits,
-  SUM(credits_used_compute) AS compute_credits,
-  SUM(credits_used_cloud_services) AS cloud_services_credits,
-  ROUND(SUM(credits_used_cloud_services) / NULLIF(SUM(credits_used), 0) * 100, 2) AS cloud_services_pct,
-  COUNT(DISTINCT DATE_TRUNC('day', start_time)) AS active_days
-FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY
-WHERE start_time >= DATEADD(day, -30, CURRENT_TIMESTAMP())
-GROUP BY warehouse_name
-ORDER BY total_credits DESC;
-
--- Identify idle or underutilized warehouses
-SELECT 
-  w.name AS warehouse_name,
-  w.size,
-  w.auto_suspend,
-  COALESCE(SUM(wm.credits_used), 0) AS credits_last_30d,
-  COALESCE(COUNT(DISTINCT wm.query_id), 0) AS queries_last_30d,
-  DATEDIFF(day, MAX(wm.start_time), CURRENT_TIMESTAMP()) AS days_since_last_use
+-- Identify idle/underutilized warehouses
+SELECT w.name, w.size, COALESCE(SUM(wm.credits_used), 0) AS credits_30d
 FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSES w
 LEFT JOIN SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY wm
-  ON wm.warehouse_name = w.name
-  AND wm.start_time >= DATEADD(day, -30, CURRENT_TIMESTAMP())
+  ON wm.warehouse_name = w.name AND wm.start_time >= DATEADD(day, -30, CURRENT_TIMESTAMP())
 WHERE w.deleted IS NULL
-GROUP BY w.name, w.size, w.auto_suspend
-HAVING credits_last_30d < 10 OR queries_last_30d < 100
-ORDER BY days_since_last_use DESC;
+GROUP BY w.name, w.size
+HAVING credits_30d < 10
+ORDER BY credits_30d DESC;
 ```
 
-## 7. Warehouse Naming Conventions
+## 6. Naming Conventions and Lifecycle
 
-**Rule:** Follow consistent naming pattern: `WH_[WORKLOAD]_[TYPE?]_[SIZE?]`
+**Naming Pattern:** `WH_[WORKLOAD]_[TYPE?]_[SIZE?]`
+- **Examples:** `WH_MARKETING_M`, `WH_ML_TRAINING_GPU_M`, `WH_ANALYTICS_HIMEM_XL`, `WH_DEV_SANDBOX_XS`
 
-**Pattern Components:**
-- **Prefix:** Always `WH_` to group warehouses in object explorers
-- **Workload:** Descriptive name (MARKETING, ETL, ML_TRAINING, BI_TOOLS)
-- **Type (optional):** GPU, HIMEM for non-standard types
-- **Size (optional):** S, M, L, XL suffix when multiple sizes exist
+**Right-Sizing Signals:**
+- **Scale UP:** Consistent queueing (queued_overload_time > 0), P95 execution time > requirements, missing SLAs
+- **Scale DOWN:** Utilization < 30%, no queueing in 30 days, queries finish well within SLAs
+- **Use Multi-Cluster:** High concurrency but individual queries fast
 
-**Examples:**
-- `WH_MARKETING_M` - Marketing team warehouse, Medium
-- `WH_ETL_BATCH_L` - ETL batch processing, Large
-- `WH_ML_TRAINING_GPU_M` - ML training with GPU, Medium
-- `WH_ANALYTICS_HIMEM_XL` - High-memory analytics, XLarge
-- `WH_BI_TOOLS` - BI tools warehouse (size may vary with multi-cluster)
-- `WH_DEV_SANDBOX_XS` - Development sandbox, XSmall
-
-## 8. Query Monitoring and Performance Optimization
-
-### 8.1 Warehouse Performance Monitoring
-
-**Monitor these key metrics:**
+**Performance monitoring (detailed queries in `111-snowflake-observability.md`):**
 ```sql
--- Warehouse queue depth and performance
-SELECT 
-  warehouse_name,
-  DATE_TRUNC('hour', start_time) AS hour,
-  COUNT(*) AS query_count,
-  AVG(queued_overload_time) / 1000 AS avg_queue_seconds,
-  MAX(queued_overload_time) / 1000 AS max_queue_seconds,
-  AVG(execution_time) / 1000 AS avg_execution_seconds,
-  PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY execution_time) / 1000 AS p95_execution_seconds
+-- Quick queue check
+SELECT warehouse_name, AVG(queued_overload_time)/1000 AS avg_queue_sec
 FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
 WHERE start_time >= DATEADD(hour, -24, CURRENT_TIMESTAMP())
-  AND warehouse_name IS NOT NULL
-GROUP BY warehouse_name, DATE_TRUNC('hour', start_time)
-HAVING AVG(queued_overload_time) > 0  -- Show only when queueing occurred
-ORDER BY warehouse_name, hour DESC;
-
--- Identify queries that would benefit from larger warehouse
-SELECT 
-  query_id,
-  query_text,
-  warehouse_name,
-  warehouse_size,
-  total_elapsed_time / 1000 AS elapsed_seconds,
-  execution_time / 1000 AS execution_seconds,
-  bytes_scanned / POWER(1024, 3) AS gb_scanned,
-  partitions_scanned,
-  partitions_total,
-  ROUND(partitions_scanned / NULLIF(partitions_total, 0) * 100, 2) AS pruning_pct
-FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
-WHERE start_time >= DATEADD(day, -7, CURRENT_TIMESTAMP())
-  AND execution_time > 60000  -- Over 1 minute
-  AND warehouse_name IS NOT NULL
-ORDER BY execution_time DESC
-LIMIT 100;
+GROUP BY warehouse_name HAVING avg_queue_sec > 0;
 ```
 
-### 8.2 Right-Sizing Recommendations
+### 6.1 Warehouse Decommissioning
 
-**When to scale UP:**
-- Consistent query queueing (queued_overload_time > 0)
-- P95 execution time exceeds business requirements
-- Critical queries missing SLA targets
-- Query Profile shows good pruning but long execution
-
-**When to scale DOWN:**
-- Average utilization consistently < 30%
-- Queries complete well within SLA targets
-- No queueing in past 30 days
-- Cost optimization initiative without performance impact
-
-**When to use Multi-Cluster:**
-- Concurrency issues but individual queries are fast
-- Same queries run by many users simultaneously
-- BI tool query patterns with unpredictable peaks
-
-## 9. Warehouse Lifecycle Management
-
-### 9.1 Warehouse Provisioning Checklist
-
-- [ ] Workload type assessed and documented
-- [ ] Appropriate warehouse type selected (Standard/GPU/High-Memory)
-- [ ] GEN 2 edition verified and used
-- [ ] Starting size determined (prefer XSMALL/SMALL)
-- [ ] Auto-suspend configured (60-600 seconds based on workload)
-- [ ] Auto-resume enabled (TRUE in most cases)
-- [ ] All mandatory tags applied (COST_CENTER, WORKLOAD_TYPE, ENVIRONMENT, OWNER_TEAM)
-- [ ] Resource monitor associated
-- [ ] Warehouse documented in inventory/wiki
-- [ ] Cost baseline and budget allocated
-- [ ] Monitoring alerts configured
-- [ ] Initial performance validation completed
-
-### 9.2 Warehouse Decommissioning Process
-
-**Steps to decommission a warehouse:**
 ```sql
--- 1. Mark as deprecated
-ALTER WAREHOUSE WH_OLD_WAREHOUSE SET TAG
-  GOVERNANCE.TAGS.LIFECYCLE_STAGE = 'DEPRECATED';
+-- 1. Mark deprecated, disable auto-resume
+ALTER WAREHOUSE WH_OLD SET TAG GOVERNANCE.TAGS.LIFECYCLE_STAGE = 'DEPRECATED';
+ALTER WAREHOUSE WH_OLD SET AUTO_RESUME = FALSE;
 
--- 2. Notify users and redirect workloads
-UPDATE GOVERNANCE.WAREHOUSE_INVENTORY
-SET status = 'DEPRECATED',
-    deprecation_date = CURRENT_TIMESTAMP(),
-    replacement_warehouse = 'WH_NEW_WAREHOUSE',
-    decommission_target_date = DATEADD(day, 30, CURRENT_TIMESTAMP())
-WHERE warehouse_name = 'WH_OLD_WAREHOUSE';
+-- 2. Monitor usage for 7 days
+SELECT COUNT(*) FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
+WHERE warehouse_name = 'WH_OLD' AND start_time >= DATEADD(day, -7, CURRENT_TIMESTAMP());
 
--- 3. Disable auto-resume (prevent accidental use)
-ALTER WAREHOUSE WH_OLD_WAREHOUSE SET AUTO_RESUME = FALSE;
-
--- 4. After grace period, suspend and verify no usage
-ALTER WAREHOUSE WH_OLD_WAREHOUSE SUSPEND;
-
--- 5. Monitor for any attempted usage
-SELECT 
-  query_id,
-  user_name,
-  role_name,
-  start_time,
-  query_text
-FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
-WHERE warehouse_name = 'WH_OLD_WAREHOUSE'
-  AND start_time >= DATEADD(day, -7, CURRENT_TIMESTAMP())
-ORDER BY start_time DESC;
-
--- 6. Final decommission after confirming zero usage
-DROP WAREHOUSE IF EXISTS WH_OLD_WAREHOUSE;
+-- 3. Drop after confirming zero usage
+DROP WAREHOUSE IF EXISTS WH_OLD;
 ```
 
 ## Quick Compliance Checklist
-- [ ] Warehouse type appropriately selected (Standard CPU / GPU / High-Memory)
-- [ ] GEN 2 edition preferred and used when available
-- [ ] Warehouse sized appropriately (started small, scaled based on metrics)
-- [ ] Auto-suspend configured (60-600 seconds, never disabled without justification)
-- [ ] Auto-resume enabled (TRUE unless specific reason)
+
+**Provisioning:**
+- [ ] Workload type assessed, appropriate warehouse type selected (Standard/GPU/High-Memory)
+- [ ] GEN 2 edition used (`RESOURCE_CONSTRAINT = 'STANDARD_GEN_2'`)
+- [ ] Sized appropriately (started XSMALL/SMALL, scaled based on metrics)
+- [ ] Auto-suspend configured (60-600 sec), auto-resume enabled
 - [ ] All mandatory tags applied (COST_CENTER, WORKLOAD_TYPE, ENVIRONMENT, OWNER_TEAM)
-- [ ] Resource monitor associated with warehouse
-- [ ] Naming convention followed (WH_[WORKLOAD]_[TYPE?]_[SIZE?])
-- [ ] INITIALLY_SUSPENDED = TRUE set for new warehouses
-- [ ] Multi-cluster settings appropriate for concurrency needs
-- [ ] Warehouse documented with business justification and expected workload
-- [ ] Performance monitoring queries configured and reviewed regularly
+- [ ] Resource monitor associated
+- [ ] Naming convention followed (`WH_[WORKLOAD]_[TYPE?]_[SIZE?]`)
+- [ ] `INITIALLY_SUSPENDED = TRUE` set
+- [ ] Documented with business justification
+
+**Validation:**
+- [ ] Warehouse created successfully, tags verified
+- [ ] Auto-suspend working, Query Profile shows expected performance
+- [ ] Cost tracking functional, monitoring queries configured
 
 ## Validation
 - **Success Checks:** Warehouse created successfully with correct type and edition; all mandatory tags present; auto-suspend working as configured; resource monitor association verified; Query Profile shows expected performance; cost tracking functional in monitoring queries; warehouse appears in governance inventory
@@ -633,10 +392,11 @@ DROP WAREHOUSE IF EXISTS WH_OLD_WAREHOUSE;
 
 ## Response Template
 ```sql
--- Standard CPU warehouse for BI workloads (GEN 2)
+-- Standard CPU warehouse for BI workloads (GEN 2 preferred)
 CREATE OR REPLACE WAREHOUSE WH_[WORKLOAD]_M
   WAREHOUSE_TYPE = 'STANDARD'
   WAREHOUSE_SIZE = 'MEDIUM'
+  RESOURCE_CONSTRAINT = 'STANDARD_GEN_2'  -- Use GEN 2 when available (omit if not available)
   AUTO_SUSPEND = 300  -- 5 minutes
   AUTO_RESUME = TRUE
   INITIALLY_SUSPENDED = TRUE

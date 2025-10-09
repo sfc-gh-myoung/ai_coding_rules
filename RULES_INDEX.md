@@ -1,7 +1,7 @@
 **Description:** Top-level index of rule files with purpose, scope, and dependencies.
 **AutoAttach:** true
 **Type:** Auto-attach
-**Version:** 1.5
+**Version:** 1.6
 **LastUpdated:** 2025-10-09
 
 # Rules Index
@@ -36,6 +36,7 @@ This index helps agents select the correct rule quickly. Documentation files lik
 | `120-snowflake-spcs.md` | Agent Requested | Snowpark Container Services best practices | SPCS | `100-snowflake-core.md` |
 | `121-snowflake-snowpipe.md` | Agent Requested | Snowpipe and Snowpipe Streaming for continuous near-real-time ingestion (auto-ingest, REST API, SDK) | Data ingestion | `100-snowflake-core.md`, `108-snowflake-data-loading.md`, `104-snowflake-streams-tasks.md` |
 | `122-snowflake-dynamic-tables.md` | Agent Requested | Dynamic Tables best practices: refresh modes, lag config, pipeline design | Dynamic Tables | `100-snowflake-core.md`, `104-snowflake-streams-tasks.md`, `119-snowflake-warehouse-management.md` |
+| `123-snowflake-object-tagging.md` | Agent Requested | Object tagging best practices: governance, cost attribution, tag-based policies | Object Tagging | `100-snowflake-core.md`, `105-snowflake-cost-governance.md`, `107-snowflake-security-governance.md`, `119-snowflake-warehouse-management.md` |
 | `200-python-core.md` | Agent Requested | Modern Python engineering with uv/Ruff | Python | `000-global-core.md` |
 | `201-python-lint-format.md` | Agent Requested | Ruff linting/formatting policy | Linting | `200-python-core.md` |
 | `202-yaml-config-best-practices.md` | Agent Requested | YAML safety and reliability | YAML/config | — |

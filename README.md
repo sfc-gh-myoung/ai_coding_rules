@@ -204,6 +204,7 @@ The following best practices apply to all AI coding assistants and development e
 - **`119-snowflake-warehouse-management.md`** — Warehouse management best practices (creation, type selection CPU/GPU/High-Memory, sizing, tagging, cost governance)
 - **`120-snowflake-spcs.md`** — Snowpark Container Services best practices (containerized applications, compute pools, service management)
 - **`121-snowflake-snowpipe.md`** — Snowpipe and Snowpipe Streaming best practices (continuous near-real-time ingestion, auto-ingest, REST API, SDK)
+- **`122-snowflake-dynamic-tables.md`** — Dynamic Tables best practices (refresh modes, lag configuration, pipeline design, performance optimization)
 
 ### Software Engineering - Python (200-299)
 - **`200-python-core.md`** — Modern Python engineering with `uv` and Ruff (environment management, code structure, reliability)

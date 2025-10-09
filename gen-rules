@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# ~/bin/gen-rules
+set -euo pipefail
+
+PROJECT_DIR="${HOME}/Development/utility_demo_v2/ai_coding_rules"
+
+if [[ ! -d "$PROJECT_DIR" ]]; then
+  echo "Error: Project directory not found: $PROJECT_DIR" >&2
+  exit 1
+fi
+
+# Check if user already provided DEST
+if [[ " $* " =~ " DEST=" ]]; then
+  # User provided DEST, use theirs
+  exec task -d "$PROJECT_DIR" "$@"
+else
+  # No DEST provided, default to current directory
+  exec task -d "$PROJECT_DIR" "$@" DEST="${PWD}"
+fi

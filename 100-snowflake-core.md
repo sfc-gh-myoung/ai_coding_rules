@@ -57,7 +57,7 @@ Establish comprehensive foundational practices for all Snowflake development wor
 - **Always:** Reference Snowflake performance documentation for query tuning guidance: https://docs.snowflake.com/en/user-guide/performance-overview
 
 ## 3. Security and Governance
-- **Rule:** Enforce governance with masking policies, row access policies, and tagging, especially for sensitive data.
+- **Rule:** Enforce governance with masking policies, row access policies, and tagging, especially for sensitive data. See `123-snowflake-object-tagging.md` for comprehensive tagging patterns.
 - **Rule:** Never use `SELECT *` in production code. Explicitly project required columns.
 - **Always:** Use Time Travel and Cloning for safe development, testing, and dev/test isolation.
 - **Always:** Reference Snowflake security and governance documentation for best practices: https://docs.snowflake.com/en/user-guide/data-governance-intro
@@ -128,6 +128,7 @@ SELECT * FROM agg;
   - `105-snowflake-cost-governance.md`: Workload isolation, resource monitors, right-sizing, anomaly detection.
   - `106-snowflake-semantic-views.md`: Layering (staging/core/semantic), naming conventions, and slim views.
   - `107-snowflake-security-governance.md`: Masking policies, row access, tagging, and role strategies.
+  - `123-snowflake-object-tagging.md`: Object tagging for governance, cost attribution, and policy automation.
   - `108-snowflake-data-loading.md`: Stages and `COPY INTO` for bulk loading.
   - `121-snowflake-snowpipe.md`: Snowpipe and Snowpipe Streaming for continuous near-real-time ingestion.
   - `109-snowflake-notebooks.md`: Jupyter Notebooks in Snowflake best practices.
@@ -178,6 +179,7 @@ SELECT * FROM agg;
 - **Performance Tuning**: `103-snowflake-performance-tuning.md`
 - **Cost Governance**: `105-snowflake-cost-governance.md`
 - **Security Governance**: `107-snowflake-security-governance.md`
+- **Object Tagging**: `123-snowflake-object-tagging.md`
 - **Data Loading**: `108-snowflake-data-loading.md`
 - **Snowpipe**: `121-snowflake-snowpipe.md`
 - **Warehouse Management**: `119-snowflake-warehouse-management.md`

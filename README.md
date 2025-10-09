@@ -140,7 +140,7 @@ Concatenate selected `.md` files for use with LLM tools like Claude Projects, Ch
 
 #### Option 4: System-Wide Rule Generation Script (gen-rules)
 
-For convenient rule generation from anywhere on your system, install the `gen-rules` wrapper script in your `~/bin/` directory. This script automatically runs rule generation tasks from any location, defaulting to generate rules into your current working directory.
+For convenient rule generation from anywhere on your system, install the production-ready `gen-rules` wrapper script in your `~/bin/` directory. This script automatically runs rule generation tasks from any location, defaulting to generate rules into your current working directory.
 
 **Installation:**
 
@@ -152,34 +152,19 @@ cp gen-rules ~/bin/gen-rules
 chmod +x ~/bin/gen-rules
 ```
 
-2. Update `PROJECT_DIR` in `~/bin/gen-rules` to match your actual installation path
+2. Update the default `PROJECT_DIR` in `~/bin/gen-rules` if your installation path differs, or use the `--project` flag or `GEN_RULES_PROJECT_DIR` environment variable
 3. Ensure `~/bin` is in your `PATH`
 
-**Script Reference (for reference, already included in project):**
+**Features:**
 
-```bash
-#!/usr/bin/env bash
-# ~/bin/gen-rules
-set -euo pipefail
+- ✅ **Production-ready** - Comprehensive error handling, validation, and logging
+- ✅ **Flexible configuration** - Override project directory via flag or environment variable
+- ✅ **Debug support** - Verbose and debug modes for troubleshooting
+- ✅ **Robust validation** - Checks dependencies, permissions, and project structure
+- ✅ **Help documentation** - Built-in help and version information
+- ✅ **Meaningful exit codes** - Distinguishes between error types (0-4)
 
-PROJECT_DIR="${HOME}/Development/utility_demo_v2/ai_coding_rules"
-
-if [[ ! -d "$PROJECT_DIR" ]]; then
-  echo "Error: Project directory not found: $PROJECT_DIR" >&2
-  exit 1
-fi
-
-# Check if user already provided DEST
-if [[ " $* " =~ " DEST=" ]]; then
-  # User provided DEST, use theirs
-  exec task -d "$PROJECT_DIR" "$@"
-else
-  # No DEST provided, default to current directory
-  exec task -d "$PROJECT_DIR" "$@" DEST="${PWD}"
-fi
-```
-
-**Usage Examples:**
+**Basic Usage:**
 
 ```bash
 # From ANY directory, generate rules into that directory
@@ -197,10 +182,68 @@ gen-rules status                   # Check project status
 gen-rules rule:cursor:dry          # Dry run preview
 ```
 
+**Advanced Usage:**
+
+```bash
+# Show help and all options
+gen-rules --help
+
+# Show version
+gen-rules --version
+
+# Enable verbose output
+gen-rules --verbose rule:all
+
+# Enable debug mode (includes verbose output)
+gen-rules --debug rule:cursor
+
+# Override project directory with flag
+gen-rules --project ~/my-custom-rules rule:cursor
+
+# Override project directory with environment variable
+export GEN_RULES_PROJECT_DIR=~/my-rules
+gen-rules rule:copilot
+
+# Combine options
+gen-rules --verbose --project ~/my-rules rule:all DEST=/output
+```
+
+**Options:**
+
+| Option | Description |
+|--------|-------------|
+| `-h, --help` | Show help message with full usage documentation |
+| `-v, --verbose` | Enable verbose output (shows info-level logs) |
+| `-d, --debug` | Enable debug mode (shows all logs including debug) |
+| `-V, --version` | Show script version information |
+| `-p, --project DIR` | Override project directory location |
+
+**Environment Variables:**
+
+| Variable | Description |
+|----------|-------------|
+| `GEN_RULES_PROJECT_DIR` | Override default project directory path |
+| `DEBUG` | Enable debug mode (set to `true`) |
+| `VERBOSE` | Enable verbose mode (set to `true`) |
+
+**Exit Codes:**
+
+| Code | Meaning |
+|------|---------|
+| 0 | Success |
+| 1 | General error |
+| 2 | Invalid arguments |
+| 3 | Missing dependency (e.g., `task` not installed) |
+| 4 | Invalid project directory |
+
 **How It Works:**
 
 - Uses Task's `-d` flag to run tasks from the ai_coding_rules project directory
 - Automatically passes `DEST=${PWD}` to default to your current directory
+- Validates dependencies (`task` command) before execution
+- Checks project directory structure (Taskfile.yml, generate_agent_rules.py)
+- Verifies current directory is writable before proceeding
+- Provides detailed error messages with suggestions for resolution
 - Allows explicit `DEST` override for custom output locations
 - No `cd` required—works from anywhere
 
@@ -210,6 +253,10 @@ gen-rules rule:cursor:dry          # Dry run preview
 - ✅ Automatic current-directory detection (no manual path specification needed)
 - ✅ Clean, memorable command (`gen-rules` vs full task path)
 - ✅ Access to all Taskfile tasks from anywhere
+- ✅ Production-ready with comprehensive error handling
+- ✅ Flexible configuration via flags or environment variables
+- ✅ Debug and troubleshooting support built-in
+- ✅ Follows bash scripting best practices (see `300-bash-scripting-core.md`)
 
 ## Rule Categories
 

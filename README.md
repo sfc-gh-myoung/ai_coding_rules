@@ -206,6 +206,7 @@ The following best practices apply to all AI coding assistants and development e
 - **`121-snowflake-snowpipe.md`** — Snowpipe and Snowpipe Streaming best practices (continuous near-real-time ingestion, auto-ingest, REST API, SDK)
 - **`122-snowflake-dynamic-tables.md`** — Dynamic Tables best practices (refresh modes, lag configuration, pipeline design, performance optimization)
 - **`123-snowflake-object-tagging.md`** — Object tagging best practices (governance, cost attribution, tag-based masking policies, inheritance, monitoring)
+- **`124-snowflake-data-quality.md`** — Data Quality Monitoring best practices (DMFs, data profiling, expectations, scheduling, alerts, cost management)
 
 ### Software Engineering - Python (200-299)
 - **`200-python-core.md`** — Modern Python engineering with `uv` and Ruff (environment management, code structure, reliability)

@@ -38,7 +38,7 @@
 - **Continuous awareness:** Display mode banner in every response
 
 ## Rule system architecture
-- **50+ specialized rule files** organized by category (000-900)
+- **51+ specialized rule files** organized by category (000-900)
 - **Use `RULES_INDEX.md`** to quickly find relevant rules for specific technologies
 - **Rule types**: Auto-attach (universal) vs Agent Requested (technology-specific)
 - **Dependency chain**: Always reference core rules (000-global-core.md) → specific technology rules

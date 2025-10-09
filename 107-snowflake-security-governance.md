@@ -35,7 +35,7 @@ Establish comprehensive data security and access control practices using Snowfla
 ## 2. Data Protection Policies
 - **Always:** Use masking policies to dynamically mask or tokenize sensitive data in columns.
 - **Always:** Use row access policies to enforce row-level security based on a user's role or other session context.
-- **Always:** Apply object tagging to classify data for governance purposes (e.g., PII, `SENSITIVITY_LEVEL`).
+- **Always:** Apply object tagging to classify data for governance purposes (e.g., PII, `SENSITIVITY_LEVEL`). See `123-snowflake-object-tagging.md` for comprehensive tagging patterns including tag-based masking policies.
 
 ## 3. Data Quality Monitoring (DMFs)
 - **Always:** Use Data Metric Functions (DMFs) to measure and monitor quality metrics (e.g., NULL counts, duplicates, freshness). System DMFs are available in `SNOWFLAKE.CORE`; create custom DMFs for domain-specific checks.
@@ -99,4 +99,5 @@ Establish comprehensive data security and access control practices using Snowfla
 - **Snowflake Core**: `100-snowflake-core.md`
 - **Cost Governance**: `105-snowflake-cost-governance.md`
 - **Warehouse Management**: `119-snowflake-warehouse-management.md`
+- **Object Tagging**: `123-snowflake-object-tagging.md`
 - **Data Governance**: `600-data-governance-quality.md`

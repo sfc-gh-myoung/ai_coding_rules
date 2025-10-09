@@ -40,6 +40,7 @@ Establish comprehensive cost management and optimization strategies for Snowflak
 - **Requirement:** Treat cost as a primary design factor.
 - **Always:** Follow comprehensive warehouse management practices in `119-snowflake-warehouse-management.md` for type selection, sizing, tagging, and configuration.
 - **Requirement:** Verify all warehouses follow mandatory tagging and resource monitor association requirements.
+- **Always:** Apply object tagging for cost attribution and chargeback. See `123-snowflake-object-tagging.md` for comprehensive tagging patterns and cost tracking queries.
 
 ## 2. Resource Management
 - **Always:** Use Resource Monitors to track and control credit usage.
@@ -91,4 +92,5 @@ ALTER WAREHOUSE WH_ANALYTICS_M SET RESOURCE_MONITOR = rm_analytics_monthly;
 - **Snowflake Core**: `100-snowflake-core.md`
 - **Performance Tuning**: `103-snowflake-performance-tuning.md`
 - **Warehouse Management**: `119-snowflake-warehouse-management.md`
+- **Object Tagging**: `123-snowflake-object-tagging.md`
 - **Security Governance**: `107-snowflake-security-governance.md`

@@ -216,6 +216,8 @@ CREATE OR REPLACE WAREHOUSE WH_INTERACTIVE_BI_M
 
 **Rule:** EVERY warehouse MUST have the following tags applied for cost tracking, governance, and lifecycle management.
 
+**Note:** For comprehensive object tagging guidance including tag creation, inheritance, and governance patterns, see `123-snowflake-object-tagging.md`.
+
 **Mandatory Tags:**
 
 | Tag Name | Purpose | Example Values | Required |
@@ -437,5 +439,6 @@ SELECT * FROM TABLE(INFORMATION_SCHEMA.TAG_REFERENCES('WH_[WORKLOAD]_M', 'WAREHO
 - **Performance Tuning**: `103-snowflake-performance-tuning.md` - Query profiling and optimization
 - **Cost Governance**: `105-snowflake-cost-governance.md` - Resource monitors and cost optimization
 - **Security Governance**: `107-snowflake-security-governance.md` - Tagging and access policies
+- **Object Tagging**: `123-snowflake-object-tagging.md` - Comprehensive tagging patterns and governance
 - **Observability**: `111-snowflake-observability.md` - Monitoring and telemetry
 

@@ -6,7 +6,7 @@
 
 > **Universal AI coding rules for consistent, reliable software engineering across LLMs and IDEs**
 
-This repository provides a comprehensive collection of engineering rules designed to work seamlessly with AI coding assistants including Claude, ChatGPT, GitHub Copilot, Cursor, and others. The rules cover everything from Python and SQL best practices to data engineering, analytics, and project governance.
+This repository provides a comprehensive collection of engineering rules designed to work seamlessly with AI coding assistants including Claude, ChatGPT, GitHub Copilot, Cursor, and others. The rules cover everything from Python and SQL best practices to data engineering, analytics, and project governance. Some aspects of the **rules can be opinionated**, particularly where it relates to naming conventions and project structure.  You are **encouraged to review the rules and make adjustments** as desired to better align with your best practices or prefered approaches.
 
 This project was inspired, in part, by: [how-to-add-cline-memory-bank-feature-to-your-cursor](https://forum.cursor.com/t/how-to-add-cline-memory-bank-feature-to-your-cursor/67868) and [cline memory bank](https://docs.cline.bot/prompting/cline-memory-bank)
 
@@ -40,7 +40,7 @@ This project uses **smaller, topic-focused rules** instead of large monolithic r
 
 **Real-world impact**: On a Snowflake data engineering project, you might need:
 - `100-snowflake-core.md` (500 tokens) - foundational practices
-- `104-snowflake-streams-tasks.md` (400 tokens) - incremental pipelines  
+- `104-snowflake-streams-tasks.md` (400 tokens) - incremental pipelines
 - `121-snowflake-snowpipe.md` (2,000 tokens) - continuous ingestion
 - `200-python-core.md` (500 tokens) - Python basics
 
@@ -72,7 +72,7 @@ Beyond LLM performance, smaller rules provide:
 
 ### Prerequisites
 
-This project assumes that you are using `uv` and `uvx` for python venv management and tooling.  The assumption is that you are using Taskfile for task management instead of Makefiles or shell scripts.
+This project assumes that you are using `uv` and `uvx` for python venv management and tooling. The assumption is that you are using Taskfile for task management instead of Makefiles or shell scripts.
 
 - **Python 3.11+** (required: pin to 3.11 for consistency)
 - **uv** (recommended: [install uv](https://github.com/astral-sh/uv) for fast dependency management)  
@@ -205,6 +205,7 @@ The following best practices apply to all AI coding assistants and development e
 - **`120-snowflake-spcs.md`** — Snowpark Container Services best practices (containerized applications, compute pools, service management)
 - **`121-snowflake-snowpipe.md`** — Snowpipe and Snowpipe Streaming best practices (continuous near-real-time ingestion, auto-ingest, REST API, SDK)
 - **`122-snowflake-dynamic-tables.md`** — Dynamic Tables best practices (refresh modes, lag configuration, pipeline design, performance optimization)
+- **`123-snowflake-object-tagging.md`** — Object tagging best practices (governance, cost attribution, tag-based masking policies, inheritance, monitoring)
 
 ### Software Engineering - Python (200-299)
 - **`200-python-core.md`** — Modern Python engineering with `uv` and Ruff (environment management, code structure, reliability)
@@ -499,40 +500,40 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed gu
 
 ### Improving Existing Rules
 
-It is not unexpected to run into a scenario where an agent or LLM fails to follow one or more of the rules you are using.  In these scenarios, the best approach is to prompt the agent/llm within the same session the following:
+It is not unexpected to run into a scenario where an agent or LLM fails to follow one or more of the rules you are using. In these scenarios, the best approach is to prompt the agent/llm within the same session the following:
 
 ```
 MODE PLAN:
 
-My rule files should have prevented this behavior or outcome.  Thoroughly review all rule files in the project and the currently selected rule files for this session.  Determine what specific improvements I can make to the rules to ensure this does not happen again.
+My rule files should have prevented this behavior or outcome. Thoroughly review all rule files in the project and the currently selected rule files for this session. Determine what specific improvements I can make to the rules to ensure this does not happen again.
 ```
 
-For this to be affective, you should have a copy of this project repo `ai_coding_rules/` within your project directory, even if only temporarily to make changes to the rule file templates which are used to generate the final IDE-specific rule files.  It is also important to verify that `002-rule-governance.md` is an actively selected rule in the project.  It should be auto attached, but it never hurts to verify.  This will ensure any rule changes will follow best practices and structure laid out for the `ai_coding_rules/` project.
+For this to be affective, you should have a copy of this project repo `ai_coding_rules/` within your project directory, even if only temporarily to make changes to the rule file templates which are used to generate the final IDE-specific rule files. It is also important to verify that `002-rule-governance.md` is an actively selected rule in the project. It should be auto attached, but it never hurts to verify. This will ensure any rule changes will follow best practices and structure laid out for the `ai_coding_rules/` project.
 
-Available LLMs are always evolving and improving in their capabilities.  You should periodically ask your LLM of choice to review and make recommendations on rule improvements using the following prompt:
+Available LLMs are always evolving and improving in their capabilities. You should periodically ask your LLM of choice to review and make recommendations on rule improvements using the following prompt:
 
 ```
 MODE PLAN:
 
-Thoroughly review all of the rule files in the project directory.  Ensure all of the rules are consistent with 002-rule-governance.md and follow the prescribed rule structure and format.  Determine if there are any improvements that can be made to any rule files which will improve rule effectiveness while ensuring good management of context size with an emphasis on reducing duplicate and/or conflicting guidance.
+Thoroughly review all of the rule files in the project directory. Ensure all of the rules are consistent with 002-rule-governance.md and follow the prescribed rule structure and format. Determine if there are any improvements that can be made to any rule files which will improve rule effectiveness while ensuring good management of context size with an emphasis on reducing duplicate and/or conflicting guidance.
 ```
 
-Using `MODE PLAN:` is a best practice and directly uses the functionality from `000-global-core.md` to reduce the chances of the agent from making unverify or unconfirmed changes.  This ensures that you have an opportunity to review the proposed task list and suggest changes in plan for the changes are implemented.  In most scenarios, the agent/llm should move forward with implementing the plan when you type `ACT`.
+Using `MODE PLAN:` is a best practice and directly uses the functionality from `000-global-core.md` to reduce the chances of the agent from making unverify or unconfirmed changes. This ensures that you have an opportunity to review the proposed task list and suggest changes in plan for the changes are implemented. In most scenarios, the agent/llm should move forward with implementing the plan when you type `ACT`.
 
 ### Generating New Rules
 
-There will be times when you determine that you need to add a new rule to follow best practices for a specific framework or library, often when you introduce new frameworks or libraries.  In these scenarios, the best approach is to prompt the agent/llm with the following:
+There will be times when you determine that you need to add a new rule to follow best practices for a specific framework or library, often when you introduce new frameworks or libraries. In these scenarios, the best approach is to prompt the agent/llm with the following:
 
 ```
 MODE PLAN:
 
-Create a rule for < INSERT FEATURE/FRAMEWORK/LIBRARY> best practices consistent with my rule repository in `ai_coding_rules/`.  Determine if a single rule file is the best approach, or if there should be multiple rule files. Use the following documentation as primary points of reference:
+Create a rule for < INSERT FEATURE/FRAMEWORK/LIBRARY> best practices consistent with my rule repository in `ai_coding_rules/`. Determine if a single rule file is the best approach, or if there should be multiple rule files. Use the following documentation as primary points of reference:
 @URL1
 @URL2
 @URL3
 ```
 
-In my experience, you will get consistently better results when you provide live reference links to documentation and any reference links that specifically cover best practices, syntax, etc.  If you let the agent/llm try to determine their own references, you are likely to incorporate innaccruate or dated reference information that results in less than ideal rules being generated.
+In my experience, you will get consistently better results when you provide live reference links to documentation and any reference links that specifically cover best practices, syntax, etc. If you let the agent/llm try to determine their own references, you are likely to incorporate innaccruate or dated reference information that results in less than ideal rules being generated.
 
 ### Configuration Safety Guidelines
 

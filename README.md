@@ -138,6 +138,79 @@ uv run generate_agent_rules.py --agent cline --source . --destination ~/projects
 #### Option 3: System Prompt Integration
 Concatenate selected `.md` files for use with LLM tools like Claude Projects, ChatGPT custom instructions, or other AI coding assistants.
 
+#### Option 4: System-Wide Rule Generation Script (gen-rules)
+
+For convenient rule generation from anywhere on your system, install the `gen-rules` wrapper script in your `~/bin/` directory. This script automatically runs rule generation tasks from any location, defaulting to generate rules into your current working directory.
+
+**Installation:**
+
+1. Copy the script from the project directory to your `~/bin/` directory:
+
+```bash
+# From the ai_coding_rules directory
+cp gen-rules ~/bin/gen-rules
+chmod +x ~/bin/gen-rules
+```
+
+2. Update `PROJECT_DIR` in `~/bin/gen-rules` to match your actual installation path
+3. Ensure `~/bin` is in your `PATH`
+
+**Script Reference (for reference, already included in project):**
+
+```bash
+#!/usr/bin/env bash
+# ~/bin/gen-rules
+set -euo pipefail
+
+PROJECT_DIR="${HOME}/Development/utility_demo_v2/ai_coding_rules"
+
+if [[ ! -d "$PROJECT_DIR" ]]; then
+  echo "Error: Project directory not found: $PROJECT_DIR" >&2
+  exit 1
+fi
+
+# Check if user already provided DEST
+if [[ " $* " =~ " DEST=" ]]; then
+  # User provided DEST, use theirs
+  exec task -d "$PROJECT_DIR" "$@"
+else
+  # No DEST provided, default to current directory
+  exec task -d "$PROJECT_DIR" "$@" DEST="${PWD}"
+fi
+```
+
+**Usage Examples:**
+
+```bash
+# From ANY directory, generate rules into that directory
+cd /path/to/my-project
+gen-rules rule:cursor              # Generates to /path/to/my-project/.cursor/rules/
+gen-rules rule:copilot             # Generates to /path/to/my-project/.github/instructions/
+gen-rules rule:all                 # Generates all formats to /path/to/my-project/
+
+# Override destination if needed
+gen-rules rule:cursor DEST=/custom/path
+
+# Run any task from ai_coding_rules project
+gen-rules validate                 # Run validation checks
+gen-rules status                   # Check project status
+gen-rules rule:cursor:dry          # Dry run preview
+```
+
+**How It Works:**
+
+- Uses Task's `-d` flag to run tasks from the ai_coding_rules project directory
+- Automatically passes `DEST=${PWD}` to default to your current directory
+- Allows explicit `DEST` override for custom output locations
+- No `cd` required—works from anywhere
+
+**Benefits:**
+
+- ✅ Generate rules for any project without navigating to ai_coding_rules directory
+- ✅ Automatic current-directory detection (no manual path specification needed)
+- ✅ Clean, memorable command (`gen-rules` vs full task path)
+- ✅ Access to all Taskfile tasks from anywhere
+
 ## Rule Categories
 
 ### Core Foundation (000-099)

@@ -222,7 +222,163 @@ PUT file://data.csv @prod_db.staging.my_stage;
 COPY INTO prod_db.raw.my_table FROM @prod_db.staging.my_stage/data.csv;
 ```
 
-## 4. SQL File Naming Conventions
+## 4. SQL File Header and Section Standards
+
+### 4.0 Universal Header Format (ALL SQL Files)
+
+- **Critical:** ALL SQL files must use consistent header format regardless of project complexity
+- **Rule:** Use equals-sign box format with standardized sections
+- **Applies to:** setup.sql, teardown.sql, DDL files, templates, all .sql files
+
+**Standard Header Template:**
+```sql
+-- ============================================================================
+-- Filename: <filename>.sql
+-- Description: <Brief one-line description>
+-- [Optional: Additional context lines]
+--
+-- Parameters: (if using Snowflake variables)
+--   PARAM1 - Description (e.g., DATABASE - Database name)
+--   PARAM2 - Description (e.g., SCHEMA - Schema name)
+--
+-- Usage:
+--   snow sql -D PARAM1=value -D PARAM2=value -f <filename>.sql
+--
+-- [Optional sections:]
+-- Dependencies: <What must exist before running>
+-- Returns: <What the script outputs or creates>
+-- Note: <Important warnings or context>
+-- ============================================================================
+```
+
+**Standard Section Divider (when sections are present):**
+```sql
+-- ===========================================================================
+-- SECTION NAME: CONTEXT
+-- ===========================================================================
+```
+
+**Examples:**
+
+Simple DDL file:
+```sql
+-- ============================================================================
+-- Filename: 001_ddl-grid_data.sql
+-- Description: Create GRID_DATA schema and tables
+--
+-- Usage:
+--   snow sql -f 001_ddl-grid_data.sql
+--
+-- Dependencies: Database UTILITY_DEMO_V2 must exist
+-- ============================================================================
+
+-- ===========================================================================
+-- SCHEMA SETUP
+-- ===========================================================================
+CREATE SCHEMA IF NOT EXISTS UTILITY_DEMO_V2.GRID_DATA;
+
+-- ===========================================================================
+-- TABLE DEFINITIONS
+-- ===========================================================================
+CREATE TABLE UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS (...);
+```
+
+Template file with variables:
+```sql
+-- ============================================================================
+-- Filename: copy_ami_data.sql
+-- Description: Load AMI data from stage into table using COPY INTO
+-- Note: This operation may take 2-3 minutes due to data volume
+-- 
+-- Parameters:
+--   DATABASE - Database name (e.g., UTILITY_DEMO_V2)
+--   SCHEMA   - Schema name (e.g., GRID_DATA)
+--   STAGE    - Stage name (e.g., UTILITY_DEMO_V2.GRID_DATA.STAGE)
+--
+-- Usage:
+--   snow sql -D DATABASE=DB -D SCHEMA=SCH -D STAGE=STG -f copy_ami_data.sql
+-- ============================================================================
+
+COPY INTO <%DATABASE%>.<%SCHEMA%>.AMI_DATA 
+FROM @<%STAGE%> 
+PATTERN='.*synthetic_ami_data_.*\\.csv' 
+FILE_FORMAT=(...);
+```
+
+Multi-step file with sections:
+```sql
+-- ============================================================================
+-- Filename: merge_all_tables.sql
+-- Description: Upsert all grid data tables (prevents duplicates)
+-- Executes CREATE TEMP + COPY + MERGE for each table sequentially
+--
+-- Parameters:
+--   DATABASE - Database name
+--   SCHEMA   - Schema name
+--   STAGE    - Stage name
+--
+-- Usage:
+--   snow sql -D DATABASE=DB -D SCHEMA=SCH -D STAGE=STG -f merge_all_tables.sql
+--
+-- Note: This file contains multiple SQL statements executed sequentially
+-- ============================================================================
+
+-- ===========================================================================
+-- TABLE 1/5: GRID_ASSETS
+-- ===========================================================================
+CREATE TEMP TABLE GRID_ASSETS_STAGE LIKE <%DATABASE%>.<%SCHEMA%>.GRID_ASSETS;
+COPY INTO GRID_ASSETS_STAGE FROM @<%STAGE%> ...;
+MERGE INTO <%DATABASE%>.<%SCHEMA%>.GRID_ASSETS ...;
+
+-- ===========================================================================
+-- TABLE 2/5: TRANSFORMER_DATA
+-- ===========================================================================
+CREATE TEMP TABLE TRANSFORMER_DATA_STAGE ...;
+```
+
+### 4.1 SQL Template Files for Automation
+
+**When to Use Templates:**
+- When project expands beyond simple setup.sql/teardown.sql
+- For reusable operations (upload, load, merge, verify)
+- When integrating with automation (Taskfiles, CI/CD)
+- For parameterized operations across environments
+
+**Template File Organization:**
+```
+sql/operations/
+├── domain/              # Group by schema/domain (grid, customer, etc.)
+│   ├── operation/       # Group by operation type (upload, load, etc.)
+│   │   └── file.sql     # Template with Snowflake variables
+```
+
+**Snowflake Variable Syntax:**
+- Use `<%VARIABLE%>` for parameter substitution
+- Pass via CLI: `snow sql -D VARIABLE=value -f template.sql`
+- Variables work in all SQL contexts (object names, paths, values)
+- **Note:** The old `&{VARIABLE}` syntax is deprecated and will no longer be supported
+
+**Benefits:**
+- **Reusability:** Same template for dev/test/prod
+- **Testability:** Execute standalone with `snow sql`
+- **Maintainability:** SQL separate from orchestration logic
+- **Version Control:** SQL changes tracked independently
+
+**Integration with Taskfiles:**
+```yaml
+sql:template:
+  desc: Execute SQL template with Snowflake variables
+  silent: true
+  internal: true
+  cmds:
+    - >
+      snow sql
+      -D DATABASE={{.DATABASE}}
+      -D SCHEMA={{.SCHEMA}}
+      -f {{.SQL_FILE}}
+```
+
+## 5. SQL File Naming Conventions
 
 - **Scope:** Applies to `**/*.sql` files in demos, automation, and CI/CD.
 - **Goal:** Human clarity for simple demos and deterministic ordering for complex/automated flows.
@@ -245,32 +401,73 @@ projectname_teardown.sql
 ```
 
 ### 4.2 Strict, ordered convention (recommended for complex demos and CI/CD)
-- **Pattern:** `NNN_<mode>-<schema_or_object>[ -<short_desc> ].sql`
-  - `NNN`: 3-digit, zero-padded numeric sequence starting at `001_`; strictly increasing; unique within repository (or per module if modules are documented).
+- **Pattern:** `NNN-<mode>-<schema-or-object>[-<short-desc>].sql`
+  - `NNN`: 3-digit, zero-padded numeric sequence starting at `001`; strictly increasing; unique within repository (or per module/directory if documented).
   - `<mode>`: one of `ddl`, `dml`, `grant`, `ops`.
-  - `<schema_or_object>`: lowercase; characters `[a-z0-9._-]+`; no spaces. Use a schema (e.g., `analytics`) or a fully qualified intent (e.g., `analytics.customer_orders`).
-  - Optional `-<short_desc>`: brief, hyphenated descriptor (e.g., `-add_indexes`).
-  - Case policy: filenames are lowercase; use underscores and hyphens only as shown.
+  - `<schema-or-object>`: lowercase kebab-case; characters `[a-z0-9-]+`; no spaces, underscores, or dots. Use hyphens as word separators (e.g., `grid-data`, `customer-data`).
+  - Optional `-<short-desc>`: brief, hyphenated descriptor (e.g., `-add-indexes`).
+  - **Critical:** Use kebab-case (lowercase-with-hyphens) for ALL filename components.
+  - **Critical:** Use hyphens as separators between all components (not underscores).
 
-Examples:
-
-```text
-001_ddl-analytics.customer_orders.sql
-002_dml-analytics.customer_orders.sql
-003_grant-analytics.sql
-004_ops-util.csv_format.sql
-005_ddl-raw.customer_events-add_indexes.sql
-```
-
-Validation regex for strict convention:
+**Correct Examples (kebab-case):**
 
 ```text
-^[0-9]{3}_(ddl|dml|grant|ops)-[a-z0-9._-]+\.sql$
+001-ddl-analytics-customer-orders.sql
+002-dml-analytics-customer-orders.sql
+003-grant-analytics.sql
+004-ops-util-csv-format.sql
+005-ddl-raw-customer-events-add-indexes.sql
+100-ddl-snowflake-intelligence.sql
+200-ops-mlops-monitoring.sql
 ```
 
-Rationale:
+**Incorrect Examples:**
+```text
+001_ddl-analytics.customer_orders.sql  ❌ Uses underscores and dots
+002_dml_analytics.sql                  ❌ Uses underscores
+003-DDL-Analytics.sql                  ❌ Uses uppercase
+004-ops-util.csv.format.sql            ❌ Uses dots
+```
+
+**Validation regex for strict convention:**
+
+```text
+^[0-9]{3}-(ddl|dml|grant|ops)-[a-z0-9-]+\.sql$
+```
+
+**Rationale:**
 - Zero-padded prefixes ensure lexical sort equals execution order, aligning with widely adopted migration tooling patterns (e.g., Flyway, Liquibase).
+- Kebab-case provides visual consistency with modern naming conventions and URL-friendly identifiers.
+- Hyphens as separators improve readability and are standard in web/CLI contexts.
 - Mode and target in the filename improve reviewability and change auditing.
+
+**Modular Organization for Complex Projects:**
+
+For projects with many SQL files, organize into subdirectories by purpose:
+
+```text
+sql/
+├── setup/          # Core foundation (001-099)
+│   ├── 001-ddl-database-and-rbac.sql
+│   ├── 002-ddl-grid-data-core.sql
+│   └── 003-ddl-customer-data-core.sql
+├── features/       # Optional/modular features (100-899)
+│   ├── 100-ddl-snowflake-intelligence.sql
+│   ├── 101-ddl-semantic-views-grid.sql
+│   ├── 200-ops-mlops-monitoring.sql
+│   └── 300-ops-performance-optimizations.sql
+├── teardown/       # Cleanup scripts (900-999)
+│   ├── 998-ops-grid-data-teardown.sql
+│   └── 999-ops-customer-data-teardown.sql
+└── operations/     # Parameterized templates (no numbering)
+    └── [domain/operation/template.sql]
+```
+
+**Benefits of modular organization:**
+- Clear separation of concerns (core vs optional features)
+- Easier to test features independently
+- Simpler CI/CD integration (run setup, selected features, teardown)
+- Better discoverability and maintainability
 
 ## Contract
 - **Inputs/Prereqs:** [Context, files, dependencies needed]
@@ -281,6 +478,14 @@ Rationale:
 - **Validation Steps:** [Checks to confirm success]
 
 ## Quick Compliance Checklist
+
+**SQL File Standards:**
+- [ ] All SQL files use equals-sign box header format with mandatory sections (Filename, Description, Usage)
+- [ ] Parameters documented when using Snowflake variables (`<%VARIABLE%>`)
+- [ ] Section dividers use equals-sign format for multi-step files
+- [ ] Template files organized in domain-first directory structure (sql/operations/domain/operation/)
+
+**Query Best Practices:**
 - [ ] CTEs used for complex query modularization (avoid deep nesting)
 - [ ] VARIANT data extracted once in early CTE (no repeated casting)
 - [ ] Fully qualified object names used (DATABASE.SCHEMA.OBJECT) in production and automation
@@ -289,13 +494,18 @@ Rationale:
 - [ ] CREATE VIEW has COMMENT before AS keyword (not after query)
 - [ ] Comments added to supported objects (tables, views, schemas, stages, etc.)
 - [ ] Comment syntax verified per object type against Snowflake documentation
-- [ ] SQL filenames follow approved convention: demo (`setup.sql`/`teardown.sql`) or strict `NNN_<mode>-<schema_or_object>[ -<short_desc> ].sql`
-- [ ] Strict convention uses 3-digit zero-padded unique, sequential prefixes starting at `001_`
-- [ ] Filenames are lowercase; only `[a-z0-9._-]` used; modes limited to `ddl|dml|grant|ops`
+
+**File Organization:**
+- [ ] SQL filenames follow approved convention: demo (`setup.sql`/`teardown.sql`) or strict `NNN-<mode>-<schema-or-object>[-<short-desc>].sql`
+- [ ] Strict convention uses 3-digit zero-padded unique, sequential prefixes starting at `001`
+- [ ] Filenames use kebab-case (lowercase-with-hyphens); only `[a-z0-9-]` used; modes limited to `ddl|dml|grant|ops`
+- [ ] Complex projects organized into setup/, features/, teardown/ subdirectories
+
+**Performance & Optimization:**
 - [ ] Join cardinality controlled with distinct keys or semi-joins
 - [ ] QUALIFY used for window function filters (instead of subqueries)
- - [ ] SQL syntax validated against Snowflake documentation
- - [ ] Internal named stages use READ/WRITE grants (not USAGE); fully qualified stage references in CLI
+- [ ] SQL syntax validated against Snowflake documentation
+- [ ] Internal named stages use READ/WRITE grants (not USAGE); fully qualified stage references in CLI
 
 ## Validation
 - **Success checks:** 
@@ -309,7 +519,7 @@ Rationale:
   - Comment DDL verified against Snowflake docs for targeted object types
   - SQL filenames match the selected convention:
     - Demo: `setup.sql`/`teardown.sql` (and optional numeric-prefixed steps)
-    - Strict: matches `^[0-9]{3}_(ddl|dml|grant|ops)-[a-z0-9._-]+\.sql$`
+    - Strict: matches `^[0-9]{3}-(ddl|dml|grant|ops)-[a-z0-9-]+\.sql$` (kebab-case)
   - SQL executes without compilation errors in CLI and Snowsight
 - **Negative tests:** 
   - USE DATABASE/SCHEMA in separate CLI commands should fail with "object does not exist"
@@ -317,7 +527,7 @@ Rationale:
   - COMMENT after AS in CREATE VIEW should cause "unexpected COMMENT" syntax error
   - Incorrect COMMENT placement for a specific object type should raise a syntax error
   - Repeated VARIANT casting should impact query performance
-  - Strict naming violations: missing/short numeric prefix, invalid mode, uppercase letters, spaces, duplicate sequence numbers
+  - Strict naming violations: missing/short numeric prefix, invalid mode, uppercase letters, spaces, underscores, dots in names, duplicate sequence numbers
 
 ## Response Template
 ```sql

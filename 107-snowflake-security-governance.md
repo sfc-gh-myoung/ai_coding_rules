@@ -41,12 +41,13 @@ Establish comprehensive data security and access control practices using Snowfla
 - **Always:** Use Data Metric Functions (DMFs) to measure and monitor quality metrics (e.g., NULL counts, duplicates, freshness). System DMFs are available in `SNOWFLAKE.CORE`; create custom DMFs for domain-specific checks.
 - **Requirement:** Associate DMFs to supported objects (tables, views, dynamic tables, external tables, Iceberg tables, materialized views, event tables) and schedule evaluations; results are recorded in the dedicated event table for DMFs.
 - **Always:** Define expectations for each DMF association to determine pass/fail thresholds. Use alerts to notify owners on failures to drive remediation.
-- **Rule:** Enterprise Edition is required. DMFs use serverless compute; billing appears under “Data Quality Monitoring”. Unscheduled ad-hoc SELECTs of DMFs are not billed.
+- **Rule:** Enterprise Edition is required. DMFs use serverless compute; billing appears under "Data Quality Monitoring". Unscheduled ad-hoc SELECTs of DMFs are not billed.
 - **Rule:** Monitor consumption and performance via `DATA_QUALITY_MONITORING_USAGE_HISTORY` and Snowsight monitoring pages.
 - **Requirement:** Enforce least privilege for DMFs. The table/view owner role must have the global `EXECUTE DATA METRIC FUNCTION` privilege. Database roles cannot receive global privileges; transfer ownership to an account-scoped role if needed.
 - **Requirement:** Document and operate within limitations: maximum 10,000 DMF-object associations per account; cannot set DMFs on shared objects or in reader accounts; cannot set DMFs on object tags.
 - **Rule:** Establish a remediation workflow: investigate failures, triage severity, correct data/process, and track resolution SLAs.
 - **Avoid:** Relying on DMFs alone for protection. Combine DMFs with masking, row access, and tags for comprehensive governance.
+- **Note:** For comprehensive Data Quality Monitoring guidance including system/custom DMFs, data profiling, expectations, scheduling, and cost management, see `124-snowflake-data-quality.md`.
 
 ## 4. Data Profiling
 - **Always:** Use Snowflake Data Profile to baseline datasets (distributions, distinct counts, NULLs) and to inform policy design and DMF selection.
@@ -100,4 +101,5 @@ Establish comprehensive data security and access control practices using Snowfla
 - **Cost Governance**: `105-snowflake-cost-governance.md`
 - **Warehouse Management**: `119-snowflake-warehouse-management.md`
 - **Object Tagging**: `123-snowflake-object-tagging.md`
+- **Data Quality Monitoring**: `124-snowflake-data-quality.md`
 - **Data Governance**: `600-data-governance-quality.md`

@@ -2,11 +2,11 @@
 **AppliesTo:** `notebooks/**/*.ipynb`, `streamlit/**/*`, `models/**/*`, `**/*.sql`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 2.0
+**Version:** 2.1
 **LastUpdated:** 2025-10-10
 
-**TokenBudget:** ~800
-**ContextTier:** High
+**TokenBudget:** ~2200
+**ContextTier:** comprehensive
 
 # Data Science & Analytics Principles
 

@@ -2,11 +2,11 @@
 **AppliesTo:** `**/*.py`, `streamlit/**/*`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.8
-**LastUpdated:** 2025-10-08
+**Version:** 2.0
+**LastUpdated:** 2025-10-10
 
-**TokenBudget:** ~1900
-**ContextTier:** Medium
+**TokenBudget:** ~2200
+**ContextTier:** comprehensive
 
 # Streamlit UI/UX Directives
 
@@ -21,7 +21,7 @@ Provide comprehensive guidance for building modern, performant, and maintainable
 ## Contract
 - **Inputs/Prereqs:** Python 3.11+, Streamlit 1.46+, Snowflake connection, project structure with pages/ and components/, deployment mode identified (SiS vs OSS on SPCS), .streamlit/config.toml for theming, virtual environment for dependency management, secrets configured for sensitive data
 - **Allowed Tools:** st.cache_data, st.cache_resource, st.session_state, st.set_page_config, config.toml, theme configuration, Snowflake connector, pandas/polars, Plotly (preferred for all visualizations including maps), Altair (fallback), st.chat_message, st.chat_input, st.image, st.video, st.audio, st.secrets, pytest for testing
-- **Forbidden Tools:** raw SQL loops, inline custom CSS blocks, unhandled exceptions in UI, hardcoded theme values, hardcoded secrets/credentials, buttons for navigation
+- **Forbidden Tools:** raw SQL loops, inline custom CSS blocks, unhandled exceptions in UI, hardcoded theme values, hardcoded secrets/credentials, buttons for navigation, st.divider() or st.markdown("---") within st.container(border=True)
 - **Required Steps:** 1) Set page config with theme-aware settings, 2) Configure .streamlit/config.toml if needed, 3) Initialize session state, 4) Cache data operations, 5) Implement error handling, 6) Validate and sanitize user inputs, 7) Normalize column names from Snowflake, 8) Write unit tests for data processing functions, 9) Configure secrets management
 - **Output Format:** Streamlit app with <2s load time, modular architecture, accessible UI, consistent theming, validated inputs, secure secrets handling, comprehensive error messages, passing tests
 - **Validation Steps:** Test caching behavior, verify responsive design and theming, check error handling, validate accessibility, confirm configuration loading, test input validation, verify secrets loading, run unit tests, test with production-like data volumes, validate media asset loading, test chat persistence
@@ -170,6 +170,134 @@ pg.run()
   - Visual hierarchy patterns (F-pattern, Z-pattern layouts)
   - Information density guidelines (5-7 visualizations per page)
   - KPI presentation best practices (above the fold, 4-7 metrics)
+
+### Card Layout and Spacing Patterns
+
+**Critical Anti-Pattern:** Never use `st.divider()` or `st.markdown("---")` within `st.container(border=True)` - creates excessive whitespace and visual fragmentation.
+
+#### Spacing Standards
+- **Requirement:** Use `card_section_spacing()` helper for consistent spacing between sections within cards
+- **Rule:** Import spacing helpers from `utils/ui_components.py` when available
+- **Standard:** Use "comfortable" spacing (single blank line) as default between card sections
+- **Forbidden:** More than 2 consecutive `st.markdown("")` calls for spacing
+
+#### Spacing Levels
+```python
+from utils.ui_components import card_section_spacing
+
+# Available spacing levels:
+# - "none": No spacing (0 lines)
+# - "tight": Minimal spacing (0.25rem CSS margin)
+# - "comfortable": Standard spacing (1 blank line) - DEFAULT
+# - "airy": Extra spacing (2 blank lines)
+
+with st.container(border=True):
+    st.markdown("### Section 1")
+    st.markdown("Content here...")
+    
+    card_section_spacing("comfortable")  # ✅ Clean, consistent
+    
+    st.markdown("**Section 2**")
+    st.markdown("More content...")
+```
+
+#### Multi-Section Cards with Nested Containers
+- **Pattern:** Use nested containers WITHOUT borders for subsections within bordered cards
+- **Rule:** Only the outermost container should have `border=True`
+- **Always:** Use `nested_section()` helper for consistent subsection styling
+
+```python
+from utils.ui_components import nested_section, card_section_spacing
+
+# ✅ Correct: Nested containers for multi-section cards
+with st.container(border=True):
+    st.markdown("### Priority Actions")
+    
+    with nested_section("Field Operations"):
+        st.markdown("🚨 Action 1")
+        st.markdown("📍 Action 2")
+    
+    card_section_spacing("comfortable")
+    
+    with nested_section("Customer Communications"):
+        st.markdown("📞 Action 3")
+        st.markdown("📧 Action 4")
+```
+
+#### Card Layout Best Practices
+- **Requirement:** Use `st.columns()` for side-by-side cards (2-3 columns optimal)
+- **Always:** Keep card content cohesive - related information stays together
+- **Rule:** Use `st.divider()` ONLY between major page sections (outside cards)
+- **Consider:** Use `card_with_sections()` helper for complex multi-section cards
+
+```python
+from utils.ui_components import card_with_sections
+
+# ✅ Helper function for complex cards
+def render_impact_metrics():
+    st.markdown("🚨 3 transformers at risk")
+    st.markdown("⚠️ 26 customers affected")
+
+def render_action_items():
+    st.markdown("• Dispatch crews immediately")
+    st.markdown("• Notify customers proactively")
+
+card_with_sections([
+    {"subheader": "Impact Assessment", "content": render_impact_metrics},
+    {"subheader": "Required Actions", "content": render_action_items},
+], spacing="comfortable")
+```
+
+#### Visual Hierarchy in Cards
+- **Requirement:** Use markdown headers (###) for card titles
+- **Requirement:** Use bold text (**text**) for subsection headers within cards
+- **Consider:** Use emojis strategically for visual indicators (🔴 urgent, 🟡 warning, 🟢 success)
+- **Always:** Maintain consistent spacing between all sections
+
+#### Anti-Patterns to Avoid
+```python
+# ❌ WRONG: Divider creates 20+ lines of whitespace
+with st.container(border=True):
+    st.markdown("### Section 1")
+    st.divider()  # ❌ EXCESSIVE WHITESPACE
+    st.markdown("Content...")
+
+# ❌ WRONG: Markdown horizontal rule same problem
+with st.container(border=True):
+    st.markdown("### Section 1")
+    st.markdown("---")  # ❌ CREATES HUGE GAP
+    st.markdown("Content...")
+
+# ❌ WRONG: Nested bordered containers
+with st.container(border=True):
+    st.markdown("### Outer")
+    with st.container(border=True):  # ❌ DOUBLE BORDERS
+        st.markdown("Inner content")
+
+# ❌ WRONG: Excessive spacing
+with st.container(border=True):
+    st.markdown("### Section 1")
+    st.markdown("")
+    st.markdown("")
+    st.markdown("")  # ❌ TOO MUCH SPACE
+    st.markdown("Content...")
+
+# ✅ CORRECT: Clean spacing with helper
+with st.container(border=True):
+    st.markdown("### Section 1")
+    card_section_spacing("comfortable")  # ✅ JUST RIGHT
+    st.markdown("Content...")
+```
+
+#### Automated Testing
+- **Requirement:** Use `tests/test_ui_consistency.py` to detect divider anti-patterns
+- **Always:** Run UI consistency tests before committing card layout changes
+- **Rule:** Tests should catch `st.divider()` and `st.markdown("---")` within bordered containers
+
+```bash
+# Run automated divider detection
+uv run pytest tests/test_ui_consistency.py::TestDividerUsage -v
+```
 
 ## 5. Data Loading from Snowflake - Critical Column Name Gotcha
 

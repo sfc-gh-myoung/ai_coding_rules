@@ -2,11 +2,11 @@
 **AppliesTo:** `**/*.sql`, `**/*.py`, `**/*.java`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-10-07
+**Version:** 1.1
+**LastUpdated:** 2025-10-10
 
 **TokenBudget:** ~2200
-**ContextTier:** Medium
+**ContextTier:** comprehensive
 
 # Snowflake Snowpipe and Snowpipe Streaming
 

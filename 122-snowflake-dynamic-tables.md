@@ -2,10 +2,10 @@
 **AppliesTo:** `**/*.sql`
 **AutoAttach:** false
 **Type:** Agent Requested
-**TokenBudget:** medium
-**ContextTier:** standard
-**Version:** 1.0
-**LastUpdated:** 2025-10-09
+**TokenBudget:** ~1800
+**ContextTier:** comprehensive
+**Version:** 1.1
+**LastUpdated:** 2025-10-10
 
 # Snowflake Dynamic Tables Best Practices
 

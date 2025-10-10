@@ -2,10 +2,10 @@
 **AppliesTo:** `**/*.sql`
 **AutoAttach:** false
 **Type:** Agent Requested
-**TokenBudget:** large
+**TokenBudget:** ~2100
 **ContextTier:** comprehensive
-**Version:** 1.0
-**LastUpdated:** 2025-10-09
+**Version:** 1.1
+**LastUpdated:** 2025-10-10
 
 # Snowflake Data Quality Monitoring Best Practices
 

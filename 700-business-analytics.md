@@ -2,11 +2,11 @@
 **AppliesTo:** `**/*.sql`, `reports/**/*`, `dashboards/**/*`, `streamlit/**/*`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 2.0
+**Version:** 2.1
 **LastUpdated:** 2025-10-10
 
-**TokenBudget:** ~700
-**ContextTier:** High
+**TokenBudget:** ~2300
+**ContextTier:** comprehensive
 
 # Business Analytics & Reporting Directives
 

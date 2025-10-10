@@ -20,7 +20,7 @@ Provide comprehensive guidance for building modern, performant, and maintainable
 
 ## Contract
 - **Inputs/Prereqs:** Python 3.11+, Streamlit 1.46+, Snowflake connection, project structure with pages/ and components/, deployment mode identified (SiS vs OSS on SPCS), .streamlit/config.toml for theming, virtual environment for dependency management, secrets configured for sensitive data
-- **Allowed Tools:** st.cache_data, st.cache_resource, st.session_state, st.set_page_config, config.toml, theme configuration, Snowflake connector, pandas/polars, Plotly (preferred for charts), Pydeck (preferred for maps), Altair (fallback), st.chat_message, st.chat_input, st.image, st.video, st.audio, st.secrets, pytest for testing
+- **Allowed Tools:** st.cache_data, st.cache_resource, st.session_state, st.set_page_config, config.toml, theme configuration, Snowflake connector, pandas/polars, Plotly (preferred for all visualizations including maps), Altair (fallback), st.chat_message, st.chat_input, st.image, st.video, st.audio, st.secrets, pytest for testing
 - **Forbidden Tools:** raw SQL loops, inline custom CSS blocks, unhandled exceptions in UI, hardcoded theme values, hardcoded secrets/credentials, buttons for navigation
 - **Required Steps:** 1) Set page config with theme-aware settings, 2) Configure .streamlit/config.toml if needed, 3) Initialize session state, 4) Cache data operations, 5) Implement error handling, 6) Validate and sanitize user inputs, 7) Normalize column names from Snowflake, 8) Write unit tests for data processing functions, 9) Configure secrets management
 - **Output Format:** Streamlit app with <2s load time, modular architecture, accessible UI, consistent theming, validated inputs, secure secrets handling, comprehensive error messages, passing tests
@@ -135,6 +135,18 @@ pg.run()
   - **>5 seconds:** Use `st.progress()` with `st.status()` for detailed progress tracking
 - **Requirement:** Avoid raw database query loops; fetch all needed data at once and cache it.
 
+### Performance Optimization for Analytics Workloads
+- **For large dataset optimization:** Reference **500-data-science-analytics.md** Section 6 for:
+  - SQL-first aggregation patterns (avoid pulling full datasets into Python)
+  - Sampling strategies for EDA
+  - APPROX_* functions for faster aggregation
+  - Query Profile validation targets (<5s execution, <$0.10 cost)
+  
+- **For dashboard query optimization:** Reference **700-business-analytics.md** Section 7 for:
+  - Snowsight dashboard patterns
+  - Cost-effective query patterns with result caching
+  - Performance validation requirements
+
 ## 3. Configuration and Theming
 - **Requirement:** Use `.streamlit/config.toml` for centralized configuration management and theme customization.
 - **Requirement:** Define theme colors consistently using `[theme]` section: `primaryColor`, `backgroundColor`, `secondaryBackgroundColor`, `textColor`.
@@ -151,6 +163,13 @@ pg.run()
 - **Requirement:** Provide clear help text (`help="..."`) for complex widgets.
 - **Requirement:** Manage state predictably with `st.session_state` and callbacks for complex updates.
 - **Requirement:** Use responsive layouts with `st.columns`, `st.sidebar`, and `use_container_width=True` for charts.
+
+### Dashboard Layout and KPI Design
+- **For business dashboard design:** Reference **700-business-analytics.md** Sections 1-2 for:
+  - Audience segmentation matrix (KPI counts, detail levels by role)
+  - Visual hierarchy patterns (F-pattern, Z-pattern layouts)
+  - Information density guidelines (5-7 visualizations per page)
+  - KPI presentation best practices (above the fold, 4-7 metrics)
 
 ## 5. Data Loading from Snowflake - Critical Column Name Gotcha
 
@@ -199,9 +218,10 @@ transformers = df[df['asset_type'] == 'TRANSFORMER']  # Works!
 ## 6. Data Visualization
 
 ### Preferred Libraries
-- **Charts and Graphs:** Use **Plotly** as the primary visualization library for interactive charts
-- **Maps:** Use **Pydeck** as the primary library for geospatial visualizations
-- **Fallback:** Altair and Matplotlib are acceptable alternatives when Plotly/Pydeck don't meet specific needs
+- **All Visualizations (Charts, Graphs, and Maps):** Use **Plotly** as the universal visualization library for all interactive visualizations, including geospatial maps
+- **Plotly Map Capabilities:** scatter_mapbox, choropleth_mapbox, line_mapbox, density_mapbox for comprehensive mapping needs
+- **Fallback:** Altair and Matplotlib are acceptable alternatives when Plotly doesn't meet specific needs
+- **Note:** PyDeck may be used only for advanced 3D visualizations if explicitly requested by user, but Plotly is the standard recommendation
 
 ### Plotly for Charts
 - **Requirement:** Use Plotly Express (`plotly.express`) for most chart types (interactive, performant, works in both SiS and SPCS)
@@ -243,63 +263,103 @@ fig.update_layout(
 st.plotly_chart(fig, use_container_width=True)
 ```
 
-### Pydeck for Maps
-- **Requirement:** Use Pydeck for all geospatial visualizations (GPU-accelerated, rich layer support, 3D capable)
-- **Always:** Pass minimal data to layers (only required columns: latitude, longitude, and needed attributes)
-- **Always:** Use explicit color arrays rather than DataFrame columns with list values
-- **Always:** Reset DataFrame index before passing to Pydeck layers
+### Plotly for Maps
+- **Requirement:** Use Plotly for all geospatial visualizations (consistent API, works seamlessly in both SiS and SPCS)
+- **Always:** Use Plotly Express map functions: `scatter_mapbox`, `choropleth_mapbox`, `line_mapbox`, `density_mapbox`
+- **Always:** Configure map style, zoom level, and center point appropriately
+- **Always:** Use `use_container_width=True` for responsive map display
 
-**Pydeck Best Practices:**
+**Plotly Map Best Practices:**
 ```python
-import pydeck as pdk
+import plotly.express as px
+import plotly.graph_objects as go
 
-# ✓ Minimal data structure for Pydeck
+# ✓ Scatter map for point data
 assets = load_grid_assets()
-map_data = assets[['latitude', 'longitude', 'asset_type']].copy()
-map_data = map_data.reset_index(drop=True)
-
-# ✓ ScatterplotLayer with explicit colors
-layer = pdk.Layer(
-    'ScatterplotLayer',
-    data=map_data,
-    get_position='[longitude, latitude]',
-    get_color=[255, 0, 0, 200],  # Explicit RGBA
-    get_radius=100,
-    pickable=True
-)
-
-# ✓ Multiple layers with conditional styling
-normal_assets = map_data[map_data['asset_type'] == 'NORMAL'][['latitude', 'longitude']]
-critical_assets = map_data[map_data['asset_type'] == 'CRITICAL'][['latitude', 'longitude']]
-
-view_state = pdk.ViewState(
-    latitude=map_data['latitude'].mean(),
-    longitude=map_data['longitude'].mean(),
+fig = px.scatter_mapbox(
+    assets,
+    lat='latitude',
+    lon='longitude',
+    color='asset_type',
+    size='capacity',
+    hover_name='asset_id',
+    hover_data=['status', 'last_maintenance'],
+    color_discrete_map={
+        'TRANSFORMER': '#FF6B6B',
+        'SUBSTATION': '#4ECDC4',
+        'GENERATOR': '#45B7D1'
+    },
     zoom=10,
-    pitch=0
+    height=600
 )
+fig.update_layout(mapbox_style="open-street-map")
+fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+st.plotly_chart(fig, use_container_width=True)
 
-deck = pdk.Deck(
-    layers=[
-        pdk.Layer('ScatterplotLayer', data=normal_assets, 
-                  get_position='[longitude, latitude]',
-                  get_color=[100, 100, 255, 180], get_radius=50),
-        pdk.Layer('ScatterplotLayer', data=critical_assets,
-                  get_position='[longitude, latitude]',
-                  get_color=[255, 0, 0, 200], get_radius=100)
-    ],
-    initial_view_state=view_state,
-    tooltip={"text": "Asset Location"}
+# ✓ Choropleth map for regions
+region_data = load_regional_metrics()
+fig = px.choropleth_mapbox(
+    region_data,
+    geojson=regions_geojson,
+    locations='region_id',
+    color='metric_value',
+    color_continuous_scale='Viridis',
+    mapbox_style="carto-positron",
+    zoom=8,
+    center={"lat": 37.7749, "lon": -122.4194},
+    opacity=0.5,
+    hover_name='region_name',
+    hover_data=['population', 'metric_value']
 )
-st.pydeck_chart(deck)
+st.plotly_chart(fig, use_container_width=True)
+
+# ✓ Line map for routes/paths
+route_data = load_route_data()
+fig = px.line_mapbox(
+    route_data,
+    lat='latitude',
+    lon='longitude',
+    color='route_id',
+    zoom=10,
+    height=600
+)
+fig.update_layout(mapbox_style="open-street-map")
+st.plotly_chart(fig, use_container_width=True)
+
+# ✓ Density heatmap
+event_data = load_event_locations()
+fig = px.density_mapbox(
+    event_data,
+    lat='latitude',
+    lon='longitude',
+    z='event_count',
+    radius=10,
+    zoom=10,
+    mapbox_style="stamen-terrain"
+)
+st.plotly_chart(fig, use_container_width=True)
 ```
+
+### Comprehensive Visualization Guidance
+- **For business dashboards and stakeholder reporting:** Reference **700-business-analytics.md** for:
+  - Complete data type → chart type decision matrix (11 data purposes)
+  - Audience segmentation patterns (C-Level, Directors, Analysts, Operations)
+  - Dashboard layout best practices (F-pattern, Z-pattern)
+  - Accessibility compliance (WCAG 2.1 AA, colorblind-safe palettes)
+  - Ethical visualization standards (avoiding misleading charts)
+
+- **For data science and ML model outputs:** Reference **500-data-science-analytics.md** for:
+  - ML/AI insight presentation (SHAP values, confusion matrices, ROC curves)
+  - Feature importance visualization patterns
+  - Uncertainty communication (confidence intervals, prediction bands)
+  - Model performance visualization best practices
 
 ### Visualization Anti-Patterns
 - **Avoid:** Using Altair or Matplotlib for new charts when Plotly meets requirements
-- **Avoid:** Passing full DataFrames with many columns to Pydeck layers
-- **Avoid:** Using DataFrame columns with list values for Pydeck colors (causes serialization errors in SiS)
-- **Avoid:** Creating maps without proper error handling for missing coordinates
+- **Avoid:** Using libraries other than Plotly for maps (Plotly provides comprehensive mapping capabilities)
+- **Avoid:** Creating maps without proper error handling for missing or invalid coordinates
 - **Avoid:** Static charts when interactivity would improve user experience
+- **Avoid:** Not using `use_container_width=True` for responsive chart display
 
 ## 7. Streamlit in Snowflake (SiS) Feature Compatibility
 
@@ -352,9 +412,10 @@ with the specified packages. Packages not found: - python==3.11
 
 **Solution:** Remove `python=X.XX` from dependencies; let Snowflake manage Python version.
 
-### PyDeck Compatibility in SiS
-- **Critical:** PyDeck in SiS has strict DataFrame serialization requirements - see Section 6 Pydeck guidance for details
-- **Always:** Pass minimal columns, use explicit color arrays (not DataFrame columns with list values)
+### Plotly Compatibility in SiS
+- **Confirmed:** Plotly works seamlessly in both SiS and SPCS environments
+- **Always:** Use Plotly for all visualizations to ensure consistent behavior across deployment modes
+- **Note:** Plotly avoids the DataFrame serialization issues that can occur with other libraries
 
 ## 8. Media Elements
 
@@ -427,6 +488,13 @@ if prompt := st.chat_input("Ask a question..."):
 - **Consider:** Add export functionality for chat transcripts
 - **Always:** Validate and sanitize user inputs before processing
 - **Consider:** Implement rate limiting for API-backed chat responses
+
+### Integrating ML/AI Insights in Chat
+- **For conversational AI with model outputs:** Reference **500-data-science-analytics.md** Section 5 for:
+  - Presenting ML predictions with uncertainty (confidence intervals)
+  - Explainability patterns in chat (SHAP values, feature importance)
+  - Counterfactual explanations ("What-If" scenarios)
+  - Model confidence indicators
 
 ## 10. Status and Feedback Elements
 
@@ -757,12 +825,12 @@ conda activate your_env_name
 - [ ] Assets stored in dedicated directory (assets/ or static/)
 
 ### Visualization & Data Display
-- [ ] Plotly used for interactive charts and graphs
-- [ ] Pydeck used for geospatial visualizations and maps
+- [ ] Plotly used for all interactive charts, graphs, and maps
+- [ ] Plotly map functions used for geospatial visualizations (scatter_mapbox, choropleth_mapbox, line_mapbox, density_mapbox)
 - [ ] Charts configured with clear titles, axis labels, and legends
 - [ ] Charts use use_container_width=True for responsive design
-- [ ] Map data prepared with minimal columns (latitude, longitude, attributes)
-- [ ] Pydeck layers use explicit color arrays (not DataFrame columns with lists)
+- [ ] Map data includes required columns (latitude, longitude) with proper error handling for missing values
+- [ ] Map styles, zoom levels, and center points configured appropriately
 - [ ] Visualizations tested with production-like data volumes
 
 ### Security & Validation
@@ -922,8 +990,9 @@ pg.run()
 - [Streamlit 101 Tutorial Series](https://dev.to/jamesbmour/series/28657) - Comprehensive tutorial series covering text elements, data display, input widgets, media elements, data visualization, layouts, chat interfaces, status elements, and page navigation with practical examples
 - [Plotly Documentation](https://plotly.com/python/) - Official Plotly Python graphing library documentation
 - [Plotly Express API](https://plotly.com/python-api-reference/plotly.express.html) - Plotly Express high-level API reference
-- [Pydeck Documentation](https://deckgl.readthedocs.io/) - Official Pydeck documentation for geospatial visualizations
-- [Pydeck Layer Catalog](https://deckgl.readthedocs.io/en/latest/layer.html) - Complete layer types reference for Pydeck
+- [Plotly Maps](https://plotly.com/python/maps/) - Comprehensive guide to maps in Plotly
+- [Plotly Mapbox Layers](https://plotly.com/python/mapbox-layers/) - Mapbox choropleth and scatter maps
+- [Plotly Geo Maps](https://plotly.com/python/map-configuration/) - Map configuration and styling guide
 - [Snowflake Streamlit Guide](https://docs.snowflake.com/en/developer-guide/streamlit/about-streamlit) - Snowflake-specific Streamlit integration documentation
 - [Snowpark Container Services (SPCS)](https://docs.snowflake.com/en/developer-guide/snowpark-container-services) - Deploying and operating containerized apps (open-source Streamlit) on Snowflake
 
@@ -932,3 +1001,5 @@ pg.run()
 - **Snowflake Notebooks**: `109-snowflake-notebooks.md`
 - **Python Core**: `200-python-core.md`
 - **Snowpark Container Services**: `120-snowflake-spcs.md`
+- **Data Science Analytics**: `500-data-science-analytics.md`
+- **Business Analytics**: `700-business-analytics.md`

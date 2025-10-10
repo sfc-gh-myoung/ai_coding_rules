@@ -2,10 +2,10 @@
 **AppliesTo:** `**/*.py`, `streamlit/**/*`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 2.0
+**Version:** 2.1
 **LastUpdated:** 2025-10-10
 
-**TokenBudget:** ~2200
+**TokenBudget:** ~2600
 **ContextTier:** comprehensive
 
 # Streamlit UI/UX Directives
@@ -164,7 +164,199 @@ pg.run()
 - **Requirement:** Manage state predictably with `st.session_state` and callbacks for complex updates.
 - **Requirement:** Use responsive layouts with `st.columns`, `st.sidebar`, and `use_container_width=True` for charts.
 
+### KPI Card and Helper Function Patterns
+
+**Critical Best Practice:** Use standardized helper functions for KPI metrics instead of manual `st.container(border=True)` implementations to ensure consistency and reduce code duplication.
+
+#### When to Use Helper Functions vs Manual Containers
+
+**Use `display_kpi_card()` or `display_kpi_metric()` for:**
+- ✅ Single metric with status indicator (e.g., "Grid Health: 97%")
+- ✅ KPI dashboards with multiple side-by-side metrics
+- ✅ Top-level summary metrics
+- ✅ Status-aware indicators (🟢 Healthy, 🔴 Critical, 🟡 Warning)
+
+**Use `display_section_card()` or manual `st.container(border=True)` for:**
+- ✅ Multi-content sections (metrics + narrative + charts)
+- ✅ Complex parent containers with nested metrics
+- ✅ Content sections with headers and multiple elements
+
+**Pattern Recognition:**
+```python
+# ❌ ANTI-PATTERN: Manual container for simple KPI
+with st.container(border=True):
+    st.markdown("🟢 **Healthy**")
+    st.metric("Grid Health", "97%", help="Overall performance")
+
+# ✅ CORRECT: Use helper function
+from utils.kpi_helpers import display_kpi_metric
+
+display_kpi_metric(
+    label="Grid Health",
+    value="97%",
+    status_color="GREEN",
+    status_label="Healthy",
+    help_text="Overall performance"
+)
+```
+
+#### Status-Aware Color System
+
+**Requirement:** Use explicit status colors for all KPI metrics to ensure consistent visual communication across the application.
+
+**Available Status Colors:**
+- `GREEN`: Healthy, successful, on-target (🟢)
+- `YELLOW`: Warning, attention needed (🟡)
+- `ORANGE`: Degraded, concerning (🟠)
+- `RED`: Critical, urgent action required (🔴)
+- `BLUE`: Informational, neutral metrics (🔵)
+
+**Implementation Pattern:**
+```python
+# Status-aware KPI metrics in columns
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    display_kpi_metric(
+        label="Uptime",
+        value="99.9%",
+        status_color="GREEN",
+        status_label="Excellent",
+        help_text="System availability"
+    )
+
+with col2:
+    display_kpi_metric(
+        label="Latency",
+        value="250ms",
+        status_color="YELLOW",
+        status_label="Above Target",
+        help_text="Response time trending up"
+    )
+
+with col3:
+    display_kpi_metric(
+        label="Error Rate",
+        value="5.2%",
+        status_color="RED",
+        status_label="Critical",
+        help_text="Requires immediate attention"
+    )
+```
+
+#### Nested Metrics Pattern
+
+**Rule:** For parent containers with multiple metrics inside, use `use_container=False` to avoid double-borders.
+
+```python
+# ✅ CORRECT: Parent container with nested metrics
+with st.container(border=True):
+    st.markdown("#### Performance Metrics")
+    card_section_spacing("tight")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        display_kpi_metric(
+            label="Accuracy",
+            value="99.9%",
+            status_color="GREEN",
+            status_label="Excellent",
+            use_container=False  # No border for nested
+        )
+    with col2:
+        display_kpi_metric(
+            label="Precision",
+            value="98.5%",
+            status_color="GREEN",
+            status_label="Good",
+            use_container=False  # No border for nested
+        )
+```
+
+#### Helper Function Benefits
+
+**Code Reduction:**
+- ❌ Before: Manual `st.container(border=True)` implementations repeated across pages
+- ✅ After: Single helper function with consistent API
+
+**Consistency:**
+- ✅ Uniform status indicators (emoji + label)
+- ✅ Consistent spacing and styling
+- ✅ Predictable API across all pages
+
+**Maintainability:**
+- ✅ Single source of truth for KPI styling
+- ✅ Easy to update styling globally
+- ✅ Reduces code duplication by ~100 lines per page
+
+#### Pure Streamlit Approach for SiS Compatibility
+
+**Lesson Learned:** Custom HTML/CSS injection is unreliable in Streamlit in Snowflake (SiS) environments due to:
+- Unknown/inaccessible DOM structure (no browser DevTools in SiS)
+- CSS specificity conflicts
+- Version-specific rendering differences
+
+**Recommended Approach:**
+1. **Use native Streamlit components** (`st.container`, `st.metric`)
+2. **Apply best-effort CSS** as optional enhancement (graceful fallback)
+3. **Rely on helper functions** for consistent patterns
+4. **Test in actual SiS environment** - local testing may not catch rendering issues
+
+```python
+# ✅ Pure Streamlit approach (works everywhere)
+from utils.ui_components import inject_global_card_styles
+from utils.kpi_helpers import display_kpi_metric
+
+# Optional CSS enhancement (call once in streamlit_app.py)
+inject_global_card_styles()  # Best-effort gradients/shadows
+
+# Core functionality using native components
+display_kpi_metric(
+    label="Metric",
+    value="100",
+    status_color="GREEN",
+    status_label="Healthy"
+)
+# Works reliably even if CSS doesn't apply
+```
+
+#### Migrating Existing Code to Helpers
+
+**Pattern:** Convert manual containers to helpers systematically:
+
+```python
+# ❌ OLD: Manual container
+with st.container(border=True):
+    st.markdown("🔴 **Critical**")
+    st.metric(
+        "Failed Transformers",
+        actual_count,
+        help="Assets requiring immediate attention"
+    )
+
+# ✅ NEW: Helper function
+display_kpi_metric(
+    label="Failed Transformers",
+    value=actual_count,
+    status_color="RED",
+    status_label="Critical",
+    help_text="Assets requiring immediate attention"
+)
+```
+
+**Migration Checklist:**
+- [ ] Identify all `st.container(border=True)` with single `st.metric()` inside
+- [ ] Extract status from emoji/markdown (🟢 → GREEN, 🔴 → RED, etc.)
+- [ ] Convert to `display_kpi_metric()` with explicit status_color
+- [ ] Update help parameter to help_text
+- [ ] Test in SiS environment to verify rendering
+
 ### Dashboard Layout and KPI Design
+- **For KPI card patterns and helper functions:** See subsection "KPI Card and Helper Function Patterns" above for:
+  - When to use helpers vs manual containers
+  - Status-aware color system (GREEN/YELLOW/ORANGE/RED/BLUE)
+  - Nested metrics pattern
+  - Pure Streamlit approach for SiS compatibility
 - **For business dashboard design:** Reference **700-business-analytics.md** Sections 1-2 for:
   - Audience segmentation matrix (KPI counts, detail levels by role)
   - Visual hierarchy patterns (F-pattern, Z-pattern layouts)

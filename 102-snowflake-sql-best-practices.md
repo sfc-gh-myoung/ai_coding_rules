@@ -2,10 +2,10 @@
 **AppliesTo:** `**/*.sql`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.4
-**LastUpdated:** 2025-10-05
+**Version:** 1.5
+**LastUpdated:** 2025-10-10
 
-**TokenBudget:** ~800
+**TokenBudget:** ~1200
 **ContextTier:** High
 
 # Snowflake SQL Best Practices

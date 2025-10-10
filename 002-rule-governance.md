@@ -209,26 +209,43 @@ Every rule file must follow this structure:
 
 **Token Budget Declaration (REQUIRED):**
 - **Requirement:** Every rule must declare a token budget in metadata
-- **Format:** `**TokenBudget:** [small|medium|large]` or specific number
+- **Format:** `**TokenBudget:** ~[number]` (e.g., ~450, ~800, ~2000) - MUST be numeric with tilde prefix
+- **Forbidden:** Do NOT use text labels like "small", "medium", "large" - use specific numbers only
 - **Context Tier:** Must specify `**ContextTier:** [essential|standard|comprehensive]`
+- **Calculation:** Approximately 2 tokens per line as rough estimate
 
-**Token Budget Tiers:**
+**Token Budget Tiers (Use Numeric Values):**
 ```markdown
 **Small (<300 tokens / ~150 lines):**
+- **TokenBudget:** ~150, ~200, ~250 (numeric values)
 - **ContextTier:** essential
 - **Use Case:** Copilot-safe, always-loaded rules
 - **Examples:** Core workflow, security constraints
 
 **Medium (300-600 tokens / ~300 lines):**
+- **TokenBudget:** ~300, ~400, ~500, ~600 (numeric values)
 - **ContextTier:** standard
 - **Use Case:** Language/framework-specific rules
 - **Examples:** Python core, FastAPI patterns
 
-**Large (>600 tokens / ~500 lines):**
-- **ContextTier:** comprehensive
-- **Use Case:** Deep technical guides
+**Large (600-1200 tokens / ~300-600 lines):**
+- **TokenBudget:** ~700, ~800, ~1000, ~1200 (numeric values)
+- **ContextTier:** High
+- **Use Case:** Comprehensive technical guides
 - **Examples:** Advanced optimization patterns
+
+**Very Large (>1200 tokens / >600 lines):**
+- **TokenBudget:** ~1500, ~2000, ~2500+ (numeric values)
+- **ContextTier:** comprehensive
+- **Use Case:** Extensive domain-specific guides
+- **Examples:** Full framework documentation, comprehensive analytics guides
 ```
+
+**Anti-Pattern:**
+❌ `**TokenBudget:** small` or `**TokenBudget:** medium` or `**TokenBudget:** large`
+
+**Correct Pattern:**
+✅ `**TokenBudget:** ~450` or `**TokenBudget:** ~1200` or `**TokenBudget:** ~2200`
 
 **Claude 4.5 Context Awareness:**
 <model_specific_guidance model="claude-4.5">
@@ -604,7 +621,8 @@ Do not use placeholders or guess missing parameters - wait for actual results.
 - **Mandatory:** When creating a new rule, include `Version: 1.0` and `LastUpdated` with current date in YYYY-MM-DD format
 - **Mandatory:** When creating a new rule, declare `TokenBudget` and `ContextTier` in metadata
 - **Mandatory:** When updating any rule file, increment the version number and update `LastUpdated` to the current date in YYYY-MM-DD format
-- **Mandatory:** When updating any rule file, review and update `TokenBudget` to reflect current file size and content (use token budget tiers in Section 5 as guidance: <300 tokens/~150 lines = small, 300-600 tokens/~300 lines = medium, >600 tokens/~500 lines = large)
+- **Mandatory:** When updating any rule file, review and update `TokenBudget` to reflect current file size and content (use token budget tiers in Section 5 as guidance: ~150-250 for <150 lines, ~300-600 for 150-300 lines, ~700-1200 for 300-600 lines, ~1500+ for >600 lines)
+- **Mandatory:** TokenBudget MUST be numeric with tilde prefix (e.g., ~450), never text labels like "small", "medium", or "large"
 - **Always:** When refactoring, split oversized rules and remove content duplication
 - **Always:** When creating or updating rules, verify compliance with emoji usage guidelines (standardized functional markers only: 🔥⚠️✅❌📊🆕)
 - **Forbidden:** Decorative emojis, celebratory emojis, face emojis, or GIF images in rule files
@@ -622,7 +640,7 @@ Use this template when creating new rule files. Copy the entire template below a
 **AppliesTo:** [File patterns, technologies, or contexts where this rule applies]
 **AutoAttach:** [true | false]
 **Type:** [Auto-attach | Agent Requested]
-**TokenBudget:** [small | medium | large]
+**TokenBudget:** ~[number] (e.g., ~450, ~800, ~2000)
 **ContextTier:** [essential | standard | comprehensive]
 **Version:** 1.0
 **LastUpdated:** [YYYY-MM-DD]
@@ -740,7 +758,8 @@ When applying this rule:
 ## Quick Compliance Checklist
 - [ ] Rule follows mandatory section structure (all 9+ required sections)
 - [ ] Purpose clearly states what rule accomplishes and why
-- [ ] TokenBudget and ContextTier declared in metadata and reflect current file size
+- [ ] TokenBudget declared as numeric value with tilde (e.g., ~450) and reflects current file size (~2 tokens per line)
+- [ ] ContextTier declared in metadata and appropriate for file size
 - [ ] XML tags used for semantic markup (section_metadata, directive_strength)
 - [ ] Contract specifies inputs, tools, steps, output format, and validation with explicit instructions
 - [ ] Anti-Patterns section included with 2-5 examples (CRITICAL for Claude 4)

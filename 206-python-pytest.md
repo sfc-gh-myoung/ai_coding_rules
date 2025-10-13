@@ -33,6 +33,27 @@ Define pragmatic, industry-standard testing practices with pytest to produce fas
 - **Output Format:** Focused diffs to test code; runnable examples for fixtures/parametrization; minimal CI commands.
 - **Validation Steps:** `uvx ruff check .` and `uvx ruff format --check .` pass; `uv run pytest` passes; optional coverage thresholds met.
 
+## Pre-Task-Completion Test Execution Gate (CRITICAL)
+
+**Reference:** Complete validation protocol in `000-global-core.md` and `AGENTS.md`
+
+**CRITICAL:** Test execution is MANDATORY before task completion. Tests are not optional.
+
+### Mandatory Test Requirements
+- **CRITICAL:** `uv run pytest` - All tests must pass before marking task complete
+- **CRITICAL:** Never skip tests unless user explicitly requests override with acknowledged risks
+- **CRITICAL:** Run tests immediately after code modifications, not in batches
+- **Rule:** Do not mark tasks complete if ANY test fails
+- **Rule:** Fix all test failures before responding to user
+- **Exception:** Only skip with explicit user override (e.g., "skip tests") - acknowledge risks
+
+### Test Execution Protocol
+1. After any code modification, run `uv run pytest`
+2. If tests fail, stop and report failures
+3. Fix all failures
+4. Re-run tests to confirm pass
+5. Only then proceed to task completion
+
 ## Key Principles
 - **Fast and deterministic:** Tests must be hermetic, avoiding hidden time or network dependencies.
 - **Clear intent:** Descriptive test names; one assertion group per behavior; meaningful failure messages.
@@ -170,6 +191,8 @@ uv run pytest --cov=yourpkg --cov-report=term-missing
 ```
 
 ## Quick Compliance Checklist
+- [ ] **CRITICAL:** Pre-Task-Completion Test Execution Gate passed (all tests pass)
+- [ ] **CRITICAL:** `uv run pytest` passed with all tests passing
 - [ ] Tests run via `uv run pytest` (never bare pytest)
 - [ ] Tests live under `tests/` and follow naming conventions
 - [ ] Fixtures small, explicit, function-scoped by default; minimal autouse
@@ -178,10 +201,11 @@ uv run pytest --cov=yourpkg --cov-report=term-missing
 - [ ] Markers defined and used for selection; CI filters slow/e2e
 - [ ] Assertions clear; exceptions verified with `pytest.raises`
 - [ ] Lints and formatting pass; optional coverage thresholds satisfied
+- [ ] CHANGELOG.md and README.md updated as required
 
 ## Validation
-- **Success Checks:** Lint/format pass; pytest suite passes locally and in CI; deterministic behavior; meaningful failures.
-- **Negative Tests:** Flaky tests; global state coupling; sleeps; live network; bare `pytest` usage; shared mutable fixtures.
+- **Success Checks:** Pre-Task-Completion Test Execution Gate passed; `uv run pytest` passes with all tests passing; lint/format pass; deterministic behavior; meaningful failures; CHANGELOG.md and README.md updated as required.
+- **Negative Tests:** Flaky tests; global state coupling; sleeps; live network; bare `pytest` usage; shared mutable fixtures; task completion attempted with failing tests is blocked.
 
 ## Response Template
 ```bash

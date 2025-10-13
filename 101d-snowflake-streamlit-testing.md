@@ -2,7 +2,8 @@
 **AppliesTo:** `**/*.py`, `tests/**/*`, `streamlit/**/*`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
+**Keywords:** Streamlit testing, AppTest, st.testing, unit tests, debugging, test Streamlit app, pytest
+**Version:** 1.1
 **LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~400

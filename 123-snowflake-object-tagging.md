@@ -2,10 +2,11 @@
 **AppliesTo:** `**/*.sql`
 **AutoAttach:** false
 **Type:** Agent Requested
+**Keywords:** Object tagging, tags, tag inheritance, tag-based policies, cost attribution, resource tagging, governance tags
 **TokenBudget:** ~2000
 **ContextTier:** comprehensive
-**Version:** 1.1
-**LastUpdated:** 2025-10-10
+**Version:** 1.2
+**LastUpdated:** 2025-10-13
 
 # Snowflake Object Tagging Best Practices
 

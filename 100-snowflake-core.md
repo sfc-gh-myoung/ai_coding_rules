@@ -2,8 +2,9 @@
 **AppliesTo:** `**/*.sql`, `**/*.scl`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.4
-**LastUpdated:** 2025-10-05
+**Keywords:** Snowflake, SQL, CTE, performance, cost optimization, query profile, warehouse, security, governance, stages, COPY INTO, streams, tasks
+**Version:** 1.5
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~400
 **ContextTier:** High

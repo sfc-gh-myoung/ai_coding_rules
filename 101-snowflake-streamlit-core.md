@@ -2,7 +2,8 @@
 **AppliesTo:** `**/*.py`, `streamlit/**/*`, `.streamlit/config.toml`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
+**Keywords:** Streamlit, Snowflake in Streamlit, SiS, SPCS, st.connection, session state, navigation, multipage, deployment, UI, dashboard
+**Version:** 1.1
 **LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~700

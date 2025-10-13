@@ -1,77 +1,84 @@
 **Description:** Top-level index of rule files with purpose, scope, and dependencies.
 **AutoAttach:** true
 **Type:** Auto-attach
-**Version:** 1.8
+**Keywords:** rules index, rule discovery, semantic search, agent requested, auto-attach, rule governance
+**Version:** 1.9
 **LastUpdated:** 2025-10-13
 
 # Rules Index
 
-This index helps agents select the correct rule quickly. Documentation files like `README.md`, `CHANGELOG.md`, and `CONTRIBUTING.md` are excluded.
+This index helps agents select the correct rule quickly through semantic keyword matching. Always reference this index when users ask "how do I..." or "what rule covers..." questions. Documentation files like `README.md`, `CHANGELOG.md`, and `CONTRIBUTING.md` are excluded.
 
-| File | Type | Purpose (one line) | Scope | Depends On |
-|------|------|---------------------|-------|------------|
-| `000-global-core.md` | Auto-attach | Global operating contract (PLAN/ACT, safety, validation) | Universal | — |
-| `001-memory-bank.md` | Auto-attach | Universal memory bank for AI context continuity | Project continuity | `000-global-core.md` |
-| `002-rule-governance.md` | Auto-attach | Rule authoring governance, standards, and creation template | All rules | `000-global-core.md` |
-| `100-snowflake-core.md` | Agent Requested | Foundational Snowflake practices (cost, performance, security) | Snowflake SQL & modeling | `000-global-core.md` |
-| `101-snowflake-streamlit-core.md` | Agent Requested | Streamlit core: setup, navigation, state management, deployment modes (SiS vs SPCS) | Streamlit apps | `100-snowflake-core.md` |
-| `101a-snowflake-streamlit-visualization.md` | Agent Requested | Streamlit visualization: Plotly charts, maps, dashboard integration | Streamlit visualizations | `101-snowflake-streamlit-core.md`, `700-business-analytics.md` |
-| `101b-snowflake-streamlit-performance.md` | Agent Requested | Streamlit performance: caching, optimization, data loading from Snowflake | Streamlit performance | `101-snowflake-streamlit-core.md`, `103-snowflake-performance-tuning.md` |
-| `101c-snowflake-streamlit-security.md` | Agent Requested | Streamlit security: input validation, secrets management, security best practices | Streamlit security | `101-snowflake-streamlit-core.md`, `107-snowflake-security-governance.md` |
-| `101d-snowflake-streamlit-testing.md` | Agent Requested | Streamlit testing: AppTest patterns, unit testing, debugging workflows | Streamlit testing | `101-snowflake-streamlit-core.md`, `206-python-pytest.md` |
-| `102-snowflake-sql-best-practices.md` | Agent Requested | Advanced SQL authoring patterns | SQL authorship | `100-snowflake-core.md` |
-| `103-snowflake-performance-tuning.md` | Agent Requested | Query profiling and warehouse tuning | Performance | `100-snowflake-core.md` |
-| `104-snowflake-streams-tasks.md` | Agent Requested | Incremental pipelines with Streams + Tasks | Pipelines | `100-snowflake-core.md` |
-| `105-snowflake-cost-governance.md` | Agent Requested | Cost optimization and monitors | Cost governance | `100-snowflake-core.md` |
-| `106-snowflake-semantic-views.md` | Agent Requested | Semantic models and semantic views (Cortex Analyst) | Modeling | `100-snowflake-core.md` |
-| `107-snowflake-security-governance.md` | Agent Requested | Masking, row access, and tagging | Security | `100-snowflake-core.md` |
-| `108-snowflake-data-loading.md` | Agent Requested | Stages, COPY INTO, Snowpipe | Ingestion | `100-snowflake-core.md` |
-| `109-snowflake-notebooks.md` | Agent Requested | Notebook best practices | Notebooks | `100-snowflake-core.md` |
-| `110-snowflake-model-registry.md` | Agent Requested | Model lifecycle and governance | ML registry | `100-snowflake-core.md` |
-| `111-snowflake-observability.md` | Agent Requested | Telemetry, logging, tracing, metrics | Observability | `100-snowflake-core.md` |
-| `112-snowflake-snowcli.md` | Agent Requested | Snowflake CLI best practices with pinned uvx execution | Snowflake CLI | `100-snowflake-core.md` |
-| `114-snowflake-cortex-aisql.md` | Agent Requested | Cortex AISQL functions best practices (cost, batching, security) | AISQL | `100-snowflake-core.md`, `102-snowflake-sql-best-practices.md`, `105-snowflake-cost-governance.md`, `111-snowflake-observability.md`, `112-snowflake-snowcli.md` |
-| `115-snowflake-cortex-agents.md` | Agent Requested | Cortex Agents design: grounding, tools, RBAC, observability | Agents | `100-snowflake-core.md`, `105-snowflake-cost-governance.md`, `106-snowflake-semantic-views.md`, `111-snowflake-observability.md` |
-| `116-snowflake-cortex-search.md` | Agent Requested | Cortex Search indexing and query patterns with filters and cost control | Retrieval | `100-snowflake-core.md`, `105-snowflake-cost-governance.md`, `111-snowflake-observability.md`, `114-snowflake-cortex-aisql.md` |
-| `117-snowflake-cortex-analyst.md` | Agent Requested | Cortex Analyst & Semantic Views modeling and governance | Analyst & Semantics | `100-snowflake-core.md`, `106-snowflake-semantic-views.md`, `105-snowflake-cost-governance.md`, `111-snowflake-observability.md` |
-| `118-snowflake-cortex-rest-api.md` | Agent Requested | Cortex REST API usage: auth, retries, streaming, costs | REST API | `100-snowflake-core.md`, `105-snowflake-cost-governance.md`, `111-snowflake-observability.md`, `112-snowflake-snowcli.md` |
-| `113-snowflake-feature-store.md` | Agent Requested | Feature engineering, entity modeling, feature views, ML integration | Feature Store (Enterprise) | `100-snowflake-core.md`, `110-snowflake-model-registry.md` |
-| `119-snowflake-warehouse-management.md` | Agent Requested | Warehouse creation, type selection (CPU/GPU/High-Memory), sizing, tagging, cost governance | Virtual warehouses | `100-snowflake-core.md`, `103-snowflake-performance-tuning.md`, `105-snowflake-cost-governance.md` |
-| `120-snowflake-spcs.md` | Agent Requested | Snowpark Container Services best practices | SPCS | `100-snowflake-core.md` |
-| `121-snowflake-snowpipe.md` | Agent Requested | Snowpipe and Snowpipe Streaming for continuous near-real-time ingestion (auto-ingest, REST API, SDK) | Data ingestion | `100-snowflake-core.md`, `108-snowflake-data-loading.md`, `104-snowflake-streams-tasks.md` |
-| `122-snowflake-dynamic-tables.md` | Agent Requested | Dynamic Tables best practices: refresh modes, lag config, pipeline design | Dynamic Tables | `100-snowflake-core.md`, `104-snowflake-streams-tasks.md`, `119-snowflake-warehouse-management.md` |
-| `123-snowflake-object-tagging.md` | Agent Requested | Object tagging best practices: governance, cost attribution, tag-based policies | Object Tagging | `100-snowflake-core.md`, `105-snowflake-cost-governance.md`, `107-snowflake-security-governance.md`, `119-snowflake-warehouse-management.md` |
-| `124-snowflake-data-quality.md` | Agent Requested | Data Quality Monitoring with DMFs: system/custom DMFs, profiling, expectations, scheduling | Data Quality | `100-snowflake-core.md`, `105-snowflake-cost-governance.md`, `107-snowflake-security-governance.md`, `600-data-governance-quality.md` |
-| `200-python-core.md` | Agent Requested | Modern Python engineering with uv/Ruff | Python | `000-global-core.md` |
-| `201-python-lint-format.md` | Agent Requested | Ruff linting/formatting policy | Linting | `200-python-core.md` |
-| `202-yaml-config-best-practices.md` | Agent Requested | YAML safety and reliability | YAML/config | — |
-| `203-python-project-setup.md` | Agent Requested | Packaging and setup practices | Python setup | `200-python-core.md` |
-| `204-python-docs-comments.md` | Agent Requested | Docs, comments, and docstring standards with Ruff enforcement | Python docs & comments | `200-python-core.md`, `201-python-lint-format.md` |
-| `210-python-fastapi-core.md` | Agent Requested | FastAPI core patterns | FastAPI | `200-python-core.md` |
-| `211-python-fastapi-security.md` | Agent Requested | Auth, CORS, security middleware | FastAPI security | `210-python-fastapi-core.md` |
-| `212-python-fastapi-testing.md` | Agent Requested | API testing strategies | Testing | `210-python-fastapi-core.md` |
-| `213-python-fastapi-deployment.md` | Agent Requested | Deployment & ASGI servers | Deployment | `210-python-fastapi-core.md` |
-| `214-python-fastapi-monitoring.md` | Agent Requested | Health checks, logging, caching | Monitoring | `210-python-fastapi-core.md` |
-| `220-python-typer-cli.md` | Agent Requested | Typer CLI development | CLI | `200-python-core.md` |
-| `230-python-pydantic.md` | Agent Requested | Pydantic models/settings | Validation | `200-python-core.md` |
-| `240-python-faker.md` | Agent Requested | Faker data generation | Test data | `200-python-core.md` |
-| `250-python-flask.md` | Agent Requested | Flask best practices | Flask | `200-python-core.md` |
-| `205-python-classes.md` | Agent Requested | Python class design and usage best practices | Python classes | `200-python-core.md`, `201-python-lint-format.md`, `204-python-docs-comments.md` |
-| `206-python-pytest.md` | Agent Requested | pytest testing best practices for Python projects | Testing | `200-python-core.md`, `201-python-lint-format.md`, `203-python-project-setup.md` |
-| `300-bash-scripting-core.md` | Agent Requested | Bash scripting fundamentals | Bash | `000-global-core.md` |
-| `301-bash-security.md` | Agent Requested | Shell security best practices | Bash security | `300-bash-scripting-core.md` |
-| `302-bash-testing-tooling.md` | Agent Requested | Shell testing & tooling | Bash testing | `300-bash-scripting-core.md` |
-| `310-zsh-scripting-core.md` | Agent Requested | Zsh fundamentals | Zsh | `300-bash-scripting-core.md` |
-| `311-zsh-advanced-features.md` | Agent Requested | Advanced Zsh patterns | Zsh advanced | `310-zsh-scripting-core.md` |
-| `312-zsh-compatibility.md` | Agent Requested | Cross-shell compatibility | Zsh portability | `300-bash-scripting-core.md` |
-| `400-docker-best-practices.md` | Agent Requested | Docker and Dockerfile best practices | Containers & Docker | `202-yaml-config-best-practices.md` |
-| `500-data-science-analytics.md` | Agent Requested | DS/analytics practices | Analytics | `200-python-core.md` |
-| `600-data-governance-quality.md` | Agent Requested | Data quality & governance | Governance | — |
-| `700-business-analytics.md` | Agent Requested | Business reporting & visualization | BI | — |
-| `800-project-changelog-rules.md` | Agent Requested | Changelog governance | Project mgmt | `000-global-core.md` |
-| `801-project-readme-rules.md` | Agent Requested | README structure & standards | Docs | `000-global-core.md` |
-| `805-project-contributing-rules.md` | Agent Requested | Contribution workflow standards | Contributing | `000-global-core.md` |
-| `820-taskfile-automation.md` | Agent Requested | Taskfile automation practices | Automation | `202-yaml-config-best-practices.md` |
-| `900-demo-creation.md` | Agent Requested | Demo creation directives | Demos | — |
-| `UNIVERSAL_PROMPT.md` | Agent Requested | Universal response guidelines | Prompting | `000-global-core.md` |
-| `AGENTS.md` | Auto-attach | Agent operating workflow (PLAN/ACT), setup, and validation commands | Agents | `000-global-core.md` |
+**How to Use This Index:**
+- Browse by category (000=Core, 100=Snowflake, 200=Python, 300=Shell, 400=Docker, 500-900=Domain-specific)
+- Search Keywords column for semantic discovery (technologies, patterns, use cases)
+- Check Depends On column for prerequisite rules
+- Auto-attach rules load automatically; Agent Requested rules load on-demand
+
+| File | Type | Purpose (one line) | Scope | Keywords/Hints | Depends On |
+|------|------|---------------------|-------|----------------|------------|
+| `000-global-core.md` | Auto-attach | Global operating contract (PLAN/ACT, safety, validation) | Universal | PLAN mode, ACT mode, workflow, safety, confirmation, validation, surgical edits, minimal changes, mode violations | — |
+| `001-memory-bank.md` | Auto-attach | Universal memory bank for AI context continuity | Project continuity | memory bank, context, session recovery, project brief, active context, progress tracking, continuity | `000-global-core.md` |
+| `002-rule-governance.md` | Auto-attach | Rule authoring governance, standards, and creation template | All rules | rule creation, governance, standards, metadata, keywords, semantic discovery, template, RULES_INDEX | `000-global-core.md` |
+| `100-snowflake-core.md` | Agent Requested | Foundational Snowflake practices (cost, performance, security) | Snowflake SQL & modeling | Snowflake, SQL, CTE, performance, cost optimization, query profile, warehouse, security, governance, stages, COPY INTO, streams, tasks | `000-global-core.md` |
+| `101-snowflake-streamlit-core.md` | Agent Requested | Streamlit core: setup, navigation, state management, deployment modes (SiS vs SPCS) | Streamlit apps | Streamlit, Snowflake in Streamlit, SiS, SPCS, st.connection, session state, navigation, multipage, deployment, UI, dashboard | `100-snowflake-core.md` |
+| `101a-snowflake-streamlit-visualization.md` | Agent Requested | Streamlit visualization: Plotly charts, maps, dashboard integration | Streamlit visualizations | Streamlit charts, Plotly, st.plotly_chart, st.map, visualization, dashboard, interactive charts, map visualization | `101-snowflake-streamlit-core.md`, `700-business-analytics.md` |
+| `101b-snowflake-streamlit-performance.md` | Agent Requested | Streamlit performance: caching, optimization, data loading from Snowflake | Streamlit performance | Streamlit caching, @st.cache_data, @st.cache_resource, performance optimization, slow Streamlit, data loading, query optimization | `101-snowflake-streamlit-core.md`, `103-snowflake-performance-tuning.md` |
+| `101c-snowflake-streamlit-security.md` | Agent Requested | Streamlit security: input validation, secrets management, security best practices | Streamlit security | Streamlit security, secrets management, st.secrets, input validation, XSS protection, SQL injection, authentication | `101-snowflake-streamlit-core.md`, `107-snowflake-security-governance.md` |
+| `101d-snowflake-streamlit-testing.md` | Agent Requested | Streamlit testing: AppTest patterns, unit testing, debugging workflows | Streamlit testing | Streamlit testing, AppTest, st.testing, unit tests, debugging, test Streamlit app, pytest | `101-snowflake-streamlit-core.md`, `206-python-pytest.md` |
+| `102-snowflake-sql-best-practices.md` | Agent Requested | Advanced SQL authoring patterns | SQL authorship | SQL best practices, CTEs, VARIANT extraction, JOIN patterns, QUALIFY, window functions, set operations, UNION vs UNION ALL | `100-snowflake-core.md` |
+| `103-snowflake-performance-tuning.md` | Agent Requested | Query profiling and warehouse tuning | Performance | Query profile, slow queries, performance tuning, warehouse sizing, clustering keys, search optimization, pruning, spillage | `100-snowflake-core.md` |
+| `104-snowflake-streams-tasks.md` | Agent Requested | Incremental pipelines with Streams + Tasks | Pipelines | Streams, Tasks, incremental loading, CDC, change data capture, scheduled tasks, pipeline automation, MERGE patterns | `100-snowflake-core.md` |
+| `105-snowflake-cost-governance.md` | Agent Requested | Cost optimization and monitors | Cost governance | Cost optimization, resource monitors, warehouse auto-suspend, query cost, credit usage, budget alerts, spend tracking | `100-snowflake-core.md` |
+| `106-snowflake-semantic-views.md` | Agent Requested | Semantic models and semantic views (Cortex Analyst) | Modeling | Semantic models, semantic views, Cortex Analyst, data modeling, business logic layer, metrics layer | `100-snowflake-core.md` |
+| `107-snowflake-security-governance.md` | Agent Requested | Masking, row access, and tagging | Security | Masking policies, row access policies, column masking, data governance, tagging, RBAC, roles, grants, secure views | `100-snowflake-core.md` |
+| `108-snowflake-data-loading.md` | Agent Requested | Stages, COPY INTO, Snowpipe | Ingestion | Data loading, stages, COPY INTO, CSV load, JSON load, Parquet, file formats, bulk loading, stage management | `100-snowflake-core.md` |
+| `109-snowflake-notebooks.md` | Agent Requested | Notebook best practices | Notebooks | Snowflake notebooks, Jupyter, Python notebooks, data exploration, ML, reproducible notebooks | `100-snowflake-core.md` |
+| `110-snowflake-model-registry.md` | Agent Requested | Model lifecycle and governance | ML registry | Model registry, ML models, model versioning, model deployment, MLOps, model governance, model lifecycle | `100-snowflake-core.md` |
+| `111-snowflake-observability.md` | Agent Requested | Telemetry, logging, tracing, metrics | Observability | Observability, logging, tracing, metrics, telemetry, monitoring, query history, ACCOUNT_USAGE, event tables | `100-snowflake-core.md` |
+| `112-snowflake-snowcli.md` | Agent Requested | Snowflake CLI best practices with pinned uvx execution | Snowflake CLI | snow CLI, SnowCLI, Snowflake command line, uvx snow, CLI deployment, snowflake.yml | `100-snowflake-core.md` |
+| `114-snowflake-cortex-aisql.md` | Agent Requested | Cortex AISQL functions best practices (cost, batching, security) | AISQL | Cortex AISQL, AI_COMPLETE, AI_CLASSIFY, AI_EXTRACT, AI_SENTIMENT, embeddings, LLM functions, batching AI, token costs | `100-snowflake-core.md`, `102-snowflake-sql-best-practices.md`, `105-snowflake-cost-governance.md`, `111-snowflake-observability.md`, `112-snowflake-snowcli.md` |
+| `115-snowflake-cortex-agents.md` | Agent Requested | Cortex Agents design: grounding, tools, RBAC, observability | Agents | Cortex Agents, AI agents, agent design, grounding, tools, functions, agent RBAC, agent observability | `100-snowflake-core.md`, `105-snowflake-cost-governance.md`, `106-snowflake-semantic-views.md`, `111-snowflake-observability.md` |
+| `116-snowflake-cortex-search.md` | Agent Requested | Cortex Search indexing and query patterns with filters and cost control | Retrieval | Cortex Search, vector search, embeddings, hybrid search, search index, retrieval, RAG, semantic search | `100-snowflake-core.md`, `105-snowflake-cost-governance.md`, `111-snowflake-observability.md`, `114-snowflake-cortex-aisql.md` |
+| `117-snowflake-cortex-analyst.md` | Agent Requested | Cortex Analyst & Semantic Views modeling and governance | Analyst & Semantics | Cortex Analyst, natural language queries, NL2SQL, semantic layer, text-to-SQL, business intelligence | `100-snowflake-core.md`, `106-snowflake-semantic-views.md`, `105-snowflake-cost-governance.md`, `111-snowflake-observability.md` |
+| `118-snowflake-cortex-rest-api.md` | Agent Requested | Cortex REST API usage: auth, retries, streaming, costs | REST API | Cortex REST API, API authentication, streaming responses, API retries, idempotency, rate limits | `100-snowflake-core.md`, `105-snowflake-cost-governance.md`, `111-snowflake-observability.md`, `112-snowflake-snowcli.md` |
+| `113-snowflake-feature-store.md` | Agent Requested | Feature engineering, entity modeling, feature views, ML integration | Feature Store (Enterprise) | Feature store, feature engineering, feature views, entity modeling, ML pipeline, ML features | `100-snowflake-core.md`, `110-snowflake-model-registry.md` |
+| `119-snowflake-warehouse-management.md` | Agent Requested | Warehouse creation, type selection (CPU/GPU/High-Memory), sizing, tagging, cost governance | Virtual warehouses | Warehouse management, warehouse sizing, CPU warehouse, GPU warehouse, high-memory warehouse, warehouse tagging, auto-suspend, auto-resume | `100-snowflake-core.md`, `103-snowflake-performance-tuning.md`, `105-snowflake-cost-governance.md` |
+| `120-snowflake-spcs.md` | Agent Requested | Snowpark Container Services best practices | SPCS | SPCS, Snowpark Container Services, containers, containerized apps, service deployment, compute pools | `100-snowflake-core.md` |
+| `121-snowflake-snowpipe.md` | Agent Requested | Snowpipe and Snowpipe Streaming for continuous near-real-time ingestion (auto-ingest, REST API, SDK) | Data ingestion | Snowpipe, Snowpipe Streaming, continuous ingestion, real-time loading, auto-ingest, streaming data, micro-batching | `100-snowflake-core.md`, `108-snowflake-data-loading.md`, `104-snowflake-streams-tasks.md` |
+| `122-snowflake-dynamic-tables.md` | Agent Requested | Dynamic Tables best practices: refresh modes, lag config, pipeline design | Dynamic Tables | Dynamic Tables, materialized views, incremental refresh, target lag, refresh mode, automatic pipelines | `100-snowflake-core.md`, `104-snowflake-streams-tasks.md`, `119-snowflake-warehouse-management.md` |
+| `123-snowflake-object-tagging.md` | Agent Requested | Object tagging best practices: governance, cost attribution, tag-based policies | Object Tagging | Object tagging, tags, tag inheritance, tag-based policies, cost attribution, resource tagging, governance tags | `100-snowflake-core.md`, `105-snowflake-cost-governance.md`, `107-snowflake-security-governance.md`, `119-snowflake-warehouse-management.md` |
+| `124-snowflake-data-quality.md` | Agent Requested | Data Quality Monitoring with DMFs: system/custom DMFs, profiling, expectations, scheduling | Data Quality | Data quality, DMF, data metric functions, data profiling, expectations, quality checks, data validation | `100-snowflake-core.md`, `105-snowflake-cost-governance.md`, `107-snowflake-security-governance.md`, `600-data-governance-quality.md` |
+| `200-python-core.md` | Agent Requested | Modern Python engineering with uv/Ruff | Python | Python, uv, Ruff, pyproject.toml, dependency management, virtual environments, modern Python tooling | `000-global-core.md` |
+| `201-python-lint-format.md` | Agent Requested | Ruff linting/formatting policy | Linting | Ruff, linting, formatting, code quality, style checking, uvx ruff, lint errors | `200-python-core.md` |
+| `202-yaml-config-best-practices.md` | Agent Requested | YAML safety and reliability | YAML/config | YAML, configuration files, YAML syntax, parsing errors, indentation, anchors, aliases | — |
+| `203-python-project-setup.md` | Agent Requested | Packaging and setup practices | Python setup | Python packaging, project structure, setup.py, pyproject.toml, dependencies, package distribution | `200-python-core.md` |
+| `204-python-docs-comments.md` | Agent Requested | Docs, comments, and docstring standards with Ruff enforcement | Python docs & comments | Python docstrings, documentation, comments, pydocstyle, Ruff DOC rules, API documentation | `200-python-core.md`, `201-python-lint-format.md` |
+| `210-python-fastapi-core.md` | Agent Requested | FastAPI core patterns | FastAPI | FastAPI, async, REST API, Pydantic, dependency injection, routing, request validation, response models | `200-python-core.md` |
+| `211-python-fastapi-security.md` | Agent Requested | Auth, CORS, security middleware | FastAPI security | FastAPI security, authentication, OAuth2, JWT, CORS, middleware, API keys, security best practices | `210-python-fastapi-core.md` |
+| `212-python-fastapi-testing.md` | Agent Requested | API testing strategies | Testing | FastAPI testing, TestClient, pytest-asyncio, API tests, integration testing, mocking | `210-python-fastapi-core.md` |
+| `213-python-fastapi-deployment.md` | Agent Requested | Deployment & ASGI servers | Deployment | FastAPI deployment, Uvicorn, Gunicorn, ASGI, Docker, production deployment, health checks | `210-python-fastapi-core.md` |
+| `214-python-fastapi-monitoring.md` | Agent Requested | Health checks, logging, caching | Monitoring | FastAPI monitoring, health checks, logging, metrics, caching, Redis, observability | `210-python-fastapi-core.md` |
+| `220-python-typer-cli.md` | Agent Requested | Typer CLI development | CLI | Typer, CLI development, command-line interface, click, argument parsing, CLI testing | `200-python-core.md` |
+| `230-python-pydantic.md` | Agent Requested | Pydantic models/settings | Validation | Pydantic, data validation, models, settings, BaseModel, field validation, serialization | `200-python-core.md` |
+| `240-python-faker.md` | Agent Requested | Faker data generation | Test data | Faker, test data generation, fake data, providers, localization, synthetic data | `200-python-core.md` |
+| `250-python-flask.md` | Agent Requested | Flask best practices | Flask | Flask, web development, blueprints, Flask-SQLAlchemy, templates, routing, Flask extensions | `200-python-core.md` |
+| `205-python-classes.md` | Agent Requested | Python class design and usage best practices | Python classes | Python classes, OOP, inheritance, dataclasses, @property, class design, encapsulation | `200-python-core.md`, `201-python-lint-format.md`, `204-python-docs-comments.md` |
+| `206-python-pytest.md` | Agent Requested | pytest testing best practices for Python projects | Testing | pytest, testing, fixtures, parametrization, test isolation, mocking, test organization, coverage | `200-python-core.md`, `201-python-lint-format.md`, `203-python-project-setup.md` |
+| `300-bash-scripting-core.md` | Agent Requested | Bash scripting fundamentals | Bash | Bash scripting, shell scripts, set -euo pipefail, error handling, functions, variables, script structure | `000-global-core.md` |
+| `301-bash-security.md` | Agent Requested | Shell security best practices | Bash security | Bash security, input validation, command injection, path security, secure shell scripts | `300-bash-scripting-core.md` |
+| `302-bash-testing-tooling.md` | Agent Requested | Shell testing & tooling | Bash testing | Bash testing, ShellCheck, bats, shell script testing, CI/CD, debugging | `300-bash-scripting-core.md` |
+| `310-zsh-scripting-core.md` | Agent Requested | Zsh fundamentals | Zsh | Zsh scripting, Z shell, zsh features, arrays, functions, oh-my-zsh | `300-bash-scripting-core.md` |
+| `311-zsh-advanced-features.md` | Agent Requested | Advanced Zsh patterns | Zsh advanced | Zsh completion, modules, hooks, advanced features, performance | `310-zsh-scripting-core.md` |
+| `312-zsh-compatibility.md` | Agent Requested | Cross-shell compatibility | Zsh portability | Shell compatibility, bash vs zsh, portable scripts, cross-shell | `300-bash-scripting-core.md` |
+| `400-docker-best-practices.md` | Agent Requested | Docker and Dockerfile best practices | Containers & Docker | Docker, Dockerfile, containers, multi-stage builds, layer caching, image optimization, docker-compose | `202-yaml-config-best-practices.md` |
+| `500-data-science-analytics.md` | Agent Requested | DS/analytics practices | Analytics | Data science, pandas, numpy, scikit-learn, ML, Jupyter, data analysis, model lifecycle | `200-python-core.md` |
+| `600-data-governance-quality.md` | Agent Requested | Data quality & governance | Governance | Data governance, data quality, lineage, metadata management, compliance, data catalog | — |
+| `700-business-analytics.md` | Agent Requested | Business reporting & visualization | BI | Business intelligence, dashboards, KPIs, reporting, visualization, stakeholder reports, metrics | — |
+| `800-project-changelog-rules.md` | Agent Requested | Changelog governance | Project mgmt | CHANGELOG, changelog format, semantic versioning, release notes, conventional commits | `000-global-core.md` |
+| `801-project-readme-rules.md` | Agent Requested | README structure & standards | Docs | README, project documentation, getting started, setup instructions, badges | `000-global-core.md` |
+| `805-project-contributing-rules.md` | Agent Requested | Contribution workflow standards | Contributing | CONTRIBUTING, pull requests, code review, contribution guidelines, branching strategy | `000-global-core.md` |
+| `820-taskfile-automation.md` | Agent Requested | Taskfile automation practices | Automation | Taskfile, task automation, Taskfile.yml, build automation, task runner | `202-yaml-config-best-practices.md` |
+| `900-demo-creation.md` | Agent Requested | Demo creation directives | Demos | Demo creation, synthetic data, realistic demos, data generation, demo applications | — |
+| `UNIVERSAL_PROMPT.md` | Agent Requested | Universal response guidelines | Prompting | Prompting guidelines, response format, LLM prompts, prompt engineering | `000-global-core.md` |
+| `AGENTS.md` | Auto-attach | Agent operating workflow (PLAN/ACT), setup, and validation commands | Agents | Agent workflow, PLAN mode, ACT mode, validation, setup commands, rule generation | `000-global-core.md` |

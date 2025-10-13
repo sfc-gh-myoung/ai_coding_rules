@@ -2,8 +2,9 @@
 **AppliesTo:** `**/tests/**/*.py`, `**/*.py`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-10-05
+**Keywords:** pytest, testing, fixtures, parametrization, test isolation, mocking, test organization, coverage
+**Version:** 1.1
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~500
 **ContextTier:** High

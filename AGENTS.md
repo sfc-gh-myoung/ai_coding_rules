@@ -72,7 +72,12 @@ If any validation check fails:
 
 ## Rule system architecture
 - **56+ specialized rule files** organized by category (000-900)
-- **Use `RULES_INDEX.md`** to quickly find relevant rules for specific technologies
+- **CRITICAL: Always reference `RULES_INDEX.md` first** when user asks "how do I..." or "what rule covers..." questions
+- **Rule discovery via semantic keywords:**
+  - RULES_INDEX.md contains comprehensive keyword hints for each rule
+  - Search the Keywords/Hints column to find relevant rules based on technologies, patterns, or use cases
+  - Example: User asks "How do I optimize Snowflake queries?" → Search RULES_INDEX for "performance", "optimization", "query profile" keywords
+  - Browse by category: 000=Core, 100=Snowflake, 200=Python, 300=Shell, 400=Docker, 500-900=Domain-specific
 - **Streamlit guidance:** Use focused rules for specific aspects:
   - General setup/navigation: `101-snowflake-streamlit-core.md`
   - Charts/visualizations: `101a-snowflake-streamlit-visualization.md`

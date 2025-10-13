@@ -46,6 +46,8 @@ Establish the foundational operating contract for all AI coding assistants, ensu
 - [ ] No file-modifying tools used in PLAN
 - [ ] Explicit "ACT" received before edits
 - [ ] Minimal, surgical edits only
+- [ ] Pre-Task-Completion Validation Gate checks passed (lint, format, tests)
+- [ ] CHANGELOG.md updated for code changes
 - [ ] README changes assessed per triggers below
 
 ## Critical: Confirmation & Safety
@@ -93,6 +95,29 @@ Establish the foundational operating contract for all AI coding assistants, ensu
 - **Critical:** Default mode is ALWAYS PLAN unless user has explicitly typed "ACT"  
 - **Mandatory:** Return to PLAN mode immediately after completing any file modifications
 
+### Pre-Task-Completion Validation Gate
+- **Reference:** Complete validation protocol is detailed in `AGENTS.md`
+- **CRITICAL:** The following checks are MANDATORY and must pass BEFORE responding with "task complete" or marking any task as done
+
+#### Mandatory Validation Checks (No Exceptions)
+1. **Code Quality (Python Projects)**
+   - `uvx ruff check .` - Must pass with zero errors
+   - `uvx ruff format --check .` - Must pass, code properly formatted
+   - `uv run python -m py_compile -q .` - All Python files compile without syntax errors
+
+2. **Test Execution**
+   - `uv run pytest` - All tests must pass (for projects with test suites)
+   - Coverage thresholds met if configured in project
+
+3. **Documentation Updates**
+   - `CHANGELOG.md` - Updated with entry under `## [Unreleased]` for code changes
+   - `README.md` - Reviewed and updated when triggers from section 6 apply
+
+#### Validation Protocol
+- **CRITICAL:** Run validation immediately after modifications, not in batches
+- **CRITICAL:** Do not mark tasks complete if ANY validation check fails
+- **CRITICAL:** Fix all failures before responding to user
+- **Exception:** Only skip validation if user explicitly requests with override (acknowledge risks)
 
 ## CORE OPERATING PRINCIPLES
 
@@ -169,8 +194,8 @@ Establish the foundational operating contract for all AI coding assistants, ensu
 - **Rule:** If no README updates were needed, explicitly state why (e.g., "No README updates required - changes were internal only").
 
 ## Validation
-- **Success Checks:** All code produces expected results; tests pass; lint checks pass; README sections are current; cross-references work; agent follows mode restrictions correctly
-- **Negative Tests:** Code with syntax errors fails validation; missing README updates cause task failure; mode violations (using file-modifying tools in PLAN mode) are caught and corrected
+- **Success Checks:** Pre-Task-Completion Validation Gate passed (all mandatory checks); code produces expected results; tests pass; lint checks pass; README sections are current; cross-references work; agent follows mode restrictions correctly
+- **Negative Tests:** Code with syntax errors fails validation; missing CHANGELOG updates block completion; missing README updates cause task failure; mode violations (using file-modifying tools in PLAN mode) are caught and corrected; any failed validation check prevents task completion
 
 ## Response Template
 ```markdown

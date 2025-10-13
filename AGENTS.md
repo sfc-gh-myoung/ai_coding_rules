@@ -26,6 +26,39 @@
 - **Specify response template** showing expected output format for consistency
 - **Validate completion** using explicit pass/fail criteria and negative test cases
 
+## Pre-Task-Completion Validation Gate (CRITICAL)
+
+**CRITICAL:** These checks are MANDATORY and must pass BEFORE responding with "task complete" or marking any task as done. No exceptions without explicit user override.
+
+### Mandatory Validation Checks
+
+#### 1. Code Quality (Python Projects)
+- **CRITICAL:** `uvx ruff check .` - Must pass with zero errors
+- **CRITICAL:** `uvx ruff format --check .` - Must pass, code properly formatted  
+- **CRITICAL:** `uv run python -m py_compile -q .` - All Python files compile without syntax errors
+
+#### 2. Test Execution
+- **CRITICAL:** `uv run pytest` - All tests must pass (for projects with test suites)
+- **Rule:** Never skip tests unless user explicitly requests override
+
+#### 3. Documentation Updates
+- **CRITICAL:** `CHANGELOG.md` - Must update with entry under `## [Unreleased]` for code changes
+- **CRITICAL:** `README.md` - Must review and update when triggers apply (see 000-global-core.md section 6)
+
+### Validation Protocol
+- **Rule:** Run validation immediately after modifications, not in batches
+- **Rule:** Do not mark tasks complete if ANY check fails
+- **Rule:** Fix all failures before responding to user
+- **Exception:** Only skip with explicit user override (e.g., "skip tests", "skip validation") - acknowledge risks
+
+### Validation Failure Response
+If any validation check fails:
+1. Stop and report which check failed
+2. Show the error output
+3. Fix the issue
+4. Re-run all validation checks
+5. Only then respond with task completion
+
 ## Enhanced mode verification
 - **Pre-tool verification:** State current mode before every tool invocation
 - **Mode state tracking:** Maintain mode awareness throughout response chains
@@ -52,9 +85,11 @@
 - **Documentation**: Update README.md when making structural or workflow changes
 
 ## Testing requirements
-- **All lint checks must pass** before marking tasks complete
-- **Run tests via `uv run`** - never use bare `python` or `pytest` commands
+- **CRITICAL:** All Pre-Task-Completion Validation Gate checks must pass before marking tasks complete
+- **CRITICAL:** Run tests via `uv run pytest` - never use bare `python` or `pytest` commands
+- **CRITICAL:** Run lints via `uvx ruff check .` and `uvx ruff format --check .` - must pass with zero errors
 - **Snowflake validation**: Use Query Profile to validate performance and cost
+- **CRITICAL:** CHANGELOG.md must be updated for all code changes
 - **README maintenance**: Required for changes affecting project structure, commands, or features
 - **Pre-commit validation**: Ensure all automated checks pass before completion
 
@@ -82,7 +117,12 @@
 - [ ] User authorization ("ACT") obtained before file modifications
 - [ ] Contract validation completed with all required sections present
 - [ ] Surgical, minimal edits applied preserving existing patterns
-- [ ] Lint and typecheck commands executed successfully
+- [ ] **CRITICAL: Pre-Task-Completion Validation Gate passed** (lint, format, tests, docs)
+- [ ] Lint check: `uvx ruff check .` passed with zero errors
+- [ ] Format check: `uvx ruff format --check .` passed
+- [ ] Tests: `uv run pytest` passed (if test suite exists)
+- [ ] CHANGELOG.md updated for code changes
+- [ ] README.md reviewed and updated if triggers apply
 - [ ] Mode awareness maintained throughout response chains
 - [ ] Professional communication standards followed (no emojis unless requested)
 - [ ] TODO list utilized for complex multi-step tasks
@@ -90,8 +130,8 @@
 - [ ] Rule generation validated with appropriate agent format
 
 ## Validation
-- **Success checks:** PLAN/ACT mode transitions work correctly, lint/test commands pass, generated rules match expected format, all file modifications preserve existing structure
-- **Negative tests:** Attempt to modify files without ACT authorization (should fail), run incomplete contract validation (should catch missing sections), test with malformed rule files (should report validation errors)
+- **Success checks:** Pre-Task-Completion Validation Gate passed (all mandatory checks); PLAN/ACT mode transitions work correctly, lint/test commands pass, CHANGELOG.md updated, README.md updated when triggered, generated rules match expected format, all file modifications preserve existing structure
+- **Negative tests:** Attempt to modify files without ACT authorization (should fail), run incomplete contract validation (should catch missing sections), test with malformed rule files (should report validation errors), any validation gate failure blocks task completion
 
 ## Response Template
 ```markdown

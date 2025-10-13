@@ -2,8 +2,9 @@
 **AppliesTo:** `**/*.sql`, `**/*.py`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-10-03
+**Keywords:** Cortex AISQL, AI_COMPLETE, AI_CLASSIFY, AI_EXTRACT, AI_SENTIMENT, embeddings, LLM functions, batching AI, token costs
+**Version:** 1.1
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~500
 **ContextTier:** Medium

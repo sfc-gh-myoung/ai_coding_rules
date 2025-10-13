@@ -2,7 +2,8 @@
 **AppliesTo:** `**/*.py`, `streamlit/**/*`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
+**Keywords:** Streamlit caching, @st.cache_data, @st.cache_resource, performance optimization, slow Streamlit, data loading, query optimization
+**Version:** 1.1
 **LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~500

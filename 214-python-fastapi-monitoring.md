@@ -2,8 +2,9 @@
 **AppliesTo:** `**/health.py`, `**/logging/**`, `**/middleware/**`, `**/cache/**`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.1
-**LastUpdated:** 2025-09-16
+**Keywords:** FastAPI monitoring, health checks, logging, metrics, caching, Redis, observability
+**Version:** 1.2
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~950
 **ContextTier:** Medium

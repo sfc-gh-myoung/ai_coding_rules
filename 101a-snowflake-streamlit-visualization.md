@@ -2,7 +2,8 @@
 **AppliesTo:** `**/*.py`, `streamlit/**/*`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
+**Keywords:** Streamlit charts, Plotly, st.plotly_chart, st.map, visualization, dashboard, interactive charts, map visualization
+**Version:** 1.1
 **LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~600

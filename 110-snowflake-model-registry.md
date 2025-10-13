@@ -2,8 +2,9 @@
 **AppliesTo:** `**/*.py`, `**/*.sql`, `**/*.ipynb`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-09-17
+**Keywords:** Model registry, ML models, model versioning, model deployment, MLOps, model governance, model lifecycle
+**Version:** 1.1
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~700
 **ContextTier:** Medium

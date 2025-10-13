@@ -2,8 +2,9 @@
 **AppliesTo:** `**/pyproject.toml`, `**/setup.py`, `**/requirements*.txt`, `**/__init__.py`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.2
-**LastUpdated:** 2025-09-16
+**Keywords:** Python packaging, project structure, setup.py, pyproject.toml, dependencies, package distribution
+**Version:** 1.3
+**LastUpdated:** 2025-10-13
 
 
 **TokenBudget:** ~500

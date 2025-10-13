@@ -2,8 +2,9 @@
 **AppliesTo:** `**/*.py`, `**/*.ts`, `**/*.sh`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-10-03
+**Keywords:** Cortex REST API, API authentication, streaming responses, API retries, idempotency, rate limits
+**Version:** 1.1
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~350
 **ContextTier:** Medium

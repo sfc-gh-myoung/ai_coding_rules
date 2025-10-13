@@ -2,8 +2,9 @@
 **AppliesTo:** `**/*.py`, `**/*.sql`, `docs/**/*`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.2
-**LastUpdated:** 2025-09-16
+**Keywords:** Data governance, data quality, lineage, metadata management, compliance, data catalog
+**Version:** 1.3
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~250
 **ContextTier:** Medium

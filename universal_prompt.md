@@ -1,7 +1,9 @@
 **Description:** Universal Prompt: Update Task-Specific Instructions before using.
 **AutoAttach:** false
-**Version:** 1.2
-**LastUpdated:** 2025-09-16
+**Type:** Agent Requested
+**Keywords:** Prompting guidelines, response format, LLM prompts, prompt engineering
+**Version:** 1.3
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~200
 **ContextTier:** Low

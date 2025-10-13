@@ -2,8 +2,9 @@
 **AppliesTo:** `**/*.sql`, `**/*.py`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-10-03
+**Keywords:** Cortex Search, vector search, embeddings, hybrid search, search index, retrieval, RAG, semantic search
+**Version:** 1.1
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~350
 **ContextTier:** Medium

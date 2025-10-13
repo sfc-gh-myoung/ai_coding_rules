@@ -2,8 +2,9 @@
 **AppliesTo:** `**/*.sql`, `**/*.py`, `**/*.java`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.1
-**LastUpdated:** 2025-10-10
+**Keywords:** Snowpipe, Snowpipe Streaming, continuous ingestion, real-time loading, auto-ingest, streaming data, micro-batching
+**Version:** 1.2
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~2200
 **ContextTier:** comprehensive

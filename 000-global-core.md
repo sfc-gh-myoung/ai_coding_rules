@@ -1,8 +1,9 @@
 **Description:** The core, universally-applied operating contract for a reliable and safe workflow.
 **AutoAttach:** true
 **Type:** Auto-attach
-**Version:** 6.2
-**LastUpdated:** 2025-09-21
+**Keywords:** PLAN mode, ACT mode, workflow, safety, confirmation, validation, surgical edits, minimal changes, mode violations
+**Version:** 6.3
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~450
 **ContextTier:** Critical

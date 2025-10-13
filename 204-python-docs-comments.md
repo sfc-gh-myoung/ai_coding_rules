@@ -2,8 +2,9 @@
 **AppliesTo:** `**/*.py`, `docs/**/*`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-10-04
+**Keywords:** Python docstrings, documentation, comments, pydocstyle, Ruff DOC rules, API documentation
+**Version:** 1.1
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~350
 **ContextTier:** Medium

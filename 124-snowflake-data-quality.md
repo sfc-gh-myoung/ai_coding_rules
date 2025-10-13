@@ -2,10 +2,11 @@
 **AppliesTo:** `**/*.sql`
 **AutoAttach:** false
 **Type:** Agent Requested
+**Keywords:** Data quality, DMF, data metric functions, data profiling, expectations, quality checks, data validation
 **TokenBudget:** ~2100
 **ContextTier:** comprehensive
-**Version:** 1.1
-**LastUpdated:** 2025-10-10
+**Version:** 1.2
+**LastUpdated:** 2025-10-13
 
 # Snowflake Data Quality Monitoring Best Practices
 

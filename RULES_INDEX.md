@@ -2,7 +2,7 @@
 **AutoAttach:** true
 **Type:** Auto-attach
 **Keywords:** rules index, rule discovery, semantic search, agent requested, auto-attach, rule governance
-**Version:** 1.9
+**Version:** 2.0
 **LastUpdated:** 2025-10-13
 
 # Rules Index
@@ -80,5 +80,6 @@ This index helps agents select the correct rule quickly through semantic keyword
 | `805-project-contributing-rules.md` | Agent Requested | Contribution workflow standards | Contributing | CONTRIBUTING, pull requests, code review, contribution guidelines, branching strategy | `000-global-core.md` |
 | `820-taskfile-automation.md` | Agent Requested | Taskfile automation practices | Automation | Taskfile, task automation, Taskfile.yml, build automation, task runner | `202-yaml-config-best-practices.md` |
 | `900-demo-creation.md` | Agent Requested | Demo creation directives | Demos | Demo creation, synthetic data, realistic demos, data generation, demo applications | — |
+| `901-data-generation-modeling.md` | Agent Requested | Data generation and dimensional modeling standards (Kimball, naming, view taxonomy, BA-first) | Data modeling & generation | Data modeling, naming conventions, Kimball, dimensional modeling, fact tables, dimension tables, foreign keys, view taxonomy, Business Analyst, data generation, backward compatibility, entity IDs, temporal columns | `000-global-core.md`, `100-snowflake-core.md`, `102-snowflake-sql-best-practices.md`, `600-data-governance-quality.md`, `700-business-analytics.md` |
 | `UNIVERSAL_PROMPT.md` | Agent Requested | Universal response guidelines | Prompting | Prompting guidelines, response format, LLM prompts, prompt engineering | `000-global-core.md` |
 | `AGENTS.md` | Auto-attach | Agent operating workflow (PLAN/ACT), setup, and validation commands | Agents | Agent workflow, PLAN mode, ACT mode, validation, setup commands, rule generation | `000-global-core.md` |

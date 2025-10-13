@@ -2,8 +2,9 @@
 **AppliesTo:** `**/*.sh`, `**/*.bash`, `scripts/**/*`, `bin/**/*`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.1
-**LastUpdated:** 2025-09-16
+**Keywords:** Bash scripting, shell scripts, set -euo pipefail, error handling, functions, variables, script structure
+**Version:** 1.2
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~1200
 **ContextTier:** High

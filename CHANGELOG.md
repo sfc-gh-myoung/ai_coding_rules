@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Semantic Discovery:** Added `**Keywords:**` metadata field to rule governance standard for enhanced agent discovery
+- **Semantic Discovery:** Enhanced RULES_INDEX.md with comprehensive Keywords/Hints column for all 56+ rules
+- **Semantic Discovery:** Added Keywords metadata to 10 representative rules across all categories (Snowflake, Python, Bash, Docker, etc.)
+- **Semantic Discovery:** Updated AGENTS.md with explicit RULES_INDEX.md reference guidance and keyword search patterns
+- **Semantic Discovery:** Updated generate_agent_rules.py to parse and strip Keywords metadata from generated rules
+
 ### Changed
 - **BREAKING:** Split `101-snowflake-streamlit-ui.md` (1,717 lines) into 5 focused rules for better LLM efficiency and governance compliance
   - `101-snowflake-streamlit-core.md` - Core setup, navigation, state management, deployment modes (~350 lines, ~700 tokens)

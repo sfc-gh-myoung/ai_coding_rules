@@ -2,8 +2,9 @@
 **AppliesTo:** `**/*.yml`, `Taskfile.yml`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.3
-**LastUpdated:** 2025-10-04
+**Keywords:** Taskfile, task automation, Taskfile.yml, build automation, task runner
+**Version:** 1.4
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~500
 **ContextTier:** Medium

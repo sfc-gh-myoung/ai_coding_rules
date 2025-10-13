@@ -27,9 +27,13 @@ Establish authoritative Python code quality standards using Ruff as the primary 
  - **Requirement:** Enable pydocstyle (D) rules and set a single convention (`google` or `numpy`) consistent with `204-python-docs-comments.md`.
 
 ## 2. Agent Workflow
-- **Always:** On every Python file modification or creation, run the linter and formatter.
-- **Always:** Use `uvx ruff check .` and `uvx ruff format --check .` for isolated tool execution.
-- **Always:** Use `uvx ruff check --fix .` and `uvx ruff format .` to apply fixes.
+
+**CRITICAL:** Lint and format checks are MANDATORY before task completion (see Pre-Task-Completion Validation Gate).
+
+- **MANDATORY:** On every Python file modification or creation, run the linter and formatter.
+- **MANDATORY:** Use `uvx ruff check .` and `uvx ruff format --check .` for isolated tool execution.
+- **MANDATORY:** All checks must pass with zero errors before marking task complete.
+- **MANDATORY:** Use `uvx ruff check --fix .` and `uvx ruff format .` to apply fixes.
 - **Consider:** If Ruff is unavailable, use `flake8 .` and `black --check .`; fix with `black .` and `isort .`.
 - **Requirement:** Ensure imports are organized and unused code is removed.
 - **Rule:** Never use project-installed ruff via `uv run`; always use isolated `uvx ruff` for consistency.
@@ -48,15 +52,20 @@ ignore = []
 convention = "google"  # or "numpy"
 ```
 
-## 3. Compliance Checklist
-- **Always:** Before finalizing any Python code and after any Python file edit, run repo-wide checks that verify:
-  - `uvx ruff check .` passes without errors.
-  - `uvx ruff format --check .` passes.
+## 3. Compliance Checklist (MANDATORY)
+
+**CRITICAL:** These checks are MANDATORY and must pass before task completion.
+
+- **MANDATORY:** Before finalizing any Python code and after any Python file edit, run repo-wide checks that verify:
+  - `uvx ruff check .` passes with zero errors (CRITICAL).
+  - `uvx ruff format --check .` passes (CRITICAL).
   - If a `Taskfile.yml` exists:
     - `task lint` passes (should use `uvx ruff` internally).
     - `task format` passes (should use `uvx ruff` internally).
-  - Fix before reporting success; do not rely on editor-only lints.
+  - Fix ALL failures before reporting success; do not rely on editor-only lints.
   - The final code is idiomatic and correctly formatted.
+- **CRITICAL:** Do NOT mark tasks complete if any check fails.
+- **CRITICAL:** Reference Pre-Task-Completion Validation Gate in `000-global-core.md` and `AGENTS.md`.
 
 ## 4. Taskfile Integration
 - **Requirement:** Taskfile lint tasks must use `uvx ruff` for tool isolation.
@@ -99,6 +108,9 @@ lint:
 - **Validation Steps:** [Checks to confirm success]
 
 ## Quick Compliance Checklist
+- [ ] **CRITICAL:** `uvx ruff check .` passed with zero errors
+- [ ] **CRITICAL:** `uvx ruff format --check .` passed
+- [ ] **CRITICAL:** All lint/format failures fixed before task completion
 - [ ] Required dependencies and context verified
 - [ ] Appropriate tools selected and validated
 - [ ] Implementation follows established patterns
@@ -106,8 +118,8 @@ lint:
 - [ ] Validation steps completed successfully
 
 ## Validation
-- **Success checks:** [How to verify correct implementation]
-- **Negative tests:** [What should fail and how to detect failures]
+- **Success checks:** All Python files pass `uvx ruff check .` with zero errors; `uvx ruff format --check .` passes; code is idiomatic and properly formatted; Pre-Task-Completion Validation Gate passed
+- **Negative tests:** Files with syntax errors fail lint checks; improperly formatted code fails format check; task completion attempted with failing checks is blocked
 
 ## Response Template
 ```

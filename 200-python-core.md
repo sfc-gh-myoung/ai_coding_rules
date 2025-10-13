@@ -150,6 +150,33 @@ ruff check .                        # Should use uvx for isolation
 - **Rule:** Use `python -m py_compile` as a definitive check for syntax errors, in addition to linter feedback. This ensures the Python interpreter can parse the file without error. If a file fails to compile, the issue must be resolved.
 - **Command:** `uv run python -m py_compile -q <path-to-file-or-dir>`
 
+## 4.2 Pre-Task-Completion Validation Gate (CRITICAL)
+
+**Reference:** Complete validation protocol in `000-global-core.md` and `AGENTS.md`
+
+**CRITICAL:** Before marking any Python task as complete, ALL of the following checks MUST pass:
+
+### Mandatory Validation Checks (No Exceptions)
+
+#### Code Quality
+- **CRITICAL:** `uvx ruff check .` - Must pass with zero errors
+- **CRITICAL:** `uvx ruff format --check .` - Must pass, code properly formatted
+- **CRITICAL:** `uv run python -m py_compile -q .` - All Python files compile without syntax errors
+
+#### Test Execution
+- **CRITICAL:** `uv run pytest` - All tests must pass (for projects with test suites)
+- **Rule:** Never skip tests unless user explicitly requests override
+
+#### Documentation
+- **CRITICAL:** Update `CHANGELOG.md` with entry under `## [Unreleased]` for code changes
+- **CRITICAL:** Review and update `README.md` when triggers apply (see `000-global-core.md` section 6)
+
+### Validation Protocol
+- **Rule:** Run validation immediately after modifications, not in batches
+- **Rule:** Do not mark tasks complete if ANY check fails
+- **Rule:** Fix all failures before responding to user
+- **Exception:** Only skip with explicit user override - acknowledge risks
+
 ## 5. Performance & Best Practices
 - **Requirement:** Separate I/O and CPU concerns. Prefer set-based SQL and vectorization over Python loops.
 - **Requirement:** Ensure code is idiomatic and follows PEP 8.
@@ -169,12 +196,16 @@ ruff check .                        # Should use uvx for isolation
 - **Pattern:** Structure tasks as: `uv:pin` then `install` (with `uv sync`) then execution tasks.
 
 ## Quick Compliance Checklist
+- [ ] **CRITICAL: Pre-Task-Completion Validation Gate passed** (see section 4.2)
 - [ ] Python 3.11+ is pinned in .python-version file
 - [ ] Dependencies managed through uv (pyproject.toml with dependency-groups)
 - [ ] Ruff configured in pyproject.toml with target-version = "py311"
-- [ ] Code passes `uvx ruff check .` and `uvx ruff format --check .`
-- [ ] Tests run with `uv run pytest` and pass
+- [ ] **CRITICAL:** `uvx ruff check .` passed with zero errors
+- [ ] **CRITICAL:** `uvx ruff format --check .` passed
+- [ ] **CRITICAL:** `uv run pytest` passed (all tests)
 - [ ] All Python files are syntactically valid (checked with `py_compile`)
+- [ ] **CRITICAL:** CHANGELOG.md updated for code changes
+- [ ] README.md reviewed and updated if triggers apply
 - [ ] Virtual environment created with `uv venv` (not python -m venv)
 - [ ] Dependencies synced with `uv sync --all-groups`
 - [ ] No bare pip install commands in documentation
@@ -182,9 +213,11 @@ ruff check .                        # Should use uvx for isolation
 - [ ] Project follows modern Python packaging standards
 
 ## Validation
+- **CRITICAL:** Pre-Task-Completion Validation Gate (section 4.2) must pass before task completion
 - **Syntax Check:** `uv run python -m py_compile -q .` (must pass)
-- **Lint & Format:** `uvx ruff check .` and `uvx ruff format --check .` (must pass)
-- **Tests:** `uv run pytest`
+- **Lint & Format:** `uvx ruff check .` and `uvx ruff format --check .` (must pass with zero errors)
+- **Tests:** `uv run pytest` (all tests must pass)
+- **Documentation:** CHANGELOG.md and README.md updated as required
 - **Import Check:** `uv run python -c "import importlib; print('ok')"`
 
 ## References

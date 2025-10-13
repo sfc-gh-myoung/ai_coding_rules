@@ -2,8 +2,9 @@
 **AppliesTo:** `**/*.sql`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.5
-**LastUpdated:** 2025-10-10
+**Keywords:** SQL best practices, CTEs, VARIANT extraction, JOIN patterns, QUALIFY, window functions, set operations, UNION vs UNION ALL
+**Version:** 1.6
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~1200
 **ContextTier:** High

@@ -2,8 +2,9 @@
 **AppliesTo:** `**/*.sql`, `**/*.py`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-10-01
+**Keywords:** Feature store, feature engineering, feature views, entity modeling, ML pipeline, ML features
+**Version:** 1.1
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~1100
 **ContextTier:** Medium

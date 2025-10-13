@@ -2,8 +2,9 @@
 **AppliesTo:** `**/tests/**`, `**/test_*.py`, `**/conftest.py`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.1
-**LastUpdated:** 2025-09-16
+**Keywords:** FastAPI testing, TestClient, pytest-asyncio, API tests, integration testing, mocking
+**Version:** 1.2
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~600
 **ContextTier:** Medium

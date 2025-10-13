@@ -2,8 +2,9 @@
 **AppliesTo:** `**/*.sql`, `**/*.py`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-10-03
+**Keywords:** Cortex Agents, AI agents, agent design, grounding, tools, functions, agent RBAC, agent observability
+**Version:** 1.1
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~350
 **ContextTier:** Medium

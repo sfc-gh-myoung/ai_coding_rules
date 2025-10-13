@@ -2,8 +2,9 @@
 **AppliesTo:** `**/*.sql`, `**/*.scl`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.2
-**LastUpdated:** 2025-10-08
+**Keywords:** Warehouse management, warehouse sizing, CPU warehouse, GPU warehouse, high-memory warehouse, warehouse tagging, auto-suspend, auto-resume
+**Version:** 1.3
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~1100
 **ContextTier:** High

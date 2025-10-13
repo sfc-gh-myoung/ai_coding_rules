@@ -202,11 +202,28 @@ Click [here](https://example.com/docs) for more info.
 - **Consider:** Automate README updates through CI/CD
 - **Rule:** Tag README changes in commit messages
 
-### Maintenance Practices
+### Maintenance Practices (MANDATORY for Trigger Events)
+
+**Reference:** Pre-Task-Completion Validation Gate in `000-global-core.md` section 6 and `AGENTS.md`
+
+**CRITICAL:** README.md updates are MANDATORY when update triggers apply.
+
+- **MANDATORY:** Review README.md after task completion to check if any triggers from `000-global-core.md` section 6 apply
+- **CRITICAL:** If triggers apply, update README.md BEFORE marking task complete
 - **Requirement:** Review README quarterly for accuracy
 - **Always:** Update links, dependencies, and examples
 - **Rule:** Archive or redirect outdated information
 - **Consider:** Set up automated link checking
+- **Exception:** Only skip README updates if user explicitly requests override (acknowledge that README may be outdated)
+
+### README Update Triggers (from 000-global-core.md)
+These changes REQUIRE README updates before task completion:
+- Adding, removing, or significantly modifying rule files
+- Changes to project structure or file organization
+- Updates to development workflows or commands
+- Feature completion that moves items from roadmap to implemented
+- Adding new IDE/agent support
+- Modifying generation scripts or automation tools
 
 ### Evolution Patterns
 - **Rule:** Start simple, add complexity as project grows
@@ -237,6 +254,8 @@ Click [here](https://example.com/docs) for more info.
 ## Validation Checklist
 
 ### Pre-Publication Review
+- [ ] **CRITICAL:** README update triggers checked (see 000-global-core.md section 6)
+- [ ] **CRITICAL:** If triggers apply, README.md updated before task completion
 - [ ] All required sections present and complete
 - [ ] Installation instructions tested on clean system
 - [ ] All code examples are syntactically correct and tested
@@ -276,6 +295,8 @@ Click [here](https://example.com/docs) for more info.
 - **Validation Steps:** [Checks to confirm success]
 
 ## Quick Compliance Checklist
+- [ ] **CRITICAL:** README update triggers checked (see 000-global-core.md section 6)
+- [ ] **CRITICAL:** If triggers apply, README.md reviewed and updated before task completion
 - [ ] Required dependencies and context verified
 - [ ] Appropriate tools selected and validated
 - [ ] Implementation follows established patterns

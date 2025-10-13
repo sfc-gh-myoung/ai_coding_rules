@@ -40,10 +40,26 @@ Establish directives for maintaining a high-signal, audit-friendly CHANGELOG.md 
 - **Requirement:** Mark breaking changes with `!` and explain them clearly.
 - **Always:** Link to relevant PRs or issues (`[#123]`) when helpful.
 
-## 3. Workflow & Maintenance
-- **Always:** After merging a change, append a new entry under `## [Unreleased]`.
-- **Always:** On release, finalize Unreleased, add the new version heading, and move entries.
+## 3. Workflow & Maintenance (MANDATORY)
+
+**Reference:** Pre-Task-Completion Validation Gate in `000-global-core.md` and `AGENTS.md`
+
+**CRITICAL:** CHANGELOG.md updates are MANDATORY before task completion for all code changes.
+
+- **MANDATORY:** After making ANY code change, append a new entry under `## [Unreleased]` before marking task complete.
+- **CRITICAL:** Do not mark tasks complete without updating CHANGELOG.md for code changes.
+- **MANDATORY:** On release, finalize Unreleased, add the new version heading, and move entries.
 - **Always:** If available, validate the structure with `scripts/validate_changelog_structure.py`.
+- **Exception:** Only skip if user explicitly requests override (acknowledge that changelog will be incomplete).
+
+### What Constitutes a "Code Change" Requiring Changelog Entry
+- Any modification to Python files (`.py`)
+- Any modification to SQL files (`.sql`)
+- Any modification to configuration files (`pyproject.toml`, `Taskfile.yml`, etc.)
+- Any modification to shell scripts (`.sh`, `.bash`, `.zsh`)
+- Any modification to rule files (`.md` in `ai_coding_rules/`)
+- New features, bug fixes, refactors, or performance improvements
+- Documentation-only changes may be exempt (use judgment)
 
 ## 4. Scope Examples for New Domains
 
@@ -99,6 +115,8 @@ chore(rules): update all Python rules for CLI consistency
 - **Validation Steps:** [Checks to confirm success]
 
 ## Quick Compliance Checklist
+- [ ] **CRITICAL:** CHANGELOG.md updated with entry under `## [Unreleased]` for code changes
+- [ ] **CRITICAL:** Entry follows Conventional Commit format: `<type>(<scope>): <summary>`
 - [ ] Required dependencies and context verified
 - [ ] Appropriate tools selected and validated
 - [ ] Implementation follows established patterns
@@ -106,8 +124,8 @@ chore(rules): update all Python rules for CLI consistency
 - [ ] Validation steps completed successfully
 
 ## Validation
-- **Success checks:** [How to verify correct implementation]
-- **Negative tests:** [What should fail and how to detect failures]
+- **Success checks:** CHANGELOG.md contains entry under `## [Unreleased]` for code changes; entry follows Conventional Commit format; entry is concise and user-impact oriented; Pre-Task-Completion Validation Gate passed
+- **Negative tests:** Code changes without CHANGELOG.md updates block task completion; entries with incorrect format fail validation; task completion attempted without changelog update is prevented
 
 ## Response Template
 ```

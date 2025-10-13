@@ -2,8 +2,9 @@
 **AppliesTo:** `**/*.py`, `**/app.py`, `**/wsgi.py`, `**/blueprints/**`, `**/models/**`, `**/forms/**`, `**/templates/**`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.1
-**LastUpdated:** 2025-09-16
+**Keywords:** Flask, web development, blueprints, Flask-SQLAlchemy, templates, routing, Flask extensions
+**Version:** 1.2
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~1700
 **ContextTier:** Medium

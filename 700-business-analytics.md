@@ -2,8 +2,9 @@
 **AppliesTo:** `**/*.sql`, `reports/**/*`, `dashboards/**/*`, `streamlit/**/*`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 2.1
-**LastUpdated:** 2025-10-10
+**Keywords:** Business intelligence, dashboards, KPIs, reporting, visualization, stakeholder reports, metrics
+**Version:** 2.2
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~2300
 **ContextTier:** comprehensive

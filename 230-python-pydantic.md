@@ -2,8 +2,9 @@
 **AppliesTo:** `**/*.py`, `**/models/**/*`, `**/schemas/**/*`, `pyproject.toml`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.1
-**LastUpdated:** 2025-09-16
+**Keywords:** Pydantic, data validation, models, settings, BaseModel, field validation, serialization
+**Version:** 1.2
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~1200
 **ContextTier:** Medium

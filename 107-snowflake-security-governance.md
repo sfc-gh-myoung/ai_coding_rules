@@ -2,8 +2,9 @@
 **AppliesTo:** `**/*.sql`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.2
-**LastUpdated:** 2025-09-22
+**Keywords:** Masking policies, row access policies, column masking, data governance, tagging, RBAC, roles, grants, secure views
+**Version:** 1.3
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~250
 **ContextTier:** High

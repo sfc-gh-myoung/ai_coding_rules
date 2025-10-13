@@ -2,8 +2,9 @@
 **AppliesTo:** `**/*.ipynb`, `notebooks/**/*.py`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.1
-**LastUpdated:** 2025-09-16
+**Keywords:** Snowflake notebooks, Jupyter, Python notebooks, data exploration, ML, reproducible notebooks
+**Version:** 1.2
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~300
 **ContextTier:** Medium

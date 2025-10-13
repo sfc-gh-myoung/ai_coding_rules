@@ -2,8 +2,9 @@
 **AppliesTo:** `CHANGELOG.md`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.3
-**LastUpdated:** 2025-09-16
+**Keywords:** CHANGELOG, changelog format, semantic versioning, release notes, conventional commits
+**Version:** 1.4
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~300
 **ContextTier:** Medium

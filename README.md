@@ -398,6 +398,7 @@ The following best practices apply to all AI coding assistants and development e
 
 ### Demo & Synthetic Data (900-999)
 - **`900-demo-creation.md`** — Realistic demo application development
+- **`901-data-generation-modeling.md`** — Comprehensive data generation and dimensional modeling standards (Kimball methodology, universal naming conventions, business-first view taxonomy, backward compatibility strategies)
 
 ### Templates
 - **`UNIVERSAL_PROMPT.md`** — Universal response guidelines template

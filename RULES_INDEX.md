@@ -1,8 +1,8 @@
 **Description:** Top-level index of rule files with purpose, scope, and dependencies.
 **AutoAttach:** true
 **Type:** Auto-attach
-**Version:** 1.7
-**LastUpdated:** 2025-10-09
+**Version:** 1.8
+**LastUpdated:** 2025-10-13
 
 # Rules Index
 
@@ -14,7 +14,11 @@ This index helps agents select the correct rule quickly. Documentation files lik
 | `001-memory-bank.md` | Auto-attach | Universal memory bank for AI context continuity | Project continuity | `000-global-core.md` |
 | `002-rule-governance.md` | Auto-attach | Rule authoring governance, standards, and creation template | All rules | `000-global-core.md` |
 | `100-snowflake-core.md` | Agent Requested | Foundational Snowflake practices (cost, performance, security) | Snowflake SQL & modeling | `000-global-core.md` |
-| `101-snowflake-streamlit-ui.md` | Agent Requested | Streamlit UI best practices for Snowflake | Streamlit apps | `100-snowflake-core.md` |
+| `101-snowflake-streamlit-core.md` | Agent Requested | Streamlit core: setup, navigation, state management, deployment modes (SiS vs SPCS) | Streamlit apps | `100-snowflake-core.md` |
+| `101a-snowflake-streamlit-visualization.md` | Agent Requested | Streamlit visualization: Plotly charts, maps, dashboard integration | Streamlit visualizations | `101-snowflake-streamlit-core.md`, `700-business-analytics.md` |
+| `101b-snowflake-streamlit-performance.md` | Agent Requested | Streamlit performance: caching, optimization, data loading from Snowflake | Streamlit performance | `101-snowflake-streamlit-core.md`, `103-snowflake-performance-tuning.md` |
+| `101c-snowflake-streamlit-security.md` | Agent Requested | Streamlit security: input validation, secrets management, security best practices | Streamlit security | `101-snowflake-streamlit-core.md`, `107-snowflake-security-governance.md` |
+| `101d-snowflake-streamlit-testing.md` | Agent Requested | Streamlit testing: AppTest patterns, unit testing, debugging workflows | Streamlit testing | `101-snowflake-streamlit-core.md`, `206-python-pytest.md` |
 | `102-snowflake-sql-best-practices.md` | Agent Requested | Advanced SQL authoring patterns | SQL authorship | `100-snowflake-core.md` |
 | `103-snowflake-performance-tuning.md` | Agent Requested | Query profiling and warehouse tuning | Performance | `100-snowflake-core.md` |
 | `104-snowflake-streams-tasks.md` | Agent Requested | Incremental pipelines with Streams + Tasks | Pipelines | `100-snowflake-core.md` |

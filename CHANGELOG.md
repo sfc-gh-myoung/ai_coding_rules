@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **feat(rules):** Added Rule 901: Data Generation & Modeling Best Practices (~1,050 lines, ~2,200 tokens)
+  - Comprehensive data generation and dimensional modeling governance using Kimball methodology
+  - Universal naming conventions for entity IDs, foreign keys, temporal columns, measurements, booleans
+  - Business-first view taxonomy (VW_BA_*, VW_EXEC_*, VW_DS_*, VW_REF_*, VW_OPS_*) optimized for Business Analysts
+  - Mandatory date dimension pattern for time-based analytics
+  - Backward compatibility migration strategy with compatibility views
+  - Complete anti-patterns library with 5+ examples for Claude 4 optimization
+  - Investigation-first protocol to minimize hallucinations
+  - Data generator validation requirements and Python examples
+  - Token budget: ~2200 tokens (comprehensive guidance)
+  - Dependencies: `000-global-core.md`, `100-snowflake-core.md`, `102-snowflake-sql-best-practices.md`, `600-data-governance-quality.md`, `700-business-analytics.md`
+- **docs:** Updated RULES_INDEX.md to version 2.0 with Rule 901 entry and comprehensive keywords
+- **docs:** Updated README.md Demo & Synthetic Data section with Rule 901 description
+
 ## [1.2.0] - 2025-10-13
 
 ### Added

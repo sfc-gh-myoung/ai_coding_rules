@@ -2,8 +2,9 @@
 **AppliesTo:** `**/auth*.py`, `**/security*.py`, `**/middleware*.py`, `**/routers/**`, `**/services/**`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.1
-**LastUpdated:** 2025-09-16
+**Keywords:** FastAPI security, authentication, OAuth2, JWT, CORS, middleware, API keys, security best practices
+**Version:** 1.2
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~1100
 **ContextTier:** Medium

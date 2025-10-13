@@ -2,8 +2,9 @@
 **AppliesTo:** `memory-bank/**/*`, project context files
 **AutoAttach:** true
 **Type:** Auto-attach
-**Version:** 2.1
-**LastUpdated:** 2025-09-25
+**Keywords:** memory bank, context, session recovery, project brief, active context, progress tracking, continuity
+**Version:** 2.2
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~550
 **ContextTier:** Critical

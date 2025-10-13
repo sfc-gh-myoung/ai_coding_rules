@@ -2,8 +2,9 @@
 **AppliesTo:** `**/README.md`, `**/readme.md`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.1
-**LastUpdated:** 2025-09-16
+**Keywords:** README, project documentation, getting started, setup instructions, badges
+**Version:** 1.2
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~700
 **ContextTier:** Medium

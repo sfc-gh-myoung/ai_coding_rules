@@ -2,8 +2,9 @@
 **AppliesTo:** `**/*.py`, `**/cli/**/*`, `**/commands/**/*`, `pyproject.toml`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.1
-**LastUpdated:** 2025-09-16
+**Keywords:** Typer, CLI development, command-line interface, click, argument parsing, CLI testing
+**Version:** 1.2
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~1200
 **ContextTier:** Medium

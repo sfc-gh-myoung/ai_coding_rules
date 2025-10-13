@@ -2,8 +2,9 @@
 **AppliesTo:** `**/*.py`, `streamlit/**/*`, `scripts/**/*`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.3
-**LastUpdated:** 2025-09-22
+**Keywords:** Python, uv, Ruff, pyproject.toml, dependency management, virtual environments, modern Python tooling
+**Version:** 1.4
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~450
 **ContextTier:** High

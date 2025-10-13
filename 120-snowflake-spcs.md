@@ -2,8 +2,9 @@
 **AppliesTo:** `**/*.yaml`, `**/*.yml`, `**/*.sql`, `**/*.py`, `**/Dockerfile*`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.1
-**LastUpdated:** 2025-09-16
+**Keywords:** SPCS, Snowpark Container Services, containers, containerized apps, service deployment, compute pools
+**Version:** 1.2
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~650
 **ContextTier:** Medium

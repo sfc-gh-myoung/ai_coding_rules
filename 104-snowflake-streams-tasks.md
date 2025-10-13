@@ -2,8 +2,9 @@
 **AppliesTo:** `**/*.sql`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.1
-**LastUpdated:** 2025-09-16
+**Keywords:** Streams, Tasks, incremental loading, CDC, change data capture, scheduled tasks, pipeline automation, MERGE patterns
+**Version:** 1.2
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~200
 **ContextTier:** Medium

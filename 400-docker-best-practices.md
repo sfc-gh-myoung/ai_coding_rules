@@ -1,7 +1,8 @@
 **Description:** Comprehensive Docker and Dockerfile best practices for reliable, secure, and performant container builds and runtime across dev, CI, and production.
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-09-25
+**Keywords:** Docker, Dockerfile, containers, multi-stage builds, layer caching, image optimization, docker-compose
+**Version:** 1.1
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~650
 **ContextTier:** Medium

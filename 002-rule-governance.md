@@ -2,8 +2,9 @@
 **AppliesTo:** `**/*-*.md` rule files, documentation standards
 **AutoAttach:** true
 **Type:** Auto-attach
-**Version:** 2.2
-**LastUpdated:** 2025-10-08
+**Keywords:** rule governance, standards, semantic discovery, metadata, keywords, RULES_INDEX
+**Version:** 2.3
+**LastUpdated:** 2025-10-13
 
 # Rule Governance: Universal Standards for AI Coding Rules
 
@@ -42,7 +43,7 @@ Establish comprehensive governance for creating, maintaining, and organizing AI 
 ## 1. Rule Creation & Naming Constraints
 - **Requirement:** Place universal rule files in the canonical `ai_coding_rules/` directory. Optional mirrors may exist in editor-specific folders (e.g., `.cursor/rules/`).
 - **Requirement:** Use a snake-case naming convention with a `.md` extension (e.g., `your_rule_name.md`).
-- **Requirement:** Include a clear description and, if needed, scope notes at the top of the file. Mandatory metadata `Version`, `LastUpdated`, `TokenBudget`, and `ContextTier` must be included in plain text. Optional metadata like `id` may also be included.
+- **Requirement:** Include a clear description and, if needed, scope notes at the top of the file. Mandatory metadata `Version`, `LastUpdated`, `TokenBudget`, and `ContextTier` must be included in plain text. Optional metadata includes `Keywords` (comma-separated list for semantic discovery) and `id`.
 
 ## 2. Semantic Markup and XML Tags
 
@@ -196,6 +197,27 @@ Every rule file must follow this structure:
 - **Benefits:** Reduces context overhead; allows targeted expertise
 - **Organization:** Group related rules in numbered ranges (e.g., 200-299 for Python)
 - **Consider:** Prefer an on-demand (Agent Requested) pattern for specialized topics to control context cost across IDEs and CLI tools
+
+### Semantic Discovery and Keywords
+
+**Purpose:** Enable AI agents to automatically discover and load relevant rules based on conversation context and user queries.
+
+**Keywords Metadata:**
+- **Requirement:** Include `**Keywords:**` metadata in rule files for semantic matching
+- **Format:** Comma-separated list of technologies, concepts, patterns, and common use cases
+- **Best Practices:**
+  - Include primary technology names (e.g., "Snowflake", "Python", "FastAPI")
+  - Add specific features and components (e.g., "CTE", "warehouse", "async", "dependency injection")
+  - Include common query terms users might use (e.g., "performance", "optimization", "testing", "security")
+  - Add related concepts and patterns (e.g., "incremental loading", "REST API", "authentication")
+  - List 5-15 keywords for optimal semantic matching
+- **Example:** `**Keywords:** Snowflake, SQL, CTE, performance tuning, cost optimization, warehouse sizing, query profile, clustering keys, partitioning`
+
+**RULES_INDEX.md Integration:**
+- **Requirement:** All Agent Requested rules must be listed in `RULES_INDEX.md` with expanded keyword hints
+- **Purpose:** RULES_INDEX.md serves as the primary discovery mechanism for rule selection
+- **Always:** When creating or updating rules, ensure RULES_INDEX.md entry includes comprehensive keywords
+- **Recommendation:** Reference RULES_INDEX.md in conversations when helping users discover relevant rules
 
 ## 5. Content Standards
 
@@ -640,6 +662,7 @@ Use this template when creating new rule files. Copy the entire template below a
 **AppliesTo:** [File patterns, technologies, or contexts where this rule applies]
 **AutoAttach:** [true | false]
 **Type:** [Auto-attach | Agent Requested]
+**Keywords:** [technology, concept, pattern, use-case] (comma-separated for semantic discovery)
 **TokenBudget:** ~[number] (e.g., ~450, ~800, ~2000)
 **ContextTier:** [essential | standard | comprehensive]
 **Version:** 1.0

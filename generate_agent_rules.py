@@ -28,6 +28,7 @@ Common behavior
   - **Description:**
   - **AutoAttach:**
   - **AppliesTo:** (backticks or comma/space-separated)
+  - **Keywords:** (comma-separated, for semantic discovery)
   - **Version:**
   - **LastUpdated:**
 - Strips the above metadata lines and any existing YAML frontmatter from the body
@@ -62,6 +63,7 @@ from pathlib import Path
 RE_DESCRIPTION = re.compile(r"^\*\*Description:\*\*\s*(.*)$", re.IGNORECASE)
 RE_APPLIES = re.compile(r"^\*\*AppliesTo:\*\*\s*(.*)$", re.IGNORECASE)
 RE_AUTO_ATTACH = re.compile(r"^\*\*AutoAttach:\*\*\s*(true|false|.*)$", re.IGNORECASE)
+RE_KEYWORDS = re.compile(r"^\*\*Keywords:\*\*\s*(.*)$", re.IGNORECASE)
 RE_VERSION = re.compile(r"^\*\*Version:\*\*\s*(.*)$", re.IGNORECASE)
 RE_LAST_UPDATED = re.compile(r"^\*\*LastUpdated:\*\*\s*(.*)$", re.IGNORECASE)
 
@@ -77,7 +79,7 @@ def strip_existing_yaml_header(text: str) -> str:
 
 
 def strip_markdown_metadata_lines(text: str) -> str:
-    """Remove specific markdown header lines (Description, AutoAttach, AppliesTo, Version, LastUpdated)."""
+    """Remove specific markdown header lines (Description, AutoAttach, AppliesTo, Keywords, Version, LastUpdated)."""
     out_lines: list[str] = []
     for line in text.splitlines():
         ls = line.strip()
@@ -85,6 +87,7 @@ def strip_markdown_metadata_lines(text: str) -> str:
             RE_DESCRIPTION.match(ls)
             or RE_APPLIES.match(ls)
             or RE_AUTO_ATTACH.match(ls)
+            or RE_KEYWORDS.match(ls)
             or RE_VERSION.match(ls)
             or RE_LAST_UPDATED.match(ls)
         ):

@@ -2,8 +2,9 @@
 **AppliesTo:** `**/*.sql`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.2
-**LastUpdated:** 2025-10-07
+**Keywords:** Data loading, stages, COPY INTO, CSV load, JSON load, Parquet, file formats, bulk loading, stage management
+**Version:** 1.3
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~200
 **ContextTier:** Medium

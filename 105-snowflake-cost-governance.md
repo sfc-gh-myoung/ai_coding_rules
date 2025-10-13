@@ -2,8 +2,9 @@
 **AppliesTo:** `**/*.sql`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.1
-**LastUpdated:** 2025-09-16
+**Keywords:** Cost optimization, resource monitors, warehouse auto-suspend, query cost, credit usage, budget alerts, spend tracking
+**Version:** 1.2
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~250
 **ContextTier:** High

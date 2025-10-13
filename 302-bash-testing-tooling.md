@@ -2,8 +2,9 @@
 **AppliesTo:** `**/*.sh`, `**/*.bash`, `scripts/**/*`, `bin/**/*`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.1
-**LastUpdated:** 2025-09-16
+**Keywords:** Bash testing, ShellCheck, bats, shell script testing, CI/CD, debugging
+**Version:** 1.2
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~1100
 **ContextTier:** Medium

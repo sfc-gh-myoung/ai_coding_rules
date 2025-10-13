@@ -2,8 +2,9 @@
 **AppliesTo:** `CONTRIBUTING.md`, `README.md`, `.github/**/*`, `**/*-*.md`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 2.2
-**LastUpdated:** 2025-09-16
+**Keywords:** CONTRIBUTING, pull requests, code review, contribution guidelines, branching strategy
+**Version:** 2.3
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~400
 **ContextTier:** Medium

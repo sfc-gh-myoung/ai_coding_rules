@@ -2,8 +2,9 @@
 **AppliesTo:** `notebooks/**/*.ipynb`, `streamlit/**/*`, `models/**/*`, `**/*.sql`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 2.1
-**LastUpdated:** 2025-10-10
+**Keywords:** Data science, pandas, numpy, scikit-learn, ML, Jupyter, data analysis, model lifecycle
+**Version:** 2.2
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~2200
 **ContextTier:** comprehensive

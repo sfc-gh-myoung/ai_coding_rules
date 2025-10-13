@@ -2,8 +2,9 @@
 **AppliesTo:** `**/tests/**/*.py`, `**/fixtures/**/*.py`, `**/factories/**/*.py`, `pyproject.toml`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.1
-**LastUpdated:** 2025-09-16
+**Keywords:** Faker, test data generation, fake data, providers, localization, synthetic data
+**Version:** 1.2
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~1200
 **ContextTier:** Low

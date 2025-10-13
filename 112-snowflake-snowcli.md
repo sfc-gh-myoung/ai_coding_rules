@@ -2,8 +2,9 @@
 **AppliesTo:** `**/Taskfile.yml`, `**/*.sh`, `**/*.zsh`, `**/*.md`, `**/*.py`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-09-25
+**Keywords:** snow CLI, SnowCLI, Snowflake command line, uvx snow, CLI deployment, snowflake.yml
+**Version:** 1.1
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~350
 **ContextTier:** Medium

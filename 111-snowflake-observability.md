@@ -2,8 +2,9 @@
 **AppliesTo:** `**/*.sql`, `**/*.py`, `**/*.scl`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-09-17
+**Keywords:** Observability, logging, tracing, metrics, telemetry, monitoring, query history, ACCOUNT_USAGE, event tables
+**Version:** 1.1
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~1100
 **ContextTier:** High

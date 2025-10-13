@@ -2,8 +2,9 @@
 **AppliesTo:** `**/*.sql`, `**/*.py`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
-**LastUpdated:** 2025-10-03
+**Keywords:** Cortex Analyst, natural language queries, NL2SQL, semantic layer, text-to-SQL, business intelligence
+**Version:** 1.1
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~300
 **ContextTier:** Medium

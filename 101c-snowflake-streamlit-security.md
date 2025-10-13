@@ -2,7 +2,8 @@
 **AppliesTo:** `**/*.py`, `streamlit/**/*`, `.streamlit/secrets.toml`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.0
+**Keywords:** Streamlit security, secrets management, st.secrets, input validation, XSS protection, SQL injection, authentication
+**Version:** 1.1
 **LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~400

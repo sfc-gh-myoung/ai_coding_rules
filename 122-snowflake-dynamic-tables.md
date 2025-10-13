@@ -2,10 +2,11 @@
 **AppliesTo:** `**/*.sql`
 **AutoAttach:** false
 **Type:** Agent Requested
+**Keywords:** Dynamic Tables, materialized views, incremental refresh, target lag, refresh mode, automatic pipelines
 **TokenBudget:** ~1800
 **ContextTier:** comprehensive
-**Version:** 1.1
-**LastUpdated:** 2025-10-10
+**Version:** 1.2
+**LastUpdated:** 2025-10-13
 
 # Snowflake Dynamic Tables Best Practices
 

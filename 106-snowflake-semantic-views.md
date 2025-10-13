@@ -2,8 +2,9 @@
 **AppliesTo:** `**/*.sql`, `**/*.yaml`, `**/*.yml`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 2.0
-**LastUpdated:** 2025-10-09
+**Keywords:** Semantic models, semantic views, Cortex Analyst, data modeling, business logic layer, metrics layer
+**Version:** 2.1
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~800
 **ContextTier:** High

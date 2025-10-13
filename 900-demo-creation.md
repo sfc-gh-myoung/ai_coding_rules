@@ -2,8 +2,9 @@
 **AppliesTo:** `scripts/**/*`, `data/**/*`, `streamlit/**/*`, `demos/**/*`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Version:** 1.2
-**LastUpdated:** 2025-09-16
+**Keywords:** Demo creation, synthetic data, realistic demos, data generation, demo applications
+**Version:** 1.3
+**LastUpdated:** 2025-10-13
 
 **TokenBudget:** ~250
 **ContextTier:** Low

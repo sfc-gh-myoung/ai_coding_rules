@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2025-10-13
+
 ### Added
 - **Semantic Discovery:** Added `**Keywords:**` metadata field to rule governance standard for enhanced agent discovery
 - **Semantic Discovery:** Enhanced RULES_INDEX.md with comprehensive Keywords/Hints column for all 56+ rules

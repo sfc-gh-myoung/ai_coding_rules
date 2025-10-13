@@ -3,10 +3,10 @@
 **AutoAttach:** false
 **Type:** Agent Requested
 **Keywords:** Taskfile, task automation, Taskfile.yml, build automation, task runner
-**Version:** 1.4
+**Version:** 1.5
 **LastUpdated:** 2025-10-13
 
-**TokenBudget:** ~500
+**TokenBudget:** ~550
 **ContextTier:** Medium
 
 # ️Automation Directives (Taskfile-first, with equivalents)
@@ -25,6 +25,59 @@ Provide directives for creating, modifying, and maintaining project automation u
 - **Requirement:** Do not hard-code commands in docs or scripts if they can be run via the orchestrator.
 - **Always:** Define a `default`/`help` task that explains how to get started.
 - **Requirement:** Ensure tasks are portable and not OS-specific unless explicitly scoped.
+
+## 1.1 Version and Error Handling (CRITICAL)
+
+### Version Specification
+- **Critical:** Always specify a minimum version in your Taskfile
+- **Recommended:** Use `version: '3.45'` or later (includes built-in UNIX commands)
+- **Avoid:** Generic `version: '3'` without specific minimum version
+
+```yaml
+# ✅ Correct - Specifies minimum version
+version: '3.45'
+
+# ❌ Avoid - Too generic
+version: '3'
+```
+
+**Why:** Version 3.45+ includes built-in UNIX commands and ensures consistent behavior across environments.
+
+### Global Error Handling
+- **Critical:** Add `set: [pipefail]` immediately after version declaration
+- **Requirement:** This must be present in every Taskfile (root and included modules)
+- **Effect:** Ensures shell pipelines fail on the first error, preventing cascading failures
+
+```yaml
+version: '3.45'
+
+set: [pipefail]  # Fail fast on pipeline errors
+
+vars:
+  # ... your variables
+```
+
+**Why:** Without `pipefail`, commands in a pipeline can fail silently. For example, `cat missing.txt | grep error` might appear to succeed even if `cat` fails.
+
+### Task-Level Error Handling (Optional)
+For critical operations, consider explicit error handling:
+
+```yaml
+tasks:
+  deploy:
+    desc: Deploy to production
+    cmds:
+      - |
+        set -euo pipefail  # Task-level strictness
+        echo "Deploying..." >&2
+        ./deploy.sh
+```
+
+**Options:**
+- `set -e`: Exit on any error
+- `set -u`: Exit on undefined variables
+- `set -o pipefail`: Fail on any pipeline error
+- `>&2`: Redirect errors to stderr
 
 ## 2. Structure and Syntax
 - **Requirement:** Give all tasks a clear, descriptive name.
@@ -65,7 +118,9 @@ Provide directives for creating, modifying, and maintaining project automation u
 Example include patterns:
 
 ```yaml
-version: '3'
+version: '3.45'
+
+set: [pipefail]
 
 includes:
   dev:
@@ -147,6 +202,10 @@ cmds:
 - **Always:** Reference Taskfile docs: https://taskfile.dev/
 
 ## 8. Common Taskfile Mistakes and Prevention
+- **Mistake:** Using generic `version: '3'` without specifying minimum version.
+  - **Prevention:** Always use `version: '3.45'` or later to ensure consistent behavior and built-in command support.
+- **Mistake:** Missing `set: [pipefail]` global error handling.
+  - **Prevention:** Add `set: [pipefail]` immediately after version declaration in all Taskfiles (root and modules).
 - **Mistake:** Overloading the root `Taskfile.yml` with many unrelated tasks.
   - **Prevention:** Split into domain modules under `task/` and include via namespaces.
 - **Mistake:** Using `flatten: true` on includes and causing task name collisions or surfacing internal tasks.
@@ -171,16 +230,18 @@ cmds:
 - **Validation Steps:** [Checks to confirm success]
 
 ## Quick Compliance Checklist
+- [ ] **Version specified:** `version: '3.45'` or later in all Taskfiles
+- [ ] **Error handling:** `set: [pipefail]` added after version in all Taskfiles
 - [ ] Required dependencies and context verified
 - [ ] Appropriate tools selected and validated
 - [ ] Implementation follows established patterns
 - [ ] Output format matches requirements
 - [ ] Validation steps completed successfully
- - [ ] Includes validated with `task --list`; dry-run tested for key tasks
- - [ ] Namespaces used for includes; `flatten` avoided or explicitly justified
- - [ ] Optional modules marked with `optional: true` where appropriate
- - [ ] Public tasks have `desc`; non-CLI tasks marked `internal: true`
- - [ ] `task/` directory used to organize domain-specific Taskfiles
+- [ ] Includes validated with `task --list`; dry-run tested for key tasks
+- [ ] Namespaces used for includes; `flatten` avoided or explicitly justified
+- [ ] Optional modules marked with `optional: true` where appropriate
+- [ ] Public tasks have `desc`; non-CLI tasks marked `internal: true`
+- [ ] `task/` directory used to organize domain-specific Taskfiles
 
 ## Validation
 - **Success checks:** [How to verify correct implementation]

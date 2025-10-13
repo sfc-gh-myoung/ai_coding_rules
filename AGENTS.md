@@ -71,8 +71,14 @@ If any validation check fails:
 - **Continuous awareness:** Display mode banner in every response
 
 ## Rule system architecture
-- **52+ specialized rule files** organized by category (000-900)
+- **56+ specialized rule files** organized by category (000-900)
 - **Use `RULES_INDEX.md`** to quickly find relevant rules for specific technologies
+- **Streamlit guidance:** Use focused rules for specific aspects:
+  - General setup/navigation: `101-snowflake-streamlit-core.md`
+  - Charts/visualizations: `101a-snowflake-streamlit-visualization.md`
+  - Performance issues: `101b-snowflake-streamlit-performance.md`
+  - Security concerns: `101c-snowflake-streamlit-security.md`
+  - Testing/debugging: `101d-snowflake-streamlit-testing.md`
 - **Rule types**: Auto-attach (universal) vs Agent Requested (technology-specific)
 - **Dependency chain**: Always reference core rules (000-global-core.md) → specific technology rules
 - **Rule generation**: Use `generate_agent_rules.py` to create agent-specific formats (Cursor, Copilot, Cline)

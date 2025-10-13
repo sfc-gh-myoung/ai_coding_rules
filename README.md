@@ -6,7 +6,15 @@
 
 > **Universal AI coding rules for consistent, reliable software engineering across LLMs and IDEs**
 
-This repository provides a comprehensive collection of engineering rules designed to work seamlessly with AI coding assistants including Claude, ChatGPT, GitHub Copilot, Cursor, and others. The rules cover everything from Python and SQL best practices to data engineering, analytics, and project governance. Some aspects of the **rules can be opinionated**, particularly where it relates to naming conventions and project structure.  You are **encouraged to review the rules and make adjustments** as desired to better align with your best practices or prefered approaches.
+This repository provides a comprehensive collection of engineering rules designed to work seamlessly with AI coding assistants including Claude, ChatGPT, GitHub Copilot, Cursor, and others. The rules cover everything from Python and SQL best practices to data engineering, analytics, and project governance. Some aspects of the **rules are opinionated**, particularly where it relates to:
+
+- naming conventions
+- project structure
+- usage of uv and ruff
+- usage of Task.
+- README.md and CHANGELOG.md
+
+You are **encouraged to review the rules and make adjustments** as desired to better align with your best practices or prefered approaches.
 
 This project was inspired, in part, by: [how-to-add-cline-memory-bank-feature-to-your-cursor](https://forum.cursor.com/t/how-to-add-cline-memory-bank-feature-to-your-cursor/67868) and [cline memory bank](https://docs.cline.bot/prompting/cline-memory-bank)
 
@@ -303,7 +311,11 @@ The following best practices apply to all AI coding assistants and development e
 
 ### Data Platform - Snowflake (100-199)
 - **`100-snowflake-core.md`** — Core Snowflake guidelines (SQL, performance, security, DDL object naming conventions)
-- **`101-snowflake-streamlit-ui.md`** — Modern Streamlit application development
+- **`101-snowflake-streamlit-core.md`** — Streamlit core: setup, navigation, state management, deployment modes (SiS vs SPCS)
+- **`101a-snowflake-streamlit-visualization.md`** — Streamlit visualization: Plotly charts, maps, dashboard integration
+- **`101b-snowflake-streamlit-performance.md`** — Streamlit performance: caching, optimization, data loading from Snowflake
+- **`101c-snowflake-streamlit-security.md`** — Streamlit security: input validation, secrets management, best practices
+- **`101d-snowflake-streamlit-testing.md`** — Streamlit testing: AppTest patterns, unit testing, debugging workflows
 - **`102-snowflake-sql-best-practices.md`** — Advanced SQL authoring patterns
 - **`103-snowflake-performance-tuning.md`** — Query optimization and warehouse tuning
 - **`104-snowflake-streams-tasks.md`** — Incremental data pipelines

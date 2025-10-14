@@ -8,6 +8,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **feat(rules):** Added Rule 124: Snowflake Data Quality Monitoring Best Practices (~1,070 lines, ~2,100 tokens)
+  - Comprehensive DMF (Data Metric Functions) guidance for Enterprise Edition
+  - System DMFs (NULL_COUNT, DUPLICATE_COUNT, FRESHNESS, ROW_COUNT, UNIQUE_COUNT)
+  - Custom DMF creation patterns with business rule validation examples
+  - Expectations-driven quality checks with pass/fail criteria
+  - Data profiling workflow integration with Snowsight
+  - Scheduling strategies and cost optimization for serverless compute
+  - Event table monitoring and alert configuration patterns
+  - Privilege requirements (EXECUTE DATA METRIC FUNCTION) and database role limitations
+  - Supported objects (tables, views, dynamic tables, materialized views, external tables)
+  - Billing tracking via DATA_QUALITY_MONITORING_USAGE_HISTORY
+  - Complete anti-patterns library with 5 examples (over-monitoring, missing expectations, database role errors)
+  - Investigation-first protocol requiring data profiling before DMF setup
+  - Token budget: ~2100 tokens (comprehensive guidance)
+  - Documentation references: data-quality-intro, data-quality-profile, data-quality-working, tutorials/data-quality-tutorial-start
+  - Dependencies: `100-snowflake-core.md`, `105-snowflake-cost-governance.md`, `107-snowflake-security-governance.md`, `600-data-governance-quality.md`
 - **feat(rules):** Added Rule 901: Data Generation & Modeling Best Practices (~1,050 lines, ~2,200 tokens)
   - Comprehensive data generation and dimensional modeling governance using Kimball methodology
   - Universal naming conventions for entity IDs, foreign keys, temporal columns, measurements, booleans
@@ -21,6 +37,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Dependencies: `000-global-core.md`, `100-snowflake-core.md`, `102-snowflake-sql-best-practices.md`, `600-data-governance-quality.md`, `700-business-analytics.md`
 - **docs:** Updated RULES_INDEX.md to version 2.0 with Rule 901 entry and comprehensive keywords
 - **docs:** Updated README.md Demo & Synthetic Data section with Rule 901 description
+
+### Changed
+- **feat(rules):** Updated Rule 122: Snowflake Dynamic Tables Best Practices (Version 1.2 → 1.3)
+  - Added mandatory `DT_` naming prefix convention for all Dynamic Tables
+  - New "Dynamic Table Naming Convention" subsection in Section 1 (Dynamic Table Fundamentals)
+  - Pattern: `DT_<descriptive_name>` with examples and benefits
+  - Updated all 30+ code examples throughout the rule to use `DT_` prefix consistently
+  - Benefits: Clear identification in data lineage tools, distinguishes from views (`VW_*`) and base tables, consistent with organizational naming standards per `901-data-generation-modeling.md`
+  - Token budget updated from ~1800 to ~1900 tokens
 
 ## [1.2.0] - 2025-10-13
 

@@ -3,10 +3,10 @@
 **AutoAttach:** false
 **Type:** Agent Requested
 **Keywords:** Dynamic Tables, materialized views, incremental refresh, target lag, refresh mode, automatic pipelines
-**TokenBudget:** ~1800
+**TokenBudget:** ~1900
 **ContextTier:** comprehensive
-**Version:** 1.2
-**LastUpdated:** 2025-10-13
+**Version:** 1.3
+**LastUpdated:** 2025-10-14
 
 # Snowflake Dynamic Tables Best Practices
 
@@ -85,6 +85,39 @@ Dynamic Tables are declarative materialized views that automatically refresh bas
 - Real-time requirements (<1 minute lag)
 - Highly complex queries that can't leverage incremental refresh
 
+### Dynamic Table Naming Convention
+
+<directive_strength>mandatory</directive_strength>
+
+All Dynamic Table names must use the `DT_` prefix to clearly distinguish them from views, base tables, and other database objects.
+
+**Pattern:** `DT_<descriptive_name>`
+
+**Examples:**
+```sql
+-- ✅ Good: Clear Dynamic Table naming
+CREATE OR REPLACE DYNAMIC TABLE analytics.DT_DAILY_SALES_SUMMARY ...
+CREATE OR REPLACE DYNAMIC TABLE staging.DT_CUSTOMER_360 ...
+CREATE OR REPLACE DYNAMIC TABLE analytics.DT_RECENT_ORDERS ...
+CREATE OR REPLACE DYNAMIC TABLE dimensions.DT_DIM_CUSTOMERS_SCD1 ...
+
+-- ❌ Bad: Missing DT_ prefix
+CREATE OR REPLACE DYNAMIC TABLE analytics.DAILY_SALES_SUMMARY ...
+CREATE OR REPLACE DYNAMIC TABLE staging.CUSTOMER_360 ...
+```
+
+**Benefits:**
+- **Clear Identification**: Immediately distinguishes Dynamic Tables from views (`VW_*`) and base tables in data lineage tools
+- **Consistent Taxonomy**: Aligns with organizational object naming standards (similar to `VW_` for views per `901-data-generation-modeling.md`)
+- **Query Clarity**: Makes SQL queries self-documenting when referencing Dynamic Tables
+- **Tooling Integration**: Easier to filter and manage Dynamic Tables in monitoring queries and governance tools
+
+**Naming Best Practices:**
+- Use descriptive names that indicate the business purpose: `DT_MONTHLY_REVENUE_ROLLUP`
+- Include aggregation level when applicable: `DT_DAILY_*`, `DT_HOURLY_*`, `DT_MONTHLY_*`
+- Prefix SCD implementations: `DT_DIM_<entity>_SCD1` or `DT_DIM_<entity>_SCD2`
+- Use schema prefixes for context: `staging.DT_*`, `analytics.DT_*`, `dimensions.DT_*`
+
 ## 2. Refresh Mode Configuration
 
 ### Explicit Refresh Mode Declaration
@@ -94,7 +127,7 @@ Dynamic Tables are declarative materialized views that automatically refresh bas
 
 **Syntax:**
 ```sql
-CREATE OR REPLACE DYNAMIC TABLE schema.dt_name
+CREATE OR REPLACE DYNAMIC TABLE schema.DT_name  -- Note: DT_ prefix
   TARGET_LAG = '10 minutes'
   WAREHOUSE = compute_wh
   REFRESH_MODE = INCREMENTAL  -- or FULL
@@ -127,7 +160,7 @@ AS
 **Example:**
 ```sql
 -- Incremental refresh: append-only event log aggregation
-CREATE OR REPLACE DYNAMIC TABLE analytics.dt_daily_events
+CREATE OR REPLACE DYNAMIC TABLE analytics.DT_DAILY_EVENTS
   TARGET_LAG = '1 hour'
   WAREHOUSE = compute_wh
   REFRESH_MODE = INCREMENTAL
@@ -153,7 +186,7 @@ GROUP BY 1, 2;
 **Example:**
 ```sql
 -- Full refresh: uses window functions (not incremental-compatible)
-CREATE OR REPLACE DYNAMIC TABLE analytics.dt_customer_rankings
+CREATE OR REPLACE DYNAMIC TABLE analytics.DT_CUSTOMER_RANKINGS
   TARGET_LAG = '1 day'
   WAREHOUSE = compute_wh
   REFRESH_MODE = FULL
@@ -197,7 +230,7 @@ TARGET_LAG = '1 day'
 **Example:**
 ```sql
 -- Base Dynamic Table with explicit lag
-CREATE OR REPLACE DYNAMIC TABLE staging.dt_raw_orders
+CREATE OR REPLACE DYNAMIC TABLE staging.DT_RAW_ORDERS
   TARGET_LAG = '15 minutes'
   WAREHOUSE = compute_wh
   REFRESH_MODE = INCREMENTAL
@@ -205,7 +238,7 @@ AS
 SELECT * FROM raw.orders WHERE order_date >= DATEADD(day, -30, CURRENT_DATE());
 
 -- Dependent Dynamic Table using DOWNSTREAM
-CREATE OR REPLACE DYNAMIC TABLE analytics.dt_order_summary
+CREATE OR REPLACE DYNAMIC TABLE analytics.DT_ORDER_SUMMARY
   TARGET_LAG = 'DOWNSTREAM'  -- Refresh only when needed
   WAREHOUSE = compute_wh
   REFRESH_MODE = INCREMENTAL
@@ -214,7 +247,7 @@ SELECT
   order_date,
   COUNT(*) AS order_count,
   SUM(order_amount) AS total_amount
-FROM staging.dt_raw_orders
+FROM staging.DT_RAW_ORDERS
 GROUP BY order_date;
 ```
 
@@ -241,7 +274,7 @@ CREATE WAREHOUSE IF NOT EXISTS dynamic_tables_wh
   COMMENT = 'Dedicated warehouse for Dynamic Table refresh operations';
 
 -- Assign to Dynamic Table
-CREATE OR REPLACE DYNAMIC TABLE analytics.dt_sales_summary
+CREATE OR REPLACE DYNAMIC TABLE analytics.DT_SALES_SUMMARY
   TARGET_LAG = '30 minutes'
   WAREHOUSE = dynamic_tables_wh  -- Isolated warehouse
   REFRESH_MODE = INCREMENTAL
@@ -265,7 +298,7 @@ SELECT ...
 **Anti-Pattern:**
 ```sql
 -- ❌ Monolithic Dynamic Table with nested complexity
-CREATE OR REPLACE DYNAMIC TABLE analytics.dt_customer_analytics_all
+CREATE OR REPLACE DYNAMIC TABLE analytics.DT_CUSTOMER_ANALYTICS_ALL
   TARGET_LAG = '1 hour'
   WAREHOUSE = compute_wh
   REFRESH_MODE = FULL  -- Complex query forces full refresh
@@ -288,7 +321,7 @@ SELECT * FROM final_metrics;
 **✅ Correct Pattern:**
 ```sql
 -- Step 1: Filter and normalize raw events
-CREATE OR REPLACE DYNAMIC TABLE staging.dt_events_filtered
+CREATE OR REPLACE DYNAMIC TABLE staging.DT_EVENTS_FILTERED
   TARGET_LAG = '15 minutes'
   WAREHOUSE = compute_wh
   REFRESH_MODE = INCREMENTAL
@@ -302,7 +335,7 @@ FROM raw.events
 WHERE event_timestamp >= DATEADD(day, -90, CURRENT_TIMESTAMP());
 
 -- Step 2: Aggregate events
-CREATE OR REPLACE DYNAMIC TABLE analytics.dt_event_aggregates
+CREATE OR REPLACE DYNAMIC TABLE analytics.DT_EVENT_AGGREGATES
   TARGET_LAG = 'DOWNSTREAM'
   WAREHOUSE = compute_wh
   REFRESH_MODE = INCREMENTAL
@@ -311,11 +344,11 @@ SELECT
   user_id,
   DATE_TRUNC('day', event_timestamp) AS event_date,
   COUNT(*) AS event_count
-FROM staging.dt_events_filtered
+FROM staging.DT_EVENTS_FILTERED
 GROUP BY user_id, event_date;
 
 -- Step 3: Join with customer data
-CREATE OR REPLACE DYNAMIC TABLE analytics.dt_customer_analytics
+CREATE OR REPLACE DYNAMIC TABLE analytics.DT_CUSTOMER_ANALYTICS
   TARGET_LAG = 'DOWNSTREAM'
   WAREHOUSE = compute_wh
   REFRESH_MODE = INCREMENTAL
@@ -325,7 +358,7 @@ SELECT
   c.customer_name,
   e.event_date,
   e.event_count
-FROM analytics.dt_event_aggregates e
+FROM analytics.DT_EVENT_AGGREGATES e
 JOIN raw.customers c ON e.user_id = c.customer_id;
 ```
 
@@ -339,7 +372,7 @@ For complex pipeline networks, create a "controller" Dynamic Table that reads fr
 **Example:**
 ```sql
 -- Controller table aggregates all leaf nodes
-CREATE OR REPLACE DYNAMIC TABLE analytics.dt_pipeline_controller
+CREATE OR REPLACE DYNAMIC TABLE analytics.DT_PIPELINE_CONTROLLER
   TARGET_LAG = '1 hour'
   WAREHOUSE = compute_wh
   REFRESH_MODE = FULL
@@ -347,17 +380,17 @@ AS
 SELECT
   'sales_summary' AS pipeline,
   MAX(refresh_timestamp) AS last_refresh
-FROM analytics.dt_sales_summary
+FROM analytics.DT_SALES_SUMMARY
 UNION ALL
 SELECT
   'customer_analytics' AS pipeline,
   MAX(refresh_timestamp) AS last_refresh
-FROM analytics.dt_customer_analytics;
+FROM analytics.DT_CUSTOMER_ANALYTICS;
 
 -- Manage entire pipeline via controller
-ALTER DYNAMIC TABLE analytics.dt_pipeline_controller SET TARGET_LAG = '30 minutes';
-ALTER DYNAMIC TABLE analytics.dt_pipeline_controller SUSPEND;
-ALTER DYNAMIC TABLE analytics.dt_pipeline_controller RESUME;
+ALTER DYNAMIC TABLE analytics.DT_PIPELINE_CONTROLLER SET TARGET_LAG = '30 minutes';
+ALTER DYNAMIC TABLE analytics.DT_PIPELINE_CONTROLLER SUSPEND;
+ALTER DYNAMIC TABLE analytics.DT_PIPELINE_CONTROLLER RESUME;
 ```
 
 ## 6. Slowly Changing Dimensions (SCD) Patterns
@@ -373,7 +406,7 @@ Use Dynamic Tables to maintain Type 1 SCDs by reading from change streams.
 CREATE OR REPLACE STREAM raw.customers_stream ON TABLE raw.customers;
 
 -- Dynamic Table applies Type 1 changes
-CREATE OR REPLACE DYNAMIC TABLE dimensions.dt_dim_customers_scd1
+CREATE OR REPLACE DYNAMIC TABLE dimensions.DT_DIM_CUSTOMERS_SCD1
   TARGET_LAG = '5 minutes'
   WAREHOUSE = compute_wh
   REFRESH_MODE = INCREMENTAL
@@ -395,7 +428,7 @@ Implement Type 2 SCDs using window functions over change streams ordered by time
 **Example:**
 ```sql
 -- Dynamic Table maintains Type 2 SCD with history
-CREATE OR REPLACE DYNAMIC TABLE dimensions.dt_dim_customers_scd2
+CREATE OR REPLACE DYNAMIC TABLE dimensions.DT_DIM_CUSTOMERS_SCD2
   TARGET_LAG = '10 minutes'
   WAREHOUSE = compute_wh
   REFRESH_MODE = FULL  -- Window functions require full refresh
@@ -432,7 +465,7 @@ Materialize compound expressions in one Dynamic Table, then group in a dependent
 **Anti-Pattern:**
 ```sql
 -- ❌ Grouping on compound expression hinders incremental refresh
-CREATE OR REPLACE DYNAMIC TABLE analytics.dt_monthly_sales
+CREATE OR REPLACE DYNAMIC TABLE analytics.DT_MONTHLY_SALES
   TARGET_LAG = '1 hour'
   WAREHOUSE = compute_wh
   REFRESH_MODE = INCREMENTAL
@@ -447,7 +480,7 @@ GROUP BY DATE_TRUNC('month', order_date);
 **✅ Correct Pattern:**
 ```sql
 -- Step 1: Materialize the compound expression
-CREATE OR REPLACE DYNAMIC TABLE staging.dt_orders_with_month
+CREATE OR REPLACE DYNAMIC TABLE staging.DT_ORDERS_WITH_MONTH
   TARGET_LAG = '30 minutes'
   WAREHOUSE = compute_wh
   REFRESH_MODE = INCREMENTAL
@@ -460,7 +493,7 @@ SELECT
 FROM raw.orders;
 
 -- Step 2: Group by materialized column
-CREATE OR REPLACE DYNAMIC TABLE analytics.dt_monthly_sales
+CREATE OR REPLACE DYNAMIC TABLE analytics.DT_MONTHLY_SALES
   TARGET_LAG = 'DOWNSTREAM'
   WAREHOUSE = compute_wh
   REFRESH_MODE = INCREMENTAL
@@ -468,7 +501,7 @@ AS
 SELECT
   order_month,  -- Simple column reference
   SUM(order_amount) AS total_sales
-FROM staging.dt_orders_with_month
+FROM staging.DT_ORDERS_WITH_MONTH
 GROUP BY order_month;
 ```
 
@@ -485,7 +518,7 @@ Keep changes between refreshes minimal (<5% of dataset) and ensure query keys al
 **Example:**
 ```sql
 -- Well-scoped Dynamic Table with good locality
-CREATE OR REPLACE DYNAMIC TABLE analytics.dt_recent_orders
+CREATE OR REPLACE DYNAMIC TABLE analytics.DT_RECENT_ORDERS
   TARGET_LAG = '15 minutes'
   WAREHOUSE = compute_wh
   REFRESH_MODE = INCREMENTAL
@@ -509,7 +542,7 @@ WHERE order_date >= DATEADD(day, -90, CURRENT_DATE());  -- Recent data only
 
 **Syntax:**
 ```sql
-CREATE OR REPLACE TRANSIENT DYNAMIC TABLE analytics.dt_temp_aggregations
+CREATE OR REPLACE TRANSIENT DYNAMIC TABLE analytics.DT_TEMP_AGGREGATIONS
   TARGET_LAG = '1 hour'
   WAREHOUSE = compute_wh
   REFRESH_MODE = INCREMENTAL
@@ -549,12 +582,12 @@ Grant MONITOR privilege to roles that need visibility into Dynamic Table metadat
 **Example:**
 ```sql
 -- Grant metadata access without modification rights
-GRANT MONITOR ON DYNAMIC TABLE analytics.dt_sales_summary TO ROLE analyst_role;
+GRANT MONITOR ON DYNAMIC TABLE analytics.DT_SALES_SUMMARY TO ROLE analyst_role;
 
 -- Analysts can query metadata
 SELECT *
 FROM TABLE(INFORMATION_SCHEMA.DYNAMIC_TABLE_REFRESH_HISTORY(
-  'dt_sales_summary'
+  'DT_SALES_SUMMARY'
 ));
 ```
 
@@ -566,12 +599,12 @@ Use OWNERSHIP role for administrative operations (ALTER, DROP, REFRESH).
 **Example:**
 ```sql
 -- Administrative control
-GRANT OWNERSHIP ON DYNAMIC TABLE analytics.dt_sales_summary 
+GRANT OWNERSHIP ON DYNAMIC TABLE analytics.DT_SALES_SUMMARY 
   TO ROLE data_engineer_role;
 
 -- Data engineers can manage the table
-ALTER DYNAMIC TABLE analytics.dt_sales_summary SET TARGET_LAG = '1 hour';
-ALTER DYNAMIC TABLE analytics.dt_sales_summary REFRESH;
+ALTER DYNAMIC TABLE analytics.DT_SALES_SUMMARY SET TARGET_LAG = '1 hour';
+ALTER DYNAMIC TABLE analytics.DT_SALES_SUMMARY REFRESH;
 ```
 
 ## 10. Monitoring and Observability
@@ -595,7 +628,7 @@ SELECT
   refresh_end_time,
   DATEDIFF('second', refresh_start_time, refresh_end_time) AS refresh_duration_seconds
 FROM TABLE(INFORMATION_SCHEMA.DYNAMIC_TABLE_REFRESH_HISTORY(
-  TABLE_NAME => 'dt_sales_summary'
+  TABLE_NAME => 'DT_SALES_SUMMARY'
 ))
 ORDER BY refresh_start_time DESC
 LIMIT 10;
@@ -634,7 +667,7 @@ SELECT
   refresh_start_time,
   error_message
 FROM TABLE(INFORMATION_SCHEMA.DYNAMIC_TABLE_REFRESH_HISTORY(
-  TABLE_NAME => 'dt_sales_summary'
+  TABLE_NAME => 'DT_SALES_SUMMARY'
 ))
 WHERE state = 'FAILED'
 ORDER BY refresh_start_time DESC;
@@ -646,7 +679,7 @@ ORDER BY refresh_start_time DESC;
 **❌ Anti-Pattern 1: Omitting Explicit Refresh Mode**
 ```sql
 -- Missing REFRESH_MODE declaration
-CREATE OR REPLACE DYNAMIC TABLE analytics.dt_sales
+CREATE OR REPLACE DYNAMIC TABLE analytics.DT_SALES
   TARGET_LAG = '1 hour'
   WAREHOUSE = compute_wh
 AS
@@ -657,7 +690,7 @@ SELECT ...
 **✅ Correct Pattern:**
 ```sql
 -- Explicit refresh mode ensures consistency
-CREATE OR REPLACE DYNAMIC TABLE analytics.dt_sales
+CREATE OR REPLACE DYNAMIC TABLE analytics.DT_SALES
   TARGET_LAG = '1 hour'
   WAREHOUSE = compute_wh
   REFRESH_MODE = INCREMENTAL  -- Explicit declaration
@@ -669,7 +702,7 @@ SELECT ...
 **❌ Anti-Pattern 2: Using SELECT * in Dynamic Table Definitions**
 ```sql
 -- SELECT * reduces maintainability and performance
-CREATE OR REPLACE DYNAMIC TABLE analytics.dt_customers
+CREATE OR REPLACE DYNAMIC TABLE analytics.DT_CUSTOMERS
   TARGET_LAG = '30 minutes'
   WAREHOUSE = compute_wh
   REFRESH_MODE = INCREMENTAL
@@ -681,7 +714,7 @@ SELECT * FROM raw.customers;  -- Bad: implicit columns
 **✅ Correct Pattern:**
 ```sql
 -- Explicit column selection
-CREATE OR REPLACE DYNAMIC TABLE analytics.dt_customers
+CREATE OR REPLACE DYNAMIC TABLE analytics.DT_CUSTOMERS
   TARGET_LAG = '30 minutes'
   WAREHOUSE = compute_wh
   REFRESH_MODE = INCREMENTAL
@@ -699,7 +732,7 @@ FROM raw.customers;
 **❌ Anti-Pattern 3: Monolithic Dynamic Tables with Complex Nesting**
 ```sql
 -- Single massive Dynamic Table with nested logic
-CREATE OR REPLACE DYNAMIC TABLE analytics.dt_everything
+CREATE OR REPLACE DYNAMIC TABLE analytics.DT_EVERYTHING
   TARGET_LAG = '1 hour'
   WAREHOUSE = compute_wh
   REFRESH_MODE = FULL  -- Forced by complexity
@@ -715,19 +748,19 @@ SELECT * FROM step4;
 **✅ Correct Pattern:**
 ```sql
 -- Chain of focused Dynamic Tables
-CREATE OR REPLACE DYNAMIC TABLE staging.dt_step1
+CREATE OR REPLACE DYNAMIC TABLE staging.DT_STEP1
   TARGET_LAG = '30 minutes'
   WAREHOUSE = compute_wh
   REFRESH_MODE = INCREMENTAL
 AS
 SELECT ...;
 
-CREATE OR REPLACE DYNAMIC TABLE staging.dt_step2
+CREATE OR REPLACE DYNAMIC TABLE staging.DT_STEP2
   TARGET_LAG = 'DOWNSTREAM'
   WAREHOUSE = compute_wh
   REFRESH_MODE = INCREMENTAL
 AS
-SELECT ... FROM staging.dt_step1;
+SELECT ... FROM staging.DT_STEP1;
 
 -- Continue chaining...
 ```
@@ -736,7 +769,7 @@ SELECT ... FROM staging.dt_step1;
 **❌ Anti-Pattern 4: Unmonitored Refresh Operations**
 ```sql
 -- Create Dynamic Table and forget it
-CREATE OR REPLACE DYNAMIC TABLE analytics.dt_sales
+CREATE OR REPLACE DYNAMIC TABLE analytics.DT_SALES
   TARGET_LAG = '15 minutes'
   WAREHOUSE = compute_wh
   REFRESH_MODE = INCREMENTAL
@@ -750,7 +783,7 @@ SELECT ...;
 **✅ Correct Pattern:**
 ```sql
 -- Create Dynamic Table with monitoring
-CREATE OR REPLACE DYNAMIC TABLE analytics.dt_sales
+CREATE OR REPLACE DYNAMIC TABLE analytics.DT_SALES
   TARGET_LAG = '15 minutes'
   WAREHOUSE = compute_wh
   REFRESH_MODE = INCREMENTAL
@@ -758,7 +791,7 @@ AS
 SELECT ...;
 
 -- Establish monitoring queries
-CREATE OR REPLACE VIEW monitoring.vw_dynamic_table_health AS
+CREATE OR REPLACE VIEW monitoring.VW_DYNAMIC_TABLE_HEALTH AS
 SELECT
   table_name,
   target_lag,
@@ -776,7 +809,7 @@ FROM SNOWFLAKE.ACCOUNT_USAGE.DYNAMIC_TABLES;
 **❌ Anti-Pattern 5: Using Dynamic Tables for Real-Time Requirements**
 ```sql
 -- Dynamic Table with unrealistic lag expectation
-CREATE OR REPLACE DYNAMIC TABLE analytics.dt_realtime_dashboard
+CREATE OR REPLACE DYNAMIC TABLE analytics.DT_REALTIME_DASHBOARD
   TARGET_LAG = '30 seconds'  -- Too aggressive
   WAREHOUSE = compute_wh
   REFRESH_MODE = INCREMENTAL
@@ -791,7 +824,7 @@ SELECT ...;
 -- For true real-time (<1 minute): Use Streams + Tasks or query base tables directly
 -- For near-real-time (1-15 minutes): Use Dynamic Tables
 
-CREATE OR REPLACE DYNAMIC TABLE analytics.dt_near_realtime_dashboard
+CREATE OR REPLACE DYNAMIC TABLE analytics.DT_NEAR_REALTIME_DASHBOARD
   TARGET_LAG = '5 minutes'  -- Realistic for Dynamic Tables
   WAREHOUSE = compute_wh
   REFRESH_MODE = INCREMENTAL
@@ -857,13 +890,13 @@ When applying this rule:
 ## Response Template
 
 ```sql
--- Filename: dt_example.sql
+-- Filename: DT_example.sql
 -- Description: Dynamic Table for [business purpose]
 -- Refresh Mode: [INCREMENTAL | FULL] - [reason]
 -- Target Lag: [time | DOWNSTREAM] - [reason]
 -- Warehouse: [warehouse_name] - [sizing rationale]
 
-CREATE OR REPLACE DYNAMIC TABLE schema.dt_name
+CREATE OR REPLACE DYNAMIC TABLE schema.DT_NAME
   TARGET_LAG = 'value'
   WAREHOUSE = warehouse_name
   REFRESH_MODE = mode
@@ -879,7 +912,7 @@ WHERE filter_condition;
 -- Monitoring query
 SELECT *
 FROM TABLE(INFORMATION_SCHEMA.DYNAMIC_TABLE_REFRESH_HISTORY(
-  TABLE_NAME => 'dt_name'
+  TABLE_NAME => 'DT_NAME'
 ))
 ORDER BY refresh_start_time DESC
 LIMIT 5;

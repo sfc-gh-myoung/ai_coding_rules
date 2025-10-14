@@ -1,8 +1,14 @@
+**Description:** Data generation and dimensional modeling standards (Kimball, naming, view taxonomy, BA-first) for analytics-friendly data.
+**AppliesTo:** `**/*.py`, `**/*.sql`, `**/*.md`
+**AutoAttach:** false
 **Type:** Agent Requested
+**Keywords:** Data modeling, naming conventions, Kimball, dimensional modeling, fact tables, dimension tables, foreign keys, view taxonomy, Business Analyst, data generation, backward compatibility, entity IDs, temporal columns
+**Version:** 1.0
+**LastUpdated:** 2025-10-14
 **TokenBudget:** ~2200
 **ContextTier:** comprehensive
 
-# Rule 901: Data Generation & Modeling Best Practices
+# Data Generation & Modeling Best Practices
 
 <section_metadata>
   <token_budget>2200</token_budget>
@@ -975,7 +981,7 @@ GROUP BY d.year_num, d.month_name, d.fiscal_quarter;
 
 ---
 
-## 9. Quick Compliance Checklist
+## Quick Compliance Checklist
 
 <directive_strength>mandatory</directive_strength>
 
@@ -996,7 +1002,7 @@ Before committing any data generation or SQL changes, verify:
 
 ---
 
-## 10. Validation
+## Validation
 
 - **Success Checks:** All entity IDs follow `<entity>_id` pattern; FKs match PKs exactly; views follow taxonomy; column comments present; date dimension exists; business analyst queries require <10 lines of SQL
 - **Negative Tests:** Queries with mismatched FKs fail; undocumented columns caught in review; views without taxonomy prefix rejected; unitless measurements flagged

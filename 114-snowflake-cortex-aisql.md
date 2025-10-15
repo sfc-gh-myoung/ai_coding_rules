@@ -2,9 +2,9 @@
 **AppliesTo:** `**/*.sql`, `**/*.py`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Keywords:** Cortex AISQL, AI_COMPLETE, AI_CLASSIFY, AI_EXTRACT, AI_SENTIMENT, embeddings, LLM functions, batching AI, token costs
-**Version:** 1.1
-**LastUpdated:** 2025-10-13
+**Keywords:** Cortex AISQL, AI_COMPLETE, AI_CLASSIFY, AI_EXTRACT, AI_SENTIMENT, AI_TRANSCRIBE, TO_FILE, embeddings, LLM functions, batching AI, token costs, audio transcription
+**Version:** 1.2
+**LastUpdated:** 2025-10-15
 
 **TokenBudget:** ~500
 **ContextTier:** Medium
@@ -121,18 +121,75 @@ SELECT AI_SIMILARITY(AI_EMBED('snowflake cortex'), AI_EMBED('enterprise llm plat
 ```
 
 ## 6. Files: Images, Audio, and Documents
+
+### 6.1 AI_TRANSCRIBE - Audio Transcription (CRITICAL SYNTAX)
+
+**✅ CORRECT Pattern - TO_FILE with two arguments:**
+
 ```sql
--- Reference staged files for multimodal tasks
-WITH files AS (
-  SELECT TO_FILE('@INT_DB.STAGE.IMAGES/cat.png') AS img,
-         TO_FILE('@INT_DB.STAGE.DOCS/form.pdf')  AS pdf,
-         TO_FILE('@INT_DB.STAGE.AUDIO/call.mp3') AS audio
+-- Pattern 1: Direct file reference (recommended)
+SELECT 
+    RELATIVE_PATH AS audio_file,
+    AI_TRANSCRIBE(TO_FILE('@STAGE_NAME', RELATIVE_PATH)) AS transcription
+FROM DIRECTORY('@STAGE_NAME')
+WHERE RELATIVE_PATH LIKE '%.mp3';
+
+-- Pattern 2: Inline stage and file path
+SELECT AI_TRANSCRIBE(TO_FILE('@financial_consultation', 'consultation.wav')) AS transcript;
+```
+
+**❌ INCORRECT Patterns (will cause type errors):**
+
+```sql
+-- ❌ WRONG: Using GET_PRESIGNED_URL (returns VARCHAR, not FILE type)
+SELECT AI_TRANSCRIBE(GET_PRESIGNED_URL('@stage', 'file.mp3'));
+-- Error: Invalid argument types for function 'AI_TRANSCRIBE': (VARCHAR)
+
+-- ❌ WRONG: Using BUILD_SCOPED_FILE_URL without TO_FILE wrapper
+SELECT AI_TRANSCRIBE(BUILD_SCOPED_FILE_URL(@stage, path));
+-- Error: Invalid argument types for function 'AI_TRANSCRIBE': (VARCHAR)
+
+-- ❌ WRONG: Wrapping BUILD_SCOPED_FILE_URL result with TO_FILE (single arg)
+SELECT AI_TRANSCRIBE(TO_FILE(BUILD_SCOPED_FILE_URL(@stage, path)));
+-- Error: TO_FILE expects 2 arguments (stage, path), not 1
+```
+
+**Why TO_FILE('@stage', 'path') is Required:**
+- `AI_TRANSCRIBE` expects a FILE reference type, not a VARCHAR string
+- `TO_FILE()` takes **two separate arguments**: stage name and file path
+- `GET_PRESIGNED_URL()` and `BUILD_SCOPED_FILE_URL()` return VARCHAR strings (HTTP URLs)
+- Only `TO_FILE('@stage', 'path')` creates the proper FILE type
+
+**Complete Working Example:**
+
+```sql
+-- Transcribe audio files from directory listing
+WITH audio_files AS (
+    SELECT RELATIVE_PATH
+    FROM DIRECTORY('@UTILITY_DEMO.CUSTOMER_DATA.AUDIO_FILES')
+    WHERE RELATIVE_PATH LIKE '%.mp3'
+    LIMIT 10
 )
 SELECT 
-  AI_COMPLETE('Describe this image in 20 words', img) AS img_desc,
-  AI_PARSE_DOCUMENT(pdf, 'LAYOUT') AS parsed,
-  AI_TRANSCRIBE(audio) AS transcript
-FROM files;
+    RELATIVE_PATH AS audio_file,
+    AI_TRANSCRIBE(
+        TO_FILE('@UTILITY_DEMO.CUSTOMER_DATA.AUDIO_FILES', RELATIVE_PATH)
+    ) AS transcription_json,
+    transcription_json:text::VARCHAR AS transcription_text,
+    transcription_json:audio_duration::FLOAT AS duration_seconds
+FROM audio_files;
+```
+
+### 6.2 Other File Functions (Images, Documents)
+
+```sql
+-- Reference staged files for multimodal tasks
+SELECT 
+  AI_COMPLETE('Describe this image in 20 words', 
+              TO_FILE('@INT_DB.STAGE.IMAGES', 'cat.png')) AS img_desc,
+  AI_PARSE_DOCUMENT(
+              TO_FILE('@INT_DB.STAGE.DOCS', 'form.pdf'), 'LAYOUT') AS parsed
+FROM (SELECT 1);  -- Dummy table for demonstration
 ```
 
 ## 7. Snowpark Python Examples
@@ -201,6 +258,7 @@ FROM src;
 
 ### External Documentation
 - [Snowflake Cortex AISQL](https://docs.snowflake.com/en/user-guide/snowflake-cortex/aisql) - Functions, privileges, cost, performance
+- [Cortex AI Audio (AI_TRANSCRIBE)](https://docs.snowflake.com/en/user-guide/snowflake-cortex/ai-audio) - Audio transcription, speaker diarization, timestamp extraction with TO_FILE syntax
 - [AI Observability](https://docs.snowflake.com/en/user-guide/snowflake-cortex/ai-observability) - Evaluate, compare, and trace generative AI applications in Snowflake
 
 ### Related Rules

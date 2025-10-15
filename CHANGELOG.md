@@ -8,6 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **feat(rules):** Added Rule 109a: Snowflake Notebook Tutorial Design Patterns (~520 lines, ~500 tokens)
+  - Comprehensive pedagogical patterns for educational notebooks and tutorial content
+  - Learning objectives format with 3-6 measurable outcomes and action verbs
+  - Tutorial structure overview with time estimates (quick demo, full tutorial, production modes)
+  - Anti-pattern sections showing ❌ incorrect and ✅ correct approaches with explanations
+  - Checkpoint validation patterns with automated progress gates between major sections
+  - Teaching point callouts (💡 prefix) explaining "why" before implementations
+  - Progressive complexity management (simple → real-world → advanced pattern)
+  - Two-approach clarification pattern for production vs. simplified demonstrations
+  - Self-paced learning considerations (can skip sections, prerequisites stated)
+  - 5 anti-pattern examples covering vague objectives, missing checkpoints, no anti-patterns, missing time estimates, technical jargon without context
+  - Token budget: ~500 tokens (standard tier, focused on patterns)
+  - Keywords: tutorial design, learning notebooks, teaching patterns, anti-patterns, checkpoints, learning objectives, pedagogical design, educational content, progressive learning
+  - Dependencies: `109-snowflake-notebooks.md`, `500-data-science-analytics.md`
+  - Complements existing `109-snowflake-notebooks.md` by focusing on pedagogical design rather than technical correctness
 - **feat(rules):** Added Rule 124: Snowflake Data Quality Monitoring Best Practices (~1,070 lines, ~2,100 tokens)
   - Comprehensive DMF (Data Metric Functions) guidance for Enterprise Edition
   - System DMFs (NULL_COUNT, DUPLICATE_COUNT, FRESHNESS, ROW_COUNT, UNIQUE_COUNT)

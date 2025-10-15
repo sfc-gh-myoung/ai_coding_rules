@@ -2,8 +2,8 @@
 **AutoAttach:** true
 **Type:** Auto-attach
 **Keywords:** rules index, rule discovery, semantic search, agent requested, auto-attach, rule governance
-**Version:** 2.0
-**LastUpdated:** 2025-10-13
+**Version:** 2.1
+**LastUpdated:** 2025-01-14
 
 # Rules Index
 
@@ -34,6 +34,7 @@ This index helps agents select the correct rule quickly through semantic keyword
 | `107-snowflake-security-governance.md` | Agent Requested | Masking, row access, and tagging | Security | Masking policies, row access policies, column masking, data governance, tagging, RBAC, roles, grants, secure views | `100-snowflake-core.md` |
 | `108-snowflake-data-loading.md` | Agent Requested | Stages, COPY INTO, Snowpipe | Ingestion | Data loading, stages, COPY INTO, CSV load, JSON load, Parquet, file formats, bulk loading, stage management | `100-snowflake-core.md` |
 | `109-snowflake-notebooks.md` | Agent Requested | Notebook best practices | Notebooks | Snowflake notebooks, Jupyter, Python notebooks, data exploration, ML, reproducible notebooks | `100-snowflake-core.md` |
+| `109a-snowflake-notebooks-tutorials.md` | Agent Requested | Tutorial and learning design patterns for notebooks | Tutorial design | tutorial design, learning notebooks, teaching patterns, anti-patterns, checkpoints, learning objectives, pedagogical design, educational content, progressive learning, self-paced learning | `109-snowflake-notebooks.md`, `500-data-science-analytics.md` |
 | `110-snowflake-model-registry.md` | Agent Requested | Model lifecycle and governance | ML registry | Model registry, ML models, model versioning, model deployment, MLOps, model governance, model lifecycle | `100-snowflake-core.md` |
 | `111-snowflake-observability.md` | Agent Requested | Telemetry, logging, tracing, metrics | Observability | Observability, logging, tracing, metrics, telemetry, monitoring, query history, ACCOUNT_USAGE, event tables | `100-snowflake-core.md` |
 | `112-snowflake-snowcli.md` | Agent Requested | Snowflake CLI best practices with pinned uvx execution | Snowflake CLI | snow CLI, SnowCLI, Snowflake command line, uvx snow, CLI deployment, snowflake.yml | `100-snowflake-core.md` |

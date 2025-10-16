@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **feat(governance):** Promoted Keywords metadata from recommended to REQUIRED (v2.4)
+  - Keywords now mandatory in all rule files for semantic discovery and automatic rule loading
+  - Validation script updated to treat missing Keywords as critical errors (exit code 1)
+  - `validate_agent_rules.py` updated to v2.4 standard with Keywords in `required_metadata`
+  - `tests/test_rule_validation.py` updated to verify Keywords presence
+  - All 67 rule files validated successfully with Keywords metadata present
+- **feat(agents):** Added Rule Discovery Protocol section to AGENTS.md
+  - MANDATORY investigation-first workflow: Parse request → Check RULES_INDEX.md → Load rules → Validate coverage
+  - Keyword matching examples for common scenarios (Snowflake optimization, pytest, Streamlit, FastAPI)
+  - Anti-patterns section showing incorrect vs. correct rule loading approaches
+  - Enforcement requirement: All technical tasks MUST start with RULES_INDEX.md consultation
+  - Quick Compliance Checklist updated to include rule discovery verification
+  - Validation checks updated to require Rule Discovery Protocol compliance
+- **feat(rules):** Updated 002-rule-governance.md to v2.4
+  - Keywords promoted from optional to CRITICAL/MANDATORY metadata
+  - Section 4 "Semantic Discovery and Keywords" updated with 🔥 CRITICAL marker
+  - RULES_INDEX.md integration marked as mandatory for all agents
+  - Rule Creation Template updated to show Keywords as required field
+  - Quick Compliance Checklist updated with Keywords verification
+  - Change Workflow section updated with 🔥 CRITICAL requirement for Keywords
+- **feat(index):** Updated RULES_INDEX.md to v2.2
+  - Added CRITICAL requirement for agents to consult index in PLAN mode
+  - Added note that all rules now have Keywords (required in governance v2.4)
+  - Enhanced "How to Use This Index" section with Rule Discovery Protocol reference
+
 ### Added
 - **feat(rules):** Added Rule 109a: Snowflake Notebook Tutorial Design Patterns (~520 lines, ~500 tokens)
   - Comprehensive pedagogical patterns for educational notebooks and tutorial content

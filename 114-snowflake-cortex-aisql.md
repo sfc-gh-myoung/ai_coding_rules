@@ -2,11 +2,11 @@
 **AppliesTo:** `**/*.sql`, `**/*.py`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Keywords:** Cortex AISQL, AI_COMPLETE, AI_CLASSIFY, AI_EXTRACT, AI_SENTIMENT, AI_TRANSCRIBE, TO_FILE, embeddings, LLM functions, batching AI, token costs, audio transcription
-**Version:** 1.2
-**LastUpdated:** 2025-10-15
+**Keywords:** Cortex AISQL, AI_COMPLETE, AI_CLASSIFY, AI_EXTRACT, AI_SENTIMENT, AI_SUMMARIZE, AI_TRANSCRIBE, TO_FILE, embeddings, LLM functions, batching AI, token costs, audio transcription, speaker recognition, diarization, sentiment analysis, categorical sentiment, timestamp_granularity
+**Version:** 1.3
+**LastUpdated:** 2025-10-16
 
-**TokenBudget:** ~500
+**TokenBudget:** ~650
 **ContextTier:** Medium
 
 # Snowflake Cortex AISQL Best Practices
@@ -109,6 +109,73 @@ SELECT id,
 FROM SRC_DB.RAW.DOCS;
 ```
 
+### 4.4 Summarization (Single Text)
+```sql
+-- Summarize individual documents or conversations
+SELECT 
+    conversation_id,
+    AI_SUMMARIZE(full_transcript) AS summary
+FROM SRC_DB.RAW.CALL_TRANSCRIPTS
+WHERE call_date = CURRENT_DATE();
+```
+
+### 4.5 Sentiment Analysis (CRITICAL: Returns JSON, Not Numeric)
+
+**✅ CORRECT Pattern - Extract categorical sentiment from JSON:**
+
+```sql
+-- AI_SENTIMENT returns JSON with categorical values
+WITH transcribed AS (
+    SELECT 
+        call_id,
+        transcript_text
+    FROM SRC_DB.RAW.CALL_TRANSCRIPTS
+)
+SELECT 
+    call_id,
+    -- AI_SENTIMENT with explicit category
+    AI_SENTIMENT(transcript_text, ['overall']) AS sentiment_json,
+    
+    -- Extract categorical sentiment value
+    sentiment_json:categories[0]:sentiment::VARCHAR AS sentiment,
+    
+    -- Sentiment values: 'positive', 'negative', 'neutral', 'unknown'
+    CASE 
+        WHEN sentiment_json:categories[0]:sentiment::VARCHAR = 'negative' 
+        THEN 'Escalate'
+        ELSE 'Standard'
+    END AS routing_priority
+FROM transcribed;
+```
+
+**❌ INCORRECT Pattern - Treating as numeric score:**
+
+```sql
+-- ❌ WRONG: Expecting numeric sentiment score
+SELECT AI_SENTIMENT(text) AS sentiment_score
+WHERE sentiment_score >= 0.3;
+-- Error: Can not convert parameter '0.3' into expected type [OBJECT]
+```
+
+**Why This Matters:**
+- AI_SENTIMENT returns JSON object: `{"categories": [{"name": "overall", "sentiment": "positive"}]}`
+- Sentiment values are categorical strings: 'positive', 'negative', 'neutral', 'unknown'
+- Must extract using: `sentiment_json:categories[0]:sentiment::VARCHAR`
+- Cannot compare directly with numeric values (causes type mismatch errors)
+
+**Multiple Categories Example:**
+
+```sql
+-- Analyze sentiment across multiple dimensions
+SELECT 
+    call_id,
+    AI_SENTIMENT(transcript, ['overall', 'agent_performance', 'resolution']) AS sentiment_json,
+    sentiment_json:categories[0]:sentiment::VARCHAR AS overall_sentiment,
+    sentiment_json:categories[1]:sentiment::VARCHAR AS agent_sentiment,
+    sentiment_json:categories[2]:sentiment::VARCHAR AS resolution_sentiment
+FROM SRC_DB.RAW.CALL_TRANSCRIPTS;
+```
+
 ## 5. Embeddings & Similarity
 ```sql
 -- Create embeddings for search/cluster/classify
@@ -179,6 +246,58 @@ SELECT
     transcription_json:audio_duration::FLOAT AS duration_seconds
 FROM audio_files;
 ```
+
+**Speaker Recognition (Diarization) with timestamp_granularity:**
+
+```sql
+-- AI_TRANSCRIBE with native speaker identification
+WITH audio_files AS (
+    SELECT RELATIVE_PATH
+    FROM DIRECTORY('@CALL_CENTER.AUDIO.RECORDINGS')
+    WHERE RELATIVE_PATH LIKE '%.mp3'
+    LIMIT 1
+),
+transcribed_with_speakers AS (
+    SELECT 
+        RELATIVE_PATH AS audio_file,
+        -- timestamp_granularity: 'speaker' returns structured segments
+        AI_TRANSCRIBE(
+            TO_FILE('@CALL_CENTER.AUDIO.RECORDINGS', RELATIVE_PATH),
+            {'timestamp_granularity': 'speaker'}
+        ) AS transcription_json
+    FROM audio_files
+),
+-- Flatten segments array to get individual speaker turns
+speaker_segments AS (
+    SELECT 
+        audio_file,
+        transcription_json:text::VARCHAR AS full_transcript,
+        transcription_json:audio_duration::FLOAT AS audio_duration,
+        seg.value:speaker_label::VARCHAR AS speaker,  -- SPEAKER_01, SPEAKER_02, etc.
+        seg.value:start::FLOAT AS start_time,
+        seg.value:end::FLOAT AS end_time,
+        seg.value:text::VARCHAR AS segment_text
+    FROM transcribed_with_speakers,
+    LATERAL FLATTEN(input => transcription_json:segments) seg
+)
+SELECT 
+    audio_file,
+    speaker,
+    ROUND(start_time, 2) AS start_sec,
+    ROUND(end_time, 2) AS end_sec,
+    ROUND(end_time - start_time, 2) AS duration_sec,
+    segment_text
+FROM speaker_segments
+ORDER BY start_time;
+```
+
+**Speaker Recognition Notes:**
+- `timestamp_granularity: 'speaker'` returns structured segments with speaker changes
+- Speaker labels are generic: SPEAKER_01, SPEAKER_02, etc. (not semantic roles like "agent", "customer")
+- Each segment includes: `speaker_label`, `start`, `end`, `text`
+- Use LATERAL FLATTEN to extract individual speaker turns
+- For semantic role identification (e.g., "Representative" vs "Customer"), chain with AI_COMPLETE
+- Supported file types: FLAC, MP3, OGG, WAV, WebM (up to 60 minutes for speaker mode)
 
 ### 6.2 Other File Functions (Images, Documents)
 

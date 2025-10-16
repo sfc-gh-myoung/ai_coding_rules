@@ -118,6 +118,7 @@ monthly_summary = customers_df.group_by("REGISTRATION_MONTH").agg(
 
 ### Related Rules
 - **Snowflake Core**: `100-snowflake-core.md`
+- **App Deployment**: `109c-snowflake-app-deployment.md`
 - **Streamlit UI**: `101-snowflake-streamlit-ui.md`
 - **Warehouse Management**: `119-snowflake-warehouse-management.md`
 - **Python Core**: `200-python-core.md`

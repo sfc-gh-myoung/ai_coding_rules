@@ -3,8 +3,8 @@
 **AutoAttach:** true
 **Type:** Auto-attach
 **Keywords:** rule governance, standards, semantic discovery, metadata, keywords, RULES_INDEX
-**Version:** 2.3
-**LastUpdated:** 2025-10-13
+**Version:** 2.4
+**LastUpdated:** 2025-01-16
 
 # Rule Governance: Universal Standards for AI Coding Rules
 
@@ -43,7 +43,7 @@ Establish comprehensive governance for creating, maintaining, and organizing AI 
 ## 1. Rule Creation & Naming Constraints
 - **Requirement:** Place universal rule files in the canonical `ai_coding_rules/` directory. Optional mirrors may exist in editor-specific folders (e.g., `.cursor/rules/`).
 - **Requirement:** Use a snake-case naming convention with a `.md` extension (e.g., `your_rule_name.md`).
-- **Requirement:** Include a clear description and, if needed, scope notes at the top of the file. Mandatory metadata `Version`, `LastUpdated`, `TokenBudget`, and `ContextTier` must be included in plain text. Optional metadata includes `Keywords` (comma-separated list for semantic discovery) and `id`.
+- **Requirement:** Include a clear description and, if needed, scope notes at the top of the file. Mandatory metadata `Version`, `LastUpdated`, `Keywords`, `TokenBudget`, and `ContextTier` must be included in plain text. The `Keywords` field is **CRITICAL** for semantic discovery and automatic rule loading (promoted to required in v2.4).
 
 ## 2. Semantic Markup and XML Tags
 
@@ -203,7 +203,7 @@ Every rule file must follow this structure:
 **Purpose:** Enable AI agents to automatically discover and load relevant rules based on conversation context and user queries.
 
 **Keywords Metadata:**
-- **Requirement:** Include `**Keywords:**` metadata in rule files for semantic matching
+- 🔥 **CRITICAL - MANDATORY:** Include `**Keywords:**` metadata in ALL rule files for semantic matching (required in v2.4)
 - **Format:** Comma-separated list of technologies, concepts, patterns, and common use cases
 - **Best Practices:**
   - Include primary technology names (e.g., "Snowflake", "Python", "FastAPI")
@@ -214,10 +214,10 @@ Every rule file must follow this structure:
 - **Example:** `**Keywords:** Snowflake, SQL, CTE, performance tuning, cost optimization, warehouse sizing, query profile, clustering keys, partitioning`
 
 **RULES_INDEX.md Integration:**
-- **Requirement:** All Agent Requested rules must be listed in `RULES_INDEX.md` with expanded keyword hints
+- **Mandatory:** All Agent Requested rules must be listed in `RULES_INDEX.md` with expanded keyword hints
 - **Purpose:** RULES_INDEX.md serves as the primary discovery mechanism for rule selection
 - **Always:** When creating or updating rules, ensure RULES_INDEX.md entry includes comprehensive keywords
-- **Recommendation:** Reference RULES_INDEX.md in conversations when helping users discover relevant rules
+- **Critical:** Agents MUST consult RULES_INDEX.md before starting technical work to identify relevant rules based on keywords
 
 ## 5. Content Standards
 
@@ -641,6 +641,7 @@ Do not use placeholders or guess missing parameters - wait for actual results.
 - **Mandatory:** When creating a new rule, include a `## Rule Type and Scope` section immediately after the Purpose section specifying the rule's type and scope
 - **Mandatory:** When creating a new rule, include a complete `## References` section with both `### External Documentation` and `### Related Rules` subsections
 - **Mandatory:** When creating a new rule, include `Version: 1.0` and `LastUpdated` with current date in YYYY-MM-DD format
+- 🔥 **CRITICAL:** When creating a new rule, include `Keywords` metadata with 5-15 relevant keywords for semantic discovery (required in v2.4)
 - **Mandatory:** When creating a new rule, declare `TokenBudget` and `ContextTier` in metadata
 - **Mandatory:** When updating any rule file, increment the version number and update `LastUpdated` to the current date in YYYY-MM-DD format
 - **Mandatory:** When updating any rule file, review and update `TokenBudget` to reflect current file size and content (use token budget tiers in Section 5 as guidance: ~150-250 for <150 lines, ~300-600 for 150-300 lines, ~700-1200 for 300-600 lines, ~1500+ for >600 lines)
@@ -781,6 +782,7 @@ When applying this rule:
 ## Quick Compliance Checklist
 - [ ] Rule follows mandatory section structure (all 9+ required sections)
 - [ ] Purpose clearly states what rule accomplishes and why
+- [ ] 🔥 **Keywords metadata present with 5-15 relevant keywords (CRITICAL in v2.4)**
 - [ ] TokenBudget declared as numeric value with tilde (e.g., ~450) and reflects current file size (~2 tokens per line)
 - [ ] ContextTier declared in metadata and appropriate for file size
 - [ ] XML tags used for semantic markup (section_metadata, directive_strength)

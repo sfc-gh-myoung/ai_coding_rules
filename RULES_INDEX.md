@@ -2,18 +2,20 @@
 **AutoAttach:** true
 **Type:** Auto-attach
 **Keywords:** rules index, rule discovery, semantic search, agent requested, auto-attach, rule governance
-**Version:** 2.1
-**LastUpdated:** 2025-01-14
+**Version:** 2.2
+**LastUpdated:** 2025-01-16
 
 # Rules Index
 
 This index helps agents select the correct rule quickly through semantic keyword matching. Always reference this index when users ask "how do I..." or "what rule covers..." questions. Documentation files like `README.md`, `CHANGELOG.md`, and `CONTRIBUTING.md` are excluded.
 
 **How to Use This Index:**
+- **CRITICAL:** All agents MUST consult this index in PLAN mode before starting technical work (Rule Discovery Protocol)
 - Browse by category (000=Core, 100=Snowflake, 200=Python, 300=Shell, 400=Docker, 500-900=Domain-specific)
 - Search Keywords column for semantic discovery (technologies, patterns, use cases)
 - Check Depends On column for prerequisite rules
 - Auto-attach rules load automatically; Agent Requested rules load on-demand
+- **Note:** All rules now have Keywords metadata (required in governance v2.4) for semantic matching
 
 | File | Type | Purpose (one line) | Scope | Keywords/Hints | Depends On |
 |------|------|---------------------|-------|----------------|------------|
@@ -35,6 +37,7 @@ This index helps agents select the correct rule quickly through semantic keyword
 | `108-snowflake-data-loading.md` | Agent Requested | Stages, COPY INTO, Snowpipe | Ingestion | Data loading, stages, COPY INTO, CSV load, JSON load, Parquet, file formats, bulk loading, stage management | `100-snowflake-core.md` |
 | `109-snowflake-notebooks.md` | Agent Requested | Notebook best practices | Notebooks | Snowflake notebooks, Jupyter, Python notebooks, data exploration, ML, reproducible notebooks | `100-snowflake-core.md` |
 | `109a-snowflake-notebooks-tutorials.md` | Agent Requested | Tutorial and learning design patterns for notebooks | Tutorial design | tutorial design, learning notebooks, teaching patterns, anti-patterns, checkpoints, learning objectives, pedagogical design, educational content, progressive learning, self-paced learning | `109-snowflake-notebooks.md`, `500-data-science-analytics.md` |
+| `109c-snowflake-app-deployment.md` | Agent Requested | Deployment automation for Snowflake applications (notebooks, Streamlit, UDFs) using staged files | Application deployment | Snowflake deployment, stage management, notebook deployment, Streamlit deployment, PUT, REMOVE, CREATE NOTEBOOK, CREATE STREAMLIT, deployment automation, task automation, staged applications, drop, upload, create, deploy workflow | `100-snowflake-core.md`, `109-snowflake-notebooks.md`, `101-snowflake-streamlit-core.md`, `820-taskfile-automation.md` |
 | `110-snowflake-model-registry.md` | Agent Requested | Model lifecycle and governance | ML registry | Model registry, ML models, model versioning, model deployment, MLOps, model governance, model lifecycle | `100-snowflake-core.md` |
 | `111-snowflake-observability.md` | Agent Requested | Telemetry, logging, tracing, metrics | Observability | Observability, logging, tracing, metrics, telemetry, monitoring, query history, ACCOUNT_USAGE, event tables | `100-snowflake-core.md` |
 | `112-snowflake-snowcli.md` | Agent Requested | Snowflake CLI best practices with pinned uvx execution | Snowflake CLI | snow CLI, SnowCLI, Snowflake command line, uvx snow, CLI deployment, snowflake.yml | `100-snowflake-core.md` |

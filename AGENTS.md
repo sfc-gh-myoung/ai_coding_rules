@@ -70,6 +70,39 @@ If any validation check fails:
   5. Ask user how to proceed
 - **Continuous awareness:** Display mode banner in every response
 
+## Rule Discovery Protocol (MANDATORY in PLAN mode)
+
+**Purpose:** Ensure proper rules are automatically loaded for every task using keyword-based semantic discovery.
+
+**Investigation-First Workflow:**
+1. **Parse user request** - Extract technologies, patterns, use cases from query
+2. **Check RULES_INDEX.md** - Search Keywords/Hints column for semantic matches
+3. **Load relevant rules** - Fetch applicable Agent Requested rules via `fetch_rules` tool
+4. **Validate coverage** - Confirm loaded rules cover all technical aspects of task
+
+**Keyword Matching Examples:**
+- User asks: "optimize my Snowflake query" → Keywords: "performance", "optimization", "query profile" → Load: `103-snowflake-performance-tuning`
+- User asks: "add pytest tests" → Keywords: "pytest", "testing", "fixtures" → Load: `206-python-pytest`
+- User asks: "create Streamlit dashboard" → Keywords: "Streamlit", "dashboard", "visualization" → Load: `101-snowflake-streamlit-core`, `101a-snowflake-streamlit-visualization`
+- User asks: "FastAPI authentication" → Keywords: "FastAPI", "authentication", "OAuth2", "JWT" → Load: `210-python-fastapi-core`, `211-python-fastapi-security`
+
+**Anti-Patterns:**
+- ❌ Starting implementation without consulting RULES_INDEX.md
+- ❌ Guessing which rules apply based on file names alone
+- ❌ Ignoring specialized rules that match task keywords
+- ❌ Loading only core rules when specialized rules are available
+
+**Correct Pattern:**
+- ✅ Read RULES_INDEX.md first in PLAN mode
+- ✅ Match task keywords to Keywords/Hints column
+- ✅ Load all relevant rules before proposing plan
+- ✅ Reference loaded rules in task list
+
+**Enforcement:**
+- **CRITICAL:** All technical tasks MUST start with RULES_INDEX.md consultation
+- **Validation:** Include "Rules consulted: [list]" in PLAN mode response
+- **Coverage:** Verify no relevant keywords were missed before proceeding to ACT mode
+
 ## Rule system architecture
 - **56+ specialized rule files** organized by category (000-900)
 - **CRITICAL: Always reference `RULES_INDEX.md` first** when user asks "how do I..." or "what rule covers..." questions
@@ -125,6 +158,8 @@ If any validation check fails:
 
 ## Quick Compliance Checklist
 - [ ] Start in PLAN mode with read-only tools before making changes
+- [ ] **CRITICAL: RULES_INDEX.md consulted for keyword-based rule discovery**
+- [ ] Relevant rules loaded based on task keywords (list rules in response)
 - [ ] User authorization ("ACT") obtained before file modifications
 - [ ] Contract validation completed with all required sections present
 - [ ] Surgical, minimal edits applied preserving existing patterns
@@ -141,8 +176,8 @@ If any validation check fails:
 - [ ] Rule generation validated with appropriate agent format
 
 ## Validation
-- **Success checks:** Pre-Task-Completion Validation Gate passed (all mandatory checks); PLAN/ACT mode transitions work correctly, lint/test commands pass, CHANGELOG.md updated, README.md updated when triggered, generated rules match expected format, all file modifications preserve existing structure
-- **Negative tests:** Attempt to modify files without ACT authorization (should fail), run incomplete contract validation (should catch missing sections), test with malformed rule files (should report validation errors), any validation gate failure blocks task completion
+- **Success checks:** Pre-Task-Completion Validation Gate passed (all mandatory checks); Rule Discovery Protocol followed (RULES_INDEX.md consulted, relevant rules loaded); PLAN/ACT mode transitions work correctly, lint/test commands pass, CHANGELOG.md updated, README.md updated when triggered, generated rules match expected format, all file modifications preserve existing structure
+- **Negative tests:** Attempt to modify files without ACT authorization (should fail), skip RULES_INDEX.md consultation (should be caught in review), run incomplete contract validation (should catch missing sections), test with malformed rule files (should report validation errors), any validation gate failure blocks task completion
 
 ## Response Template
 ```markdown

@@ -1,9 +1,10 @@
 """Tests for rule structure validation and cross-reference checks.
 
-Updated to validate against 002-rule-governance.md v2.1 standards:
+Updated to validate against 002-rule-governance.md v2.4 standards:
 - Required sections: Purpose, Rule Type and Scope, Contract, Validation,
   Response Template, Quick Compliance Checklist, References
-- Required metadata: Version, LastUpdated, TokenBudget, ContextTier
+- Required metadata: Version, LastUpdated, Keywords (promoted to required in v2.4)
+- Recommended metadata: TokenBudget, ContextTier
 - XML semantic tags (optional but recommended)
 - Anti-Patterns section (recommended for complex rules)
 """
@@ -15,7 +16,7 @@ import pytest
 
 
 class TestRuleStructureValidation:
-    """Test that all rule files follow required structure standards per 002-rule-governance.md v2.1."""
+    """Test that all rule files follow required structure standards per 002-rule-governance.md v2.4."""
 
     @classmethod
     def get_rule_files(cls) -> list[Path]:
@@ -73,9 +74,9 @@ class TestRuleStructureValidation:
                 error_msg += f"  {issue['file']}: {', '.join(issue['missing'])}\n"
             pytest.fail(error_msg)
 
-    @pytest.mark.skip(reason="Full codebase validation - many files not yet compliant with v2.1")
+    @pytest.mark.skip(reason="Full codebase validation - many files not yet compliant with v2.4")
     def test_rule_files_have_proper_metadata(self):
-        """Test that rule files have required metadata per 002-rule-governance.md v2.1."""
+        """Test that rule files have required metadata per 002-rule-governance.md v2.4."""
         rule_files = self.get_rule_files()
 
         missing_metadata = []
@@ -84,15 +85,16 @@ class TestRuleStructureValidation:
             content = rule_file.read_text()
             file_issues = []
 
-            # Check for required metadata (v2.1 requirements)
+            # Check for required metadata (v2.4 requirements - Keywords now required)
             metadata_patterns = [
                 r"^\*\*Description:\*\*",
                 r"^\*\*AutoAttach:\*\*",
                 r"^\*\*Type:\*\*",
                 r"^\*\*Version:\*\*",
                 r"^\*\*LastUpdated:\*\*",
-                r"^\*\*TokenBudget:\*\*",  # New in v2.1
-                r"^\*\*ContextTier:\*\*",  # New in v2.1
+                r"^\*\*Keywords:\*\*",  # CRITICAL: Required in v2.4 for semantic discovery
+                r"^\*\*TokenBudget:\*\*",  # Recommended in v2.1+
+                r"^\*\*ContextTier:\*\*",  # Recommended in v2.1+
             ]
 
             for pattern in metadata_patterns:
@@ -104,7 +106,9 @@ class TestRuleStructureValidation:
                 missing_metadata.append({"file": rule_file.name, "missing": file_issues})
 
         if missing_metadata:
-            error_msg = "Rule files missing required metadata (v2.1 governance):\n"
+            error_msg = (
+                "Rule files missing required metadata (v2.4 governance - Keywords now required):\n"
+            )
             for issue in missing_metadata:
                 error_msg += f"  {issue['file']}: {', '.join(issue['missing'])}\n"
             pytest.fail(error_msg)
@@ -134,14 +138,14 @@ class TestRuleStructureValidation:
             pytest.fail(error_msg)
 
     def test_002_rule_governance_is_compliant(self):
-        """Test that 002-rule-governance.md itself follows v2.1 standards."""
+        """Test that 002-rule-governance.md itself follows v2.4 standards."""
         governance_file = Path("002-rule-governance.md")
         if not governance_file.exists():
             pytest.skip("002-rule-governance.md not found")
 
         content = governance_file.read_text()
 
-        # Check for v2.1 required sections (use partial matches for numbered sections)
+        # Check for v2.4 required sections (use partial matches for numbered sections)
         required_section_patterns = [
             "## Purpose",
             "## Rule Type and Scope",
@@ -164,7 +168,8 @@ class TestRuleStructureValidation:
 
         assert len(missing) == 0, f"002-rule-governance.md missing sections: {missing}"
 
-        # Check for v2.1 metadata
+        # Check for v2.4 metadata (Keywords now required)
+        assert "**Keywords:**" in content, "Missing Keywords metadata (required in v2.4)"
         assert "**TokenBudget:**" in content, "Missing TokenBudget metadata"
         assert "**ContextTier:**" in content, "Missing ContextTier metadata"
         assert "**Version:**" in content, "Missing Version metadata"

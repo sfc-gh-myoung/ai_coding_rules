@@ -7,6 +7,71 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **fix(generator):** Preserve Keywords metadata in generated agent rules
+  - **File:** `generate_agent_rules.py`
+  - **Issue:** Keywords metadata was being stripped from generated rules (Cursor .mdc, Copilot .md, Cline .md files)
+  - **Resolution:** Removed `RE_KEYWORDS.match(ls)` from `strip_markdown_metadata_lines()` function
+  - **Impact:** Keywords now preserved alongside TokenBudget and ContextTier in all generated agent rules
+  - **Validation:** Verified Keywords present in test generation output for all agent types
+
+### Changed
+- **feat(rules):** Major enhancement of Cortex Agents rule with practical agent configuration patterns (v2.0)
+  - **Rule 115-snowflake-cortex-agents.md:** Expanded from ~350 to ~800 tokens (v1.1 → v2.0, ContextTier: Medium → High)
+  - **Added Section 1:** Agent Archetypes (Multi-Domain Analytics, Single-Domain Analytics, Research-Focused, Hybrid)
+  - **Added Section 3:** Agent Configuration Templates (4 templates for different agent types)
+  - **Added Section 4:** Planning Instructions Patterns (explicit tool selection logic for each archetype)
+  - **Added Section 5:** Response Instructions Templates (including CRITICAL flagging logic placement principle)
+  - **Enhanced Section 2:** Tool Configuration Best Practices (Cortex Analyst and Cortex Search tool patterns)
+  - **Added Section 6:** Testing & Validation Patterns (component, integration, and business scenario testing)
+  - **Enhanced Anti-Patterns:** 5 comprehensive examples covering flagging logic placement, overlapping tools, missing guidance, testing approaches, vague instructions
+  - **Keywords Added:** agent archetypes, planning instructions, response templates, tool configuration, multi-tool agents, hybrid agents, component testing
+  - **Key Principle:** Business rule flagging belongs in agent instructions, NOT semantic views or Cortex Analyst tools
+  - **Generalized Content:** All patterns universally applicable beyond any specific demo context
+
+- **feat(rules):** Enhanced Cortex Analyst rule with agent tool integration patterns (v1.2)
+  - **Rule 117-snowflake-cortex-analyst.md:** Expanded from ~300 to ~400 tokens (v1.1 → v1.2)
+  - **Added Section 5:** Cortex Analyst as Agent Tool (tool configuration, single-tool vs multi-tool patterns, testing)
+  - **Added Subsections:** Tool description best practices, avoiding overlapping tools, component testing patterns, cross-references to agent archetypes
+  - **Enhanced Anti-Patterns:** 3 examples covering flagging logic placement, vague descriptions, SELECT * usage
+  - **Keywords Added:** agent tool configuration, analyst tools, semantic view design, single-domain analytics, multi-domain analytics, hybrid agents, tool descriptions, component testing, flagging logic placement, semantic view purity
+  - **Key Principle:** Semantic views calculate data accurately; flagging logic belongs in agent instructions
+  - **Cross-References:** Links to 115-snowflake-cortex-agents.md sections for comprehensive agent configuration
+
+- **feat(rules):** Enhanced Cortex Search rule with agent tool integration patterns (v1.2)
+  - **Rule 116-snowflake-cortex-search.md:** Expanded from ~350 to ~450 tokens (v1.1 → v1.2)
+  - **Added Section 5:** Cortex Search as Agent Tool (tool configuration, description best practices, citation requirements, testing)
+  - **Added Subsections:** Research-focused agents, hybrid agents, tool description best practices, component testing patterns
+  - **Keywords Added:** agent tool configuration, search tools, document search, research-focused agents, hybrid agents, citation requirements, tool descriptions, component testing, document type selection
+  - **Key Elements:** Clear document type selection, when-to-use guidance, proper citation formatting
+  - **Cross-References:** Links to 115-snowflake-cortex-agents.md sections for comprehensive agent configuration
+
+- **feat(index):** Updated RULES_INDEX.md with enhanced keywords for Cortex rules (115, 116, 117)
+  - Enhanced Keywords column with agent configuration keywords (archetypes, planning instructions, tool configuration, testing patterns)
+  - Added cross-dependencies reflecting rule interconnections (115 ↔ 116 ↔ 117)
+  - Enhanced purpose descriptions to reflect agent integration focus
+
+- **feat(rules):** Enhanced Cortex rules with prerequisites validation and error troubleshooting for first-run success
+  - **Rule 115-snowflake-cortex-agents.md:** v2.0 → v2.1 (~800 → ~950 tokens, 688 → ~1020 lines)
+    - Added Section 0: Prerequisites Validation with comprehensive verification commands (Cortex availability, semantic views, search services, role permissions, function access)
+    - Enhanced Section 7: RBAC and Permissions with complete working GRANT statements (replaced pseudocode with actual SQL)
+    - Added Section 10: Common Errors and Solutions with 6 errors and SQL solutions (semantic view not found, tool returned no results, agent selected wrong tool, permission denied, search service not found, flagging logic not working)
+    - All SQL examples now use actual Snowflake syntax with complete working patterns
+  - **Rule 116-snowflake-cortex-search.md:** v1.2 → v1.3 (~450 → ~550 tokens, 317 → ~680 lines)
+    - Added Section 0: Prerequisites Validation for Cortex Search capability verification
+    - Replaced Section 2: Indexing Pattern with complete CREATE CORTEX SEARCH SERVICE syntax (removed "sketch" disclaimer, added working examples)
+    - Replaced Section 4: Querying with Filters with actual SNOWFLAKE.CORTEX.SEARCH_PREVIEW examples (replaced pseudocode with complete JSON filter patterns and result extraction)
+    - Added Section 9: Common Errors and Solutions with 5 errors and SQL fixes (service not found, no results, permission denied, invalid filter syntax, warehouse required)
+  - **Rule 117-snowflake-cortex-analyst.md:** v1.2 → v1.3 (~400 → ~500 tokens, 300 → ~480 lines)
+    - Added Section 0: Prerequisites Validation for semantic view and Cortex Analyst verification
+    - Added Section 7: Common Errors and Solutions with 6 errors and SQL solutions (view not accessible, no data returned, invalid structure, tool configuration failed, flagging logic not applied, permission denied)
+  - **Keywords Enhanced:** All three rules now include "prerequisites validation, working SQL examples, error troubleshooting, permission configuration"
+  - **Impact:** Eliminates common first-run implementation failures by providing complete prerequisite checks and actual working SQL instead of pseudocode
+
+- **feat(index):** Updated RULES_INDEX.md with prerequisites validation keywords for Cortex rules (115, 116, 117)
+  - Enhanced descriptions to mention prerequisites validation and error troubleshooting
+  - Added specific keywords: CREATE CORTEX SEARCH SERVICE, SEARCH_PREVIEW, prerequisites validation, working SQL examples, error troubleshooting, permission configuration
+
 ## [1.3.0] - 2025-10-16
 
 ### Fixed

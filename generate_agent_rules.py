@@ -79,7 +79,7 @@ def strip_existing_yaml_header(text: str) -> str:
 
 
 def strip_markdown_metadata_lines(text: str) -> str:
-    """Remove specific markdown header lines (Description, AutoAttach, AppliesTo, Keywords, Version, LastUpdated)."""
+    """Remove specific markdown header lines (Description, AutoAttach, AppliesTo, Version, LastUpdated)."""
     out_lines: list[str] = []
     for line in text.splitlines():
         ls = line.strip()
@@ -87,7 +87,6 @@ def strip_markdown_metadata_lines(text: str) -> str:
             RE_DESCRIPTION.match(ls)
             or RE_APPLIES.match(ls)
             or RE_AUTO_ATTACH.match(ls)
-            or RE_KEYWORDS.match(ls)
             or RE_VERSION.match(ls)
             or RE_LAST_UPDATED.match(ls)
         ):

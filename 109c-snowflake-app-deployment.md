@@ -689,9 +689,9 @@ tasks:
 - [Taskfile Documentation](https://taskfile.dev/) - Task automation framework
 
 ### Related Rules
-- **Snowflake Notebooks**: `109-snowflake-notebooks.mdc`
-- **Streamlit Core**: `101-snowflake-streamlit-core.mdc`
-- **Taskfile Automation**: `820-taskfile-automation.mdc`
-- **Snowflake Core**: `100-snowflake-core.mdc`
-- **Data Loading**: `108-snowflake-data-loading.mdc`
+- **Snowflake Notebooks**: `109-snowflake-notebooks.md`
+- **Streamlit Core**: `101-snowflake-streamlit-core.md`
+- **Taskfile Automation**: `820-taskfile-automation.md`
+- **Snowflake Core**: `100-snowflake-core.md`
+- **Data Loading**: `108-snowflake-data-loading.md`
 

@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2025-10-16
+
+### Fixed
+
+- **fix(rules):** Enhanced `114-snowflake-cortex-aisql.md` with missing critical documentation (v1.3)
+  - **Issue:** Rule file lacked documentation for AI_SENTIMENT, speaker recognition, and standalone AI_SUMMARIZE
+  - **Added Section 4.4:** AI_SUMMARIZE documentation for single-text summarization use cases
+  - **Added Section 4.5:** Comprehensive AI_SENTIMENT documentation with correct/incorrect patterns showing JSON extraction
+  - **Expanded Section 6.1:** Added speaker recognition (diarization) subsection with `timestamp_granularity: 'speaker'` parameter
+  - **Examples:** Complete working examples with LATERAL FLATTEN for speaker segments, multi-category sentiment analysis
+  - **Anti-Patterns:** Documented common mistake of treating AI_SENTIMENT as numeric score (type mismatch error)
+  - **Keywords:** Added sentiment analysis, diarization, speaker recognition, categorical sentiment, timestamp_granularity
+  - **Version:** Bumped to 1.3 with TokenBudget increase from ~500 to ~650
+  - **Impact:** Rule now provides complete coverage of call center analytics use cases (transcription, diarization, summarization, sentiment)
+
+- **fix(rules):** Corrected file references in 109c-snowflake-app-deployment.md Related Rules section
+  - Changed `.mdc` extensions to `.md` for source file references
+  - Resolved test failure in cross-reference validation
+
 ### Changed
 - **feat(governance):** Promoted Keywords metadata from recommended to REQUIRED (v2.4)
   - Keywords now mandatory in all rule files for semantic discovery and automatic rule loading

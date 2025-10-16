@@ -593,6 +593,7 @@ pg.run()
 
 ### Related Rules
 - **Snowflake Core**: `100-snowflake-core.md`
+- **App Deployment**: `109c-snowflake-app-deployment.md`
 - **Streamlit Visualization**: `101a-snowflake-streamlit-visualization.md`
 - **Streamlit Performance**: `101b-snowflake-streamlit-performance.md`
 - **Streamlit Security**: `101c-snowflake-streamlit-security.md`

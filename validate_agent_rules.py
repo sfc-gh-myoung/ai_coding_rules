@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Validate AI coding rule files against 002-rule-governance.md v2.3 standards.
+Validate AI coding rule files against 002-rule-governance.md v2.4 standards.
 
 This script validates that all rule files follow the required structure,
 include mandatory sections, and have proper metadata.
 
 Checks for:
     - Required sections (Purpose, Contract, Validation, etc.)
-    - Required metadata (Version, LastUpdated)
-    - Recommended metadata (TokenBudget, ContextTier, Keywords)
+    - Required metadata (Version, LastUpdated, Keywords)
+    - Recommended metadata (TokenBudget, ContextTier)
 
 Exit codes:
     0: All validations passed
@@ -93,6 +93,7 @@ class ValidationConfig:
             self.required_metadata = [
                 r"^\*\*Version:\*\*",
                 r"^\*\*LastUpdated:\*\*",
+                r"^\*\*Keywords:\*\*",  # CRITICAL: Required for semantic discovery (promoted from recommended in v2.4)
             ]
 
         if self.recommended_metadata is None:
@@ -100,7 +101,6 @@ class ValidationConfig:
             self.recommended_metadata = [
                 r"^\*\*TokenBudget:\*\*",
                 r"^\*\*ContextTier:\*\*",
-                r"^\*\*Keywords:\*\*",  # For semantic discovery
             ]
 
 
@@ -167,7 +167,7 @@ class RuleValidator:
 
     def print_results(self, results: list[ValidationResult]) -> None:
         """Print validation results with colored output."""
-        print("\n📋 Rule Validation Report (002-rule-governance.md v2.3)")
+        print("\n📋 Rule Validation Report (002-rule-governance.md v2.4)")
         print("=" * 80)
 
         total_files = len(results)

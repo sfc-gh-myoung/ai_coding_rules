@@ -394,6 +394,7 @@ The following best practices apply to all AI coding assistants and development e
 - **`800-project-changelog-rules.md`** — Changelog governance using Conventional Commits
 - **`801-project-readme-rules.md`** — Professional README.md structure and content standards
 - **`805-project-contributing-rules.md`** — Contribution workflow and PR standards
+- **`806-git-workflow-management.md`** — Git workflow best practices for GitHub and GitLab with branching strategies and merge workflows
 - **`820-taskfile-automation.md`** — Project automation with Taskfile (YAML-safe task orchestration)
 
 ### Demo & Synthetic Data (900-999)

@@ -3,11 +3,11 @@
 **AutoAttach:** false
 **Type:** Agent Requested
 **Keywords:** SPCS, Snowpark Container Services, containers, containerized apps, service deployment, compute pools
-**Version:** 1.2
-**LastUpdated:** 2025-10-13
+**Version:** 1.3
+**LastUpdated:** 2025-10-17
 
-**TokenBudget:** ~650
-**ContextTier:** Medium
+**TokenBudget:** ~950
+**ContextTier:** High
 
 # Snowflake Snowpark Container Services (SPCS) Best Practices
 
@@ -180,16 +180,194 @@ def health_check():
         return jsonify(error_status), 503
 ```
 
+### Platform Events: Container Status Monitoring
+
+SPCS platform events provide visibility into container lifecycle and failures. These events are automatically recorded to the event table when LOG_LEVEL is configured.
+
+**Supported Container Status Events:**
+
+| RECORD:name | RECORD:severity_text | VALUE:status | VALUE:message | Interpretation |
+|---|---|---|---|---|
+| CONTAINER.STATUS_CHANGE | INFO | READY | Running | Container is healthy and operational |
+| CONTAINER.STATUS_CHANGE | INFO | PENDING | Waiting to start | Container initialization in progress |
+| CONTAINER.STATUS_CHANGE | INFO | PENDING | Compute pool node(s) are being provisioned | Awaiting node resources |
+| CONTAINER.STATUS_CHANGE | INFO | PENDING | Readiness probe is failing at path: <path>, port: <port> | Health check endpoint not responding |
+| CONTAINER.STATUS_CHANGE | ERROR | PENDING | Failed to pull image | Image registry authentication or availability issue |
+| CONTAINER.STATUS_CHANGE | ERROR | FAILED | Provided image name uses an invalid format | Image reference malformed (check path syntax) |
+| CONTAINER.STATUS_CHANGE | ERROR | FAILED | Encountered fatal error, retrying | Application crashed; automatic restart in progress |
+| CONTAINER.STATUS_CHANGE | ERROR | FAILED | Encountered fatal error | Application crashed; maximum retries reached |
+| CONTAINER.STATUS_CHANGE | ERROR | FAILED | Encountered fatal error while running, check container logs | Application error detected; see logs for details |
+| CONTAINER.STATUS_CHANGE | ERROR | FAILED | Container was OOMKilled due to resource usage | Memory limit exceeded; increase resource limits |
+| CONTAINER.STATUS_CHANGE | ERROR | FAILED | User application error, check container logs | Application threw exception; review logs |
+| CONTAINER.STATUS_CHANGE | ERROR | FAILED | Encountered fatal error while starting container | Startup failure; check configuration and logs |
+| CONTAINER.STATUS_CHANGE | INFO | DONE | Completed successfully | Job service task completed (job services only) |
+
+**Enable Platform Event Logging:**
+
+```sql
+-- Enable platform events at service creation
+CREATE SERVICE my_service
+  IN COMPUTE POOL my_pool
+  FROM @my_stage
+  SPECIFICATION = '...'
+  LOG_LEVEL = INFO;  -- Enables both INFO and ERROR platform events
+
+-- Or enable on existing service
+ALTER SERVICE my_service SET LOG_LEVEL = INFO;
+
+-- Set LOG_LEVEL to ERROR for production to reduce event volume
+ALTER SERVICE my_service SET LOG_LEVEL = ERROR;
+
+-- Disable platform event logging
+ALTER SERVICE my_service SET LOG_LEVEL = OFF;
+```
+
+**Query Platform Events for Container Troubleshooting:**
+
+```sql
+-- Option 1: Use service helper function (recommended - scoped access)
+SELECT 
+    TIMESTAMP,
+    RECORD:"name" AS event_name,
+    RECORD:"severity_text" AS severity,
+    VALUE:"status" AS container_status,
+    VALUE:"message" AS status_message
+FROM TABLE(my_service!SPCS_GET_EVENTS(
+    START_TIME => DATEADD('hour', -1, CURRENT_TIMESTAMP())
+))
+WHERE RECORD:"name" = 'CONTAINER.STATUS_CHANGE'
+ORDER BY TIMESTAMP DESC
+LIMIT 20;
+
+-- Option 2: Query event table directly (requires event table access)
+SELECT 
+    TIMESTAMP,
+    RESOURCE_ATTRIBUTES:"snow.service.name"::string AS service_name,
+    RESOURCE_ATTRIBUTES:"snow.service.container.name"::string AS container_name,
+    RECORD:"name"::string AS event_name,
+    RECORD:"severity_text"::string AS severity,
+    VALUE:"status"::string AS container_status,
+    VALUE:"message"::string AS status_message
+FROM snowflake.account_usage.event_table
+WHERE TIMESTAMP > DATEADD('hour', -1, CURRENT_TIMESTAMP())
+    AND RESOURCE_ATTRIBUTES:"snow.service.name" = 'my_service'
+    AND RECORD_TYPE = 'EVENT'
+    AND SCOPE:"name" = 'snow.spcs.platform'
+ORDER BY TIMESTAMP DESC
+LIMIT 20;
+```
+
+**Troubleshooting Decision Tree:**
+
+```sql
+-- Find most recent status for each service
+WITH latest_statuses AS (
+  SELECT 
+      RESOURCE_ATTRIBUTES:"snow.service.name"::string AS service_name,
+      RESOURCE_ATTRIBUTES:"snow.service.container.name"::string AS container_name,
+      VALUE:"status"::string AS current_status,
+      VALUE:"message"::string AS message,
+      RECORD:"severity_text"::string AS severity,
+      TIMESTAMP,
+      ROW_NUMBER() OVER (
+        PARTITION BY RESOURCE_ATTRIBUTES:"snow.service.name", 
+                     RESOURCE_ATTRIBUTES:"snow.service.container.name" 
+        ORDER BY TIMESTAMP DESC
+      ) AS rn
+  FROM snowflake.account_usage.event_table
+  WHERE RECORD_TYPE = 'EVENT'
+      AND SCOPE:"name" = 'snow.spcs.platform'
+      AND TIMESTAMP > DATEADD('day', -7, CURRENT_TIMESTAMP())
+)
+SELECT 
+    service_name,
+    container_name,
+    current_status,
+    message,
+    severity,
+    TIMESTAMP,
+    CASE 
+      WHEN current_status = 'READY' THEN 'OK - Service is operational'
+      WHEN current_status = 'PENDING' AND message LIKE '%node%' THEN 'ACTION: Wait for compute pool provisioning or check pool capacity'
+      WHEN current_status = 'PENDING' AND message LIKE '%Failed to pull%' THEN 'ACTION: Verify image path, registry credentials, and network access'
+      WHEN current_status = 'FAILED' AND message LIKE '%OOMKilled%' THEN 'ACTION: Increase memory limit in service spec or optimize app memory usage'
+      WHEN current_status = 'FAILED' AND message LIKE '%image name%' THEN 'ACTION: Correct image path format; should be /DATABASE/SCHEMA/REPOSITORY/IMAGE:TAG'
+      WHEN current_status = 'FAILED' THEN 'ACTION: Check SYSTEM$GET_SERVICE_LOGS(); review application logs and startup configuration'
+      ELSE 'CHECK: Review full message for specific guidance'
+    END AS recommended_action
+FROM latest_statuses
+WHERE rn = 1
+ORDER BY severity DESC, service_name;
+```
+
+**Anti-Patterns in SPCS Troubleshooting:**
+
+```sql
+-- ❌ ANTI-PATTERN: Querying only recent seconds (missing context)
+SELECT * FROM event_table 
+WHERE TIMESTAMP > DATEADD('minute', -1, CURRENT_TIMESTAMP());
+
+-- ✅ CORRECT: Query sufficient time window to capture failure progression
+SELECT * FROM event_table 
+WHERE TIMESTAMP > DATEADD('hour', -2, CURRENT_TIMESTAMP())
+ORDER BY TIMESTAMP DESC;
+
+-- ❌ ANTI-PATTERN: Checking only FAILED status (missing transitional states)
+SELECT * FROM event_table 
+WHERE VALUE:"status" = 'FAILED';
+
+-- ✅ CORRECT: Review full status sequence including PENDING states
+SELECT TIMESTAMP, VALUE:"status", VALUE:"message", RECORD:"severity_text"
+FROM event_table
+WHERE RESOURCE_ATTRIBUTES:"snow.service.name" = 'my_service'
+  AND RECORD_TYPE = 'EVENT'
+ORDER BY TIMESTAMP DESC;
+
+-- ❌ ANTI-PATTERN: Assuming ERROR severity without checking status
+-- (Some INFO events indicate actual problems like PENDING with readiness failures)
+
+-- ✅ CORRECT: Analyze message content and status together
+SELECT VALUE:"status", RECORD:"severity_text", COUNT(*) 
+FROM event_table
+WHERE RECORD_TYPE = 'EVENT' 
+  AND SCOPE:"name" = 'snow.spcs.platform'
+GROUP BY VALUE:"status", RECORD:"severity_text"
+ORDER BY RECORD:"severity_text" DESC;
+```
+
+### Accessing Container Logs
+
+- **Rule:** Use `SYSTEM$GET_SERVICE_LOGS()` for direct log retrieval during development; use event table for persistent analysis.
+- **Always:** Check container logs in conjunction with platform events for complete troubleshooting context.
+
+```sql
+-- Retrieve recent container logs
+SELECT * FROM TABLE(SYSTEM$GET_SERVICE_LOGS('my_service', 'container_name', 100));
+
+-- Query logs for specific time range (requires application to log to stdout/stderr)
+SELECT 
+    TIMESTAMP,
+    VALUE
+FROM snowflake.account_usage.event_table
+WHERE RESOURCE_ATTRIBUTES:"snow.service.name" = 'my_service'
+  AND RECORD_TYPE = 'LOG'
+  AND TIMESTAMP >= DATEADD('minute', -30, CURRENT_TIMESTAMP())
+ORDER BY TIMESTAMP DESC;
+```
+
 ### Troubleshooting and Debugging
 - **Always:** Check service logs first; verify compute pool capacity and network connectivity.
 - **Rule:** Validate YAML syntax; use Snowflake's built-in monitoring functions for operational visibility.
+- **Rule:** Enable LOG_LEVEL = INFO to capture all events; scale back to ERROR in production after validation.
 
 ```sql
 -- Essential troubleshooting queries
 SELECT * FROM TABLE(SYSTEM$GET_SERVICE_LOGS('my_service', 'web-app', 100));
-SELECT * FROM TABLE(SPCS_GET_EVENTS('my_service'));
+SELECT * FROM TABLE(my_service!SPCS_GET_EVENTS(START_TIME => DATEADD('hour', -2, CURRENT_TIMESTAMP())));
 SELECT SYSTEM$GET_SERVICE_STATUS('my_service');
-SHOW SERVICES; SHOW COMPUTE POOLS; DESCRIBE SERVICE my_service;
+SHOW SERVICES; 
+SHOW COMPUTE POOLS; 
+DESCRIBE SERVICE my_service;
 ```
 
 ## 6. Performance Optimization and Cost Management
@@ -284,6 +462,7 @@ spec:
 - [Service Specification Reference](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/specification-reference) - YAML service definition schema and options                                     
 - [SPCS SQL Commands](https://docs.snowflake.com/en/sql-reference/sql/create-service) - CREATE SERVICE and related SQL command reference                                                                                
 - [SPCS Cost Management](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/costs) - Pricing model and cost optimization strategies
+- [SPCS Platform Events Monitoring](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/platform-events) - Guide for monitoring and troubleshooting SPCS platform events
 
 ### Related Rules
 - **Snowflake Core**: `100-snowflake-core.md`

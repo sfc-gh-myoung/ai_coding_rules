@@ -233,7 +233,7 @@ ruff check .                        # Should use uvx for isolation
 ### Related Rules
 - **Linting & Formatting**: `201-python-lint-format.md`
 - **Project Setup**: `203-python-project-setup.md`
-- **YAML Safety**: `202-yaml-config-best-practices.md`
+- **YAML Safety**: `202-markup-config-validation.md`
 - **Global Core**: `000-global-core.md`
 
 ## Response Template

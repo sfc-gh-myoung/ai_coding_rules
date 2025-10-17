@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2025-10-17
+
 ### Fixed
 - **fix(generator):** Preserve Keywords metadata in generated agent rules
   - **File:** `generate_agent_rules.py`
@@ -16,6 +18,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Validation:** Verified Keywords present in test generation output for all agent types
 
 ### Changed
+- **feat(rules):** Enhanced SPCS rule with comprehensive platform events troubleshooting guidance (v1.2 → v1.3)
+  - **Rule:** `120-snowflake-spcs.md`
+  - **Scope:** Added platform events best practices from Snowflake monitoring documentation
+  - **TokenBudget:** ~650 → ~950 (Medium → High ContextTier)
+  - **New Subsection:** "Platform Events: Container Status Monitoring" with:
+    - Container status reference table (13 event types with interpretation guidance)
+    - LOG_LEVEL configuration patterns (enable/disable event logging)
+    - Dual query patterns: scoped `SPCS_GET_EVENTS()` function and direct event table queries
+    - Troubleshooting decision tree SQL with actionable recommendations
+    - Anti-patterns section with correct vs incorrect event querying approaches
+  - **Expanded Subsections:** "Accessing Container Logs" and "Troubleshooting and Debugging"
+  - **References:** Added SPCS Monitoring Services documentation link
+  - **Agent Optimization:** Consolidated SPCS-specific platform events guidance for comprehensive troubleshooting in single rule
+  - **Impact:** LLM agents retrieving 120-snowflake-spcs.md now have complete, copy-ready patterns for debugging container failures
 - **feat(rules):** Major enhancement of Cortex Agents rule with practical agent configuration patterns (v2.0)
   - **Rule 115-snowflake-cortex-agents.md:** Expanded from ~350 to ~800 tokens (v1.1 → v2.0, ContextTier: Medium → High)
   - **Added Section 1:** Agent Archetypes (Multi-Domain Analytics, Single-Domain Analytics, Research-Focused, Hybrid)

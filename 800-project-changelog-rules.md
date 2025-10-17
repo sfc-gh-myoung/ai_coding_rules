@@ -3,8 +3,8 @@
 **AutoAttach:** false
 **Type:** Agent Requested
 **Keywords:** CHANGELOG, changelog format, semantic versioning, release notes, conventional commits
-**Version:** 1.4
-**LastUpdated:** 2025-10-13
+**Version:** 1.5
+**LastUpdated:** 2025-10-17
 
 **TokenBudget:** ~300
 **ContextTier:** Medium
@@ -53,14 +53,16 @@ Establish directives for maintaining a high-signal, audit-friendly CHANGELOG.md 
 - **Always:** If available, validate the structure with `scripts/validate_changelog_structure.py`.
 - **Exception:** Only skip if user explicitly requests override (acknowledge that changelog will be incomplete).
 
-### What Constitutes a "Code Change" Requiring Changelog Entry
-- Any modification to Python files (`.py`)
-- Any modification to SQL files (`.sql`)
-- Any modification to configuration files (`pyproject.toml`, `Taskfile.yml`, etc.)
-- Any modification to shell scripts (`.sh`, `.bash`, `.zsh`)
-- Any modification to rule files (`.md` in `ai_coding_rules/`)
-- New features, bug fixes, refactors, or performance improvements
-- Documentation-only changes may be exempt (use judgment)
+### What Constitutes a Change Requiring Changelog Entry
+- **MANDATORY:** Any modification to Python files (`.py`)
+- **MANDATORY:** Any modification to SQL files (`.sql`)
+- **MANDATORY:** Any modification to configuration files (`pyproject.toml`, `Taskfile.yml`, etc.)
+- **MANDATORY:** Any modification to shell scripts (`.sh`, `.bash`, `.zsh`)
+- **MANDATORY:** Any modification to rule files (`.md` in `ai_coding_rules/`)
+- **MANDATORY:** Any modification to documentation files (`README.md`, `CONTRIBUTING.md`, `CHANGELOG.md`)
+- **MANDATORY:** New features, bug fixes, refactors, or performance improvements
+- **MANDATORY:** Documentation-only changes (no longer optional - ALWAYS update CHANGELOG.md)
+- **Rationale:** Documentation changes are user-facing and must be tracked for complete audit trail
 
 ## 4. Scope Examples for New Domains
 

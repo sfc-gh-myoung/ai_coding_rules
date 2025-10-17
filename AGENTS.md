@@ -45,10 +45,19 @@
 - **CRITICAL:** `CHANGELOG.md` - Must update with entry under `## [Unreleased]` for code changes
 - **CRITICAL:** `README.md` - Must review and update when triggers apply (see 000-global-core.md section 6)
 
+#### 4. Git State Validation
+- **CRITICAL:** `git status --porcelain` - Must return empty (no uncommitted changes)
+- **CRITICAL:** Branch name validation - Must follow convention: `feature/`, `fix/`, `docs/`, `refactor/`, `chore/`
+- **CRITICAL:** Not on protected branch - Must NOT be on `main` or `master` when making changes
+- **CRITICAL:** CHANGELOG.md entry verified - `grep -A 5 "## \[Unreleased\]" CHANGELOG.md` must show new entry
+- **Rule:** For GitHub: ensure PR created before merge to `main`
+- **Rule:** For GitLab: ensure MR created before merge to `main`
+
 ### Validation Protocol
 - **Rule:** Run validation immediately after modifications, not in batches
 - **Rule:** Do not mark tasks complete if ANY check fails
 - **Rule:** Fix all failures before responding to user
+- **Rule:** Git state: `git status --porcelain` returns empty, branch name valid, CHANGELOG.md entry present
 - **Exception:** Only skip with explicit user override (e.g., "skip tests", "skip validation") - acknowledge risks
 
 ### Validation Failure Response
@@ -169,6 +178,10 @@ If any validation check fails:
 - [ ] Tests: `uv run pytest` passed (if test suite exists)
 - [ ] CHANGELOG.md updated for code changes
 - [ ] README.md reviewed and updated if triggers apply
+- [ ] Git state validated (no uncommitted changes, valid branch name)
+- [ ] Not on protected branch (`main`/`master`)
+- [ ] CHANGELOG.md entry verified in [Unreleased] section
+- [ ] PR/MR created for review (multi-user projects)
 - [ ] Mode awareness maintained throughout response chains
 - [ ] Professional communication standards followed (no emojis unless requested)
 - [ ] TODO list utilized for complex multi-step tasks
@@ -176,8 +189,8 @@ If any validation check fails:
 - [ ] Rule generation validated with appropriate agent format
 
 ## Validation
-- **Success checks:** Pre-Task-Completion Validation Gate passed (all mandatory checks); Rule Discovery Protocol followed (RULES_INDEX.md consulted, relevant rules loaded); PLAN/ACT mode transitions work correctly, lint/test commands pass, CHANGELOG.md updated, README.md updated when triggered, generated rules match expected format, all file modifications preserve existing structure
-- **Negative tests:** Attempt to modify files without ACT authorization (should fail), skip RULES_INDEX.md consultation (should be caught in review), run incomplete contract validation (should catch missing sections), test with malformed rule files (should report validation errors), any validation gate failure blocks task completion
+- **Success checks:** Pre-Task-Completion Validation Gate passed (all mandatory checks); Rule Discovery Protocol followed (RULES_INDEX.md consulted, relevant rules loaded); PLAN/ACT mode transitions work correctly, lint/test commands pass, CHANGELOG.md updated, README.md updated when triggered, git state validation passed (clean working directory, valid branch name, CHANGELOG entry present), generated rules match expected format, all file modifications preserve existing structure
+- **Negative tests:** Attempt to modify files without ACT authorization (should fail), skip RULES_INDEX.md consultation (should be caught in review), run incomplete contract validation (should catch missing sections), test with malformed rule files (should report validation errors), uncommitted changes block task completion, invalid branch name causes validation failure, any validation gate failure blocks task completion
 
 ## Response Template
 ```markdown

@@ -7,6 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2025-10-17
+
+### Added
+- **feat(rules):** Added Rule 806: Git Workflow Management best practices (~800 tokens)
+  - Comprehensive git workflow patterns for GitHub and GitLab platforms
+  - Branch naming conventions (feature/, fix/, docs/, refactor/, chore/)
+  - Platform-specific sections for Pull Requests (GitHub) and Merge Requests (GitLab)
+  - Protected branch strategies with status checks and approval requirements
+  - Pre-merge validation guidance linking to AGENTS.md Validation Gate
+  - Git state validation commands (uncommitted changes, branch name validation, CHANGELOG verification)
+  - Validation script template for git state checks
+  - Anti-patterns section with 5+ examples covering common git workflow mistakes
+  - Investigation-first protocol for git state verification
+  - Token budget: ~800 tokens (standard tier)
+  - Keywords: git workflow, branching strategy, GitLab, GitHub, merge requests, pull requests, feature branches, protected branches, git validation, branch naming, PR workflow, MR workflow
+  - Dependencies: `800-project-changelog-rules.md`, `805-project-contributing-rules.md`, `AGENTS.md`
+
+### Changed
+- **feat(rules):** Updated Rule 800: CHANGELOG.md governance to REQUIRE documentation-only changes (v1.4 → v1.5)
+  - **BREAKING:** Documentation-only changes are now MANDATORY for CHANGELOG.md (was optional with "use judgment")
+  - Renamed section from "What Constitutes a 'Code Change'" to "What Constitutes a Change"
+  - Added **MANDATORY** prefix to all change categories for clarity
+  - Added explicit "Documentation-only changes" category to mandatory list
+  - Added new mandatory category for documentation files (`README.md`, `CONTRIBUTING.md`, `CHANGELOG.md`)
+  - Added rationale: documentation changes are user-facing and must be tracked for complete audit trail
+  - All changes now require CHANGELOG entry regardless of file type or change nature
+- **feat(agents):** Enhanced AGENTS.md Pre-Task-Completion Validation Gate with git state validation
+  - Added Section 4: Git State Validation with 6 CRITICAL/Rule checks
+  - Git status validation (no uncommitted changes): `git status --porcelain` must return empty
+  - Branch name convention validation: must follow `feature/`, `fix/`, `docs/`, `refactor/`, `chore/` patterns
+  - Protected branch check: must NOT be on `main` or `master` when making changes
+  - CHANGELOG.md entry verification: `grep -A 5 "## \[Unreleased\]" CHANGELOG.md` must show new entry
+  - Platform-specific PR/MR requirements for GitHub and GitLab workflows
+  - Updated Validation Protocol section with git state validation rule
+  - Updated Quick Compliance Checklist with 4 new git validation items
+  - Updated Validation section Success checks with git state validation criteria
+  - Updated Validation section Negative tests with uncommitted changes and invalid branch name scenarios
+- **feat(index):** Updated RULES_INDEX.md with Rule 806 entry and enhanced Rule 800 description (v2.0 → v2.1)
+  - Added new row for `806-git-workflow-management.md` with comprehensive keywords for semantic discovery
+  - Enhanced Rule 800 purpose description to mention "MANDATORY for all changes including documentation"
+  - Added cross-dependencies for Rule 806 linking to `800-project-changelog-rules.md`, `805-project-contributing-rules.md`, `AGENTS.md`
+- **docs(readme):** Updated README.md Project Management section with Rule 806 reference
+  - Added `806-git-workflow-management.md` entry describing git workflow best practices for GitHub and GitLab
+
 ## [1.4.0] - 2025-10-17
 
 ### Fixed

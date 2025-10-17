@@ -194,3 +194,6 @@ memory-bank/
 output/
 temp/
 tmp/
+
+# Task automation
+.task/

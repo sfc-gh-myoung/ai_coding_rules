@@ -343,7 +343,7 @@ The following best practices apply to all AI coding assistants and development e
 ### Software Engineering - Python (200-299)
 - **`200-python-core.md`** — Modern Python engineering with `uv` and Ruff (environment management, code structure, reliability)
 - **`201-python-lint-format.md`** — Authoritative linting and formatting with Ruff (code quality and consistency)
-- **`202-yaml-config-best-practices.md`** — YAML and configuration file syntax safety (preventing parsing errors)
+- **`202-markup-config-validation.md`** — Markup and configuration file validation (YAML, TOML, environment files, Markdown linting with pymarkdownlnt)
 - **`203-python-project-setup.md`** — Python project setup and packaging best practices (avoiding build issues)
 - **`204-python-docs-comments.md`** — Python documentation, comments, and docstring standards with Ruff enforcement
 - **`205-python-classes.md`** — Python class design and usage best practices (composition, dataclasses, properties, ABCs/Protocols)

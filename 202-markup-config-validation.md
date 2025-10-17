@@ -1,23 +1,23 @@
-**Description:** YAML and configuration file syntax best practices to prevent parsing errors and ensure reliability.
-**AppliesTo:** `**/*.yml`, `**/*.yaml`, `**/pyproject.toml`, `**/.env*`
+**Description:** Markup and configuration file validation to prevent parsing errors and ensure consistency.
+**AppliesTo:** `**/*.yml`, `**/*.yaml`, `**/pyproject.toml`, `**/.env*`, `**/*.md`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Keywords:** YAML, configuration files, YAML syntax, parsing errors, indentation, anchors, aliases
-**Version:** 1.3
-**LastUpdated:** 2025-10-13
+**Keywords:** YAML, configuration files, YAML syntax, parsing errors, indentation, anchors, aliases, Markdown, markdown linting, pymarkdownlnt, markup validation
+**Version:** 1.4
+**LastUpdated:** 2025-10-17
 
-**TokenBudget:** ~400
-**ContextTier:** Medium
+**TokenBudget:** ~550
+**ContextTier:** Standard
 
-# YAML and Configuration Best Practices
+# Markup and Configuration File Validation
 
 ## Purpose
-Establish safe YAML and configuration file practices to prevent parsing errors, ensure reliability, and maintain consistency across project configuration files including YAML, TOML, and environment files.
+Establish safe markup and configuration file practices to prevent parsing errors, ensure reliability, and maintain consistency across YAML, TOML, environment files, and Markdown documentation.
 
 ## Rule Type and Scope
 
 - **Type:** Agent Requested
-- **Scope:** YAML and configuration file best practices to prevent parsing errors and ensure reliability
+- **Scope:** Markup and configuration file validation best practices (YAML, TOML, environment files, Markdown)
 
 
 ## 1. YAML Syntax Safety
@@ -147,28 +147,154 @@ cmds:
 - **Always:** Provide clear error messages for missing required configuration.
 - **Consider:** Use configuration schemas for validation (e.g., Pydantic Settings).
 
+## 9. Markdown Linting
+
+### Purpose
+Markdown linting ensures consistent syntax, formatting, and structure across all project documentation files.
+
+### Tool: pymarkdownlnt (Python-Native)
+
+**Rationale:** Python-native linter that integrates with existing `uv`/`uvx` tooling.
+
+#### Installation and Usage
+```bash
+# Check Markdown files using uvx (no installation required)
+uvx pymarkdownlnt scan "**/*.md"
+
+# Check specific files
+uvx pymarkdownlnt scan README.md CHANGELOG.md CONTRIBUTING.md
+
+# Check with configuration file
+uvx pymarkdownlnt --config pymarkdown.json scan .
+```
+
+#### Configuration
+
+Create `.pymarkdown` or `pymarkdown.json` in project root:
+
+```json
+{
+  "plugins": {
+    "line-length": {
+      "enabled": false
+    },
+    "no-inline-html": {
+      "enabled": false
+    }
+  }
+}
+```
+
+**Common rules to adjust:**
+- `line-length`: Often disabled for long links and code blocks
+- `no-inline-html`: Often disabled for badges and advanced formatting
+- `first-line-heading`: Project-dependent (may require H1 as first line)
+
+#### Integration with Taskfile
+
+Add Markdown linting tasks to `Taskfile.yml`:
+
+```yaml
+lint-markdown:
+  desc: "Lint Markdown files with pymarkdownlnt"
+  cmds:
+    - uvx pymarkdownlnt scan "**/*.md"
+
+lint-markdown-fix:
+  desc: "Lint Markdown files with auto-fix where possible"
+  cmds:
+    - uvx pymarkdownlnt --fix scan "**/*.md"
+
+lint:
+  desc: "Run all linting checks"
+  cmds:
+    - task: lint-ruff
+    - task: lint-markdown
+```
+
+#### Pre-Task-Completion Validation
+
+**CRITICAL:** Markdown linting is part of the Pre-Task-Completion Validation Gate.
+
+- **Rule:** Run `uvx pymarkdownlnt scan "**/*.md"` after modifying Markdown files
+- **Rule:** Fix all Markdown linting errors before marking task complete
+- **Exception:** Only skip validation if user explicitly requests override
+
+#### Common Markdown Issues
+
+1. **Inconsistent heading hierarchy**: H1 → H3 without H2
+   - Fix: Use proper heading levels (H1 → H2 → H3)
+
+2. **Missing blank lines**: No blank line before/after headings or code blocks
+   - Fix: Add blank lines for readability
+
+3. **Trailing spaces**: Unnecessary spaces at end of lines
+   - Fix: Remove trailing whitespace
+
+4. **Inconsistent list formatting**: Mixed bullet styles or indentation
+   - Fix: Use consistent list markers and 2-space indentation
+
+5. **Bare URLs**: URLs not wrapped in angle brackets or link syntax
+   - Fix: Use `<https://example.com>` or `[text](https://example.com)`
+
+### Alternative: markdownlint (Node.js)
+
+**Note:** If team prefers Node.js tooling, `markdownlint-cli2` is the industry standard.
+
+```bash
+# Install globally
+npm install -g markdownlint-cli2
+
+# Check files
+markdownlint-cli2 "**/*.md"
+```
+
+**Rationale for pymarkdownlnt:** Consistency with existing Python/`uv` tooling ecosystem.
+
 ## Contract
-- **Inputs/Prereqs:** [Context, files, dependencies needed]
-- **Allowed Tools:** [Tools permitted for this domain]
-- **Forbidden Tools:** [Tools not allowed for this domain]
-- **Required Steps:** [Ordered steps the agent must follow]
-- **Output Format:** [Expected output format]
-- **Validation Steps:** [Checks to confirm success]
+- **Inputs/Prereqs:** Project files (YAML, TOML, .env, Markdown); `uv`/`uvx` available
+- **Allowed Tools:** `uvx pymarkdownlnt`, YAML parsers, TOML validators, IDE linters
+- **Forbidden Tools:** Direct file modification without validation
+- **Required Steps:** 
+  1. Run appropriate linter for file type
+  2. Review errors and warnings
+  3. Fix issues following rule guidelines
+  4. Re-run validation to confirm
+  5. Document any rule exceptions
+- **Output Format:** Clean validation output with zero errors
+- **Validation Steps:** Run linters again to verify all issues resolved
 
 ## Quick Compliance Checklist
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
+- [ ] YAML files use consistent 2-space indentation
+- [ ] Strings with special characters are properly quoted
+- [ ] Taskfile syntax validated with `task --list`
+- [ ] Environment files follow KEY=VALUE format
+- [ ] TOML configuration uses proper section headers
+- [ ] Markdown files pass `uvx pymarkdownlnt scan` with zero errors
+- [ ] No secrets or sensitive data in configuration files
+- [ ] Configuration validated at application startup
+- [ ] Documentation includes setup and validation instructions
 
 ## Validation
-- **Success checks:** [How to verify correct implementation]
-- **Negative tests:** [What should fail and how to detect failures]
+- **Success checks:** All YAML files parse correctly; Taskfile syntax valid; TOML configuration loads without errors; Markdown files pass linting with zero errors; no parsing errors in any markup/config files
+- **Negative tests:** Malformed YAML fails parsing; unquoted special characters cause errors; invalid TOML syntax detected; Markdown linting catches formatting issues; configuration with missing required values fails validation
 
 ## Response Template
-```
-[Minimal, copy-pasteable template showing expected output format]
+```markdown
+## Validation Results
+
+**Files Checked:**
+- YAML: [list]
+- TOML: [list]
+- Markdown: [list]
+
+**Issues Found:** [count]
+
+**Actions Taken:**
+1. [Fix description]
+2. [Fix description]
+
+**Validation Passed:** ✅ / ❌
 ```
 
 ## References
@@ -177,8 +303,14 @@ cmds:
 - [YAML Specification](https://yaml.org/spec/) - Official YAML specification and syntax reference
 - [TOML Specification](https://toml.io/) - TOML format specification for configuration files
 - [Python YAML Library](https://pyyaml.org/wiki/PyYAMLDocumentation) - PyYAML documentation for Python YAML processing
+- [pymarkdownlnt Documentation](https://github.com/jackdewinter/pymarkdown) - Python-native Markdown linter documentation
+- [Markdown Guide](https://www.markdownguide.org/) - Comprehensive Markdown syntax reference
+- [CommonMark Specification](https://spec.commonmark.org/) - Official Markdown specification
 
 ### Related Rules
 - **Python Core**: `200-python-core.md`
+- **Python Linting**: `201-python-lint-format.md`
 - **Project Setup**: `203-python-project-setup.md`
 - **Taskfile Automation**: `820-taskfile-automation.md`
+- **README Standards**: `801-project-readme-rules.md`
+

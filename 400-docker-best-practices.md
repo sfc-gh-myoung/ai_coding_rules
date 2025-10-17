@@ -228,7 +228,7 @@ id_dsa
 ## 7. Compose & YAML
 - **Always:** Separate `compose.yml` (dev) and `compose.prod.yml` (prod overrides).
 - **Rule:** Use `.env` files for local development; do not commit secrets.
-- **Requirement:** Follow YAML safety practices (see `202-yaml-config-best-practices.md`).
+- **Requirement:** Follow YAML safety practices (see `202-markup-config-validation.md`).
 
 ## 8. CI/CD & Testing
 - **Rule:** Lint Dockerfile with Hadolint; scan image on each build.
@@ -274,7 +274,7 @@ id_dsa
 - UV Dockerfile Documentation: https://docs.astral.sh/uv/guides/integration/docker/#non-editable-installs
 
 ### Related Rules
-- **YAML Best Practices**: `202-yaml-config-best-practices.md`
+- **YAML Best Practices**: `202-markup-config-validation.md`
 - **Python Core**: `200-python-core.md`
 - **FastAPI Deployment**: `213-python-fastapi-deployment.md`
 - **Bash Security**: `301-bash-security.md`

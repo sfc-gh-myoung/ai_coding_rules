@@ -2,12 +2,12 @@
 **AppliesTo:** `**/*.ipynb`, `notebooks/**/*.py`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Keywords:** Snowflake notebooks, Jupyter, Python notebooks, data exploration, ML, reproducible notebooks
-**Version:** 1.2
-**LastUpdated:** 2025-10-13
+**Keywords:** Snowflake notebooks, Jupyter, Python notebooks, data exploration, ML, reproducible notebooks, nbqa, notebook linting, code quality
+**Version:** 1.3
+**LastUpdated:** 2025-10-17
 
-**TokenBudget:** ~300
-**ContextTier:** Medium
+**TokenBudget:** ~400
+**ContextTier:** Standard
 
 # Snowflake Notebook Directives
 
@@ -49,6 +49,125 @@ Establish best practices for building reproducible, secure, and maintainable Jup
 - **Requirement:** For large datasets, push computation to Snowflake via Snowpark DataFrames; avoid large local pulls.
 - **Requirement:** Refactor production-ready code out of the notebook into `.py` or `.sql` files; notebooks serve as reports or exploratory tools.
 
+## 5. Code Quality & Linting
+
+### Purpose
+Jupyter notebooks should maintain the same code quality standards as Python modules. Use **nbqa** (Notebook Quality Assurance) to run standard Python linters on notebook code cells.
+
+### Tool: nbqa + Ruff (Industry Standard)
+
+**Rationale:** nbqa is the industry-standard tool (>1.5M downloads/month) for applying Python linters to notebooks. It extracts code cells, runs linters, and maps results back to the original notebook with correct line numbers.
+
+#### Installation and Usage
+
+```bash
+# Check notebooks with Ruff linter (no installation required)
+uvx nbqa ruff notebooks/
+
+# Format notebooks with Ruff
+uvx nbqa ruff format notebooks/
+
+# Auto-fix linting issues
+uvx nbqa ruff check --fix notebooks/
+
+# Check specific notebook
+uvx nbqa ruff notebooks/grid_asset_prediction.ipynb
+```
+
+#### Integration with Taskfile
+
+Add notebook linting tasks to project `Taskfile.yml`:
+
+```yaml
+lint-notebooks:
+  desc: "Lint Jupyter notebooks with Ruff via nbqa"
+  cmds:
+    - uvx nbqa ruff notebooks/
+
+format-notebooks:
+  desc: "Format Jupyter notebooks with Ruff via nbqa"
+  cmds:
+    - uvx nbqa ruff format notebooks/
+
+format-notebooks-fix:
+  desc: "Format Jupyter notebooks with Ruff and apply fixes"
+  cmds:
+    - uvx nbqa ruff format notebooks/
+    - uvx nbqa ruff check --fix notebooks/
+
+lint:
+  desc: "Run all linting checks"
+  cmds:
+    - task: lint-ruff
+    - task: lint-markdown
+    - task: lint-notebooks
+```
+
+#### Pre-Task-Completion Validation
+
+**CRITICAL:** Notebook linting is part of the Pre-Task-Completion Validation Gate.
+
+- **Requirement:** Run `uvx nbqa ruff notebooks/` after modifying notebook files
+- **Requirement:** Run `uvx nbqa ruff format --check notebooks/` to verify formatting
+- **Rule:** Fix all notebook linting errors before marking task complete
+- **Exception:** Only skip validation if user explicitly requests override
+
+#### How nbqa Works
+
+1. **Extract**: nbqa extracts Python code from notebook cells
+2. **Lint**: Runs your chosen linter (Ruff) on the extracted code
+3. **Map**: Maps linting results back to notebook cells with correct line numbers
+4. **Non-Destructive**: Only modifies code cells; preserves outputs, metadata, and cell structure
+
+#### Common Notebook Linting Issues
+
+1. **Unused imports**: Import statements in setup cells not used in later cells
+   - Fix: Remove unused imports or consolidate into single import cell
+
+2. **Line length**: Code lines exceeding character limits
+   - Fix: Break long lines, especially for Snowpark DataFrame operations
+
+3. **Undefined variables**: Variables used before definition due to out-of-order execution
+   - Fix: Ensure deterministic execution order (top to bottom)
+
+4. **Import order**: Inconsistent import organization
+   - Fix: Use Ruff to auto-sort imports with `uvx nbqa ruff check --fix`
+
+5. **Missing docstrings**: Functions defined in notebooks without documentation
+   - Fix: Add docstrings to function cells following `204-python-docs-comments.md`
+
+### Ruff Configuration for Notebooks
+
+Use the same `pyproject.toml` configuration as your Python modules. nbqa will automatically use project Ruff settings.
+
+**Example** `pyproject.toml`:
+```toml
+[tool.ruff]
+target-version = "py311"
+line-length = 100  # Slightly longer for notebook readability
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "C4", "UP"]
+ignore = ["E501"]  # Allow long lines in notebooks for complex expressions
+
+# Notebook-specific: Allow unused variables in exploratory cells
+[tool.ruff.lint.per-file-ignores]
+"notebooks/*.ipynb" = ["F841"]  # Unused variable assignment
+```
+
+### Alternative Tools
+
+- **jupytext**: Convert notebooks to `.py` files, lint those, convert back (more complex workflow)
+- **nbQA with other linters**: Use `uvx nbqa black`, `uvx nbqa isort`, etc. (less consistent with Ruff-first approach)
+
+### Benefits of nbqa + Ruff
+
+- ✅ Consistent code quality standards across `.py` modules and `.ipynb` notebooks
+- ✅ Catches common errors before notebook execution
+- ✅ Enforces import organization and formatting standards
+- ✅ CI/CD ready for automated quality checks
+- ✅ Integrates with existing `uv` + `ruff` tooling ecosystem
+
 ## Contract
 - **Inputs/Prereqs:** Snowflake account access; Snowpark for Python environment; Jupyter notebook environment; virtual environment with pinned dependencies
 - **Allowed Tools:** `edit_notebook`, `read_file`, `run_terminal_cmd` (for notebook execution), `codebase_search`, `write` (for .py/.sql refactoring)
@@ -66,6 +185,8 @@ Establish best practices for building reproducible, secure, and maintainable Jup
 - [ ] All cells have descriptive, user-friendly names (not cell1, cell2, etc.)
 - [ ] Cell naming follows action_subject pattern with underscores
 - [ ] Environment and dependencies properly configured and pinned
+- [ ] **CRITICAL:** `uvx nbqa ruff notebooks/` passes with zero errors
+- [ ] **CRITICAL:** `uvx nbqa ruff format --check notebooks/` passes
 - [ ] No hardcoded credentials or sensitive information present
 - [ ] Computation pushed to Snowflake via Snowpark DataFrames
 - [ ] Markdown cells provide clear narrative and documentation
@@ -73,8 +194,8 @@ Establish best practices for building reproducible, secure, and maintainable Jup
 - [ ] Production code refactored to separate .py/.sql files when appropriate
 
 ## Validation
-- **Success checks:** Cell names are descriptive and follow naming conventions; notebook runs deterministically from top to bottom; all Snowpark connections work; no secrets exposed; production logic extracted to .py/.sql files
-- **Negative tests:** Generic cell names (cell1, cell2) should be flagged; notebooks with execution order dependencies should fail; hardcoded credentials should be detected; large local data pulls should be avoided
+- **Success checks:** Cell names are descriptive and follow naming conventions; `uvx nbqa ruff notebooks/` passes with zero errors; `uvx nbqa ruff format --check notebooks/` passes; notebook runs deterministically from top to bottom; all Snowpark connections work; no secrets exposed; production logic extracted to .py/.sql files
+- **Negative tests:** Generic cell names (cell1, cell2) should be flagged; notebooks with linting errors fail validation; notebooks with execution order dependencies should fail; hardcoded credentials should be detected; large local data pulls should be avoided
 
 ## Response Template
 ```python
@@ -119,7 +240,8 @@ monthly_summary = customers_df.group_by("REGISTRATION_MONTH").agg(
 ### Related Rules
 - **Snowflake Core**: `100-snowflake-core.md`
 - **App Deployment**: `109c-snowflake-app-deployment.md`
-- **Streamlit UI**: `101-snowflake-streamlit-ui.md`
+- **Streamlit UI**: `101-snowflake-streamlit-core.md`
 - **Warehouse Management**: `119-snowflake-warehouse-management.md`
 - **Python Core**: `200-python-core.md`
+- **Python Linting**: `201-python-lint-format.md`
 - **Data Science Analytics**: `500-data-science-analytics.md`

@@ -219,4 +219,4 @@ addopts = [
 ### Related Rules
 - **Python Core**: `200-python-core.md`
 - **Python Linting**: `201-python-lint-format.md`
-- **YAML Config**: `202-yaml-config-best-practices.md`
+- **YAML Config**: `202-markup-config-validation.md`

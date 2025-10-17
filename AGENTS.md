@@ -53,11 +53,19 @@
 - **Rule:** For GitHub: ensure PR created before merge to `main`
 - **Rule:** For GitLab: ensure MR created before merge to `main`
 
+#### 5. Notebook Linting (Projects with Jupyter Notebooks)
+- **CRITICAL:** `uvx nbqa ruff notebooks/` - Must pass with zero errors
+- **CRITICAL:** `uvx nbqa ruff format --check notebooks/` - Must pass, notebooks properly formatted
+- **Rule:** Only applies to projects with `notebooks/` directory containing `.ipynb` files
+- **Rule:** Fix all notebook linting errors before marking task complete
+- **Reference:** See `109-snowflake-notebooks.md` Section 5 for nbqa + Ruff integration details
+
 ### Validation Protocol
 - **Rule:** Run validation immediately after modifications, not in batches
 - **Rule:** Do not mark tasks complete if ANY check fails
 - **Rule:** Fix all failures before responding to user
 - **Rule:** Git state: `git status --porcelain` returns empty, branch name valid, CHANGELOG.md entry present
+- **Rule:** Notebook linting (if applicable): `uvx nbqa ruff notebooks/` passes with zero errors
 - **Exception:** Only skip with explicit user override (e.g., "skip tests", "skip validation") - acknowledge risks
 
 ### Validation Failure Response
@@ -176,6 +184,7 @@ If any validation check fails:
 - [ ] Lint check: `uvx ruff check .` passed with zero errors
 - [ ] Format check: `uvx ruff format --check .` passed
 - [ ] Tests: `uv run pytest` passed (if test suite exists)
+- [ ] Notebook linting: `uvx nbqa ruff notebooks/` passed (if notebooks exist)
 - [ ] CHANGELOG.md updated for code changes
 - [ ] README.md reviewed and updated if triggers apply
 - [ ] Git state validated (no uncommitted changes, valid branch name)
@@ -189,8 +198,8 @@ If any validation check fails:
 - [ ] Rule generation validated with appropriate agent format
 
 ## Validation
-- **Success checks:** Pre-Task-Completion Validation Gate passed (all mandatory checks); Rule Discovery Protocol followed (RULES_INDEX.md consulted, relevant rules loaded); PLAN/ACT mode transitions work correctly, lint/test commands pass, CHANGELOG.md updated, README.md updated when triggered, git state validation passed (clean working directory, valid branch name, CHANGELOG entry present), generated rules match expected format, all file modifications preserve existing structure
-- **Negative tests:** Attempt to modify files without ACT authorization (should fail), skip RULES_INDEX.md consultation (should be caught in review), run incomplete contract validation (should catch missing sections), test with malformed rule files (should report validation errors), uncommitted changes block task completion, invalid branch name causes validation failure, any validation gate failure blocks task completion
+- **Success checks:** Pre-Task-Completion Validation Gate passed (all mandatory checks); Rule Discovery Protocol followed (RULES_INDEX.md consulted, relevant rules loaded); PLAN/ACT mode transitions work correctly, lint/test commands pass, notebook linting passes (if applicable), CHANGELOG.md updated, README.md updated when triggered, git state validation passed (clean working directory, valid branch name, CHANGELOG entry present), generated rules match expected format, all file modifications preserve existing structure
+- **Negative tests:** Attempt to modify files without ACT authorization (should fail), skip RULES_INDEX.md consultation (should be caught in review), run incomplete contract validation (should catch missing sections), test with malformed rule files (should report validation errors), notebook linting errors block task completion (if applicable), uncommitted changes block task completion, invalid branch name causes validation failure, any validation gate failure blocks task completion
 
 ## Response Template
 ```markdown

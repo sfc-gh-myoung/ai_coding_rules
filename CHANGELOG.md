@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **feat(rules):** Enhanced Rule 109: Snowflake Notebooks with nbqa + Ruff linting guidance (v1.2 → v1.3)
+  - **Rule:** `109-snowflake-notebooks.md`
+  - **New Section 5:** Code Quality & Linting with nbqa (industry-standard notebook linter)
+  - **TokenBudget:** ~300 → ~400 (Standard ContextTier)
+  - **Keywords:** Added "nbqa, notebook linting, code quality, Ruff"
+  - **nbqa Integration Features:**
+    - Python-native notebook linting with `uvx nbqa ruff notebooks/`
+    - Taskfile integration examples for `lint-notebooks` tasks
+    - Pre-Task-Completion Validation Gate integration
+    - Common notebook linting issues and fixes (unused imports, line length, undefined variables, import order, missing docstrings)
+    - Ruff configuration patterns for notebooks with per-file ignores
+    - How nbqa works (extract → lint → map → non-destructive)
+  - **Benefits:** Consistent code quality standards across `.py` modules and `.ipynb` notebooks; CI/CD ready; integrates with existing `uv` + `ruff` ecosystem
+  - **Updated Compliance Checklist:** Added CRITICAL checks for `uvx nbqa ruff notebooks/` and formatting validation
+  - **Updated Validation:** Added notebook linting success/failure criteria
+  - **Updated Related Rules:** Added reference to `201-python-lint-format.md`
+  - **Rationale:** Extends Ruff-first code quality standards to Jupyter notebooks using industry-standard nbqa tool
+  - **Impact:** Projects with notebooks now have automated linting and formatting validation integrated with existing Python tooling
+- **refactor(rules):** Renamed and expanded Rule 202: YAML Config Best Practices → Markup Config Validation (v1.3 → v1.4)
+  - **File:** `202-yaml-config-best-practices.md` → `202-markup-config-validation.md`
+  - **Scope:** Expanded from YAML/TOML/environment files to include Markdown linting
+  - **New Section 9:** Markdown Linting with pymarkdownlnt (Python-native linter)
+  - **TokenBudget:** ~400 → ~550 (Standard ContextTier)
+  - **Purpose:** Now covers "Markup and configuration file validation to prevent parsing errors"
+  - **AppliesTo:** Added `**/*.md` to existing patterns
+  - **Keywords:** Added "Markdown, markdown linting, pymarkdownlnt, markup validation"
+  - **Markdown Linting Features:**
+    - Python-native tool integration with `uvx pymarkdownlnt`
+    - Configuration patterns with `.pymarkdown` or `pymarkdown.json`
+    - Taskfile integration examples for `lint-markdown` tasks
+    - Pre-Task-Completion Validation Gate integration
+    - Common Markdown issues and fixes (heading hierarchy, blank lines, trailing spaces, list formatting, bare URLs)
+    - Alternative note for Node.js `markdownlint-cli2` users
+  - **Rationale:** Consolidates markup/config validation patterns in single rule following Python tooling ecosystem
+  - **Impact:** Provides consistent validation approach for all markup and configuration file types
+
 ## [1.5.0] - 2025-10-17
 
 ### Added

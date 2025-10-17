@@ -261,6 +261,6 @@ cmds:
 - [Make Documentation](https://www.gnu.org/software/make/manual/) - GNU Make manual for Makefile alternatives
 
 ### Related Rules
-- **YAML Config**: `202-yaml-config-best-practices.md`
+- **YAML Config**: `202-markup-config-validation.md`
 - **Bash Core**: `300-bash-scripting-core.md`
 - **Python Core**: `200-python-core.md`

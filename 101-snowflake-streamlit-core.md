@@ -2,9 +2,9 @@
 **AppliesTo:** `**/*.py`, `streamlit/**/*`, `.streamlit/config.toml`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Keywords:** Streamlit, Snowflake in Streamlit, SiS, SPCS, st.connection, session state, navigation, multipage, deployment, UI, dashboard
-**Version:** 1.1
-**LastUpdated:** 2025-10-13
+**Keywords:** Streamlit, Snowflake in Streamlit, SiS, SPCS, st.connection, session state, navigation, multipage, deployment, UI, dashboard, pandas, NaN, NULL handling
+**Version:** 1.2
+**LastUpdated:** 2025-10-18
 
 **TokenBudget:** ~700
 **ContextTier:** standard
@@ -420,6 +420,94 @@ except KeyError as e:
 # ❌ Never do this
 api_key = "sk-1234567890abcdef"  # Hardcoded secret!
 ```
+
+## 8. Pandas NULL Handling: Snowflake NULL vs Python None
+
+<directive_strength>mandatory</directive_strength>
+
+### Critical Difference: NaN vs None
+
+When Snowflake returns NULL values, pandas converts them to NaN (Not a Number), NOT Python None. This requires pandas-aware null checking.
+
+**Anti-Pattern (WILL CRASH):**
+```python
+# ❌ BAD: is not None doesn't catch pandas NaN
+file_size = df["SIZE"].iloc[0]
+if file_size is not None and file_size > 0:
+    display = f"{file_size / 1024:.1f} KB"  # CRASHES if NaN
+else:
+    display = "Unknown"
+```
+
+**Correct Pattern:**
+```python
+# ✅ GOOD: pd.notna() correctly identifies NaN
+import pandas as pd
+
+file_size = df["SIZE"].iloc[0]
+if pd.notna(file_size) and file_size > 0:
+    display = f"{file_size / 1024:.1f} KB"  # Safe
+else:
+    display = "Unknown"
+```
+
+### Format String Safety Rules
+
+**Rule**: Never apply format specifiers (`.1f`, `.0f`, `.2%`) to values that might be NULL/NaN without validation
+
+**Rule**: Use pandas null-checking functions for DataFrame values:
+- `pd.notna(value)` - True if NOT null/NaN
+- `pd.isna(value)` - True if null/NaN
+- `pd.isnull(value)` - Alias for pd.isna()
+
+**Rule**: Create helper functions for repeated formatting patterns:
+
+```python
+def safe_format_duration(seconds, default="Unknown"):
+    """Safely format duration with NULL handling."""
+    if pd.isna(seconds) or seconds is None:
+        return default
+    return f"{seconds:.1f} seconds" if seconds < 60 else f"{int(seconds // 60)}m {seconds % 60:.0f}s"
+
+def safe_format_file_size(bytes_value, default="Unknown"):
+    """Safely format file size with pandas-aware NULL handling."""
+    if pd.isna(bytes_value) or bytes_value is None or bytes_value <= 0:
+        return default
+    return f"{bytes_value / 1024:.1f} KB"
+```
+
+### Defense in Depth Pattern
+
+**Rule**: Wrap database value display in try-except blocks:
+
+```python
+try:
+    file_info = df[df["PATH"] == selected_file].iloc[0]
+    size_display = safe_format_file_size(file_info.get("SIZE"))
+    st.info(f"File: {selected_file} | Size: {size_display}")
+except Exception as e:
+    st.info(f"File: {selected_file} | Size: Unknown")
+    st.caption(f"Could not retrieve file size: {str(e)}")
+```
+
+### Common NULL Sources in Snowflake
+
+Values that commonly return NULL and require pandas-aware handling:
+- DIRECTORY() function: SIZE, LAST_MODIFIED
+- AI_TRANSCRIBE: duration_seconds (when audio format unsupported)
+- Aggregate functions: AVG(), SUM() on empty sets
+- External table metadata: FILE_SIZE, ROW_COUNT
+- User-defined columns with missing data
+
+### Quick Decision Guide
+
+**Question**: Does this value come from a pandas DataFrame?
+- Yes → Use `pd.notna()` or `pd.isna()`
+- No → Use `is not None` or `is None`
+
+**Question**: Am I applying format specifiers (`.1f`, `.0f`)?
+- Yes → MUST validate not NULL/NaN first
+- No → Still validate for display purposes
 
 ## Anti-Patterns and Common Mistakes
 

@@ -2,11 +2,11 @@
 **AppliesTo:** `**/*.py`, `streamlit/**/*`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Keywords:** Streamlit caching, @st.cache_data, @st.cache_resource, performance optimization, slow Streamlit, data loading, query optimization
-**Version:** 1.1
-**LastUpdated:** 2025-10-13
+**Keywords:** Streamlit caching, @st.cache_data, @st.cache_resource, performance optimization, slow Streamlit, data loading, query optimization, NULL handling, pandas NaN
+**Version:** 1.2
+**LastUpdated:** 2025-10-18
 
-**TokenBudget:** ~500
+**TokenBudget:** ~550
 **ContextTier:** standard
 
 # Streamlit Performance: Caching and Optimization
@@ -115,6 +115,43 @@ session = get_snowflake_session()  # Reuses cached session
 | **TTL Support** | Yes (recommended) | No (session lifetime) |
 | **Serialization** | Pickled | Stored as-is |
 | **Thread Safety** | Yes | No (use with caution) |
+
+### Caching with NULL-Safe Data
+
+**Rule**: Validate cached data doesn't contain unexpected NaN values that cause display errors:
+
+```python
+import pandas as pd
+
+@st.cache_data(ttl=300)
+def load_metrics():
+    """Load KPI metrics from Snowflake with NULL-safe handling."""
+    session = get_snowflake_session()
+    df = session.sql("SELECT metric_name, value FROM kpis").to_pandas()
+    
+    # Validate no critical NaN values before caching
+    if df["value"].isna().any():
+        st.warning("⚠️ Some metrics unavailable - showing cached values where possible")
+    
+    return df
+
+# Use cached data with NULL-safe display
+metrics_df = load_metrics()
+for _, row in metrics_df.iterrows():
+    value = row["value"]
+    if pd.notna(value):
+        st.metric(row["metric_name"], f"{value:.2f}")
+    else:
+        st.metric(row["metric_name"], "N/A")
+```
+
+**Performance Note**: Validating for NaN in cached data prevents expensive re-computation when display errors occur. Using `pd.notna()` instead of `is not None` correctly handles Snowflake NULL values that become pandas NaN.
+
+**Why This Matters:**
+- Snowflake NULL → pandas NaN (not Python None)
+- Standard Python checks (`is not None`) don't catch NaN
+- Format strings (`.1f`, `.0f`) crash on NaN values
+- Cached NaN values persist and cause repeated errors
 
 ## 2. Data Loading from Snowflake - Critical Column Name Normalization
 

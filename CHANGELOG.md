@@ -8,6 +8,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **feat(rules):** Added pandas NULL handling guidance to prevent format string errors with Snowflake data (2025-10-18)
+  - **Root Cause:** Snowflake NULL → pandas NaN (not Python None), requiring `pd.notna()` instead of `is not None` checks
+  - **Impact:** Prevents "unsupported format string passed to NoneType.format" errors when displaying Snowflake data
+  - **Rules Updated:**
+    1. **101-snowflake-streamlit-core.md** (v1.1 → v1.2)
+       - Added Section 8: "Pandas NULL Handling: Snowflake NULL vs Python None"
+       - Critical difference explained: NaN vs None
+       - Format string safety rules with anti-patterns
+       - Helper function examples: `safe_format_duration()`, `safe_format_file_size()`
+       - Defense in depth pattern with try-except blocks
+       - Common NULL sources in Snowflake (DIRECTORY, AI_TRANSCRIBE, aggregates)
+       - Quick decision guide for when to use pd.notna() vs is not None
+       - Keywords added: "pandas", "NaN", "NULL handling"
+       - TokenBudget: ~700 (unchanged, section is ~90 lines)
+    2. **500-data-science-analytics.md** (v2.2 → v2.3)
+       - Added "Anti-Patterns: Pandas NULL Handling" section after Key Principles
+       - Two concrete anti-pattern examples with crashes and correct patterns
+       - Pandas NULL checking functions reference table
+       - "Do NOT use" list: `is None`, `== None`, `not x` on DataFrame values
+       - Keywords added: "NaN", "NULL handling", "DataFrame"
+       - TokenBudget: ~2200 (unchanged, section is ~70 lines)
+    3. **101b-snowflake-streamlit-performance.md** (v1.1 → v1.2)
+       - Added "Caching with NULL-Safe Data" subsection in Section 1
+       - Complete example of NULL-safe cached data loading and display
+       - Performance note: validating NaN prevents expensive re-computation
+       - "Why This Matters" explanation of Snowflake NULL → pandas NaN behavior
+       - Keywords added: "NULL handling", "pandas NaN"
+       - TokenBudget: ~500 → ~550 (section is ~35 lines)
+  - **Benefits:**
+    - Prevents entire class of pandas NaN vs None errors proactively
+    - Explicit anti-patterns show developers exact code to avoid
+    - Reusable helper function patterns can be copy-pasted
+    - Context-appropriate guidance appears in rules developers already reference
+    - Defense in depth: validation + try-except + helper functions
+  - **Rationale:** Real-world bug fix (duration and file size NULL handling) identified gap in rule coverage for pandas-specific NULL behavior when querying Snowflake
 - **feat(rules):** Enhanced Rule 109: Snowflake Notebooks with nbqa + Ruff linting guidance (v1.2 → v1.3)
   - **Rule:** `109-snowflake-notebooks.md`
   - **New Section 5:** Code Quality & Linting with nbqa (industry-standard notebook linter)

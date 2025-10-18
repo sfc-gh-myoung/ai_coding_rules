@@ -2,9 +2,9 @@
 **AppliesTo:** `notebooks/**/*.ipynb`, `streamlit/**/*`, `models/**/*`, `**/*.sql`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Keywords:** Data science, pandas, numpy, scikit-learn, ML, Jupyter, data analysis, model lifecycle
-**Version:** 2.2
-**LastUpdated:** 2025-10-13
+**Keywords:** Data science, pandas, numpy, scikit-learn, ML, Jupyter, data analysis, model lifecycle, NaN, NULL handling, DataFrame
+**Version:** 2.3
+**LastUpdated:** 2025-10-18
 
 **TokenBudget:** ~2200
 **ContextTier:** comprehensive
@@ -91,6 +91,77 @@ Establish comprehensive rules for performing data science and analytics on Snowf
 - **Ethical Visualization:** No misleading charts; transparent about uncertainty; accessible to all users
 - **Snowflake-Native:** Leverage Snowpark, Model Registry, Streamlit, Cortex AI
 - **Investigation-First:** Verify data characteristics before recommending approaches
+
+## Anti-Patterns: Pandas NULL Handling
+
+<anti_pattern_examples>
+
+**❌ Anti-Pattern 1: Using Python None checks on pandas DataFrames**
+```python
+# Snowflake query returns NULL for missing duration
+df = session.sql("SELECT audio_file, duration_seconds FROM transcriptions").to_pandas()
+
+# WRONG: is not None doesn't detect pandas NaN
+duration = df["duration_seconds"].iloc[0]
+if duration is not None:
+    formatted = f"{duration:.1f}s"  # CRASHES if duration is NaN
+```
+
+**Problem**: Snowflake NULL becomes pandas NaN, not Python None. The check `is not None` returns True for NaN values, but format strings crash on NaN.
+
+**✅ Correct Pattern:**
+```python
+import pandas as pd
+
+df = session.sql("SELECT audio_file, duration_seconds FROM transcriptions").to_pandas()
+
+duration = df["duration_seconds"].iloc[0]
+if pd.notna(duration):  # Correctly identifies NaN
+    formatted = f"{duration:.1f}s"  # Safe
+else:
+    formatted = "Unknown"
+```
+
+**Benefits**: Prevents "unsupported format string passed to NoneType" errors; works correctly with Snowflake NULL values.
+
+**❌ Anti-Pattern 2: Formatting without NULL validation**
+```python
+# Direct formatting without checking for NULL/NaN
+file_size = df["SIZE"].mean()
+st.metric("Avg Size", f"{file_size:.1f} KB")  # CRASHES if all NULL
+```
+
+**Problem**: If all values are NULL, mean() returns NaN, causing format string error.
+
+**✅ Correct Pattern:**
+```python
+file_size = df["SIZE"].mean()
+if pd.notna(file_size):
+    st.metric("Avg Size", f"{file_size:.1f} KB")
+else:
+    st.metric("Avg Size", "N/A")
+```
+
+**Benefits**: Graceful degradation when data is unavailable; no crashes.
+
+</anti_pattern_examples>
+
+### Pandas NULL Checking Functions
+
+**Always use pandas-aware functions for DataFrame values:**
+
+| Function | Purpose | When to Use |
+|----------|---------|-------------|
+| `pd.notna(x)` | Check if NOT null/NaN | Before formatting, calculations |
+| `pd.isna(x)` | Check if null/NaN | Filtering, validation |
+| `pd.isnull(x)` | Alias for pd.isna() | Same as pd.isna() |
+| `df.fillna(value)` | Replace NaN with value | Data preparation |
+| `df.dropna()` | Remove rows with NaN | Data cleaning |
+
+**Do NOT use these on DataFrame values:**
+- ❌ `x is None` - Doesn't catch NaN
+- ❌ `x == None` - Doesn't catch NaN
+- ❌ `not x` - Treats 0 as falsy
 
 ## 1. Model Lifecycle & MLOps
 

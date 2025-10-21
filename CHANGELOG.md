@@ -8,6 +8,83 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **feat(rules):** Comprehensive enhancement to Snowflake Observability rule for AI agent consumption (2025-10-21)
+  - **Rule:** `111-snowflake-observability.md` (v1.1 → v1.2)
+  - **Scope:** Added 11 major sections, investigation-first protocols, anti-patterns, and complete documentation coverage
+  - **TokenBudget:** ~1100 → ~1800 (Standard → Comprehensive ContextTier)
+  - **Keywords:** Added "Snowflake Trail, System Views, Snowsight, Query History, Copy History, Task History, Dynamic Tables"
+  - **New Content:**
+    1. **Section 0: Foundational Concepts**
+       - Snowflake Trail as umbrella observability term
+       - Critical distinction: System Views (historical, 45+ min latency) vs Event Tables (real-time)
+       - OpenTelemetry standard alignment
+       - Investigation-first protocol with XML tags for AI agents
+       - Anti-patterns: Speculating about config, using System Views for real-time
+    2. **Section 2 Enhancement: Event Table Management**
+       - Default event table enablement (SNOWFLAKE.TELEMETRY.DEFAULT_EVENT_TABLE)
+       - Step-by-step setup with verification commands
+       - Snowsight UI configuration method
+       - Event table schema understanding (TIMESTAMP, RECORD_TYPE, SEVERITY_TEXT, TRACE_ID, etc.)
+       - Anti-patterns: Retention without cost analysis, not verifying data collection
+    3. **Section 3 Enhancement: Logging Anti-Patterns**
+       - Tight-loop logging without sampling (millions of entries problem)
+       - DEBUG level in production (10-100x cost increase)
+       - Using print statements instead of standard logging libraries
+       - Each with ❌ anti-pattern and ✅ correct pattern examples
+    4. **Section 10: Snowsight Monitoring Interfaces**
+       - Traces & Logs page navigation and usage with AI agent guidance
+       - Query History interface for SQL optimization (45 min latency)
+       - Copy History for data loading pipeline monitoring (2 hour latency)
+       - Task History for scheduled pipeline observability
+       - Dynamic Tables monitoring with refresh patterns
+       - Unified monitoring strategy (System Views vs Event Tables)
+       - Cross-reference to `122-snowflake-dynamic-tables.md`
+    5. **Section 11: AI Observability**
+       - Cortex AI function monitoring (token consumption, model latency, costs)
+       - Evaluations and comparisons for generative AI applications
+       - Tracing AI workflows with complete Python example
+       - Cost monitoring queries with attribution by application
+       - Cross-reference to `114-snowflake-cortex-aisql.md`
+    6. **Section 12: Limitations and Considerations**
+       - Trace event limits (128 per span)
+       - Span attribute limits (128 attributes)
+       - Event table retention and cost implications
+       - Performance impact of TRACE_LEVEL = ALWAYS
+       - System View latency table (45 min to 3 hours by view type)
+    7. **Section 13: Contract (Complete Replacement)**
+       - Mandatory/Forbidden tools with XML semantic tags
+       - 7-step required workflow (Investigate → Verify → Configure → Implement → Validate → Monitor → Visualize)
+       - Explicit output format requirements
+       - Validation steps with concrete commands
+    8. **Section 14: Quick Compliance Checklist (Enhanced)**
+       - 12 agent-focused validation items
+       - Investigation-first protocol verification
+       - Anti-pattern avoidance checks
+       - Cross-reference validation
+    9. **Validation Section (Complete)**
+       - Success checks with concrete queries
+       - Negative tests for common mistakes
+    10. **Response Template (Complete)**
+        - SQL observability setup template
+        - Python handler logging template with best practices
+    11. **References Section (Reorganized)**
+        - Added 3 missing documentation links (Quickstart, Event Table Setup, Logging Guide)
+        - Organized by category: Core Observability, Logging/Tracing/Metrics, Snowsight UI, AI Observability, Related Rules
+        - Added System View documentation (QUERY_HISTORY, COPY_HISTORY, TASK_HISTORY, DYNAMIC_TABLE_REFRESH_HISTORY)
+  - **AI Agent Optimizations:**
+    - Investigation-first XML blocks throughout (read config before recommending changes)
+    - Anti-patterns with ❌ and ✅ markers for clear learning
+    - Explicit directive_strength tags (mandatory, forbidden)
+    - Concrete validation commands for all requirements
+    - No placeholder text (Contract, Checklist, Validation, Response Template all complete)
+  - **Benefits:**
+    - Comprehensive Snowflake Trail coverage prevents agents from missing key monitoring interfaces
+    - System Views vs Event Tables distinction prevents latency mismatches in recommendations
+    - Investigation-first protocols minimize hallucination and speculation
+    - Anti-patterns teach what NOT to do as effectively as positive examples
+    - Complete Contract section enables proper prerequisite validation
+    - Organized references enable quick documentation lookup by category
+  - **Rationale:** Original rule had placeholder sections and missed critical observability concepts (Snowflake Trail, System Views, Snowsight interfaces, AI observability, limitations). Enhancement provides comprehensive, AI-agent-friendly coverage of all Snowflake observability features.
 - **feat(rules):** Added pandas NULL handling guidance to prevent format string errors with Snowflake data (2025-10-18)
   - **Root Cause:** Snowflake NULL → pandas NaN (not Python None), requiring `pd.notna()` instead of `is not None` checks
   - **Impact:** Prevents "unsupported format string passed to NoneType.format" errors when displaying Snowflake data

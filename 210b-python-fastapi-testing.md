@@ -4,7 +4,7 @@
 **Type:** Agent Requested
 **Keywords:** FastAPI testing, TestClient, pytest-asyncio, API tests, integration testing, mocking
 **Version:** 1.2
-**LastUpdated:** 2025-10-13
+**LastUpdated:** 2025-10-21
 
 **TokenBudget:** ~600
 **ContextTier:** Medium
@@ -263,6 +263,6 @@ markers = [
 
 ### Related Rules
 - **FastAPI Core**: `210-python-fastapi-core.md`
-- **FastAPI Security**: `211-python-fastapi-security.md`
+- **FastAPI Security**: `210a-python-fastapi-security.md`
 - **Python Core**: `200-python-core.md`
 - **Faker**: `240-python-faker.md`

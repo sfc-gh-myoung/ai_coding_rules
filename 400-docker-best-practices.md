@@ -276,8 +276,8 @@ id_dsa
 ### Related Rules
 - **YAML Best Practices**: `202-markup-config-validation.md`
 - **Python Core**: `200-python-core.md`
-- **FastAPI Deployment**: `213-python-fastapi-deployment.md`
-- **Bash Security**: `301-bash-security.md`
+- **FastAPI Deployment**: `210c-python-fastapi-deployment.md`
+- **Bash Security**: `300a-bash-security.md`
 - **Snowpark Container Services**: `120-snowflake-spcs.md`
 
 

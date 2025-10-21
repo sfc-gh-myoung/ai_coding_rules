@@ -329,10 +329,10 @@ The following best practices apply to all AI coding assistants and development e
 - **`112-snowflake-snowcli.md`** — Snowflake CLI usage best practices with pinned `uvx` execution
 - **`113-snowflake-feature-store.md`** — Feature Store best practices (feature engineering, entity modeling, feature views, ML pipeline integration)
 - **`114-snowflake-cortex-aisql.md`** — Cortex AISQL functions (cost, batching, governance, SQL/Snowpark examples)
-- **`115-snowflake-cortex-agents.md`** — Cortex Agents (grounding, tools, RBAC, observability)
-- **`116-snowflake-cortex-search.md`** — Cortex Search (indexing, metadata filters, hybrid retrieval)
-- **`117-snowflake-cortex-analyst.md`** — Cortex Analyst & Semantic Views (modeling, governance, prompts)
-- **`118-snowflake-cortex-rest-api.md`** — Cortex REST API (auth, retries, streaming, cost)
+- **`114a-snowflake-cortex-agents.md`** — Cortex Agents (grounding, tools, RBAC, observability)
+- **`114b-snowflake-cortex-search.md`** — Cortex Search (indexing, metadata filters, hybrid retrieval)
+- **`114c-snowflake-cortex-analyst.md`** — Cortex Analyst & Semantic Views (modeling, governance, prompts)
+- **`114d-snowflake-cortex-rest-api.md`** — Cortex REST API (auth, retries, streaming, cost)
 - **`119-snowflake-warehouse-management.md`** — Warehouse management best practices (creation, type selection CPU/GPU/High-Memory, sizing, tagging, cost governance)
 - **`120-snowflake-spcs.md`** — Snowpark Container Services best practices (containerized applications, compute pools, service management)
 - **`121-snowflake-snowpipe.md`** — Snowpipe and Snowpipe Streaming best practices (continuous near-real-time ingestion, auto-ingest, REST API, SDK)
@@ -351,10 +351,10 @@ The following best practices apply to all AI coding assistants and development e
 
 #### FastAPI Framework (210-219)
 - **`210-python-fastapi-core.md`** — FastAPI core patterns (application structure, async programming, Pydantic validation)
-- **`211-python-fastapi-security.md`** — FastAPI security patterns (authentication, authorization, CORS, middleware)
-- **`212-python-fastapi-testing.md`** — FastAPI testing strategies (TestClient, pytest-asyncio, comprehensive API testing)
-- **`213-python-fastapi-deployment.md`** — FastAPI deployment and documentation (Docker, ASGI servers, OpenAPI customization)
-- **`214-python-fastapi-monitoring.md`** — FastAPI monitoring and performance (health checks, logging, caching, observability)
+- **`210a-python-fastapi-security.md`** — FastAPI security patterns (authentication, authorization, CORS, middleware)
+- **`210b-python-fastapi-testing.md`** — FastAPI testing strategies (TestClient, pytest-asyncio, comprehensive API testing)
+- **`210c-python-fastapi-deployment.md`** — FastAPI deployment and documentation (Docker, ASGI servers, OpenAPI customization)
+- **`210d-python-fastapi-monitoring.md`** — FastAPI monitoring and performance (health checks, logging, caching, observability)
 
 #### CLI Applications (220-229)
 - **`220-python-typer-cli.md`** — Typer CLI development (setup, design patterns, testing, async commands, packaging)
@@ -370,13 +370,13 @@ The following best practices apply to all AI coding assistants and development e
 
 #### Bash Scripting (300-309)
 - **`300-bash-scripting-core.md`** — Foundation bash scripting patterns (script structure, variables, functions, essential error handling)
-- **`301-bash-security.md`** — Security best practices (input validation, path security, permissions, credential management)
-- **`302-bash-testing-tooling.md`** — Testing frameworks, debugging, ShellCheck integration, and CI/CD workflows
+- **`300a-bash-security.md`** — Security best practices (input validation, path security, permissions, credential management)
+- **`300b-bash-testing-tooling.md`** — Testing frameworks, debugging, ShellCheck integration, and CI/CD workflows
 
 #### Zsh Scripting (310-319)
 - **`310-zsh-scripting-core.md`** — Foundation zsh patterns (unique features, advanced arrays, parameter expansion, globbing)
-- **`311-zsh-advanced-features.md`** — Advanced zsh capabilities (completion system, hooks, modules, performance optimization)
-- **`312-zsh-compatibility.md`** — Cross-shell compatibility (bash migration, portable scripting, mixed environments)
+- **`310a-zsh-advanced-features.md`** — Advanced zsh capabilities (completion system, hooks, modules, performance optimization)
+- **`310b-zsh-compatibility.md`** — Cross-shell compatibility (bash migration, portable scripting, mixed environments)
 
 ### Software Engineering - Containers (400-499)
 - **`400-docker-best-practices.md`** — Docker and Dockerfile best practices (builds, security, supply chain, runtime, Compose)

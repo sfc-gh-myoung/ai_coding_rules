@@ -4,7 +4,7 @@
 **Type:** Agent Requested
 **Keywords:** FastAPI monitoring, health checks, logging, metrics, caching, Redis, observability
 **Version:** 1.2
-**LastUpdated:** 2025-10-13
+**LastUpdated:** 2025-10-21
 
 **TokenBudget:** ~950
 **ContextTier:** Medium
@@ -419,5 +419,5 @@ class Settings(BaseSettings):
 
 ### Related Rules
 - **FastAPI Core**: `210-python-fastapi-core.md`
-- **FastAPI Deployment**: `213-python-fastapi-deployment.md`
+- **FastAPI Deployment**: `210c-python-fastapi-deployment.md`
 - **Python Core**: `200-python-core.md`

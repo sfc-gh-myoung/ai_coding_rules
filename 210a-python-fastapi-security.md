@@ -4,7 +4,7 @@
 **Type:** Agent Requested
 **Keywords:** FastAPI security, authentication, OAuth2, JWT, CORS, middleware, API keys, security best practices
 **Version:** 1.2
-**LastUpdated:** 2025-10-13
+**LastUpdated:** 2025-10-21
 
 **TokenBudget:** ~1100
 **ContextTier:** Medium
@@ -483,5 +483,5 @@ def create_secure_app() -> FastAPI:
 
 ### Related Rules
 - **FastAPI Core**: `210-python-fastapi-core.md`
-- **FastAPI Testing**: `212-python-fastapi-testing.md`
-- **FastAPI Deployment**: `213-python-fastapi-deployment.md`
+- **FastAPI Testing**: `210b-python-fastapi-testing.md`
+- **FastAPI Deployment**: `210c-python-fastapi-deployment.md`

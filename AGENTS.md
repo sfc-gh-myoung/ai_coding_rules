@@ -101,7 +101,7 @@ If any validation check fails:
 - User asks: "optimize my Snowflake query" → Keywords: "performance", "optimization", "query profile" → Load: `103-snowflake-performance-tuning`
 - User asks: "add pytest tests" → Keywords: "pytest", "testing", "fixtures" → Load: `206-python-pytest`
 - User asks: "create Streamlit dashboard" → Keywords: "Streamlit", "dashboard", "visualization" → Load: `101-snowflake-streamlit-core`, `101a-snowflake-streamlit-visualization`
-- User asks: "FastAPI authentication" → Keywords: "FastAPI", "authentication", "OAuth2", "JWT" → Load: `210-python-fastapi-core`, `211-python-fastapi-security`
+- User asks: "FastAPI authentication" → Keywords: "FastAPI", "authentication", "OAuth2", "JWT" → Load: `210-python-fastapi-core`, `210a-python-fastapi-security`
 
 **Anti-Patterns:**
 - ❌ Starting implementation without consulting RULES_INDEX.md

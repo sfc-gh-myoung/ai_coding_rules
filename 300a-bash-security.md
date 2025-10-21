@@ -4,7 +4,7 @@
 **Type:** Agent Requested
 **Keywords:** Bash security, input validation, command injection, path security, secure shell scripts
 **Version:** 1.2
-**LastUpdated:** 2025-10-13
+**LastUpdated:** 2025-10-21
 
 **TokenBudget:** ~1100
 **ContextTier:** High
@@ -489,4 +489,4 @@ test_security() {
 
 ### Related Rules
 - **Bash Core**: `300-bash-scripting-core.md`
-- **Bash Testing**: `302-bash-testing-tooling.md`
+- **Bash Testing**: `300b-bash-testing-tooling.md`

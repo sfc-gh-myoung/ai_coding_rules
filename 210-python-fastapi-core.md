@@ -44,7 +44,7 @@ Provide comprehensive FastAPI development best practices, organized into focused
 - Integration with Python core rules
 
 ### 🔐 Security and Authentication  
-**Rule:** `211-python-fastapi-security.md`
+**Rule:** `210a-python-fastapi-security.md`
 - JWT token authentication
 - Role-based access control
 - Security middleware (CORS, rate limiting)
@@ -405,7 +405,7 @@ def get_settings() -> Settings:
 ### Related Rules
 - **Python Core**: `200-python-core.md`
 - **Python Project Setup**: `203-python-project-setup.md`
-- **FastAPI Security**: `211-python-fastapi-security.md`
-- **FastAPI Testing**: `212-python-fastapi-testing.md`
-- **FastAPI Deployment**: `213-python-fastapi-deployment.md`
-- **FastAPI Monitoring**: `214-python-fastapi-monitoring.md`
+- **FastAPI Security**: `210a-python-fastapi-security.md`
+- **FastAPI Testing**: `210b-python-fastapi-testing.md`
+- **FastAPI Deployment**: `210c-python-fastapi-deployment.md`
+- **FastAPI Monitoring**: `210d-python-fastapi-monitoring.md`

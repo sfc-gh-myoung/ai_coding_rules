@@ -4,7 +4,7 @@
 **Type:** Agent Requested
 **Keywords:** Cortex Search, vector search, embeddings, hybrid search, search index, retrieval, RAG, semantic search, agent tool configuration, search tools, document search, prerequisites validation, working SQL examples, error troubleshooting, permission configuration
 **Version:** 1.3
-**LastUpdated:** 2025-10-16
+**LastUpdated:** 2025-10-21
 
 **TokenBudget:** ~550
 **ContextTier:** Medium
@@ -446,7 +446,7 @@ For agents using ONLY Cortex Search tools (no Cortex Analyst):
 5. If no relevant documents found, suggest alternative search terms
 ```
 
-**See Also:** `115-snowflake-cortex-agents.md` Section 1.3 for comprehensive research agent patterns
+**See Also:** `114a-snowflake-cortex-agents.md` Section 1.3 for comprehensive research agent patterns
 
 ### 5.6 Hybrid Agents (Search + Analyst)
 
@@ -466,16 +466,16 @@ For agents combining Cortex Search with Cortex Analyst tools:
 5. Synthesize across tool types into coherent response
 ```
 
-**See Also:** `115-snowflake-cortex-agents.md` Section 1.4 for comprehensive hybrid agent patterns
+**See Also:** `114a-snowflake-cortex-agents.md` Section 1.4 for comprehensive hybrid agent patterns
 
 ### 5.7 Cross-Reference to Agent Configuration
 
 For complete agent configuration including Cortex Search tools:
-- **Research-Focused Agents:** `115-snowflake-cortex-agents.md` Section 1.3
-- **Hybrid Agents:** `115-snowflake-cortex-agents.md` Section 1.4
-- **Planning Instructions:** `115-snowflake-cortex-agents.md` Section 4.4
-- **Response Instructions:** `115-snowflake-cortex-agents.md` Section 5.4
-- **Testing Patterns:** `115-snowflake-cortex-agents.md` Section 6
+- **Research-Focused Agents:** `114a-snowflake-cortex-agents.md` Section 1.3
+- **Hybrid Agents:** `114a-snowflake-cortex-agents.md` Section 1.4
+- **Planning Instructions:** `114a-snowflake-cortex-agents.md` Section 4.4
+- **Response Instructions:** `114a-snowflake-cortex-agents.md` Section 5.4
+- **Testing Patterns:** `114a-snowflake-cortex-agents.md` Section 6
 
 ## 6. Hybrid Retrieval
 - Blend dense vector search with sparse/text signals when supported; tune weights empirically
@@ -671,8 +671,8 @@ Description: "Search {document_type} for {specific_use_case}. Use for questions 
 ### Related Rules
 - **Snowflake Core**: `100-snowflake-core.md`
 - **AISQL**: `114-snowflake-cortex-aisql.md`
-- **Cortex Agents**: `115-snowflake-cortex-agents.md` - Agent archetypes, configuration templates, planning instructions, testing patterns
-- **Cortex Analyst**: `117-snowflake-cortex-analyst.md` - Analyst tool configuration for hybrid agents
+- **Cortex Agents**: `114a-snowflake-cortex-agents.md` - Agent archetypes, configuration templates, planning instructions, testing patterns
+- **Cortex Analyst**: `114c-snowflake-cortex-analyst.md` - Analyst tool configuration for hybrid agents
 - **Cost Governance**: `105-snowflake-cost-governance.md`
 - **Warehouse Management**: `119-snowflake-warehouse-management.md`
 - **Observability**: `111-snowflake-observability.md`

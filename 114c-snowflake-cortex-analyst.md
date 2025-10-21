@@ -4,7 +4,7 @@
 **Type:** Agent Requested
 **Keywords:** Cortex Analyst, natural language queries, NL2SQL, semantic layer, text-to-SQL, business intelligence, agent tool configuration, analyst tools, semantic view design, prerequisites validation, working SQL examples, error troubleshooting, permission configuration
 **Version:** 1.3
-**LastUpdated:** 2025-10-16
+**LastUpdated:** 2025-10-21
 
 **TokenBudget:** ~500
 **ContextTier:** Medium
@@ -281,11 +281,11 @@ After component tests pass, test agent's tool selection logic:
 ### 5.5 Cross-Reference to Agent Archetypes
 
 For comprehensive agent configuration patterns including Cortex Analyst tools, see:
-- **Single-Domain Analytics Agents:** `115-snowflake-cortex-agents.md` Section 1.2
-- **Multi-Domain Analytics Agents:** `115-snowflake-cortex-agents.md` Section 1.1
-- **Hybrid Agents:** `115-snowflake-cortex-agents.md` Section 1.4
-- **Planning Instructions:** `115-snowflake-cortex-agents.md` Section 4
-- **Testing Patterns:** `115-snowflake-cortex-agents.md` Section 6
+- **Single-Domain Analytics Agents:** `114a-snowflake-cortex-agents.md` Section 1.2
+- **Multi-Domain Analytics Agents:** `114a-snowflake-cortex-agents.md` Section 1.1
+- **Hybrid Agents:** `114a-snowflake-cortex-agents.md` Section 1.4
+- **Planning Instructions:** `114a-snowflake-cortex-agents.md` Section 4
+- **Testing Patterns:** `114a-snowflake-cortex-agents.md` Section 6
 
 ## 7. Common Errors and Solutions
 
@@ -533,6 +533,6 @@ Description: "Use this tool for {specific domain}. It can {list capabilities}. U
 - **Snowflake Core**: `100-snowflake-core.md`
 - **Semantic Views**: `106-snowflake-semantic-views.md`
 - **AISQL**: `114-snowflake-cortex-aisql.md`
-- **Cortex Agents**: `115-snowflake-cortex-agents.md` - Agent archetypes, configuration templates, planning instructions, testing patterns
-- **Cortex Search**: `116-snowflake-cortex-search.md` - Search tool configuration for hybrid agents
+- **Cortex Agents**: `114a-snowflake-cortex-agents.md` - Agent archetypes, configuration templates, planning instructions, testing patterns
+- **Cortex Search**: `114b-snowflake-cortex-search.md` - Search tool configuration for hybrid agents
 - **Warehouse Management**: `119-snowflake-warehouse-management.md`

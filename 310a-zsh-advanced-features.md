@@ -4,7 +4,7 @@
 **Type:** Agent Requested
 **Keywords:** Zsh completion, modules, hooks, advanced features, performance
 **Version:** 1.2
-**LastUpdated:** 2025-10-13
+**LastUpdated:** 2025-10-21
 
 **TokenBudget:** ~1250
 **ContextTier:** Low
@@ -554,4 +554,4 @@ run_tests() {
 
 ### Related Rules
 - **Zsh Core**: `310-zsh-scripting-core.md`
-- **Zsh Compatibility**: `312-zsh-compatibility.md`
+- **Zsh Compatibility**: `310b-zsh-compatibility.md`

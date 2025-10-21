@@ -4,7 +4,7 @@
 **Type:** Agent Requested
 **Keywords:** Shell compatibility, bash vs zsh, portable scripts, cross-shell
 **Version:** 1.2
-**LastUpdated:** 2025-10-13
+**LastUpdated:** 2025-10-21
 
 **TokenBudget:** ~1300
 **ContextTier:** Low
@@ -586,5 +586,5 @@ benchmark_function() {
 
 ### Related Rules
 - **Zsh Core**: `310-zsh-scripting-core.md`
-- **Zsh Advanced Features**: `311-zsh-advanced-features.md`
+- **Zsh Advanced Features**: `310a-zsh-advanced-features.md`
 - **Bash Core**: `300-bash-scripting-core.md`

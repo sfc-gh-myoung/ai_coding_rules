@@ -562,8 +562,8 @@ EOF
 
 ## Related Rules
 
-- **`@311-zsh-advanced-features.md`** - Advanced zsh features, completion, and modules
-- **`@312-zsh-compatibility.md`** - Cross-shell compatibility and migration strategies
+- **`@310a-zsh-advanced-features.md`** - Advanced zsh features, completion, and modules
+- **`@310b-zsh-compatibility.md`** - Cross-shell compatibility and migration strategies
 - **`@300-bash-scripting-core.md`** - Bash scripting fundamentals for comparison
 
 ## Contract
@@ -598,6 +598,6 @@ EOF
 - [Oh My Zsh Framework](https://ohmyz.sh/) - Popular plugin and theme framework for zsh
 
 ### Related Rules
-- **Zsh Advanced Features**: `311-zsh-advanced-features.md`
-- **Zsh Compatibility**: `312-zsh-compatibility.md`
+- **Zsh Advanced Features**: `310a-zsh-advanced-features.md`
+- **Zsh Compatibility**: `310b-zsh-compatibility.md`
 - **Bash Core**: `300-bash-scripting-core.md`

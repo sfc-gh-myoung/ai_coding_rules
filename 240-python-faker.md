@@ -541,5 +541,5 @@ def test_with_seeded_data():
 
 ### Related Rules
 - **Python Core**: `200-python-core.md`
-- **FastAPI Testing**: `212-python-fastapi-testing.md`
+- **FastAPI Testing**: `210b-python-fastapi-testing.md`
 - **Demo Creation**: `900-demo-creation.md`

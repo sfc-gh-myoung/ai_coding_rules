@@ -3,8 +3,8 @@
 **AutoAttach:** true
 **Type:** Auto-attach
 **Keywords:** rule governance, standards, semantic discovery, metadata, keywords, RULES_INDEX
-**Version:** 2.4
-**LastUpdated:** 2025-01-16
+**Version:** 2.5
+**LastUpdated:** 2025-10-21
 
 # Rule Governance: Universal Standards for AI Coding Rules
 
@@ -448,9 +448,61 @@ Database design 🏗️ requires careful planning 🤔 and execution 🔨!
 - **900-999:** Demo & Synthetic Data
 
 ### Subdomain Organization
-- **10-number ranges:** Framework-specific rules (e.g., 210-219 for FastAPI)
-- **Sequential numbering:** Use next available number within appropriate range
-- **Reserved ranges:** Leave space for future related rules
+
+**Letter Suffix Standard (Preferred for Multi-File Rule Families):**
+
+When creating 3+ related rules covering subtopics of the same technology or framework, use letter suffixes to group them visually and conserve numeric space:
+
+- **Base Rule:** `NNN-technology-core.md` (foundation rule for the technology)
+- **Subtopic Rules:** `NNNa-technology-aspect1.md`, `NNNb-technology-aspect2.md`, etc.
+
+**When to Use Letter Suffixes:**
+- ✅ **Use letters** when you have 3+ related rules covering aspects/subtopics of ONE technology
+- ✅ **Use letters** for framework-specific features (Streamlit, FastAPI modules, Cortex functions)
+- ✅ **Use letters** to create visual clustering in file browsers
+- ❌ **Don't use letters** for completely different technologies (use separate numbers)
+
+**Examples:**
+- **Streamlit Family (Best Practice):**
+  - `101-snowflake-streamlit-core.md` (foundation)
+  - `101a-snowflake-streamlit-visualization.md` (charts/maps)
+  - `101b-snowflake-streamlit-performance.md` (caching/optimization)
+  - `101c-snowflake-streamlit-security.md` (input validation/secrets)
+  - `101d-snowflake-streamlit-testing.md` (AppTest/debugging)
+
+- **Cortex Family:**
+  - `114-snowflake-cortex-aisql.md` (AI SQL functions)
+  - `114a-snowflake-cortex-agents.md` (agents)
+  - `114b-snowflake-cortex-search.md` (search)
+  - `114c-snowflake-cortex-analyst.md` (analyst)
+  - `114d-snowflake-cortex-rest-api.md` (REST API)
+
+- **FastAPI Family:**
+  - `210-python-fastapi-core.md` (foundation)
+  - `210a-python-fastapi-security.md` (auth/CORS)
+  - `210b-python-fastapi-testing.md` (TestClient)
+  - `210c-python-fastapi-deployment.md` (deployment)
+  - `210d-python-fastapi-monitoring.md` (health checks/logging)
+
+**Benefits:**
+- **Visual Clustering:** Related rules group together in `ls` output and file browsers
+- **Number Conservation:** Cortex uses 1 number (114) vs 5 numbers (114-118)
+- **Logical Hierarchy:** Parent-child relationship visible in filename
+- **Human UX:** Faster scanning and discovery for manual rule selection
+- **Clear Intent:** Filename itself communicates relationship
+
+**Decision Tree:**
+```
+Do you have 3+ related rules for the same technology?
+├─ Yes → Use letter suffixes (NNN, NNNa, NNNb...)
+└─ No  → Use sequential numbers
+
+Are these rules subtopics of ONE technology?
+├─ Yes → Use letter suffixes
+└─ No  → Use separate number ranges
+```
+
+**Legacy Note:** Some existing rule families (created before this standard) still use sequential numbering. New rules should follow the letter suffix pattern. When adding new rules to existing families, consider migrating the entire family to letters for consistency.
 
 ## 7. Quality Assurance and Validation
 

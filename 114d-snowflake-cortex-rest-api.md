@@ -4,7 +4,7 @@
 **Type:** Agent Requested
 **Keywords:** Cortex REST API, API authentication, streaming responses, API retries, idempotency, rate limits
 **Version:** 1.1
-**LastUpdated:** 2025-10-13
+**LastUpdated:** 2025-10-21
 
 **TokenBudget:** ~350
 **ContextTier:** Medium

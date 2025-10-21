@@ -4,7 +4,7 @@
 **Type:** Agent Requested
 **Keywords:** Cortex Agents, AI agents, agent design, grounding, tools, functions, agent RBAC, agent observability, agent archetypes, planning instructions, response templates, tool configuration, multi-tool agents, hybrid agents, component testing, prerequisites validation, working SQL examples, error troubleshooting, permission configuration
 **Version:** 2.1
-**LastUpdated:** 2025-10-16
+**LastUpdated:** 2025-10-21
 
 **TokenBudget:** ~950
 **ContextTier:** High
@@ -1014,8 +1014,8 @@ test_multi_tool_workflow()
 
 ### Related Rules
 - **Snowflake Core**: `100-snowflake-core.md`
-- **Cortex Analyst**: `117-snowflake-cortex-analyst.md` - Semantic view design and Analyst tool configuration
-- **Cortex Search**: `116-snowflake-cortex-search.md` - Search service setup and tool integration
+- **Cortex Analyst**: `114c-snowflake-cortex-analyst.md` - Semantic view design and Analyst tool configuration
+- **Cortex Search**: `114b-snowflake-cortex-search.md` - Search service setup and tool integration
 - **Semantic Views**: `106-snowflake-semantic-views.md`
 - **Cost Governance**: `105-snowflake-cost-governance.md`
 - **Warehouse Management**: `119-snowflake-warehouse-management.md`

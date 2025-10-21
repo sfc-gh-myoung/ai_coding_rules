@@ -8,6 +8,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **BREAKING CHANGE: Rule File Naming Convention Migration** (2025-10-21)
+  - **Migration:** Standardized all multi-file rule families to letter suffix naming convention
+  - **Rationale:** Improved human discoverability, visual clustering, and number space conservation
+  - **Scope:** 12 rule files renamed across 4 families (Cortex, FastAPI, Bash, Zsh)
+  
+  **Renamed Files:**
+  
+  **Cortex Family (114 → 114, 114a-d):**
+  - `115-snowflake-cortex-agents.md` → `114a-snowflake-cortex-agents.md`
+  - `116-snowflake-cortex-search.md` → `114b-snowflake-cortex-search.md`
+  - `117-snowflake-cortex-analyst.md` → `114c-snowflake-cortex-analyst.md`
+  - `118-snowflake-cortex-rest-api.md` → `114d-snowflake-cortex-rest-api.md`
+  
+  **FastAPI Family (210 → 210, 210a-d):**
+  - `211-python-fastapi-security.md` → `210a-python-fastapi-security.md`
+  - `212-python-fastapi-testing.md` → `210b-python-fastapi-testing.md`
+  - `213-python-fastapi-deployment.md` → `210c-python-fastapi-deployment.md`
+  - `214-python-fastapi-monitoring.md` → `210d-python-fastapi-monitoring.md`
+  
+  **Bash Family (300 → 300, 300a-b):**
+  - `301-bash-security.md` → `300a-bash-security.md`
+  - `302-bash-testing-tooling.md` → `300b-bash-testing-tooling.md`
+  
+  **Zsh Family (310 → 310, 310a-b):**
+  - `311-zsh-advanced-features.md` → `310a-zsh-advanced-features.md`
+  - `312-zsh-compatibility.md` → `310b-zsh-compatibility.md`
+  
+  **Documentation Updates:**
+  - Updated `002-rule-governance.md` (v2.4 → v2.5) with letter suffix standard, decision tree, examples
+  - Updated all cross-references in RULES_INDEX.md, README.md, AGENTS.md, and individual rule files
+  - Updated LastUpdated to 2025-10-21 for all 12 renamed files
+  
+  **Benefits:**
+  - **Visual Clustering:** Related rules now group together in file browsers (e.g., 114, 114a, 114b, 114c, 114d)
+  - **Number Conservation:** Cortex family uses 1 number (114) instead of 5 (114-118)
+  - **Logical Hierarchy:** Parent-child relationship visible in filename structure
+  - **Human UX:** Faster scanning and discovery for manual rule selection
+  - **Consistency:** Aligns with existing Streamlit (101a-d) and Notebooks (109a, 109c) patterns
+  
+  **External Impact:**
+  - ⚠️ **BREAKING:** External tools or documentation referencing old filenames (115-118, 211-214, 301-302, 311-312) must update
+  - ✅ **No Impact:** Agent rule discovery via RULES_INDEX.md keywords continues working
+  - ✅ **No Impact:** Internal cross-references all updated automatically
+  
+  **Migration Details:**
+  - Used `git mv` to preserve file history
+  - All cross-references updated systematically (21+ files)
+  - Validation: Tests pass, linting passes, rule generation works
+  - Letter suffix standard now documented in `002-rule-governance.md` Section 6
+
 - **feat(rules):** Comprehensive enhancement to Snowflake Observability rule for AI agent consumption (2025-10-21)
   - **Rule:** `111-snowflake-observability.md` (v1.1 → v1.2)
   - **Scope:** Added 11 major sections, investigation-first protocols, anti-patterns, and complete documentation coverage
@@ -226,7 +276,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Agent Optimization:** Consolidated SPCS-specific platform events guidance for comprehensive troubleshooting in single rule
   - **Impact:** LLM agents retrieving 120-snowflake-spcs.md now have complete, copy-ready patterns for debugging container failures
 - **feat(rules):** Major enhancement of Cortex Agents rule with practical agent configuration patterns (v2.0)
-  - **Rule 115-snowflake-cortex-agents.md:** Expanded from ~350 to ~800 tokens (v1.1 → v2.0, ContextTier: Medium → High)
+  - **Rule 114a-snowflake-cortex-agents.md:** Expanded from ~350 to ~800 tokens (v1.1 → v2.0, ContextTier: Medium → High)
   - **Added Section 1:** Agent Archetypes (Multi-Domain Analytics, Single-Domain Analytics, Research-Focused, Hybrid)
   - **Added Section 3:** Agent Configuration Templates (4 templates for different agent types)
   - **Added Section 4:** Planning Instructions Patterns (explicit tool selection logic for each archetype)
@@ -239,21 +289,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Generalized Content:** All patterns universally applicable beyond any specific demo context
 
 - **feat(rules):** Enhanced Cortex Analyst rule with agent tool integration patterns (v1.2)
-  - **Rule 117-snowflake-cortex-analyst.md:** Expanded from ~300 to ~400 tokens (v1.1 → v1.2)
+  - **Rule 114c-snowflake-cortex-analyst.md:** Expanded from ~300 to ~400 tokens (v1.1 → v1.2)
   - **Added Section 5:** Cortex Analyst as Agent Tool (tool configuration, single-tool vs multi-tool patterns, testing)
   - **Added Subsections:** Tool description best practices, avoiding overlapping tools, component testing patterns, cross-references to agent archetypes
   - **Enhanced Anti-Patterns:** 3 examples covering flagging logic placement, vague descriptions, SELECT * usage
   - **Keywords Added:** agent tool configuration, analyst tools, semantic view design, single-domain analytics, multi-domain analytics, hybrid agents, tool descriptions, component testing, flagging logic placement, semantic view purity
   - **Key Principle:** Semantic views calculate data accurately; flagging logic belongs in agent instructions
-  - **Cross-References:** Links to 115-snowflake-cortex-agents.md sections for comprehensive agent configuration
+  - **Cross-References:** Links to 114a-snowflake-cortex-agents.md sections for comprehensive agent configuration
 
 - **feat(rules):** Enhanced Cortex Search rule with agent tool integration patterns (v1.2)
-  - **Rule 116-snowflake-cortex-search.md:** Expanded from ~350 to ~450 tokens (v1.1 → v1.2)
+  - **Rule 114b-snowflake-cortex-search.md:** Expanded from ~350 to ~450 tokens (v1.1 → v1.2)
   - **Added Section 5:** Cortex Search as Agent Tool (tool configuration, description best practices, citation requirements, testing)
   - **Added Subsections:** Research-focused agents, hybrid agents, tool description best practices, component testing patterns
   - **Keywords Added:** agent tool configuration, search tools, document search, research-focused agents, hybrid agents, citation requirements, tool descriptions, component testing, document type selection
   - **Key Elements:** Clear document type selection, when-to-use guidance, proper citation formatting
-  - **Cross-References:** Links to 115-snowflake-cortex-agents.md sections for comprehensive agent configuration
+  - **Cross-References:** Links to 114a-snowflake-cortex-agents.md sections for comprehensive agent configuration
 
 - **feat(index):** Updated RULES_INDEX.md with enhanced keywords for Cortex rules (115, 116, 117)
   - Enhanced Keywords column with agent configuration keywords (archetypes, planning instructions, tool configuration, testing patterns)
@@ -261,17 +311,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Enhanced purpose descriptions to reflect agent integration focus
 
 - **feat(rules):** Enhanced Cortex rules with prerequisites validation and error troubleshooting for first-run success
-  - **Rule 115-snowflake-cortex-agents.md:** v2.0 → v2.1 (~800 → ~950 tokens, 688 → ~1020 lines)
+  - **Rule 114a-snowflake-cortex-agents.md:** v2.0 → v2.1 (~800 → ~950 tokens, 688 → ~1020 lines)
     - Added Section 0: Prerequisites Validation with comprehensive verification commands (Cortex availability, semantic views, search services, role permissions, function access)
     - Enhanced Section 7: RBAC and Permissions with complete working GRANT statements (replaced pseudocode with actual SQL)
     - Added Section 10: Common Errors and Solutions with 6 errors and SQL solutions (semantic view not found, tool returned no results, agent selected wrong tool, permission denied, search service not found, flagging logic not working)
     - All SQL examples now use actual Snowflake syntax with complete working patterns
-  - **Rule 116-snowflake-cortex-search.md:** v1.2 → v1.3 (~450 → ~550 tokens, 317 → ~680 lines)
+  - **Rule 114b-snowflake-cortex-search.md:** v1.2 → v1.3 (~450 → ~550 tokens, 317 → ~680 lines)
     - Added Section 0: Prerequisites Validation for Cortex Search capability verification
     - Replaced Section 2: Indexing Pattern with complete CREATE CORTEX SEARCH SERVICE syntax (removed "sketch" disclaimer, added working examples)
     - Replaced Section 4: Querying with Filters with actual SNOWFLAKE.CORTEX.SEARCH_PREVIEW examples (replaced pseudocode with complete JSON filter patterns and result extraction)
     - Added Section 9: Common Errors and Solutions with 5 errors and SQL fixes (service not found, no results, permission denied, invalid filter syntax, warehouse required)
-  - **Rule 117-snowflake-cortex-analyst.md:** v1.2 → v1.3 (~400 → ~500 tokens, 300 → ~480 lines)
+  - **Rule 114c-snowflake-cortex-analyst.md:** v1.2 → v1.3 (~400 → ~500 tokens, 300 → ~480 lines)
     - Added Section 0: Prerequisites Validation for semantic view and Cortex Analyst verification
     - Added Section 7: Common Errors and Solutions with 6 errors and SQL solutions (view not accessible, no data returned, invalid structure, tool configuration failed, flagging logic not applied, permission denied)
   - **Keywords Enhanced:** All three rules now include "prerequisites validation, working SQL examples, error troubleshooting, permission configuration"

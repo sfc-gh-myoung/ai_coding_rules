@@ -161,7 +161,7 @@ check_required_env() {
 check_required_env "HOME" "USER"
 ```
 
-**Note:** For comprehensive input validation and security practices, see `@301-bash-security.md`
+**Note:** For comprehensive input validation and security practices, see `@300a-bash-security.md`
 
 ## 4. Error Handling and Logging
 
@@ -374,7 +374,7 @@ debug_log() {
 }
 ```
 
-**Note:** For comprehensive testing frameworks and debugging techniques, see `@302-bash-testing-tooling.md`
+**Note:** For comprehensive testing frameworks and debugging techniques, see `@300b-bash-testing-tooling.md`
 
 ## 10. Performance Best Practices
 
@@ -423,7 +423,7 @@ readonly CONFIG_VAR="value"  # Used by sourced script
 source "$external_config"
 ```
 
-**Note:** For comprehensive tooling integration and CI/CD setup, see `@302-bash-testing-tooling.md`
+**Note:** For comprehensive tooling integration and CI/CD setup, see `@300b-bash-testing-tooling.md`
 
 ## 12. Basic Security Practices
 
@@ -447,7 +447,7 @@ temp_dir="$(mktemp -d)"
 chmod 700 "$temp_dir"
 ```
 
-**Note:** For comprehensive security practices including input validation and access control, see `@301-bash-security.md`
+**Note:** For comprehensive security practices including input validation and access control, see `@300a-bash-security.md`
 
 ## 13. Common Anti-Patterns to Avoid
 
@@ -501,8 +501,8 @@ calculate_hash() {
 
 ## Related Rules
 
-- **`@301-bash-security.md`** - Comprehensive security practices, input validation, and access control
-- **`@302-bash-testing-tooling.md`** - Testing frameworks, debugging, ShellCheck integration, and CI/CD
+- **`@300a-bash-security.md`** - Comprehensive security practices, input validation, and access control
+- **`@300b-bash-testing-tooling.md`** - Testing frameworks, debugging, ShellCheck integration, and CI/CD
 
 ## Contract
 - **Inputs/Prereqs:** [Context, files, dependencies needed]
@@ -536,6 +536,6 @@ calculate_hash() {
 - [Bash Pitfalls](https://mywiki.wooledge.org/BashPitfalls) - Common scripting mistakes and how to avoid them
 
 ### Related Rules
-- **Bash Security**: `301-bash-security.md`
-- **Bash Testing**: `302-bash-testing-tooling.md`
+- **Bash Security**: `300a-bash-security.md`
+- **Bash Testing**: `300b-bash-testing-tooling.md`
 - **Taskfile Automation**: `820-taskfile-automation.md`

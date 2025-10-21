@@ -697,5 +697,5 @@ payload = {
 - **Security Governance**: `107-snowflake-security-governance.md`
 - **Performance Tuning**: `103-snowflake-performance-tuning.md`
 - **Cortex AISQL**: `114-snowflake-cortex-aisql.md`
-- **Cortex Agents**: `115-snowflake-cortex-agents.md`
-- **Cortex Analyst**: `117-snowflake-cortex-analyst.md`
+- **Cortex Agents**: `114a-snowflake-cortex-agents.md`
+- **Cortex Analyst**: `114c-snowflake-cortex-analyst.md`

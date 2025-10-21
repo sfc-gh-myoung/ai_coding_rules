@@ -4,7 +4,7 @@
 **Type:** Agent Requested
 **Keywords:** FastAPI deployment, Uvicorn, Gunicorn, ASGI, Docker, production deployment, health checks
 **Version:** 1.2
-**LastUpdated:** 2025-10-13
+**LastUpdated:** 2025-10-21
 
 **TokenBudget:** ~900
 **ContextTier:** Medium
@@ -392,6 +392,6 @@ docker-compose up --build
 
 ### Related Rules
 - **FastAPI Core**: `210-python-fastapi-core.md`
-- **FastAPI Security**: `211-python-fastapi-security.md`
-- **FastAPI Monitoring**: `214-python-fastapi-monitoring.md`
+- **FastAPI Security**: `210a-python-fastapi-security.md`
+- **FastAPI Monitoring**: `210d-python-fastapi-monitoring.md`
 - **Python Core**: `200-python-core.md`

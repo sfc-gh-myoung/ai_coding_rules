@@ -4,7 +4,7 @@
 **Type:** Agent Requested
 **Keywords:** Bash testing, ShellCheck, bats, shell script testing, CI/CD, debugging
 **Version:** 1.2
-**LastUpdated:** 2025-10-13
+**LastUpdated:** 2025-10-21
 
 **TokenBudget:** ~1100
 **ContextTier:** Medium
@@ -480,4 +480,4 @@ generate_function_docs() {
 
 ### Related Rules
 - **Bash Core**: `300-bash-scripting-core.md`
-- **Bash Security**: `301-bash-security.md`
+- **Bash Security**: `300a-bash-security.md`

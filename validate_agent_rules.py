@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Validate AI coding rule files against 002-rule-governance.md v2.4 standards.
+Validate AI coding rule files against 002-rule-governance.md v2.5 standards.
 
 This script validates that all rule files follow the required structure,
 include mandatory sections, and have proper metadata.
@@ -77,15 +77,16 @@ class ValidationConfig:
             }
 
         if self.required_sections is None:
-            # Per 002-rule-governance.md v2.3
+            # Per 002-rule-governance.md v2.5
+            # Support both numbered (## 13. Contract) and unnumbered (## Contract) sections
             self.required_sections = [
-                r"^## Purpose\b",
-                r"^## Rule Type and Scope\b",
-                r"^## Contract\b",
-                r"^## Validation\b",
-                r"^## Response Template\b",
-                r"^## Quick Compliance Checklist\b",
-                r"^## References\b",
+                r"^##\s+(?:\d+\.\s+)?Purpose\b",
+                r"^##\s+(?:\d+\.\s+)?Rule Type and Scope\b",
+                r"^##\s+(?:\d+\.\s+)?Contract\b",
+                r"^##\s+(?:\d+\.\s+)?Validation\b",
+                r"^##\s+(?:\d+\.\s+)?Response Template\b",
+                r"^##\s+(?:\d+\.\s+)?Quick Compliance Checklist\b",
+                r"^##\s+(?:\d+\.\s+)?References\b",
             ]
 
         if self.required_metadata is None:
@@ -167,7 +168,7 @@ class RuleValidator:
 
     def print_results(self, results: list[ValidationResult]) -> None:
         """Print validation results with colored output."""
-        print("\n📋 Rule Validation Report (002-rule-governance.md v2.4)")
+        print("\n📋 Rule Validation Report (002-rule-governance.md v2.5)")
         print("=" * 80)
 
         total_files = len(results)

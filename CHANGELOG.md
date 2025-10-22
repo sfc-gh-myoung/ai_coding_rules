@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Streamlit Fragment Documentation** (2025-01-22)
+  - **Rule:** `101b-snowflake-streamlit-performance.md` (v1.2 → v1.3)
+  - **New Section:** 3.3 "Advanced: Real-Time Progress with Fragments"
+  - **Content:** Comprehensive st.fragment documentation with live progress tracking patterns
+  - **Features Added:**
+    - Complete working example from Call Center Analytics implementation
+    - Fragment lifecycle pattern with session state management
+    - Official Streamlit documentation links (API reference + architecture guide)
+    - Three detailed anti-pattern examples with correct alternatives
+    - Performance considerations (polling frequency, scoped reruns, database load)
+  - **Keywords Added:** `st.fragment, run_every, automatic polling, real-time updates, progress tracking`
+  - **Token Budget:** ~550 → ~1500 (reflects expanded Section 3 with comprehensive fragment documentation)
+  - **ContextTier:** standard → comprehensive (746 lines, detailed implementation patterns)
+  - **Rationale:** Fills gap between st.progress() (>5s) and long-running operations (>30s) requiring live updates
+
 ### Changed
 - **BREAKING CHANGE: Rule File Naming Convention Migration** (2025-10-21)
   - **Migration:** Standardized all multi-file rule families to letter suffix naming convention

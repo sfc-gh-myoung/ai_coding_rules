@@ -2,9 +2,9 @@
 **AppliesTo:** `**/*-*.md` rule files, documentation standards
 **AutoAttach:** true
 **Type:** Auto-attach
-**Keywords:** rule governance, standards, semantic discovery, metadata, keywords, RULES_INDEX
-**Version:** 2.5
-**LastUpdated:** 2025-10-21
+**Keywords:** rule governance, standards, semantic discovery, metadata, keywords, RULES_INDEX, system prompt altitude, right altitude, tool design
+**Version:** 2.7
+**LastUpdated:** 2025-10-22
 
 # Rule Governance: Universal Standards for AI Coding Rules
 
@@ -433,6 +433,117 @@ Database design 🏗️ requires careful planning 🤔 and execution 🔨!
 - **Relationships:** Document logical dependencies between rules
 - **Maintenance:** Update references when files are renamed or reorganized
 
+## 5a. System Prompt Altitude
+
+### The Goldilocks Zone
+
+**From Anthropic Context Engineering:** System prompts must be written at the "right altitude" - a balance between brittle hardcoded logic and vague high-level guidance.
+
+**Too Low Altitude (Brittle):**
+```markdown
+❌ Anti-Pattern: Hardcoded If-Else Logic
+If user mentions "price", respond "Contact sales"
+If user says "bug", create ticket
+If query contains "how", search docs
+If user says "thanks", say "welcome"
+```
+**Problems:**
+- Fragile, doesn't generalize
+- Requires constant maintenance for edge cases
+- Breaks with natural language variations
+- Creates rigid, robotic behavior
+
+**Too High Altitude (Vague):**
+```markdown
+❌ Anti-Pattern: Overly General Guidance
+Be helpful and provide good responses.
+Try to understand user intent.
+Do your best work.
+```
+**Problems:**
+- No concrete signals for behavior
+- Assumes shared context that doesn't exist
+- Claude 4 won't "go beyond" without explicit instruction
+- Lacks actionable heuristics
+
+**Right Altitude (Goldilocks Zone):**
+```markdown
+✅ Correct Pattern: Specific Heuristics, Flexible Application
+You are a technical support agent for ProductX.
+
+## Responsibilities
+- Answer technical questions using docs in <docs/>
+- Escalate billing to sales team
+- Create bug reports for reproducible errors
+
+## Guidelines
+- Be concise; users value quick answers
+- Ask clarifying questions when ambiguous
+- Cite specific doc sections
+- Use create_ticket tool for confirmed bugs
+
+## Constraints
+- Don't promise unplanned features
+- Don't provide pricing without sales approval
+- Verify bugs before reporting
+```
+**Benefits:**
+- Specific enough to guide behavior
+- Flexible enough to handle variations
+- Provides clear heuristics without brittleness
+- Agent can adapt while following spirit of instructions
+
+### Finding the Right Altitude for Rules
+
+**Self-Test Questions:**
+1. Would another engineer understand intended behavior from this guidance?
+2. Does it provide clear heuristics without hardcoding every edge case?
+3. Can the model adapt to variations while following the spirit?
+4. Are success criteria explicit and measurable?
+
+**Principle:** Give strong heuristics, not brittle if-else trees. Trust the model to apply principles to specific situations.
+
+**Application to Rule Writing:**
+- **Contract Section:** Be explicit about required steps, but don't enumerate every possible scenario
+- **Key Principles:** Provide actionable heuristics that guide behavior
+- **Anti-Patterns:** Show examples of wrong altitude with explanations
+- **Validation:** Specify measurable success criteria, not vague "good enough"
+
+### Tool Design Altitude
+
+**Tool specifications also need right altitude:**
+
+**Too Low (Over-Specified):**
+```python
+❌ Bad: Brittle parameter handling
+def search(query: str, mode: int):
+    """mode: 0=exact, 1=fuzzy, 2=semantic, 3=hybrid"""
+    # Agent must memorize arbitrary codes
+```
+
+**Too High (Under-Specified):**
+```python
+❌ Bad: Vague tool purpose
+def do_operation(data: str, operation: str):
+    """Perform operation on data"""
+    # What operations? What format?
+```
+
+**Right Altitude (Clear Contract):**
+```python
+✅ Good: Semantic, self-documenting
+def search(
+    query: str,
+    mode: Literal["exact", "fuzzy", "semantic"] = "semantic"
+) -> List[Result]:
+    """Search with specified matching strategy.
+    
+    Args:
+        query: Search terms
+        mode: Match strategy - exact for literal, fuzzy for typo-tolerant, semantic for meaning-based
+    """
+```
+
 ## 6. Numbering and Organization
 
 ### Numbering Scheme
@@ -706,6 +817,49 @@ Do not use placeholders or guess missing parameters - wait for actual results.
 - **Always:** Before finalizing a rule, validate it against current, vendor-agnostic documentation and your primary IDE/tooling documentation for compliance (e.g., Visual Studio Code, Cursor, Claude Code, Gemini CLI, Cline)
 - **Always:** For all agent interactions, follow the core rules in `000-global-core.md`
 
+### Date Handling Protocol
+
+**Critical Requirement:** Never hardcode dates when updating LastUpdated fields.
+
+<directive_strength>mandatory</directive_strength>
+**Date Acquisition:**
+- **CRITICAL:** Always obtain current date via system call: `date +%Y-%m-%d` (or equivalent)
+- **Forbidden:** Never hardcode, guess, or assume today's date
+- **Verification:** Before writing any LastUpdated date, verify it matches today's actual date from system
+- **Format:** Use ISO 8601 date format: YYYY-MM-DD
+
+**Anti-Pattern:**
+```markdown
+❌ BAD: Hardcoding or guessing the date
+**LastUpdated:** 2025-01-22  # Wrong! This was hardcoded and incorrect
+```
+**Problem:** Hardcoded dates are frequently wrong, especially after context resets or when agent lacks current date awareness
+
+**Correct Pattern:**
+```bash
+✅ GOOD: Get date from system
+# First, get today's date from system
+date +%Y-%m-%d
+# Output: 2025-10-22
+
+# Then use that value in the file
+**LastUpdated:** 2025-10-22  # Correct! From system call
+```
+**Benefits:** Accurate dates; no guessing; verifiable; consistent
+
+**Implementation Checklist:**
+- [ ] Run `date +%Y-%m-%d` or equivalent system call
+- [ ] Verify output matches expected format (YYYY-MM-DD)
+- [ ] Use exact output value in LastUpdated field
+- [ ] Never modify or adjust the date manually
+- [ ] Cross-check: Does the date make sense for "today"?
+
+**Model-Specific Guidance:**
+- **Claude 4+:** Can execute terminal commands to get current date
+- **GPT-4:** May need user to provide current date
+- **Gemini:** Can access system date information
+- **Fallback:** If unable to access system date, explicitly ask user for today's date
+
 ## 11. Rule Creation Template
 
 Use this template when creating new rule files. Copy the entire template below and replace all placeholders with appropriate content:
@@ -876,8 +1030,15 @@ When applying this rule:
 
 ### External Documentation
 
+**Anthropic Engineering Articles:**
+- [Effective Context Engineering for AI Agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) - Comprehensive guide to context management, attention budgets, right altitude prompts, and optimization strategies
+- [Writing Tools for AI Agents](https://www.anthropic.com/engineering/writing-tools-for-agents) - Best practices for token-efficient tool design, clear contracts, and promoting efficient agent behaviors
+- [Equipping Agents for the Real World with Agent Skills](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills) - Progressive disclosure and skill-based agent architectures
+
 **LLM Model Documentation:**
 - [Claude 4 Best Practices](https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/claude-4-best-practices) - Official prompt engineering guide for Claude 4.x models
+- [Prompt Engineering Overview](https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/overview) - Foundational prompt engineering techniques for all Claude models
+- [Prompt Templates and Variables](https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/prompt-templates-and-variables) - Structured prompt patterns and variable usage
 - [OpenAI Prompt Engineering Guide](https://platform.openai.com/docs/guides/prompt-engineering) - Official OpenAI prompt engineering best practices
 - [OpenAI API Best Practices](https://help.openai.com/en/articles/6654000-best-practices-for-prompt-engineering-with-the-openai-api) - Best practices for GPT models
 - [Gemini CLI Documentation](https://ai.google.dev/gemini-api/docs) - Google Gemini API and prompt engineering
@@ -899,5 +1060,7 @@ When applying this rule:
 - [Markdown Guide](https://www.markdownguide.org/) - Complete Markdown syntax and formatting reference
 
 ### Related Rules
-- **Global Core**: `000-global-core.md`
-- **Memory Bank Universal**: `001-memory-bank.md`
+- **Global Core**: `000-global-core.md` - Foundational workflow and safety protocols
+- **Memory Bank Universal**: `001-memory-bank.md` - Context continuity and session recovery
+- **Context Engineering**: `003-context-engineering.md` - Attention budget and token efficiency strategies
+- **Tool Design for Agents**: `004-tool-design-for-agents.md` - Token-efficient tool development patterns

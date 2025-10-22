@@ -1,9 +1,9 @@
 **Description:** Top-level index of rule files with purpose, scope, and dependencies.
 **AutoAttach:** true
 **Type:** Auto-attach
-**Keywords:** rules index, rule discovery, semantic search, agent requested, auto-attach, rule governance
-**Version:** 2.2
-**LastUpdated:** 2025-01-16
+**Keywords:** rules index, rule discovery, semantic search, agent requested, auto-attach, rule governance, context engineering, tool design
+**Version:** 2.3
+**LastUpdated:** 2025-10-22
 
 # Rules Index
 
@@ -20,8 +20,10 @@ This index helps agents select the correct rule quickly through semantic keyword
 | File | Type | Purpose (one line) | Scope | Keywords/Hints | Depends On |
 |------|------|---------------------|-------|----------------|------------|
 | `000-global-core.md` | Auto-attach | Global operating contract (PLAN/ACT, safety, validation) | Universal | PLAN mode, ACT mode, workflow, safety, confirmation, validation, surgical edits, minimal changes, mode violations | — |
-| `001-memory-bank.md` | Auto-attach | Universal memory bank for AI context continuity | Project continuity | memory bank, context, session recovery, project brief, active context, progress tracking, continuity | `000-global-core.md` |
-| `002-rule-governance.md` | Auto-attach | Rule authoring governance, standards, and creation template | All rules | rule creation, governance, standards, metadata, keywords, semantic discovery, template, RULES_INDEX | `000-global-core.md` |
+| `001-memory-bank.md` | Auto-attach | Universal memory bank for AI context continuity | Project continuity | memory bank, context, session recovery, project brief, active context, progress tracking, continuity, context rot, attention budget, compaction | `000-global-core.md` |
+| `002-rule-governance.md` | Auto-attach | Rule authoring governance, standards, and creation template | All rules | rule creation, governance, standards, metadata, keywords, semantic discovery, template, RULES_INDEX, system prompt altitude, right altitude, tool design | `000-global-core.md` |
+| `003-context-engineering.md` | Auto-attach | Comprehensive context management and attention budget strategies | Universal context engineering | context engineering, attention budget, context rot, token efficiency, compaction, progressive disclosure, sub-agents, agentic search, system prompts, right altitude, long-horizon tasks | `000-global-core.md` |
+| `004-tool-design-for-agents.md` | Agent Requested | Tool design best practices for token-efficient agents | Agent tool development | tool design, agent tools, token efficiency, tool parameters, function calling, tool overlap, tool contracts, error handling, minimal tool set, self-contained tools | `000-global-core.md`, `003-context-engineering.md` |
 | `100-snowflake-core.md` | Agent Requested | Foundational Snowflake practices (cost, performance, security) | Snowflake SQL & modeling | Snowflake, SQL, CTE, performance, cost optimization, query profile, warehouse, security, governance, stages, COPY INTO, streams, tasks | `000-global-core.md` |
 | `101-snowflake-streamlit-core.md` | Agent Requested | Streamlit core: setup, navigation, state management, deployment modes (SiS vs SPCS) | Streamlit apps | Streamlit, Snowflake in Streamlit, SiS, SPCS, st.connection, session state, navigation, multipage, deployment, UI, dashboard | `100-snowflake-core.md` |
 | `101a-snowflake-streamlit-visualization.md` | Agent Requested | Streamlit visualization: Plotly charts, maps, dashboard integration | Streamlit visualizations | Streamlit charts, Plotly, st.plotly_chart, st.map, visualization, dashboard, interactive charts, map visualization | `101-snowflake-streamlit-core.md`, `700-business-analytics.md` |

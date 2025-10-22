@@ -154,12 +154,40 @@ If any validation check fails:
 - **README maintenance**: Required for changes affecting project structure, commands, or features
 - **Pre-commit validation**: Ensure all automated checks pass before completion
 
+## Context Management Protocol
+
+**Purpose:** Treat context as a finite resource with diminishing returns (attention budget). From Anthropic's context engineering research: as context grows, model attention degrades due to n² pairwise relationships.
+
+**Core Principles:**
+- **Attention Budget:** Every token depletes available attention - prioritize high-signal information
+- **Context Rot Awareness:** Performance degrades as context length increases - keep context focused
+- **Progressive Disclosure:** Load summaries first, details on-demand
+- **Token Efficiency:** Return minimal necessary information from all operations
+- **Compaction Strategy:** Summarize and compress when approaching context limits
+
+**Practical Guidelines:**
+- Load only necessary files (use grep/codebase_search to find targets first)
+- Keep conversation context focused on current task
+- Remove completed work details from active context
+- Use memory bank for persistent state across sessions
+- Employ structured note-taking (NOTES.md) for long tasks
+- Consider sub-agent patterns for complex multi-faceted work
+
+**Tool Output Efficiency:**
+- Tools should return minimal, high-signal information
+- Avoid verbose debug output or redundant confirmations
+- Use structured formats (lists, tables) over prose
+- Clear success/failure signals without decoration
+- Reference documentation rather than duplicating content
+
 ## Efficiency and performance standards
 - **Context budgets**: Total rule context ≤600 lines when applicable; prioritize signal over noise
 - **Response format**: Surgical edits only, delta-focused output showing only changed code
 - **Validation timing**: Run lints/tests immediately after modifications, not in batches
 - **Session recovery**: AI must be productive within 20 lines of reading project context
 - **Minimal redundancy**: Each piece of information should exist in exactly one place
+- **Attention budget management**: Monitor context window usage; apply compaction when needed
+- **Tool efficiency**: All tools must return token-efficient outputs with no bloat
 
 ## Development environment
 - **Python version**: 3.11+ pinned in `.python-version`
@@ -191,6 +219,8 @@ If any validation check fails:
 - [ ] Not on protected branch (`main`/`master`)
 - [ ] CHANGELOG.md entry verified in [Unreleased] section
 - [ ] PR/MR created for review (multi-user projects)
+- [ ] **CRITICAL: LastUpdated dates obtained via system date call** (`date +%Y-%m-%d`, not hardcoded)
+- [ ] Version numbers incremented for modified rules
 - [ ] Mode awareness maintained throughout response chains
 - [ ] Professional communication standards followed (no emojis unless requested)
 - [ ] TODO list utilized for complex multi-step tasks
@@ -306,3 +336,24 @@ I'll now implement the changes:
 **Notes**
 - Write-only operation; do not modify existing summaries unless asked.
 - Avoid secrets/PII in summaries.
+
+## References
+
+### External Documentation
+
+**Anthropic Engineering Articles:**
+- [Effective Context Engineering for AI Agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) - Context rot, attention budgets, compaction strategies, and optimization techniques
+- [Writing Tools for AI Agents](https://www.anthropic.com/engineering/writing-tools-for-agents) - Token-efficient tool design and clear contracts
+- [Equipping Agents for the Real World with Agent Skills](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills) - Progressive disclosure and skill-based architectures
+
+**Claude Documentation:**
+- [Claude 4 Best Practices](https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/claude-4-best-practices) - Model-specific optimization patterns
+- [Prompt Engineering Overview](https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/overview) - Foundational prompt engineering techniques
+- [Prompt Templates and Variables](https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/prompt-templates-and-variables) - Structured prompt patterns
+
+### Related Rules
+- **Global Core**: `000-global-core.md` - Foundational workflow and safety protocols
+- **Memory Bank System**: `001-memory-bank.md` - Context continuity and session recovery
+- **Rule Governance**: `002-rule-governance.md` - Rule authoring standards
+- **Context Engineering**: `003-context-engineering.md` - Comprehensive context management strategies
+- **Tool Design for Agents**: `004-tool-design-for-agents.md` - Token-efficient tool development patterns

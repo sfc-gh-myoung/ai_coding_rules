@@ -2,9 +2,9 @@
 **AppliesTo:** `memory-bank/**/*`, project context files
 **AutoAttach:** true
 **Type:** Auto-attach
-**Keywords:** memory bank, context, session recovery, project brief, active context, progress tracking, continuity
-**Version:** 2.2
-**LastUpdated:** 2025-10-13
+**Keywords:** memory bank, context, session recovery, project brief, active context, progress tracking, continuity, context rot, attention budget, compaction
+**Version:** 2.3
+**LastUpdated:** 2025-10-22
 
 **TokenBudget:** ~550
 **ContextTier:** Critical
@@ -43,6 +43,8 @@ Establish universal principles for maintaining project context and ensuring AI e
 - **Reference Over Duplication:** Link to existing documentation rather than copying
 - **Temporal Boundaries:** Separate current, recent, and historical context clearly
 - **Forward Focus:** Emphasize what's next, not what's done
+- **Context Rot Awareness:** As context grows, attention degrades (n² pairwise relationships) - keep context minimal
+- **Attention Budget:** Treat context like limited working memory - every token depletes attention budget
 
 ## 1. Universal Context Structure
 
@@ -135,6 +137,55 @@ flowchart TD
 - **Update Frequency**: Balance currency with maintenance overhead
 - **Reference Accuracy**: All links and references remain current
 - **Session Recovery**: ≤ 1 minute for complex projects, ≤ 30 seconds for familiar projects
+
+### Context Compaction Strategies
+
+**Why Compaction Matters:**
+From Anthropic's context engineering research, as context length increases, models experience "context rot" - diminished ability to recall specific information due to n² pairwise attention relationships. Compaction helps maintain model effectiveness.
+
+**When to Compact:**
+- Memory bank files approaching size budget limits
+- Accumulation of completed work details
+- Historical context no longer actively relevant
+- Information can be summarized without critical loss
+
+**Compaction Techniques:**
+
+**1. Summarize Completed Work:**
+```markdown
+# Before Compaction (50 lines)
+### Sprint 3 Details
+- Implemented user authentication with bcrypt
+- Created 15 unit tests for auth module
+- Fixed 3 edge cases in password validation
+- Updated documentation for auth API
+- Reviewed PR feedback and made 8 commits
+- Final merge on Jan 15th
+
+# After Compaction (3 lines)
+### Sprint 3 (Completed Jan 15)
+- ✅ User authentication with bcrypt (15 tests, fully documented)
+```
+
+**2. Archive to External Files:**
+- Move detailed historical context to `memory-bank/archive/YYYY-MM.md`
+- Keep only summary references in active context
+- Load archived details only when specifically needed
+
+**3. Consolidate Redundant Information:**
+- Merge duplicate status updates
+- Remove repeated decisions already documented
+- Collapse verbose explanations to bullet points
+
+**4. Progressive Pruning:**
+- Current session: Full details
+- Last 2-3 sessions: Compressed summaries
+- Older sessions: Key decisions only or archived
+
+**Compaction Guidelines:**
+- ✅ **Preserve:** Active objectives, unresolved blockers, key architectural decisions, recent file references
+- ❌ **Remove:** Resolved issues, exploratory dead-ends, redundant tool outputs, verbose explanations
+- ⚠️ **Compress:** Completed tasks (outcomes only), historical decisions (rationale + result), old session logs
 
 ## 4. Maintenance Workflows
 
@@ -235,6 +286,11 @@ flowchart TD
 ## References
 
 ### External Documentation
+
+**Anthropic Engineering Articles:**
+- [Effective Context Engineering for AI Agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) - Context rot, attention budgets, compaction strategies, and memory management
+
+**Technical Writing and Documentation:**
 - [Technical Writing Best Practices](https://developers.google.com/tech-writing) - Google's guide for clear, effective documentation
 - [Documentation Systems](https://documentation.divio.com/) - Framework for organizing technical documentation  
 - [Cursor Documentation](https://docs.cursor.com/) - AI-powered code editor features and capabilities
@@ -242,5 +298,6 @@ flowchart TD
 - [Markdown Guide](https://www.markdownguide.org/) - Complete Markdown syntax and formatting reference
 
 ### Related Rules
-- **Global Core**: `000-global-core.md`
-- **Rule Governance**: `002-rule-governance.md`
+- **Global Core**: `000-global-core.md` - Foundational workflow and safety protocols
+- **Rule Governance**: `002-rule-governance.md` - Token budgets and rule sizing standards
+- **Context Engineering**: `003-context-engineering.md` - Comprehensive attention budget and compaction strategies

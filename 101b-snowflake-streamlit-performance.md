@@ -4,7 +4,7 @@
 **Type:** Agent Requested
 **Keywords:** Streamlit caching, @st.cache_data, @st.cache_resource, performance optimization, slow Streamlit, data loading, query optimization, NULL handling, pandas NaN, st.fragment, run_every, automatic polling, real-time updates, progress tracking
 **Version:** 1.3
-**LastUpdated:** 2025-01-22
+**LastUpdated:** 2025-10-22
 
 **TokenBudget:** ~1500
 **ContextTier:** comprehensive

@@ -8,7 +8,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **Streamlit Fragment Documentation** (2025-01-22)
+
+- **Context Engineering and Tool Design Rules** (2025-10-22)
+  - **New Rules Created:**
+    - `003-context-engineering.md` (v1.0, Auto-attach, ~800 tokens)
+      - Comprehensive context management strategies for AI agents
+      - Coverage: attention budgets, context rot, system prompt altitude, progressive disclosure
+      - Sections: Context vs prompt engineering, n² attention problem, right altitude prompts, agentic search vs pre-computed retrieval
+      - Long-horizon strategies: compaction, structured note-taking, sub-agent architectures
+      - Keywords: context engineering, attention budget, context rot, token efficiency, compaction, progressive disclosure, sub-agents
+    - `004-tool-design-for-agents.md` (v1.0, Agent Requested, ~1800 tokens)
+      - Token-efficient tool design patterns for AI agents
+      - Coverage: minimal overlap, clear contracts, LLM-friendly parameters, promoting efficient behaviors
+      - Sections: Single responsibility, token efficiency, parameter design, tool contracts, minimal viable tool sets, extensive anti-pattern examples
+      - Keywords: tool design, agent tools, token efficiency, tool parameters, function calling, minimal tool set
+      - 896 lines with comprehensive examples and detailed guidance
+  - **Rationale:** Integrated best practices from Anthropic's context engineering, tool writing, and agent skills articles
+
+- **Anthropic Documentation References** (2025-10-22)
+  - Added 6 Anthropic/Claude documentation URLs to relevant rules:
+    - [Effective Context Engineering for AI Agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)
+    - [Writing Tools for AI Agents](https://www.anthropic.com/engineering/writing-tools-for-agents)
+    - [Equipping Agents for the Real World with Agent Skills](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills)
+    - [Prompt Engineering Overview](https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/overview)
+    - [Claude 4 Best Practices](https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/claude-4-best-practices)
+    - [Prompt Templates and Variables](https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/prompt-templates-and-variables)
+  - **Rules Updated:** `000-global-core.md`, `001-memory-bank.md`, `002-rule-governance.md`, `AGENTS.md`
+  - **Rationale:** Provide authoritative references for context engineering and prompt engineering best practices
+
+- **Streamlit Fragment Documentation** (2025-10-22)
   - **Rule:** `101b-snowflake-streamlit-performance.md` (v1.2 → v1.3)
   - **New Section:** 3.3 "Advanced: Real-Time Progress with Fragments"
   - **Content:** Comprehensive st.fragment documentation with live progress tracking patterns
@@ -24,6 +52,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Rationale:** Fills gap between st.progress() (>5s) and long-running operations (>30s) requiring live updates
 
 ### Changed
+
+- **Date Handling Protocol** (2025-10-22)
+  - **002-rule-governance.md** (v2.6 → v2.7)
+    - **New Subsection:** "Date Handling Protocol" in Section 10 (Change Workflow)
+    - **Content:** Mandatory system date call requirement, anti-patterns for hardcoded dates, correct pattern examples
+    - **Implementation Checklist:** 5-step verification process for date acquisition
+    - **Model-Specific Guidance:** Date handling for Claude 4+, GPT-4, Gemini
+    - **Rationale:** Prevent incorrect hardcoded dates; ensure LastUpdated accuracy
+  - **AGENTS.md**
+    - **Enhanced Checklist:** Added "CRITICAL: LastUpdated dates obtained via system date call"
+    - **Added Item:** Version numbers incremented for modified rules
+    - **Rationale:** Make date verification explicit in operational checklist
+
+- **Context Engineering Integration** (2025-10-22)
+  - **002-rule-governance.md** (v2.5 → v2.6)
+    - **Added Section 5a:** "System Prompt Altitude" - Goldilocks zone guidance between brittle and vague prompts
+    - **Enhanced References:** Added 3 Anthropic engineering articles and 2 additional Claude documentation links
+    - **Updated Keywords:** Added "system prompt altitude, right altitude, tool design"
+    - **Content:** Right altitude for system prompts, tool design altitude patterns, self-test questions
+  - **001-memory-bank.md** (v2.2 → v2.3)
+    - **Enhanced Key Principles:** Added context rot awareness and attention budget concepts
+    - **New Subsection:** "Context Compaction Strategies" in Section 3 (Performance Standards)
+    - **Content:** Why compaction matters, when to compact, 4 compaction techniques with examples
+    - **Updated References:** Added Anthropic context engineering article
+    - **Updated Keywords:** Added "context rot, attention budget, compaction"
+  - **AGENTS.md**
+    - **New Section:** "Context Management Protocol" - Attention budget and token efficiency principles
+    - **Enhanced Efficiency Standards:** Added attention budget management and tool efficiency requirements
+    - **New References Section:** Added 6 Anthropic/Claude documentation URLs and related rules
+    - **Content:** Practical guidelines for context management, tool output efficiency, progressive disclosure
+  - **000-global-core.md** (v6.3 → v6.4)
+    - **Enhanced References:** Added 3 Claude documentation URLs (Prompt Engineering Overview, Best Practices, Templates)
+    - **Updated Keywords:** Added "prompt engineering"
+    - **Updated Related Rules:** Added context engineering reference
+  - **RULES_INDEX.md** (v2.2 → v2.3)
+    - **Added Entries:** Two new rules (003-context-engineering.md, 004-tool-design-for-agents.md)
+    - **Updated Keywords:** Enhanced keywords for 001-memory-bank.md and 002-rule-governance.md
+    - **Updated Index Keywords:** Added "context engineering, tool design"
+
 - **BREAKING CHANGE: Rule File Naming Convention Migration** (2025-10-21)
   - **Migration:** Standardized all multi-file rule families to letter suffix naming convention
   - **Rationale:** Improved human discoverability, visual clustering, and number space conservation

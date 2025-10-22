@@ -1,9 +1,9 @@
 **Description:** The core, universally-applied operating contract for a reliable and safe workflow.
 **AutoAttach:** true
 **Type:** Auto-attach
-**Keywords:** PLAN mode, ACT mode, workflow, safety, confirmation, validation, surgical edits, minimal changes, mode violations
-**Version:** 6.3
-**LastUpdated:** 2025-10-13
+**Keywords:** PLAN mode, ACT mode, workflow, safety, confirmation, validation, surgical edits, minimal changes, mode violations, prompt engineering
+**Version:** 6.4
+**LastUpdated:** 2025-10-22
 
 **TokenBudget:** ~450
 **ContextTier:** Critical
@@ -219,12 +219,21 @@ Establish the foundational operating contract for all AI coding assistants, ensu
 ## References
 
 ### External Documentation
-- **Always:** Reference the most recent online official documentation for all technologies, frameworks, and tools involved in every solution.
+
+**Always:** Reference the most recent online official documentation for all technologies, frameworks, and tools involved in every solution.
+
+**Claude Documentation:**
+- [Claude 4 Best Practices](https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/claude-4-best-practices) - Model-specific optimization and prompt engineering guidance
+- [Prompt Engineering Overview](https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/overview) - Foundational prompt engineering techniques
+- [Prompt Templates and Variables](https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/prompt-templates-and-variables) - Structured prompt patterns
+
+**Development Tools:**
 - [Cursor Documentation](https://docs.cursor.com/) - AI-powered code editor features and capabilities
 - [Cursor Rules Guide](https://docs.cursor.com/en/context/rules) - Project rules and context management
 - [Professional Technical Writing](https://developers.google.com/tech-writing) - Google's technical writing standards and best practices
 - [Conventional Commits](https://www.conventionalcommits.org/) - Standardized commit message format for automated changelog generation
 
 ### Related Rules
-- **Memory Bank System**: `001-memory-bank.md`
-- **Rules Governance**: `002-rule-governance.md`
+- **Memory Bank System**: `001-memory-bank.md` - Context continuity and session recovery
+- **Rules Governance**: `002-rule-governance.md` - Rule authoring standards
+- **Context Engineering**: `003-context-engineering.md` - Attention budget and context management

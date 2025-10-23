@@ -1,7 +1,7 @@
 **Description:** Universal standards for creating and maintaining AI coding rule files across all models and editors.
 **AppliesTo:** `**/*-*.md` rule files, documentation standards
-**AutoAttach:** true
-**Type:** Auto-attach
+**AutoAttach:** false
+**Type:** Agent Requested
 **Keywords:** rule governance, standards, semantic discovery, metadata, keywords, RULES_INDEX, system prompt altitude, right altitude, tool design
 **Version:** 2.7
 **LastUpdated:** 2025-10-22

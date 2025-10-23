@@ -9,6 +9,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **102-snowflake-sql-demo-engineering.md** (v2.0, 2025-10-23, Auto-attach)
+  - New demo-focused SQL rule for Snowflake demos and customer learning environments
+  - Schema-based naming pattern (grid_setup.sql, customer_load.sql, grid_teardown.sql)
+  - Per-schema setup and teardown patterns for independent operations
+  - Inline documentation that teaches concepts (educational comments)
+  - Progress indicators (SELECT statements for feedback)
+  - Demo-safe idempotent patterns (CREATE OR REPLACE, IF NOT EXISTS)
+  - Comprehensive examples for setup, load, and teardown files
+  - Section on when to use production patterns (reference to 102a)
+  - Benefits: Clearer for pre-sales engineers, reduced cognitive load, auto-attach for all SQL work
+
+- **102a-snowflake-sql-automation.md** (v2.0, 2025-10-23, Agent Requested)
+  - New production automation rule for parameterized SQL templates and CI/CD
+  - Snowflake variable syntax (<%DATABASE%>, <%SCHEMA%>) for parameterization
+  - Production-safe idempotent patterns (MERGE, CREATE TABLE IF NOT EXISTS)
+  - Never use CREATE OR REPLACE for tables (data loss risk)
+  - Directory structure for operations (sql/operations/domain/operation/)
+  - Template file headers with parameters, usage, and examples
+  - Taskfile integration patterns for automation
+  - GitHub Actions and GitLab CI integration examples
+  - Pre/post deployment validation scripts
+  - Benefits: Environment-agnostic SQL, reusable templates, CI/CD ready
+
+### Removed
+
+- **102-snowflake-sql-best-practices.md**
+  - Replaced with two specialized rules: 102-snowflake-sql-demo-engineering.md (demo) and 102a-snowflake-sql-automation.md (production)
+  - Rationale: Separate concerns for different audiences (demo engineers vs DevOps)
+  - Old rule combined demo and production patterns, causing cognitive overload
+  - New rules follow existing Streamlit pattern (101-core, 101a-viz, 101b-perf, 101c-security, 101d-testing)
+
+### Changed
+
+- **RULES_INDEX.md** (v2.3 → v2.4, 2025-10-23)
+  - Replaced 102-snowflake-sql-best-practices.md entry with two new entries
+  - Added 102-snowflake-sql-demo-engineering.md (Auto-attach) with demo keywords
+  - Added 102a-snowflake-sql-automation.md (Agent Requested) with automation keywords
+  - Updated 114-snowflake-cortex-aisql.md dependencies to reference 102-snowflake-sql-demo-engineering.md
+  - Updated 901-data-generation-modeling.md dependencies to reference 102-snowflake-sql-demo-engineering.md
+
+- **100-snowflake-core.md, 103-snowflake-performance-tuning.md, 104-snowflake-streams-tasks.md, 106-snowflake-semantic-views.md, 112-snowflake-snowcli.md, 113-snowflake-feature-store.md, 114-snowflake-cortex-aisql.md, 119-snowflake-warehouse-management.md, 122-snowflake-dynamic-tables.md, 500-data-science-analytics.md, 700-business-analytics.md, 901-data-generation-modeling.md** (2025-10-23)
+  - Updated Related Rules sections to reference 102-snowflake-sql-demo-engineering.md (replacing 102-snowflake-sql-best-practices.md)
+  - 100-snowflake-core.md and 112-snowflake-snowcli.md: Added both 102-snowflake-sql-demo-engineering.md and 102a-snowflake-sql-automation.md
+
+### Added
+
 - **251-python-datetime-handling.md** (v1.0, 2025-10-22)
   - New comprehensive datetime handling rule for Python, Pandas, Plotly, and Streamlit
   - Covers datetime type system (Python datetime vs pd.Timestamp vs datetime64)

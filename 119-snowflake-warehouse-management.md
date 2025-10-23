@@ -436,7 +436,7 @@ SELECT * FROM TABLE(INFORMATION_SCHEMA.TAG_REFERENCES('WH_[WORKLOAD]_M', 'WAREHO
 
 ### Related Rules
 - **Snowflake Core**: `100-snowflake-core.md` - Foundational Snowflake practices
-- **SQL Best Practices**: `102-snowflake-sql-best-practices.md` - SQL optimization patterns
+- **SQL Demo Engineering**: `102-snowflake-sql-demo-engineering.md` - SQL patterns for demos
 - **Performance Tuning**: `103-snowflake-performance-tuning.md` - Query profiling and optimization
 - **Cost Governance**: `105-snowflake-cost-governance.md` - Resource monitors and cost optimization
 - **Security Governance**: `107-snowflake-security-governance.md` - Tagging and access policies

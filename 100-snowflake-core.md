@@ -122,7 +122,7 @@ SELECT * FROM agg;
 ## 7. Related Specialized Rules
 - **Rule:** For deeper guidance, reference the following specialized rules:
   - `101-snowflake-streamlit-ui.md`: Modern, performant, and maintainable Streamlit UIs
-  - `102-snowflake-sql-best-practices.md`: Advanced SQL authoring patterns (CTEs, VARIANT extraction, cardinality control).
+  - `102-snowflake-sql-demo-engineering.md`: SQL patterns for demos and learning environments.
   - `103-snowflake-performance-tuning.md`: Profiling, pruning, clustering justification.
   - `119-snowflake-warehouse-management.md`: Comprehensive warehouse creation, type selection (CPU/GPU/High-Memory), sizing, tagging, and cost governance.
   - `104-snowflake-streams-tasks.md`: Incremental pipelines with Streams + Tasks, idempotency, monitoring.
@@ -176,7 +176,8 @@ SELECT * FROM agg;
 - [Snowflake Security Guide](https://docs.snowflake.com/en/user-guide/security) - Comprehensive security features and implementation guide
 
 ### Related Rules
-- **SQL Best Practices**: `102-snowflake-sql-best-practices.md`
+- **SQL Demo Engineering**: `102-snowflake-sql-demo-engineering.md`
+- **SQL Automation**: `102a-snowflake-sql-automation.md`
 - **Performance Tuning**: `103-snowflake-performance-tuning.md`
 - **Cost Governance**: `105-snowflake-cost-governance.md`
 - **Security Governance**: `107-snowflake-security-governance.md`

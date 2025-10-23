@@ -1,7 +1,7 @@
 **Description:** Universal memory bank principles for AI models to maintain project context and continuity.
 **AppliesTo:** `memory-bank/**/*`, project context files
-**AutoAttach:** true
-**Type:** Auto-attach
+**AutoAttach:** false
+**Type:** Agent Requested
 **Keywords:** memory bank, context, session recovery, project brief, active context, progress tracking, continuity, context rot, attention budget, compaction
 **Version:** 2.3
 **LastUpdated:** 2025-10-22

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- **UNIVERSAL_PROMPT.md** (2025-10-23)
+  - Deleted redundant prompt template file containing content duplicated in core rules
+  - All response structure guidance already exists in `000-global-core.md`
+  - All rule structure templates already exist in `002-rule-governance.md`
+  - Removed entry from RULES_INDEX.md
+  - Rationale: Eliminated duplication, improved rule system clarity
+
 ### Added
 
 - **Context Engineering and Tool Design Rules** (2025-10-22)

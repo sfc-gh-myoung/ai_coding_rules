@@ -2,8 +2,8 @@
 **AppliesTo:** `**/*.py`, `streamlit/**/*`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Keywords:** Streamlit charts, Plotly, st.plotly_chart, st.map, visualization, dashboard, interactive charts, map visualization
-**Version:** 1.4
+**Keywords:** Streamlit charts, Plotly, st.plotly_chart, st.map, visualization, dashboard, interactive charts, map visualization, time series smoothing, data aggregation
+**Version:** 1.5
 **LastUpdated:** 2025-10-23
 
 **TokenBudget:** ~600
@@ -347,6 +347,119 @@ st.plotly_chart(fig, use_container_width=True)
 - **Uncertainty:** Confidence intervals, prediction bands, error bars
 - **SHAP values:** Summary plots, force plots, dependence plots
 
+## 5. Time Series Data Smoothing
+
+<section_metadata>
+  <section_id>time_series_smoothing</section_id>
+  <priority>high</priority>
+  <token_budget>100</token_budget>
+</section_metadata>
+
+<directive_strength>recommended</directive_strength>
+**When to Apply Smoothing:**
+- High-frequency data creates noisy, cluttered visualizations (e.g., 15-minute SCADA readings = ~96 points/day)
+- Users struggle to identify trends due to excessive detail
+- Chart performance degrades with thousands of data points
+- Business stakeholders need trend analysis, not granular fluctuations
+
+**Recommended Smoothing Approach: Time-Based Aggregation**
+
+```python
+def smooth_time_series_data(
+    df: pd.DataFrame,
+    time_col: str,
+    value_cols: list,
+    aggregation_level: str = "1H",
+    method: str = "mean",
+) -> pd.DataFrame:
+    """
+    Smooth time series data by aggregating to specified intervals.
+    
+    Reduces noise in high-frequency data (e.g., 15-minute SCADA readings) by
+    aggregating to coarser time intervals using configurable aggregation methods.
+    
+    Args:
+        df: DataFrame with time series data
+        time_col: Name of timestamp column to use for resampling
+        value_cols: List of value columns to aggregate
+        aggregation_level: Pandas frequency string ("15min", "30min", "1H", "2H", "4H")
+        method: Aggregation method ("mean", "median", "max", "min")
+    
+    Returns:
+        Smoothed DataFrame with reduced number of data points
+    """
+    df_indexed = df.set_index(time_col)
+    available_cols = [col for col in value_cols if col in df_indexed.columns]
+    
+    df_resampled = df_indexed[available_cols].resample(aggregation_level)
+    
+    if method == "mean":
+        df_smooth = df_resampled.mean()
+    elif method == "median":
+        df_smooth = df_resampled.median()
+    elif method == "max":
+        df_smooth = df_resampled.max()
+    elif method == "min":
+        df_smooth = df_resampled.min()
+    
+    return df_smooth.reset_index()
+```
+
+**Best Practices for User Controls:**
+
+```python
+# Add UI controls for smoothing
+col1, col2 = st.columns(2)
+with col1:
+    aggregation_level = st.selectbox(
+        "Data Aggregation Level",
+        options=["15min", "30min", "1H", "2H", "4H"],
+        index=2,  # Default to 1 hour
+        help="Aggregate data to reduce noise in visualization"
+    )
+with col2:
+    smoothing_method = st.selectbox(
+        "Aggregation Method",
+        options=["mean", "median", "max", "min"],
+        index=0,  # Default to mean
+        help="Mean provides smoothest results, max/min preserve extremes"
+    )
+
+# Apply smoothing
+original_count = len(scada_data)
+if aggregation_level != "15min":
+    scada_smooth = smooth_time_series_data(
+        scada_data,
+        "timestamp",
+        ["voltage_kv", "power_factor"],
+        aggregation_level,
+        smoothing_method
+    )
+    st.info(f"📉 Smoothed from {original_count:,} to {len(scada_smooth):,} points")
+else:
+    scada_smooth = scada_data
+```
+
+**Aggregation Level Guidelines:**
+
+| Original Interval | Recommended Aggregation | Data Reduction | Use Case |
+|---|---|---|---|
+| 15-minute SCADA | 1 hour (1H) | 4x reduction | Executive dashboards, trend analysis |
+| 15-minute SCADA | 2 hours (2H) | 8x reduction | High-level overviews, long time periods |
+| 1-minute PMU | 15 minutes (15min) | 15x reduction | Grid stability monitoring |
+| Hourly transformer | None (1H) | No reduction | Already appropriate granularity |
+
+**Method Selection:**
+- **mean:** Smoothest results, best for general trends
+- **median:** Robust to outliers, good for noisy data
+- **max:** Preserves peak values (voltage spikes, load peaks)
+- **min:** Preserves valley values (voltage sags)
+
+**Performance Impact:**
+- 15-min SCADA (96 points/day) → 1H aggregation (24 points/day) = 75% reduction
+- Faster chart rendering, better UX, preserved patterns
+- Always display both original and smoothed counts to user
+
 ## Anti-Patterns and Common Mistakes
 
 <anti_pattern_examples>
@@ -475,7 +588,10 @@ for timestamp in failure_timestamps:
 - [ ] Maps have error handling for invalid coordinates
 - [ ] Colorblind-safe palettes used (reference 700-business-analytics.md)
 - [ ] Datetime columns normalized to tz-naive datetime64[ns] before charting
+- [ ] Datetime comparisons use ensure_python_datetime() helper for Pandas 2.0+ compatibility
 - [ ] Vline/annotation rendering wrapped in try-except with st.warning() for environment compatibility
+- [ ] High-frequency time series data (e.g., 15-min intervals) offers aggregation controls
+- [ ] User controls for aggregation level and method provided for noisy datasets
 - [ ] Dashboard patterns reference 500/700 rules (no content duplication)
 - [ ] Chart interactivity tested (zoom, pan, hover tooltips)
 - [ ] Visualizations tested with production-like data volumes

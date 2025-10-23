@@ -1048,7 +1048,7 @@ When applying this rule:
 ### Related Rules
 - **Global Core**: `000-global-core.md`
 - **Snowflake Core**: `100-snowflake-core.md`
-- **SQL Best Practices**: `102-snowflake-sql-best-practices.md`
+- **SQL Demo Engineering**: `102-snowflake-sql-demo-engineering.md`
 - **Performance Tuning**: `103-snowflake-performance-tuning.md`
 - **Data Governance**: `600-data-governance-quality.md`
 - **Business Analytics**: `700-business-analytics.md`

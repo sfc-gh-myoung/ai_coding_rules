@@ -94,6 +94,8 @@ Establish comprehensive rules for performing data science and analytics on Snowf
 
 ## Anti-Patterns: Pandas NULL Handling
 
+**Note:** For comprehensive Pandas performance optimization, vectorization patterns, and anti-patterns, see `252-pandas-best-practices.md`. For datetime handling across Pandas, Python, and visualization libraries, see `251-python-datetime-handling.md`.
+
 <anti_pattern_examples>
 
 **❌ Anti-Pattern 1: Using Python None checks on pandas DataFrames**
@@ -1162,6 +1164,8 @@ st.caption(f"Data as of: {last_update} | Quality Score: {quality_score:.0%}")
 - **Snowflake Data Quality**: `124-snowflake-data-quality.md`
 - **Snowflake Streamlit UI**: `101-snowflake-streamlit-ui.md`
 - **Python Core**: `200-python-core.md`
+- **DateTime Handling**: `251-python-datetime-handling.md`
+- **Pandas Best Practices**: `252-pandas-best-practices.md`
 - **Data Governance**: `600-data-governance-quality.md`
 
 <model_specific_guidance model="claude-4">

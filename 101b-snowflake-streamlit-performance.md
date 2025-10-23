@@ -735,6 +735,8 @@ st.dataframe(df[['region', 'product', 'total_amount']])
 - **Snowflake Core**: `100-snowflake-core.md`
 - **Snowflake Performance Tuning**: `103-snowflake-performance-tuning.md`
 - **Snowflake Cost Governance**: `105-snowflake-cost-governance.md`
+- **DateTime Handling**: `251-python-datetime-handling.md` (datetime optimization for time series)
+- **Pandas Best Practices**: `252-pandas-best-practices.md` (DataFrame optimization and caching patterns)
 
 <model_specific_guidance model="claude-4">
 **Claude 4 Streamlit Performance Optimizations:**

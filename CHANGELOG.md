@@ -7,6 +7,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **251-python-datetime-handling.md** (v1.0, 2025-10-22)
+  - New comprehensive datetime handling rule for Python, Pandas, Plotly, and Streamlit
+  - Covers datetime type system (Python datetime vs pd.Timestamp vs datetime64)
+  - Type conversion helper function for Pandas 2.x compatibility
+  - Timezone management best practices (tz_localize, tz_convert)
+  - Date parsing and format standardization
+  - Date arithmetic patterns (Timedelta vs DateOffset)
+  - Performance optimization for large time series
+  - Cross-library compatibility guidance
+  - Comprehensive anti-patterns and solutions
+
+- **252-pandas-best-practices.md** (v1.0, 2025-10-22)
+  - New comprehensive Pandas performance and best practices rule
+  - Vectorization vs iteration patterns (10x-100x+ speedup guidance)
+  - Anti-patterns: iterrows(), apply(), chained assignment (SettingWithCopyWarning)
+  - Memory optimization strategies (dtypes, categorical data, chunking)
+  - Efficient GroupBy and merge/join operations
+  - Method chaining patterns
+  - Streamlit and Plotly integration guidance
+  - Performance benchmarking examples
+
+### Changed
+
+- **101a-snowflake-streamlit-visualization.md** (v1.4, 2025-10-23)
+  - Added cross-reference to 251-python-datetime-handling.md for comprehensive datetime guidance
+  - Added cross-reference to 252-pandas-best-practices.md for DataFrame optimization
+  - Enhanced Related Rules section with new datetime and Pandas rules
+
+- **500-data-science-analytics.md** (2025-10-22)
+  - Added note referencing 251-python-datetime-handling.md for datetime operations
+  - Added note referencing 252-pandas-best-practices.md for Pandas optimization
+  - Updated Related Rules section with new datetime and Pandas rules
+
+- **101b-snowflake-streamlit-performance.md** (2025-10-22)
+  - Added cross-reference to 251-python-datetime-handling.md for time series optimization
+  - Added cross-reference to 252-pandas-best-practices.md for DataFrame caching patterns
+
+- **RULES_INDEX.md** (2025-10-22)
+  - Added entry for 251-python-datetime-handling.md with comprehensive keywords
+  - Added entry for 252-pandas-best-practices.md with comprehensive keywords
+  - Keywords enable semantic discovery of datetime and Pandas guidance
+
+- **101a-snowflake-streamlit-visualization.md** (v1.1 → v1.4, 2025-10-23)
+  - **CORRECTED Anti-Pattern 5:** No error handling for vline rendering (environment-specific compatibility)
+  - Added defensive try-except wrapping for all vline marker rendering
+  - Use st.warning() to display visible error messages when markers fail to render
+  - Ensures charts display even when individual markers fail
+  - Addresses Streamlit in Snowflake (SiS) environment library version incompatibilities
+  - Provides clear feedback for troubleshooting without silent failures
+  - Updated Quick Compliance Checklist with error handling requirements
+
 ### Removed
 
 - **UNIVERSAL_PROMPT.md** (2025-10-23)

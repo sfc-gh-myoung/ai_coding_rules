@@ -3,8 +3,8 @@
 **AutoAttach:** false
 **Type:** Agent Requested
 **Keywords:** Streamlit charts, Plotly, st.plotly_chart, st.map, visualization, dashboard, interactive charts, map visualization
-**Version:** 1.1
-**LastUpdated:** 2025-10-13
+**Version:** 1.4
+**LastUpdated:** 2025-10-23
 
 **TokenBudget:** ~600
 **ContextTier:** standard
@@ -420,6 +420,52 @@ fig = px.bar(df, x="category", y="value", color="status",
              color_discrete_map={"good": "#0173B2", "bad": "#DE8F05"})
 # Reference: 700-business-analytics.md for complete palettes
 ```
+
+**❌ Anti-Pattern 5: Mixed datetime types in comparisons (Pandas 2.0+ incompatibility)**
+```python
+# WRONG: Comparing pandas Timestamp with Python datetime
+for timestamp in failure_timestamps:
+    failure_time = pd.to_datetime(timestamp).to_pydatetime()  # Python datetime
+    # df["hour"].min() returns pandas Timestamp - type mismatch!
+    if df["hour"].min() <= failure_time <= df["hour"].max():  # TypeError!
+        fig.add_vline(x=failure_time, ...)
+```
+**Problem:** Pandas 2.0+ enforces strict type checking for datetime operations. Comparing pandas Timestamps (from `.min()/.max()`) with Python datetimes causes `TypeError: unsupported operand type(s) for +: 'int' and 'datetime.datetime'`.
+
+**✅ Correct Pattern:**
+```python
+# Helper function for consistent datetime handling
+def ensure_python_datetime(dt):
+    """Convert any datetime-like to Python datetime."""
+    if dt is None or pd.isna(dt):
+        return None
+    if isinstance(dt, datetime.datetime):
+        return dt
+    if hasattr(dt, 'to_pydatetime'):
+        return dt.to_pydatetime()
+    return pd.to_datetime(dt).to_pydatetime()
+
+# Use helper for consistent comparisons
+for timestamp in failure_timestamps:
+    try:
+        # Convert all to Python datetime for consistency
+        failure_time = ensure_python_datetime(timestamp)
+        hour_min = ensure_python_datetime(df["hour"].min())
+        hour_max = ensure_python_datetime(df["hour"].max())
+        
+        # Now all are Python datetimes - comparison works!
+        if hour_min and hour_max and hour_min <= failure_time <= hour_max:
+            fig.add_vline(x=failure_time, ...)
+    except Exception as e:
+        st.warning(f"⚠️ Could not add marker: {type(e).__name__}: {str(e)[:100]}")
+```
+**Benefits:** 
+- Prevents TypeError from mixed datetime types
+- Works consistently across Pandas 1.x and 2.x
+- Handles edge cases (None, NaT, different datetime formats)
+- Clear error messages for debugging
+
+**Note:** For comprehensive datetime handling guidance including type conversions, timezone management, and date arithmetic, see `251-python-datetime-handling.md`.
 </anti_pattern_examples>
 
 ## Quick Compliance Checklist
@@ -428,6 +474,8 @@ fig = px.bar(df, x="category", y="value", color="status",
 - [ ] Charts have clear titles, axis labels, and legends
 - [ ] Maps have error handling for invalid coordinates
 - [ ] Colorblind-safe palettes used (reference 700-business-analytics.md)
+- [ ] Datetime columns normalized to tz-naive datetime64[ns] before charting
+- [ ] Vline/annotation rendering wrapped in try-except with st.warning() for environment compatibility
 - [ ] Dashboard patterns reference 500/700 rules (no content duplication)
 - [ ] Chart interactivity tested (zoom, pan, hover tooltips)
 - [ ] Visualizations tested with production-like data volumes
@@ -504,6 +552,8 @@ else:
 ### Related Rules
 - **Streamlit Core**: `101-snowflake-streamlit-core.md`
 - **Streamlit Performance**: `101b-snowflake-streamlit-performance.md` (caching for large datasets)
+- **DateTime Handling**: `251-python-datetime-handling.md` (comprehensive datetime guidance for Plotly)
+- **Pandas Best Practices**: `252-pandas-best-practices.md` (DataFrame optimization before visualization)
 - **Data Science Analytics**: `500-data-science-analytics.md` (ML visualization, large dataset optimization)
 - **Business Analytics**: `700-business-analytics.md` (dashboard design, chart type selection, accessibility)
 

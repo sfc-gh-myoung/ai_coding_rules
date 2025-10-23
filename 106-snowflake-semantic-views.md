@@ -693,7 +693,7 @@ payload = {
 
 ### Related Rules
 - **Snowflake Core**: `100-snowflake-core.md`
-- **SQL Best Practices**: `102-snowflake-sql-best-practices.md`
+- **SQL Demo Engineering**: `102-snowflake-sql-demo-engineering.md`
 - **Security Governance**: `107-snowflake-security-governance.md`
 - **Performance Tuning**: `103-snowflake-performance-tuning.md`
 - **Cortex AISQL**: `114-snowflake-cortex-aisql.md`

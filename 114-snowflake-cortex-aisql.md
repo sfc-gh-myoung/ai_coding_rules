@@ -382,7 +382,7 @@ FROM src;
 
 ### Related Rules
 - **Snowflake Core**: `100-snowflake-core.md`
-- **SQL Best Practices**: `102-snowflake-sql-best-practices.md`
+- **SQL Demo Engineering**: `102-snowflake-sql-demo-engineering.md`
 - **Cost Governance**: `105-snowflake-cost-governance.md`
 - **Semantic Views**: `106-snowflake-semantic-views.md`
 - **Observability**: `111-snowflake-observability.md`

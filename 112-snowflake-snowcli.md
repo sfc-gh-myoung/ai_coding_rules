@@ -154,7 +154,8 @@ uvx --from=snowflake-cli==3.12 snow sql -q "select 1 as ok"
 
 ### Related Rules
 - **Snowflake Core**: `100-snowflake-core.md`
-- **SQL Best Practices**: `102-snowflake-sql-best-practices.md`
+- **SQL Demo Engineering**: `102-snowflake-sql-demo-engineering.md`
+- **SQL Automation**: `102a-snowflake-sql-automation.md`
 - **Cost Governance**: `105-snowflake-cost-governance.md`
 - **Security Governance**: `107-snowflake-security-governance.md`
 - **Warehouse Management**: `119-snowflake-warehouse-management.md`

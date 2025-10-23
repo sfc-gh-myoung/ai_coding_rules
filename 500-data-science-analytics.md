@@ -1153,7 +1153,7 @@ st.caption(f"Data as of: {last_update} | Quality Score: {quality_score:.0%}")
 
 ### Related Rules
 - **Snowflake Core**: `100-snowflake-core.md`
-- **Snowflake SQL Best Practices**: `102-snowflake-sql-best-practices.md`
+- **Snowflake SQL Demo Engineering**: `102-snowflake-sql-demo-engineering.md`
 - **Snowflake Performance Tuning**: `103-snowflake-performance-tuning.md`
 - **Snowflake Cost Governance**: `105-snowflake-cost-governance.md`
 - **Snowflake Notebooks**: `109-snowflake-notebooks.md`

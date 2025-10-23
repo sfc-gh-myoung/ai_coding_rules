@@ -69,7 +69,7 @@ Establish patterns for building robust, incremental data pipelines using Snowfla
 
 ### Related Rules
 - **Snowflake Core**: `100-snowflake-core.md`
-- **SQL Best Practices**: `102-snowflake-sql-best-practices.md`
+- **SQL Demo Engineering**: `102-snowflake-sql-demo-engineering.md`
 - **Performance Tuning**: `103-snowflake-performance-tuning.md`
 - **Warehouse Management**: `119-snowflake-warehouse-management.md`
 - **Data Loading**: `108-snowflake-data-loading.md`

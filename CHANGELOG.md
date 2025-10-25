@@ -42,6 +42,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **109c-snowflake-app-deployment.md** (v1.0 → v1.1, 2025-10-25)
+  - Added critical Streamlit in Snowflake (SiS) deployment requirements
+  - **AUTO_COMPRESS=FALSE mandatory**: Python import system cannot read compressed .py files
+  - **Stage path requirements**: Files must be at stage root, not nested subdirectories
+  - Root cause documentation: Both issues cause "TypeError: bad argument type for built-in operation"
+  - Added Streamlit-specific upload script example with correct syntax
+  - Added two new anti-patterns (compression and path mismatch)
+  - Added troubleshooting section for TypeError with diagnostic steps
+  - Enhanced compliance checklist with Streamlit-specific requirements
+  - Keywords added: AUTO_COMPRESS, stage path, ROOT_LOCATION, SiS deployment, TypeError
+
 - **RULES_INDEX.md** (v2.3 → v2.4, 2025-10-23)
   - Replaced 102-snowflake-sql-best-practices.md entry with two new entries
   - Added 102-snowflake-sql-demo-engineering.md (Auto-attach) with demo keywords

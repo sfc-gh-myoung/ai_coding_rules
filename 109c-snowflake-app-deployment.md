@@ -2,9 +2,9 @@
 **AppliesTo:** `Taskfile.yml`, `task/**/*.yml`, `sql/operations/**/upload/*.sql`, `sql/operations/**/remove/*.sql`
 **AutoAttach:** false
 **Type:** Agent Requested
-**Keywords:** Snowflake deployment, stage management, notebook deployment, Streamlit deployment, PUT, REMOVE, CREATE NOTEBOOK, CREATE STREAMLIT, deployment automation, task automation, staged applications
-**Version:** 1.0
-**LastUpdated:** 2025-10-15
+**Keywords:** Snowflake deployment, stage management, notebook deployment, Streamlit deployment, PUT, REMOVE, CREATE NOTEBOOK, CREATE STREAMLIT, deployment automation, task automation, staged applications, drop, upload, create, deploy workflow, AUTO_COMPRESS, stage path, ROOT_LOCATION, SiS deployment, TypeError, file compression, import failure
+**Version:** 1.1
+**LastUpdated:** 2025-10-25
 
 **TokenBudget:** ~600
 **ContextTier:** Medium
@@ -156,6 +156,19 @@ OVERWRITE=TRUE;
 - `AUTO_COMPRESS=FALSE` - Keep files uncompressed for Snowflake processing
 - `OVERWRITE=TRUE` - Replace existing file (but explicit REMOVE is still recommended)
 
+<directive_strength>mandatory</directive_strength>
+**CRITICAL for Streamlit in Snowflake (SiS):**
+- `AUTO_COMPRESS=FALSE` is **mandatory**, not optional
+- Python's import system cannot read gzipped .py files
+- Compressed files cause: "TypeError: bad argument type for built-in operation"
+- Applies to: .py files, environment.yml, all Python modules
+
+**Stage Path Requirement:**
+- Upload files directly to stage root: `@STAGE_NAME`
+- **Never** use subdirectory paths like: `@STAGE_NAME/streamlit/` ❌
+- ROOT_LOCATION in CREATE STREAMLIT must match actual file location
+- Subdirectory mismatch causes same "TypeError" (Snowflake cannot find files)
+
 ### Remove Script (REMOVE)
 
 ```sql
@@ -218,6 +231,69 @@ MAIN_FILE = 'app.ipynb';
 -- ============================================================================
 
 DROP NOTEBOOK IF EXISTS <%DATABASE%>.SCHEMA.NOTEBOOK_NAME;
+```
+
+### Streamlit Upload Script (SiS-Specific)
+
+**Critical Requirements for Streamlit in Snowflake:**
+
+```sql
+-- ============================================================================
+-- Filename: upload_streamlit_app.sql
+-- Description: Upload Streamlit application files to stage (SiS deployment)
+--
+-- CRITICAL REQUIREMENTS:
+--   1. AUTO_COMPRESS=FALSE - Python import system cannot read gzipped files
+--   2. Stage root path - Files at @STAGE, not @STAGE/streamlit/
+--   3. ROOT_LOCATION must match actual file locations
+--
+-- Parameters:
+--   STAGE - Snowflake stage name (e.g., UTILITY_DEMO_V2.GRID_DATA.STREAMLIT_STAGE)
+--   APP_DIR - Local Streamlit app directory (e.g., streamlit/streamlit_sis)
+--
+-- Usage:
+--   snow sql -D STAGE=DB.SCHEMA.STAGE -D APP_DIR=streamlit/sis -f upload_streamlit_app.sql
+-- ============================================================================
+
+-- Main application file (must be at stage root)
+PUT file://<%APP_DIR%>/streamlit_app.py
+    @<%STAGE%>
+    AUTO_COMPRESS=FALSE
+    OVERWRITE=TRUE;
+
+-- Page files (subdirectory allowed)
+PUT file://<%APP_DIR%>/pages/*.py
+    @<%STAGE%>/pages/
+    AUTO_COMPRESS=FALSE
+    OVERWRITE=TRUE;
+
+-- Utility files (subdirectory allowed)
+PUT file://<%APP_DIR%>/utils/*.py
+    @<%STAGE%>/utils/
+    AUTO_COMPRESS=FALSE
+    OVERWRITE=TRUE;
+
+-- Environment specification (must be at stage root)
+PUT file://<%APP_DIR%>/environment.yml
+    @<%STAGE%>
+    AUTO_COMPRESS=FALSE
+    OVERWRITE=TRUE;
+
+SELECT '✓ Streamlit application files uploaded' AS progress;
+```
+
+**Key Requirements:**
+- Files at stage root: `streamlit_app.py`, `environment.yml`
+- Subdirectories allowed for organization: `@STAGE/pages/`, `@STAGE/utils/`
+- ROOT_LOCATION in CREATE STREAMLIT matches: `'@STAGE'` (not `'@STAGE/streamlit'`)
+- **Never** nest in extra subdirectory: `@STAGE/streamlit/` ❌
+
+**CREATE STREAMLIT Statement (matches upload paths):**
+```sql
+CREATE STREAMLIT IF NOT EXISTS <%DATABASE%>.<%SCHEMA%>.APP_NAME
+    ROOT_LOCATION = '@<%STAGE%>'  -- Matches PUT locations
+    MAIN_FILE = 'streamlit_app.py'
+    QUERY_WAREHOUSE = <%WAREHOUSE%>;
 ```
 
 ## 3. Taskfile Implementation
@@ -365,6 +441,86 @@ task notebook:deploy:all  # Uses explicit REMOVE
 ```
 
 ## 5. Troubleshooting Deployment Issues
+
+### Issue: Streamlit SiS fails with "TypeError: bad argument type for built-in operation"
+
+**Symptoms:**
+- Streamlit application fails to load in Snowflake
+- Error message: "TypeError: bad argument type for built-in operation"
+- Application worked previously or in development
+- No pages render, blank screen or error displayed
+
+**Common Causes:**
+
+**Cause 1: Missing AUTO_COMPRESS=FALSE**
+- Python files uploaded with compression (default behavior)
+- Python's import system cannot read gzipped `.py` files
+- Applies to all `.py` files: `streamlit_app.py`, `pages/*.py`, `utils/*.py`
+
+**Cause 2: Stage Path Mismatch**
+- Files uploaded to subdirectory (e.g., `@STAGE/streamlit/`)
+- ROOT_LOCATION points to different path (e.g., `@STAGE`)
+- Snowflake cannot find application files
+
+**Diagnostic Steps:**
+
+```bash
+# Step 1: Check actual file locations and compression
+uvx snow sql -q "LIST @UTILITY_DEMO_V2.GRID_DATA.STREAMLIT_STAGE;"
+
+# Look for:
+# - File extensions: Should be .py (not .py.gz)
+# - File paths: Should match ROOT_LOCATION structure
+# - Example correct: streamlit_stage/streamlit_app.py
+# - Example wrong: streamlit_stage/streamlit/streamlit_app.py
+
+# Step 2: Verify Streamlit configuration
+uvx snow sql -q "SHOW STREAMLITS IN SCHEMA UTILITY_DEMO_V2.GRID_DATA;"
+uvx snow sql -q "DESCRIBE STREAMLIT UTILITY_DEMO_V2.GRID_DATA.APP_NAME;"
+
+# Check ROOT_LOCATION value matches stage file paths
+```
+
+**Solutions:**
+
+**For Compression Issue:**
+```bash
+# 1. Redeploy with AUTO_COMPRESS=FALSE
+task streamlit:remove:app   # Remove old compressed files
+task streamlit:upload:app   # Upload with AUTO_COMPRESS=FALSE
+task streamlit:create:app   # Recreate Streamlit object
+```
+
+**For Path Mismatch:**
+```sql
+-- Option 1: Fix upload paths (recommended)
+-- Update upload script to use stage root:
+PUT file://streamlit_app.py @STAGE  -- Not @STAGE/streamlit/
+    AUTO_COMPRESS=FALSE
+    OVERWRITE=TRUE;
+
+-- Option 2: Fix ROOT_LOCATION to match current files
+DROP STREAMLIT IF EXISTS DB.SCHEMA.APP_NAME;
+CREATE STREAMLIT DB.SCHEMA.APP_NAME
+    ROOT_LOCATION = '@STAGE/streamlit'  -- Match actual file location
+    MAIN_FILE = 'streamlit_app.py'
+    QUERY_WAREHOUSE = WH;
+```
+
+**Verification:**
+```bash
+# Verify files are uncompressed and correctly located
+uvx snow sql -q "LIST @STAGE;" | grep -E "\.py$|\.yml$"
+
+# Should see:
+# streamlit_stage/streamlit_app.py (NOT .py.gz)
+# streamlit_stage/pages/1_Page.py
+# streamlit_stage/environment.yml
+
+# Test Streamlit app loads
+# Navigate to Snowsight → Apps → Streamlit → APP_NAME
+# Should load without TypeError
+```
 
 ### Issue: "Notebook shows old code after deploy"
 
@@ -589,6 +745,69 @@ PUT 'file://app.ipynb' @stage
 # Use Snowflake CLI with configured connection
 uvx snow sql -f upload.sql  # Uses ~/.snowflake/config.toml
 ```
+
+**❌ Anti-Pattern 5: Omitting AUTO_COMPRESS=FALSE for Streamlit SiS**
+```sql
+# WRONG: Missing AUTO_COMPRESS=FALSE
+PUT file://streamlit_app.py @STAGE
+    OVERWRITE=TRUE;  # Defaults to AUTO_COMPRESS=TRUE!
+
+PUT file://pages/*.py @STAGE/pages/
+    OVERWRITE=TRUE;  # Files will be gzipped
+```
+**Problem:** Python import system cannot read compressed .py files  
+**Symptom:** "TypeError: bad argument type for built-in operation"  
+**Impact:** Application fails to load, no pages render, complete deployment failure
+
+**✅ Correct Pattern:**
+```sql
+# Correct: Explicit AUTO_COMPRESS=FALSE
+PUT file://streamlit_app.py @STAGE
+    AUTO_COMPRESS=FALSE
+    OVERWRITE=TRUE;
+
+PUT file://pages/*.py @STAGE/pages/
+    AUTO_COMPRESS=FALSE
+    OVERWRITE=TRUE;
+```
+
+**❌ Anti-Pattern 6: Uploading Streamlit files to subdirectory path**
+```sql
+# WRONG: Files nested in subdirectory
+PUT file://streamlit_app.py @STAGE/streamlit/
+    AUTO_COMPRESS=FALSE
+    OVERWRITE=TRUE;
+
+PUT file://pages/*.py @STAGE/streamlit/pages/
+    AUTO_COMPRESS=FALSE
+    OVERWRITE=TRUE;
+
+# CREATE STREAMLIT with mismatched ROOT_LOCATION
+CREATE STREAMLIT APP
+    ROOT_LOCATION = '@STAGE/streamlit'  # Expects files at /streamlit/
+    MAIN_FILE = 'streamlit_app.py';     # But they're at /streamlit/streamlit_app.py
+```
+**Problem:** ROOT_LOCATION path mismatch - Snowflake cannot locate files  
+**Symptom:** Same "TypeError: bad argument type for built-in operation"  
+**Debugging:** `LIST @STAGE` shows `streamlit/streamlit_app.py` but ROOT_LOCATION expects different structure
+
+**✅ Correct Pattern:**
+```sql
+# Correct: Upload to stage root
+PUT file://streamlit_app.py @STAGE
+    AUTO_COMPRESS=FALSE
+    OVERWRITE=TRUE;
+
+PUT file://pages/*.py @STAGE/pages/
+    AUTO_COMPRESS=FALSE
+    OVERWRITE=TRUE;
+
+# ROOT_LOCATION matches actual file location
+CREATE STREAMLIT APP
+    ROOT_LOCATION = '@STAGE'            # Matches actual location
+    MAIN_FILE = 'streamlit_app.py'      # Found at @STAGE/streamlit_app.py
+    QUERY_WAREHOUSE = WH;
+```
 </anti_pattern_examples>
 
 ## Quick Compliance Checklist
@@ -603,6 +822,8 @@ uvx snow sql -f upload.sql  # Uses ~/.snowflake/config.toml
 - [ ] Task descriptions are clear and user-friendly
 - [ ] silent: true added to tasks with multiple echo statements
 - [ ] Deployment validated end-to-end in Snowflake
+- [ ] AUTO_COMPRESS=FALSE specified for all Streamlit PUT commands (mandatory for SiS)
+- [ ] Stage paths match ROOT_LOCATION (no extra subdirectory nesting)
 
 ## Validation
 

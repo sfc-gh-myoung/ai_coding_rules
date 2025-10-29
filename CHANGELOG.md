@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2025-10-29
+
 ### Added
 - Universal rule format with Depends metadata field for dependency resolution
 - AGENTS.md transformed into universal discovery guide (not a rule)
@@ -14,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ecosystem-specific examples in AGENTS.md (Python, Node.js, Java, Go)
 - Depends metadata to all 70+ rule files for explicit dependency tracking
 - Generator support for Depends metadata preservation in universal format
-- Generator logic to exclude AGENTS.md from universal rules (it's a guide, not a rule)
+- Generator logic to exclude AGENTS.md and EXAMPLE_PROMPT.md from all rule formats (they're guides, not rules)
 
 ### Changed
 - 000-global-core.md streamlined to contain only foundational principles (~300 tokens)
@@ -27,6 +29,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added "Using Rules with Different Tools" section with examples
   - Added programmatic rule loading examples for CLI tools
   - Clarified AGENTS.md role as discovery guide (not a rule)
+- EXAMPLE_PROMPT.md completely rewritten as universal baseline prompt:
+  - Removed all duplicated content that exists in rules
+  - Added automatic rule loading protocol
+  - Added semantic discovery instructions
+  - Follows prompt engineering best practices with XML tags
+  - Includes token budget management
+  - Works universally across all platforms
+- gen-rules script updated to v2.1:
+  - Added universal rule generation to help text and examples
+  - Updated COMMON TASKS to include rule:universal
+  - Added example for generating universal rules
 
 ### Added
 

@@ -5,6 +5,7 @@
 **Keywords:** SQL templates, parameterization, CI/CD, automation, production SQL, idempotent, MERGE, operations, multi-environment, infrastructure as code
 **Version:** 2.0
 **LastUpdated:** 2025-10-23
+**Depends:** 100-snowflake-core, 102-snowflake-sql-demo-engineering
 
 **TokenBudget:** ~700
 **ContextTier:** High

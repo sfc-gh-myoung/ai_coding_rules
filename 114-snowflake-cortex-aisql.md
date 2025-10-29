@@ -5,6 +5,7 @@
 **Keywords:** Cortex AISQL, AI_COMPLETE, AI_CLASSIFY, AI_EXTRACT, AI_SENTIMENT, AI_SUMMARIZE, AI_TRANSCRIBE, TO_FILE, embeddings, LLM functions, batching AI, token costs, audio transcription, speaker recognition, diarization, sentiment analysis, categorical sentiment, timestamp_granularity
 **Version:** 1.3
 **LastUpdated:** 2025-10-16
+**Depends:** 100-snowflake-core, 105-snowflake-cost-governance, 111-snowflake-observability
 
 **TokenBudget:** ~650
 **ContextTier:** Medium

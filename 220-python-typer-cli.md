@@ -5,6 +5,7 @@
 **Keywords:** Typer, CLI development, command-line interface, click, argument parsing, CLI testing
 **Version:** 1.2
 **LastUpdated:** 2025-10-13
+**Depends:** 200-python-core
 
 **TokenBudget:** ~1200
 **ContextTier:** Medium

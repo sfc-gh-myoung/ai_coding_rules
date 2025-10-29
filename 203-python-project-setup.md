@@ -5,6 +5,7 @@
 **Keywords:** Python packaging, project structure, setup.py, pyproject.toml, dependencies, package distribution
 **Version:** 1.3
 **LastUpdated:** 2025-10-13
+**Depends:** 200-python-core
 
 
 **TokenBudget:** ~500

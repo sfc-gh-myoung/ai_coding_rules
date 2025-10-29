@@ -186,6 +186,7 @@ $RECYCLE.BIN/
 .cursor/
 .github/instructions/
 .clinerules/
+rules/
 
 # Cursor memory bank
 memory-bank/

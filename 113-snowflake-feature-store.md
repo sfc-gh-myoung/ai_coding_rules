@@ -5,6 +5,7 @@
 **Keywords:** Feature store, feature engineering, feature views, entity modeling, ML pipeline, ML features
 **Version:** 1.1
 **LastUpdated:** 2025-10-13
+**Depends:** 100-snowflake-core, 110-snowflake-model-registry
 
 **TokenBudget:** ~1100
 **ContextTier:** Medium

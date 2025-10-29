@@ -5,6 +5,7 @@
 **Keywords:** Data modeling, naming conventions, Kimball, dimensional modeling, fact tables, dimension tables, foreign keys, view taxonomy, Business Analyst, data generation, backward compatibility, entity IDs, temporal columns
 **Version:** 1.0
 **LastUpdated:** 2025-10-14
+**Depends:** 000-global-core, 100-snowflake-core, 102-snowflake-sql-demo-engineering, 600-data-governance-quality, 700-business-analytics
 **TokenBudget:** ~2200
 **ContextTier:** comprehensive
 

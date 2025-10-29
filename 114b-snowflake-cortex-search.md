@@ -5,6 +5,7 @@
 **Keywords:** Cortex Search, vector search, embeddings, hybrid search, search index, retrieval, RAG, semantic search, agent tool configuration, search tools, document search, prerequisites validation, working SQL examples, error troubleshooting, permission configuration
 **Version:** 1.3
 **LastUpdated:** 2025-10-21
+**Depends:** 100-snowflake-core, 105-snowflake-cost-governance, 111-snowflake-observability, 114-snowflake-cortex-aisql
 
 **TokenBudget:** ~550
 **ContextTier:** Medium

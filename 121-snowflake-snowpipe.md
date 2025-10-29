@@ -5,6 +5,7 @@
 **Keywords:** Snowpipe, Snowpipe Streaming, continuous ingestion, real-time loading, auto-ingest, streaming data, micro-batching
 **Version:** 1.2
 **LastUpdated:** 2025-10-13
+**Depends:** 100-snowflake-core, 108-snowflake-data-loading, 104-snowflake-streams-tasks
 
 **TokenBudget:** ~2200
 **ContextTier:** comprehensive

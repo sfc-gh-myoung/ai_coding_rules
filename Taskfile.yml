@@ -137,6 +137,12 @@ tasks:
     cmds:
       - uv run generate_agent_rules.py --agent cline --source .{{if .DEST}} --destination {{.DEST}}{{end}}
 
+  # Generate Universal rule files from *.md rules (IDE-agnostic)
+  rule:universal:
+    desc: "Generate Universal rule files from *.md rules (IDE-agnostic)"
+    cmds:
+      - uv run generate_agent_rules.py --agent universal --source .{{if .DEST}} --destination {{.DEST}}{{end}}
+
   # Dry run rule generation to preview changes
   rule:cursor:dry:
     desc: "Dry run Cursor rule generation (preview changes)"
@@ -152,6 +158,11 @@ tasks:
     desc: "Dry run Cline rule generation (preview changes)"
     cmds:
       - uv run generate_agent_rules.py --agent cline --source . --dry-run{{if .DEST}} --destination {{.DEST}}{{end}}
+
+  rule:universal:dry:
+    desc: "Dry run Universal rule generation (preview changes)"
+    cmds:
+      - uv run generate_agent_rules.py --agent universal --source . --dry-run{{if .DEST}} --destination {{.DEST}}{{end}}
 
   # Check if rule outputs are current/valid
   rule:cursor:check:
@@ -169,9 +180,20 @@ tasks:
     cmds:
       - uv run generate_agent_rules.py --agent cline --source . --check{{if .DEST}} --destination {{.DEST}}{{end}}
 
+  rule:universal:check:
+    desc: "Check if Universal rule outputs are current"
+    cmds:
+      - uv run generate_agent_rules.py --agent universal --source . --check{{if .DEST}} --destination {{.DEST}}{{end}}
+
+  # Validate universal rule format (no YAML, no comments, metadata stripped)
+  rule:universal:validate:
+    desc: "Validate universal rule format meets standards"
+    cmds:
+      - uv run python validate_agent_rules.py --format universal
+
   # Generate all rule formats
   rule:all:
-    desc: "Generate all IDE-specific rule formats"
+    desc: "Generate all IDE-specific rule formats (including universal)"
     cmds:
       - task: rule:cursor
         vars:
@@ -180,6 +202,9 @@ tasks:
         vars:
           DEST: "{{.DEST}}"
       - task: rule:cline
+        vars:
+          DEST: "{{.DEST}}"
+      - task: rule:universal
         vars:
           DEST: "{{.DEST}}"
       - echo "[OK] Generated all rule formats"
@@ -213,6 +238,7 @@ tasks:
       - rm -rf .cursor/
       - rm -rf .github/instructions/
       - rm -rf .clinerules/
+      - rm -rf rules/
       - echo "[OK] Generated rule files removed"
 
   # Full cleanup
@@ -241,6 +267,7 @@ tasks:
       - task: rule:cursor:check
       - task: rule:copilot:check
       - task: rule:cline:check
+      - task: rule:universal:check
       - echo "[OK] All validation checks passed"
 
   # Validate that all rule files follow updated governance standards (002-rule-governance.md v2.1)
@@ -305,6 +332,11 @@ tasks:
           echo "  [OK] Cline rules are current"
         else
           echo "  [WARN] Cline rules need updating (run 'task rule:cline')"
+        fi
+        if task rule:universal:check --silent >/dev/null 2>&1; then
+          echo "  [OK] Universal rules are current"
+        else
+          echo "  [WARN] Universal rules need updating (run 'task rule:universal')"
         fi
         echo
         echo "Quick Commands:"

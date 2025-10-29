@@ -5,6 +5,7 @@
 **Keywords:** Taskfile, task automation, Taskfile.yml, build automation, task runner
 **Version:** 1.5
 **LastUpdated:** 2025-10-13
+**Depends:** 202-markup-config-validation
 
 **TokenBudget:** ~550
 **ContextTier:** Medium

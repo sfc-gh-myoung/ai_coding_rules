@@ -5,6 +5,7 @@
 **Keywords:** Business intelligence, dashboards, KPIs, reporting, visualization, stakeholder reports, metrics
 **Version:** 2.2
 **LastUpdated:** 2025-10-13
+**Depends:** None
 
 **TokenBudget:** ~2300
 **ContextTier:** comprehensive

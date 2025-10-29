@@ -5,6 +5,7 @@
 **Keywords:** Snowflake, SQL, CTE, performance, cost optimization, query profile, warehouse, security, governance, stages, COPY INTO, streams, tasks
 **Version:** 1.5
 **LastUpdated:** 2025-10-13
+**Depends:** 000-global-core
 
 **TokenBudget:** ~400
 **ContextTier:** High

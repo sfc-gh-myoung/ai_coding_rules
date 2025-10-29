@@ -5,6 +5,7 @@
 **Keywords:** Data governance, data quality, lineage, metadata management, compliance, data catalog
 **Version:** 1.3
 **LastUpdated:** 2025-10-13
+**Depends:** None
 
 **TokenBudget:** ~250
 **ContextTier:** Medium

@@ -5,6 +5,7 @@
 **Keywords:** Flask, web development, blueprints, Flask-SQLAlchemy, templates, routing, Flask extensions
 **Version:** 1.2
 **LastUpdated:** 2025-10-13
+**Depends:** 200-python-core
 
 **TokenBudget:** ~1700
 **ContextTier:** Medium

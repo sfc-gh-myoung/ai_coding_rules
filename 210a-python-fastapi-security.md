@@ -5,6 +5,7 @@
 **Keywords:** FastAPI security, authentication, OAuth2, JWT, CORS, middleware, API keys, security best practices
 **Version:** 1.2
 **LastUpdated:** 2025-10-21
+**Depends:** 210-python-fastapi-core
 
 **TokenBudget:** ~1100
 **ContextTier:** Medium

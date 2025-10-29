@@ -5,6 +5,7 @@
 **Keywords:** pandas, DataFrame, Series, vectorization, iterrows, apply, chained assignment, SettingWithCopyWarning, memory optimization, dtypes, categorical, groupby, merge, join, performance, inplace, method chaining, index operations
 **Version:** 1.0
 **LastUpdated:** 2025-10-22
+**Depends:** 200-python-core, 251-python-datetime-handling
 
 **TokenBudget:** ~1400
 **ContextTier:** high

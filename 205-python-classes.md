@@ -5,6 +5,7 @@
 **Keywords:** Python classes, OOP, inheritance, dataclasses, @property, class design, encapsulation
 **Version:** 1.1
 **LastUpdated:** 2025-10-13
+**Depends:** 200-python-core, 201-python-lint-format, 204-python-docs-comments
 
 **TokenBudget:** ~550
 **ContextTier:** Medium

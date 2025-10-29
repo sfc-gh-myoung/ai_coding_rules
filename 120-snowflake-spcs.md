@@ -5,6 +5,7 @@
 **Keywords:** SPCS, Snowpark Container Services, containers, containerized apps, service deployment, compute pools
 **Version:** 1.3
 **LastUpdated:** 2025-10-17
+**Depends:** 100-snowflake-core
 
 **TokenBudget:** ~950
 **ContextTier:** High

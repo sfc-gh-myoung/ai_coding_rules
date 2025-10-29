@@ -5,6 +5,7 @@
 **Keywords:** Zsh scripting, Z shell, zsh features, arrays, functions, oh-my-zsh
 **Version:** 1.2
 **LastUpdated:** 2025-10-13
+**Depends:** 300-bash-scripting-core
 
 **TokenBudget:** ~1300
 **ContextTier:** Medium

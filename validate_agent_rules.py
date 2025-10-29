@@ -9,6 +9,7 @@ Checks for:
     - Required sections (Purpose, Contract, Validation, etc.)
     - Required metadata (Version, LastUpdated, Keywords)
     - Recommended metadata (TokenBudget, ContextTier)
+    - Universal format validation (no YAML, no comments, metadata stripped)
 
 Exit codes:
     0: All validations passed
@@ -155,6 +156,80 @@ class RuleValidator:
 
         return result
 
+    def validate_universal_output(
+        self, source_file: Path, universal_dir: Path = Path("rules")
+    ) -> ValidationResult:
+        """Validate a universal format output file.
+
+        Checks that:
+        - File exists in universal directory
+        - No YAML frontmatter (doesn't start with ---)
+        - No generated HTML comments
+        - Metadata lines are stripped
+        """
+        result = ValidationResult(
+            file_path=source_file,
+            critical_errors=[],
+            warnings=[],
+            info_messages=[],
+        )
+
+        # Check if universal output exists
+        universal_file = universal_dir / source_file.name
+        if not universal_file.exists():
+            result.critical_errors.append(f"Universal output not found: {universal_file}")
+            return result
+
+        try:
+            content = universal_file.read_text(encoding="utf-8")
+        except Exception as e:
+            result.critical_errors.append(f"Failed to read universal file: {e}")
+            return result
+
+        # Check for YAML frontmatter
+        if content.startswith("---\n"):
+            result.critical_errors.append("Universal file contains YAML frontmatter")
+
+        # Check for generated HTML comments
+        if "<!-- Generated for" in content:
+            result.critical_errors.append("Universal file contains generated HTML comments")
+
+        # Check for metadata lines that should be stripped
+        # Note: Keywords, TokenBudget, ContextTier, and Depends are preserved in universal format
+        # as they are universally useful for semantic discovery, attention budget, prioritization, and dependency resolution
+        metadata_patterns = [
+            r"^\*\*Description:\*\*",
+            r"^\*\*AutoAttach:\*\*",
+            r"^\*\*AppliesTo:\*\*",
+            r"^\*\*Version:\*\*",
+            r"^\*\*LastUpdated:\*\*",
+            r"^\*\*Type:\*\*",
+        ]
+        for pattern in metadata_patterns:
+            if re.search(pattern, content, re.MULTILINE):
+                field_name = pattern.replace(r"^\*\*", "").replace(r":\*\*", "")
+                result.critical_errors.append(
+                    f"Universal file contains metadata line: {field_name}"
+                )
+
+        if not result.critical_errors:
+            result.info_messages.append("Universal format validation passed")
+
+        return result
+
+    def validate_all_universal(
+        self, directory: Path = Path("."), universal_dir: Path = Path("rules")
+    ) -> list[ValidationResult]:
+        """Validate all universal format output files."""
+        rule_files = self.get_rule_files(directory)
+        results = []
+
+        for rule_file in rule_files:
+            result = self.validate_universal_output(rule_file, universal_dir)
+            results.append(result)
+
+        return results
+
     def validate_all(self, directory: Path = Path(".")) -> list[ValidationResult]:
         """Validate all rule files in directory."""
         rule_files = self.get_rule_files(directory)
@@ -249,6 +324,18 @@ def main() -> int:
         action="store_true",
         help="Exit with error code if warnings are found",
     )
+    parser.add_argument(
+        "--format",
+        choices=["source", "universal"],
+        default="source",
+        help="Validation mode: source (validate .md files) or universal (validate rules/ output)",
+    )
+    parser.add_argument(
+        "--universal-dir",
+        type=Path,
+        default=Path("rules"),
+        help="Directory containing universal format rules (default: rules)",
+    )
 
     args = parser.parse_args()
 
@@ -256,8 +343,11 @@ def main() -> int:
     config = ValidationConfig(verbose=args.verbose)
     validator = RuleValidator(config)
 
-    # Validate all files
-    results = validator.validate_all(args.directory)
+    # Validate based on format
+    if args.format == "universal":
+        results = validator.validate_all_universal(args.directory, args.universal_dir)
+    else:
+        results = validator.validate_all(args.directory)
 
     # Print results
     validator.print_results(results)

@@ -5,6 +5,7 @@
 **Keywords:** FastAPI testing, TestClient, pytest-asyncio, API tests, integration testing, mocking
 **Version:** 1.2
 **LastUpdated:** 2025-10-21
+**Depends:** 210-python-fastapi-core
 
 **TokenBudget:** ~600
 **ContextTier:** Medium

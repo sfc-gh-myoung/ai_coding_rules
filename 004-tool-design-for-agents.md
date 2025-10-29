@@ -4,6 +4,7 @@
 **Keywords:** tool design, agent tools, token efficiency, tool parameters, function calling, tool overlap, tool contracts, error handling, minimal tool set, self-contained tools
 **Version:** 1.0
 **LastUpdated:** 2025-10-22
+**Depends:** 000-global-core, 003-context-engineering
 
 **TokenBudget:** ~1800
 **ContextTier:** Comprehensive

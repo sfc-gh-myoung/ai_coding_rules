@@ -5,6 +5,7 @@
 **Keywords:** git workflow, branching strategy, GitLab, GitHub, merge requests, pull requests, feature branches, protected branches, git validation, branch naming, PR workflow, MR workflow
 **Version:** 1.0
 **LastUpdated:** 2025-10-17
+**Depends:** 800-project-changelog-rules, 805-project-contributing-rules
 
 **TokenBudget:** ~800
 **ContextTier:** standard

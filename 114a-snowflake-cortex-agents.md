@@ -5,6 +5,7 @@
 **Keywords:** Cortex Agents, AI agents, agent design, grounding, tools, functions, agent RBAC, agent observability, agent archetypes, planning instructions, response templates, tool configuration, multi-tool agents, hybrid agents, component testing, prerequisites validation, working SQL examples, error troubleshooting, permission configuration
 **Version:** 2.1
 **LastUpdated:** 2025-10-21
+**Depends:** 100-snowflake-core, 105-snowflake-cost-governance, 106-snowflake-semantic-views, 111-snowflake-observability
 
 **TokenBudget:** ~950
 **ContextTier:** High

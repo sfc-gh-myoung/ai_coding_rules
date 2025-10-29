@@ -5,6 +5,7 @@
 **Keywords:** datetime, pandas, timedelta, timezone, datetime64, timestamp, date math, time series, Plotly dates, Streamlit dates, date parsing, date arithmetic, tz_localize, tz_convert, to_pydatetime, Pandas 2.x
 **Version:** 1.0
 **LastUpdated:** 2025-10-22
+**Depends:** 200-python-core
 
 **TokenBudget:** ~1000
 **ContextTier:** high

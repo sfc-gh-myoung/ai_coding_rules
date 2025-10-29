@@ -5,6 +5,7 @@
 **Keywords:** tutorial design, learning notebooks, teaching patterns, anti-patterns, checkpoints, learning objectives, pedagogical design, educational content, progressive learning
 **Version:** 1.0
 **LastUpdated:** 2025-01-14
+**Depends:** 109-snowflake-notebooks, 500-data-science-analytics
 
 **TokenBudget:** ~500
 **ContextTier:** standard

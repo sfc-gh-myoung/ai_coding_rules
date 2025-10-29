@@ -3,6 +3,7 @@
 **Keywords:** Docker, Dockerfile, containers, multi-stage builds, layer caching, image optimization, docker-compose
 **Version:** 1.1
 **LastUpdated:** 2025-10-13
+**Depends:** 202-markup-config-validation
 
 **TokenBudget:** ~650
 **ContextTier:** Medium

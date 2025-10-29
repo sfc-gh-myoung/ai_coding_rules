@@ -7,7 +7,7 @@
 
 # Rules Index
 
-This index helps agents select the correct rule quickly through semantic keyword matching. Always reference this index when users ask "how do I..." or "what rule covers..." questions. Documentation files like `README.md`, `CHANGELOG.md`, and `CONTRIBUTING.md` are excluded.
+This index helps agents select the correct rule quickly through semantic keyword matching. Always reference this index when users ask "how do I..." or "what rule covers..." questions. Documentation files like `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, and `AGENTS.md` (discovery guide) are excluded.
 
 **How to Use This Index:**
 - **CRITICAL:** All agents MUST consult this index in PLAN mode before starting technical work (Rule Discovery Protocol)
@@ -87,8 +87,7 @@ This index helps agents select the correct rule quickly through semantic keyword
 | `800-project-changelog-rules.md` | Agent Requested | Changelog governance with Conventional Commits (MANDATORY for all changes including documentation) | Project mgmt | CHANGELOG, changelog format, semantic versioning, release notes, conventional commits | `000-global-core.md` |
 | `801-project-readme-rules.md` | Agent Requested | README structure & standards | Docs | README, project documentation, getting started, setup instructions, badges | `000-global-core.md` |
 | `805-project-contributing-rules.md` | Agent Requested | Contribution workflow standards | Contributing | CONTRIBUTING, pull requests, code review, contribution guidelines, branching strategy | `000-global-core.md` |
-| `806-git-workflow-management.md` | Agent Requested | Git workflow best practices: branching, PRs/MRs, GitHub/GitLab patterns, protected branches | Git & Version Control | git workflow, branching strategy, GitLab, GitHub, merge requests, pull requests, feature branches, protected branches, git validation, branch naming, PR workflow, MR workflow | `800-project-changelog-rules.md`, `805-project-contributing-rules.md`, `AGENTS.md` |
+| `806-git-workflow-management.md` | Agent Requested | Git workflow best practices: branching, PRs/MRs, GitHub/GitLab patterns, protected branches | Git & Version Control | git workflow, branching strategy, GitLab, GitHub, merge requests, pull requests, feature branches, protected branches, git validation, branch naming, PR workflow, MR workflow | `800-project-changelog-rules.md`, `805-project-contributing-rules.md` |
 | `820-taskfile-automation.md` | Agent Requested | Taskfile automation practices | Automation | Taskfile, task automation, Taskfile.yml, build automation, task runner | `202-yaml-config-best-practices.md` |
 | `900-demo-creation.md` | Agent Requested | Demo creation directives | Demos | Demo creation, synthetic data, realistic demos, data generation, demo applications | — |
 | `901-data-generation-modeling.md` | Agent Requested | Data generation and dimensional modeling standards (Kimball, naming, view taxonomy, BA-first) | Data modeling & generation | Data modeling, naming conventions, Kimball, dimensional modeling, fact tables, dimension tables, foreign keys, view taxonomy, Business Analyst, data generation, backward compatibility, entity IDs, temporal columns | `000-global-core.md`, `100-snowflake-core.md`, `102-snowflake-sql-demo-engineering.md`, `600-data-governance-quality.md`, `700-business-analytics.md` |
-| `AGENTS.md` | Auto-attach | Agent operating workflow (PLAN/ACT), setup, and validation commands | Agents | Agent workflow, PLAN mode, ACT mode, validation, setup commands, rule generation | `000-global-core.md` |

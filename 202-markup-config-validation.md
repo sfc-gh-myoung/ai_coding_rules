@@ -5,6 +5,7 @@
 **Keywords:** YAML, configuration files, YAML syntax, parsing errors, indentation, anchors, aliases, Markdown, markdown linting, pymarkdownlnt, markup validation
 **Version:** 1.4
 **LastUpdated:** 2025-10-17
+**Depends:** None
 
 **TokenBudget:** ~550
 **ContextTier:** Standard

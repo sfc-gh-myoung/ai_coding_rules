@@ -5,6 +5,7 @@
 **Keywords:** Bash testing, ShellCheck, bats, shell script testing, CI/CD, debugging
 **Version:** 1.2
 **LastUpdated:** 2025-10-21
+**Depends:** 300-bash-scripting-core
 
 **TokenBudget:** ~1100
 **ContextTier:** Medium

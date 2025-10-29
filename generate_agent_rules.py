@@ -27,6 +27,7 @@ Supported agents
 
 Common behavior
 - Reads *.md (skips documentation files: README.md, CHANGELOG.md, CONTRIBUTING.md)
+- Also skips AGENTS.md and EXAMPLE_PROMPT.md for all formats (they're guides, not rules)
 - Parses metadata from leading markdown header lines:
   - **Description:**
   - **AutoAttach:**
@@ -289,8 +290,8 @@ class AgentRuleGenerator:
             filename_lower = md_path.name.lower()
             if filename_lower in ("readme.md", "changelog.md", "contributing.md"):
                 continue
-            # Skip AGENTS.md for universal format (it's a discovery guide, not a rule)
-            if self.agent == "universal" and filename_lower == "agents.md":
+            # Skip AGENTS.md and EXAMPLE_PROMPT.md for all formats (they're guides, not rules)
+            if filename_lower in ("agents.md", "example_prompt.md"):
                 continue
             is_stale = self._process_file(md_path)
             stale_found = stale_found or is_stale

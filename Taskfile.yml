@@ -210,17 +210,6 @@ tasks:
       - echo "[OK] Generated all rule formats"
 
   # ============================================================================
-  # Snowflake CLI
-  # ============================================================================
-
-  snow:
-    desc: "Run Snowflake CLI via pinned uvx (pass args with CLI_ARGS)"
-    cmds:
-      - uvx --from=snowflake-cli==3.12 snow {{.CLI_ARGS}}
-    vars:
-      CLI_ARGS: "--help"
-
-  # ============================================================================
   # Development Utilities
   # ============================================================================
 

@@ -22,6 +22,7 @@ This repository serves as a **universal rule system for AI-assisted software dev
 - **Universal format** with preserved metadata (Keywords, TokenBudget, ContextTier, Depends)
 - **AGENTS.md discovery guide** for finding and loading the right rules
 - **RULES_INDEX.md** machine-readable catalog with semantic keywords
+- **EXAMPLE_PROMPT.md** universal baseline prompt for automatic rule loading
 - **Automated generation** for IDE-specific formats (Cursor, Copilot, Cline)
 
 ### Who Should Use This
@@ -190,14 +191,23 @@ task deps:dev
 task rule:cursor    # For Cursor IDE
 task rule:copilot   # For GitHub Copilot
 task rule:cline     # For Cline AI assistant
-task rule:universal # For any IDE/Agent/LLM (clean markdown)
+task rule:universal # For any IDE/Agent/LLM, but well suited for Claude Code Agent 
 ```
 
 ### Basic Usage
 
+#### Quick Start with Universal Baseline Prompt
+
+The fastest way to get started is using **EXAMPLE_PROMPT.md**:
+1. Attach EXAMPLE_PROMPT.md to your AI assistant
+2. Ensure the assistant has access to AGENTS.md, RULES_INDEX.md, and the rules/ directory
+3. Ask your question - the assistant will automatically load relevant rules
+4. No manual rule selection needed!
+
 #### Step 1: Understand the Discovery System
 
-- **AGENTS.md** - Start here! Universal guide for finding and using rules
+- **EXAMPLE_PROMPT.md** - Universal baseline prompt with automatic rule loading
+- **AGENTS.md** - Universal guide for finding and using rules
 - **RULES_INDEX.md** - Machine-readable catalog with keywords and dependencies
 - **Decision Tree** - Follow the flowchart above to identify which rules you need
 

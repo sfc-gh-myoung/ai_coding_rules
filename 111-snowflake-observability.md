@@ -5,6 +5,7 @@
 **Keywords:** Observability, logging, tracing, metrics, telemetry, monitoring, query history, ACCOUNT_USAGE, event tables, Snowflake Trail, System Views, Snowsight, Query History, Copy History, Task History, Dynamic Tables
 **Version:** 1.2
 **LastUpdated:** 2025-10-21
+**Depends:** 100-snowflake-core
 
 **TokenBudget:** ~1800
 **ContextTier:** Comprehensive

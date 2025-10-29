@@ -8,6 +8,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Universal rule format with Depends metadata field for dependency resolution
+- AGENTS.md transformed into universal discovery guide (not a rule)
+- Decision tree in AGENTS.md for rule selection
+- Ecosystem-specific examples in AGENTS.md (Python, Node.js, Java, Go)
+- Depends metadata to all 70+ rule files for explicit dependency tracking
+- Generator support for Depends metadata preservation in universal format
+- Generator logic to exclude AGENTS.md from universal rules (it's a guide, not a rule)
+
+### Changed
+- 000-global-core.md streamlined to contain only foundational principles (~300 tokens)
+- Operational details moved from 000-global-core.md to AGENTS.md
+- RULES_INDEX.md updated to exclude AGENTS.md (not a rule)
+- Universal format now preserves Keywords, TokenBudget, ContextTier, and Depends metadata
+- README.md comprehensively updated:
+  - Added clear project scope and intent section
+  - Added visual decision tree flowchart for rule selection
+  - Added "Using Rules with Different Tools" section with examples
+  - Added programmatic rule loading examples for CLI tools
+  - Clarified AGENTS.md role as discovery guide (not a rule)
+
+### Added
 
 - **102-snowflake-sql-demo-engineering.md** (v2.0, 2025-10-23, Auto-attach)
   - New demo-focused SQL rule for Snowflake demos and customer learning environments

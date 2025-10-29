@@ -6,15 +6,107 @@
 
 > **Universal AI coding rules for consistent, reliable software engineering across LLMs and IDEs**
 
+## Project Scope and Intent
+
+This repository serves as a **universal rule system for AI-assisted software development**, providing:
+
+1. **Cross-Platform Compatibility**: Rules that work with any AI assistant (Claude, GPT, Gemini), IDE (Cursor, VS Code, IntelliJ), or CLI tool
+2. **Dependency-Aware Architecture**: Explicit dependency chains ensure rules are loaded in the correct order with all prerequisites
+3. **Token-Efficient Design**: Modular, focused rules (150-500 lines) that minimize context window usage while maximizing relevance
+4. **Technology Coverage**: Comprehensive rules for Snowflake, Python, Docker, Shell scripting, and project management
+5. **Semantic Discovery**: Keywords and metadata enable intelligent rule selection based on task requirements
+
+### What This Repository Provides
+
+- **70+ specialized rule files** covering best practices, patterns, and governance
+- **Universal format** with preserved metadata (Keywords, TokenBudget, ContextTier, Depends)
+- **AGENTS.md discovery guide** for finding and loading the right rules
+- **RULES_INDEX.md** machine-readable catalog with semantic keywords
+- **Automated generation** for IDE-specific formats (Cursor, Copilot, Cline)
+
+### Who Should Use This
+
+- **Developers** working with AI coding assistants who want consistent, high-quality guidance
+- **Teams** seeking to standardize AI-assisted development practices
+- **Organizations** implementing AI coding standards across multiple tools and platforms
+- **Tool Builders** creating AI-powered development environments
+
+## Rule Selection Decision Tree
+
+```
+┌─────────────────────────────────────────────────┐
+│         Start: What are you building?           │
+└─────────────────┬───────────────────────────────┘
+                  │
+    ┌─────────────┴─────────────┬─────────────────┬──────────────┐
+    ▼                           ▼                 ▼              ▼
+┌─────────┐            ┌──────────────┐   ┌─────────────┐  ┌──────────┐
+│Snowflake│            │Python App    │   │Infrastructure│  │General   │
+└────┬────┘            └──────┬───────┘   └──────┬──────┘  └────┬─────┘
+     │                        │                   │              │
+     ├─SQL/Pipeline           ├─FastAPI           ├─Docker       │
+     │ └►100-snowflake-core   │ └►210-fastapi     │ └►400-docker └►000-global-core
+     │                        │                   │
+     ├─Streamlit              ├─Flask             ├─Shell/Bash
+     │ └►101-streamlit-core   │ └►250-flask       │ └►300-bash
+     │   +101a (viz)          │                   │
+     │   +101b (perf)         ├─CLI Tool          └─CI/CD
+     │   +101c (security)     │ └►220-typer         └►806-git-workflow
+     │                        │
+     ├─Notebooks/ML           └─Data Science
+     │ └►109-notebooks          └►500-data-science
+     │
+     └─AI/ML Features
+       └►114-cortex-aisql
+         +114a (agents)
+         +114b (search)
+
+Loading Order (Follow Dependencies):
+1. Always load 000-global-core first
+2. Load domain foundation (100-snowflake, 200-python, etc.)
+3. Load specialized rules based on task
+4. Check Depends field and load prerequisites
+```
+
+### How the Decision Tree Works
+
+1. **Identify your primary technology** (Snowflake, Python, Infrastructure, etc.)
+2. **Select your use case** within that technology
+3. **Start with the recommended base rule** 
+4. **Follow the dependency chain** using the Depends metadata
+5. **Add specialized rules** as needed for specific features
+
+### Example Loading Sequences
+
+**Snowflake Streamlit Dashboard:**
+```
+000-global-core (foundation)
+└── 100-snowflake-core (SQL patterns)
+    └── 101-snowflake-streamlit-core (app basics)
+        ├── 101a-streamlit-visualization (if using charts)
+        └── 101b-streamlit-performance (if optimizing)
+```
+
+**Python FastAPI with Testing:**
+```
+000-global-core (foundation)
+└── 200-python-core (Python basics)
+    ├── 210-python-fastapi-core (API framework)
+    │   └── 210a-fastapi-security (if auth needed)
+    └── 206-python-pytest (testing patterns)
+```
+
+## About the Project
+
 This repository provides a comprehensive collection of engineering rules designed to work seamlessly with AI coding assistants including Claude, ChatGPT, GitHub Copilot, Cursor, and others. The rules cover everything from Python and SQL best practices to data engineering, analytics, and project governance. Some aspects of the **rules are opinionated**, particularly where it relates to:
 
 - naming conventions
 - project structure
 - usage of uv and ruff
-- usage of Task.
+- usage of Task
 - README.md and CHANGELOG.md
 
-You are **encouraged to review the rules and make adjustments** as desired to better align with your best practices or prefered approaches.
+You are **encouraged to review the rules and make adjustments** as desired to better align with your best practices or preferred approaches.
 
 This project was inspired, in part, by: [how-to-add-cline-memory-bank-feature-to-your-cursor](https://forum.cursor.com/t/how-to-add-cline-memory-bank-feature-to-your-cursor/67868) and [cline memory bank](https://docs.cline.bot/prompting/cline-memory-bank)
 
@@ -80,11 +172,9 @@ Beyond LLM performance, smaller rules provide:
 
 ### Prerequisites
 
-This project assumes that you are using `uv` and `uvx` for python venv management and tooling. The assumption is that you are using Taskfile for task management instead of Makefiles or shell scripts.
-
 - **Python 3.11+** (required: pin to 3.11 for consistency)
 - **uv** (recommended: [install uv](https://github.com/astral-sh/uv) for fast dependency management)  
-- **Task** (recommended: install via `brew install go-task/tap/go-task` or [other methods](https://taskfile.dev/installation/))
+- **Task** (optional but recommended: install via `brew install go-task/tap/go-task` or [other methods](https://taskfile.dev/installation/))
 
 ### Installation
 
@@ -100,36 +190,49 @@ task deps:dev
 task rule:cursor    # For Cursor IDE
 task rule:copilot   # For GitHub Copilot
 task rule:cline     # For Cline AI assistant
+task rule:universal # For any IDE/Agent/LLM (clean markdown)
 ```
 
 ### Basic Usage
 
-#### Option 1: Direct Rule Usage
-Open any `.md` rule file directly in your IDE and follow the directive language (`Critical`, `Mandatory`, `Always`, `Requirement`, `Rule`, `Consider`, `Avoid`).
+#### Step 1: Understand the Discovery System
 
-#### Option 2: Generate IDE-Specific Rules
+- **AGENTS.md** - Start here! Universal guide for finding and using rules
+- **RULES_INDEX.md** - Machine-readable catalog with keywords and dependencies
+- **Decision Tree** - Follow the flowchart above to identify which rules you need
+
+#### Step 2: Choose Your Integration Method
+
+**Option A: Universal Rules (Recommended)**
 ```bash
-# Generate Cursor project rules
-task rule:cursor
-# Creates .cursor/rules/*.mdc files with automatic *.md → *.mdc reference conversion
+# Generate universal rules suitable for any IDE/Agent/LLM
+task rule:universal
+# Creates rules/*.md with Keywords, TokenBudget, ContextTier, and Depends metadata
 
-# Generate GitHub Copilot instructions  
-task rule:copilot
-# Creates .github/instructions/*.md files with preserved *.md references
+# Load rules following dependencies:
+# 1. Start with 000-global-core.md
+# 2. Add domain foundation (100-snowflake-core, 200-python-core, etc.)
+# 3. Layer on specialized rules based on your task
+```
 
-# Generate Cline rules
-task rule:cline
-# Creates .clinerules/*.md files with plain Markdown (no YAML frontmatter)
+**Option B: IDE-Specific Rules**
+```bash
+# Generate for your specific IDE
+task rule:cursor     # Creates .cursor/rules/*.mdc files
+task rule:copilot    # Creates .github/instructions/*.md files  
+task rule:cline      # Creates .clinerules/*.md files
 
 # Optional: write outputs to a custom base directory using DEST
 task rule:cursor DEST=/path/to/output     # Creates /path/to/output/.cursor/rules/*.mdc
 task rule:copilot DEST=../                # Creates ../.github/instructions/*.md
 task rule:cline DEST=~/projects/my-app    # Creates ~/projects/my-app/.clinerules/*.md
+task rule:universal DEST=~/projects/my-app # Creates ~/projects/my-app/rules/*.md
 
 # Manual generation with options
 uv run generate_agent_rules.py --agent cursor --source . --dry-run
 uv run generate_agent_rules.py --agent copilot --source . --check
 uv run generate_agent_rules.py --agent cline --source . --dry-run
+uv run generate_agent_rules.py --agent universal --source . --dry-run
 
 # Generate to custom base directory 
 # The --destination parameter specifies a base directory where agent-specific subdirectories are created
@@ -273,7 +376,7 @@ gen-rules --verbose --project ~/my-rules rule:all DEST=/output
 - **`000-global-core.md`** — Universal operating principles and safety protocols
 - **`001-memory-bank.md`** — Universal memory bank for AI context continuity  
 - **`002-rule-governance.md`** — Comprehensive rule authoring governance: creation standards, naming conventions, structure requirements, validation workflows, and rule creation template
-- **`AGENTS.md`** — Agent operating workflow (PLAN/ACT), setup commands, validation, and development guidelines
+- **`AGENTS.md`** — Universal discovery guide for finding and using rules (not a rule itself)
 
 #### Universal Rule Authoring Best Practices
 
@@ -451,6 +554,7 @@ The project includes a sophisticated rule generator (`generate_agent_rules.py`) 
 | **Cursor** | `.mdc` files | `.cursor/rules/` | YAML frontmatter with globs, auto-apply, automatic `*.md` → `*.mdc` reference conversion |
 | **GitHub Copilot** | `.md` files | `.github/instructions/` | YAML frontmatter with appliesTo patterns, preserves original `*.md` references |
 | **Cline** | `.md` files | `.clinerules/` | Plain Markdown (no YAML frontmatter), all files automatically processed |
+| **Universal** | `.md` files | `rules/` | Clean Markdown, no frontmatter/comments/metadata - works with any IDE/Agent/LLM |
 
 ### Reference Conversion Feature
 
@@ -466,6 +570,39 @@ The rule generator automatically converts cross-references for consistency:
 - All references remain unchanged as `*.md`
 
 This ensures that generated Cursor rules reference the correct `.mdc` file format while maintaining compatibility with standard documentation files.
+
+**For Universal Rules (`.md` files):**
+- All references remain unchanged as `*.md`
+- No YAML frontmatter or generated comments
+- **Preserves essential metadata:** Keywords, TokenBudget, ContextTier (as regular markdown after H1)
+- **Strips IDE-specific metadata:** Type, Description, AutoAttach, AppliesTo, Version, LastUpdated
+- Clean, portable Markdown suitable for any IDE, agent, or LLM
+- Use `RULES_INDEX.md` and `AGENTS.md` for semantic rule discovery
+
+**Preserved Metadata Benefits:**
+- **Keywords** - Enables semantic discovery and grep-based searches
+- **TokenBudget** - Helps LLMs manage attention budget and decide which rules to load
+- **ContextTier** - Provides prioritization (Critical/High/Medium/Low) for rule loading
+- **Depends** - Specifies prerequisite rules that must be loaded first (dependency chain)
+
+**Example Universal Rule Format:**
+```markdown
+# Rule Title
+
+**Keywords:** keyword1, keyword2, keyword3
+**TokenBudget:** ~400
+**ContextTier:** High
+**Depends:** 000-global-core, 100-snowflake-core
+
+## Purpose
+Rule content starts here...
+```
+
+The universal format is ideal for:
+- Custom AI agents or LLM integrations
+- Manual inclusion in project contexts
+- Environments where IDE-specific formatting is not supported
+- Maximum portability across different AI development tools
 
 ### Metadata Parsing
 
@@ -613,6 +750,92 @@ flowchart TD
 - **Modern Tooling** — Built for `uv`, Ruff, and contemporary Python development
 - **Configuration Safety** — YAML syntax safety and build error prevention
 
+## Using Rules with Different Tools
+
+### For LLMs and AI Agents
+
+```python
+# Example: Loading rules for a Snowflake Streamlit dashboard
+
+# 1. Consult AGENTS.md for the decision tree
+# 2. Search RULES_INDEX.md for relevant keywords
+keywords = ["Streamlit", "Snowflake", "dashboard"]
+
+# 3. Load rules following dependency chain
+load_sequence = [
+    "000-global-core.md",           # Foundation (always first)
+    "100-snowflake-core.md",         # Domain foundation  
+    "101-snowflake-streamlit-core.md",  # Specific technology
+    "101a-streamlit-visualization.md"   # If using charts (optional)
+]
+
+# Total: ~2000 tokens of focused, relevant guidance
+```
+
+### For CLI Tools and Scripts
+
+```bash
+# Find rules by keywords
+grep -i "performance\|optimization" RULES_INDEX.md
+
+# Extract dependencies from a rule
+grep "**Depends:**" rules/101-snowflake-streamlit-core.md
+
+# Get token budgets for context planning
+grep "**TokenBudget:**" rules/*.md | awk -F: '{sum+=$3} END {print "Total tokens:", sum}'
+
+# Build dependency tree programmatically
+find rules -name "*.md" -exec grep -H "**Depends:**" {} \; | \
+  awk -F: '{print $1 " depends on " $3}'
+```
+
+### For IDEs (Cursor, VS Code, IntelliJ)
+
+1. **Universal Format (Recommended)**
+   - Use `rules/` directory directly
+   - Rules contain Keywords, TokenBudget, ContextTier, Depends
+   - Works with any IDE that supports markdown
+
+2. **IDE-Specific Formats**
+   - Cursor: `.cursor/rules/*.mdc`
+   - Copilot: `.github/instructions/*.md`
+   - Cline: `.clinerules/*.md`
+
+### Programmatic Rule Loading Example
+
+```python
+import re
+from pathlib import Path
+
+def load_rule_with_dependencies(rule_name, rules_dir="rules"):
+    """Load a rule and all its dependencies in correct order."""
+    loaded = []
+    to_load = [rule_name]
+    
+    while to_load:
+        current = to_load.pop(0)
+        if current not in loaded and current != "None":
+            # Read the rule file
+            rule_path = Path(rules_dir) / current
+            if rule_path.exists():
+                content = rule_path.read_text()
+                
+                # Extract dependencies
+                depends_match = re.search(r'\*\*Depends:\*\* (.+)', content)
+                if depends_match:
+                    deps = depends_match.group(1).split(', ')
+                    # Add dependencies to load queue (they'll load first)
+                    to_load = [f"{d}.md" for d in deps if d != "None"] + to_load
+                
+                loaded.append(current)
+    
+    return loaded  # Returns rules in dependency order
+
+# Example usage
+rules_to_load = load_rule_with_dependencies("101-snowflake-streamlit-core.md")
+# Returns: ["000-global-core.md", "100-snowflake-core.md", "101-snowflake-streamlit-core.md"]
+```
+
 ## Contributing
 
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
@@ -711,7 +934,8 @@ uvx ruff format .         # Apply formatting
 task rule:cursor         # Generate Cursor rules
 task rule:copilot        # Generate Copilot rules
 task rule:cline          # Generate Cline rules
-task rule:all            # Generate all IDE-specific rules
+task rule:universal      # Generate Universal rules (IDE-agnostic)
+task rule:all            # Generate all IDE-specific rules (including universal)
 
 # Optional DEST variable to change base output directory
 task rule:all DEST=/custom/output
@@ -760,6 +984,15 @@ task rule:cline
 # Generate rules for Cline AI assistant
 # Configure via .clinerules/*.md files
 # All Markdown files in .clinerules/ are automatically processed
+```
+
+### Universal Format (Any IDE/Agent/LLM)
+```bash
+task rule:universal
+# Generate clean Markdown rules for any IDE, agent, or LLM
+# Creates rules/*.md files with no YAML frontmatter or generated comments
+# Use with RULES_INDEX.md and AGENTS.md for rule discovery
+# Perfect for manual inclusion or programmatic loading by custom tools
 ```
 
 ### Claude Projects

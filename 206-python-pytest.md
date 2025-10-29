@@ -5,6 +5,7 @@
 **Keywords:** pytest, testing, fixtures, parametrization, test isolation, mocking, test organization, coverage
 **Version:** 1.1
 **LastUpdated:** 2025-10-13
+**Depends:** 200-python-core, 201-python-lint-format, 203-python-project-setup
 
 **TokenBudget:** ~500
 **ContextTier:** High

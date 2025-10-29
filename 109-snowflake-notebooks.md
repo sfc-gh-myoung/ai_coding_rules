@@ -5,6 +5,7 @@
 **Keywords:** Snowflake notebooks, Jupyter, Python notebooks, data exploration, ML, reproducible notebooks, nbqa, notebook linting, code quality
 **Version:** 1.3
 **LastUpdated:** 2025-10-17
+**Depends:** 100-snowflake-core, 201-python-lint-format
 
 **TokenBudget:** ~400
 **ContextTier:** Standard

@@ -5,6 +5,7 @@
 **Keywords:** memory bank, context, session recovery, project brief, active context, progress tracking, continuity, context rot, attention budget, compaction
 **Version:** 2.3
 **LastUpdated:** 2025-10-22
+**Depends:** 000-global-core
 
 **TokenBudget:** ~550
 **ContextTier:** Critical

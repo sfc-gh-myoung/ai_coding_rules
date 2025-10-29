@@ -5,6 +5,7 @@
 **Keywords:** Streamlit testing, AppTest, st.testing, unit tests, debugging, test Streamlit app, pytest
 **Version:** 1.1
 **LastUpdated:** 2025-10-13
+**Depends:** 101-snowflake-streamlit-core, 206-python-pytest
 
 **TokenBudget:** ~400
 **ContextTier:** standard

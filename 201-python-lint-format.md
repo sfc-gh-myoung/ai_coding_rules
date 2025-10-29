@@ -5,6 +5,7 @@
 **Keywords:** Ruff, linting, formatting, code quality, style checking, uvx ruff, lint errors
 **Version:** 1.2
 **LastUpdated:** 2025-10-13
+**Depends:** 200-python-core
 
 **TokenBudget:** ~300
 **ContextTier:** High

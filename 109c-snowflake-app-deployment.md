@@ -5,6 +5,7 @@
 **Keywords:** Snowflake deployment, stage management, notebook deployment, Streamlit deployment, PUT, REMOVE, CREATE NOTEBOOK, CREATE STREAMLIT, deployment automation, task automation, staged applications, drop, upload, create, deploy workflow, AUTO_COMPRESS, stage path, ROOT_LOCATION, SiS deployment, TypeError, file compression, import failure
 **Version:** 1.1
 **LastUpdated:** 2025-10-25
+**Depends:** 100-snowflake-core, 109-snowflake-notebooks, 101-snowflake-streamlit-core, 820-taskfile-automation
 
 **TokenBudget:** ~600
 **ContextTier:** Medium

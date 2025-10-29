@@ -5,6 +5,7 @@
 **Keywords:** Python docstrings, documentation, comments, pydocstyle, Ruff DOC rules, API documentation
 **Version:** 1.1
 **LastUpdated:** 2025-10-13
+**Depends:** 200-python-core, 201-python-lint-format
 
 **TokenBudget:** ~350
 **ContextTier:** Medium

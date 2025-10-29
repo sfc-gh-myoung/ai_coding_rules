@@ -5,6 +5,7 @@
 **Keywords:** Zsh completion, modules, hooks, advanced features, performance
 **Version:** 1.2
 **LastUpdated:** 2025-10-21
+**Depends:** 310-zsh-scripting-core
 
 **TokenBudget:** ~1250
 **ContextTier:** Low

@@ -5,6 +5,7 @@
 **Keywords:** Masking policies, row access policies, column masking, data governance, tagging, RBAC, roles, grants, secure views
 **Version:** 1.3
 **LastUpdated:** 2025-10-13
+**Depends:** 100-snowflake-core
 
 **TokenBudget:** ~250
 **ContextTier:** High

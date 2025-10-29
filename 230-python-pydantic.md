@@ -5,6 +5,7 @@
 **Keywords:** Pydantic, data validation, models, settings, BaseModel, field validation, serialization
 **Version:** 1.2
 **LastUpdated:** 2025-10-13
+**Depends:** 200-python-core
 
 **TokenBudget:** ~1200
 **ContextTier:** Medium

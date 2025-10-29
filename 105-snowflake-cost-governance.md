@@ -5,6 +5,7 @@
 **Keywords:** Cost optimization, resource monitors, warehouse auto-suspend, query cost, credit usage, budget alerts, spend tracking
 **Version:** 1.2
 **LastUpdated:** 2025-10-13
+**Depends:** 100-snowflake-core
 
 **TokenBudget:** ~250
 **ContextTier:** High

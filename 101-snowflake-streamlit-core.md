@@ -5,6 +5,7 @@
 **Keywords:** Streamlit, Snowflake in Streamlit, SiS, SPCS, st.connection, session state, navigation, multipage, deployment, UI, dashboard, pandas, NaN, NULL handling
 **Version:** 1.2
 **LastUpdated:** 2025-10-18
+**Depends:** 100-snowflake-core
 
 **TokenBudget:** ~700
 **ContextTier:** standard

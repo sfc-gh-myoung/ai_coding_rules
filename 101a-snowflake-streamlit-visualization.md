@@ -5,6 +5,7 @@
 **Keywords:** Streamlit charts, Plotly, st.plotly_chart, st.map, visualization, dashboard, interactive charts, map visualization, time series smoothing, data aggregation
 **Version:** 1.5
 **LastUpdated:** 2025-10-23
+**Depends:** 101-snowflake-streamlit-core, 700-business-analytics
 
 **TokenBudget:** ~600
 **ContextTier:** standard

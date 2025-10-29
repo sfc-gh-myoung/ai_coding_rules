@@ -5,6 +5,7 @@
 **Keywords:** Data loading, stages, COPY INTO, CSV load, JSON load, Parquet, file formats, bulk loading, stage management
 **Version:** 1.3
 **LastUpdated:** 2025-10-13
+**Depends:** 100-snowflake-core
 
 **TokenBudget:** ~200
 **ContextTier:** Medium

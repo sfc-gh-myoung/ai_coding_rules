@@ -22,6 +22,9 @@ Supported agents
 - cline: writes .clinerules/<name>.md with plain Markdown and Cline docs comment:
   <!-- Generated for Cline rules. See https://docs.cline.bot/features/cline-rules -->
 
+- universal: writes rules/<name>.md with pure Markdown (no YAML, no comments):
+  Clean markdown suitable for any IDE/agent/LLM
+
 Common behavior
 - Reads *.md (skips documentation files: README.md, CHANGELOG.md, CONTRIBUTING.md)
 - Parses metadata from leading markdown header lines:
@@ -43,6 +46,9 @@ Usage
 
   # Generate Cline rules (writes to ./.clinerules by default)
   python ai_coding_rules/generate_agent_rules.py --agent cline [--dry-run]
+
+  # Generate Universal rules (writes to ./rules by default)
+  python ai_coding_rules/generate_agent_rules.py --agent universal [--dry-run]
 
   # Generate to custom base directory (creates ../parent/.cursor/rules)
   python ai_coding_rules/generate_agent_rules.py --agent cursor --destination ../parent
@@ -66,6 +72,10 @@ RE_AUTO_ATTACH = re.compile(r"^\*\*AutoAttach:\*\*\s*(true|false|.*)$", re.IGNOR
 RE_KEYWORDS = re.compile(r"^\*\*Keywords:\*\*\s*(.*)$", re.IGNORECASE)
 RE_VERSION = re.compile(r"^\*\*Version:\*\*\s*(.*)$", re.IGNORECASE)
 RE_LAST_UPDATED = re.compile(r"^\*\*LastUpdated:\*\*\s*(.*)$", re.IGNORECASE)
+RE_TYPE = re.compile(r"^\*\*Type:\*\*\s*(.*)$", re.IGNORECASE)
+RE_TOKEN_BUDGET = re.compile(r"^\*\*TokenBudget:\*\*\s*(.*)$", re.IGNORECASE)
+RE_CONTEXT_TIER = re.compile(r"^\*\*ContextTier:\*\*\s*(.*)$", re.IGNORECASE)
+RE_DEPENDS = re.compile(r"^\*\*Depends:\*\*\s*(.*)$", re.IGNORECASE)
 
 
 def strip_existing_yaml_header(text: str) -> str:
@@ -79,7 +89,11 @@ def strip_existing_yaml_header(text: str) -> str:
 
 
 def strip_markdown_metadata_lines(text: str) -> str:
-    """Remove specific markdown header lines (Description, AutoAttach, AppliesTo, Version, LastUpdated)."""
+    """Remove specific markdown header lines (Description, AutoAttach, AppliesTo, Version, LastUpdated, Type).
+
+    Preserves Keywords, TokenBudget, ContextTier, and Depends as these are universally useful for
+    semantic discovery, attention budget management, prioritization, and dependency resolution.
+    """
     out_lines: list[str] = []
     for line in text.splitlines():
         ls = line.strip()
@@ -89,6 +103,7 @@ def strip_markdown_metadata_lines(text: str) -> str:
             or RE_AUTO_ATTACH.match(ls)
             or RE_VERSION.match(ls)
             or RE_LAST_UPDATED.match(ls)
+            or RE_TYPE.match(ls)
         ):
             continue
         out_lines.append(line)
@@ -203,6 +218,9 @@ class AgentSpec:
         elif self.name == "cline":
             # Cline uses plain Markdown with no YAML header
             return ""
+        elif self.name == "universal":
+            # Universal uses pure Markdown with no YAML header or comments
+            return ""
         # copilot: simple list YAML (no extra fields)
         # Ensure all patterns are quoted and safe
         safe_patterns = [p.replace("\\", "\\\\").replace('"', '\\"') for p in (patterns or [])]
@@ -248,8 +266,15 @@ class AgentRuleGenerator:
                     "See https://docs.cline.bot/features/cline-rules -->\n\n"
                 ),
             )
+        elif agent == "universal":
+            self.spec = AgentSpec(
+                name="universal",
+                dest_dir=destination,
+                header_key="",  # Universal doesn't use header keys
+                prepend_comment=None,  # No generated comments for universal
+            )
         else:
-            raise ValueError("agent must be one of: 'cursor', 'copilot', 'cline'")
+            raise ValueError("agent must be one of: 'cursor', 'copilot', 'cline', 'universal'")
 
     def run(self) -> None:
         """Execute generation for all *.md files.
@@ -263,6 +288,9 @@ class AgentRuleGenerator:
             # Skip documentation files that are not rules
             filename_lower = md_path.name.lower()
             if filename_lower in ("readme.md", "changelog.md", "contributing.md"):
+                continue
+            # Skip AGENTS.md for universal format (it's a discovery guide, not a rule)
+            if self.agent == "universal" and filename_lower == "agents.md":
                 continue
             is_stale = self._process_file(md_path)
             stale_found = stale_found or is_stale
@@ -364,7 +392,10 @@ def main() -> None:
     """CLI entry point for agent rules generation."""
     parser = argparse.ArgumentParser(description="Generate agent rules from *.md")
     parser.add_argument(
-        "--agent", choices=["cursor", "copilot", "cline"], required=True, help="Target agent"
+        "--agent",
+        choices=["cursor", "copilot", "cline", "universal"],
+        required=True,
+        help="Target agent",
     )
     parser.add_argument(
         "--source",
@@ -398,8 +429,10 @@ def main() -> None:
         destination = base_dir / ".cursor" / "rules"
     elif args.agent == "copilot":
         destination = base_dir / ".github" / "instructions"
-    else:  # cline
+    elif args.agent == "cline":
         destination = base_dir / ".clinerules"
+    else:  # universal
+        destination = base_dir / "rules"
 
     generator = AgentRuleGenerator(
         agent=args.agent, source=source, destination=destination, dry_run=args.dry_run

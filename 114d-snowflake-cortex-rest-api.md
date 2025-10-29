@@ -5,6 +5,7 @@
 **Keywords:** Cortex REST API, API authentication, streaming responses, API retries, idempotency, rate limits
 **Version:** 1.1
 **LastUpdated:** 2025-10-21
+**Depends:** 100-snowflake-core, 105-snowflake-cost-governance, 111-snowflake-observability
 
 **TokenBudget:** ~350
 **ContextTier:** Medium

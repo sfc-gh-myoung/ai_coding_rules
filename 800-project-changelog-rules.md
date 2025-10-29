@@ -5,6 +5,7 @@
 **Keywords:** CHANGELOG, changelog format, semantic versioning, release notes, conventional commits
 **Version:** 1.5
 **LastUpdated:** 2025-10-17
+**Depends:** 000-global-core
 
 **TokenBudget:** ~300
 **ContextTier:** Medium

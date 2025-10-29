@@ -5,6 +5,7 @@
 **Keywords:** SQL demos, demo engineering, learning SQL, per-schema setup, teardown, grid_setup.sql, customer_load.sql, inline documentation, progress indicators, rerunnable demos
 **Version:** 2.0
 **LastUpdated:** 2025-10-23
+**Depends:** 100-snowflake-core
 
 **TokenBudget:** ~800
 **ContextTier:** High

@@ -4,6 +4,7 @@
 **Keywords:** context engineering, attention budget, context rot, token efficiency, compaction, progressive disclosure, sub-agents, agentic search, system prompts, right altitude, long-horizon tasks
 **Version:** 1.0
 **LastUpdated:** 2025-10-22
+**Depends:** 000-global-core
 
 **TokenBudget:** ~800
 **ContextTier:** Critical

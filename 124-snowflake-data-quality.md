@@ -7,6 +7,7 @@
 **ContextTier:** comprehensive
 **Version:** 1.2
 **LastUpdated:** 2025-10-13
+**Depends:** 100-snowflake-core, 105-snowflake-cost-governance, 107-snowflake-security-governance, 600-data-governance-quality
 
 # Snowflake Data Quality Monitoring Best Practices
 

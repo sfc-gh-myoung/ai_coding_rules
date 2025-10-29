@@ -5,6 +5,7 @@
 **Keywords:** Bash scripting, shell scripts, set -euo pipefail, error handling, functions, variables, script structure
 **Version:** 1.2
 **LastUpdated:** 2025-10-13
+**Depends:** 000-global-core
 
 **TokenBudget:** ~1200
 **ContextTier:** High

@@ -5,6 +5,7 @@
 **Keywords:** Streamlit security, secrets management, st.secrets, input validation, XSS protection, SQL injection, authentication
 **Version:** 1.1
 **LastUpdated:** 2025-10-13
+**Depends:** 101-snowflake-streamlit-core, 107-snowflake-security-governance
 
 **TokenBudget:** ~400
 **ContextTier:** standard

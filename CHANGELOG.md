@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.1] - 2025-10-29
+
+### Changed
+
+- **docs(agents):** Added MANDATORY RULE LOADING PROTOCOL to AGENTS.md
+  - **New Section:** "⚠️ MANDATORY RULE LOADING PROTOCOL (For AI Assistants)" added at top of AGENTS.md
+  - **Critical Requirement:** AI assistants MUST load relevant rules before beginning ANY coding task
+  - **Four-Step Protocol:**
+    1. **Step 1: Analyze the Task** - Identify technology domain, framework/tool, and task type
+    2. **Step 2: Load Foundation Rules** - Always read `rules/000-global-core.md` first, then domain core rule (100-Snowflake, 200-Python, 400-Docker, 300-Bash)
+    3. **Step 3: Load Specialized Rules** - Search `RULES_INDEX.md` Keywords column and load technology/pattern/feature-specific rules
+    4. **Step 4: Verify Rule Loading** - State which rules were loaded, confirm they match task requirements
+  - **Enforcement:** Protocol violation if rules not loaded before coding; requires STOP, load rules, review implementation, make corrections
+  - **Examples:** Correct approach (load rules first) vs. Incorrect approach (immediate implementation without rules)
+  - **Rationale:** Ensures AI assistants have proper context and follow established patterns/standards before making changes
+  - **Impact:** Prevents protocol violations where agents make changes without understanding project-specific rules and conventions
+
 ## [2.0.0] - 2025-10-29
 
 ### Added

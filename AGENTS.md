@@ -5,6 +5,71 @@
 A discovery and integration guide for using AI coding rules with any CLI, IDE, Agent, or LLM.
 This is NOT a rule itself - it's a guide to finding and using rules.
 
+## ⚠️ MANDATORY RULE LOADING PROTOCOL (For AI Assistants)
+
+**CRITICAL**: Before beginning ANY coding task, you MUST follow this protocol:
+
+### Step 1: Analyze the Task (Required)
+
+Identify:
+- Primary technology domain (Snowflake, Python, Docker, etc.)
+- Specific framework/tool (Streamlit, FastAPI, etc.)
+- Task type (debugging, new feature, performance, security)
+
+### Step 2: Load Foundation Rules (Always Required)
+
+Execute in order:
+1. Read `rules/000-global-core.md` (ALWAYS first)
+2. Read relevant domain core rule based on technology:
+   - Snowflake → `rules/100-snowflake-core.md`
+   - Python → `rules/200-python-core.md`
+   - Docker → `rules/400-docker-best-practices.md`
+   - Bash → `rules/300-bash-scripting-core.md`
+
+### Step 3: Load Specialized Rules (Based on Task)
+
+Search `RULES_INDEX.md` Keywords column and load:
+- Technology-specific rules (e.g., `101-snowflake-streamlit-core.md`)
+- Pattern-specific rules (e.g., `101b-snowflake-streamlit-performance.md`)
+- Feature-specific rules (e.g., `210a-python-fastapi-security.md`)
+
+### Step 4: Verify Rule Loading
+
+Before proceeding with implementation:
+- State which rules were loaded
+- Confirm rules match the task requirements
+- If uncertain, load additional rules rather than guessing
+
+### Enforcement
+
+**Failure to load rules before coding is a protocol violation.**
+
+If you realize mid-task that rules weren't loaded:
+1. STOP implementation immediately
+2. Load relevant rules
+3. Review implementation against rule guidelines
+4. Make corrections if needed
+
+### Example: Correct Approach ✅
+
+```
+User: Fix the Streamlit fragment batch processing
+AI: Let me load the relevant rules first:
+    - Reading rules/000-global-core.md
+    - Reading rules/100-snowflake-core.md  
+    - Reading rules/101-snowflake-streamlit-core.md
+    - Reading rules/101b-snowflake-streamlit-performance.md
+    
+    Rules loaded. Now analyzing the issue against fragment best practices...
+```
+
+### Example: Incorrect Approach ❌
+
+```
+User: Fix the Streamlit fragment batch processing
+AI: *immediately starts debugging code without loading rules*
+```
+
 ## Quick Start: Finding the Right Rules
 
 ### Decision Tree for Rule Selection

@@ -5,6 +5,7 @@
 **Keywords:** FastAPI monitoring, health checks, logging, metrics, caching, Redis, observability
 **Version:** 1.2
 **LastUpdated:** 2025-10-21
+**Depends:** 210-python-fastapi-core
 
 **TokenBudget:** ~950
 **ContextTier:** Medium

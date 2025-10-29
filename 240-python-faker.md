@@ -5,6 +5,7 @@
 **Keywords:** Faker, test data generation, fake data, providers, localization, synthetic data
 **Version:** 1.2
 **LastUpdated:** 2025-10-13
+**Depends:** 200-python-core
 
 **TokenBudget:** ~1200
 **ContextTier:** Low

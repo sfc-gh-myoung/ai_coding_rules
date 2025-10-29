@@ -5,6 +5,7 @@
 **Keywords:** README, project documentation, getting started, setup instructions, badges
 **Version:** 1.2
 **LastUpdated:** 2025-10-13
+**Depends:** 000-global-core
 
 **TokenBudget:** ~700
 **ContextTier:** Medium

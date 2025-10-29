@@ -5,6 +5,7 @@
 **Keywords:** Semantic models, semantic views, Cortex Analyst, data modeling, business logic layer, metrics layer
 **Version:** 2.1
 **LastUpdated:** 2025-10-13
+**Depends:** 100-snowflake-core
 
 **TokenBudget:** ~800
 **ContextTier:** High

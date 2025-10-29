@@ -5,6 +5,7 @@
 **Keywords:** snow CLI, SnowCLI, Snowflake command line, uvx snow, CLI deployment, snowflake.yml
 **Version:** 1.1
 **LastUpdated:** 2025-10-13
+**Depends:** 100-snowflake-core
 
 **TokenBudget:** ~350
 **ContextTier:** Medium

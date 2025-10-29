@@ -5,6 +5,7 @@
 **Keywords:** FastAPI deployment, Uvicorn, Gunicorn, ASGI, Docker, production deployment, health checks
 **Version:** 1.2
 **LastUpdated:** 2025-10-21
+**Depends:** 210-python-fastapi-core
 
 **TokenBudget:** ~900
 **ContextTier:** Medium

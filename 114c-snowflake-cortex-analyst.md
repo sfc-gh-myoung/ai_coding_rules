@@ -5,6 +5,7 @@
 **Keywords:** Cortex Analyst, natural language queries, NL2SQL, semantic layer, text-to-SQL, business intelligence, agent tool configuration, analyst tools, semantic view design, prerequisites validation, working SQL examples, error troubleshooting, permission configuration
 **Version:** 1.3
 **LastUpdated:** 2025-10-21
+**Depends:** 100-snowflake-core, 106-snowflake-semantic-views, 105-snowflake-cost-governance, 111-snowflake-observability
 
 **TokenBudget:** ~500
 **ContextTier:** Medium

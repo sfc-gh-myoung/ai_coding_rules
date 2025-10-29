@@ -5,6 +5,7 @@
 **Keywords:** CONTRIBUTING, pull requests, code review, contribution guidelines, branching strategy
 **Version:** 2.3
 **LastUpdated:** 2025-10-13
+**Depends:** 000-global-core
 
 **TokenBudget:** ~400
 **ContextTier:** Medium

@@ -56,6 +56,7 @@ Establish the foundational operating contract for all AI coding assistants, ensu
 ### 2. Task Confirmation Protocol
 
 - **Mandatory:** Present task list before any modifications
+- **Mandatory:** Disclose all loaded rule filenames that informed the plan
 - **Mandatory:** User must type "ACT" to authorize changes
 - **Critical:** Never modify files without explicit authorization
 - **Exception:** Only if user explicitly overrides ("proceed without asking" AND "ACT")
@@ -95,6 +96,7 @@ Every task should define:
 
 - [ ] Started in PLAN mode
 - [ ] Presented clear task list
+- [ ] Disclosed loaded rule filenames
 - [ ] Received explicit "ACT" authorization
 - [ ] Made minimal, surgical edits
 - [ ] Validated changes work correctly
@@ -111,6 +113,10 @@ Every task should define:
 
 ```markdown
 ## Mode: [PLAN/ACT]
+
+## Rules Loaded
+[In PLAN: List rule filenames that informed this plan, e.g., "000-global-core, 200-python-core, 210-python-fastapi-core"]
+[In ACT: Optional to include, or reference plan]
 
 ## Analysis
 - Current state assessment

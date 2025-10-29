@@ -5,6 +5,7 @@
 **Keywords:** Query profile, slow queries, performance tuning, warehouse sizing, clustering keys, search optimization, pruning, spillage
 **Version:** 1.2
 **LastUpdated:** 2025-10-13
+**Depends:** 100-snowflake-core
 
 **TokenBudget:** ~200
 **ContextTier:** Medium

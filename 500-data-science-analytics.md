@@ -5,6 +5,7 @@
 **Keywords:** Data science, pandas, numpy, scikit-learn, ML, Jupyter, data analysis, model lifecycle, NaN, NULL handling, DataFrame
 **Version:** 2.3
 **LastUpdated:** 2025-10-18
+**Depends:** 200-python-core
 
 **TokenBudget:** ~2200
 **ContextTier:** comprehensive

@@ -5,6 +5,7 @@
 **Keywords:** Model registry, ML models, model versioning, model deployment, MLOps, model governance, model lifecycle
 **Version:** 1.1
 **LastUpdated:** 2025-10-13
+**Depends:** 100-snowflake-core
 
 **TokenBudget:** ~700
 **ContextTier:** Medium

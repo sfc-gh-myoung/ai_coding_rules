@@ -5,6 +5,7 @@
 **Keywords:** Demo creation, synthetic data, realistic demos, data generation, demo applications
 **Version:** 1.3
 **LastUpdated:** 2025-10-13
+**Depends:** None
 
 **TokenBudget:** ~250
 **ContextTier:** Low

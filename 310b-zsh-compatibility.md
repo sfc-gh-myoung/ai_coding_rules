@@ -5,6 +5,7 @@
 **Keywords:** Shell compatibility, bash vs zsh, portable scripts, cross-shell
 **Version:** 1.2
 **LastUpdated:** 2025-10-21
+**Depends:** 300-bash-scripting-core
 
 **TokenBudget:** ~1300
 **ContextTier:** Low

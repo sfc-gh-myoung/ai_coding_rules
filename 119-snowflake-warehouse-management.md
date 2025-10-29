@@ -5,6 +5,7 @@
 **Keywords:** Warehouse management, warehouse sizing, CPU warehouse, GPU warehouse, high-memory warehouse, warehouse tagging, auto-suspend, auto-resume
 **Version:** 1.3
 **LastUpdated:** 2025-10-13
+**Depends:** 100-snowflake-core, 103-snowflake-performance-tuning, 105-snowflake-cost-governance
 
 **TokenBudget:** ~1100
 **ContextTier:** High

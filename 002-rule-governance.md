@@ -5,6 +5,7 @@
 **Keywords:** rule governance, standards, semantic discovery, metadata, keywords, RULES_INDEX, system prompt altitude, right altitude, tool design
 **Version:** 2.7
 **LastUpdated:** 2025-10-22
+**Depends:** 000-global-core
 
 # Rule Governance: Universal Standards for AI Coding Rules
 

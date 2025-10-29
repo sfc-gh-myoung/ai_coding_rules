@@ -7,6 +7,7 @@
 **ContextTier:** comprehensive
 **Version:** 1.3
 **LastUpdated:** 2025-10-14
+**Depends:** 100-snowflake-core, 104-snowflake-streams-tasks, 119-snowflake-warehouse-management
 
 # Snowflake Dynamic Tables Best Practices
 

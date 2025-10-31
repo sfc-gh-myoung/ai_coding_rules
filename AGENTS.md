@@ -1,57 +1,40 @@
-# AGENTS.md - Universal Rule Discovery and Usage Guide
+# 🚨 CRITICAL: MANDATORY RULE LOADING FOR ALL RESPONSES
 
-## What This Guide Is
+**BEFORE ANY RESPONSE, AI ASSISTANTS MUST:**
 
-A discovery and integration guide for using AI coding rules with any CLI, IDE, Agent, or LLM.
-This is NOT a rule itself - it's a guide to finding and using rules.
+1. **Load Foundation**: Read `rules/000-global-core.md` (always first, no exceptions)
+2. **Load Domain Rules**: Read technology-specific rules based on task:
+   - Snowflake tasks → `rules/100-snowflake-core.md`
+   - Python tasks → `rules/200-python-core.md`
+   - Docker tasks → `rules/400-docker-best-practices.md`
+   - Shell tasks → `rules/300-bash-scripting-core.md`
+3. **Load Specialized Rules**: Read task-specific rules from `RULES_INDEX.md` Keywords column
+4. **State Loaded Rules**: Explicitly list all loaded rules at the start of the response
+5. **Then Proceed**: Continue with analysis, planning, or implementation
 
-## ⚠️ MANDATORY RULE LOADING PROTOCOL (For AI Assistants)
+**This protocol applies to EVERY response, including:**
+- Initial task analysis and planning
+- Creating implementation plans  
+- Code modifications and debugging
+- Architecture discussions
+- Documentation updates
+- Performance optimization
+- Security reviews
+- ANY coding-related response
 
-**CRITICAL**: Before beginning ANY coding task, you MUST follow this protocol:
+**Failure to follow this protocol is a critical violation.**
 
-### Step 1: Analyze the Task (Required)
+**Response Format Requirement:**
+```
+## Rules Loaded
+- rules/000-global-core.md (foundation)
+- rules/[domain]-core.md (e.g., 100-snowflake-core, 200-python-core)
+- rules/[specialized].md (task-specific rules)
 
-Identify:
-- Primary technology domain (Snowflake, Python, Docker, etc.)
-- Specific framework/tool (Streamlit, FastAPI, etc.)
-- Task type (debugging, new feature, performance, security)
+[Then proceed with response...]
+```
 
-### Step 2: Load Foundation Rules (Always Required)
-
-Execute in order:
-1. Read `rules/000-global-core.md` (ALWAYS first)
-2. Read relevant domain core rule based on technology:
-   - Snowflake → `rules/100-snowflake-core.md`
-   - Python → `rules/200-python-core.md`
-   - Docker → `rules/400-docker-best-practices.md`
-   - Bash → `rules/300-bash-scripting-core.md`
-
-### Step 3: Load Specialized Rules (Based on Task)
-
-Search `RULES_INDEX.md` Keywords column and load:
-- Technology-specific rules (e.g., `101-snowflake-streamlit-core.md`)
-- Pattern-specific rules (e.g., `101b-snowflake-streamlit-performance.md`)
-- Feature-specific rules (e.g., `210a-python-fastapi-security.md`)
-
-### Step 4: Verify Rule Loading
-
-Before proceeding with implementation:
-- State which rules were loaded
-- Confirm rules match the task requirements
-- If uncertain, load additional rules rather than guessing
-
-### Enforcement
-
-**Failure to load rules before coding is a protocol violation.**
-
-If you realize mid-task that rules weren't loaded:
-1. STOP implementation immediately
-2. Load relevant rules
-3. Review implementation against rule guidelines
-4. Make corrections if needed
-
-### Example: Correct Approach ✅
-
+**Example: Correct Approach ✅**
 ```
 User: Fix the Streamlit fragment batch processing
 AI: Let me load the relevant rules first:
@@ -63,12 +46,20 @@ AI: Let me load the relevant rules first:
     Rules loaded. Now analyzing the issue against fragment best practices...
 ```
 
-### Example: Incorrect Approach ❌
-
+**Example: Incorrect Approach ❌**
 ```
 User: Fix the Streamlit fragment batch processing
 AI: *immediately starts debugging code without loading rules*
 ```
+
+---
+
+# AGENTS.md - Universal Rule Discovery and Usage Guide
+
+## What This Guide Is
+
+A discovery and integration guide for using AI coding rules with any CLI, IDE, Agent, or LLM.
+This is NOT a rule itself - it's a guide to finding and using rules.
 
 ## Quick Start: Finding the Right Rules
 
@@ -382,9 +373,9 @@ Tokens: ~3000-5000
 ## References
 
 ### Essential Files
-- **RULES_INDEX.md** - Complete rule catalog with metadata
-- **000-global-core.md** - Foundational principles (load first)
-- **002-rule-governance.md** - How rules are structured
+- **@rules/RULES_INDEX.md** - Complete rule catalog with metadata
+- **@rules/000-global-core.md** - Foundational principles (load first)
+- **@rules/002-rule-governance.md** - How rules are structured
 - **README.md** - Project documentation and setup
 
 ### External Documentation

@@ -1,6 +1,6 @@
 # AI Coding Rules
 
-[![License: Apache 2.0](https://img.shields.io/badge/License-APACHE-yellow.svg)](https://opensource.org/license/apache-2-0)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://opensource.org/license/apache-2-0)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Task](https://img.shields.io/badge/Task-Taskfile-brightgreen)](https://taskfile.dev)
 
@@ -23,6 +23,154 @@ This repository provides a comprehensive collection of engineering rules designe
 You are **encouraged to review the rules and make adjustments** as desired to better align with your best practices or preferred approaches.
 
 This project was inspired, in part, by: [how-to-add-cline-memory-bank-feature-to-your-cursor](https://forum.cursor.com/t/how-to-add-cline-memory-bank-feature-to-your-cursor/67868) and [cline memory bank](https://docs.cline.bot/prompting/cline-memory-bank)
+
+## Table of Contents
+
+### Getting Started
+- [Quick Start](#quick-start)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Verify Installation](#verify-installation)
+- [Rule Selection Decision Tree](#rule-selection-decision-tree)
+- [How to Use Generated Rules](#how-to-use-generated-rules)
+
+### Core Documentation
+- [Rule Categories](#rule-categories)
+  - [Core Foundation (000-099)](#core-foundation-000-099)
+  - [Data Platform - Snowflake (100-199)](#data-platform---snowflake-100-199)
+  - [Software Engineering - Python (200-299)](#software-engineering---python-200-299)
+  - [Software Engineering - Shell Scripts (300-399)](#software-engineering---shell-scripts-300-399)
+  - [Software Engineering - Containers (400-499)](#software-engineering---containers-400-499)
+  - [Data Science & Analytics (500-599)](#data-science--analytics-500-599)
+  - [Data Governance (600-699)](#data-governance-600-699)
+  - [Business Intelligence (700-799)](#business-intelligence-700-799)
+  - [Project Management (800-899)](#project-management-800-899)
+  - [Demo & Synthetic Data (900-999)](#demo--synthetic-data-900-999)
+- [Directive Language Hierarchy](#directive-language-hierarchy)
+
+### Architecture & Philosophy
+- [Why Smaller, Focused Rules?](#why-smaller-focused-rules)
+- [Universal-First Design](#universal-first-design)
+- [Rule Generator Architecture](#rule-generator-architecture)
+
+### Advanced Features
+- [Memory Bank System](#memory-bank-system)
+- [System-Wide Rule Generation Script (gen-rules)](#system-wide-rule-generation-script-gen-rules)
+- [Programmatic Rule Loading](#programmatic-rule-loading-example)
+
+### Development & Integration
+- [Development Commands](#development-commands)
+- [IDE Integration Examples](#ide-integration-examples)
+- [Troubleshooting](#troubleshooting)
+
+### Contributing & Support
+- [Contributing](#contributing)
+- [Compatibility Matrix](#compatibility-matrix)
+- [License](#license)
+- [Support](#support)
+
+## Quick Start
+
+### Prerequisites
+
+**To generate rules** (one-time setup):
+- **Python 3.11+** — Required for running rule generation scripts
+- **uv** — Recommended for fast dependency management ([install guide](https://github.com/astral-sh/uv))
+- **Task** — Optional but recommended for simplified commands ([install guide](https://taskfile.dev/installation/))
+
+**To use generated rules** (after generation):
+- ✅ No special tools required
+- ✅ Works with any AI assistant or IDE
+- ✅ Just copy the generated `rules/` directory to your project
+- ✅ Add `AGENTS.md` to your context, if not automatically loaded, and your agent should now have access to and use the rules.
+
+**Note:** You only need Python to *generate* the rules. Once generated, the `rules/` directory contains pure Markdown files that work anywhere.
+
+### Installation
+
+### Option 1: With Task (Recommended)
+
+```bash
+# Clone the repository (Snowflake internal GitLab)
+# External users: Download latest release or request access
+git clone https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git
+cd ai_coding_rules
+
+# Set up Python environment
+task deps:dev
+
+# Generate universal rules
+task rule:universal
+
+# The rules/ directory is now created and ready to use!
+```
+
+### Option 2: Without Task (Alternative)
+
+```bash
+# Clone the repository (Snowflake internal GitLab)
+# External users: Download latest release or request access
+git clone https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git
+cd ai_coding_rules
+
+# Set up Python environment
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+pip install -e ".[dev]"
+
+# Generate universal rules
+uv run generate_agent_rules.py --agent universal --source . --destination .
+
+# The rules/ directory is now created and ready to use!
+```
+
+**Both options create the same output** - choose whichever fits your workflow.
+
+### Verify Installation
+
+**Step 1: Check Rule Generation**
+```bash
+# Verify rules directory was created
+ls rules/ | head -5
+```
+
+**Expected output:**
+```
+000-global-core.md
+001-memory-bank.md
+002-rule-governance.md
+003-context-engineering.md
+004-tool-design-for-agents.md
+```
+
+**Step 2: Verify Rule Count**
+```bash
+# Count generated rules
+ls rules/*.md | wc -l
+```
+**Expected:** 70+ rule files
+
+**Step 3: Test Rule Discovery**
+```bash
+# Search for Snowflake rules
+grep -i "Snowflake" RULES_INDEX.md | head -3
+```
+**Expected:** Should display Snowflake-related rules with metadata
+
+**Step 4: Verify Discovery Files**
+```bash
+# Check key files exist
+ls AGENTS.md EXAMPLE_PROMPT.md RULES_INDEX.md
+```
+**Expected:** All three files present
+
+**Success Indicators:**
+- ✅ `rules/` directory contains 70+ `.md` files
+- ✅ `AGENTS.md`, `EXAMPLE_PROMPT.md`, and `RULES_INDEX.md` exist
+- ✅ `grep` searches find relevant rules in RULES_INDEX.md
+- ✅ Rule files are readable Markdown (not binary/corrupted)
+
+**Troubleshooting:** If any check fails, see [Troubleshooting](#troubleshooting) section below.
 
 ### Universal Format Philosophy
 
@@ -75,10 +223,10 @@ This repository contains **70+ specialized rule files** (`.md` files in the proj
      │ └►100-snowflake-core   │ └►210-fastapi     │ └►400-docker └►000-global-core
      │                        │                   │
      ├─Streamlit              ├─Flask             ├─Shell/Bash
-     │ └►101-streamlit-core   │ └►250-flask       │ └►300-bash
+     │ └►101-snowflake-streamlit-core   │ └►250-python-flask       │ └►300-bash-scripting-core
      │   +101a (viz)          │                   │
      │   +101b (perf)         ├─CLI Tool          └─CI/CD
-     │   +101c (security)     │ └►220-typer         └►806-git-workflow
+     │   +101c (security)     │ └►220-python-typer-cli         └►806-git-workflow-management
      │                        │
      ├─Notebooks/ML           └─Data Science
      │ └►109-notebooks          └►500-data-science
@@ -179,31 +327,6 @@ Beyond LLM performance, smaller rules provide:
 4. **Slow Iteration**: Every update requires reviewing the entire monolith for conflicts
 
 **Our approach**: Keep individual rules under 1,000 lines (target 150-500 lines), use clear cross-references, and let users compose rule sets for their specific needs.
-
-
-## Quick Start
-
-### Prerequisites
-
-- **Python 3.11+** (required: pin to 3.11 for consistency)
-- **uv** (recommended: [install uv](https://github.com/astral-sh/uv) for fast dependency management)  
-- **Task** (optional but recommended: install via `brew install go-task/tap/go-task` or [other methods](https://taskfile.dev/installation/))
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git
-cd ai_coding_rules
-
-# Set up Python environment (REQUIRED for rule generation)
-task deps:dev
-
-# Generate universal rules to create the rules/ directory
-task rule:universal
-
-# The rules/ directory is now created and ready to use!
-```
 
 ## How to Use Generated Rules
 
@@ -345,7 +468,7 @@ For convenient rule generation from anywhere on your system, install the product
 
 ```bash
 # From the ai_coding_rules directory
-cp gen-rules ~/bin/gen-rules
+cp gen-rules.sh ~/bin/gen-rules
 chmod +x ~/bin/gen-rules
 ```
 
@@ -458,13 +581,13 @@ gen-rules --verbose --project ~/my-rules rule:all DEST=/output
 ## Rule Categories
 
 ### Core Foundation (000-099)
-- See the consolidated index: `RULES_INDEX.md`
+- See the consolidated index: [RULES_INDEX.md](RULES_INDEX.md)
 - **`000-global-core.md`** — Universal operating principles and safety protocols
 - **`001-memory-bank.md`** — Universal memory bank for AI context continuity  
 - **`002-rule-governance.md`** — Comprehensive rule authoring governance: creation standards, naming conventions, structure requirements, validation workflows, and rule creation template
 - **`003-context-engineering.md`** — Context management strategies for AI agents (attention budgets, context rot, progressive disclosure, compaction)
 - **`004-tool-design-for-agents.md`** — Token-efficient tool design patterns for AI agents (single responsibility, minimal tool sets, LLM-friendly parameters)
-- **`AGENTS.md`** — Universal discovery guide for finding and using rules (not a rule itself)
+- **[AGENTS.md](AGENTS.md)** — Universal discovery guide for finding and using rules (not a rule itself)
 
 #### Universal Rule Authoring Best Practices
 
@@ -598,7 +721,7 @@ The following best practices apply to all AI coding assistants and development e
 - **`901-data-generation-modeling.md`** — Comprehensive data generation and dimensional modeling standards (Kimball methodology, universal naming conventions, business-first view taxonomy, backward compatibility strategies)
 
 ### Templates
-- **`UNIVERSAL_PROMPT.md`** — Universal response guidelines template
+- **`EXAMPLE_PROMPT.md`** — Universal baseline prompt for automatic rule loading
 
 ## Directive Language Hierarchy
 
@@ -784,126 +907,6 @@ Rules support embedded metadata in Markdown:
 **Last updated:** 2024-01-15
 ```
 
-## Memory Bank System
-
-The Memory Bank is a project-level documentation system that enables AI assistants to maintain context and continuity across sessions. Since AI assistants reset their memory between sessions, the Memory Bank serves as the critical link for understanding project state, decisions, and ongoing work.
-
-### Overview
-
-The Memory Bank addresses a fundamental challenge in AI-assisted development: **memory reset between sessions**. When an AI assistant starts a new session, it has no knowledge of previous work, decisions, or project context. The Memory Bank solves this by maintaining a structured set of documentation files that capture:
-
-- **Project foundation** — Core requirements, goals, and scope
-- **System architecture** — Technical decisions and design patterns  
-- **Current context** — Active work, recent changes, and next steps
-- **Development progress** — What works, what's left to build, known issues
-
-### File Structure
-
-The Memory Bank uses a hierarchical structure with required core files:
-
-```
-memory-bank/
-├── projectbrief.md      # Foundation document (project scope & goals)
-├── productContext.md    # Why project exists, problems solved
-├── systemPatterns.md    # Architecture & technical decisions  
-├── techContext.md       # Technologies, setup, constraints
-├── activeContext.md     # Current work focus & recent changes
-├── progress.md          # Status, what works, known issues
-└── [additional]/        # Optional: features, APIs, testing docs
-```
-
-#### Core Files (Required)
-
-| File | Purpose |
-|------|---------|
-| `projectbrief.md` | Foundation document defining core requirements and project scope |
-| `productContext.md` | Business context: why project exists, problems solved, user experience goals |
-| `systemPatterns.md` | System architecture, key technical decisions, design patterns |
-| `techContext.md` | Technologies used, development setup, technical constraints |
-| `activeContext.md` | Current work focus, recent changes, next steps, active decisions |
-| `progress.md` | Current status, what works, what's left to build, known issues |
-
-### Memory Bank Commands
-
-#### Initialization
-For new projects, create the memory bank structure:
-
-```bash
-# Create memory bank directory
-mkdir memory-bank
-
-# Initialize core files (manual creation)
-touch memory-bank/{projectbrief,productContext,systemPatterns,techContext,activeContext,progress}.md
-```
-
-The Memory Bank can be automatically created triggered by:
-
-1. **Explicit user request**: `"initialize memory bank"`
-
-#### Update Commands
-The Memory Bank updates automatically during development, triggered by:
-
-1. **Explicit user request**: `"update memory bank"`
-2. **After significant changes**: Major feature implementations or architectural decisions
-3. **Context clarification needs**: When project understanding requires documentation
-4. **Pattern discovery**: New technical patterns or workflow insights
-
-### Workflow Integration
-
-#### Plan Mode Workflow
-```mermaid
-flowchart TD
-    Start[New Session] --> Read[Read ALL Memory Bank Files]
-    Read --> Check{Files Complete?}
-    Check -->|No| Plan[Create Missing Files]
-    Check -->|Yes| Context[Verify Current Context]
-    Context --> Strategy[Develop Work Strategy]
-    Strategy --> Present[Present Approach to User]
-```
-
-#### Act Mode Workflow  
-```mermaid
-flowchart TD
-    Start[Execute Task] --> Context[Check Memory Bank]
-    Context --> Work[Perform Development Work]
-    Work --> Document[Update Documentation]
-    Document --> Rules[Update IDE Rules if Needed]
-    Rules --> Complete[Mark Task Complete]
-```
-
-### Usage Examples
-
-#### Starting a New Session
-```bash
-# AI assistant workflow (automatic)
-1. Read all memory-bank/*.md files
-2. Understand current project state  
-3. Review activeContext.md for recent work
-4. Check progress.md for known issues
-5. Proceed with informed context
-```
-
-#### Updating Memory Bank
-```bash
-# User command
-"update memory bank"
-
-# AI assistant workflow (automatic)
-1. Review ALL memory bank files
-2. Update current state in activeContext.md
-3. Record progress in progress.md  
-4. Document new patterns in systemPatterns.md
-5. Update technical context if needed
-```
-
-#### Best Practices
-
-- **Always read**: Memory Bank files at session start (non-optional)
-- **Update frequently**: After major changes or discoveries
-- **Keep current**: Focus on activeContext.md and progress.md
-- **Be precise**: Accuracy directly impacts work effectiveness
-- **Stay organized**: Use additional files for complex features
-
 ## Key Features
 
 - **Universal Compatibility** — Works with Claude 4.x, GPT-4, Gemini, Copilot, Cursor, Cline, and more
@@ -1039,60 +1042,30 @@ rules_to_load = load_rule_with_dependencies("101-snowflake-streamlit-core.md")
 
 ## Contributing
 
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines on:
+- Improving existing rules
+- Generating new rules
+- Rule validation procedures
+- Code review process
 
 ### Quick Contribution Steps
 
-1. **Fork** the repository
-2. **Create** a feature branch: `git checkout -b feature/my-new-rule`
-3. **Follow** the rule authoring guidelines in `002-rule-governance.md` section 9 (Rule Creation Template)
-4. **Test** your changes: `task lint` and `task rule:cursor --dry-run`
-5. **Submit** a pull request
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/my-new-rule`
+3. Follow rule authoring guidelines in `002-rule-governance.md` section 9
+4. Test your changes: `task lint` and `task rule:universal --dry-run`
+5. Validate rules: `task rules:validate`
+6. Submit a pull request
 
-### Rule Authoring Guidelines
+### Key Guidelines
 
-- Use standard Markdown headings (`#`, `##`, `###`) for structure
-- Use explicit directive words: `Critical`, `Mandatory`, `Always`, `Requirement`, `Rule`, `Consider`, `Avoid`
-- Keep rules focused and under 500 lines
-- Include relevant documentation links
-- Test with the rule generator before submitting
+- Use standard Markdown with clear section headers (`#`, `##`, `###`)
+- Follow directive language: `Critical`, `Mandatory`, `Always`, `Requirement`, `Rule`, `Consider`, `Avoid`
+- Keep rules focused and under 500 lines (target 150-300)
+- Include current official documentation links
+- Test with `task rules:validate` before submitting
 
-### Improving Existing Rules
-
-It is not unexpected to run into a scenario where an agent or LLM fails to follow one or more of the rules you are using. In these scenarios, the best approach is to prompt the agent/llm within the same session the following:
-
-```
-MODE PLAN:
-
-My rule files should have prevented this behavior or outcome. Thoroughly review all rule files in the project and the currently selected rule files for this session. Determine what specific improvements I can make to the rules to ensure this does not happen again.
-```
-
-For this to be affective, you should have a copy of this project repo `ai_coding_rules/` within your project directory, even if only temporarily to make changes to the rule file templates which are used to generate the final IDE-specific rule files. It is also important to verify that `002-rule-governance.md` is an actively selected rule in the project. It should be auto attached, but it never hurts to verify. This will ensure any rule changes will follow best practices and structure laid out for the `ai_coding_rules/` project.
-
-Available LLMs are always evolving and improving in their capabilities. You should periodically ask your LLM of choice to review and make recommendations on rule improvements using the following prompt:
-
-```
-MODE PLAN:
-
-Thoroughly review all of the rule files in the project directory. Ensure all of the rules are consistent with 002-rule-governance.md and follow the prescribed rule structure and format. Determine if there are any improvements that can be made to any rule files which will improve rule effectiveness while ensuring good management of context size with an emphasis on reducing duplicate and/or conflicting guidance.
-```
-
-Using `MODE PLAN:` is a best practice and directly uses the functionality from `000-global-core.md` to reduce the chances of the agent from making unverify or unconfirmed changes. This ensures that you have an opportunity to review the proposed task list and suggest changes in plan for the changes are implemented. In most scenarios, the agent/llm should move forward with implementing the plan when you type `ACT`.
-
-### Generating New Rules
-
-There will be times when you determine that you need to add a new rule to follow best practices for a specific framework or library, often when you introduce new frameworks or libraries. In these scenarios, the best approach is to prompt the agent/llm with the following:
-
-```
-MODE PLAN:
-
-Create a rule for < INSERT FEATURE/FRAMEWORK/LIBRARY> best practices consistent with my rule repository in `ai_coding_rules/`. Determine if a single rule file is the best approach, or if there should be multiple rule files. Use the following documentation as primary points of reference:
-@URL1
-@URL2
-@URL3
-```
-
-In my experience, you will get consistently better results when you provide live reference links to documentation and any reference links that specifically cover best practices, syntax, etc. If you let the agent/llm try to determine their own references, you are likely to incorporate innaccruate or dated reference information that results in less than ideal rules being generated.
+**For detailed workflows and examples, see [CONTRIBUTING.md](CONTRIBUTING.md).**
 
 ### Configuration Safety Guidelines
 
@@ -1202,16 +1175,398 @@ Add selected `.md` rule files to your Claude project knowledge base for consiste
 ### VS Code Extensions
 Use the generated `.md` files with VS Code AI extensions or copy content for custom instructions.
 
+## Memory Bank System (Optional)
+
+> **Note:** Memory Bank is optional and designed for complex, long-running projects with multiple AI sessions. **Skip this section if you're just getting started** with the rule system.
+
+The Memory Bank is a project-level documentation system that enables AI assistants to maintain context and continuity across sessions. Since AI assistants reset their memory between sessions, the Memory Bank serves as the critical link for understanding project state, decisions, and ongoing work.
+
+### Overview
+
+The Memory Bank addresses a fundamental challenge in AI-assisted development: **memory reset between sessions**. When an AI assistant starts a new session, it has no knowledge of previous work, decisions, or project context. The Memory Bank solves this by maintaining a structured set of documentation files that capture:
+
+- **Project foundation** — Core requirements, goals, and scope
+- **System architecture** — Technical decisions and design patterns  
+- **Current context** — Active work, recent changes, and next steps
+- **Development progress** — What works, what's left to build, known issues
+
+### File Structure
+
+The Memory Bank uses a hierarchical structure with required core files:
+
+```
+memory-bank/
+├── projectbrief.md      # Foundation document (project scope & goals)
+├── productContext.md    # Why project exists, problems solved
+├── systemPatterns.md    # Architecture & technical decisions  
+├── techContext.md       # Technologies, setup, constraints
+├── activeContext.md     # Current work focus & recent changes
+├── progress.md          # Status, what works, known issues
+└── [additional]/        # Optional: features, APIs, testing docs
+```
+
+#### Core Files (Required)
+
+| File | Purpose |
+|------|---------|
+| `projectbrief.md` | Foundation document defining core requirements and project scope |
+| `productContext.md` | Business context: why project exists, problems solved, user experience goals |
+| `systemPatterns.md` | System architecture, key technical decisions, design patterns |
+| `techContext.md` | Technologies used, development setup, technical constraints |
+| `activeContext.md` | Current work focus, recent changes, next steps, active decisions |
+| `progress.md` | Current status, what works, what's left to build, known issues |
+
+### Memory Bank Commands
+
+#### Initialization
+For new projects, create the memory bank structure:
+
+```bash
+# Create memory bank directory
+mkdir memory-bank
+
+# Initialize core files (manual creation)
+touch memory-bank/{projectbrief,productContext,systemPatterns,techContext,activeContext,progress}.md
+```
+
+The Memory Bank can be automatically created triggered by:
+
+1. **Explicit user request**: `"initialize memory bank"`
+
+#### Update Commands
+The Memory Bank updates automatically during development, triggered by:
+
+1. **Explicit user request**: `"update memory bank"`
+2. **After significant changes**: Major feature implementations or architectural decisions
+3. **Context clarification needs**: When project understanding requires documentation
+4. **Pattern discovery**: New technical patterns or workflow insights
+
+### Workflow Integration
+
+#### Plan Mode Workflow
+```mermaid
+flowchart TD
+    Start[New Session] --> Read[Read ALL Memory Bank Files]
+    Read --> Check{Files Complete?}
+    Check -->|No| Plan[Create Missing Files]
+    Check -->|Yes| Context[Verify Current Context]
+    Context --> Strategy[Develop Work Strategy]
+    Strategy --> Present[Present Approach to User]
+```
+
+#### Act Mode Workflow  
+```mermaid
+flowchart TD
+    Start[Execute Task] --> Context[Check Memory Bank]
+    Context --> Work[Perform Development Work]
+    Work --> Document[Update Documentation]
+    Document --> Rules[Update IDE Rules if Needed]
+    Rules --> Complete[Mark Task Complete]
+```
+
+### Usage Examples
+
+#### Starting a New Session
+```bash
+# AI assistant workflow (automatic)
+1. Read all memory-bank/*.md files
+2. Understand current project state  
+3. Review activeContext.md for recent work
+4. Check progress.md for known issues
+5. Proceed with informed context
+```
+
+#### Updating Memory Bank
+```bash
+# User command
+"update memory bank"
+
+# AI assistant workflow (automatic)
+1. Review ALL memory bank files
+2. Update current state in activeContext.md
+3. Record progress in progress.md  
+4. Document new patterns in systemPatterns.md
+5. Update technical context if needed
+```
+
+#### Best Practices
+
+- **Always read**: Memory Bank files at session start (non-optional)
+- **Update frequently**: After major changes or discoveries
+- **Keep current**: Focus on activeContext.md and progress.md
+- **Be precise**: Accuracy directly impacts work effectiveness
+- **Stay organized**: Use additional files for complex features
+
+## Troubleshooting
+
+### Rules Directory Not Generated
+
+**Problem:** `rules/` directory doesn't exist after running `task rule:universal`
+
+**Solutions:**
+
+1. **Verify Python Version**
+```bash
+python --version
+# Must be 3.11 or higher
+```
+
+2. **Install Dependencies**
+```bash
+task deps:dev
+# OR without Task:
+uv sync
+```
+
+3. **Check for Errors**
+   - Review terminal output for error messages
+   - Look for permission issues or missing dependencies
+
+4. **Try Direct Script**
+```bash
+uv run generate_agent_rules.py --agent universal --source . --destination .
+```
+
+5. **Verify Project Structure**
+```bash
+# Check required files exist
+ls generate_agent_rules.py Taskfile.yml
+```
+
+---
+
+### Task Command Not Found
+
+**Problem:** `task: command not found` or `bash: task: command not found`
+
+**Solutions:**
+
+**Option A - Install Task (Recommended)**
+```bash
+# macOS
+brew install go-task/tap/go-task
+
+# Linux
+sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b ~/.local/bin
+
+# Windows (PowerShell)
+choco install go-task
+```
+
+**Option B - Use Python Script Directly**
+```bash
+# Generate universal rules
+uv run generate_agent_rules.py --agent universal --source . --destination .
+
+# Generate Cursor rules
+uv run generate_agent_rules.py --agent cursor --source . --destination .
+
+# Generate Copilot rules
+uv run generate_agent_rules.py --agent copilot --source . --destination .
+```
+
+**Validation:**
+```bash
+# If Task installed successfully
+task --version
+
+# Should show: Task version: v3.x.x
+```
+
+---
+
+### Python Version Conflicts
+
+**Problem:** Wrong Python version or dependency conflicts
+
+**Solutions:**
+
+1. **Check Python Version**
+```bash
+python --version
+python3 --version
+# Need 3.11 or higher
+```
+
+2. **Use uv to Pin Version**
+```bash
+task uv:pin
+# Creates .python-version file pinning to 3.11
+```
+
+3. **Clean and Reinstall**
+```bash
+task clean_venv   # Remove virtual environment
+task deps:dev     # Reinstall dependencies
+```
+
+4. **Manual venv Setup (fallback)**
+```bash
+python3.11 -m venv .venv
+source .venv/bin/activate  # Linux/macOS
+# OR
+.venv\Scripts\activate     # Windows
+
+pip install -e ".[dev]"
+```
+
+---
+
+### IDE Not Recognizing Rules
+
+**Problem:** AI assistant not using generated rules
+
+**For Cursor:**
+
+1. **Verify Rules Exist**
+```bash
+ls .cursor/rules/*.mdc | wc -l
+# Should show 70+ files
+```
+
+2. **Check Cursor Settings**
+   - Open Cursor Settings (Cmd/Ctrl + ,)
+   - Navigate to "Rules" or "AI" section
+   - Verify rules directory is recognized
+
+3. **Restart Cursor IDE**
+   - Sometimes requires full restart to detect new rules
+
+4. **Verify File Extension**
+   - Cursor rules must use `.mdc` extension
+   - Run `task rule:cursor` to regenerate if needed
+
+**For GitHub Copilot:**
+
+1. **Verify Instructions Exist**
+```bash
+ls .github/instructions/*.md | wc -l
+# Should show 70+ files
+```
+
+2. **Check Repository Settings**
+   - Instructions must be committed to repository
+   - GitHub Copilot reads from remote, not local files
+   - Commit and push changes: `git add .github/instructions/ && git commit && git push`
+
+3. **Wait for Sync**
+   - May take 5-10 minutes for GitHub to index new instructions
+   - Try reloading VS Code after pushing
+
+**For Universal Format (Claude, ChatGPT, etc.):**
+
+1. **Verify Files Generated**
+```bash
+ls rules/*.md | wc -l
+# Should show 70+ files
+```
+
+2. **Add to AI Context Manually**
+   - **Claude Projects:** Upload `AGENTS.md`, `EXAMPLE_PROMPT.md`, and relevant `rules/*.md` files to project knowledge
+   - **ChatGPT:** Add files to custom instructions or upload via file attachment
+   - **Other LLMs:** Refer to specific tool documentation for context management
+
+3. **Test Rule Loading**
+   - Ask: "What rules are available for Snowflake development?"
+   - AI should reference RULES_INDEX.md and list rules
+   - If not working, verify RULES_INDEX.md is in context
+
+---
+
+### How to Verify Rules Are Working
+
+**Test 1: Rule Discovery**
+```
+Prompt: "What rules are available for Snowflake development?"
+Expected: AI references RULES_INDEX.md and lists 100-series rules
+```
+
+**Test 2: Rule Application**
+```
+Prompt: "Build a simple FastAPI endpoint following project rules"
+Expected: AI follows patterns from 210-python-fastapi-core.md
+```
+
+**Test 3: Dependency Loading**
+```
+Prompt: "Create a Snowflake Streamlit app"
+Expected: AI loads 000-global-core, 100-snowflake-core, 101-snowflake-streamlit-core
+```
+
+**Manual Verification:**
+```bash
+# Verify files exist
+ls rules/*.md | wc -l  # Should be 70+
+
+# Check discovery files
+cat AGENTS.md | head -20
+cat RULES_INDEX.md | head -20
+
+# Test keyword search
+grep -i "fastapi" RULES_INDEX.md
+grep -i "snowflake" RULES_INDEX.md
+```
+
+---
+
+### Permission Errors During Generation
+
+**Problem:** Permission denied when generating rules
+
+**Solutions:**
+
+1. **Check Current Directory Permissions**
+```bash
+# Verify you can write to current directory
+touch test.txt && rm test.txt
+```
+
+2. **Use Custom Destination**
+```bash
+# Generate to home directory
+task rule:universal DEST=~/ai-coding-rules-output
+
+# Or use absolute path
+task rule:universal DEST=/tmp/rules-output
+```
+
+3. **Fix Repository Permissions**
+```bash
+# If cloned repository has wrong permissions
+chmod -R u+w .
+```
+
+---
+
+### Still Having Issues?
+
+**Get Help:**
+- **Check Issues:** [GitLab Issues](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git/issues)
+- **Review Validation:** Run `task rules:validate` to check rule structure
+- **Enable Debug Mode:** `task rule:universal --verbose` for detailed output
+- **Check Logs:** Review terminal output for specific error messages
+
+**Common Fixes:**
+- Update uv: `curl -LsSf https://astral.sh/uv/install.sh | sh`
+- Clear cache: `rm -rf .venv __pycache__`
+- Reinstall dependencies: `task clean_venv && task deps:dev`
+
 ## Compatibility Matrix
 
-| LLM/Tool | Direct Rules | Generated Rules | Status |
-|----------|--------------|-----------------|--------|
-| **Claude (API/Web)** | Yes Markdown | No Native | Full Support |
-| **Gemini (API/Web)** | Yes Markdown | No Native | Full Support |
-| **ChatGPT** | Yes Markdown | No Native | Full Support |
-| **GitHub Copilot** | No Limited | Yes Instructions | Full Support |
-| **Cursor** | Yes Markdown | Yes .mdc Rules | Full Support |
-| **Cline** | Yes Markdown | Yes .clinerules | Full Support |
+| LLM/Tool | Reads Universal Markdown | IDE-Specific Format | Auto-Discovery | Status |
+|----------|--------------------------|---------------------|----------------|--------|
+| **Claude (API/Web)** | ✅ Yes | N/A | ✅ via AGENTS.md | Full Support |
+| **Gemini (API/Web)** | ✅ Yes | N/A | ✅ via AGENTS.md | Full Support |
+| **ChatGPT** | ✅ Yes | N/A | ✅ via AGENTS.md | Full Support |
+| **GitHub Copilot** | ⚠️ Limited | ✅ `.github/instructions/` | ⚠️ Partial | Full Support |
+| **Cursor** | ✅ Yes | ✅ `.cursor/rules/*.mdc` | ✅ Auto-attach | Full Support |
+| **Cline** | ✅ Yes | ✅ `.clinerules/*.md` | ✅ Auto-process | Full Support |
+
+**Legend:**
+- **Reads Universal Markdown:** Can use `rules/*.md` files without conversion
+- **IDE-Specific Format:** Has optional IDE-specific format available
+- **Auto-Discovery:** Supports automatic rule loading via AGENTS.md/EXAMPLE_PROMPT.md
+- **Status:** Overall compatibility and support level
 
 ## License
 
@@ -1219,9 +1574,10 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 
 ## Support
 
-- **Issues**: [GitLab Issues](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git/issues)  
-- **Discussions**: [GitLab Discussions](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git/discussions)
-- **Documentation**: All rules include links to official documentation
+- **Issues:** [GitLab Issues](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git/issues) *(Snowflake internal)*
+- **Discussions:** [GitLab Discussions](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git/discussions) *(Snowflake internal)*
+- **Documentation:** All rules include links to official documentation
+- **Contributing:** See [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ---
 

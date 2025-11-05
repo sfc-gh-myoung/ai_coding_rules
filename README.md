@@ -27,6 +27,7 @@ This project was inspired, in part, by: [how-to-add-cline-memory-bank-feature-to
 ## Table of Contents
 
 ### Getting Started
+- [Document Map: What to Read First](#document-map-what-to-read-first)
 - [Quick Start](#quick-start)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
@@ -54,6 +55,7 @@ This project was inspired, in part, by: [how-to-add-cline-memory-bank-feature-to
 - [Rule Generator Architecture](#rule-generator-architecture)
 
 ### Advanced Features
+- [AI Configuration](#ai-configuration)
 - [Memory Bank System](#memory-bank-system)
 - [System-Wide Rule Generation Script (gen-rules)](#system-wide-rule-generation-script-gen-rules)
 - [Programmatic Rule Loading](#programmatic-rule-loading-example)
@@ -68,6 +70,44 @@ This project was inspired, in part, by: [how-to-add-cline-memory-bank-feature-to
 - [Compatibility Matrix](#compatibility-matrix)
 - [License](#license)
 - [Support](#support)
+
+## Document Map: What to Read First
+
+This repository contains multiple documentation files for different audiences:
+
+### For Human Users
+
+| File | Purpose | When to Read |
+|------|---------|--------------|
+| **README.md** | Project overview, setup, usage | Start here (you are here) |
+| **CONTRIBUTING.md** | Development guidelines, PR process | When contributing rules |
+| **CHANGELOG.md** | Version history, changes | When checking updates |
+| **Taskfile.yml** | Build automation reference | When running tasks |
+
+### For AI Assistants (Add to AI Context)
+
+| File | Purpose | Required? |
+|------|---------|-----------|
+| **discovery/AGENTS.md** | Rule loading protocol and discovery guide (prescriptive instructions FOR AI) | ✅ Required |
+| **discovery/EXAMPLE_PROMPT.md** | Baseline prompt template for AI configuration | ✅ Required |
+| **discovery/RULES_INDEX.md** | Machine-readable rule catalog with keywords | ✅ Required |
+| **generated/universal/*.md** | The actual rules (72 files) | ✅ Required (loaded on-demand) |
+
+### Generated Outputs (Use These)
+
+| Directory | Format | Use With |
+|-----------|--------|----------|
+| **generated/universal/** | Clean Markdown | Any IDE, LLM, or agent |
+| **generated/cursor/rules/** | .mdc files | Cursor IDE |
+| **generated/copilot/instructions/** | .md with YAML | GitHub Copilot |
+| **generated/cline/** | Plain .md | Cline AI |
+
+**Quick Decision**: 
+- **Just want to use rules?** → See [For Rule Consumers](#for-rule-consumers-using-the-rules)
+- **Want to modify rules?** → See [For Rule Maintainers](#for-rule-maintainers-contributing-to-rules)
+- **Want to configure your AI?** → See [AI Configuration](#ai-configuration)
+
+---
 
 ## Quick Start
 
@@ -128,7 +168,7 @@ ls rules/ | head -5
 # 004-tool-design-for-agents.md
 ```
 
-**Success!** Your AI assistant can now access 70+ specialized rules. See [How to Use Generated Rules](#how-to-use-generated-rules) for IDE-specific setup.
+**Success!** Your AI assistant can now access 72 specialized rules. See [How to Use Generated Rules](#how-to-use-generated-rules) for IDE-specific setup.
 
 ---
 
@@ -162,7 +202,7 @@ task rule:all
 ai_coding_rules/
 ├── templates/              ← Edit these: 72 source template files
 ├── discovery/              ← Discovery system (auto-generated)
-│   ├── AGENTS.md           ← Rule loading guide
+│   ├── AGENTS.md           ← Rule loading protocol (FOR AI assistants)
 │   ├── EXAMPLE_PROMPT.md   ← Universal baseline prompt
 │   └── RULES_INDEX.md      ← Auto-generated catalog
 ├── generated/              ← Generated outputs (don't edit)
@@ -254,7 +294,7 @@ cp discovery/RULES_INDEX.md ~/test-rules/
 
 **Success Indicators:**
 - ✅ `task validate` passes all checks
-- ✅ `generated/universal/` contains 72+ rule files
+- ✅ `generated/universal/` contains 72 rule files
 - ✅ `discovery/RULES_INDEX.md` lists all rules with metadata
 - ✅ AI assistant can load and apply rules correctly
 - ✅ No linting errors in templates
@@ -286,7 +326,7 @@ This repository follows a **template-first architecture**: 72 source templates i
 - **72 source templates** in `templates/` directory covering best practices, patterns, and governance
 - **Universal format** in `generated/universal/` with preserved metadata (Keywords, TokenBudget, ContextTier, Depends)
 - **Discovery system** in `discovery/` directory:
-  - `AGENTS.md` - Guide for finding and loading rules
+  - `AGENTS.md` - Rule loading protocol FOR AI assistants (prescriptive instructions)
   - `RULES_INDEX.md` - Auto-generated catalog with semantic keywords
   - `EXAMPLE_PROMPT.md` - Universal baseline prompt for automatic rule loading
 - **IDE-specific formats** in `generated/` for Cursor, Copilot, Cline
@@ -428,10 +468,11 @@ Once you've generated rules with `task rule:universal`, using them is simple:
 
 ### Automatic Rule Discovery (Recommended)
 
-**It's as easy as adding these two files to your AI assistant's context:**
+**It's as easy as adding these files to your AI assistant's context:**
 
-1. **`AGENTS.md`** — Rule discovery guide explaining how to find and load rules
-2. **`EXAMPLE_PROMPT.md`** — Universal baseline prompt with automatic rule loading
+1. **`discovery/AGENTS.md`** — Rule loading protocol (prescriptive instructions FOR AI assistants)
+2. **`discovery/EXAMPLE_PROMPT.md`** — Universal baseline prompt with automatic rule loading
+3. **`discovery/RULES_INDEX.md`** — Machine-readable rule catalog
 
 **The AI assistant automatically:**
 - Reads `RULES_INDEX.md` to discover applicable rules via keyword matching
@@ -441,23 +482,9 @@ Once you've generated rules with `task rule:universal`, using them is simple:
 
 **Just ask your question** — No manual rule selection needed!
 
-### Example Workflow
+**Example:** Ask "Build a Snowflake Streamlit dashboard" → AI automatically loads 000-global-core, 100-snowflake-core, and 101-snowflake-streamlit-core following dependency chains.
 
-```
-1. You: "Build a Snowflake Streamlit dashboard with Plotly charts"
-
-2. AI Assistant (automatically):
-   - Searches RULES_INDEX.md for keywords: "Streamlit", "Snowflake", "visualization"
-   - Identifies relevant rules:
-     * 000-global-core.md (foundation)
-     * 100-snowflake-core.md (SQL patterns)
-     * 101-snowflake-streamlit-core.md (app basics)
-     * 101a-snowflake-streamlit-visualization.md (charts)
-   - Loads rules following dependency chain
-   - Total: ~1,800 tokens of focused, relevant guidance
-
-3. AI Assistant: Implements your dashboard following all applicable rules
-```
+**For detailed protocol and examples**, see `discovery/AGENTS.md`
 
 ### Manual Rule Selection (Alternative)
 
@@ -485,9 +512,9 @@ If you prefer explicit control, you can manually specify rules:
 
 For automatic rule discovery, these files work together:
 
-- **`EXAMPLE_PROMPT.md`** — Universal baseline prompt that instructs AI how to load rules
-- **`AGENTS.md`** — Detailed discovery guide with decision trees and loading protocols
-- **`RULES_INDEX.md`** — Machine-readable catalog with keywords, dependencies, and token budgets
+- **`discovery/EXAMPLE_PROMPT.md`** — Universal baseline prompt that instructs AI how to load rules
+- **`discovery/AGENTS.md`** — Rule loading protocol FOR AI assistants (with decision trees and examples)
+- **`discovery/RULES_INDEX.md`** — Machine-readable catalog with keywords, dependencies, and token budgets
 - **Decision Tree** (in AGENTS.md) — Visual guide for identifying which rules you need
 
 #### Generate Rules to Custom Locations
@@ -672,6 +699,130 @@ gen-rules --verbose --project ~/my-rules rule:all DEST=/output
 - ✅ Debug and troubleshooting support built-in
 - ✅ Follows bash scripting best practices (see `300-bash-scripting-core.md`)
 
+## AI Configuration
+
+To enable automatic rule discovery with your AI assistant, you need to add the discovery files to your AI's context. The AI will then automatically discover and load relevant rules based on your tasks.
+
+### One-Time Setup
+
+**What the AI needs access to:**
+1. `discovery/AGENTS.md` - Rule loading protocol (prescriptive instructions FOR the AI)
+2. `discovery/EXAMPLE_PROMPT.md` - Baseline prompt template
+3. `discovery/RULES_INDEX.md` - Rule catalog (auto-generated, read-only)
+4. `generated/universal/` directory - All rule files (loaded on-demand)
+
+### IDE-Specific Configuration
+
+#### Cursor IDE
+```bash
+# Option 1: Copy discovery files to project
+cp discovery/AGENTS.md .cursor/
+cp discovery/EXAMPLE_PROMPT.md .cursor/
+cp discovery/RULES_INDEX.md .cursor/
+
+# Option 2: Reference in Cursor settings
+# Add to .cursor/rules/ or include in project context
+```
+
+#### Claude Projects
+```bash
+# Upload these files to your Claude Project knowledge base:
+1. discovery/AGENTS.md
+2. discovery/EXAMPLE_PROMPT.md
+3. discovery/RULES_INDEX.md
+4. generated/universal/ (select relevant rules or all)
+```
+
+#### ChatGPT Custom Instructions
+```bash
+# Copy content from EXAMPLE_PROMPT.md to custom instructions
+# Upload AGENTS.md and RULES_INDEX.md as files in conversation
+```
+
+#### VS Code with Copilot
+```bash
+# Option 1: Use copilot format
+task rule:copilot
+# Commit .github/instructions/ to your repository
+
+# Option 2: Use universal format with extensions
+# Configure your AI extension to read from generated/universal/
+```
+
+### Verification: Is Your AI Configured Correctly?
+
+**Test 1: Protocol Awareness**
+```
+Ask: "What is your rule loading protocol?"
+
+✅ Expected: AI references AGENTS.md and describes 5-step process
+❌ Problem: AI doesn't mention AGENTS.md → Files not in context
+```
+
+**Test 2: Rule Discovery**
+```
+Ask: "What rules are available for Snowflake development?"
+
+✅ Expected: AI searches RULES_INDEX.md and lists 100-series rules
+❌ Problem: AI doesn't find rules → RULES_INDEX.md not accessible
+```
+
+**Test 3: Automatic Loading**
+```
+Ask: "Build a Snowflake Streamlit dashboard"
+
+✅ Expected: AI states loaded rules at start:
+    "## Rules Loaded
+    - 000-global-core.md (foundation)
+    - 100-snowflake-core.md (Snowflake patterns)
+    - 101-snowflake-streamlit-core.md (Streamlit basics)"
+
+❌ Problem: AI doesn't list rules → AGENTS.md protocol not followed
+```
+
+### Troubleshooting AI Configuration
+
+| Problem | Cause | Solution |
+|---------|-------|----------|
+| AI doesn't list loaded rules | AGENTS.md not in context | Add discovery/AGENTS.md to AI context |
+| AI can't find specific rules | RULES_INDEX.md not accessible | Verify RULES_INDEX.md is in context |
+| AI loads wrong rules | Keywords don't match task | Check RULES_INDEX.md Keywords column |
+| Token budget exceeded | Too many rules loaded | Remove Medium/Low tier rules from context |
+| Dependency errors | Prerequisites not loaded | Verify AI follows "Depends On" chain in rules |
+
+### Advanced: Programmatic Configuration
+
+For custom agents or CLI tools, you can programmatically load rules:
+
+```python
+from pathlib import Path
+import re
+
+def configure_ai_context(rules_dir="generated/universal"):
+    """Build AI context with discovery files and rules."""
+    context_files = [
+        "discovery/AGENTS.md",
+        "discovery/EXAMPLE_PROMPT.md", 
+        "discovery/RULES_INDEX.md"
+    ]
+    
+    # Load discovery files first
+    context = []
+    for file in context_files:
+        context.append(Path(file).read_text())
+    
+    # Rules loaded on-demand based on task
+    # (AI will request specific rules from rules_dir)
+    
+    return {
+        "system_prompt": context[1],  # EXAMPLE_PROMPT.md
+        "knowledge_base": context,     # All discovery files
+        "rules_directory": rules_dir
+    }
+```
+
+See [Programmatic Rule Loading](#programmatic-rule-loading-example) for more examples.
+
 ## Project Structure
 
 **v2.1.0+ uses a template-based generation system** for improved organization and maintainability.
@@ -686,7 +837,7 @@ ai_coding_rules_gitlab/
 │   └── ... (72 template files)
 │
 ├── discovery/              ← Discovery system
-│   ├── AGENTS.md           ← Primary discovery guide
+│   ├── AGENTS.md           ← Rule loading protocol (FOR AI assistants)
 │   ├── EXAMPLE_PROMPT.md   ← Baseline prompt template
 │   └── RULES_INDEX.md      ← Rule catalog
 │
@@ -776,7 +927,7 @@ See `docs/architecture.md` for detailed system architecture.
 - **`002-rule-governance.md`** — Comprehensive rule authoring governance: creation standards, naming conventions, structure requirements, validation workflows, and rule creation template
 - **`003-context-engineering.md`** — Context management strategies for AI agents (attention budgets, context rot, progressive disclosure, compaction)
 - **`004-tool-design-for-agents.md`** — Token-efficient tool design patterns for AI agents (single responsibility, minimal tool sets, LLM-friendly parameters)
-- **[AGENTS.md](AGENTS.md)** — Universal discovery guide for finding and using rules (not a rule itself)
+- **discovery/AGENTS.md** — Rule loading protocol FOR AI assistants (prescriptive instructions, not for human users)
 
 #### Universal Rule Authoring Best Practices
 
@@ -964,10 +1115,10 @@ The project follows a **universal-first architecture** where source rule files a
 │  ├── 100-snowflake-core.md      [Domain Core]              │
 │  ├── 200-python-core.md         [Language Core]            │
 │  ├── 210-python-fastapi-core.md [Framework Specific]       │
-│  └── ... (70+ total rules)                                 │
+│  └── ... (72 total rules)                                   │
 │                                                            │
 │  Discovery System (Committed in Repo)                      │
-│  ├── AGENTS.md          [How to find and load rules]       │
+│  ├── AGENTS.md          [Rule loading protocol FOR AI]     │
 │  ├── RULES_INDEX.md     [Searchable catalog]               │
 │  ├── EXAMPLE_PROMPT.md  [Baseline prompt]                  │
 │  └── generate_agent_rules.py [Generation script]           │
@@ -1124,7 +1275,7 @@ After running `task rule:universal`, the generated `rules/` directory contains p
 
 **Key Files:**
 - **`generated/universal/*.md`** — Universal rule files with embedded metadata
-- **`discovery/AGENTS.md`** — Rule discovery guide with decision trees
+- **`discovery/AGENTS.md`** — Rule loading protocol FOR AI assistants (prescriptive instructions with decision trees)
 - **`discovery/RULES_INDEX.md`** — Searchable catalog with keywords and dependencies (auto-generated)
 - **`EXAMPLE_PROMPT.md`** — Baseline prompt for automatic rule loading
 
@@ -1631,7 +1782,7 @@ ls generated/cursor/rules/*.mdc | wc -l
 1. **Verify Instructions Exist**
 ```bash
 ls .github/instructions/*.md | wc -l
-# Should show 70+ files
+# Should show 72 files
 ```
 
 2. **Check Repository Settings**

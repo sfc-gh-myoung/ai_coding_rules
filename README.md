@@ -512,14 +512,14 @@ While the universal format works everywhere, you can generate IDE-specific conve
 
 ```bash
 # Generate IDE-specific formats (optional)
-task rule:cursor     # Creates .cursor/rules/*.mdc files
-task rule:copilot    # Creates .github/instructions/*.md files  
-task rule:cline      # Creates .clinerules/*.md files
+task rule:cursor     # Creates generated/cursor/rules/*.mdc files
+task rule:copilot    # Creates generated/copilot/instructions/*.md files  
+task rule:cline      # Creates generated/cline/*.md files
 
-# With custom destination
-task rule:cursor DEST=/path/to/output     # Creates /path/to/output/.cursor/rules/*.mdc
-task rule:copilot DEST=../                # Creates ../.github/instructions/*.md
-task rule:cline DEST=~/projects/my-app    # Creates ~/projects/my-app/.clinerules/*.md
+# With custom destination (advanced)
+task rule:cursor DEST=/path/to/output     # Creates /path/to/output/generated/cursor/rules/*.mdc
+task rule:copilot DEST=../                # Creates ../generated/copilot/instructions/*.md
+task rule:cline DEST=~/projects/my-app    # Creates ~/projects/my-app/generated/cline/*.md
 ```
 
 #### Manual Generation with Python Script
@@ -534,12 +534,12 @@ uv run generate_agent_rules.py --agent universal --source . --dry-run
 uv run generate_agent_rules.py --agent universal --source . --check
 
 # Generate to custom base directory
-uv run generate_agent_rules.py --agent universal --source . --destination /path/to/output
-# Creates: /path/to/output/rules/*.md
+uv run scripts/generate_agent_rules.py --agent universal --destination /path/to/output
+# Creates: /path/to/output/generated/universal/*.md
 
 # IDE-specific generation
-uv run generate_agent_rules.py --agent cursor --source . --destination /path/to/output
-# Creates: /path/to/output/.cursor/rules/*.mdc
+uv run scripts/generate_agent_rules.py --agent cursor --destination /path/to/output
+# Creates: /path/to/output/generated/cursor/rules/*.mdc
 ```
 
 #### Direct Integration with LLM Tools
@@ -1168,7 +1168,7 @@ grep -i "performance\|optimization" RULES_INDEX.md
 grep "**Depends:**" rules/101-snowflake-streamlit-core.md
 
 # Get token budgets for context planning
-grep "**TokenBudget:**" rules/*.md | awk -F: '{sum+=$3} END {print "Total tokens:", sum}'
+grep "**TokenBudget:**" generated/universal/*.md | awk -F: '{sum+=$3} END {print "Total tokens:", sum}'
 
 # Build dependency tree programmatically
 find rules -name "*.md" -exec grep -H "**Depends:**" {} \; | \
@@ -1181,7 +1181,7 @@ While the universal format works everywhere, you can generate IDE-specific conve
 
 **Cursor:**
 - Generate: `task rule:cursor`
-- Location: `.cursor/rules/*.mdc`
+- Location: `generated/cursor/rules/*.mdc`
 - Features: Auto-attach, file glob patterns, YAML frontmatter
 
 **GitHub Copilot:**
@@ -1191,7 +1191,7 @@ While the universal format works everywhere, you can generate IDE-specific conve
 
 **Cline:**
 - Generate: `task rule:cline`
-- Location: `.clinerules/*.md`
+- Location: `generated/cline/*.md`
 - Features: Plain Markdown, automatic processing
 
 ### Programmatic Rule Loading Example
@@ -1331,7 +1331,8 @@ task -l                  # List all available tasks
 ```bash
 task rule:cursor
 # Rules appear in Cursor's AI context automatically
-# Configure via .cursor/rules/*.mdc files
+# Configure via generated/cursor/rules/*.mdc files
+# Or use task rule:legacy for backward-compatible .cursor/rules/ location
 ```
 
 ### GitHub Copilot
@@ -1345,16 +1346,16 @@ task rule:copilot
 ```bash
 task rule:cline
 # Generate rules for Cline AI assistant
-# Configure via .clinerules/*.md files
-# All Markdown files in .clinerules/ are automatically processed
+# Configure via generated/cline/*.md files
+# Or use task rule:legacy for backward-compatible .clinerules/ location
 ```
 
 ### Universal Format (Any IDE/Agent/LLM)
 ```bash
 task rule:universal
 # Generate clean Markdown rules for any IDE, agent, or LLM
-# Creates rules/*.md files with no YAML frontmatter or generated comments
-# Use with RULES_INDEX.md and AGENTS.md for rule discovery
+# Creates generated/universal/*.md files with no YAML frontmatter or generated comments
+# Use with discovery/RULES_INDEX.md and discovery/AGENTS.md for rule discovery
 # Perfect for manual inclusion or programmatic loading by custom tools
 ```
 
@@ -1609,8 +1610,8 @@ pip install -e ".[dev]"
 
 1. **Verify Rules Exist**
 ```bash
-ls .cursor/rules/*.mdc | wc -l
-# Should show 70+ files
+ls generated/cursor/rules/*.mdc | wc -l
+# Should show 72+ files
 ```
 
 2. **Check Cursor Settings**
@@ -1646,12 +1647,12 @@ ls .github/instructions/*.md | wc -l
 
 1. **Verify Files Generated**
 ```bash
-ls rules/*.md | wc -l
-# Should show 70+ files
+ls generated/universal/*.md | wc -l
+# Should show 72+ files
 ```
 
 2. **Add to AI Context Manually**
-   - **Claude Projects:** Upload `AGENTS.md`, `EXAMPLE_PROMPT.md`, and relevant `rules/*.md` files to project knowledge
+   - **Claude Projects:** Upload `discovery/AGENTS.md`, `discovery/EXAMPLE_PROMPT.md`, and relevant `generated/universal/*.md` files to project knowledge
    - **ChatGPT:** Add files to custom instructions or upload via file attachment
    - **Other LLMs:** Refer to specific tool documentation for context management
 
@@ -1685,9 +1686,10 @@ Expected: AI loads 000-global-core, 100-snowflake-core, 101-snowflake-streamlit-
 **Manual Verification:**
 ```bash
 # Verify files exist
-ls rules/*.md | wc -l  # Should be 70+
+ls generated/universal/*.md | wc -l  # Should be 72+
 
 # Check discovery files
+ls discovery/AGENTS.md discovery/RULES_INDEX.md discovery/EXAMPLE_PROMPT.md
 cat AGENTS.md | head -20
 cat RULES_INDEX.md | head -20
 
@@ -1747,14 +1749,14 @@ chmod -R u+w .
 | **Claude (API/Web)** | ✅ Yes | N/A | ✅ via AGENTS.md | Full Support |
 | **Gemini (API/Web)** | ✅ Yes | N/A | ✅ via AGENTS.md | Full Support |
 | **ChatGPT** | ✅ Yes | N/A | ✅ via AGENTS.md | Full Support |
-| **GitHub Copilot** | ⚠️ Limited | ✅ `.github/instructions/` | ⚠️ Partial | Full Support |
-| **Cursor** | ✅ Yes | ✅ `.cursor/rules/*.mdc` | ✅ Auto-attach | Full Support |
-| **Cline** | ✅ Yes | ✅ `.clinerules/*.md` | ✅ Auto-process | Full Support |
+| **GitHub Copilot** | ⚠️ Limited | ✅ `generated/copilot/instructions/` | ⚠️ Partial | Full Support |
+| **Cursor** | ✅ Yes | ✅ `generated/cursor/rules/*.mdc` | ✅ Auto-attach | Full Support |
+| **Cline** | ✅ Yes | ✅ `generated/cline/*.md` | ✅ Auto-process | Full Support |
 
 **Legend:**
-- **Reads Universal Markdown:** Can use `rules/*.md` files without conversion
-- **IDE-Specific Format:** Has optional IDE-specific format available
-- **Auto-Discovery:** Supports automatic rule loading via AGENTS.md/EXAMPLE_PROMPT.md
+- **Reads Universal Markdown:** Can use `generated/universal/*.md` files without conversion
+- **IDE-Specific Format:** Has optional IDE-specific format available in `generated/` directory
+- **Auto-Discovery:** Supports automatic rule loading via discovery/AGENTS.md/EXAMPLE_PROMPT.md
 - **Status:** Overall compatibility and support level
 
 ## License

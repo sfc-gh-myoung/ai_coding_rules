@@ -578,6 +578,101 @@ gen-rules --verbose --project ~/my-rules rule:all DEST=/output
 - ✅ Debug and troubleshooting support built-in
 - ✅ Follows bash scripting best practices (see `300-bash-scripting-core.md`)
 
+## Project Structure
+
+**v2.1.0+ uses a template-based generation system** for improved organization and maintainability.
+
+### Directory Layout
+
+```
+ai_coding_rules_gitlab/
+├── templates/              ← Source templates (edit these)
+│   ├── 000-global-core.md
+│   ├── 001-memory-bank.md
+│   └── ... (72 template files)
+│
+├── discovery/              ← Discovery system
+│   ├── AGENTS.md           ← Primary discovery guide
+│   ├── EXAMPLE_PROMPT.md   ← Baseline prompt template
+│   └── RULES_INDEX.md      ← Rule catalog
+│
+├── generated/              ← Generated outputs (committed to git)
+│   ├── universal/          ← Universal format (pure Markdown)
+│   ├── cursor/rules/       ← Cursor-specific (.mdc files)
+│   ├── copilot/instructions/ ← GitHub Copilot format
+│   └── cline/              ← Cline format
+│
+├── scripts/                ← Generation tools
+│   ├── generate_agent_rules.py
+│   ├── validate_agent_rules.py
+│   └── build_rules_index.py
+│
+├── docs/                   ← Documentation
+├── examples/               ← Usage examples
+└── tests/                  ← Test suite
+```
+
+### Key Concepts
+
+**Source Templates (`templates/`):**
+- Canonical source of truth for all rule content
+- Contains IDE-specific metadata for generation
+- **Always edit here**, never in `generated/`
+
+**Discovery System (`discovery/`):**
+- Meta-documentation for rule discovery
+- Copied to generated outputs unchanged
+
+**Generated Outputs (`generated/`):**
+- IDE-ready rule files
+- Committed to git for user convenience
+- Regenerated from templates via `task rule:all`
+
+### Workflow
+
+**For Users (consuming rules):**
+```bash
+# Option 1: Use generated files directly
+cp -r generated/universal/ ~/my-project/rules/
+
+# Option 2: Generate to traditional IDE paths
+task rule:legacy  # Generates to .cursor/rules/, .github/instructions/, etc.
+```
+
+**For Contributors (editing rules):**
+```bash
+# 1. Edit template files
+vim templates/200-python-core.md
+
+# 2. Regenerate all formats
+task rule:all
+
+# 3. Commit changes
+git add templates/200-python-core.md generated/
+git commit -m "feat: update Python core rules"
+```
+
+### Generation System
+
+The generator (`scripts/generate_agent_rules.py`) provides:
+- **Auto-detection** of source directory (templates/ > ai_coding_rules/ > .)
+- **Format transformation** for different IDEs
+- **Metadata stripping** for universal format
+- **Reference conversion** (.md → .mdc for Cursor)
+- **Consistency validation** via `--check` mode
+
+**Available commands:**
+```bash
+task rule:universal   # Generate universal format
+task rule:cursor      # Generate Cursor .mdc files
+task rule:copilot     # Generate Copilot instructions
+task rule:cline       # Generate Cline rules
+task rule:all         # Generate all formats
+task rule:check       # Validate consistency
+```
+
+See `docs/architecture.md` for detailed system architecture.
+
 ## Rule Categories
 
 ### Core Foundation (000-099)

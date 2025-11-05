@@ -63,6 +63,7 @@ from __future__ import annotations
 import argparse
 import os
 import re
+import shutil
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -296,9 +297,34 @@ class AgentRuleGenerator:
             is_stale = self._process_file(md_path)
             stale_found = stale_found or is_stale
 
+        # Copy discovery files for universal format
+        if self.agent == "universal":
+            self._copy_discovery_files()
+
         if getattr(self, "check_mode", False) and stale_found:
             print("One or more agent rule outputs are stale. Re-run without --check to update.")
             sys.exit(1)
+
+    def _copy_discovery_files(self) -> None:
+        """Copy discovery files from discovery/ to universal output directory."""
+        discovery_dir = Path("discovery")
+        if not discovery_dir.exists():
+            return
+
+        discovery_files = ["AGENTS.md", "EXAMPLE_PROMPT.md", "RULES_INDEX.md"]
+        for file_name in discovery_files:
+            src = discovery_dir / file_name
+            if src.exists():
+                dst = self.destination / file_name
+                if not self.dry_run:
+                    shutil.copy2(src, dst)
+                    try:
+                        rel = os.path.relpath(dst, start=Path.cwd())
+                        print(f"Copied {file_name} to {rel}")
+                    except Exception:
+                        print(f"Copied {file_name} to {dst}")
+                else:
+                    print(f"[DRY-RUN] Would copy: {file_name} to {dst}")
 
     def _process_file(self, md_path: Path) -> bool:
         src_text = md_path.read_text(encoding="utf-8")
@@ -400,8 +426,19 @@ def main() -> None:
     )
     parser.add_argument(
         "--source",
-        default=str(Path("ai_coding_rules")),
-        help="Source directory containing .md rule files (default: ai_coding_rules)",
+        default=None,
+        help=(
+            "Source directory containing .md rule files. "
+            "Auto-detects: templates/ if exists, else ai_coding_rules/, else current directory."
+        ),
+    )
+    parser.add_argument(
+        "--legacy-paths",
+        action="store_true",
+        help=(
+            "Use legacy output paths (.cursor/rules/, .github/instructions/, .clinerules/, rules/) "
+            "instead of new generated/ structure"
+        ),
     )
     parser.add_argument(
         "--destination",
@@ -418,22 +455,55 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    source = Path(args.source).resolve()
+    # Auto-detect source directory
+    if args.source:
+        source = Path(args.source).resolve()
+    else:
+        # Try templates/ first (new structure)
+        if Path("templates").exists() and list(Path("templates").glob("*.md")):
+            source = Path("templates").resolve()
+            print(f"✓ Using source directory: templates/ (new structure)")
+        # Fall back to ai_coding_rules/ (legacy)
+        elif Path("ai_coding_rules").exists():
+            source = Path("ai_coding_rules").resolve()
+            print(f"✓ Using source directory: ai_coding_rules/ (legacy structure)")
+        # Fall back to current directory
+        else:
+            source = Path(".").resolve()
+            print(f"✓ Using source directory: . (current directory)")
+
     if not source.exists():
         raise SystemExit(f"Source directory not found: {source}")
 
-    # Determine base directory
-    base_dir = Path(args.destination).resolve() if args.destination else Path(".").resolve()
+    # Determine base directory and output paths
+    if args.destination:
+        base_dir = Path(args.destination).resolve()
+    elif args.legacy_paths:
+        base_dir = Path(".").resolve()
+    else:
+        base_dir = Path("generated").resolve()
 
     # Create agent-specific subdirectory within base
-    if args.agent == "cursor":
-        destination = base_dir / ".cursor" / "rules"
-    elif args.agent == "copilot":
-        destination = base_dir / ".github" / "instructions"
-    elif args.agent == "cline":
-        destination = base_dir / ".clinerules"
-    else:  # universal
-        destination = base_dir / "rules"
+    if args.legacy_paths:
+        # Legacy paths: output to IDE-expected locations
+        if args.agent == "cursor":
+            destination = Path(".cursor/rules").resolve()
+        elif args.agent == "copilot":
+            destination = Path(".github/instructions").resolve()
+        elif args.agent == "cline":
+            destination = Path(".clinerules").resolve()
+        else:  # universal
+            destination = Path("rules").resolve()
+    else:
+        # New structure: output to generated/ subdirectories
+        if args.agent == "cursor":
+            destination = base_dir / "cursor" / "rules"
+        elif args.agent == "copilot":
+            destination = base_dir / "copilot" / "instructions"
+        elif args.agent == "cline":
+            destination = base_dir / "cline"
+        else:  # universal
+            destination = base_dir / "universal"
 
     generator = AgentRuleGenerator(
         agent=args.agent, source=source, destination=destination, dry_run=args.dry_run

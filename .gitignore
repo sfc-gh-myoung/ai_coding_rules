@@ -182,11 +182,12 @@ $RECYCLE.BIN/
 *.msp
 *.lnk
 
-# Generated rule files (IDE-specific outputs)
-.cursor/
-.github/instructions/
-.clinerules/
-rules/
+# Symlinks to generated files (for IDE compatibility)
+# Note: Generated files are committed in generated/ directory
+.cursor/rules
+.github/instructions
+.clinerules
+rules
 
 # Cursor memory bank
 memory-bank/

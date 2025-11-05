@@ -7,6 +7,108 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2025-11-05
+
+### 🚨 BREAKING CHANGES
+
+**Project Structure Reorganization (Option 1: Source-First with Generated Outputs)**
+
+This release introduces a significant restructuring to improve maintainability and align with industry best practices for template-based generation systems.
+
+### Added
+
+- **New Directory Structure:**
+  - `templates/` - Source templates (canonical, edit these) - 72 rule template files
+  - `discovery/` - Discovery system templates (AGENTS.md, EXAMPLE_PROMPT.md, RULES_INDEX.md)
+  - `generated/` - All generated outputs organized by format
+    - `generated/universal/` - Universal format (stripped metadata)
+    - `generated/cursor/rules/` - Cursor-specific format (.mdc files)
+    - `generated/copilot/instructions/` - GitHub Copilot format
+    - `generated/cline/` - Cline format
+  - `scripts/` - Generation and validation tools
+  - `docs/` - Project documentation
+  - `examples/` - Usage examples and templates
+
+- **Enhanced Generation Script (`scripts/generate_agent_rules.py`):**
+  - Auto-detection of source directory (templates/ > ai_coding_rules/ > .)
+  - `--source` flag for manual source directory specification
+  - `--legacy-paths` flag for backward compatibility with old output locations
+  - Discovery file copying for universal format (AGENTS.md, EXAMPLE_PROMPT.md, RULES_INDEX.md)
+  - Smart path detection with user feedback
+
+- **Task Automation Updates:**
+  - `task rule:all` - Generate all formats to generated/ (new structure)
+  - `task rule:legacy` - Generate to legacy paths for backward compatibility
+  - Updated all rule generation tasks to use new paths
+  - Updated `task clean:rules` to clean both new and legacy paths
+
+- **IDE Compatibility:**
+  - Symlinks created for seamless IDE integration:
+    - `.cursor/rules` → `generated/cursor/rules`
+    - `.github/instructions` → `generated/copilot/instructions`
+    - `.clinerules` → `generated/cline`
+    - `rules` → `generated/universal`
+  - Migration helper script (`scripts/migrate_to_templates.sh`)
+
+### Changed
+
+- **File Organization:**
+  - Source templates moved from root to `templates/` directory
+  - Discovery files moved from root to `discovery/` directory
+  - Scripts moved from root to `scripts/` directory
+  - Generated outputs organized in `generated/` directory structure
+
+- **Generation Workflow:**
+  - Default generation target changed from root to `generated/` subdirectories
+  - Scripts now auto-detect templates/ directory
+  - All Taskfile commands updated to use scripts/ directory
+  - Discovery files automatically copied to universal format output
+
+- **Git Tracking:**
+  - Updated `.gitignore` to ignore symlinks but commit generated files
+  - Generated files committed for user convenience (no build step required)
+
+### Migration Guide
+
+**For Users (consuming rules):**
+- No action required - clone and use immediately
+- Generated files included in repository
+- Symlinks provide IDE compatibility
+
+**For Contributors (editing rules):**
+- Edit templates in `templates/` directory (not root or generated/)
+- Run `task rule:all` after edits to regenerate outputs
+- Commit both template changes and generated files
+
+**Backward Compatibility:**
+- Use `task rule:legacy` to generate to old paths if needed
+- Symlinks maintain IDE compatibility during transition
+- `--legacy-paths` flag available for custom workflows
+
+### Technical Details
+
+**Architecture:**
+- Follows industry standards (Hugo, Sphinx, cookiecutter patterns)
+- Clear separation: templates → generation → outputs
+- Scalable for future format additions
+- Professional project organization
+
+**Benefits:**
+- Improved maintainability and contributor onboarding
+- Clear distinction between source and generated files
+- Reduced root directory clutter
+- Enhanced discoverability of templates
+- Future-proof structure for additional IDE formats
+
+### Rationale
+
+This restructuring aligns with proven patterns from static site generators and template systems, providing:
+- Clear separation of concerns (source vs generated)
+- Improved maintainability for contributors
+- Professional, organized project structure
+- Easier addition of new IDE formats
+- Better version control (clear what changed)
+
 ## [2.0.1] - 2025-10-29
 
 ### Changed

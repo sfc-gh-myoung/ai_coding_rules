@@ -8,7 +8,7 @@ table for semantic rule discovery.
 
 Usage:
     python scripts/build_rules_index.py [--check] [--dry-run] [--templates-dir DIR]
-    
+
     --check: Verify current RULES_INDEX.md is up-to-date (CI mode, exit 1 if not)
     --dry-run: Print generated content without writing to file
     --templates-dir: Path to templates directory (default: templates/ or . for legacy)
@@ -16,10 +16,10 @@ Usage:
 Examples:
     # Generate RULES_INDEX.md
     python scripts/build_rules_index.py
-    
+
     # Check if up-to-date (CI mode)
     python scripts/build_rules_index.py --check
-    
+
     # Preview output without writing
     python scripts/build_rules_index.py --dry-run
 """
@@ -31,8 +31,6 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
-
 
 # Regex patterns for metadata extraction
 RE_DESCRIPTION = re.compile(r"^\*\*Description:\*\*\s*(.*)$", re.IGNORECASE)
@@ -67,19 +65,19 @@ class RuleMetadata:
     scope: str  # Manually provided or inferred
 
     # Optional (for future use)
-    token_budget: Optional[str] = None
-    context_tier: Optional[str] = None
+    token_budget: str | None = None
+    context_tier: str | None = None
 
 
 def infer_scope(filename: str) -> str:
     """
     Infer scope category from filename prefix.
-    
+
     Maps rule number prefixes to scope descriptions for the Scope column.
-    
+
     Args:
         filename: Rule filename (e.g., "000-global-core.md")
-        
+
     Returns:
         Scope description string
     """
@@ -148,16 +146,16 @@ def infer_scope(filename: str) -> str:
 def extract_metadata(filepath: Path) -> RuleMetadata:
     """
     Extract metadata from a single template file.
-    
+
     Parses the first ~20 lines of the file looking for metadata fields
     like **Keywords:**, **Type:**, **Description:**, etc.
-    
+
     Args:
         filepath: Path to template file
-        
+
     Returns:
         RuleMetadata object with extracted information
-        
+
     Raises:
         ValueError: If critical metadata fields are missing
     """
@@ -165,7 +163,7 @@ def extract_metadata(filepath: Path) -> RuleMetadata:
     try:
         content = filepath.read_text(encoding="utf-8")
     except Exception as e:
-        raise ValueError(f"Failed to read {filepath}: {e}")
+        raise ValueError(f"Failed to read {filepath}: {e}") from e
 
     lines = content.split("\n")
 
@@ -230,13 +228,13 @@ def extract_metadata(filepath: Path) -> RuleMetadata:
 def scan_templates(templates_dir: Path) -> list[RuleMetadata]:
     """
     Recursively scan templates/ directory for rule files.
-    
+
     Walks the directory tree, finds all .md files, extracts metadata,
     and returns sorted list of rule metadata objects.
-    
+
     Args:
         templates_dir: Path to templates directory
-        
+
     Returns:
         List of RuleMetadata objects, sorted by filename
     """
@@ -268,12 +266,12 @@ def scan_templates(templates_dir: Path) -> list[RuleMetadata]:
 def generate_table_row(metadata: RuleMetadata) -> str:
     """
     Generate markdown table row for one rule.
-    
+
     Format: || `file` | Type | Purpose | Scope | Keywords | Depends ||
-    
+
     Args:
         metadata: RuleMetadata object
-        
+
     Returns:
         Formatted markdown table row string
     """
@@ -310,14 +308,14 @@ def generate_table_row(metadata: RuleMetadata) -> str:
 def generate_rules_index(rules: list[RuleMetadata], preserve_header: bool = True) -> str:
     """
     Generate complete RULES_INDEX.md content.
-    
+
     Preserves the manual header section (if preserve_header=True) and
     generates the table section from rule metadata.
-    
+
     Args:
         rules: List of RuleMetadata objects
         preserve_header: Whether to preserve existing header (default True)
-        
+
     Returns:
         Complete RULES_INDEX.md content as string
     """
@@ -377,7 +375,7 @@ This index helps agents select the correct rule quickly through semantic keyword
 def main() -> int:
     """
     Main entry point.
-    
+
     Returns:
         Exit code (0 = success, 1 = error/check failed)
     """

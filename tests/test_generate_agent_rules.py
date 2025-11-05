@@ -3,10 +3,9 @@
 import tempfile
 from pathlib import Path
 
-import pytest
-
 # Import the module we're testing
 import generate_agent_rules as gar
+import pytest
 
 
 class TestRuleGenerator:

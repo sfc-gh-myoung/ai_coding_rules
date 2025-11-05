@@ -7,69 +7,69 @@ The AI Coding Rules Generator is a template-based generation system that transfo
 ## Architecture Diagram
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                     Source Templates                             │
-│                                                                   │
-│  templates/                    discovery/                        │
-│  ├── 000-global-core.md       ├── AGENTS.md                     │
-│  ├── 001-memory-bank.md       ├── EXAMPLE_PROMPT.md             │
-│  └── ... (72 files)            └── RULES_INDEX.md                │
-│                                                                   │
-│  (Canonical source - always edit here)                          │
+┌───────────────────────────────────────────────────────────────┐
+│                     Source Templates                          │
+│                                                               │
+│  templates/                    discovery/                     │
+│  ├── 000-global-core.md       ├── AGENTS.md                   │
+│  ├── 001-memory-bank.md       ├── EXAMPLE_PROMPT.md           │
+│  └── ... (72 files)            └── RULES_INDEX.md             │
+│                                                               │
+│  (Canonical source - always edit here)                        │
 └───────────────────┬───────────────────────────────────────────┘
                     │
                     ▼
-┌─────────────────────────────────────────────────────────────────┐
-│              Generation Engine (scripts/)                        │
-│                                                                   │
-│  generate_agent_rules.py                                        │
-│  ├── Auto-detect source (templates/ > ai_coding_rules/ > .)   │
+┌────────────────────────────────────────────────────────────────┐
+│              Generation Engine (scripts/)                      │
+│                                                                │
+│  generate_agent_rules.py                                       │
+│  ├── Auto-detect source (templates/ > ai_coding_rules/ > .)    │
 │  ├── Parse metadata (Description, AppliesTo, AutoAttach, etc.) │
 │  ├── Transform content per format                              │
 │  ├── Strip/preserve metadata per target                        │
 │  └── Validate consistency (--check mode)                       │
-│                                                                   │
+│                                                                │
 │  Supports: --source, --legacy-paths, --dry-run, --check        │
-└───────────────────┬───────────────────────────────────────────┘
+└───────────────────┬────────────────────────────────────────────┘
                     │
                     ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                Generated Outputs (generated/)                    │
-│                                                                   │
-│  generated/                                                      │
-│  ├── universal/          ← Pure Markdown (no metadata)          │
+┌────────────────────────────────────────────────────────────────┐
+│                Generated Outputs (generated/)                  │
+│                                                                │
+│  generated/                                                    │
+│  ├── universal/          ← Pure Markdown (no metadata)         │
 │  │   ├── 000-global-core.md                                    │
 │  │   ├── AGENTS.md (copied from discovery/)                    │
 │  │   └── ... (72 rules + 3 discovery files)                    │
-│  │                                                               │
+│  │                                                             │
 │  ├── cursor/rules/       ← .mdc format with YAML frontmatter   │
 │  │   ├── 000-global-core.mdc                                   │
 │  │   └── ... (72 rules, .md→.mdc references)                   │
-│  │                                                               │
+│  │                                                             │
 │  ├── copilot/instructions/ ← .md with YAML frontmatter         │
 │  │   ├── 000-global-core.md                                    │
-│  │   └── ... (72 rules)                                         │
-│  │                                                               │
-│  └── cline/              ← Plain Markdown                       │
+│  │   └── ... (72 rules)                                        │
+│  │                                                             │
+│  └── cline/              ← Plain Markdown                      │
 │      ├── 000-global-core.md                                    │
-│      └── ... (72 rules)                                         │
-│                                                                   │
+│      └── ... (72 rules)                                        │
+│                                                                │
 │  (DO NOT EDIT - regenerated from templates/)                   │
-└───────────────────┬───────────────────────────────────────────┘
+└───────────────────┬────────────────────────────────────────────┘
                     │
                     ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                   IDE/Agent Consumption                          │
-│                                                                   │
-│  User configures IDE to reference:                              │
+┌────────────────────────────────────────────────────────────────┐
+│                   IDE/Agent Consumption                        │
+│                                                                │
+│  User configures IDE to reference:                             │
 │  • generated/cursor/rules/      (Cursor IDE)                   │
 │  • generated/copilot/instructions/ (GitHub Copilot)            │
-│  • generated/cline/             (Cline)                         │
-│  • generated/universal/         (Any IDE/CLI)                   │
-│                                                                   │
-│  Or use: task rule:legacy                                       │
+│  • generated/cline/             (Cline)                        │
+│  • generated/universal/         (Any IDE/CLI)                  │
+│                                                                │
+│  Or use: task rule:legacy                                      │
 │  Generates to: .cursor/rules/, .github/instructions/, etc.     │
-└─────────────────────────────────────────────────────────────────┘
+└────────────────────────────────────────────────────────────────┘
 ```
 
 ## Component Responsibilities

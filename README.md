@@ -71,110 +71,201 @@ This project was inspired, in part, by: [how-to-add-cline-memory-bank-feature-to
 
 ## Quick Start
 
-### Prerequisites
+### For Rule Consumers (Using the Rules)
 
-**To generate rules** (one-time setup):
-- **Python 3.11+** — Required for running rule generation scripts
-- **uv** — Recommended for fast dependency management ([install guide](https://github.com/astral-sh/uv))
-- **Task** — Optional but recommended for simplified commands ([install guide](https://taskfile.dev/installation/))
+**Want to use these rules in your project?** Follow this simple guide:
 
-**To use generated rules** (after generation):
-- ✅ No special tools required
-- ✅ Works with any AI assistant or IDE
-- ✅ Just copy the generated `rules/` directory to your project
-- ✅ Add `AGENTS.md` to your context, if not automatically loaded, and your agent should now have access to and use the rules.
-
-**Note:** You only need Python to *generate* the rules. Once generated, the `rules/` directory contains pure Markdown files that work anywhere.
-
-### Installation
-
-### Option 1: With Task (Recommended)
+#### Option A: Git Submodule (Recommended for Version Control)
 
 ```bash
-# Clone the repository (Snowflake internal GitLab)
-# External users: Download latest release or request access
+# From your project root
+git submodule add https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git .ai-rules
+cd .ai-rules
+task rule:all  # Generate all formats
+
+# Use the rules
+# Option 1: Copy universal rules to your project
+cp -r generated/universal/* ../my-rules/
+
+# Option 2: Reference them directly (Cursor, VS Code)
+# Add to your IDE settings: .ai-rules/generated/universal/
+```
+
+**Update rules when needed:**
+```bash
+cd .ai-rules
+git pull
+task rule:all
+```
+
+#### Option B: Direct Copy (Simplest)
+
+```bash
+# Clone to a temporary directory
+git clone https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git /tmp/ai-rules
+cd /tmp/ai-rules
+
+# Generate universal rules
+task rule:universal
+
+# Copy to your project
+cp -r generated/universal/* /path/to/your/project/rules/
+cp discovery/AGENTS.md /path/to/your/project/
+cp discovery/RULES_INDEX.md /path/to/your/project/
+```
+
+#### Verify Setup
+
+```bash
+# Check rules are present
+ls rules/ | head -5
+
+# Expected output:
+# 000-global-core.md
+# 001-memory-bank.md
+# 002-rule-governance.md
+# 003-context-engineering.md
+# 004-tool-design-for-agents.md
+```
+
+**Success!** Your AI assistant can now access 70+ specialized rules. See [How to Use Generated Rules](#how-to-use-generated-rules) for IDE-specific setup.
+
+---
+
+### For Rule Maintainers (Contributing to Rules)
+
+**Want to modify or contribute rules?** Follow this development setup:
+
+#### Prerequisites
+
+- **Python 3.11+** — Required for running generation scripts
+- **uv** — Fast dependency management ([install guide](https://github.com/astral-sh/uv))
+- **Task** — Simplified commands ([install guide](https://taskfile.dev/installation/))
+
+#### Setup
+
+```bash
+# Clone the repository
 git clone https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git
 cd ai_coding_rules
 
 # Set up Python environment
 task deps:dev
 
-# Generate universal rules
-task rule:universal
-
-# The rules/ directory is now created and ready to use!
+# Generate all rule formats
+task rule:all
 ```
 
-### Option 2: Without Task (Alternative)
+#### Project Structure
+
+```
+ai_coding_rules/
+├── templates/              ← Edit these: 72 source template files
+├── discovery/              ← Discovery system (auto-generated)
+│   ├── AGENTS.md           ← Rule loading guide
+│   ├── EXAMPLE_PROMPT.md   ← Universal baseline prompt
+│   └── RULES_INDEX.md      ← Auto-generated catalog
+├── generated/              ← Generated outputs (don't edit)
+│   ├── universal/          ← Portable format for any tool
+│   ├── cursor/rules/       ← Cursor IDE format
+│   ├── copilot/instructions/ ← GitHub Copilot format
+│   └── cline/              ← Cline format
+├── scripts/                ← Generation tooling
+│   ├── generate_agent_rules.py   ← Main generator
+│   └── generate_rules_index.py   ← Index generator
+└── tests/                  ← Test suite
+```
+
+#### Development Workflow
 
 ```bash
-# Clone the repository (Snowflake internal GitLab)
-# External users: Download latest release or request access
-git clone https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git
-cd ai_coding_rules
+# 1. Edit templates
+vi templates/200-python-core.md
 
-# Set up Python environment
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-pip install -e ".[dev]"
+# 2. Generate outputs
+task rule:all            # All formats
+task rule:universal      # Just universal
+task rules:index         # Regenerate discovery/RULES_INDEX.md
 
-# Generate universal rules
-uv run generate_agent_rules.py --agent universal --source . --destination .
+# 3. Validate
+task validate            # Runs linting, tests, and checks
 
-# The rules/ directory is now created and ready to use!
+# 4. Test locally
+# Copy generated/universal/ to a test project and verify
+
+# 5. Commit
+git add templates/ discovery/
+git commit -m "feat: update Python core rules"
 ```
 
-**Both options create the same output** - choose whichever fits your workflow.
+#### Common Tasks
 
-### Verify Installation
-
-**Step 1: Check Rule Generation**
 ```bash
-# Verify rules directory was created
-ls rules/ | head -5
+# Generate specific formats
+task rule:cursor         # Cursor IDE format
+task rule:copilot        # GitHub Copilot format
+task rule:cline          # Cline format
+task rule:universal      # Universal format
+
+# Regenerate rule index
+task rules:index         # Generate discovery/RULES_INDEX.md
+
+# Validate everything
+task validate            # Lint, test, and check staleness
+
+# Check if outputs are stale
+task rule:universal:check
+task rules:index:check
+
+# Clean generated files
+task clean:rules
 ```
 
-**Expected output:**
-```
-000-global-core.md
-001-memory-bank.md
-002-rule-governance.md
-003-context-engineering.md
-004-tool-design-for-agents.md
-```
+#### Verification Checklist
 
-**Step 2: Verify Rule Count**
+**After making changes:**
+- [ ] Edit source files in `templates/`
+- [ ] Run `task rule:all` to regenerate
+- [ ] Run `task rules:index` to update catalog
+- [ ] Run `task validate` to verify quality
+- [ ] Test with actual AI assistant
+- [ ] Commit `templates/` and `discovery/` only
+
+**What NOT to commit:**
+- ❌ `generated/` directory (auto-generated)
+- ❌ `.venv/` or Python cache files
+- ❌ IDE-specific settings (unless intentional)
+
+#### Testing Your Changes
+
 ```bash
-# Count generated rules
-ls rules/*.md | wc -l
-```
-**Expected:** 70+ rule files
+# Option 1: Validate with task suite
+task validate
 
-**Step 3: Test Rule Discovery**
-```bash
-# Search for Snowflake rules
-grep -i "Snowflake" RULES_INDEX.md | head -3
-```
-**Expected:** Should display Snowflake-related rules with metadata
+# Option 2: Manual testing with AI assistant
+# Copy generated/universal/ to a test project
+mkdir ~/test-rules
+cp -r generated/universal/* ~/test-rules/
+cp discovery/AGENTS.md ~/test-rules/
+cp discovery/RULES_INDEX.md ~/test-rules/
 
-**Step 4: Verify Discovery Files**
-```bash
-# Check key files exist
-ls AGENTS.md EXAMPLE_PROMPT.md RULES_INDEX.md
+# Point your AI assistant to ~/test-rules/ and verify behavior
 ```
-**Expected:** All three files present
 
 **Success Indicators:**
-- ✅ `rules/` directory contains 70+ `.md` files
-- ✅ `AGENTS.md`, `EXAMPLE_PROMPT.md`, and `RULES_INDEX.md` exist
-- ✅ `grep` searches find relevant rules in RULES_INDEX.md
-- ✅ Rule files are readable Markdown (not binary/corrupted)
+- ✅ `task validate` passes all checks
+- ✅ `generated/universal/` contains 72+ rule files
+- ✅ `discovery/RULES_INDEX.md` lists all rules with metadata
+- ✅ AI assistant can load and apply rules correctly
+- ✅ No linting errors in templates
 
-**Troubleshooting:** If any check fails, see [Troubleshooting](#troubleshooting) section below.
+**See also:** [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed contribution guidelines.
 
 ### Universal Format Philosophy
 
-This repository contains **70+ specialized rule files** (`.md` files in the project root) that can be **generated into a universal format** via `task rule:universal`. The generated `rules/` directory contains clean, portable Markdown files that work with:
+This repository follows a **template-first architecture**: 72 source templates in `templates/` generate portable rules for any tool.
+
+**Key Features:**
 - **Any AI Assistant**: Claude, GPT, Gemini, custom agents
 - **Any IDE**: Cursor, VS Code, IntelliJ, JetBrains, Vim
 - **Any Tool**: CLI tools, scripts, custom integrations
@@ -182,29 +273,32 @@ This repository contains **70+ specialized rule files** (`.md` files in the proj
 
 ### Core Principles
 
-1. **Universal-First Design**: Source `.md` files in the repository can be generated into a universal `rules/` directory that works everywhere without modification
-2. **Generate Once, Use Everywhere**: Run `task rule:universal` to create portable rules for any IDE/Agent/LLM
-3. **Automatic Rule Discovery**: AI assistants use `AGENTS.md` and `RULES_INDEX.md` to find relevant rules via keyword matching
+1. **Template-First Design**: Source templates in `templates/` directory → Generate to `generated/` outputs
+2. **Generate Once, Use Everywhere**: Run `task rule:universal` to create portable rules
+3. **Automatic Rule Discovery**: AI assistants use `discovery/AGENTS.md` and `discovery/RULES_INDEX.md` for semantic keyword matching
 4. **Dependency-Aware Architecture**: Explicit dependency chains ensure correct rule loading order
 5. **Token-Efficient Design**: Modular, focused rules (150-500 lines) minimize context usage
-6. **Technology Coverage**: 70+ specialized rules covering Snowflake, Python, Docker, Shell scripting, and project management
-7. **Optional IDE-Specific Formats**: Generate Cursor/Copilot/Cline formats as convenience wrappers when desired
+6. **Technology Coverage**: 72 specialized rules covering Snowflake, Python, Docker, Shell scripting, and project management
+7. **Auto-Generated Catalog**: `discovery/RULES_INDEX.md` automatically generated from template metadata
 
 ### What This Repository Provides
 
-- **70+ specialized rule files** covering best practices, patterns, and governance
-- **Universal format** with preserved metadata (Keywords, TokenBudget, ContextTier, Depends)
-- **AGENTS.md discovery guide** for finding and loading the right rules
-- **RULES_INDEX.md** machine-readable catalog with semantic keywords
-- **EXAMPLE_PROMPT.md** universal baseline prompt for automatic rule loading
-- **Automated generation** for IDE-specific formats (Cursor, Copilot, Cline)
+- **72 source templates** in `templates/` directory covering best practices, patterns, and governance
+- **Universal format** in `generated/universal/` with preserved metadata (Keywords, TokenBudget, ContextTier, Depends)
+- **Discovery system** in `discovery/` directory:
+  - `AGENTS.md` - Guide for finding and loading rules
+  - `RULES_INDEX.md` - Auto-generated catalog with semantic keywords
+  - `EXAMPLE_PROMPT.md` - Universal baseline prompt for automatic rule loading
+- **IDE-specific formats** in `generated/` for Cursor, Copilot, Cline
+- **Automated generation pipeline** with validation and CI checks
 
 ### Who Should Use This
 
 - **Developers** working with AI coding assistants who want consistent, high-quality guidance
-- **Teams** seeking to standardize AI-assisted development practices
-- **Organizations** implementing AI coding standards across multiple tools and platforms
+- **Teams** seeking to standardize AI-assisted development practices across multiple IDEs
+- **Organizations** implementing AI coding standards with version control
 - **Tool Builders** creating AI-powered development environments
+- **Contributors** wanting to extend or customize rules for their domain
 
 ## Rule Selection Decision Tree
 
@@ -861,63 +955,63 @@ This hierarchy ensures consistent interpretation across different AI models and 
 The project follows a **universal-first architecture** where source rule files are generated into portable formats:
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│              Source Repository (Clone This)                 │
-│                  (ai_coding_rules/)                         │
-│                                                             │
-│  Source Rule Files (*.md in project root)                   │
+┌────────────────────────────────────────────────────────────┐
+│              Source Repository (Clone This)                │
+│                  (ai_coding_rules/)                        │
+│                                                            │
+│  Source Rule Files (*.md in project root)                  │
 │  ├── 000-global-core.md         [Foundation]               │
 │  ├── 100-snowflake-core.md      [Domain Core]              │
 │  ├── 200-python-core.md         [Language Core]            │
 │  ├── 210-python-fastapi-core.md [Framework Specific]       │
 │  └── ... (70+ total rules)                                 │
-│                                                             │
-│  Discovery System (Committed in Repo)                       │
+│                                                            │
+│  Discovery System (Committed in Repo)                      │
 │  ├── AGENTS.md          [How to find and load rules]       │
 │  ├── RULES_INDEX.md     [Searchable catalog]               │
 │  ├── EXAMPLE_PROMPT.md  [Baseline prompt]                  │
 │  └── generate_agent_rules.py [Generation script]           │
-│                                                             │
+│                                                            │
 │  ⚠️  The rules/ directory does NOT exist yet               │
-└─────────────────────────────────────────────────────────────┘
+└────────────────────────────────────────────────────────────┘
                             │
                             │ Run generation command
                             ▼
         ┌───────────────────────────────────────┐
-        │   task rule:universal                  │
-        │   (Generates Universal Format)         │
+        │   task rule:universal                 │
+        │   (Generates Universal Format)        │
         └───────────────────────────────────────┘
                             │
                             ▼
         ┌───────────────────────────────────────┐
-        │   Created: rules/ Directory            │
-        │   (in current directory or DEST)       │
-        │                                        │
-        │  Generated files:                      │
-        │  ├── rules/000-global-core.md          │
-        │  ├── rules/100-snowflake-core.md       │
-        │  ├── rules/200-python-core.md          │
-        │  └── ... (all rules, cleaned)          │
-        │                                        │
-        │  ✅ Works with ANY tool/IDE/Agent      │
-        │  ✅ Portable Markdown                  │
-        │  ✅ Embedded metadata preserved        │
-        │  ✅ No lock-in                         │
-        │  ✅ Ready to use immediately           │
+        │   Created: rules/ Directory           │
+        │   (in current directory or DEST)      │
+        │                                       │
+        │  Generated files:                     │
+        │  ├── rules/000-global-core.md         │
+        │  ├── rules/100-snowflake-core.md      │
+        │  ├── rules/200-python-core.md         │
+        │  └── ... (all rules, cleaned)         │
+        │                                       │
+        │  ✅ Works with ANY tool/IDE/Agent     │
+        │  ✅ Portable Markdown                 │
+        │  ✅ Embedded metadata preserved       │
+        │  ✅ No lock-in                        │
+        │  ✅ Ready to use immediately          │
         └───────────────────────────────────────┘
                             │
                             │ (Optional)
                             ▼
-        ┌───────────────────────────────────────┐
+        ┌────────────────────────────────────────┐
         │   Optional: Generate IDE-Specific      │
         │        Convenience Formats             │
         │                                        │
         │  task rule:cursor   → .cursor/rules/   │
-        │  task rule:copilot  → .github/inst.../  │
+        │  task rule:copilot  → .github/inst.../ │
         │  task rule:cline    → .clinerules/     │
         │                                        │
         │  (Same rules, different packaging)     │
-        └───────────────────────────────────────┘
+        └────────────────────────────────────────┘
 ```
 
 ### Key Architectural Principles
@@ -1029,9 +1123,9 @@ After running `task rule:universal`, the generated `rules/` directory contains p
 4. The AI automatically discovers relevant rules via keyword matching in RULES_INDEX.md
 
 **Key Files:**
-- **`rules/*.md`** — Universal rule files with embedded metadata
-- **`AGENTS.md`** — Rule discovery guide with decision trees
-- **`RULES_INDEX.md`** — Searchable catalog with keywords and dependencies
+- **`generated/universal/*.md`** — Universal rule files with embedded metadata
+- **`discovery/AGENTS.md`** — Rule discovery guide with decision trees
+- **`discovery/RULES_INDEX.md`** — Searchable catalog with keywords and dependencies (auto-generated)
 - **`EXAMPLE_PROMPT.md`** — Baseline prompt for automatic rule loading
 
 **Works With:**

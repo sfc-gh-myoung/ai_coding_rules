@@ -2,13 +2,13 @@
 
 **BEFORE ANY RESPONSE, AI ASSISTANTS MUST:**
 
-1. **Load Foundation**: Read `rules/000-global-core.md` (always first, no exceptions)
+1. **Load Foundation**: Read `generated/universal/000-global-core.md` (always first, no exceptions)
 2. **Load Domain Rules**: Read technology-specific rules based on task:
-   - Snowflake tasks → `rules/100-snowflake-core.md`
-   - Python tasks → `rules/200-python-core.md`
-   - Docker tasks → `rules/400-docker-best-practices.md`
-   - Shell tasks → `rules/300-bash-scripting-core.md`
-3. **Load Specialized Rules**: Read task-specific rules from `RULES_INDEX.md` Keywords column
+   - Snowflake tasks → `generated/universal/100-snowflake-core.md`
+   - Python tasks → `generated/universal/200-python-core.md`
+   - Docker tasks → `generated/universal/400-docker-best-practices.md`
+   - Shell tasks → `generated/universal/300-bash-scripting-core.md`
+3. **Load Specialized Rules**: Read task-specific rules from `discovery/RULES_INDEX.md` Keywords column
 4. **State Loaded Rules**: Explicitly list all loaded rules at the start of the response
 5. **Then Proceed**: Continue with analysis, planning, or implementation
 
@@ -27,9 +27,9 @@
 **Response Format Requirement:**
 ```
 ## Rules Loaded
-- rules/000-global-core.md (foundation)
-- rules/[domain]-core.md (e.g., 100-snowflake-core, 200-python-core)
-- rules/[specialized].md (task-specific rules)
+- generated/universal/000-global-core.md (foundation)
+- generated/universal/[domain]-core.md (e.g., 100-snowflake-core, 200-python-core)
+- generated/universal/[specialized].md (task-specific rules)
 
 [Then proceed with response...]
 ```
@@ -38,10 +38,10 @@
 ```
 User: Fix the Streamlit fragment batch processing
 AI: Let me load the relevant rules first:
-    - Reading rules/000-global-core.md
-    - Reading rules/100-snowflake-core.md  
-    - Reading rules/101-snowflake-streamlit-core.md
-    - Reading rules/101b-snowflake-streamlit-performance.md
+    - Reading generated/universal/000-global-core.md
+    - Reading generated/universal/100-snowflake-core.md  
+    - Reading generated/universal/101-snowflake-streamlit-core.md
+    - Reading generated/universal/101b-snowflake-streamlit-performance.md
     
     Rules loaded. Now analyzing the issue against fragment best practices...
 ```
@@ -109,16 +109,16 @@ Total: ~1200-1600 tokens for complete context
 Parse metadata fields programmatically:
 ```bash
 # Find rules by keywords
-grep "**Keywords:**.*Snowflake" rules/*.md
+grep "**Keywords:**.*Snowflake" generated/universal/*.md
 
 # Extract dependencies
-grep "**Depends:**" rules/101-snowflake-streamlit-core.md
+grep "**Depends:**" generated/universal/101-snowflake-streamlit-core.md
 
 # Get token budgets for planning
-grep "**TokenBudget:**" rules/*.md | awk -F: '{print $1 ": " $3}'
+grep "**TokenBudget:**" generated/universal/*.md | awk -F: '{print $1 ": " $3}'
 ```
 
-Use RULES_INDEX.md for structured discovery:
+Use discovery/RULES_INDEX.md for structured discovery:
 - Machine-readable table format
 - Keywords column for semantic search
 - Depends On column for dependency resolution
@@ -135,18 +135,18 @@ task rule:cursor
 #### VS Code
 - Add rules to `.vscode/ai-rules/`
 - Reference in workspace settings
-- Use universal format from `rules/` directory
+- Use universal format from `generated/universal/` directory
 
 #### IntelliJ
 - Add to project `.idea/aiRules/`
 - Configure in AI Assistant settings
-- Use universal format from `rules/` directory
+- Use universal format from `generated/universal/` directory
 
 ## Rule Discovery Methods
 
 ### By Keywords
 
-Search RULES_INDEX.md Keywords column for:
+Search discovery/RULES_INDEX.md Keywords column for:
 - **Technologies:** "Snowflake", "Python", "Docker", "FastAPI"
 - **Patterns:** "performance", "security", "testing", "validation"
 - **Use cases:** "dashboard", "API", "CLI", "data pipeline"
@@ -154,10 +154,10 @@ Search RULES_INDEX.md Keywords column for:
 Example searches:
 ```bash
 # Find all performance-related rules
-grep -i "performance" RULES_INDEX.md
+grep -i "performance" discovery/RULES_INDEX.md
 
 # Find Python testing rules
-grep -i "python.*test\|test.*python" RULES_INDEX.md
+grep -i "python.*test\|test.*python" discovery/RULES_INDEX.md
 ```
 
 ### By Category Number
@@ -320,7 +320,7 @@ These are removed from universal rules as they're IDE-specific:
 - Captures intent and domain
 - Enables semantic search
 
-### 5. Reference RULES_INDEX.md
+### 5. Reference discovery/RULES_INDEX.md
 - Authoritative source for all available rules
 - Machine-readable format
 - Always up-to-date with dependencies
@@ -351,14 +351,14 @@ Tokens: ~3000-5000
 ## Troubleshooting
 
 ### Rule Not Found
-- Check RULES_INDEX.md for exact filename
-- Verify you're in the correct directory
+- Check discovery/RULES_INDEX.md for exact filename
+- Verify you're in the correct directory (`generated/universal/`)
 - Ensure rule hasn't been renamed
 
 ### Missing Dependencies
 - Check Depends field in the rule
 - Load prerequisites first
-- Use RULES_INDEX.md Depends On column
+- Use discovery/RULES_INDEX.md Depends On column
 
 ### Token Budget Exceeded
 - Start with Critical tier only
@@ -373,9 +373,9 @@ Tokens: ~3000-5000
 ## References
 
 ### Essential Files
-- **@rules/RULES_INDEX.md** - Complete rule catalog with metadata
-- **@rules/000-global-core.md** - Foundational principles (load first)
-- **@rules/002-rule-governance.md** - How rules are structured
+- **@discovery/RULES_INDEX.md** - Complete rule catalog with metadata
+- **@generated/universal/000-global-core.md** - Foundational principles (load first)
+- **@generated/universal/002-rule-governance.md** - How rules are structured
 - **README.md** - Project documentation and setup
 
 ### External Documentation

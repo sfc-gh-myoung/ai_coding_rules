@@ -44,29 +44,12 @@ else
     uv run scripts/generate_agent_rules.py --agent cline
 fi
 
-# Create symlinks if they don't exist
+# Note: Symlinks are not used in this project
+# IDEs should reference generated/ directories directly, or use --legacy-paths
 echo ""
-echo "🔗 Creating compatibility symlinks..."
-
-create_symlink() {
-    local target="$1"
-    local link="$2"
-    
-    if [ -L "$link" ]; then
-        echo "   ✓ Symlink already exists: $link"
-    elif [ -e "$link" ]; then
-        echo "   ⚠️  Path exists but is not a symlink: $link"
-        echo "      Remove it manually if you want to create a symlink"
-    else
-        ln -s "$target" "$link"
-        echo "   ✓ Created symlink: $link -> $target"
-    fi
-}
-
-create_symlink "generated/cursor/rules" ".cursor/rules"
-create_symlink "generated/copilot/instructions" ".github/instructions"
-create_symlink "generated/cline" ".clinerules"
-create_symlink "generated/universal" "rules"
+echo "✓ Generated files are in generated/ directories"
+echo "  - For IDE compatibility, reference generated/{format}/ directly"
+echo "  - Or use 'task rule:legacy' to generate to legacy paths"
 
 echo ""
 echo "✅ Migration complete!"

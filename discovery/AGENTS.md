@@ -3,14 +3,28 @@
 **BEFORE ANY RESPONSE, AI ASSISTANTS MUST:**
 
 1. **Load Foundation**: Read `generated/universal/000-global-core.md` (always first, no exceptions)
+   - **If file not found**: STOP and inform user: "Cannot proceed - 000-global-core.md not accessible. Please verify rules are generated and in context."
+   - **If file empty**: STOP and inform user: "Rule generation may have failed - 000-global-core.md is empty."
+   - **Do NOT proceed** without successfully loading this foundation
+
 2. **Load Domain Rules**: Read technology-specific rules based on task:
    - Snowflake tasks → `generated/universal/100-snowflake-core.md`
    - Python tasks → `generated/universal/200-python-core.md`
    - Docker tasks → `generated/universal/400-docker-best-practices.md`
    - Shell tasks → `generated/universal/300-bash-scripting-core.md`
+   - **If domain rule not found**: Proceed with 000-global-core only, but inform user which domain rule is missing
+
 3. **Load Specialized Rules**: Read task-specific rules from `discovery/RULES_INDEX.md` Keywords column
+   - Search Keywords column for terms matching your task
+   - Check "Depends On" column for prerequisites
+   - Load prerequisites before dependent rules
+   - **If RULES_INDEX.md not accessible**: Proceed with foundation + domain rules, inform user
+
 4. **State Loaded Rules**: Explicitly list all loaded rules at the start of the response
-5. **Then Proceed**: Continue with analysis, planning, or implementation
+   - Format: "## Rules Loaded\n- generated/universal/000-global-core.md (foundation)\n- [other rules]\n\n[Then proceed with response...]"
+   - **This listing is MANDATORY** - it confirms rules were loaded and helps users verify behavior
+
+5. **Then Proceed**: Continue with analysis, planning, or implementation following loaded rules
 
 **This protocol applies to EVERY response, including:**
 - Initial task analysis and planning
@@ -23,6 +37,20 @@
 - ANY coding-related response
 
 **Failure to follow this protocol is a critical violation.**
+
+## Verification Protocol
+
+Before proceeding with ANY task, confirm:
+- ✅ **Foundation loaded**: 000-global-core.md read successfully
+- ✅ **Domain identified**: Technology-specific rules identified from task keywords
+- ✅ **Dependencies resolved**: Prerequisites loaded before dependent rules (check "Depends On" column)
+- ✅ **Token budget tracked**: Cumulative tokens within recommended limits (see token budget table)
+- ✅ **Rules stated**: Loaded rules explicitly listed at start of response
+
+**If any check fails**: 
+- STOP and inform user which requirement failed
+- Provide specific file path or missing dependency
+- Request user add missing files to context before proceeding
 
 **Response Format Requirement:**
 ```
@@ -51,6 +79,14 @@ AI: Let me load the relevant rules first:
 User: Fix the Streamlit fragment batch processing
 AI: *immediately starts debugging code without loading rules*
 ```
+
+---
+
+# Part 1: AI Agent Protocol (MANDATORY)
+
+> **Audience**: AI Assistants, LLMs, Autonomous Agents  
+> **Purpose**: Required instructions for rule discovery and loading  
+> **Status**: MUST follow these instructions for every response
 
 ---
 
@@ -97,12 +133,24 @@ Start here → What are you building?
 Example loading sequence:
 ```
 Task: "Build a Snowflake Streamlit dashboard"
-1. Load: 000-global-core (foundation, ~450 tokens)
-2. Load: 100-snowflake-core (SQL patterns, ~400 tokens)  
-3. Load: 101-snowflake-streamlit-core (app basics, ~350 tokens)
-4. Optional: 101a-snowflake-streamlit-visualization (if doing charts)
-Total: ~1200-1600 tokens for complete context
+1. Load: 000-global-core (foundation, ~900 tokens)
+2. Load: 100-snowflake-core (SQL patterns, ~1,640 tokens)  
+3. Load: 101-snowflake-streamlit-core (app basics, ~3,667 tokens)
+4. Optional: 101a-snowflake-streamlit-visualization (if doing charts, ~800 tokens)
+Total: ~6,200-7,000 tokens for complete context
 ```
+
+**Note:** Token budgets are estimates based on rule file sizes. Actual token counts may vary by ~10-20% depending on tokenizer.
+
+---
+
+# Part 2: Implementation Reference
+
+> **Audience**: AI Assistants (for understanding integration patterns), Human Developers (for implementation)  
+> **Purpose**: Context for how rules are used in different environments  
+> **Status**: Reference material - read as needed for specific integration scenarios
+
+---
 
 ### For CLI Tools
 
@@ -122,6 +170,26 @@ Use discovery/RULES_INDEX.md for structured discovery:
 - Machine-readable table format
 - Keywords column for semantic search
 - Depends On column for dependency resolution
+
+### RULES_INDEX.md Format Example
+
+The RULES_INDEX.md file is a Markdown table with the following columns:
+
+```markdown
+| File | Type | Purpose | Scope | Keywords/Hints | Depends On |
+|------|------|---------|-------|----------------|------------|
+| `000-global-core.md` | Auto-attach | Core operating contract | Universal | PLAN mode, ACT mode, workflow, safety | — |
+| `100-snowflake-core.md` | Agent Requested | Snowflake SQL rules | Snowflake | Snowflake, SQL, CTE, performance | `000-global-core.md` |
+| `101-snowflake-streamlit-core.md` | Agent Requested | Streamlit patterns | Streamlit | Streamlit, SiS, SPCS, dashboard | `100-snowflake-core.md` |
+| `200-python-core.md` | Agent Requested | Python engineering | Python | Python, uv, Ruff, pyproject.toml | `000-global-core.md` |
+```
+
+**How to parse and use**:
+1. **Search Keywords/Hints column** for terms matching your task (e.g., "Streamlit", "FastAPI", "performance")
+2. **Identify matching rules** by scanning keywords
+3. **Check Depends On column** for prerequisites (e.g., `101-snowflake-streamlit-core.md` depends on `100-snowflake-core.md`)
+4. **Load in dependency order**: Load prerequisites before dependent rules
+5. **Track Type**: Auto-attach rules load automatically; Agent Requested rules load on-demand based on task
 
 ### For IDEs
 
@@ -200,71 +268,33 @@ Common dependency patterns:
 
 ## Ecosystem-Specific Examples
 
-### Python Projects
+Different ecosystems have different validation patterns. When working with rules for these ecosystems, be aware of their standard tooling:
 
-Typical validation commands:
-```bash
-# Testing
-<test-runner> <test-directory>      # e.g., pytest tests/
-<test-runner> --cov=<module>        # e.g., pytest --cov=myapp
+### Common Patterns by Ecosystem
 
-# Linting and Formatting
-<linter> check <directory>           # e.g., ruff check src/
-<formatter> --check <directory>      # e.g., black --check .
+| Ecosystem | Testing | Linting | Type Checking | Example Rules |
+|-----------|---------|---------|---------------|---------------|
+| **Python** | pytest | ruff check | mypy | 200-python-core, 206-python-pytest |
+| **Node.js** | npm test | eslint | tsc --noEmit | (Future: 3xx series) |
+| **Java** | mvn test | checkstyle | built-in | (Future: 4xx series) |
+| **Go** | go test | golangci-lint | built-in | (Future: 5xx series) |
+| **Shell** | shellcheck | shellcheck | N/A | 300-bash-scripting-core |
 
-# Type Checking
-<type-checker> <directory>           # e.g., mypy src/
-```
+### Python Ecosystem (Most Common)
 
-Common Python rule combinations:
-- Web API: 200 + 210 (FastAPI) or 250 (Flask)
-- CLI Tool: 200 + 220 (Typer) + 230 (Pydantic)
-- Data Science: 200 + 500 + 251 (datetime) + 252 (pandas)
+When loading Python-related rules (200-299 series), be aware of:
+- **Package Management**: uv (preferred) or pip
+- **Linting**: ruff check (consolidates flake8, isort, etc.)
+- **Formatting**: ruff format (Black-compatible)
+- **Testing**: pytest with fixtures and parametrization
+- **Type Checking**: mypy for static analysis
 
-### Node.js Projects
+**Common rule combinations**:
+- Web API: 200-python-core + 210-python-fastapi-core + 230-python-pydantic
+- CLI Tool: 200-python-core + 220-python-typer-cli
+- Data Science: 200-python-core + 500-data-science-analytics + 252-pandas-best-practices
 
-Typical validation commands:
-```bash
-# Testing
-npm test                             # or yarn test
-npm run test:coverage                # with coverage
-
-# Linting and Formatting
-npm run lint                         # ESLint
-npm run format:check                 # Prettier check
-
-# Type Checking (TypeScript)
-npm run type-check                   # tsc --noEmit
-```
-
-### Java Projects
-
-Typical validation commands:
-```bash
-# Maven projects
-mvn test                             # Run tests
-mvn checkstyle:check                 # Code style
-mvn spotless:check                   # Formatting
-
-# Gradle projects
-gradle test                          # Run tests
-gradle checkstyleMain                # Code style
-gradle spotlessCheck                 # Formatting
-```
-
-### Go Projects
-
-Typical validation commands:
-```bash
-# Testing
-go test ./...                        # Run all tests
-go test -cover ./...                 # With coverage
-
-# Linting and Formatting
-golangci-lint run                    # Comprehensive linting
-go fmt ./...                         # Format code
-go vet ./...                         # Static analysis
-```
+For detailed validation commands, refer to individual rule files in the 200-series.
 
 ## Understanding Rule Metadata
 

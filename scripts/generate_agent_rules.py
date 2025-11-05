@@ -462,15 +462,15 @@ def main() -> None:
         # Try templates/ first (new structure)
         if Path("templates").exists() and list(Path("templates").glob("*.md")):
             source = Path("templates").resolve()
-            print(f"✓ Using source directory: templates/ (new structure)")
+            print("✓ Using source directory: templates/ (new structure)")
         # Fall back to ai_coding_rules/ (legacy)
         elif Path("ai_coding_rules").exists():
             source = Path("ai_coding_rules").resolve()
-            print(f"✓ Using source directory: ai_coding_rules/ (legacy structure)")
+            print("✓ Using source directory: ai_coding_rules/ (legacy structure)")
         # Fall back to current directory
         else:
             source = Path(".").resolve()
-            print(f"✓ Using source directory: . (current directory)")
+            print("✓ Using source directory: . (current directory)")
 
     if not source.exists():
         raise SystemExit(f"Source directory not found: {source}")

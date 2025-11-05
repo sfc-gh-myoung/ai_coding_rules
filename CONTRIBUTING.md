@@ -19,6 +19,36 @@ Thank you for your interest in contributing to AI Coding Rules! This project pro
    git checkout -b feature/my-new-rule
    ```
 
+## 📁 Project Structure (v2.1.0+)
+
+### Understanding the Template-Based System
+
+The project uses a **template-based generation system** to maintain source templates and generate IDE-specific formats:
+
+```
+ai_coding_rules_gitlab/
+├── templates/          ← Edit rule files here (SOURCE)
+├── discovery/          ← Edit discovery files here
+├── generated/          ← Generated outputs (DO NOT EDIT)
+│   ├── universal/
+│   ├── cursor/rules/
+│   ├── copilot/instructions/
+│   └── cline/
+└── scripts/            ← Generation tools
+```
+
+**Golden Rule:** Always edit files in `templates/` or `discovery/`, never in `generated/`.
+
+### File Locations
+
+| What You're Editing | Where to Edit | What Happens |
+|---------------------|---------------|--------------|
+| Rule content | `templates/XXX-rule-name.md` | Regenerate with `task rule:all` |
+| Discovery guide | `discovery/AGENTS.md` | Copied to `generated/universal/` |
+| Rule catalog | `discovery/RULES_INDEX.md` | Copied to `generated/universal/` |
+| Baseline prompt | `discovery/EXAMPLE_PROMPT.md` | Copied to `generated/universal/` |
+| Generation script | `scripts/generate_agent_rules.py` | Test with `--dry-run` flag |
+
 ## 📋 Development Workflow
 
 ### Environment Setup
@@ -48,15 +78,28 @@ task format:fix
 Before submitting a PR, ensure your changes work correctly:
 
 ```bash
-# Test rule generation
-task rule:cursor --dry-run
-task rule:copilot --dry-run
+# 1. Regenerate all formats after editing templates
+task rule:all
 
-# Check for linting issues
+# 2. Test rule generation (dry-run to preview)
+task rule:cursor:dry
+task rule:copilot:dry
+
+# 3. Validate generated files are up-to-date
+task rule:check
+
+# 4. Check for linting issues
 task lint
 
-# Validate formatting
+# 5. Validate formatting
 task format
+```
+
+**Important:** Always commit both the template changes AND the regenerated files:
+```bash
+git add templates/XXX-rule-name.md
+git add generated/
+git commit -m "feat: update XXX rule"
 ```
 
 ## 📝 Rule Authoring Guidelines
@@ -79,9 +122,13 @@ Follow the established 3-digit numbering system:
 
 Use format: `XXX-topic-description.md` (3-digit number)
 
+**Location:** All rule files go in `templates/` directory.
+
+Example: `templates/250-python-flask.md`
+
 ### Rule Structure
 
-Each rule file must follow this structure:
+Each rule file (in `templates/`) must follow this structure:
 
 ```markdown
 **Description:** Brief description of the rule's purpose
@@ -231,6 +278,122 @@ Use our issue templates:
 - Add automated testing
 - Enhance development tooling
 - Optimize performance
+
+## 🔄 Complete Contribution Workflow Example
+
+### Adding a New Rule
+
+```bash
+# 1. Create feature branch
+git checkout -b feature/add-terraform-rules
+
+# 2. Create template file in templates/
+vim templates/450-terraform-best-practices.md
+
+# 3. Add entry to discovery/RULES_INDEX.md
+vim discovery/RULES_INDEX.md
+# Add: | 450 | 450-terraform-best-practices | Terraform IaC best practices | terraform, iac, infrastructure |
+
+# 4. Generate all formats
+task rule:all
+
+# 5. Verify generation worked
+ls -la generated/universal/450-terraform-best-practices.md
+ls -la generated/cursor/rules/450-terraform-best-practices.mdc
+
+# 6. Validate consistency
+task rule:check
+
+# 7. Run quality checks
+task lint
+task format
+
+# 8. Commit both template and generated files
+git add templates/450-terraform-best-practices.md
+git add discovery/RULES_INDEX.md
+git add generated/
+git commit -m "feat: add Terraform best practices rule
+
+- Comprehensive Terraform IaC guidelines
+- State management best practices
+- Security and compliance patterns
+- Resource naming conventions"
+
+# 9. Push and create PR
+git push origin feature/add-terraform-rules
+```
+
+### Updating an Existing Rule
+
+```bash
+# 1. Create feature branch
+git checkout -b fix/update-python-core
+
+# 2. Edit the template file (not generated files!)
+vim templates/200-python-core.md
+# Make your changes...
+
+# 3. Regenerate all formats
+task rule:all
+
+# 4. Verify changes propagated
+git diff generated/universal/200-python-core.md
+git diff generated/cursor/rules/200-python-core.mdc
+
+# 5. Validate and test
+task rule:check
+task lint
+
+# 6. Commit changes
+git add templates/200-python-core.md generated/
+git commit -m "fix: update Python core rule with type hints guidance"
+
+# 7. Push and create PR
+git push origin fix/update-python-core
+```
+
+### Common Mistakes to Avoid
+
+❌ **Don't edit generated files directly**
+```bash
+vim generated/cursor/rules/200-python-core.mdc  # WRONG!
+```
+
+✅ **Always edit templates**
+```bash
+vim templates/200-python-core.md  # CORRECT
+task rule:all  # Then regenerate
+```
+
+❌ **Don't forget to regenerate**
+```bash
+git add templates/200-python-core.md
+git commit  # WRONG - missing generated files!
+```
+
+✅ **Always regenerate and commit both**
+```bash
+task rule:all
+git add templates/200-python-core.md generated/
+git commit  # CORRECT
+```
+
+❌ **Don't commit with stale generated files**
+```bash
+# Edit template but forget to regenerate
+vim templates/200-python-core.md
+git add templates/ generated/
+git commit  # WRONG - generated files are stale!
+```
+
+✅ **Always validate before committing**
+```bash
+vim templates/200-python-core.md
+task rule:all  # Regenerate
+task rule:check  # Validate consistency
+git add templates/ generated/
+git commit  # CORRECT
+```
 
 ## 🏷️ Code of Conduct
 

@@ -43,11 +43,9 @@ This release introduces a significant restructuring to improve maintainability a
   - Updated `task clean:rules` to clean both new and legacy paths
 
 - **IDE Compatibility:**
-  - Symlinks created for seamless IDE integration:
-    - `.cursor/rules` → `generated/cursor/rules`
-    - `.github/instructions` → `generated/copilot/instructions`
-    - `.clinerules` → `generated/cline`
-    - `rules` → `generated/universal`
+  - IDEs can reference `generated/{format}/` directories directly
+  - `--legacy-paths` flag generates to IDE-expected locations when needed
+  - `task rule:legacy` generates all formats to legacy paths
   - Migration helper script (`scripts/migrate_to_templates.sh`)
 
 ### Changed
@@ -72,8 +70,8 @@ This release introduces a significant restructuring to improve maintainability a
 
 **For Users (consuming rules):**
 - No action required - clone and use immediately
-- Generated files included in repository
-- Symlinks provide IDE compatibility
+- Generated files included in repository in `generated/` directories
+- Configure your IDE to use `generated/{format}/` or use `task rule:legacy` for traditional paths
 
 **For Contributors (editing rules):**
 - Edit templates in `templates/` directory (not root or generated/)
@@ -81,9 +79,9 @@ This release introduces a significant restructuring to improve maintainability a
 - Commit both template changes and generated files
 
 **Backward Compatibility:**
-- Use `task rule:legacy` to generate to old paths if needed
-- Symlinks maintain IDE compatibility during transition
+- Use `task rule:legacy` to generate to old paths (`.cursor/rules/`, `.github/instructions/`, etc.)
 - `--legacy-paths` flag available for custom workflows
+- IDEs can be configured to use either `generated/` or legacy paths
 
 ### Technical Details
 

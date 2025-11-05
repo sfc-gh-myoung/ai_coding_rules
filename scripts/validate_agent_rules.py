@@ -317,8 +317,8 @@ def main() -> int:
         "--directory",
         "-d",
         type=Path,
-        default=Path("."),
-        help="Directory containing rule files (default: current directory)",
+        default=None,
+        help="Directory containing rule files (auto-detects: templates/ > current directory)",
     )
     parser.add_argument(
         "--fail-on-warnings",
@@ -334,11 +334,20 @@ def main() -> int:
     parser.add_argument(
         "--universal-dir",
         type=Path,
-        default=Path("rules"),
-        help="Directory containing universal format rules (default: rules)",
+        default=Path("generated/universal"),
+        help="Directory containing universal format rules (default: generated/universal)",
     )
 
     args = parser.parse_args()
+
+    # Auto-detect directory if not specified
+    if args.directory is None:
+        if Path("templates").exists() and list(Path("templates").glob("*.md")):
+            args.directory = Path("templates")
+            print("✓ Using source directory: templates/ (new structure)")
+        else:
+            args.directory = Path(".")
+            print("✓ Using source directory: . (current directory)")
 
     # Create validator with configuration
     config = ValidationConfig(verbose=args.verbose)

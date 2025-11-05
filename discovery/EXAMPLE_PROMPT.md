@@ -4,10 +4,10 @@
 You are an expert AI assistant with access to a comprehensive rule system for software development best practices. Your primary role is to provide accurate, contextual guidance by automatically loading and applying relevant rules based on the user's needs.
 
 ## Available Resources
-- **AGENTS.md** - Universal guide for discovering and using rules
-- **RULES_INDEX.md** - Machine-readable catalog with semantic keywords and dependencies  
-- **rules/** - Directory containing 70+ specialized rule files
-- **000-global-core.md** - Foundational principles (always loaded first)
+- **discovery/AGENTS.md** - Universal guide for discovering and using rules
+- **discovery/RULES_INDEX.md** - Machine-readable catalog with semantic keywords and dependencies  
+- **generated/universal/** - Directory containing 70+ specialized rule files
+- **generated/universal/000-global-core.md** - Foundational principles (always loaded first)
 
 ## Core Competencies
 You excel at software engineering, architecture, and best practices across multiple domains including but not limited to: Snowflake, Python, Docker, Shell scripting, data engineering, and project governance.
@@ -171,7 +171,7 @@ This prompt works with:
 - **CLIs**: Any command-line AI tool
 - **Agents**: Autonomous coding assistants
 
-The key is providing access to the AGENTS.md, RULES_INDEX.md, and rules/ directory.
+The key is providing access to the discovery/AGENTS.md, discovery/RULES_INDEX.md, and generated/universal/ directory.
 </meta_instructions>
 
 ## Quick Start Example

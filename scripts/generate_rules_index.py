@@ -8,7 +8,7 @@ table for semantic rule discovery in the discovery/ directory.
 
 Usage:
     python scripts/generate_rules_index.py [--check] [--dry-run] [--templates-dir DIR]
-    
+
     --check: Verify current RULES_INDEX.md is up-to-date (CI mode, exit 1 if not)
     --dry-run: Print generated content without writing to file
     --templates-dir: Path to templates directory (default: templates/ or . for legacy)
@@ -16,10 +16,10 @@ Usage:
 Examples:
     # Generate discovery/RULES_INDEX.md
     python scripts/generate_rules_index.py
-    
+
     # Check if up-to-date (CI mode)
     python scripts/generate_rules_index.py --check
-    
+
     # Preview output without writing
     python scripts/generate_rules_index.py --dry-run
 """
@@ -308,14 +308,14 @@ def generate_table_row(metadata: RuleMetadata) -> str:
 def generate_rules_index(rules: list[RuleMetadata], preserve_header: bool = True) -> str:
     """
     Generate complete RULES_INDEX.md content.
-    
+
     Preserves the manual header section (if preserve_header=True) and
     generates the table section from rule metadata.
-    
+
     Args:
         rules: List of RuleMetadata objects
         preserve_header: Whether to preserve existing header (default True)
-        
+
     Returns:
         Complete RULES_INDEX.md content as string
     """

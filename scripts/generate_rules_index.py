@@ -1,27 +1,27 @@
 #!/usr/bin/env python3
 """
-Auto-generate RULES_INDEX.md from template file metadata.
+Auto-generate discovery/RULES_INDEX.md from template file metadata.
 
 This script scans the templates/ directory (or project root for legacy support),
 extracts metadata from rule files, and generates a comprehensive RULES_INDEX.md
-table for semantic rule discovery.
+table for semantic rule discovery in the discovery/ directory.
 
 Usage:
-    python scripts/build_rules_index.py [--check] [--dry-run] [--templates-dir DIR]
-
+    python scripts/generate_rules_index.py [--check] [--dry-run] [--templates-dir DIR]
+    
     --check: Verify current RULES_INDEX.md is up-to-date (CI mode, exit 1 if not)
     --dry-run: Print generated content without writing to file
     --templates-dir: Path to templates directory (default: templates/ or . for legacy)
 
 Examples:
-    # Generate RULES_INDEX.md
-    python scripts/build_rules_index.py
-
+    # Generate discovery/RULES_INDEX.md
+    python scripts/generate_rules_index.py
+    
     # Check if up-to-date (CI mode)
-    python scripts/build_rules_index.py --check
-
+    python scripts/generate_rules_index.py --check
+    
     # Preview output without writing
-    python scripts/build_rules_index.py --dry-run
+    python scripts/generate_rules_index.py --dry-run
 """
 
 from __future__ import annotations
@@ -308,19 +308,19 @@ def generate_table_row(metadata: RuleMetadata) -> str:
 def generate_rules_index(rules: list[RuleMetadata], preserve_header: bool = True) -> str:
     """
     Generate complete RULES_INDEX.md content.
-
+    
     Preserves the manual header section (if preserve_header=True) and
     generates the table section from rule metadata.
-
+    
     Args:
         rules: List of RuleMetadata objects
         preserve_header: Whether to preserve existing header (default True)
-
+        
     Returns:
         Complete RULES_INDEX.md content as string
     """
-    # Try to read current RULES_INDEX.md to preserve header
-    current_index_path = Path("RULES_INDEX.md")
+    # Try to read current discovery/RULES_INDEX.md to preserve header
+    current_index_path = Path("discovery/RULES_INDEX.md")
     header = ""
 
     if preserve_header and current_index_path.exists():
@@ -341,7 +341,7 @@ def generate_rules_index(rules: list[RuleMetadata], preserve_header: bool = True
             if header_lines:
                 header = "\n".join(header_lines).rstrip() + "\n\n"
         except Exception as e:
-            print(f"⚠️  Warning: Could not read existing header from RULES_INDEX.md: {e}")
+            print(f"⚠️  Warning: Could not read existing header from discovery/RULES_INDEX.md: {e}")
             # Fall through to default header
 
     # If no header found or couldn't read, create default
@@ -385,10 +385,10 @@ def main() -> int:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python scripts/build_rules_index.py                 # Generate RULES_INDEX.md
-  python scripts/build_rules_index.py --check         # Check if up-to-date (CI)
-  python scripts/build_rules_index.py --dry-run       # Preview output
-  python scripts/build_rules_index.py --templates-dir src/templates
+  python scripts/generate_rules_index.py                 # Generate discovery/RULES_INDEX.md
+  python scripts/generate_rules_index.py --check         # Check if up-to-date (CI)
+  python scripts/generate_rules_index.py --dry-run       # Preview output
+  python scripts/generate_rules_index.py --templates-dir src/templates
         """,
     )
     parser.add_argument(
@@ -455,38 +455,38 @@ Examples:
 
     if args.check:
         # Compare with existing
-        current_path = Path("RULES_INDEX.md")
+        current_path = Path("discovery/RULES_INDEX.md")
         if not current_path.exists():
-            print("❌ Error: RULES_INDEX.md does not exist")
-            print("Run: python scripts/build_rules_index.py")
+            print("❌ Error: discovery/RULES_INDEX.md does not exist")
+            print("Run: python scripts/generate_rules_index.py")
             return 1
 
         try:
             current_content = current_path.read_text(encoding="utf-8")
         except Exception as e:
-            print(f"❌ Error reading RULES_INDEX.md: {e}")
+            print(f"❌ Error reading discovery/RULES_INDEX.md: {e}")
             return 1
 
         if current_content.strip() == content.strip():
-            print("✓ RULES_INDEX.md is up-to-date")
+            print("✓ discovery/RULES_INDEX.md is up-to-date")
             return 0
         else:
-            print("❌ RULES_INDEX.md is out of date")
+            print("❌ discovery/RULES_INDEX.md is out of date")
             print("\nRun this to update:")
-            print("  python scripts/build_rules_index.py")
+            print("  python scripts/generate_rules_index.py")
             print("\nOr with task:")
             print("  task rules:index")
             return 1
 
     # Write to file
-    output_path = Path("RULES_INDEX.md")
+    output_path = Path("discovery/RULES_INDEX.md")
     try:
         output_path.write_text(content, encoding="utf-8")
         print(f"✓ Generated {output_path}")
         print(f"  {len(rules)} rules indexed")
         return 0
     except Exception as e:
-        print(f"❌ Error writing RULES_INDEX.md: {e}")
+        print(f"❌ Error writing discovery/RULES_INDEX.md: {e}")
         return 1
 
 

@@ -14,11 +14,8 @@ appliesTo:
 
 # Pandas Best Practices
 
-<section_metadata>
-  <token_budget>1400</token_budget>
-  <context_tier>high</context_tier>
-  <priority>high</priority>
-</section_metadata>
+> **Section Metadata**  
+> Token Budget: ~1400 | Context Tier: high | Priority: high
 
 ## Purpose
 Establish comprehensive Pandas best practices focusing on vectorization, performance optimization, memory efficiency, and anti-pattern avoidance to prevent common issues like 100x+ performance slowdowns, SettingWithCopyWarning errors, and memory exhaustion in data-intensive workflows.
@@ -30,14 +27,14 @@ Establish comprehensive Pandas best practices focusing on vectorization, perform
 
 ## Contract
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Inputs/Prereqs:** Python 3.11+, pandas 2.x+, understanding of DataFrame operations, basic NumPy knowledge
 - **Allowed Tools:** Vectorized operations, .loc/.iloc indexers, groupby(), merge(), concat(), astype(), query(), eval(), method chaining
 
-<directive_strength>forbidden</directive_strength>
+**❌ FORBIDDEN:**
 - **Forbidden Tools:** iterrows() for computation (read-only OK), apply() when vectorization possible, chained assignment without .loc, df.append() (deprecated), inplace=True (generally discouraged)
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Required Steps:**
   1. Use vectorized operations instead of loops (10x-100x+ faster)
   2. Use .loc/.iloc for explicit indexing (prevents SettingWithCopyWarning)
@@ -59,13 +56,8 @@ Establish comprehensive Pandas best practices focusing on vectorization, perform
 
 ## 1. Vectorization vs Iteration
 
-<section_metadata>
-  <section_id>vectorization</section_id>
-  <priority>critical</priority>
-  <token_budget>150</token_budget>
-</section_metadata>
 
-<directive_strength>forbidden</directive_strength>
+**❌ FORBIDDEN:**
 
 ### Why Loops Are Slow
 
@@ -148,13 +140,8 @@ df['contains_keyword'] = df['text'].str.contains('important', case=False)
 
 ## 2. Anti-Pattern: apply() When Vectorization Works
 
-<section_metadata>
-  <section_id>apply-anti-pattern</section_id>
-  <priority>high</priority>
-  <token_budget>120</token_budget>
-</section_metadata>
 
-<directive_strength>forbidden</directive_strength>
+**❌ FORBIDDEN:**
 
 ### When apply() is Slow
 
@@ -224,13 +211,8 @@ timeit.timeit(lambda: df['price'] * df['qty'], number=10)
 
 ## 3. Chained Assignment (SettingWithCopyWarning)
 
-<section_metadata>
-  <section_id>chained-assignment</section_id>
-  <priority>critical</priority>
-  <token_budget>140</token_budget>
-</section_metadata>
 
-<directive_strength>forbidden</directive_strength>
+**❌ FORBIDDEN:**
 
 ### Understanding the Warning
 
@@ -289,13 +271,8 @@ df.loc[df.query('status == "active" and price > 100').index, 'discount'] = 0.15
 
 ## 4. Memory Optimization
 
-<section_metadata>
-  <section_id>memory-optimization</section_id>
-  <priority>high</priority>
-  <token_budget>150</token_budget>
-</section_metadata>
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 ### Dtype Optimization
 
@@ -374,13 +351,8 @@ print(df['sparse'].memory_usage())  # 40 KB (95% savings!)
 
 ## 5. Efficient GroupBy Operations
 
-<section_metadata>
-  <section_id>groupby</section_id>
-  <priority>high</priority>
-  <token_budget>130</token_budget>
-</section_metadata>
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 ### Pre-Filter Before GroupBy
 
@@ -434,13 +406,8 @@ df['pct_of_category'] = df['sales'] / df['category_mean']
 
 ## 6. Merge and Join Best Practices
 
-<section_metadata>
-  <section_id>merge-join</section_id>
-  <priority>high</priority>
-  <token_budget>120</token_budget>
-</section_metadata>
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 ### Validate Merge Keys
 
@@ -481,11 +448,6 @@ result = df1.merge(df2, left_on='customer_id', right_on='cust_id', how='left')
 
 ## 7. Method Chaining
 
-<section_metadata>
-  <section_id>method-chaining</section_id>
-  <priority>medium</priority>
-  <token_budget>100</token_budget>
-</section_metadata>
 
 ### Readable Pipelines
 
@@ -521,11 +483,6 @@ df_processed = (
 
 ## 8. Index Operations
 
-<section_metadata>
-  <section_id>index-operations</section_id>
-  <priority>medium</priority>
-  <token_budget>80</token_budget>
-</section_metadata>
 
 ### When to Use Index
 
@@ -553,11 +510,6 @@ result = (
 
 ## 9. Streamlit Integration Patterns
 
-<section_metadata>
-  <section_id>streamlit-integration</section_id>
-  <priority>high</priority>
-  <token_budget>120</token_budget>
-</section_metadata>
 
 ### Efficient Caching with Pandas
 
@@ -613,11 +565,6 @@ st.download_button(
 
 ## 10. Plotly Integration Patterns
 
-<section_metadata>
-  <section_id>plotly-integration</section_id>
-  <priority>high</priority>
-  <token_budget>100</token_budget>
-</section_metadata>
 
 ### Aggregate Before Plotting
 
@@ -650,7 +597,6 @@ st.plotly_chart(fig, use_container_width=True)
 
 ## Anti-Patterns Summary
 
-<anti_pattern_examples>
 
 **❌ Anti-Pattern 1: iterrows() for computation (100x slower)**
 ```python
@@ -697,7 +643,6 @@ df = pd.read_csv('10gb_file.csv')
 ```
 **✅ Correct:** `for chunk in pd.read_csv('10gb_file.csv', chunksize=10000):`
 
-</anti_pattern_examples>
 
 ## Quick Compliance Checklist
 
@@ -777,11 +722,10 @@ st.plotly_chart(fig, use_container_width=True)
 - **Streamlit Performance**: `101b-snowflake-streamlit-performance.md` - Caching strategies
 - **Data Science Analytics**: `500-data-science-analytics.md` - ML workflows and analytics patterns
 
-<model_specific_guidance model="claude-4">
-**Claude 4 Pandas Optimizations:**
-- Performance comparison: Generate benchmarks showing vectorization speedups
-- Anti-pattern detection: Identify iterrows()/apply() usage in code reviews
-- Memory profiling: Analyze DataFrame memory usage and suggest dtype optimizations
-- Integration awareness: Cross-reference datetime operations with 251-python-datetime-handling.md
-</model_specific_guidance>
+> **🤖 Claude 4 Specific Guidance**  
+> **Claude 4 Pandas Optimizations:**
+> - Performance comparison: Generate benchmarks showing vectorization speedups
+> - Anti-pattern detection: Identify iterrows()/apply() usage in code reviews
+> - Memory profiling: Analyze DataFrame memory usage and suggest dtype optimizations
+> - Integration awareness: Cross-reference datetime operations with 251-python-datetime-handling.md
 

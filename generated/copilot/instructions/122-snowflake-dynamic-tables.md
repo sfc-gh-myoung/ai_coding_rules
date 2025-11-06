@@ -11,11 +11,8 @@ appliesTo:
 
 # Snowflake Dynamic Tables Best Practices
 
-<section_metadata>
-  <token_budget>450</token_budget>
-  <context_tier>standard</context_tier>
-  <priority>high</priority>
-</section_metadata>
+> **Section Metadata**  
+> Token Budget: ~450 | Context Tier: standard | Priority: high
 
 ## Purpose
 Establish comprehensive best practices for Snowflake Dynamic Tables to ensure efficient, maintainable, and cost-effective materialized query results that automatically refresh based on changes to base tables, following Snowflake's recommended patterns for refresh modes, lag configuration, and pipeline architecture.
@@ -27,14 +24,14 @@ Establish comprehensive best practices for Snowflake Dynamic Tables to ensure ef
 
 ## Contract
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Inputs/Prereqs:** Target database/schema; base tables; warehouse configuration; refresh requirements; data freshness SLAs
 - **Allowed Tools:** SQL DDL for Dynamic Tables; Query Profile; INFORMATION_SCHEMA queries; Snowsight monitoring
 
-<directive_strength>forbidden</directive_strength>
+**❌ FORBIDDEN:**
 - **Forbidden Tools:** Using Dynamic Tables without explicit refresh mode declaration; SELECT * in Dynamic Table definitions; unmonitored refresh operations
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Required Steps:**
   1. Explicitly set `REFRESH_MODE` (INCREMENTAL or FULL) for all production Dynamic Tables
   2. Configure `TARGET_LAG` appropriately (time-based or DOWNSTREAM)
@@ -63,7 +60,7 @@ Establish comprehensive best practices for Snowflake Dynamic Tables to ensure ef
 
 ### What Are Dynamic Tables?
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 Dynamic Tables are declarative materialized views that automatically refresh based on changes to upstream data. They simplify data pipeline management by handling refresh orchestration internally.
 
 **Key Characteristics:**
@@ -88,7 +85,7 @@ Dynamic Tables are declarative materialized views that automatically refresh bas
 
 ### Dynamic Table Naming Convention
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 All Dynamic Table names must use the `DT_` prefix to clearly distinguish them from views, base tables, and other database objects.
 
@@ -123,7 +120,7 @@ CREATE OR REPLACE DYNAMIC TABLE staging.CUSTOMER_360 ...
 
 ### Explicit Refresh Mode Declaration
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 🔥 **CRITICAL:** Always explicitly set `REFRESH_MODE` for production Dynamic Tables to ensure consistent behavior across Snowflake releases.
 
 **Syntax:**
@@ -138,7 +135,7 @@ AS
 
 ### Incremental Refresh Mode
 
-<directive_strength>recommended</directive_strength>
+**✅ RECOMMENDED:**
 **When to Use:**
 - Append-only data sources (logs, events, CDC streams)
 - Aggregations where base table changes are <5% between refreshes
@@ -178,7 +175,7 @@ GROUP BY 1, 2;
 
 ### Full Refresh Mode
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 **When to Use:**
 - Queries with operations not supported for incremental refresh
 - Small to medium datasets where full refresh is acceptably fast
@@ -203,7 +200,7 @@ FROM analytics.customer_summary;
 
 ### Time-Based Lag
 
-<directive_strength>recommended</directive_strength>
+**✅ RECOMMENDED:**
 Specify maximum acceptable data staleness. Snowflake attempts to keep data within this lag threshold.
 
 **Syntax:**
@@ -220,7 +217,7 @@ TARGET_LAG = '1 day'
 
 ### Downstream Lag
 
-<directive_strength>recommended</directive_strength>
+**✅ RECOMMENDED:**
 ⚠️ **BEST PRACTICE:** Use `TARGET_LAG = 'DOWNSTREAM'` to refresh only when dependent Dynamic Tables or queries require updates.
 
 **Benefits:**
@@ -254,7 +251,7 @@ GROUP BY order_date;
 
 ## 4. Warehouse Assignment and Isolation
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 🔥 **CRITICAL:** Assign dedicated warehouses to Dynamic Table refreshes for cost monitoring and workload isolation.
 
 **Best Practices:**
@@ -287,7 +284,7 @@ SELECT ...
 
 ### Modular Pipeline Chaining
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 ✅ **BEST PRACTICE:** Chain smaller, focused Dynamic Tables together instead of creating large, monolithic definitions.
 
 **Benefits:**
@@ -365,7 +362,7 @@ JOIN raw.customers c ON e.user_id = c.customer_id;
 
 ### Controller Dynamic Table Pattern
 
-<directive_strength>recommended</directive_strength>
+**✅ RECOMMENDED:**
 For complex pipeline networks, create a "controller" Dynamic Table that reads from all leaf nodes to enable centralized management.
 
 **Use Case:** Change lag, trigger manual refreshes, or suspend entire pipeline from single point.
@@ -398,7 +395,7 @@ ALTER DYNAMIC TABLE analytics.DT_PIPELINE_CONTROLLER RESUME;
 
 ### Type 1 SCD (Overwrite)
 
-<directive_strength>recommended</directive_strength>
+**✅ RECOMMENDED:**
 Use Dynamic Tables to maintain Type 1 SCDs by reading from change streams.
 
 **Example:**
@@ -423,7 +420,7 @@ WHERE METADATA$ACTION = 'INSERT' OR METADATA$ACTION = 'UPDATE';
 
 ### Type 2 SCD (Historical Tracking)
 
-<directive_strength>recommended</directive_strength>
+**✅ RECOMMENDED:**
 Implement Type 2 SCDs using window functions over change streams ordered by timestamp.
 
 **Example:**
@@ -460,7 +457,7 @@ FROM changes_ordered;
 
 ### Simplify Compound Grouping Keys
 
-<directive_strength>recommended</directive_strength>
+**✅ RECOMMENDED:**
 Materialize compound expressions in one Dynamic Table, then group in a dependent table to improve incremental refresh performance.
 
 **Anti-Pattern:**
@@ -508,7 +505,7 @@ GROUP BY order_month;
 
 ### Optimize Data Locality
 
-<directive_strength>recommended</directive_strength>
+**✅ RECOMMENDED:**
 Keep changes between refreshes minimal (<5% of dataset) and ensure query keys align with table clustering to maximize incremental refresh efficiency.
 
 **Best Practices:**
@@ -538,7 +535,7 @@ WHERE order_date >= DATEADD(day, -90, CURRENT_DATE());  -- Recent data only
 
 ### Use Transient Dynamic Tables
 
-<directive_strength>recommended</directive_strength>
+**✅ RECOMMENDED:**
 📊 **COST OPTIMIZATION:** Use transient Dynamic Tables when fail-safe recovery (7-day period) isn't required to reduce storage costs.
 
 **Syntax:**
@@ -559,7 +556,7 @@ SELECT ...
 
 ### Clone Pipelines Together
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 When cloning Dynamic Table pipelines, clone all dependencies together in a single operation to prevent unnecessary reinitializations.
 
 **Best Practice:** Consolidate Dynamic Table pipelines within the same schema or database.
@@ -577,7 +574,7 @@ CREATE SCHEMA analytics_dev CLONE analytics;
 
 ### MONITOR Privilege
 
-<directive_strength>recommended</directive_strength>
+**✅ RECOMMENDED:**
 Grant MONITOR privilege to roles that need visibility into Dynamic Table metadata without modification capability.
 
 **Example:**
@@ -594,7 +591,7 @@ FROM TABLE(INFORMATION_SCHEMA.DYNAMIC_TABLE_REFRESH_HISTORY(
 
 ### Ownership and Administration
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 Use OWNERSHIP role for administrative operations (ALTER, DROP, REFRESH).
 
 **Example:**
@@ -612,7 +609,7 @@ ALTER DYNAMIC TABLE analytics.DT_SALES_SUMMARY REFRESH;
 
 ### Query Refresh History
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 Monitor Dynamic Table refresh operations using INFORMATION_SCHEMA views.
 
 **Example:**
@@ -676,7 +673,6 @@ ORDER BY refresh_start_time DESC;
 
 ## Anti-Patterns and Common Mistakes
 
-<anti_pattern_examples>
 **❌ Anti-Pattern 1: Omitting Explicit Refresh Mode**
 ```sql
 -- Missing REFRESH_MODE declaration
@@ -833,7 +829,6 @@ AS
 SELECT ...;
 ```
 **Benefits:** Appropriate technology choice; realistic expectations; cost-effective refresh cadence.
-</anti_pattern_examples>
 
 ## Quick Compliance Checklist
 
@@ -870,23 +865,22 @@ SELECT ...;
   - Target lag violations detected via monitoring queries
   - Unassigned warehouses (using default) should trigger configuration review
 
-<investigate_before_answering>
-When applying this rule:
-1. **Read referenced base table schemas BEFORE designing Dynamic Table queries**
-2. **Check Query Profile to verify incremental refresh eligibility**
-3. **Never assume incremental refresh will work—validate against supported operations list**
-4. **Review existing warehouse configuration before assigning to Dynamic Table**
-5. **Query INFORMATION_SCHEMA to understand current Dynamic Table state before modifications**
-
-**Anti-Pattern:**
-❌ "This query should work with incremental refresh..."
-❌ "Typically Dynamic Tables in this schema use..."
-
-**Correct Pattern:**
-✅ "Let me check the Query Profile to confirm incremental refresh support."
-[reviews Query Profile using EXPLAIN or actual execution]
-✅ "After reviewing the query plan, I found [specific operations]. Here's the appropriate refresh mode..."
-</investigate_before_answering>
+> **⚠️ Investigation Required**  
+> When applying this rule:
+> 1. **Read referenced base table schemas BEFORE designing Dynamic Table queries**
+> 2. **Check Query Profile to verify incremental refresh eligibility**
+> 3. **Never assume incremental refresh will work—validate against supported operations list**
+> 4. **Review existing warehouse configuration before assigning to Dynamic Table**
+> 5. **Query INFORMATION_SCHEMA to understand current Dynamic Table state before modifications**
+>
+> **Anti-Pattern:**
+> ❌ "This query should work with incremental refresh..."
+> ❌ "Typically Dynamic Tables in this schema use..."
+>
+> **Correct Pattern:**
+> ✅ "Let me check the Query Profile to confirm incremental refresh support."
+> [reviews Query Profile using EXPLAIN or actual execution]
+> ✅ "After reviewing the query plan, I found [specific operations]. Here's the appropriate refresh mode..."
 
 ## Response Template
 
@@ -937,11 +931,10 @@ LIMIT 5;
 - **Cost Governance**: `105-snowflake-cost-governance.md`
 - **Warehouse Management**: `119-snowflake-warehouse-management.md`
 
-<model_specific_guidance model="claude-4">
-**Claude 4 Optimizations:**
-- Use parallel tool calls to read base table schemas and Query Profile simultaneously
-- Leverage investigation-first protocol: always check INFORMATION_SCHEMA before making recommendations
-- When asked about incremental refresh eligibility, read the actual query definition and validate against supported operations list
-- For complex pipelines, create visualization of dependencies before recommending changes
-</model_specific_guidance>
+> **🤖 Claude 4 Specific Guidance**  
+> **Claude 4 Optimizations:**
+> - Use parallel tool calls to read base table schemas and Query Profile simultaneously
+> - Leverage investigation-first protocol: always check INFORMATION_SCHEMA before making recommendations
+> - When asked about incremental refresh eligibility, read the actual query definition and validate against supported operations list
+> - For complex pipelines, create visualization of dependencies before recommending changes
 

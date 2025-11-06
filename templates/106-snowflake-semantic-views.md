@@ -284,7 +284,6 @@ METRICS (
 
 ## 3) Anti-Patterns and Common Mistakes
 
-<anti_pattern_examples>
 
 **❌ Anti-Pattern 1: Reversed Mapping Syntax**
 ```sql
@@ -429,7 +428,6 @@ CREATE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
 ```
 **Benefits:** Correct clause order: TABLES → FACTS → DIMENSIONS → METRICS.
 
-</anti_pattern_examples>
 
 ## 4) Cortex Analyst Integration
 

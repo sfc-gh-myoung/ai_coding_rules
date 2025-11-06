@@ -85,10 +85,10 @@ This repository contains multiple documentation files for different audiences:
 
 | File | Purpose | Required? |
 |------|---------|-----------|
-| **discovery/AGENTS.md** | Rule loading protocol and discovery guide (prescriptive instructions FOR AI) | ✅ Required |
-| **discovery/EXAMPLE_PROMPT.md** | Baseline prompt template for AI configuration | ✅ Required |
-| **discovery/RULES_INDEX.md** | Machine-readable rule catalog with keywords | ✅ Required |
-| **generated/universal/*.md** | The actual rules (72 rule files + 3 discovery files) | ✅ Required (loaded on-demand) |
+| **AGENTS.md** | Rule loading protocol and discovery guide (prescriptive instructions FOR AI) | ✅ Required |
+| **EXAMPLE_PROMPT.md** | Baseline prompt template for AI configuration | ✅ Required |
+| **RULES_INDEX.md** | Machine-readable rule catalog with keywords | ✅ Required |
+| **rules/*.md** | The actual rules (72 rule files) | ✅ Required (loaded on-demand) |
 
 ### Generated Outputs (Use These)
 
@@ -249,7 +249,7 @@ vi templates/200-python-core.md
 # 2. Generate outputs
 task rule:all            # All formats
 task rule:universal      # Just universal
-task rules:index         # Regenerate discovery/RULES_INDEX.md
+task rules:index         # Regenerate RULES_INDEX.md (in discovery/ dir of this repo)
 
 # 3. Validate
 task validate            # Runs linting, tests, and checks
@@ -272,7 +272,7 @@ task rule:cline          # Cline format
 task rule:universal      # Universal format
 
 # Regenerate rule index
-task rules:index         # Generate discovery/RULES_INDEX.md
+task rules:index         # Generate RULES_INDEX.md (in discovery/ dir of this repo)
 
 # Validate everything
 task validate            # Lint, test, and check staleness
@@ -310,8 +310,8 @@ task validate
 # Copy generated/universal/ to a test project
 mkdir ~/test-rules
 cp -r generated/universal/* ~/test-rules/
-cp discovery/AGENTS.md ~/test-rules/
-cp discovery/RULES_INDEX.md ~/test-rules/
+cp discovery/AGENTS.md ~/test-rules/AGENTS.md
+cp discovery/RULES_INDEX.md ~/test-rules/RULES_INDEX.md
 
 # Point your AI assistant to ~/test-rules/ and verify behavior
 ```
@@ -319,7 +319,7 @@ cp discovery/RULES_INDEX.md ~/test-rules/
 **Success Indicators:**
 - ✅ `task validate` passes all checks
 - ✅ `generated/universal/` contains 72 rule files
-- ✅ `discovery/RULES_INDEX.md` lists all rules with metadata
+- ✅ `RULES_INDEX.md` (in test directory) lists all rules with metadata
 - ✅ AI assistant can load and apply rules correctly
 - ✅ No linting errors in templates
 
@@ -339,17 +339,17 @@ This repository follows a **template-first architecture**: 72 source templates i
 
 1. **Template-First Design**: Source templates in `templates/` directory → Generate to `generated/` outputs
 2. **Generate Once, Use Everywhere**: Run `task rule:universal` to create portable rules
-3. **Automatic Rule Discovery**: AI assistants use `discovery/AGENTS.md` and `discovery/RULES_INDEX.md` for semantic keyword matching
+3. **Automatic Rule Discovery**: AI assistants use `AGENTS.md` and `RULES_INDEX.md` (deployed to project root) for semantic keyword matching
 4. **Dependency-Aware Architecture**: Explicit dependency chains ensure correct rule loading order
 5. **Token-Efficient Design**: Modular, focused rules (150-500 lines) minimize context usage
 6. **Technology Coverage**: 72 specialized rules covering Snowflake, Python, Docker, Shell scripting, and project management
-7. **Auto-Generated Catalog**: `discovery/RULES_INDEX.md` automatically generated from template metadata
+7. **Auto-Generated Catalog**: `RULES_INDEX.md` automatically generated from template metadata and deployed to project root
 
 ### What This Repository Provides
 
 - **72 source templates** in `templates/` directory covering best practices, patterns, and governance
 - **Universal format** in `generated/universal/` with preserved metadata (Keywords, TokenBudget, ContextTier, Depends)
-- **Discovery system** in `discovery/` directory:
+- **Discovery system** files (deployed to project root):
   - `AGENTS.md` - Rule loading protocol FOR AI assistants (prescriptive instructions)
   - `RULES_INDEX.md` - Auto-generated catalog with semantic keywords
   - `EXAMPLE_PROMPT.md` - Universal baseline prompt for automatic rule loading
@@ -543,10 +543,10 @@ To enable automatic rule discovery with your AI assistant, you need to add the d
 ### One-Time Setup
 
 **What the AI needs access to:**
-1. `discovery/AGENTS.md` - Rule loading protocol (prescriptive instructions FOR the AI)
-2. `discovery/EXAMPLE_PROMPT.md` - Baseline prompt template
-3. `discovery/RULES_INDEX.md` - Rule catalog (auto-generated, read-only)
-4. `generated/universal/` directory - All rule files (loaded on-demand)
+1. `AGENTS.md` - Rule loading protocol (prescriptive instructions FOR the AI)
+2. `EXAMPLE_PROMPT.md` - Baseline prompt template
+3. `RULES_INDEX.md` - Rule catalog (auto-generated, read-only)
+4. `rules/` directory - All rule files (loaded on-demand)
 
 ### IDE-Specific Configuration
 
@@ -574,7 +574,7 @@ Ask: "What is your rule loading protocol?"
 Ask: "What rules are available for Snowflake development?"
 
 ✅ Expected: AI searches RULES_INDEX.md and lists 100-series rules
-❌ Problem: AI doesn't find rules → RULES_INDEX.md not accessible
+❌ Problem: AI doesn't find rules → RULES_INDEX.md not in project root or not accessible
 ```
 
 **Test 3: Automatic Loading**
@@ -594,8 +594,8 @@ Ask: "Build a Snowflake Streamlit dashboard"
 
 | Problem | Cause | Solution |
 |---------|-------|----------|
-| AI doesn't list loaded rules | AGENTS.md not in context | Add discovery/AGENTS.md to AI context |
-| AI can't find specific rules | RULES_INDEX.md not accessible | Verify RULES_INDEX.md is in context |
+| AI doesn't list loaded rules | AGENTS.md not in context | Add AGENTS.md to AI context (should be in project root) |
+| AI can't find specific rules | RULES_INDEX.md not accessible | Verify RULES_INDEX.md is in project root and accessible |
 | AI loads wrong rules | Keywords don't match task | Check RULES_INDEX.md Keywords column |
 | Token budget exceeded | Too many rules loaded | Remove Medium/Low tier rules from context |
 | Dependency errors | Prerequisites not loaded | Verify AI follows "Depends On" chain in rules |
@@ -611,9 +611,9 @@ import re
 def configure_ai_context(rules_dir="generated/universal"):
     """Build AI context with discovery files and rules."""
     context_files = [
-        "discovery/AGENTS.md",
-        "discovery/EXAMPLE_PROMPT.md", 
-        "discovery/RULES_INDEX.md"
+        "AGENTS.md",
+        "EXAMPLE_PROMPT.md", 
+        "RULES_INDEX.md"
     ]
     
     # Load discovery files first
@@ -638,7 +638,7 @@ See [Programmatic Rule Loading](#programmatic-rule-loading-example) for more exa
 ```
 ai_coding_rules/
 ├── templates/              ← Edit these: 72 source template files
-├── discovery/              ← Discovery system (AGENTS.md, RULES_INDEX.md, EXAMPLE_PROMPT.md)
+├── discovery/              ← Discovery system sources (AGENTS.md, RULES_INDEX.md, EXAMPLE_PROMPT.md)
 ├── generated/              ← Generated outputs (committed to git)
 │   ├── universal/          ← Universal format (portable Markdown)
 │   ├── cursor/rules/       ← Cursor-specific (.mdc files)
@@ -865,7 +865,7 @@ The project follows a **universal-first architecture** where source rule files a
 │  ├── 210-python-fastapi-core.md [Framework Specific]       │
 │  └── ... (72 total rules)                                   │
 │                                                            │
-│  Discovery System (Committed in Repo)                      │
+│  Discovery System (Committed in Repo, deployed to root)    │
 │  ├── AGENTS.md          [Rule loading protocol FOR AI]     │
 │  ├── RULES_INDEX.md     [Searchable catalog]               │
 │  ├── EXAMPLE_PROMPT.md  [Baseline prompt]                  │
@@ -920,7 +920,7 @@ The project follows a **universal-first architecture** where source rule files a
 3. **Universal by Default**: `task rule:universal` creates portable format first
 4. **IDE Formats Optional**: Generate IDE-specific formats only if you need convenience features
 5. **Metadata Preservation**: Keywords, TokenBudget, ContextTier, and Depends metadata preserved in universal format
-6. **Automatic Discovery**: AGENTS.md + RULES_INDEX.md enable intelligent rule loading
+6. **Automatic Discovery**: AGENTS.md + RULES_INDEX.md (deployed to project root) enable intelligent rule loading
 
 ### Rule Generator Architecture
 
@@ -956,7 +956,7 @@ This ensures that generated Cursor rules reference the correct `.mdc` file forma
 - **Preserves essential metadata:** Keywords, TokenBudget, ContextTier (as regular markdown after H1)
 - **Strips IDE-specific metadata:** Type, Description, AutoAttach, AppliesTo, Version, LastUpdated
 - Clean, portable Markdown suitable for any IDE, agent, or LLM
-- Use `RULES_INDEX.md` and `AGENTS.md` for semantic rule discovery
+- Use `RULES_INDEX.md` and `AGENTS.md` (in project root) for semantic rule discovery
 
 **Preserved Metadata Benefits:**
 - **Keywords** - Enables semantic discovery and grep-based searches
@@ -1015,7 +1015,7 @@ After deployment via `task deploy:*`, your AI assistant automatically discovers 
 
 **How It Works:**
 1. Deploy rules to your project (e.g., `task deploy:universal DEST=~/my-project`)
-2. AI reads `AGENTS.md` (rule loading protocol) and `RULES_INDEX.md` (catalog)
+2. AI reads `AGENTS.md` (rule loading protocol) and `RULES_INDEX.md` (catalog) from project root
 3. AI searches for keywords matching your task
 4. AI loads relevant rules following dependency chains
 5. AI applies rules to generate code
@@ -1508,8 +1508,10 @@ Expected: AI loads 000-global-core, 100-snowflake-core, 101-snowflake-streamlit-
 # Verify files exist
 ls generated/universal/*.md | wc -l  # Should be 72+
 
-# Check discovery files
+# Check discovery files (in this repo's discovery/ directory)
 ls discovery/AGENTS.md discovery/RULES_INDEX.md discovery/EXAMPLE_PROMPT.md
+
+# After deployment, check files in project root
 cat AGENTS.md | head -20
 cat RULES_INDEX.md | head -20
 

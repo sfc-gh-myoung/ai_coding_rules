@@ -102,7 +102,7 @@ cd /tmp/ai-rules
 
 # Verify
 ls ~/my-project/rules/*.md | wc -l  # Should show 72+
-ls ~/my-project/AGENTS.md ~/my-project/RULES_INDEX.md  # Both should exist
+ls ~/my-project/AGENTS.md ~/my-project/RULES_INDEX.md  # Both files should exist in project root
 ```
 
 **For other formats:**
@@ -120,7 +120,7 @@ ls ~/my-project/AGENTS.md ~/my-project/RULES_INDEX.md  # Both should exist
 **What happens automatically:**
 - ✅ Generates rules for your agent type
 - ✅ Copies to correct directory (`.cursor/rules/`, `rules/`, etc.)
-- ✅ Updates `AGENTS.md` with proper paths
+- ✅ Updates `AGENTS.md` with proper paths and deploys to project root
 - ✅ Copies `RULES_INDEX.md` to project root
 - ✅ No manual editing needed!
 
@@ -143,11 +143,11 @@ Which tool(s) do you use? Check all that apply:
 ```bash
 # For universal deployment
 ls rules/*.md | wc -l           # Expected: 72+
-ls AGENTS.md RULES_INDEX.md     # Both files should exist
+ls AGENTS.md RULES_INDEX.md     # Both files should exist in project root
 
 # For Cursor deployment
 ls .cursor/rules/*.mdc | wc -l  # Expected: 72+
-ls AGENTS.md RULES_INDEX.md     # Both files should exist
+ls AGENTS.md RULES_INDEX.md     # Both files should exist in project root
 
 # For Copilot deployment
 ls .github/copilot/instructions/*.md | wc -l  # Expected: 72+
@@ -191,7 +191,7 @@ Ask Cursor: "What rules are available for Python?"
 
 1. **Open Claude.ai** → Navigate to your project (or create new)
 2. **Go to "Project Knowledge"**
-3. **Upload files from your project:**
+3. **Upload files from your project root:**
    - [ ] `AGENTS.md` (rule loading protocol)
    - [ ] `RULES_INDEX.md` (rule catalog)
    - [ ] `rules/*.md` (upload all or just the rules you need)
@@ -201,7 +201,7 @@ Ask Cursor: "What rules are available for Python?"
 Ask Claude: "What rules are available for Python?"
 ```
 
-**Expected:** Claude lists relevant Python rules from RULES_INDEX.md
+**Expected:** Claude lists relevant Python rules from RULES_INDEX.md (in project root)
 
 **Verification Checklist:**
 - [ ] Files uploaded successfully
@@ -216,7 +216,7 @@ Ask Claude: "What rules are available for Python?"
 
 If you used `task deploy:copilot`, GitHub Copilot automatically reads from `.github/copilot/instructions/`!
 
-**Important:** Commit and push the files:
+**Important:** Commit and push the files (note: AGENTS.md and RULES_INDEX.md are in project root):
 ```bash
 git add .github/copilot/instructions/ AGENTS.md RULES_INDEX.md
 git commit -m "chore: add AI coding rules"
@@ -265,7 +265,7 @@ Ask Cline: "What rules govern Python development here?"
 
 1. Open ChatGPT
 2. Start new conversation
-3. Upload files from your project:
+3. Upload files from your project root:
    - `AGENTS.md` (rule loading protocol)
    - `RULES_INDEX.md` (rule catalog)
    - Relevant rule files (e.g., `rules/200-python-core.md`)
@@ -279,8 +279,8 @@ Ask ChatGPT: "What rules are available for Python?"
 
 If you deployed with `task deploy:universal`, you have:
 - `rules/*.md` — 72+ rule files
-- `AGENTS.md` — Rule loading protocol
-- `RULES_INDEX.md` — Rule catalog
+- `AGENTS.md` — Rule loading protocol (in project root)
+- `RULES_INDEX.md` — Rule catalog (in project root)
 
 Upload these files to your AI tool's context/knowledge base.
 
@@ -297,7 +297,7 @@ Ask AI: "What rules are available for [your-tech-stack]?"
 
 **Expected Response:**
 - AI lists at least 5 relevant rules
-- AI mentions RULES_INDEX.md or rule discovery
+- AI mentions RULES_INDEX.md (from project root) or rule discovery
 - Rules match your project's technology stack
 
 **Verification:**
@@ -356,7 +356,7 @@ Ask AI: "Review this code for compliance with project rules"
 Add these to your browser:
 
 - [ ] [AI Coding Rules Repository](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules)
-- [ ] [RULES_INDEX.md](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules/-/blob/main/discovery/RULES_INDEX.md)
+- [ ] [RULES_INDEX.md](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules/-/blob/main/discovery/RULES_INDEX.md) (source in repo)
 - [ ] [Project Issues](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules/-/issues) (for questions/feedback)
 
 ---
@@ -419,7 +419,7 @@ task deploy:universal DEST=~/my-project
 
 **Diagnosis:**
 ```bash
-# Check if discovery files exist in your project root
+# Check if discovery files exist in your project root (deployed location)
 ls AGENTS.md RULES_INDEX.md
 
 # Check if rules exist
@@ -519,7 +519,7 @@ cd /tmp/ai-rules
 # Check rule count
 ls rules/*.md | wc -l  # Should show 72+
 
-# Search rules
+# Search rules (RULES_INDEX.md is in project root after deployment)
 grep -i "keyword" RULES_INDEX.md
 
 # Find specific rule
@@ -540,8 +540,8 @@ find rules -name "*python*"
 
 | File | Purpose | Location (after deployment) |
 |------|---------|----------|
-| `AGENTS.md` | Rule discovery guide | Project root |
-| `RULES_INDEX.md` | Searchable catalog | Project root |
+| `AGENTS.md` | Rule discovery guide | **Project root** |
+| `RULES_INDEX.md` | Searchable catalog | **Project root** |
 | `000-global-core.md` | Foundation rules | `rules/` or `.cursor/rules/` |
 | All rule files | 72+ specialized rules | `rules/` or IDE-specific directory |
 
@@ -556,7 +556,7 @@ find rules -name "*python*"
    - Advanced configuration
    - Troubleshooting guide
 
-2. **RULES_INDEX.md:** Find rules by keyword
+2. **RULES_INDEX.md (project root):** Find rules by keyword
    - Search by technology
    - Browse by category (000-900)
    - Check dependencies

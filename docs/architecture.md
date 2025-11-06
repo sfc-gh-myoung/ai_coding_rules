@@ -14,7 +14,7 @@ The AI Coding Rules Generator is a template-based generation system that transfo
 │  ├── 000-global-core.md       ├── AGENTS.md                   │
 │  ├── 001-memory-bank.md       ├── EXAMPLE_PROMPT.md           │
 │  └── ... (72 files)            └── RULES_INDEX.md             │
-│                                                               │
+│                                   (deployed to project root)   │
 │  (Canonical source - always edit here)                        │
 └───────────────────┬───────────────────────────────────────────┘
                     │
@@ -64,7 +64,7 @@ The AI Coding Rules Generator is a template-based generation system that transfo
 │  ├── Generate rules to temporary directory                     │
 │  ├── Copy rules to target project (e.g., rules/)               │
 │  ├── Render AGENTS.md template ({rule_path} → rules)           │
-│  ├── Copy RULES_INDEX.md to project root                       │
+│  ├── Copy RULES_INDEX.md to **project root**                   │
 │  └── Validate deployment (dry-run mode available)              │
 │                                                                │
 │  Supports: --agent, --destination, --dry-run                   │
@@ -76,8 +76,8 @@ The AI Coding Rules Generator is a template-based generation system that transfo
 │                                                                │
 │  deploy_rules.py creates in target project:                    │
 │  • rules/ (or .cursor/rules/, etc.) ← 72 rule files           │
-│  • AGENTS.md (project root) ← templated with correct paths     │
-│  • RULES_INDEX.md (project root) ← discovery catalog           │
+│  • AGENTS.md (**project root**) ← templated with correct paths │
+│  • RULES_INDEX.md (**project root**) ← discovery catalog       │
 │                                                                │
 │  User configures IDE to reference deployed location            │
 │                                                                │
@@ -122,6 +122,7 @@ Rule content...
 
 **Behavior:**
 - NOT copied to `generated/` directories
+- Deployed to **project root** by deploy_rules.py
 - Skipped by generation scripts (not treated as rules)
 - Deployed to project root by `deploy_rules.py`
 - `AGENTS.md` template variable `{rule_path}` replaced with agent-specific path during deployment
@@ -186,7 +187,7 @@ generated/
 
 **Important:**
 - Discovery files (AGENTS.md, RULES_INDEX.md, EXAMPLE_PROMPT.md) are NOT in `generated/`
-- Discovery files are deployed by `deploy_rules.py` to target project root
+- Discovery files are deployed by `deploy_rules.py` to **target project root**
 - Generated directories contain ONLY rule files (72 files each)
 
 **Why Commit Generated Files:**
@@ -215,9 +216,9 @@ generated/
    - Replaces `{rule_path}` variable (e.g., `rules`, `.cursor/rules`, etc.)
 
 3. **Discovery File Deployment**
-   - Copies `AGENTS.md` (rendered) to project root
-   - Copies `RULES_INDEX.md` to project root
-   - Optional: `EXAMPLE_PROMPT.md` can be copied
+   - Copies `AGENTS.md` (rendered) to **project root**
+   - Copies `RULES_INDEX.md` to **project root**
+   - Optional: `EXAMPLE_PROMPT.md` can be copied to **project root**
 
 4. **Validation**
    - Validates destination is writable
@@ -256,7 +257,7 @@ python scripts/deploy_rules.py \
    • Reads template content and metadata
    • Applies format-specific transformations
    • Writes to generated/{format}/
-   • Skips discovery files (AGENTS.md, RULES_INDEX.md, etc.)
+   • Skips discovery files (AGENTS.md, RULES_INDEX.md deployed separately)
 
 4. Developer commits both
    ↓
@@ -280,8 +281,8 @@ python scripts/deploy_rules.py \
    • Generates rules to temporary directory
    • Copies 72 rule files to destination/rules/
    • Renders AGENTS.md template ({rule_path} → rules)
-   • Copies AGENTS.md to destination root
-   • Copies RULES_INDEX.md to destination root
+   • Copies AGENTS.md to **destination root**
+   • Copies RULES_INDEX.md to **destination root**
 
 3. User configures IDE to use deployed rules
    ↓

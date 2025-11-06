@@ -48,50 +48,81 @@
 
 ### Step 1.1: Get the Rules
 
-#### If Your Project Already Has Rules (Git Submodule)
+#### Option A: Deploy to Existing Project (Recommended)
 
 ```bash
-# From your project root
-git submodule update --init --recursive
+# Clone the rules repository
+git clone https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git /tmp/ai-rules
+cd /tmp/ai-rules
 
-# Verify submodule loaded
-ls .ai-rules/
+# Deploy rules to your project (choose one)
+task deploy:universal DEST=~/my-project    # For any IDE/LLM
+task deploy:cursor DEST=~/my-project       # For Cursor IDE
+task deploy:copilot DEST=~/my-project      # For GitHub Copilot
+task deploy:cline DEST=~/my-project        # For Cline
+
+# Verify deployment
+ls ~/my-project/rules/*.md | wc -l   # Universal: Should show 72+
+# OR
+ls ~/my-project/.cursor/rules/*.mdc | wc -l  # Cursor: Should show 72+
 ```
 
-**Expected output:**
-```
-discovery/
-generated/
-templates/
-scripts/
-README.md
-... (more files)
-```
+✅ **Success!** Rules deployed with correct paths. Skip to Step 1.2.
 
-✅ **Success!** Skip to Step 1.2.
-
-#### If Your Project Doesn't Have Rules Yet
+#### Option B: Add as Git Submodule
 
 ```bash
 # From your project root
 git submodule add https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git .ai-rules
 cd .ai-rules
 
-# Generate rules (requires Python 3.11+ and uv)
-task rule:all
+# Deploy rules to parent project
+task deploy:universal DEST=..   # For any IDE/LLM
+# OR
+task deploy:cursor DEST=..      # For Cursor IDE
 
-# Verify generation
-ls generated/universal/ | head -5
+# Verify deployment
+cd .. && ls rules/*.md | wc -l  # Should show 72+
 ```
 
-**Expected output:**
+#### Option C: Deployment Without Task
+
+If you don't have Task installed, use the Python deployment script directly:
+
+```bash
+# Clone repository
+git clone https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git /tmp/ai-rules
+cd /tmp/ai-rules
+
+# Install dependencies
+/opt/homebrew/bin/uv sync
+
+# Deploy using Python script (handles everything automatically)
+/opt/homebrew/bin/uv run scripts/deploy_rules.py --agent universal --destination ~/my-project
+
+# Verify
+ls ~/my-project/rules/*.md | wc -l  # Should show 72+
+ls ~/my-project/AGENTS.md ~/my-project/RULES_INDEX.md  # Both should exist
 ```
-000-global-core.md
-001-memory-bank.md
-002-rule-governance.md
-003-context-engineering.md
-004-tool-design-for-agents.md
+
+**For other formats:**
+```bash
+# Cursor
+/opt/homebrew/bin/uv run scripts/deploy_rules.py --agent cursor --destination ~/my-project
+
+# Copilot
+/opt/homebrew/bin/uv run scripts/deploy_rules.py --agent copilot --destination ~/my-project
+
+# Cline
+/opt/homebrew/bin/uv run scripts/deploy_rules.py --agent cline --destination ~/my-project
 ```
+
+**What happens automatically:**
+- ✅ Generates rules for your agent type
+- ✅ Copies to correct directory (`.cursor/rules/`, `rules/`, etc.)
+- ✅ Updates `AGENTS.md` with proper paths
+- ✅ Copies `RULES_INDEX.md` to project root
+- ✅ No manual editing needed!
 
 ---
 
@@ -103,20 +134,23 @@ Which tool(s) do you use? Check all that apply:
 - [ ] **Claude Projects** → Go to Step 2.2
 - [ ] **VS Code + GitHub Copilot** → Go to Step 2.3
 - [ ] **Cline AI Assistant** → Go to Step 2.4
-- [ ] **Other (aider, ChatGPT, etc.)** → Go to Step 2.5
+- [ ] **Other (ChatGPT, etc.)** → Go to Step 2.5
 
 ---
 
-### Step 1.3: Verify Files Exist
+### Step 1.3: Verify Setup
 
 ```bash
-# Check generated rules
-ls .ai-rules/generated/universal/*.md | wc -l
-# Expected: 72+
+# For universal deployment
+ls rules/*.md | wc -l           # Expected: 72+
+ls AGENTS.md RULES_INDEX.md     # Both files should exist
 
-# Check discovery files
-ls .ai-rules/discovery/
-# Expected: AGENTS.md, RULES_INDEX.md, EXAMPLE_PROMPT.md
+# For Cursor deployment
+ls .cursor/rules/*.mdc | wc -l  # Expected: 72+
+ls AGENTS.md RULES_INDEX.md     # Both files should exist
+
+# For Copilot deployment
+ls .github/copilot/instructions/*.md | wc -l  # Expected: 72+
 ```
 
 **All checks passed?** ✅ Continue to Phase 2.  
@@ -128,35 +162,28 @@ ls .ai-rules/discovery/
 
 ### Step 2.1: Configure Cursor IDE
 
-#### Quick Method (Recommended)
+#### If You Deployed Cursor Rules
+
+If you used `task deploy:cursor`, Cursor automatically loads rules from `.cursor/rules/`!
+
+**Verify:**
+```
+Ask Cursor: "What rules are available for Python?"
+```
+
+**Expected:** Cursor lists relevant rules from your `.cursor/rules/` directory
+
+#### If You Have Rules Elsewhere
 
 1. Open Cursor IDE
 2. Open your project
 3. Start a new conversation
-4. Type: `@.ai-rules/discovery/AGENTS.md`
-5. Cursor loads rule discovery guide automatically
-
-**Verify:**
-```
-Ask Cursor: "What rules are available for [your-tech-stack]?"
-Example: "What rules are available for Python?"
-```
-
-**Expected:** Cursor lists relevant rules from RULES_INDEX.md
-
-#### Alternative: Use Generated Cursor Rules
-
-```bash
-# Copy generated Cursor format to IDE location
-cp -r .ai-rules/generated/cursor/rules/* .cursor/rules/
-
-# Cursor automatically loads these
-```
+4. Type: `@AGENTS.md` (loads rule discovery guide)
 
 **Verification Checklist:**
 - [ ] Cursor shows rules in context panel
-- [ ] Rules appear in autocomplete
-- [ ] AI references specific rule numbers
+- [ ] AI references specific rule numbers (e.g., "Per rule 200...")
+- [ ] Code follows project conventions
 
 ---
 
@@ -164,133 +191,98 @@ cp -r .ai-rules/generated/cursor/rules/* .cursor/rules/
 
 1. **Open Claude.ai** → Navigate to your project (or create new)
 2. **Go to "Project Knowledge"**
-3. **Upload files:**
-   - [ ] `.ai-rules/discovery/AGENTS.md`
-   - [ ] `.ai-rules/discovery/RULES_INDEX.md`
-   - [ ] `.ai-rules/discovery/EXAMPLE_PROMPT.md` (optional)
+3. **Upload files from your project:**
+   - [ ] `AGENTS.md` (rule loading protocol)
+   - [ ] `RULES_INDEX.md` (rule catalog)
+   - [ ] `rules/*.md` (upload all or just the rules you need)
 
-4. **Add key rules for your stack:**
-   - Python: Upload `.ai-rules/generated/universal/200-python-core.md`
-   - Snowflake: Upload `.ai-rules/generated/universal/100-snowflake-core.md`
-   - Docker: Upload `.ai-rules/generated/universal/400-docker-best-practices.md`
-
-5. **Test:**
+4. **Test:**
 ```
-Ask Claude: "Load rules for [your-tech-stack] development"
-Example: "Load rules for FastAPI development"
+Ask Claude: "What rules are available for Python?"
 ```
 
-**Expected:** Claude loads 000-global-core, 200-python-core, 210-python-fastapi-core
+**Expected:** Claude lists relevant Python rules from RULES_INDEX.md
 
 **Verification Checklist:**
 - [ ] Files uploaded successfully
-- [ ] Claude references RULES_INDEX.md
-- [ ] Claude loads appropriate rules for tasks
+- [ ] Claude references specific rules (e.g., "Per rule 200...")
+- [ ] Claude applies rules to generated code
 
 ---
 
 ### Step 2.3: Configure VS Code + GitHub Copilot
 
-#### Option A: Project Already Configured
+#### If You Deployed Copilot Rules
 
+If you used `task deploy:copilot`, GitHub Copilot automatically reads from `.github/copilot/instructions/`!
+
+**Important:** Commit and push the files:
 ```bash
-# Check if config exists
-cat .vscode/settings.json
+git add .github/copilot/instructions/ AGENTS.md RULES_INDEX.md
+git commit -m "chore: add AI coding rules"
+git push
 ```
 
-**If settings mention `.ai-rules` or rules:** ✅ You're done!
+GitHub Copilot reads from your repository (takes 5-10 minutes to sync).
 
-#### Option B: Manual Configuration
-
-1. **Create/edit `.vscode/settings.json`:**
-
-```json
-{
-  "github.copilot.advanced": {
-    "instructions": "Follow rules from .ai-rules/generated/universal/. Load discovery/AGENTS.md for rule discovery protocol."
-  }
-}
-```
-
-2. **Reload VS Code:**
-   - Press `Cmd/Ctrl + Shift + P`
-   - Type "Reload Window"
-   - Press Enter
-
-3. **Test:**
+**Verification:**
 ```
 Ask Copilot: "What Python coding standards should I follow?"
 ```
 
+**Expected:** Copilot references your project's Python rules
+
 **Verification Checklist:**
-- [ ] `.vscode/settings.json` exists with copilot config
-- [ ] Copilot suggestions follow project patterns
-- [ ] Copilot chat references rules
+- [ ] Files committed and pushed to repository
+- [ ] Copilot suggestions follow project conventions
+- [ ] Copilot references specific rules
 
 ---
 
 ### Step 2.4: Configure Cline AI Assistant
 
-#### Option A: Use Generated Cline Format
+#### If You Deployed Cline Rules
 
-```bash
-# Copy generated Cline format to IDE location
-cp -r .ai-rules/generated/cline/* .clinerules/
+If you used `task deploy:cline`, Cline automatically processes all `.md` files in `.clinerules/`!
 
-# Cline automatically processes all .md files in .clinerules/
-```
-
-#### Option B: Reference Universal Format
-
-Add to Cline settings:
-```json
-{
-  "cline.customInstructions": "Load rules from .ai-rules/generated/universal/. Follow discovery/AGENTS.md for rule discovery."
-}
-```
-
-**Verification:**
+**Verify:**
 ```
 Ask Cline: "What rules govern Python development here?"
 ```
 
-**Expected:** Cline lists 000-global-core, 200-python-core, and related rules
+**Expected:** Cline references rules from `.clinerules/` directory
+
+**Verification Checklist:**
+- [ ] Cline shows awareness of rules
+- [ ] Cline references specific rules in responses
+- [ ] Generated code follows project conventions
 
 ---
 
-### Step 2.5: Other Tools (aider, ChatGPT, etc.)
-
-#### For aider CLI Tool
-
-Create `.aider.conf.yml`:
-```yaml
-context_files:
-  - .ai-rules/discovery/AGENTS.md
-  - .ai-rules/discovery/RULES_INDEX.md
-  - .ai-rules/generated/universal/000-global-core.md
-
-read_dirs:
-  - .ai-rules/generated/universal/
-```
-
-**Test:**
-```bash
-aider --help
-# Should show context files loaded
-```
+### Step 2.5: Other Tools (ChatGPT, etc.)
 
 #### For ChatGPT
 
 1. Open ChatGPT
 2. Start new conversation
-3. Upload files:
-   - `.ai-rules/discovery/AGENTS.md`
-   - `.ai-rules/discovery/RULES_INDEX.md`
-   - Relevant rule files for your task
+3. Upload files from your project:
+   - `AGENTS.md` (rule loading protocol)
+   - `RULES_INDEX.md` (rule catalog)
+   - Relevant rule files (e.g., `rules/200-python-core.md`)
 
-#### For Custom Integrations
+**Test:**
+```
+Ask ChatGPT: "What rules are available for Python?"
+```
 
-Read the [Programmatic Rule Loading](#programmatic-rule-loading) section in README.md for API integration examples.
+#### For Universal Deployment
+
+If you deployed with `task deploy:universal`, you have:
+- `rules/*.md` — 72+ rule files
+- `AGENTS.md` — Rule loading protocol
+- `RULES_INDEX.md` — Rule catalog
+
+Upload these files to your AI tool's context/knowledge base.
 
 ---
 
@@ -383,8 +375,14 @@ Add to your calendar:
 
 - [ ] **Monthly:** Check for rule updates
   ```bash
-  cd .ai-rules && git pull && cd ..
-  git submodule update --remote .ai-rules
+  # With Task:
+  cd /tmp/ai-rules && git pull
+  task deploy:universal DEST=~/my-project
+  
+  # Without Task (Python script):
+  cd /tmp/ai-rules && git pull
+  /opt/homebrew/bin/uv sync
+  /opt/homebrew/bin/uv run scripts/deploy_rules.py --agent universal --destination ~/my-project
   ```
 
 - [ ] **Quarterly:** Review which rules your team uses most
@@ -394,18 +392,26 @@ Add to your calendar:
 
 ## Troubleshooting
 
-### Issue: "Can't find .ai-rules directory"
+### Issue: "Rules not found in my project"
 
 **Solution:**
 ```bash
-# Initialize submodule
-git submodule update --init --recursive
+# Check if rules were deployed
+ls rules/*.md | wc -l                     # Universal deployment
+ls .cursor/rules/*.mdc | wc -l            # Cursor deployment
+ls .github/copilot/instructions/*.md | wc -l  # Copilot deployment
 
-# Verify
-ls .ai-rules/
+# If no files found, deploy rules
+git clone https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git /tmp/ai-rules
+cd /tmp/ai-rules
+/opt/homebrew/bin/uv sync
+
+# With Task:
+task deploy:universal DEST=~/my-project
+
+# Without Task:
+/opt/homebrew/bin/uv run scripts/deploy_rules.py --agent universal --destination ~/my-project
 ```
-
-If still not working, check with your project lead if the submodule has been added to the project yet.
 
 ---
 
@@ -413,19 +419,24 @@ If still not working, check with your project lead if the submodule has been add
 
 **Diagnosis:**
 ```bash
-# Check if discovery files exist
-ls .ai-rules/discovery/AGENTS.md
-ls .ai-rules/discovery/RULES_INDEX.md
+# Check if discovery files exist in your project root
+ls AGENTS.md RULES_INDEX.md
 
-# Check if rules generated
-ls .ai-rules/generated/universal/*.md | wc -l
-# Should be 72+
+# Check if rules exist
+ls rules/*.md | wc -l  # Should be 72+
 ```
 
 **Solution:**
-1. **If files missing:** Run `cd .ai-rules && task rule:all`
-2. **If files exist:** Manually load `AGENTS.md` in your AI tool
-3. **Still not working:** Try explicitly: "Load rules from .ai-rules/discovery/AGENTS.md"
+1. **If files missing:** Re-deploy:
+   ```bash
+   # With Task:
+   task deploy:universal DEST=~/my-project
+   
+   # Without Task:
+   /opt/homebrew/bin/uv run scripts/deploy_rules.py --agent universal --destination ~/my-project
+   ```
+2. **If files exist:** Manually reference `@AGENTS.md` in your AI tool
+3. **Still not working:** Upload files directly to AI tool's knowledge base
 
 ---
 
@@ -433,53 +444,27 @@ ls .ai-rules/generated/universal/*.md | wc -l
 
 **Solution:**
 ```bash
-# Check current version
-cd .ai-rules
-git log -1 --oneline
+# Pull latest rules and re-deploy
+cd /tmp/ai-rules
+git pull
+/opt/homebrew/bin/uv sync
 
-# Update to latest
-cd ..
-git submodule update --remote .ai-rules
-cd .ai-rules
-task rule:all  # Regenerate
+# With Task:
+task deploy:universal DEST=~/my-project
 
-# Commit update
-cd ..
-git add .ai-rules
-git commit -m "chore: update ai coding rules"
+# Without Task:
+/opt/homebrew/bin/uv run scripts/deploy_rules.py --agent universal --destination ~/my-project
 ```
 
 ---
 
 ### Issue: "AI suggests different approach than rules"
 
-**Diagnosis:**
-- Check if AI actually loaded the rules
-- Ask: "Which rules are you following?"
-
 **Solution:**
 1. **Explicitly reference rule:** "Follow rule 200-python-core for this task"
-2. **Check rule version:** Rules may have been updated
-3. **Report conflict:** If rule seems wrong, file an issue
-
----
-
-### Issue: "Generated files missing"
-
-**Solution:**
-```bash
-cd .ai-rules
-
-# Install dependencies
-task deps:dev
-
-# Generate all formats
-task rule:all
-
-# Verify
-ls generated/universal/*.md | wc -l
-# Should be 72+
-```
+2. **Verify AI has access:** Ask "Which rules are you following?"
+3. **Check rule content:** Read the rule file to verify it says what you expect
+4. **Report conflict:** File an issue if rule seems incorrect
 
 ---
 
@@ -490,27 +475,55 @@ Contact your manager or team lead to request access to the internal GitLab repos
 
 ---
 
+### Issue: "Task command not found"
+
+**Problem:** Don't have Task installed or can't install it
+
+**Solution:** Use Python deployment script directly (Option C)
+
+See [Option C: Deployment Without Task](#option-c-deployment-without-task) for complete instructions.
+
+Quick commands for universal rules:
+```bash
+cd /tmp/ai-rules
+/opt/homebrew/bin/uv sync
+/opt/homebrew/bin/uv run scripts/deploy_rules.py --agent universal --destination ~/my-project
+```
+
+---
+
 ## Quick Reference Card
 
 Print or bookmark this for easy access:
 
 ### Common Commands
 
+**With Task:**
 ```bash
-# Update rules
-git submodule update --remote .ai-rules
+# Deploy/update rules
+git clone https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git /tmp/ai-rules
+cd /tmp/ai-rules
+task deploy:universal DEST=~/my-project
+```
 
-# Regenerate rules
-cd .ai-rules && task rule:all && cd ..
+**Without Task (Python script):**
+```bash
+# Deploy/update rules using Python script
+cd /tmp/ai-rules
+/opt/homebrew/bin/uv sync
+/opt/homebrew/bin/uv run scripts/deploy_rules.py --agent universal --destination ~/my-project
+```
 
+**General:**
+```bash
 # Check rule count
-ls .ai-rules/generated/universal/*.md | wc -l
+ls rules/*.md | wc -l  # Should show 72+
 
 # Search rules
-grep -i "keyword" .ai-rules/discovery/RULES_INDEX.md
+grep -i "keyword" RULES_INDEX.md
 
 # Find specific rule
-find .ai-rules/generated/universal -name "*python*"
+find rules -name "*python*"
 ```
 
 ### Common Prompts
@@ -525,13 +538,12 @@ find .ai-rules/generated/universal -name "*python*"
 
 ### Key Files
 
-| File | Purpose | Location |
+| File | Purpose | Location (after deployment) |
 |------|---------|----------|
-| `AGENTS.md` | Rule discovery guide | `.ai-rules/discovery/` |
-| `RULES_INDEX.md` | Searchable catalog | `.ai-rules/discovery/` |
-| `EXAMPLE_PROMPT.md` | Baseline prompt | `.ai-rules/discovery/` |
-| `000-global-core.md` | Foundation rules | `.ai-rules/generated/universal/` |
-| `README.md` | Full documentation | `.ai-rules/` |
+| `AGENTS.md` | Rule discovery guide | Project root |
+| `RULES_INDEX.md` | Searchable catalog | Project root |
+| `000-global-core.md` | Foundation rules | `rules/` or `.cursor/rules/` |
+| All rule files | 72+ specialized rules | `rules/` or IDE-specific directory |
 
 ---
 

@@ -63,7 +63,6 @@ from __future__ import annotations
 import argparse
 import os
 import re
-import shutil
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -297,34 +296,9 @@ class AgentRuleGenerator:
             is_stale = self._process_file(md_path)
             stale_found = stale_found or is_stale
 
-        # Copy discovery files for universal format
-        if self.agent == "universal":
-            self._copy_discovery_files()
-
         if getattr(self, "check_mode", False) and stale_found:
             print("One or more agent rule outputs are stale. Re-run without --check to update.")
             sys.exit(1)
-
-    def _copy_discovery_files(self) -> None:
-        """Copy discovery files from discovery/ to universal output directory."""
-        discovery_dir = Path("discovery")
-        if not discovery_dir.exists():
-            return
-
-        discovery_files = ["AGENTS.md", "EXAMPLE_PROMPT.md", "RULES_INDEX.md"]
-        for file_name in discovery_files:
-            src = discovery_dir / file_name
-            if src.exists():
-                dst = self.destination / file_name
-                if not self.dry_run:
-                    shutil.copy2(src, dst)
-                    try:
-                        rel = os.path.relpath(dst, start=Path.cwd())
-                        print(f"Copied {file_name} to {rel}")
-                    except Exception:
-                        print(f"Copied {file_name} to {dst}")
-                else:
-                    print(f"[DRY-RUN] Would copy: {file_name} to {dst}")
 
     def _process_file(self, md_path: Path) -> bool:
         src_text = md_path.read_text(encoding="utf-8")

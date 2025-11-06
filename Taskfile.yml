@@ -3,6 +3,13 @@ version: '3'
 # Usage: install Task and run `task -l` to list available tasks.
 # Common commands: `task deps:dev`, `task lint`, `task rule:cursor`
 
+# Tool paths - adjust these if tools are installed in different locations
+vars:
+  UV: /opt/homebrew/bin/uv
+  UVX: /opt/homebrew/bin/uvx
+  PYTHON: /opt/homebrew/bin/uv run python
+  PIP: /opt/homebrew/bin/uv pip
+
 tasks:
   # Default task: list all available tasks in this Taskfile
   default:
@@ -16,9 +23,9 @@ tasks:
     status:
       - test -d .venv
     cmds:
-      - uv python install 3.11
-      - uv python pin 3.11
-      - uv venv
+      - "{{.UV}} python install 3.11"
+      - "{{.UV}} python pin 3.11"
+      - "{{.UV}} venv"
   
   # Install and sync dependencies with uv (includes dev tools via dependency groups)
   deps:dev:
@@ -26,8 +33,8 @@ tasks:
     deps:
       - uv:pin
     cmds:
-      - uv lock
-      - uv sync --all-groups
+      - "{{.UV}} lock"
+      - "{{.UV}} sync --all-groups"
 
   # ============================================================================
   # Code Quality Tasks
@@ -37,25 +44,25 @@ tasks:
   lint:
     desc: "Ruff lint (checks only)"
     cmds:
-      - uvx ruff check .
+      - "{{.UVX}} ruff check ."
 
   # Ruff format (checks only; no changes)
   format:
     desc: "Ruff format (checks only)"
     cmds:
-      - uvx ruff format --check .
+      - "{{.UVX}} ruff format --check ."
 
   # Ruff lint autofix (applies lint fixes only)
   lint:fix:
     desc: "Ruff lint with automatic fixes"
     cmds:
-      - uvx ruff check --fix .
+      - "{{.UVX}} ruff check --fix ."
 
   # Ruff format apply (applies formatting only)
   format:fix:
     desc: "Ruff format (apply changes)"
     cmds:
-      - uvx ruff format .
+      - "{{.UVX}} ruff format ."
 
   # Ruff autofix limited to a specific rule code via CODE variable
   lint:fix:select:
@@ -65,7 +72,7 @@ tasks:
     requires:
       vars: [CODE]
     cmds:
-      - uvx ruff check --fix --select {{.CODE}} .
+      - "{{.UVX}} ruff check --fix --select {{.CODE}} ."
 
   # Ruff autofix limited to a specific rule code via CODE enable unsafe fixes.
   lint:fix:select:unsafe:
@@ -75,7 +82,7 @@ tasks:
     requires:
       vars: [CODE]
     cmds:
-      - uvx ruff check --fix --select {{.CODE}} --unsafe-fixes .
+      - "{{.UVX}} ruff check --fix --select {{.CODE}} --unsafe-fixes ."
 
   # Run comprehensive quality checks
   quality:
@@ -105,7 +112,7 @@ tasks:
     deps:
       - deps:dev
     cmds:
-      - uv run pytest tests/ --tb=short
+      - "{{.UV}} run pytest tests/ --tb=short"
 
   # Run tests with coverage reporting
   test:coverage:
@@ -113,7 +120,7 @@ tasks:
     deps:
       - deps:dev
     cmds:
-      - uv run pytest --cov=generate_agent_rules --cov-report=term-missing --cov-report=html tests/
+      - "{{.UV}} run pytest --cov=generate_agent_rules --cov-report=term-missing --cov-report=html tests/"
 
   # ============================================================================
   # Rule Generation Tasks
@@ -123,73 +130,73 @@ tasks:
   rule:cursor:
     desc: "Generate Cursor .mdc files from templates/ to generated/cursor/rules/"
     cmds:
-      - uv run scripts/generate_agent_rules.py --agent cursor{{if .DEST}} --destination {{.DEST}}{{end}}
+      - "{{.UV}} run scripts/generate_agent_rules.py --agent cursor{{if .DEST}} --destination {{.DEST}}{{end}}"
 
   # Generate GitHub Copilot instruction files from *.md rules  
   rule:copilot:
     desc: "Generate GitHub Copilot instruction files from templates/ to generated/copilot/instructions/"
     cmds:
-      - uv run scripts/generate_agent_rules.py --agent copilot{{if .DEST}} --destination {{.DEST}}{{end}}
+      - "{{.UV}} run scripts/generate_agent_rules.py --agent copilot{{if .DEST}} --destination {{.DEST}}{{end}}"
 
   # Generate Cline rule files from *.md rules
   rule:cline:
     desc: "Generate Cline rule files from templates/ to generated/cline/"
     cmds:
-      - uv run scripts/generate_agent_rules.py --agent cline{{if .DEST}} --destination {{.DEST}}{{end}}
+      - "{{.UV}} run scripts/generate_agent_rules.py --agent cline{{if .DEST}} --destination {{.DEST}}{{end}}"
 
   # Generate Universal rule files from *.md rules (IDE-agnostic)
   rule:universal:
     desc: "Generate Universal rule files from templates/ to generated/universal/"
     cmds:
-      - uv run scripts/generate_agent_rules.py --agent universal{{if .DEST}} --destination {{.DEST}}{{end}}
+      - "{{.UV}} run scripts/generate_agent_rules.py --agent universal{{if .DEST}} --destination {{.DEST}}{{end}}"
 
   # Dry run rule generation to preview changes
   rule:cursor:dry:
     desc: "Dry run Cursor rule generation (preview changes)"
     cmds:
-      - uv run scripts/generate_agent_rules.py --agent cursor --dry-run{{if .DEST}} --destination {{.DEST}}{{end}}
+      - "{{.UV}} run scripts/generate_agent_rules.py --agent cursor --dry-run{{if .DEST}} --destination {{.DEST}}{{end}}"
 
   rule:copilot:dry:
     desc: "Dry run Copilot rule generation (preview changes)"
     cmds:
-      - uv run scripts/generate_agent_rules.py --agent copilot --dry-run{{if .DEST}} --destination {{.DEST}}{{end}}
+      - "{{.UV}} run scripts/generate_agent_rules.py --agent copilot --dry-run{{if .DEST}} --destination {{.DEST}}{{end}}"
 
   rule:cline:dry:
     desc: "Dry run Cline rule generation (preview changes)"
     cmds:
-      - uv run scripts/generate_agent_rules.py --agent cline --dry-run{{if .DEST}} --destination {{.DEST}}{{end}}
+      - "{{.UV}} run scripts/generate_agent_rules.py --agent cline --dry-run{{if .DEST}} --destination {{.DEST}}{{end}}"
 
   rule:universal:dry:
     desc: "Dry run Universal rule generation (preview changes)"
     cmds:
-      - uv run scripts/generate_agent_rules.py --agent universal --dry-run{{if .DEST}} --destination {{.DEST}}{{end}}
+      - "{{.UV}} run scripts/generate_agent_rules.py --agent universal --dry-run{{if .DEST}} --destination {{.DEST}}{{end}}"
 
   # Check if rule outputs are current/valid
   rule:cursor:check:
     desc: "Check if Cursor rule outputs are current"
     cmds:
-      - uv run scripts/generate_agent_rules.py --agent cursor --check{{if .DEST}} --destination {{.DEST}}{{end}}
+      - "{{.UV}} run scripts/generate_agent_rules.py --agent cursor --check{{if .DEST}} --destination {{.DEST}}{{end}}"
 
   rule:copilot:check:
     desc: "Check if Copilot rule outputs are current"
     cmds:
-      - uv run scripts/generate_agent_rules.py --agent copilot --check{{if .DEST}} --destination {{.DEST}}{{end}}
+      - "{{.UV}} run scripts/generate_agent_rules.py --agent copilot --check{{if .DEST}} --destination {{.DEST}}{{end}}"
 
   rule:cline:check:
     desc: "Check if Cline rule outputs are current"
     cmds:
-      - uv run scripts/generate_agent_rules.py --agent cline --check{{if .DEST}} --destination {{.DEST}}{{end}}
+      - "{{.UV}} run scripts/generate_agent_rules.py --agent cline --check{{if .DEST}} --destination {{.DEST}}{{end}}"
 
   rule:universal:check:
     desc: "Check if Universal rule outputs are current"
     cmds:
-      - uv run scripts/generate_agent_rules.py --agent universal --check{{if .DEST}} --destination {{.DEST}}{{end}}
+      - "{{.UV}} run scripts/generate_agent_rules.py --agent universal --check{{if .DEST}} --destination {{.DEST}}{{end}}"
 
   # Validate universal rule format (no YAML, no comments, metadata stripped)
   rule:universal:validate:
     desc: "Validate universal rule format meets standards"
     cmds:
-      - uv run scripts/validate_agent_rules.py --format universal
+      - "{{.UV}} run scripts/validate_agent_rules.py --format universal"
 
   # Generate all rule formats
   rule:all:
@@ -213,11 +220,39 @@ tasks:
   rule:legacy:
     desc: "Generate all formats to legacy paths (.cursor/rules/, .github/instructions/, etc.)"
     cmds:
-      - uv run scripts/generate_agent_rules.py --agent cursor --legacy-paths
-      - uv run scripts/generate_agent_rules.py --agent copilot --legacy-paths
-      - uv run scripts/generate_agent_rules.py --agent cline --legacy-paths
-      - uv run scripts/generate_agent_rules.py --agent universal --legacy-paths
+      - "{{.UV}} run scripts/generate_agent_rules.py --agent cursor --legacy-paths"
+      - "{{.UV}} run scripts/generate_agent_rules.py --agent copilot --legacy-paths"
+      - "{{.UV}} run scripts/generate_agent_rules.py --agent cline --legacy-paths"
+      - "{{.UV}} run scripts/generate_agent_rules.py --agent universal --legacy-paths"
       - echo "[OK] Generated all rule formats to legacy paths"
+
+  # ============================================================================
+  # Rule Deployment Tasks
+  # ============================================================================
+
+  # Deploy Cursor rules with updated AGENTS.md to target project
+  deploy:cursor:
+    desc: "Deploy Cursor rules to target project (.cursor/rules/)"
+    cmds:
+      - "{{.UV}} run scripts/deploy_rules.py --agent cursor{{if .DEST}} --destination {{.DEST}}{{end}}"
+
+  # Deploy Copilot rules with updated AGENTS.md to target project
+  deploy:copilot:
+    desc: "Deploy Copilot rules to target project (.github/copilot/instructions/)"
+    cmds:
+      - "{{.UV}} run scripts/deploy_rules.py --agent copilot{{if .DEST}} --destination {{.DEST}}{{end}}"
+
+  # Deploy Cline rules with updated AGENTS.md to target project
+  deploy:cline:
+    desc: "Deploy Cline rules to target project (.clinerules/)"
+    cmds:
+      - "{{.UV}} run scripts/deploy_rules.py --agent cline{{if .DEST}} --destination {{.DEST}}{{end}}"
+
+  # Deploy Universal rules with updated AGENTS.md to target project
+  deploy:universal:
+    desc: "Deploy Universal rules to target project (rules/)"
+    cmds:
+      - "{{.UV}} run scripts/deploy_rules.py --agent universal{{if .DEST}} --destination {{.DEST}}{{end}}"
 
   # ============================================================================
   # Rule Index Tasks
@@ -227,19 +262,19 @@ tasks:
   rules:index:
     desc: "Generate discovery/RULES_INDEX.md from template metadata"
     cmds:
-      - uv run python scripts/generate_rules_index.py
+      - "{{.PYTHON}} scripts/generate_rules_index.py"
 
   # Check if discovery/RULES_INDEX.md is up-to-date
   rules:index:check:
     desc: "Check if discovery/RULES_INDEX.md is up-to-date (CI mode)"
     cmds:
-      - uv run python scripts/generate_rules_index.py --check
+      - "{{.PYTHON}} scripts/generate_rules_index.py --check"
 
   # Preview discovery/RULES_INDEX.md without writing to file
   rules:index:dry:
     desc: "Preview discovery/RULES_INDEX.md generation without writing"
     cmds:
-      - uv run python scripts/generate_rules_index.py --dry-run
+      - "{{.PYTHON}} scripts/generate_rules_index.py --dry-run"
 
   # ============================================================================
   # Development Utilities
@@ -297,19 +332,19 @@ tasks:
   rules:validate:
     desc: "Validate all rules in templates/ contain required sections per 002-rule-governance.md"
     cmds:
-      - uv run scripts/validate_agent_rules.py
+      - "{{.UV}} run scripts/validate_agent_rules.py"
 
   # Validate with verbose output (shows clean files too)
   rules:validate:verbose:
     desc: "Validate all rules with verbose output"
     cmds:
-      - uv run scripts/validate_agent_rules.py --verbose
+      - "{{.UV}} run scripts/validate_agent_rules.py --verbose"
 
   # Validate and fail on warnings (strict mode for CI/CD)
   rules:validate:strict:
     desc: "Validate all rules in strict mode (fail on warnings)"
     cmds:
-      - uv run scripts/validate_agent_rules.py --fail-on-warnings
+      - "{{.UV}} run scripts/validate_agent_rules.py --fail-on-warnings"
 
   # Prepare for release (fix issues + generate rules)
   release:prepare:

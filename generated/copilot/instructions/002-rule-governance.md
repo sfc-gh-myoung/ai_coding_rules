@@ -37,7 +37,7 @@ Establish comprehensive governance for creating, maintaining, and organizing AI 
 - **Explicit Contracts:** Clear inputs, outputs, and validation criteria with quantifiable success metrics
 - **Composable Design:** Rules reference and build upon each other logically with declared dependencies
 - **Professional Standards:** Consistent tone, structure, and formatting using semantic markup
-- **LLM-Optimized Format:** XML tags for semantic sections, token budgets declared, explicit behavior specifications
+- **LLM-Optimized Format:** Enhanced Markdown with emojis for semantic sections, token budgets declared, explicit behavior specifications
 - **Context Awareness:** Support for Claude 4.5+ native token management and multi-session state tracking
 - **Investigation-First:** Rules must encourage verification over speculation to minimize hallucinations
 
@@ -46,51 +46,56 @@ Establish comprehensive governance for creating, maintaining, and organizing AI 
 - **Requirement:** Use a snake-case naming convention with a `.md` extension (e.g., `your_rule_name.md`).
 - **Requirement:** Include a clear description and, if needed, scope notes at the top of the file. Mandatory metadata `Version`, `LastUpdated`, `Keywords`, `TokenBudget`, and `ContextTier` must be included in plain text. The `Keywords` field is **CRITICAL** for semantic discovery and automatic rule loading (promoted to required in v2.4).
 
-## 2. Semantic Markup and XML Tags
+## 2. Semantic Markup with Enhanced Markdown
 
-### LLM Parsing Optimization with XML Tags
+### LLM Parsing Optimization with Universal Markdown
 
-**Requirement:** Use XML tags for semantic markup to enable precise LLM parsing across all models (Claude 4.x, GPT-4, Gemini).
+**Requirement:** Use enhanced Markdown with emojis for semantic markup to enable precise LLM parsing across ALL models (Claude 4.x, GPT-4, Gemini) and editors (Cursor, Copilot, Cline).
 
 **Universal Compatibility:**
-- ✅ **Claude 4:** Explicitly documented as effective pattern in official best practices
-- ✅ **GPT-4:** XML tags supported in structured prompts
-- ✅ **Gemini:** XML/structured markup natively supported
-- ✅ **All IDEs:** Rendered as code blocks in markdown, passed through to LLMs
+- ✅ **Claude 4:** Markdown with emojis fully supported
+- ✅ **GPT-4:** Native Markdown interpretation
+- ✅ **Gemini:** Full Markdown support
+- ✅ **GitHub Copilot:** Markdown-based custom instructions
+- ✅ **Cursor IDE:** Markdown rules with all LLM backends
+- ✅ **Cline:** Markdown-based rules
+- ✅ **All Markdown Viewers:** Clean rendering
 
-**Standard XML Tags for Rules:**
+**Standard Markdown Patterns for Rules:**
 
-```xml
-<section_metadata>
-  <section_id>contract</section_id>
-  <priority>critical</priority>
-  <token_budget>150</token_budget>
-  <read_order>1</read_order>
-</section_metadata>
+```markdown
+> **Section Metadata**  
+> Token Budget: ~450 | Context Tier: essential | Priority: high
 
-<directive_strength>mandatory</directive_strength>
-[Mandatory content here]
+**🔥 MANDATORY:**
+- [Mandatory content here]
 
-<directive_strength>forbidden</directive_strength>
-[Forbidden actions here]
+**❌ FORBIDDEN:**
+- [Forbidden actions here]
 
-<directive_strength>recommended</directive_strength>
-[Best practices here]
+**✅ RECOMMENDED:**
+- [Best practices here]
 
-<investigate_before_answering>
-[Instructions requiring verification before response]
-</investigate_before_answering>
+> **⚠️ Investigation Required**  
+> [Instructions requiring verification before response]
 
-<model_specific_guidance model="claude-4">
-[Claude 4 specific optimizations]
-</model_specific_guidance>
+> **🤖 Claude 4 Specific Guidance**  
+> [Claude 4 specific optimizations]
 ```
 
-**Tag Usage Guidelines:**
-- **Requirement:** Wrap critical sections with semantic XML tags
-- **Requirement:** Use `<directive_strength>` to indicate requirement level (mandatory, forbidden, recommended)
-- **Always:** Include `<section_metadata>` for priority/budget tracking
-- **Consider:** Add `<model_specific_guidance>` for model-optimized patterns
+**Markdown Pattern Guidelines:**
+- **Requirement:** Use emoji-prefixed bold headings for directive strength
+- **Requirement:** Use blockquotes (`>`) for metadata and special guidance sections
+- **Always:** Include Section Metadata blockquote for priority/budget tracking
+- **Consider:** Add model-specific guidance blockquotes for model-optimized patterns
+
+**Emoji Standards (Universal):**
+- 🔥 **MANDATORY** - Critical requirements
+- ❌ **FORBIDDEN** - Prohibited actions
+- ✅ **RECOMMENDED** - Best practices
+- ⚠️ **Investigation Required** - Verification needed
+- 🤖 **Model-Specific** - Model-optimized guidance
+- 📊 **Metric** - Measurements and targets
 
 ## 3. Required Rule Structure
 
@@ -100,11 +105,8 @@ Every rule file must follow this structure:
 ```markdown
 # Rule Title
 
-<section_metadata>
-  <token_budget>450</token_budget>
-  <context_tier>essential</context_tier>
-  <priority>high</priority>
-</section_metadata>
+> **Section Metadata**  
+> Token Budget: ~450 | Context Tier: essential | Priority: high
 
 ## Purpose
 [1-2 sentences clearly explaining what this rule accomplishes and why it exists]
@@ -115,14 +117,14 @@ Every rule file must follow this structure:
 
 ## Contract
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Inputs/Prereqs:** [Required context, files, env vars]
 - **Allowed Tools:** [List tools permitted for this rule]
 
-<directive_strength>forbidden</directive_strength>
+**❌ FORBIDDEN:**
 - **Forbidden Tools:** [List tools not allowed]
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Required Steps:** [Ordered, explicit steps the AI must follow. Be explicit - Claude 4 requires clear instructions]
 - **Output Format:** [Exact expected output format]
 - **Validation Steps:** [Checks the AI must run to confirm success]
@@ -134,13 +136,11 @@ Every rule file must follow this structure:
 [Comprehensive implementation details with explicit instructions]
 
 ## Anti-Patterns and Common Mistakes (CRITICAL for Claude 4)
-<anti_pattern_examples>
 **❌ Anti-Pattern 1:** [Description with example]
 **✅ Correct Pattern:** [How to do it right with example]
 
 **❌ Anti-Pattern 2:** [Description with example]
 **✅ Correct Pattern:** [How to do it right with example]
-</anti_pattern_examples>
 
 ## Quick Compliance Checklist
 - [ ] [5-10 verification items AI can check before acting]
@@ -271,15 +271,14 @@ Every rule file must follow this structure:
 ✅ `**TokenBudget:** ~450` or `**TokenBudget:** ~1200` or `**TokenBudget:** ~2200`
 
 **Claude 4.5 Context Awareness:**
-<model_specific_guidance model="claude-4.5">
-**For Claude 4.5+ users:** This model features native context awareness and can track its remaining token budget throughout a conversation. When you declare token budgets in rules:
-- Claude will self-manage context consumption
-- Prioritize core directives if approaching budget limit
-- Use progressive disclosure (read TL;DR sections first)
-- Reference external docs instead of copying content
-
-**For other models:** Token budgets serve as sizing guidance and priority indicators.
-</model_specific_guidance>
+> **🤖 Claude 4.5 Specific Guidance**  
+> **For Claude 4.5+ users:** This model features native context awareness and can track its remaining token budget throughout a conversation. When you declare token budgets in rules:
+> - Claude will self-manage context consumption
+> - Prioritize core directives if approaching budget limit
+> - Use progressive disclosure (read TL;DR sections first)
+> - Reference external docs instead of copying content
+>
+> **For other models:** Token budgets serve as sizing guidance and priority indicators.
 
 **Content Requirements:**
 - **Requirement:** Keep each rule file concise and focused (target 150–300 lines; max 500 lines)
@@ -296,7 +295,6 @@ Every rule file must follow this structure:
 ```markdown
 ## Anti-Patterns and Common Mistakes
 
-<anti_pattern_examples>
 **❌ Anti-Pattern 1: [Descriptive Name]**
 ```[language]
 // Bad example showing what NOT to do
@@ -322,7 +320,6 @@ Every rule file must follow this structure:
 "Create an analytics dashboard. Include as many relevant features and interactions as possible. Go beyond the basics to create a fully-featured implementation. Use your entire context budget to deliver a polished, production-ready result."
 ```
 **Benefits:** Explicit behavior specifications ensure Claude understands scope and quality expectations.
-</anti_pattern_examples>
 ```
 
 **Why This Matters for Claude 4:**
@@ -386,7 +383,7 @@ These serve no semantic purpose and reduce professionalism:
 
 **LLM-Generated Content Standards:**
 
-<directive_strength>forbidden</directive_strength>
+**❌ FORBIDDEN:**
 When LLMs generate code, documentation, or responses:
 - **Default:** Must NOT generate emojis or GIFs in output
 - **Professionalism:** Technical documentation should be emoji-free by default
@@ -629,23 +626,22 @@ Are these rules subtopics of ONE technology?
 
 **Standard Investigation Block:**
 ```xml
-<investigate_before_answering>
-When applying this rule:
-1. **Read referenced files BEFORE making recommendations**
-2. **Verify assumptions against actual code/data**
-3. **Never speculate about file contents or system state**
-4. **If uncertain, explicitly state:** "I need to read [file] to provide accurate guidance"
-5. **Make grounded, hallucination-free recommendations based on investigation**
-
-**Anti-Pattern:**
-❌ "Based on typical patterns, this file probably contains..."
-❌ "Usually this would be implemented as..."
-
-**Correct Pattern:**
-✅ "Let me read the file first to give you accurate guidance."
-[reads file using appropriate tool]
-✅ "After reviewing [file], I found [specific facts]. Here's my recommendation based on what I observed..."
-</investigate_before_answering>
+> **⚠️ Investigation Required**  
+> When applying this rule:
+> 1. **Read referenced files BEFORE making recommendations**
+> 2. **Verify assumptions against actual code/data**
+> 3. **Never speculate about file contents or system state**
+> 4. **If uncertain, explicitly state:** "I need to read [file] to provide accurate guidance"
+> 5. **Make grounded, hallucination-free recommendations based on investigation**
+>
+> **Anti-Pattern:**
+> ❌ "Based on typical patterns, this file probably contains..."
+> ❌ "Usually this would be implemented as..."
+>
+> **Correct Pattern:**
+> ✅ "Let me read the file first to give you accurate guidance."
+> [reads file using appropriate tool]
+> ✅ "After reviewing [file], I found [specific facts]. Here's my recommendation based on what I observed..."
 ```
 
 **Application Guidelines:**
@@ -767,27 +763,24 @@ Do not use placeholders or guess missing parameters - wait for actual results.
 
 **Format:**
 ```xml
-<model_specific_guidance model="claude-4">
-**Claude 4 Optimizations:**
-- Context awareness: You can track your remaining token budget
-- Be explicit: Request "above and beyond" behavior directly
-- Parallel tool calls: Maximize simultaneous operations
-- State discovery: Leverage filesystem state tracking
-</model_specific_guidance>
+> **🤖 Claude 4 Specific Guidance**  
+> **Claude 4 Optimizations:**
+> - Context awareness: You can track your remaining token budget
+> - Be explicit: Request "above and beyond" behavior directly
+> - Parallel tool calls: Maximize simultaneous operations
+> - State discovery: Leverage filesystem state tracking
 
-<model_specific_guidance model="gpt-4">
-**GPT-4 Optimizations:**
-- Token budget: Target <400 tokens per rule for GPT-3.5 compatibility
-- JSON mode: Use `response_format: { "type": "json_object" }` for structured output
-- Function calling: Define functions in separate schema
-</model_specific_guidance>
+> **🤖 GPT-4 Specific Guidance**  
+> **GPT-4 Optimizations:**
+> - Token budget: Target <400 tokens per rule for GPT-3.5 compatibility
+> - JSON mode: Use `response_format: { "type": "json_object" }` for structured output
+> - Function calling: Define functions in separate schema
 
-<model_specific_guidance model="gemini">
-**Gemini 1.5 Pro Optimizations:**
-- Massive context: Can handle comprehensive rules (>1000 tokens)
-- Native code execution: Leverage for validation examples
-- Multimodal: Include visual examples when relevant
-</model_specific_guidance>
+> **🤖 Gemini Specific Guidance**  
+> **Gemini 1.5 Pro Optimizations:**
+> - Massive context: Can handle comprehensive rules (>1000 tokens)
+> - Native code execution: Leverage for validation examples
+> - Multimodal: Include visual examples when relevant
 ```
 
 **Degradation Strategy:**
@@ -822,7 +815,7 @@ Do not use placeholders or guess missing parameters - wait for actual results.
 
 **Critical Requirement:** Never hardcode dates when updating LastUpdated fields.
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 **Date Acquisition:**
 - **CRITICAL:** Always obtain current date via system call: `date +%Y-%m-%d` (or equivalent)
 - **Forbidden:** Never hardcode, guess, or assume today's date
@@ -870,11 +863,8 @@ Use this template when creating new rule files. Copy the entire template below a
 
 # Rule Title (Replace with Descriptive Title)
 
-<section_metadata>
-  <token_budget>450</token_budget>
-  <context_tier>standard</context_tier>
-  <priority>high</priority>
-</section_metadata>
+> **Section Metadata**  
+> Token Budget: ~450 | Context Tier: standard | Priority: high
 
 ## Purpose
 [1-2 sentences clearly explaining what this rule accomplishes and why it exists. Be explicit about expected behaviors - Claude 4 requires clear specifications.]
@@ -886,14 +876,14 @@ Use this template when creating new rule files. Copy the entire template below a
 
 ## Contract
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Inputs/Prereqs:** [Required context, files, env vars]
 - **Allowed Tools:** [List tools permitted for this rule]
 
-<directive_strength>forbidden</directive_strength>
+**❌ FORBIDDEN:**
 - **Forbidden Tools:** [List tools not allowed]
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Required Steps:** [Ordered, explicit steps the agent must follow. Be explicit and specific - include "go beyond the basics", "use entire context budget", etc. when appropriate]
 - **Output Format:** [Exact expected output format]
 - **Validation Steps:** [Checks the agent must run to confirm success]
@@ -908,7 +898,6 @@ Use this template when creating new rule files. Copy the entire template below a
 
 ## Anti-Patterns and Common Mistakes
 
-<anti_pattern_examples>
 **❌ Anti-Pattern 1: [Descriptive Name]**
 ```[language]
 // Bad example showing what NOT to do
@@ -928,7 +917,6 @@ Use this template when creating new rule files. Copy the entire template below a
 
 **✅ Correct Pattern:**
 [How to do it right with example]
-</anti_pattern_examples>
 
 ## Quick Compliance Checklist
 - [ ] Item 1 (must be true before proceeding)
@@ -941,13 +929,12 @@ Use this template when creating new rule files. Copy the entire template below a
 - **Success Checks:** [How to verify correct implementation]
 - **Negative Tests:** [What should fail and how to detect failures]
 
-<investigate_before_answering>
-When applying this rule:
-1. Read referenced files BEFORE making recommendations
-2. Verify assumptions against actual code/data
-3. Never speculate about file contents or system state
-4. Make grounded, hallucination-free recommendations
-</investigate_before_answering>
+> **⚠️ Investigation Required**  
+> When applying this rule:
+> 1. Read referenced files BEFORE making recommendations
+> 2. Verify assumptions against actual code/data
+> 3. Never speculate about file contents or system state
+> 4. Make grounded, hallucination-free recommendations
 
 ## Response Template
     ```<LANG>
@@ -965,12 +952,11 @@ When applying this rule:
 - **Core Rule Name**: `000-global-core.md`
 - **Governance**: `002-rule-governance.md`
 
-<model_specific_guidance model="claude-4">
-**Claude 4 Optimizations:**
-- Context awareness: Model can track token budget
-- Be explicit: Request comprehensive behavior directly
-- Investigation-first: Model excels at filesystem discovery
-</model_specific_guidance>
+> **🤖 Claude 4 Specific Guidance**  
+> **Claude 4 Optimizations:**
+> - Context awareness: Model can track token budget
+> - Be explicit: Request comprehensive behavior directly
+> - Investigation-first: Model excels at filesystem discovery
 
 > **Note:** Follow professional communication standards including:
 > - Use standardized functional emoji markers (🔥⚠️✅❌📊🆕) for priority/pattern identification

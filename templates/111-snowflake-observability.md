@@ -51,14 +51,13 @@ Establish comprehensive observability practices for Snowflake environments throu
 
 **Critical Rule for AI Agents:**
 ```xml
-<investigate_before_answering>
-When addressing observability questions:
-1. Determine the data source: System View (historical) vs Event Table (real-time)
-2. Verify time range requirements match the data source latency
-3. Check object existence before querying telemetry (use SHOW commands)
-4. Never speculate about telemetry configuration—read it first with SHOW PARAMETERS
-5. Understand retention implications before recommending data collection strategies
-</investigate_before_answering>
+> **⚠️ Investigation Required**  
+> When addressing observability questions:
+> 1. Determine the data source: System View (historical) vs Event Table (real-time)
+> 2. Verify time range requirements match the data source latency
+> 3. Check object existence before querying telemetry (use SHOW commands)
+> 4. Never speculate about telemetry configuration—read it first with SHOW PARAMETERS
+> 5. Understand retention implications before recommending data collection strategies
 ```
 
 ### OpenTelemetry Standard Alignment
@@ -731,13 +730,12 @@ WHERE ABS(DATEDIFF(second, t.timestamp, l.timestamp)) < 10;
 
 **Usage for AI Agents:**
 ```xml
-<investigate_before_answering>
-When recommending Snowsight monitoring:
-1. Verify user has access to Monitoring → Traces & Logs
-2. Confirm event table is active and receiving data
-3. Guide user to specific filters (severity, time range) relevant to their issue
-4. Reference trace IDs for end-to-end debugging workflows
-</investigate_before_answering>
+> **⚠️ Investigation Required**  
+> When recommending Snowsight monitoring:
+> 1. Verify user has access to Monitoring → Traces & Logs
+> 2. Confirm event table is active and receiving data
+> 3. Guide user to specific filters (severity, time range) relevant to their issue
+> 4. Reference trace IDs for end-to-end debugging workflows
 ```
 
 **Anti-Pattern:**
@@ -1061,7 +1059,7 @@ ALTER SESSION SET TRACE_LEVEL = ALWAYS;
 
 ## 13. Contract
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Inputs/Prereqs:** 
   - Active event table (verify with `SHOW PARAMETERS LIKE 'EVENT_TABLE' IN ACCOUNT`)
   - Appropriate telemetry level configuration for environment
@@ -1078,7 +1076,7 @@ ALTER SESSION SET TRACE_LEVEL = ALWAYS;
   - Snowsight UI for Traces & Logs visualization
   - `SHOW PARAMETERS` for investigating current telemetry configuration
 
-<directive_strength>forbidden</directive_strength>
+**❌ FORBIDDEN:**
 - **Forbidden Tools:** 
   - Excessive DEBUG logging in production environments without cost analysis
   - Modifying telemetry configuration without understanding retention and cost implications
@@ -1087,7 +1085,7 @@ ALTER SESSION SET TRACE_LEVEL = ALWAYS;
   - Creating event tables without specifying retention policy
   - Speculating about telemetry configuration without reading actual parameter values
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Required Steps:**
   1. **Investigate:** Check current telemetry configuration using `SHOW PARAMETERS LIKE '%LOG_LEVEL%'`, `SHOW PARAMETERS LIKE '%TRACE_LEVEL%'`, `SHOW PARAMETERS LIKE '%METRIC_LEVEL%'`
   2. **Verify:** Confirm active event table exists with `SHOW EVENT TABLES` and `SHOW PARAMETERS LIKE 'EVENT_TABLE'`

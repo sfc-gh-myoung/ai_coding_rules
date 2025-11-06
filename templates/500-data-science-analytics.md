@@ -12,11 +12,8 @@
 
 # Data Science & Analytics Principles
 
-<section_metadata>
-  <token_budget>800</token_budget>
-  <context_tier>high</context_tier>
-  <priority>high</priority>
-</section_metadata>
+> **Section Metadata**  
+> Token Budget: ~800 | Context Tier: high | Priority: high
 
 ## Purpose
 Establish comprehensive rules for performing data science and analytics on Snowflake, focusing on model lifecycle management, ML/AI insight presentation, advanced SQL techniques, performance optimization, and ethical visualization practices to ensure reproducible, performant, and trustworthy analytical workflows.
@@ -28,7 +25,7 @@ Establish comprehensive rules for performing data science and analytics on Snowf
 
 ## Contract
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Inputs/Prereqs:** 
   - Snowflake connection with appropriate warehouse (CPU/GPU based on workload)
   - Python 3.11+ with snowflake-snowpark-python, pandas/polars, scikit-learn/snowflake-ml
@@ -44,7 +41,7 @@ Establish comprehensive rules for performing data science and analytics on Snowf
   - **ML Ops:** Snowflake Model Registry, feature store, MLflow integration
   - **Performance:** Query Profile, @st.cache_data, result caching, incremental refresh
 
-<directive_strength>forbidden</directive_strength>
+**❌ FORBIDDEN:**
 - **Forbidden Tools:** 
   - SELECT * FROM large_tables without LIMIT (cost explosion)
   - Python loops over millions of rows (use SQL aggregation)
@@ -53,7 +50,7 @@ Establish comprehensive rules for performing data science and analytics on Snowf
   - Misleading visualizations (truncated axes without indicators, 3D pie charts)
   - Hardcoded credentials or secrets in notebooks
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Required Steps:**
   1. **Investigate data first:** Read actual data schemas, distributions, volumes before recommending approaches
   2. **Establish baseline:** Create simple interpretable model before complex approaches
@@ -97,7 +94,6 @@ Establish comprehensive rules for performing data science and analytics on Snowf
 
 **Note:** For comprehensive Pandas performance optimization, vectorization patterns, and anti-patterns, see `252-pandas-best-practices.md`. For datetime handling across Pandas, Python, and visualization libraries, see `251-python-datetime-handling.md`.
 
-<anti_pattern_examples>
 
 **❌ Anti-Pattern 1: Using Python None checks on pandas DataFrames**
 ```python
@@ -147,7 +143,6 @@ else:
 
 **Benefits**: Graceful degradation when data is unavailable; no crashes.
 
-</anti_pattern_examples>
 
 ### Pandas NULL Checking Functions
 
@@ -168,7 +163,7 @@ else:
 
 ## 1. Model Lifecycle & MLOps
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 ### Reproducibility Requirements
 - **Requirement:** Ensure full reproducibility: pin all dependencies (uv.lock, requirements.txt), log random seeds, use dataset snapshot or hash
@@ -238,7 +233,7 @@ else:
 
 ## 2. Feature Engineering & Preparation
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 ### Versioning & Leakage Prevention
 - **Requirement:** Make feature definitions reproducible and versioned (use Snowflake Feature Store or versioned views)
@@ -289,7 +284,7 @@ else:
 
 ## 3. Advanced SQL for Analytics
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 ### Window Functions & CTEs
 - **Always:** Use window functions for intra-partition context (sessionization, ranking) instead of self-joins:
@@ -342,7 +337,7 @@ else:
 
 ## 4. Specialized Data & Time Series
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 ### Time Series Best Practices
 - **Requirement:** Keep time series data in consistent timezone (UTC); convert to local time only for presentation
@@ -395,7 +390,7 @@ else:
 
 ## 5. ML/AI Insight Presentation & Visualization
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 ### Model Performance Visualization
 
@@ -539,7 +534,7 @@ with col2:
 
 ### Uncertainty Communication
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 **Show Prediction Intervals, Not Just Point Estimates:**
 ```python
@@ -603,7 +598,7 @@ st.warning(f"⚠️ {low_confidence} predictions have <60% confidence. Manual re
 
 ## 6. Performance Optimization for Large Datasets
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 ### SQL-First Aggregation
 ```python
@@ -697,7 +692,7 @@ except Exception as e:
 
 ## 7. Ethical Visualization & Accessibility
 
-<directive_strength>forbidden</directive_strength>
+**❌ FORBIDDEN:**
 
 ### Forbidden Manipulations
 - **Never truncate Y-axis without clear visual indicators** (break lines, annotations stating "axis starts at X")
@@ -707,7 +702,7 @@ except Exception as e:
 - **Never cherry-pick date ranges** to show desired trends without disclosure
 - **Never use dual Y-axes with different scales** unless clearly marked and justified
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 ### Required Disclosures
 ```python
@@ -783,7 +778,7 @@ with st.expander("View Data Table (Screen Reader Accessible)"):
 
 ## 8. Data Quality & Metric Documentation
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 ### Data Quality Indicators
 ```python
@@ -828,7 +823,6 @@ with st.expander("ℹ️ Metric Definition"):
 
 ## Anti-Patterns and Common Mistakes
 
-<anti_pattern_examples>
 
 **❌ Anti-Pattern 1: Loading Full Dataset into Python**
 ```python
@@ -1000,48 +994,46 @@ st.plotly_chart(fig)
 - Better risk assessment
 - Informed decision-making
 
-</anti_pattern_examples>
 
-<investigate_before_answering>
-When applying this rule:
-
-1. **Read referenced data BEFORE making recommendations**
-   - Check actual table schemas with `DESCRIBE TABLE`
-   - Sample data to understand distributions
-   - Check row counts and data volumes
-
-2. **Verify assumptions against actual code/data**
-   - Don't assume feature engineering logic
-   - Don't guess model performance
-   - Don't speculate about data quality
-
-3. **Never speculate about data characteristics**
-   - Don't say "this probably contains..." without checking
-   - Don't assume column names or data types
-   - Don't guess at cardinality or distributions
-
-4. **If uncertain, explicitly state need to investigate:**
-   - "Let me read the table schema first to give you accurate guidance."
-   - "I need to check the actual data volumes before recommending an approach."
-   - "Let me verify the current model performance before suggesting improvements."
-
-5. **Make grounded, hallucination-free recommendations**
-   - Base suggestions on actual observed data characteristics
-   - Reference specific column names and values from investigation
-   - Provide concrete examples from actual data
-
-**Example Investigation Pattern:**
-```python
-# ✅ GOOD: Investigate first
-schema = session.sql("DESCRIBE TABLE sales_fact").collect()
-row_count = session.sql("SELECT COUNT(*) FROM sales_fact").collect()[0][0]
-sample = session.sql("SELECT * FROM sales_fact SAMPLE (100 ROWS)").to_pandas()
-
-# Now make informed recommendations
-if row_count > 1_000_000:
-    st.info("💡 Large table detected. Recommend using APPROX_COUNT_DISTINCT for dashboard.")
-```
-</investigate_before_answering>
+> **⚠️ Investigation Required**  
+> When applying this rule:
+>
+> 1. **Read referenced data BEFORE making recommendations**
+>    - Check actual table schemas with `DESCRIBE TABLE`
+>    - Sample data to understand distributions
+>    - Check row counts and data volumes
+>
+> 2. **Verify assumptions against actual code/data**
+>    - Don't assume feature engineering logic
+>    - Don't guess model performance
+>    - Don't speculate about data quality
+>
+> 3. **Never speculate about data characteristics**
+>    - Don't say "this probably contains..." without checking
+>    - Don't assume column names or data types
+>    - Don't guess at cardinality or distributions
+>
+> 4. **If uncertain, explicitly state need to investigate:**
+>    - "Let me read the table schema first to give you accurate guidance."
+>    - "I need to check the actual data volumes before recommending an approach."
+>    - "Let me verify the current model performance before suggesting improvements."
+>
+> 5. **Make grounded, hallucination-free recommendations**
+>    - Base suggestions on actual observed data characteristics
+>    - Reference specific column names and values from investigation
+>    - Provide concrete examples from actual data
+>
+> **Example Investigation Pattern:**
+> ```python
+> # ✅ GOOD: Investigate first
+> schema = session.sql("DESCRIBE TABLE sales_fact").collect()
+> row_count = session.sql("SELECT COUNT(*) FROM sales_fact").collect()[0][0]
+> sample = session.sql("SELECT * FROM sales_fact SAMPLE (100 ROWS)").to_pandas()
+>
+> # Now make informed recommendations
+> if row_count > 1_000_000:
+>     st.info("💡 Large table detected. Recommend using APPROX_COUNT_DISTINCT for dashboard.")
+> ```
 
 ## Quick Compliance Checklist
 
@@ -1169,11 +1161,10 @@ st.caption(f"Data as of: {last_update} | Quality Score: {quality_score:.0%}")
 - **Pandas Best Practices**: `252-pandas-best-practices.md`
 - **Data Governance**: `600-data-governance-quality.md`
 
-<model_specific_guidance model="claude-4">
-**Claude 4 Optimizations:**
-- **Context awareness:** Track token budget; prioritize investigation-first sections
-- **Explicit behavior:** Request "comprehensive analysis with uncertainty quantification" to get full implementation
-- **Parallel tool calls:** Generate SHAP values, confusion matrix, ROC curve simultaneously
-- **State discovery:** Leverage filesystem to check existing model artifacts before regenerating
-- **Investigation-first:** Excel at schema discovery and data profiling - use this capability
-</model_specific_guidance>
+> **🤖 Claude 4 Specific Guidance**  
+> **Claude 4 Optimizations:**
+> - **Context awareness:** Track token budget; prioritize investigation-first sections
+> - **Explicit behavior:** Request "comprehensive analysis with uncertainty quantification" to get full implementation
+> - **Parallel tool calls:** Generate SHAP values, confusion matrix, ROC curve simultaneously
+> - **State discovery:** Leverage filesystem to check existing model artifacts before regenerating
+> - **Investigation-first:** Excel at schema discovery and data profiling - use this capability

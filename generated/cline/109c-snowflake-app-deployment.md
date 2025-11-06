@@ -18,7 +18,7 @@ Establish comprehensive deployment automation patterns for Snowflake application
 
 ## Contract
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Inputs/Prereqs:** 
   - Snowflake connection and credentials
   - Application files ready for deployment (.ipynb, .py, environment.yml)
@@ -32,14 +32,14 @@ Establish comprehensive deployment automation patterns for Snowflake application
   - SQL template files with Snowflake variables (`<%VARIABLE%>`)
   - PUT, REMOVE, CREATE NOTEBOOK, CREATE STREAMLIT, DROP commands
 
-<directive_strength>forbidden</directive_strength>
+**❌ FORBIDDEN:**
 - **Forbidden Tools:** 
   - Manual file uploads via Snowsight UI (not reproducible)
   - Hardcoded credentials in automation scripts
   - Deployment without version control
   - Mixing deployment modes (don't deploy same app to multiple stages)
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Required Steps:**
   1. Create SQL scripts for each operation (upload, remove, create, drop)
   2. Implement task structure with 5 core operations
@@ -153,7 +153,7 @@ OVERWRITE=TRUE;
 - `AUTO_COMPRESS=FALSE` - Keep files uncompressed for Snowflake processing
 - `OVERWRITE=TRUE` - Replace existing file (but explicit REMOVE is still recommended)
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 **CRITICAL for Streamlit in Snowflake (SiS):**
 - `AUTO_COMPRESS=FALSE` is **mandatory**, not optional
 - Python's import system cannot read gzipped .py files
@@ -678,7 +678,6 @@ tasks:
 
 ## Anti-Patterns and Common Mistakes
 
-<anti_pattern_examples>
 **❌ Anti-Pattern 1: Using OVERWRITE without explicit REMOVE**
 ```yaml
 deploy:
@@ -805,7 +804,6 @@ CREATE STREAMLIT APP
     MAIN_FILE = 'streamlit_app.py'      # Found at @STAGE/streamlit_app.py
     QUERY_WAREHOUSE = WH;
 ```
-</anti_pattern_examples>
 
 ## Quick Compliance Checklist
 

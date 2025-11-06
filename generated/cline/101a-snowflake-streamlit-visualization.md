@@ -8,11 +8,8 @@
 
 # Streamlit Visualization: Plotly Charts and Maps
 
-<section_metadata>
-  <token_budget>600</token_budget>
-  <context_tier>standard</context_tier>
-  <priority>high</priority>
-</section_metadata>
+> **Section Metadata**  
+> Token Budget: ~600 | Context Tier: standard | Priority: high
 
 ## Purpose
 Provide comprehensive guidance for data visualization in Streamlit using Plotly as the universal standard for charts, graphs, and maps, with integration patterns for analytics dashboards and ML insights.
@@ -24,14 +21,14 @@ Provide comprehensive guidance for data visualization in Streamlit using Plotly 
 
 ## Contract
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Inputs/Prereqs:** Streamlit app configured (see 101-snowflake-streamlit-core.md), Plotly installed, pandas/polars for data manipulation
 - **Allowed Tools:** plotly.express (px), plotly.graph_objects (go), st.plotly_chart(), use_container_width=True, Plotly map functions (scatter_mapbox, choropleth_mapbox, line_mapbox, density_mapbox)
 
-<directive_strength>forbidden</directive_strength>
+**❌ FORBIDDEN:**
 - **Forbidden Tools:** PyDeck (SiS compatibility issues), custom visualization libraries without justification, JavaScript charting libraries requiring st.components, static charts when interactivity would improve UX
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Required Steps:**
   1. Use Plotly for ALL visualizations (charts, graphs, maps)
   2. Configure charts with clear titles, axis labels, and legends
@@ -51,13 +48,8 @@ Provide comprehensive guidance for data visualization in Streamlit using Plotly 
 
 ## 1. Visualization Philosophy
 
-<section_metadata>
-  <section_id>philosophy</section_id>
-  <priority>critical</priority>
-  <token_budget>80</token_budget>
-</section_metadata>
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 **Primary Library: Plotly (Universal Standard)**
 - **Requirement:** Use Plotly for ALL charts, graphs, and maps
 - **Rationale:**
@@ -73,7 +65,7 @@ Provide comprehensive guidance for data visualization in Streamlit using Plotly 
 - **3D Visualizations:** scatter_3d, surface plots, mesh plots
 - **Advanced:** Animations, subplots, custom interactivity
 
-<directive_strength>forbidden</directive_strength>
+**❌ FORBIDDEN:**
 **Forbidden:**
 - ❌ **PyDeck:** SiS compatibility issues; Plotly 3D makes it unnecessary
 - ❌ **Custom visualization libraries:** Avoid without explicit business justification
@@ -86,13 +78,8 @@ Provide comprehensive guidance for data visualization in Streamlit using Plotly 
 
 ## 2. Plotly for Charts
 
-<section_metadata>
-  <section_id>charts</section_id>
-  <priority>high</priority>
-  <token_budget>120</token_budget>
-</section_metadata>
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Requirement:** Use Plotly Express (`plotly.express`) for most chart types (interactive, performant, works in both SiS and SPCS)
 - **Always:** Use `st.plotly_chart(fig, use_container_width=True)` for responsive charts
 - **Always:** Configure charts with clear titles, axis labels, and legends
@@ -179,13 +166,8 @@ fig = px.imshow(correlation_matrix, title='Correlation Matrix')
 
 ## 3. Plotly for Maps
 
-<section_metadata>
-  <section_id>maps</section_id>
-  <priority>high</priority>
-  <token_budget>150</token_budget>
-</section_metadata>
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Requirement:** Use Plotly for all geospatial visualizations (consistent API, works seamlessly in both SiS and SPCS)
 - **Always:** Use Plotly Express map functions: `scatter_mapbox`, `choropleth_mapbox`, `line_mapbox`, `density_mapbox`
 - **Always:** Configure map style, zoom level, and center point appropriately
@@ -281,11 +263,6 @@ st.plotly_chart(fig, use_container_width=True)
 
 ## 4. Dashboard Integration Patterns
 
-<section_metadata>
-  <section_id>dashboard</section_id>
-  <priority>high</priority>
-  <token_budget>100</token_budget>
-</section_metadata>
 
 **For comprehensive visualization and dashboard design, reference specialized rules:**
 
@@ -346,13 +323,8 @@ st.plotly_chart(fig, use_container_width=True)
 
 ## 5. Time Series Data Smoothing
 
-<section_metadata>
-  <section_id>time_series_smoothing</section_id>
-  <priority>high</priority>
-  <token_budget>100</token_budget>
-</section_metadata>
 
-<directive_strength>recommended</directive_strength>
+**✅ RECOMMENDED:**
 **When to Apply Smoothing:**
 - High-frequency data creates noisy, cluttered visualizations (e.g., 15-minute SCADA readings = ~96 points/day)
 - Users struggle to identify trends due to excessive detail
@@ -459,7 +431,6 @@ else:
 
 ## Anti-Patterns and Common Mistakes
 
-<anti_pattern_examples>
 **❌ Anti-Pattern 1: Using PyDeck for maps in SiS**
 ```python
 import pydeck as pdk
@@ -576,7 +547,6 @@ for timestamp in failure_timestamps:
 - Clear error messages for debugging
 
 **Note:** For comprehensive datetime handling guidance including type conversions, timezone management, and date arithmetic, see `251-python-datetime-handling.md`.
-</anti_pattern_examples>
 
 ## Quick Compliance Checklist
 - [ ] Plotly used for ALL visualizations (no PyDeck, custom libraries without justification)
@@ -597,15 +567,14 @@ for timestamp in failure_timestamps:
 - **Success Checks:** Charts render correctly, interactive features work (zoom, pan, hover), responsive display on mobile/desktop, maps handle invalid coordinates gracefully, colors are accessible
 - **Negative Tests:** Test with empty dataframe (should show helpful message), test with invalid coordinates (should filter or warn), test with very large datasets (should aggregate first), verify PyDeck doesn't work in SiS deployment
 
-<investigate_before_answering>
-When applying this rule:
-1. Read visualization code BEFORE making recommendations
-2. Verify Plotly is installed and version is compatible
-3. Check actual data structure and coordinate validity
-4. Never speculate about chart configurations - inspect the code
-5. Verify deployment mode (SiS vs SPCS) for library compatibility
-6. Check if dashboard follows patterns from 500/700 rules
-</investigate_before_answering>
+> **⚠️ Investigation Required**  
+> When applying this rule:
+> 1. Read visualization code BEFORE making recommendations
+> 2. Verify Plotly is installed and version is compatible
+> 3. Check actual data structure and coordinate validity
+> 4. Never speculate about chart configurations - inspect the code
+> 5. Verify deployment mode (SiS vs SPCS) for library compatibility
+> 6. Check if dashboard follows patterns from 500/700 rules
 
 ## Response Template
 ```python
@@ -670,11 +639,10 @@ else:
 - **Data Science Analytics**: `500-data-science-analytics.md` (ML visualization, large dataset optimization)
 - **Business Analytics**: `700-business-analytics.md` (dashboard design, chart type selection, accessibility)
 
-<model_specific_guidance model="claude-4">
-**Claude 4 Streamlit Visualization Optimizations:**
-- Parallel chart generation: Can analyze multiple visualization patterns simultaneously
-- Context awareness: Efficiently cross-reference dashboard patterns from 500/700 rules
-- Investigation-first: Excel at discovering existing chart configurations and data structures
-- Pattern recognition: Quickly identify visualization anti-patterns (e.g., PyDeck in SiS)
-</model_specific_guidance>
+> **🤖 Claude 4 Specific Guidance**  
+> **Claude 4 Streamlit Visualization Optimizations:**
+> - Parallel chart generation: Can analyze multiple visualization patterns simultaneously
+> - Context awareness: Efficiently cross-reference dashboard patterns from 500/700 rules
+> - Investigation-first: Excel at discovering existing chart configurations and data structures
+> - Pattern recognition: Quickly identify visualization anti-patterns (e.g., PyDeck in SiS)
 

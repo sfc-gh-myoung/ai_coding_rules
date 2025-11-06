@@ -1,17 +1,30 @@
+<!-- 
+TEMPLATE NOTE: This file uses path templates for deployment flexibility
+  
+Template Variable: {rule_path}
+  - cursor deployment: {rule_path} → .cursor/rules
+  - copilot deployment: {rule_path} → .github/copilot/instructions  
+  - cline deployment: {rule_path} → .clinerules
+  - universal deployment: {rule_path} → rules
+
+During deployment, {rule_path} is automatically replaced with the appropriate path
+for the target agent type. This ensures rules work correctly in any deployment context.
+-->
+
 # 🚨 CRITICAL: MANDATORY RULE LOADING FOR ALL RESPONSES
 
 **BEFORE ANY RESPONSE, AI ASSISTANTS MUST:**
 
-1. **Load Foundation**: Read `generated/universal/000-global-core.md` (always first, no exceptions)
+1. **Load Foundation**: Read `{rule_path}/000-global-core.md` (always first, no exceptions)
    - **If file not found**: STOP and inform user: "Cannot proceed - 000-global-core.md not accessible. Please verify rules are generated and in context."
    - **If file empty**: STOP and inform user: "Rule generation may have failed - 000-global-core.md is empty."
    - **Do NOT proceed** without successfully loading this foundation
 
 2. **Load Domain Rules**: Read technology-specific rules based on task:
-   - Snowflake tasks → `generated/universal/100-snowflake-core.md`
-   - Python tasks → `generated/universal/200-python-core.md`
-   - Docker tasks → `generated/universal/400-docker-best-practices.md`
-   - Shell tasks → `generated/universal/300-bash-scripting-core.md`
+   - Snowflake tasks → `{rule_path}/100-snowflake-core.md`
+   - Python tasks → `{rule_path}/200-python-core.md`
+   - Docker tasks → `{rule_path}/400-docker-best-practices.md`
+   - Shell tasks → `{rule_path}/300-bash-scripting-core.md`
    - **If domain rule not found**: Proceed with 000-global-core only, but inform user which domain rule is missing
 
 3. **Load Specialized Rules**: Read task-specific rules from `discovery/RULES_INDEX.md` Keywords column
@@ -21,7 +34,7 @@
    - **If RULES_INDEX.md not accessible**: Proceed with foundation + domain rules, inform user
 
 4. **State Loaded Rules**: Explicitly list all loaded rules at the start of the response
-   - Format: "## Rules Loaded\n- generated/universal/000-global-core.md (foundation)\n- [other rules]\n\n[Then proceed with response...]"
+   - Format: "## Rules Loaded\n- {rule_path}/000-global-core.md (foundation)\n- [other rules]\n\n[Then proceed with response...]"
    - **This listing is MANDATORY** - it confirms rules were loaded and helps users verify behavior
 
 5. **Then Proceed**: Continue with analysis, planning, or implementation following loaded rules
@@ -55,9 +68,9 @@ Before proceeding with ANY task, confirm:
 **Response Format Requirement:**
 ```
 ## Rules Loaded
-- generated/universal/000-global-core.md (foundation)
-- generated/universal/[domain]-core.md (e.g., 100-snowflake-core, 200-python-core)
-- generated/universal/[specialized].md (task-specific rules)
+- {rule_path}/000-global-core.md (foundation)
+- {rule_path}/[domain]-core.md (e.g., 100-snowflake-core, 200-python-core)
+- {rule_path}/[specialized].md (task-specific rules)
 
 [Then proceed with response...]
 ```
@@ -66,10 +79,10 @@ Before proceeding with ANY task, confirm:
 ```
 User: Fix the Streamlit fragment batch processing
 AI: Let me load the relevant rules first:
-    - Reading generated/universal/000-global-core.md
-    - Reading generated/universal/100-snowflake-core.md  
-    - Reading generated/universal/101-snowflake-streamlit-core.md
-    - Reading generated/universal/101b-snowflake-streamlit-performance.md
+    - Reading {rule_path}/000-global-core.md
+    - Reading {rule_path}/100-snowflake-core.md  
+    - Reading {rule_path}/101-snowflake-streamlit-core.md
+    - Reading {rule_path}/101b-snowflake-streamlit-performance.md
     
     Rules loaded. Now analyzing the issue against fragment best practices...
 ```
@@ -157,13 +170,13 @@ Total: ~6,200-7,000 tokens for complete context
 Parse metadata fields programmatically:
 ```bash
 # Find rules by keywords
-grep "**Keywords:**.*Snowflake" generated/universal/*.md
+grep "**Keywords:**.*Snowflake" {rule_path}/*.md
 
 # Extract dependencies
-grep "**Depends:**" generated/universal/101-snowflake-streamlit-core.md
+grep "**Depends:**" {rule_path}/101-snowflake-streamlit-core.md
 
 # Get token budgets for planning
-grep "**TokenBudget:**" generated/universal/*.md | awk -F: '{print $1 ": " $3}'
+grep "**TokenBudget:**" {rule_path}/*.md | awk -F: '{print $1 ": " $3}'
 ```
 
 Use discovery/RULES_INDEX.md for structured discovery:
@@ -203,12 +216,12 @@ task rule:cursor
 #### VS Code
 - Add rules to `.vscode/ai-rules/`
 - Reference in workspace settings
-- Use universal format from `generated/universal/` directory
+- Use universal format from `{rule_path}/` directory
 
 #### IntelliJ
 - Add to project `.idea/aiRules/`
 - Configure in AI Assistant settings
-- Use universal format from `generated/universal/` directory
+- Use universal format from `{rule_path}/` directory
 
 ## Rule Discovery Methods
 
@@ -382,7 +395,7 @@ Tokens: ~3000-5000
 
 ### Rule Not Found
 - Check discovery/RULES_INDEX.md for exact filename
-- Verify you're in the correct directory (`generated/universal/`)
+- Verify you're in the correct directory (`{rule_path}/`)
 - Ensure rule hasn't been renamed
 
 ### Missing Dependencies
@@ -404,8 +417,8 @@ Tokens: ~3000-5000
 
 ### Essential Files
 - **@discovery/RULES_INDEX.md** - Complete rule catalog with metadata
-- **@generated/universal/000-global-core.md** - Foundational principles (load first)
-- **@generated/universal/002-rule-governance.md** - How rules are structured
+- **@{rule_path}/000-global-core.md** - Foundational principles (load first)
+- **@{rule_path}/002-rule-governance.md** - How rules are structured
 - **README.md** - Project documentation and setup
 
 ### External Documentation

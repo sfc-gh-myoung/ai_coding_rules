@@ -39,8 +39,7 @@ The AI Coding Rules Generator is a template-based generation system that transfo
 │  generated/                                                    │
 │  ├── universal/          ← Pure Markdown (no metadata)         │
 │  │   ├── 000-global-core.md                                    │
-│  │   ├── AGENTS.md (copied from discovery/)                    │
-│  │   └── ... (72 rules + 3 discovery files)                    │
+│  │   └── ... (72 rules only)                                   │
 │  │                                                             │
 │  ├── cursor/rules/       ← .mdc format with YAML frontmatter   │
 │  │   ├── 000-global-core.mdc                                   │
@@ -59,15 +58,30 @@ The AI Coding Rules Generator is a template-based generation system that transfo
                     │
                     ▼
 ┌────────────────────────────────────────────────────────────────┐
-│                   IDE/Agent Consumption                        │
+│              Deployment Engine (scripts/)                      │
 │                                                                │
-│  User configures IDE to reference:                             │
-│  • generated/cursor/rules/      (Cursor IDE)                   │
-│  • generated/copilot/instructions/ (GitHub Copilot)            │
-│  • generated/cline/             (Cline)                        │
-│  • generated/universal/         (Any IDE/CLI)                  │
+│  deploy_rules.py                                               │
+│  ├── Generate rules to temporary directory                     │
+│  ├── Copy rules to target project (e.g., rules/)               │
+│  ├── Render AGENTS.md template ({rule_path} → rules)           │
+│  ├── Copy RULES_INDEX.md to project root                       │
+│  └── Validate deployment (dry-run mode available)              │
 │                                                                │
-│  Or use: task rule:legacy                                      │
+│  Supports: --agent, --destination, --dry-run                   │
+└───────────────────┬────────────────────────────────────────────┘
+                    │
+                    ▼
+┌────────────────────────────────────────────────────────────────┐
+│                   Target Project Deployment                    │
+│                                                                │
+│  deploy_rules.py creates in target project:                    │
+│  • rules/ (or .cursor/rules/, etc.) ← 72 rule files           │
+│  • AGENTS.md (project root) ← templated with correct paths     │
+│  • RULES_INDEX.md (project root) ← discovery catalog           │
+│                                                                │
+│  User configures IDE to reference deployed location            │
+│                                                                │
+│  Or use: task rule:legacy (for generated/ consumption)         │
 │  Generates to: .cursor/rules/, .github/instructions/, etc.     │
 └────────────────────────────────────────────────────────────────┘
 ```
@@ -102,14 +116,15 @@ Rule content...
 **Purpose:** Meta-documentation for rule discovery and usage
 
 **Files:**
-- `AGENTS.md` - Primary discovery guide explaining rule system
+- `AGENTS.md` - Templated discovery guide with `{rule_path}` variable
 - `EXAMPLE_PROMPT.md` - Baseline prompt template for AI assistants
 - `RULES_INDEX.md` - Comprehensive rule catalog with keywords
 
 **Behavior:**
-- Copied to `generated/universal/` unchanged
-- Not processed as rules (skipped by generator)
-- Provides context and navigation for AI assistants
+- NOT copied to `generated/` directories
+- Skipped by generation scripts (not treated as rules)
+- Deployed to project root by `deploy_rules.py`
+- `AGENTS.md` template variable `{rule_path}` replaced with agent-specific path during deployment
 
 ### Generation Engine (`scripts/generate_agent_rules.py`)
 
@@ -160,10 +175,7 @@ python scripts/generate_agent_rules.py \
 ```
 generated/
 ├── universal/          # Pure Markdown, no frontmatter
-│   ├── *.md (72 rules)
-│   ├── AGENTS.md
-│   ├── EXAMPLE_PROMPT.md
-│   └── RULES_INDEX.md
+│   └── *.md (72 rules only)
 ├── cursor/rules/       # .mdc files with YAML
 │   └── *.mdc (72 rules)
 ├── copilot/instructions/ # .md with YAML
@@ -171,6 +183,11 @@ generated/
 └── cline/              # Plain .md with comment
     └── *.md (72 rules)
 ```
+
+**Important:**
+- Discovery files (AGENTS.md, RULES_INDEX.md, EXAMPLE_PROMPT.md) are NOT in `generated/`
+- Discovery files are deployed by `deploy_rules.py` to target project root
+- Generated directories contain ONLY rule files (72 files each)
 
 **Why Commit Generated Files:**
 - Users can clone and use immediately (no build step)
@@ -183,9 +200,47 @@ generated/
 - Git diffs show both template and generated changes
 - Risk of divergence (mitigated by CI validation)
 
+### Deployment Engine (`scripts/deploy_rules.py`)
+
+**Purpose:** Deploy rules to target projects with proper configuration
+
+**Key Features:**
+
+1. **Automatic Rule Generation**
+   - Generates rules to temporary directory
+   - Copies generated rules to target location
+
+2. **Template Rendering**
+   - Renders `AGENTS.md` template with agent-specific paths
+   - Replaces `{rule_path}` variable (e.g., `rules`, `.cursor/rules`, etc.)
+
+3. **Discovery File Deployment**
+   - Copies `AGENTS.md` (rendered) to project root
+   - Copies `RULES_INDEX.md` to project root
+   - Optional: `EXAMPLE_PROMPT.md` can be copied
+
+4. **Validation**
+   - Validates destination is writable
+   - Verifies all files copied successfully
+   - Dry-run mode for previewing changes
+
+**Command-Line Interface:**
+```bash
+python scripts/deploy_rules.py \
+  --agent {cursor|copilot|cline|universal} \
+  [--destination /path/to/project] \
+  [--dry-run]
+```
+
+**Agent-Specific Path Mappings:**
+- `cursor`: Rules → `.cursor/rules/`, paths → `.cursor/rules`
+- `copilot`: Rules → `.github/copilot/instructions/`, paths → `.github/copilot/instructions`
+- `cline`: Rules → `.clinerules/`, paths → `.clinerules`
+- `universal`: Rules → `rules/`, paths → `rules`
+
 ## Data Flow
 
-### Standard Generation Flow
+### Standard Generation Flow (For Contributors)
 
 ```
 1. Developer edits template
@@ -201,6 +256,7 @@ generated/
    • Reads template content and metadata
    • Applies format-specific transformations
    • Writes to generated/{format}/
+   • Skips discovery files (AGENTS.md, RULES_INDEX.md, etc.)
 
 4. Developer commits both
    ↓
@@ -210,20 +266,66 @@ generated/
 5. CI validates consistency
    ↓
    task rule:check (exit non-zero if stale)
+```
 
-6. Users consume generated files
+### Deployment Flow (For End Users)
+
+```
+1. User wants to deploy rules to their project
    ↓
-   IDE references generated/{format}/
+   task deploy:universal  # or cursor, copilot, cline
+
+2. deploy_rules.py orchestrates deployment
+   ↓
+   • Generates rules to temporary directory
+   • Copies 72 rule files to destination/rules/
+   • Renders AGENTS.md template ({rule_path} → rules)
+   • Copies AGENTS.md to destination root
+   • Copies RULES_INDEX.md to destination root
+
+3. User configures IDE to use deployed rules
+   ↓
+   IDE references: ~/my-project/rules/*.md
+
+4. AI assistant loads rules via AGENTS.md
+   ↓
+   AGENTS.md guides assistant to correct paths
 ```
 
-### Legacy Path Generation Flow
+### Manual Deployment Flow (Without Task)
 
 ```
-1. User needs traditional paths
+1. User clones repository
+   ↓
+   git clone <repo> /tmp/ai-rules
+
+2. User runs deployment script directly
+   ↓
+   uv run scripts/deploy_rules.py \
+     --agent universal \
+     --destination ~/my-project
+
+3. Script performs full deployment
+   ↓
+   • Generates rules (temp dir)
+   • Copies to destination
+   • Renders and copies discovery files
+   • Validates deployment
+
+4. User verifies deployment
+   ↓
+   ls ~/my-project/rules/*.md  # Should show 72 files
+   ls ~/my-project/AGENTS.md   # Should exist
+```
+
+### Legacy Path Generation Flow (For Development)
+
+```
+1. Developer needs traditional paths for testing
    ↓
    task rule:legacy
 
-2. Generator uses --legacy-paths
+2. Generator uses --legacy-paths flag
    ↓
    • Generates to .cursor/rules/
    • Generates to .github/instructions/
@@ -338,6 +440,44 @@ appliesTo:
 ...
 ```
 
+### AGENTS.md Templating System
+
+**Purpose:** Enable agent-agnostic discovery documentation
+
+**Problem:** Different agents expect rules in different locations:
+- Cursor: `.cursor/rules/`
+- Copilot: `.github/copilot/instructions/`
+- Cline: `.clinerules/`
+- Universal: `rules/`
+
+**Solution:** Template variable `{rule_path}` in `discovery/AGENTS.md`
+
+**Template Example:**
+```markdown
+## How to Load Rules
+
+1. **Load Foundation**: Read `{rule_path}/000-global-core.md`
+2. **Load Domain Rules**: Read `{rule_path}/100-snowflake-core.md`
+```
+
+**Deployment Rendering:**
+- `cursor` deployment: `{rule_path}` → `.cursor/rules`
+- `copilot` deployment: `{rule_path}` → `.github/copilot/instructions`
+- `cline` deployment: `{rule_path}` → `.clinerules`
+- `universal` deployment: `{rule_path}` → `rules`
+
+**Benefits:**
+- Single source AGENTS.md file for all agent types
+- Correct paths automatically rendered during deployment
+- No manual path updates needed
+- Prevents path mismatches in documentation
+
+**Implementation:**
+- Template stored in `discovery/AGENTS.md` with `{rule_path}` placeholders
+- `deploy_rules.py` performs string replacement during deployment
+- Rendered AGENTS.md written to target project root
+- Original template remains unchanged in repository
+
 ## Design Decisions
 
 ### Why Template-Based Generation?
@@ -446,16 +586,36 @@ To add support for a new IDE:
    }
    ```
 
-4. **Add Taskfile task:**
+4. **Add to `deploy_rules.py` AGENT_PATHS:**
+   ```python
+   AGENT_PATHS = {
+       # ...
+       "newide": ".newide/rules",
+   }
+   ```
+
+5. **Update `deploy_rules.py` generate_rules() function:**
+   ```python
+   if agent == "newide":
+       return temp_dir / "newide" / "rules"
+   ```
+
+6. **Add Taskfile tasks:**
    ```yaml
    rule:newide:
      desc: "Generate NewIDE rules"
      cmds:
        - uv run scripts/generate_agent_rules.py --agent newide
+   
+   deploy:newide:
+     desc: "Deploy NewIDE rules to target project"
+     cmds:
+       - uv run scripts/deploy_rules.py --agent newide {{.CLI_ARGS}}
    ```
 
-5. **Update documentation:**
+7. **Update documentation:**
    - README.md IDE integration section
+   - ONBOARDING.md deployment instructions
    - CONTRIBUTING.md with NewIDE workflow
    - This architecture document
 
@@ -600,19 +760,3 @@ repos:
 - Documentation current
 
 ---
-
-## References
-
-- **Hugo Static Site Generator:** https://gohugo.io/
-- **Sphinx Documentation:** https://www.sphinx-doc.org/
-- **Cookiecutter Templates:** https://cookiecutter.readthedocs.io/
-- **Cursor IDE Rules:** https://docs.cursor.com/en/context/rules
-- **GitHub Copilot Instructions:** https://docs.github.com/en/copilot/how-tos/configure-custom-instructions
-- **Cline Rules:** https://docs.cline.bot/features/cline-rules
-
----
-
-*Architecture documentation for v2.1.0+*  
-*Last Updated: 2024-11-05*  
-*Maintainer: Project Team*
-

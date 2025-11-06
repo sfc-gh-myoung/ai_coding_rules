@@ -27,7 +27,7 @@ for the target agent type. This ensures rules work correctly in any deployment c
    - Shell tasks → `{rule_path}/300-bash-scripting-core.md`
    - **If domain rule not found**: Proceed with 000-global-core only, but inform user which domain rule is missing
 
-3. **Load Specialized Rules**: Read task-specific rules from `discovery/RULES_INDEX.md` Keywords column
+3. **Load Specialized Rules**: Read task-specific rules from `RULES_INDEX.md` Keywords column
    - Search Keywords column for terms matching your task
    - Check "Depends On" column for prerequisites
    - Load prerequisites before dependent rules
@@ -179,7 +179,7 @@ grep "**Depends:**" {rule_path}/101-snowflake-streamlit-core.md
 grep "**TokenBudget:**" {rule_path}/*.md | awk -F: '{print $1 ": " $3}'
 ```
 
-Use discovery/RULES_INDEX.md for structured discovery:
+Use RULES_INDEX.md for structured discovery:
 - Machine-readable table format
 - Keywords column for semantic search
 - Depends On column for dependency resolution
@@ -227,7 +227,7 @@ task rule:cursor
 
 ### By Keywords
 
-Search discovery/RULES_INDEX.md Keywords column for:
+Search RULES_INDEX.md Keywords column for:
 - **Technologies:** "Snowflake", "Python", "Docker", "FastAPI"
 - **Patterns:** "performance", "security", "testing", "validation"
 - **Use cases:** "dashboard", "API", "CLI", "data pipeline"
@@ -235,10 +235,10 @@ Search discovery/RULES_INDEX.md Keywords column for:
 Example searches:
 ```bash
 # Find all performance-related rules
-grep -i "performance" discovery/RULES_INDEX.md
+grep -i "performance" RULES_INDEX.md
 
 # Find Python testing rules
-grep -i "python.*test\|test.*python" discovery/RULES_INDEX.md
+grep -i "python.*test\|test.*python" RULES_INDEX.md
 ```
 
 ### By Category Number
@@ -363,7 +363,7 @@ These are removed from universal rules as they're IDE-specific:
 - Captures intent and domain
 - Enables semantic search
 
-### 5. Reference discovery/RULES_INDEX.md
+### 5. Reference RULES_INDEX.md
 - Authoritative source for all available rules
 - Machine-readable format
 - Always up-to-date with dependencies
@@ -394,14 +394,14 @@ Tokens: ~3000-5000
 ## Troubleshooting
 
 ### Rule Not Found
-- Check discovery/RULES_INDEX.md for exact filename
+- Check RULES_INDEX.md for exact filename
 - Verify you're in the correct directory (`{rule_path}/`)
 - Ensure rule hasn't been renamed
 
 ### Missing Dependencies
 - Check Depends field in the rule
 - Load prerequisites first
-- Use discovery/RULES_INDEX.md Depends On column
+- Use RULES_INDEX.md Depends On column
 
 ### Token Budget Exceeded
 - Start with Critical tier only
@@ -416,7 +416,7 @@ Tokens: ~3000-5000
 ## References
 
 ### Essential Files
-- **@discovery/RULES_INDEX.md** - Complete rule catalog with metadata
+- **@RULES_INDEX.md** - Complete rule catalog with metadata
 - **@{rule_path}/000-global-core.md** - Foundational principles (load first)
 - **@{rule_path}/002-rule-governance.md** - How rules are structured
 - **README.md** - Project documentation and setup

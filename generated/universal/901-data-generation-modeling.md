@@ -5,11 +5,8 @@
 
 # Data Generation & Modeling Best Practices
 
-<section_metadata>
-  <token_budget>2200</token_budget>
-  <context_tier>comprehensive</context_tier>
-  <priority>high</priority>
-</section_metadata>
+> **Section Metadata**  
+> Token Budget: ~2200 | Context Tier: comprehensive | Priority: high
 
 ## Purpose
 Establish comprehensive data generation and modeling standards ensuring intuitive, analytics-friendly data for Business Analysts, Executive Users, Data Scientists, and Data Engineers through consistent naming conventions, relationship patterns, and dimensional modeling best practices.
@@ -21,14 +18,14 @@ Establish comprehensive data generation and modeling standards ensuring intuitiv
 
 ## Contract
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Inputs/Prereqs:** Data entity requirements, relationship diagrams, target analytical use cases, audience priority (Business Analysts first)
 - **Allowed Tools:** Python generators, SQL DDL, view creation, Snowflake stages, data validation scripts
 
-<directive_strength>forbidden</directive_strength>
+**❌ FORBIDDEN:**
 - **Forbidden Tools:** Ad-hoc naming without documented rationale; breaking changes without backward compatibility; undocumented FK relationships
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Required Steps:**
   1. Define entity model with standardized primary keys (see Section 1)
   2. Apply universal naming conventions (see Section 2)
@@ -53,7 +50,7 @@ Establish comprehensive data generation and modeling standards ensuring intuitiv
 
 ### 1.1 Entity Identifier Standards
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 | Entity Type | Primary Key Pattern | Foreign Key Pattern | External/Display Pattern | Example |
 |-------------|---------------------|---------------------|--------------------------|---------|
@@ -73,7 +70,7 @@ Establish comprehensive data generation and modeling standards ensuring intuitiv
 
 ### 1.2 Temporal Column Standards
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 | Column Purpose | Pattern | Data Type | Example |
 |----------------|---------|-----------|---------|
@@ -91,7 +88,7 @@ Establish comprehensive data generation and modeling standards ensuring intuitiv
 
 ### 1.3 Boolean Column Standards
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 All boolean/flag columns must use one of these prefixes:
 
@@ -106,7 +103,7 @@ All boolean/flag columns must use one of these prefixes:
 
 ### 1.4 Measurement Column Standards
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 All measurement columns must include unit of measure in the name:
 
@@ -126,7 +123,7 @@ All measurement columns must include unit of measure in the name:
 
 ### 1.5 Categorical Column Standards
 
-<directive_strength>recommended</directive_strength>
+**✅ RECOMMENDED:**
 
 Categorical columns should use clear, self-documenting values:
 
@@ -145,7 +142,7 @@ Categorical columns should use clear, self-documenting values:
 
 ### 2.1 Fact Table Patterns
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 **Fact tables store measurements and metrics (numeric, additive).**
 
@@ -185,7 +182,7 @@ CREATE TABLE FACT_METER_READINGS (
 
 ### 2.2 Dimension Table Patterns
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 **Dimension tables store descriptive attributes (text, categories).**
 
@@ -235,7 +232,7 @@ CREATE TABLE DIM_GRID_ASSET (
 
 ### 2.3 Bridge Table Patterns (Many-to-Many)
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 Use bridge tables for many-to-many relationships:
 
@@ -257,7 +254,7 @@ CREATE TABLE BRIDGE_METER_CONTRACT (
 
 ### 2.4 Date Dimension (Mandatory)
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 **Every dimensional model MUST include a date dimension.**
 
@@ -313,7 +310,7 @@ GROUP BY d.year_num, d.month_name;
 
 ### 3.1 View Naming Conventions
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 All analytical views must follow this taxonomy:
 
@@ -328,7 +325,7 @@ All analytical views must follow this taxonomy:
 
 ### 3.2 Business Analyst Views (`VW_BA_*`)
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 **Purpose:** Enable self-service analytics with minimal SQL knowledge.
 
@@ -439,7 +436,7 @@ COMMENT = 'BA View: 360-degree customer profile for self-service analytics';
 
 ### 3.3 Executive Dashboard Views (`VW_EXEC_*`)
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 **Purpose:** High-level KPIs for executive dashboards and reporting.
 
@@ -498,7 +495,7 @@ COMMENT = 'Executive View: Monthly outage KPIs with trend analysis for C-suite d
 
 ### 3.4 Data Science Feature Views (`VW_DS_*`)
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 **Purpose:** ML-ready feature tables for training and inference.
 
@@ -571,7 +568,7 @@ COMMENT = 'DS View: ML features for transformer failure prediction model';
 
 ### 3.5 Reference Views (`VW_REF_*`)
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 **Purpose:** Static lookup tables and enumerated values.
 
@@ -599,7 +596,7 @@ COMMENT = 'Reference View: Valid asset types with descriptions';
 
 ### 4.1 Migration Principles
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 All schema changes MUST follow this migration path:
 
@@ -669,7 +666,7 @@ COMMENT = 'DEPRECATED: Use FACT_TRANSFORMER_READINGS instead. This view maps old
 
 ### 5.1 Generator Output Standards
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 All Python data generators must produce DataFrames with:
 
@@ -757,7 +754,7 @@ ALTER TABLE <SCHEMA>.<TABLE_NAME> CLUSTER BY (<key_column>, <timestamp_column>);
 
 ### 6.2 Column Comment Standards
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 Every column must have a COMMENT that includes:
 1. **What it represents** (business definition)
@@ -783,7 +780,7 @@ parent VARCHAR(50) COMMENT 'Parent ID'
 
 ### 7.1 Clustering Keys
 
-<directive_strength>recommended</directive_strength>
+**✅ RECOMMENDED:**
 
 For tables > 1 GB, define clustering keys on:
 1. **Most frequently filtered columns** (e.g., `asset_id`, `customer_id`)
@@ -799,7 +796,7 @@ ALTER TABLE DIM_GRID_ASSET CLUSTER BY (asset_type, operational_status);
 
 ### 7.2 View Materialization
 
-<directive_strength>recommended</directive_strength>
+**✅ RECOMMENDED:**
 
 For frequently accessed views with complex joins, consider materialization:
 
@@ -827,7 +824,6 @@ AS
 
 ## 8. Anti-Patterns and Common Mistakes
 
-<anti_pattern_examples>
 
 ### ❌ Anti-Pattern 1: Inconsistent FK Naming
 
@@ -972,13 +968,12 @@ GROUP BY d.year_num, d.month_name, d.fiscal_quarter;
 
 **Benefits:** Better performance; rich time attributes; business calendar support
 
-</anti_pattern_examples>
 
 ---
 
 ## Quick Compliance Checklist
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 Before committing any data generation or SQL changes, verify:
 
@@ -1002,14 +997,13 @@ Before committing any data generation or SQL changes, verify:
 - **Success Checks:** All entity IDs follow `<entity>_id` pattern; FKs match PKs exactly; views follow taxonomy; column comments present; date dimension exists; business analyst queries require <10 lines of SQL
 - **Negative Tests:** Queries with mismatched FKs fail; undocumented columns caught in review; views without taxonomy prefix rejected; unitless measurements flagged
 
-<investigate_before_answering>
-When applying this rule:
-1. Read all generator files to understand current naming patterns BEFORE proposing changes
-2. Read SQL DDL files to verify FK relationships BEFORE modifying schemas
-3. Never speculate about column meanings - read the actual code/DDL
-4. Test queries against actual views before claiming they work
-5. Validate FK integrity by reading both parent and child DataFrames
-</investigate_before_answering>
+> **⚠️ Investigation Required**  
+> When applying this rule:
+> 1. Read all generator files to understand current naming patterns BEFORE proposing changes
+> 2. Read SQL DDL files to verify FK relationships BEFORE modifying schemas
+> 3. Never speculate about column meanings - read the actual code/DDL
+> 4. Test queries against actual views before claiming they work
+> 5. Validate FK integrity by reading both parent and child DataFrames
 
 ## Response Template
 ```markdown

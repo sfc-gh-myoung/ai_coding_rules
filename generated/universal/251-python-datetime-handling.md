@@ -6,11 +6,8 @@
 
 # Python DateTime Handling Best Practices
 
-<section_metadata>
-  <token_budget>1000</token_budget>
-  <context_tier>high</context_tier>
-  <priority>high</priority>
-</section_metadata>
+> **Section Metadata**  
+> Token Budget: ~1000 | Context Tier: high | Priority: high
 
 ## Purpose
 Establish comprehensive datetime handling practices across Python, Pandas, Plotly, and Streamlit to prevent type errors, timezone bugs, and performance issues while ensuring Pandas 2.x compatibility and cross-library interoperability.
@@ -22,14 +19,14 @@ Establish comprehensive datetime handling practices across Python, Pandas, Plotl
 
 ## Contract
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Inputs/Prereqs:** Python 3.11+, pandas 2.x+, understanding of datetime types, timezone awareness requirements
 - **Allowed Tools:** pd.to_datetime(), pd.Timestamp, pd.Timedelta, pd.DateOffset, datetime.datetime, dt accessor methods, tz_localize(), tz_convert(), strftime(), to_pydatetime()
 
-<directive_strength>forbidden</directive_strength>
+**❌ FORBIDDEN:**
 - **Forbidden Tools:** Mixed datetime type comparisons without conversion, hardcoded timezone offsets, parsing dates without format specification, ignoring timezone information
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Required Steps:**
   1. Use consistent datetime types within operations (convert mixed types)
   2. Always be explicit about timezones (tz_localize, tz_convert)
@@ -51,11 +48,6 @@ Establish comprehensive datetime handling practices across Python, Pandas, Plotl
 
 ## 1. DateTime Type System
 
-<section_metadata>
-  <section_id>datetime-types</section_id>
-  <priority>critical</priority>
-  <token_budget>120</token_budget>
-</section_metadata>
 
 ### Three Main DateTime Representations
 
@@ -110,13 +102,8 @@ datetime.datetime (Python stdlib)
 
 ## 2. Type Conversions and Safety
 
-<section_metadata>
-  <section_id>type-conversions</section_id>
-  <priority>critical</priority>
-  <token_budget>150</token_budget>
-</section_metadata>
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 ### Universal DateTime Conversion Helper
 
@@ -197,13 +184,8 @@ df['date'] = df['date'].dt.tz_localize(None)
 
 ## 3. Date Parsing Best Practices
 
-<section_metadata>
-  <section_id>date-parsing</section_id>
-  <priority>high</priority>
-  <token_budget>100</token_budget>
-</section_metadata>
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 ### Explicit Format Specification
 
@@ -252,13 +234,8 @@ df = pd.read_csv('data.csv',
 
 ## 4. Timezone Management
 
-<section_metadata>
-  <section_id>timezone-management</section_id>
-  <priority>high</priority>
-  <token_budget>120</token_budget>
-</section_metadata>
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 ### Core Principles
 
@@ -312,13 +289,8 @@ st.dataframe(df_display)
 
 ## 5. Date Arithmetic and Math
 
-<section_metadata>
-  <section_id>date-arithmetic</section_id>
-  <priority>high</priority>
-  <token_budget>130</token_budget>
-</section_metadata>
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 ### Timedelta (Duration Arithmetic)
 
@@ -372,13 +344,8 @@ df['quarter_end'] = df['date'].dt.to_period('Q').dt.end_time
 
 ## 6. Performance Optimization for Time Series
 
-<section_metadata>
-  <section_id>performance</section_id>
-  <priority>high</priority>
-  <token_budget>110</token_budget>
-</section_metadata>
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 ### Plotly Rendering Optimization
 
@@ -436,11 +403,6 @@ def load_aggregated_data(granularity='day'):
 
 ## 7. Streamlit Integration Patterns
 
-<section_metadata>
-  <section_id>streamlit-integration</section_id>
-  <priority>high</priority>
-  <token_budget>100</token_budget>
-</section_metadata>
 
 ### Date Input Widgets
 
@@ -477,13 +439,7 @@ st.dataframe(
 
 ## 8. Anti-Patterns and Common Errors
 
-<section_metadata>
-  <section_id>anti-patterns</section_id>
-  <priority>critical</priority>
-  <token_budget>150</token_budget>
-</section_metadata>
 
-<anti_pattern_examples>
 
 **❌ Anti-Pattern 1: Mixed datetime type comparisons**
 ```python
@@ -560,7 +516,6 @@ df[df['active'] == True]['date'] = df['date'] + pd.Timedelta(days=1)  # SettingW
 df.loc[df['active'] == True, 'date'] = df.loc[df['active'] == True, 'date'] + pd.Timedelta(days=1)
 ```
 
-</anti_pattern_examples>
 
 ## Quick Compliance Checklist
 
@@ -643,11 +598,10 @@ filtered_df = df[df['date'] >= user_ts]
 - **Streamlit Performance**: `101b-snowflake-streamlit-performance.md` - Caching and optimization for time series
 - **Data Science Analytics**: `500-data-science-analytics.md` - Time series analysis and ML workflows
 
-<model_specific_guidance model="claude-4">
-**Claude 4 DateTime Optimizations:**
-- Investigation-first: Check actual datetime types in DataFrames before making recommendations
-- Parallel validation: Test datetime conversions across multiple scenarios simultaneously
-- Context awareness: Reference existing datetime patterns from 101a and 500 rules
-- Error prevention: Emphasize Pandas 2.x compatibility in all datetime code
-</model_specific_guidance>
+> **🤖 Claude 4 Specific Guidance**  
+> **Claude 4 DateTime Optimizations:**
+> - Investigation-first: Check actual datetime types in DataFrames before making recommendations
+> - Parallel validation: Test datetime conversions across multiple scenarios simultaneously
+> - Context awareness: Reference existing datetime patterns from 101a and 500 rules
+> - Error prevention: Emphasize Pandas 2.x compatibility in all datetime code
 

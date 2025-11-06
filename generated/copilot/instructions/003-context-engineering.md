@@ -12,11 +12,8 @@ appliesTo:
 
 # Context Engineering for AI Agents
 
-<section_metadata>
-  <token_budget>800</token_budget>
-  <context_tier>critical</context_tier>
-  <priority>high</priority>
-</section_metadata>
+> **Section Metadata**  
+> Token Budget: ~800 | Context Tier: critical | Priority: high
 
 ## Purpose
 Establish comprehensive context engineering practices that treat context as a finite resource with diminishing returns, enabling AI agents to maintain focus, minimize context rot, and work effectively across long-horizon tasks through strategic context management.
@@ -28,14 +25,14 @@ Establish comprehensive context engineering practices that treat context as a fi
 
 ## Contract
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Inputs/Prereqs:** Understanding of token budgets; awareness of context window limits; ability to prioritize information; access to memory/state management tools
 - **Allowed Tools:** All context-aware tools; memory tools; file reading tools; state tracking tools; compaction tools
 
-<directive_strength>forbidden</directive_strength>
+**❌ FORBIDDEN:**
 - **Forbidden Tools:** Tools that blindly load entire codebases without filtering; tools that duplicate information unnecessarily
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Required Steps:**
   1. Assess available attention budget before adding context
   2. Prioritize high-signal, actionable information over noise
@@ -175,7 +172,7 @@ You are a customer support agent for SaaS product X.
 
 ### What to Include
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 **High-Signal Information:**
 - Current task objective and success criteria
 - Essential domain knowledge for task
@@ -186,7 +183,7 @@ You are a customer support agent for SaaS product X.
 
 ### What to Exclude
 
-<directive_strength>forbidden</directive_strength>
+**❌ FORBIDDEN:**
 **Low-Signal Noise:**
 - Redundant information already stated
 - Historical context no longer relevant
@@ -516,7 +513,7 @@ implementation = sub_agent_implement(
 
 ### Minimize Context Pollution
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 **Rules:**
 1. **No Redundancy:** Each piece of information exists once
 2. **Actionable Only:** Every token must enable progress
@@ -582,7 +579,6 @@ flowchart TD
 
 ## Anti-Patterns and Common Mistakes
 
-<anti_pattern_examples>
 **❌ Anti-Pattern 1: Loading Entire Codebase Upfront**
 ```python
 # BAD: Blindly load everything
@@ -700,7 +696,6 @@ implement_caching_layer()  # Premature
 # If still slow: Consider indexing
 ```
 **Benefits:** Avoid premature complexity; validate need first; iterative improvement
-</anti_pattern_examples>
 
 ## Quick Compliance Checklist
 

@@ -16,7 +16,7 @@ Establish comprehensive patterns for designing educational Snowflake notebooks t
 
 ## Contract
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Inputs/Prereqs:** 
   - Technical notebook content from `109-snowflake-notebooks.md`
   - Target audience definition (beginner/intermediate/advanced)
@@ -28,13 +28,13 @@ Establish comprehensive patterns for designing educational Snowflake notebooks t
   - `read_file` for reviewing existing content
   - Markdown cells for narrative and teaching points
 
-<directive_strength>forbidden</directive_strength>
+**❌ FORBIDDEN:**
 - **Forbidden Tools:** 
   - Overly technical jargon without definitions for beginner content
   - Copy-paste code without explanation
   - Examples without context or business rationale
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Required Steps:**
   1. Define clear learning objectives (3-6 outcomes)
   2. Structure content into logical parts with time estimates
@@ -69,7 +69,7 @@ Establish comprehensive patterns for designing educational Snowflake notebooks t
 
 ## 1. Learning Objectives Section
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 **Purpose:** Set clear expectations for what learners will achieve by completing the notebook.
 
@@ -112,7 +112,7 @@ By the end of this notebook, you will understand:
 
 ## 2. Tutorial Structure Overview
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 **Purpose:** Provide roadmap of tutorial organization with time estimates for self-paced learning.
 
@@ -150,7 +150,7 @@ This notebook is organized into [N] parts:
 
 ## 3. Anti-Pattern Sections
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 **Purpose:** Teach what NOT to do by showing common mistakes alongside correct approaches.
 
@@ -195,7 +195,7 @@ This notebook avoids all these pitfalls through careful design!
 
 ## 4. Checkpoint Validations
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 **Purpose:** Automated validation gates that verify learner progress and prevent proceeding with errors.
 
@@ -256,7 +256,7 @@ else:
 
 ## 5. Teaching Point Callouts
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 **Purpose:** Inline explanations of WHY decisions were made, providing context and rationale.
 
@@ -310,7 +310,7 @@ else:
 
 ## 6. Progressive Complexity Management
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 **Purpose:** Gradually increase complexity, building on foundational concepts before introducing advanced topics.
 
@@ -341,7 +341,7 @@ else:
 
 ## 7. Two-Approach Clarification Pattern
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 **Purpose:** When notebook demonstrates feature but uses simplified approach, explain BOTH approaches and WHY the simpler one is used.
 
@@ -394,7 +394,6 @@ The notebook demonstrates **two valid approaches** for [task]:
 
 ## Anti-Patterns and Common Mistakes
 
-<anti_pattern_examples>
 **❌ Anti-Pattern 1: Vague Learning Objectives**
 ```markdown
 ## Learning Objectives
@@ -491,7 +490,6 @@ Part 3: Evaluation
 **Why we need it:** With 100:1 imbalance, model would just predict "healthy" for everything
 ```
 **Benefits:** Provides context, explains business rationale
-</anti_pattern_examples>
 
 ## Quick Compliance Checklist
 

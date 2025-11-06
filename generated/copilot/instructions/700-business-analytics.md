@@ -15,11 +15,8 @@ appliesTo:
 
 # Business Analytics & Reporting Directives
 
-<section_metadata>
-  <token_budget>700</token_budget>
-  <context_tier>high</context_tier>
-  <priority>high</priority>
-</section_metadata>
+> **Section Metadata**  
+> Token Budget: ~700 | Context Tier: high | Priority: high
 
 ## Purpose
 Provide comprehensive directives for creating business-oriented queries, reports, dashboards, and visualizations targeted at non-technical stakeholders, emphasizing clarity, actionable insights, ethical presentation, accessibility, effective data storytelling, and Snowflake-native dashboard capabilities.
@@ -31,7 +28,7 @@ Provide comprehensive directives for creating business-oriented queries, reports
 
 ## Contract
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Inputs/Prereqs:**
   - Snowflake connection with read access to business-facing views/tables
   - Understanding of target audience (C-Level, Directors, Analysts, Operations)
@@ -47,7 +44,7 @@ Provide comprehensive directives for creating business-oriented queries, reports
   - **Layout:** F-pattern, Z-pattern, responsive grid systems
   - **Accessibility:** WCAG 2.1 AA compliant colors, screen reader support, keyboard navigation
 
-<directive_strength>forbidden</directive_strength>
+**❌ FORBIDDEN:**
 - **Forbidden Tools:**
   - Technical jargon without business translation
   - SELECT * in production queries (use explicit columns)
@@ -56,7 +53,7 @@ Provide comprehensive directives for creating business-oriented queries, reports
   - Undocumented metrics or calculations
   - Unqualified object names (always use DATABASE.SCHEMA.TABLE)
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Required Steps:**
   1. **Understand audience:** Identify stakeholder role and information needs
   2. **Investigate data:** Verify actual table schemas, data volumes, freshness
@@ -101,7 +98,7 @@ Provide comprehensive directives for creating business-oriented queries, reports
 
 ## 1. Audience Segmentation & Tailoring
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 ### Dashboard Design by Audience
 
@@ -143,7 +140,7 @@ elif user_role == 'analyst':
 
 ## 2. Dashboard Layout & Visual Hierarchy
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 ### F-Pattern Layout (Standard Dashboard)
 
@@ -196,7 +193,7 @@ elif user_role == 'analyst':
 
 ### Information Density Guidelines
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 - **5-7 visualizations maximum** per dashboard page
 - **4-7 KPIs** prominently displayed (more dilutes focus)
@@ -224,7 +221,7 @@ with tab3:
 
 ## 3. Visualization Selection Framework
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 ### Comprehensive Chart Type Decision Matrix
 
@@ -320,7 +317,7 @@ st.plotly_chart(fig)
 
 ### Chart Selection Anti-Patterns
 
-<directive_strength>forbidden</directive_strength>
+**❌ FORBIDDEN:**
 
 **❌ Never:**
 - **3D pie charts** (distorts proportions)
@@ -331,7 +328,7 @@ st.plotly_chart(fig)
 
 ## 4. Ethical Visualization Standards
 
-<directive_strength>forbidden</directive_strength>
+**❌ FORBIDDEN:**
 
 ### Forbidden Manipulations
 
@@ -386,7 +383,7 @@ fig = go.Figure(go.Pie(
 
 ### Required Disclosures
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 **Data Freshness:**
 ```python
@@ -432,7 +429,7 @@ else:
 
 ## 5. Accessibility (WCAG 2.1 AA Compliance)
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 ### Color Contrast Requirements
 
@@ -458,7 +455,7 @@ ACCESSIBLE_PALETTE = {
 
 ### Colorblind-Safe Design
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 **Never rely on color alone for information:**
 ```python
@@ -536,7 +533,7 @@ with st.expander("📊 View Data Table (Accessible Format)"):
 
 ### Keyboard Navigation
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 **Ensure all interactive elements are keyboard accessible:**
 - Tab: Navigate between elements
@@ -553,7 +550,7 @@ with st.expander("📊 View Data Table (Accessible Format)"):
 
 ## 6. Data Storytelling Framework
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 ### Narrative Structure: Situation-Complication-Resolution
 
@@ -618,7 +615,7 @@ st.markdown("""
 
 ## 7. Snowflake-Native Dashboard Patterns
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 ### Snowsight Dashboards
 
@@ -718,7 +715,7 @@ if not slow_queries.empty:
 
 ## 8. Metric Definition & Documentation
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 
 ### Metric Catalog Standard
 
@@ -795,7 +792,6 @@ with st.expander("💡 How is this calculated?"):
 
 ## Anti-Patterns and Common Mistakes
 
-<anti_pattern_examples>
 
 **❌ Anti-Pattern 1: Cluttered Dashboard (Too Many Visualizations)**
 ```python
@@ -970,53 +966,51 @@ fig.add_trace(go.Bar(
 - Multiple encoding channels (color + icon + pattern)
 - WCAG 2.1 AA compliant
 
-</anti_pattern_examples>
 
-<investigate_before_answering>
-When applying this rule:
-
-1. **Read referenced tables/views BEFORE making recommendations**
-   - Check actual schemas: `DESCRIBE TABLE table_name`
-   - Verify row counts: `SELECT COUNT(*) FROM table_name`
-   - Sample data to understand business context
-
-2. **Verify business assumptions against actual data**
-   - Don't assume metric definitions (check with stakeholders or documentation)
-   - Don't guess at data granularity (check actual records)
-   - Don't speculate about update frequency (verify with last_modified timestamps)
-
-3. **Never speculate about business requirements**
-   - Ask: "What decision will this dashboard support?"
-   - Ask: "Who is the primary audience?"
-   - Ask: "What action should users take based on this data?"
-
-4. **If uncertain about audience needs, explicitly state:**
-   - "Let me confirm the target audience before designing the layout."
-   - "I need to understand the key business questions this dashboard answers."
-   - "Let me verify the metric definitions with the business owner."
-
-5. **Make grounded, business-focused recommendations**
-   - Base dashboard design on actual audience role and needs
-   - Reference specific business metrics from investigation
-   - Provide examples using actual column names from schemas
-
-**Example Investigation Pattern:**
-```python
-# ✅ GOOD: Investigate business context first
-tables = session.sql("SHOW TABLES IN SCHEMA analytics").collect()
-schema = session.sql("DESCRIBE TABLE analytics.sales_summary").collect()
-sample = session.sql("SELECT * FROM analytics.sales_summary LIMIT 10").to_pandas()
-
-# Check data freshness
-last_update = session.sql("""
-    SELECT MAX(last_updated) 
-    FROM analytics.sales_summary
-""").collect()[0][0]
-
-# Now make informed recommendations
-st.info(f"💡 Data updated {last_update}. Recommend hourly refresh for operational dashboard.")
-```
-</investigate_before_answering>
+> **⚠️ Investigation Required**  
+> When applying this rule:
+>
+> 1. **Read referenced tables/views BEFORE making recommendations**
+>    - Check actual schemas: `DESCRIBE TABLE table_name`
+>    - Verify row counts: `SELECT COUNT(*) FROM table_name`
+>    - Sample data to understand business context
+>
+> 2. **Verify business assumptions against actual data**
+>    - Don't assume metric definitions (check with stakeholders or documentation)
+>    - Don't guess at data granularity (check actual records)
+>    - Don't speculate about update frequency (verify with last_modified timestamps)
+>
+> 3. **Never speculate about business requirements**
+>    - Ask: "What decision will this dashboard support?"
+>    - Ask: "Who is the primary audience?"
+>    - Ask: "What action should users take based on this data?"
+>
+> 4. **If uncertain about audience needs, explicitly state:**
+>    - "Let me confirm the target audience before designing the layout."
+>    - "I need to understand the key business questions this dashboard answers."
+>    - "Let me verify the metric definitions with the business owner."
+>
+> 5. **Make grounded, business-focused recommendations**
+>    - Base dashboard design on actual audience role and needs
+>    - Reference specific business metrics from investigation
+>    - Provide examples using actual column names from schemas
+>
+> **Example Investigation Pattern:**
+> ```python
+> # ✅ GOOD: Investigate business context first
+> tables = session.sql("SHOW TABLES IN SCHEMA analytics").collect()
+> schema = session.sql("DESCRIBE TABLE analytics.sales_summary").collect()
+> sample = session.sql("SELECT * FROM analytics.sales_summary LIMIT 10").to_pandas()
+>
+> # Check data freshness
+> last_update = session.sql("""
+>     SELECT MAX(last_updated) 
+>     FROM analytics.sales_summary
+> """).collect()[0][0]
+>
+> # Now make informed recommendations
+> st.info(f"💡 Data updated {last_update}. Recommend hourly refresh for operational dashboard.")
+> ```
 
 ## Quick Compliance Checklist
 
@@ -1167,11 +1161,10 @@ with st.expander("ℹ️ Metric Definitions"):
 - **Data Science Analytics**: `500-data-science-analytics.md`
 - **Data Governance**: `600-data-governance-quality.md`
 
-<model_specific_guidance model="claude-4">
-**Claude 4 Optimizations:**
-- **Context awareness:** Track token budget; prioritize audience segmentation and ethical standards sections
-- **Explicit behavior:** Request "comprehensive dashboard with accessibility compliance" to get full implementation
-- **Parallel tool calls:** Generate multiple chart types, validate SQL queries, check accessibility simultaneously
-- **State discovery:** Leverage filesystem to check existing dashboard templates before creating new ones
-- **Investigation-first:** Excel at business context discovery through data exploration - use this capability to understand stakeholder needs before designing dashboards
-</model_specific_guidance>
+> **🤖 Claude 4 Specific Guidance**  
+> **Claude 4 Optimizations:**
+> - **Context awareness:** Track token budget; prioritize audience segmentation and ethical standards sections
+> - **Explicit behavior:** Request "comprehensive dashboard with accessibility compliance" to get full implementation
+> - **Parallel tool calls:** Generate multiple chart types, validate SQL queries, check accessibility simultaneously
+> - **State discovery:** Leverage filesystem to check existing dashboard templates before creating new ones
+> - **Investigation-first:** Excel at business context discovery through data exploration - use this capability to understand stakeholder needs before designing dashboards

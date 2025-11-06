@@ -12,11 +12,8 @@
 
 # Streamlit Security: Input Validation and Secrets Management
 
-<section_metadata>
-  <token_budget>400</token_budget>
-  <context_tier>standard</context_tier>
-  <priority>high</priority>
-</section_metadata>
+> **Section Metadata**  
+> Token Budget: ~400 | Context Tier: standard | Priority: high
 
 ## Purpose
 Provide comprehensive security guidance for Streamlit applications including input validation, secrets management, authentication patterns, and security best practices to prevent common vulnerabilities.
@@ -28,14 +25,14 @@ Provide comprehensive security guidance for Streamlit applications including inp
 
 ## Contract
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Inputs/Prereqs:** Streamlit app configured (see 101-snowflake-streamlit-core.md), st.secrets configured, understanding of security principles
 - **Allowed Tools:** st.secrets, st.text_input(), st.number_input(), st.file_uploader(), st.session_state (for auth state), type hints, validation functions
 
-<directive_strength>forbidden</directive_strength>
+**❌ FORBIDDEN:**
 - **Forbidden Tools:** Hardcoded credentials, unvalidated user inputs, raw SQL string interpolation, exposing secrets in logs or UI, storing passwords in plain text
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Required Steps:**
   1. Use st.secrets for ALL credentials (API keys, passwords, tokens)
   2. Validate and sanitize all user inputs before processing
@@ -56,13 +53,8 @@ Provide comprehensive security guidance for Streamlit applications including inp
 
 ## 1. Secrets Management
 
-<section_metadata>
-  <section_id>secrets</section_id>
-  <priority>critical</priority>
-  <token_budget>100</token_budget>
-</section_metadata>
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Mandatory:** Use `st.secrets` for all sensitive configuration (API keys, passwords, tokens)
 - **Mandatory:** Never hardcode credentials in source code
 - **Always:** For SiS, use Snowflake secrets management
@@ -104,7 +96,7 @@ user = "your_user"
 password = "your_password"
 ```
 
-<directive_strength>forbidden</directive_strength>
+**❌ FORBIDDEN:**
 **Security Rules:**
 - ❌ Never commit secrets.toml to version control (add to .gitignore)
 - ❌ Never log secrets or expose them in error messages
@@ -113,13 +105,8 @@ password = "your_password"
 
 ## 2. Input Validation
 
-<section_metadata>
-  <section_id>validation</section_id>
-  <priority>critical</priority>
-  <token_budget>120</token_budget>
-</section_metadata>
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Mandatory:** Validate and sanitize all user inputs before processing
 - **Mandatory:** Use type hints and validation for structured inputs
 - **Always:** Set reasonable bounds on numeric inputs (min, max values)
@@ -196,7 +183,7 @@ if uploaded_file:
 
 ## 3. SQL Injection Prevention
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 **Always use parameterized queries to prevent SQL injection:**
 
 **❌ Vulnerable Pattern (Never Do This):**
@@ -225,7 +212,7 @@ else:
 
 ## 4. Authentication and Authorization
 
-<directive_strength>recommended</directive_strength>
+**✅ RECOMMENDED:**
 **For sensitive applications, implement authentication:**
 
 ```python
@@ -272,7 +259,7 @@ st.write(f"Welcome, {st.session_state.username}!")
 
 ## 5. Error Handling and Logging
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 **Show user-friendly errors, never expose secrets or stack traces:**
 
 ```python
@@ -300,7 +287,7 @@ except Exception as e:
 
 ## 6. Deployment Security
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 **Production Deployment Checklist:**
 - [ ] Deploy using HTTPS (never HTTP for production)
 - [ ] Use Snowflake RBAC for data access control
@@ -313,7 +300,6 @@ except Exception as e:
 
 ## Anti-Patterns and Common Mistakes
 
-<anti_pattern_examples>
 **❌ Anti-Pattern 1: Hardcoding credentials**
 ```python
 # NEVER DO THIS
@@ -386,7 +372,6 @@ if uploaded_file:
     else:
         df = pd.read_csv(uploaded_file)
 ```
-</anti_pattern_examples>
 
 ## Quick Compliance Checklist
 - [ ] st.secrets used for ALL credentials (never hardcoded)
@@ -402,15 +387,14 @@ if uploaded_file:
 - **Success Checks:** Secrets loaded without errors, invalid inputs rejected with clear messages, file upload limits enforced, SQL injection attempts fail, error messages user-friendly without secrets
 - **Negative Tests:** Try uploading oversized file (should reject), test SQL injection attempt (should fail safely), remove secret (should show graceful error), expose error with secrets (should be sanitized)
 
-<investigate_before_answering>
-When applying this rule:
-1. Read secrets.toml and verify configuration (if accessible)
-2. Check all st.text_input, st.number_input, st.file_uploader for validation
-3. Verify SQL queries use safe patterns (no string interpolation)
-4. Never speculate about security - inspect actual code patterns
-5. Check error handling doesn't expose secrets
-6. Verify authentication implementation if present
-</investigate_before_answering>
+> **⚠️ Investigation Required**  
+> When applying this rule:
+> 1. Read secrets.toml and verify configuration (if accessible)
+> 2. Check all st.text_input, st.number_input, st.file_uploader for validation
+> 3. Verify SQL queries use safe patterns (no string interpolation)
+> 4. Never speculate about security - inspect actual code patterns
+> 5. Check error handling doesn't expose secrets
+> 6. Verify authentication implementation if present
 
 ## Response Template
 ```python
@@ -473,11 +457,10 @@ if uploaded_file:
 - **Snowflake Security Governance**: `107-snowflake-security-governance.md`
 - **Python Core**: `200-python-core.md`
 
-<model_specific_guidance model="claude-4">
-**Claude 4 Streamlit Security Optimizations:**
-- Parallel security audit: Can review multiple input validation patterns simultaneously
-- Context awareness: Track secrets usage patterns across multiple files
-- Investigation-first: Excel at discovering hardcoded credentials and validation gaps
-- Pattern recognition: Quickly identify SQL injection vulnerabilities and unsafe patterns
-</model_specific_guidance>
+> **🤖 Claude 4 Specific Guidance**  
+> **Claude 4 Streamlit Security Optimizations:**
+> - Parallel security audit: Can review multiple input validation patterns simultaneously
+> - Context awareness: Track secrets usage patterns across multiple files
+> - Investigation-first: Excel at discovering hardcoded credentials and validation gaps
+> - Pattern recognition: Quickly identify SQL injection vulnerabilities and unsafe patterns
 

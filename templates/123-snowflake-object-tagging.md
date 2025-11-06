@@ -11,11 +11,8 @@
 
 # Snowflake Object Tagging Best Practices
 
-<section_metadata>
-  <token_budget>450</token_budget>
-  <context_tier>standard</context_tier>
-  <priority>high</priority>
-</section_metadata>
+> **Section Metadata**  
+> Token Budget: ~450 | Context Tier: standard | Priority: high
 
 ## Purpose
 Establish comprehensive best practices for Snowflake object tagging to enable effective data governance, cost attribution, security classification, and resource monitoring through consistent metadata management across all supported Snowflake objects.
@@ -27,14 +24,14 @@ Establish comprehensive best practices for Snowflake object tagging to enable ef
 
 ## Contract
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Inputs/Prereqs:** Snowflake account with tag creation privileges (`CREATE TAG`); governance requirements; cost allocation strategy; security classification taxonomy
 - **Allowed Tools:** SQL DDL for tag creation; tag assignment statements; TAG_REFERENCES functions; INFORMATION_SCHEMA and ACCOUNT_USAGE views
 
-<directive_strength>forbidden</directive_strength>
+**❌ FORBIDDEN:**
 - **Forbidden Tools:** Creating more than 50 tags per object; creating tags without documented taxonomy; uncontrolled tag proliferation; tags without clear ownership
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Required Steps:**
   1. Define tag taxonomy aligned with governance and business requirements
   2. Create tags with appropriate ALLOWED_VALUES constraints where applicable
@@ -64,7 +61,7 @@ Establish comprehensive best practices for Snowflake object tagging to enable ef
 
 ### What is a Tag?
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 A tag is a schema-level object that can be assigned to Snowflake objects as a key-value pair. Tags enable metadata-driven governance, cost attribution, and policy automation.
 
 **Key Characteristics:**
@@ -84,7 +81,7 @@ CREATE TAG GOVERNANCE.TAGS.PII_LEVEL;
 
 ### Tag Creation
 
-<directive_strength>recommended</directive_strength>
+**✅ RECOMMENDED:**
 Create tags in a dedicated governance schema for centralized management.
 
 **Basic Tag Creation:**
@@ -114,7 +111,7 @@ CREATE TAG GOVERNANCE.TAGS.DATA_CLASSIFICATION
 
 ### Tag Assignment
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 Assign tags at the appropriate level in the object hierarchy to maximize inheritance benefits.
 
 **Assignment Patterns:**
@@ -161,7 +158,7 @@ DROP TAG IF EXISTS GOVERNANCE.TAGS.DEPRECATED_TAG;
 
 ## 2. Tag Inheritance
 
-<directive_strength>recommended</directive_strength>
+**✅ RECOMMENDED:**
 🔥 **CRITICAL:** Leverage tag inheritance to minimize manual tagging and ensure consistent governance across object hierarchies.
 
 ### Inheritance Rules
@@ -210,7 +207,7 @@ ORDER BY object_database, object_schema, object_name, column_name;
 
 ### Overriding Inherited Tags
 
-<directive_strength>recommended</directive_strength>
+**✅ RECOMMENDED:**
 Override inherited tags at lower levels when specific objects require different classifications.
 
 **Example:**
@@ -231,7 +228,7 @@ ALTER TABLE ANALYTICS.SENSITIVE.CUSTOMER_PII MODIFY COLUMN ssn SET TAG
 
 ## 3. Automatic Tag Propagation
 
-<directive_strength>recommended</directive_strength>
+**✅ RECOMMENDED:**
 ⚠️ **ENTERPRISE EDITION REQUIRED:** Automatic tag propagation is an Enterprise Edition feature.
 
 ### Propagation Scenarios
@@ -291,7 +288,7 @@ FROM TABLE(INFORMATION_SCHEMA.TAG_REFERENCES_ALL_COLUMNS(
 
 ## 4. Tag-Based Masking Policies
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 🔥 **CRITICAL:** Combine tags with masking policies for scalable, automated data protection.
 
 ### Tag-Based Masking Pattern
@@ -379,7 +376,7 @@ WHERE tr.tag_name = 'SEMANTIC_CATEGORY';
 
 ## 5. Cost Attribution with Tags
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 📊 **BEST PRACTICE:** Use tags on warehouses and other resources for granular cost tracking and chargeback.
 
 ### Warehouse Tagging for Cost Attribution
@@ -439,7 +436,7 @@ ORDER BY active_storage_gb DESC;
 
 ## 6. Tag Quotas and Limitations
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 ⚠️ **QUOTA LIMITS:** Understand and plan for tag quotas to avoid hitting limits.
 
 ### Object-Level Quotas
@@ -488,7 +485,7 @@ When executing multiple CREATE/ALTER statements in a single batch, limit to 100 
 
 ### Centralized Management
 
-<directive_strength>recommended</directive_strength>
+**✅ RECOMMENDED:**
 **Best for:** Strict governance requirements, regulated industries, consistent taxonomy enforcement.
 
 **Pattern:**
@@ -521,7 +518,7 @@ ALTER TABLE CUSTOMERS SET TAG
 
 ### Decentralized Management
 
-<directive_strength>recommended</directive_strength>
+**✅ RECOMMENDED:**
 **Best for:** Agile teams, self-service analytics, domain-driven governance.
 
 **Pattern:**
@@ -549,7 +546,7 @@ ALTER TABLE ANALYTICS.MODELS.FORECAST_V2 SET TAG
 
 ### Hybrid Approach
 
-<directive_strength>recommended</directive_strength>
+**✅ RECOMMENDED:**
 **Best for:** Most organizations balancing governance and agility.
 
 ```sql
@@ -570,7 +567,7 @@ CREATE TAG ML.METADATA.MODEL_ACCURACY_SCORE;
 
 ### TAG_REFERENCES Functions
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 Use TAG_REFERENCES functions to query tag assignments and verify governance coverage.
 
 **INFORMATION_SCHEMA Functions (Current Permissions):**
@@ -661,7 +658,7 @@ ORDER BY tag_name, object_count DESC;
 
 ## 9. Supported Objects
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 Tags can be applied to the following Snowflake objects (partial list of most common):
 
 | Object Type | Notes |
@@ -694,7 +691,7 @@ Tags can be applied to the following Snowflake objects (partial list of most com
 
 ### Tag Replication
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 Tags and their assignments replicate within primary database to secondary database in database replication.
 
 **Behavior:**
@@ -731,7 +728,6 @@ FROM TABLE(INFORMATION_SCHEMA.TAG_REFERENCES('LIKE_TABLE', 'TABLE'));
 
 ## Anti-Patterns and Common Mistakes
 
-<anti_pattern_examples>
 **❌ Anti-Pattern 1: Tag Proliferation Without Governance**
 ```sql
 -- Different teams creating inconsistent tags
@@ -882,7 +878,6 @@ WHERE table_schema NOT IN ('INFORMATION_SCHEMA', 'ACCOUNT_USAGE')
 -- Set up alerts when untagged objects appear
 ```
 **Benefits:** Continuous compliance, proactive governance, early detection of gaps, audit readiness.
-</anti_pattern_examples>
 
 ## Quick Compliance Checklist
 
@@ -921,26 +916,25 @@ WHERE table_schema NOT IN ('INFORMATION_SCHEMA', 'ACCOUNT_USAGE')
   - Tag removal (UNSET TAG) works correctly without affecting other tags
   - Dropped tags no longer appear in TAG_REFERENCES views
 
-<investigate_before_answering>
-When applying this rule:
-1. **Read actual tag definitions BEFORE recommending tag applications**
-2. **Query TAG_REFERENCES to verify existing tag coverage before creating duplicates**
-3. **Never assume tag taxonomy—check INFORMATION_SCHEMA.TAGS or ACCOUNT_USAGE views**
-4. **Verify ALLOWED_VALUES constraints before recommending tag values**
-5. **Check object hierarchy to determine optimal tagging level (database vs schema vs table)**
-
-**Anti-Pattern:**
-❌ "You should tag this table with COST_CENTER = 'ANALYTICS'..."
-❌ "Typically tags are created in the PUBLIC schema..."
-
-**Correct Pattern:**
-✅ "Let me check existing tags first:"
-```sql
-SHOW TAGS IN SCHEMA GOVERNANCE.TAGS;
-SELECT * FROM TABLE(INFORMATION_SCHEMA.TAG_REFERENCES('YOUR_TABLE', 'TABLE'));
-```
-✅ "After reviewing the existing tag taxonomy, I found [specific tags]. Here's my recommendation based on what I observed..."
-</investigate_before_answering>
+> **⚠️ Investigation Required**  
+> When applying this rule:
+> 1. **Read actual tag definitions BEFORE recommending tag applications**
+> 2. **Query TAG_REFERENCES to verify existing tag coverage before creating duplicates**
+> 3. **Never assume tag taxonomy—check INFORMATION_SCHEMA.TAGS or ACCOUNT_USAGE views**
+> 4. **Verify ALLOWED_VALUES constraints before recommending tag values**
+> 5. **Check object hierarchy to determine optimal tagging level (database vs schema vs table)**
+>
+> **Anti-Pattern:**
+> ❌ "You should tag this table with COST_CENTER = 'ANALYTICS'..."
+> ❌ "Typically tags are created in the PUBLIC schema..."
+>
+> **Correct Pattern:**
+> ✅ "Let me check existing tags first:"
+> ```sql
+> SHOW TAGS IN SCHEMA GOVERNANCE.TAGS;
+> SELECT * FROM TABLE(INFORMATION_SCHEMA.TAG_REFERENCES('YOUR_TABLE', 'TABLE'));
+> ```
+> ✅ "After reviewing the existing tag taxonomy, I found [specific tags]. Here's my recommendation based on what I observed..."
 
 ## Response Template
 
@@ -995,11 +989,10 @@ FROM TABLE(INFORMATION_SCHEMA.TAG_REFERENCES(
 - **Warehouse Management**: `119-snowflake-warehouse-management.md`
 - **Data Governance**: `600-data-governance-quality.md`
 
-<model_specific_guidance model="claude-4">
-**Claude 4 Optimizations:**
-- Use parallel tool calls to check existing tags and object state simultaneously
-- Investigation-first: Always query INFORMATION_SCHEMA.TAGS before recommending tag creation
-- Verify tag inheritance by querying TAG_REFERENCES with level column
-- When analyzing coverage gaps, read actual tag assignments before recommending fixes
-</model_specific_guidance>
+> **🤖 Claude 4 Specific Guidance**  
+> **Claude 4 Optimizations:**
+> - Use parallel tool calls to check existing tags and object state simultaneously
+> - Investigation-first: Always query INFORMATION_SCHEMA.TAGS before recommending tag creation
+> - Verify tag inheritance by querying TAG_REFERENCES with level column
+> - When analyzing coverage gaps, read actual tag assignments before recommending fixes
 

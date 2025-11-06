@@ -8,11 +8,8 @@
 
 # Tool Design for AI Agents
 
-<section_metadata>
-  <token_budget>1800</token_budget>
-  <context_tier>comprehensive</context_tier>
-  <priority>high</priority>
-</section_metadata>
+> **Section Metadata**  
+> Token Budget: ~1800 | Context Tier: comprehensive | Priority: high
 
 ## Purpose
 Establish comprehensive tool design practices that maximize agent effectiveness through token-efficient outputs, minimal tool overlap, clear contracts, and patterns that promote efficient agent behaviors while maintaining robustness and clarity.
@@ -24,14 +21,14 @@ Establish comprehensive tool design practices that maximize agent effectiveness 
 
 ## Contract
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Inputs/Prereqs:** Understanding of agent capabilities; knowledge of token budgets; awareness of LLM strengths/weaknesses; access to tool development framework
 - **Allowed Tools:** All development tools; testing frameworks; agent evaluation tools
 
-<directive_strength>forbidden</directive_strength>
+**❌ FORBIDDEN:**
 - **Forbidden Tools:** Tools that create bloated, redundant tool sets without clear boundaries
 
-<directive_strength>mandatory</directive_strength>
+**🔥 MANDATORY:**
 - **Required Steps:**
   1. Design tool with clear, single responsibility
   2. Define unambiguous parameters that play to LLM strengths
@@ -696,7 +693,6 @@ Agent gets confused by error messages
 
 ## Anti-Patterns and Common Mistakes
 
-<anti_pattern_examples>
 **❌ Anti-Pattern 1: Bloated Tool Sets**
 ```python
 # 50+ tools covering every edge case
@@ -826,7 +822,6 @@ def search(query: str, page: int = 1, limit: int = 10) -> SearchResponse:
     """
 ```
 **Benefits:** Explicit state; agent can resume after context reset; clear API
-</anti_pattern_examples>
 
 ## Quick Compliance Checklist
 

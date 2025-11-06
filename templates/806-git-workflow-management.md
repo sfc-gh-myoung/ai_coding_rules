@@ -403,7 +403,6 @@ chmod +x scripts/validate-git-state.sh
 
 ## 7. Anti-Patterns and Common Mistakes
 
-<anti_pattern_examples>
 
 **❌ Anti-Pattern 1: Committing Directly to Main**
 ```bash
@@ -543,7 +542,6 @@ gh pr create --title "fix: revert problematic change"
 ```
 **Benefits:** Preserves history; allows rollback; follows review process; maintains team workflow.
 
-</anti_pattern_examples>
 
 ## Quick Compliance Checklist
 
@@ -566,27 +564,26 @@ gh pr create --title "fix: revert problematic change"
 - **Success Checks:** Branch name follows convention; git working directory clean (`git status --porcelain` empty); CHANGELOG.md has entry under [Unreleased]; PR/MR created successfully; all status checks pass; code review approved; merge completes without conflicts
 - **Negative Tests:** Invalid branch name rejected by validation script; uncommitted changes block PR/MR creation; missing CHANGELOG entry causes validation failure; direct commit to main blocked by branch protection; force push to main rejected; status check failures prevent merge
 
-<investigate_before_answering>
-When applying this rule:
-1. **Verify git repository state BEFORE making recommendations** using `git status`, `git branch`, `git log`
-2. **Check actual branch protection settings** on GitHub/GitLab before advising
-3. **Never assume branch names or git state** - always inspect with git commands
-4. **If uncertain about remote configuration, explicitly state:** "I need to check your GitHub/GitLab settings to provide accurate guidance"
-5. **Make grounded recommendations based on actual git state inspection**
-
-**Anti-Pattern:**
-❌ "Based on typical patterns, you probably have feature branches..."
-❌ "Usually projects configure branch protection..."
-
-**Correct Pattern:**
-✅ "Let me check your git state first:"
-```bash
-git branch -a
-git remote -v
-git status
-```
-✅ "After reviewing your git configuration, I found [specific facts]. Here's my recommendation..."
-</investigate_before_answering>
+> **⚠️ Investigation Required**  
+> When applying this rule:
+> 1. **Verify git repository state BEFORE making recommendations** using `git status`, `git branch`, `git log`
+> 2. **Check actual branch protection settings** on GitHub/GitLab before advising
+> 3. **Never assume branch names or git state** - always inspect with git commands
+> 4. **If uncertain about remote configuration, explicitly state:** "I need to check your GitHub/GitLab settings to provide accurate guidance"
+> 5. **Make grounded recommendations based on actual git state inspection**
+>
+> **Anti-Pattern:**
+> ❌ "Based on typical patterns, you probably have feature branches..."
+> ❌ "Usually projects configure branch protection..."
+>
+> **Correct Pattern:**
+> ✅ "Let me check your git state first:"
+> ```bash
+> git branch -a
+> git remote -v
+> git status
+> ```
+> ✅ "After reviewing your git configuration, I found [specific facts]. Here's my recommendation..."
 
 ## Response Template
 

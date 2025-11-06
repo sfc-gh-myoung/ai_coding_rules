@@ -29,11 +29,9 @@ This project was inspired, in part, by: [how-to-add-cline-memory-bank-feature-to
 ### Getting Started
 - [Document Map: What to Read First](#document-map-what-to-read-first)
 - [Quick Start](#quick-start)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Verify Installation](#verify-installation)
+  - [For Rule Consumers](#for-rule-consumers-using-the-rules)
+  - [For Rule Maintainers](#for-rule-maintainers-contributing-to-rules)
 - [Rule Selection Decision Tree](#rule-selection-decision-tree)
-- [How to Use Generated Rules](#how-to-use-generated-rules)
 
 ### Core Documentation
 - [Rule Categories](#rule-categories)
@@ -57,12 +55,11 @@ This project was inspired, in part, by: [how-to-add-cline-memory-bank-feature-to
 ### Advanced Features
 - [AI Configuration](#ai-configuration)
 - [Memory Bank System](#memory-bank-system)
-- [System-Wide Rule Generation Script (gen-rules)](#system-wide-rule-generation-script-gen-rules)
 - [Programmatic Rule Loading](#programmatic-rule-loading-example)
 
 ### Development & Integration
+- [System-Wide Script (gen-rules)](#system-wide-script-gen-rules)
 - [Development Commands](#development-commands)
-- [IDE Integration Examples](#ide-integration-examples)
 - [Troubleshooting](#troubleshooting)
 
 ### Contributing & Support
@@ -91,7 +88,7 @@ This repository contains multiple documentation files for different audiences:
 | **discovery/AGENTS.md** | Rule loading protocol and discovery guide (prescriptive instructions FOR AI) | ✅ Required |
 | **discovery/EXAMPLE_PROMPT.md** | Baseline prompt template for AI configuration | ✅ Required |
 | **discovery/RULES_INDEX.md** | Machine-readable rule catalog with keywords | ✅ Required |
-| **generated/universal/*.md** | The actual rules (72 files) | ✅ Required (loaded on-demand) |
+| **generated/universal/*.md** | The actual rules (72 rule files + 3 discovery files) | ✅ Required (loaded on-demand) |
 
 ### Generated Outputs (Use These)
 
@@ -115,60 +112,97 @@ This repository contains multiple documentation files for different audiences:
 
 **Want to use these rules in your project?** Follow this simple guide:
 
-#### Option A: Git Submodule (Recommended for Version Control)
+#### Option A: Deployment (Recommended)
+
+Deploy rules directly to your project with automatic path configuration:
+
+```bash
+# Clone this repository
+git clone https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git
+cd ai_coding_rules
+
+# Deploy to your project
+task deploy:universal DEST=~/my-project   # For any IDE/LLM (most portable)
+task deploy:cursor DEST=~/my-project      # For Cursor IDE
+task deploy:copilot DEST=~/my-project     # For GitHub Copilot
+task deploy:cline DEST=~/my-project       # For Cline
+
+# Or deploy to current directory
+cd ~/my-project
+task deploy:universal
+```
+
+**What happens:**
+- Generates rules for your target agent/IDE
+- Copies to correct location (`.cursor/rules/`, `rules/`, `.github/copilot/instructions/`, `.clinerules/`)
+- Updates `AGENTS.md` with proper paths
+- Copies `RULES_INDEX.md` to project root
+- Ready to use immediately!
+
+#### Option B: Git Submodule (Version Tracking)
+
+Track rule updates via git submodule:
 
 ```bash
 # From your project root
 git submodule add https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git .ai-rules
 cd .ai-rules
-task rule:all  # Generate all formats
+task deploy:universal DEST=..   # Deploy to parent project
 
-# Use the rules
-# Option 1: Copy universal rules to your project
-cp -r generated/universal/* ../my-rules/
-
-# Option 2: Reference them directly (Cursor, VS Code)
-# Add to your IDE settings: .ai-rules/generated/universal/
+# Update rules later
+cd .ai-rules && git pull && task deploy:universal DEST=..
 ```
 
-**Update rules when needed:**
-```bash
-cd .ai-rules
-git pull
-task rule:all
-```
+#### Option C: Deployment Without Task
 
-#### Option B: Direct Copy (Simplest)
+If you don't have Task installed, use the Python deployment script directly:
 
 ```bash
-# Clone to a temporary directory
+# Clone the rules repository
 git clone https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git /tmp/ai-rules
 cd /tmp/ai-rules
 
-# Generate universal rules
-task rule:universal
+# Install Python dependencies
+/opt/homebrew/bin/uv sync
 
-# Copy to your project
-cp -r generated/universal/* /path/to/your/project/rules/
-cp discovery/AGENTS.md /path/to/your/project/
-cp discovery/RULES_INDEX.md /path/to/your/project/
+# Deploy using Python script (handles everything automatically)
+/opt/homebrew/bin/uv run scripts/deploy_rules.py --agent universal --destination ~/my-project
+
+# Verify deployment
+ls ~/my-project/rules/*.md | wc -l  # Should show 72+
+ls ~/my-project/AGENTS.md ~/my-project/RULES_INDEX.md  # Both files should exist
 ```
+
+**For other formats:**
+```bash
+# Cursor
+/opt/homebrew/bin/uv run scripts/deploy_rules.py --agent cursor --destination ~/my-project
+
+# Copilot
+/opt/homebrew/bin/uv run scripts/deploy_rules.py --agent copilot --destination ~/my-project
+
+# Cline
+/opt/homebrew/bin/uv run scripts/deploy_rules.py --agent cline --destination ~/my-project
+```
+
+**What the script does automatically:**
+- Generates rules for the specified agent type
+- Copies rules to the correct directory (`.cursor/rules/`, `rules/`, etc.)
+- Updates `AGENTS.md` with correct paths (replaces `{rule_path}`)
+- Copies `RULES_INDEX.md` to project root
+- No manual `sed` or path editing needed!
 
 #### Verify Setup
 
 ```bash
-# Check rules are present
-ls rules/ | head -5
+# Check rules are present (universal deployment)
+ls rules/*.md | wc -l  # Should show 72+
 
-# Expected output:
-# 000-global-core.md
-# 001-memory-bank.md
-# 002-rule-governance.md
-# 003-context-engineering.md
-# 004-tool-design-for-agents.md
+# Or for Cursor
+ls .cursor/rules/*.mdc | wc -l  # Should show 72+
 ```
 
-**Success!** Your AI assistant can now access 72 specialized rules. See [How to Use Generated Rules](#how-to-use-generated-rules) for IDE-specific setup.
+**Success!** Your AI assistant can now access 72+ specialized rules. See [AI Configuration](#ai-configuration) for IDE-specific setup.
 
 ---
 
@@ -198,23 +232,13 @@ task rule:all
 
 #### Project Structure
 
-```
-ai_coding_rules/
-├── templates/              ← Edit these: 72 source template files
-├── discovery/              ← Discovery system (auto-generated)
-│   ├── AGENTS.md           ← Rule loading protocol (FOR AI assistants)
-│   ├── EXAMPLE_PROMPT.md   ← Universal baseline prompt
-│   └── RULES_INDEX.md      ← Auto-generated catalog
-├── generated/              ← Generated outputs (don't edit)
-│   ├── universal/          ← Portable format for any tool
-│   ├── cursor/rules/       ← Cursor IDE format
-│   ├── copilot/instructions/ ← GitHub Copilot format
-│   └── cline/              ← Cline format
-├── scripts/                ← Generation tooling
-│   ├── generate_agent_rules.py   ← Main generator
-│   └── generate_rules_index.py   ← Index generator
-└── tests/                  ← Test suite
-```
+See [Project Structure](#project-structure) section below for full details.
+
+**Quick Overview:**
+- `templates/` — 72 source template files (edit these)
+- `discovery/` — Rule loading protocol and catalog
+- `generated/` — IDE-ready outputs (auto-generated, don't edit)
+- `scripts/` — Generation and deployment tools
 
 #### Development Workflow
 
@@ -462,242 +486,55 @@ Beyond LLM performance, smaller rules provide:
 
 **Our approach**: Keep individual rules under 1,000 lines (target 150-500 lines), use clear cross-references, and let users compose rule sets for their specific needs.
 
-## How to Use Generated Rules
+## System-Wide Script (gen-rules)
 
-Once you've generated rules with `task rule:universal`, using them is simple:
-
-### Automatic Rule Discovery (Recommended)
-
-**It's as easy as adding these files to your AI assistant's context:**
-
-1. **`discovery/AGENTS.md`** — Rule loading protocol (prescriptive instructions FOR AI assistants)
-2. **`discovery/EXAMPLE_PROMPT.md`** — Universal baseline prompt with automatic rule loading
-3. **`discovery/RULES_INDEX.md`** — Machine-readable rule catalog
-
-**The AI assistant automatically:**
-- Reads `RULES_INDEX.md` to discover applicable rules via keyword matching
-- Loads rules based on your task requirements
-- Follows dependency chains (loads prerequisites automatically)
-- Prioritizes by context tier (Critical → High → Medium → Low)
-
-**Just ask your question** — No manual rule selection needed!
-
-**Example:** Ask "Build a Snowflake Streamlit dashboard" → AI automatically loads 000-global-core, 100-snowflake-core, and 101-snowflake-streamlit-core following dependency chains.
-
-**For detailed protocol and examples**, see `discovery/AGENTS.md`
-
-### Manual Rule Selection (Alternative)
-
-If you prefer explicit control, you can manually specify rules:
-
-```bash
-# Read the rules you need
-@rules/000-global-core.md           # Always load foundation first
-@rules/100-snowflake-core.md        # Domain-specific core
-@rules/101-snowflake-streamlit-core.md  # Technology-specific
-```
-
-### Universal Format Benefits
-
-✅ **One rule set for all tools** — Generate once, use everywhere  
-✅ **Works everywhere** — CLI, Cursor, VS Code, IntelliJ, Claude Projects, custom agents  
-✅ **No lock-in** — Standard Markdown files you can read and modify  
-✅ **Intelligent discovery** — Keyword-based automatic rule loading via AGENTS.md  
-✅ **Token efficient** — Load only what you need via dependency chains  
-✅ **Portable** — Copy generated `rules/` directory to any project and use immediately  
-
-### Advanced Usage
-
-#### Understanding the Rule Discovery System
-
-For automatic rule discovery, these files work together:
-
-- **`discovery/EXAMPLE_PROMPT.md`** — Universal baseline prompt that instructs AI how to load rules
-- **`discovery/AGENTS.md`** — Rule loading protocol FOR AI assistants (with decision trees and examples)
-- **`discovery/RULES_INDEX.md`** — Machine-readable catalog with keywords, dependencies, and token budgets
-- **Decision Tree** (in AGENTS.md) — Visual guide for identifying which rules you need
-
-#### Generate Rules to Custom Locations
-
-Use the `DEST` parameter to generate rules to any directory:
-
-```bash
-# Generate to current directory (default)
-task rule:universal
-
-# Generate to specific project
-task rule:universal DEST=/path/to/my-project
-
-# Generate to multiple projects
-task rule:universal DEST=~/projects/project-a
-task rule:universal DEST=~/projects/project-b
-```
-
-#### Optional: Generate IDE-Specific Formats
-
-While the universal format works everywhere, you can generate IDE-specific convenience formats:
-
-```bash
-# Generate IDE-specific formats (optional)
-task rule:cursor     # Creates generated/cursor/rules/*.mdc files
-task rule:copilot    # Creates generated/copilot/instructions/*.md files  
-task rule:cline      # Creates generated/cline/*.md files
-
-# With custom destination (advanced)
-task rule:cursor DEST=/path/to/output     # Creates /path/to/output/generated/cursor/rules/*.mdc
-task rule:copilot DEST=../                # Creates ../generated/copilot/instructions/*.md
-task rule:cline DEST=~/projects/my-app    # Creates ~/projects/my-app/generated/cline/*.md
-```
-
-#### Manual Generation with Python Script
-
-For more control, use the generation script directly:
-
-```bash
-# Preview what would be generated (dry run)
-uv run generate_agent_rules.py --agent universal --source . --dry-run
-
-# Check if generated rules are current
-uv run generate_agent_rules.py --agent universal --source . --check
-
-# Generate to custom base directory
-uv run scripts/generate_agent_rules.py --agent universal --destination /path/to/output
-# Creates: /path/to/output/generated/universal/*.md
-
-# IDE-specific generation
-uv run scripts/generate_agent_rules.py --agent cursor --destination /path/to/output
-# Creates: /path/to/output/generated/cursor/rules/*.mdc
-```
-
-#### Direct Integration with LLM Tools
-
-For Claude Projects, ChatGPT custom instructions, or other tools:
-
-1. First, generate the rules: `task rule:universal` (creates the `rules/` directory)
-2. Copy the generated `rules/` directory to your project
-3. Add `AGENTS.md` and `EXAMPLE_PROMPT.md` to your project knowledge base
-4. Ensure `RULES_INDEX.md` is accessible (AI assistant will read it automatically)
-5. Your AI assistant will automatically discover and load relevant rules via keyword matching
-
-#### System-Wide Rule Generation Script (gen-rules)
-
-For convenient rule generation from anywhere on your system, install the production-ready `gen-rules` wrapper script in your `~/bin/` directory. This script automatically runs rule generation tasks from any location, defaulting to generate rules into your current working directory.
+Install the `gen-rules` wrapper script to deploy/generate rules from anywhere on your system:
 
 **Installation:**
-
-1. Copy the script from the project directory to your `~/bin/` directory:
 
 ```bash
 # From the ai_coding_rules directory
 cp gen-rules.sh ~/bin/gen-rules
 chmod +x ~/bin/gen-rules
+# Ensure ~/bin is in your PATH
 ```
-
-2. Update the default `PROJECT_DIR` in `~/bin/gen-rules` if your installation path differs, or use the `--project` flag or `GEN_RULES_PROJECT_DIR` environment variable
-3. Ensure `~/bin` is in your `PATH`
-
-**Features:**
-
-- ✅ **Production-ready** - Comprehensive error handling, validation, and logging
-- ✅ **Flexible configuration** - Override project directory via flag or environment variable
-- ✅ **Debug support** - Verbose and debug modes for troubleshooting
-- ✅ **Robust validation** - Checks dependencies, permissions, and project structure
-- ✅ **Help documentation** - Built-in help and version information
-- ✅ **Meaningful exit codes** - Distinguishes between error types (0-4)
 
 **Basic Usage:**
 
 ```bash
-# From ANY directory, generate rules into that directory
+# Deploy rules (recommended)
 cd /path/to/my-project
-gen-rules rule:cursor              # Generates to /path/to/my-project/.cursor/rules/
-gen-rules rule:copilot             # Generates to /path/to/my-project/.github/instructions/
-gen-rules rule:all                 # Generates all formats to /path/to/my-project/
+gen-rules deploy:cursor            # Deploy to .cursor/rules/
+gen-rules deploy:universal         # Deploy to rules/
+gen-rules deploy:copilot           # Deploy to .github/copilot/instructions/
+gen-rules deploy:cline             # Deploy to .clinerules/
 
-# Override destination if needed
-gen-rules rule:cursor DEST=/custom/path
+# Generate for development/testing
+gen-rules rule:cursor              # Generate to generated/cursor/rules/
+gen-rules rule:all                 # Generate all formats
 
-# Run any task from ai_coding_rules project
-gen-rules validate                 # Run validation checks
-gen-rules status                   # Check project status
-gen-rules rule:cursor:dry          # Dry run preview
+# Override destination
+gen-rules deploy:universal DEST=/custom/path
 ```
 
-**Advanced Usage:**
+**Advanced Options:**
 
 ```bash
-# Show help and all options
-gen-rules --help
-
-# Show version
-gen-rules --version
-
-# Enable verbose output
-gen-rules --verbose rule:all
-
-# Enable debug mode (includes verbose output)
-gen-rules --debug rule:cursor
-
-# Override project directory with flag
-gen-rules --project ~/my-custom-rules rule:cursor
-
-# Override project directory with environment variable
-export GEN_RULES_PROJECT_DIR=~/my-rules
-gen-rules rule:copilot
-
-# Combine options
-gen-rules --verbose --project ~/my-rules rule:all DEST=/output
+gen-rules --help                   # Show full usage
+gen-rules --version                # Show version
+gen-rules --verbose deploy:cursor  # Verbose output
+gen-rules --debug rule:all         # Debug mode
+gen-rules --project ~/my-rules rule:cursor  # Override project dir
 ```
 
-**Options:**
-
-| Option | Description |
-|--------|-------------|
-| `-h, --help` | Show help message with full usage documentation |
-| `-v, --verbose` | Enable verbose output (shows info-level logs) |
-| `-d, --debug` | Enable debug mode (shows all logs including debug) |
-| `-V, --version` | Show script version information |
-| `-p, --project DIR` | Override project directory location |
-
-**Environment Variables:**
-
-| Variable | Description |
-|----------|-------------|
-| `GEN_RULES_PROJECT_DIR` | Override default project directory path |
-| `DEBUG` | Enable debug mode (set to `true`) |
-| `VERBOSE` | Enable verbose mode (set to `true`) |
-
-**Exit Codes:**
-
-| Code | Meaning |
-|------|---------|
-| 0 | Success |
-| 1 | General error |
-| 2 | Invalid arguments |
-| 3 | Missing dependency (e.g., `task` not installed) |
-| 4 | Invalid project directory |
-
-**How It Works:**
-
-- Uses Task's `-d` flag to run tasks from the ai_coding_rules project directory
-- Automatically passes `DEST=${PWD}` to default to your current directory
-- Validates dependencies (`task` command) before execution
-- Checks project directory structure (Taskfile.yml, generate_agent_rules.py)
-- Verifies current directory is writable before proceeding
-- Provides detailed error messages with suggestions for resolution
-- Allows explicit `DEST` override for custom output locations
-- No `cd` required—works from anywhere
-
-**Benefits:**
-
-- ✅ Generate rules for any project without navigating to ai_coding_rules directory
-- ✅ Automatic current-directory detection (no manual path specification needed)
-- ✅ Clean, memorable command (`gen-rules` vs full task path)
-- ✅ Access to all Taskfile tasks from anywhere
+**Features:**
 - ✅ Production-ready with comprehensive error handling
+- ✅ Works from any directory
 - ✅ Flexible configuration via flags or environment variables
-- ✅ Debug and troubleshooting support built-in
-- ✅ Follows bash scripting best practices (see `300-bash-scripting-core.md`)
+- ✅ Debug support for troubleshooting
+- ✅ Meaningful exit codes (0-4)
+
+See `gen-rules --help` for complete documentation.
 
 ## AI Configuration
 
@@ -713,41 +550,14 @@ To enable automatic rule discovery with your AI assistant, you need to add the d
 
 ### IDE-Specific Configuration
 
-#### Cursor IDE
-```bash
-# Option 1: Copy discovery files to project
-cp discovery/AGENTS.md .cursor/
-cp discovery/EXAMPLE_PROMPT.md .cursor/
-cp discovery/RULES_INDEX.md .cursor/
-
-# Option 2: Reference in Cursor settings
-# Add to .cursor/rules/ or include in project context
-```
-
-#### Claude Projects
-```bash
-# Upload these files to your Claude Project knowledge base:
-1. discovery/AGENTS.md
-2. discovery/EXAMPLE_PROMPT.md
-3. discovery/RULES_INDEX.md
-4. generated/universal/ (select relevant rules or all)
-```
-
-#### ChatGPT Custom Instructions
-```bash
-# Copy content from EXAMPLE_PROMPT.md to custom instructions
-# Upload AGENTS.md and RULES_INDEX.md as files in conversation
-```
-
-#### VS Code with Copilot
-```bash
-# Option 1: Use copilot format
-task rule:copilot
-# Commit .github/instructions/ to your repository
-
-# Option 2: Use universal format with extensions
-# Configure your AI extension to read from generated/universal/
-```
+| IDE/Tool | Setup Method | Files Needed |
+|----------|--------------|--------------|
+| **Cursor** | Deploy rules via `task deploy:cursor` | Auto-configured in `.cursor/rules/` |
+| **GitHub Copilot** | Deploy via `task deploy:copilot`, then commit | `.github/copilot/instructions/*.md` |
+| **Cline** | Deploy via `task deploy:cline` | Auto-configured in `.clinerules/` |
+| **Claude Projects** | Deploy universal, upload to knowledge base | `AGENTS.md`, `RULES_INDEX.md`, `rules/*.md` |
+| **ChatGPT** | Deploy universal, add to custom instructions | Copy `EXAMPLE_PROMPT.md`, upload other files |
+| **VS Code Extensions** | Deploy universal or use AI extension settings | `rules/*.md` files |
 
 ### Verification: Is Your AI Configured Correctly?
 
@@ -825,98 +635,36 @@ See [Programmatic Rule Loading](#programmatic-rule-loading-example) for more exa
 
 ## Project Structure
 
-**v2.1.0+ uses a template-based generation system** for improved organization and maintainability.
-
-### Directory Layout
-
 ```
-ai_coding_rules_gitlab/
-├── templates/              ← Source templates (edit these)
-│   ├── 000-global-core.md
-│   ├── 001-memory-bank.md
-│   └── ... (72 template files)
-│
-├── discovery/              ← Discovery system
-│   ├── AGENTS.md           ← Rule loading protocol (FOR AI assistants)
-│   ├── EXAMPLE_PROMPT.md   ← Baseline prompt template
-│   └── RULES_INDEX.md      ← Rule catalog
-│
+ai_coding_rules/
+├── templates/              ← Edit these: 72 source template files
+├── discovery/              ← Discovery system (AGENTS.md, RULES_INDEX.md, EXAMPLE_PROMPT.md)
 ├── generated/              ← Generated outputs (committed to git)
-│   ├── universal/          ← Universal format (pure Markdown)
+│   ├── universal/          ← Universal format (portable Markdown)
 │   ├── cursor/rules/       ← Cursor-specific (.mdc files)
 │   ├── copilot/instructions/ ← GitHub Copilot format
 │   └── cline/              ← Cline format
-│
-├── scripts/                ← Generation tools
-│   ├── generate_agent_rules.py
-│   ├── validate_agent_rules.py
-│   └── build_rules_index.py
-│
+├── scripts/                ← Generation and deployment tools
 ├── docs/                   ← Documentation
-├── examples/               ← Usage examples
 └── tests/                  ← Test suite
 ```
 
-### Key Concepts
+**Key Concepts:**
+- **templates/** — Source of truth, always edit here (never in `generated/`)
+- **discovery/** — Rule loading protocol and catalog for AI assistants
+- **generated/** — IDE-ready outputs, regenerated via `task rule:all`
+- **scripts/** — `generate_agent_rules.py` (generation), `deploy_rules.py` (deployment)
 
-**Source Templates (`templates/`):**
-- Canonical source of truth for all rule content
-- Contains IDE-specific metadata for generation
-- **Always edit here**, never in `generated/`
-
-**Discovery System (`discovery/`):**
-- Meta-documentation for rule discovery
-- Copied to generated outputs unchanged
-
-**Generated Outputs (`generated/`):**
-- IDE-ready rule files
-- Committed to git for user convenience
-- Regenerated from templates via `task rule:all`
-
-### Workflow
-
-**For Users (consuming rules):**
+**Workflows:**
 ```bash
-# Option 1: Use generated files directly
-cp -r generated/universal/ ~/my-project/rules/
+# For users: Deploy rules
+task deploy:universal DEST=~/my-project
 
-# Option 2: Generate to traditional IDE paths
-task rule:legacy  # Generates to .cursor/rules/, .github/instructions/, etc.
-```
-
-**For Contributors (editing rules):**
-```bash
-# 1. Edit template files
+# For contributors: Edit and regenerate
 vim templates/200-python-core.md
-
-# 2. Regenerate all formats
 task rule:all
-
-# 3. Commit changes
-git add templates/200-python-core.md generated/
-git commit -m "feat: update Python core rules"
+git add templates/ generated/ && git commit -m "feat: update Python rules"
 ```
-
-### Generation System
-
-The generator (`scripts/generate_agent_rules.py`) provides:
-- **Auto-detection** of source directory (templates/ > ai_coding_rules/ > .)
-- **Format transformation** for different IDEs
-- **Metadata stripping** for universal format
-- **Reference conversion** (.md → .mdc for Cursor)
-- **Consistency validation** via `--check` mode
-
-**Available commands:**
-```bash
-task rule:universal   # Generate universal format
-task rule:cursor      # Generate Cursor .mdc files
-task rule:copilot     # Generate Copilot instructions
-task rule:cline       # Generate Cline rules
-task rule:all         # Generate all formats
-task rule:check       # Validate consistency
-```
-
-See `docs/architecture.md` for detailed system architecture.
 
 ## Rule Categories
 
@@ -1263,87 +1011,32 @@ Rules support embedded metadata in Markdown:
 
 ## Using Rules with Different Tools
 
-### Universal Format (Recommended for All Tools)
+After deployment via `task deploy:*`, your AI assistant automatically discovers and loads rules based on your tasks.
 
-After running `task rule:universal`, the generated `rules/` directory contains portable Markdown files that work everywhere:
+**How It Works:**
+1. Deploy rules to your project (e.g., `task deploy:universal DEST=~/my-project`)
+2. AI reads `AGENTS.md` (rule loading protocol) and `RULES_INDEX.md` (catalog)
+3. AI searches for keywords matching your task
+4. AI loads relevant rules following dependency chains
+5. AI applies rules to generate code
 
-**For Any IDE/Agent/LLM:**
-1. Generate the rules: `task rule:universal` (creates the `rules/` directory)
-2. Add `AGENTS.md` and `EXAMPLE_PROMPT.md` to your AI assistant's context
-3. Ensure AI assistant has access to the generated `rules/` directory and `RULES_INDEX.md`
-4. The AI automatically discovers relevant rules via keyword matching in RULES_INDEX.md
-
-**Key Files:**
-- **`generated/universal/*.md`** — Universal rule files with embedded metadata
-- **`discovery/AGENTS.md`** — Rule loading protocol FOR AI assistants (prescriptive instructions with decision trees)
-- **`discovery/RULES_INDEX.md`** — Searchable catalog with keywords and dependencies (auto-generated)
-- **`EXAMPLE_PROMPT.md`** — Baseline prompt for automatic rule loading
-
-**Works With:**
-- Claude Projects, ChatGPT, Gemini (add files to knowledge base)
-- Cursor, VS Code, IntelliJ (reference files in context)
-- CLI tools (grep for keywords, parse dependencies)
-- Custom agents (programmatic rule loading)
-
-### For LLMs and AI Agents
-
-**Automatic Discovery Example:**
-
-```python
-# AI assistant workflow (happens automatically with AGENTS.md + EXAMPLE_PROMPT.md)
-
-# 1. User asks: "Build a Snowflake Streamlit dashboard"
-
-# 2. AI searches RULES_INDEX.md for keywords
-keywords = ["Streamlit", "Snowflake", "dashboard"]
-
-# 3. AI loads rules following dependency chain
-load_sequence = [
-    "rules/000-global-core.md",                    # Foundation (always first)
-    "rules/100-snowflake-core.md",                 # Domain foundation  
-    "rules/101-snowflake-streamlit-core.md",       # Specific technology
-    "rules/101a-snowflake-streamlit-visualization.md"  # If using charts
-]
-
-# 4. AI implements following all loaded rules
-# Total: ~2000 tokens of focused, relevant guidance
+**Example:**
+```
+User: "Build a Snowflake Streamlit dashboard"
+AI loads: 000-global-core → 100-snowflake-core → 101-snowflake-streamlit-core
 ```
 
-### For CLI Tools and Scripts
-
+**CLI Tools:**
 ```bash
-# Find rules by keywords in RULES_INDEX.md
-grep -i "performance\|optimization" RULES_INDEX.md
+# Search for rules by keyword
+grep -i "performance" RULES_INDEX.md
 
-# Extract dependencies from a rule
+# Check rule dependencies
 grep "**Depends:**" rules/101-snowflake-streamlit-core.md
 
-# Get token budgets for context planning
-grep "**TokenBudget:**" generated/universal/*.md | awk -F: '{sum+=$3} END {print "Total tokens:", sum}'
-
-# Build dependency tree programmatically
-find rules -name "*.md" -exec grep -H "**Depends:**" {} \; | \
-  awk -F: '{print $1 " depends on " $3}'
+# Calculate total token budget
+grep "**TokenBudget:**" rules/*.md | awk -F: '{sum+=$3} END {print sum}'
 ```
-
-### Optional: IDE-Specific Formats
-
-While the universal format works everywhere, you can generate IDE-specific convenience formats:
-
-**Cursor:**
-- Generate: `task rule:cursor`
-- Location: `generated/cursor/rules/*.mdc`
-- Features: Auto-attach, file glob patterns, YAML frontmatter
-
-**GitHub Copilot:**
-- Generate: `task rule:copilot`
-- Location: `.github/instructions/*.md`
-- Features: AppliesTo patterns, YAML frontmatter
-
-**Cline:**
-- Generate: `task rule:cline`
-- Location: `generated/cline/*.md`
-- Features: Plain Markdown, automatic processing
 
 ### Programmatic Rule Loading Example
 
@@ -1442,13 +1135,26 @@ uvx ruff format --check . # Check formatting
 uvx ruff format .         # Apply formatting
 ```
 
+### Rule Deployment
+```bash
+# Deploy rules with automatic path configuration
+task deploy:universal DEST=~/my-project    # For any IDE/LLM (recommended)
+task deploy:cursor DEST=~/my-project       # For Cursor IDE
+task deploy:copilot DEST=~/my-project      # For GitHub Copilot
+task deploy:cline DEST=~/my-project        # For Cline
+
+# Deploy to current directory (omit DEST)
+cd ~/my-project
+task deploy:cursor
+```
+
 ### Rule Generation & Validation
 ```bash
-# Generate IDE-specific rules
-task rule:cursor         # Generate Cursor rules
-task rule:copilot        # Generate Copilot rules
-task rule:cline          # Generate Cline rules
-task rule:universal      # Generate Universal rules (IDE-agnostic)
+# Generate IDE-specific rules (advanced - use deployment instead for projects)
+task rule:cursor         # Generate Cursor rules to generated/cursor/rules/
+task rule:copilot        # Generate Copilot rules to generated/copilot/instructions/
+task rule:cline          # Generate Cline rules to generated/cline/
+task rule:universal      # Generate Universal rules to generated/universal/
 task rule:all            # Generate all IDE-specific rules (including universal)
 
 # Optional DEST variable to change base output directory
@@ -1460,14 +1166,14 @@ task rules:validate:verbose # Show all files including clean ones
 task rules:validate:strict  # Strict mode (fail on warnings too)
 
 # Direct validation script usage
-uv run python validate_agent_rules.py              # Standard validation
-uv run python validate_agent_rules.py --verbose    # Verbose output
-uv run python validate_agent_rules.py --fail-on-warnings  # Strict mode
-uv run python validate_agent_rules.py --help       # Show all options
+uv run python scripts/validate_agent_rules.py              # Standard validation
+uv run python scripts/validate_agent_rules.py --verbose    # Verbose output
+uv run python scripts/validate_agent_rules.py --fail-on-warnings  # Strict mode
+uv run python scripts/validate_agent_rules.py --help       # Show all options
 
 # Other validations
 task --list              # Validate Taskfile syntax
-uv run generate_agent_rules.py --source . --dry-run  # Test rule generation
+uv run scripts/generate_agent_rules.py --source . --dry-run  # Test rule generation
 ```
 
 ### Utilities  
@@ -1475,46 +1181,6 @@ uv run generate_agent_rules.py --source . --dry-run  # Test rule generation
 task clean_venv          # Remove virtual environment
 task -l                  # List all available tasks
 ```
-
-## IDE Integration Examples
-
-### Cursor IDE
-```bash
-task rule:cursor
-# Rules appear in Cursor's AI context automatically
-# Configure via generated/cursor/rules/*.mdc files
-# Or use task rule:legacy for backward-compatible .cursor/rules/ location
-```
-
-### GitHub Copilot
-```bash  
-task rule:copilot
-# Add repository instructions to GitHub
-# Configure via .github/instructions/*.md files
-```
-
-### Cline AI Assistant
-```bash
-task rule:cline
-# Generate rules for Cline AI assistant
-# Configure via generated/cline/*.md files
-# Or use task rule:legacy for backward-compatible .clinerules/ location
-```
-
-### Universal Format (Any IDE/Agent/LLM)
-```bash
-task rule:universal
-# Generate clean Markdown rules for any IDE, agent, or LLM
-# Creates generated/universal/*.md files with no YAML frontmatter or generated comments
-# Use with discovery/RULES_INDEX.md and discovery/AGENTS.md for rule discovery
-# Perfect for manual inclusion or programmatic loading by custom tools
-```
-
-### Claude Projects
-Add selected `.md` rule files to your Claude project knowledge base for consistent code generation.
-
-### VS Code Extensions
-Use the generated `.md` files with VS Code AI extensions or copy content for custom instructions.
 
 ## Memory Bank System (Optional)
 
@@ -1642,7 +1308,7 @@ flowchart TD
 
 ### Rules Directory Not Generated
 
-**Problem:** `rules/` directory doesn't exist after running `task rule:universal`
+**Problem:** Rules directory doesn't exist after running generation/deployment
 
 **Solutions:**
 
@@ -1665,13 +1331,17 @@ uv sync
 
 4. **Try Direct Script**
 ```bash
-uv run generate_agent_rules.py --agent universal --source . --destination .
+# For generation
+uv run scripts/generate_agent_rules.py --agent universal --source templates --destination .
+
+# For deployment (recommended)
+uv run scripts/deploy_rules.py --agent universal --destination ~/my-project
 ```
 
 5. **Verify Project Structure**
 ```bash
 # Check required files exist
-ls generate_agent_rules.py Taskfile.yml
+ls scripts/generate_agent_rules.py scripts/deploy_rules.py Taskfile.yml templates/
 ```
 
 ---
@@ -1694,16 +1364,15 @@ sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b ~/.local/bin
 choco install go-task
 ```
 
-**Option B - Use Python Script Directly**
+**Option B - Deployment Without Task**
+
+See [Option C: Deployment Without Task](#option-c-deployment-without-task) in Quick Start for complete instructions.
+
+Quick example for universal rules:
 ```bash
-# Generate universal rules
-uv run generate_agent_rules.py --agent universal --source . --destination .
-
-# Generate Cursor rules
-uv run generate_agent_rules.py --agent cursor --source . --destination .
-
-# Generate Copilot rules
-uv run generate_agent_rules.py --agent copilot --source . --destination .
+cd /tmp/ai-rules
+/opt/homebrew/bin/uv sync
+/opt/homebrew/bin/uv run scripts/deploy_rules.py --agent universal --destination ~/my-project
 ```
 
 **Validation:**
@@ -1920,10 +1589,3 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 - **Discussions:** [GitLab Discussions](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git/discussions) *(Snowflake internal)*
 - **Documentation:** All rules include links to official documentation
 - **Contributing:** See [CONTRIBUTING.md](CONTRIBUTING.md)
-
----
-
-<p align="center">
-  <strong>Built for the AI-powered development era</strong><br>
-  Consistent • Reliable • Production-Ready
-</p>

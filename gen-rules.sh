@@ -2,8 +2,8 @@
 # Script: gen-rules
 # Description: System-wide wrapper for AI coding rules generation from anywhere
 # Author: AI Coding Rules Project
-# Version: 2.1
-# Last Updated: 2025-10-29
+# Version: 2.2
+# Last Updated: 2025-11-05
 # Usage: gen-rules [OPTIONS] <task> [task-args]
 
 set -euo pipefail
@@ -13,10 +13,12 @@ set -euo pipefail
 # ============================================================================
 
 readonly SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
-readonly SCRIPT_VERSION="2.1"
+readonly SCRIPT_VERSION="2.2"
 
 # Allow PROJECT_DIR override via environment variable
-readonly PROJECT_DIR="${GEN_RULES_PROJECT_DIR:-${HOME}/Development/utility_demo_v2/ai_coding_rules}"
+# Default assumes script is in project root; override with GEN_RULES_PROJECT_DIR if installed elsewhere
+readonly DEFAULT_PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly PROJECT_DIR="${GEN_RULES_PROJECT_DIR:-${DEFAULT_PROJECT_DIR}}"
 
 # Exit codes
 readonly EXIT_SUCCESS=0
@@ -69,9 +71,9 @@ OPTIONS:
     -v, --verbose       Enable verbose output
     -d, --debug         Enable debug mode
     -V, --version       Show version information
-    -p, --project DIR   Override project directory (default: \$GEN_RULES_PROJECT_DIR or ~/Development/utility_demo_v2/ai_coding_rules)
+    -p, --project DIR   Override project directory (default: \$GEN_RULES_PROJECT_DIR or script directory)
 
-COMMON TASKS:
+GENERATION TASKS:
     rule:cursor         Generate Cursor .mdc files
     rule:copilot        Generate GitHub Copilot instructions
     rule:cline          Generate Cline rules
@@ -79,31 +81,60 @@ COMMON TASKS:
     rule:all            Generate all IDE-specific rules (including universal)
     rule:cursor:dry     Dry run preview for Cursor
     rule:cursor:check   Check if Cursor rules are current
+    
+DEPLOYMENT TASKS:
+    deploy:cursor       Deploy Cursor rules to target project (.cursor/rules/)
+    deploy:copilot      Deploy Copilot rules to target project (.github/copilot/instructions/)
+    deploy:cline        Deploy Cline rules to target project (.clinerules/)
+    deploy:universal    Deploy Universal rules to target project (rules/)
+
+OTHER TASKS:
     validate            Run all validation checks
     status              Show project status
 
-EXAMPLES:
+GENERATION EXAMPLES:
     # Generate Cursor rules into current directory
     $SCRIPT_NAME rule:cursor
 
-    # Generate Universal rules (works with any IDE/LLM)
+    # Generate Universal rules (works with any IDE/LLM) - recommended
     $SCRIPT_NAME rule:universal
 
-    # Generate all rules with verbose output
-    $SCRIPT_NAME --verbose rule:all
+    # Generate all formats (cursor, copilot, cline, universal)
+    $SCRIPT_NAME rule:all
+
+    # Generate with verbose output
+    $SCRIPT_NAME --verbose rule:universal
 
     # Generate to specific directory
     $SCRIPT_NAME rule:cursor DEST=/path/to/project
 
-    # Dry run preview
+    # Dry run preview (no files written)
     $SCRIPT_NAME rule:cursor:dry
 
-    # Override project directory
-    $SCRIPT_NAME --project ~/my-rules rule:cursor
+    # Check if rules need regeneration
+    $SCRIPT_NAME rule:universal:check
+
+DEPLOYMENT EXAMPLES:
+    # Deploy Cursor rules to current directory
+    $SCRIPT_NAME deploy:cursor
+    
+    # Deploy Universal rules to specific project
+    $SCRIPT_NAME deploy:universal DEST=~/my-project
+    
+    # Deploy Cline rules to sibling project
+    cd ~/dev/ai_coding_rules_gitlab
+    $SCRIPT_NAME deploy:cline DEST=../my-streamlit-app
+    
+    # Deploy Copilot rules with verbose output
+    $SCRIPT_NAME --verbose deploy:copilot DEST=/path/to/project
+
+PROJECT DIRECTORY EXAMPLES:
+    # Override project directory if script installed elsewhere
+    $SCRIPT_NAME --project ~/my-ai-rules rule:cursor
 
     # Use environment variable for project directory
-    export GEN_RULES_PROJECT_DIR=~/my-rules
-    $SCRIPT_NAME rule:cursor
+    export GEN_RULES_PROJECT_DIR=~/my-ai-rules
+    $SCRIPT_NAME rule:universal
 
 ENVIRONMENT VARIABLES:
     GEN_RULES_PROJECT_DIR   Override default project directory
@@ -169,10 +200,16 @@ validate_project_directory() {
         return 1
     fi
     
-    # Verify generate_agent_rules.py exists
-    if [[ ! -f "$dir/generate_agent_rules.py" ]]; then
-        log_warning "generate_agent_rules.py not found in project directory"
+    # Verify scripts/generate_agent_rules.py exists
+    if [[ ! -f "$dir/scripts/generate_agent_rules.py" ]]; then
+        log_warning "scripts/generate_agent_rules.py not found in project directory"
         log_warning "Some tasks may not work correctly"
+    fi
+    
+    # Verify templates directory exists (v2.1+ structure)
+    if [[ ! -d "$dir/templates" ]]; then
+        log_warning "templates/ directory not found in project directory"
+        log_warning "This may be an older version of the project structure"
     fi
     
     log_debug "Project directory validation passed"

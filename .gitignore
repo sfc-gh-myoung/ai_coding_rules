@@ -182,12 +182,6 @@ $RECYCLE.BIN/
 *.msp
 *.lnk
 
-# Legacy generated rule paths (use --legacy-paths flag to generate here)
-# Note: Generated files are committed in generated/ directory by default
-.cursor/rules/
-.github/instructions/
-.clinerules/
-
 # Cursor memory bank
 memory-bank/
 

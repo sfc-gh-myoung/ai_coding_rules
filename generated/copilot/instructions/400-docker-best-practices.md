@@ -1,14 +1,16 @@
 ---
 appliesTo:
-  - "**/*"
+  - "**/Dockerfile"
+  - "**/.dockerignore"
+  - "**/docker-compose.yml"
+  - "**/docker-compose.*.yml"
 ---
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
-**Keywords:** Docker, Dockerfile, containers, multi-stage builds, layer caching, image optimization, docker-compose
-**Depends:** 202-markup-config-validation
-
-**TokenBudget:** ~650
+**Keywords:** Docker, Dockerfile, containers, multi-stage builds, layer caching, image optimization, docker-compose, BuildKit, distroless, security scanning, SBOM, non-root, healthcheck
+**TokenBudget:** ~1950
 **ContextTier:** Medium
+**Depends:** 202-markup-config-validation
 
 # Docker and Dockerfile Best Practices
 
@@ -18,6 +20,27 @@ Provide practical, production-ready guidance for authoring Dockerfiles, building
 ## Rule Type and Scope
 - **Type:** Agent Requested
 - **Scope:** Dockerfiles, multi-stage builds, image security, supply-chain integrity, runtime hardening, Docker Compose usage, CI/CD integration. Applies to polyglot projects with emphasis on Python.
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Multi-stage builds** - Separate build and runtime stages
+- **Pin base images** - Use specific versions/digests, not `latest`
+- **Non-root user** - Run containers with dedicated non-root user
+- **Layer caching** - Order instructions for maximum cache effectiveness
+- **Use .dockerignore** - Keep build context small
+- **Scan images** - Use hadolint, trivy, docker scout
+- **Never embed secrets** - Use build secrets or runtime mounts
+
+**Quick Checklist:**
+- [ ] Multi-stage Dockerfile
+- [ ] Base images pinned
+- [ ] Non-root USER specified
+- [ ] .dockerignore configured
+- [ ] Layers optimized for caching
+- [ ] HEALTHCHECK defined
+- [ ] Security scan passing
 
 ## Contract
 - **Inputs/Prereqs:** Container runtime (Docker/Podman), BuildKit enabled, access to base images/registries, project source with `.dockerignore`.
@@ -251,6 +274,23 @@ id_dsa
 ## Validation
 - **Success Checks:** Image builds deterministically; scans pass with no criticals; container runs as non-root; healthcheck healthy; size and startup time meet targets; SBOM/provenance generated.
 - **Negative Tests:** Fails if image runs as root; missing `.dockerignore`; `latest` tag used in prod; secrets baked into image; critical CVEs found.
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read existing Dockerfile BEFORE suggesting changes** - Check current structure, stages
+> 2. **Verify base image compatibility** - Check if changing base breaks dependencies
+> 3. **Never assume layer order** - Check existing layer organization before optimizing
+> 4. **Check for secrets** - Review if secrets are hardcoded or properly externalized
+> 5. **Test build and run** - Verify changes don't break builds or runtime
+>
+> **Anti-Pattern:**
+> "Adding multi-stage build... (without checking if dependencies are compatible)"
+> "Changing to alpine... (without testing glibc compatibility)"
+>
+> **Correct Pattern:**
+> "Let me check your current Dockerfile first."
+> [reads Dockerfile, checks base image, reviews layers]
+> "I see you're using debian:12. Adding multi-stage build with compatible base..."
 
 ## Response Template
 ```markdown

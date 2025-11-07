@@ -1,13 +1,13 @@
 **Description:** The core, universally-applied operating contract for a reliable and safe workflow.
-**AutoAttach:** true
 **Type:** Auto-attach
-**Keywords:** PLAN mode, ACT mode, workflow, safety, confirmation, validation, surgical edits, minimal changes, mode violations, prompt engineering
-**Version:** 6.5
-**LastUpdated:** 2025-10-29
-**Depends:** None
-
-**TokenBudget:** ~300
+**AppliesTo:** `**/*`
+**AutoAttach:** true
+**Keywords:** PLAN mode, ACT mode, workflow, safety, confirmation, validation, surgical edits, minimal changes, mode violations, prompt engineering, task list, read-only, authorization
+**TokenBudget:** ~1300
 **ContextTier:** Critical
+**Version:** 6.7
+**LastUpdated:** 2025-11-07
+**Depends:** None
 
 # Global Core Guidelines
 
@@ -38,6 +38,24 @@ Establish the foundational operating contract for all AI coding assistants, ensu
 - **Validation Steps:** Verify mode rules honored; confirm changes work as expected
 
 ## Key Principles
+
+- **Mode-Based Workflow:** Start in PLAN (read-only), transition to ACT only after explicit user authorization
+- **Task Confirmation:** Always present task list and await "ACT" command before modifications
+- **Surgical Editing:** Make minimal, targeted changes - preserve existing patterns
+- **Professional Communication:** Concise, code-first solutions with technical tone
+- **Validation First:** Test, lint, and verify all changes before completion
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Always start in PLAN mode** - gather context, present task list, await "ACT"
+- **List loaded rules** at start of response (e.g., "000-global-core, 200-python-core")
+- **Make surgical edits only** - minimal changes, preserve existing code patterns
+- **Validate immediately** - run tests/lints before marking complete
+- **Never modify files without explicit "ACT" authorization**
+
+## Detailed Principles
 
 ### 1. Mode-Based Workflow
 
@@ -108,6 +126,24 @@ Every task should define:
 
 - **Success Checks:** Mode transitions correct; user authorization obtained; minimal edits applied; validation passes; documentation current
 - **Negative Tests:** Unauthorized modifications blocked; mode violations caught; validation failures prevent completion
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read project files BEFORE making recommendations** - Check existing code structure, patterns, and conventions
+> 2. **List loaded rules explicitly** - Always state which rules informed your analysis
+> 3. **Never speculate about project organization** - Use list_dir, read_file to understand actual structure
+> 4. **Verify tool availability** - Check what tools are accessible before proposing solutions
+> 5. **Make grounded recommendations based on investigated project state** - Don't assume standard patterns without verification
+>
+> **Anti-Pattern:**
+> "Based on typical projects, you probably have this file structure..."
+> "Let me modify this file - it should work..."
+>
+> **Correct Pattern:**
+> "Let me check your project structure first."
+> [reads directory structure, examines key files]
+> "I see you're using [specific pattern]. Here's my task list for implementing [feature] following your existing conventions..."
+> [awaits ACT authorization]
 
 ## Response Template
 

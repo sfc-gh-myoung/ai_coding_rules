@@ -1,10 +1,9 @@
 <!-- Generated for Cline rules. See https://docs.cline.bot/features/cline-rules -->
 
-**Keywords:** Bash scripting, shell scripts, set -euo pipefail, error handling, functions, variables, script structure
-**Depends:** 000-global-core
-
-**TokenBudget:** ~1200
+**Keywords:** Bash, shell scripting, set -euo pipefail, error handling, strict mode, functions, variables, script structure, trap, exit codes, shellcheck, input validation
+**TokenBudget:** ~2700
 **ContextTier:** High
+**Depends:** 000-global-core
 
 # Bash Scripting Core Best Practices
 
@@ -16,6 +15,26 @@ Establish foundational bash scripting patterns covering script structure, variab
 - **Type:** Agent Requested
 - **Scope:** Foundation bash scripting patterns and essential practices
 
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Use `set -euo pipefail`** - Strict error handling in all scripts
+- **Quote all variables** - Prevent word splitting (`"$var"`, not `$var`)
+- **Use `local` in functions** - Prevent variable pollution
+- **Trap signals properly** - Clean up resources on exit/error
+- **Validate inputs** - Check arguments and exit codes
+- **Use shellcheck** - Static analysis catches common errors
+- **Never ignore exit codes** - Check `$?` or use `if command; then`
+
+**Quick Checklist:**
+- [ ] `#!/usr/bin/env bash` shebang
+- [ ] `set -euo pipefail` at top
+- [ ] All variables quoted
+- [ ] Functions use `local` variables
+- [ ] Trap handlers for cleanup
+- [ ] Input validation implemented
+- [ ] Shellcheck passing
 
 ## Key Principles
 - Use `#!/usr/bin/env bash` shebang and `set -euo pipefail` for strict error handling
@@ -519,6 +538,23 @@ calculate_hash() {
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read existing scripts BEFORE suggesting changes** - Check current patterns, error handling
+> 2. **Verify shell type** - Confirm bash vs sh, check shebang and features used
+> 3. **Never assume error handling exists** - Check for `set -euo pipefail`, trap handlers
+> 4. **Check for shellcheck compliance** - Run shellcheck to identify existing issues
+> 5. **Test with actual inputs** - Verify scripts work with edge cases
+>
+> **Anti-Pattern:**
+> "Adding set -euo pipefail... (without checking if script is compatible)"
+> "Quoting variables... (without testing for unintended changes)"
+>
+> **Correct Pattern:**
+> "Let me check your script's current error handling first."
+> [reads script, checks for existing patterns, runs shellcheck]
+> "I see you're missing error handling. Adding set -euo pipefail and trap handlers..."
 
 ## Response Template
 ```

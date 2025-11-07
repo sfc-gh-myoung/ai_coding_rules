@@ -1,8 +1,7 @@
-**Keywords:** Data loading, stages, COPY INTO, CSV load, JSON load, Parquet, file formats, bulk loading, stage management
+**Keywords:** Data loading, stages, COPY INTO, CSV load, JSON load, Parquet, file formats, bulk loading, stage management, SQL, Snowflake, ON_ERROR, FILE_FORMAT, COPY_HISTORY, PUT, GET
+**TokenBudget:** ~950
+**ContextTier:** High
 **Depends:** 100-snowflake-core
-
-**TokenBudget:** ~200
-**ContextTier:** Medium
 
 # Snowflake Data Loading
 
@@ -20,6 +19,35 @@ Provide comprehensive best practices for efficiently staging and bulk loading da
 - Use COPY INTO for bulk, scheduled, and one-time loads; target 100–250MB compressed files.
 - For continuous near-real-time ingestion, use Snowpipe (see `121-snowflake-snowpipe.md`).
 - Prepare semi-structured data for subcolumnarization; be explicit about ON_ERROR and file formats.
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Stage files first:** CREATE STAGE before loading data
+- **Use COPY INTO for bulk loads** - scheduled/one-time batch loading
+- **Target 100-250MB compressed file sizes** - optimal performance and cost
+- **Be explicit about error handling:** `ON_ERROR = CONTINUE | SKIP_FILE | ABORT_STATEMENT`
+- **Specify file format:** `FILE_FORMAT = (TYPE = 'CSV' SKIP_HEADER = 1 ...)`
+- **For continuous ingestion, use Snowpipe** - see 121-snowflake-snowpipe.md
+- **Don't use COPY INTO for real-time streaming** - use Snowpipe instead
+
+**Quick Checklist:**
+- [ ] CREATE STAGE (internal or external)
+- [ ] Prepare files: 100-250MB compressed, consistent schema
+- [ ] Create FILE_FORMAT with explicit options
+- [ ] COPY INTO with FILE_FORMAT and ON_ERROR specified
+- [ ] Verify loaded row count matches expected
+- [ ] Check COPY_HISTORY for errors
+- [ ] If continuous ingestion needed, use Snowpipe (121)
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. Read existing STAGE definitions BEFORE making recommendations
+> 2. Verify file format (CSV, JSON, Parquet) matches actual data
+> 3. Never speculate about file structure - check sample files
+> 4. Review COPY_HISTORY for actual load patterns and errors
+> 5. Make grounded recommendations based on investigated stage and file metadata
 
 ## 1. Stages
 - **Requirement:** Stage data files in an internal or external stage before loading.

@@ -1,8 +1,7 @@
-**Keywords:** Snowpipe, Snowpipe Streaming, continuous ingestion, real-time loading, auto-ingest, streaming data, micro-batching
+**Keywords:** Snowpipe, Snowpipe Streaming, continuous ingestion, real-time loading, auto-ingest, streaming data, micro-batching, file-based ingestion, SDK, event notifications, COPY INTO
+**TokenBudget:** ~5750
+**ContextTier:** High
 **Depends:** 100-snowflake-core, 108-snowflake-data-loading, 104-snowflake-streams-tasks
-
-**TokenBudget:** ~2200
-**ContextTier:** comprehensive
 
 # Snowflake Snowpipe and Snowpipe Streaming
 
@@ -13,6 +12,27 @@ Establish comprehensive best practices for continuous data ingestion using Snowf
 
 - **Type:** Agent Requested
 - **Scope:** Snowpipe serverless (auto-ingest and REST API) and Snowpipe Streaming (high-performance and classic architectures) for continuous data loading
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Choose ingestion method** - Auto-ingest for event-driven, REST for programmatic, Streaming for low-latency
+- **Optimize file sizes** - 100-250MB compressed for Snowpipe
+- **Configure cloud events** - SNS/Event Grid/Pub/Sub for auto-ingest
+- **Validate COPY statements** - Test before pipe creation
+- **Monitor load history** - Track latency, errors, costs
+- **Set up error notifications** - Alert on ingestion failures
+- **Never use for bulk loads** - Use COPY INTO for historical data
+
+**Quick Checklist:**
+- [ ] Ingestion pattern determined
+- [ ] File sizes optimized (100-250MB)
+- [ ] Cloud storage configured
+- [ ] Stages created with permissions
+- [ ] COPY statement validated
+- [ ] Pipe created and tested
+- [ ] Monitoring queries configured
 
 ## Contract
 - **Inputs/Prereqs:** Snowflake account with pipe creation privileges (`CREATE PIPE`); configured stages (internal or external); target tables with appropriate schema; cloud storage with event notifications (for auto-ingest); Snowpipe Streaming SDK setup (for streaming)
@@ -926,6 +946,23 @@ ORDER BY start_time DESC;
 ## Validation
 - **Success Checks:** Pipe created successfully and shows in SHOW PIPES; files loading automatically (auto-ingest) or via REST API/SDK; load history shows successful inserts; latency within requirements (<2 min for file-based, <1 sec for streaming); no duplicate data; error rate acceptable (<5%); cost per GB within expected range
 - **Negative Tests:** Pipe creation fails without proper privileges; files not loading due to misconfigured notifications; duplicate loads when mixing bulk and Snowpipe; high latency with undersized files (<1MB); excessive costs with micro-batches; schema errors with missing columns; offset tracking failures in streaming
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read existing pipes BEFORE creating new ones** - Check SHOW PIPES, understand patterns, file sizes
+> 2. **Verify cloud storage setup** - Check stages, permissions, event notifications configuration
+> 3. **Never assume file patterns** - List stage to understand actual file sizes and frequency
+> 4. **Check COPY statement** - Test COPY INTO manually before creating pipe
+> 5. **Monitor first loads** - Verify latency and error rates after pipe creation
+>
+> **Anti-Pattern:**
+> "Creating Snowpipe... (without testing COPY statement first)"
+> "Using Snowpipe for bulk load... (wrong tool for the job)"
+>
+> **Correct Pattern:**
+> "Let me check your existing ingestion setup first."
+> [reads existing pipes, checks stages, tests COPY statement]
+> "I see you use auto-ingest with 200MB files. Creating new pipe following this pattern..."
 
 ## Response Template
 ```sql

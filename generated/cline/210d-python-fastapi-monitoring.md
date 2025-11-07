@@ -1,10 +1,9 @@
 <!-- Generated for Cline rules. See https://docs.cline.bot/features/cline-rules -->
 
-**Keywords:** FastAPI monitoring, health checks, logging, metrics, caching, Redis, observability
-**Depends:** 210-python-fastapi-core
-
-**TokenBudget:** ~950
+**Keywords:** FastAPI monitoring, health checks, logging, metrics, caching, Redis, observability, structured logging, health endpoints, correlation IDs
+**TokenBudget:** ~2050
 **ContextTier:** Medium
+**Depends:** 210-python-fastapi-core
 
 # FastAPI Monitoring and Performance
 
@@ -16,6 +15,25 @@ Establish monitoring, logging, and performance optimization patterns for FastAPI
 - **Type:** Agent Requested
 - **Scope:** FastAPI health checks, logging, monitoring, and performance optimization patterns
 
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Implement /health endpoint** - Required for load balancers and orchestration
+- **Use structured JSON logging** - Include correlation IDs for distributed tracing
+- **Add caching strategically** - Use Redis for frequently accessed data
+- **Monitor database connections** - Check and log connection pool health
+- **Track request metrics** - Response times, error rates, throughput
+- **Never log sensitive data** - Sanitize credentials, tokens, PII from logs
+
+**Quick Checklist:**
+- [ ] /health endpoint returns 200 with status details
+- [ ] Structured logging configured (JSON format)
+- [ ] Correlation IDs in all log entries
+- [ ] Caching implemented for read-heavy endpoints
+- [ ] Database health checks in /health response
+- [ ] Error tracking and alerting configured
+- [ ] Performance metrics collected
 
 ## Key Principles
 1. **Health Monitoring** - Implement comprehensive health checks for load balancers and orchestration
@@ -401,6 +419,23 @@ class Settings(BaseSettings):
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read existing health endpoints BEFORE adding monitoring** - Check if /health or similar already exists
+> 2. **Check logging configuration** - Read existing logging setup, format, handlers
+> 3. **Never assume monitoring stack** - Check if Redis, Prometheus, or other tools are available
+> 4. **Verify middleware order** - Read app initialization to understand middleware stack
+> 5. **Test health checks** - Ensure they don't cause cascading failures
+>
+> **Anti-Pattern:**
+> "Adding /health endpoint... (without checking if it exists)"
+> "Configuring Redis caching... (without verifying Redis is available)"
+>
+> **Correct Pattern:**
+> "Let me check your existing monitoring setup first."
+> [reads app files, checks for health endpoints, reviews logging config]
+> "I see you have basic health checks. Enhancing with database status and caching metrics..."
 
 ## Response Template
 ```

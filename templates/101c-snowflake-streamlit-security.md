@@ -1,19 +1,15 @@
 **Description:** Security patterns, input validation, and secrets management for Streamlit applications
+**Type:** Agent Requested
 **AppliesTo:** `**/*.py`, `streamlit/**/*`, `.streamlit/secrets.toml`
 **AutoAttach:** false
-**Type:** Agent Requested
 **Keywords:** Streamlit security, secrets management, st.secrets, input validation, XSS protection, SQL injection, authentication
-**Version:** 1.1
-**LastUpdated:** 2025-10-13
+**TokenBudget:** ~2550
+**ContextTier:** High
+**Version:** 1.2
+**LastUpdated:** 2025-11-06
 **Depends:** 101-snowflake-streamlit-core, 107-snowflake-security-governance
 
-**TokenBudget:** ~400
-**ContextTier:** standard
-
 # Streamlit Security: Input Validation and Secrets Management
-
-> **Section Metadata**  
-> Token Budget: ~400 | Context Tier: standard | Priority: high
 
 ## Purpose
 Provide comprehensive security guidance for Streamlit applications including input validation, secrets management, authentication patterns, and security best practices to prevent common vulnerabilities.
@@ -25,14 +21,14 @@ Provide comprehensive security guidance for Streamlit applications including inp
 
 ## Contract
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Inputs/Prereqs:** Streamlit app configured (see 101-snowflake-streamlit-core.md), st.secrets configured, understanding of security principles
 - **Allowed Tools:** st.secrets, st.text_input(), st.number_input(), st.file_uploader(), st.session_state (for auth state), type hints, validation functions
 
-**❌ FORBIDDEN:**
+**FORBIDDEN:**
 - **Forbidden Tools:** Hardcoded credentials, unvalidated user inputs, raw SQL string interpolation, exposing secrets in logs or UI, storing passwords in plain text
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Required Steps:**
   1. Use st.secrets for ALL credentials (API keys, passwords, tokens)
   2. Validate and sanitize all user inputs before processing
@@ -51,10 +47,31 @@ Provide comprehensive security guidance for Streamlit applications including inp
 - **Authentication:** Implement proper auth for sensitive applications
 - **Deployment Security:** Use HTTPS, RBAC, audit logging
 
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Use st.secrets for ALL credentials** - API keys, passwords, tokens (never hardcode)
+- **Validate user inputs:** Use `st.number_input(min_value=..., max_value=...)` with bounds
+- **Parameterized queries:** Use session.sql("SELECT * FROM ? WHERE id = ?", params) to prevent SQL injection
+- **File upload limits:** Validate file type, size, and content before processing
+- **Error handling:** Never expose secrets in error messages or logs
+- **Use HTTPS in production:** Deploy with TLS/SSL for encrypted connections
+- **Never hardcode credentials** - always use st.secrets or environment variables
+
+**Quick Checklist:**
+- [ ] All credentials in `.streamlit/secrets.toml` (not in code)
+- [ ] Numeric inputs have min/max bounds
+- [ ] File uploads validated (type, size, content)
+- [ ] Database queries use parameterized statements
+- [ ] Error messages don't expose secrets
+- [ ] Authentication implemented for sensitive apps
+- [ ] HTTPS configured for production deployment
+
 ## 1. Secrets Management
 
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Mandatory:** Use `st.secrets` for all sensitive configuration (API keys, passwords, tokens)
 - **Mandatory:** Never hardcode credentials in source code
 - **Always:** For SiS, use Snowflake secrets management
@@ -72,7 +89,7 @@ except KeyError as e:
     st.error(f"Missing required secret: {e}")
     st.stop()
 
-# ❌ Never do this
+# Never do this
 api_key = "sk-1234567890abcdef"  # Hardcoded secret!
 password = "my_password"  # Security violation!
 ```
@@ -96,17 +113,17 @@ user = "your_user"
 password = "your_password"
 ```
 
-**❌ FORBIDDEN:**
+**FORBIDDEN:**
 **Security Rules:**
-- ❌ Never commit secrets.toml to version control (add to .gitignore)
-- ❌ Never log secrets or expose them in error messages
-- ❌ Never display secrets in UI (even in debug mode)
-- ❌ Never pass secrets in URL parameters
+- Never commit secrets.toml to version control (add to .gitignore)
+- Never log secrets or expose them in error messages
+- Never display secrets in UI (even in debug mode)
+- Never pass secrets in URL parameters
 
 ## 2. Input Validation
 
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Mandatory:** Validate and sanitize all user inputs before processing
 - **Mandatory:** Use type hints and validation for structured inputs
 - **Always:** Set reasonable bounds on numeric inputs (min, max values)
@@ -183,10 +200,10 @@ if uploaded_file:
 
 ## 3. SQL Injection Prevention
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 **Always use parameterized queries to prevent SQL injection:**
 
-**❌ Vulnerable Pattern (Never Do This):**
+**Vulnerable Pattern (Never Do This):**
 ```python
 # DANGEROUS: SQL injection vulnerability
 user_input = st.text_input("Enter user ID")
@@ -194,7 +211,7 @@ query = f"SELECT * FROM users WHERE id = '{user_input}'"  # VULNERABLE!
 result = session.sql(query).to_pandas()
 ```
 
-**✅ Secure Pattern:**
+**Secure Pattern:**
 ```python
 # ✓ Safe: Use parameterized queries or query builders
 user_input = st.text_input("Enter user ID")
@@ -212,7 +229,7 @@ else:
 
 ## 4. Authentication and Authorization
 
-**✅ RECOMMENDED:**
+**RECOMMENDED:**
 **For sensitive applications, implement authentication:**
 
 ```python
@@ -259,7 +276,7 @@ st.write(f"Welcome, {st.session_state.username}!")
 
 ## 5. Error Handling and Logging
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 **Show user-friendly errors, never expose secrets or stack traces:**
 
 ```python
@@ -277,7 +294,7 @@ except Exception as e:
         # Show sanitized error info
         st.code(f"Error type: {type(e).__name__}")
 
-# ❌ Never do this
+# Never do this
 try:
     result = risky_operation()
 except Exception as e:
@@ -287,7 +304,7 @@ except Exception as e:
 
 ## 6. Deployment Security
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 **Production Deployment Checklist:**
 - [ ] Deploy using HTTPS (never HTTP for production)
 - [ ] Use Snowflake RBAC for data access control
@@ -300,7 +317,7 @@ except Exception as e:
 
 ## Anti-Patterns and Common Mistakes
 
-**❌ Anti-Pattern 1: Hardcoding credentials**
+**Anti-Pattern 1: Hardcoding credentials**
 ```python
 # NEVER DO THIS
 API_KEY = "sk-1234567890"
@@ -309,7 +326,7 @@ SNOWFLAKE_ACCOUNT = "my_account"
 ```
 **Problem:** Credentials exposed in source code, version control, and deployment artifacts
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 # Use st.secrets
 try:
@@ -320,7 +337,7 @@ except KeyError as e:
     st.stop()
 ```
 
-**❌ Anti-Pattern 2: No input validation**
+**Anti-Pattern 2: No input validation**
 ```python
 # Accepts any input without validation
 user_id = st.text_input("Enter user ID")
@@ -328,7 +345,7 @@ query = f"SELECT * FROM users WHERE id = '{user_id}'"  # SQL injection!
 ```
 **Problem:** SQL injection vulnerability, potential data breach
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 # Validate and use safe query methods
 user_id = st.text_input("Enter user ID")
@@ -338,7 +355,7 @@ else:
     st.error("Invalid user ID format (must be numeric)")
 ```
 
-**❌ Anti-Pattern 3: Exposing secrets in error messages**
+**Anti-Pattern 3: Exposing secrets in error messages**
 ```python
 try:
     conn = connect(password=db_password)
@@ -347,7 +364,7 @@ except Exception as e:
 ```
 **Problem:** Error messages may contain secrets from exception details
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 try:
     conn = connect(password=db_password)
@@ -356,14 +373,14 @@ except Exception as e:
     # Log internally without exposing to user
 ```
 
-**❌ Anti-Pattern 4: No file upload limits**
+**Anti-Pattern 4: No file upload limits**
 ```python
 uploaded_file = st.file_uploader("Upload file")
 df = pd.read_csv(uploaded_file)  # No size or type validation!
 ```
 **Problem:** Can accept huge files (DoS) or malicious content
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 uploaded_file = st.file_uploader("Upload CSV", type=['csv'])
 if uploaded_file:
@@ -387,7 +404,7 @@ if uploaded_file:
 - **Success Checks:** Secrets loaded without errors, invalid inputs rejected with clear messages, file upload limits enforced, SQL injection attempts fail, error messages user-friendly without secrets
 - **Negative Tests:** Try uploading oversized file (should reject), test SQL injection attempt (should fail safely), remove secret (should show graceful error), expose error with secrets (should be sanitized)
 
-> **⚠️ Investigation Required**  
+> **Investigation Required**  
 > When applying this rule:
 > 1. Read secrets.toml and verify configuration (if accessible)
 > 2. Check all st.text_input, st.number_input, st.file_uploader for validation

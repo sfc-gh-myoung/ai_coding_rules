@@ -11,7 +11,7 @@ During deployment, {rule_path} is automatically replaced with the appropriate pa
 for the target agent type. This ensures rules work correctly in any deployment context.
 -->
 
-# 🚨 CRITICAL: MANDATORY RULE LOADING FOR ALL RESPONSES
+# CRITICAL: MANDATORY RULE LOADING FOR ALL RESPONSES
 
 **BEFORE ANY RESPONSE, AI ASSISTANTS MUST:**
 
@@ -54,11 +54,11 @@ for the target agent type. This ensures rules work correctly in any deployment c
 ## Verification Protocol
 
 Before proceeding with ANY task, confirm:
-- ✅ **Foundation loaded**: 000-global-core.md read successfully
-- ✅ **Domain identified**: Technology-specific rules identified from task keywords
-- ✅ **Dependencies resolved**: Prerequisites loaded before dependent rules (check "Depends On" column)
-- ✅ **Token budget tracked**: Cumulative tokens within recommended limits (see token budget table)
-- ✅ **Rules stated**: Loaded rules explicitly listed at start of response
+- **Foundation loaded**: 000-global-core.md read successfully
+- **Domain identified**: Technology-specific rules identified from task keywords
+- **Dependencies resolved**: Prerequisites loaded before dependent rules (check "Depends On" column)
+- **Token budget tracked**: Cumulative tokens within recommended limits (see token budget table)
+- **Rules stated**: Loaded rules explicitly listed at start of response
 
 **If any check fails**: 
 - STOP and inform user which requirement failed
@@ -75,7 +75,7 @@ Before proceeding with ANY task, confirm:
 [Then proceed with response...]
 ```
 
-**Example: Correct Approach ✅**
+**Example: Correct Approach **
 ```
 User: Fix the Streamlit fragment batch processing
 AI: Let me load the relevant rules first:
@@ -87,7 +87,7 @@ AI: Let me load the relevant rules first:
     Rules loaded. Now analyzing the issue against fragment best practices...
 ```
 
-**Example: Incorrect Approach ❌**
+**Example: Incorrect Approach **
 ```
 User: Fix the Streamlit fragment batch processing
 AI: *immediately starts debugging code without loading rules*

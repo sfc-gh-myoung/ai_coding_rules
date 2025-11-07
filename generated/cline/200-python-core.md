@@ -1,10 +1,9 @@
 <!-- Generated for Cline rules. See https://docs.cline.bot/features/cline-rules -->
 
-**Keywords:** Python, uv, Ruff, pyproject.toml, dependency management, virtual environments, modern Python tooling
+**Keywords:** Python, uv, Ruff, pyproject.toml, dependency management, virtual environments, modern Python tooling, pytest, validation, uv run, uvx, datetime.now(UTC)
+**TokenBudget:** ~2400
+**ContextTier:** Critical
 **Depends:** 000-global-core
-
-**TokenBudget:** ~450
-**ContextTier:** High
 
 # Python Core Engineering Directives
 
@@ -35,6 +34,16 @@ Establish foundational Python development practices using modern tooling like `u
 - Apply Ruff linting and formatting on every file modification
 - Structure code with clear modules, proper error handling, and modern Python patterns
 - Integrate with Taskfile for consistent automation across projects
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Always use `uv run`** for Python execution - never bare `python` command
+- **Use `uvx ruff check .` and `uvx ruff format .`** before completing tasks
+- **Run `uv run pytest`** - all tests must pass before completion
+- **Use `datetime.now(UTC)`** not deprecated `datetime.utcnow()`
+- **Never skip validation** - ruff check, ruff format, pytest must all pass
 
 ## 1. Environment & Tooling
 - **Requirement:** Use `uv` for all dependency and environment management.
@@ -217,6 +226,23 @@ ruff check .                        # Should use uvx for isolation
 - **Tests:** `uv run pytest` (all tests must pass)
 - **Documentation:** CHANGELOG.md and README.md updated as required
 - **Import Check:** `uv run python -c "import importlib; print('ok')"`
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read pyproject.toml BEFORE making recommendations** - Check existing dependencies, Python version, tool configurations
+> 2. **Verify uv is available** - Check if project uses uv or needs setup instructions
+> 3. **Never speculate about project structure** - Use list_dir to understand src/ vs flat layout
+> 4. **Check existing tests** - Read conftest.py, test files to understand test patterns
+> 5. **Make grounded recommendations based on investigated project setup** - Match existing patterns and tooling
+>
+> **Anti-Pattern:**
+> "Based on typical Python projects, you probably use this structure..."
+> "Let me add this dependency - it should work..."
+>
+> **Correct Pattern:**
+> "Let me check your Python project setup first."
+> [reads pyproject.toml, checks directory structure]
+> "I see you're using uv with Python 3.11 and pytest. Here's how to add the new feature following your existing structure..."
 
 ## References
 

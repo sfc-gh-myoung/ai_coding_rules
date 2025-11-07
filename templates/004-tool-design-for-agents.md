@@ -1,18 +1,15 @@
 **Description:** Token-efficient tool design patterns for AI agents, focusing on minimal overlap, clear contracts, and promoting efficient agent behaviors.
-**AutoAttach:** false
 **Type:** Agent Requested
-**Keywords:** tool design, agent tools, token efficiency, tool parameters, function calling, tool overlap, tool contracts, error handling, minimal tool set, self-contained tools
-**Version:** 1.0
-**LastUpdated:** 2025-10-22
+**AppliesTo:** Tool development files, agent frameworks
+**AutoAttach:** false
+**Keywords:** tool design, agent tools, token efficiency, tool parameters, function calling, tool overlap, tool contracts, error handling, minimal tool set, self-contained tools, LLM-friendly parameters, single responsibility
+**TokenBudget:** ~5000
+**ContextTier:** High
+**Version:** 1.1
+**LastUpdated:** 2025-11-06
 **Depends:** 000-global-core, 003-context-engineering
 
-**TokenBudget:** ~1800
-**ContextTier:** Comprehensive
-
 # Tool Design for AI Agents
-
-> **Section Metadata**  
-> Token Budget: ~1800 | Context Tier: comprehensive | Priority: high
 
 ## Purpose
 Establish comprehensive tool design practices that maximize agent effectiveness through token-efficient outputs, minimal tool overlap, clear contracts, and patterns that promote efficient agent behaviors while maintaining robustness and clarity.
@@ -24,14 +21,14 @@ Establish comprehensive tool design practices that maximize agent effectiveness 
 
 ## Contract
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Inputs/Prereqs:** Understanding of agent capabilities; knowledge of token budgets; awareness of LLM strengths/weaknesses; access to tool development framework
 - **Allowed Tools:** All development tools; testing frameworks; agent evaluation tools
 
-**❌ FORBIDDEN:**
+**FORBIDDEN:**
 - **Forbidden Tools:** Tools that create bloated, redundant tool sets without clear boundaries
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Required Steps:**
   1. Design tool with clear, single responsibility
   2. Define unambiguous parameters that play to LLM strengths
@@ -54,6 +51,27 @@ Establish comprehensive tool design practices that maximize agent effectiveness 
 - **Robust Error Handling:** Clear, actionable error messages
 - **Minimal Viable Set:** Curate smallest set of tools that covers use cases
 
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Single responsibility per tool** - One clear purpose, do it extremely well
+- **Token-efficient outputs** - Return only necessary info (not full dumps)
+- **LLM-friendly parameters** - Use semantic names like "query" not mode codes like 0/1/2
+- **Clear contracts** - Explicitly specify inputs, outputs, errors
+- **Minimal overlap** - No ambiguity about which tool to use for a task
+- **Self-contained** - No hidden dependencies or required setup
+- **Never return verbose outputs** - Agents pay token cost for every character returned
+
+**Quick Checklist:**
+- [ ] Tool has single clear purpose (one thing well)
+- [ ] Parameters are unambiguous (semantic names)
+- [ ] Outputs are minimal and actionable
+- [ ] No overlap with existing tools
+- [ ] Clear contract (inputs, outputs, errors specified)
+- [ ] Robust error handling (actionable messages)
+- [ ] Token-efficient (no verbose dumps)
+
 ## 1. Tool Design Fundamentals
 
 ### Single Responsibility Principle
@@ -65,7 +83,7 @@ Establish comprehensive tool design practices that maximize agent effectiveness 
 
 **Example:**
 
-**❌ Bad: Ambiguous Multi-Purpose Tool**
+**Bad: Ambiguous Multi-Purpose Tool**
 ```python
 def file_operation(path: str, operation: str, content: str = None):
     """Perform various file operations"""
@@ -81,7 +99,7 @@ def file_operation(path: str, operation: str, content: str = None):
 ```
 **Problem:** Unclear which operations exist; parameter meanings change; hard to document
 
-**✅ Good: Focused Single-Purpose Tools**
+**Good: Focused Single-Purpose Tools**
 ```python
 def read_file(path: str) -> str:
     """Read and return the complete contents of a file."""
@@ -104,13 +122,13 @@ def search_file(path: str, pattern: str) -> List[Match]:
 
 **Examples:**
 ```python
-# ✅ Good names
+# Good names
 get_user_profile(user_id)
 list_active_sessions()
 create_database_backup(db_name)
 send_email_notification(to, subject, body)
 
-# ❌ Bad names
+# Bad names
 do_user_thing(id, action)  # Vague
 data_ops(params)  # Unclear
 handle(request)  # Too general
@@ -131,7 +149,7 @@ Is there exactly ONE obvious tool for this task?
 **Example of Poor Boundaries:**
 
 ```python
-# ❌ Overlapping tools - which to use?
+# Overlapping tools - which to use?
 def search_codebase(query: str):
     """Search for code matching query"""
     
@@ -146,7 +164,7 @@ def grep_files(pattern: str):
 **Example of Clear Boundaries:**
 
 ```python
-# ✅ Clear, non-overlapping tools
+# Clear, non-overlapping tools
 def grep(pattern: str, path: str = ".") -> List[Match]:
     """Search for exact text pattern in files using ripgrep.
     Use for: Finding specific strings, class names, function calls"""
@@ -163,7 +181,7 @@ def codebase_search(semantic_query: str) -> List[Result]:
 
 **Principle:** Every token in a tool response depletes the agent's attention budget. Return the minimal set of information needed to make progress.
 
-**❌ Anti-Pattern: Verbose Outputs**
+**Anti-Pattern: Verbose Outputs**
 ```python
 def read_file(path: str) -> dict:
     return {
@@ -179,7 +197,7 @@ def read_file(path: str) -> dict:
 ```
 **Problem:** Wastes ~100 tokens on metadata; actual content is obscured
 
-**✅ Correct Pattern: Minimal Necessary Output**
+**Correct Pattern: Minimal Necessary Output**
 ```python
 def read_file(path: str) -> str:
     """Read file and return contents directly.
@@ -202,7 +220,7 @@ def read_file(path: str) -> str:
 
 **For Search Results:**
 ```python
-# ✅ Good: Structured, minimal
+# Good: Structured, minimal
 {
     "matches": [
         {"file": "auth.py", "line": 42, "text": "def login(user):"},
@@ -210,7 +228,7 @@ def read_file(path: str) -> str:
     ]
 }
 
-# ❌ Bad: Verbose, redundant
+# Bad: Verbose, redundant
 {
     "search_results": {
         "query": "login",  # Agent already knows this
@@ -224,12 +242,12 @@ def read_file(path: str) -> str:
 
 **For File Operations:**
 ```python
-# ✅ Good: Success is silent
+# Good: Success is silent
 def write_file(path: str, content: str) -> None:
     # No return value if successful
     # Raises exception if error
     
-# ❌ Bad: Verbose confirmation
+# Bad: Verbose confirmation
 def write_file(path: str, content: str) -> dict:
     return {
         "status": "success",
@@ -283,7 +301,7 @@ def search_documents(
 
 **Design Parameters Accordingly:**
 
-**✅ Good: Semantic, Descriptive Parameters**
+**Good: Semantic, Descriptive Parameters**
 ```python
 def create_task(
     title: str,
@@ -294,7 +312,7 @@ def create_task(
     """Create a task with clear categorical parameters"""
 ```
 
-**❌ Bad: Arbitrary Codes**
+**Bad: Arbitrary Codes**
 ```python
 def create_task(
     title: str,
@@ -310,7 +328,7 @@ def create_task(
 **Parameters should be self-documenting:**
 
 ```python
-# ✅ Good: Clear what each parameter means
+# Good: Clear what each parameter means
 def send_notification(
     recipient_email: str,
     subject: str,
@@ -318,7 +336,7 @@ def send_notification(
     include_timestamp: bool = True
 )
 
-# ❌ Bad: Unclear parameter meanings
+# Bad: Unclear parameter meanings
 def send_notification(
     to: str,  # Email? User ID? Name?
     s: str,  # Subject?
@@ -434,14 +452,14 @@ def create_pull_request(
 
 **Provide Clear, Actionable Errors:**
 
-**❌ Bad Error Messages:**
+**Bad Error Messages:**
 ```python
 raise Exception("Error")  # What error?
 raise ValueError("Invalid input")  # What's invalid?
 raise RuntimeError("Something went wrong")  # What went wrong?
 ```
 
-**✅ Good Error Messages:**
+**Good Error Messages:**
 ```python
 # Specific problem and remediation
 raise ValueError(
@@ -477,12 +495,12 @@ raise PermissionError(
 **Example: Discouraging Blind Loading**
 
 ```python
-# ❌ Bad: Encourages loading everything
+# Bad: Encourages loading everything
 def get_all_files() -> List[str]:
     """Return contents of all files in repository"""
     # Agents will use this and waste context
     
-# ✅ Good: Encourages targeted exploration
+# Good: Encourages targeted exploration
 def search_files(pattern: str, file_type: str = None) -> List[Match]:
     """Search for pattern in specific files.
     
@@ -499,7 +517,7 @@ def read_file(path: str) -> str:
 **Example: Encouraging Incremental Work**
 
 ```python
-# ✅ Good: Supports incremental progress
+# Good: Supports incremental progress
 def run_tests(test_pattern: str = None) -> TestResults:
     """Run specific tests or all tests.
     
@@ -509,7 +527,7 @@ def run_tests(test_pattern: str = None) -> TestResults:
     Allows agent to run relevant tests without full suite.
     """
     
-# ❌ Bad: Forces all-or-nothing
+# Bad: Forces all-or-nothing
 def run_all_tests() -> TestResults:
     """Run entire test suite (may take 10 minutes)"""
     # Agent hesitates to validate changes
@@ -521,7 +539,7 @@ def run_all_tests() -> TestResults:
 1. Provide ONE clear tool for the task
 2. Provide multiple tools with CLEAR use case distinctions
 
-**❌ Bad: Ambiguous Tools**
+**Bad: Ambiguous Tools**
 ```python
 def search_api(query: str, mode: str = "auto"):
     """Search using best mode automatically"""
@@ -532,7 +550,7 @@ def search_api_fast(query: str):
     # When should agent use this vs regular search?
 ```
 
-**✅ Good: Clear Distinctions**
+**Good: Clear Distinctions**
 ```python
 def search_documents(query: str, limit: int = 10) -> List[Result]:
     """Semantic search across all documents.
@@ -696,7 +714,7 @@ Agent gets confused by error messages
 
 ## Anti-Patterns and Common Mistakes
 
-**❌ Anti-Pattern 1: Bloated Tool Sets**
+**Anti-Pattern 1: Bloated Tool Sets**
 ```python
 # 50+ tools covering every edge case
 get_user(), get_user_by_email(), get_user_by_name(), get_user_by_id()
@@ -706,7 +724,7 @@ create_user(), add_user(), register_user(), new_user()
 ```
 **Problem:** Overwhelming; unclear which tool to use; lots of overlap
 
-**✅ Correct Pattern: Focused Minimal Set**
+**Correct Pattern: Focused Minimal Set**
 ```python
 # Small, clear tool set
 get_user(identifier: str) -> User  # Works with ID, email, or username
@@ -717,7 +735,7 @@ delete_user(user_id: str) -> None
 ```
 **Benefits:** Clear which tool to use; each has distinct purpose; easy to learn
 
-**❌ Anti-Pattern 2: Verbose Tool Outputs**
+**Anti-Pattern 2: Verbose Tool Outputs**
 ```python
 def search(query: str) -> dict:
     return {
@@ -738,7 +756,7 @@ def search(query: str) -> dict:
 ```
 **Problem:** Wastes ~50 tokens on metadata; actual results obscured
 
-**✅ Correct Pattern: Minimal Output**
+**Correct Pattern: Minimal Output**
 ```python
 def search(query: str, limit: int = 10) -> List[Result]:
     """Returns up to 'limit' results directly as list"""
@@ -746,7 +764,7 @@ def search(query: str, limit: int = 10) -> List[Result]:
 ```
 **Benefits:** Token efficient; clear and direct; agent gets what it needs
 
-**❌ Anti-Pattern 3: Ambiguous Parameters**
+**Anti-Pattern 3: Ambiguous Parameters**
 ```python
 def process_data(data: str, mode: int, flags: str = ""):
     """Process data with mode and flags
@@ -757,7 +775,7 @@ def process_data(data: str, mode: int, flags: str = ""):
 ```
 **Problem:** Agent must memorize arbitrary codes; unclear what flags are available
 
-**✅ Correct Pattern: Semantic Parameters**
+**Correct Pattern: Semantic Parameters**
 ```python
 def process_data(
     data: str,
@@ -769,7 +787,7 @@ def process_data(
 ```
 **Benefits:** Self-documenting; agent understands options; no memorization needed
 
-**❌ Anti-Pattern 4: Missing Error Context**
+**Anti-Pattern 4: Missing Error Context**
 ```python
 def api_call(endpoint: str) -> dict:
     response = requests.get(endpoint)
@@ -779,7 +797,7 @@ def api_call(endpoint: str) -> dict:
 ```
 **Problem:** Agent doesn't know what went wrong or how to fix it
 
-**✅ Correct Pattern: Actionable Errors**
+**Correct Pattern: Actionable Errors**
 ```python
 def api_call(endpoint: str) -> dict:
     try:
@@ -801,7 +819,7 @@ def api_call(endpoint: str) -> dict:
 ```
 **Benefits:** Agent knows exactly what happened; can take corrective action
 
-**❌ Anti-Pattern 5: Tools That Assume Context**
+**Anti-Pattern 5: Tools That Assume Context**
 ```python
 # Bad: Assumes agent remembers previous results
 def get_next_page() -> List[Result]:
@@ -810,7 +828,7 @@ def get_next_page() -> List[Result]:
 ```
 **Problem:** Stateful tools break when context resets; agent gets confused
 
-**✅ Correct Pattern: Stateless Tools**
+**Correct Pattern: Stateless Tools**
 ```python
 def search(query: str, page: int = 1, limit: int = 10) -> SearchResponse:
     """Search with explicit pagination.
@@ -845,6 +863,23 @@ def search(query: str, page: int = 1, limit: int = 10) -> SearchResponse:
 
 - **Success Checks:** Agent can discover which tool to use; parameters are unambiguous; outputs are token-efficient; no tool overlap causes confusion; error messages enable self-correction; tool set covers needs without bloat; agent follows efficient patterns; tools are self-contained and stateless
 - **Negative Tests:** Ambiguous tool boundaries cause agent confusion; verbose outputs waste attention budget; opaque parameter names require memorization; vague error messages prevent correction; bloated tool sets overwhelm agent; stateful tools break after context reset
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Review existing tool set BEFORE adding new tools** - Check for overlap, identify gaps
+> 2. **Test tool outputs for token efficiency** - Measure actual token counts, not theoretical
+> 3. **Never assume tool behavior** - Run tools with test inputs to verify outputs
+> 4. **Verify tool contracts match implementation** - Check parameter types, return values, error handling
+> 5. **Make grounded recommendations based on investigated tool behavior** - Don't suggest tools without understanding their actual outputs
+>
+> **Anti-Pattern:**
+> "Based on typical tool design, this probably returns a JSON object..."
+> "Let me add a new tool for this - it shouldn't overlap with existing ones..."
+>
+> **Correct Pattern:**
+> "Let me check the existing tools first to see if any handle this use case."
+> [reviews tool specifications and tests relevant tools]
+> "I see tool X already handles part of this, but returns 500+ token outputs. Here's a new token-efficient tool that complements it without overlap..."
 
 ## Response Template
 

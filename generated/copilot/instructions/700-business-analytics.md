@@ -7,16 +7,12 @@ appliesTo:
 ---
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
-**Keywords:** Business intelligence, dashboards, KPIs, reporting, visualization, stakeholder reports, metrics
+**Keywords:** Business intelligence, dashboards, KPIs, reporting, visualization, stakeholder reports, metrics, Snowsight, executive dashboards, data storytelling, WCAG accessibility
+**TokenBudget:** ~6400
+**ContextTier:** High
 **Depends:** None
 
-**TokenBudget:** ~2300
-**ContextTier:** comprehensive
-
 # Business Analytics & Reporting Directives
-
-> **Section Metadata**  
-> Token Budget: ~700 | Context Tier: high | Priority: high
 
 ## Purpose
 Provide comprehensive directives for creating business-oriented queries, reports, dashboards, and visualizations targeted at non-technical stakeholders, emphasizing clarity, actionable insights, ethical presentation, accessibility, effective data storytelling, and Snowflake-native dashboard capabilities.
@@ -26,9 +22,30 @@ Provide comprehensive directives for creating business-oriented queries, reports
 - **Type:** Agent Requested
 - **Scope:** Business-oriented queries, reports, visualizations, and dashboards for business audience consumption across executive, director, analyst, and operational roles
 
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Business language first** - Use terminology stakeholders understand
+- **Clear KPI definitions** - Document every metric calculation
+- **WCAG AA accessibility** - Color contrast, screen readers, keyboard nav
+- **F-pattern layout** - Key insights top-left for executive dashboards
+- **Show data freshness** - Display "Last updated" prominently
+- **Explicit columns** - Never SELECT * in production queries
+- **Never mislead** - No truncated axes, 3D effects, or ambiguous charts
+
+**Quick Checklist:**
+- [ ] Business terminology used
+- [ ] KPIs clearly defined
+- [ ] WCAG 2.1 AA compliant
+- [ ] F-pattern layout (execs) or Z-pattern (analysts)
+- [ ] Data freshness indicator
+- [ ] Explicit column selection
+- [ ] Charts tested for clarity
+
 ## Contract
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Inputs/Prereqs:**
   - Snowflake connection with read access to business-facing views/tables
   - Understanding of target audience (C-Level, Directors, Analysts, Operations)
@@ -44,7 +61,7 @@ Provide comprehensive directives for creating business-oriented queries, reports
   - **Layout:** F-pattern, Z-pattern, responsive grid systems
   - **Accessibility:** WCAG 2.1 AA compliant colors, screen reader support, keyboard navigation
 
-**❌ FORBIDDEN:**
+**FORBIDDEN:**
 - **Forbidden Tools:**
   - Technical jargon without business translation
   - SELECT * in production queries (use explicit columns)
@@ -53,7 +70,7 @@ Provide comprehensive directives for creating business-oriented queries, reports
   - Undocumented metrics or calculations
   - Unqualified object names (always use DATABASE.SCHEMA.TABLE)
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Required Steps:**
   1. **Understand audience:** Identify stakeholder role and information needs
   2. **Investigate data:** Verify actual table schemas, data volumes, freshness
@@ -98,7 +115,7 @@ Provide comprehensive directives for creating business-oriented queries, reports
 
 ## 1. Audience Segmentation & Tailoring
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 ### Dashboard Design by Audience
 
@@ -140,7 +157,7 @@ elif user_role == 'analyst':
 
 ## 2. Dashboard Layout & Visual Hierarchy
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 ### F-Pattern Layout (Standard Dashboard)
 
@@ -193,7 +210,7 @@ elif user_role == 'analyst':
 
 ### Information Density Guidelines
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 - **5-7 visualizations maximum** per dashboard page
 - **4-7 KPIs** prominently displayed (more dilutes focus)
@@ -221,7 +238,7 @@ with tab3:
 
 ## 3. Visualization Selection Framework
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 ### Comprehensive Chart Type Decision Matrix
 
@@ -317,9 +334,9 @@ st.plotly_chart(fig)
 
 ### Chart Selection Anti-Patterns
 
-**❌ FORBIDDEN:**
+**FORBIDDEN:**
 
-**❌ Never:**
+**Never:**
 - **3D pie charts** (distorts proportions)
 - **Pie charts with >5 slices** (hard to compare)
 - **Dual Y-axes with vastly different scales** (unless clearly marked and justified)
@@ -328,17 +345,17 @@ st.plotly_chart(fig)
 
 ## 4. Ethical Visualization Standards
 
-**❌ FORBIDDEN:**
+**FORBIDDEN:**
 
 ### Forbidden Manipulations
 
 **Never truncate Y-axis without clear visual indicators:**
 ```python
-# ❌ BAD: Misleading truncation
+# BAD: Misleading truncation
 fig = go.Figure(go.Bar(x=['Q1', 'Q2', 'Q3'], y=[95000, 96000, 97000]))
 fig.update_yaxis(range=[94000, 98000])  # Makes 3% look like 300%!
 
-# ✅ GOOD: Include zero baseline or add break indicator
+# GOOD: Include zero baseline or add break indicator
 fig = go.Figure(go.Bar(x=['Q1', 'Q2', 'Q3'], y=[95000, 96000, 97000]))
 fig.update_yaxis(range=[0, 100000])
 fig.add_annotation(
@@ -350,11 +367,11 @@ fig.add_annotation(
 
 **Never cherry-pick date ranges without disclosure:**
 ```sql
--- ❌ BAD: Showing only favorable period
+-- BAD: Showing only favorable period
 SELECT * FROM sales 
 WHERE order_date BETWEEN '2024-03-01' AND '2024-03-31';  -- Best month only
 
--- ✅ GOOD: Show full context with annotation
+-- GOOD: Show full context with annotation
 SELECT 
     DATE_TRUNC('month', order_date) AS month,
     SUM(sales_amount) AS total_sales
@@ -368,10 +385,10 @@ ORDER BY 1;
 
 **Never use 3D effects that distort proportions:**
 ```python
-# ❌ FORBIDDEN: 3D pie chart
+# FORBIDDEN: 3D pie chart
 # 3D perspective makes front slices appear larger
 
-# ✅ CORRECT: 2D pie or donut chart with clear labels
+# CORRECT: 2D pie or donut chart with clear labels
 fig = go.Figure(go.Pie(
     labels=['Product A', 'Product B', 'Product C'],
     values=[40, 35, 25],
@@ -383,7 +400,7 @@ fig = go.Figure(go.Pie(
 
 ### Required Disclosures
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 **Data Freshness:**
 ```python
@@ -399,7 +416,7 @@ st.caption(f"📅 Data as of: {last_update.strftime('%Y-%m-%d %H:%M')} ({hours_a
 **Sample Size & Confidence:**
 ```python
 # Show statistical confidence for surveys/samples
-st.info(f"📊 Based on {len(df):,} responses | Margin of error: ±{margin_of_error:.1%} at 95% confidence")
+st.info(f"Based on {len(df):,} responses | Margin of error: ±{margin_of_error:.1%} at 95% confidence")
 ```
 
 **Filters & Exclusions:**
@@ -412,7 +429,7 @@ if date_range != default_range:
     active_filters.append(f"Date: {date_range}")
 
 if active_filters:
-    st.warning(f"⚠️ Active filters: {', '.join(active_filters)}")
+    st.warning(f"Active filters: {', '.join(active_filters)}")
 ```
 
 **Data Quality Warnings:**
@@ -420,16 +437,16 @@ if active_filters:
 # Show data quality status
 quality_score = calculate_quality_score(df)
 if quality_score < 0.9:
-    st.error(f"🚨 Data quality: {quality_score:.0%} | Review {issues_count} flagged records before making decisions")
+    st.error(f"Data quality: {quality_score:.0%} | Review {issues_count} flagged records before making decisions")
 elif quality_score < 0.95:
-    st.warning(f"⚠️ Data quality: {quality_score:.0%} | Some incomplete records present")
+    st.warning(f"Data quality: {quality_score:.0%} | Some incomplete records present")
 else:
-    st.success(f"✅ Data quality: {quality_score:.0%} | All checks passed")
+    st.success(f"Data quality: {quality_score:.0%} | All checks passed")
 ```
 
 ## 5. Accessibility (WCAG 2.1 AA Compliance)
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 ### Color Contrast Requirements
 
@@ -442,7 +459,7 @@ else:
 
 **Example Compliant Colors:**
 ```python
-# ✅ WCAG AA compliant color palette
+# WCAG AA compliant color palette
 ACCESSIBLE_PALETTE = {
     'primary': '#0173B2',      # Blue (contrast: 8.59:1 on white)
     'secondary': '#DE8F05',    # Orange (contrast: 5.47:1)
@@ -455,16 +472,16 @@ ACCESSIBLE_PALETTE = {
 
 ### Colorblind-Safe Design
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 **Never rely on color alone for information:**
 ```python
-# ❌ BAD: Red/green only (8% of males are red-green colorblind)
+# BAD: Red/green only (8% of males are red-green colorblind)
 fig = go.Figure()
 fig.add_trace(go.Bar(x=categories, y=profits, name='Profit', marker_color='green'))
 fig.add_trace(go.Bar(x=categories, y=losses, name='Loss', marker_color='red'))
 
-# ✅ GOOD: Color + icons + patterns
+# GOOD: Color + icons + patterns
 fig = go.Figure()
 fig.add_trace(go.Bar(
     x=categories, y=profits, 
@@ -514,7 +531,7 @@ fig.update_layout(
 **Provide data table alternatives:**
 ```python
 # Always offer data table for screen readers
-with st.expander("📊 View Data Table (Accessible Format)"):
+with st.expander("View Data Table (Accessible Format)"):
     st.dataframe(
         df,
         use_container_width=True,
@@ -533,7 +550,7 @@ with st.expander("📊 View Data Table (Accessible Format)"):
 
 ### Keyboard Navigation
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 **Ensure all interactive elements are keyboard accessible:**
 - Tab: Navigate between elements
@@ -550,7 +567,7 @@ with st.expander("📊 View Data Table (Accessible Format)"):
 
 ## 6. Data Storytelling Framework
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 ### Narrative Structure: Situation-Complication-Resolution
 
@@ -601,7 +618,7 @@ with st.expander("📈 Detailed Regional Analysis"):
 **Top of every report/dashboard:**
 ```python
 st.markdown("""
-### 📋 Executive Summary
+### Executive Summary
 
 **Key Takeaways:**
 1. 🎯 **Revenue exceeded target by 15%** ($17.2M vs $15M goal)
@@ -615,7 +632,7 @@ st.markdown("""
 
 ## 7. Snowflake-Native Dashboard Patterns
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 ### Snowsight Dashboards
 
@@ -710,12 +727,12 @@ slow_queries = session.sql("""
 """).to_pandas()
 
 if not slow_queries.empty:
-    st.warning(f"⚠️ {len(slow_queries)} slow queries detected. Review Query Profile.")
+    st.warning(f"{len(slow_queries)} slow queries detected. Review Query Profile.")
 ```
 
 ## 8. Metric Definition & Documentation
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 ### Metric Catalog Standard
 
@@ -793,7 +810,7 @@ with st.expander("💡 How is this calculated?"):
 ## Anti-Patterns and Common Mistakes
 
 
-**❌ Anti-Pattern 1: Cluttered Dashboard (Too Many Visualizations)**
+**Anti-Pattern 1: Cluttered Dashboard (Too Many Visualizations)**
 ```python
 # BAD: 15 charts on one page
 st.plotly_chart(chart1)
@@ -806,7 +823,7 @@ st.plotly_chart(chart2)
 - Unclear what's most important
 - Slow dashboard load times
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 # GOOD: 5-7 focused visualizations with tabs for details
 # Main page: Executive summary
@@ -830,7 +847,7 @@ with tab1:
 
 ---
 
-**❌ Anti-Pattern 2: Technical Jargon Without Business Translation**
+**Anti-Pattern 2: Technical Jargon Without Business Translation**
 ```sql
 -- BAD: Technical column names
 SELECT 
@@ -845,7 +862,7 @@ FROM metrics;
 - Requires constant translation
 - Reduces dashboard adoption
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```sql
 -- GOOD: Business-friendly column names
 SELECT 
@@ -862,7 +879,7 @@ FROM metrics;
 
 ---
 
-**❌ Anti-Pattern 3: Pie Chart with 12 Slices**
+**Anti-Pattern 3: Pie Chart with 12 Slices**
 ```python
 # BAD: Too many slices to distinguish
 fig = go.Figure(go.Pie(
@@ -875,7 +892,7 @@ fig = go.Figure(go.Pie(
 - Legend becomes cluttered
 - Colors hard to distinguish
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 # GOOD: Show top 5, group rest as "Other"
 top_5 = df.nlargest(5, 'sales')
@@ -899,7 +916,7 @@ fig = go.Figure(go.Pie(
 
 ---
 
-**❌ Anti-Pattern 4: Misleading Truncated Y-Axis**
+**Anti-Pattern 4: Misleading Truncated Y-Axis**
 ```python
 # BAD: Axis starts at 950, makes small change look huge
 fig = go.Figure(go.Line(x=months, y=[980, 985, 990]))
@@ -911,7 +928,7 @@ fig.update_yaxis(range=[950, 1000])
 - Misleads stakeholders
 - Damages trust
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 # GOOD: Include zero baseline or clearly mark truncation
 fig = go.Figure(go.Line(x=months, y=[980, 985, 990]))
@@ -929,7 +946,7 @@ fig.add_annotation(
 
 ---
 
-**❌ Anti-Pattern 5: Red/Green Color Scheme Only**
+**Anti-Pattern 5: Red/Green Color Scheme Only**
 ```python
 # BAD: Colorblind users can't distinguish
 fig = go.Figure()
@@ -942,7 +959,7 @@ fig.add_trace(go.Bar(name='Loss', marker_color='red'))
 - Information inaccessible to significant user segment
 - WCAG compliance failure
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 # GOOD: Color + shape + pattern
 fig = go.Figure()
@@ -967,7 +984,7 @@ fig.add_trace(go.Bar(
 - WCAG 2.1 AA compliant
 
 
-> **⚠️ Investigation Required**  
+> **Investigation Required**  
 > When applying this rule:
 >
 > 1. **Read referenced tables/views BEFORE making recommendations**
@@ -997,7 +1014,7 @@ fig.add_trace(go.Bar(
 >
 > **Example Investigation Pattern:**
 > ```python
-> # ✅ GOOD: Investigate business context first
+> # GOOD: Investigate business context first
 > tables = session.sql("SHOW TABLES IN SCHEMA analytics").collect()
 > schema = session.sql("DESCRIBE TABLE analytics.sales_summary").collect()
 > sample = session.sql("SELECT * FROM analytics.sales_summary LIMIT 10").to_pandas()
@@ -1040,6 +1057,23 @@ fig.add_trace(go.Bar(
   - WCAG 2.1 AA color contrast test passes (WebAIM checker)
   - Screen reader successfully narrates all content (NVDA/JAWS test)
   - Keyboard navigation works for all interactive elements
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Identify audience BEFORE designing dashboard** - Confirm exec vs analyst vs operational
+> 2. **Check data availability** - Verify tables/views exist and are accessible
+> 3. **Never assume KPI definitions** - Confirm metric calculations with stakeholders
+> 4. **Test accessibility** - Use screen readers and color contrast checkers
+> 5. **Verify query cost** - Review Query Profile before deploying
+>
+> **Anti-Pattern:**
+> "Creating dashboard... (without knowing target audience)"
+> "Using red/green colors... (without colorblind testing)"
+>
+> **Correct Pattern:**
+> "Let me confirm your dashboard requirements first."
+> [identifies audience, checks data, verifies KPI definitions]
+> "I see this is for C-Level. Using F-pattern with 5 KPIs and colorblind-safe palette..."
   - User testing shows >90% task completion rate
   - All metrics have documented definitions in METRIC_DEFINITIONS
 
@@ -1099,7 +1133,7 @@ from snowflake.snowpark import Session
 # Page config
 st.set_page_config(
     page_title="Sales Executive Dashboard",
-    page_icon="📊",
+    page_icon="",
     layout="wide"
 )
 

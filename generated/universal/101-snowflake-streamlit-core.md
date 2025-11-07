@@ -1,13 +1,9 @@
 **Keywords:** Streamlit, Snowflake in Streamlit, SiS, SPCS, st.connection, session state, navigation, multipage, deployment, UI, dashboard, pandas, NaN, NULL handling
+**TokenBudget:** ~3700
+**ContextTier:** High
 **Depends:** 100-snowflake-core
 
-**TokenBudget:** ~700
-**ContextTier:** standard
-
 # Streamlit Core: Setup, Navigation, and State Management
-
-> **Section Metadata**  
-> Token Budget: ~700 | Context Tier: standard | Priority: high
 
 ## Purpose
 Provide foundational guidance for Streamlit application setup, navigation patterns, state management, deployment mode selection (SiS vs SPCS), and theming configuration using config.toml as the primary styling method.
@@ -19,14 +15,14 @@ Provide foundational guidance for Streamlit application setup, navigation patter
 
 ## Contract
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Inputs/Prereqs:** Python 3.11+, Streamlit 1.46+, Snowflake connection, project structure with pages/ and/or st.navigation(), .streamlit/config.toml for theming, deployment mode identified (SiS vs SPCS)
 - **Allowed Tools:** st.navigation(), st.Page(), st.page_link(), st.switch_page(), st.set_page_config(), st.session_state, st.sidebar, st.columns, st.container, config.toml theme configuration (PRIMARY styling method), st.secrets
 
-**❌ FORBIDDEN:**
+**FORBIDDEN:**
 - **Forbidden Tools:** Custom CSS/HTML injection via st.markdown(unsafe_allow_html=True), inline style attributes, JavaScript injection, buttons for navigation (use st.page_link or st.switch_page), hardcoded theme values, hardcoded secrets/credentials
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Required Steps:** 
   1. Verify deployment mode (SiS vs SPCS) and apply correct configuration
   2. Set page config once in entrypoint file (title, icon, layout)
@@ -47,30 +43,30 @@ Provide foundational guidance for Streamlit application setup, navigation patter
 
 ## Quick Start TL;DR (Read First - 30 Seconds)
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 **Essential Patterns:**
-- ✅ **Deployment mode:** Verify SiS vs SPCS first (different capabilities)
-- ✅ **Theming:** Use .streamlit/config.toml ONLY (no custom CSS)
-- ✅ **Navigation:** st.navigation() (recommended) or pages/ directory (never both)
-- ✅ **Page config:** Call st.set_page_config() ONCE in entrypoint only
-- ✅ **State:** Initialize st.session_state at top level
-- ✅ **Secrets:** Use st.secrets (never hardcode credentials)
-- ✅ **Layout:** Native components only (st.columns, st.container, st.sidebar)
+- **Deployment mode:** Verify SiS vs SPCS first (different capabilities)
+- **Theming:** Use .streamlit/config.toml ONLY (no custom CSS)
+- **Navigation:** st.navigation() (recommended) or pages/ directory (never both)
+- **Page config:** Call st.set_page_config() ONCE in entrypoint only
+- **State:** Initialize st.session_state at top level
+- **Secrets:** Use st.secrets (never hardcode credentials)
+- **Layout:** Native components only (st.columns, st.container, st.sidebar)
 
 ## 1. Deployment Mode Selection: SiS vs SPCS
 
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 **Choosing the right deployment mode is critical for long-term success.**
 
 ### When to Use Streamlit in Snowflake (SiS)
 
 **Best For:**
-- ✅ Rapid prototyping and MVP development (minutes to first app)
-- ✅ Internal BI dashboards for Snowflake users
-- ✅ Applications tightly integrated with Snowflake (no external APIs)
-- ✅ Teams without containerization/DevOps expertise
-- ✅ Cost-sensitive projects (no external compute costs)
+- Rapid prototyping and MVP development (minutes to first app)
+- Internal BI dashboards for Snowflake users
+- Applications tightly integrated with Snowflake (no external APIs)
+- Teams without containerization/DevOps expertise
+- Cost-sensitive projects (no external compute costs)
 
 **Advantages:**
 - Zero infrastructure management
@@ -79,20 +75,20 @@ Provide foundational guidance for Streamlit application setup, navigation patter
 - Direct access to Snowflake data without connectors
 
 **Limitations:**
-- ⚠️ Limited to Snowflake-approved packages (see package list)
-- ⚠️ Streamlit version managed by Snowflake (may lag latest)
-- ⚠️ Cannot use custom system dependencies (e.g., C libraries)
-- ⚠️ Limited control over Python version and runtime
-- ⚠️ No integration with external services requiring custom networking
+- Limited to Snowflake-approved packages (see package list)
+- Streamlit version managed by Snowflake (may lag latest)
+- Cannot use custom system dependencies (e.g., C libraries)
+- Limited control over Python version and runtime
+- No integration with external services requiring custom networking
 
 ### When to Use Open-Source Streamlit on SPCS
 
 **Best For:**
-- ✅ Production applications requiring custom packages
-- ✅ Need for specific Python/system dependencies
-- ✅ Fine-grained control over runtime environment
-- ✅ Integration with external services/APIs
-- ✅ Multi-tenant applications with custom isolation
+- Production applications requiring custom packages
+- Need for specific Python/system dependencies
+- Fine-grained control over runtime environment
+- Integration with external services/APIs
+- Multi-tenant applications with custom isolation
 
 **Advantages:**
 - Full control over dependencies (any Python package)
@@ -102,18 +98,18 @@ Provide foundational guidance for Streamlit application setup, navigation patter
 - Advanced container orchestration options
 
 **Requirements:**
-- ⚠️ Docker/containerization expertise required
-- ⚠️ Additional operational overhead (container management)
-- ⚠️ More complex deployment pipeline
-- ⚠️ Higher cost (compute services + Snowflake credits)
+- Docker/containerization expertise required
+- Additional operational overhead (container management)
+- More complex deployment pipeline
+- Higher cost (compute services + Snowflake credits)
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 **Always verify the deployment mode first** and apply the correct configuration, best practices, and documentation. Do not mix SiS and open-source Streamlit recommendations.
 
 ## 2. Setup and Project Structure
 
 ### Basic Setup
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Always:** Call `st.set_page_config` in the entrypoint file to set title, icon, and layout (call only once, never in individual pages)
 - **Always:** Initialize session state once at the top level to keep state consistent across re-runs
 - **Always:** Place reusable UI elements (charts, forms) in a `components/` directory
@@ -126,7 +122,7 @@ import streamlit as st
 # Page configuration (ONCE, entrypoint only)
 st.set_page_config(
     page_title="My App",
-    page_icon="📊",
+    page_icon="",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -141,7 +137,7 @@ if 'data_loaded' not in st.session_state:
 ## 3. Multipage Navigation (Streamlit 1.26+)
 
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Requirement:** Use `st.navigation()` in your entrypoint file for dynamic multipage apps (**recommended pattern**)
 - **Alternative:** Use `pages/` directory for very simple apps (legacy pattern with no customization)
 - **Critical:** When `st.navigation()` is used, the `pages/` directory is ignored across all sessions
@@ -153,7 +149,7 @@ if 'data_loaded' not in st.session_state:
 # streamlit_app.py (entrypoint)
 import streamlit as st
 
-st.set_page_config(page_title="My App", page_icon="📊", layout="wide")
+st.set_page_config(page_title="My App", page_icon="", layout="wide")
 
 # Define pages
 home = st.Page("pages/home.py", title="Home", icon="🏠", default=True)
@@ -206,7 +202,7 @@ pg.run()
 
 
 ### Core Theming Philosophy
-**❌ FORBIDDEN:**
+**FORBIDDEN:**
 - **Critical:** `.streamlit/config.toml` is the PRIMARY and RECOMMENDED method for all layout and styling customization
 - **Forbidden:** Custom CSS/HTML injection via `st.markdown()` with `unsafe_allow_html=True` - unreliable across Streamlit versions and deployment modes
 - **Always:** Use native Streamlit components and configuration options for consistent, maintainable styling
@@ -301,7 +297,7 @@ gatherUsageStats = false
 
 ## 5. State Management
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Requirement:** Manage state predictably with `st.session_state` and callbacks for complex updates
 - **Always:** Initialize all session state variables explicitly at top level
 - **Always:** Use widget keys for stable identity across reruns
@@ -326,7 +322,7 @@ st.button("Login", on_click=login_callback)
 ## 6. Layout Components
 
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 **Use native Streamlit layout components as primary layout tools:**
 
 **st.columns() - Multi-column Layouts:**
@@ -371,7 +367,7 @@ with st.sidebar:
 
 ## 7. Secrets Management
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Mandatory:** Use `st.secrets` for all sensitive configuration (API keys, passwords, tokens)
 - **Mandatory:** Never hardcode credentials in source code
 - **Always:** For SiS, use Snowflake secrets management
@@ -388,13 +384,13 @@ except KeyError as e:
     st.error(f"Missing required secret: {e}")
     st.stop()
 
-# ❌ Never do this
+# Never do this
 api_key = "sk-1234567890abcdef"  # Hardcoded secret!
 ```
 
 ## 8. Pandas NULL Handling: Snowflake NULL vs Python None
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 ### Critical Difference: NaN vs None
 
@@ -402,7 +398,7 @@ When Snowflake returns NULL values, pandas converts them to NaN (Not a Number), 
 
 **Anti-Pattern (WILL CRASH):**
 ```python
-# ❌ BAD: is not None doesn't catch pandas NaN
+# BAD: is not None doesn't catch pandas NaN
 file_size = df["SIZE"].iloc[0]
 if file_size is not None and file_size > 0:
     display = f"{file_size / 1024:.1f} KB"  # CRASHES if NaN
@@ -412,7 +408,7 @@ else:
 
 **Correct Pattern:**
 ```python
-# ✅ GOOD: pd.notna() correctly identifies NaN
+# GOOD: pd.notna() correctly identifies NaN
 import pandas as pd
 
 file_size = df["SIZE"].iloc[0]
@@ -482,14 +478,14 @@ Values that commonly return NULL and require pandas-aware handling:
 
 ## Anti-Patterns and Common Mistakes
 
-**❌ Anti-Pattern 1: Using buttons for navigation**
+**Anti-Pattern 1: Using buttons for navigation**
 ```python
 if st.button("Go to Settings"):
     st.switch_page("pages/settings.py")  # Unreliable UX
 ```
 **Problem:** Buttons trigger on click but don't persist state; causes navigation issues
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 # Primary navigation in entrypoint
 pg = st.navigation([home, settings])
@@ -499,7 +495,7 @@ pg.run()
 st.page_link("pages/settings.py", label="Settings", icon="⚙️")
 ```
 
-**❌ Anti-Pattern 2: Custom CSS injection**
+**Anti-Pattern 2: Custom CSS injection**
 ```python
 st.markdown("""
     <style>
@@ -513,7 +509,7 @@ st.markdown("""
 ```
 **Problem:** Unreliable across Streamlit versions and deployment modes (especially SiS)
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 # In .streamlit/config.toml:
 # [theme]
@@ -524,27 +520,27 @@ with st.container(border=True):
     st.markdown("Content")  # Styled via config.toml
 ```
 
-**❌ Anti-Pattern 3: Mixing st.navigation() with pages/ directory**
+**Anti-Pattern 3: Mixing st.navigation() with pages/ directory**
 ```python
 pg = st.navigation([...])  # This disables pages/ directory!
 ```
 **Problem:** When st.navigation() is used, pages/ directory is completely ignored
 
-**✅ Correct Pattern - Choose one:**
+**Correct Pattern - Choose one:**
 ```python
 # Recommended: st.navigation()
 pg = st.navigation(pages)
 pg.run()
 ```
 
-**❌ Anti-Pattern 4: Setting page config in child pages**
+**Anti-Pattern 4: Setting page config in child pages**
 ```python
 # In pages/dashboard.py
 st.set_page_config(...)  # Error - only in entrypoint!
 ```
 **Problem:** st.set_page_config() can only be called once in the entrypoint file
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 # streamlit_app.py (entrypoint only)
 st.set_page_config(title="My App", layout="wide")
@@ -568,7 +564,7 @@ pg.run()  # Critical!
 - **Success Checks:** App loads <2s, navigation works correctly, theme applied from config.toml, secrets loaded without errors, responsive layout works on mobile/desktop, state persists across page changes
 - **Negative Tests:** Try setting page config in child page (should error), test navigation without pg.run() (should not execute), verify custom CSS doesn't work in SiS deployment, test with missing secrets (should fail gracefully)
 
-> **⚠️ Investigation Required**  
+> **Investigation Required**  
 > When applying this rule:
 > 1. Read Streamlit app files BEFORE making recommendations
 > 2. Verify .streamlit/config.toml exists and check theme configuration
@@ -585,7 +581,7 @@ import streamlit as st
 # Page configuration (ONCE, entrypoint only)
 st.set_page_config(
     page_title="My App",
-    page_icon="📊",
+    page_icon="",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -607,7 +603,7 @@ with st.sidebar:
 pages = {
     "Main": [
         st.Page("pages/home.py", title="Home", icon="🏠", default=True),
-        st.Page("pages/dashboard.py", title="Dashboard", icon="📊"),
+        st.Page("pages/dashboard.py", title="Dashboard", icon=""),
     ],
     "Account": [
         st.Page("pages/settings.py", title="Settings", icon="⚙️")

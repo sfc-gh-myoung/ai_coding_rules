@@ -6,11 +6,10 @@ appliesTo:
 ---
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
-**Keywords:** Data governance, data quality, lineage, metadata management, compliance, data catalog
-**Depends:** None
-
-**TokenBudget:** ~250
+**Keywords:** Data governance, data quality, lineage, metadata management, compliance, data catalog, Great Expectations, schema evolution, data observability, incident response
+**TokenBudget:** ~1200
 **ContextTier:** Medium
+**Depends:** None
 
 # Data Governance & Quality Directives
 
@@ -22,6 +21,26 @@ Establish comprehensive directives for ensuring data quality, governance, and op
 - **Type:** Agent Requested
 - **Scope:** Data quality, governance, and operational reliability throughout the data lifecycle
 
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Data quality as code** - Version expectation suites in Git
+- **Profile before expectations** - Use profiling to discover initial checks
+- **Schema evolution** - Add columns first, avoid destructive changes
+- **Single source of truth** - Every metric has one canonical definition
+- **Automate quality gates** - Integrate validation into ETL/ELT pipelines
+- **Monitor data drift** - Track distribution changes with thresholds
+- **Never hard-code credentials** - Use secrets management
+
+**Quick Checklist:**
+- [ ] Expectation suites in version control
+- [ ] Data profiling completed
+- [ ] Schema changes non-destructive
+- [ ] Metrics documented in catalog
+- [ ] Quality gates in CI/CD
+- [ ] Drift monitoring configured
+- [ ] Incident response plan documented
 
 ## 1. Data Quality as Code
 - **Requirement:** Treat data quality as code. Version expectation suites and integrate into CI/CD.
@@ -77,6 +96,23 @@ Establish comprehensive directives for ensuring data quality, governance, and op
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Profile data BEFORE creating expectations** - Understand baseline characteristics
+> 2. **Check existing quality checks** - Review current validation framework
+> 3. **Never assume schema stability** - Check for recent schema changes
+> 4. **Verify catalog existence** - Confirm metrics are documented
+> 5. **Test quality gates** - Ensure validation catches known bad data
+>
+> **Anti-Pattern:**
+> "Adding quality check... (without profiling data first)"
+> "Changing schema... (without impact analysis)"
+>
+> **Correct Pattern:**
+> "Let me check your data quality setup first."
+> [profiles data, reviews existing checks, checks catalog]
+> "I see 5% NULL rate. Adding expectation with threshold..."
 
 ## Response Template
 ```

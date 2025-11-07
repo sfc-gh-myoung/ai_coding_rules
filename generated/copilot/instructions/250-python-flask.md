@@ -10,11 +10,10 @@ appliesTo:
 ---
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
-**Keywords:** Flask, web development, blueprints, Flask-SQLAlchemy, templates, routing, Flask extensions
+**Keywords:** Flask, web development, blueprints, Flask-SQLAlchemy, templates, routing, Flask extensions, application factory, Jinja2, Flask-WTF, CSRF protection
+**TokenBudget:** ~3700
+**ContextTier:** High
 **Depends:** 200-python-core
-
-**TokenBudget:** ~1700
-**ContextTier:** Medium
 
 # Flask Best Practices
 
@@ -40,9 +39,30 @@ Provide comprehensive Flask development best practices, organized into focused p
 10. **Extension Integration** - Proper use of Flask ecosystem extensions
 11. **Request Context Management** - Understand and leverage Flask's application and request contexts
 
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Use application factory pattern** - `create_app()` function, not global Flask instance
+- **Organize with Blueprints** - Modular code in `blueprints/`, register with `app.register_blueprint()`
+- **Enable CSRF protection** - Use Flask-WTF: `CSRFProtect(app)`
+- **Environment-based config** - `app.config.from_object(config[env])`, never hardcode secrets
+- **Template auto-escaping enabled** - Jinja2 XSS protection (default, but verify)
+- **Use Flask-SQLAlchemy** - `db = SQLAlchemy(app)` for database integration
+- **Never use global Flask instance** - Prevents testing, multi-environment support
+
+**Quick Checklist:**
+- [ ] App created via factory function
+- [ ] Blueprints for modular organization
+- [ ] CSRF protection enabled
+- [ ] Environment-based configuration
+- [ ] Templates use auto-escaping
+- [ ] Flask-SQLAlchemy configured
+- [ ] Run with `uv run flask --app app run`
+
 ## Flask Rule Categories
 
-### 🏗️ Core Development Patterns (This File)
+### Core Development Patterns (This File)
 - Application structure and factory pattern
 - Blueprint organization and registration
 - Request handling and routing
@@ -58,7 +78,7 @@ Provide comprehensive Flask development best practices, organized into focused p
 - Security headers and HTTPS enforcement
 - Password hashing and secure storage
 
-### 🗄️ Database and Models
+### Database and Models
 **Related Extensions:** Flask-SQLAlchemy, Flask-Migrate
 - SQLAlchemy integration patterns
 - Database session management
@@ -748,6 +768,23 @@ uvx ruff check . && uvx ruff format .
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read existing Flask app structure BEFORE adding routes** - Check app.py, blueprints/, models/ organization
+> 2. **Verify application factory usage** - Check if create_app() exists or if global Flask instance is used
+> 3. **Never speculate about blueprint structure** - Read existing blueprints to understand registration patterns
+> 4. **Check for Flask extensions** - Don't create duplicate extension instances (db, csrf, login_manager)
+> 5. **Make grounded recommendations based on investigated app structure** - Match existing patterns
+>
+> **Anti-Pattern:**
+> "Based on typical Flask apps, you probably use this blueprint structure..."
+> "Let me add this route - it should work with standard patterns..."
+>
+> **Correct Pattern:**
+> "Let me check your existing Flask app structure first."
+> [reads app.py, blueprints/, checks for factory pattern and extensions]
+> "I see you're using application factory with blueprints in blueprints/ and Flask-SQLAlchemy. Here's a new route following the same pattern..."
 
 ## Response Template
 ```

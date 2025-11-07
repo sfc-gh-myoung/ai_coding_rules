@@ -1,14 +1,13 @@
 **Description:** Advanced zsh features including completion system, modules, hooks, and performance optimization techniques.
+**Type:** Agent Requested
 **AppliesTo:** `**/*.zsh`, `**/.zshrc`, `**/.zshenv`, `scripts/**/*`
 **AutoAttach:** false
-**Type:** Agent Requested
-**Keywords:** Zsh completion, modules, hooks, advanced features, performance
-**Version:** 1.2
-**LastUpdated:** 2025-10-21
-**Depends:** 310-zsh-scripting-core
-
-**TokenBudget:** ~1250
+**Keywords:** Zsh, completion system, modules, hooks, advanced features, performance optimization, compinit, zstyle, autoload
+**TokenBudget:** ~2600
 **ContextTier:** Low
+**Version:** 1.3
+**LastUpdated:** 2025-11-07
+**Depends:** 310-zsh-scripting-core
 
 # Zsh Advanced Features and Optimization
 
@@ -20,6 +19,26 @@ Provide comprehensive guidance on zsh's advanced features including the completi
 - **Type:** Agent Requested
 - **Scope:** Advanced zsh features, performance optimization, complex scripting patterns
 
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Initialize completion system** - `autoload -Uz compinit && compinit`
+- **Use modules for performance** - Load only needed zsh modules
+- **Implement hooks** - precmd, preexec for automation
+- **Cache completions** - Improve startup time with caching
+- **Custom completions** - Write _command functions for tools
+- **Profile startup time** - Use `zprof` to identify slow code
+- **Never load unnecessary modules** - Impacts performance
+
+**Quick Checklist:**
+- [ ] Completion system initialized
+- [ ] Modules loaded selectively
+- [ ] Hooks implemented correctly
+- [ ] Completions cached
+- [ ] Startup time profiled
+- [ ] Custom completions working
+- [ ] Performance optimized
 
 ## 1. Zsh Completion System
 
@@ -371,7 +390,7 @@ prompt_status() {
     
     # Show load average
     local load=$(uptime | awk -F'load average:' '{print $2}' | awk '{print $1}' | tr -d ',')
-    (( ${load%.*} > 2 )) && status+="🔥"
+    (( ${load%.*} > 2 )) && status+=""
     
     # Show battery status (macOS)
     if command -v pmset >/dev/null; then
@@ -540,6 +559,23 @@ run_tests() {
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Check existing completions BEFORE adding new ones** - Review current setup
+> 2. **Profile performance** - Use zprof to identify bottlenecks
+> 3. **Never assume module availability** - Check if modules are installed
+> 4. **Test completions** - Verify custom completions work correctly
+> 5. **Measure startup time** - Compare before and after changes
+>
+> **Anti-Pattern:**
+> "Adding completion... (without checking existing completion setup)"
+> "Loading module... (without profiling performance impact)"
+>
+> **Correct Pattern:**
+> "Let me check your completion setup first."
+> [reads .zshrc, tests completions, profiles startup]
+> "I see compinit takes 300ms. Adding caching to improve performance..."
 
 ## Response Template
 ```

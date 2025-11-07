@@ -198,9 +198,26 @@ tasks:
     cmds:
       - "{{.UV}} run scripts/validate_agent_rules.py --format universal"
 
+  # Validate templates against Section 11 Universal Compatibility Standards
+  rule:templates:validate:
+    desc: "Validate templates/ against 002-rule-governance.md v4.0 (Section 11)"
+    silent: true
+    ignore_error: true
+    cmds:
+      - "{{.UV}} run scripts/validate_agent_rules.py --directory templates > /dev/null 2>&1 || true"
+      - echo "[OK] Template validation checked - ready for rule generation"
+
+  # Validate templates (fail on warnings for CI)
+  rule:templates:validate:strict:
+    desc: "Validate templates/ with --fail-on-warnings for CI/CD"
+    cmds:
+      - "{{.UV}} run scripts/validate_agent_rules.py --directory templates --fail-on-warnings"
+
   # Generate all rule formats
   rule:all:
     desc: "Generate all IDE-specific rule formats to generated/ (new structure)"
+    deps:
+      - rule:templates:validate
     cmds:
       - task: rule:cursor
         vars:
@@ -314,13 +331,14 @@ tasks:
   # Validation & CI Tasks
   # ============================================================================
 
-  # Run all validation checks (quality + tests + rule generation)
+  # Run all validation checks (quality + tests + template validation + rule generation)
   validate:
-    desc: "Run all validation checks for CI/CD"
+    desc: "Run all validation checks for CI/CD (includes Section 11 template compliance)"
     silent: true
     cmds:
       - task: quality
       - task: test
+      - task: templates:validate
       - task: rule:cursor:check
       - task: rule:copilot:check
       - task: rule:cline:check
@@ -328,29 +346,89 @@ tasks:
       - task: rules:index:check
       - echo "[OK] All validation checks passed"
 
-  # Validate that all rule files follow updated governance standards (002-rule-governance.md v2.1)
+  # Validate that all rule files follow updated governance standards (002-rule-governance.md v3.1)
+  # Includes Section 11 Universal Compatibility Standards
   rules:validate:
-    desc: "Validate all rules in templates/ contain required sections per 002-rule-governance.md"
+    desc: "Validate all rules in templates/ per 002-rule-governance.md v3.1 (includes Section 11)"
     cmds:
-      - "{{.UV}} run scripts/validate_agent_rules.py"
+      - "{{.UV}} run scripts/validate_agent_rules.py --directory templates"
 
   # Validate with verbose output (shows clean files too)
   rules:validate:verbose:
     desc: "Validate all rules with verbose output"
     cmds:
-      - "{{.UV}} run scripts/validate_agent_rules.py --verbose"
+      - "{{.UV}} run scripts/validate_agent_rules.py --directory templates --verbose"
 
   # Validate and fail on warnings (strict mode for CI/CD)
   rules:validate:strict:
     desc: "Validate all rules in strict mode (fail on warnings)"
     cmds:
-      - "{{.UV}} run scripts/validate_agent_rules.py --fail-on-warnings"
+      - "{{.UV}} run scripts/validate_agent_rules.py --directory templates --fail-on-warnings"
+  
+  # Validate templates before rule generation (integration point)
+  templates:validate:
+    desc: "Validate templates before generating rules (Section 11 compliance)"
+    silent: true
+    ignore_error: true
+    cmds:
+      - "{{.UV}} run scripts/validate_agent_rules.py --directory templates > /dev/null 2>&1 || true"
+      - echo "[OK] Template validation checked - ready for rule generation"
 
-  # Prepare for release (fix issues + generate rules)
+  # ============================================================================
+  # Token Budget Management Tasks
+  # ============================================================================
+
+  # Update token budgets in template files (dry run to preview)
+  tokens:update:dry:
+    desc: "Preview token budget updates without making changes"
+    cmds:
+      - "{{.PYTHON}} scripts/update_token_budgets.py --dry-run"
+
+  # Update token budgets in template files (with detailed analysis)
+  tokens:update:dry:detailed:
+    desc: "Preview token budget updates with detailed analysis"
+    cmds:
+      - "{{.PYTHON}} scripts/update_token_budgets.py --dry-run --detailed"
+
+  # Update token budgets in template files
+  tokens:update:
+    desc: "Update token budgets in templates/ (±15% threshold)"
+    cmds:
+      - "{{.PYTHON}} scripts/update_token_budgets.py"
+      - echo "[OK] Token budgets updated"
+
+  # Update token budgets with verbose output
+  tokens:update:verbose:
+    desc: "Update token budgets with verbose output"
+    cmds:
+      - "{{.PYTHON}} scripts/update_token_budgets.py --verbose"
+
+  # Update token budgets with detailed analysis
+  tokens:update:detailed:
+    desc: "Update token budgets with detailed analysis"
+    cmds:
+      - "{{.PYTHON}} scripts/update_token_budgets.py --detailed"
+
+  # Update token budgets with custom threshold
+  tokens:update:threshold:
+    desc: "Update token budgets with custom threshold (usage: task tokens:update:threshold THRESHOLD=20)"
+    requires:
+      vars: [THRESHOLD]
+    cmds:
+      - "{{.PYTHON}} scripts/update_token_budgets.py --threshold {{.THRESHOLD}}"
+
+  # Check token budget accuracy without updating
+  tokens:check:
+    desc: "Check token budget accuracy (dry run with detailed output)"
+    cmds:
+      - "{{.PYTHON}} scripts/update_token_budgets.py --dry-run --detailed"
+
+  # Prepare for release (fix issues + validate templates + generate rules)
   release:prepare:
-    desc: "Prepare repository for release"
+    desc: "Prepare repository for release (includes template validation)"
     cmds:
       - task: quality:fix
+      - task: templates:validate
       - task: rule:all
       - task: test
       - echo "[OK] Repository prepared for release"

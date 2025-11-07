@@ -1,14 +1,13 @@
 **Description:** Bash testing, debugging, and modern tooling integration including ShellCheck, CI/CD, and development workflows.
+**Type:** Agent Requested
 **AppliesTo:** `**/*.sh`, `**/*.bash`, `scripts/**/*`, `bin/**/*`
 **AutoAttach:** false
-**Type:** Agent Requested
-**Keywords:** Bash testing, ShellCheck, bats, shell script testing, CI/CD, debugging
-**Version:** 1.2
-**LastUpdated:** 2025-10-21
-**Depends:** 300-bash-scripting-core
-
-**TokenBudget:** ~1100
+**Keywords:** Bash, testing, ShellCheck, bats, shell script testing, CI/CD, debugging, static analysis, linting, test automation
+**TokenBudget:** ~2250
 **ContextTier:** Medium
+**Version:** 1.3
+**LastUpdated:** 2025-11-07
+**Depends:** 300-bash-scripting-core
 
 # Bash Testing and Tooling Best Practices
 
@@ -20,6 +19,26 @@ Provide comprehensive bash testing, debugging, and modern tooling integration in
 - **Type:** Agent Requested
 - **Scope:** Bash testing, debugging, development workflows, CI/CD
 
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Use ShellCheck** - Run shellcheck on all scripts before commit
+- **Write tests with bats** - Automated testing for shell scripts
+- **Enable set -x for debugging** - Trace execution when troubleshooting
+- **CI/CD integration** - Automate shellcheck and tests in pipeline
+- **Mock external commands** - Isolate tests from external dependencies
+- **Test error paths** - Verify failures are handled correctly
+- **Never skip shellcheck warnings** - Address all SC codes
+
+**Quick Checklist:**
+- [ ] ShellCheck passing with no warnings
+- [ ] Bats tests written and passing
+- [ ] CI/CD pipeline runs tests
+- [ ] Error paths tested
+- [ ] External commands mocked
+- [ ] Debug mode available
+- [ ] Test coverage documented
 
 ## 1. Static Analysis with ShellCheck
 
@@ -466,6 +485,23 @@ generate_function_docs() {
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Run shellcheck BEFORE suggesting fixes** - See actual issues, not assumed ones
+> 2. **Check existing tests** - Review current test coverage and framework
+> 3. **Never assume test infrastructure** - Verify bats or other framework is available
+> 4. **Review CI/CD config** - Check what automation already exists
+> 5. **Test the tests** - Ensure tests actually catch intended failures
+>
+> **Anti-Pattern:**
+> "Adding shellcheck... (without running it first to see issues)"
+> "Writing bats tests... (without checking if bats is installed)"
+>
+> **Correct Pattern:**
+> "Let me run shellcheck on your scripts first."
+> [runs shellcheck, reviews output]
+> "I see 5 SC2086 warnings about unquoted variables. Let me fix those..."
 
 ## Response Template
 ```

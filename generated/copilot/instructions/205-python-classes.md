@@ -4,11 +4,10 @@ appliesTo:
 ---
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
-**Keywords:** Python classes, OOP, inheritance, dataclasses, @property, class design, encapsulation
-**Depends:** 200-python-core, 201-python-lint-format, 204-python-docs-comments
-
-**TokenBudget:** ~550
+**Keywords:** Python classes, OOP, inheritance, dataclasses, @property, class design, encapsulation, composition, Protocol, ABC, type hints
+**TokenBudget:** ~2050
 **ContextTier:** Medium
+**Depends:** 200-python-core, 201-python-lint-format, 204-python-docs-comments
 
 # Python Classes: Design and Usage Best Practices
 
@@ -19,6 +18,26 @@ Provide practical, modern guidelines for when and how to use classes in Python, 
 
 - **Type:** Agent Requested
 - **Scope:** Class design patterns and usage in Python 3.11+ (data models, behavior, encapsulation, inheritance, protocols, ABCs)
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Use @dataclass for data containers** - Prefer dataclass over manual __init__
+- **Composition over inheritance** - Favor has-a over is-a relationships
+- **Use @property for computed attributes** - Not Java-style getters/setters
+- **Add type hints to all class methods** - Including __init__, properties, methods
+- **frozen=True for immutable data** - Use @dataclass(frozen=True) when appropriate
+- **Never create classes for single functions** - Use plain functions instead
+
+**Quick Checklist:**
+- [ ] Class justified (not just a function holder)
+- [ ] @dataclass used for data containers
+- [ ] Type hints on all methods
+- [ ] Docstrings on class and public methods
+- [ ] Properties used for computed attributes
+- [ ] __repr__ provided (auto via dataclass)
+- [ ] Composition preferred over inheritance
 
 ## Contract
 - **Inputs/Prereqs:** Python 3.11+; project uses `uv` and Ruff (see `200-python-core.md`, `201-python-lint-format.md`)
@@ -195,6 +214,23 @@ class Service:
 ## Validation
 - **Success Checks:** Ruff lint/format pass; tests cover main behaviors; class design adheres to principles; public API is stable and annotated.
 - **Negative Tests:** Deep inheritance; mutable global state; side effects in constructors; missing type hints; leaking secrets in `__repr__`.
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read existing class definitions BEFORE suggesting changes** - Check current class structure, inheritance patterns
+> 2. **Verify if dataclasses are used** - Check imports, existing patterns
+> 3. **Never assume class design philosophy** - Check if project uses inheritance vs composition
+> 4. **Check existing type hints** - Match project's type annotation style
+> 5. **Read tests** - Understand how classes are tested and used
+>
+> **Anti-Pattern:**
+> "Creating a dataclass... (without checking if project uses them)"
+> "Adding inheritance... (without understanding existing patterns)"
+>
+> **Correct Pattern:**
+> "Let me check your existing class designs first."
+> [reads files, checks for dataclass usage, reviews inheritance patterns]
+> "I see you use dataclasses for models and composition for services. Following this pattern..."
 
 ## Response Template
 ```python

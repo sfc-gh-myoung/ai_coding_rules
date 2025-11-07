@@ -1,15 +1,11 @@
 <!-- Generated for Cline rules. See https://docs.cline.bot/features/cline-rules -->
 
 **Keywords:** Streamlit charts, Plotly, st.plotly_chart, st.map, visualization, dashboard, interactive charts, map visualization, time series smoothing, data aggregation
+**TokenBudget:** ~3600
+**ContextTier:** High
 **Depends:** 101-snowflake-streamlit-core, 700-business-analytics
 
-**TokenBudget:** ~600
-**ContextTier:** standard
-
 # Streamlit Visualization: Plotly Charts and Maps
-
-> **Section Metadata**  
-> Token Budget: ~600 | Context Tier: standard | Priority: high
 
 ## Purpose
 Provide comprehensive guidance for data visualization in Streamlit using Plotly as the universal standard for charts, graphs, and maps, with integration patterns for analytics dashboards and ML insights.
@@ -21,14 +17,14 @@ Provide comprehensive guidance for data visualization in Streamlit using Plotly 
 
 ## Contract
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Inputs/Prereqs:** Streamlit app configured (see 101-snowflake-streamlit-core.md), Plotly installed, pandas/polars for data manipulation
 - **Allowed Tools:** plotly.express (px), plotly.graph_objects (go), st.plotly_chart(), use_container_width=True, Plotly map functions (scatter_mapbox, choropleth_mapbox, line_mapbox, density_mapbox)
 
-**❌ FORBIDDEN:**
+**FORBIDDEN:**
 - **Forbidden Tools:** PyDeck (SiS compatibility issues), custom visualization libraries without justification, JavaScript charting libraries requiring st.components, static charts when interactivity would improve UX
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Required Steps:**
   1. Use Plotly for ALL visualizations (charts, graphs, maps)
   2. Configure charts with clear titles, axis labels, and legends
@@ -46,10 +42,30 @@ Provide comprehensive guidance for data visualization in Streamlit using Plotly 
 - **Accessibility:** Choose colorblind-safe palettes and clear labels
 - **Cross-Reference:** Use specialized rules (500/700) for advanced patterns
 
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Use Plotly for ALL visualizations** - charts, graphs, and maps (never PyDeck)
+- **Responsive display:** `st.plotly_chart(fig, use_container_width=True)` always
+- **Clear labeling:** Title, axis labels, legends on every chart
+- **Plotly Express first:** Use `plotly.express` for standard charts (simpler API)
+- **Accessibility:** Colorblind-safe palettes (e.g., plotly.colors.qualitative.Safe)
+- **Maps:** Use Plotly mapbox functions (scatter_mapbox, choropleth_mapbox, line_mapbox)
+- **Never use PyDeck** - has SiS compatibility issues; Plotly 3D replaces it
+
+**Quick Checklist:**
+- [ ] Import `plotly.express as px`
+- [ ] Create chart with clear title and axis labels
+- [ ] Display with `st.plotly_chart(fig, use_container_width=True)`
+- [ ] Test interactivity (hover, zoom, pan)
+- [ ] Verify colorblind-safe palette
+- [ ] Add error handling for missing/invalid data
+
 ## 1. Visualization Philosophy
 
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 **Primary Library: Plotly (Universal Standard)**
 - **Requirement:** Use Plotly for ALL charts, graphs, and maps
 - **Rationale:**
@@ -65,11 +81,11 @@ Provide comprehensive guidance for data visualization in Streamlit using Plotly 
 - **3D Visualizations:** scatter_3d, surface plots, mesh plots
 - **Advanced:** Animations, subplots, custom interactivity
 
-**❌ FORBIDDEN:**
+**FORBIDDEN:**
 **Forbidden:**
-- ❌ **PyDeck:** SiS compatibility issues; Plotly 3D makes it unnecessary
-- ❌ **Custom visualization libraries:** Avoid without explicit business justification
-- ❌ **JavaScript charting libraries:** Require st.components.v1.html (maintenance burden)
+- **PyDeck:** SiS compatibility issues; Plotly 3D makes it unnecessary
+- **Custom visualization libraries:** Avoid without explicit business justification
+- **JavaScript charting libraries:** Require st.components.v1.html (maintenance burden)
 
 **Fallback Libraries (Rare Exceptions Only):**
 - **Altair/Matplotlib:** Use only when Plotly definitively cannot meet requirements
@@ -79,7 +95,7 @@ Provide comprehensive guidance for data visualization in Streamlit using Plotly 
 ## 2. Plotly for Charts
 
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Requirement:** Use Plotly Express (`plotly.express`) for most chart types (interactive, performant, works in both SiS and SPCS)
 - **Always:** Use `st.plotly_chart(fig, use_container_width=True)` for responsive charts
 - **Always:** Configure charts with clear titles, axis labels, and legends
@@ -167,7 +183,7 @@ fig = px.imshow(correlation_matrix, title='Correlation Matrix')
 ## 3. Plotly for Maps
 
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Requirement:** Use Plotly for all geospatial visualizations (consistent API, works seamlessly in both SiS and SPCS)
 - **Always:** Use Plotly Express map functions: `scatter_mapbox`, `choropleth_mapbox`, `line_mapbox`, `density_mapbox`
 - **Always:** Configure map style, zoom level, and center point appropriately
@@ -277,7 +293,7 @@ st.plotly_chart(fig, use_container_width=True)
 
 **Example:**
 ```python
-# ✅ GOOD: Aggregate in SQL first
+# GOOD: Aggregate in SQL first
 @st.cache_data(ttl=600)
 def load_summary_data():
     query = """
@@ -324,7 +340,7 @@ st.plotly_chart(fig, use_container_width=True)
 ## 5. Time Series Data Smoothing
 
 
-**✅ RECOMMENDED:**
+**RECOMMENDED:**
 **When to Apply Smoothing:**
 - High-frequency data creates noisy, cluttered visualizations (e.g., 15-minute SCADA readings = ~96 points/day)
 - Users struggle to identify trends due to excessive detail
@@ -431,7 +447,7 @@ else:
 
 ## Anti-Patterns and Common Mistakes
 
-**❌ Anti-Pattern 1: Using PyDeck for maps in SiS**
+**Anti-Pattern 1: Using PyDeck for maps in SiS**
 ```python
 import pydeck as pdk
 
@@ -441,7 +457,7 @@ st.pydeck_chart(deck)
 ```
 **Problem:** PyDeck has serialization issues in SiS; Snowflake doesn't guarantee compatibility
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 import plotly.express as px
 
@@ -451,27 +467,27 @@ fig.update_layout(mapbox_style="open-street-map")
 st.plotly_chart(fig, use_container_width=True)
 ```
 
-**❌ Anti-Pattern 2: Not using use_container_width**
+**Anti-Pattern 2: Not using use_container_width**
 ```python
 fig = px.line(df, x="date", y="value")
 st.plotly_chart(fig)  # Fixed width, not responsive
 ```
 **Problem:** Chart doesn't adapt to screen size; poor mobile experience
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 fig = px.line(df, x="date", y="value")
 st.plotly_chart(fig, use_container_width=True)  # Responsive
 ```
 
-**❌ Anti-Pattern 3: Missing error handling for maps**
+**Anti-Pattern 3: Missing error handling for maps**
 ```python
 fig = px.scatter_mapbox(df, lat="lat", lon="lon")  # Fails if lat/lon invalid
 st.plotly_chart(fig, use_container_width=True)
 ```
 **Problem:** Missing or invalid coordinates cause exceptions
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 # Validate coordinates before mapping
 df_valid = df.dropna(subset=['lat', 'lon'])
@@ -486,7 +502,7 @@ else:
     st.warning("No valid coordinates to display on map")
 ```
 
-**❌ Anti-Pattern 4: Poor color choices (not colorblind-safe)**
+**Anti-Pattern 4: Poor color choices (not colorblind-safe)**
 ```python
 # Red-green palette (bad for colorblind users)
 fig = px.bar(df, x="category", y="value", color="status",
@@ -494,7 +510,7 @@ fig = px.bar(df, x="category", y="value", color="status",
 ```
 **Problem:** ~8% of males have red-green colorblindness
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 # Colorblind-safe palette
 fig = px.bar(df, x="category", y="value", color="status",
@@ -502,7 +518,7 @@ fig = px.bar(df, x="category", y="value", color="status",
 # Reference: 700-business-analytics.md for complete palettes
 ```
 
-**❌ Anti-Pattern 5: Mixed datetime types in comparisons (Pandas 2.0+ incompatibility)**
+**Anti-Pattern 5: Mixed datetime types in comparisons (Pandas 2.0+ incompatibility)**
 ```python
 # WRONG: Comparing pandas Timestamp with Python datetime
 for timestamp in failure_timestamps:
@@ -513,7 +529,7 @@ for timestamp in failure_timestamps:
 ```
 **Problem:** Pandas 2.0+ enforces strict type checking for datetime operations. Comparing pandas Timestamps (from `.min()/.max()`) with Python datetimes causes `TypeError: unsupported operand type(s) for +: 'int' and 'datetime.datetime'`.
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 # Helper function for consistent datetime handling
 def ensure_python_datetime(dt):
@@ -538,7 +554,7 @@ for timestamp in failure_timestamps:
         if hour_min and hour_max and hour_min <= failure_time <= hour_max:
             fig.add_vline(x=failure_time, ...)
     except Exception as e:
-        st.warning(f"⚠️ Could not add marker: {type(e).__name__}: {str(e)[:100]}")
+        st.warning(f"Could not add marker: {type(e).__name__}: {str(e)[:100]}")
 ```
 **Benefits:** 
 - Prevents TypeError from mixed datetime types
@@ -567,7 +583,7 @@ for timestamp in failure_timestamps:
 - **Success Checks:** Charts render correctly, interactive features work (zoom, pan, hover), responsive display on mobile/desktop, maps handle invalid coordinates gracefully, colors are accessible
 - **Negative Tests:** Test with empty dataframe (should show helpful message), test with invalid coordinates (should filter or warn), test with very large datasets (should aggregate first), verify PyDeck doesn't work in SiS deployment
 
-> **⚠️ Investigation Required**  
+> **Investigation Required**  
 > When applying this rule:
 > 1. Read visualization code BEFORE making recommendations
 > 2. Verify Plotly is installed and version is compatible

@@ -616,7 +616,7 @@ To add support for a new IDE:
 
 7. **Update documentation:**
    - README.md IDE integration section
-   - ONBOARDING.md deployment instructions
+   - docs/ONBOARDING.md deployment instructions
    - CONTRIBUTING.md with NewIDE workflow
    - This architecture document
 

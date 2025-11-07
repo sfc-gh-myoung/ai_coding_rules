@@ -6,11 +6,10 @@ appliesTo:
 ---
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
-**Keywords:** git workflow, branching strategy, GitLab, GitHub, merge requests, pull requests, feature branches, protected branches, git validation, branch naming, PR workflow, MR workflow
+**Keywords:** git, workflow, branching strategy, GitLab, GitHub, merge requests, pull requests, feature branches, protected branches, git validation, branch naming, PR workflow, MR workflow, Conventional Commits
+**TokenBudget:** ~3900
+**ContextTier:** Medium
 **Depends:** 800-project-changelog-rules, 805-project-contributing-rules
-
-**TokenBudget:** ~800
-**ContextTier:** standard
 
 # Git Workflow Management
 
@@ -21,6 +20,27 @@ Establish comprehensive git workflow best practices for managing project updates
 
 - **Type:** Agent Requested
 - **Scope:** Git workflow management including branching strategies, pull requests, merge requests, protected branches, and pre-merge validation for GitHub and GitLab platforms
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Feature branch workflow** - Create branch from main with proper naming
+- **Conventional Commits** - type(scope): summary format required
+- **Update CHANGELOG** - Add entries under ## [Unreleased]
+- **Clean git state** - Validate before push (no uncommitted changes)
+- **PR/MR required** - Never commit directly to protected branches
+- **Pre-merge validation** - Run all checks before creating PR/MR
+- **Never force push to main** - Breaks history for team
+
+**Quick Checklist:**
+- [ ] Feature branch created
+- [ ] Conventional Commits used
+- [ ] CHANGELOG.md updated
+- [ ] Git state clean
+- [ ] Validation checks passed
+- [ ] PR/MR created with description
+- [ ] CI checks passing
 
 ## Contract
 
@@ -349,34 +369,34 @@ echo "🔍 Validating git state..."
 
 # Check for uncommitted changes
 if [[ -n $(git status --porcelain) ]]; then
-  echo "❌ Uncommitted changes detected. Commit or stash before creating PR/MR."
+  echo "Uncommitted changes detected. Commit or stash before creating PR/MR."
   git status --short
   exit 1
 fi
-echo "✅ Working directory clean"
+echo "Working directory clean"
 
 # Validate branch name
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 if ! echo "$BRANCH" | grep -qE "^(feature|fix|docs|refactor|chore)/"; then
-  echo "❌ Invalid branch name: $BRANCH"
+  echo "Invalid branch name: $BRANCH"
   echo "   Must match: feature/*, fix/*, docs/*, refactor/*, chore/*"
   exit 1
 fi
-echo "✅ Branch name valid: $BRANCH"
+echo "Branch name valid: $BRANCH"
 
 # Check not on protected branch
 if [[ "$BRANCH" == "main" || "$BRANCH" == "master" ]]; then
-  echo "❌ Cannot create PR/MR from protected branch: $BRANCH"
+  echo "Cannot create PR/MR from protected branch: $BRANCH"
   exit 1
 fi
-echo "✅ Not on protected branch"
+echo "Not on protected branch"
 
 # Verify CHANGELOG.md entry
 if ! grep -A 10 "## \[Unreleased\]" CHANGELOG.md | grep -v "^## \[Unreleased\]$" | grep -q .; then
-  echo "❌ No entry found in CHANGELOG.md under [Unreleased]"
+  echo "No entry found in CHANGELOG.md under [Unreleased]"
   exit 1
 fi
-echo "✅ CHANGELOG.md updated"
+echo "CHANGELOG.md updated"
 
 echo ""
 echo "🎉 Git state validation passed!"
@@ -406,7 +426,7 @@ chmod +x scripts/validate-git-state.sh
 ## 7. Anti-Patterns and Common Mistakes
 
 
-**❌ Anti-Pattern 1: Committing Directly to Main**
+**Anti-Pattern 1: Committing Directly to Main**
 ```bash
 git checkout main
 # ... make changes ...
@@ -415,7 +435,7 @@ git push origin main  # WRONG: Bypasses review and validation
 ```
 **Problem:** Skips code review, status checks, and validation; breaks audit trail; can introduce bugs to production.
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```bash
 git checkout main
 git pull origin main
@@ -432,7 +452,7 @@ gh pr create --title "fix(core): resolve critical validation bug"
 
 ---
 
-**❌ Anti-Pattern 2: Vague Branch Names**
+**Anti-Pattern 2: Vague Branch Names**
 ```bash
 git checkout -b fix-bug        # Too vague
 git checkout -b update         # What update?
@@ -441,7 +461,7 @@ git checkout -b temp           # Temporary what?
 ```
 **Problem:** Unclear purpose; difficult to track work; hard to understand git history; confusion in PR/MR lists.
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```bash
 git checkout -b fix/changelog-validation-error
 git checkout -b feature/add-cortex-search-patterns
@@ -452,7 +472,7 @@ git checkout -b refactor/split-large-streamlit-rule
 
 ---
 
-**❌ Anti-Pattern 3: Skipping CHANGELOG.md Updates**
+**Anti-Pattern 3: Skipping CHANGELOG.md Updates**
 ```bash
 git checkout -b feature/new-rule
 # ... create new rule file ...
@@ -462,7 +482,7 @@ gh pr create  # WRONG: No CHANGELOG entry
 ```
 **Problem:** Changes not documented; users unaware of new features; incomplete audit trail; breaks governance.
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```bash
 git checkout -b feature/new-rule
 # ... create new rule file ...
@@ -487,7 +507,7 @@ gh pr create
 
 ---
 
-**❌ Anti-Pattern 4: Creating PR/MR with Uncommitted Changes**
+**Anti-Pattern 4: Creating PR/MR with Uncommitted Changes**
 ```bash
 # ... make changes to multiple files ...
 git add some-file.md
@@ -498,7 +518,7 @@ gh pr create  # WRONG: Uncommitted changes in working directory
 ```
 **Problem:** PR doesn't reflect actual local state; reviewers see incomplete work; risk of losing uncommitted changes.
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```bash
 # ... make changes to multiple files ...
 git status  # Check what changed
@@ -519,7 +539,7 @@ gh pr create
 
 ---
 
-**❌ Anti-Pattern 5: Force Pushing to Main**
+**Anti-Pattern 5: Force Pushing to Main**
 ```bash
 git checkout main
 git reset --hard HEAD~3  # Rewind commits
@@ -527,7 +547,7 @@ git push --force origin main  # WRONG: Destroys history
 ```
 **Problem:** Destroys commit history; breaks other developers' clones; can cause data loss; violates protected branch rules.
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```bash
 # If you need to revert changes on main, use revert:
 git checkout main
@@ -566,7 +586,7 @@ gh pr create --title "fix: revert problematic change"
 - **Success Checks:** Branch name follows convention; git working directory clean (`git status --porcelain` empty); CHANGELOG.md has entry under [Unreleased]; PR/MR created successfully; all status checks pass; code review approved; merge completes without conflicts
 - **Negative Tests:** Invalid branch name rejected by validation script; uncommitted changes block PR/MR creation; missing CHANGELOG entry causes validation failure; direct commit to main blocked by branch protection; force push to main rejected; status check failures prevent merge
 
-> **⚠️ Investigation Required**  
+> **Investigation Required**  
 > When applying this rule:
 > 1. **Verify git repository state BEFORE making recommendations** using `git status`, `git branch`, `git log`
 > 2. **Check actual branch protection settings** on GitHub/GitLab before advising
@@ -575,17 +595,17 @@ gh pr create --title "fix: revert problematic change"
 > 5. **Make grounded recommendations based on actual git state inspection**
 >
 > **Anti-Pattern:**
-> ❌ "Based on typical patterns, you probably have feature branches..."
-> ❌ "Usually projects configure branch protection..."
+> "Based on typical patterns, you probably have feature branches..."
+> "Usually projects configure branch protection..."
 >
 > **Correct Pattern:**
-> ✅ "Let me check your git state first:"
+> "Let me check your git state first:"
 > ```bash
 > git branch -a
 > git remote -v
 > git status
 > ```
-> ✅ "After reviewing your git configuration, I found [specific facts]. Here's my recommendation..."
+> "After reviewing your git configuration, I found [specific facts]. Here's my recommendation..."
 
 ## Response Template
 

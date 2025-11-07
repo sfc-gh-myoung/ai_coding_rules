@@ -4,7 +4,9 @@ appliesTo:
 ---
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
-**Keywords:** rule governance, standards, semantic discovery, metadata, keywords, RULES_INDEX, system prompt altitude, right altitude, tool design
+**Keywords:** rule governance, standards, semantic discovery, metadata, keywords, RULES_INDEX, system prompt altitude, right altitude, tool design, universal compatibility, template standards, Quick Start TL;DR, Investigation-First Protocol, Contract section
+**TokenBudget:** ~9650
+**ContextTier:** High
 **Depends:** 000-global-core
 
 # Rule Governance: Universal Standards for AI Coding Rules
@@ -37,9 +39,30 @@ Establish comprehensive governance for creating, maintaining, and organizing AI 
 - **Explicit Contracts:** Clear inputs, outputs, and validation criteria with quantifiable success metrics
 - **Composable Design:** Rules reference and build upon each other logically with declared dependencies
 - **Professional Standards:** Consistent tone, structure, and formatting using semantic markup
-- **LLM-Optimized Format:** Enhanced Markdown with emojis for semantic sections, token budgets declared, explicit behavior specifications
+- **LLM-Optimized Format:** Text-only Markdown with explicit semantic markers, token budgets declared, clear behavior specifications
 - **Context Awareness:** Support for Claude 4.5+ native token management and multi-session state tracking
 - **Investigation-First:** Rules must encourage verification over speculation to minimize hallucinations
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Required metadata:** Description, Type, AppliesTo, AutoAttach, Keywords, TokenBudget, ContextTier, Version, LastUpdated, Depends
+- **Keywords field is CRITICAL** - Enables semantic discovery and automatic rule loading
+- **Include Quick Start TL;DR** - 30-second overview with 6-7 essential patterns
+- **Include Investigation-First Protocol** - 5 investigation requirements to prevent hallucinations
+- **Contract section before line 100** - Inputs, tools, steps, outputs, validation
+- **Use text-only markup** - **MANDATORY:**, **FORBIDDEN:**, **RECOMMENDED:**, **Investigation Required**
+- **Never create rules without metadata** - All 11 fields required in strict order
+
+**Quick Checklist:**
+- [ ] Metadata in correct order (11 fields)
+- [ ] Keywords comprehensive and semantic
+- [ ] Quick Start TL;DR section present
+- [ ] Investigation-First Protocol present
+- [ ] Contract section before line 100
+- [ ] Validation section with success/negative tests
+- [ ] Response Template included
 
 ## 1. Rule Creation & Naming Constraints
 - **Requirement:** Place universal rule files in the canonical `ai_coding_rules/` directory. Optional mirrors may exist in editor-specific folders (e.g., `.cursor/rules/`).
@@ -50,33 +73,30 @@ Establish comprehensive governance for creating, maintaining, and organizing AI 
 
 ### LLM Parsing Optimization with Universal Markdown
 
-**Requirement:** Use enhanced Markdown with emojis for semantic markup to enable precise LLM parsing across ALL models (Claude 4.x, GPT-4, Gemini) and editors (Cursor, Copilot, Cline).
+**Requirement:** Use text-only Markdown with explicit semantic markers to enable precise LLM parsing across ALL models (Claude 4.x, GPT-4, Gemini) and editors (Cursor, Copilot, Cline).
 
 **Universal Compatibility:**
-- ✅ **Claude 4:** Markdown with emojis fully supported
-- ✅ **GPT-4:** Native Markdown interpretation
-- ✅ **Gemini:** Full Markdown support
-- ✅ **GitHub Copilot:** Markdown-based custom instructions
-- ✅ **Cursor IDE:** Markdown rules with all LLM backends
-- ✅ **Cline:** Markdown-based rules
-- ✅ **All Markdown Viewers:** Clean rendering
+- **Claude 4:** Text-only Markdown fully supported
+- **GPT-4:** Native Markdown interpretation, prefers less emoji usage
+- **Gemini:** Full Markdown support
+- **GitHub Copilot:** Markdown-based custom instructions
+- **Cursor IDE:** Markdown rules with all LLM backends
+- **Cline:** Markdown-based rules
+- **All Markdown Viewers:** Clean rendering
 
 **Standard Markdown Patterns for Rules:**
 
 ```markdown
-> **Section Metadata**  
-> Token Budget: ~450 | Context Tier: essential | Priority: high
-
-**🔥 MANDATORY:**
+**MANDATORY:**
 - [Mandatory content here]
 
-**❌ FORBIDDEN:**
+**FORBIDDEN:**
 - [Forbidden actions here]
 
-**✅ RECOMMENDED:**
+**RECOMMENDED:**
 - [Best practices here]
 
-> **⚠️ Investigation Required**  
+> **Investigation Required**  
 > [Instructions requiring verification before response]
 
 > **🤖 Claude 4 Specific Guidance**  
@@ -84,18 +104,18 @@ Establish comprehensive governance for creating, maintaining, and organizing AI 
 ```
 
 **Markdown Pattern Guidelines:**
-- **Requirement:** Use emoji-prefixed bold headings for directive strength
-- **Requirement:** Use blockquotes (`>`) for metadata and special guidance sections
-- **Always:** Include Section Metadata blockquote for priority/budget tracking
+- **Requirement:** Use text-only bold headings for directive strength (e.g., `**MANDATORY:**`, `**FORBIDDEN:**`)
+- **Requirement:** Use blockquotes (`>`) for special guidance sections (Investigation, Model-Specific)
 - **Consider:** Add model-specific guidance blockquotes for model-optimized patterns
 
-**Emoji Standards (Universal):**
-- 🔥 **MANDATORY** - Critical requirements
-- ❌ **FORBIDDEN** - Prohibited actions
-- ✅ **RECOMMENDED** - Best practices
-- ⚠️ **Investigation Required** - Verification needed
-- 🤖 **Model-Specific** - Model-optimized guidance
-- 📊 **Metric** - Measurements and targets
+**Text-Only Standards (Universal):**
+- `**MANDATORY:**` - Critical requirements
+- `**FORBIDDEN:**` - Prohibited actions
+- `**RECOMMENDED:**` - Best practices
+- `**WARNING:**` - Important cautions
+- `**Investigation Required:**` - Verification needed
+- `**Model-Specific:**` - Model-optimized guidance
+- `**METRIC:**` - Measurements and targets
 
 ## 3. Required Rule Structure
 
@@ -104,9 +124,6 @@ Every rule file must follow this structure:
 
 ```markdown
 # Rule Title
-
-> **Section Metadata**  
-> Token Budget: ~450 | Context Tier: essential | Priority: high
 
 ## Purpose
 [1-2 sentences clearly explaining what this rule accomplishes and why it exists]
@@ -117,14 +134,14 @@ Every rule file must follow this structure:
 
 ## Contract
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Inputs/Prereqs:** [Required context, files, env vars]
 - **Allowed Tools:** [List tools permitted for this rule]
 
-**❌ FORBIDDEN:**
+**FORBIDDEN:**
 - **Forbidden Tools:** [List tools not allowed]
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Required Steps:** [Ordered, explicit steps the AI must follow. Be explicit - Claude 4 requires clear instructions]
 - **Output Format:** [Exact expected output format]
 - **Validation Steps:** [Checks the AI must run to confirm success]
@@ -136,11 +153,11 @@ Every rule file must follow this structure:
 [Comprehensive implementation details with explicit instructions]
 
 ## Anti-Patterns and Common Mistakes (CRITICAL for Claude 4)
-**❌ Anti-Pattern 1:** [Description with example]
-**✅ Correct Pattern:** [How to do it right with example]
+**Anti-Pattern 1:** [Description with example]
+**Correct Pattern:** [How to do it right with example]
 
-**❌ Anti-Pattern 2:** [Description with example]
-**✅ Correct Pattern:** [How to do it right with example]
+**Anti-Pattern 2:** [Description with example]
+**Correct Pattern:** [How to do it right with example]
 
 ## Quick Compliance Checklist
 - [ ] [5-10 verification items AI can check before acting]
@@ -204,7 +221,7 @@ Every rule file must follow this structure:
 **Purpose:** Enable AI agents to automatically discover and load relevant rules based on conversation context and user queries.
 
 **Keywords Metadata:**
-- 🔥 **CRITICAL - MANDATORY:** Include `**Keywords:**` metadata in ALL rule files for semantic matching (required in v2.4)
+- **CRITICAL - MANDATORY:** Include `**Keywords:**` metadata in ALL rule files for semantic matching (required in v2.4)
 - **Format:** Comma-separated list of technologies, concepts, patterns, and common use cases
 - **Best Practices:**
   - Include primary technology names (e.g., "Snowflake", "Python", "FastAPI")
@@ -265,10 +282,10 @@ Every rule file must follow this structure:
 ```
 
 **Anti-Pattern:**
-❌ `**TokenBudget:** small` or `**TokenBudget:** medium` or `**TokenBudget:** large`
+`**TokenBudget:** small` or `**TokenBudget:** medium` or `**TokenBudget:** large`
 
 **Correct Pattern:**
-✅ `**TokenBudget:** ~450` or `**TokenBudget:** ~1200` or `**TokenBudget:** ~2200`
+`**TokenBudget:** ~450` or `**TokenBudget:** ~1200` or `**TokenBudget:** ~2200`
 
 **Claude 4.5 Context Awareness:**
 > **🤖 Claude 4.5 Specific Guidance**  
@@ -287,7 +304,7 @@ Every rule file must follow this structure:
 
 ### Anti-Patterns Library (CRITICAL for Claude 4)
 
-**Priority:** 🔥 CRITICAL - Claude 4 models pay extreme attention to examples as part of their precise instruction following capabilities.
+**Priority:** CRITICAL - Claude 4 models pay extreme attention to examples as part of their precise instruction following capabilities.
 
 **Requirement:** Every rule with complex behavior MUST include an Anti-Patterns section showing both incorrect and correct approaches.
 
@@ -295,27 +312,27 @@ Every rule file must follow this structure:
 ```markdown
 ## Anti-Patterns and Common Mistakes
 
-**❌ Anti-Pattern 1: [Descriptive Name]**
+**Anti-Pattern 1: [Descriptive Name]**
 ```[language]
 // Bad example showing what NOT to do
 [Complete, runnable anti-pattern code]
 ```
 **Problem:** [Specific issues this causes]
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```[language]
 // Good example showing the right approach
 [Complete, runnable correct code]
 ```
 **Benefits:** [Why this approach is better]
 
-**❌ Anti-Pattern 2: Vague Instructions**
+**Anti-Pattern 2: Vague Instructions**
 ```markdown
 "Create a good analytics dashboard"
 ```
 **Problem:** Claude 4 won't automatically add extra features unless explicitly requested.
 
-**✅ Explicit Instructions:**
+**Explicit Instructions:**
 ```markdown
 "Create an analytics dashboard. Include as many relevant features and interactions as possible. Go beyond the basics to create a fully-featured implementation. Use your entire context budget to deliver a polished, production-ready result."
 ```
@@ -338,79 +355,76 @@ Every rule file must follow this structure:
 - **Examples:** Include practical, runnable examples with proper syntax highlighting
 - **Requirement:** Be explicit with instructions - Claude 4 requires clear, direct specifications without assuming behavior
 
-### Emoji Usage in Rules
+### Text-Only Markup for Machine-Consumed Files
 
-**Context:** LLMs (Claude 4, GPT-4, Gemini) can read and interpret emojis as semantic tokens. Each emoji consumes 1-4 tokens but can significantly improve human scan-ability of long rule files.
+**Critical Principle:** Rule files, RULES_INDEX.md, AGENTS.md, and all template files are **machine-consumed content** intended primarily for LLMs and AI agents, not human readers.
 
-**Functional Semantic Markers (ALLOWED in rule files):**
-
-Use these standardized emojis as semantic markers to improve visual parsing:
-
-- 🔥 **CRITICAL** - Critical priority items (security, data loss prevention)
-- ⚠️ **WARNING** - Important warnings requiring attention
-- ✅ **CORRECT** - Correct pattern examples in anti-pattern sections
-- ❌ **INCORRECT** - Anti-pattern examples showing what NOT to do
-- 📊 **METRIC** - Measurable targets and quantifiable goals
-- 🆕 **NEW** - New sections or features added in updates
-
-**Usage Guidelines:**
-- **Limit:** Maximum 3-5 standardized markers per rule file
-- **Consistency:** Always use the same emoji for the same meaning across all rules
-- **Purpose:** Functional semantic markers only, never decorative
-- **Placement:** Beginning of priority statements or section headers
-- **Token Cost:** ~5 emojis = ~5 tokens in a 600-token rule = <1% overhead
+**PROHIBITED: ALL Emojis in Machine-Consumed Files**
 
 **Rationale:**
-- **Human Benefit:** Dramatically improves scan-ability in 500-line rule files
-- **LLM Understanding:** All major LLMs correctly interpret semantic emojis as priority indicators
-- **Industry Precedent:** GitHub, GitLab, Notion use emojis as functional markers in technical documentation
-- **Minimal Cost:** Token overhead is negligible compared to readability gains
+- **No Official Endorsement:** Zero documentation from OpenAI, Google Gemini, or Anthropic recommending emojis in system prompts
+- **Active Reduction Trend:** OpenAI's GPT-4o updates (March 2025) explicitly reduced emoji usage for "responses that are easier to read, less cluttered, and more focused"
+- **ChatGPT Internal Directive:** "Never use emojis, unless explicitly asked to"
+- **Token Inefficiency:** Each emoji consumes 1-4 tokens without providing semantic value to LLMs
+- **Parsing Ambiguity:** Unicode emoji interpretation varies across tokenizers and platforms
+- **Unsubstantiated Claims:** No evidence that LLMs parse emojis better than explicit text
 
-**Decorative Emojis (FORBIDDEN in rule files):**
+**Primary Audience:** AI agents and LLMs, not humans. While humans may read and maintain these files, optimizing for machine processing is the design priority.
 
-These serve no semantic purpose and reduce professionalism:
+**Text-Only Alternatives (REQUIRED):**
 
-- ❌ **Celebratory:** 🎉🥳🎊 ("Great job!", "Let's go!")
-- ❌ **Emphasis:** 💯💪👍 (except standard markers above)
-- ❌ **Objects:** 🏗️🔨📊💾 (use descriptive words instead)
-- ❌ **Faces:** 😀😎😅🤔 (unprofessional in technical documentation)
-- ❌ **Redundant:** Multiple emojis expressing same concept (🔥💥⚡ for one priority)
+Use explicit text markers that LLMs parse reliably:
 
-**GIF Images (FORBIDDEN in rule files):**
-- **Reasoning:** LLMs cannot interpret GIF animations (only see alt text)
-- **Alternative:** Use code examples, ASCII diagrams, or external documentation links
-- **Exception:** None - GIFs provide no semantic value to LLMs
+| Purpose | Use This | NOT This |
+|---------|----------|----------|
+| Critical requirements | `**MANDATORY:**` or `**CRITICAL:**` | ~~🔥 **MANDATORY:**~~ |
+| Prohibitions | `**FORBIDDEN:**` or `**PROHIBITED:**` | ~~❌ **FORBIDDEN:**~~ |
+| Best practices | `**RECOMMENDED:**` or `**BEST PRACTICE:**` | ~~✅ **RECOMMENDED:**~~ |
+| Warnings | `**WARNING:**` or `**CAUTION:**` | ~~⚠️ **WARNING:**~~ |
+| Metrics | `**METRIC:**` or `**MEASUREMENT:**` | ~~📊 **METRIC:**~~ |
+| New features | `**NEW:**` or `**ADDED:**` | ~~🆕 **NEW:**~~ |
+| Critical headings | `# CRITICAL:` or `**CRITICAL**` | ~~# 🚨 CRITICAL:~~ |
+| Anti-patterns | `**Anti-Pattern:**` | ~~❌ Anti-Pattern~~ |
+| Correct patterns | `**Correct Pattern:**` | ~~✅ Correct Pattern~~ |
+
+**Effective Markup Techniques:**
+
+1. **Bold Text:** `**MANDATORY:**` - Universally recognized by all LLMs
+2. **ALL CAPS:** `CRITICAL`, `FORBIDDEN`, `REQUIRED` - Clear semantic signal
+3. **Heading Hierarchy:** `## Contract`, `### Validation` - Structural clarity
+4. **Blockquotes:** `> **Investigation Required**` - Special guidance sections
+5. **Semantic Keywords:** "must", "never", "always", "required", "forbidden"
 
 **LLM-Generated Content Standards:**
 
-**❌ FORBIDDEN:**
+**FORBIDDEN:**
 When LLMs generate code, documentation, or responses:
-- **Default:** Must NOT generate emojis or GIFs in output
+- **Default:** Must NOT generate emojis in output
 - **Professionalism:** Technical documentation should be emoji-free by default
 - **Exception:** Only when user explicitly requests with phrases like:
   - "add emojis to make it friendly"
   - "use emojis for section headers"
   - "make it more engaging with emojis"
-</directive_strength>
 
 **Distinction:**
-- **Rule files** (human-authored, machine-consumed): Functional semantic emojis ALLOWED
-- **LLM outputs** (machine-generated, human-consumed): Emojis FORBIDDEN unless requested
+- **Machine-consumed files** (templates/, AGENTS.md, RULES_INDEX.md): **NO emojis ever**
+- **LLM outputs** (generated code, docs for humans): **No emojis unless requested**
+- **Human-facing docs** (README.md, CONTRIBUTING.md for humans): Emojis acceptable if desired
 
 **Example of Correct Usage in Rules:**
 
 ```markdown
 ## Priority Classification
 
-🔥 **CRITICAL: Never commit secrets to version control**
+**CRITICAL: Never commit secrets to version control**
 - Immediate security vulnerability
 - Can lead to data breach
 
-⚠️ **WARNING: Avoid using SELECT * in production queries**
+**WARNING: Avoid using SELECT * in production queries**
 - Performance implications
 - Wastes context window budget
 
-✅ **RECOMMENDED: Use explicit column lists**
+**RECOMMENDED: Use explicit column lists**
 - Better performance
 - Clear intent
 ```
@@ -420,9 +434,9 @@ When LLMs generate code, documentation, or responses:
 ```markdown
 ## Let's Get Started! 🎉🎊
 
-This is so cool! 😎 We're going to build amazing things! 💪🔥💯
+This is so cool! 😎 We're going to build amazing things! 💪💯
 
-Database design 🏗️ requires careful planning 🤔 and execution 🔨!
+Database design requires careful planning and execution!
 ```
 
 ### Cross-Reference Standards
@@ -439,7 +453,7 @@ Database design 🏗️ requires careful planning 🤔 and execution 🔨!
 
 **Too Low Altitude (Brittle):**
 ```markdown
-❌ Anti-Pattern: Hardcoded If-Else Logic
+Anti-Pattern: Hardcoded If-Else Logic
 If user mentions "price", respond "Contact sales"
 If user says "bug", create ticket
 If query contains "how", search docs
@@ -453,7 +467,7 @@ If user says "thanks", say "welcome"
 
 **Too High Altitude (Vague):**
 ```markdown
-❌ Anti-Pattern: Overly General Guidance
+Anti-Pattern: Overly General Guidance
 Be helpful and provide good responses.
 Try to understand user intent.
 Do your best work.
@@ -466,7 +480,7 @@ Do your best work.
 
 **Right Altitude (Goldilocks Zone):**
 ```markdown
-✅ Correct Pattern: Specific Heuristics, Flexible Application
+Correct Pattern: Specific Heuristics, Flexible Application
 You are a technical support agent for ProductX.
 
 ## Responsibilities
@@ -513,7 +527,7 @@ You are a technical support agent for ProductX.
 
 **Too Low (Over-Specified):**
 ```python
-❌ Bad: Brittle parameter handling
+Bad: Brittle parameter handling
 def search(query: str, mode: int):
     """mode: 0=exact, 1=fuzzy, 2=semantic, 3=hybrid"""
     # Agent must memorize arbitrary codes
@@ -521,7 +535,7 @@ def search(query: str, mode: int):
 
 **Too High (Under-Specified):**
 ```python
-❌ Bad: Vague tool purpose
+Bad: Vague tool purpose
 def do_operation(data: str, operation: str):
     """Perform operation on data"""
     # What operations? What format?
@@ -529,7 +543,7 @@ def do_operation(data: str, operation: str):
 
 **Right Altitude (Clear Contract):**
 ```python
-✅ Good: Semantic, self-documenting
+Good: Semantic, self-documenting
 def search(
     query: str,
     mode: Literal["exact", "fuzzy", "semantic"] = "semantic"
@@ -566,10 +580,10 @@ When creating 3+ related rules covering subtopics of the same technology or fram
 - **Subtopic Rules:** `NNNa-technology-aspect1.md`, `NNNb-technology-aspect2.md`, etc.
 
 **When to Use Letter Suffixes:**
-- ✅ **Use letters** when you have 3+ related rules covering aspects/subtopics of ONE technology
-- ✅ **Use letters** for framework-specific features (Streamlit, FastAPI modules, Cortex functions)
-- ✅ **Use letters** to create visual clustering in file browsers
-- ❌ **Don't use letters** for completely different technologies (use separate numbers)
+- **Use letters** when you have 3+ related rules covering aspects/subtopics of ONE technology
+- **Use letters** for framework-specific features (Streamlit, FastAPI modules, Cortex functions)
+- **Use letters** to create visual clustering in file browsers
+- **Don't use letters** for completely different technologies (use separate numbers)
 
 **Examples:**
 - **Streamlit Family (Best Practice):**
@@ -617,7 +631,7 @@ Are these rules subtopics of ONE technology?
 
 ### Investigation-First Protocol (REQUIRED - Anti-Hallucination)
 
-**Priority:** 🔥 CRITICAL - Required in all rules to minimize hallucinations and ensure grounded responses.
+**Priority:** CRITICAL - Required in all rules to minimize hallucinations and ensure grounded responses.
 
 **From Claude 4 Best Practices:**
 > "Never speculate about code you have not opened. If the user references a specific file, you MUST read the file before answering."
@@ -626,7 +640,7 @@ Are these rules subtopics of ONE technology?
 
 **Standard Investigation Block:**
 ```xml
-> **⚠️ Investigation Required**  
+> **Investigation Required**  
 > When applying this rule:
 > 1. **Read referenced files BEFORE making recommendations**
 > 2. **Verify assumptions against actual code/data**
@@ -635,13 +649,13 @@ Are these rules subtopics of ONE technology?
 > 5. **Make grounded, hallucination-free recommendations based on investigation**
 >
 > **Anti-Pattern:**
-> ❌ "Based on typical patterns, this file probably contains..."
-> ❌ "Usually this would be implemented as..."
+> "Based on typical patterns, this file probably contains..."
+> "Usually this would be implemented as..."
 >
 > **Correct Pattern:**
-> ✅ "Let me read the file first to give you accurate guidance."
+> "Let me read the file first to give you accurate guidance."
 > [reads file using appropriate tool]
-> ✅ "After reviewing [file], I found [specific facts]. Here's my recommendation based on what I observed..."
+> "After reviewing [file], I found [specific facts]. Here's my recommendation based on what I observed..."
 ```
 
 **Application Guidelines:**
@@ -737,12 +751,12 @@ When this rule requires multiple independent operations:
 
 **Example:**
 ```python
-# ❌ Sequential (slow)
+# Sequential (slow)
 file1 = read_file("a.md")
 file2 = read_file("b.md")
 file3 = read_file("c.md")
 
-# ✅ Parallel (fast)
+# Parallel (fast)
 files = parallel_read(["a.md", "b.md", "c.md"])
 ```
 
@@ -794,28 +808,45 @@ Do not use placeholders or guess missing parameters - wait for actual results.
 - **Requirement:** Reference official model documentation for model-specific guidance (Claude 4 Best Practices, OpenAI Prompt Engineering, Gemini documentation)
 
 ## 10. Change Workflow
+
+### Universal Compatibility Requirements (Section 11)
+When creating or updating rules, follow these universal compatibility standards:
+
+- **CRITICAL:** Follow standardized metadata field order (Description, Type, AppliesTo, AutoAttach, Keywords, TokenBudget, ContextTier, Version, LastUpdated, Depends)
+- **CRITICAL:** Include "Quick Start TL;DR" section after Key Principles with 3-4 essential patterns
+- **CRITICAL:** Follow standardized section order (Purpose → Rule Type → Contract → Key Principles → TL;DR → Content)
+- **CRITICAL:** Place Contract section early, before detailed content sections
+- **Always:** Use concise section headers (avoid verbose parentheticals and numbering)
+- **CRITICAL:** Include Investigation-First Protocol for rules referencing files/code/system state
+- **CRITICAL:** Provide complete Response Template with working examples (not placeholders)
+- **CRITICAL:** Declare ALL dependencies in metadata AND provide inline references
+- **Always:** Use standardized code block language tags (bash, python, sql, yaml, json, markdown, xml)
+- **CRITICAL:** Ensure token budget accurately reflects file size (±20%, ~2 tokens per line)
+- **Consider:** Add model-specific guidance in blockquote format at end of file (optional)
+
+### Core Rule Requirements (Existing)
 - **Always:** When creating a new rule, include a clear `## Purpose` section and, when appropriate, a `## Key Principles` section with 3-7 concise bullet points summarizing core concepts
 - **Mandatory:** When creating a new rule, include a `## Rule Type and Scope` section immediately after the Purpose section specifying the rule's type and scope
 - **Mandatory:** When creating a new rule, include a complete `## References` section with both `### External Documentation` and `### Related Rules` subsections
 - **Mandatory:** When creating a new rule, include `Version: 1.0` and `LastUpdated` with current date in YYYY-MM-DD format
-- 🔥 **CRITICAL:** When creating a new rule, include `Keywords` metadata with 5-15 relevant keywords for semantic discovery (required in v2.4)
+- **CRITICAL:** When creating a new rule, include `Keywords` metadata with 5-15 relevant keywords for semantic discovery
 - **Mandatory:** When creating a new rule, declare `TokenBudget` and `ContextTier` in metadata
 - **Mandatory:** When updating any rule file, increment the version number and update `LastUpdated` to the current date in YYYY-MM-DD format
-- **Mandatory:** When updating any rule file, review and update `TokenBudget` to reflect current file size and content (use token budget tiers in Section 5 as guidance: ~150-250 for <150 lines, ~300-600 for 150-300 lines, ~700-1200 for 300-600 lines, ~1500+ for >600 lines)
+- **Mandatory:** When updating any rule file, review and update `TokenBudget` to reflect current file size and content (use token budget tiers in Section 5 as guidance)
 - **Mandatory:** TokenBudget MUST be numeric with tilde prefix (e.g., ~450), never text labels like "small", "medium", or "large"
 - **Always:** When refactoring, split oversized rules and remove content duplication
-- **Always:** When creating or updating rules, verify compliance with emoji usage guidelines (standardized functional markers only: 🔥⚠️✅❌📊🆕)
-- **Forbidden:** Decorative emojis, celebratory emojis, face emojis, or GIF images in rule files
+- **Mandatory:** When creating or updating rules, verify NO emojis are used in machine-consumed files (templates/, AGENTS.md, RULES_INDEX.md)
+- **Forbidden:** ALL emojis in machine-consumed files - use text-only markup instead
 - **Always:** Include guidance that LLM-generated outputs must be emoji-free unless user explicitly requests them
 - **Always:** Validate Related Rules cross-references for accuracy and ensure they represent logical relationships
-- **Always:** Before finalizing a rule, validate it against current, vendor-agnostic documentation and your primary IDE/tooling documentation for compliance (e.g., Visual Studio Code, Cursor, Claude Code, Gemini CLI, Cline)
+- **Always:** Before finalizing a rule, validate it against current, vendor-agnostic documentation and your primary IDE/tooling documentation for compliance
 - **Always:** For all agent interactions, follow the core rules in `000-global-core.md`
 
 ### Date Handling Protocol
 
 **Critical Requirement:** Never hardcode dates when updating LastUpdated fields.
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 **Date Acquisition:**
 - **CRITICAL:** Always obtain current date via system call: `date +%Y-%m-%d` (or equivalent)
 - **Forbidden:** Never hardcode, guess, or assume today's date
@@ -824,13 +855,13 @@ Do not use placeholders or guess missing parameters - wait for actual results.
 
 **Anti-Pattern:**
 ```markdown
-❌ BAD: Hardcoding or guessing the date
+BAD: Hardcoding or guessing the date
 ```
 **Problem:** Hardcoded dates are frequently wrong, especially after context resets or when agent lacks current date awareness
 
 **Correct Pattern:**
 ```bash
-✅ GOOD: Get date from system
+GOOD: Get date from system
 # First, get today's date from system
 date +%Y-%m-%d
 # Output: 2025-10-22
@@ -852,19 +883,251 @@ date +%Y-%m-%d
 - **Gemini:** Can access system date information
 - **Fallback:** If unable to access system date, explicitly ask user for today's date
 
-## 11. Rule Creation Template
+## 11. Universal Compatibility Standards
+
+### 11.1 Metadata Field Order (MANDATORY)
+
+**Requirement:** All templates MUST use this exact metadata order for consistent parsing across agents:
+
+```markdown
+**Keywords:** [comma-separated keywords - CRITICAL for discovery]
+**TokenBudget:** ~[number]
+**ContextTier:** [Critical | High | Medium | Low]
+**Depends:** [rule-dependencies]
+```
+
+**Rationale:** Consistent field order enables predictable parsing, automated validation, and reliable metadata extraction across all agent types.
+
+### 11.2 Quick Start TL;DR Section (MANDATORY)
+
+**Requirement:** All rules MUST include a "Quick Start TL;DR" section immediately after Key Principles to support progressive disclosure and attention budget management.
+
+**Pattern:**
+```markdown
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- [Most critical pattern 1]
+- [Most critical pattern 2]
+- [Most critical pattern 3]
+- [Common anti-pattern to avoid]
+```
+
+**Rationale:** Aligns with progressive disclosure principles from `003-context-engineering.md`; enables agents to grasp core concepts without reading entire rule; critical for Claude 4's attention budget management.
+
+### 11.3 Standardized Section Order (MANDATORY)
+
+**Requirement:** All templates MUST follow this section order:
+
+```markdown
+# Rule Title
+
+## Purpose
+[Clear purpose statement]
+
+## Rule Type and Scope
+- **Type:** [Auto-attach | Agent Requested]
+- **Scope:** [Scope description]
+
+## Contract
+[Inputs, tools, steps, validation - appears EARLY before content]
+
+## Key Principles
+[3-7 concise principles]
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+[Essential patterns - NEW REQUIREMENT]
+
+## [Numbered Content Sections]
+[Detailed implementation guidance]
+
+## Anti-Patterns and Common Mistakes
+[Required for complex rules]
+
+## Quick Compliance Checklist
+[Verification items]
+
+## Validation
+[Success checks and negative tests]
+
+> **Investigation Required**  
+> [Investigation protocol - when rule references files/code]
+
+## Response Template
+[Complete working example]
+
+## References
+### External Documentation
+[Links to official docs]
+
+### Related Rules
+[Cross-references to other rules]
+
+> **🤖 Model-Specific Guidance**  
+> [Optional optimizations]
+```
+
+**Rationale:** Contract appears early so agents understand constraints before exploring details; consistent order enables efficient scanning.
+
+### 11.4 Concise Section Headers (RECOMMENDED)
+
+**Guideline:** Prefer concise headers to reduce token consumption:
+
+**Good:**
+```markdown
+## Anti-Patterns
+## Configuration
+## Validation Gate
+```
+
+**Avoid:**
+```markdown
+## Anti-Patterns and Common Mistakes (CRITICAL for Claude 4)
+## 8. Configuration and Environment
+## Pre-Task-Completion Validation Gate (CRITICAL)
+```
+
+**Rationale:** Saves 5-10 tokens per header; maintains semantic meaning through content.
+
+### 11.5 Investigation-First Protocol (MANDATORY for Code/File Rules)
+
+**Requirement:** Rules that reference files, code, or system state MUST include Investigation Required block:
+
+```markdown
+> **Investigation Required**  
+> When applying this rule:
+> 1. Read referenced files BEFORE making recommendations
+> 2. Verify assumptions against actual code/data
+> 3. Never speculate about file contents or system state
+> 4. If uncertain, explicitly state: "I need to read [file] to provide accurate guidance"
+> 5. Make grounded, hallucination-free recommendations based on investigation
+>
+> **Anti-Pattern:**
+> "Based on typical patterns, this file probably contains..."
+> "Usually this would be implemented as..."
+>
+> **Correct Pattern:**
+> "Let me read the file first to give you accurate guidance."
+> [reads file using appropriate tool]
+> "After reviewing [file], I found [specific facts]. Here's my recommendation..."
+```
+
+**Placement:** Before Response Template section
+
+**Rationale:** Critical for preventing hallucinations; aligns with Claude 4 best practices; reinforces verification-first mindset.
+
+### 11.6 Complete Response Templates (MANDATORY)
+
+**Requirement:** All Response Template sections MUST provide complete, working examples:
+
+**Bad (Placeholder):**
+```markdown
+## Response Template
+```
+[Minimal, copy-pasteable template showing expected output format]
+```
+```
+
+**Good (Complete Example):**
+```markdown
+## Response Template
+
+```python
+# Example: FastAPI endpoint following this rule
+from fastapi import APIRouter, Depends, HTTPException
+from app.models import UserCreate, UserResponse
+from app.services import UserService
+
+router = APIRouter()
+
+@router.post("/users", response_model=UserResponse, status_code=201)
+async def create_user(
+    user_data: UserCreate,
+    service: UserService = Depends(get_user_service)
+) -> UserResponse:
+    """Create new user with validation."""
+    return await service.create_user(user_data)
+```
+```
+
+**Rationale:** Agents can use as starting template; demonstrates complete pattern; reduces back-and-forth clarification.
+
+### 11.7 Explicit Dependency Declaration (MANDATORY)
+
+**Requirement:** Declare ALL dependencies in metadata AND provide inline references:
+
+```markdown
+**Depends:** 000-global-core, 200-python-core, 210a-python-fastapi-security
+
+## Section Content
+For comprehensive security patterns, see `@210a-python-fastapi-security.md`.
+```
+
+**Rationale:** Enables automated dependency resolution; supports RULES_INDEX.md workflow; agents can load dependency chains correctly.
+
+### 11.8 Standardized Code Block Language Tags
+
+**Requirement:** Use consistent language tags:
+
+```markdown
+bash, sh, zsh          # Shell scripts
+python, py             # Python code
+sql                    # SQL queries
+toml                   # Config files
+yaml, yml              # YAML files
+json                   # JSON data
+markdown, md           # Markdown examples
+xml                    # XML/structured prompts
+```
+
+**Rationale:** Consistent syntax highlighting; better parsing by agents; clear semantic meaning.
+
+### 11.9 Token Budget Validation (MANDATORY)
+
+**Requirement:** Token budgets MUST accurately reflect file size (±20%):
+
+```bash
+# Estimation formula
+actual_lines=$(wc -l < "$rule_file")
+estimated_tokens=$((actual_lines * 2))
+```
+
+**Validation:** During rule generation, verify declared budget matches estimated tokens.
+
+**Rationale:** Agents rely on budgets for context planning; critical for Claude 4's attention budget management.
+
+### 11.10 Model-Specific Guidance Format (OPTIONAL)
+
+**Pattern:** Use optional blockquote at end of file:
+
+```markdown
+> **🤖 Claude 4 Specific Guidance**  
+> **Claude 4 Optimizations:**
+> - Context awareness: Model can track token budget
+> - Be explicit: Request comprehensive behavior directly
+> - Parallel tool calls: Maximize simultaneous operations
+> - Investigation-first: Model excels at filesystem discovery
+
+> **🤖 GPT-4 Specific Guidance**  
+> **GPT-4 Optimizations:**
+> - Token budget: Target <400 tokens per rule for compatibility
+> - JSON mode: Use `response_format: { "type": "json_object" }`
+```
+
+**Rationale:** Optional enhancement; models ignore irrelevant blocks; graceful degradation.
+
+## 12. Rule Creation Template (Updated)
 
 Use this template when creating new rule files. Copy the entire template below and replace all placeholders with appropriate content:
 
 ```markdown
 **Keywords:** [technology, concept, pattern, use-case] (comma-separated for semantic discovery)
 **TokenBudget:** ~[number] (e.g., ~450, ~800, ~2000)
-**ContextTier:** [essential | standard | comprehensive]
+**ContextTier:** [Critical | High | Medium | Low]
+**Depends:** [prerequisite-rules]
 
 # Rule Title (Replace with Descriptive Title)
-
-> **Section Metadata**  
-> Token Budget: ~450 | Context Tier: standard | Priority: high
 
 ## Purpose
 [1-2 sentences clearly explaining what this rule accomplishes and why it exists. Be explicit about expected behaviors - Claude 4 requires clear specifications.]
@@ -876,14 +1139,14 @@ Use this template when creating new rule files. Copy the entire template below a
 
 ## Contract
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Inputs/Prereqs:** [Required context, files, env vars]
 - **Allowed Tools:** [List tools permitted for this rule]
 
-**❌ FORBIDDEN:**
+**FORBIDDEN:**
 - **Forbidden Tools:** [List tools not allowed]
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Required Steps:** [Ordered, explicit steps the agent must follow. Be explicit and specific - include "go beyond the basics", "use entire context budget", etc. when appropriate]
 - **Output Format:** [Exact expected output format]
 - **Validation Steps:** [Checks the agent must run to confirm success]
@@ -893,29 +1156,38 @@ Use this template when creating new rule files. Copy the entire template below a
 - [Another essential principle or practice]
 - [Additional core concepts as needed]
 
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- [Most critical pattern 1 - what to do]
+- [Most critical pattern 2 - what to do]
+- [Most critical pattern 3 - what to do]
+- [Common anti-pattern to avoid]
+
 ## 1. Detailed Section
 [Comprehensive implementation details with explicit instructions]
 
 ## Anti-Patterns and Common Mistakes
 
-**❌ Anti-Pattern 1: [Descriptive Name]**
+**Anti-Pattern 1: [Descriptive Name]**
 ```[language]
 // Bad example showing what NOT to do
 [Complete, runnable anti-pattern code]
 ```
 **Problem:** [Specific issues this causes]
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```[language]
 // Good example showing the right approach
 [Complete, runnable correct code]
 ```
 **Benefits:** [Why this approach is better]
 
-**❌ Anti-Pattern 2: [Another Common Mistake]**
+**Anti-Pattern 2: [Another Common Mistake]**
 [Description with example]
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 [How to do it right with example]
 
 ## Quick Compliance Checklist
@@ -929,7 +1201,7 @@ Use this template when creating new rule files. Copy the entire template below a
 - **Success Checks:** [How to verify correct implementation]
 - **Negative Tests:** [What should fail and how to detect failures]
 
-> **⚠️ Investigation Required**  
+> **Investigation Required**  
 > When applying this rule:
 > 1. Read referenced files BEFORE making recommendations
 > 2. Verify assumptions against actual code/data
@@ -959,32 +1231,43 @@ Use this template when creating new rule files. Copy the entire template below a
 > - Investigation-first: Model excels at filesystem discovery
 
 > **Note:** Follow professional communication standards including:
-> - Use standardized functional emoji markers (🔥⚠️✅❌📊🆕) for priority/pattern identification
-> - Prohibit decorative emojis and GIF images
+> - Use text-only markup for priority/pattern identification (**MANDATORY:**, **FORBIDDEN:**, **RECOMMENDED:**)
+> - NO emojis in machine-consumed files (templates/, AGENTS.md, RULES_INDEX.md)
 > - LLM-generated outputs must be emoji-free unless user explicitly requests them
 ```
 
 ## Quick Compliance Checklist
-- [ ] Rule follows mandatory section structure (all 9+ required sections)
+
+### Universal Compatibility Standards (Section 11)
+- [ ] **Metadata field order follows standard** (Description, Type, AppliesTo, AutoAttach, Keywords, TokenBudget, ContextTier, Version, LastUpdated, Depends)
+- [ ] **Quick Start TL;DR section included** after Key Principles with 3-4 essential patterns
+- [ ] **Standardized section order followed** (Purpose → Rule Type → Contract → Key Principles → TL;DR → Content → Anti-Patterns → Checklist → Validation → Investigation → Response → References)
+- [ ] **Contract section appears early** (before detailed content sections)
+- [ ] **Section headers are concise** (avoid verbose parentheticals and numbering)
+- [ ] **Investigation-First Protocol included** (for rules referencing files/code/system state)
+- [ ] **Response Template is complete** with working examples (not placeholders)
+- [ ] **All dependencies declared** in metadata AND inline references provided
+- [ ] **Code block language tags are standardized** (bash, python, sql, yaml, json, markdown, xml)
+- [ ] **Token budget accurately reflects file size** (±20%, ~2 tokens per line)
+- [ ] **Model-specific guidance uses blockquote format** (optional, at end of file)
+
+### Core Rule Standards (Existing)
+- [ ] Rule follows mandatory section structure (all required sections present)
 - [ ] Purpose clearly states what rule accomplishes and why
-- [ ] 🔥 **Keywords metadata present with 5-15 relevant keywords (CRITICAL in v2.4)**
-- [ ] TokenBudget declared as numeric value with tilde (e.g., ~450) and reflects current file size (~2 tokens per line)
-- [ ] ContextTier declared in metadata and appropriate for file size
-- [ ] XML tags used for semantic markup (section_metadata, directive_strength)
+- [ ] **Keywords metadata present with 5-15 relevant keywords** (CRITICAL for discovery)
+- [ ] TokenBudget declared as numeric value with tilde (e.g., ~450)
+- [ ] ContextTier declared in metadata (Critical | High | Medium | Low)
 - [ ] Contract specifies inputs, tools, steps, output format, and validation with explicit instructions
 - [ ] Anti-Patterns section included with 2-5 examples (CRITICAL for Claude 4)
-- [ ] Investigation-First Protocol included (when rule references files/code)
 - [ ] Compliance checklist has 5-10 actionable items
-- [ ] Response template shows expected output format
-- [ ] External documentation links are current and authoritative (include model-specific docs)
+- [ ] External documentation links are current and authoritative
 - [ ] Related rules cross-references are accurate
 - [ ] Rule length is within guidelines (≤500 lines, target 150-300)
 - [ ] Professional communication standards followed (explicit, no speculation)
-- [ ] Emoji usage follows guidelines (only standardized functional markers: 🔥⚠️✅❌📊🆕)
-- [ ] No decorative emojis or GIF images included
+- [ ] NO emojis in machine-consumed files (text-only markup used instead)
+- [ ] Text-only markup used for priorities (**MANDATORY:**, **FORBIDDEN:**, **RECOMMENDED:**)
 - [ ] LLM-generated content guidance includes emoji prohibition
 - [ ] Version and LastUpdated metadata included
-- [ ] Model-specific guidance blocks added (optional but recommended)
 
 ## Validation
 - **Success Checks:** All required sections present; cross-references work; external links accessible; examples are syntactically correct

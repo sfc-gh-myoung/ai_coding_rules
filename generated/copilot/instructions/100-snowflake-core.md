@@ -6,10 +6,9 @@ appliesTo:
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
 **Keywords:** Snowflake, SQL, CTE, performance, cost optimization, query profile, warehouse, security, governance, stages, COPY INTO, streams, tasks
-**Depends:** 000-global-core
-
-**TokenBudget:** ~400
+**TokenBudget:** ~1800
 **ContextTier:** High
+**Depends:** 000-global-core
 
 # Snowflake Core Directives
 
@@ -44,6 +43,16 @@ Establish comprehensive foundational practices for all Snowflake development wor
 - Enforce security policies; never use SELECT *; avoid deep view nesting and DISTINCT as a band-aid.
 - Use Streams + Tasks for incremental pipelines; avoid unnecessary full reloads.
 - Validate with the provided checklist before shipping.
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Fully qualify all objects** - `DATABASE.SCHEMA.TABLE` in all SQL
+- **Push filters early** - WHERE clauses before JOINs for partition pruning
+- **Parse VARIANT once** - Extract all fields in single CTE, reference downstream
+- **Use Streams + Tasks** - Incremental processing, not full reloads
+- **Never use SELECT *** in production - explicit columns only
 
 ## 1. General Principles
 - **Always:** Apply a "cost-first" mindset.
@@ -102,6 +111,14 @@ Establish comprehensive foundational practices for all Snowflake development wor
 - [ ] SQL keywords in UPPERCASE for consistency
 - [ ] Object names follow DDL naming conventions (see section 8)
 - [ ] No DISTINCT used for deduplication (use ROW_NUMBER() instead)
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. Read SQL files and table definitions BEFORE making recommendations
+> 2. Verify schema structure and column types against actual metadata
+> 3. Never speculate about table structures or data types
+> 4. Check Query Profile for actual performance characteristics
+> 5. Make grounded recommendations based on investigated schema and data
 
 ## Response Template
 ```sql

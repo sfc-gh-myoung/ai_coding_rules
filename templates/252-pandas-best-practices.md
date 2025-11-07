@@ -1,19 +1,15 @@
 **Description:** Comprehensive Pandas best practices for performance, vectorization, anti-patterns, and memory optimization with Streamlit and Plotly integration patterns
+**Type:** Agent Requested
 **AppliesTo:** `**/*.py`, `**/*.ipynb`, `streamlit/**/*`
 **AutoAttach:** false
-**Type:** Agent Requested
 **Keywords:** pandas, DataFrame, Series, vectorization, iterrows, apply, chained assignment, SettingWithCopyWarning, memory optimization, dtypes, categorical, groupby, merge, join, performance, inplace, method chaining, index operations
-**Version:** 1.0
-**LastUpdated:** 2025-10-22
-**Depends:** 200-python-core, 251-python-datetime-handling
-
-**TokenBudget:** ~1400
-**ContextTier:** high
+**TokenBudget:** ~3600
+**ContextTier:** High
+**Version:** 1.1
+**LastUpdated:** 2025-11-06
+**Depends:** 200-python-core
 
 # Pandas Best Practices
-
-> **Section Metadata**  
-> Token Budget: ~1400 | Context Tier: high | Priority: high
 
 ## Purpose
 Establish comprehensive Pandas best practices focusing on vectorization, performance optimization, memory efficiency, and anti-pattern avoidance to prevent common issues like 100x+ performance slowdowns, SettingWithCopyWarning errors, and memory exhaustion in data-intensive workflows.
@@ -25,14 +21,14 @@ Establish comprehensive Pandas best practices focusing on vectorization, perform
 
 ## Contract
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Inputs/Prereqs:** Python 3.11+, pandas 2.x+, understanding of DataFrame operations, basic NumPy knowledge
 - **Allowed Tools:** Vectorized operations, .loc/.iloc indexers, groupby(), merge(), concat(), astype(), query(), eval(), method chaining
 
-**❌ FORBIDDEN:**
+**FORBIDDEN:**
 - **Forbidden Tools:** iterrows() for computation (read-only OK), apply() when vectorization possible, chained assignment without .loc, df.append() (deprecated), inplace=True (generally discouraged)
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Required Steps:**
   1. Use vectorized operations instead of loops (10x-100x+ faster)
   2. Use .loc/.iloc for explicit indexing (prevents SettingWithCopyWarning)
@@ -52,10 +48,31 @@ Establish comprehensive Pandas best practices focusing on vectorization, perform
 - **Method Chaining:** Chain operations for clarity and efficiency
 - **Integration Ready:** Design for efficient Streamlit caching and Plotly visualization
 
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Never use iterrows() for computation** - Use vectorized operations (100x faster)
+- **Always use .loc/.iloc for assignment** - Prevents SettingWithCopyWarning
+- **Optimize dtypes immediately** - Use categorical, int8/int16 instead of int64/object
+- **Filter before groupby** - Pre-filter data to reduce processing
+- **Use method chaining** - `df.query(...).groupby(...).agg(...)` for clarity
+- **Validate merge keys** - Use `validate` parameter in merge()
+- **Never use chained assignment** - `df[df['col'] > 0]['new'] = 1` causes warnings
+
+**Quick Checklist:**
+- [ ] Vectorized operations (no iterrows for computation)
+- [ ] Explicit indexing with .loc/.iloc
+- [ ] Optimized dtypes (categorical, smaller ints)
+- [ ] Pre-filtering before aggregation
+- [ ] Method chaining for readability
+- [ ] Merge validation enabled
+- [ ] No chained assignment
+
 ## 1. Vectorization vs Iteration
 
 
-**❌ FORBIDDEN:**
+**FORBIDDEN:**
 
 ### Why Loops Are Slow
 
@@ -68,7 +85,7 @@ Establish comprehensive Pandas best practices focusing on vectorization, perform
 
 ### Anti-Pattern: iterrows() for Computation
 
-**❌ NEVER USE iterrows() FOR COMPUTATION**
+**NEVER USE iterrows() FOR COMPUTATION**
 ```python
 # BAD: 100x slower for large DataFrames
 total = 0
@@ -80,7 +97,7 @@ for idx, row in df.iterrows():
     df.at[idx, 'total'] = row['price'] * row['quantity']
 ```
 
-**✅ Correct: Vectorized Operations**
+**Correct: Vectorized Operations**
 ```python
 # GOOD: 100x faster
 total = (df['price'] * df['quantity']).sum()
@@ -139,13 +156,13 @@ df['contains_keyword'] = df['text'].str.contains('important', case=False)
 ## 2. Anti-Pattern: apply() When Vectorization Works
 
 
-**❌ FORBIDDEN:**
+**FORBIDDEN:**
 
 ### When apply() is Slow
 
 **Problem:** apply() with axis=1 (row-wise) is nearly as slow as iterrows()
 
-**❌ Anti-Pattern: apply() for Simple Operations**
+**Anti-Pattern: apply() for Simple Operations**
 ```python
 # BAD: Unnecessary apply() (10x slower)
 df['total'] = df.apply(lambda row: row['price'] * row['qty'], axis=1)
@@ -157,7 +174,7 @@ df['upper'] = df['name'].apply(lambda x: x.upper())
 df['category'] = df['price'].apply(lambda x: 'high' if x > 100 else 'low')
 ```
 
-**✅ Correct: Direct Vectorization**
+**Correct: Direct Vectorization**
 ```python
 # GOOD: Vectorized multiplication
 df['total'] = df['price'] * df['qty']
@@ -210,13 +227,13 @@ timeit.timeit(lambda: df['price'] * df['qty'], number=10)
 ## 3. Chained Assignment (SettingWithCopyWarning)
 
 
-**❌ FORBIDDEN:**
+**FORBIDDEN:**
 
 ### Understanding the Warning
 
 **Problem:** Chained assignment may modify a copy instead of the original DataFrame
 
-**❌ Anti-Pattern: Chained Indexing**
+**Anti-Pattern: Chained Indexing**
 ```python
 # BAD: SettingWithCopyWarning - might not modify original!
 df[df['status'] == 'active']['price'] = df['price'] * 1.1
@@ -229,7 +246,7 @@ active_df = df[df['active'] == True]
 active_df['price'] = active_df['price'] * 1.1  # Modifying copy!
 ```
 
-**✅ Correct: Use .loc for Explicit Indexing**
+**Correct: Use .loc for Explicit Indexing**
 ```python
 # GOOD: Explicit .loc indexing
 df.loc[df['status'] == 'active', 'price'] = df.loc[df['status'] == 'active', 'price'] * 1.1
@@ -243,14 +260,14 @@ df.loc[df['status'] == 'active', ['price', 'cost']] *= 1.1
 
 ### Working with DataFrame Subsets
 
-**❌ Anti-Pattern: Modifying Filtered DataFrame**
+**Anti-Pattern: Modifying Filtered DataFrame**
 ```python
 # BAD: Create subset, then modify (may not affect original)
 subset = df[df['category'] == 'A']
 subset['price'] = subset['price'] * 1.1  # SettingWithCopyWarning!
 ```
 
-**✅ Correct: Explicit Copy or Direct Modification**
+**Correct: Explicit Copy or Direct Modification**
 ```python
 # GOOD Option 1: Explicitly copy if you want a separate DataFrame
 subset = df[df['category'] == 'A'].copy()
@@ -270,7 +287,7 @@ df.loc[df.query('status == "active" and price > 100').index, 'discount'] = 0.15
 ## 4. Memory Optimization
 
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 ### Dtype Optimization
 
@@ -283,10 +300,10 @@ df.loc[df.query('status == "active" and price > 100').index, 'discount'] = 0.15
 print(df.memory_usage(deep=True))
 print(df.info(memory_usage='deep'))
 
-# ❌ BAD: Default int64 (8 bytes per value)
+# BAD: Default int64 (8 bytes per value)
 df['status_code'] = df['status_code']  # int64
 
-# ✅ GOOD: Optimize to smallest dtype that fits range
+# GOOD: Optimize to smallest dtype that fits range
 df['status_code'] = df['status_code'].astype('int8')  # 0-127 range (1 byte)
 df['small_int'] = df['small_int'].astype('int16')  # -32768 to 32767 (2 bytes)
 df['medium_int'] = df['medium_int'].astype('int32')  # 4 bytes
@@ -300,10 +317,10 @@ df['percentage'] = df['percentage'].astype('float32')  # Often sufficient (4 byt
 **Use for:** Columns with repeating string values (massive memory savings)
 
 ```python
-# ❌ BAD: Store repeated strings (huge memory usage)
+# BAD: Store repeated strings (huge memory usage)
 df['category'] = df['category']  # object dtype, stores full string each time
 
-# ✅ GOOD: Convert to categorical (stores codes + categories once)
+# GOOD: Convert to categorical (stores codes + categories once)
 df['category'] = df['category'].astype('category')
 
 # Example savings
@@ -318,10 +335,10 @@ df = pd.read_csv('data.csv', dtype={'category': 'category', 'status': 'category'
 ### Chunking for Large Files
 
 ```python
-# ❌ BAD: Load entire 10GB file into memory
+# BAD: Load entire 10GB file into memory
 df = pd.read_csv('huge_file.csv')  # Out of memory error!
 
-# ✅ GOOD: Process in chunks
+# GOOD: Process in chunks
 chunk_size = 10000
 for chunk in pd.read_csv('huge_file.csv', chunksize=chunk_size):
     # Process each chunk
@@ -350,16 +367,16 @@ print(df['sparse'].memory_usage())  # 40 KB (95% savings!)
 ## 5. Efficient GroupBy Operations
 
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 ### Pre-Filter Before GroupBy
 
 ```python
-# ❌ BAD: Group all data, then filter
+# BAD: Group all data, then filter
 result = df.groupby('category')['sales'].sum()
 result = result[result > 1000]
 
-# ✅ GOOD: Filter first, then group (faster)
+# GOOD: Filter first, then group (faster)
 filtered_df = df[df['active'] == True]
 result = filtered_df.groupby('category')['sales'].sum()
 ```
@@ -367,15 +384,15 @@ result = filtered_df.groupby('category')['sales'].sum()
 ### Multiple Aggregations
 
 ```python
-# ❌ BAD: Multiple separate groupby calls (slow)
+# BAD: Multiple separate groupby calls (slow)
 sum_sales = df.groupby('category')['sales'].sum()
 mean_sales = df.groupby('category')['sales'].mean()
 count_sales = df.groupby('category')['sales'].count()
 
-# ✅ GOOD: Single groupby with agg() (much faster)
+# GOOD: Single groupby with agg() (much faster)
 result = df.groupby('category')['sales'].agg(['sum', 'mean', 'count'])
 
-# ✅ GOOD: Different aggregations per column
+# GOOD: Different aggregations per column
 result = df.groupby('category').agg({
     'sales': ['sum', 'mean', 'count'],
     'profit': 'sum',
@@ -386,7 +403,7 @@ result = df.groupby('category').agg({
 ### Named Aggregations
 
 ```python
-# ✅ BEST: Named aggregations (cleaner output columns)
+# BEST: Named aggregations (cleaner output columns)
 result = df.groupby('category').agg(
     total_sales=('sales', 'sum'),
     avg_sales=('sales', 'mean'),
@@ -405,12 +422,12 @@ df['pct_of_category'] = df['sales'] / df['category_mean']
 ## 6. Merge and Join Best Practices
 
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 ### Validate Merge Keys
 
 ```python
-# ✅ ALWAYS: Validate merge to catch data quality issues
+# ALWAYS: Validate merge to catch data quality issues
 result = df1.merge(df2, on='id', how='left', validate='1:1')
 # validate options: '1:1', '1:m', 'm:1', 'm:m'
 
@@ -425,10 +442,10 @@ print(result['_merge'].value_counts())
 ### Merge Performance
 
 ```python
-# ❌ BAD: Merge on non-indexed columns (slow for large data)
+# BAD: Merge on non-indexed columns (slow for large data)
 result = df1.merge(df2, on='customer_id', how='left')
 
-# ✅ GOOD: Set index for repeated merges (much faster)
+# GOOD: Set index for repeated merges (much faster)
 df1_indexed = df1.set_index('customer_id')
 df2_indexed = df2.set_index('customer_id')
 result = df1_indexed.join(df2_indexed, how='left').reset_index()
@@ -450,7 +467,7 @@ result = df1.merge(df2, left_on='customer_id', right_on='cust_id', how='left')
 ### Readable Pipelines
 
 ```python
-# ✅ GOOD: Method chaining for data pipeline clarity
+# GOOD: Method chaining for data pipeline clarity
 result = (
     df
     .query('status == "active"')
@@ -468,7 +485,7 @@ result = (
 ### Assign for New Columns
 
 ```python
-# ✅ GOOD: .assign() for multiple new columns in chain
+# GOOD: .assign() for multiple new columns in chain
 df_processed = (
     df
     .assign(
@@ -485,11 +502,11 @@ df_processed = (
 ### When to Use Index
 
 ```python
-# ✅ GOOD: Set index for time series data
+# GOOD: Set index for time series data
 df_ts = df.set_index('timestamp').sort_index()
 df_ts['2024-01':'2024-03']  # Slice by date range
 
-# ✅ GOOD: MultiIndex for hierarchical data
+# GOOD: MultiIndex for hierarchical data
 df_multi = df.set_index(['country', 'city', 'date'])
 df_multi.loc[('USA', 'New York')]  # Access by hierarchy
 ```
@@ -514,7 +531,7 @@ result = (
 ```python
 import streamlit as st
 
-# ✅ GOOD: Cache DataFrame loading and processing
+# GOOD: Cache DataFrame loading and processing
 @st.cache_data(ttl=3600)
 def load_and_process_data():
     df = pd.read_csv('large_data.csv')
@@ -569,10 +586,10 @@ st.download_button(
 ```python
 import plotly.express as px
 
-# ❌ BAD: Plot 1M rows (slow, cluttered)
+# BAD: Plot 1M rows (slow, cluttered)
 fig = px.scatter(df, x='date', y='value')  # df has 1M rows
 
-# ✅ GOOD: Aggregate first
+# GOOD: Aggregate first
 df_daily = df.groupby('date').agg({'value': 'mean'}).reset_index()
 fig = px.line(df_daily, x='date', y='value')  # 365 rows - fast!
 ```
@@ -596,50 +613,50 @@ st.plotly_chart(fig, use_container_width=True)
 ## Anti-Patterns Summary
 
 
-**❌ Anti-Pattern 1: iterrows() for computation (100x slower)**
+**Anti-Pattern 1: iterrows() for computation (100x slower)**
 ```python
 for _, row in df.iterrows():
     df.at[row.name, 'total'] = row['price'] * row['qty']
 ```
-**✅ Correct:** `df['total'] = df['price'] * df['qty']`
+**Correct:** `df['total'] = df['price'] * df['qty']`
 
-**❌ Anti-Pattern 2: apply() when vectorization possible (10x slower)**
+**Anti-Pattern 2: apply() when vectorization possible (10x slower)**
 ```python
 df['total'] = df.apply(lambda row: row['price'] * row['qty'], axis=1)
 ```
-**✅ Correct:** `df['total'] = df['price'] * df['qty']`
+**Correct:** `df['total'] = df['price'] * df['qty']`
 
-**❌ Anti-Pattern 3: Chained assignment (SettingWithCopyWarning)**
+**Anti-Pattern 3: Chained assignment (SettingWithCopyWarning)**
 ```python
 df[df['active']]['price'] = df['price'] * 1.1
 ```
-**✅ Correct:** `df.loc[df['active'], 'price'] *= 1.1`
+**Correct:** `df.loc[df['active'], 'price'] *= 1.1`
 
-**❌ Anti-Pattern 4: Inefficient dtype usage (wastes 87.5% memory)**
+**Anti-Pattern 4: Inefficient dtype usage (wastes 87.5% memory)**
 ```python
 df['status_code'] = df['status_code']  # int64 (8 bytes)
 ```
-**✅ Correct:** `df['status_code'] = df['status_code'].astype('int8')  # 1 byte`
+**Correct:** `df['status_code'] = df['status_code'].astype('int8')  # 1 byte`
 
-**❌ Anti-Pattern 5: Multiple groupby calls (slow)**
+**Anti-Pattern 5: Multiple groupby calls (slow)**
 ```python
 sum_sales = df.groupby('category')['sales'].sum()
 mean_sales = df.groupby('category')['sales'].mean()
 ```
-**✅ Correct:** `result = df.groupby('category')['sales'].agg(['sum', 'mean'])`
+**Correct:** `result = df.groupby('category')['sales'].agg(['sum', 'mean'])`
 
-**❌ Anti-Pattern 6: Using inplace=True (unclear, error-prone)**
+**Anti-Pattern 6: Using inplace=True (unclear, error-prone)**
 ```python
 df.dropna(inplace=True)
 df.sort_values('date', inplace=True)
 ```
-**✅ Correct:** `df = df.dropna().sort_values('date')  # Clear assignment`
+**Correct:** `df = df.dropna().sort_values('date')  # Clear assignment`
 
-**❌ Anti-Pattern 7: Loading huge files entirely (out of memory)**
+**Anti-Pattern 7: Loading huge files entirely (out of memory)**
 ```python
 df = pd.read_csv('10gb_file.csv')
 ```
-**✅ Correct:** `for chunk in pd.read_csv('10gb_file.csv', chunksize=10000):`
+**Correct:** `for chunk in pd.read_csv('10gb_file.csv', chunksize=10000):`
 
 
 ## Quick Compliance Checklist
@@ -661,6 +678,23 @@ df = pd.read_csv('10gb_file.csv')
 - **Success Checks:** Vectorized operations 10x+ faster than loops, no SettingWithCopyWarning, memory usage optimized (dtype checks), efficient GroupBy/merge operations, Streamlit app loads quickly with caching
 - **Negative Tests:** iterrows() loop (should be very slow), chained assignment (should warn), int64 for small integers (should waste memory), multiple separate groupby calls (should be slower than single .agg()), missing cache_data decorator (should reload data every rerun)
 
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read existing DataFrame operations BEFORE optimizing** - Check current code for iterrows(), apply(), chained assignment patterns
+> 2. **Profile actual performance** - Measure execution time before and after optimization
+> 3. **Never speculate about DataFrame shape** - Use df.shape, df.dtypes to understand actual data structure
+> 4. **Check memory usage** - Use df.memory_usage(deep=True) to verify dtype optimization impact
+> 5. **Make grounded recommendations based on investigated code** - Don't optimize without measuring
+>
+> **Anti-Pattern:**
+> "Based on typical Pandas usage, you probably have this performance issue..."
+> "Let me vectorize this - it should be faster..."
+>
+> **Correct Pattern:**
+> "Let me check your current Pandas operations first."
+> [reads code, profiles performance, checks dtypes]
+> "I see you're using iterrows() in process_data() (5.2s for 100k rows). Here's a vectorized version (0.05s, 100x faster)..."
+
 ## Response Template
 
 ```python
@@ -668,7 +702,7 @@ import pandas as pd
 import streamlit as st
 import plotly.express as px
 
-# ✅ Efficient data loading with caching
+# Efficient data loading with caching
 @st.cache_data(ttl=3600)
 def load_data():
     df = pd.read_csv('data.csv')

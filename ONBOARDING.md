@@ -596,12 +596,37 @@ find rules -name "*python*"
 3. **Help others:** Assist teammates with their onboarding
 4. **Contribute:** Suggest improvements or new rules
 
+### Rule Quality Standards (v3.1)
+
+All rules in this repository follow **Section 11: Universal Compatibility Standards** from `002-rule-governance.md`, ensuring consistent behavior across all AI agents and LLMs.
+
+**Key Standards:**
+- ✅ **Quick Start TL;DR sections** - Essential patterns in 30 seconds
+- ✅ **Standardized metadata order** - Consistent parsing across agents
+- ✅ **Investigation-First protocols** - Prevents hallucinations
+- ✅ **Complete response templates** - Working code examples
+- ✅ **Accurate token budgets** - Reliable context planning
+- ✅ **Explicit dependency declarations** - Automated rule loading
+- ✅ **Standardized code block tags** - Consistent syntax highlighting
+
+**For Contributors:**
+- **Validate templates:** `task rule:templates:validate` - Check Section 11 compliance
+- **Strict validation:** `task rule:templates:validate:strict` - Fail on warnings (CI/CD)
+- **Complete standards:** See `templates/002-rule-governance.md` Section 11
+- **Implementation guide:** Read `TEMPLATE_COMPATIBILITY_IMPROVEMENTS.md`
+- **Migration tracking:** Check `MIGRATION_PROGRESS.md` for current status
+
+**Validation Tools:**
+- `scripts/validate_agent_rules.py` - Enhanced with Section 11 checks
+- Validates: metadata order, TL;DR presence, Contract placement, Investigation protocols, token budgets, and more
+
 ### Advanced Topics (Optional)
 
 - **Custom Rules:** Create project-specific rules
-- **Rule Development:** Contribute to the rule repository
+- **Rule Development:** Contribute to the rule repository  
 - **CI Integration:** Add rule validation to your pipeline
 - **Team Templates:** Create starter templates with rules pre-configured
+- **Template Validation:** Run `task templates:validate` before generating rules
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 

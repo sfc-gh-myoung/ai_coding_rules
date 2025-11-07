@@ -1,11 +1,9 @@
 <!-- Generated for Cline rules. See https://docs.cline.bot/features/cline-rules -->
 
-**Keywords:** Python packaging, project structure, setup.py, pyproject.toml, dependencies, package distribution
-**Depends:** 200-python-core
-
-
-**TokenBudget:** ~500
+**Keywords:** Python packaging, project structure, setup.py, pyproject.toml, dependencies, package distribution, __init__.py, hatchling, uv, src layout
+**TokenBudget:** ~1800
 **ContextTier:** High
+**Depends:** 200-python-core
 
 # Python Project Setup and Packaging
 
@@ -17,6 +15,25 @@ Provide essential Python project setup and packaging guidance to avoid common bu
 - **Type:** Agent Requested
 - **Scope:** Python project setup, packaging, and dependency management with modern build tools
 
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Always create __init__.py** - Even if empty, required for package recognition
+- **Use pyproject.toml** - Modern build configuration, centralize all metadata
+- **Specify package location** - `packages = ["app"]` in hatchling config
+- **Create structure before install** - mkdir + __init__.py BEFORE `uv pip install -e .`
+- **Use uv for dependency management** - `uv add package` not manual pyproject.toml edits
+- **Never use bare pip** - Always use `uv` for consistency
+
+**Quick Checklist:**
+- [ ] All package directories have __init__.py
+- [ ] pyproject.toml exists with [project] section
+- [ ] [tool.hatch.build.targets.wheel] specifies packages
+- [ ] Package structure created before installation
+- [ ] Dependencies added via `uv add`
+- [ ] Optional dependencies in [project.optional-dependencies]
+- [ ] Package installable with `uv pip install -e .`
 
 ## 1. Package Structure Requirements
 
@@ -200,6 +217,23 @@ addopts = [
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read pyproject.toml BEFORE making packaging changes** - Check existing build system, package config
+> 2. **Verify project structure** - Use list_dir to understand if src/ layout or flat layout
+> 3. **Never assume package name** - Read pyproject.toml [project] name field
+> 4. **Check for existing __init__.py files** - Don't duplicate or break existing structure
+> 5. **Test installation** - Try `uv pip install -e .` after making changes
+>
+> **Anti-Pattern:**
+> "Creating standard FastAPI structure... (without checking existing)"
+> "Adding to pyproject.toml... (without reading it first)"
+>
+> **Correct Pattern:**
+> "Let me check your project structure and pyproject.toml first."
+> [reads files, checks layout, verifies build config]
+> "I see you use a flat layout with 'app' as the package. Adding the new module following this pattern..."
 
 ## Response Template
 ```

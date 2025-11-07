@@ -9,11 +9,10 @@ appliesTo:
 ---
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
-**Keywords:** FastAPI, async, REST API, Pydantic, dependency injection, routing, request validation, response models
+**Keywords:** FastAPI, async, REST API, Pydantic, dependency injection, routing, request validation, response models, APIRouter, uvicorn, async def, application factory
+**TokenBudget:** ~2450
+**ContextTier:** High
 **Depends:** 200-python-core
-
-**TokenBudget:** ~900
-**ContextTier:** Medium
 
 # FastAPI Best Practices
 
@@ -39,9 +38,30 @@ Provide comprehensive FastAPI development best practices, organized into focused
 10. **Structured Error Handling** - Implement global exception handlers with consistent responses
 11. **Type Safety** - Use comprehensive type hints with Pydantic and FastAPI integration
 
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Use `uv run uvicorn app.main:app --reload`** - Never bare `uvicorn` command
+- **Application factory pattern** - Create app through factory functions for testability
+- **Separate request/response models** - Use Pydantic models, never reuse same model
+- **APIRouter for modularity** - Organize routes in separate files, include in main app
+- **Async def for I/O operations** - Use `async def` for database, HTTP, file operations
+- **Dependency injection** - Use `Depends()` for services, database sessions, auth
+- **Never mix sync and async** - All I/O should be async or properly wrapped
+
+**Quick Checklist:**
+- [ ] App created via factory function
+- [ ] Routes organized with APIRouter
+- [ ] Separate request/response Pydantic models
+- [ ] All I/O operations use async def
+- [ ] Dependency injection for services
+- [ ] Global exception handlers configured
+- [ ] Run with `uv run uvicorn`
+
 ## FastAPI Rule Categories
 
-### 🏗️ Core Development Patterns (This File)
+### Core Development Patterns (This File)
 - Application structure and organization
 - Async programming and performance
 - Request/response handling with Pydantic
@@ -395,6 +415,23 @@ def get_settings() -> Settings:
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read existing FastAPI app structure BEFORE adding routes** - Check main.py, routers/, models/ organization
+> 2. **Verify current dependency injection patterns** - Check how database sessions, services are injected
+> 3. **Never speculate about async/sync usage** - Read actual endpoint definitions to verify async patterns
+> 4. **Check existing Pydantic models** - Don't create duplicate request/response models
+> 5. **Make grounded recommendations based on investigated app structure** - Match existing patterns
+>
+> **Anti-Pattern:**
+> "Based on typical FastAPI apps, you probably use this structure..."
+> "Let me add this endpoint - it should follow standard patterns..."
+>
+> **Correct Pattern:**
+> "Let me check your FastAPI app structure first."
+> [reads main.py, routers/, checks for APIRouter usage]
+> "I see you're using APIRouter in routers/users.py with dependency injection for database sessions. Here's a new endpoint following the same pattern..."
 
 ## Response Template
 ```

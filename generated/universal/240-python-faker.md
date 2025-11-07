@@ -1,8 +1,7 @@
-**Keywords:** Faker, test data generation, fake data, providers, localization, synthetic data
-**Depends:** 200-python-core
-
-**TokenBudget:** ~1200
+**Keywords:** Faker, test data generation, fake data, providers, localization, synthetic data, pytest fixtures, seeding, deterministic testing
+**TokenBudget:** ~2650
 **ContextTier:** Low
+**Depends:** 200-python-core
 
 # Python Faker Data Generation Best Practices
 
@@ -14,6 +13,25 @@ Establish comprehensive patterns for generating realistic test data using Python
 - **Type:** Agent Requested
 - **Scope:** Python testing, data generation, test fixtures, development utilities
 
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Install with uv** - `uv add --group dev faker` for deterministic versions
+- **Always seed for tests** - `Faker.seed(0)` for reproducible test data
+- **Use specific providers** - faker.name(), faker.email() for type-safe data
+- **Localize when needed** - `Faker('es_ES')` for locale-specific data
+- **Create pytest fixtures** - Centralize Faker instances for consistency
+- **Never use in production** - Faker is for testing/development only
+
+**Quick Checklist:**
+- [ ] faker added to dev dependencies
+- [ ] Faker.seed() called in tests
+- [ ] Custom providers defined for domain models
+- [ ] pytest fixtures created for reusable instances
+- [ ] Localization configured if needed
+- [ ] Performance optimized for large datasets
+- [ ] No Faker usage in production code
 
 ## 1. Installation and Setup
 
@@ -521,6 +539,23 @@ def test_with_seeded_data():
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read test files BEFORE adding Faker** - Check existing test data generation patterns
+> 2. **Check pytest fixtures** - See if Faker fixtures already exist in conftest.py
+> 3. **Never assume seeding strategy** - Read tests to understand reproducibility requirements
+> 4. **Verify custom providers** - Check if domain-specific providers already defined
+> 5. **Match existing patterns** - Follow project's test data conventions
+>
+> **Anti-Pattern:**
+> "Adding Faker to generate test data... (without checking existing approach)"
+> "Creating fake users... (without checking if factory already exists)"
+>
+> **Correct Pattern:**
+> "Let me check your existing test data setup first."
+> [reads test files, checks conftest.py, reviews fixtures]
+> "I see you have pytest fixtures with seeded Faker. Adding new provider following this pattern..."
 
 ## Response Template
 ```

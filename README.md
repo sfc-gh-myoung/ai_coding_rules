@@ -77,7 +77,9 @@ This repository contains multiple documentation files for different audiences:
 | File | Purpose | When to Read |
 |------|---------|--------------|
 | **README.md** | Project overview, setup, usage | Start here (you are here) |
+| **docs/ONBOARDING.md** | Team onboarding guide | When setting up for your team |
 | **CONTRIBUTING.md** | Development guidelines, PR process | When contributing rules |
+| **docs/ARCHITECTURE.md** | System architecture, design decisions | When understanding internals or extending |
 | **CHANGELOG.md** | Version history, changes | When checking updates |
 | **Taskfile.yml** | Build automation reference | When running tasks |
 
@@ -100,9 +102,11 @@ This repository contains multiple documentation files for different audiences:
 | **generated/cline/** | Plain .md | Cline AI |
 
 **Quick Decision**: 
+- **New to the project?** → See [Team Onboarding](docs/ONBOARDING.md)
 - **Just want to use rules?** → See [For Rule Consumers](#for-rule-consumers-using-the-rules)
 - **Want to modify rules?** → See [For Rule Maintainers](#for-rule-maintainers-contributing-to-rules)
 - **Want to configure your AI?** → See [AI Configuration](#ai-configuration)
+- **Want to understand the system?** → See [Architecture](docs/ARCHITECTURE.md)
 
 ---
 

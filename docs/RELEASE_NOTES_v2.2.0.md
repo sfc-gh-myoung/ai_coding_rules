@@ -359,7 +359,7 @@ Add token budget validation to your pipeline:
 - **Token Budget Guide:** `scripts/README_TOKEN_BUDGETS.md`
 - **Architecture Guide:** `docs/ARCHITECTURE.md`
 - **Rule Governance:** `templates/002-rule-governance.md` (v4.0)
-- **Onboarding Guide:** `ONBOARDING.md`
+- **Onboarding Guide:** `docs/ONBOARDING.md`
 
 ### Tasks Reference
 

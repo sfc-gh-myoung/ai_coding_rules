@@ -1,14 +1,13 @@
 **Description:** FastAPI security patterns for authentication, authorization, CORS, and security middleware.
+**Type:** Agent Requested
 **AppliesTo:** `**/auth*.py`, `**/security*.py`, `**/middleware*.py`, `**/routers/**`, `**/services/**`
 **AutoAttach:** false
-**Type:** Agent Requested
-**Keywords:** FastAPI security, authentication, OAuth2, JWT, CORS, middleware, API keys, security best practices
-**Version:** 1.2
-**LastUpdated:** 2025-10-21
+**Keywords:** FastAPI security, authentication, OAuth2, JWT, CORS, middleware, API keys, security best practices, bcrypt, HTTPBearer, role-based access control, RBAC
+**TokenBudget:** ~2650
+**ContextTier:** High
+**Version:** 1.3
+**LastUpdated:** 2025-11-06
 **Depends:** 210-python-fastapi-core
-
-**TokenBudget:** ~1100
-**ContextTier:** Medium
 
 # FastAPI Security Patterns
 
@@ -29,6 +28,27 @@ Establish comprehensive security practices for FastAPI applications including au
 5. **Security Middleware** - Layer security controls with trusted hosts and rate limiting
 6. **Environment Secrets** - Store all secrets in environment variables, never in code
 7. **Production Hardening** - Disable debug features and docs in production environments
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Use bcrypt for password hashing** - `passlib.context.CryptContext(schemes=["bcrypt"])`
+- **JWT tokens with HTTPBearer** - Use `fastapi.security.HTTPBearer()` for token auth
+- **Environment variables for secrets** - Never hardcode `SECRET_KEY`, `DATABASE_URL`
+- **Dependency injection for RBAC** - Create `get_current_user`, `require_role` dependencies
+- **Configure CORS properly** - Specify allowed origins, methods, headers explicitly
+- **Disable docs in production** - Set `docs_url=None`, `redoc_url=None` when `ENV=production`
+- **Never store plaintext passwords** - Always hash with bcrypt before database storage
+
+**Quick Checklist:**
+- [ ] Passwords hashed with bcrypt (passlib)
+- [ ] JWT authentication with HTTPBearer
+- [ ] All secrets in environment variables
+- [ ] RBAC implemented via dependency injection
+- [ ] CORS configured with explicit origins
+- [ ] Rate limiting middleware configured
+- [ ] Docs disabled in production
 
 ## 1. Authentication Setup
 
@@ -466,6 +486,23 @@ def create_secure_app() -> FastAPI:
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read existing auth implementation BEFORE adding security** - Check for auth_service.py, security.py, existing JWT patterns
+> 2. **Verify environment variable usage** - Check .env files, config.py for how secrets are currently loaded
+> 3. **Never speculate about CORS requirements** - Ask user about allowed origins, or check existing middleware
+> 4. **Check existing middleware stack** - Read main.py to see what security middleware is already configured
+> 5. **Make grounded recommendations based on investigated security setup** - Match existing patterns
+>
+> **Anti-Pattern:**
+> "Based on typical FastAPI apps, you probably need JWT authentication..."
+> "Let me add CORS middleware - it should work with standard settings..."
+>
+> **Correct Pattern:**
+> "Let me check your existing authentication setup first."
+> [reads auth_service.py, main.py, checks for HTTPBearer usage]
+> "I see you're using passlib with bcrypt and HTTPBearer for JWT auth. Here's how to add role-based access control following the same pattern..."
 
 ## Response Template
 ```

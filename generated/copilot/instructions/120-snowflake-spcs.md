@@ -8,11 +8,10 @@ appliesTo:
 ---
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
-**Keywords:** SPCS, Snowpark Container Services, containers, containerized apps, service deployment, compute pools
-**Depends:** 100-snowflake-core
-
-**TokenBudget:** ~950
+**Keywords:** SPCS, Snowpark Container Services, containers, containerized apps, service deployment, compute pools, OCI images, image registry, health checks, GPU workloads
+**TokenBudget:** ~3550
 **ContextTier:** High
+**Depends:** 100-snowflake-core
 
 # Snowflake Snowpark Container Services (SPCS) Best Practices
 
@@ -23,6 +22,27 @@ Provide comprehensive guidance for deploying, managing, and optimizing container
 
 - **Type:** Agent Requested
 - **Scope:** Snowflake Snowpark Container Services, containerized applications, microservices
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Use OCI-compliant images** - Build with multi-stage for minimal size
+- **Snowflake managed registry** - Semantic versioning (v1.2.3, not latest)
+- **Include health checks** - Implement health endpoints in applications
+- **Optimize compute pools** - Choose correct size, use GPUs for ML/AI
+- **Implement service security** - Proper endpoint security, authentication
+- **Monitor and scale** - Track usage, scale based on metrics
+- **Never use 'latest' tag** - Always use semantic versioning
+
+**Quick Checklist:**
+- [ ] OCI-compliant image built
+- [ ] Image in Snowflake registry with version
+- [ ] Health check endpoint implemented
+- [ ] Compute pool configured
+- [ ] Resource limits set
+- [ ] Service security configured
+- [ ] Monitoring enabled
 
 ## Key Principles
 - Use OCI-compliant images; leverage Snowflake's managed image registry for secure storage.
@@ -308,30 +328,30 @@ ORDER BY severity DESC, service_name;
 **Anti-Patterns in SPCS Troubleshooting:**
 
 ```sql
--- ❌ ANTI-PATTERN: Querying only recent seconds (missing context)
+-- ANTI-PATTERN: Querying only recent seconds (missing context)
 SELECT * FROM event_table 
 WHERE TIMESTAMP > DATEADD('minute', -1, CURRENT_TIMESTAMP());
 
--- ✅ CORRECT: Query sufficient time window to capture failure progression
+-- CORRECT: Query sufficient time window to capture failure progression
 SELECT * FROM event_table 
 WHERE TIMESTAMP > DATEADD('hour', -2, CURRENT_TIMESTAMP())
 ORDER BY TIMESTAMP DESC;
 
--- ❌ ANTI-PATTERN: Checking only FAILED status (missing transitional states)
+-- ANTI-PATTERN: Checking only FAILED status (missing transitional states)
 SELECT * FROM event_table 
 WHERE VALUE:"status" = 'FAILED';
 
--- ✅ CORRECT: Review full status sequence including PENDING states
+-- CORRECT: Review full status sequence including PENDING states
 SELECT TIMESTAMP, VALUE:"status", VALUE:"message", RECORD:"severity_text"
 FROM event_table
 WHERE RESOURCE_ATTRIBUTES:"snow.service.name" = 'my_service'
   AND RECORD_TYPE = 'EVENT'
 ORDER BY TIMESTAMP DESC;
 
--- ❌ ANTI-PATTERN: Assuming ERROR severity without checking status
+-- ANTI-PATTERN: Assuming ERROR severity without checking status
 -- (Some INFO events indicate actual problems like PENDING with readiness failures)
 
--- ✅ CORRECT: Analyze message content and status together
+-- CORRECT: Analyze message content and status together
 SELECT VALUE:"status", RECORD:"severity_text", COUNT(*) 
 FROM event_table
 WHERE RECORD_TYPE = 'EVENT' 
@@ -453,6 +473,23 @@ spec:
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read existing SPCS configurations BEFORE deploying services** - Check compute pools, service specs, image registries
+> 2. **Verify SPCS availability** - Check if SPCS is enabled in account
+> 3. **Never assume compute pool size** - Review existing pools and workload patterns
+> 4. **Check image registry** - Verify Snowflake image repository setup and access
+> 5. **Test service deployment** - Validate in dev environment before production
+>
+> **Anti-Pattern:**
+> "Deploying SPCS service... (without checking existing patterns)"
+> "Using 'latest' image tag... (breaks reproducibility)"
+>
+> **Correct Pattern:**
+> "Let me check your SPCS setup first."
+> [reads compute pools, checks service specs, reviews image registry]
+> "I see you use GPU_NV_S compute pools with versioned images. Deploying new service following this pattern..."
 
 ## Response Template
 ```

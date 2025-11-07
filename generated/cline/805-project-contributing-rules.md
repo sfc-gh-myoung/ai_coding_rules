@@ -1,10 +1,9 @@
 <!-- Generated for Cline rules. See https://docs.cline.bot/features/cline-rules -->
 
-**Keywords:** CONTRIBUTING, pull requests, code review, contribution guidelines, branching strategy
-**Depends:** 000-global-core
-
-**TokenBudget:** ~400
+**Keywords:** CONTRIBUTING, pull requests, code review, contribution guidelines, branching strategy, Conventional Commits, rule authoring, PR templates
+**TokenBudget:** ~1250
 **ContextTier:** Medium
+**Depends:** 000-global-core
 
 # Contribution Workflow
 
@@ -16,6 +15,26 @@ Establish directives for a professional contribution workflow covering commits, 
 - **Type:** Agent Requested
 - **Scope:** Professional contribution workflows for commits, pull requests, and rule authoring standards
 
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Conventional Commits** - type(scope): imperative summary
+- **Update CHANGELOG** - Add under ## [Unreleased] for user-facing changes
+- **Descriptive scopes** - Align with project structure
+- **PR templates** - Use issue linking, clear descriptions
+- **Code review** - Address all feedback before merge
+- **Rule authoring** - Follow 002-rule-governance standards
+- **Never use "WIP" subjects** - Write meaningful commit messages
+
+**Quick Checklist:**
+- [ ] Conventional Commit format used
+- [ ] CHANGELOG.md updated
+- [ ] Scope matches project conventions
+- [ ] PR description complete
+- [ ] Code reviewed
+- [ ] CI checks passing
+- [ ] Rule standards followed (if applicable)
 
 ## 1. Commit & Changelog Discipline
 - **Requirement:** Follow Conventional Commits: `<type>(<scope>): <imperative summary>`.

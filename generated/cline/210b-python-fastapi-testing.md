@@ -1,10 +1,9 @@
 <!-- Generated for Cline rules. See https://docs.cline.bot/features/cline-rules -->
 
-**Keywords:** FastAPI testing, TestClient, pytest-asyncio, API tests, integration testing, mocking
+**Keywords:** FastAPI testing, TestClient, pytest-asyncio, API tests, integration testing, mocking, test fixtures, AAA pattern, async testing
+**TokenBudget:** ~1600
+**ContextTier:** High
 **Depends:** 210-python-fastapi-core
-
-**TokenBudget:** ~600
-**ContextTier:** Medium
 
 # FastAPI Testing Strategies
 
@@ -24,6 +23,27 @@ Establish comprehensive testing strategies for FastAPI applications using TestCl
 4. **Mock External Dependencies** - Isolate units under test
 5. **Test Both Success and Error Scenarios** - Comprehensive coverage
 6. **Factory Patterns** - Use factory patterns for test data creation
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Use TestClient for API testing** - `from fastapi.testclient import TestClient`
+- **pytest-asyncio for async tests** - Mark tests with `@pytest.mark.asyncio`
+- **Override dependencies in tests** - Use `app.dependency_overrides` for mocks
+- **Test database fixture** - Create isolated test DB for each test
+- **AAA pattern** - Arrange-Act-Assert in all tests
+- **Test both success and errors** - Verify status codes, response bodies, error cases
+- **Never share state between tests** - Each test must be isolated
+
+**Quick Checklist:**
+- [ ] TestClient configured in conftest.py
+- [ ] Test database fixture with cleanup
+- [ ] Dependencies overridden via app.dependency_overrides
+- [ ] AAA pattern in all tests
+- [ ] Both 200 and error status codes tested
+- [ ] Async tests marked with @pytest.mark.asyncio
+- [ ] Tests isolated (no shared state)
 
 ## 1. Test Structure and Setup
 
@@ -245,6 +265,23 @@ markers = [
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read existing test structure BEFORE adding tests** - Check tests/ directory, conftest.py, existing fixtures
+> 2. **Verify current TestClient setup** - Check how app is created and dependencies are overridden
+> 3. **Never speculate about test database** - Read conftest.py to see how test DB is configured
+> 4. **Check existing test patterns** - Match AAA pattern, fixture usage, mocking approach
+> 5. **Make grounded recommendations based on investigated test structure** - Don't add duplicate fixtures
+>
+> **Anti-Pattern:**
+> "Based on typical FastAPI test setups, you probably use SQLite for testing..."
+> "Let me add this test - it should work with standard TestClient..."
+>
+> **Correct Pattern:**
+> "Let me check your existing test structure first."
+> [reads tests/conftest.py, tests/test_*.py]
+> "I see you have a test_app fixture that overrides get_db. Here's a new test following the same pattern with AAA structure..."
 
 ## Response Template
 ```

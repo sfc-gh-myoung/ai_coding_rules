@@ -1,8 +1,7 @@
-**Keywords:** snow CLI, SnowCLI, Snowflake command line, uvx snow, CLI deployment, snowflake.yml
-**Depends:** 100-snowflake-core
-
-**TokenBudget:** ~350
+**Keywords:** snow CLI, SnowCLI, Snowflake command line, uvx snow, CLI deployment, snowflake.yml, uvx --from snowflake-cli, pinned execution, hermetic execution
+**TokenBudget:** ~1750
 **ContextTier:** Medium
+**Depends:** 100-snowflake-core
 
 # Snowflake SnowCLI (snow) Usage Best Practices
 
@@ -13,6 +12,27 @@ Provide clear, reproducible guidance for installing, invoking, and automating Sn
 
 - **Type:** Agent Requested
 - **Scope:** Snowflake CLI usage across local development, scripts, Taskfile targets, and CI/CD pipelines
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Use uvx for hermetic execution** - `uvx --from=snowflake-cli==3.12 snow` for pinned version
+- **Wrap in Taskfile** - Create task targets for developer ergonomics
+- **Use profiles or env vars** - Never hardcode credentials
+- **Non-interactive flags in automation** - Machine-readable output (JSON)
+- **Validate version** - Check `snow --version` matches pinned version
+- **Secure secret store** - Use proper credential management
+- **Never use global pip installs** - Always pinned via uvx
+
+**Quick Checklist:**
+- [ ] uvx with pinned snowflake-cli version
+- [ ] Taskfile wrapper created
+- [ ] Profile-based or env var config
+- [ ] No hardcoded credentials
+- [ ] Non-interactive flags for CI/CD
+- [ ] Version validation in workflows
+- [ ] Secure secret store integrated
 
 ## Contract
 - **Inputs/Prereqs:** Python ≥ 3.10; `uv` installed; Snowflake account and role; connection/auth method (SSO, key-pair, OAuth, or user/password) configured outside of code
@@ -131,6 +151,23 @@ uvx --from=snowflake-cli==3.12 snow sql -q "create warehouse if not exists CI_WH
 - **Negative tests:**
   - Unpinned `snow` in CI should be flagged by code review/build checks
   - Global `pip install` usage should be rejected by reviewers/linters
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read existing CLI usage BEFORE adding new commands** - Check Taskfile, scripts for snow patterns
+> 2. **Verify snowflake.yml config** - Check profiles, connection settings
+> 3. **Never assume CLI version** - Check what version is currently pinned
+> 4. **Review credential management** - Understand how auth is configured
+> 5. **Test CLI commands** - Validate commands work with current setup
+>
+> **Anti-Pattern:**
+> "Running snow command... (without checking existing patterns)"
+> "Using unpinned snow... (inconsistent across environments)"
+>
+> **Correct Pattern:**
+> "Let me check your SnowCLI setup first."
+> [reads Taskfile.yml, checks snowflake.yml, reviews version]
+> "I see you use snowflake-cli==3.12 via uvx. Following this pattern for the new command..."
 
 ## Response Template
 ```bash

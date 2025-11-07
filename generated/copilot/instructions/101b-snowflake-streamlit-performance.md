@@ -6,15 +6,11 @@ appliesTo:
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
 **Keywords:** Streamlit caching, @st.cache_data, @st.cache_resource, performance optimization, slow Streamlit, data loading, query optimization, NULL handling, pandas NaN, st.fragment, run_every, automatic polling, real-time updates, progress tracking
+**TokenBudget:** ~4000
+**ContextTier:** High
 **Depends:** 101-snowflake-streamlit-core, 103-snowflake-performance-tuning
 
-**TokenBudget:** ~1500
-**ContextTier:** comprehensive
-
 # Streamlit Performance: Caching and Optimization
-
-> **Section Metadata**  
-> Token Budget: ~500 | Context Tier: standard | Priority: high
 
 ## Purpose
 Provide comprehensive guidance for optimizing Streamlit application performance through caching strategies, efficient data loading from Snowflake, progress indicators, and performance profiling.
@@ -26,14 +22,14 @@ Provide comprehensive guidance for optimizing Streamlit application performance 
 
 ## Contract
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Inputs/Prereqs:** Streamlit app configured (see 101-snowflake-streamlit-core.md), Snowflake connection established, pandas/polars for data manipulation
 - **Allowed Tools:** @st.cache_data, @st.cache_resource, st.spinner(), st.progress(), st.status(), Snowflake session.table(), session.sql()
 
-**❌ FORBIDDEN:**
+**FORBIDDEN:**
 - **Forbidden Tools:** Raw SQL loops without aggregation, redundant database connections, unoptimized queries without LIMIT or WHERE clauses, operations without user feedback
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Required Steps:**
   1. Cache database queries with @st.cache_data and appropriate ttl
   2. Cache connections and expensive objects with @st.cache_resource
@@ -51,10 +47,31 @@ Provide comprehensive guidance for optimizing Streamlit application performance 
 - **User Feedback:** Show progress for operations >2 seconds
 - **Profile Always:** Target <2s load time, measure and optimize
 
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Cache database queries:** `@st.cache_data(ttl=300)` for query results
+- **Cache connections:** `@st.cache_resource` for database connections/expensive objects
+- **Normalize columns immediately:** `df.columns = df.columns.str.lower()` after Snowflake fetch
+- **Show progress:** Use `st.spinner()` for ops >2s, `st.progress()+st.status()` for >5s
+- **Fetch once:** Aggregate in SQL, avoid query loops (use WHERE, GROUP BY, LIMIT)
+- **Target <2s load time:** Profile with Chrome DevTools, optimize slowest queries
+- **Never run query loops** - fetch all data at once with aggregation
+
+**Quick Checklist:**
+- [ ] Add `@st.cache_data(ttl=...)` to query functions
+- [ ] Add `@st.cache_resource` to connection functions
+- [ ] Normalize column names: `df.columns = df.columns.str.lower()`
+- [ ] Add progress indicators for operations >2 seconds
+- [ ] Verify queries use WHERE/LIMIT clauses
+- [ ] Test cache behavior with different inputs
+- [ ] Measure load time (<2s target)
+
 ## 1. Caching Strategies
 
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 **Cache database queries and data fetches with @st.cache_data:**
 - **Use Case:** Query results, dataframes, computed data
 - **Parameters:** `ttl` (time-to-live) for cache expiration
@@ -125,7 +142,7 @@ def load_metrics():
     
     # Validate no critical NaN values before caching
     if df["value"].isna().any():
-        st.warning("⚠️ Some metrics unavailable - showing cached values where possible")
+        st.warning("Some metrics unavailable - showing cached values where possible")
     
     return df
 
@@ -150,7 +167,7 @@ for _, row in metrics_df.iterrows():
 ## 2. Data Loading from Snowflake - Critical Column Name Normalization
 
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 **Column Name Normalization (CRITICAL):**
 - **Critical:** Snowflake returns column names in **UPPERCASE** by default, which causes `KeyError` when accessing with lowercase
 - **Always:** Normalize column names to lowercase immediately after loading data from Snowflake
@@ -158,7 +175,7 @@ for _, row in metrics_df.iterrows():
 
 **Problem:**
 ```python
-# ❌ This will fail with KeyError: 'asset_type'
+# This will fail with KeyError: 'asset_type'
 df = session.table('GRID_ASSETS').to_pandas()
 transformers = df[df['asset_type'] == 'TRANSFORMER']  # KeyError!
 ```
@@ -190,7 +207,7 @@ def load_grid_assets() -> pd.DataFrame:
     return df
 ```
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Always:** Use fully qualified table names (`DATABASE.SCHEMA.TABLE`) to avoid context issues
 - **Always:** Apply normalization to both `session.table().to_pandas()` and `session.sql(query).to_pandas()` results
 - **Rule:** Document this normalization in function docstrings to inform other developers
@@ -204,7 +221,7 @@ def load_grid_assets() -> pd.DataFrame:
 ## 3. Progress Indicators and User Feedback
 
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 **Show user feedback for operations that may take time:**
 - **2-5 seconds:** Use `st.spinner()` with descriptive message
 - **>5 seconds:** Use `st.progress()` with `st.status()` for detailed progress tracking
@@ -233,7 +250,7 @@ st.success("All batches processed!")
 
 ### 3.3 Advanced: Real-Time Progress with Fragments
 
-**✅ RECOMMENDED:**
+**RECOMMENDED:**
 **Use `st.fragment` with `run_every` for automatic polling and real-time progress updates:**
 - **Use Case:** Long-running operations (>30s) requiring live progress without user interaction
 - **Pattern:** Fragment auto-refreshes every N seconds, polling progress table/API
@@ -337,16 +354,16 @@ def show_analysis_progress_live(audio_file):
         # Show elapsed time
         if "analysis_start_time" in st.session_state:
             elapsed = time.time() - st.session_state.analysis_start_time
-            st.caption(f"⏱️ Elapsed: {int(elapsed)}s")
+            st.caption(f"Elapsed: {int(elapsed)}s")
     
     # Stop polling when complete
     if p["STATUS"] in ["completed", "partial", "failed"]:
         if p["STATUS"] == "completed":
-            st.success(f"✅ Analysis complete! Processed {p['CURRENT_STEP']}/{p['TOTAL_STEPS']} steps")
+            st.success(f"Analysis complete! Processed {p['CURRENT_STEP']}/{p['TOTAL_STEPS']} steps")
         elif p["STATUS"] == "partial":
-            st.warning(f"⚠️ Partial completion: {p['CURRENT_STEP']}/{p['TOTAL_STEPS']} steps")
+            st.warning(f"Partial completion: {p['CURRENT_STEP']}/{p['TOTAL_STEPS']} steps")
         else:  # failed
-            st.error(f"❌ Analysis failed at step {p['CURRENT_STEP']}: {p['STEP_DESCRIPTION']}")
+            st.error(f"Analysis failed at step {p['CURRENT_STEP']}: {p['STEP_DESCRIPTION']}")
         
         # Clear session state to stop fragment
         if "active_analysis_file" in st.session_state:
@@ -366,7 +383,7 @@ st.title("Call Center Analytics")
 # CRITICAL: Conditional fragment rendering (outside button block)
 # This ensures fragment continues to run on every rerun triggered by run_every
 if st.session_state.get("active_analysis_file"):
-    st.info(f"📊 Analyzing: {st.session_state.active_analysis_file}")
+    st.info(f"Analyzing: {st.session_state.active_analysis_file}")
     show_analysis_progress_live(st.session_state.active_analysis_file)
 
 # Button handler (only runs when button is clicked)
@@ -396,7 +413,7 @@ if st.button(
 
 **Fragment Pattern Requirements:**
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Session State Persistence:** Store active operation state in `st.session_state` for cross-rerun tracking
 - **Conditional Rendering:** Fragment MUST be called outside button's `if` block to persist across reruns
 - **Cleanup on Completion:** Clear session state variables when operation completes to stop fragment
@@ -405,7 +422,7 @@ if st.button(
 
 **Anti-Patterns and Limitations:**
 
-**❌ Anti-Pattern 1: Creating Fragment Inside Button Block**
+**Anti-Pattern 1: Creating Fragment Inside Button Block**
 ```python
 if st.button("Start"):
     @st.fragment(run_every="1s")  # Fragment won't persist after button resets
@@ -415,7 +432,7 @@ if st.button("Start"):
 ```
 **Problem:** Button state resets on rerun, fragment disappears after first auto-refresh.
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 # Fragment defined at module level
 @st.fragment(run_every="1s")
@@ -435,7 +452,7 @@ if st.button("Start"):
 
 ---
 
-**❌ Anti-Pattern 2: Using Widgets Inside Fragments**
+**Anti-Pattern 2: Using Widgets Inside Fragments**
 ```python
 @st.fragment(run_every="1s")
 def fragment_with_widgets():
@@ -444,7 +461,7 @@ def fragment_with_widgets():
 ```
 **Problem:** Streamlit explicitly forbids widgets in fragment bodies (design limitation).
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 # Widgets outside fragment
 user_input = st.text_input("Name")
@@ -457,7 +474,7 @@ def display_only_fragment():
 
 ---
 
-**❌ Anti-Pattern 3: No Termination Condition**
+**Anti-Pattern 3: No Termination Condition**
 ```python
 @st.fragment(run_every="1s")
 def infinite_polling():
@@ -465,7 +482,7 @@ def infinite_polling():
 ```
 **Problem:** Fragment runs indefinitely, wasting resources and degrading UX.
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 @st.fragment(run_every="1s")
 def polling_with_termination():
@@ -486,10 +503,10 @@ def polling_with_termination():
 
 ## 4. Performance Optimization Patterns
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 **Avoid raw database query loops; fetch all needed data at once and cache it:**
 
-**❌ Anti-Pattern:**
+**Anti-Pattern:**
 ```python
 # Inefficient: N+1 query problem
 for region in regions:
@@ -497,7 +514,7 @@ for region in regions:
     process(df)
 ```
 
-**✅ Correct:**
+**Correct:**
 ```python
 # Efficient: Single query with aggregation
 @st.cache_data(ttl=600)
@@ -535,14 +552,14 @@ with st.expander("Debug Info"):
     st.write(f"Rerun count: {st.session_state.rerun_count}")
 ```
 
-**✅ RECOMMENDED:**
+**RECOMMENDED:**
 - **Consider:** Use Python profilers (cProfile, line_profiler) for computational bottlenecks
 - **Always:** Test with production-like data volumes during development
 - **Requirement:** Use Snowflake Query Profile to validate query performance
 
 ## Anti-Patterns and Common Mistakes
 
-**❌ Anti-Pattern 1: No caching for expensive operations**
+**Anti-Pattern 1: No caching for expensive operations**
 ```python
 def load_data():
     # Runs every rerun - slow!
@@ -552,7 +569,7 @@ df = load_data()  # Hits database every time
 ```
 **Problem:** Database queried on every widget interaction
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 @st.cache_data(ttl=600)
 def load_data():
@@ -563,7 +580,7 @@ def load_data():
 df = load_data()  # Cached, hits database once per ttl
 ```
 
-**❌ Anti-Pattern 2: Forgetting column normalization**
+**Anti-Pattern 2: Forgetting column normalization**
 ```python
 @st.cache_data(ttl=600)
 def load_assets():
@@ -574,7 +591,7 @@ transformers = df[df['asset_type'] == 'TRANSFORMER']  # KeyError!
 ```
 **Problem:** Snowflake returns UPPERCASE column names; Python expects lowercase
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 @st.cache_data(ttl=600)
 def load_assets():
@@ -586,20 +603,20 @@ df = load_assets()
 transformers = df[df['asset_type'] == 'TRANSFORMER']  # Works!
 ```
 
-**❌ Anti-Pattern 3: No user feedback for slow operations**
+**Anti-Pattern 3: No user feedback for slow operations**
 ```python
 data = expensive_operation()  # User sees blank screen
 ```
 **Problem:** User doesn't know if app is working or frozen
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 with st.spinner("Processing data..."):
     data = expensive_operation()
 st.success("Processing complete!")
 ```
 
-**❌ Anti-Pattern 4: Recreating connections on every call**
+**Anti-Pattern 4: Recreating connections on every call**
 ```python
 def get_connection():
     return Session.builder.configs(st.secrets["snowflake"]).create()
@@ -610,7 +627,7 @@ session2 = get_connection()
 ```
 **Problem:** Connection creation is expensive; wastes resources
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 @st.cache_resource
 def get_connection():
@@ -635,7 +652,7 @@ session2 = get_connection()  # Same session object
 - **Success Checks:** Cache hits on subsequent loads, column names lowercase after normalization, progress indicators show for slow operations, initial load <2s, no database query loops
 - **Negative Tests:** Clear cache and verify data reloads, test column access with lowercase (should work), remove progress indicator and verify user sees feedback gap, test with production data volume
 
-> **⚠️ Investigation Required**  
+> **Investigation Required**  
 > When applying this rule:
 > 1. Read data loading code BEFORE making recommendations
 > 2. Verify @st.cache_data and @st.cache_resource usage

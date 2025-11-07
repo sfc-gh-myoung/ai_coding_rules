@@ -7,11 +7,10 @@ appliesTo:
 ---
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
-**Keywords:** Typer, CLI development, command-line interface, click, argument parsing, CLI testing
+**Keywords:** Typer, CLI development, command-line interface, click, argument parsing, CLI testing, typer.Argument, typer.Option, CliRunner, rich console
+**TokenBudget:** ~2750
+**ContextTier:** High
 **Depends:** 200-python-core
-
-**TokenBudget:** ~1200
-**ContextTier:** Medium
 
 # Python Typer CLI Development Best Practices
 
@@ -23,6 +22,27 @@ Provide comprehensive guidance for building robust, user-friendly command-line a
 - **Type:** Agent Requested
 - **Scope:** Python CLI development, command-line applications, user interfaces
 
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Install with `uv add "typer[all]"`** - Includes rich and shellingham for full features
+- **Use `typer.Argument()` for required positional args** - Not function defaults
+- **Use `typer.Option()` for optional flags** - Clear help text, short names
+- **Separate CLI from business logic** - `cli/` for CLI, `core/` for logic
+- **Test with CliRunner** - From typer.testing, not bare command invocations
+- **Entry point in pyproject.toml** - `[project.scripts]` section
+- **Never use bare print()** - Use typer.echo() or rich console for output
+
+**Quick Checklist:**
+- [ ] Typer installed with `uv add "typer[all]"`
+- [ ] Entry point defined in `[project.scripts]`
+- [ ] CLI logic in separate cli/ directory
+- [ ] Arguments use `typer.Argument()`
+- [ ] Options use `typer.Option()` with help text
+- [ ] Tests use CliRunner
+- [ ] Output via typer.echo() or rich console
 
 ## 1. Project Setup and Structure
 
@@ -503,6 +523,23 @@ def main(
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read existing CLI structure BEFORE adding commands** - Check cli/, main.py, pyproject.toml for entry points
+> 2. **Verify current Typer app setup** - Check how main app and sub-commands are organized
+> 3. **Never speculate about command structure** - Read existing command files to understand patterns
+> 4. **Check pyproject.toml for entry points** - Don't create duplicate [project.scripts] entries
+> 5. **Make grounded recommendations based on investigated CLI structure** - Match existing patterns
+>
+> **Anti-Pattern:**
+> "Based on typical CLI apps, you probably organize commands like this..."
+> "Let me add this command - it should work with standard Typer patterns..."
+>
+> **Correct Pattern:**
+> "Let me check your existing CLI structure first."
+> [reads cli/main.py, cli/commands/, pyproject.toml]
+> "I see you have a main Typer app with sub-commands in cli/commands/. Here's a new command following the same pattern with proper Argument() and Option() usage..."
 
 ## Response Template
 ```

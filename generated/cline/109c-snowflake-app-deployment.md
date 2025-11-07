@@ -1,10 +1,9 @@
 <!-- Generated for Cline rules. See https://docs.cline.bot/features/cline-rules -->
 
-**Keywords:** Snowflake deployment, stage management, notebook deployment, Streamlit deployment, PUT, REMOVE, CREATE NOTEBOOK, CREATE STREAMLIT, deployment automation, task automation, staged applications, drop, upload, create, deploy workflow, AUTO_COMPRESS, stage path, ROOT_LOCATION, SiS deployment, TypeError, file compression, import failure
-**Depends:** 100-snowflake-core, 109-snowflake-notebooks, 101-snowflake-streamlit-core, 820-taskfile-automation
-
-**TokenBudget:** ~600
+**Keywords:** Snowflake deployment, stage management, notebook deployment, Streamlit deployment, PUT, REMOVE, CREATE NOTEBOOK, CREATE STREAMLIT, deployment automation, task automation, staged applications, drop, upload, create, deploy workflow, AUTO_COMPRESS, stage path, ROOT_LOCATION, SiS deployment, TypeError, file compression, import failure, OVERWRITE=TRUE
+**TokenBudget:** ~4650
 **ContextTier:** Medium
+**Depends:** 100-snowflake-core, 109-snowflake-notebooks, 101-snowflake-streamlit-core, 820-taskfile-automation
 
 # Snowflake Application Deployment Automation
 
@@ -16,9 +15,30 @@ Establish comprehensive deployment automation patterns for Snowflake application
 - **Type:** Agent Requested
 - **Scope:** Deployment automation for Snowflake applications using internal stages, covering notebooks, Streamlit apps, UDFs, and stored procedures
 
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **3-step deployment** - 1) DROP object, 2) REMOVE stage files, 3) PUT + CREATE
+- **Use AUTO_COMPRESS=FALSE** - Prevents TypeError on imports
+- **Use OVERWRITE=TRUE** - Ensures clean deployments
+- **Automate with Taskfile** - Consistent deployment commands
+- **Test in dev first** - Validate before production
+- **Version control SQL** - Track deployment scripts in git
+- **Never skip REMOVE** - Stale files cause import errors
+
+**Quick Checklist:**
+- [ ] DROP existing object SQL created
+- [ ] REMOVE stage files SQL created
+- [ ] PUT with AUTO_COMPRESS=FALSE
+- [ ] CREATE with correct ROOT_LOCATION
+- [ ] Taskfile targets defined
+- [ ] Deployment tested in dev
+- [ ] SQL scripts in version control
+
 ## Contract
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Inputs/Prereqs:** 
   - Snowflake connection and credentials
   - Application files ready for deployment (.ipynb, .py, environment.yml)
@@ -32,14 +52,14 @@ Establish comprehensive deployment automation patterns for Snowflake application
   - SQL template files with Snowflake variables (`<%VARIABLE%>`)
   - PUT, REMOVE, CREATE NOTEBOOK, CREATE STREAMLIT, DROP commands
 
-**❌ FORBIDDEN:**
+**FORBIDDEN:**
 - **Forbidden Tools:** 
   - Manual file uploads via Snowsight UI (not reproducible)
   - Hardcoded credentials in automation scripts
   - Deployment without version control
   - Mixing deployment modes (don't deploy same app to multiple stages)
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Required Steps:**
   1. Create SQL scripts for each operation (upload, remove, create, drop)
   2. Implement task structure with 5 core operations
@@ -153,7 +173,7 @@ OVERWRITE=TRUE;
 - `AUTO_COMPRESS=FALSE` - Keep files uncompressed for Snowflake processing
 - `OVERWRITE=TRUE` - Replace existing file (but explicit REMOVE is still recommended)
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 **CRITICAL for Streamlit in Snowflake (SiS):**
 - `AUTO_COMPRESS=FALSE` is **mandatory**, not optional
 - Python's import system cannot read gzipped .py files
@@ -162,7 +182,7 @@ OVERWRITE=TRUE;
 
 **Stage Path Requirement:**
 - Upload files directly to stage root: `@STAGE_NAME`
-- **Never** use subdirectory paths like: `@STAGE_NAME/streamlit/` ❌
+- **Never** use subdirectory paths like: `@STAGE_NAME/streamlit/` 
 - ROOT_LOCATION in CREATE STREAMLIT must match actual file location
 - Subdirectory mismatch causes same "TypeError" (Snowflake cannot find files)
 
@@ -283,7 +303,7 @@ SELECT '✓ Streamlit application files uploaded' AS progress;
 - Files at stage root: `streamlit_app.py`, `environment.yml`
 - Subdirectories allowed for organization: `@STAGE/pages/`, `@STAGE/utils/`
 - ROOT_LOCATION in CREATE STREAMLIT matches: `'@STAGE'` (not `'@STAGE/streamlit'`)
-- **Never** nest in extra subdirectory: `@STAGE/streamlit/` ❌
+- **Never** nest in extra subdirectory: `@STAGE/streamlit/` 
 
 **CREATE STREAMLIT Statement (matches upload paths):**
 ```sql
@@ -417,11 +437,11 @@ deploy:
 ```
 
 **Benefits:**
-- ✅ Guarantees clean state (no possibility of stale content)
-- ✅ Predictable deployments (same result every time)
-- ✅ Prevents subtle caching issues
-- ✅ Minimal overhead (REMOVE is fast)
-- ✅ Production-ready reliability
+- Guarantees clean state (no possibility of stale content)
+- Predictable deployments (same result every time)
+- Prevents subtle caching issues
+- Minimal overhead (REMOVE is fast)
+- Production-ready reliability
 
 ### Real-World Evidence
 
@@ -678,7 +698,7 @@ tasks:
 
 ## Anti-Patterns and Common Mistakes
 
-**❌ Anti-Pattern 1: Using OVERWRITE without explicit REMOVE**
+**Anti-Pattern 1: Using OVERWRITE without explicit REMOVE**
 ```yaml
 deploy:
   - upload  # PUT OVERWRITE=TRUE only
@@ -686,7 +706,7 @@ deploy:
 ```
 **Problem:** May encounter stale caching issues in Snowflake applications
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```yaml
 deploy:
   - drop     # Remove old object
@@ -695,18 +715,18 @@ deploy:
   - create   # Create from fresh files
 ```
 
-**❌ Anti-Pattern 2: Manual uploads via Snowsight UI**
+**Anti-Pattern 2: Manual uploads via Snowsight UI**
 ```
 # Manually uploading files through Snowsight web interface
 ```
 **Problem:** Not reproducible, no version control, no automation
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```bash
 task notebook:deploy:app  # Automated, reproducible, version-controlled
 ```
 
-**❌ Anti-Pattern 3: Combining upload and create in one task**
+**Anti-Pattern 3: Combining upload and create in one task**
 ```yaml
 deploy:
   cmds:
@@ -715,7 +735,7 @@ deploy:
 ```
 **Problem:** No modularity, can't test individual steps, harder to debug
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```yaml
 upload:
   cmds: [task: utils:sql:template ...]
@@ -729,20 +749,20 @@ deploy:
     - task: create
 ```
 
-**❌ Anti-Pattern 4: Hardcoding credentials in scripts**
+**Anti-Pattern 4: Hardcoding credentials in scripts**
 ```sql
 PUT 'file://app.ipynb' @stage 
   USER='admin' PASSWORD='secret123';
 ```
 **Problem:** Security risk, not portable, violates best practices
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```bash
 # Use Snowflake CLI with configured connection
 uvx snow sql -f upload.sql  # Uses ~/.snowflake/config.toml
 ```
 
-**❌ Anti-Pattern 5: Omitting AUTO_COMPRESS=FALSE for Streamlit SiS**
+**Anti-Pattern 5: Omitting AUTO_COMPRESS=FALSE for Streamlit SiS**
 ```sql
 # WRONG: Missing AUTO_COMPRESS=FALSE
 PUT file://streamlit_app.py @STAGE
@@ -755,7 +775,7 @@ PUT file://pages/*.py @STAGE/pages/
 **Symptom:** "TypeError: bad argument type for built-in operation"  
 **Impact:** Application fails to load, no pages render, complete deployment failure
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```sql
 # Correct: Explicit AUTO_COMPRESS=FALSE
 PUT file://streamlit_app.py @STAGE
@@ -767,7 +787,7 @@ PUT file://pages/*.py @STAGE/pages/
     OVERWRITE=TRUE;
 ```
 
-**❌ Anti-Pattern 6: Uploading Streamlit files to subdirectory path**
+**Anti-Pattern 6: Uploading Streamlit files to subdirectory path**
 ```sql
 # WRONG: Files nested in subdirectory
 PUT file://streamlit_app.py @STAGE/streamlit/
@@ -787,7 +807,7 @@ CREATE STREAMLIT APP
 **Symptom:** Same "TypeError: bad argument type for built-in operation"  
 **Debugging:** `LIST @STAGE` shows `streamlit/streamlit_app.py` but ROOT_LOCATION expects different structure
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```sql
 # Correct: Upload to stage root
 PUT file://streamlit_app.py @STAGE
@@ -833,6 +853,23 @@ CREATE STREAMLIT APP
 - **Negative Tests:** 
   - REMOVE with non-existent file succeeds with warning (idempotent)
   - CREATE without stage files fails gracefully
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read existing deployment scripts BEFORE creating new ones** - Check Taskfile, SQL patterns, stage paths
+> 2. **Verify stage structure** - List stage contents to understand organization
+> 3. **Never assume stage paths** - Check ROOT_LOCATION in existing CREATE statements
+> 4. **Check Taskfile patterns** - Match existing task naming and structure
+> 5. **Test deployment** - Run in dev environment before suggesting for production
+>
+> **Anti-Pattern:**
+> "Creating deployment script... (without checking existing patterns)"
+> "Using AUTO_COMPRESS=TRUE... (causes import errors)"
+>
+> **Correct Pattern:**
+> "Let me check your existing deployment setup first."
+> [reads Taskfile.yml, checks SQL scripts, lists stage]
+> "I see you use 3-step deployment with AUTO_COMPRESS=FALSE. Following this pattern for the new app..."
   - DROP non-existent object succeeds (IF EXISTS)
   - Upload without precondition file fails before attempting upload
 

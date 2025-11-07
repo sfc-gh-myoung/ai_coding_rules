@@ -1,14 +1,13 @@
 **Description:** Industry-standard README.md structure, content guidelines, and quality assurance patterns for professional project documentation.
+**Type:** Agent Requested
 **AppliesTo:** `**/README.md`, `**/readme.md`
 **AutoAttach:** false
-**Type:** Agent Requested
-**Keywords:** README, project documentation, getting started, setup instructions, badges
-**Version:** 1.2
-**LastUpdated:** 2025-10-13
-**Depends:** 000-global-core
-
-**TokenBudget:** ~700
+**Keywords:** README, project documentation, getting started, setup instructions, badges, Quick Start, Contributing, License, project structure
+**TokenBudget:** ~2350
 **ContextTier:** Medium
+**Version:** 1.3
+**LastUpdated:** 2025-11-07
+**Depends:** 000-global-core
 
 # README Best Practices: Professional Project Documentation
 
@@ -20,6 +19,26 @@ This rule establishes comprehensive standards for README.md files following wide
 - **Type:** Agent Requested
 - **Scope:** Project documentation, technical writing, developer experience
 
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Required sections** - Title, Description, Quick Start, Usage, Contributing, License
+- **Quick Start first** - Get users running ASAP
+- **Badge placement** - Build status, version, license at top
+- **Code examples** - Show actual usage, not just API docs
+- **Prerequisites clear** - List all dependencies upfront
+- **Maintainability info** - How to contribute, where to report issues
+- **Never assume knowledge** - Explain setup steps clearly
+
+**Quick Checklist:**
+- [ ] Title clear and descriptive
+- [ ] Description explains purpose
+- [ ] Quick Start/Installation section
+- [ ] Usage examples with code
+- [ ] Contributing guidelines linked
+- [ ] License specified
+- [ ] Badges (if applicable)
 
 ## Essential README Structure
 
@@ -259,6 +278,23 @@ These changes REQUIRE README updates before task completion:
 - [ ] **CRITICAL:** README update triggers checked (see 000-global-core.md section 6)
 - [ ] **CRITICAL:** If triggers apply, README.md updated before task completion
 - [ ] All required sections present and complete
+
+> **Investigation Required**
+> When applying this rule:
+> 1. **Read existing README BEFORE modifying** - Check current structure
+> 2. **Verify project type** - Different projects need different sections
+> 3. **Never assume tech stack** - Check actual dependencies
+> 4. **Check for existing badges** - Don't duplicate or remove valid ones
+> 5. **Test installation steps** - Verify Quick Start actually works
+>
+> **Anti-Pattern:**
+> "Adding Quick Start... (without checking if it works)"
+> "Adding badges... (without verifying they're valid)"
+>
+> **Correct Pattern:**
+> "Let me check your existing README structure first."
+> [reads README, identifies missing sections, verifies tech stack]
+> "I see you're missing Quick Start. Adding installation steps for [tech]..."
 - [ ] Installation instructions tested on clean system
 - [ ] All code examples are syntactically correct and tested
 - [ ] All links are working and point to current resources

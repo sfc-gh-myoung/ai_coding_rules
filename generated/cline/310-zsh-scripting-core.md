@@ -1,10 +1,9 @@
 <!-- Generated for Cline rules. See https://docs.cline.bot/features/cline-rules -->
 
-**Keywords:** Zsh scripting, Z shell, zsh features, arrays, functions, oh-my-zsh
-**Depends:** 300-bash-scripting-core
-
-**TokenBudget:** ~1300
+**Keywords:** Zsh, Z shell, zsh features, arrays, functions, oh-my-zsh, emulate, setopt, parameter expansion, globbing
+**TokenBudget:** ~3000
 **ContextTier:** Medium
+**Depends:** 300-bash-scripting-core
 
 # Zsh Scripting Core Best Practices
 
@@ -16,6 +15,26 @@ Establish foundational zsh scripting patterns covering unique zsh features, scri
 - **Type:** Agent Requested
 - **Scope:** Foundation zsh scripting patterns and essential practices
 
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Use `#!/usr/bin/env zsh`** - Portable zsh shebang
+- **Set `emulate -L zsh`** - Consistent behavior in functions
+- **Use setopt for strictness** - ERR_EXIT, NO_UNSET, PIPE_FAIL
+- **Leverage arrays** - Zero-indexed, powerful operations
+- **Use parameter expansion** - `${var:...}`, `${var//...}`
+- **Quote variables** - Always use `"$var"` for safety
+- **Never assume bash compatibility** - Zsh has different semantics
+
+**Quick Checklist:**
+- [ ] `#!/usr/bin/env zsh` shebang
+- [ ] `emulate -L zsh` in functions
+- [ ] setopt configured properly
+- [ ] Arrays used correctly (0-indexed)
+- [ ] Variables quoted
+- [ ] Zsh-specific features leveraged
+- [ ] Compatibility with bash checked if needed
 
 ## 1. Script Foundation & Zsh Setup
 
@@ -581,6 +600,23 @@ EOF
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Check shell type BEFORE suggesting zsh features** - Verify shebang is zsh
+> 2. **Verify zsh version** - Some features require specific versions
+> 3. **Never assume bash compatibility** - Check for bash-specific patterns
+> 4. **Test array operations** - Zsh arrays are 0-indexed unlike bash
+> 5. **Verify setopt settings** - Check current options with `setopt`
+>
+> **Anti-Pattern:**
+> "Using zsh arrays... (without checking if script is actually zsh)"
+> "Adding setopt... (without checking current settings)"
+>
+> **Correct Pattern:**
+> "Let me check your script's shell type first."
+> [reads shebang, checks for zsh features]
+> "I see this is a zsh script. Using zsh-specific array operations..."
 
 ## Response Template
 ```

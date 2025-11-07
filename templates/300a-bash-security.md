@@ -1,14 +1,13 @@
 **Description:** Bash scripting security best practices covering input validation, path security, permissions, and secure coding patterns.
+**Type:** Agent Requested
 **AppliesTo:** `**/*.sh`, `**/*.bash`, `scripts/**/*`, `bin/**/*`
 **AutoAttach:** false
-**Type:** Agent Requested
-**Keywords:** Bash security, input validation, command injection, path security, secure shell scripts
-**Version:** 1.2
-**LastUpdated:** 2025-10-21
-**Depends:** 300-bash-scripting-core
-
-**TokenBudget:** ~1100
+**Keywords:** Bash, security, input validation, command injection, path security, secure shell scripts, sanitization, permissions, privilege escalation, secrets management
+**TokenBudget:** ~2300
 **ContextTier:** High
+**Version:** 1.3
+**LastUpdated:** 2025-11-07
+**Depends:** 300-bash-scripting-core
 
 # Bash Security Best Practices
 
@@ -20,6 +19,26 @@ Establish comprehensive bash scripting security practices covering input validat
 - **Type:** Agent Requested
 - **Scope:** Shell script security, input validation, access control
 
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Validate all inputs** - Never trust user data, validate patterns and types
+- **Quote variables** - Prevent injection (`"$var"`, not `$var`)
+- **Use absolute paths** - Avoid PATH manipulation attacks
+- **Set restrictive permissions** - 700 for scripts, 600 for data
+- **Sanitize file names** - Check for `../`, null bytes, special chars
+- **Never eval user input** - Disable eval/source of untrusted data
+- **Never trust environment** - Validate PATH, IFS, and all env vars
+
+**Quick Checklist:**
+- [ ] All inputs validated with regex
+- [ ] Variables properly quoted
+- [ ] Absolute paths used
+- [ ] File permissions set correctly
+- [ ] No eval of user input
+- [ ] Secrets in secure storage
+- [ ] Command injection prevented
 
 ## 1. Input Validation and Sanitization
 
@@ -475,6 +494,23 @@ test_security() {
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read existing scripts BEFORE adding security** - Check current validation, permissions
+> 2. **Verify input sources** - Identify all user input points, environment variables
+> 3. **Never assume sanitization exists** - Check for validation functions
+> 4. **Check file permissions** - Review current permissions on scripts and data
+> 5. **Test injection scenarios** - Verify defenses work against actual attacks
+>
+> **Anti-Pattern:**
+> "Adding input validation... (without checking what inputs exist)"
+> "Sanitizing user input... (without testing injection scenarios)"
+>
+> **Correct Pattern:**
+> "Let me check your script's security posture first."
+> [reads script, identifies input points, checks permissions]
+> "I see user input at lines X, Y. Adding validation and sanitization..."
 
 ## Response Template
 ```

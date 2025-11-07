@@ -1,8 +1,7 @@
-**Keywords:** Model registry, ML models, model versioning, model deployment, MLOps, model governance, model lifecycle
-**Depends:** 100-snowflake-core
-
-**TokenBudget:** ~700
+**Keywords:** Model registry, ML models, model versioning, model deployment, MLOps, model governance, model lifecycle, model logging, model inference, RBAC, model privileges
+**TokenBudget:** ~2300
 **ContextTier:** Medium
+**Depends:** 100-snowflake-core
 
 # Snowflake Model Registry
 
@@ -13,6 +12,27 @@ Establish comprehensive best practices for using Snowflake Model Registry to man
 
 - **Type:** Agent Requested
 - **Scope:** Snowflake Model Registry operations including model logging, versioning, access control, inference, and lifecycle management for Python ML models
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Registry-first approach** - All models logged through Model Registry
+- **Use least-privilege RBAC** - Grant only needed privileges (OWNERSHIP, USAGE, READ)
+- **Version all models** - Comprehensive versioning with metadata
+- **Log metrics and comments** - Track model performance and lineage
+- **Optimize inference** - Choose appropriate compute, optimize serving
+- **Maintain environment consistency** - Pin dependencies, reproducible envs
+- **Never deploy unregistered models** - Always use Model Registry
+
+**Quick Checklist:**
+- [ ] Dedicated schema for registry created
+- [ ] Models logged with version and metadata
+- [ ] RBAC privileges configured
+- [ ] Inference tested and optimized
+- [ ] Dependencies pinned
+- [ ] Audit logging enabled
+- [ ] Lifecycle stages tracked
 
 ## Key Principles
 - Registry-first approach: all models must be logged and versioned through the Model Registry
@@ -297,6 +317,23 @@ ORDER BY days_since_update DESC;
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read existing model registry setup BEFORE logging models** - Check registry schema, naming conventions
+> 2. **Verify model format compatibility** - Check if model type supported by registry
+> 3. **Never assume RBAC privileges** - Query existing privileges to understand access patterns
+> 4. **Check inference patterns** - Review how existing models are served
+> 5. **Test model loading** - Validate model can be loaded and run inference before deployment
+>
+> **Anti-Pattern:**
+> "Logging model to registry... (without checking registry structure)"
+> "Granting OWNERSHIP... (without understanding least-privilege needs)"
+>
+> **Correct Pattern:**
+> "Let me check your Model Registry setup first."
+> [reads registry schema, checks existing models, reviews privileges]
+> "I see you organize models by ML.REGISTRY schema with version tags. Logging new model following this pattern..."
 
 ## Response Template
 ```

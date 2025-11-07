@@ -1,14 +1,13 @@
 **Description:** Rules for building reproducible, secure, and maintainable Jupyter Notebooks in the Snowflake environment.
+**Type:** Agent Requested
 **AppliesTo:** `**/*.ipynb`, `notebooks/**/*.py`
 **AutoAttach:** false
-**Type:** Agent Requested
-**Keywords:** Snowflake notebooks, Jupyter, Python notebooks, data exploration, ML, reproducible notebooks, nbqa, notebook linting, code quality
-**Version:** 1.3
-**LastUpdated:** 2025-10-17
+**Keywords:** Snowflake notebooks, Jupyter, Python notebooks, data exploration, ML, reproducible notebooks, nbqa, notebook linting, code quality, Python, Snowflake
+**TokenBudget:** ~2100
+**ContextTier:** Medium
+**Version:** 1.4
+**LastUpdated:** 2025-11-06
 **Depends:** 100-snowflake-core, 201-python-lint-format
-
-**TokenBudget:** ~400
-**ContextTier:** Standard
 
 # Snowflake Notebook Directives
 
@@ -25,6 +24,35 @@ Establish best practices for building reproducible, secure, and maintainable Jup
 - Deterministic notebooks; one environment with pinned versions; imports centralized at top.
 - Parameterize runs; narrative in Markdown cells; keep code cells focused and avoid hidden state.
 - Never hard-code secrets; push heavy compute to Snowflake (Snowpark); refactor final code into .py/.sql.
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Deterministic execution** - notebooks must run top-to-bottom without hidden state
+- **All imports at top** - single dedicated cell for all imports
+- **Descriptive cell names** - use `action_subject` format (e.g., `load_customer_data`)
+- **Push compute to Snowflake** - use Snowpark DataFrames, avoid large local pulls
+- **Use nbqa for linting** - `uvx nbqa ruff notebooks/` for code quality
+- **Never hard-code secrets** - use environment variables or st.secrets
+- **Don't rely on execution order** - cells must be independent and deterministic
+
+**Quick Checklist:**
+- [ ] All imports in single top cell
+- [ ] Cell names are descriptive (`action_subject` format)
+- [ ] Markdown cells for narrative/documentation
+- [ ] Secrets from environment variables (not hardcoded)
+- [ ] Snowpark DataFrames for large computations
+- [ ] Run `uvx nbqa ruff notebooks/` for linting
+- [ ] Test: "Restart Kernel & Run All" works without errors
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. Run the notebook top-to-bottom BEFORE making recommendations
+> 2. Verify cell execution order doesn't cause hidden state issues
+> 3. Never speculate about notebook structure - read the actual .ipynb file
+> 4. Check for hardcoded secrets or credentials in cells
+> 5. Make grounded recommendations based on investigated notebook execution
 
 ## 1. Reproducibility & State
 - **Requirement:** Ensure notebooks are deterministic; outputs must not depend on execution order or hidden state.
@@ -163,11 +191,11 @@ ignore = ["E501"]  # Allow long lines in notebooks for complex expressions
 
 ### Benefits of nbqa + Ruff
 
-- ✅ Consistent code quality standards across `.py` modules and `.ipynb` notebooks
-- ✅ Catches common errors before notebook execution
-- ✅ Enforces import organization and formatting standards
-- ✅ CI/CD ready for automated quality checks
-- ✅ Integrates with existing `uv` + `ruff` tooling ecosystem
+- Consistent code quality standards across `.py` modules and `.ipynb` notebooks
+- Catches common errors before notebook execution
+- Enforces import organization and formatting standards
+- CI/CD ready for automated quality checks
+- Integrates with existing `uv` + `ruff` tooling ecosystem
 
 ## Contract
 - **Inputs/Prereqs:** Snowflake account access; Snowpark for Python environment; Jupyter notebook environment; virtual environment with pinned dependencies

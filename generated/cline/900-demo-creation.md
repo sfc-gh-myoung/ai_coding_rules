@@ -1,10 +1,9 @@
 <!-- Generated for Cline rules. See https://docs.cline.bot/features/cline-rules -->
 
-**Keywords:** Demo creation, synthetic data, realistic demos, data generation, demo applications
-**Depends:** None
-
-**TokenBudget:** ~250
+**Keywords:** Demo creation, synthetic data, realistic demos, data generation, demo applications, narrative design, reproducible data, progressive disclosure
+**TokenBudget:** ~900
 **ContextTier:** Low
+**Depends:** None
 
 # Demo & Synthetic Data Generation Directives
 
@@ -16,6 +15,26 @@ Establish directives for creating realistic, deterministic, and effective demo a
 - **Type:** Agent Requested
 - **Scope:** Realistic, deterministic, and effective demo application creation with narrative clarity
 
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Story-first approach** - Lead with customer problem and clear outcome
+- **Reproducible data** - Use consistent seeding for deterministic results
+- **Offline fallback** - Build resilience for live demo failures
+- **Progressive disclosure** - Start basic, show advanced features later
+- **Minimize latency** - Pre-warm data and caches
+- **Narrative-aligned data** - Realistic, not random noise
+- **Never generate massive datasets in memory** - Use batch generation
+
+**Quick Checklist:**
+- [ ] Demo narrative defined
+- [ ] Data reproducible with seeding
+- [ ] Offline mode available
+- [ ] Progressive disclosure path clear
+- [ ] Performance optimized
+- [ ] Data realistic and aligned
+- [ ] Batch generation used
 
 ## 1. Core Principles
 - **Requirement:** Make demos story-first, leading with a customer problem and clear outcome.

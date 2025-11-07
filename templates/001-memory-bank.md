@@ -1,14 +1,13 @@
 **Description:** Universal memory bank principles for AI models to maintain project context and continuity.
+**Type:** Agent Requested
 **AppliesTo:** `memory-bank/**/*`, project context files
 **AutoAttach:** false
-**Type:** Agent Requested
-**Keywords:** memory bank, context, session recovery, project brief, active context, progress tracking, continuity, context rot, attention budget, compaction
-**Version:** 2.3
-**LastUpdated:** 2025-10-22
-**Depends:** 000-global-core
-
-**TokenBudget:** ~550
+**Keywords:** memory bank, context, session recovery, project brief, active context, progress tracking, continuity, context rot, attention budget, compaction, context engineering, rapid recovery, signal maximization
+**TokenBudget:** ~2850
 **ContextTier:** Critical
+**Version:** 2.4
+**LastUpdated:** 2025-11-06
+**Depends:** 000-global-core
 
 # Universal Memory Bank System
 
@@ -46,6 +45,27 @@ Establish universal principles for maintaining project context and ensuring AI e
 - **Forward Focus:** Emphasize what's next, not what's done
 - **Context Rot Awareness:** As context grows, attention degrades (n² pairwise relationships) - keep context minimal
 - **Attention Budget:** Treat context like limited working memory - every token depletes attention budget
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Read ALL memory bank files at session start** - Non-optional, enables rapid context recovery
+- **Keep activeContext.md ≤100 lines** - Most critical file, current + last session only
+- **Initialize before writing** - Run "initialize memory bank" if `memory-bank/` doesn't exist
+- **All writes scoped to `memory-bank/`** - Never write context files outside this directory
+- **Aggressive pruning** - Remove completed work details, archive old context
+- **Zero redundancy** - Each piece of information lives in exactly ONE place
+- **Never duplicate information** - Reference existing docs, don't copy content
+
+**Quick Checklist:**
+- [ ] `memory-bank/` directory exists (initialize if needed)
+- [ ] All writes scoped under `memory-bank/` only
+- [ ] activeContext.md ≤100 lines (current + last session)
+- [ ] Quick Start section in activeContext.md (lines 1-30)
+- [ ] No duplicate information across files
+- [ ] Outdated content removed or archived
+- [ ] Total context ≤600 lines across all files
 
 ## 1. Universal Context Structure
 
@@ -165,7 +185,7 @@ From Anthropic's context engineering research, as context length increases, mode
 
 # After Compaction (3 lines)
 ### Sprint 3 (Completed Jan 15)
-- ✅ User authentication with bcrypt (15 tests, fully documented)
+- User authentication with bcrypt (15 tests, fully documented)
 ```
 
 **2. Archive to External Files:**
@@ -184,9 +204,9 @@ From Anthropic's context engineering research, as context length increases, mode
 - Older sessions: Key decisions only or archived
 
 **Compaction Guidelines:**
-- ✅ **Preserve:** Active objectives, unresolved blockers, key architectural decisions, recent file references
-- ❌ **Remove:** Resolved issues, exploratory dead-ends, redundant tool outputs, verbose explanations
-- ⚠️ **Compress:** Completed tasks (outcomes only), historical decisions (rationale + result), old session logs
+- **Preserve:** Active objectives, unresolved blockers, key architectural decisions, recent file references
+- **Remove:** Resolved issues, exploratory dead-ends, redundant tool outputs, verbose explanations
+- **Compress:** Completed tasks (outcomes only), historical decisions (rationale + result), old session logs
 
 ## 4. Maintenance Workflows
 
@@ -263,6 +283,23 @@ flowchart TD
 ## Validation
 - **Success Checks**: Initialization confirmed; `memory-bank/` exists; writes limited to `memory-bank/`; AI can resume work effectively using only context files; no duplicate information exists; all references work; productivity achieved within 20 lines of reading; context load completes within time targets
 - **Negative Tests**: Update attempted before initialization; files written outside `memory-bank/`; context files with missing quick start fail effectiveness test; duplicate information causes confusion and wasted time; broken references impede progress; oversized contexts delay session recovery
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Check if `memory-bank/` directory exists BEFORE any write operation** - Use list_dir to verify, run initialization if missing
+> 2. **Read ALL existing memory bank files at session start** - Never assume context structure, always verify what exists
+> 3. **Never speculate about current project state** - Read activeContext.md to understand actual current focus
+> 4. **Verify file sizes against budgets** - Check line counts, not just file existence
+> 5. **Make grounded updates based on investigated context** - Don't add generic content that doesn't match project reality
+>
+> **Anti-Pattern:**
+> "Based on typical projects, you probably have these memory bank files..."
+> "Let me update the memory bank with standard sections..."
+>
+> **Correct Pattern:**
+> "Let me check if memory-bank/ exists and what files are present."
+> [runs list_dir to check memory-bank/]
+> "I see memory-bank/ exists with activeContext.md (85 lines) and projectbrief.md (110 lines). Based on activeContext.md, the current focus is [specific project task]. Here's how I'll update it..."
 
 ## Response Template
 ```markdown

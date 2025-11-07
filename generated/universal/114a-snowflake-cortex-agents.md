@@ -1,8 +1,7 @@
-**Keywords:** Cortex Agents, AI agents, agent design, grounding, tools, functions, agent RBAC, agent observability, agent archetypes, planning instructions, response templates, tool configuration, multi-tool agents, hybrid agents, component testing, prerequisites validation, working SQL examples, error troubleshooting, permission configuration
-**Depends:** 100-snowflake-core, 105-snowflake-cost-governance, 106-snowflake-semantic-views, 111-snowflake-observability
-
-**TokenBudget:** ~950
+**Keywords:** Cortex Agents, AI agents, agent design, grounding, tools, functions, agent RBAC, agent observability, agent archetypes, planning instructions, response templates, tool configuration, multi-tool agents, hybrid agents, component testing, prerequisites validation, working SQL examples, error troubleshooting, permission configuration, Cortex Search, semantic views
+**TokenBudget:** ~6950
 **ContextTier:** High
+**Depends:** 100-snowflake-core, 105-snowflake-cost-governance, 106-snowflake-semantic-views, 111-snowflake-observability
 
 # Snowflake Cortex Agents Best Practices
 
@@ -13,6 +12,27 @@ Provide comprehensive patterns to design, configure, secure, and operate Cortex 
 
 - **Type:** Agent Requested
 - **Scope:** Cortex Agents creation and operation, agent archetypes, tool design and configuration, planning/response instructions, testing patterns, RBAC/allowlists, evaluation and tracing, cost/latency trade-offs
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Choose agent archetype** - Single-tool, multi-tool, or hybrid based on use case
+- **Ground with semantic views** - Use curated, governed data sources
+- **Define clear tool descriptions** - Help agent understand when to use each tool
+- **Write planning instructions** - Guide agent orchestration and tool selection
+- **Enforce RBAC and allowlists** - Least-privilege access to models, tools, data
+- **Test systematically** - Component testing → integration → eval framework
+- **Never put business logic in semantic views** - Use agent response instructions
+
+**Quick Checklist:**
+- [ ] Agent archetype selected (single/multi/hybrid tool)
+- [ ] Grounding sources prepared (semantic views/Cortex Search)
+- [ ] Tools defined with clear descriptions
+- [ ] Planning instructions written
+- [ ] Response instructions (flagging logic) configured
+- [ ] RBAC and allowlists enforced
+- [ ] Evaluation framework in place
 
 ## Contract
 - **Inputs/Prereqs:**
@@ -42,7 +62,7 @@ Provide comprehensive patterns to design, configure, secure, and operate Cortex 
 - Choose agent archetype based on tool combination and use case requirements
 - Smallest sufficient model and minimal tool surface reduce cost and risk
 - Ground with curated, up-to-date, governed sources; prefer semantic views
-- 🔥 **CRITICAL:** Business rule flagging belongs in agent instructions, NEVER in semantic views
+- **CRITICAL:** Business rule flagging belongs in agent instructions, NEVER in semantic views
 - Deterministic tools with strict validation; idempotent, bounded side-effects
 - Explicit planning instructions required for multi-tool agents
 - Test tools independently (component testing) before integration
@@ -300,13 +320,13 @@ Description: "Search investment research reports for analyst opinions, ratings, 
 - Avoid ambiguous use cases that could match multiple tools
 
 **Avoiding Overlapping Use Cases:**
-❌ **Anti-Pattern:**
+**Anti-Pattern:**
 ```
 Tool A: "Use for portfolio analysis"
 Tool B: "Use for investment analysis"  # Too similar to Tool A
 ```
 
-✅ **Correct Pattern:**
+**Correct Pattern:**
 ```
 Tool A: "Use for portfolio holdings, weights, and exposure analysis"
 Tool B: "Use for risk metrics, volatility, and correlation analysis"  # Distinct domain
@@ -440,7 +460,7 @@ Planning instructions define HOW the agent selects and orchestrates tools. Be ex
 
 Response instructions define HOW the agent formats and presents answers.
 
-### 5.1 🔥 CRITICAL: Flagging Logic Placement Principle
+### 5.1 CRITICAL: Flagging Logic Placement Principle
 
 **Agent Instructions:** All flagging, thresholds, highlighting, and business rules
 **Cortex Analyst:** ONLY data calculations and SQL generation
@@ -456,7 +476,7 @@ Response instructions define HOW the agent formats and presents answers.
 **Example - CORRECT:**
 ```yaml
 # In Agent Response Instructions:
-"When portfolio positions exceed 6.5%, flag with '⚠️  CONCENTRATION WARNING' and recommend action."
+"When portfolio positions exceed 6.5%, flag with ' CONCENTRATION WARNING' and recommend action."
 
 # In Cortex Analyst Tool:
 - Just returns position_weight calculations
@@ -467,10 +487,10 @@ Response instructions define HOW the agent formats and presents answers.
 
 **Example - INCORRECT:**
 ```yaml
-# ❌ In Semantic View custom instructions:
+# In Semantic View custom instructions:
 "Flag positions >6.5% as concentrations"  # WRONG - belongs in agent instructions
 
-# ❌ In Cortex Analyst Tool description:
+# In Cortex Analyst Tool description:
 "Flag concentrations above threshold"  # WRONG - belongs in agent instructions
 ```
 
@@ -493,7 +513,7 @@ Response instructions define HOW the agent formats and presents answers.
 1. You are a Portfolio Management Assistant providing data-driven investment insights
 2. Tone: Professional, analytical, action-oriented
 3. Format holdings and exposures as tables with clear headers
-4. FLAGGING: Flag positions >6.5% with "⚠️  CONCENTRATION WARNING: {security} at {exact %}. Consider rebalancing."
+4. FLAGGING: Flag positions >6.5% with " CONCENTRATION WARNING: {security} at {exact %}. Consider rebalancing."
 5. Cite research sources: "According to {broker} Research Report dated {date}..."
 6. Charts should have clear titles: "Top 10 Holdings by Weight (%)" not just "Holdings"
 7. If data unavailable: "Unable to retrieve {data type}. Suggest checking {alternative source}."
@@ -505,7 +525,7 @@ Response instructions define HOW the agent formats and presents answers.
 1. You are a Research and Compliance Assistant providing document-based insights
 2. Tone: Thorough, detail-oriented, citation-focused
 3. Organize findings by document type and date (most recent first)
-4. FLAGGING: Flag compliance issues with severity: "🚨 BREACH" (>7%), "⚠️  WARNING" (6-7%), "ℹ️  NOTICE" (<6%)
+4. FLAGGING: Flag compliance issues with severity: "BREACH" (>7%), "WARNING" (6-7%), "NOTICE" (<6%)
 5. Citations required: Always include document title, type, and date for every claim
 6. Synthesize across sources: "Multiple research reports (3 sources) indicate..."
 7. If no documents found: "No {document type} found for {topic}. Suggest expanding search to {alternatives}."
@@ -533,7 +553,7 @@ def test_analyst_tool(session: Session, semantic_view: str):
         ) LIMIT 5
     """).collect()
     
-    print(f"✅ Analyst tool returned {len(result)} results")
+    print(f"Analyst tool returned {len(result)} results")
     return len(result) > 0
 ```
 
@@ -550,7 +570,7 @@ def test_search_tool(session: Session, service_name: str):
         )
     """).collect()
     
-    print(f"✅ Search tool returned results")
+    print(f"Search tool returned results")
     return len(result) > 0
 ```
 
@@ -883,54 +903,54 @@ SELECT SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
 
 ## Anti-Patterns and Common Mistakes
 
-❌ **Anti-Pattern 1: Flagging Logic in Semantic Views**
+**Anti-Pattern 1: Flagging Logic in Semantic Views**
 ```yaml
 # In Semantic View custom instructions:
 "Flag positions exceeding 6.5% as concentration risks"
 ```
 **Problem:** Semantic views should be reusable across agents with different thresholds. Business rules belong in agent instructions.
 
-✅ **Correct Pattern:**
+**Correct Pattern:**
 ```yaml
 # In Agent Response Instructions:
-"When position weights exceed 6.5%, flag with '⚠️  CONCENTRATION WARNING'"
+"When position weights exceed 6.5%, flag with ' CONCENTRATION WARNING'"
 
 # In Semantic View:
 Just calculate position_weight accurately (no flagging logic)
 ```
 
-❌ **Anti-Pattern 2: Overlapping Tool Use Cases**
+**Anti-Pattern 2: Overlapping Tool Use Cases**
 ```yaml
 Tool A: "Use for portfolio analysis"
 Tool B: "Use for investment analysis"  # Too similar!
 ```
 **Problem:** Agent won't know which tool to pick, leading to inconsistent behavior.
 
-✅ **Correct Pattern:**
+**Correct Pattern:**
 ```yaml
 Tool A: "Use for portfolio holdings, weights, and sector breakdowns"
 Tool B: "Use for risk metrics, volatility calculations, and correlations"
 ```
 
-❌ **Anti-Pattern 3: Missing When-to-Use Guidance**
+**Anti-Pattern 3: Missing When-to-Use Guidance**
 ```yaml
 Tool Description: "Analyzes portfolio data"
 ```
 **Problem:** Too vague. Agent doesn't know WHEN this tool is appropriate vs other tools.
 
-✅ **Correct Pattern:**
+**Correct Pattern:**
 ```yaml
 Tool Description: "Use this tool for quantitative portfolio analysis including holdings lists, weight calculations, and sector allocations. Use for questions about 'how much', 'what percentage', 'top N', and data visualizations."
 ```
 
-❌ **Anti-Pattern 4: Testing Only End-to-End**
+**Anti-Pattern 4: Testing Only End-to-End**
 ```python
 # Only test complete agent workflows
 test_full_agent_query("Show me everything about my portfolio")
 ```
 **Problem:** When tests fail, you don't know which tool or component is broken.
 
-✅ **Correct Pattern:**
+**Correct Pattern:**
 ```python
 # Test components first
 test_analyst_tool_works()
@@ -939,13 +959,13 @@ test_search_tool_works()
 test_multi_tool_workflow()
 ```
 
-❌ **Anti-Pattern 5: Vague Planning Instructions**
+**Anti-Pattern 5: Vague Planning Instructions**
 ```
 "Use the best tool for each query"
 ```
 **Problem:** Too ambiguous. Agent needs explicit tool selection logic.
 
-✅ **Correct Pattern:**
+**Correct Pattern:**
 ```
 "For numerical questions (how much, what percentage, top N), use portfolio_analyzer. For opinions and research (what do analysts say, latest commentary), use search_research_reports."
 ```
@@ -967,6 +987,23 @@ test_multi_tool_workflow()
 ## Validation
 - **Success checks:** Component tests pass; integration tests pass; evaluation meets targets; tool selection logic works correctly; flagging applies consistently; traces show bounded tool use; costs stable
 - **Negative tests:** Prompt injections fail; unauthorized tool/data access blocked; oversized prompts rejected; overlapping tools don't confuse agent; flagging in semantic views flagged in code review
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read existing agent configurations BEFORE making changes** - Check current grounding sources, tools, instructions
+> 2. **Verify available Cortex features** - Check if Cortex Analyst, Search, semantic views are available
+> 3. **Never assume agent architecture** - Read existing agents to understand patterns
+> 4. **Check RBAC and permissions** - Verify what roles and objects are accessible
+> 5. **Test after changes** - Run component and integration tests to verify behavior
+>
+> **Anti-Pattern:**
+> "Creating a Cortex Agent with these tools... (without checking available features)"
+> "Adding semantic view grounding... (without verifying semantic views exist)"
+>
+> **Correct Pattern:**
+> "Let me check your Cortex setup first."
+> [reads existing agents, checks Cortex Search indices, verifies semantic views]
+> "I see you have semantic views for sales data and Cortex Search for docs. Creating agent with these grounding sources..."
 
 ## Response Template
 ```markdown

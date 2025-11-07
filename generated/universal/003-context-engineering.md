@@ -1,13 +1,9 @@
-**Keywords:** context engineering, attention budget, context rot, token efficiency, compaction, progressive disclosure, sub-agents, agentic search, system prompts, right altitude, long-horizon tasks
+**Keywords:** context engineering, attention budget, context rot, token efficiency, compaction, progressive disclosure, sub-agents, agentic search, system prompts, right altitude, long-horizon tasks, memory management, state tracking
+**TokenBudget:** ~4750
+**ContextTier:** Critical
 **Depends:** 000-global-core
 
-**TokenBudget:** ~800
-**ContextTier:** Critical
-
 # Context Engineering for AI Agents
-
-> **Section Metadata**  
-> Token Budget: ~800 | Context Tier: critical | Priority: high
 
 ## Purpose
 Establish comprehensive context engineering practices that treat context as a finite resource with diminishing returns, enabling AI agents to maintain focus, minimize context rot, and work effectively across long-horizon tasks through strategic context management.
@@ -19,14 +15,14 @@ Establish comprehensive context engineering practices that treat context as a fi
 
 ## Contract
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Inputs/Prereqs:** Understanding of token budgets; awareness of context window limits; ability to prioritize information; access to memory/state management tools
 - **Allowed Tools:** All context-aware tools; memory tools; file reading tools; state tracking tools; compaction tools
 
-**❌ FORBIDDEN:**
+**FORBIDDEN:**
 - **Forbidden Tools:** Tools that blindly load entire codebases without filtering; tools that duplicate information unnecessarily
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Required Steps:**
   1. Assess available attention budget before adding context
   2. Prioritize high-signal, actionable information over noise
@@ -46,6 +42,27 @@ Establish comprehensive context engineering practices that treat context as a fi
 - **Token Efficiency:** Minimize context pollution - every token must provide actionable value
 - **Agentic Search:** Prefer just-in-time exploration over pre-computed retrieval when information space is dynamic
 - **Compaction Strategy:** Summarize and compress context before hitting limits while preserving critical details
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Treat context as finite resource** - Every token depletes attention budget (n² pairwise relationships)
+- **Progressive disclosure** - Load summaries first, details on-demand (not everything at once)
+- **Use sub-agents for complex tasks** - Split work into focused agents with minimal context each
+- **Compact before context limits** - Summarize completed work, preserve critical details only
+- **Agentic search over RAG** - Explore dynamically instead of pre-loading entire knowledge base
+- **Right altitude system prompts** - Specific heuristics (not brittle if-else, not vague guidance)
+- **Never load entire codebase** - Context rot degrades recall, use targeted file reading
+
+**Quick Checklist:**
+- [ ] Assess attention budget before adding context
+- [ ] Prioritize high-signal, actionable information
+- [ ] Use progressive disclosure (load details only when needed)
+- [ ] Compact context when approaching limits
+- [ ] Use sub-agents for multi-faceted tasks
+- [ ] Maintain structured notes outside context window
+- [ ] Validate context stays within attention budget
 
 ## 1. Context vs Prompt Engineering
 
@@ -108,7 +125,7 @@ Models have:
 
 **Too Low (Brittle Hardcoded Logic):**
 ```xml
-❌ Anti-Pattern:
+Anti-Pattern:
 <system_prompt>
 If user asks about pricing, say "Contact sales"
 If user mentions bug, create JIRA ticket
@@ -120,7 +137,7 @@ If user says "thanks", respond "You're welcome"
 
 **Too High (Vague High-Level Guidance):**
 ```xml
-❌ Anti-Pattern:
+Anti-Pattern:
 <system_prompt>
 Be a helpful assistant. Provide good answers.
 Do your best to help the user.
@@ -130,7 +147,7 @@ Do your best to help the user.
 
 **Right Altitude (Goldilocks Zone):**
 ```xml
-✅ Correct Pattern:
+Correct Pattern:
 <system_prompt>
 You are a customer support agent for SaaS product X.
 
@@ -166,7 +183,7 @@ You are a customer support agent for SaaS product X.
 
 ### What to Include
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 **High-Signal Information:**
 - Current task objective and success criteria
 - Essential domain knowledge for task
@@ -177,7 +194,7 @@ You are a customer support agent for SaaS product X.
 
 ### What to Exclude
 
-**❌ FORBIDDEN:**
+**FORBIDDEN:**
 **Low-Signal Noise:**
 - Redundant information already stated
 - Historical context no longer relevant
@@ -507,7 +524,7 @@ implementation = sub_agent_implement(
 
 ### Minimize Context Pollution
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 **Rules:**
 1. **No Redundancy:** Each piece of information exists once
 2. **Actionable Only:** Every token must enable progress
@@ -519,16 +536,16 @@ implementation = sub_agent_implement(
 ### Tool Output Efficiency
 
 **Tools should return:**
-- ✅ Minimal necessary information
-- ✅ Structured, parseable formats
-- ✅ Clear success/failure signals
-- ✅ Actionable error messages
+- Minimal necessary information
+- Structured, parseable formats
+- Clear success/failure signals
+- Actionable error messages
 
 **Tools should NOT return:**
-- ❌ Verbose debug output
-- ❌ Entire file contents when excerpt suffices
-- ❌ Redundant confirmation messages
-- ❌ Decorative formatting
+- Verbose debug output
+- Entire file contents when excerpt suffices
+- Redundant confirmation messages
+- Decorative formatting
 
 ### Context Budgets in Practice
 
@@ -573,7 +590,7 @@ flowchart TD
 
 ## Anti-Patterns and Common Mistakes
 
-**❌ Anti-Pattern 1: Loading Entire Codebase Upfront**
+**Anti-Pattern 1: Loading Entire Codebase Upfront**
 ```python
 # BAD: Blindly load everything
 for file in all_python_files:
@@ -582,7 +599,7 @@ for file in all_python_files:
 ```
 **Problem:** Wastes attention budget on irrelevant code; causes context rot; slow and expensive
 
-**✅ Correct Pattern: Agentic Exploration**
+**Correct Pattern: Agentic Exploration**
 ```python
 # GOOD: Explore targeted
 1. grep "function_name" to find relevant files
@@ -592,7 +609,7 @@ for file in all_python_files:
 ```
 **Benefits:** Maintains attention focus; faster; more cost-effective
 
-**❌ Anti-Pattern 2: Never Compacting Context**
+**Anti-Pattern 2: Never Compacting Context**
 ```markdown
 [Turn 1: User asks question - 500 tokens]
 [Turn 2: Assistant explores - 2000 tokens]
@@ -603,7 +620,7 @@ for file in all_python_files:
 ```
 **Problem:** Context rot sets in; relevant information lost in noise; performance degrades
 
-**✅ Correct Pattern: Proactive Compaction**
+**Correct Pattern: Proactive Compaction**
 ```markdown
 [Turns 1-5: Work on feature A - compact to 1K summary]
 [Turns 6-10: Work on feature B - compact to 1K summary]
@@ -611,7 +628,7 @@ for file in all_python_files:
 ```
 **Benefits:** Maintains model performance; keeps attention focused
 
-**❌ Anti-Pattern 3: Vague System Prompts**
+**Anti-Pattern 3: Vague System Prompts**
 ```xml
 <system_prompt>
 Be helpful and provide good code.
@@ -621,7 +638,7 @@ Do your best work.
 ```
 **Problem:** No concrete signals; assumes shared context; Claude 4 won't "go beyond" automatically
 
-**✅ Correct Pattern: Right Altitude Instructions**
+**Correct Pattern: Right Altitude Instructions**
 ```xml
 <system_prompt>
 You are a Python backend engineer specializing in FastAPI.
@@ -644,7 +661,7 @@ You are a Python backend engineer specializing in FastAPI.
 ```
 **Benefits:** Clear expectations; specific heuristics; concrete validation criteria
 
-**❌ Anti-Pattern 4: Storing Everything in Context**
+**Anti-Pattern 4: Storing Everything in Context**
 ```python
 # BAD: Keep all history in context
 conversation_history = []
@@ -654,7 +671,7 @@ for turn in session:
 ```
 **Problem:** Linear growth until context limit; no pruning strategy
 
-**✅ Correct Pattern: Structured External Memory**
+**Correct Pattern: Structured External Memory**
 ```python
 # GOOD: Use persistent memory
 memory.store("session_state", {
@@ -670,7 +687,7 @@ send_to_model(recent_turns + state)
 ```
 **Benefits:** Bounded context; persistent state; scalable to long sessions
 
-**❌ Anti-Pattern 5: Premature Optimization**
+**Anti-Pattern 5: Premature Optimization**
 ```python
 # BAD: Over-engineer before understanding need
 build_vector_index()  # Not needed yet
@@ -679,7 +696,7 @@ implement_caching_layer()  # Premature
 ```
 **Problem:** Complex infrastructure before validating need; maintenance burden
 
-**✅ Correct Pattern: Start Simple, Scale As Needed**
+**Correct Pattern: Start Simple, Scale As Needed**
 ```python
 # GOOD: Start with agentic search
 # If it works well enough, keep it
@@ -710,6 +727,23 @@ implement_caching_layer()  # Premature
 
 - **Success Checks:** Context stays within attention budget; model maintains focus across long conversations; information is non-redundant; compaction preserves critical details; progressive disclosure improves efficiency; system prompts guide behavior without brittleness; tools return minimal high-signal output
 - **Negative Tests:** Loading entire codebase causes context rot; never compacting leads to performance degradation; vague system prompts produce unfocused behavior; redundant information wastes attention budget; lack of progressive disclosure slows session start; missing persistent memory causes state loss across resets
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Assess current context usage BEFORE loading more** - Check token count, don't blindly add files
+> 2. **Read file structures strategically** - Use list_dir and grep to understand codebase organization before reading full files
+> 3. **Never load entire codebase into context** - Select targeted files based on investigation
+> 4. **Check existing memory/state files** - Verify what context already exists in memory bank or state tracking
+> 5. **Make grounded context decisions based on investigated needs** - Don't pre-load information "just in case"
+>
+> **Anti-Pattern:**
+> "Let me load all Python files to understand the codebase..."
+> "I'll read everything in the src/ directory to get context..."
+>
+> **Correct Pattern:**
+> "Let me use list_dir to see the project structure, then grep for specific patterns to identify relevant files."
+> [runs list_dir and targeted grep searches]
+> "Based on the grep results, I'll read these 3 specific files that contain the authentication logic you asked about..."
 
 ## Response Template
 

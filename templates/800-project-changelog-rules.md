@@ -1,14 +1,13 @@
 **Description:** Directives for maintaining a high-signal, audit-friendly `CHANGELOG.md` using Conventional Commits.
+**Type:** Agent Requested
 **AppliesTo:** `CHANGELOG.md`
 **AutoAttach:** false
-**Type:** Agent Requested
-**Keywords:** CHANGELOG, changelog format, semantic versioning, release notes, conventional commits
-**Version:** 1.5
-**LastUpdated:** 2025-10-17
-**Depends:** 000-global-core
-
-**TokenBudget:** ~300
+**Keywords:** CHANGELOG, changelog format, semantic versioning, release notes, conventional commits, Unreleased section, scope patterns
+**TokenBudget:** ~1450
 **ContextTier:** Medium
+**Version:** 1.6
+**LastUpdated:** 2025-11-07
+**Depends:** 000-global-core
 
 # Changelog Governance Directives
 
@@ -20,6 +19,26 @@ Establish directives for maintaining a high-signal, audit-friendly CHANGELOG.md 
 - **Type:** Agent Requested
 - **Scope:** High-signal, audit-friendly changelog maintenance using Conventional Commits
 
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Maintain Unreleased section** - All new changes go here first
+- **Use Conventional Commits** - type(scope): summary format
+- **Group by category** - Features, Fixes, Docs, Chore, etc.
+- **Consistent scopes** - Align with project structure
+- **Collapse micro-fixes** - One meaningful entry, not 10 tweaks
+- **Move to version on release** - ## [x.y.z] - YYYY-MM-DD
+- **Never duplicate commit details** - Keep summaries concise
+
+**Quick Checklist:**
+- [ ] Unreleased section exists
+- [ ] Entries use Conventional Commits format
+- [ ] Grouped by category
+- [ ] Scopes are consistent
+- [ ] Micro-fixes collapsed
+- [ ] Ready for release versioning
+- [ ] User-impact oriented summaries
 
 ## 1. Required Structure & Format
 - **Requirement:** Maintain a single `CHANGELOG.md` at the project root.
@@ -130,6 +149,23 @@ chore(rules): update all Python rules for CLI consistency
 ## Validation
 - **Success checks:** CHANGELOG.md contains entry under `## [Unreleased]` for code changes; entry follows Conventional Commit format; entry is concise and user-impact oriented; Pre-Task-Completion Validation Gate passed
 - **Negative tests:** Code changes without CHANGELOG.md updates block task completion; entries with incorrect format fail validation; task completion attempted without changelog update is prevented
+
+> **Investigation Required**
+> When applying this rule:
+> 1. **Read existing CHANGELOG BEFORE adding** - Check format, scope patterns
+> 2. **Verify Unreleased section exists** - Create if missing
+> 3. **Never assume scope conventions** - Check existing scopes in file
+> 4. **Check for duplicates** - Avoid redundant entries
+> 5. **Validate Conventional Commits format** - Ensure type(scope): summary
+>
+> **Anti-Pattern:**
+> "Adding changelog entry... (without checking existing format)"
+> "Using arbitrary scope... (doesn't match project patterns)"
+>
+> **Correct Pattern:**
+> "Let me check your CHANGELOG format first."
+> [reads CHANGELOG, checks scopes, reviews categories]
+> "I see you use 'snowflake' and 'python' scopes. Adding entry following this pattern..."
 
 ## Response Template
 ```

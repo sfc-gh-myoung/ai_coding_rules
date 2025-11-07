@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Validate AI coding rule files against 002-rule-governance.md v2.5 standards.
+Validate AI coding rule files against 002-rule-governance.md v4.0 standards.
 
 This script validates that all rule files follow the required structure,
 include mandatory sections, and have proper metadata.
@@ -9,11 +9,20 @@ Checks for:
     - Required sections (Purpose, Contract, Validation, etc.)
     - Required metadata (Version, LastUpdated, Keywords)
     - Recommended metadata (TokenBudget, ContextTier)
+    - NO emojis in machine-consumed files (v4.0 - text-only markup required)
     - Universal format validation (no YAML, no comments, metadata stripped)
+    - Section 11 Universal Compatibility Standards:
+        * Metadata field order
+        * Quick Start TL;DR presence
+        * Contract placement (early in file)
+        * Investigation-First Protocol (for code/file rules)
+        * Response Template completeness
+        * Token budget accuracy
+        * Dependencies declaration
 
 Exit codes:
     0: All validations passed
-    1: Critical errors found (missing required sections)
+    1: Critical errors found (missing required sections, emojis found)
     2: Warnings found (missing recommended metadata)
 """
 
@@ -122,6 +131,204 @@ class RuleValidator:
                 rule_files.append(md_file)
         return sorted(rule_files)
 
+    def validate_metadata_field_order(self, content: str, result: ValidationResult) -> None:
+        """Validate metadata field order per Section 11.1."""
+        # Expected order: Description, Type, AppliesTo, AutoAttach, Keywords, TokenBudget, ContextTier, Version, LastUpdated, Depends
+        expected_order = [
+            "Description",
+            "Type",
+            "AppliesTo",
+            "AutoAttach",
+            "Keywords",
+            "TokenBudget",
+            "ContextTier",
+            "Version",
+            "LastUpdated",
+            "Depends",
+        ]
+
+        # Extract metadata section (before first #)
+        metadata_lines = []
+        for line in content.split("\n"):
+            if line.startswith("#"):
+                break
+            if line.startswith("**") and ":**" in line:
+                field = line.split(":**")[0].replace("**", "")
+                metadata_lines.append(field)
+
+        # Check order
+        found_positions = {}
+        for i, field in enumerate(metadata_lines):
+            if field in expected_order:
+                found_positions[field] = i
+
+        # Verify monotonic ordering
+        prev_idx = -1
+        for expected_field in expected_order:
+            if expected_field in found_positions:
+                current_idx = found_positions[expected_field]
+                if current_idx < prev_idx:
+                    result.critical_errors.append(
+                        f"Metadata field order incorrect: {expected_field} should appear before previous field"
+                    )
+                    return
+                prev_idx = current_idx
+
+    def validate_quick_start_tldr(self, content: str, result: ValidationResult) -> None:
+        """Validate Quick Start TL;DR section per Section 11.2."""
+        if not re.search(r"^## Quick Start TL;DR", content, re.MULTILINE):
+            result.critical_errors.append(
+                "Missing Quick Start TL;DR section (MANDATORY per Section 11.2)"
+            )
+
+    def validate_contract_placement(self, content: str, result: ValidationResult) -> None:
+        """Validate Contract section placement per Section 11.3."""
+        lines = content.split("\n")
+        contract_line = None
+
+        for i, line in enumerate(lines, 1):
+            if re.match(r"^##\s+(?:\d+\.\s+)?Contract\b", line):
+                contract_line = i
+                break
+
+        if contract_line is None:
+            # Already checked in required_sections, skip here
+            return
+
+        if contract_line > 100:
+            result.warnings.append(
+                f"Contract section appears late (line {contract_line}, should be before line 100)"
+            )
+
+    def validate_investigation_protocol(self, content: str, result: ValidationResult) -> None:
+        """Validate Investigation-First Protocol per Section 11.5."""
+        # Check if file references code/files
+        code_indicators = [
+            r"\.(py|sql|sh|js|ts|yaml|json|toml)",
+            r"read_file",
+            r"grep",
+            r"codebase",
+            r"file system",
+            r"directory",
+        ]
+
+        has_code_references = any(re.search(pattern, content) for pattern in code_indicators)
+
+        if has_code_references and not re.search(r"Investigation Required", content):
+            result.critical_errors.append(
+                "Missing Investigation-First Protocol (MANDATORY per Section 11.5 for code/file rules)"
+                )
+
+    def validate_response_template_completeness(
+        self, content: str, result: ValidationResult
+    ) -> None:
+        """Validate Response Template completeness per Section 11.6."""
+        # Find Response Template section
+        match = re.search(
+            r"^## Response Template\n(.*?)(?=^## |\Z)", content, re.MULTILINE | re.DOTALL
+        )
+        if not match:
+            # Already checked in required_sections
+            return
+
+        template_content = match.group(1)
+        # Count non-empty lines
+        lines = [line for line in template_content.split("\n") if line.strip()]
+
+        if len(lines) < 5:
+            result.warnings.append(
+                f"Response Template appears incomplete ({len(lines)} lines, should provide complete working examples)"
+            )
+
+    def validate_token_budget_accuracy(self, content: str, result: ValidationResult) -> None:
+        """Validate token budget accuracy per Section 11.9."""
+        # Find TokenBudget declaration
+        match = re.search(r"^\*\*TokenBudget:\*\*\s*~?(\d+)", content, re.MULTILINE)
+        if not match:
+            # Already checked in recommended_metadata
+            return
+
+        declared_budget = int(match.group(1))
+
+        # Calculate estimated tokens using word count method (more accurate than line count)
+        # Most tokenizers use ~0.75-1.3 tokens per word; we use 1.3 for safety margin
+        word_count = len(content.split())
+        estimated_tokens = int(word_count * 1.3)
+
+        # Check if within ±30% (allow more variance due to tokenizer differences)
+        lower_bound = int(declared_budget * 0.7)
+        upper_bound = int(declared_budget * 1.3)
+
+        if not (lower_bound <= estimated_tokens <= upper_bound):
+            result.warnings.append(
+                f"Token budget may be inaccurate (declared: ~{declared_budget}, estimated: ~{estimated_tokens}, ±30% range: {lower_bound}-{upper_bound})"
+            )
+
+    def validate_keywords_count(self, content: str, result: ValidationResult) -> None:
+        """Validate keywords count (5-15 recommended)."""
+        match = re.search(r"^\*\*Keywords:\*\*\s*(.+)$", content, re.MULTILINE)
+        if not match:
+            # Already checked in required_metadata
+            return
+
+        keywords = match.group(1).split(",")
+        keyword_count = len([k for k in keywords if k.strip()])
+
+        if keyword_count < 5:
+            result.warnings.append(
+                f"Few keywords ({keyword_count}, recommended 5-15 for better semantic discovery)"
+            )
+        elif keyword_count > 15:
+            result.warnings.append(
+                f"Too many keywords ({keyword_count}, recommended 5-15 for better semantic discovery)"
+            )
+
+    def validate_no_emojis(self, content: str, result: ValidationResult) -> None:
+        """Validate NO emojis in machine-consumed files per 002-rule-governance.md v4.0.
+        
+        Per v4.0: ALL emojis are PROHIBITED in machine-consumed files (templates/, 
+        AGENTS.md, RULES_INDEX.md). Use text-only markup instead.
+        
+        Exceptions:
+        - Emojis in code examples (Python/SQL strings): icon="⚙️", st.caption("⏱️")
+        - Emojis in strikethrough examples showing what NOT to do: ~~🔥 **MANDATORY:**~~
+        """
+        # Functional semantic marker emojis that are now PROHIBITED
+        functional_emojis = r"[🔥⚠️✅❌📊🆕🚨📋]"
+        
+        # Find all emoji occurrences
+        lines_with_emojis = []
+        for i, line in enumerate(content.split("\n"), 1):
+            # Skip if in code example (contains icon=, st.caption, st.expander, or similar)
+            if any(pattern in line for pattern in ['icon=', 'st.caption', 'st.expander', 'f"']):
+                continue
+            
+            # Skip if in strikethrough example (showing what NOT to do)
+            if "~~" in line:
+                continue
+            
+            # Skip if in code block (between ``` markers)
+            # This is a simplified check; full parsing would track code block state
+            if line.strip().startswith("```"):
+                continue
+                
+            # Check for functional emojis
+            if re.search(functional_emojis, line):
+                lines_with_emojis.append((i, line.strip()[:80]))  # Truncate long lines
+        
+        if lines_with_emojis:
+            result.critical_errors.append(
+                f"Emojis found in machine-consumed file (PROHIBITED per v4.0 - use text-only markup instead)"
+            )
+            for line_num, line_content in lines_with_emojis[:5]:  # Show first 5 occurrences
+                result.critical_errors.append(
+                    f"  Line {line_num}: {line_content}"
+                )
+            if len(lines_with_emojis) > 5:
+                result.critical_errors.append(
+                    f"  ... and {len(lines_with_emojis) - 5} more occurrence(s)"
+                )
+
     def validate_file(self, file_path: Path) -> ValidationResult:
         """Validate a single rule file."""
         result = ValidationResult(
@@ -154,6 +361,18 @@ class RuleValidator:
             if not re.search(metadata_pattern, content, re.MULTILINE):
                 field_name = metadata_pattern.replace(r"^\*\*", "").replace(r":\*\*", "")
                 result.warnings.append(f"Missing recommended metadata: {field_name}")
+
+        # Section 11 Universal Compatibility Checks
+        self.validate_metadata_field_order(content, result)
+        self.validate_quick_start_tldr(content, result)
+        self.validate_contract_placement(content, result)
+        self.validate_investigation_protocol(content, result)
+        self.validate_response_template_completeness(content, result)
+        self.validate_token_budget_accuracy(content, result)
+        self.validate_keywords_count(content, result)
+        
+        # v4.0: Check for prohibited emojis in machine-consumed files
+        self.validate_no_emojis(content, result)
 
         return result
 
@@ -244,7 +463,9 @@ class RuleValidator:
 
     def print_results(self, results: list[ValidationResult]) -> None:
         """Print validation results with colored output."""
-        print("\n📋 Rule Validation Report (002-rule-governance.md v2.5)")
+        print("\nRule Validation Report (002-rule-governance.md v4.0)")
+        print("Including Section 11: Universal Compatibility Standards")
+        print("v4.0: Text-only markup required - NO emojis in machine-consumed files")
         print("=" * 80)
 
         total_files = len(results)
@@ -253,37 +474,37 @@ class RuleValidator:
         clean_files = sum(1 for r in results if r.is_clean)
 
         # Print summary
-        print("\n📊 Summary:")
+        print("\nSummary:")
         print(f"  Total files validated: {total_files}")
-        print(f"  ✅ Clean files: {clean_files}")
-        print(f"  ⚠️  Files with warnings: {files_with_warnings}")
-        print(f"  ❌ Files with errors: {files_with_errors}")
+        print(f"  [PASS] Clean files: {clean_files}")
+        print(f"  [WARN] Files with warnings: {files_with_warnings}")
+        print(f"  [FAIL] Files with errors: {files_with_errors}")
 
         # Print detailed results for files with issues
         if files_with_errors > 0 or files_with_warnings > 0:
-            print("\n📝 Detailed Results:")
+            print("\nDetailed Results:")
             print("-" * 80)
 
             for result in results:
                 if not result.is_clean:
-                    status = "❌" if result.has_errors else "⚠️ "
+                    status = "[FAIL]" if result.has_errors else "[WARN]"
                     print(f"\n{status} {result.file_path.name}")
 
                     if result.critical_errors:
                         for error in result.critical_errors:
-                            print(f"    ❌ {error}")
+                            print(f"    [ERROR] {error}")
 
                     if result.warnings:
                         for warning in result.warnings:
-                            print(f"    ⚠️  {warning}")
+                            print(f"    [WARN] {warning}")
 
         # Print clean files if verbose
         if self.config.verbose and clean_files > 0:
-            print(f"\n✅ Clean Files ({clean_files}):")
+            print(f"\n[PASS] Clean Files ({clean_files}):")
             print("-" * 80)
             for result in results:
                 if result.is_clean:
-                    print(f"  ✅ {result.file_path.name}")
+                    print(f"  [PASS] {result.file_path.name}")
 
         print("\n" + "=" * 80)
 
@@ -344,10 +565,10 @@ def main() -> int:
     if args.directory is None:
         if Path("templates").exists() and list(Path("templates").glob("*.md")):
             args.directory = Path("templates")
-            print("✓ Using source directory: templates/ (new structure)")
+            print("[INFO] Using source directory: templates/ (new structure)")
         else:
             args.directory = Path(".")
-            print("✓ Using source directory: . (current directory)")
+            print("[INFO] Using source directory: . (current directory)")
 
     # Create validator with configuration
     config = ValidationConfig(verbose=args.verbose)
@@ -371,11 +592,11 @@ def main() -> int:
 
     # Print final status
     if exit_code == 0:
-        print("✅ All validations passed!")
+        print("[PASS] All validations passed!")
     elif exit_code == 1:
-        print("❌ Validation failed with critical errors")
+        print("[FAIL] Validation failed with critical errors")
     elif exit_code == 2:
-        print("⚠️  Validation passed with warnings")
+        print("[WARN] Validation passed with warnings")
 
     return exit_code
 

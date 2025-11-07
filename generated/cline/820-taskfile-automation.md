@@ -1,12 +1,11 @@
 <!-- Generated for Cline rules. See https://docs.cline.bot/features/cline-rules -->
 
-**Keywords:** Taskfile, task automation, Taskfile.yml, build automation, task runner
+**Keywords:** Taskfile, task automation, Taskfile.yml, build automation, task runner, Task, portable tasks, error handling
+**TokenBudget:** ~2450
+**ContextTier:** Medium
 **Depends:** 202-markup-config-validation
 
-**TokenBudget:** ~550
-**ContextTier:** Medium
-
-# ️Automation Directives (Taskfile-first, with equivalents)
+# Automation Directives (Taskfile-first, with equivalents)
 
 ## Purpose
 Provide directives for creating, modifying, and maintaining project automation using Taskfile.yml as the primary orchestrator, ensuring consistent, portable, and well-documented task management across development workflows.
@@ -16,6 +15,26 @@ Provide directives for creating, modifying, and maintaining project automation u
 - **Type:** Agent Requested
 - **Scope:** Project automation using Taskfile.yml for consistent development workflows
 
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Specify version** - Use `version: '3.45'` or later
+- **Default/help task** - Explain how to get started
+- **Error handling** - Use `set -e`, check exit codes
+- **Portable tasks** - Work across OS unless explicitly scoped
+- **Single source of truth** - Centralize automation in Taskfile
+- **Document commands** - Add desc: for each task
+- **Never hard-code paths** - Use variables and built-ins
+
+**Quick Checklist:**
+- [ ] Version specified (≥3.45)
+- [ ] default/help task exists
+- [ ] Error handling in place
+- [ ] Tasks are portable
+- [ ] Commands documented
+- [ ] Variables used for paths
+- [ ] Task dependencies defined
 
 ## 1. Core Principles
 - **Requirement:** Prefer a single source of truth for automation (`Taskfile.yml` recommended). Acceptable equivalents: `Makefile`, `npm scripts`, `justfile`.
@@ -31,10 +50,10 @@ Provide directives for creating, modifying, and maintaining project automation u
 - **Avoid:** Generic `version: '3'` without specific minimum version
 
 ```yaml
-# ✅ Correct - Specifies minimum version
+# Correct - Specifies minimum version
 version: '3.45'
 
-# ❌ Avoid - Too generic
+# Avoid - Too generic
 version: '3'
 ```
 
@@ -243,6 +262,23 @@ cmds:
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
+
+> **Investigation Required**
+> When applying this rule:
+> 1. **Read existing Taskfile BEFORE modifying** - Check version, task structure
+> 2. **Verify task dependencies** - Understand current task relationships
+> 3. **Never assume portability** - Check OS-specific requirements
+> 4. **Test error handling** - Verify failures are caught properly
+> 5. **Check variable usage** - Ensure paths are parameterized
+>
+> **Anti-Pattern:**
+> "Adding task... (without checking existing task structure)"
+> "Hard-coding path... (should use Taskfile variables)"
+>
+> **Correct Pattern:**
+> "Let me check your Taskfile structure first."
+> [reads Taskfile, checks version, reviews tasks]
+> "I see you're using version 3.45. Adding task with proper error handling..."
 
 ## Response Template
 ```

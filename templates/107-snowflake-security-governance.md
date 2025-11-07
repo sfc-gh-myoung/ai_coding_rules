@@ -1,14 +1,13 @@
 **Description:** Rules for enforcing data security, access control, and data quality monitoring using Snowflake governance features.
+**Type:** Agent Requested
 **AppliesTo:** `**/*.sql`
 **AutoAttach:** false
-**Type:** Agent Requested
-**Keywords:** Masking policies, row access policies, column masking, data governance, tagging, RBAC, roles, grants, secure views
-**Version:** 1.3
-**LastUpdated:** 2025-10-13
-**Depends:** 100-snowflake-core
-
-**TokenBudget:** ~250
+**Keywords:** Masking policies, row access policies, column masking, data governance, tagging, RBAC, roles, grants, secure views, Snowflake, SQL, security, Data Metric Functions, DMF, least privilege
+**TokenBudget:** ~1550
 **ContextTier:** High
+**Version:** 1.5
+**LastUpdated:** 2025-11-07
+**Depends:** 100-snowflake-core
 
 # Snowflake Security Governance
 
@@ -28,6 +27,36 @@ Establish comprehensive data security and access control practices using Snowfla
 - Integrate data quality monitoring using Data Metric Functions (DMFs) with clear expectations and alerts.
 - Apply least privilege for DMF execution (EXECUTE DATA METRIC FUNCTION) and ownership.
 - Use data profiling to baseline and discover issues; do not substitute for security policies.
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Implement RBAC with least privilege** - functional roles mapped to business responsibilities
+- **Create masking policies** - dynamically mask/tokenize sensitive columns (PII, PHI)
+- **Use row access policies** - enforce row-level security based on role/context
+- **Apply object tagging:** Use 123-snowflake-object-tagging.md for data classification
+- **Monitor with DMFs:** Data Metric Functions for quality checks (NULL counts, duplicates, freshness)
+- **Define expectations for DMFs** - pass/fail thresholds with alerts on failures
+- **Don't grant SELECT on raw data** - use secure views or masking policies
+
+**Quick Checklist:**
+- [ ] CREATE ROLE hierarchy with least privilege
+- [ ] CREATE MASKING POLICY for PII columns
+- [ ] CREATE ROW ACCESS POLICY for multi-tenant data
+- [ ] Apply tags: SENSITIVITY_LEVEL, DATA_CLASSIFICATION
+- [ ] CREATE DATA METRIC FUNCTION for quality checks (or use system DMFs)
+- [ ] Associate DMFs to tables with schedules
+- [ ] Define expectations and alerts for DMF failures
+- [ ] Test policies: verify masking/filtering works correctly
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. Query INFORMATION_SCHEMA to identify tables with PII BEFORE making recommendations
+> 2. Review existing policies: SHOW MASKING POLICIES, SHOW ROW ACCESS POLICIES
+> 3. Never speculate about data sensitivity - check table schemas and sample data
+> 4. Verify role hierarchies: SHOW GRANTS and SHOW ROLES
+> 5. Make grounded recommendations based on investigated schema and security posture
 
 ## 1. Access Control
 - **Requirement:** Implement Role-Based Access Control (RBAC) following least privilege.

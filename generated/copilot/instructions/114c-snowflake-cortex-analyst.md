@@ -5,11 +5,10 @@ appliesTo:
 ---
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
-**Keywords:** Cortex Analyst, natural language queries, NL2SQL, semantic layer, text-to-SQL, business intelligence, agent tool configuration, analyst tools, semantic view design, prerequisites validation, working SQL examples, error troubleshooting, permission configuration
-**Depends:** 100-snowflake-core, 106-snowflake-semantic-views, 105-snowflake-cost-governance, 111-snowflake-observability
-
-**TokenBudget:** ~500
+**Keywords:** Cortex Analyst, natural language queries, NL2SQL, semantic layer, text-to-SQL, business intelligence, agent tool configuration, analyst tools, semantic view design, prerequisites validation, working SQL examples, error troubleshooting, permission configuration, semantic views, business metrics
+**TokenBudget:** ~3600
 **ContextTier:** Medium
+**Depends:** 100-snowflake-core, 106-snowflake-semantic-views, 105-snowflake-cost-governance, 111-snowflake-observability
 
 # Snowflake Cortex Analyst & Semantic Views Best Practices
 
@@ -20,6 +19,27 @@ Define reliable patterns for designing and operating Semantic Views and Cortex A
 
 - **Type:** Agent Requested
 - **Scope:** Semantic Views modeling; Cortex Analyst configuration and usage; agent tool integration; integration with AISQL/Agents/Search; governance
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Define clear business entities** - Measures, dimensions, grain, join keys
+- **Create Semantic Views** - Use CREATE SEMANTIC VIEW DDL, add column comments
+- **Keep views pure** - NO flagging/threshold logic (use agent instructions)
+- **Apply consistent naming** - Follow conventions, use fully qualified names
+- **Enforce governance** - Masking/row access policies, tag sensitive fields
+- **Configure analyst tools** - Clear descriptions, when-to-use guidance for agents
+- **Never use SELECT *** - Explicitly name all columns
+
+**Quick Checklist:**
+- [ ] Business entities and measures defined
+- [ ] Semantic Views created with comments
+- [ ] Naming conventions followed
+- [ ] Masking/row policies applied
+- [ ] Views are pure (no flagging logic)
+- [ ] Agent tool descriptions written
+- [ ] Sample queries validated
 
 ## Contract
 - **Inputs/Prereqs:**
@@ -45,7 +65,7 @@ Define reliable patterns for designing and operating Semantic Views and Cortex A
 ## Key Principles
 - Explicit measures and dimensions with clear grain and aggregation
 - Consistent naming and comments; avoid nested view chains
-- 🔥 **CRITICAL:** Semantic views calculate data accurately; flagging logic belongs in agent instructions
+- **CRITICAL:** Semantic views calculate data accurately; flagging logic belongs in agent instructions
 - Governed access with masking and row-level security
 - Reuse semantic views across agents, AISQL, and Analyst to ensure consistency
 - Clear tool descriptions with when-to-use guidance for agent integration
@@ -226,20 +246,20 @@ Description: "Use this tool for quantitative portfolio analysis including holdin
 
 **Clear When-to-Use Guidance:**
 ```yaml
-# ✅ GOOD - Explicit capabilities and use cases
+# GOOD - Explicit capabilities and use cases
 Description: "Use for portfolio holdings, weight calculations, sector breakdowns, and concentration analysis. Use for questions about 'how much', 'what percentage', 'top N holdings', and when visualizations are needed."
 
-# ❌ BAD - Too vague
+# BAD - Too vague
 Description: "Analyzes portfolio data"
 ```
 
 **Avoiding Overlapping Tools:**
 ```yaml
-# ✅ GOOD - Distinct domains
+# GOOD - Distinct domains
 Tool A: "Portfolio holdings, weights, and exposure analysis"
 Tool B: "Risk metrics, volatility, and correlation analysis"
 
-# ❌ BAD - Overlapping use cases
+# BAD - Overlapping use cases
 Tool A: "Portfolio analysis"
 Tool B: "Investment analysis"  # Too similar to Tool A
 ```
@@ -262,7 +282,7 @@ def test_analyst_tool(session: Session, semantic_view: str):
     """).collect()
     
     assert len(result) > 0, f"Analyst tool {semantic_view} returned no results"
-    print(f"✅ Analyst tool test passed: {semantic_view}")
+    print(f"Analyst tool test passed: {semantic_view}")
     return True
 ```
 
@@ -351,11 +371,11 @@ FROM ANALYTICS.SEMANTIC.PORTFOLIO_VIEW;
 
 **Solutions:**
 ```sql
--- ❌ INCORRECT - Using SELECT *
+-- INCORRECT - Using SELECT *
 CREATE VIEW semantic_sales AS
 SELECT * FROM raw_sales;
 
--- ✅ CORRECT - Explicit columns with comments
+-- CORRECT - Explicit columns with comments
 CREATE OR REPLACE VIEW ANALYTICS.SEMANTIC.semantic_sales
 COMMENT = 'Sales facts with customer dimension'
 AS
@@ -379,10 +399,10 @@ DESC VIEW ANALYTICS.SEMANTIC.semantic_sales;
 **Solutions:**
 ```sql
 -- 1. Verify semantic view name is fully qualified
--- ❌ INCORRECT
+-- INCORRECT
 Tool: portfolio_view  -- Missing database and schema
 
--- ✅ CORRECT
+-- CORRECT
 Tool: ANALYTICS.SEMANTIC.PORTFOLIO_VIEW  -- Fully qualified
 
 -- 2. Test semantic view directly
@@ -430,7 +450,7 @@ SELECT SNOWFLAKE.CORTEX.ANALYST('Test query');
 
 ## Anti-Patterns and Common Mistakes
 
-❌ **Anti-Pattern 1: Flagging Logic in Semantic Views**
+**Anti-Pattern 1: Flagging Logic in Semantic Views**
 ```sql
 -- In semantic view or custom instructions:
 "Flag positions exceeding 6.5% as concentration risks"
@@ -438,35 +458,35 @@ SELECT SNOWFLAKE.CORTEX.ANALYST('Test query');
 ```
 **Problem:** Semantic views should be reusable across agents with different thresholds. Business rules and flagging belong in agent response instructions, not in data models.
 
-✅ **Correct Pattern:**
+**Correct Pattern:**
 ```yaml
 # In Agent Response Instructions:
-"When position weights exceed 6.5%, flag with '⚠️  CONCENTRATION WARNING: {security} at {exact %}'"
+"When position weights exceed 6.5%, flag with ' CONCENTRATION WARNING: {security} at {exact %}'"
 
 # In Semantic View:
 Just calculate position_weight accurately (no flagging, no thresholds, no highlighting)
 ```
 **Benefits:** Semantic view remains reusable; different agents can apply different thresholds; business rules centralized in agent config.
 
-❌ **Anti-Pattern 2: Vague Tool Descriptions**
+**Anti-Pattern 2: Vague Tool Descriptions**
 ```yaml
 Tool Description: "Analyzes data"
 ```
 **Problem:** Agent doesn't know WHEN to use this tool vs others.
 
-✅ **Correct Pattern:**
+**Correct Pattern:**
 ```yaml
 Tool Description: "Use for portfolio holdings, weight calculations, and sector allocations. Use when questions ask about 'how much', 'what percentage', 'top N', or request visualizations."
 ```
 
-❌ **Anti-Pattern 3: SELECT * in Semantic Views**
+**Anti-Pattern 3: SELECT * in Semantic Views**
 ```sql
 CREATE VIEW semantic_sales AS
 SELECT * FROM raw_sales;  -- BAD!
 ```
 **Problem:** Unclear what columns represent; no documentation; includes unnecessary columns.
 
-✅ **Correct Pattern:**
+**Correct Pattern:**
 ```sql
 CREATE VIEW semantic_sales
 COMMENT = 'Sales facts with customer dimension'
@@ -493,6 +513,23 @@ FROM raw_sales;
 ## Validation
 - **Success checks:** Analyst answers align with business definitions; joins respect grain; access rules enforced; flagging logic in agent layer only; tool descriptions are clear; component tests pass
 - **Negative tests:** Ambiguous measures cause rejected PRs; missing comments or SELECT * flagged by review; flagging logic in semantic views rejected in code review
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read existing semantic views BEFORE creating new ones** - Check naming conventions, comment patterns
+> 2. **Verify business definitions** - Understand grain, measures, dimensions from existing views
+> 3. **Never assume semantic layer structure** - Query views to understand relationships
+> 4. **Check masking policies** - Review existing governance patterns
+> 5. **Test Cortex Analyst queries** - Validate natural language translations before deployment
+>
+> **Anti-Pattern:**
+> "Creating semantic view... (without checking existing conventions)"
+> "Adding flagging logic to view... (should be in agent instructions)"
+>
+> **Correct Pattern:**
+> "Let me check your existing semantic views first."
+> [reads views, checks comments, reviews naming patterns]
+> "I see you use 'semantic_' prefix and detailed comments. Creating new view following this pattern..."
 
 ## Response Template
 ```sql

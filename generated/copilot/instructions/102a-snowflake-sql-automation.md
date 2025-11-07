@@ -4,11 +4,10 @@ appliesTo:
 ---
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
-**Keywords:** SQL templates, parameterization, CI/CD, automation, production SQL, idempotent, MERGE, operations, multi-environment, infrastructure as code
-**Depends:** 100-snowflake-core, 102-snowflake-sql-demo-engineering
-
-**TokenBudget:** ~700
+**Keywords:** SQL templates, parameterization, CI/CD, automation, production SQL, idempotent, MERGE, operations, multi-environment, infrastructure as code, Snowflake variables, production-safe, upsert
+**TokenBudget:** ~3150
 **ContextTier:** High
+**Depends:** 100-snowflake-core, 102-snowflake-sql-demo-engineering
 
 # Snowflake SQL: Production Automation and CI/CD
 
@@ -27,6 +26,25 @@ Guide creation of parameterized SQL templates for automated Snowflake deployment
 - **Automation Ready**: Integrates with Taskfile, GitHub Actions, GitLab CI
 - **Audit Trail**: Clear tracking of what was executed and when
 - **Data Preservation**: Never use CREATE OR REPLACE for tables with data
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Use `<%VARIABLE%>` for parameterization** - All environment values as variables: `<%DATABASE%>`, `<%SCHEMA%>`, `<%STAGE%>`
+- **NEVER use `CREATE OR REPLACE TABLE` in production** - Data loss risk! Use `CREATE TABLE IF NOT EXISTS` instead
+- **Use MERGE for idempotent upserts** - Updates existing, inserts new, safe to rerun
+- **Document parameters in header** - List all variables with descriptions and concrete examples
+- **Test across dev/test before production** - Same SQL, different variables per environment
+- **Never hardcode database/schema names** - Breaks environment portability
+
+**Quick Checklist:**
+- [ ] All environment values parameterized (`<%VARIABLE%>`)
+- [ ] Header documents parameters with usage examples
+- [ ] Uses `CREATE TABLE IF NOT EXISTS` (never `CREATE OR REPLACE TABLE`)
+- [ ] Data updates use MERGE or `INSERT WHERE NOT EXISTS`
+- [ ] Tested in dev/test environments
+- [ ] CI/CD pipeline configured with environment secrets
 
 ## 1. SQL Template Patterns
 
@@ -183,7 +201,7 @@ ADD COLUMN IF NOT EXISTS region VARCHAR;
 
 **Never do this in production:**
 ```sql
--- ❌ Destroys all data - production disaster
+-- Destroys all data - production disaster
 CREATE OR REPLACE TABLE <%DATABASE%>.<%SCHEMA%>.GRID_ASSETS (...);
 ```
 
@@ -551,6 +569,23 @@ FROM <%DATABASE%>.<%SCHEMA%>.SCADA_DATA;
   - CREATE OR REPLACE on tables is flagged in code review
   - Duplicate key in MERGE handled correctly
   - Failed deployment rolls back cleanly
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read existing CI/CD files BEFORE making recommendations** - Check for GitHub Actions, GitLab CI, or other automation
+> 2. **Verify current Taskfile.yml structure** - Understand existing task patterns and variable usage
+> 3. **Never speculate about deployment environments** - Ask user about dev/test/prod setup if unclear
+> 4. **Check existing SQL templates for patterns** - Match parameterization style with current codebase
+> 5. **Make grounded recommendations based on investigated automation setup** - Don't recommend CI/CD platforms without checking what's in use
+>
+> **Anti-Pattern:**
+> "Most projects use GitHub Actions for CI/CD, so let's set that up..."
+> "Based on typical patterns, you probably have a .github/workflows/ directory..."
+>
+> **Correct Pattern:**
+> "Let me check your current automation setup first."
+> [reads Taskfile.yml, .github/workflows/, .gitlab-ci.yml]
+> "I see you're using GitHub Actions with Taskfile integration. Here's how to add SQL template deployment to your existing workflow..."
 
 ## Response Template
 ```sql

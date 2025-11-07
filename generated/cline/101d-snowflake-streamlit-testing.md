@@ -1,15 +1,11 @@
 <!-- Generated for Cline rules. See https://docs.cline.bot/features/cline-rules -->
 
 **Keywords:** Streamlit testing, AppTest, st.testing, unit tests, debugging, test Streamlit app, pytest
+**TokenBudget:** ~2600
+**ContextTier:** High
 **Depends:** 101-snowflake-streamlit-core, 206-python-pytest
 
-**TokenBudget:** ~400
-**ContextTier:** standard
-
 # Streamlit Testing: AppTest and Debugging
-
-> **Section Metadata**  
-> Token Budget: ~400 | Context Tier: standard | Priority: high
 
 ## Purpose
 Provide comprehensive testing and debugging guidance for Streamlit applications including AppTest patterns, unit testing strategies, debugging workflows, and common issue resolution.
@@ -21,14 +17,14 @@ Provide comprehensive testing and debugging guidance for Streamlit applications 
 
 ## Contract
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Inputs/Prereqs:** Streamlit app configured (see 101-snowflake-streamlit-core.md), pytest installed, Streamlit 1.28+ for AppTest
 - **Allowed Tools:** streamlit.testing.v1.AppTest, pytest, unittest, mock objects, debugger
 
-**❌ FORBIDDEN:**
+**FORBIDDEN:**
 - **Forbidden Tools:** Manual testing only (no automated tests), testing without mocks for external services, tests that modify production data
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Required Steps:**
   1. Write unit tests for data processing functions using pytest
   2. Use AppTest for UI/integration testing (Streamlit 1.28+)
@@ -46,10 +42,31 @@ Provide comprehensive testing and debugging guidance for Streamlit applications 
 - **Test Edge Cases:** Empty data, invalid inputs, error conditions
 - **Cache Testing:** Verify cache behavior (hits, misses, invalidation)
 
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Unit test data functions:** Use `pytest` for all data processing logic
+- **AppTest for UI testing:** Use `streamlit.testing.v1.AppTest` for UI/integration tests (Streamlit 1.28+)
+- **Mock external services:** Use `unittest.mock` to avoid hitting real databases/APIs
+- **Test edge cases:** Empty data, invalid inputs, NULL/NaN values, error conditions
+- **Test cache behavior:** Verify `@st.cache_data` hits, misses, and invalidation
+- **Target >80% coverage:** Use `pytest-cov` to measure test coverage
+- **Never test against production data** - always use mocks or test databases
+
+**Quick Checklist:**
+- [ ] Unit tests for all data processing functions
+- [ ] AppTest for UI/integration testing
+- [ ] Mocks for database/API calls
+- [ ] Edge cases covered (empty, NULL, invalid)
+- [ ] Cache behavior tested
+- [ ] All tests pass: `uv run pytest`
+- [ ] Coverage >80%: `uv run pytest --cov`
+
 ## 1. Unit Testing Data Functions
 
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 **Write unit tests for data processing functions using pytest:**
 
 ```python
@@ -106,7 +123,7 @@ def test_aggregation(sample_data):
 ## 2. UI and Integration Testing with AppTest
 
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 **Use Streamlit AppTest (Streamlit 1.28+) for UI/integration testing:**
 
 **Basic AppTest Examples:**
@@ -206,7 +223,7 @@ def test_caching():
 
 ## 3. Testing Cached Functions
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 **Test cached functions to ensure proper cache invalidation:**
 
 ```python
@@ -292,7 +309,7 @@ st.write(f"Count: {st.session_state.counter}")
 
 ## 5. Manual Testing Checklist
 
-**✅ RECOMMENDED:**
+**RECOMMENDED:**
 **Manual Testing Before Deployment:**
 - [ ] App loads in <2s with production-like data volume
 - [ ] All navigation paths functional (sidebar, buttons, links)
@@ -307,14 +324,14 @@ st.write(f"Count: {st.session_state.counter}")
 
 ## Anti-Patterns and Common Mistakes
 
-**❌ Anti-Pattern 1: No automated tests**
+**Anti-Pattern 1: No automated tests**
 ```python
 # Just manually clicking through the app
 # No tests, no CI/CD validation
 ```
 **Problem:** Regressions go undetected, manual testing is slow and error-prone
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 # test_app.py
 def test_core_functionality():
@@ -324,7 +341,7 @@ def test_core_functionality():
     assert len(at.dataframe) > 0
 ```
 
-**❌ Anti-Pattern 2: Testing against production database**
+**Anti-Pattern 2: Testing against production database**
 ```python
 def test_load_data():
     # Hits real production database!
@@ -333,7 +350,7 @@ def test_load_data():
 ```
 **Problem:** Slow tests, potential data corruption, cost
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 from unittest.mock import patch
 
@@ -346,7 +363,7 @@ def test_load_data():
         assert len(df) == 3
 ```
 
-**❌ Anti-Pattern 3: Not testing edge cases**
+**Anti-Pattern 3: Not testing edge cases**
 ```python
 def test_process_data():
     # Only tests happy path
@@ -356,7 +373,7 @@ def test_process_data():
 ```
 **Problem:** Fails on empty data, invalid inputs, error conditions
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 def test_process_data_empty():
     result = process_data(pd.DataFrame())
@@ -368,7 +385,7 @@ def test_process_data_invalid():
         process_data(df)
 ```
 
-**❌ Anti-Pattern 4: Not testing cache invalidation**
+**Anti-Pattern 4: Not testing cache invalidation**
 ```python
 def test_cache():
     result1 = load_cached_data()
@@ -377,7 +394,7 @@ def test_cache():
 ```
 **Problem:** Cache may not be working correctly, no validation
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 def test_cache_with_mock():
     with patch('db.query') as mock_query:
@@ -406,7 +423,7 @@ def test_cache_with_mock():
 - **Success Checks:** All tests pass, edge cases covered, cache behavior verified, mocks used correctly, AppTest integration tests validate UI workflows
 - **Negative Tests:** Introduce bugs (should fail tests), break cache (tests should catch it), test with invalid inputs (should handle gracefully)
 
-> **⚠️ Investigation Required**  
+> **Investigation Required**  
 > When applying this rule:
 > 1. Read test files BEFORE making recommendations
 > 2. Verify pytest and AppTest are installed and configured

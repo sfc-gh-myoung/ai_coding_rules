@@ -5,11 +5,10 @@ appliesTo:
 ---
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
-**Keywords:** Python docstrings, documentation, comments, pydocstyle, Ruff DOC rules, API documentation
-**Depends:** 200-python-core, 201-python-lint-format
-
-**TokenBudget:** ~350
+**Keywords:** Python docstrings, documentation, comments, pydocstyle, Ruff DOC rules, API documentation, Google style, NumPy style, PEP 257
+**TokenBudget:** ~1800
 **ContextTier:** Medium
+**Depends:** 200-python-core, 201-python-lint-format
 
 # Python Documentation, Comments, and Docstrings
 
@@ -20,6 +19,26 @@ Provide clear, enforceable standards for Python documentation (project docs), so
 
 - **Type:** Agent Requested
 - **Scope:** Python comments, docstrings, and developer-facing documentation across libraries, apps, CLIs, and services
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Choose ONE docstring style** - Google (recommended) or NumPy, configure in pyproject.toml
+- **All public APIs need docstrings** - Modules, classes, functions, methods
+- **Enable Ruff D rules** - `select = ["D"]` in [tool.ruff.lint]
+- **Use comments for "why"** - Not "what" (code shows what)
+- **Follow PEP 257** - One-line summary, then blank line, then details
+- **Never mix docstring styles** - Consistency across entire project
+
+**Quick Checklist:**
+- [ ] pyproject.toml has `[tool.ruff.lint.pydocstyle]` with convention
+- [ ] All public functions have docstrings
+- [ ] All classes have docstrings
+- [ ] Docstrings start with one-line summary
+- [ ] Args, Returns, Raises documented
+- [ ] `uvx ruff check .` passes D rules
+- [ ] Comments explain "why", not "what"
 
 ## Contract
 - **Inputs/Prereqs:** Python 3.11+; `pyproject.toml`; Ruff; optional Sphinx with Napoleon
@@ -137,6 +156,23 @@ convention = "google"  # or "numpy"
 - **Lint:** `uvx ruff check .` must pass, including D-rules
 - **Format:** `uvx ruff format --check .` passes
 - **Docs (optional):** `sphinx-build -b html docs/ docs/_build/html` completes without errors
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read pyproject.toml BEFORE adding docstrings** - Check if pydocstyle convention is already set
+> 2. **Check existing docstring style** - Read a few functions/classes to see Google vs NumPy
+> 3. **Never assume docstring format** - Match project's existing convention
+> 4. **Verify Ruff D rules enabled** - Check [tool.ruff.lint] select field
+> 5. **Read module docstrings** - Understand project's documentation standards
+>
+> **Anti-Pattern:**
+> "Adding Google-style docstrings... (without checking existing style)"
+> "Here's the documentation... (without matching project convention)"
+>
+> **Correct Pattern:**
+> "Let me check your existing docstring style first."
+> [reads files, checks pyproject.toml pydocstyle config]
+> "I see you use Google-style docstrings. Adding documentation following this convention..."
 
 ## Response Template
 ```markdown

@@ -1,19 +1,15 @@
 **Description:** Comprehensive data science and analytics rules for Snowflake, focusing on model lifecycle, ML/AI insight presentation, advanced SQL, visualization best practices, and performance optimization.
+**Type:** Agent Requested
 **AppliesTo:** `notebooks/**/*.ipynb`, `streamlit/**/*`, `models/**/*`, `**/*.sql`
 **AutoAttach:** false
-**Type:** Agent Requested
-**Keywords:** Data science, pandas, numpy, scikit-learn, ML, Jupyter, data analysis, model lifecycle, NaN, NULL handling, DataFrame
-**Version:** 2.3
-**LastUpdated:** 2025-10-18
+**Keywords:** Snowflake, Data science, pandas, numpy, scikit-learn, ML, Jupyter, data analysis, model lifecycle, NaN, NULL handling, DataFrame, Snowpark, ML registry, feature engineering, model versioning
+**TokenBudget:** ~6150
+**ContextTier:** High
+**Version:** 2.4
+**LastUpdated:** 2025-11-07
 **Depends:** 200-python-core
 
-**TokenBudget:** ~2200
-**ContextTier:** comprehensive
-
 # Data Science & Analytics Principles
-
-> **Section Metadata**  
-> Token Budget: ~800 | Context Tier: high | Priority: high
 
 ## Purpose
 Establish comprehensive rules for performing data science and analytics on Snowflake, focusing on model lifecycle management, ML/AI insight presentation, advanced SQL techniques, performance optimization, and ethical visualization practices to ensure reproducible, performant, and trustworthy analytical workflows.
@@ -23,9 +19,30 @@ Establish comprehensive rules for performing data science and analytics on Snowf
 - **Type:** Agent Requested
 - **Scope:** Data science and analytics on Snowflake with ML lifecycle, visualization best practices, performance optimization, and Snowflake-native tooling integration
 
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Use Snowpark for data access** - Avoid pandas read_sql, use Snowpark DataFrame
+- **Version models in registry** - Every trained model must be versioned
+- **Validate data quality** - Use DMFs before training
+- **Optimize SQL first** - SQL aggregation before Python loops
+- **Cache Streamlit data** - Use `@st.cache_data` for expensive queries
+- **Document model explainability** - Include SHAP values and feature importance
+- **Never SELECT * without LIMIT** - Causes cost explosion
+
+**Quick Checklist:**
+- [ ] Snowpark DataFrame API used
+- [ ] Models versioned in registry
+- [ ] Data quality validated
+- [ ] SQL optimized (Query Profile <5s)
+- [ ] Streamlit caching implemented
+- [ ] SHAP values generated
+- [ ] Visualizations accessible (WCAG AA)
+
 ## Contract
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Inputs/Prereqs:** 
   - Snowflake connection with appropriate warehouse (CPU/GPU based on workload)
   - Python 3.11+ with snowflake-snowpark-python, pandas/polars, scikit-learn/snowflake-ml
@@ -41,7 +58,7 @@ Establish comprehensive rules for performing data science and analytics on Snowf
   - **ML Ops:** Snowflake Model Registry, feature store, MLflow integration
   - **Performance:** Query Profile, @st.cache_data, result caching, incremental refresh
 
-**❌ FORBIDDEN:**
+**FORBIDDEN:**
 - **Forbidden Tools:** 
   - SELECT * FROM large_tables without LIMIT (cost explosion)
   - Python loops over millions of rows (use SQL aggregation)
@@ -50,7 +67,7 @@ Establish comprehensive rules for performing data science and analytics on Snowf
   - Misleading visualizations (truncated axes without indicators, 3D pie charts)
   - Hardcoded credentials or secrets in notebooks
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Required Steps:**
   1. **Investigate data first:** Read actual data schemas, distributions, volumes before recommending approaches
   2. **Establish baseline:** Create simple interpretable model before complex approaches
@@ -95,7 +112,7 @@ Establish comprehensive rules for performing data science and analytics on Snowf
 **Note:** For comprehensive Pandas performance optimization, vectorization patterns, and anti-patterns, see `252-pandas-best-practices.md`. For datetime handling across Pandas, Python, and visualization libraries, see `251-python-datetime-handling.md`.
 
 
-**❌ Anti-Pattern 1: Using Python None checks on pandas DataFrames**
+**Anti-Pattern 1: Using Python None checks on pandas DataFrames**
 ```python
 # Snowflake query returns NULL for missing duration
 df = session.sql("SELECT audio_file, duration_seconds FROM transcriptions").to_pandas()
@@ -108,7 +125,7 @@ if duration is not None:
 
 **Problem**: Snowflake NULL becomes pandas NaN, not Python None. The check `is not None` returns True for NaN values, but format strings crash on NaN.
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 import pandas as pd
 
@@ -123,7 +140,7 @@ else:
 
 **Benefits**: Prevents "unsupported format string passed to NoneType" errors; works correctly with Snowflake NULL values.
 
-**❌ Anti-Pattern 2: Formatting without NULL validation**
+**Anti-Pattern 2: Formatting without NULL validation**
 ```python
 # Direct formatting without checking for NULL/NaN
 file_size = df["SIZE"].mean()
@@ -132,7 +149,7 @@ st.metric("Avg Size", f"{file_size:.1f} KB")  # CRASHES if all NULL
 
 **Problem**: If all values are NULL, mean() returns NaN, causing format string error.
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 file_size = df["SIZE"].mean()
 if pd.notna(file_size):
@@ -157,13 +174,13 @@ else:
 | `df.dropna()` | Remove rows with NaN | Data cleaning |
 
 **Do NOT use these on DataFrame values:**
-- ❌ `x is None` - Doesn't catch NaN
-- ❌ `x == None` - Doesn't catch NaN
-- ❌ `not x` - Treats 0 as falsy
+- `x is None` - Doesn't catch NaN
+- `x == None` - Doesn't catch NaN
+- `not x` - Treats 0 as falsy
 
 ## 1. Model Lifecycle & MLOps
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 ### Reproducibility Requirements
 - **Requirement:** Ensure full reproducibility: pin all dependencies (uv.lock, requirements.txt), log random seeds, use dataset snapshot or hash
@@ -233,20 +250,20 @@ else:
 
 ## 2. Feature Engineering & Preparation
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 ### Versioning & Leakage Prevention
 - **Requirement:** Make feature definitions reproducible and versioned (use Snowflake Feature Store or versioned views)
 - **Requirement:** Avoid target leakage; features must not contain post-outcome information:
   ```sql
-  -- ❌ BAD: Future information leakage
+  -- BAD: Future information leakage
   SELECT 
       customer_id,
       days_since_last_purchase,
-      total_purchases_next_30_days  -- ❌ This is the target!
+      total_purchases_next_30_days  -- This is the target!
   FROM customers;
   
-  -- ✅ GOOD: Only historical features
+  -- GOOD: Only historical features
   SELECT 
       customer_id,
       days_since_last_purchase,
@@ -259,11 +276,11 @@ else:
 ### SQL-First Approach
 - **Requirement:** Avoid ad-hoc notebook transformations; prefer upstream computation in Snowflake SQL over Python loops:
   ```python
-  # ❌ BAD: Python loops over millions of rows
+  # BAD: Python loops over millions of rows
   for customer_id in customer_ids:
       features = calculate_features(customer_id)  # Slow!
   
-  # ✅ GOOD: SQL aggregation
+  # GOOD: SQL aggregation
   features_df = session.sql("""
       WITH customer_activity AS (
           SELECT 
@@ -284,12 +301,12 @@ else:
 
 ## 3. Advanced SQL for Analytics
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 ### Window Functions & CTEs
 - **Always:** Use window functions for intra-partition context (sessionization, ranking) instead of self-joins:
   ```sql
-  -- ✅ Window function for ranking
+  -- Window function for ranking
   SELECT 
       customer_id,
       order_date,
@@ -337,7 +354,7 @@ else:
 
 ## 4. Specialized Data & Time Series
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 ### Time Series Best Practices
 - **Requirement:** Keep time series data in consistent timezone (UTC); convert to local time only for presentation
@@ -390,7 +407,7 @@ else:
 
 ## 5. ML/AI Insight Presentation & Visualization
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 ### Model Performance Visualization
 
@@ -460,7 +477,7 @@ fig.update_layout(
 )
 # Annotate if overfitting detected
 if train_scores[-1].mean() - val_scores[-1].mean() > 0.1:
-    fig.add_annotation(text='⚠️ Overfitting Detected', x=train_sizes[-1], y=train_scores[-1].mean())
+    fig.add_annotation(text='Overfitting Detected', x=train_sizes[-1], y=train_scores[-1].mean())
 st.plotly_chart(fig)
 ```
 
@@ -534,7 +551,7 @@ with col2:
 
 ### Uncertainty Communication
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 **Show Prediction Intervals, Not Just Point Estimates:**
 ```python
@@ -589,24 +606,24 @@ col1, col2, col3 = st.columns(3)
 col1.metric("High Confidence", f"{high_confidence} predictions", 
             delta=f"{high_confidence/len(X_test):.0%}")
 col2.metric("Medium Confidence", f"{len(X_test)-high_confidence-low_confidence}")
-col3.metric("Low Confidence ⚠️", f"{low_confidence}", 
+col3.metric("Low Confidence ", f"{low_confidence}", 
             delta=f"{low_confidence/len(X_test):.0%}", delta_color="inverse")
 
 # Flag low confidence predictions for review
-st.warning(f"⚠️ {low_confidence} predictions have <60% confidence. Manual review recommended.")
+st.warning(f"{low_confidence} predictions have <60% confidence. Manual review recommended.")
 ```
 
 ## 6. Performance Optimization for Large Datasets
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 ### SQL-First Aggregation
 ```python
-# ❌ BAD: Fetching 10M rows then filtering in Pandas (slow, expensive)
+# BAD: Fetching 10M rows then filtering in Pandas (slow, expensive)
 df = session.sql("SELECT * FROM sales_fact").to_pandas()  # Pulls all data!
 filtered = df[df['region'] == user_selection]
 
-# ✅ GOOD: Filter in SQL, fetch only needed data
+# GOOD: Filter in SQL, fetch only needed data
 query = f"""
     SELECT 
         order_date,
@@ -692,7 +709,7 @@ except Exception as e:
 
 ## 7. Ethical Visualization & Accessibility
 
-**❌ FORBIDDEN:**
+**FORBIDDEN:**
 
 ### Forbidden Manipulations
 - **Never truncate Y-axis without clear visual indicators** (break lines, annotations stating "axis starts at X")
@@ -702,7 +719,7 @@ except Exception as e:
 - **Never cherry-pick date ranges** to show desired trends without disclosure
 - **Never use dual Y-axes with different scales** unless clearly marked and justified
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 ### Required Disclosures
 ```python
@@ -710,15 +727,15 @@ except Exception as e:
 st.caption(f"Data as of: {last_refresh_time} | Refreshed: {time_since_refresh} ago")
 
 # Sample size and confidence intervals
-st.info(f"📊 Based on {len(df):,} records | Confidence: 95% ±{margin_of_error:.1%}")
+st.info(f"Based on {len(df):,} records | Confidence: 95% ±{margin_of_error:.1%}")
 
 # Exclusions or filters applied
 if filters_applied:
-    st.warning(f"⚠️ Filters active: {', '.join(filters_applied)}")
+    st.warning(f"Filters active: {', '.join(filters_applied)}")
 
 # Data quality warnings
 if data_quality_score < 0.9:
-    st.error(f"🚨 Data quality: {data_quality_score:.0%} | {issues_found} issues detected")
+    st.error(f"Data quality: {data_quality_score:.0%} | {issues_found} issues detected")
 ```
 
 ### WCAG 2.1 AA Compliance
@@ -730,7 +747,7 @@ if data_quality_score < 0.9:
 
 **Colorblind-Safe Palettes:**
 ```python
-# ✅ Use colorblind-safe palettes
+# Use colorblind-safe palettes
 COLORBLIND_SAFE = [
     '#0173B2',  # Blue
     '#DE8F05',  # Orange
@@ -740,8 +757,8 @@ COLORBLIND_SAFE = [
     '#ECE133',  # Yellow
 ]
 
-# ❌ AVOID red/green only distinction
-# ✅ Use red/green + icons + pattern fills
+# AVOID red/green only distinction
+# Use red/green + icons + pattern fills
 fig.add_trace(go.Bar(
     x=categories,
     y=positive_values,
@@ -778,7 +795,7 @@ with st.expander("View Data Table (Screen Reader Accessible)"):
 
 ## 8. Data Quality & Metric Documentation
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 ### Data Quality Indicators
 ```python
@@ -793,7 +810,7 @@ col3.metric("Quality Score", quality_grade, delta=f"Passed {checks_passed}/{tota
 
 # Detailed quality issues
 if quality_issues:
-    with st.expander("⚠️ Data Quality Issues"):
+    with st.expander("Data Quality Issues"):
         for issue in quality_issues:
             st.warning(f"- {issue['column']}: {issue['description']}")
 ```
@@ -824,7 +841,7 @@ with st.expander("ℹ️ Metric Definition"):
 ## Anti-Patterns and Common Mistakes
 
 
-**❌ Anti-Pattern 1: Loading Full Dataset into Python**
+**Anti-Pattern 1: Loading Full Dataset into Python**
 ```python
 # BAD: Fetching millions of rows, then filtering
 df = session.sql("SELECT * FROM sales_fact").to_pandas()  # 💸 Expensive!
@@ -835,7 +852,7 @@ filtered = df[df['region'] == 'US']
 - Exhausts memory for large tables
 - Wastes warehouse compute credits
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 # GOOD: Filter in SQL, aggregate before fetch
 df = session.sql("""
@@ -855,7 +872,7 @@ df = session.sql("""
 
 ---
 
-**❌ Anti-Pattern 2: Misleading Y-Axis Truncation**
+**Anti-Pattern 2: Misleading Y-Axis Truncation**
 ```python
 # BAD: Truncated axis exaggerates small changes
 fig = go.Figure(go.Bar(x=['Q1', 'Q2', 'Q3'], y=[95000, 96000, 97000]))
@@ -866,7 +883,7 @@ fig.update_yaxis(range=[94000, 98000])  # Starts at 94K, not 0
 - Misleads stakeholders into overreacting
 - Violates ethical visualization principles
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 # GOOD: Include zero baseline or clearly mark truncation
 fig = go.Figure(go.Bar(x=['Q1', 'Q2', 'Q3'], y=[95000, 96000, 97000]))
@@ -880,7 +897,7 @@ fig.add_annotation(text="Sales grew 3% ($2K increase)", xref="paper", yref="pape
 
 ---
 
-**❌ Anti-Pattern 3: Model Without Explainability**
+**Anti-Pattern 3: Model Without Explainability**
 ```python
 # BAD: Black box model with no interpretability
 model = XGBClassifier()
@@ -893,7 +910,7 @@ predictions = model.predict(X_test)
 - Impossible to debug model failures
 - Regulatory compliance issues
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 # GOOD: Model with SHAP explanations
 import shap
@@ -923,7 +940,7 @@ registry.log_artifact(
 
 ---
 
-**❌ Anti-Pattern 4: Training on Unvalidated Data**
+**Anti-Pattern 4: Training on Unvalidated Data**
 ```python
 # BAD: Train directly on raw data
 model.fit(X_train, y_train)
@@ -933,7 +950,7 @@ model.fit(X_train, y_train)
 - Outliers and nulls cause training failures
 - No awareness of data drift
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 # GOOD: Validate data quality first
 from snowflake.ml.data_quality import DataQualityMonitor
@@ -958,7 +975,7 @@ model.fit(X_train, y_train)
 
 ---
 
-**❌ Anti-Pattern 5: No Confidence Intervals**
+**Anti-Pattern 5: No Confidence Intervals**
 ```python
 # BAD: Point estimates only
 st.metric("Predicted Revenue", f"${prediction:,.0f}")
@@ -968,7 +985,7 @@ st.metric("Predicted Revenue", f"${prediction:,.0f}")
 - Overconfidence in predictions
 - Poor decision-making
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 # GOOD: Show uncertainty ranges
 st.metric(
@@ -995,7 +1012,7 @@ st.plotly_chart(fig)
 - Informed decision-making
 
 
-> **⚠️ Investigation Required**  
+> **Investigation Required**  
 > When applying this rule:
 >
 > 1. **Read referenced data BEFORE making recommendations**
@@ -1025,7 +1042,7 @@ st.plotly_chart(fig)
 >
 > **Example Investigation Pattern:**
 > ```python
-> # ✅ GOOD: Investigate first
+> # GOOD: Investigate first
 > schema = session.sql("DESCRIBE TABLE sales_fact").collect()
 > row_count = session.sql("SELECT COUNT(*) FROM sales_fact").collect()[0][0]
 > sample = session.sql("SELECT * FROM sales_fact SAMPLE (100 ROWS)").to_pandas()
@@ -1060,6 +1077,23 @@ st.plotly_chart(fig)
   - Visualizations pass WCAG 2.1 AA color contrast checker
   - Screen reader successfully narrates all chart titles and data
   - Data freshness indicator shows <6 hours staleness
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Profile data BEFORE analysis** - Check row counts, distributions, data types
+> 2. **Verify model registry access** - Confirm ML registry connection and permissions
+> 3. **Never assume data quality** - Check for NULLs, outliers, data drift
+> 4. **Check query cost** - Review Query Profile before productionizing
+> 5. **Test visualizations** - Verify accessibility with screen readers and color contrast
+>
+> **Anti-Pattern:**
+> "Training model on data... (without checking data quality first)"
+> "Using SELECT *... (without LIMIT or cost analysis)"
+>
+> **Correct Pattern:**
+> "Let me profile your data first."
+> [checks row counts, NULLs, distributions, Query Profile]
+> "I see 50M rows with 2% NULLs. Using APPROX_COUNT_DISTINCT and sampling..."
   - All metrics have documented definitions
   - Streamlit dashboard loads in <2 seconds
 

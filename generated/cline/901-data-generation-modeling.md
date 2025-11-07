@@ -1,14 +1,11 @@
 <!-- Generated for Cline rules. See https://docs.cline.bot/features/cline-rules -->
 
-**Keywords:** Data modeling, naming conventions, Kimball, dimensional modeling, fact tables, dimension tables, foreign keys, view taxonomy, Business Analyst, data generation, backward compatibility, entity IDs, temporal columns
+**Keywords:** Data modeling, naming conventions, Kimball, dimensional modeling, fact tables, dimension tables, foreign keys, view taxonomy, Business Analyst, data generation, backward compatibility, entity IDs, temporal columns, surrogate keys, SCD Type 2
+**TokenBudget:** ~5400
+**ContextTier:** High
 **Depends:** 000-global-core, 100-snowflake-core, 102-snowflake-sql-demo-engineering, 600-data-governance-quality, 700-business-analytics
-**TokenBudget:** ~2200
-**ContextTier:** comprehensive
 
 # Data Generation & Modeling Best Practices
-
-> **Section Metadata**  
-> Token Budget: ~2200 | Context Tier: comprehensive | Priority: high
 
 ## Purpose
 Establish comprehensive data generation and modeling standards ensuring intuitive, analytics-friendly data for Business Analysts, Executive Users, Data Scientists, and Data Engineers through consistent naming conventions, relationship patterns, and dimensional modeling best practices.
@@ -18,16 +15,37 @@ Establish comprehensive data generation and modeling standards ensuring intuitiv
 - **Type:** Agent Requested
 - **Scope:** All data generation (Python generators), SQL schema design (DDL), view creation, and analytics queries for utility demo project. Applies to grid data, customer data, and all future data domains.
 
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Kimball dimensional modeling** - Fact tables + dimension tables
+- **Standardized primary keys** - <entity>_id (e.g., customer_id)
+- **BA-first naming** - Business Analyst-friendly, not technical jargon
+- **View taxonomy** - BASE → INTERMEDIATE → ANALYTICS hierarchy
+- **Referential integrity** - Enforce FK relationships
+- **Temporal columns** - created_at, updated_at timestamps
+- **Never break backward compatibility** - Add columns, don't rename
+
+**Quick Checklist:**
+- [ ] Fact/dimension tables defined
+- [ ] Primary keys standardized
+- [ ] Column names BA-friendly
+- [ ] View hierarchy established
+- [ ] FK relationships documented
+- [ ] Temporal columns present
+- [ ] Backward compatibility maintained
+
 ## Contract
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Inputs/Prereqs:** Data entity requirements, relationship diagrams, target analytical use cases, audience priority (Business Analysts first)
 - **Allowed Tools:** Python generators, SQL DDL, view creation, Snowflake stages, data validation scripts
 
-**❌ FORBIDDEN:**
+**FORBIDDEN:**
 - **Forbidden Tools:** Ad-hoc naming without documented rationale; breaking changes without backward compatibility; undocumented FK relationships
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Required Steps:**
   1. Define entity model with standardized primary keys (see Section 1)
   2. Apply universal naming conventions (see Section 2)
@@ -52,7 +70,7 @@ Establish comprehensive data generation and modeling standards ensuring intuitiv
 
 ### 1.1 Entity Identifier Standards
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 | Entity Type | Primary Key Pattern | Foreign Key Pattern | External/Display Pattern | Example |
 |-------------|---------------------|---------------------|--------------------------|---------|
@@ -64,15 +82,15 @@ Establish comprehensive data generation and modeling standards ensuring intuitiv
 | **Contracts** | `contract_id` | `contract_id` | `contract_number` | `contract_id = 'CA-123456'` |
 
 **Universal Rules:**
-- ✅ **Primary Keys**: Always use `<entity>_id` suffix
-- ✅ **Foreign Keys**: Must exactly match the referenced primary key name (no renaming!)
-- ✅ **Display Names**: Use `<entity>_name` for human-readable labels
-- ✅ **External IDs**: Use `<entity>_number` for customer-facing or legacy system identifiers
-- ❌ **Avoid**: `equipment_id`, `device_id`, or other non-standard synonyms unless explicitly documented
+- **Primary Keys**: Always use `<entity>_id` suffix
+- **Foreign Keys**: Must exactly match the referenced primary key name (no renaming!)
+- **Display Names**: Use `<entity>_name` for human-readable labels
+- **External IDs**: Use `<entity>_number` for customer-facing or legacy system identifiers
+- **Avoid**: `equipment_id`, `device_id`, or other non-standard synonyms unless explicitly documented
 
 ### 1.2 Temporal Column Standards
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 | Column Purpose | Pattern | Data Type | Example |
 |----------------|---------|-----------|---------|
@@ -84,13 +102,13 @@ Establish comprehensive data generation and modeling standards ensuring intuitiv
 | **Period end** | `period_end_date` | `DATE` | `billing_period_end` |
 
 **Anti-Patterns to Avoid:**
-- ❌ Mixing `timestamp`, `_time`, `_date`, `_ts` without clear pattern
-- ❌ Using `read_time` in one table and `timestamp` in another for the same concept
-- ❌ Ambiguous names like `date` or `time` (always prefix with event/entity)
+- Mixing `timestamp`, `_time`, `_date`, `_ts` without clear pattern
+- Using `read_time` in one table and `timestamp` in another for the same concept
+- Ambiguous names like `date` or `time` (always prefix with event/entity)
 
 ### 1.3 Boolean Column Standards
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 All boolean/flag columns must use one of these prefixes:
 
@@ -105,7 +123,7 @@ All boolean/flag columns must use one of these prefixes:
 
 ### 1.4 Measurement Column Standards
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 All measurement columns must include unit of measure in the name:
 
@@ -120,12 +138,12 @@ All measurement columns must include unit of measure in the name:
 | **Currency** | `<metric>_amount`, `currency` (separate column) | `bill_amount` + `currency = 'USD'` |
 
 **Anti-Patterns:**
-- ❌ Unitless measurements: `temperature`, `voltage`, `power`
-- ❌ Abbreviated units: `temp`, `volt`, `dist`
+- Unitless measurements: `temperature`, `voltage`, `power`
+- Abbreviated units: `temp`, `volt`, `dist`
 
 ### 1.5 Categorical Column Standards
 
-**✅ RECOMMENDED:**
+**RECOMMENDED:**
 
 Categorical columns should use clear, self-documenting values:
 
@@ -144,7 +162,7 @@ Categorical columns should use clear, self-documenting values:
 
 ### 2.1 Fact Table Patterns
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 **Fact tables store measurements and metrics (numeric, additive).**
 
@@ -184,7 +202,7 @@ CREATE TABLE FACT_METER_READINGS (
 
 ### 2.2 Dimension Table Patterns
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 **Dimension tables store descriptive attributes (text, categories).**
 
@@ -234,7 +252,7 @@ CREATE TABLE DIM_GRID_ASSET (
 
 ### 2.3 Bridge Table Patterns (Many-to-Many)
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 Use bridge tables for many-to-many relationships:
 
@@ -256,7 +274,7 @@ CREATE TABLE BRIDGE_METER_CONTRACT (
 
 ### 2.4 Date Dimension (Mandatory)
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 **Every dimensional model MUST include a date dimension.**
 
@@ -312,7 +330,7 @@ GROUP BY d.year_num, d.month_name;
 
 ### 3.1 View Naming Conventions
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 All analytical views must follow this taxonomy:
 
@@ -327,16 +345,16 @@ All analytical views must follow this taxonomy:
 
 ### 3.2 Business Analyst Views (`VW_BA_*`)
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 **Purpose:** Enable self-service analytics with minimal SQL knowledge.
 
 **Design Principles:**
-- ✅ Pre-join all relevant dimensions
-- ✅ Use business-friendly column aliases
-- ✅ Include commonly filtered dimensions
-- ✅ Provide aggregated and detailed versions
-- ✅ Add inline documentation via column comments
+- Pre-join all relevant dimensions
+- Use business-friendly column aliases
+- Include commonly filtered dimensions
+- Provide aggregated and detailed versions
+- Add inline documentation via column comments
 
 **Example:**
 ```sql
@@ -438,15 +456,15 @@ COMMENT = 'BA View: 360-degree customer profile for self-service analytics';
 
 ### 3.3 Executive Dashboard Views (`VW_EXEC_*`)
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 **Purpose:** High-level KPIs for executive dashboards and reporting.
 
 **Design Principles:**
-- ✅ Highly aggregated (monthly, quarterly, yearly grains)
-- ✅ Include trend calculations (YoY, MoM)
-- ✅ Pre-calculate KPIs and ratios
-- ✅ Focus on business outcomes, not technical metrics
+- Highly aggregated (monthly, quarterly, yearly grains)
+- Include trend calculations (YoY, MoM)
+- Pre-calculate KPIs and ratios
+- Focus on business outcomes, not technical metrics
 
 **Example:**
 ```sql
@@ -497,15 +515,15 @@ COMMENT = 'Executive View: Monthly outage KPIs with trend analysis for C-suite d
 
 ### 3.4 Data Science Feature Views (`VW_DS_*`)
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 **Purpose:** ML-ready feature tables for training and inference.
 
 **Design Principles:**
-- ✅ Wide format (one row per entity)
-- ✅ Include engineered features (lags, rolling aggregates)
-- ✅ Handle nulls explicitly
-- ✅ Include feature metadata columns
+- Wide format (one row per entity)
+- Include engineered features (lags, rolling aggregates)
+- Handle nulls explicitly
+- Include feature metadata columns
 
 **Example:**
 ```sql
@@ -570,7 +588,7 @@ COMMENT = 'DS View: ML features for transformer failure prediction model';
 
 ### 3.5 Reference Views (`VW_REF_*`)
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 **Purpose:** Static lookup tables and enumerated values.
 
@@ -598,7 +616,7 @@ COMMENT = 'Reference View: Valid asset types with descriptions';
 
 ### 4.1 Migration Principles
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 All schema changes MUST follow this migration path:
 
@@ -668,7 +686,7 @@ COMMENT = 'DEPRECATED: Use FACT_TRANSFORMER_READINGS instead. This view maps old
 
 ### 5.1 Generator Output Standards
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 All Python data generators must produce DataFrames with:
 
@@ -756,7 +774,7 @@ ALTER TABLE <SCHEMA>.<TABLE_NAME> CLUSTER BY (<key_column>, <timestamp_column>);
 
 ### 6.2 Column Comment Standards
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 Every column must have a COMMENT that includes:
 1. **What it represents** (business definition)
@@ -765,12 +783,12 @@ Every column must have a COMMENT that includes:
 4. **FK reference** (if foreign key)
 
 ```sql
--- ✅ Good Examples
+-- Good Examples
 consumption_kwh FLOAT COMMENT 'Total energy consumption in kilowatt-hours for the read interval',
 operational_status VARCHAR(20) COMMENT 'Current asset status: ACTIVE, FAILED, MAINTENANCE, DECOMMISSIONED',
 parent_asset_id VARCHAR(50) COMMENT 'References GRID_ASSETS.asset_id for hierarchical parent',
 
--- ❌ Bad Examples (too vague)
+-- Bad Examples (too vague)
 consumption FLOAT COMMENT 'Consumption value',
 status VARCHAR(20) COMMENT 'Status',
 parent VARCHAR(50) COMMENT 'Parent ID'
@@ -782,7 +800,7 @@ parent VARCHAR(50) COMMENT 'Parent ID'
 
 ### 7.1 Clustering Keys
 
-**✅ RECOMMENDED:**
+**RECOMMENDED:**
 
 For tables > 1 GB, define clustering keys on:
 1. **Most frequently filtered columns** (e.g., `asset_id`, `customer_id`)
@@ -798,7 +816,7 @@ ALTER TABLE DIM_GRID_ASSET CLUSTER BY (asset_type, operational_status);
 
 ### 7.2 View Materialization
 
-**✅ RECOMMENDED:**
+**RECOMMENDED:**
 
 For frequently accessed views with complex joins, consider materialization:
 
@@ -827,7 +845,7 @@ AS
 ## 8. Anti-Patterns and Common Mistakes
 
 
-### ❌ Anti-Pattern 1: Inconsistent FK Naming
+### Anti-Pattern 1: Inconsistent FK Naming
 
 ```sql
 -- BAD: FK name doesn't match PK
@@ -844,7 +862,7 @@ JOIN TRANSFORMER_DATA t ON a.asset_id = t.equipment_id;  -- Confusing!
 
 **Problem:** Business Analysts must memorize that `equipment_id` = `asset_id`
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```sql
 -- GOOD: FK exactly matches PK
 CREATE TABLE FACT_TRANSFORMER_READINGS (
@@ -862,7 +880,7 @@ JOIN FACT_TRANSFORMER_READINGS t ON a.asset_id = t.asset_id;  -- Intuitive!
 
 ---
 
-### ❌ Anti-Pattern 2: Ambiguous View Names
+### Anti-Pattern 2: Ambiguous View Names
 
 ```sql
 -- BAD: Generic, unclear purpose
@@ -871,7 +889,7 @@ CREATE OR REPLACE VIEW ENRICHED_ASSET_FEATURES AS ...;
 
 **Problem:** Who is this for? What's "enriched"? Business Analyst or Data Scientist?
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```sql
 -- GOOD: Clear taxonomy and purpose
 CREATE OR REPLACE VIEW VW_DS_ASSET_FEATURES AS ...
@@ -885,7 +903,7 @@ COMMENT = 'BA View: Simplified asset inventory for business reporting';
 
 ---
 
-### ❌ Anti-Pattern 3: Unitless Measurements
+### Anti-Pattern 3: Unitless Measurements
 
 ```sql
 -- BAD: Units unclear
@@ -898,7 +916,7 @@ CREATE TABLE AMI_DATA (
 
 **Problem:** Analysts must guess units or reference documentation
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```sql
 -- GOOD: Units explicit in column name
 CREATE TABLE FACT_METER_READINGS (
@@ -912,7 +930,7 @@ CREATE TABLE FACT_METER_READINGS (
 
 ---
 
-### ❌ Anti-Pattern 4: Mixing Temporal Suffixes
+### Anti-Pattern 4: Mixing Temporal Suffixes
 
 ```sql
 -- BAD: Inconsistent temporal naming
@@ -925,7 +943,7 @@ CREATE TABLE CALLS (
 
 **Problem:** Inconsistent pattern; unclear which time this represents
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```sql
 -- GOOD: Consistent <event>_timestamp pattern
 CREATE TABLE FACT_CUSTOMER_CALLS (
@@ -939,7 +957,7 @@ CREATE TABLE FACT_CUSTOMER_CALLS (
 
 ---
 
-### ❌ Anti-Pattern 5: Missing Date Dimension
+### Anti-Pattern 5: Missing Date Dimension
 
 ```sql
 -- BAD: Direct date filtering in fact table
@@ -954,7 +972,7 @@ GROUP BY YEAR(read_timestamp), MONTH(read_timestamp);
 
 **Problem:** Expensive date functions; no fiscal year/holiday logic; not BA-friendly
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```sql
 -- GOOD: Join to date dimension
 SELECT 
@@ -975,7 +993,7 @@ GROUP BY d.year_num, d.month_name, d.fiscal_quarter;
 
 ## Quick Compliance Checklist
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 Before committing any data generation or SQL changes, verify:
 
@@ -999,7 +1017,7 @@ Before committing any data generation or SQL changes, verify:
 - **Success Checks:** All entity IDs follow `<entity>_id` pattern; FKs match PKs exactly; views follow taxonomy; column comments present; date dimension exists; business analyst queries require <10 lines of SQL
 - **Negative Tests:** Queries with mismatched FKs fail; undocumented columns caught in review; views without taxonomy prefix rejected; unitless measurements flagged
 
-> **⚠️ Investigation Required**  
+> **Investigation Required**  
 > When applying this rule:
 > 1. Read all generator files to understand current naming patterns BEFORE proposing changes
 > 2. Read SQL DDL files to verify FK relationships BEFORE modifying schemas

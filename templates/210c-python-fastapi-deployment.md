@@ -1,14 +1,13 @@
 **Description:** FastAPI production deployment with Docker, ASGI servers, and API documentation patterns.
+**Type:** Agent Requested
 **AppliesTo:** `gunicorn.conf.py`, `Dockerfile`, `docker-compose.yml`, `**/docs/**`
 **AutoAttach:** false
-**Type:** Agent Requested
-**Keywords:** FastAPI deployment, Uvicorn, Gunicorn, ASGI, Docker, production deployment, health checks
-**Version:** 1.2
-**LastUpdated:** 2025-10-21
+**Keywords:** FastAPI deployment, Uvicorn, Gunicorn, ASGI, Docker, production deployment, health checks, multi-stage build, OpenAPI, API documentation
+**TokenBudget:** ~1950
+**ContextTier:** High
+**Version:** 1.3
+**LastUpdated:** 2025-11-06
 **Depends:** 210-python-fastapi-core
-
-**TokenBudget:** ~900
-**ContextTier:** Medium
 
 # FastAPI Deployment and Documentation
 
@@ -28,6 +27,27 @@ Establish production deployment patterns and API documentation practices for Fas
 4. **Security Hardening** - Run containers as non-root user with minimal attack surface
 5. **Process Management** - Configure proper worker counts and timeout settings
 6. **Environment Configuration** - Use environment-specific configuration files
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Use Gunicorn + Uvicorn workers** - `gunicorn -k uvicorn.workers.UvicornWorker app.main:app`
+- **Multi-stage Docker builds** - Builder stage + production stage
+- **Non-root container user** - Create and use dedicated app user in Dockerfile
+- **Health check endpoint** - `/health` route for container health checks
+- **OpenAPI customization** - Add examples, descriptions, response schemas
+- **Environment-based config** - Different settings for dev/test/prod
+- **Never run as root in containers** - Security risk, always use non-root user
+
+**Quick Checklist:**
+- [ ] Gunicorn + Uvicorn workers configured
+- [ ] Multi-stage Dockerfile (builder + production)
+- [ ] Non-root user in container
+- [ ] Health check endpoint implemented
+- [ ] OpenAPI examples and descriptions
+- [ ] Environment-specific configuration
+- [ ] Docker Compose for local development
 
 ## 1. API Documentation
 
@@ -378,6 +398,23 @@ docker-compose up --build
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read existing deployment files BEFORE adding config** - Check Dockerfile, docker-compose.yml, gunicorn.conf.py
+> 2. **Verify current ASGI server setup** - Check if Uvicorn or Gunicorn is already configured
+> 3. **Never speculate about deployment target** - Ask user about deployment platform (AWS, GCP, Azure, etc.)
+> 4. **Check existing health check endpoints** - Don't create duplicate /health routes
+> 5. **Make grounded recommendations based on investigated deployment structure** - Match existing patterns
+>
+> **Anti-Pattern:**
+> "Based on typical deployments, you probably use Docker..."
+> "Let me add a Dockerfile - it should work with standard multi-stage builds..."
+>
+> **Correct Pattern:**
+> "Let me check your existing deployment configuration first."
+> [reads Dockerfile, docker-compose.yml, checks for ASGI server config]
+> "I see you have a Dockerfile using Gunicorn with Uvicorn workers. Here's how to add health checks following the same pattern..."
 
 ## Response Template
 ```

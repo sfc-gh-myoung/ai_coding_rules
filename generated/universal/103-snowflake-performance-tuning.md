@@ -1,8 +1,7 @@
-**Keywords:** Query profile, slow queries, performance tuning, warehouse sizing, clustering keys, search optimization, pruning, spillage
+**Keywords:** Query profile, slow queries, performance tuning, warehouse sizing, clustering keys, search optimization, pruning, spillage, SQL optimization, Snowflake, partition pruning, QUERY_HISTORY
+**TokenBudget:** ~800
+**ContextTier:** High
 **Depends:** 100-snowflake-core
-
-**TokenBudget:** ~200
-**ContextTier:** Medium
 
 # Snowflake Performance Tuning
 
@@ -18,6 +17,33 @@ Provide systematic approaches for profiling, optimizing, and fine-tuning Snowfla
 - Use Query Profile to find bottlenecks; maximize pruning; avoid functions in WHERE.
 - Right-size warehouses; enable AUTO_SUSPEND/RESUME; consider clustering only with clear justification.
 - Reference official docs for profiling, warehouses, and clustering.
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Use Query Profile first** - identify bottlenecks (large TableScans, join explosions, spillage)
+- **Check partition pruning:** Compare "Partitions Scanned" vs "Partitions Total"
+- **Avoid functions in WHERE** - prevents partition pruning (e.g., `DATE(timestamp_col)`)
+- **Right-size warehouses:** Follow 119-snowflake-warehouse-management.md sizing guidance
+- **Enable AUTO_SUSPEND/RESUME** - prevent idle warehouse costs
+- **Don't add clustering keys without evidence** - Query Profile must show poor pruning first
+
+**Quick Checklist:**
+- [ ] Open Query Profile for slow query
+- [ ] Check "Partitions Scanned" vs "Partitions Total" (want <10% scanned)
+- [ ] Identify expensive operations (TableScan, JOIN, Aggregate)
+- [ ] Verify no functions in WHERE clause
+- [ ] Confirm warehouse size appropriate for workload
+- [ ] Only consider clustering if Query Profile shows poor pruning
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. Open Query Profile in Snowsight for the slow query BEFORE making recommendations
+> 2. Read actual partition statistics (scanned vs total)
+> 3. Never speculate about performance issues - verify in Query Profile
+> 4. Check warehouse size and utilization in QUERY_HISTORY
+> 5. Make grounded recommendations based on investigated Query Profile data
 
 ## 1. Query Profiling & Optimization
 - **Always:** Use the Query Profile to diagnose execution, identify bottlenecks, and pinpoint expensive operations (e.g., large `TableScans`, join explosions).

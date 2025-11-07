@@ -1,14 +1,13 @@
 **Description:** Rules for managing and optimizing Snowflake costs, including resource monitors and workload right-sizing.
+**Type:** Agent Requested
 **AppliesTo:** `**/*.sql`
 **AutoAttach:** false
-**Type:** Agent Requested
-**Keywords:** Cost optimization, resource monitors, warehouse auto-suspend, query cost, credit usage, budget alerts, spend tracking
-**Version:** 1.2
-**LastUpdated:** 2025-10-13
-**Depends:** 100-snowflake-core
-
-**TokenBudget:** ~250
+**Keywords:** Cost optimization, resource monitors, warehouse auto-suspend, query cost, credit usage, budget alerts, spend tracking, Snowflake, SQL, CREDIT_QUOTA, WAREHOUSE_METERING_HISTORY, object tagging
+**TokenBudget:** ~1150
 **ContextTier:** High
+**Version:** 1.4
+**LastUpdated:** 2025-11-07
+**Depends:** 100-snowflake-core
 
 # Snowflake Cost Governance
 
@@ -37,6 +36,35 @@ Establish comprehensive cost management and optimization strategies for Snowflak
 - Treat cost as a first-class constraint; right-size warehouses; enable AUTO_SUSPEND.
 - Use Resource Monitors and anomaly detection; set quotas and triggers.
 - Reference official cost and monitor docs for setup.
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Create Resource Monitors** - set CREDIT_QUOTA and TRIGGERS (75%, 90%, 100%)
+- **Right-size warehouses:** Follow 119-snowflake-warehouse-management.md sizing guidance
+- **Enable AUTO_SUSPEND** - prevent idle warehouse costs (suspend after 60 seconds of inactivity)
+- **Apply object tagging:** Use 123-snowflake-object-tagging.md for cost attribution
+- **Set up cost alerts:** Notify at 75%, 90%; suspend at 100% of quota
+- **Monitor credit usage:** Check WAREHOUSE_METERING_HISTORY regularly
+- **Don't create oversized warehouses** - start small, scale up if needed
+
+**Quick Checklist:**
+- [ ] CREATE RESOURCE MONITOR with CREDIT_QUOTA
+- [ ] Set TRIGGERS: 75% NOTIFY, 90% NOTIFY, 100% SUSPEND
+- [ ] Apply monitor to warehouse: ALTER WAREHOUSE SET RESOURCE_MONITOR
+- [ ] Verify AUTO_SUSPEND enabled (60-300 seconds)
+- [ ] Apply mandatory tags (COST_CENTER, WORKLOAD_TYPE, OWNER_TEAM)
+- [ ] Review credit usage: SELECT * FROM WAREHOUSE_METERING_HISTORY
+- [ ] Set up cost dashboards and alerts
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. Query WAREHOUSE_METERING_HISTORY to review current credit usage BEFORE making recommendations
+> 2. Verify existing resource monitors and quotas
+> 3. Never speculate about cost issues - check actual credit consumption
+> 4. Review warehouse auto-suspend settings in SHOW WAREHOUSES
+> 5. Make grounded recommendations based on investigated usage patterns
 
 ## 1. Cost Optimization Principles
 - **Requirement:** Treat cost as a primary design factor.

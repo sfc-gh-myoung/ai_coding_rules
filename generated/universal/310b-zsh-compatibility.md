@@ -1,8 +1,7 @@
-**Keywords:** Shell compatibility, bash vs zsh, portable scripts, cross-shell
-**Depends:** 300-bash-scripting-core
-
-**TokenBudget:** ~1300
+**Keywords:** Zsh, shell compatibility, bash vs zsh, portable scripts, cross-shell, migration, emulate, POSIX compliance
+**TokenBudget:** ~2500
 **ContextTier:** Low
+**Depends:** 300-bash-scripting-core
 
 # Zsh Compatibility and Cross-Shell Scripting
 
@@ -14,6 +13,26 @@ Establish zsh compatibility strategies, bash migration patterns, and cross-shell
 - **Type:** Agent Requested
 - **Scope:** Cross-shell compatibility, migration strategies, mixed environments
 
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Use `emulate` for compatibility** - `emulate -L bash` for bash scripts
+- **Check feature availability** - Test before using shell-specific features
+- **Write portable POSIX code** - Use `/bin/sh` compatible patterns
+- **Document shell requirements** - Specify bash/zsh in shebang/docs
+- **Test in both shells** - Verify scripts work in target environments
+- **Migrate incrementally** - Convert bash to zsh feature by feature
+- **Never assume feature parity** - Bash and zsh differ significantly
+
+**Quick Checklist:**
+- [ ] Shell type clearly specified
+- [ ] Compatibility tested in both shells
+- [ ] POSIX-compliant where possible
+- [ ] Shell-specific features documented
+- [ ] Migration path defined
+- [ ] Tests pass in target shell
+- [ ] Fallbacks implemented
 
 ## 1. Bash to Zsh Migration Strategies
 
@@ -566,6 +585,23 @@ benchmark_function() {
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Test in target shell BEFORE migration** - Verify current compatibility
+> 2. **Check feature usage** - Identify bash-specific vs zsh-specific features
+> 3. **Never assume behavior** - Test array indexing, string operations
+> 4. **Review dependencies** - Check if scripts source other bash/zsh files
+> 5. **Validate in both shells** - Ensure changes work in target environment
+>
+> **Anti-Pattern:**
+> "Converting to zsh... (without testing in zsh first)"
+> "Using bash arrays... (without checking shell type)"
+>
+> **Correct Pattern:**
+> "Let me check compatibility in both shells first."
+> [tests script in bash and zsh, identifies differences]
+> "I see array indexing differs. Using zsh-compatible patterns..."
 
 ## Response Template
 ```

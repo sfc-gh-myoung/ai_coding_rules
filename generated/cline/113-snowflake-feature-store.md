@@ -1,10 +1,9 @@
 <!-- Generated for Cline rules. See https://docs.cline.bot/features/cline-rules -->
 
-**Keywords:** Feature store, feature engineering, feature views, entity modeling, ML pipeline, ML features
-**Depends:** 100-snowflake-core, 110-snowflake-model-registry
-
-**TokenBudget:** ~1100
+**Keywords:** Feature store, feature engineering, feature views, entity modeling, ML pipeline, ML features, ASOF JOIN, point-in-time correctness, Dynamic Tables, feature versioning
+**TokenBudget:** ~3450
 **ContextTier:** Medium
+**Depends:** 100-snowflake-core, 110-snowflake-model-registry
 
 # Snowflake Feature Store Best Practices
 
@@ -15,6 +14,27 @@ Establish comprehensive best practices for using Snowflake Feature Store to crea
 
 - **Type:** Agent Requested
 - **Scope:** Snowflake Feature Store (Enterprise Edition), feature engineering, entity modeling, feature views, ML dataset creation, and Model Registry integration
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Create feature store schema** - Dedicated schema for organized feature management
+- **Define entities with tags** - Clear entity modeling with appropriate tags
+- **Use feature views** - Snowflake-managed or external feature views
+- **ASOF JOIN for point-in-time** - Ensures training/serving consistency
+- **Version feature transformations** - Track all feature logic changes
+- **Integrate with Model Registry** - Complete lineage tracking
+- **Never duplicate feature logic** - Centralize in Feature Store
+
+**Quick Checklist:**
+- [ ] Feature Store schema created
+- [ ] Entities defined with tags
+- [ ] Feature views implemented
+- [ ] Point-in-time joins configured
+- [ ] Training datasets generated
+- [ ] Model Registry integration
+- [ ] Access controls applied
 
 ## Contract
 - **Inputs/Prereqs:** Snowflake Enterprise Edition; snowflake-ml-python >= 1.5.0; ACCOUNTADMIN or role with CREATE SCHEMA privileges; raw data tables/views; feature engineering requirements; entity definitions
@@ -227,10 +247,10 @@ train_df = training_data.read.to_pandas()
 **Why This Matters:**
 ```
 Without ASOF JOIN (data leakage):
-  2024-03-01 prediction uses features calculated on 2024-03-31 ❌
+  2024-03-01 prediction uses features calculated on 2024-03-31 
 
 With ASOF JOIN (point-in-time correct):
-  2024-03-01 prediction uses features calculated on 2024-03-01 ✅
+  2024-03-01 prediction uses features calculated on 2024-03-01 
 ```
 
 ## 6. Feature Engineering Patterns
@@ -445,6 +465,23 @@ spend_7d - spend_30d AS spend_trend
 ## Validation
 - **Success Checks:** Feature views refresh successfully on schedule; datasets generate with expected schema and row counts; ASOF JOIN preserves temporal correctness; Model Registry shows feature lineage; access controls prevent unauthorized access; features produce consistent values across generations
 - **Negative Tests:** Attempt to access features without proper role (should fail); generate dataset without spine timestamp (should warn about data leakage); modify feature view without versioning (should be tracked); use stale features in inference (lineage should detect mismatch)
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read existing feature store setup BEFORE creating features** - Check schema structure, entity definitions
+> 2. **Verify Enterprise Edition availability** - Feature Store requires Enterprise Edition
+> 3. **Never assume entity structure** - Read existing entities to understand modeling patterns
+> 4. **Check refresh schedules** - Review existing feature view refresh patterns
+> 5. **Test point-in-time joins** - Validate ASOF JOIN correctness before deployment
+>
+> **Anti-Pattern:**
+> "Creating feature view... (without checking existing entity definitions)"
+> "Using regular JOIN... (breaks point-in-time correctness)"
+>
+> **Correct Pattern:**
+> "Let me check your Feature Store setup first."
+> [reads feature store schema, checks entities, reviews feature views]
+> "I see you have CUSTOMER entity with daily refresh pattern. Creating new feature view following this pattern..."
 
 ## Response Template
 ```python

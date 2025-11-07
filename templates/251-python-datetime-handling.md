@@ -1,19 +1,15 @@
 **Description:** Comprehensive datetime and date handling best practices for Python, Pandas, Plotly, and Streamlit with type safety, timezone management, and performance optimization
+**Type:** Agent Requested
 **AppliesTo:** `**/*.py`, `**/*.ipynb`, `streamlit/**/*`
 **AutoAttach:** false
-**Type:** Agent Requested
-**Keywords:** datetime, pandas, timedelta, timezone, datetime64, timestamp, date math, time series, Plotly dates, Streamlit dates, date parsing, date arithmetic, tz_localize, tz_convert, to_pydatetime, Pandas 2.x
-**Version:** 1.0
-**LastUpdated:** 2025-10-22
+**Keywords:** datetime, pandas, timedelta, timezone, datetime64, timestamp, date math, time series, Plotly dates, Streamlit dates, date parsing, date arithmetic, tz_localize, tz_convert, to_pydatetime, Pandas 2.x, UTC, datetime.now(UTC)
+**TokenBudget:** ~3200
+**ContextTier:** High
+**Version:** 1.1
+**LastUpdated:** 2025-11-07
 **Depends:** 200-python-core
 
-**TokenBudget:** ~1000
-**ContextTier:** high
-
 # Python DateTime Handling Best Practices
-
-> **Section Metadata**  
-> Token Budget: ~1000 | Context Tier: high | Priority: high
 
 ## Purpose
 Establish comprehensive datetime handling practices across Python, Pandas, Plotly, and Streamlit to prevent type errors, timezone bugs, and performance issues while ensuring Pandas 2.x compatibility and cross-library interoperability.
@@ -23,16 +19,36 @@ Establish comprehensive datetime handling practices across Python, Pandas, Plotl
 - **Type:** Agent Requested
 - **Scope:** DateTime handling for Python stdlib, Pandas, Plotly, Streamlit with focus on type safety, timezone management, date arithmetic, and performance optimization
 
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Use datetime.now(UTC)** - NEVER use deprecated datetime.utcnow()
+- **Always be timezone-aware** - Use UTC or explicit timezones, never naive datetimes
+- **Use pd.to_datetime()** - With format= parameter for performance
+- **Convert before plotting** - Use .to_pydatetime() for Plotly/Streamlit
+- **Pandas 2.x compatibility** - Use datetime64[ns, UTC] not datetime64[ns]
+- **Never compare mixed types** - Convert pd.Timestamp ↔ datetime before comparison
+
+**Quick Checklist:**
+- [ ] All datetime objects are timezone-aware
+- [ ] datetime.now(UTC) used (not utcnow())
+- [ ] pd.to_datetime() includes format parameter
+- [ ] Timezone conversions use tz_localize/tz_convert
+- [ ] Plotly/Streamlit dates converted with to_pydatetime()
+- [ ] Date arithmetic uses appropriate types
+- [ ] Type conversions handled explicitly
+
 ## Contract
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Inputs/Prereqs:** Python 3.11+, pandas 2.x+, understanding of datetime types, timezone awareness requirements
 - **Allowed Tools:** pd.to_datetime(), pd.Timestamp, pd.Timedelta, pd.DateOffset, datetime.datetime, dt accessor methods, tz_localize(), tz_convert(), strftime(), to_pydatetime()
 
-**❌ FORBIDDEN:**
+**FORBIDDEN:**
 - **Forbidden Tools:** Mixed datetime type comparisons without conversion, hardcoded timezone offsets, parsing dates without format specification, ignoring timezone information
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Required Steps:**
   1. Use consistent datetime types within operations (convert mixed types)
   2. Always be explicit about timezones (tz_localize, tz_convert)
@@ -109,7 +125,7 @@ datetime.datetime (Python stdlib)
 ## 2. Type Conversions and Safety
 
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 ### Universal DateTime Conversion Helper
 
@@ -145,7 +161,7 @@ def ensure_python_datetime(dt):
 
 ### Common Use Case: Mixed Type Comparisons
 
-**❌ Anti-Pattern: Direct comparison (Pandas 2.x TypeError)**
+**Anti-Pattern: Direct comparison (Pandas 2.x TypeError)**
 ```python
 # BAD: Comparing pd.Timestamp with Python datetime
 for timestamp in failure_timestamps:
@@ -155,7 +171,7 @@ for timestamp in failure_timestamps:
         add_marker(failure_time)
 ```
 
-**✅ Correct Pattern: Normalize types**
+**Correct Pattern: Normalize types**
 ```python
 # GOOD: Convert all to Python datetime for consistency
 for timestamp in failure_timestamps:
@@ -169,7 +185,7 @@ for timestamp in failure_timestamps:
         if hour_min and hour_max and hour_min <= failure_time <= hour_max:
             add_marker(failure_time)
     except Exception as e:
-        st.warning(f"⚠️ Could not add marker: {type(e).__name__}: {str(e)[:100]}")
+        st.warning(f"Could not add marker: {type(e).__name__}: {str(e)[:100]}")
 ```
 
 ### DataFrame-Level Type Conversions
@@ -191,23 +207,23 @@ df['date'] = df['date'].dt.tz_localize(None)
 ## 3. Date Parsing Best Practices
 
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 ### Explicit Format Specification
 
 **Always:** Specify date format when structure is known (10x+ faster, prevents ambiguity)
 
 ```python
-# ✅ GOOD: Explicit format (fast, unambiguous)
+# GOOD: Explicit format (fast, unambiguous)
 df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
 
-# ✅ GOOD: ISO 8601 format (recommended standard)
+# GOOD: ISO 8601 format (recommended standard)
 df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%dT%H:%M:%S')
 
-# ⚠️ ACCEPTABLE: Infer format (slower, but flexible)
+# ACCEPTABLE: Infer format (slower, but flexible)
 df['date'] = pd.to_datetime(df['date'], infer_datetime_format=True)
 
-# ❌ BAD: No format specification (ambiguous MM/DD vs DD/MM)
+# BAD: No format specification (ambiguous MM/DD vs DD/MM)
 df['date'] = pd.to_datetime(df['date'])  # 01/02/2024 - Jan 2 or Feb 1?
 ```
 
@@ -221,13 +237,13 @@ df['date'] = pd.to_datetime(df['date'], errors='ignore')  # Keep original on err
 # Report parsing failures
 invalid_dates = df[df['date'].isna()]
 if len(invalid_dates) > 0:
-    st.warning(f"⚠️ {len(invalid_dates)} dates failed to parse")
+    st.warning(f"{len(invalid_dates)} dates failed to parse")
 ```
 
 ### Read CSV with Date Parsing
 
 ```python
-# ✅ BEST: Parse dates during CSV read (most efficient)
+# BEST: Parse dates during CSV read (most efficient)
 df = pd.read_csv('data.csv', 
                  parse_dates=['order_date', 'ship_date'],
                  date_format='%Y-%m-%d')
@@ -241,7 +257,7 @@ df = pd.read_csv('data.csv',
 ## 4. Timezone Management
 
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 ### Core Principles
 
@@ -296,7 +312,7 @@ st.dataframe(df_display)
 ## 5. Date Arithmetic and Math
 
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 ### Timedelta (Duration Arithmetic)
 
@@ -351,7 +367,7 @@ df['quarter_end'] = df['date'].dt.to_period('Q').dt.end_time
 ## 6. Performance Optimization for Time Series
 
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 ### Plotly Rendering Optimization
 
@@ -447,7 +463,7 @@ st.dataframe(
 
 
 
-**❌ Anti-Pattern 1: Mixed datetime type comparisons**
+**Anti-Pattern 1: Mixed datetime type comparisons**
 ```python
 # BAD: Pandas 2.x TypeError
 failure_time = datetime.datetime.now()
@@ -456,7 +472,7 @@ if df["timestamp"].min() <= failure_time <= df["timestamp"].max():  # TypeError!
 ```
 **Problem:** Comparing pd.Timestamp (from .min()/.max()) with Python datetime causes TypeError in Pandas 2.x
 
-**✅ Correct:**
+**Correct:**
 ```python
 # GOOD: Normalize to Python datetime
 failure_time = ensure_python_datetime(datetime.datetime.now())
@@ -466,7 +482,7 @@ if ts_min and ts_max and ts_min <= failure_time <= ts_max:
     process()
 ```
 
-**❌ Anti-Pattern 2: Ignoring timezones**
+**Anti-Pattern 2: Ignoring timezones**
 ```python
 # BAD: Implicit timezone assumptions
 df['date'] = pd.to_datetime(df['date'])  # What timezone?
@@ -474,7 +490,7 @@ df_filtered = df[df['date'] > datetime.datetime.now()]  # Comparing tz-naive wit
 ```
 **Problem:** Timezone ambiguity causes bugs with international data
 
-**✅ Correct:**
+**Correct:**
 ```python
 # GOOD: Explicit timezone handling
 df['date'] = pd.to_datetime(df['date']).dt.tz_localize('UTC')
@@ -482,20 +498,20 @@ now_utc = pd.Timestamp.now(tz='UTC')
 df_filtered = df[df['date'] > now_utc]
 ```
 
-**❌ Anti-Pattern 3: Inefficient datetime parsing**
+**Anti-Pattern 3: Inefficient datetime parsing**
 ```python
 # BAD: No format specification (slow, ambiguous)
 df['date'] = pd.to_datetime(df['date'])
 ```
 **Problem:** 10x slower, ambiguous date formats (01/02/2024 - Jan 2 or Feb 1?)
 
-**✅ Correct:**
+**Correct:**
 ```python
 # GOOD: Explicit format
 df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
 ```
 
-**❌ Anti-Pattern 4: Using Python datetime for vectorized operations**
+**Anti-Pattern 4: Using Python datetime for vectorized operations**
 ```python
 # BAD: Loop with Python datetime
 for idx, row in df.iterrows():
@@ -503,20 +519,20 @@ for idx, row in df.iterrows():
 ```
 **Problem:** 100x slower than vectorized Pandas operations
 
-**✅ Correct:**
+**Correct:**
 ```python
 # GOOD: Vectorized Pandas operation
 df['next_week'] = df['date'] + pd.Timedelta(days=7)
 ```
 
-**❌ Anti-Pattern 5: Chained datetime operations without assignment**
+**Anti-Pattern 5: Chained datetime operations without assignment**
 ```python
 # BAD: Modifying copy, not original
 df[df['active'] == True]['date'] = df['date'] + pd.Timedelta(days=1)  # SettingWithCopyWarning!
 ```
 **Problem:** SettingWithCopyWarning, changes not applied to original DataFrame
 
-**✅ Correct:**
+**Correct:**
 ```python
 # GOOD: Use loc for explicit assignment
 df.loc[df['active'] == True, 'date'] = df.loc[df['active'] == True, 'date'] + pd.Timedelta(days=1)
@@ -538,6 +554,23 @@ df.loc[df['active'] == True, 'date'] = df.loc[df['active'] == True, 'date'] + pd
 
 - **Success Checks:** All datetime operations type-safe, timezone handling explicit, no Pandas 2.x TypeErrors, large time series render quickly, cross-library compatibility verified
 - **Negative Tests:** Mixed datetime comparison without conversion (should fail), timezone-naive comparison with tz-aware (should warn), ambiguous date parsing (should coerce or error), inefficient datetime loops (should be slow)
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read data files BEFORE datetime operations** - Check existing date formats, timezone awareness
+> 2. **Verify Pandas version** - Check if Pandas 2.x compatibility needed
+> 3. **Never assume datetime types** - Check df.dtypes to see datetime64 vs object
+> 4. **Check existing timezone handling** - Read code to understand if tz-aware or naive
+> 5. **Test datetime conversions** - Verify Plotly/Streamlit compatibility after changes
+>
+> **Anti-Pattern:**
+> "Converting to datetime... (without checking existing format)"
+> "Using datetime.utcnow()... (deprecated method)"
+>
+> **Correct Pattern:**
+> "Let me check your datetime column formats first."
+> [reads data, checks dtypes, reviews timezone handling]
+> "I see you have timezone-aware datetime64[ns, UTC]. Converting for Plotly with to_pydatetime()..."
 
 ## Response Template
 

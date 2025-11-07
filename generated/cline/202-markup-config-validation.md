@@ -1,10 +1,9 @@
 <!-- Generated for Cline rules. See https://docs.cline.bot/features/cline-rules -->
 
-**Keywords:** YAML, configuration files, YAML syntax, parsing errors, indentation, anchors, aliases, Markdown, markdown linting, pymarkdownlnt, markup validation
+**Keywords:** YAML, configuration files, YAML syntax, parsing errors, indentation, anchors, aliases, Markdown, markdown linting, pymarkdownlnt, markup validation, TOML, environment files
+**TokenBudget:** ~2300
+**ContextTier:** Medium
 **Depends:** None
-
-**TokenBudget:** ~550
-**ContextTier:** Standard
 
 # Markup and Configuration File Validation
 
@@ -16,6 +15,25 @@ Establish safe markup and configuration file practices to prevent parsing errors
 - **Type:** Agent Requested
 - **Scope:** Markup and configuration file validation best practices (YAML, TOML, environment files, Markdown)
 
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Quote YAML strings with colons** - `description: "API at: http://..."` prevents parsing errors
+- **Avoid Unicode bullets in YAML** - Use ASCII characters only (-, *, +)
+- **Consistent indentation** - 2 spaces for YAML, 4 for TOML
+- **Validate before commit** - Run yamllint, check TOML parsing
+- **No secrets in configs** - Use .env files with .gitignore
+- **Never commit .env files** - Always add to .gitignore
+
+**Quick Checklist:**
+- [ ] All YAML files pass yamllint
+- [ ] Strings with colons are quoted
+- [ ] No Unicode characters in YAML values
+- [ ] TOML arrays use consistent formatting
+- [ ] .env files in .gitignore
+- [ ] Markdown linted (if using pymarkdownlnt)
+- [ ] All configs parse successfully
 
 ## 1. YAML Syntax Safety
 
@@ -291,8 +309,25 @@ markdownlint-cli2 "**/*.md"
 1. [Fix description]
 2. [Fix description]
 
-**Validation Passed:** ✅ / ❌
+**Validation Passed:** / 
 ```
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read existing config files BEFORE making changes** - Check current YAML/TOML structure, indentation style
+> 2. **Verify what validation tools are available** - Check for yamllint, toml parsers in project
+> 3. **Never assume config structure** - Read files to understand existing patterns
+> 4. **Check for existing validation tasks** - Look in Taskfile.yml for lint tasks
+> 5. **Test config changes** - Parse files after modifications to ensure they're valid
+>
+> **Anti-Pattern:**
+> "Adding YAML config... (without checking existing indentation)"
+> "This should be valid... (without testing)"
+>
+> **Correct Pattern:**
+> "Let me check your existing YAML configuration first."
+> [reads file, checks indentation, validates structure]
+> "I see you use 2-space indentation. Adding the new config section following this pattern..."
 
 ## References
 

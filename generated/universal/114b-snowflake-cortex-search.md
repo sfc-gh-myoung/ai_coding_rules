@@ -1,8 +1,7 @@
-**Keywords:** Cortex Search, vector search, embeddings, hybrid search, search index, retrieval, RAG, semantic search, agent tool configuration, search tools, document search, prerequisites validation, working SQL examples, error troubleshooting, permission configuration
-**Depends:** 100-snowflake-core, 105-snowflake-cost-governance, 111-snowflake-observability, 114-snowflake-cortex-aisql
-
-**TokenBudget:** ~550
+**Keywords:** Cortex Search, vector search, embeddings, hybrid search, search index, retrieval, RAG, semantic search, agent tool configuration, search tools, document search, prerequisites validation, working SQL examples, error troubleshooting, permission configuration, AI_EMBED, metadata filters
+**TokenBudget:** ~4000
 **ContextTier:** Medium
+**Depends:** 100-snowflake-core, 105-snowflake-cost-governance, 111-snowflake-observability, 114-snowflake-cortex-aisql
 
 # Snowflake Cortex Search Best Practices
 
@@ -13,6 +12,27 @@ Provide reliable patterns for building and querying Cortex Search indices, inclu
 
 - **Type:** Agent Requested
 - **Scope:** Cortex Search indexing and querying; embedding creation; metadata and security filters; agent tool integration; observability and cost control
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Clean and chunk data** - Normalize, remove boilerplate, chunk long docs with overlap
+- **Add metadata columns** - Source, author, timestamp, access tier for filtering
+- **Create search index** - Use CREATE CORTEX SEARCH INDEX with explicit columns
+- **Use metadata filters** - Filter by source, date, access level in queries
+- **Configure for agents** - Clear tool descriptions, when-to-use guidance
+- **Monitor costs** - Track embedding and query costs, prune outdated content
+- **Never index raw PII** - Apply masking/tagging before indexing
+
+**Quick Checklist:**
+- [ ] Data cleaned and chunked (if long documents)
+- [ ] Metadata columns added (source, timestamp, etc.)
+- [ ] Search index created and refreshed
+- [ ] Sample queries validated
+- [ ] Metadata filters configured
+- [ ] Agent tool descriptions written
+- [ ] Cost/latency monitoring enabled
 
 ## Contract
 - **Inputs/Prereqs:**
@@ -337,29 +357,29 @@ Description: "Search investment research reports for analyst opinions, ratings, 
 
 **Clear Document Type Selection:**
 ```yaml
-# ✅ GOOD - Explicit document type and use cases
+# GOOD - Explicit document type and use cases
 Description: "Search earnings call transcripts for management commentary, guidance updates, and forward-looking statements. Use for questions about company strategy, management outlook, and qualitative earnings insights."
 
-# ❌ BAD - Too vague
+# BAD - Too vague
 Description: "Searches documents"
 ```
 
 **When-to-Use Guidance:**
 ```yaml
-# ✅ GOOD - Explicit trigger words
+# GOOD - Explicit trigger words
 Description: "Search regulatory filings for compliance policies, legal requirements, and governance standards. Use for questions containing 'policy', 'requirement', 'compliance', 'regulation', or 'legal'."
 
-# ❌ BAD - No guidance on when appropriate
+# BAD - No guidance on when appropriate
 Description: "Search all company documents"
 ```
 
 **Avoiding Overlapping Tools:**
 ```yaml
-# ✅ GOOD - Distinct document types
+# GOOD - Distinct document types
 Tool A: "Search investment research reports (analyst opinions, ratings)"
 Tool B: "Search earnings transcripts (management commentary, guidance)"
 
-# ❌ BAD - Overlapping document types
+# BAD - Overlapping document types
 Tool A: "Search financial documents"
 Tool B: "Search company reports"  # Too similar!
 ```
@@ -402,7 +422,7 @@ def test_search_tool(session: Session, service_name: str):
     """).collect()
     
     assert len(result) > 0, f"Search tool {service_name} returned no results"
-    print(f"✅ Search tool test passed: {service_name}")
+    print(f"Search tool test passed: {service_name}")
     return True
 ```
 
@@ -564,19 +584,19 @@ SELECT SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
 
 **Solutions:**
 ```sql
--- ❌ INCORRECT - Invalid JSON (single quotes around keys)
+-- INCORRECT - Invalid JSON (single quotes around keys)
 SELECT SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
     'service_name',
     "{'query': 'test', 'limit': 10}"  -- WRONG: Uses single quotes
 );
 
--- ✅ CORRECT - Valid JSON with proper double quotes
+-- CORRECT - Valid JSON with proper double quotes
 SELECT SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
     'DOCS.SEARCH.research_reports_service',
     '{"query": "test", "limit": 10}'  -- RIGHT: Uses double quotes
 );
 
--- ❌ INCORRECT - Invalid filter structure
+-- INCORRECT - Invalid filter structure
 SELECT SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
     'service_name',
     '{
@@ -585,7 +605,7 @@ SELECT SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
     }'
 );
 
--- ✅ CORRECT - Valid filter object
+-- CORRECT - Valid filter object
 SELECT SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
     'DOCS.SEARCH.research_reports_service',
     '{
@@ -628,6 +648,23 @@ ALTER WAREHOUSE COMPUTE_WH RESUME;
 ## Validation
 - **Success checks:** Retrieval returns relevant, access-compliant results; evaluation metrics meet targets; tool descriptions are clear; component tests pass; citations properly formatted
 - **Negative tests:** Queries without filters fail access checks; stale content removed from results after refresh; overlapping tool descriptions flagged in review
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read existing search indices BEFORE creating new ones** - Check what indices exist, their structure, columns
+> 2. **Verify data source** - Check tables/views for content quality, metadata availability
+> 3. **Never assume index structure** - Query existing indices to understand schema
+> 4. **Check embedding costs** - Review AI Observability for existing embedding usage patterns
+> 5. **Test queries** - Validate search results before agent integration
+>
+> **Anti-Pattern:**
+> "Creating Cortex Search index... (without checking existing indices)"
+> "Indexing all columns... (without data quality check)"
+>
+> **Correct Pattern:**
+> "Let me check your existing Cortex Search setup first."
+> [reads existing indices, checks source data, reviews metadata columns]
+> "I see you have doc_library indexed. Creating new index for product_docs following same metadata pattern..."
 
 ## Response Template
 ```sql

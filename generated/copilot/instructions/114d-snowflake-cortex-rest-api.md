@@ -6,11 +6,10 @@ appliesTo:
 ---
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
-**Keywords:** Cortex REST API, API authentication, streaming responses, API retries, idempotency, rate limits
-**Depends:** 100-snowflake-core, 105-snowflake-cost-governance, 111-snowflake-observability
-
-**TokenBudget:** ~350
+**Keywords:** Cortex REST API, API authentication, streaming responses, API retries, idempotency, rate limits, Complete endpoint, Embed endpoint, exponential backoff
+**TokenBudget:** ~1325
 **ContextTier:** Medium
+**Depends:** 100-snowflake-core, 105-snowflake-cost-governance, 111-snowflake-observability
 
 # Snowflake Cortex REST API Best Practices
 
@@ -21,6 +20,27 @@ Provide production patterns for Cortex REST API usage for interactive/low-latenc
 
 - **Type:** Agent Requested
 - **Scope:** REST API usage for Complete, Embed, Agents; client patterns; when to use REST vs AISQL
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Use REST for low-latency** - Interactive, latency-sensitive tasks
+- **Use AISQL for batch** - High-throughput batch processing
+- **Implement retry with backoff** - Exponential backoff + jitter on retryable errors
+- **Enforce idempotency keys** - For non-idempotent operations
+- **Stream responses** - When supported, for better UX
+- **Limit tokens** - Set max_tokens and response size limits
+- **Never use infinite retries** - Always set retry limits
+
+**Quick Checklist:**
+- [ ] Proper authentication configured
+- [ ] Retry logic with exponential backoff
+- [ ] Idempotency keys for writes
+- [ ] Token limits enforced
+- [ ] Streaming enabled where appropriate
+- [ ] Request/response logging (no PII)
+- [ ] Rate limits respected
 
 ## Contract
 - **Inputs/Prereqs:**
@@ -100,6 +120,23 @@ for chunk in client.complete_stream(model="llama3.1-8b", prompt=prompt, max_toke
 ## Validation
 - **Success checks:** SLO latency met; low error rates; duplicate request safety via idempotency
 - **Negative tests:** Simulated timeouts and 429/5xx retried successfully; oversized prompts rejected
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read existing REST API client code BEFORE adding new calls** - Check retry logic, auth patterns
+> 2. **Verify API endpoint availability** - Check Snowflake account region, feature availability
+> 3. **Never assume retry strategy** - Read existing code to understand backoff patterns
+> 4. **Check rate limiting** - Review existing usage patterns and limits
+> 5. **Test with actual API** - Validate authentication and responses before deployment
+>
+> **Anti-Pattern:**
+> "Calling Cortex REST API... (without checking auth setup)"
+> "Adding retry logic... (without checking existing pattern)"
+>
+> **Correct Pattern:**
+> "Let me check your existing API client setup first."
+> [reads existing client code, checks auth, reviews retry logic]
+> "I see you use exponential backoff with 3 retries. Following this pattern for the new endpoint..."
 
 ## Response Template
 ```bash

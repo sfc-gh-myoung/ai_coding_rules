@@ -1,14 +1,13 @@
 **Description:** Rules for building Snowflake Native Semantic Views and Semantic Models (Cortex Analyst). Focuses on native `CREATE SEMANTIC VIEW` DDL syntax.
+**Type:** Agent Requested
 **AppliesTo:** `**/*.sql`, `**/*.yaml`, `**/*.yml`
 **AutoAttach:** false
-**Type:** Agent Requested
-**Keywords:** Semantic models, semantic views, Cortex Analyst, data modeling, business logic layer, metrics layer
-**Version:** 2.1
-**LastUpdated:** 2025-10-13
-**Depends:** 100-snowflake-core
-
-**TokenBudget:** ~800
+**Keywords:** Semantic models, semantic views, Cortex Analyst, data modeling, business logic layer, metrics layer, CREATE SEMANTIC VIEW, FACTS, DIMENSIONS, METRICS, natural language query, NLQ
+**TokenBudget:** ~3900
 **ContextTier:** High
+**Version:** 2.2
+**LastUpdated:** 2025-11-06
+**Depends:** 100-snowflake-core
 
 # Snowflake Native Semantic Views (Cortex Analyst)
 
@@ -64,6 +63,27 @@ Provide authoritative guidance for creating and managing native Snowflake Semant
 - **Simple expressions**: DIMENSIONS and FACTS support simple columns, limited functions like DATEDIFF
 - **Comment syntax**: Use `COMMENT = 'text'` (with equals sign)
 - **Governance via RBAC**: Standard Snowflake privileges apply (no special semantic model permissions)
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Use `CREATE SEMANTIC VIEW` DDL** - Native database objects, not YAML files
+- **Correct mapping syntax** - `logical_name AS physical_column` (NOT reversed)
+- **Clause order matters** - TABLES → FACTS → DIMENSIONS → METRICS (strict sequence)
+- **Simple expressions in DIMENSIONS** - No CAST, DATE_TRUNC, or complex functions
+- **COMMENT uses equals sign** - `COMMENT = 'text'` (NOT `COMMENT 'text'`)
+- **Add WITH SYNONYMS** - Improves natural language query matching
+- **Never reverse mappings** - `physical AS logical` causes "invalid identifier" errors
+
+**Quick Checklist:**
+- [ ] Clause order: TABLES → FACTS → DIMENSIONS → METRICS
+- [ ] PRIMARY KEY defined in TABLES block
+- [ ] Mappings use correct syntax: `logical_name AS physical_column`
+- [ ] All COMMENT clauses have equals sign
+- [ ] DIMENSIONS use simple columns only (no functions)
+- [ ] WITH SYNONYMS added for key business terms
+- [ ] Validated with `SHOW SEMANTIC VIEWS`
 
 ## 1) Native Semantic View Syntax
 
@@ -243,9 +263,9 @@ DIMENSIONS (
 DIMENSIONS (
   asset.asset_id AS asset_id,
   asset.asset_type AS asset_type,
-  tfm.event_timestamp AS timestamp,  -- ✅ Simple timestamp
-  tfm.substation AS substation_id    -- ✅ Simple column
-  -- tfm.reading_date AS CAST(timestamp AS DATE)  -- ❌ CAST not supported
+  tfm.event_timestamp AS timestamp,  -- Simple timestamp
+  tfm.substation AS substation_id    -- Simple column
+  -- tfm.reading_date AS CAST(timestamp AS DATE)  -- CAST not supported
 )
 ```
 
@@ -277,15 +297,15 @@ METRICS (
   tfm.avg_load AS AVG(load_kw),
   tfm.max_load AS MAX(load_kw),
   tfm.total_readings AS COUNT(*),
-  ami.total_outages AS SUM(outage_flag)  -- ✅ Simple SUM on flag
-  -- ami.customers_impacted AS SUM(CASE WHEN outage_flag = 1 THEN 1 ELSE 0 END)  -- ⚠️ May fail
+  ami.total_outages AS SUM(outage_flag)  -- Simple SUM on flag
+  -- ami.customers_impacted AS SUM(CASE WHEN outage_flag = 1 THEN 1 ELSE 0 END)  -- May fail
 )
 ```
 
 ## 3) Anti-Patterns and Common Mistakes
 
 
-**❌ Anti-Pattern 1: Reversed Mapping Syntax**
+**Anti-Pattern 1: Reversed Mapping Syntax**
 ```sql
 -- INCORRECT - Backwards mapping (will cause syntax error)
 CREATE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
@@ -294,15 +314,15 @@ CREATE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
       PRIMARY KEY (order_id)
   )
   FACTS (
-    orders.order_amount AS total_amount  -- ❌ Reversed!
+    orders.order_amount AS total_amount  -- Reversed!
   )
   DIMENSIONS (
-    orders.order_id AS order_number      -- ❌ Reversed!
+    orders.order_id AS order_number      -- Reversed!
   );
 ```
 **Problem:** Syntax error: "invalid identifier 'ORDER_AMOUNT'" - the mapping is backwards.
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```sql
 CREATE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
   TABLES (
@@ -310,17 +330,17 @@ CREATE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
       PRIMARY KEY (order_id)
   )
   FACTS (
-    orders.total_amount AS order_amount  -- ✅ logical_name AS physical_column
+    orders.total_amount AS order_amount  -- logical_name AS physical_column
   )
   DIMENSIONS (
-    orders.order_number AS order_id      -- ✅ logical_name AS physical_column
+    orders.order_number AS order_id      -- logical_name AS physical_column
   );
 ```
 **Benefits:** Correct syntax compiles successfully.
 
 ---
 
-**❌ Anti-Pattern 2: Complex Expressions in DIMENSIONS**
+**Anti-Pattern 2: Complex Expressions in DIMENSIONS**
 ```sql
 -- INCORRECT - Complex functions in DIMENSIONS
 CREATE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
@@ -333,13 +353,13 @@ CREATE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
   )
   DIMENSIONS (
     orders.order_id AS order_id,
-    orders.reading_date AS CAST(order_timestamp AS DATE),  -- ❌ CAST not allowed
-    orders.order_hour AS DATE_TRUNC('hour', order_timestamp) -- ❌ DATE_TRUNC not allowed
+    orders.reading_date AS CAST(order_timestamp AS DATE),  -- CAST not allowed
+    orders.order_hour AS DATE_TRUNC('hour', order_timestamp) -- DATE_TRUNC not allowed
   );
 ```
 **Problem:** Syntax error: "unexpected 'CAST'" or "invalid expression" - dimensions must be simple columns.
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```sql
 CREATE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
   TABLES (
@@ -351,7 +371,7 @@ CREATE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
   )
   DIMENSIONS (
     orders.order_id AS order_id,
-    orders.order_timestamp AS order_timestamp  -- ✅ Use raw timestamp
+    orders.order_timestamp AS order_timestamp  -- Use raw timestamp
     -- Add derived columns (date parts) to base table/view if needed
   );
 ```
@@ -359,40 +379,40 @@ CREATE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
 
 ---
 
-**❌ Anti-Pattern 3: Missing Equals Sign in COMMENT**
+**Anti-Pattern 3: Missing Equals Sign in COMMENT**
 ```sql
 -- INCORRECT - COMMENT without equals sign
 CREATE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
   TABLES (
     orders AS PROD.SALES.ORDERS
       PRIMARY KEY (order_id)
-      COMMENT 'Sales orders table'  -- ❌ Missing equals sign
+      COMMENT 'Sales orders table'  -- Missing equals sign
   )
   FACTS (
     orders.order_amount AS order_amount
-      COMMENT 'Total order value'   -- ❌ Missing equals sign
+      COMMENT 'Total order value'   -- Missing equals sign
   );
 ```
 **Problem:** Syntax error: "unexpected 'Sales'" - COMMENT requires equals sign.
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```sql
 CREATE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
   TABLES (
     orders AS PROD.SALES.ORDERS
       PRIMARY KEY (order_id)
-      COMMENT = 'Sales orders table'  -- ✅ Equals sign required
+      COMMENT = 'Sales orders table'  -- Equals sign required
   )
   FACTS (
     orders.order_amount AS order_amount
-      COMMENT = 'Total order value'   -- ✅ Equals sign required
+      COMMENT = 'Total order value'   -- Equals sign required
   );
 ```
 **Benefits:** Proper comment syntax compiles successfully.
 
 ---
 
-**❌ Anti-Pattern 4: Wrong Clause Order**
+**Anti-Pattern 4: Wrong Clause Order**
 ```sql
 -- INCORRECT - Wrong clause ordering
 CREATE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
@@ -400,29 +420,29 @@ CREATE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
     orders AS PROD.SALES.ORDERS
       PRIMARY KEY (order_id)
   )
-  DIMENSIONS (                        -- ❌ DIMENSIONS before FACTS
+  DIMENSIONS (                        -- DIMENSIONS before FACTS
     orders.order_id AS order_id
   )
-  FACTS (                             -- ❌ FACTS after DIMENSIONS
+  FACTS (                             -- FACTS after DIMENSIONS
     orders.order_amount AS order_amount
   );
 ```
 **Problem:** Syntax error or unexpected behavior - clause order matters.
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```sql
 CREATE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
   TABLES (
     orders AS PROD.SALES.ORDERS
       PRIMARY KEY (order_id)
   )
-  FACTS (                             -- ✅ FACTS first
+  FACTS (                             -- FACTS first
     orders.order_amount AS order_amount
   )
-  DIMENSIONS (                        -- ✅ DIMENSIONS after FACTS
+  DIMENSIONS (                        -- DIMENSIONS after FACTS
     orders.order_id AS order_id
   )
-  METRICS (                           -- ✅ METRICS last
+  METRICS (                           -- METRICS last
     orders.order_count AS COUNT(*)
   );
 ```
@@ -461,10 +481,10 @@ print(result["message"]["content"])  # Natural language response
 ```
 
 **Key Differences from YAML Approach:**
-- ✅ **Native views:** Use `"semantic_view": "DB.SCHEMA.VIEW_NAME"`
-- ❌ **Legacy YAML:** Used `"semantic_model": "@stage/model.yaml"`
-- ✅ **No staging:** No need to upload files to internal stages
-- ✅ **Version control:** DDL changes tracked via SQL migrations
+- **Native views:** Use `"semantic_view": "DB.SCHEMA.VIEW_NAME"`
+- **Legacy YAML:** Used `"semantic_model": "@stage/model.yaml"`
+- **No staging:** No need to upload files to internal stages
+- **Version control:** DDL changes tracked via SQL migrations
 
 ### Cortex Agent Integration
 
@@ -619,11 +639,11 @@ CREATE OR REPLACE SEMANTIC VIEW PROD.GRID_DATA.SEM_TRANSFORMER_HEALTH
 ```
 
 **Benefits:**
-- ✅ No YAML files to maintain
-- ✅ No stage uploads required
-- ✅ Standard SQL version control
-- ✅ Integrated with database governance
-- ✅ Simpler deployment pipeline
+- No YAML files to maintain
+- No stage uploads required
+- Standard SQL version control
+- Integrated with database governance
+- Simpler deployment pipeline
 
 ## Quick Compliance Checklist
 - [ ] Use `CREATE SEMANTIC VIEW` (not `CREATE VIEW`)
@@ -640,6 +660,23 @@ CREATE OR REPLACE SEMANTIC VIEW PROD.GRID_DATA.SEM_TRANSFORMER_HEALTH
 ## Validation
 - **Success Checks:** DDL compiles without errors; `SHOW SEMANTIC VIEWS` confirms object exists; `SHOW SEMANTIC DIMENSIONS/METRICS` returns expected structure; Cortex Analyst API accepts semantic view and returns valid responses; base table governance policies (masking, row access) apply correctly
 - **Negative Tests:** Invalid clause order causes syntax error; reversed mappings fail with "invalid identifier"; CAST in DIMENSIONS fails; missing PRIMARY KEY prevents relationships; wrong COMMENT syntax causes compilation error
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read base table schema BEFORE creating semantic view** - Use `DESCRIBE TABLE` or `SHOW COLUMNS` to verify column names and types
+> 2. **Verify PRIMARY KEY columns exist** - Check actual table structure before defining PRIMARY KEY
+> 3. **Never speculate about column names** - Read the physical table to confirm exact column names and types
+> 4. **Check for existing semantic views** - Use `SHOW SEMANTIC VIEWS IN SCHEMA` to understand current semantic layer
+> 5. **Make grounded recommendations based on investigated table structure** - Don't guess column names or create mappings without verification
+>
+> **Anti-Pattern:**
+> "Based on typical patterns, the table probably has columns like order_id, order_date..."
+> "Usually semantic views for this domain include these dimensions..."
+>
+> **Correct Pattern:**
+> "Let me check the base table structure first."
+> [runs `DESCRIBE TABLE DB.SCHEMA.TABLE` or reads table DDL]
+> "I see the table has columns: asset_id (VARCHAR), asset_type (VARCHAR), rated_capacity (NUMBER). Here's the semantic view DDL based on these actual columns..."
 
 ## Response Template
 ```markdown

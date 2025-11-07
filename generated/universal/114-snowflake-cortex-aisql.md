@@ -1,8 +1,7 @@
-**Keywords:** Cortex AISQL, AI_COMPLETE, AI_CLASSIFY, AI_EXTRACT, AI_SENTIMENT, AI_SUMMARIZE, AI_TRANSCRIBE, TO_FILE, embeddings, LLM functions, batching AI, token costs, audio transcription, speaker recognition, diarization, sentiment analysis, categorical sentiment, timestamp_granularity
-**Depends:** 100-snowflake-core, 105-snowflake-cost-governance, 111-snowflake-observability
-
-**TokenBudget:** ~650
-**ContextTier:** Medium
+**Keywords:** Cortex AISQL, AI_COMPLETE, AI_CLASSIFY, AI_EXTRACT, AI_SENTIMENT, AI_SUMMARIZE, AI_TRANSCRIBE, TO_FILE, embeddings, LLM functions, batching AI, token costs, audio transcription, speaker recognition, diarization, sentiment analysis, categorical sentiment, timestamp_granularity, CORTEX_USER, AI_AGG, AI_COUNT_TOKENS, PROMPT
+**TokenBudget:** ~2600
+**ContextTier:** High
+**Depends:** 100-snowflake-core, 105-snowflake-cost-governance
 
 # Snowflake Cortex AISQL Best Practices
 
@@ -45,6 +44,44 @@ Provide pragmatic, production-focused patterns for using Snowflake Cortex AISQL 
 - Use internal stages and `TO_FILE` for images/audio/documents; avoid raw binary in-line
 - Apply governance: restrict `SNOWFLAKE.CORTEX_USER`, revoke from PUBLIC as needed
 - Measure and observe: record costs, latency, and output quality; add guard/filters
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Grant SNOWFLAKE.CORTEX_USER role** - Required for all Cortex AI functions
+- **Choose smallest viable model** - Start with llama3.1-8b, scale only if needed
+- **Use AI_COUNT_TOKENS preflight** - Verify input size before expensive operations
+- **Batch with AI_AGG/AI_SUMMARIZE_AGG** - Aggregate across rows for context
+- **Use TO_FILE for media** - Reference staged files, not inline binary
+- **Keep prompts concise** - Use PROMPT function for templates
+- **Never use SELECT * with AI functions** - Specify exact columns needed
+
+**Quick Checklist:**
+- [ ] GRANT DATABASE ROLE SNOWFLAKE.CORTEX_USER
+- [ ] Choose model (llama3.1-8b for most tasks)
+- [ ] AI_COUNT_TOKENS for input validation
+- [ ] Use AI_AGG for multi-row aggregation
+- [ ] Stage files and use TO_FILE references
+- [ ] Track costs in QUERY_HISTORY
+- [ ] Apply masking/row access to sensitive data
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Check SNOWFLAKE.CORTEX_USER grants BEFORE recommending** - Verify role privileges
+> 2. **Read existing AI function usage** - Check QUERY_HISTORY for patterns
+> 3. **Never speculate about model requirements** - Test with smallest model first
+> 4. **Verify stage access** - Check stages and file permissions for TO_FILE usage
+> 5. **Make grounded recommendations based on investigated usage** - Match existing patterns
+>
+> **Anti-Pattern:**
+> "Based on typical AI usage, you probably need mistral-large..."
+> "Let me add AI_COMPLETE - it should work..."
+>
+> **Correct Pattern:**
+> "Let me check your Cortex usage first."
+> [checks QUERY_HISTORY for AI functions, verifies CORTEX_USER grants]
+> "I see you're using llama3.1-8b for classification. Here's how to add sentiment analysis with AI_SENTIMENT following the same model choice..."
 
 ## 1. Privileges and Governance
 - The `SNOWFLAKE.CORTEX_USER` database role permits use of Cortex AI functions. Revoke from `PUBLIC` and grant least privilege:
@@ -116,7 +153,7 @@ WHERE call_date = CURRENT_DATE();
 
 ### 4.5 Sentiment Analysis (CRITICAL: Returns JSON, Not Numeric)
 
-**✅ CORRECT Pattern - Extract categorical sentiment from JSON:**
+**CORRECT Pattern - Extract categorical sentiment from JSON:**
 
 ```sql
 -- AI_SENTIMENT returns JSON with categorical values
@@ -143,10 +180,10 @@ SELECT
 FROM transcribed;
 ```
 
-**❌ INCORRECT Pattern - Treating as numeric score:**
+**INCORRECT Pattern - Treating as numeric score:**
 
 ```sql
--- ❌ WRONG: Expecting numeric sentiment score
+-- WRONG: Expecting numeric sentiment score
 SELECT AI_SENTIMENT(text) AS sentiment_score
 WHERE sentiment_score >= 0.3;
 -- Error: Can not convert parameter '0.3' into expected type [OBJECT]
@@ -186,7 +223,7 @@ SELECT AI_SIMILARITY(AI_EMBED('snowflake cortex'), AI_EMBED('enterprise llm plat
 
 ### 6.1 AI_TRANSCRIBE - Audio Transcription (CRITICAL SYNTAX)
 
-**✅ CORRECT Pattern - TO_FILE with two arguments:**
+**CORRECT Pattern - TO_FILE with two arguments:**
 
 ```sql
 -- Pattern 1: Direct file reference (recommended)
@@ -200,18 +237,18 @@ WHERE RELATIVE_PATH LIKE '%.mp3';
 SELECT AI_TRANSCRIBE(TO_FILE('@financial_consultation', 'consultation.wav')) AS transcript;
 ```
 
-**❌ INCORRECT Patterns (will cause type errors):**
+**INCORRECT Patterns (will cause type errors):**
 
 ```sql
--- ❌ WRONG: Using GET_PRESIGNED_URL (returns VARCHAR, not FILE type)
+-- WRONG: Using GET_PRESIGNED_URL (returns VARCHAR, not FILE type)
 SELECT AI_TRANSCRIBE(GET_PRESIGNED_URL('@stage', 'file.mp3'));
 -- Error: Invalid argument types for function 'AI_TRANSCRIBE': (VARCHAR)
 
--- ❌ WRONG: Using BUILD_SCOPED_FILE_URL without TO_FILE wrapper
+-- WRONG: Using BUILD_SCOPED_FILE_URL without TO_FILE wrapper
 SELECT AI_TRANSCRIBE(BUILD_SCOPED_FILE_URL(@stage, path));
 -- Error: Invalid argument types for function 'AI_TRANSCRIBE': (VARCHAR)
 
--- ❌ WRONG: Wrapping BUILD_SCOPED_FILE_URL result with TO_FILE (single arg)
+-- WRONG: Wrapping BUILD_SCOPED_FILE_URL result with TO_FILE (single arg)
 SELECT AI_TRANSCRIBE(TO_FILE(BUILD_SCOPED_FILE_URL(@stage, path)));
 -- Error: TO_FILE expects 2 arguments (stage, path), not 1
 ```

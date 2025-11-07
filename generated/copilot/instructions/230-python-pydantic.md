@@ -7,11 +7,10 @@ appliesTo:
 ---
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
-**Keywords:** Pydantic, data validation, models, settings, BaseModel, field validation, serialization
+**Keywords:** Pydantic, data validation, models, settings, BaseModel, field validation, serialization, Field, validator, model_validator, EmailStr, pydantic-settings
+**TokenBudget:** ~2700
+**ContextTier:** High
 **Depends:** 200-python-core
-
-**TokenBudget:** ~1200
-**ContextTier:** Medium
 
 # Python Pydantic Data Validation Best Practices
 
@@ -23,6 +22,27 @@ Establish comprehensive data validation and serialization patterns using Pydanti
 - **Type:** Agent Requested
 - **Scope:** Python data validation, model definition, settings management
 
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Use Pydantic v2** - `uv add "pydantic>=2.5.0"` for modern features and performance
+- **Inherit from BaseModel** - All data classes should extend `pydantic.BaseModel`
+- **Use Field() for constraints** - Not type annotations alone: `Field(gt=0, le=100, description="...")`
+- **Separate domain models from API schemas** - `models/` for domain, `schemas/` for API
+- **Use pydantic-settings for config** - Not manual env var loading
+- **@model_validator for complex validation** - Not @validator (deprecated in v2)
+- **Never use dict for structured data** - Always use BaseModel for type safety
+
+**Quick Checklist:**
+- [ ] Pydantic v2 installed (`>=2.5.0`)
+- [ ] Models inherit from BaseModel
+- [ ] Field() used for constraints and descriptions
+- [ ] Separate models/ and schemas/ directories
+- [ ] Settings use pydantic-settings BaseSettings
+- [ ] Complex validation uses @model_validator
+- [ ] All fields have type annotations
 
 ## 1. Installation and Setup
 
@@ -508,6 +528,23 @@ class TestUserModel:
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read existing Pydantic models BEFORE adding new ones** - Check models/, schemas/ directories for patterns
+> 2. **Verify Pydantic version** - Check pyproject.toml to confirm v2 (>=2.5.0) is used
+> 3. **Never speculate about model structure** - Read existing models to understand field naming, validation patterns
+> 4. **Check for BaseSettings usage** - Don't create duplicate settings classes
+> 5. **Make grounded recommendations based on investigated model structure** - Match existing patterns
+>
+> **Anti-Pattern:**
+> "Based on typical Pydantic usage, you probably use these validators..."
+> "Let me add this model - it should work with standard patterns..."
+>
+> **Correct Pattern:**
+> "Let me check your existing Pydantic models first."
+> [reads models/, schemas/, checks for BaseModel usage and validator patterns]
+> "I see you're using Pydantic v2 with @model_validator for complex validation. Here's a new model following the same pattern with Field() constraints..."
 
 ## Response Template
 ```

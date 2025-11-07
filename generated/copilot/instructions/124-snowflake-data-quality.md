@@ -4,15 +4,12 @@ appliesTo:
 ---
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
-**Keywords:** Data quality, DMF, data metric functions, data profiling, expectations, quality checks, data validation
-**TokenBudget:** ~2100
-**ContextTier:** comprehensive
+**Keywords:** Snowflake, Data quality, DMF, data metric functions, data profiling, expectations, quality checks, data validation, NULL detection, uniqueness validation, freshness monitoring, anomaly detection, automated monitoring, event tables
+**TokenBudget:** ~6200
+**ContextTier:** High
 **Depends:** 100-snowflake-core, 105-snowflake-cost-governance, 107-snowflake-security-governance, 600-data-governance-quality
 
 # Snowflake Data Quality Monitoring Best Practices
-
-> **Section Metadata**  
-> Token Budget: ~1200 | Context Tier: comprehensive | Priority: high
 
 ## Purpose
 Establish comprehensive best practices for Snowflake Data Quality Monitoring using Data Metric Functions (DMFs), data profiling, expectations, and automated quality checks to ensure data reliability, integrity, and compliance throughout the data lifecycle.
@@ -22,16 +19,37 @@ Establish comprehensive best practices for Snowflake Data Quality Monitoring usi
 - **Type:** Agent Requested
 - **Scope:** Snowflake Data Quality Monitoring including system and custom DMFs, data profiling, expectations, scheduling, monitoring, and remediation workflows
 
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Use Data Metric Functions (DMFs)** - Native Snowflake quality monitoring
+- **Profile data systematically** - Understand baseline NULL rates, distributions, patterns
+- **Set quality expectations** - Define acceptable thresholds for pass/fail criteria
+- **Automate checks** - Schedule DMF evaluations at appropriate intervals
+- **Alert on violations** - Proactive detection of quality issues
+- **Track over time** - Historical quality trends via event tables
+- **Never skip validation** - Quality checks required for critical tables
+
+**Quick Checklist:**
+- [ ] DMFs created for critical tables
+- [ ] Data profiling queries configured
+- [ ] Quality expectations defined
+- [ ] Automated monitoring tasks created
+- [ ] Alert thresholds configured
+- [ ] Dashboard for quality metrics
+- [ ] Remediation workflows documented
+
 ## Contract
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Inputs/Prereqs:** Snowflake Enterprise Edition account; tables/views requiring quality monitoring; defined quality expectations; EXECUTE DATA METRIC FUNCTION privilege; event table for results
 - **Allowed Tools:** System DMFs in SNOWFLAKE.CORE; custom DMF creation; ALTER TABLE/VIEW for DMF associations; Snowsight Data Quality tab; INFORMATION_SCHEMA and ACCOUNT_USAGE views
 
-**❌ FORBIDDEN:**
+**FORBIDDEN:**
 - **Forbidden Tools:** Exceeding 10,000 DMF-object associations per account; setting DMFs on shared objects or reader accounts; setting DMFs on object tags; using database roles as table owners for DMF operations
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Required Steps:**
   1. Profile data using Snowsight Data Profile to understand baseline characteristics
   2. Select appropriate system DMFs or create custom DMFs for specific quality checks
@@ -63,8 +81,8 @@ Establish comprehensive best practices for Snowflake Data Quality Monitoring usi
 
 ### What are Data Metric Functions (DMFs)?
 
-**🔥 MANDATORY:**
-🔥 **CRITICAL:** Data Metric Functions (DMFs) are specialized functions that measure data quality metrics such as freshness, NULL counts, duplicates, and custom business rules.
+**MANDATORY:**
+**CRITICAL:** Data Metric Functions (DMFs) are specialized functions that measure data quality metrics such as freshness, NULL counts, duplicates, and custom business rules.
 
 **Key Characteristics:**
 - DMFs run on serverless compute (no warehouse required)
@@ -87,12 +105,12 @@ Establish comprehensive best practices for Snowflake Data Quality Monitoring usi
 
 ### Enterprise Edition Requirement
 
-⚠️ **REQUIREMENT:** Data Quality and DMFs require Snowflake Enterprise Edition. Trial accounts do not support this feature.
+**REQUIREMENT:** Data Quality and DMFs require Snowflake Enterprise Edition. Trial accounts do not support this feature.
 
 ## 2. Data Profiling
 
-**✅ RECOMMENDED:**
-📊 **BEST PRACTICE:** Always start with data profiling to understand baseline characteristics before implementing DMFs.
+**RECOMMENDED:**
+**BEST PRACTICE:** Always start with data profiling to understand baseline characteristics before implementing DMFs.
 
 ### Using Data Profile in Snowsight
 
@@ -128,7 +146,7 @@ Establish comprehensive best practices for Snowflake Data Quality Monitoring usi
 
 ### Profiling-to-DMF Workflow
 
-**✅ RECOMMENDED:**
+**RECOMMENDED:**
 ```sql
 -- Step 1: Profile data to discover issues
 -- Use Snowsight Data Profile UI
@@ -151,7 +169,7 @@ ALTER TABLE CUSTOMERS
 
 ## 3. System DMFs
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 System DMFs are pre-built functions in the SNOWFLAKE.CORE schema for common quality metrics.
 
 ### Available System DMFs
@@ -216,7 +234,7 @@ ALTER TABLE TRANSACTIONS
 
 ## 4. Custom DMFs
 
-**✅ RECOMMENDED:**
+**RECOMMENDED:**
 Create custom DMFs for business-specific quality rules not covered by system DMFs.
 
 ### Custom DMF Requirements
@@ -310,8 +328,8 @@ ALTER TABLE ORDERS
 
 ## 5. Expectations
 
-**🔥 MANDATORY:**
-🔥 **CRITICAL:** Define expectations for every DMF to establish pass/fail criteria and enable automated alerting.
+**MANDATORY:**
+**CRITICAL:** Define expectations for every DMF to establish pass/fail criteria and enable automated alerting.
 
 ### Expectation Syntax
 
@@ -360,7 +378,7 @@ EXPECT (SNOWFLAKE.CORE.DUPLICATE_COUNT ON order_id) = 0
 
 ## 6. Scheduling DMF Evaluations
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 Schedule DMF evaluations to run automatically at defined intervals.
 
 ### Schedule Syntax
@@ -408,7 +426,7 @@ ALTER TABLE BUSINESS_METRICS
 
 ## 7. Event Tables and Results
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 DMF results are automatically captured in event tables for monitoring and analysis.
 
 ### Event Table Structure
@@ -493,7 +511,7 @@ ORDER BY failure_rate_pct DESC;
 
 ## 8. Alerts and Remediation
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 Configure alerts to notify stakeholders when expectations fail and establish remediation workflows.
 
 ### Alert Configuration
@@ -524,7 +542,7 @@ CREATE OR REPLACE ALERT DATA_QUALITY.ALERTS.EMAIL_NULL_ALERT
 
 ### Remediation Workflow
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 **Establish Standard Remediation Process:**
 
 1. **Detection:** Alert fires on expectation failure
@@ -568,8 +586,8 @@ WHERE email IS NULL
 
 ## 9. Privilege Requirements
 
-**🔥 MANDATORY:**
-🔥 **CRITICAL:** Understand and configure privileges correctly for DMF operations.
+**MANDATORY:**
+**CRITICAL:** Understand and configure privileges correctly for DMF operations.
 
 ### Required Privileges
 
@@ -591,7 +609,7 @@ GRANT OWNERSHIP ON TABLE CUSTOMERS TO ROLE DATA_QUALITY_ADMIN;
 
 ### Database Role Limitation
 
-⚠️ **CRITICAL LIMITATION:** Database roles cannot receive global privileges because they are scoped to a specific database.
+**CRITICAL LIMITATION:** Database roles cannot receive global privileges because they are scoped to a specific database.
 
 **Workaround:**
 ```sql
@@ -616,7 +634,7 @@ GRANT OWNERSHIP ON TABLE ANALYTICS.CORE.CUSTOMERS TO ROLE DATA_ENGINEERING;
 
 ## 10. Supported Objects
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 DMFs can be set on the following Snowflake objects:
 
 **Supported:**
@@ -635,8 +653,8 @@ DMFs can be set on the following Snowflake objects:
 
 ## 11. Billing and Cost Management
 
-**🔥 MANDATORY:**
-📊 **COST AWARENESS:** DMFs use serverless compute and consume credits from your Snowflake account.
+**MANDATORY:**
+**COST AWARENESS:** DMFs use serverless compute and consume credits from your Snowflake account.
 
 ### Billing Model
 
@@ -674,7 +692,7 @@ ORDER BY total_credits DESC;
 
 ### Cost Optimization Strategies
 
-**✅ RECOMMENDED:**
+**RECOMMENDED:**
 1. **Right-size schedules:** Don't over-monitor (balance frequency with budget)
 2. **Business hours only:** Use CRON for weekday/business hours schedules
 3. **Progressive monitoring:** Start with critical tables, expand gradually
@@ -683,8 +701,8 @@ ORDER BY total_credits DESC;
 
 ## 12. Limitations and Quotas
 
-**🔥 MANDATORY:**
-⚠️ **ACCOUNT LIMITS:** Understand and plan for DMF limitations.
+**MANDATORY:**
+**ACCOUNT LIMITS:** Understand and plan for DMF limitations.
 
 ### Hard Limits
 
@@ -713,7 +731,7 @@ ORDER BY total_credits DESC;
 
 ## Anti-Patterns and Common Mistakes
 
-**❌ Anti-Pattern 1: Over-Monitoring Everything**
+**Anti-Pattern 1: Over-Monitoring Everything**
 ```sql
 -- Setting DMFs on every column of every table at high frequency
 ALTER TABLE CUSTOMERS
@@ -728,7 +746,7 @@ ALTER TABLE CUSTOMERS MODIFY DATA METRIC SCHEDULE '5 MINUTES';
 ```
 **Problem:** Excessive monitoring drives up serverless credit costs without proportional value; alert fatigue from too many checks; approaching 10,000 association limit quickly.
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```sql
 -- Focus on critical columns and appropriate frequency
 ALTER TABLE CUSTOMERS
@@ -747,7 +765,7 @@ $$ SELECT COUNT(*)::FLOAT FROM CUSTOMERS
 ```
 **Benefits:** Cost-effective monitoring focused on critical quality indicators; sustainable approach within limits; actionable alerts only.
 
-**❌ Anti-Pattern 2: Missing Expectations**
+**Anti-Pattern 2: Missing Expectations**
 ```sql
 -- Adding DMFs without expectations
 ALTER TABLE ORDERS
@@ -758,7 +776,7 @@ ALTER TABLE ORDERS MODIFY DATA METRIC SCHEDULE '30 MINUTES';
 ```
 **Problem:** DMFs run and consume credits but provide no actionable insights; no automated alerting; manual review required to detect issues.
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```sql
 -- Always define expectations for automated pass/fail
 ALTER TABLE ORDERS
@@ -783,7 +801,7 @@ CREATE ALERT DATA_QUALITY.ALERTS.ORDER_DUPLICATE_ALERT
 ```
 **Benefits:** Automated detection of quality issues; timely alerting enables rapid remediation; clear pass/fail criteria for tracking.
 
-**❌ Anti-Pattern 3: Database Role as Table Owner**
+**Anti-Pattern 3: Database Role as Table Owner**
 ```sql
 -- Creating table with database role ownership
 USE ROLE ACCOUNTADMIN;
@@ -801,7 +819,7 @@ ALTER TABLE ANALYTICS.CORE.CUSTOMERS
 ```
 **Problem:** Database roles cannot receive global privileges; DMF operations fail; ownership transfer required.
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```sql
 -- Use account-scoped custom role for table ownership
 USE ROLE ACCOUNTADMIN;
@@ -819,7 +837,7 @@ ALTER TABLE ANALYTICS.CORE.CUSTOMERS
 ```
 **Benefits:** Proper privilege structure enables DMF operations; follows Snowflake security best practices; avoids permission errors.
 
-**❌ Anti-Pattern 4: No Remediation Workflow**
+**Anti-Pattern 4: No Remediation Workflow**
 ```sql
 -- DMFs configured, alerts firing, but no process to fix issues
 -- Alerts accumulate, team ignores them (alert fatigue)
@@ -827,7 +845,7 @@ ALTER TABLE ANALYTICS.CORE.CUSTOMERS
 ```
 **Problem:** DMFs detect problems but nothing changes; wasted investment in monitoring; data quality does not improve; alert fatigue leads to ignoring all alerts.
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```sql
 -- Establish documented remediation workflow
 
@@ -874,7 +892,7 @@ GROUP BY table_name;
 ```
 **Benefits:** Structured response to quality issues; accountability and tracking; continuous improvement of data quality; prevents alert fatigue.
 
-**❌ Anti-Pattern 5: Skipping Data Profiling**
+**Anti-Pattern 5: Skipping Data Profiling**
 ```sql
 -- Creating DMFs without understanding baseline data characteristics
 ALTER TABLE CUSTOMERS
@@ -890,7 +908,7 @@ ALTER TABLE CUSTOMERS
 ```
 **Problem:** Expectations based on assumptions, not reality; high false positive rate; wasted investigation time; loss of trust in monitoring system.
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```sql
 -- Step 1: Profile data first using Snowsight Data Profile
 -- Navigate to: Catalog » Database Explorer » CUSTOMERS » Data Quality » Data Profile
@@ -950,7 +968,7 @@ ALTER TABLE CUSTOMERS
   - Missing expectations result in no pass/fail evaluation
   - Alert queries with no failures return empty result set
 
-> **⚠️ Investigation Required**  
+> **Investigation Required**  
 > When applying this rule:
 > 1. **Profile data BEFORE recommending DMFs—verify baseline characteristics**
 > 2. **Check table ownership and privileges before suggesting DMF associations**
@@ -959,11 +977,11 @@ ALTER TABLE CUSTOMERS
 > 5. **Review cost consumption patterns before recommending schedule changes**
 >
 > **Anti-Pattern:**
-> ❌ "You should set NULL_COUNT < 100 on this column..."
-> ❌ "Just add DMFs to all your tables..."
+> "You should set NULL_COUNT < 100 on this column..."
+> "Just add DMFs to all your tables..."
 >
 > **Correct Pattern:**
-> ✅ "Let me check the data profile first:"
+> "Let me check the data profile first:"
 > ```sql
 > -- Profile to understand baseline
 > SELECT COUNT(*) AS total_rows,
@@ -971,7 +989,7 @@ ALTER TABLE CUSTOMERS
 >        COUNT(CASE WHEN email IS NULL THEN 1 END)::FLOAT / COUNT(*) * 100 AS null_pct
 > FROM CUSTOMERS;
 > ```
-> ✅ "Based on the profile showing 2% NULLs currently, I recommend setting an expectation at 5% to allow for normal variation while detecting significant quality degradation..."
+> "Based on the profile showing 2% NULLs currently, I recommend setting an expectation at 5% to allow for normal variation while detecting significant quality degradation..."
 
 ## Response Template
 

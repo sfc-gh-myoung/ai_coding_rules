@@ -1,14 +1,13 @@
 **Description:** Comprehensive observability practices for Snowflake telemetry, logging, tracing, and metrics following best practices.
+**Type:** Agent Requested
 **AppliesTo:** `**/*.sql`, `**/*.py`, `**/*.scl`
 **AutoAttach:** false
-**Type:** Agent Requested
-**Keywords:** Observability, logging, tracing, metrics, telemetry, monitoring, query history, ACCOUNT_USAGE, event tables, Snowflake Trail, System Views, Snowsight, Query History, Copy History, Task History, Dynamic Tables
-**Version:** 1.2
-**LastUpdated:** 2025-10-21
+**Keywords:** Observability, logging, tracing, metrics, telemetry, monitoring, query history, ACCOUNT_USAGE, event tables, Snowflake Trail, System Views, Snowsight, Query History, Copy History, Task History, Dynamic Tables, AI Observability
+**TokenBudget:** ~7700
+**ContextTier:** High
+**Version:** 1.3
+**LastUpdated:** 2025-11-07
 **Depends:** 100-snowflake-core
-
-**TokenBudget:** ~1800
-**ContextTier:** Comprehensive
 
 # Snowflake Observability
 
@@ -19,6 +18,27 @@ Establish comprehensive observability practices for Snowflake environments throu
 
 - **Type:** Agent Requested
 - **Scope:** Snowflake observability, telemetry configuration, logging, tracing, metrics, and event table management
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Configure telemetry hierarchically** - Account → Database → Schema → Object
+- **Use standard logging libraries** - WARN+ for production, DEBUG for dev
+- **Implement distributed tracing** - Custom spans for performance analysis
+- **Query ACCOUNT_USAGE views** - Historical analysis and patterns
+- **Use event tables** - Store and query application logs/traces
+- **Monitor with Snowsight** - Built-in visualization and monitoring
+- **Never log sensitive data** - PII, credentials must be excluded
+
+**Quick Checklist:**
+- [ ] Telemetry levels configured
+- [ ] Event tables created
+- [ ] Logging library integrated
+- [ ] Distributed tracing enabled
+- [ ] ACCOUNT_USAGE queries working
+- [ ] Snowsight dashboards created
+- [ ] Alert thresholds configured
 
 ## Key Principles
 - Configure telemetry levels hierarchically (Account then Database then Schema then Object) with cost-conscious data volume management.
@@ -51,7 +71,7 @@ Establish comprehensive observability practices for Snowflake environments throu
 
 **Critical Rule for AI Agents:**
 ```xml
-> **⚠️ Investigation Required**  
+> **Investigation Required**  
 > When addressing observability questions:
 > 1. Determine the data source: System View (historical) vs Event Table (real-time)
 > 2. Verify time range requirements match the data source latency
@@ -67,14 +87,14 @@ Establish comprehensive observability practices for Snowflake environments throu
 
 ### Anti-Patterns for AI Agents
 
-**❌ Anti-Pattern: Speculating about telemetry configuration**
+**Anti-Pattern: Speculating about telemetry configuration**
 ```python
 # Agent assumes DEBUG logging is enabled
 logger.debug("This will only appear if DEBUG is configured")
 # Agent doesn't verify actual setting
 ```
 
-**✅ Correct Pattern: Investigate configuration first**
+**Correct Pattern: Investigate configuration first**
 ```sql
 -- First, check current telemetry configuration
 SHOW PARAMETERS LIKE '%LOG_LEVEL%' IN ACCOUNT;
@@ -84,7 +104,7 @@ SHOW PARAMETERS LIKE '%METRIC_LEVEL%' IN ACCOUNT;
 -- Then provide guidance based on actual settings
 ```
 
-**❌ Anti-Pattern: Using System Views for real-time monitoring**
+**Anti-Pattern: Using System Views for real-time monitoring**
 ```sql
 -- This won't show recent data (45+ min latency)
 SELECT * 
@@ -92,7 +112,7 @@ FROM snowflake.account_usage.query_history
 WHERE start_time >= current_timestamp() - INTERVAL '5 minutes';
 ```
 
-**✅ Correct Pattern: Use appropriate data source for time sensitivity**
+**Correct Pattern: Use appropriate data source for time sensitivity**
 ```sql
 -- For real-time: Use event tables from telemetry
 SELECT timestamp, body, severity_text
@@ -213,14 +233,14 @@ ORDER BY event_count DESC;
 
 ### Anti-Patterns for Event Tables
 
-**❌ Anti-Pattern: Creating event tables without considering retention costs**
+**Anti-Pattern: Creating event tables without considering retention costs**
 ```sql
 -- Retains data forever, accumulating storage costs
 CREATE EVENT TABLE long_term_events
   DATA_RETENTION_TIME_IN_DAYS = 365;  -- May be excessive
 ```
 
-**✅ Correct Pattern: Balance retention with cost and analysis needs**
+**Correct Pattern: Balance retention with cost and analysis needs**
 ```sql
 -- Development: shorter retention for cost efficiency
 CREATE EVENT TABLE dev_events
@@ -232,14 +252,14 @@ CREATE EVENT TABLE prod_events
   DATA_RETENTION_TIME_IN_DAYS = 90;
 ```
 
-**❌ Anti-Pattern: Not verifying event table is receiving data**
+**Anti-Pattern: Not verifying event table is receiving data**
 ```python
 # Emit log without checking if collection is active
 logger.info("Processing started")
 # No verification that telemetry is captured
 ```
 
-**✅ Correct Pattern: Verify telemetry collection after setup**
+**Correct Pattern: Verify telemetry collection after setup**
 ```sql
 -- After configuring telemetry, verify data collection
 SELECT 
@@ -359,7 +379,7 @@ def validate_input(data):
 
 ### Anti-Patterns in Logging
 
-**❌ Anti-Pattern: Logging in tight loops without sampling**
+**Anti-Pattern: Logging in tight loops without sampling**
 ```python
 def process_large_dataset(records):
     """Process with excessive logging."""
@@ -369,7 +389,7 @@ def process_large_dataset(records):
 ```
 **Problem:** Generates millions of log entries, overwhelming event tables and increasing storage costs.
 
-**✅ Correct Pattern: Use sampling or conditional logging**
+**Correct Pattern: Use sampling or conditional logging**
 ```python
 def process_large_dataset(records):
     """Process with intelligent logging."""
@@ -386,14 +406,14 @@ def process_large_dataset(records):
             logger.error(f"Failed processing record {record.id}: {e}")
 ```
 
-**❌ Anti-Pattern: Using DEBUG level in production environments**
+**Anti-Pattern: Using DEBUG level in production environments**
 ```sql
 -- Setting DEBUG for all production workloads
 ALTER DATABASE prod_db SET LOG_LEVEL = DEBUG;
 ```
 **Problem:** Generates excessive log volume, increases costs, and may expose sensitive information.
 
-**✅ Correct Pattern: Environment-appropriate log levels**
+**Correct Pattern: Environment-appropriate log levels**
 ```sql
 -- Production: Conservative logging
 ALTER DATABASE prod_db SET LOG_LEVEL = WARN;
@@ -405,7 +425,7 @@ ALTER DATABASE dev_db SET LOG_LEVEL = DEBUG;
 ALTER FUNCTION prod_db.schema.critical_udf(varchar) SET LOG_LEVEL = INFO;
 ```
 
-**❌ Anti-Pattern: Not using standard logging libraries**
+**Anti-Pattern: Not using standard logging libraries**
 ```python
 def my_function():
     # Using print statements instead of logging
@@ -413,7 +433,7 @@ def my_function():
     print(f"Error occurred: {error}")  # Not captured in telemetry
 ```
 
-**✅ Correct Pattern: Use standard logging libraries**
+**Correct Pattern: Use standard logging libraries**
 ```python
 import logging
 
@@ -730,7 +750,7 @@ WHERE ABS(DATEDIFF(second, t.timestamp, l.timestamp)) < 10;
 
 **Usage for AI Agents:**
 ```xml
-> **⚠️ Investigation Required**  
+> **Investigation Required**  
 > When recommending Snowsight monitoring:
 > 1. Verify user has access to Monitoring → Traces & Logs
 > 2. Confirm event table is active and receiving data
@@ -739,8 +759,8 @@ WHERE ABS(DATEDIFF(second, t.timestamp, l.timestamp)) < 10;
 ```
 
 **Anti-Pattern:**
-- ❌ Telling users to "check logs" without specific navigation path
-- ✅ "Navigate to Monitoring → Traces & Logs, filter by Severity = ERROR, Time Range = Last Hour"
+- Telling users to "check logs" without specific navigation path
+- "Navigate to Monitoring → Traces & Logs, filter by Severity = ERROR, Time Range = Last Hour"
 
 ### Query History Interface
 - **Navigation:** Monitoring → Query History
@@ -876,8 +896,8 @@ ORDER BY refresh_start_time DESC;
 - Distributed tracing
 
 **Anti-Pattern:**
-- ❌ Using Query History (System View) to debug real-time application issues
-- ✅ Use Traces & Logs (Event Tables) for real-time, Query History for historical analysis
+- Using Query History (System View) to debug real-time application issues
+- Use Traces & Logs (Event Tables) for real-time, Query History for historical analysis
 
 ## 11. AI Observability
 
@@ -1059,7 +1079,7 @@ ALTER SESSION SET TRACE_LEVEL = ALWAYS;
 
 ## 13. Contract
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Inputs/Prereqs:** 
   - Active event table (verify with `SHOW PARAMETERS LIKE 'EVENT_TABLE' IN ACCOUNT`)
   - Appropriate telemetry level configuration for environment
@@ -1076,7 +1096,7 @@ ALTER SESSION SET TRACE_LEVEL = ALWAYS;
   - Snowsight UI for Traces & Logs visualization
   - `SHOW PARAMETERS` for investigating current telemetry configuration
 
-**❌ FORBIDDEN:**
+**FORBIDDEN:**
 - **Forbidden Tools:** 
   - Excessive DEBUG logging in production environments without cost analysis
   - Modifying telemetry configuration without understanding retention and cost implications
@@ -1085,7 +1105,7 @@ ALTER SESSION SET TRACE_LEVEL = ALWAYS;
   - Creating event tables without specifying retention policy
   - Speculating about telemetry configuration without reading actual parameter values
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Required Steps:**
   1. **Investigate:** Check current telemetry configuration using `SHOW PARAMETERS LIKE '%LOG_LEVEL%'`, `SHOW PARAMETERS LIKE '%TRACE_LEVEL%'`, `SHOW PARAMETERS LIKE '%METRIC_LEVEL%'`
   2. **Verify:** Confirm active event table exists with `SHOW EVENT TABLES` and `SHOW PARAMETERS LIKE 'EVENT_TABLE'`
@@ -1137,6 +1157,23 @@ ALTER SESSION SET TRACE_LEVEL = ALWAYS;
 - **Negative Tests:** 
   - `SELECT * FROM snowflake.account_usage.event_table` should be rejected (use explicit columns)
   - DEBUG level in production should trigger cost review (not automatically allowed)
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read existing telemetry configuration BEFORE making changes** - Check current LOG_LEVEL, TRACE_LEVEL settings
+> 2. **Verify event table setup** - Check if event tables exist and are receiving data
+> 3. **Never assume monitoring patterns** - Review existing ACCOUNT_USAGE queries to understand patterns
+> 4. **Check Snowsight access** - Verify users can access monitoring dashboards
+> 5. **Test telemetry changes** - Validate logs/traces appear after configuration changes
+>
+> **Anti-Pattern:**
+> "Enabling DEBUG logging... (without checking cost impact)"
+> "Querying event table with SELECT *... (inefficient, violates best practice)"
+>
+> **Correct Pattern:**
+> "Let me check your current observability setup first."
+> [reads telemetry parameters, checks event tables, reviews queries]
+> "I see you use WARN level with daily ACCOUNT_USAGE queries. Adding new monitoring following this pattern..."
   - Querying System Views for real-time data (< 45 min) should show no recent results
   - Event table queries without timestamp filters should be discouraged (full table scan)
   - Logging without standard libraries (`print` statements) should not appear in event tables

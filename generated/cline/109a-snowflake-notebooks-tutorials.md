@@ -1,10 +1,9 @@
 <!-- Generated for Cline rules. See https://docs.cline.bot/features/cline-rules -->
 
-**Keywords:** tutorial design, learning notebooks, teaching patterns, anti-patterns, checkpoints, learning objectives, pedagogical design, educational content, progressive learning
+**Keywords:** tutorial design, learning notebooks, teaching patterns, anti-patterns, checkpoints, learning objectives, pedagogical design, educational content, progressive learning, Snowflake notebooks, teaching point callouts, validation gates
+**TokenBudget:** ~3750
+**ContextTier:** High
 **Depends:** 109-snowflake-notebooks, 500-data-science-analytics
-
-**TokenBudget:** ~500
-**ContextTier:** standard
 
 # Snowflake Notebook Tutorial Design Patterns
 
@@ -18,7 +17,7 @@ Establish comprehensive patterns for designing educational Snowflake notebooks t
 
 ## Contract
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Inputs/Prereqs:** 
   - Technical notebook content from `109-snowflake-notebooks.md`
   - Target audience definition (beginner/intermediate/advanced)
@@ -30,13 +29,13 @@ Establish comprehensive patterns for designing educational Snowflake notebooks t
   - `read_file` for reviewing existing content
   - Markdown cells for narrative and teaching points
 
-**❌ FORBIDDEN:**
+**FORBIDDEN:**
 - **Forbidden Tools:** 
   - Overly technical jargon without definitions for beginner content
   - Copy-paste code without explanation
   - Examples without context or business rationale
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 - **Required Steps:**
   1. Define clear learning objectives (3-6 outcomes)
   2. Structure content into logical parts with time estimates
@@ -49,7 +48,7 @@ Establish comprehensive patterns for designing educational Snowflake notebooks t
 - **Output Format:** 
   - Learning objectives section (markdown cell #2 after main header)
   - Tutorial structure overview with time estimates
-  - Anti-pattern sections with ❌ incorrect and ✅ correct examples
+  - Anti-pattern sections with incorrect and correct examples
   - Checkpoint validation cells (code cells with assertions)
   - Teaching point callouts (💡 prefix in markdown)
 
@@ -69,9 +68,30 @@ Establish comprehensive patterns for designing educational Snowflake notebooks t
 - **Self-Paced Friendly:** Can skip sections, clear prerequisites stated
 - **Context First:** Business rationale before technical implementation
 
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **3-6 measurable learning objectives** - Place at cell #2, use action verbs (understand, implement, compare, optimize)
+- **Checkpoint validations between major sections** - Automated checks with actionable error messages
+- **Anti-pattern sections** - Show incorrect AND correct approaches with "why wrong" explanations
+- **Teaching point callouts** - Use 💡 prefix, explain business rationale before code, context first
+- **Progressive complexity** - Simple → Real-World → Advanced pattern
+- **Time estimates** - Provide quick demo and full tutorial modes
+- **Never use vague objectives** - "Learn about ML" → specific: "Organize 16 features using Feature Store"
+
+**Quick Checklist:**
+- [ ] Learning objectives at cell #2 (3-6 measurable outcomes)
+- [ ] Tutorial structure overview with time estimates
+- [ ] Checkpoint validation cells between major sections
+- [ ] Anti-patterns with both wrong and correct examples
+- [ ] Teaching point callouts (💡) explaining "why"
+- [ ] Progressive complexity (simple first, advanced marked)
+- [ ] All jargon defined on first use
+
 ## 1. Learning Objectives Section
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 **Purpose:** Set clear expectations for what learners will achieve by completing the notebook.
 
@@ -110,11 +130,11 @@ By the end of this notebook, you will understand:
 2. Understand data
 3. Build models
 ```
-❌ Too vague, not measurable, no clear outcome
+Too vague, not measurable, no clear outcome
 
 ## 2. Tutorial Structure Overview
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 **Purpose:** Provide roadmap of tutorial organization with time estimates for self-paced learning.
 
@@ -134,7 +154,7 @@ This notebook is organized into [N] parts:
 
 ...
 
-## ⏱️ Estimated Time
+## Estimated Time
 
 - **Quick Demo Mode:** X-Y minutes ([configuration])
 - **Full Tutorial Mode:** X-Y minutes ([configuration])
@@ -152,7 +172,7 @@ This notebook is organized into [N] parts:
 
 ## 3. Anti-Pattern Sections
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 **Purpose:** Teach what NOT to do by showing common mistakes alongside correct approaches.
 
@@ -179,7 +199,7 @@ This notebook avoids all these pitfalls through careful design!
 
 **Best Practices:**
 - **Requirement:** 3-5 pitfalls per major topic
-- **Requirement:** Always pair ❌ wrong with ✅ correct
+- **Requirement:** Always pair wrong with correct
 - **Always:** Explain WHY it's wrong, not just WHAT is wrong
 - **Always:** Show concrete impact (performance, cost, accuracy)
 - **Consider:** Reference where in notebook the correct pattern is demonstrated
@@ -197,7 +217,7 @@ This notebook avoids all these pitfalls through careful design!
 
 ## 4. Checkpoint Validations
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 **Purpose:** Automated validation gates that verify learner progress and prevent proceeding with errors.
 
@@ -221,13 +241,13 @@ checks_failed = []
 if [condition]:
     checks_passed.append("✓ [Success message]")
 else:
-    checks_failed.append("❌ [Failure message] - run Step X.Y")
+    checks_failed.append("[Failure message] - run Step X.Y")
 
 # Check 2: [Description]
 if [condition]:
     checks_passed.append("✓ [Success message]")
 else:
-    checks_failed.append("❌ [Failure message] - run Step X.Y")
+    checks_failed.append("[Failure message] - run Step X.Y")
 
 # Display results
 print("\nValidation Results:")
@@ -239,10 +259,10 @@ if checks_failed:
     print("\nIssues Detected:")
     for check in checks_failed:
         print(check)
-    print("\n⚠️ Fix issues above before proceeding to [next section]")
+    print("\nFix issues above before proceeding to [next section]")
     print("=" * 80)
 else:
-    print("\n✅ ALL CHECKS PASSED - Ready for [next section]!")
+    print("\nALL CHECKS PASSED - Ready for [next section]!")
     print("=" * 80)
     print("\nNext Steps:")
     print("  → [Description of what comes next]")
@@ -258,7 +278,7 @@ else:
 
 ## 5. Teaching Point Callouts
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 **Purpose:** Inline explanations of WHY decisions were made, providing context and rationale.
 
@@ -312,7 +332,7 @@ else:
 
 ## 6. Progressive Complexity Management
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 **Purpose:** Gradually increase complexity, building on foundational concepts before introducing advanced topics.
 
@@ -343,7 +363,7 @@ else:
 
 ## 7. Two-Approach Clarification Pattern
 
-**🔥 MANDATORY:**
+**MANDATORY:**
 
 **Purpose:** When notebook demonstrates feature but uses simplified approach, explain BOTH approaches and WHY the simpler one is used.
 
@@ -361,21 +381,21 @@ The notebook demonstrates **two valid approaches** for [task]:
 ```
 
 **Benefits:**
-- ✅ [Benefit 1]
-- ✅ [Benefit 2]
-- ✅ [Benefit 3]
+- [Benefit 1]
+- [Benefit 2]
+- [Benefit 3]
 
 **Use when:** [Scenario]
 
-### Approach B: [Simplified Name] 📊
+### Approach B: [Simplified Name] 
 ```[language]
 [Code example]
 ```
 
 **Benefits:**
-- ✅ [Benefit 1]
-- ✅ [Benefit 2]
-- ✅ [Benefit 3]
+- [Benefit 1]
+- [Benefit 2]
+- [Benefit 3]
 
 **Use when:** [Scenario]
 
@@ -396,7 +416,7 @@ The notebook demonstrates **two valid approaches** for [task]:
 
 ## Anti-Patterns and Common Mistakes
 
-**❌ Anti-Pattern 1: Vague Learning Objectives**
+**Anti-Pattern 1: Vague Learning Objectives**
 ```markdown
 ## Learning Objectives
 1. Learn about ML
@@ -405,7 +425,7 @@ The notebook demonstrates **two valid approaches** for [task]:
 ```
 **Problem:** Not measurable, no clear outcomes, too broad
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```markdown
 ## 🎯 Learning Objectives
 1. **Feature Engineering** - Organize 16 ML features using Snowflake Feature Store
@@ -414,13 +434,13 @@ The notebook demonstrates **two valid approaches** for [task]:
 ```
 **Benefits:** Specific, measurable, clear scope
 
-**❌ Anti-Pattern 2: Missing Checkpoint Validations**
+**Anti-Pattern 2: Missing Checkpoint Validations**
 ```python
 # Just run all cells sequentially without validation
 ```
 **Problem:** Learners can proceed with errors, leading to confusing failures later
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```python
 # Checkpoint 1: Data Preparation Complete
 checks_passed = []
@@ -429,14 +449,14 @@ checks_failed = []
 if 'pd_df' in globals() and len(pd_df) > 0:
     checks_passed.append("✓ Data loaded")
 else:
-    checks_failed.append("❌ Data not loaded - run Step 1.1")
+    checks_failed.append("Data not loaded - run Step 1.1")
 
 if checks_failed:
-    print("⚠️ Fix issues before proceeding")
+    print("Fix issues before proceeding")
 ```
 **Benefits:** Catches errors early, provides actionable guidance
 
-**❌ Anti-Pattern 3: No Anti-Pattern Examples**
+**Anti-Pattern 3: No Anti-Pattern Examples**
 ```markdown
 ## Best Practices
 - Use stratified splitting
@@ -444,7 +464,7 @@ if checks_failed:
 ```
 **Problem:** Doesn't teach what to avoid or why
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```markdown
 ## Common Pitfalls
 **Pitfall 1: Applying SMOTE Before Split**
@@ -457,7 +477,7 @@ if checks_failed:
 ```
 **Benefits:** Teaches through contrast, explains consequences
 
-**❌ Anti-Pattern 4: No Time Estimates**
+**Anti-Pattern 4: No Time Estimates**
 ```markdown
 ## Tutorial Structure
 Part 1: Setup
@@ -466,22 +486,22 @@ Part 3: Evaluation
 ```
 **Problem:** Learners don't know time commitment
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```markdown
-## ⏱️ Estimated Time
+## Estimated Time
 - **Quick Demo:** 2-3 minutes (50 estimators)
 - **Full Tutorial:** 5-7 minutes (100 estimators)
 - **Production:** 10-15 minutes (200 estimators)
 ```
 **Benefits:** Manages expectations, enables planning
 
-**❌ Anti-Pattern 5: Technical Jargon Without Context**
+**Anti-Pattern 5: Technical Jargon Without Context**
 ```python
 # Apply SMOTE with k_neighbors=5
 ```
 **Problem:** Beginners don't know what SMOTE is or why k_neighbors matters
 
-**✅ Correct Pattern:**
+**Correct Pattern:**
 ```markdown
 ### 💡 Teaching Point: SMOTE Explained
 **SMOTE (Synthetic Minority Over-sampling Technique):**
@@ -497,7 +517,7 @@ Part 3: Evaluation
 
 - [ ] Learning objectives section present (3-6 outcomes, measurable, placed at cell #2)
 - [ ] Tutorial structure overview with time estimates provided
-- [ ] Anti-pattern sections with ❌ incorrect and ✅ correct examples (3-5 per topic)
+- [ ] Anti-pattern sections with incorrect and correct examples (3-5 per topic)
 - [ ] Checkpoint validation cells between major sections (3-7 checks each)
 - [ ] Teaching point callouts (💡 prefix) explaining "why" before implementations
 - [ ] Progressive complexity (simple → real-world → advanced pattern)
@@ -524,6 +544,23 @@ Part 3: Evaluation
   - Technical jargon without definitions should trigger warnings
   - Overly complex introductory sections should be simplified
 
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read existing notebook BEFORE adding educational structure** - Check current cell organization, existing learning objectives, and validation patterns
+> 2. **Verify target audience level** - Ask user if unclear whether content is for beginners, intermediate, or advanced learners
+> 3. **Never speculate about learning objectives** - Base objectives on actual notebook content and capabilities demonstrated
+> 4. **Check for existing checkpoint cells** - Identify where validation gates already exist vs where they're needed
+> 5. **Make grounded recommendations based on investigated notebook structure** - Don't add generic objectives that don't match notebook content
+>
+> **Anti-Pattern:**
+> "Based on typical ML notebooks, you probably want to teach feature engineering and model training..."
+> "Most tutorials include these standard learning objectives..."
+>
+> **Correct Pattern:**
+> "Let me read your notebook structure first."
+> [reads notebook cells to understand content]
+> "I see your notebook demonstrates Feature Store integration, SMOTE balancing, and threshold tuning. Here are specific learning objectives matching this content..."
+
 ## Response Template
 
 ```markdown
@@ -543,7 +580,7 @@ By the end of this notebook, you will understand:
 **Part 2: [Name]** (Steps 4-6)
 - [What's covered]
 
-## ⏱️ Estimated Time
+## Estimated Time
 - **Quick Demo:** 2-3 minutes
 - **Full Tutorial:** 5-7 minutes
 
@@ -567,12 +604,12 @@ checks_failed = []
 if [condition]:
     checks_passed.append("✓ [Check passed]")
 else:
-    checks_failed.append("❌ [Check failed] - run Step X")
+    checks_failed.append("[Check failed] - run Step X")
 
 if checks_failed:
-    print("⚠️ Fix issues before proceeding")
+    print("Fix issues before proceeding")
 else:
-    print("✅ ALL CHECKS PASSED")
+    print("ALL CHECKS PASSED")
 ```
 
 ---

@@ -4,11 +4,10 @@ appliesTo:
 ---
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
-**Keywords:** SQL demos, demo engineering, learning SQL, per-schema setup, teardown, grid_setup.sql, customer_load.sql, inline documentation, progress indicators, rerunnable demos
-**Depends:** 100-snowflake-core
-
-**TokenBudget:** ~800
+**Keywords:** SQL demos, demo engineering, learning SQL, per-schema setup, teardown, grid_setup.sql, customer_load.sql, inline documentation, progress indicators, rerunnable demos, Snowflake SQL, CREATE OR REPLACE, educational SQL
+**TokenBudget:** ~3850
 **ContextTier:** High
+**Depends:** 100-snowflake-core
 
 # Snowflake SQL: Demo Engineering and Learning
 
@@ -27,6 +26,26 @@ Guide SQL file creation for Snowflake demos and customer learning environments. 
 - **Rerunnable Demos**: Idempotent patterns (CREATE OR REPLACE, IF NOT EXISTS)
 - **Audience-Aware**: Comments explain "why" for learning, not just "what"
 - **Demo-Safe**: Patterns suitable for ephemeral environments, not production databases
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Use `<schema>_<operation>.sql` naming** - e.g., `grid_setup.sql`, `customer_load.sql` (self-documenting)
+- **Per-schema isolation** - setup/teardown files affect only their target schema, never the database
+- **Idempotent patterns** - `CREATE OR REPLACE TABLE`, `CREATE SCHEMA IF NOT EXISTS`, `DROP SCHEMA IF EXISTS CASCADE`
+- **Progress indicators** - Include `SELECT '✓ Step complete' AS progress;` after each major operation
+- **Inline education** - Comments explain "why" and define acronyms (e.g., "SCADA = Supervisory Control And Data Acquisition")
+- **Fully qualified names** - Always use `DATABASE.SCHEMA.OBJECT` format
+- **Never use `ON_ERROR` inside `FILE_FORMAT`** - It's a COPY INTO parameter, not FILE_FORMAT parameter
+
+**Quick Checklist:**
+- [ ] Filename follows `<schema>_<operation>.sql` pattern
+- [ ] File header lists prerequisites and what gets created
+- [ ] Progress SELECT statements after each major step
+- [ ] All object names fully qualified (DB.SCHEMA.OBJECT)
+- [ ] Script is rerunnable (idempotent patterns)
+- [ ] Comments teach concepts, not just describe syntax
 
 ## 1. File Naming for Demos
 
@@ -160,7 +179,7 @@ GROUP BY a.asset_id, a.asset_type, a.install_date;
 
 SELECT '✓ VW_ASSET_FAILURES view created' AS progress;
 
-SELECT '✅ GRID_DATA schema setup complete!' AS status;
+SELECT 'GRID_DATA schema setup complete!' AS status;
 ```
 
 **Key Features:**
@@ -236,7 +255,7 @@ FILE_FORMAT = (TYPE = 'CSV', SKIP_HEADER = 1);
 
 SELECT '✓ Failure events loaded' AS progress;
 
-SELECT '✅ Grid data load complete!' AS status;
+SELECT 'Grid data load complete!' AS status;
 ```
 
 **Key Features:**
@@ -286,7 +305,7 @@ SELECT '✓ GRID_ASSETS table created' AS progress;
 CREATE OR REPLACE VIEW UTILITY_DEMO_V2.GRID_DATA.VW_SUMMARY AS ...;
 SELECT '✓ VW_SUMMARY view created' AS progress;
 
-SELECT '✅ Setup complete!' AS status;
+SELECT 'Setup complete!' AS status;
 ```
 
 **Benefits:**
@@ -305,7 +324,7 @@ SELECT '✅ Setup complete!' AS status;
 CREATE SCHEMA IF NOT EXISTS UTILITY_DEMO_V2.GRID_DATA;
 
 -- Tables: CREATE OR REPLACE (drops and recreates - OK for demos)
--- ⚠️ This deletes data - only safe for demo/dev environments
+-- This deletes data - only safe for demo/dev environments
 CREATE OR REPLACE TABLE UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS (...);
 
 -- Views: CREATE OR REPLACE (always safe - no data loss)
@@ -356,12 +375,12 @@ FILE_FORMAT = (TYPE = 'CSV', SKIP_HEADER = 1);
 
 **Incorrect:**
 ```sql
--- ❌ ON_ERROR inside FILE_FORMAT causes syntax error
+-- ON_ERROR inside FILE_FORMAT causes syntax error
 COPY INTO my_table
 FROM @my_stage/file.csv
 FILE_FORMAT = (
     TYPE = 'CSV',
-    ON_ERROR = 'CONTINUE'  -- ❌ Invalid placement
+    ON_ERROR = 'CONTINUE'  -- Invalid placement
 );
 ```
 
@@ -383,11 +402,11 @@ FROM my_db.my_schema.base_table;
 
 **Incorrect:**
 ```sql
--- ❌ COMMENT after query causes syntax error
+-- COMMENT after query causes syntax error
 CREATE OR REPLACE VIEW my_db.my_schema.my_view AS
 SELECT asset_id, failure_count
 FROM base_table
-COMMENT = 'My view';  -- ❌ Wrong position
+COMMENT = 'My view';  -- Wrong position
 ```
 
 ### 4.3 Fully Qualified Object Names
@@ -410,7 +429,7 @@ SELECT * FROM UTILITY_DEMO_V2.GRID_DATA.VW_ASSET_FAILURES;
 
 **Incorrect:**
 ```sql
--- ❌ Assumes session context - fragile
+-- Assumes session context - fragile
 USE DATABASE UTILITY_DEMO_V2;
 USE SCHEMA GRID_DATA;
 CREATE TABLE GRID_ASSETS (...);  -- May fail in CLI automation
@@ -621,6 +640,23 @@ tasks:
   - COMMENT after AS in CREATE VIEW causes syntax error
   - Non-qualified names may fail in CLI without session context
 
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read existing SQL files BEFORE making recommendations** - Never assume demo structure or naming patterns
+> 2. **Verify actual object names and schemas** - Check what database/schema names are being used in the project
+> 3. **Never speculate about file organization** - List directory contents to understand current structure
+> 4. **Check for existing Taskfile.yml** - Read it to understand automation patterns before suggesting changes
+> 5. **Make grounded recommendations based on investigated project structure** - Don't recommend patterns that conflict with existing setup
+>
+> **Anti-Pattern:**
+> "Based on typical demo patterns, you probably have a setup/ directory..."
+> "Usually demos use DATABASE_DEMO as the database name..."
+>
+> **Correct Pattern:**
+> "Let me check your current SQL file organization first."
+> [reads sql/ directory and existing files]
+> "I see you're using UTILITY_DEMO_V2 as the database and have grid_setup.sql. Here's how to add customer_setup.sql following the same pattern..."
+
 ## Response Template
 ```sql
 -- ============================================================================
@@ -646,7 +682,7 @@ CREATE OR REPLACE TABLE UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS (
 
 SELECT '✓ Tables created' AS progress;
 
-SELECT '✅ GRID_DATA schema setup complete!' AS status;
+SELECT 'GRID_DATA schema setup complete!' AS status;
 ```
 
 ## References

@@ -5,11 +5,10 @@ appliesTo:
 ---
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
-**Keywords:** pytest, testing, fixtures, parametrization, test isolation, mocking, test organization, coverage
-**Depends:** 200-python-core, 201-python-lint-format, 203-python-project-setup
-
-**TokenBudget:** ~500
+**Keywords:** pytest, testing, fixtures, parametrization, test isolation, mocking, test organization, coverage, AAA pattern, test markers, uv run pytest
+**TokenBudget:** ~2050
 **ContextTier:** High
+**Depends:** 200-python-core, 201-python-lint-format, 203-python-project-setup
 
 # Python Testing with pytest: Best Practices
 
@@ -65,6 +64,27 @@ Define pragmatic, industry-standard testing practices with pytest to produce fas
 - **Isolate externalities:** Patch environment, clock, filesystem, and network.
 - **Selective execution:** Use markers to include/exclude categories in different pipelines.
 - **Visibility and diagnostics:** Capture logs and stdout/stderr when helpful; ensure `__repr__` of domain objects is informative (`205-python-classes.md`).
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Always use `uv run pytest`** - Never bare `pytest` command
+- **AAA pattern** - Arrange (setup), Act (execute), Assert (verify) - one behavior per test
+- **Fixtures for setup** - Prefer fixtures over setUp/tearDown, keep them small and focused
+- **Parametrize inputs** - Use `@pytest.mark.parametrize` instead of loops
+- **Isolate externalities** - Use `tmp_path`, `monkeypatch`, `capsys` for I/O, env, time
+- **Tests must pass before completion** - MANDATORY gate, never skip without explicit user override
+- **Never use bare `assert` without context** - Include descriptive failure messages
+
+**Quick Checklist:**
+- [ ] Tests in `tests/` directory, files named `test_*.py`
+- [ ] Run `uv run pytest` (not bare `pytest`)
+- [ ] AAA pattern: Arrange-Act-Assert
+- [ ] Fixtures for setup (not setUp/tearDown)
+- [ ] Parametrize with `@pytest.mark.parametrize`
+- [ ] Isolate I/O with `tmp_path`, `monkeypatch`
+- [ ] All tests pass before task completion
 
 ## 1. Test Layout & Naming
 - Requirement: Place tests in a top-level `tests/` directory mirroring the source structure.
@@ -209,6 +229,23 @@ uv run pytest --cov=yourpkg --cov-report=term-missing
 ## Validation
 - **Success Checks:** Pre-Task-Completion Test Execution Gate passed; `uv run pytest` passes with all tests passing; lint/format pass; deterministic behavior; meaningful failures; CHANGELOG.md and README.md updated as required.
 - **Negative Tests:** Flaky tests; global state coupling; sleeps; live network; bare `pytest` usage; shared mutable fixtures; task completion attempted with failing tests is blocked.
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read existing test files BEFORE adding new tests** - Check current test patterns, fixture usage, and organization
+> 2. **Run `uv run pytest` to verify tests pass** - Never assume tests work without running them
+> 3. **Never speculate about test coverage** - Run `uv run pytest --cov` to check actual coverage
+> 4. **Check conftest.py for existing fixtures** - Don't create duplicate fixtures
+> 5. **Make grounded recommendations based on investigated test structure** - Don't suggest patterns that conflict with existing tests
+>
+> **Anti-Pattern:**
+> "Based on typical pytest projects, you probably have these fixtures..."
+> "Let me add this test - it should work with the existing setup..."
+>
+> **Correct Pattern:**
+> "Let me check the existing test structure first."
+> [reads tests/ directory and conftest.py]
+> "I see you're using pytest fixtures for database setup in conftest.py. Here's a new test following the same pattern..."
 
 ## Response Template
 ```bash

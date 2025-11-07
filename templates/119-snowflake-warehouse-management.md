@@ -1,14 +1,13 @@
 **Description:** Comprehensive best practices for Snowflake virtual warehouse creation, configuration, and management including CPU/GPU/High-Memory types, GEN 2 preference, sizing, tagging, and cost governance.
+**Type:** Agent Requested
 **AppliesTo:** `**/*.sql`, `**/*.scl`
 **AutoAttach:** false
-**Type:** Agent Requested
-**Keywords:** Warehouse management, warehouse sizing, CPU warehouse, GPU warehouse, high-memory warehouse, warehouse tagging, auto-suspend, auto-resume
-**Version:** 1.3
-**LastUpdated:** 2025-10-13
-**Depends:** 100-snowflake-core, 103-snowflake-performance-tuning, 105-snowflake-cost-governance
-
-**TokenBudget:** ~1100
+**Keywords:** Warehouse management, warehouse sizing, CPU warehouse, GPU warehouse, high-memory warehouse, warehouse tagging, auto-suspend, auto-resume, GEN 2, Snowpark-Optimized, warehouse edition, resource monitors
+**TokenBudget:** ~3650
 **ContextTier:** High
+**Version:** 1.4
+**LastUpdated:** 2025-11-07
+**Depends:** 100-snowflake-core, 103-snowflake-performance-tuning, 105-snowflake-cost-governance
 
 # Snowflake Warehouse Management
 
@@ -19,6 +18,27 @@ Establish comprehensive best practices for creating, configuring, and managing S
 
 - **Type:** Agent Requested
 - **Scope:** Virtual warehouse creation, configuration, lifecycle management, type selection (Standard, Snowpark-Optimized, High-Memory), and cost optimization
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Always prefer GEN 2** - Use EDITION='GEN2' when available
+- **Start small, scale up** - Begin with X-SMALL, monitor, then scale
+- **Apply mandatory tags** - Cost tracking, ownership, environment tags
+- **Configure auto-suspend** - 60-300 seconds for interactive, 0-10 for batch
+- **Choose correct type** - Standard CPU, Snowpark-Optimized GPU, High-Memory
+- **Associate resource monitors** - Prevent cost overruns
+- **Never create without tags** - Required for governance
+
+**Quick Checklist:**
+- [ ] Workload type assessed
+- [ ] Warehouse type selected (CPU/GPU/High-Memory)
+- [ ] GEN 2 edition specified
+- [ ] Size justified (start X-SMALL)
+- [ ] Auto-suspend configured
+- [ ] Mandatory tags applied
+- [ ] Resource monitor associated
 
 ## Contract
 - **Inputs/Prereqs:** Snowflake account with warehouse creation privileges (`CREATE WAREHOUSE`); workload requirements; cost baseline; resource monitor strategy
@@ -59,7 +79,7 @@ Establish comprehensive best practices for creating, configuring, and managing S
 | Type | Constraint | Architecture | Memory | Use When |
 |------|-----------|--------------|--------|----------|
 | **Standard GEN 1** | `STANDARD_GEN_1` | x86 | Standard | Legacy/compatibility only |
-| **Standard GEN 2** ✅ | `STANDARD_GEN_2` | ARM | Standard | **Default for all new warehouses** |
+| **Standard GEN 2** | `STANDARD_GEN_2` | ARM | Standard | **Default for all new warehouses** |
 | **High-Memory** | `MEMORY_16X` | ARM | 16X (256GB @ LARGE) | Memory-intensive queries (prove need first) |
 | **High-Memory x86** | `MEMORY_16X_x86` | x86 | 16X | x86-specific compatibility + memory |
 | **Snowpark GPU** | *(implicit)* | GPU | Standard | ML training, GPU UDFs (set WAREHOUSE_TYPE) |
@@ -224,10 +244,10 @@ CREATE OR REPLACE WAREHOUSE WH_INTERACTIVE_BI_M
 
 | Tag Name | Purpose | Example Values | Required |
 |----------|---------|----------------|----------|
-| **COST_CENTER** | Chargeback allocation | FINANCE, MARKETING, DATA_SCIENCE | ✅ Yes |
-| **WORKLOAD_TYPE** | Workload categorization | BI_INTERACTIVE, ETL_BATCH, ML_TRAINING | ✅ Yes |
-| **ENVIRONMENT** | Deployment stage | DEV, QA, PROD | ✅ Yes |
-| **OWNER_TEAM** | Responsible team | DATA_ENGINEERING, ANALYTICS, BI_PLATFORM | ✅ Yes |
+| **COST_CENTER** | Chargeback allocation | FINANCE, MARKETING, DATA_SCIENCE | Yes |
+| **WORKLOAD_TYPE** | Workload categorization | BI_INTERACTIVE, ETL_BATCH, ML_TRAINING | Yes |
+| **ENVIRONMENT** | Deployment stage | DEV, QA, PROD | Yes |
+| **OWNER_TEAM** | Responsible team | DATA_ENGINEERING, ANALYTICS, BI_PLATFORM | Yes |
 | **DATA_CLASSIFICATION** | Data sensitivity | PUBLIC, INTERNAL, CONFIDENTIAL, RESTRICTED | Recommended |
 | **LIFECYCLE_STAGE** | Operational status | ACTIVE, DEPRECATED, EXPERIMENTAL | Recommended |
 
@@ -393,6 +413,23 @@ DROP WAREHOUSE IF EXISTS WH_OLD;
 ## Validation
 - **Success Checks:** Warehouse created successfully with correct type and edition; all mandatory tags present; auto-suspend working as configured; resource monitor association verified; Query Profile shows expected performance; cost tracking functional in monitoring queries; warehouse appears in governance inventory
 - **Negative Tests:** Creating warehouse without tags fails governance checks; oversized warehouse (XLARGE+) without documented justification triggers review; disabled auto-suspend in non-production raises alert; warehouse without resource monitor blocked or flagged; GPU warehouse used for standard SQL shows cost inefficiency; High-memory warehouse used without memory pressure evidence
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read existing warehouse configs BEFORE creating new ones** - Check naming conventions, sizing patterns, tag standards
+> 2. **Verify GEN 2 availability** - Check account capabilities for warehouse editions
+> 3. **Never assume warehouse size** - Query existing workloads to understand sizing needs
+> 4. **Check resource monitors** - Review existing monitor associations and thresholds
+> 5. **Test warehouse performance** - Run sample queries before full deployment
+>
+> **Anti-Pattern:**
+> "Creating XLARGE warehouse... (without workload justification)"
+> "Using Standard edition... (when GEN 2 available)"
+>
+> **Correct Pattern:**
+> "Let me check your existing warehouse setup first."
+> [reads SHOW WAREHOUSES, checks tags, reviews resource monitors]
+> "I see you use GEN 2 with 5-minute auto-suspend. Creating new warehouse following this pattern..."
 
 ## Response Template
 ```sql

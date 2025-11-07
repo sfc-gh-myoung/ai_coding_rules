@@ -1,14 +1,13 @@
 **Description:** Authoritative Python linting and formatting policy using Ruff for code quality and consistency.
+**Type:** Agent Requested
 **AppliesTo:** `**/*.py`, `streamlit/**/*`
 **AutoAttach:** false
-**Type:** Agent Requested
-**Keywords:** Ruff, linting, formatting, code quality, style checking, uvx ruff, lint errors
-**Version:** 1.2
-**LastUpdated:** 2025-10-13
-**Depends:** 200-python-core
-
-**TokenBudget:** ~300
+**Keywords:** Ruff, linting, formatting, code quality, style checking, uvx ruff, lint errors, ruff check, ruff format, pyproject.toml configuration
+**TokenBudget:** ~1550
 **ContextTier:** High
+**Version:** 1.3
+**LastUpdated:** 2025-11-07
+**Depends:** 200-python-core
 
 # Python Linting & Formatting (uvx ruff-first, with fallbacks)
 
@@ -20,6 +19,26 @@ Establish authoritative Python code quality standards using Ruff as the primary 
 - **Type:** Agent Requested
 - **Scope:** Python code linting and formatting with Ruff for consistent code quality and style
 
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**MANDATORY:**
+**Essential Patterns:**
+- **Always use `uvx ruff check .` and `uvx ruff format .`** - MANDATORY before task completion
+- **Configure in pyproject.toml** - Centralize all Ruff settings
+- **Set target-version = "py311"** - Minimum Python version
+- **Enable pydocstyle (D rules)** - Enforce docstring standards
+- **All checks must pass with 0 errors** - Non-negotiable validation gate
+- **Never use `uv run ruff`** - Always use isolated `uvx ruff` for consistency
+
+**Quick Checklist:**
+- [ ] Run `uvx ruff check .` (must pass with 0 errors)
+- [ ] Run `uvx ruff format --check .` (must pass)
+- [ ] pyproject.toml has [tool.ruff] config
+- [ ] target-version = "py311" set
+- [ ] pydocstyle rules enabled (D)
+- [ ] Use `uvx ruff check --fix .` to auto-fix
+- [ ] Use `uvx ruff format .` to format
 
 ## 1. Core Policy
 - **Requirement:** Ruff is the authoritative default for linting and formatting.
@@ -122,6 +141,23 @@ lint:
 ## Validation
 - **Success checks:** All Python files pass `uvx ruff check .` with zero errors; `uvx ruff format --check .` passes; code is idiomatic and properly formatted; Pre-Task-Completion Validation Gate passed
 - **Negative tests:** Files with syntax errors fail lint checks; improperly formatted code fails format check; task completion attempted with failing checks is blocked
+
+> **Investigation Required**  
+> When applying this rule:
+> 1. **Read pyproject.toml BEFORE running lint/format** - Check existing Ruff configuration, rules, ignores
+> 2. **Verify Ruff is available** - Check if `uvx ruff --version` works or needs installation instructions
+> 3. **Never assume rule configuration** - Always check [tool.ruff.lint] section for enabled/disabled rules
+> 4. **Check for existing lint exceptions** - Read `# noqa` comments and understand why they exist
+> 5. **Validate fixes don't break functionality** - Run tests after auto-fixing lint/format issues
+>
+> **Anti-Pattern:**
+> "Running ruff check... (without checking if it's configured)"
+> "Auto-fixing all issues... (without understanding what they are)"
+>
+> **Correct Pattern:**
+> "Let me check your Ruff configuration first."
+> [reads pyproject.toml, checks [tool.ruff] section]
+> "I see you have pydocstyle enabled with Google convention. Running ruff check with these settings..."
 
 ## Response Template
 ```

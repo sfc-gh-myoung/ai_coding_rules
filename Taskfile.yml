@@ -108,11 +108,27 @@ tasks:
 
   # Run unit tests via pytest (uses dev dependencies)
   test:
-    desc: "Run pytest suite"
+    desc: "Run all pytest tests"
     deps:
       - deps:dev
     cmds:
       - "{{.UV}} run pytest tests/ --tb=short"
+
+  # Run unit tests only (fast, hermetic tests)
+  test:unit:
+    desc: "Run unit tests only (fast, hermetic)"
+    deps:
+      - deps:dev
+    cmds:
+      - "{{.UV}} run pytest -m 'unit and not slow' tests/ --tb=short"
+
+  # Run integration tests only
+  test:integration:
+    desc: "Run integration tests only"
+    deps:
+      - deps:dev
+    cmds:
+      - "{{.UV}} run pytest -m integration tests/ --tb=short"
 
   # Run tests with coverage reporting
   test:coverage:
@@ -120,7 +136,24 @@ tasks:
     deps:
       - deps:dev
     cmds:
-      - "{{.UV}} run pytest --cov=generate_agent_rules --cov-report=term-missing --cov-report=html tests/"
+      - "{{.UV}} run pytest --cov=scripts --cov-report=term-missing --cov-report=html tests/"
+      - echo "[OK] Coverage report generated in htmlcov/index.html"
+
+  # Re-run only failed tests
+  test:failed:
+    desc: "Re-run only failed tests from last run"
+    deps:
+      - deps:dev
+    cmds:
+      - "{{.UV}} run pytest --lf -v tests/"
+
+  # Run tests in verbose mode
+  test:verbose:
+    desc: "Run tests with verbose output"
+    deps:
+      - deps:dev
+    cmds:
+      - "{{.UV}} run pytest -vv tests/"
 
   # ============================================================================
   # Rule Generation Tasks

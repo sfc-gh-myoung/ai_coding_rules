@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.1] - 2025-11-13
+
+### Removed
+
+- **EXAMPLE_PROMPT.md** - Consolidated discovery system to reduce required files
+  - Removed `discovery/EXAMPLE_PROMPT.md` from project
+  - AI assistants now only need 2 discovery files: `AGENTS.md` and `RULES_INDEX.md`
+  - All content from EXAMPLE_PROMPT.md is already covered by AGENTS.md
+  - Updated all documentation references (README.md, ARCHITECTURE.md, CONTRIBUTING.md)
+  - Updated validation and generation scripts to remove EXAMPLE_PROMPT.md from skip lists
+  - **Impact**: Simpler user workflow - one less file to manage and upload to AI context
+  - **No breaking changes**: AGENTS.md provides complete rule loading protocol
+
 ## [2.2.0] - 2025-11-07
 
 ### Changed

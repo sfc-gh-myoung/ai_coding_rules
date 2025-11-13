@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Text-only alternatives documented (CRITICAL, WARNING, NOTE, IMPORTANT, TIP instead of 🔥⚠️✅📝)
     - Updated compliance checklists to reflect emoji prohibition
   - **Removed all functional emojis from 72 template files**: 🔥⚠️✅❌📊🆕🚨📋 and others
-  - **Removed all emojis from discovery files**: AGENTS.md, EXAMPLE_PROMPT.md
+  - **Removed all emojis from discovery files**: AGENTS.md
   - **Updated `validate_agent_rules.py` to v4.0**: Detects and reports emojis as critical errors
     - Smart filtering to ignore emojis in code examples, strikethrough text, and code blocks
     - Enforcement: Emojis now treated as validation failures
@@ -82,7 +82,7 @@ This release introduces a significant restructuring to improve maintainability a
 
 - **New Directory Structure:**
   - `templates/` - Source templates (canonical, edit these) - 72 rule template files
-  - `discovery/` - Discovery system templates (AGENTS.md, EXAMPLE_PROMPT.md, RULES_INDEX.md)
+  - `discovery/` - Discovery system templates (AGENTS.md, RULES_INDEX.md)
   - `generated/` - All generated outputs organized by format
     - `generated/universal/` - Universal format (stripped metadata)
     - `generated/cursor/rules/` - Cursor-specific format (.mdc files)
@@ -96,7 +96,7 @@ This release introduces a significant restructuring to improve maintainability a
   - Auto-detection of source directory (templates/ > ai_coding_rules/ > .)
   - `--source` flag for manual source directory specification
   - `--legacy-paths` flag for backward compatibility with old output locations
-  - Discovery file copying for universal format (AGENTS.md, EXAMPLE_PROMPT.md, RULES_INDEX.md)
+  - Discovery file copying for universal format (AGENTS.md, RULES_INDEX.md)
   - Smart path detection with user feedback
 
 - **Task Automation Updates:**
@@ -196,7 +196,7 @@ This restructuring aligns with proven patterns from static site generators and t
 - Ecosystem-specific examples in AGENTS.md (Python, Node.js, Java, Go)
 - Depends metadata to all 70+ rule files for explicit dependency tracking
 - Generator support for Depends metadata preservation in universal format
-- Generator logic to exclude AGENTS.md and EXAMPLE_PROMPT.md from all rule formats (they're guides, not rules)
+- Generator logic to exclude AGENTS.md from all rule formats (it's a guide, not a rule)
 
 ### Changed
 - 000-global-core.md streamlined to contain only foundational principles (~300 tokens)
@@ -209,13 +209,6 @@ This restructuring aligns with proven patterns from static site generators and t
   - Added "Using Rules with Different Tools" section with examples
   - Added programmatic rule loading examples for CLI tools
   - Clarified AGENTS.md role as discovery guide (not a rule)
-- EXAMPLE_PROMPT.md completely rewritten as universal baseline prompt:
-  - Removed all duplicated content that exists in rules
-  - Added automatic rule loading protocol
-  - Added semantic discovery instructions
-  - Follows prompt engineering best practices with XML tags
-  - Includes token budget management
-  - Works universally across all platforms
 - gen-rules script updated to v2.1:
   - Added universal rule generation to help text and examples
   - Updated COMMON TASKS to include rule:universal

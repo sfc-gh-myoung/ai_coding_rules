@@ -1,6 +1,6 @@
 [project]
 name = "ai_coding_rules"
-version = "2.2.1"
+version = "2.2.2"
 description = "Universal AI coding rules for consistent, reliable software engineering across LLMs and IDEs"
 readme = { file = "README.md" }
 license = { file = "LICENSE" }
@@ -69,17 +69,24 @@ testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+markers = [
+    "unit: fast, hermetic unit tests",
+    "integration: tests requiring multiple components or file I/O",
+    "slow: long-running tests involving subprocesses or network",
+]
 addopts = [
     "--strict-markers",
     "--strict-config",
+    "-v",
 ]
 
 [tool.coverage.run]
-source = ["."]
+source = ["scripts"]
 omit = [
     "tests/*",
     ".venv/*",
     "output/*",
+    "generated/*",
     "__pycache__/*",
 ]
 

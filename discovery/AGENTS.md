@@ -28,9 +28,11 @@ for the target agent type. This ensures rules work correctly in any deployment c
    - **If domain rule not found**: Proceed with 000-global-core only, but inform user which domain rule is missing
 
 3. **Load Specialized Rules**: Read task-specific rules from `RULES_INDEX.md` Keywords column
-   - Search Keywords column for terms matching your task
-   - Check "Depends On" column for prerequisites
-   - Load prerequisites before dependent rules
+   - **MANDATORY:** Explicitly search Keywords column for terms matching your task
+   - **Extract task keywords**: Identify technology terms (pytest, FastAPI, Docker) AND activity terms (testing, deployment, validation)
+   - **Search RULES_INDEX.md**: Use extracted keywords to find matching rules in Keywords column
+   - **Check "Depends On" column**: Load prerequisites before dependent rules
+   - **Document search results**: In "Rules Loaded" section, state which keywords were searched
    - **If RULES_INDEX.md not accessible**: Proceed with foundation + domain rules, inform user
 
 4. **State Loaded Rules**: Explicitly list all loaded rules at the start of the response
@@ -154,6 +156,113 @@ Total: ~6,200-7,000 tokens for complete context
 ```
 
 **Note:** Token budgets are estimates based on rule file sizes. Actual token counts may vary by ~10-20% depending on tokenizer.
+
+### Task Keyword Extraction Guide (CRITICAL FOR RULE LOADING)
+
+Before loading rules, extract keywords from the user's task description to ensure you load ALL relevant rules:
+
+**Technology Keywords** (trigger domain rules):
+- Python, pytest, FastAPI, Flask, Typer, Pydantic, pandas → 200-python-core.md + specialized rules
+- Snowflake, SQL, Streamlit, Cortex, SPCS → 100-snowflake-core.md + specialized rules
+- Docker, containers, multi-stage builds → 400-docker-best-practices.md
+- Bash, shell, zsh → 300-bash-scripting-core.md or 310-zsh-scripting-core.md
+
+**Activity Keywords** (trigger specialized rules):
+- **testing, test coverage, unit tests, integration tests, fixtures, mocking** → 206-python-pytest.md
+- deployment, CI/CD, automation, workflow → 820-taskfile-automation.md, 806-git-workflow-management.md
+- validation, linting, formatting, code quality → 201-python-lint-format.md
+- documentation, docs, docstrings, README, CHANGELOG → 204-python-docs-comments.md, 800-project-changelog-rules.md
+- security, authentication, authorization, XSS, SQL injection → *-security.md rules
+- performance, optimization, caching, slow queries → *-performance*.md rules
+
+**Process for Every Task:**
+1. **Extract keywords**: Identify ALL technology and activity terms in user's request
+2. **Search RULES_INDEX.md**: Look for matches in Keywords column
+3. **Load matching rules**: In dependency order (check "Depends On" column)
+4. **State loaded rules AND searched keywords**: In "Rules Loaded" section of response
+
+**Example:**
+```
+User: "Create pytest fixtures for database testing"
+
+Keywords extracted:
+- Technology: pytest (Python testing framework)
+- Activity: testing, fixtures, database
+
+Rules to load:
+1. 000-global-core.md (foundation - always load)
+2. 200-python-core.md (Python domain rule)
+3. 206-python-pytest.md (MATCH on "pytest, testing, fixtures" keywords)
+4. Check RULES_INDEX for database-specific rules → no exact match, use general patterns
+
+Rules Loaded section:
+## Rules Loaded
+- rules/000-global-core.md (foundation)
+- rules/200-python-core.md (Python domain)
+- rules/206-python-pytest.md (keywords: testing, fixtures - matched "pytest fixtures")
+```
+
+### Self-Check Protocol: Did I Load the Right Rules?
+
+**Before responding, verify you completed ALL steps:**
+
+**Foundation Check:**
+- [ ] Loaded 000-global-core.md? (MANDATORY for all tasks)
+- [ ] Confirmed file loaded successfully (not empty)?
+
+**Domain Check:**
+- [ ] Identified primary technology? (Python, Snowflake, Docker, Bash, etc.)
+- [ ] Loaded domain core rule? (200-python-core, 100-snowflake-core, etc.)
+
+**Specialized Check:**
+- [ ] Extracted task keywords? (List them: e.g., "testing, pytest, fixtures")
+- [ ] Searched RULES_INDEX.md Keywords column for matches?
+- [ ] Found and loaded specialized rules matching keywords?
+- [ ] **If testing task**: Loaded 206-python-pytest.md?
+- [ ] **If deployment task**: Loaded relevant deployment/automation rules?
+- [ ] **If documentation task**: Loaded relevant docs rules?
+
+**Dependency Check:**
+- [ ] Checked "Depends On" column for all loaded rules?
+- [ ] Loaded prerequisites first (in dependency order)?
+
+**Documentation Check:**
+- [ ] Stated loaded rules in "Rules Loaded" section?
+- [ ] Listed searched keywords?
+
+**If ANY check failed:** STOP and search RULES_INDEX.md again before responding.
+
+### Common Rule Loading Pitfalls (Learn from These!)
+
+**Pitfall 1: Testing Tasks Without pytest Rule** ⚠️
+- **Trigger words**: testing, test coverage, unit tests, integration tests, fixtures, parametrization
+- **Required rule**: 206-python-pytest.md
+- **Why critical**: Contains AAA pattern, fixture patterns, marker usage, parametrization, Pre-Task-Completion Test Execution Gate
+- **Keywords to search**: "pytest", "testing", "test coverage", "fixtures"
+
+**Pitfall 2: Python Tasks Without Linting Rule** ⚠️
+- **Trigger words**: Python, code quality, formatting, style, lint errors
+- **Required rules**: 200-python-core.md + 201-python-lint-format.md
+- **Why critical**: Contains `uvx ruff` usage, validation gates, linting standards
+- **Keywords to search**: "Python", "linting", "formatting", "ruff"
+
+**Pitfall 3: Deployment Tasks Without Taskfile/Git Rules** ⚠️
+- **Trigger words**: deploy, CI/CD, automation, workflow, release
+- **Required rules**: 820-taskfile-automation.md, 806-git-workflow-management.md
+- **Why critical**: Contains deployment patterns, git workflow management, task automation
+- **Keywords to search**: "deployment", "CI/CD", "automation", "git workflow"
+
+**Pitfall 4: Documentation Tasks Without Docs Rules** ⚠️
+- **Trigger words**: documentation, docs, README, CHANGELOG, docstrings
+- **Required rules**: 800-project-changelog-rules.md, 801-project-readme-rules.md, 204-python-docs-comments.md
+- **Why critical**: Contains structured documentation standards, changelog format, docstring conventions
+- **Keywords to search**: "documentation", "CHANGELOG", "README", "docstrings"
+
+**Pitfall 5: Streamlit Tasks Without Streamlit Rules** ⚠️
+- **Trigger words**: Streamlit, dashboard, st.cache, fragments, SiS
+- **Required rules**: 101-snowflake-streamlit-core.md + specialized 101*-streamlit-*.md
+- **Why critical**: Contains state management, caching, performance patterns
+- **Keywords to search**: "Streamlit", "dashboard", "caching", "fragments"
 
 ---
 

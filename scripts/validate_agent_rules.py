@@ -84,7 +84,6 @@ class ValidationConfig:
                 "RULES_INDEX.md",
                 "UNIVERSAL_PROMPT.md",
                 "AGENTS.md",
-                "EXAMPLE_PROMPT.md",
             }
 
         if self.required_sections is None:

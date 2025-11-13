@@ -46,7 +46,6 @@ ai_coding_rules_gitlab/
 | Rule content | `templates/XXX-rule-name.md` | Regenerate with `task rule:all` |
 | Discovery guide | `discovery/AGENTS.md` | Copied to `generated/universal/` |
 | Rule catalog | `discovery/RULES_INDEX.md` | Copied to `generated/universal/` |
-| Baseline prompt | `discovery/EXAMPLE_PROMPT.md` | Copied to `generated/universal/` |
 | Generation script | `scripts/generate_agent_rules.py` | Test with `--dry-run` flag |
 
 ## 📋 Development Workflow

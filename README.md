@@ -88,7 +88,6 @@ This repository contains multiple documentation files for different audiences:
 | File | Purpose | Required? |
 |------|---------|-----------|
 | **AGENTS.md** | Rule loading protocol and discovery guide (prescriptive instructions FOR AI) | ✅ Required |
-| **EXAMPLE_PROMPT.md** | Baseline prompt template for AI configuration | ✅ Required |
 | **RULES_INDEX.md** | Machine-readable rule catalog with keywords | ✅ Required |
 | **rules/*.md** | The actual rules (72 rule files) | ✅ Required (loaded on-demand) |
 
@@ -356,7 +355,6 @@ This repository follows a **template-first architecture**: 72 source templates i
 - **Discovery system** files (deployed to project root):
   - `AGENTS.md` - Rule loading protocol FOR AI assistants (prescriptive instructions)
   - `RULES_INDEX.md` - Auto-generated catalog with semantic keywords
-  - `EXAMPLE_PROMPT.md` - Universal baseline prompt for automatic rule loading
 - **IDE-specific formats** in `generated/` for Cursor, Copilot, Cline
 - **Automated generation pipeline** with validation and CI checks
 
@@ -548,9 +546,8 @@ To enable automatic rule discovery with your AI assistant, you need to add the d
 
 **What the AI needs access to:**
 1. `AGENTS.md` - Rule loading protocol (prescriptive instructions FOR the AI)
-2. `EXAMPLE_PROMPT.md` - Baseline prompt template
-3. `RULES_INDEX.md` - Rule catalog (auto-generated, read-only)
-4. `rules/` directory - All rule files (loaded on-demand)
+2. `RULES_INDEX.md` - Rule catalog (auto-generated, read-only)
+3. `rules/` directory - All rule files (loaded on-demand)
 
 ### IDE-Specific Configuration
 
@@ -560,7 +557,7 @@ To enable automatic rule discovery with your AI assistant, you need to add the d
 | **GitHub Copilot** | Deploy via `task deploy:copilot`, then commit | `.github/copilot/instructions/*.md` |
 | **Cline** | Deploy via `task deploy:cline` | Auto-configured in `.clinerules/` |
 | **Claude Projects** | Deploy universal, upload to knowledge base | `AGENTS.md`, `RULES_INDEX.md`, `rules/*.md` |
-| **ChatGPT** | Deploy universal, add to custom instructions | Copy `EXAMPLE_PROMPT.md`, upload other files |
+| **ChatGPT** | Deploy universal, add to custom instructions | Upload `AGENTS.md`, `RULES_INDEX.md`, `rules/*.md` files |
 | **VS Code Extensions** | Deploy universal or use AI extension settings | `rules/*.md` files |
 
 ### Verification: Is Your AI Configured Correctly?
@@ -616,7 +613,6 @@ def configure_ai_context(rules_dir="generated/universal"):
     """Build AI context with discovery files and rules."""
     context_files = [
         "AGENTS.md",
-        "EXAMPLE_PROMPT.md", 
         "RULES_INDEX.md"
     ]
     
@@ -629,7 +625,6 @@ def configure_ai_context(rules_dir="generated/universal"):
     # (AI will request specific rules from rules_dir)
     
     return {
-        "system_prompt": context[1],  # EXAMPLE_PROMPT.md
         "knowledge_base": context,     # All discovery files
         "rules_directory": rules_dir
     }
@@ -642,7 +637,7 @@ See [Programmatic Rule Loading](#programmatic-rule-loading-example) for more exa
 ```
 ai_coding_rules/
 ├── templates/              ← Edit these: 72 source template files
-├── discovery/              ← Discovery system sources (AGENTS.md, RULES_INDEX.md, EXAMPLE_PROMPT.md)
+├── discovery/              ← Discovery system sources (AGENTS.md, RULES_INDEX.md)
 ├── generated/              ← Generated outputs (committed to git)
 │   ├── universal/          ← Universal format (portable Markdown)
 │   ├── cursor/rules/       ← Cursor-specific (.mdc files)
@@ -812,9 +807,6 @@ The following best practices apply to all AI coding assistants and development e
 - **`900-demo-creation.md`** — Realistic demo application development
 - **`901-data-generation-modeling.md`** — Comprehensive data generation and dimensional modeling standards (Kimball methodology, universal naming conventions, business-first view taxonomy, backward compatibility strategies)
 
-### Templates
-- **`EXAMPLE_PROMPT.md`** — Universal baseline prompt for automatic rule loading
-
 ## Directive Language Hierarchy
 
 The rules use a structured directive language with clear priority levels to guide both AI agents and human developers:
@@ -872,7 +864,6 @@ The project follows a **universal-first architecture** where source rule files a
 │  Discovery System (Committed in Repo, deployed to root)    │
 │  ├── AGENTS.md          [Rule loading protocol FOR AI]     │
 │  ├── RULES_INDEX.md     [Searchable catalog]               │
-│  ├── EXAMPLE_PROMPT.md  [Baseline prompt]                  │
 │  └── generate_agent_rules.py [Generation script]           │
 │                                                            │
 │  ⚠️  The rules/ directory does NOT exist yet               │
@@ -1476,7 +1467,7 @@ ls generated/universal/*.md | wc -l
 ```
 
 2. **Add to AI Context Manually**
-   - **Claude Projects:** Upload `discovery/AGENTS.md`, `discovery/EXAMPLE_PROMPT.md`, and relevant `generated/universal/*.md` files to project knowledge
+   - **Claude Projects:** Upload `discovery/AGENTS.md`, `discovery/RULES_INDEX.md`, and relevant `generated/universal/*.md` files to project knowledge
    - **ChatGPT:** Add files to custom instructions or upload via file attachment
    - **Other LLMs:** Refer to specific tool documentation for context management
 
@@ -1513,7 +1504,7 @@ Expected: AI loads 000-global-core, 100-snowflake-core, 101-snowflake-streamlit-
 ls generated/universal/*.md | wc -l  # Should be 72+
 
 # Check discovery files (in this repo's discovery/ directory)
-ls discovery/AGENTS.md discovery/RULES_INDEX.md discovery/EXAMPLE_PROMPT.md
+ls discovery/AGENTS.md discovery/RULES_INDEX.md
 
 # After deployment, check files in project root
 cat AGENTS.md | head -20
@@ -1582,7 +1573,7 @@ chmod -R u+w .
 **Legend:**
 - **Reads Universal Markdown:** Can use `generated/universal/*.md` files without conversion
 - **IDE-Specific Format:** Has optional IDE-specific format available in `generated/` directory
-- **Auto-Discovery:** Supports automatic rule loading via discovery/AGENTS.md/EXAMPLE_PROMPT.md
+- **Auto-Discovery:** Supports automatic rule loading via discovery/AGENTS.md
 - **Status:** Overall compatibility and support level
 
 ## License

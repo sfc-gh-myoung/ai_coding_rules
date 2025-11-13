@@ -47,7 +47,6 @@ SKIP_FILES = {
     "CONTRIBUTING.md",
     "AGENTS.md",
     "AGENTS_V2.md",
-    "EXAMPLE_PROMPT.md",
     "RULES_INDEX.md",
 }
 

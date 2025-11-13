@@ -7,6 +7,85 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.2] - 2025-11-13
+
+### Changed
+
+- **feat(discovery):** Enhanced AGENTS.md with comprehensive keyword extraction guide and self-check protocol (2025-11-13)
+  - **Added Section:** "Task Keyword Extraction Guide (CRITICAL FOR RULE LOADING)" (lines 160-203)
+    - Technology keywords mapping (Python, Snowflake, Docker, Bash → domain rules)
+    - Activity keywords mapping (testing, deployment, validation, documentation → specialized rules)
+    - 4-step process for every task: Extract keywords → Search RULES_INDEX.md → Load matching rules → State loaded rules
+    - Example workflow showing pytest fixtures task requiring 206-python-pytest.md
+  - **Added Section:** "Self-Check Protocol: Did I Load the Right Rules?" (lines 205-233)
+    - Foundation check (000-global-core.md mandatory)
+    - Domain check (identify primary technology)
+    - Specialized check (extract keywords, search RULES_INDEX.md)
+    - Dependency check (load prerequisites first)
+    - Documentation check (state loaded rules and keywords)
+  - **Added Section:** "Common Rule Loading Pitfalls (Learn from These!)" (lines 235-266)
+    - Pitfall 1: Testing tasks without pytest rule (trigger words: testing, fixtures, parametrization)
+    - Pitfall 2: Python tasks without linting rule (trigger words: code quality, formatting)
+    - Pitfall 3: Deployment tasks without Taskfile/Git rules (trigger words: deploy, CI/CD)
+    - Pitfall 4: Documentation tasks without docs rules (trigger words: README, CHANGELOG)
+    - Pitfall 5: Streamlit tasks without Streamlit rules (trigger words: dashboard, st.cache)
+  - **Enhanced Lines 30-36:** Strengthened "Load Specialized Rules" with MANDATORY keyword extraction requirement
+  - **Impact:** Prevents agents from missing critical specialized rules (especially pytest rule for testing tasks)
+  - **Rationale:** Addresses real-world failure where pytest rule was not loaded for test coverage implementation task
+
+- **feat(discovery):** Enhanced RULES_INDEX.md pytest keywords with comprehensive synonyms (2025-11-13)
+  - **Rule 206-python-pytest.md** (line 58): Expanded Keywords column
+  - **Added synonyms:** "test coverage, unit testing, integration testing, fixtures, parametrization, test isolation, mocking, test organization, coverage, test suite, AAA pattern, test markers, uv run pytest"
+  - **Previous keywords:** "pytest, testing" (insufficient for semantic discovery)
+  - **Impact:** Enables agents to discover pytest rule when user mentions "test coverage", "unit tests", "fixtures", etc.
+  - **Rationale:** Improves semantic discovery by matching common testing terminology variants
+
+### Added
+
+- **feat(tests):** Comprehensive pytest test suite for Python scripts with 91 passing tests (2025-11-13)
+  - **Test Infrastructure Created:**
+    - `tests/conftest.py` (242 lines) - Shared pytest fixtures with autouse RNG seeding, sample rule content, mock directories
+    - `tests/utils.py` (160 lines) - Reusable test utilities for rule creation, pattern matching, subprocess execution
+    - `tests/fixtures/sample_rules/` - 4 sample rule files for validation testing
+    - `.coveragerc` - Coverage configuration with 80%+ target for scripts/
+  - **Test Files Created:**
+    - `tests/test_deploy_rules.py` (~450 lines, 33 tests) - Deployment orchestration validation
+      - TestProjectRootDetection (2 tests): Taskfile.yml detection, missing taskfile handling
+      - TestDestinationValidation (4 tests): Directory creation, writable checks, dry-run behavior
+      - TestAgentPathMapping (6 tests): Cursor/Copilot/Cline/Universal path validation
+      - TestAgentsTemplateRendering (6 tests): AGENTS.md template path substitution
+      - TestRuleCopying (3 tests): File copying, dry-run mode, empty source handling
+      - TestRuleGeneration (6 tests): Subprocess orchestration, failure handling
+      - TestEndToEndDeployment (2 tests): Complete workflow validation
+      - TestCLIArgumentParsing (4 tests): Argument validation
+    - `tests/test_update_token_budgets.py` (~500 lines, 30 tests) - Token budget estimation and updates
+      - TestTokenEstimation (7 tests): Word count method, empty/whitespace handling
+      - TestRoundingLogic (11 tests): Banker's rounding (round-half-to-even) validation
+      - TestFileAnalysis (5 tests): Budget detection, threshold checks, error handling
+      - TestFileUpdating (4 tests): Budget replacement, insertion, dry-run mode
+      - TestBatchOperations (3 tests): Multi-file processing, empty directory handling
+      - TestDataStructures (2 tests): Status properties, configuration defaults
+      - TestEdgeCases (2 tests): Large files, extreme thresholds
+    - `tests/test_rule_validation.py` (471 lines, 14 tests) - Rule structure and governance validation
+      - TestRuleStructureValidation (8 tests): Required sections, metadata, H1 titles, governance compliance, XML tags, anti-patterns, emoji usage, contract fields
+      - TestCrossReferenceValidation (2 tests): Cross-reference validity, related rules sections
+      - TestGeneratedOutputValidation (4 tests): Cursor .mdc, Copilot .md, Cline .md validation (skipped if directories don't exist)
+  - **Test Configuration:**
+    - `pyproject.toml` updated with pytest markers (unit, integration, slow)
+    - `pyproject.toml` updated with coverage configuration (80%+ target, scripts/ source, exclude patterns)
+    - `Taskfile.yml` updated with 7 test tasks (test, test:unit, test:integration, test:slow, test:coverage, test:watch, test:debug)
+  - **Test Best Practices Applied:**
+    - AAA pattern (Arrange-Act-Assert) throughout all tests
+    - Function-scoped fixtures for isolation
+    - Parametrized tests for input matrices (pytest.mark.parametrize)
+    - Test markers for selective execution (@pytest.mark.unit, @pytest.mark.integration, @pytest.mark.slow)
+    - Comprehensive docstrings following pytest conventions
+    - Banker's rounding validation (round-half-to-even for .5 values)
+  - **Coverage Target:** 80%+ for all scripts in scripts/ directory
+  - **Test Results:** 91 passed, 4 skipped in 0.27s (skipped tests require generated IDE-specific directories)
+  - **Token Budget Insights:** Fixed rounding tests revealed Python's banker's rounding behavior (125→100 not 150, 250→200 not 300)
+  - **Validation Insights:** 1 rule file (111-snowflake-observability.md) missing required sections (informational only)
+
 ## [2.2.1] - 2025-11-13
 
 ### Removed

@@ -192,16 +192,17 @@ class TestAgentRuleGenerator:
 
 def test_rule_files_exist():
     """Test that expected rule files exist in the repository."""
-    expected_rules = [
-        "000-global-core.md",
-        "100-snowflake-core.md",
-        "200-python-core.md",
-        "generate_agent_rules.py",
-        "README.md",
-    ]
+    # Rule files are in templates/, scripts are in scripts/
+    expected_files = {
+        "templates/000-global-core.md": "Rule file",
+        "templates/100-snowflake-core.md": "Rule file",
+        "templates/200-python-core.md": "Rule file",
+        "scripts/generate_agent_rules.py": "Generator script",
+        "README.md": "Project README",
+    }
 
-    for rule_file in expected_rules:
-        assert Path(rule_file).exists(), f"Expected rule file {rule_file} not found"
+    for file_path, description in expected_files.items():
+        assert Path(file_path).exists(), f"Expected {description} {file_path} not found"
 
 
 def test_readme_has_required_sections():

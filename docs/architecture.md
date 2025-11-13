@@ -12,9 +12,9 @@ The AI Coding Rules Generator is a template-based generation system that transfo
 │                                                               │
 │  templates/                    discovery/                     │
 │  ├── 000-global-core.md       ├── AGENTS.md                   │
-│  ├── 001-memory-bank.md       ├── EXAMPLE_PROMPT.md           │
-│  └── ... (72 files)            └── RULES_INDEX.md             │
-│                                   (deployed to project root)   │
+│  ├── 001-memory-bank.md       └── RULES_INDEX.md             │
+│  └── ... (72 files)               (deployed to project root)   │
+│                                                                   │
 │  (Canonical source - always edit here)                        │
 └───────────────────┬───────────────────────────────────────────┘
                     │
@@ -117,7 +117,6 @@ Rule content...
 
 **Files:**
 - `AGENTS.md` - Templated discovery guide with `{rule_path}` variable
-- `EXAMPLE_PROMPT.md` - Baseline prompt template for AI assistants
 - `RULES_INDEX.md` - Comprehensive rule catalog with keywords
 
 **Behavior:**
@@ -186,7 +185,7 @@ generated/
 ```
 
 **Important:**
-- Discovery files (AGENTS.md, RULES_INDEX.md, EXAMPLE_PROMPT.md) are NOT in `generated/`
+- Discovery files (AGENTS.md, RULES_INDEX.md) are NOT in `generated/`
 - Discovery files are deployed by `deploy_rules.py` to **target project root**
 - Generated directories contain ONLY rule files (72 files each)
 
@@ -218,7 +217,6 @@ generated/
 3. **Discovery File Deployment**
    - Copies `AGENTS.md` (rendered) to **project root**
    - Copies `RULES_INDEX.md` to **project root**
-   - Optional: `EXAMPLE_PROMPT.md` can be copied to **project root**
 
 4. **Validation**
    - Validates destination is writable

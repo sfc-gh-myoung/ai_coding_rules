@@ -31,6 +31,14 @@ AGENT_PATHS = {
     "universal": "rules",
 }
 
+# Agent-specific file extensions
+AGENT_EXTENSIONS = {
+    "cursor": ".mdc",
+    "copilot": ".md",
+    "cline": ".md",
+    "universal": ".md",
+}
+
 AgentType = Literal["cursor", "copilot", "cline", "universal"]
 
 
@@ -166,14 +174,14 @@ def render_agents_template(
     project_root: Path,
     agent: AgentType,
 ) -> str:
-    """Render AGENTS.md template with agent-specific paths.
+    """Render AGENTS.md template with agent-specific paths and extensions.
 
     Args:
         project_root: Path to ai_coding_rules project root
-        agent: Agent type for path substitution
+        agent: Agent type for path and extension substitution
 
     Returns:
-        Rendered AGENTS.md content
+        Rendered AGENTS.md content with correct paths and file extensions
     """
     agents_template = project_root / "discovery" / "AGENTS.md"
 
@@ -186,18 +194,38 @@ def render_agents_template(
     # Read template
     content = agents_template.read_text(encoding="utf-8")
 
-    # Get target path for this agent
+    # Get target path and extension for this agent
     target_path = AGENT_PATHS[agent]
+    target_extension = AGENT_EXTENSIONS[agent]
 
-    # Replace template variable
+    # Replace template variable for path
     rendered = content.replace("{rule_path}", target_path)
+
+    # Replace file extensions if not .md (e.g., .mdc for Cursor)
+    if target_extension != ".md":
+        # Replace all occurrences of .md extension with agent-specific extension
+        # Pattern: /NNN-rule-name.md → /NNN-rule-name.mdc (for Cursor)
+        # Also handles placeholders like [domain]-core.md and [specialized].md
+        # Handles @-mentions: @.cursor/rules/000-global-core.md → @.cursor/rules/000-global-core.mdc
+        import re
+
+        # Match .md extension when preceded by:
+        # 1. Rule filenames (3 digits + hyphen + name): 000-global-core.md, 101a-streamlit.md
+        # 2. Placeholder patterns in brackets with suffix: [domain]-core.md, [specialized].md
+        # Excludes: README.md, RULES_INDEX.md, wildcard patterns (*.md), extensions (.mdx, .mdc)
+        # Note: Pattern works with or without @ prefix (Cursor @-mentions) or ** (markdown bold)
+        rendered = re.sub(
+            r"(\d{3}[a-z0-9]*-[a-z0-9-]+|\[[a-z]+\](?:-[a-z-]+)?)\.md(?!\w)",
+            rf"\1{target_extension}",
+            rendered,
+        )
 
     # Verify no template variables remain
     if "{rule_path}" in rendered:
         log_error("Template rendering incomplete - {rule_path} still present")
         sys.exit(1)
 
-    log_info(f"Template rendered with path: {target_path}")
+    log_info(f"Template rendered with path: {target_path}, extension: {target_extension}")
     return rendered
 
 

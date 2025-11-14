@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.2] - 2025-11-14
+
+## [2.3.1] - 2025-11-14
+
+### Fixed
+
+- **fix(deployment):** Deploy script now correctly updates file extensions in AGENTS.md for Cursor deployments (2025-11-14)
+  - **Issue:** `task deploy:cursor` only updated paths (.cursor/rules) but not file extensions (.md → .mdc)
+  - **Root Cause:** `render_agents_template()` in `scripts/deploy_rules.py` was not replacing .md extensions with agent-specific extensions
+  - **Changes Made:**
+    - Added `AGENT_EXTENSIONS` mapping: `.mdc` for Cursor, `.md` for Copilot/Cline/Universal
+    - Enhanced `render_agents_template()` to apply regex-based extension replacement
+    - Regex pattern matches rule filenames (`\d{3}[a-z0-9]*-[a-z0-9-]+\.md`) and placeholders (`[domain]-core.md`, `[specialized].md`)
+    - Preserves non-rule files (RULES_INDEX.md, README.md) and wildcard patterns (*.md)
+    - Handles @-mentions and markdown bold formatting
+    - Updated discovery/AGENTS.md template header comment to document extension templating
+  - **Testing:**
+    - Added `test_render_agents_template_file_extensions()` with parametrized tests for all 4 agent types
+    - Enhanced `mock_project_root` fixture with realistic AGENTS.md content
+    - All 37 deployment tests pass (33 existing + 4 new)
+    - Manual verification: Cursor deployment produces 72 .mdc files, all AGENTS.md references use .mdc
+  - **Impact:** Cursor deployments now work correctly with .mdc extension throughout AGENTS.md
+  - **Files Modified:**
+    - `scripts/deploy_rules.py` (added AGENT_EXTENSIONS, enhanced render_agents_template)
+    - `discovery/AGENTS.md` (updated template header comment)
+    - `tests/test_deploy_rules.py` (added extension replacement test)
+    - `tests/conftest.py` (enhanced mock_project_root fixture)
+    - `docs/ARCHITECTURE.md` (documented extension conversion in AGENTS.md deployment)
+
 ## [2.3.0] - 2025-11-14
 
 ### Changed

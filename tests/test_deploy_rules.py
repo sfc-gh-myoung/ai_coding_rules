@@ -184,6 +184,45 @@ class TestAgentsTemplateRendering:
         with pytest.raises(SystemExit):
             dr.render_agents_template(project_without_template, "cursor")
 
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "agent,expected_extension",
+        [
+            ("cursor", ".mdc"),
+            ("copilot", ".md"),
+            ("cline", ".md"),
+            ("universal", ".md"),
+        ],
+    )
+    def test_render_agents_template_file_extensions(
+        self, mock_project_root: Path, agent: str, expected_extension: str
+    ) -> None:
+        """Test template rendering applies correct file extensions for each agent type."""
+        # Act
+        rendered = dr.render_agents_template(mock_project_root, agent)
+
+        # Assert: Rule filenames have correct extension
+        if expected_extension == ".mdc":
+            # For Cursor: all rule files should be .mdc
+            assert "000-global-core.mdc" in rendered
+            assert "200-python-core.mdc" in rendered
+            assert "[domain]-core.mdc" in rendered
+            assert "[specialized].mdc" in rendered
+            # Should NOT have rule files ending with .md (but .mdc is OK)
+            import re
+
+            # Check no rule filenames end with .md (pattern: 3 digits + hyphens + .md word boundary)
+            md_rules = re.findall(r"\d{3}[a-z0-9-]+\.md\b", rendered)
+            assert len(md_rules) == 0, f"Found rule files with .md extension: {md_rules}"
+            # But non-rule files should keep .md
+            assert "RULES_INDEX.md" in rendered
+            assert "README.md" in rendered or "README" in rendered  # May or may not have .md suffix
+        else:
+            # For other agents: rule files should be .md
+            assert "000-global-core.md" in rendered
+            assert "200-python-core.md" in rendered
+            assert "RULES_INDEX.md" in rendered
+
 
 class TestRuleCopying:
     """Test rule file copying operations."""

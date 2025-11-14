@@ -216,7 +216,7 @@ class RuleValidator:
         if has_code_references and not re.search(r"Investigation Required", content):
             result.critical_errors.append(
                 "Missing Investigation-First Protocol (MANDATORY per Section 11.5 for code/file rules)"
-                )
+            )
 
     def validate_response_template_completeness(
         self, content: str, result: ValidationResult
@@ -284,45 +284,43 @@ class RuleValidator:
 
     def validate_no_emojis(self, content: str, result: ValidationResult) -> None:
         """Validate NO emojis in machine-consumed files per 002-rule-governance.md v4.0.
-        
-        Per v4.0: ALL emojis are PROHIBITED in machine-consumed files (templates/, 
+
+        Per v4.0: ALL emojis are PROHIBITED in machine-consumed files (templates/,
         AGENTS.md, RULES_INDEX.md). Use text-only markup instead.
-        
+
         Exceptions:
         - Emojis in code examples (Python/SQL strings): icon="⚙️", st.caption("⏱️")
         - Emojis in strikethrough examples showing what NOT to do: ~~🔥 **MANDATORY:**~~
         """
         # Functional semantic marker emojis that are now PROHIBITED
         functional_emojis = r"[🔥⚠️✅❌📊🆕🚨📋]"
-        
+
         # Find all emoji occurrences
         lines_with_emojis = []
         for i, line in enumerate(content.split("\n"), 1):
             # Skip if in code example (contains icon=, st.caption, st.expander, or similar)
-            if any(pattern in line for pattern in ['icon=', 'st.caption', 'st.expander', 'f"']):
+            if any(pattern in line for pattern in ["icon=", "st.caption", "st.expander", 'f"']):
                 continue
-            
+
             # Skip if in strikethrough example (showing what NOT to do)
             if "~~" in line:
                 continue
-            
+
             # Skip if in code block (between ``` markers)
             # This is a simplified check; full parsing would track code block state
             if line.strip().startswith("```"):
                 continue
-                
+
             # Check for functional emojis
             if re.search(functional_emojis, line):
                 lines_with_emojis.append((i, line.strip()[:80]))  # Truncate long lines
-        
+
         if lines_with_emojis:
             result.critical_errors.append(
-                f"Emojis found in machine-consumed file (PROHIBITED per v4.0 - use text-only markup instead)"
+                "Emojis found in machine-consumed file (PROHIBITED per v4.0 - use text-only markup instead)"
             )
             for line_num, line_content in lines_with_emojis[:5]:  # Show first 5 occurrences
-                result.critical_errors.append(
-                    f"  Line {line_num}: {line_content}"
-                )
+                result.critical_errors.append(f"  Line {line_num}: {line_content}")
             if len(lines_with_emojis) > 5:
                 result.critical_errors.append(
                     f"  ... and {len(lines_with_emojis) - 5} more occurrence(s)"
@@ -369,7 +367,7 @@ class RuleValidator:
         self.validate_response_template_completeness(content, result)
         self.validate_token_budget_accuracy(content, result)
         self.validate_keywords_count(content, result)
-        
+
         # v4.0: Check for prohibited emojis in machine-consumed files
         self.validate_no_emojis(content, result)
 

@@ -150,22 +150,27 @@ Every task should define:
 ## Response Template
 
 ```markdown
-## Mode: [PLAN/ACT]
+MODE: [PLAN|ACT]
 
-## Rules Loaded
-[In PLAN: List rule filenames that informed this plan, e.g., "000-global-core, 200-python-core, 210-python-fastapi-core"]
-[In ACT: Optional to include, or reference plan]
+Rules Loaded:
+- rules/000-global-core.mdc (foundation)
+- [additional rules based on task]
 
-## Analysis
-- Current state assessment
-- Requirements identified
+Analysis:
+[Brief analysis of the requirement]
 
-## Task List
-1. [Clear, actionable task]
-2. [Clear, actionable task]
+Task List:
+1. [Specific task with clear deliverable]
+2. [Another task with validation criteria]
+3. [Final task with success metrics]
 
-[In PLAN: "Type 'ACT' to authorize these changes"]
-[In ACT: Implementation details and validation results]
+Implementation:
+[Code/configuration changes following established patterns]
+
+Validation:
+- [x] Changes validated against requirements
+- [x] Tests passing / linting clean
+- [x] Documentation updated
 ```
 
 ## References

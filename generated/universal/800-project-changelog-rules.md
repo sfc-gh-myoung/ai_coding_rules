@@ -13,6 +13,15 @@ Establish directives for maintaining a high-signal, audit-friendly CHANGELOG.md 
 - **Type:** Agent Requested
 - **Scope:** High-signal, audit-friendly changelog maintenance using Conventional Commits
 
+
+## Contract
+- **Inputs/Prereqs:** [Context, files, dependencies needed]
+- **Allowed Tools:** [Tools permitted for this domain]
+- **Forbidden Tools:** [Tools not allowed for this domain]
+- **Required Steps:** [Ordered steps the agent must follow]
+- **Output Format:** [Expected output format]
+- **Validation Steps:** [Checks to confirm success]
+
 ## Quick Start TL;DR (Read First - 30 Seconds)
 
 **MANDATORY:**
@@ -123,14 +132,6 @@ chore(rules): update all Python rules for CLI consistency
 - **Always:** Reference Conventional Commits: https://www.conventionalcommits.org/en/v1.0.0/#specification
 - **Always:** Follow contributing guidelines: `@805-project-contributing-rules.md`
 
-## Contract
-- **Inputs/Prereqs:** [Context, files, dependencies needed]
-- **Allowed Tools:** [Tools permitted for this domain]
-- **Forbidden Tools:** [Tools not allowed for this domain]
-- **Required Steps:** [Ordered steps the agent must follow]
-- **Output Format:** [Expected output format]
-- **Validation Steps:** [Checks to confirm success]
-
 ## Quick Compliance Checklist
 - [ ] **CRITICAL:** CHANGELOG.md updated with entry under `## [Unreleased]` for code changes
 - [ ] **CRITICAL:** Entry follows Conventional Commit format: `<type>(<scope>): <summary>`
@@ -162,8 +163,33 @@ chore(rules): update all Python rules for CLI consistency
 > "I see you use 'snowflake' and 'python' scopes. Adding entry following this pattern..."
 
 ## Response Template
-```
-[Minimal, copy-pasteable template showing expected output format]
+
+```markdown
+Project Documentation Changes:
+
+**File Modified:** [README.md|CHANGELOG.md|CONTRIBUTING.md]
+**Section Updated:** [specific section]
+**Validation:** [documentation standards checklist]
+
+Changes Made:
+1. **[Section Name]**
+   - Added: [specific content]
+   - Updated: [what changed and why]
+   - Format: [Markdown standards followed]
+
+2. **[Another Section]**
+   - Clarified: [ambiguous content]
+   - Examples: [added working examples]
+
+Validation Checklist:
+- [x] Markdown lint passes
+- [x] Links are valid and accessible
+- [x] Code examples are tested
+- [x] Formatting is consistent
+- [x] Table of contents updated (if applicable)
+
+Preview:
+[Show relevant excerpt of updated documentation]
 ```
 
 ## References

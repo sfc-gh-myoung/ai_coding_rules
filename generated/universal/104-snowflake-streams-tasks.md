@@ -79,8 +79,29 @@ Establish patterns for building robust, incremental data pipelines using Snowfla
 - **Negative tests:** [What should fail and how to detect failures]
 
 ## Response Template
-```
-[Minimal, copy-pasteable template showing expected output format]
+
+```sql
+-- Analysis Query: Investigate current state
+SELECT column_pattern, COUNT(*) as usage_count
+FROM information_schema.columns
+WHERE table_schema = 'TARGET_SCHEMA'
+GROUP BY column_pattern;
+
+-- Implementation: Apply Snowflake best practices
+CREATE OR REPLACE VIEW schema.view_name
+COMMENT = 'Business purpose following semantic model standards'
+AS
+SELECT 
+    -- Explicit column list with business context
+    id COMMENT 'Surrogate key',
+    name COMMENT 'Business entity name',
+    created_at COMMENT 'Record creation timestamp'
+FROM schema.source_table
+WHERE is_active = TRUE;
+
+-- Validation: Confirm implementation
+SELECT * FROM schema.view_name LIMIT 5;
+SHOW VIEWS LIKE '%view_name%';
 ```
 
 ## References

@@ -1,6 +1,6 @@
 <!-- Generated for Cline rules. See https://docs.cline.bot/features/cline-rules -->
 
-**Keywords:** datetime, pandas, timedelta, timezone, datetime64, timestamp, date math, time series, Plotly dates, Streamlit dates, date parsing, date arithmetic, tz_localize, tz_convert, to_pydatetime, Pandas 2.x, UTC, datetime.now(UTC)
+**Keywords:** datetime, pandas, timezone, datetime64, timedelta, UTC, date arithmetic, tz_localize, tz_convert, datetime.now(UTC)
 **TokenBudget:** ~3200
 **ContextTier:** High
 **Depends:** 200-python-core

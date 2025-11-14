@@ -2,13 +2,14 @@
 TEMPLATE NOTE: This file uses path templates for deployment flexibility
   
 Template Variable: {rule_path}
-  - cursor deployment: {rule_path} → .cursor/rules
-  - copilot deployment: {rule_path} → .github/copilot/instructions  
-  - cline deployment: {rule_path} → .clinerules
-  - universal deployment: {rule_path} → rules
+  - cursor deployment: {rule_path} → .cursor/rules (files: *.mdc)
+  - copilot deployment: {rule_path} → .github/copilot/instructions (files: *.md)
+  - cline deployment: {rule_path} → .clinerules (files: *.md)
+  - universal deployment: {rule_path} → rules (files: *.md)
 
 During deployment, {rule_path} is automatically replaced with the appropriate path
-for the target agent type. This ensures rules work correctly in any deployment context.
+for the target agent type, and file extensions are updated to match agent requirements
+(.md → .mdc for Cursor). This ensures rules work correctly in any deployment context.
 -->
 
 # CRITICAL: MANDATORY RULE LOADING FOR ALL RESPONSES

@@ -6,7 +6,7 @@ appliesTo:
 ---
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
-**Keywords:** pandas, DataFrame, Series, vectorization, iterrows, apply, chained assignment, SettingWithCopyWarning, memory optimization, dtypes, categorical, groupby, merge, join, performance, inplace, method chaining, index operations
+**Keywords:** pandas, DataFrame, vectorization, SettingWithCopyWarning, memory optimization, dtypes, groupby, merge, performance, method chaining
 **TokenBudget:** ~3600
 **ContextTier:** High
 **Depends:** 200-python-core

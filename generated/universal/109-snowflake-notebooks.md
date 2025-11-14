@@ -14,6 +14,20 @@ Establish best practices for building reproducible, secure, and maintainable Jup
 - **Scope:** Jupyter Notebooks in Snowflake with Snowpark for Python and reproducible data science workflows
 
 
+
+## Contract
+- **Inputs/Prereqs:** Snowflake account access; Snowpark for Python environment; Jupyter notebook environment; virtual environment with pinned dependencies
+- **Allowed Tools:** `edit_notebook`, `read_file`, `run_terminal_cmd` (for notebook execution), `codebase_search`, `write` (for .py/.sql refactoring)
+- **Forbidden Tools:** Direct database credential exposure; notebook execution without environment validation
+- **Required Steps:** 
+  1. Validate environment and dependencies
+  2. Implement descriptive cell naming conventions
+  3. Structure notebook with proper Markdown documentation
+  4. Push computation to Snowflake via Snowpark
+  5. Refactor production code to separate files
+- **Output Format:** Jupyter notebook (.ipynb) with named cells, Markdown documentation, and optional refactored .py/.sql files
+- **Validation Steps:** Verify cell names follow naming conventions; validate deterministic execution; confirm no hardcoded secrets; test Snowpark connectivity
+
 ## Key Principles
 - Deterministic notebooks; one environment with pinned versions; imports centralized at top.
 - Parameterize runs; narrative in Markdown cells; keep code cells focused and avoid hidden state.
@@ -190,19 +204,6 @@ ignore = ["E501"]  # Allow long lines in notebooks for complex expressions
 - Enforces import organization and formatting standards
 - CI/CD ready for automated quality checks
 - Integrates with existing `uv` + `ruff` tooling ecosystem
-
-## Contract
-- **Inputs/Prereqs:** Snowflake account access; Snowpark for Python environment; Jupyter notebook environment; virtual environment with pinned dependencies
-- **Allowed Tools:** `edit_notebook`, `read_file`, `run_terminal_cmd` (for notebook execution), `codebase_search`, `write` (for .py/.sql refactoring)
-- **Forbidden Tools:** Direct database credential exposure; notebook execution without environment validation
-- **Required Steps:** 
-  1. Validate environment and dependencies
-  2. Implement descriptive cell naming conventions
-  3. Structure notebook with proper Markdown documentation
-  4. Push computation to Snowflake via Snowpark
-  5. Refactor production code to separate files
-- **Output Format:** Jupyter notebook (.ipynb) with named cells, Markdown documentation, and optional refactored .py/.sql files
-- **Validation Steps:** Verify cell names follow naming conventions; validate deterministic execution; confirm no hardcoded secrets; test Snowpark connectivity
 
 ## Quick Compliance Checklist
 - [ ] All cells have descriptive, user-friendly names (not cell1, cell2, etc.)

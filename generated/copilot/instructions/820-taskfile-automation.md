@@ -20,6 +20,15 @@ Provide directives for creating, modifying, and maintaining project automation u
 - **Type:** Agent Requested
 - **Scope:** Project automation using Taskfile.yml for consistent development workflows
 
+
+## Contract
+- **Inputs/Prereqs:** [Context, files, dependencies needed]
+- **Allowed Tools:** [Tools permitted for this domain]
+- **Forbidden Tools:** [Tools not allowed for this domain]
+- **Required Steps:** [Ordered steps the agent must follow]
+- **Output Format:** [Expected output format]
+- **Validation Steps:** [Checks to confirm success]
+
 ## Quick Start TL;DR (Read First - 30 Seconds)
 
 **MANDATORY:**
@@ -242,14 +251,6 @@ cmds:
 - **Mistake:** Not validating includes and YAML structure after changes.
   - **Prevention:** Run `task --list` and `task --dry-run <task>` after edits.
 
-## Contract
-- **Inputs/Prereqs:** [Context, files, dependencies needed]
-- **Allowed Tools:** [Tools permitted for this domain]
-- **Forbidden Tools:** [Tools not allowed for this domain]
-- **Required Steps:** [Ordered steps the agent must follow]
-- **Output Format:** [Expected output format]
-- **Validation Steps:** [Checks to confirm success]
-
 ## Quick Compliance Checklist
 - [ ] **Version specified:** `version: '3.45'` or later in all Taskfiles
 - [ ] **Error handling:** `set: [pipefail]` added after version in all Taskfiles
@@ -286,8 +287,33 @@ cmds:
 > "I see you're using version 3.45. Adding task with proper error handling..."
 
 ## Response Template
-```
-[Minimal, copy-pasteable template showing expected output format]
+
+```markdown
+Project Documentation Changes:
+
+**File Modified:** [README.md|CHANGELOG.md|CONTRIBUTING.md]
+**Section Updated:** [specific section]
+**Validation:** [documentation standards checklist]
+
+Changes Made:
+1. **[Section Name]**
+   - Added: [specific content]
+   - Updated: [what changed and why]
+   - Format: [Markdown standards followed]
+
+2. **[Another Section]**
+   - Clarified: [ambiguous content]
+   - Examples: [added working examples]
+
+Validation Checklist:
+- [x] Markdown lint passes
+- [x] Links are valid and accessible
+- [x] Code examples are tested
+- [x] Formatting is consistent
+- [x] Table of contents updated (if applicable)
+
+Preview:
+[Show relevant excerpt of updated documentation]
 ```
 
 ## References

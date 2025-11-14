@@ -6,7 +6,7 @@ appliesTo:
 ---
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
-**Keywords:** Observability, logging, tracing, metrics, telemetry, monitoring, query history, ACCOUNT_USAGE, event tables, Snowflake Trail, System Views, Snowsight, Query History, Copy History, Task History, Dynamic Tables, AI Observability
+**Keywords:** Observability, monitoring, ACCOUNT_USAGE, query history, event tables, metrics, logging, telemetry, Snowsight, System Views
 **TokenBudget:** ~7700
 **ContextTier:** High
 **Depends:** 100-snowflake-core
@@ -20,6 +20,60 @@ Establish comprehensive observability practices for Snowflake environments throu
 
 - **Type:** Agent Requested
 - **Scope:** Snowflake observability, telemetry configuration, logging, tracing, metrics, and event table management
+
+
+## 13. Contract
+
+**MANDATORY:**
+- **Inputs/Prereqs:** 
+  - Active event table (verify with `SHOW PARAMETERS LIKE 'EVENT_TABLE' IN ACCOUNT`)
+  - Appropriate telemetry level configuration for environment
+  - Warehouse with SELECT privileges on `SNOWFLAKE.ACCOUNT_USAGE` schema
+  - For Python handlers: `snowflake-telemetry-python` package dependency
+  - For Java/Scala: SLF4J logging framework configured
+
+- **Allowed Tools:** 
+  - `ALTER ACCOUNT/DATABASE/SCHEMA/FUNCTION` for telemetry level configuration
+  - Standard logging libraries (Python `logging`, Java `slf4j`, JavaScript `console`)
+  - `snowflake-telemetry-python` package for custom spans and attributes
+  - SQL queries on event tables (`SNOWFLAKE.ACCOUNT_USAGE.EVENT_TABLE`)
+  - SQL queries on System Views (`QUERY_HISTORY`, `COPY_HISTORY`, `TASK_HISTORY`, etc.)
+  - Snowsight UI for Traces & Logs visualization
+  - `SHOW PARAMETERS` for investigating current telemetry configuration
+
+**FORBIDDEN:**
+- **Forbidden Tools:** 
+  - Excessive DEBUG logging in production environments without cost analysis
+  - Modifying telemetry configuration without understanding retention and cost implications
+  - Using System Views (ACCOUNT_USAGE) for real-time monitoring (45+ min latency)
+  - Querying event tables with `SELECT *` (always use explicit column projection)
+  - Creating event tables without specifying retention policy
+  - Speculating about telemetry configuration without reading actual parameter values
+
+**MANDATORY:**
+- **Required Steps:**
+  1. **Investigate:** Check current telemetry configuration using `SHOW PARAMETERS LIKE '%LOG_LEVEL%'`, `SHOW PARAMETERS LIKE '%TRACE_LEVEL%'`, `SHOW PARAMETERS LIKE '%METRIC_LEVEL%'`
+  2. **Verify:** Confirm active event table exists with `SHOW EVENT TABLES` and `SHOW PARAMETERS LIKE 'EVENT_TABLE'`
+  3. **Configure:** Set appropriate telemetry levels based on environment (WARN+ for prod, DEBUG for dev)
+  4. **Implement:** Add logging/tracing in handler code using standard libraries and telemetry package
+  5. **Validate:** Query event tables to confirm data collection is working
+  6. **Monitor:** Create monitoring views/queries for ongoing analysis
+  7. **Visualize:** Set up Snowsight dashboards and alerts for operational monitoring
+
+- **Output Format:** 
+  - SQL DDL statements with explicit telemetry level configuration
+  - Python/Java/JavaScript code with proper logging import statements and usage
+  - Monitoring queries with explicit column selection (no `SELECT *`)
+  - Fully-qualified object names for production queries
+  - Comments explaining telemetry strategy and cost considerations
+
+- **Validation Steps:** 
+  - Verify telemetry parameters are set correctly with `SHOW PARAMETERS`
+  - Confirm event table is receiving data with row count query
+  - Validate monitoring queries return expected results without errors
+  - Check Snowsight UI displays telemetry data in Traces & Logs interface
+  - Ensure log levels are appropriate for environment (no DEBUG in production)
+  - Verify retention policy on event tables aligns with cost budget
 
 ## Quick Start TL;DR (Read First - 30 Seconds)
 
@@ -1078,59 +1132,6 @@ ALTER SESSION SET TRACE_LEVEL = ALWAYS;
 - **Task History:** 45 minutes latency
 - **Metering History:** 2-3 hours latency
 - **Implication:** Not suitable for real-time monitoring; use event tables for real-time needs.
-
-## 13. Contract
-
-**MANDATORY:**
-- **Inputs/Prereqs:** 
-  - Active event table (verify with `SHOW PARAMETERS LIKE 'EVENT_TABLE' IN ACCOUNT`)
-  - Appropriate telemetry level configuration for environment
-  - Warehouse with SELECT privileges on `SNOWFLAKE.ACCOUNT_USAGE` schema
-  - For Python handlers: `snowflake-telemetry-python` package dependency
-  - For Java/Scala: SLF4J logging framework configured
-
-- **Allowed Tools:** 
-  - `ALTER ACCOUNT/DATABASE/SCHEMA/FUNCTION` for telemetry level configuration
-  - Standard logging libraries (Python `logging`, Java `slf4j`, JavaScript `console`)
-  - `snowflake-telemetry-python` package for custom spans and attributes
-  - SQL queries on event tables (`SNOWFLAKE.ACCOUNT_USAGE.EVENT_TABLE`)
-  - SQL queries on System Views (`QUERY_HISTORY`, `COPY_HISTORY`, `TASK_HISTORY`, etc.)
-  - Snowsight UI for Traces & Logs visualization
-  - `SHOW PARAMETERS` for investigating current telemetry configuration
-
-**FORBIDDEN:**
-- **Forbidden Tools:** 
-  - Excessive DEBUG logging in production environments without cost analysis
-  - Modifying telemetry configuration without understanding retention and cost implications
-  - Using System Views (ACCOUNT_USAGE) for real-time monitoring (45+ min latency)
-  - Querying event tables with `SELECT *` (always use explicit column projection)
-  - Creating event tables without specifying retention policy
-  - Speculating about telemetry configuration without reading actual parameter values
-
-**MANDATORY:**
-- **Required Steps:**
-  1. **Investigate:** Check current telemetry configuration using `SHOW PARAMETERS LIKE '%LOG_LEVEL%'`, `SHOW PARAMETERS LIKE '%TRACE_LEVEL%'`, `SHOW PARAMETERS LIKE '%METRIC_LEVEL%'`
-  2. **Verify:** Confirm active event table exists with `SHOW EVENT TABLES` and `SHOW PARAMETERS LIKE 'EVENT_TABLE'`
-  3. **Configure:** Set appropriate telemetry levels based on environment (WARN+ for prod, DEBUG for dev)
-  4. **Implement:** Add logging/tracing in handler code using standard libraries and telemetry package
-  5. **Validate:** Query event tables to confirm data collection is working
-  6. **Monitor:** Create monitoring views/queries for ongoing analysis
-  7. **Visualize:** Set up Snowsight dashboards and alerts for operational monitoring
-
-- **Output Format:** 
-  - SQL DDL statements with explicit telemetry level configuration
-  - Python/Java/JavaScript code with proper logging import statements and usage
-  - Monitoring queries with explicit column selection (no `SELECT *`)
-  - Fully-qualified object names for production queries
-  - Comments explaining telemetry strategy and cost considerations
-
-- **Validation Steps:** 
-  - Verify telemetry parameters are set correctly with `SHOW PARAMETERS`
-  - Confirm event table is receiving data with row count query
-  - Validate monitoring queries return expected results without errors
-  - Check Snowsight UI displays telemetry data in Traces & Logs interface
-  - Ensure log levels are appropriate for environment (no DEBUG in production)
-  - Verify retention policy on event tables aligns with cost budget
 
 ## 14. Quick Compliance Checklist
 - [ ] Event table verified as active before emitting telemetry (`SHOW PARAMETERS LIKE 'EVENT_TABLE'`)

@@ -23,6 +23,15 @@ Provide comprehensive guidance for deploying, managing, and optimizing container
 - **Type:** Agent Requested
 - **Scope:** Snowflake Snowpark Container Services, containerized applications, microservices
 
+
+## Contract
+- **Inputs/Prereqs:** [Context, files, dependencies needed]
+- **Allowed Tools:** [Tools permitted for this domain]
+- **Forbidden Tools:** [Tools not allowed for this domain]
+- **Required Steps:** [Ordered steps the agent must follow]
+- **Output Format:** [Expected output format]
+- **Validation Steps:** [Checks to confirm success]
+
 ## Quick Start TL;DR (Read First - 30 Seconds)
 
 **MANDATORY:**
@@ -455,14 +464,6 @@ spec:
 - **Avoid:** New connections per request (use pooling); processing large datasets in memory without streaming.
 - **Avoid:** Ignoring resource limits; using synchronous processing for long-running operations.
 
-## Contract
-- **Inputs/Prereqs:** [Context, files, dependencies needed]
-- **Allowed Tools:** [Tools permitted for this domain]
-- **Forbidden Tools:** [Tools not allowed for this domain]
-- **Required Steps:** [Ordered steps the agent must follow]
-- **Output Format:** [Expected output format]
-- **Validation Steps:** [Checks to confirm success]
-
 ## Quick Compliance Checklist
 - [ ] Required dependencies and context verified
 - [ ] Appropriate tools selected and validated
@@ -492,8 +493,29 @@ spec:
 > "I see you use GPU_NV_S compute pools with versioned images. Deploying new service following this pattern..."
 
 ## Response Template
-```
-[Minimal, copy-pasteable template showing expected output format]
+
+```sql
+-- Analysis Query: Investigate current state
+SELECT column_pattern, COUNT(*) as usage_count
+FROM information_schema.columns
+WHERE table_schema = 'TARGET_SCHEMA'
+GROUP BY column_pattern;
+
+-- Implementation: Apply Snowflake best practices
+CREATE OR REPLACE VIEW schema.view_name
+COMMENT = 'Business purpose following semantic model standards'
+AS
+SELECT 
+    -- Explicit column list with business context
+    id COMMENT 'Surrogate key',
+    name COMMENT 'Business entity name',
+    created_at COMMENT 'Record creation timestamp'
+FROM schema.source_table
+WHERE is_active = TRUE;
+
+-- Validation: Confirm implementation
+SELECT * FROM schema.view_name LIMIT 5;
+SHOW VIEWS LIKE '%view_name%';
 ```
 
 ## References

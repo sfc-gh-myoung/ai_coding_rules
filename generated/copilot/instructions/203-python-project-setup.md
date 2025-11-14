@@ -22,6 +22,15 @@ Provide essential Python project setup and packaging guidance to avoid common bu
 - **Type:** Agent Requested
 - **Scope:** Python project setup, packaging, and dependency management with modern build tools
 
+
+## Contract
+- **Inputs/Prereqs:** [Context, files, dependencies needed]
+- **Allowed Tools:** [Tools permitted for this domain]
+- **Forbidden Tools:** [Tools not allowed for this domain]
+- **Required Steps:** [Ordered steps the agent must follow]
+- **Output Format:** [Expected output format]
+- **Validation Steps:** [Checks to confirm success]
+
 ## Quick Start TL;DR (Read First - 30 Seconds)
 
 **MANDATORY:**
@@ -206,14 +215,6 @@ addopts = [
 - **Always:** Verify all `__init__.py` files exist with `find . -name "__init__.py"`.
 - **Always:** For CLI apps, test console scripts: `uv run myapp --help` after installation.
 
-## Contract
-- **Inputs/Prereqs:** [Context, files, dependencies needed]
-- **Allowed Tools:** [Tools permitted for this domain]
-- **Forbidden Tools:** [Tools not allowed for this domain]
-- **Required Steps:** [Ordered steps the agent must follow]
-- **Output Format:** [Expected output format]
-- **Validation Steps:** [Checks to confirm success]
-
 ## Quick Compliance Checklist
 - [ ] Required dependencies and context verified
 - [ ] Appropriate tools selected and validated
@@ -243,8 +244,61 @@ addopts = [
 > "I see you use a flat layout with 'app' as the package. Adding the new module following this pattern..."
 
 ## Response Template
+
+```python
+# Investigation: Check current implementation
+# Read existing files, understand patterns
+
+# Implementation: Following uv + ruff + pytest standards
+from typing import Protocol
+from datetime import datetime, UTC
+
+class ServiceProtocol(Protocol):
+    """Clear contract for service implementations."""
+    
+    def process(self, data: dict) -> dict:
+        """Process data following validation rules."""
+        ...
+
+def implementation_function(input_data: dict) -> dict:
+    """
+    Implement feature following project conventions.
+    
+    Args:
+        input_data: Validated input following schema
+    
+    Returns:
+        Processed result with metadata
+    
+    Raises:
+        ValueError: If input validation fails
+    """
+    # Use datetime.now(UTC) not datetime.utcnow()
+    timestamp = datetime.now(UTC)
+    
+    # Implement business logic
+    result = {"status": "success", "timestamp": timestamp}
+    return result
+
+# Validation: Test the implementation
+def test_implementation_function():
+    """Test following AAA pattern."""
+    # Arrange
+    test_input = {"key": "value"}
+    
+    # Act
+    result = implementation_function(test_input)
+    
+    # Assert
+    assert result["status"] == "success"
+    assert "timestamp" in result
 ```
-[Minimal, copy-pasteable template showing expected output format]
+
+```bash
+# Validation commands
+uvx ruff check .
+uvx ruff format --check .
+uv run pytest tests/
 ```
 
 ## References

@@ -15,6 +15,15 @@ Establish comprehensive best practices for using Snowflake Model Registry to man
 - **Type:** Agent Requested
 - **Scope:** Snowflake Model Registry operations including model logging, versioning, access control, inference, and lifecycle management for Python ML models
 
+
+## Contract
+- **Inputs/Prereqs:** [Context, files, dependencies needed]
+- **Allowed Tools:** [Tools permitted for this domain]
+- **Forbidden Tools:** [Tools not allowed for this domain]
+- **Required Steps:** [Ordered steps the agent must follow]
+- **Output Format:** [Expected output format]
+- **Validation Steps:** [Checks to confirm success]
+
 ## Quick Start TL;DR (Read First - 30 Seconds)
 
 **MANDATORY:**
@@ -301,14 +310,6 @@ ORDER BY days_since_update DESC;
 - **Always:** Maintain model lineage and data provenance information
 - **Requirement:** Regular compliance reviews for model access and usage
 
-## Contract
-- **Inputs/Prereqs:** [Context, files, dependencies needed]
-- **Allowed Tools:** [Tools permitted for this domain]
-- **Forbidden Tools:** [Tools not allowed for this domain]
-- **Required Steps:** [Ordered steps the agent must follow]
-- **Output Format:** [Expected output format]
-- **Validation Steps:** [Checks to confirm success]
-
 ## Quick Compliance Checklist
 - [ ] Required dependencies and context verified
 - [ ] Appropriate tools selected and validated
@@ -338,8 +339,29 @@ ORDER BY days_since_update DESC;
 > "I see you organize models by ML.REGISTRY schema with version tags. Logging new model following this pattern..."
 
 ## Response Template
-```
-[Minimal, copy-pasteable template showing expected output format]
+
+```sql
+-- Analysis Query: Investigate current state
+SELECT column_pattern, COUNT(*) as usage_count
+FROM information_schema.columns
+WHERE table_schema = 'TARGET_SCHEMA'
+GROUP BY column_pattern;
+
+-- Implementation: Apply Snowflake best practices
+CREATE OR REPLACE VIEW schema.view_name
+COMMENT = 'Business purpose following semantic model standards'
+AS
+SELECT 
+    -- Explicit column list with business context
+    id COMMENT 'Surrogate key',
+    name COMMENT 'Business entity name',
+    created_at COMMENT 'Record creation timestamp'
+FROM schema.source_table
+WHERE is_active = TRUE;
+
+-- Validation: Confirm implementation
+SELECT * FROM schema.view_name LIMIT 5;
+SHOW VIEWS LIKE '%view_name%';
 ```
 
 ## References

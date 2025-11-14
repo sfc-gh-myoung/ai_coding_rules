@@ -215,6 +215,22 @@ tasks:
     (project_root / "discovery" / "AGENTS.md").write_text(
         """# AGENTS.md Template
 Path: {rule_path}
+
+## Rule Loading Examples
+- Load `{rule_path}/000-global-core.md` (foundation)
+- Load `{rule_path}/200-python-core.md` (Python domain)
+- Load `{rule_path}/206-python-pytest.md` (testing)
+
+## Placeholder Examples
+- `{rule_path}/[domain]-core.md` (e.g., 100-snowflake-core, 200-python-core)
+- `{rule_path}/[specialized].md` (task-specific rules)
+
+## References Section
+- **@{rule_path}/000-global-core.md** - Foundational principles
+- **@{rule_path}/002-rule-governance.md** - How rules are structured
+
+## Non-Rule Files (should keep .md)
+See RULES_INDEX.md and README.md for more information.
 """
     )
 

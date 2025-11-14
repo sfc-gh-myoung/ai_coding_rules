@@ -125,6 +125,7 @@ Rule content...
 - Skipped by generation scripts (not treated as rules)
 - Deployed to project root by `deploy_rules.py`
 - `AGENTS.md` template variable `{rule_path}` replaced with agent-specific path during deployment
+- `AGENTS.md` file extensions updated during deployment (`.md` → `.mdc` for Cursor, stays `.md` for others)
 
 ### Generation Engine (`scripts/generate_agent_rules.py`)
 
@@ -395,9 +396,11 @@ Reference: See @201-python-lint-format.mdc
 ```
 
 **Reference Conversion:**
-- `201-python-lint-format.md` → `201-python-lint-format.mdc`
-- `@some-rule.md` → `@some-rule.mdc`
-- Preserves: `README.md`, `CHANGELOG.md` (documentation files)
+- Rule references: `201-python-lint-format.md` → `201-python-lint-format.mdc`
+- @-mentions: `@some-rule.md` → `@some-rule.mdc`
+- Placeholders: `[domain]-core.md` → `[domain]-core.mdc`
+- Preserves: `README.md`, `CHANGELOG.md`, `RULES_INDEX.md` (non-rule files)
+- Applied to: Rule files during generation, AGENTS.md during deployment
 
 ### Copilot Format
 

@@ -880,6 +880,29 @@ def search(query: str, page: int = 1, limit: int = 10) -> SearchResponse:
 ## Response Template
 
 ```markdown
+MODE: [PLAN|ACT]
+
+Rules Loaded:
+- rules/000-global-core.md (foundation)
+- [additional rules based on task]
+
+Analysis:
+[Brief analysis of the requirement]
+
+Task List:
+1. [Specific task with clear deliverable]
+2. [Another task with validation criteria]
+3. [Final task with success metrics]
+
+Implementation:
+[Code/configuration changes following established patterns]
+
+Validation:
+- [x] Changes validated against requirements
+- [x] Tests passing / linting clean
+- [x] Documentation updated
+```
+
 ## Tool Design Analysis
 - **Purpose:** [What this tool accomplishes in one sentence]
 - **Parameters:** [Each parameter with type and meaning]

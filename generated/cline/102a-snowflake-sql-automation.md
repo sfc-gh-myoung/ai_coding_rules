@@ -15,6 +15,21 @@ Guide creation of parameterized SQL templates for automated Snowflake deployment
 - **Type:** Agent Requested (use when "production ready" specified)
 - **Scope:** Production SQL templates, CI/CD pipelines, multi-environment deployments, automated workflows
 
+
+## Contract
+- **Inputs/Prereqs:** Production Snowflake account, CI/CD pipeline, SQL templates with variables, environment-specific secrets
+- **Allowed Tools:** Snowflake CLI, Task automation, GitHub Actions, GitLab CI, Terraform
+- **Forbidden Tools:** Manual UI operations, hardcoded credentials, CREATE OR REPLACE for tables with data
+- **Required Steps:**
+  1. Create parameterized SQL templates with variables
+  2. Use idempotent patterns (MERGE, IF NOT EXISTS)
+  3. Never use CREATE OR REPLACE for tables (data loss risk)
+  4. Add validation scripts for pre/post deployment
+  5. Integrate with CI/CD pipeline
+  6. Test across dev/test environments before production
+- **Output Format:** SQL template files (.sql), Taskfile.yml tasks, CI/CD workflow files
+- **Validation Steps:** Template validation → dev deployment → test verification → production deployment → post-deploy checks
+
 ## Key Principles
 - **Parameterization**: All environment-specific values as variables
 - **Idempotency**: Safe to run multiple times (MERGE, WHERE NOT EXISTS)
@@ -504,20 +519,6 @@ SELECT
     MAX(METADATA$ROW_ID) AS max_row_id
 FROM <%DATABASE%>.<%SCHEMA%>.SCADA_DATA;
 ```
-
-## Contract
-- **Inputs/Prereqs:** Production Snowflake account, CI/CD pipeline, SQL templates with variables, environment-specific secrets
-- **Allowed Tools:** Snowflake CLI, Task automation, GitHub Actions, GitLab CI, Terraform
-- **Forbidden Tools:** Manual UI operations, hardcoded credentials, CREATE OR REPLACE for tables with data
-- **Required Steps:**
-  1. Create parameterized SQL templates with variables
-  2. Use idempotent patterns (MERGE, IF NOT EXISTS)
-  3. Never use CREATE OR REPLACE for tables (data loss risk)
-  4. Add validation scripts for pre/post deployment
-  5. Integrate with CI/CD pipeline
-  6. Test across dev/test environments before production
-- **Output Format:** SQL template files (.sql), Taskfile.yml tasks, CI/CD workflow files
-- **Validation Steps:** Template validation → dev deployment → test verification → production deployment → post-deploy checks
 
 ## Quick Compliance Checklist
 

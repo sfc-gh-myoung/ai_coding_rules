@@ -185,6 +185,9 @@ $RECYCLE.BIN/
 # Cursor memory bank
 memory-bank/
 
+# Cursor rules
+.cursor/rules/
+
 # Output directories
 output/
 temp/
@@ -195,8 +198,3 @@ tmp/
 
 # Ruff
 .ruff_cache/
-
-# Temporary working documents (not for version control)
-RELEASE_ANNOUNCEMENT_V2.md
-PHASE1_COMPLETE.md
-user-workflow-implementation.md

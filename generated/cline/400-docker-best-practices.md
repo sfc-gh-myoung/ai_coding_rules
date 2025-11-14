@@ -286,7 +286,52 @@ id_dsa
 > "I see you're using debian:12. Adding multi-stage build with compatible base..."
 
 ## Response Template
-```markdown
+
+```dockerfile
+# Multi-stage build following security best practices
+
+# Stage 1: Build stage
+FROM python:3.12-slim@sha256:specific-digest AS builder
+
+# Create non-root user
+RUN groupadd -r appuser --gid=1000 && \
+    useradd -r -g appuser --uid=1000 --home=/app appuser
+
+# Install dependencies
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Stage 2: Runtime stage (minimal attack surface)
+FROM python:3.12-slim@sha256:specific-digest
+
+# Copy non-root user from builder
+COPY --from=builder /etc/passwd /etc/passwd
+COPY --from=builder /etc/group /etc/group
+
+# Set up application
+WORKDIR /app
+COPY --from=builder --chown=appuser:appuser /app /app
+COPY --chown=appuser:appuser . .
+
+# Switch to non-root user
+USER appuser
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD python -c "import requests; requests.get('http://localhost:8000/health')"
+
+# Expose port and run
+EXPOSE 8000
+CMD ["python", "app.py"]
+```
+
+```bash
+# Validation
+docker build --no-cache -t myapp:latest .
+docker run --rm myapp:latest python -c "print('Container validation passed')"
+```
+
 ## Docker Changes
 - Base image: <name:tag@sha256:...>
 - Non-root user: <uid:gid>

@@ -168,7 +168,63 @@ convention = "google"  # or "numpy"
 > "I see you use Google-style docstrings. Adding documentation following this convention..."
 
 ## Response Template
-```markdown
+
+```python
+# Investigation: Check current implementation
+# Read existing files, understand patterns
+
+# Implementation: Following uv + ruff + pytest standards
+from typing import Protocol
+from datetime import datetime, UTC
+
+class ServiceProtocol(Protocol):
+    """Clear contract for service implementations."""
+    
+    def process(self, data: dict) -> dict:
+        """Process data following validation rules."""
+        ...
+
+def implementation_function(input_data: dict) -> dict:
+    """
+    Implement feature following project conventions.
+    
+    Args:
+        input_data: Validated input following schema
+    
+    Returns:
+        Processed result with metadata
+    
+    Raises:
+        ValueError: If input validation fails
+    """
+    # Use datetime.now(UTC) not datetime.utcnow()
+    timestamp = datetime.now(UTC)
+    
+    # Implement business logic
+    result = {"status": "success", "timestamp": timestamp}
+    return result
+
+# Validation: Test the implementation
+def test_implementation_function():
+    """Test following AAA pattern."""
+    # Arrange
+    test_input = {"key": "value"}
+    
+    # Act
+    result = implementation_function(test_input)
+    
+    # Assert
+    assert result["status"] == "success"
+    assert "timestamp" in result
+```
+
+```bash
+# Validation commands
+uvx ruff check .
+uvx ruff format --check .
+uv run pytest tests/
+```
+
 ## Python Docs & Comments Plan
 - Style: Google | NumPy
 - Ruff: select includes D; convention set to style

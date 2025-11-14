@@ -563,7 +563,30 @@ Part 3: Evaluation
 
 ## Response Template
 
-```markdown
+```sql
+-- Analysis Query: Investigate current state
+SELECT column_pattern, COUNT(*) as usage_count
+FROM information_schema.columns
+WHERE table_schema = 'TARGET_SCHEMA'
+GROUP BY column_pattern;
+
+-- Implementation: Apply Snowflake best practices
+CREATE OR REPLACE VIEW schema.view_name
+COMMENT = 'Business purpose following semantic model standards'
+AS
+SELECT 
+    -- Explicit column list with business context
+    id COMMENT 'Surrogate key',
+    name COMMENT 'Business entity name',
+    created_at COMMENT 'Record creation timestamp'
+FROM schema.source_table
+WHERE is_active = TRUE;
+
+-- Validation: Confirm implementation
+SELECT * FROM schema.view_name LIMIT 5;
+SHOW VIEWS LIKE '%view_name%';
+```
+
 ## 🎯 Learning Objectives
 
 By the end of this notebook, you will understand:

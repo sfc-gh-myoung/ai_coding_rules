@@ -608,6 +608,33 @@ gh pr create --title "fix: revert problematic change"
 ## Response Template
 
 ```markdown
+Project Documentation Changes:
+
+**File Modified:** [README.md|CHANGELOG.md|CONTRIBUTING.md]
+**Section Updated:** [specific section]
+**Validation:** [documentation standards checklist]
+
+Changes Made:
+1. **[Section Name]**
+   - Added: [specific content]
+   - Updated: [what changed and why]
+   - Format: [Markdown standards followed]
+
+2. **[Another Section]**
+   - Clarified: [ambiguous content]
+   - Examples: [added working examples]
+
+Validation Checklist:
+- [x] Markdown lint passes
+- [x] Links are valid and accessible
+- [x] Code examples are tested
+- [x] Formatting is consistent
+- [x] Table of contents updated (if applicable)
+
+Preview:
+[Show relevant excerpt of updated documentation]
+```
+
 ## Git Workflow Analysis
 - **Current Branch:** [branch name from `git branch --show-current`]
 - **Git State:** [clean/uncommitted changes]

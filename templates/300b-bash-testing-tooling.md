@@ -19,6 +19,15 @@ Provide comprehensive bash testing, debugging, and modern tooling integration in
 - **Type:** Agent Requested
 - **Scope:** Bash testing, debugging, development workflows, CI/CD
 
+
+## Contract
+- **Inputs/Prereqs:** [Context, files, dependencies needed]
+- **Allowed Tools:** [Tools permitted for this domain]
+- **Forbidden Tools:** [Tools not allowed for this domain]
+- **Required Steps:** [Ordered steps the agent must follow]
+- **Output Format:** [Expected output format]
+- **Validation Steps:** [Checks to confirm success]
+
 ## Quick Start TL;DR (Read First - 30 Seconds)
 
 **MANDATORY:**
@@ -467,14 +476,6 @@ generate_function_docs() {
 }
 ```
 
-## Contract
-- **Inputs/Prereqs:** [Context, files, dependencies needed]
-- **Allowed Tools:** [Tools permitted for this domain]
-- **Forbidden Tools:** [Tools not allowed for this domain]
-- **Required Steps:** [Ordered steps the agent must follow]
-- **Output Format:** [Expected output format]
-- **Validation Steps:** [Checks to confirm success]
-
 ## Quick Compliance Checklist
 - [ ] Required dependencies and context verified
 - [ ] Appropriate tools selected and validated
@@ -504,8 +505,58 @@ generate_function_docs() {
 > "I see 5 SC2086 warnings about unquoted variables. Let me fix those..."
 
 ## Response Template
+
+```bash
+#!/usr/bin/env bash
+# Script following bash best practices from rule
+
+set -euo pipefail  # Exit on error, undefined vars, pipe failures
+IFS=$'\n\t'      # Safe word splitting
+
+# Constants
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly LOG_FILE="${SCRIPT_DIR}/output.log"
+
+# Functions with clear contracts
+main() {
+    # Investigation phase
+    check_prerequisites
+    
+    # Implementation phase
+    perform_operations
+    
+    # Validation phase
+    verify_results
+}
+
+check_prerequisites() {
+    local -a required_commands=(jq curl git)
+    
+    for cmd in "${required_commands[@]}"; do
+        if ! command -v "${cmd}" &>/dev/null; then
+            echo "ERROR: Required command not found: ${cmd}" >&2
+            exit 1
+        fi
+    done
+}
+
+perform_operations() {
+    echo "Performing operations following project patterns..."
+    # Implementation details here
+}
+
+verify_results() {
+    echo "Validating results..."
+    # Validation logic here
+}
+
+# Execute main function
+main "$@"
 ```
-[Minimal, copy-pasteable template showing expected output format]
+
+```bash
+# Validation with shellcheck
+shellcheck script.sh
 ```
 
 ## References

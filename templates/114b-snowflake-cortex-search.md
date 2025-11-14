@@ -2,7 +2,7 @@
 **Type:** Agent Requested
 **AppliesTo:** `**/*.sql`, `**/*.py`
 **AutoAttach:** false
-**Keywords:** Cortex Search, vector search, embeddings, hybrid search, search index, retrieval, RAG, semantic search, agent tool configuration, search tools, document search, prerequisites validation, working SQL examples, error troubleshooting, permission configuration, AI_EMBED, metadata filters
+**Keywords:** Cortex Search, vector search, embeddings, search index, RAG, semantic search, agent tools, retrieval, troubleshooting, AI_EMBED
 **TokenBudget:** ~4000
 **ContextTier:** Medium
 **Version:** 1.4

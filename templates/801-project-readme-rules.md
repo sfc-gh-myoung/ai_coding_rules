@@ -19,6 +19,15 @@ This rule establishes comprehensive standards for README.md files following wide
 - **Type:** Agent Requested
 - **Scope:** Project documentation, technical writing, developer experience
 
+
+## Contract
+- **Inputs/Prereqs:** [Context, files, dependencies needed]
+- **Allowed Tools:** [Tools permitted for this domain]
+- **Forbidden Tools:** [Tools not allowed for this domain]
+- **Required Steps:** [Ordered steps the agent must follow]
+- **Output Format:** [Expected output format]
+- **Validation Steps:** [Checks to confirm success]
+
 ## Quick Start TL;DR (Read First - 30 Seconds)
 
 **MANDATORY:**
@@ -324,14 +333,6 @@ These changes REQUIRE README updates before task completion:
 - **Consider:** Automated link checking and badge updates
 - **Always:** Include README in documentation deployment process
 
-## Contract
-- **Inputs/Prereqs:** [Context, files, dependencies needed]
-- **Allowed Tools:** [Tools permitted for this domain]
-- **Forbidden Tools:** [Tools not allowed for this domain]
-- **Required Steps:** [Ordered steps the agent must follow]
-- **Output Format:** [Expected output format]
-- **Validation Steps:** [Checks to confirm success]
-
 ## Quick Compliance Checklist
 - [ ] **CRITICAL:** README update triggers checked (see 000-global-core.md section 6)
 - [ ] **CRITICAL:** If triggers apply, README.md reviewed and updated before task completion
@@ -342,8 +343,33 @@ These changes REQUIRE README updates before task completion:
 - [ ] Validation steps completed successfully
 
 ## Response Template
-```
-[Minimal, copy-pasteable template showing expected output format]
+
+```markdown
+Project Documentation Changes:
+
+**File Modified:** [README.md|CHANGELOG.md|CONTRIBUTING.md]
+**Section Updated:** [specific section]
+**Validation:** [documentation standards checklist]
+
+Changes Made:
+1. **[Section Name]**
+   - Added: [specific content]
+   - Updated: [what changed and why]
+   - Format: [Markdown standards followed]
+
+2. **[Another Section]**
+   - Clarified: [ambiguous content]
+   - Examples: [added working examples]
+
+Validation Checklist:
+- [x] Markdown lint passes
+- [x] Links are valid and accessible
+- [x] Code examples are tested
+- [x] Formatting is consistent
+- [x] Table of contents updated (if applicable)
+
+Preview:
+[Show relevant excerpt of updated documentation]
 ```
 
 ## References

@@ -2,7 +2,7 @@
 **Type:** Agent Requested
 **AppliesTo:** `Taskfile.yml`, `task/**/*.yml`, `sql/operations/**/upload/*.sql`, `sql/operations/**/remove/*.sql`
 **AutoAttach:** false
-**Keywords:** Snowflake deployment, stage management, notebook deployment, Streamlit deployment, PUT, REMOVE, CREATE NOTEBOOK, CREATE STREAMLIT, deployment automation, task automation, staged applications, drop, upload, create, deploy workflow, AUTO_COMPRESS, stage path, ROOT_LOCATION, SiS deployment, TypeError, file compression, import failure, OVERWRITE=TRUE
+**Keywords:** Snowflake deployment, Streamlit deployment, notebook deployment, PUT, CREATE STREAMLIT, CREATE NOTEBOOK, stages, deployment automation, SiS, troubleshooting
 **TokenBudget:** ~4650
 **ContextTier:** Medium
 **Version:** 1.2

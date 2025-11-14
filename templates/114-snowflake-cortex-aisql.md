@@ -2,7 +2,7 @@
 **Type:** Agent Requested
 **AppliesTo:** `**/*.sql`, `**/*.py`
 **AutoAttach:** false
-**Keywords:** Cortex AISQL, AI_COMPLETE, AI_CLASSIFY, AI_EXTRACT, AI_SENTIMENT, AI_SUMMARIZE, AI_TRANSCRIBE, TO_FILE, embeddings, LLM functions, batching AI, token costs, audio transcription, speaker recognition, diarization, sentiment analysis, categorical sentiment, timestamp_granularity, CORTEX_USER, AI_AGG, AI_COUNT_TOKENS, PROMPT
+**Keywords:** Cortex AISQL, AI_COMPLETE, AI_CLASSIFY, AI_EXTRACT, AI_SENTIMENT, AI_SUMMARIZE, embeddings, LLM functions, batching, token costs
 **TokenBudget:** ~2600
 **ContextTier:** High
 **Version:** 1.4

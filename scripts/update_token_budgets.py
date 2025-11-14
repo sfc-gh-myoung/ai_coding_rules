@@ -23,7 +23,6 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 
 @dataclass
@@ -31,12 +30,12 @@ class TokenBudgetAnalysis:
     """Analysis result for a single rule file."""
 
     file_path: Path
-    current_budget: Optional[int]
+    current_budget: int | None
     estimated_tokens: int
     suggested_budget: int
-    diff_percentage: Optional[float]
+    diff_percentage: float | None
     needs_update: bool
-    error: Optional[str] = None
+    error: str | None = None
 
     @property
     def status(self) -> str:
@@ -72,7 +71,7 @@ class UpdateConfig:
 class TokenBudgetUpdater:
     """Updater for token budgets in rule files."""
 
-    def __init__(self, config: Optional[UpdateConfig] = None):
+    def __init__(self, config: UpdateConfig | None = None):
         """Initialize updater with configuration."""
         self.config = config or UpdateConfig()
 
@@ -310,10 +309,7 @@ class TokenBudgetUpdater:
                     f"({analysis.diff_percentage:+.1f}%)"
                 )
             else:
-                print(
-                    f"  {analysis.file_path.name:<50} "
-                    f"MISSING → ~{analysis.suggested_budget}"
-                )
+                print(f"  {analysis.file_path.name:<50} MISSING → ~{analysis.suggested_budget}")
 
         print()
 
@@ -436,4 +432,3 @@ Examples:
 
 if __name__ == "__main__":
     sys.exit(main())
-

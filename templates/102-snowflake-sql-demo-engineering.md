@@ -19,6 +19,20 @@ Guide SQL file creation for Snowflake demos and customer learning environments. 
 - **Type:** Auto-attach (applies to all SQL file creation in demo contexts)
 - **Scope:** Demo SQL files, workshop materials, customer learning environments, quickstart guides
 
+
+## Contract
+- **Inputs/Prereqs:** Demo environment, Snowflake CLI access, CSV data files, database already created
+- **Allowed Tools:** Snowflake CLI (`snow sql`), Taskfile, SnowSQL, Snowsight
+- **Forbidden Tools:** Production deployment tools, automated schedulers
+- **Required Steps:**
+  1. Create per-schema setup files with inline documentation
+  2. Add progress indicators after each major step
+  3. Use idempotent patterns (CREATE OR REPLACE, IF NOT EXISTS)
+  4. Create independent teardown files per schema
+  5. Test rerunability (scripts should work multiple times)
+- **Output Format:** SQL files with .sql extension, UTF-8 encoding, Unix line endings
+- **Validation Steps:** Run setup → verify objects created → run teardown → verify cleanup → rerun setup (idempotency test)
+
 ## Key Principles
 - **Readability First**: Simple, self-documenting filenames and patterns
 - **Per-Schema Operations**: Independent setup/load/teardown per schema
@@ -577,19 +591,6 @@ tasks:
 - Environment-agnostic patterns
 - CI/CD integration
 - Audit trail requirements
-
-## Contract
-- **Inputs/Prereqs:** Demo environment, Snowflake CLI access, CSV data files, database already created
-- **Allowed Tools:** Snowflake CLI (`snow sql`), Taskfile, SnowSQL, Snowsight
-- **Forbidden Tools:** Production deployment tools, automated schedulers
-- **Required Steps:**
-  1. Create per-schema setup files with inline documentation
-  2. Add progress indicators after each major step
-  3. Use idempotent patterns (CREATE OR REPLACE, IF NOT EXISTS)
-  4. Create independent teardown files per schema
-  5. Test rerunability (scripts should work multiple times)
-- **Output Format:** SQL files with .sql extension, UTF-8 encoding, Unix line endings
-- **Validation Steps:** Run setup → verify objects created → run teardown → verify cleanup → rerun setup (idempotency test)
 
 ## Quick Compliance Checklist
 

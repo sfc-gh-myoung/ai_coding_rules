@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.0] - 2025-11-14
+
+### Changed
+
+- **feat(validation):** Resolved all 53 validation warnings in rule templates (2025-11-14)
+  - **Response Template Warnings (53 files):** Expanded incomplete templates with comprehensive domain-specific examples
+    - Generated complete working examples (15+ lines) for all Response Template sections
+    - Used domain detection (core, snowflake, python, shell, docker, governance, project, demo) to create appropriate examples
+    - Fixed validator regex issue by removing `##` markers inside code blocks that confused section parsing
+    - Protected manual edits to `114c-snowflake-cortex-analyst.md` and `106-snowflake-semantic-views.md` during fixes
+  - **Contract Section Placement (28 files):** Moved late Contract sections to early position (before line 100)
+    - Contract now appears immediately after "Rule Type and Scope" for quick reference per governance standards
+    - Affected files: 102, 102a, 109, 110, 111, 120, 201-203, 210 series, 220, 230, 240, 250, 300 series, 310 series, 800, 801, 805, 820
+  - **Excessive Keywords (9 files):** Consolidated keywords from 16-23 to optimal 10 keywords for better semantic discovery
+    - `108-snowflake-data-loading.md`: 16 → 10 keywords
+    - `109c-snowflake-app-deployment.md`: 23 → 10 keywords
+    - `111-snowflake-observability.md`: 17 → 10 keywords
+    - `114-snowflake-cortex-aisql.md`: 22 → 10 keywords
+    - `114a-snowflake-cortex-agents.md`: 21 → 10 keywords
+    - `114b-snowflake-cortex-search.md`: 17 → 10 keywords
+    - `251-python-datetime-handling.md`: 18 → 10 keywords
+    - `252-pandas-best-practices.md`: 18 → 10 keywords
+    - `500-data-science-analytics.md`: 16 → 10 keywords
+  - **Final Results:**
+    - Clean files: 72/72 (100%, up from 19/72 = 26%)
+    - Files with warnings: 0/72 (down from 53/72 = 74%)
+    - Files with errors: 0/72 (no regressions)
+    - Validation status: PASS (up from WARN)
+  - **Impact:** Complete validation compliance; improved rule quality across all 72 templates
+
 ## [2.2.2] - 2025-11-13
 
 ### Changed

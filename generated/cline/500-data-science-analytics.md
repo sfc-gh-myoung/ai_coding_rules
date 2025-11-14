@@ -1,6 +1,6 @@
 <!-- Generated for Cline rules. See https://docs.cline.bot/features/cline-rules -->
 
-**Keywords:** Snowflake, Data science, pandas, numpy, scikit-learn, ML, Jupyter, data analysis, model lifecycle, NaN, NULL handling, DataFrame, Snowpark, ML registry, feature engineering, model versioning
+**Keywords:** Data science, Snowflake, pandas, Snowpark, ML, model lifecycle, feature engineering, NaN handling, model versioning, Jupyter
 **TokenBudget:** ~6150
 **ContextTier:** High
 **Depends:** 200-python-core

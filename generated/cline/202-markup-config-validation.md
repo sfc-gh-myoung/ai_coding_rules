@@ -15,6 +15,20 @@ Establish safe markup and configuration file practices to prevent parsing errors
 - **Type:** Agent Requested
 - **Scope:** Markup and configuration file validation best practices (YAML, TOML, environment files, Markdown)
 
+
+## Contract
+- **Inputs/Prereqs:** Project files (YAML, TOML, .env, Markdown); `uv`/`uvx` available
+- **Allowed Tools:** `uvx pymarkdownlnt`, YAML parsers, TOML validators, IDE linters
+- **Forbidden Tools:** Direct file modification without validation
+- **Required Steps:** 
+  1. Run appropriate linter for file type
+  2. Review errors and warnings
+  3. Fix issues following rule guidelines
+  4. Re-run validation to confirm
+  5. Document any rule exceptions
+- **Output Format:** Clean validation output with zero errors
+- **Validation Steps:** Run linters again to verify all issues resolved
+
 ## Quick Start TL;DR (Read First - 30 Seconds)
 
 **MANDATORY:**
@@ -266,19 +280,6 @@ markdownlint-cli2 "**/*.md"
 
 **Rationale for pymarkdownlnt:** Consistency with existing Python/`uv` tooling ecosystem.
 
-## Contract
-- **Inputs/Prereqs:** Project files (YAML, TOML, .env, Markdown); `uv`/`uvx` available
-- **Allowed Tools:** `uvx pymarkdownlnt`, YAML parsers, TOML validators, IDE linters
-- **Forbidden Tools:** Direct file modification without validation
-- **Required Steps:** 
-  1. Run appropriate linter for file type
-  2. Review errors and warnings
-  3. Fix issues following rule guidelines
-  4. Re-run validation to confirm
-  5. Document any rule exceptions
-- **Output Format:** Clean validation output with zero errors
-- **Validation Steps:** Run linters again to verify all issues resolved
-
 ## Quick Compliance Checklist
 - [ ] YAML files use consistent 2-space indentation
 - [ ] Strings with special characters are properly quoted
@@ -295,7 +296,63 @@ markdownlint-cli2 "**/*.md"
 - **Negative tests:** Malformed YAML fails parsing; unquoted special characters cause errors; invalid TOML syntax detected; Markdown linting catches formatting issues; configuration with missing required values fails validation
 
 ## Response Template
-```markdown
+
+```python
+# Investigation: Check current implementation
+# Read existing files, understand patterns
+
+# Implementation: Following uv + ruff + pytest standards
+from typing import Protocol
+from datetime import datetime, UTC
+
+class ServiceProtocol(Protocol):
+    """Clear contract for service implementations."""
+    
+    def process(self, data: dict) -> dict:
+        """Process data following validation rules."""
+        ...
+
+def implementation_function(input_data: dict) -> dict:
+    """
+    Implement feature following project conventions.
+    
+    Args:
+        input_data: Validated input following schema
+    
+    Returns:
+        Processed result with metadata
+    
+    Raises:
+        ValueError: If input validation fails
+    """
+    # Use datetime.now(UTC) not datetime.utcnow()
+    timestamp = datetime.now(UTC)
+    
+    # Implement business logic
+    result = {"status": "success", "timestamp": timestamp}
+    return result
+
+# Validation: Test the implementation
+def test_implementation_function():
+    """Test following AAA pattern."""
+    # Arrange
+    test_input = {"key": "value"}
+    
+    # Act
+    result = implementation_function(test_input)
+    
+    # Assert
+    assert result["status"] == "success"
+    assert "timestamp" in result
+```
+
+```bash
+# Validation commands
+uvx ruff check .
+uvx ruff format --check .
+uv run pytest tests/
+```
+
 ## Validation Results
 
 **Files Checked:**

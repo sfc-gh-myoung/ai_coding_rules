@@ -298,7 +298,31 @@ flowchart TD
 > "I see memory-bank/ exists with activeContext.md (85 lines) and projectbrief.md (110 lines). Based on activeContext.md, the current focus is [specific project task]. Here's how I'll update it..."
 
 ## Response Template
+
 ```markdown
+MODE: [PLAN|ACT]
+
+Rules Loaded:
+- rules/000-global-core.md (foundation)
+- [additional rules based on task]
+
+Analysis:
+[Brief analysis of the requirement]
+
+Task List:
+1. [Specific task with clear deliverable]
+2. [Another task with validation criteria]
+3. [Final task with success metrics]
+
+Implementation:
+[Code/configuration changes following established patterns]
+
+Validation:
+- [x] Changes validated against requirements
+- [x] Tests passing / linting clean
+- [x] Documentation updated
+```
+
 ## Memory Bank Analysis
 - **Precondition**: Memory bank initialized and `memory-bank/` folder exists
 - **Session Status**: [New session / Continuing work]

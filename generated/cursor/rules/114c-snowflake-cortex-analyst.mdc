@@ -1,5 +1,5 @@
 ---
-description: "Best practices for Snowflake Cortex Analyst and Semantic Views, including modeling guidance, governance, agent integration, usage patterns, prerequisites validation, and error troubleshooting."
+description: "Best practices for Snowflake Cortex Analyst and Semantic Views, including modeling guidance, governance, agent integration, usage patterns, prerequisites validation, Semantic View Generator workflow, and error troubleshooting."
 globs:
   - "**/*.sql"
   - "**/*.py"
@@ -7,8 +7,8 @@ alwaysApply: false
 ---
 <!-- Generated for Cursor project rules. See https://docs.cursor.com/en/context/rules#project-rules -->
 
-**Keywords:** Cortex Analyst, natural language queries, NL2SQL, semantic layer, text-to-SQL, business intelligence, agent tool configuration, analyst tools, semantic view design, prerequisites validation, working SQL examples, error troubleshooting, permission configuration, semantic views, business metrics
-**TokenBudget:** ~3600
+**Keywords:** Cortex Analyst, semantic views, natural language queries, NL2SQL, agent tool configuration, semantic view design, Generator workflow, prerequisites validation, error troubleshooting, business metrics
+**TokenBudget:** ~3800
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core, 106-snowflake-semantic-views, 105-snowflake-cost-governance, 111-snowflake-observability
 
@@ -97,6 +97,23 @@ SELECT SNOWFLAKE.CORTEX.ANALYST(
 ) AS test_response;
 ```
 
+**Check Semantic View Generator Availability:**
+```sql
+-- Verify Generator is enabled (requires appropriate Snowflake edition and region)
+SHOW PARAMETERS LIKE '%SEMANTIC_VIEW_GENERATOR%' IN ACCOUNT;
+
+-- Check account capabilities
+SELECT 
+    SYSTEM$GET_ACCOUNT_CAPABILITIES() AS capabilities;
+
+-- Expected: JSON response should include semantic view generation capabilities
+-- If Generator not available, proceed with manual CREATE SEMANTIC VIEW DDL
+
+-- Alternative: Check via Snowsight UI
+-- Navigate to: Data → Databases → [Your Database] → [Schema]
+-- Look for "Generate Semantic View" button on table context menu
+```
+
 **Verify Base Tables:**
 ```sql
 -- Check source tables exist and have data
@@ -118,6 +135,20 @@ SELECT
 FROM ANALYTICS.INFORMATION_SCHEMA.TABLES
 WHERE TABLE_SCHEMA = 'CORE'
   AND TABLE_TYPE = 'BASE TABLE';
+
+-- Check table structure for semantic view candidates
+DESCRIBE TABLE {DATABASE}.{SCHEMA}.{TABLE};
+
+-- Example: Identify columns for FACTS vs DIMENSIONS
+SELECT 
+    COLUMN_NAME,
+    DATA_TYPE,
+    IS_NULLABLE,
+    COMMENT
+FROM {DATABASE}.INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_SCHEMA = '{SCHEMA}'
+  AND TABLE_NAME = '{TABLE}'
+ORDER BY ORDINAL_POSITION;
 ```
 
 **Verify Semantic View Creation Permissions:**
@@ -126,9 +157,39 @@ WHERE TABLE_SCHEMA = 'CORE'
 SHOW GRANTS ON SCHEMA {DATABASE}.{SCHEMA};
 
 -- Required grants:
--- - CREATE VIEW on schema
+-- - CREATE VIEW on schema (for regular views)
+-- - CREATE SEMANTIC VIEW privilege (for native semantic views)
 -- - SELECT on source tables
 -- - USAGE on database and schema
+-- - USAGE on CORTEX functions (for Cortex Analyst integration)
+
+-- Verify role has necessary privileges
+SELECT 
+    CURRENT_ROLE() AS current_role,
+    CURRENT_DATABASE() AS current_database,
+    CURRENT_SCHEMA() AS current_schema;
+```
+
+**Verify Semantic View Structure Quality:**
+```sql
+-- After creating semantic view, validate quality
+
+-- Check semantic view exists
+SHOW SEMANTIC VIEWS IN SCHEMA {DATABASE}.{SCHEMA};
+
+-- Validate semantic view components
+SHOW SEMANTIC DIMENSIONS IN SEMANTIC VIEW {DATABASE}.{SCHEMA}.{VIEW_NAME};
+SHOW SEMANTIC METRICS IN SEMANTIC VIEW {DATABASE}.{SCHEMA}.{VIEW_NAME};
+SHOW SEMANTIC FACTS IN SEMANTIC VIEW {DATABASE}.{SCHEMA}.{VIEW_NAME};
+
+-- Test basic query functionality
+SELECT * FROM SEMANTIC_VIEW (
+    {DATABASE}.{SCHEMA}.{VIEW_NAME}
+    METRICS {metric_name}
+    DIMENSIONS {dimension_name}
+) LIMIT 5;
+
+-- Expected: Query executes successfully and returns meaningful results
 ```
 
 **Test Semantic View Query:**
@@ -172,9 +233,55 @@ SELECT 'Warehouse Check' AS validation_step,
 **All checks should return valid results.** If any fail, address prerequisites before proceeding.
 
 ## 1. Semantic View Authoring
+
+**RECOMMENDED:**
+**Follow iterative development workflow from `106-snowflake-semantic-views.mdc` Section 8:**
+
+1. **Start with Generator** (if available): Use Semantic View Generator to create baseline DDL
+2. **Validate structure**: Review generated FACTS vs DIMENSIONS classification
+3. **Add business context**: Include WITH SYNONYMS and COMMENT clauses
+4. **Test with Cortex Analyst**: Validate natural language query accuracy
+5. **Optimize performance**: Ensure base tables have appropriate clustering/partitioning
+
+**Cross-Reference:**
+- **Generator workflow**: See `106-snowflake-semantic-views.mdc` Section 8.1
+- **Iterative development**: See `106-snowflake-semantic-views.mdc` Section 8.2
+- **Testing patterns**: See `106-snowflake-semantic-views.mdc` Section 8.3
+
 ```sql
 -- Example: explicit columns and comments; avoid SELECT *
-CREATE OR REPLACE VIEW ANALYTICS.SEMANTIC.customer_orders
+-- For native semantic views, use CREATE SEMANTIC VIEW (preferred)
+CREATE OR REPLACE SEMANTIC VIEW ANALYTICS.SEMANTIC.customer_orders
+  TABLES (
+    orders AS ANALYTICS.CORE.ORDERS
+      PRIMARY KEY (order_id)
+      WITH SYNONYMS ('orders', 'sales', 'transactions')
+      COMMENT = 'Customer order transactions'
+  )
+  FACTS (
+    orders.total_amount AS total_amount
+      WITH SYNONYMS ('revenue', 'sales amount', 'order value')
+      COMMENT = 'Total order value in USD'
+  )
+  DIMENSIONS (
+    orders.order_id AS order_id
+      COMMENT = 'Surrogate key of order',
+    orders.customer_id AS customer_id
+      WITH SYNONYMS ('customer', 'buyer'),
+    orders.order_date AS order_date
+      WITH SYNONYMS ('date', 'transaction date', 'purchase date')
+      COMMENT = 'Date order was placed'
+  )
+  METRICS (
+    orders.total_revenue AS SUM(total_amount)
+      WITH SYNONYMS ('total sales', 'gross revenue'),
+    orders.order_count AS COUNT(DISTINCT order_id)
+      WITH SYNONYMS ('number of orders', 'transaction count')
+  )
+  COMMENT = 'Customer order semantic view for Cortex Analyst natural language queries';
+
+-- For legacy views (not native semantic views):
+CREATE OR REPLACE VIEW ANALYTICS.SEMANTIC.customer_orders_legacy
 COMMENT = 'Customer order facts with conformed customer dimension keys'
 AS
 SELECT 
@@ -566,13 +673,16 @@ Description: "Use this tool for {specific domain}. It can {list capabilities}. U
 
 ### External Documentation
 - [Cortex Analyst](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst) - Natural language to SQL with semantic models
-- [Semantic Views](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst) (see semantic model guidance)
+- [Semantic Views Overview](https://docs.snowflake.com/en/user-guide/views-semantic/overview) - Conceptual overview and use cases
+- [Semantic Views Best Practices - Development](https://docs.snowflake.com/en/user-guide/views-semantic/best-practices-dev) - Development workflow, Generator usage, testing patterns
+- [Getting Started with Snowflake Semantic View](https://medium.com/snowflake/getting-started-with-snowflake-semantic-view-7eced29abe6f) - Tutorial with TPC-DS examples and iterative development workflow
+- [Using the Cortex Analyst Semantic View Generator](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst/semantic-model-generator) - Automated semantic view creation tool
 - [Snowflake Cortex AISQL](https://docs.snowflake.com/en/user-guide/snowflake-cortex/aisql) - AI SQL functions
 - [Cortex Agents](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents) - Agent tool configuration
 
 ### Related Rules
 - **Snowflake Core**: `100-snowflake-core.mdc`
-- **Semantic Views**: `106-snowflake-semantic-views.mdc`
+- **Semantic Views**: `106-snowflake-semantic-views.mdc` - Comprehensive semantic view DDL syntax, development best practices (Section 8), Generator workflow, testing patterns
 - **AISQL**: `114-snowflake-cortex-aisql.mdc`
 - **Cortex Agents**: `114a-snowflake-cortex-agents.mdc` - Agent archetypes, configuration templates, planning instructions, testing patterns
 - **Cortex Search**: `114b-snowflake-cortex-search.mdc` - Search tool configuration for hybrid agents

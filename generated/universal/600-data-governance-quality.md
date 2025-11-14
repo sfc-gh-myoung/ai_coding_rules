@@ -107,8 +107,47 @@ Establish comprehensive directives for ensuring data quality, governance, and op
 > "I see 5% NULL rate. Adding expectation with threshold..."
 
 ## Response Template
+
+```markdown
+Implementation: Summary
+
+**Rule Applied:** [rule filename]
+**Domain:** [technology/framework]
+**Changes:** [high-level summary]
+
+### Investigation Results
+- Current state: [what was found]
+- Requirements: [what needs to change]
+- Constraints: [limitations identified]
+
+### Implementation Steps
+1. **[Step 1]**: [Specific action taken]
+   - File: `path/to/file`
+   - Change: [delta description]
+   
+2. **[Step 2]**: [Another action]
+   - Configuration: [what was configured]
+   - Rationale: [why this approach]
+
+3. **[Step 3]**: [Validation action]
+   - Test: [specific test run]
+   - Result: [outcome]
+
+### Validation Results
+```bash
+# Commands run to validate
+command --validate
+test --run-all
 ```
-[Minimal, copy-pasteable template showing expected output format]
+
+**Output:**
+```
+[Test output showing success]
+```
+
+### Next Steps
+- [Optional follow-up items]
+- [Monitoring recommendations]
 ```
 
 ## References

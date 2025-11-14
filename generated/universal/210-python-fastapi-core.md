@@ -14,6 +14,15 @@ Provide comprehensive FastAPI development best practices, organized into focused
 - **Scope:** FastAPI web API development with modern Python patterns, async/await, and Pydantic integration
 
 
+
+## Contract
+- **Inputs/Prereqs:** [Context, files, dependencies needed]
+- **Allowed Tools:** [Tools permitted for this domain]
+- **Forbidden Tools:** [Tools not allowed for this domain]
+- **Required Steps:** [Ordered steps the agent must follow]
+- **Output Format:** [Expected output format]
+- **Validation Steps:** [Checks to confirm success]
+
 ## Key Principles
 1. **Modular Architecture** - Organize code into logical, testable modules
 2. **Async-First Development** - Leverage Python's async capabilities for performance
@@ -386,14 +395,6 @@ def get_settings() -> Settings:
 - **Always:** Apply linting and formatting rules from `201-python-lint-format.md`.
 - **FastAPI Specific:** Use `uv run uvicorn app.main:app --reload` for development server.
 
-## Contract
-- **Inputs/Prereqs:** [Context, files, dependencies needed]
-- **Allowed Tools:** [Tools permitted for this domain]
-- **Forbidden Tools:** [Tools not allowed for this domain]
-- **Required Steps:** [Ordered steps the agent must follow]
-- **Output Format:** [Expected output format]
-- **Validation Steps:** [Checks to confirm success]
-
 ## Quick Compliance Checklist
 - [ ] Required dependencies and context verified
 - [ ] Appropriate tools selected and validated
@@ -423,8 +424,61 @@ def get_settings() -> Settings:
 > "I see you're using APIRouter in routers/users.py with dependency injection for database sessions. Here's a new endpoint following the same pattern..."
 
 ## Response Template
+
+```python
+# Investigation: Check current implementation
+# Read existing files, understand patterns
+
+# Implementation: Following uv + ruff + pytest standards
+from typing import Protocol
+from datetime import datetime, UTC
+
+class ServiceProtocol(Protocol):
+    """Clear contract for service implementations."""
+    
+    def process(self, data: dict) -> dict:
+        """Process data following validation rules."""
+        ...
+
+def implementation_function(input_data: dict) -> dict:
+    """
+    Implement feature following project conventions.
+    
+    Args:
+        input_data: Validated input following schema
+    
+    Returns:
+        Processed result with metadata
+    
+    Raises:
+        ValueError: If input validation fails
+    """
+    # Use datetime.now(UTC) not datetime.utcnow()
+    timestamp = datetime.now(UTC)
+    
+    # Implement business logic
+    result = {"status": "success", "timestamp": timestamp}
+    return result
+
+# Validation: Test the implementation
+def test_implementation_function():
+    """Test following AAA pattern."""
+    # Arrange
+    test_input = {"key": "value"}
+    
+    # Act
+    result = implementation_function(test_input)
+    
+    # Assert
+    assert result["status"] == "success"
+    assert "timestamp" in result
 ```
-[Minimal, copy-pasteable template showing expected output format]
+
+```bash
+# Validation commands
+uvx ruff check .
+uvx ruff format --check .
+uv run pytest tests/
 ```
 
 ## References

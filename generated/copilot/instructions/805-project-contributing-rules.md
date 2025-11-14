@@ -22,6 +22,15 @@ Establish directives for a professional contribution workflow covering commits, 
 - **Type:** Agent Requested
 - **Scope:** Professional contribution workflows for commits, pull requests, and rule authoring standards
 
+
+## Contract
+- **Inputs/Prereqs:** [Context, files, dependencies needed]
+- **Allowed Tools:** [Tools permitted for this domain]
+- **Forbidden Tools:** [Tools not allowed for this domain]
+- **Required Steps:** [Ordered steps the agent must follow]
+- **Output Format:** [Expected output format]
+- **Validation Steps:** [Checks to confirm success]
+
 ## Quick Start TL;DR (Read First - 30 Seconds)
 
 **MANDATORY:**
@@ -146,14 +155,6 @@ Demo & Templates (900-999)
 - **Always:** Use README standards: `@801-project-readme-rules.md`
 - **Always:** Follow changelog discipline: `@800-project-changelog-rules.md`
 
-## Contract
-- **Inputs/Prereqs:** [Context, files, dependencies needed]
-- **Allowed Tools:** [Tools permitted for this domain]
-- **Forbidden Tools:** [Tools not allowed for this domain]
-- **Required Steps:** [Ordered steps the agent must follow]
-- **Output Format:** [Expected output format]
-- **Validation Steps:** [Checks to confirm success]
-
 ## Quick Compliance Checklist
 - [ ] Required dependencies and context verified
 - [ ] Appropriate tools selected and validated
@@ -166,8 +167,33 @@ Demo & Templates (900-999)
 - **Negative tests:** [What should fail and how to detect failures]
 
 ## Response Template
-```
-[Minimal, copy-pasteable template showing expected output format]
+
+```markdown
+Project Documentation Changes:
+
+**File Modified:** [README.md|CHANGELOG.md|CONTRIBUTING.md]
+**Section Updated:** [specific section]
+**Validation:** [documentation standards checklist]
+
+Changes Made:
+1. **[Section Name]**
+   - Added: [specific content]
+   - Updated: [what changed and why]
+   - Format: [Markdown standards followed]
+
+2. **[Another Section]**
+   - Clarified: [ambiguous content]
+   - Examples: [added working examples]
+
+Validation Checklist:
+- [x] Markdown lint passes
+- [x] Links are valid and accessible
+- [x] Code examples are tested
+- [x] Formatting is consistent
+- [x] Table of contents updated (if applicable)
+
+Preview:
+[Show relevant excerpt of updated documentation]
 ```
 
 ## References

@@ -168,8 +168,29 @@ Every rule file must follow this structure:
 ```
 
 ## Response Template
-```<LANG>
-<Minimal, copy-pasteable template showing expected output format>
+
+```markdown
+MODE: [PLAN|ACT]
+
+Rules Loaded:
+- rules/000-global-core.md (foundation)
+- [additional rules based on task]
+
+Analysis:
+[Brief analysis of the requirement]
+
+Task List:
+1. [Specific task with clear deliverable]
+2. [Another task with validation criteria]
+3. [Final task with success metrics]
+
+Implementation:
+[Code/configuration changes following established patterns]
+
+Validation:
+- [x] Changes validated against requirements
+- [x] Tests passing / linting clean
+- [x] Documentation updated
 ```
 
 ## References
@@ -1281,10 +1302,10 @@ Use this template when creating new rule files. Copy the entire template below a
 - **Scope:** [Technology/domain coverage]
 - **Dependencies:** [Required prerequisite rules]
 
-## Implementation
+Implementation:
 [Rule content following required structure]
 
-## Validation
+Validation:
 - [ ] [Compliance checklist items]
 ```
 

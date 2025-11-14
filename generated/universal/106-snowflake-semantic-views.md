@@ -1,5 +1,5 @@
-**Keywords:** Semantic models, semantic views, Cortex Analyst, data modeling, business logic layer, metrics layer, CREATE SEMANTIC VIEW, FACTS, DIMENSIONS, METRICS, natural language query, NLQ
-**TokenBudget:** ~3900
+**Keywords:** Semantic views, CREATE SEMANTIC VIEW, Cortex Analyst, FACTS, DIMENSIONS, METRICS, data modeling, Generator workflow, iterative development, TPC-DS, natural language query, business logic layer
+**TokenBudget:** ~8100
 **ContextTier:** High
 **Depends:** 100-snowflake-core
 
@@ -200,6 +200,111 @@ TABLES (
 - Composite primary keys are supported: `PRIMARY KEY (col1, col2, col3)`
 - Synonyms improve NLQ matching (e.g., "equipment" for "transformer", "units" for "assets")
 - Only one base table per semantic view - use relationships to connect multiple semantic views
+
+**Multi-Table Semantic Views:**
+
+When creating semantic views that reference multiple tables, define relationships between them:
+
+```sql
+-- Example: Multi-table semantic view with relationships
+CREATE OR REPLACE SEMANTIC VIEW SAMPLE_DATA.TPCDS_SF10TCL.TPCDS_SEMANTIC_VIEW_SM
+  TABLES (
+    CUSTOMER PRIMARY KEY (C_CUSTOMER_SK),
+    DATE AS DATE_DIM PRIMARY KEY (D_DATE_SK),
+    DEMO AS CUSTOMER_DEMOGRAPHICS PRIMARY KEY (CD_DEMO_SK),
+    ITEM PRIMARY KEY (I_ITEM_SK),
+    STORE PRIMARY KEY (S_STORE_SK),
+    STORESALES AS STORE_SALES
+      PRIMARY KEY (SS_SOLD_DATE_SK, SS_CDEMO_SK, SS_ITEM_SK, SS_STORE_SK, SS_CUSTOMER_SK)
+  )
+  RELATIONSHIPS (
+    SALESTOCUSTOMER AS STORESALES(SS_CUSTOMER_SK) REFERENCES CUSTOMER(C_CUSTOMER_SK),
+    SALESTODATE AS STORESALES(SS_SOLD_DATE_SK) REFERENCES DATE(D_DATE_SK),
+    SALESTODEMO AS STORESALES(SS_CDEMO_SK) REFERENCES DEMO(CD_DEMO_SK),
+    SALESTOITEM AS STORESALES(SS_ITEM_SK) REFERENCES ITEM(I_ITEM_SK),
+    SALETOSTORE AS STORESALES(SS_STORE_SK) REFERENCES STORE(S_STORE_SK)
+  )
+  FACTS (
+    ITEM.COST AS i_wholesale_cost,
+    ITEM.PRICE AS i_current_price,
+    STORE.TAX_RATE AS S_TAX_PRECENTAGE
+  )
+  DIMENSIONS (
+    CUSTOMER.BIRTHYEAR AS C_BIRTH_YEAR,
+    CUSTOMER.COUNTRY AS C_BIRTH_COUNTRY,
+    DATE.DATE AS D_DATE,
+    DATE.MONTH AS D_MOY,
+    DATE.YEAR AS D_YEAR,
+    ITEM.BRAND AS I_BRAND_NAME,
+    ITEM.CATEGORY AS I_CATEGORY,
+    STORE.STATE AS S_STATE
+  )
+  METRICS (
+    STORESALES.TotalSalesQuantity AS SUM(SS_QUANTITY)
+  );
+```
+
+**RELATIONSHIPS Block:**
+
+**Purpose:** Define foreign key relationships between tables in multi-table semantic views.
+
+**Syntax:**
+```sql
+RELATIONSHIPS (
+  <relationship_name> AS <child_table>(<fk_column>) REFERENCES <parent_table>(<pk_column>),
+  ...
+)
+```
+
+**Rules:**
+- Relationship names must be unique within the semantic view
+- Foreign key column must exist in child table
+- Referenced primary key must match PRIMARY KEY definition in TABLES block
+- Enables Cortex Analyst to perform automatic joins across tables
+- Required for multi-table semantic views to function correctly
+
+**Time-Based Filtering Pattern:**
+
+For semantic views with temporal dimensions, optimize for time-range queries:
+
+```sql
+-- Example: Semantic view optimized for time-range filtering
+CREATE OR REPLACE SEMANTIC VIEW ANALYTICS.SEMANTIC.SALES_BY_TIME
+  TABLES (
+    sales AS ANALYTICS.CORE.SALES_FACT
+      PRIMARY KEY (sale_id)
+      WITH SYNONYMS ('sales transactions', 'orders')
+  )
+  FACTS (
+    sales.amount AS amount,
+    sales.quantity AS quantity
+  )
+  DIMENSIONS (
+    sales.sale_date AS sale_date
+      WITH SYNONYMS ('date', 'transaction date', 'order date')
+      COMMENT = 'Date of sale - use for time-range filtering',
+    sales.sale_year AS YEAR(sale_date)
+      WITH SYNONYMS ('year', 'fiscal year')
+      COMMENT = 'Extracted year for annual analysis',
+    sales.sale_month AS MONTH(sale_date)
+      WITH SYNONYMS ('month', 'month number')
+      COMMENT = 'Extracted month (1-12)',
+    sales.product_id AS product_id,
+    sales.region AS region
+  )
+  METRICS (
+    sales.total_revenue AS SUM(amount),
+    sales.daily_avg_revenue AS AVG(amount)
+      WITH SYNONYMS ('average daily sales', 'mean revenue per day')
+  )
+  COMMENT = 'Sales semantic view with temporal dimensions for time-series analysis';
+```
+
+**Best Practices for Time Dimensions:**
+- Include raw timestamp/date column as primary temporal dimension
+- Add extracted time parts (year, month, quarter) as separate dimensions for easier filtering
+- Use synonyms like "last year", "this month", "recent" to improve NLQ matching
+- Ensure base table has clustering or partitioning on date column for performance
 
 ### FACTS Block
 
@@ -556,7 +661,7 @@ ALTER TABLE PROD.GRID_DATA.GRID_ASSETS
 
 ## 6) Validation and Testing
 
-### Verification Commands
+### 6.1 Verification Commands
 
 ```sql
 -- List all semantic views in schema
@@ -578,13 +683,355 @@ WHERE semantic_view_name = 'SEM_TRANSFORMER_HEALTH'
   AND semantic_view_schema = 'GRID_DATA';
 ```
 
-### Testing with Cortex Analyst
+### 6.2 Semantic View Generator Validation
+
+**Validate Generator Output Before Execution:**
+
+```sql
+-- Step 1: Use Generator to create DDL (via Snowsight UI or API)
+-- Generator produces CREATE SEMANTIC VIEW statement
+
+-- Step 2: Review generated DDL for quality
+-- Check these elements BEFORE executing:
+
+-- Checklist for Generated DDL:
+-- [ ] PRIMARY KEY matches actual table primary key or business grain
+-- [ ] FACTS contain only numeric columns (INTEGER, NUMBER, FLOAT, DECIMAL)
+-- [ ] DIMENSIONS contain categorical/temporal columns (VARCHAR, DATE, TIMESTAMP)
+-- [ ] METRICS use appropriate aggregation functions (SUM, AVG, COUNT, MIN, MAX)
+-- [ ] Table references are fully qualified (DATABASE.SCHEMA.TABLE)
+-- [ ] No ambiguous column names in multi-table views
+
+-- Step 3: Execute with verification
+CREATE OR REPLACE SEMANTIC VIEW SAMPLE_DATA.TPCDS_SF10TCL.SEM_CUSTOMER
+  TABLES (
+    customer AS SAMPLE_DATA.TPCDS_SF10TCL.CUSTOMER
+      PRIMARY KEY (C_CUSTOMER_SK)
+  )
+  FACTS (
+    customer.C_BIRTH_YEAR AS c_birth_year  -- VALIDATE: Should this be DIMENSION?
+  )
+  DIMENSIONS (
+    customer.C_CUSTOMER_SK AS c_customer_sk,
+    customer.C_CUSTOMER_ID AS c_customer_id,
+    customer.C_BIRTH_COUNTRY AS c_birth_country
+  )
+  METRICS (
+    customer.customer_count AS COUNT(DISTINCT C_CUSTOMER_SK)
+  );
+
+-- Step 4: Verify creation
+SHOW SEMANTIC VIEWS LIKE 'SEM_CUSTOMER' IN SCHEMA SAMPLE_DATA.TPCDS_SF10TCL;
+
+-- Step 5: Test structure
+DESCRIBE SEMANTIC VIEW SAMPLE_DATA.TPCDS_SF10TCL.SEM_CUSTOMER;
+
+-- Step 6: Validate with test query
+SELECT * FROM SEMANTIC_VIEW (
+  SAMPLE_DATA.TPCDS_SF10TCL.SEM_CUSTOMER
+  METRICS customer_count
+  DIMENSIONS c_birth_country
+) LIMIT 10;
+```
+
+**Common Generator Issues and Corrections:**
+
+```sql
+-- ISSUE 1: Year classified as FACT instead of DIMENSION
+-- Generated (incorrect):
+FACTS (
+  customer.C_BIRTH_YEAR AS c_birth_year  -- Year should be DIMENSION
+)
+
+-- Corrected:
+DIMENSIONS (
+  customer.C_BIRTH_YEAR AS c_birth_year  -- Temporal dimension for filtering
+    WITH SYNONYMS ('birth year', 'year of birth')
+)
+
+-- ISSUE 2: Missing synonyms for natural language queries
+-- Generated (incomplete):
+DIMENSIONS (
+  customer.C_BIRTH_COUNTRY AS c_birth_country
+)
+
+-- Corrected:
+DIMENSIONS (
+  customer.C_BIRTH_COUNTRY AS c_birth_country
+    WITH SYNONYMS ('country', 'birth country', 'nationality', 'nation')
+    COMMENT = 'Country where customer was born'
+)
+
+-- ISSUE 3: Missing business-relevant metrics
+-- Generated (minimal):
+METRICS (
+  customer.customer_count AS COUNT(DISTINCT C_CUSTOMER_SK)
+)
+
+-- Enhanced:
+METRICS (
+  customer.customer_count AS COUNT(DISTINCT C_CUSTOMER_SK)
+    WITH SYNONYMS ('total customers', 'number of customers', 'customer count'),
+  customer.unique_countries AS COUNT(DISTINCT C_BIRTH_COUNTRY)
+    WITH SYNONYMS ('countries represented', 'country count'),
+  customer.avg_birth_year AS AVG(C_BIRTH_YEAR)
+    WITH SYNONYMS ('average birth year', 'mean age indicator')
+)
+```
+
+### 6.3 TPC-DS Test Examples
+
+**Complete TPC-DS Semantic View Test Suite:**
+
+```sql
+-- Test 1: Basic structure validation
+SHOW SEMANTIC VIEWS IN SCHEMA SAMPLE_DATA.TPCDS_SF10TCL;
+
+-- Expected: List of semantic views including TPCDS_SEMANTIC_VIEW_SM
+
+-- Test 2: Multi-table relationship validation
+SHOW SEMANTIC DIMENSIONS IN SEMANTIC VIEW SAMPLE_DATA.TPCDS_SF10TCL.TPCDS_SEMANTIC_VIEW_SM;
+
+-- Expected: Dimensions from CUSTOMER, DATE, ITEM, STORE tables
+
+-- Test 3: Simple aggregation query
+SELECT * FROM SEMANTIC_VIEW (
+  SAMPLE_DATA.TPCDS_SF10TCL.TPCDS_SEMANTIC_VIEW_SM
+  METRICS StoreSales.TotalSalesQuantity
+  DIMENSIONS Item.Category
+)
+ORDER BY TotalSalesQuantity DESC
+LIMIT 10;
+
+-- Expected: Top 10 categories by sales quantity
+
+-- Test 4: Multi-dimensional analysis
+SELECT * FROM SEMANTIC_VIEW (
+  SAMPLE_DATA.TPCDS_SF10TCL.TPCDS_SEMANTIC_VIEW_SM
+  DIMENSIONS 
+    Item.Brand,
+    Item.Category,
+    Store.State
+  METRICS 
+    StoreSales.TotalSalesQuantity
+)
+WHERE Category = 'Electronics'
+  AND State IN ('CA', 'TX', 'NY')
+ORDER BY TotalSalesQuantity DESC
+LIMIT 20;
+
+-- Expected: Top 20 electronic brands by state (CA, TX, NY)
+
+-- Test 5: Temporal filtering with relationships
+SELECT * FROM SEMANTIC_VIEW (
+  SAMPLE_DATA.TPCDS_SF10TCL.TPCDS_SEMANTIC_VIEW_SM
+  DIMENSIONS 
+    Date.Year,
+    Date.Month,
+    Item.Brand
+  METRICS 
+    StoreSales.TotalSalesQuantity
+)
+WHERE Year = '2002'
+  AND Month BETWEEN '10' AND '12'  -- Q4 2002
+ORDER BY TotalSalesQuantity DESC
+LIMIT 15;
+
+-- Expected: Top 15 brands in Q4 2002 by sales quantity
+
+-- Test 6: Cross-dimensional analysis (customer + product + time)
+SELECT * FROM SEMANTIC_VIEW (
+  SAMPLE_DATA.TPCDS_SF10TCL.TPCDS_SEMANTIC_VIEW_SM
+  DIMENSIONS 
+    Customer.C_BIRTH_COUNTRY,
+    Item.Category,
+    Date.Year
+  METRICS 
+    StoreSales.TotalSalesQuantity
+)
+WHERE Year = '2002'
+  AND C_BIRTH_COUNTRY IN ('UNITED STATES', 'CANADA', 'MEXICO')
+ORDER BY TotalSalesQuantity DESC
+LIMIT 25;
+
+-- Expected: Sales by country, category, and year (North America only)
+
+-- Test 7: Performance validation with Query Profile
+-- Run this query and check Query Profile for:
+-- - Partition pruning on date columns
+-- - Join elimination if dimensions not used
+-- - Efficient aggregation patterns
+
+SELECT * FROM SEMANTIC_VIEW (
+  SAMPLE_DATA.TPCDS_SF10TCL.TPCDS_SEMANTIC_VIEW_SM
+  DIMENSIONS 
+    Date.Year,
+    Date.Month,
+    Store.State
+  METRICS 
+    StoreSales.TotalSalesQuantity
+)
+WHERE Year = '2002'
+  AND Month = '12'
+  AND State = 'TX'
+ORDER BY TotalSalesQuantity DESC;
+
+-- Review Query Profile:
+-- [ ] Date filters pushed down to STORE_SALES table
+-- [ ] Partition pruning applied (check "Partitions scanned")
+-- [ ] No unnecessary table scans
+-- [ ] Join order optimized by Snowflake optimizer
+```
+
+**Accuracy Validation Pattern:**
+
+```sql
+-- Validate semantic view metrics match direct table queries
+
+-- Semantic view query
+WITH semantic_result AS (
+  SELECT 
+    SUM(TotalSalesQuantity) AS semantic_total
+  FROM SEMANTIC_VIEW (
+    SAMPLE_DATA.TPCDS_SF10TCL.TPCDS_SEMANTIC_VIEW_SM
+    METRICS StoreSales.TotalSalesQuantity
+  )
+  WHERE Date.Year = '2002'
+),
+-- Direct table query
+direct_result AS (
+  SELECT 
+    SUM(SS_QUANTITY) AS direct_total
+  FROM SAMPLE_DATA.TPCDS_SF10TCL.STORE_SALES s
+  JOIN SAMPLE_DATA.TPCDS_SF10TCL.DATE_DIM d ON s.SS_SOLD_DATE_SK = d.D_DATE_SK
+  WHERE d.D_YEAR = 2002
+)
+SELECT 
+  s.semantic_total,
+  d.direct_total,
+  s.semantic_total - d.direct_total AS difference,
+  CASE 
+    WHEN s.semantic_total = d.direct_total THEN 'PASS'
+    ELSE 'FAIL'
+  END AS validation_status
+FROM semantic_result s, direct_result d;
+
+-- Expected: difference = 0, validation_status = 'PASS'
+```
+
+### 6.4 Testing with Cortex Analyst
+
+**SnowCLI Testing:**
 
 ```bash
 # Test NLQ query via SnowCLI
 snow cortex analyst query \
   --semantic-view "PROD.GRID_DATA.SEM_TRANSFORMER_HEALTH" \
   --question "What is the average load for transformers in the last 24 hours?"
+
+# Test with TPC-DS semantic view
+snow cortex analyst query \
+  --semantic-view "SAMPLE_DATA.TPCDS_SF10TCL.TPCDS_SEMANTIC_VIEW_SM" \
+  --question "What are the top 5 selling brands in Texas during December 2002?"
+
+# Test synonym effectiveness
+snow cortex analyst query \
+  --semantic-view "SAMPLE_DATA.TPCDS_SF10TCL.TPCDS_SEMANTIC_VIEW_SM" \
+  --question "Show me revenue by product category for last year"
+```
+
+**Python REST API Testing:**
+
+```python
+import requests
+import json
+
+def test_semantic_view_nlq(account, token, semantic_view, test_queries):
+    """Test semantic view with multiple natural language queries"""
+    
+    url = f"https://{account}.snowflakecomputing.com/api/v2/cortex/analyst/message"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+    
+    results = []
+    for query in test_queries:
+        payload = {
+            "semantic_view": semantic_view,
+            "messages": [{"role": "user", "content": query}]
+        }
+        
+        response = requests.post(url, headers=headers, json=payload)
+        result = {
+            "query": query,
+            "status": response.status_code,
+            "response": response.json() if response.ok else response.text
+        }
+        results.append(result)
+        
+        print(f"Query: {query}")
+        print(f"Status: {result['status']}")
+        print(f"Response: {json.dumps(result['response'], indent=2)}\n")
+    
+    return results
+
+# TPC-DS test queries
+tpcds_queries = [
+    "What are the top 10 selling brands?",
+    "Show me sales by state for books in December 2002",
+    "Which product categories have the highest revenue?",
+    "Compare sales in California vs Texas",
+    "What is the average quantity sold per transaction?"
+]
+
+results = test_semantic_view_nlq(
+    account="your_account",
+    token="your_token",
+    semantic_view="SAMPLE_DATA.TPCDS_SF10TCL.TPCDS_SEMANTIC_VIEW_SM",
+    test_queries=tpcds_queries
+)
+```
+
+### 6.5 Performance Validation
+
+**Check Base Table Optimization:**
+
+```sql
+-- Semantic views are metadata only - performance depends on base tables
+
+-- Step 1: Verify clustering on base table
+SHOW CLUSTERING KEYS IN TABLE SAMPLE_DATA.TPCDS_SF10TCL.STORE_SALES;
+
+-- Step 2: Check table statistics
+SELECT 
+  TABLE_NAME,
+  ROW_COUNT,
+  BYTES,
+  CLUSTERING_KEY
+FROM SAMPLE_DATA.INFORMATION_SCHEMA.TABLES
+WHERE TABLE_SCHEMA = 'TPCDS_SF10TCL'
+  AND TABLE_NAME = 'STORE_SALES';
+
+-- Step 3: Test query with Query Profile analysis
+SELECT * FROM SEMANTIC_VIEW (
+  SAMPLE_DATA.TPCDS_SF10TCL.TPCDS_SEMANTIC_VIEW_SM
+  METRICS StoreSales.TotalSalesQuantity
+  DIMENSIONS Date.Year, Date.Month
+)
+WHERE Year = '2002' AND Month = '12';
+
+-- Step 4: Review Query Profile for:
+-- [ ] Partitions scanned vs total partitions
+-- [ ] Bytes scanned vs bytes spilled
+-- [ ] Join order and elimination
+-- [ ] Aggregation pushdown
+-- [ ] Filter pushdown to base tables
+
+-- Step 5: If performance issues, optimize base table
+-- (Semantic view optimization happens via base table tuning)
+ALTER TABLE SAMPLE_DATA.TPCDS_SF10TCL.STORE_SALES 
+  CLUSTER BY (SS_SOLD_DATE_SK);
 ```
 
 ## 7) Migration from YAML Semantic Models
@@ -639,6 +1086,439 @@ CREATE OR REPLACE SEMANTIC VIEW PROD.GRID_DATA.SEM_TRANSFORMER_HEALTH
 - Integrated with database governance
 - Simpler deployment pipeline
 
+## 8) Development Best Practices
+
+### 8.1 Semantic View Generator Tool
+
+**Purpose:** Automate initial semantic view creation from existing tables to accelerate development.
+
+**When to Use:**
+- Starting new semantic view from scratch
+- Exploring unfamiliar database schemas
+- Creating baseline views for iterative refinement
+- Rapid prototyping for Cortex Analyst testing
+
+**Generator Workflow:**
+
+```sql
+-- Step 1: Verify Generator availability (requires ACCOUNTADMIN or appropriate role)
+SHOW PARAMETERS LIKE 'CORTEX%' IN ACCOUNT;
+
+-- Step 2: Use Generator to create semantic view from base table
+-- The Generator analyzes table structure and suggests semantic view DDL
+-- (Generator UI available in Snowsight or via API)
+
+-- Step 3: Review generated DDL before execution
+-- Generator produces CREATE SEMANTIC VIEW statement with:
+-- - Inferred PRIMARY KEY from table constraints
+-- - Numeric columns as FACTS
+-- - String/date columns as DIMENSIONS
+-- - Common aggregations as METRICS
+
+-- Step 4: Execute generated DDL
+CREATE OR REPLACE SEMANTIC VIEW SAMPLE_DATA.TPCDS_SF10TCL.SEM_CUSTOMER
+  TABLES (
+    customer AS SAMPLE_DATA.TPCDS_SF10TCL.CUSTOMER
+      PRIMARY KEY (C_CUSTOMER_SK)
+  )
+  FACTS (
+    customer.C_BIRTH_YEAR AS c_birth_year
+  )
+  DIMENSIONS (
+    customer.C_CUSTOMER_SK AS c_customer_sk,
+    customer.C_CUSTOMER_ID AS c_customer_id,
+    customer.C_FIRST_NAME AS c_first_name,
+    customer.C_LAST_NAME AS c_last_name,
+    customer.C_BIRTH_COUNTRY AS c_birth_country
+  )
+  METRICS (
+    customer.customer_count AS COUNT(DISTINCT C_CUSTOMER_SK)
+  );
+
+-- Step 5: Validate creation
+SHOW SEMANTIC VIEWS IN SCHEMA SAMPLE_DATA.TPCDS_SF10TCL;
+```
+
+**Generator Limitations:**
+- Cannot infer complex business logic (e.g., calculated facts)
+- May misclassify columns (review FACTS vs DIMENSIONS)
+- Does not add synonyms or comments automatically
+- Cannot create relationships between semantic views
+
+**Post-Generation Refinement Checklist:**
+- [ ] Verify PRIMARY KEY is correct for business grain
+- [ ] Review FACTS classification (should be numeric measures)
+- [ ] Review DIMENSIONS classification (should be categorical/temporal)
+- [ ] Add WITH SYNONYMS for natural language query matching
+- [ ] Add COMMENT clauses for business definitions
+- [ ] Test with sample Cortex Analyst queries
+
+### 8.2 Iterative Development Workflow
+
+**MANDATORY:**
+**Follow this workflow for production-ready semantic views:**
+
+**Phase 1: Generate and Validate Base Structure**
+```sql
+-- 1. Read base table structure BEFORE generating
+DESCRIBE TABLE SAMPLE_DATA.TPCDS_SF10TCL.STORE_SALES;
+
+-- 2. Generate or write minimal semantic view
+CREATE OR REPLACE SEMANTIC VIEW SAMPLE_DATA.TPCDS_SF10TCL.SEM_STORE_SALES
+  TABLES (
+    sales AS SAMPLE_DATA.TPCDS_SF10TCL.STORE_SALES
+      PRIMARY KEY (SS_SOLD_DATE_SK, SS_ITEM_SK, SS_CUSTOMER_SK)
+  )
+  FACTS (
+    sales.sales_price AS SS_SALES_PRICE,
+    sales.quantity AS SS_QUANTITY
+  )
+  DIMENSIONS (
+    sales.item_sk AS SS_ITEM_SK,
+    sales.customer_sk AS SS_CUSTOMER_SK,
+    sales.sold_date_sk AS SS_SOLD_DATE_SK
+  )
+  METRICS (
+    sales.total_sales AS SUM(SS_SALES_PRICE),
+    sales.total_quantity AS SUM(SS_QUANTITY)
+  );
+
+-- 3. Verify structure
+SHOW SEMANTIC VIEWS LIKE 'SEM_STORE_SALES' IN SCHEMA SAMPLE_DATA.TPCDS_SF10TCL;
+SHOW SEMANTIC DIMENSIONS IN SEMANTIC VIEW SAMPLE_DATA.TPCDS_SF10TCL.SEM_STORE_SALES;
+SHOW SEMANTIC METRICS IN SEMANTIC VIEW SAMPLE_DATA.TPCDS_SF10TCL.SEM_STORE_SALES;
+
+-- 4. Test basic query
+SELECT * FROM SEMANTIC_VIEW (
+  SAMPLE_DATA.TPCDS_SF10TCL.SEM_STORE_SALES
+  METRICS total_sales, total_quantity
+  DIMENSIONS SS_ITEM_SK
+) LIMIT 10;
+```
+
+**Phase 2: Add Business Context**
+```sql
+-- 5. Add synonyms for natural language querying
+CREATE OR REPLACE SEMANTIC VIEW SAMPLE_DATA.TPCDS_SF10TCL.SEM_STORE_SALES
+  TABLES (
+    sales AS SAMPLE_DATA.TPCDS_SF10TCL.STORE_SALES
+      PRIMARY KEY (SS_SOLD_DATE_SK, SS_ITEM_SK, SS_CUSTOMER_SK)
+      WITH SYNONYMS ('store sales', 'retail transactions', 'sales data')
+  )
+  FACTS (
+    sales.sales_price AS SS_SALES_PRICE
+      WITH SYNONYMS ('price', 'revenue', 'amount'),
+    sales.quantity AS SS_QUANTITY
+      WITH SYNONYMS ('qty', 'units sold', 'volume')
+  )
+  DIMENSIONS (
+    sales.item_sk AS SS_ITEM_SK
+      WITH SYNONYMS ('item', 'product', 'SKU'),
+    sales.customer_sk AS SS_CUSTOMER_SK
+      WITH SYNONYMS ('customer', 'buyer'),
+    sales.sold_date_sk AS SS_SOLD_DATE_SK
+      WITH SYNONYMS ('date', 'transaction date', 'sale date')
+  )
+  METRICS (
+    sales.total_sales AS SUM(SS_SALES_PRICE)
+      WITH SYNONYMS ('total revenue', 'gross sales'),
+    sales.total_quantity AS SUM(SS_QUANTITY)
+      WITH SYNONYMS ('total units', 'total volume')
+  );
+
+-- 6. Add comments for business definitions
+CREATE OR REPLACE SEMANTIC VIEW SAMPLE_DATA.TPCDS_SF10TCL.SEM_STORE_SALES
+  TABLES (
+    sales AS SAMPLE_DATA.TPCDS_SF10TCL.STORE_SALES
+      PRIMARY KEY (SS_SOLD_DATE_SK, SS_ITEM_SK, SS_CUSTOMER_SK)
+      WITH SYNONYMS ('store sales', 'retail transactions')
+      COMMENT = 'Retail store sales transactions from TPC-DS dataset'
+  )
+  FACTS (
+    sales.sales_price AS SS_SALES_PRICE
+      WITH SYNONYMS ('price', 'revenue', 'amount')
+      COMMENT = 'Sales price per item (excludes tax)',
+    sales.quantity AS SS_QUANTITY
+      WITH SYNONYMS ('qty', 'units sold')
+      COMMENT = 'Quantity of items sold'
+  )
+  DIMENSIONS (
+    sales.item_sk AS SS_ITEM_SK
+      WITH SYNONYMS ('item', 'product')
+      COMMENT = 'Surrogate key for item dimension',
+    sales.customer_sk AS SS_CUSTOMER_SK
+      WITH SYNONYMS ('customer', 'buyer')
+      COMMENT = 'Surrogate key for customer dimension',
+    sales.sold_date_sk AS SS_SOLD_DATE_SK
+      WITH SYNONYMS ('date', 'transaction date')
+      COMMENT = 'Surrogate key for date dimension'
+  )
+  METRICS (
+    sales.total_sales AS SUM(SS_SALES_PRICE)
+      WITH SYNONYMS ('total revenue', 'gross sales')
+      COMMENT = 'Sum of all sales prices',
+    sales.total_quantity AS SUM(SS_QUANTITY)
+      WITH SYNONYMS ('total units')
+      COMMENT = 'Sum of quantities sold'
+  )
+  COMMENT = 'Store sales semantic view for Cortex Analyst natural language queries';
+```
+
+**Phase 3: Test with Cortex Analyst**
+```python
+# 7. Test natural language queries
+import requests
+
+url = f"https://{account}.snowflakecomputing.com/api/v2/cortex/analyst/message"
+headers = {
+    "Authorization": f"Bearer {token}",
+    "Content-Type": "application/json"
+}
+
+# Test queries demonstrating synonyms
+test_queries = [
+    "What are the top 10 items by revenue?",  # Tests 'revenue' synonym
+    "Show me total units sold by customer",    # Tests 'units' synonym
+    "Which products have the highest volume?", # Tests 'product' and 'volume' synonyms
+]
+
+for query in test_queries:
+    payload = {
+        "semantic_view": "SAMPLE_DATA.TPCDS_SF10TCL.SEM_STORE_SALES",
+        "messages": [{"role": "user", "content": query}]
+    }
+    response = requests.post(url, headers=headers, json=payload)
+    print(f"Query: {query}")
+    print(f"Response: {response.json()}\n")
+```
+
+**Phase 4: Performance Validation**
+```sql
+-- 8. Verify base table performance (semantic views are metadata only)
+-- Check clustering and partitioning on base table
+SHOW CLUSTERING KEYS IN TABLE SAMPLE_DATA.TPCDS_SF10TCL.STORE_SALES;
+
+-- Test query performance with filters
+SELECT * FROM SEMANTIC_VIEW (
+  SAMPLE_DATA.TPCDS_SF10TCL.SEM_STORE_SALES
+  METRICS total_sales
+  DIMENSIONS SS_SOLD_DATE_SK
+)
+WHERE SS_SOLD_DATE_SK >= 2451545  -- Date filter for partition pruning
+  AND SS_SOLD_DATE_SK <= 2451910
+ORDER BY total_sales DESC
+LIMIT 100;
+
+-- Review Query Profile for pruning efficiency
+-- (Use Snowsight Query History → Query Profile)
+```
+
+### 8.3 Testing Methodology
+
+**Component Testing Pattern:**
+
+```sql
+-- Test 1: Structure validation
+SHOW SEMANTIC VIEWS IN SCHEMA SAMPLE_DATA.TPCDS_SF10TCL;
+SHOW SEMANTIC DIMENSIONS IN SEMANTIC VIEW SAMPLE_DATA.TPCDS_SF10TCL.SEM_STORE_SALES;
+SHOW SEMANTIC METRICS IN SEMANTIC VIEW SAMPLE_DATA.TPCDS_SF10TCL.SEM_STORE_SALES;
+SHOW SEMANTIC FACTS IN SEMANTIC VIEW SAMPLE_DATA.TPCDS_SF10TCL.SEM_STORE_SALES;
+
+-- Test 2: Basic data retrieval
+SELECT * FROM SEMANTIC_VIEW (
+  SAMPLE_DATA.TPCDS_SF10TCL.SEM_STORE_SALES
+  METRICS total_sales, total_quantity
+  DIMENSIONS SS_ITEM_SK
+) LIMIT 5;
+
+-- Expected: 5 rows with aggregated metrics per item
+
+-- Test 3: Metric calculation accuracy
+-- Compare semantic view metric with direct table query
+WITH semantic_result AS (
+  SELECT 
+    SUM(total_sales) AS semantic_total
+  FROM SEMANTIC_VIEW (
+    SAMPLE_DATA.TPCDS_SF10TCL.SEM_STORE_SALES
+    METRICS total_sales
+  )
+),
+direct_result AS (
+  SELECT 
+    SUM(SS_SALES_PRICE) AS direct_total
+  FROM SAMPLE_DATA.TPCDS_SF10TCL.STORE_SALES
+)
+SELECT 
+  s.semantic_total,
+  d.direct_total,
+  s.semantic_total - d.direct_total AS difference
+FROM semantic_result s, direct_result d;
+
+-- Expected: difference = 0 (exact match)
+
+-- Test 4: Synonym effectiveness (via Cortex Analyst)
+-- Test that synonyms map correctly to underlying columns
+-- (Use Cortex Analyst REST API or Snowsight UI)
+```
+
+**Integration Testing with TPC-DS Examples:**
+
+```sql
+-- Complete TPC-DS semantic view test
+-- Demonstrates multi-table relationships and complex queries
+
+-- Example: Top selling brands by category
+SELECT * FROM SEMANTIC_VIEW (
+  SAMPLE_DATA.TPCDS_SF10TCL.TPCDS_SEMANTIC_VIEW_SM
+  DIMENSIONS 
+    Item.Brand,
+    Item.Category,
+    Date.Year,
+    Date.Month,
+    Store.State
+  METRICS 
+    StoreSales.TotalSalesQuantity
+)
+WHERE Year = '2002' 
+  AND Month = '12' 
+  AND State = 'TX' 
+  AND Category = 'Books'
+ORDER BY TotalSalesQuantity DESC 
+LIMIT 10;
+
+-- Expected: Ranked list of book brands sold in Texas, December 2002
+```
+
+### 8.4 Common Development Patterns
+
+**Pattern 1: Time-Based Analysis Views**
+
+```sql
+-- Optimized for temporal queries with date dimension
+CREATE OR REPLACE SEMANTIC VIEW ANALYTICS.SEMANTIC.SALES_TEMPORAL
+  TABLES (
+    sales AS ANALYTICS.CORE.DAILY_SALES
+      PRIMARY KEY (sale_date, product_id)
+      WITH SYNONYMS ('sales', 'transactions')
+  )
+  FACTS (
+    sales.revenue AS revenue,
+    sales.cost AS cost,
+    sales.profit AS profit  -- Pre-calculated: revenue - cost
+  )
+  DIMENSIONS (
+    sales.sale_date AS sale_date
+      WITH SYNONYMS ('date', 'transaction date', 'day')
+      COMMENT = 'Date of sale transaction',
+    sales.product_id AS product_id
+      WITH SYNONYMS ('product', 'item', 'SKU'),
+    sales.region AS region
+      WITH SYNONYMS ('location', 'territory')
+  )
+  METRICS (
+    sales.total_revenue AS SUM(revenue)
+      WITH SYNONYMS ('total sales', 'gross revenue'),
+    sales.total_profit AS SUM(profit)
+      WITH SYNONYMS ('net profit', 'earnings'),
+    sales.avg_revenue AS AVG(revenue)
+      WITH SYNONYMS ('average sale', 'mean revenue')
+  )
+  COMMENT = 'Daily sales semantic view optimized for temporal analysis';
+```
+
+**Pattern 2: Aggregated Fact Views**
+
+```sql
+-- Pre-aggregated facts for performance
+CREATE OR REPLACE SEMANTIC VIEW ANALYTICS.SEMANTIC.MONTHLY_SALES
+  TABLES (
+    monthly AS ANALYTICS.AGGREGATE.MONTHLY_SALES_AGG  -- Pre-aggregated base
+      PRIMARY KEY (year_month, product_category)
+  )
+  FACTS (
+    monthly.sales_amount AS sales_amount,
+    monthly.units_sold AS units_sold,
+    monthly.customer_count AS customer_count  -- Already aggregated
+  )
+  DIMENSIONS (
+    monthly.year_month AS year_month
+      WITH SYNONYMS ('month', 'period', 'year-month')
+      COMMENT = 'Year-month in YYYY-MM format',
+    monthly.product_category AS product_category
+      WITH SYNONYMS ('category', 'product type')
+  )
+  METRICS (
+    monthly.total_sales AS SUM(sales_amount),
+    monthly.total_units AS SUM(units_sold),
+    monthly.avg_monthly_sales AS AVG(sales_amount)
+      WITH SYNONYMS ('average monthly revenue')
+  )
+  COMMENT = 'Monthly aggregated sales for trend analysis';
+```
+
+**Pattern 3: Multi-Dimensional Views**
+
+```sql
+-- Complex dimensional analysis
+CREATE OR REPLACE SEMANTIC VIEW ANALYTICS.SEMANTIC.SALES_CUBE
+  TABLES (
+    sales AS ANALYTICS.CORE.SALES_FACT
+      PRIMARY KEY (sale_id)
+  )
+  FACTS (
+    sales.amount AS amount,
+    sales.quantity AS quantity,
+    sales.discount AS discount
+  )
+  DIMENSIONS (
+    sales.product_id AS product_id
+      WITH SYNONYMS ('product', 'item'),
+    sales.customer_id AS customer_id
+      WITH SYNONYMS ('customer', 'buyer'),
+    sales.store_id AS store_id
+      WITH SYNONYMS ('store', 'location'),
+    sales.sale_date AS sale_date
+      WITH SYNONYMS ('date', 'transaction date'),
+    sales.channel AS channel
+      WITH SYNONYMS ('sales channel', 'channel type')
+      COMMENT = 'Online, In-Store, Mobile'
+  )
+  METRICS (
+    sales.revenue AS SUM(amount),
+    sales.total_quantity AS SUM(quantity),
+    sales.avg_discount AS AVG(discount)
+      WITH SYNONYMS ('average discount rate'),
+    sales.transaction_count AS COUNT(*)
+      WITH SYNONYMS ('number of sales', 'sale count')
+  )
+  COMMENT = 'Multi-dimensional sales cube for slice-and-dice analysis';
+```
+
+### 8.5 Development Checklist for AI Agents
+
+**MANDATORY:**
+**Before creating semantic view, verify:**
+- [ ] Read base table structure with DESCRIBE TABLE
+- [ ] Understand business grain and primary key
+- [ ] Identify numeric columns for FACTS
+- [ ] Identify categorical/temporal columns for DIMENSIONS
+- [ ] Document intended metrics and aggregations
+
+**During semantic view creation:**
+- [ ] Use correct mapping syntax: `logical_name AS physical_column`
+- [ ] Follow clause order: TABLES → FACTS → DIMENSIONS → METRICS
+- [ ] Add WITH SYNONYMS for all business-critical fields
+- [ ] Include COMMENT clauses with business definitions
+- [ ] Use equals sign in COMMENT syntax: `COMMENT = 'text'`
+
+**After semantic view creation:**
+- [ ] Verify with SHOW SEMANTIC VIEWS
+- [ ] Test basic query with SEMANTIC_VIEW()
+- [ ] Validate metric calculations against base table
+- [ ] Test Cortex Analyst natural language queries
+- [ ] Review Query Profile for performance
+- [ ] Document view purpose and usage examples
+
 ## Quick Compliance Checklist
 - [ ] Use `CREATE SEMANTIC VIEW` (not `CREATE VIEW`)
 - [ ] Clause order: TABLES → FACTS → DIMENSIONS → METRICS
@@ -673,7 +1553,30 @@ CREATE OR REPLACE SEMANTIC VIEW PROD.GRID_DATA.SEM_TRANSFORMER_HEALTH
 > "I see the table has columns: asset_id (VARCHAR), asset_type (VARCHAR), rated_capacity (NUMBER). Here's the semantic view DDL based on these actual columns..."
 
 ## Response Template
-```markdown
+
+```sql
+-- Analysis Query: Investigate current state
+SELECT column_pattern, COUNT(*) as usage_count
+FROM information_schema.columns
+WHERE table_schema = 'TARGET_SCHEMA'
+GROUP BY column_pattern;
+
+-- Implementation: Apply Snowflake best practices
+CREATE OR REPLACE VIEW schema.view_name
+COMMENT = 'Business purpose following semantic model standards'
+AS
+SELECT 
+    -- Explicit column list with business context
+    id COMMENT 'Surrogate key',
+    name COMMENT 'Business entity name',
+    created_at COMMENT 'Record creation timestamp'
+FROM schema.source_table
+WHERE is_active = TRUE;
+
+-- Validation: Confirm implementation
+SELECT * FROM schema.view_name LIMIT 5;
+SHOW VIEWS LIKE '%view_name%';
+```
 ## Native Semantic View Implementation
 
 **Semantic View:** `<DB>.<SCHEMA>.<VIEW_NAME>`
@@ -717,9 +1620,12 @@ payload = {
 ### External Documentation
 - [CREATE SEMANTIC VIEW DDL](https://docs.snowflake.com/en/sql-reference/sql/create-semantic-view) - Official DDL syntax reference
 - [Semantic Views Overview](https://docs.snowflake.com/en/user-guide/views-semantic/overview) - Conceptual overview and use cases
+- [Semantic Views Best Practices - Development](https://docs.snowflake.com/en/user-guide/views-semantic/best-practices-dev) - Development workflow, Generator usage, testing patterns
 - [Semantic Views SQL Examples](https://docs.snowflake.com/en/user-guide/views-semantic/sql#label-semantic-views-create) - Working DDL examples
+- [Getting Started with Snowflake Semantic View](https://medium.com/snowflake/getting-started-with-snowflake-semantic-view-7eced29abe6f) - Tutorial with TPC-DS examples and iterative development workflow
 - [Cortex Analyst Documentation](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst) - Integration with Cortex Analyst
 - [Cortex Agent Documentation](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents) - Grounding agents on semantic views
+- [Using the Cortex Analyst Semantic View Generator](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst/semantic-model-generator) - Automated semantic view creation tool
 
 ### Related Rules
 - **Snowflake Core**: `100-snowflake-core.md`

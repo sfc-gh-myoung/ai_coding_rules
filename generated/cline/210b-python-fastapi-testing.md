@@ -16,6 +16,15 @@ Establish comprehensive testing strategies for FastAPI applications using TestCl
 - **Scope:** FastAPI testing strategies with TestClient, pytest-asyncio, and comprehensive API testing patterns
 
 
+
+## Contract
+- **Inputs/Prereqs:** [Context, files, dependencies needed]
+- **Allowed Tools:** [Tools permitted for this domain]
+- **Forbidden Tools:** [Tools not allowed for this domain]
+- **Required Steps:** [Ordered steps the agent must follow]
+- **Output Format:** [Expected output format]
+- **Validation Steps:** [Checks to confirm success]
+
 ## Key Principles
 1. **Test-Driven Development** - Use TestClient and pytest-asyncio for comprehensive API testing
 2. **Async Testing** - Properly handle async operations in tests
@@ -247,14 +256,6 @@ markers = [
 ]
 ```
 
-## Contract
-- **Inputs/Prereqs:** [Context, files, dependencies needed]
-- **Allowed Tools:** [Tools permitted for this domain]
-- **Forbidden Tools:** [Tools not allowed for this domain]
-- **Required Steps:** [Ordered steps the agent must follow]
-- **Output Format:** [Expected output format]
-- **Validation Steps:** [Checks to confirm success]
-
 ## Quick Compliance Checklist
 - [ ] Required dependencies and context verified
 - [ ] Appropriate tools selected and validated
@@ -284,8 +285,61 @@ markers = [
 > "I see you have a test_app fixture that overrides get_db. Here's a new test following the same pattern with AAA structure..."
 
 ## Response Template
+
+```python
+# Investigation: Check current implementation
+# Read existing files, understand patterns
+
+# Implementation: Following uv + ruff + pytest standards
+from typing import Protocol
+from datetime import datetime, UTC
+
+class ServiceProtocol(Protocol):
+    """Clear contract for service implementations."""
+    
+    def process(self, data: dict) -> dict:
+        """Process data following validation rules."""
+        ...
+
+def implementation_function(input_data: dict) -> dict:
+    """
+    Implement feature following project conventions.
+    
+    Args:
+        input_data: Validated input following schema
+    
+    Returns:
+        Processed result with metadata
+    
+    Raises:
+        ValueError: If input validation fails
+    """
+    # Use datetime.now(UTC) not datetime.utcnow()
+    timestamp = datetime.now(UTC)
+    
+    # Implement business logic
+    result = {"status": "success", "timestamp": timestamp}
+    return result
+
+# Validation: Test the implementation
+def test_implementation_function():
+    """Test following AAA pattern."""
+    # Arrange
+    test_input = {"key": "value"}
+    
+    # Act
+    result = implementation_function(test_input)
+    
+    # Assert
+    assert result["status"] == "success"
+    assert "timestamp" in result
 ```
-[Minimal, copy-pasteable template showing expected output format]
+
+```bash
+# Validation commands
+uvx ruff check .
+uvx ruff format --check .
+uv run pytest tests/
 ```
 
 ## References

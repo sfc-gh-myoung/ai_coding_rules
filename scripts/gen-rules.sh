@@ -2,8 +2,9 @@
 # Script: gen-rules
 # Description: System-wide wrapper for AI coding rules generation from anywhere
 # Author: AI Coding Rules Project
-# Version: 2.2
-# Last Updated: 2025-11-05
+# Version: 2.3
+# Last Updated: 2025-11-15
+# Location: scripts/gen-rules.sh (moved from root in v2.3)
 # Usage: gen-rules [OPTIONS] <task> [task-args]
 
 set -euo pipefail
@@ -13,11 +14,13 @@ set -euo pipefail
 # ============================================================================
 
 readonly SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
-readonly SCRIPT_VERSION="2.2"
+readonly SCRIPT_VERSION="2.3"
 
 # Allow PROJECT_DIR override via environment variable
-# Default assumes script is in project root; override with GEN_RULES_PROJECT_DIR if installed elsewhere
-readonly DEFAULT_PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Script is now in scripts/ directory, so default to parent directory
+# Override with GEN_RULES_PROJECT_DIR if installed elsewhere
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly DEFAULT_PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 readonly PROJECT_DIR="${GEN_RULES_PROJECT_DIR:-${DEFAULT_PROJECT_DIR}}"
 
 # Exit codes

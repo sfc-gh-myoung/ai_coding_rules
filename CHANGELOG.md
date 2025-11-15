@@ -42,10 +42,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **fix(scripts):** Fixed `create-release.sh` command substitution capturing log output instead of user input
-  - Changed `echo "$variable"` to `printf "%s" "$variable"` in prompt functions
-  - Prevents colored log messages from being included in branch/commit/tag names
+  - Root cause: All echo statements in prompt functions were writing to stdout, which gets captured by command substitution `$()`
+  - Solution: Redirected all informational output to stderr (`>&2`) in log functions and prompt helper text
+  - Changed `echo "$variable"` to `printf "%s" "$variable"` for return values (no trailing newline)
   - Issue: `git checkout -b` was receiving multi-line string with ANSI color codes instead of clean branch name
   - Now correctly returns only the validated user input without formatting or newlines
+  - All log_info(), log_success(), log_warning(), log_error() now write to stderr
+  - All example text and helper prompts now write to stderr
 
 - **feat(rules):** Split large Semantic Views rule into three focused rules for better governance compliance and LLM efficiency (2025-11-15)
   - **Original Rule:** `106-snowflake-semantic-views.md` (2,706 lines, ~11,200 tokens) exceeded governance 500-line limit by 441%

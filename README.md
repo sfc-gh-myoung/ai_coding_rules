@@ -89,7 +89,7 @@ This repository contains multiple documentation files for different audiences:
 |------|---------|-----------|
 | **AGENTS.md** | Rule loading protocol and discovery guide (prescriptive instructions FOR AI) | ✅ Required |
 | **RULES_INDEX.md** | Machine-readable rule catalog with keywords | ✅ Required |
-| **rules/*.md** | The actual rules (72 rule files) | ✅ Required (loaded on-demand) |
+| **rules/*.md** | The actual rules (74 rule files) | ✅ Required (loaded on-demand) |
 
 ### Generated Outputs (Use These)
 
@@ -138,8 +138,9 @@ task deploy:universal
 **What happens:**
 - Generates rules for your target agent/IDE
 - Copies to correct location (`.cursor/rules/`, `rules/`, `.github/copilot/instructions/`, `.clinerules/`)
-- Updates `AGENTS.md` with proper paths
-- Copies `RULES_INDEX.md` to project root
+- Updates `AGENTS.md` with proper paths for your agent (replaces `{rule_path}` template variable)
+- Updates `RULES_INDEX.md` with correct paths and file extensions for your agent
+- Both files configured to point AI assistants to the correct rule locations
 - Ready to use immediately!
 
 #### Option B: Git Submodule (Version Tracking)
@@ -191,8 +192,9 @@ ls ~/my-project/AGENTS.md ~/my-project/RULES_INDEX.md  # Both files should exist
 **What the script does automatically:**
 - Generates rules for the specified agent type
 - Copies rules to the correct directory (`.cursor/rules/`, `rules/`, etc.)
-- Updates `AGENTS.md` with correct paths (replaces `{rule_path}`)
-- Copies `RULES_INDEX.md` to project root
+- Updates `AGENTS.md` with correct paths (replaces `{rule_path}` template variable)
+- Updates `RULES_INDEX.md` with correct paths and file extensions (e.g., `.mdc` for Cursor)
+- Ensures AI assistants can accurately locate rules by reading either file
 - No manual `sed` or path editing needed!
 
 #### Verify Setup
@@ -321,7 +323,7 @@ cp discovery/RULES_INDEX.md ~/test-rules/RULES_INDEX.md
 
 **Success Indicators:**
 - ✅ `task validate` passes all checks
-- ✅ `generated/universal/` contains 72 rule files
+- ✅ `generated/universal/` contains 74 rule files
 - ✅ `RULES_INDEX.md` (in test directory) lists all rules with metadata
 - ✅ AI assistant can load and apply rules correctly
 - ✅ No linting errors in templates
@@ -496,7 +498,7 @@ Install the `gen-rules` wrapper script to deploy/generate rules from anywhere on
 
 ```bash
 # From the ai_coding_rules directory
-cp gen-rules.sh ~/bin/gen-rules
+cp scripts/gen-rules.sh ~/bin/gen-rules
 chmod +x ~/bin/gen-rules
 # Ensure ~/bin is in your PATH
 ```
@@ -545,9 +547,9 @@ To enable automatic rule discovery with your AI assistant, you need to add the d
 ### One-Time Setup
 
 **What the AI needs access to:**
-1. `AGENTS.md` - Rule loading protocol (prescriptive instructions FOR the AI)
-2. `RULES_INDEX.md` - Rule catalog (auto-generated, read-only)
-3. `rules/` directory - All rule files (loaded on-demand)
+1. `AGENTS.md` - Rule loading protocol with agent-specific paths (prescriptive instructions FOR the AI)
+2. `RULES_INDEX.md` - Rule catalog with agent-specific paths and extensions (auto-generated from templates)
+3. `rules/` directory - All rule files (loaded on-demand; path varies by agent type)
 
 ### IDE-Specific Configuration
 
@@ -722,7 +724,9 @@ The following best practices apply to all AI coding assistants and development e
 - **`103-snowflake-performance-tuning.md`** — Query optimization and warehouse tuning
 - **`104-snowflake-streams-tasks.md`** — Incremental data pipelines
 - **`105-snowflake-cost-governance.md`** — Cost optimization and resource management
-- **`106-snowflake-semantic-views.md`** — Semantic models and semantic views (Cortex Analyst)
+- **`106-snowflake-semantic-views.md`** — Core DDL syntax and validation rules for creating semantic views
+- **`106a-snowflake-semantic-views-querying.md`** — Query patterns and testing strategies for semantic views using SEMANTIC_VIEW() function
+- **`106b-snowflake-semantic-views-integration.md`** — Cortex Analyst/Agent integration, governance, and development workflows for semantic views
 - **`107-snowflake-security-governance.md`** — Security policies and access control
 - **`108-snowflake-data-loading.md`** — Data ingestion best practices
 - **`109-snowflake-notebooks.md`** — Jupyter notebook standards (nbqa + Ruff linting, code quality, reproducibility)
@@ -1446,7 +1450,7 @@ ls generated/cursor/rules/*.mdc | wc -l
 1. **Verify Instructions Exist**
 ```bash
 ls .github/instructions/*.md | wc -l
-# Should show 72 files
+# Should show 74 files
 ```
 
 2. **Check Repository Settings**

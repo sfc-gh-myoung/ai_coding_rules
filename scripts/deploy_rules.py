@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 """
-Deploy AI coding rules to target projects with templated AGENTS.md
+Deploy AI coding rules to target projects with templated AGENTS.md and RULES_INDEX.md
 
 This script orchestrates the deployment of generated rules to a target project,
-automatically updating AGENTS.md paths based on the agent type (cursor, copilot,
-cline, universal).
+automatically updating AGENTS.md paths and RULES_INDEX.md file extensions based on
+the agent type (cursor, copilot, cline, universal).
+
+Template Processing:
+    - AGENTS.md: Updates {rule_path} placeholder and file extensions (.md → .mdc for Cursor)
+    - RULES_INDEX.md: Updates file extensions in the File column to match agent requirements
 
 Usage:
     python scripts/deploy_rules.py --agent cursor [--destination /path/to/project]
@@ -229,6 +233,63 @@ def render_agents_template(
     return rendered
 
 
+def render_rules_index_template(
+    project_root: Path,
+    agent: AgentType,
+) -> str:
+    """Render RULES_INDEX.md template with agent-specific paths and file extensions.
+
+    Similar to AGENTS.md rendering, this updates {rule_path} placeholders and file
+    extensions to match the target agent's requirements (e.g., .cursor/rules for Cursor).
+
+    Args:
+        project_root: Path to ai_coding_rules project root
+        agent: Agent type for path and extension substitution
+
+    Returns:
+        Rendered RULES_INDEX.md content with correct paths and file extensions
+    """
+    rules_index_template = project_root / "discovery" / "RULES_INDEX.md"
+
+    if not rules_index_template.exists():
+        log_error(f"RULES_INDEX.md template not found: {rules_index_template}")
+        sys.exit(1)
+
+    log_info("Rendering RULES_INDEX.md template...")
+
+    # Read template
+    content = rules_index_template.read_text(encoding="utf-8")
+
+    # Get target path and extension for this agent
+    target_path = AGENT_PATHS[agent]
+    target_extension = AGENT_EXTENSIONS[agent]
+
+    # Replace template variable for path (same as AGENTS.md)
+    rendered = content.replace("{rule_path}", target_path)
+
+    # Replace file extensions if not .md (e.g., .mdc for Cursor)
+    if target_extension != ".md":
+        # Use the same pattern as AGENTS.md rendering
+        # This handles backtick-wrapped filenames in the table's File column:
+        # `000-global-core.md` → `000-global-core.mdc` (for Cursor)
+        # `101a-snowflake-streamlit.md` → `101a-snowflake-streamlit.mdc`
+        import re
+
+        rendered = re.sub(
+            r"(\d{3}[a-z0-9]*-[a-z0-9-]+|\[[a-z]+\](?:-[a-z-]+)?)\.md(?!\w)",
+            rf"\1{target_extension}",
+            rendered,
+        )
+
+    # Verify no template variables remain
+    if "{rule_path}" in rendered:
+        log_error("Template rendering incomplete - {rule_path} still present")
+        sys.exit(1)
+
+    log_info(f"RULES_INDEX.md template rendered with path: {target_path}, extension: {target_extension}")
+    return rendered
+
+
 def copy_rules(
     source_dir: Path,
     dest_dir: Path,
@@ -316,18 +377,16 @@ def deploy(
             agents_dest.write_text(rendered_agents, encoding="utf-8")
             log_info(f"Wrote AGENTS.md to {agents_dest}")
 
-        # Copy RULES_INDEX.md to destination root
-        rules_index_source = project_root / "discovery" / "RULES_INDEX.md"
-        rules_index_dest = destination / "RULES_INDEX.md"
+        # Render RULES_INDEX.md template (same extension substitution as AGENTS.md)
+        rendered_rules_index = render_rules_index_template(project_root, agent)
 
-        if rules_index_source.exists():
-            if dry_run:
-                log_info(f"[DRY RUN] Would copy RULES_INDEX.md to {rules_index_dest}")
-            else:
-                shutil.copy2(rules_index_source, rules_index_dest)
-                log_info(f"Copied RULES_INDEX.md to {rules_index_dest}")
+        # Write RULES_INDEX.md to destination root
+        rules_index_dest = destination / "RULES_INDEX.md"
+        if dry_run:
+            log_info(f"[DRY RUN] Would write RULES_INDEX.md to {rules_index_dest}")
         else:
-            log_error(f"RULES_INDEX.md not found: {rules_index_source}")
+            rules_index_dest.write_text(rendered_rules_index, encoding="utf-8")
+            log_info(f"Wrote RULES_INDEX.md to {rules_index_dest}")
 
     # Display summary
     log_success("Deployment completed successfully!")

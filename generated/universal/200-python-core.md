@@ -1,5 +1,5 @@
 **Keywords:** Python, uv, Ruff, pyproject.toml, dependency management, virtual environments, modern Python tooling, pytest, validation, uv run, uvx, datetime.now(UTC)
-**TokenBudget:** ~2400
+**TokenBudget:** ~2850
 **ContextTier:** Critical
 **Depends:** 000-global-core
 

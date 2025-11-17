@@ -111,6 +111,10 @@ This repository contains multiple documentation files for different audiences:
 
 ## Quick Start
 
+### Video Walkthroughs
+
+For video walkthroughs see [Overview](videos/ai_coding_rules_overview.mov) and [Demo](videos/ai_coding_rules_demo.mov)
+
 ### For Rule Consumers (Using the Rules)
 
 **Want to use these rules in your project?** Follow this simple guide:

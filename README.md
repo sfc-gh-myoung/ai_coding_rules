@@ -113,7 +113,7 @@ This repository contains multiple documentation files for different audiences:
 
 ### Video Walkthroughs
 
-For video walkthroughs see [Overview](videos/ai_coding_rules_overview.mov) and [Demo](videos/ai_coding_rules_demo.mov)
+For video walkthroughs coming soon!
 
 ### For Rule Consumers (Using the Rules)
 

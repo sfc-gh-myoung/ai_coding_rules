@@ -4,6 +4,157 @@
 
 The AI Coding Rules Generator is a template-based generation system that transforms canonical rule templates into multiple IDE-specific formats. The architecture follows industry best practices from static site generators (Hugo, Jekyll) and template systems (cookiecutter).
 
+## Universal-First Design Philosophy
+
+The project follows a **universal-first architecture** where source rule files are generated into portable formats optimized for any IDE, agent, or LLM.
+
+### Architecture Flow
+
+```
+┌────────────────────────────────────────────────────────────┐
+│              Source Repository (Clone This)                │
+│                  (ai_coding_rules/)                        │
+│                                                            │
+│  Source Rule Files (*.md in project root)                  │
+│  ├── 000-global-core.md         [Foundation]               │
+│  ├── 100-snowflake-core.md      [Domain Core]              │
+│  ├── 200-python-core.md         [Language Core]            │
+│  ├── 210-python-fastapi-core.md [Framework Specific]       │
+│  └── ... (74 total rules)                                   │
+│                                                            │
+│  Discovery System (Committed in Repo, deployed to root)    │
+│  ├── AGENTS.md          [AI assistant discovery guide]     │
+│  ├── RULES_INDEX.md     [Searchable catalog]               │
+│  └── generate_agent_rules.py [Generation script]           │
+│                                                            │
+│  ⚠️  The rules/ directory does NOT exist yet               │
+└────────────────────────────────────────────────────────────┘
+                            │
+                            │ Run generation command
+                            ▼
+        ┌───────────────────────────────────────┐
+        │   task rule:universal                 │
+        │   (Generates Universal Format)        │
+        └───────────────────────────────────────┘
+                            │
+                            ▼
+        ┌───────────────────────────────────────┐
+        │   Created: rules/ Directory           │
+        │   (in current directory or DEST)      │
+        │                                       │
+        │  Generated files:                     │
+        │  ├── rules/000-global-core.md         │
+        │  ├── rules/100-snowflake-core.md      │
+        │  ├── rules/200-python-core.md         │
+        │  └── ... (all rules, cleaned)         │
+        │                                       │
+        │  ✅ Works with ANY tool/IDE/Agent     │
+        │  ✅ Portable Markdown                 │
+        │  ✅ Embedded metadata preserved       │
+        │  ✅ No lock-in                        │
+        │  ✅ Ready to use immediately          │
+        └───────────────────────────────────────┘
+                            │
+                            │ (Optional)
+                            ▼
+        ┌────────────────────────────────────────┐
+        │   Optional: Generate IDE-Specific      │
+        │        Convenience Formats             │
+        │                                        │
+        │  task rule:cursor   → .cursor/rules/   │
+        │  task rule:copilot  → .github/inst.../ │
+        │  task rule:cline    → .clinerules/     │
+        │                                        │
+        │  (Same rules, different packaging)     │
+        └────────────────────────────────────────┘
+```
+
+### Key Architectural Principles
+
+1. **Single Source of Truth**: Universal rules in source repository are canonical
+2. **Generate Anywhere**: Use `DEST` parameter to generate to any project directory
+3. **Universal by Default**: `task rule:universal` creates portable format first
+4. **IDE Formats Optional**: Generate IDE-specific formats only if you need convenience features
+5. **Metadata Preservation**: Keywords, TokenBudget, ContextTier, and Depends metadata preserved in universal format
+6. **Automatic Discovery**: AGENTS.md + RULES_INDEX.md (deployed to project root) enable intelligent rule loading
+
+## Rule Generator Features
+
+The project includes a sophisticated rule generator (`generate_agent_rules.py`) that transforms universal Markdown rules into IDE-specific formats with intelligent content adaptation.
+
+### Supported Output Formats
+
+| IDE/Tool | Output Format | Location | Features |
+|----------|---------------|----------|----------|
+| **Cursor** | `.mdc` files | `.cursor/rules/` | YAML frontmatter with globs, auto-apply, automatic `*.md` → `*.mdc` reference conversion |
+| **GitHub Copilot** | `.md` files | `.github/instructions/` | YAML frontmatter with appliesTo patterns, preserves original `*.md` references |
+| **Cline** | `.md` files | `.clinerules/` | Plain Markdown (no YAML frontmatter), all files automatically processed |
+| **Universal** | `.md` files | `rules/` | Clean Markdown, no frontmatter/comments/metadata - works with any IDE/Agent/LLM |
+
+### Reference Conversion Feature
+
+The rule generator automatically converts cross-references for consistency:
+
+**For Cursor Rules (`.mdc` files):**
+- `201-python-lint-format.md` → `201-python-lint-format.mdc`
+- `@some-rule.md` → `@some-rule.mdc`
+- `path/to/file.md` → `path/to/file.mdc`
+- **Preserves**: `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, and other documentation files
+
+**For Copilot Rules (`.md` files):**
+- All references remain unchanged as `*.md`
+
+This ensures that generated Cursor rules reference the correct `.mdc` file format while maintaining compatibility with standard documentation files.
+
+**For Universal Rules (`.md` files):**
+- All references remain unchanged as `*.md`
+- No YAML frontmatter or generated comments
+- **Preserves essential metadata:** Keywords, TokenBudget, ContextTier (as regular markdown after H1)
+- **Strips IDE-specific metadata:** Type, Description, AutoAttach, AppliesTo, Version, LastUpdated
+- Clean, portable Markdown suitable for any IDE, agent, or LLM
+- Use `RULES_INDEX.md` and `AGENTS.md` (in project root) for semantic rule discovery
+
+### Preserved Metadata Benefits
+
+- **Keywords** - Enables semantic discovery and grep-based searches
+- **TokenBudget** - Helps LLMs manage attention budget and decide which rules to load
+- **ContextTier** - Provides prioritization (Critical/High/Medium/Low) for rule loading
+- **Depends** - Specifies prerequisite rules that must be loaded first (dependency chain)
+
+### Example Universal Rule Format
+
+```markdown
+# Rule Title
+
+**Keywords:** keyword1, keyword2, keyword3
+**TokenBudget:** ~400
+**ContextTier:** High
+**Depends:** 000-global-core, 100-snowflake-core
+
+## Purpose
+Rule content starts here...
+```
+
+### Universal Format Use Cases
+
+The universal format is ideal for:
+- Custom AI agents or LLM integrations
+- Manual inclusion in project contexts
+- Environments where IDE-specific formatting is not supported
+- Maximum portability across different AI development tools
+
+### Metadata Parsing
+
+Rules support embedded metadata in Markdown:
+
+```markdown
+**Description:** Brief description of the rule's purpose
+**Applies to:** `**/*.py`, `**/*.sql` (file patterns)  
+**Auto-attach:** true (automatically apply rule)
+**Version:** 2.0
+**Last updated:** 2024-01-15
+```
+
 ## Architecture Diagram
 
 ```mermaid
@@ -714,5 +865,3 @@ repos:
 - No linting errors (CI)
 - All tests passing (CI)
 - Documentation current
-
----

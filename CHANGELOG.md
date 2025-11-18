@@ -7,6 +7,68 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.1] - 2025-11-18
+
+### Changed
+
+- **docs(readme):** Comprehensive README.md restructuring for improved user experience (2025-11-18)
+  - **Phase 1: Quick Wins**
+    - Added Prerequisites section before Quick Start (Python 3.11+, Task, Git with verification commands)
+    - Added Key Features section with 6 highlighted capabilities (📚 74 Rules, 🔄 Universal Format, 🤖 Intelligent Discovery, etc.)
+    - Merged "Project Scope and Intent" and "About the Project" into cohesive "Overview" section
+    - Fixed grammar: "For video walkthroughs" → "Watch the video walkthroughs:"
+  - **Phase 2: Navigation Improvements**
+    - Simplified Table of Contents from 25+ nested items to 14 clean, flat links
+    - Restructured Quick Start to lead with path chooser and "Get started in 3 commands"
+    - Applied consistent horizontal rules (only between major ## sections)
+  - **Phase 3: Content Optimization**
+    - Condensed Rule Categories section from 400+ lines to summary table (10 rows)
+    - Moved detailed rule descriptions to new `docs/RULE_CATALOG.md` (165 lines)
+    - Removed duplicate "AI Configuration" and "Key Features" sections
+    - Updated Document Map to include all documentation files
+  - **Benefits:**
+    - 30% length reduction (1,349 → 1,144 lines)
+    - Improved readability and navigation
+    - Quick Start immediately actionable (3 commands visible)
+    - Aligned with industry-standard GitHub README best practices
+    - All content preserved in appropriate locations
+
+- **docs(catalog):** Created docs/RULE_CATALOG.md for comprehensive rule browsing (2025-11-18)
+  - **New File:** 165-line complete catalog of all 74 rules organized by domain
+  - **Contents:** Core Foundation (6), Snowflake (35), Python (13), Shell (6), Containers (1), Data Science (1), Data Governance (1), BI (1), Project Management (5), Demo (2)
+  - **Includes:** Universal Rule Authoring Best Practices section
+  - **Cross-References:** Links to RULES_INDEX.md for keywords and dependencies
+  - **Referenced From:** README.md "For Human Users" table and Rule Categories summary
+  - **Benefits:** Detailed rule browsing without cluttering README, complete descriptions for all 74 rules
+
+- **docs(architecture):** Reorganized docs/ARCHITECTURE.md for logical documentation flow (2025-11-18)
+  - Moved "Universal-First Design Philosophy" section from line 719 to line 7 (before Architecture Diagram)
+  - Moved "Rule Generator Features" section from line 792 to line 81 (after Philosophy, before Diagram)
+  - **New Structure:** System Overview → Philosophy → Features → Architecture Diagram → Components
+  - **Benefits:** Philosophy explained before detailed architecture, features before implementation, logical progression for comprehension
+
+### Fixed
+
+- **docs(readme):** Fixed rule count accuracy - corrected all "72 rules" references to "74 rules" (2025-11-18)
+  - Updated 14 instances in README.md
+  - Updated 1 instance in docs/ARCHITECTURE.md
+  - Ensured consistency across all documentation
+
+- **docs(readme):** Clarified generated/ directory should be committed to git (2025-11-18)
+  - Updated "What NOT to commit" section to explicitly state `templates/`, `discovery/`, and `generated/` should be committed
+  - Removed contradictory guidance about not committing `generated/`
+  - Aligned with project design decisions for user convenience
+
+- **docs(readme):** Removed duplicate AI Configuration and Key Features sections (2025-11-18)
+  - Consolidated two "AI Configuration" sections into single canonical location (line 759)
+  - Removed duplicate "Key Features" section
+  - Merged best content from duplicate sections
+
+- **docs(readme):** Fixed all Table of Contents links to match actual section headings (2025-11-18)
+  - Verified all 14 TOC links map to existing sections
+  - Added links to RULE_CATALOG.md, MEMORY_BANK.md, ONBOARDING.md in Document Map
+  - 100% working internal navigation
+
 ## [2.4.0] - 2025-11-15
 
 ### Added

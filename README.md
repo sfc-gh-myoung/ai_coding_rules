@@ -6,90 +6,106 @@
 
 > **One universal rule set for all AI assistants, IDEs, and agents — portable, intelligent, and IDE-agnostic**
 
-## Project Scope and Intent
+## Overview
 
 This repository provides a **universal-first rule system** designed to work seamlessly with any AI assistant, IDE, or development tool. Write rules once in a universal format, use them everywhere.
 
-### About the Project
+**What you get:** A comprehensive collection of 74 engineering rules covering Python, SQL, Snowflake, Docker, Shell scripting, data engineering, analytics, and project governance. The rules work seamlessly with AI coding assistants including Claude, ChatGPT, GitHub Copilot, Cursor, and others.
 
-This repository provides a comprehensive collection of engineering rules designed to work seamlessly with AI coding assistants including Claude, ChatGPT, GitHub Copilot, Cursor, and others. The rules cover everything from Python and SQL best practices to data engineering, analytics, and project governance. Some aspects of the **rules are opinionated**, particularly where it relates to:
+**Important:** Some aspects of the rules are opinionated, particularly regarding naming conventions, project structure, usage of uv/ruff/Task, and documentation standards. You are **encouraged to review and adjust** the rules to align with your best practices or preferred approaches.
 
-- naming conventions
-- project structure
-- usage of uv and ruff
-- usage of Task
-- README.md and CHANGELOG.md
+## Key Features
 
-You are **encouraged to review the rules and make adjustments** as desired to better align with your best practices or preferred approaches.
+- **📚 74 Specialized Rules** — Comprehensive coverage across Snowflake, Python, Docker, Shell scripting, and project management
+- **🔄 Universal Format** — Write once, use everywhere: Cursor, VS Code, Claude, ChatGPT, GitHub Copilot, and more
+- **🤖 Intelligent Discovery** — AI assistants automatically find and load relevant rules using semantic keyword matching
+- **🎯 Dependency-Aware** — Explicit dependency chains ensure rules load in the correct order
+- **⚡ Token-Efficient** — Modular, focused rules (150-500 lines) minimize context window usage
+- **🔓 No Lock-In** — Standard Markdown with embedded metadata works with any tool or custom integration
 
 This project was inspired, in part, by: [how-to-add-cline-memory-bank-feature-to-your-cursor](https://forum.cursor.com/t/how-to-add-cline-memory-bank-feature-to-your-cursor/67868) and [cline memory bank](https://docs.cline.bot/prompting/cline-memory-bank)
 
+<details>
+<summary><h3>Universal Format Philosophy (Click to expand)</h3></summary>
+
+The rule system is built on a template-first architecture: 74 source templates in `templates/` generate portable rules that work with any tool, IDE, or AI assistant.
+
+**Key Features:**
+- **Any AI Assistant**: Claude, GPT, Gemini, custom agents
+- **Any IDE**: Cursor, VS Code, IntelliJ, JetBrains, Vim
+- **Any Tool**: CLI tools, scripts, custom integrations
+- **No lock-in**: Standard Markdown with semantic metadata
+
+**Core Principles:**
+
+1. **Template-First Design**: Source templates in `templates/` directory → Generate to `generated/` outputs
+2. **Generate Once, Use Everywhere**: Run `task rule:universal` to create portable rules
+3. **Automatic Rule Discovery**: AI assistants use `AGENTS.md` and `RULES_INDEX.md` (deployed to project root) for semantic keyword matching
+4. **Dependency-Aware Architecture**: Explicit dependency chains ensure correct rule loading order
+5. **Token-Efficient Design**: Modular, focused rules (150-500 lines) minimize context usage
+6. **Technology Coverage**: 74 specialized rules covering Snowflake, Python, Docker, Shell scripting, and project management
+7. **Auto-Generated Catalog**: `RULES_INDEX.md` automatically generated from template metadata and deployed to project root
+
+**What This Repository Provides:**
+
+- **74 source templates** in `templates/` directory covering best practices, patterns, and governance
+- **Universal format** in `generated/universal/` with preserved metadata (Keywords, TokenBudget, ContextTier, Depends)
+- **Discovery system** files (deployed to project root):
+  - `AGENTS.md` - Discovery guide used by AI assistants to locate and load rules
+  - `RULES_INDEX.md` - Auto-generated catalog with semantic keywords
+- **IDE-specific formats** in `generated/` for Cursor, Copilot, Cline
+- **Automated generation pipeline** with validation and CI checks
+
+**Who Should Use This:**
+
+- **Developers** working with AI coding assistants who want consistent, high-quality guidance
+- **Teams** seeking to standardize AI-assisted development practices across multiple IDEs
+- **Organizations** implementing AI coding standards with version control
+- **Tool Builders** creating AI-powered development environments
+- **Contributors** wanting to extend or customize rules for their domain
+
+</details>
+
 ## Table of Contents
 
-### Getting Started
-- [Document Map: What to Read First](#document-map-what-to-read-first)
+- [Overview](#overview)
+- [Key Features](#key-features)
+- [Prerequisites](#prerequisites)
 - [Quick Start](#quick-start)
-  - [For Rule Consumers](#for-rule-consumers-using-the-rules)
-  - [For Rule Maintainers](#for-rule-maintainers-contributing-to-rules)
-- [Rule Selection Decision Tree](#rule-selection-decision-tree)
-
-### Core Documentation
+- [Document Map](#document-map-what-to-read-first)
 - [Rule Categories](#rule-categories)
-  - [Core Foundation (000-099)](#core-foundation-000-099)
-  - [Data Platform - Snowflake (100-199)](#data-platform---snowflake-100-199)
-  - [Software Engineering - Python (200-299)](#software-engineering---python-200-299)
-  - [Software Engineering - Shell Scripts (300-399)](#software-engineering---shell-scripts-300-399)
-  - [Software Engineering - Containers (400-499)](#software-engineering---containers-400-499)
-  - [Data Science & Analytics (500-599)](#data-science--analytics-500-599)
-  - [Data Governance (600-699)](#data-governance-600-699)
-  - [Business Intelligence (700-799)](#business-intelligence-700-799)
-  - [Project Management (800-899)](#project-management-800-899)
-  - [Demo & Synthetic Data (900-999)](#demo--synthetic-data-900-999)
-- [Directive Language Hierarchy](#directive-language-hierarchy)
-
-### Architecture & Philosophy
-- [Why Smaller, Focused Rules?](#why-smaller-focused-rules)
-- [Universal-First Design](#universal-first-design)
-- [Rule Generator Architecture](#rule-generator-architecture)
-
-### Advanced Features
+- [Rule Selection Guide](#rule-selection-decision-tree)
 - [AI Configuration](#ai-configuration)
-- [Memory Bank System](#memory-bank-system)
-- [Programmatic Rule Loading](#programmatic-rule-loading-example)
-
-### Development & Integration
-- [System-Wide Script (gen-rules)](#system-wide-script-gen-rules)
+- [Project Structure](#project-structure)
 - [Development Commands](#development-commands)
 - [Troubleshooting](#troubleshooting)
-
-### Contributing & Support
-- [Contributing](#contributing)
 - [Compatibility Matrix](#compatibility-matrix)
+- [Contributing](#contributing)
 - [License](#license)
-- [Support](#support)
 
 ## Document Map: What to Read First
 
 This repository contains multiple documentation files for different audiences:
 
-### For Human Users
-
 | File | Purpose | When to Read |
 |------|---------|--------------|
 | **README.md** | Project overview, setup, usage | Start here (you are here) |
 | **docs/ONBOARDING.md** | Team onboarding guide | When setting up for your team |
+| **docs/RULE_CATALOG.md** | Complete list of all 74 rules | When browsing available rules |
 | **CONTRIBUTING.md** | Development guidelines, PR process | When contributing rules |
 | **docs/ARCHITECTURE.md** | System architecture, design decisions | When understanding internals or extending |
+| **docs/MEMORY_BANK.md** | Memory Bank system for long-running projects | When using Memory Bank (optional) |
 | **CHANGELOG.md** | Version history, changes | When checking updates |
 | **Taskfile.yml** | Build automation reference | When running tasks |
 
-### For AI Assistants (Add to AI Context)
+### AI Assistant Configuration
 
-| File | Purpose | Required? |
-|------|---------|-----------|
-| **AGENTS.md** | Rule loading protocol and discovery guide (prescriptive instructions FOR AI) | ✅ Required |
-| **RULES_INDEX.md** | Machine-readable rule catalog with keywords | ✅ Required |
-| **rules/*.md** | The actual rules (74 rule files) | ✅ Required (loaded on-demand) |
+During deployment, the system automatically configures two files that enable AI assistants to discover and load rules:
+
+- **AGENTS.md** - Discovery guide used by AI assistants to locate and load rules
+- **RULES_INDEX.md** - Searchable catalog of all available rules with keywords
+
+These files are deployed to your project root automatically and require no manual configuration.
 
 ### Generated Outputs (Use These)
 
@@ -109,34 +125,70 @@ This repository contains multiple documentation files for different audiences:
 
 ---
 
+## Prerequisites
+
+Before getting started, ensure you have:
+
+- **Python 3.11+** — [Download Python](https://www.python.org/downloads/)
+- **Task** — Automation tool: [Installation guide](https://taskfile.dev/installation/)
+- **Git** — For cloning repository: [Install Git](https://git-scm.com/downloads)
+- **Optional: uv** — Python package manager (automatically installed by Task if missing)
+
+**Quick check:**
+```bash
+python --version  # Should show 3.11 or higher
+task --version    # Should show Task version
+git --version     # Should show Git version
+```
+
+---
+
 ## Quick Start
 
-### Video Walkthroughs
+**Choose your path:**
 
-For video walkthroughs coming soon!
+- 🚀 **Use rules in your project** → See [Deployment](#deployment-recommended) below
+- 🛠️ **Modify or contribute** → See [For Rule Maintainers](#for-rule-maintainers-contributing-to-rules)
+- 📹 **Watch first** → [Video: Overview](https://youtu.be/IhkfZwmkQyM) | [Demo](https://youtu.be/YOGxwtTWBCI)
 
-### For Rule Consumers (Using the Rules)
+### Deployment (Recommended)
 
-**Want to use these rules in your project?** Follow this simple guide:
-
-#### Option A: Deployment (Recommended)
-
-Deploy rules directly to your project with automatic path configuration:
+**Get started in 3 commands:**
 
 ```bash
-# Clone this repository
+# 1. Clone this repository
 git clone https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git
 cd ai_coding_rules
 
-# Deploy to your project
+# 2. Deploy rules to your project
+task deploy:universal DEST=~/my-project   # Works with any IDE/LLM
+```
+
+**That's it!** Your project now has 74 specialized rules ready to use.
+
+#### Full Deployment Options
+
+Choose the format that matches your tools:
+
+#### Option A: Universal Format
+
+```bash
 task deploy:universal DEST=~/my-project   # For any IDE/LLM (most portable)
+```
+
+#### Option B: IDE-Specific Formats
+
+```bash
 task deploy:cursor DEST=~/my-project      # For Cursor IDE
 task deploy:copilot DEST=~/my-project     # For GitHub Copilot
 task deploy:cline DEST=~/my-project       # For Cline
+```
 
-# Or deploy to current directory
+#### Deploy to Current Directory
+
+```bash
 cd ~/my-project
-task deploy:universal
+task deploy:universal  # No DEST needed
 ```
 
 **What happens:**
@@ -147,7 +199,7 @@ task deploy:universal
 - Both files configured to point AI assistants to the correct rule locations
 - Ready to use immediately!
 
-#### Option B: Git Submodule (Version Tracking)
+#### Option C: Git Submodule (Version Tracking)
 
 Track rule updates via git submodule:
 
@@ -161,7 +213,7 @@ task deploy:universal DEST=..   # Deploy to parent project
 cd .ai-rules && git pull && task deploy:universal DEST=..
 ```
 
-#### Option C: Deployment Without Task
+#### Option D: Deployment Without Task
 
 If you don't have Task installed, use the Python deployment script directly:
 
@@ -177,7 +229,7 @@ cd /tmp/ai-rules
 /opt/homebrew/bin/uv run scripts/deploy_rules.py --agent universal --destination ~/my-project
 
 # Verify deployment
-ls ~/my-project/rules/*.md | wc -l  # Should show 72+
+ls ~/my-project/rules/*.md | wc -l  # Should show 74
 ls ~/my-project/AGENTS.md ~/my-project/RULES_INDEX.md  # Both files should exist
 ```
 
@@ -196,24 +248,23 @@ ls ~/my-project/AGENTS.md ~/my-project/RULES_INDEX.md  # Both files should exist
 **What the script does automatically:**
 - Generates rules for the specified agent type
 - Copies rules to the correct directory (`.cursor/rules/`, `rules/`, etc.)
-- Updates `AGENTS.md` with correct paths (replaces `{rule_path}` template variable)
+- Configures `AGENTS.md` with correct paths (replaces `{rule_path}` template variable)
 - Updates `RULES_INDEX.md` with correct paths and file extensions (e.g., `.mdc` for Cursor)
-- Ensures AI assistants can accurately locate rules by reading either file
+- Configures discovery files so AI assistants can locate rules automatically
 - No manual `sed` or path editing needed!
 
 #### Verify Setup
 
 ```bash
 # Check rules are present (universal deployment)
-ls rules/*.md | wc -l  # Should show 72+
+ls rules/*.md | wc -l  # Should show 74
 
 # Or for Cursor
-ls .cursor/rules/*.mdc | wc -l  # Should show 72+
+ls .cursor/rules/*.mdc | wc -l  # Should show 74
 ```
 
-**Success!** Your AI assistant can now access 72+ specialized rules. See [AI Configuration](#ai-configuration) for IDE-specific setup.
+**Success!** Your AI assistant can now access 74 specialized rules. See [AI Configuration](#ai-configuration) for IDE-specific setup.
 
----
 
 ### For Rule Maintainers (Contributing to Rules)
 
@@ -244,7 +295,7 @@ task rule:all
 See [Project Structure](#project-structure) section below for full details.
 
 **Quick Overview:**
-- `templates/` — 72 source template files (edit these)
+- `templates/` — 74 source template files (edit these)
 - `discovery/` — Rule loading protocol and catalog
 - `generated/` — IDE-ready outputs (auto-generated, don't edit)
 - `scripts/` — Generation and deployment tools
@@ -302,12 +353,12 @@ task clean:rules
 - [ ] Run `task rules:index` to update catalog
 - [ ] Run `task validate` to verify quality
 - [ ] Test with actual AI assistant
-- [ ] Commit `templates/` and `discovery/` only
+- [ ] Commit `templates/`, `discovery/`, and `generated/` directories
 
 **What NOT to commit:**
-- ❌ `generated/` directory (auto-generated)
 - ❌ `.venv/` or Python cache files
 - ❌ IDE-specific settings (unless intentional)
+- ❌ Temporary test directories
 
 #### Testing Your Changes
 
@@ -334,43 +385,6 @@ cp discovery/RULES_INDEX.md ~/test-rules/RULES_INDEX.md
 
 **See also:** [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed contribution guidelines.
 
-### Universal Format Philosophy
-
-This repository follows a **template-first architecture**: 72 source templates in `templates/` generate portable rules for any tool.
-
-**Key Features:**
-- **Any AI Assistant**: Claude, GPT, Gemini, custom agents
-- **Any IDE**: Cursor, VS Code, IntelliJ, JetBrains, Vim
-- **Any Tool**: CLI tools, scripts, custom integrations
-- **No lock-in**: Standard Markdown with semantic metadata
-
-### Core Principles
-
-1. **Template-First Design**: Source templates in `templates/` directory → Generate to `generated/` outputs
-2. **Generate Once, Use Everywhere**: Run `task rule:universal` to create portable rules
-3. **Automatic Rule Discovery**: AI assistants use `AGENTS.md` and `RULES_INDEX.md` (deployed to project root) for semantic keyword matching
-4. **Dependency-Aware Architecture**: Explicit dependency chains ensure correct rule loading order
-5. **Token-Efficient Design**: Modular, focused rules (150-500 lines) minimize context usage
-6. **Technology Coverage**: 72 specialized rules covering Snowflake, Python, Docker, Shell scripting, and project management
-7. **Auto-Generated Catalog**: `RULES_INDEX.md` automatically generated from template metadata and deployed to project root
-
-### What This Repository Provides
-
-- **72 source templates** in `templates/` directory covering best practices, patterns, and governance
-- **Universal format** in `generated/universal/` with preserved metadata (Keywords, TokenBudget, ContextTier, Depends)
-- **Discovery system** files (deployed to project root):
-  - `AGENTS.md` - Rule loading protocol FOR AI assistants (prescriptive instructions)
-  - `RULES_INDEX.md` - Auto-generated catalog with semantic keywords
-- **IDE-specific formats** in `generated/` for Cursor, Copilot, Cline
-- **Automated generation pipeline** with validation and CI checks
-
-### Who Should Use This
-
-- **Developers** working with AI coding assistants who want consistent, high-quality guidance
-- **Teams** seeking to standardize AI-assisted development practices across multiple IDEs
-- **Organizations** implementing AI coding standards with version control
-- **Tool Builders** creating AI-powered development environments
-- **Contributors** wanting to extend or customize rules for their domain
 
 ## Rule Selection Decision Tree
 
@@ -544,105 +558,11 @@ gen-rules --project ~/my-rules rule:cursor  # Override project dir
 
 See `gen-rules --help` for complete documentation.
 
-## AI Configuration
-
-To enable automatic rule discovery with your AI assistant, you need to add the discovery files to your AI's context. The AI will then automatically discover and load relevant rules based on your tasks.
-
-### One-Time Setup
-
-**What the AI needs access to:**
-1. `AGENTS.md` - Rule loading protocol with agent-specific paths (prescriptive instructions FOR the AI)
-2. `RULES_INDEX.md` - Rule catalog with agent-specific paths and extensions (auto-generated from templates)
-3. `rules/` directory - All rule files (loaded on-demand; path varies by agent type)
-
-### IDE-Specific Configuration
-
-| IDE/Tool | Setup Method | Files Needed |
-|----------|--------------|--------------|
-| **Cursor** | Deploy rules via `task deploy:cursor` | Auto-configured in `.cursor/rules/` |
-| **GitHub Copilot** | Deploy via `task deploy:copilot`, then commit | `.github/copilot/instructions/*.md` |
-| **Cline** | Deploy via `task deploy:cline` | Auto-configured in `.clinerules/` |
-| **Claude Projects** | Deploy universal, upload to knowledge base | `AGENTS.md`, `RULES_INDEX.md`, `rules/*.md` |
-| **ChatGPT** | Deploy universal, add to custom instructions | Upload `AGENTS.md`, `RULES_INDEX.md`, `rules/*.md` files |
-| **VS Code Extensions** | Deploy universal or use AI extension settings | `rules/*.md` files |
-
-### Verification: Is Your AI Configured Correctly?
-
-**Test 1: Protocol Awareness**
-```
-Ask: "What is your rule loading protocol?"
-
-✅ Expected: AI references AGENTS.md and describes 5-step process
-❌ Problem: AI doesn't mention AGENTS.md → Files not in context
-```
-
-**Test 2: Rule Discovery**
-```
-Ask: "What rules are available for Snowflake development?"
-
-✅ Expected: AI searches RULES_INDEX.md and lists 100-series rules
-❌ Problem: AI doesn't find rules → RULES_INDEX.md not in project root or not accessible
-```
-
-**Test 3: Automatic Loading**
-```
-Ask: "Build a Snowflake Streamlit dashboard"
-
-✅ Expected: AI states loaded rules at start:
-    "## Rules Loaded
-    - 000-global-core.md (foundation)
-    - 100-snowflake-core.md (Snowflake patterns)
-    - 101-snowflake-streamlit-core.md (Streamlit basics)"
-
-❌ Problem: AI doesn't list rules → AGENTS.md protocol not followed
-```
-
-### Troubleshooting AI Configuration
-
-| Problem | Cause | Solution |
-|---------|-------|----------|
-| AI doesn't list loaded rules | AGENTS.md not in context | Add AGENTS.md to AI context (should be in project root) |
-| AI can't find specific rules | RULES_INDEX.md not accessible | Verify RULES_INDEX.md is in project root and accessible |
-| AI loads wrong rules | Keywords don't match task | Check RULES_INDEX.md Keywords column |
-| Token budget exceeded | Too many rules loaded | Remove Medium/Low tier rules from context |
-| Dependency errors | Prerequisites not loaded | Verify AI follows "Depends On" chain in rules |
-
-### Advanced: Programmatic Configuration
-
-For custom agents or CLI tools, you can programmatically load rules:
-
-```python
-from pathlib import Path
-import re
-
-def configure_ai_context(rules_dir="generated/universal"):
-    """Build AI context with discovery files and rules."""
-    context_files = [
-        "AGENTS.md",
-        "RULES_INDEX.md"
-    ]
-    
-    # Load discovery files first
-    context = []
-    for file in context_files:
-        context.append(Path(file).read_text())
-    
-    # Rules loaded on-demand based on task
-    # (AI will request specific rules from rules_dir)
-    
-    return {
-        "knowledge_base": context,     # All discovery files
-        "rules_directory": rules_dir
-    }
-```
-
-See [Programmatic Rule Loading](#programmatic-rule-loading-example) for more examples.
-
 ## Project Structure
 
 ```
 ai_coding_rules/
-├── templates/              ← Edit these: 72 source template files
+├── templates/              ← Edit these: 74 source template files
 ├── discovery/              ← Discovery system sources (AGENTS.md, RULES_INDEX.md)
 ├── generated/              ← Generated outputs (committed to git)
 │   ├── universal/          ← Universal format (portable Markdown)
@@ -656,7 +576,7 @@ ai_coding_rules/
 
 **Key Concepts:**
 - **templates/** — Source of truth, always edit here (never in `generated/`)
-- **discovery/** — Rule loading protocol and catalog for AI assistants
+- **discovery/** — AI assistant discovery guide and rule catalog
 - **generated/** — IDE-ready outputs, regenerated via `task rule:all`
 - **scripts/** — `generate_agent_rules.py` (generation), `deploy_rules.py` (deployment)
 
@@ -673,147 +593,24 @@ git add templates/ generated/ && git commit -m "feat: update Python rules"
 
 ## Rule Categories
 
-### Core Foundation (000-099)
-- See the consolidated index: [RULES_INDEX.md](RULES_INDEX.md)
-- **`000-global-core.md`** — Universal operating principles and safety protocols
-- **`001-memory-bank.md`** — Universal memory bank for AI context continuity  
-- **`002-rule-governance.md`** — Comprehensive rule authoring governance: creation standards, naming conventions, structure requirements, validation workflows, and rule creation template
-- **`003-context-engineering.md`** — Context management strategies for AI agents (attention budgets, context rot, progressive disclosure, compaction)
-- **`004-tool-design-for-agents.md`** — Token-efficient tool design patterns for AI agents (single responsibility, minimal tool sets, LLM-friendly parameters)
-- **discovery/AGENTS.md** — Rule loading protocol FOR AI assistants (prescriptive instructions, not for human users)
+The 74 rules are organized by domain using a three-digit numbering system. Each category focuses on a specific technology or practice area.
 
-#### Universal Rule Authoring Best Practices
+| Domain | Range | # Rules | Focus Area | Key Topics |
+|--------|-------|---------|------------|------------|
+| **Core Foundation** | 000-099 | 6 | Universal patterns | Operating principles, memory bank, rule governance, context engineering, tool design |
+| **Snowflake** | 100-199 | 35 | Data platform | SQL, Streamlit, performance, Cortex AI, security, notebooks, pipelines |
+| **Python** | 200-299 | 13 | Software engineering | Core patterns, FastAPI, Flask, Typer CLI, Pydantic, pytest, Pandas |
+| **Shell Scripts** | 300-399 | 6 | Automation | Bash and Zsh scripting, security, testing |
+| **Containers** | 400-499 | 1 | Infrastructure | Docker best practices |
+| **Data Science** | 500-599 | 1 | Analytics | ML lifecycle, feature engineering |
+| **Data Governance** | 600-699 | 1 | Quality | Data quality, lineage, stewardship |
+| **Business Intelligence** | 700-799 | 1 | Reporting | Business analytics, visualization |
+| **Project Management** | 800-899 | 5 | Workflows | Git, changelog, README, contributing, Taskfile |
+| **Demo & Synthetic Data** | 900-999 | 2 | Examples | Demo creation, data generation |
 
-The following best practices apply to all AI coding assistants and development environments:
+**📖 Complete listings:** See [Rule Catalog](docs/RULE_CATALOG.md) for detailed descriptions of all 74 rules
 
-**Structure Standards**
-- Use a single `#` H1 title for each rule file
-- Keep rules focused and concise (target 150-300 lines, max 500 lines)
-- Split large topics into multiple composable rules
-- Include clear metadata at the top with description and scope
-
-**Content Guidelines**  
-- Use explicit directive language: `Critical`, `Mandatory`, `Always`, `Requirement`, `Rule`, `Consider`, `Avoid`
-- Avoid content duplication across rules; reference other files instead
-- Include links to current, relevant documentation for validation
-- Provide practical examples and usage patterns
-
-**Naming & Organization**
-- Use snake-case naming with `.md` extension (e.g., `my_rule_name.md`)
-- Place universal rules in the canonical directory structure
-- Group related rules by domain/technology (100-199 for Snowflake, 200-299 for Python, etc.)
-- Use consistent 3-digit numbering for logical ordering and scalability
-
-**Scope Management**
-- Keep rule scope tightly focused on specific domains or technologies
-- Prefer on-demand (Agent Requested) pattern over auto-attach for specialized rules
-- Only global core rules should auto-attach universally
-- Design rules to be composable and reusable across projects
-
-**Validation & Maintenance**
-- Test rules with multiple AI models and development environments
-- Verify syntax, best practices, and API usage against current documentation
-- Regularly update rules to reflect evolving best practices
-- Remove outdated content and consolidate overlapping guidance
-
-### Data Platform - Snowflake (100-199)
-- **`100-snowflake-core.md`** — Core Snowflake guidelines (SQL, performance, security, DDL object naming conventions)
-- **`101-snowflake-streamlit-core.md`** — Streamlit core: setup, navigation, state management, deployment modes (SiS vs SPCS)
-- **`101a-snowflake-streamlit-visualization.md`** — Streamlit visualization: Plotly charts, maps, dashboard integration
-- **`101b-snowflake-streamlit-performance.md`** — Streamlit performance: caching, optimization, data loading from Snowflake
-- **`101c-snowflake-streamlit-security.md`** — Streamlit security: input validation, secrets management, best practices
-- **`101d-snowflake-streamlit-testing.md`** — Streamlit testing: AppTest patterns, unit testing, debugging workflows
-- **`102-snowflake-sql-demo-engineering.md`** — SQL patterns for demos and customer learning environments (educational comments, progress indicators, demo-safe idempotent patterns)
-- **`102a-snowflake-sql-automation.md`** — Production SQL automation with parameterized templates and CI/CD integration (Snowflake variable syntax, environment-agnostic patterns)
-- **`103-snowflake-performance-tuning.md`** — Query optimization and warehouse tuning
-- **`104-snowflake-streams-tasks.md`** — Incremental data pipelines
-- **`105-snowflake-cost-governance.md`** — Cost optimization and resource management
-- **`106-snowflake-semantic-views.md`** — Core DDL syntax and validation rules for creating semantic views
-- **`106a-snowflake-semantic-views-querying.md`** — Query patterns and testing strategies for semantic views using SEMANTIC_VIEW() function
-- **`106b-snowflake-semantic-views-integration.md`** — Cortex Analyst/Agent integration, governance, and development workflows for semantic views
-- **`107-snowflake-security-governance.md`** — Security policies and access control
-- **`108-snowflake-data-loading.md`** — Data ingestion best practices
-- **`109-snowflake-notebooks.md`** — Jupyter notebook standards (nbqa + Ruff linting, code quality, reproducibility)
-- **`109a-snowflake-notebooks-tutorials.md`** — Tutorial design patterns for educational notebooks (learning objectives, checkpoints, progressive complexity, pedagogical patterns)
-- **`109c-snowflake-app-deployment.md`** — Streamlit in Snowflake deployment requirements (AUTO_COMPRESS=FALSE, stage path requirements, troubleshooting TypeError errors)
-- **`110-snowflake-model-registry.md`** — ML model lifecycle, versioning, and governance
-- **`111-snowflake-observability.md`** — Comprehensive telemetry, logging, tracing, and metrics best practices
-- **`112-snowflake-snowcli.md`** — Snowflake CLI usage best practices with pinned `uvx` execution
-- **`113-snowflake-feature-store.md`** — Feature Store best practices (feature engineering, entity modeling, feature views, ML pipeline integration)
-- **`114-snowflake-cortex-aisql.md`** — Cortex AISQL functions (cost, batching, governance, SQL/Snowpark examples)
-- **`114a-snowflake-cortex-agents.md`** — Cortex Agents (grounding, tools, RBAC, observability)
-- **`114b-snowflake-cortex-search.md`** — Cortex Search (indexing, metadata filters, hybrid retrieval)
-- **`114c-snowflake-cortex-analyst.md`** — Cortex Analyst & Semantic Views (modeling, governance, prompts)
-- **`114d-snowflake-cortex-rest-api.md`** — Cortex REST API (auth, retries, streaming, cost)
-- **`119-snowflake-warehouse-management.md`** — Warehouse management best practices (creation, type selection CPU/GPU/High-Memory, sizing, tagging, cost governance)
-- **`120-snowflake-spcs.md`** — Snowpark Container Services best practices (containerized applications, compute pools, service management)
-- **`121-snowflake-snowpipe.md`** — Snowpipe and Snowpipe Streaming best practices (continuous near-real-time ingestion, auto-ingest, REST API, SDK)
-- **`122-snowflake-dynamic-tables.md`** — Dynamic Tables best practices (refresh modes, lag configuration, pipeline design, performance optimization)
-- **`123-snowflake-object-tagging.md`** — Object tagging best practices (governance, cost attribution, tag-based masking policies, inheritance, monitoring)
-- **`124-snowflake-data-quality.md`** — Data Quality Monitoring best practices (DMFs, data profiling, expectations, scheduling, alerts, cost management)
-
-### Software Engineering - Python (200-299)
-- **`200-python-core.md`** — Modern Python engineering with `uv` and Ruff (environment management, code structure, reliability)
-- **`201-python-lint-format.md`** — Authoritative linting and formatting with Ruff (code quality and consistency)
-- **`202-markup-config-validation.md`** — Markup and configuration file validation (YAML, TOML, environment files, Markdown linting with pymarkdownlnt)
-- **`203-python-project-setup.md`** — Python project setup and packaging best practices (avoiding build issues)
-- **`204-python-docs-comments.md`** — Python documentation, comments, and docstring standards with Ruff enforcement
-- **`205-python-classes.md`** — Python class design and usage best practices (composition, dataclasses, properties, ABCs/Protocols)
-- **`206-python-pytest.md`** — pytest testing best practices (fixtures, parametrization, isolation, markers, CI)
-
-#### FastAPI Framework (210-219)
-- **`210-python-fastapi-core.md`** — FastAPI core patterns (application structure, async programming, Pydantic validation)
-- **`210a-python-fastapi-security.md`** — FastAPI security patterns (authentication, authorization, CORS, middleware)
-- **`210b-python-fastapi-testing.md`** — FastAPI testing strategies (TestClient, pytest-asyncio, comprehensive API testing)
-- **`210c-python-fastapi-deployment.md`** — FastAPI deployment and documentation (Docker, ASGI servers, OpenAPI customization)
-- **`210d-python-fastapi-monitoring.md`** — FastAPI monitoring and performance (health checks, logging, caching, observability)
-
-#### CLI Applications (220-229)
-- **`220-python-typer-cli.md`** — Typer CLI development (setup, design patterns, testing, async commands, packaging)
-
-#### Data Validation & Testing (230-249)
-- **`230-python-pydantic.md`** — Pydantic data validation (models, settings, serialization, FastAPI integration)
-- **`240-python-faker.md`** — Faker data generation (providers, localization, testing integration, performance)
-
-#### Web Frameworks (250-259)
-- **`250-python-flask.md`** — Flask web framework (application factory pattern, blueprints, security, Jinja2 templates, SQLAlchemy integration)
-- **`251-python-datetime-handling.md`** — Comprehensive datetime handling for Python, Pandas, Plotly, and Streamlit (timezone management, type conversions, cross-library compatibility)
-- **`252-pandas-best-practices.md`** — Pandas performance and best practices (vectorization, memory optimization, anti-patterns, Streamlit/Plotly integration)
-
-### Software Engineering - Shell Scripts (300-399)
-
-#### Bash Scripting (300-309)
-- **`300-bash-scripting-core.md`** — Foundation bash scripting patterns (script structure, variables, functions, essential error handling)
-- **`300a-bash-security.md`** — Security best practices (input validation, path security, permissions, credential management)
-- **`300b-bash-testing-tooling.md`** — Testing frameworks, debugging, ShellCheck integration, and CI/CD workflows
-
-#### Zsh Scripting (310-319)
-- **`310-zsh-scripting-core.md`** — Foundation zsh patterns (unique features, advanced arrays, parameter expansion, globbing)
-- **`310a-zsh-advanced-features.md`** — Advanced zsh capabilities (completion system, hooks, modules, performance optimization)
-- **`310b-zsh-compatibility.md`** — Cross-shell compatibility (bash migration, portable scripting, mixed environments)
-
-### Software Engineering - Containers (400-499)
-- **`400-docker-best-practices.md`** — Docker and Dockerfile best practices (builds, security, supply chain, runtime, Compose)
-
-### Data Science & Analytics (500-599)
-- **`500-data-science-analytics.md`** — ML lifecycle, feature engineering, and analytics
-
-### Data Governance (600-699)  
-- **`600-data-governance-quality.md`** — Data quality, lineage, and stewardship
-
-### Business Intelligence (700-799)
-- **`700-business-analytics.md`** — Business-oriented reporting and visualization
-
-### Project Management (800-899)
-- **`800-project-changelog-rules.md`** — Changelog governance using Conventional Commits
-- **`801-project-readme-rules.md`** — Professional README.md structure and content standards
-- **`805-project-contributing-rules.md`** — Contribution workflow and PR standards
-- **`806-git-workflow-management.md`** — Git workflow best practices for GitHub and GitLab with branching strategies and merge workflows
-- **`820-taskfile-automation.md`** — Project automation with Taskfile (YAML-safe task orchestration)
-
-### Demo & Synthetic Data (900-999)
-- **`900-demo-creation.md`** — Realistic demo application development
-- **`901-data-generation-modeling.md`** — Comprehensive data generation and dimensional modeling standards (Kimball methodology, universal naming conventions, business-first view taxonomy, backward compatibility strategies)
+**🔍 Searchable index:** See [RULES_INDEX.md](RULES_INDEX.md) for keywords, dependencies, and semantic search
 
 ## Directive Language Hierarchy
 
@@ -853,175 +650,29 @@ This hierarchy ensures consistent interpretation across different AI models and 
 
 ## Rule Architecture
 
-### Universal-First Design
+The project uses a **universal-first architecture**: source templates are transformed into portable formats that work with any IDE, agent, or LLM. Rules are generated from a single source of truth into multiple deployment formats.
 
-The project follows a **universal-first architecture** where source rule files are generated into portable formats:
+**Key concepts:**
+- **Templates** in `templates/` are the source of truth (74 rule files)
+- **Universal format** creates portable Markdown that works everywhere
+- **IDE-specific formats** add convenience features for Cursor, Copilot, Cline
+- **Automatic discovery** via AGENTS.md and RULES_INDEX.md enables intelligent rule loading
 
-```
-┌────────────────────────────────────────────────────────────┐
-│              Source Repository (Clone This)                │
-│                  (ai_coding_rules/)                        │
-│                                                            │
-│  Source Rule Files (*.md in project root)                  │
-│  ├── 000-global-core.md         [Foundation]               │
-│  ├── 100-snowflake-core.md      [Domain Core]              │
-│  ├── 200-python-core.md         [Language Core]            │
-│  ├── 210-python-fastapi-core.md [Framework Specific]       │
-│  └── ... (72 total rules)                                   │
-│                                                            │
-│  Discovery System (Committed in Repo, deployed to root)    │
-│  ├── AGENTS.md          [Rule loading protocol FOR AI]     │
-│  ├── RULES_INDEX.md     [Searchable catalog]               │
-│  └── generate_agent_rules.py [Generation script]           │
-│                                                            │
-│  ⚠️  The rules/ directory does NOT exist yet               │
-└────────────────────────────────────────────────────────────┘
-                            │
-                            │ Run generation command
-                            ▼
-        ┌───────────────────────────────────────┐
-        │   task rule:universal                 │
-        │   (Generates Universal Format)        │
-        └───────────────────────────────────────┘
-                            │
-                            ▼
-        ┌───────────────────────────────────────┐
-        │   Created: rules/ Directory           │
-        │   (in current directory or DEST)      │
-        │                                       │
-        │  Generated files:                     │
-        │  ├── rules/000-global-core.md         │
-        │  ├── rules/100-snowflake-core.md      │
-        │  ├── rules/200-python-core.md         │
-        │  └── ... (all rules, cleaned)         │
-        │                                       │
-        │  ✅ Works with ANY tool/IDE/Agent     │
-        │  ✅ Portable Markdown                 │
-        │  ✅ Embedded metadata preserved       │
-        │  ✅ No lock-in                        │
-        │  ✅ Ready to use immediately          │
-        └───────────────────────────────────────┘
-                            │
-                            │ (Optional)
-                            ▼
-        ┌────────────────────────────────────────┐
-        │   Optional: Generate IDE-Specific      │
-        │        Convenience Formats             │
-        │                                        │
-        │  task rule:cursor   → .cursor/rules/   │
-        │  task rule:copilot  → .github/inst.../ │
-        │  task rule:cline    → .clinerules/     │
-        │                                        │
-        │  (Same rules, different packaging)     │
-        └────────────────────────────────────────┘
-```
+The generator (`generate_agent_rules.py`) handles format conversion, reference updates, and metadata preservation automatically. Rules preserve essential metadata (Keywords, TokenBudget, ContextTier, Depends) while stripping IDE-specific details.
 
-### Key Architectural Principles
+**See [Architecture Documentation](docs/ARCHITECTURE.md) for complete technical details, format specifications, and design decisions.**
 
-1. **Single Source of Truth**: Universal rules in source repository are canonical
-2. **Generate Anywhere**: Use `DEST` parameter to generate to any project directory
-3. **Universal by Default**: `task rule:universal` creates portable format first
-4. **IDE Formats Optional**: Generate IDE-specific formats only if you need convenience features
-5. **Metadata Preservation**: Keywords, TokenBudget, ContextTier, and Depends metadata preserved in universal format
-6. **Automatic Discovery**: AGENTS.md + RULES_INDEX.md (deployed to project root) enable intelligent rule loading
+## AI Configuration
 
-### Rule Generator Architecture
+After deploying rules to your project, AI assistants automatically discover and load relevant rules based on your tasks.
 
-The project includes a sophisticated rule generator (`generate_agent_rules.py`) that transforms universal Markdown rules into IDE-specific formats with intelligent content adaptation:
+### How Automatic Discovery Works
 
-### Supported Output Formats
-
-| IDE/Tool | Output Format | Location | Features |
-|----------|---------------|----------|----------|
-| **Cursor** | `.mdc` files | `.cursor/rules/` | YAML frontmatter with globs, auto-apply, automatic `*.md` → `*.mdc` reference conversion |
-| **GitHub Copilot** | `.md` files | `.github/instructions/` | YAML frontmatter with appliesTo patterns, preserves original `*.md` references |
-| **Cline** | `.md` files | `.clinerules/` | Plain Markdown (no YAML frontmatter), all files automatically processed |
-| **Universal** | `.md` files | `rules/` | Clean Markdown, no frontmatter/comments/metadata - works with any IDE/Agent/LLM |
-
-### Reference Conversion Feature
-
-The rule generator automatically converts cross-references for consistency:
-
-**For Cursor Rules (`.mdc` files):**
-- `201-python-lint-format.md` → `201-python-lint-format.mdc`
-- `@some-rule.md` → `@some-rule.mdc`
-- `path/to/file.md` → `path/to/file.mdc`
-- **Preserves**: `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, and other documentation files
-
-**For Copilot Rules (`.md` files):**
-- All references remain unchanged as `*.md`
-
-This ensures that generated Cursor rules reference the correct `.mdc` file format while maintaining compatibility with standard documentation files.
-
-**For Universal Rules (`.md` files):**
-- All references remain unchanged as `*.md`
-- No YAML frontmatter or generated comments
-- **Preserves essential metadata:** Keywords, TokenBudget, ContextTier (as regular markdown after H1)
-- **Strips IDE-specific metadata:** Type, Description, AutoAttach, AppliesTo, Version, LastUpdated
-- Clean, portable Markdown suitable for any IDE, agent, or LLM
-- Use `RULES_INDEX.md` and `AGENTS.md` (in project root) for semantic rule discovery
-
-**Preserved Metadata Benefits:**
-- **Keywords** - Enables semantic discovery and grep-based searches
-- **TokenBudget** - Helps LLMs manage attention budget and decide which rules to load
-- **ContextTier** - Provides prioritization (Critical/High/Medium/Low) for rule loading
-- **Depends** - Specifies prerequisite rules that must be loaded first (dependency chain)
-
-**Example Universal Rule Format:**
-```markdown
-# Rule Title
-
-**Keywords:** keyword1, keyword2, keyword3
-**TokenBudget:** ~400
-**ContextTier:** High
-**Depends:** 000-global-core, 100-snowflake-core
-
-## Purpose
-Rule content starts here...
-```
-
-The universal format is ideal for:
-- Custom AI agents or LLM integrations
-- Manual inclusion in project contexts
-- Environments where IDE-specific formatting is not supported
-- Maximum portability across different AI development tools
-
-### Metadata Parsing
-
-Rules support embedded metadata in Markdown:
-
-```markdown
-**Description:** Brief description of the rule's purpose
-**Applies to:** `**/*.py`, `**/*.sql` (file patterns)  
-**Auto-attach:** true (automatically apply rule)
-**Version:** 2.0
-**Last updated:** 2024-01-15
-```
-
-## Key Features
-
-- **Universal Compatibility** — Works with Claude 4.x, GPT-4, Gemini, Copilot, Cursor, Cline, and more
-- **Claude 4 Optimized** — Native support for XML semantic tags, context awareness, and explicit behavior specifications
-- **LLM-Optimized Format** — Token budgets, anti-pattern libraries, and investigation-first protocols minimize hallucinations
-- **Structured Directive Language** — Clear hierarchical directive patterns from `Critical` to `Consider`  
-- **Modular Architecture** — Mix and match rules by domain/technology with declared dependencies
-- **Intelligent Auto-Generation** — Transform universal rules into IDE-specific formats with automatic reference conversion
-- **Multi-Session Support** — State tracking patterns for long-horizon reasoning across multiple context windows
-- **Data-Focused** — Comprehensive coverage of data engineering and analytics
-- **Production-Ready** — Battle-tested patterns for reliability and performance
-- **Modern Tooling** — Built for `uv`, Ruff, and contemporary Python development
-- **Configuration Safety** — YAML syntax safety and build error prevention
-
-## Using Rules with Different Tools
-
-After deployment via `task deploy:*`, your AI assistant automatically discovers and loads rules based on your tasks.
-
-**How It Works:**
-1. Deploy rules to your project (e.g., `task deploy:universal DEST=~/my-project`)
-2. AI reads `AGENTS.md` (rule loading protocol) and `RULES_INDEX.md` (catalog) from project root
-3. AI searches for keywords matching your task
-4. AI loads relevant rules following dependency chains
-5. AI applies rules to generate code
+1. **Deploy** rules to your project: `task deploy:universal DEST=~/my-project`
+2. **AI reads** `AGENTS.md` (loading protocol) and `RULES_INDEX.md` (catalog) from project root
+3. **AI searches** keywords matching your task
+4. **AI loads** relevant rules following dependency chains
+5. **AI applies** rules to generate code
 
 **Example:**
 ```
@@ -1029,15 +680,20 @@ User: "Build a Snowflake Streamlit dashboard"
 AI loads: 000-global-core → 100-snowflake-core → 101-snowflake-streamlit-core
 ```
 
-**CLI Tools:**
+### Manual Rule Management
+
+**Search for rules by keyword:**
 ```bash
-# Search for rules by keyword
 grep -i "performance" RULES_INDEX.md
+```
 
-# Check rule dependencies
+**Check rule dependencies:**
+```bash
 grep "**Depends:**" rules/101-snowflake-streamlit-core.md
+```
 
-# Calculate total token budget
+**Calculate total token budget:**
+```bash
 grep "**TokenBudget:**" rules/*.md | awk -F: '{sum+=$3} END {print sum}'
 ```
 
@@ -1187,125 +843,22 @@ task -l                  # List all available tasks
 
 ## Memory Bank System (Optional)
 
-> **Note:** Memory Bank is optional and designed for complex, long-running projects with multiple AI sessions. **Skip this section if you're just getting started** with the rule system.
+> **Note:** This is an optional advanced feature for complex, long-running projects. Skip this section if you're just getting started.
 
-The Memory Bank is a project-level documentation system that enables AI assistants to maintain context and continuity across sessions. Since AI assistants reset their memory between sessions, the Memory Bank serves as the critical link for understanding project state, decisions, and ongoing work.
+The Memory Bank is a structured documentation system that helps AI assistants maintain context across multiple sessions. Since AI assistants reset between sessions, the Memory Bank provides continuity by capturing project state, architectural decisions, and current work focus.
 
-### Overview
+**Key benefits:**
+- Maintains project context across development sessions
+- Captures architectural decisions and technical patterns
+- Tracks active work and known issues
+- Enables consistent AI assistance on long-running projects
 
-The Memory Bank addresses a fundamental challenge in AI-assisted development: **memory reset between sessions**. When an AI assistant starts a new session, it has no knowledge of previous work, decisions, or project context. The Memory Bank solves this by maintaining a structured set of documentation files that capture:
+**When to use:**
+- Projects spanning multiple weeks or months
+- Complex architectures requiring detailed documentation
+- Team collaboration where AI context sharing matters
 
-- **Project foundation** — Core requirements, goals, and scope
-- **System architecture** — Technical decisions and design patterns  
-- **Current context** — Active work, recent changes, and next steps
-- **Development progress** — What works, what's left to build, known issues
-
-### File Structure
-
-The Memory Bank uses a hierarchical structure with required core files:
-
-```
-memory-bank/
-├── projectbrief.md      # Foundation document (project scope & goals)
-├── productContext.md    # Why project exists, problems solved
-├── systemPatterns.md    # Architecture & technical decisions  
-├── techContext.md       # Technologies, setup, constraints
-├── activeContext.md     # Current work focus & recent changes
-├── progress.md          # Status, what works, known issues
-└── [additional]/        # Optional: features, APIs, testing docs
-```
-
-#### Core Files (Required)
-
-| File | Purpose |
-|------|---------|
-| `projectbrief.md` | Foundation document defining core requirements and project scope |
-| `productContext.md` | Business context: why project exists, problems solved, user experience goals |
-| `systemPatterns.md` | System architecture, key technical decisions, design patterns |
-| `techContext.md` | Technologies used, development setup, technical constraints |
-| `activeContext.md` | Current work focus, recent changes, next steps, active decisions |
-| `progress.md` | Current status, what works, what's left to build, known issues |
-
-### Memory Bank Commands
-
-#### Initialization
-For new projects, create the memory bank structure:
-
-```bash
-# Create memory bank directory
-mkdir memory-bank
-
-# Initialize core files (manual creation)
-touch memory-bank/{projectbrief,productContext,systemPatterns,techContext,activeContext,progress}.md
-```
-
-The Memory Bank can be automatically created triggered by:
-
-1. **Explicit user request**: `"initialize memory bank"`
-
-#### Update Commands
-The Memory Bank updates automatically during development, triggered by:
-
-1. **Explicit user request**: `"update memory bank"`
-2. **After significant changes**: Major feature implementations or architectural decisions
-3. **Context clarification needs**: When project understanding requires documentation
-4. **Pattern discovery**: New technical patterns or workflow insights
-
-### Workflow Integration
-
-#### Plan Mode Workflow
-```mermaid
-flowchart TD
-    Start[New Session] --> Read[Read ALL Memory Bank Files]
-    Read --> Check{Files Complete?}
-    Check -->|No| Plan[Create Missing Files]
-    Check -->|Yes| Context[Verify Current Context]
-    Context --> Strategy[Develop Work Strategy]
-    Strategy --> Present[Present Approach to User]
-```
-
-#### Act Mode Workflow  
-```mermaid
-flowchart TD
-    Start[Execute Task] --> Context[Check Memory Bank]
-    Context --> Work[Perform Development Work]
-    Work --> Document[Update Documentation]
-    Document --> Rules[Update IDE Rules if Needed]
-    Rules --> Complete[Mark Task Complete]
-```
-
-### Usage Examples
-
-#### Starting a New Session
-```bash
-# AI assistant workflow (automatic)
-1. Read all memory-bank/*.md files
-2. Understand current project state  
-3. Review activeContext.md for recent work
-4. Check progress.md for known issues
-5. Proceed with informed context
-```
-
-#### Updating Memory Bank
-```bash
-# User command
-"update memory bank"
-
-# AI assistant workflow (automatic)
-1. Review ALL memory bank files
-2. Update current state in activeContext.md
-3. Record progress in progress.md  
-4. Document new patterns in systemPatterns.md
-5. Update technical context if needed
-```
-
-#### Best Practices
-
-- **Always read**: Memory Bank files at session start (non-optional)
-- **Update frequently**: After major changes or discoveries
-- **Keep current**: Focus on activeContext.md and progress.md
-- **Be precise**: Accuracy directly impacts work effectiveness
-- **Stay organized**: Use additional files for complex features
+**See [Memory Bank Documentation](docs/MEMORY_BANK.md) for complete setup and usage guide.**
 
 ## Troubleshooting
 
@@ -1347,7 +900,6 @@ uv run scripts/deploy_rules.py --agent universal --destination ~/my-project
 ls scripts/generate_agent_rules.py scripts/deploy_rules.py Taskfile.yml templates/
 ```
 
----
 
 ### Task Command Not Found
 
@@ -1386,7 +938,6 @@ task --version
 # Should show: Task version: v3.x.x
 ```
 
----
 
 ### Python Version Conflicts
 
@@ -1423,18 +974,23 @@ source .venv/bin/activate  # Linux/macOS
 pip install -e ".[dev]"
 ```
 
----
 
 ### IDE Not Recognizing Rules
 
 **Problem:** AI assistant not using generated rules
+
+You can force the AI assistant to load rules with simple additions to your prompt.
+
+```
+Load AGENTS.md into the context.  Review RULES_INDEX.md based on the keywords in my prompt and load appropriate rules.
+```
 
 **For Cursor:**
 
 1. **Verify Rules Exist**
 ```bash
 ls generated/cursor/rules/*.mdc | wc -l
-# Should show 72+ files
+# Should show 74 files
 ```
 
 2. **Check Cursor Settings**
@@ -1471,7 +1027,7 @@ ls .github/instructions/*.md | wc -l
 1. **Verify Files Generated**
 ```bash
 ls generated/universal/*.md | wc -l
-# Should show 72+ files
+# Should show 74 files
 ```
 
 2. **Add to AI Context Manually**
@@ -1484,7 +1040,6 @@ ls generated/universal/*.md | wc -l
    - AI should reference RULES_INDEX.md and list rules
    - If not working, verify RULES_INDEX.md is in context
 
----
 
 ### How to Verify Rules Are Working
 
@@ -1509,7 +1064,7 @@ Expected: AI loads 000-global-core, 100-snowflake-core, 101-snowflake-streamlit-
 **Manual Verification:**
 ```bash
 # Verify files exist
-ls generated/universal/*.md | wc -l  # Should be 72+
+ls generated/universal/*.md | wc -l  # Should be 74
 
 # Check discovery files (in this repo's discovery/ directory)
 ls discovery/AGENTS.md discovery/RULES_INDEX.md
@@ -1523,7 +1078,6 @@ grep -i "fastapi" RULES_INDEX.md
 grep -i "snowflake" RULES_INDEX.md
 ```
 
----
 
 ### Permission Errors During Generation
 
@@ -1552,7 +1106,6 @@ task rule:universal DEST=/tmp/rules-output
 chmod -R u+w .
 ```
 
----
 
 ### Still Having Issues?
 

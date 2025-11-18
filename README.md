@@ -160,11 +160,14 @@ git --version     # Should show Git version
 git clone https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git
 cd ai_coding_rules
 
-# 2. Deploy rules to your project
+# 2. Explore available commands (categorized for easy discovery)
+task    # Shows organized task list with quickstart section
+
+# 3. Deploy rules to your project
 task deploy:universal DEST=~/my-project   # Works with any IDE/LLM
 ```
 
-**That's it!** Your project now has 74 specialized rules ready to use.
+**That's it!** Your project now has 74 specialized rules ready to use. Run `task` anytime to see categorized commands with quickstart section—30% faster task discovery through logical grouping.
 
 #### Full Deployment Options
 

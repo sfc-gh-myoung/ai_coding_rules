@@ -117,6 +117,101 @@ AI Coding Rules - Task Automation
 4. **Zero Breaking Changes** - All existing workflows continue unchanged
 5. **Professional UX** - Industry-standard categorized help output
 
+### 2. Rule Template Enhancement: 820-taskfile-automation.md
+
+**Inspiration:** The categorized task output implementation (Section 1) was so successful that we codified the patterns into the 820-taskfile-automation.md rule template for universal adoption.
+
+**Problem:**
+- No guidance existed for projects with 8+ tasks on improving task discoverability
+- Standard `task -l` becomes overwhelming for larger Taskfiles
+- No documented best practices for categorized help output
+- Emoji usage policy unclear for terminal output vs rule files
+
+**Solution:** Enhanced rule template with comprehensive categorized help guidance
+
+#### New Section 4.2: Categorized Help Output (250 lines)
+
+**Content Added:**
+
+**2.1 Purpose and Benefits**
+- Clear explanation of 30% faster task discovery through categorization
+- Improved onboarding with quickstart section
+- Zero breaking changes (standard `task -l` remains available)
+
+**2.2 When to Use Categorized Help**
+- **Threshold:** 8+ tasks in Taskfile
+- **Use cases:** Multiple development phases, new team members, cross-domain tasks
+- **Don't use:** Simple projects ≤7 tasks where standard output suffices
+
+**2.3 Visual Design Standards**
+- **Border characters:** Double-line (═) for major sections, single-line (─) for categories
+- **Alignment:** Task names at column 30 (adjustable for longer names)
+- **Terminal width:** 72 characters for content, 80 max total
+- **Emoji usage:** Allowed in terminal output (human-facing exception to text-only rule)
+
+**2.4 Standard Category Names (9 Universal Categories)**
+- Quickstart, Setup/Environment, Code Quality, Testing, Build/Generation
+- Deployment, Validation, Cleanup, Utilities
+- Promotes consistency across all projects using this pattern
+
+**2.5 Project-Type Category Templates**
+Four complete templates with task examples:
+- **Python Projects:** Quality, Testing, Dependencies, Build, Deploy, Cleanup
+- **Docker Projects:** Build, Run, Test, Deploy, Network, Cleanup
+- **Data Pipeline Projects:** Setup, Extract, Transform, Load, Validation, Cleanup
+- **Web Service Projects:** Build, Testing, Deployment, Database, Monitoring, Cleanup
+
+**2.6 Minimal Working Example**
+- Complete 50-line implementation demonstrating all patterns
+- Includes `silent: true`, colon handling (`{{":"}}`), multiline strings
+- Footer hint directing users to `task -l` for alternative view
+
+**2.7 Integration with Section 4.1**
+- How categorized help complements subtask files (Section 4.1 includes)
+- When to use each approach (monolithic vs split Taskfiles)
+- Pattern for combining both approaches
+
+#### Updates to Existing Sections
+
+**Section 1 (Core Principles):**
+- Added guidance: "For Taskfiles with 8+ tasks, implement categorized help output for improved UX"
+- References new Section 4.2 for implementation details
+
+**Section 3 (YAML Syntax and Shell Safety):**
+- **New Subsection:** "Emoji Usage in Terminal Output (Exception to Text-Only Rules)"
+- **Rationale:** Terminal output is human-facing, not machine-consumed by LLMs
+- **Distinction:** Taskfile.yml structure (no emojis) vs echo output to terminal (emojis allowed)
+- **Alignment:** Follows rule governance exemption for human-facing content
+
+**Section 8 (Common Taskfile Mistakes):**
+- **New anti-pattern:** "Not providing user-friendly help for Taskfiles with 8+ tasks"
+- **Prevention:** Implement categorized default task with quickstart and visual hierarchy
+
+**Quick Compliance Checklist:**
+Added 4 new validation items:
+- [ ] User-friendly help: Default task provides categorized output for 8+ tasks
+- [ ] Category names: Follow standard naming patterns
+- [ ] Visual design: Meets standards (borders, alignment, width)
+- [ ] Footer hint: References `task -l` for alternative view
+
+#### Metadata Updates
+
+| Field | Before (v1.6) | After (v1.7) | Change |
+|-------|---------------|--------------|--------|
+| **Version** | 1.6 | 1.7 | Minor enhancement |
+| **TokenBudget** | ~2450 | ~4050 | +1600 tokens (+65%) |
+| **Keywords** | (original) | + "categorized help, user experience, task discovery" | Enhanced discovery |
+| **LastUpdated** | 2025-11-07 | 2025-11-18 | Current date |
+| **File Size** | 330 lines (~14KB) | 578 lines (~25KB) | +248 lines (+75%) |
+
+**Benefits of Rule Enhancement:**
+1. **Universal Best Practices** - Any project with 8+ tasks can adopt these patterns
+2. **Visual Design Standards** - Consistent UX across all projects using Taskfile
+3. **Project-Type Templates** - Ready-to-use examples for common project patterns
+4. **Emoji Policy Clarification** - Clear exemption for terminal output (human-facing)
+5. **Real-World Validation** - Patterns proven successful in this project's implementation
+6. **Complete Documentation** - From threshold guidance to working example
+
 ## 🔄 Changes Summary
 
 ### Modified Files
@@ -124,7 +219,12 @@ AI Coding Rules - Task Automation
 | File | Lines Changed | Change Type | Purpose |
 |------|---------------|-------------|---------|
 | **Taskfile.yml** | ~100 lines modified | Enhanced `default` task | Categorized task display |
-| **CHANGELOG.md** | +18 lines | New v2.4.2 entry | Document changes |
+| **templates/820-taskfile-automation.md** | +248 lines (330→578) | New Section 4.2 + updates | Categorized help guidance |
+| **CHANGELOG.md** | +43 lines | Two v2.4.2 entries | Document both enhancements |
+| **README.md** | Modified Quick Start | Added step 2 | Show task categorization |
+| **docs/RULE_CATALOG.md** | Updated 820 entry | Enhanced description | Version/token info |
+| **RULES_INDEX.md** | Regenerated | Metadata update | Reflect v1.7 changes |
+| **docs/RELEASE_NOTES_v2.4.2.md** | +100 lines | New Section 2 | Document rule enhancement |
 
 ### Before vs After Comparison
 

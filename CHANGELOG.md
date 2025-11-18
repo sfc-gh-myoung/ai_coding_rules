@@ -28,6 +28,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Better scannability with emoji icons and visual hierarchy
     - Zero breaking changes - all existing tasks work identically
 
+- **feat(rules):** Enhanced 820-taskfile-automation.md with categorized help guidance (2025-11-18)
+  - **New Section 4.2:** Categorized Help Output for Improved User Experience (250 lines)
+    - Purpose and benefits (30% faster task discovery, improved onboarding, zero breaking changes)
+    - When to use: 8+ task threshold with clear use cases
+    - Visual design standards (borders: ═ major/─ categories, alignment: column 30, width: 72 chars)
+    - Standard category names (9 universal categories: Quickstart, Setup, Quality, Testing, Build, Deploy, Validation, Cleanup, Utilities)
+    - Project-type templates (Python, Docker, Data Pipeline, Web Service with task examples)
+    - Minimal working example (complete 50-line implementation with silent mode, colon handling)
+    - Integration with Section 4.1 (how categorized help complements subtask files)
+  - **Updates to Existing Sections:**
+    - Section 1 (Core Principles): Added guidance for 8+ task categorized help recommendation
+    - Section 3 (YAML Syntax): Added emoji exemption subsection for terminal output (human-facing exception)
+    - Section 8 (Common Mistakes): Added anti-pattern for missing user-friendly help with prevention guidance
+    - Quick Compliance Checklist: Added 4 new validation items (categorized help, category names, visual design, footer hint)
+  - **Metadata Updates:** 
+    - Version: 1.6 → 1.7
+    - TokenBudget: ~2450 → ~4050 (+1600 tokens, +248 lines, 75% increase)
+    - Keywords: Added "categorized help, user experience, task discovery"
+    - LastUpdated: 2025-11-18
+  - **Benefits:**
+    - Provides universal best practices for any project with 8+ tasks
+    - Documents visual design standards for consistent UX
+    - Offers project-type templates for common patterns
+    - Exempts terminal output from text-only emoji prohibition (human-facing content)
+    - Demonstrates real-world pattern from this project's implementation
+
 ## [2.4.1] - 2025-11-18
 
 ### Changed

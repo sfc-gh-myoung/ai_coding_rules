@@ -2,7 +2,6 @@
 
 This document describes the complete workflow for creating a new release version in GitLab from the command line.
 
----
 
 ## Prerequisites
 
@@ -12,7 +11,6 @@ This document describes the complete workflow for creating a new release version
 - (Optional) `glab` CLI tool for GitLab operations
 - (Optional) Personal Access Token for GitLab API
 
----
 
 ## Release Preparation Checklist
 
@@ -24,7 +22,6 @@ Before creating a release:
 - [ ] CHANGELOG.md updated with release notes
 - [ ] Version number decided (following semantic versioning)
 
----
 
 ## Step-by-Step Workflow
 
@@ -152,7 +149,6 @@ glab release view vX.Y.Z
 # https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules/-/releases
 ```
 
----
 
 ## Complete Example: Creating v2.2.0
 
@@ -187,7 +183,6 @@ glab release create v2.2.0 \
 glab release view v2.2.0
 ```
 
----
 
 ## Best Practices
 
@@ -230,7 +225,6 @@ Files to update for each release:
 3. `uv.lock` - Lock file (via `uv sync`)
 4. `docs/RELEASE_NOTES_vX.Y.Z.md` - Detailed release notes
 
----
 
 ## Troubleshooting
 
@@ -281,7 +275,6 @@ glab release create vX.Y.Z \
   --notes-file "$(pwd)/docs/RELEASE_NOTES_vX.Y.Z.md"
 ```
 
----
 
 ## Automation with Task
 
@@ -321,7 +314,6 @@ task release:tag VERSION=v2.2.0 MESSAGE="Quality improvements"
 task release:create VERSION=v2.2.0
 ```
 
----
 
 ## Additional Resources
 
@@ -331,7 +323,6 @@ task release:create VERSION=v2.2.0
 - **Semantic Versioning:** https://semver.org/
 - **Git Tagging:** https://git-scm.com/book/en/v2/Git-Basics-Tagging
 
----
 
 ## Quick Reference
 
@@ -347,9 +338,3 @@ git tag -a vX.Y.Z -m "vX.Y.Z: Description"
 git push origin vX.Y.Z
 glab release create vX.Y.Z --name "AI Coding Rules vX.Y.Z" --notes-file docs/RELEASE_NOTES_vX.Y.Z.md
 ```
-
----
-
-**Last Updated:** 2025-11-07  
-**Current Version:** v2.2.0
-

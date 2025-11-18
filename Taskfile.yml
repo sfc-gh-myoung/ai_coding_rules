@@ -1,7 +1,8 @@
 version: '3'
 # Taskfile v3 for AI Coding Rules
-# Usage: install Task and run `task -l` to list available tasks.
-# Common commands: `task deps:dev`, `task lint`, `task rule:cursor`
+# Usage: install Task and run `task` to see categorized task list
+# Quick commands: `task quality:fix`, `task test`, `task rule:cursor`
+# For standard list view: `task -l`
 
 # Tool paths - adjust these if tools are installed in different locations
 vars:
@@ -11,11 +12,101 @@ vars:
   PIP: /opt/homebrew/bin/uv pip
 
 tasks:
-  # Default task: list all available tasks in this Taskfile
+  # Default task: show user-friendly categorized task list
   default:
-    desc: "List all available tasks"
+    desc: "Show categorized task list with quickstart"
+    silent: true
     cmds:
-      - task -l
+      - |
+        echo "════════════════════════════════════════════════════════════════════════"
+        echo "AI Coding Rules - Task Automation"
+        echo "════════════════════════════════════════════════════════════════════════"
+        echo
+        echo "🚀 QUICKSTART (Most Common Commands)"
+        echo "────────────────────────────────────────────────────────────────────────"
+        echo "  task quality:fix              Fix all code quality issues"
+        echo "  task test                     Run all pytest tests"
+        echo "  task rule:cursor              Generate Cursor rules"
+        echo "  task rule:all                 Generate all IDE rule formats"
+        echo "  task validate                 Run all validation checks"
+        echo "  task status                   Show project status"
+        echo
+        echo "🔍 CODE QUALITY"
+        echo "────────────────────────────────────────────────────────────────────────"
+        echo "  task lint                     Ruff lint (checks only)"
+        echo "  task format                   Ruff format (checks only)"
+        echo "  task quality                  Run all quality checks"
+        echo "  task lint:fix                 Ruff lint with automatic fixes"
+        echo "  task format:fix               Ruff format (apply changes)"
+        echo "  task quality:fix              Fix all quality issues automatically"
+        echo "  task lint:fix:select          Fix specific rule (usage{{":"}} CODE=E501)"
+        echo
+        echo "🧪 TESTING"
+        echo "────────────────────────────────────────────────────────────────────────"
+        echo "  task test                     Run all pytest tests"
+        echo "  task test:unit                Run unit tests only"
+        echo "  task test:integration         Run integration tests only"
+        echo "  task test:coverage            Run tests with coverage reporting"
+        echo "  task test:failed              Re-run only failed tests"
+        echo "  task test:verbose             Run tests with verbose output"
+        echo
+        echo "📝 RULE GENERATION"
+        echo "────────────────────────────────────────────────────────────────────────"
+        echo "  task rule:cursor              Generate Cursor .mdc files"
+        echo "  task rule:copilot             Generate GitHub Copilot instructions"
+        echo "  task rule:cline               Generate Cline rule files"
+        echo "  task rule:universal           Generate Universal rule files"
+        echo "  task rule:all                 Generate all IDE-specific formats"
+        echo "  task rule:legacy              Generate to legacy paths"
+        echo "  task rule:cursor:dry          Dry run Cursor generation"
+        echo "  task rule:cursor:check        Check if Cursor rules are current"
+        echo
+        echo "🚢 RULE DEPLOYMENT"
+        echo "────────────────────────────────────────────────────────────────────────"
+        echo "  task deploy:cursor            Deploy Cursor rules to target project"
+        echo "  task deploy:copilot           Deploy Copilot rules to target project"
+        echo "  task deploy:cline             Deploy Cline rules to target project"
+        echo "  task deploy:universal         Deploy Universal rules to target project"
+        echo
+        echo "📚 RULE INDEX"
+        echo "────────────────────────────────────────────────────────────────────────"
+        echo "  task rules:index              Generate RULES_INDEX.md"
+        echo "  task rules:index:check        Check if RULES_INDEX.md is current"
+        echo "  task rules:index:dry          Preview RULES_INDEX.md generation"
+        echo
+        echo "🔧 TOKEN MANAGEMENT"
+        echo "────────────────────────────────────────────────────────────────────────"
+        echo "  task tokens:update            Update token budgets (±15% threshold)"
+        echo "  task tokens:update:dry        Preview token budget updates"
+        echo "  task tokens:check             Check token budget accuracy"
+        echo "  task tokens:update:detailed   Update with detailed analysis"
+        echo "  task tokens:update:threshold  Custom threshold (usage{{":"}} THRESHOLD=20)"
+        echo
+        echo "✅ VALIDATION"
+        echo "────────────────────────────────────────────────────────────────────────"
+        echo "  task validate                 Run all validation checks for CI/CD"
+        echo "  task rules:validate           Validate rules per governance standards"
+        echo "  task rules:validate:strict    Validate in strict mode"
+        echo "  task templates:validate       Validate templates (Section 11)"
+        echo "  task rule:templates:validate  Validate templates against v4.0"
+        echo "  task rule:universal:validate  Validate universal rule format"
+        echo
+        echo "🧹 CLEANUP"
+        echo "────────────────────────────────────────────────────────────────────────"
+        echo "  task clean:all                Remove all generated files and venv"
+        echo "  task clean:venv               Remove virtual environment"
+        echo "  task clean:rules              Remove all generated rule files"
+        echo
+        echo "⚙️  SETUP"
+        echo "────────────────────────────────────────────────────────────────────────"
+        echo "  task uv:pin                   Pin Python (3.11) and create venv"
+        echo "  task deps:dev                 Sync dev dependencies with uv"
+        echo "  task status                   Show project status"
+        echo "  task release:prepare          Prepare repository for release"
+        echo
+        echo "════════════════════════════════════════════════════════════════════════"
+        echo "For standard task list view, run{{":"}} task -l"
+        echo "════════════════════════════════════════════════════════════════════════"
   
   # Initialize uv-managed environment and pin Python version
   uv:pin:

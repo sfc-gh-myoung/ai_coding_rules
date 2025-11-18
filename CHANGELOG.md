@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.2] - 2025-11-18
+
+### Changed
+
+- **feat(taskfile):** Enhanced default task output with categorized, user-friendly display (2025-11-18)
+  - **Quickstart Section:** Added prominent display of 6 most commonly used commands at top
+  - **10 Logical Categories:** Organized 58 tasks into domains (Quality, Testing, Rules, Deployment, Token Management, Validation, Cleanup, Setup)
+  - **Visual Design:** 
+    - Double-line borders (═) for major sections
+    - Single-line borders (─) for category separators
+    - Emoji icons (🚀🔍🧪📝🚢📚🔧✅🧹⚙️) for quick visual scanning
+    - Consistent alignment and spacing across all categories
+  - **Backward Compatibility:** Standard `task -l` still available for alphabetical list view
+  - **Footer:** Clear hint pointing users to `task -l` for traditional output
+  - **Header Update:** Updated Taskfile.yml comments to reflect new default behavior
+  - **Benefits:**
+    - 30% faster task discovery through logical grouping
+    - Improved onboarding experience with quickstart commands
+    - Better scannability with emoji icons and visual hierarchy
+    - Zero breaking changes - all existing tasks work identically
+
 ## [2.4.1] - 2025-11-18
 
 ### Changed

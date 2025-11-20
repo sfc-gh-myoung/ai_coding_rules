@@ -7,7 +7,7 @@ appliesTo:
 ---
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
-**Keywords:** Snowflake deployment, Streamlit deployment, notebook deployment, PUT, CREATE STREAMLIT, CREATE NOTEBOOK, stages, deployment automation, SiS, troubleshooting
+**Keywords:** Snowflake deployment, Streamlit deployment, notebook deployment, PUT, CREATE STREAMLIT, CREATE NOTEBOOK, stages, deployment automation, SiS, troubleshooting, deploy app, deployment pipeline, app publishing, deployment patterns, deploy to snowflake, stage deployment, production deployment, app versioning
 **TokenBudget:** ~4650
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core, 109-snowflake-notebooks, 101-snowflake-streamlit-core, 820-taskfile-automation
@@ -22,7 +22,14 @@ Establish comprehensive deployment automation patterns for Snowflake application
 - **Type:** Agent Requested
 - **Scope:** Deployment automation for Snowflake applications using internal stages, covering notebooks, Streamlit apps, UDFs, and stored procedures
 
-## Quick Start TL;DR (Read First - 30 Seconds)
+## Quick Start TL;DR (Essential Patterns Reference)
+
+**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
+- **Token efficiency:** Self-sufficient guidance for common use cases
+- **Position advantage:** Early placement benefits from attention bias
+- **Progressive disclosure:** Assessment point for full rule loading decision
+
+Position at top provides practical efficiency benefits for both LLMs and human developers.
 
 **MANDATORY:**
 **Essential Patterns:**

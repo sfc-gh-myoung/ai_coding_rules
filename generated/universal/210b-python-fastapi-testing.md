@@ -1,4 +1,4 @@
-**Keywords:** FastAPI testing, TestClient, pytest-asyncio, API tests, integration testing, mocking, test fixtures, AAA pattern, async testing
+**Keywords:** FastAPI testing, TestClient, pytest-asyncio, API tests, integration testing, mocking, test fixtures, AAA pattern, async testing, Python
 **TokenBudget:** ~1600
 **ContextTier:** High
 **Depends:** 210-python-fastapi-core

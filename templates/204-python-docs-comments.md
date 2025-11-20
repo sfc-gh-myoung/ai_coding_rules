@@ -2,7 +2,7 @@
 **Type:** Agent Requested
 **AppliesTo:** `**/*.py`, `docs/**/*`
 **AutoAttach:** false
-**Keywords:** Python docstrings, documentation, comments, pydocstyle, Ruff DOC rules, API documentation, Google style, NumPy style, PEP 257
+**Keywords:** Python docstrings, documentation, comments, pydocstyle, Ruff DOC rules, API documentation, Google style, NumPy style, PEP 257, code quality
 **TokenBudget:** ~1800
 **ContextTier:** Medium
 **Version:** 1.2

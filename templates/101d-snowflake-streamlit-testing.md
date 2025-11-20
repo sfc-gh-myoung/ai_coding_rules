@@ -2,7 +2,7 @@
 **Type:** Agent Requested
 **AppliesTo:** `**/*.py`, `tests/**/*`, `streamlit/**/*`
 **AutoAttach:** false
-**Keywords:** Streamlit testing, AppTest, st.testing, unit tests, debugging, test Streamlit app, pytest
+**Keywords:** Streamlit testing, AppTest, st.testing, unit tests, debugging, test Streamlit app, pytest, test framework, test patterns, app testing, UI testing, test automation, streamlit test suite, integration testing, test coverage, debug tests, test fixtures, testing strategies
 **TokenBudget:** ~2600
 **ContextTier:** High
 **Version:** 1.2
@@ -46,7 +46,14 @@ Provide comprehensive testing and debugging guidance for Streamlit applications 
 - **Test Edge Cases:** Empty data, invalid inputs, error conditions
 - **Cache Testing:** Verify cache behavior (hits, misses, invalidation)
 
-## Quick Start TL;DR (Read First - 30 Seconds)
+## Quick Start TL;DR (Essential Patterns Reference)
+
+**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
+- **Token efficiency:** Self-sufficient guidance for common use cases
+- **Position advantage:** Early placement benefits from attention bias
+- **Progressive disclosure:** Assessment point for full rule loading decision
+
+Position at top provides practical efficiency benefits for both LLMs and human developers.
 
 **MANDATORY:**
 **Essential Patterns:**

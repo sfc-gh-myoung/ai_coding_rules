@@ -1,7 +1,7 @@
 <!-- Generated for Cline rules. See https://docs.cline.bot/features/cline-rules -->
 
-**Keywords:** Streamlit performance, @st.cache_data, @st.cache_resource, data loading, query optimization, SQL error handling, st.error, SnowparkSQLException, progress tracking, st.fragment, NULL handling
-**TokenBudget:** ~6600
+**Keywords:** Streamlit performance, @st.cache_data, @st.cache_resource, data loading, query optimization, SQL error handling, st.error, SnowparkSQLException, progress tracking, st.fragment, NULL handling, slow streamlit, streamlit caching, optimize streamlit, fix slow queries, fragment batch processing, NaN error, pandas NULL, KeyError, cache miss
+**TokenBudget:** ~5950
 **ContextTier:** High
 **Depends:** 101-snowflake-streamlit-core, 103-snowflake-performance-tuning
 
@@ -14,6 +14,18 @@ Provide comprehensive guidance for optimizing Streamlit application performance 
 
 - **Type:** Agent Requested
 - **Scope:** Streamlit performance optimization, caching patterns, Snowflake data loading, SQL error handling and debugging, progress indicators
+
+**Progressive Disclosure - Token Budget:**
+- Quick Start + Contract: ~500 tokens (always load for performance tasks)
+- + Caching Strategies (section 1): ~1200 tokens (load for caching issues)
+- + Data Loading & Error Handling (sections 2-3): ~2100 tokens (load for data/SQL issues)
+- + Complete Reference: ~3800 tokens (full performance guide)
+
+**Recommended Loading Strategy:**
+- **Quick performance check**: Quick Start only
+- **Caching problems**: + Caching Strategies
+- **Data/SQL issues**: + Data Loading & Error Handling
+- **Complete optimization**: Full reference
 
 ## Contract
 
@@ -44,7 +56,33 @@ Provide comprehensive guidance for optimizing Streamlit application performance 
 - **User Feedback:** Show progress for operations >2 seconds
 - **Profile Always:** Target <2s load time, measure and optimize
 
-## Quick Start TL;DR (Read First - 30 Seconds)
+> **Investigation Required**  
+> When optimizing Streamlit performance:
+> 1. Profile the application first - use Chrome DevTools or st.profiler to identify actual bottlenecks
+> 2. Check query execution times in Snowflake (QUERY_HISTORY view) before optimizing
+> 3. Verify cache behavior - confirm TTL values and check st.cache_data/st.cache_resource are being used
+> 4. Never assume column names - always normalize after fetching from Snowflake
+> 5. Test error handling - verify st.error() messages appear when queries fail
+> 6. Measure impact - profile before/after optimization to verify improvements
+>
+> **Anti-Pattern:**
+> "Let me add caching everywhere to speed this up."
+>
+> **Correct Pattern:**
+> "Let me profile the application first to see which operations are slow."
+> [profiles with Chrome DevTools]
+> "The load_dashboard_data() function takes 4.2s. Let me check the Snowflake query history."
+> [checks QUERY_HISTORY]
+> "The query itself runs in 0.3s, so the issue is likely in data processing. Let me add caching."
+
+## Quick Start TL;DR (Essential Patterns Reference)
+
+**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
+- **Token efficiency:** Self-sufficient guidance for common use cases
+- **Position advantage:** Early placement benefits from attention bias
+- **Progressive disclosure:** Assessment point for full rule loading decision
+
+Position at top provides practical efficiency benefits for both LLMs and human developers.
 
 **MANDATORY:**
 **Essential Patterns:**
@@ -68,6 +106,38 @@ Provide comprehensive guidance for optimizing Streamlit application performance 
 - [ ] Test cache behavior with different inputs
 - [ ] Test SQL error handling with invalid query
 - [ ] Measure load time (<2s target)
+
+## Common Pitfalls (Learn from These!)
+
+**Pitfall 1: Using st.cache_data on Queries That Modify Data** [WARNING]
+- **Trigger words**: "UPDATE", "INSERT", "DELETE", "MERGE" in cached query functions
+- **Why critical**: Cached functions with side effects cause data inconsistency - modifications won't execute on subsequent runs
+- **Correct approach**: Never cache data-modifying queries; only use @st.cache_data for SELECT queries
+- **Detection**: Review all @st.cache_data decorated functions for DML statements
+
+**Pitfall 2: Fragment Batch Processing Without Proper State Management** [WARNING]
+- **Trigger words**: "st.fragment" with stateful operations, batch processing without st.session_state
+- **Why critical**: Fragments re-run independently, causing state loss or duplicate processing
+- **Correct approach**: Use st.session_state to track fragment processing state; see Section 4
+- **Detection**: Check if fragment functions use stateful variables without st.session_state
+
+**Pitfall 3: Not Handling NULL/NaN in Pandas Before Charting** [WARNING]
+- **Trigger words**: "st.line_chart", "st.bar_chart" with NULL/NaN values from Snowflake
+- **Why critical**: Charts break or display incorrectly with NULL/NaN values
+- **Correct approach**: Use `.fillna(0)` or `.dropna()` before charting; see Section 2
+- **Detection**: Test charts with NULL-containing data from Snowflake
+
+**Pitfall 4: Cache Invalidation Without TTL** [WARNING]
+- **Trigger words**: "@st.cache_data()" without ttl parameter for frequently-updated data
+- **Why critical**: Stale data shown to users; cache never refreshes automatically
+- **Correct approach**: Always set ttl parameter for data that changes: `@st.cache_data(ttl=300)`
+- **Detection**: Review @st.cache_data decorators for missing ttl on time-sensitive queries
+
+**Pitfall 5: Query Loops Instead of Aggregation** [WARNING]
+- **Trigger words**: "for" loop with query execution inside, repeated session.sql() calls
+- **Why critical**: Massive performance degradation - O(n) queries instead of O(1)
+- **Correct approach**: Use SQL WHERE, GROUP BY, JOIN to aggregate before fetching; see Section 5
+- **Detection**: Search for "session.sql" inside loops or list comprehensions
 
 ## 1. Caching Strategies
 
@@ -298,352 +368,21 @@ def load_grid_assets():
 - **Actionable guidance:** Lists possible causes for common SQL errors
 - **Red st.error() box:** Makes errors immediately visible
 
-### 3.2 Error Handling for Multiple Queries
+### 3.2 Advanced Error Handling Patterns
 
-**Pattern for Multiple Related Queries:**
-```python
-def load_dashboard_data():
-    """Load all data needed for dashboard with granular error handling."""
-    
-    # Query 1: Load assets
-    try:
-        session = get_snowflake_session()
-        assets_df = session.sql("""
-            SELECT asset_id, asset_type, install_date
-            FROM UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS
-        """).to_pandas()
-        assets_df.columns = [col.lower() for col in assets_df.columns]
-        
-    except SnowparkSQLException as e:
-        st.error(f"""
-        **Query 1 Failed: Load Grid Assets**
-        
-        **Error:** {str(e)}
-        **Table:** UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS
-        **SQL Error Code:** {e.error_code if hasattr(e, 'error_code') else 'N/A'}
-        
-        **Common Causes:**
-        - Table GRID_ASSETS does not exist in GRID_DATA schema
-        - Missing SELECT permission on GRID_ASSETS
-        - UTILITY_DEMO_V2 database or GRID_DATA schema does not exist
-        """)
-        st.stop()
-    
-    # Query 2: Load failures
-    try:
-        failures_df = session.sql("""
-            SELECT asset_id, failure_time, failure_reason, repair_cost
-            FROM UTILITY_DEMO_V2.GRID_DATA.FAILURE_EVENTS
-            WHERE failure_time >= DATEADD(month, -6, CURRENT_DATE())
-        """).to_pandas()
-        failures_df.columns = [col.lower() for col in failures_df.columns]
-        
-    except SnowparkSQLException as e:
-        st.error(f"""
-        **Query 2 Failed: Load Failure Events**
-        
-        **Error:** {str(e)}
-        **Table:** UTILITY_DEMO_V2.GRID_DATA.FAILURE_EVENTS
-        **Filter:** Last 6 months of failure events
-        **SQL Error Code:** {e.error_code if hasattr(e, 'error_code') else 'N/A'}
-        
-        **Common Causes:**
-        - Table FAILURE_EVENTS does not exist in GRID_DATA schema
-        - Column failure_time has different name or does not exist
-        - Invalid date function (check DATEADD syntax)
-        - Missing SELECT permission on FAILURE_EVENTS
-        """)
-        st.stop()
-    
-    # Query 3: Aggregate metrics
-    try:
-        metrics_df = session.sql("""
-            SELECT 
-                asset_type,
-                COUNT(*) as total_assets,
-                SUM(CASE WHEN install_date < '2010-01-01' THEN 1 ELSE 0 END) as old_assets
-            FROM UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS
-            GROUP BY asset_type
-        """).to_pandas()
-        metrics_df.columns = [col.lower() for col in metrics_df.columns]
-        
-    except SnowparkSQLException as e:
-        st.error(f"""
-        **Query 3 Failed: Calculate Asset Metrics**
-        
-        **Error:** {str(e)}
-        **Table:** UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS
-        **Operation:** Aggregate asset counts by type
-        **SQL Error Code:** {e.error_code if hasattr(e, 'error_code') else 'N/A'}
-        
-        **Common Causes:**
-        - Column asset_type or install_date does not exist
-        - Invalid date format in comparison ('2010-01-01')
-        - GROUP BY syntax error
-        - Insufficient permissions for aggregation
-        """)
-        st.stop()
-    
-    return assets_df, failures_df, metrics_df
-```
+**For comprehensive error handling patterns, see:**
+- **101b-appendix-sql-errors.md** - Detailed examples for:
+  - Multiple query error handling
+  - User input validation and SQL injection prevention
+  - Complex join error debugging
+  - Error handling best practices checklist
+  - Anti-patterns and common mistakes
 
-**Key Features:**
-- **Numbered queries:** "Query 1", "Query 2", "Query 3" show execution order
-- **Specific operation names:** "Load Grid Assets", "Load Failure Events", "Calculate Asset Metrics"
-- **Contextual details:** Each error shows relevant table, filters, operations
-- **Independent error handling:** Each query has its own try/except block
-- **Cascading prevention:** `st.stop()` prevents downstream errors from missing data
-
-### 3.3 Error Handling with User Inputs
-
-**Pattern for Parameterized Queries:**
-```python
-def load_assets_by_type(asset_type: str):
-    """
-    Load assets filtered by type with user input validation.
-    
-    Args:
-        asset_type: User-selected asset type (TRANSFORMER, SUBSTATION, etc.)
-    """
-    try:
-        session = get_snowflake_session()
-        
-        # Show what we're querying
-        st.info(f"Loading {asset_type} assets from database...")
-        
-        query = """
-            SELECT asset_id, asset_type, latitude, longitude, install_date
-            FROM UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS
-            WHERE asset_type = ?
-        """
-        
-        df = session.sql(query, params=[asset_type]).to_pandas()
-        df.columns = [col.lower() for col in df.columns]
-        
-        if df.empty:
-            st.warning(f"""
-            **No assets found for type: {asset_type}**
-            
-            This could mean:
-            - No assets of this type exist in the database
-            - The asset type name is misspelled
-            - Data has not been loaded yet
-            
-            Available asset types can be checked with:
-            `SELECT DISTINCT asset_type FROM GRID_ASSETS`
-            """)
-            return pd.DataFrame()
-        
-        return df
-        
-    except SnowparkSQLException as e:
-        st.error(f"""
-        **SQL Query Failed: load_assets_by_type()**
-        
-        **Error:** {str(e)}
-        
-        **Query Context:**
-        - Table: UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS
-        - Operation: Loading assets by type
-        - Filter: asset_type = '{asset_type}'
-        - SQL Error Code: {e.error_code if hasattr(e, 'error_code') else 'N/A'}
-        
-        **Possible Causes:**
-        - Table GRID_ASSETS does not exist
-        - Column asset_type does not exist or has different name
-        - Invalid asset type value: '{asset_type}'
-        - Missing SELECT permission
-        - Database connection lost
-        """)
-        st.stop()
-```
-
-**Key Features:**
-- **User context:** Shows the user's input (asset_type) in error message
-- **Empty result handling:** Distinguishes between SQL errors and no results found
-- **Actionable guidance:** Suggests SQL to check available values
-- **st.warning() for empty results:** Uses warning (yellow) vs error (red) for non-error empty results
-
-### 3.4 Error Handling with Complex Joins
-
-**Pattern for Multi-Table Queries:**
-```python
-def load_failure_analysis():
-    """Load failure analysis with asset details (complex join)."""
-    try:
-        session = get_snowflake_session()
-        
-        query = """
-            SELECT 
-                a.asset_id,
-                a.asset_type,
-                a.install_date,
-                f.failure_time,
-                f.failure_reason,
-                f.repair_cost,
-                DATEDIFF(year, a.install_date, f.failure_time) as age_at_failure
-            FROM UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS a
-            INNER JOIN UTILITY_DEMO_V2.GRID_DATA.FAILURE_EVENTS f
-                ON a.asset_id = f.asset_id
-            WHERE f.failure_time >= DATEADD(year, -1, CURRENT_DATE())
-            ORDER BY f.failure_time DESC
-        """
-        
-        df = session.sql(query).to_pandas()
-        df.columns = [col.lower() for col in df.columns]
-        return df
-        
-    except SnowparkSQLException as e:
-        st.error(f"""
-        **SQL Query Failed: load_failure_analysis()**
-        
-        **Error:** {str(e)}
-        
-        **Query Context:**
-        - Operation: Join GRID_ASSETS with FAILURE_EVENTS
-        - Tables:
-          - UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS (alias: a)
-          - UTILITY_DEMO_V2.GRID_DATA.FAILURE_EVENTS (alias: f)
-        - Join Condition: a.asset_id = f.asset_id
-        - Filter: failure_time >= last 1 year
-        - SQL Error Code: {e.error_code if hasattr(e, 'error_code') else 'N/A'}
-        
-        **Possible Causes:**
-        - One or both tables do not exist
-        - Column asset_id does not exist in GRID_ASSETS or FAILURE_EVENTS
-        - Columns install_date, failure_time, failure_reason, or repair_cost missing
-        - Invalid join condition (check column names match)
-        - DATEDIFF function syntax error
-        - Missing SELECT permission on one or both tables
-        
-        **Debugging Steps:**
-        1. Verify both tables exist: `SHOW TABLES IN GRID_DATA`
-        2. Check GRID_ASSETS columns: `DESC TABLE GRID_ASSETS`
-        3. Check FAILURE_EVENTS columns: `DESC TABLE FAILURE_EVENTS`
-        4. Test join condition: `SELECT a.asset_id, f.asset_id FROM GRID_ASSETS a, FAILURE_EVENTS f LIMIT 1`
-        """)
-        st.stop()
-```
-
-**Key Features:**
-- **Join details:** Shows both tables, aliases, and join condition
-- **All context:** Lists every column referenced in the query
-- **Debugging steps:** Provides specific SQL commands to diagnose the issue
-- **Error code:** Includes Snowflake error code for support tickets
-
-### 3.5 Error Handling Best Practices Checklist
-
-**MANDATORY Checklist for Every SQL Query:**
-- [ ] Wrapped in try/except with SnowparkSQLException
-- [ ] Error message shows specific query/function name
-- [ ] Error message includes full Snowflake error text: `{str(e)}`
-- [ ] Error message shows SQL error code: `{e.error_code}`
-- [ ] Error message shows table name(s) involved
-- [ ] Error message shows operation description
-- [ ] Error message lists common causes specific to that query
-- [ ] Uses `st.error()` for red box visibility
-- [ ] Includes `st.stop()` to prevent cascading failures
-- [ ] Generic Exception catch after SnowparkSQLException
-
-**Common SQL Error Codes to Handle:**
-- **002003:** SQL compilation error (syntax, missing columns)
-- **002043:** Object does not exist (table/schema/database)
-- **002001:** SQL access control error (insufficient permissions)
-- **090105:** Cannot perform operation (data type mismatch)
-
-**Example with Error Code Guidance:**
-```python
-except SnowparkSQLException as e:
-    error_code = e.error_code if hasattr(e, 'error_code') else None
-    
-    # Provide specific guidance based on error code
-    if error_code == '002043':
-        guidance = "The table, schema, or database does not exist. Verify object names are correct."
-    elif error_code == '002003':
-        guidance = "SQL syntax error or column does not exist. Check column names and SQL syntax."
-    elif error_code == '002001':
-        guidance = "Insufficient permissions. You need SELECT privilege on this table."
-    else:
-        guidance = "See full error message above for details."
-    
-    st.error(f"""
-    **SQL Query Failed: {query_name}**
-    
-    **Error:** {str(e)}
-    **SQL Error Code:** {error_code}
-    
-    **Guidance:** {guidance}
-    
-    **Query Context:**
-    - Table: {table_name}
-    - Operation: {operation_description}
-    """)
-    st.stop()
-```
-
-### 3.6 Anti-Pattern: Generic Error Messages
-
-**NEVER DO THIS:**
-```python
-# BAD: Generic, unhelpful error message
-try:
-    df = session.sql(query).to_pandas()
-except Exception:
-    st.error("An error occurred")  # Useless!
-
-# BAD: Missing query context
-try:
-    df = session.sql(query).to_pandas()
-except SnowparkSQLException as e:
-    st.error(f"Query failed: {e}")  # Better, but still insufficient
-    
-# BAD: No error code or context
-try:
-    df = session.sql(query).to_pandas()
-except Exception as e:
-    st.error("Database error")  # Doesn't help debug
-```
-
-**Why This Is Bad:**
-- Can't identify which of multiple queries failed
-- Missing SQL error code needed for Snowflake documentation lookup
-- No table/schema context to verify object existence
-- No actionable guidance on how to fix the issue
-- Wastes developer time trying to reproduce and diagnose
-
-**ALWAYS DO THIS:**
-```python
-# GOOD: Specific, actionable error message
-try:
-    query = "SELECT * FROM UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS"
-    df = session.sql(query).to_pandas()
-    df.columns = [col.lower() for col in df.columns]
-    
-except SnowparkSQLException as e:
-    st.error(f"""
-    **SQL Query Failed: load_grid_assets()**
-    
-    **Error:** {str(e)}
-    **SQL Error Code:** {e.error_code if hasattr(e, 'error_code') else 'N/A'}
-    
-    **Query Context:**
-    - Table: UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS
-    - Operation: Loading all grid assets
-    
-    **Common Causes:**
-    - Table does not exist (run setup SQL first)
-    - Missing SELECT permission
-    - Database/schema does not exist
-    """)
-    st.stop()
-```
-
-**Benefits of Good Error Messages:**
-- **Immediate identification:** Know exactly which query failed
-- **Full diagnostic info:** Error text + code + context
-- **Actionable:** Lists specific things to check/fix
-- **Professional:** Shows proper error handling in production apps
-- **Debuggable:** Other developers can diagnose without reproducing
+**When to use the appendix:**
+- Multiple related queries requiring granular error handling
+- User-provided inputs in SQL queries
+- Complex joins with potential data quality issues
+- Need for comprehensive error message templates
 
 ## 4. Progress Indicators and User Feedback
 
@@ -1067,16 +806,27 @@ session2 = get_connection()  # Same session object
 
 ## Quick Compliance Checklist
 - [ ] @st.cache_data used for all database queries with appropriate ttl
+      Verify: Search code for "session.sql" without @st.cache_data decorator
 - [ ] @st.cache_resource used for connections and expensive objects
+      Verify: Check connection/session creation functions have @st.cache_resource
 - [ ] Snowflake column names normalized to lowercase immediately after loading
+      Verify: Check for ".columns = " or ".columns.str.lower()" after each .to_pandas()
 - [ ] All SQL queries wrapped in try/except with SnowparkSQLException
+      Verify: Search for "session.sql" without surrounding try/except block
 - [ ] Error messages use st.error() and show query name, full error, table, and error code
+      Verify: Check st.error() calls include query name and table name
 - [ ] Progress indicators shown for operations >2 seconds
+      Verify: Profile with Chrome DevTools; check slow operations have st.spinner/st.progress
 - [ ] No raw SQL loops; data aggregated in SQL and fetched once
+      Verify: Search for "session.sql" inside "for" loops or list comprehensions
 - [ ] Initial load time <2 seconds with cached data
+      Verify: Profile with Chrome DevTools Network tab; check initial page load time
 - [ ] All data loader functions have column normalization
+      Verify: Check each function with .to_pandas() includes column normalization
 - [ ] Cache behavior tested (verify data refreshes after ttl)
+      Verify: Wait for TTL expiry + refresh page; check data updates
 - [ ] SQL error handling tested with invalid query
+      Verify: Temporarily break query (invalid table name); check st.error() appears
 
 ## Validation
 - **Success Checks:** Cache hits on subsequent loads, column names lowercase after normalization, SQL errors display red st.error() boxes with full context, progress indicators show for slow operations, initial load <2s, no database query loops, error messages identify specific query that failed
@@ -1205,3 +955,19 @@ st.dataframe(df[['region', 'product', 'total_amount']])
 > - Investigation-first: Excel at discovering missing @st.cache_data decorators and column normalization issues
 > - Pattern recognition: Quickly identify query loops that should be replaced with aggregated queries
 
+
+## Related Rules
+
+**Closely Related** (consider loading together):
+- `101-snowflake-streamlit-core` - For fundamental Streamlit patterns and session management
+- `101b-appendix-sql-errors` - For comprehensive SQL error handling patterns (extracted from this rule)
+- `103-snowflake-performance-tuning` - For optimizing underlying Snowflake queries
+
+**Sometimes Related** (load if specific scenario):
+- `101a-snowflake-streamlit-visualization` - When optimizing chart/visualization performance
+- `101c-snowflake-streamlit-security` - When implementing secure caching patterns
+- `111-snowflake-observability-core` - When adding query profiling and monitoring
+
+**Complementary** (different aspects of same domain):
+- `119-snowflake-warehouse-management` - For warehouse sizing affecting query performance
+- `105-snowflake-cost-governance` - For monitoring costs of cached query executions

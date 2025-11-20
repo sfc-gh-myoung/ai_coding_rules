@@ -2,7 +2,7 @@
 **Type:** Agent Requested
 **AppliesTo:** `**/tests/**`, `**/test_*.py`, `**/conftest.py`
 **AutoAttach:** false
-**Keywords:** FastAPI testing, TestClient, pytest-asyncio, API tests, integration testing, mocking, test fixtures, AAA pattern, async testing
+**Keywords:** FastAPI testing, TestClient, pytest-asyncio, API tests, integration testing, mocking, test fixtures, AAA pattern, async testing, Python
 **TokenBudget:** ~1600
 **ContextTier:** High
 **Version:** 1.3

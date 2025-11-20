@@ -1,6 +1,6 @@
 <!-- Generated for Cline rules. See https://docs.cline.bot/features/cline-rules -->
 
-**Keywords:** Streamlit security, secrets management, st.secrets, input validation, XSS protection, SQL injection, authentication
+**Keywords:** Streamlit security, secrets management, st.secrets, input validation, XSS protection, SQL injection, authentication, secure streamlit, protect app, security best practices, credentials management, API keys, environment variables, secure deployment, input sanitization, RBAC streamlit, access control, security patterns
 **TokenBudget:** ~2550
 **ContextTier:** High
 **Depends:** 101-snowflake-streamlit-core, 107-snowflake-security-governance
@@ -43,7 +43,14 @@ Provide comprehensive security guidance for Streamlit applications including inp
 - **Authentication:** Implement proper auth for sensitive applications
 - **Deployment Security:** Use HTTPS, RBAC, audit logging
 
-## Quick Start TL;DR (Read First - 30 Seconds)
+## Quick Start TL;DR (Essential Patterns Reference)
+
+**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
+- **Token efficiency:** Self-sufficient guidance for common use cases
+- **Position advantage:** Early placement benefits from attention bias
+- **Progressive disclosure:** Assessment point for full rule loading decision
+
+Position at top provides practical efficiency benefits for both LLMs and human developers.
 
 **MANDATORY:**
 **Essential Patterns:**

@@ -5,7 +5,7 @@ appliesTo:
 ---
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
-**Keywords:** Warehouse management, warehouse sizing, CPU warehouse, GPU warehouse, high-memory warehouse, warehouse tagging, auto-suspend, auto-resume, GEN 2, Snowpark-Optimized, warehouse edition, resource monitors
+**Keywords:** Warehouse management, warehouse sizing, CPU warehouse, GPU warehouse, high-memory warehouse, warehouse tagging, auto-suspend, auto-resume, GEN 2, Snowpark-Optimized, warehouse edition, resource monitors, create warehouse, warehouse configuration, warehouse types, warehouse cost, size warehouse, warehouse best practices
 **TokenBudget:** ~3650
 **ContextTier:** High
 **Depends:** 100-snowflake-core, 103-snowflake-performance-tuning, 105-snowflake-cost-governance
@@ -20,7 +20,14 @@ Establish comprehensive best practices for creating, configuring, and managing S
 - **Type:** Agent Requested
 - **Scope:** Virtual warehouse creation, configuration, lifecycle management, type selection (Standard, Snowpark-Optimized, High-Memory), and cost optimization
 
-## Quick Start TL;DR (Read First - 30 Seconds)
+## Quick Start TL;DR (Essential Patterns Reference)
+
+**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
+- **Token efficiency:** Self-sufficient guidance for common use cases
+- **Position advantage:** Early placement benefits from attention bias
+- **Progressive disclosure:** Assessment point for full rule loading decision
+
+Position at top provides practical efficiency benefits for both LLMs and human developers.
 
 **MANDATORY:**
 **Essential Patterns:**
@@ -40,6 +47,18 @@ Establish comprehensive best practices for creating, configuring, and managing S
 - [ ] Auto-suspend configured
 - [ ] Mandatory tags applied
 - [ ] Resource monitor associated
+
+**Progressive Disclosure - Token Budget:**
+- Quick Start + Contract: ~500 tokens (always load for warehouse tasks)
+- + Warehouse Types & Sizing (sections 1-2): ~1300 tokens (load for creation)
+- + Configuration & Governance (sections 3-4): ~2200 tokens (load for setup)
+- + Complete Reference: ~2800 tokens (full warehouse guide)
+
+**Recommended Loading Strategy:**
+- **Quick warehouse check**: Quick Start only
+- **Creating warehouse**: + Warehouse Types & Sizing
+- **Full configuration**: + Configuration & Governance
+- **Cost optimization**: Full reference + 105 (cost governance)
 
 ## Contract
 - **Inputs/Prereqs:** Snowflake account with warehouse creation privileges (`CREATE WAREHOUSE`); workload requirements; cost baseline; resource monitor strategy
@@ -346,7 +365,7 @@ CREATE RESOURCE MONITOR IF NOT EXISTS RM_BI_WORKLOADS
 ALTER WAREHOUSE WH_[NAME] SET RESOURCE_MONITOR = RM_BI_WORKLOADS;
 ```
 
-**Key cost monitoring query (see `111-snowflake-observability.md` for complete monitoring suite):**
+**Key cost monitoring query (see `111-snowflake-observability-core.md` for complete monitoring suite):**
 ```sql
 -- Identify idle/underutilized warehouses
 SELECT w.name, w.size, COALESCE(SUM(wm.credits_used), 0) AS credits_30d
@@ -369,7 +388,7 @@ ORDER BY credits_30d DESC;
 - **Scale DOWN:** Utilization < 30%, no queueing in 30 days, queries finish well within SLAs
 - **Use Multi-Cluster:** High concurrency but individual queries fast
 
-**Performance monitoring (detailed queries in `111-snowflake-observability.md`):**
+**Performance monitoring (detailed queries in `111-snowflake-observability-core.md`):**
 ```sql
 -- Quick queue check
 SELECT warehouse_name, AVG(queued_overload_time)/1000 AS avg_queue_sec
@@ -397,14 +416,23 @@ DROP WAREHOUSE IF EXISTS WH_OLD;
 
 **Provisioning:**
 - [ ] Workload type assessed, appropriate warehouse type selected (Standard/GPU/High-Memory)
+      Verify: Review workload requirements - check if GPU or high-memory needed
 - [ ] GEN 2 edition used (`RESOURCE_CONSTRAINT = 'STANDARD_GEN_2'`)
+      Verify: `SHOW WAREHOUSES;` - check RESOURCE_CONSTRAINT column shows STANDARD_GEN_2
 - [ ] Sized appropriately (started XSMALL/SMALL, scaled based on metrics)
+      Verify: Query WAREHOUSE_METERING_HISTORY - check utilization before sizing up
 - [ ] Auto-suspend configured (60-600 sec), auto-resume enabled
+      Verify: `SHOW WAREHOUSES;` - check AUTO_SUSPEND and AUTO_RESUME columns
 - [ ] All mandatory tags applied (COST_CENTER, WORKLOAD_TYPE, ENVIRONMENT, OWNER_TEAM)
+      Verify: `SELECT SYSTEM$GET_TAG('COST_CENTER', 'WH_NAME', 'WAREHOUSE');` for each tag
 - [ ] Resource monitor associated
+      Verify: `SHOW RESOURCE MONITORS;` - check warehouse is listed
 - [ ] Naming convention followed (`WH_[WORKLOAD]_[TYPE?]_[SIZE?]`)
+      Verify: Check warehouse name matches pattern - e.g., WH_ANALYTICS_STANDARD_SMALL
 - [ ] `INITIALLY_SUSPENDED = TRUE` set
+      Verify: `SHOW WAREHOUSES;` - check warehouse state is SUSPENDED on creation
 - [ ] Documented with business justification
+      Verify: Check COMMENT on warehouse - should include business purpose
 
 **Validation:**
 - [ ] Warehouse created successfully, tags verified
@@ -480,5 +508,20 @@ SELECT * FROM TABLE(INFORMATION_SCHEMA.TAG_REFERENCES('WH_[WORKLOAD]_M', 'WAREHO
 - **Cost Governance**: `105-snowflake-cost-governance.md` - Resource monitors and cost optimization
 - **Security Governance**: `107-snowflake-security-governance.md` - Tagging and access policies
 - **Object Tagging**: `123-snowflake-object-tagging.md` - Comprehensive tagging patterns and governance
-- **Observability**: `111-snowflake-observability.md` - Monitoring and telemetry
+- **Observability**: `111-snowflake-observability-core.md` - Monitoring and telemetry
 
+
+## Related Rules
+
+**Closely Related** (consider loading together):
+- `105-snowflake-cost-governance` - For resource monitors, credit quotas, cost alerts
+- `103-snowflake-performance-tuning` - For warehouse sizing decisions based on query performance
+
+**Sometimes Related** (load if specific scenario):
+- `120-snowflake-spcs` - When creating compute pools for Snowpark Container Services
+- `122-snowflake-dynamic-tables` - When assigning warehouses to dynamic table refreshes
+- `104-snowflake-streams-tasks` - When assigning warehouses to task executions
+
+**Complementary** (different aspects of same domain):
+- `100-snowflake-core` - For warehouse naming conventions
+- `107-snowflake-security-governance` - For warehouse access control and RBAC

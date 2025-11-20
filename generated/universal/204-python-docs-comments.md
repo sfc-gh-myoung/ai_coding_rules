@@ -1,4 +1,4 @@
-**Keywords:** Python docstrings, documentation, comments, pydocstyle, Ruff DOC rules, API documentation, Google style, NumPy style, PEP 257
+**Keywords:** Python docstrings, documentation, comments, pydocstyle, Ruff DOC rules, API documentation, Google style, NumPy style, PEP 257, code quality
 **TokenBudget:** ~1800
 **ContextTier:** Medium
 **Depends:** 200-python-core, 201-python-lint-format

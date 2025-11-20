@@ -9,7 +9,7 @@ alwaysApply: false
 ---
 <!-- Generated for Cursor project rules. See https://docs.cursor.com/en/context/rules#project-rules -->
 
-**Keywords:** Zsh, completion system, modules, hooks, advanced features, performance optimization, compinit, zstyle, autoload
+**Keywords:** Zsh, completion system, modules, hooks, advanced features, performance optimization, compinit, zstyle, autoload, scripting
 **TokenBudget:** ~2600
 **ContextTier:** Low
 **Depends:** 310-zsh-scripting-core

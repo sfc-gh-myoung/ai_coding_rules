@@ -1,6 +1,6 @@
 <!-- Generated for Cline rules. See https://docs.cline.bot/features/cline-rules -->
 
-**Keywords:** Cortex AISQL, AI_COMPLETE, AI_CLASSIFY, AI_EXTRACT, AI_SENTIMENT, AI_SUMMARIZE, embeddings, LLM functions, batching, token costs
+**Keywords:** Cortex AISQL, AI_COMPLETE, AI_CLASSIFY, AI_EXTRACT, AI_SENTIMENT, AI_SUMMARIZE, embeddings, LLM functions, batching, token costs, cortex AI functions, text generation, classification, sentiment analysis, summarization, LLM SQL, cortex functions, AI function error
 **TokenBudget:** ~2600
 **ContextTier:** High
 **Depends:** 100-snowflake-core, 105-snowflake-cost-governance
@@ -47,7 +47,14 @@ Provide pragmatic, production-focused patterns for using Snowflake Cortex AISQL 
 - Apply governance: restrict `SNOWFLAKE.CORTEX_USER`, revoke from PUBLIC as needed
 - Measure and observe: record costs, latency, and output quality; add guard/filters
 
-## Quick Start TL;DR (Read First - 30 Seconds)
+## Quick Start TL;DR (Essential Patterns Reference)
+
+**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
+- **Token efficiency:** Self-sufficient guidance for common use cases
+- **Position advantage:** Early placement benefits from attention bias
+- **Progressive disclosure:** Assessment point for full rule loading decision
+
+Position at top provides practical efficiency benefits for both LLMs and human developers.
 
 **MANDATORY:**
 **Essential Patterns:**
@@ -380,11 +387,17 @@ filtered = classified.select(
 
 ## Quick Compliance Checklist
 - [ ] `SNOWFLAKE.CORTEX_USER` restricted to least-privilege roles (not PUBLIC)
+      Verify: `SHOW GRANTS TO DATABASE ROLE SNOWFLAKE.CORTEX_USER;` - check role membership
 - [ ] Token budget verified with `AI_COUNT_TOKENS`; prompts concise and templated
+      Verify: Run `SELECT AI_COUNT_TOKENS('<prompt>');` - should be under model limits
 - [ ] Batch strategy in place; `AI_AGG` / `AI_SUMMARIZE_AGG` used where appropriate
+      Verify: Check query for batch processing - single AI call per batch, not per row
 - [ ] Files referenced via `TO_FILE` from internal stages
+      Verify: Check queries use `@stage/file` syntax, not external URLs
 - [ ] Explicit columns only (no `SELECT *`); governance policies applied
+      Verify: Review queries - no "SELECT *", all columns explicitly named
 - [ ] Costs measured; warehouse auto-suspend configured; observability enabled
+      Verify: Query QUERY_HISTORY for AI function costs - check AUTO_SUSPEND is set
 
 ## Validation
 - **Success checks:**
@@ -418,9 +431,24 @@ FROM src;
 - **Snowflake Core**: `100-snowflake-core.md`
 - **SQL Demo Engineering**: `102-snowflake-sql-demo-engineering.md`
 - **Cost Governance**: `105-snowflake-cost-governance.md`
-- **Semantic Views**: `106-snowflake-semantic-views.md`
-- **Observability**: `111-snowflake-observability.md`
+- **Semantic Views**: `106-snowflake-semantic-views-core.md`
+- **Observability**: `111-snowflake-observability-core.md`
 - **Snowflake CLI**: `112-snowflake-snowcli.md`
 - **Warehouse Management**: `119-snowflake-warehouse-management.md`
 
 
+
+## Related Rules
+
+**Closely Related** (consider loading together):
+- `116-snowflake-cortex-search` - For document embedding and semantic search with AI_EMBED
+- `115-snowflake-cortex-agents-core` - When using Cortex AI functions within agent tools
+
+**Sometimes Related** (load if specific scenario):
+- `117-snowflake-cortex-analyst` - Different approach (semantic model vs direct SQL functions)
+- `101-snowflake-streamlit-core` - When using Cortex AI functions in Streamlit applications
+- `109-snowflake-notebooks` - When using Cortex AI functions in notebook workflows
+
+**Complementary** (different aspects of same domain):
+- `105-snowflake-cost-governance` - For monitoring Cortex AI function costs (token usage)
+- `103-snowflake-performance-tuning` - For optimizing queries that call Cortex AI functions

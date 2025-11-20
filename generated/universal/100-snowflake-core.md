@@ -1,4 +1,4 @@
-**Keywords:** Snowflake, SQL, CTE, performance, cost optimization, query profile, warehouse, security, governance, stages, COPY INTO, streams, tasks
+**Keywords:** Snowflake, SQL, CTE, performance, cost optimization, query profile, warehouse, security, governance, stages, COPY INTO, streams, tasks, DDL fundamentals, object naming, Snowflake best practices, snowflake setup, core patterns, warehouse creation
 **TokenBudget:** ~1800
 **ContextTier:** High
 **Depends:** 000-global-core
@@ -37,7 +37,14 @@ Establish comprehensive foundational practices for all Snowflake development wor
 - Use Streams + Tasks for incremental pipelines; avoid unnecessary full reloads.
 - Validate with the provided checklist before shipping.
 
-## Quick Start TL;DR (Read First - 30 Seconds)
+## Quick Start TL;DR (Essential Patterns Reference)
+
+**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
+- **Token efficiency:** Self-sufficient guidance for common use cases
+- **Position advantage:** Early placement benefits from attention bias
+- **Progressive disclosure:** Assessment point for full rule loading decision
+
+Position at top provides practical efficiency benefits for both LLMs and human developers.
 
 **MANDATORY:**
 **Essential Patterns:**
@@ -133,13 +140,13 @@ SELECT * FROM agg;
 
 ## 7. Related Specialized Rules
 - **Rule:** For deeper guidance, reference the following specialized rules:
-  - `101-snowflake-streamlit-ui.md`: Modern, performant, and maintainable Streamlit UIs
+  - `101-snowflake-streamlit-core.md`: Modern, performant, and maintainable Streamlit UIs
   - `102-snowflake-sql-demo-engineering.md`: SQL patterns for demos and learning environments.
   - `103-snowflake-performance-tuning.md`: Profiling, pruning, clustering justification.
   - `119-snowflake-warehouse-management.md`: Comprehensive warehouse creation, type selection (CPU/GPU/High-Memory), sizing, tagging, and cost governance.
   - `104-snowflake-streams-tasks.md`: Incremental pipelines with Streams + Tasks, idempotency, monitoring.
   - `105-snowflake-cost-governance.md`: Workload isolation, resource monitors, right-sizing, anomaly detection.
-  - `106-snowflake-semantic-views.md`: Layering (staging/core/semantic), naming conventions, and slim views.
+  - `106-snowflake-semantic-views-core.md`: Layering (staging/core/semantic), naming conventions, and slim views.
   - `107-snowflake-security-governance.md`: Masking policies, row access, tagging, and role strategies.
   - `123-snowflake-object-tagging.md`: Object tagging for governance, cost attribution, and policy automation.
   - `108-snowflake-data-loading.md`: Stages and `COPY INTO` for bulk loading.
@@ -197,3 +204,18 @@ SELECT * FROM agg;
 - **Data Loading**: `108-snowflake-data-loading.md`
 - **Snowpipe**: `121-snowflake-snowpipe.md`
 - **Warehouse Management**: `119-snowflake-warehouse-management.md`
+
+## Related Rules
+
+**Closely Related** (consider loading together):
+- `103-snowflake-performance-tuning` - For query optimization patterns (CTEs, query structure)
+- `119-snowflake-warehouse-management` - For comprehensive warehouse creation and management
+
+**Sometimes Related** (load if specific scenario):
+- `107-snowflake-security-governance` - When implementing RBAC, masking policies, row access
+- `108-snowflake-data-loading` - When loading data with COPY INTO and stages
+- `104-snowflake-streams-tasks` - When setting up CDC pipelines with streams and tasks
+
+**Complementary** (different aspects of same domain):
+- `105-snowflake-cost-governance` - For tagging standards (COST_CENTER, WORKLOAD_TYPE)
+- `111-snowflake-observability-core` - For monitoring Snowflake workloads and queries

@@ -2,7 +2,7 @@
 **Type:** Agent Requested
 **AppliesTo:** `**/*.zsh`, `**/*.sh`, `scripts/**/*`, `**/.zshrc`
 **AutoAttach:** false
-**Keywords:** Zsh, shell compatibility, bash vs zsh, portable scripts, cross-shell, migration, emulate, POSIX compliance
+**Keywords:** Zsh, shell compatibility, bash vs zsh, portable scripts, cross-shell, migration, emulate, POSIX compliance, scripting, shell scripting
 **TokenBudget:** ~2500
 **ContextTier:** Low
 **Version:** 1.3

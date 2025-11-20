@@ -2,7 +2,7 @@
 **Type:** Agent Requested
 **AppliesTo:** `**/*.zsh`, `**/.zshrc`, `**/.zshenv`, `scripts/**/*`
 **AutoAttach:** false
-**Keywords:** Zsh, completion system, modules, hooks, advanced features, performance optimization, compinit, zstyle, autoload
+**Keywords:** Zsh, completion system, modules, hooks, advanced features, performance optimization, compinit, zstyle, autoload, scripting
 **TokenBudget:** ~2600
 **ContextTier:** Low
 **Version:** 1.3

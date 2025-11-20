@@ -1,4 +1,4 @@
-**Keywords:** Streamlit charts, Plotly, st.plotly_chart, st.map, visualization, dashboard, interactive charts, map visualization, time series smoothing, data aggregation
+**Keywords:** Streamlit charts, Plotly, st.plotly_chart, st.map, visualization, dashboard, interactive charts, map visualization, time series smoothing, data aggregation, create chart, chart types, plotly express, dashboard layout, chart configuration, visualization best practices, streamlit plotting, chart customization
 **TokenBudget:** ~3600
 **ContextTier:** High
 **Depends:** 101-snowflake-streamlit-core, 700-business-analytics
@@ -40,7 +40,14 @@ Provide comprehensive guidance for data visualization in Streamlit using Plotly 
 - **Accessibility:** Choose colorblind-safe palettes and clear labels
 - **Cross-Reference:** Use specialized rules (500/700) for advanced patterns
 
-## Quick Start TL;DR (Read First - 30 Seconds)
+## Quick Start TL;DR (Essential Patterns Reference)
+
+**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
+- **Token efficiency:** Self-sufficient guidance for common use cases
+- **Position advantage:** Early placement benefits from attention bias
+- **Progressive disclosure:** Assessment point for full rule loading decision
+
+Position at top provides practical efficiency benefits for both LLMs and human developers.
 
 **MANDATORY:**
 **Essential Patterns:**

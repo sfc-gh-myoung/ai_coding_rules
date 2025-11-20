@@ -2,7 +2,7 @@
 **Type:** Agent Requested
 **AppliesTo:** `**/Taskfile.yml`, `**/*.sh`, `**/*.zsh`, `**/*.md`, `**/*.py`
 **AutoAttach:** false
-**Keywords:** snow CLI, SnowCLI, Snowflake command line, uvx snow, CLI deployment, snowflake.yml, uvx --from snowflake-cli, pinned execution, hermetic execution
+**Keywords:** snow CLI, SnowCLI, Snowflake command line, uvx snow, CLI deployment, snowflake.yml, uvx --from snowflake-cli, pinned execution, hermetic execution, CLI commands, snow commands, CLI setup, snowflake CLI usage, CLI best practices, CLI automation, command line tools, CLI configuration, CLI deployment patterns
 **TokenBudget:** ~1750
 **ContextTier:** Medium
 **Version:** 1.2
@@ -19,7 +19,14 @@ Provide clear, reproducible guidance for installing, invoking, and automating Sn
 - **Type:** Agent Requested
 - **Scope:** Snowflake CLI usage across local development, scripts, Taskfile targets, and CI/CD pipelines
 
-## Quick Start TL;DR (Read First - 30 Seconds)
+## Quick Start TL;DR (Essential Patterns Reference)
+
+**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
+- **Token efficiency:** Self-sufficient guidance for common use cases
+- **Position advantage:** Early placement benefits from attention bias
+- **Progressive disclosure:** Assessment point for full rule loading decision
+
+Position at top provides practical efficiency benefits for both LLMs and human developers.
 
 **MANDATORY:**
 **Essential Patterns:**

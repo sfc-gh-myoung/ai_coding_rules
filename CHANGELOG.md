@@ -7,6 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.0] - 2025-11-20
+
+### Changed
+
+- **feat(rules):** Achieved 100% rule governance v4.0 compliance across all 83 rule files (2025-11-20)
+  - Updated keyword standards to 10-20 range (15-20 optimal) for semantic discovery
+  - Automated token budget updates for 6 files (+1600 tokens accuracy)
+  - Enforced text-only markup by removing 17 emoji violations across 4 files
+  - Added 34 missing governance sections to 6 files (Contract, Validation, Response Template, Investigation-First Protocol, Quick Start TL;DR)
+  - Moved Contract sections earlier for 2 files (better information architecture)
+  - Expanded Response Template in 000-global-core.md with complete working example
+  - Benefits: Zero validation warnings, improved LLM context efficiency, consistent rule structure
+
+- **refactor(rules):** Comprehensive Snowflake rule refactoring for token efficiency (2025-11-20)
+  - Split 4 mega-rules (~28,500 tokens) into 14 focused rules (~15,000 tokens total)
+  - **Observability (111):** Split 1301-line mega-rule into 4 files
+    - 111-core.md (~888 tokens): Telemetry configuration, event tables, OpenTelemetry alignment
+    - 111a-logging.md (~934 tokens): Standard logging integration, log levels, sampling patterns
+    - 111b-tracing.md (~1004 tokens): Distributed tracing, custom spans, system metrics
+    - 111c-monitoring.md (~1386 tokens): Monitoring queries, Snowsight interfaces, AI observability
+    - Token reduction: ~7700 → ~4212 tokens (45% reduction)
+  - **Cortex Agents (114a → 115):** Split 1084-line mega-rule into 3 files, renumbered Cortex family
+    - 115-core.md (~810 tokens): Prerequisites, agent archetypes, tooling strategy
+    - 115a-instructions.md (~374 tokens): Planning/response instructions, flagging logic
+    - 115b-operations.md (~1198 tokens): Testing, RBAC, observability, cost management
+    - Renumbered: 114b→116 (Cortex Search), 114c→117 (Cortex Analyst), 114d→118 (REST API)
+    - Token reduction: ~6950 → ~2382 tokens (66% reduction)
+  - **Data Quality (124):** Split 1081-line mega-rule into 3 files
+    - 124-core.md (~470 tokens): DMF fundamentals, system DMFs, data profiling
+    - 124a-custom.md (~382 tokens): Custom DMF creation, expectations, business rules
+    - 124b-operations.md (~1508 tokens): Scheduling, event tables, alerts, RBAC
+    - Token reduction: ~6600 → ~2360 tokens (64% reduction)
+  - **Semantic Views (106):** Refined 3-file structure into 4-file logical progression
+    - 106-core.md (~822 tokens): Native DDL syntax, view components, foundational patterns
+    - 106a-advanced.md (~1782 tokens): Anti-patterns, validation rules, quality checks
+    - 106b-querying.md (~2040 tokens): SEMANTIC_VIEW() function, query syntax
+    - 106c-integration.md (~1716 tokens): Cortex Analyst/Agent integration, external tools
+    - Token optimization: ~6250 → ~6360 tokens (maintained quality with better structure)
+  - **Benefits:**
+    - 47% overall token reduction (~13,500 tokens saved)
+    - All files now in Comprehensive tier (≤2040 tokens) - no Mega tier violations
+    - Improved contextual loading (LLMs can load specific sub-topics)
+    - Better logical progression and content organization
+    - Enhanced discoverability through focused file names
+
 ## [2.4.2] - 2025-11-18
 
 ### Changed

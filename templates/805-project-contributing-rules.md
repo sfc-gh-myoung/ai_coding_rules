@@ -2,7 +2,7 @@
 **Type:** Agent Requested
 **AppliesTo:** `CONTRIBUTING.md`, `README.md`, `.github/**/*`, `**/*-*.md`
 **AutoAttach:** false
-**Keywords:** CONTRIBUTING, pull requests, code review, contribution guidelines, branching strategy, Conventional Commits, rule authoring, PR templates
+**Keywords:** CONTRIBUTING, pull requests, code review, contribution guidelines, branching strategy, Conventional Commits, rule authoring, PR templates, project governance, git workflow
 **TokenBudget:** ~1250
 **ContextTier:** Medium
 **Version:** 2.4

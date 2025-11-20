@@ -308,19 +308,20 @@ def generate_rules_index(rules: list[RuleMetadata], preserve_header: bool = True
     """
     Generate complete RULES_INDEX.md content.
 
-    Preserves the manual header section (if preserve_header=True) and
+    Preserves the manual header section (if preserve_header=True) and footer section,
     generates the table section from rule metadata.
 
     Args:
         rules: List of RuleMetadata objects
-        preserve_header: Whether to preserve existing header (default True)
+        preserve_header: Whether to preserve existing header and footer (default True)
 
     Returns:
         Complete RULES_INDEX.md content as string
     """
-    # Try to read current discovery/RULES_INDEX.md to preserve header
+    # Try to read current discovery/RULES_INDEX.md to preserve header and footer
     current_index_path = Path("discovery/RULES_INDEX.md")
     header = ""
+    footer = ""
 
     if preserve_header and current_index_path.exists():
         try:
@@ -329,18 +330,31 @@ def generate_rules_index(rules: list[RuleMetadata], preserve_header: bool = True
             # Find table start (line with "|| File | Type |")
             lines = current_content.split("\n")
             header_lines = []
+            footer_lines = []
+            table_start_idx = -1
+            table_end_idx = -1
 
+            # Find table boundaries
             for i, line in enumerate(lines):
                 if line.startswith("|| File | Type |"):
-                    # Found table header, keep everything before this
+                    # Found table header
+                    table_start_idx = i
                     header_lines = lines[:i]
+                elif table_start_idx >= 0 and line.strip() and not line.startswith("||"):
+                    # Found first non-table line after table started
+                    table_end_idx = i
+                    footer_lines = lines[i:]
                     break
 
             # Reconstruct header (preserve everything including blank lines)
             if header_lines:
                 header = "\n".join(header_lines).rstrip() + "\n\n"
+            
+            # Reconstruct footer (preserve everything after table)
+            if footer_lines:
+                footer = "\n" + "\n".join(footer_lines)
         except Exception as e:
-            print(f"⚠️  Warning: Could not read existing header from discovery/RULES_INDEX.md: {e}")
+            print(f"⚠️  Warning: Could not read existing header/footer from discovery/RULES_INDEX.md: {e}")
             # Fall through to default header
 
     # If no header found or couldn't read, create default
@@ -365,8 +379,8 @@ This index helps agents select the correct rule quickly through semantic keyword
 
     table_rows = [generate_table_row(rule) for rule in rules]
 
-    # Combine everything
-    content = header + table_header + "\n" + table_separator + "\n" + "\n".join(table_rows) + "\n"
+    # Combine everything (header + table + footer)
+    content = header + table_header + "\n" + table_separator + "\n" + "\n".join(table_rows) + "\n" + footer
 
     return content
 

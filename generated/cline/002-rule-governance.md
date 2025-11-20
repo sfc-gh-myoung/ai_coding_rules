@@ -1,7 +1,7 @@
 <!-- Generated for Cline rules. See https://docs.cline.bot/features/cline-rules -->
 
 **Keywords:** rule governance, standards, semantic discovery, metadata, keywords, RULES_INDEX, system prompt altitude, right altitude, tool design, universal compatibility, template standards, Quick Start TL;DR, Investigation-First Protocol, Contract section
-**TokenBudget:** ~9650
+**TokenBudget:** ~12000
 **ContextTier:** High
 **Depends:** 000-global-core
 
@@ -245,7 +245,7 @@ Validation:
   - Add specific features and components (e.g., "CTE", "warehouse", "async", "dependency injection")
   - Include common query terms users might use (e.g., "performance", "optimization", "testing", "security")
   - Add related concepts and patterns (e.g., "incremental loading", "REST API", "authentication")
-  - List 5-15 keywords for optimal semantic matching
+  - Include 15-20 keywords for optimal semantic matching (minimum 10, no more than 20)
 - **Example:** `**Keywords:** Snowflake, SQL, CTE, performance tuning, cost optimization, warehouse sizing, query profile, clustering keys, partitioning`
 
 **RULES_INDEX.md Integration:**
@@ -273,29 +273,36 @@ Validation:
 
 **Token Budget Tiers (Use Numeric Values):**
 ```markdown
-**Small (<300 tokens / ~150 lines):**
-- **TokenBudget:** ~150, ~200, ~250 (numeric values)
-- **ContextTier:** essential
-- **Use Case:** Copilot-safe, always-loaded rules
-- **Examples:** Core workflow, security constraints
+**Micro (<500 tokens):**
+- **TokenBudget:** ~150, ~200, ~300, ~400 (numeric values)
+- **ContextTier:** Essential
+- **Use Case:** Core patterns, CRUD operations, always-loaded rules
+- **Examples:** Core workflow, security constraints, basic patterns
 
-**Medium (300-600 tokens / ~300 lines):**
-- **TokenBudget:** ~300, ~400, ~500, ~600 (numeric values)
-- **ContextTier:** standard
-- **Use Case:** Language/framework-specific rules
-- **Examples:** Python core, FastAPI patterns
+**Standard (500-1500 tokens):**
+- **TokenBudget:** ~500, ~800, ~1000, ~1200 (numeric values)
+- **ContextTier:** Standard
+- **Use Case:** Technology-specific patterns, framework basics
+- **Examples:** Python core, FastAPI patterns, language foundations
 
-**Large (600-1200 tokens / ~300-600 lines):**
-- **TokenBudget:** ~700, ~800, ~1000, ~1200 (numeric values)
+**Comprehensive (1500-3000 tokens):**
+- **TokenBudget:** ~1500, ~2000, ~2500, ~3000 (numeric values)
 - **ContextTier:** High
-- **Use Case:** Comprehensive technical guides
-- **Examples:** Advanced optimization patterns
+- **Use Case:** Complex workflows, multi-step processes
+- **Examples:** Advanced optimization, comprehensive guides
 
-**Very Large (>1200 tokens / >600 lines):**
-- **TokenBudget:** ~1500, ~2000, ~2500+ (numeric values)
-- **ContextTier:** comprehensive
-- **Use Case:** Extensive domain-specific guides
-- **Examples:** Full framework documentation, comprehensive analytics guides
+**Reference (3000-5000 tokens):**
+- **TokenBudget:** ~3000, ~3500, ~4000, ~5000 (numeric values)
+- **ContextTier:** Reference
+- **Use Case:** Exhaustive guides, comprehensive documentation
+- **Examples:** Full framework documentation, complete analytics guides
+
+**Mega (>5000 tokens):**
+- **TokenBudget:** ~6000, ~7000, ~8000+ (numeric values)
+- **ContextTier:** Mega-Reference
+- **Use Case:** AVOID - should be split into multiple rules
+- **Examples:** None (split these into smaller rules)
+- **WARNING:** Files >5000 tokens harm GPT-4 performance and context management
 ```
 
 **Anti-Pattern:**
@@ -304,15 +311,276 @@ Validation:
 **Correct Pattern:**
 `**TokenBudget:** ~450` or `**TokenBudget:** ~1200` or `**TokenBudget:** ~2200`
 
-**Claude 4.5 Context Awareness:**
-> **🤖 Claude 4.5 Specific Guidance**  
-> **For Claude 4.5+ users:** This model features native context awareness and can track its remaining token budget throughout a conversation. When you declare token budgets in rules:
-> - Claude will self-manage context consumption
-> - Prioritize core directives if approaching budget limit
-> - Use progressive disclosure (read TL;DR sections first)
-> - Reference external docs instead of copying content
->
-> **For other models:** Token budgets serve as sizing guidance and priority indicators.
+### Model-Specific Token Budget Optimization
+
+> **🤖 GPT-4/GPT-5 Specific Guidance**  
+> **Optimization Strategies:**
+> - **Context window:** 128K tokens (GPT-4 Turbo/GPT-5) supports loading 15-20 large rules simultaneously
+> - **Optimal rule size:** <3000 tokens per rule for best performance
+> - **Structured outputs:** Use JSON mode for predictable formatting
+> - **Function calling:** Define tools with clear schemas
+> - **Cost management:** ~$2-5/M input tokens, $6-15/M output tokens (as of Nov 2025)
+> - **Rate limits:** 10K-40K TPM, 5K-10K RPM - batch rule loading to stay within limits
+> - **Progressive loading:** Load 000-global-core + domain rules first, add specialized rules as needed
+
+> **🤖 Claude 4.5+ Specific Guidance**  
+> **Optimization Strategies:**
+> - **Context window:** 200K tokens supports loading 15-20 large rules comfortably
+> - **Optimal rule size:** <5000 tokens per rule (model handles larger files well)
+> - **Native context awareness:** Model tracks remaining token budget automatically
+> - **Parallel tool execution:** Fires multiple operations simultaneously for efficiency
+> - **Prompt caching:** 50-90% cost reduction for repeated rules across sessions
+> - **Cost:** ~$3/M input tokens, $15/M output tokens (as of Nov 2025)
+> - **Progressive disclosure:** Model self-manages context, reads TL;DR sections strategically
+
+> **🤖 Gemini 1.5+/2.0 Specific Guidance**  
+> **Optimization Strategies:**
+> - **Massive context window:** 1M+ tokens enables loading 50-100+ rules simultaneously
+> - **Optimal rule size:** <5000 tokens per rule (can handle much larger)
+> - **Cost efficiency:** ~$0.26-1.05/M tokens (4x-15x cheaper than GPT-4/Claude)
+> - **Multimodal capability:** Process visual examples alongside text rules
+> - **Code execution:** Native validation of code examples in rules
+> - **Rate limits:** 1M+ TPM for Gemini 2.0 Flash - virtually unlimited for rule loading
+> - **Batch loading:** Can load entire rule sets at once without performance degradation
+
+**For all models:** Token budgets serve as sizing guidance, priority indicators, and performance optimization hints.
+
+### Cumulative Token Budget Strategy
+
+**Purpose:** Help AI agents make informed decisions about how many rules to load simultaneously while staying within model context limits and performance boundaries.
+
+**Cumulative Token Budget Recommendations by Model:**
+
+| Model | Context Window | Recommended Rule Budget | Max Rules | Notes |
+|-------|----------------|------------------------|-----------|-------|
+| **GPT-3.5** | 16K tokens | ~5,000-8,000 tokens | 5-10 rules | Conservative loading; prioritize micro/standard rules |
+| **GPT-4** | 128K tokens | ~15,000-25,000 tokens | 15-20 rules | Optimal <3000 tokens/rule; performance degrades >30K |
+| **GPT-4o/GPT-5** | 128K tokens | ~20,000-30,000 tokens | 20-25 rules | Better efficiency than GPT-4; handles larger rule sets |
+| **Claude 3.5 Sonnet** | 200K tokens | ~25,000-40,000 tokens | 20-30 rules | Excellent with comprehensive rules |
+| **Claude 4 Sonnet+** | 200K tokens | ~30,000-50,000 tokens | 25-40 rules | Native context awareness; self-manages budget |
+| **Gemini 1.5 Pro** | 1M tokens | ~50,000-100,000 tokens | 50-100+ rules | Massive context; minimal loading constraints |
+| **Gemini 2.0 Flash** | 1M+ tokens | ~50,000-150,000 tokens | 50-150+ rules | Optimized for large rule sets; fast processing |
+
+**Loading Strategy Guidelines:**
+
+**Critical Rules (Always Load):**
+- `000-global-core` (~1,300 tokens) - Foundation for all tasks
+- Domain core rule based on task (e.g., `100-snowflake-core`, `200-python-core`) (~1,500-2,000 tokens each)
+
+**Standard Context (Most Common Tasks):**
+- Foundation + Domain Core + 2-4 specialized rules = ~6,000-12,000 tokens
+- Example: `000-global-core` + `200-python-core` + `206-python-pytest` + `201-python-lint-format` = ~6,200 tokens
+
+**Extended Context (Complex Tasks):**
+- Foundation + Domain Core + 5-10 specialized rules = ~12,000-25,000 tokens
+- Example: Full Streamlit dashboard development = ~10,000-15,000 tokens (000 + 100 + 101 + 101a + 101b + 101c)
+
+**Maximum Context (Comprehensive Implementations):**
+- Foundation + Multiple Domain Cores + Full rule families = ~25,000-50,000 tokens
+- Example: Multi-domain project (Python + Snowflake + Docker) with all specialized rules
+
+**Progressive Loading Pattern:**
+```markdown
+# Session Start
+1. Load: 000-global-core (foundation)
+2. Load: Domain core rule(s) based on task keywords
+3. Analyze task complexity
+4. Load: 2-3 most relevant specialized rules
+5. Execute task
+6. If needed: Load additional specialized rules based on errors/blockers
+
+# Token Budget Tracking
+- GPT-4: Stop at ~25K tokens (15-20 rules)
+- Claude 4: Stop at ~40K tokens (25-35 rules)
+- Gemini 2.0: Flexible up to ~100K tokens (50-100+ rules)
+```
+
+**Anti-Pattern:**
+Loading all 100+ rules at session start (>200K tokens) - wastes context, increases latency, reduces performance
+
+**Correct Pattern:**
+Load foundation + domain core + task-specific rules as needed (~10K-30K tokens) - efficient, focused, fast
+
+### Cost-Aware Token Budgeting
+
+**Purpose:** Enable AI agents and users to make cost-conscious decisions about rule loading based on model pricing (as of November 2025).
+
+**Model Pricing Comparison (Input Tokens):**
+
+| Model | Cost per 1M Input Tokens | 10K Token Rule Set Cost | 50K Token Rule Set Cost |
+|-------|-------------------------|------------------------|------------------------|
+| **GPT-3.5 Turbo** | ~$0.50 | $0.005 | $0.025 |
+| **GPT-4 Turbo** | ~$2.50-5.00 | $0.025-0.050 | $0.125-0.250 |
+| **GPT-4o** | ~$2.50 | $0.025 | $0.125 |
+| **GPT-5** | ~$5.00-10.00 | $0.050-0.100 | $0.250-0.500 |
+| **Claude 3.5 Sonnet** | ~$3.00 | $0.030 | $0.150 |
+| **Claude 4 Sonnet** | ~$3.00 | $0.030 | $0.150 |
+| **Gemini 1.5 Pro** | ~$1.05 | $0.011 | $0.053 |
+| **Gemini 2.0 Flash** | ~$0.26 | $0.003 | $0.015 |
+
+**Prompt Caching Impact (Claude 4.5+):**
+- **Without caching:** $0.030 per 10K tokens per request
+- **With caching (90% cache hit):** $0.003 per 10K tokens per request
+- **Savings:** 90% cost reduction for repeated rule loading across sessions
+
+**Cost Optimization Strategies:**
+
+**Strategy 1: Load Minimal Context First**
+- Load: Foundation + Domain Core (~3,000-4,000 tokens)
+- Cost: ~$0.010-0.020 per session (GPT-4), ~$0.001 (Gemini)
+- Add specialized rules only when errors/blockers require them
+
+**Strategy 2: Use Prompt Caching (Claude 4.5+)**
+- Load: Full rule set once (~20,000-30,000 tokens)
+- First request cost: ~$0.060-0.090
+- Subsequent requests (cached): ~$0.006-0.009 (90% savings)
+- **Best for:** Repeated similar tasks across multiple sessions
+
+**Strategy 3: Model Selection Based on Task Complexity**
+- **Simple tasks:** Use Gemini 2.0 Flash (~$0.003 per 10K tokens)
+- **Complex tasks:** Use GPT-4o or Claude 4 (~$0.025-0.030 per 10K tokens)
+- **Massive context needs:** Use Gemini 1.5 Pro (~$0.011 per 10K tokens)
+
+**Cost-Benefit Analysis Example:**
+
+**Scenario:** Building Snowflake Streamlit dashboard (requires ~15,000 tokens of rules)
+
+| Model | Single Session Cost | 10 Sessions Cost | With Caching (Claude) |
+|-------|-------------------|-----------------|----------------------|
+| GPT-4 Turbo | $0.038-0.075 | $0.375-0.750 | N/A |
+| Claude 4 Sonnet | $0.045 | $0.450 | $0.049 (1st + 9 cached) |
+| Gemini 2.0 Flash | $0.004 | $0.039 | N/A |
+
+**Recommendation:** Use Gemini 2.0 Flash for cost-sensitive workflows; use Claude 4 with caching for repeated similar tasks
+
+### Rate Limit Considerations
+
+**Purpose:** Help AI agents understand token-per-minute (TPM) and request-per-minute (RPM) constraints when loading rules to avoid throttling and ensure smooth operation.
+
+**Rate Limits by Model (as of November 2025):**
+
+| Model | Tokens Per Minute (TPM) | Requests Per Minute (RPM) | Max Rules Per Request |
+|-------|------------------------|---------------------------|----------------------|
+| **GPT-3.5 Turbo** | 40,000-90,000 | 3,500 | ~15-20 rules |
+| **GPT-4** | 10,000-40,000 | 500-5,000 | ~5-15 rules |
+| **GPT-4 Turbo** | 150,000-600,000 | 10,000 | ~30-50 rules |
+| **GPT-4o** | 800,000-2,000,000 | 10,000 | ~100+ rules |
+| **Claude 3.5 Sonnet** | 40,000-80,000 | 1,000 | ~15-30 rules |
+| **Claude 4 Sonnet** | 80,000-160,000 | 1,000-4,000 | ~30-60 rules |
+| **Gemini 1.5 Pro** | 1,000,000+ | 1,000+ | ~200+ rules |
+| **Gemini 2.0 Flash** | 4,000,000+ | 2,000+ | ~500+ rules |
+
+**Note:** Rate limits vary by tier (free, pay-as-you-go, enterprise). Enterprise tiers typically have 5-10x higher limits.
+
+**Rate Limit Strategies:**
+
+**Strategy 1: Batch Rule Loading**
+- **Problem:** Loading rules one-by-one across multiple requests exhausts RPM limits
+- **Solution:** Load multiple rules in single request using batch tool calls
+- **Example:** Load 10 rules in 1 request vs 10 separate requests
+- **Benefit:** Reduces RPM consumption by 10x
+
+**Strategy 2: Respect TPM Limits**
+- **GPT-4 Standard (10K TPM):** Load max ~5,000 tokens per minute (5-8 rules/min)
+- **GPT-4 Turbo (150K TPM):** Load max ~75,000 tokens per minute (30-50 rules/min)
+- **Gemini 2.0 Flash (4M TPM):** Virtually unlimited rule loading
+
+**Strategy 3: Progressive Loading with Rate Awareness**
+```markdown
+# Initial Request (within 1 minute)
+1. Load foundation + domain core (~3,000-4,000 tokens)
+2. Analyze task requirements
+3. Identify 3-5 specialized rules needed
+
+# Second Request (after 1 minute if needed)
+4. Load remaining specialized rules (~5,000-10,000 tokens)
+5. Execute task with full context
+
+Total tokens: ~8,000-14,000 across 2 minutes
+Rate: ~4,000-7,000 TPM (well within GPT-4 limits)
+```
+
+**Rate Limit Error Handling:**
+- **Error:** `RateLimitError: Rate limit exceeded (TPM)`
+- **Solution:** Wait 60 seconds, then retry with smaller batch
+- **Prevention:** Load fewer rules per request; spread across multiple requests
+
+**Enterprise vs Pay-As-You-Go:**
+- **PAYG:** Lower TPM/RPM limits; requires careful batch planning
+- **Enterprise:** 5-10x higher limits; can load full rule sets in single request
+
+### Token Budget Validation and Variance
+
+**Purpose:** Acknowledge that token budget estimates are approximations and provide guidance for accurate token counting.
+
+**Token Budget Calculation Disclaimer:**
+
+**CRITICAL:**
+All token budgets declared in rule metadata (`**TokenBudget:** ~XXX`) are **estimates** based on approximate file size calculations, not exact token counts.
+
+**Expected Variance:**
+- **±20% variance** is normal and acceptable
+- **Calculation method:** ~2 tokens per line (rough heuristic)
+- **Actual tokenization:** Varies by model, content type, and tokenizer version
+
+**Why Variance Occurs:**
+
+1. **Model-Specific Tokenizers:**
+   - GPT-4 uses `cl100k_base` tokenizer (~1.3-1.5 tokens/word)
+   - Claude uses custom tokenizer (~1.2-1.4 tokens/word)
+   - Gemini uses SentencePiece tokenizer (~1.1-1.3 tokens/word)
+
+2. **Content Type Impact:**
+   - Code blocks: Higher token density (special characters)
+   - Natural language: Lower token density (English words)
+   - Markdown formatting: Additional tokens for markup
+
+3. **File Structure:**
+   - Headers, lists, tables consume varying token counts
+   - Inline code vs code blocks tokenize differently
+   - URLs and paths are token-intensive
+
+**Accurate Token Counting (When Precision Matters):**
+
+**Tools for Exact Token Counts:**
+```bash
+# OpenAI tokenizer (GPT-4)
+pip install tiktoken
+python -c "import tiktoken; enc = tiktoken.get_encoding('cl100k_base'); print(len(enc.encode(open('rule.md').read())))"
+
+# Anthropic tokenizer (Claude)
+# Use Anthropic's official tokenizer API
+
+# Gemini tokenizer
+# Use Google's token counting API
+```
+
+**When to Update Token Budgets:**
+- **After major content changes** (>20% file size change)
+- **When splitting or merging rules**
+- **During periodic maintenance** (annual review)
+- **If reported variance exceeds ±30%**
+
+**Acceptable Token Budget Ranges:**
+
+| Declared Budget | Acceptable Range | Example |
+|----------------|------------------|---------|
+| ~500 | 400-600 tokens | Small rule |
+| ~1500 | 1200-1800 tokens | Standard rule |
+| ~3000 | 2400-3600 tokens | Comprehensive rule |
+| ~5000 | 4000-6000 tokens | Reference rule |
+
+**Anti-Pattern:**
+Declaring `**TokenBudget:** ~500` when actual file is 2500 tokens (5x overestimate)
+
+**Correct Pattern:**
+Declaring `**TokenBudget:** ~2500` with ±20% variance = 2000-3000 actual tokens (acceptable)
+
+**For Rule Authors:**
+- Use rough estimates (~2 tokens/line) during initial creation
+- Run exact token counts for critical rules (auto-attach, high-frequency)
+- Update budgets during major revisions
+- Don't obsess over precision - ±20% is acceptable for most rules
 
 **Content Requirements:**
 - **Requirement:** Keep each rule file concise and focused (target 150–300 lines; max 500 lines)
@@ -846,7 +1114,7 @@ When creating or updating rules, follow these universal compatibility standards:
 - **Mandatory:** When creating a new rule, include a `## Rule Type and Scope` section immediately after the Purpose section specifying the rule's type and scope
 - **Mandatory:** When creating a new rule, include a complete `## References` section with both `### External Documentation` and `### Related Rules` subsections
 - **Mandatory:** When creating a new rule, include `Version: 1.0` and `LastUpdated` with current date in YYYY-MM-DD format
-- **CRITICAL:** When creating a new rule, include `Keywords` metadata with 5-15 relevant keywords for semantic discovery
+- **CRITICAL:** When creating a new rule, include `Keywords` metadata with 15-20 relevant keywords for semantic discovery (minimum 10, maximum 20)
 - **Mandatory:** When creating a new rule, declare `TokenBudget` and `ContextTier` in metadata
 - **Mandatory:** When updating any rule file, increment the version number and update `LastUpdated` to the current date in YYYY-MM-DD format
 - **Mandatory:** When updating any rule file, review and update `TokenBudget` to reflect current file size and content (use token budget tiers in Section 5 as guidance)
@@ -1271,7 +1539,7 @@ Use this template when creating new rule files. Copy the entire template below a
 ### Core Rule Standards (Existing)
 - [ ] Rule follows mandatory section structure (all required sections present)
 - [ ] Purpose clearly states what rule accomplishes and why
-- [ ] **Keywords metadata present with 5-15 relevant keywords** (CRITICAL for discovery)
+- [ ] **Keywords metadata present with 15-20 relevant keywords** (minimum 10, optimal 15-20, CRITICAL for discovery)
 - [ ] TokenBudget declared as numeric value with tilde (e.g., ~450)
 - [ ] ContextTier declared in metadata (Critical | High | Medium | Low)
 - [ ] Contract specifies inputs, tools, steps, output format, and validation with explicit instructions

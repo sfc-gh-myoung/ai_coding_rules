@@ -1,5 +1,5 @@
-**Keywords:** SPCS, Snowpark Container Services, containers, containerized apps, service deployment, compute pools, OCI images, image registry, health checks, GPU workloads
-**TokenBudget:** ~3550
+**Keywords:** SPCS, Snowpark Container Services, containers, containerized apps, service deployment, compute pools, OCI images, image registry, health checks, GPU workloads, create service, compute pool, container deployment, SPCS setup, service spec, container troubleshooting, SPCS error, service logs
+**TokenBudget:** ~4150
 **ContextTier:** High
 **Depends:** 100-snowflake-core
 
@@ -13,6 +13,17 @@ Provide comprehensive guidance for deploying, managing, and optimizing container
 - **Type:** Agent Requested
 - **Scope:** Snowflake Snowpark Container Services, containerized applications, microservices
 
+**Progressive Disclosure - Token Budget:**
+- Quick Start + Contract: ~400 tokens (always load for SPCS tasks)
+- + Service Creation (sections 1-2): ~1000 tokens (load for setup)
+- + Networking & Security (sections 3-4): ~1800 tokens (load for configuration)
+- + Complete Reference: ~2400 tokens (full SPCS guide)
+
+**Recommended Loading Strategy:**
+- **Understanding SPCS**: Quick Start only
+- **Creating services**: + Service Creation
+- **Network/security config**: + Networking & Security
+- **Production deployment**: Full reference
 
 ## Contract
 - **Inputs/Prereqs:** [Context, files, dependencies needed]
@@ -22,7 +33,14 @@ Provide comprehensive guidance for deploying, managing, and optimizing container
 - **Output Format:** [Expected output format]
 - **Validation Steps:** [Checks to confirm success]
 
-## Quick Start TL;DR (Read First - 30 Seconds)
+## Quick Start TL;DR (Essential Patterns Reference)
+
+**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
+- **Token efficiency:** Self-sufficient guidance for common use cases
+- **Position advantage:** Early placement benefits from attention bias
+- **Progressive disclosure:** Assessment point for full rule loading decision
+
+Position at top provides practical efficiency benefits for both LLMs and human developers.
 
 **MANDATORY:**
 **Essential Patterns:**
@@ -49,6 +67,23 @@ Provide comprehensive guidance for deploying, managing, and optimizing container
 - Optimize compute pools for workload patterns; use GPUs for ML/AI workloads.
 - Implement proper service-to-service communication and external endpoint security.
 - Follow cost optimization patterns; monitor usage and scale appropriately.
+
+> **Investigation Required**  
+> When working with Snowpark Container Services:
+> 1. Verify SPCS availability in account: `SHOW PARAMETERS LIKE 'ENABLE_SNOWPARK_CONTAINER_SERVICES' IN ACCOUNT;`
+> 2. Check compute pool exists: `SHOW COMPUTE POOLS;`
+> 3. Verify image repository access: `SHOW IMAGE REPOSITORIES IN SCHEMA <db>.<schema>;`
+> 4. Check service exists before operations: `SHOW SERVICES IN SCHEMA <db>.<schema>;`
+> 5. Never assume image availability - verify image exists: `SHOW IMAGES IN IMAGE REPOSITORY <repo>;`
+> 6. Test service health endpoint before declaring deployment successful
+>
+> **Anti-Pattern:**
+> "Let me deploy this service - SPCS should be available."
+>
+> **Correct Pattern:**
+> "Let me verify SPCS is enabled and check compute pool availability first."
+> [checks parameters, verifies compute pool, lists images]
+> "SPCS enabled, compute pool ready, image available. Deploying service..."
 
 ## 1. Architecture, Images, and Service Types
 
@@ -523,3 +558,18 @@ SHOW VIEWS LIKE '%view_name%';
 - **Cost Governance**: `105-snowflake-cost-governance.md`
 - **Security Governance**: `107-snowflake-security-governance.md`
 - **Warehouse Management**: `119-snowflake-warehouse-management.md`
+
+## Related Rules
+
+**Closely Related** (consider loading together):
+- `119-snowflake-warehouse-management` - For compute pool sizing and resource management patterns
+- `111-snowflake-observability-core` - For container logging, tracing, and monitoring in SPCS
+
+**Sometimes Related** (load if specific scenario):
+- `115-snowflake-cortex-agents-core` - When deploying agent services on SPCS
+- `116-snowflake-cortex-search` - When running custom search services on SPCS
+- `109-snowflake-notebooks` - When running notebook workloads on SPCS compute
+
+**Complementary** (different aspects of same domain):
+- `107-snowflake-security-governance` - For secrets, network rules, and RBAC on SPCS services
+- `105-snowflake-cost-governance` - For monitoring compute pool and service costs

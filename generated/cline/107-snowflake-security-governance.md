@@ -1,7 +1,7 @@
 <!-- Generated for Cline rules. See https://docs.cline.bot/features/cline-rules -->
 
-**Keywords:** Masking policies, row access policies, column masking, data governance, tagging, RBAC, roles, grants, secure views, Snowflake, SQL, security, Data Metric Functions, DMF, least privilege
-**TokenBudget:** ~1550
+**Keywords:** Snowflake, masking policies, row access policies, data governance, RBAC, roles, grants, secure views, security policies, access control, data security, policy troubleshooting, grant management, Data Metric Functions, DMF, least privilege, create masking policy, tagging, SQL
+**TokenBudget:** ~1850
 **ContextTier:** High
 **Depends:** 100-snowflake-core
 
@@ -24,7 +24,14 @@ Establish comprehensive data security and access control practices using Snowfla
 - Apply least privilege for DMF execution (EXECUTE DATA METRIC FUNCTION) and ownership.
 - Use data profiling to baseline and discover issues; do not substitute for security policies.
 
-## Quick Start TL;DR (Read First - 30 Seconds)
+## Quick Start TL;DR (Essential Patterns Reference)
+
+**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
+- **Token efficiency:** Self-sufficient guidance for common use cases
+- **Position advantage:** Early placement benefits from attention bias
+- **Progressive disclosure:** Assessment point for full rule loading decision
+
+Position at top provides practical efficiency benefits for both LLMs and human developers.
 
 **MANDATORY:**
 **Essential Patterns:**
@@ -54,6 +61,14 @@ Establish comprehensive data security and access control practices using Snowfla
 > 4. Verify role hierarchies: SHOW GRANTS and SHOW ROLES
 > 5. Make grounded recommendations based on investigated schema and security posture
 
+## Contract
+- **Inputs/Prereqs:** [Context, files, dependencies needed]
+- **Allowed Tools:** [Tools permitted for this domain]
+- **Forbidden Tools:** [Tools not allowed for this domain]
+- **Required Steps:** [Ordered steps the agent must follow]
+- **Output Format:** [Expected output format]
+- **Validation Steps:** [Checks to confirm success]
+
 ## 1. Access Control
 - **Requirement:** Implement Role-Based Access Control (RBAC) following least privilege.
 - **Requirement:** Use role hierarchies to simplify permission management and inherit privileges.
@@ -74,7 +89,7 @@ Establish comprehensive data security and access control practices using Snowfla
 - **Requirement:** Document and operate within limitations: maximum 10,000 DMF-object associations per account; cannot set DMFs on shared objects or in reader accounts; cannot set DMFs on object tags.
 - **Rule:** Establish a remediation workflow: investigate failures, triage severity, correct data/process, and track resolution SLAs.
 - **Avoid:** Relying on DMFs alone for protection. Combine DMFs with masking, row access, and tags for comprehensive governance.
-- **Note:** For comprehensive Data Quality Monitoring guidance including system/custom DMFs, data profiling, expectations, scheduling, and cost management, see `124-snowflake-data-quality.md`.
+- **Note:** For comprehensive Data Quality Monitoring guidance including system/custom DMFs, data profiling, expectations, scheduling, and cost management, see `124-snowflake-data-quality-core.md`.
 
 ## 4. Data Profiling
 - **Always:** Use Snowflake Data Profile to baseline datasets (distributions, distinct counts, NULLs) and to inform policy design and DMF selection.
@@ -87,14 +102,6 @@ Establish comprehensive data security and access control practices using Snowfla
 - **Rule:** Monitor serverless credits under the “Data Quality Monitoring” category and the logging service (“Logging”). Right-size schedules and scopes to control cost.
 - **Rule:** Version and review DMF definitions alongside application code; maintain owners, runbooks, and SLAs.
 - **Requirement:** Separate duties: creators of DMFs and operators of alerts should be distinct from data producers when feasible.
-
-## Contract
-- **Inputs/Prereqs:** [Context, files, dependencies needed]
-- **Allowed Tools:** [Tools permitted for this domain]
-- **Forbidden Tools:** [Tools not allowed for this domain]
-- **Required Steps:** [Ordered steps the agent must follow]
-- **Output Format:** [Expected output format]
-- **Validation Steps:** [Checks to confirm success]
 
 ## Quick Compliance Checklist
 - [ ] Required dependencies and context verified
@@ -149,5 +156,20 @@ SHOW VIEWS LIKE '%view_name%';
 - **Cost Governance**: `105-snowflake-cost-governance.md`
 - **Warehouse Management**: `119-snowflake-warehouse-management.md`
 - **Object Tagging**: `123-snowflake-object-tagging.md`
-- **Data Quality Monitoring**: `124-snowflake-data-quality.md`
+- **Data Quality Monitoring**: `124-snowflake-data-quality-core.md`
 - **Data Governance**: `600-data-governance-quality.md`
+
+## Related Rules
+
+**Closely Related** (consider loading together):
+- `100-snowflake-core` - For fundamental DDL patterns and object creation
+- `105-snowflake-cost-governance` - For RBAC on resource monitors and cost controls
+
+**Sometimes Related** (load if specific scenario):
+- `106-snowflake-semantic-views-core` - When applying masking policies and row access to semantic views
+- `119-snowflake-warehouse-management` - When configuring warehouse access control and RBAC
+- `115b-snowflake-cortex-agents-operations` - When implementing agent RBAC and security
+
+**Complementary** (different aspects of same domain):
+- `111-snowflake-observability-core` - For security event monitoring and audit logs
+- `108-snowflake-data-loading` - For stage encryption and secure data loading

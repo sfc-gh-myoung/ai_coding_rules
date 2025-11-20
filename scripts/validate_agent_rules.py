@@ -264,7 +264,7 @@ class RuleValidator:
             )
 
     def validate_keywords_count(self, content: str, result: ValidationResult) -> None:
-        """Validate keywords count (5-15 recommended)."""
+        """Validate keywords count (10 minimum, 15-20 optimal)."""
         match = re.search(r"^\*\*Keywords:\*\*\s*(.+)$", content, re.MULTILINE)
         if not match:
             # Already checked in required_metadata
@@ -273,14 +273,16 @@ class RuleValidator:
         keywords = match.group(1).split(",")
         keyword_count = len([k for k in keywords if k.strip()])
 
-        if keyword_count < 5:
+        if keyword_count < 10:
             result.warnings.append(
-                f"Few keywords ({keyword_count}, recommended 5-15 for better semantic discovery)"
+                f"Too few keywords ({keyword_count}, minimum 10 required, optimal 15-20 for semantic discovery)"
             )
-        elif keyword_count > 15:
+        elif keyword_count > 20:
             result.warnings.append(
-                f"Too many keywords ({keyword_count}, recommended 5-15 for better semantic discovery)"
+                f"Too many keywords ({keyword_count}, optimal 15-20 for semantic discovery, reduces clarity above 20)"
             )
+        # 10-20 keywords = PASS (no message needed)
+        # Note: 15-20 is optimal range, 10-14 is acceptable
 
     def validate_no_emojis(self, content: str, result: ValidationResult) -> None:
         """Validate NO emojis in machine-consumed files per 002-rule-governance.md v4.0.

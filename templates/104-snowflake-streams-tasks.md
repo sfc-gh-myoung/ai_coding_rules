@@ -2,8 +2,8 @@
 **Type:** Agent Requested
 **AppliesTo:** `**/*.sql`
 **AutoAttach:** false
-**Keywords:** Streams, Tasks, incremental loading, CDC, change data capture, scheduled tasks, pipeline automation, MERGE patterns, SQL, Snowflake, task DAG, AFTER dependencies, Task History
-**TokenBudget:** ~850
+**Keywords:** Streams, Tasks, incremental loading, CDC, change data capture, scheduled tasks, pipeline automation, MERGE patterns, SQL, Snowflake, task DAG, AFTER dependencies, Task History, create stream, create task, debug stream, task troubleshooting, stream consumption, task execution error, stream lag
+**TokenBudget:** ~1150
 **ContextTier:** High
 **Version:** 1.4
 **LastUpdated:** 2025-11-07
@@ -25,7 +25,14 @@ Establish patterns for building robust, incremental data pipelines using Snowfla
 - Ensure idempotency; consume stream at end of transaction; monitor with Task History.
 - Follow official docs for implementation details and idempotent DDL.
 
-## Quick Start TL;DR (Read First - 30 Seconds)
+## Quick Start TL;DR (Essential Patterns Reference)
+
+**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
+- **Token efficiency:** Self-sufficient guidance for common use cases
+- **Position advantage:** Early placement benefits from attention bias
+- **Progressive disclosure:** Assessment point for full rule loading decision
+
+Position at top provides practical efficiency benefits for both LLMs and human developers.
 
 **MANDATORY:**
 **Essential Patterns:**
@@ -123,3 +130,19 @@ SHOW VIEWS LIKE '%view_name%';
 - **Performance Tuning**: `103-snowflake-performance-tuning.md`
 - **Warehouse Management**: `119-snowflake-warehouse-management.md`
 - **Data Loading**: `108-snowflake-data-loading.md`
+
+## Related Rules
+
+**Closely Related** (consider loading together):
+- `122-snowflake-dynamic-tables` - For alternative declarative approach to CDC pipelines
+- `119-snowflake-warehouse-management` - For warehouse sizing and configuration for task execution
+
+**Sometimes Related** (load if specific scenario):
+- `103-snowflake-performance-tuning` - When optimizing task SQL statements
+- `124-snowflake-data-quality-core` - When triggering tasks based on data quality events
+- `111-snowflake-observability-core` - When monitoring task execution and stream consumption
+
+**Complementary** (different aspects of same domain):
+- `100-snowflake-core` - For naming conventions and DDL fundamentals
+- `107-snowflake-security-governance` - For RBAC on tasks and streams
+- `105-snowflake-cost-governance` - For monitoring task compute costs

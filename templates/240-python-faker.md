@@ -2,7 +2,7 @@
 **Type:** Agent Requested
 **AppliesTo:** `**/tests/**/*.py`, `**/fixtures/**/*.py`, `**/factories/**/*.py`, `pyproject.toml`
 **AutoAttach:** false
-**Keywords:** Faker, test data generation, fake data, providers, localization, synthetic data, pytest fixtures, seeding, deterministic testing
+**Keywords:** Faker, test data generation, fake data, providers, localization, synthetic data, pytest fixtures, seeding, deterministic testing, Python testing
 **TokenBudget:** ~2650
 **ContextTier:** Low
 **Version:** 1.3

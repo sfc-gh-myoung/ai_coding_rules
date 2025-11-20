@@ -4,8 +4,8 @@ appliesTo:
 ---
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
-**Keywords:** Cost optimization, resource monitors, warehouse auto-suspend, query cost, credit usage, budget alerts, spend tracking, Snowflake, SQL, CREDIT_QUOTA, WAREHOUSE_METERING_HISTORY, object tagging
-**TokenBudget:** ~1150
+**Keywords:** Cost optimization, resource monitors, warehouse auto-suspend, query cost, credit usage, budget alerts, spend tracking, Snowflake, SQL, CREDIT_QUOTA, WAREHOUSE_METERING_HISTORY, object tagging, monitor credits, warehouse spending, cost alerts, credit limits, budget management, resource monitor, tag enforcement
+**TokenBudget:** ~1450
 **ContextTier:** High
 **Depends:** 100-snowflake-core
 
@@ -37,7 +37,14 @@ Establish comprehensive cost management and optimization strategies for Snowflak
 - Use Resource Monitors and anomaly detection; set quotas and triggers.
 - Reference official cost and monitor docs for setup.
 
-## Quick Start TL;DR (Read First - 30 Seconds)
+## Quick Start TL;DR (Essential Patterns Reference)
+
+**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
+- **Token efficiency:** Self-sufficient guidance for common use cases
+- **Position advantage:** Early placement benefits from attention bias
+- **Progressive disclosure:** Assessment point for full rule loading decision
+
+Position at top provides practical efficiency benefits for both LLMs and human developers.
 
 **MANDATORY:**
 **Essential Patterns:**
@@ -79,15 +86,25 @@ Establish comprehensive cost management and optimization strategies for Snowflak
 
 ## Quick Compliance Checklist
 - [ ] All warehouse creation follows `119-snowflake-warehouse-management.md` (type, size, tags, auto-suspend)
+      Verify: `SHOW WAREHOUSES;` - check all required fields match 119 standards
 - [ ] Resource monitors created with appropriate credit quotas for account/warehouse level
+      Verify: `SHOW RESOURCE MONITORS;` - check credit limits align with budget
 - [ ] Notification triggers set at 75% and 90% of credit quota
+      Verify: Check resource monitor config - should have NOTIFY_AT = 75, 90
 - [ ] Suspend triggers configured at 100% of quota to prevent overruns
+      Verify: Check resource monitor has SUSPEND_AT = 100 or SUSPEND_IMMEDIATE_AT = 100
 - [ ] Warehouses have mandatory tags applied (COST_CENTER, WORKLOAD_TYPE, ENVIRONMENT, OWNER_TEAM)
+      Verify: Query SYSTEM$GET_TAG for each warehouse - all 4 tags should return values
 - [ ] Clustering keys applied only to tables with proven skew issues
+      Verify: `SHOW CLUSTERING KEYS;` - verify each has documented skew analysis
 - [ ] Time Travel retention period appropriate for data recovery needs (not default 1 day for all)
+      Verify: `SHOW TABLES;` - check DATA_RETENTION_TIME_IN_DAYS varies by criticality
 - [ ] Automatic scaling policies configured for variable workloads
+      Verify: Check warehouse MIN_CLUSTER_COUNT and MAX_CLUSTER_COUNT settings
 - [ ] Cost monitoring dashboards and alerts configured
+      Verify: Query WAREHOUSE_METERING_HISTORY - ensure dashboards exist and refresh
 - [ ] Regular review process established for credit usage patterns
+      Verify: Check for scheduled queries/tasks that report on usage trends
 
 ## Validation
 - **Success Checks:** Resource monitors are active and tracking usage; warehouses suspend automatically after idle period; credit usage aligns with expectations; cost alerts trigger appropriately; warehouse sizes match workload requirements
@@ -124,3 +141,18 @@ ALTER WAREHOUSE WH_ANALYTICS_M SET RESOURCE_MONITOR = rm_analytics_monthly;
 - **Warehouse Management**: `119-snowflake-warehouse-management.md`
 - **Object Tagging**: `123-snowflake-object-tagging.md`
 - **Security Governance**: `107-snowflake-security-governance.md`
+
+## Related Rules
+
+**Closely Related** (consider loading together):
+- `119-snowflake-warehouse-management` - For warehouse sizing, auto-suspend config affecting costs
+- `103-snowflake-performance-tuning` - For optimizing queries to reduce compute costs
+
+**Sometimes Related** (load if specific scenario):
+- `111-snowflake-observability-core` - When monitoring warehouse usage and query costs via telemetry
+- `117-snowflake-cortex-analyst` - When monitoring Cortex Analyst API costs
+- `115-snowflake-cortex-agents-core` - When monitoring agent execution costs
+
+**Complementary** (different aspects of same domain):
+- `100-snowflake-core` - For tagging conventions (COST_CENTER, WORKLOAD_TYPE, OWNER_TEAM)
+- `107-snowflake-security-governance` - For RBAC on resource monitors and cost controls

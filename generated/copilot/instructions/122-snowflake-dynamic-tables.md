@@ -4,7 +4,7 @@ appliesTo:
 ---
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
-**Keywords:** Dynamic Tables, materialized views, incremental refresh, target lag, refresh mode, automatic pipelines, DOWNSTREAM, FULL, warehouse sizing, data freshness
+**Keywords:** Dynamic Tables, materialized views, incremental refresh, target lag, refresh mode, automatic pipelines, DOWNSTREAM, FULL, warehouse sizing, data freshness, create dynamic table, dynamic table lag, refresh frequency, dynamic table error, materialized view alternative, pipeline automation, lag configuration, refresh strategies
 **TokenBudget:** ~5200
 **ContextTier:** High
 **Depends:** 100-snowflake-core, 104-snowflake-streams-tasks, 119-snowflake-warehouse-management
@@ -19,7 +19,14 @@ Establish comprehensive best practices for Snowflake Dynamic Tables to ensure ef
 - **Type:** Agent Requested
 - **Scope:** Snowflake Dynamic Tables for automated materialized views, incremental refresh patterns, and data pipeline orchestration
 
-## Quick Start TL;DR (Read First - 30 Seconds)
+## Quick Start TL;DR (Essential Patterns Reference)
+
+**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
+- **Token efficiency:** Self-sufficient guidance for common use cases
+- **Position advantage:** Early placement benefits from attention bias
+- **Progressive disclosure:** Assessment point for full rule loading decision
+
+Position at top provides practical efficiency benefits for both LLMs and human developers.
 
 **MANDATORY:**
 **Essential Patterns:**
@@ -39,6 +46,18 @@ Establish comprehensive best practices for Snowflake Dynamic Tables to ensure ef
 - [ ] Base table dependencies understood
 - [ ] Monitoring queries configured
 - [ ] Cost baseline established
+
+**Progressive Disclosure - Token Budget:**
+- Quick Start + Contract: ~500 tokens (always load for dynamic table tasks)
+- + Core Patterns (sections 1-2): ~1200 tokens (load for creation)
+- + Advanced Config & Troubleshooting (sections 3-4): ~2000 tokens (load for issues)
+- + Complete Reference: ~2500 tokens (full dynamic table guide)
+
+**Recommended Loading Strategy:**
+- **Understanding dynamic tables**: Quick Start only
+- **Creating tables**: + Core Patterns
+- **Lag/refresh issues**: + Advanced Config & Troubleshooting
+- **Production deployment**: Full reference
 
 ## Contract
 
@@ -73,6 +92,32 @@ Establish comprehensive best practices for Snowflake Dynamic Tables to ensure ef
 - **Incremental First:** Design queries to support incremental refresh when possible; understand limitations and fallback to full refresh
 - **Downstream Dependencies:** Use `TARGET_LAG = 'DOWNSTREAM'` to refresh only when dependent objects need updates
 - **Security and Access:** Grant MONITOR privilege for metadata access without modification capability; use OWNERSHIP for administrative control
+
+## Common Pitfalls (Learn from These!)
+
+**Pitfall 1: Not Declaring REFRESH_MODE and TARGET_LAG Explicitly** [WARNING]
+- **Trigger words**: "default settings", omitting REFRESH_MODE/TARGET_LAG
+- **Why critical**: Defaults may change across Snowflake releases - unpredictable behavior
+- **Correct approach**: Always explicitly declare `REFRESH_MODE = AUTO/FULL/INCREMENTAL` and `TARGET_LAG`
+- **Detection**: Check DDL for missing REFRESH_MODE or TARGET_LAG clauses
+
+**Pitfall 2: Creating Large Monolithic Dynamic Tables** [WARNING]
+- **Trigger words**: "one big table", complex multi-stage transformations in single DT
+- **Why critical**: Hard to debug, maintain, optimize; full refresh on any change
+- **Correct approach**: Chain smaller Dynamic Tables with focused transformations
+- **Detection**: Review query complexity - flag if >200 lines or >5 CTEs
+
+**Pitfall 3: Using Standard Tables When Transient Would Suffice** [WARNING]
+- **Trigger words**: "fail-safe not needed", cost optimization opportunities
+- **Why critical**: Standard tables incur fail-safe storage costs unnecessarily
+- **Correct approach**: Use transient Dynamic Tables when 7-day fail-safe recovery not required
+- **Detection**: Review table type - check if fail-safe actually needed for use case
+
+**Pitfall 4: Not Designing for Incremental Refresh** [WARNING]
+- **Trigger words**: "full refresh every time", missing incremental support
+- **Why critical**: Full refresh wastes compute and increases latency
+- **Correct approach**: Design queries to support incremental refresh (append-only, temporal predicates)
+- **Detection**: Check if query uses temporal columns or append-only patterns
 
 ## 1. Dynamic Table Fundamentals
 
@@ -973,3 +1018,19 @@ LIMIT 5;
 > - When asked about incremental refresh eligibility, read the actual query definition and validate against supported operations list
 > - For complex pipelines, create visualization of dependencies before recommending changes
 
+
+## Related Rules
+
+**Closely Related** (consider loading together):
+- `104-snowflake-streams-tasks` - For alternative imperative approach to CDC pipelines
+- `119-snowflake-warehouse-management` - For warehouse assignment to dynamic table refreshes
+
+**Sometimes Related** (load if specific scenario):
+- `124-snowflake-data-quality-core` - When adding quality checks to dynamic table pipelines
+- `103-snowflake-performance-tuning` - When optimizing dynamic table refresh performance
+- `111-snowflake-observability-core` - When monitoring dynamic table lag and refresh status
+
+**Complementary** (different aspects of same domain):
+- `100-snowflake-core` - For DDL fundamentals and object naming conventions
+- `107-snowflake-security-governance` - For access control on dynamic tables
+- `105-snowflake-cost-governance` - For monitoring dynamic table refresh costs

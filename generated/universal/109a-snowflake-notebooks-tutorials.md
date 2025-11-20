@@ -1,4 +1,4 @@
-**Keywords:** tutorial design, learning notebooks, teaching patterns, anti-patterns, checkpoints, learning objectives, pedagogical design, educational content, progressive learning, Snowflake notebooks, teaching point callouts, validation gates
+**Keywords:** tutorial design, learning notebooks, teaching patterns, anti-patterns, checkpoints, learning objectives, pedagogical design, educational content, progressive learning, Snowflake notebooks, teaching point callouts, validation gates, tutorial structure, learning design, educational notebooks, teaching methodology, tutorial best practices, notebook education
 **TokenBudget:** ~3750
 **ContextTier:** High
 **Depends:** 109-snowflake-notebooks, 500-data-science-analytics
@@ -66,7 +66,14 @@ Establish comprehensive patterns for designing educational Snowflake notebooks t
 - **Self-Paced Friendly:** Can skip sections, clear prerequisites stated
 - **Context First:** Business rationale before technical implementation
 
-## Quick Start TL;DR (Read First - 30 Seconds)
+## Quick Start TL;DR (Essential Patterns Reference)
+
+**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
+- **Token efficiency:** Self-sufficient guidance for common use cases
+- **Position advantage:** Early placement benefits from attention bias
+- **Progressive disclosure:** Assessment point for full rule loading decision
+
+Position at top provides practical efficiency benefits for both LLMs and human developers.
 
 **MANDATORY:**
 **Essential Patterns:**

@@ -5,7 +5,7 @@ appliesTo:
 ---
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
-**Keywords:** README, project documentation, getting started, setup instructions, badges, Quick Start, Contributing, License, project structure
+**Keywords:** README, project documentation, getting started, setup instructions, badges, Quick Start, Contributing, License, project structure, technical writing
 **TokenBudget:** ~2350
 **ContextTier:** Medium
 **Depends:** 000-global-core

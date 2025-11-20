@@ -2,7 +2,7 @@
 **Type:** Agent Requested
 **AppliesTo:** `scripts/**/*`, `data/**/*`, `streamlit/**/*`, `demos/**/*`
 **AutoAttach:** false
-**Keywords:** Demo creation, synthetic data, realistic demos, data generation, demo applications, narrative design, reproducible data, progressive disclosure
+**Keywords:** Demo creation, synthetic data, realistic demos, data generation, demo applications, narrative design, reproducible data, progressive disclosure, Streamlit, data visualization
 **TokenBudget:** ~900
 **ContextTier:** Low
 **Version:** 1.4

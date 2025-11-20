@@ -5,8 +5,8 @@ appliesTo:
 ---
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
-**Keywords:** Snowflake notebooks, Jupyter, Python notebooks, data exploration, ML, reproducible notebooks, nbqa, notebook linting, code quality, Python, Snowflake
-**TokenBudget:** ~2100
+**Keywords:** Snowflake notebooks, Jupyter, Python notebooks, data exploration, ML, reproducible notebooks, nbqa, notebook linting, code quality, Python, Snowflake, create notebook, debug notebook, notebook execution, notebook testing, notebook deployment, kernel management, cell execution
+**TokenBudget:** ~2550
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core, 201-python-lint-format
 
@@ -20,7 +20,17 @@ Establish best practices for building reproducible, secure, and maintainable Jup
 - **Type:** Agent Requested
 - **Scope:** Jupyter Notebooks in Snowflake with Snowpark for Python and reproducible data science workflows
 
+**Progressive Disclosure - Token Budget:**
+- Quick Start + Contract: ~400 tokens (always load for notebook tasks)
+- + Core Patterns (sections 1-2): ~1000 tokens (load for development)
+- + Advanced Features (sections 3-4): ~1700 tokens (load for production)
+- + Complete Reference: ~2200 tokens (full notebook guide)
 
+**Recommended Loading Strategy:**
+- **Understanding notebooks**: Quick Start only
+- **Creating notebooks**: + Core Patterns
+- **Production workflows**: + Advanced Features
+- **Deployment**: + 109c (app deployment)
 
 ## Contract
 - **Inputs/Prereqs:** Snowflake account access; Snowpark for Python environment; Jupyter notebook environment; virtual environment with pinned dependencies
@@ -40,7 +50,14 @@ Establish best practices for building reproducible, secure, and maintainable Jup
 - Parameterize runs; narrative in Markdown cells; keep code cells focused and avoid hidden state.
 - Never hard-code secrets; push heavy compute to Snowflake (Snowpark); refactor final code into .py/.sql.
 
-## Quick Start TL;DR (Read First - 30 Seconds)
+## Quick Start TL;DR (Essential Patterns Reference)
+
+**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
+- **Token efficiency:** Self-sufficient guidance for common use cases
+- **Position advantage:** Early placement benefits from attention bias
+- **Progressive disclosure:** Assessment point for full rule loading decision
+
+Position at top provides practical efficiency benefits for both LLMs and human developers.
 
 **MANDATORY:**
 **Essential Patterns:**
@@ -214,15 +231,25 @@ ignore = ["E501"]  # Allow long lines in notebooks for complex expressions
 
 ## Quick Compliance Checklist
 - [ ] All cells have descriptive, user-friendly names (not cell1, cell2, etc.)
+      Verify: Open notebook in Snowsight - check cell names in left sidebar
 - [ ] Cell naming follows action_subject pattern with underscores
+      Verify: Review cell names - should be like "load_customer_data", not "LoadCustomerData"
 - [ ] Environment and dependencies properly configured and pinned
+      Verify: Check packages section in notebook settings - versions should be pinned (==)
 - [ ] **CRITICAL:** `uvx nbqa ruff notebooks/` passes with zero errors
+      Verify: Run command locally before committing - must show 0 errors
 - [ ] **CRITICAL:** `uvx nbqa ruff format --check notebooks/` passes
+      Verify: Run command locally - must show no formatting changes needed
 - [ ] No hardcoded credentials or sensitive information present
+      Verify: Search notebook for keywords: "password", "token", "secret", "key"
 - [ ] Computation pushed to Snowflake via Snowpark DataFrames
+      Verify: Check for .to_pandas() calls - should be minimal, used only for final results
 - [ ] Markdown cells provide clear narrative and documentation
+      Verify: Read through notebook - markdown should explain purpose of each section
 - [ ] Notebook executes deterministically without hidden state
+      Verify: Restart kernel and run all cells - should execute in order without errors
 - [ ] Production code refactored to separate .py/.sql files when appropriate
+      Verify: Check if notebook has >500 lines of code - consider extracting to modules
 
 ## Validation
 - **Success checks:** Cell names are descriptive and follow naming conventions; `uvx nbqa ruff notebooks/` passes with zero errors; `uvx nbqa ruff format --check notebooks/` passes; notebook runs deterministically from top to bottom; all Snowpark connections work; no secrets exposed; production logic extracted to .py/.sql files
@@ -276,3 +303,18 @@ monthly_summary = customers_df.group_by("REGISTRATION_MONTH").agg(
 - **Python Core**: `200-python-core.md`
 - **Python Linting**: `201-python-lint-format.md`
 - **Data Science Analytics**: `500-data-science-analytics.md`
+
+## Related Rules
+
+**Closely Related** (consider loading together):
+- `100-snowflake-core` - For Snowflake fundamentals, connection patterns, DDL syntax
+- `111-snowflake-observability-core` - When adding telemetry and monitoring to notebook executions
+
+**Sometimes Related** (load if specific scenario):
+- `101-snowflake-streamlit-core` - When combining notebook development with Streamlit deployment
+- `114-snowflake-cortex-aisql` - When using Cortex AI functions in notebook workflows
+- `124-snowflake-data-quality-core` - When running data quality checks in notebooks
+
+**Complementary** (different aspects of same domain):
+- `103-snowflake-performance-tuning` - For optimizing queries in notebook cells
+- `107-snowflake-security-governance` - For secrets management and RBAC in notebooks

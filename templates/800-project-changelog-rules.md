@@ -2,7 +2,7 @@
 **Type:** Agent Requested
 **AppliesTo:** `CHANGELOG.md`
 **AutoAttach:** false
-**Keywords:** CHANGELOG, changelog format, semantic versioning, release notes, conventional commits, Unreleased section, scope patterns
+**Keywords:** CHANGELOG, changelog format, semantic versioning, release notes, conventional commits, Unreleased section, scope patterns, project governance, git workflow, version control
 **TokenBudget:** ~1450
 **ContextTier:** Medium
 **Version:** 1.6

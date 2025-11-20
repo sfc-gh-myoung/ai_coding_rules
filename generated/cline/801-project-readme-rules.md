@@ -1,6 +1,6 @@
 <!-- Generated for Cline rules. See https://docs.cline.bot/features/cline-rules -->
 
-**Keywords:** README, project documentation, getting started, setup instructions, badges, Quick Start, Contributing, License, project structure
+**Keywords:** README, project documentation, getting started, setup instructions, badges, Quick Start, Contributing, License, project structure, technical writing
 **TokenBudget:** ~2350
 **ContextTier:** Medium
 **Depends:** 000-global-core

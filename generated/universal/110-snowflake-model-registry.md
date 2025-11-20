@@ -1,5 +1,5 @@
-**Keywords:** Model registry, ML models, model versioning, model deployment, MLOps, model governance, model lifecycle, model logging, model inference, RBAC, model privileges
-**TokenBudget:** ~2300
+**Keywords:** Model registry, ML models, model versioning, model deployment, MLOps, model governance, model lifecycle, model logging, model inference, RBAC, model privileges, register model, log model, model management, ML registry, model tracking, model metadata, deploy model, model lineage
+**TokenBudget:** ~2750
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core
 
@@ -13,6 +13,17 @@ Establish comprehensive best practices for using Snowflake Model Registry to man
 - **Type:** Agent Requested
 - **Scope:** Snowflake Model Registry operations including model logging, versioning, access control, inference, and lifecycle management for Python ML models
 
+**Progressive Disclosure - Token Budget:**
+- Quick Start + Contract: ~450 tokens (always load for model registry tasks)
+- + Model Logging & Versioning (sections 1-2): ~1100 tokens (load for registration)
+- + Inference & Governance (sections 3-4): ~2000 tokens (load for deployment)
+- + Complete Reference: ~2600 tokens (full model registry guide)
+
+**Recommended Loading Strategy:**
+- **Understanding model registry**: Quick Start only
+- **Logging models**: + Model Logging & Versioning
+- **Model inference**: + Inference & Governance
+- **Production MLOps**: Full reference
 
 ## Contract
 - **Inputs/Prereqs:** [Context, files, dependencies needed]
@@ -22,7 +33,14 @@ Establish comprehensive best practices for using Snowflake Model Registry to man
 - **Output Format:** [Expected output format]
 - **Validation Steps:** [Checks to confirm success]
 
-## Quick Start TL;DR (Read First - 30 Seconds)
+## Quick Start TL;DR (Essential Patterns Reference)
+
+**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
+- **Token efficiency:** Self-sufficient guidance for common use cases
+- **Position advantage:** Early placement benefits from attention bias
+- **Progressive disclosure:** Assessment point for full rule loading decision
+
+Position at top provides practical efficiency benefits for both LLMs and human developers.
 
 **MANDATORY:**
 **Essential Patterns:**
@@ -50,6 +68,23 @@ Establish comprehensive best practices for using Snowflake Model Registry to man
 - Cost-conscious inference: choose appropriate compute resources and optimize model serving patterns
 - Environment consistency: maintain reproducible model environments and dependencies
 - Security-first: implement proper access controls, audit logging, and compliance measures
+
+> **Investigation Required**  
+> When working with Model Registry:
+> 1. Verify registry exists: `SHOW SCHEMAS LIKE '%REGISTRY%' IN DATABASE <db>;`
+> 2. Check model exists before operations: `SHOW MODELS LIKE '%name%' IN SCHEMA <db>.<schema>;`
+> 3. Verify model version exists: `SELECT * FROM <db>.<schema>.INFORMATION_SCHEMA.MODELS WHERE MODEL_NAME = '<name>';`
+> 4. Check permissions before logging: `SHOW GRANTS ON SCHEMA <db>.<schema>;`
+> 5. Never assume conda dependencies - check available packages in Snowflake conda channel
+> 6. Test model inference before production deployment
+>
+> **Anti-Pattern:**
+> "Let me log this model - it should work with these dependencies."
+>
+> **Correct Pattern:**
+> "Let me verify the registry exists and check available conda packages first."
+> [checks registry, verifies conda channel has required packages]
+> "Registry verified. Required packages available in Snowflake conda channel. Logging model..."
 
 ## 1. Model Registry Setup and Organization
 

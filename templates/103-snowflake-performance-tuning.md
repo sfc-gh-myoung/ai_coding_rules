@@ -2,8 +2,8 @@
 **Type:** Agent Requested
 **AppliesTo:** `**/*.sql`
 **AutoAttach:** false
-**Keywords:** Query profile, slow queries, performance tuning, warehouse sizing, clustering keys, search optimization, pruning, spillage, SQL optimization, Snowflake, partition pruning, QUERY_HISTORY
-**TokenBudget:** ~800
+**Keywords:** Query profile, slow queries, performance tuning, warehouse sizing, clustering keys, search optimization, pruning, spillage, SQL optimization, Snowflake, partition pruning, QUERY_HISTORY, optimize query, fix slow query, query bottleneck, warehouse performance, micro-partitions, clustering, performance analysis
+**TokenBudget:** ~1400
 **ContextTier:** High
 **Version:** 1.4
 **LastUpdated:** 2025-11-07
@@ -24,7 +24,31 @@ Provide systematic approaches for profiling, optimizing, and fine-tuning Snowfla
 - Right-size warehouses; enable AUTO_SUSPEND/RESUME; consider clustering only with clear justification.
 - Reference official docs for profiling, warehouses, and clustering.
 
-## Quick Start TL;DR (Read First - 30 Seconds)
+> **Investigation Required**  
+> When optimizing query performance:
+> 1. Check Query Profile first - never optimize without profiling: `SELECT * FROM TABLE(INFORMATION_SCHEMA.QUERY_HISTORY_BY_...)`
+> 2. Verify partition pruning effectiveness - check "Partitions Scanned" vs "Partitions Total" in Query Profile
+> 3. Identify actual bottlenecks - look for large TableScans, join explosions, spillage to remote storage
+> 4. Check warehouse size and utilization - query WAREHOUSE_METERING_HISTORY before resizing
+> 5. Never add clustering keys without analyzing query patterns first
+> 6. Measure impact - compare before/after query execution times with same warehouse
+>
+> **Anti-Pattern:**
+> "Let me add a clustering key to speed this up."
+>
+> **Correct Pattern:**
+> "Let me check the Query Profile first to identify the bottleneck."
+> [reviews Query Profile, finds large TableScan]
+> "The issue is partition pruning - 1000/1000 partitions scanned. Let me check the WHERE clause..."
+
+## Quick Start TL;DR (Essential Patterns Reference)
+
+**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
+- **Token efficiency:** Self-sufficient guidance for common use cases
+- **Position advantage:** Early placement benefits from attention bias
+- **Progressive disclosure:** Assessment point for full rule loading decision
+
+Position at top provides practical efficiency benefits for both LLMs and human developers.
 
 **MANDATORY:**
 **Essential Patterns:**
@@ -59,6 +83,18 @@ Provide systematic approaches for profiling, optimizing, and fine-tuning Snowfla
 ## 2. Warehouse Sizing & Clustering
 - **Always:** Follow comprehensive warehouse sizing guidance in `119-snowflake-warehouse-management.md` including type selection (CPU/GPU/High-Memory), sizing strategy, auto-suspend configuration, and cost governance.
 - **Requirement:** Consider clustering keys only with clear justification based on query patterns and Query Profile evidence of poor pruning.
+
+**Progressive Disclosure - Token Budget:**
+- Quick Start + Contract: ~600 tokens (always load for performance tasks)
+- + Query Profiling (section 1): ~1200 tokens (load for slow queries)
+- + Warehouse & Clustering (section 2): ~1800 tokens (load for sizing/clustering)
+- + Complete Reference: ~2500 tokens (full performance guide)
+
+**Recommended Loading Strategy:**
+- **Initial diagnosis**: Quick Start only
+- **Slow query investigation**: + Query Profiling
+- **Warehouse optimization**: + Warehouse & Clustering + 119 (warehouse management)
+- **Complete tuning**: Full reference
 
 ## Contract
 - **Inputs/Prereqs:** [Context, files, dependencies needed]
@@ -117,3 +153,18 @@ SHOW VIEWS LIKE '%view_name%';
 - **SQL Demo Engineering**: `102-snowflake-sql-demo-engineering.md`
 - **Cost Governance**: `105-snowflake-cost-governance.md`
 - **Warehouse Management**: `119-snowflake-warehouse-management.md`
+
+## Related Rules
+
+**Closely Related** (consider loading together):
+- `119-snowflake-warehouse-management` - For warehouse sizing, type selection (CPU/GPU/High-Memory), auto-suspend config
+- `105-snowflake-cost-governance` - For cost monitoring, resource monitors, budget alerts during optimization
+
+**Sometimes Related** (load if specific scenario):
+- `100-snowflake-core` - For CTE usage patterns and query structure fundamentals
+- `122-snowflake-dynamic-tables` - When optimizing dynamic table refresh performance
+- `104-snowflake-streams-tasks` - When optimizing stream/task pipeline performance
+
+**Complementary** (different aspects of same domain):
+- `108-snowflake-data-loading` - For optimizing COPY INTO and data loading performance
+- `111-snowflake-observability-core` - For query profiling and performance monitoring

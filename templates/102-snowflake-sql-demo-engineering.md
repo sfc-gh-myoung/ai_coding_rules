@@ -2,7 +2,7 @@
 **Type:** Auto-attach
 **AppliesTo:** `**/*.sql` (demo context)
 **AutoAttach:** true
-**Keywords:** SQL demos, demo engineering, learning SQL, per-schema setup, teardown, grid_setup.sql, customer_load.sql, inline documentation, progress indicators, rerunnable demos, Snowflake SQL, CREATE OR REPLACE, educational SQL
+**Keywords:** SQL demos, demo engineering, learning SQL, per-schema setup, teardown, grid_setup.sql, customer_load.sql, inline documentation, progress indicators, rerunnable demos, Snowflake SQL, CREATE OR REPLACE, educational SQL, demo patterns, demo data, setup scripts, demo automation, learning examples
 **TokenBudget:** ~3850
 **ContextTier:** High
 **Version:** 2.1
@@ -41,7 +41,14 @@ Guide SQL file creation for Snowflake demos and customer learning environments. 
 - **Audience-Aware**: Comments explain "why" for learning, not just "what"
 - **Demo-Safe**: Patterns suitable for ephemeral environments, not production databases
 
-## Quick Start TL;DR (Read First - 30 Seconds)
+## Quick Start TL;DR (Essential Patterns Reference)
+
+**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
+- **Token efficiency:** Self-sufficient guidance for common use cases
+- **Position advantage:** Early placement benefits from attention bias
+- **Progressive disclosure:** Assessment point for full rule loading decision
+
+Position at top provides practical efficiency benefits for both LLMs and human developers.
 
 **MANDATORY:**
 **Essential Patterns:**

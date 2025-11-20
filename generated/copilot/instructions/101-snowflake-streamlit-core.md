@@ -6,7 +6,7 @@ appliesTo:
 ---
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
-**Keywords:** Streamlit, Snowflake in Streamlit, SiS, SPCS, st.connection, session state, navigation, multipage, deployment, UI, dashboard, pandas, NaN, NULL handling
+**Keywords:** Streamlit, Snowflake in Streamlit, SiS, SPCS, st.connection, session state, navigation, multipage, deployment, UI, dashboard, pandas, NaN, NULL handling, streamlit app, create streamlit, debug streamlit, streamlit patterns, session management, connection management
 **TokenBudget:** ~3700
 **ContextTier:** High
 **Depends:** 100-snowflake-core
@@ -49,7 +49,14 @@ Provide foundational guidance for Streamlit application setup, navigation patter
 - **State Management:** Centralized session state initialization
 - **Security:** Use st.secrets for all credentials, never hardcode
 
-## Quick Start TL;DR (Read First - 30 Seconds)
+## Quick Start TL;DR (Essential Patterns Reference)
+
+**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
+- **Token efficiency:** Self-sufficient guidance for common use cases
+- **Position advantage:** Early placement benefits from attention bias
+- **Progressive disclosure:** Assessment point for full rule loading decision
+
+Position at top provides practical efficiency benefits for both LLMs and human developers.
 
 **MANDATORY:**
 **Essential Patterns:**
@@ -668,3 +675,18 @@ pg.run()
 > - Investigation-first: Excel at discovering config.toml theme settings and navigation structure from filesystem
 > - State discovery: Can track st.session_state usage patterns across multiple page files
 
+
+## Related Rules
+
+**Closely Related** (consider loading together):
+- `101b-snowflake-streamlit-performance` - For caching strategies, query optimization, error handling
+- `101a-snowflake-streamlit-visualization` - For chart types, customization, and visualization best practices
+
+**Sometimes Related** (load if specific scenario):
+- `101c-snowflake-streamlit-security` - When implementing authentication, authorization, secure credentials
+- `103-snowflake-performance-tuning` - When optimizing underlying Snowflake queries
+- `109-snowflake-notebooks` - When combining notebook development with Streamlit deployment
+
+**Complementary** (different aspects of same domain):
+- `107-snowflake-security-governance` - For RBAC and security policies in Streamlit apps
+- `111-snowflake-observability-core` - For monitoring Streamlit app performance and errors

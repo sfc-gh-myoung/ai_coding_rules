@@ -7,7 +7,7 @@ alwaysApply: true
 <!-- Generated for Cursor project rules. See https://docs.cursor.com/en/context/rules#project-rules -->
 
 **Keywords:** PLAN mode, ACT mode, workflow, safety, confirmation, validation, surgical edits, minimal changes, mode violations, prompt engineering, task list, read-only, authorization
-**TokenBudget:** ~1300
+**TokenBudget:** ~2050
 **ContextTier:** Critical
 **Depends:** None
 
@@ -47,12 +47,21 @@ Establish the foundational operating contract for all AI coding assistants, ensu
 - **Professional Communication:** Concise, code-first solutions with technical tone
 - **Validation First:** Test, lint, and verify all changes before completion
 
-## Quick Start TL;DR (Read First - 30 Seconds)
+## Quick Start TL;DR (Essential Patterns Reference)
+
+**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
+- **Token efficiency:** Self-sufficient guidance for 80% of common use cases reduces need to read full sections
+- **Position advantage:** Early placement benefits from slight attention bias in LLM processing
+- **Progressive disclosure:** Enables agents to assess rule relevance before loading full content
+- **Human-LLM collaboration:** Useful for both human developers and AI assistants
+
+**Note:** While LLMs read sequentially (not auto-prioritizing this section), the concentrated pattern format and early position provide practical efficiency benefits. To maximize value, include in system prompts: "Read Quick Start TL;DR sections first to identify essential patterns."
 
 **MANDATORY:**
 **Essential Patterns:**
+- **Declare MODE at start** - MODE: [PLAN|ACT] as first line of every response
 - **Always start in PLAN mode** - gather context, present task list, await "ACT"
-- **List loaded rules** at start of response (e.g., "000-global-core, 200-python-core")
+- **List loaded rules** - State all loaded rules after MODE (e.g., "## Rules Loaded\n- 000-global-core, 200-python-core")
 - **Make surgical edits only** - minimal changes, preserve existing code patterns
 - **Validate immediately** - run tests/lints before marking complete
 - **Never modify files without explicit "ACT" authorization**
@@ -71,7 +80,9 @@ Establish the foundational operating contract for all AI coding assistants, ensu
 - Entered only when user types "ACT"
 - File modifications permitted
 - System-modifying commands allowed
+- **Declare MODE change:** State "MODE: ACT" at start of response when entering ACT mode
 - Return to PLAN immediately after task completion
+- **Declare return:** State "MODE: PLAN" when returning to PLAN mode after completion
 
 ### 2. Task Confirmation Protocol
 
@@ -102,6 +113,25 @@ Establish the foundational operating contract for all AI coding assistants, ensu
 - Update documentation when changes affect usage
 - Ensure no regressions introduced
 
+### 6. Rule File Structure and TL;DR Sections
+
+**Understanding TL;DR Sections:**
+- **Reality:** LLMs (GPT, Claude, Gemini) read rule files sequentially without automatically prioritizing TL;DR sections
+- **Value:** TL;DR sections provide significant benefits through position bias, token efficiency, and progressive disclosure capability
+- **Usage Pattern:** To leverage TL;DR sections effectively, include in system prompts or agent logic: "Read Quick Start TL;DR sections first to grasp essential patterns"
+
+**TL;DR Benefits for Rule Consumption:**
+- **Position bias:** Information early in files receives slightly more attention weight
+- **Token efficiency:** Self-sufficient patterns reduce need to read full sections (80% of use cases)
+- **Progressive disclosure:** Decision point for whether full rule reading is needed
+- **Human-LLM collaboration:** Useful for both human developers and AI assistants
+
+**When to Read Full Rules:**
+- TL;DR patterns insufficient for specific task requirements
+- Complex edge cases or anti-patterns needed
+- Detailed examples or validation rules required
+- First-time implementation of unfamiliar pattern
+
 ## Contract Definition Template
 
 Every task should define:
@@ -114,7 +144,9 @@ Every task should define:
 
 ## Quick Compliance Checklist
 
+- [ ] Declared current MODE at start of response
 - [ ] Started in PLAN mode
+- [ ] Listed loaded rules explicitly (## Rules Loaded format)
 - [ ] Presented clear task list
 - [ ] Disclosed loaded rule filenames
 - [ ] Received explicit "ACT" authorization
@@ -152,25 +184,70 @@ Every task should define:
 ```markdown
 MODE: [PLAN|ACT]
 
-Rules Loaded:
+### Rules Loaded
 - rules/000-global-core.mdc (foundation)
+- rules/100-snowflake-core.mdc (Snowflake foundation)
+- rules/115-snowflake-cortex-agents-core.mdc (Cortex Agent creation)
 - [additional rules based on task]
 
 Analysis:
-[Brief analysis of the requirement]
+User requests creation of a Cortex Agent to analyze asset performance data using an existing semantic view. Task requires:
+- CREATE CORTEX AGENT statement with appropriate configuration
+- Planning instructions tailored to asset performance domain
+- Response formatting instructions for consistent output
+- Tool specification referencing existing semantic view
 
 Task List:
-1. [Specific task with clear deliverable]
-2. [Another task with validation criteria]
-3. [Final task with success metrics]
+1. Verify semantic view SEM_ASSET_PERFORMANCE exists and is accessible
+2. Create Cortex Agent with tool reference to semantic view
+3. Define planning instructions for asset analysis domain
+4. Define response formatting instructions for user-friendly output
+5. Test agent creation and validate configuration
 
 Implementation:
-[Code/configuration changes following established patterns]
+```sql
+-- Create Cortex Agent for asset performance analysis
+CREATE OR REPLACE CORTEX AGENT AGENT_ASSET_PERFORMANCE_ANALYST
+  COMMENT = 'Analyzes grid asset performance using semantic view'
+  AS
+    TOOLS = ['SEM_ASSET_PERFORMANCE']
+    PLANNING_INSTRUCTIONS = $$
+    You are an expert asset performance analyst for utility grid infrastructure.
+    
+    When answering questions:
+    1. Use the SEM_ASSET_PERFORMANCE semantic view for all queries
+    2. Break complex questions into multiple semantic view queries
+    3. Calculate derived metrics when needed (e.g., failure rate = failures / total assets)
+    4. Consider temporal patterns (seasonality, trends over time)
+    5. Flag anomalies or unexpected patterns in the data
+    $$
+    RESPONSE_INSTRUCTIONS = $$
+    Format your response as follows:
+    
+    **Analysis Summary:** [1-2 sentence direct answer]
+    
+    **Key Findings:**
+    - [Finding 1 with specific numbers and context]
+    - [Finding 2 with comparisons or trends]
+    
+    **Supporting Data:**
+    [Table or visualization specification if relevant]
+    
+    **Recommendations:** [Only if asked for actionable insights]
+    $$;
+```
 
 Validation:
-- [x] Changes validated against requirements
-- [x] Tests passing / linting clean
-- [x] Documentation updated
+- [x] Agent created successfully with SHOW CORTEX AGENTS
+- [x] Tool reference verified: semantic view SEM_ASSET_PERFORMANCE exists
+- [x] Planning instructions cover domain requirements
+- [x] Response instructions define clear output format
+- [x] Agent ready for testing with sample queries
+
+---
+MODE: PLAN (returned after task completion)
+
+Task complete. Cortex Agent AGENT_ASSET_PERFORMANCE_ANALYST created with semantic view tool reference. Ready for next request.
 ```
 
 ## References

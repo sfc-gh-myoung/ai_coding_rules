@@ -5,7 +5,7 @@ appliesTo:
 ---
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
-**Keywords:** Feature store, feature engineering, feature views, entity modeling, ML pipeline, ML features, ASOF JOIN, point-in-time correctness, Dynamic Tables, feature versioning
+**Keywords:** Feature store, feature engineering, feature views, entity modeling, ML pipeline, ML features, ASOF JOIN, point-in-time correctness, Dynamic Tables, feature versioning, create features, feature catalog, feature pipeline, feature management, feature discovery, ML features, feature registry, feature lineage
 **TokenBudget:** ~3450
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core, 110-snowflake-model-registry
@@ -20,7 +20,14 @@ Establish comprehensive best practices for using Snowflake Feature Store to crea
 - **Type:** Agent Requested
 - **Scope:** Snowflake Feature Store (Enterprise Edition), feature engineering, entity modeling, feature views, ML dataset creation, and Model Registry integration
 
-## Quick Start TL;DR (Read First - 30 Seconds)
+## Quick Start TL;DR (Essential Patterns Reference)
+
+**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
+- **Token efficiency:** Self-sufficient guidance for common use cases
+- **Position advantage:** Early placement benefits from attention bias
+- **Progressive disclosure:** Assessment point for full rule loading decision
+
+Position at top provides practical efficiency benefits for both LLMs and human developers.
 
 **MANDATORY:**
 **Essential Patterns:**

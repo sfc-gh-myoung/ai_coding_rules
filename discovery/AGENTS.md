@@ -36,8 +36,9 @@ for the target agent type, and file extensions are updated to match agent requir
    - **Document search results**: In "Rules Loaded" section, state which keywords were searched
    - **If RULES_INDEX.md not accessible**: Proceed with foundation + domain rules, inform user
 
-4. **State Loaded Rules**: Explicitly list all loaded rules at the start of the response
-   - Format: "## Rules Loaded\n- {rule_path}/000-global-core.md (foundation)\n- [other rules]\n\n[Then proceed with response...]"
+4. **Declare MODE and State Loaded Rules**: Declare current mode and list all loaded rules at the start of the response
+   - Format: "MODE: [PLAN|ACT]\n\n## Rules Loaded\n- {rule_path}/000-global-core.md (foundation)\n- [other rules]\n\n[Then proceed with response...]"
+   - **MODE must be first line** - Always declare MODE: PLAN (default) or MODE: ACT (after authorization)
    - **This listing is MANDATORY** - it confirms rules were loaded and helps users verify behavior
 
 5. **Then Proceed**: Continue with analysis, planning, or implementation following loaded rules
@@ -57,6 +58,7 @@ for the target agent type, and file extensions are updated to match agent requir
 ## Verification Protocol
 
 Before proceeding with ANY task, confirm:
+- **MODE declared**: Current mode (PLAN/ACT) stated at start of response
 - **Foundation loaded**: 000-global-core.md read successfully
 - **Domain identified**: Technology-specific rules identified from task keywords
 - **Dependencies resolved**: Prerequisites loaded before dependent rules (check "Depends On" column)
@@ -70,6 +72,8 @@ Before proceeding with ANY task, confirm:
 
 **Response Format Requirement:**
 ```
+MODE: [PLAN|ACT]
+
 ## Rules Loaded
 - {rule_path}/000-global-core.md (foundation)
 - {rule_path}/[domain]-core.md (e.g., 100-snowflake-core, 200-python-core)
@@ -81,13 +85,22 @@ Before proceeding with ANY task, confirm:
 **Example: Correct Approach **
 ```
 User: Fix the Streamlit fragment batch processing
-AI: Let me load the relevant rules first:
-    - Reading {rule_path}/000-global-core.md
-    - Reading {rule_path}/100-snowflake-core.md  
-    - Reading {rule_path}/101-snowflake-streamlit-core.md
-    - Reading {rule_path}/101b-snowflake-streamlit-performance.md
-    
-    Rules loaded. Now analyzing the issue against fragment best practices...
+AI: MODE: PLAN
+
+## Rules Loaded
+- {rule_path}/000-global-core.md (foundation)
+- {rule_path}/100-snowflake-core.md (Snowflake SQL patterns)
+- {rule_path}/101-snowflake-streamlit-core.md (Streamlit core patterns)
+- {rule_path}/101b-snowflake-streamlit-performance.md (performance optimization)
+
+Task Analysis:
+Analyzing Streamlit fragment batch processing issue against loaded performance patterns...
+
+Task List:
+1. [Specific tasks based on analysis]
+2. [Validation steps]
+
+[Awaits "ACT" authorization before making changes]
 ```
 
 **Example: Incorrect Approach **
@@ -388,6 +401,51 @@ Common dependency patterns:
         ├── 210b-python-fastapi-testing (tests)
         └── 210c-python-fastapi-deployment (production)
 ```
+
+### Discovering Split Rules
+
+**Pattern:** Some comprehensive topics are split across multiple rules using letter suffixes (e.g., 111a, 111b). This improves token efficiency by allowing focused loading.
+
+**Examples of Split Rule Families:**
+
+**Observability (111 Family):**
+```
+111-snowflake-observability-core (2000 tokens) - Foundation
+├── 111a-snowflake-observability-logging (1800 tokens) - Python logging patterns
+├── 111b-snowflake-observability-tracing (2000 tokens) - Distributed tracing
+└── 111c-snowflake-observability-monitoring (1900 tokens) - Snowsight monitoring
+```
+
+**Cortex Agents (115 Family):**
+```
+115-snowflake-cortex-agents-core (2200 tokens) - Agent fundamentals
+├── 115a-snowflake-cortex-agents-instructions (800 tokens) - Planning/response patterns
+└── 115b-snowflake-cortex-agents-operations (2400 tokens) - Testing, RBAC, operations
+```
+
+**Semantic Views (106 Family):**
+```
+106-snowflake-semantic-views-core (2800 tokens) - Basic DDL syntax
+├── 106a-snowflake-semantic-views-advanced (2200 tokens) - Advanced validation
+├── 106b-snowflake-semantic-views-querying (5000 tokens) - Natural language queries
+└── 106c-snowflake-semantic-views-integration (1800 tokens) - Agent integration
+```
+
+**Data Quality (124 Family):**
+```
+124-snowflake-data-quality-core (2500 tokens) - DMF fundamentals
+├── 124a-snowflake-data-quality-custom (1900 tokens) - Custom validation patterns
+└── 124b-snowflake-data-quality-operations (2200 tokens) - Monitoring and alerts
+```
+
+**Loading Strategy for Split Rules:**
+1. **Start with base rule** (e.g., `111-snowflake-observability-core.md`)
+2. **Load specialized rules as needed** (e.g., `111a-logging` for logging-specific task)
+3. **Use Keywords to discover related split rules** - Search RULES_INDEX.md Keywords column
+4. **Check "Related Rules" section** in each rule for complementary rules
+5. **Follow progressive disclosure** - Many split rules include token budget breakdowns
+
+**Migration Note:** See `RULE_SPLIT_MIGRATIONS.md` for deprecated mega-rules that were split (111, 115, 106, 124).
 
 ## Ecosystem-Specific Examples
 

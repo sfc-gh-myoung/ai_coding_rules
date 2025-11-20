@@ -2,7 +2,7 @@
 **Type:** Agent Requested
 **AppliesTo:** `**/*.sql`, `**/*.py`, `**/*.java`
 **AutoAttach:** false
-**Keywords:** Snowpipe, Snowpipe Streaming, continuous ingestion, real-time loading, auto-ingest, streaming data, micro-batching, file-based ingestion, SDK, event notifications, COPY INTO
+**Keywords:** Snowpipe, Snowpipe Streaming, continuous ingestion, real-time loading, auto-ingest, streaming data, micro-batching, file-based ingestion, SDK, event notifications, COPY INTO, create pipe, auto ingest, pipe setup, data ingestion, streaming load, pipe errors, continuous ingestion, pipe management, ingestion monitoring
 **TokenBudget:** ~5750
 **ContextTier:** High
 **Version:** 1.3
@@ -19,7 +19,14 @@ Establish comprehensive best practices for continuous data ingestion using Snowf
 - **Type:** Agent Requested
 - **Scope:** Snowpipe serverless (auto-ingest and REST API) and Snowpipe Streaming (high-performance and classic architectures) for continuous data loading
 
-## Quick Start TL;DR (Read First - 30 Seconds)
+## Quick Start TL;DR (Essential Patterns Reference)
+
+**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
+- **Token efficiency:** Self-sufficient guidance for common use cases
+- **Position advantage:** Early placement benefits from attention bias
+- **Progressive disclosure:** Assessment point for full rule loading decision
+
+Position at top provides practical efficiency benefits for both LLMs and human developers.
 
 **MANDATORY:**
 **Essential Patterns:**

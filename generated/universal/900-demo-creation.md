@@ -1,4 +1,4 @@
-**Keywords:** Demo creation, synthetic data, realistic demos, data generation, demo applications, narrative design, reproducible data, progressive disclosure
+**Keywords:** Demo creation, synthetic data, realistic demos, data generation, demo applications, narrative design, reproducible data, progressive disclosure, Streamlit, data visualization
 **TokenBudget:** ~900
 **ContextTier:** Low
 **Depends:** None

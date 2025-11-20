@@ -286,7 +286,9 @@ def render_rules_index_template(
         log_error("Template rendering incomplete - {rule_path} still present")
         sys.exit(1)
 
-    log_info(f"RULES_INDEX.md template rendered with path: {target_path}, extension: {target_extension}")
+    log_info(
+        f"RULES_INDEX.md template rendered with path: {target_path}, extension: {target_extension}"
+    )
     return rendered
 
 

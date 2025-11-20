@@ -2,7 +2,7 @@
 **Type:** Agent Requested
 **AppliesTo:** `**/*.sql`
 **AutoAttach:** false
-**Keywords:** Object tagging, tags, tag inheritance, tag-based policies, cost attribution, resource tagging, governance tags, masking policies, row access policies, tag lineage
+**Keywords:** Object tagging, tags, tag inheritance, tag-based policies, cost attribution, resource tagging, governance tags, masking policies, row access policies, tag lineage, create tags, apply tags, tag strategy, tagging best practices, tag policies, tag compliance, tag hierarchy, tag discovery, tag management
 **TokenBudget:** ~5550
 **ContextTier:** High
 **Version:** 1.3
@@ -19,7 +19,14 @@ Establish comprehensive best practices for Snowflake object tagging to enable ef
 - **Type:** Agent Requested
 - **Scope:** Snowflake object tagging for governance, cost tracking, data classification, policy enforcement, and metadata management
 
-## Quick Start TL;DR (Read First - 30 Seconds)
+## Quick Start TL;DR (Essential Patterns Reference)
+
+**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
+- **Token efficiency:** Self-sufficient guidance for common use cases
+- **Position advantage:** Early placement benefits from attention bias
+- **Progressive disclosure:** Assessment point for full rule loading decision
+
+Position at top provides practical efficiency benefits for both LLMs and human developers.
 
 **MANDATORY:**
 **Essential Patterns:**

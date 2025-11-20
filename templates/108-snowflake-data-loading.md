@@ -2,8 +2,8 @@
 **Type:** Agent Requested
 **AppliesTo:** `**/*.sql`
 **AutoAttach:** false
-**Keywords:** Data loading, COPY INTO, file formats, stages, Parquet, JSON, CSV, bulk loading, ON_ERROR, FILE_FORMAT
-**TokenBudget:** ~950
+**Keywords:** Data loading, COPY INTO, file formats, stages, Parquet, JSON, CSV, bulk loading, ON_ERROR, FILE_FORMAT, load data, external stage, internal stage, data ingestion, file upload, COPY error, loading patterns, stage files, PUT command, GET command
+**TokenBudget:** ~1250
 **ContextTier:** High
 **Version:** 1.5
 **LastUpdated:** 2025-11-07
@@ -26,7 +26,14 @@ Provide comprehensive best practices for efficiently staging and bulk loading da
 - For continuous near-real-time ingestion, use Snowpipe (see `121-snowflake-snowpipe.md`).
 - Prepare semi-structured data for subcolumnarization; be explicit about ON_ERROR and file formats.
 
-## Quick Start TL;DR (Read First - 30 Seconds)
+## Quick Start TL;DR (Essential Patterns Reference)
+
+**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
+- **Token efficiency:** Self-sufficient guidance for common use cases
+- **Position advantage:** Early placement benefits from attention bias
+- **Progressive disclosure:** Assessment point for full rule loading decision
+
+Position at top provides practical efficiency benefits for both LLMs and human developers.
 
 **MANDATORY:**
 **Essential Patterns:**
@@ -128,3 +135,18 @@ SHOW VIEWS LIKE '%view_name%';
 - **Streams and Tasks**: `104-snowflake-streams-tasks.md`
 - **Performance Tuning**: `103-snowflake-performance-tuning.md`
 - **Warehouse Management**: `119-snowflake-warehouse-management.md`
+
+## Related Rules
+
+**Closely Related** (consider loading together):
+- `100-snowflake-core` - For stage creation, COPY INTO fundamentals, and object naming
+- `103-snowflake-performance-tuning` - For optimizing COPY INTO performance and file sizing
+
+**Sometimes Related** (load if specific scenario):
+- `104-snowflake-streams-tasks` - When setting up automated loading pipelines with tasks
+- `116-snowflake-cortex-search` - When loading documents for indexing and search
+- `119-snowflake-warehouse-management` - For warehouse sizing for data loading workloads
+
+**Complementary** (different aspects of same domain):
+- `107-snowflake-security-governance` - For encryption, masking during loading, stage access
+- `111-snowflake-observability-core` - For monitoring COPY INTO performance and errors

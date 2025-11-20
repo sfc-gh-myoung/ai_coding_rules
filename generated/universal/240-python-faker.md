@@ -1,4 +1,4 @@
-**Keywords:** Faker, test data generation, fake data, providers, localization, synthetic data, pytest fixtures, seeding, deterministic testing
+**Keywords:** Faker, test data generation, fake data, providers, localization, synthetic data, pytest fixtures, seeding, deterministic testing, Python testing
 **TokenBudget:** ~2650
 **ContextTier:** Low
 **Depends:** 200-python-core

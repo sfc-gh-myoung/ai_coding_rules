@@ -4,15 +4,19 @@ Thank you for your interest in contributing to AI Coding Rules! This project pro
 
 ## 🚀 Quick Start
 
-1. **Fork** the repository on GitHub
-2. **Clone** your fork locally:
+1. **Fork** the repository on your preferred platform
+2. **Clone** your fork locally (choose one):
    ```bash
+   # GitLab:
    git clone https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git
+   # GitHub:
+   git clone https://github.com/Snowflake-Labs/ai_coding_rules.git
+   
    cd ai_coding_rules
    ```
 3. **Set up** the development environment:
    ```bash
-   task deps:dev
+   task env:deps
    ```
 4. **Create** a feature branch:
    ```bash
@@ -43,7 +47,7 @@ ai_coding_rules_gitlab/
 
 | What You're Editing | Where to Edit | What Happens |
 |---------------------|---------------|--------------|
-| Rule content | `templates/XXX-rule-name.md` | Regenerate with `task rule:all` |
+| Rule content | `templates/XXX-rule-name.md` | Regenerate with `task generate:rules:all` |
 | Discovery guide | `discovery/AGENTS.md` | Copied to `generated/universal/` |
 | Rule catalog | `discovery/RULES_INDEX.md` | Copied to `generated/universal/` |
 | Generation script | `scripts/generate_agent_rules.py` | Test with `--dry-run` flag |
@@ -60,17 +64,93 @@ We use modern Python tooling for consistent development:
 - **Task** - Simple task runner for automation
 
 ```bash
-# Install dependencies and set up environment
-task deps:dev
+# Python environment with uv (recommended)
+task env:deps              # Install development dependencies
+task env:python           # Pin Python version and create venv
 
-# Run linting and formatting checks
-task lint
-task format
-
-# Auto-fix issues
-task lint:fix
-task format:fix
+# Alternative with pip (fallback)
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+pip install -e ".[dev]"
 ```
+
+### Code Quality & Linting
+
+```bash
+# Ruff (primary linter and formatter)
+task quality:lint         # Check code with Ruff
+task quality:format       # Check formatting
+task quality:lint:fix     # Auto-fix linting issues
+task quality:format:fix   # Apply formatting
+
+# Manual commands (if task unavailable)
+uvx ruff check .          # Check linting
+uvx ruff format --check . # Check formatting
+uvx ruff format .         # Apply formatting
+```
+
+### Rule Deployment
+
+```bash
+# Deploy rules with automatic path configuration
+task deploy:universal DEST=~/my-project    # For any IDE/LLM (recommended)
+task deploy:cursor DEST=~/my-project       # For Cursor IDE
+task deploy:copilot DEST=~/my-project      # For GitHub Copilot
+task deploy:cline DEST=~/my-project        # For Cline
+
+# Deploy to current directory (omit DEST)
+cd ~/my-project
+task deploy:cursor
+```
+
+### Rule Generation & Validation
+
+```bash
+# Generate IDE-specific rules (advanced - use deployment instead for projects)
+task generate:rules:cursor         # Generate Cursor rules to generated/cursor/rules/
+task generate:rules:copilot        # Generate Copilot rules to generated/copilot/instructions/
+task generate:rules:cline          # Generate Cline rules to generated/cline/
+task generate:rules:universal      # Generate Universal rules to generated/universal/
+task generate:rules:all            # Generate all IDE-specific rules (including universal)
+
+# Optional DEST variable to change base output directory
+task generate:rules:all DEST=/custom/output
+
+# Validate rule structure (002-rule-governance.md v5.0 compliance)
+task validate:rules         # Standard validation (fails on critical errors)
+task validate:rules:verbose # Show all files including clean ones
+task validate:rules:strict  # Strict mode (fail on warnings too)
+
+# Boilerplate structural validation (deep validation with compliance scoring)
+python3 scripts/validate_agent_rules.py --directory templates --check-boilerplate-structure
+python3 scripts/validate_agent_rules.py --directory templates --check-boilerplate-structure --compliance-report
+
+# Direct validation script usage
+uv run python scripts/validate_agent_rules.py              # Standard validation
+uv run python scripts/validate_agent_rules.py --verbose    # Verbose output
+uv run python scripts/validate_agent_rules.py --fail-on-warnings  # Strict mode
+uv run python scripts/validate_agent_rules.py --check-boilerplate-structure  # Deep validation
+uv run python scripts/validate_agent_rules.py --check-boilerplate-structure --compliance-report  # With reports
+uv run python scripts/validate_agent_rules.py --help       # Show all options
+
+# Other validations
+task --list              # Validate Taskfile syntax
+uv run scripts/generate_agent_rules.py --source . --dry-run  # Test rule generation
+```
+
+### Utilities
+
+```bash
+task maintenance:clean:venv          # Remove virtual environment
+task -l                  # List all available tasks
+```
+
+### Configuration Safety Guidelines
+
+- **YAML Safety**: Avoid Unicode characters (bullets, checkmarks) that cause parsing errors
+- **Shell Quoting**: Quote arguments with special characters: `".[dev]"` not `.[dev]`
+- **Taskfile Validation**: Always test with `task --list` after YAML changes
+- **Python Packaging**: Ensure `__init__.py` files exist before `uv pip install -e .`
 
 ### Testing Your Changes
 
@@ -78,20 +158,20 @@ Before submitting a PR, ensure your changes work correctly:
 
 ```bash
 # 1. Regenerate all formats after editing templates
-task rule:all
+task generate:rules:all
 
 # 2. Test rule generation (dry-run to preview)
-task rule:cursor:dry
-task rule:copilot:dry
+task generate:rules:cursor:dry
+task generate:rules:copilot:dry
 
 # 3. Validate generated files are up-to-date
-task rule:check
+task generate:rules:cursor:check
 
 # 4. Check for linting issues
-task lint
+task quality:lint
 
 # 5. Validate formatting
-task format
+task quality:format
 ```
 
 **Important:** Always commit both the template changes AND the regenerated files:
@@ -214,8 +294,8 @@ Use our issue templates:
 ### Before Submitting
 
 - [ ] **Test** your changes locally
-- [ ] **Run** `task lint` and fix any issues
-- [ ] **Run** `task format` and ensure consistency
+- [ ] **Run** `task quality:lint` and fix any issues
+- [ ] **Run** `task quality:format` and ensure consistency
 - [ ] **Test** rule generation with `task rule:cursor --dry-run`
 - [ ] **Update** documentation if needed
 - [ ] **Add** yourself to contributors if first contribution
@@ -294,18 +374,18 @@ vim discovery/RULES_INDEX.md
 # Add: | 450 | 450-terraform-best-practices | Terraform IaC best practices | terraform, iac, infrastructure |
 
 # 4. Generate all formats
-task rule:all
+task generate:rules:all
 
 # 5. Verify generation worked
 ls -la generated/universal/450-terraform-best-practices.md
 ls -la generated/cursor/rules/450-terraform-best-practices.mdc
 
 # 6. Validate consistency
-task rule:check
+task generate:rules:cursor:check
 
 # 7. Run quality checks
-task lint
-task format
+task quality:lint
+task quality:format
 
 # 8. Commit both template and generated files
 git add templates/450-terraform-best-practices.md
@@ -333,15 +413,15 @@ vim templates/200-python-core.md
 # Make your changes...
 
 # 3. Regenerate all formats
-task rule:all
+task generate:rules:all
 
 # 4. Verify changes propagated
 git diff generated/universal/200-python-core.md
 git diff generated/cursor/rules/200-python-core.mdc
 
 # 5. Validate and test
-task rule:check
-task lint
+task generate:rules:cursor:check
+task quality:lint
 
 # 6. Commit changes
 git add templates/200-python-core.md generated/
@@ -361,7 +441,7 @@ vim generated/cursor/rules/200-python-core.mdc  # WRONG!
 ✅ **Always edit templates**
 ```bash
 vim templates/200-python-core.md  # CORRECT
-task rule:all  # Then regenerate
+task generate:rules:all  # Then regenerate
 ```
 
 ❌ **Don't forget to regenerate**
@@ -372,7 +452,7 @@ git commit  # WRONG - missing generated files!
 
 ✅ **Always regenerate and commit both**
 ```bash
-task rule:all
+task generate:rules:all
 git add templates/200-python-core.md generated/
 git commit  # CORRECT
 ```
@@ -388,8 +468,8 @@ git commit  # WRONG - generated files are stale!
 ✅ **Always validate before committing**
 ```bash
 vim templates/200-python-core.md
-task rule:all  # Regenerate
-task rule:check  # Validate consistency
+task generate:rules:all  # Regenerate
+task generate:rules:cursor:check  # Validate consistency
 git add templates/ generated/
 git commit  # CORRECT
 ```

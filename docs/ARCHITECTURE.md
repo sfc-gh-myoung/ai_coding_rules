@@ -21,7 +21,7 @@ The project follows a **universal-first architecture** where source rule files a
 │  ├── 100-snowflake-core.md      [Domain Core]              │
 │  ├── 200-python-core.md         [Language Core]            │
 │  ├── 210-python-fastapi-core.md [Framework Specific]       │
-│  └── ... (84 total rules)                                   │
+│  └── ... (84 total rules)                                  │
 │                                                            │
 │  Discovery System (Committed in Repo, deployed to root)    │
 │  ├── AGENTS.md          [AI assistant discovery guide]     │
@@ -359,6 +359,61 @@ python scripts/deploy_rules.py \
 - `cline`: Rules → `.clinerules/`, paths → `.clinerules`
 - `universal`: Rules → `rules/`, paths → `rules`
 
+### System-Wide Wrapper (`gen-rules.sh`)
+
+**Purpose:** Task-free alternative for system-wide rule generation and deployment
+
+**Location:** Project root (`gen-rules.sh`)
+
+**Key Features:**
+
+1. **Pure Shell/Python Implementation**
+   - No Task dependency required
+   - Calls Python scripts directly
+   - Simple command structure: `generate`/`deploy`/`validate`/`status`
+
+2. **Installation**
+   ```bash
+   # Copy to user bin directory
+   cp gen-rules.sh ~/bin/gen-rules
+   chmod +x ~/bin/gen-rules
+   
+   # Use from anywhere
+   gen-rules generate universal ~/my-project
+   gen-rules deploy cursor ~/another-project
+   ```
+
+3. **Command Interface**
+   ```bash
+   # Generation
+   gen-rules generate universal [destination]
+   gen-rules generate cursor [destination] [--dry-run|--check]
+   gen-rules generate all [destination]
+   
+   # Deployment
+   gen-rules deploy universal [destination]
+   gen-rules deploy cursor [destination]
+   
+   # Validation
+   gen-rules validate
+   
+   # Project status
+   gen-rules status
+   ```
+
+4. **Configuration**
+   - Auto-detects project directory from script location
+   - Override with `--project` flag or `GEN_RULES_PROJECT_DIR` env var
+   - Defaults destination to current directory
+   - Supports `--verbose` and `--debug` modes
+
+**Benefits:**
+- Works without Task installation
+- Consistent CLI experience across systems
+- Production-ready error handling
+- Meaningful exit codes (0-4)
+- Portable to any POSIX shell
+
 ## Data Flow
 
 ### Standard Generation Flow (For Contributors)
@@ -367,7 +422,7 @@ python scripts/deploy_rules.py \
 sequenceDiagram
     participant Dev as Developer
     participant Template as templates/
-    participant Task as task rule:all
+    participant Task as task generate:rules:all
     participant Gen as generate_agent_rules.py
     participant Output as generated/
     participant Git as Git
@@ -382,7 +437,7 @@ sequenceDiagram
     Note over Gen,Output: Skips AGENTS.md, RULES_INDEX.md<br/>(deployed separately)
     Dev->>Git: 4. Commit both files<br/>git add templates/ generated/
     Git->>CI: 5. Trigger validation
-    CI->>CI: task rule:check<br/>(exit non-zero if stale)
+    CI->>CI: task generate:rules:universal:check<br/>(exit non-zero if stale)
 ```
 
 ### Deployment Flow (For End Users)
@@ -432,7 +487,7 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    Dev[Developer] -->|1. task rule:legacy| Task[Taskfile]
+    Dev[Developer] -->|1. task generate:rules:legacy| Task[Taskfile]
     Task --> Gen[generate_agent_rules.py<br/>--legacy-paths]
     Gen -->|Generate| Cursor[.cursor/rules/<br/>*.mdc files]
     Gen -->|Generate| Copilot[.github/instructions/<br/>*.md files]
@@ -922,7 +977,7 @@ repos:
     hooks:
       - id: regenerate-rules
         name: Regenerate rule files
-        entry: task rule:all
+        entry: task generate:rules:all
         language: system
         pass_filenames: false
         files: ^templates/.*\.md$

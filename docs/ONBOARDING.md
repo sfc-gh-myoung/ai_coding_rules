@@ -7,7 +7,7 @@
 ## 📋 Quick Overview
 
 **What You're Setting Up:**
-- 72 specialized coding rules for AI assistants
+- 84 specialized coding rules for AI assistants
 - Automatic rule discovery and loading
 - IDE-specific configurations (Cursor, VS Code, etc.)
 - Consistent AI-assisted development across your team
@@ -62,9 +62,9 @@ task deploy:copilot DEST=~/my-project      # For GitHub Copilot
 task deploy:cline DEST=~/my-project        # For Cline
 
 # Verify deployment
-ls ~/my-project/rules/*.md | wc -l   # Universal: Should show 72+
+ls ~/my-project/rules/*.md | wc -l   # Universal: Should show 84
 # OR
-ls ~/my-project/.cursor/rules/*.mdc | wc -l  # Cursor: Should show 72+
+ls ~/my-project/.cursor/rules/*.mdc | wc -l  # Cursor: Should show 84
 ```
 
 ✅ **Success!** Rules deployed with correct paths. Skip to Step 1.2.
@@ -82,7 +82,7 @@ task deploy:universal DEST=..   # For any IDE/LLM
 task deploy:cursor DEST=..      # For Cursor IDE
 
 # Verify deployment
-cd .. && ls rules/*.md | wc -l  # Should show 72+
+cd .. && ls rules/*.md | wc -l  # Should show 84
 ```
 
 #### Option C: Deployment Without Task
@@ -101,7 +101,7 @@ cd /tmp/ai-rules
 /opt/homebrew/bin/uv run scripts/deploy_rules.py --agent universal --destination ~/my-project
 
 # Verify
-ls ~/my-project/rules/*.md | wc -l  # Should show 72+
+ls ~/my-project/rules/*.md | wc -l  # Should show 84
 ls ~/my-project/AGENTS.md ~/my-project/RULES_INDEX.md  # Both files should exist in project root
 ```
 
@@ -142,15 +142,15 @@ Which tool(s) do you use? Check all that apply:
 
 ```bash
 # For universal deployment
-ls rules/*.md | wc -l           # Expected: 72+
+ls rules/*.md | wc -l           # Expected: 84
 ls AGENTS.md RULES_INDEX.md     # Both files should exist in project root
 
 # For Cursor deployment
-ls .cursor/rules/*.mdc | wc -l  # Expected: 72+
+ls .cursor/rules/*.mdc | wc -l  # Expected: 84
 ls AGENTS.md RULES_INDEX.md     # Both files should exist in project root
 
 # For Copilot deployment
-ls .github/copilot/instructions/*.md | wc -l  # Expected: 72+
+ls .github/copilot/instructions/*.md | wc -l  # Expected: 84
 ```
 
 **All checks passed?** ✅ Continue to Phase 2.  

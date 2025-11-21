@@ -1,13 +1,13 @@
 <!-- 
 TEMPLATE NOTE: This file uses path templates for deployment flexibility
   
-Template Variable: {rule_path}
-  - cursor deployment: {rule_path} → .cursor/rules (files: *.mdc)
-  - copilot deployment: {rule_path} → .github/copilot/instructions (files: *.md)
-  - cline deployment: {rule_path} → .clinerules (files: *.md)
-  - universal deployment: {rule_path} → rules (files: *.md)
+Template Variable: .cursor/rules
+  - cursor deployment: .cursor/rules → .cursor/rules (files: *.mdc)
+  - copilot deployment: .cursor/rules → .github/copilot/instructions (files: *.md)
+  - cline deployment: .cursor/rules → .clinerules (files: *.md)
+  - universal deployment: .cursor/rules → rules (files: *.md)
 
-During deployment, {rule_path} is automatically replaced with the appropriate path
+During deployment, .cursor/rules is automatically replaced with the appropriate path
 for the target agent type, and file extensions are updated to match agent requirements
 (.md → .mdc for Cursor). This ensures rules work correctly in any deployment context.
 -->
@@ -16,82 +16,32 @@ for the target agent type, and file extensions are updated to match agent requir
 
 **BEFORE ANY RESPONSE, AI ASSISTANTS MUST:**
 
-1. **Load Foundation**: Read `{rule_path}/000-global-core.md` (always first, no exceptions)
-   - **If file not found**: STOP and inform user: "Cannot proceed - 000-global-core.md not accessible. Please verify rules are generated and in context."
-   - **If file empty**: STOP and inform user: "Rule generation may have failed - 000-global-core.md is empty."
+1. **Load Foundation**: Read `.cursor/rules/000-global-core.mdc` (always first, no exceptions)
+   - **If file not found**: STOP and inform user: "Cannot proceed - 000-global-core.mdc not accessible. Please verify rules are generated and in context."
+   - **If file empty**: STOP and inform user: "Rule generation may have failed - 000-global-core.mdc is empty."
    - **Do NOT proceed** without successfully loading this foundation
 
 2. **Load Domain Rules**: Read technology-specific rules based on task:
-   - Snowflake tasks → `{rule_path}/100-snowflake-core.md`
-   - Python tasks → `{rule_path}/200-python-core.md`
-   - Docker tasks → `{rule_path}/400-docker-best-practices.md`
-   - Shell tasks → `{rule_path}/300-bash-scripting-core.md`
+   - Snowflake tasks → `.cursor/rules/100-snowflake-core.mdc`
+   - Python tasks → `.cursor/rules/200-python-core.mdc`
+   - Docker tasks → `.cursor/rules/400-docker-best-practices.mdc`
+   - Shell tasks → `.cursor/rules/300-bash-scripting-core.mdc`
    - **If domain rule not found**: Proceed with 000-global-core only, but inform user which domain rule is missing
 
-3. **Load Language Rules by File Type** (MANDATORY - Even for "simple" tasks):
-   **Analyze file extensions** from the task or workspace to identify required language rules:
-   
-   | File Extension | Required Core Rule | When to Load |
-   |----------------|-------------------|--------------|
-   | `.py`, `.pyi` | `{rule_path}/200-python-core.md` | Any Python file editing |
-   | `pyproject.toml`, `setup.py` | `{rule_path}/200-python-core.md` | Python project config |
-   | `.sql` | `{rule_path}/100-snowflake-core.md` | SQL file editing |
-   | `Dockerfile`, `docker-compose.yml` | `{rule_path}/400-docker-best-practices.md` | Docker file editing |
-   | `.sh`, `.bash`, `.zsh` | `{rule_path}/300-bash-scripting-core.md` | Shell script editing |
-   | `.md` (in `templates/`, `discovery/`) | `{rule_path}/002-rule-governance.md` | Rule file editing |
-   | Python + `streamlit run` | `{rule_path}/101-snowflake-streamlit-core.md` | Streamlit app tasks |
-   
-   **CRITICAL:** Load language rules even for:
-   - "Simple" tasks like linting, formatting, syntax fixes
-   - Code review, typo fixes, comment updates
-   - Adding type hints, docstrings, or imports
-   
-   **Why:** These tasks require understanding of:
-   - Language-specific tooling (Ruff for Python, shellcheck for bash)
-   - Best practices and anti-patterns
-   - Project structure conventions
-   - Dependency management patterns
-   
-   **Examples:**
-   - Task: "Fix linting in scripts/validate.py" → Load 200-python-core (Python file type)
-   - Task: "Add comments to queries.sql" → Load 100-snowflake-core (SQL file type)
-   - Task: "Optimize Dockerfile" → Load 400-docker-best-practices (Docker file type)
-
-4. **Load Specialized Rules by Activity Keywords**: Read task-specific rules from `RULES_INDEX.md` Keywords column
-   - **MANDATORY:** Extract BOTH file type AND activity keywords from the task
-   - **Activity Keywords to Search**:
-   
-   | User Task Contains | Activity Type | Keywords to Search |
-   |--------------------|--------------|-------------------|
-   | "lint", "format", "code quality", "style" | Code quality | `linting`, `formatting`, `code quality`, `Ruff` |
-   | "test", "pytest", "coverage", "fixtures" | Testing | `pytest`, `testing`, `fixtures`, `coverage` |
-   | "optimize", "performance", "slow", "cache" | Performance | `optimization`, `performance`, `caching`, `profiling` |
-   | "secure", "auth", "validate input", "XSS" | Security | `security`, `authentication`, `validation`, `XSS` |
-   | "deploy", "CI/CD", "Docker", "release" | Deployment | `deployment`, `CI/CD`, `Docker`, `automation` |
-   | "document", "docstring", "README", "comments" | Documentation | `documentation`, `docstrings`, `README`, `comments` |
-   
-   - **Search Process**:
-     1. Extract file extensions (e.g., `.py` from "scripts/validate.py")
-     2. Extract activity keywords (e.g., "linting" from "fix linting errors")
-     3. Search RULES_INDEX.md Keywords column for activity matches
-     4. Prioritize rules matching BOTH file type AND activity
-     5. Check "Depends On" column and load prerequisites first
-   
-   - **Example - "Fix linting in Python files"**:
-     - File type: `.py` → Load `200-python-core.md`
-     - Activity: "linting" → Search RULES_INDEX.md for "linting" → Find `201-python-lint-format.md`
-     - Result: Load both 200-python-core + 201-python-lint-format
-   
+3. **Load Specialized Rules**: Read task-specific rules from `RULES_INDEX.md` Keywords column
+   - **MANDATORY:** Explicitly search Keywords column for terms matching your task
+   - **Extract task keywords**: Identify technology terms (pytest, FastAPI, Docker) AND activity terms (testing, deployment, validation)
+   - **Search RULES_INDEX.md**: Use extracted keywords to find matching rules in Keywords column
+   - **Check "Depends On" column**: Load prerequisites before dependent rules
    - **Document search results**: In "Rules Loaded" section, state which keywords were searched
-   - **If RULES_INDEX.md not accessible**: Proceed with foundation + language rules, inform user
+   - **If RULES_INDEX.md not accessible**: Proceed with foundation + domain rules, inform user
 
-5. **Declare MODE and State Loaded Rules**: Declare current mode and list all loaded rules at the start of the response
-   - Format: "MODE: [PLAN|ACT]\n\n## Rules Loaded\n- {rule_path}/000-global-core.md (foundation)\n- {rule_path}/200-python-core.md (Python file type: .py detected)\n- {rule_path}/201-python-lint-format.md (activity: linting keyword matched)\n\n[Then proceed with response...]"
+4. **Declare MODE and State Loaded Rules**: Declare current mode and list all loaded rules at the start of the response
+   - Format: "MODE: [PLAN|ACT]\n\n## Rules Loaded\n- .cursor/rules/000-global-core.mdc (foundation)\n- [other rules]\n\n[Then proceed with response...]"
    - **MODE must be first line** - Always declare MODE: PLAN (default) or MODE: ACT (after authorization)
    - **This listing is MANDATORY** - it confirms rules were loaded and helps users verify behavior
-   - **Document your analysis**: State which file types detected and which keywords matched
 
-6. **Then Proceed**: Continue with analysis, planning, or implementation following loaded rules
+5. **Then Proceed**: Continue with analysis, planning, or implementation following loaded rules
 
 **This protocol applies to EVERY response, including:**
 - Initial task analysis and planning
@@ -109,35 +59,25 @@ for the target agent type, and file extensions are updated to match agent requir
 
 Before proceeding with ANY task, confirm:
 - **MODE declared**: Current mode (PLAN/ACT) stated at start of response
-- **Foundation loaded**: 000-global-core.md read successfully
-- **File types analyzed**: Identified all file extensions being edited
-- **Language rules loaded**: Loaded core rules for each file type (.py → 200-python-core, etc.)
-- **Activity keywords extracted**: Identified task type (linting, testing, deployment, etc.)
-- **Specialized rules loaded**: Loaded activity-specific rules from RULES_INDEX.md
+- **Foundation loaded**: 000-global-core.mdc read successfully
+- **Domain identified**: Technology-specific rules identified from task keywords
 - **Dependencies resolved**: Prerequisites loaded before dependent rules (check "Depends On" column)
 - **Token budget tracked**: Cumulative tokens within recommended limits (see token budget table)
-- **Rules stated**: Loaded rules explicitly listed at start of response with analysis explanation
+- **Rules stated**: Loaded rules explicitly listed at start of response
 
 **If any check fails**: 
 - STOP and inform user which requirement failed
 - Provide specific file path or missing dependency
 - Request user add missing files to context before proceeding
 
-**Common Mistakes to Avoid:**
-- ❌ Loading only 000-global-core for Python editing tasks
-- ❌ Skipping language rules for "simple" tasks (linting, formatting, syntax fixes)
-- ❌ Not analyzing file extensions before selecting rules
-- ❌ Not searching RULES_INDEX.md Keywords column for activity matches
-- ❌ Loading rules AFTER starting code edits instead of BEFORE
-
 **Response Format Requirement:**
 ```
 MODE: [PLAN|ACT]
 
 ## Rules Loaded
-- {rule_path}/000-global-core.md (foundation)
-- {rule_path}/[domain]-core.md (e.g., 100-snowflake-core, 200-python-core)
-- {rule_path}/[specialized].md (task-specific rules)
+- .cursor/rules/000-global-core.mdc (foundation)
+- .cursor/rules/[domain]-core.mdc (e.g., 100-snowflake-core, 200-python-core)
+- .cursor/rules/[specialized].mdc (task-specific rules)
 
 [Then proceed with response...]
 ```
@@ -148,10 +88,10 @@ User: Fix the Streamlit fragment batch processing
 AI: MODE: PLAN
 
 ## Rules Loaded
-- {rule_path}/000-global-core.md (foundation)
-- {rule_path}/100-snowflake-core.md (Snowflake SQL patterns)
-- {rule_path}/101-snowflake-streamlit-core.md (Streamlit core patterns)
-- {rule_path}/101b-snowflake-streamlit-performance.md (performance optimization)
+- .cursor/rules/000-global-core.mdc (foundation)
+- .cursor/rules/100-snowflake-core.mdc (Snowflake SQL patterns)
+- .cursor/rules/101-snowflake-streamlit-core.mdc (Streamlit core patterns)
+- .cursor/rules/101b-snowflake-streamlit-performance.mdc (performance optimization)
 
 Task Analysis:
 Analyzing Streamlit fragment batch processing issue against loaded performance patterns...
@@ -163,68 +103,10 @@ Task List:
 [Awaits "ACT" authorization before making changes]
 ```
 
-**Example: Incorrect Approach ❌**
+**Example: Incorrect Approach **
 ```
 User: Fix the Streamlit fragment batch processing
 AI: *immediately starts debugging code without loading rules*
-```
-
-**Example: Python Linting Task**
-```
-User: Fix linting issues in scripts/validate_agent_rules.py
-
-AI: MODE: PLAN
-
-## Rules Loaded
-- {rule_path}/000-global-core.md (foundation)
-- {rule_path}/200-python-core.md (file type: .py detected)
-- {rule_path}/201-python-lint-format.md (activity: "linting" keyword matched in RULES_INDEX.md)
-
-File type analysis: Detected .py file → Python language rules required
-Activity analysis: "linting issues" → Searched RULES_INDEX.md Keywords: "Ruff, linting, code quality" → Matched 201-python-lint-format.md
-
-Task Analysis:
-Based on 201-python-lint-format.md, will use Ruff to identify specific violations...
-[Proceeds with analysis]
-```
-
-**Example: Streamlit Performance Task**
-```
-User: Optimize this Streamlit app's dashboard loading time
-
-AI: MODE: PLAN
-
-## Rules Loaded
-- {rule_path}/000-global-core.md (foundation)
-- {rule_path}/100-snowflake-core.md (Snowflake dependency for Streamlit)
-- {rule_path}/101-snowflake-streamlit-core.md (file type: Streamlit app detected)
-- {rule_path}/101b-snowflake-streamlit-performance.md (activity: "optimize" keyword matched)
-- {rule_path}/103-snowflake-performance-tuning.md (dependency from 101b)
-
-File type analysis: Streamlit app (.py with st. imports) → Load 101-snowflake-streamlit-core.md
-Activity analysis: "optimize performance" → Searched RULES_INDEX.md Keywords: "performance, caching, data loading" → Matched 101b-snowflake-streamlit-performance.md
-Dependency analysis: 101b depends on 103-snowflake-performance-tuning.md → Load prerequisite
-
-Task Analysis:
-Based on 101b-snowflake-streamlit-performance.md, will analyze caching patterns, query optimization...
-[Proceeds with analysis]
-```
-
-**Example: Testing Task Without pytest Rule ❌ Common Mistake**
-```
-User: Add unit tests for the data validation functions
-
-AI: MODE: PLAN
-
-## Rules Loaded
-- {rule_path}/000-global-core.md (foundation)
-- {rule_path}/200-python-core.md (Python file type)
-
-❌ MISSING: 206-python-pytest.md - Task involves "tests" keyword but pytest rule not loaded!
-
-CORRECT approach should be:
-- Search RULES_INDEX.md for "testing", "pytest", "fixtures"
-- Load 206-python-pytest.md for testing patterns
 ```
 
 ---
@@ -294,16 +176,16 @@ Total: ~6,200-7,000 tokens for complete context
 Before loading rules, extract keywords from the user's task description to ensure you load ALL relevant rules:
 
 **Technology Keywords** (trigger domain rules):
-- Python, pytest, FastAPI, Flask, Typer, Pydantic, pandas → 200-python-core.md + specialized rules
-- Snowflake, SQL, Streamlit, Cortex, SPCS → 100-snowflake-core.md + specialized rules
-- Docker, containers, multi-stage builds → 400-docker-best-practices.md
-- Bash, shell, zsh → 300-bash-scripting-core.md or 310-zsh-scripting-core.md
+- Python, pytest, FastAPI, Flask, Typer, Pydantic, pandas → 200-python-core.mdc + specialized rules
+- Snowflake, SQL, Streamlit, Cortex, SPCS → 100-snowflake-core.mdc + specialized rules
+- Docker, containers, multi-stage builds → 400-docker-best-practices.mdc
+- Bash, shell, zsh → 300-bash-scripting-core.mdc or 310-zsh-scripting-core.mdc
 
 **Activity Keywords** (trigger specialized rules):
-- **testing, test coverage, unit tests, integration tests, fixtures, mocking** → 206-python-pytest.md
-- deployment, CI/CD, automation, workflow → 820-taskfile-automation.md, 806-git-workflow-management.md
-- validation, linting, formatting, code quality → 201-python-lint-format.md
-- documentation, docs, docstrings, README, CHANGELOG → 204-python-docs-comments.md, 800-project-changelog-rules.md
+- **testing, test coverage, unit tests, integration tests, fixtures, mocking** → 206-python-pytest.mdc
+- deployment, CI/CD, automation, workflow → 820-taskfile-automation.mdc, 806-git-workflow-management.mdc
+- validation, linting, formatting, code quality → 201-python-lint-format.mdc
+- documentation, docs, docstrings, README, CHANGELOG → 204-python-docs-comments.mdc, 800-project-changelog-rules.mdc
 - security, authentication, authorization, XSS, SQL injection → *-security.md rules
 - performance, optimization, caching, slow queries → *-performance*.md rules
 
@@ -322,16 +204,16 @@ Keywords extracted:
 - Activity: testing, fixtures, database
 
 Rules to load:
-1. 000-global-core.md (foundation - always load)
-2. 200-python-core.md (Python domain rule)
-3. 206-python-pytest.md (MATCH on "pytest, testing, fixtures" keywords)
+1. 000-global-core.mdc (foundation - always load)
+2. 200-python-core.mdc (Python domain rule)
+3. 206-python-pytest.mdc (MATCH on "pytest, testing, fixtures" keywords)
 4. Check RULES_INDEX for database-specific rules → no exact match, use general patterns
 
 Rules Loaded section:
 ## Rules Loaded
-- rules/000-global-core.md (foundation)
-- rules/200-python-core.md (Python domain)
-- rules/206-python-pytest.md (keywords: testing, fixtures - matched "pytest fixtures")
+- rules/000-global-core.mdc (foundation)
+- rules/200-python-core.mdc (Python domain)
+- rules/206-python-pytest.mdc (keywords: testing, fixtures - matched "pytest fixtures")
 ```
 
 ### Self-Check Protocol: Did I Load the Right Rules?
@@ -339,7 +221,7 @@ Rules Loaded section:
 **Before responding, verify you completed ALL steps:**
 
 **Foundation Check:**
-- [ ] Loaded 000-global-core.md? (MANDATORY for all tasks)
+- [ ] Loaded 000-global-core.mdc? (MANDATORY for all tasks)
 - [ ] Confirmed file loaded successfully (not empty)?
 
 **Domain Check:**
@@ -350,7 +232,7 @@ Rules Loaded section:
 - [ ] Extracted task keywords? (List them: e.g., "testing, pytest, fixtures")
 - [ ] Searched RULES_INDEX.md Keywords column for matches?
 - [ ] Found and loaded specialized rules matching keywords?
-- [ ] **If testing task**: Loaded 206-python-pytest.md?
+- [ ] **If testing task**: Loaded 206-python-pytest.mdc?
 - [ ] **If deployment task**: Loaded relevant deployment/automation rules?
 - [ ] **If documentation task**: Loaded relevant docs rules?
 
@@ -368,31 +250,31 @@ Rules Loaded section:
 
 **Pitfall 1: Testing Tasks Without pytest Rule** ⚠️
 - **Trigger words**: testing, test coverage, unit tests, integration tests, fixtures, parametrization
-- **Required rule**: 206-python-pytest.md
+- **Required rule**: 206-python-pytest.mdc
 - **Why critical**: Contains AAA pattern, fixture patterns, marker usage, parametrization, Pre-Task-Completion Test Execution Gate
 - **Keywords to search**: "pytest", "testing", "test coverage", "fixtures"
 
 **Pitfall 2: Python Tasks Without Linting Rule** ⚠️
 - **Trigger words**: Python, code quality, formatting, style, lint errors
-- **Required rules**: 200-python-core.md + 201-python-lint-format.md
+- **Required rules**: 200-python-core.mdc + 201-python-lint-format.mdc
 - **Why critical**: Contains `uvx ruff` usage, validation gates, linting standards
 - **Keywords to search**: "Python", "linting", "formatting", "ruff"
 
 **Pitfall 3: Deployment Tasks Without Taskfile/Git Rules** ⚠️
 - **Trigger words**: deploy, CI/CD, automation, workflow, release
-- **Required rules**: 820-taskfile-automation.md, 806-git-workflow-management.md
+- **Required rules**: 820-taskfile-automation.mdc, 806-git-workflow-management.mdc
 - **Why critical**: Contains deployment patterns, git workflow management, task automation
 - **Keywords to search**: "deployment", "CI/CD", "automation", "git workflow"
 
 **Pitfall 4: Documentation Tasks Without Docs Rules** ⚠️
 - **Trigger words**: documentation, docs, README, CHANGELOG, docstrings
-- **Required rules**: 800-project-changelog-rules.md, 801-project-readme-rules.md, 204-python-docs-comments.md
+- **Required rules**: 800-project-changelog-rules.mdc, 801-project-readme-rules.mdc, 204-python-docs-comments.mdc
 - **Why critical**: Contains structured documentation standards, changelog format, docstring conventions
 - **Keywords to search**: "documentation", "CHANGELOG", "README", "docstrings"
 
 **Pitfall 5: Streamlit Tasks Without Streamlit Rules** ⚠️
 - **Trigger words**: Streamlit, dashboard, st.cache, fragments, SiS
-- **Required rules**: 101-snowflake-streamlit-core.md + specialized 101*-streamlit-*.md
+- **Required rules**: 101-snowflake-streamlit-core.mdc + specialized 101*-streamlit-*.md
 - **Why critical**: Contains state management, caching, performance patterns
 - **Keywords to search**: "Streamlit", "dashboard", "caching", "fragments"
 
@@ -411,13 +293,13 @@ Rules Loaded section:
 Parse metadata fields programmatically:
 ```bash
 # Find rules by keywords
-grep "**Keywords:**.*Snowflake" {rule_path}/*.md
+grep "**Keywords:**.*Snowflake" .cursor/rules/*.md
 
 # Extract dependencies
-grep "**Depends:**" {rule_path}/101-snowflake-streamlit-core.md
+grep "**Depends:**" .cursor/rules/101-snowflake-streamlit-core.mdc
 
 # Get token budgets for planning
-grep "**TokenBudget:**" {rule_path}/*.md | awk -F: '{print $1 ": " $3}'
+grep "**TokenBudget:**" .cursor/rules/*.md | awk -F: '{print $1 ": " $3}'
 ```
 
 Use RULES_INDEX.md for structured discovery:
@@ -432,16 +314,16 @@ The RULES_INDEX.md file is a Markdown table with the following columns:
 ```markdown
 | File | Type | Purpose | Scope | Keywords/Hints | Depends On |
 |------|------|---------|-------|----------------|------------|
-| `000-global-core.md` | Auto-attach | Core operating contract | Universal | PLAN mode, ACT mode, workflow, safety | — |
-| `100-snowflake-core.md` | Agent Requested | Snowflake SQL rules | Snowflake | Snowflake, SQL, CTE, performance | `000-global-core.md` |
-| `101-snowflake-streamlit-core.md` | Agent Requested | Streamlit patterns | Streamlit | Streamlit, SiS, SPCS, dashboard | `100-snowflake-core.md` |
-| `200-python-core.md` | Agent Requested | Python engineering | Python | Python, uv, Ruff, pyproject.toml | `000-global-core.md` |
+| `000-global-core.mdc` | Auto-attach | Core operating contract | Universal | PLAN mode, ACT mode, workflow, safety | — |
+| `100-snowflake-core.mdc` | Agent Requested | Snowflake SQL rules | Snowflake | Snowflake, SQL, CTE, performance | `000-global-core.mdc` |
+| `101-snowflake-streamlit-core.mdc` | Agent Requested | Streamlit patterns | Streamlit | Streamlit, SiS, SPCS, dashboard | `100-snowflake-core.mdc` |
+| `200-python-core.mdc` | Agent Requested | Python engineering | Python | Python, uv, Ruff, pyproject.toml | `000-global-core.mdc` |
 ```
 
 **How to parse and use**:
 1. **Search Keywords/Hints column** for terms matching your task (e.g., "Streamlit", "FastAPI", "performance")
 2. **Identify matching rules** by scanning keywords
-3. **Check Depends On column** for prerequisites (e.g., `101-snowflake-streamlit-core.md` depends on `100-snowflake-core.md`)
+3. **Check Depends On column** for prerequisites (e.g., `101-snowflake-streamlit-core.mdc` depends on `100-snowflake-core.mdc`)
 4. **Load in dependency order**: Load prerequisites before dependent rules
 5. **Track Type**: Auto-attach rules load automatically; Agent Requested rules load on-demand based on task
 
@@ -457,12 +339,12 @@ task rule:cursor
 #### VS Code
 - Add rules to `.vscode/ai-rules/`
 - Reference in workspace settings
-- Use universal format from `{rule_path}/` directory
+- Use universal format from `.cursor/rules/` directory
 
 #### IntelliJ
 - Add to project `.idea/aiRules/`
 - Configure in AI Assistant settings
-- Use universal format from `{rule_path}/` directory
+- Use universal format from `.cursor/rules/` directory
 
 ## Rule Discovery Methods
 
@@ -557,7 +439,7 @@ Common dependency patterns:
 ```
 
 **Loading Strategy for Split Rules:**
-1. **Start with base rule** (e.g., `111-snowflake-observability-core.md`)
+1. **Start with base rule** (e.g., `111-snowflake-observability-core.mdc`)
 2. **Load specialized rules as needed** (e.g., `111a-logging` for logging-specific task)
 3. **Use Keywords to discover related split rules** - Search RULES_INDEX.md Keywords column
 4. **Check "Related Rules" section** in each rule for complementary rules
@@ -681,7 +563,7 @@ Tokens: ~3000-5000
 
 ### Rule Not Found
 - Check RULES_INDEX.md for exact filename
-- Verify you're in the correct directory (`{rule_path}/`)
+- Verify you're in the correct directory (`.cursor/rules/`)
 - Ensure rule hasn't been renamed
 
 ### Missing Dependencies
@@ -703,8 +585,8 @@ Tokens: ~3000-5000
 
 ### Essential Files
 - **@RULES_INDEX.md** - Complete rule catalog with metadata
-- **@{rule_path}/000-global-core.md** - Foundational principles (load first)
-- **@{rule_path}/002-rule-governance.md** - How rules are structured
+- **@.cursor/rules/000-global-core.mdc** - Foundational principles (load first)
+- **@.cursor/rules/002-rule-governance.mdc** - How rules are structured
 - **README.md** - Project documentation and setup
 
 ### External Documentation

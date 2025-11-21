@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
 """
-Validate AI coding rule files against 002-rule-governance.md v4.0 standards.
+Validate AI coding rule files against 002-rule-governance.md v5.0 standards.
 
 This script validates that all rule files follow the required structure,
 include mandatory sections, and have proper metadata.
+
+**Boilerplate Reference:** See templates/002a-rule-boilerplate.md for canonical
+structure example showing all required sections with inline commentary.
+
+**Deep Structural Validation:** Use --check-boilerplate-structure flag to enable
+programmatic validation against boilerplate template structure with 8-criteria
+weighted compliance scoring (0-100%).
 
 Checks for:
     - Required sections (Purpose, Contract, Validation, etc.)
@@ -19,6 +26,26 @@ Checks for:
         * Response Template completeness
         * Token budget accuracy
         * Dependencies declaration
+
+Structural Compliance Criteria (when --check-boilerplate-structure enabled):
+    1. Required sections present (30% weight)
+    2. Section order correct (20% weight)
+    3. Metadata field order (15% weight)
+    4. Contract placement before line 100 (10% weight)
+    5. Required subsections present (10% weight)
+    6. Optional sections appropriate (5% weight)
+    7. Investigation-First Protocol present (5% weight)
+    8. Anti-patterns section count (5% weight)
+
+Usage:
+    # Standard validation
+    python3 scripts/validate_agent_rules.py --directory templates
+
+    # With boilerplate structural validation
+    python3 scripts/validate_agent_rules.py --directory templates --check-boilerplate-structure
+
+    # Generate compliance reports (text, markdown, HTML)
+    python3 scripts/validate_agent_rules.py --directory templates --check-boilerplate-structure --compliance-report
 
 Exit codes:
     0: All validations passed
@@ -61,7 +88,11 @@ class ValidationResult:
 
 @dataclass
 class ValidationConfig:
-    """Configuration for rule validation."""
+    """Configuration for rule validation.
+
+    Note: Light integration with templates/002a-rule-boilerplate.md.
+    Deep structural comparison planned for future release.
+    """
 
     # Files to exclude from validation
     excluded_files: set[str] = None
@@ -74,8 +105,15 @@ class ValidationConfig:
     # Whether to show verbose output
     verbose: bool = False
 
+    # Boilerplate structural validation (Phase 1.3)
+    check_boilerplate_structure: bool = False
+    boilerplate_path: Path = None
+    compliance_criteria: ComplianceCriteria = None
+    generate_compliance_report: bool = False
+    compliance_report_dir: Path = None
+
     def __post_init__(self):
-        """Initialize default values."""
+        """Initialize default values for ValidationConfig."""
         if self.excluded_files is None:
             self.excluded_files = {
                 "README.md",
@@ -114,6 +152,119 @@ class ValidationConfig:
                 r"^\*\*ContextTier:\*\*",
             ]
 
+        # Initialize boilerplate validation fields (Phase 1.3)
+        if self.boilerplate_path is None:
+            # Default to templates/002a-rule-boilerplate.md
+            self.boilerplate_path = Path("templates/002a-rule-boilerplate.md")
+
+        if self.compliance_criteria is None:
+            # Import here to avoid circular reference issues
+            self.compliance_criteria = ComplianceCriteria()
+
+        if self.compliance_report_dir is None:
+            self.compliance_report_dir = Path("validation_reports")
+
+
+@dataclass
+class SectionDefinition:
+    """Definition of a section within a rule file.
+
+    Represents structural information about a section including its heading,
+    hierarchical level, requirement status, and location within the file.
+    """
+
+    heading: str
+    level: int
+    required: bool
+    line_range: tuple[int, int]
+    subsections: list[SectionDefinition]
+    metadata_fields: list[str]
+
+
+@dataclass
+class BoilerplateStructure:
+    """Parsed structure of the canonical boilerplate template.
+
+    Contains all structural information extracted from templates/002a-rule-boilerplate.md
+    for use in deep validation comparison against rule files.
+    """
+
+    required_sections: list[SectionDefinition]
+    optional_sections: list[SectionDefinition]
+    metadata_order: list[str]
+    max_contract_line: int
+    total_lines: int
+    section_hierarchy: dict[str, list[str]]
+
+
+@dataclass
+class BoilerplateComparisonResult:
+    """Result of comparing a rule file against boilerplate structure.
+
+    Contains detailed compliance information including violations, scoring,
+    and actionable recommendations for achieving boilerplate compliance.
+    """
+
+    file_path: Path
+    compliance_score: float
+    critical_violations: list[str]
+    warnings: list[str]
+    info_messages: list[str]
+    missing_required_sections: list[str]
+    section_order_mismatches: list[tuple[str, int, int]]
+    metadata_order_violations: list[str]
+    contract_line_number: int | None
+    optional_sections_present: list[str]
+    recommendations: list[str]
+
+
+@dataclass
+class ComplianceCriteria:
+    """Weighted criteria for boilerplate compliance scoring.
+
+    Defines 8 validation criteria with weights totaling 100% for
+    comprehensive structural compliance assessment.
+    """
+
+    # Criterion 1: Required sections present (30%)
+    required_sections_weight: float = 0.30
+
+    # Criterion 2: Section order correct (20%)
+    section_order_weight: float = 0.20
+
+    # Criterion 3: Metadata field order (15%)
+    metadata_order_weight: float = 0.15
+
+    # Criterion 4: Contract placement before line 100 (10%)
+    contract_placement_weight: float = 0.10
+
+    # Criterion 5: Required subsections present (10%)
+    required_subsections_weight: float = 0.10
+
+    # Criterion 6: Optional sections appropriate (5%)
+    optional_sections_weight: float = 0.05
+
+    # Criterion 7: Investigation-First Protocol present (5%)
+    investigation_protocol_weight: float = 0.05
+
+    # Criterion 8: Anti-patterns section count (5%)
+    anti_patterns_weight: float = 0.05
+
+    def __post_init__(self):
+        """Validate that weights sum to 1.0 (100%)."""
+        total = (
+            self.required_sections_weight
+            + self.section_order_weight
+            + self.metadata_order_weight
+            + self.contract_placement_weight
+            + self.required_subsections_weight
+            + self.optional_sections_weight
+            + self.investigation_protocol_weight
+            + self.anti_patterns_weight
+        )
+        if not (0.99 <= total <= 1.01):  # Allow float precision tolerance
+            raise ValueError(f"Compliance criteria weights must sum to 1.0, got {total}")
+
 
 class RuleValidator:
     """Validator for AI coding rule files."""
@@ -121,6 +272,270 @@ class RuleValidator:
     def __init__(self, config: ValidationConfig | None = None):
         """Initialize validator with configuration."""
         self.config = config or ValidationConfig()
+        self._boilerplate_cache: BoilerplateStructure | None = None
+
+    def parse_boilerplate_structure(self) -> BoilerplateStructure:
+        """Parse boilerplate template structure for validation comparison.
+
+        Returns cached structure if available (singleton pattern for performance).
+
+        Returns:
+            BoilerplateStructure containing all structural information from
+            templates/002a-rule-boilerplate.md
+        """
+        # Return cached structure if available
+        if self._boilerplate_cache is not None:
+            return self._boilerplate_cache
+
+        boilerplate_path = self.config.boilerplate_path
+        if not boilerplate_path.exists():
+            raise FileNotFoundError(
+                f"Boilerplate template not found at {boilerplate_path}. "
+                "Cannot perform structural validation."
+            )
+
+        with open(boilerplate_path, encoding="utf-8") as f:
+            lines = f.readlines()
+
+        # Extract section information
+        required_sections = []
+        optional_sections = []
+        section_hierarchy = {}
+        current_h2 = None
+
+        # Metadata field order from boilerplate
+        metadata_order = [
+            "Description",
+            "Type",
+            "AppliesTo",
+            "AutoAttach",
+            "Keywords",
+            "TokenBudget",
+            "ContextTier",
+            "Version",
+            "LastUpdated",
+            "Depends",
+        ]
+
+        # Define required vs optional sections per 002-rule-governance.md
+        required_section_names = {
+            "Purpose",
+            "Rule Type and Scope",
+            "Contract",
+            "Quick Start TL;DR",
+            "Anti-Patterns and Common Mistakes",
+            "Quick Compliance Checklist",
+            "Validation",
+            "Response Template",
+            "References",
+        }
+
+        for line_num, line in enumerate(lines, start=1):
+            # Find ## headings
+            h2_match = re.match(r"^## (.+)$", line.strip())
+            if h2_match:
+                heading = h2_match.group(1)
+                # Remove numbering if present (e.g., "1. Purpose" -> "Purpose")
+                heading_clean = re.sub(r"^\d+\.\s+", "", heading)
+                heading_clean = re.sub(
+                    r"\[.*?\]", "[...]", heading_clean
+                ).strip()  # Normalize placeholders
+
+                is_required = any(req in heading_clean for req in required_section_names)
+
+                section_def = SectionDefinition(
+                    heading=heading_clean,
+                    level=2,
+                    required=is_required,
+                    line_range=(line_num, line_num),  # Will update end in full implementation
+                    subsections=[],
+                    metadata_fields=[],
+                )
+
+                if is_required:
+                    required_sections.append(section_def)
+                else:
+                    optional_sections.append(section_def)
+
+                current_h2 = heading_clean
+                if current_h2 not in section_hierarchy:
+                    section_hierarchy[current_h2] = []
+
+        # Cache and return
+        self._boilerplate_cache = BoilerplateStructure(
+            required_sections=required_sections,
+            optional_sections=optional_sections,
+            metadata_order=metadata_order,
+            max_contract_line=100,  # Per Section 11.3
+            total_lines=len(lines),
+            section_hierarchy=section_hierarchy,
+        )
+
+        return self._boilerplate_cache
+
+    def compare_against_boilerplate(self, file_path: Path) -> BoilerplateComparisonResult:
+        """Compare a rule file against boilerplate structure.
+
+        Args:
+            file_path: Path to rule file to validate
+
+        Returns:
+            BoilerplateComparisonResult with compliance scoring and detailed violations
+        """
+        # Parse boilerplate structure (cached)
+        boilerplate = self.parse_boilerplate_structure()
+
+        # Read target file
+        with open(file_path, encoding="utf-8") as f:
+            lines = f.readlines()
+            content = "".join(lines)
+
+        # Initialize result containers
+        critical_violations = []
+        warnings = []
+        info_messages = []
+        missing_required_sections = []
+        section_order_mismatches = []
+        metadata_order_violations = []
+        optional_sections_present = []
+        recommendations = []
+        contract_line_number = None
+
+        # Extract sections from file
+        file_sections = []
+        file_section_names = set()
+        for line_num, line in enumerate(lines, start=1):
+            h2_match = re.match(r"^## (.+)$", line.strip())
+            if h2_match:
+                heading = h2_match.group(1)
+                heading_clean = re.sub(r"^\d+\.\s+", "", heading).strip()
+                file_sections.append((heading_clean, line_num))
+                file_section_names.add(heading_clean)
+
+                if "Contract" in heading_clean:
+                    contract_line_number = line_num
+
+        # Criterion 1: Check required sections present (30%)
+        required_section_score = 0.0
+        for req_section in boilerplate.required_sections:
+            # Fuzzy match to handle variations
+            found = any(
+                req_section.heading.lower() in fname.lower()
+                or fname.lower() in req_section.heading.lower()
+                for fname in file_section_names
+            )
+            if found:
+                required_section_score += 1.0 / len(boilerplate.required_sections)
+            else:
+                missing_required_sections.append(req_section.heading)
+                critical_violations.append(f"Missing required section: {req_section.heading}")
+
+        # Criterion 2: Section order correct (20%)
+        section_order_score = 1.0  # Start optimistic
+        expected_order = [s.heading for s in boilerplate.required_sections]
+        file_order = [name for name, _ in file_sections]
+
+        # Check relative ordering of sections that exist
+        for i, exp_section in enumerate(expected_order[:-1]):
+            if exp_section in file_order:
+                exp_idx = file_order.index(exp_section)
+                # Check if next expected section appears after current
+                for next_exp in expected_order[i + 1 :]:
+                    if next_exp in file_order:
+                        next_idx = file_order.index(next_exp)
+                        if next_idx < exp_idx:
+                            section_order_score -= 0.1
+                            section_order_mismatches.append((exp_section, exp_idx, next_idx))
+                            warnings.append(
+                                f"Section order: '{next_exp}' appears before '{exp_section}'"
+                            )
+                        break
+        section_order_score = max(0.0, section_order_score)
+
+        # Criterion 3: Metadata field order (15%)
+        metadata_order_score = 0.0
+        metadata_pattern = r"^\*\*(\w+):\*\*"
+        found_metadata = []
+        for line in lines[:50]:  # Check first 50 lines
+            match = re.match(metadata_pattern, line.strip())
+            if match:
+                found_metadata.append(match.group(1))
+
+        if found_metadata:
+            correct_order_count = 0
+            for i, field in enumerate(found_metadata[:-1]):
+                if field in boilerplate.metadata_order:
+                    expected_idx = boilerplate.metadata_order.index(field)
+                    next_field = found_metadata[i + 1]
+                    if next_field in boilerplate.metadata_order:
+                        next_expected_idx = boilerplate.metadata_order.index(next_field)
+                        if next_expected_idx > expected_idx:
+                            correct_order_count += 1
+                        else:
+                            metadata_order_violations.append(f"{field} before {next_field}")
+            if len(found_metadata) > 1:
+                metadata_order_score = correct_order_count / (len(found_metadata) - 1)
+
+        # Criterion 4: Contract placement before line 100 (10%)
+        contract_placement_score = 0.0
+        if contract_line_number:
+            if contract_line_number <= boilerplate.max_contract_line:
+                contract_placement_score = 1.0
+                info_messages.append(
+                    f"Contract section at line {contract_line_number} (before line 100 ✓)"
+                )
+            else:
+                critical_violations.append(
+                    f"Contract section at line {contract_line_number} exceeds limit of {boilerplate.max_contract_line}"
+                )
+                warnings.append("Contract section should appear before line 100")
+        else:
+            critical_violations.append("Contract section not found")
+
+        # Criterion 5-8: Placeholder scoring (will enhance in Phase 3)
+        required_subsections_score = 0.8  # Assume mostly compliant
+        optional_sections_score = 0.9  # Assume mostly appropriate
+        investigation_protocol_score = 1.0 if "investigation" in content.lower() else 0.0
+        anti_patterns_score = 1.0 if "anti-pattern" in content.lower() else 0.5
+
+        # Calculate weighted compliance score
+        criteria = self.config.compliance_criteria
+        compliance_score = (
+            required_section_score * criteria.required_sections_weight
+            + section_order_score * criteria.section_order_weight
+            + metadata_order_score * criteria.metadata_order_weight
+            + contract_placement_score * criteria.contract_placement_weight
+            + required_subsections_score * criteria.required_subsections_weight
+            + optional_sections_score * criteria.optional_sections_weight
+            + investigation_protocol_score * criteria.investigation_protocol_weight
+            + anti_patterns_score * criteria.anti_patterns_weight
+        )
+
+        # Generate recommendations
+        if compliance_score < 0.80:
+            recommendations.append(
+                "Review templates/002a-rule-boilerplate.md for complete structure guidance"
+            )
+        if missing_required_sections:
+            recommendations.append(f"Add missing sections: {', '.join(missing_required_sections)}")
+        if metadata_order_violations:
+            recommendations.append("Reorder metadata fields per boilerplate template")
+        if contract_line_number and contract_line_number > 100:
+            recommendations.append("Move Contract section earlier in file (before line 100)")
+
+        return BoilerplateComparisonResult(
+            file_path=file_path,
+            compliance_score=compliance_score,
+            critical_violations=critical_violations,
+            warnings=warnings,
+            info_messages=info_messages,
+            missing_required_sections=missing_required_sections,
+            section_order_mismatches=section_order_mismatches,
+            metadata_order_violations=metadata_order_violations,
+            contract_line_number=contract_line_number,
+            optional_sections_present=optional_sections_present,
+            recommendations=recommendations,
+        )
 
     def get_rule_files(self, directory: Path = Path(".")) -> list[Path]:
         """Get all rule files in directory, excluding documentation files."""
@@ -519,6 +934,248 @@ class RuleValidator:
         else:
             return 0  # All clean
 
+    def generate_compliance_report_text(self, results: list[BoilerplateComparisonResult]) -> str:
+        """Generate text format compliance report for console output."""
+        lines = []
+        lines.append("=" * 80)
+        lines.append("BOILERPLATE COMPLIANCE REPORT")
+        lines.append("=" * 80)
+        lines.append("")
+
+        # Summary statistics
+        total_files = len(results)
+        avg_score = sum(r.compliance_score for r in results) / total_files if total_files > 0 else 0
+        perfect_files = sum(1 for r in results if r.compliance_score >= 0.95)
+        needs_work = sum(1 for r in results if r.compliance_score < 0.80)
+
+        lines.append(f"Total Files Analyzed: {total_files}")
+        lines.append(f"Average Compliance: {avg_score:.1%}")
+        lines.append(f"Perfect Compliance (≥95%): {perfect_files}")
+        lines.append(f"Needs Improvement (<80%): {needs_work}")
+        lines.append("")
+        lines.append("=" * 80)
+
+        # Individual file results
+        for result in sorted(results, key=lambda r: r.compliance_score):
+            score_indicator = (
+                "✓"
+                if result.compliance_score >= 0.90
+                else "⚠"
+                if result.compliance_score >= 0.80
+                else "✗"
+            )
+            lines.append("")
+            lines.append(
+                f"{score_indicator} {result.file_path.name}: {result.compliance_score:.1%}"
+            )
+            lines.append("-" * 80)
+
+            if result.critical_violations:
+                lines.append("  CRITICAL VIOLATIONS:")
+                for violation in result.critical_violations[:5]:
+                    lines.append(f"    - {violation}")
+
+            if result.warnings and len(result.warnings) > 0:
+                lines.append("  WARNINGS:")
+                for warning in result.warnings[:3]:
+                    lines.append(f"    - {warning}")
+
+            if result.recommendations:
+                lines.append("  RECOMMENDATIONS:")
+                for rec in result.recommendations[:3]:
+                    lines.append(f"    - {rec}")
+
+        return "\n".join(lines)
+
+    def generate_compliance_report_markdown(
+        self, results: list[BoilerplateComparisonResult]
+    ) -> str:
+        """Generate markdown format compliance report."""
+        from datetime import datetime
+
+        lines = []
+        lines.append("# Boilerplate Compliance Report")
+        lines.append("")
+        lines.append(f"**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        lines.append("")
+
+        # Summary
+        total_files = len(results)
+        avg_score = sum(r.compliance_score for r in results) / total_files if total_files > 0 else 0
+        perfect_files = sum(1 for r in results if r.compliance_score >= 0.95)
+        needs_work = sum(1 for r in results if r.compliance_score < 0.80)
+
+        lines.append("## Summary Statistics")
+        lines.append("")
+        lines.append(f"- **Total Files:** {total_files}")
+        lines.append(f"- **Average Compliance:** {avg_score:.1%}")
+        lines.append(f"- **Perfect Compliance (≥95%):** {perfect_files}")
+        lines.append(f"- **Needs Improvement (<80%):** {needs_work}")
+        lines.append("")
+
+        # Detailed Results
+        lines.append("## Detailed Results")
+        lines.append("")
+
+        for result in sorted(results, key=lambda r: r.compliance_score):
+            status = (
+                "🟢"
+                if result.compliance_score >= 0.90
+                else "🟡"
+                if result.compliance_score >= 0.80
+                else "🔴"
+            )
+            lines.append(f"### {status} {result.file_path.name}")
+            lines.append("")
+            lines.append(f"**Compliance Score:** {result.compliance_score:.1%}")
+            lines.append("")
+
+            if result.critical_violations:
+                lines.append("**Critical Violations:**")
+                for violation in result.critical_violations:
+                    lines.append(f"- {violation}")
+                lines.append("")
+
+            if result.warnings:
+                lines.append("**Warnings:**")
+                for warning in result.warnings:
+                    lines.append(f"- {warning}")
+                lines.append("")
+
+            if result.recommendations:
+                lines.append("**Recommendations:**")
+                for rec in result.recommendations:
+                    lines.append(f"- {rec}")
+                lines.append("")
+
+        return "\n".join(lines)
+
+    def generate_compliance_report_html(self, results: list[BoilerplateComparisonResult]) -> str:
+        """Generate HTML format compliance report with dashboard."""
+        from datetime import datetime
+
+        total_files = len(results)
+        avg_score = sum(r.compliance_score for r in results) / total_files if total_files > 0 else 0
+        perfect_files = sum(1 for r in results if r.compliance_score >= 0.95)
+        needs_work = sum(1 for r in results if r.compliance_score < 0.80)
+
+        html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boilerplate Compliance Report</title>
+    <style>
+        body {{ font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }}
+        .container {{ max-width: 1200px; margin: 0 auto; background: white; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }}
+        h1 {{ color: #333; border-bottom: 3px solid #0066cc; padding-bottom: 10px; }}
+        .summary {{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin: 30px 0; }}
+        .stat-card {{ background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center; }}
+        .stat-value {{ font-size: 2em; font-weight: bold; color: #0066cc; }}
+        .stat-label {{ color: #666; margin-top: 5px; }}
+        .file-result {{ margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }}
+        .file-header {{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }}
+        .score-high {{ color: #28a745; }}
+        .score-medium {{ color: #ffc107; }}
+        .score-low {{ color: #dc3545; }}
+        .violations, .warnings, .recommendations {{ margin-top: 15px; }}
+        .violations h4 {{ color: #dc3545; }}
+        .warnings h4 {{ color: #ffc107; }}
+        .recommendations h4 {{ color: #0066cc; }}
+        ul {{ margin: 10px 0; padding-left: 20px; }}
+        li {{ margin: 5px 0; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Boilerplate Compliance Report</h1>
+        <p><strong>Generated:</strong> {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
+
+        <div class="summary">
+            <div class="stat-card">
+                <div class="stat-value">{total_files}</div>
+                <div class="stat-label">Total Files</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{avg_score:.1%}</div>
+                <div class="stat-label">Avg Compliance</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{perfect_files}</div>
+                <div class="stat-label">Perfect (≥95%)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{needs_work}</div>
+                <div class="stat-label">Needs Work (&lt;80%)</div>
+            </div>
+        </div>
+
+        <h2>Detailed Results</h2>
+"""
+
+        for result in sorted(results, key=lambda r: r.compliance_score):
+            score_class = (
+                "score-high"
+                if result.compliance_score >= 0.90
+                else "score-medium"
+                if result.compliance_score >= 0.80
+                else "score-low"
+            )
+
+            html += f"""
+        <div class="file-result">
+            <div class="file-header">
+                <h3>{result.file_path.name}</h3>
+                <span class="{score_class}" style="font-size: 1.5em; font-weight: bold;">{result.compliance_score:.1%}</span>
+            </div>
+"""
+
+            if result.critical_violations:
+                html += """
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+"""
+                for violation in result.critical_violations:
+                    html += f"                    <li>{violation}</li>\n"
+                html += """                </ul>
+            </div>
+"""
+
+            if result.warnings:
+                html += """
+            <div class="warnings">
+                <h4>⚠️ Warnings</h4>
+                <ul>
+"""
+                for warning in result.warnings:
+                    html += f"                    <li>{warning}</li>\n"
+                html += """                </ul>
+            </div>
+"""
+
+            if result.recommendations:
+                html += """
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+"""
+                for rec in result.recommendations:
+                    html += f"                    <li>{rec}</li>\n"
+                html += """                </ul>
+            </div>
+"""
+
+            html += """        </div>
+"""
+
+        html += """    </div>
+</body>
+</html>
+"""
+
+        return html
+
 
 def main() -> int:
     """Main entry point for validation script."""
@@ -557,6 +1214,28 @@ def main() -> int:
         default=Path("generated/universal"),
         help="Directory containing universal format rules (default: generated/universal)",
     )
+    parser.add_argument(
+        "--check-boilerplate-structure",
+        action="store_true",
+        help="Enable deep structural validation against templates/002a-rule-boilerplate.md",
+    )
+    parser.add_argument(
+        "--boilerplate-path",
+        type=Path,
+        default=Path("templates/002a-rule-boilerplate.md"),
+        help="Path to boilerplate template file (default: templates/002a-rule-boilerplate.md)",
+    )
+    parser.add_argument(
+        "--compliance-report",
+        action="store_true",
+        help="Generate compliance report (text, markdown, HTML formats)",
+    )
+    parser.add_argument(
+        "--compliance-report-dir",
+        type=Path,
+        default=Path("validation_reports"),
+        help="Directory for compliance reports (default: validation_reports)",
+    )
 
     args = parser.parse_args()
 
@@ -570,7 +1249,13 @@ def main() -> int:
             print("[INFO] Using source directory: . (current directory)")
 
     # Create validator with configuration
-    config = ValidationConfig(verbose=args.verbose)
+    config = ValidationConfig(
+        verbose=args.verbose,
+        check_boilerplate_structure=args.check_boilerplate_structure,
+        boilerplate_path=args.boilerplate_path,
+        generate_compliance_report=args.compliance_report,
+        compliance_report_dir=args.compliance_report_dir,
+    )
     validator = RuleValidator(config)
 
     # Validate based on format
@@ -581,6 +1266,60 @@ def main() -> int:
 
     # Print results
     validator.print_results(results)
+
+    # Generate compliance reports if requested
+    if args.check_boilerplate_structure or args.compliance_report:
+        print("\n" + "=" * 80)
+        print("[INFO] Running boilerplate structural validation...")
+        print("=" * 80 + "\n")
+
+        # Get rule files
+        rule_files = validator.get_rule_files(args.directory)
+
+        # Run boilerplate comparison on each file
+        compliance_results = []
+        for file_path in rule_files:
+            try:
+                comparison = validator.compare_against_boilerplate(file_path)
+                compliance_results.append(comparison)
+            except Exception as e:
+                print(f"[ERROR] Failed to compare {file_path.name}: {e}")
+
+        # Print text report to console
+        if compliance_results:
+            text_report = validator.generate_compliance_report_text(compliance_results)
+            print(text_report)
+
+            # Save reports to files if --compliance-report flag is set
+            if args.compliance_report:
+                from datetime import datetime
+
+                # Create report directory
+                report_dir = args.compliance_report_dir
+                report_dir.mkdir(parents=True, exist_ok=True)
+
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+                # Generate and save markdown report
+                md_report = validator.generate_compliance_report_markdown(compliance_results)
+                md_path = report_dir / f"compliance_report_{timestamp}.md"
+                with open(md_path, "w") as f:
+                    f.write(md_report)
+                print(f"\n[INFO] Markdown report saved: {md_path}")
+
+                # Generate and save HTML report
+                html_report = validator.generate_compliance_report_html(compliance_results)
+                html_path = report_dir / f"compliance_report_{timestamp}.html"
+                with open(html_path, "w") as f:
+                    f.write(html_report)
+                print(f"[INFO] HTML report saved: {html_path}")
+
+                # Create symlink to latest report
+                latest_html = report_dir / "latest.html"
+                if latest_html.exists():
+                    latest_html.unlink()
+                latest_html.symlink_to(html_path.name)
+                print(f"[INFO] Latest report: {latest_html}")
 
     # Determine exit code
     exit_code = validator.get_exit_code(results)

@@ -3,6 +3,15 @@ version: '3'
 # Usage: install Task and run `task` to see categorized task list
 # Quick commands: `task quality:fix`, `task test`, `task rule:cursor`
 # For standard list view: `task -l`
+#
+# Command Equivalency (for system-wide usage without Task dependency):
+# Use gen-rules.sh wrapper as Task-free alternative:
+#   task rule:cursor      <=> gen-rules generate cursor
+#   task deploy:cursor    <=> gen-rules deploy cursor
+#   task rules:validate   <=> gen-rules validate
+#   task status           <=> gen-rules status
+#
+# See README.md section "System-Wide Script (gen-rules.sh)" for installation.
 
 # Tool paths - adjust these if tools are installed in different locations
 vars:
@@ -25,91 +34,72 @@ tasks:
         echo "🚀 QUICKSTART (Most Common Commands)"
         echo "────────────────────────────────────────────────────────────────────────"
         echo "  task quality:fix              Fix all code quality issues"
-        echo "  task test                     Run all pytest tests"
-        echo "  task rule:cursor              Generate Cursor rules"
-        echo "  task rule:all                 Generate all IDE rule formats"
-        echo "  task validate                 Run all validation checks"
-        echo "  task status                   Show project status"
+        echo "  task test:all                 Run all tests"
+        echo "  task generate:rules:all       Generate all rule formats"
+        echo "  task validate:ci              Run all CI/CD checks"
+        echo "  task status:project           Show project status"
+        echo
+        echo "⚙️  ENVIRONMENT"
+        echo "────────────────────────────────────────────────────────────────────────"
+        echo "  task env:python               Pin Python (3.11) and create venv"
+        echo "  task env:deps                 Sync dev dependencies with uv"
         echo
         echo "🔍 CODE QUALITY"
         echo "────────────────────────────────────────────────────────────────────────"
-        echo "  task lint                     Ruff lint (checks only)"
-        echo "  task format                   Ruff format (checks only)"
-        echo "  task quality                  Run all quality checks"
-        echo "  task lint:fix                 Ruff lint with automatic fixes"
-        echo "  task format:fix               Ruff format (apply changes)"
-        echo "  task quality:fix              Fix all quality issues automatically"
-        echo "  task lint:fix:select          Fix specific rule (usage{{":"}} CODE=E501)"
+        echo "  task quality:lint             Ruff lint (check only)"
+        echo "  task quality:format           Ruff format (check only)"
+        echo "  task quality:check            Run all quality checks"
+        echo "  task quality:lint:fix         Ruff lint with automatic fixes"
+        echo "  task quality:format:fix       Ruff format (apply changes)"
+        echo "  task quality:fix              Fix all quality issues"
         echo
         echo "🧪 TESTING"
         echo "────────────────────────────────────────────────────────────────────────"
-        echo "  task test                     Run all pytest tests"
+        echo "  task test:all                 Run all pytest tests"
         echo "  task test:unit                Run unit tests only"
         echo "  task test:integration         Run integration tests only"
         echo "  task test:coverage            Run tests with coverage reporting"
         echo "  task test:failed              Re-run only failed tests"
-        echo "  task test:verbose             Run tests with verbose output"
         echo
-        echo "📝 RULE GENERATION"
+        echo "📝 GENERATION"
         echo "────────────────────────────────────────────────────────────────────────"
-        echo "  task rule:cursor              Generate Cursor .mdc files"
-        echo "  task rule:copilot             Generate GitHub Copilot instructions"
-        echo "  task rule:cline               Generate Cline rule files"
-        echo "  task rule:universal           Generate Universal rule files"
-        echo "  task rule:all                 Generate all IDE-specific formats"
-        echo "  task rule:legacy              Generate to legacy paths"
-        echo "  task rule:cursor:dry          Dry run Cursor generation"
-        echo "  task rule:cursor:check        Check if Cursor rules are current"
+        echo "  task generate:rules:all       Generate all IDE-specific formats"
+        echo "  task generate:rules:cursor    Generate Cursor .mdc files"
+        echo "  task generate:rules:copilot   Generate GitHub Copilot instructions"
+        echo "  task generate:index           Generate RULES_INDEX.md"
+        echo "  task generate:tokens          Update token budgets (±15% threshold)"
         echo
-        echo "🚢 RULE DEPLOYMENT"
+        echo "🚢 DEPLOYMENT"
         echo "────────────────────────────────────────────────────────────────────────"
         echo "  task deploy:cursor            Deploy Cursor rules to target project"
         echo "  task deploy:copilot           Deploy Copilot rules to target project"
         echo "  task deploy:cline             Deploy Cline rules to target project"
         echo "  task deploy:universal         Deploy Universal rules to target project"
         echo
-        echo "📚 RULE INDEX"
-        echo "────────────────────────────────────────────────────────────────────────"
-        echo "  task rules:index              Generate RULES_INDEX.md"
-        echo "  task rules:index:check        Check if RULES_INDEX.md is current"
-        echo "  task rules:index:dry          Preview RULES_INDEX.md generation"
-        echo
-        echo "🔧 TOKEN MANAGEMENT"
-        echo "────────────────────────────────────────────────────────────────────────"
-        echo "  task tokens:update            Update token budgets (±15% threshold)"
-        echo "  task tokens:update:dry        Preview token budget updates"
-        echo "  task tokens:check             Check token budget accuracy"
-        echo "  task tokens:update:detailed   Update with detailed analysis"
-        echo "  task tokens:update:threshold  Custom threshold (usage{{":"}} THRESHOLD=20)"
-        echo
         echo "✅ VALIDATION"
         echo "────────────────────────────────────────────────────────────────────────"
-        echo "  task validate                 Run all validation checks for CI/CD"
-        echo "  task rules:validate           Validate rules per governance standards"
-        echo "  task rules:validate:strict    Validate in strict mode"
-        echo "  task templates:validate       Validate templates (Section 11)"
-        echo "  task rule:templates:validate  Validate templates against v4.0"
-        echo "  task rule:universal:validate  Validate universal rule format"
+        echo "  task validate:ci              Run all validation checks for CI/CD"
+        echo "  task validate:rules           Validate rules per governance standards"
+        echo "  task validate:rules:strict    Validate in strict mode"
+        echo "  task validate:templates       Validate templates (Section 11)"
         echo
-        echo "🧹 CLEANUP"
+        echo "📊 STATUS"
         echo "────────────────────────────────────────────────────────────────────────"
-        echo "  task clean:all                Remove all generated files and venv"
-        echo "  task clean:venv               Remove virtual environment"
-        echo "  task clean:rules              Remove all generated rule files"
+        echo "  task status:project           Show project status"
         echo
-        echo "⚙️  SETUP"
+        echo "🧹 MAINTENANCE"
         echo "────────────────────────────────────────────────────────────────────────"
-        echo "  task uv:pin                   Pin Python (3.11) and create venv"
-        echo "  task deps:dev                 Sync dev dependencies with uv"
-        echo "  task status                   Show project status"
-        echo "  task release:prepare          Prepare repository for release"
+        echo "  task maintenance:clean:venv   Remove virtual environment"
+        echo "  task maintenance:clean:rules  Remove all generated rule files"
+        echo "  task maintenance:clean:all    Remove all generated files and venv"
+        echo "  task maintenance:release      Prepare repository for release"
         echo
         echo "════════════════════════════════════════════════════════════════════════"
         echo "For standard task list view, run{{":"}} task -l"
         echo "════════════════════════════════════════════════════════════════════════"
   
   # Initialize uv-managed environment and pin Python version
-  uv:pin:
+  env:python:
     desc: "Pin Python (3.11) and create uv venv if missing"
     status:
       - test -d .venv
@@ -119,10 +109,10 @@ tasks:
       - "{{.UV}} venv"
   
   # Install and sync dependencies with uv (includes dev tools via dependency groups)
-  deps:dev:
+  env:deps:
     desc: "Sync dev dependencies with uv (uses dependency groups defined in pyproject.toml)"
     deps:
-      - uv:pin
+      - env:python
     cmds:
       - "{{.UV}} lock"
       - "{{.UV}} sync --all-groups"
@@ -132,56 +122,56 @@ tasks:
   # ============================================================================
 
   # Ruff lint (checks only; no changes)
-  lint:
+  quality:lint:
     desc: "Ruff lint (checks only)"
     cmds:
       - "{{.UVX}} ruff check ."
 
   # Ruff format (checks only; no changes)
-  format:
+  quality:format:
     desc: "Ruff format (checks only)"
     cmds:
       - "{{.UVX}} ruff format --check ."
 
   # Ruff lint autofix (applies lint fixes only)
-  lint:fix:
+  quality:lint:fix:
     desc: "Ruff lint with automatic fixes"
     cmds:
       - "{{.UVX}} ruff check --fix ."
 
   # Ruff format apply (applies formatting only)
-  format:fix:
+  quality:format:fix:
     desc: "Ruff format (apply changes)"
     cmds:
       - "{{.UVX}} ruff format ."
 
   # Ruff autofix limited to a specific rule code via CODE variable
-  lint:fix:select:
-    desc: "Ruff lint autofix for a specific rule (usage: task lint:fix:select CODE=E501)"
+  quality:lint:fix:select:
+    desc: "Ruff lint autofix for a specific rule (usage: task quality:lint:fix:select CODE=E501)"
     deps:
-      - uv:pin
+      - env:python
     requires:
       vars: [CODE]
     cmds:
       - "{{.UVX}} ruff check --fix --select {{.CODE}} ."
 
   # Ruff autofix limited to a specific rule code via CODE enable unsafe fixes.
-  lint:fix:select:unsafe:
-    desc: "Ruff lint autofix for a specific rule with unsafe fixes (usage: task lint:fix:select:unsafe CODE=E501)"
+  quality:lint:fix:unsafe:
+    desc: "Ruff lint autofix for a specific rule with unsafe fixes (usage: task quality:lint:fix:unsafe CODE=E501)"
     deps:
-      - uv:pin
+      - env:python
     requires:
       vars: [CODE]
     cmds:
       - "{{.UVX}} ruff check --fix --select {{.CODE}} --unsafe-fixes ."
 
   # Run comprehensive quality checks
-  quality:
+  quality:check:
     desc: "Run all quality checks (lint + format)"
     silent: true
     cmds:
-      - task: lint
-      - task: format
+      - task: quality:lint
+      - task: quality:format
       - echo "[OK] All quality checks passed"
 
   # Fix all quality issues automatically
@@ -189,8 +179,8 @@ tasks:
     desc: "Fix all quality issues automatically"
     silent: true
     cmds:
-      - task: lint:fix
-      - task: format:fix
+      - task: quality:lint:fix
+      - task: quality:format:fix
       - echo "[OK] All quality issues fixed"
 
   # ============================================================================
@@ -198,10 +188,10 @@ tasks:
   # ============================================================================
 
   # Run unit tests via pytest (uses dev dependencies)
-  test:
+  test:all:
     desc: "Run all pytest tests"
     deps:
-      - deps:dev
+      - env:deps
     cmds:
       - "{{.UV}} run pytest tests/ --tb=short"
 
@@ -209,7 +199,7 @@ tasks:
   test:unit:
     desc: "Run unit tests only (fast, hermetic)"
     deps:
-      - deps:dev
+      - env:deps
     cmds:
       - "{{.UV}} run pytest -m 'unit and not slow' tests/ --tb=short"
 
@@ -217,7 +207,7 @@ tasks:
   test:integration:
     desc: "Run integration tests only"
     deps:
-      - deps:dev
+      - env:deps
     cmds:
       - "{{.UV}} run pytest -m integration tests/ --tb=short"
 
@@ -225,7 +215,7 @@ tasks:
   test:coverage:
     desc: "Run tests with coverage reporting"
     deps:
-      - deps:dev
+      - env:deps
     cmds:
       - "{{.UV}} run pytest --cov=scripts --cov-report=term-missing --cov-report=html tests/"
       - echo "[OK] Coverage report generated in htmlcov/index.html"
@@ -234,7 +224,7 @@ tasks:
   test:failed:
     desc: "Re-run only failed tests from last run"
     deps:
-      - deps:dev
+      - env:deps
     cmds:
       - "{{.UV}} run pytest --lf -v tests/"
 
@@ -242,7 +232,7 @@ tasks:
   test:verbose:
     desc: "Run tests with verbose output"
     deps:
-      - deps:dev
+      - env:deps
     cmds:
       - "{{.UV}} run pytest -vv tests/"
 
@@ -251,79 +241,79 @@ tasks:
   # ============================================================================
 
   # Generate Cursor .mdc files from *.md rules
-  rule:cursor:
+  generate:rules:cursor:
     desc: "Generate Cursor .mdc files from templates/ to generated/cursor/rules/"
     cmds:
       - "{{.UV}} run scripts/generate_agent_rules.py --agent cursor{{if .DEST}} --destination {{.DEST}}{{end}}"
 
   # Generate GitHub Copilot instruction files from *.md rules  
-  rule:copilot:
+  generate:rules:copilot:
     desc: "Generate GitHub Copilot instruction files from templates/ to generated/copilot/instructions/"
     cmds:
       - "{{.UV}} run scripts/generate_agent_rules.py --agent copilot{{if .DEST}} --destination {{.DEST}}{{end}}"
 
   # Generate Cline rule files from *.md rules
-  rule:cline:
+  generate:rules:cline:
     desc: "Generate Cline rule files from templates/ to generated/cline/"
     cmds:
       - "{{.UV}} run scripts/generate_agent_rules.py --agent cline{{if .DEST}} --destination {{.DEST}}{{end}}"
 
   # Generate Universal rule files from *.md rules (IDE-agnostic)
-  rule:universal:
+  generate:rules:universal:
     desc: "Generate Universal rule files from templates/ to generated/universal/"
     cmds:
       - "{{.UV}} run scripts/generate_agent_rules.py --agent universal{{if .DEST}} --destination {{.DEST}}{{end}}"
 
   # Dry run rule generation to preview changes
-  rule:cursor:dry:
+  generate:rules:cursor:dry:
     desc: "Dry run Cursor rule generation (preview changes)"
     cmds:
       - "{{.UV}} run scripts/generate_agent_rules.py --agent cursor --dry-run{{if .DEST}} --destination {{.DEST}}{{end}}"
 
-  rule:copilot:dry:
+  generate:rules:copilot:dry:
     desc: "Dry run Copilot rule generation (preview changes)"
     cmds:
       - "{{.UV}} run scripts/generate_agent_rules.py --agent copilot --dry-run{{if .DEST}} --destination {{.DEST}}{{end}}"
 
-  rule:cline:dry:
+  generate:rules:cline:dry:
     desc: "Dry run Cline rule generation (preview changes)"
     cmds:
       - "{{.UV}} run scripts/generate_agent_rules.py --agent cline --dry-run{{if .DEST}} --destination {{.DEST}}{{end}}"
 
-  rule:universal:dry:
+  generate:rules:universal:dry:
     desc: "Dry run Universal rule generation (preview changes)"
     cmds:
       - "{{.UV}} run scripts/generate_agent_rules.py --agent universal --dry-run{{if .DEST}} --destination {{.DEST}}{{end}}"
 
   # Check if rule outputs are current/valid
-  rule:cursor:check:
+  generate:rules:cursor:check:
     desc: "Check if Cursor rule outputs are current"
     cmds:
       - "{{.UV}} run scripts/generate_agent_rules.py --agent cursor --check{{if .DEST}} --destination {{.DEST}}{{end}}"
 
-  rule:copilot:check:
+  generate:rules:copilot:check:
     desc: "Check if Copilot rule outputs are current"
     cmds:
       - "{{.UV}} run scripts/generate_agent_rules.py --agent copilot --check{{if .DEST}} --destination {{.DEST}}{{end}}"
 
-  rule:cline:check:
+  generate:rules:cline:check:
     desc: "Check if Cline rule outputs are current"
     cmds:
       - "{{.UV}} run scripts/generate_agent_rules.py --agent cline --check{{if .DEST}} --destination {{.DEST}}{{end}}"
 
-  rule:universal:check:
+  generate:rules:universal:check:
     desc: "Check if Universal rule outputs are current"
     cmds:
       - "{{.UV}} run scripts/generate_agent_rules.py --agent universal --check{{if .DEST}} --destination {{.DEST}}{{end}}"
 
   # Validate universal rule format (no YAML, no comments, metadata stripped)
-  rule:universal:validate:
+  validate:rules:universal:
     desc: "Validate universal rule format meets standards"
     cmds:
       - "{{.UV}} run scripts/validate_agent_rules.py --format universal"
 
   # Validate templates against Section 11 Universal Compatibility Standards
-  rule:templates:validate:
+  validate:templates:
     desc: "Validate templates/ against 002-rule-governance.md v4.0 (Section 11)"
     silent: true
     ignore_error: true
@@ -332,33 +322,33 @@ tasks:
       - echo "[OK] Template validation checked - ready for rule generation"
 
   # Validate templates (fail on warnings for CI)
-  rule:templates:validate:strict:
+  validate:templates:strict:
     desc: "Validate templates/ with --fail-on-warnings for CI/CD"
     cmds:
       - "{{.UV}} run scripts/validate_agent_rules.py --directory templates --fail-on-warnings"
 
   # Generate all rule formats
-  rule:all:
+  generate:rules:all:
     desc: "Generate all IDE-specific rule formats to generated/ (new structure)"
     deps:
-      - rule:templates:validate
+      - validate:templates
     cmds:
-      - task: rule:cursor
+      - task: generate:rules:cursor
         vars:
           DEST: "{{.DEST}}"
-      - task: rule:copilot
+      - task: generate:rules:copilot
         vars:
           DEST: "{{.DEST}}"
-      - task: rule:cline
+      - task: generate:rules:cline
         vars:
           DEST: "{{.DEST}}"
-      - task: rule:universal
+      - task: generate:rules:universal
         vars:
           DEST: "{{.DEST}}"
       - echo "[OK] Generated all rule formats to generated/"
 
   # Generate all rule formats to legacy paths (backward compatibility)
-  rule:legacy:
+  generate:rules:legacy:
     desc: "Generate all formats to legacy paths (.cursor/rules/, .github/instructions/, etc.)"
     cmds:
       - "{{.UV}} run scripts/generate_agent_rules.py --agent cursor --legacy-paths"
@@ -400,19 +390,19 @@ tasks:
   # ============================================================================
 
   # Generate discovery/RULES_INDEX.md from template metadata
-  rules:index:
+  generate:index:
     desc: "Generate discovery/RULES_INDEX.md from template metadata"
     cmds:
       - "{{.PYTHON}} scripts/generate_rules_index.py"
 
   # Check if discovery/RULES_INDEX.md is up-to-date
-  rules:index:check:
+  generate:index:check:
     desc: "Check if discovery/RULES_INDEX.md is up-to-date (CI mode)"
     cmds:
       - "{{.PYTHON}} scripts/generate_rules_index.py --check"
 
   # Preview discovery/RULES_INDEX.md without writing to file
-  rules:index:dry:
+  generate:index:dry:
     desc: "Preview discovery/RULES_INDEX.md generation without writing"
     cmds:
       - "{{.PYTHON}} scripts/generate_rules_index.py --dry-run"
@@ -422,14 +412,14 @@ tasks:
   # ============================================================================
 
   # Remove the local virtual environment
-  clean:venv:
+  maintenance:clean:venv:
     desc: "Remove virtual environment"
     cmds:
       - rm -rf .venv
       - echo "[OK] Virtual environment removed"
 
   # Clean generated rule files
-  clean:rules:
+  maintenance:clean:rules:
     desc: "Remove all generated rule files (new and legacy paths)"
     cmds:
       - rm -rf generated/
@@ -440,11 +430,11 @@ tasks:
       - echo "[OK] Generated rule files removed"
 
   # Full cleanup
-  clean:all:
+  maintenance:clean:all:
     desc: "Remove all generated files and virtual environment"
     cmds:
-      - task: clean:venv
-      - task: clean:rules
+      - task: maintenance:clean:venv
+      - task: maintenance:clean:rules
       - rm -rf __pycache__/
       - rm -rf .pytest_cache/
       - rm -rf htmlcov/
@@ -456,35 +446,35 @@ tasks:
   # ============================================================================
 
   # Run all validation checks (quality + tests + template validation + rule generation)
-  validate:
+  validate:ci:
     desc: "Run all validation checks for CI/CD (includes Section 11 template compliance)"
     silent: true
     cmds:
-      - task: quality
-      - task: test
-      - task: templates:validate
-      - task: rule:cursor:check
-      - task: rule:copilot:check
-      - task: rule:cline:check
-      - task: rule:universal:check
-      - task: rules:index:check
+      - task: quality:check
+      - task: test:all
+      - task: validate:templates
+      - task: generate:rules:cursor:check
+      - task: generate:rules:copilot:check
+      - task: generate:rules:cline:check
+      - task: generate:rules:universal:check
+      - task: generate:index:check
       - echo "[OK] All validation checks passed"
 
   # Validate that all rule files follow updated governance standards (002-rule-governance.md v3.1)
   # Includes Section 11 Universal Compatibility Standards
-  rules:validate:
+  validate:rules:
     desc: "Validate all rules in templates/ per 002-rule-governance.md v3.1 (includes Section 11)"
     cmds:
       - "{{.UV}} run scripts/validate_agent_rules.py --directory templates"
 
   # Validate with verbose output (shows clean files too)
-  rules:validate:verbose:
+  validate:rules:verbose:
     desc: "Validate all rules with verbose output"
     cmds:
       - "{{.UV}} run scripts/validate_agent_rules.py --directory templates --verbose"
 
   # Validate and fail on warnings (strict mode for CI/CD)
-  rules:validate:strict:
+  validate:rules:strict:
     desc: "Validate all rules in strict mode (fail on warnings)"
     cmds:
       - "{{.UV}} run scripts/validate_agent_rules.py --directory templates --fail-on-warnings"
@@ -503,62 +493,62 @@ tasks:
   # ============================================================================
 
   # Update token budgets in template files (dry run to preview)
-  tokens:update:dry:
+  generate:tokens:dry:
     desc: "Preview token budget updates without making changes"
     cmds:
       - "{{.PYTHON}} scripts/update_token_budgets.py --dry-run"
 
   # Update token budgets in template files (with detailed analysis)
-  tokens:update:dry:detailed:
+  generate:tokens:dry:detailed:
     desc: "Preview token budget updates with detailed analysis"
     cmds:
       - "{{.PYTHON}} scripts/update_token_budgets.py --dry-run --detailed"
 
   # Update token budgets in template files
-  tokens:update:
+  generate:tokens:
     desc: "Update token budgets in templates/ (±15% threshold)"
     cmds:
       - "{{.PYTHON}} scripts/update_token_budgets.py"
       - echo "[OK] Token budgets updated"
 
   # Update token budgets with verbose output
-  tokens:update:verbose:
+  generate:tokens:verbose:
     desc: "Update token budgets with verbose output"
     cmds:
       - "{{.PYTHON}} scripts/update_token_budgets.py --verbose"
 
   # Update token budgets with detailed analysis
-  tokens:update:detailed:
+  generate:tokens:detailed:
     desc: "Update token budgets with detailed analysis"
     cmds:
       - "{{.PYTHON}} scripts/update_token_budgets.py --detailed"
 
   # Update token budgets with custom threshold
-  tokens:update:threshold:
-    desc: "Update token budgets with custom threshold (usage: task tokens:update:threshold THRESHOLD=20)"
+  generate:tokens:threshold:
+    desc: "Update token budgets with custom threshold (usage: task generate:tokens:threshold THRESHOLD=20)"
     requires:
       vars: [THRESHOLD]
     cmds:
       - "{{.PYTHON}} scripts/update_token_budgets.py --threshold {{.THRESHOLD}}"
 
   # Check token budget accuracy without updating
-  tokens:check:
+  generate:tokens:check:
     desc: "Check token budget accuracy (dry run with detailed output)"
     cmds:
       - "{{.PYTHON}} scripts/update_token_budgets.py --dry-run --detailed"
 
   # Prepare for release (fix issues + validate templates + generate rules)
-  release:prepare:
+  maintenance:release:
     desc: "Prepare repository for release (includes template validation)"
     cmds:
       - task: quality:fix
-      - task: templates:validate
-      - task: rule:all
-      - task: test
+      - task: validate:templates
+      - task: generate:rules:all
+      - task: test:all
       - echo "[OK] Repository prepared for release"
 
   # Show project status and next steps
-  status:
+  status:project:
     desc: "Show project status and available commands"
     silent: true
     cmds:
@@ -566,40 +556,40 @@ tasks:
         echo "AI Coding Rules - Project Status"
         echo
         echo "Quality:"
-        if task lint --silent >/dev/null 2>&1; then
+        if task quality:lint --silent >/dev/null 2>&1; then
           echo "  [OK] Linting passed"
         else
-          echo "  [FAIL] Linting issues found (run 'task lint:fix')"
+          echo "  [FAIL] Linting issues found (run 'task quality:lint:fix')"
         fi
-        if task format --silent >/dev/null 2>&1; then
+        if task quality:format --silent >/dev/null 2>&1; then
           echo "  [OK] Formatting passed"
         else
-          echo "  [FAIL] Formatting issues found (run 'task format:fix')"
+          echo "  [FAIL] Formatting issues found (run 'task quality:format:fix')"
         fi
         echo
         echo "Rule Generation:"
-        if task rule:cursor:check --silent >/dev/null 2>&1; then
+        if task generate:rules:cursor:check --silent >/dev/null 2>&1; then
           echo "  [OK] Cursor rules are current"
         else
-          echo "  [WARN] Cursor rules need updating (run 'task rule:cursor')"
+          echo "  [WARN] Cursor rules need updating (run 'task generate:rules:cursor')"
         fi
-        if task rule:copilot:check --silent >/dev/null 2>&1; then
+        if task generate:rules:copilot:check --silent >/dev/null 2>&1; then
           echo "  [OK] Copilot rules are current"
         else
-          echo "  [WARN] Copilot rules need updating (run 'task rule:copilot')"
+          echo "  [WARN] Copilot rules need updating (run 'task generate:rules:copilot')"
         fi
-        if task rule:cline:check --silent >/dev/null 2>&1; then
+        if task generate:rules:cline:check --silent >/dev/null 2>&1; then
           echo "  [OK] Cline rules are current"
         else
-          echo "  [WARN] Cline rules need updating (run 'task rule:cline')"
+          echo "  [WARN] Cline rules need updating (run 'task generate:rules:cline')"
         fi
-        if task rule:universal:check --silent >/dev/null 2>&1; then
+        if task generate:rules:universal:check --silent >/dev/null 2>&1; then
           echo "  [OK] Universal rules are current"
         else
-          echo "  [WARN] Universal rules need updating (run 'task rule:universal')"
+          echo "  [WARN] Universal rules need updating (run 'task generate:rules:universal')"
         fi
         echo
         echo "Quick Commands:"
         echo "  task quality:fix    # Fix all code quality issues"
-        echo "  task rule:all       # Generate all IDE rule formats"
-        echo "  task validate       # Run full validation suite"
+        echo "  task generate:rules:all       # Generate all IDE rule formats"
+        echo "  task validate:ci       # Run full validation suite"

@@ -248,6 +248,8 @@ This is NOT a rule itself - it's a guide to finding and using rules.
 
 ### Decision Tree for Rule Selection
 
+Use this navigation tree to quickly identify starting rules based on your task domain:
+
 ```
 Start here → What are you building?
 ├── Snowflake Application
@@ -266,6 +268,8 @@ Start here → What are you building?
 │   └── CI/CD → Start with 806-git-workflow-management
 └── General Best Practices → Start with 000-global-core
 ```
+
+After identifying your starting rule, use RULES_INDEX.md to search for additional specialized rules. Search the Keywords column for technology terms (Snowflake, Python, Docker, FastAPI) and activity terms (testing, performance, security, deployment).
 
 ## How to Load Rules
 
@@ -398,94 +402,18 @@ Rules Loaded section:
 
 ---
 
-# Part 2: Implementation Reference
+# Part 2: Rule Discovery Reference
 
-> **Audience**: AI Assistants (for understanding integration patterns), Human Developers (for implementation)  
-> **Purpose**: Context for how rules are used in different environments  
-> **Status**: Reference material - read as needed for specific integration scenarios
+> **Audience**: AI Assistants  
+> **Purpose**: Quick reference for rule discovery and loading strategies  
+> **Status**: Use for rule selection and dependency resolution
 
 ---
 
-### For CLI Tools
+## Rule Organization
 
-Parse metadata fields programmatically:
-```bash
-# Find rules by keywords
-grep "**Keywords:**.*Snowflake" {rule_path}/*.md
-
-# Extract dependencies
-grep "**Depends:**" {rule_path}/101-snowflake-streamlit-core.md
-
-# Get token budgets for planning
-grep "**TokenBudget:**" {rule_path}/*.md | awk -F: '{print $1 ": " $3}'
-```
-
-Use RULES_INDEX.md for structured discovery:
-- Machine-readable table format
-- Keywords column for semantic search
-- Depends On column for dependency resolution
-
-### RULES_INDEX.md Format Example
-
-The RULES_INDEX.md file is a Markdown table with the following columns:
-
-```markdown
-| File | Type | Purpose | Scope | Keywords/Hints | Depends On |
-|------|------|---------|-------|----------------|------------|
-| `000-global-core.md` | Auto-attach | Core operating contract | Universal | PLAN mode, ACT mode, workflow, safety | — |
-| `100-snowflake-core.md` | Agent Requested | Snowflake SQL rules | Snowflake | Snowflake, SQL, CTE, performance | `000-global-core.md` |
-| `101-snowflake-streamlit-core.md` | Agent Requested | Streamlit patterns | Streamlit | Streamlit, SiS, SPCS, dashboard | `100-snowflake-core.md` |
-| `200-python-core.md` | Agent Requested | Python engineering | Python | Python, uv, Ruff, pyproject.toml | `000-global-core.md` |
-```
-
-**How to parse and use**:
-1. **Search Keywords/Hints column** for terms matching your task (e.g., "Streamlit", "FastAPI", "performance")
-2. **Identify matching rules** by scanning keywords
-3. **Check Depends On column** for prerequisites (e.g., `101-snowflake-streamlit-core.md` depends on `100-snowflake-core.md`)
-4. **Load in dependency order**: Load prerequisites before dependent rules
-5. **Track Type**: Auto-attach rules load automatically; Agent Requested rules load on-demand based on task
-
-### For IDEs
-
-#### Cursor
-```bash
-# Generate Cursor-specific format
-task rule:cursor
-# Files appear in .cursor/rules/*.mdc
-```
-
-#### VS Code
-- Add rules to `.vscode/ai-rules/`
-- Reference in workspace settings
-- Use universal format from `{rule_path}/` directory
-
-#### IntelliJ
-- Add to project `.idea/aiRules/`
-- Configure in AI Assistant settings
-- Use universal format from `{rule_path}/` directory
-
-## Rule Discovery Methods
-
-### By Keywords
-
-Search RULES_INDEX.md Keywords column for:
-- **Technologies:** "Snowflake", "Python", "Docker", "FastAPI"
-- **Patterns:** "performance", "security", "testing", "validation"
-- **Use cases:** "dashboard", "API", "CLI", "data pipeline"
-
-Example searches:
-```bash
-# Find all performance-related rules
-grep -i "performance" RULES_INDEX.md
-
-# Find Python testing rules
-grep -i "python.*test\|test.*python" RULES_INDEX.md
-```
-
-### By Category Number
-
-Rules are organized by domain:
-- **000-099:** Core/Foundational (start here)
+Rules are organized by numeric domain prefixes:
+- **000-099:** Core/Foundational (always start here)
 - **100-199:** Snowflake ecosystem
 - **200-299:** Python ecosystem
 - **300-399:** Shell/Bash scripting
@@ -496,223 +424,76 @@ Rules are organized by domain:
 - **800-899:** Project Management
 - **900-999:** Demo/Examples
 
-### By Dependency Chain
+## Rule Discovery Methods
 
-Common dependency patterns:
+### Primary Method: Search RULES_INDEX.md
 
-**Snowflake Streamlit Dashboard:**
-```
-000-global-core (always first)
-└── 100-snowflake-core (SQL foundations)
-    └── 101-snowflake-streamlit-core (app basics)
-        ├── 101a-snowflake-streamlit-visualization (charts)
-        ├── 101b-snowflake-streamlit-performance (optimization)
-        └── 101c-snowflake-streamlit-security (auth/security)
-```
+Use RULES_INDEX.md as the authoritative source for rule discovery:
+1. **Search Keywords/Hints column** for terms matching your task
+2. **Check Depends On column** for prerequisites
+3. **Load in dependency order** (prerequisites first)
 
-**Python FastAPI Application:**
-```
-000-global-core (always first)
-└── 200-python-core (Python foundations)
-    └── 210-python-fastapi-core (API basics)
-        ├── 210a-python-fastapi-security (auth)
-        ├── 210b-python-fastapi-testing (tests)
-        └── 210c-python-fastapi-deployment (production)
-```
+Example: For Streamlit performance task, search Keywords for "Streamlit, performance, caching" → find relevant 101b rule → check dependencies → load chain.
 
-### Discovering Split Rules
+### Split Rules Pattern
 
-**Pattern:** Some comprehensive topics are split across multiple rules using letter suffixes (e.g., 111a, 111b). This improves token efficiency by allowing focused loading.
+Rules may use letter suffixes (e.g., 111a, 111b, 111c) for subtopic specialization. This improves token efficiency by allowing focused loading. Search RULES_INDEX.md Keywords column and check "Related Rules" sections to discover related split rules.
 
-**Examples of Split Rule Families:**
+## Essential Rule Metadata
 
-**Observability (111 Family):**
-```
-111-snowflake-observability-core (2000 tokens) - Foundation
-├── 111a-snowflake-observability-logging (1800 tokens) - Python logging patterns
-├── 111b-snowflake-observability-tracing (2000 tokens) - Distributed tracing
-└── 111c-snowflake-observability-monitoring (1900 tokens) - Snowsight monitoring
-```
+When parsing rules, use these metadata fields:
 
-**Cortex Agents (115 Family):**
-```
-115-snowflake-cortex-agents-core (2200 tokens) - Agent fundamentals
-├── 115a-snowflake-cortex-agents-instructions (800 tokens) - Planning/response patterns
-└── 115b-snowflake-cortex-agents-operations (2400 tokens) - Testing, RBAC, operations
-```
-
-**Semantic Views (106 Family):**
-```
-106-snowflake-semantic-views-core (2800 tokens) - Basic DDL syntax
-├── 106a-snowflake-semantic-views-advanced (2200 tokens) - Advanced validation
-├── 106b-snowflake-semantic-views-querying (5000 tokens) - Natural language queries
-└── 106c-snowflake-semantic-views-integration (1800 tokens) - Agent integration
-```
-
-**Data Quality (124 Family):**
-```
-124-snowflake-data-quality-core (2500 tokens) - DMF fundamentals
-├── 124a-snowflake-data-quality-custom (1900 tokens) - Custom validation patterns
-└── 124b-snowflake-data-quality-operations (2200 tokens) - Monitoring and alerts
-```
-
-**Loading Strategy for Split Rules:**
-1. **Start with base rule** (e.g., `111-snowflake-observability-core.md`)
-2. **Load specialized rules as needed** (e.g., `111a-logging` for logging-specific task)
-3. **Use Keywords to discover related split rules** - Search RULES_INDEX.md Keywords column
-4. **Check "Related Rules" section** in each rule for complementary rules
-5. **Follow progressive disclosure** - Many split rules include token budget breakdowns
-
-**Migration Note:** See `RULE_SPLIT_MIGRATIONS.md` for deprecated mega-rules that were split (111, 115, 106, 124).
-
-## Ecosystem-Specific Examples
-
-Different ecosystems have different validation patterns. When working with rules for these ecosystems, be aware of their standard tooling:
-
-### Common Patterns by Ecosystem
-
-| Ecosystem | Testing | Linting | Type Checking | Example Rules |
-|-----------|---------|---------|---------------|---------------|
-| **Python** | pytest | ruff check | mypy | 200-python-core, 206-python-pytest |
-| **Node.js** | npm test | eslint | tsc --noEmit | (Future: 3xx series) |
-| **Java** | mvn test | checkstyle | built-in | (Future: 4xx series) |
-| **Go** | go test | golangci-lint | built-in | (Future: 5xx series) |
-| **Shell** | shellcheck | shellcheck | N/A | 300-bash-scripting-core |
-
-### Python Ecosystem (Most Common)
-
-When loading Python-related rules (200-299 series), be aware of:
-- **Package Management**: uv (preferred) or pip
-- **Linting**: ruff check (consolidates flake8, isort, etc.)
-- **Formatting**: ruff format (Black-compatible)
-- **Testing**: pytest with fixtures and parametrization
-- **Type Checking**: mypy for static analysis
-
-**Common rule combinations**:
-- Web API: 200-python-core + 210-python-fastapi-core + 230-python-pydantic
-- CLI Tool: 200-python-core + 220-python-typer-cli
-- Data Science: 200-python-core + 500-data-science-analytics + 252-pandas-best-practices
-
-For detailed validation commands, refer to individual rule files in the 200-series.
-
-## Understanding Rule Metadata
-
-### Essential Fields (Preserved in Universal Format)
-
-These fields are kept in universal rules for all consumers:
-
-- **Keywords:** Comma-separated terms for semantic discovery and search
-  - Example: `**Keywords:** Snowflake, SQL, performance, optimization`
-  
-- **TokenBudget:** Approximate tokens needed (helps LLMs manage context)
-  - Example: `**TokenBudget:** ~400`
-  
-- **ContextTier:** Priority level for loading
-  - Critical: Must load for basic functionality
-  - High: Important for common tasks
-  - Medium: Useful for specific scenarios
-  - Low: Optional enhancements
-  
+- **Keywords:** Comma-separated terms for semantic discovery
+- **TokenBudget:** Approximate tokens needed for context management
+- **ContextTier:** Priority level (Critical > High > Medium > Low)
 - **Depends:** Prerequisites that must be loaded first
-  - Example: `**Depends:** 000-global-core, 100-snowflake-core`
-  - Always load dependencies before the rule itself
 
-### IDE-Specific Fields (Stripped in Universal Format)
+## Progressive Loading Strategy
 
-These are removed from universal rules as they're IDE-specific:
+Load rules incrementally to manage token budget:
 
-- **Type:** Auto-attach vs Agent Requested (Cursor-specific concept)
-- **AutoAttach:** Whether to load automatically (Cursor-specific)
-- **AppliesTo:** File glob patterns (IDE-specific matching)
-- **Description:** One-line summary (redundant with Purpose section)
-- **Version/LastUpdated:** Internal tracking (not needed for usage)
+1. **Foundation:** 000-global-core.md (always first, ~900 tokens)
+2. **Domain:** Technology-specific core (e.g., 100-snowflake-core, 200-python-core)
+3. **Specialized:** Task-specific rules based on Keywords match
+4. **Monitor:** Track cumulative tokens, prioritize Critical/High tiers
 
-## Best Practices for Rule Loading
-
-### 1. Start Minimal
-- Begin with just 000-global-core
-- Add domain-specific foundations (100, 200, etc.)
-- Layer on specialized rules as needed
-
-### 2. Follow Dependencies
-- Always load prerequisites first
-- Check the Depends field
-- Missing dependencies = incomplete guidance
-
-### 3. Consider Token Budget
-- Critical tier: ~1000-1500 tokens total
-- Critical + High tier: ~2500-3500 tokens total
-- Full context rarely needed or beneficial
-
-### 4. Use Keywords for Discovery
-- More reliable than filename pattern matching
-- Captures intent and domain
-- Enables semantic search
-
-### 5. Reference RULES_INDEX.md
-- Authoritative source for all available rules
-- Machine-readable format
-- Always up-to-date with dependencies
-
-## Common Integration Patterns
-
-### Pattern 1: Minimal Context (CLI Tools)
+Example loading sequence for Snowflake Streamlit dashboard:
 ```
-Load: 000-global-core + domain-specific-core
-Use: Quick operations, simple scripts
-Tokens: ~800-1000
+000-global-core (~900 tokens)
+└── 100-snowflake-core (~1,640 tokens)
+    └── 101-snowflake-streamlit-core (~3,667 tokens)
+        └── 101b-snowflake-streamlit-performance (~2,500 tokens, if optimizing)
+Total: ~6,000-9,000 tokens depending on specialization needs
 ```
 
-### Pattern 2: Standard Context (IDEs/Agents)
-```
-Load: 000-global-core + domain-core + 2-3 specialized rules
-Use: Regular development tasks
-Tokens: ~1500-2500
-```
+## Common Mistake Patterns
 
-### Pattern 3: Full Context (Complex Tasks)
-```
-Load: Complete dependency chain for specific workflow
-Use: Major implementations, architectural decisions
-Tokens: ~3000-5000
-```
+**Testing tasks without pytest rule:**
+- Keywords: testing, pytest, fixtures, parametrization
+- Required: 206-python-pytest.md
+- Critical: Contains AAA pattern, fixture patterns, Pre-Task-Completion Test Execution Gate
 
-## Troubleshooting
+**Python tasks without linting rule:**
+- Keywords: Python, linting, formatting, code quality
+- Required: 201-python-lint-format.md
+- Critical: Contains uvx ruff usage, validation gates
 
-### Rule Not Found
-- Check RULES_INDEX.md for exact filename
-- Verify you're in the correct directory (`{rule_path}/`)
-- Ensure rule hasn't been renamed
+**Deployment tasks without automation rules:**
+- Keywords: deploy, CI/CD, automation, release
+- Required: 820-taskfile-automation.md, 806-git-workflow-management.md
 
-### Missing Dependencies
-- Check Depends field in the rule
-- Load prerequisites first
-- Use RULES_INDEX.md Depends On column
+**Documentation tasks without docs rules:**
+- Keywords: documentation, CHANGELOG, README, docstrings
+- Required: 800-project-changelog-rules.md, 801-project-readme-rules.md, 204-python-docs-comments.md
 
-### Token Budget Exceeded
-- Start with Critical tier only
-- Remove Medium/Low tier rules
-- Focus on specific task rules
+**Streamlit tasks without Streamlit rules:**
+- Keywords: Streamlit, dashboard, caching, fragments, st.cache
+- Required: 101-snowflake-streamlit-core.md + specialized 101* rules
 
-### Conflicting Guidance
-- Higher number rules override lower numbers
-- Specialized rules override general rules
-- Recent versions override older versions
+## Ecosystem Tooling Reference
 
-## References
-
-### Essential Files
-- **@RULES_INDEX.md** - Complete rule catalog with metadata
-- **@{rule_path}/000-global-core.md** - Foundational principles (load first)
-- **@{rule_path}/002-rule-governance.md** - How rules are structured
-- **README.md** - Project documentation and setup
-
-### External Documentation
-- [Cursor Rules Guide](https://docs.cursor.com/en/context/rules)
-- [GitHub Copilot Instructions](https://docs.github.com/en/copilot/how-tos/configure-custom-instructions)
-- [Anthropic Context Engineering](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)
-
-### Getting Help
-- Check rule's References section for external docs
-- Review rule's Validation section for success criteria
-- Consult Contract section for clear boundaries
+| Ecosystem | Testing | Linting | Type Checking | Core Rule |
+|-----------|---------|---------|---------------|-----------|
+| Python | pytest | ruff check | mypy | 200-python-core |
+| Shell | shellcheck | shellcheck | N/A | 300-bash-scripting-core |
+| Docker | docker build | hadolint | N/A | 400-docker-best-practices |

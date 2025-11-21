@@ -7,6 +7,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.6.0] - 2025-11-21
+
+### Changed
+
+- **BREAKING**: Refactored Taskfile.yml task naming convention from 9 categories to 8 standardized categories
+  - New namespace structure: `env:`, `quality:`, `test:`, `generate:`, `deploy:`, `validate:`, `status:`, `maintenance:`
+  - No backward compatibility with old task names
+  - Complete task name mapping:
+    - `uv:pin` → `env:python`
+    - `deps:dev` → `env:deps`
+    - `lint` → `quality:lint`
+    - `format` → `quality:format`
+    - `lint:fix` → `quality:lint:fix`
+    - `format:fix` → `quality:format:fix`
+    - `quality:fix` → `quality:fix` (unchanged)
+    - `test` → `test:all`
+    - `rule:cursor` → `generate:rules:cursor`
+    - `rule:copilot` → `generate:rules:copilot`
+    - `rule:cline` → `generate:rules:cline`
+    - `rule:windsurf` → `generate:rules:windsurf`
+    - `rule:universal` → `generate:rules:universal`
+    - `rule:legacy` → `generate:rules:legacy`
+    - `rule:all` → `generate:rules:all`
+    - `rule:cursor:dry` → `generate:rules:cursor:dry`
+    - `rule:copilot:dry` → `generate:rules:copilot:dry`
+    - `rule:check` → `generate:rules:cursor:check`
+    - `rule:generate` → `generate:tokens`
+    - `rules:index` → `generate:index`
+    - `deploy:cursor` → `deploy:cursor` (unchanged)
+    - `deploy:copilot` → `deploy:copilot` (unchanged)
+    - `deploy:cline` → `deploy:cline` (unchanged)
+    - `deploy:windsurf` → `deploy:windsurf` (unchanged)
+    - `deploy:universal` → `deploy:universal` (unchanged)
+    - `deploy:all` → `deploy:all` (unchanged)
+    - `validate` → `validate:ci`
+    - `rules:validate` → `validate:rules`
+    - `rules:validate:verbose` → `validate:rules:verbose`
+    - `rules:validate:strict` → `validate:rules:strict`
+    - `tokens:validate` → `validate:tokens`
+    - `tokens:update` → `generate:tokens` (consolidated)
+    - `clean:venv` → `maintenance:clean:venv`
+    - `clean:generated` → `maintenance:clean:generated`
+    - `clean:all` → `maintenance:clean:all`
+    - `release:prepare` → `maintenance:release`
+    - `status` → `status:project`
+  - Run `task -l` to see full updated task list
+- **BREAKING**: Optimized discovery/AGENTS.md for AI agent consumption
+  - Removed 302 lines of human-focused installation and IDE configuration content
+  - Removed CLI implementation examples, troubleshooting guides, and external documentation links
+  - Streamlined to focus on rule loading protocol, discovery methods, and common mistakes
+  - Restored decision tree navigation system based on 2024-2025 LLM effectiveness research
+  - Positioned decision tree after "Quick Start" section for optimal agent accessibility
+  - Net change: -242 lines (from 509 to 267 lines) while improving agent usability
+
 ## [2.5.1] - 2025-11-20
 
 ### Added

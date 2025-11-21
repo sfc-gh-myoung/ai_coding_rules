@@ -8,7 +8,7 @@ alwaysApply: false
 <!-- Generated for Cursor project rules. See https://docs.cursor.com/en/context/rules#project-rules -->
 
 **Keywords:** README, project documentation, getting started, setup instructions, badges, Quick Start, Contributing, License, project structure, technical writing
-**TokenBudget:** ~2350
+**TokenBudget:** ~3500
 **ContextTier:** Medium
 **Depends:** 000-global-core
 
@@ -54,15 +54,57 @@ This rule establishes comprehensive standards for README.md files following wide
 
 ## Essential README Structure
 
+### Content Boundaries: README vs CONTRIBUTING.md
+
+**Principle:** Progressive disclosure - users first, contributors second
+
+**README.md Should Contain:**
+- Project overview and value proposition
+- Quick Overview section (30-second summary)
+- Quick Start for end users
+- Installation and usage instructions
+- Understanding/concepts section
+- Troubleshooting for users
+- Minimal contributor pointer with quick reference commands
+- License and acknowledgments
+
+**CONTRIBUTING.md Should Contain:**
+- Complete development workflow
+- Environment setup details
+- Code quality and linting procedures
+- Rule authoring/coding standards
+- PR templates and review process
+- Configuration safety guidelines
+- Testing requirements
+- Validation procedures
+
+**Boundary Pattern:**
+```markdown
+## Contributing (in README.md)
+
+**This section and those following are for developers who want to modify or contribute.**  
+If you're using the project, setup is complete. See [Troubleshooting](#troubleshooting) for support.
+
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for complete guidelines.
+
+**Quick Reference:**
+```bash
+# Essential commands for contributors
+```
+
+For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
+```
+
 ### Required Sections (In Order)
 - **Requirement:** Every README.md must include these core sections:
 
 ```markdown
 # Project Title
+## Quick Overview (recommended)
 ## Description  
 ## Quick Start / Installation
 ## Usage
-## Contributing
+## Contributing (minimal pointer to CONTRIBUTING.md)
 ## License
 ```
 
@@ -91,6 +133,7 @@ This rule establishes comprehensive standards for README.md files following wide
 - **Requirement:** Include a concise one-line description immediately after the title
 - **Always:** Add badges/shields for build status, version, license, and key metrics
 - **Rule:** Keep description under 160 characters for social media compatibility
+- **Multi-Platform Projects:** Include badges for all hosting platforms (GitHub, GitLab, etc.)
 
 ```markdown
 # Project Name
@@ -98,24 +141,73 @@ This rule establishes comprehensive standards for README.md files following wide
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]()
 [![License](https://img.shields.io/badge/license-MIT-blue)]()
 [![Version](https://img.shields.io/badge/version-1.0.0-orange)]()
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/org/repo)
+[![GitLab](https://img.shields.io/badge/GitLab-Repository-orange?logo=gitlab)](https://gitlab.com/org/repo)
 
 > One-line description of what this project does and why it matters
+```
+
+### Quick Overview Section (Recommended)
+
+**Purpose:** 30-second elevator pitch before full documentation
+**Placement:** Immediately after badges, before Table of Contents
+
+**Format:**
+- **What:** One-line project description
+- **Works with:** Compatibility/platform info
+- **Deploy:** Installation summary
+- **Benefit:** Value proposition
+- **Quick Checklist:** 4-5 key decision points with anchor links
+
+```markdown
+## Quick Overview
+
+**What:** Brief description of what this project provides  
+**Works with:** Compatible platforms/tools  
+**Deploy:** Simple installation summary  
+**Benefit:** Key value proposition
+
+**Quick Checklist:**
+- [ ] Prerequisites met? → See [Prerequisites](#prerequisites)
+- [ ] Ready to deploy? → See [Quick Start](#quick-start)
+- [ ] Want to understand first? → See [Understanding](#understanding)
+- [ ] Contributing? → See [Contributing](#contributing)
 ```
 
 ### Quick Start Section
 - **Requirement:** Provide immediate value within first 30 seconds of reading
 - **Always:** Include the minimal commands to get started
 - **Rule:** Test all installation commands on clean systems
+- **Multi-Platform:** Show both platform options for dual-hosted repositories
 
 ```markdown
 ## Quick Start
 
 ```bash
+# Clone the repository (choose one)
+# GitHub:
+git clone https://github.com/org/repo.git
+# GitLab:
+git clone https://gitlab.com/org/repo.git
+
+cd repo
+
 # Install
-npm install project-name
+npm install
 
 # Run
 npm start
+```
+
+**What just happened?**
+- Cloned the repository to your local machine
+- Installed all dependencies
+- Started the development server
+
+**Next Steps:**
+- ✅ Installation complete → [Configure](#configuration)
+- 🤔 Want to understand how it works → [Understanding](#understanding)
+- 🔧 Need different setup → Continue reading options below
 ```
 
 ### Installation Section  
@@ -123,12 +215,41 @@ npm start
 - **Always:** Provide step-by-step installation instructions
 - **Rule:** Include troubleshooting for common installation issues
 - **Consider:** Separate installation methods (npm, Docker, manual)
+- **Multi-Platform:** Show all repository platform options with "(choose one)" guidance
 
 ### Usage Section
 - **Requirement:** Include practical, runnable examples
 - **Always:** Show the most common use cases first
 - **Rule:** Use code blocks with proper syntax highlighting
 - **Consider:** Include screenshots for UI-heavy projects
+
+### Understanding/Concepts Section (Recommended)
+
+**Purpose:** Consolidate conceptual explanations between Quick Start and advanced topics
+**Placement:** After Quick Start, before detailed configuration/usage
+
+**Include:**
+- High-level architecture or system design
+- Key concepts and terminology
+- How automatic features work (discovery, loading, etc.)
+- "Why" rationale for architectural decisions (brief summary, link to detailed docs)
+
+```markdown
+## Understanding [System Name]
+
+### What Are [Core Concepts]?
+[1-2 paragraph explanation of fundamental concepts]
+
+### How [Automatic Feature] Works
+1. [Step-by-step walkthrough]
+2. [Show progression]
+3. [Explain outcomes]
+
+### Why [Design Decision]?
+[Brief summary with key benefits]
+
+**For complete architectural details, see [ARCHITECTURE.mdc](ARCHITECTURE.mdc) or [Design Decisions](#design-decisions) section.**
+```
 
 ### API Documentation
 - **Rule:** For libraries, include core API examples in README
@@ -137,17 +258,36 @@ npm start
 
 ### Contributing Section
 - **Requirement:** Link to CONTRIBUTING.md if it exists
-- **Always:** Include basic contribution workflow
-- **Rule:** Specify code style and testing requirements
+- **Always:** Include minimal pointer with quick reference commands
+- **Rule:** Use boundary statement to separate user/contributor content
+- **Avoid:** Duplicating detailed contribution workflows from CONTRIBUTING.md in README
+- **Pattern:** Quick reference commands acceptable, full workflow belongs in CONTRIBUTING.md
 
 ```markdown
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature-name`
-3. Make your changes and add tests
-4. Run tests: `npm test`
-5. Submit a pull request
+**This section and those following are for developers who want to modify or contribute.**  
+If you're using the project, setup is complete. See [Troubleshooting](#troubleshooting) for support.
+
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for complete guidelines.
+
+**Quick Reference:**
+```bash
+# Fork and clone
+git clone https://github.com/org/repo.git
+cd repo
+
+# Set up development environment
+npm install
+
+# Make changes, then validate
+npm test
+npm run lint
+
+# Submit pull request
+```
+
+For detailed workflows and examples, see [CONTRIBUTING.md](CONTRIBUTING.md).
 ```
 
 ### License Section
@@ -206,6 +346,44 @@ Click [here](https://example.com/docs) for more info.
 - **Always:** Keep line length under 80-100 characters
 - **Consider:** Use tables for structured information
 - **Rule:** Include table of contents for long READMEs (>500 lines)
+
+### Visual Separation Patterns
+
+**Avoid:** Horizontal rule markers (`---`) for content separation
+**Problem:** Overused by LLMs, creates visual noise without semantic meaning
+**Correct Pattern:** Use text-based boundary statements in section headers or TOC grouping
+
+**Anti-Pattern:**
+```markdown
+## For Users
+[content]
+---
+## For Contributors
+[content]
+```
+
+**Correct Pattern:**
+```markdown
+## Contributing
+
+**This section and those following are for developers who want to modify or contribute.**  
+If you're using the project, setup is complete. See [Troubleshooting](#troubleshooting) for support.
+```
+
+**Alternative:** Use Table of Contents grouping:
+```markdown
+## Table of Contents
+
+**For Users:**
+- [Quick Start](#quick-start)
+- [Usage](#usage)
+- [Troubleshooting](#troubleshooting)
+
+**For Contributors:**
+- [Contributing](#contributing)
+- [Development](#development)
+- [Testing](#testing)
+```
 
 ## Accessibility Best Practices
 
@@ -321,6 +499,23 @@ These changes REQUIRE README updates before task completion:
 - [ ] Dependencies and prerequisites accurate
 - [ ] Examples work with current version
 - [ ] Links checked and updated quarterly
+
+> **Investigation Required**
+> When applying this rule:
+> 1. **Read existing README BEFORE modifying** - Check current structure, badges, sections
+> 2. **Verify project type** - Different projects need different sections (library vs app vs framework)
+> 3. **Never assume tech stack** - Check actual dependencies, build tools, test frameworks
+> 4. **Check for existing badges** - Don't duplicate or remove valid badges without reason
+> 5. **Test installation steps** - Verify Quick Start commands actually work in clean environment
+>
+> **Anti-Pattern:**
+> "Adding Quick Start section... (without checking if commands work)"
+> "Adding badges... (without verifying they're valid for this project)"
+>
+> **Correct Pattern:**
+> "Let me read your existing README first to understand current structure."
+> [reads README, package.json, identifies tech stack]
+> "I see you're using [tech]. Let me verify the installation commands work..."
 
 ## Integration with Development Workflow
 

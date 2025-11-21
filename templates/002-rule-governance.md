@@ -167,6 +167,27 @@ Every rule file must follow this structure:
 - **Negative Tests:** [What should fail and how to detect it]
 ```
 
+### 3a. Using the Rule Boilerplate Template
+
+**MANDATORY:** All new rules and significant rule updates MUST use `templates/002a-rule-boilerplate.md` as the structural template.
+
+**Purpose:** The boilerplate template provides:
+- Complete working example of required structure with all mandatory sections
+- Inline HTML commentary explaining WHY each section exists and its purpose
+- Generic/abstract examples showing proper formatting without domain bias
+- Full compliance with all Section 11 governance standards
+
+**Usage:**
+1. Copy `templates/002a-rule-boilerplate.md` to new filename following numbering scheme
+2. Replace ALL placeholder content `[in brackets]` with domain-specific content
+3. Remove or adjust optional sections based on rule complexity and scope
+4. Validate using: `python3 scripts/validate_agent_rules.py --directory templates`
+5. Ensure zero critical errors before submitting
+
+**Reference:** See `@templates/002a-rule-boilerplate.md` for complete annotated example with inline guidance.
+
+**Validation:** Rule files that significantly deviate from boilerplate structure without clear justification may fail governance compliance checks during review.
+
 ## Response Template
 
 ```markdown
@@ -957,14 +978,30 @@ Are these rules subtopics of ONE technology?
 - **Accuracy:** All code examples must be syntactically correct and tested
 - **Currency:** External documentation links must be current and authoritative
 - **Completeness:** Required sections must be present and properly formatted
+- **Structural Compliance:** Rules must conform to structure shown in `002a-rule-boilerplate.md`
 - **Uniqueness:** Avoid duplicating information across rules
 - **Grounding:** All recommendations must be based on verified information, not speculation
 
 ### Review Process
 - **Section Check:** Verify all mandatory sections are present
+- **Boilerplate Conformance:** Compare rule structure against `002a-rule-boilerplate.md` template
+- **Automated Structural Validation:** Run `python3 scripts/validate_agent_rules.py --directory templates --check-boilerplate-structure` to validate compliance
+- **Compliance Scoring:** Review 8-criteria weighted compliance score (target: ≥90%)
 - **Cross-Reference Validation:** Confirm all rule references are accurate
 - **External Link Verification:** Test that documentation links work
 - **Example Testing:** Validate all code examples and commands
+
+**Automated Validation Commands:**
+```bash
+# Standard validation (required sections, metadata, emojis)
+python3 scripts/validate_agent_rules.py --directory templates
+
+# Deep structural validation with boilerplate comparison
+python3 scripts/validate_agent_rules.py --directory templates --check-boilerplate-structure
+
+# Generate compliance reports (text, markdown, HTML)
+python3 scripts/validate_agent_rules.py --directory templates --check-boilerplate-structure --compliance-report
+```
 
 ### Maintenance Responsibilities
 - **Version Tracking:** Update version number and LastUpdated date for changes

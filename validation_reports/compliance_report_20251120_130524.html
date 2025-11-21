@@ -1,0 +1,1910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boilerplate Compliance Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { color: #333; border-bottom: 3px solid #0066cc; padding-bottom: 10px; }
+        .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin: 30px 0; }
+        .stat-card { background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center; }
+        .stat-value { font-size: 2em; font-weight: bold; color: #0066cc; }
+        .stat-label { color: #666; margin-top: 5px; }
+        .file-result { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .file-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .score-high { color: #28a745; }
+        .score-medium { color: #ffc107; }
+        .score-low { color: #dc3545; }
+        .violations, .warnings, .recommendations { margin-top: 15px; }
+        .violations h4 { color: #dc3545; }
+        .warnings h4 { color: #ffc107; }
+        .recommendations h4 { color: #0066cc; }
+        ul { margin: 10px 0; padding-left: 20px; }
+        li { margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Boilerplate Compliance Report</h1>
+        <p><strong>Generated:</strong> 2025-11-20 13:05:24</p>
+        
+        <div class="summary">
+            <div class="stat-card">
+                <div class="stat-value">84</div>
+                <div class="stat-label">Total Files</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">90.1%</div>
+                <div class="stat-label">Avg Compliance</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">1</div>
+                <div class="stat-label">Perfect (≥95%)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">1</div>
+                <div class="stat-label">Needs Work (&lt;80%)</div>
+            </div>
+        </div>
+        
+        <h2>Detailed Results</h2>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>000-global-core.md</h3>
+                <span class="score-low" style="font-size: 1.5em; font-weight: bold;">79.3%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                    <li>Contract section at line 133 exceeds limit of 100</li>
+                </ul>
+            </div>
+
+            <div class="warnings">
+                <h4>⚠️ Warnings</h4>
+                <ul>
+                    <li>Contract section should appear before line 100</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Review templates/002a-rule-boilerplate.md for complete structure guidance</li>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds), Anti-Patterns and Common Mistakes</li>
+                    <li>Move Contract section earlier in file (before line 100)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>115a-snowflake-cortex-agents-instructions.md</h3>
+                <span class="score-medium" style="font-size: 1.5em; font-weight: bold;">83.6%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="warnings">
+                <h4>⚠️ Warnings</h4>
+                <ul>
+                    <li>Section order: 'Validation' appears before 'Quick Compliance Checklist'</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds), Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>124-snowflake-data-quality-core.md</h3>
+                <span class="score-medium" style="font-size: 1.5em; font-weight: bold;">83.6%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="warnings">
+                <h4>⚠️ Warnings</h4>
+                <ul>
+                    <li>Section order: 'Validation' appears before 'Quick Compliance Checklist'</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds), Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>124a-snowflake-data-quality-custom.md</h3>
+                <span class="score-medium" style="font-size: 1.5em; font-weight: bold;">83.6%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="warnings">
+                <h4>⚠️ Warnings</h4>
+                <ul>
+                    <li>Section order: 'Validation' appears before 'Quick Compliance Checklist'</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds), Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>004-tool-design-for-agents.md</h3>
+                <span class="score-medium" style="font-size: 1.5em; font-weight: bold;">83.8%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Contract section at line 388 exceeds limit of 100</li>
+                </ul>
+            </div>
+
+            <div class="warnings">
+                <h4>⚠️ Warnings</h4>
+                <ul>
+                    <li>Contract section should appear before line 100</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Move Contract section earlier in file (before line 100)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>002-rule-governance.md</h3>
+                <span class="score-medium" style="font-size: 1.5em; font-weight: bold;">84.0%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Contract section at line 1466 exceeds limit of 100</li>
+                </ul>
+            </div>
+
+            <div class="warnings">
+                <h4>⚠️ Warnings</h4>
+                <ul>
+                    <li>Section order: 'Quick Compliance Checklist' appears before 'Anti-Patterns and Common Mistakes'</li>
+                    <li>Contract section should appear before line 100</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Move Contract section earlier in file (before line 100)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>104-snowflake-streams-tasks.md</h3>
+                <span class="score-medium" style="font-size: 1.5em; font-weight: bold;">85.6%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds), Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>105-snowflake-cost-governance.md</h3>
+                <span class="score-medium" style="font-size: 1.5em; font-weight: bold;">85.6%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds), Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>107-snowflake-security-governance.md</h3>
+                <span class="score-medium" style="font-size: 1.5em; font-weight: bold;">85.6%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds), Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>108-snowflake-data-loading.md</h3>
+                <span class="score-medium" style="font-size: 1.5em; font-weight: bold;">85.6%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds), Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>115-snowflake-cortex-agents-core.md</h3>
+                <span class="score-medium" style="font-size: 1.5em; font-weight: bold;">86.1%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="warnings">
+                <h4>⚠️ Warnings</h4>
+                <ul>
+                    <li>Section order: 'Validation' appears before 'Quick Compliance Checklist'</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds), Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>111a-snowflake-observability-logging.md</h3>
+                <span class="score-medium" style="font-size: 1.5em; font-weight: bold;">87.1%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds), Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>111b-snowflake-observability-tracing.md</h3>
+                <span class="score-medium" style="font-size: 1.5em; font-weight: bold;">87.1%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds), Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>111c-snowflake-observability-monitoring.md</h3>
+                <span class="score-medium" style="font-size: 1.5em; font-weight: bold;">87.1%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds), Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>805-project-contributing-rules.md</h3>
+                <span class="score-medium" style="font-size: 1.5em; font-weight: bold;">87.7%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>111-snowflake-observability-core.md</h3>
+                <span class="score-medium" style="font-size: 1.5em; font-weight: bold;">88.1%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds), Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>112-snowflake-snowcli.md</h3>
+                <span class="score-medium" style="font-size: 1.5em; font-weight: bold;">88.1%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds), Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>113-snowflake-feature-store.md</h3>
+                <span class="score-medium" style="font-size: 1.5em; font-weight: bold;">88.1%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds), Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>116-snowflake-cortex-search.md</h3>
+                <span class="score-medium" style="font-size: 1.5em; font-weight: bold;">88.1%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds), Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>118-snowflake-cortex-rest-api.md</h3>
+                <span class="score-medium" style="font-size: 1.5em; font-weight: bold;">88.1%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds), Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>119-snowflake-warehouse-management.md</h3>
+                <span class="score-medium" style="font-size: 1.5em; font-weight: bold;">88.1%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds), Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>121-snowflake-snowpipe.md</h3>
+                <span class="score-medium" style="font-size: 1.5em; font-weight: bold;">88.1%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds), Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>109-snowflake-notebooks.md</h3>
+                <span class="score-medium" style="font-size: 1.5em; font-weight: bold;">88.3%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds), Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>251-python-datetime-handling.md</h3>
+                <span class="score-medium" style="font-size: 1.5em; font-weight: bold;">88.4%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="warnings">
+                <h4>⚠️ Warnings</h4>
+                <ul>
+                    <li>Section order: 'Quick Start TL;DR (Read First - 30 Seconds)' appears before 'Contract'</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>100-snowflake-core.md</h3>
+                <span class="score-medium" style="font-size: 1.5em; font-weight: bold;">88.7%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                </ul>
+            </div>
+
+            <div class="warnings">
+                <h4>⚠️ Warnings</h4>
+                <ul>
+                    <li>Section order: 'Contract' appears before 'Rule Type and Scope'</li>
+                    <li>Section order: 'Validation' appears before 'Quick Compliance Checklist'</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>200-python-core.md</h3>
+                <span class="score-medium" style="font-size: 1.5em; font-weight: bold;">88.7%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="warnings">
+                <h4>⚠️ Warnings</h4>
+                <ul>
+                    <li>Section order: 'Contract' appears before 'Rule Type and Scope'</li>
+                    <li>Section order: 'References' appears before 'Response Template'</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>106-snowflake-semantic-views-core.md</h3>
+                <span class="score-medium" style="font-size: 1.5em; font-weight: bold;">88.8%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="warnings">
+                <h4>⚠️ Warnings</h4>
+                <ul>
+                    <li>Section order: 'Validation' appears before 'Quick Compliance Checklist'</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds), Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>102-snowflake-sql-demo-engineering.md</h3>
+                <span class="score-medium" style="font-size: 1.5em; font-weight: bold;">89.3%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds), Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>102a-snowflake-sql-automation.md</h3>
+                <span class="score-medium" style="font-size: 1.5em; font-weight: bold;">89.3%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds), Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>103-snowflake-performance-tuning.md</h3>
+                <span class="score-medium" style="font-size: 1.5em; font-weight: bold;">89.3%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds), Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>110-snowflake-model-registry.md</h3>
+                <span class="score-medium" style="font-size: 1.5em; font-weight: bold;">89.3%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds), Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>120-snowflake-spcs.md</h3>
+                <span class="score-medium" style="font-size: 1.5em; font-weight: bold;">89.3%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds), Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>101-snowflake-streamlit-core.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">90.4%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>101a-snowflake-streamlit-visualization.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">90.4%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>101b-snowflake-streamlit-performance.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">90.4%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>101c-snowflake-streamlit-security.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">90.4%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>101d-snowflake-streamlit-testing.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">90.4%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>109a-snowflake-notebooks-tutorials.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">90.4%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>252-pandas-best-practices.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">90.4%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>204-python-docs-comments.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">90.7%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="warnings">
+                <h4>⚠️ Warnings</h4>
+                <ul>
+                    <li>Section order: 'Quick Start TL;DR (Read First - 30 Seconds)' appears before 'Contract'</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>205-python-classes.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">90.7%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="warnings">
+                <h4>⚠️ Warnings</h4>
+                <ul>
+                    <li>Section order: 'Quick Start TL;DR (Read First - 30 Seconds)' appears before 'Contract'</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>400-docker-best-practices.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">90.7%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="warnings">
+                <h4>⚠️ Warnings</h4>
+                <ul>
+                    <li>Section order: 'Quick Start TL;DR (Read First - 30 Seconds)' appears before 'Contract'</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>600-data-governance-quality.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">90.7%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="warnings">
+                <h4>⚠️ Warnings</h4>
+                <ul>
+                    <li>Section order: 'Quick Start TL;DR (Read First - 30 Seconds)' appears before 'Contract'</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>106b-snowflake-semantic-views-querying.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">90.8%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds), Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>106c-snowflake-semantic-views-integration.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">90.8%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds), Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>114-snowflake-cortex-aisql.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">90.8%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds), Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>106a-snowflake-semantic-views-advanced.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">91.4%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>109c-snowflake-app-deployment.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">91.4%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>115b-snowflake-cortex-agents-operations.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">91.4%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>117-snowflake-cortex-analyst.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">91.4%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>122-snowflake-dynamic-tables.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">91.4%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>123-snowflake-object-tagging.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">91.4%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>124b-snowflake-data-quality-operations.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">91.4%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Quick Start TL;DR (Read First - 30 Seconds)</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>206-python-pytest.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">91.4%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>003-context-engineering.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">91.8%</span>
+            </div>
+
+            <div class="warnings">
+                <h4>⚠️ Warnings</h4>
+                <ul>
+                    <li>Section order: 'Validation' appears before 'Quick Compliance Checklist'</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>901-data-generation-modeling.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">91.8%</span>
+            </div>
+
+            <div class="warnings">
+                <h4>⚠️ Warnings</h4>
+                <ul>
+                    <li>Section order: 'Quick Start TL;DR (Read First - 30 Seconds)' appears before 'Contract'</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>101b-snowflake-streamlit-appendix-sql-errors.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">92.2%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="warnings">
+                <h4>⚠️ Warnings</h4>
+                <ul>
+                    <li>Section order: 'Validation' appears before 'Quick Compliance Checklist'</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>201-python-lint-format.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">92.7%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>202-markup-config-validation.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">92.7%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>203-python-project-setup.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">92.7%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>210-python-fastapi-core.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">92.7%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>210a-python-fastapi-security.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">92.7%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>210b-python-fastapi-testing.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">92.7%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>210c-python-fastapi-deployment.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">92.7%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>210d-python-fastapi-monitoring.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">92.7%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>220-python-typer-cli.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">92.7%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>230-python-pydantic.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">92.7%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>240-python-faker.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">92.7%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>250-python-flask.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">92.7%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>300-bash-scripting-core.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">92.7%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>300a-bash-security.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">92.7%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>300b-bash-testing-tooling.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">92.7%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>310-zsh-scripting-core.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">92.7%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>310a-zsh-advanced-features.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">92.7%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>310b-zsh-compatibility.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">92.7%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>800-project-changelog-rules.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">92.7%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>801-project-readme-rules.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">92.7%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>820-taskfile-automation.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">92.7%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>500-data-science-analytics.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">92.8%</span>
+            </div>
+
+            <div class="warnings">
+                <h4>⚠️ Warnings</h4>
+                <ul>
+                    <li>Section order: 'Quick Start TL;DR (Read First - 30 Seconds)' appears before 'Contract'</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>700-business-analytics.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">92.8%</span>
+            </div>
+
+            <div class="warnings">
+                <h4>⚠️ Warnings</h4>
+                <ul>
+                    <li>Section order: 'Quick Start TL;DR (Read First - 30 Seconds)' appears before 'Contract'</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>806-git-workflow-management.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">94.0%</span>
+            </div>
+
+            <div class="warnings">
+                <h4>⚠️ Warnings</h4>
+                <ul>
+                    <li>Section order: 'Quick Start TL;DR (Read First - 30 Seconds)' appears before 'Contract'</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>900-demo-creation.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">94.0%</span>
+            </div>
+
+            <div class="warnings">
+                <h4>⚠️ Warnings</h4>
+                <ul>
+                    <li>Section order: 'Quick Start TL;DR (Read First - 30 Seconds)' appears before 'Contract'</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>001-memory-bank.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">94.2%</span>
+            </div>
+
+            <div class="violations">
+                <h4>❌ Critical Violations</h4>
+                <ul>
+                    <li>Missing required section: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+
+            <div class="recommendations">
+                <h4>💡 Recommendations</h4>
+                <ul>
+                    <li>Add missing sections: Anti-Patterns and Common Mistakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="file-result">
+            <div class="file-header">
+                <h3>002a-rule-boilerplate.md</h3>
+                <span class="score-high" style="font-size: 1.5em; font-weight: bold;">97.5%</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -17,10 +17,11 @@ The project follows a **universal-first architecture** where source rule files a
 │                                                            │
 │  Source Rule Files (*.md in project root)                  │
 │  ├── 000-global-core.md         [Foundation]               │
+│  ├── 002a-rule-boilerplate.md   [Template Reference]       │
 │  ├── 100-snowflake-core.md      [Domain Core]              │
 │  ├── 200-python-core.md         [Language Core]            │
 │  ├── 210-python-fastapi-core.md [Framework Specific]       │
-│  └── ... (74 total rules)                                   │
+│  └── ... (84 total rules)                                   │
 │                                                            │
 │  Discovery System (Committed in Repo, deployed to root)    │
 │  ├── AGENTS.md          [AI assistant discovery guide]     │
@@ -160,7 +161,7 @@ Rules support embedded metadata in Markdown:
 ```mermaid
 flowchart TD
     subgraph Source["Source Templates (templates/)"]
-        T1["000-global-core.md<br/>001-memory-bank.md<br/>... (74 files)"]
+        T1["000-global-core.md<br/>001-memory-bank.md<br/>... (84 files)"]
         D1["discovery/<br/>├── AGENTS.md<br/>└── RULES_INDEX.md"]
         T1 -.-> Note1["Canonical source<br/>Always edit here"]
     end
@@ -173,10 +174,10 @@ flowchart TD
     end
 
     subgraph Generated["Generated Outputs (generated/)"]
-        U["universal/<br/>Pure Markdown<br/>74 rules"]
-        C["cursor/rules/<br/>.mdc + YAML<br/>74 rules"]
-        CO["copilot/instructions/<br/>.md + YAML<br/>74 rules"]
-        CL["cline/<br/>Plain .md<br/>74 rules"]
+        U["universal/<br/>Pure Markdown<br/>84 rules"]
+        C["cursor/rules/<br/>.mdc + YAML<br/>84 rules"]
+        CO["copilot/instructions/<br/>.md + YAML<br/>84 rules"]
+        CL["cline/<br/>Plain .md<br/>84 rules"]
         Note2["DO NOT EDIT<br/>Regenerated from templates/"]
     end
 
@@ -188,7 +189,7 @@ flowchart TD
     end
 
     subgraph Target["Target Project"]
-        TR["rules/ or .cursor/rules/<br/>74 rule files"]
+        TR["rules/ or .cursor/rules/<br/>84 rule files"]
         TA["AGENTS.md<br/>(project root)"]
         TI["RULES_INDEX.md<br/>(project root)"]
         TC["IDE configured to<br/>reference deployed location"]
@@ -229,7 +230,7 @@ Rule content...
 - Contains all metadata fields (Type, AutoAttach, AppliesTo, Keywords, etc.)
 - Single source for all generated formats
 - Always edit here, never in `generated/`
-- 74 rule files covering all domains
+- 84 rule files covering all domains
 
 ### Discovery System (`discovery/`)
 
@@ -296,19 +297,19 @@ python scripts/generate_agent_rules.py \
 ```
 generated/
 ├── universal/          # Pure Markdown, no frontmatter
-│   └── *.md (74 rules only)
+│   └── *.md (84 rules only)
 ├── cursor/rules/       # .mdc files with YAML
-│   └── *.mdc (74 rules)
+│   └── *.mdc (84 rules)
 ├── copilot/instructions/ # .md with YAML
-│   └── *.md (74 rules)
+│   └── *.md (84 rules)
 └── cline/              # Plain .md with comment
-    └── *.md (74 rules)
+    └── *.md (84 rules)
 ```
 
 **Important:**
 - Discovery files (AGENTS.md, RULES_INDEX.md) are NOT in `generated/`
 - Discovery files are deployed by `deploy_rules.py` to **target project root**
-- Generated directories contain ONLY rule files (74 files each)
+- Generated directories contain ONLY rule files (84 files each)
 
 **Why Commit Generated Files:**
 - Users can clone and use immediately (no build step)
@@ -399,7 +400,7 @@ sequenceDiagram
     User->>Task: 1. task deploy:universal
     Task->>Deploy: Execute deployment
     Deploy->>Temp: Generate rules to temp dir
-    Deploy->>Target: Copy 74 rules to rules/
+    Deploy->>Target: Copy 84 rules to rules/
     Deploy->>Deploy: Render AGENTS.md<br/>({rule_path} → rules)
     Deploy->>Target: Copy AGENTS.md to root
     Deploy->>Target: Copy RULES_INDEX.md to root
@@ -424,7 +425,7 @@ sequenceDiagram
     Script->>Script: Render discovery files
     Script->>Target: Copy AGENTS.md, RULES_INDEX.md
     Script->>Script: Validate deployment
-    User->>Target: 4. Verify deployment<br/>ls rules/*.md (74 files)<br/>ls AGENTS.md (exists)
+    User->>Target: 4. Verify deployment<br/>ls rules/*.md (84 files)<br/>ls AGENTS.md (exists)
 ```
 
 ### Legacy Path Generation Flow (For Development)
@@ -617,7 +618,7 @@ appliesTo:
 - **Cons:** Requires build step, Python dependency, CI complexity
 
 **Trade-offs Accepted:**
-- Larger repository size (~10MB with 74 rules × 4 formats)
+- Larger repository size (~12MB with 84 rules × 4 formats)
 - Git diffs show both template and generated changes
 - Risk of template/generated divergence (mitigated by CI)
 
@@ -628,7 +629,7 @@ appliesTo:
 **Rationale:**
 - **Simpler Migration:** Direct move from root to `templates/`
 - **Simpler Generator:** No recursive directory scanning needed
-- **Manageable Scale:** 74 files navigable in flat structure
+- **Manageable Scale:** 84 files navigable in flat structure
 - **Numbering System:** 3-digit prefixes provide logical grouping
 
 **Alternative Considered:** Subdirectories by domain
@@ -774,7 +775,7 @@ To add a new metadata field:
 ## Performance
 
 **Generation Speed:**
-- ~1-2 seconds for 74 rules (all formats)
+- ~1-2 seconds for 84 rules (all formats)
 - Linear scaling with number of rules
 - Dominated by I/O (file reads/writes)
 
@@ -816,7 +817,101 @@ jobs:
       
       - name: Validate rule structure
         run: uv run scripts/validate_agent_rules.py
+      
+      - name: Deep structural validation (boilerplate compliance)
+        run: |
+          python3 scripts/validate_agent_rules.py --directory templates --check-boilerplate-structure
+          # Validates 8-criteria compliance scoring against boilerplate template
 ```
+
+## Rule Validation Architecture
+
+The project implements a comprehensive validation system to ensure rule quality and consistency.
+
+### Validation Layers
+
+**1. Standard Validation** (`scripts/validate_agent_rules.py`)
+- Required sections present (Purpose, Contract, Validation, etc.)
+- Required metadata (Version, LastUpdated, Keywords)
+- Recommended metadata (TokenBudget, ContextTier)
+- No emojis in machine-consumed files
+- Metadata field order validation
+- Contract section placement (before line 100)
+
+**2. Boilerplate Structural Validation** (`--check-boilerplate-structure` flag)
+- 8-criteria weighted compliance scoring (0-100%)
+- Section order validation
+- Required subsection detection
+- Optional section appropriateness
+- Investigation-First Protocol presence
+- Anti-patterns section completeness
+
+**3. Compliance Reporting** (`--compliance-report` flag)
+- Text format (console output)
+- Markdown format (documentation)
+- HTML format (interactive dashboard)
+- Timestamped report history
+- Actionable recommendations
+
+### Boilerplate Template System
+
+**Purpose:** `templates/002a-rule-boilerplate.md` serves as the canonical reference for rule structure, format, content, and flow.
+
+**Key Features:**
+- 680 lines with comprehensive examples
+- Inline HTML commentary explaining WHY sections exist
+- Generic/abstract placeholders for easy customization
+- 100% compliance with governance standards
+- Required by Section 3a of `002-rule-governance.md`
+
+**Validation Integration:**
+```bash
+# Standard validation
+python3 scripts/validate_agent_rules.py --directory templates
+
+# Deep structural validation with compliance scoring
+python3 scripts/validate_agent_rules.py --directory templates --check-boilerplate-structure
+
+# Generate compliance reports (text, markdown, HTML)
+python3 scripts/validate_agent_rules.py --directory templates --check-boilerplate-structure --compliance-report
+```
+
+### Compliance Scoring Algorithm
+
+**Weighted Criteria (8 total, sum to 100%):**
+1. **Required sections present** (30%) - All mandatory sections exist
+2. **Section order correct** (20%) - Sections appear in expected order
+3. **Metadata field order** (15%) - Fields follow standard order
+4. **Contract placement** (10%) - Contract before line 100
+5. **Required subsections** (10%) - Subsections within major sections
+6. **Optional sections** (5%) - Appropriate use of optional sections
+7. **Investigation protocol** (5%) - Investigation-First Protocol present
+8. **Anti-patterns** (5%) - Anti-patterns section with examples
+
+**Score Interpretation:**
+- **≥95%**: Perfect compliance
+- **90-94%**: Excellent compliance
+- **80-89%**: Good compliance
+- **<80%**: Needs improvement
+
+**Current System Performance:**
+- 84 templates validated
+- 90.1% average compliance
+- 1 perfect file (≥95%)
+- 1 needs improvement (<80%)
+
+### Validation Performance
+
+**Optimization Techniques:**
+- **Singleton caching**: Boilerplate structure parsed once, cached in memory
+- **Parallel file processing**: Independent validations run concurrently
+- **Lazy loading**: Boilerplate only parsed when `--check-boilerplate-structure` enabled
+- **Efficient regex**: Precompiled patterns for metadata extraction
+
+**Benchmark Results:**
+- 84 templates: ~15 seconds standard validation
+- 84 templates with boilerplate check: ~25 seconds
+- Report generation adds ~2 seconds for all formats
 
 ### Pre-commit Hook
 

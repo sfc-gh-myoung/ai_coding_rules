@@ -23,7 +23,11 @@ This repository provides a **universal-first rule system** designed to work seam
 - **⚡ Token-Efficient** — Modular, focused rules (150-500 lines) minimize context window usage
 - **🔓 No Lock-In** — Standard Markdown with embedded metadata works with any tool or custom integration
 
-This project was inspired, in part, by: [how-to-add-cline-memory-bank-feature-to-your-cursor](https://forum.cursor.com/t/how-to-add-cline-memory-bank-feature-to-your-cursor/67868) and [cline memory bank](https://docs.cline.bot/prompting/cline-memory-bank)
+This project was inspired, in part, by:
+
+- [GitHub Copilot Custom Instructions](https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions)
+- [how-to-add-cline-memory-bank-feature-to-your-cursor](https://forum.cursor.com/t/how-to-add-cline-memory-bank-feature-to-your-cursor/67868)
+- [cline memory bank](https://docs.cline.bot/prompting/cline-memory-bank)
 
 <details>
 <summary><h3>Universal Format Philosophy (Click to expand)</h3></summary>
@@ -31,6 +35,7 @@ This project was inspired, in part, by: [how-to-add-cline-memory-bank-feature-to
 The rule system is built on a template-first architecture: 84 source templates in `templates/` generate portable rules that work with any tool, IDE, or AI assistant.
 
 **Key Features:**
+
 - **Any AI Assistant**: Claude, GPT, Gemini, custom agents
 - **Any IDE**: Cursor, VS Code, IntelliJ, JetBrains, Vim
 - **Any Tool**: CLI tools, scripts, custom integrations
@@ -115,14 +120,13 @@ These files are deployed to your project root automatically and require no manua
 | **generated/copilot/instructions/** | .md with YAML | GitHub Copilot |
 | **generated/cline/** | Plain .md | Cline AI |
 
-**Quick Decision**: 
+**Quick Decision**:
+
 - **New to the project?** → See [Team Onboarding](docs/ONBOARDING.md)
-- **Just want to use rules?** → See [For Rule Consumers](#for-rule-consumers-using-the-rules)
+- **Just want to use rules?** → See [Quick Start](#quick-start)
 - **Want to modify rules?** → See [For Rule Maintainers](#for-rule-maintainers-contributing-to-rules)
 - **Want to configure your AI?** → See [AI Configuration](#ai-configuration)
 - **Want to understand the system?** → See [Architecture](docs/ARCHITECTURE.md)
-
----
 
 ## Prerequisites
 
@@ -134,13 +138,12 @@ Before getting started, ensure you have:
 - **Optional: uv** — Python package manager (automatically installed by Task if missing)
 
 **Quick check:**
+
 ```bash
 python --version  # Should show 3.11 or higher
 task --version    # Should show Task version
 git --version     # Should show Git version
 ```
-
----
 
 ## Quick Start
 
@@ -231,11 +234,12 @@ cd /tmp/ai-rules
 /opt/homebrew/bin/uv run scripts/deploy_rules.py --agent universal --destination ~/my-project
 
 # Verify deployment
-ls ~/my-project/rules/*.md | wc -l  # Should show 74
+ls ~/my-project/rules/*.md | wc -l  # Should show 84
 ls ~/my-project/AGENTS.md ~/my-project/RULES_INDEX.md  # Both files should exist
 ```
 
 **For other formats:**
+
 ```bash
 # Cursor
 /opt/homebrew/bin/uv run scripts/deploy_rules.py --agent cursor --destination ~/my-project
@@ -248,6 +252,7 @@ ls ~/my-project/AGENTS.md ~/my-project/RULES_INDEX.md  # Both files should exist
 ```
 
 **What the script does automatically:**
+
 - Generates rules for the specified agent type
 - Copies rules to the correct directory (`.cursor/rules/`, `rules/`, etc.)
 - Configures `AGENTS.md` with correct paths (replaces `{rule_path}` template variable)
@@ -259,14 +264,13 @@ ls ~/my-project/AGENTS.md ~/my-project/RULES_INDEX.md  # Both files should exist
 
 ```bash
 # Check rules are present (universal deployment)
-ls rules/*.md | wc -l  # Should show 74
+ls rules/*.md | wc -l  # Should show 84
 
 # Or for Cursor
-ls .cursor/rules/*.mdc | wc -l  # Should show 74
+ls .cursor/rules/*.mdc | wc -l  # Should show 84
 ```
 
 **Success!** Your AI assistant can now access 84 specialized rules. See [AI Configuration](#ai-configuration) for IDE-specific setup.
-
 
 ### For Rule Maintainers (Contributing to Rules)
 
@@ -297,7 +301,8 @@ task rule:all
 See [Project Structure](#project-structure) section below for full details.
 
 **Quick Overview:**
-- `templates/` — 74 source template files (edit these)
+
+- `templates/` — 84 source template files (edit these)
 - `discovery/` — Rule loading protocol and catalog
 - `generated/` — IDE-ready outputs (auto-generated, don't edit)
 - `scripts/` — Generation and deployment tools
@@ -350,6 +355,7 @@ task clean:rules
 #### Verification Checklist
 
 **After making changes:**
+
 - [ ] Edit source files in `templates/`
 - [ ] Run `task rule:all` to regenerate
 - [ ] Run `task rules:index` to update catalog
@@ -358,6 +364,7 @@ task clean:rules
 - [ ] Commit `templates/`, `discovery/`, and `generated/` directories
 
 **What NOT to commit:**
+
 - ❌ `.venv/` or Python cache files
 - ❌ IDE-specific settings (unless intentional)
 - ❌ Temporary test directories
@@ -387,10 +394,9 @@ cp discovery/RULES_INDEX.md ~/test-rules/RULES_INDEX.md
 
 **See also:** [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed contribution guidelines.
 
-
 ## Rule Selection Decision Tree
 
-```
+```ascii
 ┌─────────────────────────────────────────────────┐
 │         Start: What are you building?           │
 └─────────────────┬───────────────────────────────┘
@@ -436,7 +442,8 @@ Loading Order (Follow Dependencies):
 ### Example Loading Sequences
 
 **Snowflake Streamlit Dashboard:**
-```
+
+```ascii
 000-global-core (foundation)
 └── 100-snowflake-core (SQL patterns)
     └── 101-snowflake-streamlit-core (app basics)
@@ -445,7 +452,8 @@ Loading Order (Follow Dependencies):
 ```
 
 **Python FastAPI with Testing:**
-```
+
+```ascii
 000-global-core (foundation)
 └── 200-python-core (Python basics)
     ├── 210-python-fastapi-core (API framework)
@@ -467,6 +475,7 @@ This project uses **smaller, topic-focused rules** instead of large monolithic r
 - **Better Pattern Matching**: LLMs excel at pattern recognition. Focused rules create clear patterns (e.g., "Snowpipe → auto-ingest → cloud events") that are easier to recall and apply accurately.
 
 **Example**: Compare a 3,000-line "Snowflake Everything" rule with our modular approach:
+
 - **Monolithic**: LLM must sift through warehouse management, Snowpipe, Cortex AI, security, and cost governance simultaneously—increasing the chance of applying warehouse sizing advice to Snowpipe (which uses serverless compute).
 - **Modular**: Request `121-snowflake-snowpipe.md` and `119-snowflake-warehouse-management.md` separately. Each rule provides focused, non-conflicting guidance for its specific domain.
 
@@ -482,6 +491,7 @@ This project uses **smaller, topic-focused rules** instead of large monolithic r
 - **Enable Rule Combinations**: Need FastAPI + Pydantic + pytest? Load `210-python-fastapi-core.md` (400 tokens) + `230-python-pydantic.md` (300 tokens) + `206-python-pytest.md` (350 tokens) = 1,050 tokens. A monolithic "Python Web Testing" rule would be 1,500+ tokens even if you only need those three topics.
 
 **Real-world impact**: On a Snowflake data engineering project, you might need:
+
 - `100-snowflake-core.md` (500 tokens) - foundational practices
 - `104-snowflake-streams-tasks.md` (400 tokens) - incremental pipelines
 - `121-snowflake-snowpipe.md` (2,000 tokens) - continuous ingestion
@@ -552,6 +562,7 @@ gen-rules --project ~/my-rules rule:cursor  # Override project dir
 ```
 
 **Features:**
+
 - ✅ Production-ready with comprehensive error handling
 - ✅ Works from any directory
 - ✅ Flexible configuration via flags or environment variables
@@ -562,7 +573,7 @@ See `gen-rules --help` for complete documentation.
 
 ## Project Structure
 
-```
+```ascii
 ai_coding_rules/
 ├── templates/              ← Edit these: 84 source template files
 ├── discovery/              ← Discovery system sources (AGENTS.md, RULES_INDEX.md)
@@ -583,6 +594,7 @@ ai_coding_rules/
 - **scripts/** — `generate_agent_rules.py` (generation), `deploy_rules.py` (deployment)
 
 **Workflows:**
+
 ```bash
 # For users: Deploy rules
 task deploy:universal DEST=~/my-project
@@ -653,6 +665,7 @@ This hierarchy ensures consistent interpretation across different AI models and 
 The project uses a **universal-first architecture**: source templates are transformed into portable formats that work with any IDE, agent, or LLM. Rules are generated from a single source of truth into multiple deployment formats.
 
 **Key concepts:**
+
 - **Templates** in `templates/` are the source of truth (84 rule files)
 - **Universal format** creates portable Markdown that works everywhere
 - **IDE-specific formats** add convenience features for Cursor, Copilot, Cline
@@ -683,6 +696,7 @@ AI loads: 000-global-core → 100-snowflake-core → 101-snowflake-streamlit-cor
 ### Manual Rule Management
 
 **Search for rules by keyword:**
+
 ```bash
 grep -i "performance" RULES_INDEX.md
 ```
@@ -769,6 +783,7 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed gu
 ## Development Commands
 
 ### Environment Setup
+
 ```bash
 # Python environment with uv (recommended)
 task deps:dev              # Install development dependencies
@@ -781,6 +796,7 @@ pip install -e ".[dev]"
 ```
 
 ### Code Quality & Linting
+
 ```bash
 # Ruff (primary linter and formatter)
 task lint                 # Check code with Ruff
@@ -808,6 +824,7 @@ task deploy:cursor
 ```
 
 ### Rule Generation & Validation
+
 ```bash
 # Generate IDE-specific rules (advanced - use deployment instead for projects)
 task rule:cursor         # Generate Cursor rules to generated/cursor/rules/
@@ -841,7 +858,8 @@ task --list              # Validate Taskfile syntax
 uv run scripts/generate_agent_rules.py --source . --dry-run  # Test rule generation
 ```
 
-### Utilities  
+### Utilities
+
 ```bash
 task clean_venv          # Remove virtual environment
 task -l                  # List all available tasks
@@ -854,12 +872,14 @@ task -l                  # List all available tasks
 The Memory Bank is a structured documentation system that helps AI assistants maintain context across multiple sessions. Since AI assistants reset between sessions, the Memory Bank provides continuity by capturing project state, architectural decisions, and current work focus.
 
 **Key benefits:**
+
 - Maintains project context across development sessions
 - Captures architectural decisions and technical patterns
 - Tracks active work and known issues
 - Enables consistent AI assistance on long-running projects
 
 **When to use:**
+
 - Projects spanning multiple weeks or months
 - Complex architectures requiring detailed documentation
 - Team collaboration where AI context sharing matters
@@ -875,12 +895,14 @@ The Memory Bank is a structured documentation system that helps AI assistants ma
 **Solutions:**
 
 1. **Verify Python Version**
+
 ```bash
 python --version
 # Must be 3.11 or higher
 ```
 
 2. **Install Dependencies**
+
 ```bash
 task deps:dev
 # OR without Task:
@@ -888,10 +910,12 @@ uv sync
 ```
 
 3. **Check for Errors**
+
    - Review terminal output for error messages
    - Look for permission issues or missing dependencies
 
 4. **Try Direct Script**
+
 ```bash
 # For generation
 uv run scripts/generate_agent_rules.py --agent universal --source templates --destination .
@@ -901,6 +925,7 @@ uv run scripts/deploy_rules.py --agent universal --destination ~/my-project
 ```
 
 5. **Verify Project Structure**
+
 ```bash
 # Check required files exist
 ls scripts/generate_agent_rules.py scripts/deploy_rules.py Taskfile.yml templates/
@@ -914,6 +939,7 @@ ls scripts/generate_agent_rules.py scripts/deploy_rules.py Taskfile.yml template
 **Solutions:**
 
 **Option A - Install Task (Recommended)**
+
 ```bash
 # macOS
 brew install go-task/tap/go-task
@@ -927,9 +953,10 @@ choco install go-task
 
 **Option B - Deployment Without Task**
 
-See [Option C: Deployment Without Task](#option-c-deployment-without-task) in Quick Start for complete instructions.
+See [Option D: Deployment Without Task](#option-d-deployment-without-task) in Quick Start for complete instructions.
 
 Quick example for universal rules:
+
 ```bash
 cd /tmp/ai-rules
 /opt/homebrew/bin/uv sync
@@ -937,6 +964,7 @@ cd /tmp/ai-rules
 ```
 
 **Validation:**
+
 ```bash
 # If Task installed successfully
 task --version
@@ -952,6 +980,7 @@ task --version
 **Solutions:**
 
 1. **Check Python Version**
+
 ```bash
 python --version
 python3 --version
@@ -959,18 +988,21 @@ python3 --version
 ```
 
 2. **Use uv to Pin Version**
+
 ```bash
 task uv:pin
 # Creates .python-version file pinning to 3.11
 ```
 
 3. **Clean and Reinstall**
+
 ```bash
 task clean_venv   # Remove virtual environment
 task deps:dev     # Reinstall dependencies
 ```
 
 4. **Manual venv Setup (fallback)**
+
 ```bash
 python3.11 -m venv .venv
 source .venv/bin/activate  # Linux/macOS
@@ -994,26 +1026,31 @@ Load AGENTS.md into the context.  Review RULES_INDEX.md based on the keywords in
 **For Cursor:**
 
 1. **Verify Rules Exist**
+
 ```bash
 ls generated/cursor/rules/*.mdc | wc -l
 # Should show 84 files
 ```
 
 2. **Check Cursor Settings**
+
    - Open Cursor Settings (Cmd/Ctrl + ,)
    - Navigate to "Rules" or "AI" section
    - Verify rules directory is recognized
 
 3. **Restart Cursor IDE**
+
    - Sometimes requires full restart to detect new rules
 
 4. **Verify File Extension**
+
    - Cursor rules must use `.mdc` extension
    - Run `task rule:cursor` to regenerate if needed
 
 **For GitHub Copilot:**
 
 1. **Verify Instructions Exist**
+
 ```bash
 ls .github/instructions/*.md | wc -l
 # Should show 84 files
@@ -1070,7 +1107,7 @@ Expected: AI loads 000-global-core, 100-snowflake-core, 101-snowflake-streamlit-
 **Manual Verification:**
 ```bash
 # Verify files exist
-ls generated/universal/*.md | wc -l  # Should be 74
+ls generated/universal/*.md | wc -l  # Should be 84
 
 # Check discovery files (in this repo's discovery/ directory)
 ls discovery/AGENTS.md discovery/RULES_INDEX.md

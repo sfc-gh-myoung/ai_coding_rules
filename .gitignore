@@ -182,11 +182,14 @@ $RECYCLE.BIN/
 *.msp
 *.lnk
 
-# Cursor memory bank
+# Memory bank
 memory-bank/
 
-# Cursor rules
+# Rules: local usage of rules
 .cursor/rules/
+rules/
+AGENTS.md
+RULES_INDEX.md
 
 # Output directories
 output/

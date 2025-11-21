@@ -10,13 +10,13 @@
 
 This repository provides a **universal-first rule system** designed to work seamlessly with any AI assistant, IDE, or development tool. Write rules once in a universal format, use them everywhere.
 
-**What you get:** A comprehensive collection of 74 engineering rules covering Python, SQL, Snowflake, Docker, Shell scripting, data engineering, analytics, and project governance. The rules work seamlessly with AI coding assistants including Claude, ChatGPT, GitHub Copilot, Cursor, and others.
+**What you get:** A comprehensive collection of 84 engineering rules covering Python, SQL, Snowflake, Docker, Shell scripting, data engineering, analytics, and project governance. The rules work seamlessly with AI coding assistants including Claude, ChatGPT, GitHub Copilot, Cursor, and others.
 
 **Important:** Some aspects of the rules are opinionated, particularly regarding naming conventions, project structure, usage of uv/ruff/Task, and documentation standards. You are **encouraged to review and adjust** the rules to align with your best practices or preferred approaches.
 
 ## Key Features
 
-- **📚 74 Specialized Rules** — Comprehensive coverage across Snowflake, Python, Docker, Shell scripting, and project management
+- **📚 84 Specialized Rules** — Comprehensive coverage across Snowflake, Python, Docker, Shell scripting, and project management
 - **🔄 Universal Format** — Write once, use everywhere: Cursor, VS Code, Claude, ChatGPT, GitHub Copilot, and more
 - **🤖 Intelligent Discovery** — AI assistants automatically find and load relevant rules using semantic keyword matching
 - **🎯 Dependency-Aware** — Explicit dependency chains ensure rules load in the correct order
@@ -28,7 +28,7 @@ This project was inspired, in part, by: [how-to-add-cline-memory-bank-feature-to
 <details>
 <summary><h3>Universal Format Philosophy (Click to expand)</h3></summary>
 
-The rule system is built on a template-first architecture: 74 source templates in `templates/` generate portable rules that work with any tool, IDE, or AI assistant.
+The rule system is built on a template-first architecture: 84 source templates in `templates/` generate portable rules that work with any tool, IDE, or AI assistant.
 
 **Key Features:**
 - **Any AI Assistant**: Claude, GPT, Gemini, custom agents
@@ -43,12 +43,12 @@ The rule system is built on a template-first architecture: 74 source templates i
 3. **Automatic Rule Discovery**: AI assistants use `AGENTS.md` and `RULES_INDEX.md` (deployed to project root) for semantic keyword matching
 4. **Dependency-Aware Architecture**: Explicit dependency chains ensure correct rule loading order
 5. **Token-Efficient Design**: Modular, focused rules (150-500 lines) minimize context usage
-6. **Technology Coverage**: 74 specialized rules covering Snowflake, Python, Docker, Shell scripting, and project management
+6. **Technology Coverage**: 84 specialized rules covering Snowflake, Python, Docker, Shell scripting, and project management
 7. **Auto-Generated Catalog**: `RULES_INDEX.md` automatically generated from template metadata and deployed to project root
 
 **What This Repository Provides:**
 
-- **74 source templates** in `templates/` directory covering best practices, patterns, and governance
+- **84 source templates** in `templates/` directory covering best practices, patterns, and governance
 - **Universal format** in `generated/universal/` with preserved metadata (Keywords, TokenBudget, ContextTier, Depends)
 - **Discovery system** files (deployed to project root):
   - `AGENTS.md` - Discovery guide used by AI assistants to locate and load rules
@@ -91,7 +91,6 @@ This repository contains multiple documentation files for different audiences:
 |------|---------|--------------|
 | **README.md** | Project overview, setup, usage | Start here (you are here) |
 | **docs/ONBOARDING.md** | Team onboarding guide | When setting up for your team |
-| **docs/RULE_CATALOG.md** | Complete list of all 74 rules | When browsing available rules |
 | **CONTRIBUTING.md** | Development guidelines, PR process | When contributing rules |
 | **docs/ARCHITECTURE.md** | System architecture, design decisions | When understanding internals or extending |
 | **docs/MEMORY_BANK.md** | Memory Bank system for long-running projects | When using Memory Bank (optional) |
@@ -167,7 +166,7 @@ task    # Shows organized task list with quickstart section
 task deploy:universal DEST=~/my-project   # Works with any IDE/LLM
 ```
 
-**That's it!** Your project now has 74 specialized rules ready to use. Run `task` anytime to see categorized commands with quickstart section—30% faster task discovery through logical grouping.
+**That's it!** Your project now has 84 specialized rules ready to use. Run `task` anytime to see categorized commands with quickstart section—30% faster task discovery through logical grouping.
 
 #### Full Deployment Options
 
@@ -266,7 +265,7 @@ ls rules/*.md | wc -l  # Should show 74
 ls .cursor/rules/*.mdc | wc -l  # Should show 74
 ```
 
-**Success!** Your AI assistant can now access 74 specialized rules. See [AI Configuration](#ai-configuration) for IDE-specific setup.
+**Success!** Your AI assistant can now access 84 specialized rules. See [AI Configuration](#ai-configuration) for IDE-specific setup.
 
 
 ### For Rule Maintainers (Contributing to Rules)
@@ -381,7 +380,7 @@ cp discovery/RULES_INDEX.md ~/test-rules/RULES_INDEX.md
 
 **Success Indicators:**
 - ✅ `task validate` passes all checks
-- ✅ `generated/universal/` contains 74 rule files
+- ✅ `generated/universal/` contains 84 rule files
 - ✅ `RULES_INDEX.md` (in test directory) lists all rules with metadata
 - ✅ AI assistant can load and apply rules correctly
 - ✅ No linting errors in templates
@@ -565,7 +564,7 @@ See `gen-rules --help` for complete documentation.
 
 ```
 ai_coding_rules/
-├── templates/              ← Edit these: 74 source template files
+├── templates/              ← Edit these: 84 source template files
 ├── discovery/              ← Discovery system sources (AGENTS.md, RULES_INDEX.md)
 ├── generated/              ← Generated outputs (committed to git)
 │   ├── universal/          ← Universal format (portable Markdown)
@@ -596,12 +595,12 @@ git add templates/ generated/ && git commit -m "feat: update Python rules"
 
 ## Rule Categories
 
-The 74 rules are organized by domain using a three-digit numbering system. Each category focuses on a specific technology or practice area.
+The 84 rules are organized by domain using a three-digit numbering system. Each category focuses on a specific technology or practice area.
 
 | Domain | Range | # Rules | Focus Area | Key Topics |
 |--------|-------|---------|------------|------------|
-| **Core Foundation** | 000-099 | 6 | Universal patterns | Operating principles, memory bank, rule governance, context engineering, tool design |
-| **Snowflake** | 100-199 | 35 | Data platform | SQL, Streamlit, performance, Cortex AI, security, notebooks, pipelines |
+| **Core Foundation** | 000-099 | 6 | Universal patterns | Operating principles, memory bank, rule governance, boilerplate template, context engineering, tool design |
+| **Snowflake** | 100-199 | 38 | Data platform | SQL, Streamlit, performance, Cortex AI, security, notebooks, pipelines |
 | **Python** | 200-299 | 13 | Software engineering | Core patterns, FastAPI, Flask, Typer CLI, Pydantic, pytest, Pandas |
 | **Shell Scripts** | 300-399 | 6 | Automation | Bash and Zsh scripting, security, testing |
 | **Containers** | 400-499 | 1 | Infrastructure | Docker best practices |
@@ -611,9 +610,7 @@ The 74 rules are organized by domain using a three-digit numbering system. Each 
 | **Project Management** | 800-899 | 5 | Workflows | Git, changelog, README, contributing, Taskfile |
 | **Demo & Synthetic Data** | 900-999 | 2 | Examples | Demo creation, data generation |
 
-**📖 Complete listings:** See [Rule Catalog](docs/RULE_CATALOG.md) for detailed descriptions of all 74 rules
-
-**🔍 Searchable index:** See [RULES_INDEX.md](RULES_INDEX.md) for keywords, dependencies, and semantic search
+**🔍 Searchable index:** See [RULES_INDEX.md](RULES_INDEX.md) for complete rule list with keywords, dependencies, and semantic search
 
 ## Directive Language Hierarchy
 
@@ -656,7 +653,7 @@ This hierarchy ensures consistent interpretation across different AI models and 
 The project uses a **universal-first architecture**: source templates are transformed into portable formats that work with any IDE, agent, or LLM. Rules are generated from a single source of truth into multiple deployment formats.
 
 **Key concepts:**
-- **Templates** in `templates/` are the source of truth (74 rule files)
+- **Templates** in `templates/` are the source of truth (84 rule files)
 - **Universal format** creates portable Markdown that works everywhere
 - **IDE-specific formats** add convenience features for Cursor, Copilot, Cline
 - **Automatic discovery** via AGENTS.md and RULES_INDEX.md enables intelligent rule loading
@@ -822,15 +819,21 @@ task rule:all            # Generate all IDE-specific rules (including universal)
 # Optional DEST variable to change base output directory
 task rule:all DEST=/custom/output
 
-# Validate rule structure (002-rule-governance.md v2.1 compliance)
+# Validate rule structure (002-rule-governance.md v5.0 compliance)
 task rules:validate         # Standard validation (fails on critical errors)
 task rules:validate:verbose # Show all files including clean ones
 task rules:validate:strict  # Strict mode (fail on warnings too)
+
+# Boilerplate structural validation (deep validation with compliance scoring)
+python3 scripts/validate_agent_rules.py --directory templates --check-boilerplate-structure
+python3 scripts/validate_agent_rules.py --directory templates --check-boilerplate-structure --compliance-report
 
 # Direct validation script usage
 uv run python scripts/validate_agent_rules.py              # Standard validation
 uv run python scripts/validate_agent_rules.py --verbose    # Verbose output
 uv run python scripts/validate_agent_rules.py --fail-on-warnings  # Strict mode
+uv run python scripts/validate_agent_rules.py --check-boilerplate-structure  # Deep validation
+uv run python scripts/validate_agent_rules.py --check-boilerplate-structure --compliance-report  # With reports
 uv run python scripts/validate_agent_rules.py --help       # Show all options
 
 # Other validations
@@ -993,7 +996,7 @@ Load AGENTS.md into the context.  Review RULES_INDEX.md based on the keywords in
 1. **Verify Rules Exist**
 ```bash
 ls generated/cursor/rules/*.mdc | wc -l
-# Should show 74 files
+# Should show 84 files
 ```
 
 2. **Check Cursor Settings**
@@ -1013,7 +1016,7 @@ ls generated/cursor/rules/*.mdc | wc -l
 1. **Verify Instructions Exist**
 ```bash
 ls .github/instructions/*.md | wc -l
-# Should show 74 files
+# Should show 84 files
 ```
 
 2. **Check Repository Settings**
@@ -1030,7 +1033,7 @@ ls .github/instructions/*.md | wc -l
 1. **Verify Files Generated**
 ```bash
 ls generated/universal/*.md | wc -l
-# Should show 74 files
+# Should show 84 files
 ```
 
 2. **Add to AI Context Manually**

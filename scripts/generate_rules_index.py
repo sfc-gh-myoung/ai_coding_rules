@@ -332,7 +332,6 @@ def generate_rules_index(rules: list[RuleMetadata], preserve_header: bool = True
             header_lines = []
             footer_lines = []
             table_start_idx = -1
-            table_end_idx = -1
 
             # Find table boundaries
             for i, line in enumerate(lines):
@@ -342,19 +341,20 @@ def generate_rules_index(rules: list[RuleMetadata], preserve_header: bool = True
                     header_lines = lines[:i]
                 elif table_start_idx >= 0 and line.strip() and not line.startswith("||"):
                     # Found first non-table line after table started
-                    table_end_idx = i
                     footer_lines = lines[i:]
                     break
 
             # Reconstruct header (preserve everything including blank lines)
             if header_lines:
                 header = "\n".join(header_lines).rstrip() + "\n\n"
-            
+
             # Reconstruct footer (preserve everything after table)
             if footer_lines:
                 footer = "\n" + "\n".join(footer_lines)
         except Exception as e:
-            print(f"⚠️  Warning: Could not read existing header/footer from discovery/RULES_INDEX.md: {e}")
+            print(
+                f"⚠️  Warning: Could not read existing header/footer from discovery/RULES_INDEX.md: {e}"
+            )
             # Fall through to default header
 
     # If no header found or couldn't read, create default
@@ -380,7 +380,16 @@ This index helps agents select the correct rule quickly through semantic keyword
     table_rows = [generate_table_row(rule) for rule in rules]
 
     # Combine everything (header + table + footer)
-    content = header + table_header + "\n" + table_separator + "\n" + "\n".join(table_rows) + "\n" + footer
+    content = (
+        header
+        + table_header
+        + "\n"
+        + table_separator
+        + "\n"
+        + "\n".join(table_rows)
+        + "\n"
+        + footer
+    )
 
     return content
 

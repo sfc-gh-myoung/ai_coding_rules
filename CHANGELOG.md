@@ -7,6 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.1] - 2025-11-20
+
+### Added
+
+- feat(rules): add 002a-rule-boilerplate.md canonical template with inline commentary
+- feat(validation): deep structural validation against boilerplate template
+  - Implemented 8-criteria weighted compliance scoring (0-100%)
+  - Added `--check-boilerplate-structure` flag for structural validation
+  - Added `--compliance-report` flag for report generation (text, markdown, HTML)
+  - Parse boilerplate structure with singleton caching for performance
+  - Validate section order, metadata field order, and contract placement
+  - Generate actionable recommendations for compliance improvements
+  - Test results: 84 templates, 90.1% average compliance, 1 perfect (≥95%), 1 needs work (<80%)
+- feat(discovery): enhanced AGENTS.md with explicit rule loading protocol improvements
+  - Added Step 3: File-type trigger table mapping 10 file extensions to core rules
+  - Enhanced Step 4: Activity keyword mapping table for 6 common activity types
+  - Added 3 detailed example workflows (Python linting, Streamlit performance, testing mistakes)
+  - Enhanced Verification Protocol with file type + activity checkpoints
+  - Expanded Self-Check Protocol with File Type Check and Activity Check sections
+  - Added 118 lines of guidance to prevent rule loading failures
+- docs: created EXAMPLE_USER_PROMPT.md with 10 prompt templates for users
+- docs: created comprehensive improvement recommendations in docs/RULE_LOADING_IMPROVEMENTS.md
+- docs: created integration summary in docs/AGENTS_INTEGRATION_SUMMARY.md
+
+### Changed
+
+- refactor(validation): removed unused variables and improved code quality
+  - Fixed 9 Ruff linting errors across validate_agent_rules.py and generate_rules_index.py
+  - Removed quoted type annotations (UP037)
+  - Removed unnecessary "r" mode arguments (UP015)
+  - Removed unused variables (F841)
+  - Fixed whitespace in blank lines (W293)
+- docs: updated rule counts from 74/72 to 84 across all documentation
+  - README.md: 16 references updated
+  - docs/ONBOARDING.md: 8 references updated
+  - docs/ARCHITECTURE.md: 21 references updated, added 120-line validation architecture section
+- docs: consolidated rule discovery documentation
+  - Removed redundant docs/RULE_CATALOG.md (functionality covered by RULES_INDEX.md)
+  - Updated README.md, ONBOARDING.md references to use RULES_INDEX.md
+- docs: reorganized documentation structure
+  - Moved scripts/README_TOKEN_BUDGETS.md to docs/TOKEN_BUDGETS.md
+  - Renamed README_TOKEN_BUDGETS.md to TOKEN_BUDGETS.md
+
+### Removed
+
+- docs: deleted EXAMPLE_SYSTEM_PROMPT.md (content integrated into discovery/AGENTS.md)
+- docs: deleted docs/RULE_CATALOG.md (consolidated into RULES_INDEX.md)
+
 ## [2.5.0] - 2025-11-20
 
 ### Changed

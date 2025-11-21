@@ -1,6 +1,6 @@
 [project]
 name = "ai_coding_rules"
-version = "2.5.1"
+version = "2.6.0"
 description = "Universal AI coding rules for consistent, reliable software engineering across LLMs and IDEs"
 readme = { file = "README.md" }
 license = { file = "LICENSE" }

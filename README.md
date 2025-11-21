@@ -3,8 +3,23 @@
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://opensource.org/license/apache-2-0)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Task](https://img.shields.io/badge/Task-Taskfile-brightgreen)](https://taskfile.dev)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/Snowflake-Labs/ai_coding_rules)
+[![GitLab](https://img.shields.io/badge/GitLab-Repository-orange?logo=gitlab)](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules)
 
 > **One universal rule set for all AI assistants, IDEs, and agents — portable, intelligent, and IDE-agnostic**
+
+## Quick Overview
+
+**What:** 84 specialized engineering rules for AI coding assistants  
+**Works with:** Any AI assistant, IDE, or agent (Cursor, Claude, ChatGPT, GitHub Copilot, Cline)  
+**Deploy:** 3 commands, works immediately  
+**Benefit:** Consistent, high-quality AI-assisted development
+
+**Quick Checklist:**
+- [ ] Python 3.11+ and Task installed? → See [Prerequisites](#prerequisites)
+- [ ] Ready to deploy? → See [Quick Start](#quick-start)
+- [ ] Want to understand first? → See [Understanding Rules](#understanding-rules)
+- [ ] Contributing? → See [Contributing](#contributing)
 
 ## Overview
 
@@ -44,7 +59,7 @@ The rule system is built on a template-first architecture: 84 source templates i
 **Core Principles:**
 
 1. **Template-First Design**: Source templates in `templates/` directory → Generate to `generated/` outputs
-2. **Generate Once, Use Everywhere**: Run `task rule:universal` to create portable rules
+2. **Generate Once, Use Everywhere**: Run `task generate:rules:universal` to create portable rules
 3. **Automatic Rule Discovery**: AI assistants use `AGENTS.md` and `RULES_INDEX.md` (deployed to project root) for semantic keyword matching
 4. **Dependency-Aware Architecture**: Explicit dependency chains ensure correct rule loading order
 5. **Token-Efficient Design**: Modular, focused rules (150-500 lines) minimize context usage
@@ -73,20 +88,26 @@ The rule system is built on a template-first architecture: 84 source templates i
 
 ## Table of Contents
 
+**For Users:**
+- [Quick Overview](#quick-overview)
 - [Overview](#overview)
 - [Key Features](#key-features)
 - [Prerequisites](#prerequisites)
 - [Quick Start](#quick-start)
-- [Document Map](#document-map-what-to-read-first)
-- [Rule Categories](#rule-categories)
+- [Understanding Rules](#understanding-rules)
 - [Rule Selection Guide](#rule-selection-decision-tree)
+- [Rule Categories](#rule-categories)
 - [AI Configuration](#ai-configuration)
-- [Project Structure](#project-structure)
-- [Development Commands](#development-commands)
+- [Document Map](#document-map-what-to-read-first)
 - [Troubleshooting](#troubleshooting)
 - [Compatibility Matrix](#compatibility-matrix)
-- [Contributing](#contributing)
 - [License](#license)
+
+**For Contributors:**
+- [Contributing](#contributing)
+- [For Rule Maintainers](#for-rule-maintainers-contributing-to-rules)
+- [Project Structure](#project-structure)
+- [Development Commands](#development-commands)
 
 ## Document Map: What to Read First
 
@@ -158,8 +179,12 @@ git --version     # Should show Git version
 **Get started in 3 commands:**
 
 ```bash
-# 1. Clone this repository
+# 1. Clone this repository (choose one)
+# GitLab:
 git clone https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git
+# GitHub:
+git clone https://github.com/Snowflake-Labs/ai_coding_rules.git
+
 cd ai_coding_rules
 
 # 2. Explore available commands (categorized for easy discovery)
@@ -170,6 +195,17 @@ task deploy:universal DEST=~/my-project   # Works with any IDE/LLM
 ```
 
 **That's it!** Your project now has 84 specialized rules ready to use. Run `task` anytime to see categorized commands with quickstart section—30% faster task discovery through logical grouping.
+
+**What just happened?**
+- Generated rules for your environment
+- Copied to `rules/` directory (or IDE-specific location like `.cursor/rules/`)
+- Created `AGENTS.md` and `RULES_INDEX.md` for automatic AI discovery
+- Ready to use immediately—no additional configuration needed!
+
+**Next Steps:**
+- ✅ Deployment complete → [Configure Your AI](#ai-configuration)
+- 🤔 Want to understand how rules work → [Understanding Rules](#understanding-rules)
+- 🔧 Need different format → Continue reading deployment options below
 
 #### Full Deployment Options
 
@@ -209,8 +245,11 @@ task deploy:universal  # No DEST needed
 Track rule updates via git submodule:
 
 ```bash
-# From your project root
+# From your project root (choose one)
+# GitLab:
 git submodule add https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git .ai-rules
+# GitHub:
+git submodule add https://github.com/Snowflake-Labs/ai_coding_rules.git .ai-rules
 cd .ai-rules
 task deploy:universal DEST=..   # Deploy to parent project
 
@@ -223,8 +262,11 @@ cd .ai-rules && git pull && task deploy:universal DEST=..
 If you don't have Task installed, use the Python deployment script directly:
 
 ```bash
-# Clone the rules repository
+# Clone the rules repository (choose one)
+# GitLab:
 git clone https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git /tmp/ai-rules
+# GitHub:
+git clone https://github.com/Snowflake-Labs/ai_coding_rules.git /tmp/ai-rules
 cd /tmp/ai-rules
 
 # Install Python dependencies
@@ -274,6 +316,9 @@ ls .cursor/rules/*.mdc | wc -l  # Should show 84
 
 ### For Rule Maintainers (Contributing to Rules)
 
+**This section and those following are for developers who want to modify or contribute rules.**  
+If you're using the rules in your project, setup is complete. See [Troubleshooting](#troubleshooting) for support.
+
 **Want to modify or contribute rules?** Follow this development setup:
 
 #### Prerequisites
@@ -285,15 +330,19 @@ ls .cursor/rules/*.mdc | wc -l  # Should show 84
 #### Setup
 
 ```bash
-# Clone the repository
+# Clone the repository (choose one)
+# GitLab:
 git clone https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git
+# GitHub:
+git clone https://github.com/Snowflake-Labs/ai_coding_rules.git
+
 cd ai_coding_rules
 
 # Set up Python environment
-task deps:dev
+task env:deps
 
 # Generate all rule formats
-task rule:all
+task generate:rules:all
 ```
 
 #### Project Structure
@@ -314,12 +363,12 @@ See [Project Structure](#project-structure) section below for full details.
 vi templates/200-python-core.md
 
 # 2. Generate outputs
-task rule:all            # All formats
-task rule:universal      # Just universal
-task rules:index         # Regenerate RULES_INDEX.md (in discovery/ dir of this repo)
+task generate:rules:all            # All formats
+task generate:rules:universal      # Just universal
+task generate:index         # Regenerate RULES_INDEX.md (in discovery/ dir of this repo)
 
 # 3. Validate
-task validate            # Runs linting, tests, and checks
+task validate:ci            # Runs linting, tests, and checks
 
 # 4. Test locally
 # Copy generated/universal/ to a test project and verify
@@ -333,23 +382,23 @@ git commit -m "feat: update Python core rules"
 
 ```bash
 # Generate specific formats
-task rule:cursor         # Cursor IDE format
-task rule:copilot        # GitHub Copilot format
-task rule:cline          # Cline format
-task rule:universal      # Universal format
+task generate:rules:cursor         # Cursor IDE format
+task generate:rules:copilot        # GitHub Copilot format
+task generate:rules:cline          # Cline format
+task generate:rules:universal      # Universal format
 
 # Regenerate rule index
-task rules:index         # Generate RULES_INDEX.md (in discovery/ dir of this repo)
+task generate:index         # Generate RULES_INDEX.md (in discovery/ dir of this repo)
 
 # Validate everything
-task validate            # Lint, test, and check staleness
+task validate:ci            # Lint, test, and check staleness
 
 # Check if outputs are stale
-task rule:universal:check
-task rules:index:check
+task generate:rules:universal:check
+task generate:index:check
 
 # Clean generated files
-task clean:rules
+task maintenance:clean:generated
 ```
 
 #### Verification Checklist
@@ -357,9 +406,9 @@ task clean:rules
 **After making changes:**
 
 - [ ] Edit source files in `templates/`
-- [ ] Run `task rule:all` to regenerate
-- [ ] Run `task rules:index` to update catalog
-- [ ] Run `task validate` to verify quality
+- [ ] Run `task generate:rules:all` to regenerate
+- [ ] Run `task generate:index` to update catalog
+- [ ] Run `task validate:ci` to verify quality
 - [ ] Test with actual AI assistant
 - [ ] Commit `templates/`, `discovery/`, and `generated/` directories
 
@@ -373,26 +422,74 @@ task clean:rules
 
 ```bash
 # Option 1: Validate with task suite
-task validate
+task validate:ci
 
 # Option 2: Manual testing with AI assistant
-# Copy generated/universal/ to a test project
+# Use task commands to generate and deploy to a test directory
 mkdir ~/test-rules
-cp -r generated/universal/* ~/test-rules/
-cp discovery/AGENTS.md ~/test-rules/AGENTS.md
-cp discovery/RULES_INDEX.md ~/test-rules/RULES_INDEX.md
+task generate:rules:all  # Generate rules first
+task deploy:universal DEST=~/test-rules  # Deploy to test location
 
 # Point your AI assistant to ~/test-rules/ and verify behavior
 ```
 
 **Success Indicators:**
-- ✅ `task validate` passes all checks
+- ✅ `task validate:ci` passes all checks
 - ✅ `generated/universal/` contains 84 rule files
 - ✅ `RULES_INDEX.md` (in test directory) lists all rules with metadata
 - ✅ AI assistant can load and apply rules correctly
 - ✅ No linting errors in templates
 
 **See also:** [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed contribution guidelines.
+
+## Understanding Rules
+
+### What Are AI Coding Rules?
+
+AI coding rules are structured Markdown files that guide AI assistants on how to write code, following best practices and patterns for specific technologies.
+
+**Key Concepts:**
+- **Universal Format:** Write once, use everywhere (any IDE, LLM, or agent)
+- **Automatic Discovery:** AI finds relevant rules based on your task keywords
+- **Dependency-Aware:** Rules load prerequisites automatically in correct order
+- **Token-Efficient:** Small, focused rules (150-500 lines each) minimize context usage
+
+### How Automatic Discovery Works
+
+When you deploy rules to your project, AI assistants can automatically find and load the right ones:
+
+1. **You deploy** rules to your project → `task deploy:universal DEST=~/my-project`
+2. **AI reads** `AGENTS.md` (loading protocol) and `RULES_INDEX.md` (catalog) from your project root
+3. **AI searches** keywords in `RULES_INDEX.md` matching your task description
+4. **AI loads** relevant rules following their dependency chains automatically
+5. **AI applies** rules to generate code according to best practices
+
+**Example workflow:**
+```
+User: "Build a Snowflake Streamlit dashboard"
+
+AI discovers and loads:
+  1. 000-global-core (foundation - always first)
+  2. 100-snowflake-core (SQL patterns - dependency)
+  3. 101-snowflake-streamlit-core (Streamlit patterns)
+  
+AI generates code following all three rule sets.
+```
+
+### Why Smaller, Focused Rules?
+
+This project uses **modular, topic-focused rules** instead of large monolithic files. This design significantly improves both LLM accuracy and context efficiency.
+
+**Benefits:**
+- **Better LLM Accuracy:** Clear signal-to-noise ratio, reduced conflicting guidance, precise pattern matching
+- **Context Efficiency:** Load only what's needed (~300-600 tokens per rule vs ~4000+ for monoliths)
+- **Easier Maintenance:** Update one focused file instead of searching through thousands of lines
+- **Better Composability:** Mix and match rules for your specific tech stack
+
+**Example:** For a Snowflake data engineering project:
+- Load: `100-snowflake-core` (500 tokens) + `104-snowflake-streams-tasks` (400 tokens) + `121-snowflake-snowpipe` (2000 tokens)
+- **Total: ~3400 tokens** of highly relevant, focused guidance
+- Alternative: One "Data Engineering Monolith" would be 5000+ tokens with irrelevant Spark/Airflow content
 
 ## Rule Selection Decision Tree
 
@@ -461,74 +558,17 @@ Loading Order (Follow Dependencies):
     └── 206-python-pytest (testing patterns)
 ```
 
-## Why Smaller, Focused Rules?
+## System-Wide Script (gen-rules.sh)
 
-This project uses **smaller, topic-focused rules** instead of large monolithic rule files. This architectural decision significantly improves both LLM accuracy and context window efficiency.
+Install the `gen-rules.sh` wrapper script to deploy/generate rules from anywhere on your system.
 
-### LLM Accuracy and Comprehension
-
-**Focused rules improve AI assistant accuracy** in several ways:
-
-- **Clear Signal-to-Noise Ratio**: When a rule covers only Python FastAPI security (211), the LLM receives targeted, unambiguous guidance without wading through unrelated Flask or Django content.
-- **Reduced Conflicting Guidance**: Smaller rules minimize the risk of contradictory advice within the same context. A 200-line FastAPI security rule is far less likely to contain conflicting patterns than a 2,000-line "web frameworks" mega-rule.
-- **Precise Activation**: Agent-requested rules mean only relevant guidance loads into context. Working on Snowflake Snowpipe? You get `121-snowflake-snowpipe.md` (1,017 lines) without loading unrelated Cortex AI or SPCS guidance.
-- **Better Pattern Matching**: LLMs excel at pattern recognition. Focused rules create clear patterns (e.g., "Snowpipe → auto-ingest → cloud events") that are easier to recall and apply accurately.
-
-**Example**: Compare a 3,000-line "Snowflake Everything" rule with our modular approach:
-
-- **Monolithic**: LLM must sift through warehouse management, Snowpipe, Cortex AI, security, and cost governance simultaneously—increasing the chance of applying warehouse sizing advice to Snowpipe (which uses serverless compute).
-- **Modular**: Request `121-snowflake-snowpipe.md` and `119-snowflake-warehouse-management.md` separately. Each rule provides focused, non-conflicting guidance for its specific domain.
-
-### Context Window Efficiency
-
-**Context windows are precious and expensive.** Every token counts, especially with Claude, GPT-4, or Gemini models where you pay per token.
-
-**Smaller rules optimize context usage**:
-
-- **Load Only What's Needed**: A 300-line Pydantic rule (`230-python-pydantic.md`) uses ~600 tokens. A 2,000-line "Python Everything" rule uses ~4,000 tokens but you only need 15% of it.
-- **Leave Room for Code**: With a 200k token context window, loading 10 focused rules (3,000 tokens total) leaves 197k tokens for your actual codebase, conversation history, and responses. Loading 3 monolithic rules (12,000 tokens) leaves only 188k tokens—a 4.5% reduction in usable context.
-- **Avoid Token Waste**: Why load Bash scripting rules when you're working on Python? Focused rules mean you activate `200-python-core.md` (500 tokens) instead of "All Scripting Languages" (2,000 tokens).
-- **Enable Rule Combinations**: Need FastAPI + Pydantic + pytest? Load `210-python-fastapi-core.md` (400 tokens) + `230-python-pydantic.md` (300 tokens) + `206-python-pytest.md` (350 tokens) = 1,050 tokens. A monolithic "Python Web Testing" rule would be 1,500+ tokens even if you only need those three topics.
-
-**Real-world impact**: On a Snowflake data engineering project, you might need:
-
-- `100-snowflake-core.md` (500 tokens) - foundational practices
-- `104-snowflake-streams-tasks.md` (400 tokens) - incremental pipelines
-- `121-snowflake-snowpipe.md` (2,000 tokens) - continuous ingestion
-- `200-python-core.md` (500 tokens) - Python basics
-
-**Total: 3,400 tokens of highly relevant, focused guidance** vs. loading a single 5,000-token "Data Engineering Monolith" that includes Spark, Airflow, and other irrelevant content.
-
-### Practical Development Benefits
-
-Beyond LLM performance, smaller rules provide:
-
-- **Easier Maintenance**: Update Snowpipe best practices in one 1,000-line file instead of searching through a 5,000-line data engineering rule.
-- **Better Composability**: Mix and match rules for your tech stack (FastAPI + Snowflake + pytest) without loading irrelevant content.
-- **Faster Updates**: When Snowflake releases a new feature, update one focused rule instead of maintaining a massive monolith.
-- **Clear Dependencies**: Rule cross-references (e.g., `121-snowflake-snowpipe.md` references `108-snowflake-data-loading.md`) make relationships explicit.
-- **Reduced Cognitive Load**: Developers can review and understand a 300-line rule in minutes. A 3,000-line monolith requires hours.
-
-### The Cost of Monolithic Rules
-
-**What happens with large, all-encompassing rules?**
-
-1. **Accuracy Degrades**: More content = more chances for conflicting advice = LLM confusion
-2. **Token Waste**: Loading 5,000 tokens when you need 500 = 90% waste = fewer tokens for actual code
-3. **Maintenance Nightmare**: Finding and updating specific guidance in 5,000 lines is error-prone
-4. **Slow Iteration**: Every update requires reviewing the entire monolith for conflicts
-
-**Our approach**: Keep individual rules under 1,000 lines (target 150-500 lines), use clear cross-references, and let users compose rule sets for their specific needs.
-
-## System-Wide Script (gen-rules)
-
-Install the `gen-rules` wrapper script to deploy/generate rules from anywhere on your system:
+**Pure Shell/Python implementation - no Task dependency required.**
 
 **Installation:**
 
 ```bash
 # From the ai_coding_rules directory
-cp scripts/gen-rules.sh ~/bin/gen-rules
+cp gen-rules.sh ~/bin/gen-rules
 chmod +x ~/bin/gen-rules
 # Ensure ~/bin is in your PATH
 ```
@@ -536,38 +576,54 @@ chmod +x ~/bin/gen-rules
 **Basic Usage:**
 
 ```bash
-# Deploy rules (recommended)
+# Generate rules (recommended - works with any IDE/LLM)
 cd /path/to/my-project
-gen-rules deploy:cursor            # Deploy to .cursor/rules/
-gen-rules deploy:universal         # Deploy to rules/
-gen-rules deploy:copilot           # Deploy to .github/copilot/instructions/
-gen-rules deploy:cline             # Deploy to .clinerules/
+gen-rules generate universal          # Generate to current directory
+gen-rules generate cursor             # Generate Cursor rules
+gen-rules generate all                # Generate all formats
 
-# Generate for development/testing
-gen-rules rule:cursor              # Generate to generated/cursor/rules/
-gen-rules rule:all                 # Generate all formats
+# Deploy rules (copies generated rules to appropriate locations)
+gen-rules deploy universal            # Deploy to rules/
+gen-rules deploy cursor               # Deploy to .cursor/rules/
+gen-rules deploy copilot              # Deploy to .github/copilot/instructions/
+gen-rules deploy cline                # Deploy to .clinerules/
 
-# Override destination
-gen-rules deploy:universal DEST=/custom/path
+# Specify destination
+gen-rules generate universal ~/my-project
+gen-rules deploy universal /custom/path
+
+# Preview changes (dry run)
+gen-rules generate universal --dry-run
+
+# Check if rules are current
+gen-rules generate universal --check
 ```
 
 **Advanced Options:**
 
 ```bash
-gen-rules --help                   # Show full usage
-gen-rules --version                # Show version
-gen-rules --verbose deploy:cursor  # Verbose output
-gen-rules --debug rule:all         # Debug mode
-gen-rules --project ~/my-rules rule:cursor  # Override project dir
+gen-rules --help                      # Show full usage
+gen-rules --version                   # Show version
+gen-rules --verbose generate cursor   # Verbose output
+gen-rules --debug generate all        # Debug mode
+gen-rules --project ~/my-rules generate cursor  # Override project dir
+
+# Run validation
+gen-rules validate                    # Validate all rules
+
+# Check project status
+gen-rules status                      # Show project info
 ```
 
 **Features:**
 
+- ✅ **Task-free**: Pure shell/Python implementation, no Task dependency
 - ✅ Production-ready with comprehensive error handling
 - ✅ Works from any directory
 - ✅ Flexible configuration via flags or environment variables
 - ✅ Debug support for troubleshooting
 - ✅ Meaningful exit codes (0-4)
+- ✅ Simple command structure: `generate`/`deploy`/`validate`/`status`
 
 See `gen-rules --help` for complete documentation.
 
@@ -590,7 +646,7 @@ ai_coding_rules/
 **Key Concepts:**
 - **templates/** — Source of truth, always edit here (never in `generated/`)
 - **discovery/** — AI assistant discovery guide and rule catalog
-- **generated/** — IDE-ready outputs, regenerated via `task rule:all`
+- **generated/** — IDE-ready outputs, regenerated via `task generate:rules:all`
 - **scripts/** — `generate_agent_rules.py` (generation), `deploy_rules.py` (deployment)
 
 **Workflows:**
@@ -601,7 +657,7 @@ task deploy:universal DEST=~/my-project
 
 # For contributors: Edit and regenerate
 vim templates/200-python-core.md
-task rule:all
+task generate:rules:all
 git add templates/ generated/ && git commit -m "feat: update Python rules"
 ```
 
@@ -748,122 +804,45 @@ rules_to_load = load_rule_with_dependencies("101-snowflake-streamlit-core.md")
 
 ## Contributing
 
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines on:
-- Improving existing rules
-- Generating new rules
-- Rule validation procedures
-- Code review process
+**This section and those following are for developers who want to modify or contribute rules.**  
+If you're using the rules in your project, setup is complete. See [Troubleshooting](#troubleshooting) for support.
 
-### Quick Contribution Steps
+We welcome contributions! This project thrives on community input.
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/my-new-rule`
-3. Follow rule authoring guidelines in `002-rule-governance.md` section 9
-4. Test your changes: `task lint` and `task rule:universal --dry-run`
-5. Validate rules: `task rules:validate`
-6. Submit a pull request
+### How to Contribute
 
-### Key Guidelines
+See [CONTRIBUTING.md](CONTRIBUTING.md) for complete guidelines including:
 
-- Use standard Markdown with clear section headers (`#`, `##`, `###`)
-- Follow directive language: `Critical`, `Mandatory`, `Always`, `Requirement`, `Rule`, `Consider`, `Avoid`
-- Keep rules focused and under 500 lines (target 150-300)
-- Include current official documentation links
-- Test with `task rules:validate` before submitting
+- **Getting Started**: Fork, clone, environment setup
+- **Development Workflow**: Testing, validation, code quality checks
+- **Rule Authoring**: Standards, numbering scheme, governance
+- **Pull Requests**: Branch strategy, conventional commits, changelog
+- **Configuration Safety**: YAML, shell quoting, package management
 
-**For detailed workflows and examples, see [CONTRIBUTING.md](CONTRIBUTING.md).**
-
-### Configuration Safety Guidelines
-
-- **YAML Safety**: Avoid Unicode characters (bullets, checkmarks) that cause parsing errors
-- **Shell Quoting**: Quote arguments with special characters: `".[dev]"` not `.[dev]`
-- **Taskfile Validation**: Always test with `task --list` after YAML changes
-- **Python Packaging**: Ensure `__init__.py` files exist before `uv pip install -e .`
-
-## Development Commands
-
-### Environment Setup
-
+**Quick Reference:**
 ```bash
-# Python environment with uv (recommended)
-task deps:dev              # Install development dependencies
-task uv:pin               # Pin Python version and create venv
+# Fork and clone the repository (choose one)
+# GitLab:
+git clone https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git
+# GitHub:
+git clone https://github.com/Snowflake-Labs/ai_coding_rules.git
 
-# Alternative with pip (fallback)
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-pip install -e ".[dev]"
+cd ai_coding_rules
+
+# Set up development environment
+task env:deps
+
+# Make changes, then validate
+task validate:rules
+task quality:lint
+
+# Regenerate all formats
+task generate:rules:all
+
+# Submit pull request
 ```
 
-### Code Quality & Linting
-
-```bash
-# Ruff (primary linter and formatter)
-task lint                 # Check code with Ruff
-task format              # Check formatting
-task lint:fix            # Auto-fix linting issues
-task format:fix          # Apply formatting
-
-# Manual commands (if task unavailable)
-uvx ruff check .          # Check linting
-uvx ruff format --check . # Check formatting
-uvx ruff format .         # Apply formatting
-```
-
-### Rule Deployment
-```bash
-# Deploy rules with automatic path configuration
-task deploy:universal DEST=~/my-project    # For any IDE/LLM (recommended)
-task deploy:cursor DEST=~/my-project       # For Cursor IDE
-task deploy:copilot DEST=~/my-project      # For GitHub Copilot
-task deploy:cline DEST=~/my-project        # For Cline
-
-# Deploy to current directory (omit DEST)
-cd ~/my-project
-task deploy:cursor
-```
-
-### Rule Generation & Validation
-
-```bash
-# Generate IDE-specific rules (advanced - use deployment instead for projects)
-task rule:cursor         # Generate Cursor rules to generated/cursor/rules/
-task rule:copilot        # Generate Copilot rules to generated/copilot/instructions/
-task rule:cline          # Generate Cline rules to generated/cline/
-task rule:universal      # Generate Universal rules to generated/universal/
-task rule:all            # Generate all IDE-specific rules (including universal)
-
-# Optional DEST variable to change base output directory
-task rule:all DEST=/custom/output
-
-# Validate rule structure (002-rule-governance.md v5.0 compliance)
-task rules:validate         # Standard validation (fails on critical errors)
-task rules:validate:verbose # Show all files including clean ones
-task rules:validate:strict  # Strict mode (fail on warnings too)
-
-# Boilerplate structural validation (deep validation with compliance scoring)
-python3 scripts/validate_agent_rules.py --directory templates --check-boilerplate-structure
-python3 scripts/validate_agent_rules.py --directory templates --check-boilerplate-structure --compliance-report
-
-# Direct validation script usage
-uv run python scripts/validate_agent_rules.py              # Standard validation
-uv run python scripts/validate_agent_rules.py --verbose    # Verbose output
-uv run python scripts/validate_agent_rules.py --fail-on-warnings  # Strict mode
-uv run python scripts/validate_agent_rules.py --check-boilerplate-structure  # Deep validation
-uv run python scripts/validate_agent_rules.py --check-boilerplate-structure --compliance-report  # With reports
-uv run python scripts/validate_agent_rules.py --help       # Show all options
-
-# Other validations
-task --list              # Validate Taskfile syntax
-uv run scripts/generate_agent_rules.py --source . --dry-run  # Test rule generation
-```
-
-### Utilities
-
-```bash
-task clean_venv          # Remove virtual environment
-task -l                  # List all available tasks
-```
+For detailed workflows and examples, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Memory Bank System (Optional)
 
@@ -904,7 +883,7 @@ python --version
 2. **Install Dependencies**
 
 ```bash
-task deps:dev
+task env:deps
 # OR without Task:
 uv sync
 ```
@@ -990,15 +969,15 @@ python3 --version
 2. **Use uv to Pin Version**
 
 ```bash
-task uv:pin
+task env:python
 # Creates .python-version file pinning to 3.11
 ```
 
 3. **Clean and Reinstall**
 
 ```bash
-task clean_venv   # Remove virtual environment
-task deps:dev     # Reinstall dependencies
+task maintenance:clean:venv   # Remove virtual environment
+task env:deps     # Reinstall dependencies
 ```
 
 4. **Manual venv Setup (fallback)**
@@ -1045,7 +1024,7 @@ ls generated/cursor/rules/*.mdc | wc -l
 4. **Verify File Extension**
 
    - Cursor rules must use `.mdc` extension
-   - Run `task rule:cursor` to regenerate if needed
+   - Run `task generate:rules:cursor` to regenerate if needed
 
 **For GitHub Copilot:**
 
@@ -1137,10 +1116,10 @@ touch test.txt && rm test.txt
 2. **Use Custom Destination**
 ```bash
 # Generate to home directory
-task rule:universal DEST=~/ai-coding-rules-output
+task generate:rules:universal DEST=~/ai-coding-rules-output
 
 # Or use absolute path
-task rule:universal DEST=/tmp/rules-output
+task generate:rules:universal DEST=/tmp/rules-output
 ```
 
 3. **Fix Repository Permissions**
@@ -1154,14 +1133,14 @@ chmod -R u+w .
 
 **Get Help:**
 - **Check Issues:** [GitLab Issues](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git/issues)
-- **Review Validation:** Run `task rules:validate` to check rule structure
-- **Enable Debug Mode:** `task rule:universal --verbose` for detailed output
+- **Review Validation:** Run `task validate:rules` to check rule structure
+- **Enable Debug Mode:** `task generate:rules:universal --verbose` for detailed output
 - **Check Logs:** Review terminal output for specific error messages
 
 **Common Fixes:**
 - Update uv: `curl -LsSf https://astral.sh/uv/install.sh | sh`
 - Clear cache: `rm -rf .venv __pycache__`
-- Reinstall dependencies: `task clean_venv && task deps:dev`
+- Reinstall dependencies: `task maintenance:clean:venv && task env:deps`
 
 ## Compatibility Matrix
 

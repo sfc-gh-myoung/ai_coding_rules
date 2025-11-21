@@ -1,7 +1,7 @@
 <!-- Generated for Cline rules. See https://docs.cline.bot/features/cline-rules -->
 
 **Keywords:** CONTRIBUTING, pull requests, code review, contribution guidelines, branching strategy, Conventional Commits, rule authoring, PR templates, project governance, git workflow
-**TokenBudget:** ~1250
+**TokenBudget:** ~2800
 **ContextTier:** Medium
 **Depends:** 000-global-core
 
@@ -17,12 +17,59 @@ Establish directives for a professional contribution workflow covering commits, 
 
 
 ## Contract
-- **Inputs/Prereqs:** [Context, files, dependencies needed]
-- **Allowed Tools:** [Tools permitted for this domain]
-- **Forbidden Tools:** [Tools not allowed for this domain]
-- **Required Steps:** [Ordered steps the agent must follow]
-- **Output Format:** [Expected output format]
-- **Validation Steps:** [Checks to confirm success]
+
+- **Inputs/Prereqs:** 
+  - Forked repository with feature branch
+  - Development environment set up (Python 3.11+, Task, uv, Ruff)
+  - Understanding of rule numbering scheme and governance standards
+  - Access to CONTRIBUTING.md and 002-rule-governance.md
+  
+- **Allowed Tools:** 
+  - Git (fork, clone, branch, commit, PR)
+  - Task runner (lint, format, validate, generate)
+  - Ruff (linting and formatting)
+  - uv (package management)
+  - Python validation scripts
+  
+- **Forbidden Tools:** 
+  - Direct editing of generated/ directory files
+  - Committing without validation (task rules:validate)
+  - Force push to main/master branches
+  - Amending commits authored by others
+  
+- **Required Steps:**
+  1. Fork repository and create feature branch following naming conventions
+  2. Edit templates/ directory files only (never generated/ files)
+  3. Follow Conventional Commits format for all commit messages
+  4. Update CHANGELOG.md under ## [Unreleased] for user-facing changes
+  5. Regenerate all IDE formats with task rule:all
+  6. Validate with task rules:validate and task lint
+  7. Submit PR with descriptive title and complete description
+  8. Address all code review feedback before merge
+  
+- **Output Format:** 
+  - Well-structured pull request with:
+    - Conventional Commit title
+    - Clear description of changes and motivation
+    - Links to related issues
+    - Validation checklist completed
+    - Before/after examples (if applicable)
+  
+- **Validation Steps:** 
+  - task rules:validate passes without critical errors
+  - task lint passes cleanly
+  - task format passes without changes
+  - CHANGELOG.md updated (if user-facing change)
+  - All commits follow Conventional Commits format
+  - Generated files included in PR (task rule:all run)
+
+## Key Principles
+
+- **Template-First Development:** Always edit templates/, never generated/ (source of truth principle)
+- **Validation-Gated Commits:** All changes must pass task rules:validate before commit
+- **Conventional Commits:** Standardized commit format enables automated changelog generation
+- **Progressive Disclosure:** User-facing content in README, contributor details in CONTRIBUTING.md
+- **Governance Compliance:** All rules follow 002-rule-governance.md structural standards
 
 ## Quick Start TL;DR (Read First - 30 Seconds)
 
@@ -44,6 +91,23 @@ Establish directives for a professional contribution workflow covering commits, 
 - [ ] Code reviewed
 - [ ] CI checks passing
 - [ ] Rule standards followed (if applicable)
+
+> **Investigation Required**
+> When applying this rule:
+> 1. **Read CONTRIBUTING.md BEFORE making changes** - Understand current workflow and standards
+> 2. **Check existing rule structure** - Verify numbering scheme, inspect similar rules
+> 3. **Never assume project conventions** - Read 002-rule-governance.md for actual standards
+> 4. **Verify tool availability** - Check Taskfile.yml for available commands, don't invent tasks
+> 5. **Validate before committing** - Run task rules:validate, never skip validation
+>
+> **Anti-Pattern:**
+> "I'll add a new rule as 150-new-feature.md (without checking if 150 range is appropriate)"
+> "Updating generated files directly (without editing templates/)"
+>
+> **Correct Pattern:**
+> "Let me check the rule numbering scheme in 002-rule-governance.md first."
+> [reads governance, identifies correct range]
+> "I see 100-199 is for Snowflake. I'll use next available number in that range and edit templates/"
 
 ## 1. Commit & Changelog Discipline
 - **Requirement:** Follow Conventional Commits: `<type>(<scope>): <imperative summary>`.
@@ -93,6 +157,161 @@ Establish directives for a professional contribution workflow covering commits, 
 - **Always:** New behavior should include at least one happy-path test and one negative/edge case test.
 - **Requirement:** Test function names follow `test_<function>_when_<condition>_should_<result>`.
 - **Always:** Reference specialized rules as needed (e.g., `@200-python-core.md`, `@300-bash-scripting-core.md`).
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Editing Generated Files**
+```bash
+# Bad: Direct edit of generated output
+vim generated/cursor/rules/100-snowflake-core.md
+git add generated/cursor/rules/100-snowflake-core.md
+```
+**Problem:** Changes will be overwritten on next task rule:all run. Generated files are not source of truth.
+
+**Correct Pattern:**
+```bash
+# Good: Edit template source
+vim templates/100-snowflake-core.md
+task rule:all  # Regenerate all formats
+git add templates/100-snowflake-core.md generated/
+```
+**Benefits:** Changes persist across regenerations, maintain single source of truth
+
+---
+
+**Anti-Pattern 2: Vague Commit Messages**
+```bash
+# Bad: No context or type
+git commit -m "updated stuff"
+git commit -m "WIP"
+git commit -m "fixed bug"
+```
+**Problem:** Unclear change type, no scope, breaks changelog automation, unhelpful for code review
+
+**Correct Pattern:**
+```bash
+# Good: Conventional Commits with clear scope
+git commit -m "feat(snowflake): add Snowpipe continuous ingestion patterns"
+git commit -m "fix(python): correct FastAPI async route examples"
+git commit -m "docs(readme): update Quick Start with dual-platform git clone"
+```
+**Benefits:** Clear change type, automated changelog generation, searchable commit history
+
+---
+
+**Anti-Pattern 3: Skipping Validation**
+```bash
+# Bad: Commit without validation
+git add templates/new-rule.md
+git commit -m "feat(rule): add new rule"
+git push
+```
+**Problem:** May contain structural errors, invalid metadata, broken references, fails CI checks
+
+**Correct Pattern:**
+```bash
+# Good: Validate before commit
+vim templates/new-rule.md
+task rules:validate  # Ensure compliance
+task lint           # Check code quality
+task rule:all       # Regenerate formats
+git add templates/new-rule.md generated/
+git commit -m "feat(rule): add new rule"
+```
+**Benefits:** Catch errors early, ensure governance compliance, pass CI checks
+
+---
+
+**Anti-Pattern 4: Mixing User and Contributor Content in README**
+```markdown
+# Bad: Detailed development commands in README
+## Contributing
+[50 lines of detailed development workflow]
+[Environment setup instructions]
+[Rule generation commands]
+[Validation procedures]
+```
+**Problem:** Overwhelms end users, violates progressive disclosure principle, creates maintenance burden
+
+**Correct Pattern:**
+```markdown
+# Good: Minimal pointer in README
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for complete guidelines.
+
+**Quick Reference:**
+```bash
+git clone https://github.com/org/repo.git
+task deps:dev
+task rules:validate
+```
+
+For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
+```
+**Benefits:** Clean README for users, detailed workflows in appropriate location
+
+## README vs CONTRIBUTING.md Content Boundaries
+
+**Principle:** Progressive disclosure - users first, contributors second
+
+**README.md Should Contain:**
+- Project overview and value proposition
+- Quick Start for end users
+- Installation and usage instructions
+- Troubleshooting for users
+- Minimal contributor pointer with quick reference commands
+- License and acknowledgments
+
+**CONTRIBUTING.md Should Contain:**
+- Complete development workflow
+- Environment setup details
+- Code quality and linting procedures
+- Rule authoring standards
+- PR templates and review process
+- Configuration safety guidelines
+- Testing requirements
+- Validation procedures
+
+**Boundary Pattern:**
+```markdown
+## Contributing (in README.md)
+
+**This section and those following are for developers who want to modify or contribute.**  
+If you're using the project, setup is complete. See [Troubleshooting](#troubleshooting) for support.
+
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for complete guidelines.
+
+**Quick Reference:**
+```bash
+# Essential commands for contributors
+```
+
+For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
+```
+
+## Dual-Platform Repository Support
+
+**Requirement:** Projects hosted on multiple platforms must document both in CONTRIBUTING.md
+
+**Quick Start Section Pattern:**
+```markdown
+## Quick Start
+
+1. **Fork** the repository on your preferred platform
+2. **Clone** your fork locally (choose one):
+   ```bash
+   # GitLab:
+   git clone https://gitlab.com/org/repo.git
+   # GitHub:
+   git clone https://github.com/org/repo.git
+   
+   cd repo
+   ```
+```
+
+**Always:** Update both platform URLs when repository locations change
+**Always:** Include badges for all platforms in README.md header
 
 ## 4. Pull Requests & Branching
 - **Requirement:** PR titles must follow Conventional Commits.
@@ -162,31 +381,84 @@ Demo & Templates (900-999)
 ## Response Template
 
 ```markdown
-Project Documentation Changes:
+MODE: ACT
 
-**File Modified:** [README.md|CHANGELOG.md|CONTRIBUTING.md]
-**Section Updated:** [specific section]
-**Validation:** [documentation standards checklist]
+Investigation:
+- Read CONTRIBUTING.md to understand workflow
+- Checked rule numbering scheme in 002-rule-governance.md
+- Verified 200-299 range is for Python rules
+- Identified next available number: 215
 
-Changes Made:
-1. **[Section Name]**
-   - Added: [specific content]
-   - Updated: [what changed and why]
-   - Format: [Markdown standards followed]
+Implementation:
 
-2. **[Another Section]**
-   - Clarified: [ambiguous content]
-   - Examples: [added working examples]
+Created new rule: templates/215-python-django-core.md
 
-Validation Checklist:
-- [x] Markdown lint passes
-- [x] Links are valid and accessible
-- [x] Code examples are tested
-- [x] Formatting is consistent
-- [x] Table of contents updated (if applicable)
+File Structure:
+- Metadata: Description, Type, AppliesTo, Keywords, TokenBudget (~2200)
+- Quick Start TL;DR with 7 essential patterns
+- 5 detailed sections covering Django best practices
+- Anti-patterns section with 3 examples
+- Investigation-First Protocol
+- Response Template
 
-Preview:
-[Show relevant excerpt of updated documentation]
+Updated CHANGELOG.md:
+```markdown
+## [Unreleased]
+### Added
+- New rule 215-python-django-core.md for Django framework patterns
+```
+
+Regenerated all formats:
+```bash
+task rule:all
+✓ Generated universal format
+✓ Generated cursor format
+✓ Generated copilot format
+✓ Generated cline format
+```
+
+Validation:
+```bash
+task rules:validate
+✓ All rules pass structural validation
+✓ Metadata complete and valid
+✓ No emoji usage detected
+✓ Section structure compliant
+
+task lint
+✓ No linting issues found
+
+task format
+✓ Formatting is correct
+```
+
+Commit:
+```bash
+git add templates/215-python-django-core.md
+git add generated/
+git add CHANGELOG.md
+git commit -m "$(cat <<'EOF'
+feat(python): add Django framework core patterns rule
+
+- Add comprehensive Django best practices rule (215)
+- Cover models, views, templates, forms, admin
+- Include ORM optimization patterns
+- Add security guidelines (CSRF, XSS, SQL injection)
+- Reference existing Python rules (200, 201, 206)
+
+Closes #123
+EOF
+)"
+```
+
+Pull Request:
+- Title: feat(python): add Django framework core patterns rule
+- Description: 
+  - Addresses #123 - need for Django-specific guidance
+  - Provides comprehensive patterns for Django development
+  - Follows 002-rule-governance.md v5.0 structure
+  - Includes anti-patterns and investigation protocol
+- Validation checklist: All items completed ✓
 ```
 
 ## References

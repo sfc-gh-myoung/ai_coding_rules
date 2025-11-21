@@ -54,7 +54,7 @@ python scripts/update_token_budgets.py
 python scripts/validate_agent_rules.py
 
 # Regenerate
-task rule:generate
+task generate:tokens
 ```
 
 ### Options

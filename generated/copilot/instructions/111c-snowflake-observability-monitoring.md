@@ -575,6 +575,133 @@ ALTER SESSION SET TRACE_LEVEL = ALWAYS;
 - **Metering History:** 2-3 hours latency
 - **Implication:** Not suitable for real-time monitoring; use event tables for real-time needs.
 
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Using SELECT * in Monitoring Queries**
+```sql
+-- Bad: SELECT * on large system views
+SELECT * 
+FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
+WHERE start_time > DATEADD('day', -7, CURRENT_TIMESTAMP());
+-- Returns 100+ columns, most unused, slow and expensive!
+```
+**Problem:** Returns unnecessary columns; slow queries; high compute costs; wide result sets; query timeout risk; inefficient data transfer; wasted resources
+
+**Correct Pattern:**
+```sql
+-- Good: Select only needed columns
+SELECT 
+  query_id,
+  query_text,
+  user_name,
+  warehouse_name,
+  execution_status,
+  execution_time_ms,
+  start_time
+FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
+WHERE start_time > DATEADD('day', -7, CURRENT_TIMESTAMP())
+  AND execution_status = 'FAILED';  -- Additional filters
+```
+**Benefits:** Fast queries; low costs; minimal data transfer; focused results; query performance; production-scalable monitoring; efficient dashboards
+
+---
+
+**Anti-Pattern 2: Monitoring Queries Without Timestamp Filters**
+```sql
+-- Bad: No time filter on large historical table
+SELECT warehouse_name, SUM(credits_used)
+FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY
+GROUP BY warehouse_name;
+-- Scans years of data! Very expensive query!
+```
+**Problem:** Full table scan; extremely slow; high costs; query timeout; unnecessary historical data; dashboard latency; user frustration
+
+**Correct Pattern:**
+```sql
+-- Good: Always include timestamp filter for recent data
+SELECT 
+  warehouse_name, 
+  SUM(credits_used) as total_credits
+FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY
+WHERE start_time >= DATEADD('day', -30, CURRENT_TIMESTAMP())
+GROUP BY warehouse_name
+ORDER BY total_credits DESC;
+-- Scans only last 30 days, fast and cost-effective
+```
+**Benefits:** Fast queries; bounded costs; relevant recent data; quick dashboard refresh; production-ready monitoring; user-friendly performance
+
+---
+
+**Anti-Pattern 3: Using ACCOUNT_USAGE for Real-Time Alerting**
+```sql
+-- Bad: Real-time alert query on ACCOUNT_USAGE (45 min latency!)
+SELECT COUNT(*) as failed_queries
+FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
+WHERE start_time > DATEADD('minute', -5, CURRENT_TIMESTAMP())
+  AND execution_status = 'FAILED';
+-- Returns stale data, misses recent failures!
+```
+**Problem:** 45-minute data latency; stale alerts; missed incidents; false negatives; delayed response; poor real-time visibility; SLA violations
+
+**Correct Pattern:**
+```sql
+-- Good: Use Event Tables for real-time monitoring (<1 min latency)
+SELECT COUNT(*) as failed_queries
+FROM my_event_table
+WHERE timestamp > DATEADD('minute', -5, CURRENT_TIMESTAMP())
+  AND record['execution_status']::STRING = 'FAILED';
+
+-- Use ACCOUNT_USAGE for historical analysis only (>45 min old)
+SELECT DATE_TRUNC('hour', start_time) as hour,
+       COUNT(*) as failed_queries
+FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
+WHERE start_time BETWEEN DATEADD('day', -7, CURRENT_DATE()) 
+                     AND DATEADD('hour', -1, CURRENT_TIMESTAMP())
+  AND execution_status = 'FAILED'
+GROUP BY hour;
+```
+**Benefits:** Real-time alerting (<1 min); timely incident detection; accurate monitoring; proper data source selection; SLA compliance; operational excellence
+
+---
+
+**Anti-Pattern 4: Not Monitoring Telemetry Volume and Costs**
+```python
+# Bad: Enable verbose logging without monitoring costs
+import logging
+logging.basicConfig(level=logging.DEBUG)  # In production!
+# Never check: How much data? What's the cost?
+# Costs spiral out of control, surprise bills!
+```
+**Problem:** Unbounded telemetry costs; surprise budget overruns; no cost visibility; runaway spending; lack of accountability; emergency cost-cutting required
+
+**Correct Pattern:**
+```sql
+-- Good: Monitor telemetry data volume and costs regularly
+-- Check event table size growth
+SELECT 
+  DATE_TRUNC('day', timestamp) as day,
+  COUNT(*) as event_count,
+  SUM(LENGTH(record::STRING)) as total_bytes
+FROM my_event_table
+WHERE timestamp >= DATEADD('day', -30, CURRENT_TIMESTAMP())
+GROUP BY day
+ORDER BY day DESC;
+
+-- Monitor serverless credit usage for logging/tracing
+SELECT 
+  service_type,
+  DATE_TRUNC('day', start_time) as day,
+  SUM(credits_used) as credits
+FROM SNOWFLAKE.ACCOUNT_USAGE.METERING_HISTORY
+WHERE service_type IN ('LOGGING', 'DATA_QUALITY_MONITORING')
+  AND start_time >= DATEADD('day', -30, CURRENT_TIMESTAMP())
+GROUP BY service_type, day
+ORDER BY day DESC;
+
+-- Set alerts when costs exceed thresholds
+```
+**Benefits:** Cost visibility; budget control; early warning; informed decisions; predictable spending; resource optimization; financial accountability
+
 ## Quick Compliance Checklist
 - [ ] Data source identified (System View for historical, Event Table for real-time)
 - [ ] Monitoring queries include timestamp filters (prevent full table scans)

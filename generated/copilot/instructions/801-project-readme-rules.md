@@ -203,9 +203,9 @@ npm start
 - Started the development server
 
 **Next Steps:**
-- ✅ Installation complete → [Configure](#configuration)
-- 🤔 Want to understand how it works → [Understanding](#understanding)
-- 🔧 Need different setup → Continue reading options below
+- [x] Installation complete → [Configure](#configuration)
+- Want to understand how it works → [Understanding](#understanding)
+- Need different setup → Continue reading options below
 ```
 
 ### Installation Section  

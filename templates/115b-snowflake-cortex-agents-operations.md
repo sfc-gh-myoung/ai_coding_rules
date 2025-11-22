@@ -27,7 +27,7 @@ Provide comprehensive operational patterns for Cortex Agents including testing s
 - **Output Format:** Test patterns, RBAC configs, observability queries, troubleshooting steps
 - **Validation Steps:** Tests pass; RBAC enforced; traces captured; costs within budget
 
-## Quick Start TL;DR (Essential Patterns Reference)
+## Quick Start TL;DR (Read First - 30 Seconds)
 
 **Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
 - **Token efficiency:** Self-sufficient guidance for common use cases

@@ -5,7 +5,7 @@ appliesTo:
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
 **Keywords:** PLAN mode, ACT mode, workflow, safety, confirmation, validation, surgical edits, minimal changes, mode violations, prompt engineering, task list, read-only, authorization
-**TokenBudget:** ~2050
+**TokenBudget:** ~2550
 **ContextTier:** Critical
 **Depends:** None
 
@@ -45,15 +45,7 @@ Establish the foundational operating contract for all AI coding assistants, ensu
 - **Professional Communication:** Concise, code-first solutions with technical tone
 - **Validation First:** Test, lint, and verify all changes before completion
 
-## Quick Start TL;DR (Essential Patterns Reference)
-
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for 80% of common use cases reduces need to read full sections
-- **Position advantage:** Early placement benefits from slight attention bias in LLM processing
-- **Progressive disclosure:** Enables agents to assess rule relevance before loading full content
-- **Human-LLM collaboration:** Useful for both human developers and AI assistants
-
-**Note:** While LLMs read sequentially (not auto-prioritizing this section), the concentrated pattern format and early position provide practical efficiency benefits. To maximize value, include in system prompts: "Read Quick Start TL;DR sections first to identify essential patterns."
+## Quick Start TL;DR (Read First - 30 Seconds)
 
 **MANDATORY:**
 **Essential Patterns:**
@@ -63,6 +55,15 @@ Establish the foundational operating contract for all AI coding assistants, ensu
 - **Make surgical edits only** - minimal changes, preserve existing code patterns
 - **Validate immediately** - run tests/lints before marking complete
 - **Never modify files without explicit "ACT" authorization**
+
+**Quick Checklist:**
+- [ ] Declared MODE at start of response
+- [ ] Started in PLAN mode
+- [ ] Listed loaded rules explicitly
+- [ ] Presented clear task list before modifications
+- [ ] Received explicit "ACT" authorization
+- [ ] Made minimal, surgical edits only
+- [ ] Validated changes work correctly
 
 ## Detailed Principles
 
@@ -130,7 +131,97 @@ Establish the foundational operating contract for all AI coding assistants, ensu
 - Detailed examples or validation rules required
 - First-time implementation of unfamiliar pattern
 
-## Contract Definition Template
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Modifying Files Without "ACT" Authorization**
+```markdown
+User: Can you update the config file to use port 8080?
+AI: Sure, I'll update that for you.
+[immediately modifies file without PLAN mode or ACT authorization]
+```
+**Problem:** Violates safety protocol; user has no visibility into what changes will be made; no opportunity to review task list; breaks trust and reliability contract
+
+**Correct Pattern:**
+```markdown
+User: Can you update the config file to use port 8080?
+AI: MODE: PLAN
+
+Task List:
+1. Read current config file to understand structure
+2. Update port setting from current value to 8080
+3. Validate config file syntax after change
+
+[awaits explicit "ACT" authorization]
+```
+**Benefits:** Safe workflow; user sees exact changes planned; maintains explicit authorization contract; builds trust
+
+---
+
+**Anti-Pattern 2: Skipping Validation Steps**
+```markdown
+AI: I've updated the Python file with the new function. Task complete!
+[No linting run, no tests executed, no verification performed]
+```
+**Problem:** May introduce syntax errors, linting violations, or broken tests; user discovers issues later; wastes time on preventable failures
+
+**Correct Pattern:**
+```markdown
+AI: I've updated the Python file. Now validating:
+
+[runs uvx ruff check .]
+[runs uvx ruff format --check .]
+[runs uv run pytest]
+
+Validation:
+- [x] Ruff linting: Clean
+- [x] Ruff formatting: Clean
+- [x] Tests: All passing (15/15)
+
+Task complete.
+```
+**Benefits:** Catches errors immediately; ensures quality standards met; user receives validated, working code
+
+---
+
+**Anti-Pattern 3: Making Broad Changes Instead of Surgical Edits**
+```python
+# Bad: Rewriting entire function when only one line needs change
+def process_data(data):
+    # [40 lines of unchanged code rewritten]
+    result = new_logic()  # Only this line changed
+    # [20 more lines of unchanged code rewritten]
+    return result
+```
+**Problem:** Difficult to review changes; risk of introducing unrelated bugs; violates minimal change principle; creates large diffs
+
+**Correct Pattern:**
+```python
+# Good: Surgical edit - only change the specific line needed
+# Using edit tool to replace single line:
+old_string: "    result = old_logic()"
+new_string: "    result = new_logic()"
+```
+**Benefits:** Easy to review; minimal risk; clear intent; respects existing code patterns; small, focused diffs
+
+---
+
+**Anti-Pattern 4: Not Declaring MODE at Start**
+```markdown
+I'll help you with that task. Let me read the file first.
+[No MODE declaration, unclear whether in PLAN or ACT]
+```
+**Problem:** Ambiguous state; user doesn't know if files will be modified; violates transparency requirement; inconsistent with protocol
+
+**Correct Pattern:**
+```markdown
+MODE: PLAN
+
+I'll help you with that task. Let me read the file first.
+[Clear declaration of current mode]
+```
+**Benefits:** Explicit state communication; user knows expectations; follows protocol consistently; maintains transparency
+
+## Task Definition Structure
 
 Every task should define:
 1. **Inputs/Prerequisites** - What must exist before starting

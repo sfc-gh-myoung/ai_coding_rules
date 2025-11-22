@@ -1,5 +1,5 @@
 **Keywords:** Observability, Snowflake Trail, telemetry configuration, event tables, LOG_LEVEL, TRACE_LEVEL, METRIC_LEVEL, SHOW PARAMETERS, OpenTelemetry, System Views vs Telemetry, monitoring, logging, tracing, debug observability, telemetry setup, event table queries, observability patterns, configure telemetry
-**TokenBudget:** ~3550
+**TokenBudget:** ~4200
 **ContextTier:** High
 **Depends:** 100-snowflake-core
 
@@ -369,6 +369,110 @@ GROUP BY 1, 2
 HAVING avg_duration_ms > 1000
 ORDER BY avg_duration_ms DESC;
 ```
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Using DEBUG Log Level in Production**
+```sql
+-- Bad: DEBUG logging in production generates massive costs
+ALTER ACCOUNT SET LOG_LEVEL = DEBUG;
+-- Generates 100x more log data, massive event table costs!
+```
+**Problem:** 10-100x more log volume; massive serverless costs; event table bloat; retention costs explode; performance impact; signal-to-noise ratio destroyed
+
+**Correct Pattern:**
+```sql
+-- Good: Environment-appropriate log levels
+-- Production: WARN or ERROR only
+ALTER ACCOUNT SET LOG_LEVEL = WARN;
+
+-- Development: Can use DEBUG temporarily
+-- (But remember to revert after debugging!)
+ALTER DATABASE dev_db SET LOG_LEVEL = DEBUG;
+```
+**Benefits:** Cost-effective logging; manageable event table size; signal-to-noise balance; production performance maintained; actionable logs only
+
+---
+
+**Anti-Pattern 2: Not Setting Retention Policy on Event Tables**
+```sql
+-- Bad: Create event table without retention policy
+CREATE EVENT TABLE my_logs;
+-- Logs accumulate forever, costs grow unbounded!
+```
+**Problem:** Unbounded storage growth; runaway costs; table bloat; query performance degrades; manual cleanup required; budget overruns
+
+**Correct Pattern:**
+```sql
+-- Good: Set retention policy at creation or shortly after
+CREATE EVENT TABLE my_logs
+  DATA_RETENTION_TIME_IN_DAYS = 30;
+
+-- Or update existing table
+ALTER EVENT TABLE my_logs 
+  SET DATA_RETENTION_TIME_IN_DAYS = 30;
+
+-- Typical retention: 7-90 days depending on compliance needs
+```
+**Benefits:** Bounded storage costs; automatic cleanup; predictable costs; optimal query performance; compliance-aligned retention; no manual maintenance
+
+---
+
+**Anti-Pattern 3: Querying System Views for Real-Time Monitoring**
+```sql
+-- Bad: Use ACCOUNT_USAGE views for real-time dashboards
+SELECT query_text, execution_status
+FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
+WHERE start_time > DATEADD('minute', -5, CURRENT_TIMESTAMP());
+-- Data delayed up to 45 minutes! Dashboard shows stale data
+```
+**Problem:** 45-minute latency on ACCOUNT_USAGE views; stale real-time dashboards; missed incidents; incorrect alerting; troubleshooting delays; poor operational visibility
+
+**Correct Pattern:**
+```sql
+-- Good: Use Event Tables for real-time (<1 min latency)
+SELECT 
+  timestamp,
+  record['query_text']::STRING as query_text,
+  record['execution_status']::STRING as status
+FROM my_event_table
+WHERE timestamp > DATEADD('minute', -5, CURRENT_TIMESTAMP());
+
+-- Use ACCOUNT_USAGE for historical analysis (>45 min old)
+SELECT DATE_TRUNC('hour', start_time) as hour,
+       COUNT(*) as query_count
+FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
+WHERE start_time BETWEEN DATEADD('day', -7, CURRENT_DATE()) 
+                     AND CURRENT_DATE();
+```
+**Benefits:** Real-time monitoring (<1 min); accurate dashboards; timely incident detection; proper data source selection; cost-effective historical analysis
+
+---
+
+**Anti-Pattern 4: Not Verifying Event Table Active Before Emitting Telemetry**
+```python
+# Bad: Assume event table is configured, emit telemetry blindly
+session.sql("SELECT SYSTEM$LOG('INFO', 'Process started')").collect()
+# If no event table configured, telemetry silently dropped!
+```
+**Problem:** Telemetry silently lost; no logs captured; blind operational state; debugging impossible; incidents go undetected; wasted instrumentation effort
+
+**Correct Pattern:**
+```python
+# Good: Verify event table active before relying on telemetry
+# Check if event table is configured
+result = session.sql("SHOW PARAMETERS LIKE 'EVENT_TABLE'").collect()
+event_table = result[0]['value'] if result else None
+
+if not event_table:
+    # Fallback: Create or set event table first
+    session.sql("ALTER ACCOUNT SET EVENT_TABLE = my_db.my_schema.my_event_table").collect()
+    print("WARNING: Event table not configured, set to my_event_table")
+
+# Now emit telemetry with confidence
+session.sql("SELECT SYSTEM$LOG('INFO', 'Process started')").collect()
+```
+**Benefits:** Telemetry actually captured; operational visibility guaranteed; early detection of config issues; reliable observability; debuggable systems; production-ready instrumentation
 
 ## Quick Compliance Checklist
 - [ ] Event table verified as active before emitting telemetry (`SHOW PARAMETERS LIKE 'EVENT_TABLE'`)

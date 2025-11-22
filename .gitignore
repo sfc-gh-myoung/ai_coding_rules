@@ -187,6 +187,7 @@ memory-bank/
 
 # Rules: local usage of rules
 .cursor/rules/
+ !generated/cursor/rules
 rules/
 AGENTS.md
 RULES_INDEX.md

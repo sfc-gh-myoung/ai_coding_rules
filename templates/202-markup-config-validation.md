@@ -3,7 +3,7 @@
 **AppliesTo:** `**/*.yml`, `**/*.yaml`, `**/pyproject.toml`, `**/.env*`, `**/*.md`
 **AutoAttach:** false
 **Keywords:** YAML, configuration files, YAML syntax, parsing errors, indentation, anchors, aliases, Markdown, markdown linting, pymarkdownlnt, markup validation, TOML, environment files
-**TokenBudget:** ~2300
+**TokenBudget:** ~2800
 **ContextTier:** Medium
 **Version:** 1.5
 **LastUpdated:** 2025-11-07
@@ -283,6 +283,67 @@ markdownlint-cli2 "**/*.md"
 ```
 
 **Rationale for pymarkdownlnt:** Consistency with existing Python/`uv` tooling ecosystem.
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Inconsistent YAML Indentation**
+```yaml
+# Bad: Mixed 2-space and 4-space indentation
+config:
+  database:
+      host: localhost  # 4 spaces
+    port: 5432  # 2 spaces
+  cache:
+    enabled: true
+```
+**Problem:** Parsing errors; difficult to maintain; violates YAML specification; hard to spot visually.
+
+**Correct Pattern:**
+```yaml
+# Good: Consistent 2-space indentation throughout
+config:
+  database:
+    host: localhost
+    port: 5432
+  cache:
+    enabled: true
+```
+**Benefits:** Predictable parsing; easy maintenance; follows YAML best practices; clear hierarchy.
+
+**Anti-Pattern 2: Unquoted Strings with Special Characters**
+```yaml
+# Bad: Unquoted strings causing parsing issues
+description: File contains: colons, [brackets], and {braces}
+path: /home/user/*
+```
+**Problem:** Breaks YAML parsing; special characters treated as syntax; runtime failures; subtle bugs.
+
+**Correct Pattern:**
+```yaml
+# Good: Properly quoted strings
+description: "File contains: colons, [brackets], and {braces}"
+path: "/home/user/*"
+```
+**Benefits:** Reliable parsing; explicit string boundaries; no special character conflicts; predictable behavior.
+
+**Anti-Pattern 3: No Validation Before Deployment**
+```bash
+# Bad: Deploy config without validation
+cp config.yml /etc/app/config.yml
+systemctl restart app
+```
+**Problem:** Broken config deployed to production; service crashes; difficult rollback; downtime.
+
+**Correct Pattern:**
+```bash
+# Good: Validate then deploy
+uvx yamllint config.yml
+python -c "import yaml; yaml.safe_load(open('config.yml'))"
+# Only deploy if validation passes
+cp config.yml /etc/app/config.yml
+systemctl restart app
+```
+**Benefits:** Catch errors before deployment; prevent production outages; fast feedback; safe deployments.
 
 ## Quick Compliance Checklist
 - [ ] YAML files use consistent 2-space indentation

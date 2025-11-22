@@ -1,7 +1,7 @@
 <!-- Generated for Cline rules. See https://docs.cline.bot/features/cline-rules -->
 
 **Keywords:** Streams, Tasks, incremental loading, CDC, change data capture, scheduled tasks, pipeline automation, MERGE patterns, SQL, Snowflake, task DAG, AFTER dependencies, Task History, create stream, create task, debug stream, task troubleshooting, stream consumption, task execution error, stream lag
-**TokenBudget:** ~1150
+**TokenBudget:** ~1800
 **ContextTier:** High
 **Depends:** 100-snowflake-core
 
@@ -21,14 +21,7 @@ Establish patterns for building robust, incremental data pipelines using Snowfla
 - Ensure idempotency; consume stream at end of transaction; monitor with Task History.
 - Follow official docs for implementation details and idempotent DDL.
 
-## Quick Start TL;DR (Essential Patterns Reference)
-
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
-
-Position at top provides practical efficiency benefits for both LLMs and human developers.
+## Quick Start TL;DR (Read First - 30 Seconds)
 
 **MANDATORY:**
 **Essential Patterns:**
@@ -75,6 +68,123 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - **Required Steps:** [Ordered steps the agent must follow]
 - **Output Format:** [Expected output format]
 - **Validation Steps:** [Checks to confirm success]
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Consuming Stream Mid-Transaction**
+```sql
+-- Bad: Stream consumed before transaction completes
+BEGIN TRANSACTION;
+  INSERT INTO target_table SELECT * FROM source_stream;
+  -- More operations here
+  UPDATE other_table SET status = 'processed';
+  -- Stream offset advances here, not at COMMIT
+COMMIT;
+```
+**Problem:** Stream offset advances at first consumption; subsequent transaction failure leaves data inconsistent; lost change data; breaks incremental processing guarantee
+
+**Correct Pattern:**
+```sql
+-- Good: Single atomic MERGE consumes stream at transaction end
+BEGIN TRANSACTION;
+  MERGE INTO target_table t
+  USING source_stream s
+    ON t.id = s.id
+  WHEN MATCHED AND s.METADATA$ACTION = 'DELETE' THEN DELETE
+  WHEN MATCHED THEN UPDATE SET t.value = s.value
+  WHEN NOT MATCHED THEN INSERT (id, value) VALUES (s.id, s.value);
+  -- Stream offset advances only at COMMIT
+COMMIT;
+```
+**Benefits:** Atomic stream consumption; transactional consistency; automatic rollback on failure; idempotent processing
+
+---
+
+**Anti-Pattern 2: Not Using CREATE OR REPLACE for Task DDL**
+```sql
+-- Bad: CREATE fails if task exists, requires manual DROP
+CREATE TASK load_incremental_data
+  WAREHOUSE = 'ETL_WH'
+  SCHEDULE = '5 MINUTE'
+AS
+  CALL process_stream_data();
+```
+**Problem:** Deployment fails if task exists; requires manual intervention; not idempotent; complicates CI/CD pipelines; error-prone updates
+
+**Correct Pattern:**
+```sql
+-- Good: Idempotent DDL with CREATE OR REPLACE
+CREATE OR REPLACE TASK load_incremental_data
+  WAREHOUSE = 'ETL_WH'
+  SCHEDULE = '5 MINUTE'
+AS
+  CALL process_stream_data();
+```
+**Benefits:** Idempotent deployments; CI/CD friendly; updates task definition safely; no manual cleanup needed; repeatable automation
+
+---
+
+**Anti-Pattern 3: Missing Task Dependencies in DAGs**
+```sql
+-- Bad: Tasks run in parallel, wrong order
+CREATE TASK extract_data WAREHOUSE = 'ETL_WH' SCHEDULE = '1 HOUR' AS CALL extract();
+CREATE TASK transform_data WAREHOUSE = 'ETL_WH' SCHEDULE = '1 HOUR' AS CALL transform();
+CREATE TASK load_data WAREHOUSE = 'ETL_WH' SCHEDULE = '1 HOUR' AS CALL load();
+-- All run simultaneously at top of hour, not sequentially!
+```
+**Problem:** Tasks run in parallel instead of sequence; transform runs before extract completes; load runs on stale data; race conditions; data corruption
+
+**Correct Pattern:**
+```sql
+-- Good: Explicit AFTER dependencies create DAG
+CREATE OR REPLACE TASK extract_data
+  WAREHOUSE = 'ETL_WH'
+  SCHEDULE = '1 HOUR'
+AS CALL extract();
+
+CREATE OR REPLACE TASK transform_data
+  WAREHOUSE = 'ETL_WH'
+  AFTER extract_data  -- Runs only after extract_data succeeds
+AS CALL transform();
+
+CREATE OR REPLACE TASK load_data
+  WAREHOUSE = 'ETL_WH'
+  AFTER transform_data  -- Runs only after transform_data succeeds
+AS CALL load();
+```
+**Benefits:** Correct execution order; automatic dependency resolution; Snowflake manages scheduling; no race conditions; transactional DAG execution
+
+---
+
+**Anti-Pattern 4: Not Monitoring Task Execution Status**
+```sql
+-- Bad: Create tasks but never check if they're working
+CREATE OR REPLACE TASK my_task ... ;
+ALTER TASK my_task RESUME;
+-- [Never checks Task History, assumes it works]
+```
+**Problem:** Silent failures go unnoticed; tasks may suspend on errors; no visibility into execution patterns; credit waste if tasks loop; missed SLAs
+
+**Correct Pattern:**
+```sql
+-- Good: Monitor task execution in Snowsight Task History
+-- Check execution history programmatically:
+SELECT 
+  name,
+  state,
+  completed_time,
+  scheduled_time,
+  error_code,
+  error_message
+FROM TABLE(INFORMATION_SCHEMA.TASK_HISTORY())
+WHERE name = 'MY_TASK'
+ORDER BY scheduled_time DESC
+LIMIT 10;
+
+-- Set up alerts for task failures:
+-- Use SYSTEM$SEND_EMAIL or webhook on error_code IS NOT NULL
+```
+**Benefits:** Proactive error detection; execution pattern visibility; SLA monitoring; credit usage tracking; automated alerting on failures
 
 ## Quick Compliance Checklist
 - [ ] Required dependencies and context verified

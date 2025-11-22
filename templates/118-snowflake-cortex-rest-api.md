@@ -3,7 +3,7 @@
 **AppliesTo:** `**/*.py`, `**/*.ts`, `**/*.sh`
 **AutoAttach:** false
 **Keywords:** Cortex REST API, API authentication, streaming responses, API retries, idempotency, rate limits, Complete endpoint, Embed endpoint, exponential backoff, REST API usage, API integration, API calls, Cortex API, API error handling, API best practices, API endpoints, authentication tokens, API retry logic
-**TokenBudget:** ~1325
+**TokenBudget:** ~2350
 **ContextTier:** Medium
 **Version:** 1.2
 **LastUpdated:** 2025-11-07
@@ -114,6 +114,256 @@ for chunk in client.complete_stream(model="llama3.1-8b", prompt=prompt, max_toke
 ## 6. Observability
 - Log request metadata (model, token counts, latency, status)
 - Emit traces and associate with evaluation events in AI Observability
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Not Implementing Retry Logic with Exponential Backoff**
+```python
+# Bad: No retry on transient errors
+import requests
+
+response = requests.post(
+    f"https://{account}.snowflakecomputing.com/api/v2/cortex/inference:complete",
+    headers={"Authorization": f"Bearer {token}"},
+    json={"model": "mistral-large", "prompt": "Hello"}
+)
+# Network glitch or rate limit = immediate failure!
+```
+**Problem:** Transient failures cause user errors; rate limits not handled; poor reliability; bad user experience; unnecessary failures; unprofessional
+
+**Correct Pattern:**
+```python
+# Good: Exponential backoff with jitter
+import requests
+import time
+import random
+
+def call_cortex_api_with_retry(prompt, model="mistral-large", max_retries=3):
+    base_delay = 1  # seconds
+    for attempt in range(max_retries):
+        try:
+            response = requests.post(
+                f"https://{account}.snowflakecomputing.com/api/v2/cortex/inference:complete",
+                headers={"Authorization": f"Bearer {token}"},
+                json={"model": model, "prompt": prompt},
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+            elif response.status_code == 429:  # Rate limit
+                retry_after = int(response.headers.get('Retry-After', base_delay * (2 ** attempt)))
+                jitter = random.uniform(0, 1)
+                wait_time = retry_after + jitter
+                print(f"Rate limited, waiting {wait_time:.2f}s")
+                time.sleep(wait_time)
+            elif response.status_code >= 500:  # Server error
+                delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
+                print(f"Server error, retrying in {delay:.2f}s")
+                time.sleep(delay)
+            else:
+                response.raise_for_status()
+                
+        except requests.exceptions.RequestException as e:
+            if attempt == max_retries - 1:
+                raise
+            delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
+            print(f"Request failed: {e}, retrying in {delay:.2f}s")
+            time.sleep(delay)
+    
+    raise Exception(f"Failed after {max_retries} retries")
+```
+**Benefits:** Handles rate limits; retries transient errors; better reliability; professional API client; good user experience; production-ready
+
+---
+
+**Anti-Pattern 2: Not Using Streaming for Long Responses**
+```python
+# Bad: Wait for entire response before showing anything
+response = requests.post(
+    f"https://{account}.snowflakecomputing.com/api/v2/cortex/inference:complete",
+    headers={"Authorization": f"Bearer {token}"},
+    json={
+        "model": "mistral-large",
+        "prompt": "Write a 2000 word essay on AI",
+        "stream": False  # Waits for full response!
+    }
+)
+result = response.json()
+print(result['choices'][0]['text'])  # User waits 30+ seconds!
+```
+**Problem:** Long wait times; poor UX; appears frozen; user abandons; no progress indication; unprofessional; high latency perception
+
+**Correct Pattern:**
+```python
+# Good: Stream responses for immediate feedback
+response = requests.post(
+    f"https://{account}.snowflakecomputing.com/api/v2/cortex/inference:complete",
+    headers={"Authorization": f"Bearer {token}"},
+    json={
+        "model": "mistral-large",
+        "prompt": "Write a 2000 word essay on AI",
+        "stream": True  # Enable streaming!
+    },
+    stream=True
+)
+
+print("Response: ", end='', flush=True)
+for line in response.iter_lines():
+    if line:
+        # Parse server-sent events format
+        if line.startswith(b'data: '):
+            data = json.loads(line[6:])
+            if 'choices' in data:
+                chunk = data['choices'][0].get('delta', {}).get('content', '')
+                print(chunk, end='', flush=True)  # Show immediately!
+print()  # New line at end
+```
+**Benefits:** Immediate feedback; better UX; shows progress; feels responsive; professional; lower perceived latency; user engagement
+
+---
+
+**Anti-Pattern 3: Not Monitoring Token Usage and Costs**
+```python
+# Bad: No tracking of token usage
+for user_query in user_queries:
+    response = call_cortex_api(prompt=user_query)
+    print(response['choices'][0]['text'])
+# No idea: How many tokens used? What's the cost? Any patterns?
+```
+**Problem:** No cost visibility; budget overruns; can't optimize; no usage patterns; billing surprises; no anomaly detection; unprofessional; financial risk
+
+**Correct Pattern:**
+```python
+# Good: Track token usage and costs
+import logging
+from datetime import datetime
+
+# Set up logging
+logging.basicConfig(
+    filename='cortex_api_usage.log',
+    level=logging.INFO,
+    format='%(asctime)s - %(message)s'
+)
+
+def call_cortex_api_with_tracking(prompt, model="mistral-large"):
+    start_time = datetime.now()
+    
+    response = requests.post(
+        f"https://{account}.snowflakecomputing.com/api/v2/cortex/inference:complete",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"model": model, "prompt": prompt}
+    )
+    
+    end_time = datetime.now()
+    latency_ms = (end_time - start_time).total_seconds() * 1000
+    
+    result = response.json()
+    usage = result.get('usage', {})
+    
+    # Log usage metrics
+    log_entry = {
+        'timestamp': start_time.isoformat(),
+        'model': model,
+        'prompt_tokens': usage.get('prompt_tokens', 0),
+        'completion_tokens': usage.get('completion_tokens', 0),
+        'total_tokens': usage.get('total_tokens', 0),
+        'latency_ms': latency_ms,
+        'status': response.status_code
+    }
+    logging.info(json.dumps(log_entry))
+    
+    return result
+
+# Analyze usage patterns
+def analyze_token_usage(log_file='cortex_api_usage.log'):
+    import pandas as pd
+    
+    logs = []
+    with open(log_file) as f:
+        for line in f:
+            logs.append(json.loads(line.split(' - ')[1]))
+    
+    df = pd.DataFrame(logs)
+    
+    print(f"Total API calls: {len(df)}")
+    print(f"Total tokens used: {df['total_tokens'].sum():,}")
+    print(f"Average tokens per call: {df['total_tokens'].mean():.0f}")
+    print(f"Average latency: {df['latency_ms'].mean():.0f}ms")
+    print(f"95th percentile latency: {df['latency_ms'].quantile(0.95):.0f}ms")
+    
+    # Estimate costs (example: $0.002 per 1K tokens)
+    total_cost = (df['total_tokens'].sum() / 1000) * 0.002
+    print(f"Estimated cost: ${total_cost:.2f}")
+```
+**Benefits:** Cost visibility; usage tracking; optimization insights; budget control; anomaly detection; performance monitoring; professional; financial responsibility
+
+---
+
+**Anti-Pattern 4: Using REST API for Batch Processing Instead of AISQL**
+```python
+# Bad: REST API for processing 10,000 records
+records = load_records()  # 10,000 records
+
+results = []
+for record in records:
+    response = requests.post(
+        f"https://{account}.snowflakecomputing.com/api/v2/cortex/inference:complete",
+        headers={"Authorization": f"Bearer {token}"},
+        json={
+            "model": "mistral-large",
+            "prompt": f"Classify sentiment: {record['text']}"
+        }
+    )
+    results.append(response.json())
+    time.sleep(0.1)  # Rate limit protection
+
+# Takes hours! 10,000 API calls! Rate limits! Expensive! Fragile!
+```
+**Problem:** Extremely slow; rate limit issues; expensive API calls; network overhead; fragile; error handling complexity; unprofessional; poor scalability
+
+**Correct Pattern:**
+```sql
+-- Good: Use AISQL for batch processing
+-- Process 10,000 records in parallel, native Snowflake
+CREATE OR REPLACE TABLE sentiment_results AS
+SELECT 
+  record_id,
+  text,
+  SNOWFLAKE.CORTEX.COMPLETE(
+    'mistral-large',
+    CONCAT('Classify sentiment: ', text)
+  ) AS sentiment_classification
+FROM records_table;
+
+-- Parallel processing, no rate limits, optimized, reliable!
+-- Completes in minutes, not hours
+```
+```python
+# Or use Python connector for batch with AISQL
+import snowflake.connector
+
+conn = snowflake.connector.connect(
+    connection_name=os.getenv("SNOWFLAKE_CONNECTION_NAME") or "myconn"
+)
+
+# Process in batch with SQL
+query = """
+SELECT 
+  record_id,
+  SNOWFLAKE.CORTEX.COMPLETE('mistral-large', 
+    CONCAT('Classify sentiment: ', text)
+  ) AS sentiment
+FROM records_table
+"""
+
+cursor = conn.cursor()
+cursor.execute(query)
+results = cursor.fetchall()
+
+# Fast, reliable, scalable, professional!
+```
+**Benefits:** 100x+ faster; parallel processing; no rate limits; native Snowflake optimization; reliable; cost-effective; professional; scalable
 
 ## Quick Compliance Checklist
 - [ ] REST used for interactive use cases; AISQL for batch

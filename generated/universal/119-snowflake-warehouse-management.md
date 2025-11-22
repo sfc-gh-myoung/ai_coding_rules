@@ -1,5 +1,5 @@
 **Keywords:** Warehouse management, warehouse sizing, CPU warehouse, GPU warehouse, high-memory warehouse, warehouse tagging, auto-suspend, auto-resume, GEN 2, Snowpark-Optimized, warehouse edition, resource monitors, create warehouse, warehouse configuration, warehouse types, warehouse cost, size warehouse, warehouse best practices
-**TokenBudget:** ~3650
+**TokenBudget:** ~4800
 **ContextTier:** High
 **Depends:** 100-snowflake-core, 103-snowflake-performance-tuning, 105-snowflake-cost-governance
 
@@ -404,6 +404,132 @@ WHERE warehouse_name = 'WH_OLD' AND start_time >= DATEADD(day, -7, CURRENT_TIMES
 -- 3. Drop after confirming zero usage
 DROP WAREHOUSE IF EXISTS WH_OLD;
 ```
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Starting with Oversized Warehouses**
+```sql
+-- Bad: Start with XLARGE without measuring workload
+CREATE WAREHOUSE analytics_wh
+  WAREHOUSE_SIZE = 'XLARGE'  -- 128 credits/hour!
+  AUTO_SUSPEND = 600;
+-- Costs 10x more than needed for actual workload
+```
+**Problem:** Massive unnecessary costs; 10x overspending; no baseline measurement; budget overruns; wasteful resource allocation; poor cost governance
+
+**Correct Pattern:**
+```sql
+-- Good: Start XSMALL, measure, then scale up if needed
+CREATE WAREHOUSE analytics_wh
+  WAREHOUSE_SIZE = 'XSMALL'  -- 1 credit/hour
+  AUTO_SUSPEND = 60
+  AUTO_RESUME = TRUE;
+
+-- After measuring actual workload:
+SELECT 
+  AVG(avg_running) as avg_concurrent_queries,
+  MAX(avg_running) as peak_concurrent
+FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_LOAD_HISTORY
+WHERE warehouse_name = 'ANALYTICS_WH'
+  AND start_time >= DATEADD('day', -7, CURRENT_TIMESTAMP());
+
+-- Scale up only if needed (avg > 8 concurrent queries)
+ALTER WAREHOUSE analytics_wh SET WAREHOUSE_SIZE = 'SMALL';
+```
+**Benefits:** Start cost-effective; data-driven sizing; 10x cost savings; baseline established; justified upgrades; excellent cost governance
+
+---
+
+**Anti-Pattern 2: Not Enabling AUTO_SUSPEND**
+```sql
+-- Bad: No auto-suspend, warehouse runs 24/7
+CREATE WAREHOUSE reporting_wh
+  WAREHOUSE_SIZE = 'MEDIUM';
+-- Costs: 16 credits/hour × 24 hours × 30 days = 11,520 credits/month!
+-- Even if used only 2 hours/day!
+```
+**Problem:** 24/7 billing for sporadic usage; 10-100x unnecessary costs; idle compute waste; budget catastrophe; no automatic shutdown
+
+**Correct Pattern:**
+```sql
+-- Good: Enable auto-suspend for idle shutdown
+CREATE WAREHOUSE reporting_wh
+  WAREHOUSE_SIZE = 'MEDIUM'
+  AUTO_SUSPEND = 60          -- Suspend after 60 sec idle
+  AUTO_RESUME = TRUE;        -- Auto-resume on query
+-- Costs: 16 credits/hour × actual usage hours only
+-- Example: 2 hours/day = 960 credits/month (92% savings!)
+```
+**Benefits:** Pay only for actual usage; 10-100x cost reduction; automatic idle shutdown; budget-friendly; production best practice; no manual management
+
+---
+
+**Anti-Pattern 3: Using Single Large Warehouse for All Workloads**
+```sql
+-- Bad: One mega-warehouse for everything
+CREATE WAREHOUSE everything_wh
+  WAREHOUSE_SIZE = 'XXLARGE';  -- 512 credits/hour
+
+-- ETL, reporting, ad-hoc, ML all share same warehouse
+-- Can't attribute costs, can't optimize per workload
+```
+**Problem:** No cost attribution; can't optimize per workload; resource contention; one workload affects others; poor governance; billing chaos
+
+**Correct Pattern:**
+```sql
+-- Good: Separate warehouses by workload with proper tagging
+CREATE WAREHOUSE etl_wh
+  WAREHOUSE_SIZE = 'LARGE'
+  AUTO_SUSPEND = 300
+  TAG (COST_CENTER = 'DATA_ENGINEERING', WORKLOAD_TYPE = 'ETL');
+
+CREATE WAREHOUSE reporting_wh
+  WAREHOUSE_SIZE = 'MEDIUM'
+  AUTO_SUSPEND = 60
+  TAG (COST_CENTER = 'ANALYTICS', WORKLOAD_TYPE = 'REPORTING');
+
+CREATE WAREHOUSE adhoc_wh
+  WAREHOUSE_SIZE = 'XSMALL'
+  AUTO_SUSPEND = 60
+  TAG (COST_CENTER = 'ANALYTICS', WORKLOAD_TYPE = 'ADHOC');
+
+-- Now query costs by workload/team
+SELECT 
+  SYSTEM$GET_TAG('COST_CENTER', warehouse_name, 'WAREHOUSE') as cost_center,
+  SYSTEM$GET_TAG('WORKLOAD_TYPE', warehouse_name, 'WAREHOUSE') as workload,
+  SUM(credits_used) as total_credits
+FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY
+WHERE start_time >= DATEADD('month', -1, CURRENT_TIMESTAMP())
+GROUP BY cost_center, workload;
+```
+**Benefits:** Cost attribution by team/workload; independent optimization; no resource contention; chargeback-ready; governance-friendly; workload isolation
+
+---
+
+**Anti-Pattern 4: Not Using GEN 2 Warehouses**
+```sql
+-- Bad: Stuck on GEN 1 (default for old accounts)
+CREATE WAREHOUSE old_wh
+  WAREHOUSE_SIZE = 'MEDIUM';
+-- RESOURCE_CONSTRAINT defaults to GEN 1 (slower, older architecture)
+```
+**Problem:** 2-3x slower query performance; higher costs per query; outdated architecture; missing performance optimizations; competitive disadvantage
+
+**Correct Pattern:**
+```sql
+-- Good: Explicitly use GEN 2 for better performance
+CREATE WAREHOUSE modern_wh
+  WAREHOUSE_SIZE = 'MEDIUM'
+  RESOURCE_CONSTRAINT = 'STANDARD_GEN_2';  -- Explicitly request GEN 2
+
+-- Verify GEN 2 is active
+SHOW WAREHOUSES LIKE 'modern_wh';
+-- Check RESOURCE_CONSTRAINT column shows STANDARD_GEN_2
+
+-- Migrate existing warehouse to GEN 2
+ALTER WAREHOUSE old_wh SET RESOURCE_CONSTRAINT = 'STANDARD_GEN_2';
+```
+**Benefits:** 2-3x faster queries; lower cost per query; modern architecture; performance optimizations; competitive advantage; future-proof
 
 ## Quick Compliance Checklist
 

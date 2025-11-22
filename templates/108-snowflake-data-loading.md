@@ -3,7 +3,7 @@
 **AppliesTo:** `**/*.sql`
 **AutoAttach:** false
 **Keywords:** Data loading, COPY INTO, file formats, stages, Parquet, JSON, CSV, bulk loading, ON_ERROR, FILE_FORMAT, load data, external stage, internal stage, data ingestion, file upload, COPY error, loading patterns, stage files, PUT command, GET command
-**TokenBudget:** ~1250
+**TokenBudget:** ~1900
 **ContextTier:** High
 **Version:** 1.5
 **LastUpdated:** 2025-11-07
@@ -84,6 +84,125 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - **Required Steps:** [Ordered steps the agent must follow]
 - **Output Format:** [Expected output format]
 - **Validation Steps:** [Checks to confirm success]
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Loading Many Small Files Instead of Larger Batches**
+```sql
+-- Bad: 10,000 files of 1MB each
+COPY INTO target_table
+FROM @my_stage/
+FILES = ('file0001.csv', 'file0002.csv', ..., 'file10000.csv');
+-- Takes hours, high metadata overhead, poor performance
+```
+**Problem:** Metadata overhead dominates; slow load performance; increased costs; table metadata bloat; compaction needed immediately; inefficient resource usage
+
+**Correct Pattern:**
+```bash
+# Good: Concatenate small files into 100-250MB batches before loading
+# Outside Snowflake: Combine files
+cat file*.csv > batch_001.csv  # Create 150MB batches
+cat file*.csv > batch_002.csv
+
+# Then load larger files
+COPY INTO target_table
+FROM @my_stage/
+PATTERN = 'batch_.*\.csv'
+FILE_FORMAT = (TYPE=CSV);
+```
+**Benefits:** Optimal 100-250MB file size; faster loading; lower metadata overhead; better compression; efficient resource usage; no immediate compaction needed
+
+---
+
+**Anti-Pattern 2: Not Specifying FILE_FORMAT for Semi-Structured Data**
+```sql
+-- Bad: Let Snowflake infer format, inconsistent parsing
+COPY INTO json_table
+FROM @my_stage/data.json;
+-- May misparse nested structures, wrong type inference
+```
+**Problem:** Inconsistent parsing; type inference errors; nested structure issues; poor subcolumnarization; query performance degradation; data quality issues
+
+**Correct Pattern:**
+```sql
+-- Good: Explicit FILE_FORMAT with STRIP_OUTER_ARRAY for JSON arrays
+CREATE FILE FORMAT my_json_format
+  TYPE = JSON
+  STRIP_OUTER_ARRAY = TRUE
+  COMPRESSION = GZIP;
+
+COPY INTO json_table
+FROM @my_stage/data.json.gz
+FILE_FORMAT = my_json_format;
+
+-- For consistent types, enable subcolumnarization
+ALTER TABLE json_table 
+  SET ENABLE_SCHEMA_EVOLUTION = TRUE;
+```
+**Benefits:** Consistent parsing; correct type handling; subcolumnarization enabled; better query performance; data quality assured; predictable loading behavior
+
+---
+
+**Anti-Pattern 3: Using INSERT INTO for Bulk Data Loading**
+```sql
+-- Bad: Row-by-row INSERT in loop (Python/stored proc)
+FOR row IN (SELECT * FROM source_data) LOOP
+  INSERT INTO target_table VALUES (row.col1, row.col2, ...);
+END LOOP;
+-- Extremely slow, thousands of micro-partitions, table bloat
+```
+**Problem:** Glacially slow (1000x slower than COPY); creates micro-partitions per INSERT; metadata bloat; compaction required; high costs; table performance degrades
+
+**Correct Pattern:**
+```sql
+-- Good: Use COPY INTO for bulk loading, INSERT SELECT for internal data
+-- External data: Use COPY INTO
+COPY INTO target_table
+FROM @my_stage/data.csv
+FILE_FORMAT = (TYPE=CSV);
+
+-- Internal data: Use INSERT SELECT for batch
+INSERT INTO target_table
+SELECT col1, col2, col3
+FROM source_table
+WHERE load_date = CURRENT_DATE();
+-- Creates optimal partitions, fast bulk operation
+```
+**Benefits:** 1000x faster than row-by-row; optimal partition sizes; no metadata bloat; efficient resource usage; production-grade performance; no compaction needed
+
+---
+
+**Anti-Pattern 4: Not Using VALIDATION_MODE to Test Before Loading**
+```sql
+-- Bad: Load directly to production table without validation
+COPY INTO prod_critical_table
+FROM @my_stage/untested_data.csv;
+-- Discover format errors after partial load, data corruption!
+```
+**Problem:** Format errors discovered mid-load; partial data loaded; data corruption; rollback required; production downtime; emergency recovery; user impact
+
+**Correct Pattern:**
+```sql
+-- Good: Test with VALIDATION_MODE first
+-- Step 1: Validate file format without loading
+COPY INTO prod_critical_table
+FROM @my_stage/untested_data.csv
+VALIDATION_MODE = 'RETURN_ERRORS';
+-- Returns: Row errors, parsing issues, format mismatches
+
+-- Step 2: Check row count
+COPY INTO prod_critical_table
+FROM @my_stage/untested_data.csv
+VALIDATION_MODE = 'RETURN_N_ROWS'
+  (N => 10);
+-- Preview first 10 rows
+
+-- Step 3: Only after validation, load to production
+COPY INTO prod_critical_table
+FROM @my_stage/untested_data.csv
+FILE_FORMAT = (TYPE=CSV);
+```
+**Benefits:** Errors caught before loading; no partial loads; no data corruption; production safety; confidence in load; zero downtime; professional deployment
 
 ## Quick Compliance Checklist
 - [ ] Required dependencies and context verified

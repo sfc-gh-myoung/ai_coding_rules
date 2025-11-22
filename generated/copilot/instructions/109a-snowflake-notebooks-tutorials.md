@@ -5,7 +5,7 @@ appliesTo:
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
 **Keywords:** tutorial design, learning notebooks, teaching patterns, anti-patterns, checkpoints, learning objectives, pedagogical design, educational content, progressive learning, Snowflake notebooks, teaching point callouts, validation gates, tutorial structure, learning design, educational notebooks, teaching methodology, tutorial best practices, notebook education
-**TokenBudget:** ~3750
+**TokenBudget:** ~4700
 **ContextTier:** High
 **Depends:** 109-snowflake-notebooks, 500-data-science-analytics
 
@@ -72,12 +72,15 @@ Establish comprehensive patterns for designing educational Snowflake notebooks t
 - **Self-Paced Friendly:** Can skip sections, clear prerequisites stated
 - **Context First:** Business rationale before technical implementation
 
-## Quick Start TL;DR (Essential Patterns Reference)
+## Quick Start TL;DR (Read First - 30 Seconds)
 
 **Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
+- **Token efficiency:** Self-sufficient guidance for 80% of common use cases reduces need to read full sections
+- **Position advantage:** Early placement benefits from slight attention bias in LLM processing (first ~20% of content receives marginally more weight)
+- **Progressive disclosure:** Enables agents to assess rule relevance before loading full content
+- **Human-LLM collaboration:** Useful for both human developers (quick scanning) and AI assistants (decision point)
+
+**Note:** While LLMs read sequentially (not auto-prioritizing this section), the concentrated pattern format and early position provide practical efficiency benefits. To maximize value for agents, include in system prompts: "Read Quick Start TL;DR sections first to identify essential patterns."
 
 Position at top provides practical efficiency benefits for both LLMs and human developers.
 
@@ -425,6 +428,61 @@ The notebook demonstrates **two valid approaches** for [task]:
 - **Always:** Clarify which approach the notebook uses and WHY
 - **Always:** Provide guidance on when to use production approach
 
+### Real-World Example: Feature Store Setup
+
+**Scenario:** Notebook demonstrates Feature Store entity/feature organization but trains models using simplified DataFrame approach.
+
+```markdown
+## 💡 Feature Store: Two Approaches Explained
+
+**Why did we set up Feature Store entities but not use `fs.generate_dataset()`?**
+
+The notebook demonstrates **two valid approaches** for feature engineering:
+
+### Approach A: Feature Store `generate_dataset()` ✨
+```python
+# Production-ready: Automatic joins, time-travel, lineage tracking
+training_df = fs.generate_dataset(
+    spine_df=spine,
+    features=[customer_features, order_features],
+    spine_timestamp_col='OBSERVATION_DATE'
+)
+```
+
+**Benefits:**
+- Automatic feature joins across entities (no manual merge logic required)
+- Point-in-time correctness (prevents data leakage in temporal scenarios)
+- Lineage tracking (see which features used in which models via Feature Store UI)
+- Version control (track feature definitions and transformations over time)
+
+**Use when:** Multi-entity features (10+ features), production deployment scenarios, team collaboration with shared feature definitions
+
+### Approach B: Direct Snowpark DataFrame Operations
+```python
+# Explicit joins for learning purposes
+training_df = spine.join(customer_features, on='CUSTOMER_ID') \
+                   .join(order_features, on='ORDER_ID')
+```
+
+**Benefits:**
+- Transparent logic (see exactly how features combine in explicit joins)
+- Simpler for single-entity features (no Feature Store overhead)
+- Easier to debug for beginners (direct DataFrame operations, familiar pandas-like API)
+- Faster iteration for exploratory analysis (no entity registration needed)
+
+**Use when:** Learning Feature Store concepts, exploratory analysis with <10 features, single-entity scenarios, rapid prototyping
+
+### This Notebook's Approach
+
+**We use Approach B** to keep the focus on ML algorithms and imbalanced data strategies. The Feature Store setup in Steps 2-3 shows you **how to organize for production** (entity registration, feature definitions) while using the simpler DataFrame approach for actual training.
+
+**For production deployments:** Uncomment the `fs.generate_dataset()` code in Step 4 and use `training_df = fs.retrieve_feature_values(spine_df=spine, features=[...])` for automatic joins and lineage tracking.
+
+**Learning Takeaway:** Feature Store adds governance and automation valuable for production multi-entity scenarios. Use it when team collaboration, lineage tracking, and point-in-time correctness matter. Use direct DataFrames for exploration, learning, and single-entity feature engineering.
+```
+
+This example demonstrates when to show feature setup (teaching organizational patterns) while using simpler execution (maintaining focus on primary learning objectives like imbalanced data handling).
+
 ## Anti-Patterns and Common Mistakes
 
 **Anti-Pattern 1: Vague Learning Objectives**
@@ -557,20 +615,30 @@ Part 3: Evaluation
 
 > **Investigation Required**  
 > When applying this rule:
-> 1. **Read existing notebook BEFORE adding educational structure** - Check current cell organization, existing learning objectives, and validation patterns
-> 2. **Verify target audience level** - Ask user if unclear whether content is for beginners, intermediate, or advanced learners
-> 3. **Never speculate about learning objectives** - Base objectives on actual notebook content and capabilities demonstrated
-> 4. **Check for existing checkpoint cells** - Identify where validation gates already exist vs where they're needed
-> 5. **Make grounded recommendations based on investigated notebook structure** - Don't add generic objectives that don't match notebook content
+> 1. **Read existing notebook cells BEFORE creating learning objectives** - Extract actual content taught (algorithms, techniques, data patterns)
+> 2. **Count major sections for structure calculation** - Use for "Parts" organization (aim for 5-7 parts max, group related steps)
+> 3. **Analyze code complexity to validate audience level** - Beginner: basic operations; Intermediate: algorithms + optimization; Advanced: custom implementations
+> 4. **Estimate time based on cell count and complexity** - Formula: ~30 seconds per markdown cell (reading), ~60 seconds per code cell (reading + execution)
+> 5. **Check for existing checkpoint patterns** - Identify validation gates present vs needed (add between major transitions)
+> 6. **Verify technical prerequisites mentioned** - List required knowledge explicitly (e.g., "assumes familiarity with pandas DataFrames")
+> 7. **Never create generic learning objectives** - Base on specific features/concepts actually demonstrated in notebook
 >
 > **Anti-Pattern:**
 > "Based on typical ML notebooks, you probably want to teach feature engineering and model training..."
 > "Most tutorials include these standard learning objectives..."
+> [Creates generic objectives without reading notebook]
 >
 > **Correct Pattern:**
 > "Let me read your notebook structure first."
-> [reads notebook cells to understand content]
-> "I see your notebook demonstrates Feature Store integration, SMOTE balancing, and threshold tuning. Here are specific learning objectives matching this content..."
+> [reads notebook cells, counts sections, analyzes code complexity]
+> "I found 8 major sections across 42 cells (18 markdown, 24 code). Code complexity: intermediate (uses scikit-learn pipeline, SMOTE, threshold tuning). 
+> 
+> Based on actual content:
+> 1. **Feature Engineering** - Organizes 16 ML features using Snowflake Feature Store (cells 5-12)
+> 2. **Imbalanced Data Strategies** - Compares SMOTE vs class_weight parameter (cells 15-24, demonstrates 4 models)
+> 3. **Threshold Optimization** - Tunes decision thresholds using ROC curves to minimize missed failures (cells 28-35)
+> 
+> Estimated time: 12-15 minutes full tutorial (5-7 minutes quick demo with n_estimators=50)"
 
 ## Response Template
 
@@ -660,10 +728,10 @@ else:
 ## References
 
 ### External Documentation
-- [Learning Science Principles for Technical Education](https://www.edutopia.org/topic/learning-science) - Evidence-based teaching strategies
-- [Jupyter Notebook Best Practices for Education](https://jupyter4edu.github.io/jupyter-edu-book/) - Pedagogical patterns for notebooks
-- [Cognitive Load Theory](https://www.aft.org/ae/winter2023-2024/paas_ayres) - Managing complexity in learning materials
-- [Instructional Design Principles](https://www.td.org/insights/instructional-design-101-getting-started) - Foundation for effective tutorials
+- [Learning Science Principles for Technical Education](https://www.edutopia.org/topic/learning-science) - Evidence-based teaching strategies from George Lucas Educational Foundation (peer-reviewed research applying cognitive load theory and active learning principles to tutorial design)
+- [Jupyter Notebook Best Practices for Education](https://jupyter4edu.github.io/jupyter-edu-book/) - Pedagogical patterns for educational notebooks from Jupyter community (comprehensive guide covering narrative structure, progressive complexity, and assessment strategies)
+- [Cognitive Load Theory](https://www.aft.org/ae/winter2023-2024/paas_ayres) - Managing complexity in learning materials (foundational research on working memory limits and chunking strategies, essential for tutorial pacing)
+- [Instructional Design Principles](https://www.td.org/insights/instructional-design-101-getting-started) - Foundation for effective tutorials from Association for Talent Development (industry-standard framework for learning objective design and assessment)
 
 ### Related Rules
 - **Snowflake Notebooks Core**: `109-snowflake-notebooks.md`

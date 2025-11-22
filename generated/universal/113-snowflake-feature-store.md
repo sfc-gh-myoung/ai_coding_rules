@@ -1,5 +1,5 @@
 **Keywords:** Feature store, feature engineering, feature views, entity modeling, ML pipeline, ML features, ASOF JOIN, point-in-time correctness, Dynamic Tables, feature versioning, create features, feature catalog, feature pipeline, feature management, feature discovery, ML features, feature registry, feature lineage
-**TokenBudget:** ~3450
+**TokenBudget:** ~4550
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core, 110-snowflake-model-registry
 
@@ -453,6 +453,223 @@ spend_7d - spend_30d AS spend_trend
 - **Always:** Use deterministic transformations (avoid RANDOM(), CURRENT_TIMESTAMP() without context)
 - **Rule:** Document feature engineering decisions and rationale
 - **Always:** Test feature generation produces consistent results across runs
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Not Using ASOF JOIN for Point-in-Time Correctness**
+```python
+# Bad: Regular JOIN causes data leakage
+training_data = entities_df.join(
+    features_df,
+    on='customer_id',
+    how='left'
+)
+# Uses latest feature values, not values at prediction time!
+# Leaks future information into training data!
+```
+**Problem:** Data leakage; inflated model performance; production model fails; overfitting; unrealistic accuracy; deployment failure; wasted training
+
+**Correct Pattern:**
+```python
+# Good: ASOF JOIN for point-in-time correctness
+from snowflake.ml.feature_store import FeatureStore
+
+fs = FeatureStore(session, database='FEATURE_STORE_DB', schema='CUSTOMER_FEATURES')
+
+training_data = fs.generate_training_set(
+    spine_df=entities_df,  # Has customer_id and prediction_timestamp
+    features=[
+        'customer_features@v1',
+        'transaction_features@v2'
+    ],
+    spine_timestamp_col='prediction_timestamp',  # Point-in-time!
+    exclude_columns=['internal_id']
+)
+
+# ASOF JOIN ensures features use only data available before prediction_timestamp
+# No data leakage, realistic training data
+```
+**Benefits:** No data leakage; realistic model performance; production accuracy matches training; point-in-time correctness; professional ML engineering; reliable models
+
+---
+
+**Anti-Pattern 2: Not Versioning Feature Views**
+```python
+# Bad: Overwrite feature view without versioning
+@fv(name='customer_features', version='v1')
+def customer_features(df):
+    return df.select('customer_id', 'age', 'income')
+
+# Later: Change feature logic but keep same name/version
+@fv(name='customer_features', version='v1')  # Same name!
+def customer_features(df):
+    return df.select('customer_id', 'age_bucket', 'income_log')  # Different features!
+
+# Models trained on old features break, can't reproduce results!
+```
+**Problem:** Can't reproduce models; training/inference mismatch; broken lineage; model failures; no rollback; audit gaps; unprofessional; chaos
+
+**Correct Pattern:**
+```python
+# Good: Semantic versioning for feature views
+from snowflake.ml.feature_store import FeatureStore, FeatureView
+
+fs = FeatureStore(session, database='FEATURE_STORE_DB', schema='CUSTOMER_FEATURES')
+
+# Version 1.0.0: Initial features
+@fv(name='customer_features', version='v1.0.0')
+def customer_features_v1(df):
+    return df.select(
+        col('customer_id'),
+        col('age'),
+        col('income')
+    )
+
+# Version 2.0.0: Breaking change - different feature engineering
+@fv(name='customer_features', version='v2.0.0')  # New version!
+def customer_features_v2(df):
+    return df.select(
+        col('customer_id'),
+        when(col('age') < 30, 'young')
+         .when(col('age') < 50, 'middle')
+         .otherwise('senior').alias('age_bucket'),
+        log(col('income') + 1).alias('income_log')
+    )
+
+# Models reference specific versions
+model_v1 = train_model(features='customer_features@v1.0.0')
+model_v2 = train_model(features='customer_features@v2.0.0')
+
+# Can reproduce, rollback, and maintain multiple versions
+```
+**Benefits:** Reproducible models; clear lineage; no training/inference mismatch; rollback capability; audit trail; professional; multiple model versions coexist
+
+---
+
+**Anti-Pattern 3: Using Non-Deterministic Functions in Feature Engineering**
+```python
+# Bad: Non-deterministic transformations
+@fv(name='transaction_features', version='v1')
+def transaction_features(df):
+    return df.select(
+        col('transaction_id'),
+        col('amount'),
+        CURRENT_TIMESTAMP().alias('feature_created_at'),  # Changes every run!
+        uniform(0, 1, random()).alias('random_feature')   # Different every time!
+    )
+
+# Training and inference produce different feature values!
+```
+**Problem:** Training/inference mismatch; non-reproducible; model instability; debugging nightmare; unreliable predictions; production failures; unprofessional
+
+**Correct Pattern:**
+```python
+# Good: Deterministic transformations only
+@fv(name='transaction_features', version='v1')
+def transaction_features(df):
+    return df.select(
+        col('transaction_id'),
+        col('amount'),
+        col('transaction_timestamp'),  # Use existing timestamp column
+        (col('amount') * 0.1).alias('amount_scaled'),  # Deterministic math
+        when(col('amount') > 1000, 1).otherwise(0).alias('high_value_flag')  # Deterministic logic
+    )
+
+# If you need current time context, use spine timestamp
+@fv(name='time_aware_features', version='v1')
+def time_aware_features(df):
+    # df already has event_timestamp from source
+    return df.select(
+        col('customer_id'),
+        col('event_timestamp'),
+        datediff('day', col('last_purchase_date'), col('event_timestamp')).alias('days_since_last_purchase')
+        # Deterministic: same inputs always produce same outputs
+    )
+```
+**Benefits:** Reproducible features; training/inference consistency; debuggable; reliable predictions; professional ML engineering; production-ready
+
+---
+
+**Anti-Pattern 4: Not Monitoring Feature View Refresh Costs**
+```python
+# Bad: Set aggressive refresh schedule without monitoring
+CREATE DYNAMIC TABLE customer_features_view
+TARGET_LAG = '1 MINUTE'  -- Refreshes constantly!
+WAREHOUSE = LARGE_WH     -- Expensive warehouse!
+AS
+SELECT 
+  customer_id,
+  -- Complex aggregations over millions of rows
+  COUNT(*) OVER (PARTITION BY customer_id ORDER BY timestamp ROWS BETWEEN 1000 PRECEDING AND CURRENT ROW) as rolling_count
+FROM raw_events;
+
+-- Bills hundreds of dollars per day, features rarely used!
+```
+**Problem:** Runaway costs; unnecessary refreshes; wasted credits; budget overruns; expensive features; no ROI tracking; unprofessional; financial risk
+
+**Correct Pattern:**
+```python
+# Good: Monitor costs and optimize refresh schedule
+
+# Step 1: Start with conservative refresh schedule
+CREATE DYNAMIC TABLE customer_features_view
+TARGET_LAG = '1 HOUR'    -- Less frequent initially
+WAREHOUSE = SMALL_WH     -- Start small
+AS
+SELECT 
+  customer_id,
+  COUNT(*) as purchase_count,
+  SUM(amount) as total_spend
+FROM transactions
+GROUP BY customer_id;
+
+# Step 2: Monitor refresh costs
+SELECT 
+  table_name,
+  refresh_action,
+  completion_time,
+  credits_used,
+  rows_inserted,
+  rows_updated
+FROM SNOWFLAKE.ACCOUNT_USAGE.DYNAMIC_TABLE_REFRESH_HISTORY
+WHERE table_name = 'CUSTOMER_FEATURES_VIEW'
+  AND start_time >= DATEADD('day', -7, CURRENT_TIMESTAMP())
+ORDER BY start_time DESC;
+
+# Step 3: Calculate cost per refresh
+SELECT 
+  AVG(credits_used) as avg_credits_per_refresh,
+  SUM(credits_used) as total_credits_weekly,
+  COUNT(*) as refresh_count
+FROM SNOWFLAKE.ACCOUNT_USAGE.DYNAMIC_TABLE_REFRESH_HISTORY
+WHERE table_name = 'CUSTOMER_FEATURES_VIEW'
+  AND start_time >= DATEADD('day', -7, CURRENT_TIMESTAMP());
+
+# Step 4: Optimize based on actual usage
+-- If features rarely change, increase TARGET_LAG to reduce costs
+ALTER DYNAMIC TABLE customer_features_view 
+SET TARGET_LAG = '4 HOURS';  -- Reduce refresh frequency
+
+-- If costs still high, use smaller warehouse
+ALTER DYNAMIC TABLE customer_features_view 
+SET WAREHOUSE = XSMALL_WH;
+
+# Step 5: Set up cost alerts
+CREATE OR REPLACE TASK monitor_feature_costs
+WAREHOUSE = MONITORING_WH
+SCHEDULE = '1 DAY'
+AS
+INSERT INTO feature_cost_alerts
+SELECT 
+  table_name,
+  SUM(credits_used) as daily_credits,
+  CURRENT_DATE() as alert_date
+FROM SNOWFLAKE.ACCOUNT_USAGE.DYNAMIC_TABLE_REFRESH_HISTORY
+WHERE start_time >= DATEADD('day', -1, CURRENT_TIMESTAMP())
+GROUP BY table_name
+HAVING SUM(credits_used) > 10;  -- Alert if >10 credits/day
+```
+**Benefits:** Cost visibility; optimized refreshes; budget control; ROI tracking; proactive alerts; financial responsibility; professional operations; sustainable ML
 
 ## Quick Compliance Checklist
 - [ ] Feature store schema created with proper access control

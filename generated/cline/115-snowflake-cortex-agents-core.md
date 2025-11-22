@@ -1,7 +1,7 @@
 <!-- Generated for Cline rules. See https://docs.cline.bot/features/cline-rules -->
 
 **Keywords:** Cortex Agents, agent design, tool configuration, grounding, RBAC, multi-tool agents, planning instructions, testing, troubleshooting, semantic views, create agent, debug agent, agent not working, tool execution failed, agent error, fix agent, agent performance, agent tool integration, cortex agent configuration, UnboundedExecution
-**TokenBudget:** ~3850
+**TokenBudget:** ~4650
 **ContextTier:** High
 **Depends:** 100-snowflake-core, 105-snowflake-cost-governance, 106-snowflake-semantic-views, 111-snowflake-observability-core
 
@@ -15,7 +15,7 @@ Provide comprehensive patterns to design, configure, secure, and operate Cortex 
 - **Type:** Agent Requested
 - **Scope:** Cortex Agents creation and operation, agent archetypes, tool design and configuration, planning/response instructions, testing patterns, RBAC/allowlists, evaluation and tracing, cost/latency trade-offs
 
-## Quick Start TL;DR (Essential Patterns Reference)
+## Quick Start TL;DR (Read First - 30 Seconds)
 
 **Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
 - **Token efficiency:** Self-sufficient guidance for common use cases
@@ -462,6 +462,143 @@ Planning Instructions: {Logic for document search and content synthesis}
 - Validate tool definitions include clear descriptions and parameter specs
 - Test agent with questions outside tool scope to verify graceful degradation
 - Check agent observability logs for tool execution traces
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Vague Tool Descriptions in Agent Configuration**
+```python
+# Bad: Unclear tool description
+tools = [{
+    "name": "get_data",
+    "description": "Gets data",  # Too vague!
+    "function": analyst_tool
+}]
+```
+**Problem:** Agent doesn't know when to use tool; poor tool selection; incorrect routing; user queries mishandled; unpredictable behavior; debugging difficulty
+
+**Correct Pattern:**
+```python
+# Good: Specific, actionable tool description
+tools = [{
+    "name": "sales_revenue_analyst",
+    "description": """Query sales revenue data including:
+    - Total revenue by time period (daily, monthly, quarterly, yearly)
+    - Revenue by product category, region, or customer segment
+    - Revenue growth rates and trends over time
+    - Top N products or customers by revenue
+    Use for quantitative revenue questions requiring calculations.""",
+    "function": analyst_tool
+}]
+```
+**Benefits:** Clear tool selection criteria; agent knows exact use cases; predictable routing; better user experience; easier debugging; optimal tool usage
+
+---
+
+**Anti-Pattern 2: Missing Planning Instructions for Multi-Tool Orchestration**
+```python
+# Bad: No guidance on how to orchestrate multiple tools
+agent = cortex.Agent(
+    name="my_agent",
+    tools=[sales_tool, marketing_tool, document_search],
+    # No planning instructions - agent guesses how to combine tools!
+)
+```
+**Problem:** Random tool ordering; inefficient orchestration; duplicate tool calls; missing complementary data; poor synthesis; unreliable multi-step reasoning
+
+**Correct Pattern:**
+```python
+# Good: Explicit planning instructions for orchestration
+agent = cortex.Agent(
+    name="business_intelligence_agent",
+    tools=[sales_tool, marketing_tool, document_search],
+    planning_instructions="""
+    1. Identify query type (quantitative, qualitative, or mixed)
+    2. For quantitative: Use appropriate analyst tool first
+    3. For qualitative: Use document_search for context
+    4. For mixed queries:
+       a) Get quantitative data from analyst tool
+       b) Augment with qualitative context from document_search
+       c) Synthesize both into cohesive response
+    5. Always cite data sources and document references
+    """
+)
+```
+**Benefits:** Systematic tool orchestration; efficient execution order; comprehensive answers; proper synthesis; predictable behavior; better user satisfaction
+
+---
+
+**Anti-Pattern 3: No Semantic View for Cortex Analyst Tool**
+```python
+# Bad: Pointing Cortex Analyst at raw tables without semantic model
+analyst_tool = cortex.AnalystTool(
+    name="raw_data_analyst",
+    tables=["SALES_FACT", "CUSTOMER_DIM"]  # No semantic view!
+)
+```
+**Problem:** Agent doesn't understand business context; poor SQL generation; wrong column interpretations; metric calculation errors; requires user to know schema; unusable for business users
+
+**Correct Pattern:**
+```sql
+-- Step 1: Create semantic view with business context
+CREATE SEMANTIC VIEW sales_semantic_view AS
+SELECT 
+  sale_date AS "Sale Date",
+  customer_name AS "Customer Name",
+  product_category AS "Product Category",
+  sale_amount AS "Revenue"
+FROM sales_fact sf
+JOIN customer_dim cd ON sf.customer_id = cd.id;
+
+-- Step 2: Use semantic view in analyst tool
+analyst_tool = cortex.AnalystTool(
+    name="sales_analyst",
+    semantic_view="sales_semantic_view"  # Uses business-friendly view
+)
+```
+**Benefits:** Business-friendly queries; accurate SQL generation; correct metric calculations; schema abstraction; business user accessibility; better analyst results
+
+---
+
+**Anti-Pattern 4: Not Testing Agent with Out-of-Scope Questions**
+```python
+# Bad: Only test happy-path questions
+test_questions = [
+    "What was Q4 revenue?",  # In scope
+    "Show top 10 products",   # In scope
+    "Revenue trend last year" # In scope
+]
+# Never test: "What's the weather?" or "Book me a flight"
+```
+**Problem:** Agent fails on out-of-scope questions; confusing errors; poor user experience; looks broken; no graceful degradation; user abandonment; trust erosion
+
+**Correct Pattern:**
+```python
+# Good: Test both in-scope and out-of-scope questions
+test_questions = [
+    # In-scope (should work)
+    "What was Q4 revenue?",
+    "Show top 10 products",
+    
+    # Out-of-scope (should gracefully decline)
+    "What's the weather in Seattle?",
+    "Book me a flight to NYC",
+    "Tell me a joke",
+    
+    # Edge cases
+    "Revenue for year 3000",  # Future data
+    "Sales in Antarctica"     # No data region
+]
+
+# Configure graceful degradation in response instructions:
+response_instructions="""
+If question is outside available data/tools:
+1. Acknowledge the question
+2. Explain what data/capabilities you have
+3. Suggest alternative questions you can answer
+Example: "I don't have weather data, but I can help with sales revenue analysis."
+"""
+```
+**Benefits:** Professional user experience; clear capability boundaries; helpful guidance; maintains trust; reduces support burden; better user satisfaction; production-ready agent
 
 ## Quick Compliance Checklist
 

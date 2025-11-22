@@ -1,7 +1,7 @@
 <!-- Generated for Cline rules. See https://docs.cline.bot/features/cline-rules -->
 
 **Keywords:** Snowflake, CREATE SEMANTIC VIEW, FACTS, DIMENSIONS, METRICS, TABLES, RELATIONSHIPS, PRIMARY KEY, validation rules, relationship constraints, semantic view error, InvalidRelationship, create semantic view, debug semantic view, fix semantic view, NLQ, natural language query, granularity rules, mapping syntax, SQL
-**TokenBudget:** ~3600
+**TokenBudget:** ~4750
 **ContextTier:** High
 **Depends:** 100-snowflake-core
 
@@ -467,6 +467,230 @@ METRICS (
 - Validate synonyms are comprehensive for all dimensions and metrics (3-5 per entity)
 - Check that METRICS use simple aggregate functions (COUNT, SUM, AVG, MIN, MAX)
 - Ensure no CAST, DATE_TRUNC, or transformation functions in DIMENSIONS block
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Not Following TABLES → FACTS → DIMENSIONS → METRICS Sequence**
+```sql
+-- Bad: Wrong clause ordering
+CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
+  DIMENSIONS (
+    customer_id AS customers.customer_id
+  )
+  TABLES (
+    sales_data AS sales
+  )
+  METRICS (
+    total_revenue AS SUM(sales.amount)
+  );
+-- Error: Syntax error - clauses out of order!
+```
+**Problem:** Syntax errors; semantic view creation fails; deployment blocked; unprofessional; confusion; documentation misalignment
+
+**Correct Pattern:**
+```sql
+-- Good: Correct clause sequence
+CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
+  TABLES (
+    sales_data AS sales,
+    customer_data AS customers
+  )
+  RELATIONSHIPS (
+    sales.customer_id = customers.customer_id
+  )
+  DIMENSIONS (
+    customer_id AS customers.customer_id
+      COMMENT 'Unique customer identifier'
+      SYNONYMS ('cust id', 'customer number'),
+    customer_name AS customers.name
+      COMMENT 'Customer full name'
+      SYNONYMS ('cust name', 'client name')
+  )
+  METRICS (
+    total_revenue AS SUM(sales.amount)
+      COMMENT 'Total sales revenue'
+      SYNONYMS ('revenue', 'sales total', 'income'),
+    order_count AS COUNT(sales.order_id)
+      COMMENT 'Number of orders'
+      SYNONYMS ('num orders', 'order total')
+  );
+```
+**Benefits:** Valid DDL; successful deployment; Cortex Analyst compatible; professional; clear structure; maintainable
+
+---
+
+**Anti-Pattern 2: Using Complex Expressions in DIMENSIONS (CAST, DATE_TRUNC Not Allowed)**
+```sql
+-- Bad: Complex transformations in DIMENSIONS
+CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
+  TABLES (
+    sales_data AS sales
+  )
+  DIMENSIONS (
+    sale_month AS DATE_TRUNC('MONTH', sales.order_date)  -- NOT ALLOWED!
+      COMMENT 'Month of sale',
+    revenue_category AS CASE WHEN sales.amount > 1000 THEN 'High' ELSE 'Low' END  -- NOT ALLOWED!
+      COMMENT 'Revenue category'
+  );
+-- Error: DATE_TRUNC and CASE not supported in DIMENSIONS!
+```
+**Problem:** Syntax errors; deployment failure; Cortex Analyst can't parse; query failures; wasted development time; emergency fixes
+
+**Correct Pattern:**
+```sql
+-- Good: Simple column references only in DIMENSIONS
+-- Option 1: Use simple columns from base tables
+CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
+  TABLES (
+    sales_data AS sales
+  )
+  DIMENSIONS (
+    order_date AS sales.order_date
+      COMMENT 'Date of sale'
+      SYNONYMS ('sale date', 'order day', 'purchase date'),
+    amount AS sales.amount
+      COMMENT 'Sale amount in USD'
+      SYNONYMS ('price', 'revenue', 'sale value')
+  )
+  METRICS (
+    monthly_revenue AS SUM(sales.amount)
+      COMMENT 'Revenue by month'
+      SYNONYMS ('monthly sales')
+  );
+
+-- Option 2: Pre-compute transformations in base tables or views
+CREATE OR REPLACE VIEW sales_enriched AS
+SELECT 
+  *,
+  DATE_TRUNC('MONTH', order_date) AS sale_month,
+  CASE WHEN amount > 1000 THEN 'High' ELSE 'Low' END AS revenue_category
+FROM sales_data;
+
+-- Then use simple columns in semantic view
+CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
+  TABLES (
+    sales_enriched AS sales
+  )
+  DIMENSIONS (
+    sale_month AS sales.sale_month  -- Simple column reference
+      COMMENT 'Month of sale',
+    revenue_category AS sales.revenue_category  -- Simple column reference
+      COMMENT 'Revenue category'
+  );
+```
+**Benefits:** Valid syntax; deployment succeeds; Cortex Analyst compatible; query reliability; maintainable; professional; separation of concerns
+
+---
+
+**Anti-Pattern 3: Missing Equals Sign in COMMENT Syntax**
+```sql
+-- Bad: COMMENT without equals sign
+CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
+  TABLES (
+    sales_data AS sales
+  )
+  DIMENSIONS (
+    customer_id AS sales.customer_id
+      COMMENT 'Customer identifier'  -- Missing "="!
+      SYNONYMS ('cust id')
+  );
+-- Error: Syntax error near 'Customer identifier'
+```
+**Problem:** Syntax error; deployment fails; confusing error message; delayed deployments; frustration; unprofessional
+
+**Correct Pattern:**
+```sql
+-- Good: COMMENT = 'text' (with equals sign)
+CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
+  TABLES (
+    sales_data AS sales
+  )
+  DIMENSIONS (
+    customer_id AS sales.customer_id
+      COMMENT = 'Customer identifier'  -- Correct syntax with "="
+      SYNONYMS ('cust id', 'customer number'),
+    product_id AS sales.product_id
+      COMMENT = 'Product identifier'
+      SYNONYMS ('prod id', 'item id')
+  )
+  METRICS (
+    total_revenue AS SUM(sales.amount)
+      COMMENT = 'Total sales revenue'
+      SYNONYMS ('revenue', 'sales')
+  );
+```
+**Benefits:** Valid syntax; successful deployment; clear documentation; Cortex Analyst compatible; professional; no deployment delays
+
+---
+
+**Anti-Pattern 4: Not Validating Semantic View DDL Before Deployment**
+```sql
+-- Bad: Deploy semantic view without testing
+CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
+  TABLES (
+    sales_data AS sales,
+    customer_data AS customers
+  )
+  RELATIONSHIPS (
+    sales.cust_id = customers.customer_id  -- Typo! Should be customer_id
+  )
+  DIMENSIONS (
+    customer_name AS customers.name
+      COMMENT = 'Customer name'
+      SYNONYMS ('cust name')
+  );
+-- Deploy to production... Error: Column 'cust_id' not found!
+-- Production outage, users can't query!
+```
+**Problem:** Production deployment failures; user impact; emergency rollback; untested DDL; wasted time; unprofessional; reputation damage
+
+**Correct Pattern:**
+```sql
+-- Good: Validate before deploying
+
+-- Step 1: Verify base tables exist and check column names
+SHOW TABLES LIKE 'sales_data';
+SHOW TABLES LIKE 'customer_data';
+
+DESC TABLE sales_data;
+DESC TABLE customer_data;
+
+-- Step 2: Test join logic in standard SQL first
+SELECT 
+  s.*,
+  c.name
+FROM sales_data s
+JOIN customer_data c ON s.customer_id = c.customer_id  -- Verified column names!
+LIMIT 10;
+
+-- Step 3: Create semantic view in DEV first
+CREATE OR REPLACE SEMANTIC VIEW dev_db.analytics.sales_analysis AS
+  TABLES (
+    sales_data AS sales,
+    customer_data AS customers
+  )
+  RELATIONSHIPS (
+    sales.customer_id = customers.customer_id  -- Correct column name
+  )
+  DIMENSIONS (
+    customer_name AS customers.name
+      COMMENT = 'Customer name'
+      SYNONYMS ('cust name', 'client name')
+  );
+
+-- Step 4: Test semantic view with Cortex Analyst
+-- Use Snowsight or Python SDK to test natural language queries
+-- Example: "What is the total revenue by customer name?"
+
+-- Step 5: Verify results
+SELECT * FROM dev_db.analytics.sales_analysis LIMIT 10;
+
+-- Step 6: Only deploy to production after successful validation
+CREATE OR REPLACE SEMANTIC VIEW prod_db.analytics.sales_analysis AS
+  -- Copy validated DDL here
+  ...;
+```
+**Benefits:** No production failures; validated before deployment; user confidence; professional; tested thoroughly; reliable; no emergency fixes
 
 ## Quick Compliance Checklist
 

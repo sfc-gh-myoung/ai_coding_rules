@@ -6,7 +6,7 @@
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/Snowflake-Labs/ai_coding_rules)
 [![GitLab](https://img.shields.io/badge/GitLab-Repository-orange?logo=gitlab)](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules)
 
-> **One universal rule set for all AI assistants, IDEs, and agents — portable, intelligent, and IDE-agnostic**
+> **One universal ai coding rule set for all AI assistants, IDEs, and agents — portable, intelligent, and IDE-agnostic**
 
 ## Quick Overview
 
@@ -23,11 +23,11 @@
 
 ## Overview
 
-This repository provides a **universal-first rule system** designed to work seamlessly with any AI assistant, IDE, or development tool. Write rules once in a universal format, use them everywhere.
+This repository provides a **universal ai coding rule system** designed to work seamlessly with any AI assistant, IDE, or development tool. Write rules once in a universal format, use them anywhere.
 
 **What you get:** A comprehensive collection of 84 engineering rules covering Python, SQL, Snowflake, Docker, Shell scripting, data engineering, analytics, and project governance. The rules work seamlessly with AI coding assistants including Claude, ChatGPT, GitHub Copilot, Cursor, and others.
 
-**Important:** Some aspects of the rules are opinionated, particularly regarding naming conventions, project structure, usage of uv/ruff/Task, and documentation standards. You are **encouraged to review and adjust** the rules to align with your best practices or preferred approaches.
+**Important:** Some aspects of the rules are opinionated, particularly regarding naming conventions, project structure, usage of uv/uvx/ruff/Task, and documentation standards. You are **encouraged to review and adjust** the rules to align with your best practices or preferred approaches.
 
 ## Key Features
 
@@ -180,8 +180,10 @@ git --version     # Should show Git version
 
 ```bash
 # 1. Clone this repository (choose one)
+
 # GitLab:
 git clone https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git
+
 # GitHub:
 git clone https://github.com/Snowflake-Labs/ai_coding_rules.git
 

@@ -389,9 +389,9 @@ def search_date_range(
 - Can self-correct based on validation feedback
 - Prevents silent failures
 
-## 4. Tool Contracts
+## 4. Explicit Tool Specifications
 
-### Explicit Specifications
+### Tool Specification Standards
 
 **Every tool must clearly specify:**
 1. **Purpose:** What it does (one sentence)
@@ -400,7 +400,7 @@ def search_date_range(
 4. **Errors:** What exceptions it raises and when
 5. **Side Effects:** Any state changes it causes
 
-**Example Complete Contract:**
+**Example Complete Specification:**
 
 ```python
 def create_pull_request(

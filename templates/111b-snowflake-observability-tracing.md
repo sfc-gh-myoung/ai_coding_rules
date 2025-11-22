@@ -3,7 +3,7 @@
 **AppliesTo:** `**/*.py`, `**/*.scl`
 **AutoAttach:** false
 **Keywords:** Distributed tracing, snowflake-telemetry-python, custom spans, span attributes, trace_id, performance analysis, metrics collection, cpu_usage, memory_usage, telemetry.create_span, OpenTelemetry, nested spans, trace setup, tracing patterns, span creation, trace analysis, distributed traces, tracing best practices
-**TokenBudget:** ~2700
+**TokenBudget:** ~3300
 **ContextTier:** High
 **Version:** 2.0
 **LastUpdated:** 2025-11-19
@@ -401,6 +401,113 @@ ALTER ACCOUNT SET TRACE_LEVEL = ON_EVENT;
 -- Development/Debugging: Trace all executions
 ALTER SESSION SET TRACE_LEVEL = ALWAYS;
 ```
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Creating Spans for Every Function Call**
+```python
+# Bad: Span for every small operation
+def process_order(order):
+    with telemetry.create_span("process_order"):  # Span 1
+        with telemetry.create_span("validate"):  # Span 2 - 5ms
+            validate(order)
+        with telemetry.create_span("transform"):  # Span 3 - 3ms
+            transform(order)
+        with telemetry.create_span("save"):  # Span 4 - 10ms
+            save(order)
+# 4 spans for 18ms total operation - excessive overhead!
+```
+**Problem:** Span overhead exceeds actual work time; massive trace volume; high costs; performance degradation; signal-to-noise destroyed; unusable traces
+
+**Correct Pattern:**
+```python
+# Good: Single span for operation, use events for milestones
+def process_order(order):
+    with telemetry.create_span("process_order") as span:
+        span.add_attribute("order_id", order.id)
+        validate(order)  # No span, <10ms
+        transform(order)  # No span, <10ms
+        span.add_event("validation_complete")
+        save(order)  # Only span expensive ops (>100ms)
+        span.add_attribute("success", True)
+```
+**Benefits:** Minimal overhead; manageable trace volume; cost-effective; performance maintained; clear operation boundaries; actionable traces
+
+---
+
+**Anti-Pattern 2: Exceeding 128 Events Per Span Limit**
+```python
+# Bad: Add event for every loop iteration
+with telemetry.create_span("process_batch") as span:
+    for i in range(10000):  # 10,000 iterations
+        span.add_event(f"Processing item {i}")
+# Hits 128 event limit, remaining 9,872 events silently dropped!
+```
+**Problem:** 128 event limit silently drops events; incomplete traces; missing critical events; debugging impossible; no error raised; data loss
+
+**Correct Pattern:**
+```python
+# Good: Sample events strategically
+with telemetry.create_span("process_batch") as span:
+    batch_size = 10000
+    for i in range(batch_size):
+        if i % 1000 == 0:  # Sample every 1000th
+            span.add_event(f"Progress: {i}/{batch_size}")
+    span.add_attribute("total_processed", batch_size)
+# 10 events total, well under 128 limit
+```
+**Benefits:** Stays under 128 limit; all events captured; complete traces; effective debugging; efficient sampling; production-scalable
+
+---
+
+**Anti-Pattern 3: Using TRACE_LEVEL = ALWAYS in Production**
+```sql
+-- Bad: Trace every execution in production
+ALTER SESSION SET TRACE_LEVEL = ALWAYS;
+-- OR
+ALTER ACCOUNT SET TRACE_LEVEL = ALWAYS;
+-- Generates massive trace volume, high costs!
+```
+**Problem:** Traces every execution; 100x data volume; massive serverless costs; performance impact; event table bloat; production noise; unusable for debugging
+
+**Correct Pattern:**
+```sql
+-- Good: Production uses ON_EVENT (only when telemetry APIs called)
+ALTER ACCOUNT SET TRACE_LEVEL = ON_EVENT;
+
+-- Development can use ALWAYS temporarily for debugging
+-- (In dev/test environments only!)
+ALTER SESSION SET TRACE_LEVEL = ALWAYS;
+```
+**Benefits:** Production cost-effective; traces only instrumented code; manageable volume; performance maintained; development flexibility; targeted debugging
+
+---
+
+**Anti-Pattern 4: Not Adding Context Attributes to Spans**
+```python
+# Bad: Span without context - can't filter or analyze
+with telemetry.create_span("process_data"):
+    result = process(data)
+# Which data? What size? Success? No context!
+```
+**Problem:** Can't filter traces by criteria; no debugging context; unclear operation details; can't identify patterns; unusable for root cause analysis; poor observability
+
+**Correct Pattern:**
+```python
+# Good: Add meaningful attributes for filtering and analysis
+with telemetry.create_span("process_data") as span:
+    span.add_attribute("input_size", len(data))
+    span.add_attribute("data_source", data.source)
+    span.add_attribute("user_id", user.id)
+    
+    result = process(data)
+    
+    span.add_attribute("success", result.success)
+    span.add_attribute("output_size", len(result.data))
+    if not result.success:
+        span.add_attribute("error_code", result.error_code)
+```
+**Benefits:** Filterable traces; rich debugging context; pattern identification; root cause analysis; production debugging; operational insights; actionable observability
 
 ## Quick Compliance Checklist
 - [ ] `snowflake.telemetry` imported for Python handlers

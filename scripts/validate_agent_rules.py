@@ -57,8 +57,253 @@ from __future__ import annotations
 
 import re
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Literal
+
+# Add project root to path for imports when run as script
+project_root = Path(__file__).parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+from scripts.markdown_parser import MarkdownParser, SectionHierarchy  # noqa: E402
+
+
+@dataclass
+class ValidationIssue:
+    """Enhanced validation issue with context and fix suggestions.
+
+    Provides detailed information about validation issues including:
+    - Severity level (error/warning/info)
+    - Message and line number
+    - Context lines around the issue
+    - Fix suggestions
+    - Documentation references
+    """
+
+    severity: Literal["error", "warning", "info"]
+    message: str
+    line_num: int | None = None
+    context_lines: list[tuple[int, str]] = field(default_factory=list)
+    fix_suggestion: str | None = None
+    docs_reference: str | None = None
+    auto_fixable: bool = False
+
+    def format_console(self) -> str:
+        """Format for terminal output with visual hierarchy.
+
+        Returns:
+            Formatted string for console display
+        """
+        # Severity markers
+        markers = {"error": "[ERROR]", "warning": "[WARN]", "info": "[INFO]"}
+        marker = markers.get(self.severity, "[INFO]")
+
+        lines = [f"{marker} {self.message}"]
+
+        # Add line number if available
+        if self.line_num:
+            lines.append(f"  at line {self.line_num}")
+
+        # Add context if available
+        if self.context_lines:
+            lines.append("")
+            lines.append("  Context:")
+            for line_num, content in self.context_lines:
+                prefix = "  >" if line_num == self.line_num else "   "
+                lines.append(f"{prefix} {line_num:4d} | {content}")
+
+        # Add fix suggestion if available
+        if self.fix_suggestion:
+            lines.append("")
+            lines.append("  Suggested fix:")
+            for fix_line in self.fix_suggestion.split("\n"):
+                lines.append(f"    {fix_line}")
+
+        # Add docs reference if available
+        if self.docs_reference:
+            lines.append("")
+            lines.append(f"  See: {self.docs_reference}")
+
+        return "\n".join(lines)
+
+    def format_markdown(self) -> str:
+        """Format for markdown reports.
+
+        Returns:
+            Formatted markdown string
+        """
+        # Severity badges
+        badges = {
+            "error": "🔴 **ERROR**",
+            "warning": "⚠️ **WARNING**",
+            "info": "**INFO**",
+        }
+        badge = badges.get(self.severity, "**INFO**")
+
+        lines = [f"{badge} {self.message}"]
+
+        if self.line_num:
+            lines.append(f"- **Location:** Line {self.line_num}")
+
+        if self.context_lines:
+            lines.append("")
+            lines.append("**Context:**")
+            lines.append("```")
+            for line_num, content in self.context_lines:
+                marker = "→" if line_num == self.line_num else " "
+                lines.append(f"{marker} {line_num:4d} | {content}")
+            lines.append("```")
+
+        if self.fix_suggestion:
+            lines.append("")
+            lines.append("**Suggested Fix:**")
+            lines.append("```")
+            lines.append(self.fix_suggestion)
+            lines.append("```")
+
+        if self.docs_reference:
+            lines.append("")
+            lines.append(f"📚 {self.docs_reference}")
+
+        return "\n".join(lines)
+
+    def format_json(self) -> dict:
+        """Format for JSON output (CI/CD integration).
+
+        Returns:
+            Dictionary representation for JSON serialization
+        """
+        return {
+            "severity": self.severity,
+            "message": self.message,
+            "line": self.line_num,
+            "context": [{"line": ln, "content": c} for ln, c in self.context_lines],
+            "fix_suggestion": self.fix_suggestion,
+            "docs_reference": self.docs_reference,
+            "auto_fixable": self.auto_fixable,
+        }
+
+
+# Fix suggestion templates for common validation issues
+FIX_TEMPLATES = {
+    "missing_purpose": """Add Purpose section at the beginning of the file:
+
+## Purpose
+[Clear 1-2 sentence description of what this rule accomplishes and why it exists]
+
+[Optional: Additional context about the problem this rule solves]""",
+    "missing_contract": """Add Contract section after Purpose and Rule Type:
+
+## Contract
+
+- **Inputs/Prereqs:** [What the AI needs before applying this rule]
+- **Allowed Tools:** [Which tools/commands are permitted]
+- **Forbidden Tools:** [What must be avoided]
+- **Required Steps:**
+  1. [First mandatory step]
+  2. [Second mandatory step]
+- **Output Format:** [Expected deliverable format]
+- **Validation Steps:** [How to verify correctness]""",
+    "missing_validation": """Add Validation section near the end of the file:
+
+## Validation
+
+**Critical Checks (Must Pass):**
+- [ ] [First critical validation]
+- [ ] [Second critical validation]
+
+**Quality Checks (Should Pass):**
+- [ ] [First quality check]
+- [ ] [Second quality check]
+
+**Pre-Task-Completion Validation Gate:**
+- [ ] All critical checks passed
+- [ ] Code compiles/runs without errors
+- [ ] Tests pass (if applicable)""",
+    "missing_anti_patterns": """Add Anti-Patterns section before Quick Compliance Checklist:
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: [Descriptive Name]**
+```[language]
+// Bad example showing what NOT to do
+```
+**Problem:** [Why this is wrong]
+**Correct Pattern:**
+```[language]
+// Good example showing the right way
+```
+**Benefits:** [Why the correct way is better]
+
+[Repeat for 2-4 anti-patterns]""",
+    "missing_quick_start": """Add Quick Start TL;DR section after Key Principles:
+
+## Quick Start TL;DR (Essential Patterns Reference)
+
+**Core Pattern 1:**
+```[language]
+// Most common use case example
+```
+
+**Core Pattern 2:**
+```[language]
+// Second most common use case
+```
+
+**Common Gotchas:**
+- [First common mistake to avoid]
+- [Second common mistake to avoid]""",
+    "contract_too_late": """Move Contract section earlier in the file.
+
+Current location: Line {current_line}
+Recommended: Before line 100 (typically after Purpose and Rule Type sections)
+
+To fix:
+1. Cut the entire Contract section (## Contract through the end of that section)
+2. Paste it after "## Rule Type and Scope" section
+3. Ensure it appears before detailed content sections like Quick Start or Key Principles""",
+    "section_order_violation": """Reorder sections to match the required structure.
+
+Expected section order:
+1. Purpose
+2. Rule Type and Scope
+3. Contract
+4. Key Principles
+5. Quick Start TL;DR
+6. [Your content sections]
+7. Anti-Patterns and Common Mistakes
+8. Quick Compliance Checklist
+9. Validation
+10. Response Template
+11. References
+
+Current issue: {details}
+
+Sections can be omitted, but their relative order must be preserved.""",
+    "metadata_order_violation": """Fix metadata field ordering.
+
+Correct metadata order (at top of file):
+1. **Keywords:**
+2. **TokenBudget:**
+3. **ContextTier:**
+4. **Depends:**
+5. [Any additional custom fields]
+
+Current issue: {details}""",
+    "missing_keywords": """Add Keywords metadata at the very top of the file:
+
+**Keywords:** keyword1, keyword2, keyword3, keyword4, keyword5
+**TokenBudget:** ~1500
+**ContextTier:** Standard
+**Depends:** 000-global-core
+
+Guidelines for keywords:
+- Include 8-12 keywords
+- Use lowercase (except proper nouns)
+- Focus on technical terms, patterns, and use cases
+- Help AI assistants discover this rule based on user intent""",
+}
 
 
 @dataclass
@@ -387,8 +632,15 @@ class RuleValidator:
 
         # Read target file
         with open(file_path, encoding="utf-8") as f:
-            lines = f.readlines()
-            content = "".join(lines)
+            content = f.read()
+
+        # Use markdown-aware parser to extract actual headers
+        parser = MarkdownParser(content)
+        hierarchy = SectionHierarchy(parser)
+        hierarchy.build()
+
+        # Get actual rule sections (excluding templates)
+        actual_sections = hierarchy.get_actual_h2_sections()
 
         # Initialize result containers
         critical_violations = []
@@ -401,19 +653,16 @@ class RuleValidator:
         recommendations = []
         contract_line_number = None
 
-        # Extract sections from file
+        # Extract H2 sections from file (excluding code blocks, comments, and templates)
         file_sections = []
         file_section_names = set()
-        for line_num, line in enumerate(lines, start=1):
-            h2_match = re.match(r"^## (.+)$", line.strip())
-            if h2_match:
-                heading = h2_match.group(1)
-                heading_clean = re.sub(r"^\d+\.\s+", "", heading).strip()
-                file_sections.append((heading_clean, line_num))
-                file_section_names.add(heading_clean)
+        for section in actual_sections:
+            heading_clean = re.sub(r"^\d+\.\s+", "", section.name).strip()
+            file_sections.append((heading_clean, section.line_num))
+            file_section_names.add(heading_clean)
 
-                if "Contract" in heading_clean:
-                    contract_line_number = line_num
+            if "Contract" in heading_clean:
+                contract_line_number = section.line_num
 
         # Criterion 1: Check required sections present (30%)
         required_section_score = 0.0
@@ -456,7 +705,10 @@ class RuleValidator:
         metadata_order_score = 0.0
         metadata_pattern = r"^\*\*(\w+):\*\*"
         found_metadata = []
-        for line in lines[:50]:  # Check first 50 lines
+
+        # Only check first 50 lines for metadata
+        content_lines = content.split("\n")
+        for line in content_lines[:50]:
             match = re.match(metadata_pattern, line.strip())
             if match:
                 found_metadata.append(match.group(1))
@@ -595,8 +847,70 @@ class RuleValidator:
                 "Missing Quick Start TL;DR section (MANDATORY per Section 11.2)"
             )
 
-    def validate_contract_placement(self, content: str, result: ValidationResult) -> None:
-        """Validate Contract section placement per Section 11.3."""
+    def calculate_contract_allowance(self, content: str, file_path: Path) -> int:
+        """Calculate additional lines allowed for Contract placement (0-50).
+
+        Uses graduated thresholds based on file characteristics:
+        - Long keyword lists (15+ keywords): +10 lines
+        - Governance/meta files: +30-50 lines
+        - Extended metadata (>11 fields): +5 per extra field
+        - Long Purpose section (>500 chars): +10 lines
+
+        Args:
+            content: File content to analyze
+            file_path: Path to file being validated
+
+        Returns:
+            Additional lines allowed (0-50, capped)
+        """
+        allowance = 0
+
+        # 1. Long keyword lists (15-20 recommended for comprehensive coverage)
+        keywords_match = re.search(r"^\*\*Keywords:\*\*\s*(.+)$", content, re.MULTILINE)
+        if keywords_match:
+            keywords = [k.strip() for k in keywords_match.group(1).split(",")]
+            if len(keywords) >= 15:
+                allowance += 10  # +10 lines for comprehensive keyword coverage
+
+        # 2. Governance/meta files get substantial allowance
+        filename = file_path.name.lower()
+        if "governance" in filename or "boilerplate" in filename:
+            allowance += 30  # +30 lines for meta-documentation files
+
+        # Check content for governance indicators
+        if "governance" in content[:500].lower():
+            allowance += 20
+
+        # 3. Extended metadata (more than 11 standard fields)
+        metadata_count = len(re.findall(r"^\*\*\w+:\*\*", content[:1000], re.MULTILINE))
+        if metadata_count > 11:
+            allowance += 5 * (metadata_count - 11)  # +5 per extra metadata field
+
+        # 4. Long Purpose or Key Principles sections indicate comprehensive rules
+        purpose_match = re.search(
+            r"^## Purpose\n(.*?)(?=^## |\Z)", content, re.MULTILINE | re.DOTALL
+        )
+        if purpose_match and len(purpose_match.group(1)) > 500:
+            allowance += 10  # +10 for detailed purpose explanations
+
+        # Cap total allowance at 50 lines
+        return min(allowance, 50)
+
+    def validate_contract_placement(
+        self, content: str, result: ValidationResult, file_path: Path
+    ) -> None:
+        """Validate Contract section placement with flexible allowances.
+
+        Graduated thresholds:
+        - ≤100 lines: Perfect ✓
+        - 101-150 lines: Acceptable with allowance (warning if no allowance)
+        - >150 lines: Error (even with allowance)
+
+        Args:
+            content: File content
+            result: ValidationResult to append issues to
+            file_path: Path to file being validated
+        """
         lines = content.split("\n")
         contract_line = None
 
@@ -609,9 +923,32 @@ class RuleValidator:
             # Already checked in required_sections, skip here
             return
 
-        if contract_line > 100:
+        # Calculate allowance based on file characteristics
+        allowance = self.calculate_contract_allowance(content, file_path)
+
+        # Graduated thresholds
+        perfect_threshold = 100
+        acceptable_threshold = 150
+        adjusted_threshold = perfect_threshold + allowance
+
+        if contract_line <= perfect_threshold:
+            # Perfect placement
+            return
+        elif contract_line <= adjusted_threshold:
+            # Acceptable with allowance - just info
+            result.info_messages.append(
+                f"Contract section at line {contract_line} (acceptable with +{allowance} line allowance)"
+            )
+        elif contract_line <= acceptable_threshold:
+            # Within acceptable range but no allowance - warning
             result.warnings.append(
-                f"Contract section appears late (line {contract_line}, should be before line 100)"
+                f"Contract section at line {contract_line} (recommended: before line {adjusted_threshold})"
+            )
+        else:
+            # Beyond acceptable range - error
+            result.critical_errors.append(
+                f"Contract section at line {contract_line} exceeds maximum of {acceptable_threshold} "
+                f"(recommended: before line {perfect_threshold}, allowance: +{allowance} lines)"
             )
 
     def validate_investigation_protocol(self, content: str, result: ValidationResult) -> None:
@@ -779,7 +1116,7 @@ class RuleValidator:
         # Section 11 Universal Compatibility Checks
         self.validate_metadata_field_order(content, result)
         self.validate_quick_start_tldr(content, result)
-        self.validate_contract_placement(content, result)
+        self.validate_contract_placement(content, result, file_path)
         self.validate_investigation_protocol(content, result)
         self.validate_response_template_completeness(content, result)
         self.validate_token_budget_accuracy(content, result)

@@ -3,7 +3,7 @@
 **AppliesTo:** `**/*.py`, `**/*.scl`, `**/*.js`
 **AutoAttach:** false
 **Keywords:** Logging, Python logging, logger, log levels, DEBUG, INFO, WARN, ERROR, FATAL, conditional logging, sampling, tight loop logging, standard logging libraries, log volume control, cost management, setup logging, log configuration, logging best practices, log handlers
-**TokenBudget:** ~2700
+**TokenBudget:** ~3300
 **ContextTier:** High
 **Version:** 2.0
 **LastUpdated:** 2025-11-19
@@ -371,6 +371,116 @@ def authenticate_user(username, password):
     else:
         logger.warn(f"Authentication failed for user {username}: {result.error_code}")
 ```
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Using print() Instead of Standard Logging Library**
+```python
+# Bad: print() statements don't route to event tables
+def process_data(records):
+    print(f"Processing {len(records)} records")  # Lost in stdout!
+    for record in records:
+        print(f"Processing record {record['id']}")  # No persistence
+    print("Processing complete")
+```
+**Problem:** Logs not captured in event tables; no persistence; can't query historical logs; debugging impossible in production; no log levels; no structured data
+
+**Correct Pattern:**
+```python
+# Good: Use standard logging library
+import logging
+logger = logging.getLogger(__name__)
+
+def process_data(records):
+    logger.info(f"Processing {len(records)} records")
+    # [process records with sampling - see anti-pattern 2]
+    logger.info("Processing complete")
+# Logs automatically routed to event table for querying
+```
+**Benefits:** Logs persisted in event tables; queryable history; production debugging; proper log levels; structured data; automatic routing
+
+---
+
+**Anti-Pattern 2: Logging Every Iteration in Tight Loops**
+```python
+# Bad: Log every record in large dataset
+for i, record in enumerate(large_dataset):  # 1 million records
+    logger.info(f"Processing record {i}: {record['id']}")
+# Generates 1 million log entries! Massive costs!
+```
+**Problem:** Massive log volume; 1000x normal costs; event table bloat; performance degradation; signal-to-noise ratio destroyed; unusable logs
+
+**Correct Pattern:**
+```python
+# Good: Sample logging - every 1000th iteration
+for i, record in enumerate(large_dataset):
+    if i % 1000 == 0:  # Log every 1000th record
+        logger.info(f"Processing batch: record {i} of {len(large_dataset)}")
+# Final summary
+logger.info(f"Completed processing {len(large_dataset)} records")
+```
+**Benefits:** 1000x fewer logs; manageable costs; performance maintained; signal preserved; actionable logs; production-scalable
+
+---
+
+**Anti-Pattern 3: Logging Sensitive Data (PII, Credentials)**
+```python
+# Bad: Log sensitive information
+def authenticate_user(username, password, ssn):
+    logger.info(f"Authenticating user: {username}, SSN: {ssn}, password: {password}")
+    # SECURITY VIOLATION: PII and credentials in logs!
+```
+**Problem:** Security breach; PII exposure; compliance violations (GDPR, HIPAA); credential leakage; audit failures; regulatory fines; data breach liability
+
+**Correct Pattern:**
+```python
+# Good: Exclude sensitive data, log safe identifiers only
+def authenticate_user(username, password, ssn):
+    # Hash or mask sensitive fields
+    user_hash = hashlib.sha256(username.encode()).hexdigest()[:8]
+    logger.info(f"Authenticating user_hash: {user_hash}")
+    # Never log: password, ssn, credit cards, tokens, API keys
+```
+**Benefits:** Security maintained; compliance-ready; no PII exposure; safe debugging; audit-friendly; regulatory compliance; zero breach liability
+
+---
+
+**Anti-Pattern 4: Using DEBUG Log Level in Production**
+```python
+# Bad: DEBUG level in production
+import logging
+logging.basicConfig(level=logging.DEBUG)  # In production!
+logger = logging.getLogger(__name__)
+
+def process_order(order):
+    logger.debug(f"Order details: {order}")  # 100x more data volume
+    logger.debug(f"Validating order {order['id']}")
+    logger.debug(f"Processing payment {order['payment']}")
+    # Generates massive log volume, high costs
+```
+**Problem:** 10-100x log volume increase; massive serverless costs; event table bloat; performance impact; signal-to-noise destroyed; production noise
+
+**Correct Pattern:**
+```python
+# Good: Environment-appropriate log levels
+import logging
+import os
+
+# Production: WARN or ERROR only
+if os.getenv('ENV') == 'production':
+    logging.basicConfig(level=logging.WARN)
+else:  # Development
+    logging.basicConfig(level=logging.DEBUG)
+
+logger = logging.getLogger(__name__)
+
+def process_order(order):
+    logger.info(f"Processing order {order['id']}")  # Key milestone only
+    # Errors logged automatically at WARN+ level
+    if validation_error:
+        logger.error(f"Order validation failed: {error_code}")
+```
+**Benefits:** Cost-effective production logging; manageable volume; performance maintained; actionable signal; development flexibility; production scalability
 
 ## Quick Compliance Checklist
 - [ ] Logging uses standard libraries (Python `logging`, Java `slf4j`, NOT print)

@@ -1,5 +1,5 @@
 **Keywords:** Python, uv, Ruff, pyproject.toml, dependency management, virtual environments, modern Python tooling, pytest, validation, uv run, uvx, datetime.now(UTC)
-**TokenBudget:** ~2850
+**TokenBudget:** ~3300
 **ContextTier:** Critical
 **Depends:** 000-global-core
 
@@ -199,6 +199,85 @@ ruff check .                        # Should use uvx for isolation
 - **Requirement:** Use `uvx` for all development tools (ruff, pytest, mypy, safety).
 - **Always:** Include environment setup tasks with status checks to avoid redundant operations.
 - **Pattern:** Structure tasks as: `uv:pin` then `install` (with `uv sync`) then execution tasks.
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Using Bare Python Commands Without `uv run`**
+```bash
+# Bad: Running Python without uv run
+python script.py
+pytest tests/
+uvicorn app.main:app --reload
+```
+**Problem:** Commands run outside project virtual environment; leads to `ModuleNotFoundError`; dependencies not found; inconsistent behavior across environments
+
+**Correct Pattern:**
+```bash
+# Good: Always use uv run for project commands
+uv run python script.py
+uv run pytest tests/
+uv run uvicorn app.main:app --reload
+```
+**Benefits:** Consistent dependency resolution; all project modules available; reproducible behavior; no environment activation needed
+
+---
+
+**Anti-Pattern 2: Skipping Validation Before Task Completion**
+```python
+# AI makes code changes to fix a bug
+# AI: "I've fixed the bug in user_service.py. Task complete!"
+# [No ruff check, no ruff format, no pytest run]
+```
+**Problem:** May introduce linting violations; formatting inconsistencies; broken tests; syntax errors discovered later by user
+
+**Correct Pattern:**
+```bash
+# After making changes, always validate:
+uvx ruff check .
+uvx ruff format --check .
+uv run pytest
+
+# Only after ALL pass:
+# "Changes validated: ruff clean, format clean, tests passing (12/12). Task complete."
+```
+**Benefits:** Catches errors immediately; ensures code quality standards; user receives working, tested code; no surprises
+
+---
+
+**Anti-Pattern 3: Using Deprecated `datetime.utcnow()`**
+```python
+# Bad: Using deprecated datetime API
+from datetime import datetime
+timestamp = datetime.utcnow()  # Deprecated in Python 3.12+
+```
+**Problem:** Deprecated API; will be removed in future Python versions; naive datetime (no timezone info); timezone-aware best practice
+
+**Correct Pattern:**
+```python
+# Good: Use timezone-aware datetime with UTC
+from datetime import datetime, UTC
+timestamp = datetime.now(UTC)  # Modern, timezone-aware
+```
+**Benefits:** Future-proof code; explicit timezone handling; follows Python 3.11+ best practices; no deprecation warnings
+
+---
+
+**Anti-Pattern 4: Installing Tools in Project Environment Instead of Using `uvx`**
+```bash
+# Bad: Installing standalone tools in project venv
+uv add --dev ruff black mypy safety
+uv run ruff check .
+```
+**Problem:** Bloats project dependencies; tool versions conflict with project deps; slower environment setup; unnecessary lockfile complexity
+
+**Correct Pattern:**
+```bash
+# Good: Use uvx for isolated tool execution
+uvx ruff check .
+uvx ruff format .
+# Tools run in isolation, no project pollution
+```
+**Benefits:** Clean project dependencies; no version conflicts; faster uv sync; tools always latest stable versions; simpler pyproject.toml
 
 ## Quick Compliance Checklist
 - [ ] **CRITICAL: Pre-Task-Completion Validation Gate passed** (see section 4.2)

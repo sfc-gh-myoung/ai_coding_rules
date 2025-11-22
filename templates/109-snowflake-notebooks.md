@@ -3,7 +3,7 @@
 **AppliesTo:** `**/*.ipynb`, `notebooks/**/*.py`
 **AutoAttach:** false
 **Keywords:** Snowflake notebooks, Jupyter, Python notebooks, data exploration, ML, reproducible notebooks, nbqa, notebook linting, code quality, Python, Snowflake, create notebook, debug notebook, notebook execution, notebook testing, notebook deployment, kernel management, cell execution
-**TokenBudget:** ~2550
+**TokenBudget:** ~3200
 **ContextTier:** Medium
 **Version:** 1.4
 **LastUpdated:** 2025-11-06
@@ -52,9 +52,12 @@ Establish best practices for building reproducible, secure, and maintainable Jup
 ## Quick Start TL;DR (Essential Patterns Reference)
 
 **Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
+- **Token efficiency:** Self-sufficient guidance for 80% of common use cases reduces need to read full sections
+- **Position advantage:** Early placement benefits from slight attention bias in LLM processing (first ~20% of content receives marginally more weight)
+- **Progressive disclosure:** Enables agents to assess rule relevance before loading full content
+- **Human-LLM collaboration:** Useful for both human developers (quick scanning) and AI assistants (decision point)
+
+**Note:** While LLMs read sequentially (not auto-prioritizing this section), the concentrated pattern format and early position provide practical efficiency benefits. To maximize value for agents, include in system prompts: "Read Quick Start TL;DR sections first to identify essential patterns."
 
 Position at top provides practical efficiency benefits for both LLMs and human developers.
 
@@ -228,27 +231,62 @@ ignore = ["E501"]  # Allow long lines in notebooks for complex expressions
 - CI/CD ready for automated quality checks
 - Integrates with existing `uv` + `ruff` tooling ecosystem
 
+### When to Skip nbqa Linting
+
+**Valid Exceptions:**
+
+**1. Exploratory notebooks** (temporary analysis, not production-bound)
+- **Rationale:** Linting adds overhead without value for throwaway code intended for one-time analysis
+- **Example:** Ad-hoc data exploration, one-time customer requests, rapid prototyping sessions
+- **Action:** Skip linting entirely, but add "EXPLORATORY" tag to notebook filename or header cell
+
+**2. Tutorial notebooks with intentional anti-patterns**
+- **Rationale:** May demonstrate "wrong" code for teaching purposes before showing corrections
+- **Example:** Teaching notebooks showing common mistakes (using `SELECT *`, missing error handling) before demonstrating best practices
+- **Action:** Use `# ruff: noqa` comments with explanatory notes documenting why violations are intentional
+
+**3. Notebooks with external dependencies unavailable in linting environment**
+- **Rationale:** Import errors block linting of otherwise valid code when proprietary or environment-specific libraries required
+- **Example:** Notebooks requiring proprietary company libraries, hardware-specific modules, or specialized Snowflake functions not in local environment
+- **Action:** Use `# type: ignore` for problematic imports or exclude file pattern in `pyproject.toml` per-file-ignores
+
+**4. Notebooks using Snowflake-specific magic commands or SQL cells**
+- **Rationale:** nbqa may not recognize Snowflake SQL cell syntax or custom magic commands
+- **Example:** `%%sql` cell magic for inline SQL, `!snow` command cells, Snowflake worksheet-style cells
+- **Action:** Configure Ruff to ignore specific cell patterns or use `# noqa` for magic command cells
+
+**Override Pattern Example:**
+```python
+# Cell: exploratory_analysis_prototype
+# ruff: noqa - Temporary code for exploration, not production-ready
+# Will be deleted after analysis complete
+large_df = session.table("MASSIVE_TABLE").to_pandas()  # F841: Unused, keeping for manual inspection
+result = large_df.describe()  # Quick stats for investigation
+```
+
+**When in Doubt:** Default to linting. Exceptions should be rare (<10% of notebooks) and explicitly documented with rationale.
+
 ## Quick Compliance Checklist
 - [ ] All cells have descriptive, user-friendly names (not cell1, cell2, etc.)
-      Verify: Open notebook in Snowsight - check cell names in left sidebar
-- [ ] Cell naming follows action_subject pattern with underscores
-      Verify: Review cell names - should be like "load_customer_data", not "LoadCustomerData"
-- [ ] Environment and dependencies properly configured and pinned
-      Verify: Check packages section in notebook settings - versions should be pinned (==)
+      Verify: Open notebook in Snowsight → Projects → Notebooks → [notebook name] → Check left sidebar cell names should follow action_subject format
+- [ ] Cell naming follows action_subject pattern with underscores (lowercase)
+      Verify: Review cell names in notebook left panel → Should be "load_customer_data", not "LoadCustomerData" or "Load Customer Data"
+- [ ] Environment and dependencies properly configured and pinned with exact versions
+      Verify: Check packages section in notebook settings → Versions should be pinned with == (e.g., pandas==2.0.0, not pandas>=2.0)
 - [ ] **CRITICAL:** `uvx nbqa ruff notebooks/` passes with zero errors
-      Verify: Run command locally before committing - must show 0 errors
+      Verify: Run command in terminal → Must show "All checks passed!" or 0 errors, no E/W/F violations
 - [ ] **CRITICAL:** `uvx nbqa ruff format --check notebooks/` passes
-      Verify: Run command locally - must show no formatting changes needed
+      Verify: Run command in terminal → Must show "n files would be left unchanged" or no formatting changes needed
 - [ ] No hardcoded credentials or sensitive information present
-      Verify: Search notebook for keywords: "password", "token", "secret", "key"
-- [ ] Computation pushed to Snowflake via Snowpark DataFrames
-      Verify: Check for .to_pandas() calls - should be minimal, used only for final results
-- [ ] Markdown cells provide clear narrative and documentation
-      Verify: Read through notebook - markdown should explain purpose of each section
-- [ ] Notebook executes deterministically without hidden state
-      Verify: Restart kernel and run all cells - should execute in order without errors
+      Verify: Search notebook for keywords: "password", "token", "secret", "key", "api_key" → Should find zero matches outside of variable names
+- [ ] Computation pushed to Snowflake via Snowpark DataFrames (minimize local data)
+      Verify: Check for .to_pandas() calls → Should be minimal (<3 instances), used only for final results/visualization, not intermediate processing
+- [ ] Markdown cells provide clear narrative and documentation for each section
+      Verify: Read through notebook → Markdown should explain purpose of each section, why approaches chosen, business context
+- [ ] Notebook executes deterministically without hidden state (top-to-bottom)
+      Verify: Restart kernel and run all cells sequentially → Should execute in order without NameError or undefined variables
 - [ ] Production code refactored to separate .py/.sql files when appropriate
-      Verify: Check if notebook has >500 lines of code - consider extracting to modules
+      Verify: Check if notebook has >500 lines of code OR reusable functions → Consider extracting to modules in src/ directory
 
 ## Validation
 - **Success checks:** Cell names are descriptive and follow naming conventions; `uvx nbqa ruff notebooks/` passes with zero errors; `uvx nbqa ruff format --check notebooks/` passes; notebook runs deterministically from top to bottom; all Snowpark connections work; no secrets exposed; production logic extracted to .py/.sql files
@@ -291,8 +329,9 @@ monthly_summary = customers_df.group_by("REGISTRATION_MONTH").agg(
 ## References
 
 ### External Documentation
-- [Snowpark for Python](https://docs.snowflake.com/en/developer-guide/snowpark/python) - DataFrames, functions, and distributed computing                                                                               
-- [Python Connector](https://docs.snowflake.com/en/developer-guide/python-connector) - Database connectivity and authentication patterns
+- [Snowpark for Python](https://docs.snowflake.com/en/developer-guide/snowpark/python) - Official Snowflake documentation for DataFrames, distributed computing patterns, UDFs, and complete API reference (authoritative source, updated with each Snowflake release)
+- [Python Connector](https://docs.snowflake.com/en/developer-guide/python-connector) - Official database connectivity guide covering authentication patterns, connection pooling, and session management (required reading for production deployments)
+- [nbqa Documentation](https://nbqa.readthedocs.io/) - Comprehensive guide for running Python code quality tools on Jupyter notebooks (industry-standard linting approach with 1.5M+ monthly downloads)
 
 ### Related Rules
 - **Snowflake Core**: `100-snowflake-core.md`

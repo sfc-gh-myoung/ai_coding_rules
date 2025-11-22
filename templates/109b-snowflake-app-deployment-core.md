@@ -1,30 +1,33 @@
-**Description:** Deployment automation patterns for Snowflake applications (notebooks, Streamlit, UDFs) using staged files
+**Description:** Core deployment automation patterns for Snowflake applications (notebooks, Streamlit, UDFs) using staged files
 **Type:** Agent Requested
 **AppliesTo:** `Taskfile.yml`, `task/**/*.yml`, `sql/operations/**/upload/*.sql`, `sql/operations/**/remove/*.sql`
 **AutoAttach:** false
-**Keywords:** Snowflake deployment, Streamlit deployment, notebook deployment, PUT, CREATE STREAMLIT, CREATE NOTEBOOK, stages, deployment automation, SiS, troubleshooting, deploy app, deployment pipeline, app publishing, deployment patterns, deploy to snowflake, stage deployment, production deployment, app versioning
-**TokenBudget:** ~4650
+**Keywords:** Snowflake deployment, Streamlit deployment, notebook deployment, PUT, CREATE STREAMLIT, CREATE NOTEBOOK, stages, deployment automation, SiS, deploy app, deployment pipeline, app publishing, deployment patterns, deploy to snowflake, stage deployment, production deployment, app versioning, deployment workflow, automated deployment
+**TokenBudget:** ~4150
 **ContextTier:** Medium
-**Version:** 1.2
-**LastUpdated:** 2025-11-07
+**Version:** 1.0
+**LastUpdated:** 2025-11-22
 **Depends:** 100-snowflake-core, 109-snowflake-notebooks, 101-snowflake-streamlit-core, 820-taskfile-automation
 
-# Snowflake Application Deployment Automation
+# Snowflake Application Deployment Automation - Core Patterns
 
 ## Purpose
-Establish comprehensive deployment automation patterns for Snowflake applications (Notebooks, Streamlit apps, UDFs, and other staged applications), ensuring reliable, deterministic deployments through proper stage file management and object lifecycle control.
+Establish core deployment automation patterns for Snowflake applications (Notebooks, Streamlit apps, UDFs, and other staged applications), ensuring reliable, deterministic deployments through proper stage file management and object lifecycle control.
 
 ## Rule Type and Scope
 
 - **Type:** Agent Requested
 - **Scope:** Deployment automation for Snowflake applications using internal stages, covering notebooks, Streamlit apps, UDFs, and stored procedures
 
-## Quick Start TL;DR (Essential Patterns Reference)
+## Quick Start TL;DR (Read First - 30 Seconds)
 
 **Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
+- **Token efficiency:** Self-sufficient guidance for 80% of common use cases reduces need to read full sections
+- **Position advantage:** Early placement benefits from slight attention bias in LLM processing (first ~20% of content receives marginally more weight)
+- **Progressive disclosure:** Enables agents to assess rule relevance before loading full content
+- **Human-LLM collaboration:** Useful for both human developers (quick scanning) and AI assistants (decision point)
+
+**Note:** While LLMs read sequentially (not auto-prioritizing this section), the concentrated pattern format and early position provide practical efficiency benefits. To maximize value for agents, include in system prompts: "Read Quick Start TL;DR sections first to identify essential patterns."
 
 Position at top provides practical efficiency benefits for both LLMs and human developers.
 
@@ -84,11 +87,16 @@ Position at top provides practical efficiency benefits for both LLMs and human d
   - Documentation of deployment workflow
   
 - **Validation Steps:** 
-  - Run `task --list` to verify all tasks exist
-  - Test individual operations (drop, remove, upload, create)
-  - Test full deployment workflow
-  - Verify stage contents after upload
-  - Confirm application accessible in Snowflake
+  - **Task Structure:** `task --list | grep deploy` → MUST show 5 tasks: drop, remove, upload, create, deploy
+  - **Individual Operations:** 
+    - `task drop:app` → MUST complete in <2s, exit code 0
+    - `task remove:app` → MUST complete in <1s, exit code 0
+    - `task upload:app` → MUST complete in <5s, show "uploaded" message, LIST @stage shows file
+    - `task create:app` → MUST complete in <3s, SHOW NOTEBOOKS/STREAMLITS returns object
+  - **Stage Verification:** `uvx snow sql -q "LIST @stage"` → MUST show files with current timestamp (within last 60s)
+  - **Full Workflow:** `task deploy:app` → MUST complete in <15s total, all 4 steps execute sequentially
+  - **Application Functional:** Open in Snowsight → MUST load without errors, display updated content
+  - **Success Criteria:** All individual operations pass AND full workflow completes AND application functional in Snowsight
 
 ## Key Principles
 
@@ -468,144 +476,6 @@ task notebook:deploy:all  # Uses explicit REMOVE
 # Result: Reliable updates every time
 ```
 
-## 5. Troubleshooting Deployment Issues
-
-### Issue: Streamlit SiS fails with "TypeError: bad argument type for built-in operation"
-
-**Symptoms:**
-- Streamlit application fails to load in Snowflake
-- Error message: "TypeError: bad argument type for built-in operation"
-- Application worked previously or in development
-- No pages render, blank screen or error displayed
-
-**Common Causes:**
-
-**Cause 1: Missing AUTO_COMPRESS=FALSE**
-- Python files uploaded with compression (default behavior)
-- Python's import system cannot read gzipped `.py` files
-- Applies to all `.py` files: `streamlit_app.py`, `pages/*.py`, `utils/*.py`
-
-**Cause 2: Stage Path Mismatch**
-- Files uploaded to subdirectory (e.g., `@STAGE/streamlit/`)
-- ROOT_LOCATION points to different path (e.g., `@STAGE`)
-- Snowflake cannot find application files
-
-**Diagnostic Steps:**
-
-```bash
-# Step 1: Check actual file locations and compression
-uvx snow sql -q "LIST @UTILITY_DEMO_V2.GRID_DATA.STREAMLIT_STAGE;"
-
-# Look for:
-# - File extensions: Should be .py (not .py.gz)
-# - File paths: Should match ROOT_LOCATION structure
-# - Example correct: streamlit_stage/streamlit_app.py
-# - Example wrong: streamlit_stage/streamlit/streamlit_app.py
-
-# Step 2: Verify Streamlit configuration
-uvx snow sql -q "SHOW STREAMLITS IN SCHEMA UTILITY_DEMO_V2.GRID_DATA;"
-uvx snow sql -q "DESCRIBE STREAMLIT UTILITY_DEMO_V2.GRID_DATA.APP_NAME;"
-
-# Check ROOT_LOCATION value matches stage file paths
-```
-
-**Solutions:**
-
-**For Compression Issue:**
-```bash
-# 1. Redeploy with AUTO_COMPRESS=FALSE
-task streamlit:remove:app   # Remove old compressed files
-task streamlit:upload:app   # Upload with AUTO_COMPRESS=FALSE
-task streamlit:create:app   # Recreate Streamlit object
-```
-
-**For Path Mismatch:**
-```sql
--- Option 1: Fix upload paths (recommended)
--- Update upload script to use stage root:
-PUT file://streamlit_app.py @STAGE  -- Not @STAGE/streamlit/
-    AUTO_COMPRESS=FALSE
-    OVERWRITE=TRUE;
-
--- Option 2: Fix ROOT_LOCATION to match current files
-DROP STREAMLIT IF EXISTS DB.SCHEMA.APP_NAME;
-CREATE STREAMLIT DB.SCHEMA.APP_NAME
-    ROOT_LOCATION = '@STAGE/streamlit'  -- Match actual file location
-    MAIN_FILE = 'streamlit_app.py'
-    QUERY_WAREHOUSE = WH;
-```
-
-**Verification:**
-```bash
-# Verify files are uncompressed and correctly located
-uvx snow sql -q "LIST @STAGE;" | grep -E "\.py$|\.yml$"
-
-# Should see:
-# streamlit_stage/streamlit_app.py (NOT .py.gz)
-# streamlit_stage/pages/1_Page.py
-# streamlit_stage/environment.yml
-
-# Test Streamlit app loads
-# Navigate to Snowsight → Apps → Streamlit → APP_NAME
-# Should load without TypeError
-```
-
-### Issue: "Notebook shows old code after deploy"
-
-**Symptoms:**
-- Deployment completes without errors
-- Stage shows recent file timestamp
-- Notebook in Snowsight still shows old code
-
-**Solutions:**
-
-1. **Run full deployment (includes REMOVE):**
-   ```bash
-   task notebook:deploy:app
-   ```
-
-2. **Force browser cache clear:**
-   - Hard refresh: `Cmd+Shift+R` (Mac) or `Ctrl+Shift+R` (Windows)
-   - Close notebook completely
-   - Navigate away from Notebooks section
-   - Re-open notebook
-
-3. **Verify stage contents:**
-   ```bash
-   uvx snow sql -q "LIST @DB.SCHEMA.NOTEBOOK_STAGE;"
-   uvx snow sql -q "GET @DB.SCHEMA.NOTEBOOK_STAGE/app.ipynb file:///tmp/;"
-   grep "your_fix" /tmp/app.ipynb  # Verify fix is in file
-   ```
-
-### Issue: "REMOVE fails - file not found"
-
-**Expected Behavior:** This is OK - REMOVE is idempotent
-
-**Explanation:** If the stage file doesn't exist, REMOVE succeeds with a warning (not an error)
-
-**Verification:**
-```bash
-# Check stage contents before REMOVE
-uvx snow sql -q "LIST @DB.SCHEMA.NOTEBOOK_STAGE;"
-```
-
-### Issue: "CREATE fails - object already exists"
-
-**Solution:** Ensure `drop` task ran successfully
-
-**Verification:**
-```sql
--- Check if object exists
-SELECT * FROM INFORMATION_SCHEMA.NOTEBOOKS 
-WHERE NOTEBOOK_NAME = 'APP_NOTEBOOK';
-```
-
-**Manual fix:**
-```bash
-task notebook:drop:app  # Run drop manually
-task notebook:create:app  # Then create
-```
-
 ## 6. Deployment Validation
 
 ### Post-Deployment Checklist
@@ -637,6 +507,59 @@ uvx snow sql -q "SHOW NOTEBOOKS IN SCHEMA DB.SCHEMA;"
 - `upload` task: < 5 seconds (depends on file size)
 - `create` task: < 3 seconds
 - **Total deployment:** < 15 seconds
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Skipping REMOVE Step**
+```sql
+-- Bad: Only PUT + CREATE without REMOVE
+PUT file://@~/apps/my_app.py @apps_stage/my_app AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
+CREATE STREAMLIT my_app ROOT_LOCATION = '@apps_stage/my_app';
+```
+**Problem:** Stale files from previous deployments remain on stage, causing import errors and version conflicts.
+
+**Correct Pattern:**
+```sql
+-- Good: Always REMOVE before PUT
+REMOVE @apps_stage/my_app;
+PUT file://@~/apps/my_app.py @apps_stage/my_app AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
+CREATE STREAMLIT my_app ROOT_LOCATION = '@apps_stage/my_app';
+```
+**Benefits:** Clean slate for each deployment; no version conflicts; predictable state.
+
+**Anti-Pattern 2: Using AUTO_COMPRESS=TRUE**
+```sql
+-- Bad: Default AUTO_COMPRESS causes import errors
+PUT file://@~/apps/*.py @apps_stage/my_app AUTO_COMPRESS=TRUE;
+```
+**Problem:** Snowflake compresses .py files to .py.gz, breaking Python imports with `TypeError: expected str, bytes or os.PathLike object, not NoneType`.
+
+**Correct Pattern:**
+```sql
+-- Good: Explicitly disable compression for Python files
+PUT file://@~/apps/*.py @apps_stage/my_app AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
+```
+**Benefits:** Python imports work correctly; no compression-related errors.
+
+**Anti-Pattern 3: Manual Deployment via Snowsight UI**
+```
+Bad: Manually upload files via UI → Create app via UI
+```
+**Problem:** Not reproducible; no version control; error-prone; can't automate; team knowledge siloed.
+
+**Correct Pattern:**
+```yaml
+# Good: Automated deployment via Taskfile
+tasks:
+  deploy:app:
+    desc: Deploy application (reproducible, version-controlled)
+    cmds:
+      - task: drop:app
+      - task: remove:app
+      - task: upload:app
+      - task: create:app
+```
+**Benefits:** Reproducible; version-controlled; automated; team-friendly; testable.
 
 ## 7. Advanced Patterns
 
@@ -707,135 +630,6 @@ tasks:
         echo "✓ Object validation passed"
 ```
 
-## Anti-Patterns and Common Mistakes
-
-**Anti-Pattern 1: Using OVERWRITE without explicit REMOVE**
-```yaml
-deploy:
-  - upload  # PUT OVERWRITE=TRUE only
-  - create
-```
-**Problem:** May encounter stale caching issues in Snowflake applications
-
-**Correct Pattern:**
-```yaml
-deploy:
-  - drop     # Remove old object
-  - remove   # Delete stage files explicitly
-  - upload   # Upload fresh files
-  - create   # Create from fresh files
-```
-
-**Anti-Pattern 2: Manual uploads via Snowsight UI**
-```
-# Manually uploading files through Snowsight web interface
-```
-**Problem:** Not reproducible, no version control, no automation
-
-**Correct Pattern:**
-```bash
-task notebook:deploy:app  # Automated, reproducible, version-controlled
-```
-
-**Anti-Pattern 3: Combining upload and create in one task**
-```yaml
-deploy:
-  cmds:
-    - uvx snow sql -q "PUT file://app.ipynb @stage"
-    - uvx snow sql -q "CREATE NOTEBOOK FROM '@stage'"
-```
-**Problem:** No modularity, can't test individual steps, harder to debug
-
-**Correct Pattern:**
-```yaml
-upload:
-  cmds: [task: utils:sql:template ...]
-
-create:
-  cmds: [task: utils:sql:template ...]
-
-deploy:
-  cmds:
-    - task: upload
-    - task: create
-```
-
-**Anti-Pattern 4: Hardcoding credentials in scripts**
-```sql
-PUT 'file://app.ipynb' @stage 
-  USER='admin' PASSWORD='secret123';
-```
-**Problem:** Security risk, not portable, violates best practices
-
-**Correct Pattern:**
-```bash
-# Use Snowflake CLI with configured connection
-uvx snow sql -f upload.sql  # Uses ~/.snowflake/config.toml
-```
-
-**Anti-Pattern 5: Omitting AUTO_COMPRESS=FALSE for Streamlit SiS**
-```sql
-# WRONG: Missing AUTO_COMPRESS=FALSE
-PUT file://streamlit_app.py @STAGE
-    OVERWRITE=TRUE;  # Defaults to AUTO_COMPRESS=TRUE!
-
-PUT file://pages/*.py @STAGE/pages/
-    OVERWRITE=TRUE;  # Files will be gzipped
-```
-**Problem:** Python import system cannot read compressed .py files  
-**Symptom:** "TypeError: bad argument type for built-in operation"  
-**Impact:** Application fails to load, no pages render, complete deployment failure
-
-**Correct Pattern:**
-```sql
-# Correct: Explicit AUTO_COMPRESS=FALSE
-PUT file://streamlit_app.py @STAGE
-    AUTO_COMPRESS=FALSE
-    OVERWRITE=TRUE;
-
-PUT file://pages/*.py @STAGE/pages/
-    AUTO_COMPRESS=FALSE
-    OVERWRITE=TRUE;
-```
-
-**Anti-Pattern 6: Uploading Streamlit files to subdirectory path**
-```sql
-# WRONG: Files nested in subdirectory
-PUT file://streamlit_app.py @STAGE/streamlit/
-    AUTO_COMPRESS=FALSE
-    OVERWRITE=TRUE;
-
-PUT file://pages/*.py @STAGE/streamlit/pages/
-    AUTO_COMPRESS=FALSE
-    OVERWRITE=TRUE;
-
-# CREATE STREAMLIT with mismatched ROOT_LOCATION
-CREATE STREAMLIT APP
-    ROOT_LOCATION = '@STAGE/streamlit'  # Expects files at /streamlit/
-    MAIN_FILE = 'streamlit_app.py';     # But they're at /streamlit/streamlit_app.py
-```
-**Problem:** ROOT_LOCATION path mismatch - Snowflake cannot locate files  
-**Symptom:** Same "TypeError: bad argument type for built-in operation"  
-**Debugging:** `LIST @STAGE` shows `streamlit/streamlit_app.py` but ROOT_LOCATION expects different structure
-
-**Correct Pattern:**
-```sql
-# Correct: Upload to stage root
-PUT file://streamlit_app.py @STAGE
-    AUTO_COMPRESS=FALSE
-    OVERWRITE=TRUE;
-
-PUT file://pages/*.py @STAGE/pages/
-    AUTO_COMPRESS=FALSE
-    OVERWRITE=TRUE;
-
-# ROOT_LOCATION matches actual file location
-CREATE STREAMLIT APP
-    ROOT_LOCATION = '@STAGE'            # Matches actual location
-    MAIN_FILE = 'streamlit_app.py'      # Found at @STAGE/streamlit_app.py
-    QUERY_WAREHOUSE = WH;
-```
-
 ## Quick Compliance Checklist
 
 - [ ] Task structure includes all 5 operations (upload, create, drop, remove, deploy)
@@ -864,6 +658,8 @@ CREATE STREAMLIT APP
 - **Negative Tests:** 
   - REMOVE with non-existent file succeeds with warning (idempotent)
   - CREATE without stage files fails gracefully
+  - DROP non-existent object succeeds (IF EXISTS)
+  - Upload without precondition file fails before attempting upload
 
 > **Investigation Required**  
 > When applying this rule:
@@ -881,8 +677,6 @@ CREATE STREAMLIT APP
 > "Let me check your existing deployment setup first."
 > [reads Taskfile.yml, checks SQL scripts, lists stage]
 > "I see you use 3-step deployment with AUTO_COMPRESS=FALSE. Following this pattern for the new app..."
-  - DROP non-existent object succeeds (IF EXISTS)
-  - Upload without precondition file fails before attempting upload
 
 ## Response Template
 
@@ -946,16 +740,15 @@ tasks:
 ## References
 
 ### External Documentation
-- [Snowflake PUT Command](https://docs.snowflake.com/en/sql-reference/sql/put) - Upload files to stages
-- [Snowflake REMOVE Command](https://docs.snowflake.com/en/sql-reference/sql/remove) - Remove files from stages
-- [Snowflake Stages](https://docs.snowflake.com/en/user-guide/data-load-local-file-system-create-stage) - Internal and external stages
-- [Snowflake CLI](https://docs.snowflake.com/en/developer-guide/snowflake-cli/overview) - Command-line interface for Snowflake
-- [Taskfile Documentation](https://taskfile.dev/) - Task automation framework
+- [Snowflake PUT Command](https://docs.snowflake.com/en/sql-reference/sql/put) - Official SQL reference for file upload command covering AUTO_COMPRESS options, OVERWRITE behavior, parallel upload optimization, and stage path syntax (authoritative documentation for all PUT parameters)
+- [Snowflake REMOVE Command](https://docs.snowflake.com/en/sql-reference/sql/remove) - Official SQL reference for stage file removal including pattern matching, recursive deletion, and idempotent behavior (critical for clean deployment workflows)
+- [Snowflake Stages](https://docs.snowflake.com/en/user-guide/data-load-local-file-system-create-stage) - Comprehensive guide to internal and external stages, directory structures, access control, and file organization patterns (essential reading for stage architecture decisions)
+- [Snowflake CLI](https://docs.snowflake.com/en/developer-guide/snowflake-cli/overview) - Official command-line interface documentation covering connection configuration, SQL execution, and automation patterns (required for deployment automation workflows)
+- [Taskfile Documentation](https://taskfile.dev/) - Modern task automation framework with declarative YAML syntax, dependency management, and cross-platform support (industry-standard alternative to Makefiles with 10K+ GitHub stars)
 
 ### Related Rules
 - **Snowflake Notebooks**: `109-snowflake-notebooks.md`
 - **Streamlit Core**: `101-snowflake-streamlit-core.md`
 - **Taskfile Automation**: `820-taskfile-automation.md`
 - **Snowflake Core**: `100-snowflake-core.md`
-- **Data Loading**: `108-snowflake-data-loading.md`
-
+- **Deployment Troubleshooting**: `109c-snowflake-app-deployment-troubleshooting.md` - See this rule for debugging deployment issues, SiS TypeError resolution, and anti-patterns with complete runnable code examples

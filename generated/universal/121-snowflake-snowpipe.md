@@ -1,5 +1,5 @@
 **Keywords:** Snowpipe, Snowpipe Streaming, continuous ingestion, real-time loading, auto-ingest, streaming data, micro-batching, file-based ingestion, SDK, event notifications, COPY INTO, create pipe, auto ingest, pipe setup, data ingestion, streaming load, pipe errors, continuous ingestion, pipe management, ingestion monitoring
-**TokenBudget:** ~5750
+**TokenBudget:** ~6900
 **ContextTier:** High
 **Depends:** 100-snowflake-core, 108-snowflake-data-loading, 104-snowflake-streams-tasks
 
@@ -934,6 +934,206 @@ ORDER BY start_time DESC;
 - Implement idempotency in application logic
 
 **Snowflake Documentation Reference:** [Snowpipe Troubleshooting](https://docs.snowflake.com/en/user-guide/data-load-snowpipe-troubleshooting)
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Not Using AUTO_INGEST for Continuous Loading**
+```sql
+-- Bad: Manual REST API calls for continuous file loading
+CREATE PIPE manual_load_pipe
+AS COPY INTO target_table
+FROM @my_stage
+FILE_FORMAT = (TYPE = CSV);
+
+-- Then in application:
+-- POST /v1/data/pipes/manual_load_pipe/insertFiles
+-- Requires constant API calls, manual tracking, complex orchestration!
+```
+**Problem:** High operational overhead; manual file tracking; complex code; API rate limits; delayed loading; error-prone; expensive maintenance
+
+**Correct Pattern:**
+```sql
+-- Good: AUTO_INGEST for continuous automated loading
+CREATE PIPE auto_load_pipe
+AUTO_INGEST = TRUE
+AWS_SNS_TOPIC = 'arn:aws:sns:us-east-1:123456789:my-topic'  -- For AWS
+-- OR INTEGRATION = 'AZURE_EVENT_GRID_INT'  -- For Azure
+-- OR INTEGRATION = 'GCS_PUBSUB_INT'  -- For GCS
+AS COPY INTO target_table
+FROM @my_stage
+FILE_FORMAT = (TYPE = CSV)
+ON_ERROR = CONTINUE;
+
+-- Cloud storage sends notifications automatically
+-- Snowpipe loads files within minutes, no code needed!
+```
+**Benefits:** Fully automated; no API calls; near real-time loading (5-10 min); cloud-native; simple setup; reliable; low maintenance; cost-effective
+
+---
+
+**Anti-Pattern 2: Missing FILE_FORMAT Specifications**
+```sql
+-- Bad: No file format, relies on defaults
+CREATE PIPE vague_pipe
+AUTO_INGEST = TRUE
+AWS_SNS_TOPIC = 'arn:aws:sns:us-east-1:123456789:my-topic'
+AS COPY INTO target_table
+FROM @my_stage;
+-- What delimiter? Date format? Compression? NULL handling?
+-- Fails on first complex file!
+```
+**Problem:** Data parsing errors; incorrect data types; NULL mishandling; silent failures; data quality issues; debugging nightmares; production incidents
+
+**Correct Pattern:**
+```sql
+-- Good: Explicit file format with all details
+CREATE OR REPLACE FILE FORMAT csv_pipe_format
+TYPE = CSV
+FIELD_DELIMITER = ','
+SKIP_HEADER = 1
+FIELD_OPTIONALLY_ENCLOSED_BY = '"'
+NULL_IF = ('NULL', 'null', '')
+DATE_FORMAT = 'YYYY-MM-DD'
+TIMESTAMP_FORMAT = 'YYYY-MM-DD HH24:MI:SS'
+COMPRESSION = GZIP
+ERROR_ON_COLUMN_COUNT_MISMATCH = FALSE
+TRIM_SPACE = TRUE;
+
+CREATE PIPE explicit_pipe
+AUTO_INGEST = TRUE
+AWS_SNS_TOPIC = 'arn:aws:sns:us-east-1:123456789:my-topic'
+AS COPY INTO target_table
+FROM @my_stage
+FILE_FORMAT = (FORMAT_NAME = csv_pipe_format)
+ON_ERROR = CONTINUE;
+
+-- Test file format before creating pipe
+COPY INTO target_table
+FROM @my_stage/sample_file.csv.gz
+FILE_FORMAT = (FORMAT_NAME = csv_pipe_format)
+VALIDATION_MODE = RETURN_ERRORS;
+```
+**Benefits:** Predictable parsing; data quality; explicit expectations; easy debugging; documented format; testable; reliable production
+
+---
+
+**Anti-Pattern 3: Not Monitoring COPY_HISTORY for Load Errors**
+```sql
+-- Bad: Create pipe and never check for errors
+CREATE PIPE silent_failure_pipe
+AUTO_INGEST = TRUE
+AWS_SNS_TOPIC = 'arn:aws:sns:us-east-1:123456789:my-topic'
+AS COPY INTO target_table
+FROM @my_stage
+FILE_FORMAT = (TYPE = CSV)
+ON_ERROR = CONTINUE;  -- Continues on errors but never alerts!
+
+-- Files fail silently, data gaps go unnoticed for weeks!
+```
+**Problem:** Silent data loss; undetected failures; data quality degradation; missing rows; business impact; late discovery; customer complaints; audit gaps
+
+**Correct Pattern:**
+```sql
+-- Good: Monitor COPY_HISTORY for errors and alerts
+
+-- Step 1: Create monitoring query
+CREATE OR REPLACE VIEW pipe_error_monitoring AS
+SELECT 
+  pipe_name,
+  file_name,
+  last_load_time,
+  status,
+  row_count,
+  row_parsed,
+  first_error_message,
+  first_error_line_number,
+  error_count,
+  error_limit
+FROM TABLE(INFORMATION_SCHEMA.COPY_HISTORY(
+  TABLE_NAME => 'TARGET_TABLE',
+  START_TIME => DATEADD(HOUR, -1, CURRENT_TIMESTAMP())
+))
+WHERE status = 'LOAD_FAILED' OR error_count > 0
+ORDER BY last_load_time DESC;
+
+-- Step 2: Set up scheduled task to check for errors
+CREATE OR REPLACE TASK monitor_pipe_errors
+WAREHOUSE = monitoring_wh
+SCHEDULE = '5 MINUTE'
+AS
+INSERT INTO pipe_error_log
+SELECT * FROM pipe_error_monitoring
+WHERE last_load_time > DATEADD(MINUTE, -10, CURRENT_TIMESTAMP());
+
+ALTER TASK monitor_pipe_errors RESUME;
+
+-- Step 3: Create alerts (using Snowflake Alerts or external system)
+-- Query pipe_error_log and send notifications when errors detected
+
+-- Step 4: Regular manual checks
+SELECT 
+  COUNT(*) as total_files,
+  SUM(CASE WHEN status = 'LOADED' THEN 1 ELSE 0 END) as successful,
+  SUM(CASE WHEN status = 'LOAD_FAILED' THEN 1 ELSE 0 END) as failed,
+  SUM(row_count) as total_rows,
+  SUM(error_count) as total_errors
+FROM TABLE(INFORMATION_SCHEMA.COPY_HISTORY(
+  TABLE_NAME => 'TARGET_TABLE',
+  START_TIME => DATEADD(DAY, -7, CURRENT_TIMESTAMP())
+));
+```
+**Benefits:** Early error detection; data quality assurance; proactive alerts; no silent failures; audit trail; business continuity; professional operations
+
+---
+
+**Anti-Pattern 4: Not Handling File Naming Patterns Correctly**
+```sql
+-- Bad: Generic pattern loads all files repeatedly
+CREATE PIPE greedy_pipe
+AUTO_INGEST = TRUE
+AWS_SNS_TOPIC = 'arn:aws:sns:us-east-1:123456789:my-topic'
+AS COPY INTO target_table
+FROM @my_stage
+PATTERN = '.*';  -- Matches everything! Test files, backups, old files!
+-- Loads test_file.csv, backup_old.csv, debug_data.csv, all repeated!
+```
+**Problem:** Loads unwanted files; duplicates; test data in production; slow performance; wasted credits; data contamination; difficult troubleshooting
+
+**Correct Pattern:**
+```sql
+-- Good: Specific file patterns with proper organization
+
+-- Step 1: Organize files in stage with clear prefixes/folders
+-- Stage structure:
+--   @my_stage/production/sales/2024-11-22/sales_data_*.csv.gz
+--   @my_stage/test/test_*.csv
+--   @my_stage/archive/old_*.csv
+
+-- Step 2: Use specific PATTERN for production data only
+CREATE PIPE specific_pattern_pipe
+AUTO_INGEST = TRUE
+AWS_SNS_TOPIC = 'arn:aws:sns:us-east-1:123456789:my-topic'
+AS COPY INTO target_table
+FROM @my_stage
+PATTERN = 'production/sales/.*sales_data_[0-9]{8}_[0-9]{6}\\.csv\\.gz'
+FILE_FORMAT = (FORMAT_NAME = csv_pipe_format)
+ON_ERROR = CONTINUE;
+
+-- Step 3: Verify pattern matches expected files
+LIST @my_stage PATTERN = 'production/sales/.*sales_data_[0-9]{8}_[0-9]{6}\\.csv\\.gz';
+
+-- Step 4: Check loaded files
+SELECT DISTINCT file_name 
+FROM TABLE(INFORMATION_SCHEMA.COPY_HISTORY(
+  TABLE_NAME => 'TARGET_TABLE',
+  START_TIME => DATEADD(DAY, -1, CURRENT_TIMESTAMP())
+))
+ORDER BY file_name;
+
+-- Note: Snowpipe automatically tracks loaded files to prevent duplicates
+-- But correct PATTERN prevents unnecessary processing
+```
+**Benefits:** Loads correct files only; no test data leakage; predictable behavior; fast processing; optimized credits; clean production data; easy debugging
 
 ## Quick Compliance Checklist
 - [ ] Ingestion method selected (auto-ingest, REST API, or Streaming)

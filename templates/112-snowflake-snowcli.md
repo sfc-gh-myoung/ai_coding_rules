@@ -3,7 +3,7 @@
 **AppliesTo:** `**/Taskfile.yml`, `**/*.sh`, `**/*.zsh`, `**/*.md`, `**/*.py`
 **AutoAttach:** false
 **Keywords:** snow CLI, SnowCLI, Snowflake command line, uvx snow, CLI deployment, snowflake.yml, uvx --from snowflake-cli, pinned execution, hermetic execution, CLI commands, snow commands, CLI setup, snowflake CLI usage, CLI best practices, CLI automation, command line tools, CLI configuration, CLI deployment patterns
-**TokenBudget:** ~1750
+**TokenBudget:** ~2400
 **ContextTier:** Medium
 **Version:** 1.2
 **LastUpdated:** 2025-11-07
@@ -147,6 +147,110 @@ uvx --from=snowflake-cli==3.12 snow sql -q "create warehouse if not exists CI_WH
 - **Avoid:** Committing credentials, JWTs, or private keys into source control
 - **Avoid:** Interactive prompts in CI (missing flags/vars)
 - **Avoid:** Assuming Homebrew exists on CI runners (use `uvx` instead)
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Installing Snow CLI Globally with pip**
+```bash
+# Bad: Global pip install, version conflicts
+pip install snowflake-cli
+snow --version
+# Version varies across machines, environments, CI runners!
+```
+**Problem:** Version drift across environments; dependency conflicts; manual upgrades; inconsistent behavior; CI breakage; reproducibility issues
+
+**Correct Pattern:**
+```bash
+# Good: Use uvx for isolated, pinned execution
+uvx --from=snowflake-cli==3.12 snow --version
+
+# In Taskfile.yaml - single source of truth for version
+CLI_VERSION: "3.12"
+tasks:
+  deploy:
+    cmds:
+      - uvx --from=snowflake-cli=={{.CLI_VERSION}} snow {{.CLI_ARGS}}
+```
+**Benefits:** Consistent versions; isolated execution; easy version updates; reproducible environments; CI reliability; no conflicts
+
+---
+
+**Anti-Pattern 2: Hardcoding Credentials in Scripts**
+```bash
+# Bad: Credentials in scripts or environment files
+snow sql -q "SELECT 1" \
+  --account myaccount \
+  --user myuser \
+  --password MyPassword123  # SECURITY VIOLATION!
+```
+**Problem:** Credentials in source control; security breach risk; credential leakage; audit violations; compliance failures; difficult rotation
+
+**Correct Pattern:**
+```bash
+# Good: Use environment variables or secret manager
+export SNOWFLAKE_CONNECTION_NAME=prod_connection
+# Connection defined in ~/.snowflake/connections.toml with secure credential storage
+
+snow sql -q "SELECT 1"
+# Uses connection from secure config file
+```
+**Benefits:** No credentials in code; secure storage; easy rotation; compliance-ready; audit-friendly; professional security
+
+---
+
+**Anti-Pattern 3: Using Interactive Prompts in CI/CD**
+```bash
+# Bad: Missing flags cause interactive prompts in CI
+snow sql -q "SELECT 1"
+# Prompts for connection name - CI job hangs!
+```
+**Problem:** CI jobs hang waiting for input; pipeline failures; timeout errors; manual intervention required; unreliable automation; deployment delays
+
+**Correct Pattern:**
+```bash
+# Good: All parameters explicit for non-interactive execution
+snow sql \
+  --connection prod_connection \
+  -q "SELECT 1" \
+  --format json \  # Machine-readable output
+  --no-input       # Fail fast if input needed
+```
+**Benefits:** Non-interactive execution; reliable CI; fast failures; machine-readable output; automated workflows; professional deployment
+
+---
+
+**Anti-Pattern 4: Not Pinning Snow CLI Version in CI**
+```yaml
+# Bad: Use latest version, breaks when CLI updates
+# .github/workflows/deploy.yml
+steps:
+  - name: Deploy
+    run: |
+      pip install snowflake-cli  # Gets latest version!
+      snow object deploy
+# Breaks when 3.13 releases with breaking changes!
+```
+**Problem:** Unexpected breaking changes; CI breakage on updates; unstable pipelines; emergency fixes required; deployment failures; production risk
+
+**Correct Pattern:**
+```yaml
+# Good: Pin exact version for stability
+# .github/workflows/deploy.yml
+env:
+  SNOW_CLI_VERSION: "3.12"  # Single source of truth
+
+steps:
+  - name: Deploy
+    run: |
+      uvx --from=snowflake-cli==${{ env.SNOW_CLI_VERSION }} \
+        snow object deploy
+      
+  - name: Log version
+    run: |
+      uvx --from=snowflake-cli==${{ env.SNOW_CLI_VERSION }} \
+        snow --version
+```
+**Benefits:** Stable CI; predictable behavior; controlled upgrades; no surprise breaks; reliable deployments; professional CI/CD
 
 ## Quick Compliance Checklist
 - [ ] All scripted/CI invocations route through `uvx --from=snowflake-cli==3.12 snow {{.CLI_ARGS}}`

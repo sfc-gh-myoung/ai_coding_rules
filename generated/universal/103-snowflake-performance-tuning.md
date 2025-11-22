@@ -1,5 +1,5 @@
 **Keywords:** Query profile, slow queries, performance tuning, warehouse sizing, clustering keys, search optimization, pruning, spillage, SQL optimization, Snowflake, partition pruning, QUERY_HISTORY, optimize query, fix slow query, query bottleneck, warehouse performance, micro-partitions, clustering, performance analysis
-**TokenBudget:** ~1400
+**TokenBudget:** ~2150
 **ContextTier:** High
 **Depends:** 100-snowflake-core
 
@@ -97,6 +97,118 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - **Required Steps:** [Ordered steps the agent must follow]
 - **Output Format:** [Expected output format]
 - **Validation Steps:** [Checks to confirm success]
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Using Functions in WHERE Clause That Prevent Pruning**
+```sql
+-- Bad: Function on column prevents partition pruning
+SELECT * 
+FROM large_fact_table
+WHERE DATE(order_timestamp) = '2024-01-15';
+-- DATE() function scans ALL partitions, extremely slow!
+```
+**Problem:** Partition pruning disabled; scans all micro-partitions; 100x slower queries; massive compute costs; query timeouts; poor performance
+
+**Correct Pattern:**
+```sql
+-- Good: Filter on raw column for partition pruning
+SELECT * 
+FROM large_fact_table
+WHERE order_timestamp >= '2024-01-15'
+  AND order_timestamp < '2024-01-16';
+-- Prunes to relevant partitions only, 100x faster!
+```
+**Benefits:** Partition pruning enabled; scans minimal partitions; 100x faster; low costs; production-ready; excellent performance
+
+---
+
+**Anti-Pattern 2: Adding Clustering Keys Without Query Profile Evidence**
+```sql
+-- Bad: Add clustering arbitrarily without analysis
+ALTER TABLE sales_fact CLUSTER BY (region, product_category);
+-- No Query Profile analysis! May not help, costs money to maintain!
+```
+**Problem:** Unnecessary clustering costs; no proven benefit; maintenance overhead; wasted resources; assumption-driven; not data-driven
+
+**Correct Pattern:**
+```sql
+-- Good: Analyze Query Profile FIRST
+-- Step 1: Run slow query, get query_id
+SELECT * FROM sales_fact WHERE region = 'WEST' AND product_category = 'Electronics';
+-- Get query_id from result
+
+-- Step 2: Check Query Profile for pruning statistics
+-- In Snowsight: Query History → Click query → Query Profile
+-- Look for: "Partitions scanned" vs "Partitions total"
+-- If scanning >50% of partitions for selective query → clustering may help
+
+-- Step 3: Only add clustering if Query Profile shows poor pruning
+-- AND if query pattern is consistent
+ALTER TABLE sales_fact CLUSTER BY (region, product_category);
+
+-- Step 4: Measure improvement - re-run query, check Query Profile
+-- Validate: Partitions scanned reduced significantly
+```
+**Benefits:** Data-driven clustering decisions; proven performance gains; cost-justified; Query Profile validated; measurable improvements; production evidence-based
+
+---
+
+**Anti-Pattern 3: Using SELECT * Instead of Specific Columns**
+```sql
+-- Bad: SELECT * returns unnecessary columns
+SELECT * 
+FROM wide_dimension_table t1
+JOIN fact_table t2 ON t1.id = t2.dim_id;
+-- Returns 150 columns, only need 5!
+```
+**Problem:** Transfers unnecessary data; slower queries; higher network costs; wider result sets; memory pressure; inefficient
+
+**Correct Pattern:**
+```sql
+-- Good: Select only needed columns
+SELECT 
+  t1.customer_name,
+  t1.region,
+  t2.order_date,
+  t2.order_amount,
+  t2.status
+FROM wide_dimension_table t1
+JOIN fact_table t2 ON t1.id = t2.dim_id;
+-- Returns only 5 needed columns, much faster
+```
+**Benefits:** Minimal data transfer; faster queries; lower costs; focused results; memory efficient; production-optimized
+
+---
+
+**Anti-Pattern 4: Not Using Query Profile to Diagnose Slow Queries**
+```python
+# Bad: Guess at performance issues
+# "Query is slow, maybe warehouse is too small?"
+# ALTER WAREHOUSE my_wh SET WAREHOUSE_SIZE = 'XXLARGE';  # Expensive guess!
+```
+**Problem:** Assumption-driven fixes; expensive trial-and-error; may not solve root cause; wastes money; no evidence; ineffective optimization
+
+**Correct Pattern:**
+```sql
+-- Good: Use Query Profile for root cause analysis
+-- Step 1: Run slow query, capture query_id
+SET query_id = (SELECT LAST_QUERY_ID());
+
+-- Step 2: Analyze in Snowsight Query Profile
+-- Check for:
+-- - Partition pruning: Are most partitions scanned? → Add clustering or fix WHERE
+-- - Spillage: Is data spilling to remote storage? → Increase warehouse size
+-- - Join explosion: Are joins creating massive intermediate results? → Optimize join order
+-- - External function latency: Are UDFs/external APIs slow? → Optimize or cache
+
+-- Step 3: Apply targeted fix based on Query Profile evidence
+-- Example: If 90% partitions scanned for selective query:
+ALTER TABLE my_table CLUSTER BY (date_column);
+
+-- Step 4: Re-run query, verify improvement in Query Profile
+```
+**Benefits:** Evidence-based optimization; targeted fixes; cost-effective; root cause resolution; measurable results; professional performance tuning
 
 ## Quick Compliance Checklist
 - [ ] Required dependencies and context verified

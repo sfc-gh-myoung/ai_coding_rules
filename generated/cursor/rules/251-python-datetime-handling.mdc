@@ -9,7 +9,7 @@ alwaysApply: false
 <!-- Generated for Cursor project rules. See https://docs.cursor.com/en/context/rules#project-rules -->
 
 **Keywords:** datetime, pandas, timezone, datetime64, timedelta, UTC, date arithmetic, tz_localize, tz_convert, datetime.now(UTC)
-**TokenBudget:** ~3200
+**TokenBudget:** ~3700
 **ContextTier:** High
 **Depends:** 200-python-core
 
@@ -542,6 +542,93 @@ df[df['active'] == True]['date'] = df['date'] + pd.Timedelta(days=1)  # SettingW
 df.loc[df['active'] == True, 'date'] = df.loc[df['active'] == True, 'date'] + pd.Timedelta(days=1)
 ```
 
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Comparing pd.Timestamp with Python datetime Without Conversion**
+```python
+# Bad: Direct comparison causes TypeError in Pandas 2.x+
+import pandas as pd
+from datetime import datetime, UTC
+
+pd_ts = pd.Timestamp('2024-10-23 14:30:00', tz='UTC')
+py_dt = datetime.now(UTC)
+if pd_ts > py_dt:  # TypeError: Cannot compare tz-aware with tz-naive
+    print("Future date")
+```
+**Problem:** Mixed datetime types cause TypeError in Pandas 2.x; implicit conversions unreliable; timezone mismatch errors; code breaks on upgrade
+
+**Correct Pattern:**
+```python
+# Good: Explicit type conversion before comparison
+pd_ts = pd.Timestamp('2024-10-23 14:30:00', tz='UTC')
+py_dt = datetime.now(UTC)
+if pd_ts.to_pydatetime() > py_dt:  # Explicit conversion
+    print("Future date")
+# OR: Convert both to same type
+if pd.Timestamp(py_dt) > pd_ts:
+    print("Future date")
+```
+**Benefits:** Type-safe comparisons; Pandas 2.x compatible; explicit timezone handling; no implicit conversion surprises
+
+---
+
+**Anti-Pattern 2: Using Deprecated `datetime.utcnow()`**
+```python
+# Bad: Deprecated API returns naive datetime
+from datetime import datetime
+timestamp = datetime.utcnow()  # Deprecated, naive datetime
+```
+**Problem:** Deprecated in Python 3.12+; returns naive datetime (no timezone); timezone-unaware comparisons fail; will be removed in future versions
+
+**Correct Pattern:**
+```python
+# Good: Modern timezone-aware datetime
+from datetime import datetime, UTC
+timestamp = datetime.now(UTC)  # Timezone-aware, future-proof
+```
+**Benefits:** Timezone-aware datetime; Python 3.11+ best practice; no deprecation warnings; explicit UTC handling; future-proof
+
+---
+
+**Anti-Pattern 3: Parsing Dates Without Format Specification**
+```python
+# Bad: Slow inference on large datasets
+import pandas as pd
+df = pd.read_csv('large_file.csv')
+df['date'] = pd.to_datetime(df['date'])  # Infers format, slow
+```
+**Problem:** 10-100x slower on large datasets; format inference overhead; inconsistent parsing; may misinterpret ambiguous dates (MM/DD vs DD/MM)
+
+**Correct Pattern:**
+```python
+# Good: Explicit format specification for performance
+df = pd.read_csv('large_file.csv')
+df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d %H:%M:%S')  # Fast, explicit
+```
+**Benefits:** 10-100x faster parsing; consistent date interpretation; no ambiguity; predictable behavior across locales
+
+---
+
+**Anti-Pattern 4: Using Timedelta for Calendar Arithmetic**
+```python
+# Bad: Timedelta doesn't handle month/year boundaries correctly
+from datetime import datetime, timedelta, UTC
+start = datetime(2024, 1, 31, tzinfo=UTC)
+next_month = start + timedelta(days=30)  # Feb 29, not Mar 31!
+```
+**Problem:** Month lengths vary (28-31 days); leap years not handled; off-by-one errors; "add 1 month" becomes "add 30 days"; incorrect for business logic
+
+**Correct Pattern:**
+```python
+# Good: Use DateOffset for calendar arithmetic
+import pandas as pd
+from datetime import datetime, UTC
+start = pd.Timestamp(datetime(2024, 1, 31, tzinfo=UTC))
+next_month = start + pd.DateOffset(months=1)  # Correctly yields Feb 29
+next_year = start + pd.DateOffset(years=1)    # Handles leap years
+```
+**Benefits:** Calendar-aware arithmetic; handles month boundaries; leap year support; business logic correctness; "add 1 month" means "same day next month"
 
 ## Quick Compliance Checklist
 

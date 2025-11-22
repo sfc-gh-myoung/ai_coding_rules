@@ -6,7 +6,7 @@ appliesTo:
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
 **Keywords:** Cortex Search, vector search, embeddings, search index, RAG, semantic search, agent tools, retrieval, troubleshooting, AI_EMBED, create search service, search service error, document retrieval, cortex search setup, search index creation, hybrid search, search service debug, vector similarity
-**TokenBudget:** ~4000
+**TokenBudget:** ~5150
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core, 105-snowflake-cost-governance, 111-snowflake-observability, 114-snowflake-cortex-aisql
 
@@ -647,6 +647,176 @@ SHOW WAREHOUSES LIKE 'COMPUTE_WH';
 -- 4. Resume warehouse if suspended
 ALTER WAREHOUSE COMPUTE_WH RESUME;
 ```
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Not Chunking Long Documents**
+```sql
+-- Bad: Index entire long documents (>4000 tokens)
+CREATE CORTEX SEARCH SERVICE documentation_search
+  ON text_column
+  WAREHOUSE = compute_wh
+  TARGET_LAG = '1 hour'
+AS (
+  SELECT 
+    doc_id,
+    full_document_text,  -- 50,000 tokens! Won't retrieve well
+    metadata
+  FROM knowledge_base
+);
+```
+**Problem:** Poor retrieval quality; relevance buried in long docs; inefficient embeddings; high costs; semantic search ineffective; user dissatisfaction
+
+**Correct Pattern:**
+```sql
+-- Good: Chunk long documents into 500-1000 token segments
+CREATE OR REPLACE VIEW chunked_documents AS
+WITH chunks AS (
+  SELECT 
+    doc_id,
+    chunk_number,
+    SUBSTR(full_document_text, 
+           (chunk_number * 1000) + 1, 
+           1000) as chunk_text,
+    metadata
+  FROM knowledge_base
+  CROSS JOIN TABLE(GENERATOR(ROWCOUNT => 100))  -- Generate chunk numbers
+  WHERE LENGTH(full_document_text) > chunk_number * 1000
+)
+SELECT * FROM chunks WHERE LENGTH(chunk_text) > 0;
+
+CREATE CORTEX SEARCH SERVICE documentation_search
+  ON chunk_text
+  WAREHOUSE = compute_wh
+  TARGET_LAG = '1 hour'
+AS (SELECT * FROM chunked_documents);
+```
+**Benefits:** Better retrieval quality; relevant context surfaced; efficient embeddings; cost-effective; semantic search effective; high user satisfaction
+
+---
+
+**Anti-Pattern 2: Missing Metadata for Filtering**
+```sql
+-- Bad: No metadata, can't filter results
+CREATE CORTEX SEARCH SERVICE product_docs_search
+  ON content
+  WAREHOUSE = compute_wh
+AS (
+  SELECT doc_id, content
+  FROM documents
+);
+-- Can't filter by: source, author, date, access tier, category
+```
+**Problem:** No result filtering; irrelevant results returned; no access control; can't scope searches; poor user experience; security gaps
+
+**Correct Pattern:**
+```sql
+-- Good: Rich metadata for filtering and access control
+CREATE CORTEX SEARCH SERVICE product_docs_search
+  ON content
+  ATTRIBUTES metadata
+  WAREHOUSE = compute_wh
+AS (
+  SELECT 
+    doc_id,
+    content,
+    OBJECT_CONSTRUCT(
+      'source', source_system,
+      'author', author,
+      'created_date', created_date,
+      'category', category,
+      'access_tier', access_tier,  -- PUBLIC, INTERNAL, CONFIDENTIAL
+      'department', department
+    ) as metadata
+  FROM documents
+);
+
+-- Agent can filter results by metadata
+-- Example: "filter": {"category": "API_DOCS", "access_tier": "PUBLIC"}
+```
+**Benefits:** Filterable results; relevant results only; access control ready; scoped searches; excellent UX; security compliance; metadata-driven retrieval
+
+---
+
+**Anti-Pattern 3: Vague Tool Descriptions in Agent Config**
+```python
+# Bad: Unclear when to use this search tool
+tools = [{
+    "name": "search_docs",
+    "description": "Search documents",  # Too vague!
+    "search_service": "documentation_search"
+}]
+```
+**Problem:** Agent doesn't know when to use tool; random tool selection; poor user experience; overlapping tool usage; unpredictable behavior
+
+**Correct Pattern:**
+```python
+# Good: Specific, clear tool description
+tools = [{
+    "name": "product_api_docs_search",
+    "description": """Search product API documentation including:
+    - REST API endpoints, parameters, and response schemas
+    - Authentication and authorization methods
+    - Code examples in Python, Java, JavaScript
+    - Rate limits and best practices
+    Use for technical API questions. NOT for: billing, account management, or general product features.""",
+    "search_service": "product_api_docs_search",
+    "filter": {"category": "API_DOCS", "access_tier": "PUBLIC"}
+}]
+```
+**Benefits:** Clear tool selection criteria; predictable behavior; no overlap; excellent UX; agent knows exactly when to use; optimal results
+
+---
+
+**Anti-Pattern 4: Not Validating Search Service After Creation**
+```sql
+-- Bad: Create service but never verify it works
+CREATE CORTEX SEARCH SERVICE docs_search
+  ON content
+  WAREHOUSE = compute_wh
+AS (SELECT * FROM documents);
+
+-- Never test: Does it retrieve? Are embeddings generated? Is count correct?
+-- Discover issues in production when users complain!
+```
+**Problem:** Silent failures; incorrect configurations; poor retrieval quality; production issues; user complaints; emergency fixes; trust erosion
+
+**Correct Pattern:**
+```sql
+-- Good: Validate immediately after creation
+-- Step 1: Create service
+CREATE CORTEX SEARCH SERVICE docs_search
+  ON content
+  WAREHOUSE = compute_wh
+AS (SELECT * FROM documents);
+
+-- Step 2: Check service status
+SHOW CORTEX SEARCH SERVICES LIKE 'docs_search';
+-- Verify: Status = READY
+
+-- Step 3: Validate document count
+SELECT COUNT(*) FROM CORTEX_SEARCH_SERVICE!docs_search;
+-- Compare to source: SELECT COUNT(*) FROM documents;
+
+-- Step 4: Test sample retrieval
+SELECT * FROM TABLE(
+  CORTEX_SEARCH_SERVICE!docs_search.SEARCH(
+    'API authentication methods',
+    5
+  )
+);
+-- Verify: Returns relevant results, check relevance scores
+
+-- Step 5: Test with filters if using metadata
+SELECT * FROM TABLE(
+  CORTEX_SEARCH_SERVICE!docs_search.SEARCH(
+    'rate limits',
+    5,
+    {'category': 'API_DOCS'}
+  )
+);
+```
+**Benefits:** Early error detection; configuration validation; quality assurance; confidence in production; no user complaints; professional deployment; reliable search
 
 ## Quick Compliance Checklist
 - [ ] Documents cleaned/normalized; long docs chunked appropriately

@@ -6,7 +6,7 @@ appliesTo:
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
 **Keywords:** Cortex Agents, planning instructions, response instructions, tool orchestration, flagging logic, agent prompts, multi-tool orchestration, tool selection, agent prompting, instruction patterns, agent planning, tool chaining, orchestration patterns, multi-step agent, agent workflow, instruction design, tool flagging, agent response format
-**TokenBudget:** ~2700
+**TokenBudget:** ~3450
 **ContextTier:** Standard
 **Depends:** 100-snowflake-core, 115-snowflake-cortex-agents-core
 
@@ -28,14 +28,7 @@ Provide comprehensive patterns for writing planning instructions (tool orchestra
 - **Output Format:** Planning/response instruction templates
 - **Validation Steps:** Test tool selection logic; verify flagging works; confirm tone/format appropriate
 
-## Quick Start TL;DR (Essential Patterns Reference)
-
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
-
-Position at top provides practical efficiency benefits for both LLMs and human developers.
+## Quick Start TL;DR (Read First - 30 Seconds)
 
 **MANDATORY:**
 **Essential Patterns:**
@@ -202,6 +195,128 @@ Response instructions define HOW the agent formats and presents answers.
 - Confirm flagging rules trigger appropriately (thresholds, severity levels)
 - Verify graceful degradation when tools or data unavailable
 - Check that domain-specific terminology is used correctly
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Putting Business Logic in Semantic Views Instead of Agent Instructions**
+```yaml
+# Bad: Flagging logic embedded in semantic view
+views:
+  - name: revenue_view
+    semantic_type: measure
+    expr: |
+      CASE 
+        WHEN revenue > 1000000 THEN 'HIGH_ALERT'
+        WHEN revenue < 100000 THEN 'LOW_WARNING'
+        ELSE revenue
+      END
+```
+**Problem:** Semantic views should describe data, not implement flagging; business rules hard to update; requires semantic model redeployment; agent can't customize flagging; violates separation of concerns
+
+**Correct Pattern:**
+```markdown
+# Good: Flagging logic in agent response instructions
+**Response Instructions:**
+When presenting revenue data:
+1. Calculate total revenue from revenue_view
+2. Apply flagging rules:
+   - If revenue > $1M: Flag as "WARNING: HIGH - Exceeds target"
+   - If revenue < $100K: Flag as "WARNING: LOW - Below threshold"
+3. Explain flagging rationale in response
+```
+**Benefits:** Business rules in agent layer; easy to update without model changes; flexible per-agent customization; clear separation of concerns; version control friendly
+
+---
+
+**Anti-Pattern 2: Vague Planning Instructions Without Tool Selection Criteria**
+```markdown
+# Bad: Unclear when to use which tool
+**Planning Instructions:**
+1. Analyze the user's question
+2. Use the appropriate tool
+3. Return results
+```
+**Problem:** Agent doesn't know which tool to select; random tool choice; inconsistent behavior; poor user experience; tool usage inefficiencies
+
+**Correct Pattern:**
+```markdown
+# Good: Explicit tool selection criteria
+**Planning Instructions:**
+1. Classify query type:
+   - QUANTITATIVE (numbers, calculations, rankings) → Use sales_analyst tool
+   - QUALITATIVE (summaries, explanations, context) → Use document_search tool
+2. For quantitative queries:
+   - Sales metrics → sales_analyst
+   - Marketing metrics → marketing_analyst
+3. For qualitative queries:
+   - Product docs → product_search
+   - Policy docs → policy_search
+4. For mixed queries: Use analyst first, then augment with search
+```
+**Benefits:** Predictable tool selection; consistent agent behavior; clear decision criteria; optimized tool usage; better user experience; debuggable logic
+
+---
+
+**Anti-Pattern 3: No Graceful Degradation for Missing Data**
+```markdown
+# Bad: Agent fails silently or errors when data unavailable
+**Planning Instructions:**
+1. Query the sales_analyst tool
+2. Return results
+[No handling for empty results or tool failures]
+```
+**Problem:** Poor user experience on empty results; confusing error messages; agent appears broken; no fallback guidance; user abandonment; trust erosion
+
+**Correct Pattern:**
+```markdown
+# Good: Graceful degradation with helpful guidance
+**Planning Instructions:**
+1. Query the sales_analyst tool
+2. If results empty or tool unavailable:
+   - Explain what data was attempted (e.g., "I searched for Q4 2024 sales data")
+   - Specify why unavailable (e.g., "Data not yet loaded for this quarter")
+   - Suggest alternatives (e.g., "Try Q3 2024 data or check back next week")
+3. If partial data available:
+   - Present what's available
+   - Clearly note limitations
+   - Suggest complementary searches
+```
+**Benefits:** Clear failure communication; helpful user guidance; maintains trust; actionable alternatives; professional experience; reduces support burden
+
+---
+
+**Anti-Pattern 4: Missing Tone and Formatting Guidance in Response Instructions**
+```markdown
+# Bad: No guidance on response style
+**Response Instructions:**
+Return the data to the user.
+```
+**Problem:** Inconsistent tone across responses; unprofessional formatting; unclear structure; doesn't match brand voice; poor readability; user confusion
+
+**Correct Pattern:**
+```markdown
+# Good: Explicit tone and formatting requirements
+**Response Instructions:**
+Tone: Professional, conversational, helpful
+Structure:
+1. Brief summary sentence (1-2 lines)
+2. Key insights as bulleted list (3-5 bullets)
+3. Data table if >5 rows
+4. Closing context or recommendation
+
+Example:
+"Q4 revenue reached $1.2M, up 15% from Q3.
+
+Key insights:
+• Enterprise segment drove 60% of growth
+• APAC region outperformed at +25% QoQ
+• SaaS recurring revenue now 80% of total
+
+[Revenue breakdown table]
+
+Consider focusing Q1 investment on APAC enterprise expansion given strong momentum."
+```
+**Benefits:** Consistent professional tone; readable formatting; structured insights; brand-aligned voice; clear communication; better user satisfaction
 
 ## Quick Compliance Checklist
 

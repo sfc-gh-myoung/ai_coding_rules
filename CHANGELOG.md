@@ -7,6 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.6.1] - 2025-11-22
+
+### Changed
+
+- **Template Compliance Enhancements**: Systematic review and improvement of 12 rule templates to meet boilerplate standards
+  - Fixed emoji violations in machine-consumed files (text-only markup compliance)
+  - Standardized Quick Start TL;DR headers to "(Read First - 30 Seconds)" format across all templates
+  - Added comprehensive Anti-Patterns and Common Mistakes sections with code examples to 6 templates (109b, 204, 400, 202)
+  - Improved average boilerplate compliance from 87.2% to 87.5%
+  - Achieved zero critical validation errors in active templates (excluding ???- prefixed files)
+  - All changes follow 002a-rule-boilerplate.md structural standards
+
+### Added
+
+- **Rule Validator Improvements**: Major enhancements to `scripts/validate_agent_rules.py` to eliminate false positives and provide intelligent validation
+  - **Test coverage**: 50 comprehensive tests
+  - **Impact**: Zero false positives from template examples, intelligent Contract placement validation, enhanced error reporting
+
+  - **Markdown-Aware Parser**: Implemented `MarkdownParser` class to eliminate false positives in rule validation
+    - Excludes headers within code blocks (```) from validation checks
+    - Excludes headers within HTML comments (<!-- -->) from validation checks
+    - Distinguishes actual rule sections from template examples
+    - Provides context extraction for enhanced error reporting
+    - Template section detection with parent section awareness
+    - 32 comprehensive tests with 100% pass rate
+    - Integrated with `RuleValidator.compare_against_boilerplate()` for accurate structural validation
+
+  - **Context-Aware Section Validation**: Implemented `SectionHierarchy` class for hierarchical structure tracking
+    - Builds section tree from flat header list with parent-child relationships
+    - Tracks template sections and their descendants
+    - Provides `is_ancestor_template()` method to check if any ancestor is a template
+    - Filters actual rule sections from templates using `get_actual_rule_sections()` and `get_actual_h2_sections()`
+    - 18 comprehensive tests covering tree building, template detection, filtering, and edge cases
+    - Updated `RuleValidator.compare_against_boilerplate()` to use hierarchical context
+    - Section ordering validation now correctly excludes template sections from checks
+
+  - **Flexible Contract Placement & Enhanced Reporting**: Implemented intelligent Contract validation with graduated thresholds
+    - Context-aware allowance calculation based on file characteristics:
+      - Long keyword lists (15+ keywords): +10 lines
+      - Governance/meta files: +30-50 lines
+      - Extended metadata (>11 fields): +5 lines per extra field
+      - Long Purpose section (>500 chars): +10 lines
+    - Graduated thresholds: ≤100 perfect, 101-150 acceptable with allowance, >150 error
+    - `ValidationIssue` dataclass for structured error reporting with context, fix suggestions, and documentation references
+    - Fix suggestion templates for common validation issues (missing sections, ordering, metadata)
+    - Context extraction in `MarkdownParser.extract_context()` for error reporting
+    - Supports multiple output formats: console, markdown, JSON (for CI/CD integration)
+
 ## [2.6.0] - 2025-11-21
 
 ### Changed

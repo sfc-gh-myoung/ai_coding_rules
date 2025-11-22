@@ -7,7 +7,7 @@ appliesTo:
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
 **Keywords:** Model registry, ML models, model versioning, model deployment, MLOps, model governance, model lifecycle, model logging, model inference, RBAC, model privileges, register model, log model, model management, ML registry, model tracking, model metadata, deploy model, model lineage
-**TokenBudget:** ~2750
+**TokenBudget:** ~3550
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core
 
@@ -350,6 +350,184 @@ ORDER BY days_since_update DESC;
 - **Rule:** Implement audit logging for all model registry operations
 - **Always:** Maintain model lineage and data provenance information
 - **Requirement:** Regular compliance reviews for model access and usage
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Not Specifying Sample Input Data for Schema Inference**
+```python
+# Bad: Register model without sample input
+from snowflake.ml.registry import Registry
+registry = Registry(session=session)
+
+registry.log_model(
+    model=trained_model,
+    model_name="customer_churn_predictor",
+    version_name="v1"
+    # Missing sample_input_data!
+)
+# Model registered but schema inference fails, can't generate SQL for inference!
+```
+**Problem:** No input schema captured; can't generate SQL inference; deployment failures; unclear model signature; unusable for SQL-based predictions
+
+**Correct Pattern:**
+```python
+# Good: Include sample input data for schema inference
+import pandas as pd
+from snowflake.ml.registry import Registry
+
+registry = Registry(session=session)
+
+# Create sample input matching training data structure
+sample_input = pd.DataFrame({
+    'customer_age': [35],
+    'account_balance': [50000.0],
+    'days_since_last_purchase': [45]
+})
+
+registry.log_model(
+    model=trained_model,
+    model_name="customer_churn_predictor",
+    version_name="v1",
+    sample_input_data=sample_input  # Schema captured!
+)
+```
+**Benefits:** Input schema captured; SQL inference enabled; clear model signature; deployment-ready; production-usable; automatic schema validation
+
+---
+
+**Anti-Pattern 2: Using WAREHOUSE Target Platform Without Understanding SQL Compatibility**
+```python
+# Bad: Use WAREHOUSE platform for complex sklearn model
+from snowflake.ml.registry import TargetPlatform
+
+registry.log_model(
+    model=complex_sklearn_pipeline,  # Custom transformers, complex preprocessing
+    model_name="complex_model",
+    version_name="v1",
+    target_platforms=[TargetPlatform.WAREHOUSE],  # Fails! Not all sklearn supported
+    sample_input_data=sample_df
+)
+# Error: Custom transformers not supported in SQL translation!
+```
+**Problem:** SQL translation fails for custom/complex models; deployment failures; wasted time; emergency fallback required; production delays
+
+**Correct Pattern:**
+```python
+# Good: Use SNOWPARK_CONTAINER_SERVICES for complex models
+from snowflake.ml.registry import TargetPlatform
+
+registry.log_model(
+    model=complex_sklearn_pipeline,
+    model_name="complex_model",
+    version_name="v1",
+    target_platforms=[TargetPlatform.SNOWPARK_CONTAINER_SERVICES],  # Python inference
+    sample_input_data=sample_df
+)
+
+# Use WAREHOUSE only for simple models (linear, tree-based)
+# Check compatibility: https://docs.snowflake.com/en/developer-guide/snowpark-ml/model-registry/overview
+```
+**Benefits:** Reliable deployment; supports all model types; no SQL translation issues; Python inference flexibility; production-ready; predictable behavior
+
+---
+
+**Anti-Pattern 3: Not Tagging Models with Metadata for Governance**
+```python
+# Bad: No metadata, can't discover or govern models
+registry.log_model(
+    model=trained_model,
+    model_name="model_v1",  # Generic name!
+    version_name="v1",
+    sample_input_data=sample_df
+)
+# Can't identify: use case, owner, data source, performance, approval status
+```
+**Problem:** No governance; can't discover models by use case; unclear ownership; no performance tracking; audit gaps; compliance risk; chaos at scale
+
+**Correct Pattern:**
+```python
+# Good: Rich metadata for governance and discovery
+registry.log_model(
+    model=trained_model,
+    model_name="customer_churn_predictor",
+    version_name="v1.2.0",  # Semantic versioning
+    sample_input_data=sample_df,
+    comment="""
+    Customer churn prediction model for subscription business
+    Owner: data-science-team@company.com
+    Training data: customers_2024_q1 (100K rows)
+    Use case: Weekly batch predictions for marketing campaigns
+    Approval: Approved by Model Governance Board on 2024-11-15
+    """,
+    metrics={
+        'accuracy': 0.87,
+        'precision': 0.82,
+        'recall': 0.79,
+        'f1_score': 0.80,
+        'auc_roc': 0.91
+    }
+)
+
+# Add tags for discovery
+session.sql(f"""
+    ALTER MODEL customer_churn_predictor 
+    SET TAG use_case = 'churn_prediction',
+            owner_team = 'data_science',
+            data_classification = 'CONFIDENTIAL',
+            approval_status = 'APPROVED'
+""").collect()
+```
+**Benefits:** Full governance; discoverable by metadata; clear ownership; performance tracked; audit-ready; compliance-friendly; scalable model management
+
+---
+
+**Anti-Pattern 4: Not Testing Model Inference After Registration**
+```python
+# Bad: Register model but never test inference
+registry.log_model(
+    model=trained_model,
+    model_name="fraud_detector",
+    version_name="v1",
+    sample_input_data=sample_df
+)
+print("Model registered!")
+# Never test: Does inference work? Are predictions correct?
+# Discover issues when users complain in production!
+```
+**Problem:** Silent deployment failures; untested inference; production issues; user complaints; emergency fixes; trust erosion; unprofessional
+
+**Correct Pattern:**
+```python
+# Good: Test inference immediately after registration
+# Step 1: Register model
+registry.log_model(
+    model=trained_model,
+    model_name="fraud_detector",
+    version_name="v1",
+    target_platforms=[TargetPlatform.WAREHOUSE],
+    sample_input_data=sample_df
+)
+
+# Step 2: Load model and test inference
+fraud_model = registry.get_model("fraud_detector").version("v1")
+
+# Step 3: Test with sample data
+test_data = pd.DataFrame({
+    'transaction_amount': [150.0, 5000.0],
+    'merchant_category': ['grocery', 'electronics'],
+    'distance_from_home': [5.2, 500.0]
+})
+
+predictions = fraud_model.run(test_data)
+print(f"Test predictions: {predictions}")
+
+# Step 4: Validate predictions are reasonable
+assert len(predictions) == 2, "Should return 2 predictions"
+assert all(0 <= p <= 1 for p in predictions['FRAUD_PROBABILITY']), "Probabilities in [0,1]"
+
+print("✓ Model inference validated, ready for production")
+```
+**Benefits:** Early error detection; validated inference; confidence in production; no surprises; professional deployment; reliable predictions; user trust
 
 ## Quick Compliance Checklist
 - [ ] Required dependencies and context verified

@@ -3,7 +3,7 @@
 **AppliesTo:** `**/*.sql`
 **AutoAttach:** false
 **Keywords:** Snowflake, masking policies, row access policies, data governance, RBAC, roles, grants, secure views, security policies, access control, data security, policy troubleshooting, grant management, Data Metric Functions, DMF, least privilege, create masking policy, tagging, SQL
-**TokenBudget:** ~1850
+**TokenBudget:** ~2550
 **ContextTier:** High
 **Version:** 1.5
 **LastUpdated:** 2025-11-07
@@ -28,14 +28,7 @@ Establish comprehensive data security and access control practices using Snowfla
 - Apply least privilege for DMF execution (EXECUTE DATA METRIC FUNCTION) and ownership.
 - Use data profiling to baseline and discover issues; do not substitute for security policies.
 
-## Quick Start TL;DR (Essential Patterns Reference)
-
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
-
-Position at top provides practical efficiency benefits for both LLMs and human developers.
+## Quick Start TL;DR (Read First - 30 Seconds)
 
 **MANDATORY:**
 **Essential Patterns:**
@@ -106,6 +99,138 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - **Rule:** Monitor serverless credits under the “Data Quality Monitoring” category and the logging service (“Logging”). Right-size schedules and scopes to control cost.
 - **Rule:** Version and review DMF definitions alongside application code; maintain owners, runbooks, and SLAs.
 - **Requirement:** Separate duties: creators of DMFs and operators of alerts should be distinct from data producers when feasible.
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Granting SELECT on Raw PII Tables Without Masking**
+```sql
+-- Bad: Direct SELECT grants expose sensitive data
+GRANT SELECT ON TABLE customers TO ROLE analyst_role;
+-- Analysts now see raw SSN, credit card numbers, email addresses
+```
+**Problem:** Violates least privilege; exposes PII to unauthorized users; compliance violations (GDPR, HIPAA); no audit trail of sensitive data access; security breach risk
+
+**Correct Pattern:**
+```sql
+-- Good: Create masking policy and apply to PII columns
+CREATE OR REPLACE MASKING POLICY ssn_mask AS (val STRING) RETURNS STRING ->
+  CASE 
+    WHEN CURRENT_ROLE() IN ('COMPLIANCE_ADMIN') THEN val
+    ELSE '***-**-' || SUBSTRING(val, 8, 4)  -- Show last 4 digits only
+  END;
+
+ALTER TABLE customers MODIFY COLUMN ssn 
+  SET MASKING POLICY ssn_mask;
+
+-- Now grant SELECT - analysts see masked data
+GRANT SELECT ON TABLE customers TO ROLE analyst_role;
+```
+**Benefits:** Least privilege enforcement; PII protected; role-based unmasking; compliance-ready; audit trail via POLICY_REFERENCES
+
+---
+
+**Anti-Pattern 2: Not Using Role Hierarchies for Permission Management**
+```sql
+-- Bad: Granting same permissions to many roles individually
+GRANT SELECT ON DATABASE prod_db TO ROLE analyst1;
+GRANT SELECT ON DATABASE prod_db TO ROLE analyst2;
+GRANT SELECT ON DATABASE prod_db TO ROLE analyst3;
+-- [Repeat for 50 analysts...]
+```
+**Problem:** Maintenance nightmare; permission drift across users; inconsistent access; manual revocation on offboarding; can't bulk update permissions; audit complexity
+
+**Correct Pattern:**
+```sql
+-- Good: Role hierarchy with inherited permissions
+CREATE ROLE analyst_base;
+GRANT SELECT ON DATABASE prod_db TO ROLE analyst_base;
+
+-- Create child roles that inherit from base
+CREATE ROLE analyst1;
+CREATE ROLE analyst2;
+CREATE ROLE analyst3;
+
+GRANT ROLE analyst_base TO ROLE analyst1;
+GRANT ROLE analyst_base TO ROLE analyst2;
+GRANT ROLE analyst_base TO ROLE analyst3;
+
+-- Single permission change affects all analysts
+REVOKE SELECT ON SCHEMA prod_db.sensitive FROM ROLE analyst_base;
+```
+**Benefits:** Centralized permission management; consistent access patterns; easy bulk updates; role inheritance reduces grants; simplified audit; efficient onboarding/offboarding
+
+---
+
+**Anti-Pattern 3: Missing Row Access Policies for Multi-Tenant Data**
+```sql
+-- Bad: All users see all tenant data
+CREATE TABLE customer_orders (
+  order_id NUMBER,
+  customer_id NUMBER,
+  tenant_id NUMBER,
+  order_total NUMBER
+);
+
+GRANT SELECT ON TABLE customer_orders TO ROLE analyst_role;
+-- Analysts from Tenant A can see Tenant B's data!
+```
+**Problem:** Data leakage across tenants; compliance violations; security breach; no tenant isolation; trust erosion; manual WHERE clause filtering unreliable
+
+**Correct Pattern:**
+```sql
+-- Good: Row Access Policy enforces tenant isolation
+CREATE OR REPLACE ROW ACCESS POLICY tenant_isolation AS (tenant_id NUMBER) RETURNS BOOLEAN ->
+  CASE 
+    WHEN CURRENT_ROLE() = 'SYSADMIN' THEN TRUE
+    ELSE tenant_id = CURRENT_ACCOUNT()  -- Or lookup user's tenant_id from mapping table
+  END;
+
+ALTER TABLE customer_orders 
+  ADD ROW ACCESS POLICY tenant_isolation ON (tenant_id);
+
+-- Now SELECT automatically filters to user's tenant
+GRANT SELECT ON TABLE customer_orders TO ROLE analyst_role;
+```
+**Benefits:** Automatic tenant isolation; no manual filtering; centralized security logic; compliance-ready; prevents accidental data leakage; auditable policy
+
+---
+
+**Anti-Pattern 4: Not Applying Object Tags for Data Classification**
+```sql
+-- Bad: No metadata about data sensitivity
+CREATE TABLE sensitive_data (
+  ssn STRING,
+  credit_card STRING,
+  salary NUMBER
+);
+-- Can't identify PII tables automatically; no governance automation
+```
+**Problem:** Can't discover PII tables programmatically; no automated policy application; manual governance doesn't scale; audit gaps; compliance risk; no data catalog
+
+**Correct Pattern:**
+```sql
+-- Good: Tag-based data classification for automated governance
+CREATE TAG sensitivity_level;
+CREATE TAG data_classification;
+
+ALTER TABLE sensitive_data SET TAG 
+  sensitivity_level = 'HIGH',
+  data_classification = 'PII';
+
+-- Query all PII tables programmatically:
+SELECT 
+  tag_database,
+  tag_schema,
+  tag_name,
+  tag_value,
+  object_name
+FROM SNOWFLAKE.ACCOUNT_USAGE.TAG_REFERENCES
+WHERE tag_name = 'DATA_CLASSIFICATION' 
+  AND tag_value = 'PII';
+
+-- Apply masking policies automatically to all PII-tagged columns
+```
+**Benefits:** Automated PII discovery; tag-based policy application; scalable governance; compliance automation; data catalog integration; consistent classification
 
 ## Quick Compliance Checklist
 - [ ] Required dependencies and context verified

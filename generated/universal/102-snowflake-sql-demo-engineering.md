@@ -1,5 +1,5 @@
 **Keywords:** SQL demos, demo engineering, learning SQL, per-schema setup, teardown, grid_setup.sql, customer_load.sql, inline documentation, progress indicators, rerunnable demos, Snowflake SQL, CREATE OR REPLACE, educational SQL, demo patterns, demo data, setup scripts, demo automation, learning examples
-**TokenBudget:** ~3850
+**TokenBudget:** ~4850
 **ContextTier:** High
 **Depends:** 100-snowflake-core
 
@@ -592,6 +592,175 @@ tasks:
 - Environment-agnostic patterns
 - CI/CD integration
 - Audit trail requirements
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Dropping Database or Shared Resources in Demo Files**
+```sql
+-- Bad: Demo file drops entire database!
+DROP DATABASE IF EXISTS DEMO_DB;
+CREATE DATABASE DEMO_DB;
+
+-- Cleanup section:
+DROP DATABASE DEMO_DB;  -- Destroys ALL schemas, not just demo schema!
+-- Accidentally drops production data if run in wrong environment!
+```
+**Problem:** Catastrophic data loss; affects other demos; production risk; not isolated; unprofessional; emergency recovery; reputation damage
+
+**Correct Pattern:**
+```sql
+-- Good: Drop only target schema, never database
+-- Setup section
+CREATE SCHEMA IF NOT EXISTS DEMO_DB.CUSTOMER_ANALYTICS;
+USE SCHEMA DEMO_DB.CUSTOMER_ANALYTICS;
+
+-- Demo code here...
+
+-- Cleanup section (at end of file)
+/*
+-- To clean up this demo:
+DROP SCHEMA IF EXISTS DEMO_DB.CUSTOMER_ANALYTICS CASCADE;
+*/
+-- Affects only this schema, other schemas untouched, safe!
+```
+**Benefits:** Schema isolation; no data loss; other demos unaffected; production-safe; professional; selective cleanup; reliable
+
+---
+
+**Anti-Pattern 2: Not Making Demo Files Idempotent**
+```sql
+-- Bad: Fails on second run
+CREATE SCHEMA customer_analytics;
+CREATE TABLE customers (id INT, name STRING);
+INSERT INTO customers VALUES (1, 'Alice'), (2, 'Bob');
+
+-- Second run: ERROR - Schema already exists!
+-- Third run: ERROR - Table already exists!
+-- Fourth run: Duplicate data inserted!
+```
+**Problem:** Not rerunnable; manual cleanup required; breaks demos; unprofessional; frustration; wasted time; poor user experience
+
+**Correct Pattern:**
+```sql
+-- Good: Idempotent operations
+CREATE SCHEMA IF NOT EXISTS customer_analytics;
+USE SCHEMA customer_analytics;
+
+CREATE TABLE IF NOT EXISTS customers (
+  id INT PRIMARY KEY,
+  name STRING,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP()
+);
+
+-- Idempotent insert: only insert if not exists
+MERGE INTO customers tgt
+USING (SELECT 1 AS id, 'Alice' AS name UNION ALL 
+       SELECT 2, 'Bob') src
+ON tgt.id = src.id
+WHEN NOT MATCHED THEN INSERT (id, name) VALUES (src.id, src.name);
+
+-- Can run multiple times without errors!
+```
+**Benefits:** Rerunnable; no manual cleanup; demo-friendly; professional; reliable; good UX; frustration-free
+
+---
+
+**Anti-Pattern 3: Missing Environment Variables for Portability**
+```sql
+-- Bad: Hardcoded database and schema names
+USE DATABASE PROD_DB;  -- Hardcoded!
+USE SCHEMA PUBLIC;
+
+CREATE TABLE PROD_DB.PUBLIC.demo_customers AS  -- Hardcoded!
+SELECT * FROM PROD_DB.PUBLIC.source_data;
+
+-- Can't run in DEV or TEST without manual edits!
+```
+**Problem:** Not portable; can't test in dev; manual edits required; error-prone; production risk; not CI/CD friendly; unprofessional
+
+**Correct Pattern:**
+```sql
+-- Good: Use Snowflake variables for environment portability
+/*!
+File: customer_analytics_demo.sql
+Purpose: Customer analytics demo showcasing aggregations and joins
+
+Environment Variables:
+  DATABASE: Target database (e.g., DEV_DB, TEST_DB, PROD_DB)
+  SCHEMA: Target schema (e.g., DEMO_CUSTOMER_ANALYTICS)
+
+Usage:
+  snowsql -D DATABASE=DEV_DB -D SCHEMA=DEMO_CUSTOMER_ANALYTICS -f customer_analytics_demo.sql
+*/
+
+-- Create schema using variables
+CREATE SCHEMA IF NOT EXISTS <%DATABASE%>.<%SCHEMA%>;
+USE SCHEMA <%DATABASE%>.<%SCHEMA%>;
+
+-- Create tables using variables
+CREATE TABLE IF NOT EXISTS <%DATABASE%>.<%SCHEMA%>.demo_customers AS
+SELECT * FROM <%DATABASE%>.PUBLIC.source_data;
+
+-- Works in DEV, TEST, PROD without code changes!
+```
+**Benefits:** Environment portable; testable in dev; no manual edits; error-free; production-safe; CI/CD friendly; professional
+
+---
+
+**Anti-Pattern 4: No Sample Output or Expected Results Documentation**
+```sql
+-- Bad: No sample output, users don't know what to expect
+SELECT 
+  customer_id,
+  COUNT(*) AS order_count,
+  SUM(amount) AS total_amount
+FROM orders
+GROUP BY customer_id
+ORDER BY total_amount DESC
+LIMIT 10;
+
+-- Output: ???
+-- User: "Is this correct? What should I see?"
+```
+**Problem:** No validation; unclear expectations; users unsure if demo works; hard to debug; poor documentation; unprofessional; confusion
+
+**Correct Pattern:**
+```sql
+-- Good: Document expected output
+-- Query: Top 10 customers by total spend
+SELECT 
+  customer_id,
+  COUNT(*) AS order_count,
+  SUM(amount) AS total_amount
+FROM orders
+GROUP BY customer_id
+ORDER BY total_amount DESC
+LIMIT 10;
+
+/*
+Expected Output (sample):
++-------------+-------------+--------------+
+| CUSTOMER_ID | ORDER_COUNT | TOTAL_AMOUNT |
++-------------+-------------+--------------+
+| C001        |          15 |      5234.50 |
+| C042        |           8 |      4890.25 |
+| C103        |          12 |      4567.80 |
+| ...         |         ... |          ... |
++-------------+-------------+--------------+
+
+Validation:
+- Should return exactly 10 rows
+- TOTAL_AMOUNT should be in descending order
+- ORDER_COUNT should be positive integers
+- No NULL values in any column
+
+If you see errors or different output:
+1. Verify orders table has data: SELECT COUNT(*) FROM orders;
+2. Check for NULL amounts: SELECT COUNT(*) FROM orders WHERE amount IS NULL;
+3. Review Query Profile for performance issues
+*/
+```
+**Benefits:** Clear expectations; easy validation; debuggable; documented; professional; good UX; confidence-building
 
 ## Quick Compliance Checklist
 

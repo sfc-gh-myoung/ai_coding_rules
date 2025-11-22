@@ -1,5 +1,5 @@
 **Keywords:** Snowflake, Data quality, DMF, data metric functions, data profiling, expectations, quality checks, data validation, NULL detection, uniqueness validation, freshness monitoring, anomaly detection, automated monitoring, event tables, create DMF, quality monitoring, data expectations, DMF setup, quality rules
-**TokenBudget:** ~2600
+**TokenBudget:** ~3400
 **ContextTier:** High
 **Depends:** 100-snowflake-core, 105-snowflake-cost-governance, 107-snowflake-security-governance, 600-data-governance-quality
 
@@ -13,14 +13,7 @@ Establish comprehensive best practices for Snowflake Data Quality Monitoring usi
 - **Type:** Agent Requested
 - **Scope:** Snowflake Data Quality Monitoring including system and custom DMFs, data profiling, expectations, scheduling, monitoring, and remediation workflows
 
-## Quick Start TL;DR (Essential Patterns Reference)
-
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
-
-Position at top provides practical efficiency benefits for both LLMs and human developers.
+## Quick Start TL;DR (Read First - 30 Seconds)
 
 **MANDATORY:**
 **Essential Patterns:**
@@ -259,6 +252,131 @@ ALTER TABLE TRANSACTIONS
 - Validate DMF results are logged to event table for monitoring
 - Test integration with dynamic tables or tasks for automated quality gates
 - Confirm alerting triggers when thresholds breached
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Using DMFs Without Defining Expectations**
+```sql
+-- Bad: DMF created but no expectations set
+CREATE DATA METRIC FUNCTION check_nulls()
+RETURNS FLOAT
+AS $$
+  SELECT COUNT_IF(important_column IS NULL)::FLOAT / COUNT(*)::FLOAT
+  FROM critical_table
+$$;
+
+ALTER TABLE critical_table ADD DATA METRIC FUNCTION check_nulls ON ();
+-- No expectation defined! DMF runs but never alerts on high null rates
+```
+**Problem:** No pass/fail criteria; metrics collected but not acted upon; silent quality degradation; no alerting; manual result checking required; defeats automation purpose
+
+**Correct Pattern:**
+```sql
+-- Good: DMF with clear expectation threshold
+CREATE DATA METRIC FUNCTION check_nulls()
+RETURNS FLOAT
+AS $$
+  SELECT COUNT_IF(important_column IS NULL)::FLOAT / COUNT(*)::FLOAT
+  FROM critical_table
+$$;
+
+ALTER TABLE critical_table 
+  ADD DATA METRIC FUNCTION check_nulls ON ()
+  EXPECT (check_nulls ON ()) < 0.05;  -- Alert if >5% nulls
+
+-- Set up alerting on expectation failures via event table
+```
+**Benefits:** Automated pass/fail evaluation; proactive alerting; clear quality thresholds; actionable results; enables quality gates; compliance-ready
+
+---
+
+**Anti-Pattern 2: Not Profiling Data Before Setting Thresholds**
+```sql
+-- Bad: Arbitrary expectation thresholds without baseline understanding
+ALTER TABLE sales_data
+  MODIFY DATA METRIC SCHEDULE '1 HOUR'
+  EXPECT (SNOWFLAKE.CORE.NULL_COUNT ON (discount_pct)) = 0;
+-- Expectation fails immediately because discount_pct is NULL for 30% of rows naturally!
+```
+**Problem:** False positive alerts; arbitrary thresholds; alert fatigue; lost trust in monitoring; production noise; unrealistic expectations; wasted investigation time
+
+**Correct Pattern:**
+```sql
+-- Good: Profile data first to understand baseline
+-- Step 1: Profile using Snowsight Data Profile or SQL
+SELECT 
+  COUNT(*) as total_rows,
+  COUNT_IF(discount_pct IS NULL) as null_count,
+  COUNT_IF(discount_pct IS NULL)::FLOAT / COUNT(*)::FLOAT as null_rate
+FROM sales_data;
+-- Result: null_rate = 0.32 (32% naturally NULL for non-discounted sales)
+
+-- Step 2: Set realistic expectation based on baseline
+ALTER TABLE sales_data
+  MODIFY DATA METRIC SCHEDULE '1 HOUR'
+  EXPECT (SNOWFLAKE.CORE.NULL_COUNT ON (discount_pct)) < 0.40;
+-- Alert only if null rate exceeds normal 32% by significant margin
+```
+**Benefits:** Realistic thresholds; fewer false positives; actionable alerts; baseline understanding; trust in monitoring; effective quality gates
+
+---
+
+**Anti-Pattern 3: Exceeding 10,000 DMF-Object Association Limit**
+```sql
+-- Bad: Associating same DMF to every table without prioritization
+-- [Loop through 15,000 tables and add same DMF to each]
+-- Hits 10,000 association limit and fails
+```
+**Problem:** Account-wide 10,000 association limit; deployment failures; unmonitored critical tables; wasted associations on low-value tables; serverless cost bloat; monitoring gaps
+
+**Correct Pattern:**
+```sql
+-- Good: Prioritize DMF associations for critical tables only
+-- Step 1: Identify critical tables with tagging
+ALTER TABLE critical_customer_data SET TAG criticality = 'HIGH';
+ALTER TABLE critical_financial_data SET TAG criticality = 'HIGH';
+-- [Tag 200 critical tables]
+
+-- Step 2: Apply DMFs only to high-criticality tables
+SELECT 
+  table_catalog,
+  table_schema,
+  table_name
+FROM SNOWFLAKE.ACCOUNT_USAGE.TAG_REFERENCES
+WHERE tag_name = 'CRITICALITY' AND tag_value = 'HIGH';
+
+-- Associate DMFs to ~200 critical tables, well under 10,000 limit
+-- Use system DMFs efficiently: FRESHNESS, NULL_COUNT, ROW_COUNT
+```
+**Benefits:** Stays under 10,000 limit; focuses on high-value tables; cost-effective monitoring; complete critical coverage; scalable approach; prioritized quality
+
+---
+
+**Anti-Pattern 4: Using Database Roles as DMF Table Owners**
+```sql
+-- Bad: Table owned by database role, can't execute DMFs
+CREATE DATABASE ROLE db_owner;
+GRANT OWNERSHIP ON TABLE customers TO DATABASE ROLE db_owner;
+
+-- Try to add DMF - FAILS
+ALTER TABLE customers ADD DATA METRIC FUNCTION check_freshness ON ();
+-- Error: Database roles cannot have global EXECUTE DATA METRIC FUNCTION privilege
+```
+**Problem:** Database roles can't hold global privileges; DMF execution fails; requires ownership transfer; deployment complications; cross-database DMF limitations
+
+**Correct Pattern:**
+```sql
+-- Good: Use account-scoped role as table owner for DMF operations
+CREATE ROLE data_quality_owner;  -- Account role, not database role
+GRANT EXECUTE DATA METRIC FUNCTION TO ROLE data_quality_owner;
+
+-- Transfer ownership to account role
+GRANT OWNERSHIP ON TABLE customers TO ROLE data_quality_owner;
+
+-- Now DMF operations succeed
+ALTER TABLE customers ADD DATA METRIC FUNCTION check_freshness ON ();
+```
+**Benefits:** DMF operations work; proper privilege model; account-scoped role inheritance; cross-database DMF support; clean ownership model; no deployment issues
 
 ## Quick Compliance Checklist
 

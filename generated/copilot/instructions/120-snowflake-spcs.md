@@ -9,7 +9,7 @@ appliesTo:
 <!-- Generated for GitHub Copilot repository instructions. See https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions -->
 
 **Keywords:** SPCS, Snowpark Container Services, containers, containerized apps, service deployment, compute pools, OCI images, image registry, health checks, GPU workloads, create service, compute pool, container deployment, SPCS setup, service spec, container troubleshooting, SPCS error, service logs
-**TokenBudget:** ~4150
+**TokenBudget:** ~5150
 **ContextTier:** High
 **Depends:** 100-snowflake-core
 
@@ -498,6 +498,235 @@ spec:
 - **Avoid:** Creating oversized pools for simple workloads; exposing internal services publicly.
 - **Avoid:** New connections per request (use pooling); processing large datasets in memory without streaming.
 - **Avoid:** Ignoring resource limits; using synchronous processing for long-running operations.
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Creating Oversized Compute Pools for Simple Workloads**
+```sql
+-- Bad: Huge pool for simple inference API
+CREATE COMPUTE POOL inference_pool
+MIN_NODES = 5        -- Always 5 nodes running!
+MAX_NODES = 10
+INSTANCE_FAMILY = GPU_NV_M  -- Expensive GPU instances!
+AUTO_SUSPEND_SECS = 3600;   -- Stays up 1 hour after last use
+
+-- For API that gets 10 requests per day!
+-- Burns thousands of dollars per month!
+```
+**Problem:** Massive cost overrun; wasted resources; poor utilization; budget disaster; unprofessional; financial irresponsibility
+
+**Correct Pattern:**
+```sql
+-- Good: Right-sized pool matching workload
+CREATE COMPUTE POOL inference_pool
+MIN_NODES = 1        -- Start small, scale if needed
+MAX_NODES = 3        -- Reasonable upper bound
+INSTANCE_FAMILY = CPU_X64_S  -- Start with CPU, upgrade if GPU needed
+AUTO_SUSPEND_SECS = 60;      -- Suspend after 1 minute idle
+
+-- Monitor usage and scale up only if needed
+-- Check metrics:
+SELECT 
+  pool_name,
+  active_nodes,
+  idle_nodes,
+  AVG(cpu_usage_percent) as avg_cpu,
+  MAX(cpu_usage_percent) as max_cpu
+FROM SNOWFLAKE.ACCOUNT_USAGE.COMPUTE_POOL_METRICS
+WHERE pool_name = 'INFERENCE_POOL'
+  AND start_time >= DATEADD('day', -7, CURRENT_TIMESTAMP())
+GROUP BY pool_name, active_nodes, idle_nodes;
+
+-- Scale up only if consistently hitting max capacity
+```
+**Benefits:** Cost-effective; right-sized; scalable; monitored; data-driven scaling; professional; financially responsible
+
+---
+
+**Anti-Pattern 2: Exposing Internal Services Publicly**
+```yaml
+# Bad: spec.yaml exposes internal service to internet
+spec:
+  containers:
+  - name: internal-api
+    image: /my-repo/internal-api:latest
+    env:
+      DATABASE_PASSWORD: PLACEHOLDER_PASSWORD  # Secrets in plain text!
+    endpoints:
+    - name: api
+      port: 8080
+      public: true  # Exposed to internet!
+      
+# Anyone on internet can access internal API!
+# Credentials exposed in plain text!
+```
+**Problem:** Security breach; exposed credentials; unauthorized access; data leak; compliance violation; reputation damage; potential data theft
+
+**Correct Pattern:**
+```yaml
+# Good: Internal endpoints, externalize secrets
+spec:
+  containers:
+  - name: internal-api
+    image: /my-repo/internal-api:latest
+    env:
+      DATABASE_PASSWORD:
+        secretKeyRef: db-credentials  # Reference secret, not plain text
+    endpoints:
+    - name: api
+      port: 8080
+      public: false  # Internal only!
+      
+# Create secret separately
+# SNOW SQL> CREATE SECRET db_credentials TYPE = GENERIC_STRING SECRET_STRING = 'PLACEHOLDER_PASSWORD';
+
+# If external access needed, use Snowflake authentication:
+spec:
+  containers:
+  - name: public-api
+    image: /my-repo/public-api:latest
+    endpoints:
+    - name: api
+      port: 8080
+      public: true
+      authentication:
+        type: SNOWFLAKE_JWT  # Require Snowflake auth!
+```
+**Benefits:** Security hardened; credentials protected; authentication required; internal services isolated; compliance-friendly; no unauthorized access
+
+---
+
+**Anti-Pattern 3: Creating New Database Connections Per Request**
+```python
+# Bad: New connection per API request
+from fastapi import FastAPI
+import snowflake.connector
+
+app = FastAPI()
+
+@app.get("/customers/{customer_id}")
+def get_customer(customer_id: int):
+    # New connection every request!
+    conn = snowflake.connector.connect(
+        connection_name="myconn"
+    )
+    cursor = conn.cursor()
+    cursor.execute(f"SELECT * FROM customers WHERE id = {customer_id}")
+    result = cursor.fetchone()
+    conn.close()  # Close immediately
+    
+    return result
+
+# 1000 requests = 1000 connections = slow, resource exhaustion!
+```
+**Problem:** Connection overhead; slow responses; resource exhaustion; connection pool limits; poor scalability; unprofessional; bad performance
+
+**Correct Pattern:**
+```python
+# Good: Connection pooling and reuse
+from fastapi import FastAPI
+import snowflake.connector
+from snowflake.connector import pooling
+
+app = FastAPI()
+
+# Create connection pool at startup
+connection_pool = pooling.SnowflakeConnectionPool(
+    pool_size=10,
+    connection_name="myconn"
+)
+
+@app.get("/customers/{customer_id}")
+def get_customer(customer_id: int):
+    # Borrow connection from pool
+    conn = connection_pool.getconn()
+    
+    try:
+        cursor = conn.cursor()
+        # Use parameterized query (prevents SQL injection)
+        cursor.execute("SELECT * FROM customers WHERE id = %s", (customer_id,))
+        result = cursor.fetchone()
+        return result
+    finally:
+        # Return connection to pool (don't close)
+        connection_pool.putconn(conn)
+
+# Reuses connections, fast, scalable, professional!
+
+@app.on_event("shutdown")
+def shutdown():
+    connection_pool.close()  # Clean up pool on shutdown
+```
+**Benefits:** Fast responses; connection reuse; scalable; resource-efficient; professional; better performance; SQL injection prevention
+
+---
+
+**Anti-Pattern 4: Not Setting Resource Limits, Causing OOM**
+```yaml
+# Bad: No resource limits specified
+spec:
+  containers:
+  - name: data-processor
+    image: /my-repo/processor:latest
+    # No resources specified!
+    
+# Python code processes large datasets in memory:
+import pandas as pd
+
+def process_data():
+    df = pd.read_sql("SELECT * FROM huge_table", conn)  # Loads 10GB into memory!
+    df_transformed = df.apply(expensive_function)
+    return df_transformed
+
+# Container OOM killed, service crashes, users see errors!
+```
+**Problem:** OOM crashes; service unavailability; user errors; unpredictable behavior; debugging nightmare; unprofessional; poor reliability
+
+**Correct Pattern:**
+```yaml
+# Good: Explicit resource limits and streaming processing
+spec:
+  containers:
+  - name: data-processor
+    image: /my-repo/processor:latest
+    resources:
+      requests:
+        memory: 2Gi
+        cpu: 1000m
+      limits:
+        memory: 4Gi
+        cpu: 2000m
+```
+
+```python
+# Python: Stream data in chunks, don't load all into memory
+import pandas as pd
+
+def process_data_streaming():
+    chunk_size = 10000  # Process 10K rows at a time
+    
+    # Stream results in chunks
+    for chunk in pd.read_sql(
+        "SELECT * FROM huge_table",
+        conn,
+        chunksize=chunk_size
+    ):
+        # Process chunk
+        chunk_transformed = chunk.apply(expensive_function)
+        
+        # Write chunk to output (don't accumulate in memory)
+        chunk_transformed.to_sql(
+            'output_table',
+            conn,
+            if_exists='append',
+            index=False
+        )
+    
+    return "Processing complete"
+
+# Memory usage stays constant, no OOM, reliable!
+```
+**Benefits:** No OOM crashes; predictable resource usage; reliable service; professional; scalable; memory-efficient; good performance
 
 ## Quick Compliance Checklist
 - [ ] Required dependencies and context verified

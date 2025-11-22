@@ -1,1 +1,1 @@
-# Tests for AI Coding Rules
+"""Tests package for AI coding rules validation."""

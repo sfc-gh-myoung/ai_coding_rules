@@ -3,7 +3,7 @@
 **AppliesTo:** `sql/operations/**/*.sql`
 **AutoAttach:** false
 **Keywords:** SQL templates, parameterization, CI/CD, automation, production SQL, idempotent, MERGE, operations, multi-environment, infrastructure as code, Snowflake variables, production-safe, upsert, SQL automation, deployment scripts, SQL pipeline, config management, environment variables
-**TokenBudget:** ~3150
+**TokenBudget:** ~4050
 **ContextTier:** High
 **Version:** 2.1
 **LastUpdated:** 2025-11-06
@@ -530,6 +530,168 @@ SELECT
     MAX(METADATA$ROW_ID) AS max_row_id
 FROM <%DATABASE%>.<%SCHEMA%>.SCADA_DATA;
 ```
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Using CREATE OR REPLACE for Tables in Automation**
+```sql
+-- Bad: Drops and recreates table, loses all data!
+CREATE OR REPLACE TABLE <%DATABASE%>.<%SCHEMA%>.customers AS
+SELECT * FROM raw_customers WHERE is_active = TRUE;
+-- Next run: All data lost, recreated from scratch!
+```
+**Problem:** Data loss on every run; not incremental; breaks downstream dependencies; table permissions reset; emergency data recovery; production outage
+
+**Correct Pattern:**
+```sql
+-- Good: Use CREATE TABLE IF NOT EXISTS + MERGE for incremental updates
+CREATE TABLE IF NOT EXISTS <%DATABASE%>.<%SCHEMA%>.customers (
+  customer_id NUMBER PRIMARY KEY,
+  name STRING,
+  email STRING,
+  created_at TIMESTAMP,
+  updated_at TIMESTAMP
+);
+
+MERGE INTO <%DATABASE%>.<%SCHEMA%>.customers tgt
+USING (SELECT * FROM raw_customers WHERE is_active = TRUE) src
+ON tgt.customer_id = src.customer_id
+WHEN MATCHED THEN 
+  UPDATE SET 
+    name = src.name,
+    email = src.email,
+    updated_at = CURRENT_TIMESTAMP()
+WHEN NOT MATCHED THEN
+  INSERT (customer_id, name, email, created_at, updated_at)
+  VALUES (src.customer_id, src.name, src.email, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP());
+```
+**Benefits:** No data loss; incremental updates; idempotent; preserves permissions; production-safe; no outages; reliable automation
+
+---
+
+**Anti-Pattern 2: Hardcoding Database/Schema Names Instead of Variables**
+```sql
+-- Bad: Hardcoded names, can't reuse across environments
+CREATE TABLE PROD_DB.PUBLIC.sales_summary AS
+SELECT 
+  DATE_TRUNC('day', order_date) as day,
+  SUM(amount) as total_sales
+FROM PROD_DB.PUBLIC.orders
+GROUP BY day;
+-- Can't deploy to DEV or TEST! Manual find/replace required!
+```
+**Problem:** Not portable across environments; manual modifications required; error-prone deployment; can't test in dev; production-only scripts; breaks CI/CD
+
+**Correct Pattern:**
+```sql
+-- Good: Use Snowflake variables for portability
+/*!
+Parameters:
+  DATABASE: Target database (e.g., PROD_DB, DEV_DB, TEST_DB)
+  SCHEMA: Target schema (e.g., PUBLIC, ANALYTICS)
+
+Usage:
+  snowsql -D DATABASE=DEV_DB -D SCHEMA=PUBLIC -f sales_summary.sql
+*/
+
+CREATE TABLE IF NOT EXISTS <%DATABASE%>.<%SCHEMA%>.sales_summary (
+  day DATE,
+  total_sales NUMBER(38,2)
+);
+
+INSERT INTO <%DATABASE%>.<%SCHEMA%>.sales_summary
+SELECT 
+  DATE_TRUNC('day', order_date) as day,
+  SUM(amount) as total_sales
+FROM <%DATABASE%>.<%SCHEMA%>.orders
+WHERE DATE_TRUNC('day', order_date) NOT IN (SELECT day FROM <%DATABASE%>.<%SCHEMA%>.sales_summary)
+GROUP BY day;
+```
+**Benefits:** Environment-portable; testable in dev; CI/CD-friendly; no manual edits; reliable deployment; professional automation; multi-environment support
+
+---
+
+**Anti-Pattern 3: Missing Documentation Header in SQL Templates**
+```sql
+-- Bad: No header, unclear purpose and usage
+SELECT * FROM customers WHERE region = '<%REGION%>';
+-- What is REGION? What are valid values? How to run this?
+```
+**Problem:** Unclear purpose; unknown parameters; no usage examples; difficult maintenance; knowledge silos; onboarding friction; support burden
+
+**Correct Pattern:**
+```sql
+-- Good: Comprehensive header documentation
+/*!
+Script: regional_customer_report.sql
+Purpose: Generate customer report filtered by region for monthly analysis
+Author: data-engineering-team
+Created: 2024-11-15
+Last Modified: 2024-11-20
+
+Parameters:
+  REGION: Geographic region code (required)
+    Valid values: 'NORTH', 'SOUTH', 'EAST', 'WEST', 'CENTRAL'
+    Example: REGION=WEST
+
+Usage:
+  Development:
+    snowsql -D REGION=WEST -f regional_customer_report.sql
+  
+  Production (CI/CD):
+    snow sql -f regional_customer_report.sql --variable REGION=EAST
+
+Dependencies:
+  - Source table: RAW_DB.PUBLIC.CUSTOMERS must exist
+  - Requires SELECT on RAW_DB.PUBLIC.CUSTOMERS
+
+Idempotency:
+  - Safe to run multiple times
+  - Uses CREATE TABLE IF NOT EXISTS
+  - Incremental MERGE prevents duplicates
+*/
+
+SELECT * FROM customers WHERE region = '<%REGION%>';
+```
+**Benefits:** Clear purpose; documented parameters; usage examples; easy maintenance; self-documenting; onboarding-friendly; reduced support; professional
+
+---
+
+**Anti-Pattern 4: Not Making SQL Scripts Idempotent**
+```sql
+-- Bad: Fails on second run
+CREATE TABLE analytics_summary AS
+SELECT * FROM raw_data;
+
+INSERT INTO metrics 
+SELECT COUNT(*) FROM analytics_summary;
+-- Second run: ERROR - Table already exists!
+```
+**Problem:** Not repeatable; fails on re-run; manual cleanup required; breaks automation; CI/CD failures; deployment fragility; unprofessional
+
+**Correct Pattern:**
+```sql
+-- Good: Idempotent operations
+CREATE TABLE IF NOT EXISTS analytics_summary (
+  -- schema definition
+);
+
+-- Clear existing data for this run's date range
+DELETE FROM analytics_summary 
+WHERE report_date = CURRENT_DATE();
+
+-- Insert today's data
+INSERT INTO analytics_summary
+SELECT * FROM raw_data WHERE DATE(created_at) = CURRENT_DATE();
+
+-- Upsert metrics (idempotent)
+MERGE INTO metrics m
+USING (SELECT COUNT(*) as cnt FROM analytics_summary WHERE report_date = CURRENT_DATE()) s
+ON m.report_date = CURRENT_DATE()
+WHEN MATCHED THEN UPDATE SET row_count = s.cnt
+WHEN NOT MATCHED THEN INSERT (report_date, row_count) VALUES (CURRENT_DATE(), s.cnt);
+```
+**Benefits:** Repeatable execution; safe re-runs; no manual cleanup; automation-friendly; CI/CD reliable; production-ready; professional deployment
 
 ## Quick Compliance Checklist
 

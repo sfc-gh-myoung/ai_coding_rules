@@ -1,7 +1,7 @@
 <!-- Generated for Cline rules. See https://docs.cline.bot/features/cline-rules -->
 
 **Keywords:** Data quality, custom DMFs, expectations, business rules, data validation, quality assertions, custom metrics, validation functions, create custom DMF, custom quality checks, business rule validation, custom expectations, quality functions, UDF for quality, validation logic, custom quality metrics, quality rules, custom validation
-**TokenBudget:** ~1800
+**TokenBudget:** ~2500
 **ContextTier:** Standard
 **Depends:** 100-snowflake-core, 124-snowflake-data-quality-core
 
@@ -22,14 +22,8 @@ Provide patterns for creating custom Data Metric Functions (DMFs) and expectatio
 - **Output Format:** Custom DMF functions, expectation configurations
 - **Validation Steps:** DMF returns expected metrics; expectations trigger correctly
 
-## Quick Start TL;DR (Essential Patterns Reference)
+## Quick Start TL;DR (Read First - 30 Seconds)
 
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
-
-Position at top provides practical efficiency benefits for both LLMs and human developers.
 **MANDATORY:**
 **Essential Patterns:**
 - **Create custom DMFs for business rules** - Extend system DMFs with domain logic
@@ -201,6 +195,156 @@ EXPECT (SNOWFLAKE.CORE.DUPLICATE_COUNT ON order_id) = 0
 - Test Python UDF DMFs if using complex validation logic
 - Schedule custom DMF and check execution history
 - Validate integration with alerting and monitoring systems
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Custom DMF Doesn't Return FLOAT Type**
+```sql
+-- Bad: Returns BOOLEAN instead of FLOAT
+CREATE DATA METRIC FUNCTION validate_revenue()
+RETURNS BOOLEAN
+AS $$
+  SELECT SUM(revenue) > 1000000
+  FROM sales_fact
+$$;
+-- Error: DMF must return FLOAT, not BOOLEAN
+```
+**Problem:** Type mismatch error; DMF creation fails; can't use with expectations; Snowflake requires FLOAT return type for all DMFs; blocks deployment
+
+**Correct Pattern:**
+```sql
+-- Good: Convert BOOLEAN to FLOAT
+CREATE DATA METRIC FUNCTION validate_revenue()
+RETURNS FLOAT
+AS $$
+  SELECT (SUM(revenue) > 1000000)::FLOAT
+  FROM sales_fact
+$$;
+-- Returns 1.0 (true) or 0.0 (false) as FLOAT
+```
+**Benefits:** Type-safe DMF; works with expectations; follows Snowflake DMF contract; deployment succeeds; can use EXPECT = 1.0 for validation
+
+---
+
+**Anti-Pattern 2: Not Handling Edge Cases in Custom DMF Logic**
+```sql
+-- Bad: Division by zero on empty table
+CREATE DATA METRIC FUNCTION completion_rate()
+RETURNS FLOAT
+AS $$
+  SELECT 
+    COUNT_IF(status = 'complete')::FLOAT / COUNT(*)::FLOAT
+  FROM orders
+$$;
+-- Returns NULL or error when orders table is empty!
+```
+**Problem:** NULL results break expectations; division by zero errors; empty table handling missing; DMF failures on edge cases; unreliable monitoring
+
+**Correct Pattern:**
+```sql
+-- Good: Handle edge cases explicitly
+CREATE DATA METRIC FUNCTION completion_rate()
+RETURNS FLOAT
+AS $$
+  SELECT 
+    CASE 
+      WHEN COUNT(*) = 0 THEN 0.0  -- Empty table = 0% completion
+      ELSE COUNT_IF(status = 'complete')::FLOAT / COUNT(*)::FLOAT
+    END
+  FROM orders
+$$;
+```
+**Benefits:** Robust DMF logic; handles empty tables; no NULL results; predictable behavior; reliable expectations; production-ready validation
+
+---
+
+**Anti-Pattern 3: Overly Complex Custom DMF Logic**
+```sql
+-- Bad: 50-line SQL with 5 CTEs and multiple joins in DMF
+CREATE DATA METRIC FUNCTION complex_validation()
+RETURNS FLOAT
+AS $$
+  WITH cte1 AS (...),
+       cte2 AS (...),
+       cte3 AS (...),
+       cte4 AS (...),
+       cte5 AS (...)
+  SELECT [complex 30-line calculation]
+  FROM cte5
+  JOIN cte4 ON ...
+  -- [Additional complexity]
+$$;
+```
+**Problem:** Slow DMF execution; high serverless costs; difficult to debug; unclear validation logic; maintenance nightmare; performance bottleneck
+
+**Correct Pattern:**
+```sql
+-- Good: Simple, focused DMF; complex logic in materialized view
+-- Step 1: Create materialized view with complex logic
+CREATE MATERIALIZED VIEW validation_metrics AS
+WITH cte1 AS (...),
+     cte2 AS (...)
+SELECT 
+  metric_name,
+  metric_value
+FROM cte2;
+
+-- Step 2: Simple DMF reads from materialized view
+CREATE DATA METRIC FUNCTION check_threshold()
+RETURNS FLOAT
+AS $$
+  SELECT metric_value
+  FROM validation_metrics
+  WHERE metric_name = 'completion_rate'
+$$;
+```
+**Benefits:** Fast DMF execution; lower serverless costs; clear separation; debuggable logic; reusable metrics view; better performance; maintainable validation
+
+---
+
+**Anti-Pattern 4: Not Testing Custom DMF Before Production Deployment**
+```sql
+-- Bad: Deploy custom DMF directly to production without testing
+CREATE DATA METRIC FUNCTION untested_validation()
+RETURNS FLOAT
+AS $$
+  SELECT [complex logic]
+  FROM production_table
+$$;
+
+ALTER TABLE critical_prod_table 
+  ADD DATA METRIC FUNCTION untested_validation ON ();
+-- Discover bugs in production when DMF runs!
+```
+**Problem:** Production bugs discovered post-deployment; incorrect expectations trigger false alerts; alert fatigue; lost credibility; emergency fixes required; user impact
+
+**Correct Pattern:**
+```sql
+-- Good: Test custom DMF in dev before production
+-- Step 1: Create DMF in dev environment
+CREATE DATA METRIC FUNCTION test_validation()
+RETURNS FLOAT
+AS $$
+  SELECT [complex logic]
+  FROM dev_table
+$$;
+
+-- Step 2: Test with sample data
+SELECT test_validation();
+-- Verify: Returns expected FLOAT value
+
+-- Step 3: Test with edge cases
+-- Empty table, NULL values, boundary conditions
+
+-- Step 4: Only after validation, deploy to production
+CREATE DATA METRIC FUNCTION prod_validation()
+RETURNS FLOAT
+AS $$
+  SELECT [tested logic]
+  FROM production_table
+$$;
+```
+**Benefits:** Bugs caught in dev; validated logic; confidence in production; realistic expectations; no false alerts; professional deployment; reduced risk
 
 ## Quick Compliance Checklist
 

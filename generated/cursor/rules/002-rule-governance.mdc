@@ -1564,6 +1564,160 @@ Use this template when creating new rule files. Copy the entire template below a
 > - LLM-generated outputs must be emoji-free unless user explicitly requests them
 ```
 
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Creating Rules Without Clear Keywords for Discovery**
+```markdown
+<!-- Bad: Minimal or generic keywords -->
+**Keywords:** snowflake, sql, database
+
+<!-- Sparse keywords prevent discovery -->
+<!-- User searches for "semantic model" or "cortex analyst" won't find this rule -->
+```
+**Problem:** Rule not discoverable; users can't find relevant guidance; keyword search fails; semantic matching ineffective; wasted effort creating unused rules
+
+**Correct Pattern:**
+```markdown
+<!-- Good: 15-20 specific, semantic keywords -->
+**Keywords:** snowflake cortex analyst, semantic model, semantic view, text-to-sql, natural language queries, YAML semantic model, dimension definitions, metric definitions, fact tables, time series dimensions, verified queries, VQR, table mapping, column mapping, synonym definitions, cortex analyst API, SNOWFLAKE.CORTEX.COMPLETE
+
+<!-- Rich keywords enable discovery through multiple search paths -->
+<!-- Covers: feature names, use cases, file formats, API names, domain terms -->
+```
+**Benefits:** High discoverability; multiple search paths; semantic matching works; users find rules easily; rules actually used; better ROI on rule creation
+
+---
+
+**Anti-Pattern 2: Task Requirements Buried Deep in File**
+```markdown
+<!-- Bad: Requirements specification after 500 lines of content -->
+## Purpose
+[50 lines]
+
+## Key Principles
+[200 lines]
+
+## 1. Detailed Implementation
+[300 lines]
+
+## 2. Advanced Techniques
+[200 lines]
+
+## Task Requirements  <!-- Line 750! Too late! -->
+- Inputs: ...
+```
+**Problem:** AI doesn't see requirements early; doesn't understand constraints; produces wrong outputs; misses validation steps; violates requirements
+
+**Correct Pattern:**
+```markdown
+<!-- Good: Requirements before line 100, ideally before line 50 -->
+## Purpose
+[Purpose statement]
+
+## Rule Type and Scope
+[Scope definition]
+
+## Task Requirements  <!-- Line 22! Early! -->
+- **Inputs/Prereqs:** What AI needs before starting
+- **Allowed Tools:** Specific tools AI can use
+- **Forbidden Tools:** Tools AI must not use
+- **Required Steps:** Mandatory workflow steps
+- **Output Format:** Exact expected format
+- **Validation Steps:** Checks AI must run
+
+## Key Principles
+[Content continues...]
+```
+**Benefits:** AI sees contract early; understands requirements first; produces correct outputs; follows validation steps; respects constraints; professional workflow
+
+---
+
+**Anti-Pattern 3: Missing Quick Start TL;DR Section**
+```markdown
+<!-- Bad: No TL;DR, jumps straight to detailed content -->
+## Purpose
+This rule covers Snowflake semantic views...
+
+## Key Principles
+[50 lines of detailed principles]
+
+## 1. Creating Semantic Views
+[300 lines of comprehensive documentation]
+
+<!-- AI reads 500 lines to understand basics -->
+<!-- Wastes tokens, misses critical patterns -->
+```
+**Problem:** Token waste reading entire file; misses critical patterns; slow understanding; doesn't see essential patterns; inefficient; poor user experience
+
+**Correct Pattern:**
+```markdown
+<!-- Good: TL;DR after Key Principles with 3-4 essential patterns -->
+## Key Principles
+[Concise principles]
+
+## Quick Start TL;DR (Read First - 30 Seconds)
+
+**Essential Patterns:**
+1. **Required clause order:** TABLES → FACTS → DIMENSIONS → METRICS
+2. **Simple DIMENSIONS only:** Use simple column references, NO CAST/DATE_TRUNC
+3. **COMMENT syntax:** Must use `COMMENT = 'text'` (with equals sign)
+4. **Validation first:** Always test DDL in DEV before PROD deployment
+
+**Common Mistakes to Avoid:**
+- Using complex transformations in DIMENSIONS block
+- Missing equals sign in COMMENT syntax
+- Wrong clause ordering
+- Deploying untested DDL to production
+
+## 1. Creating Semantic Views
+[Detailed content continues...]
+```
+**Benefits:** Fast understanding (30 seconds); sees critical patterns immediately; token-efficient; better user experience; AI produces correct code faster; professional documentation
+
+---
+
+**Anti-Pattern 4: No Anti-Patterns Section Showing Common Mistakes**
+```markdown
+<!-- Bad: Only shows correct patterns, no anti-patterns -->
+## How to Write SQL Queries
+
+**Correct Approach:**
+```sql
+SELECT customer_id, name, email
+FROM customers
+WHERE created_at >= '2024-01-01';
+```
+
+<!-- Doesn't show what NOT to do -->
+<!-- AI doesn't learn from mistakes -->
+```
+**Problem:** AI doesn't see common mistakes; repeats well-known anti-patterns; no "Bad vs Good" comparison; learning incomplete; frustration; repeated errors; unprofessional outputs
+
+**Correct Pattern:**
+```markdown
+<!-- Good: Show both Bad and Good with explanations -->
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Using SELECT * Instead of Explicit Columns**
+```sql
+-- Bad: SELECT * wastes I/O
+SELECT * FROM large_table WHERE order_date >= '2024-01-01';
+-- Scans all 50 columns even if you need only 3!
+```
+**Problem:** Excessive I/O; wasted credits; slow queries; partition pruning disabled
+
+**Correct Pattern:**
+```sql
+-- Good: Explicit column selection
+SELECT order_id, customer_id, order_date, total_amount
+FROM large_table
+WHERE order_date >= '2024-01-01';
+-- Scans only required columns, much faster
+```
+**Benefits:** Minimal I/O; faster queries; lower credits; efficient pruning; better performance
+```
+**Benefits:** AI learns from mistakes; sees Bad vs Good comparison; understands WHY patterns matter; avoids common pitfalls; produces professional code; fewer iterations
+
 ## Quick Compliance Checklist
 
 ### Universal Compatibility Standards (Section 11)

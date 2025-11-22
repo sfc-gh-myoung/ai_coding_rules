@@ -1,7 +1,7 @@
 <!-- Generated for Cline rules. See https://docs.cline.bot/features/cline-rules -->
 
 **Keywords:** Snowflake, SQL, CTE, performance, cost optimization, query profile, warehouse, security, governance, stages, COPY INTO, streams, tasks, DDL fundamentals, object naming, Snowflake best practices, snowflake setup, core patterns, warehouse creation
-**TokenBudget:** ~1800
+**TokenBudget:** ~2850
 **ContextTier:** High
 **Depends:** 000-global-core
 
@@ -39,7 +39,7 @@ Establish comprehensive foundational practices for all Snowflake development wor
 - Use Streams + Tasks for incremental pipelines; avoid unnecessary full reloads.
 - Validate with the provided checklist before shipping.
 
-## Quick Start TL;DR (Essential Patterns Reference)
+## Quick Start TL;DR (Read First - 30 Seconds)
 
 **Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
 - **Token efficiency:** Self-sufficient guidance for common use cases
@@ -100,6 +100,165 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - Verify no `SELECT *` and no `DISTINCT`-based deduplication.
 - Confirm VARIANT fields are parsed once in a CTE.
 - For pipelines, demonstrate Streams + Tasks with idempotency and late-arrival handling.
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Using SELECT * Instead of Explicit Columns**
+```sql
+-- Bad: SELECT * wastes I/O and parsing
+SELECT *
+FROM large_table
+WHERE order_date >= '2024-01-01';
+-- Scans all 50 columns, even if you need only 3!
+```
+**Problem:** Excessive I/O; wasted credits; slow queries; partition pruning disabled; unnecessary data transfer; poor performance; high costs
+
+**Correct Pattern:**
+```sql
+-- Good: Explicit column selection
+SELECT 
+  order_id,
+  customer_id,
+  order_date,
+  total_amount
+FROM large_table
+WHERE order_date >= '2024-01-01';
+-- Scans only required columns, much faster and cheaper
+```
+**Benefits:** Minimal I/O; faster queries; lower credits; efficient pruning; reduced data transfer; better performance; cost-effective
+
+---
+
+**Anti-Pattern 2: Parsing VARIANT Fields Multiple Times**
+```sql
+-- Bad: Parse VARIANT in every clause
+SELECT 
+  raw_json:customer:id::string AS customer_id,
+  raw_json:customer:name::string AS customer_name,
+  SUM(raw_json:amount::number) AS total_amount
+FROM events
+WHERE raw_json:event_type::string = 'purchase'
+  AND raw_json:timestamp::timestamp_ntz >= '2024-01-01'
+GROUP BY raw_json:customer:id::string, raw_json:customer:name::string;
+-- Parses raw_json 7 times! Extremely expensive!
+```
+**Problem:** Repeated parsing overhead; high CPU usage; slow queries; wasted credits; inefficient; poor performance; unprofessional
+
+**Correct Pattern:**
+```sql
+-- Good: Parse VARIANT once in CTE
+WITH parsed AS (
+  SELECT 
+    raw_json:customer:id::string AS customer_id,
+    raw_json:customer:name::string AS customer_name,
+    raw_json:amount::number AS amount,
+    raw_json:event_type::string AS event_type,
+    raw_json:timestamp::timestamp_ntz AS event_timestamp
+  FROM events
+  WHERE raw_json:timestamp::timestamp_ntz >= '2024-01-01'
+)
+SELECT 
+  customer_id,
+  customer_name,
+  SUM(amount) AS total_amount
+FROM parsed
+WHERE event_type = 'purchase'
+GROUP BY customer_id, customer_name;
+-- Parses each field once, reuses parsed values, much faster!
+```
+**Benefits:** Parse once; reuse values; lower CPU; faster queries; fewer credits; efficient; better performance; professional
+
+---
+
+**Anti-Pattern 3: Not Using Streams and Tasks for Incremental Processing**
+```sql
+-- Bad: Full table scan every hour
+CREATE TASK hourly_aggregation
+WAREHOUSE = compute_wh
+SCHEDULE = '60 MINUTE'
+AS
+DELETE FROM summary_table;  -- Drop all data!
+
+INSERT INTO summary_table
+SELECT 
+  customer_id,
+  DATE_TRUNC('hour', order_timestamp) AS hour,
+  SUM(amount) AS total_amount
+FROM orders  -- Full scan of millions of rows every hour!
+GROUP BY customer_id, hour;
+-- Scans entire table, deletes and recreates everything, very expensive!
+```
+**Problem:** Full table scans; unnecessary processing; high credits; slow updates; DELETE/INSERT overhead; not scalable; unprofessional; expensive
+
+**Correct Pattern:**
+```sql
+-- Good: Incremental processing with Streams and Tasks
+-- Step 1: Create Stream to capture changes
+CREATE STREAM orders_stream ON TABLE orders;
+
+-- Step 2: Create Task for incremental aggregation
+CREATE TASK incremental_aggregation
+WAREHOUSE = compute_wh
+SCHEDULE = '60 MINUTE'
+WHEN SYSTEM$STREAM_HAS_DATA('orders_stream')  -- Only runs if new data
+AS
+MERGE INTO summary_table tgt
+USING (
+  SELECT 
+    customer_id,
+    DATE_TRUNC('hour', order_timestamp) AS hour,
+    SUM(amount) AS total_amount
+  FROM orders_stream  -- Only new/changed rows!
+  WHERE METADATA$ACTION = 'INSERT'
+  GROUP BY customer_id, hour
+) src
+ON tgt.customer_id = src.customer_id AND tgt.hour = src.hour
+WHEN MATCHED THEN UPDATE SET total_amount = tgt.total_amount + src.total_amount
+WHEN NOT MATCHED THEN INSERT (customer_id, hour, total_amount) 
+  VALUES (src.customer_id, src.hour, src.total_amount);
+
+ALTER TASK incremental_aggregation RESUME;
+-- Processes only new rows, MERGE updates incrementally, extremely efficient!
+```
+**Benefits:** Incremental processing; minimal scans; low credits; fast updates; scalable; efficient MERGE; professional; cost-effective
+
+---
+
+**Anti-Pattern 4: Using DISTINCT for Deduplication Instead of QUALIFY**
+```sql
+-- Bad: DISTINCT for deduplication
+SELECT DISTINCT
+  customer_id,
+  order_id,
+  order_timestamp,
+  amount
+FROM (
+  SELECT 
+    customer_id,
+    order_id,
+    order_timestamp,
+    amount,
+    ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY updated_at DESC) AS rn
+  FROM orders_with_duplicates
+)
+WHERE rn = 1;
+-- DISTINCT on entire result set, inefficient, extra processing!
+```
+**Problem:** Unnecessary DISTINCT; extra sorting; wasted memory; inefficient; unclear intent; poor performance; unprofessional
+
+**Correct Pattern:**
+```sql
+-- Good: Use QUALIFY for window function filtering
+SELECT 
+  customer_id,
+  order_id,
+  order_timestamp,
+  amount
+FROM orders_with_duplicates
+QUALIFY ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY updated_at DESC) = 1;
+-- Single pass, efficient filtering, clear intent, optimal performance!
+```
+**Benefits:** Single pass; no extra sorting; minimal memory; efficient; clear deduplication; better performance; professional; Snowflake-native
 
 ## Quick Compliance Checklist
 - [ ] All queries use explicit column selection (no SELECT *)

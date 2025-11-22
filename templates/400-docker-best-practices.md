@@ -3,7 +3,7 @@
 **AppliesTo:** `**/Dockerfile`, `**/.dockerignore`, `**/docker-compose.yml`, `**/docker-compose.*.yml`
 **AutoAttach:** false
 **Keywords:** Docker, Dockerfile, containers, multi-stage builds, layer caching, image optimization, docker-compose, BuildKit, distroless, security scanning, SBOM, non-root, healthcheck
-**TokenBudget:** ~1950
+**TokenBudget:** ~2400
 **ContextTier:** Medium
 **Version:** 1.2
 **LastUpdated:** 2025-11-07
@@ -255,8 +255,69 @@ id_dsa
 
 ## 8. CI/CD & Testing
 - **Rule:** Lint Dockerfile with Hadolint; scan image on each build.
-- **Rule:** Cache layers in CI with BuildKit; enable `--provenance` and `--sbom`.
+- **Rule:** Cache layers in BuildKit with `--provenance` and `--sbom`.
 - **Consider:** Smoke tests using Testcontainers or docker run in CI.
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Running Containers as Root**
+```dockerfile
+# Bad: No USER specified, runs as root (UID 0)
+FROM python:3.11-slim
+COPY app.py /app/
+CMD ["python", "/app/app.py"]
+```
+**Problem:** Security risk - compromised container = root access to host resources; violates least-privilege principle.
+
+**Correct Pattern:**
+```dockerfile
+# Good: Dedicated non-root user with explicit UID
+FROM python:3.11-slim
+RUN groupadd -r appuser -g 1000 && \
+    useradd -r -u 1000 -g appuser appuser
+COPY --chown=appuser:appuser app.py /app/
+USER appuser
+CMD ["python", "/app/app.py"]
+```
+**Benefits:** Least-privilege security; limits blast radius of compromises; meets compliance requirements.
+
+**Anti-Pattern 2: Using `latest` Tag in Production**
+```dockerfile
+# Bad: Floating tag, non-deterministic builds
+FROM python:latest
+```
+**Problem:** Breaks reproducibility; surprise breaking changes; difficult rollbacks; audit trail unclear.
+
+**Correct Pattern:**
+```dockerfile
+# Good: Pinned version with digest for max reproducibility
+FROM python:3.11.6-slim@sha256:abc123...
+```
+**Benefits:** Deterministic builds; explicit version control; easy rollbacks; security audit trail.
+
+**Anti-Pattern 3: No .dockerignore File**
+```
+# Bad: Entire project copied, including .git, node_modules, __pycache__
+COPY . /app/
+```
+**Problem:** Huge build context (GBs); slow uploads to daemon; secrets/cache leaked into image; cache busting.
+
+**Correct Pattern:**
+```dockerfile
+# .dockerignore file
+.git
+.venv
+__pycache__
+*.pyc
+node_modules
+*.log
+.env
+
+# Dockerfile
+COPY pyproject.toml uv.lock /app/
+COPY src/ /app/src/
+```
+**Benefits:** Fast builds; small context; no secret leaks; better layer caching; explicit dependencies.
 
 ## Quick Compliance Checklist
 - Multi-stage Dockerfile with slim/LTS base

@@ -1,256 +1,307 @@
 # Memory Bank System
 
-> **Note:** Memory Bank is an optional feature designed for complex, long-running projects with multiple AI sessions. It's not required for basic rule usage.
+> **Note:** This is an optional advanced feature for complex, long-running projects. Skip this section if you're just getting started with AI Coding Rules.
 
 ## Overview
 
-The Memory Bank is a project-level documentation system that enables AI assistants to maintain context and continuity across sessions. Since AI assistants reset their memory between sessions, the Memory Bank serves as the critical link for understanding project state, decisions, and ongoing work.
+The Memory Bank is a structured documentation system that helps AI assistants maintain context across multiple sessions. Since AI assistants reset between sessions, the Memory Bank provides continuity by capturing project state, architectural decisions, and current work focus.
 
-### The Problem
+## Key Benefits
 
-When an AI assistant starts a new session, it has no knowledge of previous work, decisions, or project context. This creates challenges for:
+- **Maintains project context** across development sessions
+- **Captures architectural decisions** and technical patterns
+- **Tracks active work** and known issues
+- **Enables consistent AI assistance** on long-running projects
 
-- Understanding project history and architectural decisions
-- Maintaining consistency across multiple development sessions
-- Avoiding repeated questions about project structure
-- Tracking progress on long-running tasks
+## When to Use
 
-### The Solution
+The Memory Bank is most valuable for:
 
-The Memory Bank addresses these challenges by maintaining a structured set of documentation files that capture:
+- **Long-running projects** spanning multiple weeks or months
+- **Complex architectures** requiring detailed documentation
+- **Team collaboration** where AI context sharing matters
+- **Multi-session development** where continuity is critical
 
-- **Project foundation** — Core requirements, goals, and scope
-- **System architecture** — Technical decisions and design patterns  
-- **Current context** — Active work, recent changes, and next steps
-- **Development progress** — What works, what's left to build, known issues
+## Setup
 
-## File Structure
+### 1. Enable Memory Bank in Your Project
 
-The Memory Bank uses a hierarchical structure with required core files:
-
-```
-memory-bank/
-├── projectbrief.md      # Foundation document (project scope & goals)
-├── productContext.md    # Why project exists, problems solved
-├── systemPatterns.md    # Architecture & technical decisions  
-├── techContext.md       # Technologies, setup, constraints
-├── activeContext.md     # Current work focus & recent changes
-├── progress.md          # Status, what works, known issues
-└── [additional]/        # Optional: features, APIs, testing docs
-```
-
-### Core Files (Required)
-
-| File | Purpose |
-|------|---------|
-| `projectbrief.md` | Foundation document defining core requirements and project scope |
-| `productContext.md` | Business context: why project exists, problems solved, user experience goals |
-| `systemPatterns.md` | System architecture, key technical decisions, design patterns |
-| `techContext.md` | Technologies used, development setup, technical constraints |
-| `activeContext.md` | Current work focus, recent changes, next steps, active decisions |
-| `progress.md` | Current status, what works, what's left to build, known issues |
-
-## Getting Started
-
-### Initialization
-
-For new projects, create the memory bank structure:
+Create a `.memory/` directory in your project root:
 
 ```bash
-# Create memory bank directory
-mkdir memory-bank
-
-# Initialize core files (manual creation)
-touch memory-bank/{projectbrief,productContext,systemPatterns,techContext,activeContext,progress}.md
+mkdir -p .memory
 ```
 
-The Memory Bank can be automatically created by your AI assistant when you request:
+### 2. Initialize Memory Bank Structure
 
-```
-"initialize memory bank"
-```
-
-### Update Commands
-
-The Memory Bank updates automatically during development, triggered by:
-
-1. **Explicit user request**: `"update memory bank"`
-2. **After significant changes**: Major feature implementations or architectural decisions
-3. **Context clarification needs**: When project understanding requires documentation
-4. **Pattern discovery**: New technical patterns or workflow insights
-
-## Workflow Integration
-
-### Plan Mode Workflow
-
-```mermaid
-flowchart TD
-    Start[New Session] --> Read[Read ALL Memory Bank Files]
-    Read --> Check{Files Complete?}
-    Check -->|No| Plan[Create Missing Files]
-    Check -->|Yes| Context[Verify Current Context]
-    Context --> Strategy[Develop Work Strategy]
-    Strategy --> Present[Present Approach to User]
-```
-
-### Act Mode Workflow  
-
-```mermaid
-flowchart TD
-    Start[Execute Task] --> Context[Check Memory Bank]
-    Context --> Work[Perform Development Work]
-    Work --> Document[Update Documentation]
-    Document --> Rules[Update IDE Rules if Needed]
-    Rules --> Complete[Mark Task Complete]
-```
-
-## Usage Examples
-
-### Starting a New Session
+Create initial memory bank files:
 
 ```bash
-# AI assistant workflow (automatic)
-1. Read all memory-bank/*.md files
-2. Understand current project state  
-3. Review activeContext.md for recent work
-4. Check progress.md for known issues
-5. Proceed with informed context
+# Project context
+touch .memory/project_overview.md
+touch .memory/architecture.md
+touch .memory/current_focus.md
+
+# Technical details
+touch .memory/decisions.md
+touch .memory/patterns.md
+touch .memory/known_issues.md
 ```
 
-### Updating Memory Bank
+### 3. Configure AI Assistant
 
-```bash
-# User command
-"update memory bank"
+Instruct your AI assistant to use Memory Bank:
 
-# AI assistant workflow (automatic)
-1. Review ALL memory bank files
-2. Update current state in activeContext.md
-3. Record progress in progress.md  
-4. Document new patterns in systemPatterns.md
-5. Update technical context if needed
+```
+At the start of each session, read all files in .memory/ to understand project context.
+Before ending each session, update relevant .memory/ files with new decisions, patterns, or issues discovered.
+```
+
+## Memory Bank File Structure
+
+| File | Purpose | Update Frequency |
+|------|---------|-----------------|
+| `project_overview.md` | High-level project description, goals, tech stack | Rarely (major changes only) |
+| `architecture.md` | System architecture, component relationships | Occasionally (architectural changes) |
+| `current_focus.md` | Active work, current sprint, immediate priorities | Frequently (each session) |
+| `decisions.md` | Architectural Decision Records (ADRs) | Per decision |
+| `patterns.md` | Code patterns, conventions, best practices | As patterns emerge |
+| `known_issues.md` | Active bugs, technical debt, limitations | As issues are discovered/resolved |
+
+## Usage Patterns
+
+### Starting a Development Session
+
+**Prompt your AI assistant:**
+
+```
+Load context from .memory/ directory. Summarize current project focus and any blocking issues.
+```
+
+**Expected response:**
+- AI reads all Memory Bank files
+- AI summarizes current state
+- AI identifies what to work on next
+
+### Ending a Development Session
+
+**Prompt your AI assistant:**
+
+```
+Update Memory Bank with today's work:
+- New architectural decisions
+- Patterns discovered
+- Issues encountered or resolved
+- Updated focus for next session
+```
+
+**Expected response:**
+- AI updates relevant `.memory/` files
+- AI summarizes what was captured
+- AI confirms context will persist
+
+### Mid-Session Reference
+
+**When AI seems to lose context:**
+
+```
+Re-read .memory/architecture.md and .memory/patterns.md to understand the system design.
+```
+
+## Example: project_overview.md
+
+```markdown
+# Project: Customer Analytics Dashboard
+
+## Purpose
+Real-time analytics dashboard for customer behavior tracking
+
+## Tech Stack
+- Frontend: React 18 + TypeScript + Vite
+- Backend: FastAPI + SQLAlchemy
+- Database: PostgreSQL 15
+- Deployment: Docker Compose
+
+## Key Goals
+1. Sub-second query response times
+2. Support 10K concurrent users
+3. 99.9% uptime SLA
+
+## Team
+- Backend: 2 developers
+- Frontend: 2 developers
+- DevOps: 1 engineer
+```
+
+## Example: current_focus.md
+
+```markdown
+# Current Focus (Week of 2025-01-20)
+
+## Active Work
+- Implementing real-time WebSocket updates for dashboard
+- Optimizing PostgreSQL queries (target <100ms)
+- Adding Redis caching layer
+
+## Blockers
+- Waiting on DevOps to provision Redis cluster
+- Need design review for WebSocket message format
+
+## Next Steps
+1. Complete WebSocket integration (backend done, frontend in progress)
+2. Add Redis caching once cluster is available
+3. Load testing with 1K concurrent connections
+
+## Recent Decisions
+- Using Socket.io for WebSocket (easier reconnection logic)
+- Redis pub/sub for WebSocket message broadcasting
+- Caching query results for 30 seconds (trade-off between freshness and performance)
+```
+
+## Example: decisions.md
+
+```markdown
+# Architectural Decision Records
+
+## ADR-001: Use Socket.io for WebSocket Communication
+
+**Date:** 2025-01-18
+
+**Context:** Need real-time updates for dashboard. Native WebSocket vs Socket.io.
+
+**Decision:** Use Socket.io
+
+**Rationale:**
+- Automatic reconnection with exponential backoff
+- Fallback to polling if WebSocket unavailable
+- Better browser compatibility
+- Rich event-based API
+
+**Consequences:**
+- Additional dependency (~50KB bundle size)
+- Standardized WebSocket patterns across team
+
+---
+
+## ADR-002: Redis for Query Result Caching
+
+**Date:** 2025-01-19
+
+**Context:** PostgreSQL queries taking 200-500ms under load. Need caching layer.
+
+**Decision:** Redis with 30-second TTL
+
+**Rationale:**
+- 30-second staleness acceptable for analytics (verified with PM)
+- Redis provides <1ms cache hits
+- Reduces DB load by ~80% (estimated)
+
+**Consequences:**
+- Need to provision Redis cluster (DevOps)
+- Cache invalidation strategy needed for user-triggered updates
+- Memory cost: ~2GB for 100K cached results
 ```
 
 ## Best Practices
 
-### Reading the Memory Bank
+### 1. Keep Files Focused
+- Each file has a specific purpose
+- Don't duplicate information across files
+- Link between files when needed
 
-- **Always read**: Memory Bank files at session start (non-optional for AI assistants)
-- **Full context**: Read all core files, not just one or two
-- **Current focus**: Pay special attention to activeContext.md and progress.md
-- **Historical awareness**: Review systemPatterns.md for architectural constraints
+### 2. Update Incrementally
+- Update Memory Bank after significant decisions or discoveries
+- Don't wait until end of session (risk forgetting details)
+- Small, frequent updates better than large, infrequent ones
 
-### Updating the Memory Bank
+### 3. Use Consistent Formatting
+- Markdown headers for structure
+- Bullet points for lists
+- Code blocks for examples
+- Dates for time-sensitive information
 
-- **Update frequently**: After major changes or discoveries
-- **Be precise**: Accuracy directly impacts work effectiveness
-- **Stay organized**: Use additional files for complex features
-- **Keep current**: Remove outdated information regularly
-- **Document decisions**: Capture the "why" behind technical choices
+### 4. Prune Regularly
+- Archive resolved issues
+- Remove outdated patterns
+- Consolidate redundant decisions
 
-### Maintenance
+### 5. Version Control
+- Commit `.memory/` files to git
+- Helps team members understand project evolution
+- Enables rollback to previous context if needed
 
-- **Weekly**: Review activeContext.md and progress.md for accuracy
-- **After features**: Update progress.md when completing major work
-- **Architecture changes**: Update systemPatterns.md immediately
-- **Quarterly**: Full review of all files for staleness
+## Integration with AI Coding Rules
 
-## When to Use Memory Bank
+Memory Bank complements AI Coding Rules:
 
-### Good Use Cases
+- **Rules** define HOW to write code (standards, patterns, best practices)
+- **Memory Bank** captures WHAT you're building (project state, decisions, context)
 
-- **Long-running projects** with development spanning weeks or months
-- **Complex architectures** requiring detailed technical documentation
-- **Multiple AI sessions** where context continuity matters
-- **Team collaboration** where AI assists need shared understanding
-- **Evolving requirements** that need historical tracking
+**Combined workflow:**
 
-### When to Skip
-
-- **Quick scripts** or one-off projects
-- **Simple applications** with minimal architecture
-- **Single-session work** that completes quickly
-- **Well-documented projects** with existing comprehensive docs
-- **Learning/exploration** where formal structure adds overhead
-
-## Advanced Patterns
-
-### Additional Files
-
-For complex projects, you may add specialized files:
-
-```
-memory-bank/
-├── [core files...]
-├── features/
-│   ├── authentication.md    # Detailed auth implementation
-│   ├── api-design.md        # API architecture
-│   └── data-pipeline.md     # Data processing details
-├── apis/
-│   └── external-services.md # Third-party integrations
-└── testing/
-    └── test-strategy.md     # Testing approach
-```
-
-### Integration with Version Control
-
-Add `.gitignore` patterns if you want to keep Memory Bank files local:
-
-```gitignore
-# Keep Memory Bank local (optional)
-memory-bank/
-```
-
-Or commit Memory Bank files to share context with team and AI assistants:
-
-```bash
-# Commit Memory Bank for shared context
-git add memory-bank/
-git commit -m "docs: update memory bank with current project state"
-```
+1. **Start session:** AI loads Memory Bank (project context) + Rules (coding standards)
+2. **Development:** AI follows Rules while working within project context
+3. **End session:** AI updates Memory Bank with new decisions/patterns
 
 ## Troubleshooting
 
-### Memory Bank Not Being Read
+### Issue: AI not reading Memory Bank
 
-**Problem:** AI assistant doesn't seem aware of Memory Bank content.
+**Solution:** Explicitly prompt AI to read files:
+```
+Read all files in .memory/ directory before proceeding.
+```
 
-**Solutions:**
-1. Explicitly ask: "Please read all memory-bank files"
-2. Verify files exist and have content
-3. Check file names match expected structure
-4. Ensure files are in project root or accessible path
+### Issue: Memory Bank getting too large
 
-### Stale Information
+**Solution:** Split into subdirectories:
+```
+.memory/
+├── current/       # Active context (read every session)
+├── archive/       # Historical context (reference as needed)
+└── decisions/     # ADRs (reference by decision number)
+```
 
-**Problem:** Memory Bank contains outdated information.
+### Issue: Team members out of sync
 
-**Solutions:**
-1. Request update: "update memory bank"
-2. Manually review and edit outdated sections
-3. Remove completed tasks from progress.md
-4. Archive old decisions in systemPatterns.md with dates
+**Solution:** Add Memory Bank update to PR checklist:
+```markdown
+## Pull Request Checklist
+- [ ] Code follows rules in rules/
+- [ ] Tests pass
+- [ ] Memory Bank updated (if architectural changes)
+```
 
-### Overwhelming Detail
+## Advanced: Multi-Project Memory Bank
 
-**Problem:** Memory Bank files are too long and detailed.
+For organizations with multiple projects:
 
-**Solutions:**
-1. Move detailed info to additional files
-2. Keep core files focused on essentials
-3. Use summaries in core files, details in supplemental docs
-4. Archive historical content periodically
+```
+~/projects/
+├── project-a/
+│   └── .memory/
+├── project-b/
+│   └── .memory/
+└── .global-memory/          # Shared organizational context
+    ├── team_conventions.md
+    ├── infrastructure.md
+    └── standards.md
+```
 
-## References
+Prompt AI to load both project-specific and global context:
 
-### Related Documentation
+```
+Load context from:
+1. .memory/ (project-specific)
+2. ../.global-memory/ (organizational standards)
+```
 
-- [README.md](../README.md) - Project overview and setup
-- [CONTRIBUTING.md](../CONTRIBUTING.md) - Development guidelines
-- [docs/ARCHITECTURE.md](ARCHITECTURE.md) - System architecture details
+## Support
 
-### External Resources
+- **Questions:** See [CONTRIBUTING.md](../CONTRIBUTING.md) for support channels
+- **Issues:** File bug reports or feature requests on GitHub/GitLab
+- **Examples:** See `.memory-examples/` directory in this repository (if available)
 
-- [Cline Memory Bank](https://docs.cline.bot/prompting/cline-memory-bank) - Original inspiration
-- [Working with AI Assistants](https://docs.anthropic.com/claude/docs) - Claude documentation
+---
 
+**Ready to start?** Create `.memory/` directory and begin capturing your project context.

@@ -5,7 +5,9 @@ Thank you for your interest in contributing to AI Coding Rules! This project pro
 ## 🚀 Quick Start
 
 1. **Fork** the repository on your preferred platform
+
 2. **Clone** your fork locally (choose one):
+
    ```bash
    # GitLab:
    git clone https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git
@@ -14,43 +16,53 @@ Thank you for your interest in contributing to AI Coding Rules! This project pro
    
    cd ai_coding_rules
    ```
+
 3. **Set up** the development environment:
+
    ```bash
    task env:deps
    ```
+
 4. **Create** a feature branch:
+
    ```bash
    git checkout -b feature/my-new-rule
    ```
 
-## 📁 Project Structure (v2.1.0+)
+## 📁 Project Structure (v3.0)
 
-### Understanding the Template-Based System
+The project uses a **production-ready rules architecture** where rules are authored once in universal Markdown format and work everywhere without transformation.
 
-The project uses a **template-based generation system** to maintain source templates and generate IDE-specific formats:
-
+```ascii
+ai_coding_rules/
+├── rules/                  ← Production-ready rules (91 files)
+│   ├── 000-global-core.md
+│   ├── 001-coding-agent-operations.md
+│   ├── 100-snowflake-core.md
+│   └── ...
+├── AGENTS.md               ← Rule loading protocol (project root)
+├── RULES_INDEX.md          ← Searchable rule catalog (project root)
+├── scripts/                ← Validation and deployment tools
+│   ├── index_generator.py      ← Generate RULES_INDEX.md
+│   ├── rule_deployer.py        ← Deploy rules to projects
+│   ├── schema_validator.py     ← Validate rule structure
+│   ├── template_generator.py   ← Create new rule templates
+│   └── token_validator.py      ← Validate token budgets
+├── docs/                   ← Documentation
+├── tests/                  ← Test suite
+└── schemas/                ← JSON schemas for rule validation
 ```
-ai_coding_rules_gitlab/
-├── templates/          ← Edit rule files here (SOURCE)
-├── discovery/          ← Edit discovery files here
-├── generated/          ← Generated outputs (DO NOT EDIT)
-│   ├── universal/
-│   ├── cursor/rules/
-│   ├── copilot/instructions/
-│   └── cline/
-└── scripts/            ← Generation tools
-```
 
-**Golden Rule:** Always edit files in `templates/` or `discovery/`, never in `generated/`.
+**Key Principle:** All rules in `rules/` are production-ready and deploy directly—no generation step required.
 
 ### File Locations
 
 | What You're Editing | Where to Edit | What Happens |
 |---------------------|---------------|--------------|
-| Rule content | `templates/XXX-rule-name.md` | Regenerate with `task generate:rules:all` |
-| Discovery guide | `discovery/AGENTS.md` | Copied to `generated/universal/` |
-| Rule catalog | `discovery/RULES_INDEX.md` | Copied to `generated/universal/` |
-| Generation script | `scripts/generate_agent_rules.py` | Test with `--dry-run` flag |
+| Rule content | `rules/XXX-rule-name.md` | Validate with `task rules:validate` |
+| Discovery guide | `AGENTS.md` (project root) | Deploy with `task deploy DEST=` |
+| Rule catalog | `RULES_INDEX.md` (project root) | Regenerate with `task generate:index` |
+| Deployment script | `scripts/rule_deployer.py` | Test with `--dry-run` flag |
 
 ## 📋 Development Workflow
 
@@ -92,56 +104,52 @@ uvx ruff format .         # Apply formatting
 ### Rule Deployment
 
 ```bash
-# Deploy rules with automatic path configuration
-task deploy:universal DEST=~/my-project    # For any IDE/LLM (recommended)
-task deploy:cursor DEST=~/my-project       # For Cursor IDE
-task deploy:copilot DEST=~/my-project      # For GitHub Copilot
-task deploy:cline DEST=~/my-project        # For Cline
+# Deploy rules to a project
+python scripts/rule_deployer.py --dest ~/my-project
 
-# Deploy to current directory (omit DEST)
-cd ~/my-project
-task deploy:cursor
+# Preview deployment without copying
+python scripts/rule_deployer.py --dest ~/my-project --dry-run
 ```
 
-### Rule Generation & Validation
+### Rule Validation
+
+The project supports two validation systems:
+
+**Schema Validation (v3.0+)**
 
 ```bash
-# Generate IDE-specific rules (advanced - use deployment instead for projects)
-task generate:rules:cursor         # Generate Cursor rules to generated/cursor/rules/
-task generate:rules:copilot        # Generate Copilot rules to generated/copilot/instructions/
-task generate:rules:cline          # Generate Cline rules to generated/cline/
-task generate:rules:universal      # Generate Universal rules to generated/universal/
-task generate:rules:all            # Generate all IDE-specific rules (including universal)
+# Validate single rule
+python scripts/schema_validator.py rules/100-snowflake-core.md
 
-# Optional DEST variable to change base output directory
-task generate:rules:all DEST=/custom/output
+# Validate all rules
+python scripts/schema_validator.py rules/
 
-# Validate rule structure (002-rule-governance.md v5.0 compliance)
-task validate:rules         # Standard validation (fails on critical errors)
-task validate:rules:verbose # Show all files including clean ones
-task validate:rules:strict  # Strict mode (fail on warnings too)
+# Strict mode (fail on warnings)
+python scripts/schema_validator.py rules/ --strict
 
-# Boilerplate structural validation (deep validation with compliance scoring)
-python3 scripts/validate_agent_rules.py --directory templates --check-boilerplate-structure
-python3 scripts/validate_agent_rules.py --directory templates --check-boilerplate-structure --compliance-report
+# Verbose output with detailed errors
+python scripts/schema_validator.py rules/100-snowflake-core.md --verbose
 
-# Direct validation script usage
-uv run python scripts/validate_agent_rules.py              # Standard validation
-uv run python scripts/validate_agent_rules.py --verbose    # Verbose output
-uv run python scripts/validate_agent_rules.py --fail-on-warnings  # Strict mode
-uv run python scripts/validate_agent_rules.py --check-boilerplate-structure  # Deep validation
-uv run python scripts/validate_agent_rules.py --check-boilerplate-structure --compliance-report  # With reports
-uv run python scripts/validate_agent_rules.py --help       # Show all options
+# Custom schema
+python scripts/schema_validator.py rules/ --schema custom-schema.yml
+```
 
-# Other validations
-task --list              # Validate Taskfile syntax
-uv run scripts/generate_agent_rules.py --source . --dry-run  # Test rule generation
+See `docs/SCHEMA_VALIDATION_MIGRATION.md` for detailed migration guide.
+
+**Other Validation Tools**
+
+```bash
+# Regenerate RULES_INDEX.md from rule files
+python scripts/index_generator.py
+
+# Preview index generation without writing
+python scripts/index_generator.py --dry-run
 ```
 
 ### Utilities
 
 ```bash
-task maintenance:clean:venv          # Remove virtual environment
+task clean:venv                      # Remove virtual environment
 task -l                  # List all available tasks
 ```
 
@@ -157,27 +165,33 @@ task -l                  # List all available tasks
 Before submitting a PR, ensure your changes work correctly:
 
 ```bash
-# 1. Regenerate all formats after editing templates
-task generate:rules:all
+# 1. Validate all rules with schema
+python scripts/schema_validator.py rules/
 
-# 2. Test rule generation (dry-run to preview)
-task generate:rules:cursor:dry
-task generate:rules:copilot:dry
+# 2. Validate specific rule you modified
+python scripts/schema_validator.py rules/XXX-rule-name.md --verbose
 
-# 3. Validate generated files are up-to-date
-task generate:rules:cursor:check
+# 3. Regenerate RULES_INDEX.md if metadata changed
+python scripts/index_generator.py
 
-# 4. Check for linting issues
+# 4. Test deployment
+python scripts/rule_deployer.py --dest /tmp/test --dry-run
+
+# 5. Run test suite
+pytest tests/
+
+# 6. Check for linting issues
 task quality:lint
 
-# 5. Validate formatting
+# 7. Validate formatting
 task quality:format
 ```
 
-**Important:** Always commit both the template changes AND the regenerated files:
+**Important:** Commit your rule changes:
+
 ```bash
-git add templates/XXX-rule-name.md
-git add generated/
+git add rules/XXX-rule-name.md
+git add RULES_INDEX.md  # If you regenerated it
 git commit -m "feat: update XXX rule"
 ```
 
@@ -201,35 +215,156 @@ Follow the established 3-digit numbering system:
 
 Use format: `XXX-topic-description.md` (3-digit number)
 
-**Location:** All rule files go in `templates/` directory.
+**Location:** All rule files go in `rules/` directory.
 
-Example: `templates/250-python-flask.md`
+Example: `rules/250-python-flask.md`
 
-### Rule Structure
+### Creating New Rules with Template Generator
 
-Each rule file (in `templates/`) must follow this structure:
+Use the template generator to create v3.0 compliant rule files:
+
+```bash
+# Using Task (recommended - includes automatic validation)
+task rule:new FILENAME=100-snowflake-example
+task rule:new FILENAME=200-python-example TIER=High
+task rule:new FILENAME=300-react-hooks KEYWORDS="react, hooks, state, effects, custom hooks, lifecycle, functional components, useState, useEffect, optimization, performance, patterns, best practices, debugging, testing"
+
+# Overwrite existing file
+task rule:new:force FILENAME=100-example TIER=High
+
+# Using Python script directly
+python scripts/template_generator.py 100-snowflake-example
+python scripts/template_generator.py 200-python-example --context-tier High
+python scripts/template_generator.py 300-react-hooks --keywords "react, hooks, state, effects, custom hooks, lifecycle, functional components, useState, useEffect, optimization, performance, patterns, best practices, debugging, testing"
+python scripts/template_generator.py 100-example --force
+python scripts/template_generator.py 100-example --output-dir custom/
+```
+
+**Template Features:**
+
+- ✅ **v3.0 Schema Compliant** - Passes schema validation out of the box
+- ✅ **Auto-generated Keywords** - Smart keyword generation based on rule number and slug
+- ✅ **Complete Structure** - All required sections with placeholders
+- ✅ **Inline Guidance** - Comments explaining each section's purpose
+- ✅ **Automatic Validation** - Task version validates immediately after generation
+
+**Next Steps After Generation:**
+
+1. Edit the generated file and replace placeholders with actual content
+2. Validation: Already done if using `task rule:new`, otherwise run `task rules:validate:verbose`
+3. Add to RULES_INDEX.md: `task generate:index` or `task index:generate`
+
+### Rule Structure (v3.0+)
+
+Each rule file (in `rules/`) must follow the v3.0 structure defined in `002-rule-governance.md`:
 
 ```markdown
-**Description:** Brief description of the rule's purpose
-**Applies to:** `**/*.py`, `**/*.sql` (optional file patterns)
-**Auto-attach:** false (optional, defaults to false)
-**Version:** 1.0 (optional)
-**Last updated:** 2024-01-15 (optional)
-
 # Rule Title
 
-## Key Principles
-- Brief bullet points summarizing key concepts
+**Keywords:** keyword1, keyword2, ... (10-15 semantic terms)
+**TokenBudget:** ~1500
+**ContextTier:** Critical|High|Medium|Low
+**Depends:** rules/000-global-core.md
 
-## 1. Core Section
-- **Requirement:** Must-do items
-- **Always:** Best practices to follow
-- **Rule:** Specific directives
-- **Avoid:** Anti-patterns to prevent
+## Purpose
+Brief description of the rule's purpose (1-2 sentences).
 
-## Documentation
-- **Always:** Include links to official documentation
+## Rule Scope
+**Applies to:** What this rule covers
+**Does NOT apply to:** Explicit exclusions
+
+## Quick Start TL;DR
+**MANDATORY:**
+**Essential Patterns:**
+- **[Pattern 1]:** Description
+- **[Pattern 2]:** Description
+- **[Pattern 3]:** Description
+- **[Pattern 4]:** Description
+- **[Pattern 5]:** Description
+- **[Pattern 6]:** Description
+
+**Quick Checklist:**
+- [ ] Item 1
+- [ ] Item 2
+- [ ] Item 3
+- [ ] Item 4
+- [ ] Item 5
+
+## Contract
+- **Inputs/Prereqs:** What the rule needs
+- **Allowed Tools:** Tools that can be used
+- **Forbidden Tools:** Tools that must not be used
+- **Required Steps:**
+  1. Step 1
+  2. Step 2
+  3. Step 3
+  4. Step 4
+  5. Step 5
+- **Output Format:** Expected output
+- **Validation Steps:** How to verify success
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Description**
+
+```language
+# Bad example
+code here
 ```
+
+**Problem:** Why this fails
+
+**Correct Pattern:**
+
+```language
+# Good example
+code here
+```
+
+**Benefits:** Why this works
+
+## Quick Compliance Checklist
+
+- [ ] Compliance item 1
+- [ ] Compliance item 2
+- [ ] Compliance item 3
+- [ ] Compliance item 4
+- [ ] Compliance item 5
+
+## Validation
+
+- **Success Checks:** How to verify success
+- **Negative Tests:** What should fail
+
+## Response Template
+
+```bash
+# Command or code template
+echo "Example output"
+```
+
+## References
+
+### External Documentation
+
+- [Official Docs](https://example.com)
+
+### Related Rules
+
+- `rules/000-global-core.md` - Foundation rule
+
+```markdown
+
+**Key Requirements:**
+- **10-15 Keywords** for semantic search
+- **TokenBudget** in ~NUMBER format
+- **ContextTier** enum: Critical, High, Medium, Low
+- **Quick Start TL;DR** with 6-7 Essential Patterns
+- **Anti-Patterns** with 2+ code examples
+- **No emojis** - text-only markup
+- **Contract before line 160** for progressive disclosure
+
+See `rules/002-rule-governance.md` for complete structure requirements.
 
 ### Directive Language
 
@@ -248,31 +383,6 @@ Use explicit, actionable language:
 - **Examples**: Include concrete code examples where helpful
 - **Links**: Reference official documentation
 - **Modularity**: Avoid duplicating content across rules
-
-## 🔧 Rule Generator
-
-The project includes `generate_agent_rules.py` that transforms universal Markdown rules into IDE-specific formats.
-
-### Testing Generator Changes
-
-```bash
-# Test rule generation (dry run)
-uv run generate_agent_rules.py --agent cursor --dry-run
-uv run generate_agent_rules.py --agent copilot --dry-run
-
-# Check if outputs are current
-uv run generate_agent_rules.py --agent cursor --check
-```
-
-### Adding New IDE Support
-
-To add support for a new IDE:
-
-1. Extend the `AgentSpec` class in `generate_agent_rules.py`
-2. Implement the IDE-specific header format
-3. Add corresponding task in `Taskfile.yml`
-4. Update the README compatibility matrix
-5. Add tests and documentation
 
 ## 🐛 Issue Reporting
 
@@ -296,7 +406,7 @@ Use our issue templates:
 - [ ] **Test** your changes locally
 - [ ] **Run** `task quality:lint` and fix any issues
 - [ ] **Run** `task quality:format` and ensure consistency
-- [ ] **Test** rule generation with `task rule:cursor --dry-run`
+- [ ] **Test** rule deployment with `task deploy:dry DEST=/tmp/test`
 - [ ] **Update** documentation if needed
 - [ ] **Add** yourself to contributors if first contribution
 
@@ -325,6 +435,17 @@ Use our issue templates:
 2. **Maintainer review** for content quality and consistency
 3. **Community feedback** for significant changes
 4. **Documentation update** if the change affects user workflows
+
+### Changelog and Release Notes Policy
+
+**IMPORTANT:** This project follows industry best practices for release documentation:
+
+- **CHANGELOG.md is the single source of truth** - All changes are documented here per [Keep a Changelog](https://keepachangelog.com) standards
+- **No separate release notes files** - Individual version files duplicate CHANGELOG.md content (anti-pattern)
+- **Update CHANGELOG.md for all PRs** - Add entry under `## [Unreleased]` section
+- **Use Conventional Commits format** - `type(scope): description` (see rules/800-project-changelog.md)
+
+**Historical Note:** Individual release notes files (v2.x) have been removed. Current practice is CHANGELOG.md only.
 
 ## 🎯 Types of Contributions
 
@@ -366,31 +487,30 @@ Use our issue templates:
 # 1. Create feature branch
 git checkout -b feature/add-terraform-rules
 
-# 2. Create template file in templates/
-vim templates/450-terraform-best-practices.md
+# 2. Generate template using Task (includes automatic validation)
+task rule:new FILENAME=450-terraform-best-practices TIER=High
+# Or use Python script directly:
+# python scripts/template_generator.py 450-terraform-best-practices --context-tier High
 
-# 3. Add entry to discovery/RULES_INDEX.md
-vim discovery/RULES_INDEX.md
-# Add: | 450 | 450-terraform-best-practices | Terraform IaC best practices | terraform, iac, infrastructure |
+# 3. Edit the generated file and fill in content
+vim rules/450-terraform-best-practices.md
+# Replace all placeholders with actual content
 
-# 4. Generate all formats
-task generate:rules:all
+# 4. Validate the rule again after editing
+task rules:validate:verbose
+# Or: python scripts/schema_validator.py rules/450-terraform-best-practices.md --verbose
 
-# 5. Verify generation worked
-ls -la generated/universal/450-terraform-best-practices.md
-ls -la generated/cursor/rules/450-terraform-best-practices.mdc
+# 5. Regenerate RULES_INDEX.md
+task generate:index
+# Alternative: task index:generate
 
-# 6. Validate consistency
-task generate:rules:cursor:check
-
-# 7. Run quality checks
+# 6. Run quality checks
 task quality:lint
 task quality:format
 
-# 8. Commit both template and generated files
-git add templates/450-terraform-best-practices.md
-git add discovery/RULES_INDEX.md
-git add generated/
+# 7. Commit the new rule and updated index
+git add rules/450-terraform-best-practices.md
+git add RULES_INDEX.md
 git commit -m "feat: add Terraform best practices rule
 
 - Comprehensive Terraform IaC guidelines
@@ -398,7 +518,7 @@ git commit -m "feat: add Terraform best practices rule
 - Security and compliance patterns
 - Resource naming conventions"
 
-# 9. Push and create PR
+# 8. Push and create PR
 git push origin feature/add-terraform-rules
 ```
 
@@ -408,23 +528,23 @@ git push origin feature/add-terraform-rules
 # 1. Create feature branch
 git checkout -b fix/update-python-core
 
-# 2. Edit the template file (not generated files!)
-vim templates/200-python-core.md
+# 2. Edit the rule file
+vim rules/200-python-core.md
 # Make your changes...
 
-# 3. Regenerate all formats
-task generate:rules:all
+# 3. Validate changes with schema validator
+python scripts/schema_validator.py rules/200-python-core.md --verbose
 
-# 4. Verify changes propagated
-git diff generated/universal/200-python-core.md
-git diff generated/cursor/rules/200-python-core.mdc
+# 4. Update index if metadata changed
+task generate:index
 
-# 5. Validate and test
-task generate:rules:cursor:check
+# 5. Run quality checks
 task quality:lint
+task quality:format
 
 # 6. Commit changes
-git add templates/200-python-core.md generated/
+git add rules/200-python-core.md
+git add RULES_INDEX.md  # If metadata changed
 git commit -m "fix: update Python core rule with type hints guidance"
 
 # 7. Push and create PR
@@ -433,44 +553,42 @@ git push origin fix/update-python-core
 
 ### Common Mistakes to Avoid
 
-❌ **Don't edit generated files directly**
+❌ **Don't skip template generator for new rules**
 ```bash
-vim generated/cursor/rules/200-python-core.mdc  # WRONG!
+vim rules/450-new-rule.md  # WRONG - manual creation error-prone
 ```
 
-✅ **Always edit templates**
+✅ **Always use template generator**
 ```bash
-vim templates/200-python-core.md  # CORRECT
-task generate:rules:all  # Then regenerate
+python scripts/template_generator.py 450-new-rule  # CORRECT
+vim rules/450-new-rule.md  # Then edit generated template
 ```
 
-❌ **Don't forget to regenerate**
+❌ **Don't skip schema validation**
 ```bash
-git add templates/200-python-core.md
-git commit  # WRONG - missing generated files!
-```
-
-✅ **Always regenerate and commit both**
-```bash
-task generate:rules:all
-git add templates/200-python-core.md generated/
-git commit  # CORRECT
-```
-
-❌ **Don't commit with stale generated files**
-```bash
-# Edit template but forget to regenerate
-vim templates/200-python-core.md
-git add templates/ generated/
-git commit  # WRONG - generated files are stale!
+git add rules/450-new-rule.md
+git commit  # WRONG - may have validation errors
 ```
 
 ✅ **Always validate before committing**
 ```bash
-vim templates/200-python-core.md
-task generate:rules:all  # Regenerate
-task generate:rules:cursor:check  # Validate consistency
-git add templates/ generated/
+python scripts/schema_validator.py rules/450-new-rule.md --verbose
+git add rules/450-new-rule.md
+git commit  # CORRECT
+```
+
+❌ **Don't forget to regenerate index**
+```bash
+vim rules/450-new-rule.md
+git add rules/450-new-rule.md
+git commit  # WRONG - RULES_INDEX.md not updated
+```
+
+✅ **Always regenerate index after rule changes**
+```bash
+vim rules/450-new-rule.md
+task generate:index
+git add rules/450-new-rule.md RULES_INDEX.md
 git commit  # CORRECT
 ```
 
@@ -512,7 +630,7 @@ MODE PLAN:
 My rule files should have prevented this behavior or outcome. Thoroughly review all rule files in the project and the currently selected rule files for this session. Determine what specific improvements I can make to the rules to ensure this does not happen again.
 ```
 
-For this to be effective, you should have a copy of this project repo `ai_coding_rules/` within your project directory, even if only temporarily to make changes to the rule file templates which are used to generate the final IDE-specific rule files. It is also important to verify that `002-rule-governance.md` is an actively selected rule in the project. It should be auto attached, but it never hurts to verify. This will ensure any rule changes will follow best practices and structure laid out for the `ai_coding_rules/` project.
+For this to be effective, you should have a copy of this project repo `ai_coding_rules/` within your project directory. You can then edit the rule files directly in `rules/` and deploy them to test your improvements. It is also important to verify that `002-rule-governance.md` is an actively selected rule in the project. It should be auto attached, but it never hurts to verify. This will ensure any rule changes will follow best practices and structure laid out for the `ai_coding_rules/` project.
 
 Available LLMs are always evolving and improving in their capabilities. You should periodically ask your LLM of choice to review and make recommendations on rule improvements using the following prompt:
 
@@ -538,6 +656,109 @@ Create a rule for <INSERT FEATURE/FRAMEWORK/LIBRARY> best practices consistent w
 ```
 
 In my experience, you will get consistently better results when you provide live reference links to documentation and any reference links that specifically cover best practices, syntax, etc. If you let the agent/llm try to determine their own references, you are likely to incorporate inaccurate or dated reference information that results in less than ideal rules being generated.
+
+---
+
+## Getting Help
+
+### Self-Service Resources
+
+1. **README.md:** Comprehensive documentation
+   - Architecture details
+   - Advanced configuration
+   - Troubleshooting guide
+
+2. **RULES_INDEX.md (project root):** Find rules by keyword
+   - Search by technology
+   - Browse by category (000-900)
+   - Check dependencies
+
+3. **AGENTS.md:** Rule loading protocol
+   - Decision trees
+   - Integration patterns
+   - Best practices
+
+### Community Support
+
+1. **GitHub Issues:** [File an issue](https://github.com/Snowflake-Labs/ai_coding_rules/issues)
+   - Bug reports
+   - Feature requests
+   - Rule suggestions
+
+2. **GitHub Discussions:** [Join the discussion](https://github.com/Snowflake-Labs/ai_coding_rules/discussions)
+   - Questions and answers
+   - Tips and tricks
+   - Community support
+
+### Snowflake Internal Support
+
+*For Snowflake employees only:*
+
+1. **GitLab Issues:** [File an internal issue](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules/-/issues)
+   - Internal bug reports
+   - Feature requests specific to Snowflake workflows
+
+2. **Team Channels:**
+   - **Slack:** #ai-coding-rules (quick questions, tips, community support)
+   - **Teams:** AI Coding Rules Channel
+   - **Email List:** Subscribe to rule update notifications
+
+3. **Team Lead:** Contact your manager
+   - Access issues
+   - Strategic questions
+   - Process clarifications
+
+---
+
+## Team Collaboration (Snowflake Internal)
+
+*This section is for Snowflake team members using the internal GitLab repository.*
+
+### Bookmark Key Resources
+
+- [ ] [AI Coding Rules Repository](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules)
+- [ ] [RULES_INDEX.md](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules/-/blob/main/RULES_INDEX.md)
+- [ ] [Project Issues](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules/-/issues)
+
+### Schedule Rule Updates
+
+**Monthly:** Check for rule updates
+```bash
+# With Task:
+cd /tmp/ai-rules && git pull
+task deploy DEST=~/my-project
+
+# Without Task (Python script):
+cd /tmp/ai-rules && git pull
+/opt/homebrew/bin/uv sync
+/opt/homebrew/bin/uv run scripts/rule_deployer.py --dest ~/my-project
+```
+
+**Quarterly:** Review which rules your team uses most
+
+**Yearly:** Suggest new rules for your domain
+
+### Rule Quality Standards (v3.1)
+
+All rules in this repository follow **Section 11: Universal Compatibility Standards** from `002-rule-governance.md`, ensuring consistent behavior across all AI agents and LLMs.
+
+**Key Standards:**
+- ✅ **Quick Start TL;DR sections** - Essential patterns in 30 seconds
+- ✅ **Standardized metadata order** - Consistent parsing across agents
+- ✅ **Investigation-First protocols** - Prevents hallucinations
+- ✅ **Complete response templates** - Working code examples
+- ✅ **Accurate token budgets** - Reliable context planning
+- ✅ **Explicit dependency declarations** - Automated rule loading
+- ✅ **Standardized code block tags** - Consistent syntax highlighting
+
+**For Contributors:**
+- **Validate rules:** `task rules:validate` - Check all rules against schema
+- **Strict validation:** `task rules:validate:strict` - Fail on warnings (CI/CD)
+- **Complete standards:** See `rules/002-rule-governance.md` Section 11
+
+**Validation Tools:**
+- `scripts/schema_validator.py` - Schema-based validation with detailed errors
+- Validates: metadata order, TL;DR presence, Contract placement, Investigation protocols, token budgets, Section 11 compliance, and more
 
 ---
 

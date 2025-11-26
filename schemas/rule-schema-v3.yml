@@ -1,0 +1,602 @@
+# YAML Schema for AI Coding Rules v3.0
+# ==============================================================================
+# Purpose: Validation schema for rule files per 002-rule-governance.md v3.0
+# Usage: python scripts/schema_validator.py rules/NNN-rule.md
+# ==============================================================================
+
+$schema: "http://json-schema.org/draft-07/schema#"
+version: "3.0"
+description: "Validation schema for AI coding rules v3.0 (relaxed constraints, enhanced clarity)"
+last_updated: "2025-11-24"
+
+# ==============================================================================
+# METADATA VALIDATION RULES
+# ==============================================================================
+metadata:
+  description: "Validation rules for file metadata fields"
+  
+  required_fields:
+    - name: "Keywords"
+      format: "**Keywords:**"
+      type: "array"
+      min_items: 10
+      max_items: 15
+      item_type: "string"
+      separator: ", "
+      error_message: "Keywords must contain 10-15 comma-separated terms"
+      fix_suggestion: "Add {needed} more semantic keywords for better discovery"
+      severity: "HIGH"
+      docs_reference: "002-rule-governance.md Section 11.1"
+    
+    - name: "TokenBudget"
+      format: "**TokenBudget:**"
+      type: "string"
+      pattern: "^~[0-9]+$"
+      accuracy_tolerance: 0.10  # ±10% of actual word count
+      error_message: "TokenBudget must be format ~NUMBER (e.g., ~1500)"
+      fix_suggestion: "Update to: ~{calculated_value}"
+      severity: "MEDIUM"
+      docs_reference: "002-rule-governance.md Section 11.1"
+    
+    - name: "ContextTier"
+      format: "**ContextTier:**"
+      type: "enum"
+      allowed_values: ["Critical", "High", "Medium", "Low"]
+      error_message: "ContextTier must be one of: Critical, High, Medium, Low"
+      fix_suggestion: "Choose appropriate tier based on rule importance"
+      severity: "HIGH"
+      docs_reference: "002-rule-governance.md Section 11.1"
+    
+    - name: "Depends"
+      format: "**Depends:**"
+      type: "array"
+      min_items: 1
+      item_type: "string"
+      pattern: "rules/[a-zA-Z0-9_-]+\\.md"
+      check_file_exists: true
+      allow_placeholders: ["000-global-core"]
+      error_message: "Depends must list at least one prerequisite rule"
+      fix_suggestion: "Add rules/000-global-core or other dependencies"
+      severity: "HIGH"
+      docs_reference: "002-rule-governance.md Section 11.1"
+  
+  field_order:
+    required: true
+    order: ["Keywords", "TokenBudget", "ContextTier", "Depends"]
+    error_message: "Metadata fields must appear in order: Keywords, TokenBudget, ContextTier, Depends"
+    fix_suggestion: "Reorder metadata fields per Section 11.1 of 002-rule-governance.md"
+    severity: "HIGH"
+    docs_reference: "002-rule-governance.md Section 11.1"
+  
+  placement:
+    before_section: "Purpose"
+    error_message: "Metadata must appear before Purpose section"
+    fix_suggestion: "Move metadata to lines 3-7, immediately after H1 title"
+    severity: "CRITICAL"
+  
+  header:
+    required: true
+    format: "## Metadata"
+    placement: "after_h1_before_fields"
+    error_message: "Metadata fields must be under ## Metadata header"
+    fix_suggestion: "Add '## Metadata' header after H1 title, before metadata fields"
+    severity: "HIGH"
+    docs_reference: "002-rule-governance.md Section 11.1"
+
+# ==============================================================================
+# DOCUMENT STRUCTURE RULES
+# ==============================================================================
+structure:
+  description: "Document structure validation rules"
+  
+  # Single H1 title requirement
+  title:
+    level: 1
+    count: 1
+    required: true
+    pattern: "^# \\d+-[a-z]+-[a-z-]+$"
+    error_message: "Must have exactly one H1 title matching pattern: # NNN-technology-aspect"
+    fix_suggestion: "Ensure H1 title follows naming convention"
+    severity: "CRITICAL"
+    docs_reference: "002-rule-governance.md Section 4"
+  
+  # Required sections with validation rules
+  required_sections:
+    - name: "Purpose"
+      level: 2
+      order: 1
+      required: true
+      max_paragraphs: 2
+      max_sentences: 2
+      error_message: "Purpose section is required (1-2 sentences)"
+      error_group: "Structure"
+      severity: "CRITICAL"
+      docs_reference: "002-rule-governance.md Section 5"
+    
+    - name: "Rule Scope"
+      level: 2
+      order: 2
+      required: true
+      max_paragraphs: 1
+      single_line: true
+      placement:
+        after: "Purpose"
+        before: "Quick Start TL;DR"
+      error_message: "Rule Scope section is required (single line)"
+      error_group: "Structure"
+      severity: "CRITICAL"
+      docs_reference: "002-rule-governance.md Section 11.3"
+    
+    - name: "Quick Start TL;DR"
+      level: 2
+      order: 3
+      required: true
+      pattern: "^##\\s+Quick Start TL;DR"
+      placement:
+        after: "Rule Scope"
+        before: "Contract"
+      content_validation:
+        required_keywords: ["MANDATORY", "Essential Patterns", "Pre-Execution Checklist"]
+        essential_patterns:
+          min: 3
+          # No max constraint - quality over quantity
+          pattern: "^\\s*-\\s+\\*\\*[^*]+\\*\\*"
+        checklist_items:
+          min: 5
+          max: 7
+          pattern: "^\\s*-\\s+\\[\\s*\\]"
+          name: "Pre-Execution Checklist"
+      error_message: "Quick Start TL;DR section is required after Rule Scope"
+      error_group: "Quick Start"
+      severity: "CRITICAL"
+      docs_reference: "002-rule-governance.md Section 11.2"
+    
+    - name: "Contract"
+      level: 2
+      order: 4
+      required: true
+      description: "Structured XML contract: inputs, tools, steps, output format, validation"
+      placement:
+        after: "Quick Start TL;DR"
+        max_line_number: 160
+        calculate_allowance: true
+      content_validation:
+        required_fields:
+          - "Inputs/Prereqs"
+          - "Allowed Tools"
+          - "Forbidden Tools"
+          - "Required Steps"
+          - "Output Format"
+          - "Validation Steps"
+        required_steps:
+          min: 5
+          max: 10
+          pattern: "^\\s*\\d+\\."
+      error_message: "Contract section is required before line 160"
+      error_group: "Contract"
+      severity: "CRITICAL"
+      docs_reference: "002-rule-governance.md Section 11.3"
+    
+    - name: "Anti-Patterns and Common Mistakes"
+      level: 2
+      order: 7
+      required: false
+      description: "Problem/Correct Pattern pairs showing what NOT to do and why"
+      content_validation:
+        code_blocks:
+          min: 2
+        required_keywords: ["Problem:", "Correct Pattern:"]
+        pattern_pairs:
+          min: 2
+          structure: "Problem:.*?Correct Pattern:"
+      error_message: "Anti-Patterns and Common Mistakes section is strongly recommended but optional"
+      error_group: "Anti-Patterns"
+      severity: "MEDIUM"
+      docs_reference: "002-rule-governance.md Section 5a"
+    
+    - name: "Post-Execution Checklist"
+      level: 2
+      order: 8
+      required: true
+      description: "Verification checklist to run after completing implementation"
+      content_validation:
+        checklist_items:
+          min: 5
+          pattern: "^\\s*-\\s+\\[\\s*\\]"
+        must_differ_from_quick_start: true
+      error_message: "Post-Execution Checklist section is required"
+      error_group: "Structure"
+      severity: "CRITICAL"
+      docs_reference: "002-rule-governance.md Section 5"
+    
+    - name: "Validation"
+      level: 2
+      order: 9
+      required: true
+      description: "Expanded validation steps beyond Contract - must add context"
+      content_validation:
+        not_empty: true
+        quality_requirements:
+          - "Must expand on Contract validation section"
+          - "Add specific validation commands/tools"
+          - "Include edge cases and error scenarios"
+          - "Must not be exact duplicate of Contract <validation> tag"
+      error_message: "Validation section is required with expanded validation guidance"
+      error_group: "Structure"
+      severity: "CRITICAL"
+      docs_reference: "002-rule-governance.md Section 5"
+    
+    - name: "Output Format Examples"
+      level: 2
+      order: 10
+      required: true
+      content_validation:
+        code_blocks:
+          min: 1
+        not_empty: true
+        quality_requirements:
+          - "Examples must be concrete and specific"
+          - "Show actual code/output structure, not generic placeholders"
+          - "Include at least one complete example"
+      error_message: "Output Format Examples section is required with concrete examples"
+      error_group: "Output Format"
+      severity: "CRITICAL"
+      docs_reference: "002-rule-governance.md Section 11.4"
+    
+    - name: "References"
+      level: 2
+      order: 11
+      required: true
+      content_validation:
+        # Subsections recommended but not required
+        # References critical for grounding LLMs in current content
+        min_items: 1  # At least one reference required
+      error_message: "References section is required to ground LLMs in current content"
+      error_group: "Structure"
+      severity: "HIGH"
+      docs_reference: "002-rule-governance.md Section 5"
+  
+  # Optional sections
+  optional_sections:
+    - name: "Key Principles"
+      level: 2
+      order_range: [4, 7]  # Between Contract and Anti-Patterns
+      content_validation:
+        principle_count:
+          min: 3
+          max: 7
+      docs_reference: "002-rule-governance.md Section 5"
+  
+  # Section order validation
+  section_order:
+    validate_sequence: true
+    error_message: "Sections must appear in correct order per v3.0 spec"
+    fix_suggestion: "Reorder sections: Purpose → Rule Scope → Quick Start → Contract → ... → References"
+    severity: "HIGH"
+
+# ==============================================================================
+# CONTENT VALIDATION RULES
+# ==============================================================================
+content_rules:
+  description: "Deep content validation beyond structure"
+  
+  quick_start_tldr:
+    section: "Quick Start TL;DR"
+    validations:
+      - type: "keyword_presence"
+        required: ["MANDATORY"]
+        case_sensitive: true
+        error_message: "Quick Start TL;DR must contain 'MANDATORY' keyword"
+        severity: "HIGH"
+      
+      - type: "pattern_count"
+        name: "essential_patterns"
+        min: 3
+        # No max constraint - quality over quantity
+        pattern: "^\\s*-\\s+\\*\\*[^*]+\\*\\*"
+        error_message: "Quick Start TL;DR must have at least 3 Essential Patterns"
+        fix_suggestion: "Current: {actual}, Expected: 3+. Add {needed} more pattern(s)"
+        severity: "HIGH"
+      
+      - type: "checklist_count"
+        min: 5
+        max: 7
+        pattern: "^\\s*-\\s+\\[\\s*\\]"
+        error_message: "Quick Start TL;DR must have 5-7 Quick Checklist items"
+        fix_suggestion: "Current: {actual}, Expected: 5-7. Add {needed} more item(s)"
+        severity: "MEDIUM"
+  
+  contract:
+    section: "Contract"
+    validations:
+      - type: "required_fields"
+        fields:
+          - name: "Inputs/Prereqs"
+            pattern: "(<inputs_prereqs>|\\*\\*Inputs/Prereqs:\\*\\*)"
+            non_empty: true
+          - name: "Allowed Tools"
+            pattern: "(<mandatory>|\\*\\*Allowed Tools:\\*\\*)"
+            non_empty: true
+          - name: "Forbidden Tools"
+            pattern: "(<forbidden>|\\*\\*Forbidden Tools:\\*\\*)"
+            non_empty: true
+          - name: "Required Steps"
+            pattern: "(<steps>|\\*\\*Required Steps:\\*\\*)"
+            non_empty: true
+          - name: "Output Format"
+            pattern: "(<output_format>|\\*\\*Output Format:\\*\\*)"
+            non_empty: true
+          - name: "Validation Steps"
+            pattern: "(<validation>|\\*\\*Validation Steps:\\*\\*)"
+            non_empty: true
+        error_message: "Contract must contain all 6 required fields (XML tags or bold headings)"
+        fix_suggestion: "Missing field: **{field_name}:** [description] OR <tag_name>content</tag_name>"
+        severity: "HIGH"
+      
+      - type: "numbered_list"
+        name: "required_steps"
+        min: 5
+        max: 10
+        pattern: "^\\s*\\d+\\."
+        error_message: "Contract Required Steps must have 5-10 steps"
+        fix_suggestion: "Current: {actual} steps. Add more explicit steps."
+        severity: "MEDIUM"
+  
+  anti_patterns:
+    section: "Anti-Patterns and Common Mistakes"
+    validations:
+      - type: "code_block_count"
+        min: 2
+        error_message: "Anti-Patterns should have at least 2 code examples for clarity"
+        fix_suggestion: "Add code examples showing Problem and Correct Pattern"
+        severity: "MEDIUM"
+      
+      - type: "keyword_presence"
+        must_contain: ["Problem:", "Correct Pattern:"]
+        error_message: "Anti-Patterns should show 'Problem:' and 'Correct Pattern:' structure"
+        fix_suggestion: "Use structure: Problem: ... → Why It Fails: ... → Correct Pattern: ..."
+        severity: "MEDIUM"
+      
+      - type: "pattern_pairs"
+        min: 2
+        pattern: "Problem:.*?Correct Pattern:"
+        error_message: "Anti-Patterns must have Problem → Correct Pattern structure"
+        severity: "MEDIUM"
+  
+  output_format_examples:
+    section: "Output Format Examples"
+    validations:
+      - type: "code_block_count"
+        min: 1
+        error_message: "Output Format Examples must have at least 1 code example"
+        fix_suggestion: "Add example code showing expected output format"
+        severity: "HIGH"
+      
+      - type: "non_empty"
+        error_message: "Output Format Examples cannot be empty"
+        severity: "HIGH"
+  
+  investigation_protocol:
+    conditional:
+      metadata_field: "ContextTier"
+      values: ["Critical", "High"]
+    validations:
+      - type: "keyword_presence"
+        must_contain_any: ["investigate", "research", "analyze", "understand", "review"]
+        error_message: "High-tier rules must include investigation protocol"
+        fix_suggestion: "Add investigation step in Required Steps or Key Principles"
+        severity: "MEDIUM"
+
+# ==============================================================================
+# PLACEMENT RULES
+# ==============================================================================
+placement:
+  description: "Section placement and positioning rules"
+  
+  metadata_placement:
+    before_section: "Purpose"
+    error_message: "Metadata must appear before Purpose section"
+    severity: "CRITICAL"
+  
+  quick_start_placement:
+    section: "Quick Start TL;DR"
+    after: "Rule Scope"
+    before: "Contract"
+    error_message: "Quick Start TL;DR must be after Rule Scope, before Contract"
+    severity: "CRITICAL"
+    docs_reference: "002-rule-governance.md Section 11.2"
+
+# ==============================================================================
+# FORMAT RESTRICTIONS
+# ==============================================================================
+restrictions:
+  description: "Format and markup restrictions per v3.0"
+  
+  no_emojis:
+    enabled: true
+    # Comprehensive emoji pattern covering multiple Unicode blocks:
+    # - U+1F300-U+1F9FF: Emoticons, Miscellaneous Symbols and Pictographs
+    # - U+2600-U+26FF: Miscellaneous Symbols (☀️, ⚠️, ✅, ❌, ⚡)
+    # - U+2700-U+27BF: Dingbats (✓, ✗, ➜)
+    pattern: "[\\U0001F300-\\U0001F9FF\\u2600-\\u26FF\\u2700-\\u27BF]"
+    error_message: "Emojis are not allowed in rule files (v3.0 text-only requirement)"
+    fix_suggestion: "Replace emoji with text equivalent: ✅ → [PASS], ❌ → [FAIL], ⚠️ → [WARN]"
+    severity: "CRITICAL"
+    docs_reference: "002-rule-governance.md Section 11.5"
+  
+  no_yaml_frontmatter:
+    enabled: true
+    pattern: "^---\\s*$"
+    error_message: "YAML frontmatter is not allowed (universal output format)"
+    fix_suggestion: "Convert YAML frontmatter to inline **Field:** format"
+    severity: "CRITICAL"
+    docs_reference: "002-rule-governance.md Section 11"
+  
+  no_html_comments_in_rules:
+    enabled: false  # HTML comments allowed in boilerplate, not in regular rules
+    pattern: "<!--.*?-->"
+    excluded_files: ["002a-rule-boilerplate.md"]
+    error_message: "HTML comments should be removed from rule files"
+    severity: "INFO"
+  
+  universal_format:
+    enabled: true
+    inline_metadata: true
+    no_yaml_blocks: true
+    markdown_only: true
+    error_message: "File must use universal Markdown format"
+    severity: "HIGH"
+
+# ==============================================================================
+# LINK VALIDATION
+# ==============================================================================
+link_validation:
+  description: "Validate rule references and external URLs"
+  
+  rule_references:
+    enabled: true
+    pattern: "rules/[a-zA-Z0-9_-]+\\.md"
+    check_exists: true
+    allowed_placeholders:
+      - "filename.md"
+      - "rule-name.md"
+      - "NNN-technology-core.md"
+      - "000-global-core"
+      - "NNN-rule.md"
+      - "NNN-new-rule.md"
+      - "NNN-technology-aspect.md"
+      - "bad-rule.md"
+      - "bad-rule-1.md"
+      - "bad-rule-2.md"
+      - "example.md"
+      - "new-rule.md"
+      - "215-python-django-core.md"
+    error_message: "Referenced rule file does not exist: {file_path}"
+    fix_suggestion: "Update reference or create the rule file"
+    severity: "MEDIUM"
+  
+  external_urls:
+    enabled: true
+    pattern: "^https?://"
+    check_reachable: false  # Optional, can be slow - disabled by default
+    error_message: "External URL may be broken: {url}"
+    severity: "INFO"
+  
+  references_section:
+    # Subsections (### External Documentation, ### Related Rules) recommended but not mandatory
+    # References section itself remains required for LLM grounding
+    min_items: 1  # At least one reference (URL, rule, or doc)
+    error_message: "References section should contain at least one reference"
+    severity: "MEDIUM"
+    
+    # Validation for ### Related Rules subsection
+    related_rules_subsection:
+      required: false  # Subsection is recommended but optional
+      rule_reference_format:
+        required_prefix: "rules/"
+        pattern: "rules/[a-zA-Z0-9_-]+\\.md"
+        # Allow root-level project files without rules/ prefix
+        allowed_root_files:
+          - "AGENTS.md"
+          - "CHANGELOG.md"
+          - "CONTRIBUTING.md"
+          - "README.md"
+          - "RULES_INDEX.md"
+        error_message: "Related Rules must use 'rules/' prefix for all rule references"
+        fix_suggestion: "Update reference from '{filename}' to 'rules/{filename}'"
+        severity: "HIGH"
+        docs_reference: "002-rule-governance.md Section 11"
+
+# ==============================================================================
+# ERROR REPORTING CONFIGURATION
+# ==============================================================================
+error_reporting:
+  description: "Configure error message formatting and grouping"
+  
+  group_by: "section"  # Group errors by which section they affect
+  
+  error_groups:
+    - "Metadata"
+    - "Structure"
+    - "Quick Start"
+    - "Contract"
+    - "Anti-Patterns"
+    - "Output Format"
+    - "References"
+    - "Format"
+    - "Links"
+  
+  show_summary: true
+  show_line_numbers: true
+  show_context: true
+  show_fix_suggestions: true
+  
+  format: "detailed"  # Options: minimal, standard, detailed
+  
+  severity_levels:
+    CRITICAL:
+      weight: 100
+      symbol: "❌"
+      description: "Must fix - blocking issue"
+      fail_validation: true
+    
+    HIGH:
+      weight: 75
+      symbol: "⚠️ "
+      description: "Should fix - important issue"
+      fail_validation: true
+    
+    MEDIUM:
+      weight: 50
+      symbol: "ℹ️ "
+      description: "Consider fixing - quality issue"
+      fail_validation: false
+    
+    INFO:
+      weight: 25
+      symbol: "✓"
+      description: "Informational - suggestion"
+      fail_validation: false
+  
+  report_header: |
+    ================================================================================
+    VALIDATION REPORT: {file_path}
+    ================================================================================
+  
+  report_summary: |
+    SUMMARY:
+      ❌ CRITICAL: {critical_count}
+      ⚠️  HIGH: {high_count}
+      ℹ️  MEDIUM: {medium_count}
+      ✓ Passed: {passed_count} checks
+  
+  report_footer: |
+    ================================================================================
+    RESULT: {result_icon} {result_text}
+    ================================================================================
+
+# ==============================================================================
+# EXCLUDED FILES
+# ==============================================================================
+excluded_files:
+  description: "Files to skip during validation"
+  files:
+    - "README.md"
+    - "CHANGELOG.md"
+    - "CONTRIBUTING.md"
+    - "RULES_INDEX.md"
+    - "UNIVERSAL_PROMPT.md"
+    - "AGENTS.md"
+    - "002a-rule-boilerplate.md"  # Boilerplate is reference, not validated
+
+# ==============================================================================
+# VALIDATION BEHAVIOR
+# ==============================================================================
+validation:
+  description: "Global validation behavior settings"
+  
+  fail_on_warnings: false  # Only fail on CRITICAL and HIGH by default
+  strict_mode: false  # Can be enabled via --strict CLI flag
+  parallel: false  # Can be enabled for directory validation
+  cache_schema: true  # Cache parsed schema for performance
+  max_errors_per_file: 100  # Stop after 100 errors to avoid spam

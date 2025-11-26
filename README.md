@@ -107,7 +107,6 @@ All rules are ready to deploy immediately—no generation step required.
 
 **Quick Decision**:
 
-- **New to the project?** → See [Team Onboarding](docs/ONBOARDING.md)
 - **Just want to use rules?** → See [Quick Start](#quick-start)
 - **Want to modify rules?** → See [For Rule Maintainers](#for-rule-maintainers-contributing-to-rules)
 - **Want to configure your AI?** → See [AI Configuration](#ai-configuration)
@@ -490,7 +489,6 @@ ai_coding_rules/
 │   └── token_validator.py      ← Validate token budgets
 ├── docs/                   ← Documentation
 │   ├── ARCHITECTURE.md         ← System design decisions
-│   ├── ONBOARDING.md           ← Team onboarding guide
 │   └── MEMORY_BANK.md          ← Memory Bank system (optional)
 ├── tests/                  ← Test suite
 ├── schemas/                ← JSON schemas for rule validation

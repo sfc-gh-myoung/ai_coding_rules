@@ -1,5 +1,5 @@
 # point_of_contact: the owner of this project, can be a gitlab user or gitlab group
-point_of_contact: <user or gitlab group>
+point_of_contact: michael.young@snowflake.com
 
 # production: whether this repository meets the criteria for being "production", see https://snowflakecomputing.atlassian.net/wiki/spaces/CLO/pages/2239988967/Production+Repository+Criteria for criteria
 production: true

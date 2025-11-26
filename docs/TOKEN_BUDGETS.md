@@ -6,33 +6,33 @@
 Automatically update token budgets in AI coding rule files to ensure accuracy.
 
 ### Location
-`scripts/update_token_budgets.py`
+`scripts/token_validator.py`
 
 ### Quick Start
 ```bash
 # Preview what would be updated
-python scripts/update_token_budgets.py --dry-run
+python scripts/token_validator.py --dry-run
 
 # Show detailed analysis
-python scripts/update_token_budgets.py --detailed
+python scripts/token_validator.py --detailed
 
 # Apply updates
-python scripts/update_token_budgets.py
+python scripts/token_validator.py
 ```
 
 ### Common Commands
 ```bash
 # Dry run with details
-python scripts/update_token_budgets.py -n --detailed
+python scripts/token_validator.py -n --detailed
 
 # Update with custom threshold (20%)
-python scripts/update_token_budgets.py --threshold 20
+python scripts/token_validator.py --threshold 20
 
 # Verbose output
-python scripts/update_token_budgets.py -v --detailed
+python scripts/token_validator.py -v --detailed
 
 # Update specific directory
-python scripts/update_token_budgets.py -d rules/
+python scripts/token_validator.py -d rules/
 ```
 
 ### How It Works
@@ -45,13 +45,13 @@ python scripts/update_token_budgets.py -d rules/
 ### Integration Workflow
 ```bash
 # After making content changes
-python scripts/update_token_budgets.py --dry-run --detailed
+python scripts/token_validator.py --dry-run --detailed
 
 # Review and apply
-python scripts/update_token_budgets.py
+python scripts/token_validator.py
 
 # Validate
-python scripts/validate_agent_rules.py
+python scripts/schema_validator.py rules/
 
 # Regenerate
 task generate:tokens
@@ -79,7 +79,7 @@ task generate:tokens
 
 #### Preview Changes
 ```bash
-$ python scripts/update_token_budgets.py --dry-run
+$ python scripts/token_validator.py --dry-run
 
 TOKEN BUDGET UPDATE SUMMARY
 Total files analyzed: 72
@@ -91,7 +91,7 @@ Total files analyzed: 72
 
 #### Detailed Analysis
 ```bash
-$ python scripts/update_token_budgets.py --detailed
+$ python scripts/token_validator.py --detailed
 
 File                           Current    Estimated  Diff %     Suggested  Status
 002-rule-governance.md         ~14300     9646       -32.5%     ~9650      UPDATE
@@ -100,7 +100,7 @@ File                           Current    Estimated  Diff %     Suggested  Statu
 
 #### Apply Updates
 ```bash
-$ python scripts/update_token_budgets.py
+$ python scripts/token_validator.py
 
 TOKEN BUDGET UPDATE SUMMARY
 Total files analyzed: 72
@@ -118,9 +118,9 @@ Successfully updated 0 files
 - Updates are safe and reversible via git
 
 ### Related Scripts
-- `validate_agent_rules.py`: Validate rule compliance
-- `remove_emojis.py`: Remove emojis from files
-- `generate_rules.py`: Generate rules for deployment
+- `schema_validator.py`: Validate rule structure and compliance
+- `index_generator.py`: Generate RULES_INDEX.md catalog
+- `rule_deployer.py`: Deploy rules to projects
 
 ### Troubleshooting
 
@@ -128,7 +128,7 @@ Successfully updated 0 files
 - Check directory path with `-d` option
 
 **Issue**: "Permission denied"
-- Ensure script is executable: `chmod +x scripts/update_token_budgets.py`
+- Ensure script is executable: `chmod +x scripts/token_validator.py`
 
 **Issue**: "Unexpected token count"
 - Check if file has unusual formatting

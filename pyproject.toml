@@ -1,7 +1,7 @@
 [project]
 name = "ai_coding_rules"
-version = "2.6.1"
-description = "Universal AI coding rules for consistent, reliable software engineering across LLMs and IDEs"
+version = "3.0.0"
+description = "Production-ready AI coding rules for consistent, reliable software engineering across LLMs and IDEs"
 readme = { file = "README.md" }
 license = { file = "LICENSE" }
 requires-python = ">=3.11"
@@ -25,8 +25,10 @@ classifiers = [
     "Topic :: Text Processing :: Markup :: Markdown",
 ]
 
-# No runtime dependencies - the rule generator uses only standard library
-dependencies = []
+# Runtime dependencies for validation scripts
+dependencies = [
+    "pyyaml>=6.0",
+]
 
 [dependency-groups]
 dev = [
@@ -56,9 +58,18 @@ select = [
     "UP", # pyupgrade
     "SIM", # simplify
     "RUF", # ruff
+    "D",  # pydocstyle
 ]
 
-ignore = ["E501"]
+ignore = [
+    "E501",  # line too long
+    "RUF001",  # ambiguous unicode (emojis)
+    "D203",  # one-blank-line-before-class (conflicts with D211)
+    "D213",  # multi-line-summary-second-line (conflicts with D212)
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [tool.ruff.format]
 quote-style = "double"

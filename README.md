@@ -5,8 +5,7 @@
 ![Tests](https://img.shields.io/badge/tests-100%25%20passing-brightgreen)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Task](https://img.shields.io/badge/Task-Taskfile-brightgreen)](https://taskfile.dev)
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/Snowflake-Labs/ai_coding_rules)
-[![GitLab](https://img.shields.io/badge/GitLab-Repository-orange?logo=gitlab)](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/sfc-gh-myoung/ai_coding_rules)
 
 > **One universal ai coding rule set for all AI assistants, IDEs, and agents — portable, intelligent, and IDE-agnostic**
 
@@ -121,11 +120,8 @@ All rules are ready to deploy immediately—no generation step required.
 ```bash
 # 1. Clone this repository (choose one)
 
-# GitLab:
-git clone https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git
-
 # GitHub:
-git clone https://github.com/Snowflake-Labs/ai_coding_rules.git
+git clone https://github.com/sfc-gh-myoung/ai_coding_rules.git
 
 cd ai_coding_rules
 
@@ -193,11 +189,8 @@ Track rule updates via git submodule:
 ```bash
 # From your project root (choose one)
 
-# GitLab:
-git submodule add https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git .ai-rules
-
 # GitHub:
-git submodule add https://github.com/Snowflake-Labs/ai_coding_rules.git .ai-rules
+git submodule add https://github.com/sfc-gh-myoung/ai_coding_rules.git .ai-rules
 
 cd .ai-rules
 
@@ -214,11 +207,8 @@ If you don't have Task installed, use the Python deployment script directly:
 ```bash
 # Clone the rules repository (choose one)
 
-# GitLab:
-git clone https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git /tmp/ai-rules
-
 # GitHub:
-git clone https://github.com/Snowflake-Labs/ai_coding_rules.git /tmp/ai-rules
+git clone https://github.com/sfc-gh-myoung/ai_coding_rules.git /tmp/ai-rules
 
 cd /tmp/ai-rules
 
@@ -936,7 +926,7 @@ chmod -R u+w .
 ### Still Having Issues?
 
 **Get Help:**
-- **Check Issues:** [GitLab Issues](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git/issues)
+- **Check Issues:** [GitHub Issues](https://github.com/sfc-gh-myoung/ai_coding_rules/issues)
 - **Review Validation:** Run `task rules:validate` to check rule structure
 - **Enable Debug Mode:** `task deploy:verbose DEST=~/path` for detailed output
 - **Check Logs:** Review terminal output for specific error messages
@@ -963,8 +953,8 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 
 ## Support
 
-- **Issues:** [GitLab Issues](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git/issues) *(Snowflake internal)*
-- **Discussions:** [GitLab Discussions](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git/discussions) *(Snowflake internal)*
+- **Issues:** [GitHub Issues](https://github.com/sfc-gh-myoung/ai_coding_rules/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/sfc-gh-myoung/ai_coding_rules/discussions)
 - **Documentation:** All rules include links to official documentation
 - **Contributing:** See [CONTRIBUTING.md](CONTRIBUTING.md)
 
@@ -977,7 +967,7 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 **With Task:**
 ```bash
 # Deploy/update rules
-git clone https://github.com/Snowflake-Labs/ai_coding_rules.git /tmp/ai-rules
+git clone https://github.com/sfc-gh-myoung/ai_coding_rules.git /tmp/ai-rules
 cd /tmp/ai-rules
 task deploy DEST=~/my-project
 ```

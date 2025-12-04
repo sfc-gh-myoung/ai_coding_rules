@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- New rule `441-react-backend.md` for React + Python backend integration patterns
+- Python (FastAPI/Flask) as organizational default backend for React applications
+- Next.js API routes as lightweight option for simpler APIs
 - Comprehensive test coverage for `template_generator.py` (73% → 100%)
 - Comprehensive test coverage for `index_generator.py` (83% → 100%)
 - CLI formatting helper functions (`format_success_message`, `format_error_message`)
@@ -17,6 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dynamic footer generation with complete dependency chain trees in RULES_INDEX.md
 
 ### Changed
+- Restructured `440-react-core.md` for v3.0 schema compliance (section ordering, checklist naming)
+- Softened Zustand recommendation to acknowledge Redux Toolkit for complex enterprise apps
+- Added Next.js default export exception to forbidden section in React rules
+- Removed model-specific "Claude 4 Guidance" sections from React rules (not durable)
+- Added error-focused keywords to React rule metadata for better discovery
 - **BREAKING:** RULES_INDEX.md is now 100% dynamically generated (no header/footer preservation)
 - Removed `preserve_header` parameter from `generate_rules_index()` function
 - Simplified index generation logic with new `generate_footer()` helper function

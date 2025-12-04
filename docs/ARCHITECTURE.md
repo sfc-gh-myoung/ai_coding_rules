@@ -21,7 +21,7 @@ The AI Coding Rules v3.0 architecture represents a fundamental shift from templa
 
 ### Core Architecture Principles
 
-1. **Production-Ready by Default** — All 91 rule files in `rules/` are directly editable and deployment-ready
+1. **Production-Ready by Default** — All 92 rule files in `rules/` are directly editable and deployment-ready
 2. **No Generation Step** — Rules are maintained in their final form, eliminating build complexity
 3. **Universal Format** — Standard Markdown with embedded metadata works with any AI assistant or IDE
 4. **Schema-Validated** — Declarative YAML schema ensures consistency and quality
@@ -56,7 +56,7 @@ The AI Coding Rules v3.0 architecture represents a fundamental shift from templa
 **For Maintainers:**
 - Reduced complexity (no generation engine)
 - Schema-driven validation (declarative)
-- Comprehensive test coverage (91 tests)
+- Comprehensive test coverage (100+ tests)
 
 ## Production-Ready Rules System
 
@@ -141,7 +141,7 @@ Rules use 3-digit prefixes for logical organization:
 | **100-199** | Snowflake Ecosystem | 100-snowflake-core, 101-snowflake-streamlit-core |
 | **200-299** | Python Ecosystem | 200-python-core, 201-python-lint-format |
 | **300-399** | Shell/Bash Scripting | 300-bash-scripting-core, 310-zsh-scripting-core |
-| **400-499** | Docker/Containers | 400-docker-best-practices |
+| **400-499** | Frontend/Containers | 400-docker-best-practices, 420-javascript-core, 430-typescript-core, 440-react-core, 441-react-backend |
 | **500-599** | Data Science/Analytics | 500-data-science-analytics |
 | **600-699** | Data Governance | 600-data-governance-core |
 | **700-799** | Business Analytics | 700-business-analytics |
@@ -154,13 +154,13 @@ Rules use 3-digit prefixes for logical organization:
 
 ```
 ai_coding_rules/
-├── rules/                      # 91 production-ready rule files
+├── rules/                      # 92 production-ready rule files
 │   ├── 000-global-core.md      # Foundation (ContextTier: Critical)
 │   ├── 001-memory-bank.md      # Context management
 │   ├── 002-rule-governance.md  # v3.0 schema standards
 │   ├── 100-snowflake-core.md   # Domain cores
 │   ├── 200-python-core.md
-│   └── ... (91 total)
+│   └── ... (92 total)
 │
 ├── scripts/                    # Automation and validation (2762 lines)
 │   ├── template_generator.py  # Creates new rule templates (500 lines)
@@ -173,7 +173,7 @@ ai_coding_rules/
 │   ├── rule-schema-v3.yml      # v3.0 schema definition (556 lines)
 │   └── README.md               # Schema documentation
 │
-├── tests/                      # Test suite (91 passing tests)
+├── tests/                      # Test suite (100+ passing tests)
 │   ├── test_template_generator.py
 │   ├── test_rule_deployer.py
 │   ├── test_schema_validator.py
@@ -205,7 +205,7 @@ ai_coding_rules/
 - Production-ready files
 - Directly editable
 - No generation required
-- 91 rules covering all domains
+- 92 rules covering all domains
 
 **`scripts/`** — Automation and validation tools
 - `template_generator.py` creates new rules compliant with v3.0 schema
@@ -527,10 +527,10 @@ validate-rules:
 - Contract field completion: 95.4% → 100% compliance (4 rules)
 
 **Current Compliance (v3.0.0):**
-- Keywords (10-15): 96.6% (88/91 rules)
-- Section names: 100% (91/91 rules)
-- Section ordering: 93.1% (85/91 rules)
-- Contract fields: 100% (91/91 rules)
+- Keywords (10-15): 97% (89/92 rules)
+- Section names: 100% (92/92 rules)
+- Section ordering: 93% (86/92 rules)
+- Contract fields: 100% (92/92 rules)
 
 ## Deployment System
 
@@ -541,7 +541,7 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 ### Deployment Architecture
 
 **Source Files (in ai_coding_rules repository):**
-- `rules/` — 91 production-ready rule files
+- `rules/` — 92 production-ready rule files
 - `AGENTS.md` — Discovery guide with loading protocol
 - `RULES_INDEX.md` — Searchable catalog with keywords
 
@@ -554,7 +554,7 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 **Target Structure (in user's project):**
 ```
 /path/to/user-project/
-├── rules/                  # 91 rule files
+├── rules/                  # 92 rule files
 │   ├── 000-global-core.md
 │   ├── 100-snowflake-core.md
 │   └── ...
@@ -613,15 +613,15 @@ Configuration:
   Mode: LIVE (files will be copied)
 
 Validation:
-  ✓ Source rules/ directory exists (91 files)
+  ✓ Source rules/ directory exists (92 files)
   ✓ Source AGENTS.md exists
   ✓ Source RULES_INDEX.md exists
   ✓ Destination writable
 
 Deployment:
   → Creating destination rules/ directory
-  → Copying 91 rule files...
-  ✓ Copied 91 rules to /path/to/project/rules/
+  → Copying 92 rule files...
+  ✓ Copied 92 rules to /path/to/project/rules/
   ✓ Copied AGENTS.md to /path/to/project/
   ✓ Copied RULES_INDEX.md to /path/to/project/
 
@@ -713,7 +713,7 @@ AI Response:
 v3.0 includes comprehensive test coverage ensuring script reliability:
 
 **Test Statistics:**
-- **91 passing tests** across 5 test files
+- **100+ passing tests** across 5 test files
 - **2762 lines** of production code covered
 - **pytest-based** test framework
 - **Fixture-driven** test data management
@@ -1018,7 +1018,7 @@ flowchart TD
 
 ```mermaid
 graph TD
-    Root[ai_coding_rules/] --> Rules[rules/<br/>91 production files]
+    Root[ai_coding_rules/] --> Rules[rules/<br/>92 production files]
     Root --> Scripts[scripts/<br/>5 Python scripts]
     Root --> Schemas[schemas/<br/>v3.0 YAML schema]
     Root --> Tests[tests/<br/>91 passing tests]
@@ -1028,7 +1028,7 @@ graph TD
     
     Rules --> Rule1[000-global-core.md]
     Rules --> Rule2[100-snowflake-core.md]
-    Rules --> Rule3[... 91 total]
+    Rules --> Rule3[... 92 total]
     
     Scripts --> S1[template_generator.py]
     Scripts --> S2[rule_deployer.py]
@@ -1297,7 +1297,7 @@ v3.0 represents a **breaking architectural change**. v2.x template-based systems
 
 3. **Verify** deployment:
    ```bash
-   ls ~/project/rules/*.md | wc -l  # Should show 91
+   ls ~/project/rules/*.md | wc -l  # Should show 92
    ```
 
 **Option 2: Gradual Migration**
@@ -1359,7 +1359,7 @@ task deploy -- --dest ~/project
 Solution: Check configuration
 ```bash
 # Verify files deployed
-ls ~/project/rules/*.md | wc -l  # Should be 91
+ls ~/project/rules/*.md | wc -l  # Should be 92
 ls ~/project/AGENTS.md  # Should exist
 ls ~/project/RULES_INDEX.md  # Should exist
 ```

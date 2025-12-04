@@ -4,9 +4,9 @@ version: '3'
 # All rules in rules/ are production-ready, no generation step required
 
 vars:
-  UV: /opt/homebrew/bin/uv
-  UVX: /opt/homebrew/bin/uvx
-  PYTHON: /opt/homebrew/bin/uv run python
+  UV: /opt/anaconda3/bin/uv
+  UVX: /opt/anaconda3/bin/uvx
+  PYTHON: /opt/anaconda3/bin/uv run python
 
 tasks:
   default:
@@ -135,21 +135,21 @@ tasks:
     requires:
       vars: [DEST]
     cmds:
-      - "{{.PYTHON}} scripts/rule_deployer.py --dest {{.DEST}}"
+      - "{{.PYTHON}} scripts/rule_deployer.py --dest '{{.DEST}}'"
 
   deploy:dry:
     desc: "Preview deployment (usage: task deploy:dry DEST=<path>)"
     requires:
       vars: [DEST]
     cmds:
-      - "{{.PYTHON}} scripts/rule_deployer.py --dest {{.DEST}} --dry-run"
+      - "{{.PYTHON}} scripts/rule_deployer.py --dest '{{.DEST}}' --dry-run"
 
   deploy:verbose:
     desc: "Deploy with verbose output (usage: task deploy:verbose DEST=<path>)"
     requires:
       vars: [DEST]
     cmds:
-      - "{{.PYTHON}} scripts/rule_deployer.py --dest {{.DEST}} --verbose"
+      - "{{.PYTHON}} scripts/rule_deployer.py --dest '{{.DEST}}' --verbose"
 
   # Token Budgets
   tokens:update:

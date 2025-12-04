@@ -3,7 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.0
-**Keywords:** TABLES, RELATIONSHIPS, PRIMARY KEY, validation rules, relationship constraints, semantic view error, InvalidRelationship, create semantic view, debug semantic view, fix semantic view, NLQ, natural language query, granularity rules, mapping syntax, SQL
+**Keywords:** TABLES, RELATIONSHIPS, PRIMARY KEY, validation rules, semantic view error, create semantic view, debug semantic view, SQL, verified queries, VQR, YAML semantic model, NLQ, mapping syntax, granularity rules
 **TokenBudget:** ~4750
 **ContextTier:** High
 **Depends:** rules/100-snowflake-core.md
@@ -86,6 +86,7 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - YAML semantic model uploads (legacy approach - use native views instead)
 - Regular `CREATE VIEW` when semantic view is appropriate
 - CAST, DATE_TRUNC in DIMENSIONS (use simple columns)
+- Verified queries in DDL (must use YAML semantic model files)
 </forbidden>
 
 <steps>
@@ -361,6 +362,121 @@ CREATE OR REPLACE SEMANTIC VIEW prod_db.analytics.sales_analysis AS
   ...;
 ```
 **Benefits:** No production failures; validated before deployment; user confidence; professional; tested thoroughly; reliable; no emergency fixes
+
+---
+
+**Anti-Pattern 5: Attempting to Define Verified Queries in DDL**
+```sql
+-- Bad: Trying to add verified queries in CREATE SEMANTIC VIEW DDL
+CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
+  TABLES (
+    sales_data AS sales
+      PRIMARY KEY (sale_id)
+  )
+  DIMENSIONS (
+    sale_date AS sales.order_date
+      COMMENT = 'Date of sale'
+  )
+  METRICS (
+    total_revenue AS SUM(sales.amount)
+      COMMENT = 'Total sales revenue'
+  )
+  -- VERIFIED_QUERIES (  -- NOT SUPPORTED!
+  --   'Monthly Revenue' AS 
+  --     QUESTION 'What is the total revenue by month?'
+  --     SQL 'SELECT ...'
+  -- );
+-- Error: VERIFIED_QUERIES clause does not exist in DDL syntax!
+```
+**Problem:** DDL syntax limitation; verified queries unsupported in CREATE SEMANTIC VIEW; Cortex Analyst features blocked; workarounds needed; confusion; incomplete semantic model; reduced query accuracy
+
+**Correct Pattern:**
+```yaml
+# File: sales_semantic_model.yaml
+# Upload to Snowflake stage: @analytics.models/sales_semantic_model.yaml
+
+name: sales_analysis
+description: Sales analysis semantic model with verified queries
+
+tables:
+  - name: sales_data
+    base_table:
+      database: PROD
+      schema: SALES
+      table: SALES_FACT
+    
+    dimensions:
+      - name: sale_date
+        expr: order_date
+        data_type: DATE
+        description: Date of sale
+        synonyms:
+          - "order date"
+          - "purchase date"
+    
+    metrics:
+      - name: total_revenue
+        expr: SUM(amount)
+        description: Total sales revenue
+        synonyms:
+          - "revenue"
+          - "sales total"
+
+# Verified queries - ONLY supported in YAML format
+verified_queries:
+  - name: monthly_revenue
+    question: What is the total revenue by month?
+    sql: |
+      SELECT 
+        DATE_TRUNC('MONTH', sale_date) AS month,
+        SUM(total_revenue) AS revenue
+      FROM sales_analysis
+      GROUP BY month
+      ORDER BY month DESC
+    verified_at: 1701734400
+    verified_by: analytics_team
+    use_as_onboarding_question: true
+  
+  - name: top_products
+    question: What are the top 10 products by revenue?
+    sql: |
+      SELECT 
+        product_name,
+        SUM(total_revenue) AS revenue
+      FROM sales_analysis
+      GROUP BY product_name
+      ORDER BY revenue DESC
+      LIMIT 10
+    verified_at: 1701734400
+    verified_by: analytics_team
+```
+
+```sql
+-- Then use CREATE SEMANTIC VIEW for DDL structure (without verified queries)
+CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
+  TABLES (
+    sales_data AS sales
+      PRIMARY KEY (sale_id)
+  )
+  DIMENSIONS (
+    sale_date AS sales.order_date
+      COMMENT = 'Date of sale'
+  )
+  METRICS (
+    total_revenue AS SUM(sales.amount)
+      COMMENT = 'Total sales revenue'
+  );
+
+-- Verified queries remain in YAML file uploaded to stage
+-- Cortex Analyst references YAML file for verified queries
+-- See 117-snowflake-cortex-analyst for integration patterns
+```
+**Benefits:** Proper separation of concerns; verified queries supported; Cortex Analyst fully functional; improved query accuracy; maintainable; follows Snowflake architecture; clear documentation
+
+**Reference:**
+- See [Snowflake Semantic Model Specification](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst/semantic-model-spec) for complete YAML format
+- See `117-snowflake-cortex-analyst` for using verified queries with Cortex Analyst
+- See `106c-snowflake-semantic-views-integration` for integration patterns
 
 
 ## Post-Execution Checklist

@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.0
 **Keywords:** SnowparkSQLException, error messages, Streamlit errors, Snowflake errors, debug SQL error, fix query error, SQL exception, error troubleshooting, query failed, database error, SQL debugging patterns, exception handling, error recovery, common SQL errors
-**TokenBudget:** ~1200
+**TokenBudget:** ~2250
 **ContextTier:** Low
 **Depends:** rules/100-snowflake-core.md, rules/101-snowflake-streamlit-core.md, rules/101b-snowflake-streamlit-performance.md
 

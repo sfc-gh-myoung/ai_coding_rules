@@ -632,7 +632,7 @@ def load_grid_assets():
 ### 3.2 Advanced Error Handling Patterns
 
 **For comprehensive error handling patterns, see:**
-- **101b-appendix-sql-errors.md** - Detailed examples for:
+- **101e-snowflake-streamlit-sql-errors.md** - Detailed examples for:
   - Multiple query error handling
   - User input validation and SQL injection prevention
   - Complex join error debugging
@@ -992,7 +992,7 @@ with st.expander("Debug Info"):
 
 **Closely Related** (consider loading together):
 - `101-snowflake-streamlit-core` - For fundamental Streamlit patterns and session management
-- `101b-appendix-sql-errors` - For comprehensive SQL error handling patterns (extracted from this rule)
+- `101e-snowflake-streamlit-sql-errors` - For comprehensive SQL error handling patterns (extracted from this rule)
 - `103-snowflake-performance-tuning` - For optimizing underlying Snowflake queries
 
 **Sometimes Related** (load if specific scenario):

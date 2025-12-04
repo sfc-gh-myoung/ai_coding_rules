@@ -81,6 +81,14 @@ tasks:
     cmds:
       - "{{.UV}} run pytest --cov=scripts --cov-report=term-missing --cov-report=html tests/"
 
+  # Badges
+  badges:update:
+    desc: "Update README badges (version, test pass %)"
+    deps:
+      - env:deps
+    cmds:
+      - "{{.PYTHON}} scripts/badge_updater.py"
+
   # Rules & Index
   index:generate:
     desc: "Generate RULES_INDEX.md from rules/"

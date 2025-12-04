@@ -38,10 +38,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git"
-Repository = "https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git"
-Issues = "https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules/-/issues"
-Documentation = "https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules/-/blob/main/README.md"
+Homepage = "https://github.com/sfc-gh-myoung/ai_coding_rules"
+Repository = "https://github.com/sfc-gh-myoung/ai_coding_rules.git"
+Issues = "https://github.com/sfc-gh-myoung/ai_coding_rules/issues"
+Documentation = "https://github.com/sfc-gh-myoung/ai_coding_rules/blob/main/README.md"
 
 [tool.ruff]
 target-version = "py311"

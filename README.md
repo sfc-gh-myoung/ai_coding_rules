@@ -120,13 +120,17 @@ All rules are ready to deploy immediately—no generation step required.
 ```bash
 # 1. Clone this repository (choose one)
 
-# GitHub:
+# GitHub HTTPS:
 git clone https://github.com/sfc-gh-myoung/ai_coding_rules.git
+
+# GitHub SSH:
+git clone git@github.com:sfc-gh-myoung/freedom_mortgage_demo.git
 
 cd ai_coding_rules
 
 # 2. Deploy rules to your project
 python scripts/rule_deployer.py --dest ~/my-project
+
 # Or use task:
 task deploy DEST=~/my-project
 

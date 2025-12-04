@@ -558,7 +558,7 @@ tasks:
 
 **CI/CD Pipeline:**
 ```yaml
-# .gitlab-ci.yml or .github/workflows/validate.yml
+# .github/workflows/validate.yml
 validate-rules:
   script:
     - python scripts/schema_validator.py rules/ --strict
@@ -851,17 +851,6 @@ task test:coverage
 - `invalid_contract.md` — Missing XML tags
 
 ### CI/CD Integration
-
-**GitLab CI (.gitlab-ci.yml):**
-```yaml
-test:
-  stage: test
-  script:
-    - uv sync --all-groups
-    - uv run pytest tests/ -v
-    - python scripts/schema_validator.py rules/ --strict
-  coverage: '/TOTAL.*\s+(\d+%)$/'
-```
 
 **GitHub Actions (.github/workflows/test.yml):**
 ```yaml
@@ -1341,7 +1330,7 @@ v3.0 represents a **breaking architectural change**. v2.x template-based systems
 
 1. **Deploy v3.0 rules** to new location:
    ```bash
-   git clone https://github.com/Snowflake-Labs/ai_coding_rules.git /tmp/rules-v3
+   git clone https://github.com/sfc-gh-myoung/ai_coding_rules.git /tmp/rules-v3
    cd /tmp/rules-v3
    task deploy -- --dest ~/project
    ```
@@ -1444,7 +1433,7 @@ grep -i "keyword" ~/project/RULES_INDEX.md
 
 **Community:**
 - GitHub Issues — Report bugs or request features
-- GitLab Issues — Internal Snowflake users
+- GitHub Issues — Users and contributors
 
 ---
 

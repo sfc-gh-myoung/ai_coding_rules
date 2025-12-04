@@ -268,23 +268,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Basic validation scripts
 - Documentation templates
 
-[Unreleased]: https://github.com/Snowflake-Labs/ai_coding_rules/compare/v3.1.0...HEAD
-[3.1.0]: https://github.com/Snowflake-Labs/ai_coding_rules/compare/v3.0.0...v3.1.0
-[3.0.0]: https://github.com/Snowflake-Labs/ai_coding_rules/compare/v2.6.1...v3.0.0
-[2.6.1]: https://github.com/Snowflake-Labs/ai_coding_rules/compare/v2.6.0...v2.6.1
-[2.6.0]: https://github.com/Snowflake-Labs/ai_coding_rules/compare/v2.5.1...v2.6.0
-[2.5.1]: https://github.com/Snowflake-Labs/ai_coding_rules/compare/v2.5.0...v2.5.1
-[2.5.0]: https://github.com/Snowflake-Labs/ai_coding_rules/compare/v2.4.2...v2.5.0
-[2.4.2]: https://github.com/Snowflake-Labs/ai_coding_rules/compare/v2.4.1...v2.4.2
-[2.4.1]: https://github.com/Snowflake-Labs/ai_coding_rules/compare/v2.4.0...v2.4.1
-[2.4.0]: https://github.com/Snowflake-Labs/ai_coding_rules/compare/v2.3.2...v2.4.0
-[2.3.2]: https://github.com/Snowflake-Labs/ai_coding_rules/compare/v2.3.1...v2.3.2
-[2.3.1]: https://github.com/Snowflake-Labs/ai_coding_rules/compare/v2.3.0...v2.3.1
-[2.3.0]: https://github.com/Snowflake-Labs/ai_coding_rules/compare/v2.2.2...v2.3.0
-[2.2.2]: https://github.com/Snowflake-Labs/ai_coding_rules/compare/v2.2.1...v2.2.2
-[2.2.1]: https://github.com/Snowflake-Labs/ai_coding_rules/compare/v2.2.0...v2.2.1
-[2.2.0]: https://github.com/Snowflake-Labs/ai_coding_rules/compare/v2.1.0...v2.2.0
-[2.1.0]: https://github.com/Snowflake-Labs/ai_coding_rules/compare/v2.0.0...v2.1.0
-[2.0.0]: https://github.com/Snowflake-Labs/ai_coding_rules/compare/v1.5.0...v2.0.0
-[1.5.0]: https://github.com/Snowflake-Labs/ai_coding_rules/compare/v1.0.0...v1.5.0
-[1.0.0]: https://github.com/Snowflake-Labs/ai_coding_rules/releases/tag/v1.0.0
+[Unreleased]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.1.0...HEAD
+[3.1.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.0.0...v3.1.0
+[3.0.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.6.1...v3.0.0
+[2.6.1]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.6.0...v2.6.1
+[2.6.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.5.1...v2.6.0
+[2.5.1]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.5.0...v2.5.1
+[2.5.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.4.2...v2.5.0
+[2.4.2]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.4.1...v2.4.2
+[2.4.1]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.4.0...v2.4.1
+[2.4.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.3.2...v2.4.0
+[2.3.2]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.3.1...v2.3.2
+[2.3.1]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.3.0...v2.3.1
+[2.3.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.2.2...v2.3.0
+[2.2.2]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.2.1...v2.2.2
+[2.2.1]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.2.0...v2.2.1
+[2.2.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.1.0...v2.2.0
+[2.1.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.0.0...v2.1.0
+[2.0.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v1.5.0...v2.0.0
+[1.5.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v1.0.0...v1.5.0
+[1.0.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/releases/tag/v1.0.0

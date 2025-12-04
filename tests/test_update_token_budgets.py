@@ -1,4 +1,4 @@
-"""Tests for scripts/update_token_budgets.py token budget analysis and updates.
+"""Tests for scripts/token_validator.py token budget analysis and updates.
 
 Tests follow pytest best practices:
 - AAA pattern with clear arrange/act/assert sections
@@ -14,8 +14,8 @@ from pathlib import Path
 import pytest
 
 # Import module under test
-sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
-import update_token_budgets as utb
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from scripts import token_validator as utb
 
 
 class TestTokenEstimation:

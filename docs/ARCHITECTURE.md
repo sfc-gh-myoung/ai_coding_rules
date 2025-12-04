@@ -21,7 +21,7 @@ The AI Coding Rules v3.0 architecture represents a fundamental shift from templa
 
 ### Core Architecture Principles
 
-1. **Production-Ready by Default** — All 92 rule files in `rules/` are directly editable and deployment-ready
+1. **Production-Ready by Default** — All 100 rule files in `rules/` are directly editable and deployment-ready
 2. **No Generation Step** — Rules are maintained in their final form, eliminating build complexity
 3. **Universal Format** — Standard Markdown with embedded metadata works with any AI assistant or IDE
 4. **Schema-Validated** — Declarative YAML schema ensures consistency and quality
@@ -139,9 +139,9 @@ Rules use 3-digit prefixes for logical organization:
 |-------|--------|---------------|
 | **000-099** | Core/Foundational | 000-global-core, 002-rule-governance |
 | **100-199** | Snowflake Ecosystem | 100-snowflake-core, 101-snowflake-streamlit-core |
-| **200-299** | Python Ecosystem | 200-python-core, 201-python-lint-format |
+| **200-299** | Python Ecosystem | 200-python-core, 201-python-lint-format, 220-python-htmx-core, 222-python-htmx-flask, 223-python-htmx-fastapi |
 | **300-399** | Shell/Bash Scripting | 300-bash-scripting-core, 310-zsh-scripting-core |
-| **400-499** | Frontend/Containers | 400-docker-best-practices, 420-javascript-core, 430-typescript-core, 440-react-core, 441-react-backend |
+| **400-499** | Frontend/Containers | 400-docker-best-practices, 420-javascript-core, 430-typescript-core, 440-react-core, 441-react-backend, 500-frontend-htmx-core |
 | **500-599** | Data Science/Analytics | 500-data-science-analytics |
 | **600-699** | Data Governance | 600-data-governance-core |
 | **700-799** | Business Analytics | 700-business-analytics |
@@ -150,17 +150,74 @@ Rules use 3-digit prefixes for logical organization:
 
 **Split Rules Pattern:** Rules may use letter suffixes (e.g., 101a, 101b, 101c) for subtopic specialization, improving token efficiency by allowing focused loading.
 
+### HTMX Rules Architecture (v3.1.0)
+
+Starting in v3.1.0, the project includes comprehensive HTMX support for building hypermedia-driven web applications. The HTMX rules follow a layered architecture:
+
+**Architecture Layers:**
+
+1. **Core Foundation (220)** — Request/response lifecycle, HTTP headers, security patterns (CSRF, XSS), HATEOAS principles
+2. **Templates (221)** — Jinja2 organization patterns, partials, fragments, conditional rendering
+3. **Framework Integration (222-223)** — Flask-HTMX extension and FastAPI async patterns with dependency injection
+4. **Testing (224)** — Pytest fixtures, header assertions, HTML validation, mocking strategies  
+5. **Patterns (225)** — Common implementation patterns (CRUD, forms, infinite scroll, search, real-time, modals)
+6. **Frontend Integration (226, 500)** — Alpine.js, _hyperscript, CSS frameworks, pure HTMX frontend reference
+
+**Design Decisions:**
+
+- **Consistent Naming:** All HTMX rules follow `python-htmx-*.md` pattern for easy discovery
+- **Framework Parity:** Separate rules for Flask (222) and FastAPI (223) to cover both ecosystems equally
+- **Security First:** Core rule (220) includes CSRF and XSS protection as foundational concepts
+- **Testing Emphasis:** Dedicated testing rule (224) ensures testability is a first-class concern
+- **Progressive Enhancement:** Rules emphasize graceful degradation and accessibility throughout
+
+**Dependency Chain:**
+
+```
+000-global-core.md (foundation)
+  └── 200-python-core.md (Python basics)
+      └── 220-python-htmx-core.md (HTMX foundation)
+          ├── 221-python-htmx-templates.md (template patterns)
+          ├── 222-python-htmx-flask.md (Flask integration)
+          ├── 223-python-htmx-fastapi.md (FastAPI integration)
+          ├── 224-python-htmx-testing.md (testing strategies)
+          ├── 225-python-htmx-patterns.md (common patterns)
+          └── 226-python-htmx-integrations.md (frontend libraries)
+
+500-frontend-htmx-core.md (standalone frontend reference)
+```
+
+**Token Budget Management:**
+
+Total HTMX token budget: ~9500 tokens across 8 rules
+- Core (220): ~1500 tokens — Largest due to security, headers, and HATEOAS coverage
+- Templates (221): ~1200 tokens — Template organization patterns
+- Flask (222): ~1000 tokens — Framework-specific patterns
+- FastAPI (223): ~1000 tokens — Async patterns
+- Testing (224): ~1200 tokens — Comprehensive testing strategies
+- Patterns (225): ~1800 tokens — Largest due to multiple pattern examples (CRUD, forms, search, etc.)
+- Integrations (226): ~800 tokens — Lightest, focused on library integration points
+- Frontend (500): ~1000 tokens — Pure HTMX reference without backend concerns
+
 ## Directory Structure
 
 ```
 ai_coding_rules/
-├── rules/                      # 92 production-ready rule files
+├── rules/                      # 100 production-ready rule files
 │   ├── 000-global-core.md      # Foundation (ContextTier: Critical)
 │   ├── 001-memory-bank.md      # Context management
 │   ├── 002-rule-governance.md  # v3.0 schema standards
 │   ├── 100-snowflake-core.md   # Domain cores
 │   ├── 200-python-core.md
-│   └── ... (92 total)
+│   ├── 220-python-htmx-core.md # HTMX foundation
+│   ├── 221-python-htmx-templates.md
+│   ├── 222-python-htmx-flask.md
+│   ├── 223-python-htmx-fastapi.md
+│   ├── 224-python-htmx-testing.md
+│   ├── 225-python-htmx-patterns.md
+│   ├── 226-python-htmx-integrations.md
+│   ├── 500-frontend-htmx-core.md
+│   └── ... (100 total)
 │
 ├── scripts/                    # Automation and validation (2762 lines)
 │   ├── template_generator.py  # Creates new rule templates (500 lines)
@@ -205,7 +262,7 @@ ai_coding_rules/
 - Production-ready files
 - Directly editable
 - No generation required
-- 92 rules covering all domains
+- 100 rules covering all domains (including 8 HTMX rules as of v3.1.0)
 
 **`scripts/`** — Automation and validation tools
 - `template_generator.py` creates new rules compliant with v3.0 schema

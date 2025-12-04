@@ -7,19 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.0] - 2025-12-03
+
 ### Added
+- 8 new HTMX rules for building hypermedia-driven web applications (92 → 100 total rules)
+  - `220-python-htmx-core.md` — Request/response lifecycle, HTTP headers, security patterns, HATEOAS
+  - `221-python-htmx-templates.md` — Jinja2 template organization, partials, fragments, conditional rendering
+  - `222-python-htmx-flask.md` — Flask-HTMX extension integration, blueprints, authentication patterns
+  - `223-python-htmx-fastapi.md` — FastAPI async patterns with HTMX, dependency injection, background tasks
+  - `224-python-htmx-testing.md` — Pytest fixtures, header assertions, HTML validation, mocking strategies
+  - `225-python-htmx-patterns.md` — Common patterns: CRUD, forms, infinite scroll, search, real-time, modals
+  - `226-python-htmx-integrations.md` — Frontend library integrations (Alpine.js, _hyperscript, Tailwind, Bootstrap, Chart.js)
+  - `500-frontend-htmx-core.md` — Pure frontend HTMX reference (attributes, events, CSS transitions, debugging)
+- Python domain expanded from 15 to 23 rules (+8 HTMX rules)
+- Frontend/Containers domain expanded from 4 to 5 rules (+1 HTMX frontend rule)
+- Comprehensive HTMX rule coverage across Flask, FastAPI, testing, templates, and frontend integration
+- HTMX section added to README.md with detailed rule descriptions
 - New rule `441-react-backend.md` for React + Python backend integration patterns
 - Python (FastAPI/Flask) as organizational default backend for React applications
 - Next.js API routes as lightweight option for simpler APIs
 - Comprehensive test coverage for `template_generator.py` (73% → 100%)
 - Comprehensive test coverage for `index_generator.py` (83% → 100%)
+- Comprehensive test coverage for `badge_updater.py` (0% → 100%, 32 new tests)
+- Comprehensive test coverage for `rule_deployer.py` (90% → 98%, 6 new tests)
+- Overall project test coverage increased from 89% to 96%
 - CLI formatting helper functions (`format_success_message`, `format_error_message`)
 - 16 new integration and unit tests for template generator CLI execution paths
 - 9 new tests for index generator covering error handling, auto-detection, and edge cases
+- 32 new tests for badge updater covering version extraction, test percentage calculation, badge updating, and edge cases
+- 6 new tests for rule deployer covering file validation, copy failures, deployment errors, and CLI argument logic
 - Enhanced test docstrings explaining validation purpose and edge case coverage
 - Dynamic footer generation with complete dependency chain trees in RULES_INDEX.md
 
 ### Changed
+- README.md updated to reflect 100 total rules (was 92)
+- Rule Categories table updated with HTMX coverage in Python and Frontend domains
+- RULES_INDEX.md regenerated with new HTMX rule entries and keywords
+- Established consistent naming pattern: `python-htmx-*.md` for all HTMX-related rules
 - Restructured `440-react-core.md` for v3.0 schema compliance (section ordering, checklist naming)
 - Softened Zustand recommendation to acknowledge Redux Toolkit for complex enterprise apps
 - Added Next.js default export exception to forbidden section in React rules
@@ -36,6 +60,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
+- Import errors in `test_deployment.py` (changed `deploy_rules` → `rule_deployer` after script rename)
+- Import errors in `test_update_token_budgets.py` (corrected module path for `token_validator`)
+- Whitespace in blank lines across test files (auto-fixed by ruff format)
+- Deprecated `IOError` alias replaced with `OSError` in test files (ruff UP024)
+- Formatting inconsistencies in 2 test files (auto-fixed by ruff format)
 
 ### Security
 
@@ -239,7 +268,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Basic validation scripts
 - Documentation templates
 
-[Unreleased]: https://github.com/Snowflake-Labs/ai_coding_rules/compare/v3.0.0...HEAD
+[Unreleased]: https://github.com/Snowflake-Labs/ai_coding_rules/compare/v3.1.0...HEAD
+[3.1.0]: https://github.com/Snowflake-Labs/ai_coding_rules/compare/v3.0.0...v3.1.0
 [3.0.0]: https://github.com/Snowflake-Labs/ai_coding_rules/compare/v2.6.1...v3.0.0
 [2.6.1]: https://github.com/Snowflake-Labs/ai_coding_rules/compare/v2.6.0...v2.6.1
 [2.6.0]: https://github.com/Snowflake-Labs/ai_coding_rules/compare/v2.5.1...v2.6.0

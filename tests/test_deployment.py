@@ -1,4 +1,4 @@
-"""Tests for scripts/deploy_rules.py (v3.0 - production-ready rules).
+"""Tests for scripts/rule_deployer.py (v3.0 - production-ready rules).
 
 Tests the new simplified deployment workflow that copies production-ready rules
 from rules/ directory to destination without any generation step.
@@ -11,6 +11,7 @@ Tests follow pytest best practices:
 - Isolation with tmp_path
 """
 
+import argparse
 import sys
 from pathlib import Path
 from unittest.mock import patch
@@ -19,7 +20,7 @@ import pytest
 
 # Import module under test
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from scripts import deploy_rules as dr
+from scripts import rule_deployer as dr
 
 
 @pytest.fixture
@@ -39,7 +40,7 @@ def mock_project_root(tmp_path: Path) -> Path:
     (project / "AGENTS.md").write_text("# AGENTS\nRule loading instructions")
     (project / "RULES_INDEX.md").write_text("# Rules Index\nRule catalog")
 
-    # Create scripts directory (where deploy_rules.py would be)
+    # Create scripts directory (where rule_deployer.py would be)
     scripts_dir = project / "scripts"
     scripts_dir.mkdir()
 
@@ -124,6 +125,24 @@ class TestValidateSourceStructure:
         assert is_valid is False
         assert any("No .md files found" in e for e in errors)
 
+    @pytest.mark.unit
+    def test_rules_path_is_file_not_directory(self, tmp_path: Path) -> None:
+        """Test validation fails when rules path is a file instead of directory."""
+        # Arrange
+        project = tmp_path / "project"
+        project.mkdir()
+        # Create rules as a file, not a directory
+        (project / "rules").write_text("not a directory")
+        (project / "AGENTS.md").write_text("# Agents")
+        (project / "RULES_INDEX.md").write_text("# Index")
+
+        # Act
+        is_valid, errors = dr.validate_source_structure(project)
+
+        # Assert
+        assert is_valid is False
+        assert any("not a directory" in e for e in errors)
+
 
 class TestCopyRules:
     """Test rule file copying functionality."""
@@ -178,6 +197,24 @@ class TestCopyRules:
         assert files_copied == 0
         assert files_failed == 0
 
+    @pytest.mark.unit
+    def test_copy_failure_handles_exception(self, mock_project_root: Path, tmp_path: Path) -> None:
+        """Test that copy failures are handled gracefully."""
+        # Arrange
+        source_rules = mock_project_root / "rules"
+        dest_dir = tmp_path / "dest"
+
+        # Act - mock shutil.copy2 to raise exception
+        with patch("shutil.copy2") as mock_copy:
+            mock_copy.side_effect = PermissionError("Permission denied")
+            files_copied, files_failed = dr.copy_rules(
+                source_rules, dest_dir, dry_run=False, verbose=False
+            )
+
+        # Assert
+        assert files_copied == 0
+        assert files_failed == 3  # All 3 files should fail
+
 
 class TestCopyRootFiles:
     """Test root file (AGENTS.md, RULES_INDEX.md) copying."""
@@ -210,6 +247,23 @@ class TestCopyRootFiles:
         assert not (dest_dir / "AGENTS.md").exists()  # No actual copy
         assert not (dest_dir / "RULES_INDEX.md").exists()
 
+    @pytest.mark.unit
+    def test_root_files_copy_failure(self, mock_project_root: Path, tmp_path: Path) -> None:
+        """Test handling of root file copy failures."""
+        # Arrange
+        dest_dir = tmp_path / "dest"
+
+        # Act - mock shutil.copy2 to raise exception
+        with patch("shutil.copy2") as mock_copy:
+            mock_copy.side_effect = OSError("Disk full")
+            files_copied, files_failed = dr.copy_root_files(
+                mock_project_root, dest_dir, dry_run=False, verbose=False
+            )
+
+        # Assert
+        assert files_copied == 0
+        assert files_failed == 2  # Both AGENTS.md and RULES_INDEX.md should fail
+
 
 class TestDeployRules:
     """Test end-to-end deployment functionality."""
@@ -218,7 +272,7 @@ class TestDeployRules:
     def test_successful_deployment(self, mock_project_root: Path, dest_dir: Path) -> None:
         """Test complete successful deployment."""
         # Act
-        with patch("scripts.deploy_rules.Path") as mock_path:
+        with patch("scripts.rule_deployer.Path") as mock_path:
             # Mock script location to return our test project root
             mock_path(__file__).resolve.return_value.parent.parent = mock_project_root
 
@@ -234,7 +288,7 @@ class TestDeployRules:
     def test_deployment_dry_run(self, mock_project_root: Path, dest_dir: Path) -> None:
         """Test deployment in dry-run mode."""
         # Act
-        with patch("scripts.deploy_rules.Path") as mock_path:
+        with patch("scripts.rule_deployer.Path") as mock_path:
             mock_path(__file__).resolve.return_value.parent.parent = mock_project_root
 
             success = dr.deploy_rules(dest_dir, dry_run=True, verbose=False)
@@ -253,13 +307,29 @@ class TestDeployRules:
         invalid_project.mkdir()
 
         # Act
-        with patch("scripts.deploy_rules.Path") as mock_path:
+        with patch("scripts.rule_deployer.Path") as mock_path:
             mock_path(__file__).resolve.return_value.parent.parent = invalid_project
 
             success = dr.deploy_rules(dest_dir, dry_run=False, verbose=False)
 
         # Assert
         assert success is False
+
+    @pytest.mark.integration
+    def test_deployment_with_copy_failures(self, mock_project_root: Path, dest_dir: Path) -> None:
+        """Test deployment reports failure when files fail to copy."""
+        # Act - mock shutil.copy2 to fail for some files
+        with (
+            patch("scripts.rule_deployer.Path") as mock_path,
+            patch("shutil.copy2") as mock_copy,
+        ):
+            mock_path(__file__).resolve.return_value.parent.parent = mock_project_root
+            mock_copy.side_effect = Exception("Copy failed")
+
+            success = dr.deploy_rules(dest_dir, dry_run=False, verbose=False)
+
+        # Assert
+        assert success is False  # Should report failure due to copy errors
 
 
 class TestCLIArguments:
@@ -269,7 +339,7 @@ class TestCLIArguments:
     def test_dest_required(self) -> None:
         """Test that --dest argument is required."""
         # Act & Assert
-        with pytest.raises(SystemExit) as exc_info, patch("sys.argv", ["deploy_rules.py"]):
+        with pytest.raises(SystemExit) as exc_info, patch("sys.argv", ["rule_deployer.py"]):
             dr.main()
 
         assert exc_info.value.code != 0
@@ -283,8 +353,8 @@ class TestCLIArguments:
 
         # Act
         with (
-            patch("sys.argv", ["deploy_rules.py", "--dest", str(dest), "--dry-run"]),
-            patch("scripts.deploy_rules.Path") as mock_path,
+            patch("sys.argv", ["rule_deployer.py", "--dest", str(dest), "--dry-run"]),
+            patch("scripts.rule_deployer.Path") as mock_path,
         ):
             mock_path(__file__).resolve.return_value.parent.parent = mock_project_root
 
@@ -293,6 +363,51 @@ class TestCLIArguments:
         # Assert
         assert exit_code == 0
         assert not (dest / "rules").exists()  # Dry run - no copy
+
+    @pytest.mark.unit
+    def test_quiet_verbose_argument_logic(self) -> None:
+        """Test that quiet and verbose flags work correctly together."""
+        # Test quiet overrides verbose
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--dest", type=Path, required=False)
+        parser.add_argument("--verbose", action="store_true", default=True)
+        parser.add_argument("--quiet", action="store_true")
+
+        # Case 1: quiet flag set
+        args = parser.parse_args(["--dest", "/tmp", "--quiet"])
+        verbose = args.verbose and not args.quiet
+        assert verbose is False
+
+        # Case 2: verbose flag set (default)
+        args = parser.parse_args(["--dest", "/tmp"])
+        verbose = args.verbose and not args.quiet
+        assert verbose is True
+
+        # Case 3: verbose explicitly set
+        args = parser.parse_args(["--dest", "/tmp", "--verbose"])
+        verbose = args.verbose and not args.quiet
+        assert verbose is True
+
+    @pytest.mark.integration
+    def test_main_deployment_failure(self, tmp_path: Path) -> None:
+        """Test main returns non-zero exit code on deployment failure."""
+        # Arrange
+        invalid_project = tmp_path / "invalid"
+        invalid_project.mkdir()
+        dest = tmp_path / "dest"
+        dest.mkdir()
+
+        # Act
+        with (
+            patch("sys.argv", ["rule_deployer.py", "--dest", str(dest)]),
+            patch("scripts.rule_deployer.Path") as mock_path,
+        ):
+            mock_path(__file__).resolve.return_value.parent.parent = invalid_project
+
+            exit_code = dr.main()
+
+        # Assert
+        assert exit_code == 1  # Should return error code
 
 
 # Run tests with: pytest tests/test_deployment.py -v

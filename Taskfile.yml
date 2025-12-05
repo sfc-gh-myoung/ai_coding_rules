@@ -175,6 +175,33 @@ tasks:
     cmds:
       - "{{.PYTHON}} scripts/token_validator.py --dry-run"
 
+  # Keyword Generation
+  keywords:suggest:
+    desc: "Suggest keywords for a rule file (usage: task keywords:suggest FILE=rules/100-example.md)"
+    requires:
+      vars: [FILE]
+    cmds:
+      - "{{.PYTHON}} scripts/keyword_generator.py {{.FILE}} --corpus"
+
+  keywords:diff:
+    desc: "Show diff between current and suggested keywords (usage: task keywords:diff FILE=rules/100-example.md)"
+    requires:
+      vars: [FILE]
+    cmds:
+      - "{{.PYTHON}} scripts/keyword_generator.py {{.FILE}} --corpus --diff"
+
+  keywords:update:
+    desc: "Update keywords in a rule file (usage: task keywords:update FILE=rules/100-example.md)"
+    requires:
+      vars: [FILE]
+    cmds:
+      - "{{.PYTHON}} scripts/keyword_generator.py {{.FILE}} --corpus --update"
+
+  keywords:all:
+    desc: "Suggest keywords for all rules in rules/ directory"
+    cmds:
+      - "{{.PYTHON}} scripts/keyword_generator.py rules/ --corpus"
+
   # Validation & CI
   validate:ci:
     desc: "Run all validation checks for CI/CD"

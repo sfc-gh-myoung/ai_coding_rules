@@ -1,7 +1,9 @@
-version: '3'
+version: '3.45'
 # Taskfile v3 for AI Coding Rules (v3.0 - Production-Ready Rules Architecture)
 # Usage: install Task and run `task` to see available commands
 # All rules in rules/ are production-ready, no generation step required
+
+set: [pipefail]
 
 vars:
   UV: /opt/homebrew/bin/uv
@@ -54,11 +56,22 @@ tasks:
     cmds:
       - "{{.UVX}} ruff format ."
 
+  quality:type:
+    desc: "ty type check (check only)"
+    cmds:
+      - "{{.UVX}} ty check ."
+
+  quality:type:watch:
+    desc: "ty type check with watch mode"
+    cmds:
+      - "{{.UVX}} ty check . --watch"
+
   quality:check:
     desc: "Run all quality checks"
     cmds:
       - task: quality:lint
       - task: quality:format
+      - task: quality:type
 
   quality:fix:
     desc: "Fix all quality issues"
@@ -207,6 +220,7 @@ tasks:
     desc: "Run all validation checks for CI/CD"
     cmds:
       - task: quality:check
+      - task: quality:type
       - task: test:all
       - task: rules:validate
       - task: index:check

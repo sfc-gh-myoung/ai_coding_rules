@@ -8,12 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- `207-python-logging.md` — New Python logging best practices rule
+- `207-python-logging.md` — New Python logging best practices rule (100 → 101 rules)
   - Rich console bridging to Python logger for dual CLI/web UI output
   - WebLogHandler implementation for SSE streaming
   - Operation-scoped handler attachment patterns
   - Hierarchical logger naming conventions
   - SUCCESS message prefix pattern for level detection
+- README.md and docs/ARCHITECTURE.md updated to reflect 101 rules
 - `scripts/keyword_generator.py` — New script for generating semantically relevant keywords for rule files
   - Uses TF-IDF and multi-signal extraction (headers, code languages, emphasized terms, technology terms)
   - Supports `--suggest` (default), `--update`, `--diff`, and `--corpus` modes

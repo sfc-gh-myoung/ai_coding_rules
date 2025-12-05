@@ -142,7 +142,7 @@ task deploy DEST=~/my-project
 
 **What just happened?**
 
-- ✅ Copied `rules/` directory (100 rules) to your project
+- ✅ Copied `rules/` directory (101 rules) to your project
 - ✅ Copied `AGENTS.md` and `RULES_INDEX.md` for automatic AI discovery
 - ✅ Ready to use immediately—no additional configuration needed!
 
@@ -567,7 +567,7 @@ task env:deps                          # Sync dependencies with uv
 
 ## Rule Categories
 
-The 100 rules are organized by domain using a three-digit numbering system. Each category focuses on a specific technology or practice area.
+The 101 rules are organized by domain using a three-digit numbering system. Each category focuses on a specific technology or practice area.
 
 | Domain | Range | # Rules | Focus Area | Key Topics |
 |--------|-------|---------|------------|------------|

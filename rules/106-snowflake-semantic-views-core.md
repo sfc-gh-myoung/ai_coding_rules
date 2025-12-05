@@ -63,6 +63,7 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Relationships are many-to-one (no circular, no self-ref)
 - [ ] Cross-table references use relationships (not direct column refs)
 - [ ] Granularity rules respected (aggregate when referencing higher granularity)
+- [ ] No `&` or template characters in SYNONYMS, COMMENT, or identifiers (CLI compatibility)
 - [ ] Validated with `SHOW SEMANTIC VIEWS`
 
 
@@ -478,6 +479,64 @@ CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
 - See `106c-snowflake-semantic-views-integration` for using verified queries with Cortex Analyst
 - See `106c-snowflake-semantic-views-integration` for integration patterns
 
+---
+
+**Anti-Pattern 6: Using Template Characters in SYNONYMS or COMMENT**
+```sql
+-- Bad: & and other template characters in SYNONYMS
+CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
+  TABLES (
+    sales_data AS sales
+      PRIMARY KEY (sale_id)
+  )
+  DIMENSIONS (
+    department AS sales.department
+      COMMENT = 'Sales & Marketing department'  -- & causes CLI issues!
+      SYNONYMS ('R&D', 'Sales & Marketing', 'S&M')  -- & interpreted as template variable!
+  )
+  METRICS (
+    total_revenue AS SUM(sales.amount)
+      COMMENT = 'Revenue for <%REGION%>'  -- <% %> are SnowSQL variables!
+  );
+-- Snowflake CLI error: "undefined variable 'D'" or similar cryptic message
+-- Deployment fails with confusing error, hard to debug!
+```
+**Problem:** Snowflake CLI (`snow sql`) interprets `&` as template variable prefix; SnowSQL interprets `<%` and `%>` as variable delimiters; deployment fails with cryptic errors; hard to debug; wasted time; blocks CI/CD pipelines
+
+**Correct Pattern:**
+```sql
+-- Good: Avoid template characters, use alternatives
+CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
+  TABLES (
+    sales_data AS sales
+      PRIMARY KEY (sale_id)
+  )
+  DIMENSIONS (
+    department AS sales.department
+      COMMENT = 'Sales and Marketing department'  -- Use 'and' instead of '&'
+      SYNONYMS ('R and D', 'Research and Development', 'Sales and Marketing')
+  )
+  METRICS (
+    total_revenue AS SUM(sales.amount)
+      COMMENT = 'Revenue by region'  -- Plain text, no template syntax
+  );
+-- Deploys successfully via CLI, Snowsight, and CI/CD pipelines!
+```
+**Benefits:** CLI compatible; no deployment errors; CI/CD friendly; clear error-free execution; professional; maintainable
+
+**Characters to Avoid:**
+- `&` - Snowflake CLI template variable prefix
+- `<%` and `%>` - SnowSQL variable delimiters
+- `{{` and `}}` - Common templating syntax (Jinja2, dbt)
+
+**Alternatives:**
+| Avoid | Use Instead |
+|-------|-------------|
+| `R&D` | `R and D`, `Research and Development` |
+| `Sales & Marketing` | `Sales and Marketing` |
+| `P&L` | `P and L`, `Profit and Loss` |
+| `M&A` | `M and A`, `Mergers and Acquisitions` |
+
 
 ## Post-Execution Checklist
 
@@ -489,6 +548,7 @@ CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
 - [ ] METRICS block uses simple aggregates (COUNT, SUM, AVG, MIN, MAX)
 - [ ] All dimensions and metrics have synonyms for natural language querying
 - [ ] Comments provided for all dimensions and metrics explaining business meaning
+- [ ] No template characters (`&`, `<%`, `%>`, `{{`, `}}`) in SYNONYMS or COMMENT values
 - [ ] Semantic view tested with Cortex Analyst natural language questions
 - [ ] Base tables follow 100-snowflake-core naming conventions
 - [ ] Related semantic views follow consistent naming: SEM_ prefix or MODEL_ prefix

@@ -245,6 +245,7 @@ CREATE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
 - [ ] Metrics use proper aggregation (nested when referencing higher granularity)
 - [ ] Window function metrics not used in dimensions, facts, or other metrics
 - [ ] Only scalar functions in dimensions (no table functions)
+- [ ] No template characters (`&`, `<%`, `%>`, `{{`, `}}`) in SYNONYMS or COMMENT values
 
 
 ## Validation
@@ -911,6 +912,7 @@ CREATE OR REPLACE SEMANTIC VIEW my_view
 -- [ ] Metrics use proper aggregation (nested when needed)
 -- [ ] Window function metrics not used in other expressions
 -- [ ] Only scalar functions in dimensions (no table functions)
+-- [ ] No template characters in SYNONYMS or COMMENT (& <% %> {{ }})
 
 -- Validate after creation:
 SHOW SEMANTIC VIEWS IN SCHEMA my_schema;
@@ -918,6 +920,39 @@ DESCRIBE SEMANTIC VIEW my_schema.my_view;
 SHOW SEMANTIC DIMENSIONS IN SEMANTIC VIEW my_schema.my_view;
 SHOW SEMANTIC METRICS IN SEMANTIC VIEW my_schema.my_view;
 ```
+
+### 4.8 Template Character Validation (CLI Compatibility)
+
+**Rule:** Avoid characters that Snowflake CLI or SnowSQL interpret as template variables.
+
+**Forbidden Characters in SYNONYMS and COMMENT:**
+- `&` - Snowflake CLI (`snow sql`) template variable prefix
+- `<%` and `%>` - SnowSQL variable delimiters
+- `{{` and `}}` - Common templating syntax (Jinja2, dbt)
+
+**Validation Query:**
+```sql
+-- Check for problematic characters in semantic view DDL
+-- Run GET_DDL and search for template characters
+SELECT GET_DDL('SEMANTIC_VIEW', 'MY_DB.MY_SCHEMA.MY_SEMANTIC_VIEW') AS ddl;
+
+-- Manual check: search DDL output for:
+-- - '&' (ampersand)
+-- - '<%' or '%>' (SnowSQL variables)
+-- - '{{' or '}}' (Jinja/dbt templates)
+```
+
+**Why This Matters:**
+```sql
+-- This DDL works in Snowsight but FAILS via CLI:
+SYNONYMS ('R&D', 'Sales & Marketing')
+-- CLI error: "undefined variable 'D'" or similar
+
+-- This DDL works everywhere:
+SYNONYMS ('R and D', 'Research and Development', 'Sales and Marketing')
+```
+
+**Best Practice:** Always test semantic view DDL via Snowflake CLI (`snow sql -f file.sql`) before committing to ensure CI/CD compatibility.
 
 
 ## Related Rules

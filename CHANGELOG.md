@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- `AGENTS.md` — Optimized based on GitHub (2,500+ repos) and HumanLayer best practices analysis
+  - Reordered sections: Mandatory Rule Loading Protocol now appears first for attention priority
+  - Added Persona section for behavioral anchoring
+  - Added Boundaries table (ALWAYS/ASK FIRST/NEVER categories)
+  - Added Validation Commands quick-reference table
+  - Linked Response Format to Protocol Steps 2-3 for explicit compliance
+  - Strengthened violation statement for protocol criticality
+  - Removed redundant sections duplicated in `000-global-core.md`
+  - Condensed Validation Gates from verbose prose to single table
+  - Reduced file from 215 lines to 149 lines (~31% reduction)
+  - Estimated token savings: ~40% reduction in bootstrap overhead
+
 ## [3.2.0] - 2025-12-04
 
 ### Added

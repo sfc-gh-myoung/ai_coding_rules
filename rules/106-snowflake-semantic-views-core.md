@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.0
 **Keywords:** TABLES, RELATIONSHIPS, PRIMARY KEY, validation rules, semantic view error, create semantic view, debug semantic view, SQL, verified queries, VQR, YAML semantic model, NLQ, mapping syntax, granularity rules
-**TokenBudget:** ~4750
+**TokenBudget:** ~5550
 **ContextTier:** High
 **Depends:** rules/100-snowflake-core.md
 
@@ -469,13 +469,13 @@ CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
 
 -- Verified queries remain in YAML file uploaded to stage
 -- Cortex Analyst references YAML file for verified queries
--- See 117-snowflake-cortex-analyst for integration patterns
+-- See 106c-snowflake-semantic-views-integration for integration patterns
 ```
 **Benefits:** Proper separation of concerns; verified queries supported; Cortex Analyst fully functional; improved query accuracy; maintainable; follows Snowflake architecture; clear documentation
 
 **Reference:**
 - See [Snowflake Semantic Model Specification](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst/semantic-model-spec) for complete YAML format
-- See `117-snowflake-cortex-analyst` for using verified queries with Cortex Analyst
+- See `106c-snowflake-semantic-views-integration` for using verified queries with Cortex Analyst
 - See `106c-snowflake-semantic-views-integration` for integration patterns
 
 
@@ -900,15 +900,89 @@ METRICS (
 
 
 
+## Prerequisites Validation
+
+Before creating semantic views, verify your environment meets requirements.
+
+### Prerequisites Checklist
+
+- [ ] Snowflake account has Cortex Analyst capability enabled (for NLQ usage)
+- [ ] Base tables/views for semantic layer exist and are populated
+- [ ] Required permissions granted (CREATE SEMANTIC VIEW, SELECT on source tables)
+- [ ] Understanding of business metrics and grain for semantic modeling
+- [ ] Warehouse available for query execution
+
+### Verification Commands
+
+**Check Cortex Availability:**
+```sql
+-- Verify Cortex features available (for Cortex Analyst integration)
+SHOW PARAMETERS LIKE 'CORTEX%' IN ACCOUNT;
+```
+
+**Check Semantic View Generator Availability:**
+```sql
+-- Check account capabilities for Generator
+SELECT SYSTEM$GET_ACCOUNT_CAPABILITIES() AS capabilities;
+
+-- Alternative: Check via Snowsight UI
+-- Navigate to: Data → Databases → [Your Database] → [Schema]
+-- Look for "Generate Semantic View" button on table context menu
+```
+
+**Verify Base Tables:**
+```sql
+-- Check source tables exist and have data
+SELECT 
+    TABLE_CATALOG,
+    TABLE_SCHEMA,
+    TABLE_NAME,
+    ROW_COUNT
+FROM {DATABASE}.INFORMATION_SCHEMA.TABLES
+WHERE TABLE_SCHEMA = '{SCHEMA}'
+  AND TABLE_TYPE = 'BASE TABLE';
+
+-- Check table structure for semantic view candidates
+DESCRIBE TABLE {DATABASE}.{SCHEMA}.{TABLE};
+
+-- Identify columns for FACTS vs DIMENSIONS
+SELECT 
+    COLUMN_NAME,
+    DATA_TYPE,
+    IS_NULLABLE,
+    COMMENT
+FROM {DATABASE}.INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_SCHEMA = '{SCHEMA}'
+  AND TABLE_NAME = '{TABLE}'
+ORDER BY ORDINAL_POSITION;
+```
+
+**Verify Semantic View Creation Permissions:**
+```sql
+-- Check you can create semantic views in target schema
+SHOW GRANTS ON SCHEMA {DATABASE}.{SCHEMA};
+
+-- Required grants:
+-- - CREATE SEMANTIC VIEW on schema
+-- - SELECT on source tables
+-- - USAGE on database and schema
+
+-- Verify role has necessary privileges
+SELECT 
+    CURRENT_ROLE() AS current_role,
+    CURRENT_DATABASE() AS current_database,
+    CURRENT_SCHEMA() AS current_schema;
+```
+
+
 ## Related Rules
 
 **Closely Related** (consider loading together):
 - `106a-snowflake-semantic-views-advanced` - Anti-patterns, validation rules, quality checks, compliance requirements
 - `106b-snowflake-semantic-views-querying` - Query patterns using SEMANTIC_VIEW() function, result processing
-- `106c-snowflake-semantic-views-integration` - Integration with Cortex Analyst and Cortex Agents
+- `106c-snowflake-semantic-views-integration` - Integration with Cortex Analyst, Cortex Agents, and troubleshooting
 
 **Sometimes Related** (load if specific scenario):
-- `117-snowflake-cortex-analyst` - When using semantic views with Cortex Analyst for natural language queries
 - `115-snowflake-cortex-agents-core` - When configuring semantic views as tools for Cortex Agents
 - `103-snowflake-performance-tuning` - When optimizing base tables that semantic views reference
 

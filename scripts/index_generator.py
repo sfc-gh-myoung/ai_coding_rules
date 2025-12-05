@@ -292,15 +292,16 @@ Token Cost Scenarios:
 ```
 000-global-core (1300 tokens)
 └── 100-snowflake-core (1800 tokens)
-    ├── 106-snowflake-semantic-views-core (2800 tokens)
-    │   ├── 106a-snowflake-semantic-views-advanced (2200 tokens)
-    │   └── 106b-snowflake-semantic-views-querying (5000 tokens)
-    └── 117-snowflake-cortex-analyst (3800 tokens)
+    └── 106-snowflake-semantic-views-core (2800 tokens)
+        ├── 106a-snowflake-semantic-views-advanced (2200 tokens)
+        ├── 106b-snowflake-semantic-views-querying (5000 tokens)
+        └── 106c-snowflake-semantic-views-integration (4600 tokens)
 
 Token Cost Scenarios:
-• Minimal (basic analyst):    000 + 100 + 106 + 117 = ~9,700 tokens
-• Standard (with queries):    + 106b                 = ~14,700 tokens
-• Complete (full capability): + 106a                 = ~16,900 tokens
+• Minimal (basic analyst):    000 + 100 + 106       = ~5,900 tokens
+• Standard (with queries):    + 106b                 = ~10,900 tokens
+• With integration:           + 106c                 = ~15,500 tokens
+• Complete (full capability): + 106a                 = ~17,700 tokens
 ```
 
 ### Performance Tuning Workflow

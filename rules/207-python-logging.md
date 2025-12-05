@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.0
 **Keywords:** logging, Python logging, logger, handlers, formatters, log levels, WebLogHandler, Rich console, SSE streaming, structured logging, operation ID, thread safety, log hierarchy, log propagation
-**TokenBudget:** ~2200
+**TokenBudget:** ~1700
 **ContextTier:** High
 **Depends:** rules/200-python-core.md
 

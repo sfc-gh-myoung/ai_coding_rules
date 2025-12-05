@@ -300,7 +300,7 @@ ai_coding_rules/
 - Production-ready files
 - Directly editable
 - No generation required
-- 100 rules covering all domains (including 8 HTMX rules and Go/Golang core)
+- 101 rules covering all domains (including 8 HTMX rules and Go/Golang core)
 
 **`scripts/`** — Automation and validation tools
 - `template_generator.py` creates new rules compliant with v3.0 schema
@@ -717,7 +717,7 @@ Validation:
 Deployment:
   → Creating destination rules/ directory
   → Copying 100 rule files...
-  ✓ Copied 100 rules to /path/to/project/rules/
+  ✓ Copied 101 rules to /path/to/project/rules/
   ✓ Copied AGENTS.md to /path/to/project/
   ✓ Copied RULES_INDEX.md to /path/to/project/
 

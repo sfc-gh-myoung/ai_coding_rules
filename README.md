@@ -491,6 +491,7 @@ ai_coding_rules/
 │   ├── rule_deployer.py        ← Deploy rules to projects
 │   ├── schema_validator.py     ← Validate rule structure
 │   ├── template_generator.py   ← Create new rule templates
+│   ├── keyword_generator.py    ← Generate semantic keywords for rules
 │   └── token_validator.py      ← Validate token budgets
 ├── docs/                   ← Documentation
 │   ├── ARCHITECTURE.md         ← System design decisions
@@ -543,6 +544,12 @@ task index:dry                         # Preview index generation
 task tokens:update                     # Update token budgets in rules
 task tokens:check                      # Check token budget accuracy
 task tokens:dry                        # Preview token updates
+
+# Keyword Generation
+task keywords:suggest FILE=rules/100-example.md  # Suggest keywords for a rule
+task keywords:diff FILE=rules/100-example.md     # Show diff between current and suggested
+task keywords:update FILE=rules/100-example.md   # Update keywords in-place
+task keywords:all                                # Suggest keywords for all rules
 
 # Quality & Testing
 task quality:check                     # Run linting and formatting checks

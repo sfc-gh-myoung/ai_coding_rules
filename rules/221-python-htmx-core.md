@@ -486,8 +486,9 @@ def update_item(item_id):
 
 ### Related Rules
 - **Python Foundation**: `rules/200-python-core.md` - Python coding standards
-- **Template Strategies**: `rules/221-python-htmx-templates.md` - Jinja2 patterns for HTMX
-- **Flask Integration**: `rules/222-python-htmx-flask.md` - Flask-specific HTMX patterns
-- **FastAPI Integration**: `rules/223-python-htmx-fastapi.md` - FastAPI-specific HTMX patterns
-- **Testing Patterns**: `rules/224-python-htmx-testing.md` - Testing HTMX endpoints
-- **Common Patterns**: `rules/225-python-htmx-patterns.md` - CRUD, forms, infinite scroll
+- **Template Strategies**: `rules/221a-python-htmx-templates.md` - Jinja2 patterns for HTMX
+- **Flask Integration**: `rules/221b-python-htmx-flask.md` - Flask-specific HTMX patterns
+- **FastAPI Integration**: `rules/221c-python-htmx-fastapi.md` - FastAPI-specific HTMX patterns
+- **Testing Patterns**: `rules/221d-python-htmx-testing.md` - Testing HTMX endpoints
+- **Common Patterns**: `rules/221e-python-htmx-patterns.md` - CRUD, forms, infinite scroll
+- **Frontend Integrations**: `rules/221f-python-htmx-integrations.md` - Alpine.js, Tailwind, etc.

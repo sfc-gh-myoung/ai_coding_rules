@@ -3,7 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.0
-**Keywords:** Python, uv, Ruff, pyproject.toml, dependency management, virtual environments, modern Python tooling, pytest, validation, uv run, uvx, datetime.now(UTC)
+**Keywords:** Python, uv, Ruff, pyproject.toml, dependency management, virtual environments, modern Python tooling, pytest, validation, uv run, uvx, datetime.now(UTC), ty, type checking, type checker, mypy, type hints, static analysis
 **TokenBudget:** ~3300
 **ContextTier:** Critical
 **Depends:** rules/000-global-core.md
@@ -24,9 +24,10 @@ Foundational Python development practices with modern tooling (uv, Ruff) and pro
 **Essential Patterns:**
 - **Always use `uv run`** for Python execution - never bare `python` command
 - **Use `uvx ruff check .` and `uvx ruff format .`** before completing tasks
+- **Use `uvx ty check .`** for type checking - ty is the primary type checker (Astral toolchain)
 - **Run `uv run pytest`** - all tests must pass before completion
 - **Use `datetime.now(UTC)`** not deprecated `datetime.utcnow()`
-- **Never skip validation** - ruff check, ruff format, pytest must all pass
+- **Never skip validation** - ruff check, ruff format, ty check, pytest must all pass
 
 
 ## Contract
@@ -56,13 +57,14 @@ Commands, diffs, or code snippets only (no narrative unless requested)
 </output_format>
 
 <validation>
-`uvx ruff check .` passes; `uvx ruff format --check .` passes; `uv run pytest` passes
+`uvx ruff check .` passes; `uvx ruff format --check .` passes; `uvx ty check .` passes; `uv run pytest` passes
 </validation>
 
 <design_principles>
 - Use `uv` for all dependency and environment management; `uvx` for isolated tool execution
 - Pin Python 3.11+ and centralize configuration in `pyproject.toml`
 - Apply Ruff linting and formatting on every file modification
+- Apply ty type checking on every file modification for static type safety
 - Structure code with clear modules, proper error handling, and modern Python patterns
 - Integrate with Taskfile for consistent automation across projects
 </design_principles>
@@ -145,9 +147,30 @@ uv run ruff check .
 # Good: Use uvx for isolated tool execution
 uvx ruff check .
 uvx ruff format .
+uvx ty check .
 # Tools run in isolation, no project pollution
 ```
 **Benefits:** Clean project dependencies; no version conflicts; faster uv sync; tools always latest stable versions; simpler pyproject.toml
+
+---
+
+**Anti-Pattern 5: Skipping Type Checking Before Task Completion**
+```python
+# AI makes code changes
+# AI: "I've updated the data processing function. Task complete!"
+# [No type checking run - potential type errors undetected]
+```
+**Problem:** Type errors discovered later; runtime crashes from type mismatches; IDE warnings ignored; inconsistent type annotations
+
+**Correct Pattern:**
+```bash
+# After making changes, always validate types:
+uvx ty check .
+
+# Only after ALL checks pass (including type checking):
+# "Changes validated: ruff clean, format clean, types clean, tests passing. Task complete."
+```
+**Benefits:** Catches type errors at development time; prevents runtime type crashes; ensures type annotations are correct and complete; maintains type safety across codebase
 
 
 ## Post-Execution Checklist
@@ -157,6 +180,7 @@ uvx ruff format .
 - [ ] Ruff configured in pyproject.toml with target-version = "py311"
 - [ ] **CRITICAL:** `uvx ruff check .` passed with zero errors
 - [ ] **CRITICAL:** `uvx ruff format --check .` passed
+- [ ] **CRITICAL:** `uvx ty check .` passed with zero type errors
 - [ ] **CRITICAL:** `uv run pytest` passed (all tests)
 - [ ] All Python files are syntactically valid (checked with `py_compile`)
 - [ ] **CRITICAL:** CHANGELOG.md updated for code changes
@@ -172,6 +196,7 @@ uvx ruff format .
 - **CRITICAL:** Pre-Task-Completion Validation Gate (section 4.2) must pass before task completion
 - **Syntax Check:** `uv run python -m py_compile -q .` (must pass)
 - **Lint & Format:** `uvx ruff check .` and `uvx ruff format --check .` (must pass with zero errors)
+- **Type Check:** `uvx ty check .` (must pass with zero type errors)
 - **Tests:** `uv run pytest` (all tests must pass)
 - **Documentation:** CHANGELOG.md and README.md updated as required
 - **Import Check:** `uv run python -c "import importlib; print('ok')"`
@@ -249,6 +274,7 @@ def test_implementation_function():
 # Validation commands
 uvx ruff check .
 uvx ruff format --check .
+uvx ty check .
 uv run pytest tests/
 ```
 
@@ -259,6 +285,7 @@ uv run pytest tests/
 - [Python Official Documentation](https://docs.python.org/3/) - Official Python documentation
 - [uv Documentation](https://github.com/astral-sh/uv) - Fast Python package installer and resolver
 - [Ruff Documentation](https://docs.astral.sh/ruff/) - Extremely fast Python linter and formatter
+- [ty Documentation](https://docs.astral.sh/ty/) - Extremely fast Python type checker (Astral toolchain)
 - [Python Packaging User Guide](https://packaging.python.org/) - Authoritative packaging guidelines
 - [PEP 8 Style Guide](https://peps.python.org/pep-0008/) - Python style guide
 
@@ -287,7 +314,7 @@ uv run pytest tests/
 - **Requirement:** Use `uv run python` instead of bare `python` for all scripts, imports, and testing.
 - **Requirement:** Use `uv run uvicorn` instead of bare `uvicorn` for FastAPI/ASGI servers.
 - **Requirement:** Use `uv run pytest` instead of bare `pytest` for testing.
-- **Requirement:** Use `uv run mypy` instead of bare `mypy` for type checking.
+- **Requirement:** Use `uvx ty check` for type checking (primary); use `uv run mypy` as fallback when mypy plugins are needed.
 
 ### 2.1 Tool Isolation vs Project Environment (uv run vs uvx)
 
@@ -296,12 +323,12 @@ uv run pytest tests/
 
 When to use `uv run` (project venv):
 - The command imports your project package/modules (e.g., `pytest`, `uvicorn app.main:app`, `python -m yourpkg`).
-- The tool relies on plugins or integrations defined in `pyproject.toml` or installed in the project venv (e.g., `pytest` plugins, `mypy` plugins, Sphinx extensions).
+- The tool relies on plugins or integrations defined in `pyproject.toml` or installed in the project venv (e.g., `pytest` plugins, mypy plugins, Sphinx extensions).
 - You need the exact dependency set and versions pinned by your project lockfile.
 
 Examples (project environment):
 - `uv run pytest tests/`  # discovers and loads project/third-party pytest plugins
-- `uv run mypy src/`      # uses mypy plugins/config from project dependencies
+- `uv run mypy src/`      # fallback type checker when mypy plugins are needed
 - `uv run uvicorn app.main:app --reload`  # imports your app package
 - `uv run python -m yourpkg.tool`         # runs code that imports your package
 
@@ -311,6 +338,7 @@ When to use `uvx` (isolated tool context):
 
 Examples (isolated tools):
 - `uvx ruff check .` and `uvx ruff format .`  # linter/formatter runs independently
+- `uvx ty check .`                            # type checker runs independently (primary)
 - `uvx black .`                               # formatter without importing project code
 - `uvx safety check`                          # dependency vulnerability scan
 
@@ -331,11 +359,12 @@ uv run python script.py
 uv run python -c "import app; print('success')"
 uv run uvicorn app.main:app --reload
 uv run pytest tests/
-uv run mypy src/
+uv run mypy src/  # fallback type checker when mypy plugins needed
 
-# Isolated tools
+# Isolated tools (Astral toolchain)
 uvx ruff check .
 uvx ruff format .
+uvx ty check .    # primary type checker
 uvx safety check
 uvx black .
 
@@ -396,6 +425,7 @@ ruff check .                        # Should use uvx for isolation
 #### Code Quality
 - **CRITICAL:** `uvx ruff check .` - Must pass with zero errors
 - **CRITICAL:** `uvx ruff format --check .` - Must pass, code properly formatted
+- **CRITICAL:** `uvx ty check .` - Must pass with zero type errors
 - **CRITICAL:** `uv run python -m py_compile -q .` - All Python files compile without syntax errors
 
 #### Test Execution
@@ -411,6 +441,55 @@ ruff check .                        # Should use uvx for isolation
 - **Rule:** Do not mark tasks complete if ANY check fails
 - **Rule:** Fix all failures before responding to user
 - **Exception:** Only skip with explicit user override - acknowledge risks
+
+
+## 4.3 Type Checking with ty
+
+**ty** is an extremely fast Python type checker from Astral (the creators of `uv` and `ruff`), written in Rust. It is the primary type checker for the Astral toolchain.
+
+### Core Policy
+- **Requirement:** Use `ty` as the primary type checker for all Python projects.
+- **Requirement:** Run `uvx ty check .` before marking any Python task as complete.
+- **Fallback:** If `ty` is unavailable or incompatible, use `uv run mypy` as a fallback (requires mypy in project dependencies).
+
+### Command Patterns
+```bash
+# Primary: ty via uvx (isolated, no project deps needed)
+uvx ty check .                    # Check entire project
+uvx ty check src/                 # Check specific directory
+uvx ty check src/module.py        # Check specific file
+
+# Fallback: mypy via uv run (when ty unavailable or plugins needed)
+uv run mypy src/                  # Requires mypy in pyproject.toml
+uv run mypy --strict src/         # Strict mode for maximum type safety
+```
+
+### When to Use ty vs mypy
+
+| Scenario | Tool | Reason |
+|----------|------|--------|
+| Standard type checking | `uvx ty check .` | Fast, no setup, Astral ecosystem |
+| CI/CD pipelines | `uvx ty check .` | Consistent, isolated execution |
+| Projects with mypy plugins | `uv run mypy` | ty doesn't support mypy plugins |
+| Django/SQLAlchemy type stubs | `uv run mypy` | Better ecosystem support for stubs |
+| Maximum strictness needed | `uv run mypy --strict` | mypy has more strict mode options |
+
+### Configuration in pyproject.toml
+```toml
+[tool.ty]
+# ty configuration (when available)
+python-version = "3.11"
+
+[tool.ty.rules]
+# Rule configuration as ty matures
+```
+
+**Note:** ty is under active development. Configuration options may expand. Check [ty documentation](https://docs.astral.sh/ty/) for current options.
+
+### Integration with Validation Gate
+- **CRITICAL:** `uvx ty check .` is part of the mandatory Pre-Task-Completion Validation Gate
+- **Rule:** Type errors must be resolved before marking tasks complete
+- **Rule:** Do not use `# type: ignore` without documenting the reason
 
 
 ## 5. Performance & Best Practices
@@ -429,7 +508,8 @@ ruff check .                        # Should use uvx for isolation
 
 ## 7. Taskfile Integration
 - **Requirement:** Use `uv run` prefix for all Python commands in Taskfile tasks.
-- **Requirement:** Use `uvx` for all development tools (ruff, pytest, mypy, safety).
+- **Requirement:** Use `uvx` for all development tools (ruff, ty, safety).
+- **Requirement:** Use `uv run` for tools needing project plugins (pytest, mypy when plugins required).
 - **Always:** Include environment setup tasks with status checks to avoid redundant operations.
 - **Pattern:** Structure tasks as: `uv:pin` then `install` (with `uv sync`) then execution tasks.
 

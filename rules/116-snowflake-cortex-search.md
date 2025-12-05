@@ -346,7 +346,7 @@ Description: "Search {document_type} for {specific_use_case}. Use for questions 
 - **Snowflake Core**: `rules/100-snowflake-core.md`
 - **AISQL**: `rules/114-snowflake-cortex-aisql.md`
 - **Cortex Agents**: `rules/115-snowflake-cortex-agents-core.md` - Agent archetypes, configuration templates, planning instructions, testing patterns
-- **Cortex Analyst**: `rules/117-snowflake-cortex-analyst.md` - Analyst tool configuration for hybrid agents
+- **Semantic Views Integration**: `rules/106c-snowflake-semantic-views-integration.md` - Analyst tool configuration for hybrid agents
 - **Cost Governance**: `rules/105-snowflake-cost-governance.md`
 - **Warehouse Management**: `rules/119-snowflake-warehouse-management.md`
 - **Observability**: `rules/111-snowflake-observability-core.md`
@@ -942,7 +942,7 @@ ALTER WAREHOUSE COMPUTE_WH RESUME;
 - `114-snowflake-cortex-aisql` - For using AI_EMBED function to create embeddings
 
 **Sometimes Related** (load if specific scenario):
-- `117-snowflake-cortex-analyst` - When combining document search with quantitative analysis
+- `106c-snowflake-semantic-views-integration` - When combining document search with quantitative analysis via Cortex Analyst
 - `108-snowflake-data-loading` - When loading documents into Snowflake for indexing
 - `111-snowflake-observability-core` - When monitoring search service performance and costs
 

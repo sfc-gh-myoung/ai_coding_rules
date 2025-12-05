@@ -7,8 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `ty` type checker integration as primary Python type checker (Astral toolchain)
+  - New Section 4.3 in `200-python-core.md` — Type Checking with ty
+  - `uvx ty check .` added to mandatory Pre-Task-Completion Validation Gate
+  - ty configuration example in `203-python-project-setup.md`
+  - Taskfile pattern with `lint-ty` task in `201-python-lint-format.md`
+- mypy retained as fallback type checker for projects requiring mypy plugins
+
 ### Changed
+- `200-python-core.md` — Added ty as primary type checker, mypy as fallback; updated keywords, validation gate, command patterns
+- `201-python-lint-format.md` — Updated Taskfile example to include ty type checking task
+- `203-python-project-setup.md` — Added `[tool.ty]` configuration example alongside mypy
 - `106-snowflake-semantic-views-core.md` — Documented verified queries DDL limitation with Anti-Pattern 5, YAML workaround example, and cross-references to Cortex Analyst integration rules
+- Renamed HTMX rules to resolve 220 numbering conflict (220-python-typer-cli.md keeps 220):
+  - `220-python-htmx-core.md` → `221-python-htmx-core.md`
+  - `221-python-htmx-templates.md` → `221a-python-htmx-templates.md`
+  - `222-python-htmx-flask.md` → `221b-python-htmx-flask.md`
+  - `223-python-htmx-fastapi.md` → `221c-python-htmx-fastapi.md`
+  - `224-python-htmx-testing.md` → `221d-python-htmx-testing.md`
+  - `225-python-htmx-patterns.md` → `221e-python-htmx-patterns.md`
+  - `226-python-htmx-integrations.md` → `221f-python-htmx-integrations.md`
+- Updated all Depends and Related Rules references for renamed HTMX files
 
 ### Fixed
 - v3.0 schema validation errors in `204-python-docs-comments.md` (37 CRITICAL emoji violations, 1 HIGH keyword count violation)
@@ -17,13 +37,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - 8 new HTMX rules for building hypermedia-driven web applications (92 → 100 total rules)
-  - `220-python-htmx-core.md` — Request/response lifecycle, HTTP headers, security patterns, HATEOAS
-  - `221-python-htmx-templates.md` — Jinja2 template organization, partials, fragments, conditional rendering
-  - `222-python-htmx-flask.md` — Flask-HTMX extension integration, blueprints, authentication patterns
-  - `223-python-htmx-fastapi.md` — FastAPI async patterns with HTMX, dependency injection, background tasks
-  - `224-python-htmx-testing.md` — Pytest fixtures, header assertions, HTML validation, mocking strategies
-  - `225-python-htmx-patterns.md` — Common patterns: CRUD, forms, infinite scroll, search, real-time, modals
-  - `226-python-htmx-integrations.md` — Frontend library integrations (Alpine.js, _hyperscript, Tailwind, Bootstrap, Chart.js)
+  - `221-python-htmx-core.md` — Request/response lifecycle, HTTP headers, security patterns, HATEOAS
+  - `221a-python-htmx-templates.md` — Jinja2 template organization, partials, fragments, conditional rendering
+  - `221b-python-htmx-flask.md` — Flask-HTMX extension integration, blueprints, authentication patterns
+  - `221c-python-htmx-fastapi.md` — FastAPI async patterns with HTMX, dependency injection, background tasks
+  - `221d-python-htmx-testing.md` — Pytest fixtures, header assertions, HTML validation, mocking strategies
+  - `221e-python-htmx-patterns.md` — Common patterns: CRUD, forms, infinite scroll, search, real-time, modals
+  - `221f-python-htmx-integrations.md` — Frontend library integrations (Alpine.js, _hyperscript, Tailwind, Bootstrap, Chart.js)
   - `500-frontend-htmx-core.md` — Pure frontend HTMX reference (attributes, events, CSS transitions, debugging)
 - Python domain expanded from 15 to 23 rules (+8 HTMX rules)
 - Frontend/Containers domain expanded from 4 to 5 rules (+1 HTMX frontend rule)

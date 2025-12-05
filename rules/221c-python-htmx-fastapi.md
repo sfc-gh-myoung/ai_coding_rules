@@ -5,7 +5,7 @@
 **Keywords:** fastapi, async, dependency injection, background tasks, oauth2, jwt, fastapi templates, starlette, pydantic, async routes
 **TokenBudget:** ~2300
 **ContextTier:** Medium
-**Depends:** rules/220-python-htmx-core.md, rules/221-python-htmx-templates.md
+**Depends:** rules/221-python-htmx-core.md, rules/221a-python-htmx-templates.md
 
 ## Purpose
 
@@ -38,7 +38,7 @@ FastAPI web applications integrating HTMX for hypermedia-driven interfaces with 
 ## Contract
 
 <inputs_prereqs>
-FastAPI installed; Jinja2 templates configured; HTMX library in frontend; understanding of async/await; HTMX core patterns (220-python-htmx-core.md); template strategies (221-python-htmx-templates.md)
+FastAPI installed; Jinja2 templates configured; HTMX library in frontend; understanding of async/await; HTMX core patterns (221-python-htmx-core.md); template strategies (221a-python-htmx-templates.md)
 </inputs_prereqs>
 
 <mandatory>
@@ -563,8 +563,8 @@ async def create_user(
 - [HTMX Examples](https://htmx.org/examples/) - HTMX patterns
 
 ### Related Rules
-- **HTMX Foundation**: `rules/220-python-htmx-core.md` - HTMX core patterns
-- **Template Strategies**: `rules/221-python-htmx-templates.md` - Jinja2 patterns
-- **Testing Patterns**: `rules/224-python-htmx-testing.md` - Testing FastAPI+HTMX
-- **Common Patterns**: `rules/225-python-htmx-patterns.md` - CRUD, forms, etc.
+- **HTMX Foundation**: `rules/221-python-htmx-core.md` - HTMX core patterns
+- **Template Strategies**: `rules/221a-python-htmx-templates.md` - Jinja2 patterns
+- **Testing Patterns**: `rules/221d-python-htmx-testing.md` - Testing FastAPI+HTMX
+- **Common Patterns**: `rules/221e-python-htmx-patterns.md` - CRUD, forms, etc.
 - **Python Core**: `rules/200-python-core.md` - Python standards

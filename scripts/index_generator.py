@@ -157,7 +157,20 @@ def extract_metadata(filepath: Path) -> RuleMetadata:
     if not metadata["scope"] or metadata["scope"] == "No scope provided":
         print(f"⚠️  Warning: {filepath.name} missing ## Rule Scope section")
 
-    return RuleMetadata(**metadata)
+    # Construct with explicit field assignments for type safety
+    token_budget_val = metadata["token_budget"]
+    context_tier_val = metadata["context_tier"]
+    return RuleMetadata(
+        filename=str(metadata["filename"]),
+        filepath=Path(metadata["filepath"])
+        if isinstance(metadata["filepath"], (str, Path))
+        else filepath,
+        keywords=str(metadata["keywords"] or ""),
+        depends=str(metadata["depends"] or "—"),
+        scope=str(metadata["scope"] or ""),
+        token_budget=str(token_budget_val) if token_budget_val else None,
+        context_tier=str(context_tier_val) if context_tier_val else None,
+    )
 
 
 def scan_rules(rules_dir: Path) -> list[RuleMetadata]:

@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - `106-snowflake-semantic-views-core.md` — Documented verified queries DDL limitation with Anti-Pattern 5, YAML workaround example, and cross-references to Cortex Analyst integration rules
 
+### Fixed
+- v3.0 schema validation errors in `204-python-docs-comments.md` (37 CRITICAL emoji violations, 1 HIGH keyword count violation)
+
 ## [3.1.0] - 2025-12-03
 
 ### Added

@@ -25,6 +25,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Characters to avoid: `&` (Snowflake CLI), `<%`/`%>` (SnowSQL), `{{`/`}}` (Jinja2/dbt)
 
 ### Changed
+- `803-project-git-workflow.md` — Added comprehensive pre-commit hooks guidance for sandboxed environments
+  - New Anti-Pattern 6: Ignoring Pre-Commit Hook Failures with correct resolution patterns
+  - New Section 6: Pre-Commit Hooks (understanding, permission requirements, handling failures, detection)
+  - Updated Quick Start TL;DR with "Pre-commit aware" pattern and checklist item
+  - Updated Post-Execution Checklist with pre-commit hooks validation
+  - Enhanced validation script with pre-commit configuration detection
 - `AGENTS.md` — Optimized based on GitHub (2,500+ repos) and HumanLayer best practices analysis
   - Reordered sections: Mandatory Rule Loading Protocol now appears first for attention priority
   - Added Persona section for behavioral anchoring

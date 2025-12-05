@@ -340,7 +340,7 @@ SHOW SEMANTIC METRICS FOR SEMANTIC VIEW <view_name>;
 - **Querying Semantic Views**: `rules/106b-snowflake-semantic-views-querying.md` - SEMANTIC_VIEW() query patterns and testing
 - **Integration & Development**: `rules/106c-snowflake-semantic-views-integration.md` - Cortex Analyst, governance, workflows
 - **Snowflake Core**: `rules/100-snowflake-core.md` - Foundational Snowflake practices
-- **Cortex Analyst**: `rules/117-snowflake-cortex-analyst.md` - Natural language query patterns
+- **Cortex Analyst Integration**: `rules/106c-snowflake-semantic-views-integration.md` - Natural language query patterns
 
 
 

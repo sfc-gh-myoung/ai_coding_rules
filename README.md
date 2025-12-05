@@ -1,7 +1,7 @@
 # AI Coding Rules
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://opensource.org/license/apache-2-0)
-![Version](https://img.shields.io/badge/version-3.1.0-blue)
+![Version](https://img.shields.io/badge/version-3.2.0-blue)
 ![Tests](https://img.shields.io/badge/tests-100%25%20passing-brightgreen)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Task](https://img.shields.io/badge/Task-Taskfile-brightgreen)](https://taskfile.dev)
@@ -26,13 +26,13 @@
 
 This repository provides a **universal ai coding rule system** designed to work seamlessly with any AI assistant, IDE, or development tool. Write rules once in a universal format, use them anywhere.
 
-**What you get:** A comprehensive collection of 100 production-ready engineering rules covering Python, SQL, Snowflake, Docker, Shell scripting, React, HTMX, data engineering, analytics, and project governance. The rules work seamlessly with AI coding assistants including Cursor, Claude Code, GitHub Copilot, Visual Studio Code, and others.
+**What you get:** A comprehensive collection of 100 production-ready engineering rules covering Python, SQL, Snowflake, Go, Docker, Shell scripting, React, HTMX, data engineering, analytics, and project governance. The rules work seamlessly with AI coding assistants including Cursor, Claude Code, GitHub Copilot, Visual Studio Code, and others.
 
 **Important:** Some aspects of the rules are opinionated, particularly regarding naming conventions, project structure, usage of uv/uvx/ruff/Task, and documentation standards. You are **encouraged to review and adjust** the rules to align with your best practices or preferred approaches.
 
 ## Key Features
 
-- **📚 100 Production-Ready Rules** — Comprehensive coverage across Snowflake, Python, React, HTMX, Docker, Shell scripting, and project management
+- **📚 100 Production-Ready Rules** — Comprehensive coverage across Snowflake, Python, Go, React, HTMX, Docker, Shell scripting, and project management
 - **🔄 Universal Format** — Write once, use everywhere: Cursor, VS Code, Claude, ChatGPT, GitHub Copilot, and more
 - **🤖 Intelligent Discovery** — AI assistants automatically find and load relevant rules using semantic keyword matching
 - **🎯 Dependency-Aware** — Explicit dependency chains ensure rules load in the correct order
@@ -223,7 +223,7 @@ cd /tmp/ai-rules
 /opt/homebrew/bin/uv run scripts/rule_deployer.py --dest ~/my-project
 
 # Verify deployment
-ls ~/my-project/rules/*.md | wc -l  # Should show 92
+ls ~/my-project/rules/*.md | wc -l  # Should show 100
 ls ~/my-project/AGENTS.md ~/my-project/RULES_INDEX.md  # Both files should exist
 ```
 
@@ -403,6 +403,9 @@ Loading Order (Follow Dependencies):
 - TypeScript → `430-typescript-core.md`
 - JavaScript → `420-javascript-core.md`
 
+**Go Projects:**
+- Go app → `600-golang-core.md` (project structure, error handling, interfaces, testing, concurrency)
+
 **Infrastructure Projects:**
 - Docker → `400-docker-best-practices.md`
 - Shell scripting → `300-bash-scripting-core.md`
@@ -562,15 +565,15 @@ The 100 rules are organized by domain using a three-digit numbering system. Each
 | Domain | Range | # Rules | Focus Area | Key Topics |
 |--------|-------|---------|------------|------------|
 | **Core Foundation** | 000-099 | 7 | Universal patterns | Operating principles, memory bank, rule governance, boilerplate template, context engineering, tool design |
-| **Snowflake** | 100-199 | 40 | Data platform | SQL, Streamlit, performance, Cortex AI, security, notebooks, pipelines |
+| **Snowflake** | 100-199 | 39 | Data platform | SQL, Streamlit, performance, Cortex AI, security, notebooks, pipelines |
 | **Python** | 200-299 | 23 | Software engineering | Core patterns, FastAPI, Flask, Typer CLI, Pydantic, pytest, Pandas, **HTMX** |
 | **Shell Scripts** | 300-399 | 7 | Automation | Bash and Zsh scripting, security, testing |
 | **Frontend/Containers** | 400-499 | 5 | Infrastructure & UI | Docker, JavaScript, TypeScript, React, **HTMX frontend** |
-| **Data Science** | 500-599 | 1 | Analytics | ML lifecycle, feature engineering |
-| **Data Governance** | 600-699 | 1 | Quality | Data quality, lineage, stewardship |
+| **Frontend** | 500-599 | 1 | Client-side | HTMX frontend reference |
+| **Systems/Backend Languages** | 600-699 | 1 | Backend development | **Go/Golang** core patterns, error handling, concurrency |
 | **Business Intelligence** | 700-799 | 1 | Reporting | Business analytics, visualization |
 | **Project Management** | 800-899 | 6 | Workflows | Git, changelog, README, contributing, Taskfile, automation |
-| **Demo & Synthetic Data** | 900-999 | 2 | Examples | Demo creation, data generation |
+| **Demo & Synthetic Data** | 900-999 | 5 | Examples | Demo creation, data generation, data science, data governance, business analytics |
 
 ### HTMX Rules (New in v3.1.0)
 
@@ -987,7 +990,7 @@ cd /tmp/ai-rules
 **General:**
 ```bash
 # Check rule count
-ls rules/*.md | wc -l  # Should show 100
+ls rules/*.md | wc -l  # Should show 100 files
 
 # Search rules (RULES_INDEX.md is in project root after deployment)
 grep -i "keyword" RULES_INDEX.md
@@ -1013,4 +1016,4 @@ find rules -name "*python*"
 | `AGENTS.md` | Rule discovery guide | **Project root** |
 | `RULES_INDEX.md` | Searchable catalog | **Project root** |
 | `000-global-core.md` | Foundation rules | `rules/` |
-| All rule files | 92 specialized rules | `rules/` |
+| All rule files | 100 specialized rules | `rules/` |

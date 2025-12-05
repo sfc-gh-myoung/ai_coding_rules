@@ -7,16 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `scripts/keyword_generator.py` — New script for generating semantically relevant keywords for rule files
+  - Uses TF-IDF and multi-signal extraction (headers, code languages, emphasized terms, technology terms)
+  - Supports `--suggest` (default), `--update`, `--diff`, and `--corpus` modes
+  - Domain-aware filtering with technology terms and stop words
+  - Compound term preservation (e.g., "session state", "semantic view")
+  - 26 unit tests in `tests/test_keyword_generator.py`
+- `scikit-learn>=1.3.0` added to dev dependencies for TF-IDF vectorization
+- Taskfile keyword tasks: `keywords:suggest`, `keywords:diff`, `keywords:update`, `keywords:all`
+- Documentation updates for keyword_generator in README.md and docs/ARCHITECTURE.md
+- Template character restrictions for Snowflake CLI compatibility across SQL rules
+  - `100-snowflake-core.md` — New "Reserved Characters (CLI Compatibility)" section
+  - `106-snowflake-semantic-views-core.md` — New Anti-Pattern 6: Using Template Characters
+  - `106a-snowflake-semantic-views-advanced.md` — New Section 4.8: Template Character Validation
+  - `102-snowflake-sql-demo-engineering.md` — New Section 4.4: Reserved Characters
+  - Characters to avoid: `&` (Snowflake CLI), `<%`/`%>` (SnowSQL), `{{`/`}}` (Jinja2/dbt)
+
 ### Changed
 - `AGENTS.md` — Optimized based on GitHub (2,500+ repos) and HumanLayer best practices analysis
   - Reordered sections: Mandatory Rule Loading Protocol now appears first for attention priority
   - Added Persona section for behavioral anchoring
   - Added Boundaries table (ALWAYS/ASK FIRST/NEVER categories)
   - Added Validation Commands quick-reference table
-  - Linked Response Format to Protocol Steps 2-3 for explicit compliance
-  - Strengthened violation statement for protocol criticality
-  - Removed redundant sections duplicated in `000-global-core.md`
-  - Condensed Validation Gates from verbose prose to single table
   - Reduced file from 215 lines to 149 lines (~31% reduction)
   - Estimated token savings: ~40% reduction in bootstrap overhead
 

@@ -256,11 +256,12 @@ ai_coding_rules/
 │   ├── 600-golang-core.md      # Go/Golang foundation
 │   └── ... (100 total)
 │
-├── scripts/                    # Automation and validation (2762 lines)
+├── scripts/                    # Automation and validation (~3600 lines)
 │   ├── template_generator.py  # Creates new rule templates (500 lines)
 │   ├── rule_deployer.py        # Deploys rules to projects (400 lines)
 │   ├── schema_validator.py     # Schema validation (600 lines)
 │   ├── token_validator.py      # Token budget validation (300 lines)
+│   ├── keyword_generator.py    # Keyword extraction using TF-IDF (850 lines)
 │   └── index_generator.py      # Generates RULES_INDEX.md (400 lines)
 │
 ├── schemas/                    # Validation schemas
@@ -306,6 +307,7 @@ ai_coding_rules/
 - `rule_deployer.py` copies rules to target projects
 - `schema_validator.py` validates rules against schema
 - `token_validator.py` checks token budget accuracy
+- `keyword_generator.py` extracts semantic keywords using TF-IDF analysis
 - `index_generator.py` generates RULES_INDEX.md catalog
 
 **`schemas/`** — Declarative validation
@@ -842,6 +844,16 @@ v3.0 includes comprehensive test coverage ensuring script reliability:
 - Multiple rule validation
 - Statistical reporting
 
+**`tests/test_keyword_generator.py`**
+- KeywordCandidate dataclass tests
+- ExtractionResult diff calculations
+- Header, code language, emphasis extraction
+- Technology term matching
+- TF-IDF corpus building
+- Ranking and deduplication
+- File update functionality
+- Domain constants validation
+
 **`tests/test_index_generator.py`**
 - RULES_INDEX.md generation
 - Metadata extraction accuracy
@@ -1043,6 +1055,57 @@ python scripts/index_generator.py [OPTIONS]
 python scripts/index_generator.py --verbose
 ```
 
+### 6. keyword_generator.py (~850 lines)
+
+**Purpose:** Generate semantically relevant keywords for rule files using TF-IDF and multi-signal extraction
+
+**Usage:**
+```bash
+python scripts/keyword_generator.py PATH [OPTIONS]
+```
+
+**Options:**
+- `PATH` — Rule file or directory to analyze
+- `--update` — Update Keywords field in-place
+- `--diff` — Show diff between current and suggested keywords
+- `--corpus` — Build TF-IDF corpus from rules/ for better scoring
+- `--count N` — Target number of keywords (default: 12)
+- `--debug` — Enable debug output
+
+**Features:**
+- Multi-signal keyword extraction:
+  - TF-IDF scoring against corpus of all rules
+  - Section header extraction (H2/H3)
+  - Code block language detection
+  - Bold/backtick emphasis extraction
+  - Technology term matching
+- Domain-aware filtering with 100+ stop terms
+- Compound term preservation (e.g., "session state" → "session_state")
+- Case-insensitive deduplication with proper display casing
+
+**Example:**
+```bash
+# Suggest keywords for a single rule
+python scripts/keyword_generator.py rules/101-snowflake-streamlit-core.md --corpus
+
+# Show diff between current and suggested
+python scripts/keyword_generator.py rules/101-snowflake-streamlit-core.md --corpus --diff
+
+# Update keywords in-place
+python scripts/keyword_generator.py rules/101-snowflake-streamlit-core.md --corpus --update
+
+# Analyze all rules
+python scripts/keyword_generator.py rules/ --corpus
+```
+
+**Algorithm:**
+1. Parse rule file content (sections, headers, code blocks, emphasized terms)
+2. Build TF-IDF corpus from all rules in `rules/` directory (if --corpus)
+3. Extract candidates from multiple sources with weighted scores
+4. Filter candidates using domain stop terms and normalize
+5. Rank and deduplicate by combined score
+6. Return top 10-15 keywords sorted by relevance
+
 ## Architecture Diagrams
 
 ### Rule Creation Flow
@@ -1117,7 +1180,8 @@ graph TD
     Scripts --> S2[rule_deployer.py]
     Scripts --> S3[schema_validator.py]
     Scripts --> S4[token_validator.py]
-    Scripts --> S5[index_generator.py]
+    Scripts --> S5[keyword_generator.py]
+    Scripts --> S6[index_generator.py]
     
     Schemas --> Schema[rule-schema-v3.yml]
     
@@ -1125,7 +1189,8 @@ graph TD
     Tests --> T2[test_rule_deployer.py]
     Tests --> T3[test_schema_validator.py]
     Tests --> T4[test_token_validator.py]
-    Tests --> T5[test_index_generator.py]
+    Tests --> T5[test_keyword_generator.py]
+    Tests --> T6[test_index_generator.py]
     
     Prompts --> P1[EXAMPLE_PROMPT_01.md]
     Prompts --> P2[EXAMPLE_PROMPT_02.md]

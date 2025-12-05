@@ -27,6 +27,7 @@ Git workflow management including branching strategies, pull requests, protected
 - **PR required** - Never commit directly to protected branches
 - **Pre-merge validation** - Run all checks before creating PR
 - **Never force push to main** - Breaks history for team
+- **Pre-commit aware** - Request elevated permissions when hooks are configured
 
 **Quick Checklist:**
 - [ ] Feature branch created
@@ -34,6 +35,7 @@ Git workflow management including branching strategies, pull requests, protected
 - [ ] CHANGELOG.md updated
 - [ ] Git state clean
 - [ ] Validation checks passed
+- [ ] Pre-commit hooks pass (or permissions granted)
 - [ ] PR created with description
 - [ ] CI checks passing
 
@@ -42,7 +44,7 @@ Git workflow management including branching strategies, pull requests, protected
 
 <contract>
 <inputs_prereqs>
-Git repository initialized; remote configured on GitHub; understanding of Conventional Commits; access to Pre-Task-Completion Validation Gate requirements
+Git repository initialized; remote configured on GitHub; understanding of Conventional Commits; access to Pre-Task-Completion Validation Gate requirements; awareness of pre-commit hooks and their permission requirements in sandboxed environments
 </inputs_prereqs>
 
 <mandatory>
@@ -224,7 +226,35 @@ gh pr create --title "fix: revert problematic change"
 ```
 **Benefits:** Preserves history; allows rollback; follows review process; maintains team workflow.
 
+---
 
+**Anti-Pattern 6: Ignoring Pre-Commit Hook Failures**
+```bash
+git commit -m "feat: new feature"
+# Error: PermissionError: [Errno 1] Operation not permitted
+# (pre-commit hook failed due to sandbox restrictions)
+
+git commit --no-verify -m "feat: new feature"  # WRONG: Blindly bypasses all checks
+git push origin feature/my-branch
+```
+**Problem:** Bypassing hooks without verification skips important quality checks; may introduce linting errors, formatting issues, or security vulnerabilities; breaks team quality standards.
+
+**Correct Pattern:**
+```bash
+git commit -m "feat: new feature"
+# Error: PermissionError from pre-commit (sandbox restriction)
+
+# Solution 1: Request elevated permissions and retry (preferred)
+# For AI agents: use required_permissions: ['all'] or ['git_write']
+git commit -m "feat: new feature"  # With proper permissions granted
+
+# Solution 2: If permissions unavailable, verify checks passed first
+uvx ruff check . && uvx ruff format --check . && uv run pytest
+# Only after ALL checks pass manually:
+git commit --no-verify -m "feat: new feature"
+# Document why --no-verify was used in PR description
+```
+**Benefits:** Maintains code quality; hooks run as intended; catches issues before push; provides audit trail when bypass is necessary.
 
 
 ## Post-Execution Checklist
@@ -235,6 +265,7 @@ gh pr create --title "fix: revert problematic change"
 - [ ] CHANGELOG.md updated under `## [Unreleased]` section
 - [ ] README.md reviewed and updated if triggers apply
 - [ ] All changes committed with Conventional Commits format
+- [ ] Pre-commit hooks pass (or elevated permissions granted for sandboxed environments)
 - [ ] Git state validated: `git status --porcelain` returns empty
 - [ ] Not on protected branch (main/master)
 - [ ] Branch pushed to remote successfully
@@ -569,6 +600,15 @@ if ! grep -A 10 "## \[Unreleased\]" CHANGELOG.md | grep -v "^## \[Unreleased\]$"
 fi
 echo "CHANGELOG.md updated"
 
+# Check for pre-commit hooks (warning only)
+if [[ -f ".pre-commit-config.yaml" ]]; then
+ echo "Pre-commit hooks configured (.pre-commit-config.yaml found)"
+ echo "  Note: git commit may require elevated permissions in sandboxed environments"
+fi
+if [[ -d ".husky" ]]; then
+ echo "Husky hooks configured (.husky/ directory found)"
+fi
+
 echo ""
 echo " Git state validation passed!"
 echo "Ready to create PR for branch: $BRANCH"
@@ -594,6 +634,83 @@ chmod +x scripts/validate-git-state.sh
 3. Documentation: CHANGELOG.md and README.md updated
 4. **Git State:** Clean working directory, valid branch, CHANGELOG entry verified
 
+
+## 6. Pre-Commit Hooks
+
+### Understanding Pre-Commit Hooks
+
+**Context:** Many projects use pre-commit hooks to enforce code quality checks automatically before commits. These hooks run on every `git commit` command.
+
+**Common pre-commit frameworks:**
+- **pre-commit** (Python-based) - Uses `.pre-commit-config.yaml`
+- **husky** (Node.js-based) - Uses `.husky/` directory
+- **Native git hooks** - Scripts in `.git/hooks/`
+
+### Permission Requirements
+
+**Critical:** Pre-commit hooks often require elevated permissions beyond basic file access:
+
+| Requirement | Why Needed | Example Tools |
+|-------------|------------|---------------|
+| Network access | Download/update hook tools | pre-commit autoupdate |
+| System calls | Access system configuration | pre-commit (os.sysconf) |
+| Cache directories | Store downloaded tools | ~/.cache/pre-commit |
+| Process spawning | Run linters, formatters | ruff, black, eslint |
+
+**AI Agent Consideration:** When running `git commit` in sandboxed environments, pre-commit hooks may fail with permission errors:
+```
+PermissionError: [Errno 1] Operation not permitted
+```
+
+### Handling Pre-Commit Hook Failures
+
+**Pattern 1: Request Full Permissions (Preferred)**
+```bash
+# When pre-commit hooks are configured, git commit needs elevated permissions
+# AI agents should request 'all' or 'git_write' permissions
+git commit -m "feat(scope): description"
+# If fails with PermissionError, retry with full sandbox bypass
+```
+
+**Pattern 2: Run Pre-Commit Manually First**
+```bash
+# Run pre-commit checks separately with proper permissions
+pre-commit run --all-files
+
+# Then commit (hooks will pass quickly on cached results)
+git commit -m "feat(scope): description"
+```
+
+**Pattern 3: Skip Hooks Temporarily (Emergency Only)**
+```bash
+# ONLY use when:
+# 1. All quality checks have already passed manually
+# 2. Permission issues block commit in sandboxed environment
+# 3. You understand the risks
+
+git commit --no-verify -m "feat(scope): description"
+# WARNING: This bypasses ALL pre-commit checks
+# Must ensure quality checks passed before using this option
+```
+
+### Detecting Pre-Commit Configuration
+
+```bash
+# Check if pre-commit is configured
+if [[ -f ".pre-commit-config.yaml" ]]; then
+    echo "Pre-commit hooks configured - elevated permissions may be required"
+fi
+
+# Check for husky
+if [[ -d ".husky" ]]; then
+    echo "Husky hooks configured - Node.js environment required"
+fi
+
+# Check for native git hooks
+if [[ -d ".git/hooks" ]] && ls .git/hooks/* 2>/dev/null | grep -qv sample; then
+    echo "Native git hooks present"
+fi
+```
 
 
 ## Git Workflow Analysis

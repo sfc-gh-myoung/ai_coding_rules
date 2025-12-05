@@ -139,7 +139,7 @@ Rules use 3-digit prefixes for logical organization:
 |-------|--------|---------------|
 | **000-099** | Core/Foundational | 000-global-core, 002-rule-governance |
 | **100-199** | Snowflake Ecosystem | 100-snowflake-core, 101-snowflake-streamlit-core |
-| **200-299** | Python Ecosystem | 200-python-core, 201-python-lint-format, 220-python-htmx-core, 222-python-htmx-flask, 223-python-htmx-fastapi |
+| **200-299** | Python Ecosystem | 200-python-core, 201-python-lint-format, 221-python-htmx-core, 221b-python-htmx-flask, 221c-python-htmx-fastapi |
 | **300-399** | Shell/Bash Scripting | 300-bash-scripting-core, 310-zsh-scripting-core |
 | **400-499** | Frontend/Containers | 400-docker-best-practices, 420-javascript-core, 430-typescript-core, 440-react-core, 441-react-backend, 500-frontend-htmx-core |
 | **500-599** | Data Science/Analytics | 500-data-science-analytics |
@@ -176,13 +176,13 @@ Starting in v3.1.0, the project includes comprehensive HTMX support for building
 ```
 000-global-core.md (foundation)
   └── 200-python-core.md (Python basics)
-      └── 220-python-htmx-core.md (HTMX foundation)
-          ├── 221-python-htmx-templates.md (template patterns)
-          ├── 222-python-htmx-flask.md (Flask integration)
-          ├── 223-python-htmx-fastapi.md (FastAPI integration)
-          ├── 224-python-htmx-testing.md (testing strategies)
-          ├── 225-python-htmx-patterns.md (common patterns)
-          └── 226-python-htmx-integrations.md (frontend libraries)
+      └── 221-python-htmx-core.md (HTMX foundation)
+          ├── 221a-python-htmx-templates.md (template patterns)
+          ├── 221b-python-htmx-flask.md (Flask integration)
+          ├── 221c-python-htmx-fastapi.md (FastAPI integration)
+          ├── 221d-python-htmx-testing.md (testing strategies)
+          ├── 221e-python-htmx-patterns.md (common patterns)
+          └── 221f-python-htmx-integrations.md (frontend libraries)
 
 500-frontend-htmx-core.md (standalone frontend reference)
 ```
@@ -209,13 +209,13 @@ ai_coding_rules/
 │   ├── 002-rule-governance.md  # v3.0 schema standards
 │   ├── 100-snowflake-core.md   # Domain cores
 │   ├── 200-python-core.md
-│   ├── 220-python-htmx-core.md # HTMX foundation
-│   ├── 221-python-htmx-templates.md
-│   ├── 222-python-htmx-flask.md
-│   ├── 223-python-htmx-fastapi.md
-│   ├── 224-python-htmx-testing.md
-│   ├── 225-python-htmx-patterns.md
-│   ├── 226-python-htmx-integrations.md
+│   ├── 221-python-htmx-core.md # HTMX foundation
+│   ├── 221a-python-htmx-templates.md
+│   ├── 221b-python-htmx-flask.md
+│   ├── 221c-python-htmx-fastapi.md
+│   ├── 221d-python-htmx-testing.md
+│   ├── 221e-python-htmx-patterns.md
+│   ├── 221f-python-htmx-integrations.md
 │   ├── 500-frontend-htmx-core.md
 │   └── ... (100 total)
 │

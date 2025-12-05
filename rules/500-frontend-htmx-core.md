@@ -506,7 +506,7 @@ htmx.trigger(element, 'click');
 - [HTMX Essays](https://htmx.org/essays/) - Architecture and philosophy
 
 ### Related Rules
-- **Python Backend**: `rules/220-python-htmx-core.md` - HTMX with Python
-- **Template Strategies**: `rules/221-python-htmx-templates.md` - Server-side templates
-- **Common Patterns**: `rules/225-python-htmx-patterns.md` - Implementation patterns
-- **Frontend Integrations**: `rules/226-python-htmx-integrations.md` - Alpine.js, CSS frameworks
+- **Python Backend**: `rules/221-python-htmx-core.md` - HTMX with Python
+- **Template Strategies**: `rules/221a-python-htmx-templates.md` - Server-side templates
+- **Common Patterns**: `rules/221e-python-htmx-patterns.md` - Implementation patterns
+- **Frontend Integrations**: `rules/221f-python-htmx-integrations.md` - Alpine.js, CSS frameworks

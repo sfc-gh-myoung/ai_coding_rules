@@ -5,7 +5,7 @@
 **Keywords:** flask, flask-htmx, blueprints, flask-login, session management, flask routes, flask templates, flask csrf, flask extensions, request context
 **TokenBudget:** ~1950
 **ContextTier:** Medium
-**Depends:** rules/220-python-htmx-core.md, rules/221-python-htmx-templates.md
+**Depends:** rules/221-python-htmx-core.md, rules/221a-python-htmx-templates.md
 
 ## Purpose
 
@@ -36,7 +36,7 @@ Flask web applications integrating HTMX for hypermedia-driven interfaces
 ## Contract
 
 <inputs_prereqs>
-Flask installed; Flask-HTMX extension; Flask-WTF for CSRF; Flask-Login for auth (optional); Jinja2 templates configured; HTMX core patterns (220-python-htmx-core.md); template strategies (221-python-htmx-templates.md)
+Flask installed; Flask-HTMX extension; Flask-WTF for CSRF; Flask-Login for auth (optional); Jinja2 templates configured; HTMX core patterns (221-python-htmx-core.md); template strategies (221a-python-htmx-templates.md)
 </inputs_prereqs>
 
 <mandatory>
@@ -504,8 +504,8 @@ def create_app():
 - [Flask-Login](https://flask-login.readthedocs.io/) - User authentication
 
 ### Related Rules
-- **HTMX Foundation**: `rules/220-python-htmx-core.md` - HTMX core patterns
-- **Template Strategies**: `rules/221-python-htmx-templates.md` - Jinja2 patterns
-- **Testing Patterns**: `rules/224-python-htmx-testing.md` - Testing Flask+HTMX
-- **Common Patterns**: `rules/225-python-htmx-patterns.md` - CRUD, forms, etc.
+- **HTMX Foundation**: `rules/221-python-htmx-core.md` - HTMX core patterns
+- **Template Strategies**: `rules/221a-python-htmx-templates.md` - Jinja2 patterns
+- **Testing Patterns**: `rules/221d-python-htmx-testing.md` - Testing Flask+HTMX
+- **Common Patterns**: `rules/221e-python-htmx-patterns.md` - CRUD, forms, etc.
 - **Python Core**: `rules/200-python-core.md` - Python standards

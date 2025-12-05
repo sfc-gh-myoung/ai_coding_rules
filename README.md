@@ -578,13 +578,13 @@ The Python domain now includes comprehensive HTMX support for building hypermedi
 
 | Rule | Focus | Description |
 |------|-------|-------------|
-| **220-python-htmx-core** | Foundation | Request/response lifecycle, HTTP headers, security (CSRF, XSS), HATEOAS principles |
-| **221-python-htmx-templates** | Templates | Jinja2 organization, partials, fragments, conditional rendering |
-| **222-python-htmx-flask** | Flask Integration | Flask-HTMX extension, blueprints, session management, authentication |
-| **223-python-htmx-fastapi** | FastAPI Integration | Async routes, dependency injection, Pydantic validation, background tasks |
-| **224-python-htmx-testing** | Testing | Pytest fixtures, header assertions, HTML validation, mocking strategies |
-| **225-python-htmx-patterns** | Common Patterns | CRUD, forms, infinite scroll, search, real-time updates, modals, wizards |
-| **226-python-htmx-integrations** | Frontend Libraries | Alpine.js, _hyperscript, Tailwind, Bootstrap, Chart.js integration |
+| **221-python-htmx-core** | Foundation | Request/response lifecycle, HTTP headers, security (CSRF, XSS), HATEOAS principles |
+| **221a-python-htmx-templates** | Templates | Jinja2 organization, partials, fragments, conditional rendering |
+| **221b-python-htmx-flask** | Flask Integration | Flask-HTMX extension, blueprints, session management, authentication |
+| **221c-python-htmx-fastapi** | FastAPI Integration | Async routes, dependency injection, Pydantic validation, background tasks |
+| **221d-python-htmx-testing** | Testing | Pytest fixtures, header assertions, HTML validation, mocking strategies |
+| **221e-python-htmx-patterns** | Common Patterns | CRUD, forms, infinite scroll, search, real-time updates, modals, wizards |
+| **221f-python-htmx-integrations** | Frontend Libraries | Alpine.js, _hyperscript, Tailwind, Bootstrap, Chart.js integration |
 | **500-frontend-htmx-core** | Frontend Reference | HTMX attributes, events, CSS transitions, debugging, browser compatibility |
 
 **🔍 Searchable index:** See [RULES_INDEX.md](RULES_INDEX.md) for complete rule list with keywords, dependencies, and semantic search

@@ -5,7 +5,7 @@
 **Keywords:** alpinejs, hyperscript, tailwind, bootstrap, css frameworks, icon libraries, chartjs, frontend libraries, client-side enhancements, htmx integration, javascript frameworks
 **TokenBudget:** ~1900
 **ContextTier:** Low
-**Depends:** rules/220-python-htmx-core.md
+**Depends:** rules/221-python-htmx-core.md
 
 ## Purpose
 
@@ -36,7 +36,7 @@ HTMX applications integrating with frontend libraries for enhanced interactivity
 ## Contract
 
 <inputs_prereqs>
-HTMX core patterns (220-python-htmx-core.md); frontend library documentation; understanding of HTMX event lifecycle
+HTMX core patterns (221-python-htmx-core.md); frontend library documentation; understanding of HTMX event lifecycle
 </inputs_prereqs>
 
 <mandatory>
@@ -482,6 +482,6 @@ document.body.addEventListener('htmx:afterSwap', function(event) {
 - [HTMX Events](https://htmx.org/events/) - HTMX event reference
 
 ### Related Rules
-- **HTMX Foundation**: `rules/220-python-htmx-core.md` - HTMX core patterns
-- **Template Strategies**: `rules/221-python-htmx-templates.md` - Jinja2 patterns
-- **Common Patterns**: `rules/225-python-htmx-patterns.md` - HTMX implementation patterns
+- **HTMX Foundation**: `rules/221-python-htmx-core.md` - HTMX core patterns
+- **Template Strategies**: `rules/221a-python-htmx-templates.md` - Jinja2 patterns
+- **Common Patterns**: `rules/221e-python-htmx-patterns.md` - HTMX implementation patterns

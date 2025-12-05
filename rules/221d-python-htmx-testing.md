@@ -5,7 +5,7 @@
 **Keywords:** testing, pytest, unit tests, integration tests, fixtures, mocking, header validation, html assertions, test client, htmx testing
 **TokenBudget:** ~2400
 **ContextTier:** High
-**Depends:** rules/220-python-htmx-core.md, rules/206-python-pytest.md
+**Depends:** rules/221-python-htmx-core.md, rules/206-python-pytest.md
 
 ## Purpose
 
@@ -38,7 +38,7 @@ Python web applications (Flask, FastAPI, Django) with HTMX integration requiring
 ## Contract
 
 <inputs_prereqs>
-Pytest framework; Flask test_client or FastAPI TestClient; HTML parsing library (BeautifulSoup4/lxml); HTMX core patterns (220-python-htmx-core.md); pytest best practices (206-python-pytest.md)
+Pytest framework; Flask test_client or FastAPI TestClient; HTML parsing library (BeautifulSoup4/lxml); HTMX core patterns (221-python-htmx-core.md); pytest best practices (206-python-pytest.md)
 </inputs_prereqs>
 
 <mandatory>
@@ -514,8 +514,8 @@ tests/
 - [BeautifulSoup Documentation](https://www.crummy.com/software/BeautifulSoup/bs4/doc/) - HTML parsing
 
 ### Related Rules
-- **HTMX Foundation**: `rules/220-python-htmx-core.md` - HTMX patterns to test
+- **HTMX Foundation**: `rules/221-python-htmx-core.md` - HTMX patterns to test
 - **Python Testing**: `rules/206-python-pytest.md` - Pytest best practices
-- **Flask Integration**: `rules/222-python-htmx-flask.md` - Flask-specific testing
-- **FastAPI Integration**: `rules/223-python-htmx-fastapi.md` - FastAPI-specific testing
+- **Flask Integration**: `rules/221b-python-htmx-flask.md` - Flask-specific testing
+- **FastAPI Integration**: `rules/221c-python-htmx-fastapi.md` - FastAPI-specific testing
 - **Python Core**: `rules/200-python-core.md` - Python standards

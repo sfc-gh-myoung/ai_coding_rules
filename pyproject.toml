@@ -1,6 +1,6 @@
 [project]
 name = "ai_coding_rules"
-version = "3.0.0"
+version = "3.2.0"
 description = "Production-ready AI coding rules for consistent, reliable software engineering across LLMs and IDEs"
 readme = { file = "README.md" }
 license = { file = "LICENSE" }
@@ -35,13 +35,14 @@ dev = [
     "ruff>=0.1.9",
     "pytest>=7.4.0",
     "pytest-cov>=4.1.0",
+    "scikit-learn>=1.3.0",  # TF-IDF vectorization for token_generator
 ]
 
 [project.urls]
-Homepage = "https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git"
-Repository = "https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git"
-Issues = "https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules/-/issues"
-Documentation = "https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules/-/blob/main/README.md"
+Homepage = "https://github.com/sfc-gh-myoung/ai_coding_rules"
+Repository = "https://github.com/sfc-gh-myoung/ai_coding_rules.git"
+Issues = "https://github.com/sfc-gh-myoung/ai_coding_rules/issues"
+Documentation = "https://github.com/sfc-gh-myoung/ai_coding_rules/blob/main/README.md"
 
 [tool.ruff]
 target-version = "py311"

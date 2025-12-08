@@ -250,7 +250,7 @@ uv pip install -e ".[dev]"
 ## 4. Dependency Configuration
 
 ### Tool Configuration in pyproject.toml
-- **Always:** Configure development tools (ruff, mypy, pytest) in `[tool.TOOLNAME]` sections.
+- **Always:** Configure development tools (ruff, ty, mypy, pytest) in `[tool.TOOLNAME]` sections.
 - **Always:** Use modern ruff configuration: `[tool.ruff.lint]` not deprecated top-level settings.
 - **Always:** Include comprehensive tool configuration to avoid CLI arguments.
 
@@ -264,6 +264,13 @@ line-length = 88
 select = ["E", "W", "F", "I", "B", "C4", "UP"]
 ignore = []
 
+# ty - Primary type checker (Astral toolchain)
+# Configuration options expanding as ty matures
+# See: https://docs.astral.sh/ty/
+[tool.ty]
+python-version = "3.11"
+
+# mypy - Fallback type checker (when mypy plugins needed)
 [tool.mypy]
 python_version = "3.11"
 disallow_untyped_defs = true

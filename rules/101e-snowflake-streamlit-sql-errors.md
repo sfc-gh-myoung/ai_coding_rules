@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.0
 **Keywords:** SnowparkSQLException, error messages, Streamlit errors, Snowflake errors, debug SQL error, fix query error, SQL exception, error troubleshooting, query failed, database error, SQL debugging patterns, exception handling, error recovery, common SQL errors
-**TokenBudget:** ~1200
+**TokenBudget:** ~2250
 **ContextTier:** Low
 **Depends:** rules/100-snowflake-core.md, rules/101-snowflake-streamlit-core.md, rules/101b-snowflake-streamlit-performance.md
 
@@ -77,6 +77,219 @@ Verify all SQL queries have error handling; confirm error messages include all r
 </contract>
 
 
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Generic Exception Catching Without SnowparkSQLException**
+```python
+# Bad: Catches all errors without SQL-specific handling
+def load_data():
+    try:
+        df = session.sql("SELECT * FROM ASSETS").to_pandas()
+        return df
+    except Exception as e:
+        st.error(f"Error: {e}")
+        st.stop()
+```
+**Problem:** Loses SQL-specific error information; no error code; can't distinguish SQL errors from network/conversion errors; debugging is difficult
+
+**Correct Pattern:**
+```python
+# Good: Specific SQL exception handling with context
+from snowflake.snowpark.exceptions import SnowparkSQLException
+
+def load_data():
+    try:
+        df = session.sql("SELECT * FROM ASSETS").to_pandas()
+        return df
+    except SnowparkSQLException as e:
+        st.error(f"""
+        **SQL Query Failed: load_data()**
+
+        **Error:** {str(e)}
+        **SQL Error Code:** {e.error_code if hasattr(e, 'error_code') else 'N/A'}
+
+        **Query Context:**
+        - Table: ASSETS
+        - Operation: Loading all assets
+
+        **Common Causes:**
+        - Table does not exist
+        - Missing SELECT permission
+        - Invalid column names
+        """)
+        st.stop()
+    except Exception as e:
+        st.error(f"Unexpected error: {type(e).__name__}: {e}")
+        st.stop()
+```
+**Benefits:** Clear SQL vs non-SQL errors; error code for support; actionable debugging info; professional error messages
+
+---
+
+**Anti-Pattern 2: Error Messages Without Query Context**
+```python
+# Bad: Generic error message - which query failed?
+try:
+    df1 = session.sql("SELECT * FROM ASSETS").to_pandas()
+    df2 = session.sql("SELECT * FROM OUTAGES").to_pandas()
+    df3 = session.sql("SELECT * FROM MAINTENANCE").to_pandas()
+except SnowparkSQLException as e:
+    st.error(f"Database error: {e}")  # Which query?!
+    st.stop()
+```
+**Problem:** When error occurs, impossible to tell which of 3 queries failed; wasted debugging time; no table context; no operation description
+
+**Correct Pattern:**
+```python
+# Good: Label each query with context
+try:
+    # Query 1: Assets
+    df1 = session.sql("SELECT * FROM ASSETS").to_pandas()
+except SnowparkSQLException as e:
+    st.error(f"""
+    **SQL Query Failed: Query 1 - Load Assets**
+
+    **Error:** {str(e)}
+    **Error Code:** {e.error_code if hasattr(e, 'error_code') else 'N/A'}
+    **Table:** ASSETS
+    """)
+    st.stop()
+
+try:
+    # Query 2: Outages
+    df2 = session.sql("SELECT * FROM OUTAGES").to_pandas()
+except SnowparkSQLException as e:
+    st.error(f"""
+    **SQL Query Failed: Query 2 - Load Outages**
+
+    **Error:** {str(e)}
+    **Error Code:** {e.error_code if hasattr(e, 'error_code') else 'N/A'}
+    **Table:** OUTAGES
+    """)
+    st.stop()
+
+# ... Query 3 similar pattern
+```
+**Benefits:** Immediate identification of failing query; table context clear; numbered queries for easy reference; fast debugging
+
+---
+
+**Anti-Pattern 3: No st.stop() After SQL Errors**
+```python
+# Bad: Continues execution after SQL failure
+try:
+    df = session.sql("SELECT * FROM MISSING_TABLE").to_pandas()
+except SnowparkSQLException as e:
+    st.error(f"Query failed: {e}")
+    # Missing st.stop()!
+
+# Code continues executing with df undefined
+transformers = df[df['type'] == 'TRANSFORMER']  # NameError!
+st.dataframe(transformers)  # Cascading failures
+```
+**Problem:** Cascading errors from undefined variables; confusing error messages; user sees multiple red boxes; unprofessional UX
+
+**Correct Pattern:**
+```python
+# Good: Stop execution after SQL error
+try:
+    df = session.sql("SELECT * FROM ASSETS").to_pandas()
+except SnowparkSQLException as e:
+    st.error(f"""
+    **SQL Query Failed**
+    {str(e)}
+    """)
+    st.stop()  # Halt execution immediately
+
+# Code below only runs if query succeeded
+transformers = df[df['type'] == 'TRANSFORMER']
+st.dataframe(transformers)
+```
+**Benefits:** Prevents cascading errors; clean single error message; professional error handling; user knows exactly what failed
+
+---
+
+**Anti-Pattern 4: Using st.warning() for SQL Errors**
+```python
+# Bad: Yellow warning for critical SQL failure
+try:
+    df = session.sql("SELECT * FROM ASSETS").to_pandas()
+except SnowparkSQLException as e:
+    st.warning(f"Database issue: {e}")  # Wrong severity!
+    return pd.DataFrame()  # Returns empty, silently fails
+```
+**Problem:** SQL failures are critical errors, not warnings; yellow color minimizes severity; returning empty DataFrame hides the problem; user may not notice
+
+**Correct Pattern:**
+```python
+# Good: Red error for SQL failures, yellow for empty results
+try:
+    df = session.sql("SELECT * FROM ASSETS").to_pandas()
+
+    # Empty results are warnings (data issue, not failure)
+    if df.empty:
+        st.warning("""
+        **No assets found** matching the filter criteria.
+
+        This could mean:
+        - No assets in database yet
+        - Filters too restrictive
+        - Check date range settings
+        """)
+        return pd.DataFrame()
+
+    return df
+
+except SnowparkSQLException as e:
+    # SQL failures are errors (system issue, critical)
+    st.error(f"""
+    **SQL Query Failed**
+
+    **Error:** {str(e)}
+    **Error Code:** {e.error_code if hasattr(e, 'error_code') else 'N/A'}
+    **Table:** ASSETS
+    """)
+    st.stop()
+```
+**Benefits:** Correct severity levels; distinguishes data issues from system failures; user knows difference between "no data" vs "broken query"
+
+---
+
+**Anti-Pattern 5: Missing Error Codes in Error Messages**
+```python
+# Bad: No error code for Snowflake support
+try:
+    df = session.sql("SELECT * FROM ASSETS").to_pandas()
+except SnowparkSQLException as e:
+    st.error(f"SQL failed: {str(e)}")  # No error code!
+    st.stop()
+```
+**Problem:** Snowflake support requires error codes for diagnosis; error messages are verbose, codes are unique identifiers; difficult to search documentation
+
+**Correct Pattern:**
+```python
+# Good: Always include error code
+try:
+    df = session.sql("SELECT * FROM ASSETS").to_pandas()
+except SnowparkSQLException as e:
+    st.error(f"""
+    **SQL Query Failed**
+
+    **Error Message:** {str(e)}
+    **SQL Error Code:** {e.error_code if hasattr(e, 'error_code') else 'N/A'}
+
+    **Table:** ASSETS
+    **Operation:** Loading all assets
+
+    **Debugging:**
+    Use error code to search Snowflake docs:
+    https://docs.snowflake.com/en/user-guide/admin-error-codes.html
+    """)
+    st.stop()
+```
+**Benefits:** Error code enables fast Snowflake support lookup; documentation searchable by code; professional error handling; reproducible error reporting
+
+
 ## Post-Execution Checklist
 
 - [ ] All session.sql() calls wrapped in try/except blocks
@@ -92,7 +305,7 @@ Verify all SQL queries have error handling; confirm error messages include all r
 - [ ] Parameterized queries show user input in error context
 - [ ] Join queries show both tables and join condition in error message
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. Read existing SQL queries and error handling BEFORE making recommendations
 > 2. Verify table names, schema names, and column names match actual Snowflake objects

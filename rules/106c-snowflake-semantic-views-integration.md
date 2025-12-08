@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.0
-**Keywords:** RBAC, masking policy, row access policy, Generator workflow, iterative development, synonyms, natural language queries, analyst integration, agent integration, semantic view security, analyst API, agent tools
-**TokenBudget:** ~4600
+**Keywords:** RBAC, masking policy, row access policy, Generator workflow, iterative development, synonyms, natural language queries, cortex analyst, agent integration, semantic view security, analyst troubleshooting, fix analyst, debug analyst
+**TokenBudget:** ~5650
 **ContextTier:** Medium
 **Depends:** rules/106-snowflake-semantic-views-core.md, rules/106b-snowflake-semantic-views-querying.md
 
@@ -885,4 +885,133 @@ CREATE OR REPLACE SEMANTIC VIEW ANALYTICS.SEMANTIC.SALES_CUBE
 - [ ] Test Cortex Analyst natural language queries
 - [ ] Review Query Profile for performance
 - [ ] Document view purpose and usage examples
+
+
+## 4) Cortex Analyst Troubleshooting
+
+Common errors when using semantic views with Cortex Analyst and their solutions.
+
+### Error: "View not accessible" or "SELECT command denied"
+
+**Cause:** Agent role lacks SELECT permission on semantic view
+
+**Solutions:**
+```sql
+-- 1. Verify view exists
+SHOW SEMANTIC VIEWS LIKE '{VIEW_NAME}' IN SCHEMA {DATABASE}.{SCHEMA};
+
+-- 2. Grant SELECT to agent role
+GRANT SELECT ON SEMANTIC VIEW {DATABASE}.{SCHEMA}.{VIEW_NAME} TO ROLE agent_runner;
+
+-- 3. Verify grant applied
+SHOW GRANTS TO ROLE agent_runner;
+
+-- 4. Test access with agent role
+USE ROLE agent_runner;
+SELECT * FROM SEMANTIC_VIEW({DATABASE}.{SCHEMA}.{VIEW_NAME} DIMENSIONS dim1) LIMIT 1;
+```
+
+### Error: "No data returned from Analyst" or "Empty results"
+
+**Cause:** Semantic view empty, query doesn't match available data, or grain mismatch
+
+**Solutions:**
+```sql
+-- 1. Verify view has data
+SELECT COUNT(*) AS row_count
+FROM SEMANTIC_VIEW({DATABASE}.{SCHEMA}.{SEMANTIC_VIEW} DIMENSIONS dim1);
+
+-- 2. Check view structure
+SHOW SEMANTIC DIMENSIONS IN SEMANTIC VIEW {DATABASE}.{SCHEMA}.{VIEW_NAME};
+SHOW SEMANTIC METRICS IN SEMANTIC VIEW {DATABASE}.{SCHEMA}.{VIEW_NAME};
+
+-- 3. Test with simple query first
+SELECT * FROM SEMANTIC_VIEW({DATABASE}.{SCHEMA}.{VIEW_NAME} DIMENSIONS dim1 METRICS metric1) LIMIT 10;
+
+-- 4. Verify measures and dimensions are populated
+SELECT 
+    COUNT(*) AS total_rows,
+    COUNT(DISTINCT dimension_column) AS unique_dimensions
+FROM SEMANTIC_VIEW({DATABASE}.{SCHEMA}.{VIEW_NAME} DIMENSIONS dimension_column);
+```
+
+### Error: "Invalid semantic view structure"
+
+**Cause:** View missing required columns, comments, or proper grain definition
+
+**Solutions:**
+```sql
+-- INCORRECT - Using SELECT *
+CREATE VIEW semantic_sales AS
+SELECT * FROM raw_sales;
+
+-- CORRECT - Explicit columns with comments (use CREATE SEMANTIC VIEW)
+CREATE OR REPLACE SEMANTIC VIEW {DATABASE}.{SCHEMA}.semantic_sales
+  TABLES (
+    sales AS {DATABASE}.{SCHEMA}.sales
+      PRIMARY KEY (sale_id)
+  )
+  FACTS (
+    sales.amount AS amount
+      COMMENT = 'Sales amount for aggregation'
+  )
+  DIMENSIONS (
+    sales.sale_id AS sale_id
+      COMMENT = 'Surrogate key',
+    sales.customer_id AS customer_id
+      COMMENT = 'Foreign key to customers',
+    sales.sale_date AS sale_date
+      COMMENT = 'Transaction date'
+  )
+  METRICS (
+    sales.total_revenue AS SUM(amount)
+      COMMENT = 'Total sales revenue'
+  );
+
+-- Verify structure
+SHOW SEMANTIC DIMENSIONS IN SEMANTIC VIEW {DATABASE}.{SCHEMA}.semantic_sales;
+SHOW SEMANTIC METRICS IN SEMANTIC VIEW {DATABASE}.{SCHEMA}.semantic_sales;
+```
+
+### Error: "Tool configuration failed" or "Analyst tool not working"
+
+**Cause:** Semantic view name incorrect, tool description missing, or insufficient permissions
+
+**Solutions:**
+```sql
+-- 1. Verify semantic view name is fully qualified
+-- INCORRECT
+Tool: portfolio_view  -- Missing database and schema
+
+-- CORRECT
+Tool: ANALYTICS.SEMANTIC.PORTFOLIO_VIEW  -- Fully qualified
+
+-- 2. Test semantic view directly
+SELECT * FROM SEMANTIC_VIEW(ANALYTICS.SEMANTIC.PORTFOLIO_VIEW DIMENSIONS dim1) LIMIT 5;
+
+-- 3. Verify role has all required permissions
+SHOW GRANTS TO ROLE agent_runner;
+
+-- Required grants:
+-- - USAGE on database
+-- - USAGE on schema
+-- - SELECT on semantic view
+-- - USAGE on warehouse
+```
+
+### Error: "Permission denied on CORTEX.ANALYST function"
+
+**Cause:** Missing USAGE grant on Cortex functions
+
+**Solutions:**
+```sql
+-- Grant Cortex function access (if required by your account setup)
+-- Note: Cortex functions are typically available by default
+
+-- Verify current role
+SELECT CURRENT_ROLE(), CURRENT_USER();
+
+-- Test Cortex function access
+SELECT SNOWFLAKE.CORTEX.COMPLETE('llama3.1-8b', 'Test query');
+```
 

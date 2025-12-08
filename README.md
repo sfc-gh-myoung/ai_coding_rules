@@ -1,10 +1,11 @@
 # AI Coding Rules
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://opensource.org/license/apache-2-0)
+![Version](https://img.shields.io/badge/version-3.2.0-blue)
+![Tests](https://img.shields.io/badge/tests-100%25%20passing-brightgreen)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Task](https://img.shields.io/badge/Task-Taskfile-brightgreen)](https://taskfile.dev)
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/Snowflake-Labs/ai_coding_rules)
-[![GitLab](https://img.shields.io/badge/GitLab-Repository-orange?logo=gitlab)](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/sfc-gh-myoung/ai_coding_rules)
 
 > **One universal ai coding rule set for all AI assistants, IDEs, and agents — portable, intelligent, and IDE-agnostic**
 
@@ -13,7 +14,7 @@
 **What:** Universal AI coding rule system working with any assistant/IDE  
 **Works with:** Cursor, Claude Code, GitHub Copilot, VS Code, ChatGPT, and more  
 **Deploy:** 2 commands (`git clone` + `task deploy`)  
-**Benefit:** 91 production-ready rules, automatic discovery, zero vendor lock-in
+**Benefit:** 100 production-ready rules, automatic discovery, zero vendor lock-in
 
 **Quick Checklist:**
 - [ ] Prerequisites met? → [Prerequisites](#prerequisites)
@@ -25,13 +26,13 @@
 
 This repository provides a **universal ai coding rule system** designed to work seamlessly with any AI assistant, IDE, or development tool. Write rules once in a universal format, use them anywhere.
 
-**What you get:** A comprehensive collection of 91 production-ready engineering rules covering Python, SQL, Snowflake, Docker, Shell scripting, data engineering, analytics, and project governance. The rules work seamlessly with AI coding assistants including Cursor, Claude Code, GitHub Copilot, Visual Studio Code, and others.
+**What you get:** A comprehensive collection of 100 production-ready engineering rules covering Python, SQL, Snowflake, Go, Docker, Shell scripting, React, HTMX, data engineering, analytics, and project governance. The rules work seamlessly with AI coding assistants including Cursor, Claude Code, GitHub Copilot, Visual Studio Code, and others.
 
 **Important:** Some aspects of the rules are opinionated, particularly regarding naming conventions, project structure, usage of uv/uvx/ruff/Task, and documentation standards. You are **encouraged to review and adjust** the rules to align with your best practices or preferred approaches.
 
 ## Key Features
 
-- **📚 91 Production-Ready Rules** — Comprehensive coverage across Snowflake, Python, Docker, Shell scripting, and project management
+- **📚 100 Production-Ready Rules** — Comprehensive coverage across Snowflake, Python, Go, React, HTMX, Docker, Shell scripting, and project management
 - **🔄 Universal Format** — Write once, use everywhere: Cursor, VS Code, Claude, ChatGPT, GitHub Copilot, and more
 - **🤖 Intelligent Discovery** — AI assistants automatically find and load relevant rules using semantic keyword matching
 - **🎯 Dependency-Aware** — Explicit dependency chains ensure rules load in the correct order
@@ -119,16 +120,17 @@ All rules are ready to deploy immediately—no generation step required.
 ```bash
 # 1. Clone this repository (choose one)
 
-# GitLab:
-git clone https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git
+# GitHub HTTPS:
+git clone https://github.com/sfc-gh-myoung/ai_coding_rules.git
 
-# GitHub:
-git clone https://github.com/Snowflake-Labs/ai_coding_rules.git
+# GitHub SSH:
+git clone git@github.com:sfc-gh-myoung/freedom_mortgage_demo.git
 
 cd ai_coding_rules
 
 # 2. Deploy rules to your project
 python scripts/rule_deployer.py --dest ~/my-project
+
 # Or use task:
 task deploy DEST=~/my-project
 
@@ -136,11 +138,11 @@ task deploy DEST=~/my-project
 # Add to prompt: "Load AGENTS.md and follow guidance for rule loading with RULES_INDEX.md"
 ```
 
-**That's it!** Your project now has 91 production-ready rules ready to use.
+**That's it!** Your project now has 100 production-ready rules ready to use.
 
 **What just happened?**
 
-- ✅ Copied `rules/` directory (91 rules) to your project
+- ✅ Copied `rules/` directory (101 rules) to your project
 - ✅ Copied `AGENTS.md` and `RULES_INDEX.md` for automatic AI discovery
 - ✅ Ready to use immediately—no additional configuration needed!
 
@@ -191,11 +193,8 @@ Track rule updates via git submodule:
 ```bash
 # From your project root (choose one)
 
-# GitLab:
-git submodule add https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git .ai-rules
-
 # GitHub:
-git submodule add https://github.com/Snowflake-Labs/ai_coding_rules.git .ai-rules
+git submodule add https://github.com/sfc-gh-myoung/ai_coding_rules.git .ai-rules
 
 cd .ai-rules
 
@@ -212,11 +211,8 @@ If you don't have Task installed, use the Python deployment script directly:
 ```bash
 # Clone the rules repository (choose one)
 
-# GitLab:
-git clone https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git /tmp/ai-rules
-
 # GitHub:
-git clone https://github.com/Snowflake-Labs/ai_coding_rules.git /tmp/ai-rules
+git clone https://github.com/sfc-gh-myoung/ai_coding_rules.git /tmp/ai-rules
 
 cd /tmp/ai-rules
 
@@ -227,11 +223,11 @@ cd /tmp/ai-rules
 /opt/homebrew/bin/uv run scripts/rule_deployer.py --dest ~/my-project
 
 # Verify deployment
-ls ~/my-project/rules/*.md | wc -l  # Should show 91
+ls ~/my-project/rules/*.md | wc -l  # Should show 100
 ls ~/my-project/AGENTS.md ~/my-project/RULES_INDEX.md  # Both files should exist
 ```
 
-**Success!** Your AI assistant can now access 91 specialized rules. See [AI Configuration](#ai-configuration) for IDE-specific setup.
+**Success!** Your AI assistant can now access 100 specialized rules. See [AI Configuration](#ai-configuration) for IDE-specific setup.
 
 ## Understanding Rules
 
@@ -401,6 +397,15 @@ Loading Order (Follow Dependencies):
 - Testing → `206-python-pytest.md`
 - Data Science → `500-data-science.md`
 
+**React/Frontend Projects:**
+- React app → `440-react-core.md` (architecture, state management, styling)
+- React + Python backend → `441-react-backend.md` (FastAPI/Flask integration, CORS, JWT)
+- TypeScript → `430-typescript-core.md`
+- JavaScript → `420-javascript-core.md`
+
+**Go Projects:**
+- Go app → `600-golang-core.md` (project structure, error handling, interfaces, testing, concurrency)
+
 **Infrastructure Projects:**
 - Docker → `400-docker-best-practices.md`
 - Shell scripting → `300-bash-scripting-core.md`
@@ -478,7 +483,7 @@ For questions or discussions, file an issue on the repository.
 
 ```ascii
 ai_coding_rules/
-├── rules/                  ← Production-ready rules (91 files)
+├── rules/                  ← Production-ready rules (100 files)
 ├── AGENTS.md               ← Rule loading protocol for AI assistants
 ├── RULES_INDEX.md          ← Searchable rule catalog
 ├── scripts/                ← Validation and deployment tools
@@ -486,6 +491,7 @@ ai_coding_rules/
 │   ├── rule_deployer.py        ← Deploy rules to projects
 │   ├── schema_validator.py     ← Validate rule structure
 │   ├── template_generator.py   ← Create new rule templates
+│   ├── keyword_generator.py    ← Generate semantic keywords for rules
 │   └── token_validator.py      ← Validate token budgets
 ├── docs/                   ← Documentation
 │   ├── ARCHITECTURE.md         ← System design decisions
@@ -539,6 +545,12 @@ task tokens:update                     # Update token budgets in rules
 task tokens:check                      # Check token budget accuracy
 task tokens:dry                        # Preview token updates
 
+# Keyword Generation
+task keywords:suggest FILE=rules/100-example.md  # Suggest keywords for a rule
+task keywords:diff FILE=rules/100-example.md     # Show diff between current and suggested
+task keywords:update FILE=rules/100-example.md   # Update keywords in-place
+task keywords:all                                # Suggest keywords for all rules
+
 # Quality & Testing
 task quality:check                     # Run linting and formatting checks
 task quality:fix                       # Fix all quality issues
@@ -555,20 +567,35 @@ task env:deps                          # Sync dependencies with uv
 
 ## Rule Categories
 
-The 91 rules are organized by domain using a three-digit numbering system. Each category focuses on a specific technology or practice area.
+The 101 rules are organized by domain using a three-digit numbering system. Each category focuses on a specific technology or practice area.
 
 | Domain | Range | # Rules | Focus Area | Key Topics |
 |--------|-------|---------|------------|------------|
 | **Core Foundation** | 000-099 | 7 | Universal patterns | Operating principles, memory bank, rule governance, boilerplate template, context engineering, tool design |
-| **Snowflake** | 100-199 | 40 | Data platform | SQL, Streamlit, performance, Cortex AI, security, notebooks, pipelines |
-| **Python** | 200-299 | 15 | Software engineering | Core patterns, FastAPI, Flask, Typer CLI, Pydantic, pytest, Pandas |
+| **Snowflake** | 100-199 | 39 | Data platform | SQL, Streamlit, performance, Cortex AI, security, notebooks, pipelines |
+| **Python** | 200-299 | 23 | Software engineering | Core patterns, FastAPI, Flask, Typer CLI, Pydantic, pytest, Pandas, **HTMX** |
 | **Shell Scripts** | 300-399 | 7 | Automation | Bash and Zsh scripting, security, testing |
-| **Containers** | 400-499 | 1 | Infrastructure | Docker best practices |
-| **Data Science** | 500-599 | 1 | Analytics | ML lifecycle, feature engineering |
-| **Data Governance** | 600-699 | 1 | Quality | Data quality, lineage, stewardship |
+| **Frontend/Containers** | 400-499 | 5 | Infrastructure & UI | Docker, JavaScript, TypeScript, React, **HTMX frontend** |
+| **Frontend** | 500-599 | 1 | Client-side | HTMX frontend reference |
+| **Systems/Backend Languages** | 600-699 | 1 | Backend development | **Go/Golang** core patterns, error handling, concurrency |
 | **Business Intelligence** | 700-799 | 1 | Reporting | Business analytics, visualization |
 | **Project Management** | 800-899 | 6 | Workflows | Git, changelog, README, contributing, Taskfile, automation |
-| **Demo & Synthetic Data** | 900-999 | 2 | Examples | Demo creation, data generation |
+| **Demo & Synthetic Data** | 900-999 | 5 | Examples | Demo creation, data generation, data science, data governance, business analytics |
+
+### HTMX Rules (New in v3.1.0)
+
+The Python domain now includes comprehensive HTMX support for building hypermedia-driven web applications:
+
+| Rule | Focus | Description |
+|------|-------|-------------|
+| **221-python-htmx-core** | Foundation | Request/response lifecycle, HTTP headers, security (CSRF, XSS), HATEOAS principles |
+| **221a-python-htmx-templates** | Templates | Jinja2 organization, partials, fragments, conditional rendering |
+| **221b-python-htmx-flask** | Flask Integration | Flask-HTMX extension, blueprints, session management, authentication |
+| **221c-python-htmx-fastapi** | FastAPI Integration | Async routes, dependency injection, Pydantic validation, background tasks |
+| **221d-python-htmx-testing** | Testing | Pytest fixtures, header assertions, HTML validation, mocking strategies |
+| **221e-python-htmx-patterns** | Common Patterns | CRUD, forms, infinite scroll, search, real-time updates, modals, wizards |
+| **221f-python-htmx-integrations** | Frontend Libraries | Alpine.js, _hyperscript, Tailwind, Bootstrap, Chart.js integration |
+| **500-frontend-htmx-core** | Frontend Reference | HTMX attributes, events, CSS transitions, debugging, browser compatibility |
 
 **🔍 Searchable index:** See [RULES_INDEX.md](RULES_INDEX.md) for complete rule list with keywords, dependencies, and semantic search
 
@@ -614,7 +641,7 @@ The project uses a **production-ready rules architecture**. Rules are authored o
 
 **Key concepts:**
 
-- **Production-ready rules** in `rules/` directory (91 files)
+- **Production-ready rules** in `rules/` directory (100 files)
 - **Universal Markdown format** works with any IDE, LLM, or agent
 - **Automatic discovery** via `AGENTS.md` and `RULES_INDEX.md` in project root
 - **Direct deployment** - no generation or transformation steps needed
@@ -832,7 +859,7 @@ Load AGENTS.md into the context.  Review RULES_INDEX.md based on the keywords in
 1. **Verify Files Deployed**
 ```bash
 ls rules/*.md | wc -l
-# Should show 91 files
+# Should show 100 files
 ```
 
 2. **Add to AI Context**
@@ -870,7 +897,7 @@ Expected: AI loads 000-global-core, 100-snowflake-core, 101-snowflake-streamlit-
 **Manual Verification:**
 ```bash
 # Verify files exist
-ls rules/*.md | wc -l  # Should be 91
+ls rules/*.md | wc -l  # Should be 100
 
 # Check files in project root
 cat AGENTS.md | head -20
@@ -913,7 +940,7 @@ chmod -R u+w .
 ### Still Having Issues?
 
 **Get Help:**
-- **Check Issues:** [GitLab Issues](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git/issues)
+- **Check Issues:** [GitHub Issues](https://github.com/sfc-gh-myoung/ai_coding_rules/issues)
 - **Review Validation:** Run `task rules:validate` to check rule structure
 - **Enable Debug Mode:** `task deploy:verbose DEST=~/path` for detailed output
 - **Check Logs:** Review terminal output for specific error messages
@@ -940,8 +967,8 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 
 ## Support
 
-- **Issues:** [GitLab Issues](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git/issues) *(Snowflake internal)*
-- **Discussions:** [GitLab Discussions](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git/discussions) *(Snowflake internal)*
+- **Issues:** [GitHub Issues](https://github.com/sfc-gh-myoung/ai_coding_rules/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/sfc-gh-myoung/ai_coding_rules/discussions)
 - **Documentation:** All rules include links to official documentation
 - **Contributing:** See [CONTRIBUTING.md](CONTRIBUTING.md)
 
@@ -954,7 +981,7 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 **With Task:**
 ```bash
 # Deploy/update rules
-git clone https://github.com/Snowflake-Labs/ai_coding_rules.git /tmp/ai-rules
+git clone https://github.com/sfc-gh-myoung/ai_coding_rules.git /tmp/ai-rules
 cd /tmp/ai-rules
 task deploy DEST=~/my-project
 ```
@@ -970,7 +997,7 @@ cd /tmp/ai-rules
 **General:**
 ```bash
 # Check rule count
-ls rules/*.md | wc -l  # Should show 91
+ls rules/*.md | wc -l  # Should show 100 files
 
 # Search rules (RULES_INDEX.md is in project root after deployment)
 grep -i "keyword" RULES_INDEX.md
@@ -996,4 +1023,4 @@ find rules -name "*python*"
 | `AGENTS.md` | Rule discovery guide | **Project root** |
 | `RULES_INDEX.md` | Searchable catalog | **Project root** |
 | `000-global-core.md` | Foundation rules | `rules/` |
-| All rule files | 91 specialized rules | `rules/` |
+| All rule files | 100 specialized rules | `rules/` |

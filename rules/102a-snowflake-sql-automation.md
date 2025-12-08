@@ -53,7 +53,7 @@ Production Snowflake account, CI/CD pipeline, SQL templates with variables, envi
 </inputs_prereqs>
 
 <mandatory>
-Snowflake CLI, Task automation, GitHub Actions, GitLab CI, Terraform
+Snowflake CLI, Task automation, GitHub Actions, Terraform
 </mandatory>
 
 <forbidden>
@@ -81,7 +81,7 @@ Template validation → dev deployment → test verification → production depl
 - **Parameterization**: All environment-specific values as variables
 - **Idempotency**: Safe to run multiple times (MERGE, WHERE NOT EXISTS)
 - **Environment Agnostic**: Works across dev/test/prod with different parameters
-- **Automation Ready**: Integrates with Taskfile, GitHub Actions, GitLab CI
+- **Automation Ready**: Integrates with Taskfile, GitHub Actions
 - **Audit Trail**: Clear tracking of what was executed and when
 - **Data Preservation**: Never use CREATE OR REPLACE for tables with data
 </design_principles>
@@ -302,7 +302,7 @@ WHEN NOT MATCHED THEN INSERT (report_date, row_count) VALUES (CURRENT_DATE(), s.
 
 > **Investigation Required**  
 > When applying this rule:
-> 1. **Read existing CI/CD files BEFORE making recommendations** - Check for GitHub Actions, GitLab CI, or other automation
+> 1. **Read existing CI/CD files BEFORE making recommendations** - Check for GitHub Actions or other automation
 > 2. **Verify current Taskfile.yml structure** - Understand existing task patterns and variable usage
 > 3. **Never speculate about deployment environments** - Ask user about dev/test/prod setup if unclear
 > 4. **Check existing SQL templates for patterns** - Match parameterization style with current codebase
@@ -314,7 +314,7 @@ WHEN NOT MATCHED THEN INSERT (report_date, row_count) VALUES (CURRENT_DATE(), s.
 >
 > **Correct Pattern:**
 > "Let me check your current automation setup first."
-> [reads Taskfile.yml, .github/workflows/, .gitlab-ci.yml]
+> [reads Taskfile.yml, .github/workflows/]
 > "I see you're using GitHub Actions with Taskfile integration. Here's how to add SQL template deployment to your existing workflow..."
 
 

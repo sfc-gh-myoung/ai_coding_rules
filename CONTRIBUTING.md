@@ -9,10 +9,8 @@ Thank you for your interest in contributing to AI Coding Rules! This project pro
 2. **Clone** your fork locally (choose one):
 
    ```bash
-   # GitLab:
-   git clone https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules.git
    # GitHub:
-   git clone https://github.com/Snowflake-Labs/ai_coding_rules.git
+   git clone https://github.com/sfc-gh-myoung/ai_coding_rules.git
    
    cd ai_coding_rules
    ```
@@ -680,12 +678,12 @@ In my experience, you will get consistently better results when you provide live
 
 ### Community Support
 
-1. **GitHub Issues:** [File an issue](https://github.com/Snowflake-Labs/ai_coding_rules/issues)
+1. **GitHub Issues:** [File an issue](https://github.com/sfc-gh-myoung/ai_coding_rules/issues)
    - Bug reports
    - Feature requests
    - Rule suggestions
 
-2. **GitHub Discussions:** [Join the discussion](https://github.com/Snowflake-Labs/ai_coding_rules/discussions)
+2. **GitHub Discussions:** [Join the discussion](https://github.com/sfc-gh-myoung/ai_coding_rules/discussions)
    - Questions and answers
    - Tips and tricks
    - Community support
@@ -694,7 +692,7 @@ In my experience, you will get consistently better results when you provide live
 
 *For Snowflake employees only:*
 
-1. **GitLab Issues:** [File an internal issue](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules/-/issues)
+1. **GitHub Issues:** [File an issue](https://github.com/sfc-gh-myoung/ai_coding_rules/issues)
    - Internal bug reports
    - Feature requests specific to Snowflake workflows
 
@@ -712,13 +710,13 @@ In my experience, you will get consistently better results when you provide live
 
 ## Team Collaboration (Snowflake Internal)
 
-*This section is for Snowflake team members using the internal GitLab repository.*
+*This section is for Snowflake team members.*
 
 ### Bookmark Key Resources
 
-- [ ] [AI Coding Rules Repository](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules)
-- [ ] [RULES_INDEX.md](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules/-/blob/main/RULES_INDEX.md)
-- [ ] [Project Issues](https://snow.gitlab-dedicated.com/snowflakecorp/SE/sales-engineering/ai_coding_rules/-/issues)
+- [ ] [AI Coding Rules Repository](https://github.com/sfc-gh-myoung/ai_coding_rules)
+- [ ] [RULES_INDEX.md](https://github.com/sfc-gh-myoung/ai_coding_rules/blob/main/RULES_INDEX.md)
+- [ ] [Project Issues](https://github.com/sfc-gh-myoung/ai_coding_rules/issues)
 
 ### Schedule Rule Updates
 

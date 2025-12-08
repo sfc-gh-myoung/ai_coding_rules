@@ -164,6 +164,7 @@ cython_debug/
 *.swp
 *.swo
 *~
+.claude
 
 # macOS
 .DS_Store

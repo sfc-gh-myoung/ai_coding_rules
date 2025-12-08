@@ -271,7 +271,6 @@ CMD ["uv", "run", "python", "-m", "myapp"]
 .gitignore
 .gitattributes
 .github/
-.gitlab/
 .hg/
 .svn/
 

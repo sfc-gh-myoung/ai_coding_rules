@@ -21,7 +21,7 @@ The AI Coding Rules v3.0 architecture represents a fundamental shift from templa
 
 ### Core Architecture Principles
 
-1. **Production-Ready by Default** — All 91 rule files in `rules/` are directly editable and deployment-ready
+1. **Production-Ready by Default** — All 100 rule files in `rules/` are directly editable and deployment-ready
 2. **No Generation Step** — Rules are maintained in their final form, eliminating build complexity
 3. **Universal Format** — Standard Markdown with embedded metadata works with any AI assistant or IDE
 4. **Schema-Validated** — Declarative YAML schema ensures consistency and quality
@@ -56,7 +56,7 @@ The AI Coding Rules v3.0 architecture represents a fundamental shift from templa
 **For Maintainers:**
 - Reduced complexity (no generation engine)
 - Schema-driven validation (declarative)
-- Comprehensive test coverage (91 tests)
+- Comprehensive test coverage (100+ tests)
 
 ## Production-Ready Rules System
 
@@ -139,41 +139,136 @@ Rules use 3-digit prefixes for logical organization:
 |-------|--------|---------------|
 | **000-099** | Core/Foundational | 000-global-core, 002-rule-governance |
 | **100-199** | Snowflake Ecosystem | 100-snowflake-core, 101-snowflake-streamlit-core |
-| **200-299** | Python Ecosystem | 200-python-core, 201-python-lint-format |
+| **200-299** | Python Ecosystem | 200-python-core, 201-python-lint-format, 221-python-htmx-core, 221b-python-htmx-flask, 221c-python-htmx-fastapi |
 | **300-399** | Shell/Bash Scripting | 300-bash-scripting-core, 310-zsh-scripting-core |
-| **400-499** | Docker/Containers | 400-docker-best-practices |
-| **500-599** | Data Science/Analytics | 500-data-science-analytics |
-| **600-699** | Data Governance | 600-data-governance-core |
-| **700-799** | Business Analytics | 700-business-analytics |
+| **400-499** | Frontend/Containers | 350-docker-best-practices, 420-javascript-core, 430-typescript-core, 440-react-core, 441-react-backend |
+| **500-599** | Frontend | 500-frontend-htmx-core |
+| **600-699** | Systems/Backend Languages | 600-golang-core (Go project structure, error handling, interfaces, testing, concurrency) |
 | **800-899** | Project Management | 800-project-changelog, 801-project-readme |
-| **900-999** | Demo/Examples | 920-example-demo-sql |
+| **900-999** | Demo/Examples | 900-demo-creation, 901-data-generation-modeling, 920-data-science-analytics, 930-data-governance-quality, 940-business-analytics |
 
 **Split Rules Pattern:** Rules may use letter suffixes (e.g., 101a, 101b, 101c) for subtopic specialization, improving token efficiency by allowing focused loading.
+
+### HTMX Rules Architecture (v3.1.0)
+
+Starting in v3.1.0, the project includes comprehensive HTMX support for building hypermedia-driven web applications. The HTMX rules follow a layered architecture:
+
+**Architecture Layers:**
+
+1. **Core Foundation (220)** — Request/response lifecycle, HTTP headers, security patterns (CSRF, XSS), HATEOAS principles
+2. **Templates (221)** — Jinja2 organization patterns, partials, fragments, conditional rendering
+3. **Framework Integration (222-223)** — Flask-HTMX extension and FastAPI async patterns with dependency injection
+4. **Testing (224)** — Pytest fixtures, header assertions, HTML validation, mocking strategies  
+5. **Patterns (225)** — Common implementation patterns (CRUD, forms, infinite scroll, search, real-time, modals)
+6. **Frontend Integration (226, 500)** — Alpine.js, _hyperscript, CSS frameworks, pure HTMX frontend reference
+
+**Design Decisions:**
+
+- **Consistent Naming:** All HTMX rules follow `python-htmx-*.md` pattern for easy discovery
+- **Framework Parity:** Separate rules for Flask (222) and FastAPI (223) to cover both ecosystems equally
+- **Security First:** Core rule (220) includes CSRF and XSS protection as foundational concepts
+- **Testing Emphasis:** Dedicated testing rule (224) ensures testability is a first-class concern
+- **Progressive Enhancement:** Rules emphasize graceful degradation and accessibility throughout
+
+**Dependency Chain:**
+
+```
+000-global-core.md (foundation)
+  └── 200-python-core.md (Python basics)
+      └── 221-python-htmx-core.md (HTMX foundation)
+          ├── 221a-python-htmx-templates.md (template patterns)
+          ├── 221b-python-htmx-flask.md (Flask integration)
+          ├── 221c-python-htmx-fastapi.md (FastAPI integration)
+          ├── 221d-python-htmx-testing.md (testing strategies)
+          ├── 221e-python-htmx-patterns.md (common patterns)
+          └── 221f-python-htmx-integrations.md (frontend libraries)
+
+500-frontend-htmx-core.md (standalone frontend reference)
+```
+
+**Token Budget Management:**
+
+Total HTMX token budget: ~9500 tokens across 8 rules
+- Core (220): ~1500 tokens — Largest due to security, headers, and HATEOAS coverage
+- Templates (221): ~1200 tokens — Template organization patterns
+- Flask (222): ~1000 tokens — Framework-specific patterns
+- FastAPI (223): ~1000 tokens — Async patterns
+- Testing (224): ~1200 tokens — Comprehensive testing strategies
+- Patterns (225): ~1800 tokens — Largest due to multiple pattern examples (CRUD, forms, search, etc.)
+- Integrations (226): ~800 tokens — Lightest, focused on library integration points
+- Frontend (500): ~1000 tokens — Pure HTMX reference without backend concerns
+
+### Go/Golang Rules Architecture
+
+Starting in v3.2.0, the project includes Go/Golang support establishing the 600s range for systems/backend languages.
+
+**Architecture:**
+
+The 600s range is reserved for systems and backend programming languages, with Go as the first entry:
+
+1. **Core Foundation (600)** — Project structure, naming conventions, error handling, interfaces, testing patterns, concurrency fundamentals
+
+**Future Rules (Reserved Numbers):**
+- 601-golang-testing.md — Advanced testing patterns, benchmarks, fuzzing
+- 602-golang-web-frameworks.md — Gin, Echo, Fiber, Chi integration
+- 603-golang-cli.md — Cobra, urfave/cli patterns
+- 605-golang-concurrency.md — Advanced goroutine patterns, channels, sync primitives
+- 610-golang-project-structure.md — Detailed project layouts, monorepo patterns
+
+**Design Decisions:**
+
+- **New Domain Range:** 600s established for systems/backend languages (distinct from Python 200s and frontend 400s)
+- **Industry Standards:** Rule follows Effective Go, Go Code Review Comments, and Uber Go Style Guide
+- **Tooling Focus:** Emphasizes `go fmt`, `go vet`, `golangci-lint`, and `go test -race`
+- **Error Handling:** Comprehensive coverage of `fmt.Errorf`, `%w` wrapping, `errors.Is`/`errors.As`
+
+**Dependency Chain:**
+
+```
+000-global-core.md (foundation)
+  └── 600-golang-core.md (Go foundation)
+      ├── 601-golang-testing.md (future)
+      ├── 602-golang-web-frameworks.md (future)
+      └── 603-golang-cli.md (future)
+```
+
+**Token Budget:**
+- Core (600): ~3500 tokens — Comprehensive coverage of Go fundamentals
 
 ## Directory Structure
 
 ```
 ai_coding_rules/
-├── rules/                      # 91 production-ready rule files
+├── rules/                      # 100 production-ready rule files
 │   ├── 000-global-core.md      # Foundation (ContextTier: Critical)
 │   ├── 001-memory-bank.md      # Context management
 │   ├── 002-rule-governance.md  # v3.0 schema standards
 │   ├── 100-snowflake-core.md   # Domain cores
 │   ├── 200-python-core.md
-│   └── ... (91 total)
+│   ├── 221-python-htmx-core.md # HTMX foundation
+│   ├── 221a-python-htmx-templates.md
+│   ├── 221b-python-htmx-flask.md
+│   ├── 221c-python-htmx-fastapi.md
+│   ├── 221d-python-htmx-testing.md
+│   ├── 221e-python-htmx-patterns.md
+│   ├── 221f-python-htmx-integrations.md
+│   ├── 500-frontend-htmx-core.md
+│   ├── 600-golang-core.md      # Go/Golang foundation
+│   └── ... (100 total)
 │
-├── scripts/                    # Automation and validation (2762 lines)
+├── scripts/                    # Automation and validation (~3600 lines)
 │   ├── template_generator.py  # Creates new rule templates (500 lines)
 │   ├── rule_deployer.py        # Deploys rules to projects (400 lines)
 │   ├── schema_validator.py     # Schema validation (600 lines)
 │   ├── token_validator.py      # Token budget validation (300 lines)
+│   ├── keyword_generator.py    # Keyword extraction using TF-IDF (850 lines)
 │   └── index_generator.py      # Generates RULES_INDEX.md (400 lines)
 │
 ├── schemas/                    # Validation schemas
 │   ├── rule-schema-v3.yml      # v3.0 schema definition (556 lines)
 │   └── README.md               # Schema documentation
 │
-├── tests/                      # Test suite (91 passing tests)
+├── tests/                      # Test suite (100+ passing tests)
 │   ├── test_template_generator.py
 │   ├── test_rule_deployer.py
 │   ├── test_schema_validator.py
@@ -205,13 +300,14 @@ ai_coding_rules/
 - Production-ready files
 - Directly editable
 - No generation required
-- 91 rules covering all domains
+- 101 rules covering all domains (including 8 HTMX rules and Go/Golang core)
 
 **`scripts/`** — Automation and validation tools
 - `template_generator.py` creates new rules compliant with v3.0 schema
 - `rule_deployer.py` copies rules to target projects
 - `schema_validator.py` validates rules against schema
 - `token_validator.py` checks token budget accuracy
+- `keyword_generator.py` extracts semantic keywords using TF-IDF analysis
 - `index_generator.py` generates RULES_INDEX.md catalog
 
 **`schemas/`** — Declarative validation
@@ -501,7 +597,7 @@ tasks:
 
 **CI/CD Pipeline:**
 ```yaml
-# .gitlab-ci.yml or .github/workflows/validate.yml
+# .github/workflows/validate.yml
 validate-rules:
   script:
     - python scripts/schema_validator.py rules/ --strict
@@ -527,10 +623,10 @@ validate-rules:
 - Contract field completion: 95.4% → 100% compliance (4 rules)
 
 **Current Compliance (v3.0.0):**
-- Keywords (10-15): 96.6% (88/91 rules)
-- Section names: 100% (91/91 rules)
-- Section ordering: 93.1% (85/91 rules)
-- Contract fields: 100% (91/91 rules)
+- Keywords (10-15): 97% (89/92 rules)
+- Section names: 100% (92/92 rules)
+- Section ordering: 93% (86/92 rules)
+- Contract fields: 100% (92/92 rules)
 
 ## Deployment System
 
@@ -541,7 +637,7 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 ### Deployment Architecture
 
 **Source Files (in ai_coding_rules repository):**
-- `rules/` — 91 production-ready rule files
+- `rules/` — 100 production-ready rule files
 - `AGENTS.md` — Discovery guide with loading protocol
 - `RULES_INDEX.md` — Searchable catalog with keywords
 
@@ -554,7 +650,7 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 **Target Structure (in user's project):**
 ```
 /path/to/user-project/
-├── rules/                  # 91 rule files
+├── rules/                  # 100 rule files
 │   ├── 000-global-core.md
 │   ├── 100-snowflake-core.md
 │   └── ...
@@ -613,15 +709,15 @@ Configuration:
   Mode: LIVE (files will be copied)
 
 Validation:
-  ✓ Source rules/ directory exists (91 files)
+  ✓ Source rules/ directory exists (100 files)
   ✓ Source AGENTS.md exists
   ✓ Source RULES_INDEX.md exists
   ✓ Destination writable
 
 Deployment:
   → Creating destination rules/ directory
-  → Copying 91 rule files...
-  ✓ Copied 91 rules to /path/to/project/rules/
+  → Copying 100 rule files...
+  ✓ Copied 101 rules to /path/to/project/rules/
   ✓ Copied AGENTS.md to /path/to/project/
   ✓ Copied RULES_INDEX.md to /path/to/project/
 
@@ -713,7 +809,7 @@ AI Response:
 v3.0 includes comprehensive test coverage ensuring script reliability:
 
 **Test Statistics:**
-- **91 passing tests** across 5 test files
+- **100+ passing tests** across 5 test files
 - **2762 lines** of production code covered
 - **pytest-based** test framework
 - **Fixture-driven** test data management
@@ -747,6 +843,16 @@ v3.0 includes comprehensive test coverage ensuring script reliability:
 - Tolerance checks (±20%)
 - Multiple rule validation
 - Statistical reporting
+
+**`tests/test_keyword_generator.py`**
+- KeywordCandidate dataclass tests
+- ExtractionResult diff calculations
+- Header, code language, emphasis extraction
+- Technology term matching
+- TF-IDF corpus building
+- Ranking and deduplication
+- File update functionality
+- Domain constants validation
 
 **`tests/test_index_generator.py`**
 - RULES_INDEX.md generation
@@ -794,17 +900,6 @@ task test:coverage
 - `invalid_contract.md` — Missing XML tags
 
 ### CI/CD Integration
-
-**GitLab CI (.gitlab-ci.yml):**
-```yaml
-test:
-  stage: test
-  script:
-    - uv sync --all-groups
-    - uv run pytest tests/ -v
-    - python scripts/schema_validator.py rules/ --strict
-  coverage: '/TOTAL.*\s+(\d+%)$/'
-```
 
 **GitHub Actions (.github/workflows/test.yml):**
 ```yaml
@@ -960,6 +1055,57 @@ python scripts/index_generator.py [OPTIONS]
 python scripts/index_generator.py --verbose
 ```
 
+### 6. keyword_generator.py (~850 lines)
+
+**Purpose:** Generate semantically relevant keywords for rule files using TF-IDF and multi-signal extraction
+
+**Usage:**
+```bash
+python scripts/keyword_generator.py PATH [OPTIONS]
+```
+
+**Options:**
+- `PATH` — Rule file or directory to analyze
+- `--update` — Update Keywords field in-place
+- `--diff` — Show diff between current and suggested keywords
+- `--corpus` — Build TF-IDF corpus from rules/ for better scoring
+- `--count N` — Target number of keywords (default: 12)
+- `--debug` — Enable debug output
+
+**Features:**
+- Multi-signal keyword extraction:
+  - TF-IDF scoring against corpus of all rules
+  - Section header extraction (H2/H3)
+  - Code block language detection
+  - Bold/backtick emphasis extraction
+  - Technology term matching
+- Domain-aware filtering with 100+ stop terms
+- Compound term preservation (e.g., "session state" → "session_state")
+- Case-insensitive deduplication with proper display casing
+
+**Example:**
+```bash
+# Suggest keywords for a single rule
+python scripts/keyword_generator.py rules/101-snowflake-streamlit-core.md --corpus
+
+# Show diff between current and suggested
+python scripts/keyword_generator.py rules/101-snowflake-streamlit-core.md --corpus --diff
+
+# Update keywords in-place
+python scripts/keyword_generator.py rules/101-snowflake-streamlit-core.md --corpus --update
+
+# Analyze all rules
+python scripts/keyword_generator.py rules/ --corpus
+```
+
+**Algorithm:**
+1. Parse rule file content (sections, headers, code blocks, emphasized terms)
+2. Build TF-IDF corpus from all rules in `rules/` directory (if --corpus)
+3. Extract candidates from multiple sources with weighted scores
+4. Filter candidates using domain stop terms and normalize
+5. Rank and deduplicate by combined score
+6. Return top 10-15 keywords sorted by relevance
+
 ## Architecture Diagrams
 
 ### Rule Creation Flow
@@ -1018,7 +1164,7 @@ flowchart TD
 
 ```mermaid
 graph TD
-    Root[ai_coding_rules/] --> Rules[rules/<br/>91 production files]
+    Root[ai_coding_rules/] --> Rules[rules/<br/>100 production files]
     Root --> Scripts[scripts/<br/>5 Python scripts]
     Root --> Schemas[schemas/<br/>v3.0 YAML schema]
     Root --> Tests[tests/<br/>91 passing tests]
@@ -1028,13 +1174,14 @@ graph TD
     
     Rules --> Rule1[000-global-core.md]
     Rules --> Rule2[100-snowflake-core.md]
-    Rules --> Rule3[... 91 total]
+    Rules --> Rule3[... 92 total]
     
     Scripts --> S1[template_generator.py]
     Scripts --> S2[rule_deployer.py]
     Scripts --> S3[schema_validator.py]
     Scripts --> S4[token_validator.py]
-    Scripts --> S5[index_generator.py]
+    Scripts --> S5[keyword_generator.py]
+    Scripts --> S6[index_generator.py]
     
     Schemas --> Schema[rule-schema-v3.yml]
     
@@ -1042,7 +1189,8 @@ graph TD
     Tests --> T2[test_rule_deployer.py]
     Tests --> T3[test_schema_validator.py]
     Tests --> T4[test_token_validator.py]
-    Tests --> T5[test_index_generator.py]
+    Tests --> T5[test_keyword_generator.py]
+    Tests --> T6[test_index_generator.py]
     
     Prompts --> P1[EXAMPLE_PROMPT_01.md]
     Prompts --> P2[EXAMPLE_PROMPT_02.md]
@@ -1284,7 +1432,7 @@ v3.0 represents a **breaking architectural change**. v2.x template-based systems
 
 1. **Deploy v3.0 rules** to new location:
    ```bash
-   git clone https://github.com/Snowflake-Labs/ai_coding_rules.git /tmp/rules-v3
+   git clone https://github.com/sfc-gh-myoung/ai_coding_rules.git /tmp/rules-v3
    cd /tmp/rules-v3
    task deploy -- --dest ~/project
    ```
@@ -1297,7 +1445,7 @@ v3.0 represents a **breaking architectural change**. v2.x template-based systems
 
 3. **Verify** deployment:
    ```bash
-   ls ~/project/rules/*.md | wc -l  # Should show 91
+   ls ~/project/rules/*.md | wc -l  # Should show 92
    ```
 
 **Option 2: Gradual Migration**
@@ -1359,7 +1507,7 @@ task deploy -- --dest ~/project
 Solution: Check configuration
 ```bash
 # Verify files deployed
-ls ~/project/rules/*.md | wc -l  # Should be 91
+ls ~/project/rules/*.md | wc -l  # Should be 92
 ls ~/project/AGENTS.md  # Should exist
 ls ~/project/RULES_INDEX.md  # Should exist
 ```
@@ -1387,7 +1535,7 @@ grep -i "keyword" ~/project/RULES_INDEX.md
 
 **Community:**
 - GitHub Issues — Report bugs or request features
-- GitLab Issues — Internal Snowflake users
+- GitHub Issues — Users and contributors
 
 ---
 
@@ -1395,4 +1543,6 @@ grep -i "keyword" ~/project/RULES_INDEX.md
 
 | Version | Date | Changes |
 |---------|------|---------|
+| **v3.2.0** | 2025-12-04 | Added Go/Golang rules architecture section, updated rule counts to 100 |
+| **v3.1.0** | 2025-12-03 | Added HTMX rules architecture section |
 | **v3.0.0** | 2025-11-25 | Complete rewrite for production-ready architecture |

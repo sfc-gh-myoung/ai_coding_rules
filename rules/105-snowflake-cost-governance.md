@@ -170,7 +170,7 @@ ALTER WAREHOUSE WH_ANALYTICS_M SET RESOURCE_MONITOR = rm_analytics_monthly;
 
 **Sometimes Related** (load if specific scenario):
 - `111-snowflake-observability-core` - When monitoring warehouse usage and query costs via telemetry
-- `117-snowflake-cortex-analyst` - When monitoring Cortex Analyst API costs
+- `106c-snowflake-semantic-views-integration` - When monitoring Cortex Analyst API costs
 - `115-snowflake-cortex-agents-core` - When monitoring agent execution costs
 
 **Complementary** (different aspects of same domain):

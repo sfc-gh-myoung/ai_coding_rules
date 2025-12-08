@@ -33,6 +33,7 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - **Parse VARIANT once** - Extract all fields in single CTE, reference downstream
 - **Use Streams + Tasks** - Incremental processing, not full reloads
 - **Never use SELECT *** in production - explicit columns only
+- **Avoid template characters in identifiers** - No `&`, `<%`, `%>`, `{{`, `}}` in names, synonyms, or comments (Snowflake CLI interprets these as template variables)
 
 
 ## Contract
@@ -252,6 +253,7 @@ QUALIFY ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY updated_at DESC) = 1;
 - [ ] SQL keywords in UPPERCASE for consistency
 - [ ] Object names follow DDL naming conventions (see section 8)
 - [ ] No DISTINCT used for deduplication (use ROW_NUMBER() instead)
+- [ ] No template characters (`&`, `<%`, `%>`, `{{`, `}}`) in identifiers, synonyms, or comments
 
 > **Investigation Required**  
 > When applying this rule:
@@ -401,6 +403,17 @@ SELECT * FROM agg;
   - Example: `PIPE_LOAD_S3_SALESFORCE_JSON`.
 - **Rule (Integrations):** Prefix by type: `SINT_` (Storage), `NINT_` (Notification), `APIINT_` (API).
   - Examples: `SINT_S3_PROD_BUCKET`, `NINT_AWS_SNS_PIPE_ALERTS`.
+
+### Reserved Characters (CLI Compatibility)
+- **Rule:** Avoid characters that Snowflake CLI or SnowSQL interpret as template variables in object names, synonyms, comments, and string literals.
+- **Forbidden Characters:**
+  - `&` - Snowflake CLI (`snow sql`) template variable prefix
+  - `<%` and `%>` - SnowSQL variable delimiters
+  - `{{` and `}}` - Common templating syntax (Jinja2, dbt)
+- **Examples:**
+  - Bad: `'R&D Department'`, `'Sales & Marketing'`, `'<%ENV%>_TABLE'`
+  - Good: `'R and D Department'`, `'Research and Development'`, `'Sales and Marketing'`
+- **Why:** These characters cause deployment failures with cryptic error messages when SQL files are executed via CLI tools.
 
 
 ## Related Rules

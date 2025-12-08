@@ -482,7 +482,7 @@ filtered = classified.select(
 - `115-snowflake-cortex-agents-core` - When using Cortex AI functions within agent tools
 
 **Sometimes Related** (load if specific scenario):
-- `117-snowflake-cortex-analyst` - Different approach (semantic model vs direct SQL functions)
+- `106c-snowflake-semantic-views-integration` - Cortex Analyst approach (semantic views vs direct SQL functions)
 - `101-snowflake-streamlit-core` - When using Cortex AI functions in Streamlit applications
 - `109-snowflake-notebooks` - When using Cortex AI functions in notebook workflows
 

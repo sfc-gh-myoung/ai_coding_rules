@@ -5,7 +5,7 @@
 **Keywords:** jinja2, templates, partials, fragments, template composition, conditional rendering, htmx templates, template organization, reusable components, template context
 **TokenBudget:** ~2300
 **ContextTier:** High
-**Depends:** rules/220-python-htmx-core.md
+**Depends:** rules/221-python-htmx-core.md
 
 ## Purpose
 
@@ -38,7 +38,7 @@ Python web applications using Jinja2 templates with HTMX (applies to Flask, Fast
 ## Contract
 
 <inputs_prereqs>
-Jinja2 template engine configured; HTMX library available; understanding of template inheritance; template directory structure; HTMX core patterns (220-python-htmx-core.md)
+Jinja2 template engine configured; HTMX library available; understanding of template inheritance; template directory structure; HTMX core patterns (221-python-htmx-core.md)
 </inputs_prereqs>
 
 <mandatory>
@@ -488,8 +488,8 @@ def users_list():
 - [FastAPI Templates](https://fastapi.tiangolo.com/advanced/templates/) - Jinja2 with FastAPI
 
 ### Related Rules
-- **HTMX Foundation**: `rules/220-python-htmx-core.md` - HTMX core patterns
-- **Flask Integration**: `rules/222-python-htmx-flask.md` - Flask-specific template patterns
-- **FastAPI Integration**: `rules/223-python-htmx-fastapi.md` - FastAPI template setup
-- **Common Patterns**: `rules/225-python-htmx-patterns.md` - Template patterns for CRUD, forms, etc.
+- **HTMX Foundation**: `rules/221-python-htmx-core.md` - HTMX core patterns
+- **Flask Integration**: `rules/221b-python-htmx-flask.md` - Flask-specific template patterns
+- **FastAPI Integration**: `rules/221c-python-htmx-fastapi.md` - FastAPI template setup
+- **Common Patterns**: `rules/221e-python-htmx-patterns.md` - Template patterns for CRUD, forms, etc.
 - **Python Core**: `rules/200-python-core.md` - Python coding standards

@@ -286,11 +286,13 @@ If you see errors or different output:
 - [ ] Fully qualified object names used (DATABASE.SCHEMA.OBJECT)
 - [ ] COPY INTO syntax correct (ON_ERROR outside FILE_FORMAT)
 - [ ] CREATE VIEW has COMMENT before AS
+- [ ] No template characters (`&`, `<%`, `%>`, `{{`, `}}`) in comments, synonyms, or strings
 
 **Demo Experience:**
 - [ ] Scripts provide immediate feedback
 - [ ] Safe to rerun multiple times
 - [ ] Clear error messages if prerequisites missing
+- [ ] SQL files execute successfully via CLI (`snow sql -f file.sql`)
 
 
 ## Validation
@@ -768,6 +770,61 @@ CREATE TABLE GRID_ASSETS (...);  -- May fail in CLI automation
 - Interactive sessions in Snowsight
 - Single-file scripts executed as one unit
 - Development/exploration
+
+### 4.4 Reserved Characters (CLI Compatibility)
+
+**Rule:** Avoid characters that Snowflake CLI or SnowSQL interpret as template variables in SQL files.
+
+**Why:** Demo SQL files are often executed via CLI tools (`snow sql`, `snowsql`) or CI/CD pipelines. Template characters cause cryptic errors that are hard to debug.
+
+**Forbidden Characters:**
+| Character | Tool | Issue |
+|-----------|------|-------|
+| `&` | Snowflake CLI (`snow sql`) | Interpreted as template variable prefix |
+| `<%` and `%>` | SnowSQL | Interpreted as variable delimiters |
+| `{{` and `}}` | Jinja2, dbt | Interpreted as template syntax |
+
+**Incorrect:**
+```sql
+-- Bad: & in comments, synonyms, or string literals
+CREATE TABLE departments (
+    dept_name VARCHAR COMMENT 'R&D or Sales & Marketing'  -- & causes CLI error!
+);
+
+-- Bad: Template syntax in comments
+-- Deploy to <%ENV%> environment  -- SnowSQL tries to expand this!
+
+CREATE SEMANTIC VIEW my_view AS
+  DIMENSIONS (
+    dept AS departments.dept_name
+      SYNONYMS ('R&D', 'Sales & Marketing')  -- & causes CLI error!
+  );
+```
+
+**Correct:**
+```sql
+-- Good: Use 'and' instead of '&'
+CREATE TABLE departments (
+    dept_name VARCHAR COMMENT 'R and D or Sales and Marketing'
+);
+
+-- Good: Plain text comments
+-- Deploy to DEV/PROD environment
+
+CREATE SEMANTIC VIEW my_view AS
+  DIMENSIONS (
+    dept AS departments.dept_name
+      SYNONYMS ('R and D', 'Research and Development', 'Sales and Marketing')
+  );
+```
+
+**Common Substitutions:**
+| Avoid | Use Instead |
+|-------|-------------|
+| `R&D` | `R and D`, `Research and Development` |
+| `Sales & Marketing` | `Sales and Marketing` |
+| `P&L` | `P and L`, `Profit and Loss` |
+| `<%VAR%>` | Use Snowflake CLI `--variable` flag instead |
 
 
 ## 5. File Headers for Demos

@@ -139,14 +139,13 @@ Rules use 3-digit prefixes for logical organization:
 |-------|--------|---------------|
 | **000-099** | Core/Foundational | 000-global-core, 002-rule-governance |
 | **100-199** | Snowflake Ecosystem | 100-snowflake-core, 101-snowflake-streamlit-core |
-| **200-299** | Python Ecosystem | 200-python-core, 201-python-lint-format, 220-python-htmx-core, 222-python-htmx-flask, 223-python-htmx-fastapi |
+| **200-299** | Python Ecosystem | 200-python-core, 201-python-lint-format, 221-python-htmx-core, 221b-python-htmx-flask, 221c-python-htmx-fastapi |
 | **300-399** | Shell/Bash Scripting | 300-bash-scripting-core, 310-zsh-scripting-core |
-| **400-499** | Frontend/Containers | 400-docker-best-practices, 420-javascript-core, 430-typescript-core, 440-react-core, 441-react-backend, 500-frontend-htmx-core |
-| **500-599** | Data Science/Analytics | 500-data-science-analytics |
-| **600-699** | Data Governance | 600-data-governance-core |
-| **700-799** | Business Analytics | 700-business-analytics |
+| **400-499** | Frontend/Containers | 350-docker-best-practices, 420-javascript-core, 430-typescript-core, 440-react-core, 441-react-backend |
+| **500-599** | Frontend | 500-frontend-htmx-core |
+| **600-699** | Systems/Backend Languages | 600-golang-core (Go project structure, error handling, interfaces, testing, concurrency) |
 | **800-899** | Project Management | 800-project-changelog, 801-project-readme |
-| **900-999** | Demo/Examples | 920-example-demo-sql |
+| **900-999** | Demo/Examples | 900-demo-creation, 901-data-generation-modeling, 920-data-science-analytics, 930-data-governance-quality, 940-business-analytics |
 
 **Split Rules Pattern:** Rules may use letter suffixes (e.g., 101a, 101b, 101c) for subtopic specialization, improving token efficiency by allowing focused loading.
 
@@ -176,13 +175,13 @@ Starting in v3.1.0, the project includes comprehensive HTMX support for building
 ```
 000-global-core.md (foundation)
   └── 200-python-core.md (Python basics)
-      └── 220-python-htmx-core.md (HTMX foundation)
-          ├── 221-python-htmx-templates.md (template patterns)
-          ├── 222-python-htmx-flask.md (Flask integration)
-          ├── 223-python-htmx-fastapi.md (FastAPI integration)
-          ├── 224-python-htmx-testing.md (testing strategies)
-          ├── 225-python-htmx-patterns.md (common patterns)
-          └── 226-python-htmx-integrations.md (frontend libraries)
+      └── 221-python-htmx-core.md (HTMX foundation)
+          ├── 221a-python-htmx-templates.md (template patterns)
+          ├── 221b-python-htmx-flask.md (Flask integration)
+          ├── 221c-python-htmx-fastapi.md (FastAPI integration)
+          ├── 221d-python-htmx-testing.md (testing strategies)
+          ├── 221e-python-htmx-patterns.md (common patterns)
+          └── 221f-python-htmx-integrations.md (frontend libraries)
 
 500-frontend-htmx-core.md (standalone frontend reference)
 ```
@@ -199,6 +198,43 @@ Total HTMX token budget: ~9500 tokens across 8 rules
 - Integrations (226): ~800 tokens — Lightest, focused on library integration points
 - Frontend (500): ~1000 tokens — Pure HTMX reference without backend concerns
 
+### Go/Golang Rules Architecture
+
+Starting in v3.2.0, the project includes Go/Golang support establishing the 600s range for systems/backend languages.
+
+**Architecture:**
+
+The 600s range is reserved for systems and backend programming languages, with Go as the first entry:
+
+1. **Core Foundation (600)** — Project structure, naming conventions, error handling, interfaces, testing patterns, concurrency fundamentals
+
+**Future Rules (Reserved Numbers):**
+- 601-golang-testing.md — Advanced testing patterns, benchmarks, fuzzing
+- 602-golang-web-frameworks.md — Gin, Echo, Fiber, Chi integration
+- 603-golang-cli.md — Cobra, urfave/cli patterns
+- 605-golang-concurrency.md — Advanced goroutine patterns, channels, sync primitives
+- 610-golang-project-structure.md — Detailed project layouts, monorepo patterns
+
+**Design Decisions:**
+
+- **New Domain Range:** 600s established for systems/backend languages (distinct from Python 200s and frontend 400s)
+- **Industry Standards:** Rule follows Effective Go, Go Code Review Comments, and Uber Go Style Guide
+- **Tooling Focus:** Emphasizes `go fmt`, `go vet`, `golangci-lint`, and `go test -race`
+- **Error Handling:** Comprehensive coverage of `fmt.Errorf`, `%w` wrapping, `errors.Is`/`errors.As`
+
+**Dependency Chain:**
+
+```
+000-global-core.md (foundation)
+  └── 600-golang-core.md (Go foundation)
+      ├── 601-golang-testing.md (future)
+      ├── 602-golang-web-frameworks.md (future)
+      └── 603-golang-cli.md (future)
+```
+
+**Token Budget:**
+- Core (600): ~3500 tokens — Comprehensive coverage of Go fundamentals
+
 ## Directory Structure
 
 ```
@@ -209,21 +245,23 @@ ai_coding_rules/
 │   ├── 002-rule-governance.md  # v3.0 schema standards
 │   ├── 100-snowflake-core.md   # Domain cores
 │   ├── 200-python-core.md
-│   ├── 220-python-htmx-core.md # HTMX foundation
-│   ├── 221-python-htmx-templates.md
-│   ├── 222-python-htmx-flask.md
-│   ├── 223-python-htmx-fastapi.md
-│   ├── 224-python-htmx-testing.md
-│   ├── 225-python-htmx-patterns.md
-│   ├── 226-python-htmx-integrations.md
+│   ├── 221-python-htmx-core.md # HTMX foundation
+│   ├── 221a-python-htmx-templates.md
+│   ├── 221b-python-htmx-flask.md
+│   ├── 221c-python-htmx-fastapi.md
+│   ├── 221d-python-htmx-testing.md
+│   ├── 221e-python-htmx-patterns.md
+│   ├── 221f-python-htmx-integrations.md
 │   ├── 500-frontend-htmx-core.md
+│   ├── 600-golang-core.md      # Go/Golang foundation
 │   └── ... (100 total)
 │
-├── scripts/                    # Automation and validation (2762 lines)
+├── scripts/                    # Automation and validation (~3600 lines)
 │   ├── template_generator.py  # Creates new rule templates (500 lines)
 │   ├── rule_deployer.py        # Deploys rules to projects (400 lines)
 │   ├── schema_validator.py     # Schema validation (600 lines)
 │   ├── token_validator.py      # Token budget validation (300 lines)
+│   ├── keyword_generator.py    # Keyword extraction using TF-IDF (850 lines)
 │   └── index_generator.py      # Generates RULES_INDEX.md (400 lines)
 │
 ├── schemas/                    # Validation schemas
@@ -262,13 +300,14 @@ ai_coding_rules/
 - Production-ready files
 - Directly editable
 - No generation required
-- 100 rules covering all domains (including 8 HTMX rules as of v3.1.0)
+- 101 rules covering all domains (including 8 HTMX rules and Go/Golang core)
 
 **`scripts/`** — Automation and validation tools
 - `template_generator.py` creates new rules compliant with v3.0 schema
 - `rule_deployer.py` copies rules to target projects
 - `schema_validator.py` validates rules against schema
 - `token_validator.py` checks token budget accuracy
+- `keyword_generator.py` extracts semantic keywords using TF-IDF analysis
 - `index_generator.py` generates RULES_INDEX.md catalog
 
 **`schemas/`** — Declarative validation
@@ -598,7 +637,7 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 ### Deployment Architecture
 
 **Source Files (in ai_coding_rules repository):**
-- `rules/` — 92 production-ready rule files
+- `rules/` — 100 production-ready rule files
 - `AGENTS.md` — Discovery guide with loading protocol
 - `RULES_INDEX.md` — Searchable catalog with keywords
 
@@ -611,7 +650,7 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 **Target Structure (in user's project):**
 ```
 /path/to/user-project/
-├── rules/                  # 92 rule files
+├── rules/                  # 100 rule files
 │   ├── 000-global-core.md
 │   ├── 100-snowflake-core.md
 │   └── ...
@@ -670,15 +709,15 @@ Configuration:
   Mode: LIVE (files will be copied)
 
 Validation:
-  ✓ Source rules/ directory exists (92 files)
+  ✓ Source rules/ directory exists (100 files)
   ✓ Source AGENTS.md exists
   ✓ Source RULES_INDEX.md exists
   ✓ Destination writable
 
 Deployment:
   → Creating destination rules/ directory
-  → Copying 92 rule files...
-  ✓ Copied 92 rules to /path/to/project/rules/
+  → Copying 100 rule files...
+  ✓ Copied 101 rules to /path/to/project/rules/
   ✓ Copied AGENTS.md to /path/to/project/
   ✓ Copied RULES_INDEX.md to /path/to/project/
 
@@ -804,6 +843,16 @@ v3.0 includes comprehensive test coverage ensuring script reliability:
 - Tolerance checks (±20%)
 - Multiple rule validation
 - Statistical reporting
+
+**`tests/test_keyword_generator.py`**
+- KeywordCandidate dataclass tests
+- ExtractionResult diff calculations
+- Header, code language, emphasis extraction
+- Technology term matching
+- TF-IDF corpus building
+- Ranking and deduplication
+- File update functionality
+- Domain constants validation
 
 **`tests/test_index_generator.py`**
 - RULES_INDEX.md generation
@@ -1006,6 +1055,57 @@ python scripts/index_generator.py [OPTIONS]
 python scripts/index_generator.py --verbose
 ```
 
+### 6. keyword_generator.py (~850 lines)
+
+**Purpose:** Generate semantically relevant keywords for rule files using TF-IDF and multi-signal extraction
+
+**Usage:**
+```bash
+python scripts/keyword_generator.py PATH [OPTIONS]
+```
+
+**Options:**
+- `PATH` — Rule file or directory to analyze
+- `--update` — Update Keywords field in-place
+- `--diff` — Show diff between current and suggested keywords
+- `--corpus` — Build TF-IDF corpus from rules/ for better scoring
+- `--count N` — Target number of keywords (default: 12)
+- `--debug` — Enable debug output
+
+**Features:**
+- Multi-signal keyword extraction:
+  - TF-IDF scoring against corpus of all rules
+  - Section header extraction (H2/H3)
+  - Code block language detection
+  - Bold/backtick emphasis extraction
+  - Technology term matching
+- Domain-aware filtering with 100+ stop terms
+- Compound term preservation (e.g., "session state" → "session_state")
+- Case-insensitive deduplication with proper display casing
+
+**Example:**
+```bash
+# Suggest keywords for a single rule
+python scripts/keyword_generator.py rules/101-snowflake-streamlit-core.md --corpus
+
+# Show diff between current and suggested
+python scripts/keyword_generator.py rules/101-snowflake-streamlit-core.md --corpus --diff
+
+# Update keywords in-place
+python scripts/keyword_generator.py rules/101-snowflake-streamlit-core.md --corpus --update
+
+# Analyze all rules
+python scripts/keyword_generator.py rules/ --corpus
+```
+
+**Algorithm:**
+1. Parse rule file content (sections, headers, code blocks, emphasized terms)
+2. Build TF-IDF corpus from all rules in `rules/` directory (if --corpus)
+3. Extract candidates from multiple sources with weighted scores
+4. Filter candidates using domain stop terms and normalize
+5. Rank and deduplicate by combined score
+6. Return top 10-15 keywords sorted by relevance
+
 ## Architecture Diagrams
 
 ### Rule Creation Flow
@@ -1064,7 +1164,7 @@ flowchart TD
 
 ```mermaid
 graph TD
-    Root[ai_coding_rules/] --> Rules[rules/<br/>92 production files]
+    Root[ai_coding_rules/] --> Rules[rules/<br/>100 production files]
     Root --> Scripts[scripts/<br/>5 Python scripts]
     Root --> Schemas[schemas/<br/>v3.0 YAML schema]
     Root --> Tests[tests/<br/>91 passing tests]
@@ -1080,7 +1180,8 @@ graph TD
     Scripts --> S2[rule_deployer.py]
     Scripts --> S3[schema_validator.py]
     Scripts --> S4[token_validator.py]
-    Scripts --> S5[index_generator.py]
+    Scripts --> S5[keyword_generator.py]
+    Scripts --> S6[index_generator.py]
     
     Schemas --> Schema[rule-schema-v3.yml]
     
@@ -1088,7 +1189,8 @@ graph TD
     Tests --> T2[test_rule_deployer.py]
     Tests --> T3[test_schema_validator.py]
     Tests --> T4[test_token_validator.py]
-    Tests --> T5[test_index_generator.py]
+    Tests --> T5[test_keyword_generator.py]
+    Tests --> T6[test_index_generator.py]
     
     Prompts --> P1[EXAMPLE_PROMPT_01.md]
     Prompts --> P2[EXAMPLE_PROMPT_02.md]
@@ -1441,4 +1543,6 @@ grep -i "keyword" ~/project/RULES_INDEX.md
 
 | Version | Date | Changes |
 |---------|------|---------|
+| **v3.2.0** | 2025-12-04 | Added Go/Golang rules architecture section, updated rule counts to 100 |
+| **v3.1.0** | 2025-12-03 | Added HTMX rules architecture section |
 | **v3.0.0** | 2025-11-25 | Complete rewrite for production-ready architecture |

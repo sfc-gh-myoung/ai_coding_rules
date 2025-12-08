@@ -239,6 +239,11 @@ lint-ruff:
     - uvx ruff check .
     - uvx ruff format --check .
 
+lint-ty:
+  desc: "Run ty type checker"
+  cmds:
+    - uvx ty check .
+
 format:
   desc: "Auto-format code with ruff"
   cmds:
@@ -249,7 +254,8 @@ lint:
   desc: "Run all code quality checks"
   cmds:
     - task: lint-ruff
-    - task: lint-mypy  # uv run mypy for project dependencies
+    - task: lint-ty    # primary type checker (Astral toolchain)
+    # - task: lint-mypy  # fallback: uv run mypy when mypy plugins needed
 ```
 
 

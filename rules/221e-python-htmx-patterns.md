@@ -5,7 +5,7 @@
 **Keywords:** crud, forms, validation, infinite scroll, lazy loading, sse, progressive enhancement, modals, search, autocomplete, real-time, polling, inline editing
 **TokenBudget:** ~2600
 **ContextTier:** High
-**Depends:** rules/220-python-htmx-core.md, rules/221-python-htmx-templates.md
+**Depends:** rules/221-python-htmx-core.md, rules/221a-python-htmx-templates.md
 
 ## Purpose
 
@@ -40,7 +40,7 @@ Python web applications implementing common interactive patterns with HTMX (appl
 ## Contract
 
 <inputs_prereqs>
-HTMX library loaded; HTMX core patterns (220-python-htmx-core.md); template strategies (221-python-htmx-templates.md); server-side validation; Python web framework configured
+HTMX library loaded; HTMX core patterns (221-python-htmx-core.md); template strategies (221a-python-htmx-templates.md); server-side validation; Python web framework configured
 </inputs_prereqs>
 
 <mandatory>
@@ -712,9 +712,9 @@ def delete_user(user_id):
 - [HTMX Essays](https://htmx.org/essays/) - Architecture and design philosophy
 
 ### Related Rules
-- **HTMX Foundation**: `rules/220-python-htmx-core.md` - Core HTMX concepts
-- **Template Strategies**: `rules/221-python-htmx-templates.md` - Jinja2 patterns
-- **Flask Integration**: `rules/222-python-htmx-flask.md` - Flask-specific patterns
-- **FastAPI Integration**: `rules/223-python-htmx-fastapi.md` - FastAPI patterns
-- **Testing**: `rules/224-python-htmx-testing.md` - Testing these patterns
-- **Integrations**: `rules/226-python-htmx-integrations.md` - Frontend library integrations
+- **HTMX Foundation**: `rules/221-python-htmx-core.md` - Core HTMX concepts
+- **Template Strategies**: `rules/221a-python-htmx-templates.md` - Jinja2 patterns
+- **Flask Integration**: `rules/221b-python-htmx-flask.md` - Flask-specific patterns
+- **FastAPI Integration**: `rules/221c-python-htmx-fastapi.md` - FastAPI patterns
+- **Testing**: `rules/221d-python-htmx-testing.md` - Testing these patterns
+- **Integrations**: `rules/221f-python-htmx-integrations.md` - Frontend library integrations

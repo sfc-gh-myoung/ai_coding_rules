@@ -256,7 +256,7 @@ ORDER BY <dimension_1>;
 - **Semantic Views Integration**: `rules/106c-snowflake-semantic-views-integration.md` - Cortex Analyst, governance, workflows
 - **Snowflake Core**: `rules/100-snowflake-core.md` - Foundational Snowflake practices
 - **Performance Tuning**: `rules/103-snowflake-performance-tuning.md` - Query optimization strategies
-- **Cortex Analyst**: `rules/117-snowflake-cortex-analyst.md` - Natural language query patterns
+- **Cortex Analyst Integration**: `rules/106c-snowflake-semantic-views-integration.md` - Natural language query patterns
 
 
 

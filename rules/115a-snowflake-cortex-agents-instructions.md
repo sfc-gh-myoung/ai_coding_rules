@@ -313,7 +313,7 @@ FROM TABLE(AGENT_QUERY(
 ### Internal Documentation
 - **115-snowflake-cortex-agents-core:** Core agent creation and tool configuration
 - **115b-snowflake-cortex-agents-operations:** Testing, observability, RBAC
-- **117-snowflake-cortex-analyst:** Using Cortex Analyst as agent tool
+- **106c-snowflake-semantic-views-integration:** Using Cortex Analyst as agent tool
 - **106-snowflake-semantic-views-core:** Semantic views as agent data sources
 
 ### External Documentation

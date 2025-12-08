@@ -198,3 +198,6 @@ tmp/
 
 # Ruff
 .ruff_cache/
+
+/retrospectives/
+governance-skill-updates

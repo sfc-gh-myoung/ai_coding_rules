@@ -7,20 +7,101 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `207-python-logging.md` — New Python logging best practices rule (100 → 101 rules)
+  - Rich console bridging to Python logger for dual CLI/web UI output
+  - WebLogHandler implementation for SSE streaming
+  - Operation-scoped handler attachment patterns
+  - Hierarchical logger naming conventions
+  - SUCCESS message prefix pattern for level detection
+- README.md and docs/ARCHITECTURE.md updated to reflect 101 rules
+- `scripts/keyword_generator.py` — New script for generating semantically relevant keywords for rule files
+  - Uses TF-IDF and multi-signal extraction (headers, code languages, emphasized terms, technology terms)
+  - Supports `--suggest` (default), `--update`, `--diff`, and `--corpus` modes
+  - Domain-aware filtering with technology terms and stop words
+  - Compound term preservation (e.g., "session state", "semantic view")
+  - 26 unit tests in `tests/test_keyword_generator.py`
+- `scikit-learn>=1.3.0` added to dev dependencies for TF-IDF vectorization
+- Taskfile keyword tasks: `keywords:suggest`, `keywords:diff`, `keywords:update`, `keywords:all`
+- Documentation updates for keyword_generator in README.md and docs/ARCHITECTURE.md
+- Template character restrictions for Snowflake CLI compatibility across SQL rules
+  - `100-snowflake-core.md` — New "Reserved Characters (CLI Compatibility)" section
+  - `106-snowflake-semantic-views-core.md` — New Anti-Pattern 6: Using Template Characters
+  - `106a-snowflake-semantic-views-advanced.md` — New Section 4.8: Template Character Validation
+  - `102-snowflake-sql-demo-engineering.md` — New Section 4.4: Reserved Characters
+  - Characters to avoid: `&` (Snowflake CLI), `<%`/`%>` (SnowSQL), `{{`/`}}` (Jinja2/dbt)
+
 ### Changed
+- `803-project-git-workflow.md` — Added comprehensive pre-commit hooks guidance for sandboxed environments
+  - New Anti-Pattern 6: Ignoring Pre-Commit Hook Failures with correct resolution patterns
+  - New Section 6: Pre-Commit Hooks (understanding, permission requirements, handling failures, detection)
+  - Updated Quick Start TL;DR with "Pre-commit aware" pattern and checklist item
+  - Updated Post-Execution Checklist with pre-commit hooks validation
+  - Enhanced validation script with pre-commit configuration detection
+- `AGENTS.md` — Optimized based on GitHub (2,500+ repos) and HumanLayer best practices analysis
+  - Reordered sections: Mandatory Rule Loading Protocol now appears first for attention priority
+  - Added Persona section for behavioral anchoring
+  - Added Boundaries table (ALWAYS/ASK FIRST/NEVER categories)
+  - Added Validation Commands quick-reference table
+  - Reduced file from 215 lines to 149 lines (~31% reduction)
+  - Estimated token savings: ~40% reduction in bootstrap overhead
+
+## [3.2.0] - 2025-12-04
+
+### Added
+- `600-golang-core.md` — New Go/Golang core rule establishing 600s range for systems/backend languages (99 → 100 rules)
+  - Project structure patterns (`cmd/`, `internal/`, `pkg/`)
+  - Error handling with `fmt.Errorf` and `%w` wrapping
+  - Interface design ("accept interfaces, return structs")
+  - Testing patterns (table-driven tests, race detection)
+  - Concurrency fundamentals (context, goroutines, channels)
+  - Tooling integration (`go fmt`, `go vet`, `golangci-lint`)
+- `ty` type checker integration as primary Python type checker (Astral toolchain)
+  - New Section 4.3 in `200-python-core.md` — Type Checking with ty
+  - `uvx ty check .` added to mandatory Pre-Task-Completion Validation Gate
+  - ty configuration example in `203-python-project-setup.md`
+  - Taskfile pattern with `lint-ty` task in `201-python-lint-format.md`
+- Systems/Backend Languages domain established (600-699 range) for future Go rules
+
+### Changed
+- Consolidated `117-snowflake-cortex-analyst.md` content into semantic views and agents rules
+  - Prerequisites validation moved to `106-snowflake-semantic-views-core.md`
+  - Error troubleshooting moved to `106c-snowflake-semantic-views-integration.md`
+  - Agent tool testing patterns moved to `115-snowflake-cortex-agents-core.md`
+  - Updated all cross-references from deleted rule to appropriate destinations
+- `200-python-core.md` — Added ty as primary type checker, mypy as fallback; updated keywords, validation gate, command patterns
+- `201-python-lint-format.md` — Updated Taskfile example to include ty type checking task
+- `203-python-project-setup.md` — Added `[tool.ty]` configuration example alongside mypy
 - `106-snowflake-semantic-views-core.md` — Documented verified queries DDL limitation with Anti-Pattern 5, YAML workaround example, and cross-references to Cortex Analyst integration rules
+- Renamed HTMX rules to resolve 220 numbering conflict (220-python-typer-cli.md keeps 220):
+  - `220-python-htmx-core.md` → `221-python-htmx-core.md`
+  - `221-python-htmx-templates.md` → `221a-python-htmx-templates.md`
+  - `222-python-htmx-flask.md` → `221b-python-htmx-flask.md`
+  - `223-python-htmx-fastapi.md` → `221c-python-htmx-fastapi.md`
+  - `224-python-htmx-testing.md` → `221d-python-htmx-testing.md`
+  - `225-python-htmx-patterns.md` → `221e-python-htmx-patterns.md`
+  - `226-python-htmx-integrations.md` → `221f-python-htmx-integrations.md`
+- Updated all Depends and Related Rules references for renamed HTMX files
+- README.md and docs/ARCHITECTURE.md updated to reflect 100 rules and new Go domain
+
+### Removed
+- `117-snowflake-cortex-analyst.md` — Content redistributed to reduce overlap with semantic views rules
+- mypy retained as fallback type checker for projects requiring mypy plugins
+
+### Fixed
+- v3.0 schema validation errors in `204-python-docs-comments.md` (37 CRITICAL emoji violations, 1 HIGH keyword count violation)
 
 ## [3.1.0] - 2025-12-03
 
 ### Added
-- 8 new HTMX rules for building hypermedia-driven web applications (92 → 100 total rules)
-  - `220-python-htmx-core.md` — Request/response lifecycle, HTTP headers, security patterns, HATEOAS
-  - `221-python-htmx-templates.md` — Jinja2 template organization, partials, fragments, conditional rendering
-  - `222-python-htmx-flask.md` — Flask-HTMX extension integration, blueprints, authentication patterns
-  - `223-python-htmx-fastapi.md` — FastAPI async patterns with HTMX, dependency injection, background tasks
-  - `224-python-htmx-testing.md` — Pytest fixtures, header assertions, HTML validation, mocking strategies
-  - `225-python-htmx-patterns.md` — Common patterns: CRUD, forms, infinite scroll, search, real-time, modals
-  - `226-python-htmx-integrations.md` — Frontend library integrations (Alpine.js, _hyperscript, Tailwind, Bootstrap, Chart.js)
+- 8 new HTMX rules for building hypermedia-driven web applications (92 → 100 total rules, later reduced to 99 via consolidation)
+  - `221-python-htmx-core.md` — Request/response lifecycle, HTTP headers, security patterns, HATEOAS
+  - `221a-python-htmx-templates.md` — Jinja2 template organization, partials, fragments, conditional rendering
+  - `221b-python-htmx-flask.md` — Flask-HTMX extension integration, blueprints, authentication patterns
+  - `221c-python-htmx-fastapi.md` — FastAPI async patterns with HTMX, dependency injection, background tasks
+  - `221d-python-htmx-testing.md` — Pytest fixtures, header assertions, HTML validation, mocking strategies
+  - `221e-python-htmx-patterns.md` — Common patterns: CRUD, forms, infinite scroll, search, real-time, modals
+  - `221f-python-htmx-integrations.md` — Frontend library integrations (Alpine.js, _hyperscript, Tailwind, Bootstrap, Chart.js)
   - `500-frontend-htmx-core.md` — Pure frontend HTMX reference (attributes, events, CSS transitions, debugging)
 - Python domain expanded from 15 to 23 rules (+8 HTMX rules)
 - Frontend/Containers domain expanded from 4 to 5 rules (+1 HTMX frontend rule)
@@ -51,7 +132,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dynamic footer generation with complete dependency chain trees in RULES_INDEX.md
 
 ### Changed
-- README.md updated to reflect 100 total rules (was 92)
+- README.md updated to reflect new rule counts
 - Rule Categories table updated with HTMX coverage in Python and Frontend domains
 - RULES_INDEX.md regenerated with new HTMX rule entries and keywords
 - Established consistent naming pattern: `python-htmx-*.md` for all HTMX-related rules
@@ -280,7 +361,8 @@ Processed 2 retrospective findings from Cortex Agent testing project:
 - Basic validation scripts
 - Documentation templates
 
-[Unreleased]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.1.0...HEAD
+[Unreleased]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.2.0...HEAD
+[3.2.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.1.0...v3.2.0
 [3.1.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.0.0...v3.1.0
 [3.0.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.6.1...v3.0.0
 [2.6.1]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.6.0...v2.6.1

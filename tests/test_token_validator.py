@@ -16,7 +16,7 @@ import pytest
 
 # Import module under test
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
-import token_validator as utb
+import token_validator as utb  # type: ignore[import-not-found]
 
 
 class TestTokenEstimation:

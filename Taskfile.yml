@@ -143,21 +143,21 @@ tasks:
     requires:
       vars: [DEST]
     cmds:
-      - "{{.PYTHON}} scripts/rule_deployer.py --dest {{.DEST}}"
+      - "{{.PYTHON}} scripts/rule_deployer.py --dest '{{.DEST}}'"
 
   deploy:dry:
     desc: "Preview deployment (usage: task deploy:dry DEST=<path>)"
     requires:
       vars: [DEST]
     cmds:
-      - "{{.PYTHON}} scripts/rule_deployer.py --dest {{.DEST}} --dry-run"
+      - "{{.PYTHON}} scripts/rule_deployer.py --dest '{{.DEST}}' --dry-run"
 
   deploy:verbose:
     desc: "Deploy with verbose output (usage: task deploy:verbose DEST=<path>)"
     requires:
       vars: [DEST]
     cmds:
-      - "{{.PYTHON}} scripts/rule_deployer.py --dest {{.DEST}} --verbose"
+      - "{{.PYTHON}} scripts/rule_deployer.py --dest '{{.DEST}}' --verbose"
 
   # Token Budgets
   tokens:update:

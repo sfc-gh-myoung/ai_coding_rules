@@ -110,6 +110,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New rule `441-react-backend.md` for React + Python backend integration patterns
 - Python (FastAPI/Flask) as organizational default backend for React applications
 - Next.js API routes as lightweight option for simpler APIs
+- REST API authentication guidance in `100-snowflake-core.md` (Section 9)
+  - Token type verification: Session tokens vs PAT/OAuth/JWT
+  - Warning: snowflake-connector-python session tokens are internal only
+  - Required headers for Cortex Agent REST API authentication
+- REST API response format verification protocol in `100-snowflake-core.md`
+  - Mandatory documentation check before implementation
+  - Common response formats: JSON, SSE, binary, streaming
+  - Anti-patterns and correct patterns for SSE handling
 - Comprehensive test coverage for `template_generator.py` (73% → 100%)
 - Comprehensive test coverage for `index_generator.py` (83% → 100%)
 - Comprehensive test coverage for `badge_updater.py` (0% → 100%, 32 new tests)
@@ -139,18 +147,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved docstring formatting across all scripts (multiline to single line)
 - Enhanced test documentation for better maintainability and understanding
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 - Import errors in `test_deployment.py` (changed `deploy_rules` → `rule_deployer` after script rename)
 - Import errors in `test_update_token_budgets.py` (corrected module path for `token_validator`)
 - Whitespace in blank lines across test files (auto-fixed by ruff format)
 - Deprecated `IOError` alias replaced with `OSError` in test files (ruff UP024)
 - Formatting inconsistencies in 2 test files (auto-fixed by ruff format)
+- Prevents assumption that Snowflake session tokens work with REST APIs (390303 error)
+- Prevents JSONDecodeError when implementing REST APIs that return SSE streams
 
-### Security
+### Context
+Processed 2 retrospective findings from Cortex Agent testing project:
+- CRITICAL: Session token incompatibility with REST APIs
+- HIGH: Response format assumptions causing parse errors
 
 ## [3.0.0] - 2025-11-25
 

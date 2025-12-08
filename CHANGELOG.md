@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- REST API authentication guidance in `100-snowflake-core.md` (Section 9)
+  - Token type verification: Session tokens vs PAT/OAuth/JWT
+  - Warning: snowflake-connector-python session tokens are internal only
+  - Required headers for Cortex Agent REST API authentication
+- REST API response format verification protocol in `100-snowflake-core.md`
+  - Mandatory documentation check before implementation
+  - Common response formats: JSON, SSE, binary, streaming
+  - Anti-patterns and correct patterns for SSE handling
 - Comprehensive test coverage for `template_generator.py` (73% → 100%)
 - Comprehensive test coverage for `index_generator.py` (83% → 100%)
 - CLI formatting helper functions (`format_success_message`, `format_error_message`)
@@ -23,13 +31,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved docstring formatting across all scripts (multiline to single line)
 - Enhanced test documentation for better maintainability and understanding
 
-### Deprecated
-
-### Removed
-
 ### Fixed
+- Prevents assumption that Snowflake session tokens work with REST APIs (390303 error)
+- Prevents JSONDecodeError when implementing REST APIs that return SSE streams
 
-### Security
+### Context
+Processed 2 retrospective findings from Cortex Agent testing project:
+- CRITICAL: Session token incompatibility with REST APIs
+- HIGH: Response format assumptions causing parse errors
 
 ## [3.0.0] - 2025-11-25
 

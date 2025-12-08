@@ -299,7 +299,7 @@ Load context from:
 ## Support
 
 - **Questions:** See [CONTRIBUTING.md](../CONTRIBUTING.md) for support channels
-- **Issues:** File bug reports or feature requests on GitHub/GitLab
+- **Issues:** File bug reports or feature requests on GitHub
 - **Examples:** See `.memory-examples/` directory in this repository (if available)
 
 ---

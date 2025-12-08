@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.0
-**Keywords:** TABLES, RELATIONSHIPS, PRIMARY KEY, validation rules, relationship constraints, semantic view error, InvalidRelationship, create semantic view, debug semantic view, fix semantic view, NLQ, natural language query, granularity rules, mapping syntax, SQL
-**TokenBudget:** ~4750
+**Keywords:** TABLES, RELATIONSHIPS, PRIMARY KEY, validation rules, semantic view error, create semantic view, debug semantic view, SQL, verified queries, VQR, YAML semantic model, NLQ, mapping syntax, granularity rules
+**TokenBudget:** ~5550
 **ContextTier:** High
 **Depends:** rules/100-snowflake-core.md
 
@@ -63,6 +63,7 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Relationships are many-to-one (no circular, no self-ref)
 - [ ] Cross-table references use relationships (not direct column refs)
 - [ ] Granularity rules respected (aggregate when referencing higher granularity)
+- [ ] No `&` or template characters in SYNONYMS, COMMENT, or identifiers (CLI compatibility)
 - [ ] Validated with `SHOW SEMANTIC VIEWS`
 
 
@@ -86,6 +87,7 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - YAML semantic model uploads (legacy approach - use native views instead)
 - Regular `CREATE VIEW` when semantic view is appropriate
 - CAST, DATE_TRUNC in DIMENSIONS (use simple columns)
+- Verified queries in DDL (must use YAML semantic model files)
 </forbidden>
 
 <steps>
@@ -362,6 +364,179 @@ CREATE OR REPLACE SEMANTIC VIEW prod_db.analytics.sales_analysis AS
 ```
 **Benefits:** No production failures; validated before deployment; user confidence; professional; tested thoroughly; reliable; no emergency fixes
 
+---
+
+**Anti-Pattern 5: Attempting to Define Verified Queries in DDL**
+```sql
+-- Bad: Trying to add verified queries in CREATE SEMANTIC VIEW DDL
+CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
+  TABLES (
+    sales_data AS sales
+      PRIMARY KEY (sale_id)
+  )
+  DIMENSIONS (
+    sale_date AS sales.order_date
+      COMMENT = 'Date of sale'
+  )
+  METRICS (
+    total_revenue AS SUM(sales.amount)
+      COMMENT = 'Total sales revenue'
+  )
+  -- VERIFIED_QUERIES (  -- NOT SUPPORTED!
+  --   'Monthly Revenue' AS 
+  --     QUESTION 'What is the total revenue by month?'
+  --     SQL 'SELECT ...'
+  -- );
+-- Error: VERIFIED_QUERIES clause does not exist in DDL syntax!
+```
+**Problem:** DDL syntax limitation; verified queries unsupported in CREATE SEMANTIC VIEW; Cortex Analyst features blocked; workarounds needed; confusion; incomplete semantic model; reduced query accuracy
+
+**Correct Pattern:**
+```yaml
+# File: sales_semantic_model.yaml
+# Upload to Snowflake stage: @analytics.models/sales_semantic_model.yaml
+
+name: sales_analysis
+description: Sales analysis semantic model with verified queries
+
+tables:
+  - name: sales_data
+    base_table:
+      database: PROD
+      schema: SALES
+      table: SALES_FACT
+    
+    dimensions:
+      - name: sale_date
+        expr: order_date
+        data_type: DATE
+        description: Date of sale
+        synonyms:
+          - "order date"
+          - "purchase date"
+    
+    metrics:
+      - name: total_revenue
+        expr: SUM(amount)
+        description: Total sales revenue
+        synonyms:
+          - "revenue"
+          - "sales total"
+
+# Verified queries - ONLY supported in YAML format
+verified_queries:
+  - name: monthly_revenue
+    question: What is the total revenue by month?
+    sql: |
+      SELECT 
+        DATE_TRUNC('MONTH', sale_date) AS month,
+        SUM(total_revenue) AS revenue
+      FROM sales_analysis
+      GROUP BY month
+      ORDER BY month DESC
+    verified_at: 1701734400
+    verified_by: analytics_team
+    use_as_onboarding_question: true
+  
+  - name: top_products
+    question: What are the top 10 products by revenue?
+    sql: |
+      SELECT 
+        product_name,
+        SUM(total_revenue) AS revenue
+      FROM sales_analysis
+      GROUP BY product_name
+      ORDER BY revenue DESC
+      LIMIT 10
+    verified_at: 1701734400
+    verified_by: analytics_team
+```
+
+```sql
+-- Then use CREATE SEMANTIC VIEW for DDL structure (without verified queries)
+CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
+  TABLES (
+    sales_data AS sales
+      PRIMARY KEY (sale_id)
+  )
+  DIMENSIONS (
+    sale_date AS sales.order_date
+      COMMENT = 'Date of sale'
+  )
+  METRICS (
+    total_revenue AS SUM(sales.amount)
+      COMMENT = 'Total sales revenue'
+  );
+
+-- Verified queries remain in YAML file uploaded to stage
+-- Cortex Analyst references YAML file for verified queries
+-- See 106c-snowflake-semantic-views-integration for integration patterns
+```
+**Benefits:** Proper separation of concerns; verified queries supported; Cortex Analyst fully functional; improved query accuracy; maintainable; follows Snowflake architecture; clear documentation
+
+**Reference:**
+- See [Snowflake Semantic Model Specification](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst/semantic-model-spec) for complete YAML format
+- See `106c-snowflake-semantic-views-integration` for using verified queries with Cortex Analyst
+- See `106c-snowflake-semantic-views-integration` for integration patterns
+
+---
+
+**Anti-Pattern 6: Using Template Characters in SYNONYMS or COMMENT**
+```sql
+-- Bad: & and other template characters in SYNONYMS
+CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
+  TABLES (
+    sales_data AS sales
+      PRIMARY KEY (sale_id)
+  )
+  DIMENSIONS (
+    department AS sales.department
+      COMMENT = 'Sales & Marketing department'  -- & causes CLI issues!
+      SYNONYMS ('R&D', 'Sales & Marketing', 'S&M')  -- & interpreted as template variable!
+  )
+  METRICS (
+    total_revenue AS SUM(sales.amount)
+      COMMENT = 'Revenue for <%REGION%>'  -- <% %> are SnowSQL variables!
+  );
+-- Snowflake CLI error: "undefined variable 'D'" or similar cryptic message
+-- Deployment fails with confusing error, hard to debug!
+```
+**Problem:** Snowflake CLI (`snow sql`) interprets `&` as template variable prefix; SnowSQL interprets `<%` and `%>` as variable delimiters; deployment fails with cryptic errors; hard to debug; wasted time; blocks CI/CD pipelines
+
+**Correct Pattern:**
+```sql
+-- Good: Avoid template characters, use alternatives
+CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
+  TABLES (
+    sales_data AS sales
+      PRIMARY KEY (sale_id)
+  )
+  DIMENSIONS (
+    department AS sales.department
+      COMMENT = 'Sales and Marketing department'  -- Use 'and' instead of '&'
+      SYNONYMS ('R and D', 'Research and Development', 'Sales and Marketing')
+  )
+  METRICS (
+    total_revenue AS SUM(sales.amount)
+      COMMENT = 'Revenue by region'  -- Plain text, no template syntax
+  );
+-- Deploys successfully via CLI, Snowsight, and CI/CD pipelines!
+```
+**Benefits:** CLI compatible; no deployment errors; CI/CD friendly; clear error-free execution; professional; maintainable
+
+**Characters to Avoid:**
+- `&` - Snowflake CLI template variable prefix
+- `<%` and `%>` - SnowSQL variable delimiters
+- `{{` and `}}` - Common templating syntax (Jinja2, dbt)
+
+**Alternatives:**
+| Avoid | Use Instead |
+|-------|-------------|
+| `R&D` | `R and D`, `Research and Development` |
+| `Sales & Marketing` | `Sales and Marketing` |
+| `P&L` | `P and L`, `Profit and Loss` |
+| `M&A` | `M and A`, `Mergers and Acquisitions` |
+
 
 ## Post-Execution Checklist
 
@@ -373,6 +548,7 @@ CREATE OR REPLACE SEMANTIC VIEW prod_db.analytics.sales_analysis AS
 - [ ] METRICS block uses simple aggregates (COUNT, SUM, AVG, MIN, MAX)
 - [ ] All dimensions and metrics have synonyms for natural language querying
 - [ ] Comments provided for all dimensions and metrics explaining business meaning
+- [ ] No template characters (`&`, `<%`, `%>`, `{{`, `}}`) in SYNONYMS or COMMENT values
 - [ ] Semantic view tested with Cortex Analyst natural language questions
 - [ ] Base tables follow 100-snowflake-core naming conventions
 - [ ] Related semantic views follow consistent naming: SEM_ prefix or MODEL_ prefix
@@ -784,15 +960,89 @@ METRICS (
 
 
 
+## Prerequisites Validation
+
+Before creating semantic views, verify your environment meets requirements.
+
+### Prerequisites Checklist
+
+- [ ] Snowflake account has Cortex Analyst capability enabled (for NLQ usage)
+- [ ] Base tables/views for semantic layer exist and are populated
+- [ ] Required permissions granted (CREATE SEMANTIC VIEW, SELECT on source tables)
+- [ ] Understanding of business metrics and grain for semantic modeling
+- [ ] Warehouse available for query execution
+
+### Verification Commands
+
+**Check Cortex Availability:**
+```sql
+-- Verify Cortex features available (for Cortex Analyst integration)
+SHOW PARAMETERS LIKE 'CORTEX%' IN ACCOUNT;
+```
+
+**Check Semantic View Generator Availability:**
+```sql
+-- Check account capabilities for Generator
+SELECT SYSTEM$GET_ACCOUNT_CAPABILITIES() AS capabilities;
+
+-- Alternative: Check via Snowsight UI
+-- Navigate to: Data → Databases → [Your Database] → [Schema]
+-- Look for "Generate Semantic View" button on table context menu
+```
+
+**Verify Base Tables:**
+```sql
+-- Check source tables exist and have data
+SELECT 
+    TABLE_CATALOG,
+    TABLE_SCHEMA,
+    TABLE_NAME,
+    ROW_COUNT
+FROM {DATABASE}.INFORMATION_SCHEMA.TABLES
+WHERE TABLE_SCHEMA = '{SCHEMA}'
+  AND TABLE_TYPE = 'BASE TABLE';
+
+-- Check table structure for semantic view candidates
+DESCRIBE TABLE {DATABASE}.{SCHEMA}.{TABLE};
+
+-- Identify columns for FACTS vs DIMENSIONS
+SELECT 
+    COLUMN_NAME,
+    DATA_TYPE,
+    IS_NULLABLE,
+    COMMENT
+FROM {DATABASE}.INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_SCHEMA = '{SCHEMA}'
+  AND TABLE_NAME = '{TABLE}'
+ORDER BY ORDINAL_POSITION;
+```
+
+**Verify Semantic View Creation Permissions:**
+```sql
+-- Check you can create semantic views in target schema
+SHOW GRANTS ON SCHEMA {DATABASE}.{SCHEMA};
+
+-- Required grants:
+-- - CREATE SEMANTIC VIEW on schema
+-- - SELECT on source tables
+-- - USAGE on database and schema
+
+-- Verify role has necessary privileges
+SELECT 
+    CURRENT_ROLE() AS current_role,
+    CURRENT_DATABASE() AS current_database,
+    CURRENT_SCHEMA() AS current_schema;
+```
+
+
 ## Related Rules
 
 **Closely Related** (consider loading together):
 - `106a-snowflake-semantic-views-advanced` - Anti-patterns, validation rules, quality checks, compliance requirements
 - `106b-snowflake-semantic-views-querying` - Query patterns using SEMANTIC_VIEW() function, result processing
-- `106c-snowflake-semantic-views-integration` - Integration with Cortex Analyst and Cortex Agents
+- `106c-snowflake-semantic-views-integration` - Integration with Cortex Analyst, Cortex Agents, and troubleshooting
 
 **Sometimes Related** (load if specific scenario):
-- `117-snowflake-cortex-analyst` - When using semantic views with Cortex Analyst for natural language queries
 - `115-snowflake-cortex-agents-core` - When configuring semantic views as tools for Cortex Agents
 - `103-snowflake-performance-tuning` - When optimizing base tables that semantic views reference
 

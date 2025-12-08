@@ -3,17 +3,17 @@
 ## Metadata
 
 **SchemaVersion:** v3.0
-**Keywords:** git, workflow, branching strategy, GitLab, GitHub, merge requests, pull requests, feature branches, protected branches, git validation, branch naming, PR workflow, MR workflow, Conventional Commits
+**Keywords:** git, workflow, branching strategy, GitHub, pull requests, feature branches, protected branches, git validation, branch naming, PR workflow, Conventional Commits
 **TokenBudget:** ~3900
 **ContextTier:** Medium
 **Depends:** rules/800-project-changelog.md, rules/802-project-contributing.md
 
 ## Purpose
-Establish comprehensive git workflow best practices for managing project updates across GitHub and GitLab platforms, ensuring consistent branching strategies, proper merge workflows, and robust validation before integration.
+Establish comprehensive git workflow best practices for managing project updates on GitHub, ensuring consistent branching strategies, proper workflows, and robust validation before integration.
 
 
 ## Rule Scope
-Git workflow management including branching strategies, pull requests, merge requests, protected branches, and pre-merge validation for GitHub and GitLab platforms
+Git workflow management including branching strategies, pull requests, protected branches, and pre-merge validation for GitHub
 
 
 ## Quick Start TL;DR
@@ -24,9 +24,10 @@ Git workflow management including branching strategies, pull requests, merge req
 - **Conventional Commits** - type(scope): summary format required
 - **Update CHANGELOG** - Add entries under ## [Unreleased]
 - **Clean git state** - Validate before push (no uncommitted changes)
-- **PR/MR required** - Never commit directly to protected branches
-- **Pre-merge validation** - Run all checks before creating PR/MR
+- **PR required** - Never commit directly to protected branches
+- **Pre-merge validation** - Run all checks before creating PR
 - **Never force push to main** - Breaks history for team
+- **Pre-commit aware** - Request elevated permissions when hooks are configured
 
 **Quick Checklist:**
 - [ ] Feature branch created
@@ -34,7 +35,8 @@ Git workflow management including branching strategies, pull requests, merge req
 - [ ] CHANGELOG.md updated
 - [ ] Git state clean
 - [ ] Validation checks passed
-- [ ] PR/MR created with description
+- [ ] Pre-commit hooks pass (or permissions granted)
+- [ ] PR created with description
 - [ ] CI checks passing
 
 
@@ -42,15 +44,15 @@ Git workflow management including branching strategies, pull requests, merge req
 
 <contract>
 <inputs_prereqs>
-Git repository initialized; remote configured (GitHub or GitLab); understanding of Conventional Commits; access to Pre-Task-Completion Validation Gate requirements
+Git repository initialized; remote configured on GitHub; understanding of Conventional Commits; access to Pre-Task-Completion Validation Gate requirements; awareness of pre-commit hooks and their permission requirements in sandboxed environments
 </inputs_prereqs>
 
 <mandatory>
-Git commands (`git branch`, `git checkout`, `git commit`, `git push`, `git status`); GitHub CLI (`gh`); GitLab CLI (`glab`); validation commands
+Git commands (`git branch`, `git checkout`, `git commit`, `git push`, `git status`); GitHub CLI (`gh`); validation commands
 </mandatory>
 
 <forbidden>
-Direct commits to protected branches without PR/MR; force push to `main`/`master` without override; git commands that bypass validation
+Direct commits to protected branches without PR; force push to `main`/`master` without override; git commands that bypass validation
 </forbidden>
 
 <steps>
@@ -60,12 +62,12 @@ Direct commits to protected branches without PR/MR; force push to `main`/`master
 4. Update CHANGELOG.md under `## [Unreleased]`
 5. Commit with Conventional Commits format
 6. Validate git state (clean working directory, proper branch)
-7. Push and create PR (GitHub) or MR (GitLab)
+7. Push and create PR on GitHub
 8. Await review and status checks before merge
 </steps>
 
 <output_format>
-Clean git history with semantic commits; properly named branches; complete PR/MR descriptions
+Clean git history with semantic commits; properly named branches; complete PR descriptions
 </output_format>
 
 <validation>
@@ -73,11 +75,11 @@ Git state validation passes; branch name follows convention; CHANGELOG.md update
 </validation>
 
 <design_principles>
-- **Feature Branch Workflow:** All changes go through feature branches and PR/MR review
+- **Feature Branch Workflow:** All changes go through feature branches and PR review
 - **Protected Branches:** `main`/`master` branches require status checks and approvals
 - **Conventional Commits:** All commits follow standardized format for automated changelog generation
-- **Clean State:** No uncommitted changes before creating PR/MR
-- **Platform Agnostic:** Patterns work for both GitHub and GitLab with platform-specific guidance
+- **Clean State:** No uncommitted changes before creating PR
+- **Platform Agnostic:** Patterns work across different Git hosting platforms
 - **Validation First:** All Pre-Task-Completion Validation Gate checks must pass before merge
 </design_principles>
 
@@ -119,7 +121,7 @@ git checkout -b update # What update?
 git checkout -b john-changes # No context
 git checkout -b temp # Temporary what?
 ```
-**Problem:** Unclear purpose; difficult to track work; hard to understand git history; confusion in PR/MR lists.
+**Problem:** Unclear purpose; difficult to track work; hard to understand git history; confusion in PR lists.
 
 **Correct Pattern:**
 ```bash
@@ -167,7 +169,7 @@ gh pr create
 
 ---
 
-**Anti-Pattern 4: Creating PR/MR with Uncommitted Changes**
+**Anti-Pattern 4: Creating PR with Uncommitted Changes**
 ```bash
 # ... make changes to multiple files ...
 git add some-file.md
@@ -224,7 +226,35 @@ gh pr create --title "fix: revert problematic change"
 ```
 **Benefits:** Preserves history; allows rollback; follows review process; maintains team workflow.
 
+---
 
+**Anti-Pattern 6: Ignoring Pre-Commit Hook Failures**
+```bash
+git commit -m "feat: new feature"
+# Error: PermissionError: [Errno 1] Operation not permitted
+# (pre-commit hook failed due to sandbox restrictions)
+
+git commit --no-verify -m "feat: new feature"  # WRONG: Blindly bypasses all checks
+git push origin feature/my-branch
+```
+**Problem:** Bypassing hooks without verification skips important quality checks; may introduce linting errors, formatting issues, or security vulnerabilities; breaks team quality standards.
+
+**Correct Pattern:**
+```bash
+git commit -m "feat: new feature"
+# Error: PermissionError from pre-commit (sandbox restriction)
+
+# Solution 1: Request elevated permissions and retry (preferred)
+# For AI agents: use required_permissions: ['all'] or ['git_write']
+git commit -m "feat: new feature"  # With proper permissions granted
+
+# Solution 2: If permissions unavailable, verify checks passed first
+uvx ruff check . && uvx ruff format --check . && uv run pytest
+# Only after ALL checks pass manually:
+git commit --no-verify -m "feat: new feature"
+# Document why --no-verify was used in PR description
+```
+**Benefits:** Maintains code quality; hooks run as intended; catches issues before push; provides audit trail when bypass is necessary.
 
 
 ## Post-Execution Checklist
@@ -235,10 +265,11 @@ gh pr create --title "fix: revert problematic change"
 - [ ] CHANGELOG.md updated under `## [Unreleased]` section
 - [ ] README.md reviewed and updated if triggers apply
 - [ ] All changes committed with Conventional Commits format
+- [ ] Pre-commit hooks pass (or elevated permissions granted for sandboxed environments)
 - [ ] Git state validated: `git status --porcelain` returns empty
 - [ ] Not on protected branch (main/master)
 - [ ] Branch pushed to remote successfully
-- [ ] PR (GitHub) or MR (GitLab) created with clear title and description
+- [ ] PR created with clear title and description
 - [ ] Reviewers assigned (if multi-user project)
 - [ ] All status checks passing before merge
 - [ ] Code review approved before merge
@@ -246,15 +277,15 @@ gh pr create --title "fix: revert problematic change"
 
 ## Validation
 
-- **Success Checks:** Branch name follows convention; git working directory clean (`git status --porcelain` empty); CHANGELOG.md has entry under [Unreleased]; PR/MR created successfully; all status checks pass; code review approved; merge completes without conflicts
-- **Negative Tests:** Invalid branch name rejected by validation script; uncommitted changes block PR/MR creation; missing CHANGELOG entry causes validation failure; direct commit to main blocked by branch protection; force push to main rejected; status check failures prevent merge
+- **Success Checks:** Branch name follows convention; git working directory clean (`git status --porcelain` empty); CHANGELOG.md has entry under [Unreleased]; PR created successfully; all status checks pass; code review approved; merge completes without conflicts
+- **Negative Tests:** Invalid branch name rejected by validation script; uncommitted changes block PR creation; missing CHANGELOG entry causes validation failure; direct commit to main blocked by branch protection; force push to main rejected; status check failures prevent merge
 
 > **Investigation Required** 
 > When applying this rule:
 > 1. **Verify git repository state BEFORE making recommendations** using `git status`, `git branch`, `git log`
-> 2. **Check actual branch protection settings** on GitHub/GitLab before advising
+> 2. **Check actual branch protection settings** on GitHub before advising
 > 3. **Never assume branch names or git state** - always inspect with git commands
-> 4. **If uncertain about remote configuration, explicitly state:** "I need to check your GitHub/GitLab settings to provide accurate guidance"
+> 4. **If uncertain about remote configuration, explicitly state:** "I need to check your GitHub settings to provide accurate guidance"
 > 5. **Make grounded recommendations based on actual git state inspection**
 >
 > **Anti-Pattern:**
@@ -306,13 +337,10 @@ Preview:
 
 ### External Documentation
 - [GitHub Flow](https://docs.github.com/en/get-started/quickstart/github-flow) - GitHub's lightweight branch-based workflow
-- [GitLab Flow](https://docs.gitlab.com/ee/topics/gitlab_flow.html) - GitLab's comprehensive workflow guide
 - [Git Branching Strategies](https://git-scm.com/book/en/v2/Git-Branching-Branching-Workflows) - Official Git documentation on branching
 - [Protected Branches (GitHub)](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches) - GitHub branch protection configuration
-- [Protected Branches (GitLab)](https://docs.gitlab.com/ee/user/project/protected_branches.html) - GitLab branch protection settings
 - [Conventional Commits](https://www.conventionalcommits.org/) - Standardized commit message format
 - [GitHub CLI](https://cli.github.com/manual/) - GitHub command-line tool documentation
-- [GitLab CLI](https://gitlab.com/gitlab-org/cli) - GitLab command-line tool (glab)
 
 ### Related Rules
 - **Changelog Rules**: `rules/800-project-changelog.md`
@@ -391,7 +419,7 @@ git rev-parse --abbrev-ref HEAD # Should show feature/my-new-feature
 # 8. Push to remote
 git push origin feature/my-new-feature
 
-# 9. Create PR/MR (platform-specific - see sections below)
+# 9. Create PR (see section below)
 ```
 
 
@@ -403,7 +431,7 @@ git push origin feature/my-new-feature
 ```bash
 # Create PR with title and body
 gh pr create --title "feat(rules): add git workflow management" \
- --body "Adds comprehensive git workflow patterns for GitHub and GitLab..."
+ --body "Adds comprehensive git workflow patterns..."
 
 # Create draft PR for work in progress
 gh pr create --draft --title "feat(rules): add git workflow management"
@@ -476,97 +504,13 @@ jobs:
 ```
 
 
-## 4. GitLab Workflow
-
-### Creating Merge Requests
-
-**Using GitLab CLI:**
-```bash
-# Create MR with title and description
-glab mr create --title "feat(rules): add git workflow management" \
- --description "Adds comprehensive git workflow patterns..."
-
-# Create draft MR
-glab mr create --draft --title "feat(rules): add git workflow management"
-
-# Create MR with auto-fill
-glab mr create --fill
-```
-
-**Using GitLab Web UI:**
-1. Navigate to repository on GitLab
-2. Click "Merge requests" → "New merge request"
-3. Select source: `feature/my-new-feature`, target: `main`
-4. Fill in title (Conventional Commits format)
-5. Add description explaining changes
-6. Assign reviewers and set labels if applicable
-7. Click "Create merge request"
-
-### Protected Branch Settings (GitLab)
-
-**Requirement:** Configure protection for `main` branch:
-
-```yaml
-# Settings → Repository → Protected branches
-Branch: main
-
-Protection settings:
-Allowed to merge:
- - Maintainers
-
-Allowed to push:
- - No one (force push disabled)
-
-Allowed to force push:
- - Disabled
-
-Require approval from code owners: Yes
-
-Additional settings:
- Pipelines must succeed
- All discussions must be resolved
- Require approval
- Approvals required: 1
-```
-
-### GitLab CI/CD Pipeline Checks
-
-**Example `.gitlab-ci.yml`:**
-```yaml
-stages:
- - validate
- - test
-
-lint:
- stage: validate
- script:
- - uvx ruff check .
- only:
- - merge_requests
-
-format:
- stage: validate
- script:
- - uvx ruff format --check .
- only:
- - merge_requests
-
-test:
- stage: test
- script:
- - uv run pytest
- only:
- - merge_requests
-```
-
-
-## 5. Protected Branch Strategy
+## 4. Protected Branch Strategy
 
 ### Configuration Requirements
 
 **Mandatory for all projects:**
 - **Always:** Protect `main` and `master` branches
-- **Always:** Require pull request/merge request for changes
+- **Always:** Require pull request for changes
 - **Always:** Require at least 1 approval for merges
 - **Always:** Require status checks to pass before merging
 - **Always:** Require all conversations resolved
@@ -582,11 +526,11 @@ test:
 - **Team Collaboration:** Forces communication about changes
 
 
-## 6. Pre-Merge Validation
+## 5. Pre-Merge Validation
 
 ### Git State Validation Commands
 
-**Requirement:** Run these checks before creating PR/MR:
+**Requirement:** Run these checks before creating PR:
 
 ```bash
 # 1. Check for uncommitted changes (must be empty)
@@ -627,7 +571,7 @@ echo " Validating git state..."
 
 # Check for uncommitted changes
 if [[ -n $(git status --porcelain) ]]; then
- echo "Uncommitted changes detected. Commit or stash before creating PR/MR."
+ echo "Uncommitted changes detected. Commit or stash before creating PR."
  git status --short
  exit 1
 fi
@@ -644,7 +588,7 @@ echo "Branch name valid: $BRANCH"
 
 # Check not on protected branch
 if [[ "$BRANCH" == "main" || "$BRANCH" == "master" ]]; then
- echo "Cannot create PR/MR from protected branch: $BRANCH"
+ echo "Cannot create PR from protected branch: $BRANCH"
  exit 1
 fi
 echo "Not on protected branch"
@@ -656,9 +600,18 @@ if ! grep -A 10 "## \[Unreleased\]" CHANGELOG.md | grep -v "^## \[Unreleased\]$"
 fi
 echo "CHANGELOG.md updated"
 
+# Check for pre-commit hooks (warning only)
+if [[ -f ".pre-commit-config.yaml" ]]; then
+ echo "Pre-commit hooks configured (.pre-commit-config.yaml found)"
+ echo "  Note: git commit may require elevated permissions in sandboxed environments"
+fi
+if [[ -d ".husky" ]]; then
+ echo "Husky hooks configured (.husky/ directory found)"
+fi
+
 echo ""
 echo " Git state validation passed!"
-echo "Ready to create PR/MR for branch: $BRANCH"
+echo "Ready to create PR for branch: $BRANCH"
 ```
 
 **Usage:**
@@ -666,7 +619,7 @@ echo "Ready to create PR/MR for branch: $BRANCH"
 # Make script executable
 chmod +x scripts/validate-git-state.sh
 
-# Run before creating PR/MR
+# Run before creating PR
 ./scripts/validate-git-state.sh
 ```
 
@@ -682,11 +635,88 @@ chmod +x scripts/validate-git-state.sh
 4. **Git State:** Clean working directory, valid branch, CHANGELOG entry verified
 
 
+## 6. Pre-Commit Hooks
+
+### Understanding Pre-Commit Hooks
+
+**Context:** Many projects use pre-commit hooks to enforce code quality checks automatically before commits. These hooks run on every `git commit` command.
+
+**Common pre-commit frameworks:**
+- **pre-commit** (Python-based) - Uses `.pre-commit-config.yaml`
+- **husky** (Node.js-based) - Uses `.husky/` directory
+- **Native git hooks** - Scripts in `.git/hooks/`
+
+### Permission Requirements
+
+**Critical:** Pre-commit hooks often require elevated permissions beyond basic file access:
+
+| Requirement | Why Needed | Example Tools |
+|-------------|------------|---------------|
+| Network access | Download/update hook tools | pre-commit autoupdate |
+| System calls | Access system configuration | pre-commit (os.sysconf) |
+| Cache directories | Store downloaded tools | ~/.cache/pre-commit |
+| Process spawning | Run linters, formatters | ruff, black, eslint |
+
+**AI Agent Consideration:** When running `git commit` in sandboxed environments, pre-commit hooks may fail with permission errors:
+```
+PermissionError: [Errno 1] Operation not permitted
+```
+
+### Handling Pre-Commit Hook Failures
+
+**Pattern 1: Request Full Permissions (Preferred)**
+```bash
+# When pre-commit hooks are configured, git commit needs elevated permissions
+# AI agents should request 'all' or 'git_write' permissions
+git commit -m "feat(scope): description"
+# If fails with PermissionError, retry with full sandbox bypass
+```
+
+**Pattern 2: Run Pre-Commit Manually First**
+```bash
+# Run pre-commit checks separately with proper permissions
+pre-commit run --all-files
+
+# Then commit (hooks will pass quickly on cached results)
+git commit -m "feat(scope): description"
+```
+
+**Pattern 3: Skip Hooks Temporarily (Emergency Only)**
+```bash
+# ONLY use when:
+# 1. All quality checks have already passed manually
+# 2. Permission issues block commit in sandboxed environment
+# 3. You understand the risks
+
+git commit --no-verify -m "feat(scope): description"
+# WARNING: This bypasses ALL pre-commit checks
+# Must ensure quality checks passed before using this option
+```
+
+### Detecting Pre-Commit Configuration
+
+```bash
+# Check if pre-commit is configured
+if [[ -f ".pre-commit-config.yaml" ]]; then
+    echo "Pre-commit hooks configured - elevated permissions may be required"
+fi
+
+# Check for husky
+if [[ -d ".husky" ]]; then
+    echo "Husky hooks configured - Node.js environment required"
+fi
+
+# Check for native git hooks
+if [[ -d ".git/hooks" ]] && ls .git/hooks/* 2>/dev/null | grep -qv sample; then
+    echo "Native git hooks present"
+fi
+```
+
 
 ## Git Workflow Analysis
 - **Current Branch:** [branch name from `git branch --show-current`]
 - **Git State:** [clean/uncommitted changes]
-- **Remote:** [GitHub/GitLab]
+- **Remote:** GitHub
 - **Protected Branches:** [list from repo settings]
 
 

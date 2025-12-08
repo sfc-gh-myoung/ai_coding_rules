@@ -226,7 +226,7 @@ SHOW VIEWS LIKE '%view_name%';
 
 ### Related Rules
 - **Snowflake Core**: `rules/100-snowflake-core.md`
-- **Cortex Analyst**: `rules/117-snowflake-cortex-analyst.md` - Semantic view design and Analyst tool configuration
+- **Semantic Views Integration**: `rules/106c-snowflake-semantic-views-integration.md` - Semantic view design and Analyst tool configuration
 - **Cortex Search**: `rules/116-snowflake-cortex-search.md` - Search service setup and tool integration
 - **Semantic Views**: `rules/106-snowflake-semantic-views-core.md`
 - **Cost Governance**: `rules/105-snowflake-cost-governance.md`

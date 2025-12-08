@@ -286,6 +286,8 @@ class SchemaValidator:
 
             if section_start is None and re.match(r"^##\s+(?:\d+\.\s+)?(.+)$", line):
                 match = re.match(r"^##\s+(?:\d+\.\s+)?(.+)$", line)
+                if match is None:  # Guard for type checker (already validated above)
+                    continue
                 section_text = match.group(1).strip()
                 normalized = self._normalize_section_name(section_text)
 
@@ -1144,7 +1146,7 @@ class SchemaValidator:
         """
         import json
 
-        output = {
+        output: dict[str, Any] = {
             "summary": {
                 "total_files": len(results),
                 "clean": sum(1 for r in results if r.is_clean),

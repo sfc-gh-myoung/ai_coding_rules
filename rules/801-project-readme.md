@@ -36,11 +36,8 @@ Project documentation, technical writing, developer experience
 
 **Example:**
 ```bash
-# Clone the repository (choose one)
-# GitHub:
+# Clone the repository
 git clone https://github.com/org/repo.git
-# GitLab:
-git clone https://gitlab.com/org/repo.git
 
 cd repo
 
@@ -454,7 +451,7 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 - **Requirement:** Include a concise one-line description immediately after the title
 - **Always:** Add badges/shields for build status, version, license, and key metrics
 - **Rule:** Keep description under 160 characters for social media compatibility
-- **Multi-Platform Projects:** Include badges for all hosting platforms (GitHub, GitLab, etc.)
+- **Multi-Platform Projects:** Include badges for hosting platforms
 
 ```markdown
 # Project Name
@@ -463,7 +460,6 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 [![License](https://img.shields.io/badge/license-MIT-blue)]()
 [![Version](https://img.shields.io/badge/version-1.0.0-orange)]()
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/org/repo)
-[![GitLab](https://img.shields.io/badge/GitLab-Repository-orange?logo=gitlab)](https://gitlab.com/org/repo)
 
 > One-line description of what this project does and why it matters
 ```

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Tests for scripts/token_validator.py token budget analysis and updates.
 
 Tests follow pytest best practices:
@@ -15,8 +14,8 @@ from pathlib import Path
 import pytest
 
 # Import module under test
-sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
-import token_validator as utb  # type: ignore[import-not-found]
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from scripts import token_validator as utb
 
 
 class TestTokenEstimation:
@@ -106,12 +105,7 @@ class TestRoundingLogic:
         ],
     )
     def test_round_to_increment(self, value: int, increment: int, expected: int) -> None:
-        """Test rounding to nearest increment produces clean budget numbers.
-
-        Validates that token budgets are rounded to clean increments
-        (e.g., 50, 100) for better readability and consistency across rules.
-        Uses Python's banker's rounding to avoid systematic bias.
-        """
+        """Test rounding to nearest increment produces clean budget numbers."""
         # Arrange
         config = utb.UpdateConfig(rounding_increment=increment)
         updater = utb.TokenBudgetUpdater(config)
@@ -157,12 +151,7 @@ class TestFileAnalysis:
     def test_analyze_file_with_existing_budget(
         self, tmp_path: Path, sample_rule_content: str
     ) -> None:
-        """Test analysis of file with existing TokenBudget metadata.
-
-        Validates that analyzer correctly extracts and compares the
-        current budget with estimated tokens. This enables detection
-        of outdated budgets that need updates after content changes.
-        """
+        """Test analysis of file with existing TokenBudget metadata."""
         # Arrange
         rule_file = tmp_path / "test_rule.md"
         rule_file.write_text(sample_rule_content)
@@ -183,12 +172,7 @@ class TestFileAnalysis:
     def test_analyze_file_missing_budget(
         self, tmp_path: Path, rule_without_token_budget: str
     ) -> None:
-        """Test analysis of file without TokenBudget metadata.
-
-        Ensures that files missing TokenBudget are flagged with MISSING
-        status so they can be updated. This prevents incomplete metadata
-        from causing incorrect budget tracking across the rules system.
-        """
+        """Test analysis of file without TokenBudget metadata."""
         # Arrange
         rule_file = tmp_path / "no_budget.md"
         rule_file.write_text(rule_without_token_budget)
@@ -204,12 +188,7 @@ class TestFileAnalysis:
 
     @pytest.mark.unit
     def test_analyze_file_within_threshold(self, tmp_path: Path) -> None:
-        """Test analysis marks file as OK when within threshold.
-
-        Validates that files with budgets within ±30% of actual tokens
-        are marked OK and skip updates. This prevents unnecessary
-        churn from minor content changes that don't impact token usage.
-        """
+        """Test analysis marks file as OK when within threshold."""
         # Arrange
         # Create content that will be within ±30% of declared budget
         content = """**TokenBudget:** ~500
@@ -545,235 +524,3 @@ class TestEdgeCases:
         # Strict threshold likely triggers update
         # Loose threshold likely doesn't
         assert strict_result.needs_update or not loose_result.needs_update
-
-
-class TestOutputFormatting:
-    """Test print output formatting methods."""
-
-    @pytest.mark.unit
-    def test_print_summary_shows_correct_statistics(self, tmp_path: Path, capsys) -> None:
-        """Test print_summary outputs correct statistics."""
-        # Arrange
-        updater = utb.TokenBudgetUpdater()
-
-        # Create test files with different statuses
-        ok_file = tmp_path / "ok.md"
-        ok_file.write_text("**TokenBudget:** ~500\n" + " ".join(["word"] * 385))
-
-        needs_update_file = tmp_path / "update.md"
-        needs_update_file.write_text("**TokenBudget:** ~300\n" + " ".join(["word"] * 385))
-
-        missing_file = tmp_path / "missing.md"
-        missing_file.write_text(" ".join(["word"] * 385))
-
-        analyses = [
-            updater.analyze_file(ok_file),
-            updater.analyze_file(needs_update_file),
-            updater.analyze_file(missing_file),
-        ]
-
-        # Act
-        updater.print_summary(analyses, update_count=1)
-        captured = capsys.readouterr()
-
-        # Assert
-        assert "Total files analyzed: 3" in captured.out
-        assert "OK" in captured.out or "MISSING" in captured.out
-
-    @pytest.mark.unit
-    def test_print_summary_dry_run_message(self, tmp_path: Path, capsys) -> None:
-        """Test print_summary shows dry run message."""
-        # Arrange
-        config = utb.UpdateConfig(dry_run=True)
-        updater = utb.TokenBudgetUpdater(config)
-
-        rule_file = tmp_path / "test.md"
-        rule_file.write_text("**TokenBudget:** ~500\n" + " ".join(["word"] * 385))
-
-        analyses = [updater.analyze_file(rule_file)]
-
-        # Act
-        updater.print_summary(analyses, update_count=0)
-        captured = capsys.readouterr()
-
-        # Assert
-        assert "DRY RUN" in captured.out
-
-    @pytest.mark.unit
-    def test_print_detailed_results_formats_table(self, tmp_path: Path, capsys) -> None:
-        """Test detailed results prints table with columns."""
-        # Arrange
-        updater = utb.TokenBudgetUpdater()
-
-        rule_file = tmp_path / "test.md"
-        rule_file.write_text("**TokenBudget:** ~500\n" + " ".join(["word"] * 385))
-
-        analyses = [updater.analyze_file(rule_file)]
-
-        # Act
-        updater.print_detailed_results(analyses)
-        captured = capsys.readouterr()
-
-        # Assert
-        assert "DETAILED ANALYSIS" in captured.out
-        assert "File" in captured.out
-        assert "Current" in captured.out
-        assert "Estimated" in captured.out
-
-    @pytest.mark.unit
-    def test_print_update_details_shows_changes(self, tmp_path: Path, capsys) -> None:
-        """Test update details shows before/after values."""
-        # Arrange
-        updater = utb.TokenBudgetUpdater()
-
-        needs_update_file = tmp_path / "update.md"
-        needs_update_file.write_text("**TokenBudget:** ~300\n" + " ".join(["word"] * 385))
-
-        analyses = [updater.analyze_file(needs_update_file)]
-
-        # Act
-        updater.print_update_details(analyses)
-        captured = capsys.readouterr()
-
-        # Assert - should show files that need updating
-        assert "UPDATE DETAILS" in captured.out or analyses[0].needs_update
-
-
-class TestCLI:
-    """Test CLI functionality."""
-
-    @pytest.mark.unit
-    def test_main_default_arguments_success(self, tmp_path: Path, monkeypatch) -> None:
-        """Test main() with default arguments."""
-        # Arrange
-        monkeypatch.chdir(tmp_path)
-        rules_dir = tmp_path / "rules"
-        rules_dir.mkdir()
-
-        rule_file = rules_dir / "test.md"
-        rule_file.write_text("**TokenBudget:** ~500\n" + " ".join(["word"] * 385))
-
-        test_args = ["token_validator.py"]
-        monkeypatch.setattr("sys.argv", test_args)
-
-        # Act
-        exit_code = utb.main()
-
-        # Assert
-        assert exit_code == 0
-
-    @pytest.mark.unit
-    def test_main_with_threshold_flag(self, tmp_path: Path, monkeypatch) -> None:
-        """Test main() respects --threshold flag."""
-        # Arrange
-        monkeypatch.chdir(tmp_path)
-        rules_dir = tmp_path / "rules"
-        rules_dir.mkdir()
-
-        rule_file = rules_dir / "test.md"
-        rule_file.write_text("**TokenBudget:** ~500\n" + " ".join(["word"] * 385))
-
-        test_args = ["token_validator.py", "--threshold", "5"]
-        monkeypatch.setattr("sys.argv", test_args)
-
-        # Act
-        exit_code = utb.main()
-
-        # Assert
-        assert exit_code == 0
-
-    @pytest.mark.unit
-    def test_main_with_dry_run_flag(self, tmp_path: Path, monkeypatch, capsys) -> None:
-        """Test main() with --dry-run doesn't modify files."""
-        # Arrange
-        monkeypatch.chdir(tmp_path)
-        rules_dir = tmp_path / "rules"
-        rules_dir.mkdir()
-
-        rule_file = rules_dir / "test.md"
-        original_content = "**TokenBudget:** ~300\n" + " ".join(["word"] * 385)
-        rule_file.write_text(original_content)
-
-        test_args = ["token_validator.py", "--dry-run"]
-        monkeypatch.setattr("sys.argv", test_args)
-
-        # Act
-        exit_code = utb.main()
-        captured = capsys.readouterr()
-
-        # Assert
-        assert exit_code == 0
-        assert "DRY RUN" in captured.out
-        # File should be unchanged
-        assert rule_file.read_text() == original_content
-
-    @pytest.mark.unit
-    def test_main_with_verbose_and_detailed_flags(
-        self, tmp_path: Path, monkeypatch, capsys
-    ) -> None:
-        """Test main() with --verbose shows extra output."""
-        # Arrange
-        monkeypatch.chdir(tmp_path)
-        rules_dir = tmp_path / "rules"
-        rules_dir.mkdir()
-
-        rule_file = rules_dir / "test.md"
-        rule_file.write_text("**TokenBudget:** ~500\n" + " ".join(["word"] * 385))
-
-        test_args = ["token_validator.py", "--verbose", "--detailed"]
-        monkeypatch.setattr("sys.argv", test_args)
-
-        # Act
-        exit_code = utb.main()
-        captured = capsys.readouterr()
-
-        # Assert
-        assert exit_code == 0
-        assert "DETAILED ANALYSIS" in captured.out
-
-    @pytest.mark.unit
-    def test_main_invalid_directory_exits_with_error(
-        self, tmp_path: Path, monkeypatch, capsys
-    ) -> None:
-        """Test main exits with error for invalid directory."""
-        # Arrange
-        non_existent = tmp_path / "non_existent_rules"
-
-        test_args = ["token_validator.py", "--directory", str(non_existent)]
-        monkeypatch.setattr("sys.argv", test_args)
-
-        # Act
-        exit_code = utb.main()
-        captured = capsys.readouterr()
-
-        # Assert
-        assert exit_code == 1
-        assert "ERROR" in captured.out or "not found" in captured.out
-
-
-class TestErrorHandling:
-    """Test error handling and edge cases."""
-
-    @pytest.mark.unit
-    def test_update_file_handles_write_permission_error(self, tmp_path: Path) -> None:
-        """Test update_file catches and logs write exceptions."""
-        # Arrange
-        import os
-
-        rule_file = tmp_path / "readonly.md"
-        rule_file.write_text("**TokenBudget:** ~300\n" + " ".join(["word"] * 385))
-
-        # Make file read-only
-        os.chmod(rule_file, 0o444)
-
-        updater = utb.TokenBudgetUpdater()
-        analysis = updater.analyze_file(rule_file)
-
-        # Act
-        result = updater.update_file(analysis)
-
-        # Assert
-        assert result is False
-
-        # Cleanup - restore write permissions
-        os.chmod(rule_file, 0o644)

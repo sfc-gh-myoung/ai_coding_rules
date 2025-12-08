@@ -349,7 +349,7 @@ FROM TABLE(AGENT_QUERY(
 ### Internal Documentation
 - **115a-snowflake-cortex-agents-instructions:** Planning and response instruction patterns
 - **115b-snowflake-cortex-agents-operations:** Testing, RBAC, observability, cost management
-- **117-snowflake-cortex-analyst:** Using Cortex Analyst as an agent tool
+- **106c-snowflake-semantic-views-integration:** Using semantic views with Cortex Analyst
 - **116-snowflake-cortex-search:** Using Cortex Search for document retrieval in agents
 - **106-snowflake-semantic-views-core:** Semantic views as agent tools
 
@@ -624,6 +624,44 @@ Tool A: "Use for portfolio holdings, weights, and exposure analysis"
 Tool B: "Use for risk metrics, volatility, and correlation analysis"  # Distinct domain
 ```
 
+### 2.5 Testing Cortex Analyst Tools
+
+**Component Testing Pattern:**
+Test Cortex Analyst tools independently before agent integration:
+
+```python
+def test_analyst_tool(session: Session, semantic_view: str):
+    """Test Cortex Analyst tool independently before agent integration"""
+    
+    # Simple query to verify tool responds
+    result = session.sql(f"""
+        SELECT * FROM TABLE(
+            SEMANTIC_VIEW({semantic_view}
+                METRICS total_value
+                DIMENSIONS category
+            )
+        ) LIMIT 5
+    """).collect()
+    
+    assert len(result) > 0, f"Analyst tool {semantic_view} returned no results"
+    print(f"Analyst tool test passed: {semantic_view}")
+    return True
+```
+
+**Integration Testing:**
+After component tests pass, test agent's tool selection logic:
+- Quantitative queries should route to appropriate Cortex Analyst tool
+- Verify correct tool selected when multiple analyst tools available
+- Confirm charts/visualizations generate appropriately
+
+**Test Query Examples:**
+```python
+# Test Cortex Analyst tool selection
+"What are the top 10 holdings by weight?"          # Should use analyst tool
+"Calculate sector allocation breakdown"             # Should use analyst tool
+"Show me a chart of performance over time"          # Should use analyst tool + viz
+```
+
 
 ## 3. Agent Configuration Templates
 
@@ -698,7 +736,7 @@ Planning Instructions: {Logic for document search and content synthesis}
 **Closely Related** (consider loading together):
 - `115a-snowflake-cortex-agents-instructions` - Planning and response instruction patterns for tool orchestration
 - `115b-snowflake-cortex-agents-operations` - Testing, RBAC, observability, cost management, troubleshooting
-- `117-snowflake-cortex-analyst` - When using Cortex Analyst as an agent tool (semantic view integration)
+- `106c-snowflake-semantic-views-integration` - When using Cortex Analyst as an agent tool (semantic view integration)
 - `116-snowflake-cortex-search` - When using Cortex Search as an agent tool (document retrieval)
 
 **Sometimes Related** (load if specific scenario):

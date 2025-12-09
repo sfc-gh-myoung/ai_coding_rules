@@ -3,7 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.0
-**Keywords:** idempotency, rate limits, Complete endpoint, Embed endpoint, exponential backoff, REST API, Cortex API, authentication tokens, PAT, OAuth, JWT, SSE, Server-Sent Events, event stream, streaming responses, sseclient, token verification, response format, API retry, Content-Type detection
+**Keywords:** idempotency, rate limits, Complete endpoint, Embed endpoint, exponential backoff, REST API, Cortex API, authentication tokens, PAT, OAuth, JWT, SSE, token verification, response format
 **TokenBudget:** ~5200
 **ContextTier:** High
 **Depends:** rules/100-snowflake-core.md, rules/105-snowflake-cost-governance.md, rules/111-snowflake-observability-core.md
@@ -861,20 +861,20 @@ if __name__ == "__main__":
 ### 8.6 SSE Best Practices
 
 **DO:**
-- ✅ Always set `stream=True` in requests
-- ✅ Verify `Content-Type: text/event-stream` before parsing
-- ✅ Handle connection timeouts (SSE can be long-lived)
-- ✅ Parse JSON within event data (not the event itself)
-- ✅ Handle malformed events gracefully (continue stream)
-- ✅ Implement reconnection logic for critical streams
-- ✅ Close connections properly when done
+- Always set `stream=True` in requests
+- Verify `Content-Type: text/event-stream` before parsing
+- Handle connection timeouts (SSE can be long-lived)
+- Parse JSON within event data (not the event itself)
+- Handle malformed events gracefully (continue stream)
+- Implement reconnection logic for critical streams
+- Close connections properly when done
 
 **DON'T:**
-- ❌ Assume all APIs return JSON
-- ❌ Call `response.json()` on SSE streams
-- ❌ Forget to set `stream=True` (response may hang)
-- ❌ Parse entire response as single JSON object
-- ❌ Ignore Content-Type header
-- ❌ Skip error handling for malformed events
-- ❌ Leave connections open indefinitely
+- Assume all APIs return JSON
+- Call `response.json()` on SSE streams
+- Forget to set `stream=True` (response may hang)
+- Parse entire response as single JSON object
+- Ignore Content-Type header
+- Skip error handling for malformed events
+- Leave connections open indefinitely
 

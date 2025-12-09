@@ -124,7 +124,7 @@ All rules are ready to deploy immediately—no generation step required.
 git clone https://github.com/sfc-gh-myoung/ai_coding_rules.git
 
 # GitHub SSH:
-git clone git@github.com:sfc-gh-myoung/freedom_mortgage_demo.git
+git clone git@github.com:sfc-gh-myoung/ai_coding_rules.git
 
 cd ai_coding_rules
 

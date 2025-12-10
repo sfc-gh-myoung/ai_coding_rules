@@ -124,6 +124,43 @@ Integrated application using HTMX with Alpine.js/_hyperscript, CSS framework, ic
 **Alpine.js Persists After HTMX Swaps:**
 Alpine.js automatically re-initializes on DOM changes, so it works seamlessly with HTMX swaps.
 
+**Alpine.js SSE Manager Pattern:**
+
+When using Alpine.js to manage SSE connections and trigger HTMX refreshes, use camelCase custom events (NOT `sse:` prefix):
+
+```html
+<div x-data="statusPage()" x-init="init()">
+    <!-- Use camelCase trigger, NOT sse:system_status -->
+    <div id="status-display"
+         hx-get="/status/content"
+         hx-trigger="load, systemStatus"
+         hx-swap="innerHTML">
+    </div>
+</div>
+
+<script>
+function statusPage() {
+    return {
+        init() {
+            window.waitForSSEManager(() => {
+                window.sseManager.connect('status', (data, event) => {
+                    if (event.type === 'system_status') {
+                        // ✓ GOOD: Use camelCase event name
+                        htmx.trigger('#status-display', 'systemStatus');
+                        
+                        // ❌ BAD: sse: prefix won't work from htmx.trigger()
+                        // htmx.trigger('#status-display', 'sse:system_status');
+                    }
+                });
+            });
+        }
+    };
+}
+</script>
+```
+
+See `rules/221g-python-htmx-sse.md` for comprehensive SSE patterns.
+
 ### 2. _hyperscript Integration
 
 **Setup:**
@@ -358,25 +395,23 @@ document.body.addEventListener('htmx:responseError', function(event) {
 
 ## Anti-Patterns and Common Mistakes
 
-### Critical Violations
-
-| Anti-Pattern | Problem | Correct Pattern |
-|--------------|---------|-----------------|
-| **Using jQuery** | Unnecessary, conflicts with HTMX | Use Alpine.js or _hyperscript |
-| **Heavy frameworks (React/Vue)** | Defeats HTMX purpose | Use HTMX + Alpine.js |
-| **Not cleaning up plugins** | Memory leaks | Destroy instances before swap |
-| **Global JavaScript state** | Breaks on swaps | Use server-side state |
-
 ### Common Pitfalls
 
 **Pitfall 1: Not Reinitializing Plugins**
+
+**Problem:** Plugins only initialized on page load don't work on HTMX-loaded content.
+
 ```javascript
-// ❌ BAD: Plugins only initialized on page load
+// BAD: Plugins only initialized on page load
 $(document).ready(function() {
     $('.datepicker').datepicker();
 });
+```
 
-// ✓ GOOD: Reinitialize after HTMX swaps
+**Correct Pattern:** Reinitialize plugins after HTMX swaps.
+
+```javascript
+// GOOD: Reinitialize after HTMX swaps
 function initPlugins(container) {
     $(container).find('.datepicker').datepicker();
 }
@@ -391,13 +426,20 @@ document.body.addEventListener('htmx:afterSwap', function(event) {
 ```
 
 **Pitfall 2: Memory Leaks from Chart Instances**
+
+**Problem:** Creating charts without destroying old instances causes memory leaks.
+
 ```javascript
-// ❌ BAD: Creating charts without cleanup
+// BAD: Creating charts without cleanup
 document.body.addEventListener('htmx:afterSwap', function(event) {
     new Chart(ctx, {...});  // Old instance not destroyed!
 });
+```
 
-// ✓ GOOD: Destroy before creating new instance
+**Correct Pattern:** Destroy existing chart instances before creating new ones.
+
+```javascript
+// GOOD: Destroy before creating new instance
 // See Chart.js integration example above
 ```
 
@@ -482,6 +524,8 @@ document.body.addEventListener('htmx:afterSwap', function(event) {
 - [HTMX Events](https://htmx.org/events/) - HTMX event reference
 
 ### Related Rules
+
 - **HTMX Foundation**: `rules/221-python-htmx-core.md` - HTMX core patterns
 - **Template Strategies**: `rules/221a-python-htmx-templates.md` - Jinja2 patterns
 - **Common Patterns**: `rules/221e-python-htmx-patterns.md` - HTMX implementation patterns
+- **SSE Patterns**: `rules/221g-python-htmx-sse.md` - Server-Sent Events patterns

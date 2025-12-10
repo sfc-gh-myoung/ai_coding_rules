@@ -21,7 +21,8 @@ Git workflow management including branching strategies, pull requests, protected
 **MANDATORY:**
 **Essential Patterns:**
 - **Feature branch workflow** - Create branch from main with proper naming
-- **Conventional Commits** - type(scope): summary format required
+- **Conventional Commits REQUIRED** - `type(scope): description` per https://www.conventionalcommits.org/en/v1.0.0/#specification
+- **Conventional Branch REQUIRED** - `type/description` per https://conventional-branch.github.io/#specification
 - **Update CHANGELOG** - Add entries under ## [Unreleased]
 - **Clean git state** - Validate before push (no uncommitted changes)
 - **PR required** - Never commit directly to protected branches
@@ -257,6 +258,129 @@ git commit --no-verify -m "feat: new feature"
 **Benefits:** Maintains code quality; hooks run as intended; catches issues before push; provides audit trail when bypass is necessary.
 
 
+## Conventional Commits Specification Compliance
+
+**Strong Preference:** All commits should follow [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/#specification) as the preferred standard.
+
+### Commit Message Structure
+
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+### Required Types
+- `feat:` - New feature (correlates with MINOR in SemVer)
+- `fix:` - Bug fix (correlates with PATCH in SemVer)
+
+### Optional Types (Recommended)
+- `docs:` - Documentation only changes
+- `style:` - Formatting, missing semicolons, etc (no code change)
+- `refactor:` - Code change that neither fixes bug nor adds feature
+- `perf:` - Performance improvements
+- `test:` - Adding or correcting tests
+- `build:` - Build system or external dependency changes
+- `ci:` - CI configuration changes
+- `chore:` - Maintenance tasks
+
+### Breaking Changes
+Must be indicated by:
+1. Appending `!` after type: `feat!: remove deprecated API`
+2. Footer: `BREAKING CHANGE: description of what broke`
+
+### Examples
+```bash
+# Feature with scope
+git commit -m "feat(snowflake): add clustering optimization patterns"
+
+# Bug fix
+git commit -m "fix(validation): resolve schema parsing error"
+
+# Breaking change with !
+git commit -m "feat(python)!: require Python 3.11+ for type hints"
+
+# Breaking change with footer
+git commit -m "refactor(api): simplify authentication flow
+
+BREAKING CHANGE: Auth tokens now use JWT format. Previous tokens are invalid."
+
+# Documentation
+git commit -m "docs(readme): update installation instructions"
+```
+
+### AI Agent Guidance Protocol
+
+Agents should follow this validation approach:
+
+1. **Strongly recommended:** Verify commit message matches pattern: `^(feat|fix|docs|style|refactor|perf|test|build|ci|chore)(\(.+\))?!?: .+`
+2. **Preferred:** Ensure description is lowercase and concise
+3. **Best practice:** Validate scope matches project patterns (check existing commits)
+4. **Required for breaking changes:** Verify `!` or `BREAKING CHANGE:` footer present
+5. **When deviating:** Document reason for non-standard format in commit body
+
+**Flexibility:** If user explicitly requests different format or context requires deviation, document the reason and proceed.
+
+
+## Conventional Branch Specification Compliance
+
+**Strong Preference:** All feature branches should follow [Conventional Branch v1.0.0](https://conventional-branch.github.io/#specification) as the preferred standard.
+
+### Branch Name Structure
+
+```
+<type>/<description-in-kebab-case>
+```
+
+### Required Format Rules
+1. Use lowercase letters (a-z), numbers (0-9), hyphens (-) only
+2. No consecutive hyphens (no `--`)
+3. No leading or trailing hyphens
+4. No spaces or special characters
+5. Keep descriptions clear and concise (3-5 words ideal)
+
+### Supported Types
+- `feature/` (or `feat/`) - New features
+- `fix/` (or `bugfix/` or `hotfix/`) - Bug fixes
+- `docs/` - Documentation changes
+- `refactor/` - Code refactoring
+- `chore/` - Maintenance tasks
+
+### Examples
+```bash
+# Valid branch names
+git checkout -b feature/add-cortex-search-patterns
+git checkout -b fix/changelog-validation-error
+git checkout -b docs/update-contributing-guide
+git checkout -b refactor/split-large-rule-file
+git checkout -b chore/update-dependencies
+
+# With ticket numbers (optional)
+git checkout -b feature/SF-123-add-cortex-agents
+git checkout -b fix/GH-456-resolve-validation-bug
+
+# Invalid branch names (violations)
+git checkout -b myFeature  # Missing type prefix
+git checkout -b feature/Add New Feature  # Uppercase and spaces
+git checkout -b fix--bug  # Consecutive hyphens
+git checkout -b update  # No type prefix, vague
+```
+
+### AI Agent Guidance Protocol
+
+Agents should follow this validation approach:
+
+1. **Strongly recommended:** Verify branch name matches pattern: `^(feature|feat|fix|bugfix|hotfix|docs|refactor|chore)/[a-z0-9]+(-[a-z0-9]+)*$`
+2. **Preferred:** Ensure no uppercase letters or special characters
+3. **Best practice:** Validate description is kebab-case
+4. **Quality check:** Ensure description is meaningful (not just "update" or "fix")
+5. **When deviating:** Suggest conventional format but allow user override with justification
+
+**Flexibility:** If project conventions differ or user has specific naming requirements, adapt while documenting the rationale.
+
+
 ## Post-Execution Checklist
 
 - [ ] Branch created with proper naming convention (feature/, fix/, docs/, refactor/, chore/)
@@ -339,17 +463,23 @@ Preview:
 - [GitHub Flow](https://docs.github.com/en/get-started/quickstart/github-flow) - GitHub's lightweight branch-based workflow
 - [Git Branching Strategies](https://git-scm.com/book/en/v2/Git-Branching-Branching-Workflows) - Official Git documentation on branching
 - [Protected Branches (GitHub)](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches) - GitHub branch protection configuration
-- [Conventional Commits](https://www.conventionalcommits.org/) - Standardized commit message format
+- [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/#specification) - REQUIRED commit message format specification
+- [Conventional Branch v1.0.0](https://conventional-branch.github.io/#specification) - REQUIRED branch naming convention specification
 - [GitHub CLI](https://cli.github.com/manual/) - GitHub command-line tool documentation
 
 ### Related Rules
-- **Changelog Rules**: `rules/800-project-changelog.md`
+- **Human Developer Guidelines**: `CONTRIBUTING.md` (lines 400-449)
+- **Changelog Management**: `rules/800-project-changelog.md`
 - **Contributing Workflow**: `rules/802-project-contributing.md`
 - **Global Core (Pre-Task-Completion Validation Gate)**: `rules/000-global-core.md`
 - **Agents Workflow**: `AGENTS.md`
 
 
 ## 1. Branch Naming Conventions
+
+**Specification:** This project strongly follows [Conventional Branch v1.0.0](https://conventional-branch.github.io/#specification) for all branch naming.
+
+**Core Principle:** Branch names should use the format `type/description-in-kebab-case` where type indicates the purpose and description is concise yet meaningful.
 
 ### Standard Prefixes
 

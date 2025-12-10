@@ -9,7 +9,7 @@
 **Depends:** rules/000-global-core.md
 
 ## Purpose
-Establish directives for maintaining a high-signal, audit-friendly CHANGELOG.md using Conventional Commits, ensuring consistent documentation of project changes for stakeholders and maintainers.
+Establish directives for maintaining a high-signal, audit-friendly CHANGELOG.md following Keep a Changelog standard with strong preference for Conventional Commits format, ensuring consistent documentation of project changes for stakeholders and maintainers.
 
 
 ## Rule Scope
@@ -24,7 +24,7 @@ High-signal, audit-friendly changelog maintenance using Conventional Commits
 - **Use standard types** - Added, Changed, Deprecated, Removed, Fixed, Security
 - **Group by type** - Keep a Changelog v1.1.0 standard categories
 - **Human-readable summaries** - Focus on user impact, not internal details
-- **Optional Conventional Commits** - type(scope): summary for consistency
+- **Preferred format: Conventional Commits** - `type(scope): summary` per https://www.conventionalcommits.org/en/v1.0.0/#specification
 - **Collapse micro-fixes** - One meaningful entry, not 10 tweaks
 - **Move to version on release** - ## [x.y.z] - YYYY-MM-DD
 
@@ -242,13 +242,14 @@ Preview:
 ## References
 
 ### External Documentation
-- [Conventional Commits](https://www.conventionalcommits.org/) - Standardized commit message format specification                                                                                                       
-- [Keep a Changelog](https://keepachangelog.com/) - Changelog format and best practices guide
+- [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/#specification) - PREFERRED commit message format specification (strongly recommended for changelog entries)
+- [Keep a Changelog](https://keepachangelog.com/) - Changelog format and best practices guide (primary standard)
 - [Semantic Versioning](https://semver.org/) - Version numbering scheme for software releases
 
 ### Related Rules
 - **Global Core**: `rules/000-global-core.md`
 - **Contributing Guidelines**: `rules/802-project-contributing.md`
+- **Git Workflow Management**: `rules/803-project-git-workflow.md`
 - **README Rules**: `rules/801-project-readme.md`
 
 
@@ -273,9 +274,11 @@ Preview:
   - **Fixed** for any bug fixes
   - **Security** for vulnerability fixes (with CVE references when applicable)
 - **Requirement:** Each entry is a single line with human-readable summary.
-- **Consider:** Optionally use Conventional Commit format for consistency: `type(scope): summary`
-  - Conventional Commits is an EXTENSION to Keep a Changelog, not a replacement
+- **Strongly Recommended:** Use Conventional Commit format for consistency: `type(scope): summary`
+  - This is the PREFERRED format per [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/#specification)
+  - Conventional Commits enhances Keep a Changelog, not replaces it
   - Entries must remain human-readable and user-impact focused regardless of format
+  - Benefits: automated tooling, consistent patterns, semantic versioning alignment
 - **Consider:** Add version comparison links at bottom of CHANGELOG.md:
   ```markdown
   [Unreleased]: https://github.com/user/repo/compare/v1.1.0...HEAD

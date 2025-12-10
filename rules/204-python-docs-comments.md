@@ -84,6 +84,63 @@ Docstrings and comments following requirements below; updated `pyproject.toml` c
 
 </contract>
 
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Stale Docstrings That Don't Match Code
+
+**Problem:** Docstrings that describe outdated behavior, wrong parameter names, or removed functionality because they weren't updated when code changed.
+
+**Why It Fails:** Misleading documentation is worse than no documentation. Developers trust docstrings and write incorrect code based on them. IDE tooltips show wrong information. Auto-generated API docs become unreliable.
+
+**Correct Pattern:**
+```python
+# BAD: Stale docstring (function signature changed)
+def calculate_total(items, tax_rate, discount=0):
+    """Calculate total price for items.
+    
+    Args:
+        items: List of item prices
+        tax: Tax percentage  # Wrong name!
+        # discount parameter not documented
+    """
+    
+# GOOD: Docstring matches current signature
+def calculate_total(items: list[float], tax_rate: float, discount: float = 0) -> float:
+    """Calculate total price for items with tax and discount.
+    
+    Args:
+        items: List of item prices in dollars.
+        tax_rate: Tax rate as decimal (e.g., 0.08 for 8%).
+        discount: Discount amount to subtract. Defaults to 0.
+        
+    Returns:
+        Total price after tax and discount.
+    """
+```
+
+### Anti-Pattern 2: Over-Commenting Obvious Code
+
+**Problem:** Adding comments that simply restate what the code does, rather than explaining why or providing context.
+
+**Why It Fails:** Clutters code with noise. Comments become stale faster than code. Developers learn to ignore comments. Obscures genuinely important explanatory comments.
+
+**Correct Pattern:**
+```python
+# BAD: Comments that restate the obvious
+# Increment counter by 1
+counter += 1
+# Check if user is admin
+if user.role == "admin":
+    # Return true
+    return True
+
+# GOOD: Comments explain WHY, not WHAT
+# Rate limit resets every hour; increment tracks requests in current window
+counter += 1
+# Admin bypass needed for emergency access during outages (see incident #1234)
+if user.role == "admin":
+    return True
+```
 
 ## Post-Execution Checklist
 

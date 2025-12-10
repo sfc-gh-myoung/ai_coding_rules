@@ -77,6 +77,57 @@ Foundation bash scripting patterns and essential practices
 
 </contract>
 
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Unquoted Variables Leading to Word Splitting
+
+**Problem:** Using `$variable` instead of `"$variable"`, causing word splitting and glob expansion on whitespace or special characters.
+
+**Why It Fails:** Filenames with spaces break scripts. Glob patterns in variables expand unexpectedly. Security vulnerabilities from injection. Scripts work in testing but fail on real data.
+
+**Correct Pattern:**
+```bash
+# BAD: Unquoted variables
+file=$1
+rm $file  # "my file.txt" becomes rm my file.txt (deletes wrong files!)
+cp $source $dest  # Glob expansion if source contains *
+
+# GOOD: Always quote variables
+file="$1"
+rm "$file"  # Correctly handles "my file.txt"
+cp "$source" "$dest"  # No unexpected expansion
+
+# Use shellcheck to catch these: shellcheck script.sh
+```
+
+### Anti-Pattern 2: Missing Error Handling with set -e
+
+**Problem:** Scripts that continue executing after command failures, potentially corrupting data or leaving systems in inconsistent states.
+
+**Why It Fails:** Failed commands go unnoticed. Subsequent commands operate on missing or corrupt data. Partial deployments. Silent data loss. Debugging requires tracing through entire execution.
+
+**Correct Pattern:**
+```bash
+# BAD: No error handling
+#!/bin/bash
+cd /deploy/dir
+rm -rf old_version
+mv new_version current  # If cd failed, deletes wrong directory!
+
+# GOOD: Strict error handling
+#!/bin/bash
+set -euo pipefail  # Exit on error, undefined vars, pipe failures
+
+cd /deploy/dir || exit 1
+rm -rf old_version
+mv new_version current
+
+# Or explicit error handling
+if ! cd /deploy/dir; then
+    echo "ERROR: Cannot access deploy directory" >&2
+    exit 1
+fi
+```
 
 ## Post-Execution Checklist
 - [ ] Required dependencies and context verified

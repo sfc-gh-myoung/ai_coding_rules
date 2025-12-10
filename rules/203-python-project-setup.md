@@ -68,6 +68,54 @@ Python project setup, packaging, and dependency management with modern build too
 
 </contract>
 
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Requirements.txt Without Version Pinning
+
+**Problem:** Using unpinned dependencies (`requests`) or loose pins (`requests>=2.0`) in requirements.txt, allowing arbitrary version upgrades.
+
+**Why It Fails:** Builds become non-reproducible. A dependency update can break production without any code changes. "Works on my machine" issues proliferate. Security vulnerabilities harder to track.
+
+**Correct Pattern:**
+```txt
+# BAD: requirements.txt with loose versions
+requests
+pandas>=1.0
+numpy
+
+# GOOD: Fully pinned with hashes (use uv pip compile)
+requests==2.31.0
+pandas==2.1.4
+numpy==1.26.3
+
+# BEST: Use pyproject.toml + uv.lock for reproducible builds
+# pyproject.toml defines ranges, uv.lock pins exact versions
+```
+
+### Anti-Pattern 2: Missing pyproject.toml in Modern Python Projects
+
+**Problem:** Using setup.py or setup.cfg for project configuration instead of the modern pyproject.toml standard (PEP 517/518/621).
+
+**Why It Fails:** setup.py is legacy and requires executing Python to read metadata. Tool configuration scattered across multiple files. Incompatible with modern build backends (hatch, flit, pdm). Package managers like uv expect pyproject.toml.
+
+**Correct Pattern:**
+```toml
+# pyproject.toml - Single source of truth
+[project]
+name = "my-project"
+version = "1.0.0"
+requires-python = ">=3.11"
+dependencies = [
+    "requests>=2.31.0",
+    "pandas>=2.0.0",
+]
+
+[tool.ruff]
+line-length = 120
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+```
 
 ## Post-Execution Checklist
 - [ ] Required dependencies and context verified

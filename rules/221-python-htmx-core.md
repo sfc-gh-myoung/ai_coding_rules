@@ -343,23 +343,14 @@ async def websocket_endpoint(websocket: WebSocket):
 
 ## Anti-Patterns and Common Mistakes
 
-### Common Pitfalls
+### Anti-Pattern 1: Returning JSON for HTMX Requests
 
-**Pitfall 1: Mixing JSON and HTML Responses**
+**Problem:** Returning JSON responses when HTMX expects HTML fragments.
 
-**Problem:** Returning JSON for HTMX requests when HTMX expects HTML.
+**Why It Fails:** HTMX swaps HTML into the DOM; JSON appears as raw text or breaks the UI.
 
+**Correct Pattern:**
 ```python
-# BAD: Returning JSON for HTMX request
-@app.route('/data')
-def get_data():
-    return jsonify({'items': items})
-```
-
-**Correct Pattern:** Return HTML fragments for HTMX requests.
-
-```python
-# GOOD: Return HTML for HTMX
 @app.route('/data')
 def get_data():
     if is_htmx():
@@ -367,69 +358,46 @@ def get_data():
     return render_template('items_page.html', items=items)
 ```
 
-**Pitfall 2: Forgetting CSRF Tokens**
+### Anti-Pattern 2: Missing CSRF Protection
 
-**Problem:** No CSRF protection on state-changing endpoints makes them vulnerable to CSRF attacks.
+**Problem:** Omitting CSRF tokens on state-changing HTMX requests.
 
+**Why It Fails:** Exposes application to cross-site request forgery attacks.
+
+**Correct Pattern:**
 ```python
-# BAD: No CSRF protection
+# Configure CSRF in HTMX meta tag (base template)
+# <meta name="csrf-token" content="{{ csrf_token() }}">
+# htmx.config.getCsrfToken = () => document.querySelector('meta[name="csrf-token"]').content
+
 @app.route('/delete/<int:id>', methods=['DELETE'])
 def delete(id):
-    delete_item(id)  # Vulnerable!
-    return ''
-```
-
-**Correct Pattern:** Enable CSRF protection and add token to HTMX config.
-
-```python
-# GOOD: CSRF protection enabled
-# Configure Flask-WTF/Django CSRF
-# Add token to HTMX config in base template
-@app.route('/delete/<int:id>', methods=['DELETE'])
-@csrf.exempt  # Only if using custom CSRF validation
-def delete(id):
-    # Validation happens in middleware/decorator
+    # CSRF validation happens in middleware
     delete_item(id)
     return ''
 ```
 
-**Pitfall 3: Incorrect Swap Strategy**
+### Anti-Pattern 3: Incorrect Swap Strategy
 
-**Problem:** Using `innerHTML` when `outerHTML` is needed creates nested elements.
+**Problem:** Using default `innerHTML` swap when `outerHTML` is needed.
 
+**Why It Fails:** Creates nested elements; breaks CSS selectors and event handlers.
+
+**Correct Pattern:**
 ```html
-<!-- BAD: Using innerHTML when outerHTML needed -->
-<div id="user-123" hx-get="/users/123" hx-target="#user-123">
-    <!-- This creates nested divs on update -->
-</div>
-```
-
-**Correct Pattern:** Use `outerHTML` to replace the entire element cleanly.
-
-```html
-<!-- GOOD: Use outerHTML to replace entire element -->
 <div id="user-123" hx-get="/users/123" hx-target="#user-123" hx-swap="outerHTML">
     <!-- Element replaced cleanly -->
 </div>
 ```
 
-**Pitfall 4: Not Handling Errors**
+### Anti-Pattern 4: Missing Error Handling
 
-**Problem:** No error handling leads to poor UX when operations fail.
+**Problem:** Not handling server errors in HTMX responses.
 
+**Why It Fails:** Users see no feedback; errors silently fail; poor UX.
+
+**Correct Pattern:**
 ```python
-# BAD: No error handling
-@app.route('/update', methods=['POST'])
-def update():
-    data = request.form['data']
-    update_db(data)  # What if this fails?
-    return '<p>Updated</p>'
-```
-
-**Correct Pattern:** Handle errors with proper status codes and retargeting.
-
-```python
-# GOOD: Error handling with retargeting
 @app.route('/update', methods=['POST'])
 def update():
     try:
@@ -437,10 +405,7 @@ def update():
         update_db(data)
         return '<p class="success">Updated</p>'
     except ValidationError as e:
-        response = make_response(
-            f'<p class="error">{escape(str(e))}</p>', 
-            400
-        )
+        response = make_response(f'<p class="error">{escape(str(e))}</p>', 400)
         response.headers['HX-Retarget'] = '#error-container'
         return response
 ```

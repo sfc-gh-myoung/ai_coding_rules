@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.0
 **Keywords:** Pydantic, data validation, models, settings, BaseModel, field validation, serialization, Field, validator, model_validator, EmailStr, pydantic-settings
-**TokenBudget:** ~2700
+**TokenBudget:** ~3200
 **ContextTier:** High
 **Depends:** rules/200-python-core.md
 

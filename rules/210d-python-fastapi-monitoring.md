@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.0
 **Keywords:** FastAPI monitoring, health checks, logging, metrics, caching, Redis, observability, structured logging, health endpoints, correlation IDs
-**TokenBudget:** ~2050
+**TokenBudget:** ~2500
 **ContextTier:** Medium
 **Depends:** rules/210-python-fastapi-core.md
 

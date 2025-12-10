@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.0
 **Keywords:** FastAPI testing, TestClient, pytest-asyncio, API tests, integration testing, mocking, test fixtures, AAA pattern, async testing, Python
-**TokenBudget:** ~1600
+**TokenBudget:** ~2050
 **ContextTier:** High
 **Depends:** rules/210-python-fastapi-core.md
 

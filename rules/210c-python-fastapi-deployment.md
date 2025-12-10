@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.0
 **Keywords:** FastAPI deployment, Uvicorn, Gunicorn, ASGI, Docker, production deployment, health checks, multi-stage build, OpenAPI, API documentation
-**TokenBudget:** ~1950
+**TokenBudget:** ~2400
 **ContextTier:** High
 **Depends:** rules/210-python-fastapi-core.md
 

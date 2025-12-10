@@ -408,6 +408,27 @@ Use our issue templates:
 - [ ] **Update** documentation if needed
 - [ ] **Add** yourself to contributors if first contribution
 
+### Commit and Branch Standards
+
+This project follows industry standards for Git workflow:
+
+- **Conventional Commits v1.0.0** - [Official Specification](https://www.conventionalcommits.org/en/v1.0.0/#specification)
+  - Required format: `type(scope): description`
+  - Common types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`
+  - Breaking changes: Append `!` after type or use `BREAKING CHANGE:` footer
+
+- **Conventional Branch** - [Official Specification](https://conventional-branch.github.io/#specification)
+  - Required format: `type/description-in-kebab-case`
+  - Supported types: `feature/`, `fix/`, `docs/`, `refactor/`, `chore/`
+  - Keep branch names descriptive and concise (3-5 words)
+
+**Why These Standards Matter:**
+- Automated changelog generation
+- Semantic versioning automation
+- Clear project history
+- Better collaboration
+- CI/CD integration
+
 ### PR Requirements
 
 1. **Title**: Use Conventional Commits format
@@ -444,6 +465,8 @@ Use our issue templates:
 - **Use Conventional Commits format** - `type(scope): description` (see rules/800-project-changelog.md)
 
 **Historical Note:** Individual release notes files (v2.x) have been removed. Current practice is CHANGELOG.md only.
+
+**Note for AI Agents:** See [rules/803-project-git-workflow.md](rules/803-project-git-workflow.md) for detailed validation protocols and automated compliance checks.
 
 ## 🎯 Types of Contributions
 
@@ -515,6 +538,11 @@ git commit -m "feat: add Terraform best practices rule
 - State management best practices
 - Security and compliance patterns
 - Resource naming conventions"
+
+# Example with breaking change
+# git commit -m "feat!: update Python core rule with type hints guidance
+#
+# BREAKING CHANGE: Type hints now required for all public functions"
 
 # 8. Push and create PR
 git push origin feature/add-terraform-rules
@@ -588,6 +616,21 @@ vim rules/450-new-rule.md
 task generate:index
 git add rules/450-new-rule.md RULES_INDEX.md
 git commit  # CORRECT
+```
+
+❌ **Don't use non-standard commit formats**
+```bash
+git commit -m "Updated the python rule file"  # WRONG - no type
+git commit -m "fixed bug"  # WRONG - no scope, vague description
+git checkout -b johns-updates  # WRONG - no type prefix
+```
+
+✅ **Always follow Conventional Commits and Branches**
+```bash
+git commit -m "fix(python): resolve type annotation validation error"
+git commit -m "docs(readme): clarify installation steps for Windows"
+git checkout -b fix/type-annotation-validation
+git checkout -b docs/windows-installation-guide
 ```
 
 ## 🏷️ Code of Conduct

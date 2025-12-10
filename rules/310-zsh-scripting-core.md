@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.0
 **Keywords:** Zsh, Z shell, zsh features, arrays, functions, oh-my-zsh, emulate, setopt, parameter expansion, globbing
-**TokenBudget:** ~3000
+**TokenBudget:** ~3450
 **ContextTier:** Medium
 **Depends:** rules/300-bash-scripting-core.md
 

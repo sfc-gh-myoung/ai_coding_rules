@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.0
 **Keywords:** Zsh, shell compatibility, bash vs zsh, portable scripts, cross-shell, migration, emulate, POSIX compliance, scripting, shell scripting
-**TokenBudget:** ~2500
+**TokenBudget:** ~2950
 **ContextTier:** Low
 **Depends:** rules/300-bash-scripting-core.md
 

@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.0
 **Keywords:** FastAPI, async, REST API, Pydantic, dependency injection, routing, request validation, response models, APIRouter, uvicorn, async def, application factory
-**TokenBudget:** ~2450
+**TokenBudget:** ~2950
 **ContextTier:** High
 **Depends:** rules/200-python-core.md
 
@@ -30,6 +30,7 @@ FastAPI web API development with modern Python patterns, async/await, and Pydant
 - **Async def for I/O operations** - Use `async def` for database, HTTP, file operations
 - **Dependency injection** - Use `Depends()` for services, database sessions, auth
 - **Never mix sync and async** - All I/O should be async or properly wrapped
+- **Cross-thread communication** - Use `asyncio.get_running_loop()` + `loop.call_soon_threadsafe()` for thread-to-async communication (SSE, progress callbacks)
 
 **Quick Checklist:**
 - [ ] App created via factory function
@@ -39,6 +40,7 @@ FastAPI web API development with modern Python patterns, async/await, and Pydant
 - [ ] Dependency injection for services
 - [ ] Global exception handlers configured
 - [ ] Run with `uv run uvicorn`
+- [ ] Cross-thread callbacks use `loop.call_soon_threadsafe()` (not `asyncio.get_event_loop()`)
 
 
 ## Contract
@@ -333,6 +335,68 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
     # This blocks the event loop
     user = db.query(User).filter(User.id == user_id).first()
     return user
+```
+
+### Cross-Thread Async Communication (SSE, Background Tasks)
+- **Critical:** When running synchronous code in a thread that needs to communicate with async code, capture the event loop BEFORE starting the thread.
+- **Always:** Use `asyncio.get_running_loop()` (not `get_event_loop()`) to capture the loop in an async context.
+- **Always:** Use `loop.call_soon_threadsafe()` to safely add items to an `asyncio.Queue` from a background thread.
+- **Always:** Use `asyncio.to_thread()` for running blocking code - it properly integrates with the event loop.
+- **Never:** Call `asyncio.get_event_loop()` from inside a thread - threads don't have event loops.
+
+```python
+# CORRECT: Cross-thread communication for SSE streaming with progress updates
+@router.get("/process/stream")
+async def process_with_progress():
+    """Stream progress updates from a blocking operation."""
+    # Capture event loop BEFORE starting thread work
+    loop = asyncio.get_running_loop()
+    progress_queue: asyncio.Queue[dict] = asyncio.Queue()
+
+    def progress_callback(step: str, message: str) -> None:
+        """Thread-safe callback using loop.call_soon_threadsafe()."""
+        loop.call_soon_threadsafe(
+            progress_queue.put_nowait,
+            {"step": step, "message": message}
+        )
+
+    async def run_blocking_work():
+        """Run blocking code in thread pool with asyncio.to_thread()."""
+        return await asyncio.to_thread(
+            blocking_function, progress_callback
+        )
+
+    async def event_generator():
+        """Generate SSE events from progress queue."""
+        task = asyncio.create_task(run_blocking_work())
+        
+        while True:
+            if task.done():
+                # Drain remaining messages
+                while not progress_queue.empty():
+                    msg = await progress_queue.get()
+                    yield f"data: {json.dumps(msg)}\n\n"
+                
+                # Send final result
+                try:
+                    result = task.result()
+                    yield f"data: {json.dumps({'status': 'done'})}\n\n"
+                except Exception as e:
+                    yield f"data: {json.dumps({'status': 'error', 'message': str(e)})}\n\n"
+                break
+            
+            try:
+                msg = await asyncio.wait_for(progress_queue.get(), timeout=0.5)
+                yield f"data: {json.dumps(msg)}\n\n"
+            except TimeoutError:
+                yield f"data: {json.dumps({'step': 'ping'})}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+# INCORRECT: Trying to access event loop from thread
+def bad_callback(step: str, message: str) -> None:
+    # This will raise "no current event loop in thread" error!
+    asyncio.get_event_loop().call_soon_threadsafe(...)
 ```
 
 ### Database Connections

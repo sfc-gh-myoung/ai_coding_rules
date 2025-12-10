@@ -355,41 +355,45 @@ def inject_common():
 
 ## Anti-Patterns and Common Mistakes
 
-### Critical Violations
-
-| Anti-Pattern | Problem | Correct Pattern |
-|--------------|---------|-----------------|
-| **Mixed template logic** | Single template handles both full page and partial | Separate templates or view-level detection |
-| **Missing element IDs** | HTMX cannot target elements | Add unique `id` to all swappable elements |
-| **Deep inheritance in partials** | Partials inherit from base unnecessarily | Partials should be standalone fragments |
-| **Bloated context** | Passing entire app state to partials | Pass only required data |
-| **Hard-coded URLs** | URLs embedded in templates | Use `url_for()` for all links |
-
 ### Common Pitfalls
 
 **Pitfall 1: No Element IDs**
+
+**Problem:** HTMX cannot target elements without IDs for replacement.
+
 ```html
-<!-- ❌ BAD: No ID for targeting -->
+<!-- BAD: No ID for targeting -->
 <div hx-get="/users/123" hx-target="#user-info">
     <p>{{ user.name }}</p>
 </div>
+```
 
-<!-- ✓ GOOD: ID present for targeting/replacement -->
+**Correct Pattern:** Add unique IDs to all swappable elements.
+
+```html
+<!-- GOOD: ID present for targeting/replacement -->
 <div id="user-123" hx-get="/users/123" hx-target="#user-123" hx-swap="outerHTML">
     <p>{{ user.name }}</p>
 </div>
 ```
 
 **Pitfall 2: Partials Extending Base**
+
+**Problem:** Partials inheriting full page structure defeats the purpose of partial rendering.
+
 ```html
-{# ❌ BAD: Partial inherits full page structure #}
+{# BAD: Partial inherits full page structure #}
 {# templates/partials/_user_row.html #}
 {% extends "base.html" %}
 {% block content %}
     <tr id="user-{{ user.id }}">...</tr>
 {% endblock %}
+```
 
-{# ✓ GOOD: Partial is standalone fragment #}
+**Correct Pattern:** Partials should be standalone fragments without inheritance.
+
+```html
+{# GOOD: Partial is standalone fragment #}
 {# templates/partials/_user_row.html #}
 <tr id="user-{{ user.id }}">
     <td>{{ user.name }}</td>
@@ -398,14 +402,21 @@ def inject_common():
 ```
 
 **Pitfall 3: Inconsistent Naming**
+
+**Problem:** Inconsistent naming makes templates hard to find and maintain.
+
 ```
-❌ BAD:
+BAD:
 templates/
 ├── user_table_partial.html
 ├── form-user.html
 ├── UserRow.html
+```
 
-✓ GOOD:
+**Correct Pattern:** Use consistent naming conventions with underscore prefix for partials.
+
+```
+GOOD:
 templates/partials/
 ├── _user_table.html
 ├── _user_form.html

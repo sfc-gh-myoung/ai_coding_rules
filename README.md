@@ -14,7 +14,7 @@
 **What:** Universal AI coding rule system working with any assistant/IDE  
 **Works with:** Cursor, Claude Code, GitHub Copilot, VS Code, ChatGPT, and more  
 **Deploy:** 2 commands (`git clone` + `task deploy`)  
-**Benefit:** 100 production-ready rules, automatic discovery, zero vendor lock-in
+**Benefit:** 102 production-ready rules, automatic discovery, zero vendor lock-in
 
 **Quick Checklist:**
 - [ ] Prerequisites met? → [Prerequisites](#prerequisites)
@@ -26,13 +26,13 @@
 
 This repository provides a **universal ai coding rule system** designed to work seamlessly with any AI assistant, IDE, or development tool. Write rules once in a universal format, use them anywhere.
 
-**What you get:** A comprehensive collection of 100 production-ready engineering rules covering Python, SQL, Snowflake, Go, Docker, Shell scripting, React, HTMX, data engineering, analytics, and project governance. The rules work seamlessly with AI coding assistants including Cursor, Claude Code, GitHub Copilot, Visual Studio Code, and others.
+**What you get:** A comprehensive collection of 102 production-ready engineering rules covering Python, SQL, Snowflake, Go, Docker, Shell scripting, React, HTMX, Alpine.js, data engineering, analytics, and project governance. The rules work seamlessly with AI coding assistants including Cursor, Claude Code, GitHub Copilot, Visual Studio Code, and others.
 
 **Important:** Some aspects of the rules are opinionated, particularly regarding naming conventions, project structure, usage of uv/uvx/ruff/Task, and documentation standards. You are **encouraged to review and adjust** the rules to align with your best practices or preferred approaches.
 
 ## Key Features
 
-- **📚 100 Production-Ready Rules** — Comprehensive coverage across Snowflake, Python, Go, React, HTMX, Docker, Shell scripting, and project management
+- **📚 102 Production-Ready Rules** — Comprehensive coverage across Snowflake, Python, Go, React, HTMX, Alpine.js, Docker, Shell scripting, and project management
 - **🔄 Universal Format** — Write once, use everywhere: Cursor, VS Code, Claude, ChatGPT, GitHub Copilot, and more
 - **🤖 Intelligent Discovery** — AI assistants automatically find and load relevant rules using semantic keyword matching
 - **🎯 Dependency-Aware** — Explicit dependency chains ensure rules load in the correct order
@@ -54,6 +54,7 @@ This project was inspired, in part, by:
 - [Key Features](#key-features)
 - [Prerequisites](#prerequisites)
 - [Quick Start](#quick-start)
+- [Video Tutorials](#video-tutorials)
 - [Understanding Rules](#understanding-rules)
 - [Rule Selection Guide](#rule-selection-decision-tree)
 - [Rule Categories](#rule-categories)
@@ -138,23 +139,41 @@ task deploy DEST=~/my-project
 # Add to prompt: "Load AGENTS.md and follow guidance for rule loading with RULES_INDEX.md"
 ```
 
-**That's it!** Your project now has 100 production-ready rules ready to use.
+**That's it!** Your project now has 102 production-ready rules ready to use.
 
 **What just happened?**
 
-- ✅ Copied `rules/` directory (101 rules) to your project
+- ✅ Copied `rules/` directory (102 rules) to your project
 - ✅ Copied `AGENTS.md` and `RULES_INDEX.md` for automatic AI discovery
 - ✅ Ready to use immediately—no additional configuration needed!
 
 **Next Steps:**
 
-- ✅ Deployment complete → [Configure Your AI](#ai-configuration)
+- ✅ Deployment complete → [Watch Video Tutorials](#video-tutorials) or [Configure Your AI](#ai-configuration)
 - 🤔 Want to understand how rules work → [Understanding Rules](#understanding-rules)
 - 🔧 Need different setup? → See [Deployment Options](#deployment-options)
 
 **Alternative Paths:**
 
 - 🛠️ **Modify or contribute** → See [For Rule Maintainers](#for-rule-maintainers-contributing-to-rules)
+
+## Video Tutorials
+
+Learn how to use AI Coding Rules through practical demonstrations:
+
+| Demo | Topic | Link |
+|------|-------|------|
+| Demo 1 | Getting Started with AI_CODING_RULES Project | [Watch on YouTube](https://youtu.be/9lVrLegKgDg) |
+| Demo 3 | Bug Fixes and Enhancements on Existing Project | [Watch on YouTube](https://youtu.be/hi5wcnLDEuI) |
+| Demo 4 | Using Snowflake Cortex Code CLI with AI_CODING_RULES | [Watch on YouTube](https://youtu.be/YhYRcfLAfr4) |
+| Demo 5 | Continuation: Snowflake Cortex Code CLI and AI_CODING_RULES | [Watch on YouTube](https://youtu.be/Xse0gqvgzQM) |
+
+> **Note:** These videos are currently unlisted and accessible only via direct link.
+
+**Quick guide:**
+- **New to the project?** → Start with Demo 1
+- **Working on existing code?** → See Demo 3
+- **Using Snowflake Cortex?** → Watch Demos 4 & 5
 
 ### Deployment Options
 

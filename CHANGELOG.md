@@ -32,6 +32,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Characters to avoid: `&` (Snowflake CLI), `<%`/`%>` (SnowSQL), `{{`/`}}` (Jinja2/dbt)
 
 ### Changed
+- **docs(standards):** Integrated Conventional Commits and Conventional Branch specifications across documentation
+  - `CONTRIBUTING.md` — Added explicit "Commit and Branch Standards" section with specification links
+    - Links to [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/#specification) and [Conventional Branch v1.0.0](https://conventional-branch.github.io/#specification)
+    - Added breaking change examples and anti-patterns for non-standard formats
+    - Cross-reference to `rules/803-project-git-workflow.md` for AI agent validation protocols
+- **rules(standards):** Strengthened Conventional Commits and Conventional Branch specifications in workflow rules
+  - `803-project-git-workflow.md` — Enhanced specification compliance guidance for AI agents
+    - Updated Quick Start TL;DR with specification links
+    - New "Conventional Commits Specification Compliance" section with AI agent guidance protocol
+    - New "Conventional Branch Specification Compliance" section with validation patterns
+    - Updated External Documentation with versioned specification links
+    - Added regex patterns for automated validation with flexibility for justified exceptions
+  - `800-project-changelog.md` — Enhanced Conventional Commits preference
+    - Updated Purpose to emphasize strong preference for Conventional Commits format
+    - Changed "Optional" to "Preferred format" with specification link
+    - Updated External Documentation to mark Conventional Commits as PREFERRED standard
+    - Strengthened recommendation in Required Structure & Format section
+  - All documents cross-reference each other for consistency
+  - Validation: Schema validation passed for both rule files (803: 924 checks, 800: 429 checks)
 - `803-project-git-workflow.md` — Added comprehensive pre-commit hooks guidance for sandboxed environments
   - New Anti-Pattern 6: Ignoring Pre-Commit Hook Failures with correct resolution patterns
   - New Section 6: Pre-Commit Hooks (understanding, permission requirements, handling failures, detection)

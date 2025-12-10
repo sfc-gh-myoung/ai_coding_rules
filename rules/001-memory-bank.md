@@ -86,6 +86,45 @@ Initialization verified; `memory-bank/` folder exists; no writes occurred outsid
 
 </contract>
 
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Context Pollution Through Over-Documentation
+
+**Problem:** Adding excessive detail to memory bank files, treating them as comprehensive logs rather than focused context.
+
+**Why It Fails:** Causes "context rot" - as context grows, LLM attention degrades due to n² pairwise relationships. Verbose context buries critical information, slowing session recovery and reducing AI effectiveness.
+
+**Correct Pattern:**
+```markdown
+# activeContext.md - GOOD (focused, actionable)
+## Quick Start
+- Primary: Implement user auth module
+- Blocked: Waiting on API keys from DevOps
+- Next: Write unit tests after unblocked
+
+# activeContext.md - BAD (verbose, unfocused)
+## Session Log
+Yesterday we discussed authentication approaches. John suggested OAuth2.
+We reviewed 5 different libraries. Sarah mentioned security concerns...
+[50 more lines of narrative]
+```
+
+### Anti-Pattern 2: Stale Memory Without Pruning
+
+**Problem:** Never removing completed work, resolved blockers, or outdated decisions from active context files.
+
+**Why It Fails:** Memory bank becomes archaeological record rather than working context. AI wastes tokens processing irrelevant historical information, and outdated context can mislead current decisions.
+
+**Correct Pattern:**
+```markdown
+# Maintenance workflow
+1. After task completion: Remove task details, keep only outcome summary
+2. Weekly: Archive sessions older than 2 weeks to memory-bank/archive/
+3. Per session: Verify activeContext.md ≤100 lines
+
+# Before: 250 lines of accumulated context
+# After pruning: 80 lines of current, actionable context
+```
 
 ## Post-Execution Checklist
 - [ ] All core memory bank files exist and are within size budgets

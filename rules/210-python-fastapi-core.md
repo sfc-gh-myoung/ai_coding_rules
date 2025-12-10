@@ -86,6 +86,60 @@ FastAPI web API development with modern Python patterns, async/await, and Pydant
 
 </contract>
 
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Blocking Calls in Async Route Handlers
+
+**Problem:** Using synchronous blocking operations (requests, time.sleep, synchronous DB drivers) inside async FastAPI route handlers.
+
+**Why It Fails:** Blocks the event loop, defeating the purpose of async. One slow request blocks all concurrent requests. Throughput drops to single-threaded performance. Server becomes unresponsive under load.
+
+**Correct Pattern:**
+```python
+# BAD: Blocking call in async route
+@app.get("/data")
+async def get_data():
+    response = requests.get("https://api.example.com/data")  # Blocks event loop!
+    return response.json()
+
+# GOOD: Use async HTTP client
+import httpx
+
+@app.get("/data")
+async def get_data():
+    async with httpx.AsyncClient() as client:
+        response = await client.get("https://api.example.com/data")
+        return response.json()
+```
+
+### Anti-Pattern 2: Missing Dependency Injection for Database Sessions
+
+**Problem:** Creating database sessions directly in route handlers instead of using FastAPI's dependency injection system.
+
+**Why It Fails:** Sessions not properly closed on errors, causing connection leaks. Testing requires monkeypatching. No request-scoped lifecycle management. Duplicate boilerplate in every route.
+
+**Correct Pattern:**
+```python
+# BAD: Manual session management
+@app.get("/users/{user_id}")
+async def get_user(user_id: int):
+    session = SessionLocal()  # Not closed on exception!
+    user = session.query(User).get(user_id)
+    session.close()
+    return user
+
+# GOOD: Dependency injection with proper lifecycle
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+@app.get("/users/{user_id}")
+async def get_user(user_id: int, db: Session = Depends(get_db)):
+    return db.query(User).get(user_id)
+```
 
 ## Post-Execution Checklist
 - [ ] Required dependencies and context verified

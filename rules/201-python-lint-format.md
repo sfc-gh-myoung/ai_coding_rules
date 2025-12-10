@@ -69,6 +69,47 @@ Python code linting and formatting with Ruff for consistent code quality and sty
 
 </contract>
 
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Ignoring Linter Errors with Blanket Noqa Comments
+
+**Problem:** Adding `# noqa` or `# type: ignore` comments to silence linter errors without understanding or fixing the underlying issue.
+
+**Why It Fails:** Hides real bugs and code quality issues. Blanket ignores accumulate technical debt. Future maintainers inherit suppressed warnings that may indicate security vulnerabilities or logic errors.
+
+**Correct Pattern:**
+```python
+# BAD: Blanket ignore hides real issues
+from module import *  # noqa
+result = eval(user_input)  # type: ignore
+
+# GOOD: Fix the issue or use specific ignore with justification
+from module import specific_function, another_function
+
+# If ignore is truly necessary, be specific and document why
+result = legacy_api.call()  # noqa: S307 - legacy API requires eval, input is validated
+```
+
+### Anti-Pattern 2: Inconsistent Formatting Without Pre-commit Hooks
+
+**Problem:** Relying on developers to manually run formatters before committing, leading to inconsistent code style across the codebase.
+
+**Why It Fails:** Manual processes are forgotten. PRs contain formatting noise mixed with logic changes. Code reviews waste time on style issues instead of logic. Merge conflicts increase from formatting differences.
+
+**Correct Pattern:**
+```yaml
+# .pre-commit-config.yaml - Automate formatting
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.0
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+# Install: pre-commit install
+# Now formatting happens automatically on every commit
+```
 
 ## Post-Execution Checklist
 - [ ] **CRITICAL:** `uvx ruff check .` passed with zero errors

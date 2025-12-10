@@ -395,52 +395,38 @@ document.body.addEventListener('htmx:responseError', function(event) {
 
 ## Anti-Patterns and Common Mistakes
 
-### Common Pitfalls
+### Anti-Pattern 1: Not Reinitializing Plugins After Swaps
 
-**Pitfall 1: Not Reinitializing Plugins**
+**Problem:** JavaScript plugins only initialized on page load, not after HTMX swaps.
 
-**Problem:** Plugins only initialized on page load don't work on HTMX-loaded content.
+**Why It Fails:** Plugins don't work on dynamically loaded content; broken UI.
 
+**Correct Pattern:**
 ```javascript
-// BAD: Plugins only initialized on page load
-$(document).ready(function() {
-    $('.datepicker').datepicker();
-});
-```
-
-**Correct Pattern:** Reinitialize plugins after HTMX swaps.
-
-```javascript
-// GOOD: Reinitialize after HTMX swaps
 function initPlugins(container) {
     $(container).find('.datepicker').datepicker();
 }
-
-$(document).ready(function() {
-    initPlugins(document.body);
-});
 
 document.body.addEventListener('htmx:afterSwap', function(event) {
     initPlugins(event.detail.target);
 });
 ```
 
-**Pitfall 2: Memory Leaks from Chart Instances**
+### Anti-Pattern 2: Memory Leaks from Chart Instances
 
-**Problem:** Creating charts without destroying old instances causes memory leaks.
+**Problem:** Creating new chart instances without destroying old ones on swap.
 
+**Why It Fails:** Memory leaks; performance degradation; canvas errors.
+
+**Correct Pattern:**
 ```javascript
-// BAD: Creating charts without cleanup
-document.body.addEventListener('htmx:afterSwap', function(event) {
-    new Chart(ctx, {...});  // Old instance not destroyed!
+let chartInstance = null;
+document.body.addEventListener('htmx:beforeSwap', function(event) {
+    if (chartInstance) chartInstance.destroy();
 });
-```
-
-**Correct Pattern:** Destroy existing chart instances before creating new ones.
-
-```javascript
-// GOOD: Destroy before creating new instance
-// See Chart.js integration example above
+document.body.addEventListener('htmx:afterSwap', function(event) {
+    chartInstance = new Chart(ctx, {...});
+});
 ```
 
 ## Post-Execution Checklist

@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.0
 **Keywords:** Bash, testing, ShellCheck, bats, shell script testing, CI/CD, debugging, static analysis, linting, test automation
-**TokenBudget:** ~2250
+**TokenBudget:** ~2650
 **ContextTier:** Medium
 **Depends:** rules/300-bash-scripting-core.md
 

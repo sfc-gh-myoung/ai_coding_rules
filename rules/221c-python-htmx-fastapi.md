@@ -421,7 +421,86 @@ async def htmx_exception_handler(request: Request, exc: HTTPException):
     return HTMLResponse(content=str(exc.detail), status_code=exc.status_code)
 ```
 
-### 8. CSRF Protection
+### 8. Server-Sent Events (SSE) with HTMX
+
+**SSE Streaming for Long-Running Operations:**
+```python
+from fastapi.responses import StreamingResponse
+import asyncio
+import json
+
+@app.get("/operations/{op_id}/stream")
+async def stream_operation_progress(op_id: str):
+    """Stream progress updates via SSE for HTMX consumption."""
+    # Capture event loop BEFORE any thread work
+    loop = asyncio.get_running_loop()
+    progress_queue: asyncio.Queue[dict] = asyncio.Queue()
+
+    def progress_callback(step: str, message: str) -> None:
+        """Thread-safe callback - uses captured loop reference."""
+        loop.call_soon_threadsafe(
+            progress_queue.put_nowait,
+            {"step": step, "message": message, "timestamp": datetime.now().isoformat()}
+        )
+
+    async def event_generator():
+        # Run blocking work with asyncio.to_thread()
+        task = asyncio.create_task(
+            asyncio.to_thread(run_operation, op_id, progress_callback)
+        )
+        
+        while True:
+            if task.done():
+                # Drain remaining messages
+                while not progress_queue.empty():
+                    msg = await progress_queue.get()
+                    yield f"data: {json.dumps(msg)}\n\n"
+                
+                try:
+                    result = task.result()
+                    yield f"data: {json.dumps({'step': 'done', 'success': True})}\n\n"
+                except Exception as e:
+                    yield f"data: {json.dumps({'step': 'error', 'message': str(e)})}\n\n"
+                break
+            
+            try:
+                msg = await asyncio.wait_for(progress_queue.get(), timeout=0.5)
+                yield f"data: {json.dumps(msg)}\n\n"
+            except TimeoutError:
+                # Keepalive ping
+                yield f"data: {json.dumps({'step': 'ping'})}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"}
+    )
+```
+
+**HTMX SSE Extension Usage:**
+```html
+<!-- Include SSE extension -->
+<script src="https://unpkg.com/htmx.org/dist/ext/sse.js"></script>
+
+<!-- Connect to SSE stream -->
+<div hx-ext="sse" sse-connect="/operations/123/stream">
+    <div sse-swap="message" hx-swap="beforeend">
+        <!-- Progress messages will be appended here -->
+    </div>
+</div>
+```
+
+**Critical Pattern - Cross-Thread Communication:**
+```python
+# ✓ CORRECT: Capture loop before thread starts
+loop = asyncio.get_running_loop()  # In async context
+loop.call_soon_threadsafe(queue.put_nowait, data)  # From thread
+
+# ✗ WRONG: Accessing event loop from thread
+asyncio.get_event_loop()  # Raises "no current event loop in thread"
+```
+
+### 9. CSRF Protection
 
 **Using Starlette-WTF:**
 ```bash
@@ -449,26 +528,24 @@ async def form_page(request: Request):
 
 ## Anti-Patterns and Common Mistakes
 
-### Critical Violations
-
-| Anti-Pattern | Problem | Correct Pattern |
-|--------------|---------|-----------------|
-| **Blocking I/O in async routes** | Blocks event loop | Use async libraries (asyncio, httpx, asyncpg) |
-| **Missing `request` in TemplateResponse** | Jinja2Templates requires it | Always pass `{"request": request}` |
-| **Returning JSON for HTMX** | HTMX expects HTML | Return HTMLResponse with templates |
-| **No validation** | Security risk, data corruption | Use Pydantic models |
-
 ### Common Pitfalls
 
 **Pitfall 1: Blocking I/O**
+
+**Problem:** Blocking calls in async routes block the event loop and degrade performance.
+
 ```python
-# ❌ BAD: Blocking call in async route
+# BAD: Blocking call in async route
 @app.get("/data")
 async def get_data():
     data = requests.get("https://api.example.com/data").json()  # Blocks!
     return data
+```
 
-# ✓ GOOD: Use async HTTP client
+**Correct Pattern:** Use async HTTP clients for non-blocking I/O.
+
+```python
+# GOOD: Use async HTTP client
 @app.get("/data")
 async def get_data():
     async with httpx.AsyncClient() as client:
@@ -478,13 +555,20 @@ async def get_data():
 ```
 
 **Pitfall 2: Missing Request Context**
+
+**Problem:** Jinja2Templates requires the request object in the context.
+
 ```python
-# ❌ BAD: No request in context
+# BAD: No request in context
 @app.get("/")
 async def home(request: Request):
     return templates.TemplateResponse("home.html", {})  # Error!
+```
 
-# ✓ GOOD: Include request
+**Correct Pattern:** Always include request in the template context.
+
+```python
+# GOOD: Include request
 @app.get("/")
 async def home(request: Request):
     return templates.TemplateResponse("home.html", {"request": request})

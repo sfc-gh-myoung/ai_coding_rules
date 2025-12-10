@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.1] - 2025-12-10
+
 ### Added
 - `207-python-logging.md` — New Python logging best practices rule (100 → 101 rules)
   - Rich console bridging to Python logger for dual CLI/web UI output
@@ -380,7 +382,8 @@ Processed 2 retrospective findings from Cortex Agent testing project:
 - Basic validation scripts
 - Documentation templates
 
-[Unreleased]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.2.0...HEAD
+[Unreleased]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.2.1...HEAD
+[3.2.1]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.2.0...v3.2.1
 [3.2.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.1.0...v3.2.0
 [3.1.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.0.0...v3.1.0
 [3.0.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.6.1...v3.0.0

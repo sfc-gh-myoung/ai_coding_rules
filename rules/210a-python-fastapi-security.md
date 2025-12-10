@@ -80,6 +80,62 @@ FastAPI security patterns for authentication, authorization, CORS, and security 
 
 </contract>
 
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Hardcoded Secrets in Application Code
+
+**Problem:** Embedding API keys, database passwords, or JWT secrets directly in source code or configuration files committed to version control.
+
+**Why It Fails:** Secrets exposed in git history forever, even after deletion. Rotating credentials requires code changes and redeployment. Secrets leaked to anyone with repo access. Violates security compliance requirements.
+
+**Correct Pattern:**
+```python
+# BAD: Hardcoded secrets
+SECRET_KEY = "super-secret-jwt-key-12345"
+DATABASE_URL = "postgresql://admin:password123@prod-db:5432/app"
+
+# GOOD: Environment variables with validation
+from pydantic_settings import BaseSettings
+
+class Settings(BaseSettings):
+    secret_key: str
+    database_url: str
+    
+    class Config:
+        env_file = ".env"
+
+settings = Settings()  # Fails fast if secrets missing
+```
+
+### Anti-Pattern 2: Overly Permissive CORS Configuration
+
+**Problem:** Setting `allow_origins=["*"]` in production CORS middleware, allowing any website to make authenticated requests to your API.
+
+**Why It Fails:** Enables cross-site request forgery (CSRF) attacks. Malicious sites can make authenticated API calls using victim's cookies. Credential theft and data exfiltration become trivial.
+
+**Correct Pattern:**
+```python
+# BAD: Allow all origins in production
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Any site can call your API!
+    allow_credentials=True,
+)
+
+# GOOD: Explicit origin allowlist
+ALLOWED_ORIGINS = [
+    "https://myapp.com",
+    "https://admin.myapp.com",
+]
+if settings.environment == "development":
+    ALLOWED_ORIGINS.append("http://localhost:3000")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
+)
+```
 
 ## Post-Execution Checklist
 - [ ] Required dependencies and context verified

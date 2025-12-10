@@ -528,24 +528,14 @@ async def form_page(request: Request):
 
 ## Anti-Patterns and Common Mistakes
 
-### Common Pitfalls
+### Anti-Pattern 1: Blocking I/O in Async Routes
 
-**Pitfall 1: Blocking I/O**
+**Problem:** Using synchronous HTTP libraries (requests) in async FastAPI routes.
 
-**Problem:** Blocking calls in async routes block the event loop and degrade performance.
+**Why It Fails:** Blocks the event loop; degrades performance; defeats async benefits.
 
+**Correct Pattern:**
 ```python
-# BAD: Blocking call in async route
-@app.get("/data")
-async def get_data():
-    data = requests.get("https://api.example.com/data").json()  # Blocks!
-    return data
-```
-
-**Correct Pattern:** Use async HTTP clients for non-blocking I/O.
-
-```python
-# GOOD: Use async HTTP client
 @app.get("/data")
 async def get_data():
     async with httpx.AsyncClient() as client:
@@ -554,21 +544,14 @@ async def get_data():
     return data
 ```
 
-**Pitfall 2: Missing Request Context**
+### Anti-Pattern 2: Missing Request in TemplateResponse
 
-**Problem:** Jinja2Templates requires the request object in the context.
+**Problem:** Omitting the `request` object from Jinja2 template context.
 
+**Why It Fails:** Jinja2Templates requires request; causes runtime errors.
+
+**Correct Pattern:**
 ```python
-# BAD: No request in context
-@app.get("/")
-async def home(request: Request):
-    return templates.TemplateResponse("home.html", {})  # Error!
-```
-
-**Correct Pattern:** Always include request in the template context.
-
-```python
-# GOOD: Include request
 @app.get("/")
 async def home(request: Request):
     return templates.TemplateResponse("home.html", {"request": request})

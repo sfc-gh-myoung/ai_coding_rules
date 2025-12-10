@@ -69,6 +69,62 @@ Shell script security, input validation, access control
 
 </contract>
 
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Command Injection via Unsanitized Input
+
+**Problem:** Passing user input directly to commands or eval without sanitization, allowing arbitrary command execution.
+
+**Why It Fails:** Attackers can inject shell metacharacters (`;`, `|`, `$()`) to execute arbitrary commands. Remote code execution vulnerabilities. Complete system compromise from simple input fields.
+
+**Correct Pattern:**
+```bash
+# BAD: Direct user input in commands
+filename="$1"
+cat $filename  # User passes "; rm -rf /" as filename!
+
+# BAD: eval with user input
+eval "process_$user_input"  # Arbitrary code execution
+
+# GOOD: Validate and sanitize input
+filename="$1"
+# Validate: only alphanumeric, dash, underscore, dot
+if [[ ! "$filename" =~ ^[a-zA-Z0-9._-]+$ ]]; then
+    echo "Invalid filename" >&2
+    exit 1
+fi
+cat -- "$filename"  # -- prevents option injection
+
+# GOOD: Use arrays instead of eval
+declare -A handlers=(["process"]="do_process" ["validate"]="do_validate")
+"${handlers[$action]}"  # Safe dispatch
+```
+
+### Anti-Pattern 2: Storing Secrets in Script Files or History
+
+**Problem:** Hardcoding passwords, API keys, or tokens directly in shell scripts, or passing them as command-line arguments (visible in process list and history).
+
+**Why It Fails:** Secrets visible in `ps aux` output. Logged in shell history files. Committed to version control. Readable by any user with file access. Cannot rotate without script changes.
+
+**Correct Pattern:**
+```bash
+# BAD: Secrets in script
+PASSWORD="super_secret_123"
+mysql -u admin -p"$PASSWORD" database
+
+# BAD: Secrets as arguments (visible in ps)
+./deploy.sh --api-key="sk-12345"
+
+# GOOD: Environment variables
+mysql -u admin -p"$MYSQL_PASSWORD" database
+
+# GOOD: Read from secure file
+PASSWORD=$(cat /run/secrets/db_password)
+
+# GOOD: Prompt securely (for interactive)
+read -s -p "Password: " PASSWORD
+echo  # Newline after hidden input
+```
 
 ## Post-Execution Checklist
 - [ ] Required dependencies and context verified

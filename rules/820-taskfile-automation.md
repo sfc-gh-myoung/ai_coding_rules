@@ -69,6 +69,79 @@ Project automation using Taskfile.yml for consistent development workflows
 
 </contract>
 
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Hardcoded Paths Without Variables
+
+**Problem:** Using absolute paths or hardcoded directory names in Taskfile commands instead of variables, making tasks non-portable across environments.
+
+**Why It Fails:** Tasks break when directory structure changes. Different developers have different paths. CI/CD environments have different layouts. Tasks require modification for each environment.
+
+**Correct Pattern:**
+```yaml
+# BAD: Hardcoded paths
+tasks:
+  build:
+    cmds:
+      - cd /Users/developer/project/src && go build
+      - cp /Users/developer/project/bin/app /opt/deploy/
+
+# GOOD: Use variables and relative paths
+vars:
+  BUILD_DIR: '{{.ROOT_DIR}}/build'
+  SRC_DIR: '{{.ROOT_DIR}}/src'
+
+tasks:
+  build:
+    dir: '{{.SRC_DIR}}'
+    cmds:
+      - go build -o {{.BUILD_DIR}}/app
+    sources:
+      - '{{.SRC_DIR}}/**/*.go'
+    generates:
+      - '{{.BUILD_DIR}}/app'
+```
+
+### Anti-Pattern 2: Missing Dependencies Between Tasks
+
+**Problem:** Not declaring task dependencies with `deps:` or `preconditions:`, causing tasks to fail when prerequisites aren't met or running redundant work.
+
+**Why It Fails:** Tasks fail with cryptic errors when dependencies missing. Users must know implicit order. Parallel execution breaks without proper deps. CI pipelines unreliable.
+
+**Correct Pattern:**
+```yaml
+# BAD: No dependencies declared
+tasks:
+  test:
+    cmds:
+      - pytest  # Fails if dependencies not installed!
+  
+  deploy:
+    cmds:
+      - ./deploy.sh  # Fails if build not run!
+
+# GOOD: Explicit dependency chain
+tasks:
+  install:
+    cmds:
+      - uv sync
+    sources:
+      - pyproject.toml
+      - uv.lock
+    
+  test:
+    deps: [install]  # Ensures dependencies installed first
+    cmds:
+      - uv run pytest
+      
+  deploy:
+    deps: [build, test]  # Won't deploy without passing tests
+    preconditions:
+      - sh: '[ -f dist/app.tar.gz ]'
+        msg: "Build artifact missing. Run 'task build' first."
+    cmds:
+      - ./deploy.sh
+```
 
 ## Post-Execution Checklist
 - [ ] **Version specified:** `version: '3.45'` or later in all Taskfiles

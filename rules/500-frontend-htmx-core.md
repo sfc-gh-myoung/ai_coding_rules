@@ -387,36 +387,53 @@ htmx.trigger(element, 'click');
 
 ## Anti-Patterns and Common Mistakes
 
-### Critical Violations
+### Anti-Pattern 1: No Target Specified
 
-| Anti-Pattern | Problem | Correct Pattern |
-|--------------|---------|-----------------|
-| **No hx-target** | Content replaces button itself | Always specify `hx-target` |
-| **Wrong swap strategy** | Nested elements or missing content | Use `outerHTML` vs `innerHTML` appropriately |
-| **No loading indicator** | Poor UX during requests | Add `hx-indicator` |
-| **Missing progressive enhancement** | Breaks without JavaScript | Add `action` attribute as fallback |
+**Problem:** Omitting `hx-target` causes the triggering element to replace itself with the response.
 
-### Common Pitfalls
+**Why It Fails:** Button disappears after click; unexpected UI behavior; confuses users.
 
-**Pitfall 1: No Target Specified**
+**Correct Pattern:**
 ```html
-<!-- ❌ BAD: Button replaces itself -->
-<button hx-get="/data">Load</button>
-
-<!-- ✓ GOOD: Specify target -->
 <button hx-get="/data" hx-target="#content">Load</button>
 <div id="content"></div>
 ```
 
-**Pitfall 2: Incorrect Swap Strategy**
-```html
-<!-- ❌ BAD: Creates nested divs -->
-<div id="content" hx-get="/data" hx-target="#content">
-</div>
+### Anti-Pattern 2: Incorrect Swap Strategy
 
-<!-- ✓ GOOD: Use outerHTML to replace entire element -->
+**Problem:** Using default `innerHTML` swap when `outerHTML` is needed, causing nested elements.
+
+**Why It Fails:** Creates deeply nested DOM structures; breaks CSS selectors; memory leaks.
+
+**Correct Pattern:**
+```html
 <div id="content" hx-get="/data" hx-target="#content" hx-swap="outerHTML">
 </div>
+```
+
+### Anti-Pattern 3: No Loading Indicator
+
+**Problem:** Not providing visual feedback during HTMX requests.
+
+**Why It Fails:** Users don't know if action worked; may click repeatedly; poor UX.
+
+**Correct Pattern:**
+```html
+<button hx-get="/data" hx-target="#content" hx-indicator="#spinner">Load</button>
+<span id="spinner" class="htmx-indicator">Loading...</span>
+```
+
+### Anti-Pattern 4: Missing Progressive Enhancement
+
+**Problem:** HTMX-only forms that break completely without JavaScript.
+
+**Why It Fails:** Accessibility issues; breaks for users with JS disabled; SEO problems.
+
+**Correct Pattern:**
+```html
+<form action="/submit" method="post" hx-post="/submit" hx-target="#result">
+  <button type="submit">Submit</button>
+</form>
 ```
 
 ## Post-Execution Checklist

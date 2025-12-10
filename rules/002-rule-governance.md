@@ -180,6 +180,42 @@ python3 scripts/schema_validator.py rules/NNN-rule.md --verbose
 - **Validation-First:** Always run schema_validator.py before committing rule changes
 - **Text-Only Format:** No emojis in rule files (v3.0 requirement for universal compatibility)
 
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Keyword Stuffing for Discovery
+
+**Problem:** Adding irrelevant or duplicate keywords to meet the 10-15 requirement, or using overly generic terms that don't aid semantic discovery.
+
+**Why It Fails:** Pollutes RULES_INDEX.md with false matches, causes wrong rules to load, wastes agent context budget on irrelevant rules, and degrades rule discovery accuracy.
+
+**Correct Pattern:**
+```markdown
+# BAD: Keyword stuffing
+**Keywords:** code, coding, programming, software, development, best, practices, rules, guidelines, standards, quality, good, better, best
+
+# GOOD: Semantic, specific keywords
+**Keywords:** Snowflake SQL, query optimization, CTE patterns, warehouse sizing, clustering keys, materialized views, query profiling, cost reduction, performance tuning, execution plans
+```
+
+### Anti-Pattern 2: Circular or Missing Dependencies
+
+**Problem:** Declaring dependencies that create circular references, or omitting critical dependencies that the rule assumes are loaded.
+
+**Why It Fails:** Circular dependencies cause infinite loading loops or stack overflows. Missing dependencies mean agents lack required context, leading to incomplete or incorrect rule application.
+
+**Correct Pattern:**
+```markdown
+# BAD: Circular dependency
+# 100-snowflake-core.md depends on 101-snowflake-streamlit-core.md
+# 101-snowflake-streamlit-core.md depends on 100-snowflake-core.md
+
+# GOOD: Hierarchical dependencies
+# 101-snowflake-streamlit-core.md
+**Depends:** rules/100-snowflake-core.md, rules/000-global-core.md
+
+# Rule 100 is foundation, 101 extends it (no reverse dependency)
+```
+
 ## Post-Execution Checklist
 
 - [ ] New/updated rule has all 4 metadata fields correctly formatted

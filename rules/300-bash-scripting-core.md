@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.0
 **Keywords:** Bash, shell scripting, set -euo pipefail, error handling, strict mode, functions, variables, script structure, trap, exit codes, shellcheck, input validation
-**TokenBudget:** ~2700
+**TokenBudget:** ~3100
 **ContextTier:** High
 **Depends:** rules/000-global-core.md
 

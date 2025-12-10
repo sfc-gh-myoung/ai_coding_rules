@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.0
 **Keywords:** Ruff, linting, formatting, code quality, style checking, uvx ruff, lint errors, ruff check, ruff format, pyproject.toml configuration
-**TokenBudget:** ~1550
+**TokenBudget:** ~1950
 **ContextTier:** High
 **Depends:** rules/200-python-core.md
 

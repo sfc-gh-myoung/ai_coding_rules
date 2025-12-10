@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.0
 **Keywords:** Faker, test data generation, fake data, providers, localization, synthetic data, pytest fixtures, seeding, deterministic testing, Python testing
-**TokenBudget:** ~2650
+**TokenBudget:** ~3100
 **ContextTier:** Low
 **Depends:** rules/200-python-core.md
 

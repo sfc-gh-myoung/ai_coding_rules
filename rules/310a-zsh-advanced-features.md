@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.0
 **Keywords:** Zsh, completion system, modules, hooks, advanced features, performance optimization, compinit, zstyle, autoload, scripting
-**TokenBudget:** ~2600
+**TokenBudget:** ~3050
 **ContextTier:** Low
 **Depends:** rules/310-zsh-scripting-core.md
 

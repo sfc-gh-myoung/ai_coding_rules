@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.0
 **Keywords:** Python packaging, project structure, setup.py, pyproject.toml, dependencies, package distribution, __init__.py, hatchling, uv, src layout
-**TokenBudget:** ~1800
+**TokenBudget:** ~2200
 **ContextTier:** High
 **Depends:** rules/200-python-core.md
 

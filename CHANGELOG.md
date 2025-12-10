@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- feat(rules): add Alpine.js core rule (`421-javascript-alpinejs-core.md`) for lightweight reactive framework (101 → 102 rules)
+  - Comprehensive Alpine.js 3.x guidance for declarative directives and reactive data
+  - Core directives (x-data, x-bind, x-on, x-model, x-show, x-if, x-for, x-text, x-html)
+  - Reactivity system (methods, getters, $watch for computed properties)
+  - Magic properties ($el, $refs, $store, $dispatch, $nextTick, $root, $data)
+  - Component patterns (Alpine.data, Alpine.store, init/destroy lifecycle)
+  - 10 anti-patterns with problem/correct pattern structure
+  - Progressive enhancement and interactive component patterns
+  - XSS prevention guidance for x-html usage
+- README.md and docs/ARCHITECTURE.md updated to reflect 102 rules
+- RULES_INDEX.md updated with new Alpine.js rule entry (keywords: Alpine.js, reactivity, x-data, x-bind, x-on, x-model, x-show, x-if, magic properties, $el, $refs, $store, declarative, progressive enhancement, lightweight)
+- docs(readme): add Video Tutorials section with 4 YouTube demonstrations
+  - Demo 1: Getting Started with AI_CODING_RULES Project
+  - Demo 3: Bug Fixes and Enhancements on Existing Project
+  - Demo 4: Using Snowflake Cortex Code CLI with AI_CODING_RULES
+  - Demo 5: Continuation of Snowflake Cortex Code CLI usage
+  - Videos positioned after Quick Start for immediate hands-on learning
+  - Updated Table of Contents and Next Steps navigation
+
 ## [3.2.1] - 2025-12-10
 
 ### Added

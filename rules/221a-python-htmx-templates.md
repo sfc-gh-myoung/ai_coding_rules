@@ -355,68 +355,42 @@ def inject_common():
 
 ## Anti-Patterns and Common Mistakes
 
-### Common Pitfalls
+### Anti-Pattern 1: Missing Element IDs
 
-**Pitfall 1: No Element IDs**
+**Problem:** HTMX-swappable elements lack unique IDs for targeting.
 
-**Problem:** HTMX cannot target elements without IDs for replacement.
+**Why It Fails:** HTMX cannot reliably target or replace elements; breaks OOB swaps.
 
+**Correct Pattern:**
 ```html
-<!-- BAD: No ID for targeting -->
-<div hx-get="/users/123" hx-target="#user-info">
-    <p>{{ user.name }}</p>
-</div>
-```
-
-**Correct Pattern:** Add unique IDs to all swappable elements.
-
-```html
-<!-- GOOD: ID present for targeting/replacement -->
 <div id="user-123" hx-get="/users/123" hx-target="#user-123" hx-swap="outerHTML">
     <p>{{ user.name }}</p>
 </div>
 ```
 
-**Pitfall 2: Partials Extending Base**
+### Anti-Pattern 2: Partials Extending Base Template
 
-**Problem:** Partials inheriting full page structure defeats the purpose of partial rendering.
+**Problem:** Partial templates inherit from base.html with full page structure.
 
+**Why It Fails:** HTMX receives entire HTML document instead of fragment; breaks swapping.
+
+**Correct Pattern:**
 ```html
-{# BAD: Partial inherits full page structure #}
-{# templates/partials/_user_row.html #}
-{% extends "base.html" %}
-{% block content %}
-    <tr id="user-{{ user.id }}">...</tr>
-{% endblock %}
-```
-
-**Correct Pattern:** Partials should be standalone fragments without inheritance.
-
-```html
-{# GOOD: Partial is standalone fragment #}
-{# templates/partials/_user_row.html #}
+{# templates/partials/_user_row.html - standalone fragment #}
 <tr id="user-{{ user.id }}">
     <td>{{ user.name }}</td>
     <td>{{ user.email }}</td>
 </tr>
 ```
 
-**Pitfall 3: Inconsistent Naming**
+### Anti-Pattern 3: Inconsistent Template Naming
 
-**Problem:** Inconsistent naming makes templates hard to find and maintain.
+**Problem:** Mixed naming conventions for partials (underscores, hyphens, PascalCase).
 
+**Why It Fails:** Hard to identify partials; confuses team; maintenance nightmare.
+
+**Correct Pattern:**
 ```
-BAD:
-templates/
-├── user_table_partial.html
-├── form-user.html
-├── UserRow.html
-```
-
-**Correct Pattern:** Use consistent naming conventions with underscore prefix for partials.
-
-```
-GOOD:
 templates/partials/
 ├── _user_table.html
 ├── _user_form.html

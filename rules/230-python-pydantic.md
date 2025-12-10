@@ -70,6 +70,73 @@ Python data validation, model definition, settings management
 
 </contract>
 
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Using Dict Instead of Pydantic Models for API Responses
+
+**Problem:** Returning raw dictionaries from API endpoints instead of Pydantic models, losing type safety and automatic serialization.
+
+**Why It Fails:** No compile-time type checking. Typos in field names not caught until runtime. No automatic JSON serialization of complex types (datetime, UUID). Missing OpenAPI schema generation. Inconsistent response formats.
+
+**Correct Pattern:**
+```python
+# BAD: Raw dict responses
+@app.get("/users/{user_id}")
+async def get_user(user_id: int) -> dict:
+    user = db.get_user(user_id)
+    return {
+        "id": user.id,
+        "name": user.name,
+        "created": str(user.created_at)  # Manual serialization!
+    }
+
+# GOOD: Pydantic response model
+class UserResponse(BaseModel):
+    id: int
+    name: str
+    created_at: datetime  # Auto-serialized to ISO format
+    
+    model_config = ConfigDict(from_attributes=True)
+
+@app.get("/users/{user_id}", response_model=UserResponse)
+async def get_user(user_id: int) -> UserResponse:
+    user = db.get_user(user_id)
+    return UserResponse.model_validate(user)
+```
+
+### Anti-Pattern 2: Validation Logic Outside Pydantic Models
+
+**Problem:** Performing validation in route handlers or service layers instead of using Pydantic validators, scattering validation logic throughout the codebase.
+
+**Why It Fails:** Validation not reusable across endpoints. Easy to forget validation in new code paths. Inconsistent error messages. Validation bypassed when model used directly. No automatic 422 responses.
+
+**Correct Pattern:**
+```python
+# BAD: Validation in route handler
+@app.post("/users")
+async def create_user(data: dict):
+    if not data.get("email") or "@" not in data["email"]:
+        raise HTTPException(400, "Invalid email")
+    if len(data.get("password", "")) < 8:
+        raise HTTPException(400, "Password too short")
+    # Validation scattered, easy to miss
+
+# GOOD: Validation in Pydantic model
+class UserCreate(BaseModel):
+    email: EmailStr  # Built-in email validation
+    password: str
+    
+    @field_validator("password")
+    @classmethod
+    def password_strength(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters")
+        return v
+
+@app.post("/users")
+async def create_user(data: UserCreate):  # Auto-validated!
+    return create_user_in_db(data)
+```
 
 ## Post-Execution Checklist
 - [ ] Required dependencies and context verified

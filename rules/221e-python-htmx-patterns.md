@@ -590,25 +590,14 @@ def create_user():
 
 ## Anti-Patterns and Common Mistakes
 
-### Common Pitfalls
+### Anti-Pattern 1: Client-Side Validation Only
 
-**Pitfall 1: No Server-Side Validation**
+**Problem:** Relying solely on client-side validation without server-side checks.
 
-**Problem:** Trusting client input without server-side validation is insecure.
+**Why It Fails:** Easily bypassed; security vulnerability; data corruption risk.
 
+**Correct Pattern:**
 ```python
-# BAD: Trusting client input
-@app.route('/users', methods=['POST'])
-def create_user():
-    user = User(**request.form)  # Dangerous!
-    save_user(user)
-    return render_template('partials/_user_row.html', user=user)
-```
-
-**Correct Pattern:** Always validate input on the server side.
-
-```python
-# GOOD: Server-side validation
 @app.route('/users', methods=['POST'])
 def create_user():
     data = request.form
@@ -623,21 +612,14 @@ def create_user():
     return render_template('partials/_user_row.html', user=user)
 ```
 
-**Pitfall 2: Wrong Swap Strategy**
+### Anti-Pattern 2: Wrong Swap Strategy for Forms
 
-**Problem:** Using `innerHTML` on self-replacing elements creates nested structures.
+**Problem:** Using `innerHTML` swap on self-replacing elements.
 
+**Why It Fails:** Creates nested elements; breaks form structure; event handlers lost.
+
+**Correct Pattern:**
 ```html
-<!-- BAD: innerHTML on self-replacing element -->
-<div id="form" hx-post="/submit" hx-target="#form" hx-swap="innerHTML">
-    <form>...</form>
-</div>
-```
-
-**Correct Pattern:** Use `outerHTML` to replace the entire element.
-
-```html
-<!-- GOOD: outerHTML to replace entire element -->
 <form id="form" hx-post="/submit" hx-target="#form" hx-swap="outerHTML">
     ...
 </form>

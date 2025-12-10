@@ -70,6 +70,65 @@ Python CLI development, command-line applications, user interfaces
 
 </contract>
 
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Missing Exit Codes for Script Automation
+
+**Problem:** CLI commands that always exit with code 0, even on errors, or use inconsistent exit codes that break shell script automation.
+
+**Why It Fails:** Shell scripts can't detect failures (`set -e` doesn't catch errors). CI/CD pipelines show green on failures. Automation chains continue after failed steps. Silent failures corrupt data.
+
+**Correct Pattern:**
+```python
+# BAD: Always exits 0
+@app.command()
+def process_file(path: str):
+    try:
+        data = load_file(path)
+    except FileNotFoundError:
+        print("File not found")
+        return  # Exits 0, automation thinks success!
+
+# GOOD: Explicit exit codes with raise_typer_exit
+@app.command()
+def process_file(path: str):
+    try:
+        data = load_file(path)
+    except FileNotFoundError:
+        typer.echo("Error: File not found", err=True)
+        raise typer.Exit(code=1)  # Non-zero signals failure
+    except PermissionError:
+        typer.echo("Error: Permission denied", err=True)
+        raise typer.Exit(code=2)  # Different codes for different errors
+```
+
+### Anti-Pattern 2: Hardcoded Paths Without Configuration Options
+
+**Problem:** CLI tools with hardcoded file paths, directories, or URLs that can't be overridden via arguments or environment variables.
+
+**Why It Fails:** Tools only work in original developer's environment. Can't run in CI/CD with different directory structures. No way to test with mock data. Users must modify source code to change paths.
+
+**Correct Pattern:**
+```python
+# BAD: Hardcoded paths
+@app.command()
+def export_data():
+    output_path = "/home/developer/exports/data.csv"  # Only works for one user!
+    save_to_csv(output_path)
+
+# GOOD: Configurable with sensible defaults
+@app.command()
+def export_data(
+    output: Path = typer.Option(
+        Path("./exports/data.csv"),
+        "--output", "-o",
+        help="Output file path",
+        envvar="EXPORT_OUTPUT_PATH"
+    )
+):
+    output.parent.mkdir(parents=True, exist_ok=True)
+    save_to_csv(output)
+```
 
 ## Post-Execution Checklist
 - [ ] Required dependencies and context verified

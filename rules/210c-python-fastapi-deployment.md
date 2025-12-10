@@ -79,6 +79,54 @@ FastAPI production deployment with Docker, ASGI servers, and API documentation p
 
 </contract>
 
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Single Worker Process in Production
+
+**Problem:** Running FastAPI with a single uvicorn worker (`uvicorn main:app`) in production, unable to utilize multiple CPU cores.
+
+**Why It Fails:** Single process handles all requests sequentially. CPU-bound tasks block the entire application. No fault tolerance—process crash means total downtime. Cannot scale to handle production traffic.
+
+**Correct Pattern:**
+```bash
+# BAD: Single worker (development only)
+uvicorn main:app --host 0.0.0.0 --port 8000
+
+# GOOD: Multiple workers with process manager
+gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
+
+# Or use uvicorn with workers (requires --workers flag)
+uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4
+
+# Rule of thumb: workers = (2 * CPU_CORES) + 1
+```
+
+### Anti-Pattern 2: Missing Health Check Endpoints
+
+**Problem:** Deploying FastAPI applications without health check endpoints for load balancers and orchestrators to verify application readiness.
+
+**Why It Fails:** Load balancers can't detect unhealthy instances. Kubernetes can't perform liveness/readiness probes. Failed deployments aren't detected. Traffic routed to broken instances.
+
+**Correct Pattern:**
+```python
+# BAD: No health checks
+# Load balancer has no way to verify app is healthy
+
+# GOOD: Comprehensive health endpoints
+@app.get("/health/live")
+async def liveness():
+    """Kubernetes liveness probe - is the process running?"""
+    return {"status": "alive"}
+
+@app.get("/health/ready")
+async def readiness(db: Session = Depends(get_db)):
+    """Kubernetes readiness probe - can we serve traffic?"""
+    try:
+        db.execute(text("SELECT 1"))
+        return {"status": "ready", "database": "connected"}
+    except Exception:
+        raise HTTPException(503, "Database unavailable")
+```
 
 ## Post-Execution Checklist
 - [ ] Required dependencies and context verified

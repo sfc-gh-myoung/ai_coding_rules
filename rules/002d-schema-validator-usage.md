@@ -983,6 +983,46 @@ jobs:
         run: python3 scripts/schema_validator.py rules/
 ```
 
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Ignoring MEDIUM Warnings Until They Accumulate
+
+**Problem:** Treating MEDIUM severity warnings as "optional" and never addressing them, leading to gradual quality degradation across the rule set.
+
+**Why It Fails:** MEDIUM warnings often indicate missing best practices (like Anti-Patterns sections). Accumulated warnings create technical debt, make validation output noisy, and hide new issues in the noise.
+
+**Correct Pattern:**
+```bash
+# BAD: Only fix CRITICAL, ignore everything else
+$ python3 scripts/schema_validator.py rules/
+# "32 MEDIUM warnings? That's fine, no CRITICAL errors"
+
+# GOOD: Track and address warnings systematically
+$ python3 scripts/schema_validator.py rules/ --json | jq '.summary'
+# Schedule warning cleanup sprints
+# Target: 0 CRITICAL, 0 HIGH, <10 MEDIUM across all rules
+```
+
+### Anti-Pattern 2: Bypassing Validation in CI/CD
+
+**Problem:** Adding `|| true` or `continue-on-error: true` to CI/CD validation steps to prevent pipeline failures, rather than fixing the underlying issues.
+
+**Why It Fails:** Defeats the purpose of automated validation. Invalid rules merge to main, breaking rule discovery and agent effectiveness. Creates false confidence in rule quality.
+
+**Correct Pattern:**
+```yaml
+# BAD: Bypassing validation
+- name: Validate rules
+  run: python3 scripts/schema_validator.py rules/ || true
+  continue-on-error: true
+
+# GOOD: Fail fast, fix forward
+- name: Validate rules
+  run: python3 scripts/schema_validator.py rules/
+  # No error suppression - pipeline fails on CRITICAL/HIGH errors
+  # Fix rules before merging, not after
+```
+
 ## Post-Execution Checklist
 
 - [ ] schema_validator.py runs without Python errors

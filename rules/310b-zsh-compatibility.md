@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.0
 **Keywords:** Zsh, shell compatibility, bash vs zsh, portable scripts, cross-shell, migration, emulate, POSIX compliance, scripting, shell scripting
-**TokenBudget:** ~2500
+**TokenBudget:** ~2950
 **ContextTier:** Low
 **Depends:** rules/300-bash-scripting-core.md
 
@@ -69,6 +69,56 @@ Cross-shell compatibility, migration strategies, mixed environments
 
 </contract>
 
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Using Zsh-Only Syntax in Portable Scripts
+
+**Problem:** Writing scripts with `#!/bin/sh` or `#!/bin/bash` shebang but using zsh-specific syntax like extended globbing, associative array syntax, or zsh parameter expansion.
+
+**Why It Fails:** Scripts fail on systems where /bin/sh is dash or bash. CI/CD environments may not have zsh. Docker containers use minimal shells. Portability broken silently.
+
+**Correct Pattern:**
+```zsh
+# BAD: Zsh syntax with bash shebang
+#!/bin/bash
+files=(*.txt(N))  # Zsh glob qualifier - fails in bash!
+print -P "%F{red}Error%f"  # Zsh print - not in bash
+
+# GOOD: Match shebang to syntax
+#!/bin/zsh
+files=(*.txt(N))  # Zsh script, zsh syntax OK
+
+# OR write portable POSIX
+#!/bin/sh
+files=$(find . -name "*.txt")  # POSIX compatible
+printf "\033[31mError\033[0m\n"  # POSIX printf
+```
+
+### Anti-Pattern 2: Ignoring setopt Differences Between Interactive and Script Modes
+
+**Problem:** Writing scripts that depend on options set in .zshrc (like EXTENDED_GLOB or NULL_GLOB) without explicitly setting them in the script.
+
+**Why It Fails:** Scripts work when sourced but fail when executed. Behavior differs between users with different .zshrc configs. CI environments have different defaults. Subtle bugs from option mismatches.
+
+**Correct Pattern:**
+```zsh
+# BAD: Assumes interactive options are set
+#!/bin/zsh
+# Relies on EXTENDED_GLOB from .zshrc
+if [[ $file == *.txt~backup* ]]; then  # Extended glob - may not work!
+    process "$file"
+fi
+
+# GOOD: Explicitly set required options
+#!/bin/zsh
+setopt EXTENDED_GLOB  # Enable extended globbing
+setopt NULL_GLOB      # No error on no matches
+setopt ERR_EXIT       # Exit on error
+
+if [[ $file == *.txt~backup* ]]; then
+    process "$file"
+fi
+```
 
 ## Post-Execution Checklist
 - [ ] Required dependencies and context verified

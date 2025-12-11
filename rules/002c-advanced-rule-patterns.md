@@ -412,6 +412,50 @@ def search(
     """
 ```
 
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Premature Rule Abstraction
+
+**Problem:** Creating abstract, highly generalized rules before understanding concrete use cases, or extracting patterns from a single example.
+
+**Why It Fails:** Abstract rules lack actionable guidance. Agents can't apply vague principles to specific situations. Rules become "wisdom" that sounds good but doesn't help execution.
+
+**Correct Pattern:**
+```markdown
+# BAD: Premature abstraction
+"Always consider the trade-offs between different approaches"
+"Use appropriate error handling for the context"
+
+# GOOD: Concrete then abstract
+## Specific Pattern (from real use cases)
+When catching database exceptions in FastAPI:
+1. Log full traceback with structlog
+2. Return HTTPException(500) with correlation_id
+3. Never expose internal error details to client
+
+## Generalized Principle (after 3+ concrete examples)
+Error handling should: log details internally, return safe messages externally
+```
+
+### Anti-Pattern 2: Over-Engineering Multi-Session State
+
+**Problem:** Creating complex state management systems with multiple STATE files, version tracking, and elaborate recovery protocols for simple workflows.
+
+**Why It Fails:** Adds cognitive overhead without benefit. Simple tasks become bureaucratic. State files become stale faster than they're useful, and maintenance burden exceeds value.
+
+**Correct Pattern:**
+```markdown
+# BAD: Over-engineered state for simple task
+STATE_v3_checkpoint_2024-01-15.json
+STATE_recovery_log.md
+STATE_session_handoff.yml
+
+# GOOD: Minimal state for task complexity
+# Simple task (1-2 sessions): Use activeContext.md only
+# Medium task (3-5 sessions): Add task-specific checklist
+# Complex task (5+ sessions): Consider dedicated STATE.md
+```
+
 ## Post-Execution Checklist
 
 - [ ] Rules provide clear heuristics without brittle if-else conditions

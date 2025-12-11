@@ -108,6 +108,55 @@ Verify cell names follow naming conventions; validate deterministic execution; c
 
 </contract>
 
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Hidden State Dependencies Between Cells
+
+**Problem:** Notebook cells that depend on variables or state created by out-of-order execution, causing "Restart Kernel & Run All" to fail.
+
+**Why It Fails:** Notebooks executed interactively accumulate hidden state. When shared or deployed, they fail because cells assume variables exist from previous ad-hoc runs. This breaks reproducibility and makes debugging impossible.
+
+**Correct Pattern:**
+```python
+# BAD: Cell 5 depends on variable from deleted Cell 3
+# df_filtered was created interactively, then Cell 3 was deleted
+result = df_filtered.groupby('region').sum()  # NameError on fresh run
+
+# GOOD: Each cell is self-contained or explicitly chains
+# Cell 1: Load data
+df_raw = session.table('SALES').to_pandas()
+
+# Cell 2: Filter (explicit dependency on Cell 1)
+df_filtered = df_raw[df_raw['status'] == 'active']
+
+# Cell 3: Aggregate (explicit dependency on Cell 2)
+result = df_filtered.groupby('region').sum()
+```
+
+### Anti-Pattern 2: Hardcoded Credentials in Notebook Cells
+
+**Problem:** Embedding database passwords, API keys, or connection strings directly in notebook code cells.
+
+**Why It Fails:** Notebooks are often shared, committed to git, or exported. Credentials become exposed, creating security vulnerabilities. Rotating credentials requires editing every notebook.
+
+**Correct Pattern:**
+```python
+# BAD: Credentials in code
+connection = snowflake.connector.connect(
+    user='admin',
+    password='SuperSecret123!',  # Exposed in .ipynb JSON
+    account='xy12345.us-east-1'
+)
+
+# GOOD: Credentials from environment
+import os
+connection = snowflake.connector.connect(
+    user=os.environ['SNOWFLAKE_USER'],
+    password=os.environ['SNOWFLAKE_PASSWORD'],
+    account=os.environ['SNOWFLAKE_ACCOUNT']
+)
+# Or use Streamlit secrets: st.secrets["snowflake"]["password"]
+```
 
 ## Post-Execution Checklist
 - [ ] All cells have descriptive, user-friendly names (not cell1, cell2, etc.)

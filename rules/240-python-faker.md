@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.0
 **Keywords:** Faker, test data generation, fake data, providers, localization, synthetic data, pytest fixtures, seeding, deterministic testing, Python testing
-**TokenBudget:** ~2650
+**TokenBudget:** ~3100
 **ContextTier:** Low
 **Depends:** rules/200-python-core.md
 
@@ -68,6 +68,65 @@ Python testing, data generation, test fixtures, development utilities
 
 </contract>
 
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Non-Deterministic Test Data Without Seeding
+
+**Problem:** Using Faker without setting a seed, causing tests to generate different data on each run and making failures non-reproducible.
+
+**Why It Fails:** Flaky tests that pass sometimes and fail others. Cannot reproduce bugs reported by CI. Debugging requires guessing which random data caused failure. Test isolation compromised.
+
+**Correct Pattern:**
+```python
+# BAD: Random data each run
+from faker import Faker
+fake = Faker()
+
+def test_user_creation():
+    user = create_user(fake.email(), fake.name())  # Different every run!
+    assert user.is_valid()
+
+# GOOD: Seeded for reproducibility
+from faker import Faker
+fake = Faker()
+Faker.seed(12345)  # Same data every run
+
+# Or per-test seeding for isolation
+@pytest.fixture
+def fake():
+    Faker.seed(0)
+    return Faker()
+
+def test_user_creation(fake):
+    user = create_user(fake.email(), fake.name())  # Reproducible!
+    assert user.is_valid()
+```
+
+### Anti-Pattern 2: Generating Unrealistic Data That Bypasses Validation
+
+**Problem:** Using generic Faker methods that produce data not matching real-world constraints (e.g., `fake.text()` for fields with length limits).
+
+**Why It Fails:** Tests pass with unrealistic data but fail in production. Validation edge cases not tested. Data doesn't match domain constraints. Database constraints violated.
+
+**Correct Pattern:**
+```python
+# BAD: Generic data ignores constraints
+fake.text()  # Could be 1000+ chars for a 50-char field
+fake.random_int()  # Could be negative for age field
+fake.word()  # Might not be valid for enum field
+
+# GOOD: Constrained data matching domain
+fake.text(max_nb_chars=50)  # Respects field length
+fake.random_int(min=18, max=120)  # Valid age range
+fake.random_element(["pending", "active", "closed"])  # Valid enum values
+
+# BEST: Custom providers for domain-specific data
+class OrderProvider(BaseProvider):
+    def order_status(self):
+        return self.random_element(["pending", "shipped", "delivered"])
+        
+fake.add_provider(OrderProvider)
+```
 
 ## Post-Execution Checklist
 - [ ] Required dependencies and context verified

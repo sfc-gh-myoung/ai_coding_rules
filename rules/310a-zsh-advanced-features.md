@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.0
 **Keywords:** Zsh, completion system, modules, hooks, advanced features, performance optimization, compinit, zstyle, autoload, scripting
-**TokenBudget:** ~2600
+**TokenBudget:** ~3050
 **ContextTier:** Low
 **Depends:** rules/310-zsh-scripting-core.md
 
@@ -69,6 +69,65 @@ Advanced zsh features, performance optimization, complex scripting patterns
 
 </contract>
 
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Overloading Prompt with Expensive Operations
+
+**Problem:** Running slow commands (git status, kubectl context, network calls) synchronously in PROMPT or precmd hooks, causing noticeable lag on every command.
+
+**Why It Fails:** Every Enter keypress triggers expensive operations. Shell becomes sluggish in large git repos. Users disable features to regain speed. Productivity loss compounds over time.
+
+**Correct Pattern:**
+```zsh
+# BAD: Synchronous expensive operations
+precmd() {
+    PROMPT="$(git branch --show-current) $(kubectl config current-context) $ "
+    # Blocks shell for 200-500ms on each command
+}
+
+# GOOD: Async prompt with caching
+# Use powerlevel10k or starship with async git
+# Or implement manual caching
+typeset -g _git_branch_cache=""
+typeset -g _git_branch_cache_time=0
+
+_update_git_branch() {
+    local now=$(date +%s)
+    if (( now - _git_branch_cache_time > 5 )); then
+        _git_branch_cache=$(git branch --show-current 2>/dev/null)
+        _git_branch_cache_time=$now
+    fi
+}
+```
+
+### Anti-Pattern 2: Complex Logic in Completion Functions
+
+**Problem:** Writing completion functions with expensive computations, API calls, or file system scans that run on every Tab press.
+
+**Why It Fails:** Tab completion becomes slow. Users type full commands instead of completing. Completions timeout or return stale data. Shell appears frozen during completion.
+
+**Correct Pattern:**
+```zsh
+# BAD: API call on every completion
+_my_cli_complete() {
+    local items=$(curl -s https://api.example.com/items)  # Network call on Tab!
+    _describe 'items' items
+}
+
+# GOOD: Cache completions with TTL
+_my_cli_complete() {
+    local cache_file="${XDG_CACHE_HOME:-$HOME/.cache}/my_cli_completions"
+    local cache_ttl=300  # 5 minutes
+    
+    if [[ ! -f "$cache_file" ]] || \
+       (( $(date +%s) - $(stat -f%m "$cache_file") > cache_ttl )); then
+        curl -s https://api.example.com/items > "$cache_file"
+    fi
+    
+    local items=("${(@f)$(cat "$cache_file")}")
+    _describe 'items' items
+}
+```
 
 ## Post-Execution Checklist
 - [ ] Required dependencies and context verified

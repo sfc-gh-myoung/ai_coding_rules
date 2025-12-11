@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.0
 **Keywords:** git, workflow, branching strategy, GitHub, pull requests, feature branches, protected branches, git validation, branch naming, PR workflow, Conventional Commits
-**TokenBudget:** ~3900
+**TokenBudget:** ~5200
 **ContextTier:** Medium
 **Depends:** rules/800-project-changelog.md, rules/802-project-contributing.md
 

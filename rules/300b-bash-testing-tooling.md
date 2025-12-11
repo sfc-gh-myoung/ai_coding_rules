@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.0
 **Keywords:** Bash, testing, ShellCheck, bats, shell script testing, CI/CD, debugging, static analysis, linting, test automation
-**TokenBudget:** ~2250
+**TokenBudget:** ~2650
 **ContextTier:** Medium
 **Depends:** rules/300-bash-scripting-core.md
 
@@ -69,6 +69,70 @@ Bash testing, debugging, development workflows, CI/CD
 
 </contract>
 
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Skipping ShellCheck Static Analysis
+
+**Problem:** Not running ShellCheck on bash scripts before deployment, missing common bugs, security issues, and portability problems.
+
+**Why It Fails:** Unquoted variables cause word splitting bugs. Deprecated syntax breaks on newer shells. Security vulnerabilities go undetected. Portability issues discovered only in production.
+
+**Correct Pattern:**
+```bash
+# BAD: No static analysis
+#!/bin/bash
+# Script deployed without ShellCheck review
+for f in $(ls *.txt); do  # SC2045: Iterating over ls output
+    cat $f  # SC2086: Double quote to prevent globbing
+done
+
+# GOOD: ShellCheck in CI/CD pipeline
+# .github/workflows/lint.yml
+- name: ShellCheck
+  run: shellcheck scripts/*.sh
+
+# Or pre-commit hook
+# .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.9.0.6
+    hooks:
+      - id: shellcheck
+```
+
+### Anti-Pattern 2: Testing Scripts Only Manually
+
+**Problem:** Relying on manual testing of shell scripts instead of automated unit tests with frameworks like Bats or shunit2.
+
+**Why It Fails:** Regressions introduced silently. Edge cases not covered. Refactoring becomes risky. No CI/CD integration. "Works on my machine" issues.
+
+**Correct Pattern:**
+```bash
+# BAD: No automated tests
+# "I ran it once and it worked"
+
+# GOOD: Bats test file (test_deploy.bats)
+#!/usr/bin/env bats
+
+setup() {
+    source ./deploy.sh
+}
+
+@test "validate_environment returns 0 for valid env" {
+    export DEPLOY_ENV="production"
+    run validate_environment
+    [ "$status" -eq 0 ]
+}
+
+@test "validate_environment fails for missing env" {
+    unset DEPLOY_ENV
+    run validate_environment
+    [ "$status" -eq 1 ]
+    [[ "$output" =~ "DEPLOY_ENV required" ]]
+}
+
+# Run: bats test_deploy.bats
+```
 
 ## Post-Execution Checklist
 - [ ] Required dependencies and context verified

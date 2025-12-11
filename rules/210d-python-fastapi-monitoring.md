@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.0
 **Keywords:** FastAPI monitoring, health checks, logging, metrics, caching, Redis, observability, structured logging, health endpoints, correlation IDs
-**TokenBudget:** ~2050
+**TokenBudget:** ~2500
 **ContextTier:** Medium
 **Depends:** rules/210-python-fastapi-core.md
 
@@ -77,6 +77,58 @@ FastAPI health checks, logging, monitoring, and performance optimization pattern
 
 </contract>
 
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Logging Sensitive Data in Request/Response Bodies
+
+**Problem:** Enabling full request/response body logging without filtering sensitive fields like passwords, tokens, or PII.
+
+**Why It Fails:** Credentials and personal data written to log files. Log aggregation services store sensitive data. Compliance violations (GDPR, HIPAA, PCI-DSS). Security audits fail. Data breaches from log access.
+
+**Correct Pattern:**
+```python
+# BAD: Log everything including secrets
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    body = await request.body()
+    logger.info(f"Request body: {body}")  # Logs passwords!
+    return await call_next(request)
+
+# GOOD: Filter sensitive fields before logging
+SENSITIVE_FIELDS = {"password", "token", "api_key", "ssn", "credit_card"}
+
+def sanitize_log_data(data: dict) -> dict:
+    return {k: "***REDACTED***" if k in SENSITIVE_FIELDS else v 
+            for k, v in data.items()}
+
+logger.info(f"Request: {sanitize_log_data(request_data)}")
+```
+
+### Anti-Pattern 2: Missing Correlation IDs for Request Tracing
+
+**Problem:** Not generating or propagating unique request IDs across service calls, making it impossible to trace requests through distributed systems.
+
+**Why It Fails:** Cannot correlate logs from different services for same request. Debugging production issues requires manual timestamp matching. No distributed tracing capability. Incident response takes hours instead of minutes.
+
+**Correct Pattern:**
+```python
+# BAD: No request correlation
+@app.get("/api/data")
+async def get_data():
+    logger.info("Fetching data")  # Which request is this?
+    return await fetch_from_service()
+
+# GOOD: Correlation ID middleware
+from uuid import uuid4
+
+@app.middleware("http")
+async def add_correlation_id(request: Request, call_next):
+    correlation_id = request.headers.get("X-Correlation-ID", str(uuid4()))
+    with structlog.contextvars.bound_contextvars(correlation_id=correlation_id):
+        response = await call_next(request)
+        response.headers["X-Correlation-ID"] = correlation_id
+        return response
+```
 
 ## Post-Execution Checklist
 - [ ] Required dependencies and context verified

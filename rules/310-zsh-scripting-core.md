@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.0
 **Keywords:** Zsh, Z shell, zsh features, arrays, functions, oh-my-zsh, emulate, setopt, parameter expansion, globbing
-**TokenBudget:** ~3000
+**TokenBudget:** ~3450
 **ContextTier:** Medium
 **Depends:** rules/300-bash-scripting-core.md
 
@@ -69,6 +69,59 @@ Foundation zsh scripting patterns and essential practices
 
 </contract>
 
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Assuming Zsh Defaults Match Bash
+
+**Problem:** Writing scripts that assume bash-like behavior for word splitting, glob expansion, or array indexing without setting appropriate zsh options.
+
+**Why It Fails:** Zsh arrays are 1-indexed by default (bash is 0-indexed). Word splitting doesn't occur on unquoted variables by default. Scripts behave differently than expected, causing subtle bugs.
+
+**Correct Pattern:**
+```zsh
+# BAD: Assuming bash behavior
+#!/bin/zsh
+arr=(a b c)
+echo ${arr[0]}  # Empty in zsh! Arrays are 1-indexed
+
+# BAD: Assuming word splitting
+files="file1.txt file2.txt"
+rm $files  # In zsh, this tries to delete "file1.txt file2.txt" as one file
+
+# GOOD: Explicit options for predictable behavior
+#!/bin/zsh
+setopt KSH_ARRAYS      # 0-indexed arrays like bash
+setopt SH_WORD_SPLIT   # Word splitting on unquoted vars
+
+# Or use zsh idioms correctly
+arr=(a b c)
+echo ${arr[1]}  # "a" - zsh native indexing
+files=(file1.txt file2.txt)
+rm "${files[@]}"  # Proper array expansion
+```
+
+### Anti-Pattern 2: Polluting Global Namespace in .zshrc
+
+**Problem:** Defining functions and variables in .zshrc without namespacing, causing conflicts with system commands or other configurations.
+
+**Why It Fails:** Custom `ls` function shadows /bin/ls. Variables overwrite environment settings. Plugin conflicts become impossible to debug. Shell startup slows down.
+
+**Correct Pattern:**
+```zsh
+# BAD: Global namespace pollution
+# .zshrc
+ls() { command ls -la "$@"; }  # Shadows system ls
+PATH="/my/path"  # Overwrites instead of extends
+
+# GOOD: Namespaced functions and safe PATH
+# .zshrc
+my_ls() { command ls -la "$@"; }
+alias ll='my_ls'  # Alias instead of shadowing
+
+# Extend PATH safely
+path=(/my/path $path)  # zsh array syntax
+typeset -U path  # Remove duplicates
+```
 
 ## Post-Execution Checklist
 - [ ] Required dependencies and context verified

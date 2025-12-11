@@ -355,57 +355,42 @@ def inject_common():
 
 ## Anti-Patterns and Common Mistakes
 
-### Critical Violations
+### Anti-Pattern 1: Missing Element IDs
 
-| Anti-Pattern | Problem | Correct Pattern |
-|--------------|---------|-----------------|
-| **Mixed template logic** | Single template handles both full page and partial | Separate templates or view-level detection |
-| **Missing element IDs** | HTMX cannot target elements | Add unique `id` to all swappable elements |
-| **Deep inheritance in partials** | Partials inherit from base unnecessarily | Partials should be standalone fragments |
-| **Bloated context** | Passing entire app state to partials | Pass only required data |
-| **Hard-coded URLs** | URLs embedded in templates | Use `url_for()` for all links |
+**Problem:** HTMX-swappable elements lack unique IDs for targeting.
 
-### Common Pitfalls
+**Why It Fails:** HTMX cannot reliably target or replace elements; breaks OOB swaps.
 
-**Pitfall 1: No Element IDs**
+**Correct Pattern:**
 ```html
-<!-- ❌ BAD: No ID for targeting -->
-<div hx-get="/users/123" hx-target="#user-info">
-    <p>{{ user.name }}</p>
-</div>
-
-<!-- ✓ GOOD: ID present for targeting/replacement -->
 <div id="user-123" hx-get="/users/123" hx-target="#user-123" hx-swap="outerHTML">
     <p>{{ user.name }}</p>
 </div>
 ```
 
-**Pitfall 2: Partials Extending Base**
-```html
-{# ❌ BAD: Partial inherits full page structure #}
-{# templates/partials/_user_row.html #}
-{% extends "base.html" %}
-{% block content %}
-    <tr id="user-{{ user.id }}">...</tr>
-{% endblock %}
+### Anti-Pattern 2: Partials Extending Base Template
 
-{# ✓ GOOD: Partial is standalone fragment #}
-{# templates/partials/_user_row.html #}
+**Problem:** Partial templates inherit from base.html with full page structure.
+
+**Why It Fails:** HTMX receives entire HTML document instead of fragment; breaks swapping.
+
+**Correct Pattern:**
+```html
+{# templates/partials/_user_row.html - standalone fragment #}
 <tr id="user-{{ user.id }}">
     <td>{{ user.name }}</td>
     <td>{{ user.email }}</td>
 </tr>
 ```
 
-**Pitfall 3: Inconsistent Naming**
-```
-❌ BAD:
-templates/
-├── user_table_partial.html
-├── form-user.html
-├── UserRow.html
+### Anti-Pattern 3: Inconsistent Template Naming
 
-✓ GOOD:
+**Problem:** Mixed naming conventions for partials (underscores, hyphens, PascalCase).
+
+**Why It Fails:** Hard to identify partials; confuses team; maintenance nightmare.
+
+**Correct Pattern:**
+```
 templates/partials/
 ├── _user_table.html
 ├── _user_form.html

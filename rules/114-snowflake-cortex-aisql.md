@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.0
 **Keywords:** Cortex AISQL, AI_COMPLETE, AI_CLASSIFY, AI_EXTRACT, AI_SENTIMENT, AI_SUMMARIZE, embeddings, LLM functions, batching, token costs, text generation, classification, sentiment analysis, summarization, AI function error
-**TokenBudget:** ~2600
+**TokenBudget:** ~3200
 **ContextTier:** High
 **Depends:** rules/100-snowflake-core.md, rules/105-snowflake-cost-governance.md
 
@@ -114,6 +114,58 @@ Query profile shows efficient scans; token counts within model limits; costs mea
 
 </contract>
 
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Unbounded Per-Row LLM Calls
+
+**Problem:** Calling AI_COMPLETE or other LLM functions on every row in a large table without batching, limits, or cost controls.
+
+**Why It Fails:** LLM calls are expensive (tokens cost credits). Processing 1M rows with AI_COMPLETE can consume thousands of dollars in credits in minutes. No automatic throttling exists—queries run until completion or timeout.
+
+**Correct Pattern:**
+```sql
+-- BAD: Unbounded per-row calls
+SELECT id, AI_COMPLETE('llama3.1-8b', description) AS summary
+FROM products;  -- 500K rows = massive credit consumption
+
+-- GOOD: Batch with limits and sampling for development
+SELECT id, AI_COMPLETE('llama3.1-8b', description) AS summary
+FROM products
+WHERE needs_summary = TRUE
+LIMIT 100;  -- Test on subset first
+
+-- GOOD: Use AI_AGG for cross-row aggregation (single LLM call)
+SELECT AI_AGG('llama3.1-8b', 
+  'Summarize these product descriptions', 
+  description) AS batch_summary
+FROM products
+WHERE category = 'electronics';
+```
+
+### Anti-Pattern 2: Using Large Models by Default
+
+**Problem:** Defaulting to mistral-large or claude-3-opus for all AI tasks without testing smaller models first.
+
+**Why It Fails:** Larger models cost 10-50x more per token than smaller models. Most classification, extraction, and summarization tasks perform equally well with llama3.1-8b or mistral-7b. Starting large wastes credits without measurable quality improvement.
+
+**Correct Pattern:**
+```sql
+-- BAD: Defaulting to expensive model
+SELECT AI_CLASSIFY('mistral-large', feedback, 
+  ['positive', 'negative', 'neutral']) AS sentiment
+FROM reviews;  -- Overkill for simple classification
+
+-- GOOD: Start with smallest viable model
+SELECT AI_CLASSIFY('llama3.1-8b', feedback,
+  ['positive', 'negative', 'neutral']) AS sentiment
+FROM reviews;
+
+-- Scale up ONLY if accuracy is insufficient:
+-- 1. Test llama3.1-8b on 1000 samples
+-- 2. Measure accuracy against labeled data
+-- 3. If <90% accuracy, try mistral-7b
+-- 4. Only use large models for complex reasoning tasks
+```
 
 ## Post-Execution Checklist
 - [ ] `SNOWFLAKE.CORTEX_USER` restricted to least-privilege roles (not PUBLIC)

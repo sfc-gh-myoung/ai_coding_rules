@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.0
 **Keywords:** budget alerts, spend tracking, Snowflake, SQL, CREDIT_QUOTA, WAREHOUSE_METERING_HISTORY, object tagging, monitor credits, warehouse spending, cost alerts, credit limits, budget management, resource monitor, tag enforcement
-**TokenBudget:** ~1450
+**TokenBudget:** ~1700
 **ContextTier:** High
 **Depends:** rules/100-snowflake-core.md
 
@@ -86,6 +86,53 @@ Resource monitors active; credit usage within expected ranges; warehouses auto-s
 
 </contract>
 
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Unbounded Warehouses Without Resource Monitors
+
+**Problem:** Creating warehouses without associating them with resource monitors, allowing unlimited credit consumption.
+
+**Why It Fails:** A single runaway query or misconfigured pipeline can consume thousands of credits in hours. Without monitors, there's no automatic suspension or alerting, leading to bill shock at month-end.
+
+**Correct Pattern:**
+```sql
+-- BAD: Warehouse without resource monitor
+CREATE WAREHOUSE WH_ETL_XL WAREHOUSE_SIZE = 'X-LARGE';
+-- No credit limits, no alerts, no automatic suspension
+
+-- GOOD: Always associate with resource monitor
+CREATE RESOURCE MONITOR rm_etl_daily
+  WITH CREDIT_QUOTA = 100 FREQUENCY = DAILY
+  TRIGGERS ON 75 PERCENT DO NOTIFY
+           ON 90 PERCENT DO NOTIFY
+           ON 100 PERCENT DO SUSPEND;
+
+CREATE WAREHOUSE WH_ETL_XL WAREHOUSE_SIZE = 'X-LARGE'
+  RESOURCE_MONITOR = rm_etl_daily
+  AUTO_SUSPEND = 60;
+```
+
+### Anti-Pattern 2: Oversized Warehouses as Default
+
+**Problem:** Starting with X-Large or larger warehouses "to be safe" instead of right-sizing based on actual workload needs.
+
+**Why It Fails:** Larger warehouses cost exponentially more (4X-Large = 128 credits/hour vs X-Small = 1 credit/hour). Most workloads don't benefit from oversizing; query performance often depends on data clustering and query design, not raw compute.
+
+**Correct Pattern:**
+```sql
+-- BAD: Starting large without justification
+CREATE WAREHOUSE WH_REPORTS WAREHOUSE_SIZE = '2X-LARGE';
+-- 64 credits/hour for queries that might run fine on SMALL
+
+-- GOOD: Start small, scale based on evidence
+CREATE WAREHOUSE WH_REPORTS WAREHOUSE_SIZE = 'SMALL'
+  AUTO_SUSPEND = 60 AUTO_RESUME = TRUE;
+
+-- Monitor query performance, scale up only if:
+-- 1. Query queue times > 30 seconds consistently
+-- 2. QUERY_HISTORY shows spillage to remote storage
+-- 3. Workload analysis justifies larger size
+```
 
 ## Post-Execution Checklist
 - [ ] All warehouse creation follows `119-snowflake-warehouse-management.md` (type, size, tags, auto-suspend)

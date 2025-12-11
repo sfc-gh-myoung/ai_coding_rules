@@ -396,27 +396,14 @@ def update_user(user_id):
 
 ## Anti-Patterns and Common Mistakes
 
-### Critical Violations
+### Anti-Pattern 1: Manual HTMX Header Checking
 
-| Anti-Pattern | Problem | Correct Pattern |
-|--------------|---------|-----------------|
-| **Skipping CSRF check** | Vulnerable to CSRF attacks | Use Flask-WTF CSRFProtect |
-| **Global state instead of session** | Not user-specific, thread-unsafe | Use `flask.session` |
-| **No authentication on HTMX routes** | Security bypass | Apply `@login_required` consistently |
-| **Business logic in routes** | Untestable, unmaintainable | Move logic to service layer |
+**Problem:** Manually checking `HX-Request` header instead of using Flask-HTMX extension.
 
-### Common Pitfalls
+**Why It Fails:** Repetitive code; easy to miss edge cases; harder to maintain.
 
-**Pitfall 1: Not Using Flask-HTMX Extension**
+**Correct Pattern:**
 ```python
-# ❌ BAD: Manual header checking everywhere
-@app.route('/data')
-def get_data():
-    if request.headers.get('HX-Request') == 'true':
-        return render_template('partials/_data.html')
-    return render_template('pages/data.html')
-
-# ✓ GOOD: Use Flask-HTMX extension
 from flask_htmx import htmx
 
 @app.route('/data')
@@ -426,12 +413,14 @@ def get_data():
     return render_template('pages/data.html')
 ```
 
-**Pitfall 2: Missing CSRF Token in HTMX Config**
-```html
-<!-- ❌ BAD: HTMX requests fail CSRF validation -->
-<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+### Anti-Pattern 2: Missing CSRF Token Configuration
 
-<!-- ✓ GOOD: Configure CSRF token for all requests -->
+**Problem:** HTMX requests don't include CSRF tokens, causing validation failures.
+
+**Why It Fails:** All POST/PUT/DELETE requests rejected; forms don't work.
+
+**Correct Pattern:**
+```html
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 <script>

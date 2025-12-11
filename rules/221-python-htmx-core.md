@@ -280,20 +280,50 @@ def order_actions(order_id):
 ### 6. HTMX Extensions
 
 **Server-Sent Events (SSE):**
-```python
-# Flask SSE endpoint
-@app.route('/stream')
-def stream():
-    def event_stream():
-        while True:
-            data = get_latest_data()
-            yield f'data: {render_template("partials/data.html", data=data)}\n\n'
-            time.sleep(1)
-    
-    return Response(event_stream(), mimetype='text/event-stream')
 
-# Frontend: <div hx-ext="sse" sse-connect="/stream" sse-swap="message"></div>
+SSE enables real-time updates from server to client. Choose between two approaches:
+
+1. **HTMX SSE Extension** - Simple, declarative, single-element updates
+2. **Alpine.js SSE Manager** - Complex logic, multiple elements, toast notifications
+
+See `rules/221g-python-htmx-sse.md` for comprehensive SSE patterns.
+
+```python
+# FastAPI SSE endpoint with named events
+from sse_starlette.sse import EventSourceResponse
+
+@app.get('/api/sse/status')
+async def sse_status():
+    async def event_generator():
+        while True:
+            yield {
+                "event": "system_status",  # Named event type
+                "data": json.dumps(await get_status())
+            }
+            await asyncio.sleep(5)
+    
+    return EventSourceResponse(event_generator())
 ```
+
+```html
+<!-- HTMX SSE Extension (simple updates) -->
+<div hx-ext="sse" sse-connect="/api/sse/status" 
+     hx-get="/status/content" hx-trigger="sse:system_status">
+</div>
+
+<!-- Alpine.js SSE Manager (complex logic) -->
+<div x-data="statusPage()" x-init="init()">
+    <div id="status" hx-get="/status/content" hx-trigger="load, systemStatus"></div>
+</div>
+```
+
+**Critical SSE Anti-Patterns:**
+
+| Anti-Pattern | Problem | Solution |
+|--------------|---------|----------|
+| Mixing SSE approaches | Duplicate connections | Choose ONE per element |
+| Event type mismatch | Updates never trigger | Match backend event types exactly |
+| Using `sse:` with Alpine.js | HTMX ignores events | Use camelCase custom events |
 
 **WebSockets (with extension):**
 ```python
@@ -313,27 +343,14 @@ async def websocket_endpoint(websocket: WebSocket):
 
 ## Anti-Patterns and Common Mistakes
 
-### Critical Violations
+### Anti-Pattern 1: Returning JSON for HTMX Requests
 
-| Anti-Pattern | Problem | Correct Pattern |
-|--------------|---------|-----------------|
-| **Returning JSON for HTMX** | HTMX expects HTML, not JSON | Return HTML fragments/templates |
-| **No CSRF protection** | Vulnerable to CSRF attacks | Include CSRF token in HTMX config |
-| **Client-side routing** | Violates hypermedia principles | Use server-side routing with `HX-Push-Url` |
-| **Ignoring `HX-Request` header** | Returns full page when partial expected | Check header, return appropriate response |
-| **Missing XSS sanitization** | Allows script injection in partials | Always escape user content in templates |
-| **Using HTMX without validation** | Bypasses server-side validation | Validate all inputs regardless of client |
+**Problem:** Returning JSON responses when HTMX expects HTML fragments.
 
-### Common Pitfalls
+**Why It Fails:** HTMX swaps HTML into the DOM; JSON appears as raw text or breaks the UI.
 
-**Pitfall 1: Mixing JSON and HTML Responses**
+**Correct Pattern:**
 ```python
-# ❌ BAD: Returning JSON for HTMX request
-@app.route('/data')
-def get_data():
-    return jsonify({'items': items})
-
-# ✓ GOOD: Return HTML for HTMX
 @app.route('/data')
 def get_data():
     if is_htmx():
@@ -341,48 +358,46 @@ def get_data():
     return render_template('items_page.html', items=items)
 ```
 
-**Pitfall 2: Forgetting CSRF Tokens**
-```python
-# ❌ BAD: No CSRF protection
-@app.route('/delete/<int:id>', methods=['DELETE'])
-def delete(id):
-    delete_item(id)  # Vulnerable!
-    return ''
+### Anti-Pattern 2: Missing CSRF Protection
 
-# ✓ GOOD: CSRF protection enabled
-# Configure Flask-WTF/Django CSRF
-# Add token to HTMX config in base template
+**Problem:** Omitting CSRF tokens on state-changing HTMX requests.
+
+**Why It Fails:** Exposes application to cross-site request forgery attacks.
+
+**Correct Pattern:**
+```python
+# Configure CSRF in HTMX meta tag (base template)
+# <meta name="csrf-token" content="{{ csrf_token() }}">
+# htmx.config.getCsrfToken = () => document.querySelector('meta[name="csrf-token"]').content
+
 @app.route('/delete/<int:id>', methods=['DELETE'])
-@csrf.exempt  # Only if using custom CSRF validation
 def delete(id):
-    # Validation happens in middleware/decorator
+    # CSRF validation happens in middleware
     delete_item(id)
     return ''
 ```
 
-**Pitfall 3: Incorrect Swap Strategy**
-```html
-<!-- ❌ BAD: Using innerHTML when outerHTML needed -->
-<div id="user-123" hx-get="/users/123" hx-target="#user-123">
-    <!-- This creates nested divs on update -->
-</div>
+### Anti-Pattern 3: Incorrect Swap Strategy
 
-<!-- ✓ GOOD: Use outerHTML to replace entire element -->
+**Problem:** Using default `innerHTML` swap when `outerHTML` is needed.
+
+**Why It Fails:** Creates nested elements; breaks CSS selectors and event handlers.
+
+**Correct Pattern:**
+```html
 <div id="user-123" hx-get="/users/123" hx-target="#user-123" hx-swap="outerHTML">
     <!-- Element replaced cleanly -->
 </div>
 ```
 
-**Pitfall 4: Not Handling Errors**
-```python
-# ❌ BAD: No error handling
-@app.route('/update', methods=['POST'])
-def update():
-    data = request.form['data']
-    update_db(data)  # What if this fails?
-    return '<p>Updated</p>'
+### Anti-Pattern 4: Missing Error Handling
 
-# ✓ GOOD: Error handling with retargeting
+**Problem:** Not handling server errors in HTMX responses.
+
+**Why It Fails:** Users see no feedback; errors silently fail; poor UX.
+
+**Correct Pattern:**
+```python
 @app.route('/update', methods=['POST'])
 def update():
     try:
@@ -390,10 +405,7 @@ def update():
         update_db(data)
         return '<p class="success">Updated</p>'
     except ValidationError as e:
-        response = make_response(
-            f'<p class="error">{escape(str(e))}</p>', 
-            400
-        )
+        response = make_response(f'<p class="error">{escape(str(e))}</p>', 400)
         response.headers['HX-Retarget'] = '#error-container'
         return response
 ```
@@ -485,6 +497,7 @@ def update_item(item_id):
 - [OWASP CSRF Prevention](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html) - CSRF protection strategies
 
 ### Related Rules
+
 - **Python Foundation**: `rules/200-python-core.md` - Python coding standards
 - **Template Strategies**: `rules/221a-python-htmx-templates.md` - Jinja2 patterns for HTMX
 - **Flask Integration**: `rules/221b-python-htmx-flask.md` - Flask-specific HTMX patterns
@@ -492,3 +505,4 @@ def update_item(item_id):
 - **Testing Patterns**: `rules/221d-python-htmx-testing.md` - Testing HTMX endpoints
 - **Common Patterns**: `rules/221e-python-htmx-patterns.md` - CRUD, forms, infinite scroll
 - **Frontend Integrations**: `rules/221f-python-htmx-integrations.md` - Alpine.js, Tailwind, etc.
+- **SSE Patterns**: `rules/221g-python-htmx-sse.md` - Server-Sent Events patterns

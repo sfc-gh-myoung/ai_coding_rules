@@ -84,6 +84,56 @@ Focused diffs to test code; runnable examples for fixtures/parametrization; mini
 
 </contract>
 
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Excessive Mocking That Tests Implementation Details
+
+**Problem:** Mocking every dependency and internal function call, making tests tightly coupled to implementation rather than behavior.
+
+**Why It Fails:** Tests break on any refactoring even when behavior is unchanged. Mocks don't catch integration bugs. Tests verify "code was called" not "feature works." False confidence from passing tests.
+
+**Correct Pattern:**
+```python
+# BAD: Over-mocked test
+def test_create_user(mocker):
+    mocker.patch('app.services.user.validate_email')
+    mocker.patch('app.services.user.hash_password')
+    mocker.patch('app.services.user.db.insert')
+    mocker.patch('app.services.user.send_email')
+    result = create_user({"email": "test@example.com"})
+    # Tests nothing about actual behavior
+
+# GOOD: Test behavior with minimal mocking
+def test_create_user(test_db, mock_email_service):
+    # Only mock external services (email), use real DB
+    result = create_user({"email": "test@example.com", "password": "secure123"})
+    assert result.id is not None
+    assert test_db.query(User).filter_by(email="test@example.com").first()
+```
+
+### Anti-Pattern 2: Flaky Tests With Time or Order Dependencies
+
+**Problem:** Tests that pass or fail inconsistently due to reliance on system time, test execution order, or shared mutable state.
+
+**Why It Fails:** Erodes trust in test suite. Developers ignore failures assuming "it's just flaky." Real bugs slip through. CI/CD becomes unreliable. Time wasted re-running tests.
+
+**Correct Pattern:**
+```python
+# BAD: Time-dependent test
+def test_token_expiry():
+    token = create_token(expires_in=1)
+    time.sleep(2)  # Flaky: sleep timing varies
+    assert token.is_expired()
+
+# GOOD: Use freezegun or explicit time control
+from freezegun import freeze_time
+
+def test_token_expiry():
+    with freeze_time("2024-01-01 12:00:00"):
+        token = create_token(expires_in=3600)
+    with freeze_time("2024-01-01 13:00:01"):
+        assert token.is_expired()
+```
 
 ## Post-Execution Checklist
 - [ ] **CRITICAL:** Pre-Task-Completion Test Execution Gate passed (all tests pass)

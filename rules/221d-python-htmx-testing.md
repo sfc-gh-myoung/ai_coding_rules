@@ -418,25 +418,14 @@ def test_crud_triggers(htmx_client, method, endpoint, data, expected_trigger):
 
 ## Anti-Patterns and Common Mistakes
 
-### Critical Violations
+### Anti-Pattern 1: Testing Only HTMX Requests
 
-| Anti-Pattern | Problem | Correct Pattern |
-|--------------|---------|-----------------|
-| **No HX-Request header in tests** | Tests don't reflect HTMX usage | Always include `HX-Request: true` |
-| **Skipping header assertions** | Missing validation of server behavior | Assert all HX-* response headers |
-| **Visual inspection only** | No automated verification | Use HTML parsing + assertions |
-| **Testing only success cases** | Errors not caught | Test 400, 401, 404, 500 responses |
+**Problem:** Only testing HTMX requests, ignoring non-HTMX full-page responses.
 
-### Common Pitfalls
+**Why It Fails:** Misses bugs in full-page rendering; incomplete test coverage.
 
-**Pitfall 1: Not Testing Both Request Types**
+**Correct Pattern:**
 ```python
-# ❌ BAD: Only testing HTMX requests
-def test_users(htmx_client):
-    response = htmx_client.get('/users')
-    assert response.status_code == 200
-
-# ✓ GOOD: Test both HTMX and non-HTMX
 def test_users_htmx(htmx_client):
     response = htmx_client.get('/users')
     assert '<html>' not in response.data.decode()  # Partial
@@ -446,14 +435,14 @@ def test_users_full_page(client):
     assert '<html>' in response.data.decode()  # Full page
 ```
 
-**Pitfall 2: No HTML Structure Validation**
-```python
-# ❌ BAD: Only checking status code
-def test_user_row(htmx_client):
-    response = htmx_client.get('/users/1')
-    assert response.status_code == 200
+### Anti-Pattern 2: No HTML Structure Validation
 
-# ✓ GOOD: Validate HTML structure
+**Problem:** Only checking status codes without validating HTML content.
+
+**Why It Fails:** Passes even when HTML structure is broken; misses UI bugs.
+
+**Correct Pattern:**
+```python
 def test_user_row(htmx_client):
     response = htmx_client.get('/users/1')
     soup = parse_html(response.data)

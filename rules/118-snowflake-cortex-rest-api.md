@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.0
 **Keywords:** idempotency, rate limits, Complete endpoint, Embed endpoint, exponential backoff, REST API, Cortex API, authentication tokens, PAT, OAuth, JWT, SSE, token verification, response format
-**TokenBudget:** ~5200
+**TokenBudget:** ~3950
 **ContextTier:** High
 **Depends:** rules/100-snowflake-core.md, rules/105-snowflake-cost-governance.md, rules/111-snowflake-observability-core.md
 

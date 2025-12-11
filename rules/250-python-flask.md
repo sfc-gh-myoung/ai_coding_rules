@@ -84,6 +84,59 @@ Flask web application development with modern patterns, security, and maintainab
 
 </contract>
 
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Using Flask's Development Server in Production
+
+**Problem:** Running `flask run` or `app.run()` in production instead of a production WSGI server like Gunicorn or uWSGI.
+
+**Why It Fails:** Development server is single-threaded, not designed for concurrent requests. No process management or auto-restart on crashes. Security features disabled. Performance is 10-100x worse than production servers.
+
+**Correct Pattern:**
+```python
+# BAD: Development server in production
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)  # Single-threaded, no fault tolerance
+
+# GOOD: Production deployment with Gunicorn
+# gunicorn --workers 4 --bind 0.0.0.0:5000 wsgi:app
+
+# wsgi.py
+from app import create_app
+app = create_app()
+
+# Dockerfile
+CMD ["gunicorn", "--workers", "4", "--bind", "0.0.0.0:5000", "wsgi:app"]
+```
+
+### Anti-Pattern 2: Storing Secrets in Flask Config Files
+
+**Problem:** Hardcoding SECRET_KEY, database passwords, or API keys in config.py or directly in application code.
+
+**Why It Fails:** Secrets committed to version control. Visible to anyone with repo access. Cannot rotate without code changes. Different environments require code modification. Security audit failures.
+
+**Correct Pattern:**
+```python
+# BAD: Hardcoded secrets
+class Config:
+    SECRET_KEY = "super-secret-key-12345"
+    SQLALCHEMY_DATABASE_URI = "postgresql://user:password@localhost/db"
+
+# GOOD: Environment variables with validation
+import os
+
+class Config:
+    SECRET_KEY = os.environ.get("SECRET_KEY")
+    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
+    
+    def __init__(self):
+        if not self.SECRET_KEY:
+            raise ValueError("SECRET_KEY environment variable required")
+
+# Or use python-dotenv for local development
+from dotenv import load_dotenv
+load_dotenv()  # Loads from .env file (not committed to git)
+```
 
 ## Post-Execution Checklist
 - [ ] Required dependencies and context verified

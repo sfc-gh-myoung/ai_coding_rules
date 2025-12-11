@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.0
 **Keywords:** FastAPI testing, TestClient, pytest-asyncio, API tests, integration testing, mocking, test fixtures, AAA pattern, async testing, Python
-**TokenBudget:** ~1600
+**TokenBudget:** ~2050
 **ContextTier:** High
 **Depends:** rules/210-python-fastapi-core.md
 
@@ -79,6 +79,63 @@ FastAPI testing strategies with TestClient, pytest-asyncio, and comprehensive AP
 
 </contract>
 
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Using Synchronous TestClient for Async Endpoints
+
+**Problem:** Using `TestClient` (synchronous) to test async endpoints that use async database operations or async dependencies.
+
+**Why It Fails:** TestClient runs async code in a separate thread, masking concurrency bugs. Async context variables don't propagate correctly. Database sessions may not be properly scoped. Tests pass but production fails.
+
+**Correct Pattern:**
+```python
+# BAD: Sync client for async app
+from fastapi.testclient import TestClient
+
+def test_async_endpoint():
+    client = TestClient(app)
+    response = client.get("/async-data")  # Runs in thread, misses async bugs
+
+# GOOD: Use httpx.AsyncClient for async testing
+import pytest
+from httpx import AsyncClient, ASGITransport
+
+@pytest.mark.anyio
+async def test_async_endpoint():
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test"
+    ) as client:
+        response = await client.get("/async-data")
+        assert response.status_code == 200
+```
+
+### Anti-Pattern 2: Testing Against Production Database
+
+**Problem:** Running tests against real databases instead of isolated test databases or in-memory alternatives.
+
+**Why It Fails:** Tests modify production data. Parallel test runs conflict with each other. Test failures can corrupt real data. Tests become slow and flaky due to network latency.
+
+**Correct Pattern:**
+```python
+# BAD: Tests use production database
+@pytest.fixture
+def db():
+    return SessionLocal()  # Connects to DATABASE_URL (production!)
+
+# GOOD: Isolated test database with cleanup
+@pytest.fixture
+async def test_db():
+    # Use separate test database
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    
+    async with AsyncSession(engine) as session:
+        yield session
+    
+    await engine.dispose()
+```
 
 ## Post-Execution Checklist
 - [ ] Required dependencies and context verified

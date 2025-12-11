@@ -89,6 +89,58 @@ Focused diffs of class implementations and interfaces; runnable examples where a
 
 </contract>
 
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Mutable Default Arguments in Methods
+
+**Problem:** Using mutable objects (lists, dicts, sets) as default argument values in function or method definitions.
+
+**Why It Fails:** Default arguments are evaluated once at function definition, not at each call. The same mutable object is shared across all calls, causing mysterious bugs where data "leaks" between invocations.
+
+**Correct Pattern:**
+```python
+# BAD: Mutable default argument
+class DataCollector:
+    def __init__(self, items=[]):  # Same list shared across all instances!
+        self.items = items
+        
+# collector1.items.append("a") affects collector2.items
+
+# GOOD: Use None and create new object in body
+class DataCollector:
+    def __init__(self, items: list | None = None):
+        self.items = items if items is not None else []
+        
+# Each instance gets its own list
+```
+
+### Anti-Pattern 2: God Classes With Too Many Responsibilities
+
+**Problem:** Creating classes that handle multiple unrelated concerns—data access, business logic, formatting, validation—all in one place.
+
+**Why It Fails:** Violates Single Responsibility Principle. Changes to one feature risk breaking others. Testing requires mocking everything. Code reuse becomes impossible. Class grows indefinitely.
+
+**Correct Pattern:**
+```python
+# BAD: God class doing everything
+class UserManager:
+    def create_user(self, data): ...
+    def validate_email(self, email): ...
+    def hash_password(self, password): ...
+    def send_welcome_email(self, user): ...
+    def generate_report(self, users): ...
+    def export_to_csv(self, users): ...
+
+# GOOD: Separate concerns into focused classes
+class UserRepository:
+    def create(self, user: User) -> User: ...
+    
+class UserValidator:
+    def validate(self, data: dict) -> ValidationResult: ...
+    
+class EmailService:
+    def send_welcome(self, user: User) -> None: ...
+```
 
 ## Post-Execution Checklist
 - [ ] Chosen class over functions for justified state + behavior needs

@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.0
 **Keywords:** logging, Python logging, logger, handlers, formatters, log levels, WebLogHandler, Rich console, SSE streaming, structured logging, operation ID, thread safety, log hierarchy, log propagation
-**TokenBudget:** ~1700
+**TokenBudget:** ~2000
 **ContextTier:** High
 **Depends:** rules/200-python-core.md
 
@@ -171,6 +171,72 @@ def execute_operation(operation_id: str, operation_type: str):
         logger.removeHandler(handler)
 ```
 
+### Web Application Logging Patterns
+
+For web applications with SSE-based log streaming:
+
+**SSE Log Publishing Function:**
+
+```python
+from datetime import datetime, UTC
+
+def add_log(level: str, message: str, operation_id: str | None = None) -> None:
+    """Publish log entry to SSE logs channel.
+    
+    Args:
+        level: Log level (INFO, WARNING, ERROR, SUCCESS)
+        message: Log message text
+        operation_id: Optional operation ID for filtering
+    """
+    log_entry = {
+        "level": level,
+        "message": message,
+        "timestamp": datetime.now(UTC).isoformat(),
+    }
+    if operation_id:
+        log_entry["operation_id"] = operation_id
+    
+    publish_to_sse_channel("logs", "log", log_entry)
+```
+
+**Thread-Safe Publishing from Background Tasks:**
+
+When publishing logs from `asyncio.to_thread()` or background threads:
+
+```python
+async def status_stream(demo_id: str):
+    """Stream status with logs to both SSE and Live Logs."""
+    # CRITICAL: Capture event loop BEFORE entering thread pool
+    main_loop = asyncio.get_running_loop()
+    operation_id = f"status-{demo_id[:8]}"
+    
+    def progress_callback(step: str, message: str) -> None:
+        """Thread-safe callback from background thread."""
+        # Publish to Live Logs (with operation_id for filtering)
+        add_log("INFO", message, operation_id)
+        # Use call_soon_threadsafe for async queue operations
+        main_loop.call_soon_threadsafe(queue.put_nowait, (step, message))
+    
+    # Run blocking operation in thread pool
+    result = await asyncio.to_thread(
+        check_status, callback=progress_callback
+    )
+```
+
+**Operation Context Logging:**
+
+Include `operation_id` in logs for correlation and filtering:
+
+```python
+# Generate consistent operation IDs
+operation_id = f"status-{demo_id[:8]}"  # For status checks
+operation_id = str(uuid.uuid4())[:8]    # For general operations
+
+# Include in all log calls during operation
+add_log("INFO", "Starting database check...", operation_id)
+add_log("SUCCESS", "Database connection verified", operation_id)
+```
+
 ## Anti-Patterns and Common Mistakes
 
 **Anti-Pattern 1: Using print() for Operational Messages**
@@ -324,7 +390,8 @@ def execute_operation(operation_id: str, operation_type: str):
 - [Rich Console Documentation](https://rich.readthedocs.io/en/stable/console.html) - Rich console output
 
 ### Related Rules
+
 - **Python Core**: `rules/200-python-core.md` - Foundation for Python development
 - **FastAPI Monitoring**: `rules/210d-python-fastapi-monitoring.md` - Health checks and logging patterns
 - **Snowflake Observability**: `rules/111a-snowflake-observability-logging.md` - Snowflake logging patterns
-
+- **SSE Patterns**: `rules/221g-python-htmx-sse.md` - Server-Sent Events with log streaming

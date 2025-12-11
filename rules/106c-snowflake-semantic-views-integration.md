@@ -104,6 +104,48 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 
 </contract>
 
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Applying Governance Policies to Semantic Views Directly
+
+**Problem:** Creating masking policies or row access policies on the semantic view itself instead of the underlying base tables.
+
+**Why It Fails:** Semantic views are metadata layers, not data containers. Policies applied directly to semantic views don't enforce at query time. Users bypass security controls when querying through Cortex Analyst.
+
+**Correct Pattern:**
+```sql
+-- BAD: Policy on semantic view (doesn't work)
+ALTER SEMANTIC VIEW SEM_SALES
+  ADD ROW ACCESS POLICY rap_region ON (region);
+
+-- GOOD: Policy on base table (enforced correctly)
+ALTER TABLE SALES_FACT
+  ADD ROW ACCESS POLICY rap_region ON (region);
+
+-- Semantic view inherits security from base tables automatically
+-- Cortex Analyst queries respect policies on underlying data
+```
+
+### Anti-Pattern 2: Skipping Synonyms for Business Terms
+
+**Problem:** Creating semantic views with only technical column names, without adding WITH SYNONYMS for business terminology variations.
+
+**Why It Fails:** Business users ask "What are our Q4 revenues?" not "What is the sum of amount where fiscal_quarter = 4?". Without synonyms, Cortex Analyst fails to match natural language to schema, returning errors or incorrect results.
+
+**Correct Pattern:**
+```sql
+-- BAD: No synonyms, poor NLQ matching
+CREATE SEMANTIC VIEW SEM_SALES AS
+  SELECT amount, fiscal_quarter, region FROM SALES_FACT;
+
+-- GOOD: Comprehensive synonyms for natural language
+CREATE SEMANTIC VIEW SEM_SALES AS
+  SELECT 
+    amount WITH SYNONYMS = ('revenue', 'sales', 'income', 'total'),
+    fiscal_quarter WITH SYNONYMS = ('quarter', 'Q1', 'Q2', 'Q3', 'Q4', 'period'),
+    region WITH SYNONYMS = ('territory', 'area', 'market', 'geography')
+  FROM SALES_FACT;
+```
 
 ## Post-Execution Checklist
 

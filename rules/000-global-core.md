@@ -178,12 +178,13 @@ When operating in ACT mode after authorization, these requirements MUST be met:
 ### Common Anti-Patterns
 
 **Anti-Pattern 1: Starting work without PLAN mode**
-```markdown
-❌ BAD:
-User: Can you update the config file to use port 8080?
-AI: Sure, I'll update that for you. [immediately modifies file]
 
-✓ GOOD:
+**Problem:** Immediately modifying files without presenting a task list or awaiting authorization.
+
+**Why It Fails:** Violates the PLAN/ACT protocol; user loses control over changes; may cause unintended modifications.
+
+**Correct Pattern:**
+```markdown
 User: Can you update the config file to use port 8080?
 AI: MODE: PLAN
 
@@ -199,28 +200,31 @@ Task List:
 ```
 
 **Anti-Pattern 2: Broad rewrites instead of surgical edits**
-```python
-❌ BAD: Rewriting 60 lines when only 1 line needs change
-# Using write tool to rewrite entire function
 
-✓ GOOD: Surgical edit of single line
-# Using edit tool:
+**Problem:** Rewriting entire files or functions when only a small change is needed.
+
+**Why It Fails:** Increases risk of introducing bugs; makes diffs hard to review; wastes tokens and time.
+
+**Correct Pattern:**
+```python
+# Using edit tool for surgical change:
 old_string: "    result = old_logic()"
 new_string: "    result = new_logic()"
 ```
 
 **Anti-Pattern 3: Skipping validation steps**
-```markdown
-❌ BAD:
-AI: I've updated the Python file. Task complete!
-[No linting, no tests, no verification]
 
-✓ GOOD:
+**Problem:** Marking a task complete without running linting, tests, or verification.
+
+**Why It Fails:** Introduces bugs and regressions; violates ACT mode quality gates; erodes trust.
+
+**Correct Pattern:**
+```markdown
 AI: Changes made. Validating:
 [runs uvx ruff check .]
 [runs uv run pytest]
 
-Validation: ✓ Linting clean, ✓ Tests passing (15/15)
+Validation: Linting clean, Tests passing (15/15)
 Task complete.
 ```
 

@@ -74,19 +74,45 @@ Markdown file named NNN-technology-aspect.md with v3.0-compliant structure
 ## Anti-Patterns and Common Mistakes
 
 **Anti-Pattern 1: Skipping Schema Validation**
+
 **Problem:** Creating rule files without running schema_validator.py before committing.
+
 **Why It Fails:** Introduces CRITICAL/HIGH errors that break rule compliance; wastes time in code review.
-**Correct Pattern:** Always run `python3 scripts/schema_validator.py rules/NNN-new-rule.md` and fix all CRITICAL errors before committing.
+
+**Correct Pattern:**
+```bash
+# Always validate before committing
+python3 scripts/schema_validator.py rules/NNN-new-rule.md
+# Fix all CRITICAL errors before commit
+```
 
 **Anti-Pattern 2: Vague Rule Numbers**
+
 **Problem:** Choosing rule numbers that don't align with the domain (e.g., using 200-299 for Snowflake rules).
+
 **Why It Fails:** Breaks organizational structure; makes rule discovery difficult; violates governance.
-**Correct Pattern:** Review numbering ranges table (000-099 core, 100-199 Snowflake, etc.) and select appropriate number for your domain.
+
+**Correct Pattern:**
+```markdown
+# Snowflake rules: 100-199
+100-snowflake-core.md
+115-snowflake-cortex-agents-core.md
+
+# Python rules: 200-299
+200-python-core.md
+206-python-pytest.md
+```
 
 **Anti-Pattern 3: Insufficient Keywords**
+
 **Problem:** Adding only 5-8 keywords in metadata instead of the required 10-15.
+
 **Why It Fails:** Reduces discoverability in RULES_INDEX.md; makes semantic search less effective; triggers HIGH severity errors.
-**Correct Pattern:** Include 10-15 semantic keywords covering: domain, task type, technologies, patterns, and common search terms.
+
+**Correct Pattern:**
+```markdown
+**Keywords:** rule creation, v3.0 schema, metadata, validation, schema_validator, numbering, governance, template, workflow, RULES_INDEX, keywords, TokenBudget, ContextTier
+```
 
 ## Step 1: Choose Rule Number and Name
 

@@ -7,6 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.0] - 2025-12-10
+
+### Added
+- feat(rules): add Alpine.js core rule (`421-javascript-alpinejs-core.md`) for lightweight reactive framework (102 → 103 rules)
+  - Comprehensive Alpine.js 3.x guidance for declarative directives and reactive data
+  - Core directives (x-data, x-bind, x-on, x-model, x-show, x-if, x-for, x-text, x-html)
+  - Reactivity system (methods, getters, $watch for computed properties)
+  - Magic properties ($el, $refs, $store, $dispatch, $nextTick, $root, $data)
+  - Component patterns (Alpine.data, Alpine.store, init/destroy lifecycle)
+  - 10 anti-patterns with problem/correct pattern structure
+  - Progressive enhancement and interactive component patterns
+  - XSS prevention guidance for x-html usage
+- feat(rules): add HTMX SSE patterns rule (`221g-python-htmx-sse.md`) for real-time streaming
+  - SSE approach decision matrix (HTMX extension vs Alpine.js manager)
+  - Thread-safe publishing patterns with `asyncio.get_running_loop()` and `loop.call_soon_threadsafe()`
+  - Event type matching between frontend and backend
+  - SSE channel documentation template (`docs/SSE_EVENTS.md`)
+  - 3 anti-patterns: mixing SSE approaches, event type mismatch, wrong HTMX trigger syntax
+- feat(rules): add cross-thread async communication patterns to FastAPI rules (`210-python-fastapi-core.md`)
+  - SSE streaming with progress updates from background threads
+  - `asyncio.to_thread()` integration with event loop
+  - Anti-pattern: calling `asyncio.get_event_loop()` from threads
+- docs(readme): add Video Tutorials section with 4 YouTube demonstrations
+  - Demo 1: Getting Started with AI_CODING_RULES Project
+  - Demo 3: Bug Fixes and Enhancements on Existing Project
+  - Demo 4: Using Snowflake Cortex Code CLI with AI_CODING_RULES
+  - Demo 5: Continuation of Snowflake Cortex Code CLI usage
+  - Videos positioned after Quick Start for immediate hands-on learning
+  - Updated Table of Contents and Next Steps navigation
+
+### Changed
+- fix(rules): add anti-patterns sections to 29 rule files resolving MEDIUM validation warnings
+  - Core/Foundational (4): 001, 002, 002c, 002d
+  - Snowflake (4): 105, 106c, 109, 114
+  - Python (14): 201, 203-206, 210-210d, 220, 230, 240, 250
+  - Shell/Bash (6): 300, 300a-b, 310, 310a-b
+  - Automation (1): 820
+  - Each anti-pattern follows required "Problem:" and "Correct Pattern:" structure
+- fix(rules): update token budgets for 16 rule files exceeding ±15% threshold
+  - Snowflake: 105, 114
+  - Python: 201, 203, 210b-d, 220, 230, 240
+  - Shell/Bash: 300, 300a-b, 310, 310a-b
+- Validation now shows 103/103 files clean with 0 warnings
+
 ## [3.2.1] - 2025-12-10
 
 ### Added
@@ -382,7 +426,8 @@ Processed 2 retrospective findings from Cortex Agent testing project:
 - Basic validation scripts
 - Documentation templates
 
-[Unreleased]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.2.1...HEAD
+[Unreleased]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.3.0...HEAD
+[3.3.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.2.1...v3.3.0
 [3.2.1]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.2.0...v3.2.1
 [3.2.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.1.0...v3.2.0
 [3.1.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.0.0...v3.1.0

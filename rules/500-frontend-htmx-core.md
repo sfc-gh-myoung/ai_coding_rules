@@ -103,8 +103,8 @@ HTML with HTMX attributes, CSS transitions, JavaScript event listeners for HTMX 
 
 **Example:**
 ```html
-<button hx-get="/users" 
-        hx-target="#user-list" 
+<button hx-get="/users"
+        hx-target="#user-list"
         hx-swap="innerHTML">
     Load Users
 </button>
@@ -122,19 +122,19 @@ HTML with HTMX attributes, CSS transitions, JavaScript event listeners for HTMX 
 <button hx-get="/data">Click me</button>
 
 <!-- Input events -->
-<input hx-get="/search" 
-       hx-trigger="input" 
+<input hx-get="/search"
+       hx-trigger="input"
        hx-target="#results">
 
 <!-- Change events -->
-<select hx-get="/filter" 
-        hx-trigger="change" 
+<select hx-get="/filter"
+        hx-trigger="change"
         hx-target="#results">
     <option value="all">All</option>
 </select>
 
 <!-- Load on element appearance -->
-<div hx-get="/content" 
+<div hx-get="/content"
      hx-trigger="load">
 </div>
 ```
@@ -142,24 +142,24 @@ HTML with HTMX attributes, CSS transitions, JavaScript event listeners for HTMX 
 **Advanced Triggers:**
 ```html
 <!-- Debounced input (wait 500ms after typing stops) -->
-<input hx-get="/search" 
-       hx-trigger="input changed delay:500ms" 
+<input hx-get="/search"
+       hx-trigger="input changed delay:500ms"
        hx-target="#results">
 
 <!-- Multiple triggers -->
-<div hx-get="/status" 
+<div hx-get="/status"
      hx-trigger="load, every 5s">
 </div>
 
 <!-- Trigger on scroll into view -->
-<div hx-get="/more-items" 
+<div hx-get="/more-items"
      hx-trigger="revealed">
     Loading more...
 </div>
 
 <!-- Trigger from another element -->
 <input type="text" id="search-input">
-<button hx-get="/search" 
+<button hx-get="/search"
         hx-trigger="click, keyup from:#search-input">
     Search
 </button>
@@ -170,13 +170,13 @@ HTML with HTMX attributes, CSS transitions, JavaScript event listeners for HTMX 
 **Including Values:**
 ```html
 <!-- Include form values from closest form -->
-<button hx-post="/submit" 
+<button hx-post="/submit"
         hx-include="closest form">
     Submit
 </button>
 
 <!-- Include specific element values -->
-<button hx-post="/update" 
+<button hx-post="/update"
         hx-include="#name, #email">
     Update
 </button>
@@ -194,13 +194,13 @@ HTML with HTMX attributes, CSS transitions, JavaScript event listeners for HTMX 
 **Request Parameters:**
 ```html
 <!-- Add parameters to request -->
-<button hx-get="/filter" 
+<button hx-get="/filter"
         hx-vals='{"category": "books", "sort": "newest"}'>
     Filter Books
 </button>
 
 <!-- Dynamic parameters with JavaScript -->
-<button hx-get="/data" 
+<button hx-get="/data"
         hx-vals="js:{timestamp: Date.now()}">
     Load with Timestamp
 </button>
@@ -209,7 +209,7 @@ HTML with HTMX attributes, CSS transitions, JavaScript event listeners for HTMX 
 **Request Headers:**
 ```html
 <!-- Add custom headers -->
-<button hx-get="/api/data" 
+<button hx-get="/api/data"
         hx-headers='{"X-Custom-Header": "value"}'>
     API Request
 </button>
@@ -219,7 +219,7 @@ HTML with HTMX attributes, CSS transitions, JavaScript event listeners for HTMX 
 
 **Loading Indicators:**
 ```html
-<div hx-get="/data" 
+<div hx-get="/data"
      hx-indicator="#spinner">
     Load Data
 </div>
@@ -275,7 +275,7 @@ HTMX automatically adds classes during request lifecycle:
 
 **Custom Transition with View Transitions API:**
 ```html
-<div hx-get="/content" 
+<div hx-get="/content"
      hx-swap="innerHTML transition:true">
 </div>
 ```
@@ -377,8 +377,8 @@ htmx.trigger(element, 'click');
 **Progressive Enhancement:**
 ```html
 <!-- Form works without HTMX (falls back to full page submit) -->
-<form action="/submit" method="POST" 
-      hx-post="/submit" 
+<form action="/submit" method="POST"
+      hx-post="/submit"
       hx-target="#result">
     <input type="text" name="data">
     <button type="submit">Submit</button>
@@ -477,7 +477,7 @@ htmx.trigger(element, 'click');
     <style>
         .htmx-indicator { display: none; }
         .htmx-request .htmx-indicator { display: inline; }
-        
+
         .htmx-settling * {
             transition: opacity 300ms ease-in;
         }
@@ -487,23 +487,23 @@ htmx.trigger(element, 'click');
     </style>
 </head>
 <body>
-    <button hx-get="/users" 
-            hx-target="#user-list" 
+    <button hx-get="/users"
+            hx-target="#user-list"
             hx-swap="innerHTML"
             hx-indicator="#spinner">
         Load Users
     </button>
-    
+
     <span id="spinner" class="htmx-indicator">Loading...</span>
-    
+
     <div id="user-list">
         <!-- Users will appear here -->
     </div>
-    
+
     <script>
         // Enable debugging
         htmx.logAll();
-        
+
         // Listen for events
         document.body.addEventListener('htmx:afterSwap', function(event) {
             console.log('Content loaded!');

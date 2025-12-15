@@ -11,10 +11,8 @@
 ## Purpose
 Establishes the definitive standards for developing scalable, maintainable React applications in 2025. This rule enforces "Feature-based" architecture, Server Components (RSC) usage, and modern state management patterns to replace legacy approaches like global Redux or huge `useEffect` chains.
 
-
 ## Rule Scope
 Applies to all React-based projects, including Next.js applications, Vite Single Page Apps (SPAs), and component libraries. Covers folder structure, state management, data fetching, styling, and testing.
-
 
 ## Quick Start TL;DR
 
@@ -34,8 +32,6 @@ Applies to all React-based projects, including Next.js applications, Vite Single
 - [ ] Identify rendering strategy: Client Side (CSR) or Server Side (RSC)
 - [ ] Confirm `React.StrictMode` is enabled
 - [ ] Verify Tailwind and testing libraries are configured
-
-
 
 ## Contract
 
@@ -71,7 +67,6 @@ Run `npm run lint && npm run test && npm run type-check` (or equivalent).
 </validation>
 
 </contract>
-
 
 ## Key Principles
 
@@ -119,7 +114,6 @@ export const Button = ({ children, onClick, variant = 'primary' }: ButtonProps) 
 };
 ```
 
-
 ### 2. State Management & Data Fetching
 
 #### 2.1 Server State (Async Data)
@@ -164,7 +158,6 @@ export const useUIStore = create<UIStore>((set) => ({
 }));
 ```
 
-
 ### 3. Styling & UI Patterns
 
 #### 3.1 Tailwind & Shadcn/UI
@@ -186,7 +179,6 @@ export const Card = ({ className, ...props }: CardProps) => (
 );
 ```
 
-
 ### 4. Integration & Testing
 
 #### 4.1 Testing Strategy
@@ -205,7 +197,6 @@ test('increments count when button is clicked', () => {
   expect(screen.getByText(/count: 1/i)).toBeInTheDocument();
 });
 ```
-
 
 ## Anti-Patterns and Common Mistakes
 
@@ -251,7 +242,6 @@ const user = useUserStore(s => s.user); // Direct access
 ```
 **Benefits:** Decouples components, easier refactoring.
 
-
 ## Post-Execution Checklist
 - [ ] Feature code placed in `src/features/<domain>` structure
 - [ ] `useQuery` or RSC used for data fetching (no `useEffect` for async)
@@ -262,7 +252,6 @@ const user = useUserStore(s => s.user); // Direct access
 - [ ] `className` prop support enabled via `cn()` utility
 - [ ] All imports use absolute paths (e.g., `@/components/...`)
 - [ ] Linting and type-check pass: `npm run lint && npm run type-check`
-
 
 ## Validation
 - **Success checks:**
@@ -281,7 +270,6 @@ const user = useUserStore(s => s.user); // Direct access
 > 3. **Scan existing `src` folder** to respect current architectural patterns if migrating gradually.
 > 4. **If uncertain, explicitly state:** "I need to check the routing configuration to recommend the correct data loading strategy."
 > 5. **Make grounded recommendations** based on the actual tech stack version (e.g., Next 13 vs 14).
-
 
 ## Output Format Examples
 
@@ -331,7 +319,6 @@ npm run lint
 npm run test
 npm run type-check
 ```
-
 
 ## References
 

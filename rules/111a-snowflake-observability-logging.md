@@ -11,11 +11,9 @@
 ## Purpose
 Provide comprehensive logging best practices for Snowflake handler code, covering standard library integration, strategic log level usage, conditional logging patterns, and volume control strategies to optimize observability while managing costs.
 
-
 ## Rule Scope
 
 Logging patterns for Python, Java/Scala, and JavaScript handlers in Snowflake environments
-
 
 ## Quick Start TL;DR
 
@@ -40,7 +38,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Log levels appropriate (WARN+ for prod, DEBUG for dev)
 - [ ] Tight loops use sampling (every Nth iteration)
 - [ ] Sensitive data excluded from logs
-
 
 ## Contract
 
@@ -96,7 +93,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 </design_principles>
 
 </contract>
-
 
 ## Anti-Patterns and Common Mistakes
 
@@ -208,7 +204,6 @@ def process_order(order):
 ```
 **Benefits:** Cost-effective production logging; manageable volume; performance maintained; actionable signal; development flexibility; production scalability
 
-
 ## Post-Execution Checklist
 - [ ] Logging uses standard libraries (Python `logging`, Java `slf4j`, NOT print)
 - [ ] Log levels appropriate for environment (WARN+ for prod, DEBUG for dev only)
@@ -218,21 +213,20 @@ def process_order(order):
 - [ ] Cost implications considered (DEBUG generates 10-100x more data)
 - [ ] Conditional logging implemented (only log meaningful scenarios)
 
-
 ## Validation
-- **Success Checks:** 
+- **Success Checks:**
   - Logging from handler code appears in event table within minutes
   - Log messages include relevant context for troubleshooting
   - Log volume is reasonable for environment (< 10MB/day for typical prod workload)
   - Sensitive data NOT present in log messages
 
-- **Negative Tests:** 
+- **Negative Tests:**
   - Using `print` statements should NOT appear in event tables
   - DEBUG level in production should trigger cost review
   - Tight loop logging without sampling should be flagged
   - Sensitive data in logs should be rejected in code review
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Check existing logging patterns** - Review current handler code for logging usage
 > 2. **Verify log levels** - Ensure environment-appropriate levels (WARN+ for prod)
@@ -249,7 +243,6 @@ def process_order(order):
 > [checks event table volume, reviews log levels, scans for anti-patterns]
 > "I see you're using INFO level with 5MB/day volume. Adding WARN-level logging for errors following this pattern..."
 
-
 ## Output Format Examples
 ```python
 # Logging Best Practices Template
@@ -261,44 +254,43 @@ logger = logging.getLogger(__name__)
 
 def my_handler(session, input_data):
     """Handler with logging best practices."""
-    
+
     # Log entry point with context
     logger.info(f"Starting processing for {len(input_data)} records")
-    
+
     try:
         # Validate inputs with conditional logging
         if not input_data:
             logger.error("Input data is empty")
             return None
-        
+
         # Warn about large datasets
         if len(input_data) > 100000:
             logger.warn(f"Large dataset: {len(input_data)} records (may take time)")
-        
+
         # Process with sampling for progress
         results = []
         for i, record in enumerate(input_data):
             # Sample progress logging (every 10,000 records)
             if i % 10000 == 0 and i > 0:
                 logger.info(f"Progress: {i}/{len(input_data)} ({i/len(input_data)*100:.1f}%)")
-            
+
             try:
                 result = process_record(record)
                 results.append(result)
             except Exception as e:
                 # Always log individual failures
                 logger.error(f"Failed processing record {record.id}: {e}")
-        
+
         # Log completion with summary
         logger.info(f"Processing complete: {len(results)}/{len(input_data)} successful")
         return results
-        
+
     except Exception as e:
         # Log fatal errors
         logger.error(f"Handler failed: {str(e)}")
         raise
 ```
-
 
 ## References
 
@@ -312,7 +304,6 @@ def my_handler(session, input_data):
 - **Observability Tracing**: `rules/111b-snowflake-observability-tracing.md` - Distributed tracing patterns
 - **Observability Monitoring**: `rules/111c-snowflake-observability-monitoring.md` - Monitoring and analysis
 - **Cost Governance**: `rules/105-snowflake-cost-governance.md` - Cost optimization strategies for telemetry data
-
 
 ## 1. Standard Library Integration
 
@@ -329,22 +320,22 @@ logger = logging.getLogger(__name__)
 def process_data(session, df):
     """Process DataFrame with comprehensive logging."""
     logger.info(f"Starting data processing for {len(df)} rows")
-    
+
     try:
         # Processing logic
         result = df.filter(df.amount > 0)
         logger.info(f"Filtered to {len(result)} valid records")
-        
+
         if len(result) == 0:
             logger.warn("No valid records found after filtering")
             return None
-            
+
         # Additional processing
         transformed = result.withColumn("processed_at", current_timestamp())
         logger.info("Data transformation completed successfully")
-        
+
         return transformed
-        
+
     except Exception as e:
         logger.error(f"Data processing failed: {str(e)}")
         raise
@@ -360,24 +351,24 @@ import org.slf4j.LoggerFactory;
 
 public class DataProcessor {
     private static final Logger logger = LoggerFactory.getLogger(DataProcessor.class);
-    
+
     public DataFrame processData(Session session, DataFrame df) {
         logger.info("Starting data processing for {} rows", df.count());
-        
+
         try {
             DataFrame result = df.filter(col("amount").gt(0));
             logger.info("Filtered to {} valid records", result.count());
-            
+
             if (result.count() == 0) {
                 logger.warn("No valid records found after filtering");
                 return null;
             }
-            
+
             DataFrame transformed = result.withColumn("processed_at", current_timestamp());
             logger.info("Data transformation completed successfully");
-            
+
             return transformed;
-            
+
         } catch (Exception e) {
             logger.error("Data processing failed: {}", e.getMessage());
             throw e;
@@ -385,7 +376,6 @@ public class DataProcessor {
     }
 }
 ```
-
 
 ## 2. Log Level Strategy
 
@@ -399,7 +389,7 @@ public class DataProcessor {
 -- Production environment logging
 ALTER DATABASE prod_db SET LOG_LEVEL = WARN;
 
--- Development environment logging  
+-- Development environment logging
 ALTER DATABASE dev_db SET LOG_LEVEL = INFO;
 
 -- Critical UDF debugging
@@ -433,7 +423,6 @@ logger.error(f"Failed to process record {record.id}: {str(e)}")
 logger.fatal(f"Database connection lost: {str(e)}")
 ```
 
-
 ## 3. Conditional Logging
 
 ### Logging Only Meaningful Scenarios
@@ -446,15 +435,15 @@ def validate_input(data):
     if not data:
         logger.error("Input data is empty or null")
         return False
-        
+
     if len(data) > 10000:
         logger.warn(f"Large dataset detected: {len(data)} records")
-        
+
     # Only log validation details for problematic cases
     invalid_count = sum(1 for row in data if not is_valid(row))
     if invalid_count > 0:
         logger.warn(f"Found {invalid_count} invalid records out of {len(data)}")
-        
+
     return invalid_count == 0
 ```
 
@@ -464,21 +453,20 @@ def process_large_dataset(records):
     """Process with intelligent logging."""
     total = len(records)
     logger.info(f"Starting processing of {total} records")
-    
+
     for i, record in enumerate(records):
         # Log progress at intervals (not every record)
         if i % 10000 == 0:
             logger.info(f"Progress: {i}/{total} records ({i/total*100:.1f}%)")
-        
+
         try:
             process_record(record)
         except Exception as e:
             # Always log failures
             logger.error(f"Failed processing record {record.id}: {e}")
-    
+
     logger.info(f"Processing complete: {total} records processed")
 ```
-
 
 ## 4. Sampling Strategies
 
@@ -502,7 +490,7 @@ def process_large_dataset(records):
         # Log progress at intervals
         if i % 10000 == 0:
             logger.info(f"Progress: {i}/{total} records ({i/total*100:.1f}%)")
-        
+
         try:
             process_record(record)
         except Exception as e:
@@ -523,7 +511,7 @@ def log_with_sampling(logger, level, message, sample_rate=0.1):
 # Use for high-frequency operations
 for record in large_dataset:
     result = process_record(record)
-    
+
     # Only log a sample of successful operations
     if result.success:
         log_with_sampling(logger, logging.INFO, f"Processed record {record.id}", sample_rate=0.01)
@@ -531,7 +519,6 @@ for record in large_dataset:
         # Always log failures
         logger.warn(f"Failed to process record {record.id}: {result.error}")
 ```
-
 
 ## 5. Common Logging Anti-Patterns
 
@@ -590,12 +577,11 @@ def authenticate_user(username, password):
 def authenticate_user(username, password):
     # Log non-sensitive information only
     logger.info(f"Authentication attempt for user {username}")
-    
+
     result = perform_authentication(username, password)
-    
+
     if result.success:
         logger.info(f"User {username} authenticated successfully")
     else:
         logger.warn(f"Authentication failed for user {username}: {result.error_code}")
 ```
-

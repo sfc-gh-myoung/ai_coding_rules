@@ -11,11 +11,9 @@
 ## Purpose
 Provide pragmatic, production-focused patterns for using Snowflake Cortex AISQL functions for classification, extraction, summarization, translation, embeddings, transcriptions, document parsing, and aggregation—optimized for cost, throughput, security, and governance.
 
-
 ## Rule Scope
 
 AISQL functions (`AI_COMPLETE`, `AI_CLASSIFY`, `AI_FILTER`, `AI_AGG`, `AI_SUMMARIZE_AGG`, `AI_EMBED`, `AI_EXTRACT`, `AI_SENTIMENT`, `AI_SIMILARITY`, `AI_TRANSCRIBE`, `AI_PARSE_DOCUMENT`, `AI_TRANSLATE`) and helper functions (`PROMPT`, `AI_COUNT_TOKENS`, `TO_FILE`), SQL and Snowpark Python usage, governance (CORTEX_USER), and observability.
-
 
 ## Quick Start TL;DR
 
@@ -45,7 +43,7 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Track costs in QUERY_HISTORY
 - [ ] Apply masking/row access to sensitive data
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Check SNOWFLAKE.CORTEX_USER grants BEFORE recommending** - Verify role privileges
 > 2. **Read existing AI function usage** - Check QUERY_HISTORY for patterns
@@ -61,7 +59,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 > "Let me check your Cortex usage first."
 > [checks QUERY_HISTORY for AI functions, verifies CORTEX_USER grants]
 > "I see you're using llama3.1-8b for classification. Here's how to add sentiment analysis with AI_SENTIMENT following the same model choice..."
-
 
 ## Contract
 
@@ -135,8 +132,8 @@ WHERE needs_summary = TRUE
 LIMIT 100;  -- Test on subset first
 
 -- GOOD: Use AI_AGG for cross-row aggregation (single LLM call)
-SELECT AI_AGG('llama3.1-8b', 
-  'Summarize these product descriptions', 
+SELECT AI_AGG('llama3.1-8b',
+  'Summarize these product descriptions',
   description) AS batch_summary
 FROM products
 WHERE category = 'electronics';
@@ -151,7 +148,7 @@ WHERE category = 'electronics';
 **Correct Pattern:**
 ```sql
 -- BAD: Defaulting to expensive model
-SELECT AI_CLASSIFY('mistral-large', feedback, 
+SELECT AI_CLASSIFY('mistral-large', feedback,
   ['positive', 'negative', 'neutral']) AS sentiment
 FROM reviews;  -- Overkill for simple classification
 
@@ -181,7 +178,6 @@ FROM reviews;
 - [ ] Costs measured; warehouse auto-suspend configured; observability enabled
       Verify: Query QUERY_HISTORY for AI function costs - check AUTO_SUSPEND is set
 
-
 ## Validation
 - **Success checks:**
   - AISQL jobs complete within token limits; outputs are well-formed
@@ -190,7 +186,6 @@ FROM reviews;
 - **Negative tests:**
   - Excess token counts reject before execution; prompts truncated/segmented
   - Missing privileges raise authorization errors; governance policies enforced
-
 
 ## Output Format Examples
 ```sql
@@ -203,7 +198,6 @@ WITH src AS (
 SELECT id, AI_SUMMARIZE_AGG(content) AS day_summary
 FROM src;
 ```
-
 
 ## References
 
@@ -221,9 +215,6 @@ FROM src;
 - **Snowflake CLI**: `rules/112-snowflake-snowcli.md`
 - **Warehouse Management**: `rules/119-snowflake-warehouse-management.md`
 
-
-
-
 ## 1. Privileges and Governance
 - The `SNOWFLAKE.CORTEX_USER` database role permits use of Cortex AI functions. Revoke from `PUBLIC` and grant least privilege:
 ```sql
@@ -237,14 +228,12 @@ GRANT DATABASE ROLE SNOWFLAKE.CORTEX_USER TO ROLE cortex_user_role;
 GRANT ROLE cortex_user_role TO USER some_user;
 ```
 
-
 ## 2. Token and Cost Control
 - Preflight with `AI_COUNT_TOKENS` and cap output tokens via function options (where supported):
 ```sql
 SELECT AI_COUNT_TOKENS('llama3.1-8b', 'Summarize this: ' || LEFT(long_text, 2000)) AS tokens
 FROM SRC_DB.RAW.ARTICLES;
 ```
-
 
 ## 3. Batch-friendly Patterns
 ### 3.1 Summarize across many rows
@@ -260,7 +249,6 @@ SELECT AI_AGG(abstract_text, 'List top 5 themes with brief evidence') AS top_the
 FROM SRC_DB.RAW.ARTICLES
 WHERE CATEGORY = 'science';
 ```
-
 
 ## 4. Row-level Tasks (use explicit columns)
 ### 4.1 Classification
@@ -288,7 +276,7 @@ FROM SRC_DB.RAW.DOCS;
 ### 4.4 Summarization (Single Text)
 ```sql
 -- Summarize individual documents or conversations
-SELECT 
+SELECT
     conversation_id,
     AI_SUMMARIZE(full_transcript) AS summary
 FROM SRC_DB.RAW.CALL_TRANSCRIPTS
@@ -302,22 +290,22 @@ WHERE call_date = CURRENT_DATE();
 ```sql
 -- AI_SENTIMENT returns JSON with categorical values
 WITH transcribed AS (
-    SELECT 
+    SELECT
         call_id,
         transcript_text
     FROM SRC_DB.RAW.CALL_TRANSCRIPTS
 )
-SELECT 
+SELECT
     call_id,
     -- AI_SENTIMENT with explicit category
     AI_SENTIMENT(transcript_text, ['overall']) AS sentiment_json,
-    
+
     -- Extract categorical sentiment value
     sentiment_json:categories[0]:sentiment::VARCHAR AS sentiment,
-    
+
     -- Sentiment values: 'positive', 'negative', 'neutral', 'unknown'
-    CASE 
-        WHEN sentiment_json:categories[0]:sentiment::VARCHAR = 'negative' 
+    CASE
+        WHEN sentiment_json:categories[0]:sentiment::VARCHAR = 'negative'
         THEN 'Escalate'
         ELSE 'Standard'
     END AS routing_priority
@@ -343,7 +331,7 @@ WHERE sentiment_score >= 0.3;
 
 ```sql
 -- Analyze sentiment across multiple dimensions
-SELECT 
+SELECT
     call_id,
     AI_SENTIMENT(transcript, ['overall', 'agent_performance', 'resolution']) AS sentiment_json,
     sentiment_json:categories[0]:sentiment::VARCHAR AS overall_sentiment,
@@ -351,7 +339,6 @@ SELECT
     sentiment_json:categories[2]:sentiment::VARCHAR AS resolution_sentiment
 FROM SRC_DB.RAW.CALL_TRANSCRIPTS;
 ```
-
 
 ## 5. Embeddings & Similarity
 ```sql
@@ -364,7 +351,6 @@ FROM SRC_DB.RAW.DOCS;
 SELECT AI_SIMILARITY(AI_EMBED('snowflake cortex'), AI_EMBED('enterprise llm platform')) AS sim;
 ```
 
-
 ## 6. Files: Images, Audio, and Documents
 
 ### 6.1 AI_TRANSCRIBE - Audio Transcription (CRITICAL SYNTAX)
@@ -373,7 +359,7 @@ SELECT AI_SIMILARITY(AI_EMBED('snowflake cortex'), AI_EMBED('enterprise llm plat
 
 ```sql
 -- Pattern 1: Direct file reference (recommended)
-SELECT 
+SELECT
     RELATIVE_PATH AS audio_file,
     AI_TRANSCRIBE(TO_FILE('@STAGE_NAME', RELATIVE_PATH)) AS transcription
 FROM DIRECTORY('@STAGE_NAME')
@@ -415,7 +401,7 @@ WITH audio_files AS (
     WHERE RELATIVE_PATH LIKE '%.mp3'
     LIMIT 10
 )
-SELECT 
+SELECT
     RELATIVE_PATH AS audio_file,
     AI_TRANSCRIBE(
         TO_FILE('@UTILITY_DEMO.CUSTOMER_DATA.AUDIO_FILES', RELATIVE_PATH)
@@ -436,7 +422,7 @@ WITH audio_files AS (
     LIMIT 1
 ),
 transcribed_with_speakers AS (
-    SELECT 
+    SELECT
         RELATIVE_PATH AS audio_file,
         -- timestamp_granularity: 'speaker' returns structured segments
         AI_TRANSCRIBE(
@@ -447,7 +433,7 @@ transcribed_with_speakers AS (
 ),
 -- Flatten segments array to get individual speaker turns
 speaker_segments AS (
-    SELECT 
+    SELECT
         audio_file,
         transcription_json:text::VARCHAR AS full_transcript,
         transcription_json:audio_duration::FLOAT AS audio_duration,
@@ -458,7 +444,7 @@ speaker_segments AS (
     FROM transcribed_with_speakers,
     LATERAL FLATTEN(input => transcription_json:segments) seg
 )
-SELECT 
+SELECT
     audio_file,
     speaker,
     ROUND(start_time, 2) AS start_sec,
@@ -481,14 +467,13 @@ ORDER BY start_time;
 
 ```sql
 -- Reference staged files for multimodal tasks
-SELECT 
-  AI_COMPLETE('Describe this image in 20 words', 
+SELECT
+  AI_COMPLETE('Describe this image in 20 words',
               TO_FILE('@INT_DB.STAGE.IMAGES', 'cat.png')) AS img_desc,
   AI_PARSE_DOCUMENT(
               TO_FILE('@INT_DB.STAGE.DOCS', 'form.pdf'), 'LAYOUT') AS parsed
 FROM (SELECT 1);  -- Dummy table for demonstration
 ```
-
 
 ## 7. Snowpark Python Examples
 ```python
@@ -510,22 +495,18 @@ filtered = classified.select(
 )
 ```
 
-
 ## 8. Performance and Warehouse Sizing
 - AISQL functions are optimized for throughput—batch workloads perform best.
 - Use modest warehouses with auto-suspend; scale up only if queueing is sustained.
 - Prefer `AI_AGG`/`AI_SUMMARIZE_AGG` to bypass context window limits for multi-row summaries.
 
-
 ## 9. Security & Data Handling
 - Avoid including secrets or PII in prompts. Apply masking/row access policies per `107-snowflake-security-governance.md`.
 - Use internal stages; avoid externalizing sensitive content. Tag resources for lineage/cost tracking.
 
-
 ## 10. Observability
 - Track credit consumption for AISQL workloads; evaluate output quality and latency.
 - Use Snowflake AI Observability to trace and evaluate LLM workflows and compare variants.
-
 
 ## Related Rules
 
@@ -541,4 +522,3 @@ filtered = classified.select(
 **Complementary** (different aspects of same domain):
 - `105-snowflake-cost-governance` - For monitoring Cortex AI function costs (token usage)
 - `103-snowflake-performance-tuning` - For optimizing queries that call Cortex AI functions
-

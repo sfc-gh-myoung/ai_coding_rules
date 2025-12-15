@@ -11,11 +11,9 @@
 ## Purpose
 Define pragmatic, industry-standard testing practices with pytest to produce fast, reliable, maintainable tests that are easy to run locally and in CI, aligned with this repository's Python tooling conventions.
 
-
 ## Rule Scope
 
 pytest usage for Python 3.11+ projects (test layout, fixtures, parametrization, isolation, markers, CI integration)
-
 
 ## Quick Start TL;DR
 
@@ -37,7 +35,6 @@ pytest usage for Python 3.11+ projects (test layout, fixtures, parametrization, 
 - [ ] Parametrize with `@pytest.mark.parametrize`
 - [ ] Isolate I/O with `tmp_path`, `monkeypatch`
 - [ ] All tests pass before task completion
-
 
 ## Contract
 
@@ -148,12 +145,11 @@ def test_token_expiry():
 - [ ] Lints and formatting pass; optional coverage thresholds satisfied
 - [ ] CHANGELOG.md and README.md updated as required
 
-
 ## Validation
 - **Success Checks:** Pre-Task-Completion Test Execution Gate passed; `uv run pytest` passes with all tests passing; lint/format pass; deterministic behavior; meaningful failures; CHANGELOG.md and README.md updated as required.
 - **Negative Tests:** Flaky tests; global state coupling; sleeps; live network; bare `pytest` usage; shared mutable fixtures; task completion attempted with failing tests is blocked.
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read existing test files BEFORE adding new tests** - Check current test patterns, fixture usage, and organization
 > 2. **Run `uv run pytest` to verify tests pass** - Never assume tests work without running them
@@ -170,7 +166,6 @@ def test_token_expiry():
 > [reads tests/ directory and conftest.py]
 > "I see you're using pytest fixtures for database setup in conftest.py. Here's a new test following the same pattern..."
 
-
 ## Output Format Examples
 ```bash
 # Local run
@@ -182,7 +177,6 @@ uv run pytest -m "unit and not slow" -q
 # With coverage
 uv run pytest --cov=yourpkg --cov-report=term-missing
 ```
-
 
 ## References
 
@@ -201,9 +195,6 @@ uv run pytest --cov=yourpkg --cov-report=term-missing
 - **Python Project Setup**: `rules/203-python-project-setup.md`
 - **Python Docs & Comments**: `rules/204-python-docs-comments.md`
 - **Python Classes**: `rules/205-python-classes.md`
-
-
-
 
 ## Pre-Task-Completion Test Execution Gate (CRITICAL)
 
@@ -226,7 +217,6 @@ uv run pytest --cov=yourpkg --cov-report=term-missing
 4. Re-run tests to confirm pass
 5. Only then proceed to task completion
 
-
 ## 1. Test Layout & Naming
 - Requirement: Place tests in a top-level `tests/` directory mirroring the source structure.
 - Rule: Name files `test_<module>.py`; name tests `test_<behavior>` with descriptive intent.
@@ -247,7 +237,6 @@ def test_addition_basic():
 def test_addition_parametrized(a: int, b: int, expected: int) -> None:
     assert a + b == expected
 ```
-
 
 ## 2. Fixtures: Small, Focused, and Explicit
 - Requirement: Prefer function-scoped fixtures; use module/session scope only for expensive shared setup.
@@ -271,7 +260,6 @@ def tmp_file(tmp_path):
     return p
 ```
 
-
 ## 3. Parametrization over Loops
 - Requirement: Use `@pytest.mark.parametrize` for input matrices.
 - Consider: Combine multiple parameters and ids for readability.
@@ -288,7 +276,6 @@ def test_email_validation(email: str, valid: bool) -> None:
     assert ("@" in email) is valid
 ```
 
-
 ## 4. Isolation: Time, Randomness, I/O, and Network
 - Rule: Control randomness with a fixed seed in setup; inject RNG where possible.
 - Rule: Freeze or stub clocks for time-dependent code; avoid `time.sleep` in tests.
@@ -304,7 +291,6 @@ def _seed_rng():
     random.seed(1337)
 ```
 
-
 ## 5. Markers and Test Selection
 - Requirement: Define markers in `pyproject.toml` (or `pytest.ini`) with descriptions.
 - Rule: Use markers like `unit`, `integration`, `slow`, `e2e` and filter in CI (e.g., `-m "not slow and not e2e"`).
@@ -317,7 +303,6 @@ markers = [
   "slow: long-running tests",
 ]
 ```
-
 
 ## 6. Assertions & Error Handling
 - Requirement: Use plain `assert` with helpful context; pytest rewrites provide clarity.
@@ -336,7 +321,6 @@ def test_divide_raises_on_zero():
         divide(1, 0)
 ```
 
-
 ## 7. CLI, Logs, and Output Capture
 - Rule: Use `capsys`/`caplog` to assert on stdout/stderr/logs.
 - Consider: Configure log level for tests to reduce noise while preserving diagnostics.
@@ -351,7 +335,6 @@ def test_main_prints_ok(capsys):
     assert out.strip() == "ok"
 ```
 
-
 ## 8. Coverage and CI
 - Consider: Use `pytest-cov` for coverage reporting with realistic thresholds.
 - Rule: Avoid coverage gaming; focus on assertion quality and meaningful branches.
@@ -360,4 +343,3 @@ def test_main_prints_ok(capsys):
 uv run pytest --maxfail=1 --disable-warnings -q
 uv run pytest --cov=yourpkg --cov-report=term-missing
 ```
-

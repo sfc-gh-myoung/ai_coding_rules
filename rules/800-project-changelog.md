@@ -11,10 +11,8 @@
 ## Purpose
 Establish directives for maintaining a high-signal, audit-friendly CHANGELOG.md following Keep a Changelog standard with strong preference for Conventional Commits format, ensuring consistent documentation of project changes for stakeholders and maintainers.
 
-
 ## Rule Scope
 High-signal, audit-friendly changelog maintenance using Conventional Commits
-
 
 ## Quick Start TL;DR
 
@@ -37,8 +35,6 @@ High-signal, audit-friendly changelog maintenance using Conventional Commits
 - [ ] Micro-fixes collapsed
 - [ ] Ready for release versioning
 - [ ] Version comparison links (optional)
-
-
 
 ## Contract
 
@@ -94,7 +90,6 @@ High-signal, audit-friendly changelog maintenance using Conventional Commits
 </validation>
 
 </contract>
-
 
 ## Anti-Patterns and Common Mistakes
 
@@ -173,9 +168,6 @@ Copying raw commit messages or technical details into changelog.
 - Resolved login failures for users with special characters in passwords
 ```
 
-
-
-
 ## Post-Execution Checklist
 - [ ] **CRITICAL:** CHANGELOG.md updated with entry under `## [Unreleased]` for code changes
 - [ ] **CRITICAL:** Entry follows Conventional Commit format: `<type>(<scope>): <summary>`
@@ -184,7 +176,6 @@ Copying raw commit messages or technical details into changelog.
 - [ ] Implementation follows established patterns
 - [ ] Output format matches requirements
 - [ ] Validation steps completed successfully
-
 
 ## Validation
 - **Success checks:** CHANGELOG.md contains entry under `## [Unreleased]` for code changes; entry follows Conventional Commit format; entry is concise and user-impact oriented; Pre-Task-Completion Validation Gate passed
@@ -206,7 +197,6 @@ Copying raw commit messages or technical details into changelog.
 > "Let me check your CHANGELOG format first."
 > [reads CHANGELOG, checks scopes, reviews categories]
 > "I see you use 'snowflake' and 'python' scopes. Adding entry following this pattern..."
-
 
 ## Output Format Examples
 
@@ -238,7 +228,6 @@ Preview:
 [Show relevant excerpt of updated documentation]
 ```
 
-
 ## References
 
 ### External Documentation
@@ -252,7 +241,6 @@ Preview:
 - **Git Workflow Management**: `rules/803-project-git-workflow.md`
 - **README Rules**: `rules/801-project-readme.md`
 
-
 ## 1. Required Structure & Format
 - **Requirement:** Maintain a single `CHANGELOG.md` at the project root.
 - **Requirement:** Keep a top-level `## [Unreleased]` section for new changes.
@@ -260,9 +248,9 @@ Preview:
 - **Requirement:** Include standard Keep a Changelog v1.1.0 header:
   ```markdown
   # Changelog
-  
+
   All notable changes to this project will be documented in this file.
-  
+
   The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   ```
@@ -295,7 +283,6 @@ Preview:
   - Project: `changelog`, `readme`, `contributing`, `taskfile`
   - Analytics: `data-science`, `governance`, `business`
 
-
 ## 2. Quality and Content
 - **Requirement:** Summaries are concise and user-impact oriented; avoid duplicating commit body details.
 - **Requirement:** Do not include raw stack traces, personal names, or internal-only jargon.
@@ -303,7 +290,6 @@ Preview:
 - **CRITICAL:** Security vulnerabilities must use **Security** type and include CVE references when applicable.
 - **CRITICAL:** Deprecated features must use **Deprecated** type and include removal timeline.
 - **Always:** Link to relevant PRs or issues (`[#123]`) when helpful.
-
 
 ## 3. Workflow & Maintenance (MANDATORY)
 
@@ -327,7 +313,6 @@ Preview:
 - **MANDATORY:** New features, bug fixes, refactors, or performance improvements
 - **MANDATORY:** Documentation-only changes (no longer optional - ALWAYS update CHANGELOG.md)
 - **Rationale:** Documentation changes are user-facing and must be tracked for complete audit trail
-
 
 ## 4. Scope Examples for New Domains
 
@@ -387,8 +372,6 @@ Preview:
 - fix(pydantic): serialization issues with nested models
 ```
 
-
 ## 5. Documentation
 - **Always:** Reference Conventional Commits: https://www.conventionalcommits.org/en/v1.1.0/#specification
 - **Always:** Follow contributing guidelines: `@802-project-contributing.md`
-

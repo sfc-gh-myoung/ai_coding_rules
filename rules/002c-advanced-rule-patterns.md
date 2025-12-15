@@ -165,7 +165,7 @@ You are a technical support agent for ProductX.
 ### Investigation Required Template
 
 ```markdown
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. Read referenced files BEFORE making recommendations
 > 2. Verify assumptions against actual code/data
@@ -188,7 +188,7 @@ You are a technical support agent for ProductX.
 ```markdown
 ## Snowflake SQL Query Optimization
 
-> **Investigation Required**  
+> **Investigation Required**
 > Before optimizing queries:
 > 1. Read the SQL file to understand current query structure
 > 2. Check EXPLAIN output to identify actual bottlenecks
@@ -399,14 +399,14 @@ def search(
     mode: Literal["exact", "fuzzy", "semantic"] = "semantic"
 ) -> List[Result]:
     """Search with specified matching strategy.
-    
+
     Args:
         query: Search term or phrase
         mode: Matching strategy
             - exact: Case-sensitive exact match
             - fuzzy: Handles typos, word order
             - semantic: Meaning-based search
-    
+
     Returns:
         List of results ranked by relevance
     """
@@ -494,7 +494,7 @@ STATE_session_handoff.yml
 def refactor_with_investigation(file_path: str):
     """
     Refactor Python code following investigation-first protocol.
-    
+
     Steps:
     1. Read file to understand current structure
     2. Analyze dependencies and imports
@@ -503,14 +503,14 @@ def refactor_with_investigation(file_path: str):
     # Step 1: Investigation Required
     with open(file_path, 'r') as f:
         current_code = f.read()
-    
+
     # Step 2: Verify assumptions
     imports = extract_imports(current_code)
     function_signatures = extract_signatures(current_code)
-    
+
     # Step 3: Apply refactoring with facts
     refactored = apply_changes(current_code, imports, function_signatures)
-    
+
     return refactored
 ```
 
@@ -537,7 +537,7 @@ def refactor_with_investigation(file_path: str):
 ```markdown
 ## Python Code Refactoring
 
-> **Investigation Required**  
+> **Investigation Required**
 > Before refactoring:
 > 1. Read the Python file to understand current structure
 > 2. Check test files to understand expected behavior

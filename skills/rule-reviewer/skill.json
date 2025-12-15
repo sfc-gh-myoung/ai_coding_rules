@@ -1,0 +1,81 @@
+{
+  "name": "rule-reviewer",
+  "description": "Run Agent-Centric Rule Review using prompts/RULE_REVIEW_PROMPT.md and write the output to reviews/<rule-name>-<model>-<YYYY-MM-DD>.md (overwrite).",
+  "version": "1.0.0",
+  "author": "AI Coding Rules",
+  "required_tools": [
+    "read_file",
+    "write",
+    "list_dir",
+    "grep"
+  ],
+  "required_files": [
+    "prompts/RULE_REVIEW_PROMPT.md",
+    "docs/USING_RULE_REVIEW_PROMPT.md"
+  ],
+  "inputs": {
+    "target_file": "rules/NNN-some-rule.md",
+    "review_date": "YYYY-MM-DD",
+    "review_mode": "FULL | FOCUSED | STALENESS",
+    "model": "claude-sonnet45 (preferred) or raw model name"
+  },
+  "output": {
+    "path_format": "reviews/<rule-name>-<model>-<YYYY-MM-DD>.md",
+    "overwrite": true
+  },
+  "workflow_phases": [
+    {
+      "phase": 1,
+      "name": "Input Validation",
+      "description": "Validate target_file, review_date, review_mode, and access",
+      "workflow_file": "workflows/input-validation.md"
+    },
+    {
+      "phase": 2,
+      "name": "Model Slugging",
+      "description": "Normalize model to a stable model_slug for filenames",
+      "workflow_file": "workflows/model-slugging.md"
+    },
+    {
+      "phase": 3,
+      "name": "Review Execution",
+      "description": "Generate the review using prompts/RULE_REVIEW_PROMPT.md",
+      "workflow_file": "workflows/review-execution.md"
+    },
+    {
+      "phase": 4,
+      "name": "File Write",
+      "description": "Write the review to reviews/ with overwrite behavior",
+      "workflow_file": "workflows/file-write.md"
+    },
+    {
+      "phase": 5,
+      "name": "Error Handling",
+      "description": "Deterministic fallback behavior for failures",
+      "workflow_file": "workflows/error-handling.md"
+    }
+  ],
+  "examples": [
+    {
+      "name": "FULL Review",
+      "file": "examples/full-review.md",
+      "review_mode": "FULL"
+    },
+    {
+      "name": "FOCUSED Review",
+      "file": "examples/focused-review.md",
+      "review_mode": "FOCUSED"
+    },
+    {
+      "name": "STALENESS Review",
+      "file": "examples/staleness-review.md",
+      "review_mode": "STALENESS"
+    }
+  ],
+  "validation_gates": [
+    "target_file exists and is readable",
+    "review_date matches YYYY-MM-DD",
+    "review_mode is one of FULL/FOCUSED/STALENESS",
+    "output written to reviews/ with overwrite behavior"
+  ]
+}

@@ -512,7 +512,7 @@ python3 scripts/schema_validator.py rules/NNN-new-rule.md --verbose
 # VALIDATION REPORT: rules/NNN-new-rule.md
 # ================================================================================
 # [PASS] Passed: 458 checks
-# 
+#
 # [PASS] RESULT: PASSED
 # ================================================================================
 ```

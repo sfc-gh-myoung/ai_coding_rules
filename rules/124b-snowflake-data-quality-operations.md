@@ -11,10 +11,8 @@
 ## Purpose
 Provide operational patterns for Data Quality Monitoring including DMF scheduling, event table analysis, alerting, remediation workflows, and RBAC configuration.
 
-
 ## Rule Scope
 DMF scheduling, event tables, alerts, remediation, RBAC
-
 
 ## Quick Start TL;DR
 
@@ -38,7 +36,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Alerts set up for quality violations
 - [ ] Remediation workflows defined
 - [ ] RBAC configured with least privilege
-
 
 ## Contract
 
@@ -77,7 +74,6 @@ Tasks run successfully; alerts trigger correctly; RBAC enforced
 
 </contract>
 
-
 ## Anti-Patterns and Common Mistakes
 
 **Anti-Pattern 1: Over-Monitoring Everything**
@@ -109,7 +105,7 @@ ALTER TABLE CUSTOMERS MODIFY DATA METRIC SCHEDULE '1 HOUR'; -- Updated hourly
 -- Create custom DMF for multiple column checks if needed
 CREATE DATA METRIC FUNCTION ANALYTICS.CUSTOMER_COMPLETENESS()
 RETURNS FLOAT AS
-$$ SELECT COUNT(*)::FLOAT FROM CUSTOMERS 
+$$ SELECT COUNT(*)::FLOAT FROM CUSTOMERS
    WHERE first_name IS NULL OR last_name IS NULL OR email IS NULL $$;
 ```
 **Benefits:** Cost-effective monitoring focused on critical quality indicators; sustainable approach within limits; actionable alerts only.
@@ -207,12 +203,12 @@ CREATE ALERT DATA_QUALITY.ALERTS.QUALITY_INCIDENT
 
 -- 2. On-call engineer investigates using runbook
 CREATE OR REPLACE VIEW DATA_QUALITY.MONITORING.VW_RECENT_FAILURES AS
-SELECT 
+SELECT
   record_timestamp,
   record_value:table_name::STRING AS table_name,
   record_value:metric_name::STRING AS metric_name,
   record_value:expectation::STRING AS expectation,
-  'Runbook: https://wiki.company.com/data-quality/' || 
+  'Runbook: https://wiki.company.com/data-quality/' ||
     record_value:table_name::STRING AS runbook_link
 FROM <database>.INFORMATION_SCHEMA.EVENT_TABLE_HISTORY
 WHERE record_type = 'DATA_METRIC_FUNCTION_RESULT'
@@ -231,7 +227,7 @@ CREATE TABLE DATA_QUALITY.TRACKING.INCIDENTS (
 );
 
 -- 4. Regular review of resolution times
-SELECT 
+SELECT
   table_name,
   AVG(resolution_time_minutes) AS avg_resolution_time,
   MAX(resolution_time_minutes) AS max_resolution_time
@@ -279,7 +275,6 @@ ALTER TABLE CUSTOMERS
 ```
 **Benefits:** Expectations grounded in reality; low false positive rate; meaningful alerts drive action; builds trust in monitoring system.
 
-
 ## Post-Execution Checklist
 
 - [ ] Snowflake Enterprise Edition account confirmed
@@ -297,7 +292,6 @@ ALTER TABLE CUSTOMERS
 - [ ] Cost monitoring via DATA_QUALITY_MONITORING_USAGE_HISTORY established
 - [ ] Account limit of 10,000 DMF-object associations tracked
 - [ ] Documentation includes runbooks for common failure scenarios
-
 
 ## Validation
 
@@ -319,7 +313,7 @@ ALTER TABLE CUSTOMERS
   - Missing expectations result in no pass/fail evaluation
   - Alert queries with no failures return empty result set
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Profile data BEFORE recommending DMFs—verify baseline characteristics**
 > 2. **Check table ownership and privileges before suggesting DMF associations**
@@ -341,7 +335,6 @@ ALTER TABLE CUSTOMERS
 > FROM CUSTOMERS;
 > ```
 > "Based on the profile showing 2% NULLs currently, I recommend setting an expectation at 5% to allow for normal variation while detecting significant quality degradation..."
-
 
 ## Output Format Examples
 
@@ -375,7 +368,7 @@ ALTER TABLE <schema>.<table>
   EXPECT (<dmf_name> ON <column>) <comparison> <threshold>;
 
 -- Step 5: Query results
-SELECT * 
+SELECT *
 FROM <database>.INFORMATION_SCHEMA.EVENT_TABLE_HISTORY
 WHERE record_type = 'DATA_METRIC_FUNCTION_RESULT'
   AND record_value:table_name::STRING = '<TABLE>'
@@ -394,7 +387,7 @@ CREATE ALERT <schema>.ALERTS.<alert_name>
   THEN <action>;
 
 -- Step 7: Monitor cost consumption
-SELECT 
+SELECT
   usage_date,
   object_name,
   SUM(credits_used) AS credits
@@ -403,7 +396,6 @@ WHERE object_name = '<TABLE>'
 GROUP BY usage_date, object_name
 ORDER BY usage_date DESC;
 ```
-
 
 ## References
 
@@ -425,14 +417,12 @@ ORDER BY usage_date DESC;
 - **Cost Governance**: `rules/105-snowflake-cost-governance.md`
 - **Data Governance**: `rules/930-data-governance-quality.md`
 
-> **[AI] Claude 4 Specific Guidance**  
+> **[AI] Claude 4 Specific Guidance**
 > **Claude 4 Optimizations:**
 > - Always profile data first using Snowsight or SQL before recommending DMFs
 > - Query event tables to verify DMF execution before troubleshooting
 > - Check table ownership and privileges before suggesting DMF associations
 > - Use parallel tool calls to check both data profile and existing DMFs simultaneously
-
-
 
 ## 6. Scheduling DMF Evaluations
 
@@ -482,7 +472,6 @@ ALTER TABLE BUSINESS_METRICS
 - Balance monitoring needs with budget constraints
 - Use CRON expressions for business hours-only monitoring
 
-
 ## 7. Event Tables and Results
 
 **MANDATORY:**
@@ -496,7 +485,7 @@ Snowflake creates a default event table for DMF results at the database level.
 **Query DMF Results:**
 ```sql
 -- View recent DMF results
-SELECT 
+SELECT
   record_timestamp,
   record_type,
   record_value:table_name::STRING AS table_name,
@@ -525,7 +514,7 @@ LIMIT 100;
 
 **Find Failing Expectations:**
 ```sql
-SELECT 
+SELECT
   record_timestamp,
   record_value:table_name::STRING AS table_name,
   record_value:metric_name::STRING AS metric_name,
@@ -540,7 +529,7 @@ ORDER BY record_timestamp DESC;
 **Trend Analysis:**
 ```sql
 -- Track metric trends over time
-SELECT 
+SELECT
   DATE_TRUNC('hour', record_timestamp) AS hour,
   record_value:metric_name::STRING AS metric_name,
   AVG(record_value:value::FLOAT) AS avg_value,
@@ -556,7 +545,7 @@ ORDER BY hour DESC, metric_name;
 
 **Failure Rate by Table:**
 ```sql
-SELECT 
+SELECT
   record_value:table_name::STRING AS table_name,
   COUNT(*) AS total_checks,
   SUM(CASE WHEN record_value:expectation_passed::BOOLEAN = FALSE THEN 1 ELSE 0 END) AS failures,
@@ -567,7 +556,6 @@ WHERE record_type = 'DATA_METRIC_FUNCTION_RESULT'
 GROUP BY table_name
 ORDER BY failure_rate_pct DESC;
 ```
-
 
 ## 8. Alerts and Remediation
 
@@ -616,7 +604,7 @@ CREATE OR REPLACE ALERT DATA_QUALITY.ALERTS.EMAIL_NULL_ALERT
 **Remediation Query Template:**
 ```sql
 -- Investigate specific failure
-SELECT 
+SELECT
   record_timestamp,
   record_value:table_name::STRING AS table_name,
   record_value:metric_name::STRING AS metric_name,
@@ -636,14 +624,13 @@ FROM CUSTOMERS
 WHERE email IS NULL;
 
 -- Investigate recent data changes
-SELECT 
+SELECT
   MIN(updated_timestamp) AS first_bad_record,
   COUNT(*) AS bad_records
 FROM CUSTOMERS
 WHERE email IS NULL
   AND updated_timestamp >= DATEADD(hour, -2, CURRENT_TIMESTAMP());
 ```
-
 
 ## 9. Privilege Requirements
 
@@ -693,7 +680,6 @@ GRANT OWNERSHIP ON TABLE ANALYTICS.CORE.CUSTOMERS TO ROLE DATA_ENGINEERING;
 -- Now DATA_ENGINEERING role can set DMFs on CUSTOMERS table
 ```
 
-
 ## 10. Supported Objects
 
 **MANDATORY:**
@@ -712,7 +698,6 @@ DMFs can be set on the following Snowflake objects:
 - Shared tables or views (data sharing consumers cannot set DMFs)
 - Objects in reader accounts
 - Object tags (cannot set DMFs on tags themselves)
-
 
 ## 11. Billing and Cost Management
 
@@ -734,7 +719,7 @@ DMFs can be set on the following Snowflake objects:
 **Track DMF Credit Consumption:**
 ```sql
 -- Query credit usage for data quality monitoring
-SELECT 
+SELECT
   usage_date,
   SUM(credits_used) AS total_credits
 FROM SNOWFLAKE.ACCOUNT_USAGE.DATA_QUALITY_MONITORING_USAGE_HISTORY
@@ -743,7 +728,7 @@ GROUP BY usage_date
 ORDER BY usage_date DESC;
 
 -- Break down by table
-SELECT 
+SELECT
   object_name,
   SUM(credits_used) AS total_credits,
   COUNT(*) AS execution_count
@@ -761,7 +746,6 @@ ORDER BY total_credits DESC;
 3. **Progressive monitoring:** Start with critical tables, expand gradually
 4. **Consolidate checks:** Combine related metrics in custom DMFs
 5. **Review consumption:** Regularly query usage history and adjust
-
 
 ## 12. Limitations and Quotas
 
@@ -792,4 +776,3 @@ ORDER BY total_credits DESC;
 - DMFs replicate within database replication
 - Schedules and expectations replicate to secondary
 - Monitor both primary and secondary independently
-

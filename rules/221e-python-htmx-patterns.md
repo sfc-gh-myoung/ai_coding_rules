@@ -139,11 +139,11 @@ def update_user(user_id):
     user = get_user(user_id)
     user.name = request.form['name']
     user.email = request.form['email']
-    
+
     if not validate_user(user):
-        return render_template('partials/_user_form.html', 
+        return render_template('partials/_user_form.html',
                              user=user, errors=get_errors(user)), 400
-    
+
     save_user(user)
     response = make_response(render_template('partials/_user_row.html', user=user))
     response.headers['HX-Trigger'] = 'userUpdated'
@@ -182,12 +182,12 @@ def delete_user(user_id):
 def create_user():
     name = request.form['name']
     email = request.form['email']
-    
+
     user = User(name=name, email=email)
     if not validate_user(user):
-        return render_template('partials/_form_errors.html', 
+        return render_template('partials/_form_errors.html',
                              errors=get_errors(user)), 400
-    
+
     save_user(user)
     response = make_response(render_template('partials/_user_row.html', user=user))
     response.headers['HX-Trigger'] = 'userCreated'
@@ -199,35 +199,35 @@ def create_user():
 **Server-Side Validation Pattern:**
 ```html
 {# partials/_user_form.html #}
-<form id="user-form" 
+<form id="user-form"
       hx-post="{{ url_for('submit_user_form') }}"
       hx-target="#user-form"
       hx-swap="outerHTML">
-    
+
     <div class="form-field">
         <label for="name">Name</label>
-        <input type="text" 
-               id="name" 
-               name="name" 
+        <input type="text"
+               id="name"
+               name="name"
                value="{{ user.name if user else '' }}"
                class="{% if errors.name %}error{% endif %}">
         {% if errors.name %}
             <span class="error-message">{{ errors.name }}</span>
         {% endif %}
     </div>
-    
+
     <div class="form-field">
         <label for="email">Email</label>
-        <input type="email" 
-               id="email" 
-               name="email" 
+        <input type="email"
+               id="email"
+               name="email"
                value="{{ user.email if user else '' }}"
                class="{% if errors.email %}error{% endif %}">
         {% if errors.email %}
             <span class="error-message">{{ errors.email }}</span>
         {% endif %}
     </div>
-    
+
     <button type="submit">Submit</button>
 </form>
 ```
@@ -237,23 +237,23 @@ def create_user():
 def submit_user_form():
     name = request.form.get('name', '').strip()
     email = request.form.get('email', '').strip()
-    
+
     errors = {}
     if not name:
         errors['name'] = 'Name is required'
     elif len(name) < 2:
         errors['name'] = 'Name must be at least 2 characters'
-    
+
     if not email:
         errors['email'] = 'Email is required'
     elif '@' not in email:
         errors['email'] = 'Invalid email format'
-    
+
     if errors:
         return render_template('partials/_user_form.html',
                              user={'name': name, 'email': email},
                              errors=errors), 400
-    
+
     # Success: create user and redirect or return success message
     user = create_user(name, email)
     response = make_response(f'<div class="success">User {name} created!</div>')
@@ -270,7 +270,7 @@ def submit_user_form():
     {% for item in items %}
         {% include 'partials/_item.html' %}
     {% endfor %}
-    
+
     {% if has_more %}
         <div hx-get="{{ url_for('load_more', page=next_page) }}"
              hx-trigger="revealed"
@@ -287,11 +287,11 @@ def submit_user_form():
 def items_list():
     page = int(request.args.get('page', 1))
     per_page = 20
-    
+
     items = get_items(page=page, per_page=per_page)
     total = get_total_items()
     has_more = (page * per_page) < total
-    
+
     if htmx:
         # Return partial for lazy loading
         html = render_template('partials/_items_list.html',
@@ -299,7 +299,7 @@ def items_list():
                              has_more=has_more,
                              next_page=page + 1)
         return html
-    
+
     # Full page load
     return render_template('pages/items.html',
                          items=items,
@@ -310,15 +310,15 @@ def items_list():
 def load_more():
     page = int(request.args.get('page', 2))
     per_page = 20
-    
+
     items = get_items(page=page, per_page=per_page)
     total = get_total_items()
     has_more = (page * per_page) < total
-    
+
     html = ''
     for item in items:
         html += render_template('partials/_item.html', item=item)
-    
+
     if has_more:
         html += f'''
         <div hx-get="{url_for('load_more', page=page+1)}"
@@ -328,7 +328,7 @@ def load_more():
             Loading more...
         </div>
         '''
-    
+
     return html
 ```
 
@@ -337,8 +337,8 @@ def load_more():
 **Search with Debounce:**
 ```html
 <div>
-    <input type="search" 
-           name="q" 
+    <input type="search"
+           name="q"
            placeholder="Search users..."
            hx-get="{{ url_for('search_users') }}"
            hx-trigger="input changed delay:500ms, search"
@@ -356,28 +356,28 @@ def load_more():
 @app.route('/users/search')
 def search_users():
     query = request.args.get('q', '').strip()
-    
+
     if not query:
         return '<p>Enter a search term</p>'
-    
+
     users = search_users_in_db(query)
-    
+
     if not users:
         return f'<p>No users found for "{escape(query)}"</p>'
-    
+
     return render_template('partials/_users_table.html', users=users)
 ```
 
 **Autocomplete Pattern:**
 ```html
 <div class="autocomplete">
-    <input type="text" 
+    <input type="text"
            name="city"
            hx-get="{{ url_for('autocomplete_cities') }}"
            hx-trigger="keyup changed delay:300ms"
            hx-target="#autocomplete-results"
            placeholder="Enter city name">
-    
+
     <div id="autocomplete-results" class="autocomplete-results"></div>
 </div>
 ```
@@ -386,12 +386,12 @@ def search_users():
 @app.route('/autocomplete/cities')
 def autocomplete_cities():
     query = request.args.get('city', '').strip()
-    
+
     if len(query) < 2:
         return ''
-    
+
     cities = get_matching_cities(query, limit=10)
-    
+
     html = '<ul class="autocomplete-list">'
     for city in cities:
         html += f'''
@@ -401,7 +401,7 @@ def autocomplete_cities():
         </li>
         '''
     html += '</ul>'
-    
+
     return html
 ```
 
@@ -412,8 +412,8 @@ def autocomplete_cities():
 {# Include HTMX SSE extension #}
 <script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/sse.js"></script>
 
-<div hx-ext="sse" 
-     sse-connect="{{ url_for('notifications_stream') }}" 
+<div hx-ext="sse"
+     sse-connect="{{ url_for('notifications_stream') }}"
      sse-swap="notification"
      id="notifications">
     {# Notifications appear here #}
@@ -430,17 +430,17 @@ def notifications_stream():
         while True:
             notification = get_latest_notification()
             if notification:
-                html = render_template('partials/_notification.html', 
+                html = render_template('partials/_notification.html',
                                      notification=notification)
                 yield f'event: notification\ndata: {html}\n\n'
             time.sleep(5)  # Check every 5 seconds
-    
+
     return Response(event_stream(), mimetype='text/event-stream')
 ```
 
 **Polling Pattern:**
 ```html
-<div id="status" 
+<div id="status"
      hx-get="{{ url_for('get_status') }}"
      hx-trigger="every 2s"
      hx-swap="innerHTML">
@@ -474,11 +474,11 @@ def get_status():
 {# partials/_modal.html #}
 <div class="modal-overlay" onclick="this.remove()">
     <div class="modal-content" onclick="event.stopPropagation()">
-        <button class="modal-close" 
+        <button class="modal-close"
                 onclick="document.getElementById('modal-container').innerHTML = ''">
             ×
         </button>
-        
+
         <h2>{{ title }}</h2>
         <div class="modal-body">
             {{ content|safe }}
@@ -502,15 +502,15 @@ def user_detail_modal(user_id):
 **Wizard Pattern:**
 ```html
 {# Step 1: Basic Info #}
-<form id="wizard-form" 
+<form id="wizard-form"
       hx-post="{{ url_for('wizard_step_2') }}"
       hx-target="#wizard-form"
       hx-swap="outerHTML">
     <h3>Step 1: Basic Information</h3>
-    
+
     <input type="text" name="name" placeholder="Name" required>
     <input type="email" name="email" placeholder="Email" required>
-    
+
     <button type="submit">Next</button>
 </form>
 ```
@@ -523,7 +523,7 @@ def wizard_step_2():
         'name': request.form['name'],
         'email': request.form['email']
     }
-    
+
     # Return step 2 form
     return render_template('partials/_wizard_step_2.html')
 
@@ -532,7 +532,7 @@ def wizard_step_3():
     # Add step 2 data to session
     session['wizard']['address'] = request.form['address']
     session['wizard']['phone'] = request.form['phone']
-    
+
     # Return step 3 form
     return render_template('partials/_wizard_step_3.html')
 
@@ -541,13 +541,13 @@ def wizard_complete():
     # Get all wizard data from session
     data = session.get('wizard', {})
     data['preferences'] = request.form.getlist('preferences')
-    
+
     # Save to database
     user = create_user_from_wizard(data)
-    
+
     # Clear session
     session.pop('wizard', None)
-    
+
     # Return success message with redirect
     response = make_response('<div class="success">Account created!</div>')
     response.headers['HX-Redirect'] = url_for('dashboard')
@@ -559,12 +559,12 @@ def wizard_complete():
 **Graceful Degradation Pattern:**
 ```html
 {# Form works with and without HTMX #}
-<form action="{{ url_for('create_user') }}" 
+<form action="{{ url_for('create_user') }}"
       method="POST"
       hx-post="{{ url_for('create_user') }}"
       hx-target="#user-list"
       hx-swap="beforeend">
-    
+
     <input type="text" name="name" required>
     <input type="email" name="email" required>
     <button type="submit">Create User</button>
@@ -576,13 +576,13 @@ def wizard_complete():
 def create_user():
     name = request.form['name']
     email = request.form['email']
-    
+
     user = create_user_in_db(name, email)
-    
+
     if htmx:
         # Return partial for HTMX
         return render_template('partials/_user_row.html', user=user)
-    
+
     # Full page redirect for non-HTMX
     flash(f'User {name} created successfully')
     return redirect(url_for('users_list'))
@@ -602,11 +602,11 @@ def create_user():
 def create_user():
     data = request.form
     errors = validate_user_data(data)
-    
+
     if errors:
-        return render_template('partials/_form.html', 
+        return render_template('partials/_form.html',
                              data=data, errors=errors), 400
-    
+
     user = User(**data)
     save_user(user)
     return render_template('partials/_user_row.html', user=user)
@@ -673,11 +673,11 @@ def update_user(user_id):
     user = get_user(user_id)
     user.name = request.form['name']
     user.email = request.form['email']
-    
+
     if not validate_user(user):
-        return render_template('partials/_user_form.html', 
+        return render_template('partials/_user_form.html',
                              user=user, errors=get_errors(user)), 400
-    
+
     save_user(user)
     response = make_response(render_template('partials/_user_row.html', user=user))
     response.headers['HX-Trigger'] = 'userUpdated'

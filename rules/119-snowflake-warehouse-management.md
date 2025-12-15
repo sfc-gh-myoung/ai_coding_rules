@@ -11,11 +11,9 @@
 ## Purpose
 Establish comprehensive best practices for creating, configuring, and managing Snowflake virtual warehouses, including proper selection of warehouse types (CPU/GPU/High-Memory), mandatory GEN 2 preference, sizing strategies, auto-suspend configuration, tagging standards, and cost governance integration.
 
-
 ## Rule Scope
 
 Virtual warehouse creation, configuration, lifecycle management, type selection (Standard, Snowpark-Optimized, High-Memory), and cost optimization
-
 
 ## Quick Start TL;DR
 
@@ -56,7 +54,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - **Creating warehouse**: + Warehouse Types & Sizing
 - **Full configuration**: + Configuration & Governance
 - **Cost optimization**: Full reference + 105 (cost governance)
-
 
 ## Contract
 
@@ -105,7 +102,6 @@ Warehouse created successfully; correct type and edition selected; mandatory tag
 
 </contract>
 
-
 ## Anti-Patterns and Common Mistakes
 
 **Anti-Pattern 1: Starting with Oversized Warehouses**
@@ -127,7 +123,7 @@ CREATE WAREHOUSE analytics_wh
   AUTO_RESUME = TRUE;
 
 -- After measuring actual workload:
-SELECT 
+SELECT
   AVG(avg_running) as avg_concurrent_queries,
   MAX(avg_running) as peak_concurrent
 FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_LOAD_HISTORY
@@ -195,7 +191,7 @@ CREATE WAREHOUSE adhoc_wh
   TAG (COST_CENTER = 'ANALYTICS', WORKLOAD_TYPE = 'ADHOC');
 
 -- Now query costs by workload/team
-SELECT 
+SELECT
   SYSTEM$GET_TAG('COST_CENTER', warehouse_name, 'WAREHOUSE') as cost_center,
   SYSTEM$GET_TAG('WORKLOAD_TYPE', warehouse_name, 'WAREHOUSE') as workload,
   SUM(credits_used) as total_credits
@@ -232,7 +228,6 @@ ALTER WAREHOUSE old_wh SET RESOURCE_CONSTRAINT = 'STANDARD_GEN_2';
 ```
 **Benefits:** 2-3x faster queries; lower cost per query; modern architecture; performance optimizations; competitive advantage; future-proof
 
-
 ## Post-Execution Checklist
 
 **Provisioning:**
@@ -260,12 +255,11 @@ ALTER WAREHOUSE old_wh SET RESOURCE_CONSTRAINT = 'STANDARD_GEN_2';
 - [ ] Auto-suspend working, Query Profile shows expected performance
 - [ ] Cost tracking functional, monitoring queries configured
 
-
 ## Validation
 - **Success Checks:** Warehouse created successfully with correct type and edition; all mandatory tags present; auto-suspend working as configured; resource monitor association verified; Query Profile shows expected performance; cost tracking functional in monitoring queries; warehouse appears in governance inventory
 - **Negative Tests:** Creating warehouse without tags fails governance checks; oversized warehouse (XLARGE+) without documented justification triggers review; disabled auto-suspend in non-production raises alert; warehouse without resource monitor blocked or flagged; GPU warehouse used for standard SQL shows cost inefficiency; High-memory warehouse used without memory pressure evidence
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read existing warehouse configs BEFORE creating new ones** - Check naming conventions, sizing patterns, tag standards
 > 2. **Verify GEN 2 availability** - Check account capabilities for warehouse editions
@@ -281,7 +275,6 @@ ALTER WAREHOUSE old_wh SET RESOURCE_CONSTRAINT = 'STANDARD_GEN_2';
 > "Let me check your existing warehouse setup first."
 > [reads SHOW WAREHOUSES, checks tags, reviews resource monitors]
 > "I see you use GEN 2 with 5-minute auto-suspend. Creating new warehouse following this pattern..."
-
 
 ## Output Format Examples
 ```sql
@@ -312,7 +305,6 @@ SHOW WAREHOUSES LIKE 'WH_[WORKLOAD]_M';
 SELECT * FROM TABLE(INFORMATION_SCHEMA.TAG_REFERENCES('WH_[WORKLOAD]_M', 'WAREHOUSE'));
 ```
 
-
 ## References
 
 ### External Documentation
@@ -333,8 +325,6 @@ SELECT * FROM TABLE(INFORMATION_SCHEMA.TAG_REFERENCES('WH_[WORKLOAD]_M', 'WAREHO
 - **Security Governance**: `rules/107-snowflake-security-governance.md` - Tagging and access policies
 - **Object Tagging**: `rules/123-snowflake-object-tagging.md` - Comprehensive tagging patterns and governance
 - **Observability**: `rules/111-snowflake-observability-core.md` - Monitoring and telemetry
-
-
 
 ## 1. Warehouse Types and Resource Constraints
 
@@ -435,7 +425,6 @@ ALTER WAREHOUSE WH_ANALYTICS_HIMEM_L SET TAG
   OWNER_TEAM = 'ANALYTICS';
 ```
 
-
 ## 2. Warehouse Sizing Guidelines
 
 ### 2.1 Size Selection Strategy
@@ -476,7 +465,6 @@ CREATE OR REPLACE WAREHOUSE WH_BI_PRODUCTION_M
 -- Apply tags (see Section 4 for tag setup)
 ```
 
-
 ## 3. Auto-Suspend and Auto-Resume Configuration
 
 **Rule:** ALWAYS enable auto-suspend. ALWAYS set `AUTO_RESUME = TRUE` (except deprecated warehouses or emergency cost control).
@@ -503,7 +491,6 @@ CREATE OR REPLACE WAREHOUSE WH_INTERACTIVE_BI_M
   INITIALLY_SUSPENDED = TRUE
   COMMENT = 'Interactive BI - 5min auto-suspend';
 ```
-
 
 ## 4. Mandatory Tagging Standards
 
@@ -534,7 +521,7 @@ CREATE TAG IF NOT EXISTS GOVERNANCE.TAGS.COST_CENTER
   ALLOWED_VALUES 'FINANCE', 'MARKETING', 'DATA_SCIENCE', 'ENGINEERING', 'OPERATIONS', 'SALES';
 
 CREATE TAG IF NOT EXISTS GOVERNANCE.TAGS.WORKLOAD_TYPE
-  ALLOWED_VALUES 'BI_INTERACTIVE', 'BI_SCHEDULED', 'ETL_BATCH', 'ETL_STREAMING', 
+  ALLOWED_VALUES 'BI_INTERACTIVE', 'BI_SCHEDULED', 'ETL_BATCH', 'ETL_STREAMING',
                  'ML_TRAINING', 'ML_INFERENCE', 'ANALYTICS', 'DATA_LOADING', 'DEVELOPMENT';
 
 CREATE TAG IF NOT EXISTS GOVERNANCE.TAGS.ENVIRONMENT
@@ -554,7 +541,7 @@ ALTER WAREHOUSE WH_[NAME] SET TAG
 
 ```sql
 -- Verify all warehouses have required tags
-SELECT 
+SELECT
   w.name AS warehouse_name,
   w.size AS warehouse_size,
   w.auto_suspend,
@@ -575,14 +562,14 @@ WITH required_tags AS (
   SELECT 'OWNER_TEAM'
 ),
 warehouse_tags AS (
-  SELECT 
+  SELECT
     object_name AS warehouse_name,
     tag_name
   FROM SNOWFLAKE.ACCOUNT_USAGE.TAG_REFERENCES
   WHERE object_domain = 'WAREHOUSE'
     AND deleted IS NULL
 )
-SELECT 
+SELECT
   w.name AS warehouse_name,
   rt.tag_name AS missing_tag
 FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSES w
@@ -594,7 +581,6 @@ WHERE w.deleted IS NULL
   AND wt.warehouse_name IS NULL
 ORDER BY w.name, rt.tag_name;
 ```
-
 
 ## 5. Cost Governance and Resource Monitors
 
@@ -632,7 +618,6 @@ HAVING credits_30d < 10
 ORDER BY credits_30d DESC;
 ```
 
-
 ## 6. Naming Conventions and Lifecycle
 
 **Naming Pattern:** `WH_[WORKLOAD]_[TYPE?]_[SIZE?]`
@@ -667,7 +652,6 @@ WHERE warehouse_name = 'WH_OLD' AND start_time >= DATEADD(day, -7, CURRENT_TIMES
 DROP WAREHOUSE IF EXISTS WH_OLD;
 ```
 
-
 ## Related Rules
 
 **Closely Related** (consider loading together):
@@ -682,4 +666,3 @@ DROP WAREHOUSE IF EXISTS WH_OLD;
 **Complementary** (different aspects of same domain):
 - `100-snowflake-core` - For warehouse naming conventions
 - `107-snowflake-security-governance` - For warehouse access control and RBAC
-

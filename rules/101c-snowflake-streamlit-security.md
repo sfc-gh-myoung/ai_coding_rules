@@ -11,11 +11,9 @@
 ## Purpose
 Provide comprehensive security guidance for Streamlit applications including input validation, secrets management, authentication patterns, and security best practices to prevent common vulnerabilities.
 
-
 ## Rule Scope
 
 Streamlit security, input validation, secrets management, authentication
-
 
 ## Quick Start TL;DR
 
@@ -44,7 +42,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Error messages don't expose secrets
 - [ ] Authentication implemented for sensitive apps
 - [ ] HTTPS configured for production deployment
-
 
 ## Contract
 
@@ -88,7 +85,6 @@ Test with invalid inputs (should reject), verify secrets not exposed in UI/logs,
 </design_principles>
 
 </contract>
-
 
 ## Anti-Patterns and Common Mistakes
 
@@ -165,7 +161,6 @@ if uploaded_file:
         df = pd.read_csv(uploaded_file)
 ```
 
-
 ## Post-Execution Checklist
 - [ ] st.secrets used for ALL credentials (never hardcoded)
 - [ ] All user inputs validated and sanitized
@@ -176,12 +171,11 @@ if uploaded_file:
 - [ ] HTTPS used for production deployment
 - [ ] secrets.toml in .gitignore (never committed)
 
-
 ## Validation
 - **Success Checks:** Secrets loaded without errors, invalid inputs rejected with clear messages, file upload limits enforced, SQL injection attempts fail, error messages user-friendly without secrets
 - **Negative Tests:** Try uploading oversized file (should reject), test SQL injection attempt (should fail safely), remove secret (should show graceful error), expose error with secrets (should be sanitized)
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. Read secrets.toml and verify configuration (if accessible)
 > 2. Check all st.text_input, st.number_input, st.file_uploader for validation
@@ -189,7 +183,6 @@ if uploaded_file:
 > 4. Never speculate about security - inspect actual code patterns
 > 5. Check error handling doesn't expose secrets
 > 6. Verify authentication implementation if present
-
 
 ## Output Format Examples
 ```python
@@ -209,7 +202,7 @@ user_input = st.text_input("Enter value")
 if user_input:
     # Sanitize input
     sanitized = re.sub(r'[^a-zA-Z0-9\s_-]', '', user_input)
-    
+
     if sanitized != user_input:
         st.warning("Special characters removed from input")
 
@@ -217,18 +210,17 @@ if user_input:
 uploaded_file = st.file_uploader("Upload CSV", type=['csv'])
 if uploaded_file:
     MAX_SIZE = 10 * 1024 * 1024  # 10MB
-    
+
     if uploaded_file.size > MAX_SIZE:
         st.error("File too large. Maximum 10MB.")
         st.stop()
-    
+
     try:
         df = pd.read_csv(uploaded_file)
         st.success(f"Loaded {len(df)} rows")
     except Exception:
         st.error("Invalid file format")
 ```
-
 
 ## References
 
@@ -253,17 +245,14 @@ if uploaded_file:
 - **Snowflake Security Governance**: `rules/107-snowflake-security-governance.md`
 - **Python Core**: `rules/200-python-core.md`
 
-> **[AI] Claude 4 Specific Guidance**  
+> **[AI] Claude 4 Specific Guidance**
 > **Claude 4 Streamlit Security Optimizations:**
 > - Parallel security audit: Can review multiple input validation patterns simultaneously
 > - Context awareness: Track secrets usage patterns across multiple files
 > - Investigation-first: Excel at discovering hardcoded credentials and validation gaps
 > - Pattern recognition: Quickly identify SQL injection vulnerabilities and unsafe patterns
 
-
-
 ## 1. Secrets Management
-
 
 **MANDATORY:**
 - **Mandatory:** Use `st.secrets` for all sensitive configuration (API keys, passwords, tokens)
@@ -314,9 +303,7 @@ password = "your_password"
 - Never display secrets in UI (even in debug mode)
 - Never pass secrets in URL parameters
 
-
 ## 2. Input Validation
-
 
 **MANDATORY:**
 - **Mandatory:** Validate and sanitize all user inputs before processing
@@ -328,9 +315,9 @@ password = "your_password"
 ```python
 # [PASS] Validated numeric input with bounds
 age = st.number_input(
-    "Age", 
-    min_value=0, 
-    max_value=120, 
+    "Age",
+    min_value=0,
+    max_value=120,
     value=25,
     help="Enter age between 0 and 120"
 )
@@ -351,13 +338,13 @@ user_input = st.text_input("Enter name")
 if user_input:
     # Remove special characters
     sanitized = re.sub(r'[^a-zA-Z0-9\s_-]', '', user_input)
-    
+
     # HTML escape for display
     safe_display = html.escape(sanitized)
-    
+
     if sanitized != user_input:
         st.warning("Special characters were removed from input.")
-    
+
     st.write(f"Sanitized input: {safe_display}")
 ```
 
@@ -369,30 +356,29 @@ uploaded_file = st.file_uploader("Upload CSV", type=['csv'])
 if uploaded_file:
     # Size validation (10MB limit)
     MAX_SIZE = 10 * 1024 * 1024  # 10MB
-    
+
     if uploaded_file.size > MAX_SIZE:
         st.error(f"File too large. Maximum size is {MAX_SIZE / (1024*1024):.0f}MB.")
         st.stop()
-    
+
     try:
         # Content validation
         df = pd.read_csv(uploaded_file)
-        
+
         # Validate required columns
         required_cols = ['date', 'value', 'category']
         missing_cols = set(required_cols) - set(df.columns)
-        
+
         if missing_cols:
             st.error(f"Missing required columns: {', '.join(missing_cols)}")
             st.stop()
-        
+
         st.success(f"Successfully loaded {len(df)} rows")
-        
+
     except Exception as e:
         st.error("Invalid file format. Please upload a valid CSV.")
         # Don't expose full exception to user
 ```
-
 
 ## 3. SQL Injection Prevention
 
@@ -423,7 +409,6 @@ else:
     st.error("Invalid user ID format")
 ```
 
-
 ## 4. Authentication and Authorization
 
 **RECOMMENDED:**
@@ -441,13 +426,13 @@ def check_authentication():
     """Simple authentication check."""
     if 'authenticated' not in st.session_state:
         st.session_state.authenticated = False
-    
+
     if not st.session_state.authenticated:
         st.title("Login")
-        
+
         username = st.text_input("Username")
         password = st.text_input("Password", type="password")
-        
+
         if st.button("Login"):
             # In production, check against database
             # NEVER hardcode passwords like this
@@ -461,7 +446,7 @@ def check_authentication():
                     st.error("Invalid credentials")
             else:
                 st.error("Invalid credentials")
-        
+
         st.stop()
 
 # Check auth before showing app
@@ -470,7 +455,6 @@ check_authentication()
 # Main app code
 st.write(f"Welcome, {st.session_state.username}!")
 ```
-
 
 ## 5. Error Handling and Logging
 
@@ -500,7 +484,6 @@ except Exception as e:
     st.exception(e)  # Exposes full stack trace!
 ```
 
-
 ## 6. Deployment Security
 
 **MANDATORY:**
@@ -513,4 +496,3 @@ except Exception as e:
 - [ ] Set proper CORS policies if using external APIs
 - [ ] Use rate limiting for API endpoints
 - [ ] Implement session timeouts for authenticated apps
-

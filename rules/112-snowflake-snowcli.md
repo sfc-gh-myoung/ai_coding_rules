@@ -3,19 +3,17 @@
 ## Metadata
 
 **SchemaVersion:** v3.0
-**Keywords:** snow CLI, SnowCLI, Snowflake command line, uvx snow, CLI deployment, snowflake.yml, uvx --from snowflake-cli, pinned execution, hermetic execution, snow commands, snowflake CLI usage, CLI automation, command line tools, CLI configuration, CLI deployment patterns
-**TokenBudget:** ~2400
+**Keywords:** snow CLI, SnowCLI, Snowflake CLI, snowflake-cli, uvx, Taskfile, task automation, deployment automation, snowflake.yml, profiles, CI/CD, JSON output, authentication, stage copy
+**TokenBudget:** ~2800
 **ContextTier:** Medium
 **Depends:** rules/100-snowflake-core.md
 
 ## Purpose
 Provide clear, reproducible guidance for installing, invoking, and automating Snowflake CLI (SnowCLI) with a strong preference for hermetic, pinned execution to ensure consistency across local development and CI/CD.
 
-
 ## Rule Scope
 
 Snowflake CLI usage across local development, scripts, Taskfile targets, and CI/CD pipelines
-
 
 ## Quick Start TL;DR
 
@@ -35,6 +33,7 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - **Validate version** - Check `snow --version` matches pinned version
 - **Secure secret store** - Use proper credential management
 - **Never use global pip installs** - Always pinned via uvx
+- **CRITICAL: Stage copy compression** - Use `--no-auto-compress` NOT `--auto-compress false`
 
 **Quick Checklist:**
 - [ ] uvx with pinned snowflake-cli version
@@ -44,7 +43,7 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Non-interactive flags for CI/CD
 - [ ] Version validation in workflows
 - [ ] Secure secret store integrated
-
+- [ ] Stage copy uses `--no-auto-compress` (not `--auto-compress false`)
 
 ## Contract
 
@@ -88,7 +87,6 @@ Shell command snippets, Taskfile targets, and brief configuration notes
 </design_principles>
 
 </contract>
-
 
 ## Anti-Patterns and Common Mistakes
 
@@ -186,7 +184,7 @@ steps:
     run: |
       uvx --from=snowflake-cli==${{ env.SNOW_CLI_VERSION }} \
         snow object deploy
-      
+
   - name: Log version
     run: |
       uvx --from=snowflake-cli==${{ env.SNOW_CLI_VERSION }} \
@@ -194,6 +192,29 @@ steps:
 ```
 **Benefits:** Stable CI; predictable behavior; controlled upgrades; no surprise breaks; reliable deployments; professional CI/CD
 
+---
+
+**Anti-Pattern 5: Using Wrong Compression Flag Syntax**
+```bash
+# Bad: Using SQL syntax for CLI flag
+snow stage copy streamlit/app.py @STAGE --auto-compress false
+# Error: Got unexpected extra argument (false)
+```
+**Problem:** Deployment failures; confusion between SQL PUT and CLI syntax; wasted debugging time; production delays; team frustration
+
+**Correct Pattern:**
+```bash
+# Good: Use proper CLI boolean flag syntax
+snow stage copy streamlit/app.py @STAGE --no-auto-compress --overwrite
+
+# For Streamlit/Python files (compression breaks imports):
+uvx --from=snowflake-cli==3.13 snow stage copy \
+  --connection default \
+  streamlit/app.py @DB.SCHEMA.STAGE \
+  --overwrite \
+  --no-auto-compress
+```
+**Benefits:** Reliable uploads; correct Python imports; no TypeError; professional deployments; clear syntax
 
 ## Post-Execution Checklist
 - [ ] All scripted/CI invocations route through `uvx --from=snowflake-cli==3.12 snow {{.CLI_ARGS}}`
@@ -202,7 +223,6 @@ steps:
 - [ ] No secrets in repo; secrets pass via env/secret manager
 - [ ] Non-interactive flags and machine-readable output used in CI
 - [ ] `snow --version` logged at job start
-
 
 ## Validation
 - **Success checks:**
@@ -213,7 +233,7 @@ steps:
   - Unpinned `snow` in CI should be flagged by code review/build checks
   - Global `pip install` usage should be rejected by reviewers/linters
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read existing CLI usage BEFORE adding new commands** - Check Taskfile, scripts for snow patterns
 > 2. **Verify snowflake.yml config** - Check profiles, connection settings
@@ -230,14 +250,12 @@ steps:
 > [reads Taskfile.yml, checks snowflake.yml, reviews version]
 > "I see you use snowflake-cli==3.12 via uvx. Following this pattern for the new command..."
 
-
 ## Output Format Examples
 ```bash
 # Minimal smoke test
 uvx --from=snowflake-cli==3.12 snow --version
 uvx --from=snowflake-cli==3.12 snow sql -q "select 1 as ok"
 ```
-
 
 ## References
 
@@ -255,9 +273,6 @@ uvx --from=snowflake-cli==3.12 snow sql -q "select 1 as ok"
 - **Security Governance**: `rules/107-snowflake-security-governance.md`
 - **Warehouse Management**: `rules/119-snowflake-warehouse-management.md`
 - **SPCS Best Practices**: `rules/120-snowflake-spcs.md`
-
-
-
 
 ## 1. Installation and Invocation Patterns
 
@@ -296,12 +311,10 @@ Notes:
 - Prefer Homebrew only for local Macs; do not rely on it in CI/CD (heterogeneous runners, slower, less deterministic)
 - For pinned CI/CD, stick to `uvx --from=snowflake-cli==3.12 ...`
 
-
 ## 2. Version Pinning and Upgrade Strategy
 - **Rule:** Default to `snowflake-cli==3.12` in all automation until you explicitly validate a newer release in a staging environment
 - **Rule:** Surface the CLI version in logs (`snow --version`) at the start of jobs for traceability
 - **Consider:** Maintain a single pin in your Taskfile/CI templates to centralize upgrades
-
 
 ## 3. Configuration and Authentication
 - **Rule:** Use profiles or environment variables; never hardcode credentials in scripts or rule files
@@ -310,7 +323,6 @@ Notes:
 - **Consider:** For local dev, rely on OS keychain integrations where available; for CI, inject secrets as env vars/files at runtime
 
 References for concepts and configuration flows are covered in official docs: `https://docs.snowflake.com/developer-guide/snowflake-cli/index`.
-
 
 ## 4. Automation Patterns (CI/CD)
 - **Always:** Use non-interactive flags and provide all required parameters via env/flags
@@ -328,17 +340,67 @@ uvx --from=snowflake-cli==3.12 snow sql -q "select current_role(), current_wareh
 uvx --from=snowflake-cli==3.12 snow sql -q "create warehouse if not exists CI_WH warehouse_size = 'XSMALL' auto_suspend = 60"
 ```
 
-
 ## 5. Output, Logging, and Troubleshooting
 - **Rule:** Prefer structured output (JSON) for automation; only use human-friendly tables in interactive sessions
 - **Rule:** Include `--verbose`/`--debug` (if available) when capturing logs for incident analysis
 - **Consider:** Capture CLI stdout/stderr separately in CI and archive logs on failure
 
+## 6. Stage Copy Command Syntax
 
-## 6. Anti-Patterns to Avoid
+### CRITICAL: Compression Flag Syntax
+
+**Problem:** The `snow stage copy` command uses different syntax than SQL `PUT` command for compression control.
+
+**WRONG (causes "unexpected extra argument" error):**
+```bash
+# Bad: This syntax DOES NOT WORK in snowflake-cli
+snow stage copy file.py @stage --auto-compress false
+# Error: Got unexpected extra argument (false)
+```
+
+**CORRECT:**
+```bash
+# Good: Use boolean flag without value
+snow stage copy file.py @stage --no-auto-compress
+```
+
+**Why This Matters:**
+- Python imports fail if files are compressed (.py → .py.gz)
+- Streamlit apps get "TypeError: bad argument type for built-in operation"
+- **This is NOT version-specific** - applies to all snowflake-cli versions (3.11, 3.12, 3.13+)
+
+**Complete Example:**
+```bash
+# Upload Python files without compression
+uvx --from=snowflake-cli==3.13 snow stage copy \
+  --connection default \
+  streamlit/app.py @DB.SCHEMA.STAGE \
+  --overwrite \
+  --no-auto-compress
+```
+
+**Comparison Table:**
+
+| Context | Compression Syntax | Notes |
+|---------|-------------------|-------|
+| SQL `PUT` command | `AUTO_COMPRESS=FALSE` | SQL parameter syntax |
+| `snow stage copy` | `--no-auto-compress` | Boolean CLI flag |
+| `snow stage copy` | `--auto-compress false` | **WRONG** - causes error |
+
+### Stage Copy Common Flags
+
+```bash
+# Required flags for deployment automation
+snow stage copy SOURCE DEST \
+  --overwrite              # Replace existing files
+  --no-auto-compress       # Keep files uncompressed (critical for Python)
+  --recursive              # Upload directories (when needed)
+```
+
+## 7. Anti-Patterns to Avoid
 - **Avoid:** `pip install snowflake-cli` into system/global environments
 - **Avoid:** Unpinned SnowCLI versions in automation
 - **Avoid:** Committing credentials, JWTs, or private keys into source control
 - **Avoid:** Interactive prompts in CI (missing flags/vars)
 - **Avoid:** Assuming Homebrew exists on CI runners (use `uvx` instead)
-
+- **Avoid:** Using `--auto-compress false` (incorrect syntax; use `--no-auto-compress`)

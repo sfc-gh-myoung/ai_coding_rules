@@ -167,7 +167,7 @@ async def delete_item(item_id: int, response: Response):
 def update_dashboard():
     stats = get_stats()
     notifications = get_notifications()
-    
+
     html = f'''
     <div id="stats">{render_stats(stats)}</div>
     <div id="notifications" hx-swap-oob="true">
@@ -192,7 +192,7 @@ csrf = CSRFProtect(app)
 # HTMX configuration (add to base template)
 # <script>
 #   document.body.addEventListener('htmx:configRequest', (event) => {
-#     event.detail.headers['X-CSRFToken'] = 
+#     event.detail.headers['X-CSRFToken'] =
 #       document.querySelector('meta[name="csrf-token"]').content;
 #   });
 # </script>
@@ -212,7 +212,7 @@ def add_comment():
     # Jinja2 will auto-escape, but validate input first
     if not validate_comment(content):
         return 'Invalid content', 400
-    
+
     save_comment(content)
     return render_template('partials/comment.html', content=content)
 ```
@@ -241,9 +241,9 @@ def user_detail(user_id):
     html = f'''
     <div id="user-{user.id}">
         <h2>{escape(user.name)}</h2>
-        <button hx-put="/users/{user.id}/edit" 
+        <button hx-put="/users/{user.id}/edit"
                 hx-target="#user-{user.id}">Edit</button>
-        <button hx-delete="/users/{user.id}" 
+        <button hx-delete="/users/{user.id}"
                 hx-target="#user-{user.id}"
                 hx-swap="outerHTML"
                 hx-confirm="Delete user?">Delete</button>
@@ -258,22 +258,22 @@ def user_detail(user_id):
 @app.route('/orders/<int:order_id>/actions')
 def order_actions(order_id):
     order = get_order(order_id)
-    
+
     # State machine: Draft → Submitted → Processing → Completed
     if order.status == 'draft':
         return '''
-        <button hx-post="/orders/{}/submit" 
+        <button hx-post="/orders/{}/submit"
                 hx-target="#order-actions">Submit Order</button>
         '''.format(order_id)
-    
+
     elif order.status == 'submitted':
         return '''
-        <button hx-post="/orders/{}/process" 
+        <button hx-post="/orders/{}/process"
                 hx-target="#order-actions">Process</button>
-        <button hx-post="/orders/{}/cancel" 
+        <button hx-post="/orders/{}/cancel"
                 hx-target="#order-actions">Cancel</button>
         '''.format(order_id, order_id)
-    
+
     return '<p>No actions available</p>'
 ```
 
@@ -301,13 +301,13 @@ async def sse_status():
                 "data": json.dumps(await get_status())
             }
             await asyncio.sleep(5)
-    
+
     return EventSourceResponse(event_generator())
 ```
 
 ```html
 <!-- HTMX SSE Extension (simple updates) -->
-<div hx-ext="sse" sse-connect="/api/sse/status" 
+<div hx-ext="sse" sse-connect="/api/sse/status"
      hx-get="/status/content" hx-trigger="sse:system_status">
 </div>
 
@@ -451,12 +451,12 @@ app = Flask(__name__)
 @app.route('/users')
 def users_list():
     users = get_users()
-    
+
     # Detect HTMX request
     if request.headers.get('HX-Request') == 'true':
         # Return partial for HTMX
         return render_template('partials/users_table.html', users=users)
-    
+
     # Return full page for browser navigation
     return render_template('users_page.html', users=users)
 ```
@@ -467,7 +467,7 @@ def users_list():
 def update_item(item_id):
     data = request.json
     update_item_in_db(item_id, data)
-    
+
     response = make_response(
         render_template('partials/item.html', item=get_item(item_id))
     )
@@ -482,7 +482,7 @@ def update_item(item_id):
 <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 <script>
   document.body.addEventListener('htmx:configRequest', (event) => {
-    event.detail.headers['X-CSRFToken'] = 
+    event.detail.headers['X-CSRFToken'] =
       document.querySelector('meta[name="csrf-token"]').content;
   });
 </script>

@@ -7,6 +7,152 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.4.0] - 2025-12-12
+
+### Added
+- feat(prompts): add Agent-Centric Rule Review prompt template
+  - Created `prompts/RULE_REVIEW_PROMPT.md` for systematic rule assessment
+  - 6-point scoring: Actionability, Completeness, Consistency, Parsability, Token Efficiency, Staleness
+  - Three review modes: FULL (comprehensive), FOCUSED (targeted), STALENESS (periodic maintenance)
+  - Staleness detection criteria for tool versions, deprecated patterns, API changes
+  - Dependency drift checking for rule alignment
+  - Cross-model validation guidance for critical rules
+  - Periodic review schedule with recommended cadence by rule type
+  - Review tracking template for maintaining audit logs
+  - Tested on: GPT-4o, GPT-5.1, GPT-5.2, Claude Sonnet 4.5, Claude Opus 4.5, Gemini 2.5 Pro, Gemini 3 Pro
+  - Updated `prompts/README.md` with new prompt documentation
+- docs(prompts): add usage guide for the Agent-Centric Rule Review prompt template
+  - Added `docs/USING_RULE_REVIEW_PROMPT.md` with modes, examples, and cross-model workflow guidance
+  - Linked the guide from `README.md`, `CONTRIBUTING.md`, `docs/ARCHITECTURE.md`, and `prompts/README.md`
+- chore(markdown): add separate pymarkdown configs for docs vs agent-facing rules
+  - Added `pymarkdown.docs.json` and `pymarkdown.rules.json`
+  - Split Taskfile Markdown linting into `quality:markdown:docs` and `quality:markdown:rules`
+- feat(rules): enhance 002b-rule-optimization.md for agent actionability (based on Claude Sonnet 4.5 feedback)
+  - Added ContextTier Selection Guide with "When to Use" column (task relevance > token count)
+  - Added "When to Split Rules" decision tree with semantic criteria
+  - Added Loading Budget Formula (30-40% of context window)
+  - Added Rule Size Summary table (Optimal/Acceptable/Caution/Avoid)
+  - Added semantic coherence vs token optimization guidance
+  - Added "Deferring Rules" section with explicit skip criteria
+  - TokenBudget updated from ~2800 to ~3500
+- feat(rules): enhance 002b-rule-optimization.md with comprehensive model and validation updates
+  - Added Model-Specific Optimization for GPT-5.1 (400K), Claude Sonnet 4.5 (200K/1M beta), Claude Opus 4.5 (200K), Gemini 3 Pro (1M)
+  - Added ContextTier Selection Guide table with token range recommendations
+  - Added Split File Naming Convention guidance for letter suffix patterns
+  - Enhanced staleness warning directing agents to authoritative sources (RULES_INDEX.md, token_validator.py)
+  - Fixed token_validator.py command syntax (removed incorrect `--directory` flag)
+  - Reconciled variance tolerance to 15% (matching validator default threshold)
+  - Added auto-update warning for token_validator.py behavior
+- feat(rules): restructure AI agent bootstrap and execution protocols for clarity
+  - **AGENTS.md** restructured as minimal bootstrap protocol (~600 tokens, down from ~2,400)
+    - Focuses solely on rule loading sequence and discovery methods
+    - Removes duplicate content (validation gates, commands, persona, boundaries)
+    - Delegates execution protocols to rules/000-global-core.md
+  - **rules/000-global-core.md** enhanced with comprehensive execution protocols
+    - Added mode transition state diagram (PLAN ↔ ACT workflow visualization)
+    - Added multi-file task protocol (atomic vs progressive change strategies)
+    - Added validation command reference for all supported technologies
+    - Expanded validation first section with progressive validation strategy
+  - **RULES_INDEX.md** enhanced with AI agent guidance
+    - Added "For AI Agents" section with READ-ONLY notice and usage instructions
+    - Added 6-step rule loading strategy with worked example
+    - Added token budget management guidance
+    - Maintains existing rule catalog table and dependency trees
+  - **scripts/index_generator.py** enhanced with new section generators
+    - Added `generate_agent_guidance()` function for agent-specific instructions
+    - Added `generate_loading_strategy()` function with 6-step algorithm
+    - Modified `generate_rules_index()` to include new sections before catalog
+- test(index_generator): add comprehensive test coverage for new sections
+  - Added `TestNewSections` class with 4 new test methods
+  - Updated existing tests to verify new section presence and ordering
+  - Tests validate agent guidance, loading strategy, and example workflow content
+  - All tests passing with enhanced validation coverage
+
+### Changed
+- docs(prompts): strengthen Agent-Centric Rule Review prompt with mandatory verification checks
+  - Added Threshold Audit and Token Budget Verification tables to reduce subjective judgment
+  - Added Example-Mandate Alignment check to ensure examples comply with rule mandates
+- docs(prompts): refactor rule review prompt into a paste-ready template
+  - Clarified template positioning and moved usage details into `docs/USING_RULE_REVIEW_PROMPT.md`
+  - Added required output filename rules for saving reviews under `reviews/`
+- docs(core): clarify ACT authorization prompt requirements in agent bootstrap/execution docs
+  - `AGENTS.md`: added explicit instruction to end Task Lists with the Authorization line in PLAN mode
+  - `rules/000-global-core.md`: added explicit ACT prompt requirement and updated examples accordingly
+- docs(core): make validation Taskfile-first (project standards) with direct-command fallback
+  - Prefer `task validate` / `task check` / `task ci`, plus `task lint`, `task format`, `task typecheck`, `task test`
+  - Fallback to direct tool commands (uv/uvx/npx/etc.) only when no Taskfile tasks exist
+  - Updated: `rules/000-global-core.md`, `rules/200-python-core.md`, `rules/202-markup-config-validation.md`, `rules/803-project-git-workflow.md`
+- chore(taskfile): add ergonomic aliases for lint/format tasks and rename type task to typecheck
+  - Added aliases: `lint`, `lint:fix`, `format`/`fmt`, `format:fix`/`fmt:fix`, `type`/`type-check`
+  - Renamed `quality:type` → `quality:typecheck` (and watch task accordingly)
+  - Updated Taskfile help output and status messaging
+  - Updated `README.md`, `CONTRIBUTING.md`, and `docs/ARCHITECTURE.md` to match
+- chore(markdown): tighten agent-facing Markdown linting and normalize rules whitespace
+  - Enabled `no-trailing-spaces` and `no-multiple-blanks` for `rules/` linting and cleaned existing violations
+  - Enabled `no-hard-tabs` and removed tabs from affected rule examples
+- style(rules): normalize code block indentation in shell/Makefile examples
+  - `rules/310-zsh-scripting-core.md`: replaced hard tabs with spaces in here-doc examples
+  - `rules/600-golang-core.md`: replaced hard tabs with spaces in Makefile snippet
+- docs: update documentation to reflect new bootstrap/execution split
+  - **docs/ARCHITECTURE.md**: Updated AGENTS.md and RULES_INDEX.md descriptions
+  - **CONTRIBUTING.md**: Clarified file roles (bootstrap vs execution protocols)
+  - **README.md**: Added AGENTS.md and 000-global-core.md to document map
+  - All documentation now reflects minimal bootstrap + execution protocol architecture
+- feat(skills): add Claude Code skills deployment with configurable exclusions
+- feat(skills): add rule-reviewer skill for automated rule reviews
+  - Added `skills/rule-reviewer-skill.md` (single-file skill)
+  - Added `skills/rule-reviewer/` (structured skill) with workflows and examples
+    - Workflows: input validation, model slugging, review execution, file write, error handling
+    - Examples: FULL, FOCUSED, STALENESS invocations with expected output filenames
+  - Added `docs/USING_RULE_REVIEW_SKILL.md` for usage and deployment guidance
+  - Note: the original `rule-creator` skill remains internal-only and is excluded from deployment
+    (configured in `pyproject.toml`)
+- feat(deployment): enhance rule_deployer.py with skills deployment capabilities
+  - `copy_skills()` function for deploying skills with exclusion support
+  - `load_skill_exclusions()` for parsing pyproject.toml configuration
+  - Exclusion patterns support both files and directories (fnmatch wildcards)
+  - Comprehensive error handling for missing directories and file operations
+  - Skills deployment integrated into main `deploy_rules()` workflow
+
+### Removed
+- chore(markdown): remove legacy pymarkdown.json in favor of split configs (docs vs rules)
+
+### Changed
+- test(coverage): increase test coverage to 99%+ for core validation scripts
+  - `keyword_generator.py`: 59% → 99% coverage (+40pp, 2 unreachable lines)
+  - `rule_deployer.py`: 66% → 100% coverage (+34pp, complete coverage)
+  - `template_generator.py`: maintained 100% coverage
+  - `token_validator.py`: achieved 99% coverage (1 unreachable line)
+  - `schema_validator.py`: 93% → 96% coverage (+3pp, bonus improvement)
+  - Added 40+ new test methods across 15+ test classes
+  - Total test suite: 266 passed, 2 skipped, 98% overall coverage
+  - New test coverage areas:
+    - Corpus building and TF-IDF extraction (keyword_generator)
+    - CLI argument parsing and error handling (all scripts)
+    - Skills deployment with exclusion patterns (rule_deployer)
+    - Debug mode and edge cases (keyword_generator, token_validator)
+    - File operation error handling (all scripts)
+    - CodeBlockTracker and ValidationResult properties (schema_validator)
+- `scripts/token_validator.py` — Enhanced to support single file validation matching schema_validator.py UX pattern
+  - Changed `--directory` flag to required positional `path` argument
+  - Added automatic path type detection (file vs directory)
+  - Single file mode provides focused analysis output
+  - Backward compatible: directory validation still works as before
+  - Updated help text with single file and directory examples
+- `Taskfile.yml` — Comprehensive improvements for portability, UX, and automation
+  - **Portability:** Removed hard-coded executable paths (use PATH-resolved `uv`/`uvx`)
+  - **Dynamic version:** Project version extracted from `pyproject.toml` via `awk`
+  - **Preconditions:** Added `_check:uv`, `_check:uvx`, `_check:coreutils`, `_check:xdg-open` internal tasks for tool availability validation
+  - **Environment:** Added `env:sync` fast path with fingerprinting (`sources`/`generates`)
+  - **Quality:** Added `quality:markdown` task for pymarkdownlnt Markdown linting; integrated into `quality:check`
+  - **Cleanup:** Added `clean:cache` task; refactored `clean:all` to use subtasks
+  - **Aliases:** Added ergonomic aliases (`fix`/`qf` for `quality:fix`, `test`/`t` for `test:all`, `validate`/`ci` for `validate:ci`)
+  - **Status:** Optimized `status` task to inline quality checks (avoids nested task spawning)
+  - **Help:** New categorized `default` task with ASCII fallback support (`task ASCII=true`)
+  - **Descriptions:** Harmonized all task descriptions for consistent `task -l` output
+  - **Dependencies:** Added `deps: [env:sync]` to most tasks for automatic environment setup
+- `pyproject.toml` — Added `ty` to dev dependencies for project-owned type checking (`uv run ty ...`)
+
 ## [3.3.0] - 2025-12-10
 
 ### Added
@@ -426,7 +572,8 @@ Processed 2 retrospective findings from Cortex Agent testing project:
 - Basic validation scripts
 - Documentation templates
 
-[Unreleased]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.3.0...HEAD
+[Unreleased]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.4.0...HEAD
+[3.4.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.3.0...v3.4.0
 [3.3.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.2.1...v3.3.0
 [3.2.1]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.2.0...v3.2.1
 [3.2.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.1.0...v3.2.0

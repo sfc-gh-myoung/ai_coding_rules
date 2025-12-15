@@ -1,0 +1,88 @@
+{
+  "name": "rule-creator",
+  "description": "Create production-ready Cursor rules following v3.0 schema by orchestrating template_generator.py and schema_validator.py",
+  "version": "1.0.0",
+  "author": "AI Coding Rules",
+  "required_tools": [
+    "run_terminal_cmd",
+    "read_file",
+    "write",
+    "search_replace",
+    "web_search",
+    "grep"
+  ],
+  "required_files": [
+    "rules/000-global-core.md",
+    "rules/002-rule-governance.md",
+    "rules/002a-rule-creation-guide.md",
+    "rules/002b-rule-optimization.md",
+    "rules/002d-schema-validator-usage.md",
+    "RULES_INDEX.md",
+    "scripts/template_generator.py",
+    "scripts/schema_validator.py"
+  ],
+  "workflow_phases": [
+    {
+      "phase": 1,
+      "name": "Discovery & Research",
+      "description": "Search RULES_INDEX.md, identify domain, research best practices",
+      "workflow_file": "workflows/discovery.md"
+    },
+    {
+      "phase": 2,
+      "name": "Template Generation",
+      "description": "Execute template_generator.py to create rule structure",
+      "workflow_file": "workflows/template-gen.md"
+    },
+    {
+      "phase": 3,
+      "name": "Content Population",
+      "description": "Fill metadata and all required sections with researched content",
+      "workflow_file": "workflows/content-population.md"
+    },
+    {
+      "phase": 4,
+      "name": "Validation Loop",
+      "description": "Run schema_validator.py, fix errors, iterate until 0 CRITICAL",
+      "workflow_file": "workflows/validation.md"
+    },
+    {
+      "phase": 5,
+      "name": "Indexing",
+      "description": "Add rule to RULES_INDEX.md in correct numeric position",
+      "workflow_file": "workflows/indexing.md"
+    }
+  ],
+  "examples": [
+    {
+      "name": "DaisyUI Frontend Framework",
+      "file": "examples/frontend-example.md",
+      "domain": "420-449",
+      "technologies": ["JavaScript", "Tailwind", "DaisyUI"]
+    },
+    {
+      "name": "Python Library Rule",
+      "file": "examples/python-example.md",
+      "domain": "200-299",
+      "technologies": ["Python", "pytest", "testing"]
+    },
+    {
+      "name": "Snowflake Feature Rule",
+      "file": "examples/snowflake-example.md",
+      "domain": "100-199",
+      "technologies": ["Snowflake", "SQL", "data platform"]
+    }
+  ],
+  "validation_gates": [
+    "RULES_INDEX.md searched for existing rules",
+    "Domain range identified",
+    "template_generator.py executed successfully",
+    "All metadata fields filled correctly",
+    "Keywords: 10-15 terms",
+    "TokenBudget: ~NUMBER format",
+    "Contract before line 160",
+    "schema_validator.py returns exit code 0",
+    "Rule added to RULES_INDEX.md"
+  ]
+}
+

@@ -113,37 +113,37 @@ templates/
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}App Title{% endblock %}</title>
-    
+
     {% block styles %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     {% endblock %}
 </head>
 <body>
     {% include 'components/_navbar.html' %}
-    
+
     <main id="main-content">
         {% block content %}{% endblock %}
     </main>
-    
+
     {% include 'components/_footer.html' %}
-    
+
     {# HTMX Library #}
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    
+
     {# HTMX Configuration #}
     <script>
         // CSRF token for all HTMX requests
         document.body.addEventListener('htmx:configRequest', (event) => {
-            event.detail.headers['X-CSRFToken'] = 
+            event.detail.headers['X-CSRFToken'] =
                 document.querySelector('meta[name="csrf-token"]').content;
         });
-        
+
         // Global event handling
         document.body.addEventListener('htmx:afterSwap', (event) => {
             console.log('HTMX swap completed');
         });
     </script>
-    
+
     {% block scripts %}{% endblock %}
 </body>
 </html>
@@ -161,17 +161,17 @@ templates/
 {% block content %}
 <div class="container">
     <h1>Users</h1>
-    
+
     {# Search form triggers HTMX request #}
-    <form hx-get="{{ url_for('users_search') }}" 
+    <form hx-get="{{ url_for('users_search') }}"
           hx-target="#users-table"
           hx-trigger="input changed delay:500ms from:#search-input">
-        <input type="search" 
-               id="search-input" 
-               name="q" 
+        <input type="search"
+               id="search-input"
+               name="q"
                placeholder="Search users...">
     </form>
-    
+
     {# Table replaced by HTMX responses #}
     <div id="users-table">
         {% include 'partials/_users_table.html' %}
@@ -189,12 +189,12 @@ templates/
     <td>{{ user.name }}</td>
     <td>{{ user.email }}</td>
     <td>
-        <button hx-get="{{ url_for('edit_user', user_id=user.id) }}" 
+        <button hx-get="{{ url_for('edit_user', user_id=user.id) }}"
                 hx-target="#user-{{ user.id }}"
                 hx-swap="outerHTML">
             Edit
         </button>
-        <button hx-delete="{{ url_for('delete_user', user_id=user.id) }}" 
+        <button hx-delete="{{ url_for('delete_user', user_id=user.id) }}"
                 hx-target="#user-{{ user.id }}"
                 hx-swap="outerHTML"
                 hx-confirm="Delete {{ user.name }}?">
@@ -235,10 +235,10 @@ templates/
 @app.route('/users')
 def users_list():
     users = get_users()
-    
+
     if request.headers.get('HX-Request') == 'true':
         return render_template('partials/_users_table.html', users=users)
-    
+
     return render_template('pages/users.html', users=users)
 ```
 
@@ -281,9 +281,9 @@ def users_list():
 {% macro text_field(name, label, value='', required=False, error=None) %}
 <div class="form-field">
     <label for="{{ name }}">{{ label }}</label>
-    <input type="text" 
-           id="{{ name }}" 
-           name="{{ name }}" 
+    <input type="text"
+           id="{{ name }}"
+           name="{{ name }}"
            value="{{ value }}"
            {% if required %}required{% endif %}
            class="{% if error %}error{% endif %}">
@@ -299,15 +299,15 @@ def users_list():
 {# templates/partials/_user_form.html #}
 {% from 'components/_form_field.html' import text_field %}
 
-<form id="user-form-{{ user.id }}" 
+<form id="user-form-{{ user.id }}"
       hx-put="{{ url_for('update_user', user_id=user.id) }}"
       hx-target="#user-{{ user.id }}">
-    
+
     {{ text_field('name', 'Name', user.name, required=True, error=errors.name) }}
     {{ text_field('email', 'Email', user.email, required=True, error=errors.email) }}
-    
+
     <button type="submit">Save</button>
-    <button type="button" 
+    <button type="button"
             hx-get="{{ url_for('user_detail', user_id=user.id) }}"
             hx-target="#user-{{ user.id }}">
         Cancel
@@ -323,8 +323,8 @@ def users_list():
 @app.route('/user/<int:user_id>/edit')
 def edit_user(user_id):
     user = get_user(user_id)
-    return render_template('partials/_user_form.html', 
-                          user=user, 
+    return render_template('partials/_user_form.html',
+                          user=user,
                           errors={})
 
 # Avoid: Passing entire app state
@@ -453,14 +453,14 @@ from flask import Flask, render_template, request
 def users_list():
     users = get_users()
     search_query = request.args.get('q', '')
-    
+
     if search_query:
         users = [u for u in users if search_query.lower() in u.name.lower()]
-    
+
     # Return partial for HTMX, full page otherwise
     if request.headers.get('HX-Request') == 'true':
         return render_template('partials/_users_table.html', users=users)
-    
+
     return render_template('pages/users.html', users=users)
 ```
 

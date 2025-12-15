@@ -468,9 +468,9 @@ for file_info in data['failed_files']:
     file_path = file_info['path']
     critical_count = file_info['critical_count']
     high_count = file_info['high_count']
-    
+
     print(f"[FAIL] {file_path}: {critical_count} CRITICAL, {high_count} HIGH")
-    
+
     # Process each error
     for error in file_info['errors']:
         severity = error['severity']
@@ -478,7 +478,7 @@ for file_info in data['failed_files']:
         message = error['message']
         line = error['line']  # May be None
         fix = error['fix']
-        
+
         print(f"  [{severity}] {group}: {message}")
         if line:
             print(f"    Line: {line}")
@@ -739,20 +739,20 @@ def fix_keywords_count(file_path, current_keywords, target_count=12):
     # Read file
     with open(file_path, 'r') as f:
         content = f.read()
-    
+
     # Parse current keywords
     keywords = [k.strip() for k in current_keywords.split(',')]
-    
+
     # Add generic keywords to reach target
-    generic_keywords = ['validation', 'best practices', 'guidelines', 
+    generic_keywords = ['validation', 'best practices', 'guidelines',
                        'requirements', 'standards', 'compliance']
     while len(keywords) < target_count:
         keywords.append(generic_keywords[len(keywords) % len(generic_keywords)])
-    
+
     # Replace in content
     new_keywords = ', '.join(keywords)
     content = re.sub(r'\*\*Keywords:\*\* .+', f'**Keywords:** {new_keywords}', content)
-    
+
     # Write back
     with open(file_path, 'w') as f:
         f.write(content)
@@ -794,9 +794,9 @@ def add_missing_section(file_path, section_name):
 ```
 '''
     }
-    
+
     template = section_templates.get(section_name, f'## {section_name}\n\n[Content needed]\n')
-    
+
     # Read file and insert at appropriate location
     # (Implementation depends on section order logic)
 ```
@@ -858,9 +858,9 @@ def validate_file(file_path, use_json=True):
     cmd = ['python3', 'scripts/schema_validator.py', file_path]
     if use_json:
         cmd.append('--json')
-    
+
     result = subprocess.run(cmd, capture_output=True, text=True)
-    
+
     if use_json:
         data = json.loads(result.stdout)
         return result.returncode, data
@@ -870,7 +870,7 @@ def validate_file(file_path, use_json=True):
 def fix_errors(file_path, errors):
     """Apply automated fixes for known error patterns."""
     fixed_errors = []
-    
+
     for error in errors:
         if error['group'] == 'Metadata' and 'Keywords count' in error['message']:
             # Fix keywords count
@@ -881,49 +881,49 @@ def fix_errors(file_path, errors):
             fix_token_budget_format(file_path)
             fixed_errors.append(error)
         # Add more fix patterns as needed
-    
+
     return fixed_errors
 
 def main(file_path):
     """Main workflow."""
     max_iterations = 3
-    
+
     for iteration in range(1, max_iterations + 1):
         print(f"\n[INFO] Iteration {iteration}/{max_iterations}")
-        
+
         # Validate
         exit_code, data = validate_file(file_path)
-        
+
         if exit_code == 0:
             print(f"[PASS] Validation passed after {iteration} iteration(s)")
             return 0
-        
+
         # Extract errors (assuming single file)
         if data['summary']['failed'] > 0:
             errors = data['failed_files'][0]['errors']
         else:
             errors = data['warning_files'][0]['errors'] if data['warning_files'] else []
-        
+
         # Categorize errors
         critical_errors = [e for e in errors if e['severity'] == 'CRITICAL']
         high_errors = [e for e in errors if e['severity'] == 'HIGH']
-        
+
         if not critical_errors and not high_errors:
             print("[WARN] Validation passed with warnings only")
             return 0
-        
+
         # Apply fixes
         fixed = fix_errors(file_path, critical_errors + high_errors)
-        
+
         if not fixed:
             print("[FAIL] No automated fixes available for remaining errors")
             print("Manual intervention required.")
             return 1
-        
+
         print(f"[INFO] Fixed {len(fixed)} error(s):")
         for error in fixed:
             print(f"  - [{error['severity']}] {error['group']}: {error['message']}")
-    
+
     print(f"[FAIL] Validation still failing after {max_iterations} iterations")
     return 1
 
@@ -931,7 +931,7 @@ if __name__ == '__main__':
     if len(sys.argv) != 2:
         print("Usage: validate_and_fix.py [file_path]")
         sys.exit(1)
-    
+
     sys.exit(main(sys.argv[1]))
 ```
 

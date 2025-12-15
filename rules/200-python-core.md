@@ -11,24 +11,24 @@
 ## Purpose
 Establish foundational Python development practices using modern tooling like `uv` and Ruff to ensure consistent, reliable, and performant codebases with proper dependency management, linting, formatting, and project structure.
 
-
 ## Rule Scope
 
 Foundational Python development practices with modern tooling (uv, Ruff) and project structure
-
-
 
 ## Quick Start TL;DR
 
 **MANDATORY:**
 **Essential Patterns:**
 - **Always use `uv run`** for Python execution - never bare `python` command
-- **Use `uvx ruff check .` and `uvx ruff format .`** before completing tasks
-- **Use `uvx ty check .`** for type checking - ty is the primary type checker (Astral toolchain)
-- **Run `uv run pytest`** - all tests must pass before completion
+- **Taskfile-first validation (project standards):** If `Taskfile.yml` exists, prefer `task validate`
+  (or `task check` / `task ci`). Otherwise run the direct tool commands below.
+- **Lint & format (fallback):** `uvx ruff check .` and `uvx ruff format .`
+- **Type check (fallback):** `uvx ty check .` (ty is the primary type checker). If the project uses a
+  Taskfile, the recommended task name is `typecheck` (aliases like `type-check`, `typing`, `types`
+  are acceptable).
+- **Tests (fallback):** `uv run pytest` (all tests must pass)
 - **Use `datetime.now(UTC)`** not deprecated `datetime.utcnow()`
 - **Never skip validation** - ruff check, ruff format, ty check, pytest must all pass
-
 
 ## Contract
 
@@ -57,6 +57,7 @@ Commands, diffs, or code snippets only (no narrative unless requested)
 </output_format>
 
 <validation>
+If a Taskfile exists, project validation tasks pass (prefer: `task validate`). Otherwise:
 `uvx ruff check .` passes; `uvx ruff format --check .` passes; `uvx ty check .` passes; `uv run pytest` passes
 </validation>
 
@@ -70,7 +71,6 @@ Commands, diffs, or code snippets only (no narrative unless requested)
 </design_principles>
 
 </contract>
-
 
 ## Anti-Patterns and Common Mistakes
 
@@ -172,7 +172,6 @@ uvx ty check .
 ```
 **Benefits:** Catches type errors at development time; prevents runtime type crashes; ensures type annotations are correct and complete; maintains type safety across codebase
 
-
 ## Post-Execution Checklist
 - [ ] **CRITICAL: Pre-Task-Completion Validation Gate passed** (see section 4.2)
 - [ ] Python 3.11+ is pinned in .python-version file
@@ -191,7 +190,6 @@ uvx ty check .
 - [ ] Import paths use absolute imports where possible
 - [ ] Project follows modern Python packaging standards
 
-
 ## Validation
 - **CRITICAL:** Pre-Task-Completion Validation Gate (section 4.2) must pass before task completion
 - **Syntax Check:** `uv run python -m py_compile -q .` (must pass)
@@ -201,7 +199,7 @@ uvx ty check .
 - **Documentation:** CHANGELOG.md and README.md updated as required
 - **Import Check:** `uv run python -c "import importlib; print('ok')"`
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read pyproject.toml BEFORE making recommendations** - Check existing dependencies, Python version, tool configurations
 > 2. **Verify uv is available** - Check if project uses uv or needs setup instructions
@@ -218,7 +216,6 @@ uvx ty check .
 > [reads pyproject.toml, checks directory structure]
 > "I see you're using uv with Python 3.11 and pytest. Here's how to add the new feature following your existing structure..."
 
-
 ## Output Format Examples
 
 ```python
@@ -231,7 +228,7 @@ from datetime import datetime, UTC
 
 class ServiceProtocol(Protocol):
     """Clear contract for service implementations."""
-    
+
     def process(self, data: dict) -> dict:
         """Process data following validation rules."""
         ...
@@ -239,19 +236,19 @@ class ServiceProtocol(Protocol):
 def implementation_function(input_data: dict) -> dict:
     """
     Implement feature following project conventions.
-    
+
     Args:
         input_data: Validated input following schema
-    
+
     Returns:
         Processed result with metadata
-    
+
     Raises:
         ValueError: If input validation fails
     """
     # Use datetime.now(UTC) not datetime.utcnow()
     timestamp = datetime.now(UTC)
-    
+
     # Implement business logic
     result = {"status": "success", "timestamp": timestamp}
     return result
@@ -261,10 +258,10 @@ def test_implementation_function():
     """Test following AAA pattern."""
     # Arrange
     test_input = {"key": "value"}
-    
+
     # Act
     result = implementation_function(test_input)
-    
+
     # Assert
     assert result["status"] == "success"
     assert "timestamp" in result
@@ -277,7 +274,6 @@ uvx ruff format --check .
 uvx ty check .
 uv run pytest tests/
 ```
-
 
 ## References
 
@@ -295,7 +291,6 @@ uv run pytest tests/
 - **YAML Safety**: `rules/202-markup-config-validation.md`
 - **Global Core**: `rules/000-global-core.md`
 
-
 ## 1. Environment & Tooling
 - **Requirement:** Use `uv` for all dependency and environment management.
 - **Requirement:** Pin Python to 3.11+ in `.python-version` and `pyproject.toml`.
@@ -306,7 +301,6 @@ uv run pytest tests/
 - **Requirement:** Use an authoritative linter and formatter.
 - **Requirement:** Centralize dependencies and configuration in `pyproject.toml`.
 - **Consider:** If `uv` is unavailable, use `pip` + `pip-tools` or `poetry`. Provide equivalent commands when giving setup instructions.
-
 
 ## 2. Virtual Environment Activation
 - **Critical:** Always use `uv run` to execute Python code in projects. Never run `python` directly.
@@ -377,7 +371,7 @@ uv lock --upgrade
 **INCORRECT:**
 ```bash
 python script.py                    # Missing uv run
-python -c "import app"              # Missing uv run  
+python -c "import app"              # Missing uv run
 uvicorn app.main:app --reload       # Missing uv run
 pytest tests/                       # Missing uv run
 ruff check .                        # Should use uvx for isolation
@@ -395,13 +389,11 @@ ruff check .                        # Should use uvx for isolation
 - **Rule:** Use `uv sync` to ensure dependencies are installed before running code.
 - **Rule:** For Taskfile automation, use preconditions to check for `.venv` directory existence.
 
-
 ## 3. Code Structure & Style
 - **Requirement:** Keep modules small and cohesive (target <300 lines).
 - **Requirement:** Use explicit, absolute imports.
 - **Requirement:** Avoid global mutable state; prefer immutable data flow.
 - **Requirement:** Manage configuration via environment variables or a config module. Never hard-code secrets.
-
 
 ## 4. Reliability & Exceptions
 - **Always:** Raise specific exceptions with actionable context.
@@ -412,7 +404,6 @@ ruff check .                        # Should use uvx for isolation
 - **Requirement:** Before completing any task involving Python code changes, verify that all modified files are syntactically correct.
 - **Rule:** Use `python -m py_compile` as a definitive check for syntax errors, in addition to linter feedback. This ensures the Python interpreter can parse the file without error. If a file fails to compile, the issue must be resolved.
 - **Command:** `uv run python -m py_compile -q <path-to-file-or-dir>`
-
 
 ## 4.2 Pre-Task-Completion Validation Gate (CRITICAL)
 
@@ -441,7 +432,6 @@ ruff check .                        # Should use uvx for isolation
 - **Rule:** Do not mark tasks complete if ANY check fails
 - **Rule:** Fix all failures before responding to user
 - **Exception:** Only skip with explicit user override - acknowledge risks
-
 
 ## 4.3 Type Checking with ty
 
@@ -491,13 +481,11 @@ python-version = "3.11"
 - **Rule:** Type errors must be resolved before marking tasks complete
 - **Rule:** Do not use `# type: ignore` without documenting the reason
 
-
 ## 5. Performance & Best Practices
 - **Requirement:** Separate I/O and CPU concerns. Prefer set-based SQL and vectorization over Python loops.
 - **Requirement:** Ensure code is idiomatic and follows PEP 8.
 - **Requirement:** Include comprehensive type hints.
 - **Requirement:** Follow Python documentation standards from `204-python-docs-comments.md` (Google-style docstrings for all public APIs, enforced via Ruff D-rules).
-
 
 ## 6. Modern Python Patterns
 - **Critical:** Use `datetime.now(UTC)` instead of deprecated `datetime.utcnow()` for timezone-aware timestamps.
@@ -505,11 +493,9 @@ python-version = "3.11"
 - **Always:** Use `dict` and `list` for type annotations instead of `Dict` and `List` from typing.
 - **Always:** Follow Python 3.11+ patterns and avoid deprecated functionality.
 
-
 ## 7. Taskfile Integration
 - **Requirement:** Use `uv run` prefix for all Python commands in Taskfile tasks.
 - **Requirement:** Use `uvx` for all development tools (ruff, ty, safety).
 - **Requirement:** Use `uv run` for tools needing project plugins (pytest, mypy when plugins required).
 - **Always:** Include environment setup tasks with status checks to avoid redundant operations.
 - **Pattern:** Structure tasks as: `uv:pin` then `install` (with `uv sync`) then execution tasks.
-

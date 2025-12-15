@@ -14,7 +14,6 @@ Provide authoritative guidance for creating Snowflake Native Semantic Views usin
 **For querying semantic views and testing strategies, see `rules/106b-snowflake-semantic-views-querying.md`.**
 **For Cortex Analyst integration and development workflows, see `rules/106c-snowflake-semantic-views-integration.md`.**
 
-
 ## Rule Scope
 
 Snowflake native semantic view DDL creation and validation
@@ -30,7 +29,6 @@ Snowflake native semantic view DDL creation and validation
 - **Creating views**: + Core DDL Patterns
 - **Debugging issues**: + Validation & Troubleshooting
 - **Advanced patterns**: + 106a (advanced), 106b (querying)
-
 
 ## Quick Start TL;DR
 
@@ -65,7 +63,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Granularity rules respected (aggregate when referencing higher granularity)
 - [ ] No `&` or template characters in SYNONYMS, COMMENT, or identifiers (CLI compatibility)
 - [ ] Validated with `SHOW SEMANTIC VIEWS`
-
 
 ## Contract
 
@@ -138,7 +135,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 </design_principles>
 
 </contract>
-
 
 ## Anti-Patterns and Common Mistakes
 
@@ -232,7 +228,7 @@ CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
 
 -- Option 2: Pre-compute transformations in base tables or views
 CREATE OR REPLACE VIEW sales_enriched AS
-SELECT 
+SELECT
   *,
   DATE_TRUNC('MONTH', order_date) AS sale_month,
   CASE WHEN amount > 1000 THEN 'High' ELSE 'Low' END AS revenue_category
@@ -328,7 +324,7 @@ DESC TABLE sales_data;
 DESC TABLE customer_data;
 
 -- Step 2: Test join logic in standard SQL first
-SELECT 
+SELECT
   s.*,
   c.name
 FROM sales_data s
@@ -383,7 +379,7 @@ CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
       COMMENT = 'Total sales revenue'
   )
   -- VERIFIED_QUERIES (  -- NOT SUPPORTED!
-  --   'Monthly Revenue' AS 
+  --   'Monthly Revenue' AS
   --     QUESTION 'What is the total revenue by month?'
   --     SQL 'SELECT ...'
   -- );
@@ -405,7 +401,7 @@ tables:
       database: PROD
       schema: SALES
       table: SALES_FACT
-    
+
     dimensions:
       - name: sale_date
         expr: order_date
@@ -414,7 +410,7 @@ tables:
         synonyms:
           - "order date"
           - "purchase date"
-    
+
     metrics:
       - name: total_revenue
         expr: SUM(amount)
@@ -428,7 +424,7 @@ verified_queries:
   - name: monthly_revenue
     question: What is the total revenue by month?
     sql: |
-      SELECT 
+      SELECT
         DATE_TRUNC('MONTH', sale_date) AS month,
         SUM(total_revenue) AS revenue
       FROM sales_analysis
@@ -437,11 +433,11 @@ verified_queries:
     verified_at: 1701734400
     verified_by: analytics_team
     use_as_onboarding_question: true
-  
+
   - name: top_products
     question: What are the top 10 products by revenue?
     sql: |
-      SELECT 
+      SELECT
         product_name,
         SUM(total_revenue) AS revenue
       FROM sales_analysis
@@ -537,7 +533,6 @@ CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
 | `P&L` | `P and L`, `Profit and Loss` |
 | `M&A` | `M and A`, `Mergers and Acquisitions` |
 
-
 ## Post-Execution Checklist
 
 - [ ] All semantic view blocks present: TABLES, RELATIONSHIPS, DIMENSIONS, METRICS
@@ -553,7 +548,6 @@ CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
 - [ ] Base tables follow 100-snowflake-core naming conventions
 - [ ] Related semantic views follow consistent naming: SEM_ prefix or MODEL_ prefix
 
-
 ## Validation
 
 - Create semantic view with all blocks (TABLES, RELATIONSHIPS, DIMENSIONS, METRICS) and verify it compiles
@@ -563,7 +557,6 @@ CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
 - Validate synonyms are comprehensive for all dimensions and metrics (3-5 per entity)
 - Check that METRICS use simple aggregate functions (COUNT, SUM, AVG, MIN, MAX)
 - Ensure no CAST, DATE_TRUNC, or transformation functions in DIMENSIONS block
-
 
 ## Output Format Examples
 
@@ -619,7 +612,6 @@ FROM TABLE(ANALYST_SEMANTIC_VIEW_QUERY(
 ));
 ```
 
-
 ## References
 
 ### Internal Documentation
@@ -633,7 +625,6 @@ FROM TABLE(ANALYST_SEMANTIC_VIEW_QUERY(
 - [Snowflake Semantic Views Documentation](https://docs.snowflake.com/en/user-guide/semantic-views) - Official semantic view syntax and examples
 - [Cortex Analyst with Semantic Views](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst) - Using semantic views for natural language queries
 - [Semantic View Best Practices](https://docs.snowflake.com/en/user-guide/semantic-views-best-practices) - Guidelines for building effective semantic models
-
 
 ## 1) Native Semantic View Syntax
 
@@ -733,7 +724,6 @@ CREATE OR REPLACE SEMANTIC VIEW PROD.GRID_DATA.SEM_TRANSFORMER_HEALTH
   )
   COMMENT = 'Transformer health and performance metrics for Cortex Analyst NLQ';
 ```
-
 
 ## 2) Semantic View Components
 
@@ -958,8 +948,6 @@ METRICS (
 )
 ```
 
-
-
 ## Prerequisites Validation
 
 Before creating semantic views, verify your environment meets requirements.
@@ -993,7 +981,7 @@ SELECT SYSTEM$GET_ACCOUNT_CAPABILITIES() AS capabilities;
 **Verify Base Tables:**
 ```sql
 -- Check source tables exist and have data
-SELECT 
+SELECT
     TABLE_CATALOG,
     TABLE_SCHEMA,
     TABLE_NAME,
@@ -1006,7 +994,7 @@ WHERE TABLE_SCHEMA = '{SCHEMA}'
 DESCRIBE TABLE {DATABASE}.{SCHEMA}.{TABLE};
 
 -- Identify columns for FACTS vs DIMENSIONS
-SELECT 
+SELECT
     COLUMN_NAME,
     DATA_TYPE,
     IS_NULLABLE,
@@ -1028,12 +1016,11 @@ SHOW GRANTS ON SCHEMA {DATABASE}.{SCHEMA};
 -- - USAGE on database and schema
 
 -- Verify role has necessary privileges
-SELECT 
+SELECT
     CURRENT_ROLE() AS current_role,
     CURRENT_DATABASE() AS current_database,
     CURRENT_SCHEMA() AS current_schema;
 ```
-
 
 ## Related Rules
 
@@ -1049,4 +1036,3 @@ SELECT
 **Complementary** (different aspects of same domain):
 - `100-snowflake-core` - For DDL fundamentals and object naming conventions
 - `107-snowflake-security-governance` - For masking policies and row access policies on semantic views
-

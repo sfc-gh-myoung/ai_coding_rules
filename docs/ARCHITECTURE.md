@@ -275,18 +275,27 @@ ai_coding_rules/
 │   ├── test_token_validator.py
 │   └── test_index_generator.py
 │
-├── prompts/                    # Example user prompts
+├── prompts/                    # Example user prompts and review tools
 │   ├── EXAMPLE_PROMPT_01.md    # Linting task example
 │   ├── EXAMPLE_PROMPT_02.md    # Performance optimization example
 │   ├── EXAMPLE_PROMPT_03.md    # Simple task example
+│   ├── RULE_REVIEW_PROMPT.md   # Agent-centric rule review template
+│   ├── ../docs/USING_RULE_REVIEW_PROMPT.md # How to use the rule review prompt
 │   └── README.md               # Prompt writing guide
+│
+├── skills/                     # Claude Code / Cursor skills (optional deployable artifacts)
+│   ├── rule-creator-skill.md    # Internal-only: create v3.0 rules in this repo (excluded from deploy)
+│   ├── rule-creator/            # Internal-only: structured rule creation skill (excluded from deploy)
+│   ├── rule-reviewer-skill.md   # Deployable: automate rule reviews and write output files
+│   └── rule-reviewer/           # Deployable: structured reviewer skill (workflows + examples)
 │
 ├── docs/                       # Project documentation
 │   ├── ARCHITECTURE.md         # This file
+│   ├── USING_RULE_REVIEW_SKILL.md # How to use rule-reviewer in Claude Code / Cursor
 │   └── MEMORY_BANK.md          # Memory Bank system guide
 │
-├── AGENTS.md                   # AI assistant discovery guide (project root)
-├── RULES_INDEX.md              # Searchable rule catalog (project root)
+├── AGENTS.md                   # Minimal AI agent bootstrap protocol (project root)
+├── RULES_INDEX.md              # Searchable rule catalog with loading strategy (project root)
 ├── CHANGELOG.md                # Version history (Keep a Changelog v1.1.0)
 ├── CONTRIBUTING.md             # Contribution guidelines
 ├── README.md                   # Project overview and quick start
@@ -315,10 +324,20 @@ ai_coding_rules/
 - Used by schema_validator.py
 - Single source of truth for validation logic
 
-**`prompts/`** — User guidance
+**`prompts/`** — User guidance and review tools
 - Example prompts showing best practices
 - Demonstrates keyword triggers
 - Helps users write effective task descriptions
+- **RULE_REVIEW_PROMPT.md** — Agent-centric rule review prompt template (paste into a model)
+- **USING_RULE_REVIEW_PROMPT.md** — Usage guide (modes, examples, cadence, cross-model workflow)
+
+**`skills/`** — Claude Code / Cursor skills (optional, deployable)
+- Deployed by `scripts/rule_deployer.py` unless excluded in `pyproject.toml` (`[tool.rule_deployer].exclude_skills`)
+- Supports both:
+  - single-file skills (e.g., `rule-reviewer-skill.md`)
+  - structured skills (e.g., `rule-reviewer/` with `skill.json`, workflows, examples)
+- **rule-creator** is internal-only and excluded from deployment by default
+- **rule-reviewer** is deployable and automates running the rule review prompt and writing outputs to `reviews/`
 
 ## Rule Creation Workflow
 
@@ -589,10 +608,12 @@ python scripts/schema_validator.py rules/ --strict
 # Taskfile.yml
 tasks:
   test:all:
-    desc: "Run all tests including schema validation"
+    desc: "Run all pytest tests"
+    aliases: [test, t]
+    deps:
+      - env:sync
     cmds:
-      - uv run pytest tests/ -v
-      - python scripts/schema_validator.py rules/
+      - "{{.UV}} run pytest tests/ -v"
 ```
 
 **CI/CD Pipeline:**
@@ -760,16 +781,19 @@ Load rules from /path/to/project/rules/ following the protocol in /path/to/proje
 ### Discovery System
 
 **AGENTS.md Purpose:**
-- Explains the rule loading protocol
-- Mandatory rule loading checklist
-- File type and activity keyword extraction
-- Progressive loading strategy
+- Minimal bootstrap protocol for AI agents
+- Rule loading sequence (mandatory first actions)
+- Rule discovery methods and organization
+- Delegates execution details to rules/000-global-core.md
 
 **RULES_INDEX.md Purpose:**
 - Searchable catalog with keywords
 - Dependency information
 - Scope descriptions
 - Quick reference table
+- AI agent usage guidance (READ-ONLY notice)
+- Rule loading strategy with 6-step algorithm
+- Token budget management guidance
 
 **How AI Assistants Use Them:**
 
@@ -840,7 +864,7 @@ v3.0 includes comprehensive test coverage ensuring script reliability:
 **`tests/test_token_validator.py`**
 - Token count accuracy
 - TokenBudget format validation
-- Tolerance checks (±20%)
+- Tolerance checks (±15% default threshold)
 - Multiple rule validation
 - Statistical reporting
 
@@ -865,8 +889,9 @@ v3.0 includes comprehensive test coverage ensuring script reliability:
 
 **All Tests:**
 ```bash
-# Using Task
-task test:all
+# Using Task (recommended)
+task test                 # Alias for test:all
+task test:all             # Run all tests
 
 # Using pytest directly
 uv run pytest tests/ -v
@@ -915,6 +940,62 @@ jobs:
       - run: uv run pytest tests/ -v
       - run: python scripts/schema_validator.py rules/ --strict
 ```
+
+## Taskfile Architecture
+
+The project uses Task v3 for automation with a comprehensive categorized structure:
+
+### Key Design Patterns
+
+**1. Precondition Tasks (Internal)**
+```yaml
+_check:uv:      # Validates uv is installed
+_check:uvx:     # Validates uvx is installed  
+_check:coreutils:  # Validates awk, find, wc, tr
+_check:xdg-open:   # Validates xdg-open (Linux only)
+```
+
+**2. Automatic Environment Setup**
+Most tasks include `deps: [env:sync]` for automatic dependency installation.
+
+**3. Fingerprinting**
+Tasks use `sources:` and `generates:` for intelligent caching:
+```yaml
+env:sync:
+  sources: [pyproject.toml, uv.lock]
+  generates: [.venv/pyvenv.cfg]
+```
+
+**4. Ergonomic Aliases**
+Common tasks have short aliases:
+- `task fix` or `task qf` → `task quality:fix`
+- `task test` or `task t` → `task test:all`
+- `task validate` or `task ci` → `task validate:ci`
+- `task lint` → `task quality:lint`
+- `task lint:fix` → `task quality:lint:fix`
+- `task fmt` or `task format` → `task quality:format`
+- `task fmt:fix` or `task format:fix` → `task quality:format:fix`
+- `task type` or `task type-check` → `task quality:typecheck`
+
+**5. Categorized Help**
+Running `task` (default) shows a categorized menu with quickstart guide.
+Use `task ASCII=true` for terminals without Unicode support.
+
+### Task Categories
+
+| Category | Tasks | Purpose |
+|----------|-------|---------|
+| **Environment** | `env:python`, `env:sync`, `env:deps` | Python setup |
+| **Quality** | `quality:*`, `fix` | Linting, formatting, type checking |
+| **Testing** | `test`, `test:coverage` | pytest execution |
+| **Rules** | `rules:validate`, `rule:new` | Rule management |
+| **Index** | `index:generate`, `index:check` | RULES_INDEX.md |
+| **Deployment** | `deploy`, `deploy:dry` | Rule deployment |
+| **Tokens** | `tokens:update`, `tokens:check` | Token budget management |
+| **Keywords** | `keywords:suggest`, `keywords:update` | Keyword generation |
+| **Validation** | `validate`, `preflight` | CI/CD checks |
+| **Cleanup** | `clean:cache`, `clean:venv`, `clean:all` | File cleanup |
+| **Status** | `status` | Project summary |
 
 ## Scripts Reference
 
@@ -1007,27 +1088,40 @@ python scripts/schema_validator.py rules/ --verbose --strict
 
 **Purpose:** Validate TokenBudget accuracy against actual token counts
 
+> **WARNING:** Running without `--dry-run` will **automatically update** TokenBudget values in rule files. Use `--dry-run` to preview changes first.
+
 **Usage:**
 ```bash
 python scripts/token_validator.py PATH [OPTIONS]
 ```
 
 **Options:**
-- `PATH` — Rule file or directory to validate
-- `--tolerance PERCENT` — Acceptable variance (default: 20%)
-- `--update` — Update TokenBudget in files (use with caution)
-- `--verbose` — Detailed token count breakdown
+- `PATH` — Rule file or directory to validate (positional argument)
+- `--threshold PERCENT` — Minimum difference to trigger update (default: 15%)
+- `--dry-run` — Show what would be updated without making changes
+- `--detailed` — Show detailed analysis for all files
+- `--verbose` — Show verbose output
 
 **Features:**
-- Calculates actual token counts using tiktoken
-- Compares against declared TokenBudget
-- Allows ±20% tolerance
+- Validates single files or entire directories
+- Calculates accurate token estimates using word count method
+- Compares against declared TokenBudget with configurable threshold (default: ±15%)
 - Statistical summary for multiple files
-- Optional auto-update mode
+- Auto-updates TokenBudget when variance exceeds threshold (unless `--dry-run`)
 
-**Example:**
+**Examples:**
 ```bash
-python scripts/token_validator.py rules/100-snowflake-core.md --verbose
+# Validate single file (read-only check)
+python scripts/token_validator.py rules/100-snowflake-core.md --detailed
+
+# Validate all rules (read-only check)
+python scripts/token_validator.py rules/ --detailed --dry-run
+
+# Auto-update all rules exceeding threshold
+python scripts/token_validator.py rules/
+
+# Custom threshold for stricter validation
+python scripts/token_validator.py rules/ --threshold 10
 ```
 
 ### 5. index_generator.py (~400 lines)
@@ -1040,15 +1134,18 @@ python scripts/index_generator.py [OPTIONS]
 ```
 
 **Options:**
-- `--source DIR` — Source directory (default: rules/)
-- `--output FILE` — Output file (default: RULES_INDEX.md)
-- `--verbose` — Detailed processing log
+- `--rules-dir DIR` — Source directory (default: rules/)
+- `--check` — Verify RULES_INDEX.md is up-to-date (CI mode)
+- `--dry-run` — Preview output without writing
 
 **Features:**
 - Extracts metadata from all rule files
+- Generates AI agent usage guidance section
+- Generates 6-step rule loading strategy with examples
 - Generates markdown table with columns: File, Scope, Keywords, Depends
 - Sorts by filename (numeric order)
 - Validates metadata completeness
+- Includes rule dependency visualization trees
 
 **Example:**
 ```bash
@@ -1297,6 +1394,36 @@ if sections["Contract"]["line"] > 160:
 
 ## Extension Points
 
+### Periodic Rule Review
+
+Use the **Agent-Centric Rule Review Prompt**:
+- Template: `prompts/RULE_REVIEW_PROMPT.md`
+- Usage guide: `docs/USING_RULE_REVIEW_PROMPT.md`
+
+**Review Modes:**
+- **FULL** — Comprehensive review for new rules or major revisions (all 6 criteria)
+- **FOCUSED** — Targeted review when specific areas need attention
+- **STALENESS** — Periodic maintenance for quarterly/annual audits
+
+**Scoring Criteria (6 points, X/30 total):**
+1. **Actionability** — Can an agent follow instructions unambiguously?
+2. **Completeness** — Are all paths (including failures) covered?
+3. **Consistency** — Does guidance conflict within file or with dependencies?
+4. **Parsability** — Can an agent extract structured data?
+5. **Token Efficiency** — Is the rule appropriately sized?
+6. **Staleness** — Are tools, APIs, and best practices current?
+
+**Cross-Model Compatibility:**
+Tested on GPT-4o, GPT-5.1, GPT-5.2, Claude Sonnet 4.5, Claude Opus 4.5, Gemini 2.5 Pro, Gemini 3 Pro.
+
+**Recommended Cadence:**
+| Rule Type | Frequency | Mode |
+|-----------|-----------|------|
+| Foundation (000-*) | Quarterly | FULL |
+| Domain Cores (1XX, 2XX, etc.) | Quarterly | STALENESS |
+| Specialized/Activity Rules | Semi-annually | STALENESS |
+| Reference Rules (>5000 tokens) | Annually | STALENESS |
+
 ### Adding New Rules
 
 **Process:**
@@ -1543,6 +1670,7 @@ grep -i "keyword" ~/project/RULES_INDEX.md
 
 | Version | Date | Changes |
 |---------|------|---------|
+| **v3.3.0** | 2025-12-12 | Added Periodic Rule Review section with Agent-Centric Rule Review prompt, updated prompts/ directory documentation |
 | **v3.2.0** | 2025-12-04 | Added Go/Golang rules architecture section, updated rule counts to 100 |
 | **v3.1.0** | 2025-12-03 | Added HTMX rules architecture section |
 | **v3.0.0** | 2025-11-25 | Complete rewrite for production-ready architecture |

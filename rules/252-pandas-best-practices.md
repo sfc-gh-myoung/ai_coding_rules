@@ -11,11 +11,9 @@
 ## Purpose
 Establish comprehensive Pandas best practices focusing on vectorization, performance optimization, memory efficiency, and anti-pattern avoidance to prevent common issues like 100x+ performance slowdowns, SettingWithCopyWarning errors, and memory exhaustion in data-intensive workflows.
 
-
 ## Rule Scope
 
 Pandas DataFrame/Series operations, performance optimization, memory management, integration with Streamlit and Plotly
-
 
 ## Quick Start TL;DR
 
@@ -37,7 +35,6 @@ Pandas DataFrame/Series operations, performance optimization, memory management,
 - [ ] Method chaining for readability
 - [ ] Merge validation enabled
 - [ ] No chained assignment
-
 
 ## Contract
 
@@ -82,10 +79,7 @@ Performance benchmarking (vectorized vs loop), memory profiling (dtype optimizat
 
 </contract>
 
-
-
 ## Anti-Patterns and Common Mistakes
-
 
 **Anti-Pattern 1: iterrows() for computation (100x slower)**
 ```python
@@ -156,8 +150,6 @@ df = pd.read_csv('10gb_file.csv')
 ```
 **Correct:** `for chunk in pd.read_csv('10gb_file.csv', chunksize=10000):`
 
-
-
 ## Post-Execution Checklist
 
 - [ ] Vectorized operations used instead of iterrows() for computation
@@ -172,13 +164,12 @@ df = pd.read_csv('10gb_file.csv')
 - [ ] Data aggregated before Plotly visualization
 - [ ] DateTime operations reference 251-python-datetime-handling.md
 
-
 ## Validation
 
 - **Success Checks:** Vectorized operations 10x+ faster than loops, no SettingWithCopyWarning, memory usage optimized (dtype checks), efficient GroupBy/merge operations, Streamlit app loads quickly with caching
 - **Negative Tests:** iterrows() loop (should be very slow), chained assignment (should warn), int64 for small integers (should waste memory), multiple separate groupby calls (should be slower than single .agg()), missing cache_data decorator (should reload data every rerun)
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read existing DataFrame operations BEFORE optimizing** - Check current code for iterrows(), apply(), chained assignment patterns
 > 2. **Profile actual performance** - Measure execution time before and after optimization
@@ -195,7 +186,6 @@ df = pd.read_csv('10gb_file.csv')
 > [reads code, profiles performance, checks dtypes]
 > "I see you're using iterrows() in process_data() (5.2s for 100k rows). Here's a vectorized version (0.05s, 100x faster)..."
 
-
 ## Output Format Examples
 
 ```python
@@ -207,15 +197,15 @@ import plotly.express as px
 @st.cache_data(ttl=3600)
 def load_data():
     df = pd.read_csv('data.csv')
-    
+
     # Optimize dtypes
     df['category'] = df['category'].astype('category')
     df['status_code'] = df['status_code'].astype('int8')
-    
+
     # Vectorized operations
     df['total'] = df['price'] * df['quantity']
     df['discount'] = df['total'] * 0.1
-    
+
     return df
 
 # Load data
@@ -232,7 +222,6 @@ df_viz = filtered_df.groupby('date').agg({'total': 'sum'}).reset_index()
 fig = px.line(df_viz, x='date', y='total')
 st.plotly_chart(fig, use_container_width=True)
 ```
-
 
 ## References
 
@@ -256,17 +245,14 @@ st.plotly_chart(fig, use_container_width=True)
 - **Streamlit Performance**: `rules/101b-snowflake-streamlit-performance.md` - Caching strategies
 - **Data Science Analytics**: `rules/920-data-science-analytics.md` - ML workflows and analytics patterns
 
-> **[AI] Claude 4 Specific Guidance**  
+> **[AI] Claude 4 Specific Guidance**
 > **Claude 4 Pandas Optimizations:**
 > - Performance comparison: Generate benchmarks showing vectorization speedups
 > - Anti-pattern detection: Identify iterrows()/apply() usage in code reviews
 > - Memory profiling: Analyze DataFrame memory usage and suggest dtype optimizations
 > - Integration awareness: Cross-reference datetime operations with 251-python-datetime-handling.md
 
-
-
 ## 1. Vectorization vs Iteration
-
 
 **FORBIDDEN:**
 
@@ -274,7 +260,7 @@ st.plotly_chart(fig, use_container_width=True)
 
 **Problem:** Python loops with iterrows() are 50x-100x+ slower than vectorized operations
 
-**Reason:** 
+**Reason:**
 - Each loop iteration involves Python interpreter overhead
 - Vectorized operations use optimized C/Cython code
 - NumPy array operations process data in bulk
@@ -309,7 +295,7 @@ df['total'] = df['price'] * df['quantity']
 # ACCEPTABLE: Displaying rows in Streamlit (read-only)
 for _, row in df.iterrows():
     st.metric(row['metric_name'], f"{row['value']:.2f}")
-    
+
 # ACCEPTABLE: Complex business logic that can't be vectorized
 for _, row in df.iterrows():
     result = complex_external_api_call(row['id'])
@@ -349,9 +335,7 @@ df['first_word'] = df['description'].str.split().str[0]
 df['contains_keyword'] = df['text'].str.contains('important', case=False)
 ```
 
-
 ## 2. Anti-Pattern: apply() When Vectorization Works
-
 
 **FORBIDDEN:**
 
@@ -421,9 +405,7 @@ timeit.timeit(lambda: df.apply(lambda row: row['price'] * row['qty'], axis=1), n
 timeit.timeit(lambda: df['price'] * df['qty'], number=10)
 ```
 
-
 ## 3. Chained Assignment (SettingWithCopyWarning)
-
 
 **FORBIDDEN:**
 
@@ -482,9 +464,7 @@ df.loc[df['category'] == 'A', 'price'] *= 1.1  # Modifies original
 df.loc[df.query('status == "active" and price > 100').index, 'discount'] = 0.15
 ```
 
-
 ## 4. Memory Optimization
-
 
 **MANDATORY:**
 
@@ -563,9 +543,7 @@ df['sparse'] = pd.arrays.SparseArray(df['column'])
 print(df['sparse'].memory_usage())  # 40 KB (95% savings!)
 ```
 
-
 ## 5. Efficient GroupBy Operations
-
 
 **MANDATORY:**
 
@@ -619,9 +597,7 @@ df['category_mean'] = df.groupby('category')['sales'].transform('mean')
 df['pct_of_category'] = df['sales'] / df['category_mean']
 ```
 
-
 ## 6. Merge and Join Best Practices
-
 
 **MANDATORY:**
 
@@ -636,7 +612,7 @@ result = df1.merge(df2, on='id', how='left', validate='1:1')
 result = df1.merge(df2, on='id', how='left', indicator=True)
 print(result['_merge'].value_counts())
 # left_only: rows only in df1
-# right_only: rows only in df2  
+# right_only: rows only in df2
 # both: successful matches
 ```
 
@@ -662,9 +638,7 @@ result = df1.merge(df2, on=['date', 'store_id'], how='inner')
 result = df1.merge(df2, left_on='customer_id', right_on='cust_id', how='left')
 ```
 
-
 ## 7. Method Chaining
-
 
 ### Readable Pipelines
 
@@ -698,9 +672,7 @@ df_processed = (
 )
 ```
 
-
 ## 8. Index Operations
-
 
 ### When to Use Index
 
@@ -726,9 +698,7 @@ result = (
 )
 ```
 
-
 ## 9. Streamlit Integration Patterns
-
 
 ### Efficient Caching with Pandas
 
@@ -739,14 +709,14 @@ import streamlit as st
 @st.cache_data(ttl=3600)
 def load_and_process_data():
     df = pd.read_csv('large_data.csv')
-    
+
     # Optimize dtypes for memory
     df['category'] = df['category'].astype('category')
     df['status_code'] = df['status_code'].astype('int8')
-    
+
     # Pre-compute expensive operations
     df['total'] = df['price'] * df['quantity']
-    
+
     return df
 
 # Use cached data
@@ -782,9 +752,7 @@ st.download_button(
 )
 ```
 
-
 ## 10. Plotly Integration Patterns
-
 
 ### Aggregate Before Plotting
 
@@ -814,5 +782,3 @@ df_viz = (
 fig = px.line(df_viz, x='date', y='sales', color='category')
 st.plotly_chart(fig, use_container_width=True)
 ```
-
-

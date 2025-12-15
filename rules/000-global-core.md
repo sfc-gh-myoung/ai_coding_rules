@@ -4,18 +4,20 @@
 
 **SchemaVersion:** v3.0
 **Keywords:** PLAN mode, ACT mode, workflow, safety, confirmation, validation, surgical edits, minimal changes, mode violations, prompt engineering, task list, read-only, authorization
-**TokenBudget:** ~2550
+**TokenBudget:** ~4500
 **ContextTier:** Critical
 **Depends:** None
 
 ## Purpose
 Establish the foundational operating contract for all AI coding assistants, ensuring reliable, safe, and consistent workflows through mode-based operations, task confirmation protocols, and professional communication standards.
 
+> **Note:** This rule assumes the AGENTS.md bootstrap protocol (steps 1-5) has been completed.
+> AGENTS.md defines WHAT to load and WHEN. This rule defines operational behavior AFTER loading:
+> MODE transitions, task confirmation, validation commands, and communication standards.
 
 ## Rule Scope
 
 Universal foundational guidelines for all AI coding assistants across all editors and technologies
-
 
 ## Quick Start TL;DR
 
@@ -23,11 +25,11 @@ Universal foundational guidelines for all AI coding assistants across all editor
 **Essential Patterns:**
 - **Declare MODE at start** - MODE: [PLAN|ACT] as first line of every response
 - **Always start in PLAN mode** - gather context, present task list, await "ACT"
+- **Explicit ACT prompt (PLAN)** - If you present a Task List in PLAN, end the response with: `Authorization (required): Reply with \`ACT\` (or \`ACT on items 1-3\`).`
 - **List loaded rules** - State all loaded rules after MODE (e.g., "## Rules Loaded\n- 000-global-core, 200-python-core")
 - **Make surgical edits only** - minimal changes, preserve existing code patterns
 - **Validate immediately** - run tests/lints before marking complete
 - **Never modify files without explicit "ACT" authorization**
-
 
 ## Contract
 
@@ -76,6 +78,9 @@ Verify mode rules honored; confirm changes work as expected
 
 ### 1. Mode-Based Workflow
 
+> **Note:** MODE declaration format is defined in AGENTS.md step 4.
+> This section defines MODE *behavior* and *transitions*.
+
 **PLAN Mode (Default):**
 - Information gathering and analysis only
 - Read-only tools permitted
@@ -90,6 +95,110 @@ Verify mode rules honored; confirm changes work as expected
 - Return to PLAN immediately after task completion
 - **Declare return:** State "MODE: PLAN" when returning to PLAN mode after completion
 
+**ACT Recognition Rules:**
+- **Recognized:** "ACT", "act", "Act" (case-insensitive exact match)
+- **NOT recognized:** "proceed", "go ahead", "do it", "yes", "okay"
+- **Scope:** Applies to the most recent task list presented in PLAN mode
+- **Expiration Rules:**
+  - **Expires:** When agent presents a *new* task list (replacing previous)
+  - **Does NOT expire:** During clarifying questions or discussion without new task lists
+  - **Partial modification:** If user modifies task list ("skip step 2"), present updated list and request new "ACT"
+  - **After completion:** Returns to PLAN; requires new "ACT" for any subsequent tasks
+- **Partial authorization:** "ACT on items 1-3" executes only specified items, then returns to PLAN for remaining items
+
+### Clarification Gate (Options-Based Questions)
+
+Use this pattern to gather required details in PLAN mode without creating PLAN → PLAN
+loops or accidentally expiring ACT authorization scope.
+
+**Rules:**
+- **Ask with choices:** When user input is ambiguous, ask clarifying questions using explicit choices: **A, B, C, D, E**.
+- **Bundle questions:** Ask up to **3-5** clarifying questions in a single message.
+- **Provide a default:** Mark one option as **(recommended default)** when safe.
+- **Preserve ACT scope:** If a Task List has already been presented, **do not present a new Task List**
+  while clarifying unless the user selection changes scope/steps (which would require an updated
+  Task List and a new "ACT").
+- **Stop condition:** Allow **at most 1 clarification round**. If still ambiguous, present a Task
+  List with explicit assumptions and ask the user to authorize with "ACT" (or correct the
+  assumptions).
+
+**User response format (recommended):**
+- Reply with a comma-separated list of choices (e.g., `B, D, A`) and include `ACT` only when ready to execute.
+
+### MODE Transitions (Summary)
+
+**PLAN → ACT:**
+- Trigger: User types "ACT"
+- Required: Task list must be presented first
+- Declaration: "MODE: ACT" at start of next response
+
+**ACT → ACT (Validation Loop):**
+- Trigger: Validation failure
+- Max loops: 3 attempts (then escalate to PLAN)
+- Declaration: Stay in ACT, no re-declaration needed
+
+**ACT → PLAN:**
+- Trigger: Successful validation + doc update
+- Automatic: No user input needed
+- Declaration: "MODE: PLAN" at end of response
+
+**PLAN → PLAN:**
+- Trigger: Any non-"ACT" user input
+- Default: Always return to PLAN after ACT completion
+
+### Mode Transition State Diagram
+
+```
+[User Request] → MODE: PLAN
+                    ↓
+         [Present Task List]
+                    ↓
+         [User types "ACT"]
+                    ↓
+              MODE: ACT
+                    ↓
+         [Make modifications]
+                    ↓
+         [Run validation]
+                    ↓
+    ┌───────── [Validation] ─────────┐
+    ↓                                  ↓
+[PASS]                             [FAIL]
+    ↓                                  ↓
+[Update docs]                  [Present errors]
+    ↓                                  ↓
+MODE: PLAN ←──────────────── [Stay in ACT]
+    ↓                                  ↓
+[Await next                      [Fix & retry]
+ instruction]                          ↑
+                                       └──→ [Run validation]
+```
+
+**Transition Rules:**
+- **ACT → PLAN**: Automatic after successful validation + documentation update
+- **ACT → ACT**: Only if validation fails; must re-validate before declaring PLAN
+- **PLAN → ACT**: Only after user types "ACT" (never automatic)
+- **PLAN → PLAN**: Default state for follow-up questions
+
+**Terminal State Behavior:**
+- "Await next instruction" means agent remains in PLAN mode
+- If user input is ambiguous, ask clarifying questions (staying in PLAN)
+- If user provides new task, begin new PLAN cycle
+
+**Validation Retry Limits:**
+- **Maximum retries:** 3 attempts to fix and re-validate
+- **After 3 failures:** Return to PLAN, present errors, and request user guidance
+- **Escalation format:**
+```markdown
+MODE: PLAN
+
+WARNING: Validation failed after 3 attempts. Issues encountered:
+- [Error 1]
+- [Error 2]
+
+Requesting guidance: [specific question or options]
+```
+
 ### Protocol Enforcement
 
 Responses MUST comply with these validation gates or be considered INVALID:
@@ -99,6 +208,7 @@ Responses MUST comply with these validation gates or be considered INVALID:
 | **MODE declared** | First line = `MODE: [PLAN\|ACT]` | Regenerate response with MODE |
 | **Rules listed** | `## Rules Loaded` section present | Regenerate with rules listed |
 | **PLAN mode protection** | No file modifications in PLAN | STOP, present task list, await ACT |
+| **Explicit ACT prompt** | PLAN response with a Task List ends with `Authorization (required): Reply with \`ACT\` ...` | Regenerate response with explicit ACT prompt |
 | **ACT authorization** | User typed "ACT" before entering ACT mode | Return to PLAN, apologize |
 | **Validation executed** | Lint/test/compile run after changes | Run validation before completion |
 | **Language rules loaded** | Domain rules for file types being edited | Load 200-python/100-snowflake/etc. |
@@ -113,6 +223,7 @@ Responses MUST comply with these validation gates or be considered INVALID:
 - **Mandatory:** Present task list before any modifications
 - **Mandatory:** Disclose all loaded rule filenames that informed the plan
 - **Mandatory:** User must type "ACT" to authorize changes
+- **Mandatory:** If a Task List is present in PLAN, end the response with: `Authorization (required): Reply with \`ACT\` (or \`ACT on items 1-3\`).`
 - **Critical:** Never modify files without explicit authorization
 - **Exception:** Only if user explicitly overrides ("proceed without asking" AND "ACT")
 
@@ -122,6 +233,71 @@ Responses MUST comply with these validation gates or be considered INVALID:
 - Preserve existing code patterns and style
 - Show deltas, not entire files
 - Maintain backward compatibility when possible
+
+### 3.5. Multi-File Task Protocol
+
+**Atomic Changes (Single ACT Session):**
+
+Use when files are tightly coupled and changes must be consistent:
+- Refactoring that renames functions/classes across files
+- Updating API contracts (client + server)
+- Schema migrations (DDL + application code)
+
+**Task List Format:**
+```
+1. Update function signature in `auth.py`
+2. Update all call sites in `middleware.py`
+3. Update route handlers in `routes.py`
+4. Run validation suite (all files)
+```
+
+**Rollback Strategy:**
+
+If validation fails, you MUST:
+- Revert ALL files to original state
+- Return to PLAN mode
+- Present revised task list with fixes
+
+**Rollback Mechanisms:**
+
+| Scenario | Mechanism | Approach |
+|----------|-----------|----------|
+| **Git repo available** | Version control (preferred) | `git checkout -- <file>` or `git stash` |
+| **No git, few files** | In-memory | Store original content before edit, restore via write tool |
+| **No git, many files** | Incremental | Read and store each file before editing; revert individually on failure |
+
+**Selection:** Check git availability first (`git status`). If unavailable, use in-memory for simple tasks or incremental for multi-file changes.
+
+**Rollback Reporting:**
+```markdown
+WARNING: Validation failed. Reverting changes:
+- Reverted: `auth.py` (original restored)
+- Reverted: `middleware.py` (original restored)
+- Unchanged: `routes.py` (not yet modified)
+
+MODE: PLAN
+[Revised task list with fixes]
+```
+
+**Progressive Changes (Multiple ACT Sessions):**
+
+Use when files are loosely coupled:
+- Adding independent features to different modules
+- Updating documentation across multiple files
+- Performance optimizations in separate components
+
+**Task List Format:**
+```
+Session 1: Update `auth.py`
+- [specific changes]
+- [validation]
+- [await "ACT"]
+
+Session 2: Update `middleware.py`
+- [specific changes]
+- [validation]
+- [await "ACT"]
+```
 
 ### 4. Professional Communication
 
@@ -136,8 +312,71 @@ Responses MUST comply with these validation gates or be considered INVALID:
 - Run appropriate tests and lints for the technology
 - Update documentation when changes affect usage
 - Ensure no regressions introduced
+- **Taskfile-first (project standards):** If the project provides an automation entrypoint (prefer
+  `Taskfile.yml`), run validation via the project-defined tasks (e.g., `task validate`, `task check`,
+  `task ci`, `task lint`, `task format`, `task typecheck`, `task test`). Only fall back to direct tool
+  commands when no relevant Taskfile tasks exist.
 
+**Validation Strategies:**
 
+| Strategy | When to Use | Command Style | Exit Behavior |
+|----------|-------------|---------------|---------------|
+| **Fast-fail** | Final check, high confidence | Chain with `&&` | Stops at first failure |
+| **Diagnostic** | First run, expect issues | Run separately with `|| echo` | Collects ALL errors |
+
+**Selection Criteria:**
+- **Use Fast-fail when:** Final validation before completion; minor changes to passing code
+- **Use Diagnostic when:** First validation after changes; multiple files modified; debugging prior failures
+
+**Fast-fail Example (CI/CD):**
+```bash
+# Stop on first failure - efficient for pipelines
+task validate
+```
+
+**Diagnostic Example (Debugging):**
+```bash
+# Run all checks, collect ALL results for comprehensive diagnosis
+task lint || echo "ERROR: Linting failed"
+task format || echo "ERROR: Formatting failed"
+task typecheck || echo "ERROR: Type checking failed"
+task test || echo "ERROR: Tests failed"
+
+# Task complete only if all passed
+```
+
+### 5.5. Validation Command Reference
+
+**Taskfile-first (preferred):**
+
+| Technology | Preferred (Project Standard) | Purpose |
+|------------|------------------------------|---------|
+| **Any** | `task validate` (or `task check` / `task ci`) | Run project-defined validation gate |
+| **Any** | `task lint`, `task format`, `task typecheck`, `task test` | Run project-defined checks |
+
+**Fallback Technology-Specific Commands (only if no Taskfile tasks exist):**
+
+| Technology | Command | Purpose |
+|------------|---------|---------|
+| **Python** | `uvx ruff check . && uvx ruff format --check . && uv run pytest` | Lint, format, test |
+| **SQL** | `snowflake_sql_execute(..., only_compile=true)` | Syntax check |
+| **Shell** | `shellcheck script.sh` | Lint |
+| **Markdown** | `uvx pymarkdownlnt scan FILE.md` | Lint |
+| **YAML** | `python -c "import yaml; yaml.safe_load(open('FILE.yml'))"` | Parse check |
+| **JS/TS** | `npx tsc --noEmit && npx biome check .` | Type + lint |
+| **Go** | `go fmt ./... && go vet ./... && go test ./...` | Format, lint, test |
+| **Docker** | `docker build --no-cache -t test .` | Build test |
+
+**Note:** Use `&&` for quick validation, or run separately for detailed diagnostics.
+
+**Validation Sequence:**
+
+1. **Syntax** — Ensure code parses correctly
+2. **Linting** — Check for code quality issues
+3. **Formatting** — Verify code style compliance
+4. **Type Checking** — Validate type correctness (if applicable)
+5. **Unit Tests** — Run automated test suite
+6. **Integration Tests** — Test component interactions (if applicable)
 
 ## Anti-Patterns and Common Mistakes
 
@@ -150,9 +389,18 @@ These violations result in INVALID responses that must be regenerated:
 | **MODE not declared** | First line != `MODE: [PLAN\|ACT]` | INVALID response | Regenerate with `MODE: PLAN` as first line |
 | **Rules not listed** | Missing `## Rules Loaded` section | INVALID response | Add section listing all loaded rules with context |
 | **File edit in PLAN** | File modification tool called while in PLAN mode | STOP immediately | Return to PLAN, present task list, await "ACT" |
+| **Task list missing explicit ACT prompt** | PLAN response includes a Task List but does not end with `Authorization (required): Reply with \`ACT\` ...` | INVALID response | Regenerate response with explicit ACT prompt |
 | **Skipped validation** | Changes made in ACT but no lint/test/compile run | INCOMPLETE task | Execute validation before marking complete |
 | **ACT without authorization** | Entered ACT mode without user typing "ACT" | CRITICAL violation | Revert changes, apologize, return to PLAN |
-| **Language rules missing** | Editing .py/.sql/.sh without loading domain rules | INVALID response | Load 200-python/100-snowflake/300-bash-scripting |
+| **Language rules missing** | Working with .py/.sql/.sh/.go files without loading domain rules | INVALID response | Load domain rules for file type |
+
+**Language Rule Loading Requirements:**
+- **MUST load:** Modifying files, running language-specific tools (pytest, ruff, shellcheck), or making code recommendations
+- **MAY skip:** Reading files for context only, listing directories, language-agnostic operations (git, file moves)
+
+**Examples:**
+- Requires rules: "Run pytest", "Lint this file", "Fix the bug in auth.py"
+- No rules needed: "Show project structure", "What files changed?", "Move this folder"
 
 ### ACT Mode Requirements (Quality Gates)
 
@@ -196,7 +444,7 @@ Task List:
 2. Update port setting to 8080
 3. Validate config syntax
 
-[awaits "ACT"]
+Authorization (required): Reply with `ACT` (or `ACT on items 1-3`).
 ```
 
 **Anti-Pattern 2: Broad rewrites instead of surgical edits**
@@ -228,7 +476,6 @@ Validation: Linting clean, Tests passing (15/15)
 Task complete.
 ```
 
-
 ## Post-Execution Checklist
 
 - [ ] Declared current MODE at start of response
@@ -243,13 +490,12 @@ Task complete.
 - [ ] Updated relevant documentation
 - [ ] No unauthorized modifications made
 
-
 ## Validation
 
 - **Success Checks:** Mode transitions correct; user authorization obtained; minimal edits applied; validation passes; documentation current
 - **Negative Tests:** Unauthorized modifications blocked; mode violations caught; validation failures prevent completion
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read project files BEFORE making recommendations** - Check existing code structure, patterns, and conventions
 > 2. **List loaded rules explicitly** - Always state which rules informed your analysis
@@ -266,7 +512,6 @@ Task complete.
 > [reads directory structure, examines key files]
 > "I see you're using [specific pattern]. Here's my task list for implementing [feature] following your existing conventions..."
 > [awaits ACT authorization]
-
 
 ## Output Format Examples
 
@@ -320,7 +565,7 @@ Task List:
 4. Define response formatting instructions for user-friendly output
 5. Test agent creation and validate configuration
 
-[awaits "ACT" authorization]
+Authorization (required): Reply with `ACT` (or `ACT on items 1-3`).
 ```
 
 ```markdown
@@ -351,7 +596,6 @@ MODE: PLAN
 Task complete. Agent ready for queries.
 ```
 
-
 ## References
 
 ### External Documentation
@@ -375,4 +619,3 @@ Every task should define:
 4. **Required Steps** - Sequential steps to complete task
 5. **Output Format** - Expected format of results
 6. **Validation Steps** - How to verify success
-

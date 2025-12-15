@@ -99,10 +99,10 @@ HTML with Alpine.js directives, optional JavaScript for Alpine.data() registrati
 <div x-data="{ isActive: true }">
     <!-- Long form -->
     <button x-bind:class="isActive ? 'active' : ''">Button</button>
-    
+
     <!-- Short form (preferred) -->
     <button :class="isActive ? 'active' : ''">Button</button>
-    
+
     <!-- Multiple attributes -->
     <input :disabled="!isActive" :value="count">
 </div>
@@ -113,13 +113,13 @@ HTML with Alpine.js directives, optional JavaScript for Alpine.data() registrati
 <div x-data="{ count: 0 }">
     <!-- Long form -->
     <button x-on:click="count++">Increment</button>
-    
+
     <!-- Short form (preferred) -->
     <button @click="count++">Increment</button>
-    
+
     <!-- Call methods -->
     <button @click="increment()">Increment</button>
-    
+
     <!-- Event modifiers -->
     <button @click.prevent="submit()">Submit</button>
     <input @keyup.enter="search()">
@@ -161,7 +161,7 @@ HTML with Alpine.js directives, optional JavaScript for Alpine.data() registrati
 ```html
 <div x-data="{ open: false }">
     <button @click="open = !open">Toggle</button>
-    
+
     <!-- x-show: Element stays in DOM, uses CSS display -->
     <div x-show="open">
         Content (toggle CSS display)
@@ -173,7 +173,7 @@ HTML with Alpine.js directives, optional JavaScript for Alpine.data() registrati
 ```html
 <div x-data="{ show: false }">
     <button @click="show = !show">Toggle</button>
-    
+
     <!-- x-if: Element added/removed from DOM -->
     <template x-if="show">
         <div>Content (added/removed from DOM)</div>
@@ -421,8 +421,8 @@ HTML with Alpine.js directives, optional JavaScript for Alpine.data() registrati
 
 <!-- Access from any component -->
 <div x-data>
-    <button 
-        x-for="tab in $store.tabs.items" 
+    <button
+        x-for="tab in $store.tabs.items"
         @click="$store.tabs.current = tab"
         :class="$store.tabs.current === tab && 'active'">
         <span x-text="tab"></span>
@@ -439,7 +439,7 @@ HTML with Alpine.js directives, optional JavaScript for Alpine.data() registrati
 </div>
 
 <!-- With async initialization -->
-<div x-data="{ data: null }" 
+<div x-data="{ data: null }"
      x-init="data = await (await fetch('/api/data')).json()">
     <span x-text="data"></span>
 </div>
@@ -493,12 +493,12 @@ HTML with Alpine.js directives, optional JavaScript for Alpine.data() registrati
 ```html
 <div x-data="{ open: false }">
     <button @click="open = !open">Toggle</button>
-    
+
     <div x-show="open" x-transition>
         <!-- Animated with CSS transitions -->
         Fades in and out
     </div>
-    
+
     <!-- Custom transition -->
     <div x-show="open"
          x-transition:enter="transition ease-out duration-300"
@@ -645,7 +645,7 @@ Correct Pattern: Use reactive data instead of direct DOM manipulation
 ```html
 <div x-data="{ foo: 'bar' }">
     <span x-text="foo"></span> <!-- Works: "bar" -->
-    
+
     <div x-data="{ foo: 'baz' }">
         <span x-text="foo"></span> <!-- Shows: "baz" (shadows parent) -->
         <span x-text="$root.foo"></span> <!-- Access parent: "bar" -->
@@ -681,7 +681,7 @@ Correct Pattern: Use reactive data instead of direct DOM manipulation
         }
         // Missing destroy() - interval keeps running
     }))
-    
+
     // GOOD: Proper cleanup
     Alpine.data('timer', () => ({
         interval: null,
@@ -827,14 +827,14 @@ Correct Pattern: Use reactive data instead of direct DOM manipulation
 
 ```html
 <!-- Server-rendered HTML with Alpine enhancement -->
-<form action="/submit" method="POST" x-data="{ 
+<form action="/submit" method="POST" x-data="{
     email: '',
     password: '',
     errors: {},
     async handleSubmit(e) {
         e.preventDefault()
         this.errors = {}
-        
+
         try {
             const response = await fetch('/api/login', {
                 method: 'POST',
@@ -844,7 +844,7 @@ Correct Pattern: Use reactive data instead of direct DOM manipulation
                     password: this.password
                 })
             })
-            
+
             if (!response.ok) {
                 this.errors = await response.json()
             } else {
@@ -857,26 +857,26 @@ Correct Pattern: Use reactive data instead of direct DOM manipulation
 }">
     <div>
         <label for="email">Email:</label>
-        <input 
-            type="email" 
-            id="email" 
-            name="email" 
+        <input
+            type="email"
+            id="email"
+            name="email"
             x-model="email"
             required>
         <span x-show="errors.email" x-text="errors.email" class="error"></span>
     </div>
-    
+
     <div>
         <label for="password">Password:</label>
-        <input 
-            type="password" 
-            id="password" 
-            name="password" 
+        <input
+            type="password"
+            id="password"
+            name="password"
             x-model="password"
             required>
         <span x-show="errors.password" x-text="errors.password" class="error"></span>
     </div>
-    
+
     <button type="submit" @click.prevent="handleSubmit">Login</button>
     <span x-show="errors.general" x-text="errors.general" class="error"></span>
 </form>

@@ -11,11 +11,9 @@
 ## Purpose
 Establish directives for creating realistic, deterministic, and effective demo applications, covering data generation, narrative design, and visual clarity to deliver compelling demonstrations that showcase product capabilities.
 
-
 ## Rule Scope
 
 Realistic, deterministic, and effective demo application creation with narrative clarity
-
 
 ## Quick Start TL;DR
 
@@ -37,7 +35,6 @@ Realistic, deterministic, and effective demo application creation with narrative
 - [ ] Performance optimized
 - [ ] Data realistic and aligned
 - [ ] Batch generation used
-
 
 ## Contract
 
@@ -67,8 +64,6 @@ Realistic, deterministic, and effective demo application creation with narrative
 </validation>
 
 </contract>
-
-
 
 ## Anti-Patterns and Common Mistakes
 
@@ -129,7 +124,6 @@ for _ in range(1000):
 ```
 **Benefits:** Realistic correlations, meaningful patterns, supports narrative storytelling.
 
-
 ## Post-Execution Checklist
 - [ ] Required dependencies and context verified
 - [ ] Appropriate tools selected and validated
@@ -137,11 +131,9 @@ for _ in range(1000):
 - [ ] Output format matches requirements
 - [ ] Validation steps completed successfully
 
-
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
-
 
 ## Output Format Examples
 
@@ -161,7 +153,7 @@ Implementation Steps:
 1. **[Step 1]**: [Specific action taken]
    - File: `path/to/file`
    - Change: [delta description]
-   
+
 2. **[Step 2]**: [Another action]
    - Configuration: [what was configured]
    - Rationale: [why this approach]
@@ -187,11 +179,10 @@ Next Steps:
 - [Monitoring recommendations]
 ```
 
-
 ## References
 
 ### External Documentation
-- [Demo Design Best Practices](https://www.salesforce.com/resources/articles/sales-demo/) - Effective demonstration techniques and strategies                                                                           
+- [Demo Design Best Practices](https://www.salesforce.com/resources/articles/sales-demo/) - Effective demonstration techniques and strategies
 - [Faker Documentation](https://faker.readthedocs.io/) - Synthetic data generation library documentation
 - [Streamlit Demo Gallery](https://streamlit.io/gallery) - Examples of effective data application demonstrations
 
@@ -201,14 +192,12 @@ Next Steps:
 - **Faker**: `rules/240-python-faker.md`
 - **Data Science Analytics**: `rules/920-data-science-analytics.md`
 
-
 ## 1. Core Principles
 - **Requirement:** Make demos story-first, leading with a customer problem and clear outcome.
 - **Requirement:** Ensure data is reproducible and deterministic via consistent seeding.
 - **Requirement:** Build resilience with an offline fallback for live failures.
 - **Requirement:** Follow progressive disclosure, from basic insights to advanced features.
 - **Requirement:** Minimize latency with pre-warmed data and caches.
-
 
 ## 2. Data Generation & Loading
 - **Requirement:** Keep synthetic data narrative-aligned and realistic, not random noise.
@@ -218,7 +207,6 @@ Next Steps:
 - **Always:** Overwrite on the first batch; append on subsequent batches.
 - **Requirement:** Do not hard-code record counts; use a `DemoScenario` or similar pattern.
 
-
 ## 3. Demo Presentation & Reliability
 - **Requirement:** Keep the visual design clean and consistent with a limited color palette.
 - **Requirement:** Ensure each UI/UX element serves a clear purpose.
@@ -226,5 +214,3 @@ Next Steps:
 - **Always:** Provide annotations for anomalies and AI outputs for context and explainability.
 - **Always:** Provide a clean reset capability to clear caches and session state between runs.
 - **Requirement:** Use relative timestamps so demos stay fresh over time.
-
-

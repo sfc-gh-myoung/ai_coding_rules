@@ -11,11 +11,9 @@
 ## Purpose
 Establish comprehensive datetime handling practices across Python, Pandas, Plotly, and Streamlit to prevent type errors, timezone bugs, and performance issues while ensuring Pandas 2.x compatibility and cross-library interoperability.
 
-
 ## Rule Scope
 
 DateTime handling for Python stdlib, Pandas, Plotly, Streamlit with focus on type safety, timezone management, date arithmetic, and performance optimization
-
 
 ## Quick Start TL;DR
 
@@ -36,7 +34,6 @@ DateTime handling for Python stdlib, Pandas, Plotly, Streamlit with focus on typ
 - [ ] Plotly/Streamlit dates converted with to_pydatetime()
 - [ ] Date arithmetic uses appropriate types
 - [ ] Type conversions handled explicitly
-
 
 ## Contract
 
@@ -80,7 +77,6 @@ All datetime operations type-compatible, timezone handling explicit, no mixed-ty
 </design_principles>
 
 </contract>
-
 
 ## Anti-Patterns and Common Mistakes
 
@@ -169,7 +165,6 @@ next_year = start + pd.DateOffset(years=1)    # Handles leap years
 ```
 **Benefits:** Calendar-aware arithmetic; handles month boundaries; leap year support; business logic correctness; "add 1 month" means "same day next month"
 
-
 ## Post-Execution Checklist
 
 - [ ] All datetime type conversions handled explicitly (no mixed-type comparisons)
@@ -181,13 +176,12 @@ next_year = start + pd.DateOffset(years=1)    # Handles leap years
 - [ ] Cross-library datetime handling tested (Python, Pandas, Plotly, Streamlit)
 - [ ] Helper function (ensure_python_datetime) used for mixed-type scenarios
 
-
 ## Validation
 
 - **Success Checks:** All datetime operations type-safe, timezone handling explicit, no Pandas 2.x TypeErrors, large time series render quickly, cross-library compatibility verified
 - **Negative Tests:** Mixed datetime comparison without conversion (should fail), timezone-naive comparison with tz-aware (should warn), ambiguous date parsing (should coerce or error), inefficient datetime loops (should be slow)
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read data files BEFORE datetime operations** - Check existing date formats, timezone awareness
 > 2. **Verify Pandas version** - Check if Pandas 2.x compatibility needed
@@ -203,7 +197,6 @@ next_year = start + pd.DateOffset(years=1)    # Handles leap years
 > "Let me check your datetime column formats first."
 > [reads data, checks dtypes, reviews timezone handling]
 > "I see you have timezone-aware datetime64[ns, UTC]. Converting for Plotly with to_pydatetime()..."
-
 
 ## Output Format Examples
 
@@ -244,7 +237,6 @@ user_ts = pd.Timestamp(user_date)
 filtered_df = df[df['date'] >= user_ts]
 ```
 
-
 ## References
 
 ### External Documentation
@@ -271,17 +263,14 @@ filtered_df = df[df['date'] >= user_ts]
 - **Streamlit Performance**: `rules/101b-snowflake-streamlit-performance.md` - Caching and optimization for time series
 - **Data Science Analytics**: `rules/920-data-science-analytics.md` - Time series analysis and ML workflows
 
-> **[AI] Claude 4 Specific Guidance**  
+> **[AI] Claude 4 Specific Guidance**
 > **Claude 4 DateTime Optimizations:**
 > - Investigation-first: Check actual datetime types in DataFrames before making recommendations
 > - Parallel validation: Test datetime conversions across multiple scenarios simultaneously
 > - Context awareness: Reference existing datetime patterns from 101a and 500 rules
 > - Error prevention: Emphasize Pandas 2.x compatibility in all datetime code
 
-
-
 ## 1. DateTime Type System
-
 
 ### Three Main DateTime Representations
 
@@ -334,9 +323,7 @@ datetime.datetime (Python stdlib)
 
 **Key Insight:** Pandas Series operations return datetime64[ns] arrays, but individual elements are pd.Timestamp objects.
 
-
 ## 2. Type Conversions and Safety
-
 
 **MANDATORY:**
 
@@ -353,13 +340,13 @@ import pandas as pd
 def ensure_python_datetime(dt):
     """
     Convert any datetime-like object to Python datetime.
-    
+
     Handles:
     - None/NaT → None
     - datetime.datetime → unchanged
     - pd.Timestamp → to_pydatetime()
     - Strings → parse via pd.to_datetime
-    
+
     Safe for Pandas 2.x+ strict type checking.
     """
     if dt is None or pd.isna(dt):
@@ -393,7 +380,7 @@ for timestamp in failure_timestamps:
         failure_time = ensure_python_datetime(timestamp)
         hour_min = ensure_python_datetime(df["hour"].min())
         hour_max = ensure_python_datetime(df["hour"].max())
-        
+
         # Now all are Python datetimes - comparison safe!
         if hour_min and hour_max and hour_min <= failure_time <= hour_max:
             add_marker(failure_time)
@@ -417,9 +404,7 @@ df['date_python'] = df['date'].apply(lambda x: x.to_pydatetime() if pd.notna(x) 
 df['date'] = df['date'].dt.tz_localize(None)
 ```
 
-
 ## 3. Date Parsing Best Practices
-
 
 **MANDATORY:**
 
@@ -458,7 +443,7 @@ if len(invalid_dates) > 0:
 
 ```python
 # BEST: Parse dates during CSV read (most efficient)
-df = pd.read_csv('data.csv', 
+df = pd.read_csv('data.csv',
                  parse_dates=['order_date', 'ship_date'],
                  date_format='%Y-%m-%d')
 
@@ -468,9 +453,7 @@ df = pd.read_csv('data.csv',
                  date_parser=lambda x: pd.to_datetime(x, format='%Y-%m-%d', errors='coerce'))
 ```
 
-
 ## 4. Timezone Management
-
 
 **MANDATORY:**
 
@@ -524,9 +507,7 @@ df_display['date'] = df_display['date'].dt.tz_convert(user_tz)
 st.dataframe(df_display)
 ```
 
-
 ## 5. Date Arithmetic and Math
-
 
 **MANDATORY:**
 
@@ -580,9 +561,7 @@ df['quarter_start'] = df['date'].dt.to_period('Q').dt.start_time
 df['quarter_end'] = df['date'].dt.to_period('Q').dt.end_time
 ```
 
-
 ## 6. Performance Optimization for Time Series
-
 
 **MANDATORY:**
 
@@ -596,10 +575,10 @@ df['quarter_end'] = df['date'].dt.to_period('Q').dt.end_time
 @st.cache_data(ttl=3600)
 def load_time_series_data():
     df = session.sql("SELECT date, value FROM time_series").to_pandas()
-    
+
     # For Plotly: Convert to string for faster rendering
     df['date_str'] = df['date'].dt.strftime('%Y-%m-%d')
-    
+
     return df
 
 # Use string column for x-axis
@@ -629,7 +608,7 @@ df_daily = df.set_index('timestamp').resample('D').mean().reset_index()
 @st.cache_data(ttl=3600)
 def load_aggregated_data(granularity='day'):
     query = f"""
-    SELECT 
+    SELECT
         DATE_TRUNC('{granularity}', timestamp) as date,
         AVG(value) as avg_value,
         COUNT(*) as count
@@ -640,9 +619,7 @@ def load_aggregated_data(granularity='day'):
     return session.sql(query).to_pandas()
 ```
 
-
 ## 7. Streamlit Integration Patterns
-
 
 ### Date Input Widgets
 
@@ -677,10 +654,7 @@ st.dataframe(
 )
 ```
 
-
 ## 8. Anti-Patterns and Common Errors
-
-
 
 **Anti-Pattern 1: Mixed datetime type comparisons**
 ```python
@@ -756,5 +730,3 @@ df[df['active'] == True]['date'] = df['date'] + pd.Timedelta(days=1)  # SettingW
 # GOOD: Use loc for explicit assignment
 df.loc[df['active'] == True, 'date'] = df.loc[df['active'] == True, 'date'] + pd.Timedelta(days=1)
 ```
-
-

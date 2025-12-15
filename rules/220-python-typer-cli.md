@@ -11,13 +11,9 @@
 ## Purpose
 Provide comprehensive guidance for building robust, user-friendly command-line applications using Typer, covering project setup, argument handling, testing strategies, and deployment patterns for maintainable CLI tools.
 
-
 ## Rule Scope
 
 Python CLI development, command-line applications, user interfaces
-
-
-
 
 ## Quick Start TL;DR
 
@@ -39,7 +35,6 @@ Python CLI development, command-line applications, user interfaces
 - [ ] Options use `typer.Option()` with help text
 - [ ] Tests use CliRunner
 - [ ] Output via typer.echo() or rich console
-
 
 ## Contract
 
@@ -137,12 +132,11 @@ def export_data(
 - [ ] Output format matches requirements
 - [ ] Validation steps completed successfully
 
-
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read existing CLI structure BEFORE adding commands** - Check cli/, main.py, pyproject.toml for entry points
 > 2. **Verify current Typer app setup** - Check how main app and sub-commands are organized
@@ -159,7 +153,6 @@ def export_data(
 > [reads cli/main.py, cli/commands/, pyproject.toml]
 > "I see you have a main Typer app with sub-commands in cli/commands/. Here's a new command following the same pattern with proper Argument() and Option() usage..."
 
-
 ## Output Format Examples
 
 ```python
@@ -172,7 +165,7 @@ from datetime import datetime, UTC
 
 class ServiceProtocol(Protocol):
     """Clear contract for service implementations."""
-    
+
     def process(self, data: dict) -> dict:
         """Process data following validation rules."""
         ...
@@ -180,19 +173,19 @@ class ServiceProtocol(Protocol):
 def implementation_function(input_data: dict) -> dict:
     """
     Implement feature following project conventions.
-    
+
     Args:
         input_data: Validated input following schema
-    
+
     Returns:
         Processed result with metadata
-    
+
     Raises:
         ValueError: If input validation fails
     """
     # Use datetime.now(UTC) not datetime.utcnow()
     timestamp = datetime.now(UTC)
-    
+
     # Implement business logic
     result = {"status": "success", "timestamp": timestamp}
     return result
@@ -202,10 +195,10 @@ def test_implementation_function():
     """Test following AAA pattern."""
     # Arrange
     test_input = {"key": "value"}
-    
+
     # Act
     result = implementation_function(test_input)
-    
+
     # Assert
     assert result["status"] == "success"
     assert "timestamp" in result
@@ -218,19 +211,17 @@ uvx ruff format --check .
 uv run pytest tests/
 ```
 
-
 ## References
 
 ### External Documentation
 - [Typer Documentation](https://typer.tiangolo.com/) - Modern CLI framework with automatic help generation
-- [Rich Documentation](https://rich.readthedocs.io/) - Terminal styling, progress bars, and rich text rendering                                                                                                         
+- [Rich Documentation](https://rich.readthedocs.io/) - Terminal styling, progress bars, and rich text rendering
 - [Click Documentation](https://click.palletsprojects.com/) - Underlying CLI framework and advanced patterns
 
 ### Related Rules
 - **Python Core**: `rules/200-python-core.md`
 - **Python Project Setup**: `rules/203-python-project-setup.md`
 - **Pydantic**: `rules/230-python-pydantic.md`
-
 
 ## 1. Project Setup and Structure
 
@@ -285,7 +276,6 @@ cli-project/
         └── test_services.py
 ```
 
-
 ## 2. CLI Application Design Patterns
 
 ### Main Application Setup
@@ -315,12 +305,12 @@ def main(
 ):
     """
     My awesome CLI application.
-    
+
     Use --help with any command for more information.
     """
     if verbose:
         typer.echo("Verbose mode enabled")
-    
+
     # Set global configuration
     if config_file:
         # Load configuration logic here
@@ -359,14 +349,14 @@ def process(
 ):
     """
     Process input file and generate output in specified format.
-    
+
     This command reads the input file, processes the data according to
     the specified parameters, and writes the result to the output file.
     """
     if dry_run:
         typer.echo(f"[bold yellow]DRY RUN:[/bold yellow] Would process {input_file}")
         return
-    
+
     # Implementation here
     typer.echo(f"Processing {input_file} with batch size {batch_size}")
 ```
@@ -403,24 +393,23 @@ def risky_operation(
         if not input_path.exists():
             typer.echo(f"Error: Input path {input_path} does not exist", err=True)
             raise typer.Exit(1)
-        
+
         if not force and input_path.stat().st_size > 1000000:  # 1MB
             if not typer.confirm("File is large. Continue?"):
                 typer.echo("Operation cancelled")
                 raise typer.Exit(0)
-        
+
         # Perform operation
         console.print("[green]SUCCESS[/green] Operation completed successfully")
-        
+
     except PermissionError:
         handle_processing_error(
-            Exception("Permission denied"), 
+            Exception("Permission denied"),
             "Check file permissions and try again"
         )
     except Exception as e:
         handle_processing_error(e, "Unexpected error occurred")
 ```
-
 
 ## 3. Configuration and Environment Management
 
@@ -437,19 +426,19 @@ from typing import Optional
 
 class AppSettings(BaseSettings):
     """Application settings with multiple sources."""
-    
+
     # Core settings
     debug: bool = Field(False, description="Enable debug mode")
     log_level: str = Field("INFO", description="Logging level")
-    
+
     # File paths
     data_dir: Path = Field(Path.home() / ".myapp" / "data", description="Data directory")
     config_file: Optional[Path] = Field(None, description="Configuration file path")
-    
+
     # API settings
     api_timeout: int = Field(30, ge=1, le=300, description="API timeout in seconds")
     max_retries: int = Field(3, ge=0, le=10, description="Maximum retry attempts")
-    
+
     class Config:
         env_prefix = "MYAPP_"
         env_file = ".env"
@@ -466,14 +455,14 @@ def main(
 ):
     """Main CLI callback with configuration override."""
     global settings
-    
+
     # Override settings from CLI
     overrides = {}
     if debug is not None:
         overrides["debug"] = debug
     if config is not None:
         overrides["config_file"] = config
-    
+
     if overrides:
         settings = AppSettings(**{**settings.dict(), **overrides})
 ```
@@ -491,12 +480,11 @@ def show_config():
     table = Table(title="Configuration")
     table.add_column("Setting")
     table.add_column("Value")
-    
+
     for field_name, field_value in settings:
         table.add_row(field_name, str(field_value))
     console.print(table)
 ```
-
 
 ## 4. Testing Strategies
 
@@ -520,16 +508,16 @@ def test_process_command_success(tmp_path):
     """Test successful file processing."""
     input_file = tmp_path / "input.txt"
     input_file.write_text("test data")
-    
+
     result = runner.invoke(app, ["data", "process", str(input_file)])
-    
+
     assert result.exit_code == 0
     assert "Processing" in result.stdout
 
 def test_process_command_missing_file():
     """Test error handling for missing input file."""
     result = runner.invoke(app, ["data", "process", "nonexistent.txt"])
-    
+
     assert result.exit_code != 0
     assert "does not exist" in result.stdout
 
@@ -550,11 +538,10 @@ def test_complete_pipeline(tmp_path):
     runner = CliRunner()
     input_file = tmp_path / "input.json"
     input_file.write_text('{"test": "data"}')
-    
+
     result = runner.invoke(app, ["process", str(input_file)])
     assert result.exit_code == 0
 ```
-
 
 ## 5. Performance and User Experience
 
@@ -588,18 +575,17 @@ import aiohttp
 @app.command()
 def fetch_data(urls: List[str], concurrent: int = 5):
     """Fetch data from multiple URLs concurrently."""
-    
+
     async def fetch_all():
         semaphore = asyncio.Semaphore(concurrent)
         async with aiohttp.ClientSession() as session:
             tasks = [fetch_url(session, url, semaphore) for url in urls]
             return await asyncio.gather(*tasks)
-    
+
     results = asyncio.run(fetch_all())
     for result in results:
         console.print(f"{result['status']}: {result['url']}")
 ```
-
 
 ## 6. Packaging and Distribution
 
@@ -649,7 +635,6 @@ def get_config_dir() -> Path:
         return Path.home() / ".config" / "myapp"
 ```
 
-
 ## 7. Documentation and Help
 
 ### Auto-Generated Documentation
@@ -664,7 +649,7 @@ def transform(
 ):
     """
     Transform data between formats.
-    
+
     Examples:
         myapp transform data.csv --output-format json
         myapp transform config.json --output-format yaml
@@ -692,11 +677,9 @@ def main(
     pass
 ```
 
-
 ## Related Rules
 
 - **`@200-python-core.md`** - Core Python patterns and uv usage
-- **`@201-python-lint-format.md`** - Ruff linting and formatting standards  
+- **`@201-python-lint-format.md`** - Ruff linting and formatting standards
 - **`@203-python-project-setup.md`** - Python project structure and packaging
 - **`@800-project-changelog-rules.md`** - Changelog discipline for CLI changes
-

@@ -76,7 +76,7 @@ Before getting started, ensure you have:
 - **Python 3.11+** — [Download Python](https://www.python.org/downloads/)
 - **Task** — Automation tool: [Installation guide](https://taskfile.dev/installation/)
 - **Git** — For cloning repository: [Install Git](https://git-scm.com/downloads)
-- **Optional: uv** — Python package manager (automatically installed by Task if missing)
+- **uv** — Python package manager: [Install uv](https://docs.astral.sh/uv/)
 
 **Quick check:**
 
@@ -93,6 +93,8 @@ This repository contains multiple documentation files for different audiences:
 | File | Purpose | When to Read |
 |------|---------|--------------|
 | **README.md** | Project overview, setup, usage | Start here (you are here) |
+| **AGENTS.md** | Minimal bootstrap protocol for rule loading | AI agents: first action every response |
+| **rules/000-global-core.md** | Execution protocols (MODE, validation, workflows) | AI agents: after loading foundation |
 | **CONTRIBUTING.md** | Development guidelines, PR process | When contributing rules |
 | **docs/ARCHITECTURE.md** | System architecture, design decisions | When understanding internals or extending |
 | **docs/MEMORY_BANK.md** | Memory Bank system for long-running projects | When using Memory Bank (optional) |
@@ -177,7 +179,7 @@ Learn how to use AI Coding Rules through practical demonstrations:
 
 ### Deployment Options
 
-**Basic Deployment:**
+**Basic Deployment (Rules + Skills):**
 
 ```bash
 python scripts/rule_deployer.py --dest ~/my-project
@@ -188,8 +190,29 @@ task deploy DEST=~/my-project
 **What happens:**
 
 - ✅ Copies `rules/` directory to `DEST/rules/`
+- ✅ Copies `skills/` directory to `DEST/skills/` (excludes internal-only skills)
 - ✅ Copies `AGENTS.md` and `RULES_INDEX.md` to project root
-- ✅ Rules ready to use immediately with any AI assistant or IDE
+- ✅ Rules and skills ready to use immediately with any AI assistant or IDE
+
+**Skills Exclusions:**
+
+Internal skills are automatically excluded from deployment (configured in `pyproject.toml`):
+
+```toml
+[tool.rule_deployer]
+exclude_skills = [
+    "rule-creator-skill.md",  # Rule creation tool for ai_coding_rules project only
+    "rule-creator/",          # Structured version of rule-creator skill
+]
+```
+
+**Deploy Rules Only (Skip Skills):**
+
+```bash
+python scripts/rule_deployer.py --dest ~/my-project --skip-skills
+# Or use task:
+task deploy:no-skills DEST=~/my-project
+```
 
 **Preview Before Deploying:**
 
@@ -204,6 +227,7 @@ task deploy:dry DEST=~/my-project
 - ✅ Shows what would be copied without making changes
 - ✅ Validates destination path exists
 - ✅ Identifies potential conflicts
+- ✅ Shows which skills will be excluded
 
 ### Option: Git Submodule (Version Tracking)
 
@@ -236,10 +260,10 @@ git clone https://github.com/sfc-gh-myoung/ai_coding_rules.git /tmp/ai-rules
 cd /tmp/ai-rules
 
 # Install Python dependencies
-/opt/homebrew/bin/uv sync
+uv sync --all-groups
 
 # Deploy using Python script (handles everything automatically)
-/opt/homebrew/bin/uv run scripts/rule_deployer.py --dest ~/my-project
+uv run python scripts/rule_deployer.py --dest ~/my-project
 
 # Verify deployment
 ls ~/my-project/rules/*.md | wc -l  # Should show 103
@@ -469,10 +493,26 @@ Learn how to write effective prompts that help AI assistants automatically disco
 
 **📝 Example Prompt Templates:** See [prompts/README.md](prompts/README.md) for:
 
-- **Real-world prompt examples** — 3 proven patterns for different task types
+- **Real-world prompt examples** — 4 proven patterns for different task types
+- **Agent-Centric Rule Review** — Systematic prompt for reviewing rule files across any AI model
 - **Keyword reference guide** — Which keywords trigger which rules
 - **Best practices** — Tips for getting better results from AI assistants
 - **Quick patterns** — Copy-paste templates for common scenarios
+
+**🔍 Rule Review Prompt (template):** See [prompts/RULE_REVIEW_PROMPT.md](prompts/RULE_REVIEW_PROMPT.md)
+
+**📘 Rule Review Prompt Guide (how to use):** See [docs/USING_RULE_REVIEW_PROMPT.md](docs/USING_RULE_REVIEW_PROMPT.md) for:
+
+- **6-point scoring system** — Actionability, Completeness, Consistency, Parsability, Token Efficiency, Staleness
+- **Three review modes** — FULL, FOCUSED, and STALENESS for different use cases
+- **Cross-model compatibility** — Tested on GPT-4o, GPT-5.1, GPT-5.2, Claude Sonnet 4.5, Claude Opus 4.5, Gemini 2.5 Pro, Gemini 3 Pro
+- **Periodic review schedule** — Recommended cadence for rule maintenance
+
+**🧰 Rule Review Skill Guide (how to use):** See [docs/USING_RULE_REVIEW_SKILL.md](docs/USING_RULE_REVIEW_SKILL.md) for:
+
+- How to run the review in Claude Code / Cursor and write output files under `reviews/`
+- Both skill formats: single-file (`skills/rule-reviewer-skill.md`) and structured (`skills/rule-reviewer/`)
+- Workflows and examples for repeatable reviews
 
 **Quick preview:**
 
@@ -511,13 +551,13 @@ ai_coding_rules/
 │   ├── schema_validator.py     ← Validate rule structure
 │   ├── template_generator.py   ← Create new rule templates
 │   ├── keyword_generator.py    ← Generate semantic keywords for rules
-│   └── token_validator.py      ← Validate token budgets
+│   └── token_validator.py      ← Validate token budgets (single file or directory)
 ├── docs/                   ← Documentation
 │   ├── ARCHITECTURE.md         ← System design decisions
 │   └── MEMORY_BANK.md          ← Memory Bank system (optional)
 ├── tests/                  ← Test suite
 ├── schemas/                ← JSON schemas for rule validation
-├── prompts/                ← User prompt templates
+├── prompts/                ← User prompt templates + Rule Review prompt
 └── skills/                 ← Skill definitions
 ```
 
@@ -543,11 +583,21 @@ git add rules/ RULES_INDEX.md && git commit -m "feat: update Python rules"
 
 ## Development Commands
 
+Run `task` to see the full categorized command list with quickstart guide.
+
 ```bash
+# Quickstart (most common commands)
+task quality:fix                       # Fix all code quality issues (alias: fix, qf)
+task test                              # Run all pytest tests (alias for test:all)
+task validate                          # Run all CI/CD checks (alias for validate:ci)
+task index:generate                    # Regenerate RULES_INDEX.md
+task deploy DEST=~/my-project          # Deploy rules to project
+
 # Deployment
 task deploy DEST=~/my-project          # Deploy rules to project
 task deploy:dry DEST=~/my-project      # Preview deployment
 task deploy:verbose DEST=~/my-project  # Deploy with verbose output
+task deploy:no-skills DEST=~/my-project # Deploy rules only (skip skills)
 
 # Rule Management
 task rule:new FILENAME=100-example     # Create new rule from template
@@ -557,31 +607,44 @@ task rules:validate:verbose            # Validate with detailed errors
 # Index Management
 task index:generate                    # Generate RULES_INDEX.md
 task index:check                       # Check if index is current
-task index:dry                         # Preview index generation
 
 # Token Management
-task tokens:update                     # Update token budgets in rules
-task tokens:check                      # Check token budget accuracy
-task tokens:dry                        # Preview token updates
+task tokens:update                     # Update token budgets in all rules
+task tokens:check                      # Check token budget accuracy (all files)
+task tokens:update:file FILE=...       # Update single file token budget
+task tokens:check:file FILE=...        # Check single file token budget
 
 # Keyword Generation
-task keywords:suggest FILE=rules/100-example.md  # Suggest keywords for a rule
-task keywords:diff FILE=rules/100-example.md     # Show diff between current and suggested
-task keywords:update FILE=rules/100-example.md   # Update keywords in-place
-task keywords:all                                # Suggest keywords for all rules
+task keywords:suggest FILE=...         # Suggest keywords for a rule
+task keywords:update FILE=...          # Update keywords in-place
+task keywords:all                      # Suggest keywords for all rules
 
 # Quality & Testing
-task quality:check                     # Run linting and formatting checks
-task quality:fix                       # Fix all quality issues
-task test:all                          # Run all tests
+task quality:check                     # Run all quality checks
+task quality:fix                       # Fix all quality issues (alias: fix, qf)
+task quality:lint                      # Run ruff linter (check only)
+task quality:format                    # Run ruff formatter (check only)
+task quality:typecheck                 # Run ty type checker (aliases: type, type-check)
+task quality:markdown                  # Run pymarkdownlnt Markdown linter
+task test                              # Run all pytest tests (alias for test:all)
 task test:coverage                     # Run tests with coverage report
 
-# Validation (CI/CD)
-task validate:ci                       # Run all validation checks
+# Validation & CI
+task validate                          # Run all CI/CD checks (alias for validate:ci)
+task preflight                         # Verify environment is ready
 
 # Environment
 task env:python                        # Pin Python 3.11 and create venv
-task env:deps                          # Sync dependencies with uv
+task env:sync                          # Sync dev dependencies (fast)
+task env:deps                          # Lock and sync dependencies
+
+# Cleanup
+task clean:cache                       # Remove Python cache files
+task clean:venv                        # Remove virtual environment
+task clean:all                         # Remove all generated files
+
+# Status
+task status                            # Show project status summary
 ```
 
 ## Rule Categories
@@ -809,8 +872,8 @@ Quick example for universal rules:
 
 ```bash
 cd /tmp/ai-rules
-/opt/homebrew/bin/uv sync
-/opt/homebrew/bin/uv run scripts/rule_deployer.py --agent universal --destination ~/my-project
+uv sync --all-groups
+uv run python scripts/rule_deployer.py --dest ~/my-project
 ```
 
 **Validation:**
@@ -967,7 +1030,7 @@ chmod -R u+w .
 **Common Fixes:**
 - Update uv: `curl -LsSf https://astral.sh/uv/install.sh | sh`
 - Clear cache: `rm -rf .venv __pycache__`
-- Reinstall dependencies: `task clean:venv && task env:deps`
+- Reinstall dependencies: `task clean:venv && task env:sync`
 
 ## License
 
@@ -1009,8 +1072,8 @@ task deploy DEST=~/my-project
 ```bash
 # Deploy/update rules using Python script
 cd /tmp/ai-rules
-/opt/homebrew/bin/uv sync
-/opt/homebrew/bin/uv run scripts/rule_deployer.py --dest ~/my-project
+uv sync --all-groups
+uv run python scripts/rule_deployer.py --dest ~/my-project
 ```
 
 **General:**

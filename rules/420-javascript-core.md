@@ -11,11 +11,8 @@
 ## Purpose
 Establishes the definitive standards for writing modern, robust JavaScript in 2025. This rule enforces the use of ECMAScript Modules (ESM), immutable data patterns (using ES2023+ methods), Type Safety via JSDoc, and modern tooling (Biome, Node Native Test Runner) to ensure maintainability and performance without the need for a compilation step.
 
-
 ## Rule Scope
 Applies to all pure JavaScript projects, Node.js scripts, and backend logic. Covers syntax, asynchronous patterns, testing, and project configuration.
-
-
 
 ## Quick Start TL;DR
 
@@ -66,7 +63,6 @@ Run `node --test` and lint with `biome`.
 </validation>
 
 </contract>
-
 
 ## Anti-Patterns and Common Mistakes
 
@@ -119,7 +115,6 @@ const successful = results
  .map(r => r.value);
 ```
 
-
 ## Post-Execution Checklist
 - [ ] Project is configured as `"type": "module"`
 - [ ] JSDoc comments present for exported functions
@@ -128,7 +123,6 @@ const successful = results
 - [ ] Native `fetch` used instead of `axios`/`request`
 - [ ] `Object.groupBy` used for grouping logic
 - [ ] Biome configuration file (`biome.json`) present
-
 
 ## Validation
 - **Success checks:**
@@ -144,7 +138,6 @@ const successful = results
 > 1. **Check `package.json`** for `"type": "module"` before writing any code.
 > 2. **Verify Node.js version** (`node -v`) to ensure support for `toSorted` (Node 20+) and `groupBy` (Node 21+).
 > 3. **Scan for existing CommonJS** files (`.cjs`) to ensure interoperability if needed.
-
 
 ## Output Format Examples
 
@@ -176,7 +169,7 @@ export function processTransactions(transactions) {
  }
 
  // specific immutable sort
- return transactions.toSorted((a, b) => 
+ return transactions.toSorted((a, b) =>
  new Date(a.date).getTime() - new Date(b.date).getTime()
  );
 }
@@ -193,14 +186,13 @@ test('processTransactions sorts by date', () => {
  { amount: 100, date: '2023-01-02' },
  { amount: 50, date: '2023-01-01' }
  ];
- 
+
  const result = processTransactions(input);
- 
+
  assert.equal(result[0].amount, 50);
  assert.equal(input[0].amount, 100); // Ensure original is not mutated
 });
 ```
-
 
 ## References
 
@@ -261,7 +253,6 @@ export async function fetchUser(id) {
 }
 ```
 
-
 ## 2. Data Manipulation & Immutability
 
 ### 2.1 Array Methods (ES2023+)
@@ -303,7 +294,6 @@ const result = Object.groupBy(inventory, ({ type }) => type);
 */
 ```
 
-
 ## 3. Asynchronous Patterns
 
 ### 3.1 Top-Level Await
@@ -329,7 +319,6 @@ try {
 }
 ```
 
-
 ## 4. Testing & Tooling
 
 ### 4.1 Native Test Runner
@@ -351,4 +340,3 @@ describe('Math Utils', () => {
 
 ### 4.2 Linting
 - **Recommended:** Use **Biome** (`@biomejs/biome`) for linting and formatting. It is significantly faster than ESLint + Prettier and requires less configuration.
-

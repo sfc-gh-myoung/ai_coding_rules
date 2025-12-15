@@ -11,11 +11,9 @@
 ## Purpose
 Provide clear, enforceable standards for Python documentation (project docs), source code comments, and docstrings, aligned with widely accepted industry practices (PEP 257, PEP 8) and modern tooling (Ruff pydocstyle, Sphinx Napoleon).
 
-
 ## Rule Scope
 
 Python comments, docstrings, and developer-facing documentation across libraries, apps, CLIs, and services
-
 
 ## Quick Start TL;DR
 
@@ -41,7 +39,6 @@ Python comments, docstrings, and developer-facing documentation across libraries
 - [ ] Thread safety / concurrency behavior documented
 - [ ] `uvx ruff check .` passes D rules
 - [ ] Comments explain "why", not "what"
-
 
 ## Contract
 
@@ -97,22 +94,22 @@ Docstrings and comments following requirements below; updated `pyproject.toml` c
 # BAD: Stale docstring (function signature changed)
 def calculate_total(items, tax_rate, discount=0):
     """Calculate total price for items.
-    
+
     Args:
         items: List of item prices
         tax: Tax percentage  # Wrong name!
         # discount parameter not documented
     """
-    
+
 # GOOD: Docstring matches current signature
 def calculate_total(items: list[float], tax_rate: float, discount: float = 0) -> float:
     """Calculate total price for items with tax and discount.
-    
+
     Args:
         items: List of item prices in dollars.
         tax_rate: Tax rate as decimal (e.g., 0.08 for 8%).
         discount: Discount amount to subtract. Defaults to 0.
-        
+
     Returns:
         Total price after tax and discount.
     """
@@ -165,7 +162,6 @@ if user.role == "admin":
 - [ ] Dataclass fields document meaning and constraints
 - [ ] Examples show realistic usage patterns (not toy code)
 
-
 ## Validation
 - **Lint:** `uvx ruff check .` must pass, including D-rules
 - **Format:** `uvx ruff format --check .` passes
@@ -196,7 +192,6 @@ if user.role == "admin":
 > [investigates code to understand side effects, performance, concurrency]
 > "This function modifies Snowflake database, spawns snow CLI subprocess, and writes progress to console. Documenting all side effects..."
 
-
 ## Output Format Examples
 
 ```python
@@ -209,7 +204,7 @@ from datetime import datetime, UTC
 
 class ServiceProtocol(Protocol):
     """Clear contract for service implementations."""
-    
+
     def process(self, data: dict) -> dict:
         """Process data following validation rules."""
         ...
@@ -217,19 +212,19 @@ class ServiceProtocol(Protocol):
 def implementation_function(input_data: dict) -> dict:
     """
     Implement feature following project conventions.
-    
+
     Args:
         input_data: Validated input following schema
-    
+
     Returns:
         Processed result with metadata
-    
+
     Raises:
         ValueError: If input validation fails
     """
     # Use datetime.now(UTC) not datetime.utcnow()
     timestamp = datetime.now(UTC)
-    
+
     # Implement business logic
     result = {"status": "success", "timestamp": timestamp}
     return result
@@ -239,10 +234,10 @@ def test_implementation_function():
     """Test following AAA pattern."""
     # Arrange
     test_input = {"key": "value"}
-    
+
     # Act
     result = implementation_function(test_input)
-    
+
     # Assert
     assert result["status"] == "success"
     assert "timestamp" in result
@@ -255,15 +250,11 @@ uvx ruff format --check .
 uv run pytest tests/
 ```
 
-
 ## References
 - PEP 257 Docstring Conventions: https://peps.python.org/pep-0257/
 - PEP 8 (Comments): https://peps.python.org/pep-0008/#comments
 - Ruff pydocstyle rules (D): https://docs.astral.sh/ruff/rules/#pydocstyle-d
 - Sphinx Napoleon: https://www.sphinx-doc.org/en/master/usage/extensions/napoleon.html
-
-
-
 
 ## 1. Docstring Standards (PEP 257 + Google/NumPy)
 - **Requirement:** Use triple double-quotes for all docstrings. First line is a concise imperative summary ending with a period.
@@ -294,7 +285,6 @@ def fetch_user(user_id: str, include_roles: bool = False) -> User:
 
     """
 
-
 class RateLimiter:
     """Token-bucket rate limiter.
 
@@ -302,14 +292,12 @@ class RateLimiter:
     Thread-safe for concurrent callers.
     """
 
-
 """Payment processing integration.
 
 Exposes public entry points for charge and refund workflows.
 Reads API keys from environment variables. Emits audit logs to `payments_audit`.
 """
 ```
-
 
 ### 1.2 Docstring Quality Standards Beyond Syntax
 
@@ -579,7 +567,6 @@ def execute_operation(operation_id: str, operation_type: OperationType, config: 
 [PASS] Warns about race conditions
 [PASS] Estimates runtime ("may run for minutes")
 
-
 ## 2. Comment Standards (PEP 8)
 - **Requirement:** Comments must explain intent, rationale, and trade-offs—the "why"—not restate the code.
 - **Requirement:** Place block comments above the code they describe; keep inline comments short and sparing.
@@ -587,12 +574,10 @@ def execute_operation(operation_id: str, operation_type: OperationType, config: 
 - **Rule:** Prefer references to requirements or tickets over long narrative comments.
 - **Rule:** Keep comments up to date; when behavior changes, update adjacent comments/docstrings.
 
-
 ## 3. Project Documentation (Optional)
 - **Rule:** If publishing developer docs, use Sphinx with Napoleon to parse Google/NumPy docstrings.
 - **Rule:** Consider AutoAPI/Autodoc to generate API docs from code; use Intersphinx for cross-project links.
 - **Consider:** Add a `docs/` folder with a minimal Sphinx configuration and CI job to build docs on PRs.
-
 
 ## 4. Enforcement with Ruff (pydocstyle)
 - **Requirement:** Enable pydocstyle (D) rules in Ruff and set a single convention.
@@ -609,7 +594,6 @@ ignore = []
 [tool.ruff.lint.pydocstyle]
 convention = "google"  # or "numpy"
 ```
-
 
 ## 5. Common Mistakes & How to Prevent Them
 
@@ -854,7 +838,6 @@ class DatabaseError(Exception):
    - Check against quality standards
    - Update docstrings to match current code behavior
 
-
 ## 6. Docstring Semantic Depth Checklist
 
 Use this checklist when writing or reviewing docstrings to ensure semantic value beyond syntax compliance.
@@ -925,16 +908,13 @@ Use this checklist when writing or reviewing docstrings to ensure semantic value
 - [ ] **Recovery**: What actions can resolve this error?
 - [ ] **Example**: Show try/except with appropriate handling
 
-
 ## Python Docs & Comments Plan
 - Style: Google | NumPy
 - Ruff: select includes D; convention set to style
 - Scope: Public APIs fully documented; comments updated for intent
-
 
 ## Changes
 - Update pyproject ruff config
 - Add/repair docstrings
 - Remove commented-out code
 ```
-

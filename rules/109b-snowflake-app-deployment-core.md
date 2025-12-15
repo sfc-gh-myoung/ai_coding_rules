@@ -11,11 +11,9 @@
 ## Purpose
 Establish core deployment automation patterns for Snowflake applications (Notebooks, Streamlit apps, UDFs, and other staged applications), ensuring reliable, deterministic deployments through proper stage file management and object lifecycle control.
 
-
 ## Rule Scope
 
 Deployment automation for Snowflake applications using internal stages, covering notebooks, Streamlit apps, UDFs, and stored procedures
-
 
 ## Quick Start TL;DR
 
@@ -47,7 +45,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Taskfile targets defined
 - [ ] Deployment tested in dev
 - [ ] SQL scripts in version control
-
 
 ## Contract
 
@@ -106,7 +103,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 
 </contract>
 
-
 ## Anti-Patterns and Common Mistakes
 
 **Anti-Pattern 1: Skipping REMOVE Step**
@@ -160,7 +156,6 @@ tasks:
 ```
 **Benefits:** Reproducible; version-controlled; automated; team-friendly; testable.
 
-
 ## Post-Execution Checklist
 
 - [ ] Task structure includes all 5 operations (upload, create, drop, remove, deploy)
@@ -176,24 +171,23 @@ tasks:
 - [ ] AUTO_COMPRESS=FALSE specified for all Streamlit PUT commands (mandatory for SiS)
 - [ ] Stage paths match ROOT_LOCATION (no extra subdirectory nesting)
 
-
 ## Validation
 
-- **Success Checks:** 
+- **Success Checks:**
   - `task --list` shows all 5 required operations
   - Individual tasks run successfully in isolation
   - deploy task completes full workflow without errors
   - Stage shows files with correct timestamp after upload
   - Application accessible in Snowsight after create
   - Application shows updated content after full deploy
-  
-- **Negative Tests:** 
+
+- **Negative Tests:**
   - REMOVE with non-existent file succeeds with warning (idempotent)
   - CREATE without stage files fails gracefully
   - DROP non-existent object succeeds (IF EXISTS)
   - Upload without precondition file fails before attempting upload
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read existing deployment scripts BEFORE creating new ones** - Check Taskfile, SQL patterns, stage paths
 > 2. **Verify stage structure** - List stage contents to understand organization
@@ -209,7 +203,6 @@ tasks:
 > "Let me check your existing deployment setup first."
 > [reads Taskfile.yml, checks SQL scripts, lists stage]
 > "I see you use 3-step deployment with AUTO_COMPRESS=FALSE. Following this pattern for the new app..."
-
 
 ## Output Format Examples
 
@@ -270,7 +263,6 @@ tasks:
       - echo "Application deployed successfully"
 ```
 
-
 ## References
 
 ### External Documentation
@@ -286,7 +278,6 @@ tasks:
 - **Taskfile Automation**: `rules/820-taskfile-automation.md`
 - **Snowflake Core**: `rules/100-snowflake-core.md`
 - **Deployment Troubleshooting**: `rules/109c-snowflake-app-deployment-troubleshooting.md` - See this rule for debugging deployment issues, SiS TypeError resolution, and anti-patterns with complete runnable code examples
-
 
 ## Core Deployment Pattern
 
@@ -310,7 +301,7 @@ tasks:
 - **Object Lifecycle:** Snowflake metadata (notebook/Streamlit object)
   - Managed by: `drop` and `create` tasks
   - Commands: `DROP NOTEBOOK`, `CREATE NOTEBOOK`
-  
+
 - **File Lifecycle:** Physical files in stages
   - Managed by: `remove` and `upload` tasks
   - Commands: `REMOVE @stage/file`, `PUT file @stage`
@@ -319,7 +310,6 @@ tasks:
 - Object (notebook/Streamlit) = Shortcut/link
 - Stage file (.ipynb/.py) = Actual file
 - Both must be managed for reliable deployment
-
 
 ## 1. Directory Structure
 
@@ -348,7 +338,6 @@ project/
 └── Taskfile.yml                 # Root taskfile with includes
 ```
 
-
 ## 2. SQL Script Patterns
 
 ### Upload Script (PUT)
@@ -366,9 +355,9 @@ project/
 --   snow sql -D STAGE=STG -D NOTEBOOK_DIR=notebooks -f upload_app_files.sql
 -- ============================================================================
 
-PUT 'file://<%NOTEBOOK_DIR%>/app.ipynb' 
-@<%STAGE%> 
-AUTO_COMPRESS=FALSE 
+PUT 'file://<%NOTEBOOK_DIR%>/app.ipynb'
+@<%STAGE%>
+AUTO_COMPRESS=FALSE
 OVERWRITE=TRUE;
 ```
 
@@ -385,7 +374,7 @@ OVERWRITE=TRUE;
 
 **Stage Path Requirement:**
 - Upload files directly to stage root: `@STAGE_NAME`
-- **Never** use subdirectory paths like: `@STAGE_NAME/streamlit/` 
+- **Never** use subdirectory paths like: `@STAGE_NAME/streamlit/`
 - ROOT_LOCATION in CREATE STREAMLIT must match actual file location
 - Subdirectory mismatch causes same "TypeError" (Snowflake cannot find files)
 
@@ -506,7 +495,7 @@ SELECT '✓ Streamlit application files uploaded' AS progress;
 - Files at stage root: `streamlit_app.py`, `environment.yml`
 - Subdirectories allowed for organization: `@STAGE/pages/`, `@STAGE/utils/`
 - ROOT_LOCATION in CREATE STREAMLIT matches: `'@STAGE'` (not `'@STAGE/streamlit'`)
-- **Never** nest in extra subdirectory: `@STAGE/streamlit/` 
+- **Never** nest in extra subdirectory: `@STAGE/streamlit/`
 
 **CREATE STREAMLIT Statement (matches upload paths):**
 ```sql
@@ -515,7 +504,6 @@ CREATE STREAMLIT IF NOT EXISTS <%DATABASE%>.<%SCHEMA%>.APP_NAME
     MAIN_FILE = 'streamlit_app.py'
     QUERY_WAREHOUSE = <%WAREHOUSE%>;
 ```
-
 
 ## 3. Taskfile Implementation
 
@@ -620,7 +608,6 @@ tasks:
       - msg: "app.ipynb not found"
 ```
 
-
 ## 4. Why Explicit REMOVE Before PUT?
 
 ### The Stale Cache Problem
@@ -662,7 +649,6 @@ task notebook:deploy:all  # Uses explicit REMOVE
 # Result: Reliable updates every time
 ```
 
-
 ## 6. Deployment Validation
 
 ### Post-Deployment Checklist
@@ -694,7 +680,6 @@ uvx snow sql -q "SHOW NOTEBOOKS IN SCHEMA DB.SCHEMA;"
 - `upload` task: < 5 seconds (depends on file size)
 - `create` task: < 3 seconds
 - **Total deployment:** < 15 seconds
-
 
 ## 7. Advanced Patterns
 
@@ -764,4 +749,3 @@ tasks:
           | grep -q "APP_NOTEBOOK"
         echo "✓ Object validation passed"
 ```
-

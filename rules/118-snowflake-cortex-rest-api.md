@@ -11,11 +11,9 @@
 ## Purpose
 Provide production patterns for Cortex REST API usage for interactive/low-latency workloads: authentication, Complete/Embed/Agents endpoints, retries, idempotency, streaming, cost controls, and observability.
 
-
 ## Rule Scope
 
 REST API usage for Complete, Embed, Agents; client patterns; when to use REST vs AISQL
-
 
 ## Quick Start TL;DR
 
@@ -44,7 +42,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Streaming enabled where appropriate
 - [ ] Request/response logging (no PII)
 - [ ] Rate limits respected
-
 
 ## Contract
 
@@ -88,7 +85,6 @@ Canary tests pass; SLO latency met; rate limits respected; costs within budget
 
 </contract>
 
-
 ## Anti-Patterns and Common Mistakes
 
 **Anti-Pattern 1: Not Implementing Retry Logic with Exponential Backoff**
@@ -122,7 +118,7 @@ def call_cortex_api_with_retry(prompt, model="mistral-large", max_retries=3):
                 json={"model": model, "prompt": prompt},
                 timeout=30
             )
-            
+
             if response.status_code == 200:
                 return response.json()
             elif response.status_code == 429:  # Rate limit
@@ -137,14 +133,14 @@ def call_cortex_api_with_retry(prompt, model="mistral-large", max_retries=3):
                 time.sleep(delay)
             else:
                 response.raise_for_status()
-                
+
         except requests.exceptions.RequestException as e:
             if attempt == max_retries - 1:
                 raise
             delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
             print(f"Request failed: {e}, retrying in {delay:.2f}s")
             time.sleep(delay)
-    
+
     raise Exception(f"Failed after {max_retries} retries")
 ```
 **Benefits:** Handles rate limits; retries transient errors; better reliability; professional API client; good user experience; production-ready
@@ -222,19 +218,19 @@ logging.basicConfig(
 
 def call_cortex_api_with_tracking(prompt, model="mistral-large"):
     start_time = datetime.now()
-    
+
     response = requests.post(
         f"https://{account}.snowflakecomputing.com/api/v2/cortex/inference:complete",
         headers={"Authorization": f"Bearer {token}"},
         json={"model": model, "prompt": prompt}
     )
-    
+
     end_time = datetime.now()
     latency_ms = (end_time - start_time).total_seconds() * 1000
-    
+
     result = response.json()
     usage = result.get('usage', {})
-    
+
     # Log usage metrics
     log_entry = {
         'timestamp': start_time.isoformat(),
@@ -246,26 +242,26 @@ def call_cortex_api_with_tracking(prompt, model="mistral-large"):
         'status': response.status_code
     }
     logging.info(json.dumps(log_entry))
-    
+
     return result
 
 # Analyze usage patterns
 def analyze_token_usage(log_file='cortex_api_usage.log'):
     import pandas as pd
-    
+
     logs = []
     with open(log_file) as f:
         for line in f:
             logs.append(json.loads(line.split(' - ')[1]))
-    
+
     df = pd.DataFrame(logs)
-    
+
     print(f"Total API calls: {len(df)}")
     print(f"Total tokens used: {df['total_tokens'].sum():,}")
     print(f"Average tokens per call: {df['total_tokens'].mean():.0f}")
     print(f"Average latency: {df['latency_ms'].mean():.0f}ms")
     print(f"95th percentile latency: {df['latency_ms'].quantile(0.95):.0f}ms")
-    
+
     # Estimate costs (example: $0.002 per 1K tokens)
     total_cost = (df['total_tokens'].sum() / 1000) * 0.002
     print(f"Estimated cost: ${total_cost:.2f}")
@@ -301,7 +297,7 @@ for record in records:
 -- Good: Use AISQL for batch processing
 -- Process 10,000 records in parallel, native Snowflake
 CREATE OR REPLACE TABLE sentiment_results AS
-SELECT 
+SELECT
   record_id,
   text,
   SNOWFLAKE.CORTEX.COMPLETE(
@@ -323,9 +319,9 @@ conn = snowflake.connector.connect(
 
 # Process in batch with SQL
 query = """
-SELECT 
+SELECT
   record_id,
-  SNOWFLAKE.CORTEX.COMPLETE('mistral-large', 
+  SNOWFLAKE.CORTEX.COMPLETE('mistral-large',
     CONCAT('Classify sentiment: ', text)
   ) AS sentiment
 FROM records_table
@@ -339,7 +335,6 @@ results = cursor.fetchall()
 ```
 **Benefits:** 100x+ faster; parallel processing; no rate limits; native Snowflake optimization; reliable; cost-effective; professional; scalable
 
-
 ## Post-Execution Checklist
 - [ ] REST used for interactive use cases; AISQL for batch
 - [ ] Retry with exponential backoff and jitter implemented
@@ -347,12 +342,11 @@ results = cursor.fetchall()
 - [ ] Token limits and streaming enabled where applicable
 - [ ] Logging/tracing integrated; costs and latency monitored
 
-
 ## Validation
 - **Success checks:** SLO latency met; low error rates; duplicate request safety via idempotency
 - **Negative tests:** Simulated timeouts and 429/5xx retried successfully; oversized prompts rejected
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read existing REST API client code BEFORE adding new calls** - Check retry logic, auth patterns
 > 2. **Verify API endpoint availability** - Check Snowflake account region, feature availability
@@ -368,7 +362,6 @@ results = cursor.fetchall()
 > "Let me check your existing API client setup first."
 > [reads existing client code, checks auth, reviews retry logic]
 > "I see you use exponential backoff with 3 retries. Following this pattern for the new endpoint..."
-
 
 ## Output Format Examples
 ```bash
@@ -391,7 +384,6 @@ resp = with_retry(lambda: call_complete(client, {
 }))
 ```
 
-
 ## References
 
 ### External Documentation
@@ -406,13 +398,9 @@ resp = with_retry(lambda: call_complete(client, {
 - **Warehouse Management**: `rules/119-snowflake-warehouse-management.md`
 - **Observability**: `rules/111-snowflake-observability-core.md`
 
-
-
-
 ## 1. Usage Guidance: REST vs AISQL
 - Use REST for: user-facing chat/assistants, embeddings on-demand, agentic interactions where latency matters
 - Use AISQL for: large table processing, batch embeddings, aggregations across many rows
-
 
 ## 2. Retry & Backoff (Python sketch)
 ```python
@@ -431,7 +419,6 @@ def with_retry(call, max_attempts=5, base=0.5, cap=8.0):
             time.sleep(sleep + random.random() * 0.2)
 ```
 
-
 ## 3. Idempotency Key (HTTP sketch)
 ```http
 POST /cortex/complete HTTP/1.1
@@ -441,24 +428,20 @@ Content-Type: application/json
 {"model":"llama3.1-8b","prompt":"Answer briefly.","max_tokens":64}
 ```
 
-
 ## 4. Streaming (pseudo)
 ```python
 for chunk in client.complete_stream(model="llama3.1-8b", prompt=prompt, max_tokens=64):
     print(chunk.delta, end="")
 ```
 
-
 ## 5. Cost Controls
 - Cap `max_tokens` and truncate inputs; preflight with token counters when available
 - Cache frequent prompts/responses; deduplicate with hashes
 - Set sane client timeouts; drop requests exceeding UX thresholds
 
-
 ## 6. Observability
 - Log request metadata (model, token counts, latency, status)
 - Emit traces and associate with evaluation events in AI Observability
-
 
 ## 7. Authentication Token Types
 
@@ -495,7 +478,6 @@ headers = {
 }
 ```
 
-
 ## 8. Response Format Verification
 
 **Rule:** Never assume REST API endpoints return JSON. Verify response format from documentation before implementing.
@@ -524,7 +506,6 @@ data = response.json()  # May fail with JSONDecodeError if SSE stream
 - Before REST API implementation, add TODO: "Verified response format from docs: [JSON/SSE/binary]"
 - Search docs for endpoint name + "response" or "returns"
 
-
 ### 8.1 Server-Sent Events (SSE) in Snowflake
 
 **What is SSE?**
@@ -550,7 +531,6 @@ Key characteristics:
 - Optional `id:` field for event tracking
 - Optional `retry:` field for reconnection timing
 
-
 ### 8.2 Detecting SSE Responses
 
 Always check `Content-Type` header before parsing:
@@ -571,7 +551,6 @@ else:
     raise ValueError(f"Unexpected Content-Type: {content_type}")
 ```
 
-
 ### 8.3 Parsing SSE: Two Approaches
 
 **Approach 1: Using sseclient library (Recommended)**
@@ -581,8 +560,8 @@ import sseclient
 import json
 
 response = requests.post(
-    url, 
-    json=payload, 
+    url,
+    json=payload,
     stream=True,
     headers=headers
 )
@@ -593,7 +572,7 @@ for event in client.events():
     # event.event: event type (default: "message")
     # event.data: event data (string)
     # event.id: event id (if provided)
-    
+
     if event.data:
         try:
             data = json.loads(event.data)
@@ -609,34 +588,34 @@ import json
 def parse_sse_stream(response):
     """
     Parse SSE stream manually without external dependencies.
-    
+
     SSE format:
     - Lines starting with 'data:' contain the payload
     - Events separated by blank lines (\\n\\n)
     - Comments start with ':'
     """
     buffer = ""
-    
+
     for line in response.iter_lines(decode_unicode=True):
         if line is None:
             continue
-            
+
         # Skip comments
         if line.startswith(':'):
             continue
-        
+
         # Empty line marks end of event
         if not line.strip():
             if buffer:
                 yield buffer
                 buffer = ""
             continue
-        
+
         # Parse data field
         if line.startswith('data:'):
             data = line[5:].strip()  # Remove 'data:' prefix
             buffer = data
-        
+
         # Parse event field (optional)
         elif line.startswith('event:'):
             event_type = line[6:].strip()
@@ -653,7 +632,6 @@ for event_data in parse_sse_stream(response):
     except json.JSONDecodeError:
         print(f"Non-JSON event: {event_data}")
 ```
-
 
 ### 8.4 SSE Error Handling
 
@@ -678,50 +656,50 @@ def consume_sse_with_error_handling(url, payload, headers, max_retries=3):
                 stream=True,
                 timeout=60  # Connection timeout
             )
-            
+
             # Check for error status codes
             if response.status_code != 200:
                 error_body = response.text
                 raise Exception(f"HTTP {response.status_code}: {error_body}")
-            
+
             # Verify Content-Type
             content_type = response.headers.get('Content-Type', '')
             if 'text/event-stream' not in content_type:
                 raise ValueError(f"Expected SSE, got Content-Type: {content_type}")
-            
+
             # Parse SSE stream
             client = sseclient.SSEClient(response)
-            
+
             for event in client.events():
                 if not event.data:
                     continue
-                
+
                 try:
                     # Parse event data
                     data = json.loads(event.data)
-                    
+
                     # Check for error events
                     if 'error' in data:
                         print(f"Error event: {data['error']}")
                         return None
-                    
+
                     yield data
-                    
+
                 except json.JSONDecodeError as e:
                     print(f"Malformed JSON in event: {event.data}")
                     # Continue processing other events
                     continue
-            
+
             # Stream completed successfully
             return
-            
+
         except RequestException as e:
             print(f"Connection error (attempt {attempt + 1}/{max_retries}): {e}")
             if attempt < max_retries - 1:
                 time.sleep(2 ** attempt)  # Exponential backoff
             else:
                 raise
-        
+
         except Exception as e:
             print(f"Unexpected error: {e}")
             raise
@@ -734,7 +712,6 @@ try:
 except Exception as e:
     print(f"SSE stream failed: {e}")
 ```
-
 
 ### 8.5 Complete Cortex Agent SSE Example
 
@@ -755,34 +732,34 @@ def call_cortex_agent_sse(
 ):
     """
     Call Cortex Agent with SSE streaming response.
-    
+
     Args:
         account_url: Snowflake account URL (e.g., 'https://myaccount.snowflakecomputing.com')
         agent_name: Fully qualified agent name (e.g., 'DB.SCHEMA.AGENT_NAME')
         question: User question
         pat_token: Personal Access Token (PAT)
         max_tokens: Maximum response tokens
-    
+
     Returns:
         Complete agent response text
     """
     url = f"{account_url}/api/v2/cortex/agents/{agent_name}:run"
-    
+
     headers = {
         "Authorization": f"Bearer {pat_token}",
         "X-Snowflake-Authorization-Token-Type": "PROGRAMMATIC_ACCESS_TOKEN",
         "Content-Type": "application/json"
     }
-    
+
     payload = {
         "question": question,
         "max_tokens": max_tokens
     }
-    
+
     print(f"Calling Cortex Agent: {agent_name}")
     print(f"Question: {question}")
     print("-" * 60)
-    
+
     try:
         response = requests.post(
             url,
@@ -791,72 +768,70 @@ def call_cortex_agent_sse(
             stream=True,  # CRITICAL: Enable streaming
             timeout=60
         )
-        
+
         # Check status
         if response.status_code != 200:
             error_msg = response.text
             raise Exception(f"Agent API error {response.status_code}: {error_msg}")
-        
+
         # Verify SSE format
         content_type = response.headers.get('Content-Type', '')
         if 'text/event-stream' not in content_type:
             raise ValueError(f"Expected text/event-stream, got: {content_type}")
-        
+
         # Parse SSE stream
         client = sseclient.SSEClient(response)
-        
+
         full_response = ""
-        
+
         for event in client.events():
             if not event.data:
                 continue
-            
+
             try:
                 data = json.loads(event.data)
-                
+
                 # Check for completion
                 if data.get('done'):
                     print("\n[Stream complete]")
                     break
-                
+
                 # Extract content chunk
                 if 'content' in data:
                     chunk = data['content']
                     print(chunk, end='', flush=True)
                     full_response += chunk
-                
+
                 # Check for errors
                 if 'error' in data:
                     raise Exception(f"Agent error: {data['error']}")
-                    
+
             except json.JSONDecodeError:
                 print(f"\n[Warning: Malformed event data: {event.data}]")
                 continue
-        
+
         print("\n" + "-" * 60)
         return full_response
-        
+
     except requests.exceptions.Timeout:
         raise Exception("Agent request timed out after 60 seconds")
     except requests.exceptions.RequestException as e:
         raise Exception(f"Request failed: {e}")
 
-
 # Example usage:
 if __name__ == "__main__":
     account_url = os.getenv("SNOWFLAKE_ACCOUNT_URL")
     pat_token = os.getenv("SNOWFLAKE_PAT")
-    
+
     response = call_cortex_agent_sse(
         account_url=account_url,
         agent_name="ANALYTICS.AI.PORTFOLIO_AGENT",
         question="What are the top 5 holdings by weight?",
         pat_token=pat_token
     )
-    
+
     print(f"\nFinal response length: {len(response)} characters")
 ```
-
 
 ### 8.6 SSE Best Practices
 
@@ -877,4 +852,3 @@ if __name__ == "__main__":
 - Ignore Content-Type header
 - Skip error handling for malformed events
 - Leave connections open indefinitely
-

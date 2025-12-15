@@ -11,12 +11,9 @@
 ## Purpose
 Establish monitoring, logging, and performance optimization patterns for FastAPI applications including health checks, structured logging, caching, and observability.
 
-
 ## Rule Scope
 
 FastAPI health checks, logging, monitoring, and performance optimization patterns
-
-
 
 ## Quick Start TL;DR
 
@@ -37,7 +34,6 @@ FastAPI health checks, logging, monitoring, and performance optimization pattern
 - [ ] Database health checks in /health response
 - [ ] Error tracking and alerting configured
 - [ ] Performance metrics collected
-
 
 ## Contract
 
@@ -98,7 +94,7 @@ async def log_requests(request: Request, call_next):
 SENSITIVE_FIELDS = {"password", "token", "api_key", "ssn", "credit_card"}
 
 def sanitize_log_data(data: dict) -> dict:
-    return {k: "***REDACTED***" if k in SENSITIVE_FIELDS else v 
+    return {k: "***REDACTED***" if k in SENSITIVE_FIELDS else v
             for k, v in data.items()}
 
 logger.info(f"Request: {sanitize_log_data(request_data)}")
@@ -137,12 +133,11 @@ async def add_correlation_id(request: Request, call_next):
 - [ ] Output format matches requirements
 - [ ] Validation steps completed successfully
 
-
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read existing health endpoints BEFORE adding monitoring** - Check if /health or similar already exists
 > 2. **Check logging configuration** - Read existing logging setup, format, handlers
@@ -159,7 +154,6 @@ async def add_correlation_id(request: Request, call_next):
 > [reads app files, checks for health endpoints, reviews logging config]
 > "I see you have basic health checks. Enhancing with database status and caching metrics..."
 
-
 ## Output Format Examples
 
 ```python
@@ -172,7 +166,7 @@ from datetime import datetime, UTC
 
 class ServiceProtocol(Protocol):
     """Clear contract for service implementations."""
-    
+
     def process(self, data: dict) -> dict:
         """Process data following validation rules."""
         ...
@@ -180,19 +174,19 @@ class ServiceProtocol(Protocol):
 def implementation_function(input_data: dict) -> dict:
     """
     Implement feature following project conventions.
-    
+
     Args:
         input_data: Validated input following schema
-    
+
     Returns:
         Processed result with metadata
-    
+
     Raises:
         ValueError: If input validation fails
     """
     # Use datetime.now(UTC) not datetime.utcnow()
     timestamp = datetime.now(UTC)
-    
+
     # Implement business logic
     result = {"status": "success", "timestamp": timestamp}
     return result
@@ -202,10 +196,10 @@ def test_implementation_function():
     """Test following AAA pattern."""
     # Arrange
     test_input = {"key": "value"}
-    
+
     # Act
     result = implementation_function(test_input)
-    
+
     # Assert
     assert result["status"] == "success"
     assert "timestamp" in result
@@ -218,19 +212,17 @@ uvx ruff format --check .
 uv run pytest tests/
 ```
 
-
 ## References
 
 ### External Documentation
-- [FastAPI Middleware Guide](https://fastapi.tiangolo.com/tutorial/middleware/) - Custom middleware, CORS, and request processing                                                                                       
-- [Python Logging Documentation](https://docs.python.org/3/library/logging.html) - Structured logging, handlers, and formatters                                                                                         
+- [FastAPI Middleware Guide](https://fastapi.tiangolo.com/tutorial/middleware/) - Custom middleware, CORS, and request processing
+- [Python Logging Documentation](https://docs.python.org/3/library/logging.html) - Structured logging, handlers, and formatters
 - [Redis Python Async](https://redis-py.readthedocs.io/en/stable/) - Async Redis operations and connection pooling
 
 ### Related Rules
 - **FastAPI Core**: `rules/210-python-fastapi-core.md`
 - **FastAPI Deployment**: `rules/210c-python-fastapi-deployment.md`
 - **Python Core**: `rules/200-python-core.md`
-
 
 ## 1. Health Checks and Monitoring
 
@@ -269,11 +261,11 @@ async def detailed_health_check(db: AsyncSession = Depends(get_db)):
         db_status = "healthy"
     except Exception as e:
         db_status = f"unhealthy: {str(e)}"
-    
+
     # System metrics
     memory = psutil.virtual_memory()
     disk = psutil.disk_usage('/')
-    
+
     health_data = {
         "status": "healthy" if db_status == "healthy" else "degraded",
         "timestamp": datetime.now(UTC).isoformat(),
@@ -292,13 +284,13 @@ async def detailed_health_check(db: AsyncSession = Depends(get_db)):
             }
         }
     }
-    
+
     if health_data["status"] == "degraded":
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=health_data
         )
-    
+
     return health_data
 
 @router.get("/health/ready")
@@ -319,7 +311,6 @@ async def liveness_check():
     return {"status": "alive"}
 ```
 
-
 ## 2. Structured Logging
 
 ### Logging Configuration
@@ -337,7 +328,7 @@ from typing import Dict, Any
 
 class StructuredFormatter(logging.Formatter):
     """Custom formatter for structured JSON logging."""
-    
+
     def format(self, record: logging.LogRecord) -> str:
         log_data = {
             "timestamp": datetime.now(UTC).isoformat(),
@@ -348,7 +339,7 @@ class StructuredFormatter(logging.Formatter):
             "function": record.funcName,
             "line": record.lineno,
         }
-        
+
         # Add extra fields if present
         if hasattr(record, 'correlation_id'):
             log_data['correlation_id'] = record.correlation_id
@@ -356,11 +347,11 @@ class StructuredFormatter(logging.Formatter):
             log_data['user_id'] = record.user_id
         if hasattr(record, 'request_id'):
             log_data['request_id'] = record.request_id
-            
+
         # Add exception info if present
         if record.exc_info:
             log_data['exception'] = self.formatException(record.exc_info)
-            
+
         return json.dumps(log_data)
 
 def setup_logging():
@@ -370,7 +361,7 @@ def setup_logging():
         format='%(message)s',
         handlers=[logging.StreamHandler()]
     )
-    
+
     # Set formatter for all handlers
     formatter = StructuredFormatter()
     for handler in logging.root.handlers:
@@ -379,19 +370,19 @@ def setup_logging():
 # Middleware for request logging
 class RequestLoggingMiddleware:
     """Middleware to add correlation IDs and log requests."""
-    
+
     def __init__(self, app):
         self.app = app
-    
+
     async def __call__(self, scope, receive, send):
         if scope["type"] == "http":
             # Generate correlation ID
             correlation_id = str(uuid.uuid4())
-            
+
             # Add to request state
             request = Request(scope, receive)
             request.state.correlation_id = correlation_id
-            
+
             # Log request
             logger = logging.getLogger("fastapi.request")
             logger.info(
@@ -403,10 +394,9 @@ class RequestLoggingMiddleware:
                     "client_ip": request.client.host if request.client else None
                 }
             )
-        
+
         await self.app(scope, receive, send)
 ```
-
 
 ## 3. Performance Optimization
 
@@ -424,10 +414,10 @@ import hashlib
 
 class CacheManager:
     """Redis-based cache manager."""
-    
+
     def __init__(self, redis_url: str):
         self.redis = redis.from_url(redis_url)
-    
+
     async def get(self, key: str) -> Optional[Any]:
         """Get value from cache."""
         try:
@@ -435,7 +425,7 @@ class CacheManager:
             return json.loads(value) if value else None
         except Exception:
             return None
-    
+
     async def set(self, key: str, value: Any, ttl: int = 300) -> bool:
         """Set value in cache with TTL."""
         try:
@@ -444,7 +434,7 @@ class CacheManager:
             return True
         except Exception:
             return False
-    
+
     async def delete(self, key: str) -> bool:
         """Delete key from cache."""
         try:
@@ -461,18 +451,18 @@ def cache_result(ttl: int = 300, key_prefix: str = ""):
             # Generate cache key
             key_data = f"{func.__name__}:{args}:{kwargs}"
             cache_key = f"{key_prefix}:{hashlib.md5(key_data.encode()).hexdigest()}"
-            
+
             # Try to get from cache
             cache_manager = get_cache_manager()
             cached_result = await cache_manager.get(cache_key)
             if cached_result is not None:
                 return cached_result
-            
+
             # Execute function and cache result
             result = await func(*args, **kwargs)
             await cache_manager.set(cache_key, result, ttl)
             return result
-        
+
         return wrapper
     return decorator
 
@@ -507,7 +497,6 @@ engine = create_async_engine(
 )
 ```
 
-
 ## 4. Performance Monitoring
 
 ### Metrics Collection
@@ -520,16 +509,16 @@ import logging
 
 class MetricsMiddleware(BaseHTTPMiddleware):
     """Middleware to collect performance metrics."""
-    
+
     async def dispatch(self, request: Request, call_next):
         start_time = time.time()
-        
+
         # Process request
         response: Response = await call_next(request)
-        
+
         # Calculate duration
         duration = time.time() - start_time
-        
+
         # Log metrics
         logger = logging.getLogger("fastapi.metrics")
         logger.info(
@@ -542,13 +531,12 @@ class MetricsMiddleware(BaseHTTPMiddleware):
                 "correlation_id": getattr(request.state, 'correlation_id', None)
             }
         )
-        
+
         # Add performance headers
         response.headers["X-Process-Time"] = str(duration)
-        
+
         return response
 ```
-
 
 ## 5. Integration with Core Rules
 
@@ -576,21 +564,20 @@ from typing import Optional
 
 class Settings(BaseSettings):
     # Existing settings...
-    
+
     # Monitoring settings
     enable_metrics: bool = True
     enable_health_checks: bool = True
     log_level: str = "INFO"
-    
+
     # Cache settings
     redis_url: Optional[str] = None
     cache_ttl_default: int = 300
-    
+
     # Performance settings
     max_request_size: int = 16 * 1024 * 1024  # 16MB
     request_timeout: int = 30
-    
+
     class Config:
         env_file = ".env"
 ```
-

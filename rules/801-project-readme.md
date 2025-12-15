@@ -11,11 +11,8 @@
 ## Purpose
 This rule establishes comprehensive standards for README.md files following widely accepted industry best practices. It ensures consistent, professional, and accessible project documentation that serves both technical and non-technical audiences.
 
-
 ## Rule Scope
 Project documentation, technical writing, developer experience
-
-
 
 ## Quick Start TL;DR
 
@@ -86,7 +83,7 @@ Choose option A, B, C, or D...
 **Need different setup?** See [Deployment Options](#deployment-options)
 ```
 
-### Installation Section  
+### Installation Section
 - **Requirement:** List all prerequisites and system requirements
 - **Always:** Provide step-by-step installation instructions
 - **Rule:** Include troubleshooting for common installation issues
@@ -169,7 +166,6 @@ npm install && npm start
 
 </contract>
 
-
 ## Anti-Patterns and Common Mistakes
 
 ### Pattern 1: [Common Mistake Title]
@@ -198,9 +194,6 @@ npm install && npm start
 # Proper implementation
 ```
 
-
-
-
 ## Post-Execution Checklist
 - [ ] **CRITICAL:** README update triggers checked (see 000-global-core.md section 6)
 - [ ] **CRITICAL:** If triggers apply, README.md reviewed and updated before task completion
@@ -209,8 +202,6 @@ npm install && npm start
 - [ ] Implementation follows established patterns
 - [ ] Output format matches requirements
 - [ ] Validation steps completed successfully
-
-
 
 ## Validation
 
@@ -267,8 +258,6 @@ npm install && npm start
 > [reads README, package.json, identifies tech stack]
 > "I see you're using [tech]. Let me verify the installation commands work..."
 
-
-
 ## Output Format Examples
 
 ```markdown
@@ -299,11 +288,10 @@ Preview:
 [Show relevant excerpt of updated documentation]
 ```
 
-
 ## References
 
 ### External Documentation
-- [GitHub README Guide](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes) - Official GitHub documentation standards                    
+- [GitHub README Guide](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes) - Official GitHub documentation standards
 - [Make a README](https://www.makeareadme.com/) - Interactive README creation guide and best practices
 - [Awesome README Examples](https://github.com/matiassingers/awesome-readme) - Curated collection of excellent README examples
 
@@ -311,7 +299,6 @@ Preview:
 - **Global Core**: `rules/000-global-core.md`
 - **Changelog Rules**: `rules/800-project-changelog.md`
 - **Contributing Guidelines**: `rules/802-project-contributing.md`
-
 
 ## Implementation Details
 
@@ -335,8 +322,6 @@ Preview:
 - [ ] Contributing guidelines linked
 - [ ] License specified
 - [ ] Badges (if applicable)
-
-
 
 ## Essential README Structure
 
@@ -369,7 +354,7 @@ Preview:
 
 ## Contributing (in README.md)
 
-**This section and those following are for developers who want to modify or contribute.**  
+**This section and those following are for developers who want to modify or contribute.**
 If you're using the project, setup is complete. See [Troubleshooting](#troubleshooting) for support.
 
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for complete guidelines.
@@ -390,7 +375,7 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Quick Overview (recommended)
 
-## Description  
+## Description
 
 ## Quick Start / Installation
 
@@ -419,10 +404,9 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 - [Testing](#testing)
 ```
 
-
 ## Features
 
-## Prerequisites  
+## Prerequisites
 
 ## Configuration
 
@@ -442,7 +426,6 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Changelog
 ```
-
 
 ## Content Guidelines
 
@@ -481,9 +464,9 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Quick Overview
 
-**What:** Brief description of what this project provides  
-**Works with:** Compatible platforms/tools  
-**Deploy:** Simple installation summary (e.g., "2 commands")  
+**What:** Brief description of what this project provides
+**Works with:** Compatible platforms/tools
+**Deploy:** Simple installation summary (e.g., "2 commands")
 **Benefit:** Key value proposition
 
 **Quick Checklist:**
@@ -566,7 +549,7 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ```
 ├── Critical        [System Safety]      [RED] Must never violate
-├── Mandatory       [Non-negotiable]     [ORANGE] Must always follow  
+├── Mandatory       [Non-negotiable]     [ORANGE] Must always follow
 ├── Always          [Universal Practice] [YELLOW] Should be consistent
 ├── Requirement     [Technical Standard] [BLUE] Should implement
 ├── Rule            [Best Practice]      [GREEN] Recommended pattern
@@ -627,7 +610,7 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 
 ## Contributing
 
-**This section and those following are for developers who want to modify or contribute.**  
+**This section and those following are for developers who want to modify or contribute.**
 If you're using the project, setup is complete. See [Troubleshooting](#troubleshooting) for support.
 ```
 
@@ -662,10 +645,9 @@ npm install package-name
 # Good
 See the [API documentation](https://example.com/docs) for details.
 
-# Avoid  
+# Avoid
 Click [here](https://example.com/docs) for more info.
 ```
-
 
 ## Quality Assurance
 
@@ -764,7 +746,6 @@ Click [here](https://example.com/docs) for more info.
 - **Always:** Include timezone information for events/releases
 - **Avoid:** Culture-specific assumptions
 
-
 ## Project Lifecycle Management
 
 ### Version Control Integration
@@ -802,7 +783,6 @@ These changes REQUIRE README updates before task completion:
 - **Consider:** Separate detailed docs from README as project matures
 - **Rule:** Keep README focused on getting started quickly
 
-
 ## Common Anti-Patterns to Avoid
 
 ### Content Issues
@@ -823,7 +803,6 @@ These changes REQUIRE README updates before task completion:
 - **Avoid:** Version information that doesn't match releases
 - **Avoid:** Examples that no longer work with current version
 
-
 ## Integration with Development Workflow
 
 ### Code Review Process
@@ -834,7 +813,6 @@ These changes REQUIRE README updates before task completion:
 
 ### Automation Opportunities
 - **Consider:** Auto-generate API documentation sections
-- **Rule:** Validate markdown syntax in CI/CD pipeline  
+- **Rule:** Validate markdown syntax in CI/CD pipeline
 - **Consider:** Automated link checking and badge updates
 - **Always:** Include README in documentation deployment process
-

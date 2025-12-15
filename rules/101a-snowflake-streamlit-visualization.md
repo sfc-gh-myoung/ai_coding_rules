@@ -11,11 +11,9 @@
 ## Purpose
 Provide comprehensive guidance for data visualization in Streamlit using Plotly as the universal standard for charts, graphs, and maps, with integration patterns for analytics dashboards and ML insights.
 
-
 ## Rule Scope
 
 Streamlit data visualization using Plotly, chart configuration, map rendering, dashboard integration
-
 
 ## Quick Start TL;DR
 
@@ -43,7 +41,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Test interactivity (hover, zoom, pan)
 - [ ] Verify colorblind-safe palette
 - [ ] Add error handling for missing/invalid data
-
 
 ## Contract
 
@@ -86,7 +83,6 @@ Test chart interactivity (zoom, pan, hover), verify responsive display, validate
 </design_principles>
 
 </contract>
-
 
 ## Anti-Patterns and Common Mistakes
 
@@ -134,7 +130,7 @@ st.plotly_chart(fig, use_container_width=True)
 ```python
 # Validate coordinates before mapping
 df_valid = df.dropna(subset=['lat', 'lon'])
-df_valid = df_valid[(df_valid['lat'].between(-90, 90)) & 
+df_valid = df_valid[(df_valid['lat'].between(-90, 90)) &
                      (df_valid['lon'].between(-180, 180))]
 
 if len(df_valid) > 0:
@@ -192,21 +188,20 @@ for timestamp in failure_timestamps:
         failure_time = ensure_python_datetime(timestamp)
         hour_min = ensure_python_datetime(df["hour"].min())
         hour_max = ensure_python_datetime(df["hour"].max())
-        
+
         # Now all are Python datetimes - comparison works!
         if hour_min and hour_max and hour_min <= failure_time <= hour_max:
             fig.add_vline(x=failure_time, ...)
     except Exception as e:
         st.warning(f"Could not add marker: {type(e).__name__}: {str(e)[:100]}")
 ```
-**Benefits:** 
+**Benefits:**
 - Prevents TypeError from mixed datetime types
 - Works consistently across Pandas 1.x and 2.x
 - Handles edge cases (None, NaT, different datetime formats)
 - Clear error messages for debugging
 
 **Note:** For comprehensive datetime handling guidance including type conversions, timezone management, and date arithmetic, see `251-python-datetime-handling.md`.
-
 
 ## Post-Execution Checklist
 - [ ] Plotly used for ALL visualizations (no PyDeck, custom libraries without justification)
@@ -223,12 +218,11 @@ for timestamp in failure_timestamps:
 - [ ] Chart interactivity tested (zoom, pan, hover tooltips)
 - [ ] Visualizations tested with production-like data volumes
 
-
 ## Validation
 - **Success Checks:** Charts render correctly, interactive features work (zoom, pan, hover), responsive display on mobile/desktop, maps handle invalid coordinates gracefully, colors are accessible
 - **Negative Tests:** Test with empty dataframe (should show helpful message), test with invalid coordinates (should filter or warn), test with very large datasets (should aggregate first), verify PyDeck doesn't work in SiS deployment
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. Read visualization code BEFORE making recommendations
 > 2. Verify Plotly is installed and version is compatible
@@ -236,7 +230,6 @@ for timestamp in failure_timestamps:
 > 4. Never speculate about chart configurations - inspect the code
 > 5. Verify deployment mode (SiS vs SPCS) for library compatibility
 > 6. Check if dashboard follows patterns from 500/700 rules
-
 
 ## Output Format Examples
 ```python
@@ -278,7 +271,6 @@ else:
     st.warning("No valid coordinates to display")
 ```
 
-
 ## References
 
 ### External Documentation
@@ -302,17 +294,14 @@ else:
 - **Data Science Analytics**: `rules/920-data-science-analytics.md` (ML visualization, large dataset optimization)
 - **Business Analytics**: `rules/940-business-analytics.md` (dashboard design, chart type selection, accessibility)
 
-> **[AI] Claude 4 Specific Guidance**  
+> **[AI] Claude 4 Specific Guidance**
 > **Claude 4 Streamlit Visualization Optimizations:**
 > - Parallel chart generation: Can analyze multiple visualization patterns simultaneously
 > - Context awareness: Efficiently cross-reference dashboard patterns from 500/700 rules
 > - Investigation-first: Excel at discovering existing chart configurations and data structures
 > - Pattern recognition: Quickly identify visualization anti-patterns (e.g., PyDeck in SiS)
 
-
-
 ## 1. Visualization Philosophy
-
 
 **MANDATORY:**
 **Primary Library: Plotly (Universal Standard)**
@@ -341,9 +330,7 @@ else:
 - **Requirement:** Document specific technical limitation preventing Plotly use
 - **Always:** Verify SiS/SPCS compatibility before using fallback libraries
 
-
 ## 2. Plotly for Charts
-
 
 **MANDATORY:**
 - **Requirement:** Use Plotly Express (`plotly.express`) for most chart types (interactive, performant, works in both SiS and SPCS)
@@ -359,8 +346,8 @@ import streamlit as st
 # [PASS] Simple interactive chart with Plotly Express
 df = load_data()
 fig = px.line(
-    df, 
-    x='date', 
+    df,
+    x='date',
     y='value',
     title='Time Series Analysis',
     labels={'value': 'Metric Value', 'date': 'Date'},
@@ -430,9 +417,7 @@ fig = px.box(df, x='category', y='value', title='Value Distribution')
 fig = px.imshow(correlation_matrix, title='Correlation Matrix')
 ```
 
-
 ## 3. Plotly for Maps
-
 
 **MANDATORY:**
 - **Requirement:** Use Plotly for all geospatial visualizations (consistent API, works seamlessly in both SiS and SPCS)
@@ -528,9 +513,7 @@ st.plotly_chart(fig, use_container_width=True)
 - `"stamen-terrain"` - Terrain visualization
 - `"mapbox://styles/..."` - Custom Mapbox styles (requires token)
 
-
 ## 4. Dashboard Integration Patterns
-
 
 **For comprehensive visualization and dashboard design, reference specialized rules:**
 
@@ -539,7 +522,7 @@ st.plotly_chart(fig, use_container_width=True)
 
 **Key Patterns:**
 - **SQL-first aggregation:** Pre-aggregate in Snowflake before visualization
-- **Sampling strategies:** Use SAMPLE() for EDA on large datasets  
+- **Sampling strategies:** Use SAMPLE() for EDA on large datasets
 - **APPROX_* functions:** APPROX_COUNT_DISTINCT, APPROX_PERCENTILE for speed
 - **Validation targets:** Query Profile must show <5s execution, <$0.10 cost
 
@@ -549,7 +532,7 @@ st.plotly_chart(fig, use_container_width=True)
 @st.cache_data(ttl=600)
 def load_summary_data():
     query = """
-    SELECT 
+    SELECT
         DATE_TRUNC('day', order_date) as date,
         region,
         COUNT(DISTINCT customer_id) as customers,
@@ -589,9 +572,7 @@ st.plotly_chart(fig, use_container_width=True)
 - **Uncertainty:** Confidence intervals, prediction bands, error bars
 - **SHAP values:** Summary plots, force plots, dependence plots
 
-
 ## 5. Time Series Data Smoothing
-
 
 **RECOMMENDED:**
 **When to Apply Smoothing:**
@@ -612,25 +593,25 @@ def smooth_time_series_data(
 ) -> pd.DataFrame:
     """
     Smooth time series data by aggregating to specified intervals.
-    
+
     Reduces noise in high-frequency data (e.g., 15-minute SCADA readings) by
     aggregating to coarser time intervals using configurable aggregation methods.
-    
+
     Args:
         df: DataFrame with time series data
         time_col: Name of timestamp column to use for resampling
         value_cols: List of value columns to aggregate
         aggregation_level: Pandas frequency string ("15min", "30min", "1H", "2H", "4H")
         method: Aggregation method ("mean", "median", "max", "min")
-    
+
     Returns:
         Smoothed DataFrame with reduced number of data points
     """
     df_indexed = df.set_index(time_col)
     available_cols = [col for col in value_cols if col in df_indexed.columns]
-    
+
     df_resampled = df_indexed[available_cols].resample(aggregation_level)
-    
+
     if method == "mean":
         df_smooth = df_resampled.mean()
     elif method == "median":
@@ -639,7 +620,7 @@ def smooth_time_series_data(
         df_smooth = df_resampled.max()
     elif method == "min":
         df_smooth = df_resampled.min()
-    
+
     return df_smooth.reset_index()
 ```
 
@@ -697,4 +678,3 @@ else:
 - 15-min SCADA (96 points/day) → 1H aggregation (24 points/day) = 75% reduction
 - Faster chart rendering, better UX, preserved patterns
 - Always display both original and smoothed counts to user
-

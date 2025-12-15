@@ -11,13 +11,9 @@
 ## Purpose
 Establish comprehensive data validation and serialization patterns using Pydantic v2, covering model design, settings management, custom validators, and integration strategies for building type-safe, validated Python applications.
 
-
 ## Rule Scope
 
 Python data validation, model definition, settings management
-
-
-
 
 ## Quick Start TL;DR
 
@@ -39,7 +35,6 @@ Python data validation, model definition, settings management
 - [ ] Settings use pydantic-settings BaseSettings
 - [ ] Complex validation uses @model_validator
 - [ ] All fields have type annotations
-
 
 ## Contract
 
@@ -95,7 +90,7 @@ class UserResponse(BaseModel):
     id: int
     name: str
     created_at: datetime  # Auto-serialized to ISO format
-    
+
     model_config = ConfigDict(from_attributes=True)
 
 @app.get("/users/{user_id}", response_model=UserResponse)
@@ -125,7 +120,7 @@ async def create_user(data: dict):
 class UserCreate(BaseModel):
     email: EmailStr  # Built-in email validation
     password: str
-    
+
     @field_validator("password")
     @classmethod
     def password_strength(cls, v: str) -> str:
@@ -145,12 +140,11 @@ async def create_user(data: UserCreate):  # Auto-validated!
 - [ ] Output format matches requirements
 - [ ] Validation steps completed successfully
 
-
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read existing Pydantic models BEFORE adding new ones** - Check models/, schemas/ directories for patterns
 > 2. **Verify Pydantic version** - Check pyproject.toml to confirm v2 (>=2.5.0) is used
@@ -167,7 +161,6 @@ async def create_user(data: UserCreate):  # Auto-validated!
 > [reads models/, schemas/, checks for BaseModel usage and validator patterns]
 > "I see you're using Pydantic v2 with @model_validator for complex validation. Here's a new model following the same pattern with Field() constraints..."
 
-
 ## Output Format Examples
 
 ```python
@@ -180,7 +173,7 @@ from datetime import datetime, UTC
 
 class ServiceProtocol(Protocol):
     """Clear contract for service implementations."""
-    
+
     def process(self, data: dict) -> dict:
         """Process data following validation rules."""
         ...
@@ -188,19 +181,19 @@ class ServiceProtocol(Protocol):
 def implementation_function(input_data: dict) -> dict:
     """
     Implement feature following project conventions.
-    
+
     Args:
         input_data: Validated input following schema
-    
+
     Returns:
         Processed result with metadata
-    
+
     Raises:
         ValueError: If input validation fails
     """
     # Use datetime.now(UTC) not datetime.utcnow()
     timestamp = datetime.now(UTC)
-    
+
     # Implement business logic
     result = {"status": "success", "timestamp": timestamp}
     return result
@@ -210,10 +203,10 @@ def test_implementation_function():
     """Test following AAA pattern."""
     # Arrange
     test_input = {"key": "value"}
-    
+
     # Act
     result = implementation_function(test_input)
-    
+
     # Assert
     assert result["status"] == "success"
     assert "timestamp" in result
@@ -226,12 +219,11 @@ uvx ruff format --check .
 uv run pytest tests/
 ```
 
-
 ## References
 
 ### External Documentation
-- [Pydantic Documentation](https://docs.pydantic.dev/latest/) - Complete guide to data validation and serialization                                                                                                     
-- [Pydantic Settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) - Configuration management and environment variables                                                                                
+- [Pydantic Documentation](https://docs.pydantic.dev/latest/) - Complete guide to data validation and serialization
+- [Pydantic Settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) - Configuration management and environment variables
 - [FastAPI with Pydantic](https://fastapi.tiangolo.com/tutorial/body/) - Request/response models and API integration
 
 ### Related Rules
@@ -239,7 +231,6 @@ uv run pytest tests/
 - **FastAPI Core**: `rules/210-python-fastapi-core.md`
 - **Typer CLI**: `rules/220-python-typer-cli.md`
 - **Flask**: `rules/250-python-flask.md`
-
 
 ## 1. Installation and Setup
 
@@ -281,7 +272,6 @@ project/
 │           └── settings.py      # Pydantic Settings
 ```
 
-
 ## 2. Model Definition Best Practices
 
 ### Basic Model Patterns
@@ -302,7 +292,7 @@ class UserRole(str, Enum):
 
 class User(BaseModel):
     """User model with comprehensive validation."""
-    
+
     id: int = Field(..., gt=0, description="Unique user identifier")
     email: EmailStr = Field(..., description="User email address")
     username: str = Field(..., min_length=3, max_length=50, pattern=r'^[a-zA-Z0-9_]+$')
@@ -312,7 +302,7 @@ class User(BaseModel):
     is_active: bool = Field(default=True)
     created_at: datetime = Field(default_factory=datetime.now)
     tags: List[str] = Field(default_factory=list, max_items=10)
-    
+
     class Config:
         # Enable validation on assignment
         validate_assignment = True
@@ -343,13 +333,13 @@ import re
 
 class Product(BaseModel):
     """Product model with custom validation."""
-    
+
     name: str = Field(..., min_length=1, max_length=200)
     sku: str = Field(..., regex=r'^[A-Z]{2,3}-\d{4,6}$')
     price: float = Field(..., gt=0, le=10000, description="Price in USD")
     discount_percent: Optional[float] = Field(None, ge=0, le=100)
     category: str = Field(..., min_length=1)
-    
+
     @validator('name')
     def validate_name(cls, v):
         """Ensure product name doesn't contain prohibited words."""
@@ -357,26 +347,26 @@ class Product(BaseModel):
         if any(word in v.lower() for word in prohibited):
             raise ValueError('Product name cannot contain prohibited words')
         return v.title()
-    
+
     @validator('sku')
     def validate_sku_format(cls, v):
         """Validate SKU format and check uniqueness."""
         if not re.match(r'^[A-Z]{2,3}-\d{4,6}$', v):
             raise ValueError('SKU must follow format: XX-NNNN or XXX-NNNNNN')
         return v.upper()
-    
+
     @root_validator
     def validate_discount_logic(cls, values):
         """Ensure discount logic is consistent."""
         price = values.get('price')
         discount = values.get('discount_percent')
-        
+
         if discount and discount > 0:
             if price and price < 10:  # No discount on items under $10
                 raise ValueError('Discount not allowed on items under $10')
-        
+
         return values
-    
+
     @property
     def discounted_price(self) -> float:
         """Calculate price after discount."""
@@ -384,7 +374,6 @@ class Product(BaseModel):
             return self.price * (1 - self.discount_percent / 100)
         return self.price
 ```
-
 
 ## 3. Settings Management with Pydantic
 
@@ -401,13 +390,13 @@ from pathlib import Path
 
 class DatabaseSettings(BaseSettings):
     """Database configuration settings."""
-    
+
     host: str = Field(default="localhost", description="Database host")
     port: int = Field(default=5432, ge=1, le=65535)
     username: str = Field(..., description="Database username")
     password: str = Field(..., description="Database password")
     database: str = Field(..., description="Database name")
-    
+
     @property
     def url(self) -> str:
         """Generate database URL."""
@@ -415,40 +404,40 @@ class DatabaseSettings(BaseSettings):
 
 class AppSettings(BaseSettings):
     """Main application settings."""
-    
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
         env_nested_delimiter="__",
         case_sensitive=False
     )
-    
+
     # Application settings
     app_name: str = Field(default="MyApp", description="Application name")
     debug: bool = Field(default=False, description="Debug mode")
     log_level: str = Field(default="INFO", regex=r'^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$')
-    
+
     # Server settings
     host: str = Field(default="0.0.0.0")
     port: int = Field(default=8000, ge=1, le=65535)
-    
+
     # Security settings
     secret_key: str = Field(..., min_length=32, description="Secret key for encryption")
     allowed_hosts: List[str] = Field(default_factory=lambda: ["localhost", "127.0.0.1"])
-    
+
     # Database settings
     database: DatabaseSettings = Field(default_factory=DatabaseSettings)
-    
+
     # File paths
     data_dir: Path = Field(default=Path("./data"))
     log_file: Optional[Path] = Field(default=None)
-    
+
     @validator('data_dir')
     def validate_data_dir(cls, v):
         """Ensure data directory exists."""
         v.mkdir(parents=True, exist_ok=True)
         return v
-    
+
     @validator('secret_key')
     def validate_secret_key(cls, v):
         """Ensure secret key is sufficiently complex."""
@@ -479,12 +468,11 @@ class Settings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8"
     )
-    
+
     debug: bool = False
     database_url: str = Field(..., description="Database connection URL")
     redis_url: Optional[str] = Field(None, description="Redis connection URL")
 ```
-
 
 ## 4. Serialization and JSON Schema
 
@@ -500,7 +488,7 @@ from datetime import datetime
 
 class UserProfile(BaseModel):
     """User profile with serialization control."""
-    
+
     id: int
     username: str
     email: str = Field(..., alias="email_address")
@@ -508,17 +496,17 @@ class UserProfile(BaseModel):
     full_name: Optional[str] = None
     created_at: datetime
     last_login: Optional[datetime] = None
-    
+
     class Config:
         populate_by_name = True  # Allow both field name and alias
-    
+
     def to_public_dict(self) -> dict:
         """Serialize for public API responses."""
         return self.model_dump(
             exclude={'password_hash', 'email'},
             by_alias=True
         )
-    
+
     def to_internal_dict(self) -> dict:
         """Serialize for internal use."""
         return self.model_dump(exclude={'password_hash'})
@@ -546,7 +534,7 @@ class APIResponse(BaseModel):
     success: bool = Field(..., description="Whether request was successful")
     message: str = Field(..., description="Human-readable message")
     data: Optional[dict] = Field(None, description="Response data")
-    
+
     class Config:
         schema_extra = {
             "examples": [{
@@ -558,7 +546,6 @@ class APIResponse(BaseModel):
 
 schema = APIResponse.model_json_schema()
 ```
-
 
 ## 5. Integration Patterns
 
@@ -617,7 +604,7 @@ class UserSchema(BaseModel):
     username: str
     email: str
     is_active: bool
-    
+
     class Config:
         from_attributes = True  # Enable ORM mode
 
@@ -625,7 +612,6 @@ def get_user_by_id(user_id: int) -> UserSchema:
     user_orm = session.query(UserORM).filter(UserORM.id == user_id).first()
     return UserSchema.model_validate(user_orm)
 ```
-
 
 ## 6. Performance and Optimization
 
@@ -657,7 +643,7 @@ def validate_users_batch(users_data: List[dict]) -> List[StrictUser]:
 class EfficientModel(BaseModel):
     class Config:
         slots = True
-    
+
     id: int
     name: str
     value: float
@@ -669,7 +655,6 @@ def process_large_dataset(data_stream: Iterator[dict]) -> Iterator[EfficientMode
         except ValidationError:
             continue
 ```
-
 
 ## 7. Testing with Pydantic
 
@@ -689,22 +674,21 @@ class TestUserModel:
             "email": "test@example.com",
             "username": "testuser"
         }
-    
+
     def test_user_creation_success(self, valid_user_data):
         user = User(**valid_user_data)
         assert user.id == 1
         assert user.email == "test@example.com"
-    
+
     def test_user_validation_errors(self):
         with pytest.raises(ValidationError):
             User(id=-1, email="invalid-email", username="ab")
-    
+
     def test_user_serialization(self, valid_user_data):
         user = User(**valid_user_data)
         user_dict = user.model_dump()
         assert user_dict['email'] == "test@example.com"
 ```
-
 
 ## Related Rules
 
@@ -713,4 +697,3 @@ class TestUserModel:
 - **`@203-python-project-setup.md`** - Python project structure and packaging
 - **`@210-python-fastapi-core.md`** - FastAPI integration patterns
 - **`@800-project-changelog-rules.md`** - Changelog discipline for data model changes
-

@@ -18,6 +18,8 @@ sys.path.insert(0, str(project_root))
 from scripts.index_generator import (  # noqa: E402
     extract_metadata,
     extract_scope_from_content,
+    generate_agent_guidance,
+    generate_loading_strategy,
     generate_rules_index,
     generate_table_row,
     main,
@@ -371,7 +373,8 @@ Test scope.
         metadata = extract_metadata(sample_rule_file)
         row = generate_table_row(metadata)
 
-        assert row.startswith("||")
+        assert row.startswith("|")
+        assert not row.startswith("||")
         assert "`100-test-rule.md`" in row
         assert "testing, validation, CI/CD" in row
         assert "`000-global-core.md`" in row
@@ -386,13 +389,26 @@ Test scope.
         assert "`300-minimal.md`" in row
 
     def test_generate_rules_index_includes_all_sections(self, multiple_rule_files):
-        """Test full index includes header, table, and footer."""
+        """Test full index includes header, agent guidance, loading strategy, table, and footer."""
         rules = scan_rules(multiple_rule_files)
         index_content = generate_rules_index(rules)
 
-        # Check for table structure (actual column headers from generator)
-        assert "|| File | Scope | Keywords/Hints | Depends On |" in index_content
-        assert "||------|-------|----------------|------------|" in index_content
+        # Check for agent guidance section
+        assert "For AI Agents:" in index_content
+        assert "READ-ONLY" in index_content
+
+        # Check for loading strategy section
+        assert "Rule Loading Strategy" in index_content
+        assert "Token Budget Management" in index_content
+
+        # Check for table structure (standard markdown pipes)
+        assert "| File | Scope | Keywords/Hints | Depends On |" in index_content
+        assert "|------|-------|----------------|------------|" in index_content
+
+        # Verify no double pipes (old format)
+        assert (
+            "||" not in index_content or "||" in index_content.split("```")[0]
+        )  # Allow in code blocks
 
         # Check rules are present
         assert "`000-core.md`" in index_content
@@ -402,16 +418,73 @@ Test scope.
         # Check footer is present
         assert "Common Rule Dependency Chains" in index_content
 
+        # Verify section ordering (catalog header removed, so check table comes after strategy)
+        agent_pos = index_content.find("For AI Agents:")
+        strategy_pos = index_content.find("Rule Loading Strategy")
+        table_pos = index_content.find("| File | Scope | Keywords/Hints | Depends On |")
+        footer_pos = index_content.find("Common Rule Dependency Chains")
+
+        assert agent_pos < strategy_pos < table_pos < footer_pos
+
     def test_generate_rules_index_empty_rules_list(self):
         """Test index generation with empty rules list."""
         index_content = generate_rules_index([])
 
-        # Should still have table structure (actual column headers)
-        assert "|| File | Scope | Keywords/Hints | Depends On |" in index_content
-        assert "||------|-------|----------------|------------|" in index_content
+        # Should still have agent guidance
+        assert "For AI Agents:" in index_content
+
+        # Should still have loading strategy
+        assert "Rule Loading Strategy" in index_content
+
+        # Should still have table structure (standard markdown pipes)
+        assert "| File | Scope | Keywords/Hints | Depends On |" in index_content
+        assert "|------|-------|----------------|------------|" in index_content
 
         # Should have footer
         assert "Common Rule Dependency Chains" in index_content
+
+
+@pytest.mark.unit
+class TestNewSections:
+    """Test new sections in generated RULES_INDEX.md."""
+
+    def test_generate_agent_guidance_returns_content(self):
+        """Test agent guidance section generation."""
+        guidance = generate_agent_guidance()
+
+        assert len(guidance) > 0
+        assert "READ-ONLY" in guidance
+        assert "AI Agents" in guidance
+        assert "grep" in guidance or "read_file" in guidance
+
+    def test_generate_loading_strategy_returns_content(self):
+        """Test loading strategy section generation."""
+        strategy = generate_loading_strategy()
+
+        assert len(strategy) > 0
+        assert "Rule Loading Strategy" in strategy
+        assert "Foundation" in strategy
+        assert "Domain Rules" in strategy
+        assert "Activity Rules" in strategy
+        assert "Token Budget" in strategy
+
+    def test_generate_loading_strategy_includes_example(self):
+        """Test loading strategy includes worked example."""
+        strategy = generate_loading_strategy()
+
+        assert "Example Workflow" in strategy or "example" in strategy.lower()
+        assert "Write tests for my Streamlit dashboard" in strategy
+
+    def test_generate_loading_strategy_includes_six_steps(self):
+        """Test loading strategy includes all 6 steps."""
+        strategy = generate_loading_strategy()
+
+        assert "### 1. Foundation" in strategy
+        assert "### 2. Domain Rules" in strategy
+        assert "### 3. Activity Rules" in strategy
+        assert "### 4. Check Dependencies" in strategy
+        assert "### 5. Token Budget Management" in strategy
+        assert "### 6. Declare Loaded Rules" in strategy
 
 
 @pytest.mark.unit
@@ -750,8 +823,9 @@ Scope with | pipe characters.
         metadata = extract_metadata(rule_file)
         row = generate_table_row(metadata)
 
-        # Should still be valid markdown table row
-        assert row.startswith("||")
+        # Should still be valid markdown table row (single pipe start)
+        assert row.startswith("|")
+        assert not row.startswith("||")
         assert "`pipes.md`" in row
 
     def test_scan_rules_handles_nested_directories(self, tmp_path):

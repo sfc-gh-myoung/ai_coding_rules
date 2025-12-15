@@ -11,12 +11,9 @@
 ## Purpose
 Provide comprehensive bash testing, debugging, and modern tooling integration including ShellCheck, CI/CD workflows, and development practices to ensure script quality and reliability.
 
-
 ## Rule Scope
 
 Bash testing, debugging, development workflows, CI/CD
-
-
 
 ## Quick Start TL;DR
 
@@ -38,7 +35,6 @@ Bash testing, debugging, development workflows, CI/CD
 - [ ] External commands mocked
 - [ ] Debug mode available
 - [ ] Test coverage documented
-
 
 ## Contract
 
@@ -141,12 +137,11 @@ setup() {
 - [ ] Output format matches requirements
 - [ ] Validation steps completed successfully
 
-
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Run shellcheck BEFORE suggesting fixes** - See actual issues, not assumed ones
 > 2. **Check existing tests** - Review current test coverage and framework
@@ -162,7 +157,6 @@ setup() {
 > "Let me run shellcheck on your scripts first."
 > [runs shellcheck, reviews output]
 > "I see 5 SC2086 warnings about unquoted variables. Let me fix those..."
-
 
 ## Output Format Examples
 
@@ -181,17 +175,17 @@ readonly LOG_FILE="${SCRIPT_DIR}/output.log"
 main() {
     # Investigation phase
     check_prerequisites
-    
+
     # Implementation phase
     perform_operations
-    
+
     # Validation phase
     verify_results
 }
 
 check_prerequisites() {
     local -a required_commands=(jq curl git)
-    
+
     for cmd in "${required_commands[@]}"; do
         if ! command -v "${cmd}" &>/dev/null; then
             echo "ERROR: Required command not found: ${cmd}" >&2
@@ -219,18 +213,16 @@ main "$@"
 shellcheck script.sh
 ```
 
-
 ## References
 
 ### External Documentation
-- [ShellCheck Documentation](https://github.com/koalaman/shellcheck/wiki) - Static analysis tool for shell scripts and best practices                                                                                   
-- [BATS Testing Framework](https://github.com/bats-core/bats-core) - Bash Automated Testing System for unit testing                                                                                                     
+- [ShellCheck Documentation](https://github.com/koalaman/shellcheck/wiki) - Static analysis tool for shell scripts and best practices
+- [BATS Testing Framework](https://github.com/bats-core/bats-core) - Bash Automated Testing System for unit testing
 - [Google Shell Testing Guide](https://google.github.io/styleguide/shellguide.html#s7-tests) - Professional shell script testing standards
 
 ### Related Rules
 - **Bash Core**: `rules/300-bash-scripting-core.md`
 - **Bash Security**: `rules/300a-bash-security.md`
-
 
 ## 1. Static Analysis with ShellCheck
 
@@ -294,7 +286,6 @@ MY_VAR="value"
 # Quote arrays: cmd "${array[@]}"
 ```
 
-
 ## 2. Testing Frameworks and Strategies
 
 ### Simple Testing Framework
@@ -352,7 +343,6 @@ test_file_ops() {
 }
 ```
 
-
 ## 3. Debugging Techniques
 
 ### Debug Mode Implementation
@@ -408,9 +398,9 @@ process_file() {
     trace_function_entry "${FUNCNAME[0]}" "$@"
     local file="$1"
     local exit_code=0
-    
+
     debug_log "Processing file: $file"
-    
+
     if [[ ! -f "$file" ]]; then
         echo "Error: File not found: $file" >&2
         exit_code=1
@@ -419,7 +409,7 @@ process_file() {
         # Process file here
         debug_log "File processed successfully"
     fi
-    
+
     trace_function_exit "${FUNCNAME[0]}" "$exit_code"
     return $exit_code
 }
@@ -433,13 +423,13 @@ debug_error() {
     local exit_code="$1"
     local line_number="$2"
     local command="$3"
-    
+
     echo "ERROR: Command failed with exit code $exit_code" >&2
     echo "  Line: $line_number" >&2
     echo "  Command: $command" >&2
     echo "  Function: ${FUNCNAME[2]:-main}" >&2
     echo "  Script: ${BASH_SOURCE[1]}" >&2
-    
+
     # Print call stack
     echo "Call stack:" >&2
     local i=1
@@ -465,7 +455,6 @@ profile() {
     echo "Duration: $((end - start))s" >&2
 }
 ```
-
 
 ## 4. CI/CD Integration
 
@@ -499,7 +488,6 @@ for script in "${scripts[@]}"; do
 done
 ```
 
-
 ## 5. Code Coverage and Quality Metrics
 
 ### Coverage Tracking
@@ -514,7 +502,6 @@ show_coverage() {
     done
 }
 ```
-
 
 ## 6. Development Environment Setup
 
@@ -545,7 +532,7 @@ show_coverage() {
 
 setup_git_hooks() {
     echo "Setting up git hooks..."
-    
+
     # Create pre-commit hook
     cat > .git/hooks/pre-commit << 'EOF'
 #!/usr/bin/env bash
@@ -557,14 +544,14 @@ for script in "${staged_scripts[@]}"; do
     [[ -f "$script" ]] && shellcheck "$script"
 done
 EOF
-    
+
     chmod +x .git/hooks/pre-commit
     echo "Pre-commit hook installed"
 }
 
 install_dependencies() {
     echo "Installing development dependencies..."
-    
+
     # Install ShellCheck based on OS
     if command -v apt-get >/dev/null; then
         sudo apt-get update && sudo apt-get install -y shellcheck
@@ -580,9 +567,9 @@ install_dependencies() {
 
 create_project_structure() {
     echo "Creating project structure..."
-    
+
     mkdir -p {src,tests,scripts,docs}
-    
+
     # Create basic test template
     cat > tests/test_template.sh << 'EOF'
 #!/usr/bin/env bash
@@ -598,18 +585,18 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     run_test_suite "Template Tests" "test_example"
 fi
 EOF
-    
+
     chmod +x tests/test_template.sh
 }
 
 # Main setup
 main() {
     echo "Setting up bash development environment..."
-    
+
     install_dependencies
     setup_git_hooks
     create_project_structure
-    
+
     echo "Development environment setup complete!"
 }
 
@@ -617,7 +604,6 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main "$@"
 fi
 ```
-
 
 ## 7. Documentation and Maintenance
 
@@ -630,13 +616,13 @@ fi
 generate_function_docs() {
     local script_file="$1"
     local output_file="$2"
-    
+
     echo "# Functions in $(basename "$script_file")" > "$output_file"
     echo >> "$output_file"
-    
+
     # Extract function definitions and comments
     awk '
-        /^[[:space:]]*#/ { 
+        /^[[:space:]]*#/ {
             comment = comment $0 "\n"
         }
         /^[[:space:]]*[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*\(\)/ {
@@ -651,7 +637,7 @@ generate_function_docs() {
             comment = ""
         }
         in_function && /{/ { brace_count++ }
-        in_function && /}/ { 
+        in_function && /}/ {
             brace_count--
             if (brace_count == 0) {
                 print "```"
@@ -664,4 +650,3 @@ generate_function_docs() {
     ' "$script_file" >> "$output_file"
 }
 ```
-

@@ -11,12 +11,9 @@
 ## Purpose
 Establish comprehensive patterns for generating realistic test data using Python's Faker library, covering setup, providers, localization, testing integration, and performance optimization to create maintainable and deterministic test suites.
 
-
 ## Rule Scope
 
 Python testing, data generation, test fixtures, development utilities
-
-
 
 ## Quick Start TL;DR
 
@@ -37,7 +34,6 @@ Python testing, data generation, test fixtures, development utilities
 - [ ] Localization configured if needed
 - [ ] Performance optimized for large datasets
 - [ ] No Faker usage in production code
-
 
 ## Contract
 
@@ -124,7 +120,7 @@ fake.random_element(["pending", "active", "closed"])  # Valid enum values
 class OrderProvider(BaseProvider):
     def order_status(self):
         return self.random_element(["pending", "shipped", "delivered"])
-        
+
 fake.add_provider(OrderProvider)
 ```
 
@@ -135,12 +131,11 @@ fake.add_provider(OrderProvider)
 - [ ] Output format matches requirements
 - [ ] Validation steps completed successfully
 
-
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read test files BEFORE adding Faker** - Check existing test data generation patterns
 > 2. **Check pytest fixtures** - See if Faker fixtures already exist in conftest.py
@@ -157,7 +152,6 @@ fake.add_provider(OrderProvider)
 > [reads test files, checks conftest.py, reviews fixtures]
 > "I see you have pytest fixtures with seeded Faker. Adding new provider following this pattern..."
 
-
 ## Output Format Examples
 
 ```python
@@ -170,7 +164,7 @@ from datetime import datetime, UTC
 
 class ServiceProtocol(Protocol):
     """Clear contract for service implementations."""
-    
+
     def process(self, data: dict) -> dict:
         """Process data following validation rules."""
         ...
@@ -178,19 +172,19 @@ class ServiceProtocol(Protocol):
 def implementation_function(input_data: dict) -> dict:
     """
     Implement feature following project conventions.
-    
+
     Args:
         input_data: Validated input following schema
-    
+
     Returns:
         Processed result with metadata
-    
+
     Raises:
         ValueError: If input validation fails
     """
     # Use datetime.now(UTC) not datetime.utcnow()
     timestamp = datetime.now(UTC)
-    
+
     # Implement business logic
     result = {"status": "success", "timestamp": timestamp}
     return result
@@ -200,10 +194,10 @@ def test_implementation_function():
     """Test following AAA pattern."""
     # Arrange
     test_input = {"key": "value"}
-    
+
     # Act
     result = implementation_function(test_input)
-    
+
     # Assert
     assert result["status"] == "success"
     assert "timestamp" in result
@@ -216,11 +210,10 @@ uvx ruff format --check .
 uv run pytest tests/
 ```
 
-
 ## References
 
 ### External Documentation
-- [Faker Documentation](https://faker.readthedocs.io/en/stable/) - Comprehensive guide to fake data generation                                                                                                          
+- [Faker Documentation](https://faker.readthedocs.io/en/stable/) - Comprehensive guide to fake data generation
 - [pytest-faker Plugin](https://pypi.org/project/pytest-faker/) - Pytest fixtures and integration patterns
 - [Factory Boy](https://factoryboy.readthedocs.io/) - Object factory patterns for complex test data
 
@@ -228,7 +221,6 @@ uv run pytest tests/
 - **Python Core**: `rules/200-python-core.md`
 - **FastAPI Testing**: `rules/210b-python-fastapi-testing.md`
 - **Demo Creation**: `rules/900-demo-creation.md`
-
 
 ## 1. Installation and Setup
 
@@ -278,7 +270,6 @@ project/
     └── seed_database.py       # Database seeding
 ```
 
-
 ## 2. Basic Faker Usage Patterns
 
 ### Core Provider Usage
@@ -302,13 +293,13 @@ fake.add_provider(credit_card)
 
 class DataGenerator:
     """Centralized data generation using Faker."""
-    
+
     def __init__(self, locale: str = 'en_US', seed: int = None):
         self.fake = Faker(locale)
         if seed is not None:
             Faker.seed(seed)
             random.seed(seed)
-    
+
     def generate_user(self) -> Dict[str, Any]:
         """Generate realistic user data."""
         return {
@@ -329,11 +320,11 @@ class DataGenerator:
             'created_at': self.fake.date_time_between(start_date='-2y', end_date='now'),
             'is_active': self.fake.boolean(chance_of_getting_true=85)
         }
-    
+
     def generate_product(self) -> Dict[str, Any]:
         """Generate realistic product data."""
         categories = ['Electronics', 'Clothing', 'Books', 'Home & Garden', 'Sports']
-        
+
         return {
             'id': self.fake.uuid4(),
             'name': self.fake.catch_phrase(),
@@ -368,7 +359,7 @@ from typing import Dict, List
 
 class LocalizedDataGenerator:
     """Generate localized data for different regions."""
-    
+
     def __init__(self):
         self.locales = {
             'us': Faker('en_US'),
@@ -378,14 +369,14 @@ class LocalizedDataGenerator:
             'japan': Faker('ja_JP'),
             'brazil': Faker('pt_BR')
         }
-    
+
     def generate_localized_user(self, locale: str = 'us') -> Dict[str, Any]:
         """Generate user data for specific locale."""
         if locale not in self.locales:
             raise ValueError(f"Unsupported locale: {locale}")
-        
+
         fake = self.locales[locale]
-        
+
         return {
             'name': fake.name(),
             'email': fake.email(),
@@ -397,16 +388,16 @@ class LocalizedDataGenerator:
             'locale': locale,
             'timezone': str(fake.timezone())
         }
-    
+
     def generate_multi_locale_dataset(self, count_per_locale: int = 10) -> List[Dict]:
         """Generate dataset with users from multiple locales."""
         dataset = []
-        
+
         for locale in self.locales.keys():
             for _ in range(count_per_locale):
                 user = self.generate_localized_user(locale)
                 dataset.append(user)
-        
+
         return dataset
 
 # Usage
@@ -418,7 +409,6 @@ german_user = localized_gen.generate_localized_user('germany')
 # Generate international dataset
 international_users = localized_gen.generate_multi_locale_dataset(5)
 ```
-
 
 ## 3. Custom Providers and Extensions
 
@@ -435,44 +425,44 @@ from typing import List, Dict
 
 class TechCompanyProvider(BaseProvider):
     """Custom provider for tech company data."""
-    
+
     tech_companies = [
         'TechCorp', 'DataSystems', 'CloudWorks', 'DevSolutions',
         'CodeCraft', 'ByteForge', 'PixelPush', 'LogicLabs'
     ]
-    
+
     tech_domains = [
         'AI/ML', 'Web Development', 'Mobile Apps', 'DevOps',
         'Data Science', 'Cybersecurity', 'Cloud Computing', 'IoT'
     ]
-    
+
     tech_roles = [
         'Software Engineer', 'Data Scientist', 'DevOps Engineer',
         'Product Manager', 'UX Designer', 'Security Analyst',
         'Cloud Architect', 'Full Stack Developer'
     ]
-    
+
     programming_languages = [
         'Python', 'JavaScript', 'Java', 'Go', 'Rust',
         'TypeScript', 'C++', 'Ruby', 'PHP', 'Swift'
     ]
-    
+
     def tech_company_name(self) -> str:
         """Generate a tech company name."""
         return self.random_element(self.tech_companies)
-    
+
     def tech_domain(self) -> str:
         """Generate a technology domain."""
         return self.random_element(self.tech_domains)
-    
+
     def tech_role(self) -> str:
         """Generate a technology job role."""
         return self.random_element(self.tech_roles)
-    
+
     def programming_language(self) -> str:
         """Generate a programming language."""
         return self.random_element(self.programming_languages)
-    
+
     def tech_stack(self, count: int = 3) -> List[str]:
         """Generate a technology stack."""
         return self.random_elements(
@@ -480,25 +470,25 @@ class TechCompanyProvider(BaseProvider):
             length=count,
             unique=True
         )
-    
+
     def github_username(self) -> str:
         """Generate a GitHub-style username."""
         adjectives = ['cool', 'awesome', 'super', 'mega', 'ultra']
         nouns = ['coder', 'dev', 'ninja', 'guru', 'master']
-        
+
         return f"{self.random_element(adjectives)}{self.random_element(nouns)}{self.random_int(10, 999)}"
 
 class ProjectProvider(BaseProvider):
     """Custom provider for software project data."""
-    
+
     project_types = ['Web App', 'Mobile App', 'API', 'Library', 'CLI Tool', 'Desktop App']
-    
+
     def project_name(self) -> str:
         """Generate a project name."""
         adjective = self.generator.word()
         noun = self.generator.word()
         return f"{adjective.title()}{noun.title()}"
-    
+
     def project_description(self) -> str:
         """Generate a project description."""
         templates = [
@@ -506,7 +496,7 @@ class ProjectProvider(BaseProvider):
             "Modern {project_type} built with {tech}",
             "{adjective} solution for {purpose} using {tech}"
         ]
-        
+
         return self.generator.parse(self.random_element(templates)).format(
             adjective=self.generator.word(),
             project_type=self.random_element(self.project_types).lower(),
@@ -532,7 +522,6 @@ tech_profile = {
     }
 }
 ```
-
 
 ## 4. Testing Integration
 
@@ -577,34 +566,34 @@ def fake_users_batch(fake_user_data):
 
 class TestUserModel:
     """Test user model with fake data."""
-    
+
     def test_user_creation_with_fake_data(self, fake_user_data):
         """Test user creation with generated data."""
         user_data = fake_user_data()
         user = User(**user_data)
-        
+
         assert user.username == user_data['username']
         assert user.email == user_data['email']
         assert user.is_active is True
-    
+
     def test_user_validation_with_invalid_fake_data(self, fake_user_data):
         """Test validation with intentionally invalid data."""
         invalid_data = fake_user_data(
             age=-5,  # Invalid age
             email="invalid-email"  # Invalid email format
         )
-        
+
         with pytest.raises(ValidationError):
             User(**invalid_data)
-    
+
     def test_batch_user_processing(self, fake_users_batch):
         """Test processing multiple users."""
         users_data = fake_users_batch(50)
         users = [User(**data) for data in users_data]
-        
+
         assert len(users) == 50
         assert all(user.is_active for user in users)
-        
+
         # Test uniqueness of generated data
         usernames = [user.username for user in users]
         assert len(set(usernames)) == len(usernames)  # All unique
@@ -621,7 +610,7 @@ from factory.faker import Faker as FactoryFaker
 class UserFactory(factory.Factory):
     class Meta:
         model = User
-    
+
     id = factory.Sequence(lambda n: n + 1)
     username = factory.LazyAttribute(lambda obj: f"user_{obj.id}")
     email = FactoryFaker('email')
@@ -631,7 +620,7 @@ class UserFactory(factory.Factory):
 class OrderFactory(factory.Factory):
     class Meta:
         model = Order
-    
+
     user = factory.SubFactory(UserFactory)
     quantity = FactoryFaker('random_int', min=1, max=10)
     status = FactoryFaker('random_element', elements=['pending', 'shipped'])
@@ -642,7 +631,6 @@ def test_create_order():
     assert order.user is not None
     assert order.quantity > 0
 ```
-
 
 ## 5. Performance and Optimization
 
@@ -656,11 +644,11 @@ class PerformantDataGenerator:
         self.fake = Faker(locale)
         if seed is not None:
             Faker.seed(seed)
-        
+
         # Pre-generate common data for reuse
         self._cached_companies = [self.fake.company() for _ in range(100)]
         self._cached_domains = ['gmail.com', 'yahoo.com', 'company.com']
-    
+
     def generate_users_batch(self, count: int) -> Iterator[Dict[str, Any]]:
         for i in range(count):
             yield {
@@ -670,7 +658,7 @@ class PerformantDataGenerator:
                 'first_name': self.fake.first_name(),
                 'company': self.fake.random_element(self._cached_companies)
             }
-    
+
     def generate_large_dataset(self, total: int, batch_size: int = 1000):
         for start in range(0, total, batch_size):
             end = min(start + batch_size, total)
@@ -689,22 +677,22 @@ class SeededDataGenerator:
             'user_registration': base_seed + 1,
             'error_scenarios': base_seed + 2
         }
-    
+
     def get_seeded_faker(self, scenario: str) -> Faker:
         fake = Faker()
         Faker.seed(self.scenario_seeds[scenario])
         return fake
-    
+
     def generate_test_data(self, scenario: str, count: int = 10) -> List[Dict]:
         fake = self.get_seeded_faker(scenario)
-        
+
         if scenario == 'user_registration':
             return [{
                 'username': fake.user_name(),
                 'email': fake.email(),
                 'age': fake.random_int(min=18, max=65)
             } for _ in range(count)]
-        
+
         return []
 
 # Usage
@@ -714,7 +702,6 @@ def test_with_seeded_data():
     assert len(users) == 5
 ```
 
-
 ## Related Rules
 
 - **`@200-python-core.md`** - Core Python patterns and uv usage
@@ -722,4 +709,3 @@ def test_with_seeded_data():
 - **`@203-python-project-setup.md`** - Python project structure and packaging
 - **`@230-python-pydantic.md`** - Pydantic integration for data validation
 - **`@800-project-changelog-rules.md`** - Changelog discipline for testing changes
-

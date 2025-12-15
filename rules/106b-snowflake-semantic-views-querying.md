@@ -11,11 +11,9 @@
 ## Purpose
 Provide comprehensive guidance for querying Snowflake Semantic Views using the `SEMANTIC_VIEW()` function and validating semantic view implementations through systematic testing. Covers query syntax, dimension compatibility, window function metrics, WHERE clause usage, and performance optimization.
 
-
 ## Rule Scope
 
 Querying semantic views after creation, testing patterns, validation strategies
-
 
 ## Quick Start TL;DR
 
@@ -46,7 +44,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Window function metrics include required dimensions
 - [ ] Validated results against base table calculations
 - [ ] Reviewed Query Profile for performance
-
 
 ## Contract
 
@@ -105,7 +102,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 
 </contract>
 
-
 ## Anti-Patterns and Common Mistakes
 
 **Anti-Pattern 1: Combining FACTS and METRICS in Same Query**
@@ -153,7 +149,6 @@ SELECT * FROM SEMANTIC_VIEW(my_view
 ```
 **Benefits:** Valid query that returns dimension data.
 
-
 ## Post-Execution Checklist
 
 **Querying:**
@@ -174,7 +169,6 @@ SELECT * FROM SEMANTIC_VIEW(my_view
 - [ ] Query Profile reviewed for performance issues
 - [ ] Base tables optimized (clustering, partitioning) if needed
 
-
 ## Validation
 - **Success Checks:**
   - SEMANTIC_VIEW() queries execute without errors
@@ -192,7 +186,6 @@ SELECT * FROM SEMANTIC_VIEW(my_view
   - Filtering on non-returned columns causes error
   - Results diverge from base table calculations (indicates definition error)
 
-
 ## Output Format Examples
 
 ```sql
@@ -208,7 +201,7 @@ SHOW SEMANTIC METRICS FOR SEMANTIC VIEW <view_name>;
 SHOW SEMANTIC DIMENSIONS FOR METRIC <database>.<schema>.<view_name>.<metric_name>;
 
 -- Step 3: Query with compatible dimensions and metrics
-SELECT 
+SELECT
   <dimension_1>,
   <dimension_2>,
   <metric_1>,
@@ -221,7 +214,7 @@ ORDER BY <dimension_1>;
 -- Compare aggregated results from semantic view vs. direct base table query
 ```
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Check semantic view definition BEFORE querying** - Use `SHOW SEMANTIC DIMENSIONS/METRICS` to see available columns
 > 2. **Verify dimension compatibility** - Use `SHOW SEMANTIC DIMENSIONS FOR METRIC` to check which dimensions work with specific metrics
@@ -241,7 +234,6 @@ ORDER BY <dimension_1>;
 > [runs SHOW SEMANTIC DIMENSIONS FOR METRIC]
 > "Here's a query using only compatible dimensions..."
 
-
 ## References
 
 ### External Documentation
@@ -257,8 +249,6 @@ ORDER BY <dimension_1>;
 - **Snowflake Core**: `rules/100-snowflake-core.md` - Foundational Snowflake practices
 - **Performance Tuning**: `rules/103-snowflake-performance-tuning.md` - Query optimization strategies
 - **Cortex Analyst Integration**: `rules/106c-snowflake-semantic-views-integration.md` - Natural language query patterns
-
-
 
 ## 1) Validation and Testing
 
@@ -409,11 +399,11 @@ LIMIT 10;
 -- Test 4: Multi-dimensional analysis
 SELECT * FROM SEMANTIC_VIEW (
   SAMPLE_DATA.TPCDS_SF10TCL.TPCDS_SEMANTIC_VIEW_SM
-  DIMENSIONS 
+  DIMENSIONS
     Item.Brand,
     Item.Category,
     Store.State
-  METRICS 
+  METRICS
     StoreSales.TotalSalesQuantity
 )
 WHERE Category = 'Electronics'
@@ -426,11 +416,11 @@ LIMIT 20;
 -- Test 5: Temporal filtering with relationships
 SELECT * FROM SEMANTIC_VIEW (
   SAMPLE_DATA.TPCDS_SF10TCL.TPCDS_SEMANTIC_VIEW_SM
-  DIMENSIONS 
+  DIMENSIONS
     Date.Year,
     Date.Month,
     Item.Brand
-  METRICS 
+  METRICS
     StoreSales.TotalSalesQuantity
 )
 WHERE Year = '2002'
@@ -443,11 +433,11 @@ LIMIT 15;
 -- Test 6: Cross-dimensional analysis (customer + product + time)
 SELECT * FROM SEMANTIC_VIEW (
   SAMPLE_DATA.TPCDS_SF10TCL.TPCDS_SEMANTIC_VIEW_SM
-  DIMENSIONS 
+  DIMENSIONS
     Customer.C_BIRTH_COUNTRY,
     Item.Category,
     Date.Year
-  METRICS 
+  METRICS
     StoreSales.TotalSalesQuantity
 )
 WHERE Year = '2002'
@@ -465,11 +455,11 @@ LIMIT 25;
 
 SELECT * FROM SEMANTIC_VIEW (
   SAMPLE_DATA.TPCDS_SF10TCL.TPCDS_SEMANTIC_VIEW_SM
-  DIMENSIONS 
+  DIMENSIONS
     Date.Year,
     Date.Month,
     Store.State
-  METRICS 
+  METRICS
     StoreSales.TotalSalesQuantity
 )
 WHERE Year = '2002'
@@ -491,7 +481,7 @@ ORDER BY TotalSalesQuantity DESC;
 
 -- Semantic view query
 WITH semantic_result AS (
-  SELECT 
+  SELECT
     SUM(TotalSalesQuantity) AS semantic_total
   FROM SEMANTIC_VIEW (
     SAMPLE_DATA.TPCDS_SF10TCL.TPCDS_SEMANTIC_VIEW_SM
@@ -501,17 +491,17 @@ WITH semantic_result AS (
 ),
 -- Direct table query
 direct_result AS (
-  SELECT 
+  SELECT
     SUM(SS_QUANTITY) AS direct_total
   FROM SAMPLE_DATA.TPCDS_SF10TCL.STORE_SALES s
   JOIN SAMPLE_DATA.TPCDS_SF10TCL.DATE_DIM d ON s.SS_SOLD_DATE_SK = d.D_DATE_SK
   WHERE d.D_YEAR = 2002
 )
-SELECT 
+SELECT
   s.semantic_total,
   d.direct_total,
   s.semantic_total - d.direct_total AS difference,
-  CASE 
+  CASE
     WHEN s.semantic_total = d.direct_total THEN 'PASS'
     ELSE 'FAIL'
   END AS validation_status
@@ -549,20 +539,20 @@ import json
 
 def test_semantic_view_nlq(account, token, semantic_view, test_queries):
     """Test semantic view with multiple natural language queries"""
-    
+
     url = f"https://{account}.snowflakecomputing.com/api/v2/cortex/analyst/message"
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json"
     }
-    
+
     results = []
     for query in test_queries:
         payload = {
             "semantic_view": semantic_view,
             "messages": [{"role": "user", "content": query}]
         }
-        
+
         response = requests.post(url, headers=headers, json=payload)
         result = {
             "query": query,
@@ -570,11 +560,11 @@ def test_semantic_view_nlq(account, token, semantic_view, test_queries):
             "response": response.json() if response.ok else response.text
         }
         results.append(result)
-        
+
         print(f"Query: {query}")
         print(f"Status: {result['status']}")
         print(f"Response: {json.dumps(result['response'], indent=2)}\n")
-    
+
     return results
 
 # TPC-DS test queries
@@ -605,7 +595,7 @@ results = test_semantic_view_nlq(
 SHOW CLUSTERING KEYS IN TABLE SAMPLE_DATA.TPCDS_SF10TCL.STORE_SALES;
 
 -- Step 2: Check table statistics
-SELECT 
+SELECT
   TABLE_NAME,
   ROW_COUNT,
   BYTES,
@@ -631,10 +621,9 @@ WHERE Year = '2002' AND Month = '12';
 
 -- Step 5: If performance issues, optimize base table
 -- (Semantic view optimization happens via base table tuning)
-ALTER TABLE SAMPLE_DATA.TPCDS_SF10TCL.STORE_SALES 
+ALTER TABLE SAMPLE_DATA.TPCDS_SF10TCL.STORE_SALES
   CLUSTER BY (SS_SOLD_DATE_SK);
 ```
-
 
 ## 2) Querying Semantic Views
 
@@ -687,7 +676,7 @@ LIMIT 10;
 
 ```sql
 -- Find which dimensions work with a specific metric
-SHOW SEMANTIC DIMENSIONS FOR METRIC avg_7_days_sales_quantity 
+SHOW SEMANTIC DIMENSIONS FOR METRIC avg_7_days_sales_quantity
   IN sv_window_function_example;
 
 -- Output includes 'required' column indicating mandatory dimensions
@@ -743,10 +732,10 @@ METRICS <table>.<metric> [AS] <alias>
 -- Use aliases for cleaner column names
 SELECT * FROM SEMANTIC_VIEW(
   SAMPLE_DATA.TPCDS_SF10TCL.TPCDS_SEMANTIC_VIEW_SM
-  DIMENSIONS 
+  DIMENSIONS
     Customer.C_BIRTH_COUNTRY AS country,
     Item.Category AS product_category
-  METRICS 
+  METRICS
     StoreSales.TotalSalesQuantity AS total_quantity
 )
 WHERE country IN ('UNITED STATES', 'CANADA')
@@ -782,7 +771,7 @@ SELECT * FROM SEMANTIC_VIEW(
 ```sql
 SELECT * FROM SEMANTIC_VIEW(
   SAMPLE_DATA.TPCDS_SF10TCL.TPCDS_SEMANTIC_VIEW_SM
-  DIMENSIONS 
+  DIMENSIONS
     Date.Year,
     Store.State,
     Item.Category
@@ -928,7 +917,7 @@ SELECT * FROM SEMANTIC_VIEW(
 -- Window function metric: SUM of another metric with window function
 METRICS (
   table_1.metric_1 AS SUM(table_1.metric_3) OVER(
-    PARTITION BY dimension_1 
+    PARTITION BY dimension_1
     ORDER BY dimension_2
   )
 )
@@ -1004,7 +993,7 @@ CREATE OR REPLACE SEMANTIC VIEW sv_window_function_example
 **Find Required Dimensions:**
 ```sql
 -- Use SHOW SEMANTIC DIMENSIONS FOR METRIC to find required dimensions
-SHOW SEMANTIC DIMENSIONS IN sv_window_function_example 
+SHOW SEMANTIC DIMENSIONS IN sv_window_function_example
   FOR METRIC avg_7_days_sales_quantity;
 
 -- Output shows 'required' column for mandatory dimensions
@@ -1046,7 +1035,7 @@ SELECT * FROM SEMANTIC_VIEW (
 SELECT * FROM SEMANTIC_VIEW (
   sv_window_function_example
   DIMENSIONS date.date, date.year
-  METRICS 
+  METRICS
     store_sales.total_sales_quantity_30_days_ago,
     store_sales.avg_7_days_sales_quantity_30_days_ago
 );
@@ -1091,7 +1080,6 @@ WHERE sale_date >= '2002-01-01'  -- Filter enables partition pruning
 **Optimize Base Table if Needed:**
 ```sql
 -- Add clustering to improve query performance
-ALTER TABLE SAMPLE_DATA.TPCDS_SF10TCL.STORE_SALES 
+ALTER TABLE SAMPLE_DATA.TPCDS_SF10TCL.STORE_SALES
   CLUSTER BY (SS_SOLD_DATE_SK);
 ```
-

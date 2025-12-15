@@ -11,11 +11,9 @@
 ## Purpose
 Establish comprehensive foundational practices for all Snowflake development work, ensuring cost-effective, performant, and secure solutions through proper SQL authoring, object naming, security policies, and architectural patterns.
 
-
 ## Rule Scope
 
 Foundational Snowflake development practices across all SQL, data modeling, and platform features
-
 
 ## Quick Start TL;DR
 
@@ -34,7 +32,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - **Use Streams + Tasks** - Incremental processing, not full reloads
 - **Never use SELECT *** in production - explicit columns only
 - **Avoid template characters in identifiers** - No `&`, `<%`, `%>`, `{{`, `}}` in names, synonyms, or comments (Snowflake CLI interprets these as template variables)
-
 
 ## Contract
 
@@ -80,7 +77,6 @@ SQL snippets or task definitions only; no narrative unless requested
 
 </contract>
 
-
 ## Anti-Patterns and Common Mistakes
 
 **Anti-Pattern 1: Using SELECT * Instead of Explicit Columns**
@@ -96,7 +92,7 @@ WHERE order_date >= '2024-01-01';
 **Correct Pattern:**
 ```sql
 -- Good: Explicit column selection
-SELECT 
+SELECT
   order_id,
   customer_id,
   order_date,
@@ -112,7 +108,7 @@ WHERE order_date >= '2024-01-01';
 **Anti-Pattern 2: Parsing VARIANT Fields Multiple Times**
 ```sql
 -- Bad: Parse VARIANT in every clause
-SELECT 
+SELECT
   raw_json:customer:id::string AS customer_id,
   raw_json:customer:name::string AS customer_name,
   SUM(raw_json:amount::number) AS total_amount
@@ -128,7 +124,7 @@ GROUP BY raw_json:customer:id::string, raw_json:customer:name::string;
 ```sql
 -- Good: Parse VARIANT once in CTE
 WITH parsed AS (
-  SELECT 
+  SELECT
     raw_json:customer:id::string AS customer_id,
     raw_json:customer:name::string AS customer_name,
     raw_json:amount::number AS amount,
@@ -137,7 +133,7 @@ WITH parsed AS (
   FROM events
   WHERE raw_json:timestamp::timestamp_ntz >= '2024-01-01'
 )
-SELECT 
+SELECT
   customer_id,
   customer_name,
   SUM(amount) AS total_amount
@@ -160,7 +156,7 @@ AS
 DELETE FROM summary_table;  -- Drop all data!
 
 INSERT INTO summary_table
-SELECT 
+SELECT
   customer_id,
   DATE_TRUNC('hour', order_timestamp) AS hour,
   SUM(amount) AS total_amount
@@ -184,7 +180,7 @@ WHEN SYSTEM$STREAM_HAS_DATA('orders_stream')  -- Only runs if new data
 AS
 MERGE INTO summary_table tgt
 USING (
-  SELECT 
+  SELECT
     customer_id,
     DATE_TRUNC('hour', order_timestamp) AS hour,
     SUM(amount) AS total_amount
@@ -194,7 +190,7 @@ USING (
 ) src
 ON tgt.customer_id = src.customer_id AND tgt.hour = src.hour
 WHEN MATCHED THEN UPDATE SET total_amount = tgt.total_amount + src.total_amount
-WHEN NOT MATCHED THEN INSERT (customer_id, hour, total_amount) 
+WHEN NOT MATCHED THEN INSERT (customer_id, hour, total_amount)
   VALUES (src.customer_id, src.hour, src.total_amount);
 
 ALTER TASK incremental_aggregation RESUME;
@@ -213,7 +209,7 @@ SELECT DISTINCT
   order_timestamp,
   amount
 FROM (
-  SELECT 
+  SELECT
     customer_id,
     order_id,
     order_timestamp,
@@ -229,7 +225,7 @@ WHERE rn = 1;
 **Correct Pattern:**
 ```sql
 -- Good: Use QUALIFY for window function filtering
-SELECT 
+SELECT
   customer_id,
   order_id,
   order_timestamp,
@@ -239,7 +235,6 @@ QUALIFY ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY updated_at DESC) = 1;
 -- Single pass, efficient filtering, clear intent, optimal performance!
 ```
 **Benefits:** Single pass; no extra sorting; minimal memory; efficient; clear deduplication; better performance; professional; Snowflake-native
-
 
 ## Post-Execution Checklist
 - [ ] All queries use explicit column selection (no SELECT *)
@@ -255,7 +250,7 @@ QUALIFY ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY updated_at DESC) = 1;
 - [ ] No DISTINCT used for deduplication (use ROW_NUMBER() instead)
 - [ ] No template characters (`&`, `<%`, `%>`, `{{`, `}}`) in identifiers, synonyms, or comments
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. Read SQL files and table definitions BEFORE making recommendations
 > 2. Verify schema structure and column types against actual metadata
@@ -263,13 +258,11 @@ QUALIFY ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY updated_at DESC) = 1;
 > 4. Check Query Profile for actual performance characteristics
 > 5. Make grounded recommendations based on investigated schema and data
 
-
 ## Validation
 - Run and inspect Query Profile for each critical query; ensure early filters and pruning.
 - Verify no `SELECT *` and no `DISTINCT`-based deduplication.
 - Confirm VARIANT fields are parsed once in a CTE.
 - For pipelines, demonstrate Streams + Tasks with idempotency and late-arrival handling.
-
 
 ## Output Format Examples
 ```sql
@@ -288,7 +281,6 @@ agg AS (
 )
 SELECT * FROM agg;
 ```
-
 
 ## References
 
@@ -309,14 +301,12 @@ SELECT * FROM agg;
 - **Snowpipe**: `rules/121-snowflake-snowpipe.md`
 - **Warehouse Management**: `rules/119-snowflake-warehouse-management.md`
 
-
 ## 1. General Principles
 - **Always:** Apply a "cost-first" mindset.
 - **Rule:** Always fully qualify objects (DATABASE.SCHEMA.OBJECT) in shared code.
 - **Rule:** Prefer declarative set-based operations over procedural row loops.
 - **Rule:** Use CTEs for logical segmentation.
 - **Rule:** Avoid accidental cross joins by using explicit join predicates and aliases.
-
 
 ## 2. Optimization and Performance
 - **Always:** Push filtering and partition pruning as early as possible in queries.
@@ -325,13 +315,11 @@ SELECT * FROM agg;
 - **Always:** Use Snowflake's query profile to diagnose performance issues and propose optimizations.
 - **Always:** Reference Snowflake performance documentation for query tuning guidance: https://docs.snowflake.com/en/user-guide/performance-overview
 
-
 ## 3. Security and Governance
 - **Rule:** Enforce governance with masking policies, row access policies, and tagging, especially for sensitive data. See `123-snowflake-object-tagging.md` for comprehensive tagging patterns.
 - **Rule:** Never use `SELECT *` in production code. Explicitly project required columns.
 - **Always:** Use Time Travel and Cloning for safe development, testing, and dev/test isolation.
 - **Always:** Reference Snowflake security and governance documentation for best practices: https://docs.snowflake.com/en/user-guide/data-governance-intro
-
 
 ## 4. Anti-Patterns
 - **Rule:** Avoid deep view nesting (>5 layers).
@@ -339,11 +327,9 @@ SELECT * FROM agg;
 - **Rule:** Avoid repeated casting of `VARIANT` fields; parse them once in a CTE.
 - **Rule:** Avoid recomputing large fact tables from scratch daily unless a high change rate is necessary.
 
-
 ## 5. Incremental Patterns
 - **Always:** Use **Streams** and **Tasks** for incremental data pipelines instead of full reloads or ad-hoc MERGE loops.
 - **Always:** Reference Snowflake Streams and Tasks documentation for implementation details: https://docs.snowflake.com/en/sql-reference-commands
-
 
 ## 6. Common Tasks & Checklists
 - **Always:** Before any action, apply the following checks:
@@ -353,7 +339,6 @@ SELECT * FROM agg;
   - Is an incremental pattern used for mutable, large tables?
   - Are security policies or masks applied where needed?
   - Are anti-patterns absent?
-
 
 ## 7. Related Specialized Rules
 - **Rule:** For deeper guidance, reference the following specialized rules:
@@ -369,7 +354,6 @@ SELECT * FROM agg;
   - `108-snowflake-data-loading.md`: Stages and `COPY INTO` for bulk loading.
   - `121-snowflake-snowpipe.md`: Snowpipe and Snowpipe Streaming for continuous near-real-time ingestion.
   - `109-snowflake-notebooks.md`: Jupyter Notebooks in Snowflake best practices.
-
 
 ## 8. Object Naming Conventions (DDL)
 
@@ -415,7 +399,6 @@ SELECT * FROM agg;
   - Good: `'R and D Department'`, `'Research and Development'`, `'Sales and Marketing'`
 - **Why:** These characters cause deployment failures with cryptic error messages when SQL files are executed via CLI tools.
 
-
 ## Related Rules
 
 **Closely Related** (consider loading together):
@@ -430,4 +413,3 @@ SELECT * FROM agg;
 **Complementary** (different aspects of same domain):
 - `105-snowflake-cost-governance` - For tagging standards (COST_CENTER, WORKLOAD_TYPE)
 - `111-snowflake-observability-core` - For monitoring Snowflake workloads and queries
-

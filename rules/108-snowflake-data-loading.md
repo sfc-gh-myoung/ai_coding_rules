@@ -11,12 +11,9 @@
 ## Purpose
 Provide comprehensive best practices for efficiently staging and bulk loading data into Snowflake using Stages and COPY INTO commands, optimizing for performance, reliability, and cost-effectiveness in batch loading scenarios.
 
-
 ## Rule Scope
 
 Snowflake data staging and bulk loading with Stages and COPY INTO commands (for continuous ingestion with Snowpipe, see `121-snowflake-snowpipe.md`)
-
-
 
 ## Quick Start TL;DR
 
@@ -46,14 +43,13 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Check COPY_HISTORY for errors
 - [ ] If continuous ingestion needed, use Snowpipe (121)
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. Read existing STAGE definitions BEFORE making recommendations
 > 2. Verify file format (CSV, JSON, Parquet) matches actual data
 > 3. Never speculate about file structure - check sample files
 > 4. Review COPY_HISTORY for actual load patterns and errors
 > 5. Make grounded recommendations based on investigated stage and file metadata
-
 
 ## Contract
 
@@ -90,7 +86,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 </design_principles>
 
 </contract>
-
 
 ## Anti-Patterns and Common Mistakes
 
@@ -143,7 +138,7 @@ FROM @my_stage/data.json.gz
 FILE_FORMAT = my_json_format;
 
 -- For consistent types, enable subcolumnarization
-ALTER TABLE json_table 
+ALTER TABLE json_table
   SET ENABLE_SCHEMA_EVOLUTION = TRUE;
 ```
 **Benefits:** Consistent parsing; correct type handling; subcolumnarization enabled; better query performance; data quality assured; predictable loading behavior
@@ -211,7 +206,6 @@ FILE_FORMAT = (TYPE=CSV);
 ```
 **Benefits:** Errors caught before loading; no partial loads; no data corruption; production safety; confidence in load; zero downtime; professional deployment
 
-
 ## Post-Execution Checklist
 - [ ] Required dependencies and context verified
 - [ ] Appropriate tools selected and validated
@@ -219,11 +213,9 @@ FILE_FORMAT = (TYPE=CSV);
 - [ ] Output format matches requirements
 - [ ] Validation steps completed successfully
 
-
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
-
 
 ## Output Format Examples
 
@@ -238,7 +230,7 @@ GROUP BY column_pattern;
 CREATE OR REPLACE VIEW schema.view_name
 COMMENT = 'Business purpose following semantic model standards'
 AS
-SELECT 
+SELECT
     -- Explicit column list with business context
     id COMMENT 'Surrogate key',
     name COMMENT 'Business entity name',
@@ -251,11 +243,10 @@ SELECT * FROM schema.view_name LIMIT 5;
 SHOW VIEWS LIKE '%view_name%';
 ```
 
-
 ## References
 
 ### External Documentation
-- [COPY INTO Command](https://docs.snowflake.com/en/sql-reference/sql/copy-into-table) - Bulk data loading syntax and options                                                                                           
+- [COPY INTO Command](https://docs.snowflake.com/en/sql-reference/sql/copy-into-table) - Bulk data loading syntax and options
 - [Data Loading Stages](https://docs.snowflake.com/en/user-guide/data-load-stages-intro) - Internal and external stage management
 - [Data Loading Best Practices](https://docs.snowflake.com/en/user-guide/data-load-considerations) - File sizing and optimization guidance
 
@@ -266,12 +257,10 @@ SHOW VIEWS LIKE '%view_name%';
 - **Performance Tuning**: `rules/103-snowflake-performance-tuning.md`
 - **Warehouse Management**: `rules/119-snowflake-warehouse-management.md`
 
-
 ## 1. Stages
 - **Requirement:** Stage data files in an internal or external stage before loading.
 - **Requirement:** Use a separate, dedicated stage for each external data source for organization and security.
 - **Always:** Use `PUT` and `GET` to manage files in internal stages.
-
 
 ## 2. Bulk Data Loading with COPY INTO
 - **Requirement:** Use `COPY INTO` for bulk, one-time, and scheduled batch loads.
@@ -279,11 +268,9 @@ SHOW VIEWS LIKE '%view_name%';
 - **Requirement:** Be explicit about error handling (`ON_ERROR = CONTINUE`, `SKIP_FILE`, or `ABORT_STATEMENT`).
 - **Requirement:** Specify file formats explicitly with `FILE_FORMAT` parameter.
 
-
 ## 3. File Preparation and Optimization
 - **Requirement:** Aim for compressed file sizes between 100–250 MB for optimal performance and cost.
 - **Requirement:** For semi-structured data, ensure consistent data types within elements to enable subcolumnarization.
-
 
 ## Related Rules
 
@@ -299,4 +286,3 @@ SHOW VIEWS LIKE '%view_name%';
 **Complementary** (different aspects of same domain):
 - `107-snowflake-security-governance` - For encryption, masking during loading, stage access
 - `111-snowflake-observability-core` - For monitoring COPY INTO performance and errors
-

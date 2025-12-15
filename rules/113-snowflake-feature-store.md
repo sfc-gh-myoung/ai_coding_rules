@@ -11,11 +11,9 @@
 ## Purpose
 Establish comprehensive best practices for using Snowflake Feature Store to create, maintain, and serve ML features, ensuring consistency, reusability, and production-ready feature pipelines that integrate seamlessly with Snowflake ML workflows.
 
-
 ## Rule Scope
 
 Snowflake Feature Store (Enterprise Edition), feature engineering, entity modeling, feature views, ML dataset creation, and Model Registry integration
-
 
 ## Quick Start TL;DR
 
@@ -44,7 +42,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Training datasets generated
 - [ ] Model Registry integration
 - [ ] Access controls applied
-
 
 ## Contract
 
@@ -88,7 +85,6 @@ Verify feature view refresh schedules; test point-in-time joins; validate entity
 </design_principles>
 
 </contract>
-
 
 ## Anti-Patterns and Common Mistakes
 
@@ -233,7 +229,7 @@ CREATE DYNAMIC TABLE customer_features_view
 TARGET_LAG = '1 MINUTE'  -- Refreshes constantly!
 WAREHOUSE = LARGE_WH     -- Expensive warehouse!
 AS
-SELECT 
+SELECT
   customer_id,
   -- Complex aggregations over millions of rows
   COUNT(*) OVER (PARTITION BY customer_id ORDER BY timestamp ROWS BETWEEN 1000 PRECEDING AND CURRENT ROW) as rolling_count
@@ -252,7 +248,7 @@ CREATE DYNAMIC TABLE customer_features_view
 TARGET_LAG = '1 HOUR'    -- Less frequent initially
 WAREHOUSE = SMALL_WH     -- Start small
 AS
-SELECT 
+SELECT
   customer_id,
   COUNT(*) as purchase_count,
   SUM(amount) as total_spend
@@ -260,7 +256,7 @@ FROM transactions
 GROUP BY customer_id;
 
 # Step 2: Monitor refresh costs
-SELECT 
+SELECT
   table_name,
   refresh_action,
   completion_time,
@@ -273,7 +269,7 @@ WHERE table_name = 'CUSTOMER_FEATURES_VIEW'
 ORDER BY start_time DESC;
 
 # Step 3: Calculate cost per refresh
-SELECT 
+SELECT
   AVG(credits_used) as avg_credits_per_refresh,
   SUM(credits_used) as total_credits_weekly,
   COUNT(*) as refresh_count
@@ -283,11 +279,11 @@ WHERE table_name = 'CUSTOMER_FEATURES_VIEW'
 
 # Step 4: Optimize based on actual usage
 -- If features rarely change, increase TARGET_LAG to reduce costs
-ALTER DYNAMIC TABLE customer_features_view 
+ALTER DYNAMIC TABLE customer_features_view
 SET TARGET_LAG = '4 HOURS';  -- Reduce refresh frequency
 
 -- If costs still high, use smaller warehouse
-ALTER DYNAMIC TABLE customer_features_view 
+ALTER DYNAMIC TABLE customer_features_view
 SET WAREHOUSE = XSMALL_WH;
 
 # Step 5: Set up cost alerts
@@ -296,7 +292,7 @@ WAREHOUSE = MONITORING_WH
 SCHEDULE = '1 DAY'
 AS
 INSERT INTO feature_cost_alerts
-SELECT 
+SELECT
   table_name,
   SUM(credits_used) as daily_credits,
   CURRENT_DATE() as alert_date
@@ -306,7 +302,6 @@ GROUP BY table_name
 HAVING SUM(credits_used) > 10;  -- Alert if >10 credits/day
 ```
 **Benefits:** Cost visibility; optimized refreshes; budget control; ROI tracking; proactive alerts; financial responsibility; professional operations; sustainable ML
-
 
 ## Post-Execution Checklist
 - [ ] Feature store schema created with proper access control
@@ -321,12 +316,11 @@ HAVING SUM(credits_used) > 10;  -- Alert if >10 credits/day
 - [ ] Refresh costs monitored and optimized
 - [ ] Feature definitions documented with business logic and rationale
 
-
 ## Validation
 - **Success Checks:** Feature views refresh successfully on schedule; datasets generate with expected schema and row counts; ASOF JOIN preserves temporal correctness; Model Registry shows feature lineage; access controls prevent unauthorized access; features produce consistent values across generations
 - **Negative Tests:** Attempt to access features without proper role (should fail); generate dataset without spine timestamp (should warn about data leakage); modify feature view without versioning (should be tracked); use stale features in inference (lineage should detect mismatch)
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read existing feature store setup BEFORE creating features** - Check schema structure, entity definitions
 > 2. **Verify Enterprise Edition availability** - Feature Store requires Enterprise Edition
@@ -342,7 +336,6 @@ HAVING SUM(credits_used) > 10;  -- Alert if >10 credits/day
 > "Let me check your Feature Store setup first."
 > [reads feature store schema, checks entities, reviews feature views]
 > "I see you have CUSTOMER entity with daily refresh pattern. Creating new feature view following this pattern..."
-
 
 ## Output Format Examples
 ```python
@@ -393,7 +386,6 @@ training_data = fs.generate_dataset(
 )
 ```
 
-
 ## References
 
 ### External Documentation
@@ -412,8 +404,6 @@ training_data = fs.generate_dataset(
 - **Warehouse Management**: `rules/119-snowflake-warehouse-management.md`
 - **Data Governance**: `rules/107-snowflake-security-governance.md`
 - **Python Core**: `rules/200-python-core.md`
-
-
 
 ## 1. Feature Store Setup and Organization
 
@@ -450,7 +440,6 @@ GRANT CREATE DYNAMIC TABLE ON SCHEMA ML_DATABASE.CUSTOMER_FEATURE_STORE TO ROLE 
 - **Always:** Use clear naming: `<ENTITY>_<AGGREGATION>_<TIMEFRAME>` (e.g., `customer_purchases_30d`, `product_views_weekly`)
 - **Rule:** Document feature definitions, transformations, and business logic in comments
 
-
 ## 2. Entity Modeling and Tagging
 
 ### Defining Entities
@@ -483,7 +472,6 @@ product_entity = fs.register_entity(
 - **Always:** Use stable, immutable identifiers as join keys (customer_id, not email)
 - **Rule:** For composite keys, specify all columns in join_keys list
 - **Avoid:** Using mutable attributes or timestamps as entity join keys
-
 
 ## 3. Feature Views - Snowflake-Managed
 
@@ -535,7 +523,6 @@ refresh_freq="1 day"     # Daily batch features (most common)
 refresh_freq="1 week"    # Static/slow-changing features
 ```
 
-
 ## 4. Feature Views - External (User-Managed)
 
 ### External Feature Views with dbt
@@ -563,7 +550,6 @@ fs.register_feature_view(
 - **Snowflake-Managed:** New features; standard aggregations; want automatic refresh
 - **External:** Existing dbt/Airflow pipelines; complex multi-step transformations; custom orchestration
 
-
 ## 5. Dataset Generation and Point-in-Time Correctness
 
 ### Creating Training Datasets
@@ -574,7 +560,7 @@ fs.register_feature_view(
 ```python
 # Spine DataFrame - observations with labels and timestamps
 spine_df = session.sql("""
-    SELECT 
+    SELECT
         customer_id,
         observation_date,
         churned AS label  -- Target variable
@@ -608,12 +594,11 @@ train_df = training_data.read.to_pandas()
 **Why This Matters:**
 ```
 Without ASOF JOIN (data leakage):
-  2024-03-01 prediction uses features calculated on 2024-03-31 
+  2024-03-01 prediction uses features calculated on 2024-03-31
 
 With ASOF JOIN (point-in-time correct):
-  2024-03-01 prediction uses features calculated on 2024-03-01 
+  2024-03-01 prediction uses features calculated on 2024-03-01
 ```
-
 
 ## 6. Feature Engineering Patterns
 
@@ -649,7 +634,6 @@ GROUP BY customer_id
 - **Always:** Use `NULLIF` to prevent division by zero errors
 - **Consider:** Normalize features within feature view for model stability
 
-
 ## 7. Feature Versioning and Lineage
 
 ### Feature View Versioning
@@ -672,7 +656,6 @@ fs.register_feature_view(feature_view=customer_fv_v2, version="2.0")
 - **Always:** Feature Store automatically tracks lineage with Model Registry
 - **Rule:** When training models, retrieve features through Feature Store for lineage capture
 - **Requirement:** Document which feature view versions were used for each model version
-
 
 ## 8. Access Control and Governance
 
@@ -703,7 +686,6 @@ GRANT SELECT ON FUTURE DYNAMIC TABLES IN SCHEMA ML_DATABASE.CUSTOMER_FEATURE_STO
 - **Always:** Tag sensitive features with appropriate classification tags
 - **Rule:** Use row access policies to restrict feature access by role or context
 
-
 ## 9. Performance and Cost Optimization
 
 ### Feature View Performance
@@ -719,7 +701,7 @@ GRANT SELECT ON FUTURE DYNAMIC TABLES IN SCHEMA ML_DATABASE.CUSTOMER_FEATURE_STO
 ### Cost Monitoring
 ```sql
 -- Monitor feature view refresh costs
-SELECT 
+SELECT
     table_name,
     refresh_action,
     refresh_trigger,
@@ -730,7 +712,6 @@ WHERE table_schema = 'CUSTOMER_FEATURE_STORE'
   AND start_time >= DATEADD('day', -7, CURRENT_TIMESTAMP())
 ORDER BY credits_used DESC;
 ```
-
 
 ## 10. Integration with Model Registry
 
@@ -766,7 +747,6 @@ model_ref = registry.log_model(
 )
 ```
 
-
 ## 11. Common Feature Patterns
 
 ### Recency Features
@@ -796,7 +776,6 @@ orders_7d / NULLIF(orders_30d, 0) AS order_acceleration,
 spend_7d - spend_30d AS spend_trend
 ```
 
-
 ## 12. Best Practices Summary
 
 ### Feature View Design
@@ -816,4 +795,3 @@ spend_7d - spend_30d AS spend_trend
 - **Always:** Use deterministic transformations (avoid RANDOM(), CURRENT_TIMESTAMP() without context)
 - **Rule:** Document feature engineering decisions and rationale
 - **Always:** Test feature generation produces consistent results across runs
-

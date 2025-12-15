@@ -11,11 +11,8 @@
 ## Purpose
 Establish directives for a professional contribution workflow covering commits, pull requests, changelog discipline, and rule authoring standards to ensure consistent project collaboration and quality.
 
-
 ## Rule Scope
 Professional contribution workflows for commits, pull requests, and rule authoring standards
-
-
 
 ## Quick Start TL;DR
 
@@ -52,8 +49,6 @@ Professional contribution workflows for commits, pull requests, and rule authori
 > "Let me check the rule numbering scheme in 002-rule-governance.md first."
 > [reads governance, identifies correct range]
 > "I see 100-199 is for Snowflake. I'll use next available number in that range and edit rules/"
-
-
 
 ## Contract
 
@@ -109,7 +104,6 @@ Professional contribution workflows for commits, pull requests, and rule authori
 </validation>
 
 </contract>
-
 
 ## Anti-Patterns and Common Mistakes
 
@@ -190,11 +184,9 @@ git commit -m "feat(rule): add new rule"
 - [ ] Output format matches requirements
 - [ ] Validation steps completed successfully
 
-
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
-
 
 ## Output Format Examples
 
@@ -225,7 +217,7 @@ Updated CHANGELOG.md:
 ## References
 
 ### External Documentation
-- [GitHub Contributing Guidelines](https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/setting-guidelines-for-repository-contributors) - GitHub's guide for contribution workflows 
+- [GitHub Contributing Guidelines](https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/setting-guidelines-for-repository-contributors) - GitHub's guide for contribution workflows
 - [Open Source Guides](https://opensource.guide/) - Best practices for open source project management
 - [Conventional Commits](https://www.conventionalcommits.org/) - Standardized commit message format
 
@@ -234,7 +226,6 @@ Updated CHANGELOG.md:
 - **Changelog Rules**: `rules/800-project-changelog.md`
 - **README Rules**: `rules/801-project-readme.md`
 - **Rules Governance**: `rules/002-rule-governance.md`
-
 
 ## 1. Commit & Changelog Discipline
 - **Requirement:** Follow Conventional Commits: `<type>(<scope>): <imperative summary>`.
@@ -249,7 +240,6 @@ Updated CHANGELOG.md:
 - **Always:** After user-facing changes, update `CHANGELOG.md` under `## [Unreleased]`.
 - **Requirement:** Each changelog entry is a single concise line; collapse micro-fixes.
 - **Requirement:** Avoid anti-patterns: "WIP" subjects, unscoped types for multi-domain changes, mixing features and fixes.
-
 
 ## 2. Rule Authoring Standards
 
@@ -279,14 +269,12 @@ Updated CHANGELOG.md:
   - Zsh Scripting: `310-319`
 - **Rule:** Use 20-number jumps for major feature areas (e.g., `120` for Snowflake SPCS).
 
-
 ## 3. General Code Standards
 - **Requirement:** SQL must use uppercase keywords and explicit identifiers (avoid `SELECT *`).
 - **Requirement:** Shell scripts must include proper shebang and error handling (`set -euo pipefail`).
 - **Always:** New behavior should include at least one happy-path test and one negative/edge case test.
 - **Requirement:** Test function names follow `test_<function>_when_<condition>_should_<result>`.
 - **Always:** Reference specialized rules as needed (e.g., `@200-python-core.md`, `@300-bash-scripting-core.md`).
-
 
 ## Contributing
 [50 lines of detailed development workflow]
@@ -339,7 +327,6 @@ Updated CHANGELOG.md:
 - **Rule:** When adding new rules, update README.md to reflect the new structure.
 - **Rule:** When modifying rule numbering, ensure all cross-references are updated.
 
-
 ## 5. Rule Categories and Examples
 
 ### Current Rule Structure
@@ -381,13 +368,11 @@ Demo & Templates (900-999)
 - **Always:** Update README.md rule categories section
 - **Always:** Validate rule follows governance standards in `@002-rule-governance.md`
 
-
 ## 6. Documentation References
 - **Always:** Reference Conventional Commits: https://www.conventionalcommits.org/en/v1.0.0/#specification
 - **Always:** Follow rule governance: `@002-rule-governance.md`
 - **Always:** Use README standards: `@801-project-readme.md`
 - **Always:** Follow changelog discipline: `@800-project-changelog.md`
-
 
 ## [Unreleased]
 ### Added
@@ -438,11 +423,10 @@ EOF
 
 Pull Request:
 - Title: feat(python): add Django framework core patterns rule
-- Description: 
+- Description:
   - Addresses #123 - need for Django-specific guidance
   - Provides comprehensive patterns for Django development
   - Follows 002-rule-governance.md v5.0 structure
   - Includes anti-patterns and investigation protocol
 - Validation checklist: All items completed [PASS]
 ```
-

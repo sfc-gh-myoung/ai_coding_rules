@@ -11,11 +11,9 @@
 ## Purpose
 Provide reliable patterns for building and querying Cortex Search indices, including data preparation, embedding hygiene, metadata filters, hybrid retrieval, agent tool configuration, and cost/latency considerations.
 
-
 ## Rule Scope
 
 Cortex Search indexing and querying; embedding creation; metadata and security filters; agent tool integration; observability and cost control
-
 
 ## Quick Start TL;DR
 
@@ -44,7 +42,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Metadata filters configured
 - [ ] Agent tool descriptions written
 - [ ] Cost/latency monitoring enabled
-
 
 ## Contract
 
@@ -92,7 +89,6 @@ Index contains expected docs; retrieval quality validated; filters enforce acces
 
 </contract>
 
-
 ## Anti-Patterns and Common Mistakes
 
 **Anti-Pattern 1: Not Chunking Long Documents**
@@ -103,7 +99,7 @@ CREATE CORTEX SEARCH SERVICE documentation_search
   WAREHOUSE = compute_wh
   TARGET_LAG = '1 hour'
 AS (
-  SELECT 
+  SELECT
     doc_id,
     full_document_text,  -- 50,000 tokens! Won't retrieve well
     metadata
@@ -117,11 +113,11 @@ AS (
 -- Good: Chunk long documents into 500-1000 token segments
 CREATE OR REPLACE VIEW chunked_documents AS
 WITH chunks AS (
-  SELECT 
+  SELECT
     doc_id,
     chunk_number,
-    SUBSTR(full_document_text, 
-           (chunk_number * 1000) + 1, 
+    SUBSTR(full_document_text,
+           (chunk_number * 1000) + 1,
            1000) as chunk_text,
     metadata
   FROM knowledge_base
@@ -162,7 +158,7 @@ CREATE CORTEX SEARCH SERVICE product_docs_search
   ATTRIBUTES metadata
   WAREHOUSE = compute_wh
 AS (
-  SELECT 
+  SELECT
     doc_id,
     content,
     OBJECT_CONSTRUCT(
@@ -263,7 +259,6 @@ SELECT * FROM TABLE(
 ```
 **Benefits:** Early error detection; configuration validation; quality assurance; confidence in production; no user complaints; professional deployment; reliable search
 
-
 ## Post-Execution Checklist
 - [ ] Documents cleaned/normalized; long docs chunked appropriately
       Verify: Check document lengths in source table - look for >4000 token docs that need chunking
@@ -284,12 +279,11 @@ SELECT * FROM TABLE(
 - [ ] Costs/latency monitored; stale docs pruned
       Verify: Query SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY for search service usage patterns
 
-
 ## Validation
 - **Success checks:** Retrieval returns relevant, access-compliant results; evaluation metrics meet targets; tool descriptions are clear; component tests pass; citations properly formatted
 - **Negative tests:** Queries without filters fail access checks; stale content removed from results after refresh; overlapping tool descriptions flagged in review
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read existing search indices BEFORE creating new ones** - Check what indices exist, their structure, columns
 > 2. **Verify data source** - Check tables/views for content quality, metadata availability
@@ -305,7 +299,6 @@ SELECT * FROM TABLE(
 > "Let me check your existing Cortex Search setup first."
 > [reads existing indices, checks source data, reviews metadata columns]
 > "I see you have doc_library indexed. Creating new index for product_docs following same metadata pattern..."
-
 
 ## Output Format Examples
 ```sql
@@ -333,7 +326,6 @@ Title Column: DOCUMENT_TITLE
 Description: "Search {document_type} for {specific_use_case}. Use for questions about {when_to_use_guidance}."
 ```
 
-
 ## References
 
 ### External Documentation
@@ -350,7 +342,6 @@ Description: "Search {document_type} for {specific_use_case}. Use for questions 
 - **Cost Governance**: `rules/105-snowflake-cost-governance.md`
 - **Warehouse Management**: `rules/119-snowflake-warehouse-management.md`
 - **Observability**: `rules/111-snowflake-observability-core.md`
-
 
 ## 0. Prerequisites Validation
 
@@ -378,13 +369,13 @@ SHOW GRANTS ON SCHEMA {DATABASE}.{SCHEMA};
 **Verify Source Data:**
 ```sql
 -- Check source data exists and has required columns
-SELECT 
+SELECT
     COUNT(*) AS total_rows,
     COUNT(DISTINCT content_column) AS unique_docs
 FROM {DATABASE}.{SCHEMA}.{SOURCE_TABLE};
 
 -- Example:
-SELECT 
+SELECT
     COUNT(*) AS total_rows,
     COUNT(DISTINCT document_id) AS unique_docs
 FROM DOCS.RAW.research_reports;
@@ -420,7 +411,7 @@ Run this comprehensive check before creating search services:
 SHOW PARAMETERS LIKE 'CORTEX%' IN ACCOUNT;
 
 -- 2. Check source data quality
-SELECT 
+SELECT
     'Source Data Check' AS validation_step,
     COUNT(*) AS row_count,
     COUNT(DISTINCT doc_id) AS unique_docs,
@@ -439,11 +430,9 @@ SELECT 'Warehouse Check' AS validation_step,
 
 **All checks should return non-zero counts and valid results.** If any fail, address prerequisites before proceeding.
 
-
 ## 1. Data Preparation
 - Lowercase, strip boilerplate, normalize whitespace; remove navigation/UI fragments
 - Chunk long docs (e.g., 500–1000 tokens) with overlap ~10–15%
-
 
 ## 2. Creating Cortex Search Services
 
@@ -454,7 +443,7 @@ First, create a view with clean content and metadata:
 ```sql
 -- Prepare view with required columns for search
 CREATE OR REPLACE VIEW DOCS.PREPARED.research_reports_ready AS
-SELECT 
+SELECT
   doc_id,
   content_clean,  -- Main searchable content
   source,         -- Metadata for filtering
@@ -462,7 +451,7 @@ SELECT
   published_at,   -- Metadata for filtering
   access_tier     -- Metadata for filtering
 FROM DOCS.RAW.research_reports_chunked
-WHERE content_clean IS NOT NULL 
+WHERE content_clean IS NOT NULL
   AND LENGTH(content_clean) > 50;  -- Filter out empty/tiny chunks
 ```
 
@@ -476,7 +465,7 @@ ATTRIBUTES doc_id, source, author, published_at, access_tier  -- Metadata column
 WAREHOUSE = COMPUTE_WH                              -- Warehouse for index creation
 TARGET_LAG = '1 day'                                -- Refresh frequency
 AS (
-  SELECT 
+  SELECT
     doc_id,
   content_clean,
   source,
@@ -514,11 +503,9 @@ GRANT USAGE ON CORTEX SEARCH SERVICE DOCS.SEARCH.research_reports_service TO ROL
 SHOW GRANTS ON CORTEX SEARCH SERVICE DOCS.SEARCH.research_reports_service;
 ```
 
-
 ## 3. Embedding Hygiene
 - If embedding externally, store vectors in a dedicated column; ensure consistent model/version
 - Consider re-embedding only when content or model materially changes
-
 
 ## 4. Querying Cortex Search Services
 
@@ -581,7 +568,7 @@ WITH search AS (
         '{"query": "ESG ratings", "limit": 10}'
     ) AS results
 )
-SELECT 
+SELECT
     r.value:doc_id::STRING AS doc_id,
     r.value:score::FLOAT AS relevance_score,
     r.value:content::STRING AS content_snippet,
@@ -624,7 +611,6 @@ SELECT SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
     }'
 );
 ```
-
 
 ## 5. Cortex Search as Agent Tool
 
@@ -691,9 +677,9 @@ Response Instructions: |
   1. Document type (e.g., "Research Report", "Earnings Transcript")
   2. Document title or identifier
   3. Publication or recording date
-  
+
   Format: "According to {document_type} '{title}' from {date}..."
-  
+
   Example: "According to Goldman Sachs Research Report 'Tech Sector Outlook' from 2025-01-15, the analyst recommends..."
 ```
 
@@ -708,7 +694,7 @@ Response Instructions: |
 ```python
 def test_search_tool(session: Session, service_name: str):
     """Test Cortex Search tool independently"""
-    
+
     # Simple search query to verify tool responds
     result = session.sql(f"""
         SELECT SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
@@ -716,7 +702,7 @@ def test_search_tool(session: Session, service_name: str):
             '{{"query": "test", "limit": 1}}'
         )
     """).collect()
-    
+
     assert len(result) > 0, f"Search tool {service_name} returned no results"
     print(f"Search tool test passed: {service_name}")
     return True
@@ -772,7 +758,7 @@ For agents combining Cortex Search with Cortex Analyst tools:
 ```
 1. Classify query by type (quantitative, qualitative, or mixed)
 2. For quantitative: Use appropriate Cortex Analyst tool
-3. For qualitative: Use appropriate Cortex Search tool  
+3. For qualitative: Use appropriate Cortex Search tool
 4. For mixed: Use Analyst for numbers, Search for supporting research
 5. Synthesize across tool types into coherent response
 ```
@@ -788,21 +774,17 @@ For complete agent configuration including Cortex Search tools:
 - **Response Instructions:** `115-snowflake-cortex-agents-core.md` Section 5.4
 - **Testing Patterns:** `115-snowflake-cortex-agents-core.md` Section 6
 
-
 ## 6. Hybrid Retrieval
 - Blend dense vector search with sparse/text signals when supported; tune weights empirically
 - Keep top_k small initially (e.g., 10–20) and increase only if recall is insufficient
-
 
 ## 7. Evaluation and Observability
 - Maintain a gold set of query→expected passage mappings; measure precision@k and MRR
 - Use AI Observability to log search queries and downstream answer quality
 
-
 ## 8. Cost and Operations
 - Limit index rebuilds; prefer incremental updates where supported
 - Archive or delete stale content from indices; partition by recency/source if needed
-
 
 ## 9. Common Errors and Solutions
 
@@ -934,7 +916,6 @@ SHOW WAREHOUSES LIKE 'COMPUTE_WH';
 ALTER WAREHOUSE COMPUTE_WH RESUME;
 ```
 
-
 ## Related Rules
 
 **Closely Related** (consider loading together):
@@ -949,4 +930,3 @@ ALTER WAREHOUSE COMPUTE_WH RESUME;
 **Complementary** (different aspects of same domain):
 - `107-snowflake-security-governance` - For access control on search services and documents
 - `105-snowflake-cost-governance` - For monitoring search service and embedding costs
-

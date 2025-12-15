@@ -12,12 +12,9 @@
 
 Establishes foundational Go development practices using idiomatic patterns, modern tooling, and industry-standard conventions to ensure reliable, maintainable, and performant Go codebases.
 
-
 ## Rule Scope
 
 Foundational Go development practices with modern tooling (Go 1.21+), project structure, error handling, testing, and concurrency fundamentals
-
-
 
 ## Quick Start TL;DR
 
@@ -37,7 +34,6 @@ Foundational Go development practices with modern tooling (Go 1.21+), project st
 - [ ] `go test -race ./...` passes
 - [ ] `go mod tidy` leaves no changes
 - [ ] All exported identifiers have doc comments
-
 
 ## Contract
 
@@ -81,7 +77,6 @@ Go source files (.go) with godoc comments; go.mod/go.sum for dependencies
 </design_principles>
 
 </contract>
-
 
 ## Key Principles
 
@@ -210,7 +205,6 @@ if err := g.Wait(); err != nil {
 - Sender closes the channel, never the receiver
 - Use `select` with `context.Done()` for cancellation
 - Prefer unbuffered channels unless you have a specific reason for buffering
-
 
 ## Anti-Patterns and Common Mistakes
 
@@ -354,12 +348,11 @@ func main() {
         log.Fatal(err)
     }
     defer db.Close()
-    
+
     svc := NewService(db)
     http.Handle("/", svc.Handler())
 }
 ```
-
 
 ## Post-Execution Checklist
 
@@ -374,7 +367,6 @@ func main() {
 - [ ] Context is passed as first parameter where applicable
 - [ ] No goroutine leaks (all goroutines have termination paths)
 - [ ] CHANGELOG.md updated for code changes
-
 
 ## Validation
 
@@ -399,7 +391,6 @@ func main() {
 > 3. **Check existing code patterns** - Match project's error handling and naming conventions
 > 4. **Review test patterns** - Use existing test helpers and fixtures
 > 5. **Check for Makefile/Taskfile** - Use existing automation patterns
-
 
 ## Output Format Examples
 
@@ -438,12 +429,12 @@ func (s *UserService) GetUser(ctx context.Context, id string) (*User, error) {
     if id == "" {
         return nil, errors.New("id cannot be empty")
     }
-    
+
     user, err := s.repo.GetByID(ctx, id)
     if err != nil {
         return nil, fmt.Errorf("getting user %s: %w", id, err)
     }
-    
+
     return user, nil
 }
 ```
@@ -457,7 +448,7 @@ import (
     "context"
     "errors"
     "testing"
-    
+
     "myapp/internal/service"
 )
 
@@ -487,16 +478,16 @@ func TestUserService_GetUser(t *testing.T) {
             wantErr: service.ErrNotFound,
         },
     }
-    
+
     for _, tt := range tests {
         t.Run(tt.name, func(t *testing.T) {
             repo := &mockRepo{users: map[string]*service.User{
                 "user-123": {ID: "user-123", Name: "Alice"},
             }}
             svc := service.NewUserService(repo)
-            
+
             got, err := svc.GetUser(context.Background(), tt.id)
-            
+
             if tt.wantErr != nil {
                 if err == nil {
                     t.Errorf("expected error %v, got nil", tt.wantErr)
@@ -524,7 +515,6 @@ go test -race -cover ./...
 go mod tidy
 ```
 
-
 ## References
 
 ### External Documentation
@@ -538,7 +528,6 @@ go mod tidy
 ### Related Rules
 - **Global Core**: `rules/000-global-core.md` - Foundation for all rules
 - **Taskfile Automation**: `rules/820-taskfile-automation.md` - Build automation patterns
-
 
 ## 1. Tooling & Environment
 
@@ -588,24 +577,23 @@ run:
 .PHONY: fmt vet lint test build
 
 fmt:
-	go fmt ./...
-	goimports -w .
+    go fmt ./...
+    goimports -w .
 
 vet:
-	go vet ./...
+    go vet ./...
 
 lint:
-	golangci-lint run
+    golangci-lint run
 
 test:
-	go test -race -cover ./...
+    go test -race -cover ./...
 
 build:
-	go build -o bin/ ./cmd/...
+    go build -o bin/ ./cmd/...
 
 all: fmt vet lint test build
 ```
-
 
 ## 2. Testing Patterns
 
@@ -624,7 +612,7 @@ func TestAdd(t *testing.T) {
         {"negative", -1, -1, -2},
         {"zero", 0, 0, 0},
     }
-    
+
     for _, tt := range tests {
         t.Run(tt.name, func(t *testing.T) {
             got := Add(tt.a, tt.b)
@@ -669,7 +657,6 @@ Always run tests with race detector in CI:
 go test -race ./...
 ```
 
-
 ## 3. Dependencies & Modules
 
 ### 3.1 Module Management
@@ -698,4 +685,3 @@ go mod vendor
 - Review `go.sum` changes in code review
 - Prefer stdlib over external dependencies when reasonable
 - Evaluate dependencies for maintenance status and security
-

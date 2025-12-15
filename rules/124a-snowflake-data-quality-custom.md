@@ -11,10 +11,8 @@
 ## Purpose
 Provide patterns for creating custom Data Metric Functions (DMFs) and expectations to implement business-specific quality rules and validation logic.
 
-
 ## Rule Scope
 Custom DMFs, expectations, business rule validation
-
 
 ## Quick Start TL;DR
 
@@ -30,7 +28,6 @@ Custom DMFs, expectations, business rule validation
 - [ ] Expectation set with appropriate threshold
 - [ ] Validation tested with sample data
 - [ ] Metric semantics documented
-
 
 ## Contract
 
@@ -146,7 +143,6 @@ EXPECT (ANALYTICS.ORPHANED_ORDERS ON ()) = 0;
 
 </contract>
 
-
 ## Anti-Patterns and Common Mistakes
 
 **Anti-Pattern 1: Custom DMF Doesn't Return FLOAT Type**
@@ -183,7 +179,7 @@ $$;
 CREATE DATA METRIC FUNCTION completion_rate()
 RETURNS FLOAT
 AS $$
-  SELECT 
+  SELECT
     COUNT_IF(status = 'complete')::FLOAT / COUNT(*)::FLOAT
   FROM orders
 $$;
@@ -197,8 +193,8 @@ $$;
 CREATE DATA METRIC FUNCTION completion_rate()
 RETURNS FLOAT
 AS $$
-  SELECT 
-    CASE 
+  SELECT
+    CASE
       WHEN COUNT(*) = 0 THEN 0.0  -- Empty table = 0% completion
       ELSE COUNT_IF(status = 'complete')::FLOAT / COUNT(*)::FLOAT
     END
@@ -235,7 +231,7 @@ $$;
 CREATE MATERIALIZED VIEW validation_metrics AS
 WITH cte1 AS (...),
      cte2 AS (...)
-SELECT 
+SELECT
   metric_name,
   metric_value
 FROM cte2;
@@ -263,7 +259,7 @@ AS $$
   FROM production_table
 $$;
 
-ALTER TABLE critical_prod_table 
+ALTER TABLE critical_prod_table
   ADD DATA METRIC FUNCTION untested_validation ON ();
 -- Discover bugs in production when DMF runs!
 ```
@@ -297,7 +293,6 @@ $$;
 ```
 **Benefits:** Bugs caught in dev; validated logic; confidence in production; realistic expectations; no false alerts; professional deployment; reduced risk
 
-
 ## Post-Execution Checklist
 
 - [ ] Custom DMF created with clear naming convention (DMF_CUSTOM_ prefix)
@@ -312,14 +307,13 @@ $$;
 - [ ] Custom DMF performance tested (execution time < 5 minutes for large tables)
 - [ ] Access controls configured for custom functions and DMFs
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. Read existing data quality patterns and validation logic BEFORE creating custom DMFs
 > 2. Verify custom validation logic through testing with actual data samples
 > 3. Never speculate about data patterns without analyzing actual data distribution
 > 4. Check execution time and performance impact of custom DMFs on large tables
 > 5. Make grounded recommendations based on investigated data characteristics and validation requirements
-
 
 ## Validation
 
@@ -330,7 +324,6 @@ $$;
 - Test Python UDF DMFs if using complex validation logic
 - Schedule custom DMF and check execution history
 - Validate integration with alerting and monitoring systems
-
 
 ## Output Format Examples
 
@@ -377,7 +370,7 @@ CREATE OR REPLACE DATA METRIC FUNCTION DMF_CUSTOM_REFERENTIAL_INTEGRITY()
           'customer_id'
         )
         INTO orphan_orders;
-        
+
         -- Check 2: Line items without valid orders
         SELECT UDF_CHECK_REFERENTIAL_INTEGRITY(
           'PROD_DB.FACT.LINE_ITEMS',
@@ -386,7 +379,7 @@ CREATE OR REPLACE DATA METRIC FUNCTION DMF_CUSTOM_REFERENTIAL_INTEGRITY()
           'order_id'
         )
         INTO orphan_line_items;
-        
+
         -- Check 3: Line items with invalid product IDs
         SELECT UDF_CHECK_REFERENTIAL_INTEGRITY(
           'PROD_DB.FACT.LINE_ITEMS',
@@ -395,12 +388,12 @@ CREATE OR REPLACE DATA METRIC FUNCTION DMF_CUSTOM_REFERENTIAL_INTEGRITY()
           'product_id'
         )
         INTO invalid_products;
-        
+
         -- Define expectations: Zero orphaned records allowed
         EXPECT (orphan_orders) = 0;
         EXPECT (orphan_line_items) = 0;
         EXPECT (invalid_products) = 0;
-        
+
         RETURN 1.0;
     END;
   $$;
@@ -416,7 +409,6 @@ ORDER BY measurement_time DESC
 LIMIT 5;
 ```
 
-
 ## References
 
 ### Internal Documentation
@@ -429,8 +421,6 @@ LIMIT 5;
 - [Custom Data Metric Functions](https://docs.snowflake.com/en/user-guide/data-quality-custom) - Creating custom DMFs with UDFs
 - [SQL UDF Reference](https://docs.snowflake.com/en/developer-guide/udf/sql/udf-sql) - SQL user-defined function syntax
 - [Python UDF Reference](https://docs.snowflake.com/en/developer-guide/udf/python/udf-python) - Python UDF for complex validation logic
-
-
 
 ## 5. Expectations
 
@@ -481,4 +471,3 @@ EXPECT (SNOWFLAKE.CORE.ROW_COUNT ON ()) BETWEEN 10000 AND 100000
 -- Absolutely zero duplicates allowed
 EXPECT (SNOWFLAKE.CORE.DUPLICATE_COUNT ON order_id) = 0
 ```
-

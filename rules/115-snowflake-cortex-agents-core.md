@@ -11,11 +11,9 @@
 ## Purpose
 Provide comprehensive patterns to design, configure, secure, and operate Cortex Agents including agent archetypes, tool configurations, planning instructions, testing strategies, RBAC, observability, and quality evaluation, optimized for reliability and cost.
 
-
 ## Rule Scope
 
 Cortex Agents creation and operation, agent archetypes, tool design and configuration, planning/response instructions, testing patterns, RBAC/allowlists, evaluation and tracing, cost/latency trade-offs
-
 
 ## Quick Start TL;DR
 
@@ -56,7 +54,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - **Choosing agent archetype**: + Agent Archetypes
 - **Creating agent**: + Tooling & Configuration (full core)
 - **Implementation/testing**: + 115a (instructions) + 115b (operations)
-
 
 ## Contract
 
@@ -127,7 +124,6 @@ Component tests pass; integration tests pass; evaluation scores meet thresholds;
 </design_principles>
 
 </contract>
-
 
 ## Anti-Patterns and Common Mistakes
 
@@ -207,7 +203,7 @@ analyst_tool = cortex.AnalystTool(
 ```sql
 -- Step 1: Create semantic view with business context
 CREATE SEMANTIC VIEW sales_semantic_view AS
-SELECT 
+SELECT
   sale_date AS "Sale Date",
   customer_name AS "Customer Name",
   product_category AS "Product Category",
@@ -244,12 +240,12 @@ test_questions = [
     # In-scope (should work)
     "What was Q4 revenue?",
     "Show top 10 products",
-    
+
     # Out-of-scope (should gracefully decline)
     "What's the weather in Seattle?",
     "Book me a flight to NYC",
     "Tell me a joke",
-    
+
     # Edge cases
     "Revenue for year 3000",  # Future data
     "Sales in Antarctica"     # No data region
@@ -266,7 +262,6 @@ Example: "I don't have weather data, but I can help with sales revenue analysis.
 ```
 **Benefits:** Professional user experience; clear capability boundaries; helpful guidance; maintains trust; reduces support burden; better user satisfaction; production-ready agent
 
-
 ## Post-Execution Checklist
 
 - [ ] Agent created with clear purpose and description in CREATE statement
@@ -281,7 +276,6 @@ Example: "I don't have weather data, but I can help with sales revenue analysis.
 - [ ] Cost monitoring configured for agent usage tracking
 - [ ] Agent naming follows conventions (SEM_ prefix for semantic-grounded)
 
-
 ## Validation
 
 - Create Cortex Agent with at least one tool (SQL function, Python UDF, or semantic view) and verify it responds
@@ -291,7 +285,6 @@ Example: "I don't have weather data, but I can help with sales revenue analysis.
 - Validate tool definitions include clear descriptions and parameter specs
 - Test agent with questions outside tool scope to verify graceful degradation
 - Check agent observability logs for tool execution traces
-
 
 ## Output Format Examples
 
@@ -305,14 +298,14 @@ CREATE OR REPLACE CORTEX AGENT AGENT_ASSET_PERFORMANCE_ANALYST
     ]
     PLANNING_INSTRUCTIONS = $$
     You are an expert asset performance analyst for energy grid operations.
-    
+
     When answering questions:
     1. Use the SEM_ASSET_PERFORMANCE semantic view to query asset data
     2. Break complex questions into multiple queries if needed
     3. Calculate derived metrics when simple aggregations don't suffice
     4. Provide context about asset types, failure patterns, and cost trends
     5. Cite specific data points to support your analysis
-    
+
     Example reasoning:
     - User asks: "Which asset type has highest failure rate?"
     - Steps:
@@ -323,14 +316,14 @@ CREATE OR REPLACE CORTEX AGENT AGENT_ASSET_PERFORMANCE_ANALYST
     $$
     RESPONSE_INSTRUCTIONS = $$
     Format your response as follows:
-    
+
     **Analysis Summary:** [1-2 sentence answer to the question]
-    
+
     **Key Findings:**
     - [Finding 1 with specific numbers]
     - [Finding 2 with specific numbers]
     - [Finding 3 with specific numbers]
-    
+
     **Data Source:** [Semantic view or tables queried]
     **Time Period:** [Date range of analysis]
     $$;
@@ -342,7 +335,6 @@ FROM TABLE(AGENT_QUERY(
   'Which asset type has the highest failure rate in the last year?'
 ));
 ```
-
 
 ## References
 
@@ -357,7 +349,6 @@ FROM TABLE(AGENT_QUERY(
 - [Snowflake Cortex Agents Documentation](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents) - Official agent creation and management
 - [Cortex Agent Tools](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents-tools) - Supported tool types and configurations
 - [Agent Planning Instructions](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents-instructions) - Writing effective planning and response instructions
-
 
 ## 0. Prerequisites Validation
 
@@ -441,7 +432,7 @@ Run this comprehensive check before creating agents:
 
 ```sql
 -- 1. Check Cortex availability
-SELECT 'Cortex Features' AS check_type, 
+SELECT 'Cortex Features' AS check_type,
        COUNT(*) AS parameter_count
 FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()))
 WHERE "name" LIKE 'CORTEX%';
@@ -457,12 +448,11 @@ SHOW CORTEX SEARCH SERVICES;
 
 -- 4. Check permissions
 SELECT 'Role Permissions' AS check_type,
-       COUNT(*) AS grant_count  
+       COUNT(*) AS grant_count
 FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()));
 ```
 
 **All checks should return non-zero counts.** If any return 0 or error, address prerequisites before proceeding.
-
 
 ## 1. Agent Archetypes
 
@@ -545,7 +535,6 @@ Choose the appropriate agent pattern based on your use case and tool requirement
 - Maximum flexibility needed for complex workflows
 
 **Examples:** Portfolio copilot, investment advisor, ESG guardian, chief risk officer agent
-
 
 ## 2. Tooling Strategy
 
@@ -632,7 +621,7 @@ Test Cortex Analyst tools independently before agent integration:
 ```python
 def test_analyst_tool(session: Session, semantic_view: str):
     """Test Cortex Analyst tool independently before agent integration"""
-    
+
     # Simple query to verify tool responds
     result = session.sql(f"""
         SELECT * FROM TABLE(
@@ -642,7 +631,7 @@ def test_analyst_tool(session: Session, semantic_view: str):
             )
         ) LIMIT 5
     """).collect()
-    
+
     assert len(result) > 0, f"Analyst tool {semantic_view} returned no results"
     print(f"Analyst tool test passed: {semantic_view}")
     return True
@@ -661,7 +650,6 @@ After component tests pass, test agent's tool selection logic:
 "Calculate sector allocation breakdown"             # Should use analyst tool
 "Show me a chart of performance over time"          # Should use analyst tool + viz
 ```
-
 
 ## 3. Agent Configuration Templates
 
@@ -727,9 +715,7 @@ Orchestration Model: Claude 4
 Planning Instructions: {Logic for document search and content synthesis}
 ```
 
-
 ## 4. Planning Instructions Patterns
-
 
 ## Related Rules
 
@@ -747,4 +733,3 @@ Planning Instructions: {Logic for document search and content synthesis}
 **Complementary** (different aspects of same domain):
 - `114-snowflake-cortex-aisql` - For SQL-based AI function usage (different from agent orchestration)
 - `107-snowflake-security-governance` - For RBAC and security policies affecting agent permissions
-

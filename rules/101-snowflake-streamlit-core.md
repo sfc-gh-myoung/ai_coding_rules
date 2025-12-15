@@ -3,19 +3,17 @@
 ## Metadata
 
 **SchemaVersion:** v3.0
-**Keywords:** Streamlit, SPCS, st.connection, session state, navigation, multipage, deployment, dashboard, pandas, NaN, NULL handling, session management, connection management
-**TokenBudget:** ~3700
+**Keywords:** Streamlit, SPCS, SiS, navigation, multipage, session state, st.connection, config.toml, theming, deployment, pandas, null handling, session management
+**TokenBudget:** ~4500
 **ContextTier:** High
 **Depends:** rules/100-snowflake-core.md
 
 ## Purpose
 Provide foundational guidance for Streamlit application setup, navigation patterns, state management, deployment mode selection (SiS vs SPCS), and theming configuration using config.toml as the primary styling method.
 
-
 ## Rule Scope
 
 Streamlit core application architecture, multipage navigation, deployment modes, configuration management
-
 
 ## Quick Start TL;DR
 
@@ -35,7 +33,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - **State:** Initialize st.session_state at top level
 - **Secrets:** Use st.secrets (never hardcode credentials)
 - **Layout:** Native components only (st.columns, st.container, st.sidebar)
-
 
 ## Contract
 
@@ -79,7 +76,6 @@ Test navigation flow, verify theme loaded from config.toml, validate responsive 
 </design_principles>
 
 </contract>
-
 
 ## Anti-Patterns and Common Mistakes
 
@@ -153,7 +149,6 @@ pg = st.navigation([home, settings])
 pg.run()  # Critical!
 ```
 
-
 ## Post-Execution Checklist
 - [ ] Deployment mode verified (SiS vs SPCS) and correct configuration applied
 - [ ] st.set_page_config() called ONCE in entrypoint only (never in page files)
@@ -166,12 +161,11 @@ pg.run()  # Critical!
 - [ ] Theme configuration tested and in version control
 - [ ] Responsive design tested on mobile/tablet viewports
 
-
 ## Validation
 - **Success Checks:** App loads <2s, navigation works correctly, theme applied from config.toml, secrets loaded without errors, responsive layout works on mobile/desktop, state persists across page changes
 - **Negative Tests:** Try setting page config in child page (should error), test navigation without pg.run() (should not execute), verify custom CSS doesn't work in SiS deployment, test with missing secrets (should fail gracefully)
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. Read Streamlit app files BEFORE making recommendations
 > 2. Verify .streamlit/config.toml exists and check theme configuration
@@ -179,7 +173,6 @@ pg.run()  # Critical!
 > 4. Verify deployment mode (SiS vs SPCS) from project context or environment.yml
 > 5. Never speculate about component usage - inspect the code
 > 6. Check st.secrets configuration and usage patterns
-
 
 ## Output Format Examples
 ```python
@@ -223,7 +216,6 @@ pg = st.navigation(pages, position="sidebar", expanded=True)
 pg.run()
 ```
 
-
 ## References
 
 ### External Documentation
@@ -262,17 +254,14 @@ pg.run()
 - **Python Core**: `rules/200-python-core.md`
 - **Snowpark Container Services**: `rules/120-snowflake-spcs.md`
 
-> **[AI] Claude 4 Specific Guidance**  
+> **[AI] Claude 4 Specific Guidance**
 > **Claude 4 Streamlit Core Optimizations:**
 > - Parallel file reading: Load config.toml and all page files simultaneously when analyzing multipage apps
 > - Context awareness: Efficiently manage token budget across multiple Streamlit rule files (core + specialized)
 > - Investigation-first: Excel at discovering config.toml theme settings and navigation structure from filesystem
 > - State discovery: Can track st.session_state usage patterns across multiple page files
 
-
-
 ## 1. Deployment Mode Selection: SiS vs SPCS
-
 
 **MANDATORY:**
 **Choosing the right deployment mode is critical for long-term success.**
@@ -324,6 +313,98 @@ pg.run()
 **MANDATORY:**
 **Always verify the deployment mode first** and apply the correct configuration, best practices, and documentation. Do not mix SiS and open-source Streamlit recommendations.
 
+### SiS Environment Configuration (environment.yml)
+
+**CRITICAL for Streamlit in Snowflake (SiS) Deployments:**
+
+The `environment.yml` file for SiS has **strict requirements** that differ from local Conda environments:
+
+**Forbidden in SiS:**
+- **Python version specification:** `python=3.11` or any `python=X.Y` declaration
+- **Multiple channels:** Only `snowflake` channel is supported
+- **Unsupported channels:** `conda-forge`, `defaults`, or any non-Snowflake channels
+- **Version specifiers:** Cannot use `>=`, `==`, `>`, `<`, `<=`, `~=` operators
+- **Package name format:** Must be lowercase with only `[.-_]` special characters
+
+**Why These Restrictions Exist:**
+- Python runtime is managed by Snowflake (version controlled at platform level)
+- Package availability limited to Snowflake-approved packages in `snowflake` channel
+- Package versions are managed by Snowflake (cannot be user-specified)
+- Strict parser requirements for dependency name syntax
+- Specifying unsupported channels, Python versions, or version operators causes deployment errors
+
+**Common Errors:**
+```
+Error 1: Unsupported channel
+An error occurred while loading the app. Error: Anaconda channel
+conda-forge,defaults is not supported. Allowed channels are:
+https://repo.anaconda.com/pkgs/snowflake,nodefaults,snowflake
+```
+
+```
+Error 2: Version specifier syntax
+An error occurred while loading the app. Error: Anaconda dependency names
+must be lowercase characters, numbers or one of [.-_]. streamlit>=1.30.0
+does not match this spec.
+```
+
+**Correct SiS environment.yml Pattern:**
+```yaml
+# Snowflake Streamlit Environment Configuration
+# IMPORTANT: Python version is managed by Snowflake - do not specify python=X.Y
+# IMPORTANT: Only 'snowflake' channel is supported in SiS environments
+# IMPORTANT: No version specifiers allowed - list package names only
+
+name: my_app
+
+channels:
+  - snowflake
+
+dependencies:
+  - streamlit
+  - pandas
+  - plotly
+  # Package names only - no version specifiers
+  # Versions managed by Snowflake's environment
+```
+
+**Incorrect Patterns (will fail deployment):**
+```yaml
+# BAD: Multiple channels and Python version
+name: my_app
+
+channels:
+  - snowflake
+  - conda-forge  # ✗ Not supported in SiS
+  - defaults     # ✗ Not supported in SiS
+
+dependencies:
+  - python=3.11  # ✗ Cannot specify Python version in SiS
+  - streamlit
+```
+
+```yaml
+# BAD: Version specifiers not allowed
+name: my_app
+
+channels:
+  - snowflake
+
+dependencies:
+  - streamlit>=1.30.0   # ✗ Version operators not supported
+  - pandas==2.0.0       # ✗ Version pinning not supported
+  - plotly>5.0          # ✗ Any version specifier fails
+```
+
+**Validation Checklist:**
+- [ ] Remove any `python=X.Y` lines from dependencies
+- [ ] Remove ALL version specifiers (`>=`, `==`, `>`, `<`, `<=`, `~=`)
+- [ ] Ensure only `snowflake` channel is listed
+- [ ] Verify package names are lowercase with only `[.-_]` special characters
+- [ ] Confirm all packages exist in Snowflake's approved package list
+- [ ] Reference: [Snowflake Third-Party Packages](https://repo.anaconda.com/pkgs/snowflake/)
+
+**Key Takeaway:** SiS environment.yml files should contain **only package names** - no versions, no Python specification, no custom channels. Snowflake manages all versions automatically.
 
 ## 2. Setup and Project Structure
 
@@ -353,9 +434,7 @@ if 'data_loaded' not in st.session_state:
     st.session_state.data_loaded = False
 ```
 
-
 ## 3. Multipage Navigation (Streamlit 1.26+)
-
 
 **MANDATORY:**
 - **Requirement:** Use `st.navigation()` in your entrypoint file for dynamic multipage apps (**recommended pattern**)
@@ -418,9 +497,7 @@ pg.run()
 - Use `st.switch_page()` for programmatic navigation (e.g., after form submission)
 - Never use `st.button()` for navigation (use for actions only)
 
-
 ## 4. Configuration and Theming
-
 
 ### Core Theming Philosophy
 **FORBIDDEN:**
@@ -516,7 +593,6 @@ port = 8501
 gatherUsageStats = false
 ```
 
-
 ## 5. State Management
 
 **MANDATORY:**
@@ -541,9 +617,7 @@ def login_callback():
 st.button("Login", on_click=login_callback)
 ```
 
-
 ## 6. Layout Components
-
 
 **MANDATORY:**
 **Use native Streamlit layout components as primary layout tools:**
@@ -588,7 +662,6 @@ with st.sidebar:
     status = st.selectbox("Status", ["All", "Active", "Inactive"])
 ```
 
-
 ## 7. Secrets Management
 
 **MANDATORY:**
@@ -611,7 +684,6 @@ except KeyError as e:
 # Never do this
 api_key = "sk-1234567890abcdef"  # Hardcoded secret!
 ```
-
 
 ## 8. Pandas NULL Handling: Snowflake NULL vs Python None
 
@@ -701,7 +773,6 @@ Values that commonly return NULL and require pandas-aware handling:
 - Yes → MUST validate not NULL/NaN first
 - No → Still validate for display purposes
 
-
 ## Related Rules
 
 **Closely Related** (consider loading together):
@@ -716,4 +787,3 @@ Values that commonly return NULL and require pandas-aware handling:
 **Complementary** (different aspects of same domain):
 - `107-snowflake-security-governance` - For RBAC and security policies in Streamlit apps
 - `111-snowflake-observability-core` - For monitoring Streamlit app performance and errors
-

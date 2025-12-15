@@ -11,7 +11,6 @@
 ## Purpose
 Provide comprehensive guidance for optimizing Streamlit application performance through caching strategies, efficient data loading from Snowflake, SQL error handling with detailed debugging information, progress indicators, and performance profiling.
 
-
 ## Rule Scope
 
 Streamlit performance optimization, caching patterns, Snowflake data loading, SQL error handling and debugging, progress indicators
@@ -27,7 +26,6 @@ Streamlit performance optimization, caching patterns, Snowflake data loading, SQ
 - **Caching problems**: + Caching Strategies
 - **Data/SQL issues**: + Data Loading & Error Handling
 - **Complete optimization**: Full reference
-
 
 ## Quick Start TL;DR
 
@@ -60,7 +58,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Test cache behavior with different inputs
 - [ ] Test SQL error handling with invalid query
 - [ ] Measure load time (<2s target)
-
 
 ## Contract
 
@@ -123,7 +120,6 @@ Test cache behavior, verify column name normalization, test SQL error handling w
 </design_principles>
 
 </contract>
-
 
 ## Anti-Patterns and Common Mistakes
 
@@ -206,7 +202,6 @@ session1 = get_connection()
 session2 = get_connection()  # Same session object
 ```
 
-
 ## Post-Execution Checklist
 - [ ] @st.cache_data used for all database queries with appropriate ttl
       Verify: Search code for "session.sql" without @st.cache_data decorator
@@ -231,12 +226,11 @@ session2 = get_connection()  # Same session object
 - [ ] SQL error handling tested with invalid query
       Verify: Temporarily break query (invalid table name); check st.error() appears
 
-
 ## Validation
 - **Success Checks:** Cache hits on subsequent loads, column names lowercase after normalization, SQL errors display red st.error() boxes with full context, progress indicators show for slow operations, initial load <2s, no database query loops, error messages identify specific query that failed
 - **Negative Tests:** Clear cache and verify data reloads, test column access with lowercase (should work), test with invalid table name (should show detailed error), test with missing column (should show SQL error with code), remove progress indicator and verify user sees feedback gap, test with production data volume
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. Read data loading code BEFORE making recommendations
 > 2. Verify @st.cache_data and @st.cache_resource usage
@@ -246,7 +240,6 @@ session2 = get_connection()  # Same session object
 > 6. Never speculate about cache behavior - inspect the decorators and ttl values
 > 7. Verify Snowflake connection patterns (should be cached)
 > 8. Check for query loops that should be replaced with single aggregated query
-
 
 ## Output Format Examples
 ```python
@@ -264,16 +257,16 @@ def get_snowflake_session() -> Session:
 def load_data() -> pd.DataFrame:
     """
     Load data from Snowflake with caching and comprehensive error handling.
-    
+
     Returns:
         DataFrame with lowercase column names
     """
     try:
         session = get_snowflake_session()
-        
+
         with st.spinner("Loading data from Snowflake..."):
             query = """
-            SELECT 
+            SELECT
                 region,
                 product,
                 SUM(amount) as total_amount
@@ -282,23 +275,23 @@ def load_data() -> pd.DataFrame:
             GROUP BY region, product
             """
             df = session.sql(query).to_pandas()
-            
+
             # CRITICAL: Normalize column names
             df.columns = [col.lower() for col in df.columns]
-        
+
         return df
-        
+
     except SnowparkSQLException as e:
         st.error(f"""
         **SQL Query Failed: load_data()**
-        
+
         **Error:** {str(e)}
         **SQL Error Code:** {e.error_code if hasattr(e, 'error_code') else 'N/A'}
-        
+
         **Query Context:**
         - Table: sales
         - Operation: Loading sales data (last 90 days, aggregated by region/product)
-        
+
         **Common Causes:**
         - Table 'sales' does not exist
         - Missing columns: region, product, amount, order_date
@@ -306,14 +299,14 @@ def load_data() -> pd.DataFrame:
         - Invalid date function syntax
         """)
         st.stop()
-        
+
     except Exception as e:
         st.error(f"""
         **Unexpected Error: load_data()**
-        
+
         **Error Type:** {type(e).__name__}
         **Error Message:** {str(e)}
-        
+
         Please contact support if this error persists.
         """)
         st.stop()
@@ -325,7 +318,6 @@ st.success(f"Loaded {len(df):,} records")
 # Access with lowercase column names
 st.dataframe(df[['region', 'product', 'total_amount']])
 ```
-
 
 ## References
 
@@ -354,14 +346,12 @@ st.dataframe(df[['region', 'product', 'total_amount']])
 - **DateTime Handling**: `rules/251-python-datetime-handling.md` (datetime optimization for time series)
 - **Pandas Best Practices**: `rules/252-pandas-best-practices.md` (DataFrame optimization and caching patterns)
 
-> **[AI] Claude 4 Specific Guidance**  
+> **[AI] Claude 4 Specific Guidance**
 > **Claude 4 Streamlit Performance Optimizations:**
 > - Parallel code analysis: Can review multiple data loader functions simultaneously for caching patterns
 > - Context awareness: Efficiently track cache usage patterns across multiple files
 > - Investigation-first: Excel at discovering missing @st.cache_data decorators and column normalization issues
 > - Pattern recognition: Quickly identify query loops that should be replaced with aggregated queries
-
-
 
 ## Implementation Details
 
@@ -397,9 +387,7 @@ st.dataframe(df[['region', 'product', 'total_amount']])
 - **Correct approach**: Use SQL WHERE, GROUP BY, JOIN to aggregate before fetching; see Section 5
 - **Detection**: Search for "session.sql" inside loops or list comprehensions
 
-
 ## 1. Caching Strategies
-
 
 **MANDATORY:**
 **Cache database queries and data fetches with @st.cache_data:**
@@ -416,10 +404,10 @@ def load_grid_assets() -> pd.DataFrame:
     """Load grid assets from Snowflake with normalized column names."""
     session = get_snowflake_session()
     df = session.table('UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS').to_pandas()
-    
+
     # CRITICAL: Normalize column names to lowercase
     df.columns = [col.lower() for col in df.columns]
-    
+
     return df
 
 # First call: executes query
@@ -469,11 +457,11 @@ def load_metrics():
     """Load KPI metrics from Snowflake with NULL-safe handling."""
     session = get_snowflake_session()
     df = session.sql("SELECT metric_name, value FROM kpis").to_pandas()
-    
+
     # Validate no critical NaN values before caching
     if df["value"].isna().any():
         st.warning("Some metrics unavailable - showing cached values where possible")
-    
+
     return df
 
 # Use cached data with NULL-safe display
@@ -494,9 +482,7 @@ for _, row in metrics_df.iterrows():
 - Format strings (`.1f`, `.0f`) crash on NaN values
 - Cached NaN values persist and cause repeated errors
 
-
 ## 2. Data Loading from Snowflake - Critical Column Name Normalization
-
 
 **MANDATORY:**
 **Column Name Normalization (CRITICAL):**
@@ -525,16 +511,16 @@ transformers = df[df['asset_type'] == 'TRANSFORMER']  # Works!
 def load_grid_assets() -> pd.DataFrame:
     """
     Load grid assets from Snowflake.
-    
+
     Returns:
         DataFrame with lowercase column names for Python consistency
     """
     session = get_snowflake_session()
     df = session.table('UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS').to_pandas()
-    
+
     # Normalize to lowercase for consistency
     df.columns = [col.lower() for col in df.columns]
-    
+
     return df
 ```
 
@@ -549,9 +535,7 @@ def load_grid_assets() -> pd.DataFrame:
 - **Error Prevention:** Prevents `KeyError` exceptions that are hard to debug in production
 - **Best Practice:** Single normalization point in data loaders vs. scattered `.upper()` calls in UI code
 
-
 ## 3. SQL Error Handling and Debugging
-
 
 **MANDATORY:**
 **Show specific error messages that identify which query failed and why:**
@@ -586,18 +570,18 @@ def load_grid_assets():
         df = session.sql(query).to_pandas()
         df.columns = [col.lower() for col in df.columns]
         return df
-        
+
     except SnowparkSQLException as e:
         st.error(f"""
         **SQL Query Failed: load_grid_assets()**
-        
+
         **Error:** {str(e)}
-        
+
         **Query Context:**
         - Table: UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS
         - Operation: Loading grid assets (transformers and substations)
         - SQL Error Code: {e.error_code if hasattr(e, 'error_code') else 'N/A'}
-        
+
         **Possible Causes:**
         - Table does not exist or has been renamed
         - Missing permissions (SELECT privilege required)
@@ -605,18 +589,18 @@ def load_grid_assets():
         - Database/schema does not exist
         """)
         st.stop()  # Stop execution to prevent cascading errors
-        
+
     except Exception as e:
         st.error(f"""
         **Unexpected Error: load_grid_assets()**
-        
+
         **Error Type:** {type(e).__name__}
         **Error Message:** {str(e)}
-        
+
         **Query Context:**
         - Table: UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS
         - Operation: Loading grid assets
-        
+
         Please contact support if this error persists.
         """)
         st.stop()
@@ -645,9 +629,7 @@ def load_grid_assets():
 - Complex joins with potential data quality issues
 - Need for comprehensive error message templates
 
-
 ## 4. Progress Indicators and User Feedback
-
 
 **MANDATORY:**
 **Show user feedback for operations that may take time:**
@@ -726,7 +708,7 @@ from concurrent.futures import ThreadPoolExecutor
 def initialize_analysis_progress(audio_file: str):
     """Initialize progress tracking in database table"""
     session.sql(f"""
-        INSERT INTO UTILITY_DEMO_V2.CUSTOMER_DATA.ANALYSIS_PROGRESS 
+        INSERT INTO UTILITY_DEMO_V2.CUSTOMER_DATA.ANALYSIS_PROGRESS
         (AUDIO_FILE_NAME, STATUS, CURRENT_STEP, TOTAL_STEPS)
         VALUES ('{audio_file}', 'in_progress', 0, 18)
     """).collect()
@@ -742,19 +724,19 @@ def call_stored_procedure_async(proc_name: str, *args):
 def show_analysis_progress_live(audio_file):
     """
     Auto-refreshing fragment that polls ANALYSIS_PROGRESS table.
-    
+
     Fragment Pattern (Streamlit Best Practice):
     - Decorated with @st.fragment(run_every="0.5s") for automatic polling
     - Called conditionally based on st.session_state.active_analysis_file
     - Uses st.stop() to halt auto-refresh when operation completes
     - Clears session state to prevent re-triggering on subsequent reruns
-    
+
     Why This Works:
     - Fragment reruns independently every 0.5s (not entire app)
     - Reads progress from database table updated by stored procedure
     - Displays live updates without blocking main thread
     - Stops cleanly when operation completes (no infinite loops)
-    
+
     Reference: https://docs.streamlit.io/develop/api-reference/execution-flow/st.fragment
     Pattern: https://docs.streamlit.io/develop/concepts/architecture/fragments
     """
@@ -766,24 +748,24 @@ def show_analysis_progress_live(audio_file):
         ORDER BY LAST_UPDATED DESC
         LIMIT 1
     """).collect()
-    
+
     if not progress_result:
         st.warning("⏳ Initializing analysis...")
         return
-    
+
     p = progress_result[0].as_dict()
-    
+
     # Show live progress bar and status
     if p["STATUS"] == "in_progress" and p["TOTAL_STEPS"] > 0:
         progress_pct = p["CURRENT_STEP"] / p["TOTAL_STEPS"]
         st.progress(progress_pct, text=f"Step {p['CURRENT_STEP']}/{p['TOTAL_STEPS']}")
         st.info(f"🔄 {p['STEP_DESCRIPTION']}")
-        
+
         # Show elapsed time
         if "analysis_start_time" in st.session_state:
             elapsed = time.time() - st.session_state.analysis_start_time
             st.caption(f"Elapsed: {int(elapsed)}s")
-    
+
     # Stop polling when complete
     if p["STATUS"] in ["completed", "partial", "failed"]:
         if p["STATUS"] == "completed":
@@ -792,7 +774,7 @@ def show_analysis_progress_live(audio_file):
             st.warning(f"Partial completion: {p['CURRENT_STEP']}/{p['TOTAL_STEPS']} steps")
         else:  # failed
             st.error(f"Analysis failed at step {p['CURRENT_STEP']}: {p['STEP_DESCRIPTION']}")
-        
+
         # Clear session state to stop fragment
         if "active_analysis_file" in st.session_state:
             del st.session_state.active_analysis_file
@@ -802,7 +784,7 @@ def show_analysis_progress_live(audio_file):
             del st.session_state.analysis_start_time
         if "analysis_future" in st.session_state:
             del st.session_state.analysis_future
-        
+
         st.stop()  # Stop fragment auto-refresh
 
 # Main app code
@@ -821,12 +803,12 @@ if st.button(
     disabled=st.session_state.get("analysis_in_progress", False),
 ):
     selected_file = "call_de_20250924_003.mp3"
-    
+
     # Set session state to trigger fragment
     st.session_state.active_analysis_file = selected_file
     st.session_state.analysis_in_progress = True
     st.session_state.analysis_start_time = time.time()
-    
+
     # Initialize progress tracking
     with st.spinner("[DEPLOY] Launching analysis..."):
         initialize_analysis_progress(selected_file)
@@ -835,7 +817,7 @@ if st.button(
             selected_file,
         )
         st.session_state.analysis_future = future
-    
+
     st.rerun()  # Trigger rerun to show fragment
 ```
 
@@ -916,7 +898,7 @@ def infinite_polling():
 def polling_with_termination():
     status = check_operation_status()
     st.write(f"Status: {status}")
-    
+
     if status == "complete":
         del st.session_state.active_operation
         st.stop()  # Halt auto-refresh
@@ -928,7 +910,6 @@ def polling_with_termination():
 - **Scoped Reruns:** Only fragment reruns, not entire app (preserves user inputs, scroll position)
 - **Database Load:** Each auto-refresh queries database; ensure queries are indexed and fast (<100ms)
 - **Connection Pooling:** Use Streamlit's `st.connection()` for efficient connection management
-
 
 ## 5. Performance Optimization Patterns
 
@@ -965,7 +946,6 @@ df = load_all_sales()  # Single query, cached
 - **Query Execution:** <5s (optimize with Query Profile if slower)
 - **Cost:** <$0.10 per query (reference 105-snowflake-cost-governance.md)
 
-
 ## 6. Performance Profiling
 
 **Monitor rerun frequency and identify unnecessary reruns:**
@@ -987,7 +967,6 @@ with st.expander("Debug Info"):
 - **Always:** Test with production-like data volumes during development
 - **Requirement:** Use Snowflake Query Profile to validate query performance
 
-
 ## Related Rules
 
 **Closely Related** (consider loading together):
@@ -1003,4 +982,3 @@ with st.expander("Debug Info"):
 **Complementary** (different aspects of same domain):
 - `119-snowflake-warehouse-management` - For warehouse sizing affecting query performance
 - `105-snowflake-cost-governance` - For monitoring costs of cached query executions
-

@@ -106,19 +106,19 @@ def htmx_client(client, htmx_headers):
         def get(self, *args, **kwargs):
             kwargs.setdefault('headers', {}).update(htmx_headers)
             return client.get(*args, **kwargs)
-        
+
         def post(self, *args, **kwargs):
             kwargs.setdefault('headers', {}).update(htmx_headers)
             return client.post(*args, **kwargs)
-        
+
         def put(self, *args, **kwargs):
             kwargs.setdefault('headers', {}).update(htmx_headers)
             return client.put(*args, **kwargs)
-        
+
         def delete(self, *args, **kwargs):
             kwargs.setdefault('headers', {}).update(htmx_headers)
             return client.delete(*args, **kwargs)
-    
+
     return HTMXClient()
 ```
 
@@ -146,17 +146,17 @@ def htmx_client(client, htmx_headers):
         def __init__(self, client, headers):
             self.client = client
             self.headers = headers
-        
+
         def get(self, url, **kwargs):
             kwargs.setdefault('headers', {}).update(self.headers)
             return self.client.get(url, **kwargs)
-        
+
         def post(self, url, **kwargs):
             kwargs.setdefault('headers', {}).update(self.headers)
             return self.client.post(url, **kwargs)
-        
+
         # ... put, delete, etc.
-    
+
     return HTMXTestClient(client, htmx_headers)
 ```
 
@@ -167,7 +167,7 @@ def htmx_client(client, htmx_headers):
 def test_htmx_detection_with_header(client, htmx_headers):
     """Test endpoint detects HTMX request"""
     response = client.get('/users', headers=htmx_headers)
-    
+
     assert response.status_code == 200
     # Should return partial, not full page
     assert '<html>' not in response.data.decode()
@@ -176,7 +176,7 @@ def test_htmx_detection_with_header(client, htmx_headers):
 def test_htmx_detection_without_header(client):
     """Test endpoint returns full page without HTMX header"""
     response = client.get('/users')
-    
+
     assert response.status_code == 200
     # Should return full page
     assert '<html>' in response.data.decode()
@@ -185,7 +185,7 @@ def test_htmx_detection_without_header(client):
 def test_htmx_only_endpoint_rejects_non_htmx(client):
     """Test HTMX-only endpoint rejects regular requests"""
     response = client.get('/htmx/users/search')
-    
+
     assert response.status_code == 400
 ```
 
@@ -203,12 +203,12 @@ def test_user_row_structure(htmx_client):
     """Test partial HTML structure"""
     response = htmx_client.get('/users/1')
     soup = parse_html(response.data)
-    
+
     # Assert structure
     tr = soup.find('tr', id='user-1')
     assert tr is not None
     assert tr.find('td', text='John Doe') is not None
-    
+
     # Assert HTMX attributes present
     edit_button = tr.find('button', attrs={'hx-get': '/users/1/edit'})
     assert edit_button is not None
@@ -218,7 +218,7 @@ def test_table_has_rows(htmx_client):
     """Test table contains expected rows"""
     response = htmx_client.get('/users')
     soup = parse_html(response.data)
-    
+
     rows = soup.find_all('tr', id=lambda x: x and x.startswith('user-'))
     assert len(rows) == 3  # Expected number of users
 ```
@@ -241,7 +241,7 @@ def assert_element_count(soup, selector, expected_count):
 def test_user_buttons(htmx_client):
     response = htmx_client.get('/users/1')
     soup = parse_html(response.data)
-    
+
     edit_btn = soup.find('button', attrs={'hx-get': '/users/1/edit'})
     assert_htmx_attributes(edit_btn, {
         'hx-get': '/users/1/edit',
@@ -257,28 +257,28 @@ def test_user_buttons(htmx_client):
 def test_delete_triggers_event(htmx_client):
     """Test DELETE returns HX-Trigger header"""
     response = htmx_client.delete('/users/1')
-    
+
     assert response.status_code == 200
     assert response.headers.get('HX-Trigger') == 'userDeleted'
 
 def test_unauthorized_redirects(htmx_client):
     """Test unauthorized request returns HX-Redirect"""
     response = htmx_client.get('/protected')
-    
+
     assert response.status_code == 401
     assert response.headers.get('HX-Redirect') == '/login'
 
 def test_error_retargets(htmx_client):
     """Test error response retargets to error container"""
     response = htmx_client.post('/users', data={'name': ''})
-    
+
     assert response.status_code == 400
     assert response.headers.get('HX-Retarget') == '#error-container'
 
 def test_multiple_triggers(htmx_client):
     """Test multiple events in HX-Trigger header"""
     response = htmx_client.post('/cart/add/1')
-    
+
     assert response.status_code == 200
     trigger_header = response.headers.get('HX-Trigger')
     # HX-Trigger can contain multiple events: {"event1": {}, "event2": {}}
@@ -300,12 +300,12 @@ def test_user_crud_workflow(client, htmx_client, db):
     assert response.status_code == 200
     soup = parse_html(response.data)
     user_id = soup.find('tr')['id'].replace('user-', '')
-    
+
     # Read user
     response = htmx_client.get(f'/users/{user_id}')
     assert response.status_code == 200
     assert 'Jane Doe' in response.data.decode()
-    
+
     # Update user
     response = htmx_client.put(f'/users/{user_id}', data={
         'name': 'Jane Smith'
@@ -313,7 +313,7 @@ def test_user_crud_workflow(client, htmx_client, db):
     assert response.status_code == 200
     assert 'Jane Smith' in response.data.decode()
     assert response.headers.get('HX-Trigger') == 'userUpdated'
-    
+
     # Delete user
     response = htmx_client.delete(f'/users/{user_id}')
     assert response.status_code == 200
@@ -328,14 +328,14 @@ def test_form_validation_errors(htmx_client):
         'name': '',  # Invalid: empty
         'email': 'not-an-email'  # Invalid: bad format
     })
-    
+
     assert response.status_code == 400
     soup = parse_html(response.data)
-    
+
     # Check error messages present
     name_error = soup.find('span', class_='error', text=lambda t: 'name' in t.lower())
     assert name_error is not None
-    
+
     email_error = soup.find('span', class_='error', text=lambda t: 'email' in t.lower())
     assert email_error is not None
 ```
@@ -354,9 +354,9 @@ def test_users_list_with_mock(htmx_client, mocker):
         {'id': 2, 'name': 'User 2', 'email': 'user2@example.com'}
     ]
     mocker.patch('app.routes.get_users', return_value=mock_users)
-    
+
     response = htmx_client.get('/users')
-    
+
     assert response.status_code == 200
     soup = parse_html(response.data)
     rows = soup.find_all('tr', id=lambda x: x and x.startswith('user-'))
@@ -372,11 +372,11 @@ def test_weather_endpoint_with_mock(htmx_client, mocker):
         'temp': 72,
         'condition': 'Sunny'
     }
-    
+
     mocker.patch('httpx.AsyncClient.get', return_value=mock_response)
-    
+
     response = htmx_client.get('/weather/seattle')
-    
+
     assert response.status_code == 200
     assert '72' in response.data.decode()
     assert 'Sunny' in response.data.decode()
@@ -412,7 +412,7 @@ def test_crud_triggers(htmx_client, method, endpoint, data, expected_trigger):
         response = htmx_client.put(endpoint, data=data)
     elif method == 'DELETE':
         response = htmx_client.delete(endpoint)
-    
+
     assert response.headers.get('HX-Trigger') == expected_trigger
 ```
 

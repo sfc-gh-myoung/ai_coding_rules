@@ -11,11 +11,9 @@
 ## Purpose
 Establish comprehensive best practices for continuous data ingestion using Snowflake Snowpipe (serverless, file-based) and Snowpipe Streaming (SDK-based, low-latency) including architecture selection, configuration, security, monitoring, and cost optimization.
 
-
 ## Rule Scope
 
 Snowpipe serverless (auto-ingest and REST API) and Snowpipe Streaming (high-performance and classic architectures) for continuous data loading
-
 
 ## Quick Start TL;DR
 
@@ -44,7 +42,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] COPY statement validated
 - [ ] Pipe created and tested
 - [ ] Monitoring queries configured
-
 
 ## Contract
 
@@ -92,7 +89,6 @@ Pipe created successfully; files loading automatically (auto-ingest) or via API;
 </design_principles>
 
 </contract>
-
 
 ## Anti-Patterns and Common Mistakes
 
@@ -197,7 +193,7 @@ ON_ERROR = CONTINUE;  -- Continues on errors but never alerts!
 
 -- Step 1: Create monitoring query
 CREATE OR REPLACE VIEW pipe_error_monitoring AS
-SELECT 
+SELECT
   pipe_name,
   file_name,
   last_load_time,
@@ -230,7 +226,7 @@ ALTER TASK monitor_pipe_errors RESUME;
 -- Query pipe_error_log and send notifications when errors detected
 
 -- Step 4: Regular manual checks
-SELECT 
+SELECT
   COUNT(*) as total_files,
   SUM(CASE WHEN status = 'LOADED' THEN 1 ELSE 0 END) as successful,
   SUM(CASE WHEN status = 'LOAD_FAILED' THEN 1 ELSE 0 END) as failed,
@@ -282,7 +278,7 @@ ON_ERROR = CONTINUE;
 LIST @my_stage PATTERN = 'production/sales/.*sales_data_[0-9]{8}_[0-9]{6}\\.csv\\.gz';
 
 -- Step 4: Check loaded files
-SELECT DISTINCT file_name 
+SELECT DISTINCT file_name
 FROM TABLE(INFORMATION_SCHEMA.COPY_HISTORY(
   TABLE_NAME => 'TARGET_TABLE',
   START_TIME => DATEADD(DAY, -1, CURRENT_TIMESTAMP())
@@ -293,7 +289,6 @@ ORDER BY file_name;
 -- But correct PATTERN prevents unnecessary processing
 ```
 **Benefits:** Loads correct files only; no test data leakage; predictable behavior; fast processing; optimized credits; clean production data; easy debugging
-
 
 ## Post-Execution Checklist
 - [ ] Ingestion method selected (auto-ingest, REST API, or Streaming)
@@ -310,12 +305,11 @@ ORDER BY file_name;
 - [ ] Error notifications configured (for production pipes)
 - [ ] Documentation updated with pipe details and architecture
 
-
 ## Validation
 - **Success Checks:** Pipe created successfully and shows in SHOW PIPES; files loading automatically (auto-ingest) or via REST API/SDK; load history shows successful inserts; latency within requirements (<2 min for file-based, <1 sec for streaming); no duplicate data; error rate acceptable (<5%); cost per GB within expected range
 - **Negative Tests:** Pipe creation fails without proper privileges; files not loading due to misconfigured notifications; duplicate loads when mixing bulk and Snowpipe; high latency with undersized files (<1MB); excessive costs with micro-batches; schema errors with missing columns; offset tracking failures in streaming
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read existing pipes BEFORE creating new ones** - Check SHOW PIPES, understand patterns, file sizes
 > 2. **Verify cloud storage setup** - Check stages, permissions, event notifications configuration
@@ -331,7 +325,6 @@ ORDER BY file_name;
 > "Let me check your existing ingestion setup first."
 > [reads existing pipes, checks stages, tests COPY statement]
 > "I see you use auto-ingest with 200MB files. Creating new pipe following this pattern..."
-
 
 ## Output Format Examples
 ```sql
@@ -374,7 +367,7 @@ CREATE PIPE PIPE_LOAD_RAW_DATA
 AS
   COPY INTO RAW_DATA (record_id, event_type, event_timestamp, payload)
   FROM (
-    SELECT 
+    SELECT
       $1:id::STRING,
       $1:type::STRING,
       $1:timestamp::TIMESTAMP_NTZ,
@@ -398,7 +391,6 @@ FROM TABLE(INFORMATION_SCHEMA.PIPE_USAGE_HISTORY(
 ORDER BY START_TIME DESC;
 ```
 
-
 ## References
 
 ### External Documentation
@@ -420,8 +412,6 @@ ORDER BY START_TIME DESC;
 - **Warehouse Management**: `rules/119-snowflake-warehouse-management.md` - Warehouse sizing (note: Snowpipe uses serverless compute)
 - **Cost Governance**: `rules/105-snowflake-cost-governance.md` - Resource monitors and cost optimization
 - **Security Governance**: `rules/107-snowflake-security-governance.md` - Access control and security policies
-
-
 
 ## 1. Snowpipe Overview and Architecture
 
@@ -450,7 +440,6 @@ ORDER BY START_TIME DESC;
 | **Best For** | Initial loads, large batches, scheduled ETL | Streaming sources, event-driven, continuous feeds |
 
 **Rule:** Do NOT use Snowpipe for one-time bulk historical loads. Use COPY INTO with appropriately sized warehouses instead.
-
 
 ## 2. Snowpipe Ingestion Methods
 
@@ -511,7 +500,6 @@ ORDER BY START_TIME DESC;
 | **Authentication** | IAM/service principal | JWT key pair |
 | **Best For** | Continuous external feeds | Custom workflows, internal stages |
 
-
 ## 3. File Sizing Best Practices
 
 ### 3.1 Recommended File Sizes
@@ -536,7 +524,6 @@ ORDER BY START_TIME DESC;
 - **CSV:** Simple but less efficient; use for small datasets or compatibility
 
 **Rule:** Always compress files before staging. Uncompressed files waste storage and bandwidth.
-
 
 ## 4. Snowpipe DDL and Configuration
 
@@ -584,7 +571,7 @@ CREATE OR REPLACE PIPE PIPE_LOAD_RAW_EVENTS
 AS
   COPY INTO RAW_EVENTS (event_id, event_type, event_ts, payload)
   FROM (
-    SELECT 
+    SELECT
       $1:event_id::STRING,
       $1:event_type::STRING,
       $1:event_timestamp::TIMESTAMP_NTZ,
@@ -636,7 +623,7 @@ CREATE OR REPLACE PIPE PIPE_TRANSFORM_SALES
 AS
   COPY INTO SALES_FACT (sale_id, customer_id, sale_date, amount, region)
   FROM (
-    SELECT 
+    SELECT
       $1:id::STRING,
       $1:customer_id::NUMBER,
       TO_TIMESTAMP($1:sale_timestamp::STRING),
@@ -647,7 +634,6 @@ AS
   FILE_FORMAT = FF_PARQUET
   ON_ERROR = CONTINUE;
 ```
-
 
 ## 5. Cloud Event Configuration
 
@@ -739,7 +725,6 @@ AS
 
 **Snowflake Documentation Reference:** [Automating Snowpipe using GCS Pub/Sub](https://docs.snowflake.com/en/user-guide/data-load-snowpipe-auto-gcs)
 
-
 ## 6. Snowpipe REST API Usage
 
 ### 6.1 Authentication Setup
@@ -827,7 +812,6 @@ print(response.json())
 
 **Snowflake Documentation Reference:** [Snowpipe REST API](https://docs.snowflake.com/en/user-guide/data-load-snowpipe-rest-gs)
 
-
 ## 7. Security and Access Control
 
 ### 7.1 Privileges Required
@@ -885,7 +869,6 @@ ALTER PIPE PIPE_LOAD_RAW_EVENTS REFRESH;
 ALTER PIPE PIPE_LOAD_RAW_EVENTS REFRESH PREFIX = 'events/2025/01/';
 ```
 
-
 ## 8. Monitoring and Load History
 
 ### 8.1 Load History Queries
@@ -902,7 +885,7 @@ FROM TABLE(INFORMATION_SCHEMA.PIPE_USAGE_HISTORY(
 ORDER BY START_TIME DESC;
 
 -- Summary of files loaded per day
-SELECT 
+SELECT
   DATE_TRUNC('day', START_TIME) AS load_date,
   COUNT(*) AS num_loads,
   SUM(FILES_INSERTED) AS total_files,
@@ -920,7 +903,7 @@ ORDER BY load_date DESC;
 **Check for Errors:**
 ```sql
 -- Find loads with errors
-SELECT 
+SELECT
   START_TIME,
   FILES_INSERTED,
   ROWS_INSERTED,
@@ -942,7 +925,7 @@ ORDER BY START_TIME DESC;
 
 ```sql
 -- Query COPY_HISTORY for Snowpipe loads
-SELECT 
+SELECT
   TABLE_NAME,
   STAGE_LOCATION,
   FILE_NAME,
@@ -969,7 +952,6 @@ ORDER BY LAST_LOAD_TIME DESC;
 - Significant changes in file counts or sizes
 - Pipes consuming excessive compute credits
 
-
 ## 9. Cost Management
 
 ### 9.1 Snowpipe Billing Model
@@ -983,7 +965,7 @@ ORDER BY LAST_LOAD_TIME DESC;
 **Cost Monitoring Query:**
 ```sql
 -- Daily Snowpipe costs (last 30 days)
-SELECT 
+SELECT
   DATE_TRUNC('day', START_TIME) AS usage_date,
   SUM(CREDITS_USED) AS snowpipe_credits,
   COUNT(DISTINCT PIPE_NAME) AS num_pipes,
@@ -994,7 +976,7 @@ GROUP BY DATE_TRUNC('day', START_TIME)
 ORDER BY usage_date DESC;
 
 -- Cost per pipe
-SELECT 
+SELECT
   PIPE_NAME,
   SUM(CREDITS_USED) AS total_credits,
   SUM(FILES_INSERTED) AS total_files,
@@ -1019,7 +1001,6 @@ ORDER BY total_credits DESC;
 6. **Monitor and right-size:** Review cost per GB and optimize accordingly
 
 **Snowflake Documentation Reference:** [Snowpipe Costs](https://docs.snowflake.com/en/user-guide/data-load-snowpipe-billing)
-
 
 ## 10. Snowpipe Streaming Overview
 
@@ -1067,7 +1048,6 @@ ORDER BY total_credits DESC;
 - Simpler setup preferred
 - File-based event notifications available
 
-
 ## 11. Snowpipe Streaming SDK Usage
 
 ### 11.1 Java SDK Example
@@ -1098,12 +1078,12 @@ public class SnowpipeStreamingExample {
         props.put("warehouse", "WAREHOUSE_NAME");  // Optional for high-perf
         props.put("database", "DATABASE_NAME");
         props.put("schema", "SCHEMA_NAME");
-        
-        SnowflakeStreamingIngestClient client = 
+
+        SnowflakeStreamingIngestClient client =
             SnowflakeStreamingIngestClientFactory.builder("CLIENT_NAME")
                 .setProperties(props)
                 .build();
-        
+
         // Open channel
         OpenChannelRequest channelRequest = OpenChannelRequest.builder("CHANNEL_NAME")
             .setDBName("DATABASE_NAME")
@@ -1111,21 +1091,21 @@ public class SnowpipeStreamingExample {
             .setTableName("TABLE_NAME")
             .setOnErrorOption(OpenChannelRequest.OnErrorOption.CONTINUE)
             .build();
-        
+
         SnowflakeStreamingIngestChannel channel = client.openChannel(channelRequest);
-        
+
         // Insert rows
         Map<String, Object> row = new HashMap<>();
         row.put("id", 1);
         row.put("name", "Alice");
         row.put("timestamp", System.currentTimeMillis());
-        
+
         InsertValidationResponse response = channel.insertRow(row, "offset_1");
-        
+
         if (response.hasErrors()) {
             System.err.println("Insert errors: " + response.getInsertErrors());
         }
-        
+
         // Close channel and client
         channel.close().get();
         client.close();
@@ -1198,7 +1178,6 @@ client.close()
 - Monitor channel lag and throughput
 - Close channels gracefully on application shutdown
 
-
 ## 12. Schema Evolution
 
 **Snowpipe Streaming supports automatic schema evolution:**
@@ -1219,14 +1198,13 @@ channel.insert_row(row, 'offset_1')
 
 **Rule:** Use schema evolution cautiously in production. Prefer explicit schema management for critical tables.
 
-
 ## 13. Snowpipe Streaming Monitoring
 
 ### 13.1 Channel Status
 
 ```sql
 -- Query channel status
-SELECT 
+SELECT
   channel_name,
   table_name,
   offset_token,
@@ -1243,7 +1221,7 @@ ORDER BY last_commit_time DESC;
 
 ```sql
 -- Query streaming load history
-SELECT 
+SELECT
   table_name,
   channel_name,
   row_count,
@@ -1256,7 +1234,6 @@ WHERE table_name = 'MY_TABLE'
   AND start_time >= DATEADD(day, -1, CURRENT_TIMESTAMP())
 ORDER BY start_time DESC;
 ```
-
 
 ## 14. Troubleshooting
 
@@ -1303,4 +1280,3 @@ ORDER BY start_time DESC;
 - Implement idempotency in application logic
 
 **Snowflake Documentation Reference:** [Snowpipe Troubleshooting](https://docs.snowflake.com/en/user-guide/data-load-snowpipe-troubleshooting)
-

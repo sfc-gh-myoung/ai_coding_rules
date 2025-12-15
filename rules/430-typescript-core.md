@@ -11,11 +11,8 @@
 ## Purpose
 Establishes the definitive standards for writing production-grade TypeScript in 2025. This rule enforces **Strict Mode**, prioritizes **Type Inference** over manual typing, mandates **Runtime Validation** (Zod) at I/O boundaries, and explicitly forbids legacy features like Enums and Namespaces.
 
-
 ## Rule Scope
 Applies to all TypeScript files in frontend and backend environments. Covers type definitions, generics, validation schemas, and compiler configuration.
-
-
 
 ## Quick Start TL;DR
 
@@ -67,7 +64,6 @@ Run `tsc --noEmit` and check for zero errors.
 </validation>
 
 </contract>
-
 
 ## Anti-Patterns and Common Mistakes
 
@@ -126,7 +122,6 @@ type UserData = {
 type StrictCallback = () => undefined;
 ```
 
-
 ## Post-Execution Checklist
 - [ ] `"strict": true` is set in tsconfig
 - [ ] `any` is nowhere to be found
@@ -135,7 +130,6 @@ type StrictCallback = () => undefined;
 - [ ] No `ISomething` interface names
 - [ ] `satisfies` is used for config objects
 - [ ] Generics have `extends` constraints where applicable
-
 
 ## Validation
 - **Success checks:**
@@ -150,7 +144,6 @@ type StrictCallback = () => undefined;
 > 1. **Read `tsconfig.json`** to understand strictness level and paths.
 > 2. **Check for existing validation libraries** (Zod, Yup, Valibot) before introducing a new one.
 > 3. **Do not blindly add types** if inference works. Read the code to see if the type is obvious.
-
 
 ## Output Format Examples
 
@@ -185,9 +178,9 @@ type ApiResponse = z.infer<typeof ApiResponseSchema>;
 export async function fetchData(url: string): Promise<ApiResponse> {
  const res = await fetch(url);
  if (!res.ok) throw new Error('Network error');
- 
+
  const json: unknown = await res.json();
- 
+
  // Runtime Validation
  return ApiResponseSchema.parse(json);
 }
@@ -197,7 +190,6 @@ export async function fetchData(url: string): Promise<ApiResponse> {
 # Validation
 npx tsc --noEmit
 ```
-
 
 ## References
 
@@ -244,7 +236,6 @@ npx tsc --noEmit
 
 ### 1.2 Global Resets
 - **Consider:** using `@total-typescript/ts-reset` to fix standard library annoyances (like `JSON.parse` returning `any` instead of `unknown`).
-
 
 ## 2. Core Typing Patterns
 
@@ -312,7 +303,6 @@ const routes = {
 // TS knows routes.home.path is exactly '/'
 ```
 
-
 ## 3. Advanced Patterns
 
 ### 3.1 Generic Constraints
@@ -339,4 +329,3 @@ type PostId = Brand<string, 'PostId'>;
 const getUser = (id: UserId) => { ... };
 const myId = '123' as UserId; // Explicit cast required at boundary
 ```
-

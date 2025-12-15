@@ -11,12 +11,9 @@
 ## Purpose
 Establish foundational bash scripting patterns covering script structure, variables, functions, and essential error handling practices to create reliable, maintainable, and portable shell scripts.
 
-
 ## Rule Scope
 
 Foundation bash scripting patterns and essential practices
-
-
 
 ## Quick Start TL;DR
 
@@ -38,7 +35,6 @@ Foundation bash scripting patterns and essential practices
 - [ ] Trap handlers for cleanup
 - [ ] Input validation implemented
 - [ ] Shellcheck passing
-
 
 ## Contract
 
@@ -136,12 +132,11 @@ fi
 - [ ] Output format matches requirements
 - [ ] Validation steps completed successfully
 
-
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read existing scripts BEFORE suggesting changes** - Check current patterns, error handling
 > 2. **Verify shell type** - Confirm bash vs sh, check shebang and features used
@@ -157,7 +152,6 @@ fi
 > "Let me check your script's current error handling first."
 > [reads script, checks for existing patterns, runs shellcheck]
 > "I see you're missing error handling. Adding set -euo pipefail and trap handlers..."
-
 
 ## Output Format Examples
 
@@ -176,17 +170,17 @@ readonly LOG_FILE="${SCRIPT_DIR}/output.log"
 main() {
     # Investigation phase
     check_prerequisites
-    
+
     # Implementation phase
     perform_operations
-    
+
     # Validation phase
     verify_results
 }
 
 check_prerequisites() {
     local -a required_commands=(jq curl git)
-    
+
     for cmd in "${required_commands[@]}"; do
         if ! command -v "${cmd}" &>/dev/null; then
             echo "ERROR: Required command not found: ${cmd}" >&2
@@ -214,19 +208,17 @@ main "$@"
 shellcheck script.sh
 ```
 
-
 ## References
 
 ### External Documentation
 - [Bash Manual](https://www.gnu.org/software/bash/manual/) - Complete reference for Bash features and syntax
-- [Google Shell Style Guide](https://google.github.io/styleguide/shellguide.html) - Professional shell scripting standards and conventions                                                                              
+- [Google Shell Style Guide](https://google.github.io/styleguide/shellguide.html) - Professional shell scripting standards and conventions
 - [Bash Pitfalls](https://mywiki.wooledge.org/BashPitfalls) - Common scripting mistakes and how to avoid them
 
 ### Related Rules
 - **Bash Security**: `rules/300a-bash-security.md`
 - **Bash Testing**: `rules/300b-bash-testing-tooling.md`
 - **Taskfile Automation**: `rules/820-taskfile-automation.md`
-
 
 ## 1. Script Foundation & Safety
 
@@ -260,7 +252,6 @@ set -euo pipefail
 
 set -euo pipefail
 ```
-
 
 ## 2. Variable Management
 
@@ -317,7 +308,6 @@ if [[ ${#files[@]} -eq 0 ]]; then
 fi
 ```
 
-
 ## 3. Basic Input Handling
 
 ### Command Line Arguments
@@ -333,10 +323,10 @@ validate_args() {
 # Basic argument processing
 main() {
     validate_args "$@"
-    
+
     local required_arg="$1"
     local optional_arg="${2:-default_value}"
-    
+
     # Process arguments
     echo "Processing: $required_arg"
 }
@@ -347,13 +337,13 @@ main() {
 ```bash
 check_required_env() {
     local -a missing_vars=()
-    
+
     for var in "$@"; do
         if [[ -z "${!var:-}" ]]; then
             missing_vars+=("$var")
         fi
     done
-    
+
     if [[ ${#missing_vars[@]} -gt 0 ]]; then
         echo "Error: Missing environment variables: ${missing_vars[*]}" >&2
         exit 1
@@ -366,7 +356,6 @@ check_required_env "HOME" "USER"
 
 **Note:** For comprehensive input validation and security practices, see `@300a-bash-security.md`
 
-
 ## 4. Error Handling and Logging
 
 ### Function Error Handling
@@ -374,12 +363,12 @@ check_required_env "HOME" "USER"
 ```bash
 process_file() {
     local file="$1"
-    
+
     if [[ ! -f "$file" ]]; then
         echo "Error: File not found: $file" >&2
         return 1
     fi
-    
+
     cp "$file" "$backup_dir/"
 }
 ```
@@ -407,7 +396,6 @@ log "Starting process"
 log "Process completed"
 ```
 
-
 ## 5. Function Design and Modularity
 
 ### Function Structure
@@ -416,13 +404,13 @@ log "Process completed"
 function_name() {
     local param1="$1"
     local param2="${2:-default_value}"
-    
+
     # Validate parameters
     if [[ $# -lt 1 ]]; then
         echo "Usage: function_name <param1> [param2]" >&2
         return 1
     fi
-    
+
     # Function logic here
     echo "Result: $param1"
 }
@@ -434,14 +422,14 @@ function_name() {
 ```bash
 process_options() {
     local verbose=false
-    
+
     while getopts "v" opt; do
         case $opt in
             v) verbose=true ;;
             \?) return 1 ;;
         esac
     done
-    
+
     shift $((OPTIND-1))
     echo "Processing: $*"
 }
@@ -462,7 +450,6 @@ check_file() {
 }
 ```
 
-
 ## 6. File and Directory Operations
 
 ### Safe File Operations
@@ -470,12 +457,12 @@ check_file() {
 ```bash
 safe_copy() {
     local source="$1" dest="$2"
-    
+
     if [[ ! -f "$source" ]]; then
         echo "Error: Source file not found: $source" >&2
         return 1
     fi
-    
+
     cp "$source" "$dest"
 }
 ```
@@ -497,7 +484,6 @@ temp_file="$(mktemp)"
 temp_dir="$(mktemp -d)"
 trap 'rm -f "$temp_file"; rm -rf "$temp_dir"' EXIT
 ```
-
 
 ## 7. Command Execution and Pipelines
 
@@ -533,7 +519,6 @@ local pid=$!
 wait "$pid"
 ```
 
-
 ## 8. Configuration and Environment
 
 ### Basic Configuration
@@ -541,7 +526,7 @@ wait "$pid"
 ```bash
 load_simple_config() {
     local config_file="$1"
-    
+
     if [[ -f "$config_file" ]]; then
         # shellcheck source=/dev/null
         source "$config_file"
@@ -565,7 +550,6 @@ detect_os() {
 readonly OS="$(detect_os)"
 ```
 
-
 ## 9. Basic Debugging
 
 ### Debug Mode
@@ -584,7 +568,6 @@ debug_log() {
 ```
 
 **Note:** For comprehensive testing frameworks and debugging techniques, see `@300b-bash-testing-tooling.md`
-
 
 ## 10. Performance Best Practices
 
@@ -611,7 +594,6 @@ fi
 result=$((num1 + num2))
 ```
 
-
 ## 11. Code Style and Standards
 
 ### Formatting Standards
@@ -635,7 +617,6 @@ source "$external_config"
 ```
 
 **Note:** For comprehensive tooling integration and CI/CD setup, see `@300b-bash-testing-tooling.md`
-
 
 ## 12. Basic Security Practices
 
@@ -661,7 +642,6 @@ chmod 700 "$temp_dir"
 
 **Note:** For comprehensive security practices including input validation and access control, see `@300a-bash-security.md`
 
-
 ## 13. Common Anti-Patterns to Avoid
 
 ### Dangerous Practices
@@ -675,7 +655,6 @@ chmod 700 "$temp_dir"
 - **Avoid:** Calling external commands in loops when bash built-ins suffice
 - **Avoid:** Using `expr` for arithmetic (use `$(())` instead)
 - **Avoid:** Unnecessary subshells and command substitutions
-
 
 ## 14. Documentation Standards
 
@@ -713,9 +692,7 @@ calculate_hash() {
 }
 ```
 
-
 ## Related Rules
 
 - **`@300a-bash-security.md`** - Comprehensive security practices, input validation, and access control
 - **`@300b-bash-testing-tooling.md`** - Testing frameworks, debugging, ShellCheck integration, and CI/CD
-

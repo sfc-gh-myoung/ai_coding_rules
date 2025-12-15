@@ -56,6 +56,27 @@ Files: src/data_processor.py
 
 ---
 
+### RULE_REVIEW_PROMPT.md - Agent-Centric Rule Assessment
+**Use Case:** Systematic review of rule files for AI agent usability
+
+**Files:**
+- Template: `prompts/RULE_REVIEW_PROMPT.md`
+- Usage guide: `docs/USING_RULE_REVIEW_PROMPT.md`
+
+**Pattern:**
+```
+Review rules/XXX-rule-name.md using the Agent-Centric Rule Review criteria.
+```
+
+**Purpose:** Get consistent, actionable assessments from any AI model when evaluating rule files. Focuses on whether an AI agent can follow the rule as an instruction set, not whether a human can read it as documentation.
+
+**Key Features:**
+- 6 criteria scored 1-5 each: Actionability, Completeness, Consistency, Parsability, Token Efficiency, Staleness
+- Structured output with Critical/Should/Nice severity levels
+- Agent perspective checklist for systematic evaluation
+
+---
+
 ## How to Use These Examples
 
 ### 1. Match Your Task to a Pattern

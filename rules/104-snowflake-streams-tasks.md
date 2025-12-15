@@ -11,12 +11,9 @@
 ## Purpose
 Establish patterns for building robust, incremental data pipelines using Snowflake Streams and Tasks, covering change data capture, scheduling, idempotency, and monitoring for reliable data processing workflows.
 
-
 ## Rule Scope
 
 Snowflake Streams and Tasks for incremental data pipelines and automated workflows
-
-
 
 ## Quick Start TL;DR
 
@@ -39,14 +36,13 @@ Snowflake Streams and Tasks for incremental data pipelines and automated workflo
 - [ ] Test stream consumption advances offset
 - [ ] Monitor in Snowsight Task History
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. Read existing STREAM and TASK definitions BEFORE making recommendations
 > 2. Verify stream type (STANDARD, APPEND_ONLY) matches use case
 > 3. Never speculate about task dependencies - check SHOW TASKS output
 > 4. Review Task History for actual execution patterns
 > 5. Make grounded recommendations based on investigated pipeline structure
-
 
 ## Contract
 
@@ -82,7 +78,6 @@ Snowflake Streams and Tasks for incremental data pipelines and automated workflo
 </design_principles>
 
 </contract>
-
 
 ## Anti-Patterns and Common Mistakes
 
@@ -184,7 +179,7 @@ ALTER TASK my_task RESUME;
 ```sql
 -- Good: Monitor task execution in Snowsight Task History
 -- Check execution history programmatically:
-SELECT 
+SELECT
   name,
   state,
   completed_time,
@@ -201,7 +196,6 @@ LIMIT 10;
 ```
 **Benefits:** Proactive error detection; execution pattern visibility; SLA monitoring; credit usage tracking; automated alerting on failures
 
-
 ## Post-Execution Checklist
 - [ ] Required dependencies and context verified
 - [ ] Appropriate tools selected and validated
@@ -209,11 +203,9 @@ LIMIT 10;
 - [ ] Output format matches requirements
 - [ ] Validation steps completed successfully
 
-
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
-
 
 ## Output Format Examples
 
@@ -228,7 +220,7 @@ GROUP BY column_pattern;
 CREATE OR REPLACE VIEW schema.view_name
 COMMENT = 'Business purpose following semantic model standards'
 AS
-SELECT 
+SELECT
     -- Explicit column list with business context
     id COMMENT 'Surrogate key',
     name COMMENT 'Business entity name',
@@ -241,12 +233,11 @@ SELECT * FROM schema.view_name LIMIT 5;
 SHOW VIEWS LIKE '%view_name%';
 ```
 
-
 ## References
 
 ### External Documentation
-- [Streams Management](https://docs.snowflake.com/en/user-guide/streams-manage) - Change data capture with streams for incremental processing                                                                           
-- [Tasks Introduction](https://docs.snowflake.com/en/user-guide/tasks-intro) - Scheduled task execution and workflow automation                                                                                         
+- [Streams Management](https://docs.snowflake.com/en/user-guide/streams-manage) - Change data capture with streams for incremental processing
+- [Tasks Introduction](https://docs.snowflake.com/en/user-guide/tasks-intro) - Scheduled task execution and workflow automation
 - [Idempotent DDL](https://docs.snowflake.com/en/sql-reference/sql-ddl-idempotent) - CREATE OR REPLACE patterns for reliable automation
 
 ### Related Rules
@@ -256,19 +247,16 @@ SHOW VIEWS LIKE '%view_name%';
 - **Warehouse Management**: `rules/119-snowflake-warehouse-management.md`
 - **Data Loading**: `rules/108-snowflake-data-loading.md`
 
-
 ## 1. Incremental Pipeline Design
 - **Requirement:** Use a `STREAM` to capture change data (`INSERT`, `UPDATE`, `DELETE`) on a source table.
 - **Requirement:** Use a `TASK` to schedule a `MERGE` that consumes the stream and applies changes to the target.
 - **Requirement:** Build task graphs (DAGs) for multi-step pipelines with explicit dependencies.
 - **Always:** Assign tasks to appropriate warehouses following `119-snowflake-warehouse-management.md` sizing and configuration guidance.
 
-
 ## 2. Idempotency and Monitoring
 - **Requirement:** Tasks and DML must be idempotent. Use `CREATE OR REPLACE` for DDL and ensure re-runs do not duplicate data.
 - **Always:** Consume the `STREAM` at the end of the transaction so its offset advances correctly.
 - **Always:** Monitor task execution and status using Snowsight's Task History.
-
 
 ## Related Rules
 
@@ -285,4 +273,3 @@ SHOW VIEWS LIKE '%view_name%';
 - `100-snowflake-core` - For naming conventions and DDL fundamentals
 - `107-snowflake-security-governance` - For RBAC on tasks and streams
 - `105-snowflake-cost-governance` - For monitoring task compute costs
-

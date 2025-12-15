@@ -11,11 +11,9 @@
 ## Purpose
 Establish comprehensive best practices for Snowflake Data Quality Monitoring using Data Metric Functions (DMFs), data profiling, expectations, and automated quality checks to ensure data reliability, integrity, and compliance throughout the data lifecycle.
 
-
 ## Rule Scope
 
 Snowflake Data Quality Monitoring including system and custom DMFs, data profiling, expectations, scheduling, monitoring, and remediation workflows
-
 
 ## Quick Start TL;DR
 
@@ -37,7 +35,6 @@ Snowflake Data Quality Monitoring including system and custom DMFs, data profili
 - [ ] Alert thresholds configured
 - [ ] Dashboard for quality metrics
 - [ ] Remediation workflows documented
-
 
 ## Contract
 
@@ -89,7 +86,6 @@ DMF DDL; ALTER TABLE/VIEW statements for associations; expectation definitions; 
 
 </contract>
 
-
 ## Anti-Patterns and Common Mistakes
 
 **Anti-Pattern 1: Using DMFs Without Defining Expectations**
@@ -117,7 +113,7 @@ AS $$
   FROM critical_table
 $$;
 
-ALTER TABLE critical_table 
+ALTER TABLE critical_table
   ADD DATA METRIC FUNCTION check_nulls ON ()
   EXPECT (check_nulls ON ()) < 0.05;  -- Alert if >5% nulls
 
@@ -141,7 +137,7 @@ ALTER TABLE sales_data
 ```sql
 -- Good: Profile data first to understand baseline
 -- Step 1: Profile using Snowsight Data Profile or SQL
-SELECT 
+SELECT
   COUNT(*) as total_rows,
   COUNT_IF(discount_pct IS NULL) as null_count,
   COUNT_IF(discount_pct IS NULL)::FLOAT / COUNT(*)::FLOAT as null_rate
@@ -175,7 +171,7 @@ ALTER TABLE critical_financial_data SET TAG criticality = 'HIGH';
 -- [Tag 200 critical tables]
 
 -- Step 2: Apply DMFs only to high-criticality tables
-SELECT 
+SELECT
   table_catalog,
   table_schema,
   table_name
@@ -215,7 +211,6 @@ ALTER TABLE customers ADD DATA METRIC FUNCTION check_freshness ON ();
 ```
 **Benefits:** DMF operations work; proper privilege model; account-scoped role inheritance; cross-database DMF support; clean ownership model; no deployment issues
 
-
 ## Post-Execution Checklist
 
 - [ ] DMF created with clear naming convention (DMF_ prefix)
@@ -230,14 +225,13 @@ ALTER TABLE customers ADD DATA METRIC FUNCTION check_freshness ON ();
 - [ ] DMF integrated into data pipeline quality gates
 - [ ] Documentation includes business rationale for each quality metric
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. Read table definitions and data profiles BEFORE setting quality thresholds
 > 2. Verify expected data patterns through actual data analysis (not assumptions)
 > 3. Never speculate about data quality issues without querying the data
 > 4. Check DMF execution history to understand actual vs expected quality
 > 5. Make grounded recommendations based on investigated data characteristics and DMF results
-
 
 ## Validation
 
@@ -248,7 +242,6 @@ ALTER TABLE customers ADD DATA METRIC FUNCTION check_freshness ON ();
 - Validate DMF results are logged to event table for monitoring
 - Test integration with dynamic tables or tasks for automated quality gates
 - Confirm alerting triggers when thresholds breached
-
 
 ## Output Format Examples
 
@@ -272,34 +265,34 @@ CREATE OR REPLACE DATA METRIC FUNCTION DMF_CUSTOMER_DATA_QUALITY()
         SELECT DATEDIFF(HOUR, MAX(last_updated_ts), CURRENT_TIMESTAMP())
         INTO freshness_hours
         FROM PROD_DB.DIM.CUSTOMERS;
-        
+
         -- 2. Null checks: Critical fields should have minimal nulls
-        SELECT 
+        SELECT
             SUM(CASE WHEN email IS NULL THEN 1 ELSE 0 END),
             SUM(CASE WHEN phone IS NULL THEN 1 ELSE 0 END),
             COUNT(*)
         INTO null_count_email, null_count_phone, total_rows
         FROM PROD_DB.DIM.CUSTOMERS;
-        
+
         -- 3. Uniqueness: Customer IDs must be unique
         SELECT COUNT(*) - COUNT(DISTINCT customer_id)
         INTO duplicate_count
         FROM PROD_DB.DIM.CUSTOMERS;
-        
+
         -- 4. Custom validation: Email format check
         SELECT COUNT(*)
         INTO invalid_email_count
         FROM PROD_DB.DIM.CUSTOMERS
-        WHERE email IS NOT NULL 
+        WHERE email IS NOT NULL
         AND email NOT REGEXP '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}';
-        
+
         -- Define quality expectations
         EXPECT (freshness_hours) < 24;  -- Data updated within 24 hours
         EXPECT (null_count_email) < (total_rows * 0.05);  -- <5% null emails
         EXPECT (null_count_phone) < (total_rows * 0.10);  -- <10% null phones
         EXPECT (duplicate_count) = 0;  -- No duplicate customer IDs
         EXPECT (invalid_email_count) < (total_rows * 0.01);  -- <1% invalid emails
-        
+
         -- Return overall quality score (percentage of passing checks)
         RETURN 1.0;  -- DMF framework handles pass/fail internally
     END;
@@ -316,7 +309,6 @@ ORDER BY measurement_time DESC
 LIMIT 10;
 ```
 
-
 ## References
 
 ### Internal Documentation
@@ -329,7 +321,6 @@ LIMIT 10;
 - [Snowflake Data Metric Functions](https://docs.snowflake.com/en/user-guide/data-quality-intro) - Official DMF documentation and syntax
 - [DMF Best Practices](https://docs.snowflake.com/en/user-guide/data-quality-best-practices) - Guidelines for effective quality monitoring
 - [EXPECT Statement Reference](https://docs.snowflake.com/en/user-guide/data-quality-expect) - Assertion syntax and standard functions
-
 
 ## 1. Data Quality Fundamentals
 
@@ -360,7 +351,6 @@ LIMIT 10;
 ### Enterprise Edition Requirement
 
 **REQUIREMENT:** Data Quality and DMFs require Snowflake Enterprise Edition. Trial accounts do not support this feature.
-
 
 ## 2. Data Profiling
 
@@ -415,13 +405,12 @@ ALTER TABLE CUSTOMERS
 
 -- Step 4: Set expectation
 ALTER TABLE CUSTOMERS
-  MODIFY DATA METRIC SCHEDULE 
+  MODIFY DATA METRIC SCHEDULE
     '5 MINUTES'
-    USING CRON '*/5 * * * *' 
+    USING CRON '*/5 * * * *'
     SET REFERENCE = 'email_quality_check'
     EXPECT (SNOWFLAKE.CORE.NULL_COUNT ON email) < 100;
 ```
-
 
 ## 3. System DMFs
 
@@ -488,9 +477,7 @@ ALTER TABLE TRANSACTIONS
     EXPECT (SNOWFLAKE.CORE.ROW_COUNT ON ()) > 1000;
 ```
 
-
 ## 4. Custom DMFs
-
 
 ## Related Rules
 
@@ -506,4 +493,3 @@ ALTER TABLE TRANSACTIONS
 **Complementary** (different aspects of same domain):
 - `107-snowflake-security-governance` - For access control on DMFs and quality monitoring
 - `100-snowflake-core` - For DDL fundamentals and object creation patterns
-

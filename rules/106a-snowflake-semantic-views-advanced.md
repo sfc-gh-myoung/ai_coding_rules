@@ -11,10 +11,8 @@
 ## Purpose
 Provide advanced patterns for semantic views including anti-patterns to avoid, comprehensive validation rules, quality checks, and compliance requirements.
 
-
 ## Rule Scope
 Anti-patterns, validation rules, quality checks, compliance
-
 
 ## Quick Start TL;DR
 
@@ -36,7 +34,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Validation rules applied
 - [ ] Quality checks passed
 - [ ] Compliance verified
-
 
 ## Contract
 
@@ -74,9 +71,7 @@ No anti-patterns detected; validation passes; compliant with requirements
 
 </contract>
 
-
 ## Anti-Patterns and Common Mistakes
-
 
 **Anti-Pattern 1: Reversed Mapping Syntax**
 ```sql
@@ -221,9 +216,6 @@ CREATE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
 ```
 **Benefits:** Correct clause order: TABLES → FACTS → DIMENSIONS → METRICS.
 
-
-
-
 ## Post-Execution Checklist
 
 **DDL Creation:**
@@ -247,7 +239,6 @@ CREATE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
 - [ ] Only scalar functions in dimensions (no table functions)
 - [ ] No template characters (`&`, `<%`, `%>`, `{{`, `}}`) in SYNONYMS or COMMENT values
 
-
 ## Validation
 - **Success Checks:**
   - DDL compiles without syntax errors
@@ -269,7 +260,6 @@ CREATE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
   - Direct cross-table references without relationships cause error
   - Dimension referencing metric (same granularity) causes error
   - Window function metric in dimension/fact/other metric causes error
-
 
 ## Output Format Examples
 
@@ -310,7 +300,7 @@ SHOW SEMANTIC DIMENSIONS FOR SEMANTIC VIEW <view_name>;
 SHOW SEMANTIC METRICS FOR SEMANTIC VIEW <view_name>;
 ```
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read existing semantic views BEFORE creating new ones** - Check for naming patterns, standards, and conventions
 > 2. **Verify base table schemas** - Use `DESCRIBE TABLE` to confirm physical column names and types
@@ -328,7 +318,6 @@ SHOW SEMANTIC METRICS FOR SEMANTIC VIEW <view_name>;
 > [runs DESCRIBE TABLE or queries INFORMATION_SCHEMA]
 > "I see your table has these columns: [actual columns]. Here's a semantic view definition using your actual schema..."
 
-
 ## References
 
 ### External Documentation
@@ -342,8 +331,6 @@ SHOW SEMANTIC METRICS FOR SEMANTIC VIEW <view_name>;
 - **Integration & Development**: `rules/106c-snowflake-semantic-views-integration.md` - Cortex Analyst, governance, workflows
 - **Snowflake Core**: `rules/100-snowflake-core.md` - Foundational Snowflake practices
 - **Cortex Analyst Integration**: `rules/106c-snowflake-semantic-views-integration.md` - Natural language query patterns
-
-
 
 ## 4) Validation Rules
 
@@ -744,7 +731,7 @@ CREATE OR REPLACE SEMANTIC VIEW my_view
     orders.avg_value AS AVG(o_totalprice)
   )
   DIMENSIONS (
-    orders.order_type AS CASE 
+    orders.order_type AS CASE
       WHEN orders.avg_value > 1000 THEN 'Large'  -- Cannot reference metric
       ELSE 'Small'
     END
@@ -954,10 +941,8 @@ SYNONYMS ('R and D', 'Research and Development', 'Sales and Marketing')
 
 **Best Practice:** Always test semantic view DDL via Snowflake CLI (`snow sql -f file.sql`) before committing to ensure CI/CD compatibility.
 
-
 ## Related Rules
 
 **Related Semantic View Rules:**
 - **106b-snowflake-semantic-views-querying.mdc** - Query patterns, testing, SEMANTIC_VIEW() function, dimension compatibility, window function metrics, WHERE clause usage, performance optimization
 - **106b-snowflake-semantic-views-integration.mdc** - Cortex Analyst/Agent integration, REST API usage, governance (RBAC, masking, row access), Generator workflow, iterative development, synonym design
-

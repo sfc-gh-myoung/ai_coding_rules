@@ -3,6 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.0
+**RuleVersion:** v1.0.0
 **Keywords:** rule governance, v3.0 schema, metadata requirements, required sections, Contract XML tags, validation, schema compliance, rule structure, semantic discovery, RULES_INDEX
 **TokenBudget:** ~1850
 **ContextTier:** Critical
@@ -20,7 +21,8 @@ All rule files in the ai_coding_rules repository must comply with v3.0 schema st
 
 **MANDATORY:**
 **Essential Patterns:**
-- **Required metadata (4 fields):** Keywords (10-15 terms), TokenBudget (~NUMBER), ContextTier (Critical/High/Medium/Low), Depends (at least one dependency)
+- **Required metadata (5 fields):** RuleVersion (vX.Y.Z), Keywords (10-15 terms), TokenBudget (~NUMBER), ContextTier (Critical/High/Medium/Low), Depends (at least one dependency)
+- **RuleVersion field is REQUIRED** - Enables version tracking for issue reporting (semantic versioning: v1.0.0)
 - **Keywords field is CRITICAL** - Enables semantic discovery and automatic rule loading (10-15 comma-separated terms)
 - **9 required sections** - Purpose, Rule Scope, Quick Start TL;DR, Contract, Post-Execution Checklist, Validation, Output Format Examples, References (+ optional: Key Principles, Anti-Patterns)
 - **Contract with 6 XML tags** - `<inputs_prereqs>`, `<mandatory>`, `<forbidden>`, `<steps>`, `<output_format>`, `<validation>`
@@ -28,7 +30,7 @@ All rule files in the ai_coding_rules repository must comply with v3.0 schema st
 - **Validation command** - `python3 scripts/schema_validator.py rules/NNN-rule.md`
 
 **Pre-Execution Checklist:**
-- [ ] Metadata present: Keywords (10-15), TokenBudget, ContextTier, Depends
+- [ ] Metadata present: RuleVersion (vX.Y.Z), Keywords (10-15), TokenBudget, ContextTier, Depends
 - [ ] All 9 required sections present in correct order
 - [ ] Contract section has all 6 XML tags before line 160
 - [ ] Quick Start has minimum 3 Essential Patterns
@@ -53,7 +55,7 @@ Creating rules without metadata; skipping validation; using outdated schema (v2.
 <steps>
 1. Review v3.0 schema requirements (metadata, sections, XML tags)
 2. Review existing rules in same category for patterns (use 002a-rule-creation-guide.md for workflow)
-3. Fill 4 required metadata fields correctly
+3. Fill 5 required metadata fields correctly (RuleVersion, Keywords, TokenBudget, ContextTier, Depends)
 4. Write all 9 required sections in order
 5. Add Contract section with 6 XML tags
 6. Validate with schema_validator.py before committing
@@ -65,18 +67,20 @@ Markdown file (.md) with v3.0 metadata and required sections
 
 <validation>
 - schema_validator.py passes with zero CRITICAL errors
-- All 4 metadata fields present and correctly formatted
+- All 5 metadata fields present and correctly formatted
 - All 9 required sections present in correct order
 - Contract has all 6 XML tags
+- RuleVersion: semantic version format (vX.Y.Z)
 - Keywords count: 10-15 terms
 </validation>
 
 ## v3.0 Schema Requirements
 
-### Metadata Fields (4 Required)
+### Metadata Fields (5 Required)
 
 | Field | Format | Validation | Example |
 |-------|--------|------------|---------|
+| **RuleVersion** | `**RuleVersion:**` | Semantic version (vX.Y.Z) | `**RuleVersion:** v1.0.0` |
 | **Keywords** | `**Keywords:**` | 10-15 comma-separated terms | `**Keywords:** SQL, performance, optimization, CTE, query` |
 | **TokenBudget** | `**TokenBudget:**` | `~NUMBER` format | `**TokenBudget:** ~1200` |
 | **ContextTier** | `**ContextTier:**` | Critical \| High \| Medium \| Low | `**ContextTier:** High` |
@@ -85,7 +89,7 @@ Markdown file (.md) with v3.0 metadata and required sections
 **Optional Field:**
 - `**SchemaVersion:** v3.0` (recommended for clarity, not validated)
 
-**Field Order:** Must appear in exact order: Keywords, TokenBudget, ContextTier, Depends
+**Field Order:** Must appear in exact order: RuleVersion, Keywords, TokenBudget, ContextTier, Depends
 
 ### Required Sections (9 Mandatory)
 

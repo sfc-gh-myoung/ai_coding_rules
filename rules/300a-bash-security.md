@@ -3,6 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.0
+**RuleVersion:** v1.0.0
 **Keywords:** Bash, security, input validation, command injection, path security, secure shell scripts, sanitization, permissions, privilege escalation, secrets management
 **TokenBudget:** ~2750
 **ContextTier:** High

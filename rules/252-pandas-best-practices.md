@@ -3,6 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.0
+**RuleVersion:** v1.0.0
 **Keywords:** pandas, DataFrame, vectorization, SettingWithCopyWarning, memory optimization, dtypes, groupby, merge, performance, method chaining
 **TokenBudget:** ~3600
 **ContextTier:** High

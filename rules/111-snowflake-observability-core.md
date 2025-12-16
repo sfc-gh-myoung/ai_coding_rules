@@ -3,6 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.0
+**RuleVersion:** v1.0.0
 **Keywords:** LOG_LEVEL, TRACE_LEVEL, METRIC_LEVEL, SHOW PARAMETERS, OpenTelemetry, System Views vs Telemetry, monitoring, logging, tracing, debug observability, event table queries, observability patterns, configure telemetry
 **TokenBudget:** ~4200
 **ContextTier:** High

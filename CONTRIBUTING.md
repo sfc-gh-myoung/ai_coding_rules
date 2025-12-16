@@ -419,6 +419,19 @@ Use our issue templates:
 - [ ] **Update** documentation if needed
 - [ ] **Add** yourself to contributors if first contribution
 
+### CI/CD Pipeline
+
+The GitHub Actions CI workflow runs automatically on pushes and PRs to `main`:
+
+| Job | Purpose | Details |
+|-----|---------|---------|
+| `quality` | Code quality | ruff lint, ruff format, ty type check |
+| `markdown` | Markdown linting | pymarkdownlnt for rules/ and docs/ |
+| `test` | Unit tests | pytest with Python 3.11, 3.12, 3.13 matrix |
+| `validate` | Rules validation | schema validation, RULES_INDEX.md check |
+
+All jobs run in parallel for fast feedback. Ensure all checks pass before requesting review.
+
 ### Commit and Branch Standards
 
 This project follows industry standards for Git workflow:

@@ -709,12 +709,11 @@ tasks:
 ```
 
 **CI/CD Pipeline:**
-```yaml
-# .github/workflows/validate.yml
-validate-rules:
-  script:
-    - python scripts/schema_validator.py rules/ --strict
-    - exit $?
+
+See `.github/workflows/ci.yml` for the complete workflow. The `validate` job runs:
+```bash
+uv run python scripts/schema_validator.py rules/
+uv run python scripts/index_generator.py --check
 ```
 
 ### Schema Evolution (v3.0 Phases)
@@ -1018,19 +1017,30 @@ task test:coverage
 
 ### CI/CD Integration
 
-**GitHub Actions (.github/workflows/test.yml):**
+**GitHub Actions (.github/workflows/ci.yml):**
+
+The CI workflow runs 4 parallel jobs on pushes and PRs to `main`:
+
+| Job | Purpose | Details |
+|-----|---------|---------|
+| `quality` | Code quality | ruff lint, ruff format, ty type check |
+| `markdown` | Markdown linting | pymarkdownlnt for rules/ and docs/ |
+| `test` | Unit tests | pytest with Python 3.11, 3.12, 3.13 matrix |
+| `validate` | Rules validation | schema validation, RULES_INDEX.md check |
+
 ```yaml
-name: Test Suite
-on: [push, pull_request]
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v1
-      - run: uv sync --all-groups
-      - run: uv run pytest tests/ -v
-      - run: python scripts/schema_validator.py rules/ --strict
+# Example: test job with Python matrix
+test:
+  runs-on: ubuntu-latest
+  strategy:
+    matrix:
+      python-version: ['3.11', '3.12', '3.13']
+  steps:
+    - uses: actions/checkout@v4
+    - uses: astral-sh/setup-uv@v4
+    - run: uv python install ${{ matrix.python-version }}
+    - run: uv sync --all-groups
+    - run: uv run pytest tests/ -v
 ```
 
 ## Taskfile Architecture

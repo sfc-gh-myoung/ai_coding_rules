@@ -36,6 +36,7 @@ def compliant_rule_content() -> str:
 
 ## Metadata
 
+**RuleVersion:** v1.0.0
 **Keywords:** rule, validation, testing, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, quick-start, references, examples
 **TokenBudget:** ~500
 **ContextTier:** High
@@ -785,6 +786,126 @@ Test invalid ContextTier enum value.
         tier_errors = [e for e in metadata_errors if "ContextTier" in e.message]
 
         assert len(tier_errors) > 0, "Should detect invalid ContextTier enum"
+
+    @pytest.mark.unit
+    def test_valid_rule_version_passes_validation(self, schema_validator, tmp_path):
+        """Test that valid RuleVersion format passes validation."""
+        valid_content = """# Test Rule
+
+## Metadata
+
+**RuleVersion:** v1.0.0
+**Keywords:** test, validation, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, quick-start, references, examples, rules
+**TokenBudget:** ~500
+**ContextTier:** High
+**Depends:** rules/000-global-core.md
+
+## Purpose
+Test valid RuleVersion format.
+"""
+        rule_file = tmp_path / "valid-version.md"
+        rule_file.write_text(valid_content)
+
+        result = schema_validator.validate_file(rule_file)
+
+        metadata_errors = [e for e in result.errors if e.error_group == "Metadata"]
+        version_errors = [e for e in metadata_errors if "RuleVersion" in e.message]
+
+        assert len(version_errors) == 0, f"Should not have RuleVersion errors: {version_errors}"
+
+    @pytest.mark.unit
+    def test_missing_rule_version_detected(self, schema_validator, tmp_path):
+        """Test that missing RuleVersion generates HIGH error."""
+        invalid_content = """# Test Rule
+
+## Metadata
+
+**Keywords:** test, validation, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, quick-start, references, examples, rules
+**TokenBudget:** ~500
+**ContextTier:** High
+**Depends:** rules/000-global-core.md
+
+## Purpose
+Test missing RuleVersion field.
+"""
+        rule_file = tmp_path / "missing-version.md"
+        rule_file.write_text(invalid_content)
+
+        result = schema_validator.validate_file(rule_file)
+
+        metadata_errors = [e for e in result.errors if e.error_group == "Metadata"]
+        version_errors = [e for e in metadata_errors if "RuleVersion" in e.message]
+
+        assert len(version_errors) > 0, "Should detect missing RuleVersion"
+        assert any(e.severity == "HIGH" for e in version_errors), (
+            "Missing RuleVersion should be HIGH severity"
+        )
+
+    @pytest.mark.unit
+    def test_invalid_rule_version_format_detected(self, schema_validator, tmp_path):
+        """Test that invalid RuleVersion format is detected."""
+        invalid_formats = [
+            ("1.0.0", "missing v prefix"),
+            ("v1", "missing minor and patch"),
+            ("v1.0", "missing patch version"),
+            ("version1.0.0", "wrong prefix"),
+            ("v1.0.0.0", "extra version component"),
+        ]
+
+        for invalid_version, description in invalid_formats:
+            invalid_content = f"""# Test Rule
+
+## Metadata
+
+**RuleVersion:** {invalid_version}
+**Keywords:** test, validation, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, quick-start, references, examples, rules
+**TokenBudget:** ~500
+**ContextTier:** High
+**Depends:** rules/000-global-core.md
+
+## Purpose
+Test invalid RuleVersion format: {description}.
+"""
+            rule_file = tmp_path / f"invalid-version-{invalid_version.replace('.', '-')}.md"
+            rule_file.write_text(invalid_content)
+
+            result = schema_validator.validate_file(rule_file)
+
+            metadata_errors = [e for e in result.errors if e.error_group == "Metadata"]
+            version_errors = [e for e in metadata_errors if "RuleVersion" in e.message]
+
+            assert len(version_errors) > 0, (
+                f"Should detect invalid format '{invalid_version}' ({description})"
+            )
+
+    @pytest.mark.unit
+    def test_rule_version_field_order_validation(self, schema_validator, tmp_path):
+        """Test that RuleVersion must appear before Keywords in field order."""
+        # RuleVersion after Keywords (wrong order)
+        wrong_order_content = """# Test Rule
+
+## Metadata
+
+**Keywords:** test, validation, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, quick-start, references, examples, rules
+**RuleVersion:** v1.0.0
+**TokenBudget:** ~500
+**ContextTier:** High
+**Depends:** rules/000-global-core.md
+
+## Purpose
+Test RuleVersion field order (wrong - should be before Keywords).
+"""
+        rule_file = tmp_path / "wrong-order-version.md"
+        rule_file.write_text(wrong_order_content)
+
+        result = schema_validator.validate_file(rule_file)
+
+        metadata_errors = [e for e in result.errors if e.error_group == "Metadata"]
+        order_errors = [e for e in metadata_errors if "order" in e.message.lower()]
+
+        assert len(order_errors) > 0, (
+            "Should detect wrong field order when RuleVersion is after Keywords"
+        )
 
 
 class TestStructuralValidation:
@@ -1767,6 +1888,7 @@ Examples
 
 ## Metadata
 
+**RuleVersion:** v1.0.0
 **Keywords:** warning, test, validation, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, quick-start, references, examples
 **TokenBudget:** ~500
 **ContextTier:** High
@@ -2100,6 +2222,7 @@ Test
 
 ## Metadata
 
+**RuleVersion:** v1.0.0
 **Keywords:** warning, test, validation, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, quick-start, references, examples
 **TokenBudget:** ~500
 **ContextTier:** High

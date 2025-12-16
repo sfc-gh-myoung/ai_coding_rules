@@ -3,6 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.0
+**RuleVersion:** v1.0.0
 **Keywords:** system prompt altitude, investigation-first, anti-patterns, multi-session workflows, parallel execution, advanced patterns, heuristics, goldilocks zone, context management, state management
 **TokenBudget:** ~2900
 **ContextTier:** Medium

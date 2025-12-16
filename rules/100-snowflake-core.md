@@ -292,6 +292,7 @@ SELECT * FROM agg;
 - [Snowflake Security Guide](https://docs.snowflake.com/en/user-guide/security) - Comprehensive security features and implementation guide
 
 ### Related Rules
+- **Connection Error Handling**: `rules/100f-snowflake-connection-errors.md` - Error classification (network policy vs auth vs connection)
 - **SQL Demo Engineering**: `rules/102-snowflake-sql-demo-engineering.md`
 - **SQL Automation**: `rules/102a-snowflake-sql-automation.md`
 - **Performance Tuning**: `rules/103-snowflake-performance-tuning.md`

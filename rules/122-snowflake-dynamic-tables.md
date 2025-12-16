@@ -2,7 +2,7 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
 **RuleVersion:** v1.0.0
 **Keywords:** automatic pipelines, DOWNSTREAM, FULL, warehouse sizing, data freshness, create dynamic table, dynamic table lag, refresh frequency, dynamic table error, materialized view alternative, pipeline automation, lag configuration, refresh strategies
 **TokenBudget:** ~5200

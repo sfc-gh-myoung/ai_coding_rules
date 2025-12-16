@@ -3,7 +3,7 @@
 ## User Request
 
 ```
-Create a new Cursor rule documenting DaisyUI best practices following v3.0 schema
+Create a new Cursor rule documenting DaisyUI best practices following schema
 ```
 
 ## Complete Workflow Execution

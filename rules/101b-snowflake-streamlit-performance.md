@@ -2,7 +2,7 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
 **RuleVersion:** v1.0.0
 **Keywords:** @st.cache_data, @st.cache_resource, SQL error handling, st.error, SnowparkSQLException, st.fragment, NULL handling, slow streamlit, streamlit caching, optimize streamlit, fix slow queries, fragment batch processing
 **TokenBudget:** ~5950

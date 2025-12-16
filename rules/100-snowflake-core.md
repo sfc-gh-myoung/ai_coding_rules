@@ -2,7 +2,7 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
 **RuleVersion:** v1.0.0
 **Keywords:** SQL, CTE, performance, cost optimization, query profile, warehouse, security, governance, stages, COPY INTO, streams, tasks, warehouse creation
 **TokenBudget:** ~2850

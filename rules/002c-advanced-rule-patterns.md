@@ -2,7 +2,7 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
 **RuleVersion:** v1.0.0
 **Keywords:** system prompt altitude, investigation-first, anti-patterns, multi-session workflows, parallel execution, advanced patterns, heuristics, goldilocks zone, context management, state management
 **TokenBudget:** ~2900
@@ -555,11 +555,11 @@ def refactor_with_investigation(file_path: str):
 ## References
 
 ### Related Rules
-- **Rule Governance**: `rules/002-rule-governance.md` - v3.0 schema requirements
+- **Rule Governance**: `rules/002-rule-governance.md` - Schema requirements
 - **Creation Guide**: `rules/002a-rule-creation-guide.md` - Step-by-step workflow
 - **Optimization**: `rules/002b-rule-optimization.md` - Token budget and performance
 - **Global Core**: `rules/000-global-core.md` - Foundation patterns
 
 ### External Resources
 - **Claude System Prompt Guide**: Anthropic documentation on prompt engineering
-- **Schema Definition**: `schemas/rule-schema-v3.yml` - Anti-Patterns validation
+- **Schema Definition**: `schemas/rule-schema.yml` - Anti-Patterns validation

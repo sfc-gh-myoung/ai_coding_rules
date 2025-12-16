@@ -1,12 +1,12 @@
 # Rule Creator Skill
 
-A Claude skill for reproducibly creating production-ready Cursor rules following v3.0 schema standards by orchestrating existing automation tools (`template_generator.py` and `schema_validator.py`).
+A Claude skill for reproducibly creating production-ready Cursor rules following schema standards by orchestrating existing automation tools (`template_generator.py` and `schema_validator.py`).
 
 ## Overview
 
 This skill automates the complete rule creation workflow from discovery through validation, ensuring all generated rules:
 - Pass schema validation with 0 CRITICAL errors
-- Follow v3.0 schema requirements exactly
+- Follow schema requirements exactly
 - Reflect current (2024-2025) best practices
 - Are immediately usable in Cursor
 
@@ -42,13 +42,13 @@ skills/rule-creator/SKILL.md
 ### Step 3: Request Rule Creation
 
 ```
-Create a new Cursor rule documenting [TECHNOLOGY] best practices following v3.0 schema
+Create a new Cursor rule documenting [TECHNOLOGY] best practices following schema
 ```
 
 **Examples:**
-- "Create a new rule for DaisyUI best practices following v3.0 schema"
-- "Create a new rule for pytest-mock usage following v3.0 schema"
-- "Create a new rule for Snowflake Hybrid Tables following v3.0 schema"
+- "Create a new rule for DaisyUI best practices following schema"
+- "Create a new rule for pytest-mock usage following schema"
+- "Create a new rule for Snowflake Hybrid Tables following schema"
 
 ### Step 4: Follow Agent Workflow
 
@@ -151,7 +151,7 @@ skills/rule-creator/
 
 **Request:**
 ```
-Create a new rule for DaisyUI best practices following v3.0 schema
+Create a new rule for DaisyUI best practices following schema
 ```
 
 **Result:**
@@ -167,7 +167,7 @@ Create a new rule for DaisyUI best practices following v3.0 schema
 
 **Request:**
 ```
-Create a new rule for pytest-mock usage following v3.0 schema
+Create a new rule for pytest-mock usage following schema
 ```
 
 **Result:**
@@ -183,7 +183,7 @@ Create a new rule for pytest-mock usage following v3.0 schema
 
 **Request:**
 ```
-Create a new rule for Snowflake Hybrid Tables following v3.0 schema
+Create a new rule for Snowflake Hybrid Tables following schema
 ```
 
 **Result:**
@@ -325,7 +325,7 @@ All rules must pass these gates before completion:
 Override default "Medium" tier when appropriate:
 
 ```
-Create a new rule for [CORE FRAMEWORK] following v3.0 schema with High context tier
+Create a new rule for [CORE FRAMEWORK] following schema with High context tier
 ```
 
 **Tier guidelines:**
@@ -339,7 +339,7 @@ Create a new rule for [CORE FRAMEWORK] following v3.0 schema with High context t
 For non-core rules, specify aspect:
 
 ```
-Create a new rule for pytest security testing patterns following v3.0 schema
+Create a new rule for pytest security testing patterns following schema
 ```
 
 Would create: `209-python-pytest-security.md` (aspect: "security")
@@ -349,7 +349,7 @@ Would create: `209-python-pytest-security.md` (aspect: "security")
 If rule depends on multiple domain rules:
 
 ```
-Create a new rule for Snowflake+Python integration patterns following v3.0 schema
+Create a new rule for Snowflake+Python integration patterns following schema
 ```
 
 Agent will add both `rules/100-snowflake-core.md` and `rules/200-python-core.md` to Depends
@@ -374,7 +374,7 @@ For complete end-to-end examples:
 
 ### Related Documentation
 
-- **Rule Governance:** `rules/002-rule-governance.md` - v3.0 schema standards
+- **Rule Governance:** `rules/002-rule-governance.md` - schema standards
 - **Creation Guide:** `rules/002a-rule-creation-guide.md` - Manual rule creation
 - **Optimization:** `rules/002b-rule-optimization.md` - Token budgets
 - **Validator Usage:** `rules/002d-schema-validator-usage.md` - Validation details

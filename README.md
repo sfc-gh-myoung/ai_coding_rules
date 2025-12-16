@@ -198,7 +198,7 @@ task deploy DEST=~/my-project
 
 **Skills Exclusions:**
 
-Both skills are internal-only and excluded from deployment (configured in `pyproject.toml`):
+Some skills are internal-only and excluded from deployment (configured in `pyproject.toml`):
 
 ```toml
 [tool.rule_deployer]
@@ -207,6 +207,8 @@ exclude_skills = [
     "rule-reviewer/",  # Rule review tool for ai_coding_rules project only
 ]
 ```
+
+**Note:** The `docs-reviewer` skill is deployed by default and can be used in target projects.
 
 **Deploy Rules Only (Skip Skills):**
 
@@ -523,7 +525,13 @@ Learn how to write effective prompts that help AI assistants automatically disco
   - Trigger keywords: "review rule", "audit rule", "check rule quality", "rule staleness"
   - See [docs/USING_RULE_REVIEW_SKILL.md](docs/USING_RULE_REVIEW_SKILL.md) for usage guide
 
-Both skills follow [Anthropic Agent Skills best practices](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills) with:
+- **docs-reviewer** — Automate documentation quality reviews (FULL/FOCUSED/STALENESS modes)
+  - Structured skill: `skills/docs-reviewer/SKILL.md` with workflows, examples, tests, and validation
+  - **Deployed by default** (available in target projects)
+  - Trigger keywords: "review docs", "audit documentation", "check doc quality"
+  - See [docs/USING_DOCS_REVIEWER_SKILL.md](docs/USING_DOCS_REVIEWER_SKILL.md) for usage guide
+
+All skills follow [Anthropic Agent Skills best practices](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills) with:
 - Enhanced YAML frontmatter (version, author, tags, dependencies)
 - Progressive disclosure (workflows/, examples/, tests/)
 - Inline validation snippets for quick checks
@@ -573,7 +581,7 @@ ai_coding_rules/
 ├── tests/                  ← Test suite
 ├── schemas/                ← JSON schemas for rule validation
 ├── prompts/                ← User prompt templates + Rule Review prompt
-└── skills/                 ← Claude Agent Skills (rule-creator, rule-reviewer)
+└── skills/                 ← Claude Agent Skills (rule-creator, rule-reviewer, docs-reviewer)
 ```
 
 **Key Concepts:**

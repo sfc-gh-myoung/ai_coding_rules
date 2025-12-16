@@ -2,7 +2,7 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
 **RuleVersion:** v1.0.0
 **Keywords:** Streamlit, SPCS, SiS, navigation, multipage, session state, st.connection, config.toml, theming, deployment, pandas, null handling, session management
 **TokenBudget:** ~4500

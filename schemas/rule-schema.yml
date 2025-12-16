@@ -1,13 +1,13 @@
-# YAML Schema for AI Coding Rules v3.0
+# YAML Schema for AI Coding Rules v3.1
 # ==============================================================================
-# Purpose: Validation schema for rule files per 002-rule-governance.md v3.0
+# Purpose: Validation schema for rule files per 002-rule-governance.md v3.1
 # Usage: python scripts/schema_validator.py rules/NNN-rule.md
 # ==============================================================================
 
 $schema: "http://json-schema.org/draft-07/schema#"
-version: "3.0"
-description: "Validation schema for AI coding rules v3.0 (relaxed constraints, enhanced clarity)"
-last_updated: "2025-11-24"
+version: "3.1"
+description: "Validation schema for AI coding rules v3.1 (added RuleVersion metadata field)"
+last_updated: "2025-12-16"
 
 # ==============================================================================
 # METADATA VALIDATION RULES
@@ -16,6 +16,15 @@ metadata:
   description: "Validation rules for file metadata fields"
   
   required_fields:
+    - name: "SchemaVersion"
+      format: "**SchemaVersion:**"
+      type: "string"
+      pattern: "^v\\d+\\.\\d+(\\.\\d+)?$"
+      error_message: "SchemaVersion must be semantic version format (e.g., v3.1 or v3.1.0)"
+      fix_suggestion: "Add **SchemaVersion:** v3.1 (or current schema version)"
+      severity: "CRITICAL"
+      docs_reference: "002-rule-governance.md Section 11.1"
+    
     - name: "RuleVersion"
       format: "**RuleVersion:**"
       type: "string"
@@ -71,8 +80,8 @@ metadata:
   
   field_order:
     required: true
-    order: ["RuleVersion", "Keywords", "TokenBudget", "ContextTier", "Depends"]
-    error_message: "Metadata fields must appear in order: RuleVersion, Keywords, TokenBudget, ContextTier, Depends"
+    order: ["SchemaVersion", "RuleVersion", "Keywords", "TokenBudget", "ContextTier", "Depends"]
+    error_message: "Metadata fields must appear in order: SchemaVersion, RuleVersion, Keywords, TokenBudget, ContextTier, Depends"
     fix_suggestion: "Reorder metadata fields per Section 11.1 of 002-rule-governance.md"
     severity: "HIGH"
     docs_reference: "002-rule-governance.md Section 11.1"
@@ -279,7 +288,7 @@ structure:
   # Section order validation
   section_order:
     validate_sequence: true
-    error_message: "Sections must appear in correct order per v3.0 spec"
+    error_message: "Sections must appear in correct order per schema spec"
     fix_suggestion: "Reorder sections: Purpose → Rule Scope → Quick Start → Contract → ... → References"
     severity: "HIGH"
 
@@ -419,7 +428,7 @@ placement:
 # FORMAT RESTRICTIONS
 # ==============================================================================
 restrictions:
-  description: "Format and markup restrictions per v3.0"
+  description: "Format and markup restrictions"
   
   no_emojis:
     enabled: true
@@ -428,7 +437,7 @@ restrictions:
     # - U+2600-U+26FF: Miscellaneous Symbols (☀️, ⚠️, ✅, ❌, ⚡)
     # - U+2700-U+27BF: Dingbats (✓, ✗, ➜)
     pattern: "[\\U0001F300-\\U0001F9FF\\u2600-\\u26FF\\u2700-\\u27BF]"
-    error_message: "Emojis are not allowed in rule files (v3.0 text-only requirement)"
+    error_message: "Emojis are not allowed in rule files (text-only requirement)"
     fix_suggestion: "Replace emoji with text equivalent: ✅ → [PASS], ❌ → [FAIL], ⚠️ → [WARN]"
     severity: "CRITICAL"
     docs_reference: "002-rule-governance.md Section 11.5"

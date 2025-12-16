@@ -4,7 +4,7 @@
 
 ## Background
 
-The rule-creator skill automates the creation of new Cursor rules following v3.0 schema standards. It's designed for use within the ai_coding_rules project itself, not for deployment to other projects.
+The rule-creator skill automates the creation of new Cursor rules following schema standards. It's designed for use within the ai_coding_rules project itself, not for deployment to other projects.
 
 ## Why Not Deployed?
 
@@ -40,12 +40,12 @@ If you're contributing to ai_coding_rules and need to create new rules:
 ### 2. Request rule creation
 
 ```
-Create a new rule for [TECHNOLOGY] best practices following v3.0 schema
+Create a new rule for [TECHNOLOGY] best practices following schema standards
 ```
 
 **Example:**
 ```
-Create a new rule for React Testing Library best practices following v3.0 schema
+Create a new rule for React Testing Library best practices following schema standards
 ```
 
 ### 3. Follow the 5-phase workflow
@@ -87,7 +87,7 @@ Follow the manual rule creation workflow:
 1. Read `@rules/002a-rule-creation-guide.md` in your deployed rules
 2. Copy an existing rule as a template
 3. Manually fill all sections
-4. Validate structure matches v3.0 schema
+4. Validate structure matches schema
 
 ## Examples
 
@@ -118,7 +118,7 @@ For detailed documentation:
 **A:** Not recommended. The skill requires:
 - Write access to rules/ directory in source repository
 - Access to scripts/template_generator.py and scripts/schema_validator.py
-- Access to schemas/rule-schema-v3.yml
+- Access to schemas/rule-schema.yml
 - Ability to modify RULES_INDEX.md
 
 These are all specific to the ai_coding_rules project structure.

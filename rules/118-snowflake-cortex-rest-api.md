@@ -2,7 +2,7 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
 **RuleVersion:** v1.0.0
 **Keywords:** idempotency, rate limits, Complete endpoint, Embed endpoint, exponential backoff, REST API, Cortex API, authentication tokens, PAT, OAuth, JWT, SSE, token verification, response format
 **TokenBudget:** ~3950

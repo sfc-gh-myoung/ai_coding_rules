@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Replace all placeholder content in the template with researched, high-quality content that reflects 2024-2025 best practices, ensuring all v3.0 schema requirements are met.
+Replace all placeholder content in the template with researched, high-quality content that reflects 2024-2025 best practices, ensuring all schema requirements are met.
 
 ## Inputs
 

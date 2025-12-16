@@ -29,7 +29,7 @@ head -20 RULES_INDEX.md
 
 **Trigger:**
 ```
-Create a new rule for TestTechnology best practices following v3.0 schema
+Create a new rule for TestTechnology best practices following schema
 ```
 
 **Verify:**

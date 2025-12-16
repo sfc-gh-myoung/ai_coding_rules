@@ -3,6 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.0
+**RuleVersion:** v1.0.0
 **Keywords:** account roles, database roles, SHOW GRANTS, role introspection, RBAC, Python automation, error 000906, too many qualifiers, grants inspection, programmatic RBAC
 **TokenBudget:** ~1200
 **ContextTier:** Medium

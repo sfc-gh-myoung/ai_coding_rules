@@ -16,7 +16,7 @@
 **What:** Universal AI coding rule system working with any assistant/IDE  
 **Works with:** Cursor, Claude Code, GitHub Copilot, VS Code, ChatGPT, and more  
 **Deploy:** 2 commands (`git clone` + `task deploy`)  
-**Benefit:** 103 production-ready rules, automatic discovery, zero vendor lock-in
+**Benefit:** 106 production-ready rules, automatic discovery, zero vendor lock-in
 
 **Quick Checklist:**
 - [ ] Prerequisites met? → [Prerequisites](#prerequisites)
@@ -28,13 +28,13 @@
 
 This repository provides a **universal ai coding rule system** designed to work seamlessly with any AI assistant, IDE, or development tool. Write rules once in a universal format, use them anywhere.
 
-**What you get:** A comprehensive collection of 103 production-ready engineering rules covering Python, SQL, Snowflake, Go, Docker, Shell scripting, React, HTMX, Alpine.js, data engineering, analytics, and project governance. The rules work seamlessly with AI coding assistants including Cursor, Claude Code, GitHub Copilot, Visual Studio Code, and others.
+**What you get:** A comprehensive collection of 106 production-ready engineering rules covering Python, SQL, Snowflake, Go, Docker, Shell scripting, React, HTMX, Alpine.js, data engineering, analytics, and project governance. The rules work seamlessly with AI coding assistants including Cursor, Claude Code, GitHub Copilot, Visual Studio Code, and others.
 
 **Important:** Some aspects of the rules are opinionated, particularly regarding naming conventions, project structure, usage of uv/uvx/ruff/Task, and documentation standards. You are **encouraged to review and adjust** the rules to align with your best practices or preferred approaches.
 
 ## Key Features
 
-- **📚 103 Production-Ready Rules** — Comprehensive coverage across Snowflake, Python, Go, React, HTMX, Alpine.js, Docker, Shell scripting, and project management
+- **📚 106 Production-Ready Rules** — Comprehensive coverage across Snowflake, Python, Go, React, HTMX, Alpine.js, Docker, Shell scripting, and project management
 - **🔄 Universal Format** — Write once, use everywhere: Cursor, VS Code, Claude, ChatGPT, GitHub Copilot, and more
 - **🤖 Intelligent Discovery** — AI assistants automatically find and load relevant rules using semantic keyword matching
 - **🎯 Dependency-Aware** — Explicit dependency chains ensure rules load in the correct order
@@ -143,11 +143,11 @@ task deploy DEST=~/my-project
 # Add to prompt: "Load AGENTS.md and follow guidance for rule loading with RULES_INDEX.md"
 ```
 
-**That's it!** Your project now has 103 production-ready rules ready to use.
+**That's it!** Your project now has 106 production-ready rules ready to use.
 
 **What just happened?**
 
-- ✅ Copied `rules/` directory (103 rules) to your project
+- ✅ Copied `rules/` directory (106 rules) to your project
 - ✅ Copied `AGENTS.md` and `RULES_INDEX.md` for automatic AI discovery
 - ✅ Ready to use immediately—no additional configuration needed!
 
@@ -270,11 +270,11 @@ uv sync --all-groups
 uv run python scripts/rule_deployer.py --dest ~/my-project
 
 # Verify deployment
-ls ~/my-project/rules/*.md | wc -l  # Should show 103
+ls ~/my-project/rules/*.md | wc -l  # Should show 106
 ls ~/my-project/AGENTS.md ~/my-project/RULES_INDEX.md  # Both files should exist
 ```
 
-**Success!** Your AI assistant can now access 103 specialized rules. See [AI Configuration](#ai-configuration) for IDE-specific setup.
+**Success!** Your AI assistant can now access 106 specialized rules. See [AI Configuration](#ai-configuration) for IDE-specific setup.
 
 ## Understanding Rules
 
@@ -565,7 +565,7 @@ For questions or discussions, file an issue on the repository.
 
 ```ascii
 ai_coding_rules/
-├── rules/                  ← Production-ready rules (103 files)
+├── rules/                  ← Production-ready rules (106 files)
 ├── AGENTS.md               ← Rule loading protocol for AI assistants
 ├── RULES_INDEX.md          ← Searchable rule catalog
 ├── scripts/                ← Validation and deployment tools
@@ -672,7 +672,7 @@ task status                            # Show project status summary
 
 ## Rule Categories
 
-The 103 rules are organized by domain using a three-digit numbering system. Each category focuses on a specific technology or practice area.
+The 106 rules are organized by domain using a three-digit numbering system. Each category focuses on a specific technology or practice area.
 
 | Domain | Range | # Rules | Focus Area | Key Topics |
 |--------|-------|---------|------------|------------|
@@ -746,7 +746,7 @@ The project uses a **production-ready rules architecture**. Rules are authored o
 
 **Key concepts:**
 
-- **Production-ready rules** in `rules/` directory (103 files)
+- **Production-ready rules** in `rules/` directory (106 files)
 - **Universal Markdown format** works with any IDE, LLM, or agent
 - **Automatic discovery** via `AGENTS.md` and `RULES_INDEX.md` in project root
 - **Direct deployment** - no generation or transformation steps needed
@@ -964,7 +964,7 @@ Load AGENTS.md into the context.  Review RULES_INDEX.md based on the keywords in
 1. **Verify Files Deployed**
 ```bash
 ls rules/*.md | wc -l
-# Should show 103 files
+# Should show 106 files
 ```
 
 2. **Add to AI Context**
@@ -1112,7 +1112,7 @@ uv run python scripts/rule_deployer.py --dest ~/my-project
 **General:**
 ```bash
 # Check rule count
-ls rules/*.md | wc -l  # Should show 103 files
+ls rules/*.md | wc -l  # Should show 106 files
 
 # Search rules (RULES_INDEX.md is in project root after deployment)
 grep -i "keyword" RULES_INDEX.md
@@ -1138,4 +1138,4 @@ find rules -name "*python*"
 | `AGENTS.md` | Rule discovery guide | **Project root** |
 | `RULES_INDEX.md` | Searchable catalog | **Project root** |
 | `000-global-core.md` | Foundation rules | `rules/` |
-| All rule files | 103 specialized rules | `rules/` |
+| All rule files | 106 specialized rules | `rules/` |

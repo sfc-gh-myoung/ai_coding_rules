@@ -1,6 +1,6 @@
 [project]
 name = "ai_coding_rules"
-version = "3.3.0"
+version = "3.4.0"
 description = "Production-ready AI coding rules for consistent, reliable software engineering across LLMs and IDEs"
 readme = { file = "README.md" }
 license = { file = "LICENSE" }
@@ -36,6 +36,7 @@ dev = [
     "pytest>=7.4.0",
     "pytest-cov>=4.1.0",
     "scikit-learn>=1.3.0",  # TF-IDF vectorization for token_generator
+    "ty",
 ]
 
 [project.urls]
@@ -114,4 +115,11 @@ exclude_lines = [
     "if __name__ == .__main__.:",
     "class .*\\bProtocol\\):",
     "@(abc\\.)?abstractmethod",
+]
+
+[tool.rule_deployer]
+# Skills to exclude from deployment (internal use only)
+exclude_skills = [
+    "rule-creator/",
+    "rule-reviewer/",
 ]

@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** service deployment, compute pools, OCI images, image registry, health checks, GPU workloads, create service, compute pool, container deployment, service spec, container troubleshooting, SPCS error, service logs
 **TokenBudget:** ~5150
 **ContextTier:** High
@@ -10,7 +11,6 @@
 
 ## Purpose
 Provide comprehensive guidance for deploying, managing, and optimizing containerized applications using Snowflake Snowpark Container Services, covering architecture patterns, security, performance optimization, and operational best practices.
-
 
 ## Rule Scope
 
@@ -27,7 +27,6 @@ Snowflake Snowpark Container Services, containerized applications, microservices
 - **Creating services**: + Service Creation
 - **Network/security config**: + Networking & Security
 - **Production deployment**: Full reference
-
 
 ## Quick Start TL;DR
 
@@ -56,7 +55,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Resource limits set
 - [ ] Service security configured
 - [ ] Monitoring enabled
-
 
 ## Contract
 
@@ -111,7 +109,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 
 </contract>
 
-
 ## Anti-Patterns and Common Mistakes
 
 **Anti-Pattern 1: Creating Oversized Compute Pools for Simple Workloads**
@@ -139,7 +136,7 @@ AUTO_SUSPEND_SECS = 60;      -- Suspend after 1 minute idle
 
 -- Monitor usage and scale up only if needed
 -- Check metrics:
-SELECT 
+SELECT
   pool_name,
   active_nodes,
   idle_nodes,
@@ -169,7 +166,7 @@ spec:
     - name: api
       port: 8080
       public: true  # Exposed to internet!
-      
+
 # Anyone on internet can access internal API!
 # Credentials exposed in plain text!
 ```
@@ -189,7 +186,7 @@ spec:
     - name: api
       port: 8080
       public: false  # Internal only!
-      
+
 # Create secret separately
 # SNOW SQL> CREATE SECRET db_credentials TYPE = GENERIC_STRING SECRET_STRING = 'PLACEHOLDER_PASSWORD';
 
@@ -227,7 +224,7 @@ def get_customer(customer_id: int):
     cursor.execute(f"SELECT * FROM customers WHERE id = {customer_id}")
     result = cursor.fetchone()
     conn.close()  # Close immediately
-    
+
     return result
 
 # 1000 requests = 1000 connections = slow, resource exhaustion!
@@ -253,7 +250,7 @@ connection_pool = pooling.SnowflakeConnectionPool(
 def get_customer(customer_id: int):
     # Borrow connection from pool
     conn = connection_pool.getconn()
-    
+
     try:
         cursor = conn.cursor()
         # Use parameterized query (prevents SQL injection)
@@ -282,7 +279,7 @@ spec:
   - name: data-processor
     image: /my-repo/processor:latest
     # No resources specified!
-    
+
 # Python code processes large datasets in memory:
 import pandas as pd
 
@@ -317,7 +314,7 @@ import pandas as pd
 
 def process_data_streaming():
     chunk_size = 10000  # Process 10K rows at a time
-    
+
     # Stream results in chunks
     for chunk in pd.read_sql(
         "SELECT * FROM huge_table",
@@ -326,7 +323,7 @@ def process_data_streaming():
     ):
         # Process chunk
         chunk_transformed = chunk.apply(expensive_function)
-        
+
         # Write chunk to output (don't accumulate in memory)
         chunk_transformed.to_sql(
             'output_table',
@@ -334,13 +331,12 @@ def process_data_streaming():
             if_exists='append',
             index=False
         )
-    
+
     return "Processing complete"
 
 # Memory usage stays constant, no OOM, reliable!
 ```
 **Benefits:** No OOM crashes; predictable resource usage; reliable service; professional; scalable; memory-efficient; good performance
-
 
 ## Post-Execution Checklist
 - [ ] Required dependencies and context verified
@@ -349,12 +345,11 @@ def process_data_streaming():
 - [ ] Output format matches requirements
 - [ ] Validation steps completed successfully
 
-
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read existing SPCS configurations BEFORE deploying services** - Check compute pools, service specs, image registries
 > 2. **Verify SPCS availability** - Check if SPCS is enabled in account
@@ -371,7 +366,6 @@ def process_data_streaming():
 > [reads compute pools, checks service specs, reviews image registry]
 > "I see you use GPU_NV_S compute pools with versioned images. Deploying new service following this pattern..."
 
-
 ## Output Format Examples
 
 ```sql
@@ -385,7 +379,7 @@ GROUP BY column_pattern;
 CREATE OR REPLACE VIEW schema.view_name
 COMMENT = 'Business purpose following semantic model standards'
 AS
-SELECT 
+SELECT
     -- Explicit column list with business context
     id COMMENT 'Surrogate key',
     name COMMENT 'Business entity name',
@@ -398,14 +392,13 @@ SELECT * FROM schema.view_name LIMIT 5;
 SHOW VIEWS LIKE '%view_name%';
 ```
 
-
 ## References
 
 ### External Documentation
-- [Snowpark Container Services Overview](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/overview) - Architecture, concepts, and getting started guide                                        
-- [SPCS Tutorials](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/tutorials) - Step-by-step implementation examples                                                                          
-- [Service Specification Reference](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/specification-reference) - YAML service definition schema and options                                     
-- [SPCS SQL Commands](https://docs.snowflake.com/en/sql-reference/sql/create-service) - CREATE SERVICE and related SQL command reference                                                                                
+- [Snowpark Container Services Overview](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/overview) - Architecture, concepts, and getting started guide
+- [SPCS Tutorials](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/tutorials) - Step-by-step implementation examples
+- [Service Specification Reference](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/specification-reference) - YAML service definition schema and options
+- [SPCS SQL Commands](https://docs.snowflake.com/en/sql-reference/sql/create-service) - CREATE SERVICE and related SQL command reference
 - [SPCS Cost Management](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/costs) - Pricing model and cost optimization strategies
 - [SPCS Platform Events Monitoring](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/platform-events) - Guide for monitoring and troubleshooting SPCS platform events
 
@@ -414,7 +407,6 @@ SHOW VIEWS LIKE '%view_name%';
 - **Cost Governance**: `rules/105-snowflake-cost-governance.md`
 - **Security Governance**: `rules/107-snowflake-security-governance.md`
 - **Warehouse Management**: `rules/119-snowflake-warehouse-management.md`
-
 
 ## 1. Architecture, Images, and Service Types
 
@@ -441,7 +433,6 @@ docker push <account>.registry.snowflakecomputing.com/my_db/my_schema/my_app_rep
 - **Rule:** Use job services for batch processing, ML training, and finite-duration tasks.
 - **Always:** Choose service type based on workload characteristics and implement proper lifecycle management.
 
-
 ## 2. Compute Pools and Resource Management
 
 ### Pool Configuration and Scaling
@@ -455,7 +446,6 @@ docker push <account>.registry.snowflakecomputing.com/my_db/my_schema/my_app_rep
 CREATE COMPUTE POOL my_app_pool MIN_NODES = 1 MAX_NODES = 5 INSTANCE_FAMILY = CPU_X64_XS;
 CREATE COMPUTE POOL ml_training_pool MIN_NODES = 1 MAX_NODES = 3 INSTANCE_FAMILY = GPU_NV_S;
 ```
-
 
 ## 3. Service Specifications and Security
 
@@ -495,7 +485,6 @@ serviceRoles:
   endpoints: [web-endpoint]
 ```
 
-
 ## 4. Networking and Data Integration
 
 ### Service Communication and Endpoints
@@ -534,7 +523,6 @@ spec:
   endpoints:
   - { name: api, port: 8080, public: true, protocol: HTTP }
 ```
-
 
 ## 5. Monitoring, Logging, and Troubleshooting
 
@@ -620,7 +608,7 @@ ALTER SERVICE my_service SET LOG_LEVEL = OFF;
 
 ```sql
 -- Option 1: Use service helper function (recommended - scoped access)
-SELECT 
+SELECT
     TIMESTAMP,
     RECORD:"name" AS event_name,
     RECORD:"severity_text" AS severity,
@@ -634,7 +622,7 @@ ORDER BY TIMESTAMP DESC
 LIMIT 20;
 
 -- Option 2: Query event table directly (requires event table access)
-SELECT 
+SELECT
     TIMESTAMP,
     RESOURCE_ATTRIBUTES:"snow.service.name"::string AS service_name,
     RESOURCE_ATTRIBUTES:"snow.service.container.name"::string AS container_name,
@@ -656,7 +644,7 @@ LIMIT 20;
 ```sql
 -- Find most recent status for each service
 WITH latest_statuses AS (
-  SELECT 
+  SELECT
       RESOURCE_ATTRIBUTES:"snow.service.name"::string AS service_name,
       RESOURCE_ATTRIBUTES:"snow.service.container.name"::string AS container_name,
       VALUE:"status"::string AS current_status,
@@ -664,8 +652,8 @@ WITH latest_statuses AS (
       RECORD:"severity_text"::string AS severity,
       TIMESTAMP,
       ROW_NUMBER() OVER (
-        PARTITION BY RESOURCE_ATTRIBUTES:"snow.service.name", 
-                     RESOURCE_ATTRIBUTES:"snow.service.container.name" 
+        PARTITION BY RESOURCE_ATTRIBUTES:"snow.service.name",
+                     RESOURCE_ATTRIBUTES:"snow.service.container.name"
         ORDER BY TIMESTAMP DESC
       ) AS rn
   FROM snowflake.account_usage.event_table
@@ -673,14 +661,14 @@ WITH latest_statuses AS (
       AND SCOPE:"name" = 'snow.spcs.platform'
       AND TIMESTAMP > DATEADD('day', -7, CURRENT_TIMESTAMP())
 )
-SELECT 
+SELECT
     service_name,
     container_name,
     current_status,
     message,
     severity,
     TIMESTAMP,
-    CASE 
+    CASE
       WHEN current_status = 'READY' THEN 'OK - Service is operational'
       WHEN current_status = 'PENDING' AND message LIKE '%node%' THEN 'ACTION: Wait for compute pool provisioning or check pool capacity'
       WHEN current_status = 'PENDING' AND message LIKE '%Failed to pull%' THEN 'ACTION: Verify image path, registry credentials, and network access'
@@ -698,16 +686,16 @@ ORDER BY severity DESC, service_name;
 
 ```sql
 -- ANTI-PATTERN: Querying only recent seconds (missing context)
-SELECT * FROM event_table 
+SELECT * FROM event_table
 WHERE TIMESTAMP > DATEADD('minute', -1, CURRENT_TIMESTAMP());
 
 -- CORRECT: Query sufficient time window to capture failure progression
-SELECT * FROM event_table 
+SELECT * FROM event_table
 WHERE TIMESTAMP > DATEADD('hour', -2, CURRENT_TIMESTAMP())
 ORDER BY TIMESTAMP DESC;
 
 -- ANTI-PATTERN: Checking only FAILED status (missing transitional states)
-SELECT * FROM event_table 
+SELECT * FROM event_table
 WHERE VALUE:"status" = 'FAILED';
 
 -- CORRECT: Review full status sequence including PENDING states
@@ -721,9 +709,9 @@ ORDER BY TIMESTAMP DESC;
 -- (Some INFO events indicate actual problems like PENDING with readiness failures)
 
 -- CORRECT: Analyze message content and status together
-SELECT VALUE:"status", RECORD:"severity_text", COUNT(*) 
+SELECT VALUE:"status", RECORD:"severity_text", COUNT(*)
 FROM event_table
-WHERE RECORD_TYPE = 'EVENT' 
+WHERE RECORD_TYPE = 'EVENT'
   AND SCOPE:"name" = 'snow.spcs.platform'
 GROUP BY VALUE:"status", RECORD:"severity_text"
 ORDER BY RECORD:"severity_text" DESC;
@@ -739,7 +727,7 @@ ORDER BY RECORD:"severity_text" DESC;
 SELECT * FROM TABLE(SYSTEM$GET_SERVICE_LOGS('my_service', 'container_name', 100));
 
 -- Query logs for specific time range (requires application to log to stdout/stderr)
-SELECT 
+SELECT
     TIMESTAMP,
     VALUE
 FROM snowflake.account_usage.event_table
@@ -759,11 +747,10 @@ ORDER BY TIMESTAMP DESC;
 SELECT * FROM TABLE(SYSTEM$GET_SERVICE_LOGS('my_service', 'web-app', 100));
 SELECT * FROM TABLE(my_service!SPCS_GET_EVENTS(START_TIME => DATEADD('hour', -2, CURRENT_TIMESTAMP())));
 SELECT SYSTEM$GET_SERVICE_STATUS('my_service');
-SHOW SERVICES; 
-SHOW COMPUTE POOLS; 
+SHOW SERVICES;
+SHOW COMPUTE POOLS;
 DESCRIBE SERVICE my_service;
 ```
-
 
 ## 6. Performance Optimization and Cost Management
 
@@ -779,11 +766,9 @@ DESCRIBE SERVICE my_service;
 
 ```sql
 -- Cost monitoring and optimization
-SELECT * FROM SNOWFLAKE.ACCOUNT_USAGE.COMPUTE_POOL_HISTORY 
+SELECT * FROM SNOWFLAKE.ACCOUNT_USAGE.COMPUTE_POOL_HISTORY
 WHERE START_TIME >= DATEADD(day, -7, CURRENT_TIMESTAMP());
 ```
-
-
 
 ## 7. Development, Testing, and Deployment
 
@@ -792,7 +777,6 @@ WHERE START_TIME >= DATEADD(day, -7, CURRENT_TIMESTAMP());
 - **Always:** Test services in isolated compute pools; implement integration and synthetic monitoring tests.
 - **Rule:** Use proper environment promotion workflows (dev then test then prod) with approval gates.
 - **Always:** Test disaster recovery scenarios; maintain deployment runbooks.
-
 
 ## 8. ML/AI Workloads and Advanced Patterns
 
@@ -819,7 +803,6 @@ spec:
 - **Always:** Maintain audit logs; implement data lineage tracking and use Snowflake's governance features.
 - **Rule:** Implement data masking/encryption; follow data residency requirements and retention policies.
 
-
 ## 9. Anti-Patterns and Common Pitfalls
 
 ### Critical Anti-Patterns to Avoid
@@ -827,7 +810,6 @@ spec:
 - **Avoid:** Creating oversized pools for simple workloads; exposing internal services publicly.
 - **Avoid:** New connections per request (use pooling); processing large datasets in memory without streaming.
 - **Avoid:** Ignoring resource limits; using synchronous processing for long-running operations.
-
 
 ## Related Rules
 
@@ -843,4 +825,3 @@ spec:
 **Complementary** (different aspects of same domain):
 - `107-snowflake-security-governance` - For secrets, network rules, and RBAC on SPCS services
 - `105-snowflake-cost-governance` - For monitoring compute pool and service costs
-

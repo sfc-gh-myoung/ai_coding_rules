@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** logging, Python logging, logger, handlers, formatters, log levels, WebLogHandler, Rich console, SSE streaming, structured logging, operation ID, thread safety, log hierarchy, log propagation
 **TokenBudget:** ~2000
 **ContextTier:** High
@@ -132,14 +133,14 @@ Custom handler that bridges Python logging to web UI:
 ```python
 class WebLogHandler(logging.Handler):
     """Handler that sends logs to SSE stream."""
-    
+
     def __init__(self, operation_id: str | None = None):
         super().__init__()
         self.operation_id = operation_id
-    
+
     def emit(self, record: logging.LogRecord) -> None:
         message = record.getMessage()
-        
+
         # Detect SUCCESS prefix from log_success()
         if message.startswith("SUCCESS: "):
             level = "SUCCESS"
@@ -147,7 +148,7 @@ class WebLogHandler(logging.Handler):
         else:
             level_map = {"INFO": "INFO", "WARNING": "WARNING", "ERROR": "ERROR"}
             level = level_map.get(record.levelname, "INFO")
-        
+
         add_to_sse_stream(level, message, self.operation_id)
 ```
 
@@ -162,7 +163,7 @@ def execute_operation(operation_id: str, operation_type: str):
     handler.setLevel(logging.INFO)
     logger = logging.getLogger("demo_manager")
     logger.addHandler(handler)
-    
+
     try:
         # Execute operation - all log_info/log_success calls captured
         result = run_operation(operation_type)
@@ -182,7 +183,7 @@ from datetime import datetime, UTC
 
 def add_log(level: str, message: str, operation_id: str | None = None) -> None:
     """Publish log entry to SSE logs channel.
-    
+
     Args:
         level: Log level (INFO, WARNING, ERROR, SUCCESS)
         message: Log message text
@@ -195,7 +196,7 @@ def add_log(level: str, message: str, operation_id: str | None = None) -> None:
     }
     if operation_id:
         log_entry["operation_id"] = operation_id
-    
+
     publish_to_sse_channel("logs", "log", log_entry)
 ```
 
@@ -209,14 +210,14 @@ async def status_stream(demo_id: str):
     # CRITICAL: Capture event loop BEFORE entering thread pool
     main_loop = asyncio.get_running_loop()
     operation_id = f"status-{demo_id[:8]}"
-    
+
     def progress_callback(step: str, message: str) -> None:
         """Thread-safe callback from background thread."""
         # Publish to Live Logs (with operation_id for filtering)
         add_log("INFO", message, operation_id)
         # Use call_soon_threadsafe for async queue operations
         main_loop.call_soon_threadsafe(queue.put_nowait, (step, message))
-    
+
     # Run blocking operation in thread pool
     result = await asyncio.to_thread(
         check_status, callback=progress_callback
@@ -373,7 +374,7 @@ def execute_operation(operation_id: str, operation_type: str):
     handler.setLevel(logging.INFO)
     op_logger = logging.getLogger("demo_manager")
     op_logger.addHandler(handler)
-    
+
     try:
         # All log_* calls now captured for this operation
         result = run_manager_operation(operation_type)

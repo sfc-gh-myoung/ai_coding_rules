@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** Data science, Snowflake, pandas, Snowpark, ML, model lifecycle, feature engineering, NaN handling, model versioning, Jupyter
 **TokenBudget:** ~6150
 **ContextTier:** High
@@ -11,11 +12,8 @@
 ## Purpose
 Establish comprehensive rules for performing data science and analytics on Snowflake, focusing on model lifecycle management, ML/AI insight presentation, advanced SQL techniques, performance optimization, and ethical visualization practices to ensure reproducible, performant, and trustworthy analytical workflows.
 
-
 ## Rule Scope
 Data science and analytics on Snowflake with ML lifecycle, visualization best practices, performance optimization, and Snowflake-native tooling integration
-
-
 
 ## Quick Start TL;DR
 
@@ -112,7 +110,6 @@ Data science and analytics on Snowflake with ML lifecycle, visualization best pr
 
 </contract>
 
-
 ## Anti-Patterns and Common Mistakes
 
 **Anti-Pattern 1: Loading Full Dataset into Python**
@@ -121,7 +118,7 @@ Data science and analytics on Snowflake with ML lifecycle, visualization best pr
 df = session.sql("SELECT * FROM sales_fact").to_pandas() # Expensive!
 filtered = df[df['region'] == 'US']
 ```
-**Problem:** 
+**Problem:**
 - Pulls all data across network (slow, expensive)
 - Exhausts memory for large tables
 - Wastes warehouse compute credits
@@ -130,7 +127,7 @@ filtered = df[df['region'] == 'US']
 ```python
 # GOOD: Filter in SQL, aggregate before fetch
 df = session.sql("""
- SELECT 
+ SELECT
  order_date,
  SUM(sales_amount) AS total_sales
  FROM sales_fact
@@ -139,7 +136,7 @@ df = session.sql("""
  GROUP BY 1
 """).to_pandas()
 ```
-**Benefits:** 
+**Benefits:**
 - 100x faster query execution
 - Minimal memory usage
 - Lower warehouse costs
@@ -152,7 +149,7 @@ df = session.sql("""
 fig = go.Figure(go.Bar(x=['Q1', 'Q2', 'Q3'], y=[95000, 96000, 97000]))
 fig.update_yaxis(range=[94000, 98000]) # Starts at 94K, not 0
 ```
-**Problem:** 
+**Problem:**
 - Makes 3% growth look like 300% growth
 - Misleads stakeholders into overreacting
 - Violates ethical visualization principles
@@ -164,7 +161,7 @@ fig = go.Figure(go.Bar(x=['Q1', 'Q2', 'Q3'], y=[95000, 96000, 97000]))
 fig.update_yaxis(range=[0, 100000]) # Zero baseline for magnitude comparison
 fig.add_annotation(text="Sales grew 3% ($2K increase)", xref="paper", yref="paper")
 ```
-**Benefits:** 
+**Benefits:**
 - Honest representation of magnitude
 - Builds trust with stakeholders
 - Avoids misinterpretation
@@ -179,7 +176,7 @@ model.fit(X_train, y_train)
 predictions = model.predict(X_test)
 # No explanation of why predictions were made!
 ```
-**Problem:** 
+**Problem:**
 - Business can't understand what drives predictions
 - Impossible to debug model failures
 - Regulatory compliance issues
@@ -207,7 +204,7 @@ registry.log_artifact(
  artifact_data=explainer
 )
 ```
-**Benefits:** 
+**Benefits:**
 - Stakeholders understand model drivers
 - Easier to debug and improve
 - Builds trust in AI systems
@@ -219,7 +216,7 @@ registry.log_artifact(
 # BAD: Train directly on raw data
 model.fit(X_train, y_train)
 ```
-**Problem:** 
+**Problem:**
 - Data quality issues corrupt model
 - Outliers and nulls cause training failures
 - No awareness of data drift
@@ -242,7 +239,7 @@ if quality_report['quality_score'] < 0.9:
 # Proceed with training only if data passes
 model.fit(X_train, y_train)
 ```
-**Benefits:** 
+**Benefits:**
 - Prevents garbage-in-garbage-out
 - Early detection of data issues
 - Higher quality models
@@ -254,7 +251,7 @@ model.fit(X_train, y_train)
 # BAD: Point estimates only
 st.metric("Predicted Revenue", f"${prediction:,.0f}")
 ```
-**Problem:** 
+**Problem:**
 - Stakeholders don't understand uncertainty
 - Overconfidence in predictions
 - Poor decision-making
@@ -263,7 +260,7 @@ st.metric("Predicted Revenue", f"${prediction:,.0f}")
 ```python
 # GOOD: Show uncertainty ranges
 st.metric(
- "Predicted Revenue", 
+ "Predicted Revenue",
  f"${point_estimate:,.0f}",
  help=f"95% Confidence Interval: ${lower_bound:,.0f} - ${upper_bound:,.0f}"
 )
@@ -280,12 +277,12 @@ fig.add_trace(go.Scatter(
 ))
 st.plotly_chart(fig)
 ```
-**Benefits:** 
+**Benefits:**
 - Transparent about model uncertainty
 - Better risk assessment
 - Informed decision-making
 
-> **Investigation Required** 
+> **Investigation Required**
 > When applying this rule:
 >
 > 1. **Read referenced data BEFORE making recommendations**
@@ -325,7 +322,6 @@ st.plotly_chart(fig)
 > st.info(" Large table detected. Recommend using APPROX_COUNT_DISTINCT for dashboard.")
 > ```
 
-
 ## Post-Execution Checklist
 
 - [ ] Data investigation completed before recommendations
@@ -342,10 +338,9 @@ st.plotly_chart(fig)
 - [ ] Ethical visualization standards followed (no misleading charts)
 - [ ] Anti-patterns avoided (confirmed via checklist review)
 
-
 ## Validation
 
-- **Success Checks:** 
+- **Success Checks:**
  - Query Profile shows <5s execution time and <$0.10 cost per query
  - Model achieves >80% performance on holdout set
  - SHAP values generated and stored with model
@@ -353,7 +348,7 @@ st.plotly_chart(fig)
  - Screen reader successfully narrates all chart titles and data
  - Data freshness indicator shows <6 hours staleness
 
-> **Investigation Required** 
+> **Investigation Required**
 > When applying this rule:
 > 1. **Profile data BEFORE analysis** - Check row counts, distributions, data types
 > 2. **Verify model registry access** - Confirm ML registry connection and permissions
@@ -372,14 +367,13 @@ st.plotly_chart(fig)
  - All metrics have documented definitions
  - Streamlit dashboard loads in <2 seconds
 
-- **Negative Tests:** 
+- **Negative Tests:**
  - Query without LIMIT on large table (should timeout or fail cost check)
  - Model training on data with <80% quality score (should raise error)
  - Chart with truncated Y-axis without annotation (should fail ethics review)
  - Visualization using red/green only (should fail colorblind accessibility test)
  - Dashboard without data freshness timestamp (should fail compliance check)
  - Prediction without confidence interval (should fail uncertainty requirement)
-
 
 ## Output Format Examples
 
@@ -399,7 +393,7 @@ if quality_report['quality_score'] < 0.9:
 # 3. OPTIMIZED SQL QUERY
 query = """
 WITH base_data AS (
- SELECT 
+ SELECT
  customer_id,
  order_date,
  SUM(order_amount) AS total_amount
@@ -408,7 +402,7 @@ WITH base_data AS (
  GROUP BY 1, 2
 ),
 aggregated AS (
- SELECT 
+ SELECT
  customer_id,
  COUNT(*) AS order_count,
  AVG(total_amount) AS avg_order_value
@@ -442,12 +436,11 @@ st.plotly_chart(fig)
 st.caption(f"Data as of: {last_update} | Quality Score: {quality_score:.0%}")
 ```
 
-
 ## References
 
 ### External Documentation
-- [Snowflake for Data Science](https://docs.snowflake.com/en/user-guide/data-science) - Data science workflows and best practices in Snowflake 
-- [Snowflake Cortex AI](https://docs.snowflake.com/en/user-guide/snowflake-cortex) - AI and machine learning capabilities in Snowflake 
+- [Snowflake for Data Science](https://docs.snowflake.com/en/user-guide/data-science) - Data science workflows and best practices in Snowflake
+- [Snowflake Cortex AI](https://docs.snowflake.com/en/user-guide/snowflake-cortex) - AI and machine learning capabilities in Snowflake
 - [Snowflake ML Documentation](https://docs.snowflake.com/en/developer-guide/snowflake-ml/overview) - Machine learning development guide
 - [Snowflake Model Registry](https://docs.snowflake.com/en/developer-guide/snowflake-ml/model-registry/overview) - Model versioning and management
 - [SHAP Documentation](https://shap.readthedocs.io/) - Model explainability and interpretability
@@ -472,14 +465,13 @@ st.caption(f"Data as of: {last_update} | Quality Score: {quality_score:.0%}")
 - **Pandas Best Practices**: `rules/252-pandas-best-practices.md`
 - **Data Governance**: `rules/930-data-governance-quality.md`
 
-> ** Claude 4 Specific Guidance** 
+> ** Claude 4 Specific Guidance**
 > **Claude 4 Optimizations:**
 > - **Context awareness:** Track token budget; prioritize investigation-first sections
 > - **Explicit behavior:** Request "comprehensive analysis with uncertainty quantification" to get full implementation
 > - **Parallel tool calls:** Generate SHAP values, confusion matrix, ROC curve simultaneously
 > - **State discovery:** Leverage filesystem to check existing model artifacts before regenerating
 > - **Investigation-first:** Excel at schema discovery and data profiling - use this capability
-
 
 ## Anti-Patterns: Pandas NULL Handling
 
@@ -550,7 +542,6 @@ else:
 - `x == None` - Doesn't catch NaN
 - `not x` - Treats 0 as falsy
 
-
 ## 1. Model Lifecycle & MLOps
 
 **MANDATORY:**
@@ -560,7 +551,7 @@ else:
 - **Requirement:** Use Snowflake Model Registry to store metadata for each version:
  ```python
  from snowflake.ml.registry import Registry
- 
+
  registry = Registry(session=session)
  model_ref = registry.log_model(
  model=trained_model,
@@ -589,10 +580,10 @@ else:
  ```python
  # Monitor prediction distribution shift
  from scipy.stats import ks_2samp
- 
+
  baseline_preds = model.predict(baseline_data)
  current_preds = model.predict(current_data)
- 
+
  ks_stat, p_value = ks_2samp(baseline_preds, current_preds)
  if p_value < 0.05:
  alert("Model drift detected: prediction distribution shifted")
@@ -602,10 +593,10 @@ else:
 - **Always:** Store explainability artifacts (SHAP summaries, feature importance, counterfactuals) with model:
  ```python
  import shap
- 
+
  explainer = shap.TreeExplainer(model)
  shap_values = explainer.shap_values(X_test)
- 
+
  # Store with model
  registry.log_artifact(
  model_name="customer_churn_predictor",
@@ -621,7 +612,6 @@ else:
  - Extract model training → scheduled task
  - Extract predictions → Streamlit app or REST API
 
-
 ## 2. Feature Engineering & Preparation
 
 **MANDATORY:**
@@ -631,14 +621,14 @@ else:
 - **Requirement:** Avoid target leakage; features must not contain post-outcome information:
  ```sql
  -- BAD: Future information leakage
- SELECT 
+ SELECT
  customer_id,
  days_since_last_purchase,
  total_purchases_next_30_days -- This is the target!
  FROM customers;
- 
+
  -- GOOD: Only historical features
- SELECT 
+ SELECT
  customer_id,
  days_since_last_purchase,
  avg_purchase_amount_last_90_days,
@@ -653,11 +643,11 @@ else:
  # BAD: Python loops over millions of rows
  for customer_id in customer_ids:
  features = calculate_features(customer_id) # Slow!
- 
+
  # GOOD: SQL aggregation
  features_df = session.sql("""
  WITH customer_activity AS (
- SELECT 
+ SELECT
  customer_id,
  COUNT(*) AS purchase_count,
  AVG(purchase_amount) AS avg_purchase,
@@ -673,7 +663,6 @@ else:
 - **Requirement:** Monitor feature drift and null ratios over time using DMFs
 - **Always:** Deduplicate highly correlated features (|correlation| > 0.95) to reduce model instability
 
-
 ## 3. Advanced SQL for Analytics
 
 **MANDATORY:**
@@ -682,7 +671,7 @@ else:
 - **Always:** Use window functions for intra-partition context (sessionization, ranking) instead of self-joins:
  ```sql
  -- Window function for ranking
- SELECT 
+ SELECT
  customer_id,
  order_date,
  order_amount,
@@ -698,7 +687,7 @@ else:
 - **Consider:** For large datasets, use approximate functions when exactness not required:
  ```sql
  -- For 100M+ rows, approximate functions save compute
- SELECT 
+ SELECT
  region,
  APPROX_COUNT_DISTINCT(customer_id) AS unique_customers, -- Much faster
  APPROX_PERCENTILE(order_amount, 0.5) AS median_order,
@@ -711,7 +700,7 @@ else:
  ```sql
  -- EDA on 1% sample
  SELECT * FROM large_table SAMPLE (1);
- 
+
  -- Fixed row count
  SELECT * FROM large_table SAMPLE (10000 ROWS);
  ```
@@ -720,13 +709,12 @@ else:
 - **Always:** For SQL ML tasks, reference Snowflake Cortex AI-SQL documentation: https://docs.snowflake.com/user-guide/snowflake-cortex/aisql
  ```sql
  -- Sentiment analysis at scale
- SELECT 
+ SELECT
  review_id,
  SNOWFLAKE.CORTEX.SENTIMENT(review_text) AS sentiment_score,
  SNOWFLAKE.CORTEX.CLASSIFY_TEXT(review_text, ['positive', 'negative', 'neutral']) AS sentiment_class
  FROM product_reviews;
  ```
-
 
 ## 4. Specialized Data & Time Series
 
@@ -736,7 +724,7 @@ else:
 - **Requirement:** Keep time series data in consistent timezone (UTC); convert to local time only for presentation
 - **Always:** Use proper time series aggregation with explicit intervals:
  ```sql
- SELECT 
+ SELECT
  DATE_TRUNC('hour', event_timestamp) AS hour,
  COUNT(*) AS event_count,
  AVG(metric_value) AS avg_metric
@@ -750,7 +738,7 @@ else:
 - **Requirement:** Use Snowflake's native geospatial types and functions:
  ```sql
  -- Distance calculation
- SELECT 
+ SELECT
  store_id,
  customer_id,
  ST_DISTANCE(store_location, customer_location) AS distance_meters
@@ -764,9 +752,9 @@ else:
  ```sql
  -- Create vector column
  ALTER TABLE products ADD COLUMN embedding VECTOR(FLOAT, 768);
- 
+
  -- Similarity search
- SELECT 
+ SELECT
  product_id,
  product_name,
  VECTOR_COSINE_SIMILARITY(embedding, :query_embedding) AS similarity
@@ -780,7 +768,6 @@ else:
  - **Geospatial Functions**: https://docs.snowflake.com/en/sql-reference/functions/geospatial-spatial-functions
  - **Vector Functions**: https://docs.snowflake.com/en/sql-reference/functions/vector-functions
  - **Snowflake Machine Learning**: https://docs.snowflake.com/en/developer-guide/snowflake-ml/overview
-
 
 ## 5. ML/AI Insight Presentation & Visualization
 
@@ -829,7 +816,7 @@ optimal_threshold = thresholds[optimal_idx]
 fig = go.Figure()
 fig.add_trace(go.Scatter(x=fpr, y=tpr, name=f'ROC (AUC={roc_auc:.3f})'))
 fig.add_trace(go.Scatter(x=[0, 1], y=[0, 1], mode='lines', name='Random', line=dict(dash='dash')))
-fig.add_annotation(x=fpr[optimal_idx], y=tpr[optimal_idx], 
+fig.add_annotation(x=fpr[optimal_idx], y=tpr[optimal_idx],
  text=f'Optimal Threshold: {optimal_threshold:.3f}')
 st.plotly_chart(fig)
 ```
@@ -980,16 +967,15 @@ high_confidence = (confidence > 0.8).sum()
 low_confidence = (confidence < 0.6).sum()
 
 col1, col2, col3 = st.columns(3)
-col1.metric("High Confidence", f"{high_confidence} predictions", 
+col1.metric("High Confidence", f"{high_confidence} predictions",
  delta=f"{high_confidence/len(X_test):.0%}")
 col2.metric("Medium Confidence", f"{len(X_test)-high_confidence-low_confidence}")
-col3.metric("Low Confidence ", f"{low_confidence}", 
+col3.metric("Low Confidence ", f"{low_confidence}",
  delta=f"{low_confidence/len(X_test):.0%}", delta_color="inverse")
 
 # Flag low confidence predictions for review
 st.warning(f"{low_confidence} predictions have <60% confidence. Manual review recommended.")
 ```
-
 
 ## 6. Performance Optimization for Large Datasets
 
@@ -1003,7 +989,7 @@ filtered = df[df['region'] == user_selection]
 
 # GOOD: Filter in SQL, fetch only needed data
 query = f"""
- SELECT 
+ SELECT
  order_date,
  product_category,
  SUM(sales_amount) AS total_sales,
@@ -1023,7 +1009,7 @@ df = session.sql(query).to_pandas()
 SELECT * FROM large_table SAMPLE (1000 ROWS); -- Fixed sample size
 
 -- For model training, stratified sampling
-SELECT * 
+SELECT *
 FROM customers SAMPLE (10) SEED (42) -- 10% reproducible sample
 WHERE status = 'active';
 ```
@@ -1036,7 +1022,7 @@ CREATE OR REPLACE STREAM dashboard_changes ON TABLE sales_fact;
 -- Refresh dashboard data incrementally
 MERGE INTO dashboard_aggregates t
 USING (
- SELECT 
+ SELECT
  order_date,
  region,
  SUM(sales_amount) AS total_sales
@@ -1084,7 +1070,6 @@ except Exception as e:
  else:
  raise
 ```
-
 
 ## 7. Ethical Visualization & Accessibility
 
@@ -1172,7 +1157,6 @@ with st.expander("View Data Table (Screen Reader Accessible)"):
 - Test with Tab, Enter, Space, Arrow keys
 - Provide visible focus indicators
 
-
 ## 8. Data Quality & Metric Documentation
 
 **MANDATORY:**
@@ -1217,4 +1201,3 @@ with st.expander("ℹ️ Metric Definition"):
  st.code(metric['calculation'], language='sql')
  st.caption(f"Owner: {metric['owner']} | Updated: {metric['update_frequency']}")
 ```
-

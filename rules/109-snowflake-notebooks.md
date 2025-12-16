@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** ML, reproducible notebooks, nbqa, notebook linting, code quality, Python, create notebook, debug notebook, notebook execution, notebook testing, notebook deployment, kernel management, cell execution
 **TokenBudget:** ~3200
 **ContextTier:** Medium
@@ -10,7 +11,6 @@
 
 ## Purpose
 Establish best practices for building reproducible, secure, and maintainable Jupyter Notebooks within the Snowflake environment, ensuring deterministic execution, proper state management, and seamless transition to production code.
-
 
 ## Rule Scope
 
@@ -27,7 +27,6 @@ Jupyter Notebooks in Snowflake with Snowpark for Python and reproducible data sc
 - **Creating notebooks**: + Core Patterns
 - **Production workflows**: + Advanced Features
 - **Deployment**: + 109c (app deployment)
-
 
 ## Quick Start TL;DR
 
@@ -60,14 +59,13 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Run `uvx nbqa ruff notebooks/` for linting
 - [ ] Test: "Restart Kernel & Run All" works without errors
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. Run the notebook top-to-bottom BEFORE making recommendations
 > 2. Verify cell execution order doesn't cause hidden state issues
 > 3. Never speculate about notebook structure - read the actual .ipynb file
 > 4. Check for hardcoded secrets or credentials in cells
 > 5. Make grounded recommendations based on investigated notebook execution
-
 
 ## Contract
 
@@ -180,11 +178,9 @@ connection = snowflake.connector.connect(
 - [ ] Production code refactored to separate .py/.sql files when appropriate
       Verify: Check if notebook has >500 lines of code OR reusable functions → Consider extracting to modules in src/ directory
 
-
 ## Validation
 - **Success checks:** Cell names are descriptive and follow naming conventions; `uvx nbqa ruff notebooks/` passes with zero errors; `uvx nbqa ruff format --check notebooks/` passes; notebook runs deterministically from top to bottom; all Snowpark connections work; no secrets exposed; production logic extracted to .py/.sql files
 - **Negative tests:** Generic cell names (cell1, cell2) should be flagged; notebooks with linting errors fail validation; notebooks with execution order dependencies should fail; hardcoded credentials should be detected; large local data pulls should be avoided
-
 
 ## Output Format Examples
 ```python
@@ -209,7 +205,7 @@ session = snowpark.Session.builder.configs(connection_params).create()
 # Cell: load_customer_data
 customers_df = session.table("CUSTOMERS").select(
     col("CUSTOMER_ID"),
-    col("CUSTOMER_NAME"), 
+    col("CUSTOMER_NAME"),
     col("REGISTRATION_DATE")
 )
 
@@ -219,7 +215,6 @@ monthly_summary = customers_df.group_by("REGISTRATION_MONTH").agg(
     avg("ORDER_VALUE").alias("AVG_ORDER_VALUE")
 )
 ```
-
 
 ## References
 
@@ -237,19 +232,16 @@ monthly_summary = customers_df.group_by("REGISTRATION_MONTH").agg(
 - **Python Linting**: `rules/201-python-lint-format.md`
 - **Data Science Analytics**: `rules/920-data-science-analytics.md`
 
-
 ## 1. Reproducibility & State
 - **Requirement:** Ensure notebooks are deterministic; outputs must not depend on execution order or hidden state.
 - **Requirement:** Use a single virtual environment and pin versions for consistent dependencies.
 - **Always:** Use a dedicated top cell for all imports.
 - **Always:** Parameterize for environments (dev/prod) or inputs (e.g., with `papermill`).
 
-
 ## 2. Structure & Documentation
 - **Always:** Use Markdown cells for narrative: purpose, business logic, assumptions.
 - **Requirement:** Do not use code cells for documentation or static text.
 - **Always:** Keep code cells focused on a single task; avoid mixing ingestion, transformation, and visualization.
-
 
 ## 3. Cell Naming & Organization
 - **Requirement:** Use descriptive, user-friendly cell names that reflect the cell's purpose, not generic names like `cell1`, `cell2`.
@@ -258,13 +250,11 @@ monthly_summary = customers_df.group_by("REGISTRATION_MONTH").agg(
 - **Always:** Group related cells with consistent prefixes (e.g., `data_ingestion_customers`, `data_ingestion_orders`).
 - **Requirement:** For parameterized notebooks, use descriptive parameter cell names (e.g., `config_environment_settings`, `params_date_range`).
 
-
 ## 4. Data & Performance
 - **Requirement:** Never hard-code credentials or sensitive information. Use environment variables or a secrets manager.
 - **Always:** Follow the rules in `100-snowflake-core.md` for performant, cost-effective queries.
 - **Requirement:** For large datasets, push computation to Snowflake via Snowpark DataFrames; avoid large local pulls.
 - **Requirement:** Refactor production-ready code out of the notebook into `.py` or `.sql` files; notebooks serve as reports or exploratory tools.
-
 
 ## 5. Code Quality & Linting
 
@@ -420,7 +410,6 @@ result = large_df.describe()  # Quick stats for investigation
 
 **When in Doubt:** Default to linting. Exceptions should be rare (<10% of notebooks) and explicitly documented with rationale.
 
-
 ## Related Rules
 
 **Closely Related** (consider loading together):
@@ -435,4 +424,3 @@ result = large_df.describe()  # Quick stats for investigation
 **Complementary** (different aspects of same domain):
 - `103-snowflake-performance-tuning` - For optimizing queries in notebook cells
 - `107-snowflake-security-governance` - For secrets management and RBAC in notebooks
-

@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** Flask, web development, blueprints, Flask-SQLAlchemy, templates, routing, Flask extensions, application factory, Jinja2, Flask-WTF, CSRF protection
 **TokenBudget:** ~3700
 **ContextTier:** High
@@ -11,13 +12,9 @@
 ## Purpose
 Provide comprehensive Flask development best practices, organized into focused patterns that cover all aspects of modern web application development including application architecture, security, templating, database integration, and deployment for building maintainable, secure web applications.
 
-
 ## Rule Scope
 
 Flask web application development with modern patterns, security, and maintainable architecture
-
-
-
 
 ## Quick Start TL;DR
 
@@ -39,7 +36,6 @@ Flask web application development with modern patterns, security, and maintainab
 - [ ] Templates use auto-escaping
 - [ ] Flask-SQLAlchemy configured
 - [ ] Run with `uv run flask --app app run`
-
 
 ## Contract
 
@@ -128,7 +124,7 @@ import os
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY")
     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
-    
+
     def __init__(self):
         if not self.SECRET_KEY:
             raise ValueError("SECRET_KEY environment variable required")
@@ -145,12 +141,11 @@ load_dotenv()  # Loads from .env file (not committed to git)
 - [ ] Output format matches requirements
 - [ ] Validation steps completed successfully
 
-
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read existing Flask app structure BEFORE adding routes** - Check app.py, blueprints/, models/ organization
 > 2. **Verify application factory usage** - Check if create_app() exists or if global Flask instance is used
@@ -167,7 +162,6 @@ load_dotenv()  # Loads from .env file (not committed to git)
 > [reads app.py, blueprints/, checks for factory pattern and extensions]
 > "I see you're using application factory with blueprints in blueprints/ and Flask-SQLAlchemy. Here's a new route following the same pattern..."
 
-
 ## Output Format Examples
 
 ```python
@@ -180,7 +174,7 @@ from datetime import datetime, UTC
 
 class ServiceProtocol(Protocol):
     """Clear contract for service implementations."""
-    
+
     def process(self, data: dict) -> dict:
         """Process data following validation rules."""
         ...
@@ -188,19 +182,19 @@ class ServiceProtocol(Protocol):
 def implementation_function(input_data: dict) -> dict:
     """
     Implement feature following project conventions.
-    
+
     Args:
         input_data: Validated input following schema
-    
+
     Returns:
         Processed result with metadata
-    
+
     Raises:
         ValueError: If input validation fails
     """
     # Use datetime.now(UTC) not datetime.utcnow()
     timestamp = datetime.now(UTC)
-    
+
     # Implement business logic
     result = {"status": "success", "timestamp": timestamp}
     return result
@@ -210,10 +204,10 @@ def test_implementation_function():
     """Test following AAA pattern."""
     # Arrange
     test_input = {"key": "value"}
-    
+
     # Act
     result = implementation_function(test_input)
-    
+
     # Assert
     assert result["status"] == "success"
     assert "timestamp" in result
@@ -225,7 +219,6 @@ uvx ruff check .
 uvx ruff format --check .
 uv run pytest tests/
 ```
-
 
 ## References
 
@@ -242,7 +235,6 @@ uv run pytest tests/
 - **Python Project Setup**: `rules/203-python-project-setup.md`
 - **Python Linting**: `rules/201-python-lint-format.md`
 - **Pydantic Integration**: `rules/230-python-pydantic.md`
-
 
 ## Flask Rule Categories
 
@@ -269,7 +261,6 @@ uv run pytest tests/
 - Migration strategies
 - Model relationships and queries
 
-
 ## Quick Reference
 
 ### Development Workflow
@@ -292,7 +283,6 @@ uvx ruff check . && uvx ruff format .
 - **Template Inheritance**: Use Jinja2 template inheritance effectively
 - **Error Handling**: Custom error pages and proper exception handling
 - **Configuration**: Environment-based settings with proper validation
-
 
 ## 1. Application Structure and Organization
 
@@ -350,20 +340,20 @@ def create_app(config_class=Config):
     """Create and configure Flask application."""
     app = Flask(__name__)
     app.config.from_object(config_class)
-    
+
     # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
     csrf.init_app(app)
-    
+
     # Register blueprints
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix='/auth')
-    
+
     # Register error handlers
     register_error_handlers(app)
-    
+
     return app
 
 def register_error_handlers(app):
@@ -371,7 +361,7 @@ def register_error_handlers(app):
     @app.errorhandler(404)
     def not_found_error(error):
         return render_template('errors/404.html'), 404
-    
+
     @app.errorhandler(500)
     def internal_error(error):
         db.session.rollback()
@@ -401,7 +391,6 @@ login_manager.login_view = 'auth.login'
 login_manager.login_message = 'Please log in to access this page.'
 login_manager.login_message_category = 'info'
 ```
-
 
 ## 2. Blueprint Architecture and Modular Design
 
@@ -433,7 +422,7 @@ def login():
     """User login route."""
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
-    
+
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
@@ -442,7 +431,7 @@ def login():
             next_page = request.args.get('next')
             return redirect(next_page or url_for('main.index'))
         flash('Invalid email or password', 'error')
-    
+
     return render_template('auth/login.html', form=form)
 
 @auth_bp.route('/logout')
@@ -467,7 +456,6 @@ app.register_blueprint(api_bp, url_prefix='/api/v1')
 app.register_blueprint(admin_bp, url_prefix='/admin')
 ```
 
-
 ## 3. Configuration Management
 
 ### Environment-Based Configuration
@@ -485,16 +473,16 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///app.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    
+
     # Session configuration
     PERMANENT_SESSION_LIFETIME = timedelta(hours=1)
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
-    
+
     # CSRF configuration
     WTF_CSRF_TIME_LIMIT = 3600
-    
+
     # Mail configuration
     MAIL_SERVER = os.environ.get('MAIL_SERVER')
     MAIL_PORT = int(os.environ.get('MAIL_PORT') or 587)
@@ -510,11 +498,11 @@ class DevelopmentConfig(Config):
 class ProductionConfig(Config):
     """Production configuration."""
     DEBUG = False
-    
+
     @classmethod
     def init_app(cls, app):
         Config.init_app(app)
-        
+
         # Log to syslog in production
         import logging
         from logging.handlers import SysLogHandler
@@ -537,7 +525,6 @@ config = {
 }
 ```
 
-
 ## 4. Database Integration and Models
 
 ### SQLAlchemy Integration
@@ -555,39 +542,39 @@ from datetime import datetime
 class User(UserMixin, db.Model):
     """User model with authentication support."""
     __tablename__ = 'users'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     username = db.Column(db.String(80), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
-    
+
     # Relationships
     posts = db.relationship('Post', backref='author', lazy='dynamic', cascade='all, delete-orphan')
-    
+
     def set_password(self, password):
         """Hash and set user password."""
         self.password_hash = generate_password_hash(password)
-    
+
     def check_password(self, password):
         """Check if provided password matches hash."""
         return check_password_hash(self.password_hash, password)
-    
+
     def __repr__(self):
         return f'<User {self.username}>'
 
 class Post(db.Model):
     """Post model with user relationship."""
     __tablename__ = 'posts'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    
+
     def __repr__(self):
         return f'<Post {self.title}>'
 ```
@@ -618,10 +605,9 @@ def create_post():
             db.session.rollback()
             flash('An error occurred while creating your post.', 'error')
             app.logger.error(f'Error creating post: {e}')
-    
+
     return render_template('main/create_post.html', form=form)
 ```
-
 
 ## 5. Security Best Practices
 
@@ -646,7 +632,7 @@ class LoginForm(FlaskForm):
 class RegistrationForm(FlaskForm):
     """User registration form with validation."""
     username = StringField('Username', validators=[
-        DataRequired(), 
+        DataRequired(),
         Length(min=4, max=20)
     ])
     email = StringField('Email', validators=[DataRequired(), Email()])
@@ -658,13 +644,13 @@ class RegistrationForm(FlaskForm):
         DataRequired(),
         EqualTo('password')
     ])
-    
+
     def validate_username(self, username):
         """Check if username is already taken."""
         user = User.query.filter_by(username=username.data).first()
         if user:
             raise ValidationError('Username already exists. Choose a different one.')
-    
+
     def validate_email(self, email):
         """Check if email is already registered."""
         user = User.query.filter_by(email=email.data).first()
@@ -695,7 +681,6 @@ def validate_strong_password(form, field):
         raise ValidationError('Password must contain at least one digit.')
 ```
 
-
 ## 6. Template Management and Rendering
 
 ### Jinja2 Template Best Practices
@@ -724,7 +709,7 @@ def validate_strong_password(form, field):
             <a href="{{ url_for('auth.register') }}">Register</a>
         {% endif %}
     </nav>
-    
+
     <main class="container">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -733,10 +718,10 @@ def validate_strong_password(form, field):
                 {% endfor %}
             {% endif %}
         {% endwith %}
-        
+
         {% block content %}{% endblock %}
     </main>
-    
+
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
@@ -764,7 +749,6 @@ def datetime_filter(value, format='%Y-%m-%d %H:%M'):
     return value.strftime(format)
 ```
 
-
 ## 7. Error Handling and Logging
 
 ### Custom Error Pages
@@ -776,25 +760,25 @@ def datetime_filter(value, format='%Y-%m-%d %H:%M'):
 # Error handlers in application factory
 def register_error_handlers(app):
     """Register custom error handlers."""
-    
+
     @app.errorhandler(400)
     def bad_request(error):
         return render_template('errors/400.html'), 400
-    
+
     @app.errorhandler(403)
     def forbidden(error):
         return render_template('errors/403.html'), 403
-    
+
     @app.errorhandler(404)
     def not_found(error):
         return render_template('errors/404.html'), 404
-    
+
     @app.errorhandler(500)
     def internal_error(error):
         db.session.rollback()
         app.logger.error(f'Server Error: {error}')
         return render_template('errors/500.html'), 500
-    
+
     @app.errorhandler(CSRFError)
     def handle_csrf_error(e):
         flash('The form has expired. Please try again.', 'error')
@@ -817,10 +801,10 @@ def configure_logging(app):
         # Production logging
         if not os.path.exists('logs'):
             os.mkdir('logs')
-        
+
         file_handler = RotatingFileHandler(
-            'logs/app.log', 
-            maxBytes=10240000, 
+            'logs/app.log',
+            maxBytes=10240000,
             backupCount=10
         )
         file_handler.setFormatter(logging.Formatter(
@@ -828,11 +812,10 @@ def configure_logging(app):
         ))
         file_handler.setLevel(logging.INFO)
         app.logger.addHandler(file_handler)
-        
+
         app.logger.setLevel(logging.INFO)
         app.logger.info('Application startup')
 ```
-
 
 ## 8. Testing Strategies
 
@@ -852,7 +835,7 @@ from app.config import TestingConfig
 def app():
     """Create application for testing."""
     app = create_app(TestingConfig)
-    
+
     with app.app_context():
         db.create_all()
         yield app
@@ -882,15 +865,14 @@ def test_user_registration(client, app):
         'password': 'TestPass123',
         'password2': 'TestPass123'
     }, follow_redirects=True)
-    
+
     assert response.status_code == 200
-    
+
     with app.app_context():
         user = User.query.filter_by(email='test@example.com').first()
         assert user is not None
         assert user.username == 'testuser'
 ```
-
 
 ## 9. Production Deployment
 
@@ -920,7 +902,6 @@ if __name__ == "__main__":
 - **Critical:** Enable CSRF protection
 - **Critical:** Configure secure session cookies
 
-
 ## 10. Integration with Python Core Rules
 
 ### Compliance with Existing Rules
@@ -944,4 +925,3 @@ uv run pytest tests/ -v --cov=app --cov-report=html
 # Linting and formatting
 uvx ruff check . && uvx ruff format .
 ```
-

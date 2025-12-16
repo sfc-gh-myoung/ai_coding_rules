@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** memory bank, context, session recovery, project brief, active context, progress tracking, continuity, context rot, attention budget, compaction, context engineering, rapid recovery, signal maximization
 **TokenBudget:** ~2850
 **ContextTier:** Critical
@@ -11,11 +12,9 @@
 ## Purpose
 Establish universal principles for maintaining project context and ensuring AI effectiveness through structured documentation, enabling seamless context recovery across session resets regardless of specific AI model or editor implementation.
 
-
 ## Rule Scope
 
 Universal memory bank principles for project context management across all AI models and editors
-
 
 ## Quick Start TL;DR
 
@@ -37,7 +36,6 @@ Universal memory bank principles for project context management across all AI mo
 - [ ] No duplicate information across files
 - [ ] Outdated content removed or archived
 - [ ] Total context ≤600 lines across all files
-
 
 ## Contract
 
@@ -141,12 +139,11 @@ We reviewed 5 different libraries. Sarah mentioned security concerns...
 - [ ] Essential commands and workflows documented in techContext.md
 - [ ] AI can resume work effectively using only context files
 
-
 ## Validation
 - **Success Checks**: Initialization confirmed; `memory-bank/` exists; writes limited to `memory-bank/`; AI can resume work effectively using only context files; no duplicate information exists; all references work; productivity achieved within 20 lines of reading; context load completes within time targets
 - **Negative Tests**: Update attempted before initialization; files written outside `memory-bank/`; context files with missing quick start fail effectiveness test; duplicate information causes confusion and wasted time; broken references impede progress; oversized contexts delay session recovery
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Check if `memory-bank/` directory exists BEFORE any write operation** - Use list_dir to verify, run initialization if missing
 > 2. **Read ALL existing memory bank files at session start** - Never assume context structure, always verify what exists
@@ -162,7 +159,6 @@ We reviewed 5 different libraries. Sarah mentioned security concerns...
 > "Let me check if memory-bank/ exists and what files are present."
 > [runs list_dir to check memory-bank/]
 > "I see memory-bank/ exists with activeContext.md (85 lines) and projectbrief.md (110 lines). Based on activeContext.md, the current focus is [specific project task]. Here's how I'll update it..."
-
 
 ## Output Format Examples
 
@@ -190,7 +186,6 @@ Validation:
 - [x] Documentation updated
 ```
 
-
 ## References
 
 ### External Documentation
@@ -200,7 +195,7 @@ Validation:
 
 **Technical Writing and Documentation:**
 - [Technical Writing Best Practices](https://developers.google.com/tech-writing) - Google's guide for clear, effective documentation
-- [Documentation Systems](https://documentation.divio.com/) - Framework for organizing technical documentation  
+- [Documentation Systems](https://documentation.divio.com/) - Framework for organizing technical documentation
 - [Cursor Documentation](https://docs.cursor.com/) - AI-powered code editor features and capabilities
 - [Cursor Rules Guide](https://docs.cursor.com/en/context/rules) - Project rules and context management
 - [Markdown Guide](https://www.markdownguide.org/) - Complete Markdown syntax and formatting reference
@@ -226,11 +221,11 @@ flowchart TD
     PB[projectbrief.md] --> PC[productContext.md]
     PB --> SP[systemPatterns.md]
     PB --> TC[techContext.md]
-    
+
     PC --> AC[activeContext.md]
     SP --> AC
     TC --> AC
-    
+
     AC --> P[progress.md]
 ```
 
@@ -239,7 +234,6 @@ flowchart TD
 - **Clear Hierarchy**: Dependencies and relationships between contexts are explicit
 - **Bounded Size**: Each context file maintains specific size limits
 - **Forward Focus**: Current context emphasizes what's next, not what's done
-
 
 ## 2. Content Guidelines
 
@@ -285,7 +279,6 @@ flowchart TD
 - Known issues and technical debt (current only)
 - Immediate roadmap (next 2-3 sprints maximum)
 
-
 ## 3. Performance Standards
 
 ### Size Budgets (Mandatory)
@@ -297,7 +290,7 @@ flowchart TD
 - **Product context**: ≤120 lines
 - **System patterns**: ≤150 lines
 
-### Efficiency Targets  
+### Efficiency Targets
 - **Context Load Time**: AI productive within 20 lines of reading
 - **Information Density**: Every line provides actionable value
 - **Update Frequency**: Balance currency with maintenance overhead
@@ -353,12 +346,11 @@ From Anthropic's context engineering research, as context length increases, mode
 - **Remove:** Resolved issues, exploratory dead-ends, redundant tool outputs, verbose explanations
 - **Compress:** Completed tasks (outcomes only), historical decisions (rationale + result), old session logs
 
-
 ## 4. Maintenance Workflows
 
 ### Context Update Triggers
 - After implementing significant changes
-- When discovering new project patterns  
+- When discovering new project patterns
 - When user requests with **"update memory bank"** (MUST review ALL files)
 - When context needs clarification for effectiveness
 - At major project milestones
@@ -377,7 +369,7 @@ Pre-step: If `memory-bank/` does not exist, run "initialize memory bank" to crea
 
 0. **Initialize If Needed**: Ensure `memory-bank/` exists and restrict writes to this directory
 1. **Review All Contexts**: Check each context type for relevance
-2. **Document Current State**: Capture new patterns and decisions  
+2. **Document Current State**: Capture new patterns and decisions
 3. **Clarify Next Steps**: Update active context with immediate priorities
 4. **Prune Outdated Content**: Remove completed, changed, or irrelevant information
 5. **Update IDE Rules**: Capture new patterns in project-specific rules
@@ -397,7 +389,6 @@ flowchart TD
 
 **Precondition:** Verify the `memory-bank/` folder exists. If missing, run "initialize memory bank" before any write operation.
 
-
 ## 5. IDE Integration
 
 ### Project Intelligence Rules
@@ -412,24 +403,20 @@ flowchart TD
 - Tool usage patterns and evolution of project decisions
 - Solutions to recurring problems
 
-
 ## Memory Bank Analysis
 - **Precondition**: Memory bank initialized and `memory-bank/` folder exists
 - **Session Status**: [New session / Continuing work]
 - **Context Health**: [Complete / Missing files / Needs updates]
-- **Active Focus**: [Current priority from activeContext.md]  
+- **Active Focus**: [Current priority from activeContext.md]
 - **Next Steps**: [Immediate actions from context]
 - **Blockers**: [Any dependencies or constraints]
 - **Validation**: [How to verify completion]
-
 
 ## Context Summary
 - **Project**: [Brief description from projectbrief.md]
 - **Current State**: [Status from progress.md]
 - **Technical Stack**: [Key technologies from techContext.md]
 
-
 ## Implementation Plan
 [Minimal changes based on context understanding]
 ```
-

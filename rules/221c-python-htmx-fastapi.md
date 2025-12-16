@@ -2,6 +2,7 @@
 
 ## Metadata
 
+**RuleVersion:** v1.0.0
 **Keywords:** fastapi, async, dependency injection, background tasks, oauth2, jwt, fastapi templates, starlette, pydantic, async routes
 **TokenBudget:** ~2300
 **ContextTier:** Medium
@@ -127,13 +128,13 @@ async def users_list(
     htmx: bool = Depends(is_htmx)
 ):
     users = await get_users()
-    
+
     if htmx:
         return templates.TemplateResponse(
             "partials/_users_table.html",
             {"request": request, "users": users}
         )
-    
+
     return templates.TemplateResponse(
         "pages/users.html",
         {"request": request, "users": users}
@@ -189,7 +190,7 @@ async def user_detail(
     user = await db.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    
+
     template = "partials/_user_detail.html" if htmx else "pages/user.html"
     return templates.TemplateResponse(
         template,
@@ -210,13 +211,13 @@ async def weather(
     async with httpx.AsyncClient() as client:
         response = await client.get(f"https://api.weather.com/{city}")
         data = response.json()
-    
+
     if htmx:
         return templates.TemplateResponse(
             "partials/_weather.html",
             {"request": request, "weather": data}
         )
-    
+
     return templates.TemplateResponse(
         "pages/weather.html",
         {"request": request, "weather": data}
@@ -233,7 +234,7 @@ class UserCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     email: str = Field(..., regex=r'^[^@]+@[^@]+\.[^@]+$')
     age: int = Field(..., gt=0, lt=150)
-    
+
     @validator('email')
     def email_must_be_lowercase(cls, v):
         return v.lower()
@@ -254,13 +255,13 @@ async def create_user(
     try:
         user_data = UserCreate(name=name, email=email, age=age)
         user = await create_user_in_db(user_data)
-        
+
         # Success: Return new user row
         return templates.TemplateResponse(
             "partials/_user_row.html",
             {"request": request, "user": user}
         )
-    
+
     except ValidationError as e:
         # Error: Return form with errors
         errors = {err['loc'][0]: err['msg'] for err in e.errors()}
@@ -287,11 +288,11 @@ tasks = {}
 async def process_data(task_id: str, data: dict):
     """Long-running background task"""
     tasks[task_id] = {"status": "processing", "progress": 0}
-    
+
     for i in range(10):
         await asyncio.sleep(1)  # Simulate work
         tasks[task_id]["progress"] = (i + 1) * 10
-    
+
     tasks[task_id]["status"] = "completed"
     tasks[task_id]["result"] = "Data processed successfully"
 
@@ -302,10 +303,10 @@ async def start_processing(
 ):
     task_id = str(uuid.uuid4())
     background_tasks.add_task(process_data, task_id, data)
-    
+
     # Return polling element
     return f'''
-    <div hx-get="/tasks/{task_id}/status" 
+    <div hx-get="/tasks/{task_id}/status"
          hx-trigger="every 1s"
          hx-swap="outerHTML">
         Processing started...
@@ -315,19 +316,19 @@ async def start_processing(
 @app.get("/tasks/{task_id}/status")
 async def task_status(task_id: str, request: Request):
     task = tasks.get(task_id, {"status": "unknown"})
-    
+
     if task["status"] == "processing":
         return f'''
-        <div hx-get="/tasks/{task_id}/status" 
+        <div hx-get="/tasks/{task_id}/status"
              hx-trigger="every 1s"
              hx-swap="outerHTML">
             Progress: {task['progress']}%
         </div>
         '''
-    
+
     elif task["status"] == "completed":
         return f'<div class="success">{task["result"]}</div>'
-    
+
     else:
         return '<div class="error">Task not found</div>'
 ```
@@ -341,7 +342,7 @@ from fastapi.responses import HTMLResponse
 @app.delete("/users/{user_id}")
 async def delete_user(user_id: int):
     await delete_user_from_db(user_id)
-    
+
     response = HTMLResponse(content="", status_code=200)
     response.headers['HX-Trigger'] = 'userDeleted'
     return response
@@ -354,7 +355,7 @@ async def login(username: str = Form(...), password: str = Form(...)):
             '<div class="error">Invalid credentials</div>',
             status_code=401
         )
-    
+
     # Successful login: redirect
     response = HTMLResponse(content="", status_code=200)
     response.headers['HX-Redirect'] = '/dashboard'
@@ -395,7 +396,7 @@ async def dashboard(
             "partials/_dashboard.html",
             {"request": request, "user": current_user}
         )
-    
+
     return templates.TemplateResponse(
         "pages/dashboard.html",
         {"request": request, "user": current_user}
@@ -410,13 +411,13 @@ from fastapi.responses import HTMLResponse
 @app.exception_handler(HTTPException)
 async def htmx_exception_handler(request: Request, exc: HTTPException):
     is_htmx_request = request.headers.get('HX-Request') == 'true'
-    
+
     if exc.status_code == 401 and is_htmx_request:
         # Redirect to login for HTMX requests
         response = HTMLResponse(content="", status_code=401)
         response.headers['HX-Redirect'] = '/login'
         return response
-    
+
     # Default handling for non-HTMX
     return HTMLResponse(content=str(exc.detail), status_code=exc.status_code)
 ```
@@ -448,21 +449,21 @@ async def stream_operation_progress(op_id: str):
         task = asyncio.create_task(
             asyncio.to_thread(run_operation, op_id, progress_callback)
         )
-        
+
         while True:
             if task.done():
                 # Drain remaining messages
                 while not progress_queue.empty():
                     msg = await progress_queue.get()
                     yield f"data: {json.dumps(msg)}\n\n"
-                
+
                 try:
                     result = task.result()
                     yield f"data: {json.dumps({'step': 'done', 'success': True})}\n\n"
                 except Exception as e:
                     yield f"data: {json.dumps({'step': 'error', 'message': str(e)})}\n\n"
                 break
-            
+
             try:
                 msg = await asyncio.wait_for(progress_queue.get(), timeout=0.5)
                 yield f"data: {json.dumps(msg)}\n\n"

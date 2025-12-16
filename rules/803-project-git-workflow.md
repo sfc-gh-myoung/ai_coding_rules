@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** git, workflow, branching strategy, GitHub, pull requests, feature branches, protected branches, git validation, branch naming, PR workflow, Conventional Commits
 **TokenBudget:** ~5200
 **ContextTier:** Medium
@@ -11,10 +12,8 @@
 ## Purpose
 Establish comprehensive git workflow best practices for managing project updates on GitHub, ensuring consistent branching strategies, proper workflows, and robust validation before integration.
 
-
 ## Rule Scope
 Git workflow management including branching strategies, pull requests, protected branches, and pre-merge validation for GitHub
-
 
 ## Quick Start TL;DR
 
@@ -39,7 +38,6 @@ Git workflow management including branching strategies, pull requests, protected
 - [ ] Pre-commit hooks pass (or permissions granted)
 - [ ] PR created with description
 - [ ] CI checks passing
-
 
 ## Contract
 
@@ -86,7 +84,6 @@ Git state validation passes; branch name follows convention; CHANGELOG.md update
 
 </contract>
 
-
 ## Anti-Patterns and Common Mistakes
 
 **Anti-Pattern 1: Committing Directly to Main**
@@ -106,7 +103,7 @@ git checkout -b fix/critical-bug
 # ... make changes ...
 git commit -m "fix(core): resolve critical validation bug"
 # Run Pre-Task-Completion Validation Gate
-uvx ruff check . && uvx ruff format --check . && uv run pytest
+task validate  # Preferred (Taskfile-first). If no Taskfile targets exist, run tool commands directly.
 git push origin fix/critical-bug
 gh pr create --title "fix(core): resolve critical validation bug"
 # Wait for review and merge
@@ -250,13 +247,12 @@ git commit -m "feat: new feature"
 git commit -m "feat: new feature"  # With proper permissions granted
 
 # Solution 2: If permissions unavailable, verify checks passed first
-uvx ruff check . && uvx ruff format --check . && uv run pytest
+task validate  # Preferred (Taskfile-first). If no Taskfile targets exist, run tool commands directly.
 # Only after ALL checks pass manually:
 git commit --no-verify -m "feat: new feature"
 # Document why --no-verify was used in PR description
 ```
 **Benefits:** Maintains code quality; hooks run as intended; catches issues before push; provides audit trail when bypass is necessary.
-
 
 ## Conventional Commits Specification Compliance
 
@@ -323,7 +319,6 @@ Agents should follow this validation approach:
 
 **Flexibility:** If user explicitly requests different format or context requires deviation, document the reason and proceed.
 
-
 ## Conventional Branch Specification Compliance
 
 **Strong Preference:** All feature branches should follow [Conventional Branch v1.0.0](https://conventional-branch.github.io/#specification) as the preferred standard.
@@ -380,7 +375,6 @@ Agents should follow this validation approach:
 
 **Flexibility:** If project conventions differ or user has specific naming requirements, adapt while documenting the rationale.
 
-
 ## Post-Execution Checklist
 
 - [ ] Branch created with proper naming convention (feature/, fix/, docs/, refactor/, chore/)
@@ -398,13 +392,12 @@ Agents should follow this validation approach:
 - [ ] All status checks passing before merge
 - [ ] Code review approved before merge
 
-
 ## Validation
 
 - **Success Checks:** Branch name follows convention; git working directory clean (`git status --porcelain` empty); CHANGELOG.md has entry under [Unreleased]; PR created successfully; all status checks pass; code review approved; merge completes without conflicts
 - **Negative Tests:** Invalid branch name rejected by validation script; uncommitted changes block PR creation; missing CHANGELOG entry causes validation failure; direct commit to main blocked by branch protection; force push to main rejected; status check failures prevent merge
 
-> **Investigation Required** 
+> **Investigation Required**
 > When applying this rule:
 > 1. **Verify git repository state BEFORE making recommendations** using `git status`, `git branch`, `git log`
 > 2. **Check actual branch protection settings** on GitHub before advising
@@ -424,7 +417,6 @@ Agents should follow this validation approach:
 > git status
 > ```
 > "After reviewing your git configuration, I found [specific facts]. Here's my recommendation..."
-
 
 ## Output Format Examples
 
@@ -456,7 +448,6 @@ Preview:
 [Show relevant excerpt of updated documentation]
 ```
 
-
 ## References
 
 ### External Documentation
@@ -473,7 +464,6 @@ Preview:
 - **Contributing Workflow**: `rules/802-project-contributing.md`
 - **Global Core (Pre-Task-Completion Validation Gate)**: `rules/000-global-core.md`
 - **Agents Workflow**: `AGENTS.md`
-
 
 ## 1. Branch Naming Conventions
 
@@ -513,7 +503,6 @@ Preview:
 - **Avoid:** JIRA ticket numbers only (include description)
 - **Consider:** Including ticket reference: `feature/SF-123-add-cortex-agents`
 
-
 ## 2. Feature Branch Workflow
 
 ### Step-by-Step Process
@@ -530,9 +519,7 @@ git checkout -b feature/my-new-feature
 # ... edit files ...
 
 # 4. Run Pre-Task-Completion Validation Gate
-uvx ruff check .
-uvx ruff format --check .
-uv run pytest
+task validate  # Preferred (Taskfile-first). If no Taskfile targets exist, run tool commands directly.
 # ... fix any failures ...
 
 # 5. Update CHANGELOG.md under ## [Unreleased]
@@ -551,7 +538,6 @@ git push origin feature/my-new-feature
 
 # 9. Create PR (see section below)
 ```
-
 
 ## 3. GitHub Workflow
 
@@ -611,28 +597,14 @@ on:
  branches: [ main ]
 
 jobs:
- lint:
- runs-on: ubuntu-latest
- steps:
- - uses: actions/checkout@v3
- - name: Run Ruff
- run: uvx ruff check .
-
- format:
- runs-on: ubuntu-latest
- steps:
- - uses: actions/checkout@v3
- - name: Check format
- run: uvx ruff format --check .
-
- test:
- runs-on: ubuntu-latest
- steps:
- - uses: actions/checkout@v3
- - name: Run tests
- run: uv run pytest
+ validate:
+  runs-on: ubuntu-latest
+  steps:
+   - uses: actions/checkout@v3
+   # Ensure Task is installed/available in CI (project standard), then run the gate:
+   - name: Validate (Taskfile-first)
+     run: task validate
 ```
-
 
 ## 4. Protected Branch Strategy
 
@@ -654,7 +626,6 @@ jobs:
 - **Audit Trail:** Complete history of who approved what
 - **Rollback Safety:** Easy to revert problematic merges
 - **Team Collaboration:** Forces communication about changes
-
 
 ## 5. Pre-Merge Validation
 
@@ -759,11 +730,10 @@ chmod +x scripts/validate-git-state.sh
 
 **Requirement:** Git state validation is part of mandatory Pre-Task-Completion Validation Gate:
 
-1. Code Quality: `uvx ruff check .` and `uvx ruff format --check .`
-2. Test Execution: `uv run pytest`
+1. Project validation (preferred): `task validate` (or `task check` / `task ci`)
+2. Fallback validation (if no Taskfile targets exist): run tool commands directly.
 3. Documentation: CHANGELOG.md and README.md updated
 4. **Git State:** Clean working directory, valid branch, CHANGELOG entry verified
-
 
 ## 6. Pre-Commit Hooks
 
@@ -842,17 +812,14 @@ if [[ -d ".git/hooks" ]] && ls .git/hooks/* 2>/dev/null | grep -qv sample; then
 fi
 ```
 
-
 ## Git Workflow Analysis
 - **Current Branch:** [branch name from `git branch --show-current`]
 - **Git State:** [clean/uncommitted changes]
 - **Remote:** GitHub
 - **Protected Branches:** [list from repo settings]
 
-
 ## Recommendation
 [Specific workflow steps based on actual state]
-
 
 ## Commands to Execute
 ```bash
@@ -875,7 +842,6 @@ git push origin [branch-name]
 gh pr create --title "[PR title]" # or glab mr create
 ```
 
-
 ## Implementation Details
 
 ### Validation Checklist
@@ -884,4 +850,3 @@ gh pr create --title "[PR title]" # or glab mr create
 - [ ] Git state clean
 - [ ] Branch name valid
 ```
-

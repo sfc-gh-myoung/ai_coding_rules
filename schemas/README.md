@@ -1,8 +1,8 @@
-# Rule Schema v3.0 Documentation
+# Rule Schema v3.1 Documentation
 
-**Location:** `schemas/rule-schema-v3.yml`  
-**Version:** 3.0  
-**Purpose:** Validation schema for AI coding rules per 002-rule-governance.md v3.0
+**Location:** `schemas/rule-schema.yml`  
+**Version:** 3.1  
+**Purpose:** Validation schema for AI coding rules per 002-rule-governance.md v3.1
 
 ## Overview
 
@@ -12,7 +12,7 @@ This schema defines the structure, content, and format requirements for all AI c
 
 The schema is organized into 9 main sections:
 
-1. **Metadata Validation** - Keywords, TokenBudget, ContextTier, Depends
+1. **Metadata Validation** - RuleVersion, Keywords, TokenBudget, ContextTier, Depends
 2. **Document Structure** - Required sections, order, placement
 3. **Content Validation** - Deep content checks (code blocks, keywords, etc.)
 4. **Placement Rules** - Section positioning (Contract before line 160)
@@ -59,15 +59,17 @@ Errors are classified by severity:
 
 ## Metadata Validation
 
-All rule files must have 4 metadata fields in this exact order:
+All rule files must have 5 metadata fields in this exact order:
 
-1. **Keywords:** 15-20 comma-separated semantic terms
-2. **TokenBudget:** ~NUMBER format (e.g., ~1500)
-3. **ContextTier:** Critical | High | Medium | Low
-4. **Depends:** Comma-separated list of prerequisite rules
+1. **RuleVersion:** Semantic version format (vX.Y.Z)
+2. **Keywords:** 10-15 comma-separated semantic terms
+3. **TokenBudget:** ~NUMBER format (e.g., ~1500)
+4. **ContextTier:** Critical | High | Medium | Low
+5. **Depends:** Comma-separated list of prerequisite rules
 
 **Example:**
 ```markdown
+**RuleVersion:** v1.0.0
 **Keywords:** snowflake, sql, data warehouse, query optimization, performance, caching, clustering, partitioning, snowpipe, stages, external tables, streams, tasks, materialized views, security
 **TokenBudget:** ~2500
 **ContextTier:** Critical
@@ -141,7 +143,7 @@ Must contain:
 
 ## Format Restrictions
 
-### No Emojis (v3.0 Requirement)
+### No Emojis
 
 **Rule:** No emojis allowed in rule files  
 **Severity:** CRITICAL  
@@ -221,13 +223,13 @@ RESULT: ❌ FAILED (1 CRITICAL, 2 HIGH, 3 MEDIUM issues)
 
 ## Schema Versioning
 
-**Current Version:** 3.0  
-**Strategy:** Single version - all rules use latest schema
+**Current Version:** 3.1  
+**Strategy:** Single version file - all rules use latest schema (version tracked inside file)
 
 **When Schema Changes:**
-1. Update `schemas/rule-schema-v3.yml`
+1. Update `schemas/rule-schema.yml` (version field inside file)
 2. Document breaking changes in CHANGELOG
-3. Run validation on all 87 rules
+3. Run validation on all rules
 4. Fix high-priority rules
 5. Document known issues
 
@@ -362,7 +364,7 @@ good_code()
 
 ### Schema Not Found
 
-**Error:** `FileNotFoundError: schemas/rule-schema-v3.yml`
+**Error:** `FileNotFoundError: schemas/rule-schema.yml`
 
 **Fix:** Ensure schema file exists, or specify path:
 ```bash
@@ -396,13 +398,13 @@ python scripts/schema_validator.py rules/ --fail-fast
 - `docs/schema_design_spec.md` - Schema design specification
 
 **Schema File:**
-- `schemas/rule-schema-v3.yml` - This schema
+- `schemas/rule-schema.yml` - This schema
 
 **Validator:**
-- `scripts/schema_validator.py` - Validation engine (to be implemented)
+- `scripts/schema_validator.py` - Validation engine
 
 ---
 
-**Last Updated:** 2025-11-23  
-**Version:** 3.0  
+**Last Updated:** 2025-12-16  
+**Version:** 3.1  
 **Status:** Active

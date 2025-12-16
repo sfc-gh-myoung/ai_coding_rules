@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** model governance, model lifecycle, model logging, model inference, RBAC, model privileges, register model, log model, model management, ML registry, model tracking, model metadata, deploy model, model lineage
 **TokenBudget:** ~3550
 **ContextTier:** Medium
@@ -10,7 +11,6 @@
 
 ## Purpose
 Establish comprehensive best practices for using Snowflake Model Registry to manage machine learning models, ensuring secure, performant, and governable ML operations through proper lifecycle management, access control, versioning strategies, and cost optimization.
-
 
 ## Rule Scope
 
@@ -27,7 +27,6 @@ Snowflake Model Registry operations including model logging, versioning, access 
 - **Logging models**: + Model Logging & Versioning
 - **Model inference**: + Inference & Governance
 - **Production MLOps**: Full reference
-
 
 ## Quick Start TL;DR
 
@@ -56,7 +55,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Dependencies pinned
 - [ ] Audit logging enabled
 - [ ] Lifecycle stages tracked
-
 
 ## Contract
 
@@ -111,7 +109,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 </design_principles>
 
 </contract>
-
 
 ## Anti-Patterns and Common Mistakes
 
@@ -232,7 +229,7 @@ registry.log_model(
 
 # Add tags for discovery
 session.sql(f"""
-    ALTER MODEL customer_churn_predictor 
+    ALTER MODEL customer_churn_predictor
     SET TAG use_case = 'churn_prediction',
             owner_team = 'data_science',
             data_classification = 'CONFIDENTIAL',
@@ -291,7 +288,6 @@ print("✓ Model inference validated, ready for production")
 ```
 **Benefits:** Early error detection; validated inference; confidence in production; no surprises; professional deployment; reliable predictions; user trust
 
-
 ## Post-Execution Checklist
 - [ ] Required dependencies and context verified
 - [ ] Appropriate tools selected and validated
@@ -299,12 +295,11 @@ print("✓ Model inference validated, ready for production")
 - [ ] Output format matches requirements
 - [ ] Validation steps completed successfully
 
-
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read existing model registry setup BEFORE logging models** - Check registry schema, naming conventions
 > 2. **Verify model format compatibility** - Check if model type supported by registry
@@ -321,7 +316,6 @@ print("✓ Model inference validated, ready for production")
 > [reads registry schema, checks existing models, reviews privileges]
 > "I see you organize models by ML.REGISTRY schema with version tags. Logging new model following this pattern..."
 
-
 ## Output Format Examples
 
 ```sql
@@ -335,7 +329,7 @@ GROUP BY column_pattern;
 CREATE OR REPLACE VIEW schema.view_name
 COMMENT = 'Business purpose following semantic model standards'
 AS
-SELECT 
+SELECT
     -- Explicit column list with business context
     id COMMENT 'Surrogate key',
     name COMMENT 'Business entity name',
@@ -347,7 +341,6 @@ WHERE is_active = TRUE;
 SELECT * FROM schema.view_name LIMIT 5;
 SHOW VIEWS LIKE '%view_name%';
 ```
-
 
 ## References
 
@@ -365,7 +358,6 @@ SHOW VIEWS LIKE '%view_name%';
 - **Snowflake Cost Governance**: `rules/105-snowflake-cost-governance.md`
 - **Warehouse Management**: `rules/119-snowflake-warehouse-management.md`
 - **Snowflake Notebooks**: `rules/109-snowflake-notebooks.md`
-
 
 ## 1. Model Registry Setup and Organization
 
@@ -389,10 +381,9 @@ reg = Registry(
 - **Rule:** Separate registries by environment (DEV, STAGING, PROD)
 - **Rule:** Use consistent naming conventions:
   - Development: `ML_DEV.REGISTRY`
-  - Staging: `ML_STAGING.REGISTRY` 
+  - Staging: `ML_STAGING.REGISTRY`
   - Production: `ML_PROD.REGISTRY`
 - **Consider:** Create separate schemas for different model types or business domains
-
 
 ## 2. Model Logging and Versioning
 
@@ -444,7 +435,6 @@ mv.set_metric("training_info", {
 - **Rule:** Include business-relevant metrics alongside technical metrics
 - **Always:** Document model purpose, assumptions, and limitations in comments
 
-
 ## 3. Access Control and Security
 
 ### Role-Based Access Control (RBAC)
@@ -474,7 +464,6 @@ GRANT READ ON FUTURE MODELS IN SCHEMA ml.registry TO ROLE ml_team;
 - **Rule:** Regular access reviews and cleanup of unused privileges
 - **Always:** Use secure stages for model artifacts and dependencies
 - **Rule:** Implement row access policies for sensitive model metadata when required
-
 
 ## 4. Model Inference and Serving
 
@@ -508,7 +497,6 @@ except Exception as e:
 - **Rule:** Use appropriate data types and minimize data movement
 - **Consider:** Implement model result caching for frequently accessed predictions
 
-
 ## 5. Model Lifecycle Management
 
 ### Development to Production Pipeline
@@ -520,7 +508,7 @@ def promote_model(source_reg, target_reg, model_name, version_name):
     # Validate model performance
     source_mv = source_reg.get_model(model_name).version(version_name)
     metrics = source_mv.show_metrics()
-    
+
     if metrics.get("accuracy", 0) >= 0.90:
         # Export and re-import to target registry
         source_mv.export("/tmp/model_export")
@@ -538,7 +526,6 @@ def promote_model(source_reg, target_reg, model_name, version_name):
 - **Rule:** Implement retention policies for old model versions
 - **Always:** Archive rather than delete historical model versions
 - **Consider:** Automated cleanup of development versions while preserving production versions
-
 
 ## 6. Cost Governance and Optimization
 
@@ -564,7 +551,6 @@ TRIGGERS
   ON 90 PERCENT DO SUSPEND
   ON 100 PERCENT DO SUSPEND_IMMEDIATE;
 ```
-
 
 ## 7. Model Registry Queries and Administration
 
@@ -594,7 +580,7 @@ ORDER BY accuracy DESC;
 
 ```sql
 -- Identify models without recent usage
-SELECT 
+SELECT
     model_name,
     model_version_name,
     last_altered_on,
@@ -603,7 +589,6 @@ FROM ml.information_schema.model_versions
 WHERE days_since_update > 90
 ORDER BY days_since_update DESC;
 ```
-
 
 ## 8. Integration with ML Workflows
 
@@ -616,7 +601,6 @@ ORDER BY days_since_update DESC;
 - **Requirement:** Integrate model registry operations into automated ML pipelines
 - **Rule:** Implement automated testing for model versions before production deployment
 - **Always:** Use version control for model training scripts and registry operations
-
 
 ## 9. Compliance and Governance
 
@@ -631,4 +615,3 @@ ORDER BY days_since_update DESC;
 - **Rule:** Implement audit logging for all model registry operations
 - **Always:** Maintain model lineage and data provenance information
 - **Requirement:** Regular compliance reviews for model access and usage
-

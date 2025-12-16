@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** Data modeling, naming conventions, Kimball, dimensional modeling, fact tables, dimension tables, foreign keys, view taxonomy, Business Analyst, data generation, backward compatibility, entity IDs, temporal columns, surrogate keys, SCD Type 2
 **TokenBudget:** ~5400
 **ContextTier:** High
@@ -11,11 +12,9 @@
 ## Purpose
 Establish comprehensive data generation and modeling standards ensuring intuitive, analytics-friendly data for Business Analysts, Executive Users, Data Scientists, and Data Engineers through consistent naming conventions, relationship patterns, and dimensional modeling best practices.
 
-
 ## Rule Scope
 
 All data generation (Python generators), SQL schema design (DDL), view creation, and analytics queries for utility demo project. Applies to grid data, customer data, and all future data domains.
-
 
 ## Quick Start TL;DR
 
@@ -37,7 +36,6 @@ All data generation (Python generators), SQL schema design (DDL), view creation,
 - [ ] FK relationships documented
 - [ ] Temporal columns present
 - [ ] Backward compatibility maintained
-
 
 ## Contract
 
@@ -83,10 +81,7 @@ Run validation script; verify FK integrity; test business analyst queries; check
 
 </contract>
 
-
-
 ## Anti-Patterns and Common Mistakes
-
 
 ### Anti-Pattern 1: Inconsistent FK Naming
 
@@ -204,7 +199,7 @@ CREATE TABLE FACT_CUSTOMER_CALLS (
 
 ```sql
 -- BAD: Direct date filtering in fact table
-SELECT 
+SELECT
     YEAR(read_timestamp) AS year,
     MONTH(read_timestamp) AS month,
     SUM(consumption_kwh)
@@ -218,7 +213,7 @@ GROUP BY YEAR(read_timestamp), MONTH(read_timestamp);
 **Correct Pattern:**
 ```sql
 -- GOOD: Join to date dimension
-SELECT 
+SELECT
     d.year_num,
     d.month_name,
     d.fiscal_quarter,
@@ -231,10 +226,7 @@ GROUP BY d.year_num, d.month_name, d.fiscal_quarter;
 
 **Benefits:** Better performance; rich time attributes; business calendar support
 
-
 ---
-
-
 
 ## Post-Execution Checklist
 
@@ -257,20 +249,18 @@ Before committing any data generation or SQL changes, verify:
 
 ---
 
-
 ## Validation
 
 - **Success Checks:** All entity IDs follow `<entity>_id` pattern; FKs match PKs exactly; views follow taxonomy; column comments present; date dimension exists; business analyst queries require <10 lines of SQL
 - **Negative Tests:** Queries with mismatched FKs fail; undocumented columns caught in review; views without taxonomy prefix rejected; unitless measurements flagged
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. Read all generator files to understand current naming patterns BEFORE proposing changes
 > 2. Read SQL DDL files to verify FK relationships BEFORE modifying schemas
 > 3. Never speculate about column meanings - read the actual code/DDL
 > 4. Test queries against actual views before claiming they work
 > 5. Validate FK integrity by reading both parent and child DataFrames
-
 
 ## Output Format Examples
 
@@ -290,7 +280,7 @@ Implementation: Summary
 1. **[Step 1]**: [Specific action taken]
    - File: `path/to/file`
    - Change: [delta description]
-   
+
 2. **[Step 2]**: [Another action]
    - Configuration: [what was configured]
    - Rationale: [why this approach]
@@ -316,7 +306,6 @@ test --run-all
 - [Monitoring recommendations]
 ```
 
-
 ## References
 
 ### External Documentation
@@ -334,8 +323,6 @@ test --run-all
 - **Data Governance**: `rules/930-data-governance-quality.md`
 - **Business Analytics**: `rules/940-business-analytics.md`
 - **Demo Creation**: `rules/900-demo-creation.md`
-
-
 
 ## 1. Universal Naming Conventions
 
@@ -429,7 +416,6 @@ Categorical columns should use clear, self-documenting values:
 
 ---
 
-
 ## 2. Dimensional Modeling Standards (Kimball Methodology)
 
 ### 2.1 Fact Table Patterns
@@ -454,20 +440,20 @@ CREATE TABLE FACT_METER_READINGS (
     -- Composite Primary Key (grain)
     meter_id VARCHAR(50) NOT NULL,
     read_timestamp TIMESTAMP_NTZ NOT NULL,
-    
+
     -- Dimension Foreign Keys
     customer_id VARCHAR(50) NOT NULL,
     asset_id VARCHAR(50) NOT NULL,  -- References DIM_GRID_ASSET
-    
+
     -- Measures (facts)
     consumption_kwh FLOAT NOT NULL,
     demand_kw FLOAT NOT NULL,
     voltage_volts FLOAT,
     power_factor FLOAT,
-    
+
     -- Metadata
     load_timestamp TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP(),
-    
+
     PRIMARY KEY (meter_id, read_timestamp)
 );
 ```
@@ -494,30 +480,30 @@ CREATE TABLE FACT_METER_READINGS (
 CREATE TABLE DIM_GRID_ASSET (
     -- Primary Key (natural key)
     asset_id VARCHAR(50) NOT NULL PRIMARY KEY,
-    
+
     -- Business Keys
     asset_name VARCHAR(100) NOT NULL,
     asset_type VARCHAR(20) NOT NULL,
-    
+
     -- Hierarchy
     parent_asset_id VARCHAR(50),  -- Self-referencing FK
-    
+
     -- Descriptive Attributes
     manufacturer VARCHAR(100),
     model VARCHAR(100),
     install_date DATE,
     operational_status VARCHAR(20),
     criticality_level VARCHAR(10),
-    
+
     -- Geographic
     latitude FLOAT,
     longitude FLOAT,
     city VARCHAR(100),
-    
+
     -- Metadata
     created_timestamp TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP(),
     updated_timestamp TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP(),
-    
+
     COMMENT = 'Dimension: Grid asset inventory with hierarchical relationships'
 );
 ```
@@ -539,7 +525,7 @@ CREATE TABLE BRIDGE_METER_CONTRACT (
     effective_start_date DATE NOT NULL,
     effective_end_date DATE,
     is_active BOOLEAN DEFAULT TRUE,
-    
+
     PRIMARY KEY (meter_id, contract_id, effective_start_date)
 );
 ```
@@ -553,32 +539,32 @@ CREATE TABLE BRIDGE_METER_CONTRACT (
 ```sql
 CREATE TABLE DIM_DATE (
     date_key DATE NOT NULL PRIMARY KEY,
-    
+
     -- Calendar Attributes
     date_timestamp TIMESTAMP_NTZ,
     day_of_week VARCHAR(10),
     day_of_week_num INT,
     day_of_month INT,
     day_of_year INT,
-    
+
     week_of_year INT,
     month_num INT,
     month_name VARCHAR(10),
     month_abbr VARCHAR(3),
     quarter_num INT,
     year_num INT,
-    
+
     -- Business Attributes
     is_weekend BOOLEAN,
     is_holiday BOOLEAN,
     holiday_name VARCHAR(100),
     fiscal_year INT,
     fiscal_quarter INT,
-    
+
     -- Utility-Specific
     is_peak_season BOOLEAN,  -- Summer/Winter
     billing_cycle_day INT,   -- Day within 30-day billing cycle
-    
+
     COMMENT = 'Dimension: Date attributes for time-based analytics'
 );
 ```
@@ -586,7 +572,7 @@ CREATE TABLE DIM_DATE (
 **Usage in Fact Tables:**
 ```sql
 -- Join pattern for business analysts
-SELECT 
+SELECT
     d.year_num,
     d.month_name,
     SUM(f.consumption_kwh) AS total_consumption_kwh
@@ -597,7 +583,6 @@ GROUP BY d.year_num, d.month_name;
 ```
 
 ---
-
 
 ## 3. View Taxonomy (Business-First Design)
 
@@ -635,42 +620,42 @@ CREATE OR REPLACE VIEW VW_BA_CUSTOMER_360 AS
 -- Purpose: Complete customer profile with billing, consumption, and service history
 -- Target Audience: Business Analysts, Customer Service
 -- Usage: SELECT * FROM VW_BA_CUSTOMER_360 WHERE customer_name LIKE '%Smith%'
-SELECT 
+SELECT
     -- Customer Identity
     c.customer_id,
     c.customer_name,
     c.customer_email,
     c.customer_phone,
-    
+
     -- Service Address
     m.premise AS service_address,
     m.city,
     m.state,
     m.zip_code,
-    
+
     -- Meter Information
     m.meter_id,
     m.meter_number,
     m.meter_type,
     m.install_date AS meter_install_date,
-    
+
     -- Billing Summary (Last 12 Months)
     b.total_bills_12mo,
     b.total_amount_12mo,
     b.avg_monthly_bill,
     b.total_consumption_kwh_12mo,
     b.avg_monthly_consumption_kwh,
-    
+
     -- Service Quality
     o.total_outages_12mo,
     o.total_outage_hours_12mo,
     o.avg_restoration_time_minutes,
-    
+
     -- Customer Satisfaction
     r.total_reviews,
     r.avg_sentiment_score,
     r.latest_review_date,
-    
+
     -- Call Center Activity
     cc.total_calls_12mo,
     cc.last_call_date,
@@ -680,7 +665,7 @@ FROM DIM_CUSTOMER c
 LEFT JOIN DIM_METER m ON c.customer_id = m.customer_id
 LEFT JOIN (
     -- Billing aggregates
-    SELECT 
+    SELECT
         customer_id,
         COUNT(*) AS total_bills_12mo,
         SUM(bill_amount) AS total_amount_12mo,
@@ -693,7 +678,7 @@ LEFT JOIN (
 ) b ON c.customer_id = b.customer_id
 LEFT JOIN (
     -- Outage aggregates
-    SELECT 
+    SELECT
         meter_id,
         COUNT(*) AS total_outages_12mo,
         SUM(outage_duration_hours) AS total_outage_hours_12mo,
@@ -704,7 +689,7 @@ LEFT JOIN (
 ) o ON m.meter_id = o.meter_id
 LEFT JOIN (
     -- Review aggregates
-    SELECT 
+    SELECT
         customer_id,
         COUNT(*) AS total_reviews,
         AVG(sentiment_score) AS avg_sentiment_score,
@@ -714,7 +699,7 @@ LEFT JOIN (
 ) r ON c.customer_id = r.customer_id
 LEFT JOIN (
     -- Call center aggregates
-    SELECT 
+    SELECT
         customer_id,
         COUNT(*) AS total_calls_12mo,
         MAX(call_timestamp) AS last_call_date,
@@ -746,7 +731,7 @@ CREATE OR REPLACE VIEW VW_EXEC_OUTAGE_SUMMARY AS
 -- Target Audience: C-Suite, VP Operations
 -- Refresh: Daily
 WITH monthly_outages AS (
-    SELECT 
+    SELECT
         DATE_TRUNC('month', outage_timestamp) AS month_date,
         COUNT(*) AS total_outages,
         SUM(customers_affected) AS total_customers_affected,
@@ -756,28 +741,28 @@ WITH monthly_outages AS (
     WHERE outage_timestamp >= DATEADD(year, -2, CURRENT_DATE())
     GROUP BY month_date
 )
-SELECT 
+SELECT
     month_date,
     TO_VARCHAR(month_date, 'YYYY-MM') AS month_label,
-    
+
     -- Current Month KPIs
     total_outages,
     total_customers_affected,
     avg_restoration_time_minutes,
     total_outage_hours,
-    
+
     -- Calculated KPIs
     ROUND(total_customers_affected / NULLIF(total_outages, 0), 1) AS avg_customers_per_outage,
     ROUND(total_outage_hours / NULLIF(total_outages, 0), 2) AS avg_outage_duration_hours,
-    
+
     -- Month-over-Month Trends
     LAG(total_outages, 1) OVER (ORDER BY month_date) AS prev_month_outages,
-    ROUND((total_outages - LAG(total_outages, 1) OVER (ORDER BY month_date)) / 
+    ROUND((total_outages - LAG(total_outages, 1) OVER (ORDER BY month_date)) /
           NULLIF(LAG(total_outages, 1) OVER (ORDER BY month_date), 0) * 100, 1) AS mom_outage_change_pct,
-    
+
     -- Year-over-Year Trends
     LAG(total_outages, 12) OVER (ORDER BY month_date) AS prev_year_outages,
-    ROUND((total_outages - LAG(total_outages, 12) OVER (ORDER BY month_date)) / 
+    ROUND((total_outages - LAG(total_outages, 12) OVER (ORDER BY month_date)) /
           NULLIF(LAG(total_outages, 12) OVER (ORDER BY month_date), 0) * 100, 1) AS yoy_outage_change_pct
 
 FROM monthly_outages
@@ -804,54 +789,54 @@ CREATE OR REPLACE VIEW VW_DS_ASSET_FEATURES AS
 -- Purpose: ML feature table for transformer failure prediction
 -- Target Audience: Data Scientists
 -- ML Task: Binary classification (failure prediction)
-SELECT 
+SELECT
     a.asset_id,
     a.asset_type,
     a.asset_name,
-    
+
     -- Static Features
     a.manufacturer,
     a.model,
     a.rated_capacity_kva,
     DATEDIFF(year, a.install_date, CURRENT_DATE()) AS age_years,
     a.criticality_level,
-    
+
     -- Time-Series Aggregates (Last 30 Days)
     AVG(t.oil_temp_c) AS avg_oil_temp_c_30d,
     MAX(t.oil_temp_c) AS max_oil_temp_c_30d,
     STDDEV(t.oil_temp_c) AS stddev_oil_temp_c_30d,
-    
+
     AVG(t.load_pct) AS avg_load_pct_30d,
     MAX(t.load_pct) AS max_load_pct_30d,
-    
+
     -- Failure Indicators
     MAX(t.failure_imminent) AS failure_flag_30d,
     SUM(t.failure_imminent) AS failure_count_30d,
-    
+
     -- Derived Features
-    CASE 
-        WHEN MAX(t.oil_temp_c) > 95 THEN 1 
-        ELSE 0 
+    CASE
+        WHEN MAX(t.oil_temp_c) > 95 THEN 1
+        ELSE 0
     END AS high_temp_flag,
-    
-    CASE 
-        WHEN AVG(t.load_pct) > 80 THEN 1 
-        ELSE 0 
+
+    CASE
+        WHEN AVG(t.load_pct) > 80 THEN 1
+        ELSE 0
     END AS high_load_flag,
-    
+
     -- Target Variable (for training)
-    MAX(CASE 
-        WHEN t.timestamp >= DATEADD(day, -7, CURRENT_DATE()) 
-        THEN t.failure_imminent 
-        ELSE NULL 
+    MAX(CASE
+        WHEN t.timestamp >= DATEADD(day, -7, CURRENT_DATE())
+        THEN t.failure_imminent
+        ELSE NULL
     END) AS target_failure_7d
 
 FROM DIM_GRID_ASSET a
-LEFT JOIN FACT_TRANSFORMER_READINGS t 
+LEFT JOIN FACT_TRANSFORMER_READINGS t
     ON a.asset_id = t.transformer_id
     AND t.timestamp >= DATEADD(day, -30, CURRENT_DATE())
 WHERE a.asset_type = 'TRANSFORMER'
-GROUP BY 
+GROUP BY
     a.asset_id, a.asset_type, a.asset_name,
     a.manufacturer, a.model, a.rated_capacity_kva,
     a.install_date, a.criticality_level
@@ -869,7 +854,7 @@ COMMENT = 'DS View: ML features for transformer failure prediction model';
 ```sql
 CREATE OR REPLACE VIEW VW_REF_ASSET_TYPES AS
 -- Purpose: Reference list of valid asset types
-SELECT 
+SELECT
     'SUBSTATION' AS asset_type,
     'Transmission-to-distribution interface' AS description,
     1 AS hierarchy_level
@@ -884,7 +869,6 @@ COMMENT = 'Reference View: Valid asset types with descriptions';
 ```
 
 ---
-
 
 ## 4. Backward Compatibility & Migration Strategy
 
@@ -912,7 +896,7 @@ CREATE OR REPLACE TABLE DIM_GRID_ASSET (
 
 -- Step 2: Create backward compatibility view
 CREATE OR REPLACE VIEW GRID_ASSETS AS
-SELECT 
+SELECT
     asset_id,
     asset_name,
     asset_type,
@@ -945,7 +929,7 @@ CREATE TABLE FACT_TRANSFORMER_READINGS (
 
 -- Compatibility view
 CREATE OR REPLACE VIEW TRANSFORMER_DATA AS
-SELECT 
+SELECT
     transformer_id AS equipment_id,  -- Alias for backward compatibility
     read_timestamp AS timestamp,
     oil_temp_c
@@ -955,7 +939,6 @@ COMMENT = 'DEPRECATED: Use FACT_TRANSFORMER_READINGS instead. This view maps old
 ```
 
 ---
-
 
 ## 5. Data Generator Requirements
 
@@ -992,18 +975,18 @@ required_columns = {
 def validate_foreign_keys(df_child, df_parent, fk_column, pk_column):
     """
     Ensure all FK values exist in parent table.
-    
+
     Args:
         df_child: DataFrame with foreign key
         df_parent: DataFrame with primary key
         fk_column: Foreign key column name in child
         pk_column: Primary key column name in parent
-    
+
     Raises:
         ValueError: If any FK values are missing from parent
     """
     missing_refs = df_child[~df_child[fk_column].isin(df_parent[pk_column])]
-    
+
     if not missing_refs.empty:
         raise ValueError(
             f"Referential integrity violation: {len(missing_refs)} rows in child "
@@ -1013,7 +996,6 @@ def validate_foreign_keys(df_child, df_parent, fk_column, pk_column):
 
 ---
 
-
 ## 6. SQL DDL Standards
 
 ### 6.1 Table Definition Template
@@ -1022,24 +1004,24 @@ def validate_foreign_keys(df_child, df_parent, fk_column, pk_column):
 CREATE OR REPLACE TABLE <SCHEMA>.<TABLE_NAME> (
     -- Primary Key
     <entity>_id VARCHAR(50) NOT NULL PRIMARY KEY COMMENT 'Unique identifier',
-    
+
     -- Foreign Keys (if applicable)
     <parent_entity>_id VARCHAR(50) COMMENT 'References <PARENT_TABLE>.<parent_entity>_id',
-    
+
     -- Business Keys
     <entity>_name VARCHAR(100) COMMENT 'Human-readable name',
     <entity>_number VARCHAR(50) COMMENT 'External/customer-facing identifier',
-    
+
     -- Attributes
     <attribute>_<unit> <DATA_TYPE> COMMENT 'Description with unit',
-    
+
     -- Flags
     is_<state> BOOLEAN DEFAULT FALSE COMMENT 'Boolean flag',
-    
+
     -- Temporal
     created_timestamp TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP() COMMENT 'Record creation time',
     updated_timestamp TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP() COMMENT 'Last update time',
-    
+
     -- Table-level comment
     COMMENT = '<TABLE_TYPE>: <Purpose> for <audience>'
 );
@@ -1071,7 +1053,6 @@ parent VARCHAR(50) COMMENT 'Parent ID'
 ```
 
 ---
-
 
 ## 7. Query Optimization Guidelines
 
@@ -1119,7 +1100,6 @@ AS
 
 ---
 
-
 ## Data Modeling Assessment
 - **Entity**: [Entity being modeled]
 - **Current Issues**: [Naming inconsistencies, FK mismatches]
@@ -1127,7 +1107,5 @@ AS
 - **Backward Compatibility**: [Views created for migration]
 - **Validation**: [FK integrity checks, query tests]
 
-
 ## Implementation
 [Specific code changes following standards]
-

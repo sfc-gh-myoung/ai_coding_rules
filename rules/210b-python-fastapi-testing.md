@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** FastAPI testing, TestClient, pytest-asyncio, API tests, integration testing, mocking, test fixtures, AAA pattern, async testing, Python
 **TokenBudget:** ~2050
 **ContextTier:** High
@@ -11,13 +12,9 @@
 ## Purpose
 Establish comprehensive testing strategies for FastAPI applications using TestClient, pytest-asyncio, and modern testing patterns to ensure reliability and maintainability.
 
-
 ## Rule Scope
 
 FastAPI testing strategies with TestClient, pytest-asyncio, and comprehensive API testing patterns
-
-
-
 
 ## Quick Start TL;DR
 
@@ -39,7 +36,6 @@ FastAPI testing strategies with TestClient, pytest-asyncio, and comprehensive AP
 - [ ] Both 200 and error status codes tested
 - [ ] Async tests marked with @pytest.mark.asyncio
 - [ ] Tests isolated (no shared state)
-
 
 ## Contract
 
@@ -130,10 +126,10 @@ async def test_db():
     engine = create_async_engine("sqlite+aiosqlite:///:memory:")
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    
+
     async with AsyncSession(engine) as session:
         yield session
-    
+
     await engine.dispose()
 ```
 
@@ -144,12 +140,11 @@ async def test_db():
 - [ ] Output format matches requirements
 - [ ] Validation steps completed successfully
 
-
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read existing test structure BEFORE adding tests** - Check tests/ directory, conftest.py, existing fixtures
 > 2. **Verify current TestClient setup** - Check how app is created and dependencies are overridden
@@ -166,7 +161,6 @@ async def test_db():
 > [reads tests/conftest.py, tests/test_*.py]
 > "I see you have a test_app fixture that overrides get_db. Here's a new test following the same pattern with AAA structure..."
 
-
 ## Output Format Examples
 
 ```python
@@ -179,7 +173,7 @@ from datetime import datetime, UTC
 
 class ServiceProtocol(Protocol):
     """Clear contract for service implementations."""
-    
+
     def process(self, data: dict) -> dict:
         """Process data following validation rules."""
         ...
@@ -187,19 +181,19 @@ class ServiceProtocol(Protocol):
 def implementation_function(input_data: dict) -> dict:
     """
     Implement feature following project conventions.
-    
+
     Args:
         input_data: Validated input following schema
-    
+
     Returns:
         Processed result with metadata
-    
+
     Raises:
         ValueError: If input validation fails
     """
     # Use datetime.now(UTC) not datetime.utcnow()
     timestamp = datetime.now(UTC)
-    
+
     # Implement business logic
     result = {"status": "success", "timestamp": timestamp}
     return result
@@ -209,10 +203,10 @@ def test_implementation_function():
     """Test following AAA pattern."""
     # Arrange
     test_input = {"key": "value"}
-    
+
     # Act
     result = implementation_function(test_input)
-    
+
     # Assert
     assert result["status"] == "success"
     assert "timestamp" in result
@@ -225,11 +219,10 @@ uvx ruff format --check .
 uv run pytest tests/
 ```
 
-
 ## References
 
 ### External Documentation
-- [FastAPI Testing Guide](https://fastapi.tiangolo.com/tutorial/testing/) - Official testing patterns with TestClient and async support                                                                                 
+- [FastAPI Testing Guide](https://fastapi.tiangolo.com/tutorial/testing/) - Official testing patterns with TestClient and async support
 - [Pytest Documentation](https://docs.pytest.org/) - Comprehensive testing framework guide and API reference
 - [Pytest-asyncio Plugin](https://pytest-asyncio.readthedocs.io/) - Async test support and fixture management
 
@@ -238,7 +231,6 @@ uv run pytest tests/
 - **FastAPI Security**: `rules/210a-python-fastapi-security.md`
 - **Python Core**: `rules/200-python-core.md`
 - **Faker**: `rules/240-python-faker.md`
-
 
 ## 1. Test Structure and Setup
 
@@ -273,13 +265,13 @@ async def test_db():
     """Create test database session."""
     engine = create_async_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
     TestSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-    
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    
+
     async with TestSessionLocal() as session:
         yield session
-    
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
 
@@ -287,10 +279,10 @@ async def test_db():
 def test_app(test_db):
     """Create test app with overridden dependencies."""
     app = create_app()
-    
+
     async def override_get_db():
         yield test_db
-    
+
     app.dependency_overrides[get_db] = override_get_db
     return app
 
@@ -299,7 +291,6 @@ def client(test_app):
     """Create test client."""
     return TestClient(test_app)
 ```
-
 
 ## 2. API Testing Patterns
 
@@ -316,7 +307,7 @@ from app.models.user import UserCreate
 
 class TestUserEndpoints:
     """Test suite for user management endpoints."""
-    
+
     def test_create_user_success(self, client):
         """Test successful user creation."""
         user_data = {
@@ -325,7 +316,7 @@ class TestUserEndpoints:
             "full_name": "Test User"
         }
         response = client.post("/users/", json=user_data)
-        
+
         assert response.status_code == status.HTTP_201_CREATED
         data = response.json()
         assert data["email"] == user_data["email"]
@@ -342,7 +333,7 @@ class TestUserEndpoints:
             "full_name": "Test User"
         }
         response = client.post("/users/", json=user_data)
-        
+
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
         error_data = response.json()
         assert "validation_error" in error_data["type"]
@@ -351,7 +342,7 @@ class TestUserEndpoints:
     def test_get_user_authenticated(self, client, auth_headers):
         """Test getting user with valid authentication."""
         response = client.get("/users/me", headers=auth_headers)
-        
+
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert "email" in data
@@ -360,25 +351,24 @@ class TestUserEndpoints:
     def test_get_user_unauthorized(self, client):
         """Test getting user without authentication."""
         response = client.get("/users/me")
-        
+
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     @pytest.mark.asyncio
     async def test_async_service_function(self, test_db):
         """Test async service functions directly."""
         from app.services.user_service import create_user
-        
+
         user_data = UserCreate(
             email="async@test.com",
             password="password123",
             full_name="Async Test"
         )
-        
+
         user = await create_user(test_db, user_data)
         assert user.email == user_data.email
         assert user.id is not None
 ```
-
 
 ## 3. Test Utilities and Fixtures
 
@@ -417,7 +407,6 @@ def auth_headers():
     return get_auth_headers()
 ```
 
-
 ## 4. Integration with Core Rules
 
 ### Development Commands
@@ -444,4 +433,3 @@ markers = [
     "integration: marks tests as integration tests",
 ]
 ```
-

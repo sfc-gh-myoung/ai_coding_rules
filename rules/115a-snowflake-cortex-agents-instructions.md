@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** Cortex Agents, planning instructions, response instructions, tool orchestration, flagging logic, agent prompts, multi-tool orchestration, tool selection, agent prompting, instruction patterns, agent planning
 **TokenBudget:** ~3450
 **ContextTier:** High
@@ -11,11 +12,9 @@
 ## Purpose
 Provide comprehensive patterns for writing planning instructions (tool orchestration logic) and response instructions (output formatting and flagging logic) for Cortex Agents.
 
-
 ## Rule Scope
 
 Planning instructions, response instructions, tool selection logic, agent orchestration patterns
-
 
 ## Quick Start TL;DR
 
@@ -31,7 +30,6 @@ Planning instructions, response instructions, tool selection logic, agent orches
 - [ ] Response instructions define tone and format
 - [ ] Flagging logic in response instructions (NOT semantic views)
 - [ ] Orchestration tested with sample queries
-
 
 ## Contract
 
@@ -70,7 +68,6 @@ Test tool selection logic; verify flagging works; confirm tone/format appropriat
 
 </contract>
 
-
 ## Anti-Patterns and Common Mistakes
 
 **Anti-Pattern 1: Putting Business Logic in Semantic Views Instead of Agent Instructions**
@@ -80,7 +77,7 @@ views:
   - name: revenue_view
     semantic_type: measure
     expr: |
-      CASE 
+      CASE
         WHEN revenue > 1000000 THEN 'HIGH_ALERT'
         WHEN revenue < 100000 THEN 'LOW_WARNING'
         ELSE revenue
@@ -193,7 +190,6 @@ Consider focusing Q1 investment on APAC enterprise expansion given strong moment
 ```
 **Benefits:** Consistent professional tone; readable formatting; structured insights; brand-aligned voice; clear communication; better user satisfaction
 
-
 ## Post-Execution Checklist
 
 - [ ] Planning instructions define agent role and expertise clearly
@@ -208,14 +204,13 @@ Consider focusing Q1 investment on APAC enterprise expansion given strong moment
 - [ ] Instructions tested with edge cases (empty results, errors, ambiguous questions)
 - [ ] Agent responses reviewed for consistency with instructions
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. Read existing agent definitions and instructions BEFORE making recommendations
 > 2. Verify tool definitions match actual available tools (semantic views, functions, documents)
 > 3. Never speculate about data availability or tool capabilities without checking
 > 4. Test instructions with actual questions to verify agent behavior
 > 5. Make grounded recommendations based on investigated agent responses and tool outputs
-
 
 ## Validation
 
@@ -226,7 +221,6 @@ Consider focusing Q1 investment on APAC enterprise expansion given strong moment
 - Confirm flagging rules trigger appropriately (thresholds, severity levels)
 - Verify graceful degradation when tools or data unavailable
 - Check that domain-specific terminology is used correctly
-
 
 ## Output Format Examples
 
@@ -242,31 +236,31 @@ CREATE OR REPLACE CORTEX AGENT AGENT_PORTFOLIO_ANALYST
     ]
     PLANNING_INSTRUCTIONS = $$
     You are an expert Portfolio Analyst for institutional investment management.
-    
+
     **Your Role:**
     - Analyze portfolio holdings, performance, risk, and compliance
     - Provide data-driven insights with specific numbers and citations
     - Flag concentration risks, compliance issues, and performance anomalies
     - Synthesize information across multiple data sources
-    
+
     **When answering questions:**
-    
+
     1. **Identify question type:**
        - Holdings analysis → Use SEM_PORTFOLIO_HOLDINGS
        - Performance/risk metrics → Use SEM_PERFORMANCE_METRICS
        - Research/compliance → Use DOCUMENT_SEARCH_FUNCTION
        - Multi-dimensional → Use multiple tools in sequence
-    
+
     2. **Break down complex questions:**
        - Step 1: Query base data (holdings, returns, documents)
        - Step 2: Calculate derived metrics if needed
        - Step 3: Apply flagging rules (concentration >6.5%, losses >10%)
        - Step 4: Synthesize findings with context and citations
-    
+
     3. **Handle missing data gracefully:**
        - If holdings data missing: "Unable to retrieve holdings for {portfolio}. Verify portfolio ID and access permissions."
        - If no documents found: "No research documents found for {topic}. Suggest expanding search or checking alternative sources."
-    
+
     4. **Use domain terminology correctly:**
        - "Holdings weight" not "percentage"
        - "Concentration risk" not "over-allocation"
@@ -274,23 +268,23 @@ CREATE OR REPLACE CORTEX AGENT AGENT_PORTFOLIO_ANALYST
     $$
     RESPONSE_INSTRUCTIONS = $$
     **Format your response as follows:**
-    
+
     **Analysis Summary:** [1-2 sentence answer to the question with key finding]
-    
+
     **Key Findings:**
     - [Finding 1 with specific numbers and data source]
     - [Finding 2 with specific numbers and data source]
     - [Finding 3 with specific numbers and data source]
-    
+
     **Flagged Items:** [If applicable - concentration risks, compliance issues]
     - [SEVERITY]: {Item} at {exact value}. {Specific recommendation}.
-    
+
     **Citations:** [Data sources and document references]
     - Data: {Semantic view or table} as of {date}
     - Research: "{Document title}" ({Type}, {Date})
-    
+
     **Recommendations:** [Actionable next steps if applicable]
-    
+
     **Tone Guidelines:**
     - Professional and data-driven (you are an institutional analyst)
     - Specific numbers with context (not vague statements)
@@ -307,7 +301,6 @@ FROM TABLE(AGENT_QUERY(
 ));
 ```
 
-
 ## References
 
 ### Internal Documentation
@@ -320,8 +313,6 @@ FROM TABLE(AGENT_QUERY(
 - [Cortex Agent Instructions Guide](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents-instructions) - Writing effective planning and response instructions
 - [Agent Prompting Best Practices](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents-prompting) - Guidelines for instruction design
 - [Multi-Tool Orchestration](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents-orchestration) - Coordinating multiple tools in agent workflows
-
-
 
 ## 4. Planning Instructions Patterns
 
@@ -382,7 +373,6 @@ Planning instructions define HOW the agent selects and orchestrates tools. Be ex
 5. Always provide proper citations with document type, title, and date
 6. If no relevant documents found, suggest alternative search terms or document types
 ```
-
 
 ## 5. Response Instructions Templates
 
@@ -459,4 +449,3 @@ Response instructions define HOW the agent formats and presents answers.
 7. If no documents found: "No {document type} found for {topic}. Suggest expanding search to {alternatives}."
 8. Highlight contradictory information and explain differences
 ```
-

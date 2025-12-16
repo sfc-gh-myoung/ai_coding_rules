@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** schema validator, validation errors, error resolution, CI/CD integration, exit codes, command selection, output parsing, automation workflow, JSON output, quiet mode, programmatic integration, regex patterns, error categorization
 **TokenBudget:** ~4800
 **ContextTier:** High
@@ -14,7 +15,7 @@ Comprehensive guide for running schema_validator.py, interpreting validation out
 
 ## Rule Scope
 
-All AI agents validating rule files against schemas/rule-schema-v3.yml.
+All AI agents validating rule files against schemas/rule-schema.yml.
 
 ## Quick Start TL;DR
 
@@ -29,18 +30,18 @@ All AI agents validating rule files against schemas/rule-schema-v3.yml.
 **Pre-Execution Checklist:**
 - [ ] Python 3.8+ installed with PyYAML library
 - [ ] schema_validator.py accessible in scripts/ directory
-- [ ] schemas/rule-schema-v3.yml file present
+- [ ] schemas/rule-schema.yml file present
 - [ ] Rule file exists and is readable
 - [ ] Ready to fix errors if validation fails
 
 ## Contract
 
 <inputs_prereqs>
-Rule file to validate; schemas/rule-schema-v3.yml; Python 3.8+ environment; PyYAML installed
+Rule file to validate; schemas/rule-schema.yml; Python 3.8+ environment; PyYAML installed
 </inputs_prereqs>
 
 <mandatory>
-scripts/schema_validator.py; schemas/rule-schema-v3.yml; Python 3 with PyYAML; text editor for fixes
+scripts/schema_validator.py; schemas/rule-schema.yml; Python 3 with PyYAML; text editor for fixes
 </mandatory>
 
 <forbidden>
@@ -195,7 +196,7 @@ AI agents should select the appropriate command and options based on the validat
 **Scenario 7: Custom Schema Validation**
 - Command: `python3 scripts/schema_validator.py [file/dir] --schema [schema_path]`
 - When: Testing new schema versions, alternate schema sets
-- Default: schemas/rule-schema-v3.yml (if --schema omitted)
+- Default: schemas/rule-schema.yml (if --schema omitted)
 - Output: Same as base command
 - Exit Code: Same as base command
 - Use Case: Schema development, multi-version validation
@@ -468,9 +469,9 @@ for file_info in data['failed_files']:
     file_path = file_info['path']
     critical_count = file_info['critical_count']
     high_count = file_info['high_count']
-    
+
     print(f"[FAIL] {file_path}: {critical_count} CRITICAL, {high_count} HIGH")
-    
+
     # Process each error
     for error in file_info['errors']:
         severity = error['severity']
@@ -478,7 +479,7 @@ for file_info in data['failed_files']:
         message = error['message']
         line = error['line']  # May be None
         fix = error['fix']
-        
+
         print(f"  [{severity}] {group}: {message}")
         if line:
             print(f"    Line: {line}")
@@ -588,7 +589,44 @@ else:
 **Keywords:** SQL, Snowflake, CTE, query optimization, performance, tuning, warehouse sizing, clustering, partitioning, EXPLAIN, query plan, cost analysis
 ```
 
-### Error 3: TokenBudget Format Wrong
+### Error 3: Missing RuleVersion Field
+
+**Error Message:**
+```
+[Metadata] RuleVersion must be semantic version format (e.g., v1.0.0)
+```
+
+**Fix:** Add RuleVersion metadata field before Keywords
+```markdown
+## Metadata
+
+**RuleVersion:** v1.0.0
+**Keywords:** keyword1, keyword2, ...
+```
+
+**Validation:** RuleVersion must be semantic versioning format (vX.Y.Z)
+
+### Error 4: Invalid RuleVersion Format
+
+**Error Message:**
+```
+[Metadata] RuleVersion must be semantic version format (e.g., v1.0.0)
+```
+
+**Fix:** Use correct semantic version format
+```markdown
+# Wrong formats
+**RuleVersion:** 1.0.0          # Missing v prefix
+**RuleVersion:** v1             # Missing minor and patch
+**RuleVersion:** v1.0           # Missing patch version
+**RuleVersion:** version1.0.0   # Wrong prefix
+
+# Correct format
+**RuleVersion:** v1.0.0
+**RuleVersion:** v2.1.3
+```
+
+### Error 5: TokenBudget Format Wrong
 
 **Error Message:**
 ```
@@ -606,7 +644,7 @@ else:
 **TokenBudget:** ~1200
 ```
 
-### Error 4: Missing Required Section
+### Error 6: Missing Required Section
 
 **Error Message:**
 ```
@@ -629,7 +667,7 @@ else:
 - [ ] Item 3
 ```
 
-### Error 5: Contract Missing XML Tag
+### Error 7: Contract Missing XML Tag
 
 **Error Message:**
 ```
@@ -667,14 +705,14 @@ Success criteria
 </validation>
 ```
 
-### Error 6: Section Order Wrong
+### Error 8: Section Order Wrong
 
 **Error Message:**
 ```
 [Structure] Sections out of order: Contract should come before Key Principles
 ```
 
-**Fix:** Reorder sections per v3.0 schema
+**Fix:** Reorder sections per schema
 ```markdown
 # Correct order:
 1. Purpose
@@ -739,20 +777,20 @@ def fix_keywords_count(file_path, current_keywords, target_count=12):
     # Read file
     with open(file_path, 'r') as f:
         content = f.read()
-    
+
     # Parse current keywords
     keywords = [k.strip() for k in current_keywords.split(',')]
-    
+
     # Add generic keywords to reach target
-    generic_keywords = ['validation', 'best practices', 'guidelines', 
+    generic_keywords = ['validation', 'best practices', 'guidelines',
                        'requirements', 'standards', 'compliance']
     while len(keywords) < target_count:
         keywords.append(generic_keywords[len(keywords) % len(generic_keywords)])
-    
+
     # Replace in content
     new_keywords = ', '.join(keywords)
     content = re.sub(r'\*\*Keywords:\*\* .+', f'**Keywords:** {new_keywords}', content)
-    
+
     # Write back
     with open(file_path, 'w') as f:
         f.write(content)
@@ -794,9 +832,9 @@ def add_missing_section(file_path, section_name):
 ```
 '''
     }
-    
+
     template = section_templates.get(section_name, f'## {section_name}\n\n[Content needed]\n')
-    
+
     # Read file and insert at appropriate location
     # (Implementation depends on section order logic)
 ```
@@ -858,9 +896,9 @@ def validate_file(file_path, use_json=True):
     cmd = ['python3', 'scripts/schema_validator.py', file_path]
     if use_json:
         cmd.append('--json')
-    
+
     result = subprocess.run(cmd, capture_output=True, text=True)
-    
+
     if use_json:
         data = json.loads(result.stdout)
         return result.returncode, data
@@ -870,7 +908,7 @@ def validate_file(file_path, use_json=True):
 def fix_errors(file_path, errors):
     """Apply automated fixes for known error patterns."""
     fixed_errors = []
-    
+
     for error in errors:
         if error['group'] == 'Metadata' and 'Keywords count' in error['message']:
             # Fix keywords count
@@ -881,49 +919,49 @@ def fix_errors(file_path, errors):
             fix_token_budget_format(file_path)
             fixed_errors.append(error)
         # Add more fix patterns as needed
-    
+
     return fixed_errors
 
 def main(file_path):
     """Main workflow."""
     max_iterations = 3
-    
+
     for iteration in range(1, max_iterations + 1):
         print(f"\n[INFO] Iteration {iteration}/{max_iterations}")
-        
+
         # Validate
         exit_code, data = validate_file(file_path)
-        
+
         if exit_code == 0:
             print(f"[PASS] Validation passed after {iteration} iteration(s)")
             return 0
-        
+
         # Extract errors (assuming single file)
         if data['summary']['failed'] > 0:
             errors = data['failed_files'][0]['errors']
         else:
             errors = data['warning_files'][0]['errors'] if data['warning_files'] else []
-        
+
         # Categorize errors
         critical_errors = [e for e in errors if e['severity'] == 'CRITICAL']
         high_errors = [e for e in errors if e['severity'] == 'HIGH']
-        
+
         if not critical_errors and not high_errors:
             print("[WARN] Validation passed with warnings only")
             return 0
-        
+
         # Apply fixes
         fixed = fix_errors(file_path, critical_errors + high_errors)
-        
+
         if not fixed:
             print("[FAIL] No automated fixes available for remaining errors")
             print("Manual intervention required.")
             return 1
-        
+
         print(f"[INFO] Fixed {len(fixed)} error(s):")
         for error in fixed:
             print(f"  - [{error['severity']}] {error['group']}: {error['message']}")
-    
+
     print(f"[FAIL] Validation still failing after {max_iterations} iterations")
     return 1
 
@@ -931,7 +969,7 @@ if __name__ == '__main__':
     if len(sys.argv) != 2:
         print("Usage: validate_and_fix.py [file_path]")
         sys.exit(1)
-    
+
     sys.exit(main(sys.argv[1]))
 ```
 
@@ -1109,7 +1147,7 @@ python3 scripts/schema_validator.py rules/
 ## References
 
 ### Related Rules
-- **Rule Governance**: `rules/002-rule-governance.md` - v3.0 schema requirements and validation criteria
+- **Rule Governance**: `rules/002-rule-governance.md` - Schema requirements and validation criteria
 - **Creation Guide**: `rules/002a-rule-creation-guide.md` - Step 6 covers validation workflow
 - **Global Core**: `rules/000-global-core.md` - Foundation patterns
 
@@ -1118,4 +1156,4 @@ python3 scripts/schema_validator.py rules/
 - **token_validator.py**: `scripts/token_validator.py` - Token budget validation
 
 ### Schema Definition
-- **v3.0 Schema**: `schemas/rule-schema-v3.yml` - Authoritative validation rules
+- **v3.0 Schema**: `schemas/rule-schema.yml` - Authoritative validation rules

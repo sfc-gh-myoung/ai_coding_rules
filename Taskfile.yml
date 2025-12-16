@@ -1,25 +1,163 @@
 version: '3.45'
-# Taskfile v3 for AI Coding Rules (v3.0 - Production-Ready Rules Architecture)
+# Taskfile v3 for AI Coding Rules
 # Usage: install Task and run `task` to see available commands
-# All rules in rules/ are production-ready, no generation step required
 
 set: [pipefail]
 
 vars:
-  UV: /opt/homebrew/bin/uv
-  UVX: /opt/homebrew/bin/uvx
-  PYTHON: /opt/homebrew/bin/uv run python
+  UV:
+    sh: command -v uv || echo "uv"
+  UVX:
+    sh: command -v uvx || echo "uvx"
+  PROJECT_VERSION:
+    sh: awk -F'"' '/^version = "/ {print $2; exit}' pyproject.toml 2>/dev/null || echo "unknown"
+  PYTHON: "{{.UV}} run python"
 
 tasks:
-  default:
-    desc: "Show available tasks"
-    silent: true
+  _check:uv:
+    internal: true
+    preconditions:
+      - sh: command -v uv
+        msg: "ERROR: uv not found. Install: https://docs.astral.sh/uv/"
     cmds:
-      - task -l
+      - "true"
+
+  _check:uvx:
+    internal: true
+    preconditions:
+      - sh: command -v uvx
+        msg: "ERROR: uvx not found. Install uv (includes uvx): https://docs.astral.sh/uv/"
+    cmds:
+      - "true"
+
+  _check:coreutils:
+    internal: true
+    preconditions:
+      - sh: command -v awk
+        msg: "ERROR: awk not found. Install coreutils or ensure PATH is correct."
+      - sh: command -v find
+        msg: "ERROR: find not found. Install findutils or ensure PATH is correct."
+      - sh: command -v wc
+        msg: "ERROR: wc not found. Install coreutils or ensure PATH is correct."
+      - sh: command -v tr
+        msg: "ERROR: tr not found. Install coreutils or ensure PATH is correct."
+    cmds:
+      - "true"
+
+  _check:xdg-open:
+    internal: true
+    platforms: [linux]
+    preconditions:
+      - sh: command -v xdg-open
+        msg: "ERROR: xdg-open not found. Install xdg-utils (apt install xdg-utils)."
+    cmds:
+      - "true"
+
+  default:
+    desc: "Show categorized task list with quickstart"
+    silent: true
+    vars:
+      # Help output formatting (ASCII fallback support via task-level vars)
+      BORDER_DOUBLE: '{{if eq .ASCII "true"}}========================================================================{{else}}════════════════════════════════════════════════════════════════════════{{end}}'
+      BORDER_SINGLE: '{{if eq .ASCII "true"}}------------------------------------------------------------------------{{else}}────────────────────────────────────────────────────────────────────────{{end}}'
+      E_ROCKET: '{{if eq .ASCII "true"}}{{else}}🚀 {{end}}'
+      E_WRENCH: '{{if eq .ASCII "true"}}{{else}}🔧 {{end}}'
+      E_SEARCH: '{{if eq .ASCII "true"}}{{else}}🔍 {{end}}'
+      E_TEST: '{{if eq .ASCII "true"}}{{else}}🧪 {{end}}'
+      E_RULES: '{{if eq .ASCII "true"}}{{else}}📋 {{end}}'
+      E_DEPLOY: '{{if eq .ASCII "true"}}{{else}}🚀 {{end}}'
+      E_TOKEN: '{{if eq .ASCII "true"}}{{else}}🔧 {{end}}'
+      E_TAG: '{{if eq .ASCII "true"}}{{else}}🏷️ {{end}}'
+      E_CHECK: '{{if eq .ASCII "true"}}{{else}}✅ {{end}}'
+      E_CLEAN: '{{if eq .ASCII "true"}}{{else}}🧹 {{end}}'
+      E_STATUS: '{{if eq .ASCII "true"}}{{else}}📊 {{end}}'
+    cmds:
+      - |
+        echo "{{.BORDER_DOUBLE}}"
+        echo "AI Coding Rules v{{.PROJECT_VERSION}} - Task Automation"
+        echo "{{.BORDER_DOUBLE}}"
+        echo
+        echo "{{.E_ROCKET}}QUICKSTART (Most Common Commands)"
+        echo "{{.BORDER_SINGLE}}"
+        echo "  task quality:fix              Fix all code quality issues"
+        echo "  task test                     Run all pytest tests"
+        echo "  task validate                 Run all CI/CD validation checks"
+        echo "  task index:generate           Regenerate RULES_INDEX.md"
+        echo "  task deploy DEST=<path>       Deploy rules to project"
+        echo
+        echo "{{.E_WRENCH}}ENVIRONMENT SETUP"
+        echo "{{.BORDER_SINGLE}}"
+        echo "  task env:python               Pin Python 3.11 and create venv"
+        echo "  task env:sync                 Sync dev dependencies (fast)"
+        echo "  task env:deps                 Lock and sync dependencies"
+        echo
+        echo "{{.E_SEARCH}}CODE QUALITY"
+        echo "{{.BORDER_SINGLE}}"
+        echo "  task quality:lint             Run ruff linter (check only)"
+        echo "  task quality:format           Run ruff formatter (check only)"
+        echo "  task quality:typecheck        Run ty type checker (check only)"
+        echo "  task quality:markdown         Run pymarkdownlnt Markdown linter"
+        echo "  task quality:check            Run all quality checks"
+        echo "  task quality:fix              Fix all quality issues"
+        echo
+        echo "{{.E_TEST}}TESTING"
+        echo "{{.BORDER_SINGLE}}"
+        echo "  task test                     Run all pytest tests"
+        echo "  task test:coverage            Run tests with coverage report"
+        echo "  task test:coverage:open       Open coverage in browser (macOS)"
+        echo
+        echo "{{.E_RULES}}RULES MANAGEMENT"
+        echo "{{.BORDER_SINGLE}}"
+        echo "  task rules:validate           Validate rules with schema validator"
+        echo "  task rules:validate:verbose   Validate rules (verbose output)"
+        echo "  task rule:new FILENAME=...    Generate new rule template"
+        echo "  task index:generate           Generate RULES_INDEX.md from rules/"
+        echo "  task index:check              Check if RULES_INDEX.md is current"
+        echo
+        echo "{{.E_DEPLOY}}DEPLOYMENT"
+        echo "{{.BORDER_SINGLE}}"
+        echo "  task deploy DEST=<path>       Deploy production rules"
+        echo "  task deploy:dry DEST=<path>   Preview deployment"
+        echo "  task deploy:verbose DEST=...  Deploy with verbose output"
+        echo "  task deploy:no-skills DEST=   Deploy rules only (skip skills)"
+        echo
+        echo "{{.E_TOKEN}}TOKEN MANAGEMENT"
+        echo "{{.BORDER_SINGLE}}"
+        echo "  task tokens:update            Update token budgets in rules/"
+        echo "  task tokens:check             Check token budget accuracy"
+        echo "  task tokens:update:file FILE= Update single file token budget"
+        echo
+        echo "{{.E_TAG}}KEYWORD MANAGEMENT"
+        echo "{{.BORDER_SINGLE}}"
+        echo "  task keywords:suggest FILE=   Suggest keywords for rule file"
+        echo "  task keywords:update FILE=    Update keywords in rule file"
+        echo "  task keywords:all             Suggest keywords for all rules"
+        echo
+        echo "{{.E_CHECK}}VALIDATION & CI"
+        echo "{{.BORDER_SINGLE}}"
+        echo "  task preflight                Verify environment is ready"
+        echo "  task validate                 Run all CI/CD validation checks"
+        echo "  task badges:update            Update README badges"
+        echo
+        echo "{{.E_CLEAN}}CLEANUP"
+        echo "{{.BORDER_SINGLE}}"
+        echo "  task clean:cache              Remove Python cache files"
+        echo "  task clean:venv               Remove virtual environment"
+        echo "  task clean:all                Remove all generated files"
+        echo
+        echo "{{.E_STATUS}}STATUS"
+        echo "{{.BORDER_SINGLE}}"
+        echo "  task status                   Show project status summary"
+        echo
+        echo "{{.BORDER_DOUBLE}}"
+        echo "For standard task list view, run{{":"}} task -l"
+        echo "{{.BORDER_DOUBLE}}"
 
   # Environment
   env:python:
-    desc: "Pin Python (3.11) and create uv venv"
+    desc: "Pin Python 3.11 and create venv"
+    deps:
+      - _check:uv
     status:
       - test -d .venv
     cmds:
@@ -27,54 +165,114 @@ tasks:
       - "{{.UV}} python pin 3.11"
       - "{{.UV}} venv"
   
-  env:deps:
-    desc: "Sync dev dependencies with uv"
+  env:lock:
+    desc: "Regenerate uv lockfile"
     deps:
+      - _check:uv
       - env:python
     cmds:
       - "{{.UV}} lock"
+
+  env:sync:
+    desc: "Sync dev dependencies (fast)"
+    deps:
+      - _check:uv
+      - env:python
+    sources:
+      - pyproject.toml
+      - uv.lock
+    generates:
+      - .venv/pyvenv.cfg
+    cmds:
       - "{{.UV}} sync --all-groups"
+
+  env:deps:
+    desc: "Lock and sync dev dependencies"
+    cmds:
+      - task: env:lock
+      - task: env:sync
 
   # Code Quality
   quality:lint:
-    desc: "Ruff lint (check only)"
+    desc: "Run ruff linter (check only)"
+    aliases: [lint]
+    deps:
+      - env:sync
     cmds:
-      - "{{.UVX}} ruff check ."
+      - "{{.UV}} run ruff check ."
 
   quality:format:
-    desc: "Ruff format (check only)"
+    desc: "Run ruff formatter (check only)"
+    aliases: [format, fmt]
+    deps:
+      - env:sync
     cmds:
-      - "{{.UVX}} ruff format --check ."
+      - "{{.UV}} run ruff format --check ."
 
   quality:lint:fix:
-    desc: "Ruff lint with automatic fixes"
+    desc: "Run ruff linter (auto-fix)"
+    aliases: ["lint:fix"]
+    deps:
+      - env:sync
     cmds:
-      - "{{.UVX}} ruff check --fix ."
+      - "{{.UV}} run ruff check --fix ."
 
   quality:format:fix:
-    desc: "Ruff format (apply changes)"
+    desc: "Run ruff formatter (apply changes)"
+    aliases: ["format:fix", "fmt:fix"]
+    deps:
+      - env:sync
     cmds:
-      - "{{.UVX}} ruff format ."
+      - "{{.UV}} run ruff format ."
 
-  quality:type:
-    desc: "ty type check (check only)"
+  quality:typecheck:
+    desc: "Run ty type checker (check only)"
+    aliases: [type, type-check]
+    deps:
+      - env:sync
     cmds:
-      - "{{.UVX}} ty check ."
+      - "{{.UV}} run ty check ."
 
-  quality:type:watch:
-    desc: "ty type check with watch mode"
+  quality:typecheck:watch:
+    desc: "Run ty type checker (watch mode)"
+    deps:
+      - env:sync
     cmds:
-      - "{{.UVX}} ty check . --watch"
+      - "{{.UV}} run ty check . --watch"
+
+  quality:markdown:
+    desc: "Run pymarkdownlnt Markdown linter (rules + docs)"
+    deps:
+      - _check:uvx
+    cmds:
+      - task: quality:markdown:rules
+      - task: quality:markdown:docs
+
+  quality:markdown:rules:
+    desc: "Run pymarkdownlnt for agent-facing Markdown (rules/ + AGENTS.md)"
+    deps:
+      - _check:uvx
+    cmds:
+      - "{{.UVX}} pymarkdownlnt --config pymarkdown.rules.json scan rules/ AGENTS.md"
+
+  quality:markdown:docs:
+    desc: "Run pymarkdownlnt for human-facing docs (docs/ + top-level docs)"
+    deps:
+      - _check:uvx
+    cmds:
+      - "{{.UVX}} pymarkdownlnt --config pymarkdown.docs.json scan docs/ README.md CONTRIBUTING.md CHANGELOG.md"
 
   quality:check:
     desc: "Run all quality checks"
     cmds:
       - task: quality:lint
       - task: quality:format
-      - task: quality:type
+      - task: quality:typecheck
+      - task: quality:markdown
 
   quality:fix:
     desc: "Fix all quality issues"
+    aliases: [fix, qf]
     cmds:
       - task: quality:lint:fix
       - task: quality:format:fix
@@ -82,56 +280,99 @@ tasks:
   # Testing
   test:all:
     desc: "Run all pytest tests"
+    aliases: [test]
     deps:
-      - env:deps
+      - env:sync
     cmds:
       - "{{.UV}} run pytest tests/ --tb=short"
 
   test:coverage:
-    desc: "Run tests with coverage"
+    desc: "Run tests with coverage report"
     deps:
-      - env:deps
+      - env:sync
     cmds:
       - "{{.UV}} run pytest --cov=scripts --cov-report=term-missing --cov-report=html tests/"
 
+  test:coverage:open:
+    desc: "Open coverage report in browser (macOS)"
+    deps:
+      - test:coverage
+    platforms: [darwin]
+    cmds:
+      - open htmlcov/index.html
+
+  test:coverage:open:linux:
+    desc: "Open coverage report in browser (Linux)"
+    deps:
+      - test:coverage
+      - _check:xdg-open
+    platforms: [linux]
+    cmds:
+      - xdg-open htmlcov/index.html
+
   # Badges
   badges:update:
-    desc: "Update README badges (version, test pass %)"
+    desc: "Update README badges (version, test pass %, coverage %)"
     deps:
-      - env:deps
+      - env:sync
+      - test:coverage
+    sources:
+      - pyproject.toml
+      - htmlcov/index.html
+    generates:
+      - README.md
     cmds:
       - "{{.PYTHON}} scripts/badge_updater.py"
 
   # Rules & Index
   index:generate:
     desc: "Generate RULES_INDEX.md from rules/"
+    deps:
+      - env:sync
+    sources:
+      - rules/**/*.md
+    generates:
+      - RULES_INDEX.md
     cmds:
       - "{{.PYTHON}} scripts/index_generator.py"
 
   index:check:
     desc: "Check if RULES_INDEX.md is current"
+    deps:
+      - env:sync
     cmds:
       - "{{.PYTHON}} scripts/index_generator.py --check"
 
   index:dry:
     desc: "Preview RULES_INDEX.md generation"
+    deps:
+      - env:sync
     cmds:
       - "{{.PYTHON}} scripts/index_generator.py --dry-run"
 
   rules:validate:
-    desc: "Validate production-ready rules using schema validator"
+    desc: "Validate rules with schema validator"
+    deps:
+      - env:sync
+    sources:
+      - rules/**/*.md
+      - scripts/schema_validator.py
     cmds:
       - "{{.PYTHON}} scripts/schema_validator.py rules/"
 
   rules:validate:verbose:
-    desc: "Validate rules with verbose error output"
+    desc: "Validate rules with schema validator (verbose)"
+    deps:
+      - env:sync
     cmds:
       - "{{.PYTHON}} scripts/schema_validator.py rules/ --verbose"
 
   rule:new:
-    desc: "Generate v3.0 compliant rule template (usage: task rule:new FILENAME=100-example [TIER=High] [KEYWORDS='key1, key2, ...'] [OUTPUT_DIR=custom/])"
+    desc: "Generate v3.0 rule template (requires FILENAME=)"
     requires:
       vars: [FILENAME]
+    deps:
+      - env:sync
     cmds:
       - "{{.PYTHON}} scripts/template_generator.py {{.FILENAME}}{{if .OUTPUT_DIR}} --output-dir {{.OUTPUT_DIR}}{{end}}{{if .TIER}} --context-tier {{.TIER}}{{end}}{{if .KEYWORDS}} --keywords '{{.KEYWORDS}}'{{end}}"
       - echo "✅ Template created. Next steps:"
@@ -140,9 +381,11 @@ tasks:
       - "{{.PYTHON}} scripts/schema_validator.py {{if .OUTPUT_DIR}}{{.OUTPUT_DIR}}{{else}}rules{{end}}/{{.FILENAME}}.md --verbose"
 
   rule:new:force:
-    desc: "Generate rule template, overwriting if exists (usage: task rule:new:force FILENAME=100-example [TIER=High])"
+    desc: "Generate rule template with overwrite (requires FILENAME=)"
     requires:
       vars: [FILENAME]
+    deps:
+      - env:sync
     cmds:
       - "{{.PYTHON}} scripts/template_generator.py {{.FILENAME}}{{if .OUTPUT_DIR}} --output-dir {{.OUTPUT_DIR}}{{end}}{{if .TIER}} --context-tier {{.TIER}}{{end}}{{if .KEYWORDS}} --keywords '{{.KEYWORDS}}'{{end}} --force"
       - echo "✅ Template created (overwritten). Next steps:"
@@ -152,80 +395,153 @@ tasks:
 
   # Deployment
   deploy:
-    desc: "Deploy production-ready rules (usage: task deploy DEST=<path>)"
+    desc: "Deploy production-ready rules (requires DEST=)"
     requires:
       vars: [DEST]
+    deps:
+      - env:sync
     cmds:
       - "{{.PYTHON}} scripts/rule_deployer.py --dest '{{.DEST}}'"
 
   deploy:dry:
-    desc: "Preview deployment (usage: task deploy:dry DEST=<path>)"
+    desc: "Preview deployment (requires DEST=)"
     requires:
       vars: [DEST]
+    deps:
+      - env:sync
     cmds:
       - "{{.PYTHON}} scripts/rule_deployer.py --dest '{{.DEST}}' --dry-run"
 
   deploy:verbose:
-    desc: "Deploy with verbose output (usage: task deploy:verbose DEST=<path>)"
+    desc: "Deploy with verbose output (requires DEST=)"
     requires:
       vars: [DEST]
+    deps:
+      - env:sync
     cmds:
       - "{{.PYTHON}} scripts/rule_deployer.py --dest '{{.DEST}}' --verbose"
+
+  deploy:no-skills:
+    desc: "Deploy rules only, skip skills (requires DEST=)"
+    requires:
+      vars: [DEST]
+    deps:
+      - env:sync
+    cmds:
+      - "{{.PYTHON}} scripts/rule_deployer.py --dest '{{.DEST}}' --skip-skills"
 
   # Token Budgets
   tokens:update:
     desc: "Update token budgets in rules/"
+    deps:
+      - env:sync
     cmds:
-      - "{{.PYTHON}} scripts/token_validator.py"
+      - "{{.PYTHON}} scripts/token_validator.py rules/"
 
   tokens:check:
     desc: "Check token budget accuracy"
+    deps:
+      - env:sync
     cmds:
-      - "{{.PYTHON}} scripts/token_validator.py --dry-run --detailed"
+      - "{{.PYTHON}} scripts/token_validator.py rules/ --dry-run --detailed"
 
   tokens:dry:
     desc: "Preview token budget updates"
+    deps:
+      - env:sync
     cmds:
-      - "{{.PYTHON}} scripts/token_validator.py --dry-run"
+      - "{{.PYTHON}} scripts/token_validator.py rules/ --dry-run"
+
+  tokens:check:file:
+    desc: "Check token budget for a single file (requires FILE=)"
+    requires:
+      vars: [FILE]
+    deps:
+      - env:sync
+    cmds:
+      - "{{.PYTHON}} scripts/token_validator.py {{.FILE}} --dry-run --detailed"
+
+  tokens:update:file:
+    desc: "Update token budget for a single file (requires FILE=)"
+    requires:
+      vars: [FILE]
+    deps:
+      - env:sync
+    cmds:
+      - "{{.PYTHON}} scripts/token_validator.py {{.FILE}}"
 
   # Keyword Generation
   keywords:suggest:
-    desc: "Suggest keywords for a rule file (usage: task keywords:suggest FILE=rules/100-example.md)"
+    desc: "Suggest keywords for a rule file (requires FILE=)"
     requires:
       vars: [FILE]
+    deps:
+      - env:sync
     cmds:
       - "{{.PYTHON}} scripts/keyword_generator.py {{.FILE}} --corpus"
 
   keywords:diff:
-    desc: "Show diff between current and suggested keywords (usage: task keywords:diff FILE=rules/100-example.md)"
+    desc: "Show diff of current vs suggested keywords (requires FILE=)"
     requires:
       vars: [FILE]
+    deps:
+      - env:sync
     cmds:
       - "{{.PYTHON}} scripts/keyword_generator.py {{.FILE}} --corpus --diff"
 
   keywords:update:
-    desc: "Update keywords in a rule file (usage: task keywords:update FILE=rules/100-example.md)"
+    desc: "Update keywords in a rule file (requires FILE=)"
     requires:
       vars: [FILE]
+    deps:
+      - env:sync
     cmds:
       - "{{.PYTHON}} scripts/keyword_generator.py {{.FILE}} --corpus --update"
 
   keywords:all:
     desc: "Suggest keywords for all rules in rules/ directory"
+    deps:
+      - env:sync
     cmds:
       - "{{.PYTHON}} scripts/keyword_generator.py rules/ --corpus"
 
   # Validation & CI
+  preflight:
+    desc: "Verify environment is ready for operations"
+    silent: true
+    preconditions:
+      - sh: command -v uv
+        msg: "uv required - install from https://docs.astral.sh/uv/"
+      - sh: command -v task
+        msg: "task required - install from https://taskfile.dev/"
+      - sh: test -f Taskfile.yml
+        msg: "Taskfile.yml required - run from project root"
+      - sh: test -f pyproject.toml
+        msg: "pyproject.toml required - run from project root"
+    cmds:
+      - echo "Environment ready"
+
   validate:ci:
-    desc: "Run all validation checks for CI/CD"
+    desc: "Run all CI/CD validation checks"
+    aliases: [validate, ci]
+    deps:
+      - env:sync
     cmds:
       - task: quality:check
-      - task: quality:type
       - task: test:all
       - task: rules:validate
       - task: index:check
 
   # Maintenance
+  clean:cache:
+    desc: "Remove Python cache files"
+    deps:
+      - _check:coreutils
+    cmds:
+      - find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
+      - find . -type d -name .pytest_cache -exec rm -rf {} + 2>/dev/null || true
+      - rm -f .coverage
+
   clean:venv:
     desc: "Remove virtual environment"
     cmds:
@@ -234,26 +550,47 @@ tasks:
   clean:all:
     desc: "Remove all generated files and venv"
     cmds:
-      - rm -rf .venv __pycache__ .pytest_cache htmlcov .coverage
+      - task: clean:cache
+      - task: clean:venv
+      - rm -rf htmlcov dist
 
   # Status
   status:
-    desc: "Show project status"
+    desc: "Show project status summary"
     silent: true
+    deps:
+      - env:sync
+      - _check:coreutils
     cmds:
       - |
-        echo "AI Coding Rules v3.0 - Production-Ready Rules Architecture"
+        echo "AI Coding Rules v{{.PROJECT_VERSION}} - Production-Ready Rules Architecture"
         echo ""
         echo "Rules: rules/ ($(find rules -name '*.md' | wc -l | tr -d ' ') files)"
         echo "Tests: $(find tests -name 'test_*.py' | wc -l | tr -d ' ') test files"
         echo ""
-        if task quality:lint --silent 2>/dev/null; then
+        # Inline quality checks to avoid spawning nested task processes
+        if {{.UV}} run ruff check . >/dev/null 2>&1; then
           echo "✓ Linting passed"
         else
           echo "✗ Linting issues (run: task quality:lint:fix)"
         fi
-        if task quality:format --silent 2>/dev/null; then
+        if {{.UV}} run ruff format --check . >/dev/null 2>&1; then
           echo "✓ Formatting passed"
         else
           echo "✗ Formatting issues (run: task quality:format:fix)"
         fi
+        if {{.UV}} run ty check . >/dev/null 2>&1; then
+          echo "✓ Type checking passed"
+        else
+          echo "✗ Type checking issues (run: task quality:typecheck)"
+        fi
+
+  status:json:
+    desc: "Show project status (JSON format)"
+    internal: true
+    deps:
+      - env:sync
+      - _check:coreutils
+    cmds:
+      - |
+        echo '{"version": "{{.PROJECT_VERSION}}", "rules_count": '$(find rules -name '*.md' | wc -l | tr -d ' ')', "test_files": '$(find tests -name 'test_*.py' | wc -l | tr -d ' ')'}'

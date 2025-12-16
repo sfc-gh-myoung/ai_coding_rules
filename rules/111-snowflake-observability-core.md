@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** LOG_LEVEL, TRACE_LEVEL, METRIC_LEVEL, SHOW PARAMETERS, OpenTelemetry, System Views vs Telemetry, monitoring, logging, tracing, debug observability, event table queries, observability patterns, configure telemetry
 **TokenBudget:** ~4200
 **ContextTier:** High
@@ -10,7 +11,6 @@
 
 ## Purpose
 Establish foundational observability practices for Snowflake environments through telemetry configuration and event table management, enabling effective monitoring, troubleshooting, and performance optimization.
-
 
 ## Rule Scope
 
@@ -27,7 +27,6 @@ Snowflake observability foundations, telemetry configuration, event table setup,
 - **Setting up telemetry**: + Telemetry Configuration
 - **Querying events**: + Event Tables & Queries
 - **Advanced patterns**: + 111a (logging), 111b (tracing), 111c (monitoring)
-
 
 ## Quick Start TL;DR
 
@@ -53,7 +52,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Event tables created and active
 - [ ] Cost implications reviewed (DEBUG vs WARN)
 - [ ] System Views understood (not for real-time)
-
 
 ## Contract
 
@@ -111,7 +109,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 
 </contract>
 
-
 ## Anti-Patterns and Common Mistakes
 
 **Anti-Pattern 1: Using DEBUG Log Level in Production**
@@ -151,7 +148,7 @@ CREATE EVENT TABLE my_logs
   DATA_RETENTION_TIME_IN_DAYS = 30;
 
 -- Or update existing table
-ALTER EVENT TABLE my_logs 
+ALTER EVENT TABLE my_logs
   SET DATA_RETENTION_TIME_IN_DAYS = 30;
 
 -- Typical retention: 7-90 days depending on compliance needs
@@ -173,7 +170,7 @@ WHERE start_time > DATEADD('minute', -5, CURRENT_TIMESTAMP());
 **Correct Pattern:**
 ```sql
 -- Good: Use Event Tables for real-time (<1 min latency)
-SELECT 
+SELECT
   timestamp,
   record['query_text']::STRING as query_text,
   record['execution_status']::STRING as status
@@ -184,7 +181,7 @@ WHERE timestamp > DATEADD('minute', -5, CURRENT_TIMESTAMP());
 SELECT DATE_TRUNC('hour', start_time) as hour,
        COUNT(*) as query_count
 FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
-WHERE start_time BETWEEN DATEADD('day', -7, CURRENT_DATE()) 
+WHERE start_time BETWEEN DATEADD('day', -7, CURRENT_DATE())
                      AND CURRENT_DATE();
 ```
 **Benefits:** Real-time monitoring (<1 min); accurate dashboards; timely incident detection; proper data source selection; cost-effective historical analysis
@@ -216,7 +213,6 @@ session.sql("SELECT SYSTEM$LOG('INFO', 'Process started')").collect()
 ```
 **Benefits:** Telemetry actually captured; operational visibility guaranteed; early detection of config issues; reliable observability; debuggable systems; production-ready instrumentation
 
-
 ## Post-Execution Checklist
 - [ ] Event table verified as active before emitting telemetry (`SHOW PARAMETERS LIKE 'EVENT_TABLE'`)
 - [ ] Telemetry levels appropriate for environment (WARN+ for prod, DEBUG for dev only)
@@ -226,22 +222,21 @@ session.sql("SELECT SYSTEM$LOG('INFO', 'Process started')").collect()
 - [ ] Retention policy set on custom event tables (7-90 days typical)
 - [ ] Cross-references noted: 111a (logging), 111b (tracing), 111c (monitoring)
 
-
 ## Validation
-- **Success Checks:** 
+- **Success Checks:**
   - Telemetry parameters show expected levels: `SHOW PARAMETERS LIKE '%_LEVEL%' IN ACCOUNT` returns correct LOG_LEVEL, TRACE_LEVEL, METRIC_LEVEL
   - Event table receives data: `SELECT COUNT(*) FROM snowflake.account_usage.event_table WHERE timestamp >= current_timestamp() - INTERVAL '1 hour'` returns > 0
   - System View queries account for latency (no real-time expectations)
   - Cost analysis confirms telemetry volume is within budget
 
-- **Negative Tests:** 
+- **Negative Tests:**
   - `SELECT * FROM snowflake.account_usage.event_table` should be rejected (use explicit columns)
   - DEBUG level in production should trigger cost review (not automatically allowed)
   - Querying System Views for real-time data (< 45 min) should show no recent results
   - Telemetry configuration changes without `SHOW PARAMETERS` investigation should be caught
   - Creating event tables without retention policy should prompt for cost consideration
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read existing telemetry configuration BEFORE making changes** - Check current LOG_LEVEL, TRACE_LEVEL settings
 > 2. **Verify event table setup** - Check if event tables exist and are receiving data
@@ -257,7 +252,6 @@ session.sql("SELECT SYSTEM$LOG('INFO', 'Process started')").collect()
 > "Let me check your current observability setup first."
 > [reads telemetry parameters, checks event tables, reviews queries]
 > "I see you use WARN level with daily ACCOUNT_USAGE queries. Adding new monitoring following this pattern..."
-
 
 ## Output Format Examples
 ```sql
@@ -280,7 +274,7 @@ ALTER DATABASE dev_db SET LOG_LEVEL = DEBUG;
 ALTER DATABASE dev_db SET TRACE_LEVEL = ALWAYS;
 
 -- Step 3: Verify event table is receiving data
-SELECT 
+SELECT
     record_type,
     COUNT(*) as event_count,
     MAX(timestamp) as latest_event
@@ -288,7 +282,6 @@ FROM snowflake.account_usage.event_table
 WHERE timestamp >= current_timestamp() - INTERVAL '1 hour'
 GROUP BY record_type;
 ```
-
 
 ## References
 
@@ -305,7 +298,6 @@ GROUP BY record_type;
 - **Observability Tracing**: `rules/111b-snowflake-observability-tracing.md` - Distributed tracing and metrics collection
 - **Observability Monitoring**: `rules/111c-snowflake-observability-monitoring.md` - Monitoring, analysis, Snowsight interfaces, AI observability
 - **Cost Governance**: `rules/105-snowflake-cost-governance.md` - Cost optimization strategies applicable to telemetry data
-
 
 ## 0. Foundational Concepts
 
@@ -330,7 +322,7 @@ GROUP BY record_type;
 - **Use Cases:** Live debugging, application monitoring, distributed tracing, immediate alerting.
 
 **Critical Rule for AI Agents:**
-> **Investigation Required**  
+> **Investigation Required**
 > When addressing observability questions:
 > 1. Determine the data source: System View (historical) vs Event Table (real-time)
 > 2. Verify time range requirements match the data source latency
@@ -365,7 +357,7 @@ SHOW PARAMETERS LIKE '%METRIC_LEVEL%' IN ACCOUNT;
 **Anti-Pattern: Using System Views for real-time monitoring**
 ```sql
 -- This won't show recent data (45+ min latency)
-SELECT * 
+SELECT *
 FROM snowflake.account_usage.query_history
 WHERE start_time >= current_timestamp() - INTERVAL '5 minutes';
 ```
@@ -383,7 +375,6 @@ SELECT start_time, query_text, execution_status
 FROM snowflake.account_usage.query_history
 WHERE start_time >= current_timestamp() - INTERVAL '24 hours';
 ```
-
 
 ## 1. Telemetry Configuration
 
@@ -419,7 +410,7 @@ ALTER SESSION SET TRACE_LEVEL = ALWAYS;
 -- Production environment logging
 ALTER DATABASE prod_db SET LOG_LEVEL = WARN;
 
--- Development environment logging  
+-- Development environment logging
 ALTER DATABASE dev_db SET LOG_LEVEL = INFO;
 
 -- Critical UDF debugging
@@ -439,7 +430,6 @@ GRANT MODIFY METRIC LEVEL ON ACCOUNT TO ROLE central_log_admin;
 GRANT MODIFY SESSION LOG LEVEL TO ROLE developer_debugging;
 GRANT MODIFY SESSION TRACE LEVEL TO ROLE developer_debugging;
 ```
-
 
 ## 2. Event Table Management
 
@@ -497,7 +487,7 @@ ALTER DATABASE analytics_db SET EVENT_TABLE = observability_db.telemetry.custom_
 
 ```sql
 -- Query to understand event table structure
-SELECT 
+SELECT
     record_type,
     COUNT(*) as event_count,
     MIN(timestamp) as earliest_event,
@@ -538,7 +528,7 @@ logger.info("Processing started")
 **Correct Pattern: Verify telemetry collection after setup**
 ```sql
 -- After configuring telemetry, verify data collection
-SELECT 
+SELECT
     resource_attributes:"snow.executable.name"::string as function_name,
     COUNT(*) as log_count
 FROM snowflake.account_usage.event_table
@@ -554,7 +544,7 @@ ORDER BY log_count DESC;
 
 ```sql
 -- Query recent errors and warnings
-SELECT 
+SELECT
     timestamp,
     resource_attributes:"snow.database.name"::string as database_name,
     resource_attributes:"snow.schema.name"::string as schema_name,
@@ -567,7 +557,7 @@ WHERE timestamp >= current_timestamp() - interval '1 hour'
 ORDER BY timestamp DESC;
 
 -- Analyze trace performance patterns
-SELECT 
+SELECT
     resource_attributes:"snow.executable.name"::string as function_name,
     span_name,
     AVG(duration_ms) as avg_duration_ms,
@@ -579,7 +569,6 @@ GROUP BY 1, 2
 HAVING avg_duration_ms > 1000
 ORDER BY avg_duration_ms DESC;
 ```
-
 
 ## Related Rules
 
@@ -596,4 +585,3 @@ ORDER BY avg_duration_ms DESC;
 **Complementary** (different aspects of same domain):
 - `105-snowflake-cost-governance` - For monitoring costs using telemetry data
 - `107-snowflake-security-governance` - For security event monitoring and audit logs
-

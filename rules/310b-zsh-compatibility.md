@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** Zsh, shell compatibility, bash vs zsh, portable scripts, cross-shell, migration, emulate, POSIX compliance, scripting, shell scripting
 **TokenBudget:** ~2950
 **ContextTier:** Low
@@ -11,12 +12,9 @@
 ## Purpose
 Establish zsh compatibility strategies, bash migration patterns, and cross-shell scripting best practices for mixed environments, ensuring seamless transitions and portable script solutions.
 
-
 ## Rule Scope
 
 Cross-shell compatibility, migration strategies, mixed environments
-
-
 
 ## Quick Start TL;DR
 
@@ -38,7 +36,6 @@ Cross-shell compatibility, migration strategies, mixed environments
 - [ ] Migration path defined
 - [ ] Tests pass in target shell
 - [ ] Fallbacks implemented
-
 
 ## Contract
 
@@ -127,12 +124,11 @@ fi
 - [ ] Output format matches requirements
 - [ ] Validation steps completed successfully
 
-
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Test in target shell BEFORE migration** - Verify current compatibility
 > 2. **Check feature usage** - Identify bash-specific vs zsh-specific features
@@ -148,7 +144,6 @@ fi
 > "Let me check compatibility in both shells first."
 > [tests script in bash and zsh, identifies differences]
 > "I see array indexing differs. Using zsh-compatible patterns..."
-
 
 ## Output Format Examples
 
@@ -167,17 +162,17 @@ readonly LOG_FILE="${SCRIPT_DIR}/output.log"
 main() {
     # Investigation phase
     check_prerequisites
-    
+
     # Implementation phase
     perform_operations
-    
+
     # Validation phase
     verify_results
 }
 
 check_prerequisites() {
     local -a required_commands=(jq curl git)
-    
+
     for cmd in "${required_commands[@]}"; do
         if ! command -v "${cmd}" &>/dev/null; then
             echo "ERROR: Required command not found: ${cmd}" >&2
@@ -205,19 +200,17 @@ main "$@"
 shellcheck script.sh
 ```
 
-
 ## References
 
 ### External Documentation
-- [Zsh Compatibility Guide](http://zsh.sourceforge.net/Doc/Release/Compatibility.html) - Cross-shell compatibility and migration strategies                                                                             
-- [Bash Compatibility Mode](https://www.gnu.org/software/bash/manual/html_node/Shell-Compatibility-Mode.html) - Bash emulation and feature differences                                                                  
+- [Zsh Compatibility Guide](http://zsh.sourceforge.net/Doc/Release/Compatibility.html) - Cross-shell compatibility and migration strategies
+- [Bash Compatibility Mode](https://www.gnu.org/software/bash/manual/html_node/Shell-Compatibility-Mode.html) - Bash emulation and feature differences
 - [POSIX Shell Standard](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html) - Portable shell scripting specification
 
 ### Related Rules
 - **Zsh Core**: `rules/310-zsh-scripting-core.md`
 - **Zsh Advanced Features**: `rules/310a-zsh-advanced-features.md`
 - **Bash Core**: `rules/300-bash-scripting-core.md`
-
 
 ## 1. Bash to Zsh Migration Strategies
 
@@ -228,13 +221,13 @@ shellcheck script.sh
 check_bash_compatibility() {
     local script="$1"
     local issues=()
-    
+
     # Check for problematic patterns
     grep -n 'declare -[aA]' "$script" && issues+=("declare arrays")
     grep -n '\[\[.*=~' "$script" && issues+=("regex matching")
     grep -n 'BASH_' "$script" && issues+=("bash variables")
     grep -n 'shopt' "$script" && issues+=("bash options")
-    
+
     if (( ${#issues} > 0 )); then
         echo "Compatibility issues found:"
         printf '  - %s\n' "${issues[@]}"
@@ -255,7 +248,7 @@ check_bash_compatibility() {
 typeset -a array=()
 # Or simply: array=()
 
-# Bash to zsh associative array conversion  
+# Bash to zsh associative array conversion
 # Bash: declare -A assoc_array=()
 # Zsh equivalent:
 typeset -A assoc_array=()
@@ -287,7 +280,6 @@ emulate -L zsh
 setopt EXTENDED_GLOB
 ```
 
-
 ## 2. Cross-Shell Compatibility Patterns
 
 ### Portable Function Writing
@@ -308,7 +300,7 @@ detect_shell() {
 portable_array_append() {
     local array_name="$1"
     shift
-    
+
     case "$(detect_shell)" in
         zsh)
             # Zsh: use parameter expansion
@@ -328,7 +320,7 @@ portable_array_append() {
 # Portable string manipulation
 portable_uppercase() {
     local input="$1"
-    
+
     case "$(detect_shell)" in
         zsh)
             echo "${input:u}"
@@ -370,7 +362,7 @@ has_parameter_expansion() {
 # Use features conditionally
 smart_glob() {
     local pattern="$1"
-    
+
     if has_extended_glob; then
         # Use zsh extended globbing
         setopt EXTENDED_GLOB
@@ -379,7 +371,7 @@ smart_glob() {
         # Fall back to basic globbing
         files=($pattern)
     fi
-    
+
     printf '%s\n' "${files[@]}"
 }
 ```
@@ -425,7 +417,6 @@ if command -v fzf >/dev/null; then
 fi
 ```
 
-
 ## 3. Environment Detection and Adaptation
 
 ### Runtime Environment Detection
@@ -434,43 +425,43 @@ fi
 # Comprehensive environment detection
 detect_environment() {
     local env_info=()
-    
+
     # Shell information
     env_info+=("shell:$(detect_shell)")
-    
+
     # Version information
     if [[ -n "$ZSH_VERSION" ]]; then
         env_info+=("zsh_version:$ZSH_VERSION")
     elif [[ -n "$BASH_VERSION" ]]; then
         env_info+=("bash_version:$BASH_VERSION")
     fi
-    
+
     # Terminal information
     env_info+=("term:${TERM:-unknown}")
     env_info+=("colorterm:${COLORTERM:-none}")
-    
+
     # OS information
     env_info+=("os:$OSTYPE")
-    
+
     # Interactive vs non-interactive
     if [[ -o interactive ]] 2>/dev/null || [[ $- == *i* ]]; then
         env_info+=("mode:interactive")
     else
         env_info+=("mode:non-interactive")
     fi
-    
+
     printf '%s\n' "${env_info[@]}"
 }
 
 # Adaptive configuration based on environment
 configure_shell() {
     local -A env
-    
+
     # Parse environment info
     while IFS=: read -r key value; do
         env[$key]="$value"
     done < <(detect_environment)
-    
+
     # Configure based on detected environment
     case "${env[shell]}" in
         zsh)
@@ -485,7 +476,7 @@ configure_shell() {
 configure_zsh() {
     # Zsh-specific configuration
     setopt AUTO_CD CORRECT HIST_VERIFY
-    
+
     # Load zsh modules if available
     zmodload zsh/complist 2>/dev/null
     zmodload zsh/mathfunc 2>/dev/null
@@ -494,7 +485,7 @@ configure_zsh() {
 configure_bash() {
     # Bash-specific configuration
     shopt -s autocd cdspell histverify 2>/dev/null
-    
+
     # Enable programmable completion
     if [[ -f /etc/bash_completion ]]; then
         source /etc/bash_completion
@@ -517,7 +508,7 @@ declare -A shell_features=(
 has_feature() {
     local feature="$1"
     local shell_key="$(detect_shell):$feature"
-    
+
     [[ "${shell_features[$shell_key]}" == "true" ]]
 }
 
@@ -526,17 +517,16 @@ load_advanced_features() {
     if has_feature "extended_glob"; then
         enable_extended_globbing
     fi
-    
+
     if has_feature "associative_arrays"; then
         setup_config_system
     fi
-    
+
     if has_feature "parameter_flags"; then
         setup_advanced_text_processing
     fi
 }
 ```
-
 
 ## 4. Testing Cross-Shell Compatibility
 
@@ -547,11 +537,11 @@ test_shells=(zsh bash)
 
 run_multi_shell_tests() {
     local script="$1" passed=0 total=0
-    
+
     for shell in "${test_shells[@]}"; do
         command -v "$shell" >/dev/null || continue
         ((total++))
-        
+
         if "$shell" "$script"; then
             echo "$shell: PASS"
             ((passed++))
@@ -559,7 +549,7 @@ run_multi_shell_tests() {
             echo "$shell: FAIL"
         fi
     done
-    
+
     echo "Results: $passed/$total passed"
 }
 ```
@@ -569,19 +559,18 @@ run_multi_shell_tests() {
 ```zsh
 check_compatibility() {
     local script="$1" issues=()
-    
+
     grep -q 'declare -[aA]' "$script" && issues+=("bash declare")
     grep -q 'setopt' "$script" && issues+=("zsh options")
-    
+
     if (( ${#issues} > 0 )); then
         echo "Issues: ${issues[*]}"
         return 1
     fi
-    
+
     echo "Compatible"
 }
 ```
-
 
 ## 5. Migration Tools and Utilities
 
@@ -592,27 +581,27 @@ check_compatibility() {
 migrate_bash_to_zsh() {
     local input_file="$1"
     local output_file="${2:-${input_file%.sh}.zsh}"
-    
+
     # Create backup
     cp "$input_file" "${input_file}.backup"
-    
+
     # Perform automated conversions
     sed -i.tmp '
         # Change shebang
         1s|#!/bin/bash|#!/usr/bin/env zsh|
         1s|#!/usr/bin/bash|#!/usr/bin/env zsh|
-        
+
         # Convert declare to typeset
         s/declare -a/typeset -a/g
         s/declare -A/typeset -A/g
         s/declare -r/typeset -r/g
-        
+
         # Add emulate directive after shebang
         2i\
 emulate -L zsh
-        
+
     ' "$input_file"
-    
+
     # Manual review needed message
     cat << EOF
 Migration completed for $input_file -> $output_file
@@ -630,26 +619,26 @@ EOF
 # Interactive migration wizard
 migration_wizard() {
     local script="$1"
-    
+
     echo "Zsh Migration Wizard for: $script"
     echo "================================="
-    
+
     # Analyze script
     echo "Analyzing script..."
     local issues=($(analyze_bash_script "$script"))
-    
+
     if (( ${#issues} == 0 )); then
         echo "No migration issues detected"
         return 0
     fi
-    
+
     echo "Issues found:"
     for issue in "${issues[@]}"; do
         echo "  - $issue"
-        
+
         read -q "REPLY?Fix this issue automatically? (y/n) "
         echo
-        
+
         if [[ "$REPLY" == "y" ]]; then
             fix_migration_issue "$script" "$issue"
         fi
@@ -671,7 +660,6 @@ if [[ -n "$BASH_VERSION" ]]; then
     }
 fi
 ```
-
 
 ## 6. Best Practices for Mixed Environments
 
@@ -700,7 +688,6 @@ project/
 }
 ```
 
-
 ## 7. Performance Considerations
 
 ### Shell-Specific Optimizations
@@ -709,7 +696,7 @@ project/
 # Performance-aware function selection
 fast_string_processing() {
     local input="$1"
-    
+
     if [[ -n "$ZSH_VERSION" ]]; then
         # Use zsh parameter expansion (fastest)
         echo "${input:u}"
@@ -743,18 +730,17 @@ load_performance_features() {
 ```zsh
 benchmark_function() {
     local func="$1" iterations="${2:-100}"
-    
+
     for shell in zsh bash; do
         command -v "$shell" >/dev/null || continue
-        
+
         local start=$(date +%s)
         for ((i=1; i<=iterations; i++)); do
             "$shell" -c "$func"
         done
         local end=$(date +%s)
-        
+
         echo "$shell: $((end - start))s"
     done
 }
 ```
-

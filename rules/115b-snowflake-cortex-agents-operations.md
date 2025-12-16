@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** observability, evaluation, cost management, error troubleshooting, agent security, test agent, agent permissions, agent monitoring, agent evaluation, agent costs, debug agent, agent logs, agent trace, agent security policies
 **TokenBudget:** ~3650
 **ContextTier:** High
@@ -11,11 +12,9 @@
 ## Purpose
 Provide comprehensive operational patterns for Cortex Agents including testing strategies, RBAC configuration, observability, cost management, and error troubleshooting.
 
-
 ## Rule Scope
 
 Testing, RBAC, allowlists, observability, evaluation, cost optimization, error resolution
-
 
 ## Quick Start TL;DR
 
@@ -42,7 +41,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Evaluation framework in place
 - [ ] Observability enabled (tracing, metrics)
 - [ ] Cost monitoring active
-
 
 ## Contract
 
@@ -80,7 +78,6 @@ Tests pass; RBAC enforced; traces captured; costs within budget
 </design_principles>
 
 </contract>
-
 
 ## Anti-Patterns and Common Mistakes
 
@@ -151,7 +148,6 @@ test_multi_tool_workflow()
 "For numerical questions (how much, what percentage, top N), use portfolio_analyzer. For opinions and research (what do analysts say, latest commentary), use search_research_reports."
 ```
 
-
 ## Post-Execution Checklist
 - [ ] Agent archetype chosen based on use case and tool requirements
 - [ ] Agent objectives defined; smallest sufficient model chosen
@@ -166,12 +162,11 @@ test_multi_tool_workflow()
 - [ ] Tracing and evaluation enabled; thresholds monitored
 - [ ] Token/output caps set; cost/latency tracked
 
-
 ## Validation
 - **Success checks:** Component tests pass; integration tests pass; evaluation meets targets; tool selection logic works correctly; flagging applies consistently; traces show bounded tool use; costs stable
 - **Negative tests:** Prompt injections fail; unauthorized tool/data access blocked; oversized prompts rejected; overlapping tools don't confuse agent; flagging in semantic views flagged in code review
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read existing agent configurations BEFORE making changes** - Check current grounding sources, tools, instructions
 > 2. **Verify available Cortex features** - Check if Cortex Analyst, Search, semantic views are available
@@ -188,7 +183,6 @@ test_multi_tool_workflow()
 > [reads existing agents, checks Cortex Search indices, verifies semantic views]
 > "I see you have semantic views for sales data and Cortex Search for docs. Creating agent with these grounding sources..."
 
-
 ## Output Format Examples
 
 ```sql
@@ -202,7 +196,7 @@ GROUP BY column_pattern;
 CREATE OR REPLACE VIEW schema.view_name
 COMMENT = 'Business purpose following semantic model standards'
 AS
-SELECT 
+SELECT
     -- Explicit column list with business context
     id COMMENT 'Surrogate key',
     name COMMENT 'Business entity name',
@@ -214,7 +208,6 @@ WHERE is_active = TRUE;
 SELECT * FROM schema.view_name LIMIT 5;
 SHOW VIEWS LIKE '%view_name%';
 ```
-
 
 ## References
 
@@ -233,7 +226,6 @@ SHOW VIEWS LIKE '%view_name%';
 - **Warehouse Management**: `rules/119-snowflake-warehouse-management.md`
 - **Observability**: `rules/111-snowflake-observability-core.md`
 
-
 ## 6. Testing & Validation Patterns
 
 ### 6.1 Component Testing (Test Tools Independently)
@@ -244,7 +236,7 @@ Before integration, verify each tool works correctly:
 ```python
 def test_analyst_tool(session: Session, semantic_view: str):
     """Verify Cortex Analyst tool responds correctly"""
-    
+
     # Test with simple query
     result = session.sql(f"""
         SELECT * FROM TABLE(
@@ -254,7 +246,7 @@ def test_analyst_tool(session: Session, semantic_view: str):
             )
         ) LIMIT 5
     """).collect()
-    
+
     print(f"Analyst tool returned {len(result)} results")
     return len(result) > 0
 ```
@@ -263,7 +255,7 @@ def test_analyst_tool(session: Session, semantic_view: str):
 ```python
 def test_search_tool(session: Session, service_name: str):
     """Verify Cortex Search tool responds correctly"""
-    
+
     # Test with simple search
     result = session.sql(f"""
         SELECT SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
@@ -271,7 +263,7 @@ def test_search_tool(session: Session, service_name: str):
             '{{"query": "test", "limit": 1}}'
         )
     """).collect()
-    
+
     print(f"Search tool returned results")
     return len(result) > 0
 ```
@@ -344,7 +336,6 @@ Performance & Cost:
 - [ ] Query response times are acceptable
 - [ ] Token usage is within budget
 - [ ] Tool invocation counts are reasonable
-
 
 ## 7. RBAC and Permissions
 
@@ -439,10 +430,9 @@ SELECT SNOWFLAKE.CORTEX.COMPLETE('llama3.1-8b', 'test');
 
 Apply these security patterns:
 - **Agents:** Only access tools needed for specific use case
-- **Tools:** Only access data appropriate for their domain  
+- **Tools:** Only access data appropriate for their domain
 - **Roles:** Grant minimum permissions required for functionality
 - **Warehouses:** Use dedicated warehouses with auto-suspend for cost control
-
 
 ## 8. Observability and Evaluation
 
@@ -451,14 +441,12 @@ Apply these security patterns:
 - Monitor tool selection accuracy (is agent picking right tool?)
 - Track flagging accuracy (are thresholds applied correctly?)
 
-
 ## 9. Cost and Latency
 
 - Prefer cached retrieval; restrict tool invocations per turn
 - Control token budgets and cap output tokens; fail fast on oversized requests
 - Monitor costs by agent and by tool type
 - Optimize expensive tools (multiple Cortex Analyst calls) vs cheaper alternatives
-
 
 ## 10. Common Errors and Solutions
 
@@ -607,7 +595,6 @@ SELECT SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
   - Semantic View: Calculate accurate position_weight
   - Agent Response Instructions: "When position_weight > 6.5%, flag with WARNING"
 
-
 ## Cortex Agent Plan
 - Archetype: <Multi-Domain Analytics / Single-Domain / Research / Hybrid>
 - Objective: <clear objective>
@@ -623,11 +610,9 @@ SELECT SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
 - Testing: <component + integration approach>
 - Evaluation: <gold Qs, assertions>
 
-
 ## Agent Configuration
 - System prompt: <summary>
 - Tool descriptions: <when-to-use guidance>
 - Planning instructions: <explicit tool selection logic>
 - Response instructions: <flagging logic, formatting>
 - Observability: <traces/metrics enabled>
-

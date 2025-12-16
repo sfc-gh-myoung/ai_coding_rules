@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** Zsh, completion system, modules, hooks, advanced features, performance optimization, compinit, zstyle, autoload, scripting
 **TokenBudget:** ~3050
 **ContextTier:** Low
@@ -11,12 +12,9 @@
 ## Purpose
 Provide comprehensive guidance on zsh's advanced features including the completion system, modules, hooks, and performance optimization techniques to build sophisticated and efficient zsh environments.
 
-
 ## Rule Scope
 
 Advanced zsh features, performance optimization, complex scripting patterns
-
-
 
 ## Quick Start TL;DR
 
@@ -38,7 +36,6 @@ Advanced zsh features, performance optimization, complex scripting patterns
 - [ ] Startup time profiled
 - [ ] Custom completions working
 - [ ] Performance optimized
-
 
 ## Contract
 
@@ -118,12 +115,12 @@ _my_cli_complete() {
 _my_cli_complete() {
     local cache_file="${XDG_CACHE_HOME:-$HOME/.cache}/my_cli_completions"
     local cache_ttl=300  # 5 minutes
-    
+
     if [[ ! -f "$cache_file" ]] || \
        (( $(date +%s) - $(stat -f%m "$cache_file") > cache_ttl )); then
         curl -s https://api.example.com/items > "$cache_file"
     fi
-    
+
     local items=("${(@f)$(cat "$cache_file")}")
     _describe 'items' items
 }
@@ -136,12 +133,11 @@ _my_cli_complete() {
 - [ ] Output format matches requirements
 - [ ] Validation steps completed successfully
 
-
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Check existing completions BEFORE adding new ones** - Review current setup
 > 2. **Profile performance** - Use zprof to identify bottlenecks
@@ -157,7 +153,6 @@ _my_cli_complete() {
 > "Let me check your completion setup first."
 > [reads .zshrc, tests completions, profiles startup]
 > "I see compinit takes 300ms. Adding caching to improve performance..."
-
 
 ## Output Format Examples
 
@@ -176,17 +171,17 @@ readonly LOG_FILE="${SCRIPT_DIR}/output.log"
 main() {
     # Investigation phase
     check_prerequisites
-    
+
     # Implementation phase
     perform_operations
-    
+
     # Validation phase
     verify_results
 }
 
 check_prerequisites() {
     local -a required_commands=(jq curl git)
-    
+
     for cmd in "${required_commands[@]}"; do
         if ! command -v "${cmd}" &>/dev/null; then
             echo "ERROR: Required command not found: ${cmd}" >&2
@@ -214,18 +209,16 @@ main "$@"
 shellcheck script.sh
 ```
 
-
 ## References
 
 ### External Documentation
-- [Zsh Completion System](http://zsh.sourceforge.net/Doc/Release/Completion-System.html) - Advanced tab completion configuration and customization                                                                      
-- [Zsh Parameter Expansion](http://zsh.sourceforge.net/Doc/Release/Expansion.html) - String manipulation and variable expansion techniques                                                                              
+- [Zsh Completion System](http://zsh.sourceforge.net/Doc/Release/Completion-System.html) - Advanced tab completion configuration and customization
+- [Zsh Parameter Expansion](http://zsh.sourceforge.net/Doc/Release/Expansion.html) - String manipulation and variable expansion techniques
 - [Zsh Modules](http://zsh.sourceforge.net/Doc/Release/Zsh-Modules.html) - Loadable modules for extended functionality
 
 ### Related Rules
 - **Zsh Core**: `rules/310-zsh-scripting-core.md`
 - **Zsh Compatibility**: `rules/310b-zsh-compatibility.md`
-
 
 ## 1. Zsh Completion System
 
@@ -260,7 +253,7 @@ _my_script() {
         'stop:Stop service'
         'status:Show status'
     )
-    
+
     case $words[2] in
         start|stop) _files -g "*.conf" ;;
         *) _describe 'commands' commands ;;
@@ -279,7 +272,6 @@ zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 zstyle ':completion:*:*:kill:*' menu yes select
 zstyle ':completion:*:kill:*' force-list always
 ```
-
 
 ## 2. Zsh Hook System
 
@@ -336,7 +328,6 @@ periodic() {
 }
 ```
 
-
 ## 3. Advanced Parameter Expansion
 
 ### Complex Parameter Transformations
@@ -387,7 +378,6 @@ txt_files=(${files:#*.bak})      # Exclude .bak files
 conf_files=(${(M)files:#*.conf}) # Match only .conf files
 ```
 
-
 ## 4. Zsh Modules and Built-in Extensions
 
 ### Mathematical Functions
@@ -416,7 +406,6 @@ sysopen -w fd /tmp/output.txt
 syswrite -o $fd "Hello"
 sysclose $fd
 ```
-
 
 ## 5. Advanced Globbing and File Operations
 
@@ -471,7 +460,6 @@ configs=(*.{conf,cfg,ini})     # Multiple extensions
 backups=(**/*.(bak|backup|~))  # Multiple backup patterns recursively
 ```
 
-
 ## 6. Performance Optimization Techniques
 
 ### Efficient Data Processing
@@ -497,14 +485,14 @@ process_lines() {
 process_large_file() {
     local file="$1"
     local -i count=0
-    
+
     # Use read builtin instead of external commands
     while IFS= read -r line; do
         (( ++count ))
-        
+
         # Progress indicator every 10000 lines
         (( count % 10000 == 0 )) && echo "Processed $count lines" >&2
-        
+
         # Process line
         process_line "$line"
     done < "$file"
@@ -519,12 +507,12 @@ typeset -A cache
 
 memoized_function() {
     local key="$*"
-    
+
     if [[ -n ${cache[$key]} ]]; then
         echo "${cache[$key]}"
         return 0
     fi
-    
+
     # Expensive computation
     local result=$(expensive_computation "$@")
     cache[$key]="$result"
@@ -535,17 +523,16 @@ memoized_function() {
 cached_command() {
     local cache_file="/tmp/cache_${1//\//_}"
     local max_age=3600  # 1 hour
-    
+
     if [[ -f "$cache_file" ]] && (( $(date +%s) - $(stat -c %Y "$cache_file") < max_age )); then
         cat "$cache_file"
         return 0
     fi
-    
+
     # Run command and cache result
     "$@" | tee "$cache_file"
 }
 ```
-
 
 ## 7. Advanced Prompt Engineering
 
@@ -577,20 +564,20 @@ RPROMPT='%F{yellow}[%D{%H:%M:%S}]%f'
 # Conditional prompt elements
 prompt_status() {
     local status=""
-    
+
     # Show background jobs
     (( $(jobs | wc -l) > 0 )) && status+="⚡"
-    
+
     # Show load average
     local load=$(uptime | awk -F'load average:' '{print $2}' | awk '{print $1}' | tr -d ',')
     (( ${load%.*} > 2 )) && status+=""
-    
+
     # Show battery status (macOS)
     if command -v pmset >/dev/null; then
         local battery=$(pmset -g batt | grep -o '[0-9]*%' | head -1)
         (( ${battery%\%} < 20 )) && status+="🔋"
     fi
-    
+
     [[ -n "$status" ]] && echo " $status"
 }
 
@@ -612,7 +599,6 @@ update_prompt() {
 
 add-zsh-hook precmd update_prompt
 ```
-
 
 ## 8. Advanced Scripting Patterns
 
@@ -636,7 +622,6 @@ load_plugin() {
     [[ -f "$file" ]] && source "$file" && plugins[$plugin]="$file"
 }
 ```
-
 
 ## 9. Testing and Debugging Advanced Features
 
@@ -663,16 +648,16 @@ debug_log() {
 profile_function() {
     local func="$1"
     shift
-    
+
     zmodload zsh/datetime
     local start=$EPOCHREALTIME
-    
+
     $func "$@"
     local exit_code=$?
-    
+
     local end=$EPOCHREALTIME
     local duration=$(( end - start ))
-    
+
     echo "Function $func took ${duration}s" >&2
     return $exit_code
 }
@@ -687,7 +672,7 @@ typeset -gi test_count=0 test_passed=0
 assert_equals() {
     local expected="$1" actual="$2" message="${3:-test}"
     (( ++test_count ))
-    
+
     if [[ "$expected" == "$actual" ]]; then
         echo "PASS: $message"
         (( ++test_passed ))
@@ -701,7 +686,7 @@ assert_equals() {
 assert_contains() {
     local haystack="$1" needle="$2" message="${3:-contains test}"
     (( ++test_count ))
-    
+
     if [[ "$haystack" == *"$needle"* ]]; then
         echo "PASS: $message"
         (( ++test_passed ))
@@ -713,19 +698,19 @@ assert_contains() {
 
 run_tests() {
     echo "Running zsh tests..."
-    
+
     # Reset counters
     test_count=0 test_passed=0
-    
+
     # Run all test functions
     for test_func in ${(M)${(k)functions}:#test_*}; do
         echo "Running $test_func..."
         $test_func
     done
-    
+
     echo
     echo "Results: $test_passed/$test_count tests passed"
-    
+
     if (( test_passed == test_count )); then
         echo "All tests passed!"
         return 0
@@ -735,4 +720,3 @@ run_tests() {
     fi
 }
 ```
-

@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Deploy production-ready AI coding rules to target projects.
+"""Deploy production-ready AI coding rules and skills to target projects.
 
-This script copies rules from the source rules/ directory to a destination directory.
-All rules are production-ready with no generation step required.
+This script copies rules and skills from the source directories to a destination.
+All rules and skills are production-ready with no generation step required.
 
 Features:
     - Copies rules/*.md to DEST/rules/
+    - Copies skills/ to DEST/skills/ (respects pyproject.toml exclusions)
     - Copies AGENTS.md and RULES_INDEX.md to DEST/
     - Validates source files exist before copying
     - Supports dry-run mode for safety
@@ -14,7 +15,7 @@ Features:
 Usage:
     python scripts/rule_deployer.py --dest /path/to/project
     python scripts/rule_deployer.py --dest ~/my-project --dry-run
-    python scripts/rule_deployer.py --dest . --verbose
+    python scripts/rule_deployer.py --dest . --skip-skills
 """
 
 from __future__ import annotations
@@ -22,6 +23,7 @@ from __future__ import annotations
 import argparse
 import shutil
 import sys
+import tomllib
 from pathlib import Path
 
 
@@ -157,11 +159,135 @@ def copy_root_files(
     return (files_copied, files_failed)
 
 
-def deploy_rules(dest: Path, dry_run: bool = False, verbose: bool = True) -> bool:
-    """Deploy rules to destination directory.
+def load_skill_exclusions(project_root: Path) -> set[str]:
+    """Load skill exclusion patterns from pyproject.toml.
+
+    Reads [tool.rule_deployer] exclude_skills list.
+    Returns empty set if config not found or parsing fails.
+
+    Returns:
+        Set of skill names/patterns to exclude from deployment
+    """
+    pyproject_path = project_root / "pyproject.toml"
+
+    if not pyproject_path.exists():
+        log_warning("pyproject.toml not found, deploying all skills")
+        return set()
+
+    try:
+        with open(pyproject_path, "rb") as f:
+            config = tomllib.load(f)
+
+        exclude_list = config.get("tool", {}).get("rule_deployer", {}).get("exclude_skills", [])
+
+        if not exclude_list:
+            # Empty list = no exclusions, deploy all skills
+            return set()
+
+        log_info(f"Loaded {len(exclude_list)} exclusion patterns from pyproject.toml", verbose=True)
+        return set(exclude_list)
+
+    except Exception as e:
+        log_warning(f"Failed to parse pyproject.toml: {e}")
+        log_warning("Deploying all skills (no exclusions applied)")
+        return set()
+
+
+def copy_skills(
+    project_root: Path, dest_dir: Path, dry_run: bool = False, verbose: bool = True
+) -> tuple[int, int]:
+    """Copy skills/ directory to destination, respecting exclusions.
+
+    Exclusions are loaded from [tool.rule_deployer] in pyproject.toml.
+    Copies both files and directories, skipping excluded items.
+
+    Returns:
+        Tuple of (files_copied, files_failed)
+    """
+    files_copied = 0
+    files_failed = 0
+
+    source_skills_dir = project_root / "skills"
+    dest_skills_dir = dest_dir / "skills"
+
+    if not source_skills_dir.exists():
+        log_warning(f"Skills directory not found: {source_skills_dir}")
+        return (0, 0)
+
+    # Load exclusion patterns from pyproject.toml
+    exclusions = load_skill_exclusions(project_root)
+
+    if exclusions:
+        log_info(f"Excluding skills: {', '.join(sorted(exclusions))}", verbose)
+
+    log_info(f"Deploying skills from: {source_skills_dir}", verbose)
+
+    # Create destination skills directory
+    if not dry_run:
+        dest_skills_dir.mkdir(parents=True, exist_ok=True)
+        log_info(f"Created destination directory: {dest_skills_dir}", verbose)
+    else:
+        log_info(f"[DRY RUN] Would create directory: {dest_skills_dir}", verbose)
+
+    # Process all items in skills/ directory
+    for item in source_skills_dir.iterdir():
+        # Skip hidden files/dirs and excluded items
+        if item.name.startswith("."):
+            continue
+
+        # Check both with and without trailing slash for directories
+        if item.name in exclusions or (item.is_dir() and f"{item.name}/" in exclusions):
+            log_info(f"Skipping excluded: {item.name}", verbose)
+            continue
+
+        dest_item = dest_skills_dir / item.name
+
+        try:
+            if item.is_file():
+                # Copy individual file
+                if not dry_run:
+                    shutil.copy2(item, dest_item)
+                    log_info(f"Copied: {item.name} → {dest_item}", verbose)
+                else:
+                    log_info(f"[DRY RUN] Would copy: {item.name} → {dest_item}", verbose)
+                files_copied += 1
+
+            elif item.is_dir():
+                # Copy directory recursively
+                if not dry_run:
+                    shutil.copytree(item, dest_item, dirs_exist_ok=True)
+                    # Count files in directory
+                    dir_files = list(item.rglob("*"))
+                    dir_files = [f for f in dir_files if f.is_file()]
+                    log_info(
+                        f"Copied directory: {item.name} ({len(dir_files)} files) → {dest_item}",
+                        verbose,
+                    )
+                    files_copied += len(dir_files)
+                else:
+                    dir_files = list(item.rglob("*"))
+                    dir_files = [f for f in dir_files if f.is_file()]
+                    log_info(
+                        f"[DRY RUN] Would copy directory: {item.name} ({len(dir_files)} files)",
+                        verbose,
+                    )
+                    files_copied += len(dir_files)
+
+        except Exception as e:
+            log_error(f"Failed to copy {item.name}: {e}")
+            files_failed += 1
+
+    return (files_copied, files_failed)
+
+
+def deploy_rules(
+    dest: Path, skip_skills: bool = False, dry_run: bool = False, verbose: bool = True
+) -> bool:
+    """Deploy rules and skills to destination directory.
 
     Args:
         dest: Destination directory path
+        skip_skills: If True, skip deploying skills/ directory (default: False, skills deployed)
         dry_run: If True, don't actually copy files
         verbose: If True, print detailed logging
 
@@ -201,15 +327,28 @@ def deploy_rules(dest: Path, dry_run: bool = False, verbose: bool = True) -> boo
     log_info("Copying root files (AGENTS.md, RULES_INDEX.md)...", verbose)
     root_copied, root_failed = copy_root_files(project_root, dest, dry_run, verbose)
 
+    # Copy skills unless explicitly skipped
+    skills_copied = 0
+    skills_failed = 0
+    if not skip_skills:
+        log_info("Copying skills directory (respecting pyproject.toml exclusions)...", verbose)
+        skills_copied, skills_failed = copy_skills(project_root, dest, dry_run, verbose)
+    else:
+        log_info("Skipping skills deployment (--skip-skills flag set)", verbose)
+
     # Summary
-    total_copied = rules_copied + root_copied
-    total_failed = rules_failed + root_failed
+    total_copied = rules_copied + root_copied + skills_copied
+    total_failed = rules_failed + root_failed + skills_failed
 
     print("\n" + "=" * 60)
     print("DEPLOYMENT SUMMARY")
     print("=" * 60)
     print(f"Rules copied:      {rules_copied}")
     print(f"Root files copied: {root_copied}")
+    if not skip_skills:
+        print(f"Skills copied:     {skills_copied}")
+    else:
+        print("Skills copied:     0 (skipped)")
     print(f"Total copied:      {total_copied}")
     print(f"Total failed:      {total_failed}")
     print("=" * 60)
@@ -229,11 +368,14 @@ def main() -> int:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  Deploy to a project directory:
+  Deploy rules and skills to a project directory:
     python scripts/rule_deployer.py --dest /path/to/project
 
   Dry run to see what would be copied:
     python scripts/rule_deployer.py --dest ~/my-project --dry-run
+
+  Deploy rules only (skip skills):
+    python scripts/rule_deployer.py --dest /path/to/project --skip-skills
 
   Deploy with verbose output:
     python scripts/rule_deployer.py --dest . --verbose
@@ -244,7 +386,7 @@ Examples:
         "--dest",
         type=Path,
         required=True,
-        help="Destination directory (REQUIRED). Rules will be copied to DEST/rules/",
+        help="Destination directory (REQUIRED). Rules and skills will be copied to DEST/",
     )
 
     parser.add_argument(
@@ -257,6 +399,12 @@ Examples:
 
     parser.add_argument(
         "--quiet", action="store_true", help="Suppress detailed output (only show summary)"
+    )
+
+    parser.add_argument(
+        "--skip-skills",
+        action="store_true",
+        help="Skip deploying skills/ directory (default: skills are deployed)",
     )
 
     args = parser.parse_args()
@@ -274,7 +422,9 @@ Examples:
     dest_path = args.dest.resolve()
 
     # Deploy
-    success = deploy_rules(dest=dest_path, dry_run=args.dry_run, verbose=verbose)
+    success = deploy_rules(
+        dest=dest_path, skip_skills=args.skip_skills, dry_run=args.dry_run, verbose=verbose
+    )
 
     return 0 if success else 1
 

@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** SnowparkSQLException, error messages, Streamlit errors, Snowflake errors, debug SQL error, fix query error, SQL exception, error troubleshooting, query failed, database error, SQL debugging patterns, exception handling, error recovery, common SQL errors
 **TokenBudget:** ~2250
 **ContextTier:** Low
@@ -11,11 +12,8 @@
 ## Purpose
 Provide comprehensive SQL error handling patterns for Streamlit applications including multiple queries, user inputs, complex joins, and debugging techniques.
 
-
 ## Rule Scope
 Detailed SQL error handling patterns and examples
-
-
 
 ## Quick Start TL;DR
 
@@ -35,7 +33,6 @@ Detailed SQL error handling patterns and examples
 - [ ] Reviewed common SQL errors for this data model
 - [ ] Planned error messages with adequate context
 - [ ] Determined empty result handling strategy
-
 
 ## Contract
 
@@ -75,7 +72,6 @@ Verify all SQL queries have error handling; confirm error messages include all r
 </validation>
 
 </contract>
-
 
 ## Anti-Patterns and Common Mistakes
 
@@ -289,7 +285,6 @@ except SnowparkSQLException as e:
 ```
 **Benefits:** Error code enables fast Snowflake support lookup; documentation searchable by code; professional error handling; reproducible error reporting
 
-
 ## Post-Execution Checklist
 
 - [ ] All session.sql() calls wrapped in try/except blocks
@@ -313,7 +308,6 @@ except SnowparkSQLException as e:
 > 4. Test error messages by intentionally triggering errors (missing tables, wrong columns)
 > 5. Make grounded recommendations based on investigated SQL patterns and error scenarios
 
-
 ## Validation
 
 - Test SQL error handling with intentionally invalid queries (missing tables, wrong column names, syntax errors)
@@ -322,7 +316,6 @@ except SnowparkSQLException as e:
 - Validate multi-query scenarios show which specific query failed
 - Check that st.stop() prevents downstream errors when SQL fails
 - Ensure parameterized queries show user input values in error messages
-
 
 ## Output Format Examples
 
@@ -335,61 +328,61 @@ def load_data_with_error_handling():
     """Load data with comprehensive error handling."""
     try:
         session = get_snowflake_session()
-        
+
         query = """
             SELECT asset_id, asset_type, install_date
             FROM UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS
             WHERE install_date >= DATEADD(year, -5, CURRENT_DATE())
         """
-        
+
         df = session.sql(query).to_pandas()
         df.columns = [col.lower() for col in df.columns]
-        
+
         if df.empty:
             st.warning("""
             **No assets found** matching the filter criteria (last 5 years).
-            
+
             This could mean:
             - No assets installed in the last 5 years
             - Data not yet loaded
             - Check available date range with: `SELECT MIN(install_date), MAX(install_date) FROM GRID_ASSETS`
             """)
             return pd.DataFrame()
-        
+
         return df
-        
+
     except SnowparkSQLException as e:
         st.error(f"""
         **SQL Query Failed: load_data_with_error_handling()**
-        
+
         **Error:** {str(e)}
         **SQL Error Code:** {e.error_code if hasattr(e, 'error_code') else 'N/A'}
-        
+
         **Query Context:**
         - Table: UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS
         - Operation: Loading assets from last 5 years
         - Filter: install_date >= 5 years ago
-        
+
         **Common Causes:**
         - Table GRID_ASSETS does not exist in GRID_DATA schema
         - Column install_date does not exist or has different name
         - Missing SELECT permission on GRID_ASSETS
         - Database UTILITY_DEMO_V2 or schema GRID_DATA does not exist
         - Invalid date function syntax (DATEADD)
-        
+
         **Debugging Steps:**
         1. Verify table exists: `SHOW TABLES IN UTILITY_DEMO_V2.GRID_DATA`
         2. Check columns: `DESC TABLE UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS`
         3. Test permissions: `SELECT COUNT(*) FROM UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS`
         """)
         st.stop()
-    
+
     except Exception as e:
         st.error(f"""
         **Unexpected Error: load_data_with_error_handling()**
-        
+
         **Error:** {str(e)}
-        
+
         This is not a SQL error. Possible causes:
         - Snowflake session not established
         - Network connectivity issue
@@ -397,7 +390,6 @@ def load_data_with_error_handling():
         """)
         st.stop()
 ```
-
 
 ## References
 
@@ -411,5 +403,3 @@ def load_data_with_error_handling():
 - [Snowpark Python API - Exceptions](https://docs.snowflake.com/en/developer-guide/snowpark/reference/python/latest/api/snowflake.snowpark.exceptions.SnowparkSQLException.html) - SnowparkSQLException documentation
 - [Streamlit Error Handling](https://docs.streamlit.io/develop/api-reference/status) - st.error(), st.warning(), st.info(), st.stop()
 - [Python Exception Handling Best Practices](https://docs.python.org/3/tutorial/errors.html) - General exception handling patterns
-
-

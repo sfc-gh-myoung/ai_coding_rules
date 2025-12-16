@@ -38,8 +38,8 @@ ai_coding_rules/
 │   ├── 001-coding-agent-operations.md
 │   ├── 100-snowflake-core.md
 │   └── ...
-├── AGENTS.md               ← Rule loading protocol (project root)
-├── RULES_INDEX.md          ← Searchable rule catalog (project root)
+├── AGENTS.md               ← Minimal bootstrap protocol (project root)
+├── RULES_INDEX.md          ← Rule catalog with loading strategy (project root)
 ├── scripts/                ← Validation and deployment tools
 │   ├── index_generator.py      ← Generate RULES_INDEX.md
 │   ├── rule_deployer.py        ← Deploy rules to projects
@@ -58,8 +58,9 @@ ai_coding_rules/
 | What You're Editing | Where to Edit | What Happens |
 |---------------------|---------------|--------------|
 | Rule content | `rules/XXX-rule-name.md` | Validate with `task rules:validate` |
-| Discovery guide | `AGENTS.md` (project root) | Deploy with `task deploy DEST=` |
-| Rule catalog | `RULES_INDEX.md` (project root) | Regenerate with `task generate:index` |
+| Bootstrap protocol | `AGENTS.md` (project root) | Minimal rule loading sequence |
+| Execution protocols | `rules/000-global-core.md` | MODE transitions, validation, workflows |
+| Rule catalog | `RULES_INDEX.md` (project root) | Regenerate with `task index:generate` |
 | Deployment script | `scripts/rule_deployer.py` | Test with `--dry-run` flag |
 
 ## 📋 Development Workflow
@@ -71,12 +72,14 @@ We use modern Python tooling for consistent development:
 - **Python 3.11+** - Language runtime
 - **uv** - Fast Python package installer and resolver
 - **Ruff** - Lightning-fast linting and formatting
+- **ty** - Fast type checker (Astral toolchain)
 - **Task** - Simple task runner for automation
 
 ```bash
 # Python environment with uv (recommended)
-task env:deps              # Install development dependencies
-task env:python           # Pin Python version and create venv
+task env:sync              # Sync dev dependencies (fast)
+task env:python            # Pin Python version and create venv
+task env:deps              # Lock and sync dependencies
 
 # Alternative with pip (fallback)
 python -m venv .venv
@@ -87,16 +90,22 @@ pip install -e ".[dev]"
 ### Code Quality & Linting
 
 ```bash
-# Ruff (primary linter and formatter)
-task quality:lint         # Check code with Ruff
-task quality:format       # Check formatting
+# Quality tasks (recommended)
+task quality:check        # Run all quality checks (lint, format, type, markdown)
+task quality:fix          # Fix all quality issues (alias: fix, qf)
+task quality:lint         # Run ruff linter (check only)
+task quality:format       # Run ruff formatter (check only)
+task quality:typecheck    # Run ty type checker (aliases: type, type-check)
+task quality:markdown     # Run pymarkdownlnt Markdown linter
 task quality:lint:fix     # Auto-fix linting issues
 task quality:format:fix   # Apply formatting
 
 # Manual commands (if task unavailable)
-uvx ruff check .          # Check linting
-uvx ruff format --check . # Check formatting
-uvx ruff format .         # Apply formatting
+uv sync --all-groups         # Ensure dev deps installed (ruff, ty, pytest, ...)
+uv run ruff check .          # Check linting
+uv run ruff format --check . # Check formatting
+uv run ruff format .         # Apply formatting
+uv run ty check .            # Type check
 ```
 
 ### Rule Deployment
@@ -147,8 +156,13 @@ python scripts/index_generator.py --dry-run
 ### Utilities
 
 ```bash
-task clean:venv                      # Remove virtual environment
-task -l                  # List all available tasks
+task clean:cache         # Remove Python cache files
+task clean:venv          # Remove virtual environment
+task clean:all           # Remove all generated files
+task status              # Show project status summary
+task preflight           # Verify environment is ready
+task -l                  # List all available tasks (standard view)
+task                     # Show categorized task list with quickstart
 ```
 
 ### Configuration Safety Guidelines
@@ -176,13 +190,10 @@ python scripts/index_generator.py
 python scripts/rule_deployer.py --dest /tmp/test --dry-run
 
 # 5. Run test suite
-pytest tests/
+task test
 
-# 6. Check for linting issues
-task quality:lint
-
-# 7. Validate formatting
-task quality:format
+# 6. Run all quality checks
+task quality:check
 ```
 
 **Important:** Commit your rule changes:
@@ -250,7 +261,7 @@ python scripts/template_generator.py 100-example --output-dir custom/
 
 1. Edit the generated file and replace placeholders with actual content
 2. Validation: Already done if using `task rule:new`, otherwise run `task rules:validate:verbose`
-3. Add to RULES_INDEX.md: `task generate:index` or `task index:generate`
+3. Add to RULES_INDEX.md: `task index:generate`
 
 ### Rule Structure (v3.0+)
 
@@ -402,11 +413,24 @@ Use our issue templates:
 ### Before Submitting
 
 - [ ] **Test** your changes locally
-- [ ] **Run** `task quality:lint` and fix any issues
-- [ ] **Run** `task quality:format` and ensure consistency
+- [ ] **Run** `task quality:check` and fix any issues (or `task quality:fix`)
 - [ ] **Test** rule deployment with `task deploy:dry DEST=/tmp/test`
+- [ ] **Run** `task validate` to run all CI/CD checks
 - [ ] **Update** documentation if needed
 - [ ] **Add** yourself to contributors if first contribution
+
+### CI/CD Pipeline
+
+The GitHub Actions CI workflow runs automatically on pushes and PRs to `main`:
+
+| Job | Purpose | Details |
+|-----|---------|---------|
+| `quality` | Code quality | ruff lint, ruff format, ty type check |
+| `markdown` | Markdown linting | pymarkdownlnt for rules/ and docs/ |
+| `test` | Unit tests | pytest with Python 3.11, 3.12, 3.13 matrix |
+| `validate` | Rules validation | schema validation, RULES_INDEX.md check |
+
+All jobs run in parallel for fast feedback. Ensure all checks pass before requesting review.
 
 ### Commit and Branch Standards
 
@@ -522,12 +546,10 @@ task rules:validate:verbose
 # Or: python scripts/schema_validator.py rules/450-terraform-best-practices.md --verbose
 
 # 5. Regenerate RULES_INDEX.md
-task generate:index
-# Alternative: task index:generate
+task index:generate
 
 # 6. Run quality checks
-task quality:lint
-task quality:format
+task quality:check
 
 # 7. Commit the new rule and updated index
 git add rules/450-terraform-best-practices.md
@@ -562,7 +584,7 @@ vim rules/200-python-core.md
 python scripts/schema_validator.py rules/200-python-core.md --verbose
 
 # 4. Update index if metadata changed
-task generate:index
+task index:generate
 
 # 5. Run quality checks
 task quality:lint
@@ -613,7 +635,7 @@ git commit  # WRONG - RULES_INDEX.md not updated
 ✅ **Always regenerate index after rule changes**
 ```bash
 vim rules/450-new-rule.md
-task generate:index
+task index:generate
 git add rules/450-new-rule.md RULES_INDEX.md
 git commit  # CORRECT
 ```
@@ -673,7 +695,30 @@ My rule files should have prevented this behavior or outcome. Thoroughly review 
 
 For this to be effective, you should have a copy of this project repo `ai_coding_rules/` within your project directory. You can then edit the rule files directly in `rules/` and deploy them to test your improvements. It is also important to verify that `002-rule-governance.md` is an actively selected rule in the project. It should be auto attached, but it never hurts to verify. This will ensure any rule changes will follow best practices and structure laid out for the `ai_coding_rules/` project.
 
-Available LLMs are always evolving and improving in their capabilities. You should periodically ask your LLM of choice to review and make recommendations on rule improvements using the following prompt:
+Available LLMs are always evolving and improving in their capabilities. You should periodically ask your LLM of choice to review and make recommendations on rule improvements.
+
+**Recommended: Use the Agent-Centric Rule Review Prompt**
+
+For systematic, cross-model compatible reviews, use the prompt template in [skills/rule-reviewer/PROMPT.md](skills/rule-reviewer/PROMPT.md).
+
+For a short usage guide (modes, examples, cadence), see
+[docs/USING_RULE_REVIEW_PROMPT.md](docs/USING_RULE_REVIEW_PROMPT.md).
+
+```
+Review rules/XXX-rule-name.md using the Agent-Centric Rule Review criteria.
+Review Date: YYYY-MM-DD
+Review Mode: STALENESS
+```
+
+This prompt provides:
+- **6-point scoring** — Actionability, Completeness, Consistency, Parsability, Token Efficiency, Staleness
+- **Three review modes** — FULL (comprehensive), FOCUSED (targeted), STALENESS (periodic maintenance)
+- **Staleness detection** — Identifies outdated tool versions, deprecated patterns, API changes
+- **Cross-model compatibility** — Tested on GPT-4o, GPT-5.1, GPT-5.2, Claude Sonnet 4.5, Claude Opus 4.5, Gemini 2.5 Pro, Gemini 3 Pro
+
+**Alternative: Quick Review Prompt**
+
+For a simpler review without structured scoring:
 
 ```
 MODE PLAN:
@@ -771,11 +816,25 @@ task deploy DEST=~/my-project
 
 # Without Task (Python script):
 cd /tmp/ai-rules && git pull
-/opt/homebrew/bin/uv sync
-/opt/homebrew/bin/uv run scripts/rule_deployer.py --dest ~/my-project
+uv sync --all-groups
+uv run python scripts/rule_deployer.py --dest ~/my-project
 ```
 
-**Quarterly:** Review which rules your team uses most
+**Quarterly:** Run STALENESS reviews on critical rules
+```
+# Use the Agent-Centric Rule Review prompt (skills/rule-reviewer/PROMPT.md)
+Review rules/000-global-core.md using Agent-Centric Rule Review.
+Review Date: YYYY-MM-DD
+Review Mode: STALENESS
+```
+
+**Recommended Review Cadence:**
+| Rule Type | Frequency | Mode |
+|-----------|-----------|------|
+| Foundation (000-*) | Quarterly | FULL |
+| Domain Cores (1XX, 2XX, etc.) | Quarterly | STALENESS |
+| Specialized/Activity Rules | Semi-annually | STALENESS |
+| Reference Rules (>5000 tokens) | Annually | STALENESS |
 
 **Yearly:** Suggest new rules for your domain
 
@@ -794,7 +853,7 @@ All rules in this repository follow **Section 11: Universal Compatibility Standa
 
 **For Contributors:**
 - **Validate rules:** `task rules:validate` - Check all rules against schema
-- **Strict validation:** `task rules:validate:strict` - Fail on warnings (CI/CD)
+- **Run all CI checks:** `task validate` - Run quality, tests, rules validation
 - **Complete standards:** See `rules/002-rule-governance.md` Section 11
 
 **Validation Tools:**

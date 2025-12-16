@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** automatic pipelines, DOWNSTREAM, FULL, warehouse sizing, data freshness, create dynamic table, dynamic table lag, refresh frequency, dynamic table error, materialized view alternative, pipeline automation, lag configuration, refresh strategies
 **TokenBudget:** ~5200
 **ContextTier:** High
@@ -11,11 +12,9 @@
 ## Purpose
 Establish comprehensive best practices for Snowflake Dynamic Tables to ensure efficient, maintainable, and cost-effective materialized query results that automatically refresh based on changes to base tables, following Snowflake's recommended patterns for refresh modes, lag configuration, and pipeline architecture.
 
-
 ## Rule Scope
 
 Snowflake Dynamic Tables for automated materialized views, incremental refresh patterns, and data pipeline orchestration
-
 
 ## Quick Start TL;DR
 
@@ -56,7 +55,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - **Creating tables**: + Core Patterns
 - **Lag/refresh issues**: + Advanced Config & Troubleshooting
 - **Production deployment**: Full reference
-
 
 ## Contract
 
@@ -104,7 +102,6 @@ Complete Dynamic Table DDL with all required parameters; monitoring queries
 </design_principles>
 
 </contract>
-
 
 ## Anti-Patterns and Common Mistakes
 
@@ -229,7 +226,7 @@ SELECT
   target_lag,
   scheduling_state,
   last_refresh_duration_ms,
-  CASE 
+  CASE
     WHEN scheduling_state = 'FAILED' THEN 'CRITICAL'
     WHEN last_refresh_duration_ms > 300000 THEN 'WARNING'  -- >5 min
     ELSE 'OK'
@@ -265,7 +262,6 @@ SELECT ...;
 ```
 **Benefits:** Appropriate technology choice; realistic expectations; cost-effective refresh cadence.
 
-
 ## Post-Execution Checklist
 
 - [ ] `REFRESH_MODE` explicitly declared (INCREMENTAL or FULL) for all production Dynamic Tables
@@ -284,7 +280,6 @@ SELECT ...;
 - [ ] Controller Dynamic Table pattern considered for complex pipeline networks
 - [ ] Cost tracking enabled via warehouse isolation and tagging
 
-
 ## Validation
 
 - **Success Checks:**
@@ -294,12 +289,12 @@ SELECT ...;
   - Refresh duration is acceptable for business requirements
   - Warehouse usage isolated and monitored
   - No SELECT * patterns in production Dynamic Tables
-  
+
 - **Negative Tests:**
   - Dynamic Table without explicit REFRESH_MODE should trigger review
   - Incremental refresh on unsupported operations should fall back to full refresh
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read existing Dynamic Tables BEFORE creating new ones** - Check refresh modes, lag settings, patterns
 > 2. **Verify base table structure** - Understand data volume, change frequency, dependencies
@@ -319,7 +314,7 @@ SELECT ...;
   - Target lag violations detected via monitoring queries
   - Unassigned warehouses (using default) should trigger configuration review
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read referenced base table schemas BEFORE designing Dynamic Table queries**
 > 2. **Check Query Profile to verify incremental refresh eligibility**
@@ -335,7 +330,6 @@ SELECT ...;
 > "Let me check the Query Profile to confirm incremental refresh support."
 > [reviews Query Profile using EXPLAIN or actual execution]
 > "After reviewing the query plan, I found [specific operations]. Here's the appropriate refresh mode..."
-
 
 ## Output Format Examples
 
@@ -368,7 +362,6 @@ ORDER BY refresh_start_time DESC
 LIMIT 5;
 ```
 
-
 ## References
 
 ### External Documentation
@@ -387,14 +380,12 @@ LIMIT 5;
 - **Cost Governance**: `rules/105-snowflake-cost-governance.md`
 - **Warehouse Management**: `rules/119-snowflake-warehouse-management.md`
 
-> **[AI] Claude 4 Specific Guidance**  
+> **[AI] Claude 4 Specific Guidance**
 > **Claude 4 Optimizations:**
 > - Use parallel tool calls to read base table schemas and Query Profile simultaneously
 > - Leverage investigation-first protocol: always check INFORMATION_SCHEMA before making recommendations
 > - When asked about incremental refresh eligibility, read the actual query definition and validate against supported operations list
 > - For complex pipelines, create visualization of dependencies before recommending changes
-
-
 
 ## Implementation Details
 
@@ -423,7 +414,6 @@ LIMIT 5;
 - **Why critical**: Full refresh wastes compute and increases latency
 - **Correct approach**: Design queries to support incremental refresh (append-only, temporal predicates)
 - **Detection**: Check if query uses temporal columns or append-only patterns
-
 
 ## 1. Dynamic Table Fundamentals
 
@@ -484,7 +474,6 @@ CREATE OR REPLACE DYNAMIC TABLE staging.CUSTOMER_360 ...
 - Include aggregation level when applicable: `DT_DAILY_*`, `DT_HOURLY_*`, `DT_MONTHLY_*`
 - Prefix SCD implementations: `DT_DIM_<entity>_SCD1` or `DT_DIM_<entity>_SCD2`
 - Use schema prefixes for context: `staging.DT_*`, `analytics.DT_*`, `dimensions.DT_*`
-
 
 ## 2. Refresh Mode Configuration
 
@@ -566,7 +555,6 @@ SELECT
 FROM analytics.customer_summary;
 ```
 
-
 ## 3. Target Lag Configuration
 
 ### Time-Based Lag
@@ -620,7 +608,6 @@ FROM staging.DT_RAW_ORDERS
 GROUP BY order_date;
 ```
 
-
 ## 4. Warehouse Assignment and Isolation
 
 **MANDATORY:**
@@ -651,7 +638,6 @@ CREATE OR REPLACE DYNAMIC TABLE analytics.DT_SALES_SUMMARY
 AS
 SELECT ...
 ```
-
 
 ## 5. Pipeline Design Patterns
 
@@ -764,7 +750,6 @@ ALTER DYNAMIC TABLE analytics.DT_PIPELINE_CONTROLLER SUSPEND;
 ALTER DYNAMIC TABLE analytics.DT_PIPELINE_CONTROLLER RESUME;
 ```
 
-
 ## 6. Slowly Changing Dimensions (SCD) Patterns
 
 ### Type 1 SCD (Overwrite)
@@ -826,7 +811,6 @@ SELECT
   CASE WHEN next_change_timestamp IS NULL THEN TRUE ELSE FALSE END AS is_current
 FROM changes_ordered;
 ```
-
 
 ## 7. Performance Optimization
 
@@ -906,7 +890,6 @@ FROM raw.orders
 WHERE order_date >= DATEADD(day, -90, CURRENT_DATE());  -- Recent data only
 ```
 
-
 ## 8. Cost Optimization
 
 ### Use Transient Dynamic Tables
@@ -946,7 +929,6 @@ CREATE SCHEMA analytics_dev CLONE analytics;
 -- Avoids reinitialization overhead
 ```
 
-
 ## 9. Security and Access Control
 
 ### MONITOR Privilege
@@ -974,14 +956,13 @@ Use OWNERSHIP role for administrative operations (ALTER, DROP, REFRESH).
 **Example:**
 ```sql
 -- Administrative control
-GRANT OWNERSHIP ON DYNAMIC TABLE analytics.DT_SALES_SUMMARY 
+GRANT OWNERSHIP ON DYNAMIC TABLE analytics.DT_SALES_SUMMARY
   TO ROLE data_engineer_role;
 
 -- Data engineers can manage the table
 ALTER DYNAMIC TABLE analytics.DT_SALES_SUMMARY SET TARGET_LAG = '1 hour';
 ALTER DYNAMIC TABLE analytics.DT_SALES_SUMMARY REFRESH;
 ```
-
 
 ## 10. Monitoring and Observability
 
@@ -1049,7 +1030,6 @@ WHERE state = 'FAILED'
 ORDER BY refresh_start_time DESC;
 ```
 
-
 ## Related Rules
 
 **Closely Related** (consider loading together):
@@ -1065,4 +1045,3 @@ ORDER BY refresh_start_time DESC;
 - `100-snowflake-core` - For DDL fundamentals and object naming conventions
 - `107-snowflake-security-governance` - For access control on dynamic tables
 - `105-snowflake-cost-governance` - For monitoring dynamic table refresh costs
-

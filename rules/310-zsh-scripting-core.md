@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** Zsh, Z shell, zsh features, arrays, functions, oh-my-zsh, emulate, setopt, parameter expansion, globbing
 **TokenBudget:** ~3450
 **ContextTier:** Medium
@@ -11,12 +12,9 @@
 ## Purpose
 Establish foundational zsh scripting patterns covering unique zsh features, script structure, variables, functions, and essential practices to leverage zsh's advanced capabilities while maintaining compatibility.
 
-
 ## Rule Scope
 
 Foundation zsh scripting patterns and essential practices
-
-
 
 ## Quick Start TL;DR
 
@@ -38,7 +36,6 @@ Foundation zsh scripting patterns and essential practices
 - [ ] Variables quoted
 - [ ] Zsh-specific features leveraged
 - [ ] Compatibility with bash checked if needed
-
 
 ## Contract
 
@@ -130,12 +127,11 @@ typeset -U path  # Remove duplicates
 - [ ] Output format matches requirements
 - [ ] Validation steps completed successfully
 
-
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Check shell type BEFORE suggesting zsh features** - Verify shebang is zsh
 > 2. **Verify zsh version** - Some features require specific versions
@@ -151,7 +147,6 @@ typeset -U path  # Remove duplicates
 > "Let me check your script's shell type first."
 > [reads shebang, checks for zsh features]
 > "I see this is a zsh script. Using zsh-specific array operations..."
-
 
 ## Output Format Examples
 
@@ -170,17 +165,17 @@ readonly LOG_FILE="${SCRIPT_DIR}/output.log"
 main() {
     # Investigation phase
     check_prerequisites
-    
+
     # Implementation phase
     perform_operations
-    
+
     # Validation phase
     verify_results
 }
 
 check_prerequisites() {
     local -a required_commands=(jq curl git)
-    
+
     for cmd in "${required_commands[@]}"; do
         if ! command -v "${cmd}" &>/dev/null; then
             echo "ERROR: Required command not found: ${cmd}" >&2
@@ -208,11 +203,10 @@ main "$@"
 shellcheck script.sh
 ```
 
-
 ## References
 
 ### External Documentation
-- [Zsh Manual](http://zsh.sourceforge.net/Doc/) - Complete official documentation for zsh features and syntax                                                                                                           
+- [Zsh Manual](http://zsh.sourceforge.net/Doc/) - Complete official documentation for zsh features and syntax
 - [Zsh User Guide](https://zsh-guide.hyperreal.coffee/) - Comprehensive tutorial and best practices guide
 - [Oh My Zsh Framework](https://ohmyz.sh/) - Popular plugin and theme framework for zsh
 
@@ -220,7 +214,6 @@ shellcheck script.sh
 - **Zsh Advanced Features**: `rules/310a-zsh-advanced-features.md`
 - **Zsh Compatibility**: `rules/310b-zsh-compatibility.md`
 - **Bash Core**: `rules/300-bash-scripting-core.md`
-
 
 ## 1. Script Foundation & Zsh Setup
 
@@ -270,7 +263,6 @@ emulate -L zsh
 setopt ERR_EXIT NO_UNSET PIPE_FAIL EXTENDED_GLOB
 ```
 
-
 ## 2. Zsh-Specific Variable Management
 
 ### Variable Declaration and Scoping
@@ -297,7 +289,7 @@ typeset -gA global_config=()
 ```zsh
 # Advanced parameter expansion
 filename="${path:t}"           # Tail (basename)
-directory="${path:h}"          # Head (dirname)  
+directory="${path:h}"          # Head (dirname)
 extension="${filename:e}"      # Extension
 basename="${filename:r}"       # Root (without extension)
 
@@ -350,7 +342,6 @@ echo "All keys: ${(k)config}"
 echo "All values: ${(v)config}"
 ```
 
-
 ## 3. Function Definition and Advanced Features
 
 ### Function Declaration
@@ -360,10 +351,10 @@ echo "All values: ${(v)config}"
 function process_file() {
     emulate -L zsh
     setopt LOCAL_OPTIONS ERR_EXIT
-    
+
     local file="$1"
     local operation="${2:-process}"
-    
+
     # Function logic here
     echo "Processing $file with operation: $operation"
 }
@@ -383,15 +374,14 @@ function create_backup() {
     emulate -L zsh
     local -A opts
     zparseopts -D -A opts h v || return 1
-    
+
     local source="$1"
     [[ -z $source ]] && { echo "Source required" >&2; return 1; }
-    
+
     [[ -n ${opts[-v]} ]] && echo "Creating backup of $source"
     cp "$source" "${source}.backup"
 }
 ```
-
 
 ## 4. Error Handling and Debugging
 
@@ -402,11 +392,11 @@ function create_backup() {
 function handle_error() {
     local exit_code=$?
     local line_number=$1
-    
+
     echo "Error: Command failed with exit code $exit_code at line $line_number" >&2
     echo "Function: ${funcstack[2]:-main}" >&2
     echo "Script: $0" >&2
-    
+
     # Print call stack
     echo "Call stack:" >&2
     local i=1
@@ -414,7 +404,7 @@ function handle_error() {
         echo "  $i: ${funcstack[$i]} (${funcfiletrace[$i]})" >&2
         ((i++))
     done
-    
+
     exit $exit_code
 }
 
@@ -425,15 +415,15 @@ trap 'handle_error $LINENO' ERR
 function safe_operation() {
     emulate -L zsh
     setopt ERR_RETURN  # Return from function on error
-    
+
     local file="$1"
-    
+
     # Check preconditions
     [[ -f "$file" ]] || {
         echo "Error: File not found: $file" >&2
         return 1
     }
-    
+
     # Perform operation with error checking
     cp "$file" "${file}.backup" || {
         echo "Error: Failed to create backup" >&2
@@ -448,16 +438,16 @@ function safe_operation() {
 # Global cleanup function
 function cleanup() {
     local exit_code=$?
-    
+
     # Remove temporary files
     [[ -n ${temp_dir:-} ]] && rm -rf "$temp_dir"
-    
+
     # Kill background processes
     [[ -n ${bg_pid:-} ]] && kill "$bg_pid" 2>/dev/null
-    
+
     # Restore terminal settings if modified
     [[ -n ${original_stty:-} ]] && stty "$original_stty"
-    
+
     exit $exit_code
 }
 
@@ -468,7 +458,6 @@ trap cleanup EXIT INT TERM QUIT
 temp_dir=$(mktemp -d)
 readonly temp_dir
 ```
-
 
 ## 5. Zsh Globbing and Pattern Matching
 
@@ -513,7 +502,6 @@ if [[ "$version" == <1-9>.<0-9>.<0-9> ]]; then  # Numeric ranges
 fi
 ```
 
-
 ## 6. Input/Output and Command Execution
 
 ### Command Substitution and Pipelines
@@ -527,7 +515,7 @@ file_count=$(print -l *.txt | wc -l)
 diff <(sort file1) <(sort file2)
 
 # Coprocess for bidirectional communication
-coproc PROC { 
+coproc PROC {
     while read -r line; do
         echo "Processed: $line"
     done
@@ -552,14 +540,13 @@ read -A words <<< "word1 word2 word3"
 
 # Here-documents with parameter expansion control
 cat <<-'EOF'
-	This text will not expand variables: $HOME
+    This text will not expand variables: $HOME
 EOF
 
 cat <<-EOF
-	This text will expand variables: $HOME
+    This text will expand variables: $HOME
 EOF
 ```
-
 
 ## 7. Configuration and Environment
 
@@ -605,7 +592,6 @@ if [[ "$TERM" == *color* ]] || [[ "$COLORTERM" == *color* ]]; then
 fi
 ```
 
-
 ## 8. Performance and Optimization
 
 ### Zsh Performance Best Practices
@@ -638,16 +624,15 @@ unset large_array large_string
 function process_large_data() {
     emulate -L zsh
     local -a data
-    
+
     # Process data locally
     data=(${(f)"$(< "$1")"})
-    
+
     # Process and return result
     echo "${#data}"
     # data automatically cleaned up when function exits
 }
 ```
-
 
 ## 9. Zsh Modules and Autoloading
 
@@ -667,7 +652,6 @@ fpath=(~/.zsh/functions $fpath)
 autoload -Uz colors && colors
 ```
 
-
 ## 10. Compatibility and Portability
 
 ### Bash Compatibility Mode
@@ -676,7 +660,7 @@ autoload -Uz colors && colors
 # Enable bash compatibility for specific functions
 function bash_compatible_function() {
     emulate -L sh  # Use POSIX/bash behavior
-    
+
     # Bash-compatible code here
     local array=("$@")
     echo "Elements: ${array[@]}"
@@ -697,7 +681,7 @@ fi
 portable_function() {
     # Use POSIX-compatible features only
     local input="$1"
-    
+
     # Avoid zsh-specific features
     if [ -n "$input" ]; then
         echo "Processing: $input"
@@ -707,7 +691,6 @@ portable_function() {
     fi
 }
 ```
-
 
 ## 11. Common Anti-Patterns to Avoid
 
@@ -724,7 +707,6 @@ portable_function() {
 - **Avoid:** Creating subshells for array operations
 - **Avoid:** Using `eval` with dynamic content
 
-
 ## 12. Documentation and Style
 
 ### Code Documentation
@@ -740,7 +722,7 @@ function complex_function() {
     # Document zsh-specific behavior
     # Note: Uses zsh 1-indexed arrays
     emulate -L zsh
-    
+
     local -a items=("$@")
     echo "First item: ${items[1]}"  # zsh arrays start at 1
 }
@@ -773,10 +755,8 @@ EOF
 }
 ```
 
-
 ## Related Rules
 
 - **`@310a-zsh-advanced-features.md`** - Advanced zsh features, completion, and modules
 - **`@310b-zsh-compatibility.md`** - Cross-shell compatibility and migration strategies
 - **`@300-bash-scripting-core.md`** - Bash scripting fundamentals for comparison
-

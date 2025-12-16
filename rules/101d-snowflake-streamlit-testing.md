@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** test Streamlit app, pytest, test framework, test patterns, app testing, UI testing, test automation, streamlit test suite, integration testing, test coverage, debug tests, test fixtures, testing strategies
 **TokenBudget:** ~2600
 **ContextTier:** High
@@ -11,11 +12,9 @@
 ## Purpose
 Provide comprehensive testing and debugging guidance for Streamlit applications including AppTest patterns, unit testing strategies, debugging workflows, and common issue resolution.
 
-
 ## Rule Scope
 
 Streamlit testing with AppTest, unit testing data functions, debugging patterns
-
 
 ## Quick Start TL;DR
 
@@ -44,7 +43,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Cache behavior tested
 - [ ] All tests pass: `uv run pytest`
 - [ ] Coverage >80%: `uv run pytest --cov`
-
 
 ## Contract
 
@@ -88,7 +86,6 @@ All tests pass, edge cases covered, mocks used for external services, cache beha
 
 </contract>
 
-
 ## Anti-Patterns and Common Mistakes
 
 **Anti-Pattern 1: No automated tests**
@@ -125,7 +122,7 @@ def test_load_data():
     with patch('your_app.get_snowflake_session') as mock:
         mock_df = pd.DataFrame({'col1': [1, 2, 3]})
         mock.return_value.table.return_value.to_pandas.return_value = mock_df
-        
+
         df = load_data()
         assert len(df) == 3
 ```
@@ -166,16 +163,15 @@ def test_cache():
 def test_cache_with_mock():
     with patch('db.query') as mock_query:
         mock_query.return_value = [1, 2, 3]
-        
+
         # First call
         load_cached_data()
         assert mock_query.call_count == 1
-        
+
         # Second call (should use cache)
         load_cached_data()
         assert mock_query.call_count == 1  # Still 1, cache hit
 ```
-
 
 ## Post-Execution Checklist
 - [ ] Unit tests for all data processing functions
@@ -187,12 +183,11 @@ def test_cache_with_mock():
 - [ ] All tests pass in CI/CD pipeline
 - [ ] Manual testing checklist completed before deployment
 
-
 ## Validation
 - **Success Checks:** All tests pass, edge cases covered, cache behavior verified, mocks used correctly, AppTest integration tests validate UI workflows
 - **Negative Tests:** Introduce bugs (should fail tests), break cache (tests should catch it), test with invalid inputs (should handle gracefully)
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. Read test files BEFORE making recommendations
 > 2. Verify pytest and AppTest are installed and configured
@@ -200,7 +195,6 @@ def test_cache_with_mock():
 > 4. Never speculate about test coverage - inspect actual test files
 > 5. Verify cache testing patterns if caching is used
 > 6. Check if edge cases are covered in tests
-
 
 ## Output Format Examples
 ```python
@@ -233,11 +227,11 @@ def test_user_workflow():
     """Test complete user interaction workflow."""
     at = AppTest.from_file("streamlit_app.py")
     at.run()
-    
+
     # Simulate user actions
     at.text_input[0].set_value("test").run()
     at.button[0].click().run()
-    
+
     # Verify results
     assert len(at.success) > 0
 
@@ -247,11 +241,10 @@ def test_load_data(mock_session):
     """Test data loading with mocked database."""
     mock_df = pd.DataFrame({'col1': [1, 2, 3]})
     mock_session.return_value.table.return_value.to_pandas.return_value = mock_df
-    
+
     result = load_data()
     assert len(result) == 3
 ```
-
 
 ## References
 
@@ -277,17 +270,14 @@ def test_load_data(mock_session):
 - **Python pytest**: `rules/206-python-pytest.md`
 - **Python Core**: `rules/200-python-core.md`
 
-> **[AI] Claude 4 Specific Guidance**  
+> **[AI] Claude 4 Specific Guidance**
 > **Claude 4 Streamlit Testing Optimizations:**
 > - Parallel test analysis: Can review multiple test files simultaneously for coverage gaps
 > - Context awareness: Track test patterns and mock usage across test suite
 > - Investigation-first: Excel at discovering missing tests and untested edge cases
 > - Pattern recognition: Quickly identify test anti-patterns (no mocks, missing edge cases)
 
-
-
 ## 1. Unit Testing Data Functions
-
 
 **MANDATORY:**
 **Write unit tests for data processing functions using pytest:**
@@ -302,7 +292,7 @@ def test_normalize_columns():
     """Test column name normalization from Snowflake."""
     df = pd.DataFrame({'COL1': [1, 2], 'COL2': [3, 4]})
     result = normalize_columns(df)
-    
+
     assert 'col1' in result.columns
     assert 'col2' in result.columns
     assert 'COL1' not in result.columns
@@ -311,7 +301,7 @@ def test_process_data_empty_input():
     """Test graceful handling of empty dataframe."""
     empty_df = pd.DataFrame()
     result = process_data(empty_df)
-    
+
     assert result is not None
     assert isinstance(result, pd.DataFrame)
 
@@ -322,7 +312,7 @@ def test_process_data_valid_input():
         'value': [100, 200]
     })
     result = process_data(df)
-    
+
     assert len(result) == 2
     assert 'processed_value' in result.columns
 
@@ -338,14 +328,12 @@ def sample_data():
 def test_aggregation(sample_data):
     """Test aggregation logic using fixture."""
     result = aggregate_by_category(sample_data)
-    
+
     assert len(result) == 2  # Two categories
     assert result[result['category'] == 'A']['total'].iloc[0] == 40
 ```
 
-
 ## 2. UI and Integration Testing with AppTest
-
 
 **MANDATORY:**
 **Use Streamlit AppTest (Streamlit 1.28+) for UI/integration testing:**
@@ -365,7 +353,7 @@ def test_data_display():
     """Verify expected UI elements are present."""
     at = AppTest.from_file("streamlit_app.py")
     at.run()
-    
+
     # Check for elements
     assert len(at.title) > 0, "No title rendered"
     assert len(at.dataframe) > 0, "No dataframes displayed"
@@ -375,15 +363,15 @@ def test_user_interaction():
     """Test user interaction workflow."""
     at = AppTest.from_file("streamlit_app.py")
     at.run()
-    
+
     # Simulate user input
     assert len(at.text_input) > 0, "No text inputs found"
     at.text_input[0].set_value("test query").run()
-    
+
     # Click button
     assert len(at.button) > 0, "No buttons found"
     at.button[0].click().run()
-    
+
     # Verify state change
     assert at.session_state.query_executed == True
 
@@ -391,11 +379,11 @@ def test_error_handling():
     """Verify graceful error handling."""
     at = AppTest.from_file("streamlit_app.py")
     at.run()
-    
+
     # Trigger error condition
     at.text_input[0].set_value("").run()  # Empty input
     at.button[0].click().run()
-    
+
     # Check error message displayed
     assert len(at.error) > 0, "No error message shown"
     assert "required" in str(at.error[0]).lower()
@@ -404,10 +392,10 @@ def test_navigation():
     """Test multipage navigation."""
     at = AppTest.from_file("streamlit_app.py")
     at.run()
-    
+
     # Navigate to different page
     at.sidebar.selectbox[0].set_value("Dashboard").run()
-    
+
     # Verify page content changed
     assert "Dashboard" in str(at.title[0])
 ```
@@ -418,14 +406,14 @@ def test_form_submission():
     """Test form submission workflow."""
     at = AppTest.from_file("streamlit_app.py")
     at.run()
-    
+
     # Fill form fields
     at.text_input("username").set_value("testuser").run()
     at.text_input("email").set_value("test@example.com").run()
-    
+
     # Submit form
     at.button("Submit").click().run()
-    
+
     # Verify success message
     assert len(at.success) > 0
     assert "submitted" in str(at.success[0]).lower()
@@ -433,18 +421,17 @@ def test_form_submission():
 def test_caching():
     """Test cache behavior."""
     at = AppTest.from_file("streamlit_app.py")
-    
+
     # First run - cache miss
     at.run()
     initial_load_time = at.session_state.get('load_time', 0)
-    
+
     # Second run - cache hit (should be faster)
     at.run()
     cached_load_time = at.session_state.get('load_time', 0)
-    
+
     assert cached_load_time < initial_load_time or cached_load_time == 0
 ```
-
 
 ## 3. Testing Cached Functions
 
@@ -460,16 +447,16 @@ def test_cache_data_behavior():
     with patch('your_app.get_snowflake_session') as mock_session:
         mock_df = pd.DataFrame({'col1': [1, 2, 3]})
         mock_session.return_value.table.return_value.to_pandas.return_value = mock_df
-        
+
         # First call - should hit database
         result1 = load_data()
         assert mock_session.called
-        
+
         # Second call within ttl - should use cache
         mock_session.reset_mock()
         result2 = load_data()
         assert not mock_session.called  # Cache hit
-        
+
         # Verify results identical
         pd.testing.assert_frame_equal(result1, result2)
 
@@ -478,23 +465,21 @@ def test_cache_resource_behavior():
     with patch('your_app.Session') as mock_session_class:
         mock_session = MagicMock()
         mock_session_class.builder.configs.return_value.create.return_value = mock_session
-        
+
         # First call - creates connection
         conn1 = get_snowflake_session()
         assert mock_session_class.called
-        
+
         # Second call - reuses connection
         mock_session_class.reset_mock()
         conn2 = get_snowflake_session()
         assert not mock_session_class.called  # Cache hit
-        
+
         # Verify same connection object
         assert conn1 is conn2
 ```
 
-
 ## 4. Common Debugging Issues
-
 
 ### App Crashes or Freezes
 - **Avoid:** Infinite loops in widget callbacks
@@ -533,7 +518,6 @@ st.write(f"Count: {st.session_state.counter}")
 - **Always:** Normalize to lowercase in data loaders
 - **Reference:** See 101b-snowflake-streamlit-performance.md
 
-
 ## 5. Manual Testing Checklist
 
 **RECOMMENDED:**
@@ -548,4 +532,3 @@ st.write(f"Count: {st.session_state.counter}")
 - [ ] Form validation provides clear feedback
 - [ ] Loading states show progress indicators
 - [ ] Secrets load correctly from st.secrets
-

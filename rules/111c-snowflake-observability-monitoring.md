@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** Copy History, Task History, Dynamic Tables, cost management, AI observability, Cortex AI, token tracking, troubleshooting, performance analysis, monitor queries, monitoring dashboard, observability UI, query monitoring, telemetry volume, SQL
 **TokenBudget:** ~4300
 **ContextTier:** High
@@ -11,11 +12,9 @@
 ## Purpose
 Provide comprehensive monitoring, analysis, and cost management strategies for Snowflake observability, covering Snowsight monitoring interfaces, AI observability patterns, and troubleshooting workflows.
 
-
 ## Rule Scope
 
 Monitoring queries, Snowsight navigation, cost management, AI observability, troubleshooting patterns
-
 
 ## Quick Start TL;DR
 
@@ -41,7 +40,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Monitoring queries have timestamp filters
 - [ ] Snowsight interfaces accessible
 - [ ] Cost implications reviewed (especially for DEBUG level)
-
 
 ## Contract
 
@@ -99,13 +97,12 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 
 </contract>
 
-
 ## Anti-Patterns and Common Mistakes
 
 **Anti-Pattern 1: Using SELECT * in Monitoring Queries**
 ```sql
 -- Bad: SELECT * on large system views
-SELECT * 
+SELECT *
 FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
 WHERE start_time > DATEADD('day', -7, CURRENT_TIMESTAMP());
 -- Returns 100+ columns, most unused, slow and expensive!
@@ -115,7 +112,7 @@ WHERE start_time > DATEADD('day', -7, CURRENT_TIMESTAMP());
 **Correct Pattern:**
 ```sql
 -- Good: Select only needed columns
-SELECT 
+SELECT
   query_id,
   query_text,
   user_name,
@@ -144,8 +141,8 @@ GROUP BY warehouse_name;
 **Correct Pattern:**
 ```sql
 -- Good: Always include timestamp filter for recent data
-SELECT 
-  warehouse_name, 
+SELECT
+  warehouse_name,
   SUM(credits_used) as total_credits
 FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY
 WHERE start_time >= DATEADD('day', -30, CURRENT_TIMESTAMP())
@@ -180,7 +177,7 @@ WHERE timestamp > DATEADD('minute', -5, CURRENT_TIMESTAMP())
 SELECT DATE_TRUNC('hour', start_time) as hour,
        COUNT(*) as failed_queries
 FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
-WHERE start_time BETWEEN DATEADD('day', -7, CURRENT_DATE()) 
+WHERE start_time BETWEEN DATEADD('day', -7, CURRENT_DATE())
                      AND DATEADD('hour', -1, CURRENT_TIMESTAMP())
   AND execution_status = 'FAILED'
 GROUP BY hour;
@@ -203,7 +200,7 @@ logging.basicConfig(level=logging.DEBUG)  # In production!
 ```sql
 -- Good: Monitor telemetry data volume and costs regularly
 -- Check event table size growth
-SELECT 
+SELECT
   DATE_TRUNC('day', timestamp) as day,
   COUNT(*) as event_count,
   SUM(LENGTH(record::STRING)) as total_bytes
@@ -213,7 +210,7 @@ GROUP BY day
 ORDER BY day DESC;
 
 -- Monitor serverless credit usage for logging/tracing
-SELECT 
+SELECT
   service_type,
   DATE_TRUNC('day', start_time) as day,
   SUM(credits_used) as credits
@@ -227,7 +224,6 @@ ORDER BY day DESC;
 ```
 **Benefits:** Cost visibility; budget control; early warning; informed decisions; predictable spending; resource optimization; financial accountability
 
-
 ## Post-Execution Checklist
 - [ ] Data source identified (System View for historical, Event Table for real-time)
 - [ ] Monitoring queries include timestamp filters (prevent full table scans)
@@ -239,9 +235,8 @@ ORDER BY day DESC;
 - [ ] Token tracking configured for cost attribution
 - [ ] Cross-references noted (114-aisql for AI costs, 122-dynamic-tables for DT monitoring)
 
-
 ## Validation
-- **Success Checks:** 
+- **Success Checks:**
   - Monitoring queries return expected data within latency constraints
   - Snowsight dashboards accessible and show current telemetry
   - Event table queries execute efficiently with timestamp filters
@@ -249,13 +244,13 @@ ORDER BY day DESC;
   - System View queries account for latency (no real-time expectations)
   - AI observability captures token usage and costs
 
-- **Negative Tests:** 
+- **Negative Tests:**
   - `SELECT *` on event tables should be discouraged
   - System Views queried for real-time data (< 45 min) should show no recent results
   - Event table queries without timestamp filters should be flagged
   - DEBUG level in production should trigger cost review
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Identify data source** - System View (historical) vs Event Table (real-time)
 > 2. **Check Snowsight access** - Verify users can access monitoring dashboards
@@ -272,14 +267,13 @@ ORDER BY day DESC;
 > [checks time requirements, selects Event Table for real-time or System View for historical]
 > "For real-time monitoring, use Monitoring → Traces & Logs. For historical analysis, use Query History..."
 
-
 ## Output Format Examples
 ```sql
 -- Monitoring Setup Template
 
 -- Step 1: Create error monitoring view
 CREATE OR REPLACE VIEW production_error_monitoring AS
-SELECT 
+SELECT
     DATE_TRUNC('hour', timestamp) as error_hour,
     resource_attributes:"snow.database.name"::string as database_name,
     resource_attributes:"snow.executable.name"::string as function_name,
@@ -295,7 +289,7 @@ ORDER BY error_hour DESC, error_count DESC;
 
 -- Step 2: Create performance monitoring view
 CREATE OR REPLACE VIEW function_performance_monitoring AS
-SELECT 
+SELECT
     resource_attributes:"snow.executable.name"::string as function_name,
     DATE_TRUNC('hour', timestamp) as hour,
     COUNT(*) as execution_count,
@@ -310,7 +304,7 @@ ORDER BY hour DESC, avg_duration_ms DESC;
 
 -- Step 3: Monitor AI costs
 CREATE OR REPLACE VIEW ai_cost_monitoring AS
-SELECT 
+SELECT
     DATE_TRUNC('day', timestamp) as usage_day,
     resource_attributes:"cortex.function"::string as ai_function,
     resource_attributes:"cortex.model"::string as model_name,
@@ -325,7 +319,7 @@ GROUP BY 1, 2, 3
 ORDER BY usage_day DESC, total_tokens DESC;
 
 -- Step 4: Estimate telemetry costs
-SELECT 
+SELECT
     record_type,
     COUNT(*) as record_count,
     COUNT(*) * 1024 / (1024*1024*1024) as estimated_gb,
@@ -334,7 +328,6 @@ FROM snowflake.account_usage.event_table
 GROUP BY record_type
 ORDER BY estimated_gb DESC;
 ```
-
 
 ## References
 
@@ -356,7 +349,6 @@ ORDER BY estimated_gb DESC;
 - **Cortex AISQL**: `rules/114-snowflake-cortex-aisql.md` - AI function cost governance and observability patterns
 - **Dynamic Tables**: `rules/122-snowflake-dynamic-tables.md` - Dynamic Table monitoring and optimization
 
-
 ## 1. Cost and Volume Management
 
 ### Data Volume Control
@@ -375,7 +367,7 @@ def log_with_sampling(logger, level, message, sample_rate=0.1):
 # Use for high-frequency operations
 for record in large_dataset:
     result = process_record(record)
-    
+
     # Only log a sample of successful operations
     if result.success:
         log_with_sampling(logger, logging.INFO, f"Processed record {record.id}", sample_rate=0.01)
@@ -407,7 +399,7 @@ ALTER DATABASE dev_analytics SET METRIC_LEVEL = ALL;
 ### Cost Estimation
 ```sql
 -- Estimate event table storage and volume
-SELECT 
+SELECT
     record_type,
     COUNT(*) as record_count,
     COUNT(*) * 1024 / (1024*1024*1024) as estimated_gb,
@@ -419,7 +411,6 @@ GROUP BY record_type
 ORDER BY estimated_gb DESC;
 ```
 
-
 ## 2. Monitoring and Analysis
 
 ### Regular Monitoring Queries
@@ -429,7 +420,7 @@ ORDER BY estimated_gb DESC;
 ```sql
 -- Create monitoring view for error analysis
 CREATE OR REPLACE VIEW system_errors AS
-SELECT 
+SELECT
     DATE_TRUNC('hour', timestamp) as error_hour,
     resource_attributes:"snow.database.name"::string as database_name,
     resource_attributes:"snow.executable.name"::string as object_name,
@@ -445,7 +436,7 @@ ORDER BY error_hour DESC, error_count DESC;
 
 -- Create performance monitoring view
 CREATE OR REPLACE VIEW function_performance AS
-SELECT 
+SELECT
     resource_attributes:"snow.executable.name"::string as function_name,
     DATE_TRUNC('hour', timestamp) as performance_hour,
     AVG(duration_ms) as avg_duration_ms,
@@ -464,7 +455,7 @@ ORDER BY performance_hour DESC, avg_duration_ms DESC;
 
 ```sql
 -- Query for Snowsight dashboard: Error rate by hour
-SELECT 
+SELECT
     DATE_TRUNC('hour', timestamp) as hour,
     COUNT(CASE WHEN severity_text IN ('ERROR', 'FATAL') THEN 1 END) as errors,
     COUNT(*) as total_logs,
@@ -475,7 +466,6 @@ WHERE record_type = 'LOG'
 GROUP BY hour
 ORDER BY hour;
 ```
-
 
 ## 3. Security and Governance Integration
 
@@ -490,7 +480,7 @@ GRANT SELECT ON snowflake.account_usage.event_table TO ROLE telemetry_analyst;
 
 -- Restrict access to sensitive telemetry data
 CREATE OR REPLACE MASKING POLICY log_message_mask AS (val string) RETURNS string ->
-  CASE 
+  CASE
     WHEN CURRENT_ROLE() IN ('TELEMETRY_ADMIN', 'SYSADMIN') THEN val
     ELSE REGEXP_REPLACE(val, '[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{4}', 'XXXX-XXXX-XXXX-XXXX')
   END;
@@ -498,7 +488,6 @@ CREATE OR REPLACE MASKING POLICY log_message_mask AS (val string) RETURNS string
 -- Apply masking to event table body column (if using custom event table)
 ALTER TABLE custom_event_table MODIFY COLUMN body SET MASKING POLICY log_message_mask;
 ```
-
 
 ## 4. Troubleshooting and Optimization
 
@@ -508,7 +497,7 @@ ALTER TABLE custom_event_table MODIFY COLUMN body SET MASKING POLICY log_message
 
 ```sql
 -- Identify slow function executions
-SELECT 
+SELECT
     resource_attributes:"snow.executable.name"::string as function_name,
     span_name,
     duration_ms,
@@ -521,13 +510,13 @@ WHERE record_type = 'SPAN'
 ORDER BY duration_ms DESC;
 
 -- Correlate with error logs
-SELECT 
+SELECT
     t.function_name,
     t.duration_ms,
     l.severity_text,
     l.body as error_message
 FROM (
-    SELECT 
+    SELECT
         resource_attributes:"snow.executable.name"::string as function_name,
         duration_ms,
         trace_id,
@@ -536,7 +525,7 @@ FROM (
     WHERE record_type = 'SPAN' AND duration_ms > 5000
 ) t
 JOIN (
-    SELECT 
+    SELECT
         trace_id,
         severity_text,
         body,
@@ -546,7 +535,6 @@ JOIN (
 ) l ON t.trace_id = l.trace_id
 WHERE ABS(DATEDIFF(second, t.timestamp, l.timestamp)) < 10;
 ```
-
 
 ## 5. Snowsight Monitoring Interfaces
 
@@ -560,7 +548,7 @@ WHERE ABS(DATEDIFF(second, t.timestamp, l.timestamp)) < 10;
   - Drill into individual trace details with nested spans
 
 **Usage for AI Agents:**
-> **Investigation Required**  
+> **Investigation Required**
 > When recommending Snowsight monitoring:
 > 1. Verify user has access to Monitoring → Traces & Logs
 > 2. Confirm event table is active and receiving data
@@ -586,7 +574,7 @@ Telling users to "check logs" without specific navigation path
 **Programmatic Access:**
 ```sql
 -- Query History System View (historical data)
-SELECT 
+SELECT
     query_id,
     query_text,
     user_name,
@@ -603,7 +591,7 @@ LIMIT 100;
 ```
 
 ### Copy History (Data Loading Monitoring)
-- **Navigation:** Monitoring → Copy History  
+- **Navigation:** Monitoring → Copy History
 - **Purpose:** Track all data loading operations via COPY INTO commands (System View based).
 - **Monitors:** Snowpipe, bulk COPY INTO, continuous data ingestion.
 - **Key Metrics:** Rows loaded, bytes transferred, file count, errors.
@@ -611,7 +599,7 @@ LIMIT 100;
 **Programmatic Access:**
 ```sql
 -- Copy History System View
-SELECT 
+SELECT
     file_name,
     table_name,
     last_load_time,
@@ -641,7 +629,7 @@ ORDER BY last_load_time DESC;
 **Programmatic Access:**
 ```sql
 -- Task History System View
-SELECT 
+SELECT
     name as task_name,
     database_name,
     schema_name,
@@ -670,7 +658,7 @@ ORDER BY scheduled_time DESC;
 **Programmatic Access:**
 ```sql
 -- Dynamic Tables Refresh History
-SELECT 
+SELECT
     name as dynamic_table_name,
     database_name,
     schema_name,
@@ -709,7 +697,6 @@ ORDER BY refresh_start_time DESC;
 **Anti-Pattern:**
 Using Query History (System View) to debug real-time application issues → Use Traces & Logs (Event Tables) for real-time, Query History for historical analysis
 
-
 ## 6. AI Observability
 
 ### Cortex AI Function Monitoring
@@ -720,7 +707,7 @@ Using Query History (System View) to debug real-time application issues → Use 
 **Cost Tracking Query:**
 ```sql
 -- Monitor Cortex AI token usage and costs
-SELECT 
+SELECT
     DATE_TRUNC('day', timestamp) as usage_day,
     resource_attributes:"cortex.function"::string as ai_function,
     resource_attributes:"cortex.model"::string as model_name,
@@ -759,16 +746,16 @@ logger = logging.getLogger(__name__)
 
 def generate_insights(session, user_query):
     """Generate AI insights with comprehensive tracing."""
-    
+
     with telemetry.create_span("ai_insight_generation") as span:
         span.set_attribute("user_query_length", len(user_query))
         span.set_attribute("model", "mistral-large2")
-        
+
         # Prompt preparation span
         with telemetry.create_span("prompt_preparation") as prep_span:
             prompt = f"Analyze this query: {user_query}"
             prep_span.set_attribute("prompt_length", len(prompt))
-        
+
         # AI model invocation span
         with telemetry.create_span("cortex_complete") as ai_span:
             result = session.sql(f"""
@@ -777,11 +764,11 @@ def generate_insights(session, user_query):
                     '{prompt}'
                 )
             """).collect()
-            
+
             response = result[0][0]
             ai_span.set_attribute("response_length", len(response))
             ai_span.set_attribute("success", True)
-        
+
         logger.info(f"AI insight generated: {len(response)} chars")
         span.set_attribute("total_processing_complete", True)
         return response
@@ -793,7 +780,7 @@ def generate_insights(session, user_query):
 
 ```sql
 -- AI Cost Attribution by Application
-SELECT 
+SELECT
     t.resource_attributes:"snow.executable.name"::string as application_name,
     t.resource_attributes:"cortex.function"::string as ai_function,
     COUNT(*) as invocations,
@@ -809,7 +796,6 @@ ORDER BY estimated_cost_usd DESC;
 ```
 
 **Cross-Reference:** See `114-snowflake-cortex-aisql.md` for detailed AISQL cost governance patterns.
-
 
 ## 7. Limitations and Considerations
 
@@ -839,8 +825,7 @@ ALTER SESSION SET TRACE_LEVEL = ALWAYS;
 
 ### System View Latency Considerations
 - **Query History:** 45 minutes latency
-- **Copy History:** 2 hours latency  
+- **Copy History:** 2 hours latency
 - **Task History:** 45 minutes latency
 - **Metering History:** 2-3 hours latency
 - **Implication:** Not suitable for real-time monitoring; use event tables for real-time needs.
-

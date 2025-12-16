@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** span attributes, trace_id, performance analysis, metrics collection, cpu_usage, memory_usage, telemetry.create_span, OpenTelemetry, nested spans, tracing patterns, span creation, trace analysis, distributed traces
 **TokenBudget:** ~3300
 **ContextTier:** High
@@ -11,11 +12,9 @@
 ## Purpose
 Provide comprehensive distributed tracing and metrics collection patterns for Snowflake handlers, enabling performance analysis, bottleneck identification, and resource monitoring through custom spans and metrics.
 
-
 ## Rule Scope
 
 Distributed tracing with `snowflake-telemetry-python` package and metrics collection for Snowflake handlers
-
 
 ## Quick Start TL;DR
 
@@ -42,7 +41,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Attributes added for context
 - [ ] Nested spans for sub-operations
 - [ ] Event limit observed (<128 per span)
-
 
 ## Contract
 
@@ -99,7 +97,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 </design_principles>
 
 </contract>
-
 
 ## Anti-Patterns and Common Mistakes
 
@@ -198,16 +195,15 @@ with telemetry.create_span("process_data") as span:
     span.add_attribute("input_size", len(data))
     span.add_attribute("data_source", data.source)
     span.add_attribute("user_id", user.id)
-    
+
     result = process(data)
-    
+
     span.add_attribute("success", result.success)
     span.add_attribute("output_size", len(result.data))
     if not result.success:
         span.add_attribute("error_code", result.error_code)
 ```
 **Benefits:** Filterable traces; rich debugging context; pattern identification; root cause analysis; production debugging; operational insights; actionable observability
-
 
 ## Post-Execution Checklist
 - [ ] `snowflake.telemetry` imported for Python handlers
@@ -219,21 +215,20 @@ with telemetry.create_span("process_data") as span:
 - [ ] TRACE_LEVEL = ON_EVENT for production
 - [ ] System metrics enabled (METRIC_LEVEL = ALL)
 
-
 ## Validation
-- **Success Checks:** 
+- **Success Checks:**
   - Spans appear in event tables with `record_type = 'SPAN'`
   - Trace IDs link related logs and spans
   - Span duration metrics are reasonable and reflect actual operation time
   - Nested spans show correct hierarchy in Snowsight Traces UI
   - System metrics captured when METRIC_LEVEL = ALL
 
-- **Negative Tests:** 
+- **Negative Tests:**
   - Spans with >128 events should be split or sampled
   - Spans with >128 attributes should be reduced
   - TRACE_LEVEL = ALWAYS in production should trigger performance review
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Check telemetry package** - Verify `snowflake-telemetry-python` is installed
 > 2. **Review TRACE_LEVEL** - Confirm appropriate for environment (ON_EVENT for prod)
@@ -250,7 +245,6 @@ with telemetry.create_span("process_data") as span:
 > [queries event tables, identifies slow operations, reviews TRACE_LEVEL]
 > "I see 3 operations >1 second. Adding strategic spans for those following ON_EVENT pattern..."
 
-
 ## Output Format Examples
 ```python
 # Distributed Tracing Template
@@ -263,19 +257,19 @@ logger = logging.getLogger(__name__)
 
 def my_handler(session, input_data):
     """Handler with distributed tracing."""
-    
+
     # Create span for overall operation
     with telemetry.create_span("my_handler_execution") as span:
         span.set_attribute("input_size", len(input_data))
-        
+
         logger.info(f"Starting processing for {len(input_data)} records")
-        
+
         try:
             # Nested span for validation
             with telemetry.create_span("data_validation") as validation_span:
                 valid_records = validate_data(input_data)
                 validation_span.set_attribute("valid_count", len(valid_records))
-            
+
             # Nested span for processing
             with telemetry.create_span("data_processing") as process_span:
                 results = []
@@ -283,27 +277,26 @@ def my_handler(session, input_data):
                     # Sample progress events (every 1000 records)
                     if i % 1000 == 0 and i > 0:
                         telemetry.add_event(f"Progress: {i}/{len(valid_records)}")
-                    
+
                     try:
                         result = process_record(record)
                         results.append(result)
                     except Exception as e:
                         logger.error(f"Failed processing record {record.id}: {e}")
-                
+
                 process_span.set_attribute("success_count", len(results))
                 process_span.set_attribute("error_count", len(valid_records) - len(results))
-            
+
             logger.info(f"Processing complete: {len(results)} successful")
             span.set_attribute("total_success", True)
             return results
-            
+
         except Exception as e:
             logger.error(f"Handler failed: {str(e)}")
             span.set_attribute("error", str(e))
             span.set_attribute("total_success", False)
             raise
 ```
-
 
 ## References
 
@@ -318,7 +311,6 @@ def my_handler(session, input_data):
 - **Observability Monitoring**: `rules/111c-snowflake-observability-monitoring.md` - Monitoring, Snowsight interfaces, analysis
 - **Performance Tuning**: `rules/103-snowflake-performance-tuning.md` - Performance optimization using trace data
 
-
 ## 1. Python Telemetry Package
 
 ### Basic Span Creation
@@ -330,23 +322,23 @@ from snowflake import telemetry
 
 def complex_calculation(session, input_data):
     """Complex calculation with distributed tracing."""
-    
+
     # Create custom span for the entire calculation
     with telemetry.create_span("complex_calculation") as span:
         span.set_attribute("input_size", len(input_data))
-        
+
         # Nested span for data validation
         with telemetry.create_span("data_validation") as validation_span:
             validation_span.set_attribute("validation_type", "business_rules")
             valid_data = validate_business_rules(input_data)
             validation_span.set_attribute("valid_records", len(valid_data))
-        
+
         # Nested span for computation
         with telemetry.create_span("computation") as compute_span:
             compute_span.set_attribute("algorithm", "weighted_average")
             result = perform_calculation(valid_data)
             compute_span.set_attribute("result_count", len(result))
-            
+
         span.set_attribute("processing_complete", True)
         return result
 ```
@@ -367,30 +359,29 @@ def complex_calculation(session, input_data):
 ```python
 def data_pipeline_stage(session, stage_name, data):
     """Pipeline stage with performance tracing."""
-    
+
     with telemetry.create_span(f"pipeline_stage_{stage_name}") as span:
         span.set_attribute("stage", stage_name)
         span.set_attribute("input_rows", len(data))
         span.set_attribute("pipeline_id", session.get_current_database())
-        
+
         start_time = time.time()
-        
+
         try:
             # Stage processing logic
             processed_data = transform_data(data, stage_name)
-            
+
             span.set_attribute("output_rows", len(processed_data))
             span.set_attribute("processing_time_ms", (time.time() - start_time) * 1000)
             span.set_attribute("success", True)
-            
+
             return processed_data
-            
+
         except Exception as e:
             span.set_attribute("error", str(e))
             span.set_attribute("success", False)
             raise
 ```
-
 
 ## 2. Custom Spans for Performance Analysis
 
@@ -404,10 +395,10 @@ from snowflake import telemetry
 
 def process_with_performance_tracking(session, data):
     """Track performance of expensive operations."""
-    
+
     with telemetry.create_span("full_processing") as main_span:
         main_span.set_attribute("total_records", len(data))
-        
+
         # Span for expensive database query
         with telemetry.create_span("database_query") as db_span:
             db_span.set_attribute("query_type", "JOIN")
@@ -417,13 +408,13 @@ def process_with_performance_tracking(session, data):
                 JOIN lookup_table b ON a.id = b.id
             """).collect()
             db_span.set_attribute("rows_returned", len(enriched_data))
-        
+
         # Span for complex transformation
         with telemetry.create_span("transformation") as transform_span:
             transform_span.set_attribute("transform_type", "aggregation")
             result = perform_aggregation(enriched_data)
             transform_span.set_attribute("result_size", len(result))
-        
+
         main_span.set_attribute("total_duration_ms", (time.time() - main_span.start_time) * 1000)
         return result
 ```
@@ -435,36 +426,35 @@ def process_with_performance_tracking(session, data):
 ```python
 def multi_stage_pipeline(session, input_data):
     """Multi-stage pipeline with nested tracing."""
-    
+
     with telemetry.create_span("full_pipeline") as pipeline_span:
         pipeline_span.set_attribute("stages", 3)
         pipeline_span.set_attribute("input_size", len(input_data))
-        
+
         # Stage 1: Ingestion
         with telemetry.create_span("stage_1_ingestion") as stage1:
             stage1.set_attribute("source", "external_api")
             data_stage1 = ingest_data(input_data)
             stage1.set_attribute("records_ingested", len(data_stage1))
-        
+
         # Stage 2: Validation
         with telemetry.create_span("stage_2_validation") as stage2:
             stage2.set_attribute("validation_rules", 5)
             data_stage2 = validate_data(data_stage1)
             stage2.set_attribute("valid_records", len(data_stage2))
             stage2.set_attribute("invalid_records", len(data_stage1) - len(data_stage2))
-        
+
         # Stage 3: Transformation
         with telemetry.create_span("stage_3_transformation") as stage3:
             stage3.set_attribute("transform_type", "normalization")
             final_data = transform_data(data_stage2)
             stage3.set_attribute("output_records", len(final_data))
-        
+
         pipeline_span.set_attribute("total_output", len(final_data))
         pipeline_span.set_attribute("success", True)
-        
+
         return final_data
 ```
-
 
 ## 3. Trace Events and Limitations
 
@@ -487,7 +477,7 @@ with telemetry.create_span("process_batch") as span:
 with telemetry.create_span("process_batch") as span:
     batch_size = 10000
     span.set_attribute("batch_size", batch_size)
-    
+
     for i in range(batch_size):
         process_item(i)
         # Only log milestones
@@ -506,20 +496,19 @@ with telemetry.create_span("operation") as span:
     span.set_attribute("input_size", len(data))
     span.set_attribute("operation_type", "transformation")
     span.set_attribute("success", True)
-    
+
 # Anti-Pattern: Too many attributes
 with telemetry.create_span("operation") as span:
     for i, record in enumerate(data):  # Don't create attribute per record
         span.set_attribute(f"record_{i}_status", record.status)  # BAD
 ```
 
-
 ## 4. Querying Trace Data
 
 ### Trace Analysis Queries
 ```sql
 -- Identify slow function executions
-SELECT 
+SELECT
     resource_attributes:"snow.executable.name"::string as function_name,
     span_name,
     duration_ms,
@@ -532,13 +521,13 @@ WHERE record_type = 'SPAN'
 ORDER BY duration_ms DESC;
 
 -- Correlate traces with error logs
-SELECT 
+SELECT
     t.function_name,
     t.duration_ms,
     l.severity_text,
     l.body as error_message
 FROM (
-    SELECT 
+    SELECT
         resource_attributes:"snow.executable.name"::string as function_name,
         duration_ms,
         trace_id,
@@ -547,7 +536,7 @@ FROM (
     WHERE record_type = 'SPAN' AND duration_ms > 5000
 ) t
 JOIN (
-    SELECT 
+    SELECT
         trace_id,
         severity_text,
         body,
@@ -557,7 +546,6 @@ JOIN (
 ) l ON t.trace_id = l.trace_id
 WHERE ABS(DATEDIFF(second, t.timestamp, l.timestamp)) < 10;
 ```
-
 
 ## 5. System Metrics Collection
 
@@ -570,7 +558,7 @@ WHERE ABS(DATEDIFF(second, t.timestamp, l.timestamp)) < 10;
 ALTER ACCOUNT SET METRIC_LEVEL = ALL;
 
 -- Query system metrics for performance analysis
-SELECT 
+SELECT
     timestamp,
     resource_attributes:"snow.executable.name"::string as function_name,
     metric_name,
@@ -590,16 +578,16 @@ from snowflake import telemetry
 
 def process_batch(session, batch_data):
     """Process batch with custom metrics."""
-    
+
     with telemetry.create_span("batch_processing") as span:
         # Emit custom metrics
         telemetry.emit_metric("batch_size", len(batch_data))
         telemetry.emit_metric("processing_start", time.time())
-        
+
         # Processing logic
         results = []
         error_count = 0
-        
+
         for record in batch_data:
             try:
                 processed = process_record(record)
@@ -607,15 +595,14 @@ def process_batch(session, batch_data):
             except Exception as e:
                 error_count += 1
                 logger.warn(f"Record processing failed: {e}")
-        
+
         # Emit completion metrics
         telemetry.emit_metric("records_processed", len(results))
         telemetry.emit_metric("processing_errors", error_count)
         telemetry.emit_metric("success_rate", len(results) / len(batch_data))
-        
+
         return results
 ```
-
 
 ## 6. TRACE_LEVEL Configuration
 
@@ -631,4 +618,3 @@ ALTER ACCOUNT SET TRACE_LEVEL = ON_EVENT;
 -- Development/Debugging: Trace all executions
 ALTER SESSION SET TRACE_LEVEL = ALWAYS;
 ```
-

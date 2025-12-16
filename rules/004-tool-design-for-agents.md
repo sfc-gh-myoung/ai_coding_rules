@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** tool design, agent tools, token efficiency, tool parameters, function calling, tool overlap, tool contracts, error handling, minimal tool set, self-contained tools, LLM-friendly parameters, single responsibility
 **TokenBudget:** ~5000
 **ContextTier:** High
@@ -11,11 +12,9 @@
 ## Purpose
 Establish comprehensive tool design practices that maximize agent effectiveness through token-efficient outputs, minimal tool overlap, clear contracts, and patterns that promote efficient agent behaviors while maintaining robustness and clarity.
 
-
 ## Rule Scope
 
 Tool development for AI agents across all platforms (Claude, GPT, Gemini) and frameworks
-
 
 ## Quick Start TL;DR
 
@@ -37,7 +36,6 @@ Tool development for AI agents across all platforms (Claude, GPT, Gemini) and fr
 - [ ] Clear contract (inputs, outputs, errors specified)
 - [ ] Robust error handling (actionable messages)
 - [ ] Token-efficient (no verbose dumps)
-
 
 ## Contract
 
@@ -84,7 +82,6 @@ Tool has single clear purpose; parameters are unambiguous; outputs are minimal a
 </design_principles>
 
 </contract>
-
 
 ## Anti-Patterns and Common Mistakes
 
@@ -142,7 +139,7 @@ def search(query: str, limit: int = 10) -> List[Result]:
 ```python
 def process_data(data: str, mode: int, flags: str = ""):
     """Process data with mode and flags
-    
+
     mode: 0=normal, 1=fast, 2=accurate, 3=balanced
     flags: Comma-separated options
     """
@@ -206,7 +203,7 @@ def get_next_page() -> List[Result]:
 ```python
 def search(query: str, page: int = 1, limit: int = 10) -> SearchResponse:
     """Search with explicit pagination.
-    
+
     Returns:
         {
             "results": [...],
@@ -217,7 +214,6 @@ def search(query: str, page: int = 1, limit: int = 10) -> SearchResponse:
     """
 ```
 **Benefits:** Explicit state; agent can resume after context reset; clear API
-
 
 ## Post-Execution Checklist
 
@@ -234,13 +230,12 @@ def search(query: str, page: int = 1, limit: int = 10) -> SearchResponse:
 - [ ] No stateful tools that assume context memory
 - [ ] Validation provides clear feedback for correction
 
-
 ## Validation
 
 - **Success Checks:** Agent can discover which tool to use; parameters are unambiguous; outputs are token-efficient; no tool overlap causes confusion; error messages enable self-correction; tool set covers needs without bloat; agent follows efficient patterns; tools are self-contained and stateless
 - **Negative Tests:** Ambiguous tool boundaries cause agent confusion; verbose outputs waste attention budget; opaque parameter names require memorization; vague error messages prevent correction; bloated tool sets overwhelm agent; stateful tools break after context reset
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Review existing tool set BEFORE adding new tools** - Check for overlap, identify gaps
 > 2. **Test tool outputs for token efficiency** - Measure actual token counts, not theoretical
@@ -256,7 +251,6 @@ def search(query: str, page: int = 1, limit: int = 10) -> SearchResponse:
 > "Let me check the existing tools first to see if any handle this use case."
 > [reviews tool specifications and tests relevant tools]
 > "I see tool X already handles part of this, but returns 500+ token outputs. Here's a new token-efficient tool that complements it without overlap..."
-
 
 ## Output Format Examples
 
@@ -284,7 +278,6 @@ Validation:
 - [x] Documentation updated
 ```
 
-
 ## References
 
 ### External Documentation
@@ -306,8 +299,6 @@ Validation:
 - **Context Engineering**: `rules/003-context-engineering.md` - Token efficiency and attention budget management
 - **Rule Governance**: `rules/002-rule-governance.md` - Standards for rule and tool documentation
 - **AGENTS Workflow**: `AGENTS.md` - Rule discovery and operational protocols
-
-
 
 ## 1. Tool Design Fundamentals
 
@@ -340,10 +331,10 @@ def file_operation(path: str, operation: str, content: str = None):
 ```python
 def read_file(path: str) -> str:
     """Read and return the complete contents of a file."""
-    
+
 def write_file(path: str, content: str) -> None:
     """Write content to a file, overwriting if it exists."""
-    
+
 def search_file(path: str, pattern: str) -> List[Match]:
     """Search for pattern in file, return matching lines."""
 ```
@@ -389,10 +380,10 @@ Is there exactly ONE obvious tool for this task?
 # Overlapping tools - which to use?
 def search_codebase(query: str):
     """Search for code matching query"""
-    
+
 def find_function(name: str):
     """Find function by name"""
-    
+
 def grep_files(pattern: str):
     """Grep for pattern in files"""
 ```
@@ -405,13 +396,12 @@ def grep_files(pattern: str):
 def grep(pattern: str, path: str = ".") -> List[Match]:
     """Search for exact text pattern in files using ripgrep.
     Use for: Finding specific strings, class names, function calls"""
-    
+
 def codebase_search(semantic_query: str) -> List[Result]:
     """Semantic search for code by meaning, not exact text.
     Use for: Finding functionality when you don't know exact names"""
 ```
 **Benefits:** Clear use cases; no overlap; agent knows which to use when
-
 
 ## 2. Token Efficiency in Tool Outputs
 
@@ -439,7 +429,7 @@ def read_file(path: str) -> dict:
 ```python
 def read_file(path: str) -> str:
     """Read file and return contents directly.
-    
+
     Returns: File contents as string
     Raises: FileNotFoundError if file doesn't exist
     """
@@ -484,7 +474,7 @@ def read_file(path: str) -> str:
 def write_file(path: str, content: str) -> None:
     # No return value if successful
     # Raises exception if error
-    
+
 # Bad: Verbose confirmation
 def write_file(path: str, content: str) -> dict:
     return {
@@ -506,12 +496,12 @@ def search_documents(
     fields: List[str] = ["title", "summary"]  # Not full content
 ) -> List[Dict]:
     """Search documents with result limiting.
-    
+
     Args:
         query: Search terms
         limit: Max results to return (default 10)
         fields: Which fields to include in results
-    
+
     Returns: List of matching documents with specified fields
     """
 ```
@@ -520,7 +510,6 @@ def search_documents(
 - Agent can start with summaries
 - Load full content only if needed
 - Prevents context overflow
-
 
 ## 3. Parameter Design
 
@@ -595,12 +584,12 @@ def search_date_range(
     resource_type: str
 ) -> List[Result]:
     """Search resources within date range.
-    
+
     Args:
         start_date: ISO format (YYYY-MM-DD)
         end_date: ISO format (YYYY-MM-DD)
         resource_type: One of: "users", "posts", "comments"
-    
+
     Raises:
         ValueError: If dates not in ISO format or end < start
         ValueError: If resource_type not recognized
@@ -608,11 +597,11 @@ def search_date_range(
     # Validate date format
     if not validate_iso_date(start_date):
         raise ValueError(f"start_date must be ISO format (YYYY-MM-DD), got: {start_date}")
-    
+
     # Validate logical constraints
     if end_date < start_date:
         raise ValueError(f"end_date ({end_date}) must be after start_date ({start_date})")
-    
+
     # Validate enumerated options
     valid_types = ["users", "posts", "comments"]
     if resource_type not in valid_types:
@@ -623,7 +612,6 @@ def search_date_range(
 - Agent receives actionable error messages
 - Can self-correct based on validation feedback
 - Prevents silent failures
-
 
 ## 4. Explicit Tool Specifications
 
@@ -647,36 +635,36 @@ def create_pull_request(
     reviewers: List[str] = None
 ) -> Dict[str, Any]:
     """Create a pull request in the repository.
-    
+
     Purpose:
         Opens a new pull request from source_branch to target_branch
         with specified title, description, and optional reviewers.
-    
+
     Args:
         title: PR title (max 200 characters)
         description: PR description (markdown supported)
         source_branch: Branch containing changes
         target_branch: Branch to merge into (default: "main")
         reviewers: List of GitHub usernames to request review from
-    
+
     Returns:
         {
             "pr_number": int,
             "url": str,
             "status": "open" | "draft"
         }
-    
+
     Raises:
         ValueError: If title exceeds 200 chars
         BranchNotFoundError: If source_branch doesn't exist
         PermissionError: If user lacks permission to create PR
         GitHubAPIError: If GitHub API request fails
-    
+
     Side Effects:
         - Creates PR in GitHub repository
         - Sends notifications to reviewers
         - Triggers CI/CD pipeline if configured
-    
+
     Example:
         pr = create_pull_request(
             title="Add authentication feature",
@@ -726,7 +714,6 @@ raise PermissionError(
 - Error message suggests how to fix the issue
 - Can retry with corrected parameters
 
-
 ## 5. Promoting Efficient Agent Behaviors
 
 ### Guide Agents Toward Good Patterns
@@ -740,17 +727,17 @@ raise PermissionError(
 def get_all_files() -> List[str]:
     """Return contents of all files in repository"""
     # Agents will use this and waste context
-    
+
 # Good: Encourages targeted exploration
 def search_files(pattern: str, file_type: str = None) -> List[Match]:
     """Search for pattern in specific files.
-    
+
     Encourages agent to search first, then read matches.
     """
-    
+
 def read_file(path: str) -> str:
     """Read a specific file by path.
-    
+
     Requires agent to know which file to read.
     """
 ```
@@ -761,13 +748,13 @@ def read_file(path: str) -> str:
 # Good: Supports incremental progress
 def run_tests(test_pattern: str = None) -> TestResults:
     """Run specific tests or all tests.
-    
+
     Args:
         test_pattern: Optional pattern to run subset (e.g., "test_auth*")
-    
+
     Allows agent to run relevant tests without full suite.
     """
-    
+
 # Bad: Forces all-or-nothing
 def run_all_tests() -> TestResults:
     """Run entire test suite (may take 10 minutes)"""
@@ -785,7 +772,7 @@ def run_all_tests() -> TestResults:
 def search_api(query: str, mode: str = "auto"):
     """Search using best mode automatically"""
     # What does "auto" mean? When does it pick what?
-    
+
 def search_api_fast(query: str):
     """Fast search (less accurate)"""
     # When should agent use this vs regular search?
@@ -796,12 +783,11 @@ def search_api_fast(query: str):
 def search_documents(query: str, limit: int = 10) -> List[Result]:
     """Semantic search across all documents.
     Use for: General queries, exploratory search, when you don't know exact location"""
-    
+
 def get_document_by_id(doc_id: str) -> Document:
     """Retrieve specific document by ID.
     Use for: When you have the exact document ID from previous search"""
 ```
-
 
 ## 6. Tool Set Curation
 
@@ -868,13 +854,13 @@ def file_operation(path, operation, content=None, lines=None, append=False):
 # After: Clear, focused tools
 def read_file(path: str) -> str:
     """Read entire file"""
-    
+
 def read_lines(path: str, start: int, end: int) -> str:
     """Read specific line range"""
-    
+
 def write_file(path: str, content: str) -> None:
     """Write/overwrite file"""
-    
+
 def append_to_file(path: str, content: str) -> None:
     """Append to existing file"""
 ```
@@ -899,7 +885,6 @@ user_data = get_user_profile(user_id)  # Returns user + prefs + settings
 ```
 
 **Trade-off:** Balance between tool focus and efficiency.
-
 
 ## 7. Testing Tool Usability
 
@@ -955,26 +940,21 @@ Agent gets confused by error messages
 → Error messages need improvement
 ```
 
-
 ## Tool Design Analysis
 - **Purpose:** [What this tool accomplishes in one sentence]
 - **Parameters:** [Each parameter with type and meaning]
 - **Returns:** [Return type and structure]
 - **Errors:** [Exceptions and when raised]
 
-
 ## Token Efficiency
 - **Output Size:** [Estimated tokens in typical response]
 - **Optimization:** [How output is minimized]
-
 
 ## Agent Usability
 - **Clear Use Case:** [When agent should use this tool]
 - **Parameter Guidance:** [How agent should provide parameters]
 - **Error Handling:** [How agent should respond to errors]
 
-
 ## Implementation
 [Tool code or specification]
 ```
-

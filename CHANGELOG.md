@@ -316,6 +316,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [3.2.1] - 2025-12-10
 
 ### Added
+- `100f-snowflake-connection-errors.md` — New Snowflake connection error classification rule (102 → 103 rules)
+  - Error classification hierarchy: network policy → auth → transient → permission → connection
+  - Detection functions for each error type with message content analysis
+  - Error code mapping with anti-patterns for 1:1 code assumptions
+  - Common error code patterns table (08001, 250001, 390114, 390318, 390144)
+  - Complete implementation example with SnowflakeErrorType enum
+  - Usage patterns for Python scripts, CLIs, REST APIs, Streamlit apps, Snowpark
+  - Prevents VPN disconnection misclassification as authentication failure
 - `207-python-logging.md` — New Python logging best practices rule (100 → 101 rules)
   - Rich console bridging to Python logger for dual CLI/web UI output
   - WebLogHandler implementation for SSE streaming
@@ -359,6 +367,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Strengthened recommendation in Required Structure & Format section
   - All documents cross-reference each other for consistency
   - Validation: Schema validation passed for both rule files (803: 924 checks, 800: 429 checks)
+- `101e-snowflake-streamlit-sql-errors.md` — Added Streamlit-specific connection error handling patterns
+  - New section: "Connection Error Handling in Streamlit" (~140 lines)
+  - Streamlit UI patterns (st.expander, st.warning, st.error, retry buttons)
+  - Auto-retry with exponential backoff implementation
+  - Session state recovery pattern
+  - References 100f for classification logic, focuses on presentation layer
+- `100-snowflake-core.md` — Added reference to 100f-snowflake-connection-errors.md in Related Rules
 - `803-project-git-workflow.md` — Added comprehensive pre-commit hooks guidance for sandboxed environments
   - New Anti-Pattern 6: Ignoring Pre-Commit Hook Failures with correct resolution patterns
   - New Section 6: Pre-Commit Hooks (understanding, permission requirements, handling failures, detection)
@@ -372,6 +387,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added Validation Commands quick-reference table
   - Reduced file from 215 lines to 149 lines (~31% reduction)
   - Estimated token savings: ~40% reduction in bootstrap overhead
+
+### Context
+Processed 1 finding (MEDIUM-HIGH severity): Snowflake error code 08001 misclassification causing VPN issues to be treated as authentication failures
 
 ## [3.2.0] - 2025-12-04
 

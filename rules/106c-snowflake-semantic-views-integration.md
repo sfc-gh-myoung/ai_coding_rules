@@ -92,7 +92,7 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 </validation>
 
 <design_principles>
-- **Native integration**: Use `semantic_view` parameter in Cortex Analyst REST API (not `semantic_model`)
+- **Native integration**: Prefer semantic views via `semantic_view` (or `semantic_models` containing `semantic_view`) in Cortex Analyst REST API; avoid staged YAML unless required (`semantic_model_file`)
 - **Governance via base tables**: Apply masking and row access policies to underlying tables
 - **Iterative refinement**: Start with Generator, enhance with synonyms and comments
 - **Natural language focus**: Optimize for business user queries, not technical SQL
@@ -227,7 +227,7 @@ payload = {
     "messages": [
         {"role": "user", "content": "What are the top 5 <metrics> by <dimension>?"}
     ],
-    "semantic_model": f"{database}.{schema}.{view_name}"
+    "semantic_view": f"{database}.{schema}.{view_name}"
 }
 response = requests.post(url, headers=headers, json=payload)
 print(response.json())
@@ -309,7 +309,7 @@ print(result["message"]["content"])  # Natural language response
 
 **Key Differences from YAML Approach:**
 - **Native views:** Use `"semantic_view": "DB.SCHEMA.VIEW_NAME"`
-- **Legacy YAML:** Used `"semantic_model": "@stage/model.yaml"`
+- **Legacy YAML (staged file):** Use `"semantic_model_file": "@DB.SCHEMA.STAGE/path/model.yaml"`
 - **No staging:** No need to upload files to internal stages
 - **Version control:** DDL changes tracked via SQL migrations
 

@@ -8,6 +8,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [3.4.2] - 2025-12-16
+
+### Added
+- feat(rules): add Snowflake connection error classification rule
+  - `100f-snowflake-connection-errors.md` — Systematic error classification for snowflake-connector-python
+  - Message-first classification to prevent misdiagnosis of network policy violations as auth failures
+  - Detection order: Network Policy → Authentication → Transient → Generic connection errors
+  - Actionable guidance output for each error type (VPN reconnect, auth refresh, retry/backoff)
+- feat(rules): add Snowflake MCP server rule
+  - `117-snowflake-mcp-server.md` — Tool-agnostic guidance for Snowflake-managed MCP servers
+  - CREATE MCP SERVER patterns for Cortex Analyst, Search, and Agents integration
+  - OAuth security patterns and least-privilege per-tool configuration
+  - Standard MCP JSON-RPC client flow (initialize → tools/list → tools/call)
+- feat(rules): add Snowflake role introspection rule
+  - `125-snowflake-role-introspection.md` — Programmatic RBAC inspection patterns
+  - Account role vs database role detection (check for `.` in role name)
+  - Correct SHOW GRANTS syntax for each role type
+  - Error 000906 "too many qualifiers" handling
+- feat(skills): add plan-reviewer skill for implementation plan review
+  - `skills/plan-reviewer/` — Complete skill with PROMPT, README, SKILL, VALIDATION docs
+  - Workflows for error handling, file write, input validation, model slugging, review execution
+  - Examples and test documentation for FULL, COMPARISON, and META review modes
+- feat(rules): add Streamlit connection error UI patterns to 101e
+  - New section: "Connection Error Handling in Streamlit" (~135 lines)
+  - Streamlit UI patterns (st.expander, st.warning, st.error, retry buttons)
+  - Auto-retry with exponential backoff implementation
+  - Session state recovery pattern
+  - References 100f for classification logic
+
+### Changed
+- docs(rules): update 100-snowflake-core.md with reference to 100f-snowflake-connection-errors.md
+- docs(rules): update 106c-snowflake-semantic-views-integration.md
+- refactor(skills): update docs-reviewer, rule-creator, and rule-reviewer prompts
+- docs(index): add 100f-snowflake-connection-errors.md to RULES_INDEX.md
+
+### Fixed
+- fix(rules): add RuleVersion metadata to new rules for schema compliance
+  - Added `**RuleVersion:** v1.0.0` to 100f, 117, and 125 rules
+  - Corrected metadata field order per schema requirements
+
 ## [3.4.0] - 2025-12-16
 
 ### Added

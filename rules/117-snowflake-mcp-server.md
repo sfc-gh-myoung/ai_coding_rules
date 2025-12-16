@@ -3,8 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.0
+**RuleVersion:** v1.0.0
 **Keywords:** MCP, Model Context Protocol, Snowflake-managed MCP server, CREATE MCP SERVER, SYSTEM_EXECUTE_SQL, CORTEX_ANALYST_MESSAGE, CORTEX_SEARCH_SERVICE_QUERY, CORTEX_AGENT_RUN, tools/list, tools/call, initialize, OAuth, SECURITY INTEGRATION, RBAC, PAT
-**TokenBudget:** ~3200
+**TokenBudget:** ~1650
 **ContextTier:** High
 **Depends:** rules/100-snowflake-core.md, rules/107-snowflake-security-governance.md, rules/112-snowflake-snowcli.md
 

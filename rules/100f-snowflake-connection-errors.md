@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.0
+**RuleVersion:** v1.0.0
 **Keywords:** connection errors, error classification, network policy, authentication, VPN, error codes, 08001, 390114, error handling, snowflake.connector, DatabaseError, message analysis, error detection
-**TokenBudget:** ~1800
+**TokenBudget:** ~2400
 **ContextTier:** High
 **Depends:** rules/100-snowflake-core.md
-**Version:** 1.0.0
-**Date:** 2025-12-09
+**LastUpdated:** 2025-12-09
 
 ## Purpose
 

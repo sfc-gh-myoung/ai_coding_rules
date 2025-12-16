@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** Bash, security, input validation, command injection, path security, secure shell scripts, sanitization, permissions, privilege escalation, secrets management
 **TokenBudget:** ~2750
 **ContextTier:** High
@@ -11,12 +12,9 @@
 ## Purpose
 Establish comprehensive bash scripting security practices covering input validation, path security, permissions, and secure coding patterns to prevent vulnerabilities and ensure safe script execution.
 
-
 ## Rule Scope
 
 Shell script security, input validation, access control
-
-
 
 ## Quick Start TL;DR
 
@@ -38,7 +36,6 @@ Shell script security, input validation, access control
 - [ ] No eval of user input
 - [ ] Secrets in secure storage
 - [ ] Command injection prevented
-
 
 ## Contract
 
@@ -133,12 +130,11 @@ echo  # Newline after hidden input
 - [ ] Output format matches requirements
 - [ ] Validation steps completed successfully
 
-
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read existing scripts BEFORE adding security** - Check current validation, permissions
 > 2. **Verify input sources** - Identify all user input points, environment variables
@@ -154,7 +150,6 @@ echo  # Newline after hidden input
 > "Let me check your script's security posture first."
 > [reads script, identifies input points, checks permissions]
 > "I see user input at lines X, Y. Adding validation and sanitization..."
-
 
 ## Output Format Examples
 
@@ -173,17 +168,17 @@ readonly LOG_FILE="${SCRIPT_DIR}/output.log"
 main() {
     # Investigation phase
     check_prerequisites
-    
+
     # Implementation phase
     perform_operations
-    
+
     # Validation phase
     verify_results
 }
 
 check_prerequisites() {
     local -a required_commands=(jq curl git)
-    
+
     for cmd in "${required_commands[@]}"; do
         if ! command -v "${cmd}" &>/dev/null; then
             echo "ERROR: Required command not found: ${cmd}" >&2
@@ -211,18 +206,16 @@ main "$@"
 shellcheck script.sh
 ```
 
-
 ## References
 
 ### External Documentation
-- [OWASP Command Injection Prevention](https://owasp.org/www-community/attacks/Command_Injection) - Security vulnerabilities and mitigation strategies                                                                  
+- [OWASP Command Injection Prevention](https://owasp.org/www-community/attacks/Command_Injection) - Security vulnerabilities and mitigation strategies
 - [CIS Security Controls](https://www.cisecurity.org/controls/) - Industry security configuration standards
 - [NIST Cybersecurity Framework](https://www.nist.gov/cyberframework) - Comprehensive security risk management
 
 ### Related Rules
 - **Bash Core**: `rules/300-bash-scripting-core.md`
 - **Bash Testing**: `rules/300b-bash-testing-tooling.md`
-
 
 ## 1. Input Validation and Sanitization
 
@@ -233,7 +226,7 @@ validate_input() {
     local input="$1"
     local pattern="$2"
     local field_name="${3:-input}"
-    
+
     if [[ ! "$input" =~ $pattern ]]; then
         echo "Error: Invalid $field_name format" >&2
         return 1
@@ -275,7 +268,6 @@ validate_dir() {
 }
 ```
 
-
 ## 2. Path Security and Traversal Prevention
 
 ### Path Validation
@@ -285,20 +277,20 @@ validate_path() {
     local path="$1"
     local base_dir="$2"
     local operation="${3:-access}"
-    
+
     # Resolve to absolute path
     local abs_path
     abs_path="$(realpath "$path" 2>/dev/null)" || {
         echo "Error: Cannot resolve path '$path'" >&2
         return 1
     }
-    
+
     # Check if path is within allowed directory
     if [[ "$abs_path" != "$base_dir"* ]]; then
         echo "Error: Path '$path' is outside allowed directory for $operation" >&2
         return 1
     fi
-    
+
     echo "$abs_path"
 }
 
@@ -308,11 +300,11 @@ secure_copy() {
     local dest="$2"
     local allowed_source_dir="$3"
     local allowed_dest_dir="$4"
-    
+
     local validated_source validated_dest
     validated_source="$(validate_path "$source" "$allowed_source_dir" "read")" || return 1
     validated_dest="$(validate_path "$dest" "$allowed_dest_dir" "write")" || return 1
-    
+
     cp "$validated_source" "$validated_dest"
 }
 ```
@@ -323,21 +315,21 @@ secure_copy() {
 sanitize_filename() {
     local filename="$1"
     local max_length="${2:-255}"
-    
+
     # Remove path components
     filename="${filename##*/}"
-    
+
     # Remove or replace dangerous characters
     filename="${filename//[^a-zA-Z0-9._-]/}"
-    
+
     # Remove leading dots and dashes
     filename="${filename#"${filename%%[!.-]*}"}"
-    
+
     # Ensure not empty after sanitization
     if [[ -z "$filename" ]]; then
         filename="sanitized_file_$(date +%s)"
     fi
-    
+
     # Truncate if too long
     if [[ ${#filename} -gt $max_length ]]; then
         local extension="${filename##*.}"
@@ -345,7 +337,7 @@ sanitize_filename() {
         local max_base=$((max_length - ${#extension} - 1))
         filename="${basename:0:$max_base}.$extension"
     fi
-    
+
     echo "$filename"
 }
 
@@ -354,12 +346,12 @@ create_user_file() {
     local user_filename="$1"
     local content="$2"
     local target_dir="$3"
-    
+
     local safe_filename
     safe_filename="$(sanitize_filename "$user_filename")" || return 1
-    
+
     local full_path="$target_dir/$safe_filename"
-    
+
     # Ensure we're not overwriting system files
     if [[ -e "$full_path" ]]; then
         echo "Warning: File '$safe_filename' already exists" >&2
@@ -368,12 +360,11 @@ create_user_file() {
             return 1
         fi
     fi
-    
+
     echo "$content" > "$full_path"
     chmod 644 "$full_path"
 }
 ```
-
 
 ## 3. Command Injection Prevention
 
@@ -391,7 +382,7 @@ execute_safe_command() {
     local operation="$1"
     shift
     local -a args=("$@")
-    
+
     case "$operation" in
         "list")
             ls "${args[@]}"
@@ -419,7 +410,7 @@ execute_safe_command() {
 process_user_data() {
     local user_input="$1"
     local operation="$2"
-    
+
     # Validate operation is from allowed set
     case "$operation" in
         "uppercase"|"lowercase"|"length")
@@ -430,7 +421,7 @@ process_user_data() {
             return 1
             ;;
     esac
-    
+
     case "$operation" in
         "uppercase")
             echo "${user_input^^}"
@@ -452,13 +443,13 @@ process_user_data() {
 execute_safe_query() {
     local db_file="$1"
     local user_id="$2"
-    
+
     # Validate user_id is numeric
     if [[ ! "$user_id" =~ ^[0-9]+$ ]]; then
         echo "Error: Invalid user ID format" >&2
         return 1
     fi
-    
+
     # Use sqlite3 with parameters (if available) or careful escaping
     sqlite3 "$db_file" "SELECT * FROM users WHERE id = $user_id;"
 }
@@ -470,7 +461,6 @@ escape_sql_string() {
     echo "${input//\'/\'\'}"
 }
 ```
-
 
 ## 4. Secrets and Credential Management
 
@@ -484,13 +474,13 @@ API_KEY="sk-1234567890abcdef"  # Hardcoded secret
 check_required_secrets() {
     local -a required_vars=("$@")
     local -a missing_vars=()
-    
+
     for var in "${required_vars[@]}"; do
         if [[ -z "${!var:-}" ]]; then
             missing_vars+=("$var")
         fi
     done
-    
+
     if [[ ${#missing_vars[@]} -gt 0 ]]; then
         echo "Error: Missing required environment variables: ${missing_vars[*]}" >&2
         echo "Please set these variables before running the script" >&2
@@ -509,12 +499,12 @@ load_credentials() {
     local file="$1"
     local perms
     perms="$(stat -c '%a' "$file" 2>/dev/null)" || return 1
-    
+
     if [[ "$perms" != "600" && "$perms" != "400" ]]; then
         echo "Error: Insecure permissions: $perms" >&2
         return 1
     fi
-    
+
     # shellcheck source=/dev/null
     source "$file"
 }
@@ -532,7 +522,6 @@ create_temp_creds() {
 }
 ```
 
-
 ## 5. File Permissions and Access Control
 
 ### Secure File Creation
@@ -542,16 +531,16 @@ create_secure_file() {
     local filename="$1"
     local content="$2"
     local permissions="${3:-644}"
-    
+
     # Create file with restrictive permissions first
     (
         umask 077  # Ensure only owner can access initially
         echo "$content" > "$filename"
     )
-    
+
     # Then set the desired permissions
     chmod "$permissions" "$filename"
-    
+
     echo "Created '$filename' with permissions $permissions"
 }
 
@@ -589,7 +578,6 @@ check_perms() {
 }
 ```
 
-
 ## 6. Process and System Security
 
 ### Privilege Management
@@ -608,7 +596,7 @@ check_running_as_root() {
 # Drop privileges when possible
 drop_privileges() {
     local target_user="$1"
-    
+
     if [[ $EUID -eq 0 ]]; then
         echo "Dropping privileges to user: $target_user"
         exec sudo -u "$target_user" "$0" "$@"
@@ -627,7 +615,6 @@ set_limits() {
 }
 ```
 
-
 ## 7. Network Security
 
 ### URL Validation
@@ -640,7 +627,6 @@ validate_url() {
 }
 ```
 
-
 ## 8. Secure Logging
 
 ### Basic Audit Logging
@@ -652,7 +638,6 @@ audit_log() {
     echo "$msg" >> "${LOG_FILE:-/var/log/audit.log}"
 }
 ```
-
 
 ## 9. Security Testing and Validation
 
@@ -667,4 +652,3 @@ test_security() {
     done
 }
 ```
-

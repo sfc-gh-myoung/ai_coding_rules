@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** React backend, FastAPI, Flask, Python API, CORS, JWT, authentication, API integration, full-stack, Express alternative, fetch, axios, TanStack Query backend, Next.js API routes, httpOnly cookies
 **TokenBudget:** ~1800
 **ContextTier:** High
@@ -15,7 +16,6 @@ Establishes backend integration patterns for React applications, with Python (Fa
 ## Rule Scope
 
 Applies to all React applications requiring backend API integration. Covers framework selection, API patterns, authentication, and development workflows for full-stack applications.
-
 
 ## Quick Start TL;DR
 
@@ -35,7 +35,6 @@ Applies to all React applications requiring backend API integration. Covers fram
 - [ ] Verify CORS configuration exists for development and production
 - [ ] Confirm authentication strategy (JWT, session, OAuth)
 - [ ] Review environment variable setup for API URLs
-
 
 ## Contract
 
@@ -75,7 +74,6 @@ TypeScript React code (`.tsx`) with TanStack Query hooks; Python backend code (F
 
 </contract>
 
-
 ## Key Principles
 
 ### 1. Backend Framework Selection
@@ -101,7 +99,6 @@ This organization defaults to Python backends because:
 - Strong typing with Pydantic models
 
 **Note:** This is an organizational preference, not a universal industry standard. Node.js backends are equally valid when team expertise or project requirements favor them.
-
 
 ### 2. API Communication Patterns
 
@@ -164,7 +161,6 @@ export const useUser = (userId: string) => {
 };
 ```
 
-
 ### 3. Authentication Flow
 
 #### 3.1 JWT with httpOnly Cookies (Recommended)
@@ -188,7 +184,7 @@ app.add_middleware(
 async def login(response: Response, credentials: LoginRequest):
     # Validate credentials, generate JWT
     token = create_access_token(credentials.email)
-    
+
     response.set_cookie(
         key="access_token",
         value=token,
@@ -208,7 +204,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 export const useAuth = () => {
   const queryClient = useQueryClient();
-  
+
   const { data: user, isLoading } = useQuery({
     queryKey: ['auth', 'me'],
     queryFn: fetchCurrentUser,
@@ -226,7 +222,6 @@ export const useAuth = () => {
   return { user, isLoading, isAuthenticated: !!user, logout };
 };
 ```
-
 
 ### 4. CORS Configuration
 
@@ -258,7 +253,6 @@ app = Flask(__name__)
 CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
 ```
 
-
 ### 5. Environment Management
 
 ```bash
@@ -272,7 +266,6 @@ VITE_API_URL=https://api.example.com
 CORS_ORIGINS=http://localhost:5173,http://localhost:3000
 JWT_SECRET=your-secret-key
 ```
-
 
 ## Anti-Patterns and Common Mistakes
 
@@ -325,7 +318,6 @@ const { data: user } = useQuery({
 });
 ```
 
-
 ## Post-Execution Checklist
 
 - [ ] Backend framework selected (FastAPI/Flask) with clear rationale
@@ -337,7 +329,6 @@ const { data: user } = useQuery({
 - [ ] Authentication flow tested end-to-end
 - [ ] Both frontend and backend tests passing
 - [ ] Development workflow documented (how to run both servers)
-
 
 ## Validation
 
@@ -358,7 +349,6 @@ const { data: user } = useQuery({
 > 2. **Review auth requirements** - OAuth? SAML? Simple JWT?
 > 3. **Identify API complexity** - Simple CRUD or complex business logic?
 > 4. **Check deployment model** - Monorepo? Separate repos? Serverless?
-
 
 ## Output Format Examples
 
@@ -405,7 +395,6 @@ npm run lint && npm run test && npm run type-check
 uvx ruff check . && uvx ruff format --check . && uv run pytest
 ```
 
-
 ## References
 
 ### External Documentation
@@ -420,4 +409,3 @@ uvx ruff check . && uvx ruff format --check . && uv run pytest
 - **FastAPI Core**: `rules/210-python-fastapi-core.md` - FastAPI patterns
 - **Flask Core**: `rules/250-python-flask.md` - Flask patterns
 - **TypeScript Core**: `rules/430-typescript-core.md` - Type safety patterns
-

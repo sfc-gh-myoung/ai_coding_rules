@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** FastAPI, async, REST API, Pydantic, dependency injection, routing, request validation, response models, APIRouter, uvicorn, async def, application factory
 **TokenBudget:** ~2950
 **ContextTier:** High
@@ -11,13 +12,9 @@
 ## Purpose
 Provide comprehensive FastAPI development best practices, organized into focused patterns that cover all aspects of modern web API development including application architecture, async programming, request/response handling, and error management for building maintainable, performant web APIs.
 
-
 ## Rule Scope
 
 FastAPI web API development with modern Python patterns, async/await, and Pydantic integration
-
-
-
 
 ## Quick Start TL;DR
 
@@ -41,7 +38,6 @@ FastAPI web API development with modern Python patterns, async/await, and Pydant
 - [ ] Global exception handlers configured
 - [ ] Run with `uv run uvicorn`
 - [ ] Cross-thread callbacks use `loop.call_soon_threadsafe()` (not `asyncio.get_event_loop()`)
-
 
 ## Contract
 
@@ -148,12 +144,11 @@ async def get_user(user_id: int, db: Session = Depends(get_db)):
 - [ ] Output format matches requirements
 - [ ] Validation steps completed successfully
 
-
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read existing FastAPI app structure BEFORE adding routes** - Check main.py, routers/, models/ organization
 > 2. **Verify current dependency injection patterns** - Check how database sessions, services are injected
@@ -170,7 +165,6 @@ async def get_user(user_id: int, db: Session = Depends(get_db)):
 > [reads main.py, routers/, checks for APIRouter usage]
 > "I see you're using APIRouter in routers/users.py with dependency injection for database sessions. Here's a new endpoint following the same pattern..."
 
-
 ## Output Format Examples
 
 ```python
@@ -183,7 +177,7 @@ from datetime import datetime, UTC
 
 class ServiceProtocol(Protocol):
     """Clear contract for service implementations."""
-    
+
     def process(self, data: dict) -> dict:
         """Process data following validation rules."""
         ...
@@ -191,19 +185,19 @@ class ServiceProtocol(Protocol):
 def implementation_function(input_data: dict) -> dict:
     """
     Implement feature following project conventions.
-    
+
     Args:
         input_data: Validated input following schema
-    
+
     Returns:
         Processed result with metadata
-    
+
     Raises:
         ValueError: If input validation fails
     """
     # Use datetime.now(UTC) not datetime.utcnow()
     timestamp = datetime.now(UTC)
-    
+
     # Implement business logic
     result = {"status": "success", "timestamp": timestamp}
     return result
@@ -213,10 +207,10 @@ def test_implementation_function():
     """Test following AAA pattern."""
     # Arrange
     test_input = {"key": "value"}
-    
+
     # Act
     result = implementation_function(test_input)
-    
+
     # Assert
     assert result["status"] == "success"
     assert "timestamp" in result
@@ -228,7 +222,6 @@ uvx ruff check .
 uvx ruff format --check .
 uv run pytest tests/
 ```
-
 
 ## References
 
@@ -245,7 +238,6 @@ uv run pytest tests/
 - **FastAPI Deployment**: `rules/210c-python-fastapi-deployment.md`
 - **FastAPI Monitoring**: `rules/210d-python-fastapi-monitoring.md`
 
-
 ## FastAPI Rule Categories
 
 ### Core Development Patterns (This File)
@@ -256,7 +248,7 @@ uv run pytest tests/
 - Configuration management
 - Integration with Python core rules
 
-### [SECURE] Security and Authentication  
+### [SECURE] Security and Authentication
 **Rule:** `210a-python-fastapi-security.md`
 - JWT token authentication
 - Role-based access control
@@ -274,7 +266,6 @@ uv run pytest tests/
 - Performance optimization and caching
 - Structured logging and observability
 
-
 ## Quick Reference
 
 ### Development Workflow
@@ -282,7 +273,7 @@ uv run pytest tests/
 # Setup (following 200-python-core.md)
 uv run uvicorn app.main:app --reload
 
-# Testing  
+# Testing
 uv run pytest tests/ -v --cov=app
 
 # Linting (see 201-python-lint-format.md for complete configuration)
@@ -296,7 +287,6 @@ uvx ruff check . && uvx ruff format .
 - **Pydantic Validation**: Separate request/response models
 - **Security First**: Implement authentication and input validation
 - **Production Ready**: Health checks, logging, and monitoring
-
 
 ## 1. Application Structure and Organization
 
@@ -346,26 +336,25 @@ from app.config import get_settings
 def create_app() -> FastAPI:
     """Create and configure FastAPI application."""
     settings = get_settings()
-    
+
     app = FastAPI(
         title=settings.app_name,
         description=settings.description,
         version=settings.version,
         docs_url="/docs" if settings.debug else None,
     )
-    
+
     # Add exception handlers
     add_exception_handlers(app)
-    
+
     # Include routers
     app.include_router(auth.router, prefix="/auth", tags=["auth"])
     app.include_router(users.router, prefix="/users", tags=["users"])
-    
+
     return app
 
 app = create_app()
 ```
-
 
 ## 2. Async Programming and Performance
 
@@ -423,14 +412,14 @@ async def process_with_progress():
     async def event_generator():
         """Generate SSE events from progress queue."""
         task = asyncio.create_task(run_blocking_work())
-        
+
         while True:
             if task.done():
                 # Drain remaining messages
                 while not progress_queue.empty():
                     msg = await progress_queue.get()
                     yield f"data: {json.dumps(msg)}\n\n"
-                
+
                 # Send final result
                 try:
                     result = task.result()
@@ -438,7 +427,7 @@ async def process_with_progress():
                 except Exception as e:
                     yield f"data: {json.dumps({'status': 'error', 'message': str(e)})}\n\n"
                 break
-            
+
             try:
                 msg = await asyncio.wait_for(progress_queue.get(), timeout=0.5)
                 yield f"data: {json.dumps(msg)}\n\n"
@@ -486,7 +475,6 @@ async def get_db() -> AsyncSession:
             await session.close()
 ```
 
-
 ## 3. Request/Response Handling and Validation
 
 ### Pydantic Models
@@ -509,7 +497,7 @@ class UserCreate(BaseModel):
 class UserResponse(BaseModel):
     """User response model - excludes sensitive fields."""
     model_config = ConfigDict(from_attributes=True)
-    
+
     id: int
     email: EmailStr
     full_name: str
@@ -535,7 +523,7 @@ class ProductCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=200)
     price: float = Field(..., gt=0, le=10000)
     category_id: int = Field(..., gt=0)
-    
+
     @field_validator('name')
     @classmethod
     def validate_name(cls, v: str) -> str:
@@ -543,7 +531,6 @@ class ProductCreate(BaseModel):
             raise ValueError('Name cannot be empty or whitespace only')
         return v.strip()
 ```
-
 
 ## 4. Error Handling and Exception Management
 
@@ -595,7 +582,6 @@ def add_exception_handlers(app: FastAPI):
     app.add_exception_handler(RequestValidationError, validation_exception_handler)
 ```
 
-
 ## 5. Configuration Management
 
 ### Environment-Based Configuration
@@ -611,22 +597,22 @@ from functools import lru_cache
 
 class Settings(BaseSettings):
     model_config = ConfigDict(env_file=".env", case_sensitive=False)
-    
+
     app_name: str = "FastAPI App"
     debug: bool = False
     version: str = "1.0.0"
-    
+
     # Database
     database_url: PostgresDsn
-    
+
     # Security
     secret_key: str
     access_token_expire_minutes: int = 30
-    
+
     # CORS
     allowed_origins: List[str] = ["http://localhost:3000"]
     allowed_hosts: List[str] = ["localhost", "127.0.0.1"]
-    
+
     @field_validator('allowed_origins', mode='before')
     @classmethod
     def assemble_cors_origins(cls, v):
@@ -638,7 +624,6 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     return Settings()
 ```
-
 
 ## 6. Integration with Python Core Rules
 
@@ -652,4 +637,3 @@ def get_settings() -> Settings:
 - **Always:** Follow Python core rules from `200-python-core.md` for all uv commands.
 - **Always:** Apply linting and formatting rules from `201-python-lint-format.md`.
 - **FastAPI Specific:** Use `uv run uvicorn app.main:app --reload` for development server.
-

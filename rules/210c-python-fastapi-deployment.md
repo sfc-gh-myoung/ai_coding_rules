@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** FastAPI deployment, Uvicorn, Gunicorn, ASGI, Docker, production deployment, health checks, multi-stage build, OpenAPI, API documentation
 **TokenBudget:** ~2400
 **ContextTier:** High
@@ -11,13 +12,9 @@
 ## Purpose
 Establish production deployment patterns and API documentation practices for FastAPI applications using Docker, ASGI servers, and OpenAPI customization.
 
-
 ## Rule Scope
 
 FastAPI production deployment with Docker, ASGI servers, and API documentation patterns
-
-
-
 
 ## Quick Start TL;DR
 
@@ -39,7 +36,6 @@ FastAPI production deployment with Docker, ASGI servers, and API documentation p
 - [ ] OpenAPI examples and descriptions
 - [ ] Environment-specific configuration
 - [ ] Docker Compose for local development
-
 
 ## Contract
 
@@ -135,12 +131,11 @@ async def readiness(db: Session = Depends(get_db)):
 - [ ] Output format matches requirements
 - [ ] Validation steps completed successfully
 
-
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read existing deployment files BEFORE adding config** - Check Dockerfile, docker-compose.yml, gunicorn.conf.py
 > 2. **Verify current ASGI server setup** - Check if Uvicorn or Gunicorn is already configured
@@ -157,7 +152,6 @@ async def readiness(db: Session = Depends(get_db)):
 > [reads Dockerfile, docker-compose.yml, checks for ASGI server config]
 > "I see you have a Dockerfile using Gunicorn with Uvicorn workers. Here's how to add health checks following the same pattern..."
 
-
 ## Output Format Examples
 
 ```python
@@ -170,7 +164,7 @@ from datetime import datetime, UTC
 
 class ServiceProtocol(Protocol):
     """Clear contract for service implementations."""
-    
+
     def process(self, data: dict) -> dict:
         """Process data following validation rules."""
         ...
@@ -178,19 +172,19 @@ class ServiceProtocol(Protocol):
 def implementation_function(input_data: dict) -> dict:
     """
     Implement feature following project conventions.
-    
+
     Args:
         input_data: Validated input following schema
-    
+
     Returns:
         Processed result with metadata
-    
+
     Raises:
         ValueError: If input validation fails
     """
     # Use datetime.now(UTC) not datetime.utcnow()
     timestamp = datetime.now(UTC)
-    
+
     # Implement business logic
     result = {"status": "success", "timestamp": timestamp}
     return result
@@ -200,10 +194,10 @@ def test_implementation_function():
     """Test following AAA pattern."""
     # Arrange
     test_input = {"key": "value"}
-    
+
     # Act
     result = implementation_function(test_input)
-    
+
     # Assert
     assert result["status"] == "success"
     assert "timestamp" in result
@@ -216,11 +210,10 @@ uvx ruff format --check .
 uv run pytest tests/
 ```
 
-
 ## References
 
 ### External Documentation
-- [FastAPI Deployment Guide](https://fastapi.tiangolo.com/deployment/) - Production deployment strategies and server configurations                                                                                     
+- [FastAPI Deployment Guide](https://fastapi.tiangolo.com/deployment/) - Production deployment strategies and server configurations
 - [Uvicorn Deployment](https://www.uvicorn.org/deployment/) - ASGI server deployment and process management
 - [Gunicorn Configuration](https://docs.gunicorn.org/en/stable/configure.html) - Worker processes, timeouts, and production settings
 
@@ -229,7 +222,6 @@ uv run pytest tests/
 - **FastAPI Security**: `rules/210a-python-fastapi-security.md`
 - **FastAPI Monitoring**: `rules/210d-python-fastapi-monitoring.md`
 - **Python Core**: `rules/200-python-core.md`
-
 
 ## 1. API Documentation
 
@@ -302,12 +294,12 @@ async def create_user(
 ) -> UserResponse:
     """
     Create a new user account.
-    
+
     **Required fields:**
     - **email**: Valid email address (must be unique)
     - **password**: Minimum 8 characters
     - **full_name**: User's full name (1-100 characters)
-    
+
     **Returns:**
     - User object with ID and timestamps
     - Password is never returned in response
@@ -329,24 +321,24 @@ def custom_openapi():
     """Generate custom OpenAPI schema."""
     if app.openapi_schema:
         return app.openapi_schema
-    
+
     openapi_schema = get_openapi(
         title="FastAPI Application",
         version="1.0.0",
         description="""
         ## FastAPI Application API
-        
+
         This API provides user management, authentication, and business logic endpoints.
-        
+
         ### Authentication
         Most endpoints require authentication using JWT tokens. Include the token in the Authorization header:
         ```
         Authorization: Bearer <your-jwt-token>
         ```
-        
+
         ### Error Handling
         All errors follow a consistent format with appropriate HTTP status codes.
-        
+
         ### Rate Limiting
         API endpoints are rate limited. Check response headers for current limits.
         """,
@@ -366,7 +358,7 @@ def custom_openapi():
             }
         ]
     )
-    
+
     # Add security scheme
     openapi_schema["components"]["securitySchemes"] = {
         "BearerAuth": {
@@ -375,13 +367,12 @@ def custom_openapi():
             "bearerFormat": "JWT"
         }
     }
-    
+
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
 app.openapi = custom_openapi
 ```
-
 
 ## 2. Production Deployment
 
@@ -547,7 +538,6 @@ volumes:
   postgres_data:
 ```
 
-
 ## 3. Integration with Core Rules
 
 ### Development Commands
@@ -563,4 +553,3 @@ uv run gunicorn app.main:app -c gunicorn.conf.py
 docker build -t fastapi-app .
 docker-compose up --build
 ```
-

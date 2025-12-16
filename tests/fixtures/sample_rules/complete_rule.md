@@ -2,6 +2,7 @@
 
 ## Metadata
 
+**RuleVersion:** v1.0.0
 **Keywords:** test, validation, complete, example, fixture, schema-v3, comprehensive, testing, verification, sample
 **TokenBudget:** ~1200
 **ContextTier:** High

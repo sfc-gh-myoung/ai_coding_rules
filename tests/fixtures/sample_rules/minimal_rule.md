@@ -2,6 +2,7 @@
 
 ## Metadata
 
+**RuleVersion:** v1.0.0
 **Keywords:** minimal, basic, test, fixture, validation, simple, baseline, schema-v3, required, essential
 **TokenBudget:** ~450
 **ContextTier:** Medium

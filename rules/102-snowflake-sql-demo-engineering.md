@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** teardown, customer_load.sql, inline documentation, progress indicators, rerunnable demos, Snowflake SQL, CREATE OR REPLACE, educational SQL, demo patterns, demo data, setup scripts, demo automation, learning examples
 **TokenBudget:** ~4850
 **ContextTier:** High
@@ -11,12 +12,9 @@
 ## Purpose
 Guide SQL file creation for Snowflake demos and customer learning environments. Prioritizes ease of use, readability, and educational value over automation complexity. Optimized for pre-sales engineers, field teams, and customers learning Snowflake capabilities.
 
-
 ## Rule Scope
 
 Demo SQL files, workshop materials, customer learning environments, quickstart guides
-
-
 
 ## Quick Start TL;DR
 
@@ -44,7 +42,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] All object names fully qualified (DB.SCHEMA.OBJECT)
 - [ ] Script is rerunnable (idempotent patterns)
 - [ ] Comments teach concepts, not just describe syntax
-
 
 ## Contract
 
@@ -87,7 +84,6 @@ Run setup → verify objects created → run teardown → verify cleanup → rer
 </design_principles>
 
 </contract>
-
 
 ## Anti-Patterns and Common Mistakes
 
@@ -150,7 +146,7 @@ CREATE TABLE IF NOT EXISTS customers (
 
 -- Idempotent insert: only insert if not exists
 MERGE INTO customers tgt
-USING (SELECT 1 AS id, 'Alice' AS name UNION ALL 
+USING (SELECT 1 AS id, 'Alice' AS name UNION ALL
        SELECT 2, 'Bob') src
 ON tgt.id = src.id
 WHEN NOT MATCHED THEN INSERT (id, name) VALUES (src.id, src.name);
@@ -206,7 +202,7 @@ SELECT * FROM <%DATABASE%>.PUBLIC.source_data;
 **Anti-Pattern 4: No Sample Output or Expected Results Documentation**
 ```sql
 -- Bad: No sample output, users don't know what to expect
-SELECT 
+SELECT
   customer_id,
   COUNT(*) AS order_count,
   SUM(amount) AS total_amount
@@ -224,7 +220,7 @@ LIMIT 10;
 ```sql
 -- Good: Document expected output
 -- Query: Top 10 customers by total spend
-SELECT 
+SELECT
   customer_id,
   COUNT(*) AS order_count,
   SUM(amount) AS total_amount
@@ -257,7 +253,6 @@ If you see errors or different output:
 */
 ```
 **Benefits:** Clear expectations; easy validation; debuggable; documented; professional; good UX; confidence-building
-
 
 ## Post-Execution Checklist
 
@@ -294,7 +289,6 @@ If you see errors or different output:
 - [ ] Clear error messages if prerequisites missing
 - [ ] SQL files execute successfully via CLI (`snow sql -f file.sql`)
 
-
 ## Validation
 - **Success Checks:**
   - SQL files execute without errors in Snowsight and CLI
@@ -311,7 +305,7 @@ If you see errors or different output:
   - COMMENT after AS in CREATE VIEW causes syntax error
   - Non-qualified names may fail in CLI without session context
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read existing SQL files BEFORE making recommendations** - Never assume demo structure or naming patterns
 > 2. **Verify actual object names and schemas** - Check what database/schema names are being used in the project
@@ -327,7 +321,6 @@ If you see errors or different output:
 > "Let me check your current SQL file organization first."
 > [reads sql/ directory and existing files]
 > "I see you're using UTILITY_DEMO_V2 as the database and have grid_setup.sql. Here's how to add customer_setup.sql following the same pattern..."
-
 
 ## Output Format Examples
 ```sql
@@ -357,7 +350,6 @@ SELECT '[PASS] Tables created' AS progress;
 SELECT 'GRID_DATA schema setup complete!' AS status;
 ```
 
-
 ## References
 
 ### External Documentation
@@ -373,8 +365,6 @@ SELECT 'GRID_DATA schema setup complete!' AS status;
 - **Performance Tuning**: `rules/103-snowflake-performance-tuning.md` - Query optimization
 - **Data Loading**: `rules/108-snowflake-data-loading.md` - Comprehensive data loading patterns
 
-
-
 ## 1. File Naming for Demos
 
 ### 1.1 Schema-Based Naming Pattern
@@ -389,7 +379,7 @@ SELECT 'GRID_DATA schema setup complete!' AS status;
 **Examples:**
 ```text
 grid_setup.sql           # Create GRID_DATA schema and tables
-grid_load.sql            # Load grid data from CSV files  
+grid_load.sql            # Load grid data from CSV files
 grid_teardown.sql        # Drop GRID_DATA schema
 
 customer_setup.sql       # Create CUSTOMER_DATA schema and tables
@@ -423,7 +413,6 @@ grid_teardown.sql
 
 **When NOT to use:** If steps can run in any order, omit numbers
 
-
 ## 2. Per-Schema Setup and Teardown
 
 ### 2.1 Schema Isolation Requirements
@@ -447,7 +436,7 @@ grid_teardown.sql
 -- ============================================================================
 -- Filename: grid_setup.sql
 -- Description: Create GRID_DATA schema and all related objects
--- 
+--
 -- Prerequisites: Database UTILITY_DEMO_V2 must exist
 -- Creates: GRID_DATA schema, 5 tables, 1 stage, 2 views
 -- ============================================================================
@@ -495,14 +484,14 @@ SELECT '[PASS] Stage created' AS progress;
 CREATE OR REPLACE VIEW UTILITY_DEMO_V2.GRID_DATA.VW_ASSET_FAILURES
 COMMENT = 'Join assets with failure history for analysis'
 AS
-SELECT 
+SELECT
     a.asset_id,
     a.asset_type,
     a.install_date,
     COUNT(f.failure_id) AS failure_count,
     SUM(f.repair_cost) AS total_repair_cost
 FROM UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS a
-LEFT JOIN UTILITY_DEMO_V2.GRID_DATA.FAILURE_EVENTS f 
+LEFT JOIN UTILITY_DEMO_V2.GRID_DATA.FAILURE_EVENTS f
     ON a.asset_id = f.asset_id
 GROUP BY a.asset_id, a.asset_type, a.install_date;
 
@@ -550,10 +539,10 @@ SELECT '[PASS] GRID_DATA schema removed' AS status;
 
 ```sql
 -- ============================================================================
--- Filename: grid_load.sql  
+-- Filename: grid_load.sql
 -- Description: Load all grid data from CSV files into GRID_DATA tables
 --
--- Prerequisites: 
+-- Prerequisites:
 --   - GRID_DATA schema exists (run grid_setup.sql first)
 --   - CSV files uploaded to stage
 -- ============================================================================
@@ -592,7 +581,6 @@ SELECT 'Grid data load complete!' AS status;
 - Educational comments (explain acronyms)
 - Pattern matching for flexible file names
 - Progress after each table load
-
 
 ## 3. Demo-Specific Best Practices
 
@@ -668,7 +656,6 @@ CREATE OR REPLACE STAGE UTILITY_DEMO_V2.GRID_DATA.DATA_FILES;
 
 **NOT production-safe:** CREATE OR REPLACE TABLE deletes data. For production, use `102a-snowflake-sql-automation.md`.
 
-
 ## 4. Common SQL Syntax Patterns
 
 ### 4.1 COPY INTO Syntax
@@ -724,7 +711,7 @@ FILE_FORMAT = (
 CREATE OR REPLACE VIEW my_db.my_schema.my_view
 COMMENT = 'Business-friendly view for dashboard'
 AS
-SELECT 
+SELECT
     asset_id,
     failure_count,
     total_cost
@@ -826,7 +813,6 @@ CREATE SEMANTIC VIEW my_view AS
 | `P&L` | `P and L`, `Profit and Loss` |
 | `<%VAR%>` | Use Snowflake CLI `--variable` flag instead |
 
-
 ## 5. File Headers for Demos
 
 ### 5.1 Standard Header Format
@@ -890,7 +876,6 @@ CREATE OR REPLACE TABLE UTILITY_DEMO_V2.GRID_DATA.SCADA_DATA (...);
 CREATE OR REPLACE VIEW UTILITY_DEMO_V2.GRID_DATA.VW_SUMMARY AS ...;
 ```
 
-
 ## 6. Demo Project Structure
 
 ### 6.1 Recommended Directory Structure
@@ -949,7 +934,6 @@ tasks:
       - task: load:customer
 ```
 
-
 ## When to Use Production Patterns
 
 **If user requests:**
@@ -966,4 +950,3 @@ tasks:
 - Environment-agnostic patterns
 - CI/CD integration
 - Audit trail requirements
-

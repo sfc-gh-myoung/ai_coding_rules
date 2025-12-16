@@ -2,6 +2,7 @@
 
 ## Metadata
 
+**RuleVersion:** v1.0.0
 **Keywords:** alpinejs, hyperscript, tailwind, bootstrap, css frameworks, icon libraries, chartjs, frontend libraries, client-side enhancements, htmx integration, javascript frameworks
 **TokenBudget:** ~1900
 **ContextTier:** Low
@@ -85,14 +86,14 @@ Integrated application using HTMX with Alpine.js/_hyperscript, CSS framework, ic
 ```html
 <div x-data="{ open: false }">
     <button @click="open = !open">Toggle Menu</button>
-    
+
     <div x-show="open" @click.away="open = false">
-        <a href="#" 
-           hx-get="/profile" 
+        <a href="#"
+           hx-get="/profile"
            hx-target="#content"
            @click="open = false">Profile</a>
-        <a href="#" 
-           hx-get="/settings" 
+        <a href="#"
+           hx-get="/settings"
            hx-target="#content"
            @click="open = false">Settings</a>
     </div>
@@ -103,15 +104,15 @@ Integrated application using HTMX with Alpine.js/_hyperscript, CSS framework, ic
 ```html
 <div x-data="{ modalOpen: false }">
     <button @click="modalOpen = true">Open Modal</button>
-    
-    <div x-show="modalOpen" 
-         x-cloak 
+
+    <div x-show="modalOpen"
+         x-cloak
          @keydown.escape.window="modalOpen = false"
          class="modal-overlay">
         <div class="modal-content" @click.away="modalOpen = false">
             <button @click="modalOpen = false">Close</button>
-            
-            <div hx-get="/modal-content" 
+
+            <div hx-get="/modal-content"
                  hx-trigger="load"
                  hx-swap="innerHTML">
                 Loading...
@@ -147,7 +148,7 @@ function statusPage() {
                     if (event.type === 'system_status') {
                         // ✓ GOOD: Use camelCase event name
                         htmx.trigger('#status-display', 'systemStatus');
-                        
+
                         // ❌ BAD: sse: prefix won't work from htmx.trigger()
                         // htmx.trigger('#status-display', 'sse:system_status');
                     }
@@ -263,7 +264,7 @@ document.body.addEventListener('htmx:afterSwap', function(event) {
     // Reinitialize tooltips in swapped content
     const tooltips = event.detail.target.querySelectorAll('[data-bs-toggle="tooltip"]');
     tooltips.forEach(el => new bootstrap.Tooltip(el));
-    
+
     // Reinitialize popovers
     const popovers = event.detail.target.querySelectorAll('[data-bs-toggle="popover"]');
     popovers.forEach(el => new bootstrap.Popover(el));
@@ -294,7 +295,7 @@ document.body.addEventListener('htmx:afterSwap', function(event) {
 {# Inline SVG icons in partials #}
 <button hx-delete="/items/123">
     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
     </svg>
     Delete
@@ -315,19 +316,19 @@ let chartInstances = {};
 
 document.body.addEventListener('htmx:afterSwap', function(event) {
     const chartElements = event.detail.target.querySelectorAll('canvas.chart');
-    
+
     chartElements.forEach(canvas => {
         const chartId = canvas.id;
-        
+
         // Destroy existing chart if it exists
         if (chartInstances[chartId]) {
             chartInstances[chartId].destroy();
         }
-        
+
         // Create new chart
         const ctx = canvas.getContext('2d');
         const data = JSON.parse(canvas.dataset.chartData);
-        
+
         chartInstances[chartId] = new Chart(ctx, {
             type: canvas.dataset.chartType || 'bar',
             data: data,
@@ -343,8 +344,8 @@ document.body.addEventListener('htmx:afterSwap', function(event) {
 ```html
 {# Partial with chart #}
 <div hx-get="/chart-data" hx-trigger="every 10s">
-    <canvas id="chart-1" 
-            class="chart" 
+    <canvas id="chart-1"
+            class="chart"
             data-chart-type="line"
             data-chart-data='{"labels": ["Jan", "Feb"], "datasets": [...]}'></canvas>
 </div>
@@ -355,7 +356,7 @@ document.body.addEventListener('htmx:afterSwap', function(event) {
 // Clean up charts before replacement
 document.body.addEventListener('htmx:beforeSwap', function(event) {
     const chartElements = event.detail.target.querySelectorAll('canvas.chart');
-    
+
     chartElements.forEach(canvas => {
         const chartId = canvas.id;
         if (chartInstances[chartId]) {
@@ -464,30 +465,30 @@ document.body.addEventListener('htmx:afterSwap', function(event) {
 <head>
     <meta charset="UTF-8">
     <title>HTMX with Frontend Integrations</title>
-    
+
     {# CSS Frameworks #}
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     {# HTMX and Alpine.js #}
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    
+
     {# Chart.js #}
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
     {% block content %}{% endblock %}
-    
+
     <script>
         // Reinitialize charts after HTMX swaps
         let charts = {};
-        
+
         document.body.addEventListener('htmx:afterSwap', function(event) {
             // Clean up old charts
             Object.values(charts).forEach(chart => chart.destroy());
             charts = {};
-            
+
             // Initialize new charts
             event.detail.target.querySelectorAll('canvas.chart').forEach(canvas => {
                 const ctx = canvas.getContext('2d');

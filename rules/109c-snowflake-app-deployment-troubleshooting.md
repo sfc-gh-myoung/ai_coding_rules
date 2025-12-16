@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** Snowflake deployment troubleshooting, Streamlit debugging, SiS TypeError, notebook deployment issues, deployment errors, stage file debugging, AUTO_COMPRESS debugging, ROOT_LOCATION errors, deployment anti-patterns, diagnostic commands, deployment validation, cache issues
 **TokenBudget:** ~3850
 **ContextTier:** Medium
@@ -11,11 +12,9 @@
 ## Purpose
 Provide comprehensive troubleshooting guidance and anti-pattern identification for Snowflake application deployments, focusing on common errors, diagnostic commands, and proven solutions for Streamlit in Snowflake (SiS) TypeError issues and notebook caching problems.
 
-
 ## Rule Scope
 
 Debugging and troubleshooting deployment issues for notebooks, Streamlit apps, UDFs, and stored procedures in Snowflake
-
 
 ## Quick Start TL;DR
 
@@ -36,7 +35,6 @@ uvx snow sql -q "LIST @STAGE;"                    # Check file locations
 uvx snow sql -q "DESCRIBE STREAMLIT DB.SCHEMA.APP;"  # Verify ROOT_LOCATION
 uvx snow sql -q "SHOW NOTEBOOKS IN SCHEMA DB.SCHEMA;"  # Confirm object exists
 ```
-
 
 ## Contract
 
@@ -95,7 +93,6 @@ uvx snow sql -q "SHOW NOTEBOOKS IN SCHEMA DB.SCHEMA;"  # Confirm object exists
 
 </contract>
 
-
 ## Anti-Patterns and Common Mistakes
 
 **Anti-Pattern 1: Using OVERWRITE without explicit REMOVE**
@@ -114,12 +111,12 @@ tasks:
     desc: Upload notebook to stage
     cmds:
       - uvx snow sql -q "PUT file://notebooks/app.ipynb @{{.NOTEBOOK_STAGE}} OVERWRITE=TRUE;"
-  
+
   create:notebook:
     desc: Create notebook from stage
     cmds:
       - uvx snow sql -q "CREATE NOTEBOOK DB.SCHEMA.APP FROM '@{{.NOTEBOOK_STAGE}}';"
-  
+
   deploy:notebook:
     desc: Deploy notebook (INCOMPLETE - missing REMOVE)
     cmds:
@@ -144,23 +141,23 @@ tasks:
     desc: Drop notebook object
     cmds:
       - uvx snow sql -q "DROP NOTEBOOK IF EXISTS DB.SCHEMA.APP;"
-  
+
   remove:notebook:
     desc: Remove stage files explicitly
     cmds:
       - uvx snow sql -q "REMOVE @{{.NOTEBOOK_STAGE}}/app.ipynb;"
       - uvx snow sql -q "REMOVE @{{.NOTEBOOK_STAGE}}/environment.yml;"
-  
+
   upload:notebook:
     desc: Upload notebook to stage
     cmds:
       - uvx snow sql -q "PUT file://notebooks/app.ipynb @{{.NOTEBOOK_STAGE}} AUTO_COMPRESS=FALSE OVERWRITE=TRUE;"
-  
+
   create:notebook:
     desc: Create notebook from stage
     cmds:
       - uvx snow sql -q "CREATE NOTEBOOK DB.SCHEMA.APP FROM '@{{.NOTEBOOK_STAGE}}';"
-  
+
   deploy:notebook:
     desc: Deploy notebook with clean slate
     cmds:
@@ -235,13 +232,13 @@ tasks:
     cmds:
       - task: utils:sql:template
         vars: {SQL_FILE: sql/operations/notebook/drop/drop_app.sql}
-  
+
   remove:notebook:
     desc: Remove stage files
     cmds:
       - task: utils:sql:template
         vars: {SQL_FILE: sql/operations/notebook/remove/remove_app_files.sql}
-  
+
   upload:notebook:
     desc: Upload to stage
     cmds:
@@ -249,13 +246,13 @@ tasks:
         vars: {SQL_FILE: sql/operations/notebook/upload/upload_app_files.sql}
     preconditions:
       - test -f notebooks/app.ipynb  # Validate file exists
-  
+
   create:notebook:
     desc: Create from stage
     cmds:
       - task: utils:sql:template
         vars: {SQL_FILE: sql/operations/notebook/create/create_app.sql}
-  
+
   deploy:notebook:
     desc: Full deployment workflow
     cmds:
@@ -284,9 +281,9 @@ ALTER SESSION SET ACCOUNT_IDENTIFIER = 'abc12345.us-east-1';
 ALTER SESSION SET USER = 'admin@company.com';
 ALTER SESSION SET PASSWORD = 'PLACEHOLDER_PASSWORD';  -- Plain text password!
 
-PUT 'file://notebooks/app.ipynb' 
-@PROD_DB.ANALYTICS.NOTEBOOK_STAGE 
-AUTO_COMPRESS=FALSE 
+PUT 'file://notebooks/app.ipynb'
+@PROD_DB.ANALYTICS.NOTEBOOK_STAGE
+AUTO_COMPRESS=FALSE
 OVERWRITE=TRUE;
 ```
 **Problem:** Security risk (credentials visible in version control, git history permanently stores secrets), not portable (hardcoded account/user breaks for other developers), credential rotation nightmare (must update every SQL file when password changes), audit trail issues (can't track who actually deployed using shared credentials), compliance violations (SOC2, GDPR, PCI-DSS prohibit plain text secrets)
@@ -301,9 +298,9 @@ OVERWRITE=TRUE;
 -- No credentials needed - Snowflake CLI handles authentication
 -- Connection defined in ~/.snowflake/config.toml or environment variables
 
-PUT 'file://notebooks/app.ipynb' 
+PUT 'file://notebooks/app.ipynb'
 @<%STAGE%>  -- Variable substitution via Taskfile
-AUTO_COMPRESS=FALSE 
+AUTO_COMPRESS=FALSE
 OVERWRITE=TRUE;
 ```
 
@@ -342,8 +339,8 @@ PUT file://streamlit_app.py @STAGE
 PUT file://pages/*.py @STAGE/pages/
     OVERWRITE=TRUE;  # Files will be gzipped
 ```
-**Problem:** Python import system cannot read compressed .py files  
-**Symptom:** "TypeError: bad argument type for built-in operation"  
+**Problem:** Python import system cannot read compressed .py files
+**Symptom:** "TypeError: bad argument type for built-in operation"
 **Impact:** Application fails to load, no pages render, complete deployment failure
 
 **Correct Pattern:**
@@ -374,8 +371,8 @@ CREATE STREAMLIT APP
     ROOT_LOCATION = '@STAGE/streamlit'  # Expects files at /streamlit/
     MAIN_FILE = 'streamlit_app.py';     # But they're at /streamlit/streamlit_app.py
 ```
-**Problem:** ROOT_LOCATION path mismatch - Snowflake cannot locate files  
-**Symptom:** Same "TypeError: bad argument type for built-in operation"  
+**Problem:** ROOT_LOCATION path mismatch - Snowflake cannot locate files
+**Symptom:** Same "TypeError: bad argument type for built-in operation"
 **Debugging:** `LIST @STAGE` shows `streamlit/streamlit_app.py` but ROOT_LOCATION expects different structure
 
 **Correct Pattern:**
@@ -396,7 +393,6 @@ CREATE STREAMLIT APP
     QUERY_WAREHOUSE = WH;
 ```
 
-
 ## Post-Execution Checklist
 
 - [ ] Diagnostic commands executed before suggesting fixes
@@ -410,22 +406,21 @@ CREATE STREAMLIT APP
 - [ ] Modular task structure (can test individual operations)
 - [ ] No credentials hardcoded in scripts or Taskfiles
 
-
 ## Validation
 
-- **Success Checks:** 
+- **Success Checks:**
   - Diagnostic commands reveal clear root cause
   - Remediation steps resolve issue completely
   - Verification commands confirm application functional
   - No workarounds or manual UI fixes required
   - Solution documented and reproducible
-  
-- **Negative Tests:** 
+
+- **Negative Tests:**
   - Attempted fixes without diagnostics fail to resolve issue
   - Manual workarounds create new issues or hide root cause
   - Missing REMOVE step causes recurring stale cache problems
 
-> **Investigation Required**  
+> **Investigation Required**
 > When troubleshooting deployment issues:
 > 1. **Execute diagnostic commands BEFORE making assumptions** - LIST @stage, DESCRIBE object, SHOW objects
 > 2. **Verify file compression status** - Look for .gz extensions (indicates compression problem)
@@ -442,7 +437,6 @@ CREATE STREAMLIT APP
 > [runs LIST @stage to check .py.gz vs .py]
 > [runs DESCRIBE STREAMLIT to verify ROOT_LOCATION]
 > "Found the issue: files are compressed (.py.gz). Need to redeploy with AUTO_COMPRESS=FALSE."
-
 
 ## Output Format Examples
 
@@ -468,7 +462,6 @@ uvx snow sql -q "LIST @DB.SCHEMA.STAGE;" | grep "\.py$"  # Should show .py, not 
 # Expected: Application loads without TypeError
 ```
 
-
 ## References
 
 ### External Documentation
@@ -484,7 +477,6 @@ uvx snow sql -q "LIST @DB.SCHEMA.STAGE;" | grep "\.py$"  # Should show .py, not 
 - **Streamlit Core**: `rules/101-snowflake-streamlit-core.md`
 - **Taskfile Automation**: `rules/820-taskfile-automation.md`
 - **Snowflake Core**: `rules/100-snowflake-core.md`
-
 
 ## Troubleshooting Deployment Issues
 
@@ -644,7 +636,7 @@ uvx snow sql -q "LIST @DB.SCHEMA.NOTEBOOK_STAGE;"
 **Verification:**
 ```sql
 -- Check if object exists
-SELECT * FROM INFORMATION_SCHEMA.NOTEBOOKS 
+SELECT * FROM INFORMATION_SCHEMA.NOTEBOOKS
 WHERE NOTEBOOK_NAME = 'APP_NOTEBOOK';
 ```
 
@@ -653,4 +645,3 @@ WHERE NOTEBOOK_NAME = 'APP_NOTEBOOK';
 task notebook:drop:app  # Run drop manually
 task notebook:create:app  # Then create
 ```
-

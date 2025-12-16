@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** Business intelligence, dashboards, KPIs, reporting, visualization, stakeholder reports, metrics, Snowsight, executive dashboards, data storytelling, WCAG accessibility
 **TokenBudget:** ~6400
 **ContextTier:** High
@@ -11,10 +12,8 @@
 ## Purpose
 Provide comprehensive directives for creating business-oriented queries, reports, dashboards, and visualizations targeted at non-technical stakeholders, emphasizing clarity, actionable insights, ethical presentation, accessibility, effective data storytelling, and Snowflake-native dashboard capabilities.
 
-
 ## Rule Scope
 Business-oriented queries, reports, visualizations, and dashboards for business audience consumption across executive, director, analyst, and operational roles
-
 
 ## Quick Start TL;DR
 
@@ -36,7 +35,6 @@ Business-oriented queries, reports, visualizations, and dashboards for business 
 - [ ] Data freshness indicator
 - [ ] Explicit column selection
 - [ ] Charts tested for clarity
-
 
 ## Contract
 
@@ -115,7 +113,6 @@ Business-oriented queries, reports, visualizations, and dashboards for business 
 
 </contract>
 
-
 ## Anti-Patterns and Common Mistakes
 
 **Anti-Pattern 1: Cluttered Dashboard (Too Many Visualizations)**
@@ -158,7 +155,7 @@ with tab1:
 **Anti-Pattern 2: Technical Jargon Without Business Translation**
 ```sql
 -- BAD: Technical column names
-SELECT 
+SELECT
  cust_id,
  arpu,
  ltv_cac_ratio,
@@ -173,7 +170,7 @@ FROM metrics;
 **Correct Pattern:**
 ```sql
 -- GOOD: Business-friendly column names
-SELECT 
+SELECT
  customer_id AS "Customer ID",
  average_revenue_per_user AS "Avg Revenue per Customer",
  lifetime_value_to_acquisition_cost_ratio AS "LTV:CAC Ratio",
@@ -291,7 +288,7 @@ fig.add_trace(go.Bar(
 - Multiple encoding channels (color + icon + pattern)
 - WCAG 2.1 AA compliant
 
-> **Investigation Required** 
+> **Investigation Required**
 > When applying this rule:
 >
 > 1. **Read referenced tables/views BEFORE making recommendations**
@@ -328,14 +325,13 @@ fig.add_trace(go.Bar(
 >
 > # Check data freshness
 > last_update = session.sql("""
-> SELECT MAX(last_updated) 
+> SELECT MAX(last_updated)
 > FROM analytics.sales_summary
 > """).collect()[0][0]
 >
 > # Now make informed recommendations
 > st.info(f" Data updated {last_update}. Recommend hourly refresh for operational dashboard.")
 > ```
-
 
 ## Post-Execution Checklist
 
@@ -356,7 +352,6 @@ fig.add_trace(go.Bar(
 - [ ] Storytelling structure followed (Situation-Complication-Resolution)
 - [ ] Business language used (no unexplained technical jargon)
 
-
 ## Validation
 
 - **Success Checks:**
@@ -367,7 +362,7 @@ fig.add_trace(go.Bar(
  - Screen reader successfully narrates all content (NVDA/JAWS test)
  - Keyboard navigation works for all interactive elements
 
-> **Investigation Required** 
+> **Investigation Required**
 > When applying this rule:
 > 1. **Identify audience BEFORE designing dashboard** - Confirm exec vs analyst vs operational
 > 2. **Check data availability** - Verify tables/views exist and are accessible
@@ -395,7 +390,6 @@ fig.add_trace(go.Bar(
  - Metric without documented definition (should fail documentation requirement)
  - Technical jargon without business translation (should fail user comprehension test)
 
-
 ## Output Format Examples
 
 ```sql
@@ -405,7 +399,7 @@ fig.add_trace(go.Bar(
 
 -- Always use CTEs for clarity
 WITH base_sales AS (
- SELECT 
+ SELECT
  DATE_TRUNC('month', order_date) AS month,
  region,
  customer_id,
@@ -416,7 +410,7 @@ WITH base_sales AS (
 ),
 
 aggregated AS (
- SELECT 
+ SELECT
  month,
  region,
  SUM(sales_amount) AS "Total Sales",
@@ -483,12 +477,11 @@ with st.expander("ℹ️ Metric Definitions"):
  st.write("**Customers:** Count of unique customer IDs with at least one completed order")
 ```
 
-
 ## References
 
 ### External Documentation
-- [Business Intelligence Best Practices](https://docs.microsoft.com/en-us/power-bi/guidance/) - Microsoft Power BI guidance for business analytics 
-- [Data Visualization Principles](https://www.tableau.com/learn/articles/data-visualization) - Tableau's guide to effective data visualization 
+- [Business Intelligence Best Practices](https://docs.microsoft.com/en-us/power-bi/guidance/) - Microsoft Power BI guidance for business analytics
+- [Data Visualization Principles](https://www.tableau.com/learn/articles/data-visualization) - Tableau's guide to effective data visualization
 - [SQL for Business Analysis](https://mode.com/sql-tutorial/) - Comprehensive SQL tutorial focused on business analytics
 - [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/) - Web Content Accessibility Guidelines
 - [WebAIM Contrast Checker](https://webaim.org/resources/contrastchecker/) - Tool for testing color contrast ratios
@@ -506,14 +499,13 @@ with st.expander("ℹ️ Metric Definitions"):
 - **Data Science Analytics**: `rules/920-data-science-analytics.md`
 - **Data Governance**: `rules/930-data-governance-quality.md`
 
-> ** Claude 4 Specific Guidance** 
+> ** Claude 4 Specific Guidance**
 > **Claude 4 Optimizations:**
 > - **Context awareness:** Track token budget; prioritize audience segmentation and ethical standards sections
 > - **Explicit behavior:** Request "comprehensive dashboard with accessibility compliance" to get full implementation
 > - **Parallel tool calls:** Generate multiple chart types, validate SQL queries, check accessibility simultaneously
 > - **State discovery:** Leverage filesystem to check existing dashboard templates before creating new ones
 > - **Investigation-first:** Excel at business context discovery through data exploration - use this capability to understand stakeholder needs before designing dashboards
-
 
 ## 1. Audience Segmentation & Tailoring
 
@@ -542,21 +534,20 @@ if user_role == 'executive':
  col2.metric("Profit Margin", "23.1%", delta="+1.5%")
  col3.metric("Customer Retention", "94.2%", delta="-0.8%", delta_color="inverse")
  col4.metric("NPS Score", "72", delta="+5")
- 
+
  # Single high-level trend
  st.line_chart(monthly_revenue_trend)
- 
+
 elif user_role == 'analyst':
  # Analyst: 12 KPIs, 8 detail charts, heavy filtering
  with st.sidebar:
  date_range = st.date_input("Date Range", [start_date, end_date])
  region = st.multiselect("Region", all_regions)
  product = st.multiselect("Product", all_products)
- 
+
  # Show detailed breakdowns
  st.dataframe(detailed_data, use_container_width=True)
 ```
-
 
 ## 2. Dashboard Layout & Visual Hierarchy
 
@@ -639,7 +630,6 @@ with tab3:
  show_product_analysis()
 ```
 
-
 ## 3. Visualization Selection Framework
 
 **MANDATORY:**
@@ -692,7 +682,7 @@ st.plotly_chart(fig)
 **Marketing Analytics:**
 ```sql
 -- Funnel chart for conversion analysis
-SELECT 
+SELECT
  'Website Visits' AS stage, 1 AS sort_order, 100000 AS count
 UNION ALL SELECT 'Product Views', 2, 45000
 UNION ALL SELECT 'Add to Cart', 3, 15000
@@ -704,7 +694,7 @@ ORDER BY sort_order;
 WITH funnel AS (
  -- above query
 )
-SELECT 
+SELECT
  stage,
  count,
  LAG(count) OVER (ORDER BY sort_order) AS previous_stage_count,
@@ -747,7 +737,6 @@ st.plotly_chart(fig)
 - **Area charts for overlapping data** (use line charts instead)
 - **Radar charts for more than 5-7 dimensions** (cluttered and hard to interpret)
 
-
 ## 4. Ethical Visualization Standards
 
 **FORBIDDEN:**
@@ -773,11 +762,11 @@ fig.add_annotation(
 **Never cherry-pick date ranges without disclosure:**
 ```sql
 -- BAD: Showing only favorable period
-SELECT * FROM sales 
+SELECT * FROM sales
 WHERE order_date BETWEEN '2024-03-01' AND '2024-03-31'; -- Best month only
 
 -- GOOD: Show full context with annotation
-SELECT 
+SELECT
  DATE_TRUNC('month', order_date) AS month,
  SUM(sales_amount) AS total_sales
 FROM sales
@@ -849,7 +838,6 @@ else:
  st.success(f"Data quality: {quality_score:.0%} | All checks passed")
 ```
 
-
 ## 5. Accessibility (WCAG 2.1 AA Compliance)
 
 **MANDATORY:**
@@ -890,7 +878,7 @@ fig.add_trace(go.Bar(x=categories, y=losses, name='Loss', marker_color='red'))
 # GOOD: Color + icons + patterns
 fig = go.Figure()
 fig.add_trace(go.Bar(
- x=categories, y=profits, 
+ x=categories, y=profits,
  name='Profit ▲',
  marker=dict(color='#029E73', pattern_shape="/") # Green + pattern
 ))
@@ -943,7 +931,7 @@ with st.expander("View Data Table (Accessible Format)"):
  use_container_width=True,
  hide_index=False
  )
- 
+
  # Allow CSV download for external analysis
  csv = df.to_csv(index=False)
  st.download_button(
@@ -971,7 +959,6 @@ with st.expander("View Data Table (Accessible Format)"):
 - [ ] Skip-to-content link available
 - [ ] No keyboard traps (can always navigate away)
 
-
 ## 6. Data Storytelling Framework
 
 **MANDATORY:**
@@ -982,7 +969,7 @@ with st.expander("View Data Table (Accessible Format)"):
 ```python
 st.header("Q3 2024 Performance Summary")
 st.write("""
-**Situation:** We set a target of $15M revenue for Q3 2024, expecting 10% growth 
+**Situation:** We set a target of $15M revenue for Q3 2024, expecting 10% growth
 over Q2 based on new product launches and expanded sales team.
 """)
 ```
@@ -990,7 +977,7 @@ over Q2 based on new product launches and expanded sales team.
 **2. Complication (What's the problem/opportunity?):**
 ```python
 st.write("""
-**Finding:** We achieved $17.2M revenue (+15% vs target), driven by unexpected 
+**Finding:** We achieved $17.2M revenue (+15% vs target), driven by unexpected
 strength in APAC region which grew 45% while North America remained flat.
 """)
 
@@ -1008,7 +995,7 @@ st.plotly_chart(fig)
 **3. Resolution (What action should be taken?):**
 ```python
 st.success("""
-**Recommendation:** Increase APAC sales team by 30% and reallocate 20% of 
+**Recommendation:** Increase APAC sales team by 30% and reallocate 20% of
 North America marketing budget to APAC digital campaigns for Q4.
 """)
 ```
@@ -1037,7 +1024,6 @@ st.markdown("""
 """)
 ```
 
-
 ## 7. Snowflake-Native Dashboard Patterns
 
 **MANDATORY:**
@@ -1047,7 +1033,7 @@ st.markdown("""
 **Cost-Effective Query Patterns:**
 ```sql
 -- Use result caching for dashboards (queries <24h old cached free)
-SELECT 
+SELECT
  region,
  DATE_TRUNC('month', order_date) AS month,
  SUM(sales_amount) AS total_sales,
@@ -1071,7 +1057,7 @@ sort: descending # Show highest values first
 data_labels: on # Show values on bars
 color_scheme: sequential_blue
 
-# Line chart for trends 
+# Line chart for trends
 chart_type: line
 x_axis: date_column
 y_axis: metric_value
@@ -1093,7 +1079,7 @@ session = Session.builder.configs(st.secrets["snowflake"]).create()
 @st.cache_data(ttl=3600)
 def load_dashboard_data(region: str):
  return session.sql(f"""
- SELECT 
+ SELECT
  order_date,
  SUM(sales_amount) AS total_sales
  FROM sales_fact
@@ -1121,7 +1107,7 @@ session.sql("ALTER SESSION SET STATEMENT_TIMEOUT_IN_SECONDS = 30").collect()
 
 # Monitor slow queries
 slow_queries = session.sql("""
- SELECT 
+ SELECT
  query_text,
  execution_time,
  bytes_scanned,
@@ -1138,7 +1124,6 @@ if not slow_queries.empty:
  st.warning(f"{len(slow_queries)} slow queries detected. Review Query Profile.")
 ```
 
-
 ## 8. Metric Definition & Documentation
 
 **MANDATORY:**
@@ -1152,7 +1137,7 @@ METRIC_DEFINITIONS = {
  "display_name": "Monthly Recurring Revenue (MRR)",
  "definition": "Sum of all active subscription values at month end",
  "calculation": """
- SELECT 
+ SELECT
  DATE_TRUNC('month', snapshot_date) AS month,
  SUM(subscription_amount) AS mrr
  FROM subscriptions
@@ -1191,18 +1176,18 @@ st.metric("Customer Lifetime Value", f"${clv_value:.2f}")
 with st.expander(" How is this calculated?"):
  st.markdown("""
  **Customer Lifetime Value (CLV) Calculation:**
- 
+
  CLV = (Average Purchase Value × Purchase Frequency × Customer Lifespan)
- 
+
  Where:
  - Average Purchase Value = Total Revenue / Number of Purchases
  - Purchase Frequency = Number of Purchases / Number of Unique Customers
  - Customer Lifespan = Average number of years a customer remains active
  """)
- 
+
  st.code("""
  WITH customer_metrics AS (
- SELECT 
+ SELECT
  customer_id,
  AVG(purchase_amount) AS avg_purchase_value,
  COUNT(*) AS purchase_count,
@@ -1210,9 +1195,8 @@ with st.expander(" How is this calculated?"):
  FROM purchases
  GROUP BY customer_id
  )
- SELECT 
+ SELECT
  AVG(avg_purchase_value * purchase_count / NULLIF(lifespan_years, 0)) AS clv
  FROM customer_metrics;
  """, language='sql')
 ```
-

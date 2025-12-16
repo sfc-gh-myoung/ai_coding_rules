@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** idempotent, MERGE, operations, multi-environment, infrastructure as code, Snowflake variables, production-safe, upsert, SQL automation, deployment scripts, SQL pipeline, config management, environment variables
 **TokenBudget:** ~4050
 **ContextTier:** High
@@ -11,12 +12,9 @@
 ## Purpose
 Guide creation of parameterized SQL templates for automated Snowflake deployments in production environments. Supports CI/CD pipelines, multi-environment workflows, and infrastructure-as-code patterns. Optimized for DevOps engineers, data engineers, and automated deployment systems.
 
-
 ## Rule Scope
 
 Production SQL templates, CI/CD pipelines, multi-environment deployments, automated workflows
-
-
 
 ## Quick Start TL;DR
 
@@ -43,7 +41,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Data updates use MERGE or `INSERT WHERE NOT EXISTS`
 - [ ] Tested in dev/test environments
 - [ ] CI/CD pipeline configured with environment secrets
-
 
 ## Contract
 
@@ -88,7 +85,6 @@ Template validation → dev deployment → test verification → production depl
 
 </contract>
 
-
 ## Anti-Patterns and Common Mistakes
 
 **Anti-Pattern 1: Using CREATE OR REPLACE for Tables in Automation**
@@ -114,8 +110,8 @@ CREATE TABLE IF NOT EXISTS <%DATABASE%>.<%SCHEMA%>.customers (
 MERGE INTO <%DATABASE%>.<%SCHEMA%>.customers tgt
 USING (SELECT * FROM raw_customers WHERE is_active = TRUE) src
 ON tgt.customer_id = src.customer_id
-WHEN MATCHED THEN 
-  UPDATE SET 
+WHEN MATCHED THEN
+  UPDATE SET
     name = src.name,
     email = src.email,
     updated_at = CURRENT_TIMESTAMP()
@@ -131,7 +127,7 @@ WHEN NOT MATCHED THEN
 ```sql
 -- Bad: Hardcoded names, can't reuse across environments
 CREATE TABLE PROD_DB.PUBLIC.sales_summary AS
-SELECT 
+SELECT
   DATE_TRUNC('day', order_date) as day,
   SUM(amount) as total_sales
 FROM PROD_DB.PUBLIC.orders
@@ -158,7 +154,7 @@ CREATE TABLE IF NOT EXISTS <%DATABASE%>.<%SCHEMA%>.sales_summary (
 );
 
 INSERT INTO <%DATABASE%>.<%SCHEMA%>.sales_summary
-SELECT 
+SELECT
   DATE_TRUNC('day', order_date) as day,
   SUM(amount) as total_sales
 FROM <%DATABASE%>.<%SCHEMA%>.orders
@@ -195,7 +191,7 @@ Parameters:
 Usage:
   Development:
     snowsql -D REGION=WEST -f regional_customer_report.sql
-  
+
   Production (CI/CD):
     snow sql -f regional_customer_report.sql --variable REGION=EAST
 
@@ -221,7 +217,7 @@ SELECT * FROM customers WHERE region = '<%REGION%>';
 CREATE TABLE analytics_summary AS
 SELECT * FROM raw_data;
 
-INSERT INTO metrics 
+INSERT INTO metrics
 SELECT COUNT(*) FROM analytics_summary;
 -- Second run: ERROR - Table already exists!
 ```
@@ -235,7 +231,7 @@ CREATE TABLE IF NOT EXISTS analytics_summary (
 );
 
 -- Clear existing data for this run's date range
-DELETE FROM analytics_summary 
+DELETE FROM analytics_summary
 WHERE report_date = CURRENT_DATE();
 
 -- Insert today's data
@@ -250,7 +246,6 @@ WHEN MATCHED THEN UPDATE SET row_count = s.cnt
 WHEN NOT MATCHED THEN INSERT (report_date, row_count) VALUES (CURRENT_DATE(), s.cnt);
 ```
 **Benefits:** Repeatable execution; safe re-runs; no manual cleanup; automation-friendly; CI/CD reliable; production-ready; professional deployment
-
 
 ## Post-Execution Checklist
 
@@ -284,7 +279,6 @@ WHEN NOT MATCHED THEN INSERT (report_date, row_count) VALUES (CURRENT_DATE(), s.
 - [ ] IF NOT EXISTS for object creation
 - [ ] No data loss risk from reruns
 
-
 ## Validation
 - **Success Checks:**
   - Templates execute successfully across dev/test/prod
@@ -300,7 +294,7 @@ WHEN NOT MATCHED THEN INSERT (report_date, row_count) VALUES (CURRENT_DATE(), s.
   - Duplicate key in MERGE handled correctly
   - Failed deployment rolls back cleanly
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read existing CI/CD files BEFORE making recommendations** - Check for GitHub Actions or other automation
 > 2. **Verify current Taskfile.yml structure** - Understand existing task patterns and variable usage
@@ -316,7 +310,6 @@ WHEN NOT MATCHED THEN INSERT (report_date, row_count) VALUES (CURRENT_DATE(), s.
 > "Let me check your current automation setup first."
 > [reads Taskfile.yml, .github/workflows/]
 > "I see you're using GitHub Actions with Taskfile integration. Here's how to add SQL template deployment to your existing workflow..."
-
 
 ## Output Format Examples
 ```sql
@@ -355,7 +348,6 @@ WHEN MATCHED THEN UPDATE SET /* ... */
 WHEN NOT MATCHED THEN INSERT /* ... */;
 ```
 
-
 ## References
 
 ### External Documentation
@@ -370,8 +362,6 @@ WHEN NOT MATCHED THEN INSERT /* ... */;
 - **SQL Demo Engineering**: `rules/102-snowflake-sql-demo-engineering.md` - Demo and learning SQL patterns
 - **Taskfile Automation**: `rules/820-taskfile-automation.md` - Task automation patterns
 - **Git Workflow**: `rules/803-project-git-workflow.md` - Branching and PR strategies
-
-
 
 ## 1. SQL Template Patterns
 
@@ -433,7 +423,6 @@ ON_ERROR = 'CONTINUE';
 <%ROLE%>               # Role name for grants
 ```
 
-
 ## 2. Directory Structure for Operations
 
 ### 2.1 Operations Directory Pattern
@@ -485,7 +474,6 @@ drop_schema.sql
 ```
 
 **No numeric prefixes:** Execution order controlled by automation, not filenames
-
 
 ## 3. Idempotent Production Patterns
 
@@ -576,11 +564,11 @@ WHEN MATCHED THEN
         install_date = source.install_date
 WHEN NOT MATCHED THEN
     INSERT (asset_id, asset_type, latitude, longitude, install_date)
-    VALUES (source.asset_id, source.asset_type, source.latitude, 
+    VALUES (source.asset_id, source.asset_type, source.latitude,
             source.longitude, source.install_date);
 
 -- Step 3: Report results
-SELECT 'Rows merged' AS operation, COUNT(*) AS row_count 
+SELECT 'Rows merged' AS operation, COUNT(*) AS row_count
 FROM <%DATABASE%>.<%SCHEMA%>.GRID_ASSETS;
 ```
 
@@ -600,14 +588,13 @@ FROM <%DATABASE%>.<%SCHEMA%>.GRID_ASSETS;
 CREATE OR REPLACE VIEW <%DATABASE%>.<%SCHEMA%>.VW_ASSET_SUMMARY
 COMMENT = 'Asset summary view for <%ENVIRONMENT%>'
 AS
-SELECT 
+SELECT
     asset_type,
     COUNT(*) AS asset_count,
     AVG(DATEDIFF(YEAR, install_date, CURRENT_DATE())) AS avg_age_years
 FROM <%DATABASE%>.<%SCHEMA%>.GRID_ASSETS
 GROUP BY asset_type;
 ```
-
 
 ## 4. CI/CD Integration
 
@@ -680,10 +667,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Install Snowflake CLI
         run: pip install snowflake-cli-labs
-      
+
       - name: Configure Snowflake Connection
         env:
           SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
@@ -694,14 +681,14 @@ jobs:
             --account $SNOWFLAKE_ACCOUNT \
             --user $SNOWFLAKE_USER \
             --password $SNOWFLAKE_PASSWORD
-      
+
       - name: Deploy Schema Changes
         run: |
           snow sql \
             -D DATABASE=PROD \
             -D SCHEMA=GRID_DATA \
             -f sql/operations/grid/setup/create_schema.sql
-      
+
       - name: Deploy Table Changes
         run: |
           snow sql \
@@ -728,7 +715,6 @@ snow sql -D DATABASE=PROD -D SCHEMA=GRID -f template.sql
 - `SNOWFLAKE_ACCOUNT_DEV`
 - `SNOWFLAKE_ACCOUNT_TEST`
 - `SNOWFLAKE_ACCOUNT_PROD`
-
 
 ## 5. Production SQL File Headers
 
@@ -774,7 +760,7 @@ snow sql -D DATABASE=PROD -D SCHEMA=GRID -f template.sql
 -- Example:
 --   snow sql -D DATABASE=PROD -D SCHEMA=GRID_DATA -D STAGE=@PROD.GRID_DATA.FILES -f merge_scada_data.sql
 --
--- Dependencies: 
+-- Dependencies:
 --   - SCADA_DATA table must exist
 --   - Stage must contain scada_*.csv files
 --   - Warehouse must be active
@@ -783,7 +769,6 @@ snow sql -D DATABASE=PROD -D SCHEMA=GRID -f template.sql
 -- Idempotency: MERGE ensures safe reruns (updates existing, inserts new)
 -- ============================================================================
 ```
-
 
 ## 6. Validation and Testing
 
@@ -797,9 +782,9 @@ snow sql -D DATABASE=PROD -D SCHEMA=GRID -f template.sql
 -- ============================================================================
 
 -- Check schema exists
-SELECT 
+SELECT
     'Schema exists' AS check_name,
-    CASE 
+    CASE
         WHEN COUNT(*) > 0 THEN '✓ PASS'
         ELSE '✗ FAIL'
     END AS status
@@ -808,16 +793,16 @@ WHERE CATALOG_NAME = '<%DATABASE%>'
   AND SCHEMA_NAME = '<%SCHEMA%>';
 
 -- Check required tables exist
-SELECT 
+SELECT
     'Required tables exist' AS check_name,
-    CASE 
+    CASE
         WHEN COUNT(*) = 5 THEN '✓ PASS'
         ELSE '✗ FAIL - Found ' || COUNT(*) || ' of 5 tables'
     END AS status
 FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_CATALOG = '<%DATABASE%>'
   AND TABLE_SCHEMA = '<%SCHEMA%>'
-  AND TABLE_NAME IN ('GRID_ASSETS', 'SCADA_DATA', 'FAILURE_EVENTS', 
+  AND TABLE_NAME IN ('GRID_ASSETS', 'SCADA_DATA', 'FAILURE_EVENTS',
                      'AMI_DATA', 'TRANSFORMER_DATA');
 ```
 
@@ -826,7 +811,7 @@ WHERE TABLE_CATALOG = '<%DATABASE%>'
 **Pattern:**
 ```sql
 -- Row count verification
-SELECT 
+SELECT
     'GRID_ASSETS' AS table_name,
     COUNT(*) AS row_count,
     MAX(METADATA$ROW_ID) AS max_row_id
@@ -834,10 +819,9 @@ FROM <%DATABASE%>.<%SCHEMA%>.GRID_ASSETS
 
 UNION ALL
 
-SELECT 
+SELECT
     'SCADA_DATA' AS table_name,
     COUNT(*) AS row_count,
     MAX(METADATA$ROW_ID) AS max_row_id
 FROM <%DATABASE%>.<%SCHEMA%>.SCADA_DATA;
 ```
-

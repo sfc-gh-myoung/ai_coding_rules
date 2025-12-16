@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** checkpoints, learning objectives, pedagogical design, educational content, progressive learning, Snowflake notebooks, teaching point callouts, validation gates, tutorial structure, learning design, educational notebooks, teaching methodology, notebook education
 **TokenBudget:** ~4700
 **ContextTier:** High
@@ -11,11 +12,9 @@
 ## Purpose
 Establish comprehensive patterns for designing educational Snowflake notebooks that effectively teach concepts through clear learning objectives, structured content, anti-pattern examples, validation checkpoints, and progressive complexity management.
 
-
 ## Rule Scope
 
 Tutorial and learning design for Snowflake notebooks, educational content, and self-paced learning materials
-
 
 ## Quick Start TL;DR
 
@@ -47,7 +46,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Teaching point callouts ([NOTE]) explaining "why"
 - [ ] Progressive complexity (simple first, advanced marked)
 - [ ] All jargon defined on first use
-
 
 ## Contract
 
@@ -108,7 +106,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 
 </contract>
 
-
 ## Anti-Patterns and Common Mistakes
 
 **Anti-Pattern 1: Vague Learning Objectives**
@@ -168,10 +165,9 @@ By the end of this notebook, you will understand:
 - [ ] Time estimates realistic and tested
 - [ ] All technical jargon defined on first use
 
-
 ## Validation
 
-- **Success Checks:** 
+- **Success Checks:**
   - Learning objectives are specific and measurable
   - Checkpoints catch common errors and provide actionable fixes
   - Anti-patterns include both wrong and correct approaches with explanations
@@ -180,14 +176,14 @@ By the end of this notebook, you will understand:
   - Progressive complexity builds logically
   - Notebook works for self-paced learning (can skip ahead with prerequisites met)
 
-- **Negative Tests:** 
+- **Negative Tests:**
   - Vague objectives ("learn about ML") should be flagged
   - Missing checkpoints should be added between major sections
   - Anti-patterns without correct alternatives should be enhanced
   - Technical jargon without definitions should trigger warnings
   - Overly complex introductory sections should be simplified
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read existing notebook cells BEFORE creating learning objectives** - Extract actual content taught (algorithms, techniques, data patterns)
 > 2. **Count major sections for structure calculation** - Use for "Parts" organization (aim for 5-7 parts max, group related steps)
@@ -205,15 +201,14 @@ By the end of this notebook, you will understand:
 > **Correct Pattern:**
 > "Let me read your notebook structure first."
 > [reads notebook cells, counts sections, analyzes code complexity]
-> "I found 8 major sections across 42 cells (18 markdown, 24 code). Code complexity: intermediate (uses scikit-learn pipeline, SMOTE, threshold tuning). 
-> 
+> "I found 8 major sections across 42 cells (18 markdown, 24 code). Code complexity: intermediate (uses scikit-learn pipeline, SMOTE, threshold tuning).
+>
 > Based on actual content:
 > 1. **Feature Engineering** - Organizes 16 ML features using Snowflake Feature Store (cells 5-12)
 > 2. **Imbalanced Data Strategies** - Compares SMOTE vs class_weight parameter (cells 15-24, demonstrates 4 models)
 > 3. **Threshold Optimization** - Tunes decision thresholds using ROC curves to minimize missed failures (cells 28-35)
-> 
+>
 > Estimated time: 12-15 minutes full tutorial (5-7 minutes quick demo with n_estimators=50)"
-
 
 ## Output Format Examples
 
@@ -228,7 +223,7 @@ GROUP BY column_pattern;
 CREATE OR REPLACE VIEW schema.view_name
 COMMENT = 'Business purpose following semantic model standards'
 AS
-SELECT 
+SELECT
     -- Explicit column list with business context
     id COMMENT 'Surrogate key',
     name COMMENT 'Business entity name',
@@ -240,7 +235,6 @@ WHERE is_active = TRUE;
 SELECT * FROM schema.view_name LIMIT 5;
 SHOW VIEWS LIKE '%view_name%';
 ```
-
 
 ## References
 
@@ -255,8 +249,6 @@ SHOW VIEWS LIKE '%view_name%';
 - **Data Science Analytics**: `rules/920-data-science-analytics.md`
 - **Demo Creation**: `rules/900-demo-creation.md`
 - **Business Analytics**: `rules/940-business-analytics.md`
-
-
 
 ## 1. Learning Objectives Section
 
@@ -302,7 +294,6 @@ By the end of this notebook, you will understand:
 ```
 Too vague, not measurable, no clear outcome
 
-
 ## 2. Tutorial Structure Overview
 
 **MANDATORY:**
@@ -326,7 +317,6 @@ This notebook is organized into [N] parts:
 
 ...
 
-
 ## Estimated Time
 
 - **Quick Demo Mode:** X-Y minutes ([configuration])
@@ -342,7 +332,6 @@ This notebook is organized into [N] parts:
 - **Always:** Group related steps into logical parts (5-7 parts maximum)
 - **Always:** Indicate what each part teaches
 - **Consider:** Show dependencies between parts (can skip if prerequisites known)
-
 
 ## 3. Anti-Pattern Sections
 
@@ -389,7 +378,6 @@ This notebook avoids all these pitfalls through careful design!
 - Why wrong: 99.998% accuracy by predicting all healthy catches zero failures
 - Correct: Use recall, ROC-AUC, Matthews Correlation, PR curve
 ```
-
 
 ## 4. Checkpoint Validations
 
@@ -453,7 +441,6 @@ else:
 - **Always:** Show progress summary (what's complete, what's next)
 - **Consider:** Include diagnostic information (row counts, feature counts, time elapsed)
 
-
 ## 5. Teaching Point Callouts
 
 **MANDATORY:**
@@ -508,7 +495,6 @@ else:
 **Demo Strategy:** We'll train 4 models (2 from each path) and compare results.
 ```
 
-
 ## 6. Progressive Complexity Management
 
 **MANDATORY:**
@@ -534,15 +520,12 @@ else:
 ## Step 1: Basic Implementation (Simple)
 [Minimal code that works]
 
-
 ## Step 2: Production Considerations (Real-World)
 [Add error handling, validation, logging]
-
 
 ## Step 3: Performance Optimization (Advanced - Optional)
 [Caching, parallelization, cost optimization]
 ```
-
 
 ## 7. Two-Approach Clarification Pattern
 
@@ -571,7 +554,7 @@ The notebook demonstrates **two valid approaches** for [task]:
 
 **Use when:** [Scenario]
 
-### Approach B: [Simplified Name] 
+### Approach B: [Simplified Name]
 ```[language]
 [Code example]
 ```
@@ -654,7 +637,6 @@ training_df = spine.join(customer_features, on='CUSTOMER_ID') \
 
 This example demonstrates when to show feature setup (teaching organizational patterns) while using simpler execution (maintaining focus on primary learning objectives like imbalanced data handling).
 
-
 ## Learning Objectives
 1. Learn about ML
 2. Understand data
@@ -726,4 +708,3 @@ else:
 **Why This Matters:**
 - [Business impact]
 ```
-

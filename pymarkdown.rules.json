@@ -1,0 +1,65 @@
+{
+  "plugins": {
+    "line-length": {
+      "enabled": false
+    },
+    "no-inline-html": {
+      "enabled": false
+    },
+    "no-emphasis-as-heading": {
+      "enabled": false
+    },
+    "fenced-code-language": {
+      "enabled": false
+    },
+    "ol-prefix": {
+      "enabled": false
+    },
+    "blanks-around-headings": {
+      "enabled": false
+    },
+    "blanks-around-fences": {
+      "enabled": false
+    },
+    "blanks-around-lists": {
+      "enabled": false
+    },
+    "no-multiple-blanks": {
+      "enabled": true
+    },
+    "no-trailing-spaces": {
+      "enabled": true
+    },
+    "ul-style": {
+      "enabled": false
+    },
+    "ul-indent": {
+      "enabled": false
+    },
+    "list-indent": {
+      "enabled": false
+    },
+    "no-duplicate-heading": {
+      "enabled": false
+    },
+    "no-bare-urls": {
+      "enabled": false
+    },
+    "no-hard-tabs": {
+      "enabled": true
+    },
+    "no-multiple-space-blockquote": {
+      "enabled": false
+    },
+    "heading-increment": {
+      "enabled": false
+    },
+    "single-title": {
+      "enabled": false
+    },
+    "no-reversed-links": {
+      "enabled": false
+    }
+  }
+}
+

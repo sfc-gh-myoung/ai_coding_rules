@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** Python classes, OOP, inheritance, dataclasses, @property, class design, encapsulation, composition, Protocol, ABC, type hints
 **TokenBudget:** ~2050
 **ContextTier:** Medium
@@ -11,11 +12,9 @@
 ## Purpose
 Provide practical, modern guidelines for when and how to use classes in Python, emphasizing composition over inheritance, type safety, encapsulation, and pythonic idioms that produce readable, maintainable, and testable code.
 
-
 ## Rule Scope
 
 Class design patterns and usage in Python 3.11+ (data models, behavior, encapsulation, inheritance, protocols, ABCs)
-
 
 ## Quick Start TL;DR
 
@@ -36,7 +35,6 @@ Class design patterns and usage in Python 3.11+ (data models, behavior, encapsul
 - [ ] Properties used for computed attributes
 - [ ] __repr__ provided (auto via dataclass)
 - [ ] Composition preferred over inheritance
-
 
 ## Contract
 
@@ -103,14 +101,14 @@ Focused diffs of class implementations and interfaces; runnable examples where a
 class DataCollector:
     def __init__(self, items=[]):  # Same list shared across all instances!
         self.items = items
-        
+
 # collector1.items.append("a") affects collector2.items
 
 # GOOD: Use None and create new object in body
 class DataCollector:
     def __init__(self, items: list | None = None):
         self.items = items if items is not None else []
-        
+
 # Each instance gets its own list
 ```
 
@@ -134,10 +132,10 @@ class UserManager:
 # GOOD: Separate concerns into focused classes
 class UserRepository:
     def create(self, user: User) -> User: ...
-    
+
 class UserValidator:
     def validate(self, data: dict) -> ValidationResult: ...
-    
+
 class EmailService:
     def send_welcome(self, user: User) -> None: ...
 ```
@@ -153,12 +151,11 @@ class EmailService:
 - [ ] No heavy side effects in `__init__`; dependencies injected explicitly
 - [ ] Lints and tests pass (`uvx ruff`, `uv run pytest`)
 
-
 ## Validation
 - **Success Checks:** Ruff lint/format pass; tests cover main behaviors; class design adheres to principles; public API is stable and annotated.
 - **Negative Tests:** Deep inheritance; mutable global state; side effects in constructors; missing type hints; leaking secrets in `__repr__`.
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read existing class definitions BEFORE suggesting changes** - Check current class structure, inheritance patterns
 > 2. **Verify if dataclasses are used** - Check imports, existing patterns
@@ -174,7 +171,6 @@ class EmailService:
 > "Let me check your existing class designs first."
 > [reads files, checks for dataclass usage, reviews inheritance patterns]
 > "I see you use dataclasses for models and composition for services. Following this pattern..."
-
 
 ## Output Format Examples
 ```python
@@ -200,7 +196,6 @@ class Notifier:
         self._sender.send(user.email, subject, "Thanks for joining.")
 ```
 
-
 ## References
 
 ### External Documentation
@@ -216,9 +211,6 @@ class Notifier:
 - **Python Lint/Format**: `rules/201-python-lint-format.md`
 - **Python Project Setup**: `rules/203-python-project-setup.md`
 - **Python Docs & Comments**: `rules/204-python-docs-comments.md`
-
-
-
 
 ## 1. Class Design Guidelines
 
@@ -350,4 +342,3 @@ class Service:
 - Consider: `slots=True` for high-volume instances.
 - Consider: Avoid per-instance `__dict__` unless needed.
 - Consider: Use `functools.cached_property` for expensive derived values.
-

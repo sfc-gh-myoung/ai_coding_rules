@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** Docker, Dockerfile, containers, multi-stage builds, layer caching, image optimization, docker-compose, BuildKit, distroless, security scanning, SBOM, non-root, healthcheck
 **TokenBudget:** ~1950
 **ContextTier:** Medium
@@ -11,10 +12,8 @@
 ## Purpose
 Provide practical, production-ready guidance for authoring Dockerfiles, building images, and running containers securely and efficiently, minimizing image size, build time, and supply-chain risk.
 
-
 ## Rule Scope
 Dockerfiles, multi-stage builds, image security, supply-chain integrity, runtime hardening, Docker Compose usage, CI/CD integration. Applies to polyglot projects with emphasis on Python.
-
 
 ## Quick Start TL;DR
 
@@ -36,7 +35,6 @@ Dockerfiles, multi-stage builds, image security, supply-chain integrity, runtime
 - [ ] Layers optimized for caching
 - [ ] HEALTHCHECK defined
 - [ ] Security scan passing
-
 
 ## Contract
 
@@ -84,7 +82,6 @@ Build with BuildKit; verify image size and layers; run hadolint; scan with vulne
 
 </contract>
 
-
 ## Anti-Patterns and Common Mistakes
 
 ### Pattern 1: [Common Mistake Title]
@@ -113,9 +110,6 @@ Build with BuildKit; verify image size and layers; run hadolint; scan with vulne
 # Proper implementation
 ```
 
-
-
-
 ## Post-Execution Checklist
 - Multi-stage Dockerfile with slim/LTS base
 - `.dockerignore` present and effective
@@ -126,12 +120,11 @@ Build with BuildKit; verify image size and layers; run hadolint; scan with vulne
 - SBOM generated; image scanned; provenance/signature attached
 - Compose uses separate prod overrides; secrets externalized
 
-
 ## Validation
 - **Success Checks:** Image builds deterministically; scans pass with no criticals; container runs as non-root; healthcheck healthy; size and startup time meet targets; SBOM/provenance generated.
 - **Negative Tests:** Fails if image runs as root; missing `.dockerignore`; `latest` tag used in prod; secrets baked into image; critical CVEs found.
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read existing Dockerfile BEFORE suggesting changes** - Check current structure, stages
 > 2. **Verify base image compatibility** - Check if changing base breaks dependencies
@@ -147,7 +140,6 @@ Build with BuildKit; verify image size and layers; run hadolint; scan with vulne
 > "Let me check your current Dockerfile first."
 > [reads Dockerfile, checks base image, reviews layers]
 > "I see you're using debian:12. Adding multi-stage build with compatible base..."
-
 
 ## Output Format Examples
 
@@ -196,7 +188,6 @@ docker build --no-cache -t myapp:latest .
 docker run --rm myapp:latest python -c "print('Container validation passed')"
 ```
 
-
 ## References
 
 ### External Documentation
@@ -217,7 +208,6 @@ docker run --rm myapp:latest python -c "print('Container validation passed')"
 - **FastAPI Deployment**: `rules/210c-python-fastapi-deployment.md`
 - **Bash Security**: `rules/300a-bash-security.md`
 - **Snowpark Container Services**: `rules/120-snowflake-spcs.md`
-
 
 ## 1. Image Authoring Patterns
 ### 1.1 Multi-Stage Builds (Generic)
@@ -363,14 +353,12 @@ id_dsa
 # examples/
 ```
 
-
 ## 2. Build Performance & Caching
 - **Rule:** Order layers: dependencies first, app code last.
 - **Rule:** Use BuildKit features: `--mount=type=cache` for pip/npm caches.
 - **Rule:** Use `--platform` for cross-building; prefer `docker buildx bake` for matrix builds.
 - **Requirement:** Pin versions; rely on lock files (`uv.lock`, `poetry.lock`, `package-lock.json`).
 - **Consider:** Produce SBOM: `docker buildx build --sbom=true` or `syft packages`.
-
 
 ## 3. Security & Least Privilege
 - **Mandatory:** Run as non-root; set `USER` to an unprivileged UID/GID.
@@ -381,13 +369,11 @@ id_dsa
 - **Rule:** Avoid package managers in runtime stage; copy only built artifacts.
 - **Avoid:** Exposing SSH or adding debug tools in prod images.
 
-
 ## 4. Supply Chain Integrity
 - **Requirement:** Pin images by digest in prod deployments.
 - **Requirement:** Generate SBOM and attach provenance (SLSA/Attestations).
 - **Rule:** Sign images with cosign; enforce signature verification in deployment.
 - **Consider:** Use private registries; restrict pull from trusted sources only.
-
 
 ## 5. Language-Specific Notes
 ### Python
@@ -400,25 +386,21 @@ id_dsa
 ### Java
 - Use multi-stage with Maven/Gradle in builder; run with JRE or distroless Java.
 
-
 ## 6. Runtime & Orchestration
 - **Requirement:** Provide `HEALTHCHECK` in image or orchestrator.
 - **Rule:** Configure resource limits (CPU/memory), ulimits, and log drivers.
 - **Rule:** Externalize configuration via env and mounted secrets; never bake secrets.
 - **Consider:** Readiness/liveness probes, graceful shutdown, and PID 1 handling.
 
-
 ## 7. Compose & YAML
 - **Always:** Separate `compose.yml` (dev) and `compose.prod.yml` (prod overrides).
 - **Rule:** Use `.env` files for local development; do not commit secrets.
 - **Requirement:** Follow YAML safety practices (see `202-markup-config-validation.md`).
 
-
 ## 8. CI/CD & Testing
 - **Rule:** Lint Dockerfile with Hadolint; scan image on each build.
 - **Rule:** Cache layers in CI with BuildKit; enable `--provenance` and `--sbom`.
 - **Consider:** Smoke tests using Testcontainers or docker run in CI.
-
 
 ## Docker Changes
 - Base image: <name:tag@sha256:...>
@@ -427,4 +409,3 @@ id_dsa
 - SBOM: <attached|artifact path>
 - Signature: <cosign yes/no>
 ```
-

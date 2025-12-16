@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** search optimization, pruning, spillage, SQL optimization, Snowflake, partition pruning, QUERY_HISTORY, optimize query, fix slow query, query bottleneck, warehouse performance, micro-partitions, clustering, performance analysis
 **TokenBudget:** ~2150
 **ContextTier:** High
@@ -11,11 +12,9 @@
 ## Purpose
 Provide systematic approaches for profiling, optimizing, and fine-tuning Snowflake queries and warehouse usage to achieve optimal performance while managing costs effectively.
 
-
 ## Rule Scope
 
 Snowflake query performance tuning, warehouse optimization, and cost management
-
 
 ## Quick Start TL;DR
 
@@ -43,14 +42,13 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Confirm warehouse size appropriate for workload
 - [ ] Only consider clustering if Query Profile shows poor pruning
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. Open Query Profile in Snowsight for the slow query BEFORE making recommendations
 > 2. Read actual partition statistics (scanned vs total)
 > 3. Never speculate about performance issues - verify in Query Profile
 > 4. Check warehouse size and utilization in QUERY_HISTORY
 > 5. Make grounded recommendations based on investigated Query Profile data
-
 
 ## Contract
 
@@ -103,13 +101,12 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 
 </contract>
 
-
 ## Anti-Patterns and Common Mistakes
 
 **Anti-Pattern 1: Using Functions in WHERE Clause That Prevent Pruning**
 ```sql
 -- Bad: Function on column prevents partition pruning
-SELECT * 
+SELECT *
 FROM large_fact_table
 WHERE DATE(order_timestamp) = '2024-01-15';
 -- DATE() function scans ALL partitions, extremely slow!
@@ -119,7 +116,7 @@ WHERE DATE(order_timestamp) = '2024-01-15';
 **Correct Pattern:**
 ```sql
 -- Good: Filter on raw column for partition pruning
-SELECT * 
+SELECT *
 FROM large_fact_table
 WHERE order_timestamp >= '2024-01-15'
   AND order_timestamp < '2024-01-16';
@@ -163,7 +160,7 @@ ALTER TABLE sales_fact CLUSTER BY (region, product_category);
 **Anti-Pattern 3: Using SELECT * Instead of Specific Columns**
 ```sql
 -- Bad: SELECT * returns unnecessary columns
-SELECT * 
+SELECT *
 FROM wide_dimension_table t1
 JOIN fact_table t2 ON t1.id = t2.dim_id;
 -- Returns 150 columns, only need 5!
@@ -173,7 +170,7 @@ JOIN fact_table t2 ON t1.id = t2.dim_id;
 **Correct Pattern:**
 ```sql
 -- Good: Select only needed columns
-SELECT 
+SELECT
   t1.customer_name,
   t1.region,
   t2.order_date,
@@ -216,7 +213,6 @@ ALTER TABLE my_table CLUSTER BY (date_column);
 ```
 **Benefits:** Evidence-based optimization; targeted fixes; cost-effective; root cause resolution; measurable results; professional performance tuning
 
-
 ## Post-Execution Checklist
 - [ ] Required dependencies and context verified
 - [ ] Appropriate tools selected and validated
@@ -224,11 +220,9 @@ ALTER TABLE my_table CLUSTER BY (date_column);
 - [ ] Output format matches requirements
 - [ ] Validation steps completed successfully
 
-
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
-
 
 ## Output Format Examples
 
@@ -243,7 +237,7 @@ GROUP BY column_pattern;
 CREATE OR REPLACE VIEW schema.view_name
 COMMENT = 'Business purpose following semantic model standards'
 AS
-SELECT 
+SELECT
     -- Explicit column list with business context
     id COMMENT 'Surrogate key',
     name COMMENT 'Business entity name',
@@ -255,7 +249,6 @@ WHERE is_active = TRUE;
 SELECT * FROM schema.view_name LIMIT 5;
 SHOW VIEWS LIKE '%view_name%';
 ```
-
 
 ## References
 
@@ -270,12 +263,10 @@ SHOW VIEWS LIKE '%view_name%';
 - **Cost Governance**: `rules/105-snowflake-cost-governance.md`
 - **Warehouse Management**: `rules/119-snowflake-warehouse-management.md`
 
-
 ## 1. Query Profiling & Optimization
 - **Always:** Use the Query Profile to diagnose execution, identify bottlenecks, and pinpoint expensive operations (e.g., large `TableScans`, join explosions).
 - **Always:** Compare `Partitions Scanned` vs. `Partitions Total` to find pruning opportunities.
 - **Requirement:** Avoid functions in `WHERE` clauses when they prevent pruning.
-
 
 ## 2. Warehouse Sizing & Clustering
 - **Always:** Follow comprehensive warehouse sizing guidance in `119-snowflake-warehouse-management.md` including type selection (CPU/GPU/High-Memory), sizing strategy, auto-suspend configuration, and cost governance.
@@ -293,7 +284,6 @@ SHOW VIEWS LIKE '%view_name%';
 - **Warehouse optimization**: + Warehouse & Clustering + 119 (warehouse management)
 - **Complete tuning**: Full reference
 
-
 ## Related Rules
 
 **Closely Related** (consider loading together):
@@ -308,4 +298,3 @@ SHOW VIEWS LIKE '%view_name%';
 **Complementary** (different aspects of same domain):
 - `108-snowflake-data-loading` - For optimizing COPY INTO and data loading performance
 - `111-snowflake-observability-core` - For query profiling and performance monitoring
-

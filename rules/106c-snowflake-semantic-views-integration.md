@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** RBAC, masking policy, row access policy, Generator workflow, iterative development, synonyms, natural language queries, cortex analyst, agent integration, semantic view security, analyst troubleshooting, fix analyst, debug analyst
 **TokenBudget:** ~5650
 **ContextTier:** Medium
@@ -11,11 +12,9 @@
 ## Purpose
 Provide comprehensive guidance for integrating Snowflake Semantic Views with Cortex Analyst and Cortex Agent, applying governance and security controls, and following production-ready development workflows including the Semantic View Generator tool.
 
-
 ## Rule Scope
 
 Cortex integration, governance patterns, development workflows, Generator usage
-
 
 ## Quick Start TL;DR
 
@@ -44,7 +43,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Generator output validated before execution
 - [ ] Natural language queries tested and refined
 - [ ] Security inheritance verified (RBAC, masking, row access)
-
 
 ## Contract
 
@@ -140,7 +138,7 @@ CREATE SEMANTIC VIEW SEM_SALES AS
 
 -- GOOD: Comprehensive synonyms for natural language
 CREATE SEMANTIC VIEW SEM_SALES AS
-  SELECT 
+  SELECT
     amount WITH SYNONYMS = ('revenue', 'sales', 'income', 'total'),
     fiscal_quarter WITH SYNONYMS = ('quarter', 'Q1', 'Q2', 'Q3', 'Q4', 'period'),
     region WITH SYNONYMS = ('territory', 'area', 'market', 'geography')
@@ -174,7 +172,6 @@ CREATE SEMANTIC VIEW SEM_SALES AS
 - [ ] Performance validated via Query Profile
 - [ ] Documentation created for business users
 
-
 ## Validation
 - **Success Checks:**
   - Cortex Analyst REST API accepts `semantic_view` parameter and returns valid responses
@@ -195,7 +192,6 @@ CREATE SEMANTIC VIEW SEM_SALES AS
   - Generator output requires validation (may misclassify columns)
   - Governance gaps expose sensitive data
 
-
 ## Output Format Examples
 
 ```python
@@ -215,7 +211,7 @@ print(cursor.fetchall())
 
 # Step 2: Test semantic view query directly
 cursor.execute("""
-  SELECT dimension_1, metric_1 
+  SELECT dimension_1, metric_1
   FROM SEMANTIC_VIEW(<database>.<schema>.<view_name>)
   LIMIT 10
 """)
@@ -241,7 +237,7 @@ cursor.execute("SELECT CURRENT_ROLE(), CURRENT_USER()")
 print(cursor.fetchall())
 ```
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Verify semantic view exists and is accessible BEFORE integrating** - Run `SHOW SEMANTIC VIEWS` and test queries
 > 2. **Check RBAC grants** - Confirm role has SELECT on semantic view and USAGE on database/schema
@@ -261,7 +257,6 @@ print(cursor.fetchall())
 > [runs SHOW GRANTS]
 > "Your role has SELECT access. Here's the Cortex Analyst integration code with proper error handling..."
 
-
 ## References
 
 ### External Documentation
@@ -280,8 +275,6 @@ print(cursor.fetchall())
 - **Cortex AI/SQL**: `rules/114-snowflake-cortex-aisql.md` - Cortex functions and patterns
 - **Cortex Agents**: `rules/115-snowflake-cortex-agents-core.md` - Agent design and configuration
 - **Security Governance**: `rules/107-snowflake-security-governance.md` - Security policies and governance
-
-
 
 ## 1) Cortex Analyst Integration
 
@@ -390,7 +383,7 @@ CREATE OR REPLACE SEMANTIC VIEW SAMPLE_DATA.TPCDS_SF10TCL.SEM_CUSTOMER
         'country of origin'      -- Descriptive
       )
       COMMENT = 'Country where customer was born',
-    
+
     customer.C_BIRTH_YEAR AS c_birth_year
       WITH SYNONYMS (
         'birth year',
@@ -409,7 +402,7 @@ CREATE OR REPLACE SEMANTIC VIEW SAMPLE_DATA.TPCDS_SF10TCL.SEM_CUSTOMER
         'count of customers',
         'how many customers'
       ),
-    
+
     customer.unique_countries AS COUNT(DISTINCT C_BIRTH_COUNTRY)
       WITH SYNONYMS (
         'countries represented',
@@ -426,7 +419,6 @@ CREATE OR REPLACE SEMANTIC VIEW SAMPLE_DATA.TPCDS_SF10TCL.SEM_CUSTOMER
 - Include abbreviations and acronyms
 - Add descriptive phrases ("how many X")
 - Test with actual user questions
-
 
 ## 2) Governance and Security
 
@@ -536,7 +528,7 @@ SELECT * FROM SEMANTIC_VIEW(
 
 ```sql
 -- Row access based on multiple conditions
-CREATE OR REPLACE ROW ACCESS POLICY PROD.GOVERNANCE.RESTRICT_SALES_ACCESS 
+CREATE OR REPLACE ROW ACCESS POLICY PROD.GOVERNANCE.RESTRICT_SALES_ACCESS
   AS (region STRING, department STRING) RETURNS BOOLEAN ->
   CASE
     WHEN CURRENT_ROLE() = 'ADMIN' THEN TRUE
@@ -565,7 +557,6 @@ ALTER TABLE PROD.SALES.DAILY_SALES
 - [ ] **Audit logging enabled** - Query history captured for compliance
 - [ ] **No direct policy on semantic views** - All governance via base tables
 - [ ] **Security inheritance tested** - Verified policies apply through semantic views
-
 
 ## 3) Development Best Practices
 
@@ -928,7 +919,6 @@ CREATE OR REPLACE SEMANTIC VIEW ANALYTICS.SEMANTIC.SALES_CUBE
 - [ ] Review Query Profile for performance
 - [ ] Document view purpose and usage examples
 
-
 ## 4) Cortex Analyst Troubleshooting
 
 Common errors when using semantic views with Cortex Analyst and their solutions.
@@ -971,7 +961,7 @@ SHOW SEMANTIC METRICS IN SEMANTIC VIEW {DATABASE}.{SCHEMA}.{VIEW_NAME};
 SELECT * FROM SEMANTIC_VIEW({DATABASE}.{SCHEMA}.{VIEW_NAME} DIMENSIONS dim1 METRICS metric1) LIMIT 10;
 
 -- 4. Verify measures and dimensions are populated
-SELECT 
+SELECT
     COUNT(*) AS total_rows,
     COUNT(DISTINCT dimension_column) AS unique_dimensions
 FROM SEMANTIC_VIEW({DATABASE}.{SCHEMA}.{VIEW_NAME} DIMENSIONS dimension_column);
@@ -1056,4 +1046,3 @@ SELECT CURRENT_ROLE(), CURRENT_USER();
 -- Test Cortex function access
 SELECT SNOWFLAKE.CORTEX.COMPLETE('llama3.1-8b', 'Test query');
 ```
-

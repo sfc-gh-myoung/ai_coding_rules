@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** context engineering, attention budget, context rot, token efficiency, compaction, progressive disclosure, sub-agents, agentic search, system prompts, right altitude, long-horizon tasks, memory management, state tracking
 **TokenBudget:** ~4750
 **ContextTier:** Critical
@@ -11,11 +12,9 @@
 ## Purpose
 Establish comprehensive context engineering practices that treat context as a finite resource with diminishing returns, enabling AI agents to maintain focus, minimize context rot, and work effectively across long-horizon tasks through strategic context management.
 
-
 ## Rule Scope
 
 Universal context management principles for all AI agents across all models (Claude, GPT, Gemini) and editors
-
 
 ## Quick Start TL;DR
 
@@ -37,7 +36,6 @@ Universal context management principles for all AI agents across all models (Cla
 - [ ] Use sub-agents for multi-faceted tasks
 - [ ] Maintain structured notes outside context window
 - [ ] Validate context stays within attention budget
-
 
 ## Contract
 
@@ -82,7 +80,6 @@ Context stays within attention budget; information is non-redundant; agent remai
 </design_principles>
 
 </contract>
-
 
 ## Anti-Patterns and Common Mistakes
 
@@ -139,7 +136,6 @@ Do your best work.
 <system_prompt>
 You are a Python backend engineer specializing in FastAPI.
 
-
 ## Post-Execution Checklist
 
 - [ ] Context window usage monitored (not exceeding attention budget)
@@ -154,7 +150,6 @@ You are a Python backend engineer specializing in FastAPI.
 - [ ] Forward-focused (what's next vs what's done)
 - [ ] Agentic search used when appropriate
 - [ ] Context rot actively prevented
-
 
 ## Validation
 - Code must pass: ruff check, ruff format, pytest
@@ -209,7 +204,6 @@ implement_caching_layer()  # Premature
 ```
 **Benefits:** Avoid premature complexity; validate need first; iterative improvement
 
-
 ## Post-Execution Checklist
 
 After applying context engineering principles:
@@ -222,7 +216,6 @@ After applying context engineering principles:
 - [ ] Sub-agents or agentic search employed for complex research
 - [ ] Context compaction performed when approaching limits
 - [ ] High-signal information prioritized in context window
-
 
 ## Validation
 
@@ -244,7 +237,6 @@ After applying context engineering principles:
 - Context window utilization (< 80% target)
 - Information retrieval efficiency (cache hit rate)
 - Task completion rate with bounded context
-
 
 ## Output Format Examples
 
@@ -272,7 +264,6 @@ Validation:
 - [x] Documentation updated
 ```
 
-
 ## References
 
 ### External Documentation
@@ -298,8 +289,6 @@ Validation:
 - **Tool Design**: `rules/004-tool-design-for-agents.md` - Token-efficient tool development patterns
 - **AGENTS Workflow**: `AGENTS.md` - Rule discovery and operational protocols
 
-
-
 ## 1. Context vs Prompt Engineering
 
 ### The Evolution from Prompts to Context
@@ -318,7 +307,6 @@ Validation:
 
 **Key Difference:**
 Context engineering is iterative - the curation phase happens **each time** we decide what to pass to the model, not just once when writing the system prompt.
-
 
 ## 2. Context as Finite Resource
 
@@ -356,7 +344,6 @@ Models have:
 
 **Result:** Performance gradient rather than hard cliff - models remain capable at long contexts but show reduced precision.
 
-
 ## 3. System Prompts at "Right Altitude"
 
 ### The Goldilocks Zone
@@ -389,19 +376,16 @@ Correct Pattern:
 <system_prompt>
 You are a customer support agent for SaaS product X.
 
-
 ## Core Responsibilities
 - Answer technical questions using documentation in <docs/>
 - Escalate billing issues to sales team
 - Create bug reports when users describe reproducible errors
-
 
 ## Guidelines
 - Be concise; users value quick answers
 - Ask clarifying questions if request is ambiguous
 - Cite specific doc sections when providing technical guidance
 - Use <tool>create_ticket</tool> for confirmed bugs
-
 
 ## Constraints
 - Do not promise features not in roadmap
@@ -419,7 +403,6 @@ You are a customer support agent for SaaS product X.
 3. Can the model adapt to variations while following the spirit of the instructions?
 
 **Principle:** Give the model strong heuristics, not brittle if-else trees.
-
 
 ## 4. Context Curation Strategies
 
@@ -476,7 +459,6 @@ You are a customer support agent for SaaS product X.
 - Stale context
 ```
 
-
 ## 5. Progressive Disclosure
 
 ### Hierarchical Information Loading
@@ -529,7 +511,6 @@ You are a customer support agent for SaaS product X.
 1. Read Quick Start → Understand objective immediately
 2. Check Current Session → Know what's done and what's next
 3. Load Resources → Only when needed for specific task
-
 
 ## 6. Agentic Search vs Pre-computed Retrieval
 
@@ -603,7 +584,6 @@ context = "\n".join([r.content for r in results])
 4. Follow imports as needed (agentic)
 ```
 
-
 ## 7. Long-Horizon Task Strategies
 
 ### Strategy 1: Compaction
@@ -619,13 +599,11 @@ context = "\n".join([r.content for r in results])
 - Historical conversation no longer relevant
 - State can be summarized without loss
 
-
 ## What to Compact
 1. Tool call history → Keep only recent/unique calls
 2. Conversation history → Summarize older turns
 3. Code exploration → Keep architectural decisions, discard raw outputs
 4. Decisions made → Document outcome, remove deliberation
-
 
 ## What to Preserve
 - Active task objectives
@@ -675,7 +653,7 @@ Assistant: Yes, let me check the dependencies...
 
 ## Session Summary
 **Objective:** Add OAuth2 authentication to existing app
-**Completed:** 
+**Completed:**
 - Explored auth system (JWT-based in auth.py)
 - Verified dependencies (requirements.txt has oauth2 support)
 **Current State:** Ready to implement OAuth2 endpoints
@@ -772,7 +750,6 @@ implementation = sub_agent_implement(
 - Tasks benefiting from parallel execution
 - When detailed work can be summarized concisely
 
-
 ## 8. Token Efficiency Guidelines
 
 ### Minimize Context Pollution
@@ -814,7 +791,6 @@ implementation = sub_agent_implement(
 - Token budgets declared in metadata
 - Composition over duplication
 
-
 ## 9. Context Engineering Workflow
 
 ### Standard Operating Procedure
@@ -842,7 +818,6 @@ flowchart TD
 6. **Compact:** Summarize and compress when needed
 7. **Document:** Update persistent memory for future sessions
 
-
 ## Your Approach
 - Write production-ready code with error handling
 - Include type hints and docstrings
@@ -850,12 +825,10 @@ flowchart TD
 - Use async/await for I/O operations
 - Add comprehensive test coverage
 
-
 ## Available Tools
 - read_file: Read source files
 - grep: Search codebase
 - run_tests: Execute pytest
-
 
 ## Context Assessment
 - **Attention Budget:** [Available context window]
@@ -863,14 +836,11 @@ flowchart TD
 - **Priority Information:** [What must be in context]
 - **Compaction Status:** [Needed / Not needed]
 
-
 ## Task Context
 - **Objective:** [Clear goal]
 - **Approach:** [Progressive disclosure / Agentic search / Sub-agents]
 - **Key Files:** [Minimal set of relevant files]
 
-
 ## Next Steps
 - [Actionable step 1]
 - [Actionable step 2]
-

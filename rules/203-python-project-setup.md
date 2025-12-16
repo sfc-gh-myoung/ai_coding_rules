@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** Python packaging, project structure, setup.py, pyproject.toml, dependencies, package distribution, __init__.py, hatchling, uv, src layout
 **TokenBudget:** ~2200
 **ContextTier:** High
@@ -11,12 +12,9 @@
 ## Purpose
 Provide essential Python project setup and packaging guidance to avoid common build and dependency issues, covering package structure, pyproject.toml configuration, and proper dependency management practices.
 
-
 ## Rule Scope
 
 Python project setup, packaging, and dependency management with modern build tools
-
-
 
 ## Quick Start TL;DR
 
@@ -37,7 +35,6 @@ Python project setup, packaging, and dependency management with modern build too
 - [ ] Dependencies added via `uv add`
 - [ ] Optional dependencies in [project.optional-dependencies]
 - [ ] Package installable with `uv pip install -e .`
-
 
 ## Contract
 
@@ -124,12 +121,11 @@ testpaths = ["tests"]
 - [ ] Output format matches requirements
 - [ ] Validation steps completed successfully
 
-
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read pyproject.toml BEFORE making packaging changes** - Check existing build system, package config
 > 2. **Verify project structure** - Use list_dir to understand if src/ layout or flat layout
@@ -146,7 +142,6 @@ testpaths = ["tests"]
 > [reads files, checks layout, verifies build config]
 > "I see you use a flat layout with 'app' as the package. Adding the new module following this pattern..."
 
-
 ## Output Format Examples
 
 ```python
@@ -159,7 +154,7 @@ from datetime import datetime, UTC
 
 class ServiceProtocol(Protocol):
     """Clear contract for service implementations."""
-    
+
     def process(self, data: dict) -> dict:
         """Process data following validation rules."""
         ...
@@ -167,19 +162,19 @@ class ServiceProtocol(Protocol):
 def implementation_function(input_data: dict) -> dict:
     """
     Implement feature following project conventions.
-    
+
     Args:
         input_data: Validated input following schema
-    
+
     Returns:
         Processed result with metadata
-    
+
     Raises:
         ValueError: If input validation fails
     """
     # Use datetime.now(UTC) not datetime.utcnow()
     timestamp = datetime.now(UTC)
-    
+
     # Implement business logic
     result = {"status": "success", "timestamp": timestamp}
     return result
@@ -189,10 +184,10 @@ def test_implementation_function():
     """Test following AAA pattern."""
     # Arrange
     test_input = {"key": "value"}
-    
+
     # Act
     result = implementation_function(test_input)
-    
+
     # Assert
     assert result["status"] == "success"
     assert "timestamp" in result
@@ -205,19 +200,17 @@ uvx ruff format --check .
 uv run pytest tests/
 ```
 
-
 ## References
 
 ### External Documentation
 - [Python Packaging User Guide](https://packaging.python.org/) - Official Python packaging documentation
-- [pyproject.toml Specification](https://peps.python.org/pep-0621/) - PEP 621 specification for project metadata                                                                                                        
+- [pyproject.toml Specification](https://peps.python.org/pep-0621/) - PEP 621 specification for project metadata
 - [Hatchling Documentation](https://hatch.pypa.io/latest/) - Modern Python build system and package manager
 
 ### Related Rules
 - **Python Core**: `rules/200-python-core.md`
 - **Python Linting**: `rules/201-python-lint-format.md`
 - **YAML Config**: `rules/202-markup-config-validation.md`
-
 
 ## 1. Package Structure Requirements
 
@@ -265,7 +258,6 @@ cli-project/
     └── __init__.py
 ```
 
-
 ## 2. pyproject.toml Configuration
 
 ### Build System Configuration
@@ -277,7 +269,6 @@ cli-project/
 - **Critical:** Quote complex pip install arguments: `uv pip install -e ".[dev]"` not `uv pip install -e .[dev]`.
 - **Always:** Use optional dependencies for development tools: `[project.optional-dependencies]`.
 - **Always:** Group related dependencies logically (dev, test, docs).
-
 
 ## 3. Virtual Environment Setup
 
@@ -293,7 +284,6 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 uv pip install -e .
 uv pip install -e ".[dev]"
 ```
-
 
 ## 4. Dependency Configuration
 
@@ -325,7 +315,6 @@ disallow_untyped_defs = true
 check_untyped_defs = true
 ```
 
-
 ## 5. Common Build Errors Prevention
 
 ### Hatchling Package Discovery
@@ -337,7 +326,6 @@ check_untyped_defs = true
 - **Critical:** Always quote arguments with special characters in shell commands.
 - **Critical:** Use double quotes for arguments containing brackets: `".[dev]"`.
 - **Always:** Test shell commands independently before adding to automation tools.
-
 
 ## 6. Application-Specific Setup
 
@@ -361,7 +349,6 @@ myapp = "myapp.main:main"
 myapp-dev = "myapp.cli.dev:dev_main"
 ```
 
-
 ## 7. Testing Setup
 
 ### Test Structure
@@ -382,7 +369,6 @@ addopts = [
 ]
 ```
 
-
 ## 8. Troubleshooting Common Issues
 
 ### Build Failures
@@ -396,4 +382,3 @@ addopts = [
 - **Always:** Test package installation with `uv run python -c "import app"` (FastAPI) or `uv run python -c "import myapp"` (CLI) after setup.
 - **Always:** Verify all `__init__.py` files exist with `find . -name "__init__.py"`.
 - **Always:** For CLI apps, test console scripts: `uv run myapp --help` after installation.
-

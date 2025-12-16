@@ -1,6 +1,8 @@
 # Example User Prompts
 
-This directory contains real-world example prompts that demonstrate how to effectively communicate tasks to AI assistants using the AI Coding Rules framework.
+This directory contains **tutorial prompts** that demonstrate how to effectively communicate tasks to AI assistants using the AI Coding Rules framework.
+
+> **Note:** Skill-specific prompts (like rule review rubrics or rule creation templates) are colocated within their respective skill folders under `skills/`. This folder contains only standalone tutorial examples for user education.
 
 ## Why These Examples Matter
 
@@ -56,12 +58,73 @@ Files: src/data_processor.py
 
 ---
 
+### EXAMPLE_PROMPT_04.md - Snowflake Semantic View
+**Use Case:** Creating semantic views for Cortex Analyst natural language queries
+
+**Pattern:**
+```
+Task: Create a semantic view for sales analytics to use with Cortex Analyst
+Tables: PROD.SALES.ORDERS (order_id, customer_id, order_date, amount), PROD.SALES.CUSTOMERS (customer_id, customer_name, region)
+```
+
+**Triggers:** Snowflake core rules + semantic view DDL rules + Cortex Analyst/Agent rules
+
+---
+
+### EXAMPLE_PROMPT_05.md - Snowflake Cortex Search Service
+**Use Case:** Creating Cortex Search services for document retrieval with Cortex Agents
+
+**Pattern:**
+```
+Task: Create a Cortex Search service for product documentation to use with Cortex Agents
+Table: DOCS.RAW.PRODUCT_DOCS (doc_id, content, category, author, published_date, access_tier)
+```
+
+**Triggers:** Snowflake core rules + Cortex Search rules + Cortex Agent rules
+
+---
+
+### EXAMPLE_PROMPT_06.md - Snowflake Cortex Agent (Hybrid)
+**Use Case:** Creating hybrid Cortex Agents combining quantitative analysis with document search
+
+**Pattern:**
+```
+Task: Create a Cortex Agent that combines quantitative analysis with document search
+Semantic View: ANALYTICS.SEMANTIC.SEM_SALES_METRICS
+Search Service: DOCS.SEARCH.PRODUCT_DOCS_SERVICE
+```
+
+**Triggers:** Cortex Agent rules + semantic view rules + Cortex Search rules
+
+---
+
+### EXAMPLE_PROMPT_07.md - Snowflake Cortex AI Stack (End-to-End)
+**Use Case:** Creating complete Cortex AI stack with semantic view, search service, and hybrid agent
+
+**Pattern:**
+```
+Task: Create complete Cortex AI stack with semantic view, search service, and hybrid agent
+Source Tables:
+  - PROD.SALES.ORDERS (order_id, customer_id, order_date, amount, product_id)
+  - PROD.SALES.CUSTOMERS (customer_id, customer_name, region)
+  - DOCS.RAW.PRODUCT_DOCS (doc_id, content, category, author, published_date)
+Target Schema: ANALYTICS.AI
+```
+
+**Triggers:** All Snowflake Cortex rules (semantic views + search + agents)
+
+---
+
 ## How to Use These Examples
 
 ### 1. Match Your Task to a Pattern
 - **Linting/formatting** → Use Example 01 pattern
 - **Performance optimization** → Use Example 02 pattern  
 - **Simple improvements** → Use Example 03 pattern
+- **Snowflake semantic views** → Use Example 04 pattern
+- **Snowflake Cortex Search** → Use Example 05 pattern
+- **Snowflake Cortex Agents** → Use Example 06 pattern
+- **Snowflake Cortex AI stack** → Use Example 07 pattern
 
 ### 2. Adapt the Template
 Replace the specifics with your own:
@@ -89,9 +152,22 @@ Every effective prompt should have:
 | "FastAPI", "REST API", "endpoint" | FastAPI rules (e.g., 210-python-fastapi-core) |
 | "pandas", "DataFrame" | Pandas rules (e.g., 252-pandas-best-practices) |
 | "SQL", "query", "Snowflake" | Snowflake SQL rules (e.g., 100-snowflake-core) |
+| "semantic view", "Cortex Analyst" | Semantic view rules (e.g., 106-snowflake-semantic-views-core) |
+| "Cortex Agent", "agent tools" | Cortex Agent rules (e.g., 115-snowflake-cortex-agents-core) |
+| "Cortex Search", "search service", "RAG" | Cortex Search rules (e.g., 116-snowflake-cortex-search) |
 | "type hints", "typing", "annotations" | Python typing rules (type checking patterns) |
 
 ## Tips for Better Results
+
+### Give Specific Rules
+
+While the ai_coding_rules system is designed to automatically load appropriate rules based on keywords and context, it's not a perfect system. As your conversation length and iterations increase, the overall utilization of your token count in the context window will increase. This does increase the likelihood that some of AGENTS.md is potentially lost from the context during compaction.
+
+It is considered a best practice to include specific rule names in your prompt, particularly if you know they are relevant. If the agent does not show the list of rules you expect under RULES_LOADED, stop the agent and tell it to load additional rules or reevaluate which rules are loaded.
+
+### MODE PLAN|ACT
+
+Most of the LLMs and agentic tools will generally do a good job of following the MODE workflow established in AGENTS.md and rules/000-global-core.md. However, some LLMs have a tendency to stay in MODE: ACT even when they should fall back to MODE: PLAN. In such cases, stop the agent and tell it to resume MODE:PLAN. You can also explicitly add MODE:PLAN or MODE:ACT to any prompt to force the agent and LLM into the correct mode.
 
 ### Be Specific About File Types
 ✅ **Good:** "Fix linting in scripts/rule_validator.py"  

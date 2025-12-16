@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** YAML, configuration files, YAML syntax, parsing errors, indentation, anchors, aliases, Markdown, markdown linting, pymarkdownlnt, markup validation, TOML, environment files
 **TokenBudget:** ~2800
 **ContextTier:** Medium
@@ -11,12 +12,9 @@
 ## Purpose
 Establish safe markup and configuration file practices to prevent parsing errors, ensure reliability, and maintain consistency across YAML, TOML, environment files, and Markdown documentation.
 
-
 ## Rule Scope
 
 Markup and configuration file validation best practices (YAML, TOML, environment files, Markdown)
-
-
 
 ## Quick Start TL;DR
 
@@ -37,7 +35,6 @@ Markup and configuration file validation best practices (YAML, TOML, environment
 - [ ] .env files in .gitignore
 - [ ] Markdown linted (if using pymarkdownlnt)
 - [ ] All configs parse successfully
-
 
 ## Contract
 
@@ -71,7 +68,6 @@ Run linters again to verify all issues resolved
 </validation>
 
 </contract>
-
 
 ## Anti-Patterns and Common Mistakes
 
@@ -134,7 +130,6 @@ systemctl restart app
 ```
 **Benefits:** Catch errors before deployment; prevent production outages; fast feedback; safe deployments.
 
-
 ## Post-Execution Checklist
 - [ ] YAML files use consistent 2-space indentation
 - [ ] Strings with special characters are properly quoted
@@ -146,11 +141,9 @@ systemctl restart app
 - [ ] Configuration validated at application startup
 - [ ] Documentation includes setup and validation instructions
 
-
 ## Validation
 - **Success checks:** All YAML files parse correctly; Taskfile syntax valid; TOML configuration loads without errors; Markdown files pass linting with zero errors; no parsing errors in any markup/config files
 - **Negative tests:** Malformed YAML fails parsing; unquoted special characters cause errors; invalid TOML syntax detected; Markdown linting catches formatting issues; configuration with missing required values fails validation
-
 
 ## Output Format Examples
 
@@ -164,7 +157,7 @@ from datetime import datetime, UTC
 
 class ServiceProtocol(Protocol):
     """Clear contract for service implementations."""
-    
+
     def process(self, data: dict) -> dict:
         """Process data following validation rules."""
         ...
@@ -172,19 +165,19 @@ class ServiceProtocol(Protocol):
 def implementation_function(input_data: dict) -> dict:
     """
     Implement feature following project conventions.
-    
+
     Args:
         input_data: Validated input following schema
-    
+
     Returns:
         Processed result with metadata
-    
+
     Raises:
         ValueError: If input validation fails
     """
     # Use datetime.now(UTC) not datetime.utcnow()
     timestamp = datetime.now(UTC)
-    
+
     # Implement business logic
     result = {"status": "success", "timestamp": timestamp}
     return result
@@ -194,10 +187,10 @@ def test_implementation_function():
     """Test following AAA pattern."""
     # Arrange
     test_input = {"key": "value"}
-    
+
     # Act
     result = implementation_function(test_input)
-    
+
     # Assert
     assert result["status"] == "success"
     assert "timestamp" in result
@@ -209,7 +202,6 @@ uvx ruff check .
 uvx ruff format --check .
 uv run pytest tests/
 ```
-
 
 ## References
 
@@ -227,8 +219,6 @@ uv run pytest tests/
 - **Project Setup**: `rules/203-python-project-setup.md`
 - **Taskfile Automation**: `rules/820-taskfile-automation.md`
 - **README Standards**: `rules/801-project-readme.md`
-
-
 
 ## 1. YAML Syntax Safety
 
@@ -258,7 +248,6 @@ cmds:
 - **Always:** Quote strings with special shell characters: `"command --flag=\"value\""`
 - **Critical:** Use double quotes for strings containing variables: `"{{.VARIABLE}}"`
 
-
 ## 2. Shell Command Safety in YAML
 
 ### Argument Quoting
@@ -270,7 +259,6 @@ cmds:
 - **Consider:** Use `&&` for dependent commands: `cmd1 && cmd2`
 - **Always:** Test complex shell commands outside YAML first.
 - **Critical:** Escape quotes properly in nested contexts: `"echo \"Hello World\""`
-
 
 ## 3. Taskfile-Specific Guidelines
 
@@ -289,7 +277,6 @@ cmds:
 - **Always:** Use `preconditions:` for environment checks.
 - **Critical:** Test dependency order to avoid circular dependencies.
 
-
 ## 4. Configuration File Patterns
 
 ### Environment Files (.env)
@@ -303,7 +290,6 @@ cmds:
 - **Always:** Group related configurations logically.
 - **Always:** Use arrays for multiple values: `select = ["E", "W", "F"]`
 - **Reference:** See `201-python-lint-format.md` for complete Ruff configuration patterns.
-
 
 ## 5. Common Parsing Errors and Solutions
 
@@ -324,7 +310,6 @@ cmds:
 2. **"command not found"**: Variable expansion issues.
    - Fix: Use proper `{{.VARIABLE}}` syntax and quote expansions.
 
-
 ## 6. Validation and Testing
 
 ### YAML Validation
@@ -336,7 +321,6 @@ cmds:
 - **Always:** Test configuration loading in application startup.
 - **Always:** Validate environment variable parsing.
 - **Critical:** Test configuration with different environments (dev, test, prod).
-
 
 ## 7. Documentation and Comments
 
@@ -350,7 +334,6 @@ cmds:
 - **Always:** Provide example configurations.
 - **Critical:** Document any non-obvious configuration interactions.
 
-
 ## 8. Security Considerations
 
 ### Sensitive Data
@@ -363,7 +346,6 @@ cmds:
 - **Always:** Validate configuration values at application startup.
 - **Always:** Provide clear error messages for missing required configuration.
 - **Consider:** Use configuration schemas for validation (e.g., Pydantic Settings).
-
 
 ## 9. Markdown Linting
 
@@ -434,7 +416,11 @@ lint:
 
 **CRITICAL:** Markdown linting is part of the Pre-Task-Completion Validation Gate.
 
-- **Rule:** Run `uvx pymarkdownlnt scan "**/*.md"` after modifying Markdown files
+- **Rule (Taskfile-first):** If `Taskfile.yml` exists and provides a Markdown lint task (commonly
+  `task lint`, `task check`, `task validate`, or `task lint-markdown`), run the project-defined task
+  instead of invoking the tool directly.
+- **Rule (fallback):** If no Taskfile task exists, run `uvx pymarkdownlnt scan "**/*.md"` after
+  modifying Markdown files
 - **Rule:** Fix all Markdown linting errors before marking task complete
 - **Exception:** Only skip validation if user explicitly requests override
 
@@ -469,7 +455,6 @@ markdownlint-cli2 "**/*.md"
 
 **Rationale for pymarkdownlnt:** Consistency with existing Python/`uv` tooling ecosystem.
 
-
 ## Validation Results
 
 **Files Checked:**
@@ -483,10 +468,10 @@ markdownlint-cli2 "**/*.md"
 1. [Fix description]
 2. [Fix description]
 
-**Validation Passed:** / 
+**Validation Passed:** /
 ```
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read existing config files BEFORE making changes** - Check current YAML/TOML structure, indentation style
 > 2. **Verify what validation tools are available** - Check for yamllint, toml parsers in project
@@ -502,4 +487,3 @@ markdownlint-cli2 "**/*.md"
 > "Let me check your existing YAML configuration first."
 > [reads file, checks indentation, validates structure]
 > "I see you use 2-space indentation. Adding the new config section following this pattern..."
-

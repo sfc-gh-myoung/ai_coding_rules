@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** cost attribution, resource tagging, governance tags, masking policies, row access policies, tag lineage, create tags, apply tags, tag strategy, tag policies, tag compliance, tag hierarchy, tag discovery, tag management
 **TokenBudget:** ~5550
 **ContextTier:** High
@@ -11,11 +12,9 @@
 ## Purpose
 Establish comprehensive best practices for Snowflake object tagging to enable effective data governance, cost attribution, security classification, and resource monitoring through consistent metadata management across all supported Snowflake objects.
 
-
 ## Rule Scope
 
 Snowflake object tagging for governance, cost tracking, data classification, policy enforcement, and metadata management
-
 
 ## Quick Start TL;DR
 
@@ -44,7 +43,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Cost attribution tags on warehouses
 - [ ] Tag lineage queries working
 - [ ] Tag governance documented
-
 
 ## Contract
 
@@ -93,7 +91,6 @@ Tag DDL with documentation; tag assignment statements; monitoring queries; gover
 </design_principles>
 
 </contract>
-
 
 ## Anti-Patterns and Common Mistakes
 
@@ -248,7 +245,6 @@ WHERE table_schema NOT IN ('INFORMATION_SCHEMA', 'ACCOUNT_USAGE')
 ```
 **Benefits:** Continuous compliance, proactive governance, early detection of gaps, audit readiness.
 
-
 ## Post-Execution Checklist
 
 - [ ] Tag taxonomy defined and documented with clear ownership
@@ -265,7 +261,6 @@ WHERE table_schema NOT IN ('INFORMATION_SCHEMA', 'ACCOUNT_USAGE')
 - [ ] Tag quota limits understood and monitored (<50 per object)
 - [ ] Replication behavior documented for replicated databases
 - [ ] Management approach (centralized/decentralized/hybrid) documented and enforced
-
 
 ## Validation
 
@@ -287,7 +282,7 @@ WHERE table_schema NOT IN ('INFORMATION_SCHEMA', 'ACCOUNT_USAGE')
   - Tag removal (UNSET TAG) works correctly without affecting other tags
   - Dropped tags no longer appear in TAG_REFERENCES views
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read actual tag definitions BEFORE recommending tag applications**
 > 2. **Query TAG_REFERENCES to verify existing tag coverage before creating duplicates**
@@ -306,7 +301,6 @@ WHERE table_schema NOT IN ('INFORMATION_SCHEMA', 'ACCOUNT_USAGE')
 > SELECT * FROM TABLE(INFORMATION_SCHEMA.TAG_REFERENCES('YOUR_TABLE', 'TABLE'));
 > ```
 > "After reviewing the existing tag taxonomy, I found [specific tags]. Here's my recommendation based on what I observed..."
-
 
 ## Output Format Examples
 
@@ -342,7 +336,6 @@ FROM TABLE(INFORMATION_SCHEMA.TAG_REFERENCES(
 -- [Coverage monitoring query specific to use case]
 ```
 
-
 ## References
 
 ### External Documentation
@@ -362,14 +355,12 @@ FROM TABLE(INFORMATION_SCHEMA.TAG_REFERENCES(
 - **Warehouse Management**: `rules/119-snowflake-warehouse-management.md`
 - **Data Governance**: `rules/930-data-governance-quality.md`
 
-> **[AI] Claude 4 Specific Guidance**  
+> **[AI] Claude 4 Specific Guidance**
 > **Claude 4 Optimizations:**
 > - Use parallel tool calls to check existing tags and object state simultaneously
 > - Investigation-first: Always query INFORMATION_SCHEMA.TAGS before recommending tag creation
 > - Verify tag inheritance by querying TAG_REFERENCES with level column
 > - When analyzing coverage gaps, read actual tag assignments before recommending fixes
-
-
 
 ## 1. Tag Fundamentals
 
@@ -462,14 +453,13 @@ ALTER WAREHOUSE WH_ANALYTICS SET TAG
 ALTER TABLE CUSTOMERS UNSET TAG GOVERNANCE.TAGS.PROJECT_NAME;
 
 -- Remove multiple tags
-ALTER TABLE CUSTOMERS UNSET TAG 
+ALTER TABLE CUSTOMERS UNSET TAG
   GOVERNANCE.TAGS.PROJECT_NAME,
   GOVERNANCE.TAGS.LEGACY_SYSTEM;
 
 -- Drop a tag entirely (requires ownership)
 DROP TAG IF EXISTS GOVERNANCE.TAGS.DEPRECATED_TAG;
 ```
-
 
 ## 2. Tag Inheritance
 
@@ -541,7 +531,6 @@ ALTER TABLE ANALYTICS.SENSITIVE.CUSTOMER_PII MODIFY COLUMN ssn SET TAG
   GOVERNANCE.TAGS.PII_LEVEL = 'CRITICAL';
 ```
 
-
 ## 3. Automatic Tag Propagation
 
 **RECOMMENDED:**
@@ -601,7 +590,6 @@ FROM TABLE(INFORMATION_SCHEMA.TAG_REFERENCES_ALL_COLUMNS(
   'MY_DATABASE.MY_SCHEMA.MY_TABLE'
 ));
 ```
-
 
 ## 4. Tag-Based Masking Policies
 
@@ -691,7 +679,6 @@ LEFT JOIN INFORMATION_SCHEMA.POLICY_REFERENCES pr
 WHERE tr.tag_name = 'SEMANTIC_CATEGORY';
 ```
 
-
 ## 5. Cost Attribution with Tags
 
 **MANDATORY:**
@@ -752,7 +739,6 @@ GROUP BY tr.tag_name, tr.tag_value, ts.table_catalog, ts.table_schema
 ORDER BY active_storage_gb DESC;
 ```
 
-
 ## 6. Tag Quotas and Limitations
 
 **MANDATORY:**
@@ -770,7 +756,7 @@ ORDER BY active_storage_gb DESC;
 ALTER TABLE t1 SET TAG GOVERNANCE.TAGS.TAG1 = 'val1';
 
 -- Two tags on object (count: 2)
-ALTER TABLE t1 SET TAG 
+ALTER TABLE t1 SET TAG
   GOVERNANCE.TAGS.TAG1 = 'val1',
   GOVERNANCE.TAGS.TAG2 = 'val1';
 
@@ -800,7 +786,6 @@ CREATE TABLE t1 (
 **Maximum 100 tags in single statement:**
 When executing multiple CREATE/ALTER statements in a single batch, limit to 100 total tag assignments.
 
-
 ## 7. Management Approaches
 
 ### Centralized Management
@@ -824,10 +809,10 @@ CREATE TAG GOVERNANCE.TAGS.RETENTION_PERIOD
   ALLOWED_VALUES '30_DAYS', '1_YEAR', '7_YEARS', 'INDEFINITE';
 
 -- Grant APPLY privilege to functional roles
-GRANT APPLY ON TAG GOVERNANCE.TAGS.DATA_CLASSIFICATION 
+GRANT APPLY ON TAG GOVERNANCE.TAGS.DATA_CLASSIFICATION
   TO ROLE DATA_ENGINEER;
 
-GRANT APPLY ON TAG GOVERNANCE.TAGS.RETENTION_PERIOD 
+GRANT APPLY ON TAG GOVERNANCE.TAGS.RETENTION_PERIOD
   TO ROLE DATA_ENGINEER;
 
 -- Data engineers can now apply tags but not create new ones
@@ -882,7 +867,6 @@ CREATE TAG ANALYTICS.METADATA.DASHBOARD_TIER [...];
 USE ROLE ML_LEAD;
 CREATE TAG ML.METADATA.MODEL_ACCURACY_SCORE;
 ```
-
 
 ## 8. Monitoring and Querying Tags
 
@@ -977,7 +961,6 @@ GROUP BY tag_name, tag_value, object_domain
 ORDER BY tag_name, object_count DESC;
 ```
 
-
 ## 9. Supported Objects
 
 **MANDATORY:**
@@ -1008,7 +991,6 @@ Tags can be applied to the following Snowflake objects (partial list of most com
 | Notebook | Supports tagging |
 
 **Full list:** See [official documentation](https://docs.snowflake.com/en/user-guide/object-tagging/introduction#supported-objects) for complete supported objects table.
-
 
 ## 10. Replication and Cloning
 
@@ -1048,4 +1030,3 @@ CREATE TABLE LIKE_TABLE LIKE SOURCE_TABLE;
 SELECT *
 FROM TABLE(INFORMATION_SCHEMA.TAG_REFERENCES('LIKE_TABLE', 'TABLE'));
 ```
-

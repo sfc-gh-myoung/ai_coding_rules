@@ -2,6 +2,7 @@
 
 ## Metadata
 
+**RuleVersion:** v1.0.0
 **Keywords:** sse, server-sent events, htmx, alpine.js, eventsource, real-time, streaming, live updates, push notifications, event types, sse-manager
 **TokenBudget:** ~2000
 **ContextTier:** High
@@ -100,7 +101,7 @@ async def sse_status():
                 "data": json.dumps(status)
             }
             await asyncio.sleep(5)
-    
+
     return EventSourceResponse(event_generator())
 ```
 
@@ -141,7 +142,7 @@ const CHANNEL_EVENTS = {
 export class SSEConnectionManager {
     connect(channel, onMessage, onError = null) {
         const eventSource = new EventSource(`/api/sse/${channel}`);
-        
+
         // Register listeners for named event types
         const eventTypes = CHANNEL_EVENTS[channel] || [];
         eventTypes.forEach(eventType => {
@@ -150,7 +151,7 @@ export class SSEConnectionManager {
                 onMessage(data, event);
             });
         });
-        
+
         return eventSource;
     }
 }
@@ -178,7 +179,7 @@ function statusPage() {
             window.waitForSSEManager(() => {
                 window.sseManager.connect('status', (data, event) => {
                     const eventType = event.type;
-                    
+
                     if (eventType === 'system_status') {
                         // Trigger HTMX refresh with camelCase event
                         htmx.trigger('#status-display', 'systemStatus');
@@ -204,34 +205,34 @@ Use when: Publishing SSE events from background threads (e.g., `asyncio.to_threa
 async def demo_status_stream(demo_id: str):
     async def status_generator():
         progress_queue: asyncio.Queue = asyncio.Queue()
-        
+
         # CRITICAL: Capture event loop BEFORE entering thread pool
         main_loop = asyncio.get_running_loop()
-        
+
         def progress_callback(step: str, message: str) -> None:
             """Thread-safe callback from background thread."""
             # Use call_soon_threadsafe to interact with main loop
             main_loop.call_soon_threadsafe(
-                progress_queue.put_nowait, 
+                progress_queue.put_nowait,
                 (step, message)
             )
-        
+
         async def run_in_thread():
             await asyncio.to_thread(
                 long_running_operation,
                 callback=progress_callback
             )
             await progress_queue.put(("done", ""))
-        
+
         task = asyncio.create_task(run_in_thread())
-        
+
         while True:
             step, message = await progress_queue.get()
             if step == "done":
                 yield {"event": "complete", "data": "{}"}
                 break
             yield {"event": "progress", "data": json.dumps({"step": step})}
-    
+
     return EventSourceResponse(status_generator())
 ```
 

@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** FastAPI security, authentication, OAuth2, JWT, CORS, middleware, API keys, security best practices, bcrypt, HTTPBearer, role-based access control, RBAC
 **TokenBudget:** ~2650
 **ContextTier:** High
@@ -11,13 +12,9 @@
 ## Purpose
 Establish comprehensive security practices for FastAPI applications including authentication, authorization, CORS configuration, and security middleware to protect APIs and user data.
 
-
 ## Rule Scope
 
 FastAPI security patterns for authentication, authorization, CORS, and security middleware
-
-
-
 
 ## Quick Start TL;DR
 
@@ -39,7 +36,6 @@ FastAPI security patterns for authentication, authorization, CORS, and security 
 - [ ] CORS configured with explicit origins
 - [ ] Rate limiting middleware configured
 - [ ] Docs disabled in production
-
 
 ## Contract
 
@@ -100,7 +96,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     secret_key: str
     database_url: str
-    
+
     class Config:
         env_file = ".env"
 
@@ -144,12 +140,11 @@ app.add_middleware(
 - [ ] Output format matches requirements
 - [ ] Validation steps completed successfully
 
-
 ## Validation
 - **Success checks:** [How to verify correct implementation]
 - **Negative tests:** [What should fail and how to detect failures]
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. **Read existing auth implementation BEFORE adding security** - Check for auth_service.py, security.py, existing JWT patterns
 > 2. **Verify environment variable usage** - Check .env files, config.py for how secrets are currently loaded
@@ -166,7 +161,6 @@ app.add_middleware(
 > [reads auth_service.py, main.py, checks for HTTPBearer usage]
 > "I see you're using passlib with bcrypt and HTTPBearer for JWT auth. Here's how to add role-based access control following the same pattern..."
 
-
 ## Output Format Examples
 
 ```python
@@ -179,7 +173,7 @@ from datetime import datetime, UTC
 
 class ServiceProtocol(Protocol):
     """Clear contract for service implementations."""
-    
+
     def process(self, data: dict) -> dict:
         """Process data following validation rules."""
         ...
@@ -187,19 +181,19 @@ class ServiceProtocol(Protocol):
 def implementation_function(input_data: dict) -> dict:
     """
     Implement feature following project conventions.
-    
+
     Args:
         input_data: Validated input following schema
-    
+
     Returns:
         Processed result with metadata
-    
+
     Raises:
         ValueError: If input validation fails
     """
     # Use datetime.now(UTC) not datetime.utcnow()
     timestamp = datetime.now(UTC)
-    
+
     # Implement business logic
     result = {"status": "success", "timestamp": timestamp}
     return result
@@ -209,10 +203,10 @@ def test_implementation_function():
     """Test following AAA pattern."""
     # Arrange
     test_input = {"key": "value"}
-    
+
     # Act
     result = implementation_function(test_input)
-    
+
     # Assert
     assert result["status"] == "success"
     assert "timestamp" in result
@@ -224,7 +218,6 @@ uvx ruff check .
 uvx ruff format --check .
 uv run pytest tests/
 ```
-
 
 ## References
 
@@ -240,7 +233,6 @@ uv run pytest tests/
 - **FastAPI Core**: `rules/210-python-fastapi-core.md`
 - **FastAPI Testing**: `rules/210b-python-fastapi-testing.md`
 - **FastAPI Deployment**: `rules/210c-python-fastapi-deployment.md`
-
 
 ## 1. Authentication Setup
 
@@ -298,7 +290,7 @@ async def get_current_user(token: str = Depends(security)):
             raise credentials_exception
     except JWTError:
         raise credentials_exception
-    
+
     # Fetch user from database
     user = await get_user_by_username(username)
     if user is None:
@@ -347,13 +339,12 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email already registered"
         )
-    
+
     # Create new user with hashed password
     hashed_password = get_password_hash(user_data.password)
     user = await create_user(db, user_data, hashed_password)
     return user
 ```
-
 
 ## 2. Authorization and Access Control
 
@@ -415,7 +406,6 @@ async def delete_user(
     return {"message": "User deleted successfully"}
 ```
 
-
 ## 3. Security Middleware
 
 ### CORS Configuration
@@ -432,7 +422,7 @@ from app.config import Settings
 
 def add_security_middleware(app: FastAPI, settings: Settings):
     """Add security middleware to FastAPI application."""
-    
+
     # CORS middleware
     app.add_middleware(
         CORSMiddleware,
@@ -442,11 +432,11 @@ def add_security_middleware(app: FastAPI, settings: Settings):
         allow_headers=["*"],
         max_age=600,  # Cache preflight requests for 10 minutes
     )
-    
+
     # Trusted hosts middleware (production only)
     if not settings.debug:
         app.add_middleware(
-            TrustedHostMiddleware, 
+            TrustedHostMiddleware,
             allowed_hosts=settings.allowed_hosts
         )
 
@@ -455,11 +445,11 @@ def add_rate_limiting_middleware(app: FastAPI):
     from slowapi import Limiter, _rate_limit_exceeded_handler
     from slowapi.util import get_remote_address
     from slowapi.errors import RateLimitExceeded
-    
+
     limiter = Limiter(key_func=get_remote_address)
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-    
+
     return limiter
 ```
 
@@ -474,24 +464,23 @@ from fastapi.middleware.base import BaseHTTPMiddleware
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     """Add security headers to all responses."""
-    
+
     async def dispatch(self, request: Request, call_next):
         response: Response = await call_next(request)
-        
+
         # Security headers
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
-        
+
         # HSTS (only over HTTPS)
         if request.url.scheme == "https":
             response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-        
+
         return response
 ```
-
 
 ## 4. Input Sanitization and Validation
 
@@ -541,7 +530,7 @@ class SecureUserInput(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
     email: EmailStr
     bio: Optional[str] = Field(None, max_length=500)
-    
+
     @field_validator('username')
     @classmethod
     def validate_username(cls, v: str) -> str:
@@ -549,7 +538,7 @@ class SecureUserInput(BaseModel):
         if not re.match(r'^[a-zA-Z0-9_]+$', v):
             raise ValueError('Username can only contain letters, numbers, and underscores')
         return v.lower()
-    
+
     @field_validator('bio')
     @classmethod
     def sanitize_bio(cls, v: Optional[str]) -> Optional[str]:
@@ -559,7 +548,6 @@ class SecureUserInput(BaseModel):
             return v.strip()
         return v
 ```
-
 
 ## 5. Environment and Configuration Security
 
@@ -577,38 +565,38 @@ import secrets
 class SecuritySettings(BaseSettings):
     """Security-focused configuration settings."""
     model_config = ConfigDict(env_prefix="SECURITY_", env_file=".env")
-    
+
     # JWT Configuration
     jwt_secret_key: str = secrets.token_urlsafe(32)
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 30
     jwt_refresh_expire_days: int = 7
-    
+
     # Password Configuration
     password_min_length: int = 8
     password_require_uppercase: bool = True
     password_require_numbers: bool = True
     password_require_symbols: bool = False
-    
+
     # Rate Limiting
     rate_limit_requests: int = 100
     rate_limit_window: int = 3600  # 1 hour
-    
+
     # CORS
     cors_origins: List[str] = ["http://localhost:3000"]
     cors_credentials: bool = True
-    
+
     # Security Headers
     enable_security_headers: bool = True
     hsts_max_age: int = 31536000  # 1 year
-    
+
     @field_validator('jwt_secret_key')
     @classmethod
     def validate_secret_key(cls, v: str) -> str:
         if len(v) < 32:
             raise ValueError('JWT secret key must be at least 32 characters long')
         return v
-    
+
     @field_validator('cors_origins', mode='before')
     @classmethod
     def parse_cors_origins(cls, v):
@@ -616,7 +604,6 @@ class SecuritySettings(BaseSettings):
             return [origin.strip() for origin in v.split(',')]
         return v
 ```
-
 
 ## 6. Production Security Hardening
 
@@ -633,7 +620,7 @@ from app.middleware.security import add_security_middleware, SecurityHeadersMidd
 def create_secure_app() -> FastAPI:
     """Create FastAPI app with production security settings."""
     settings = get_settings()
-    
+
     # Production-specific FastAPI configuration
     app = FastAPI(
         title=settings.app_name,
@@ -644,15 +631,15 @@ def create_secure_app() -> FastAPI:
         redoc_url="/redoc" if settings.debug else None,
         openapi_url="/openapi.json" if settings.debug else None,
     )
-    
+
     # Add security middleware
     add_security_middleware(app, settings)
     app.add_middleware(SecurityHeadersMiddleware)
-    
+
     # Add rate limiting
     if not settings.debug:
         limiter = add_rate_limiting_middleware(app)
-        
+
         # Apply rate limiting to auth endpoints
         @app.middleware("http")
         async def rate_limit_auth(request: Request, call_next):
@@ -661,7 +648,6 @@ def create_secure_app() -> FastAPI:
                 pass
             response = await call_next(request)
             return response
-    
+
     return app
 ```
-

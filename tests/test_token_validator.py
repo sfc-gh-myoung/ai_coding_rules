@@ -653,7 +653,7 @@ class TestCLI:
         rule_file = rules_dir / "test.md"
         rule_file.write_text("**TokenBudget:** ~500\n" + " ".join(["word"] * 385))
 
-        test_args = ["token_validator.py"]
+        test_args = ["token_validator.py", str(rules_dir)]
         monkeypatch.setattr("sys.argv", test_args)
 
         # Act
@@ -673,7 +673,7 @@ class TestCLI:
         rule_file = rules_dir / "test.md"
         rule_file.write_text("**TokenBudget:** ~500\n" + " ".join(["word"] * 385))
 
-        test_args = ["token_validator.py", "--threshold", "5"]
+        test_args = ["token_validator.py", str(rules_dir), "--threshold", "5"]
         monkeypatch.setattr("sys.argv", test_args)
 
         # Act
@@ -694,7 +694,7 @@ class TestCLI:
         original_content = "**TokenBudget:** ~300\n" + " ".join(["word"] * 385)
         rule_file.write_text(original_content)
 
-        test_args = ["token_validator.py", "--dry-run"]
+        test_args = ["token_validator.py", str(rules_dir), "--dry-run"]
         monkeypatch.setattr("sys.argv", test_args)
 
         # Act
@@ -720,7 +720,7 @@ class TestCLI:
         rule_file = rules_dir / "test.md"
         rule_file.write_text("**TokenBudget:** ~500\n" + " ".join(["word"] * 385))
 
-        test_args = ["token_validator.py", "--verbose", "--detailed"]
+        test_args = ["token_validator.py", str(rules_dir), "--verbose", "--detailed"]
         monkeypatch.setattr("sys.argv", test_args)
 
         # Act
@@ -739,7 +739,7 @@ class TestCLI:
         # Arrange
         non_existent = tmp_path / "non_existent_rules"
 
-        test_args = ["token_validator.py", "--directory", str(non_existent)]
+        test_args = ["token_validator.py", str(non_existent)]
         monkeypatch.setattr("sys.argv", test_args)
 
         # Act
@@ -777,3 +777,248 @@ class TestErrorHandling:
 
         # Cleanup - restore write permissions
         os.chmod(rule_file, 0o644)
+
+
+class TestCLIVerboseMode:
+    """Test CLI verbose mode and report output."""
+
+    @pytest.mark.integration
+    def test_report_shows_missing_budget(self, tmp_path: Path, monkeypatch, capsys) -> None:
+        """Test report displays MISSING for rules without TokenBudget."""
+        # Arrange
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        test_file = rules_dir / "test-rule.md"
+        test_file.write_text("""# Test Rule
+
+## Metadata
+
+**Keywords:** test
+**ContextTier:** High
+
+## Purpose
+This rule has no TokenBudget field.
+""")
+
+        test_args = ["token_validator.py", str(rules_dir), "--verbose"]
+        monkeypatch.setattr("sys.argv", test_args)
+
+        # Act
+        exit_code = utb.main()
+
+        # Assert
+        assert exit_code == 0
+        captured = capsys.readouterr()
+        assert "MISSING" in captured.out or "test-rule.md" in captured.out
+
+
+class TestSingleFileMode:
+    """Test single file validation mode (new in CLI enhancement)."""
+
+    @pytest.mark.integration
+    def test_single_file_analysis_success(self, tmp_path: Path, monkeypatch, capsys) -> None:
+        """Test main() with single file shows analysis output."""
+        # Arrange
+        rule_file = tmp_path / "test-rule.md"
+        rule_file.write_text("**TokenBudget:** ~500\n" + " ".join(["word"] * 385))
+
+        test_args = ["token_validator.py", str(rule_file), "--dry-run"]
+        monkeypatch.setattr("sys.argv", test_args)
+
+        # Act
+        exit_code = utb.main()
+        captured = capsys.readouterr()
+
+        # Assert
+        assert exit_code == 0
+        assert "TOKEN BUDGET ANALYSIS" in captured.out
+        assert "Current Budget:" in captured.out
+        assert "Estimated Tokens:" in captured.out
+        assert "Suggested Budget:" in captured.out
+        assert "Status:" in captured.out
+
+    @pytest.mark.integration
+    def test_single_file_with_error(self, tmp_path: Path, monkeypatch, capsys) -> None:
+        """Test single file mode handles analysis errors."""
+        # Arrange
+        rule_file = tmp_path / "corrupted.md"
+        rule_file.write_text("Invalid content")
+        # Make file unreadable after creating it
+        import os
+
+        os.chmod(rule_file, 0o000)
+
+        test_args = ["token_validator.py", str(rule_file)]
+        monkeypatch.setattr("sys.argv", test_args)
+
+        # Act
+        exit_code = utb.main()
+        captured = capsys.readouterr()
+
+        # Cleanup - restore permissions before assert
+        os.chmod(rule_file, 0o644)
+
+        # Assert
+        assert exit_code == 1
+        assert "[ERROR]" in captured.out
+
+    @pytest.mark.integration
+    def test_single_file_needs_update_dry_run(self, tmp_path: Path, monkeypatch, capsys) -> None:
+        """Test single file mode shows update message in dry-run."""
+        # Arrange
+        rule_file = tmp_path / "needs-update.md"
+        rule_file.write_text("**TokenBudget:** ~200\n" + " ".join(["word"] * 385))
+
+        test_args = ["token_validator.py", str(rule_file), "--dry-run"]
+        monkeypatch.setattr("sys.argv", test_args)
+
+        # Act
+        exit_code = utb.main()
+        captured = capsys.readouterr()
+
+        # Assert
+        assert exit_code == 0
+        assert "[DRY RUN]" in captured.out
+        assert "Would update TokenBudget:" in captured.out
+
+    @pytest.mark.integration
+    def test_single_file_needs_update_live(self, tmp_path: Path, monkeypatch, capsys) -> None:
+        """Test single file mode updates file when needed."""
+        # Arrange
+        rule_file = tmp_path / "needs-update.md"
+        original = "**TokenBudget:** ~200\n" + " ".join(["word"] * 385)
+        rule_file.write_text(original)
+
+        test_args = ["token_validator.py", str(rule_file)]
+        monkeypatch.setattr("sys.argv", test_args)
+
+        # Act
+        exit_code = utb.main()
+        captured = capsys.readouterr()
+
+        # Assert
+        assert exit_code == 0
+        assert "✓ Updated TokenBudget:" in captured.out
+        # Verify file was actually updated
+        updated_content = rule_file.read_text()
+        assert updated_content != original
+        assert "~200" not in updated_content
+
+    @pytest.mark.integration
+    def test_single_file_update_failure(self, tmp_path: Path, monkeypatch, capsys) -> None:
+        """Test single file mode handles update failures."""
+        # Arrange
+        import os
+
+        rule_file = tmp_path / "readonly.md"
+        rule_file.write_text("**TokenBudget:** ~200\n" + " ".join(["word"] * 385))
+
+        # Make file read-only before attempting update
+        os.chmod(rule_file, 0o444)
+
+        test_args = ["token_validator.py", str(rule_file)]
+        monkeypatch.setattr("sys.argv", test_args)
+
+        # Act
+        exit_code = utb.main()
+        captured = capsys.readouterr()
+
+        # Cleanup
+        os.chmod(rule_file, 0o644)
+
+        # Assert
+        assert exit_code == 1
+        assert "[ERROR] Failed to update file" in captured.out
+
+    @pytest.mark.integration
+    def test_single_file_no_update_needed(self, tmp_path: Path, monkeypatch, capsys) -> None:
+        """Test single file mode when budget is accurate."""
+        # Arrange
+        rule_file = tmp_path / "accurate.md"
+        rule_file.write_text("**TokenBudget:** ~500\n" + " ".join(["word"] * 385))
+
+        test_args = ["token_validator.py", str(rule_file)]
+        monkeypatch.setattr("sys.argv", test_args)
+
+        # Act
+        exit_code = utb.main()
+        captured = capsys.readouterr()
+
+        # Assert
+        assert exit_code == 0
+        assert "✓ No update needed (within threshold)" in captured.out
+
+    @pytest.mark.integration
+    def test_single_file_with_threshold_flag(self, tmp_path: Path, monkeypatch, capsys) -> None:
+        """Test single file mode respects custom threshold."""
+        # Arrange
+        rule_file = tmp_path / "test.md"
+        rule_file.write_text("**TokenBudget:** ~500\n" + " ".join(["word"] * 385))
+
+        test_args = ["token_validator.py", str(rule_file), "--threshold", "5"]
+        monkeypatch.setattr("sys.argv", test_args)
+
+        # Act
+        exit_code = utb.main()
+        captured = capsys.readouterr()
+
+        # Assert
+        assert exit_code == 0
+        assert "Update threshold: ±5.0%" in captured.out
+
+
+class TestPathValidation:
+    """Test path validation and error handling."""
+
+    @pytest.mark.unit
+    def test_invalid_path_type_error(self, tmp_path: Path, monkeypatch, capsys) -> None:
+        """Test main() handles path that is neither file nor directory."""
+        # Arrange - Mock Path methods to simulate edge case
+        from unittest.mock import Mock, patch
+
+        mock_path = Mock()
+        mock_path.exists.return_value = True
+        mock_path.is_file.return_value = False
+        mock_path.is_dir.return_value = False
+        mock_path.__str__ = lambda self: "/fake/path"
+
+        test_args = ["token_validator.py", "/fake/path"]
+        monkeypatch.setattr("sys.argv", test_args)
+
+        # Mock Path constructor to return our mock
+        with patch("token_validator.Path") as mock_path_class:
+            mock_path_class.return_value = mock_path
+
+            # Act
+            exit_code = utb.main()
+            captured = capsys.readouterr()
+
+            # Assert
+            assert exit_code == 1
+            assert "[ERROR] Path is neither a file nor directory:" in captured.out
+
+
+class TestUpdateFileEdgeCases:
+    """Test edge cases in update_file method."""
+
+    @pytest.mark.unit
+    def test_update_file_no_change_needed_returns_false(self, tmp_path: Path) -> None:
+        """Test update_file returns False when content replacement produces no change."""
+        # Arrange
+        rule_file = tmp_path / "exact-match.md"
+        # Create a file where the suggested budget exactly matches current
+        content = "**TokenBudget:** ~500\n" + " ".join(["word"] * 385)
+        rule_file.write_text(content)
+
+        updater = utb.TokenBudgetUpdater()
+        analysis = updater.analyze_file(rule_file)
+
+        # Force the suggested budget to match current (simulate exact match scenario)
+        analysis.suggested_budget = analysis.current_budget
+        analysis.needs_update = True  # Force update attempt
+
+        # Act
+        result = updater.update_file(analysis)
+
+        # Assert - should return False because content wouldn't change
+        assert result is False

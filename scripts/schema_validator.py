@@ -197,11 +197,11 @@ class SchemaValidator:
         """Initialize validator with schema.
 
         Args:
-            schema_path: Path to YAML schema file. Defaults to schemas/rule-schema-v3.yml
+            schema_path: Path to YAML schema file. Defaults to schemas/rule-schema.yml
             debug: Enable debug logging
         """
         if schema_path is None:
-            schema_path = project_root / "schemas" / "rule-schema-v3.yml"
+            schema_path = project_root / "schemas" / "rule-schema.yml"
 
         self.schema_path = schema_path
         self.debug = debug
@@ -514,6 +514,54 @@ class SchemaValidator:
                 )
             else:
                 result.passed_checks += 1
+
+        # Validate SchemaVersion format
+        if "SchemaVersion" in metadata:
+            schema_version = metadata["SchemaVersion"]
+            sv_config = next(
+                (f for f in metadata_config["required_fields"] if f["name"] == "SchemaVersion"),
+                None,
+            )
+            if sv_config:
+                pattern = sv_config.get("pattern", r"^v\d+\.\d+(\.\d+)?$")
+
+                if not re.match(pattern, schema_version):
+                    result.errors.append(
+                        ValidationError(
+                            severity=sv_config["severity"],
+                            message=sv_config["error_message"],
+                            error_group="Metadata",
+                            line_num=metadata.get("SchemaVersion_line"),
+                            fix_suggestion=sv_config.get("fix_suggestion"),
+                            docs_reference=sv_config.get("docs_reference"),
+                        )
+                    )
+                else:
+                    result.passed_checks += 1
+
+        # Validate RuleVersion format
+        if "RuleVersion" in metadata:
+            rule_version = metadata["RuleVersion"]
+            rv_config = next(
+                (f for f in metadata_config["required_fields"] if f["name"] == "RuleVersion"),
+                None,
+            )
+            if rv_config:
+                pattern = rv_config.get("pattern", r"^v\d+\.\d+\.\d+$")
+
+                if not re.match(pattern, rule_version):
+                    result.errors.append(
+                        ValidationError(
+                            severity=rv_config["severity"],
+                            message=rv_config["error_message"],
+                            error_group="Metadata",
+                            line_num=metadata.get("RuleVersion_line"),
+                            fix_suggestion=rv_config.get("fix_suggestion"),
+                            docs_reference=rv_config.get("docs_reference"),
+                        )
+                    )
+                else:
+                    result.passed_checks += 1
 
         # Check metadata field order
         field_order_config = metadata_config["field_order"]
@@ -1210,7 +1258,7 @@ def main():
         "--schema",
         type=Path,
         default=None,
-        help="Path to YAML schema file (default: schemas/rule-schema-v3.yml)",
+        help="Path to YAML schema file (default: schemas/rule-schema.yml)",
     )
     parser.add_argument(
         "--strict",

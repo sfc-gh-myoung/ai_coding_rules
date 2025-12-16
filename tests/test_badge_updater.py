@@ -220,18 +220,21 @@ class TestBadgeUpdating:
             "# Project\n"
             "![Version](https://img.shields.io/badge/version-1.0.0-blue)\n"
             "![Tests](https://img.shields.io/badge/tests-80%25%20passing-yellow)\n"
+            "![Coverage](https://img.shields.io/badge/coverage-70%25-yellow)\n"
             "Content"
         )
 
         # Act
-        bu.update_readme_badges(readme, "2.0.0", 95.0)
+        bu.update_readme_badges(readme, "2.0.0", 95.0, 98.0)
 
         # Assert
         content = readme.read_text()
         assert "version-2.0.0-blue" in content
         assert "tests-95%25%20passing-brightgreen" in content
+        assert "coverage-98%25-brightgreen" in content
         assert "version-1.0.0" not in content
         assert "tests-80" not in content
+        assert "coverage-70" not in content
 
     @pytest.mark.unit
     def test_update_readme_badges_inserts_missing(self, tmp_path: Path):
@@ -245,12 +248,13 @@ class TestBadgeUpdating:
         )
 
         # Act
-        bu.update_readme_badges(readme, "3.1.0", 100.0)
+        bu.update_readme_badges(readme, "3.1.0", 100.0, 96.0)
 
         # Assert
         content = readme.read_text()
         assert "version-3.1.0-blue" in content
         assert "tests-100%25%20passing-brightgreen" in content
+        assert "coverage-96%25-brightgreen" in content
         # Version badge should be on line after license badge
         lines = content.split("\n")
         license_idx = next(i for i, line in enumerate(lines) if "License: Apache" in line)
@@ -282,7 +286,7 @@ class TestBadgeUpdating:
         )
 
         # Act
-        bu.update_readme_badges(readme, "1.0.0", percentage)
+        bu.update_readme_badges(readme, "1.0.0", percentage, 80.0)
 
         # Assert
         content = readme.read_text()
@@ -296,7 +300,7 @@ class TestBadgeUpdating:
         readme.write_text("# Project\nContent without badges")
 
         # Act
-        bu.update_readme_badges(readme, "1.0.0", 90.0)
+        bu.update_readme_badges(readme, "1.0.0", 90.0, 85.0)
 
         # Assert
         content = readme.read_text()
@@ -313,6 +317,7 @@ class TestBadgeUpdating:
             "# AI Coding Rules\n"
             "![Version](https://img.shields.io/badge/version-1.0.0-blue)\n"
             "![Tests](https://img.shields.io/badge/tests-80%25%20passing-yellow)\n"
+            "![Coverage](https://img.shields.io/badge/coverage-75%25-yellow)\n"
             "\n"
             "## Overview\n"
             "This is important content.\n"
@@ -324,7 +329,7 @@ class TestBadgeUpdating:
         readme.write_text(original_content)
 
         # Act
-        bu.update_readme_badges(readme, "2.0.0", 95.0)
+        bu.update_readme_badges(readme, "2.0.0", 95.0, 98.0)
 
         # Assert
         content = readme.read_text()
@@ -333,6 +338,22 @@ class TestBadgeUpdating:
         assert "## Features" in content
         assert "- Feature 1" in content
         assert "- Feature 2" in content
+
+    @pytest.mark.unit
+    def test_update_readme_badges_coverage_colors(self, tmp_path: Path):
+        """Test coverage badge color changes based on percentage thresholds."""
+        # Arrange
+        readme = tmp_path / "README.md"
+        readme.write_text(
+            "# Project\n![Coverage](https://img.shields.io/badge/coverage-50%25-red)\n"
+        )
+
+        # Act
+        bu.update_readme_badges(readme, "1.0.0", 100.0, 85.0)
+
+        # Assert
+        content = readme.read_text()
+        assert "coverage-85%25-brightgreen" in content
 
 
 class TestMainFunction:
@@ -430,6 +451,127 @@ class TestMainFunction:
         assert exit_code == 1
 
 
+class TestCoverageExtraction:
+    """Test coverage percentage extraction from htmlcov/index.html."""
+
+    @pytest.mark.unit
+    def test_get_coverage_percentage_valid_file(self, tmp_path: Path):
+        """Test extracting coverage from valid htmlcov/index.html."""
+        # Arrange
+        htmlcov = tmp_path / "htmlcov"
+        htmlcov.mkdir()
+        index_html = htmlcov / "index.html"
+        index_html.write_text(
+            "<!DOCTYPE html><html><body>"
+            '<h1>Coverage report: <span class="pc_cov">96%</span></h1>'
+            "</body></html>"
+        )
+
+        # Act
+        coverage = bu.get_coverage_percentage(tmp_path)
+
+        # Assert
+        assert coverage == 96.0
+
+    @pytest.mark.unit
+    def test_get_coverage_percentage_100_percent(self, tmp_path: Path):
+        """Test extracting 100% coverage."""
+        # Arrange
+        htmlcov = tmp_path / "htmlcov"
+        htmlcov.mkdir()
+        index_html = htmlcov / "index.html"
+        index_html.write_text('<span class="pc_cov">100%</span>')
+
+        # Act
+        coverage = bu.get_coverage_percentage(tmp_path)
+
+        # Assert
+        assert coverage == 100.0
+
+    @pytest.mark.unit
+    def test_get_coverage_percentage_low_coverage(self, tmp_path: Path):
+        """Test extracting low coverage percentage."""
+        # Arrange
+        htmlcov = tmp_path / "htmlcov"
+        htmlcov.mkdir()
+        index_html = htmlcov / "index.html"
+        index_html.write_text('<span class="pc_cov">42%</span>')
+
+        # Act
+        coverage = bu.get_coverage_percentage(tmp_path)
+
+        # Assert
+        assert coverage == 42.0
+
+    @pytest.mark.unit
+    def test_get_coverage_percentage_missing_file(self, tmp_path: Path):
+        """Test handling when htmlcov/index.html doesn't exist."""
+        # Arrange - no htmlcov directory
+
+        # Act
+        coverage = bu.get_coverage_percentage(tmp_path)
+
+        # Assert
+        assert coverage == 0.0
+
+    @pytest.mark.unit
+    def test_get_coverage_percentage_missing_span(self, tmp_path: Path):
+        """Test handling when coverage span is missing."""
+        # Arrange
+        htmlcov = tmp_path / "htmlcov"
+        htmlcov.mkdir()
+        index_html = htmlcov / "index.html"
+        index_html.write_text("<!DOCTYPE html><html><body>No coverage here</body></html>")
+
+        # Act
+        coverage = bu.get_coverage_percentage(tmp_path)
+
+        # Assert
+        assert coverage == 0.0
+
+    @pytest.mark.unit
+    def test_get_coverage_percentage_malformed_html(self, tmp_path: Path):
+        """Test handling malformed HTML."""
+        # Arrange
+        htmlcov = tmp_path / "htmlcov"
+        htmlcov.mkdir()
+        index_html = htmlcov / "index.html"
+        index_html.write_text('<span class="pc_cov">not a number%</span>')
+
+        # Act
+        coverage = bu.get_coverage_percentage(tmp_path)
+
+        # Assert
+        assert coverage == 0.0
+
+
+class TestBadgeColor:
+    """Test badge color selection based on percentage thresholds."""
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        "percentage,expected_color",
+        [
+            (100.0, "brightgreen"),
+            (95.0, "brightgreen"),
+            (80.0, "brightgreen"),
+            (79.9, "yellow"),
+            (70.0, "yellow"),
+            (60.0, "yellow"),
+            (59.9, "red"),
+            (30.0, "red"),
+            (0.0, "red"),
+        ],
+    )
+    def test_get_badge_color(self, percentage: float, expected_color: str):
+        """Test badge color selection for various percentages."""
+        # Act
+        color = bu.get_badge_color(percentage)
+
+        # Assert
+        assert color == expected_color
+
+
 class TestEdgeCases:
     """Test edge cases and boundary conditions."""
 
@@ -474,7 +616,7 @@ class TestEdgeCases:
         )
 
         # Act
-        bu.update_readme_badges(readme, "1.0.0", 97.561)
+        bu.update_readme_badges(readme, "1.0.0", 97.561, 85.0)
 
         # Assert
         content = readme.read_text()
@@ -490,17 +632,19 @@ class TestEdgeCases:
             "# Project\n\n"
             "![Version](https://img.shields.io/badge/version-1.0.0-blue)\n"
             "![Tests](https://img.shields.io/badge/tests-80%25%20passing-yellow)\n"
+            "![Coverage](https://img.shields.io/badge/coverage-75%25-yellow)\n"
             "![Python](https://img.shields.io/badge/python-3.11-blue)\n\n"
             "Content"
         )
 
         # Act
-        bu.update_readme_badges(readme, "2.0.0", 100.0)
+        bu.update_readme_badges(readme, "2.0.0", 100.0, 98.0)
 
         # Assert
         content = readme.read_text()
         assert "version-2.0.0-blue" in content
         assert "tests-100%25%20passing-brightgreen" in content
+        assert "coverage-98%25-brightgreen" in content
         # Other badges should be preserved
         assert "python-3.11-blue" in content
 

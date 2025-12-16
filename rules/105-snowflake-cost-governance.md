@@ -2,7 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** budget alerts, spend tracking, Snowflake, SQL, CREDIT_QUOTA, WAREHOUSE_METERING_HISTORY, object tagging, monitor credits, warehouse spending, cost alerts, credit limits, budget management, resource monitor, tag enforcement
 **TokenBudget:** ~1700
 **ContextTier:** High
@@ -11,11 +12,9 @@
 ## Purpose
 Establish comprehensive cost management and optimization strategies for Snowflake environments, including resource monitoring, warehouse right-sizing, and governance policies to control and predict cloud data warehouse spending.
 
-
 ## Rule Scope
 
 Snowflake cost management, resource monitors, and credit usage optimization
-
 
 ## Quick Start TL;DR
 
@@ -38,14 +37,13 @@ Snowflake cost management, resource monitors, and credit usage optimization
 - [ ] Review credit usage: SELECT * FROM WAREHOUSE_METERING_HISTORY
 - [ ] Set up cost dashboards and alerts
 
-> **Investigation Required**  
+> **Investigation Required**
 > When applying this rule:
 > 1. Query WAREHOUSE_METERING_HISTORY to review current credit usage BEFORE making recommendations
 > 2. Verify existing resource monitors and quotas
 > 3. Never speculate about cost issues - check actual credit consumption
 > 4. Review warehouse auto-suspend settings in SHOW WAREHOUSES
 > 5. Make grounded recommendations based on investigated usage patterns
-
 
 ## Contract
 
@@ -156,11 +154,9 @@ CREATE WAREHOUSE WH_REPORTS WAREHOUSE_SIZE = 'SMALL'
 - [ ] Regular review process established for credit usage patterns
       Verify: Check for scheduled queries/tasks that report on usage trends
 
-
 ## Validation
 - **Success Checks:** Resource monitors are active and tracking usage; warehouses suspend automatically after idle period; credit usage aligns with expectations; cost alerts trigger appropriately; warehouse sizes match workload requirements
 - **Negative Tests:** Oversized warehouses fail cost review; missing resource monitors allow unchecked spending; disabled auto-suspend causes unnecessary credit consumption; inadequate monitoring misses cost spikes
-
 
 ## Output Format Examples
 ```sql
@@ -169,7 +165,7 @@ CREATE RESOURCE MONITOR IF NOT EXISTS rm_analytics_monthly
   WITH CREDIT_QUOTA = 5000
   FREQUENCY = MONTHLY
   START_TIMESTAMP = IMMEDIATELY
-  TRIGGERS 
+  TRIGGERS
     ON 75 PERCENT DO NOTIFY
     ON 90 PERCENT DO NOTIFY
     ON 100 PERCENT DO SUSPEND;
@@ -181,11 +177,10 @@ CREATE RESOURCE MONITOR IF NOT EXISTS rm_analytics_monthly
 ALTER WAREHOUSE WH_ANALYTICS_M SET RESOURCE_MONITOR = rm_analytics_monthly;
 ```
 
-
 ## References
 
 ### External Documentation
-- [Cost Management Guide](https://docs.snowflake.com/en/guides-overview-cost) - Comprehensive cost optimization strategies and monitoring                                                                               
+- [Cost Management Guide](https://docs.snowflake.com/en/guides-overview-cost) - Comprehensive cost optimization strategies and monitoring
 - [Resource Monitors](https://docs.snowflake.com/en/user-guide/resource-monitors) - Credit usage tracking, quotas, and automated controls
 
 ### Related Rules
@@ -195,19 +190,16 @@ ALTER WAREHOUSE WH_ANALYTICS_M SET RESOURCE_MONITOR = rm_analytics_monthly;
 - **Object Tagging**: `rules/123-snowflake-object-tagging.md`
 - **Security Governance**: `rules/107-snowflake-security-governance.md`
 
-
 ## 1. Cost Optimization Principles
 - **Requirement:** Treat cost as a primary design factor.
 - **Always:** Follow comprehensive warehouse management practices in `119-snowflake-warehouse-management.md` for type selection, sizing, tagging, and configuration.
 - **Requirement:** Verify all warehouses follow mandatory tagging and resource monitor association requirements.
 - **Always:** Apply object tagging for cost attribution and chargeback. See `123-snowflake-object-tagging.md` for comprehensive tagging patterns and cost tracking queries.
 
-
 ## 2. Resource Management
 - **Always:** Use Resource Monitors to track and control credit usage.
 - **Always:** Create resource monitors with specific `CREDIT_QUOTA` and `TRIGGERS` to suspend or notify on thresholds.
 - **Always:** Use Snowflake's anomaly detection features to monitor for unexpected credit spikes.
-
 
 ## Related Rules
 
@@ -223,4 +215,3 @@ ALTER WAREHOUSE WH_ANALYTICS_M SET RESOURCE_MONITOR = rm_analytics_monthly;
 **Complementary** (different aspects of same domain):
 - `100-snowflake-core` - For tagging conventions (COST_CENTER, WORKLOAD_TYPE, OWNER_TEAM)
 - `107-snowflake-security-governance` - For RBAC on resource monitors and cost controls
-

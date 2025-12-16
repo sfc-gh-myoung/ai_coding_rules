@@ -163,7 +163,7 @@ def extract_metadata(filepath: Path) -> RuleMetadata:
     return RuleMetadata(
         filename=str(metadata["filename"]),
         filepath=Path(metadata["filepath"])
-        if isinstance(metadata["filepath"], (str, Path))
+        if isinstance(metadata["filepath"], str | Path)
         else filepath,
         keywords=str(metadata["keywords"] or ""),
         depends=str(metadata["depends"] or "—"),
@@ -213,7 +213,7 @@ def scan_rules(rules_dir: Path) -> list[RuleMetadata]:
 def generate_table_row(metadata: RuleMetadata) -> str:
     """Generate markdown table row for one rule.
 
-    Format: || `file` | Scope | Keywords | Depends ||
+    Format: | `file` | Scope | Keywords | Depends |
 
     Args:
         metadata: RuleMetadata object
@@ -238,9 +238,147 @@ def generate_table_row(metadata: RuleMetadata) -> str:
         depends = ", ".join(deps)
 
     # Build row
-    row = f"|| {filename} | {scope} | {keywords} | {depends} |"
+    row = f"| {filename} | {scope} | {keywords} | {depends} |"
 
     return row
+
+
+def generate_agent_guidance() -> str:
+    """Generate AI agent usage guidance section.
+
+    Returns:
+        Formatted markdown section with agent-specific instructions
+    """
+    return """
+
+**For AI Agents:**
+- This file is **READ-ONLY** for rule discovery purposes
+- Use `grep`, `read_file`, or codebase_search to find relevant rules
+- **Never modify** this file during task execution
+- Regeneration happens automatically via `task index:generate`
+- To suggest improvements, modify source rule files or `scripts/index_generator.py`
+
+"""
+
+
+def generate_loading_strategy() -> str:
+    """Generate rule loading strategy section for AI agents.
+
+    Returns:
+        Formatted markdown section with loading algorithm
+    """
+    return """
+## Rule Loading Strategy
+
+AI agents should follow this algorithm when loading rules:
+
+### 1. Foundation (Always Load)
+```
+Load: rules/000-global-core.md
+```
+
+### 2. Domain Rules (File Extension Match)
+Based on files mentioned in user request:
+- `.py`, `.pyi`, `pyproject.toml` → Load `rules/200-python-core.md`
+- `.sql` → Load `rules/100-snowflake-core.md`
+- `.sh`, `.bash`, `.zsh` → Load `rules/300-bash-scripting-core.md`
+- `Dockerfile`, `docker-compose.yml` → Load `rules/350-docker-best-practices.md`
+- `.md` (in `rules/`) → Load `rules/002-rule-governance.md`
+- `.md` (outside `rules/`, e.g., README, CONTRIBUTING) → Load `rules/202-markup-config-validation.md`
+- `.ts`, `.tsx` → Load `rules/430-typescript-core.md`
+- `.js`, `.jsx` → Load `rules/420-javascript-core.md`
+- `.go` → Load `rules/600-golang-core.md`
+
+### 3. Activity Rules (Keyword Match)
+Use `grep -i "KEYWORD" RULES_INDEX.md` to search Keywords column:
+- **test**, pytest, coverage → Consider `rules/206-python-pytest.md`
+- **lint**, format, code quality → Consider `rules/201-python-lint-format.md`
+- **deploy**, CI/CD, automation → Consider `rules/820-taskfile-automation.md`
+- **streamlit**, dashboard → Consider `rules/101-snowflake-streamlit-core.md`
+- **docker**, container → Consider `rules/350-docker-best-practices.md`
+- **agent**, cortex agent → Consider `rules/115-snowflake-cortex-agents-core.md`
+- **semantic view** → Consider `rules/106-snowflake-semantic-views-core.md`
+
+### 4. Check Dependencies
+- For each rule to be loaded, read its **Depends On** column
+- Load all prerequisite rules first (in dependency order)
+- If rule lists multiple dependencies, load all of them
+
+### 5. Token Budget Management
+**Progressive Loading Strategy:**
+- **Minimal**: Foundation + Domain = ~3,000-5,000 tokens (covers 70-80% of tasks)
+- **Standard**: + 1-2 activity-specific rules = ~8,000-12,000 tokens
+- **Complete**: + specialized rules = ~15,000-20,000 tokens
+
+**Token Budget Check:**
+
+**Warning Threshold:** At 15,000 tokens, begin deferring Low-tier rules and evaluate Medium-tier necessity.
+
+**Example - At 17,000 tokens:**
+```
+Loaded (Critical/High):
+- 000-global-core.md, 200-python-core.md, 206-python-pytest.md
+
+Deferred (Medium/Low - available if needed):
+- 204-python-docs-comments.md (not required for test execution)
+```
+
+If total exceeds 20,000 tokens, prioritize by ContextTier:
+1. Critical (always load)
+2. High (load if directly relevant)
+3. Medium (defer unless task complexity requires)
+4. Low (load only if explicitly needed)
+
+**Token Budget Enforcement:**
+- Agent self-regulates token budget (no external enforcement)
+- At 15,000 tokens: Log warning, begin deferring Low/Medium tier rules
+- At 20,000 tokens: STOP loading additional rules, proceed with loaded rules only
+
+**Deferral Priority (when at warning threshold):**
+1. Defer all Low tier rules first
+2. Defer Medium tier rules not directly related to task keywords
+3. Never defer Critical tier rules
+
+**Declaration Format (when deferring):**
+```markdown
+## Rules Loaded
+- rules/000-global-core.md (foundation)
+- rules/200-python-core.md (file extension: .py)
+- [Deferred: 204-python-docs-comments.md - Low tier, not required for task]
+```
+
+### 6. Declare Loaded Rules
+After loading, list all rules in response:
+```markdown
+## Rules Loaded
+- rules/000-global-core.md (foundation)
+- rules/200-python-core.md (file extension: .py)
+- rules/206-python-pytest.md (keyword: test)
+```
+
+**Example Workflow:**
+
+User: "Write tests for my Streamlit dashboard"
+
+**Rule Selection:**
+- Extension `.py` → rules/200-python-core.md
+- Keyword "test" → rules/206-python-pytest.md
+- Keyword "Streamlit" → rules/101-snowflake-streamlit-core.md
+- Dependency check: 101 requires rules/100-snowflake-core.md
+
+**Token Budget:** 000 (3300) + 200 (1800) + 206 (3500) + 100 (1800) + 101 (3700) = 14,100 ✓
+
+**Declaration:**
+```markdown
+## Rules Loaded
+- rules/000-global-core.md (foundation)
+- rules/200-python-core.md (file extension: .py)
+- rules/100-snowflake-core.md (dependency of 101)
+- rules/101-snowflake-streamlit-core.md (keyword: Streamlit)
+- rules/206-python-pytest.md (keyword: test)
+```
+
+"""
 
 
 def generate_footer() -> str:
@@ -255,136 +393,48 @@ def generate_footer() -> str:
 
 ## Common Rule Dependency Chains
 
-This section visualizes common rule loading patterns to help AI assistants calculate token costs and load rules in the correct order.
+Two representative examples demonstrating all dependency patterns. Apply these patterns to other rule combinations using the Depends On column in the table above.
 
 **Reading the Trees:**
 - Indentation shows dependency relationships
 - Token budgets shown in parentheses
 - "Minimal/Standard/Complete" shows progressive loading strategies
-- Always load parent rules before child rules
 
-### Streamlit Dashboard Development
+### Example 1: Linear Chain (Streamlit Dashboard)
 ```
-000-global-core (1300 tokens)
-└── 100-snowflake-core (1800 tokens)
+000-global-core (3300 tokens)
+└── 100-snowflake-core (2850 tokens)
     └── 101-snowflake-streamlit-core (3700 tokens)
         ├── 101a-snowflake-streamlit-visualization (3600 tokens)
-        ├── 101b-snowflake-streamlit-performance (3800 tokens)
+        ├── 101b-snowflake-streamlit-performance (5950 tokens)
         └── 101c-snowflake-streamlit-security (2550 tokens)
 
 Token Cost Scenarios:
-• Minimal (basic app):        000 + 100 + 101      = ~6,800 tokens
-• Standard (with viz):         + 101a               = ~10,400 tokens
-• Performance (caching):       + 101b               = ~14,200 tokens
-• Complete (production-ready): + 101c               = ~16,750 tokens
+• Minimal (basic app):        000 + 100 + 101      = ~9,850 tokens
+• Standard (with viz):         + 101a               = ~13,450 tokens
+• Complete (production-ready): + 101b + 101c        = ~21,950 tokens
 ```
 
-### Cortex Agent Development
+### Example 2: Multi-Branch (Cortex Agent)
 ```
-000-global-core (1300 tokens)
-├── 100-snowflake-core (1800 tokens)
-│   ├── 106-snowflake-semantic-views-core (2800 tokens)
-│   │   ├── 106a-snowflake-semantic-views-advanced (2200 tokens)
-│   │   └── 106b-snowflake-semantic-views-querying (5000 tokens)
-│   └── 111-snowflake-observability-core (2000 tokens)
-│       ├── 111a-snowflake-observability-logging (varies)
-│       └── 111c-snowflake-observability-monitoring (varies)
-└── 115-snowflake-cortex-agents-core (2200 tokens)
-    ├── 115a-snowflake-cortex-agents-instructions (800 tokens)
-    └── 115b-snowflake-cortex-agents-operations (2400 tokens)
+000-global-core (3300 tokens)
+├── 100-snowflake-core (2850 tokens)
+│   ├── 106-snowflake-semantic-views-core (5550 tokens)
+│   └── 111-snowflake-observability-core (4200 tokens)
+└── 115-snowflake-cortex-agents-core (4650 tokens)
+    ├── 115a-snowflake-cortex-agents-instructions (3450 tokens)
+    └── 115b-snowflake-cortex-agents-operations (3650 tokens)
 
 Token Cost Scenarios:
-• Minimal (agent setup):         000 + 100 + 115           = ~5,300 tokens
-• Standard (with semantic views): + 106                     = ~8,100 tokens
-• Advanced (instructions):        + 115a                    = ~8,900 tokens
-• Production (operations):        + 115b + 111             = ~13,300 tokens
-• Complete (all capabilities):    + 106a + 106b            = ~20,500 tokens
-```
-
-### Cortex Analyst Integration
-```
-000-global-core (1300 tokens)
-└── 100-snowflake-core (1800 tokens)
-    └── 106-snowflake-semantic-views-core (2800 tokens)
-        ├── 106a-snowflake-semantic-views-advanced (2200 tokens)
-        ├── 106b-snowflake-semantic-views-querying (5000 tokens)
-        └── 106c-snowflake-semantic-views-integration (4600 tokens)
-
-Token Cost Scenarios:
-• Minimal (basic analyst):    000 + 100 + 106       = ~5,900 tokens
-• Standard (with queries):    + 106b                 = ~10,900 tokens
-• With integration:           + 106c                 = ~15,500 tokens
-• Complete (full capability): + 106a                 = ~17,700 tokens
-```
-
-### Performance Tuning Workflow
-```
-000-global-core (1300 tokens)
-└── 100-snowflake-core (1800 tokens)
-    ├── 103-snowflake-performance-tuning (800 tokens)
-    ├── 105-snowflake-cost-governance (1150 tokens)
-    └── 119-snowflake-warehouse-management (3650 tokens)
-
-Token Cost Scenarios:
-• Minimal (query optimization):  000 + 100 + 103      = ~3,900 tokens
-• Standard (with warehouses):    + 119                 = ~7,550 tokens
-• Complete (cost governance):    + 105                 = ~8,700 tokens
-```
-
-### Data Pipeline Development
-```
-000-global-core (1300 tokens)
-└── 100-snowflake-core (1800 tokens)
-    ├── 104-snowflake-streams-tasks (850 tokens)
-    │   └── 122-snowflake-dynamic-tables (5200 tokens)
-    ├── 108-snowflake-data-loading (950 tokens)
-    └── 124-snowflake-data-quality-core (6200 tokens)
-
-Token Cost Scenarios:
-• Minimal (basic CDC):           000 + 100 + 104     = ~3,950 tokens
-• With dynamic tables:           + 122                = ~9,150 tokens
-• With data loading:             + 108                = ~10,100 tokens
-• Complete (with quality):       + 124                = ~16,300 tokens
-```
-
-### Cortex Search Implementation
-```
-000-global-core (1300 tokens)
-└── 100-snowflake-core (1800 tokens)
-    ├── 116-snowflake-cortex-search (4000 tokens)
-    ├── 108-snowflake-data-loading (950 tokens)
-    └── 115-snowflake-cortex-agents-core (2200 tokens)
-        └── 115b-snowflake-cortex-agents-operations (2400 tokens)
-
-Token Cost Scenarios:
-• Minimal (search setup):        000 + 100 + 116     = ~7,100 tokens
-• With document loading:         + 108                = ~8,050 tokens
-• Agent integration:             + 115                = ~10,250 tokens
-• Complete (operations):         + 115b               = ~12,650 tokens
-```
-
-### SPCS Container Deployment
-```
-000-global-core (1300 tokens)
-└── 100-snowflake-core (1800 tokens)
-    ├── 120-snowflake-spcs (3550 tokens)
-    ├── 119-snowflake-warehouse-management (3650 tokens)
-    └── 111-snowflake-observability-core (2000 tokens)
-        ├── 111a-snowflake-observability-logging (varies)
-        └── 111c-snowflake-observability-monitoring (varies)
-
-Token Cost Scenarios:
-• Minimal (basic SPCS):          000 + 100 + 120     = ~6,650 tokens
-• With compute pools:            + 119                = ~10,300 tokens
-• Complete (observability):      + 111                = ~12,300 tokens
+• Minimal (agent setup):    000 + 100 + 115        = ~10,800 tokens
+• Standard (+ semantic):    + 106                   = ~16,350 tokens
+• Production (+ ops):       + 115b + 111           = ~24,200 tokens
 ```
 
 **Usage Tips:**
-- Load only what you need based on task complexity
-- "Minimal" scenarios cover 70-80% of typical use cases
-- "Standard" adds commonly needed extensions
-- "Complete" for production-ready, comprehensive implementations
-- If unsure, start with Minimal and load additional rules as needed
+- "Minimal" covers 70-80% of typical use cases
+- Start minimal, add rules as complexity requires
+- Check Depends On column for prerequisites
 """
     return footer
 
@@ -431,18 +481,26 @@ This index provides semantic rule discovery for AI agents. All rules in `rules/`
 - Check Depends On column for prerequisite rules
 """
 
+    # Generate agent guidance
+    agent_guidance = generate_agent_guidance()
+
+    # Generate loading strategy
+    loading_strategy = generate_loading_strategy()
+
     # Generate table
-    table_header = "|| File | Scope | Keywords/Hints | Depends On |"
-    table_separator = "||------|-------|----------------|------------|"
+    table_header = "| File | Scope | Keywords/Hints | Depends On |"
+    table_separator = "|------|-------|----------------|------------|"
 
     table_rows = [generate_table_row(rule) for rule in rules]
 
     # Generate footer
     footer = generate_footer()
 
-    # Combine everything (header + table + footer)
+    # Combine everything (header + agent_guidance + loading_strategy + table + footer)
     content = (
         header
+        + agent_guidance
+        + loading_strategy
         + "\n\n"
         + table_header
         + "\n"
@@ -549,7 +607,22 @@ Examples:
             print(f"❌ Error reading RULES_INDEX.md: {e}")
             return 1
 
-        if current_content.strip() == content.strip():
+        def _normalize_for_check(text: str) -> str:
+            """Normalize generated content for deterministic comparisons.
+
+            RULES_INDEX.md includes a timestamp in the auto-generated header.
+            For CI checks, ignore timestamp differences so --check can be stable.
+            """
+            # Replace "Last updated: <timestamp>" with a stable placeholder
+            normalized = re.sub(
+                r"^Last updated:\s+.*$",
+                "Last updated: <normalized>",
+                text,
+                flags=re.MULTILINE,
+            )
+            return normalized.strip()
+
+        if _normalize_for_check(current_content) == _normalize_for_check(content):
             print("✓ RULES_INDEX.md is up-to-date")
             return 0
         else:

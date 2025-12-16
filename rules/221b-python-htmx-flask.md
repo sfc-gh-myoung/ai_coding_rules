@@ -2,6 +2,7 @@
 
 ## Metadata
 
+**RuleVersion:** v1.0.0
 **Keywords:** flask, flask-htmx, blueprints, flask-login, session management, flask routes, flask templates, flask csrf, flask extensions, request context
 **TokenBudget:** ~1950
 **ContextTier:** Medium
@@ -106,12 +107,12 @@ def example():
     # Check if HTMX request
     if htmx:  # Equivalent to request.headers.get('HX-Request') == 'true'
         pass
-    
+
     # Access HTMX-specific request headers
     trigger_id = request.headers.get('HX-Trigger')
     target_id = request.headers.get('HX-Target')
     current_url = request.headers.get('HX-Current-URL')
-    
+
     # Flask-HTMX also adds `htmx` to template context
     return render_template('template.html')  # {{ htmx }} available in template
 ```
@@ -170,18 +171,18 @@ from flask_wtf.csrf import CSRFProtect
 def create_app():
     app = Flask(__name__)
     app.config.from_object('config.Config')
-    
+
     # Initialize extensions
     htmx = HTMX(app)
     csrf = CSRFProtect(app)
-    
+
     # Register blueprints
     from app.blueprints.pages import pages
     from app.blueprints.htmx_routes import htmx_bp
-    
+
     app.register_blueprint(pages)
     app.register_blueprint(htmx_bp)
-    
+
     return app
 ```
 
@@ -192,10 +193,10 @@ def create_app():
 @app.route('/users')
 def users_list():
     users = get_users()
-    
+
     if htmx:
         return render_template('partials/_users_table.html', users=users)
-    
+
     return render_template('pages/users.html', users=users)
 ```
 
@@ -205,7 +206,7 @@ def users_list():
 def edit_user_form(user_id):
     if not htmx:
         abort(400, 'HTMX request required')
-    
+
     user = get_user_or_404(user_id)
     return render_template('partials/_user_form.html', user=user)
 ```
@@ -217,7 +218,7 @@ from flask import make_response
 @app.route('/users/<int:user_id>', methods=['DELETE'])
 def delete_user(user_id):
     delete_user_from_db(user_id)
-    
+
     response = make_response('', 200)
     response.headers['HX-Trigger'] = 'userDeleted'
     return response
@@ -243,7 +244,7 @@ csrf = CSRFProtect(app)
 <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 <script>
   document.body.addEventListener('htmx:configRequest', (event) => {
-    event.detail.headers['X-CSRFToken'] = 
+    event.detail.headers['X-CSRFToken'] =
       document.querySelector('meta[name="csrf-token"]').content;
   });
 </script>
@@ -289,7 +290,7 @@ def load_user(user_id):
 def dashboard():
     if htmx:
         return render_template('partials/_dashboard_content.html', user=current_user)
-    
+
     return render_template('pages/dashboard.html', user=current_user)
 ```
 
@@ -310,7 +311,7 @@ def unauthorized():
         response = make_response('Unauthorized', 401)
         response.headers['HX-Redirect'] = url_for('login')
         return response
-    
+
     return redirect(url_for('login'))
 ```
 
@@ -325,7 +326,7 @@ def add_to_cart(item_id):
     cart = session.get('cart', [])
     cart.append(item_id)
     session['cart'] = cart
-    
+
     response = make_response(
         render_template('partials/_cart_count.html', count=len(cart))
     )
@@ -336,10 +337,10 @@ def add_to_cart(item_id):
 def view_cart():
     cart_ids = session.get('cart', [])
     items = [get_item(id) for id in cart_ids]
-    
+
     if htmx:
         return render_template('partials/_cart_items.html', items=items)
-    
+
     return render_template('pages/cart.html', items=items)
 ```
 
@@ -351,26 +352,26 @@ def view_cart():
 def not_found(error):
     if htmx:
         response = make_response(
-            render_template('partials/_error.html', 
+            render_template('partials/_error.html',
                           message='Resource not found'),
             404
         )
         response.headers['HX-Retarget'] = '#error-container'
         return response
-    
+
     return render_template('errors/404.html'), 404
 
 @app.errorhandler(500)
 def server_error(error):
     if htmx:
         response = make_response(
-            render_template('partials/_error.html', 
+            render_template('partials/_error.html',
                           message='Server error'),
             500
         )
         response.headers['HX-Retarget'] = '#error-container'
         return response
-    
+
     return render_template('errors/500.html'), 500
 ```
 
@@ -382,9 +383,9 @@ def update_user(user_id):
         user = get_user_or_404(user_id)
         user.name = request.form['name']
         db.session.commit()
-        
+
         return render_template('partials/_user_row.html', user=user)
-    
+
     except ValueError as e:
         response = make_response(
             f'<div class="error">{escape(str(e))}</div>',
@@ -425,7 +426,7 @@ def get_data():
 <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 <script>
   document.body.addEventListener('htmx:configRequest', (event) => {
-    event.detail.headers['X-CSRFToken'] = 
+    event.detail.headers['X-CSRFToken'] =
       document.querySelector('meta[name="csrf-token"]').content;
   });
 </script>
@@ -470,17 +471,17 @@ from flask_login import LoginManager
 def create_app():
     app = Flask(__name__)
     app.config['SECRET_KEY'] = 'secret'
-    
+
     htmx = HTMX(app)
     csrf = CSRFProtect(app)
     login_manager = LoginManager(app)
-    
+
     from app.blueprints.pages import pages
     from app.blueprints.htmx_routes import htmx_bp
-    
+
     app.register_blueprint(pages)
     app.register_blueprint(htmx_bp)
-    
+
     return app
 ```
 

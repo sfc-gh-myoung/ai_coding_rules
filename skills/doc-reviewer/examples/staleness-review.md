@@ -3,7 +3,7 @@
 ## Basic Staleness Check
 
 ```text
-Use the docs-reviewer skill.
+Use the doc-reviewer skill.
 
 review_date: 2025-12-16
 review_mode: STALENESS
@@ -29,7 +29,7 @@ reviews/README-claude-sonnet45-2025-12-16.md
 ## Staleness Check on Specific Files
 
 ```text
-Use the docs-reviewer skill.
+Use the doc-reviewer skill.
 
 target_files: [README.md, CONTRIBUTING.md, docs/ARCHITECTURE.md]
 review_date: 2025-12-16

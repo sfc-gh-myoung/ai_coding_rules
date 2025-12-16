@@ -266,7 +266,7 @@ dependencies: []
 | `examples/` | FULL, FOCUSED, STALENESS examples |
 | `tests/` | Input, mode, output handling tests |
 
-**docs-reviewer Skill (Deployed by Default):**
+**doc-reviewer Skill (Deployed by Default):**
 
 | Component | Purpose |
 |-----------|---------|
@@ -386,7 +386,7 @@ ai_coding_rules/
 │   │   ├── workflows/               # Input, execution, output, error handling
 │   │   ├── examples/                # FULL, FOCUSED, STALENESS + edge-cases.md
 │   │   └── tests/                   # Input, mode, output test cases
-│   └── docs-reviewer/           # Deployed by default: automate doc reviews
+│   └── doc-reviewer/           # Deployed by default: automate doc reviews
 │       ├── SKILL.md                 # Main entrypoint with YAML frontmatter
 │       ├── README.md                # Usage documentation
 │       ├── VALIDATION.md            # Self-validation procedures
@@ -449,7 +449,7 @@ ai_coding_rules/
   - Writes results to `reviews/` with no-overwrite safety
   - Includes: SKILL.md, README.md, VALIDATION.md, workflows/, examples/, tests/
   - Trigger keywords: "review rule", "audit rule", "check rule quality"
-- **docs-reviewer/** (deployed by default):
+- **doc-reviewer/** (deployed by default):
   - Automates documentation quality reviews (FULL/FOCUSED/STALENESS modes)
   - Writes results to `reviews/` with no-overwrite safety
   - Includes: SKILL.md, README.md, VALIDATION.md, workflows/, examples/, tests/
@@ -1805,7 +1805,7 @@ grep -i "keyword" ~/project/RULES_INDEX.md
 
 | Version | Date | Changes |
 |---------|------|---------|
-| **v3.4.0** | 2025-12-16 | Added SchemaVersion/RuleVersion metadata fields, docs-reviewer skill, updated metadata to 6 fields |
+| **v3.4.0** | 2025-12-16 | Added SchemaVersion/RuleVersion metadata fields, doc-reviewer skill, updated metadata to 6 fields |
 | **v3.3.0** | 2025-12-12 | Added Periodic Rule Review section with Agent-Centric Rule Review prompt, updated prompts/ directory documentation |
 | **v3.2.0** | 2025-12-04 | Added Go/Golang rules architecture section, updated rule counts to 100 |
 | **v3.1.0** | 2025-12-03 | Added HTMX rules architecture section |

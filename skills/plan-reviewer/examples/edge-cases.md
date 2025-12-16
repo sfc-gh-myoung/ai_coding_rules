@@ -170,10 +170,10 @@ Comparing only common dimensions; Risk Awareness and Context excluded from compa
 
 ### Case 15: Extreme Score Variance
 
-**Scenario:** Same document scored 55/60 by one model and 35/60 by another.
+**Scenario:** Same document scored 92/100 by one model and 58/100 by another.
 
 **Resolution:**
-1. Flag as high variance (>20 points)
+1. Flag as high variance (>30 points)
 2. Examine methodology differences
 3. Check if one review missed major sections
 4. Do not calculate simple consensus; investigate first
@@ -216,7 +216,7 @@ Direct comparison invalid; scores reflect different deliverables.
 
 ### Case 18: Tied Total Score
 
-**Scenario:** Both plans score 48/60.
+**Scenario:** Both plans score 80/100.
 
 **Resolution:** Break tie using critical dimension scores.
 

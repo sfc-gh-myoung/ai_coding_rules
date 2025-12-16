@@ -102,23 +102,23 @@ skills/plan-reviewer/
 
 ## Review Dimensions
 
-### Critical Dimensions (2× weight)
+### Critical Dimensions (75 points total)
 
-| Dimension | Focus | Key Questions |
-|-----------|-------|---------------|
-| **Executability** | Agent can execute without judgment | Are commands explicit? Any ambiguous phrases? |
-| **Completeness** | All steps present | Setup, validation, cleanup, error recovery included? |
-| **Success Criteria** | Verifiable completion | Can agent determine "done" programmatically? |
-| **Scope** | Bounded and measurable | Start/end state defined? Clear boundaries? |
+| Dimension | Points | Focus | Key Questions |
+|-----------|--------|-------|---------------|
+| **Executability** | 20 | Agent can execute without judgment | Are commands explicit? Any ambiguous phrases? |
+| **Completeness** | 20 | All steps present | Setup, validation, cleanup, error recovery included? |
+| **Success Criteria** | 20 | Verifiable completion | Can agent determine "done" programmatically? |
+| **Scope** | 15 | Bounded and measurable | Start/end state defined? Clear boundaries? |
 
-### Standard Dimensions (1× weight)
+### Standard Dimensions (25 points total)
 
-| Dimension | Focus | Key Questions |
-|-----------|-------|---------------|
-| Decomposition | Task granularity | Single-action steps? Consistent sizing? |
-| Dependencies | Execution order | Blocking relationships explicit? Parallel tasks noted? |
-| Context | Background provided | Domain terms defined? Self-contained? |
-| Risk Awareness | Fallback strategies | Risks identified? Recovery paths documented? |
+| Dimension | Points | Focus | Key Questions |
+|-----------|--------|-------|---------------|
+| Dependencies | 10 | Execution order | Blocking relationships explicit? Parallel tasks noted? |
+| Decomposition | 5 | Task granularity | Single-action steps? Consistent sizing? |
+| Context | 5 | Background provided | Domain terms defined? Self-contained? |
+| Risk Awareness | 5 | Fallback strategies | Risks identified? Recovery paths documented? |
 
 ## Review Modes
 
@@ -132,10 +132,10 @@ skills/plan-reviewer/
 
 | Score Range | Verdict | Action |
 |-------------|---------|--------|
-| 54-60/60 (90%+) | **EXECUTABLE** | Agent can execute as-is |
-| 48-53/60 (80-89%) | **EXECUTABLE** | Minor refinements recommended |
-| 36-47/60 (60-79%) | **NEEDS_REFINEMENT** | Fix critical issues before agent execution |
-| <36/60 (<60%) | **NOT_EXECUTABLE** | Major rework required |
+| 90-100 | **EXECUTABLE** | Agent can execute as-is |
+| 80-89 | **EXECUTABLE_WITH_REFINEMENTS** | Minor refinements recommended |
+| 60-79 | **NEEDS_REFINEMENT** | Fix critical issues before agent execution |
+| <60 | **NOT_EXECUTABLE** | Major rework required |
 
 ## Output Format
 
@@ -175,16 +175,16 @@ Mode: FULL
 Model: claude-sonnet45
 
 Summary:
-- Executability: 8/10
-- Completeness: 9/10
-- Success Criteria: 7/10
-- Scope: 8/10
+- Executability: 16/20
+- Completeness: 18/20
+- Success Criteria: 14/20
+- Scope: 12/15
+- Dependencies: 10/10
 - Decomposition: 4/5
-- Dependencies: 5/5
 - Context: 4/5
 - Risk Awareness: 3/5
-Overall: 48/60
-Verdict: EXECUTABLE
+Overall: 81/100
+Verdict: EXECUTABLE_WITH_REFINEMENTS
 ```
 
 ## Use Cases
@@ -223,10 +223,10 @@ review_mode: META-REVIEW
 
 ## Integration with Other Skills
 
-### With docs-reviewer
+### With doc-reviewer
 
 Plan files can be reviewed as documentation:
-- **docs-reviewer**: Accuracy, link validation, general clarity
+- **doc-reviewer**: Accuracy, link validation, general clarity
 - **plan-reviewer**: Agent executability, task completeness, scope
 
 ### With rule-reviewer
@@ -241,12 +241,16 @@ This skill is **deployable** (included when running `task deploy`). After deploy
 
 ## Version History
 
+- **v1.1.0** (2025-12-16): 100-point scoring system
+  - Updated to 100-point scale (from /60 weighted)
+  - Point allocation: 20/20/20/15/10/5/5/5
+  - Updated verdict thresholds for /100 scale
+
 - **v1.0.0** (2025-12-16): Initial release
   - 8-dimension plan review rubric (4 critical, 4 standard)
   - FULL mode for single-plan reviews
   - COMPARISON mode for multi-plan ranking
   - META-REVIEW mode for review consistency analysis
-  - Weighted scoring (/60 total)
   - Agent Executability Verdicts
   - Deployable to other projects
 

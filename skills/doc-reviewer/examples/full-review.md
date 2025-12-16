@@ -3,7 +3,7 @@
 ## Basic Usage (Default Targets)
 
 ```text
-Use the docs-reviewer skill.
+Use the doc-reviewer skill.
 
 review_date: 2025-12-16
 review_mode: FULL
@@ -41,7 +41,7 @@ reviews/ARCHITECTURE-claude-sonnet45-2025-12-16.md
 ## Specific Files
 
 ```text
-Use the docs-reviewer skill.
+Use the doc-reviewer skill.
 
 target_files: [README.md, docs/ARCHITECTURE.md]
 review_date: 2025-12-16
@@ -61,7 +61,7 @@ reviews/ARCHITECTURE-claude-sonnet45-2025-12-16.md
 ## Collection Review (Consolidated Output)
 
 ```text
-Use the docs-reviewer skill.
+Use the doc-reviewer skill.
 
 target_files: [README.md, CONTRIBUTING.md, docs/ARCHITECTURE.md]
 review_date: 2025-12-16
@@ -87,13 +87,13 @@ reviews/docs-collection-claude-sonnet45-2025-12-16.md
 - Review date: 2025-12-16
 
 ### Summary Scores
-| Document | Accuracy | Completeness | Clarity | Consistency | Staleness | Structure | Overall |
-|----------|----------|--------------|---------|-------------|-----------|-----------|---------|
-| README.md | 4/5 | 5/5 | 4/5 | 5/5 | 3/5 | 5/5 | 26/30 |
-| CONTRIBUTING.md | 5/5 | 4/5 | 5/5 | 5/5 | 4/5 | 4/5 | 27/30 |
-| ARCHITECTURE.md | 4/5 | 5/5 | 4/5 | 5/5 | 4/5 | 5/5 | 27/30 |
+| Document | Accuracy | Completeness | Clarity | Structure | Staleness | Consistency | Overall |
+|----------|----------|--------------|---------|-----------|-----------|-------------|---------|
+| README.md | 20/25 | 25/25 | 16/20 | 15/15 | 6/10 | 5/5 | 87/100 |
+| CONTRIBUTING.md | 25/25 | 20/25 | 20/20 | 12/15 | 8/10 | 5/5 | 90/100 |
+| ARCHITECTURE.md | 20/25 | 25/25 | 16/20 | 15/15 | 8/10 | 5/5 | 89/100 |
 
-### Collection Average: 26.7/30
+### Collection Average: 88.7/100
 
 ---
 
@@ -119,16 +119,18 @@ reviews/docs-collection-claude-sonnet45-2025-12-16.md
 ## Documentation Review: README.md
 
 ### Scores
-| Criterion | Score | Notes |
-|-----------|-------|-------|
-| Accuracy | 4/5 | 2 outdated command references |
-| Completeness | 5/5 | All major features documented |
-| Clarity | 4/5 | Good structure, some jargon unexplained |
-| Consistency | 5/5 | Follows project conventions |
-| Staleness | 3/5 | 3 broken links, outdated Python version |
-| Structure | 5/5 | Clear TOC, logical flow |
+| Criterion | Max | Raw | Points | Notes |
+|-----------|-----|-----|--------|-------|
+| Accuracy | 25 | 4/5 | 20/25 | 2 outdated command references |
+| Completeness | 25 | 5/5 | 25/25 | All major features documented |
+| Clarity | 20 | 4/5 | 16/20 | Good structure, some jargon unexplained |
+| Structure | 15 | 5/5 | 15/15 | Clear TOC, logical flow |
+| Staleness | 10 | 3/5 | 6/10 | 3 broken links, outdated Python version |
+| Consistency | 5 | 5/5 | 5/5 | Follows project conventions |
 
-**Overall:** 26/30
+**Overall:** 87/100
+
+**Verdict:** PUBLISHABLE_WITH_EDITS
 
 **Reviewing Model:** Claude Sonnet 4.5
 

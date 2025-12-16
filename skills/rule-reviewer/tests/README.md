@@ -63,7 +63,7 @@ The rule-reviewer skill can validate output from rule-creator:
 ```
 1. Create rule using rule-creator skill
 2. Run FULL review on created rule
-3. Verify score ≥ 7.5/10
+3. Verify score ≥ 75/100
 4. Check for no CRITICAL issues
 ```
 

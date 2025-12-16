@@ -40,7 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - docs(rules): update 100-snowflake-core.md with reference to 100f-snowflake-connection-errors.md
 - docs(rules): update 106c-snowflake-semantic-views-integration.md
-- refactor(skills): update docs-reviewer, rule-creator, and rule-reviewer prompts
+- refactor(skills): update doc-reviewer, rule-creator, and rule-reviewer prompts
 - docs(index): add 100f-snowflake-connection-errors.md to RULES_INDEX.md
 
 ### Fixed
@@ -81,8 +81,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - All 103 existing rules initialized with `**RuleVersion:** v1.0.0`
   - Field order now: SchemaVersion, RuleVersion, Keywords, TokenBudget, ContextTier, Depends
   - Metadata requirements updated from 4 to 6 required fields
-- feat(skills): add docs-reviewer skill for documentation review
-  - Structured skill: `skills/docs-reviewer/SKILL.md` with workflows, examples, tests, and validation
+- feat(skills): add doc-reviewer skill for documentation review
+  - Structured skill: `skills/doc-reviewer/SKILL.md` with workflows, examples, tests, and validation
   - Three review modes: FULL, FOCUSED, STALENESS
   - Follows Anthropic Agent Skills best practices
 - feat(skills): enhance rule-creator and rule-reviewer skills following Anthropic Agent Skills best practices

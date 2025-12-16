@@ -13,10 +13,14 @@ Execute the plan review according to the specified mode.
    - Evaluate all 8 dimensions
    - Complete verification tables (Executability Audit, Completeness Audit, Success Criteria Audit)
    - Answer Plan Perspective Checklist
-3. **Calculate weighted score:**
-   - Critical dimensions (4): raw × 2 = /10 each
-   - Standard dimensions (4): raw × 1 = /5 each
-   - Total: /60
+3. **Calculate point score:**
+   - Executability: raw × 4 = /20
+   - Completeness: raw × 4 = /20
+   - Success Criteria: raw × 4 = /20
+   - Scope: raw × 3 = /15
+   - Dependencies: raw × 2 = /10
+   - Decomposition, Context, Risk Awareness: raw × 1 = /5 each
+   - Total: /100
 4. **Apply Scoring Impact Rules** (algorithmic overrides)
 5. **Determine verdict:** EXECUTABLE, NEEDS_REFINEMENT, or NOT_EXECUTABLE
 6. **Generate recommendations** prioritized by impact

@@ -1,10 +1,10 @@
-# Using the Docs Reviewer Skill
+# Using the Doc Reviewer Skill
 
-The Docs Reviewer Skill automates comprehensive documentation reviews for your project. It evaluates `README.md`, `CONTRIBUTING.md`, and files in `docs/` against six quality dimensions.
+The Doc Reviewer Skill automates comprehensive documentation reviews for your project. It evaluates `README.md`, `CONTRIBUTING.md`, and files in `docs/` against six quality dimensions.
 
 ## Background
 
-The docs-reviewer skill runs Agent-Centric Documentation Reviews using the rubric in `skills/docs-reviewer/PROMPT.md` and writes results to `reviews/`.
+The doc-reviewer skill runs Agent-Centric Documentation Reviews using the rubric in `skills/doc-reviewer/PROMPT.md` and writes results to `reviews/`.
 
 Key behaviors:
 
@@ -22,7 +22,7 @@ Key behaviors:
 ### 1. Load the skill
 
 ```text
-@skills/docs-reviewer/SKILL.md
+@skills/doc-reviewer/SKILL.md
 ```
 
 ### 2. Request a review
@@ -30,7 +30,7 @@ Key behaviors:
 **Single file review:**
 
 ```text
-Use the docs-reviewer skill.
+Use the doc-reviewer skill.
 
 target_files: README.md
 review_date: 2025-12-16
@@ -42,7 +42,7 @@ review_scope: single
 **Project documentation collection:**
 
 ```text
-Use the docs-reviewer skill.
+Use the doc-reviewer skill.
 
 target_files: README.md, CONTRIBUTING.md, docs/ARCHITECTURE.md
 review_date: 2025-12-16
@@ -141,7 +141,7 @@ When `target_files` is not specified, the skill defaults to:
 
 ## Integration with Project Rules
 
-The docs-reviewer skill checks documentation against these project rules if they exist:
+The doc-reviewer skill checks documentation against these project rules if they exist:
 
 - `rules/801-project-readme.md` — README structure and content guidelines
 - `rules/802-project-contributing.md` — CONTRIBUTING file standards
@@ -153,7 +153,7 @@ If these rules don't exist, the skill uses standard documentation templates as b
 ### New Project Setup
 
 ```text
-Use the docs-reviewer skill.
+Use the doc-reviewer skill.
 
 target_files: README.md, CONTRIBUTING.md
 review_date: 2025-12-16
@@ -167,7 +167,7 @@ Review each file individually to establish baseline quality.
 ### Quarterly Audit
 
 ```text
-Use the docs-reviewer skill.
+Use the doc-reviewer skill.
 
 review_date: 2025-12-16
 review_mode: STALENESS
@@ -180,7 +180,7 @@ Run staleness checks across all project documentation.
 ### Post-Refactoring Check
 
 ```text
-Use the docs-reviewer skill.
+Use the doc-reviewer skill.
 
 target_files: docs/ARCHITECTURE.md, docs/API.md
 review_date: 2025-12-16
@@ -227,13 +227,13 @@ Verify code references are still valid after major refactoring.
 
 ### Q: Where does the rubric come from?
 
-**A:** The skill uses `skills/docs-reviewer/PROMPT.md` as the rubric and required output format.
+**A:** The skill uses `skills/doc-reviewer/PROMPT.md` as the rubric and required output format.
 
 ## Support
 
 For detailed documentation:
-- **Skill README:** `@skills/docs-reviewer/README.md`
-- **Workflow guides:** `@skills/docs-reviewer/workflows/*.md`
-- **Examples:** `@skills/docs-reviewer/examples/*.md`
-- **Validation tests:** `@skills/docs-reviewer/tests/*.md`
+- **Skill README:** `@skills/doc-reviewer/README.md`
+- **Workflow guides:** `@skills/doc-reviewer/workflows/*.md`
+- **Examples:** `@skills/doc-reviewer/examples/*.md`
+- **Validation tests:** `@skills/doc-reviewer/tests/*.md`
 

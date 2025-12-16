@@ -151,9 +151,9 @@ model: claude-sonnet-45
 ```
 
 **Expected:**
-- Overall score ≥ 7.5/10
+- Overall score ≥ 75/100
 - No CRITICAL issues
-- No HIGH issues in Contract or Metadata
+- No HIGH issues in Actionability or Completeness dimensions
 
 ## Version Compatibility
 

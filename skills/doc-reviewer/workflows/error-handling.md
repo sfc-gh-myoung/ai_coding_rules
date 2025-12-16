@@ -184,7 +184,7 @@ Please specify a valid scope.
 **Symptom:**
 
 ```
-Error: Could not read skills/docs-reviewer/PROMPT.md
+Error: Could not read skills/doc-reviewer/PROMPT.md
 ```
 
 **Resolution:**
@@ -192,13 +192,13 @@ Error: Could not read skills/docs-reviewer/PROMPT.md
 ```
 Review generation failed: Prompt file not accessible.
 
-Missing: skills/docs-reviewer/PROMPT.md
+Missing: skills/doc-reviewer/PROMPT.md
 
 Actions:
-1. Verify file exists: ls skills/docs-reviewer/PROMPT.md
-2. Check permissions: ls -la skills/docs-reviewer/
+1. Verify file exists: ls skills/doc-reviewer/PROMPT.md
+2. Check permissions: ls -la skills/doc-reviewer/
 3. If missing, restore from version control:
-   git checkout skills/docs-reviewer/PROMPT.md
+   git checkout skills/doc-reviewer/PROMPT.md
 ```
 
 ---
@@ -348,7 +348,7 @@ Error details:
 Recovery options:
 1. Fix input error and retry
 2. Use alternative review mode
-3. Manual review using skills/docs-reviewer/PROMPT.md rubric
+3. Manual review using skills/doc-reviewer/PROMPT.md rubric
 
 No partial file was written.
 ```

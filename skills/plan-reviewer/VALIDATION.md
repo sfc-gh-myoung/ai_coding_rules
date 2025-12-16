@@ -75,19 +75,25 @@ Expected: Error - "COMPARISON mode requires at least 2 files"
 Using a test plan, verify:
 
 1. All 8 dimensions receive scores
-2. Weighted calculations are correct:
-   - Critical: raw × 2 = weighted
-   - Standard: raw × 1 = weighted
-3. Total = sum of weighted scores = /60
+2. Point calculations are correct:
+   - Executability: raw × 4 = points/20
+   - Completeness: raw × 4 = points/20
+   - Success Criteria: raw × 4 = points/20
+   - Scope: raw × 3 = points/15
+   - Dependencies: raw × 2 = points/10
+   - Decomposition: raw × 1 = points/5
+   - Context: raw × 1 = points/5
+   - Risk Awareness: raw × 1 = points/5
+3. Total = sum of points = /100
 
 ### Test 4: Verdict Assignment
 
 | Score | Expected Verdict |
 |-------|------------------|
-| 55/60 | EXECUTABLE |
-| 50/60 | EXECUTABLE (minor refinements) |
-| 40/60 | NEEDS_REFINEMENT |
-| 30/60 | NOT_EXECUTABLE |
+| 92/100 | EXECUTABLE |
+| 85/100 | EXECUTABLE_WITH_REFINEMENTS |
+| 70/100 | NEEDS_REFINEMENT |
+| 50/100 | NOT_EXECUTABLE |
 
 ### Test 5: Output File Generation
 
@@ -150,7 +156,7 @@ After any PROMPT.md changes:
 Before releasing changes to plan-reviewer:
 
 - [ ] All 8 dimensions scorable
-- [ ] Weighted totals correct (/60)
+- [ ] Point totals correct (/100)
 - [ ] All 3 modes produce valid output
 - [ ] No-overwrite safety working
 - [ ] Error messages actionable

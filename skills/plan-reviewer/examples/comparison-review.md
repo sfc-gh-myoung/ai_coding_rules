@@ -30,29 +30,29 @@ model: claude-sonnet45
 ---
 
 ### Comparative Scores
-| Criterion | Weight | Plan A | Plan B | Winner |
-|-----------|--------|--------|--------|--------|
-| Executability | 2× | 9/10 | 7/10 | A |
-| Completeness | 2× | 8/10 | 9/10 | B |
-| Success Criteria | 2× | 8/10 | 6/10 | A |
-| Scope | 2× | 9/10 | 8/10 | A |
-| Decomposition | 1× | 4/5 | 5/5 | B |
-| Dependencies | 1× | 5/5 | 4/5 | A |
-| Context | 1× | 4/5 | 5/5 | B |
-| Risk Awareness | 1× | 4/5 | 3/5 | A |
-| **Total** | | **51/60** | **47/60** | **A** |
+| Criterion | Max | Plan A | Plan B | Winner |
+|-----------|-----|--------|--------|--------|
+| Executability | 20 | 18/20 | 14/20 | A |
+| Completeness | 20 | 16/20 | 18/20 | B |
+| Success Criteria | 20 | 16/20 | 12/20 | A |
+| Scope | 15 | 13/15 | 12/15 | A |
+| Dependencies | 10 | 10/10 | 8/10 | A |
+| Decomposition | 5 | 4/5 | 5/5 | B |
+| Context | 5 | 4/5 | 5/5 | B |
+| Risk Awareness | 5 | 4/5 | 3/5 | A |
+| **Total** | **100** | **85/100** | **77/100** | **A** |
 
 ### Verdict by Plan
 | Plan | Score | Verdict |
 |------|-------|---------|
-| A | 51/60 (85%) | EXECUTABLE |
-| B | 47/60 (78%) | NEEDS_REFINEMENT |
+| A | 85/100 | EXECUTABLE_WITH_REFINEMENTS |
+| B | 77/100 | NEEDS_REFINEMENT |
 
 ---
 
 ### Head-to-Head Analysis
 
-#### Executability: Plan A wins (9/10 vs 7/10)
+#### Executability: Plan A wins (18/20 vs 14/20)
 
 **Plan A:**
 - All commands explicit with full paths
@@ -70,7 +70,7 @@ model: claude-sonnet45
 
 ---
 
-#### Completeness: Plan B wins (9/10 vs 8/10)
+#### Completeness: Plan B wins (18/20 vs 16/20)
 
 **Plan A:**
 - Missing cleanup for expired token cache
@@ -87,7 +87,7 @@ model: claude-sonnet45
 
 ---
 
-#### Success Criteria: Plan A wins (8/10 vs 6/10)
+#### Success Criteria: Plan A wins (16/20 vs 12/20)
 
 **Plan A:**
 - 95% of tasks have explicit verification
@@ -105,7 +105,7 @@ model: claude-sonnet45
 
 ---
 
-#### Scope: Plan A wins (9/10 vs 8/10)
+#### Scope: Plan A wins (13/15 vs 12/15)
 
 **Plan A:**
 - Explicit in-scope/out-of-scope section
@@ -173,7 +173,7 @@ model: claude-sonnet45
 
 ### Recommendation
 
-**Winner:** Plan A (51/60)
+**Winner:** Plan A (85/100)
 
 **Rationale:** Plan A is more immediately executable by an autonomous agent due to:
 
@@ -207,7 +207,7 @@ Combine the best of both plans:
 2. **Winner declared per dimension** with evidence
 3. **Overall winner determined** by total score
 4. **Head-to-head analysis** with specific line citations
-5. **Verdict assigned per plan** (EXECUTABLE vs NEEDS_REFINEMENT)
+5. **Verdict assigned per plan** (EXECUTABLE_WITH_REFINEMENTS vs NEEDS_REFINEMENT)
 6. **When to use alternative** - acknowledges Plan B strengths
 7. **Synthesis recommendations** - practical guidance for combining best elements
 

@@ -414,7 +414,7 @@ Is output filename available?
 
 ### With rule-reviewer
 
-The docs-reviewer is independent from rule-reviewer:
+The doc-reviewer is independent from rule-reviewer:
 
 - Different target files (docs vs rules)
 - Different dimensions (Accuracy vs Actionability)
@@ -430,7 +430,7 @@ When reviewing documentation that references rules:
 See rules/801-project-readme.md for README standards.
 ```
 
-The docs-reviewer will:
+The doc-reviewer will:
 1. Verify the rule file exists (Cross-Reference)
 2. NOT review the rule file itself (that's rule-reviewer's job)
 3. Note if the rule is used as a baseline
@@ -441,8 +441,8 @@ Suggested thresholds for documentation quality:
 
 | Metric | Good | Acceptable | Needs Work |
 |--------|------|------------|------------|
-| Overall Score | ≥25/30 | 20-24/30 | <20/30 |
-| Accuracy | ≥4/5 | 3/5 | ≤2/5 |
+| Overall Score | ≥90/100 | 70-89/100 | <70/100 |
+| Accuracy | ≥20/25 | 15-19/25 | <15/25 |
 | Broken Links | 0 | 1-2 | ≥3 |
 | Placeholders | 0 | 0 | ≥1 |
 

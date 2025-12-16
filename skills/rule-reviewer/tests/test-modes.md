@@ -22,17 +22,18 @@ model: claude-sonnet-45
 - Model: claude-sonnet-45
 - Reviewer: AI Agent
 
-## Overall Score: X.X/10
+## Overall Score: X/100
 
 ## Dimension Scores
 
-| Dimension | Score | Notes |
-|-----------|-------|-------|
-| Metadata | X/10 | ... |
-| Contract | X/10 | ... |
-| Content | X/10 | ... |
-| Examples | X/10 | ... |
-| References | X/10 | ... |
+| Criterion | Max | Raw | Points | Notes |
+|-----------|-----|-----|--------|-------|
+| Actionability | 25 | X/5 | Y/25 | ... |
+| Completeness | 20 | X/5 | Y/20 | ... |
+| Consistency | 20 | X/5 | Y/20 | ... |
+| Parsability | 15 | X/5 | Y/15 | ... |
+| Token Efficiency | 10 | X/5 | Y/10 | ... |
+| Staleness | 10 | X/5 | Y/10 | ... |
 
 ## Issues Found
 
@@ -119,7 +120,7 @@ model: claude-sonnet-45
 - Listed: [count]
 - Validity: [all exist / missing X]
 
-## Score: X/10
+## Score: X/100
 
 ## Recommendations
 - [Specific to metadata]

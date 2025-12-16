@@ -11,6 +11,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [3.4.0] - 2025-12-16
 
 ### Added
+- feat(prompts): add Snowflake Cortex example prompts for AI stack development
+  - `EXAMPLE_PROMPT_04.md` - Semantic View for Cortex Analyst with multi-table relationships
+  - `EXAMPLE_PROMPT_05.md` - Cortex Search Service for document retrieval with Cortex Agents
+  - `EXAMPLE_PROMPT_06.md` - Hybrid Cortex Agent combining Analyst and Search tools
+  - `EXAMPLE_PROMPT_07.md` - Complete Cortex AI Stack (semantic view + search + hybrid agent)
+- docs(prompts): add troubleshooting tips to prompts/README.md
+  - "Give Specific Rules" - Best practice for explicitly naming rules in prompts
+  - "MODE PLAN|ACT" - Guidance for controlling agent workflow mode
+- docs: add troubleshooting tips to project README.md
+  - "Give Specific Rules" section under Troubleshooting
+  - "MODE PLAN|ACT" section under Troubleshooting
+
+### Fixed
+- fix(prompts): correct Cortex Agent query function name in example prompts
+  - Changed `CORTEX_AGENT_QUERY()` to `AGENT_QUERY()` in EXAMPLE_PROMPT_06.md and EXAMPLE_PROMPT_07.md
+  - Aligns with rule guidance in 115-snowflake-cortex-agents-core.md
+
+### Added
 - feat(schema): add SchemaVersion and RuleVersion metadata fields to schema v3.1
   - **SchemaVersion** — Required CRITICAL field for tracking schema compatibility
     - Semantic versioning format (vX.Y or vX.Y.Z, e.g., v3.1 or v3.1.0)

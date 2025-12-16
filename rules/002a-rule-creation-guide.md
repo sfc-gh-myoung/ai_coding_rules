@@ -2,7 +2,7 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
 **RuleVersion:** v1.0.0
 **Keywords:** rule creation, workflow, step-by-step guide, naming conventions, metadata setup, section structure, Contract XML, validation, rule numbering, from scratch
 **TokenBudget:** ~3350
@@ -39,7 +39,7 @@ All AI agents creating new rule files in the ai_coding_rules repository.
 ## Contract
 
 <inputs_prereqs>
-Rule creation task; v3.0 schema understanding; rule number assignment; technology/domain scope
+Rule creation task; schema understanding; rule number assignment; technology/domain scope
 </inputs_prereqs>
 
 <mandatory>
@@ -112,7 +112,7 @@ python3 scripts/schema_validator.py rules/NNN-new-rule.md
 
 **Correct Pattern:**
 ```markdown
-**Keywords:** rule creation, v3.0 schema, metadata, validation, schema_validator, numbering, governance, template, workflow, RULES_INDEX, keywords, TokenBudget, ContextTier
+**Keywords:** rule creation, schema, metadata, validation, schema_validator, numbering, governance, template, workflow, RULES_INDEX, keywords, TokenBudget, ContextTier
 ```
 
 ## Step 1: Choose Rule Number and Name
@@ -201,7 +201,7 @@ Review 2-3 existing rules to understand:
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
 **RuleVersion:** v1.0.0
 **Keywords:** [10-15 keywords here]
 **TokenBudget:** ~[estimate]
@@ -296,7 +296,7 @@ Review 2-3 existing rules to understand:
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
 **RuleVersion:** v1.0.0
 **Keywords:** [10-15 comma-separated keywords]
 **TokenBudget:** ~[number]
@@ -308,7 +308,7 @@ Review 2-3 existing rules to understand:
 
 | Field | Format | Example | Notes |
 |-------|--------|---------|-------|
-| **SchemaVersion** | `v3.0` | `**SchemaVersion:** v3.0` | Optional but recommended |
+| **SchemaVersion** | `v3.0` | `**SchemaVersion:** v3.1` | Optional but recommended |
 | **RuleVersion** | `vX.Y.Z` | `**RuleVersion:** v1.0.0` | REQUIRED for issue tracking |
 | **Keywords** | 10-15 comma-separated | `**Keywords:** SQL, Snowflake, CTE, query optimization, performance` | CRITICAL for semantic discovery |
 | **TokenBudget** | `~NUMBER` | `**TokenBudget:** ~1200` | Use tilde prefix, estimate tokens |
@@ -650,11 +650,11 @@ python3 scripts/schema_validator.py rules/101d-snowflake-streamlit-testing.md
 ## References
 
 ### Related Rules
-- **Rule Governance**: `rules/002-rule-governance.md` - v3.0 schema requirements and standards
+- **Rule Governance**: `rules/002-rule-governance.md` - Schema requirements and standards
 - **Validator Usage**: `rules/002d-schema-validator-usage.md` - Detailed validation commands and error resolution
 - **Optimization Guide**: `rules/002b-rule-optimization.md` - Token budget optimization strategies
 - **Global Core**: `rules/000-global-core.md` - Foundation for all rules
 
 ### External Documentation
-- **Schema Definition**: `schemas/rule-schema-v3.yml` - Authoritative v3.0 schema
+- **Schema Definition**: `schemas/rule-schema.yml` - Authoritative schema definition
 - **Rules Index**: `RULES_INDEX.md` - Master index of all rules

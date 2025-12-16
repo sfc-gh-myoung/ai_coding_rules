@@ -318,7 +318,7 @@ Indexing complete when:
 - Validated (0 CRITICAL errors)
 - Indexed (discoverable via RULES_INDEX.md)
 - Ready for immediate use (rule file exists at `rules/422-daisyui-core.md`)
-- Compliant with v3.0 schema standards
+- Compliant with schema standards
 
 ## Final Verification
 

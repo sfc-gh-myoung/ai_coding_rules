@@ -1,21 +1,21 @@
-# Rule Governance: v3.0 Schema Standards
+# Rule Governance: Schema Standards
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
 **RuleVersion:** v1.0.0
-**Keywords:** rule governance, v3.0 schema, metadata requirements, required sections, Contract XML tags, validation, schema compliance, rule structure, semantic discovery, RULES_INDEX
+**Keywords:** rule governance, schema, metadata requirements, required sections, Contract XML tags, validation, schema compliance, rule structure, semantic discovery, RULES_INDEX
 **TokenBudget:** ~1850
 **ContextTier:** Critical
 **Depends:** rules/000-global-core.md
 
 ## Purpose
 
-Defines v3.0 schema standards for AI coding rule files, ensuring consistent structure, semantic discoverability, and automated validation for AI agents creating and maintaining rules.
+Defines schema standards for AI coding rule files, ensuring consistent structure, semantic discoverability, and automated validation for AI agents creating and maintaining rules.
 
 ## Rule Scope
 
-All rule files in the ai_coding_rules repository must comply with v3.0 schema standards defined in schemas/rule-schema-v3.yml
+All rule files in the ai_coding_rules repository must comply with schema standards defined in schemas/rule-schema.yml
 
 ## Quick Start TL;DR
 
@@ -41,11 +41,11 @@ All rule files in the ai_coding_rules repository must comply with v3.0 schema st
 ## Contract
 
 <inputs_prereqs>
-Rule creation/maintenance task; v3.0 schema understanding; access to schemas/rule-schema-v3.yml
+Rule creation/maintenance task; schema understanding; access to schemas/rule-schema.yml
 </inputs_prereqs>
 
 <mandatory>
-Text editor; schema_validator.py; access to existing rules/ directory; schemas/rule-schema-v3.yml file
+Text editor; schema_validator.py; access to existing rules/ directory; schemas/rule-schema.yml file
 </mandatory>
 
 <forbidden>
@@ -53,7 +53,7 @@ Creating rules without metadata; skipping validation; using outdated schema (v2.
 </forbidden>
 
 <steps>
-1. Review v3.0 schema requirements (metadata, sections, XML tags)
+1. Review schema requirements (metadata, sections, XML tags)
 2. Review existing rules in same category for patterns (use 002a-rule-creation-guide.md for workflow)
 3. Fill 5 required metadata fields correctly (RuleVersion, Keywords, TokenBudget, ContextTier, Depends)
 4. Write all 9 required sections in order
@@ -74,7 +74,7 @@ Markdown file (.md) with v3.0 metadata and required sections
 - Keywords count: 10-15 terms
 </validation>
 
-## v3.0 Schema Requirements
+## Schema Requirements
 
 ### Metadata Fields (5 Required)
 
@@ -86,8 +86,8 @@ Markdown file (.md) with v3.0 metadata and required sections
 | **ContextTier** | `**ContextTier:**` | Critical \| High \| Medium \| Low | `**ContextTier:** High` |
 | **Depends** | `**Depends:**` | At least one rule dependency | `**Depends:** rules/000-global-core.md` |
 
-**Optional Field:**
-- `**SchemaVersion:** v3.0` (recommended for clarity, not validated)
+**Required Field (CRITICAL):**
+- `**SchemaVersion:** vX.Y` - Must match current schema version (e.g., v3.1)
 
 **Field Order:** Must appear in exact order: RuleVersion, Keywords, TokenBudget, ContextTier, Depends
 
@@ -170,19 +170,19 @@ python3 scripts/schema_validator.py rules/NNN-rule.md --verbose
 | Missing metadata field | Keywords, TokenBudget, ContextTier, or Depends not present | Add missing field in correct order |
 | Keywords count wrong | Less than 10 or more than 15 keywords | Adjust to 10-15 comma-separated terms |
 | TokenBudget format | Not using `~NUMBER` format | Change to `~500`, `~1200`, etc. |
-| Missing required section | One of 9 required sections absent | Add missing section per v3.0 structure |
+| Missing required section | One of 9 required sections absent | Add missing section per schema structure |
 | Contract missing XML tag | One of 6 XML tags not found | Add missing tag: `<inputs_prereqs>`, etc. |
-| Section order wrong | Sections not in v3.0 order | Reorder: Purpose → Rule Scope → Quick Start → Contract... |
+| Section order wrong | Sections not in schema order | Reorder: Purpose → Rule Scope → Quick Start → Contract... |
 
 **For detailed error resolution:** See `002d-schema-validator-usage.md`
 
 ## Key Principles
 
-- **Schema Compliance:** All rules must validate against schemas/rule-schema-v3.yml with zero CRITICAL errors
+- **Schema Compliance:** All rules must validate against schemas/rule-schema.yml with zero CRITICAL errors
 - **Semantic Discovery:** Keywords (10-15) enable AI agents to automatically discover relevant rules
 - **Progressive Disclosure:** Quick Start TL;DR provides 30-second overview, detailed sections follow
 - **Validation-First:** Always run schema_validator.py before committing rule changes
-- **Text-Only Format:** No emojis in rule files (v3.0 requirement for universal compatibility)
+- **Text-Only Format:** No emojis in rule files (schema requirement for universal compatibility)
 
 ## Anti-Patterns and Common Mistakes
 
@@ -275,7 +275,7 @@ echo "| NNN-new-rule | Description | Keywords here |" >> RULES_INDEX.md
 ```
 
 ```yaml
-# schemas/rule-schema-v3.yml structure (reference)
+# schemas/rule-schema.yml structure (reference)
 version: "3.0"
 metadata:
   required_fields:
@@ -298,8 +298,8 @@ structure:
 - **Global Core**: `rules/000-global-core.md` - Foundation for all rules
 
 ### External Documentation
-- **Schema Definition**: `schemas/rule-schema-v3.yml` - Authoritative v3.0 schema with validation rules
+- **Schema Definition**: `schemas/rule-schema.yml` - Authoritative schema with validation rules
 - **Rules Index**: `RULES_INDEX.md` - Master index of all rules with keywords
 
 ### Schema File Location
-All rules must validate against: `schemas/rule-schema-v3.yml`
+All rules must validate against: `schemas/rule-schema.yml`

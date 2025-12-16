@@ -2,7 +2,7 @@
 """Tests for YAML schema-based rule validation.
 
 This test suite validates the SchemaValidator class that uses declarative
-YAML schema (rule-schema-v3.yml) to validate AI coding rules.
+YAML schema (rule-schema.yml) to validate AI coding rules.
 
 Test Coverage:
 - Metadata validation (Keywords, TokenBudget, ContextTier, Depends)
@@ -25,17 +25,18 @@ from scripts.schema_validator import SchemaValidator, ValidationError, Validatio
 def schema_validator() -> SchemaValidator:
     """Create SchemaValidator instance with default schema."""
     project_root = Path(__file__).parent.parent
-    schema_path = project_root / "schemas" / "rule-schema-v3.yml"
+    schema_path = project_root / "schemas" / "rule-schema.yml"
     return SchemaValidator(schema_path=schema_path)
 
 
 @pytest.fixture
 def compliant_rule_content() -> str:
-    """Fully compliant rule content per v3.0 spec."""
+    """Fully compliant rule content per v3.1 spec."""
     return """# Compliant Test Rule
 
 ## Metadata
 
+**SchemaVersion:** v3.1
 **RuleVersion:** v1.0.0
 **Keywords:** rule, validation, testing, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, quick-start, references, examples
 **TokenBudget:** ~500
@@ -640,7 +641,7 @@ class TestSchemaValidatorInitialization:
         """
         assert schema_validator.schema is not None
         assert "version" in schema_validator.schema
-        assert schema_validator.schema["version"] == "3.0"
+        assert schema_validator.schema["version"] == "3.1"
 
     @pytest.mark.unit
     def test_schema_validator_has_required_sections(self, schema_validator):
@@ -906,6 +907,125 @@ Test RuleVersion field order (wrong - should be before Keywords).
         assert len(order_errors) > 0, (
             "Should detect wrong field order when RuleVersion is after Keywords"
         )
+
+    @pytest.mark.unit
+    def test_valid_schema_version_passes_validation(self, schema_validator, tmp_path):
+        """Test that valid SchemaVersion format passes validation."""
+        valid_content = """# Test Rule
+
+## Metadata
+
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
+**Keywords:** test, validation, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, quick-start, references, examples, rules
+**TokenBudget:** ~500
+**ContextTier:** High
+**Depends:** rules/000-global-core.md
+
+## Purpose
+Test valid SchemaVersion format.
+"""
+        rule_file = tmp_path / "valid-schema-version.md"
+        rule_file.write_text(valid_content)
+
+        result = schema_validator.validate_file(rule_file)
+
+        metadata_errors = [e for e in result.errors if e.error_group == "Metadata"]
+        version_errors = [e for e in metadata_errors if "SchemaVersion" in e.message]
+
+        assert len(version_errors) == 0, f"Should not have SchemaVersion errors: {version_errors}"
+
+    @pytest.mark.unit
+    def test_missing_schema_version_detected(self, schema_validator, tmp_path):
+        """Test that missing SchemaVersion generates CRITICAL error."""
+        invalid_content = """# Test Rule
+
+## Metadata
+
+**RuleVersion:** v1.0.0
+**Keywords:** test, validation, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, quick-start, references, examples, rules
+**TokenBudget:** ~500
+**ContextTier:** High
+**Depends:** rules/000-global-core.md
+
+## Purpose
+Test missing SchemaVersion field.
+"""
+        rule_file = tmp_path / "missing-schema-version.md"
+        rule_file.write_text(invalid_content)
+
+        result = schema_validator.validate_file(rule_file)
+
+        metadata_errors = [e for e in result.errors if e.error_group == "Metadata"]
+        version_errors = [e for e in metadata_errors if "SchemaVersion" in e.message]
+
+        assert len(version_errors) > 0, "Should detect missing SchemaVersion"
+        assert any(e.severity == "CRITICAL" for e in version_errors), (
+            "Missing SchemaVersion should be CRITICAL severity"
+        )
+
+    @pytest.mark.unit
+    def test_invalid_schema_version_format_detected(self, schema_validator, tmp_path):
+        """Test that invalid SchemaVersion format is detected."""
+        invalid_formats = [
+            ("3.1", "missing v prefix"),
+            ("version3.1", "wrong prefix"),
+            ("v3", "missing minor version"),
+        ]
+
+        for invalid_version, description in invalid_formats:
+            invalid_content = f"""# Test Rule
+
+## Metadata
+
+**SchemaVersion:** {invalid_version}
+**RuleVersion:** v1.0.0
+**Keywords:** test, validation, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, quick-start, references, examples, rules
+**TokenBudget:** ~500
+**ContextTier:** High
+**Depends:** rules/000-global-core.md
+
+## Purpose
+Test invalid SchemaVersion format: {description}.
+"""
+            rule_file = tmp_path / f"invalid-schema-version-{invalid_version.replace('.', '-')}.md"
+            rule_file.write_text(invalid_content)
+
+            result = schema_validator.validate_file(rule_file)
+
+            metadata_errors = [e for e in result.errors if e.error_group == "Metadata"]
+            version_errors = [e for e in metadata_errors if "SchemaVersion" in e.message]
+
+            assert len(version_errors) > 0, (
+                f"Should detect invalid format '{invalid_version}' ({description})"
+            )
+
+    @pytest.mark.unit
+    def test_schema_version_with_patch_passes(self, schema_validator, tmp_path):
+        """Test that SchemaVersion with patch version (vX.Y.Z) passes validation."""
+        valid_content = """# Test Rule
+
+## Metadata
+
+**SchemaVersion:** v3.1.0
+**RuleVersion:** v1.0.0
+**Keywords:** test, validation, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, quick-start, references, examples, rules
+**TokenBudget:** ~500
+**ContextTier:** High
+**Depends:** rules/000-global-core.md
+
+## Purpose
+Test SchemaVersion with patch version.
+"""
+        rule_file = tmp_path / "schema-version-with-patch.md"
+        rule_file.write_text(valid_content)
+
+        result = schema_validator.validate_file(rule_file)
+
+        metadata_errors = [e for e in result.errors if e.error_group == "Metadata"]
+        version_errors = [e for e in metadata_errors if "SchemaVersion" in e.message]
+
+        assert len(version_errors) == 0, f"Should accept vX.Y.Z format: {version_errors}"
 
 
 class TestStructuralValidation:
@@ -1487,6 +1607,8 @@ class TestCodeBlockHandling:
 
 ## Metadata
 
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** testing, code blocks, examples, markdown, validation, structure, headers, ignore, parsing, schema, demonstration, compliance, patterns, tutorial, guide
 **TokenBudget:** ~500
 **ContextTier:** Medium
@@ -1612,6 +1734,8 @@ def validate_structure(content):
 
 ## Metadata
 
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** testing, code blocks, mixed headers, validation, structure, parsing, markdown, examples, real sections, demonstration, schema, compliance, patterns, tutorial, guide
 **TokenBudget:** ~400
 **ContextTier:** Low
@@ -1888,6 +2012,7 @@ Examples
 
 ## Metadata
 
+**SchemaVersion:** v3.1
 **RuleVersion:** v1.0.0
 **Keywords:** warning, test, validation, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, quick-start, references, examples
 **TokenBudget:** ~500
@@ -2222,6 +2347,7 @@ Test
 
 ## Metadata
 
+**SchemaVersion:** v3.1
 **RuleVersion:** v1.0.0
 **Keywords:** warning, test, validation, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, quick-start, references, examples
 **TokenBudget:** ~500
@@ -2714,7 +2840,7 @@ class TestFileReadingErrors:
         """Test that file read errors are caught and reported."""
         # Create a validator with explicit mock of read
         project_root = Path(__file__).parent.parent
-        schema_path = project_root / "schemas" / "rule-schema-v3.yml"
+        schema_path = project_root / "schemas" / "rule-schema.yml"
         schema_validator = SchemaValidator(schema_path=schema_path)
 
         bad_file = tmp_path / "unreadable.md"

@@ -332,7 +332,7 @@ grep "210-python-pydantic" RULES_INDEX.md
 
 **Input:**
 ```
-Create a new rule for httpx best practices following v3.0 schema
+Create a new rule for httpx best practices following schema
 ```
 
 **Expected Timeline:**
@@ -355,7 +355,7 @@ Create a new rule for httpx best practices following v3.0 schema
 
 **Input:**
 ```
-Create a new rule for Svelte best practices following v3.0 schema
+Create a new rule for Svelte best practices following schema
 ```
 
 **Expected:**

@@ -2,7 +2,7 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
 **RuleVersion:** v1.0.0
 **Keywords:** schema validator, validation errors, error resolution, CI/CD integration, exit codes, command selection, output parsing, automation workflow, JSON output, quiet mode, programmatic integration, regex patterns, error categorization
 **TokenBudget:** ~4800
@@ -15,7 +15,7 @@ Comprehensive guide for running schema_validator.py, interpreting validation out
 
 ## Rule Scope
 
-All AI agents validating rule files against schemas/rule-schema-v3.yml.
+All AI agents validating rule files against schemas/rule-schema.yml.
 
 ## Quick Start TL;DR
 
@@ -30,18 +30,18 @@ All AI agents validating rule files against schemas/rule-schema-v3.yml.
 **Pre-Execution Checklist:**
 - [ ] Python 3.8+ installed with PyYAML library
 - [ ] schema_validator.py accessible in scripts/ directory
-- [ ] schemas/rule-schema-v3.yml file present
+- [ ] schemas/rule-schema.yml file present
 - [ ] Rule file exists and is readable
 - [ ] Ready to fix errors if validation fails
 
 ## Contract
 
 <inputs_prereqs>
-Rule file to validate; schemas/rule-schema-v3.yml; Python 3.8+ environment; PyYAML installed
+Rule file to validate; schemas/rule-schema.yml; Python 3.8+ environment; PyYAML installed
 </inputs_prereqs>
 
 <mandatory>
-scripts/schema_validator.py; schemas/rule-schema-v3.yml; Python 3 with PyYAML; text editor for fixes
+scripts/schema_validator.py; schemas/rule-schema.yml; Python 3 with PyYAML; text editor for fixes
 </mandatory>
 
 <forbidden>
@@ -196,7 +196,7 @@ AI agents should select the appropriate command and options based on the validat
 **Scenario 7: Custom Schema Validation**
 - Command: `python3 scripts/schema_validator.py [file/dir] --schema [schema_path]`
 - When: Testing new schema versions, alternate schema sets
-- Default: schemas/rule-schema-v3.yml (if --schema omitted)
+- Default: schemas/rule-schema.yml (if --schema omitted)
 - Output: Same as base command
 - Exit Code: Same as base command
 - Use Case: Schema development, multi-version validation
@@ -712,7 +712,7 @@ Success criteria
 [Structure] Sections out of order: Contract should come before Key Principles
 ```
 
-**Fix:** Reorder sections per v3.0 schema
+**Fix:** Reorder sections per schema
 ```markdown
 # Correct order:
 1. Purpose
@@ -1147,7 +1147,7 @@ python3 scripts/schema_validator.py rules/
 ## References
 
 ### Related Rules
-- **Rule Governance**: `rules/002-rule-governance.md` - v3.0 schema requirements and validation criteria
+- **Rule Governance**: `rules/002-rule-governance.md` - Schema requirements and validation criteria
 - **Creation Guide**: `rules/002a-rule-creation-guide.md` - Step 6 covers validation workflow
 - **Global Core**: `rules/000-global-core.md` - Foundation patterns
 
@@ -1156,4 +1156,4 @@ python3 scripts/schema_validator.py rules/
 - **token_validator.py**: `scripts/token_validator.py` - Token budget validation
 
 ### Schema Definition
-- **v3.0 Schema**: `schemas/rule-schema-v3.yml` - Authoritative validation rules
+- **v3.0 Schema**: `schemas/rule-schema.yml` - Authoritative validation rules

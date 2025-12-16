@@ -2,7 +2,7 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
 **RuleVersion:** v1.0.0
 **Keywords:** token budget, optimization, performance, rule sizing, progressive loading, context window, model limits, cost efficiency, caching, batch loading
 **TokenBudget:** ~3500
@@ -569,7 +569,7 @@ wc -w rules/NNN-rule.md
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
 **RuleVersion:** v1.0.0
 **Keywords:** pytest, testing, fixtures, parametrization, test isolation
 **TokenBudget:** ~2050
@@ -584,7 +584,7 @@ wc -w rules/NNN-rule.md
 ```markdown
 # 115-snowflake-cortex-agents-core
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
 **Keywords:** Cortex Agents, multi-tool agents, planning instructions, testing
 **TokenBudget:** ~4650
 **ContextTier:** Medium
@@ -596,7 +596,7 @@ wc -w rules/NNN-rule.md
 ## References
 
 ### Related Rules
-- **Rule Governance**: `rules/002-rule-governance.md` - v3.0 schema requirements
+- **Rule Governance**: `rules/002-rule-governance.md` - Schema requirements
 - **Creation Guide**: `rules/002a-rule-creation-guide.md` - Step-by-step rule creation workflow
 - **Advanced Patterns**: `rules/002c-advanced-rule-patterns.md` - System prompt altitude, multi-session workflows
 - **Validator Usage**: `rules/002d-schema-validator-usage.md` - Token validation commands
@@ -606,4 +606,4 @@ wc -w rules/NNN-rule.md
 - **token_validator.py**: Validates token budgets against actual counts
 
 ### External Documentation
-- **Schema Definition**: `schemas/rule-schema-v3.yml` - Token budget validation rules
+- **Schema Definition**: `schemas/rule-schema.yml` - Token budget validation rules

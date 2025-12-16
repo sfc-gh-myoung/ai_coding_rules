@@ -1,4 +1,4 @@
-# Architecture: AI Coding Rules (v3.0)
+# Architecture: AI Coding Rules (v3.1)
 
 ## Table of Contents
 
@@ -17,7 +17,7 @@
 
 ## System Overview
 
-The AI Coding Rules v3.0 architecture represents a fundamental shift from template-based generation (v2.x) to a **production-ready rules system**. This architecture prioritizes simplicity, maintainability, and universal compatibility across all AI assistants and IDEs.
+The AI Coding Rules v3.1 architecture represents a fundamental shift from template-based generation (v2.x) to a **production-ready rules system**. This architecture prioritizes simplicity, maintainability, and universal compatibility across all AI assistants and IDEs.
 
 ### Core Architecture Principles
 
@@ -27,7 +27,7 @@ The AI Coding Rules v3.0 architecture represents a fundamental shift from templa
 4. **Schema-Validated** — Declarative YAML schema ensures consistency and quality
 5. **Agent-Agnostic Deployment** — Single `--dest` flag deploys to any project structure
 
-### What Changed in v3.0
+### What Changed in v3.x
 
 | Aspect | v2.x (Template-Based) | v3.0 (Production-Ready) |
 |--------|----------------------|-------------------------|
@@ -73,7 +73,8 @@ Every rule file follows this structure:
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** keyword1, keyword2, keyword3, ... (10-15 total)
 **TokenBudget:** ~1200
 **ContextTier:** Critical|High|Medium|Low
@@ -117,15 +118,19 @@ Every rule file follows this structure:
 
 ### Metadata Fields
 
-| Field | Purpose | Format | Example |
-|-------|---------|--------|---------|
-| **Keywords** | Semantic discovery by AI agents | 10-15 comma-separated terms | `python, testing, pytest, fixtures, coverage` |
-| **TokenBudget** | LLM context management | `~NUMBER` (approximate tokens) | `~1200` |
-| **ContextTier** | Loading prioritization | Critical \| High \| Medium \| Low | `High` |
-| **Depends** | Prerequisite rules | Comma-separated rule paths | `rules/000-global-core.md, rules/200-python-core.md` |
+| Field | Purpose | Format | Severity | Example |
+|-------|---------|--------|----------|---------|
+| **SchemaVersion** | Schema compatibility tracking | `vX.Y` or `vX.Y.Z` | CRITICAL | `v3.1` |
+| **RuleVersion** | Individual rule versioning | `vX.Y.Z` (semver) | HIGH | `v1.0.0` |
+| **Keywords** | Semantic discovery by AI agents | 10-15 comma-separated terms | HIGH | `python, testing, pytest, fixtures, coverage` |
+| **TokenBudget** | LLM context management | `~NUMBER` (approximate tokens) | HIGH | `~1200` |
+| **ContextTier** | Loading prioritization | Critical \| High \| Medium \| Low | HIGH | `High` |
+| **Depends** | Prerequisite rules | Comma-separated rule paths | HIGH | `rules/000-global-core.md, rules/200-python-core.md` |
 
 **Why These Fields Matter:**
 
+- **SchemaVersion** ensures rules are validated against the correct schema version
+- **RuleVersion** enables users to report issues against specific rule versions
 - **Keywords** enable AI assistants to automatically discover relevant rules based on task descriptions
 - **TokenBudget** helps LLMs manage attention budget and decide which rules to load
 - **ContextTier** provides prioritization when context windows are constrained
@@ -200,7 +205,7 @@ Total HTMX token budget: ~9500 tokens across 8 rules
 
 ### Claude Agent Skills Architecture
 
-Starting in v3.4.0, the project includes two Claude Agent Skills following [Anthropic's best practices](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills).
+Starting in v3.4.0, the project includes three Claude Agent Skills following [Anthropic's best practices](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills).
 
 **Skill Structure (both skills):**
 
@@ -261,6 +266,19 @@ dependencies: []
 | `examples/` | FULL, FOCUSED, STALENESS examples |
 | `tests/` | Input, mode, output handling tests |
 
+**docs-reviewer Skill (Deployed by Default):**
+
+| Component | Purpose |
+|-----------|---------|
+| `SKILL.md` | Documentation review with 3 modes |
+| `workflows/input-validation.md` | Input checking procedures |
+| `workflows/model-slugging.md` | Model name normalization |
+| `workflows/review-execution.md` | Review generation steps |
+| `workflows/file-write.md` | Output file handling |
+| `workflows/error-handling.md` | Error recovery patterns |
+| `examples/` | FULL, FOCUSED, STALENESS examples |
+| `tests/` | Input, mode, output handling tests |
+
 **Quality Threshold for Cross-Skill Validation:**
 
 When using rule-reviewer to validate rule-creator output:
@@ -312,7 +330,7 @@ ai_coding_rules/
 ├── rules/                      # 103 production-ready rule files
 │   ├── 000-global-core.md      # Foundation (ContextTier: Critical)
 │   ├── 001-memory-bank.md      # Context management
-│   ├── 002-rule-governance.md  # v3.0 schema standards
+│   ├── 002-rule-governance.md  # Schema standards
 │   ├── 100-snowflake-core.md   # Domain cores
 │   ├── 200-python-core.md
 │   ├── 221-python-htmx-core.md # HTMX foundation
@@ -335,7 +353,7 @@ ai_coding_rules/
 │   └── index_generator.py      # Generates RULES_INDEX.md (400 lines)
 │
 ├── schemas/                    # Validation schemas
-│   ├── rule-schema-v3.yml      # v3.0 schema definition (556 lines)
+│   ├── rule-schema.yml         # Schema definition (556 lines)
 │   └── README.md               # Schema documentation
 │
 ├── tests/                      # Test suite (100+ passing tests)
@@ -354,14 +372,21 @@ ai_coding_rules/
 │   └── README.md               # Prompt writing guide
 │
 ├── skills/                     # Claude Agent Skills (optional deployable artifacts)
-│   ├── rule-creator/            # Internal-only: create v3.0 rules (excluded from deploy)
+│   ├── rule-creator/            # Internal-only: create rules (excluded from deploy)
 │   │   ├── SKILL.md                 # Main entrypoint with YAML frontmatter
 │   │   ├── README.md                # Usage documentation
 │   │   ├── VALIDATION.md            # Self-validation procedures
 │   │   ├── workflows/               # 5-phase workflow guides
 │   │   ├── examples/                # Frontend, Python, Snowflake + edge-cases.md
 │   │   └── tests/                   # Input and workflow test cases
-│   └── rule-reviewer/           # Internal-only: automate rule reviews (excluded from deploy)
+│   ├── rule-reviewer/           # Internal-only: automate rule reviews (excluded from deploy)
+│   │   ├── SKILL.md                 # Main entrypoint with YAML frontmatter
+│   │   ├── README.md                # Usage documentation
+│   │   ├── VALIDATION.md            # Self-validation procedures
+│   │   ├── workflows/               # Input, execution, output, error handling
+│   │   ├── examples/                # FULL, FOCUSED, STALENESS + edge-cases.md
+│   │   └── tests/                   # Input, mode, output test cases
+│   └── docs-reviewer/           # Deployed by default: automate doc reviews
 │       ├── SKILL.md                 # Main entrypoint with YAML frontmatter
 │       ├── README.md                # Usage documentation
 │       ├── VALIDATION.md            # Self-validation procedures
@@ -392,7 +417,7 @@ ai_coding_rules/
 - 103 rules covering all domains (including 8 HTMX rules, Go/Golang core, and Alpine.js)
 
 **`scripts/`** — Automation and validation tools
-- `template_generator.py` creates new rules compliant with v3.0 schema
+- `template_generator.py` creates new rules compliant with the schema
 - `rule_deployer.py` copies rules to target projects
 - `schema_validator.py` validates rules against schema
 - `token_validator.py` checks token budget accuracy
@@ -400,7 +425,7 @@ ai_coding_rules/
 - `index_generator.py` generates RULES_INDEX.md catalog
 
 **`schemas/`** — Declarative validation
-- `rule-schema-v3.yml` defines all requirements
+- `rule-schema.yml` defines all requirements
 - Used by schema_validator.py
 - Single source of truth for validation logic
 
@@ -411,11 +436,11 @@ ai_coding_rules/
 - **RULE_REVIEW_PROMPT.md** — Agent-centric rule review prompt template (paste into a model)
 - **USING_RULE_REVIEW_PROMPT.md** — Usage guide (modes, examples, cadence, cross-model workflow)
 
-**`skills/`** — Claude Agent Skills (internal-only)
-- Both skills are excluded from deployment in `pyproject.toml` (`[tool.rule_deployer].exclude_skills`)
+**`skills/`** — Claude Agent Skills
+- Some skills are excluded from deployment in `pyproject.toml` (`[tool.rule_deployer].exclude_skills`)
 - Follows [Anthropic Agent Skills best practices](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills)
 - **rule-creator/** (internal-only, excluded from deployment):
-  - Creates v3.0 Cursor rules with template generation and schema validation
+  - Creates Cursor rules with template generation and schema validation
   - 5-phase workflow: Discovery → Template → Content → Validation → Indexing
   - Includes: SKILL.md, README.md, VALIDATION.md, workflows/, examples/, tests/
   - Trigger keywords: "create rule", "add rule", "new rule", "generate rule"
@@ -424,7 +449,12 @@ ai_coding_rules/
   - Writes results to `reviews/` with no-overwrite safety
   - Includes: SKILL.md, README.md, VALIDATION.md, workflows/, examples/, tests/
   - Trigger keywords: "review rule", "audit rule", "check rule quality"
-- Both skills feature:
+- **docs-reviewer/** (deployed by default):
+  - Automates documentation quality reviews (FULL/FOCUSED/STALENESS modes)
+  - Writes results to `reviews/` with no-overwrite safety
+  - Includes: SKILL.md, README.md, VALIDATION.md, workflows/, examples/, tests/
+  - Trigger keywords: "review docs", "audit documentation", "check doc quality"
+- All skills feature:
   - Enhanced YAML frontmatter (version, author, tags, dependencies)
   - Inline validation snippets (hybrid code embedding)
   - Edge case documentation (10 scenarios each)
@@ -466,7 +496,8 @@ Edit `rules/300-example-rule.md`:
 # Example Rule Title
 
 ## Metadata
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
 **Keywords:** [AUTO-GENERATED - review and adjust]
 **TokenBudget:** ~1200
 **ContextTier:** Medium
@@ -506,7 +537,8 @@ python scripts/schema_validator.py rules/300-example-rule.md --verbose
 ```
 
 **Validation Checks:**
-- 4 metadata fields present and correctly formatted
+- 6 metadata fields present and correctly formatted
+- SchemaVersion and RuleVersion in semantic version format
 - Keywords count: 10-15 terms
 - 9 required sections present in correct order
 - Contract has 6 XML tags before line 160
@@ -554,11 +586,11 @@ code quality, linting, formatting, development workflow, testing
 
 ### Overview
 
-v3.0 uses a **declarative YAML schema** (`schemas/rule-schema-v3.yml`) to define all validation requirements. This approach separates validation logic from implementation, making the system more maintainable and extensible.
+This project uses a **declarative YAML schema** (`schemas/rule-schema.yml`) to define all validation requirements. This approach separates validation logic from implementation, making the system more maintainable and extensible.
 
 ### Schema Architecture
 
-**Schema File:** `schemas/rule-schema-v3.yml` (556 lines)
+**Schema File:** `schemas/rule-schema.yml` (556 lines)
 
 **Structure:**
 ```yaml
@@ -598,8 +630,9 @@ contract:
 ### Validation Features
 
 **1. Metadata Validation**
-- Required fields: Keywords, TokenBudget, ContextTier, Depends
+- Required fields: SchemaVersion, RuleVersion, Keywords, TokenBudget, ContextTier, Depends (6 fields)
 - Pattern matching: `**FieldName:** value` format
+- Version validation: SchemaVersion (vX.Y or vX.Y.Z), RuleVersion (vX.Y.Z semver)
 - Count validation: Keywords must be 10-15 terms
 - Enum validation: ContextTier must be Critical|High|Medium|Low
 
@@ -1121,7 +1154,7 @@ python scripts/template_generator.py FILENAME [OPTIONS]
 - Auto-generates keywords based on numbering range
 - Creates all 9 required sections with placeholders
 - Pre-fills Contract section with 6 XML tags
-- Validates output against v3.0 schema
+- Validates output against schema
 
 **Example:**
 ```bash
@@ -1160,7 +1193,7 @@ python scripts/rule_deployer.py \
 
 ### 3. schema_validator.py (~600 lines)
 
-**Purpose:** Validate rules against v3.0 schema
+**Purpose:** Validate rules against schema
 
 **Usage:**
 ```bash
@@ -1169,7 +1202,7 @@ python scripts/schema_validator.py PATH [OPTIONS]
 
 **Options:**
 - `PATH` — Rule file or directory to validate
-- `--schema PATH` — Custom schema file (default: schemas/rule-schema-v3.yml)
+- `--schema PATH` — Custom schema file (default: schemas/rule-schema.yml)
 - `--verbose` — Show all validation checks
 - `--strict` — Treat warnings as errors
 - `--debug` — Show schema loading and parsing
@@ -1382,7 +1415,7 @@ graph TD
     Scripts --> S5[keyword_generator.py]
     Scripts --> S6[index_generator.py]
     
-    Schemas --> Schema[rule-schema-v3.yml]
+    Schemas --> Schema[rule-schema.yml]
     
     Tests --> T1[test_template_generator.py]
     Tests --> T2[test_rule_deployer.py]
@@ -1468,7 +1501,7 @@ graph TD
 
 **Implementation:**
 ```yaml
-# schemas/rule-schema-v3.yml
+# schemas/rule-schema.yml
 sections:
   required:
     - name: Contract
@@ -1552,7 +1585,7 @@ Tested on GPT-4o, GPT-5.1, GPT-5.2, Claude Sonnet 4.5, Claude Opus 4.5, Gemini 2
 
 **Process:**
 
-1. **Copy Schema** — `cp schemas/rule-schema-v3.yml schemas/custom-schema.yml`
+1. **Copy Schema** — `cp schemas/rule-schema.yml schemas/custom-schema.yml`
 2. **Edit Schema** — Add/modify validation rules
 3. **Test Locally** — `python scripts/schema_validator.py rules/ --schema schemas/custom-schema.yml`
 4. **Update CI/CD** — Point to custom schema in pipeline
@@ -1574,7 +1607,7 @@ metadata:
 
 **Trade-offs:**
 - Custom schema prevents direct upstream merge
-- Requires maintenance when v3.0 schema evolves
+- Requires maintenance when schema evolves
 - Team must understand customizations
 
 ### Adding Custom Scripts
@@ -1772,7 +1805,7 @@ grep -i "keyword" ~/project/RULES_INDEX.md
 
 | Version | Date | Changes |
 |---------|------|---------|
-| **v3.4.0** | 2025-12-16 | Added Claude Agent Skills Architecture section, updated skills/ directory documentation |
+| **v3.4.0** | 2025-12-16 | Added SchemaVersion/RuleVersion metadata fields, docs-reviewer skill, updated metadata to 6 fields |
 | **v3.3.0** | 2025-12-12 | Added Periodic Rule Review section with Agent-Centric Rule Review prompt, updated prompts/ directory documentation |
 | **v3.2.0** | 2025-12-04 | Added Go/Golang rules architecture section, updated rule counts to 100 |
 | **v3.1.0** | 2025-12-03 | Added HTMX rules architecture section |

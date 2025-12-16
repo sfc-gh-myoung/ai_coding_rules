@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Execute `schema_validator.py` iteratively to validate the populated rule against v3.0 schema, fix any CRITICAL/HIGH errors, and continue until achieving 0 CRITICAL errors (exit code 0).
+Execute `schema_validator.py` iteratively to validate the populated rule against schema, fix any CRITICAL/HIGH errors, and continue until achieving 0 CRITICAL errors (exit code 0).
 
 ## Inputs
 
@@ -77,7 +77,7 @@ SUMMARY:
 ⚠️  HIGH ISSUES (1):
 ────────────────────────────────────────────────────────────────────────────────
 [Structure] Section order: Contract should appear before Key Principles
-  Fix: Reorder sections per v3.0 schema
+  Fix: Reorder sections per schema
 
 ================================================================================
 RESULT: ❌ FAILED
@@ -240,7 +240,7 @@ Add the missing section with proper structure:
 **Error:**
 ```
 [Structure] Sections out of order: Contract should come before Key Principles
-  Fix: Reorder sections per v3.0 schema
+  Fix: Reorder sections per schema
 ```
 
 **Correct v3.0 order:**

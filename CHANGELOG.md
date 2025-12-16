@@ -7,9 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
 ## [3.4.0] - 2025-12-16
 
 ### Added
+- feat(schema): add SchemaVersion and RuleVersion metadata fields to schema v3.1
+  - **SchemaVersion** — Required CRITICAL field for tracking schema compatibility
+    - Semantic versioning format (vX.Y or vX.Y.Z, e.g., v3.1 or v3.1.0)
+    - CRITICAL severity validation error if missing or malformed
+    - All 103 existing rules updated with `**SchemaVersion:** v3.1`
+  - **RuleVersion** — Required HIGH field for tracking individual rule versions
+    - Semantic versioning format (vX.Y.Z, e.g., v1.0.0)
+    - Enables users to report issues against specific rule versions
+    - HIGH severity validation error if missing or malformed
+    - All 103 existing rules initialized with `**RuleVersion:** v1.0.0`
+  - Field order now: SchemaVersion, RuleVersion, Keywords, TokenBudget, ContextTier, Depends
+  - Metadata requirements updated from 4 to 6 required fields
+- feat(skills): add docs-reviewer skill for documentation review
+  - Structured skill: `skills/docs-reviewer/SKILL.md` with workflows, examples, tests, and validation
+  - Three review modes: FULL, FOCUSED, STALENESS
+  - Follows Anthropic Agent Skills best practices
 - feat(skills): enhance rule-creator and rule-reviewer skills following Anthropic Agent Skills best practices
   - **SKILL.md frontmatter enhancements** for both skills:
     - Added `version`, `author`, `tags`, `dependencies` fields
@@ -106,6 +123,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - All tests passing with enhanced validation coverage
 
 ### Changed
+- refactor(schema): rename schema file for cleaner versioning
+  - Renamed `schemas/rule-schema-v3.yml` to `schemas/rule-schema.yml`
+  - Version now tracked inside file (`version: "3.1"`) instead of filename
+  - Git history provides full version history
+- docs(schema): update metadata requirements to 6 fields
+  - Field order: SchemaVersion, RuleVersion, Keywords, TokenBudget, ContextTier, Depends
+  - Updated `002-rule-governance.md`, `002a-rule-creation-guide.md`, `002d-schema-validator-usage.md`
+  - Updated `schemas/README.md` with v3.1 documentation
+- refactor(docs): make schema references version-agnostic throughout documentation
+  - Replaced "v3.0 schema" with "schema" in all documentation files
+  - Updated rule governance, creation guides, and architecture docs
+  - Ensures documentation remains accurate across schema version updates
+- chore(rules): update SchemaVersion in all 103 rule files from v3.0 to v3.1
 - chore(ci): rewrite GitHub Actions CI workflow for ai_coding_rules project
   - Triggers on `main` branch only (push and PR)
   - 4 parallel jobs: quality, markdown, test (Python matrix), validate

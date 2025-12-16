@@ -12,37 +12,11 @@ This skill automates the complete rule creation workflow from discovery through 
 
 ## Skill Formats
 
-This repository provides two equivalent skill formats:
-
-### 1. Single-File Skill (Recommended for Quick Use)
-
-**File:** `skills/rule-creator-skill.md`
-
-**Use when:**
-- You want a self-contained reference
-- Working in a single session
-- Need complete workflow in one place
-
-**How to use:**
-```
-Load: @skills/rule-creator-skill.md
-Request: "Create a new rule for [TECHNOLOGY] best practices following v3.0 schema"
-```
-
-### 2. Structured Skill (Recommended for Claude Code)
+This repository provides a Claude Code–compliant structured skill:
 
 **Directory:** `skills/rule-creator/`
 
-**Use when:**
-- Working with Claude Code
-- Need phase-specific guidance
-- Want example walkthroughs
-
-**How to use:**
-```
-Load: @skills/rule-creator/prompt.md
-Request: "Create a new rule for [TECHNOLOGY] best practices following v3.0 schema"
-```
+**Entrypoint:** `skills/rule-creator/SKILL.md`
 
 ## Quick Start
 
@@ -50,24 +24,19 @@ Request: "Create a new rule for [TECHNOLOGY] best practices following v3.0 schem
 
 Ensure you have:
 - Python 3.11+ with PyYAML installed
-- Access to `@rules/`, `@scripts/`, and `@RULES_INDEX.md`
+- Access to `rules/`, `scripts/`, and `RULES_INDEX.md`
 - Loaded governance rules:
-  - `@rules/000-global-core.md`
-  - `@rules/002-rule-governance.md`
-  - `@rules/002a-rule-creation-guide.md`
-  - `@rules/002b-rule-optimization.md`
-  - `@rules/002d-schema-validator-usage.md`
+  - `rules/000-global-core.md`
+  - `rules/002-rule-governance.md`
+  - `rules/002a-rule-creation-guide.md`
+  - `rules/002b-rule-optimization.md`
+  - `rules/002d-schema-validator-usage.md`
 
 ### Step 2: Load the Skill
 
-**Option A: Single file**
+Open:
 ```
-@skills/rule-creator-skill.md
-```
-
-**Option B: Structured**
-```
-@skills/rule-creator/prompt.md
+skills/rule-creator/SKILL.md
 ```
 
 ### Step 3: Request Rule Creation
@@ -96,7 +65,7 @@ Check that:
 - File exists: `rules/NNN-technology-aspect.md`
 - Validation passed: `python scripts/schema_validator.py rules/NNN-technology-aspect.md` returns exit code 0
 - Indexed: Entry present in `RULES_INDEX.md`
-- Loadable: `@rules/NNN-technology-aspect.md` works in Cursor
+- Loadable: `rules/NNN-technology-aspect.md` exists and contains the new rule content
 
 ## Workflow Architecture
 
@@ -140,13 +109,19 @@ Check that:
 
 ```
 skills/rule-creator/
-├── skill.json              # Skill configuration metadata
-├── prompt.md              # Main skill instructions
+├── SKILL.md               # Main skill instructions (Claude Code entrypoint)
+├── PROMPT.md              # Rule creation prompt template and workflow
 ├── README.md              # This file - usage documentation
+├── VALIDATION.md          # Skill self-validation procedures
 ├── examples/              # Complete workflow examples
 │   ├── frontend-example.md    # DaisyUI (JavaScript 420-449)
 │   ├── python-example.md      # pytest-mock (Python 200-299)
-│   └── snowflake-example.md   # Hybrid Tables (Snowflake 100-199)
+│   ├── snowflake-example.md   # Hybrid Tables (Snowflake 100-199)
+│   └── edge-cases.md          # Ambiguous scenarios and resolutions
+├── tests/                 # Skill test cases
+│   ├── README.md              # Test overview and instructions
+│   ├── test-inputs.md         # Input validation test cases
+│   └── test-workflows.md      # Workflow execution test cases
 └── workflows/             # Phase-specific detailed guides
     ├── discovery.md          # Phase 1: Discovery & Research
     ├── template-gen.md       # Phase 2: Template Generation
@@ -291,7 +266,7 @@ All rules must pass these gates before completion:
 **Symptom:** Still have CRITICAL errors after 3 attempts
 
 **Action:**
-1. Review `@rules/002d-schema-validator-usage.md`
+1. Review `rules/002d-schema-validator-usage.md`
 2. Check similar rules for structure examples
 3. Run with `--verbose` flag for detailed output
 4. Request user assistance
@@ -399,12 +374,12 @@ For complete end-to-end examples:
 
 ### Related Documentation
 
-- **Rule Governance:** `@rules/002-rule-governance.md` - v3.0 schema standards
-- **Creation Guide:** `@rules/002a-rule-creation-guide.md` - Manual rule creation
-- **Optimization:** `@rules/002b-rule-optimization.md` - Token budgets
-- **Validator Usage:** `@rules/002d-schema-validator-usage.md` - Validation details
-- **Rules Index:** `@RULES_INDEX.md` - Master index for discovery
-- **Example Prompt:** `@prompts/EXAMPLE_PROMPT_04_RULE_CREATION.md` - Prompt reference
+- **Rule Governance:** `rules/002-rule-governance.md` - v3.0 schema standards
+- **Creation Guide:** `rules/002a-rule-creation-guide.md` - Manual rule creation
+- **Optimization:** `rules/002b-rule-optimization.md` - Token budgets
+- **Validator Usage:** `rules/002d-schema-validator-usage.md` - Validation details
+- **Rules Index:** `RULES_INDEX.md` - Master index for discovery
+- **Prompt Template:** `PROMPT.md` - Rule creation prompt template (colocated in this skill folder)
 
 ### Tool Documentation
 
@@ -417,7 +392,7 @@ Rule creation is successful when:
 - ✅ File exists at `rules/NNN-technology-aspect.md`
 - ✅ `schema_validator.py` returns exit code 0
 - ✅ Rule added to `RULES_INDEX.md` in correct position
-- ✅ Rule loads in Cursor with `@rules/` prefix
+- ✅ Rule file exists under `rules/` and can be opened/read
 - ✅ Metadata enables semantic discovery
 - ✅ Content reflects current (2024-2025) best practices
 - ✅ All 9 required sections present with quality content
@@ -426,9 +401,17 @@ Rule creation is successful when:
 
 ## Version History
 
+- **v1.1.0** (2025-12-15): Enhanced skill structure
+  - Added version, author, tags, dependencies to SKILL.md frontmatter
+  - Improved description with trigger keywords and domain coverage
+  - Added inline validation snippets for quick checks
+  - Added edge-cases.md with 10 documented scenarios
+  - Added tests/ folder with input and workflow test cases
+  - Added VALIDATION.md for skill self-validation
+  - Cross-referenced with rule-reviewer for quality assurance
 - **v1.0.0** (2024-12-11): Initial release
   - 5-phase workflow with script orchestration
-  - Single-file and structured skill formats
+  - Claude Code–compliant structured skill format
   - Complete examples for 3 domains
   - Phase-specific workflow guides
   - Comprehensive error handling

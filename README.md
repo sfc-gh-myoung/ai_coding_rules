@@ -1,7 +1,7 @@
 # AI Coding Rules
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://opensource.org/license/apache-2-0)
-![Version](https://img.shields.io/badge/version-3.3.0-blue)
+![Version](https://img.shields.io/badge/version-3.4.0-blue)
 ![Tests](https://img.shields.io/badge/tests-100%25%20passing-brightgreen)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Task](https://img.shields.io/badge/Task-Taskfile-brightgreen)](https://taskfile.dev)
@@ -196,13 +196,13 @@ task deploy DEST=~/my-project
 
 **Skills Exclusions:**
 
-Internal skills are automatically excluded from deployment (configured in `pyproject.toml`):
+Both skills are internal-only and excluded from deployment (configured in `pyproject.toml`):
 
 ```toml
 [tool.rule_deployer]
 exclude_skills = [
-    "rule-creator-skill.md",  # Rule creation tool for ai_coding_rules project only
-    "rule-creator/",          # Structured version of rule-creator skill
+    "rule-creator/",   # Rule creation tool for ai_coding_rules project only
+    "rule-reviewer/",  # Rule review tool for ai_coding_rules project only
 ]
 ```
 
@@ -499,7 +499,7 @@ Learn how to write effective prompts that help AI assistants automatically disco
 - **Best practices** — Tips for getting better results from AI assistants
 - **Quick patterns** — Copy-paste templates for common scenarios
 
-**🔍 Rule Review Prompt (template):** See [prompts/RULE_REVIEW_PROMPT.md](prompts/RULE_REVIEW_PROMPT.md)
+**🔍 Rule Review Prompt (template):** See [skills/rule-reviewer/PROMPT.md](skills/rule-reviewer/PROMPT.md)
 
 **📘 Rule Review Prompt Guide (how to use):** See [docs/USING_RULE_REVIEW_PROMPT.md](docs/USING_RULE_REVIEW_PROMPT.md) for:
 
@@ -508,11 +508,24 @@ Learn how to write effective prompts that help AI assistants automatically disco
 - **Cross-model compatibility** — Tested on GPT-4o, GPT-5.1, GPT-5.2, Claude Sonnet 4.5, Claude Opus 4.5, Gemini 2.5 Pro, Gemini 3 Pro
 - **Periodic review schedule** — Recommended cadence for rule maintenance
 
-**🧰 Rule Review Skill Guide (how to use):** See [docs/USING_RULE_REVIEW_SKILL.md](docs/USING_RULE_REVIEW_SKILL.md) for:
+**🧰 Claude Skills (internal-only):** See [skills/](skills/) for:
 
-- How to run the review in Claude Code / Cursor and write output files under `reviews/`
-- Both skill formats: single-file (`skills/rule-reviewer-skill.md`) and structured (`skills/rule-reviewer/`)
-- Workflows and examples for repeatable reviews
+- **rule-creator** (internal-only) — Create v3.0 Cursor rules with template generation and schema validation
+  - Structured skill: `skills/rule-creator/SKILL.md` with 5-phase workflow
+  - Excluded from deployment (for ai_coding_rules project maintenance only)
+  - Trigger keywords: "create rule", "add rule", "new rule", "generate rule"
+
+- **rule-reviewer** (internal-only) — Automate rule quality reviews (FULL/FOCUSED/STALENESS modes) and write results to `reviews/`
+  - Structured skill: `skills/rule-reviewer/SKILL.md` with workflows, examples, tests, and validation
+  - Excluded from deployment (for ai_coding_rules project maintenance only)
+  - Trigger keywords: "review rule", "audit rule", "check rule quality", "rule staleness"
+  - See [docs/USING_RULE_REVIEW_SKILL.md](docs/USING_RULE_REVIEW_SKILL.md) for usage guide
+
+Both skills follow [Anthropic Agent Skills best practices](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills) with:
+- Enhanced YAML frontmatter (version, author, tags, dependencies)
+- Progressive disclosure (workflows/, examples/, tests/)
+- Inline validation snippets for quick checks
+- Edge case documentation and self-validation procedures
 
 **Quick preview:**
 
@@ -558,7 +571,7 @@ ai_coding_rules/
 ├── tests/                  ← Test suite
 ├── schemas/                ← JSON schemas for rule validation
 ├── prompts/                ← User prompt templates + Rule Review prompt
-└── skills/                 ← Skill definitions
+└── skills/                 ← Claude Agent Skills (rule-creator, rule-reviewer)
 ```
 
 **Key Concepts:**

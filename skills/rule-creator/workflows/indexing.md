@@ -317,15 +317,11 @@ Indexing complete when:
 **Rule is now:**
 - Validated (0 CRITICAL errors)
 - Indexed (discoverable via RULES_INDEX.md)
-- Ready for immediate use in Cursor with `@rules/422-daisyui-core.md`
+- Ready for immediate use (rule file exists at `rules/422-daisyui-core.md`)
 - Compliant with v3.0 schema standards
 
 ## Final Verification
 
-Test rule loads in Cursor:
-```
-@rules/422-daisyui-core.md
-```
-
-Should load and display rule content successfully.
+- Confirm the rule file exists: `rules/422-daisyui-core.md`
+- Confirm it validates: `python scripts/schema_validator.py rules/422-daisyui-core.md` returns exit code 0
 

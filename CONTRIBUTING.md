@@ -686,7 +686,7 @@ Available LLMs are always evolving and improving in their capabilities. You shou
 
 **Recommended: Use the Agent-Centric Rule Review Prompt**
 
-For systematic, cross-model compatible reviews, use the prompt template in [prompts/RULE_REVIEW_PROMPT.md](prompts/RULE_REVIEW_PROMPT.md).
+For systematic, cross-model compatible reviews, use the prompt template in [skills/rule-reviewer/PROMPT.md](skills/rule-reviewer/PROMPT.md).
 
 For a short usage guide (modes, examples, cadence), see
 [docs/USING_RULE_REVIEW_PROMPT.md](docs/USING_RULE_REVIEW_PROMPT.md).
@@ -809,7 +809,7 @@ uv run python scripts/rule_deployer.py --dest ~/my-project
 
 **Quarterly:** Run STALENESS reviews on critical rules
 ```
-# Use the Agent-Centric Rule Review prompt (prompts/RULE_REVIEW_PROMPT.md)
+# Use the Agent-Centric Rule Review prompt (skills/rule-reviewer/PROMPT.md)
 Review rules/000-global-core.md using Agent-Centric Rule Review.
 Review Date: YYYY-MM-DD
 Review Mode: STALENESS

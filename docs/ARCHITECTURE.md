@@ -198,6 +198,76 @@ Total HTMX token budget: ~9500 tokens across 8 rules
 - Integrations (226): ~800 tokens — Lightest, focused on library integration points
 - Frontend (500): ~1000 tokens — Pure HTMX reference without backend concerns
 
+### Claude Agent Skills Architecture
+
+Starting in v3.4.0, the project includes two Claude Agent Skills following [Anthropic's best practices](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills).
+
+**Skill Structure (both skills):**
+
+```
+skills/<skill-name>/
+├── SKILL.md           # Main entrypoint with YAML frontmatter
+├── README.md          # Usage documentation
+├── VALIDATION.md      # Self-validation procedures
+├── workflows/         # Phase-specific detailed guides
+├── examples/          # Walkthrough examples + edge-cases.md
+└── tests/             # Test cases for skill validation
+```
+
+**YAML Frontmatter (SKILL.md):**
+
+```yaml
+---
+name: rule-reviewer
+description: Execute agent-centric rule reviews (FULL/FOCUSED/STALENESS modes)...
+version: 1.1.0
+author: AI Coding Rules Project
+tags: [rule-review, quality-audit, compliance, staleness-check]
+dependencies: []
+---
+```
+
+**Design Decisions:**
+
+1. **Hybrid Code Embedding** — Simple validation inline in SKILL.md, complex scripts external
+2. **Progressive Disclosure** — Workflows loaded on-demand, not all at once
+3. **Edge Case Documentation** — 10 scenarios per skill for ambiguous situations
+4. **Self-Validation** — VALIDATION.md with health checks and regression testing
+5. **Cross-Skill Integration** — rule-reviewer validates rule-creator output
+
+**rule-creator Skill (Internal-Only):**
+
+| Component | Purpose |
+|-----------|---------|
+| `SKILL.md` | 5-phase workflow orchestration |
+| `workflows/discovery.md` | Domain identification, research |
+| `workflows/template-gen.md` | Template generation with scripts |
+| `workflows/content-population.md` | Section filling guidance |
+| `workflows/validation.md` | Schema validation loop |
+| `workflows/indexing.md` | RULES_INDEX.md entry |
+| `examples/` | Frontend, Python, Snowflake examples |
+| `tests/` | Input validation, workflow execution tests |
+
+**rule-reviewer Skill (Internal-Only):**
+
+| Component | Purpose |
+|-----------|---------|
+| `SKILL.md` | Review execution with 3 modes |
+| `workflows/input-validation.md` | Input checking procedures |
+| `workflows/model-slugging.md` | Model name normalization |
+| `workflows/review-execution.md` | Review generation steps |
+| `workflows/file-write.md` | Output file handling |
+| `workflows/error-handling.md` | Error recovery (10 patterns) |
+| `examples/` | FULL, FOCUSED, STALENESS examples |
+| `tests/` | Input, mode, output handling tests |
+
+**Quality Threshold for Cross-Skill Validation:**
+
+When using rule-reviewer to validate rule-creator output:
+- Overall score: ≥ 7.5/10
+- No CRITICAL issues
+- No HIGH issues in Contract or Metadata dimensions
+
 ### Go/Golang Rules Architecture
 
 Starting in v3.2.0, the project includes Go/Golang support establishing the 600s range for systems/backend languages.
@@ -283,11 +353,21 @@ ai_coding_rules/
 │   ├── ../docs/USING_RULE_REVIEW_PROMPT.md # How to use the rule review prompt
 │   └── README.md               # Prompt writing guide
 │
-├── skills/                     # Claude Code / Cursor skills (optional deployable artifacts)
-│   ├── rule-creator-skill.md    # Internal-only: create v3.0 rules in this repo (excluded from deploy)
-│   ├── rule-creator/            # Internal-only: structured rule creation skill (excluded from deploy)
-│   ├── rule-reviewer-skill.md   # Deployable: automate rule reviews and write output files
-│   └── rule-reviewer/           # Deployable: structured reviewer skill (workflows + examples)
+├── skills/                     # Claude Agent Skills (optional deployable artifacts)
+│   ├── rule-creator/            # Internal-only: create v3.0 rules (excluded from deploy)
+│   │   ├── SKILL.md                 # Main entrypoint with YAML frontmatter
+│   │   ├── README.md                # Usage documentation
+│   │   ├── VALIDATION.md            # Self-validation procedures
+│   │   ├── workflows/               # 5-phase workflow guides
+│   │   ├── examples/                # Frontend, Python, Snowflake + edge-cases.md
+│   │   └── tests/                   # Input and workflow test cases
+│   └── rule-reviewer/           # Internal-only: automate rule reviews (excluded from deploy)
+│       ├── SKILL.md                 # Main entrypoint with YAML frontmatter
+│       ├── README.md                # Usage documentation
+│       ├── VALIDATION.md            # Self-validation procedures
+│       ├── workflows/               # Input, execution, output, error handling
+│       ├── examples/                # FULL, FOCUSED, STALENESS + edge-cases.md
+│       └── tests/                   # Input, mode, output test cases
 │
 ├── docs/                       # Project documentation
 │   ├── ARCHITECTURE.md         # This file
@@ -331,13 +411,25 @@ ai_coding_rules/
 - **RULE_REVIEW_PROMPT.md** — Agent-centric rule review prompt template (paste into a model)
 - **USING_RULE_REVIEW_PROMPT.md** — Usage guide (modes, examples, cadence, cross-model workflow)
 
-**`skills/`** — Claude Code / Cursor skills (optional, deployable)
-- Deployed by `scripts/rule_deployer.py` unless excluded in `pyproject.toml` (`[tool.rule_deployer].exclude_skills`)
-- Supports both:
-  - single-file skills (e.g., `rule-reviewer-skill.md`)
-  - structured skills (e.g., `rule-reviewer/` with `skill.json`, workflows, examples)
-- **rule-creator** is internal-only and excluded from deployment by default
-- **rule-reviewer** is deployable and automates running the rule review prompt and writing outputs to `reviews/`
+**`skills/`** — Claude Agent Skills (internal-only)
+- Both skills are excluded from deployment in `pyproject.toml` (`[tool.rule_deployer].exclude_skills`)
+- Follows [Anthropic Agent Skills best practices](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills)
+- **rule-creator/** (internal-only, excluded from deployment):
+  - Creates v3.0 Cursor rules with template generation and schema validation
+  - 5-phase workflow: Discovery → Template → Content → Validation → Indexing
+  - Includes: SKILL.md, README.md, VALIDATION.md, workflows/, examples/, tests/
+  - Trigger keywords: "create rule", "add rule", "new rule", "generate rule"
+- **rule-reviewer/** (internal-only, excluded from deployment):
+  - Automates rule quality reviews (FULL/FOCUSED/STALENESS modes)
+  - Writes results to `reviews/` with no-overwrite safety
+  - Includes: SKILL.md, README.md, VALIDATION.md, workflows/, examples/, tests/
+  - Trigger keywords: "review rule", "audit rule", "check rule quality"
+- Both skills feature:
+  - Enhanced YAML frontmatter (version, author, tags, dependencies)
+  - Inline validation snippets (hybrid code embedding)
+  - Edge case documentation (10 scenarios each)
+  - Self-validation procedures and test cases
+  - Cross-skill integration (rule-reviewer validates rule-creator output)
 
 ## Rule Creation Workflow
 
@@ -1397,7 +1489,7 @@ if sections["Contract"]["line"] > 160:
 ### Periodic Rule Review
 
 Use the **Agent-Centric Rule Review Prompt**:
-- Template: `prompts/RULE_REVIEW_PROMPT.md`
+- Template: `skills/rule-reviewer/PROMPT.md`
 - Usage guide: `docs/USING_RULE_REVIEW_PROMPT.md`
 
 **Review Modes:**
@@ -1670,6 +1762,7 @@ grep -i "keyword" ~/project/RULES_INDEX.md
 
 | Version | Date | Changes |
 |---------|------|---------|
+| **v3.4.0** | 2025-12-16 | Added Claude Agent Skills Architecture section, updated skills/ directory documentation |
 | **v3.3.0** | 2025-12-12 | Added Periodic Rule Review section with Agent-Centric Rule Review prompt, updated prompts/ directory documentation |
 | **v3.2.0** | 2025-12-04 | Added Go/Golang rules architecture section, updated rule counts to 100 |
 | **v3.1.0** | 2025-12-03 | Added HTMX rules architecture section |

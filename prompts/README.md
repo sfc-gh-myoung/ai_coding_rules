@@ -1,6 +1,8 @@
 # Example User Prompts
 
-This directory contains real-world example prompts that demonstrate how to effectively communicate tasks to AI assistants using the AI Coding Rules framework.
+This directory contains **tutorial prompts** that demonstrate how to effectively communicate tasks to AI assistants using the AI Coding Rules framework.
+
+> **Note:** Skill-specific prompts (like rule review rubrics or rule creation templates) are colocated within their respective skill folders under `skills/`. This folder contains only standalone tutorial examples for user education.
 
 ## Why These Examples Matter
 
@@ -56,24 +58,16 @@ Files: src/data_processor.py
 
 ---
 
-### RULE_REVIEW_PROMPT.md - Agent-Centric Rule Assessment
-**Use Case:** Systematic review of rule files for AI agent usability
+## Skill-Specific Prompts (Moved)
 
-**Files:**
-- Template: `prompts/RULE_REVIEW_PROMPT.md`
-- Usage guide: `docs/USING_RULE_REVIEW_PROMPT.md`
+The following prompts have been moved to their respective skill folders for better encapsulation:
 
-**Pattern:**
-```
-Review rules/XXX-rule-name.md using the Agent-Centric Rule Review criteria.
-```
+| Former Location | New Location | Purpose |
+|-----------------|--------------|---------|
+| `prompts/RULE_REVIEW_PROMPT.md` | `skills/rule-reviewer/PROMPT.md` | Agent-centric rule review rubric |
+| `prompts/RULE_CREATION_PROMPT.md` | `skills/rule-creator/PROMPT.md` | Rule creation workflow template |
 
-**Purpose:** Get consistent, actionable assessments from any AI model when evaluating rule files. Focuses on whether an AI agent can follow the rule as an instruction set, not whether a human can read it as documentation.
-
-**Key Features:**
-- 6 criteria scored 1-5 each: Actionability, Completeness, Consistency, Parsability, Token Efficiency, Staleness
-- Structured output with Critical/Should/Nice severity levels
-- Agent perspective checklist for systematic evaluation
+These prompts are **operational dependencies** of their skills and are now colocated for self-contained skill packages.
 
 ---
 

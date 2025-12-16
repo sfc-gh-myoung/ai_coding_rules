@@ -151,7 +151,7 @@ Statistics:
 - Size: ~15KB, ~380 lines
 - TokenBudget: ~1000 tokens
 
-Ready for use: @rules/209-python-pytest-mock.md
+Ready for use: rules/209-python-pytest-mock.md
 ```
 
 ## Key Differences from Frontend Example

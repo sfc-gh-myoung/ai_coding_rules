@@ -1,6 +1,6 @@
 [project]
 name = "ai_coding_rules"
-version = "3.3.0"
+version = "3.4.0"
 description = "Production-ready AI coding rules for consistent, reliable software engineering across LLMs and IDEs"
 readme = { file = "README.md" }
 license = { file = "LICENSE" }
@@ -120,6 +120,6 @@ exclude_lines = [
 [tool.rule_deployer]
 # Skills to exclude from deployment (internal use only)
 exclude_skills = [
-    "rule-creator-skill.md",
     "rule-creator/",
+    "rule-reviewer/",
 ]

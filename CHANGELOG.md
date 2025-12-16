@@ -106,6 +106,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - All tests passing with enhanced validation coverage
 
 ### Changed
+- chore(ci): rewrite GitHub Actions CI workflow for ai_coding_rules project
+  - Triggers on `main` branch only (push and PR)
+  - 4 parallel jobs: quality, markdown, test (Python matrix), validate
+  - `quality` job: ruff lint, ruff format check, ty type check
+  - `markdown` job: pymarkdownlnt for rules/ and docs/
+  - `test` job: pytest with Python 3.11, 3.12, 3.13 matrix
+  - `validate` job: schema validation and RULES_INDEX.md check
+- chore(github): update bug_report.yml issue template for ai_coding_rules
+  - Changed version field from `demo-manager --version` to pyproject.toml version
+  - Updated placeholder examples for task-based workflows
+- feat(badges): add GitHub Actions CI status badge (dynamic) to README.md
+- feat(badges): enhance badge_updater.py to extract coverage % from pytest-cov htmlcov/
+  - New `get_coverage_percentage()` function parses htmlcov/index.html
+  - New `get_badge_color()` helper for threshold-based color selection
+  - `update_readme_badges()` now handles version, tests, and coverage badges
+  - Added 16 new tests for coverage extraction and badge color logic
+- chore(readme): update badge layout with CI status and coverage badges
 - docs(prompts): strengthen Agent-Centric Rule Review prompt with mandatory verification checks
   - Added Threshold Audit and Token Budget Verification tables to reduce subjective judgment
   - Added Example-Mandate Alignment check to ensure examples comply with rule mandates

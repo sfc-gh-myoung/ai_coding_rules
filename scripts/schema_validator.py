@@ -515,6 +515,30 @@ class SchemaValidator:
             else:
                 result.passed_checks += 1
 
+        # Validate RuleVersion format
+        if "RuleVersion" in metadata:
+            rule_version = metadata["RuleVersion"]
+            rv_config = next(
+                (f for f in metadata_config["required_fields"] if f["name"] == "RuleVersion"),
+                None,
+            )
+            if rv_config:
+                pattern = rv_config.get("pattern", r"^v\d+\.\d+\.\d+$")
+
+                if not re.match(pattern, rule_version):
+                    result.errors.append(
+                        ValidationError(
+                            severity=rv_config["severity"],
+                            message=rv_config["error_message"],
+                            error_group="Metadata",
+                            line_num=metadata.get("RuleVersion_line"),
+                            fix_suggestion=rv_config.get("fix_suggestion"),
+                            docs_reference=rv_config.get("docs_reference"),
+                        )
+                    )
+                else:
+                    result.passed_checks += 1
+
         # Check metadata field order
         field_order_config = metadata_config["field_order"]
         if field_order_config["required"]:

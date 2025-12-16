@@ -3,6 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.0
+**RuleVersion:** v1.0.0
 **Keywords:** schema validator, validation errors, error resolution, CI/CD integration, exit codes, command selection, output parsing, automation workflow, JSON output, quiet mode, programmatic integration, regex patterns, error categorization
 **TokenBudget:** ~4800
 **ContextTier:** High
@@ -588,7 +589,44 @@ else:
 **Keywords:** SQL, Snowflake, CTE, query optimization, performance, tuning, warehouse sizing, clustering, partitioning, EXPLAIN, query plan, cost analysis
 ```
 
-### Error 3: TokenBudget Format Wrong
+### Error 3: Missing RuleVersion Field
+
+**Error Message:**
+```
+[Metadata] RuleVersion must be semantic version format (e.g., v1.0.0)
+```
+
+**Fix:** Add RuleVersion metadata field before Keywords
+```markdown
+## Metadata
+
+**RuleVersion:** v1.0.0
+**Keywords:** keyword1, keyword2, ...
+```
+
+**Validation:** RuleVersion must be semantic versioning format (vX.Y.Z)
+
+### Error 4: Invalid RuleVersion Format
+
+**Error Message:**
+```
+[Metadata] RuleVersion must be semantic version format (e.g., v1.0.0)
+```
+
+**Fix:** Use correct semantic version format
+```markdown
+# Wrong formats
+**RuleVersion:** 1.0.0          # Missing v prefix
+**RuleVersion:** v1             # Missing minor and patch
+**RuleVersion:** v1.0           # Missing patch version
+**RuleVersion:** version1.0.0   # Wrong prefix
+
+# Correct format
+**RuleVersion:** v1.0.0
+**RuleVersion:** v2.1.3
+```
+
+### Error 5: TokenBudget Format Wrong
 
 **Error Message:**
 ```
@@ -606,7 +644,7 @@ else:
 **TokenBudget:** ~1200
 ```
 
-### Error 4: Missing Required Section
+### Error 6: Missing Required Section
 
 **Error Message:**
 ```
@@ -629,7 +667,7 @@ else:
 - [ ] Item 3
 ```
 
-### Error 5: Contract Missing XML Tag
+### Error 7: Contract Missing XML Tag
 
 **Error Message:**
 ```
@@ -667,7 +705,7 @@ Success criteria
 </validation>
 ```
 
-### Error 6: Section Order Wrong
+### Error 8: Section Order Wrong
 
 **Error Message:**
 ```

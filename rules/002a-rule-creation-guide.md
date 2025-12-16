@@ -3,6 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.0
+**RuleVersion:** v1.0.0
 **Keywords:** rule creation, workflow, step-by-step guide, naming conventions, metadata setup, section structure, Contract XML, validation, rule numbering, from scratch
 **TokenBudget:** ~3350
 **ContextTier:** High
@@ -23,14 +24,14 @@ All AI agents creating new rule files in the ai_coding_rules repository.
 - **5-step workflow** - Choose number → Create file → Fill metadata → Write sections → Validate
 - **Naming convention** - `NNN-technology-aspect.md` (snake-case, 3-digit number)
 - **Number ranges** - 000-099: Core, 100-199: Snowflake, 200-299: Languages, 300-399: Frameworks, 400+: Specialized
-- **Required metadata** - Keywords (10-15), TokenBudget, ContextTier, Depends (in exact order)
+- **Required metadata** - RuleVersion (vX.Y.Z), Keywords (10-15), TokenBudget, ContextTier, Depends (in exact order)
 - **Validation before commit** - `python3 scripts/schema_validator.py rules/NNN-new-rule.md`
 
 **Pre-Execution Checklist:**
 - [ ] Rule number chosen from correct range
 - [ ] File named with snake-case convention
 - [ ] Existing rules reviewed for similar patterns
-- [ ] 4 metadata fields filled correctly
+- [ ] 5 metadata fields filled correctly
 - [ ] All 9 required sections present
 - [ ] Contract has all 6 XML tags
 - [ ] Validation passes with 0 CRITICAL errors
@@ -53,7 +54,7 @@ Skipping validation; using emojis in rule content; omitting required metadata; c
 1. Choose rule number from appropriate range (000-099 core, 100-199 Snowflake, etc.)
 2. Review existing rules in same category for patterns and structure
 3. Create new file rules/NNN-technology-aspect.md with H1 title and ## Metadata header
-4. Fill 4 required metadata fields (Keywords, TokenBudget, ContextTier, Depends)
+4. Fill 5 required metadata fields (RuleVersion, Keywords, TokenBudget, ContextTier, Depends)
 5. Write all 9 required sections in order, including Contract with 6 XML tags before line 160
 6. Validate with schema_validator.py (must pass with 0 CRITICAL errors)
 7. Add rule to RULES_INDEX.md with keywords
@@ -66,7 +67,7 @@ Markdown file named NNN-technology-aspect.md with v3.0-compliant structure
 <validation>
 - schema_validator.py returns 0 CRITICAL errors
 - File named correctly (NNN-technology-aspect.md)
-- All 4 metadata fields present and formatted correctly
+- All 5 metadata fields present and formatted correctly
 - All 9 required sections present in order
 - Rule added to RULES_INDEX.md
 </validation>
@@ -201,6 +202,7 @@ Review 2-3 existing rules to understand:
 ## Metadata
 
 **SchemaVersion:** v3.0
+**RuleVersion:** v1.0.0
 **Keywords:** [10-15 keywords here]
 **TokenBudget:** ~[estimate]
 **ContextTier:** [Critical|High|Medium|Low]
@@ -295,6 +297,7 @@ Review 2-3 existing rules to understand:
 ## Metadata
 
 **SchemaVersion:** v3.0
+**RuleVersion:** v1.0.0
 **Keywords:** [10-15 comma-separated keywords]
 **TokenBudget:** ~[number]
 **ContextTier:** [Critical | High | Medium | Low]
@@ -306,6 +309,7 @@ Review 2-3 existing rules to understand:
 | Field | Format | Example | Notes |
 |-------|--------|---------|-------|
 | **SchemaVersion** | `v3.0` | `**SchemaVersion:** v3.0` | Optional but recommended |
+| **RuleVersion** | `vX.Y.Z` | `**RuleVersion:** v1.0.0` | REQUIRED for issue tracking |
 | **Keywords** | 10-15 comma-separated | `**Keywords:** SQL, Snowflake, CTE, query optimization, performance` | CRITICAL for semantic discovery |
 | **TokenBudget** | `~NUMBER` | `**TokenBudget:** ~1200` | Use tilde prefix, estimate tokens |
 | **ContextTier** | Enum | `**ContextTier:** High` | Critical/High/Medium/Low only |

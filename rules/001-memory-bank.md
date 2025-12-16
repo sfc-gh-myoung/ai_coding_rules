@@ -3,6 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.0
+**RuleVersion:** v1.0.0
 **Keywords:** memory bank, context, session recovery, project brief, active context, progress tracking, continuity, context rot, attention budget, compaction, context engineering, rapid recovery, signal maximization
 **TokenBudget:** ~2850
 **ContextTier:** Critical

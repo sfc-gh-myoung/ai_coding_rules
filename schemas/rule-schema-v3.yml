@@ -16,6 +16,15 @@ metadata:
   description: "Validation rules for file metadata fields"
   
   required_fields:
+    - name: "RuleVersion"
+      format: "**RuleVersion:**"
+      type: "string"
+      pattern: "^v\\d+\\.\\d+\\.\\d+$"
+      error_message: "RuleVersion must be semantic version format (e.g., v1.0.0)"
+      fix_suggestion: "Add **RuleVersion:** v1.0.0 (or appropriate version)"
+      severity: "HIGH"
+      docs_reference: "002-rule-governance.md Section 11.1"
+    
     - name: "Keywords"
       format: "**Keywords:**"
       type: "array"
@@ -62,8 +71,8 @@ metadata:
   
   field_order:
     required: true
-    order: ["Keywords", "TokenBudget", "ContextTier", "Depends"]
-    error_message: "Metadata fields must appear in order: Keywords, TokenBudget, ContextTier, Depends"
+    order: ["RuleVersion", "Keywords", "TokenBudget", "ContextTier", "Depends"]
+    error_message: "Metadata fields must appear in order: RuleVersion, Keywords, TokenBudget, ContextTier, Depends"
     fix_suggestion: "Reorder metadata fields per Section 11.1 of 002-rule-governance.md"
     severity: "HIGH"
     docs_reference: "002-rule-governance.md Section 11.1"

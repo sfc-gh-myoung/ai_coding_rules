@@ -312,7 +312,7 @@ tasks:
 
   # Badges
   badges:update:
-    desc: "Update README badges (version, test pass %)"
+    desc: "Update README badges (version, test pass %, coverage %)"
     deps:
       - env:sync
       - test:coverage

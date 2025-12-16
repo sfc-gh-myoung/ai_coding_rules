@@ -2,6 +2,7 @@
 
 ## Metadata
 
+**RuleVersion:** v1.0.0
 **Keywords:** incomplete, missing-sections, test, validation, testing, schema, broken, error-case, negative-test, fixture
 **TokenBudget:** ~200
 **ContextTier:** Medium

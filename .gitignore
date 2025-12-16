@@ -202,3 +202,12 @@ tmp/
 
 /retrospectives/
 governance-skill-updates
+
+# Development artifacts (keep folders with .gitkeep)
+plans/*
+!plans/.gitkeep
+reviews/*
+!reviews/.gitkeep
+
+# Lock files
+uv.lock

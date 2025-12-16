@@ -1,6 +1,6 @@
 # Tests: Documentation Reviewer Skill
 
-This directory contains test cases for validating the docs-reviewer skill functionality.
+This directory contains test cases for validating the doc-reviewer skill functionality.
 
 ## Test Organization
 
@@ -17,13 +17,13 @@ Tests are manual verification scenarios. To run:
 1. **Load the skill:**
 
    ```text
-   Open: skills/docs-reviewer/SKILL.md
+   Open: skills/doc-reviewer/SKILL.md
    ```
 
 2. **Execute test case:**
 
    ```text
-   Use the docs-reviewer skill.
+   Use the doc-reviewer skill.
    
    [paste test inputs from test file]
    ```

@@ -23,31 +23,31 @@ model: claude-sonnet45
 
 ---
 
-### Scores (Weighted)
-| Criterion | Weight | Raw | Weighted | Notes |
-|-----------|--------|-----|----------|-------|
-| Executability | 2× | 4/5 | 8/10 | 3 ambiguous phrases found ("consider", "as needed") |
-| Completeness | 2× | 5/5 | 10/10 | All phases have setup, validation, cleanup |
-| Success Criteria | 2× | 4/5 | 8/10 | 90% tasks have criteria; 2 tasks lack verification |
-| Scope | 2× | 5/5 | 10/10 | Clear in/out scope, defined start/end state |
-| Decomposition | 1× | 4/5 | 4/5 | 2 tasks could be split further |
-| Dependencies | 1× | 5/5 | 5/5 | All dependencies explicit with blockers noted |
-| Context | 1× | 4/5 | 4/5 | Minor domain knowledge assumed |
-| Risk Awareness | 1× | 3/5 | 3/5 | Risks identified but fallbacks sparse |
+### Scores
+| Criterion | Max | Raw | Points | Notes |
+|-----------|-----|-----|--------|-------|
+| Executability | 20 | 4/5 | 16/20 | 3 ambiguous phrases found ("consider", "as needed") |
+| Completeness | 20 | 5/5 | 20/20 | All phases have setup, validation, cleanup |
+| Success Criteria | 20 | 4/5 | 16/20 | 90% tasks have criteria; 2 tasks lack verification |
+| Scope | 15 | 5/5 | 15/15 | Clear in/out scope, defined start/end state |
+| Dependencies | 10 | 5/5 | 10/10 | All dependencies explicit with blockers noted |
+| Decomposition | 5 | 4/5 | 4/5 | 2 tasks could be split further |
+| Context | 5 | 4/5 | 4/5 | Minor domain knowledge assumed |
+| Risk Awareness | 5 | 3/5 | 3/5 | Risks identified but fallbacks sparse |
 
-**Overall:** 52/60 (weighted)
+**Overall:** 88/100
 
 ### Overall Score Interpretation
 
 | Score Range | Assessment | Verdict |
 |-------------|------------|---------|
-| 54-60/60 (90-100%) | Excellent | EXECUTABLE |
-| **48-53/60 (80-89%)** | **Good** | **EXECUTABLE with minor refinements** |
-| 36-47/60 (60-79%) | Needs Work | NEEDS_REFINEMENT |
-| <36/60 (<60%) | Poor/Inadequate | NOT_EXECUTABLE |
+| 90-100 | Excellent | EXECUTABLE |
+| **80-89** | **Good** | **EXECUTABLE_WITH_REFINEMENTS** |
+| 60-79 | Needs Work | NEEDS_REFINEMENT |
+| <60 | Poor/Inadequate | NOT_EXECUTABLE |
 
 ### Agent Executability Verdict
-**EXECUTABLE**
+**EXECUTABLE_WITH_REFINEMENTS**
 
 Plan is ready for agent execution with minor improvements recommended.
 All critical dimensions score 4/5 or higher; no blocking issues found.
@@ -135,7 +135,7 @@ None identified.
 ## Key Points Demonstrated
 
 1. **All 8 dimensions scored** with justifications
-2. **Weighted calculations** applied correctly (52/60)
+2. **Point calculations** applied correctly (88/100)
 3. **All 3 verification tables** completed with evidence
 4. **Checklist answered** with scoring impact notes
 5. **Recommendations prioritized** (Critical > Improvements > Minor)

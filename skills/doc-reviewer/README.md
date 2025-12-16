@@ -23,7 +23,7 @@ This skill automates the complete documentation review workflow:
 Open:
 
 ```text
-skills/docs-reviewer/SKILL.md
+skills/doc-reviewer/SKILL.md
 ```
 
 ### Step 2: Trigger Review
@@ -31,7 +31,7 @@ skills/docs-reviewer/SKILL.md
 **Basic review (uses defaults):**
 
 ```text
-Use the docs-reviewer skill.
+Use the doc-reviewer skill.
 
 review_date: 2025-12-16
 review_mode: FULL
@@ -41,7 +41,7 @@ model: claude-sonnet45
 **Review specific files:**
 
 ```text
-Use the docs-reviewer skill.
+Use the doc-reviewer skill.
 
 target_files: [README.md, CONTRIBUTING.md]
 review_date: 2025-12-16
@@ -52,7 +52,7 @@ model: claude-sonnet45
 **Collection review (consolidated output):**
 
 ```text
-Use the docs-reviewer skill.
+Use the doc-reviewer skill.
 
 target_files: [README.md, CONTRIBUTING.md, docs/ARCHITECTURE.md]
 review_date: 2025-12-16
@@ -74,7 +74,7 @@ ls reviews/docs-collection-claude-sonnet45-2025-12-16.md
 ## File Structure
 
 ```text
-skills/docs-reviewer/
+skills/doc-reviewer/
 ├── SKILL.md               # Main skill instructions (Claude Code entrypoint)
 ├── PROMPT.md              # Review rubric and output format template
 ├── README.md              # This file - usage documentation
@@ -195,13 +195,14 @@ Scope: single
 Model: claude-sonnet45
 
 Summary:
-- Accuracy: 4/5
-- Completeness: 5/5
-- Clarity: 4/5
+- Accuracy: 20/25
+- Completeness: 25/25
+- Clarity: 16/20
+- Structure: 15/15
+- Staleness: 6/10
 - Consistency: 5/5
-- Staleness: 3/5
-- Structure: 5/5
-Overall: 26/30
+Overall: 87/100
+Verdict: PUBLISHABLE_WITH_EDITS
 ```
 
 ## Default Target Files
@@ -217,6 +218,11 @@ When no `target_files` specified, the skill reviews:
 This skill is **deployable** (included when running `task deploy`). After deployment to a project, users can review that project's documentation.
 
 ## Version History
+
+- **v1.1.0** (2025-12-16): 100-point scoring system
+  - Updated to 100-point scale (from /30)
+  - Point allocation: 25/25/20/15/10/5
+  - Added PUBLISHABLE verdicts for score interpretation
 
 - **v1.0.0** (2025-12-16): Initial release
   - 6-dimension documentation review rubric

@@ -119,13 +119,18 @@ This skill integrates with **rule-creator** for end-to-end quality assurance:
 4. Verify quality threshold met
 
 **Quality threshold for new rules:**
-- Overall score: ≥ 7.5/10
+- Overall score: ≥ 75/100
 - No CRITICAL issues
-- No HIGH issues in Contract or Metadata dimensions
+- No HIGH issues in Actionability or Completeness dimensions
 
 See: `skills/rule-creator/SKILL.md`
 
 ## Version History
+
+- **v1.2.0** (2025-12-16): 100-point scoring system
+  - Updated to 100-point scale (from X/10 per dimension)
+  - Point allocation: 25/20/20/15/10/10
+  - Updated quality thresholds for /100 scale
 
 - **v1.1.0** (2025-12-15): Enhanced skill structure
   - Added version, author, tags, dependencies to frontmatter

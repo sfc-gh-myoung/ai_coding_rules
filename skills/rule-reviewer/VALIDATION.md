@@ -197,9 +197,9 @@ Validate rule-creator output quality:
 1. Create rule using rule-creator
 2. Run FULL review on created rule
 3. Verify:
-   - Overall score ≥ 7.5/10
+   - Overall score ≥ 75/100
    - No CRITICAL issues
-   - Contract and Metadata dimensions pass
+   - Actionability and Completeness dimensions score ≥ 60%
 
 ### Cross-Validation Workflow
 
@@ -217,7 +217,7 @@ Use rule-reviewer skill:
   review_mode: FULL
   
 # Step 4: Verify quality
-# Expected: score ≥ 7.5, no CRITICAL issues
+# Expected: score ≥ 75/100, no CRITICAL issues
 ```
 
 ## Output Format Validation
@@ -230,7 +230,7 @@ Every review output must contain:
 # Rule Review: <rule-name>
 
 ## Review Metadata
-## Overall Score: X.X/10
+## Overall Score: X/100
 ## Dimension Scores
 ## Issues Found
 ## Recommendations
@@ -241,9 +241,10 @@ Every review output must contain:
 Dimension scores table must be valid markdown:
 
 ```markdown
-| Dimension | Score | Notes |
-|-----------|-------|-------|
-| ... | X/10 | ... |
+| Criterion | Max | Raw | Points | Notes |
+|-----------|-----|-----|--------|-------|
+| Actionability | 25 | X/5 | Y/25 | ... |
+| ... | ... | ... | ... | ... |
 ```
 
 ## Version Compatibility

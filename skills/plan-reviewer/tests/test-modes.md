@@ -20,28 +20,28 @@
 
 ---
 
-### Test F2: Weighted Score Calculation
+### Test F2: Point Score Calculation
 
 **Input:** Plan where:
 - Executability = 4/5
 - Completeness = 5/5
 - Success Criteria = 3/5
 - Scope = 4/5
-- Decomposition = 4/5
 - Dependencies = 5/5
+- Decomposition = 4/5
 - Context = 3/5
 - Risk Awareness = 3/5
 
 **Expected:**
-- Executability: 4 × 2 = 8/10
-- Completeness: 5 × 2 = 10/10
-- Success Criteria: 3 × 2 = 6/10
-- Scope: 4 × 2 = 8/10
+- Executability: 4 × 4 = 16/20
+- Completeness: 5 × 4 = 20/20
+- Success Criteria: 3 × 4 = 12/20
+- Scope: 4 × 3 = 12/15
+- Dependencies: 5 × 2 = 10/10
 - Decomposition: 4 × 1 = 4/5
-- Dependencies: 5 × 1 = 5/5
 - Context: 3 × 1 = 3/5
 - Risk Awareness: 3 × 1 = 3/5
-- **Total: 47/60**
+- **Total: 80/100**
 
 **Verify:** Total score matches manual calculation.
 
@@ -62,7 +62,7 @@
 
 ### Test F4: Verdict Assignment - EXECUTABLE
 
-**Input:** Plan scoring 55/60 with no critical dimension ≤2/5
+**Input:** Plan scoring 92/100 with no critical dimension ≤2/5
 
 **Expected:** Verdict = EXECUTABLE
 
@@ -72,7 +72,7 @@
 
 ### Test F5: Verdict Assignment - NEEDS_REFINEMENT
 
-**Input:** Plan scoring 42/60
+**Input:** Plan scoring 70/100
 
 **Expected:** Verdict = NEEDS_REFINEMENT
 
@@ -82,7 +82,7 @@
 
 ### Test F6: Verdict Override - Critical Dimension Low
 
-**Input:** Plan scoring 50/60 but Executability = 2/5
+**Input:** Plan scoring 83/100 but Executability = 2/5
 
 **Expected:** Verdict = NEEDS_REFINEMENT (override applied)
 
@@ -148,7 +148,7 @@ review_mode: COMPARISON
 
 ### Test C3: Tie Breaking
 
-**Input:** Two plans both scoring 48/60
+**Input:** Two plans both scoring 80/100
 
 **Expected:** Tie broken by critical dimension sum; if still tied, documented.
 
@@ -185,11 +185,11 @@ review_mode: COMPARISON
 target_files: [reviews/r1.md, reviews/r2.md, reviews/r3.md]
 review_mode: META-REVIEW
 ```
-Where r1=52/60, r2=44/60, r3=50/60
+Where r1=87/100, r2=73/100, r3=83/100
 
-**Expected:** Score variance = 8 points (52-44)
+**Expected:** Score variance = 14 points (87-73)
 
-**Verify:** "Score Variance: 8 points" in output.
+**Verify:** "Score Variance: 14 points" in output.
 
 ---
 

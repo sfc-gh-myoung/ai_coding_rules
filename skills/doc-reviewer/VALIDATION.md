@@ -1,6 +1,6 @@
-# Skill Validation: docs-reviewer
+# Skill Validation: doc-reviewer
 
-This document describes how to verify that the docs-reviewer skill is functioning correctly.
+This document describes how to verify that the doc-reviewer skill is functioning correctly.
 
 ## Quick Health Check
 
@@ -8,12 +8,12 @@ Run these checks to verify basic functionality:
 
 ```bash
 # 1. Verify skill files exist
-ls skills/docs-reviewer/SKILL.md
-ls skills/docs-reviewer/README.md
-ls skills/docs-reviewer/PROMPT.md
-ls skills/docs-reviewer/workflows/*.md
-ls skills/docs-reviewer/examples/*.md
-ls skills/docs-reviewer/tests/*.md
+ls skills/doc-reviewer/SKILL.md
+ls skills/doc-reviewer/README.md
+ls skills/doc-reviewer/PROMPT.md
+ls skills/doc-reviewer/workflows/*.md
+ls skills/doc-reviewer/examples/*.md
+ls skills/doc-reviewer/tests/*.md
 
 # 2. Verify reviews directory exists (or can be created)
 ls reviews/ || mkdir -p reviews/
@@ -31,7 +31,7 @@ ls README.md CONTRIBUTING.md docs/*.md 2>/dev/null
 **Trigger:**
 
 ```text
-Use the docs-reviewer skill.
+Use the doc-reviewer skill.
 
 target_files: [README.md]
 review_date: 2025-12-16
@@ -68,7 +68,7 @@ model: claude-sonnet45
 **Trigger:**
 
 ```text
-Use the docs-reviewer skill.
+Use the doc-reviewer skill.
 
 review_date: 2025-12-16
 review_mode: FULL
@@ -149,7 +149,7 @@ review_mode: FULL
 **Verify output contains:**
 
 - [ ] All 6 dimension scores
-- [ ] Overall score (X/30)
+- [ ] Overall score (X/100)
 - [ ] Cross-Reference Verification table
 - [ ] Link Validation table
 - [ ] Baseline Compliance Check (if rules exist)
@@ -263,7 +263,7 @@ review_scope: collection
 
 1. SKILL.md exists and has valid YAML frontmatter
 2. Description contains trigger keywords
-3. File is in `skills/docs-reviewer/` directory
+3. File is in `skills/doc-reviewer/` directory
 
 ### Review Generation Fails
 
@@ -271,7 +271,7 @@ review_scope: collection
 
 **Check:**
 
-1. `skills/docs-reviewer/PROMPT.md` exists and is readable
+1. `skills/doc-reviewer/PROMPT.md` exists and is readable
 2. Target documentation files exist
 3. Target files are valid markdown
 
@@ -311,10 +311,10 @@ After deployment to another project:
 
 ```bash
 # Verify skill deployed
-ls skills/docs-reviewer/SKILL.md
+ls skills/doc-reviewer/SKILL.md
 
 # Verify can review that project's docs
-# (trigger docs-reviewer skill)
+# (trigger doc-reviewer skill)
 ```
 
 **Expected:**
@@ -336,7 +336,7 @@ Every review output must contain:
 | Criterion | Score | Notes |
 ...
 
-**Overall:** X/30
+**Overall:** X/100
 
 **Reviewing Model:** [model name]
 
@@ -355,10 +355,10 @@ Every review output must contain:
 Score table must be valid markdown:
 
 ```markdown
-| Criterion | Score | Notes |
-|-----------|-------|-------|
-| Accuracy | X/5 | ... |
-| ... | ... | ... |
+| Criterion | Max | Raw | Points | Notes |
+|-----------|-----|-----|--------|-------|
+| Accuracy | 25 | X/5 | Y/25 | ... |
+| ... | ... | ... | ... | ... |
 ```
 
 ## Version Compatibility

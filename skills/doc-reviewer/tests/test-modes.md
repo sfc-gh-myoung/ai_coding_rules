@@ -14,7 +14,7 @@ model: claude-sonnet45
 **Expected Output Contains:**
 
 - [ ] Scores table with all 6 dimensions
-- [ ] Overall score (X/30)
+- [ ] Overall score (X/100)
 - [ ] Cross-Reference Verification table
 - [ ] Link Validation table
 - [ ] Baseline Compliance Check (if rules exist)
@@ -105,7 +105,7 @@ model: claude-sonnet45
 **Expected Output Contains:**
 
 - [ ] Scores table with Staleness and Structure only
-- [ ] Overall score (X/10)
+- [ ] Overall score (X/25)
 - [ ] Link Validation table
 - [ ] Version References table
 - [ ] Deprecated Patterns list

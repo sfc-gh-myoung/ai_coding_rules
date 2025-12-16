@@ -99,9 +99,9 @@ model: <current>
 ```
 
 **Quality threshold for new rules:**
-- Overall score: ≥ 7.5/10
+- Overall score: ≥ 75/100
 - No CRITICAL issues
-- No HIGH issues in Contract or Metadata dimensions
+- No HIGH issues in Actionability or Completeness dimensions
 
 See: `skills/rule-reviewer/SKILL.md`
 

@@ -207,13 +207,14 @@ Scope: single
 Model: claude-sonnet45
 
 Summary:
-- Accuracy: X/5
-- Completeness: X/5
-- Clarity: X/5
+- Accuracy: X/25
+- Completeness: X/25
+- Clarity: X/20
+- Structure: X/15
+- Staleness: X/10
 - Consistency: X/5
-- Staleness: X/5
-- Structure: X/5
-Overall: X/30
+Overall: X/100
+Verdict: [PUBLISHABLE|PUBLISHABLE_WITH_EDITS|NEEDS_REVISION|NOT_PUBLISHABLE]
 ```
 
 ---

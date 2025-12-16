@@ -3,7 +3,7 @@
 ## Accuracy Focus
 
 ```text
-Use the docs-reviewer skill.
+Use the doc-reviewer skill.
 
 target_files: [README.md]
 review_date: 2025-12-16
@@ -30,7 +30,7 @@ reviews/README-claude-sonnet45-2025-12-16.md
 ## Staleness Focus
 
 ```text
-Use the docs-reviewer skill.
+Use the doc-reviewer skill.
 
 target_files: [README.md, CONTRIBUTING.md]
 review_date: 2025-12-16
@@ -51,7 +51,7 @@ model: claude-sonnet45
 ## Clarity Focus
 
 ```text
-Use the docs-reviewer skill.
+Use the doc-reviewer skill.
 
 target_files: [docs/ARCHITECTURE.md]
 review_date: 2025-12-16

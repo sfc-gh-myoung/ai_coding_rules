@@ -1,5 +1,5 @@
 ---
-name: docs-reviewer
+name: doc-reviewer
 description: Review project documentation (README, CONTRIBUTING, docs/*.md) for accuracy, completeness, clarity, consistency, staleness, and structure. Supports configurable file targets, single/collection review modes, cross-reference verification, and link validation. Triggers on keywords like "review docs", "audit documentation", "check README", "documentation quality", "docs staleness".
 version: 1.0.0
 author: AI Coding Rules Project

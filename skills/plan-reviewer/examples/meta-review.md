@@ -31,11 +31,11 @@ model: claude-sonnet45
 ### Reviews Summary
 | Review File | Model | Score | Critical Issues | Lines |
 |-------------|-------|-------|-----------------|-------|
-| plan-IMPROVE_RULE_LOADING-claude-sonnet45-2025-12-16.md | Claude Sonnet 4.5 | 52/60 | 0 | 285 |
-| plan-IMPROVE_RULE_LOADING-gpt-52-2025-12-16.md | GPT-5.2 | 44/60 | 2 | 198 |
-| plan-IMPROVE_RULE_LOADING-claude-opus45-2025-12-16.md | Claude Opus 4.5 | 50/60 | 1 | 265 |
+| plan-IMPROVE_RULE_LOADING-claude-sonnet45-2025-12-16.md | Claude Sonnet 4.5 | 87/100 | 0 | 285 |
+| plan-IMPROVE_RULE_LOADING-gpt-52-2025-12-16.md | GPT-5.2 | 73/100 | 2 | 198 |
+| plan-IMPROVE_RULE_LOADING-claude-opus45-2025-12-16.md | Claude Opus 4.5 | 83/100 | 1 | 265 |
 
-**Score Variance:** 8 points (13.3% spread)
+**Score Variance:** 14 points (14% spread)
 
 ---
 
@@ -52,12 +52,12 @@ model: claude-sonnet45
 ### Score Breakdown by Dimension
 | Dimension | Sonnet | GPT | Opus | Variance | Consensus |
 |-----------|--------|-----|------|----------|-----------|
-| Executability | 8/10 | 6/10 | 8/10 | 2 | 7/10 |
-| Completeness | 10/10 | 8/10 | 9/10 | 2 | 9/10 |
-| Success Criteria | 8/10 | 6/10 | 7/10 | 2 | 7/10 |
-| Scope | 10/10 | 8/10 | 10/10 | 2 | 9/10 |
+| Executability | 16/20 | 12/20 | 16/20 | 4 | 14/20 |
+| Completeness | 20/20 | 16/20 | 18/20 | 4 | 18/20 |
+| Success Criteria | 16/20 | 12/20 | 14/20 | 4 | 14/20 |
+| Scope | 15/15 | 12/15 | 15/15 | 3 | 14/15 |
+| Dependencies | 10/10 | 10/10 | 10/10 | 0 | 10/10 |
 | Decomposition | 4/5 | 4/5 | 4/5 | 0 | 4/5 |
-| Dependencies | 5/5 | 5/5 | 5/5 | 0 | 5/5 |
 | Context | 4/5 | 4/5 | 4/5 | 0 | 4/5 |
 | Risk Awareness | 3/5 | 3/5 | 3/5 | 0 | 3/5 |
 
@@ -98,7 +98,7 @@ model: claude-sonnet45
 - Provided actionable fixes for each issue
 
 **Most Generous:** Claude Sonnet 4.5
-- Scored 52/60 despite missing 2 critical issues
+- Scored 87/100 despite missing 2 critical issues
 - Executability score not adjusted for found ambiguities
 
 **Best Calibrated:** GPT-5.2
@@ -145,13 +145,13 @@ model: claude-sonnet45
 
 | Review | Score | Calibration Weight | Weighted Contribution |
 |--------|-------|-------------------|----------------------|
-| Sonnet | 52/60 | 0.75 | 39.0 |
-| GPT | 44/60 | 1.00 | 44.0 |
-| Opus | 50/60 | 0.90 | 45.0 |
+| Sonnet | 87/100 | 0.75 | 65.3 |
+| GPT | 73/100 | 1.00 | 73.0 |
+| Opus | 83/100 | 0.90 | 74.7 |
 
-**Weighted Sum:** 128.0
+**Weighted Sum:** 213.0
 **Sum of Weights:** 2.65
-**Consensus Score:** 48/60 (rounded)
+**Consensus Score:** 80/100 (rounded)
 
 **Confidence Level:** Medium
 - High score variance suggests rubric interpretation differences
@@ -176,7 +176,7 @@ model: claude-sonnet45
 3. 📝 Update PROMPT.md to clarify Executability scoring for command inconsistencies
 4. 🔄 Re-run Sonnet review after rubric clarification
 
-**Consensus Verdict:** NEEDS_REFINEMENT (48/60)
+**Consensus Verdict:** EXECUTABLE_WITH_REFINEMENTS (80/100)
 - Plan requires 2 fixes before agent execution:
   1. Resolve pytest vs task command inconsistency
   2. Fix scope mismatch (7 files vs find command)

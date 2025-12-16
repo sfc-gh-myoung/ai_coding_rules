@@ -11,31 +11,31 @@
 **Review Objective:** Evaluate LLM-generated plans for **autonomous agent executability**.
 The winning plan must enable any agent to implement it successfully without human intervention.
 
-### Dimension Weighting
+### Dimension Point Allocation
 
-Not all review dimensions have equal impact. Use these weights when calculating overall scores:
+Not all review dimensions have equal impact. Points are allocated based on criticality for autonomous agent execution:
 
-| Dimension | Weight | Rationale |
+| Dimension | Points | Rationale |
 |-----------|--------|-----------|
-| **Executability** | 2× | Critical - agent must execute without human intervention |
-| **Completeness** | 2× | Critical - missing steps cause agent failure |
-| **Success Criteria** | 2× | Critical - agent needs measurable completion signals |
-| **Scope** | 2× | Critical - unbounded scope leads to drift and failure |
-| Decomposition | 1× | Important but recoverable if tasks too large |
-| Dependencies | 1× | Important but agents can often infer order |
-| Context | 1× | Important but agents can request clarification |
-| Risk Awareness | 1× | Nice-to-have, helps but not blocking |
+| **Executability** | 20 | Critical - agent must execute without human intervention |
+| **Completeness** | 20 | Critical - missing steps cause agent failure |
+| **Success Criteria** | 20 | Critical - agent needs measurable completion signals |
+| **Scope** | 15 | Critical - unbounded scope leads to drift and failure |
+| Dependencies | 10 | Important but agents can often infer order |
+| Decomposition | 5 | Important but recoverable if tasks too large |
+| Context | 5 | Important but agents can request clarification |
+| Risk Awareness | 5 | Nice-to-have, helps but not blocking |
 
-**Weighted scoring formula:**
-- Executability: X/5 × 2 = Y/10
-- Completeness: X/5 × 2 = Y/10
-- Success Criteria: X/5 × 2 = Y/10
-- Scope: X/5 × 2 = Y/10
+**Scoring formula:**
+- Executability: X/5 × 4 = Y/20
+- Completeness: X/5 × 4 = Y/20
+- Success Criteria: X/5 × 4 = Y/20
+- Scope: X/5 × 3 = Y/15
+- Dependencies: X/5 × 2 = Y/10
 - Decomposition: X/5 × 1 = Y/5
-- Dependencies: X/5 × 1 = Y/5
 - Context: X/5 × 1 = Y/5
 - Risk Awareness: X/5 × 1 = Y/5
-- **Total: Z/60**
+- **Total: Z/100**
 
 ---
 
@@ -43,7 +43,7 @@ Not all review dimensions have equal impact. Use these weights when calculating 
 
 Analyze the plan against these criteria, scoring each 1-5 (5 = excellent):
 
-### 1. Executability (Can an agent execute each step without human judgment?) — Weight: 2×
+### 1. Executability (Can an agent execute each step without human judgment?) — 20 points
 
 - Are all actions concrete and unambiguous?
 - Are tool/command invocations explicit (exact commands, not descriptions)?
@@ -63,7 +63,12 @@ Analyze the plan against these criteria, scoring each 1-5 (5 = excellent):
 - Count steps with explicit vs implicit commands
 - Count undefined terms or placeholders
 
-### 2. Completeness (Does the plan cover all necessary steps?) — Weight: 2×
+**Calibration Examples:**
+- **5/5:** "Run `pytest tests/ -v --tb=short` and verify exit code 0"
+- **3/5:** "Run tests and ensure they pass" (implicit command, no verification method)
+- **1/5:** "Consider running appropriate tests if needed" (requires judgment on what/when/how)
+
+### 2. Completeness (Does the plan cover all necessary steps?) — 20 points
 
 - Are setup/prerequisites documented?
 - Are validation steps between phases?
@@ -83,7 +88,12 @@ Analyze the plan against these criteria, scoring each 1-5 (5 = excellent):
 - Count of error recovery procedures
 - Percentage of steps with verifiable outputs
 
-### 3. Success Criteria (Are acceptance criteria clear and measurable?) — Weight: 2×
+**Calibration Examples:**
+- **5/5:** "Phase 1: Setup → Phase 2: Implementation → Phase 3: Validation (run lint, test, build) → Phase 4: Cleanup (remove temp files). If validation fails, revert changes and return to Phase 2."
+- **3/5:** "1. Setup environment 2. Make changes 3. Test" (no cleanup, no error recovery)
+- **1/5:** "Update the codebase" (single step, no phases, no validation)
+
+### 3. Success Criteria (Are acceptance criteria clear and measurable?) — 20 points
 
 - Does each task have a verifiable completion signal?
 - Are expected outputs explicitly specified?
@@ -102,7 +112,12 @@ Analyze the plan against these criteria, scoring each 1-5 (5 = excellent):
 - Count of tasks with programmatically verifiable outputs
 - Count of tasks requiring human judgment to verify
 
-### 4. Scope (Is the plan well-bounded with clear start/end?) — Weight: 2×
+**Calibration Examples:**
+- **5/5:** "Task complete when: (1) `grep -r 'TODO' src/` returns 0 matches, (2) `pytest` exits 0, (3) `ruff check .` exits 0"
+- **3/5:** "Task complete when tests pass" (verifiable but incomplete criteria)
+- **1/5:** "Task complete when code looks good" (subjective, requires human judgment)
+
+### 4. Scope (Is the plan well-bounded with clear start/end?) — 15 points
 
 - Are boundaries explicit (what's in scope vs out of scope)?
 - Is the starting state/prerequisites defined?
@@ -122,7 +137,12 @@ Analyze the plan against these criteria, scoring each 1-5 (5 = excellent):
 - End state measurable? (Yes/No)
 - Count of scope ambiguities identified
 
-### 5. Decomposition (Is task granularity appropriate?) — Weight: 1×
+**Calibration Examples:**
+- **5/5:** "Scope: Refactor `auth.py` only. Out of scope: Database schema changes, API modifications. Start: Current main branch. End: All tests pass, no new linter errors."
+- **3/5:** "Refactor the authentication module" (scope defined but boundaries and end state vague)
+- **1/5:** "Improve the codebase" (no boundaries, no defined end state)
+
+### 5. Dependencies (Are task order and blockers explicit?) — 10 points
 
 - Are tasks broken into single-action steps?
 - Is granularity consistent across phases?
@@ -135,7 +155,7 @@ Analyze the plan against these criteria, scoring each 1-5 (5 = excellent):
 - **2/5:** Many oversized tasks; agent would need to self-decompose.
 - **1/5:** Monolithic tasks; no meaningful decomposition.
 
-### 6. Dependencies (Are task order and blockers explicit?) — Weight: 1×
+### 6. Decomposition (Is task granularity appropriate?) — 5 points
 
 - Is task execution order clear?
 - Are blocking dependencies identified?
@@ -148,7 +168,7 @@ Analyze the plan against these criteria, scoring each 1-5 (5 = excellent):
 - **2/5:** Dependencies unclear; agent may execute out of order.
 - **1/5:** No dependency information; arbitrary execution order would fail.
 
-### 7. Context (Is sufficient background provided for each task?) — Weight: 1×
+### 7. Context (Is sufficient background provided for each task?) — 5 points
 
 - Is necessary context provided inline or referenced?
 - Are domain-specific terms defined?
@@ -161,7 +181,7 @@ Analyze the plan against these criteria, scoring each 1-5 (5 = excellent):
 - **2/5:** Significant context missing; agent would need to research.
 - **1/5:** Minimal context; requires extensive external knowledge.
 
-### 8. Risk Awareness (Are potential blockers and fallbacks identified?) — Weight: 1×
+### 8. Risk Awareness (Are potential blockers and fallbacks identified?) — 5 points
 
 - Are potential failure points identified?
 - Are fallback strategies documented?
@@ -190,29 +210,29 @@ Provide your assessment in this structure:
 
 ---
 
-### Scores (Weighted)
-| Criterion | Weight | Raw | Weighted | Notes |
-|-----------|--------|-----|----------|-------|
-| Executability | 2× | X/5 | Y/10 | [brief justification] |
-| Completeness | 2× | X/5 | Y/10 | [brief justification] |
-| Success Criteria | 2× | X/5 | Y/10 | [brief justification] |
-| Scope | 2× | X/5 | Y/10 | [brief justification] |
-| Decomposition | 1× | X/5 | Y/5 | [brief justification] |
-| Dependencies | 1× | X/5 | Y/5 | [brief justification] |
-| Context | 1× | X/5 | Y/5 | [brief justification] |
-| Risk Awareness | 1× | X/5 | Y/5 | [brief justification] |
+### Scores
+| Criterion | Max | Raw | Points | Notes |
+|-----------|-----|-----|--------|-------|
+| Executability | 20 | X/5 | Y/20 | [brief justification] |
+| Completeness | 20 | X/5 | Y/20 | [brief justification] |
+| Success Criteria | 20 | X/5 | Y/20 | [brief justification] |
+| Scope | 15 | X/5 | Y/15 | [brief justification] |
+| Dependencies | 10 | X/5 | Y/10 | [brief justification] |
+| Decomposition | 5 | X/5 | Y/5 | [brief justification] |
+| Context | 5 | X/5 | Y/5 | [brief justification] |
+| Risk Awareness | 5 | X/5 | Y/5 | [brief justification] |
 
-**Overall:** X/60 (weighted)
+**Overall:** X/100
 
 ### Overall Score Interpretation
 
 | Score Range | Assessment | Verdict |
 |-------------|------------|---------|
-| 54-60/60 (90-100%) | Excellent | EXECUTABLE |
-| 48-53/60 (80-89%) | Good | EXECUTABLE with minor refinements |
-| 36-47/60 (60-79%) | Needs Work | NEEDS_REFINEMENT |
-| 24-35/60 (40-59%) | Poor | NOT_EXECUTABLE |
-| <24/60 (<40%) | Inadequate | NOT_EXECUTABLE - Rewrite required |
+| 90-100 | Excellent | EXECUTABLE |
+| 80-89 | Good | EXECUTABLE_WITH_REFINEMENTS |
+| 60-79 | Needs Work | NEEDS_REFINEMENT |
+| 40-59 | Poor | NOT_EXECUTABLE |
+| <40 | Inadequate | NOT_EXECUTABLE - Rewrite required |
 
 **Critical dimension overrides:**
 - If Executability ≤2/5 → Verdict = "NEEDS_REFINEMENT" minimum
@@ -304,41 +324,41 @@ Scan the plan for phrases requiring human judgment:
 
 These rules override subjective assessment:
 
-### Executability (2× weight)
-| Finding | Maximum Score |
-|---------|---------------|
-| >15 ambiguous phrases | 1/5 |
-| 8-15 ambiguous phrases | 2/5 |
-| 4-7 ambiguous phrases | 3/5 |
-| 2-3 ambiguous phrases | 4/5 |
-| 0-1 ambiguous phrases | 5/5 |
+### Executability (20 points)
+| Finding | Maximum Score | Max Points |
+|---------|---------------|------------|
+| >15 ambiguous phrases | 1/5 | 4/20 |
+| 8-15 ambiguous phrases | 2/5 | 8/20 |
+| 4-7 ambiguous phrases | 3/5 | 12/20 |
+| 2-3 ambiguous phrases | 4/5 | 16/20 |
+| 0-1 ambiguous phrases | 5/5 | 20/20 |
 
-### Completeness (2× weight)
-| Finding | Maximum Score |
-|---------|---------------|
-| <40% phases with validation | 1/5 |
-| 40-60% phases with validation | 2/5 |
-| 60-80% phases with validation | 3/5 |
-| 80-95% phases with validation | 4/5 |
-| >95% phases with validation | 5/5 |
+### Completeness (20 points)
+| Finding | Maximum Score | Max Points |
+|---------|---------------|------------|
+| <40% phases with validation | 1/5 | 4/20 |
+| 40-60% phases with validation | 2/5 | 8/20 |
+| 60-80% phases with validation | 3/5 | 12/20 |
+| 80-95% phases with validation | 4/5 | 16/20 |
+| >95% phases with validation | 5/5 | 20/20 |
 
-### Success Criteria (2× weight)
-| Finding | Maximum Score |
-|---------|---------------|
-| <50% tasks with criteria | 1/5 |
-| 50-70% tasks with criteria | 2/5 |
-| 70-85% tasks with criteria | 3/5 |
-| 85-95% tasks with criteria | 4/5 |
-| >95% tasks with criteria | 5/5 |
+### Success Criteria (20 points)
+| Finding | Maximum Score | Max Points |
+|---------|---------------|------------|
+| <50% tasks with criteria | 1/5 | 4/20 |
+| 50-70% tasks with criteria | 2/5 | 8/20 |
+| 70-85% tasks with criteria | 3/5 | 12/20 |
+| 85-95% tasks with criteria | 4/5 | 16/20 |
+| >95% tasks with criteria | 5/5 | 20/20 |
 
-### Scope (2× weight)
-| Finding | Maximum Score |
-|---------|---------------|
-| No scope boundaries defined | 1/5 |
-| Partial boundaries, no end state | 2/5 |
-| Boundaries defined, vague end state | 3/5 |
-| Clear boundaries, measurable end state | 4/5 |
-| Explicit in/out, start/end, no ambiguity | 5/5 |
+### Scope (15 points)
+| Finding | Maximum Score | Max Points |
+|---------|---------------|------------|
+| No scope boundaries defined | 1/5 | 3/15 |
+| Partial boundaries, no end state | 2/5 | 6/15 |
+| Boundaries defined, vague end state | 3/5 | 9/15 |
+| Clear boundaries, measurable end state | 4/5 | 12/15 |
+| Explicit in/out, start/end, no ambiguity | 5/5 | 15/15 |
 
 ---
 
@@ -416,23 +436,23 @@ Use when evaluating multiple plans for the same task.
 ---
 
 ### Comparative Scores
-| Criterion | Weight | Plan A | Plan B | Winner |
-|-----------|--------|--------|--------|--------|
-| Executability | 2× | 8/10 | 6/10 | A |
-| Completeness | 2× | 9/10 | 8/10 | A |
-| Success Criteria | 2× | 7/10 | 9/10 | B |
-| Scope | 2× | 8/10 | 7/10 | A |
-| Decomposition | 1× | 4/5 | 5/5 | B |
-| Dependencies | 1× | 5/5 | 4/5 | A |
-| Context | 1× | 4/5 | 4/5 | Tie |
-| Risk Awareness | 1× | 3/5 | 4/5 | B |
-| **Total** | | **48/60** | **47/60** | **A** |
+| Criterion | Max | Plan A | Plan B | Winner |
+|-----------|-----|--------|--------|--------|
+| Executability | 20 | 16/20 | 12/20 | A |
+| Completeness | 20 | 18/20 | 16/20 | A |
+| Success Criteria | 20 | 14/20 | 18/20 | B |
+| Scope | 15 | 12/15 | 10/15 | A |
+| Dependencies | 10 | 10/10 | 8/10 | A |
+| Decomposition | 5 | 4/5 | 5/5 | B |
+| Context | 5 | 4/5 | 4/5 | Tie |
+| Risk Awareness | 5 | 3/5 | 4/5 | B |
+| **Total** | **100** | **81/100** | **77/100** | **A** |
 
 ### Verdict by Plan
 | Plan | Score | Verdict |
 |------|-------|---------|
-| A | 48/60 | EXECUTABLE |
-| B | 47/60 | EXECUTABLE |
+| A | 81/100 | EXECUTABLE_WITH_REFINEMENTS |
+| B | 77/100 | NEEDS_REFINEMENT |
 
 ### Head-to-Head Analysis
 
@@ -448,7 +468,7 @@ Use when evaluating multiple plans for the same task.
 
 ### Recommendation
 
-**Winner:** Plan A (48/60)
+**Winner:** Plan A (81/100)
 
 **Rationale:** Plan A is more immediately executable by an autonomous agent due to:
 1. Zero ambiguous phrases vs 3 in Plan B
@@ -500,11 +520,11 @@ Analyze multiple reviews of the same document to:
 ### Reviews Summary
 | Review File | Model | Score | Critical Issues | Lines |
 |-------------|-------|-------|-----------------|-------|
-| [review-a.md] | Claude Sonnet 4.5 | 45/45 | 0 | 340 |
-| [review-b.md] | GPT-5.2 | 37/45 | 2 | 186 |
-| [review-c.md] | Claude Opus 4.5 | 44/45 | 0 | 280 |
+| [review-a.md] | Claude Sonnet 4.5 | 92/100 | 0 | 340 |
+| [review-b.md] | GPT-5.2 | 75/100 | 2 | 186 |
+| [review-c.md] | Claude Opus 4.5 | 89/100 | 0 | 280 |
 
-**Score Variance:** 8 points (17.8% spread)
+**Score Variance:** 17 points (17% spread)
 
 ---
 
@@ -556,11 +576,11 @@ Analyze multiple reviews of the same document to:
 
 | Review | Score | Calibration Weight | Weighted Contribution |
 |--------|-------|-------------------|----------------------|
-| A | 45/45 | 0.80 | 36.0 |
-| B | 37/45 | 1.00 | 37.0 |
-| C | 44/45 | 0.90 | 39.6 |
+| A | 92/100 | 0.80 | 73.6 |
+| B | 75/100 | 1.00 | 75.0 |
+| C | 89/100 | 0.90 | 80.1 |
 
-**Consensus Score:** 40/45 (weighted average)
+**Consensus Score:** 84/100 (weighted average)
 **Confidence:** Medium (high variance indicates potential rubric ambiguity)
 
 ---

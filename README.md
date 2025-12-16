@@ -1,7 +1,7 @@
 # AI Coding Rules
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://opensource.org/license/apache-2-0)
-![Version](https://img.shields.io/badge/version-3.4.0-blue)
+![Version](https://img.shields.io/badge/version-3.4.2-blue)
 [![CI](https://github.com/sfc-gh-myoung/ai_coding_rules/actions/workflows/ci.yml/badge.svg)](https://github.com/sfc-gh-myoung/ai_coding_rules/actions/workflows/ci.yml)
 ![Tests](https://img.shields.io/badge/tests-100%25%20passing-brightgreen)
 ![Coverage](https://img.shields.io/badge/coverage-98%25-brightgreen)
@@ -208,7 +208,7 @@ exclude_skills = [
 ]
 ```
 
-**Note:** The `docs-reviewer` skill is deployed by default and can be used in target projects.
+**Note:** The `doc-reviewer` skill is deployed by default and can be used in target projects.
 
 **Deploy Rules Only (Skip Skills):**
 
@@ -525,8 +525,8 @@ Learn how to write effective prompts that help AI assistants automatically disco
   - Trigger keywords: "review rule", "audit rule", "check rule quality", "rule staleness"
   - See [docs/USING_RULE_REVIEW_SKILL.md](docs/USING_RULE_REVIEW_SKILL.md) for usage guide
 
-- **docs-reviewer** — Automate documentation quality reviews (FULL/FOCUSED/STALENESS modes)
-  - Structured skill: `skills/docs-reviewer/SKILL.md` with workflows, examples, tests, and validation
+- **doc-reviewer** — Automate documentation quality reviews (FULL/FOCUSED/STALENESS modes)
+  - Structured skill: `skills/doc-reviewer/SKILL.md` with workflows, examples, tests, and validation
   - **Deployed by default** (available in target projects)
   - Trigger keywords: "review docs", "audit documentation", "check doc quality"
   - See [docs/USING_DOCS_REVIEWER_SKILL.md](docs/USING_DOCS_REVIEWER_SKILL.md) for usage guide
@@ -581,7 +581,7 @@ ai_coding_rules/
 ├── tests/                  ← Test suite
 ├── schemas/                ← JSON schemas for rule validation
 ├── prompts/                ← User prompt templates + Rule Review prompt
-└── skills/                 ← Claude Agent Skills (rule-creator, rule-reviewer, docs-reviewer)
+└── skills/                 ← Claude Agent Skills (rule-creator, rule-reviewer, doc-reviewer)
 ```
 
 **Key Concepts:**

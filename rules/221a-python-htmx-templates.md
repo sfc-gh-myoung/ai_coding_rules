@@ -2,6 +2,7 @@
 
 ## Metadata
 
+**SchemaVersion:** v3.1
 **RuleVersion:** v1.0.0
 **Keywords:** jinja2, templates, partials, fragments, template composition, conditional rendering, htmx templates, template organization, reusable components, template context
 **TokenBudget:** ~2300

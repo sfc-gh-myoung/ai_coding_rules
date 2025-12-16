@@ -9,10 +9,10 @@
 
 ## Steps
 
-1. Read `prompts/RULE_REVIEW_PROMPT.md`.
+1. Read `PROMPT.md` (colocated in this skill folder).
 2. Read the contents of `target_file`.
 3. Perform the review using the rubric and required structure from
-   `prompts/RULE_REVIEW_PROMPT.md`.
+   `PROMPT.md`.
 4. Produce the final review Markdown content (scores, issues, checklist, tables)
    appropriate to `review_mode`.
 

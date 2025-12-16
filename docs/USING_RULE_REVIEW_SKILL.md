@@ -1,46 +1,40 @@
-# Using the Rule Reviewer Skill
+# Using the Rule Reviewer Skill (Internal Only)
 
-**Note:** The Rule Reviewer Skill is **deployed** to team projects by default (unless
-explicitly excluded in `pyproject.toml`).
+**Note:** The Rule Reviewer Skill is **not deployed** to team projects. It remains in the ai_coding_rules source repository for internal use only.
 
 ## Background
 
 The rule-reviewer skill automates running the Agent-Centric Rule Review prompt against
-a
-target rule file and writing the results to `reviews/` using the required filename
-format from `prompts/RULE_REVIEW_PROMPT.md`.
+a target rule file and writing the results to `reviews/` using the required filename
+format from `skills/rule-reviewer/PROMPT.md`.
 
 Key behaviors:
 
-- Uses the rubric and required output structure from `prompts/RULE_REVIEW_PROMPT.md`
+- Uses the rubric and required output structure from `skills/rule-reviewer/PROMPT.md`
 - Computes `OUTPUT_FILE` as:
   - `reviews/<rule-name>-<model>-<YYYY-MM-DD>.md`
-- Writes the full review to `OUTPUT_FILE` (**overwrite** if it already exists)
+- **No-overwrite safety:** If file exists, uses suffix `-01.md`, `-02.md`, etc.
+- Supports three review modes: FULL, FOCUSED, STALENESS
+
+## Why Not Deployed?
+
+The rule-reviewer skill is designed for **rule maintainers** working in the source
+ai_coding_rules repository. It:
+
+1. **Requires the rubric prompt** — `skills/rule-reviewer/PROMPT.md` (colocated with skill)
+2. **Writes to reviews/** — A directory structure specific to rule maintenance
+3. **Targets rule files** — Most useful for rule authors validating their work
+
+For deployed projects, teams should reference the skill's `PROMPT.md` directly if they need to review rules.
 
 ## Configuration
 
-Skill deployment is managed by the deployer configuration in
-[`pyproject.toml`](../pyproject.toml):
+Both skills are excluded from deployment in [`pyproject.toml`](../pyproject.toml):
 
 ```toml
 [tool.rule_deployer]
 exclude_skills = [
-    "rule-creator-skill.md",
     "rule-creator/",
-]
-```
-
-### Excluding the rule-reviewer skill (optional)
-
-If you want to prevent the rule-reviewer skill from being deployed, add it to
-`exclude_skills`:
-
-```toml
-[tool.rule_deployer]
-exclude_skills = [
-    "rule-creator-skill.md",
-    "rule-creator/",
-    "rule-reviewer-skill.md",
     "rule-reviewer/",
 ]
 ```
@@ -51,16 +45,8 @@ If you're working in the ai_coding_rules repository and want to run rule reviews
 
 ### 1. Load the skill
 
-**Single-file skill:**
-
 ```text
-@skills/rule-reviewer-skill.md
-```
-
-**Structured skill:**
-
-```text
-@skills/rule-reviewer/prompt.md
+@skills/rule-reviewer/SKILL.md
 ```
 
 ### 2. Request a review
@@ -76,44 +62,17 @@ model: claude-sonnet45
 
 ### 3. Output location
 
-The skill will write (overwrite) the review to:
+The skill will write the review to:
 
 `reviews/810-project-readme-claude-sonnet45-2025-12-12.md`
 
-## For Deployed Project Teams
-
-If your project has been deployed with `skills/` included, you can use rule-reviewer
-directly from your project.
-
-### 1. Confirm skill exists in your project
-
-You should see either (or both):
-
-- `skills/rule-reviewer-skill.md`
-- `skills/rule-reviewer/`
-
-### 2. Load the skill
-
-```text
-@skills/rule-reviewer/prompt.md
-```
-
-### 3. Run a review and write to reviews/
-
-```text
-Use the rule-reviewer skill.
-
-target_file: rules/810-project-readme.md
-review_date: 2025-12-12
-review_mode: STALENESS
-model: claude-sonnet45
-```
+If the file already exists, it uses suffixes: `-01.md`, `-02.md`, etc.
 
 ## FAQ
 
 ### Q: What happens if the output file already exists?
 
-**A:** The rule-reviewer skill overwrites it.
+**A:** The rule-reviewer skill uses no-overwrite safety. It appends suffixes (`-01.md`, `-02.md`, etc.) to avoid overwriting existing reviews.
 
 ### Q: What should I pass for `model`?
 
@@ -128,5 +87,10 @@ The output filename always uses the base filename (without extension) of `target
 
 ### Q: Where does the rubric come from?
 
-**A:** The skill uses `prompts/RULE_REVIEW_PROMPT.md` as the rubric and required
+**A:** The skill uses `skills/rule-reviewer/PROMPT.md` as the rubric and required
 output format and writes the final review to `reviews/`.
+
+### Q: Can I use rule-reviewer in a deployed project?
+
+**A:** No, this skill is internal-only. For deployed projects, reference the
+skill's `PROMPT.md` directly for the review rubric.

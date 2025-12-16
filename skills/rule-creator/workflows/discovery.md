@@ -97,12 +97,12 @@ From matches, extract:
 Based on identified domain, load core rule for context:
 
 ```
-JavaScript/Frontend (420-449) → @rules/420-javascript-core.md
-Python (200-299) → @rules/200-python-core.md
-Snowflake (100-199) → @rules/100-snowflake-core.md
-Shell (300-399) → @rules/300-bash-scripting-core.md
-Docker (400-499) → @rules/350-docker-best-practices.md
-Golang (600-699) → @rules/600-golang-core.md
+JavaScript/Frontend (420-449) → rules/420-javascript-core.md
+Python (200-299) → rules/200-python-core.md
+Snowflake (100-199) → rules/100-snowflake-core.md
+Shell (300-399) → rules/300-bash-scripting-core.md
+Docker (400-499) → rules/350-docker-best-practices.md
+Golang (600-699) → rules/600-golang-core.md
 ```
 
 Read core rule to understand:
@@ -200,7 +200,7 @@ Step 3: Analyze results
   → Next available: 422
 
 Step 4: Load domain core
-  → Loading @rules/420-javascript-core.md for context
+  → Reading rules/420-javascript-core.md for context
 
 Step 5: Web research
   Search: "2024 2025 DaisyUI best practices"
@@ -325,7 +325,7 @@ References:
   - [Community guide URL]
   - [Tutorial URL]
 
-Domain Core Loaded: @rules/[domain]-core.md
+Domain Core Loaded: rules/[domain]-core.md
 
 ✓ Ready for Phase 2: Template Generation
 ```

@@ -1,7 +1,7 @@
 # Using the Rule Review Prompt
 
 This file explains how to use the Agent-Centric Rule Review prompt template in
-`prompts/RULE_REVIEW_PROMPT.md`.
+`skills/rule-reviewer/PROMPT.md`.
 
 ## What this is for
 
@@ -22,7 +22,7 @@ documentation.
 
 ## How to run a review
 
-1. Copy the full prompt template from `prompts/RULE_REVIEW_PROMPT.md` into your model
+1. Copy the full prompt template from `skills/rule-reviewer/PROMPT.md` into your model
    session.
 2. Fill in:
    - **Target File** (the rule file to review)

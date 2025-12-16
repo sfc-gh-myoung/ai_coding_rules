@@ -324,7 +324,7 @@ while iteration <= max_iterations:
 **If still failing after 3 iterations:**
 - Report unresolved errors to user
 - Request manual review
-- Reference `@rules/002d-schema-validator-usage.md` for detailed error resolution
+- Reference `rules/002d-schema-validator-usage.md` for detailed error resolution
 
 ### Step 4.8: Handle Different Severity Levels
 
@@ -498,7 +498,7 @@ grep -i "placeholder\|\[.*\]" rules/422-daisyui-core.md
 ### Issue: Persistent CRITICAL Errors After 3 Iterations
 
 **Action:**
-1. Review `@rules/002d-schema-validator-usage.md` Section: "Common Errors and Fixes"
+1. Review `rules/002d-schema-validator-usage.md` Section: "Common Errors and Fixes"
 2. Check similar rules in same domain for structure examples
 3. Run with `--verbose` flag for detailed output
 4. Request user assistance with specific error details

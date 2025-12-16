@@ -11,4 +11,4 @@ model: claude-sonnet45
 
 Expected output file:
 
-`reviews/810-project-readme-claude-sonnet45-2025-12-12.md`
+`reviews/810-project-readme-claude-sonnet45-2025-12-12.md` (or `...-01.md`, `...-02.md`, etc. if the base filename already exists)

@@ -21,7 +21,6 @@ Exclusions are managed in [`pyproject.toml`](../pyproject.toml):
 ```toml
 [tool.rule_deployer]
 exclude_skills = [
-    "rule-creator-skill.md",
     "rule-creator/",
 ]
 ```
@@ -34,14 +33,8 @@ If you're contributing to ai_coding_rules and need to create new rules:
 
 ### 1. Load the skill in this repository
 
-**Single-file skill (complete in one file):**
 ```
-@skills/rule-creator-skill.md
-```
-
-**Structured skill (with examples and workflows):**
-```
-@skills/rule-creator/prompt.md
+@skills/rule-creator/SKILL.md
 ```
 
 ### 2. Request rule creation
@@ -85,7 +78,7 @@ If you need to create custom rules in your deployed project:
 ### Option 1: Use the Source Repository
 
 1. Clone or reference the ai_coding_rules repository
-2. Load the skill from the source: `@../ai_coding_rules/skills/rule-creator-skill.md`
+2. Load the skill from the source: `@../ai_coding_rules/skills/rule-creator/SKILL.md`
 3. Run scripts from the source repository as shown above
 
 ### Option 2: Manual Rule Creation
@@ -141,9 +134,8 @@ These are all specific to the ai_coding_rules project structure.
 ```toml
 [tool.rule_deployer]
 exclude_skills = [
-    "rule-creator-skill.md",
     "rule-creator/",
-    "your-internal-skill.md",  # Add your exclusion here
+    "your-internal-skill/",  # Add your exclusion here
 ]
 ```
 

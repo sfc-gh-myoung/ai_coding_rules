@@ -7,11 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [3.4.0] - 2025-12-12
+## [3.4.0] - 2025-12-16
 
 ### Added
+- feat(skills): enhance rule-creator and rule-reviewer skills following Anthropic Agent Skills best practices
+  - **SKILL.md frontmatter enhancements** for both skills:
+    - Added `version`, `author`, `tags`, `dependencies` fields
+    - Improved `description` with trigger keywords for better discoverability
+  - **Inline validation snippets** (hybrid code embedding approach):
+    - rule-creator: 4 Python functions for keyword count, filename format, TokenBudget, ContextTier validation
+    - rule-reviewer: 4 Python functions for target file, date format, review mode, output path validation
+  - **Edge cases documentation** (`examples/edge-cases.md` for each skill):
+    - rule-creator: 10 scenarios (multi-domain tech, new domains, conflicting practices, version ambiguity, etc.)
+    - rule-reviewer: 10 scenarios (invalid structure, mode mismatch, missing dependencies, large files, etc.)
+  - **Test cases** (`tests/` folder for each skill):
+    - rule-creator: `test-inputs.md` (10 cases), `test-workflows.md` (15+ cases)
+    - rule-reviewer: `test-inputs.md` (13 cases), `test-modes.md`, `test-outputs.md`
+  - **Self-validation procedures** (`VALIDATION.md` for each skill):
+    - Quick health checks, functional validation, regression checklists
+    - Performance baselines and troubleshooting guides
+  - **Cross-skill integration**: rule-reviewer can validate rule-creator output (quality threshold: ≥7.5/10)
+  - **Version history** added to both SKILL.md files
+  - **Both skills now internal-only**: rule-reviewer added to `exclude_skills` in `pyproject.toml`
+- refactor(skills): consolidate prompts into skills following Claude Code best practices
+  - **Prompts moved to skill folders** for self-contained skill packages:
+    - `prompts/RULE_REVIEW_PROMPT.md` → `skills/rule-reviewer/PROMPT.md`
+    - `prompts/RULE_CREATION_PROMPT.md` → `skills/rule-creator/PROMPT.md`
+  - **Single-file skills deleted** in favor of structured skill directories:
+    - Deleted `skills/rule-creator-skill.md` (743 lines)
+    - Deleted `skills/rule-reviewer-skill.md` (54 lines)
+  - **skill.json files removed** in favor of SKILL.md YAML frontmatter:
+    - Deleted `skills/rule-creator/skill.json`
+    - Deleted `skills/rule-reviewer/skill.json`
+    - Deleted `skills/rule-creator/prompt.md` and `skills/rule-reviewer/prompt.md` (lowercase)
+  - **References updated** across documentation:
+    - `README.md`, `CONTRIBUTING.md`, `docs/ARCHITECTURE.md`
+    - `docs/USING_RULE_REVIEW_PROMPT.md`, `docs/USING_RULE_REVIEW_SKILL.md`
+    - `skills/rule-reviewer/VALIDATION.md`, `skills/rule-reviewer/workflows/*.md`
+    - `skills/rule-creator/README.md`
+  - **prompts/README.md updated** to reflect tutorials-only scope
+    - Added migration table showing old → new locations
+    - Clarified folder purpose: tutorial prompts for user education
 - feat(prompts): add Agent-Centric Rule Review prompt template
-  - Created `prompts/RULE_REVIEW_PROMPT.md` for systematic rule assessment
+  - Created `skills/rule-reviewer/PROMPT.md` for systematic rule assessment
   - 6-point scoring: Actionability, Completeness, Consistency, Parsability, Token Efficiency, Staleness
   - Three review modes: FULL (comprehensive), FOCUSED (targeted), STALENESS (periodic maintenance)
   - Staleness detection criteria for tool versions, deprecated patterns, API changes
@@ -20,7 +58,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Periodic review schedule with recommended cadence by rule type
   - Review tracking template for maintaining audit logs
   - Tested on: GPT-4o, GPT-5.1, GPT-5.2, Claude Sonnet 4.5, Claude Opus 4.5, Gemini 2.5 Pro, Gemini 3 Pro
-  - Updated `prompts/README.md` with new prompt documentation
 - docs(prompts): add usage guide for the Agent-Centric Rule Review prompt template
   - Added `docs/USING_RULE_REVIEW_PROMPT.md` with modes, examples, and cross-model workflow guidance
   - Linked the guide from `README.md`, `CONTRIBUTING.md`, `docs/ARCHITECTURE.md`, and `prompts/README.md`
@@ -118,6 +155,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - chore(markdown): remove legacy pymarkdown.json in favor of split configs (docs vs rules)
 
 ### Changed
+- docs(skills): expanded rule-reviewer error-handling.md from 19 to 230+ lines
+  - Added 10 error patterns with resolution procedures
+  - Added recovery procedures (partial, full, input correction loop)
+  - Added quick validation snippet for pre-review checks
+- docs(skills): updated README.md for both skills with new file structure
+  - Added tests/, VALIDATION.md, edge-cases.md to file structure diagrams
+  - Updated version history sections
+- refactor(skills): rule-reviewer README.md completely rewritten
+  - Added overview, file structure, review modes table, output format documentation
+  - Added integration with rule-creator section
+- docs(skills): mark rule-reviewer as internal-only
+  - Updated docs/USING_RULE_REVIEW_SKILL.md to reflect internal-only status
+  - Updated docs/ARCHITECTURE.md to mark rule-reviewer as internal-only
+  - Updated README.md skills section and exclusion examples
 - test(coverage): increase test coverage to 99%+ for core validation scripts
   - `keyword_generator.py`: 59% → 99% coverage (+40pp, 2 unreachable lines)
   - `rule_deployer.py`: 66% → 100% coverage (+34pp, complete coverage)

@@ -216,7 +216,7 @@ Statistics:
 - TokenBudget: ~1800 tokens
 - ContextTier: High (major feature)
 
-Ready for use: @rules/125-snowflake-hybrid-tables.md
+Ready for use: rules/125-snowflake-hybrid-tables.md
 ```
 
 ## Key Differences from Other Examples

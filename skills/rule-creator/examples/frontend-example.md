@@ -31,7 +31,7 @@ $ grep -i "javascript\|tailwind\|frontend" RULES_INDEX.md
 
 **Step 1.4: Load Domain Core**
 ```
-Loading @rules/420-javascript-core.md for JavaScript/Frontend context...
+Reading rules/420-javascript-core.md for JavaScript/Frontend context...
 ```
 
 **Step 1.5: Web Research**
@@ -273,7 +273,7 @@ File Details:
 - Validation: 0 CRITICAL errors, 0 HIGH errors
 - Indexed: Yes (RULES_INDEX.md updated)
 
-Ready for use: @rules/422-daisyui-core.md
+Ready for use: rules/422-daisyui-core.md
 ```
 
 ## Key Takeaways

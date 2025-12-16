@@ -2,6 +2,7 @@
 
 ## Metadata
 
+**SchemaVersion:** v3.1
 **RuleVersion:** v1.0.0
 **Keywords:** flask, flask-htmx, blueprints, flask-login, session management, flask routes, flask templates, flask csrf, flask extensions, request context
 **TokenBudget:** ~1950

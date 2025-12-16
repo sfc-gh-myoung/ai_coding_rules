@@ -2,6 +2,7 @@
 
 ## Metadata
 
+**SchemaVersion:** v3.1
 **RuleVersion:** v1.0.0
 **Keywords:** testing, pytest, unit tests, integration tests, fixtures, mocking, header validation, html assertions, test client, htmx testing
 **TokenBudget:** ~2400

@@ -2,6 +2,7 @@
 
 ## Metadata
 
+**SchemaVersion:** v3.1
 **RuleVersion:** v1.0.0
 **Keywords:** sse, server-sent events, htmx, alpine.js, eventsource, real-time, streaming, live updates, push notifications, event types, sse-manager
 **TokenBudget:** ~2000

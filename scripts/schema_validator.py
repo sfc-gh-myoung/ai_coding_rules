@@ -1137,16 +1137,16 @@ class SchemaValidator:
             # Skip line 1 (could be YAML frontmatter start)
             if hr_pattern.match(line) and not tracker.in_code_block and i > 1:
                 result.errors.append(
-                        ValidationError(
-                            severity="MEDIUM",
-                            message="Priority 2 violation: Horizontal rule separator (---) detected",
-                            error_group="Priority 2",
-                            line_num=i,
-                            line_preview=line.strip()[:80],
-                            fix_suggestion="Use headers (###) for structure instead of visual separators. See 002e-agent-optimization.md Anti-Pattern 9",
-                            docs_reference="002e-agent-optimization.md",
-                        )
+                    ValidationError(
+                        severity="MEDIUM",
+                        message="Priority 2 violation: Horizontal rule separator (---) detected",
+                        error_group="Priority 2",
+                        line_num=i,
+                        line_preview=line.strip()[:80],
+                        fix_suggestion="Use headers (###) for structure instead of visual separators. See 002e-agent-optimization.md Anti-Pattern 9",
+                        docs_reference="002e-agent-optimization.md",
                     )
+                )
 
     def _validate_links(self, content: str, lines: list[str], result: ValidationResult) -> None:
         """Validate links and references."""

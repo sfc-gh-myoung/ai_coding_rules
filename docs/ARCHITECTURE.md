@@ -300,6 +300,19 @@ dependencies: []
 | `examples/` | FULL, FOCUSED, STALENESS examples |
 | `tests/` | Input, mode, output handling tests |
 
+**plan-reviewer Skill (Deployed by Default):**
+
+| Component | Purpose |
+|-----------|---------|
+| `SKILL.md` | Implementation plan review with 3 modes |
+| `workflows/input-validation.md` | Input checking procedures |
+| `workflows/model-slugging.md` | Model name normalization |
+| `workflows/review-execution.md` | Review generation steps |
+| `workflows/file-write.md` | Output file handling |
+| `workflows/error-handling.md` | Error recovery patterns |
+| `examples/` | FULL, COMPARISON, META examples |
+| `tests/` | Input, mode, output handling tests |
+
 **Quality Threshold for Cross-Skill Validation:**
 
 When using rule-reviewer to validate rule-creator output:
@@ -348,7 +361,7 @@ The 600s range is reserved for systems and backend programming languages, with G
 
 ```
 ai_coding_rules/
-├── rules/                      # 106 production-ready rule files
+├── rules/                      # 107 production-ready rule files
 │   ├── 000-global-core.md      # Foundation (ContextTier: Critical)
 │   ├── 001-memory-bank.md      # Universal memory bank system
 │   ├── 002-rule-governance.md  # Schema standards
@@ -363,7 +376,7 @@ ai_coding_rules/
 │   ├── 221f-python-htmx-integrations.md
 │   ├── 500-frontend-htmx-core.md
 │   ├── 600-golang-core.md      # Go/Golang foundation
-│   └── ... (106 total)
+│   └── ... (107 total)
 │
 ├── scripts/                    # Automation and validation
 │   ├── template_generator.py  # Creates new rule templates
@@ -407,12 +420,19 @@ ai_coding_rules/
 │   │   ├── workflows/               # Input, execution, output, error handling
 │   │   ├── examples/                # FULL, FOCUSED, STALENESS + edge-cases.md
 │   │   └── tests/                   # Input, mode, output test cases
-│   └── doc-reviewer/           # Deployed by default: automate doc reviews
+│   ├── doc-reviewer/           # Deployed by default: automate doc reviews
+│   │   ├── SKILL.md                 # Main entrypoint with YAML frontmatter
+│   │   ├── README.md                # Usage documentation
+│   │   ├── VALIDATION.md            # Self-validation procedures
+│   │   ├── workflows/               # Input, execution, output, error handling
+│   │   ├── examples/                # FULL, FOCUSED, STALENESS + edge-cases.md
+│   │   └── tests/                   # Input, mode, output test cases
+│   └── plan-reviewer/          # Deployed by default: automate plan reviews
 │       ├── SKILL.md                 # Main entrypoint with YAML frontmatter
 │       ├── README.md                # Usage documentation
 │       ├── VALIDATION.md            # Self-validation procedures
 │       ├── workflows/               # Input, execution, output, error handling
-│       ├── examples/                # FULL, FOCUSED, STALENESS + edge-cases.md
+│       ├── examples/                # FULL, COMPARISON, META + edge-cases.md
 │       └── tests/                   # Input, mode, output test cases
 │
 ├── docs/                       # Project documentation
@@ -475,6 +495,11 @@ ai_coding_rules/
   - Writes results to `reviews/` with no-overwrite safety
   - Includes: SKILL.md, README.md, VALIDATION.md, workflows/, examples/, tests/
   - Trigger keywords: "review docs", "audit documentation", "check doc quality"
+- **plan-reviewer/** (deployed by default):
+  - Reviews implementation plans for completeness, risk assessment, and feasibility
+  - Writes results to `reviews/` with no-overwrite safety
+  - Includes: SKILL.md, README.md, VALIDATION.md, workflows/, examples/, tests/
+  - Trigger keywords: "review plan", "audit implementation plan", "check plan quality"
 - All skills feature:
   - Enhanced YAML frontmatter (version, author, tags, dependencies)
   - Inline validation snippets (hybrid code embedding)
@@ -803,7 +828,7 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 ### Deployment Architecture
 
 **Source Files (in ai_coding_rules repository):**
-- `rules/` — 106 production-ready rule files
+- `rules/` — 107 production-ready rule files
 - `AGENTS.md` — Discovery guide with loading protocol
 - `RULES_INDEX.md` — Searchable catalog with keywords
 
@@ -875,7 +900,7 @@ Configuration:
   Mode: LIVE (files will be copied)
 
 Validation:
-  ✓ Source rules/ directory exists (106 files)
+  ✓ Source rules/ directory exists (107 files)
   ✓ Source AGENTS.md exists
   ✓ Source RULES_INDEX.md exists
   ✓ Destination writable
@@ -1417,7 +1442,7 @@ flowchart TD
 
 ```mermaid
 graph TD
-    Root[ai_coding_rules/] --> Rules[rules/<br/>106 production files]
+    Root[ai_coding_rules/] --> Rules[rules/<br/>107 production files]
     Root --> Scripts[scripts/<br/>5 Python scripts]
     Root --> Schemas[schemas/<br/>v3.0 YAML schema]
     Root --> Tests[tests/<br/>91 passing tests]
@@ -1427,7 +1452,7 @@ graph TD
     
     Rules --> Rule1[000-global-core.md]
     Rules --> Rule2[100-snowflake-core.md]
-    Rules --> Rule3[... 106 total]
+    Rules --> Rule3[... 107 total]
     
     Scripts --> S1[template_generator.py]
     Scripts --> S2[rule_deployer.py]
@@ -1827,6 +1852,7 @@ grep -i "keyword" ~/project/RULES_INDEX.md
 
 | Version | Date | Changes |
 |---------|------|---------|
+| **v3.4.3** | 2025-12-17 | Added plan-reviewer skill, updated rule counts to 107 |
 | **v3.4.0** | 2025-12-16 | Added SchemaVersion/RuleVersion metadata fields, doc-reviewer skill, updated metadata to 6 fields |
 | **v3.3.0** | 2025-12-12 | Added Periodic Rule Review section with Agent-Centric Rule Review prompt, updated prompts/ directory documentation |
 | **v3.2.0** | 2025-12-04 | Added Go/Golang rules architecture section, updated rule counts to 100 |

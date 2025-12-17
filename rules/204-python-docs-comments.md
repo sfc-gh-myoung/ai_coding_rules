@@ -599,12 +599,12 @@ convention = "google"  # or "numpy"
 ## 5. Common Mistakes & How to Prevent Them
 
 ### Syntax Mistakes (Caught by Ruff)
-- **Missing docstrings on public APIs** → Enforce D-rules; PRs must add docstrings.
-- **Parameter lists out of sync with signatures** → CI lint must fail; reviewers verify.
-- **Duplicated types in docstrings when hints exist** → Remove types; describe semantics/units.
-- **No blank line after summary** → Enforce PEP 257 via Ruff.
-- **Module docstrings not first** → Enforce placement; move to top.
-- **Inconsistent styles** → Pick one project-wide style; document in README.
+- **Missing docstrings on public APIs** - Enforce D-rules; PRs must add docstrings.
+- **Parameter lists out of sync with signatures** - CI lint must fail; reviewers verify.
+- **Duplicated types in docstrings when hints exist** - Remove types; describe semantics/units.
+- **No blank line after summary** - Enforce PEP 257 via Ruff.
+- **Module docstrings not first** - Enforce placement; move to top.
+- **Inconsistent styles** - Pick one project-wide style; document in README.
 
 ### Quality Mistakes (NOT Caught by Ruff - Requires Human/AI Review)
 

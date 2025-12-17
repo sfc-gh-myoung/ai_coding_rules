@@ -1,5 +1,11 @@
 # Go Core: Modern Standards & Best Practices
 
+> **CORE RULE: PRESERVE WHEN POSSIBLE**
+> 
+> This rule defines essential Golang patterns. Load for Go tasks.
+> Specialized rules depend on this foundation.
+
+
 ## Metadata
 
 **SchemaVersion:** v3.1
@@ -85,21 +91,16 @@ Go source files (.go) with godoc comments; go.mod/go.sum for dependencies
 
 Follow the standard Go project layout:
 
-```
-project/
-├── cmd/                    # Main applications
-│   └── myapp/
-│       └── main.go
-├── internal/               # Private packages (not importable)
-│   ├── config/
-│   └── service/
-├── pkg/                    # Public packages (importable)
-│   └── api/
-├── go.mod
-├── go.sum
-├── Makefile               # Or Taskfile.yml
-└── README.md
-```
+Directory structure for `project/`:
+- **cmd/** - Main applications
+  - **myapp/** - `main.go`
+- **internal/** - Private packages (not importable)
+  - **config/**, **service/**
+- **pkg/** - Public packages (importable)
+  - **api/**
+- `go.mod`, `go.sum`
+- `Makefile` (or `Taskfile.yml`)
+- `README.md`
 
 **Rules:**
 - Use `internal/` for packages that should not be imported by other modules
@@ -233,7 +234,6 @@ if err != nil {
 _ = writer.Close() // Best-effort cleanup; main data already flushed
 ```
 
----
 
 **Anti-Pattern 2: Naked Returns in Long Functions**
 ```go
@@ -269,7 +269,6 @@ func writeFile(path string, data []byte) (err error) {
 }
 ```
 
----
 
 **Anti-Pattern 3: Overusing `interface{}`/`any`**
 ```go
@@ -293,7 +292,6 @@ func Process(data io.Reader) ([]byte, error) {
 }
 ```
 
----
 
 **Anti-Pattern 4: Goroutine Leaks**
 ```go
@@ -328,7 +326,6 @@ func watch(ctx context.Context, ch chan Event) {
 }
 ```
 
----
 
 **Anti-Pattern 5: Package-Level `init()` with Side Effects**
 ```go

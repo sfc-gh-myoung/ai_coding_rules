@@ -52,9 +52,9 @@ npm start
 - Started the development server
 
 **Next Steps:**
-- [PASS] Installation complete → [Configure](#configuration)
-- [?] Want to understand how it works → [Understanding](#understanding)
-- [!] Need different setup → Continue reading options below
+- [PASS] Installation complete - See [Configure](#configuration)
+- [?] Want to understand how it works - See [Understanding](#understanding)
+- [!] Need different setup - Continue reading options below
 
 ### Quick Start Complexity Management
 
@@ -471,10 +471,10 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 **Benefit:** Key value proposition
 
 **Quick Checklist:**
-- [ ] Prerequisites met? → [Prerequisites](#prerequisites)
-- [ ] Ready to deploy? → [Quick Start](#quick-start)
-- [ ] Want to understand first? → [Understanding](#understanding)
-- [ ] Contributing? → [Contributing](#contributing)
+- [ ] Prerequisites met? See [Prerequisites](#prerequisites)
+- [ ] Ready to deploy? See [Quick Start](#quick-start)
+- [ ] Want to understand first? See [Understanding](#understanding)
+- [ ] Contributing? See [Contributing](#contributing)
 ```
 
 **Why This Works:**
@@ -518,10 +518,9 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 ```markdown
 ## Rule Categories
 
-| Domain | # Rules | Token Budget | Load Strategy |
-|--------|---------|--------------|---------------|
-| Core   | 7       | ~900 tokens  | Always load   |
-| Python | 15      | ~4500 tokens | Load on demand|
+**Rule Domain Overview:**
+- **Core:** 7 rules, ~900 tokens - Always load
+- **Python:** 15 rules, ~4500 tokens - Load on demand
 ```
 
 **When to use:**
@@ -535,7 +534,7 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 **Consider:** For rule-based or policy-driven projects, document directive hierarchy
 
 **Pattern:** Show priority levels for behavioral guidance
-- Critical → Mandatory → Always → Requirement → Rule → Consider
+- Priority order: Critical, then Mandatory, then Always, then Requirement, then Rule, then Consider
 - Include visual indicators (colors, symbols, emoji) for priority levels
 
 **When to use:** Projects with:
@@ -548,15 +547,13 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 ```markdown
 ## Directive Language Hierarchy
 
-```
-├── Critical        [System Safety]      [RED] Must never violate
-├── Mandatory       [Non-negotiable]     [ORANGE] Must always follow
-├── Always          [Universal Practice] [YELLOW] Should be consistent
-├── Requirement     [Technical Standard] [BLUE] Should implement
-├── Rule            [Best Practice]      [GREEN] Recommended pattern
-└── Consider        [Optional]           [WHITE] Suggestions & alternatives
-```
-```
+Priority levels (highest to lowest):
+- **Critical** - System Safety [RED] - Must never violate
+- **Mandatory** - Non-negotiable [ORANGE] - Must always follow
+- **Always** - Universal Practice [YELLOW] - Should be consistent
+- **Requirement** - Technical Standard [BLUE] - Should implement
+- **Rule** - Best Practice [GREEN] - Recommended pattern
+- **Consider** - Optional [WHITE] - Suggestions & alternatives
 
 ### API Documentation
 - **Rule:** For libraries, include core API examples in README
@@ -681,7 +678,6 @@ Click [here](https://example.com/docs) for more info.
 
 ## For Users
 [content]
----
 
 ## For Contributors
 [content]
@@ -709,12 +705,12 @@ Click [here](https://example.com/docs) for more info.
 ### Text-Based Alternative
 
 **Step 1:** Identify your primary technology
-- Python → Load 200-python-core
-- Snowflake → Load 100-snowflake-core
+- Python: Load 200-python-core
+- Snowflake: Load 100-snowflake-core
 
 **Step 2:** Select your use case
-- Python + FastAPI → 210-python-fastapi-core
-- Snowflake + Streamlit → 101-snowflake-streamlit-core
+- Python + FastAPI: Load 210-python-fastapi-core
+- Snowflake + Streamlit: Load 101-snowflake-streamlit-core
 ```
 
 **Validation:** Test with screen reader (NVDA, JAWS, VoiceOver)

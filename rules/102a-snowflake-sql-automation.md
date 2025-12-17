@@ -71,7 +71,7 @@ SQL template files (.sql), Taskfile.yml tasks, CI/CD workflow files
 </output_format>
 
 <validation>
-Template validation → dev deployment → test verification → production deployment → post-deploy checks
+Template validation, then dev deployment, then test verification, then production deployment, then post-deploy checks
 </validation>
 
 <design_principles>
@@ -121,7 +121,6 @@ WHEN NOT MATCHED THEN
 ```
 **Benefits:** No data loss; incremental updates; idempotent; preserves permissions; production-safe; no outages; reliable automation
 
----
 
 **Anti-Pattern 2: Hardcoding Database/Schema Names Instead of Variables**
 ```sql
@@ -163,7 +162,6 @@ GROUP BY day;
 ```
 **Benefits:** Environment-portable; testable in dev; CI/CD-friendly; no manual edits; reliable deployment; professional automation; multi-environment support
 
----
 
 **Anti-Pattern 3: Missing Documentation Header in SQL Templates**
 ```sql
@@ -209,7 +207,6 @@ SELECT * FROM customers WHERE region = '<%REGION%>';
 ```
 **Benefits:** Clear purpose; documented parameters; usage examples; easy maintenance; self-documenting; onboarding-friendly; reduced support; professional
 
----
 
 **Anti-Pattern 4: Not Making SQL Scripts Idempotent**
 ```sql
@@ -428,30 +425,17 @@ ON_ERROR = 'CONTINUE';
 ### 2.1 Operations Directory Pattern
 
 **Structure:**
-```text
-sql/operations/
-├── grid/                      # Domain/schema grouping
-│   ├── setup/
-│   │   ├── create_schema.sql
-│   │   └── create_tables.sql
-│   ├── load/
-│   │   ├── copy_assets.sql
-│   │   └── copy_scada.sql
-│   ├── merge/
-│   │   ├── upsert_assets.sql
-│   │   └── upsert_events.sql
-│   └── teardown/
-│       └── drop_schema.sql
-├── customer/
-│   ├── setup/
-│   ├── load/
-│   ├── merge/
-│   └── teardown/
-└── shared/
-    ├── create_database.sql
-    ├── create_roles.sql
-    └── drop_database.sql
-```
+
+Directory structure for `sql/operations/`:
+- **grid/** - Domain/schema grouping
+  - **setup/** - `create_schema.sql`, `create_tables.sql`
+  - **load/** - `copy_assets.sql`, `copy_scada.sql`
+  - **merge/** - `upsert_assets.sql`, `upsert_events.sql`
+  - **teardown/** - `drop_schema.sql`
+- **customer/** - Customer domain
+  - **setup/**, **load/**, **merge/**, **teardown/**
+- **shared/** - Cross-domain scripts
+  - `create_database.sql`, `create_roles.sql`, `drop_database.sql`
 
 **Benefits:**
 - Clear domain separation

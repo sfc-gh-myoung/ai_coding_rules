@@ -1,5 +1,11 @@
 # HTMX Frontend Reference
 
+> **CORE RULE: PRESERVE WHEN POSSIBLE**
+> 
+> This rule defines essential Frontend HTMX patterns. Load for HTMX tasks.
+> Specialized rules depend on this foundation.
+
+
 ## Metadata
 
 **SchemaVersion:** v3.1
@@ -78,20 +84,16 @@ HTML with HTMX attributes, CSS transitions, JavaScript event listeners for HTMX 
 ### 1. Core HTMX Attributes
 
 **HTTP Method Attributes:**
-| Attribute | Purpose | Example |
-|-----------|---------|---------|
-| `hx-get` | Issue GET request | `<button hx-get="/data">Load</button>` |
-| `hx-post` | Issue POST request | `<form hx-post="/submit">...</form>` |
-| `hx-put` | Issue PUT request | `<button hx-put="/update">Save</button>` |
-| `hx-delete` | Issue DELETE request | `<button hx-delete="/remove">Delete</button>` |
-| `hx-patch` | Issue PATCH request | `<button hx-patch="/partial">Update</button>` |
+- **`hx-get`** - Issue GET request (e.g., `<button hx-get="/data">Load</button>`)
+- **`hx-post`** - Issue POST request (e.g., `<form hx-post="/submit">...</form>`)
+- **`hx-put`** - Issue PUT request (e.g., `<button hx-put="/update">Save</button>`)
+- **`hx-delete`** - Issue DELETE request (e.g., `<button hx-delete="/remove">Delete</button>`)
+- **`hx-patch`** - Issue PATCH request (e.g., `<button hx-patch="/partial">Update</button>`)
 
 **Targeting and Swapping:**
-| Attribute | Purpose | Example |
-|-----------|---------|---------|
-| `hx-target` | Element to swap content into | `hx-target="#results"` |
-| `hx-swap` | How to swap content | `hx-swap="outerHTML"` |
-| `hx-select` | CSS selector to extract from response | `hx-select="#content"` |
+- **`hx-target`** - Element to swap content into (e.g., `hx-target="#results"`)
+- **`hx-swap`** - How to swap content (e.g., `hx-swap="outerHTML"`)
+- **`hx-select`** - CSS selector to extract from response (e.g., `hx-select="#content"`)
 
 **Swap Strategies:**
 - `innerHTML` - Replace inner HTML (default)
@@ -357,7 +359,7 @@ htmx.trigger(element, 'click');
 ```
 
 **Network Tab:**
-- Open browser dev tools → Network tab
+- Open browser dev tools, then select Network tab
 - Look for requests with `HX-Request: true` header
 - Check response headers for `HX-Trigger`, `HX-Redirect`, etc.
 

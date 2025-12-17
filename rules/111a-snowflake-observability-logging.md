@@ -122,7 +122,6 @@ def process_data(records):
 ```
 **Benefits:** Logs persisted in event tables; queryable history; production debugging; proper log levels; structured data; automatic routing
 
----
 
 **Anti-Pattern 2: Logging Every Iteration in Tight Loops**
 ```python
@@ -144,7 +143,6 @@ logger.info(f"Completed processing {len(large_dataset)} records")
 ```
 **Benefits:** 1000x fewer logs; manageable costs; performance maintained; signal preserved; actionable logs; production-scalable
 
----
 
 **Anti-Pattern 3: Logging Sensitive Data (PII, Credentials)**
 ```python
@@ -166,7 +164,6 @@ def authenticate_user(username, password, ssn):
 ```
 **Benefits:** Security maintained; compliance-ready; no PII exposure; safe debugging; audit-friendly; regulatory compliance; zero breach liability
 
----
 
 **Anti-Pattern 4: Using DEBUG Log Level in Production**
 ```python

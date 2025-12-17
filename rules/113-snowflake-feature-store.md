@@ -124,7 +124,6 @@ training_data = fs.generate_training_set(
 ```
 **Benefits:** No data leakage; realistic model performance; production accuracy matches training; point-in-time correctness; professional ML engineering; reliable models
 
----
 
 **Anti-Pattern 2: Not Versioning Feature Views**
 ```python
@@ -177,7 +176,6 @@ model_v2 = train_model(features='customer_features@v2.0.0')
 ```
 **Benefits:** Reproducible models; clear lineage; no training/inference mismatch; rollback capability; audit trail; professional; multiple model versions coexist
 
----
 
 **Anti-Pattern 3: Using Non-Deterministic Functions in Feature Engineering**
 ```python
@@ -221,7 +219,6 @@ def time_aware_features(df):
 ```
 **Benefits:** Reproducible features; training/inference consistency; debuggable; reliable predictions; professional ML engineering; production-ready
 
----
 
 **Anti-Pattern 4: Not Monitoring Feature View Refresh Costs**
 ```python

@@ -109,7 +109,6 @@ COMMIT;
 ```
 **Benefits:** Atomic stream consumption; transactional consistency; automatic rollback on failure; idempotent processing
 
----
 
 **Anti-Pattern 2: Not Using CREATE OR REPLACE for Task DDL**
 ```sql
@@ -133,7 +132,6 @@ AS
 ```
 **Benefits:** Idempotent deployments; CI/CD friendly; updates task definition safely; no manual cleanup needed; repeatable automation
 
----
 
 **Anti-Pattern 3: Missing Task Dependencies in DAGs**
 ```sql
@@ -165,7 +163,6 @@ AS CALL load();
 ```
 **Benefits:** Correct execution order; automatic dependency resolution; Snowflake manages scheduling; no race conditions; transactional DAG execution
 
----
 
 **Anti-Pattern 4: Not Monitoring Task Execution Status**
 ```sql

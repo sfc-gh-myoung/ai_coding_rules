@@ -107,7 +107,6 @@ CREATE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
 ```
 **Benefits:** Correct syntax compiles successfully.
 
----
 
 **Anti-Pattern 2: Complex Expressions in DIMENSIONS**
 ```sql
@@ -146,7 +145,6 @@ CREATE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
 ```
 **Benefits:** Clean dimensions that work with Cortex Analyst's temporal intelligence.
 
----
 
 **Anti-Pattern 3: Missing Equals Sign in COMMENT**
 ```sql
@@ -179,7 +177,6 @@ CREATE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
 ```
 **Benefits:** Proper comment syntax compiles successfully.
 
----
 
 **Anti-Pattern 4: Wrong Clause Order**
 ```sql
@@ -215,13 +212,13 @@ CREATE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
     orders.order_count AS COUNT(*)
   );
 ```
-**Benefits:** Correct clause order: TABLES → FACTS → DIMENSIONS → METRICS.
+**Benefits:** Correct clause order: TABLES, then FACTS, then DIMENSIONS, then METRICS.
 
 ## Post-Execution Checklist
 
 **DDL Creation:**
 - [ ] Use `CREATE SEMANTIC VIEW` (not `CREATE VIEW`)
-- [ ] Clause order: TABLES → FACTS → DIMENSIONS → METRICS
+- [ ] Clause order: TABLES, then FACTS, then DIMENSIONS, then METRICS
 - [ ] Mapping syntax: `logical_name AS physical_column` (NOT reversed)
 - [ ] PRIMARY KEY defined in TABLES block (uses physical columns only)
 - [ ] COMMENT clauses use equals sign: `COMMENT = 'text'`
@@ -247,7 +244,7 @@ CREATE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
   - `SHOW SEMANTIC DIMENSIONS/METRICS` returns expected structure
   - Validation rules pass (relationships, granularity, expressions)
   - Correct mapping syntax used (logical_name AS physical_expression)
-  - Clause order correct (TABLES → FACTS → DIMENSIONS → METRICS)
+  - Clause order correct (TABLES, then FACTS, then DIMENSIONS, then METRICS)
   - COMMENT syntax correct (uses equals sign)
   - PRIMARY KEY uses physical columns only
 - **Negative Tests:**

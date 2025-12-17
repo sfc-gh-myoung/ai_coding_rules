@@ -291,37 +291,22 @@ uvx ruff check . && uvx ruff format .
 - **Always:** Organize code using blueprints for modular architecture.
 - **Always:** Follow the project structure from `203-python-project-setup.md` with proper `__init__.py` files.
 
-```python
-# Recommended structure
-app/
-├── __init__.py              # Application factory
-├── config.py                # Configuration classes
-├── models/
-│   ├── __init__.py
-│   ├── user.py             # SQLAlchemy models
-│   └── post.py
-├── blueprints/
-│   ├── __init__.py
-│   ├── auth/
-│   │   ├── __init__.py
-│   │   ├── routes.py       # Authentication routes
-│   │   └── forms.py        # WTForms forms
-│   ├── main/
-│   │   ├── __init__.py
-│   │   └── routes.py       # Main application routes
-│   └── api/
-│       ├── __init__.py
-│       └── routes.py       # API endpoints
-├── templates/
-│   ├── base.html           # Base template
-│   ├── auth/
-│   └── main/
-├── static/
-│   ├── css/
-│   ├── js/
-│   └── images/
-└── extensions.py           # Extension initialization
-```
+Recommended directory structure for `app/`:
+- `__init__.py` - Application factory
+- `config.py` - Configuration classes
+- **models/** - SQLAlchemy models
+  - `__init__.py`, `user.py`, `post.py`
+- **blueprints/** - Route modules
+  - `__init__.py`
+  - **auth/** - `__init__.py`, `routes.py` (Authentication routes), `forms.py` (WTForms forms)
+  - **main/** - `__init__.py`, `routes.py` (Main application routes)
+  - **api/** - `__init__.py`, `routes.py` (API endpoints)
+- **templates/** - Jinja2 templates
+  - `base.html` - Base template
+  - **auth/**, **main/**
+- **static/** - Static assets
+  - **css/**, **js/**, **images/**
+- `extensions.py` - Extension initialization
 
 ### Application Factory Pattern
 - **Requirement:** Create Flask app instance through a factory function.

@@ -120,7 +120,6 @@ def load_data():
 ```
 **Benefits:** Clear SQL vs non-SQL errors; error code for support; actionable debugging info; professional error messages
 
----
 
 **Anti-Pattern 2: Error Messages Without Query Context**
 ```python
@@ -168,7 +167,6 @@ except SnowparkSQLException as e:
 ```
 **Benefits:** Immediate identification of failing query; table context clear; numbered queries for easy reference; fast debugging
 
----
 
 **Anti-Pattern 3: No st.stop() After SQL Errors**
 ```python
@@ -203,7 +201,6 @@ st.dataframe(transformers)
 ```
 **Benefits:** Prevents cascading errors; clean single error message; professional error handling; user knows exactly what failed
 
----
 
 **Anti-Pattern 4: Using st.warning() for SQL Errors**
 ```python
@@ -249,7 +246,6 @@ except SnowparkSQLException as e:
 ```
 **Benefits:** Correct severity levels; distinguishes data issues from system failures; user knows difference between "no data" vs "broken query"
 
----
 
 **Anti-Pattern 5: Missing Error Codes in Error Messages**
 ```python

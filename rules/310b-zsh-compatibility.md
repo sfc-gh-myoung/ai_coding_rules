@@ -665,15 +665,14 @@ fi
 
 ### Project Structure
 - **Rule:** Organize for multi-shell support:
-```
-project/
-├── bin/script.sh        # Portable main script
-├── lib/
-│   ├── common.sh        # Shared functions
-│   ├── zsh/             # Zsh-specific
-│   └── bash/            # Bash-specific
-└── tests/            # Shell-specific tests
-```
+
+Directory structure for `project/`:
+- **bin/** - `script.sh` (Portable main script)
+- **lib/** - Library files
+  - `common.sh` - Shared functions
+  - **zsh/** - Zsh-specific
+  - **bash/** - Bash-specific
+- **tests/** - Shell-specific tests
 
 ### Documentation Standards
 - **Rule:** Document compatibility:

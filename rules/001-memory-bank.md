@@ -16,6 +16,14 @@ Establish universal principles for maintaining project context and ensuring AI e
 
 Universal memory bank principles for project context management across all AI models and editors
 
+## Context Management
+
+For context preservation strategy and priority order, see:
+- `000-global-core.md`, section "Context Window Management Protocol"
+- `AGENTS.md`, Bootstrap protocol (ALWAYS preserve)
+
+Memory bank patterns complement but do not replace the core preservation hierarchy.
+
 ## Quick Start TL;DR
 
 **MANDATORY:**
@@ -212,9 +220,9 @@ Validation:
 - [Markdown Guide](https://www.markdownguide.org/) - Complete Markdown syntax and formatting reference
 
 ### Related Rules
-- **Global Core**: `rules/000-global-core.md` - Foundational workflow and safety protocols
-- **Rule Governance**: `rules/002-rule-governance.md` - Token budgets and rule sizing standards
-- **Context Engineering**: `rules/003-context-engineering.md` - Comprehensive attention budget and compaction strategies
+- **Global Core**: `000-global-core.md` - Foundational workflow and safety protocols
+- **Rule Governance**: `002-rule-governance.md` - Token budgets and rule sizing standards
+- **Context Engineering**: `003-context-engineering.md` - Comprehensive attention budget and compaction strategies
 
 ## 1. Universal Context Structure
 
@@ -227,18 +235,11 @@ Validation:
 - **Product Context**: Why project exists, problems solved, user experience goals (stable vision)
 
 ### File Organization Principles
-```mermaid
-flowchart TD
-    PB[projectbrief.md] --> PC[productContext.md]
-    PB --> SP[systemPatterns.md]
-    PB --> TC[techContext.md]
 
-    PC --> AC[activeContext.md]
-    SP --> AC
-    TC --> AC
-
-    AC --> P[progress.md]
-```
+**File Dependencies:**
+- **projectbrief.md** (foundation): Informs productContext.md, systemPatterns.md, techContext.md
+- **productContext.md, systemPatterns.md, techContext.md**: Inform activeContext.md
+- **activeContext.md**: Informs progress.md
 
 **File Structure:**
 - **Single Purpose**: Each file serves one specific context type
@@ -296,15 +297,41 @@ flowchart TD
 
 All memory bank files must stay within these limits:
 
-| File | Max Lines | Priority | Content Type | Enforcement |
-|------|-----------|----------|--------------|-------------|
-| activeContext.md | 100 | CRITICAL | Current + last session only | Check before every commit |
-| projectbrief.md | 120 | High | Stable foundation reference | Check on major updates |
-| productContext.md | 120 | High | Stable vision reference | Check on major updates |
-| systemPatterns.md | 150 | High | Architectural decisions | Check when adding patterns |
-| techContext.md | 150 | Medium | Technical stack reference | Check on stack changes |
-| progress.md | 140 | Medium | Current state + roadmap | Check weekly |
-| **Total (all files)** | **600** | CRITICAL | Cross-file sum | Check before every commit |
+**File Size Budgets:**
+
+**activeContext.md:** 100 lines max
+- Priority: CRITICAL
+- Content: Current + last session only
+- Enforcement: Check before every commit
+
+**projectbrief.md:** 120 lines max
+- Priority: High
+- Content: Stable foundation reference
+- Enforcement: Check on major updates
+
+**productContext.md:** 120 lines max
+- Priority: High
+- Content: Stable vision reference
+- Enforcement: Check on major updates
+
+**systemPatterns.md:** 150 lines max
+- Priority: High
+- Content: Architectural decisions
+- Enforcement: Check when adding patterns
+
+**techContext.md:** 150 lines max
+- Priority: Medium
+- Content: Technical stack reference
+- Enforcement: Check on stack changes
+
+**progress.md:** 140 lines max
+- Priority: Medium
+- Content: Current state + roadmap
+- Enforcement: Check weekly
+
+**Total (all files):** 600 lines max
+- Priority: CRITICAL
+- Enforcement: Check before every commit
 
 **Enforcement Procedure:**
 1. Check file sizes before every commit to memory bank
@@ -319,10 +346,11 @@ All memory bank files must stay within these limits:
 - **Reference Accuracy**: All links and references remain current
 - **Session Recovery Targets:**
 
-| Project Type | Criteria | Target Recovery Time |
-|--------------|----------|---------------------|
-| Complex | >4 memory bank files OR >400 total lines | ≤ 60 seconds |
-| Standard | ≤4 files AND ≤400 lines | ≤ 30 seconds |
+**Complex Projects:** Target recovery ≤ 60 seconds
+- Criteria: >4 memory bank files OR >400 total lines
+
+**Standard Projects:** Target recovery ≤ 30 seconds
+- Criteria: ≤4 files AND ≤400 lines
 
 **Measurement:** Time from session start to first productive action (code edit or substantive response)
 
@@ -364,32 +392,33 @@ Apply these rules deterministically to maintain size budgets:
 
 **Temporal Rules:**
 
-| Content Type | Age Threshold | Action |
-|--------------|---------------|--------|
-| Completed work details | >7 days | Condense to 1-line summary |
-| Completed work summary | >30 days | Archive to memory-bank/archive/YYYY-MM.md |
-| Resolved blocker | >14 days | Remove entirely |
-| Session logs | >14 days | Archive to memory-bank/archive/YYYY-MM.md |
-| Decision rationale | >30 days | Keep outcome only, remove discussion |
+- **Completed work details (>7 days):** Condense to 1-line summary
+- **Completed work summary (>30 days):** Archive to memory-bank/archive/YYYY-MM.md
+- **Resolved blocker (>14 days):** Remove entirely
+- **Session logs (>14 days):** Archive to memory-bank/archive/YYYY-MM.md
+- **Decision rationale (>30 days):** Keep outcome only, remove discussion
 
 **Content Type Rules:**
-- File references for deleted project files → Remove entirely
-- Duplicate status updates → Keep most recent only
-- Verbose explanations (>5 lines) → Condense to bullets
-- Tool output logs after issue resolved → Remove
-- Superseded information → Remove immediately
+
+- **File references for deleted project files:** Remove entirely
+- **Duplicate status updates:** Keep most recent only
+- **Verbose explanations (>5 lines):** Condense to bullets
+- **Tool output logs after issue resolved:** Remove
+- **Superseded information:** Remove immediately
 
 **Volume Rules:**
-- Individual task details >10 lines → Condense to 1-3 lines
-- Session change log >5 entries → Keep most recent 5, archive rest
-- Blocker descriptions >5 lines (after resolved) → Condense to 1-2 lines
+
+- **Individual task details >10 lines:** Condense to 1-3 lines
+- **Session change log >5 entries:** Keep most recent 5, archive rest
+- **Blocker descriptions >5 lines (after resolved):** Condense to 1-2 lines
 
 **Preservation Exceptions (Never Prune):**
-- Architectural decisions → Keep indefinitely in systemPatterns.md
-- Core requirements → Keep in projectbrief.md (stable reference)
-- Active blockers (unresolved) → Keep full details regardless of age
-- Current session work → Keep full details until session ends
-- Stable references (projectbrief.md, techContext.md, productContext.md) → Exempt from temporal pruning
+
+- **Architectural decisions:** Keep indefinitely in systemPatterns.md
+- **Core requirements:** Keep in projectbrief.md (stable reference)
+- **Active blockers (unresolved):** Keep full details regardless of age
+- **Current session work:** Keep full details until session ends
+- **Stable references:** projectbrief.md, techContext.md, productContext.md exempt from temporal pruning
 
 **Compaction Techniques:**
 
@@ -432,7 +461,6 @@ Older than 30 days:                Archive or remove
 - **Remove:** Resolved issues, exploratory dead-ends, redundant tool outputs, verbose explanations
 - **Compress:** Completed tasks (outcomes only), historical decisions (rationale + result), old session logs
 
----
 
 ### Staleness Detection Rules
 
@@ -460,15 +488,13 @@ Content is classified as **"outdated"** when it meets ANY of these criteria:
 
 **Action Rules:**
 
-| Staleness Type | Age Threshold | Action |
-|----------------|---------------|--------|
-| Completed work details | >7 days | Condense to 1-line summary |
-| Completed work summary | >30 days | Archive to memory-bank/archive/ |
-| Resolved blocker | >14 days | Remove entirely |
-| Session logs | >14 days | Archive to memory-bank/archive/YYYY-MM.md |
-| Superseded status | Any age | Remove immediately |
-| Deleted file references | Any age | Remove immediately |
-| Deprecated patterns | >30 days unused | Remove or archive |
+- **Completed work details (>7 days):** Condense to 1-line summary
+- **Completed work summary (>30 days):** Archive to memory-bank/archive/
+- **Resolved blocker (>14 days):** Remove entirely
+- **Session logs (>14 days):** Archive to memory-bank/archive/YYYY-MM.md
+- **Superseded status (any age):** Remove immediately
+- **Deleted file references (any age):** Remove immediately
+- **Deprecated patterns (>30 days unused):** Remove or archive
 
 **Stable Reference Exemptions:**
 These files should NOT be pruned for temporal staleness:
@@ -477,17 +503,24 @@ These files should NOT be pruned for temporal staleness:
 - productContext.md (product vision)
 - systemPatterns.md (architectural decisions - explicit preservation rule applies)
 
----
 
 ### Archive Policy (Single Source of Truth)
 
 **When to Archive:**
 
-| File | Retention | Archive Trigger | Archive Destination |
-|------|-----------|-----------------|---------------------|
-| activeContext.md | Current + last session | Content >2 sessions old | memory-bank/archive/YYYY-MM.md |
-| progress.md | Last 14 days | Entries >14 days old | memory-bank/archive/YYYY-MM.md |
-| Other core files | No routine archiving | N/A (stable reference) | N/A |
+**activeContext.md:**
+- Retention: Current + last session
+- Archive trigger: Content >2 sessions old
+- Destination: memory-bank/archive/YYYY-MM.md
+
+**progress.md:**
+- Retention: Last 14 days
+- Archive trigger: Entries >14 days old
+- Destination: memory-bank/archive/YYYY-MM.md
+
+**Other core files:**
+- Retention: No routine archiving (stable reference)
+- Archive trigger: N/A
 
 **Archive Frequency:**
 - **Reactive:** When file approaches size budget (within 10 lines)
@@ -547,13 +580,12 @@ Update memory bank when ANY of these conditions are met:
 **Note:** When in doubt, update. Over-updating is preferable to stale context.
 
 ### Update Process
-```mermaid
-flowchart TD
-    Start[Update Process] --> P1[Review ALL Files]
-    P1 --> P2[Document Current State]
-    P2 --> P3[Clarify Next Steps]
-    P3 --> P4[Prune Outdated Content]
-```
+
+**Steps:**
+1. Review ALL memory bank files
+2. Document current state
+3. Clarify next steps
+4. Prune outdated content
 
 ### Initialization Protocol (Required Before First Use)
 
@@ -567,16 +599,14 @@ Any of these phrasings trigger the initialization protocol. This is a **user-ini
 
 **Files and Directories Created:**
 
-| Path | Purpose | Initial Content |
-|------|---------|----------------|
-| `memory-bank/` | Root directory | (empty directory) |
-| `memory-bank/activeContext.md` | Current session context | Template with Quick Start section |
-| `memory-bank/projectbrief.md` | Foundation reference | Template with purpose, goals, constraints |
-| `memory-bank/productContext.md` | Product vision | Template with user value, features |
-| `memory-bank/systemPatterns.md` | Architecture decisions | Template with patterns section |
-| `memory-bank/techContext.md` | Technical stack | Template with dependencies, tools |
-| `memory-bank/progress.md` | Current state tracking | Template with status, roadmap |
-| `memory-bank/archive/` | Historical content | (empty directory, optional) |
+- **`memory-bank/`** - Root directory (empty directory)
+- **`memory-bank/activeContext.md`** - Current session context (Template with Quick Start section)
+- **`memory-bank/projectbrief.md`** - Foundation reference (Template with purpose, goals, constraints)
+- **`memory-bank/productContext.md`** - Product vision (Template with user value, features)
+- **`memory-bank/systemPatterns.md`** - Architecture decisions (Template with patterns section)
+- **`memory-bank/techContext.md`** - Technical stack (Template with dependencies, tools)
+- **`memory-bank/progress.md`** - Current state tracking (Template with status, roadmap)
+- **`memory-bank/archive/`** - Historical content (empty directory, optional)
 
 **Idempotency Rules:**
 - If `memory-bank/` exists: Check for missing files only
@@ -585,35 +615,30 @@ Any of these phrasings trigger the initialization protocol. This is a **user-ini
 - If file exceeds budget: Apply compaction (see Context Compaction Strategies)
 
 **Initialization Workflow:**
-```mermaid
-flowchart TD
-    Start[Initialize Triggered] --> Check{memory-bank/ exists?}
-    Check -->|No| CreateDir[Create memory-bank/]
-    Check -->|Yes| ScanFiles[Scan for required files]
-    CreateDir --> CreateFiles[Create all template files]
-    ScanFiles --> Missing{Missing files?}
-    Missing -->|Yes| CreateMissing[Create missing files only]
-    Missing -->|No| Validate[Validate structure]
-    CreateFiles --> Validate
-    CreateMissing --> Validate
-    Validate --> Done[Initialization Complete]
-```
 
-**Text Fallback (for non-rendering contexts):**
-```
-Check memory-bank/ exists
-  → No → Create directory + all template files → Validate → Complete
-  → Yes → Scan for missing files → Create missing only → Validate → Complete
-```
+1. Check if memory-bank/ exists
+2. If NO: Create directory, then create all template files, then validate, then complete
+3. If YES: Scan for missing files
+   - If missing files found: Create missing files only, then validate, then complete
+   - If no missing files: Validate structure, then complete
 
 **Error Recovery:**
 
-| Error | Detection | Recovery Action |
-|-------|-----------|-----------------|
-| Permission denied | "permission denied" in error | Report: "Cannot create memory-bank/. Run `mkdir -p memory-bank` manually and retry." |
-| Disk full | "no space" in error | Report: "Insufficient disk space. Free space and retry." |
-| Path conflict | File named 'memory-bank' exists | Report: "File 'memory-bank' exists (expected directory). Rename or remove it." |
-| Template generation fails | Write operation fails | Report: "Cannot create template files. Check permissions." |
+**Permission denied:**
+- Detection: "permission denied" in error
+- Action: Report "Cannot create memory-bank/. Run `mkdir -p memory-bank` manually and retry."
+
+**Disk full:**
+- Detection: "no space" in error
+- Action: Report "Insufficient disk space. Free space and retry."
+
+**Path conflict:**
+- Detection: File named 'memory-bank' exists
+- Action: Report "File 'memory-bank' exists (expected directory). Rename or remove it."
+
+**Template generation fails:**
+- Detection: Write operation fails
+- Action: Report "Cannot create template files. Check permissions."
 
 **activeContext.md Template:**
 ```markdown
@@ -637,7 +662,6 @@ Check memory-bank/ exists
 [Previous session to be added]
 ```
 
----
 
 ### Update Process Steps
 
@@ -652,21 +676,20 @@ Pre-step: If `memory-bank/` does not exist, run initialization protocol (see abo
 **Note:** IDE rule updates are out of scope for this rule. See Section 5 for IDE integration guidance (reference only).
 
 ### Session Start Protocol
-```mermaid
-flowchart TD
-    Start[New Session] --> Read[Read ALL Memory Bank Files]
-    Read --> Check{Files Complete?}
-    Check -->|No| Plan[Create Missing Files]
-    Check -->|Yes| Context[Verify Current Context]
-    Context --> Strategy[Develop Work Strategy]
-    Strategy --> Present[Present Approach to User]
-```
+
+**Steps:**
+1. Read ALL memory bank files
+2. Check if files are complete
+   - If NO: Create missing files first
+   - If YES: Continue to step 3
+3. Verify current context
+4. Develop work strategy
+5. Present approach to user
 
 **Critical:** Read ALL memory bank files at the start of EVERY session - this is not optional.
 
 **Precondition:** Verify the `memory-bank/` folder exists. If missing, user must run initialization (see Initialization Protocol in Section 4) before any write operation.
 
----
 
 ### Failure Recovery Procedures
 
@@ -687,7 +710,6 @@ flowchart TD
 - [ ] memory-bank/ exists
 - [ ] Core template files created
 
----
 
 #### Scenario 2: Context File Corrupted (Unparseable)
 
@@ -699,7 +721,7 @@ flowchart TD
 **Recovery Steps:**
 1. Identify corrupted file and timestamp: YYYY-MM-DD-HHMMSS
 2. Rename file: `<filename>.corrupted-YYYY-MM-DD-HHMMSS`
-3. Log: "[RECOVERY] Corrupted file archived: <filename> → <filename>.corrupted-..."
+3. Log: "[RECOVERY] Corrupted file archived: <filename> to <filename>.corrupted-..."
 4. Create new file from template with recovery notice:
    ```markdown
    # <Filename> (Recovered)
@@ -717,7 +739,6 @@ flowchart TD
 - [ ] New file valid and parseable
 - [ ] User notified
 
----
 
 #### Scenario 3: Context Files Inconsistent
 
@@ -745,7 +766,6 @@ flowchart TD
 - [ ] Critical dependencies resolved
 - [ ] User notified of inconsistencies
 
----
 
 #### Scenario 4: File Exceeds Size Budget
 
@@ -763,7 +783,7 @@ flowchart TD
 4. Re-check line count after compaction
 5. If still exceeds budget:
    - Archive oldest 50% of content to memory-bank/archive/YYYY-MM.md
-   - Log: "[RECOVERY] Emergency archive: <filename> → archive/YYYY-MM.md"
+   - Log: "[RECOVERY] Emergency archive: <filename> to archive/YYYY-MM.md"
 6. If still exceeds after emergency archive:
    - STOP and report: "Cannot compact further, manual review required"
 
@@ -772,7 +792,6 @@ flowchart TD
 - [ ] Archived content preserved
 - [ ] No critical current-session info lost
 
----
 
 #### Scenario 5: Read Operation Timeout or Network Error
 
@@ -796,21 +815,21 @@ flowchart TD
 - [ ] Agent continues with available context
 - [ ] User notified of degraded state
 
----
 
 #### Recovery Best Practices
 
 **Logging Requirements:**
 - Always log recovery actions to activeContext.md session change log
-- Format: `[RECOVERY YYYY-MM-DD HH:MM] <issue> → <action> → <outcome>`
+- Format: `[RECOVERY YYYY-MM-DD HH:MM] <issue> then <action> then <outcome>`
 - Include: timestamp, issue detected, action taken, outcome
 
 **User Notification Triggers:**
-- Corruption detected → Always notify
-- Emergency archive performed → Always notify
-- Inconsistency detected → Notify with details
-- Degraded operation mode → Notify immediately
-- Transient errors (retries succeeded) → Log only, no notification
+
+- **Corruption detected:** Always notify
+- **Emergency archive performed:** Always notify
+- **Inconsistency detected:** Notify with details
+- **Degraded operation mode:** Notify immediately
+- **Transient errors (retries succeeded):** Log only, no notification
 
 **Data Preservation:**
 - NEVER delete original file before backup created
@@ -818,7 +837,6 @@ flowchart TD
 - Archive to memory-bank/archive/ or .corrupted suffix
 - Preserve user data unless explicitly confirmed safe to remove
 
----
 
 ## 5. IDE Integration (Reference Only - Out of Scope)
 

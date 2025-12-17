@@ -42,6 +42,7 @@ Project automation using Taskfile.yml for consistent development workflows
 - [ ] Commands auto-detected (no hard-coded paths)
 - [ ] Preconditions check tool availability
 - [ ] Cross-platform tested (if applicable)
+- [ ] Task names use `namespace:action` pattern (Section 2)
 
 ## Contract
 
@@ -419,11 +420,10 @@ tasks:
 
 ### When to Use Each Pattern
 
-| Pattern | Use Case | Portability | Performance |
-|---------|----------|-------------|-------------|
-| `uvx TOOL` | One-off tool execution | Excellent | Slower (creates env) |
-| `command -v` in vars | Repeated tool use | Good | Fast (resolved once) |
-| Hard-coded paths | Never (except local override) | Breaks | Fast |
+**Pattern Selection:**
+- **`uvx TOOL`** - One-off tool execution (Excellent portability, slower - creates env)
+- **`command -v` in vars** - Repeated tool use (Good portability, fast - resolved once)
+- **Hard-coded paths** - Never use (except local override) - Breaks portability
 
 ### Migration Guide
 
@@ -495,12 +495,13 @@ tasks:
 
 ### When to Use `uvx` vs `uv run`
 
-| Scenario | Use | Example |
-|----------|-----|---------|
-| Project-independent tools | `uvx` | `uvx ruff check .` |
-| Project dependencies | `uv run` | `uv run pytest` |
-| Scripts needing project context | `uv run` | `uv run python scripts/build.py` |
-| One-off tool execution | `uvx` | `uvx black --check .` |
+**Use `uvx` for:**
+- Project-independent tools (e.g., `uvx ruff check .`)
+- One-off tool execution (e.g., `uvx black --check .`)
+
+**Use `uv run` for:**
+- Project dependencies (e.g., `uv run pytest`)
+- Scripts needing project context (e.g., `uv run python scripts/build.py`)
 
 ## 1.4 Cross-Platform Task Patterns
 
@@ -556,6 +557,148 @@ tasks:
 - **Requirement:** Define explicit dependencies/ordering.
 - **Requirement:** Specify clear shell commands to execute.
 - **Always:** Use variables to make tasks reusable and reduce repetition.
+
+### Required Variables Pattern
+
+Use `requires.vars` to enforce mandatory task parameters. Tasks will fail with a clear error if required variables are not provided.
+
+```yaml
+tasks:
+  deploy:
+    desc: "Deploy to target (requires DEST=)"
+    requires:
+      vars: [DEST]
+    cmds:
+      - ./deploy.sh --target "{{.DEST}}"
+
+  rule:new:
+    desc: "Generate rule template (requires FILENAME=)"
+    requires:
+      vars: [FILENAME]
+    cmds:
+      - python scripts/template_generator.py {{.FILENAME}}
+```
+
+**Invocation:** `task deploy DEST=/opt/app` or `task rule:new FILENAME=my-rule`
+
+**Best Practice:** Include the required variable in the task description (e.g., `"requires DEST="`) for discoverability via `task --list`.
+
+### Task Naming Conventions
+
+**Requirement:** Use `namespace:action` pattern with colon (`:`) separator for all task names. This provides consistent, predictable task discovery for both humans and AI agents.
+
+**Pattern:** `namespace:action` or `namespace:action:modifier`
+
+**Examples:**
+- `quality:lint` (not `lint` or `lint-check`)
+- `quality:lint:fix` (not `lint-fix` or `lintfix`)
+- `test:coverage:open` (not `test-cov-open`)
+
+**Root-Level Tasks:** Reserve for universal commands only: `default`, `preflight`, `status`
+
+**Rationale:**
+- Colon separator groups related tasks visually in `task --list` output
+- Enables tab-completion by namespace (e.g., `task quality:<TAB>`)
+- AI agents can discover tasks by namespace pattern
+- Consistent with Taskfile includes namespacing
+
+### Standard Namespace Registry
+
+Use these standard namespaces for consistency across projects. Namespaces are listed in order of typical workflow.
+
+**Core Workflow Namespaces:**
+
+- **`env:`** - Environment setup, dependencies
+  - Examples: `env:sync`, `env:lock`, `env:python`, `env:deps`, `env:install`
+
+- **`quality:`** - Code quality (lint, format, type)
+  - Examples: `quality:lint`, `quality:format`, `quality:typecheck`, `quality:check`, `quality:fix`
+
+- **`test:`** - Testing
+  - Examples: `test:all`, `test:unit`, `test:integration`, `test:coverage`, `test:coverage:open`
+
+- **`build:`** - Build, compilation, packaging
+  - Examples: `build:dist`, `build:package`, `build:docs`, `build:wheel`
+
+- **`deploy:`** - Deployment operations
+  - Examples: `deploy`, `deploy:dry`, `deploy:verbose`, `deploy:staging`, `deploy:prod`
+
+- **`validate:`** - CI/CD validation gates
+  - Examples: `validate:ci`, `validate:all`, `validate:pre-commit`
+
+- **`clean:`** - Cleanup operations
+  - Examples: `clean:cache`, `clean:venv`, `clean:build`, `clean:all`
+
+**Domain-Specific Namespaces:**
+
+- **`db:`** - Database operations
+  - Examples: `db:migrate`, `db:seed`, `db:reset`, `db:backup`
+
+- **`docker:`** - Container operations
+  - Examples: `docker:build`, `docker:up`, `docker:down`, `docker:logs`
+
+- **`cli:`** - CLI application commands
+  - Examples: `cli:run`, `cli:help`, `cli:version`
+
+- **`web:`** - Web server operations
+  - Examples: `web:start`, `web:dev`, `web:stop`, `web:help`
+
+- **`docs:`** - Documentation
+  - Examples: `docs:build`, `docs:serve`, `docs:publish`
+
+- **`release:`** - Release management
+  - Examples: `release:tag`, `release:changelog`, `release:publish`
+
+**Project Management Namespaces:**
+
+- **`index:`** - Index/catalog generation
+  - Examples: `index:generate`, `index:check`, `index:dry`
+
+- **`tokens:`** - Token budget management
+  - Examples: `tokens:update`, `tokens:check`, `tokens:dry`
+
+- **`keywords:`** - Keyword management
+  - Examples: `keywords:suggest`, `keywords:update`, `keywords:all`
+
+- **`rules:`** - Rule validation (plural for batch operations)
+  - Examples: `rules:validate`, `rules:validate:verbose`
+
+- **`rule:`** - Rule creation (singular for individual items)
+  - Examples: `rule:new`, `rule:new:force`
+
+- **`badges:`** - Badge/shield updates
+  - Examples: `badges:update`
+
+**Root-Level Tasks (no namespace):**
+
+- **`default`** - Show help or task list
+- **`preflight`** - Verify environment readiness
+- **`status`** - Show project status summary
+
+**Project-Specific Namespaces:** Add custom namespaces as needed (e.g., `spcs:`, `snowflake:`, `api:`), but follow the `namespace:action` pattern.
+
+### Naming Anti-Patterns
+
+```yaml
+# BAD: Hyphen-separated flat names
+tasks:
+  lint:           # Missing namespace
+  lint-fix:       # Hyphen instead of colon
+  test-cov:       # Abbreviated, hyphen-separated
+  format-check:   # Hyphen instead of colon
+
+# GOOD: Colon-separated namespaced names
+tasks:
+  quality:lint:
+    aliases: [lint]           # Short alias for convenience
+  quality:lint:fix:
+    aliases: [lint:fix]
+  test:coverage:
+    aliases: [test:cov]       # Abbreviated alias OK
+  quality:format:check:
+```
+
+**User Override:** If a user explicitly requests a different naming convention (e.g., flat names for a simple project), follow their request but maintain consistency throughout the Taskfile.
 
 ## 3. YAML Syntax and Shell Safety
 - **Critical:** Add `silent: true` to tasks that contain informational echo commands to prevent verbose output showing command execution.

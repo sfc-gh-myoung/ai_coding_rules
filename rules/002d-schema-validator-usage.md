@@ -1,5 +1,11 @@
 # Schema Validator Usage: Validation Commands and Error Resolution
 
+> **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
+> 
+> This rule defines essential governance patterns for the ai_coding_rules system.
+> Load when creating, reviewing, or maintaining rules.
+
+
 ## Metadata
 
 **SchemaVersion:** v3.1
@@ -94,28 +100,26 @@ python3 scripts/schema_validator.py rules/ --schema schemas/rule-schema-v4-draft
 
 ### Command Options
 
-| Option | Description | Example |
-|--------|-------------|---------|
-| `[file/dir]` | Path to validate | `rules/002-rule-governance.md` |
-| `--schema SCHEMA` | Custom schema file path | `--schema schemas/custom.yml` |
-| `--verbose`, `-v` | Show all check details | `--verbose` |
-| `--quiet`, `-q` | Show only summary, suppress individual file reports | `--quiet` |
-| `--json` | Output results in JSON format | `--json` |
-| `--strict` | Treat warnings as errors | `--strict` |
-| `--debug` | Enable debug logging | `--debug` |
+**Available Options:**
+- **`[file/dir]`** - Path to validate (e.g., `002-rule-governance.md`)
+- **`--schema SCHEMA`** - Custom schema file path
+- **`--verbose`, `-v`** - Show all check details
+- **`--quiet`, `-q`** - Show only summary, suppress individual file reports
+- **`--json`** - Output results in JSON format
+- **`--strict`** - Treat warnings as errors
+- **`--debug`** - Enable debug logging
 
 ### Exit Code Behavior
 
 The validator uses standard shell exit codes to indicate validation status. AI agents must check exit codes to determine success/failure programmatically.
 
-| Exit Code | Condition | Meaning |
-|-----------|-----------|---------|
-| 0 | No CRITICAL or HIGH errors | [PASS] Validation passed |
-| 0 | Only MEDIUM errors (without --strict) | [WARN] Warnings only, passed |
-| 1 | One or more CRITICAL errors | [FAIL] Validation failed |
-| 1 | One or more HIGH errors | [FAIL] Validation failed |
-| 1 | Any errors with --strict flag | [FAIL] Strict mode failure |
-| 1 | Invalid path or schema error | [FAIL] Command execution error |
+**Exit Codes:**
+- **Exit 0 (PASS):** No CRITICAL or HIGH errors
+- **Exit 0 (WARN):** Only MEDIUM errors (without --strict)
+- **Exit 1 (FAIL):** One or more CRITICAL errors
+- **Exit 1 (FAIL):** One or more HIGH errors
+- **Exit 1 (FAIL):** Any errors with --strict flag
+- **Exit 1 (FAIL):** Invalid path or schema error
 
 **Shell Usage Pattern:**
 ```bash
@@ -549,12 +553,11 @@ else:
 
 ## Error Severity Levels
 
-| Level | Icon | Meaning | Action Required |
-|-------|------|---------|-----------------|
-| **CRITICAL** | [FAIL] | Blocks validation | MUST fix before commit |
-| **HIGH** | [WARN] | Important issue | Strongly recommended to fix |
-| **MEDIUM** | [INFO] | Optional improvement | Review and consider fixing |
-| **INFO** | [PASS] | Informational | No action needed |
+**Severity Definitions:**
+- **CRITICAL [FAIL]:** Blocks validation - MUST fix before commit
+- **HIGH [WARN]:** Important issue - Strongly recommended to fix
+- **MEDIUM [INFO]:** Optional improvement - Review and consider fixing
+- **INFO [PASS]:** Informational - No action needed
 
 ## Common Errors and Fixes
 
@@ -759,14 +762,13 @@ python3 scripts/schema_validator.py [file] --json > validation_result.json
 
 Use "Common Errors and Fixes" section to identify fix patterns:
 
-| Error Pattern | Fix Pattern Reference | Automation Difficulty |
-|---------------|----------------------|----------------------|
-| Missing Keywords | Error 1 | Easy - Add field |
-| Keywords Count Wrong | Error 2 | Easy - Add keywords |
-| TokenBudget Format | Error 3 | Easy - Fix format |
-| Missing Section | Error 4 | Medium - Add section with structure |
-| Missing XML Tag | Error 5 | Easy - Add tag |
-| Section Order Wrong | Error 6 | Hard - Requires reordering |
+**Fix Complexity by Error Type:**
+- **Missing Keywords (Error 1):** Easy - Add field
+- **Keywords Count Wrong (Error 2):** Easy - Add keywords
+- **TokenBudget Format (Error 3):** Easy - Fix format
+- **Missing Section (Error 4):** Medium - Add section with structure
+- **Missing XML Tag (Error 5):** Easy - Add tag
+- **Section Order Wrong (Error 6):** Hard - Requires reordering
 
 **Step 6: Apply Fixes**
 
@@ -1144,12 +1146,20 @@ vim rules/bad-rule-2.md
 python3 scripts/schema_validator.py rules/
 ```
 
+## ContextTier Validation
+
+The schema validator checks that ContextTier is one of: Critical, High, Medium, Low.
+All four values remain valid - ContextTier is a secondary signal for fine-grained
+prioritization within natural language tiers (CRITICAL/CORE/FOUNDATION markers).
+
+The validator does NOT enforce relationships between markers and ContextTier values.
+
 ## References
 
 ### Related Rules
-- **Rule Governance**: `rules/002-rule-governance.md` - Schema requirements and validation criteria
-- **Creation Guide**: `rules/002a-rule-creation-guide.md` - Step 6 covers validation workflow
-- **Global Core**: `rules/000-global-core.md` - Foundation patterns
+- **Rule Governance**: `002-rule-governance.md` - Schema requirements and validation criteria
+- **Creation Guide**: `002a-rule-creation-guide.md` - Step 6 covers validation workflow
+- **Global Core**: `000-global-core.md` - Foundation patterns
 
 ### Tools
 - **schema_validator.py**: `scripts/schema_validator.py` - Validation script

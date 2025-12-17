@@ -452,16 +452,16 @@ module.exports = {
 - [Tutorial](URL) - Getting started guide
 ```
 
-**Important:** Related Rules MUST use `rules/` prefix
+**Note:** Related Rules can use bare filenames (e.g., `000-global-core.md`) or include the `rules/` prefix. The rules location is defined in AGENTS.md for token efficiency.
 
 **Example: DaisyUI**
 ```markdown
 ## References
 
 ### Related Rules
-- `rules/000-global-core.md` - Global standards and conventions
-- `rules/420-javascript-core.md` - JavaScript and frontend foundations
-- `rules/421-javascript-alpinejs-core.md` - Alpine.js patterns (complementary to DaisyUI)
+- `000-global-core.md` - Global standards and conventions
+- `420-javascript-core.md` - JavaScript and frontend foundations
+- `421-javascript-alpinejs-core.md` - Alpine.js patterns (complementary to DaisyUI)
 
 ### External Documentation
 - [DaisyUI Documentation](https://daisyui.com/docs/) - Official component documentation

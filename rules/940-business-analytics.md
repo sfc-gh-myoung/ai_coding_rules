@@ -84,7 +84,7 @@ Business-oriented queries, reports, visualizations, and dashboards for business 
 - Dashboards with 5-7 visualizations max, clear hierarchy, <2s load time
 - KPIs prominently displayed (top-left to top-right, above the fold)
 - Visualizations with clear titles, labeled axes, legends, annotations
-- Data storytelling structure: Situation → Complication → Resolution → Evidence
+- Data storytelling structure: Situation, then Complication, then Resolution, then Evidence
 - Accessibility: WCAG 2.1 AA compliant, screen reader tested, keyboard accessible
 </output_format>
 
@@ -150,7 +150,6 @@ with tab1:
 - Fast initial load
 - Progressive disclosure for details
 
----
 
 **Anti-Pattern 2: Technical Jargon Without Business Translation**
 ```sql
@@ -182,7 +181,6 @@ FROM metrics;
 - No translation needed
 - Higher dashboard adoption
 
----
 
 **Anti-Pattern 3: Pie Chart with 12 Slices**
 ```python
@@ -219,7 +217,6 @@ fig = go.Figure(go.Pie(
 - "Other" provides context without clutter
 - Easy to interpret at a glance
 
----
 
 **Anti-Pattern 4: Misleading Truncated Y-Axis**
 ```python
@@ -249,7 +246,6 @@ fig.add_annotation(
 - Maintains stakeholder trust
 - Accurate perception of change magnitude
 
----
 
 **Anti-Pattern 5: Red/Green Color Scheme Only**
 ```python
@@ -513,12 +509,25 @@ with st.expander("ℹ️ Metric Definitions"):
 
 ### Dashboard Design by Audience
 
-| **Audience** | **KPI Count** | **Detail Level** | **Update Freq** | **Preferred Charts** | **Interaction** |
-|--------------|---------------|------------------|-----------------|---------------------|-----------------|
-| **C-Level (CEO, CFO, COO)** | 3-5 | High-level trends, variance to goals | Daily/Weekly | Trend lines, variance bars, bullet charts | Minimal filters, drill to summary |
-| **Directors/VPs** | 5-8 | Aggregated by department/region | Daily | Comparison bars, heat maps, waterfall charts | Department filters, time periods |
-| **Analysts** | 10-15 | Granular, transaction-level access | Real-time/Hourly | Scatter plots, distributions, pivot tables | Heavy filtering, drill-down, export |
-| **Operations** | 5-7 | Real-time status, alerts | Hourly/Real-time | Gauges, status indicators, ranked lists | Action buttons, alert thresholds |
+**C-Level (CEO, CFO, COO):**
+- KPI Count: 3-5, Detail: High-level trends/variance to goals
+- Update: Daily/Weekly, Charts: Trend lines, variance bars, bullet charts
+- Interaction: Minimal filters, drill to summary
+
+**Directors/VPs:**
+- KPI Count: 5-8, Detail: Aggregated by department/region
+- Update: Daily, Charts: Comparison bars, heat maps, waterfall charts
+- Interaction: Department filters, time periods
+
+**Analysts:**
+- KPI Count: 10-15, Detail: Granular, transaction-level access
+- Update: Real-time/Hourly, Charts: Scatter plots, distributions, pivot tables
+- Interaction: Heavy filtering, drill-down, export
+
+**Operations:**
+- KPI Count: 5-7, Detail: Real-time status, alerts
+- Update: Hourly/Real-time, Charts: Gauges, status indicators, ranked lists
+- Interaction: Action buttons, alert thresholds
 
 **Example Implementation:**
 ```python
@@ -555,24 +564,19 @@ elif user_role == 'analyst':
 
 ### F-Pattern Layout (Standard Dashboard)
 
-```
-┌─────────────────────────────────────────────────┐
-│ Dashboard Title Last Update│
-├─────────────────────────────────────────────────┤
-│ KPI 1 KPI 2 KPI 3 KPI 4 │ ← Top priority metrics
-│ $12.5M 23.1% 94.2% 72 │
-│ +8.2%↑ +1.5%↑ -0.8%↓ +5↑ │
-├─────────────────────────────────────────────────┤
-│ │
-│ [Primary Chart: Revenue Trend] │ ← Main insight
-│ │
-├──────────────────────┬──────────────────────────┤
-│ [Chart 2: Regional │ [Chart 3: Product Mix] │ ← Supporting details
-│ Performance] │ │
-├──────────────────────┴──────────────────────────┤
-│ [Detailed Table: Top 10 Customers] │ ← Drill-down data
-└─────────────────────────────────────────────────┘
-```
+**Dashboard Layout Structure:**
+
+1. **Header Row:** Dashboard Title, Last Update timestamp
+2. **KPI Row (Top priority metrics):**
+   - KPI 1: $12.5M (+8.2% up)
+   - KPI 2: 23.1% (+1.5% up)
+   - KPI 3: 94.2% (-0.8% down)
+   - KPI 4: 72 (+5 up)
+3. **Primary Chart Row (Main insight):** Revenue Trend
+4. **Supporting Charts Row (Supporting details):**
+   - Chart 2: Regional Performance
+   - Chart 3: Product Mix
+5. **Detail Row (Drill-down data):** Detailed Table: Top 10 Customers
 
 **Layout Rules:**
 - **Above the fold:** 4-7 KPIs + 1 primary chart
@@ -582,19 +586,14 @@ elif user_role == 'analyst':
 
 ### Z-Pattern Layout (Storytelling/Report)
 
-```
-┌─────────────────────────────────────────────────┐
-│ Executive Summary ───────────────────────────→ │ ← Key takeaway
-│ "Revenue grew 8% driven by new customer │
-│ acquisition in APAC region" │
-│ ↓ │
-│ [Chart 1: Revenue Trend with APAC Highlight] │ ← Visual evidence
-│ ↓ │
-├─────────────────────────────────────────────────┤
-│ Supporting Analysis ─────────────────────────→ │ ← Details
-│ [Chart 2] [Chart 3] │
-└─────────────────────────────────────────────────┘
-```
+**Narrative Dashboard Flow:**
+
+1. **Executive Summary (Key takeaway):**
+   - "Revenue grew 8% driven by new customer acquisition in APAC region"
+2. **Primary Visual (Visual evidence):**
+   - Chart 1: Revenue Trend with APAC Highlight
+3. **Supporting Analysis (Details):**
+   - Chart 2, Chart 3
 
 **Storytelling Structure:**
 1. **Situation:** Current state summary (text box, 2-3 sentences)
@@ -636,16 +635,39 @@ with tab3:
 
 ### Comprehensive Chart Type Decision Matrix
 
-| **Data Purpose** | **Primary Chart** | **When to Use** | **Avoid When** |
-|------------------|-------------------|-----------------|----------------|
-| **Comparison (Categories)** | Horizontal bar chart | Comparing 3-15 categories | >15 categories (use sorted table) |
-| **Trend Analysis** | Line chart, Area chart | Time series, continuous progression | <4 data points (use column chart) |
-| **Part-to-Whole** | Pie chart (2-5 slices), Donut chart, Stacked bar | Simple proportions | >5 categories, precise comparison needed |
-| **Distribution** | Histogram, Box plot, Violin plot | Data spread, outliers, statistical analysis | Categorical data |
-| **Relationship** | Scatter plot, Bubble chart | Correlation between 2-3 variables | No clear relationship exists |
-| **Ranking** | Horizontal bar (sorted), Lollipop chart | Ordered comparisons, league tables | Unordered categories |
-| **Variance** | Waterfall chart, Bullet chart | Changes decomposition, actual vs target | Simple trends (use line) |
-| **Volume** | Bubble chart, Symbol map | 3rd dimension (size) needed | Size differences too subtle |
+**Chart Selection by Data Purpose:**
+
+**Comparison (Categories):**
+- Use: Horizontal bar chart for 3-15 categories
+- Avoid: >15 categories (use sorted table instead)
+
+**Trend Analysis:**
+- Use: Line chart, Area chart for time series, continuous progression
+- Avoid: <4 data points (use column chart instead)
+
+**Part-to-Whole:**
+- Use: Pie chart (2-5 slices), Donut chart, Stacked bar for simple proportions
+- Avoid: >5 categories or when precise comparison needed
+
+**Distribution:**
+- Use: Histogram, Box plot, Violin plot for data spread, outliers, statistical analysis
+- Avoid: Categorical data
+
+**Relationship:**
+- Use: Scatter plot, Bubble chart for correlation between 2-3 variables
+- Avoid: When no clear relationship exists
+
+**Ranking:**
+- Use: Horizontal bar (sorted), Lollipop chart for ordered comparisons, league tables
+- Avoid: Unordered categories
+
+**Variance:**
+- Use: Waterfall chart, Bullet chart for changes decomposition, actual vs target
+- Avoid: Simple trends (use line instead)
+
+**Volume:**
+- Use: Bubble chart, Symbol map when 3rd dimension (size) needed
+- Avoid: When size differences too subtle
 | **Geospatial** | Choropleth map, Heat map, Point map | Location-based patterns | Data not tied to geography |
 | **Hierarchical** | Tree map, Sunburst chart | Nested categories, drill-down | Flat relationships |
 | **Flow** | Sankey diagram, Funnel chart | Process steps, conversion paths | No sequential relationship |

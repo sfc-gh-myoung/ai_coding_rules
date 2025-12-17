@@ -115,7 +115,6 @@ FILE_FORMAT = (TYPE=CSV);
 ```
 **Benefits:** Optimal 100-250MB file size; faster loading; lower metadata overhead; better compression; efficient resource usage; no immediate compaction needed
 
----
 
 **Anti-Pattern 2: Not Specifying FILE_FORMAT for Semi-Structured Data**
 ```sql
@@ -144,7 +143,6 @@ ALTER TABLE json_table
 ```
 **Benefits:** Consistent parsing; correct type handling; subcolumnarization enabled; better query performance; data quality assured; predictable loading behavior
 
----
 
 **Anti-Pattern 3: Using INSERT INTO for Bulk Data Loading**
 ```sql
@@ -173,7 +171,6 @@ WHERE load_date = CURRENT_DATE();
 ```
 **Benefits:** 1000x faster than row-by-row; optimal partition sizes; no metadata bloat; efficient resource usage; production-grade performance; no compaction needed
 
----
 
 **Anti-Pattern 4: Not Using VALIDATION_MODE to Test Before Loading**
 ```sql

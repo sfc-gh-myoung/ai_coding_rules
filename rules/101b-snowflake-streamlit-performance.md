@@ -439,12 +439,18 @@ session = get_snowflake_session()  # Reuses cached session
 ```
 
 **Cache Comparison:**
-| Feature | @st.cache_data | @st.cache_resource |
-|---------|----------------|---------------------|
-| **Use Case** | Data, query results | Connections, models |
-| **TTL Support** | Yes (recommended) | No (session lifetime) |
-| **Serialization** | Pickled | Stored as-is |
-| **Thread Safety** | Yes | No (use with caution) |
+
+**@st.cache_data:**
+- Use Case: Data, query results
+- TTL Support: Yes (recommended)
+- Serialization: Pickled
+- Thread Safety: Yes
+
+**@st.cache_resource:**
+- Use Case: Connections, models
+- TTL Support: No (session lifetime)
+- Serialization: Stored as-is
+- Thread Safety: No (use with caution)
 
 ### Caching with NULL-Safe Data
 
@@ -478,7 +484,7 @@ for _, row in metrics_df.iterrows():
 **Performance Note**: Validating for NaN in cached data prevents expensive re-computation when display errors occur. Using `pd.notna()` instead of `is not None` correctly handles Snowflake NULL values that become pandas NaN.
 
 **Why This Matters:**
-- Snowflake NULL → pandas NaN (not Python None)
+- Snowflake NULL becomes pandas NaN (not Python None)
 - Standard Python checks (`is not None`) don't catch NaN
 - Format strings (`.1f`, `.0f`) crash on NaN values
 - Cached NaN values persist and cause repeated errors
@@ -861,7 +867,6 @@ if st.button("Start"):
 ```
 **Benefits:** Fragment persists across reruns, continues polling until session state cleared.
 
----
 
 **Anti-Pattern 2: Using Widgets Inside Fragments**
 ```python
@@ -883,7 +888,6 @@ def display_only_fragment():
 ```
 **Benefits:** Follows Streamlit's fragment constraints, works reliably.
 
----
 
 **Anti-Pattern 3: No Termination Condition**
 ```python

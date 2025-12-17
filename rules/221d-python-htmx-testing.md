@@ -485,15 +485,42 @@ def test_user_row(htmx_client):
 ## Output Format Examples
 
 ### Complete Test Suite Structure
-```
-tests/
-├── conftest.py              # Fixtures (client, htmx_headers, htmx_client)
-├── test_htmx_detection.py   # Unit tests for detection logic
-├── test_users_htmx.py       # Integration tests for /users routes
-├── test_forms_htmx.py       # Form validation tests
-├── test_headers_htmx.py     # Response header tests
-└── utils/
-    └── html_helpers.py      # HTML assertion utilities
+
+Directory structure for `tests/`:
+- `conftest.py` - Fixtures (client, htmx_headers, htmx_client)
+- `test_htmx_detection.py` - Unit tests for detection logic
+- `test_users_htmx.py` - Integration tests for /users routes
+- `test_forms_htmx.py` - Form validation tests
+- `test_headers_htmx.py` - Response header tests
+- **utils/** - `html_helpers.py` (HTML assertion utilities)
+
+### Example Test File
+
+```python
+# tests/test_users_htmx.py
+import pytest
+from bs4 import BeautifulSoup
+
+def parse_html(response_data):
+    return BeautifulSoup(response_data, 'html.parser')
+
+def test_users_list_htmx(htmx_client):
+    """Test users list returns partial HTML for HTMX request"""
+    response = htmx_client.get('/users')
+    
+    assert response.status_code == 200
+    assert '<html>' not in response.data.decode()
+    
+    soup = parse_html(response.data)
+    rows = soup.find_all('tr', id=lambda x: x and x.startswith('user-'))
+    assert len(rows) > 0
+
+def test_users_list_full_page(client):
+    """Test users list returns full page for regular request"""
+    response = client.get('/users')
+    
+    assert response.status_code == 200
+    assert '<html>' in response.data.decode()
 ```
 
 ## References

@@ -33,7 +33,7 @@ The project uses a **production-ready rules architecture** where rules are autho
 
 ```ascii
 ai_coding_rules/
-├── rules/                  ← Production-ready rules (106 files)
+├── rules/                  ← Production-ready rules (107 files)
 │   ├── 000-global-core.md
 │   ├── 001-coding-agent-operations.md
 │   ├── 100-snowflake-core.md

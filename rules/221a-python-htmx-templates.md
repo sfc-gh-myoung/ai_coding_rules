@@ -79,23 +79,15 @@ Organized template files: base.html, page templates, partial templates; conditio
 ### 1. Template Directory Structure
 
 **Recommended Organization:**
-```
-templates/
-├── base.html                 # Base template with HTMX config
-├── pages/                    # Full-page templates
-│   ├── home.html
-│   ├── users.html
-│   └── dashboard.html
-├── partials/                 # HTMX response fragments
-│   ├── _user_row.html
-│   ├── _user_form.html
-│   ├── _notification.html
-│   └── _stats_card.html
-└── components/               # Reusable components (used in pages and partials)
-    ├── _navbar.html
-    ├── _footer.html
-    └── _form_field.html
-```
+
+Directory structure for `templates/`:
+- `base.html` - Base template with HTMX config
+- **pages/** - Full-page templates
+  - `home.html`, `users.html`, `dashboard.html`
+- **partials/** - HTMX response fragments
+  - `_user_row.html`, `_user_form.html`, `_notification.html`, `_stats_card.html`
+- **components/** - Reusable components (used in pages and partials)
+  - `_navbar.html`, `_footer.html`, `_form_field.html`
 
 **Naming Conventions:**
 - Partials: Prefix with underscore `_partial_name.html`
@@ -392,12 +384,11 @@ def inject_common():
 **Why It Fails:** Hard to identify partials; confuses team; maintenance nightmare.
 
 **Correct Pattern:**
-```
-templates/partials/
-├── _user_table.html
-├── _user_form.html
-├── _user_row.html
-```
+
+Files in `templates/partials/`:
+- `_user_table.html`
+- `_user_form.html`
+- `_user_row.html`
 
 ## Post-Execution Checklist
 
@@ -430,22 +421,21 @@ templates/partials/
 ## Output Format Examples
 
 ### Complete Template Structure
-```
-templates/
-├── base.html                      # HTMX config, CSRF, global layout
-├── pages/
-│   ├── home.html                  # Full page with HTMX elements
-│   └── users.html                 # Full page with user table
-├── partials/
-│   ├── _user_row.html             # Single user table row
-│   ├── _user_form.html            # User edit/create form
-│   ├── _users_table.html          # Complete user table
-│   └── _notification.html         # Toast notification
-└── components/
-    ├── _navbar.html               # Reusable navigation
-    ├── _form_field.html           # Form field macro
-    └── _modal.html                # Modal component
-```
+
+Directory structure for `templates/`:
+- `base.html` - HTMX config, CSRF, global layout
+- **pages/**
+  - `home.html` - Full page with HTMX elements
+  - `users.html` - Full page with user table
+- **partials/**
+  - `_user_row.html` - Single user table row
+  - `_user_form.html` - User edit/create form
+  - `_users_table.html` - Complete user table
+  - `_notification.html` - Toast notification
+- **components/**
+  - `_navbar.html` - Reusable navigation
+  - `_form_field.html` - Form field macro
+  - `_modal.html` - Modal component
 
 ### View with Conditional Rendering
 ```python

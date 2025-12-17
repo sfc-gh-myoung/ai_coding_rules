@@ -24,7 +24,7 @@ Applies whenever you create, secure, or use **Snowflake-managed MCP servers** fr
 - **Use SQL-first semantic views for Analyst**: In Snowflake-managed MCP, `CORTEX_ANALYST_MESSAGE` tools reference **semantic views** (not YAML semantic model files).
 - **Least privilege is per-tool**: `USAGE` on the MCP server enables discovery, but you must grant privileges on **each referenced tool object** (semantic view, search service, agent, UDF/SP).
 - **OAuth over tokens**: Prefer OAuth 2.0; avoid hardcoded tokens; if using a PAT, ensure it is scoped to the least-privileged role.
-- **Client flow is standard MCP JSON-RPC**: `initialize` (protocol `2025-06-18`) → `tools/list` → `tools/call`.
+- **Client flow is standard MCP JSON-RPC**: `initialize` (protocol `2025-06-18`), then `tools/list`, then `tools/call`.
 - **Treat MCP specs as metadata**: Don’t put sensitive/regulated data in MCP server metadata (tool titles/descriptions/spec).
 
 **Pre-Execution Checklist:**
@@ -59,7 +59,7 @@ Applies whenever you create, secure, or use **Snowflake-managed MCP servers** fr
 2. Create/verify underlying objects (semantic view, search service, agent, UDF/SP) and validate they work directly in Snowflake
 3. Create the MCP server with `CREATE OR REPLACE MCP SERVER ... FROM SPECIFICATION $$ ... $$`
 4. Grant `USAGE` (discovery) and per-tool privileges (invocation) to the intended roles
-5. Validate the MCP server spec with `DESCRIBE MCP SERVER` and test the client flow (`initialize` → `tools/list` → `tools/call`)
+5. Validate the MCP server spec with `DESCRIBE MCP SERVER` and test the client flow (`initialize`, then `tools/list`, then `tools/call`)
 6. Harden security posture (OAuth, hostname hygiene, third-party tool verification, least privilege) and document operational runbooks
 </steps>
 
@@ -131,7 +131,7 @@ tools:
 - [ ] RBAC is least-privilege: discovery (`USAGE` on MCP server) is separated from invocation (per-tool grants)
 - [ ] OAuth is configured (or PAT is least-privilege with a clear rotation story)
 - [ ] No secrets or regulated data appear in MCP server spec metadata
-- [ ] Client-side smoke test works: `initialize` → `tools/list` → `tools/call`
+- [ ] Client-side smoke test works: `initialize`, then `tools/list`, then `tools/call`
 - [ ] Hostname hygiene checked (hyphens preferred; avoid underscores)
 
 ## Validation

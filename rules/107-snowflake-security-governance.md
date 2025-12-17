@@ -111,7 +111,6 @@ GRANT SELECT ON TABLE customers TO ROLE analyst_role;
 ```
 **Benefits:** Least privilege enforcement; PII protected; role-based unmasking; compliance-ready; audit trail via POLICY_REFERENCES
 
----
 
 **Anti-Pattern 2: Not Using Role Hierarchies for Permission Management**
 ```sql
@@ -143,7 +142,6 @@ REVOKE SELECT ON SCHEMA prod_db.sensitive FROM ROLE analyst_base;
 ```
 **Benefits:** Centralized permission management; consistent access patterns; easy bulk updates; role inheritance reduces grants; simplified audit; efficient onboarding/offboarding
 
----
 
 **Anti-Pattern 3: Missing Row Access Policies for Multi-Tenant Data**
 ```sql
@@ -177,7 +175,6 @@ GRANT SELECT ON TABLE customer_orders TO ROLE analyst_role;
 ```
 **Benefits:** Automatic tenant isolation; no manual filtering; centralized security logic; compliance-ready; prevents accidental data leakage; auditable policy
 
----
 
 **Anti-Pattern 4: Not Applying Object Tags for Data Classification**
 ```sql

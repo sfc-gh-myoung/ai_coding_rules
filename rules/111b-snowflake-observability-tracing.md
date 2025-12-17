@@ -129,7 +129,6 @@ def process_order(order):
 ```
 **Benefits:** Minimal overhead; manageable trace volume; cost-effective; performance maintained; clear operation boundaries; actionable traces
 
----
 
 **Anti-Pattern 2: Exceeding 128 Events Per Span Limit**
 ```python
@@ -154,7 +153,6 @@ with telemetry.create_span("process_batch") as span:
 ```
 **Benefits:** Stays under 128 limit; all events captured; complete traces; effective debugging; efficient sampling; production-scalable
 
----
 
 **Anti-Pattern 3: Using TRACE_LEVEL = ALWAYS in Production**
 ```sql
@@ -177,7 +175,6 @@ ALTER SESSION SET TRACE_LEVEL = ALWAYS;
 ```
 **Benefits:** Production cost-effective; traces only instrumented code; manageable volume; performance maintained; development flexibility; targeted debugging
 
----
 
 **Anti-Pattern 4: Not Adding Context Attributes to Spans**
 ```python

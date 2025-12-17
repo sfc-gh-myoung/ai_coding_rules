@@ -7,18 +7,74 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.4.3] - 2025-12-17
+
+### Added
+- feat(taskfile): add task naming conventions and standard namespace registry (820-taskfile-automation.md)
+  - Added `namespace:action` pattern as default naming convention
+  - Added Standard Namespace Registry with 19 namespaces (env, quality, test, build, deploy, etc.)
+  - Added naming anti-patterns section with correct vs incorrect examples
+  - Updated Quick Checklist with naming convention check
+- feat(taskfile): document `requires.vars` pattern for mandatory task parameters
+  - Added examples for enforcing required variables with clear error messages
+  - Added best practice for including required vars in task descriptions
+- feat(taskfile): add `silent: true` to `rule:new` and `rule:new:force` tasks (Taskfile.yml)
+- feat(governance): explicit Rule Design Priorities hierarchy for agent-first authoring
+  - Added "Rule Design Priorities (Hierarchy)" section to `000-global-core.md`
+  - Priority 1: Agent understanding and execution reliability (PRIMARY)
+  - Priority 2: Token and context window efficiency (SECONDARY)
+  - Priority 3: Human readability (TERTIARY)
+  - Design test: "Can an agent execute this without judgment?"
+- feat(rules): enhanced 002e-agent-optimization.md with Priority Enforcement section
+  - Priority 1 violations (CRITICAL): ASCII tables, arrows, trees, diagrams, undefined terms
+  - Priority 2 violations (HIGH): Redundant content, verbose prose, TokenBudget variance
+  - Acceptable trade-offs guidance (Priority 1 > Priority 2)
+- feat(skills): Priority Compliance Check in rule-reviewer PROMPT.md
+  - New "Priority Compliance Check" section (required before scoring)
+  - New "Priority Compliance Summary" table (required in every review)
+  - Scoring adjustment: Priority 1 violations ≥3 caps Actionability at 15/25
+- feat(schema): Priority 1 violation detection in schema_validator.py
+  - Mermaid diagram detection (`\`\`\`mermaid`)
+  - Horizontal rule separator detection (`---`)
+  - Error group renamed from "Agent Optimization" to "Priority 1"
+- feat(context): universal context management system for LLM-agnostic preservation
+  - CRITICAL warnings in AGENTS.md and 000-global-core.md
+  - CORE FOUNDATION markers in 17 domain -core.md files
+  - FOUNDATION markers in 5 governance rules (002-series)
+  - Context Window Management Protocol in 000-global-core.md
+- feat(rules): add 002e-agent-optimization.md for agent-first authoring patterns
+- feat(schema): ASCII pattern detection for AGENTS.md validation
+- feat(agents): lazy loading strategy for token optimization (PLAN vs ACT phases)
+- test(schema): 18 new tests for ASCII pattern and AGENTS.md validation
+
 ### Changed
-- feat(rules): improve memory bank rule executability (001-memory-bank.md v1.0.0 → v1.1.0)
-  - Resolved write-scope contradiction with explicit Scope Boundary section
-  - Added deterministic initialization protocol with 7 files, templates, and error recovery
-  - Quantified undefined thresholds: "significant changes", "aggressive pruning", "outdated content", project complexity
-  - Added comprehensive Failure Recovery Procedures for 5 scenarios (missing folder, corrupted files, size budget overruns, timeouts)
-  - Added Archive Policy section with retention rules and workflow
-  - Consolidated size budgets into single canonical table
-  - Fixed output format dependency drift (`Rules Loaded:` → `## Rules Loaded`)
-  - Updated TokenBudget metadata (~2850 → ~6200 tokens, +117%)
-  - Schema validation: Removed emoji for text-only compliance, optimized to 15 keywords
-  - Review score improvement: 81-88/100 → 100/100 (eliminated all 9 undefined terms)
+- refactor(rules): 002-rule-governance.md Key Principles updated with priority hierarchy reference
+- refactor(rules): 002a-rule-creation-guide.md Post-Execution Checklist restructured by priority
+  - Priority 1: Agent Understanding (CRITICAL - Must Pass)
+  - Priority 2: Token Efficiency (HIGH - Should Pass)
+  - Schema Compliance (Required)
+  - Final Validation
+- refactor(context): ContextTier reframed as secondary signal (natural language markers primary)
+- refactor(rules): 70+ rule files updated for schema v3.1 compliance
+- refactor(core): 000-global-core.md token optimization (~100 tokens saved)
+- refactor(refs): all cross-references updated to bare filename convention (remove @ prefix)
+- feat(rules): improve memory bank rule executability (001-memory-bank.md v1.1.0)
+  - Added deterministic initialization protocol with 7 files and error recovery
+  - Added Failure Recovery Procedures for 5 scenarios
+  - Resolved write-scope contradiction with Scope Boundary section
+
+### Fixed
+- fix(rules): removed Cursor-specific @ syntax from 7 rule files (~34 references)
+- fix(rules): 002e-agent-optimization.md and 221d-python-htmx-testing.md schema compliance
+- fix(schema): improved nested code block handling in ASCII pattern detection
+  - Tracks `was_in_code_block` state to skip closing fence lines
+  - Prevents false positives for Mermaid examples in Anti-Patterns documentation
+- refactor(index): RULES_INDEX.md now uses structured list format instead of ASCII tables
+  - Aligns with agent optimization guidance (002e-agent-optimization.md)
+  - Rules grouped by domain (Core, Snowflake, Python, Shell, etc.)
+  - Each rule entry: bold filename, scope, keywords, dependencies
+  - Updated `scripts/index_generator.py` with `generate_rule_entry()` and `group_rules_by_domain()`
+  - Updated tests in `tests/test_index_generator.py` for new format
 
 ## [3.4.2] - 2025-12-16
 
@@ -758,7 +814,9 @@ Processed 2 retrospective findings from Cortex Agent testing project:
 - Basic validation scripts
 - Documentation templates
 
-[Unreleased]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.4.0...HEAD
+[Unreleased]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.4.3...HEAD
+[3.4.3]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.4.2...v3.4.3
+[3.4.2]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.4.0...v3.4.2
 [3.4.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.3.0...v3.4.0
 [3.3.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.2.1...v3.3.0
 [3.2.1]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.2.0...v3.2.1

@@ -98,7 +98,6 @@ When presenting revenue data:
 ```
 **Benefits:** Business rules in agent layer; easy to update without model changes; flexible per-agent customization; clear separation of concerns; version control friendly
 
----
 
 **Anti-Pattern 2: Vague Planning Instructions Without Tool Selection Criteria**
 ```markdown
@@ -115,19 +114,18 @@ When presenting revenue data:
 # Good: Explicit tool selection criteria
 **Planning Instructions:**
 1. Classify query type:
-   - QUANTITATIVE (numbers, calculations, rankings) → Use sales_analyst tool
-   - QUALITATIVE (summaries, explanations, context) → Use document_search tool
+   - QUANTITATIVE (numbers, calculations, rankings): Use sales_analyst tool
+   - QUALITATIVE (summaries, explanations, context): Use document_search tool
 2. For quantitative queries:
-   - Sales metrics → sales_analyst
-   - Marketing metrics → marketing_analyst
+   - Sales metrics: Use sales_analyst
+   - Marketing metrics: Use marketing_analyst
 3. For qualitative queries:
-   - Product docs → product_search
-   - Policy docs → policy_search
+   - Product docs: Use product_search
+   - Policy docs: Use policy_search
 4. For mixed queries: Use analyst first, then augment with search
 ```
 **Benefits:** Predictable tool selection; consistent agent behavior; clear decision criteria; optimized tool usage; better user experience; debuggable logic
 
----
 
 **Anti-Pattern 3: No Graceful Degradation for Missing Data**
 ```markdown
@@ -155,7 +153,6 @@ When presenting revenue data:
 ```
 **Benefits:** Clear failure communication; helpful user guidance; maintains trust; actionable alternatives; professional experience; reduces support burden
 
----
 
 **Anti-Pattern 4: Missing Tone and Formatting Guidance in Response Instructions**
 ```markdown
@@ -246,10 +243,10 @@ CREATE OR REPLACE CORTEX AGENT AGENT_PORTFOLIO_ANALYST
     **When answering questions:**
 
     1. **Identify question type:**
-       - Holdings analysis → Use SEM_PORTFOLIO_HOLDINGS
-       - Performance/risk metrics → Use SEM_PERFORMANCE_METRICS
-       - Research/compliance → Use DOCUMENT_SEARCH_FUNCTION
-       - Multi-dimensional → Use multiple tools in sequence
+       - Holdings analysis: Use SEM_PORTFOLIO_HOLDINGS
+       - Performance/risk metrics: Use SEM_PERFORMANCE_METRICS
+       - Research/compliance: Use DOCUMENT_SEARCH_FUNCTION
+       - Multi-dimensional: Use multiple tools in sequence
 
     2. **Break down complex questions:**
        - Step 1: Query base data (holdings, returns, documents)

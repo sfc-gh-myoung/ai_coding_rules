@@ -1,5 +1,11 @@
 # Snowflake Application Deployment Automation - Core Patterns
 
+> **CORE RULE: PRESERVE WHEN POSSIBLE**
+> 
+> This rule defines essential App Deployment patterns. Load for deployment tasks.
+> Specialized rules depend on this foundation.
+
+
 ## Metadata
 
 **SchemaVersion:** v3.1
@@ -139,7 +145,7 @@ PUT file://@~/apps/*.py @apps_stage/my_app AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
 
 **Anti-Pattern 3: Manual Deployment via Snowsight UI**
 ```
-Bad: Manually upload files via UI → Create app via UI
+Bad: Manually upload files via UI, then Create app via UI
 ```
 **Problem:** Not reproducible; no version control; error-prone; can't automate; team knowledge siloed.
 
@@ -162,7 +168,7 @@ tasks:
 - [ ] Task structure includes all 5 operations (upload, create, drop, remove, deploy)
 - [ ] SQL scripts organized in directory structure (upload/, remove/, create/, drop/)
 - [ ] Explicit REMOVE task implemented before upload
-- [ ] deploy task runs full workflow: drop → remove → upload → create
+- [ ] deploy task runs full workflow: drop, then remove, then upload, then create
 - [ ] Preconditions check for required files before upload
 - [ ] Stage names fully qualified (DB.SCHEMA.STAGE)
 - [ ] Snowflake variables use `<%VARIABLE%>` syntax
@@ -293,7 +299,7 @@ tasks:
   create:    # Create object from staged files (CREATE NOTEBOOK/STREAMLIT)
   drop:      # Drop object (DROP NOTEBOOK/STREAMLIT)
   remove:    # Remove files from stage (REMOVE @stage/file)
-  deploy:    # Full workflow - drop → remove → upload → create
+  deploy:    # Full workflow - drop, then remove, then upload, then create
 ```
 
 ### Why This Structure?
@@ -316,28 +322,18 @@ tasks:
 
 ### Recommended Layout
 
-```
-project/
-├── task/
-│   ├── notebook/
-│   │   └── Taskfile.yml         # Notebook deployment tasks
-│   └── streamlit/
-│       └── Taskfile.yml         # Streamlit deployment tasks
-├── sql/
-│   └── operations/
-│       ├── notebook/
-│       │   ├── upload/
-│       │   │   └── upload_*.sql
-│       │   ├── remove/
-│       │   │   └── remove_*.sql
-│       │   ├── create/
-│       │   │   └── create_*.sql
-│       │   └── drop/
-│       │       └── drop_*.sql
-│       └── streamlit/
-│           └── [same structure]
-└── Taskfile.yml                 # Root taskfile with includes
-```
+Directory structure for `project/`:
+- **task/** - Taskfile definitions
+  - **notebook/** - `Taskfile.yml` (Notebook deployment tasks)
+  - **streamlit/** - `Taskfile.yml` (Streamlit deployment tasks)
+- **sql/operations/** - SQL scripts by app type
+  - **notebook/** - Notebook-specific scripts
+    - **upload/** - `upload_*.sql`
+    - **remove/** - `remove_*.sql`
+    - **create/** - `create_*.sql`
+    - **drop/** - `drop_*.sql`
+  - **streamlit/** - Same structure as notebook
+- `Taskfile.yml` - Root taskfile with includes
 
 ## 2. SQL Script Patterns
 
@@ -589,7 +585,7 @@ tasks:
           WAREHOUSE: "{{.SNOWFLAKE_WH}}"
       - echo "Notebook created successfully"
 
-  # 5. DEPLOY - Full workflow (drop → remove → upload → create)
+  # 5. DEPLOY - Full workflow (drop, then remove, then upload, then create)
   deploy:app:
     desc: Deploy notebook with clean slate (drop + remove + upload + create)
     silent: true
@@ -644,7 +640,7 @@ task notebook:deploy:all  # Uses PUT OVERWRITE=TRUE
 # Result: Stage shows correct timestamp, but Snowsight shows old code
 ```
 
-**After (drop → remove → upload → create):**
+**After (drop, then remove, then upload, then create):**
 ```bash
 task notebook:deploy:all  # Uses explicit REMOVE
 # Result: Reliable updates every time
@@ -668,7 +664,7 @@ uvx snow sql -q "SHOW NOTEBOOKS IN SCHEMA DB.SCHEMA;"
 # Should show your notebook
 
 # 4. Test in Snowsight
-# Navigate to Projects → Notebooks
+# Navigate to Projects > Notebooks
 # Open notebook
 # Run cells to verify functionality
 ```

@@ -1,5 +1,11 @@
 # TypeScript Core: Strictness & Modern Patterns
 
+> **CORE RULE: PRESERVE WHEN POSSIBLE**
+> 
+> This rule defines essential TypeScript patterns. Load for TypeScript tasks.
+> Specialized rules depend on this foundation.
+
+
 ## Metadata
 
 **SchemaVersion:** v3.1
@@ -89,7 +95,6 @@ function process(data: unknown) {
 }
 ```
 
----
 
 **Anti-Pattern 2: The `I` Prefix (Hungarian Notation)**
 ```typescript
@@ -108,7 +113,6 @@ type UserData = {
 };
 ```
 
----
 
 **Anti-Pattern 3: Return Type `void` used incorrectly**
 ```typescript

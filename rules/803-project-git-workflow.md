@@ -110,7 +110,6 @@ gh pr create --title "fix(core): resolve critical validation bug"
 ```
 **Benefits:** Maintains code quality, enables peer review, preserves audit trail, catches issues before production.
 
----
 
 **Anti-Pattern 2: Vague Branch Names**
 ```bash
@@ -130,7 +129,6 @@ git checkout -b refactor/split-large-streamlit-rule
 ```
 **Benefits:** Clear purpose at a glance; easy to find related work; meaningful git history; self-documenting workflow.
 
----
 
 **Anti-Pattern 3: Skipping CHANGELOG.md Updates**
 ```bash
@@ -165,7 +163,6 @@ gh pr create
 ```
 **Benefits:** Complete documentation; users know what changed; audit trail maintained; governance compliance.
 
----
 
 **Anti-Pattern 4: Creating PR with Uncommitted Changes**
 ```bash
@@ -197,7 +194,6 @@ gh pr create
 ```
 **Benefits:** PR reflects exact state; reviewers see complete work; no risk of data loss; clean git history.
 
----
 
 **Anti-Pattern 5: Force Pushing to Main**
 ```bash
@@ -224,7 +220,6 @@ gh pr create --title "fix: revert problematic change"
 ```
 **Benefits:** Preserves history; allows rollback; follows review process; maintains team workflow.
 
----
 
 **Anti-Pattern 6: Ignoring Pre-Commit Hook Failures**
 ```bash
@@ -558,7 +553,7 @@ gh pr create --fill
 
 **Using GitHub Web UI:**
 1. Navigate to repository on GitHub
-2. Click "Pull requests" → "New pull request"
+2. Click "Pull requests", then click "New pull request"
 3. Select base: `main`, compare: `feature/my-new-feature`
 4. Fill in title (Conventional Commits format)
 5. Add description explaining changes
@@ -570,7 +565,7 @@ gh pr create --fill
 **Requirement:** Configure protection for `main` branch:
 
 ```yaml
-# Repository Settings → Branches → Branch protection rules
+# Repository Settings > Branches > Branch protection rules
 Branch name pattern: main
 
 Protection settings:
@@ -750,12 +745,11 @@ chmod +x scripts/validate-git-state.sh
 
 **Critical:** Pre-commit hooks often require elevated permissions beyond basic file access:
 
-| Requirement | Why Needed | Example Tools |
-|-------------|------------|---------------|
-| Network access | Download/update hook tools | pre-commit autoupdate |
-| System calls | Access system configuration | pre-commit (os.sysconf) |
-| Cache directories | Store downloaded tools | ~/.cache/pre-commit |
-| Process spawning | Run linters, formatters | ruff, black, eslint |
+**Permission Requirements:**
+- **Network access** - Download/update hook tools (e.g., pre-commit autoupdate)
+- **System calls** - Access system configuration (e.g., os.sysconf)
+- **Cache directories** - Store downloaded tools (~/.cache/pre-commit)
+- **Process spawning** - Run linters, formatters (ruff, black, eslint)
 
 **AI Agent Consideration:** When running `git commit` in sandboxed environments, pre-commit hooks may fail with permission errors:
 ```

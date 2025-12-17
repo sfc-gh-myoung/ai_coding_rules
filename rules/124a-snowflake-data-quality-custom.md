@@ -172,7 +172,6 @@ $$;
 ```
 **Benefits:** Type-safe DMF; works with expectations; follows Snowflake DMF contract; deployment succeeds; can use EXPECT = 1.0 for validation
 
----
 
 **Anti-Pattern 2: Not Handling Edge Cases in Custom DMF Logic**
 ```sql
@@ -204,7 +203,6 @@ $$;
 ```
 **Benefits:** Robust DMF logic; handles empty tables; no NULL results; predictable behavior; reliable expectations; production-ready validation
 
----
 
 **Anti-Pattern 3: Overly Complex Custom DMF Logic**
 ```sql
@@ -248,7 +246,6 @@ $$;
 ```
 **Benefits:** Fast DMF execution; lower serverless costs; clear separation; debuggable logic; reusable metrics view; better performance; maintainable validation
 
----
 
 **Anti-Pattern 4: Not Testing Custom DMF Before Production Deployment**
 ```sql

@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- feat(rules): improve memory bank rule executability (001-memory-bank.md v1.0.0 → v1.1.0)
+  - Resolved write-scope contradiction with explicit Scope Boundary section
+  - Added deterministic initialization protocol with 7 files, templates, and error recovery
+  - Quantified undefined thresholds: "significant changes", "aggressive pruning", "outdated content", project complexity
+  - Added comprehensive Failure Recovery Procedures for 5 scenarios (missing folder, corrupted files, size budget overruns, timeouts)
+  - Added Archive Policy section with retention rules and workflow
+  - Consolidated size budgets into single canonical table
+  - Fixed output format dependency drift (`Rules Loaded:` → `## Rules Loaded`)
+  - Updated TokenBudget metadata (~2850 → ~6200 tokens, +117%)
+  - Schema validation: Removed emoji for text-only compliance, optimized to 15 keywords
+  - Review score improvement: 81-88/100 → 100/100 (eliminated all 9 undefined terms)
 
 ## [3.4.2] - 2025-12-16
 

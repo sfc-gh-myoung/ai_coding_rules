@@ -37,7 +37,7 @@ The AI Coding Rules v3.1 architecture represents a fundamental shift from templa
 | **Formats** | 4 formats (Cursor .mdc, Copilot, Cline, Universal) | 1 universal format (.md) |
 | **Discovery Files** | `discovery/` directory | Project root (AGENTS.md, RULES_INDEX.md) |
 | **Deployment** | Agent-specific paths | Agent-agnostic `--dest` flag |
-| **Complexity** | ~2800 lines across 3 scripts | ~2762 lines across 5 focused scripts |
+| **Complexity** | Monolithic generation | ~37% reduction with focused scripts |
 
 ### Architecture Benefits
 
@@ -329,7 +329,7 @@ The 600s range is reserved for systems and backend programming languages, with G
 ai_coding_rules/
 ├── rules/                      # 106 production-ready rule files
 │   ├── 000-global-core.md      # Foundation (ContextTier: Critical)
-│   ├── 001-memory-bank.md      # Context management
+│   ├── 001-memory-bank.md      # Universal memory bank system
 │   ├── 002-rule-governance.md  # Schema standards
 │   ├── 100-snowflake-core.md   # Domain cores
 │   ├── 200-python-core.md
@@ -344,16 +344,16 @@ ai_coding_rules/
 │   ├── 600-golang-core.md      # Go/Golang foundation
 │   └── ... (106 total)
 │
-├── scripts/                    # Automation and validation (~3600 lines)
-│   ├── template_generator.py  # Creates new rule templates (500 lines)
-│   ├── rule_deployer.py        # Deploys rules to projects (400 lines)
-│   ├── schema_validator.py     # Schema validation (600 lines)
-│   ├── token_validator.py      # Token budget validation (300 lines)
-│   ├── keyword_generator.py    # Keyword extraction using TF-IDF (850 lines)
-│   └── index_generator.py      # Generates RULES_INDEX.md (400 lines)
+├── scripts/                    # Automation and validation
+│   ├── template_generator.py  # Creates new rule templates
+│   ├── rule_deployer.py        # Deploys rules to projects
+│   ├── schema_validator.py     # Schema validation
+│   ├── token_validator.py      # Token budget validation
+│   ├── keyword_generator.py    # Keyword extraction using TF-IDF
+│   └── index_generator.py      # Generates RULES_INDEX.md
 │
 ├── schemas/                    # Validation schemas
-│   ├── rule-schema.yml         # Schema definition (556 lines)
+│   ├── rule-schema.yml         # Schema definition
 │   └── README.md               # Schema documentation
 │
 ├── tests/                      # Test suite (100+ passing tests)
@@ -590,7 +590,7 @@ This project uses a **declarative YAML schema** (`schemas/rule-schema.yml`) to d
 
 ### Schema Architecture
 
-**Schema File:** `schemas/rule-schema.yml` (556 lines)
+**Schema File:** `schemas/rule-schema.yml`
 
 **Structure:**
 ```yaml
@@ -958,7 +958,7 @@ v3.0 includes comprehensive test coverage ensuring script reliability:
 
 **Test Statistics:**
 - **100+ passing tests** across 5 test files
-- **2762 lines** of production code covered
+- **Comprehensive coverage** across all production scripts
 - **pytest-based** test framework
 - **Fixture-driven** test data management
 
@@ -1134,7 +1134,7 @@ Use `task ASCII=true` for terminals without Unicode support.
 
 ## Scripts Reference
 
-### 1. template_generator.py (~500 lines)
+### 1. template_generator.py
 
 **Purpose:** Create new v3.0-compliant rule templates
 
@@ -1163,7 +1163,7 @@ python scripts/template_generator.py 300-bash-example \
   --keywords "bash, shell, scripting, automation, error handling, best practices, functions, variables, testing, debugging, performance"
 ```
 
-### 2. rule_deployer.py (~400 lines)
+### 2. rule_deployer.py
 
 **Purpose:** Deploy production-ready rules to target projects
 
@@ -1191,7 +1191,7 @@ python scripts/rule_deployer.py \
   --verbose
 ```
 
-### 3. schema_validator.py (~600 lines)
+### 3. schema_validator.py
 
 **Purpose:** Validate rules against schema
 
@@ -1219,7 +1219,7 @@ python scripts/schema_validator.py PATH [OPTIONS]
 python scripts/schema_validator.py rules/ --verbose --strict
 ```
 
-### 4. token_validator.py (~300 lines)
+### 4. token_validator.py
 
 **Purpose:** Validate TokenBudget accuracy against actual token counts
 
@@ -1259,7 +1259,7 @@ python scripts/token_validator.py rules/
 python scripts/token_validator.py rules/ --threshold 10
 ```
 
-### 5. index_generator.py (~400 lines)
+### 5. index_generator.py
 
 **Purpose:** Generate RULES_INDEX.md catalog from rule files
 
@@ -1287,7 +1287,7 @@ python scripts/index_generator.py [OPTIONS]
 python scripts/index_generator.py --verbose
 ```
 
-### 6. keyword_generator.py (~850 lines)
+### 6. keyword_generator.py
 
 **Purpose:** Generate semantically relevant keywords for rule files using TF-IDF and multi-signal extraction
 
@@ -1453,6 +1453,7 @@ graph TD
 3. **Maintainability** — Single source of truth (no template/generated divergence)
 4. **Universality** — Standard Markdown works with any AI assistant or IDE
 5. **Velocity** — Direct editing faster than edit-generate-deploy cycle
+6. **Reduced Complexity** — ~37% code reduction vs. v2.x through focused, single-purpose scripts
 
 **Trade-offs Accepted:**
 - Cannot generate IDE-specific formats (e.g., Cursor .mdc with auto-apply)
@@ -1472,9 +1473,9 @@ graph TD
 
 1. **No Lock-In** — Users free to switch AI assistants without migration
 2. **Broader Compatibility** — Works with emerging tools (Claude Code, Gemini, etc.)
-3. **Reduced Complexity** — 2762 lines vs. 4200 lines in v2.x (37% reduction)
-4. **Easier Contribution** — Contributors edit one file, not four
-5. **Metadata Preservation** — Keywords/TokenBudget/ContextTier enable intelligent loading
+3. **Easier Contribution** — Contributors edit one file, not four
+4. **Metadata Preservation** — Keywords/TokenBudget/ContextTier enable intelligent loading
+5. **Simpler Architecture** — Focused, single-purpose scripts vs. monolithic generation
 
 **What We Lost:**
 - IDE-specific features (Cursor's globs/alwaysApply, Copilot's appliesTo)
@@ -1736,7 +1737,7 @@ v3.0 represents a **breaking architectural change**. v2.x template-based systems
 | **Formats** | 4 (Cursor, Copilot, Cline, Universal) | 1 (Universal Markdown) |
 | **Discovery** | `discovery/AGENTS.md` | Root `AGENTS.md` |
 | **Deployment** | Agent-specific paths | Agent-agnostic `--dest` |
-| **Scripts** | `generate_agent_rules.py` (1200 lines) | `rule_deployer.py` (400 lines) |
+| **Scripts** | `generate_agent_rules.py` (monolithic) | `rule_deployer.py` (focused) |
 
 ### Breaking Changes
 

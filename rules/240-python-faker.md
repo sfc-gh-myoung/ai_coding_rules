@@ -226,7 +226,7 @@ uv run pytest tests/
 ## 1. Installation and Setup
 
 ### Dependencies and Environment
-- **Requirement:** Use `uv` for dependency management following `@200-python-core.md` patterns
+- **Requirement:** Use `uv` for dependency management following `200-python-core.md` patterns
 - **Requirement:** Install Faker with: `uv add faker` or `uv add --group dev faker` for development only
 - **Rule:** Use specific providers when needed: `faker[automotive,credit-card]` for specialized data
 - **Always:** Pin Faker version for reproducible test data generation
@@ -251,25 +251,15 @@ test = [
 - **Rule:** Separate test fixtures from production data generation
 - **Always:** Use consistent patterns for different data types
 
-```
-project/
-├── src/
-│   └── myapp/
-│       └── models/
-├── tests/
-│   ├── fixtures/
-│   │   ├── __init__.py
-│   │   ├── user_fixtures.py
-│   │   └── product_fixtures.py
-│   ├── factories/
-│   │   ├── __init__.py
-│   │   ├── user_factory.py
-│   │   └── base_factory.py
-│   └── conftest.py            # Pytest configuration
-└── scripts/
-    ├── generate_test_data.py  # Data generation scripts
-    └── seed_database.py       # Database seeding
-```
+Directory structure for `project/`:
+- **src/myapp/models/** - Application models
+- **tests/** - Test suite
+  - **fixtures/** - `__init__.py`, `user_fixtures.py`, `product_fixtures.py`
+  - **factories/** - `__init__.py`, `user_factory.py`, `base_factory.py`
+  - `conftest.py` - Pytest configuration
+- **scripts/** - Utility scripts
+  - `generate_test_data.py` - Data generation scripts
+  - `seed_database.py` - Database seeding
 
 ## 2. Basic Faker Usage Patterns
 
@@ -705,8 +695,8 @@ def test_with_seeded_data():
 
 ## Related Rules
 
-- **`@200-python-core.md`** - Core Python patterns and uv usage
-- **`@201-python-lint-format.md`** - Ruff linting and formatting standards
-- **`@203-python-project-setup.md`** - Python project structure and packaging
-- **`@230-python-pydantic.md`** - Pydantic integration for data validation
-- **`@800-project-changelog-rules.md`** - Changelog discipline for testing changes
+- **`200-python-core.md`** - Core Python patterns and uv usage
+- **`201-python-lint-format.md`** - Ruff linting and formatting standards
+- **`203-python-project-setup.md`** - Python project structure and packaging
+- **`230-python-pydantic.md`** - Pydantic integration for data validation
+- **`800-project-changelog-rules.md`** - Changelog discipline for testing changes

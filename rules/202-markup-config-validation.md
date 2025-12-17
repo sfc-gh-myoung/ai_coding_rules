@@ -426,8 +426,8 @@ lint:
 
 #### Common Markdown Issues
 
-1. **Inconsistent heading hierarchy**: H1 → H3 without H2
-   - Fix: Use proper heading levels (H1 → H2 → H3)
+1. **Inconsistent heading hierarchy**: H1 to H3 without H2
+   - Fix: Use proper heading levels (H1, then H2, then H3)
 
 2. **Missing blank lines**: No blank line before/after headings or code blocks
    - Fix: Add blank lines for readability

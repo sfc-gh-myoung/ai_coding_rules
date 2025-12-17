@@ -375,4 +375,4 @@ Preview:
 
 ## 5. Documentation
 - **Always:** Reference Conventional Commits: https://www.conventionalcommits.org/en/v1.1.0/#specification
-- **Always:** Follow contributing guidelines: `@802-project-contributing.md`
+- **Always:** Follow contributing guidelines: `802-project-contributing.md`

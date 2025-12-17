@@ -125,7 +125,6 @@ git add rules/100-snowflake-core.md
 ```
 **Benefits:** Changes in canonical source location, validated before deployment
 
----
 
 **Anti-Pattern 2: Vague Commit Messages**
 ```bash
@@ -145,7 +144,6 @@ git commit -m "docs(readme): update Quick Start with dual-platform git clone"
 ```
 **Benefits:** Clear change type, automated changelog generation, searchable commit history
 
----
 
 **Anti-Pattern 3: Skipping Validation**
 ```bash
@@ -167,7 +165,6 @@ git commit -m "feat(rule): add new rule"
 ```
 **Benefits:** Catch errors early, ensure governance compliance, pass CI checks
 
----
 
 **Anti-Pattern 4: Mixing User and Contributor Content in README**
 ```markdown
@@ -176,7 +173,6 @@ git commit -m "feat(rule): add new rule"
 **Problem:** README should focus on users, not development setup
 **Correct Pattern:** Move development setup, build instructions, and contributor guidelines to CONTRIBUTING.md
 
----
 
 ## Post-Execution Checklist
 - [ ] Required dependencies and context verified
@@ -275,7 +271,7 @@ Updated CHANGELOG.md:
 - **Requirement:** Shell scripts must include proper shebang and error handling (`set -euo pipefail`).
 - **Always:** New behavior should include at least one happy-path test and one negative/edge case test.
 - **Requirement:** Test function names follow `test_<function>_when_<condition>_should_<result>`.
-- **Always:** Reference specialized rules as needed (e.g., `@200-python-core.md`, `@300-bash-scripting-core.md`).
+- **Always:** Reference specialized rules as needed (e.g., `200-python-core.md`, `300-bash-scripting-core.md`).
 
 ## Contributing
 [50 lines of detailed development workflow]
@@ -331,49 +327,48 @@ Updated CHANGELOG.md:
 ## 5. Rule Categories and Examples
 
 ### Current Rule Structure
-```
-Core Foundation (000-099)
-├── 000-global-core.md
-├── 001-memory-bank.md
-└── 002-rule-governance.md
 
-Snowflake (100-199)
-├── 100-109: Core Snowflake
-├── 110-119: [Reserved]
-└── 120-129: Snowpark Container Services
+**Core Foundation (000-099):**
+- `000-global-core.md`
+- `001-memory-bank.md`
+- `002-rule-governance.md`
 
-Python (200-299)
-├── 200-209: Core Python
-└── 210-219: FastAPI Framework
+**Snowflake (100-199):**
+- 100-109: Core Snowflake
+- 110-119: [Reserved]
+- 120-129: Snowpark Container Services
 
-Shell Scripts (300-399)
-├── 300-309: Bash Scripting
-└── 310-319: Zsh Scripting
+**Python (200-299):**
+- 200-209: Core Python
+- 210-219: FastAPI Framework
 
-Analytics & Data (500-699)
-├── 500-599: Data Science
-└── 600-699: Data Governance
+**Shell Scripts (300-399):**
+- 300-309: Bash Scripting
+- 310-319: Zsh Scripting
 
-Business & Project (700-899)
-├── 700-799: Business Intelligence
-└── 800-899: Project Management
+**Analytics & Data (500-699):**
+- 500-599: Data Science
+- 600-699: Data Governance
 
-Demo & Templates (900-999)
-└── 900-999: Demo Creation
-```
+**Business & Project (700-899):**
+- 700-799: Business Intelligence
+- 800-899: Project Management
+
+**Demo & Templates (900-999):**
+- 900-999: Demo Creation
 
 ### Adding New Rules
 - **Rule:** Choose appropriate number range based on domain
 - **Rule:** Use next available number in sequence within the range
 - **Rule:** For new frameworks, reserve 10-number subrange (e.g., 220-229 for Django)
 - **Always:** Update README.md rule categories section
-- **Always:** Validate rule follows governance standards in `@002-rule-governance.md`
+- **Always:** Validate rule follows governance standards in `002-rule-governance.md`
 
 ## 6. Documentation References
 - **Always:** Reference Conventional Commits: https://www.conventionalcommits.org/en/v1.0.0/#specification
-- **Always:** Follow rule governance: `@002-rule-governance.md`
-- **Always:** Use README standards: `@801-project-readme.md`
-- **Always:** Follow changelog discipline: `@800-project-changelog.md`
+- **Always:** Follow rule governance: `002-rule-governance.md`
+- **Always:** Use README standards: `801-project-readme.md`
+- **Always:** Follow changelog discipline: `800-project-changelog.md`
 
 ## [Unreleased]
 ### Added

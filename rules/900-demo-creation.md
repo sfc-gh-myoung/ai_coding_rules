@@ -99,7 +99,6 @@ def generate_batch(n=1000):
 ```
 **Benefits:** Predictable timing, memory efficient, reproducible results with seeding.
 
----
 
 **Anti-Pattern 2: Fully Random Independent Columns**
 ```python

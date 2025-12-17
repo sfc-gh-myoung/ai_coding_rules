@@ -135,7 +135,6 @@ AS (SELECT * FROM chunked_documents);
 ```
 **Benefits:** Better retrieval quality; relevant context surfaced; efficient embeddings; cost-effective; semantic search effective; high user satisfaction
 
----
 
 **Anti-Pattern 2: Missing Metadata for Filtering**
 ```sql
@@ -178,7 +177,6 @@ AS (
 ```
 **Benefits:** Filterable results; relevant results only; access control ready; scoped searches; excellent UX; security compliance; metadata-driven retrieval
 
----
 
 **Anti-Pattern 3: Vague Tool Descriptions in Agent Config**
 ```python
@@ -208,7 +206,6 @@ tools = [{
 ```
 **Benefits:** Clear tool selection criteria; predictable behavior; no overlap; excellent UX; agent knows exactly when to use; optimal results
 
----
 
 **Anti-Pattern 4: Not Validating Search Service After Creation**
 ```sql
@@ -751,9 +748,9 @@ For agents using ONLY Cortex Search tools (no Cortex Analyst):
 For agents combining Cortex Search with Cortex Analyst tools:
 
 **Query Classification:**
-- QUANTITATIVE → Use Cortex Analyst (numbers, calculations, metrics)
-- QUALITATIVE → Use Cortex Search (opinions, context, explanations)
-- MIXED → Use Cortex Analyst first, then Search for supporting context
+- QUANTITATIVE: Use Cortex Analyst (numbers, calculations, metrics)
+- QUALITATIVE: Use Cortex Search (opinions, context, explanations)
+- MIXED: Use Cortex Analyst first, then Search for supporting context
 
 **Planning Instructions Pattern:**
 ```
@@ -780,7 +777,7 @@ For complete agent configuration including Cortex Search tools:
 - Keep top_k small initially (e.g., 10–20) and increase only if recall is insufficient
 
 ## 7. Evaluation and Observability
-- Maintain a gold set of query→expected passage mappings; measure precision@k and MRR
+- Maintain a gold set of query-to-expected-passage mappings; measure precision@k and MRR
 - Use AI Observability to log search queries and downstream answer quality
 
 ## 8. Cost and Operations

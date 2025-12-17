@@ -23,7 +23,7 @@ All data generation (Python generators), SQL schema design (DDL), view creation,
 - **Kimball dimensional modeling** - Fact tables + dimension tables
 - **Standardized primary keys** - <entity>_id (e.g., customer_id)
 - **BA-first naming** - Business Analyst-friendly, not technical jargon
-- **View taxonomy** - BASE → INTERMEDIATE → ANALYTICS hierarchy
+- **View taxonomy** - BASE, then INTERMEDIATE, then ANALYTICS hierarchy
 - **Referential integrity** - Enforce FK relationships
 - **Temporal columns** - created_at, updated_at timestamps
 - **Never break backward compatibility** - Add columns, don't rename
@@ -74,7 +74,7 @@ Run validation script; verify FK integrity; test business analyst queries; check
 - **Consistent Identity**: Every entity uses `<entity>_id` as primary key; external identifiers use `<entity>_number`
 - **FK Matching**: Foreign key names MUST exactly match referenced primary key names
 - **Dimensional Modeling**: Separate facts (measures) from dimensions (attributes) using Kimball patterns
-- **View Layering**: Progressive abstraction from raw tables → analytical views → business KPI views
+- **View Layering**: Progressive abstraction from raw tables to analytical views to business KPI views
 - **Self-Documenting**: Every column has a clear COMMENT; every view has a PURPOSE comment
 - **Backward Compatible**: All schema changes must provide migration path via views
 </design_principles>
@@ -116,7 +116,6 @@ JOIN FACT_TRANSFORMER_READINGS t ON a.asset_id = t.asset_id;  -- Intuitive!
 
 **Benefits:** Self-documenting queries; reduced cognitive load
 
----
 
 ### Anti-Pattern 2: Ambiguous View Names
 
@@ -139,7 +138,6 @@ COMMENT = 'BA View: Simplified asset inventory for business reporting';
 
 **Benefits:** Users immediately know which view to use; self-documenting
 
----
 
 ### Anti-Pattern 3: Unitless Measurements
 
@@ -166,7 +164,6 @@ CREATE TABLE FACT_METER_READINGS (
 
 **Benefits:** Self-documenting; prevents unit conversion errors
 
----
 
 ### Anti-Pattern 4: Mixing Temporal Suffixes
 
@@ -193,7 +190,6 @@ CREATE TABLE FACT_CUSTOMER_CALLS (
 
 **Benefits:** Pattern is learnable; clear semantics
 
----
 
 ### Anti-Pattern 5: Missing Date Dimension
 
@@ -226,7 +222,6 @@ GROUP BY d.year_num, d.month_name, d.fiscal_quarter;
 
 **Benefits:** Better performance; rich time attributes; business calendar support
 
----
 
 ## Post-Execution Checklist
 
@@ -247,7 +242,6 @@ Before committing any data generation or SQL changes, verify:
 - [ ] **Referential Integrity**: All FK values exist in parent tables (validated in generator)
 - [ ] **Documentation**: Changes documented in README, ARCHITECTURE.md, CHANGELOG.md
 
----
 
 ## Validation
 
@@ -328,16 +322,13 @@ test --run-all
 
 ### 1.1 Entity Identifier Standards
 
-**MANDATORY:**
-
-| Entity Type | Primary Key Pattern | Foreign Key Pattern | External/Display Pattern | Example |
-|-------------|---------------------|---------------------|--------------------------|---------|
-| **Grid Assets** | `asset_id` | `asset_id` | `asset_name` | `asset_id = 'XFMR-A1-001-015'` |
-| **Meters** | `meter_id` | `meter_id` | `meter_number` | `meter_id = 'MTR-A1-001-001'`, `meter_number = 'MTR-A1-001-001'` |
-| **Transformers** | `transformer_id` | `transformer_id` | `transformer_name` | `transformer_id = 'XFMR-A1-001-015'` |
-| **Customers** | `customer_id` | `customer_id` | `customer_name` | `customer_id = 'CUST-001234'` |
-| **Substations** | `substation_id` | `substation_id` | `substation_name` | `substation_id = 'SUB-STATION-00'` |
-| **Contracts** | `contract_id` | `contract_id` | `contract_number` | `contract_id = 'CA-123456'` |
+**MANDATORY Entity Key Patterns:**
+- **Grid Assets:** PK: `asset_id`, FK: `asset_id`, Display: `asset_name` (e.g., `'XFMR-A1-001-015'`)
+- **Meters:** PK: `meter_id`, FK: `meter_id`, Display: `meter_number` (e.g., `'MTR-A1-001-001'`)
+- **Transformers:** PK: `transformer_id`, FK: `transformer_id`, Display: `transformer_name`
+- **Customers:** PK: `customer_id`, FK: `customer_id`, Display: `customer_name` (e.g., `'CUST-001234'`)
+- **Substations:** PK: `substation_id`, FK: `substation_id`, Display: `substation_name`
+- **Contracts:** PK: `contract_id`, FK: `contract_id`, Display: `contract_number` (e.g., `'CA-123456'`)
 
 **Universal Rules:**
 - **Primary Keys**: Always use `<entity>_id` suffix
@@ -348,16 +339,13 @@ test --run-all
 
 ### 1.2 Temporal Column Standards
 
-**MANDATORY:**
-
-| Column Purpose | Pattern | Data Type | Example |
-|----------------|---------|-----------|---------|
-| **Exact timestamp** | `<event>_timestamp` | `TIMESTAMP_NTZ` | `call_timestamp`, `reading_timestamp` |
-| **Date only** | `<event>_date` | `DATE` | `billing_date`, `install_date` |
-| **Time only** | `<event>_time` | `TIME` | `shift_start_time` |
-| **Duration** | `<event>_duration_<unit>` | `NUMBER` | `call_duration_seconds` |
-| **Period start** | `period_start_date` | `DATE` | `billing_period_start` |
-| **Period end** | `period_end_date` | `DATE` | `billing_period_end` |
+**MANDATORY Temporal Column Patterns:**
+- **Exact timestamp:** `<event>_timestamp` (TIMESTAMP_NTZ) - e.g., `call_timestamp`, `reading_timestamp`
+- **Date only:** `<event>_date` (DATE) - e.g., `billing_date`, `install_date`
+- **Time only:** `<event>_time` (TIME) - e.g., `shift_start_time`
+- **Duration:** `<event>_duration_<unit>` (NUMBER) - e.g., `call_duration_seconds`
+- **Period start:** `period_start_date` (DATE) - e.g., `billing_period_start`
+- **Period end:** `period_end_date` (DATE) - e.g., `billing_period_end`
 
 **Anti-Patterns to Avoid:**
 - Mixing `timestamp`, `_time`, `_date`, `_ts` without clear pattern
@@ -370,12 +358,11 @@ test --run-all
 
 All boolean/flag columns must use one of these prefixes:
 
-| Prefix | Usage | Example |
-|--------|-------|---------|
-| `is_` | State or classification | `is_active`, `is_failing`, `is_critical` |
-| `has_` | Possession or capability | `has_smart_meter`, `has_payment_plan` |
-| `can_` | Permission or ability | `can_disconnect`, `can_remote_read` |
-| `should_` | Recommendation flag | `should_inspect`, `should_replace` |
+**Boolean Prefix Patterns:**
+- **`is_`** - State or classification (e.g., `is_active`, `is_failing`, `is_critical`)
+- **`has_`** - Possession or capability (e.g., `has_smart_meter`, `has_payment_plan`)
+- **`can_`** - Permission or ability (e.g., `can_disconnect`, `can_remote_read`)
+- **`should_`** - Recommendation flag (e.g., `should_inspect`, `should_replace`)
 
 **Data Type:** Always use `BOOLEAN` in Snowflake (not `INTEGER` or `VARCHAR`)
 
@@ -385,15 +372,14 @@ All boolean/flag columns must use one of these prefixes:
 
 All measurement columns must include unit of measure in the name:
 
-| Measurement Type | Pattern | Example |
-|-----------------|---------|---------|
-| **Energy** | `<metric>_kwh`, `<metric>_mwh` | `consumption_kwh`, `generation_mwh` |
-| **Power** | `<metric>_kw`, `<metric>_mw` | `demand_kw`, `capacity_mw` |
-| **Voltage** | `<metric>_volts`, `<metric>_kv` | `voltage_volts`, `nominal_voltage_kv` |
-| **Current** | `<metric>_amps` | `load_current_amps` |
-| **Temperature** | `<metric>_temp_c`, `<metric>_temp_f` | `oil_temp_c`, `ambient_temp_c` |
-| **Distance** | `<metric>_km`, `<metric>_miles` | `feeder_length_km` |
-| **Currency** | `<metric>_amount`, `currency` (separate column) | `bill_amount` + `currency = 'USD'` |
+**Measurement Column Patterns:**
+- **Energy:** `<metric>_kwh`, `<metric>_mwh` (e.g., `consumption_kwh`, `generation_mwh`)
+- **Power:** `<metric>_kw`, `<metric>_mw` (e.g., `demand_kw`, `capacity_mw`)
+- **Voltage:** `<metric>_volts`, `<metric>_kv` (e.g., `voltage_volts`, `nominal_voltage_kv`)
+- **Current:** `<metric>_amps` (e.g., `load_current_amps`)
+- **Temperature:** `<metric>_temp_c`, `<metric>_temp_f` (e.g., `oil_temp_c`, `ambient_temp_c`)
+- **Distance:** `<metric>_km`, `<metric>_miles` (e.g., `feeder_length_km`)
+- **Currency:** `<metric>_amount` + `currency` column (e.g., `bill_amount` + `currency = 'USD'`)
 
 **Anti-Patterns:**
 - Unitless measurements: `temperature`, `voltage`, `power`
@@ -405,16 +391,14 @@ All measurement columns must include unit of measure in the name:
 
 Categorical columns should use clear, self-documenting values:
 
-| Column Purpose | Value Format | Example |
-|----------------|--------------|---------|
-| **Status** | `UPPERCASE` | `operational_status = 'ACTIVE'`, `'FAILED'`, `'MAINTENANCE'` |
-| **Type** | `UPPERCASE` | `asset_type = 'TRANSFORMER'`, `'METER'`, `'SUBSTATION'` |
-| **Class** | `UPPERCASE` | `billing_class = 'RESIDENTIAL'`, `'COMMERCIAL'` |
-| **Category** | `UPPERCASE` | `rate_category = 'STANDARD'`, `'TIME_OF_USE'` |
+**Categorical Value Patterns (UPPERCASE):**
+- **Status:** e.g., `operational_status = 'ACTIVE'`, `'FAILED'`, `'MAINTENANCE'`
+- **Type:** e.g., `asset_type = 'TRANSFORMER'`, `'METER'`, `'SUBSTATION'`
+- **Class:** e.g., `billing_class = 'RESIDENTIAL'`, `'COMMERCIAL'`
+- **Category:** e.g., `rate_category = 'STANDARD'`, `'TIME_OF_USE'`
 
 **Abbreviations:** Only use if industry-standard (e.g., `RES`/`COMM` acceptable for utilities)
 
----
 
 ## 2. Dimensional Modeling Standards (Kimball Methodology)
 
@@ -424,9 +408,8 @@ Categorical columns should use clear, self-documenting values:
 
 **Fact tables store measurements and metrics (numeric, additive).**
 
-| Naming Convention | Structure | Example |
-|-------------------|-----------|---------|
-| `FACT_<business_process>` | Grain + Measures + Dimension FKs | `FACT_METER_READINGS`, `FACT_BILLING`, `FACT_OUTAGES` |
+**Naming:** `FACT_<business_process>` - Grain + Measures + Dimension FKs
+- Examples: `FACT_METER_READINGS`, `FACT_BILLING`, `FACT_OUTAGES`
 
 **Required Columns:**
 1. **Composite Primary Key**: Time dimension + entity FK (e.g., `read_timestamp + meter_id`)
@@ -464,9 +447,8 @@ CREATE TABLE FACT_METER_READINGS (
 
 **Dimension tables store descriptive attributes (text, categories).**
 
-| Naming Convention | Structure | Example |
-|-------------------|-----------|---------|
-| `DIM_<entity>` | Surrogate/Natural Key + Attributes | `DIM_GRID_ASSET`, `DIM_CUSTOMER`, `DIM_DATE` |
+**Naming:** `DIM_<entity>` - Surrogate/Natural Key + Attributes
+- Examples: `DIM_GRID_ASSET`, `DIM_CUSTOMER`, `DIM_DATE`
 
 **Required Columns:**
 1. **Primary Key**: `<entity>_id` (natural key preferred for this project)
@@ -514,9 +496,8 @@ CREATE TABLE DIM_GRID_ASSET (
 
 Use bridge tables for many-to-many relationships:
 
-| Naming Convention | Structure | Example |
-|-------------------|-----------|---------|
-| `BRIDGE_<entity1>_<entity2>` | PK1 + PK2 + Attributes | `BRIDGE_METER_CONTRACT` |
+**Naming:** `BRIDGE_<entity1>_<entity2>` - PK1 + PK2 + Attributes
+- Example: `BRIDGE_METER_CONTRACT`
 
 ```sql
 CREATE TABLE BRIDGE_METER_CONTRACT (
@@ -582,7 +563,6 @@ WHERE d.year_num = 2024
 GROUP BY d.year_num, d.month_name;
 ```
 
----
 
 ## 3. View Taxonomy (Business-First Design)
 
@@ -592,14 +572,13 @@ GROUP BY d.year_num, d.month_name;
 
 All analytical views must follow this taxonomy:
 
-| Prefix | Purpose | Audience | Complexity | Example |
-|--------|---------|----------|------------|---------|
-| `VW_BA_*` | **Business Analyst** views | Business Analysts | Low - pre-joined, simplified | `VW_BA_CUSTOMER_360` |
-| `VW_EXEC_*` | **Executive** dashboard views | Executives, Leadership | Very Low - aggregated KPIs | `VW_EXEC_OUTAGE_SUMMARY` |
-| `VW_DS_*` | **Data Science** feature views | Data Scientists, ML Engineers | Medium - wide format, features | `VW_DS_ASSET_FEATURES` |
-| `VW_DE_*` | **Data Engineering** pipeline views | Data Engineers | High - ETL, lineage | `VW_DE_DATA_QUALITY` |
-| `VW_REF_*` | **Reference** lookup views | All users | Very Low - static lists | `VW_REF_ASSET_TYPES` |
-| `VW_OPS_*` | **Operational** monitoring | Operations, NOC | Medium - real-time status | `VW_OPS_GRID_HEALTH` |
+**View Prefix Taxonomy:**
+- **`VW_BA_*`** - Business Analyst views (Low complexity, pre-joined) - e.g., `VW_BA_CUSTOMER_360`
+- **`VW_EXEC_*`** - Executive dashboard views (Very Low, aggregated KPIs) - e.g., `VW_EXEC_OUTAGE_SUMMARY`
+- **`VW_DS_*`** - Data Science feature views (Medium, wide format) - e.g., `VW_DS_ASSET_FEATURES`
+- **`VW_DE_*`** - Data Engineering pipeline views (High, ETL/lineage) - e.g., `VW_DE_DATA_QUALITY`
+- **`VW_REF_*`** - Reference lookup views (Very Low, static lists) - e.g., `VW_REF_ASSET_TYPES`
+- **`VW_OPS_*`** - Operational monitoring (Medium, real-time status) - e.g., `VW_OPS_GRID_HEALTH`
 
 ### 3.2 Business Analyst Views (`VW_BA_*`)
 
@@ -868,7 +847,6 @@ SELECT 'METER', 'Advanced metering infrastructure (AMI) endpoint', 4
 COMMENT = 'Reference View: Valid asset types with descriptions';
 ```
 
----
 
 ## 4. Backward Compatibility & Migration Strategy
 
@@ -879,7 +857,7 @@ COMMENT = 'Reference View: Valid asset types with descriptions';
 All schema changes MUST follow this migration path:
 
 1. **Create new objects with standard names** (e.g., `DIM_GRID_ASSET`)
-2. **Create compatibility views with old names** (e.g., `GRID_ASSETS` → `DIM_GRID_ASSET`)
+2. **Create compatibility views with old names** (e.g., `GRID_ASSETS` pointing to `DIM_GRID_ASSET`)
 3. **Deprecation notice period** (minimum 30 days)
 4. **Remove old objects** only after all consumers migrated
 
@@ -909,7 +887,7 @@ COMMENT = 'DEPRECATED: Use DIM_GRID_ASSET instead. This view provided for backwa
 
 ### 4.3 Foreign Key Column Migration
 
-**For mismatched FK names (e.g., `equipment_id` → `asset_id`):**
+**For mismatched FK names (e.g., `equipment_id` renamed to `asset_id`):**
 
 ```sql
 -- Old fact table with non-standard FK
@@ -938,7 +916,6 @@ FROM FACT_TRANSFORMER_READINGS
 COMMENT = 'DEPRECATED: Use FACT_TRANSFORMER_READINGS instead. This view maps old column names for compatibility.';
 ```
 
----
 
 ## 5. Data Generator Requirements
 
@@ -994,7 +971,6 @@ def validate_foreign_keys(df_child, df_parent, fk_column, pk_column):
         )
 ```
 
----
 
 ## 6. SQL DDL Standards
 
@@ -1052,7 +1028,6 @@ status VARCHAR(20) COMMENT 'Status',
 parent VARCHAR(50) COMMENT 'Parent ID'
 ```
 
----
 
 ## 7. Query Optimization Guidelines
 
@@ -1098,7 +1073,6 @@ AS
   FROM VW_BA_CUSTOMER_360;
 ```
 
----
 
 ## Data Modeling Assessment
 - **Entity**: [Entity being modeled]

@@ -31,7 +31,7 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - **Cortex Agent grounding** - List semantic view fully qualified names in `grounding_sources`
 - **Apply governance to base tables** - Masking policies, row access policies on underlying tables (not semantic views)
 - **Use Generator for initial structure** - Accelerate development, then refine with synonyms and comments
-- **Iterative workflow** - Generate → Validate → Add synonyms → Test NLQ → Refine → Deploy
+- **Iterative workflow** - Generate, then Validate, then Add synonyms, then Test NLQ, then Refine, then Deploy
 - **Comprehensive synonyms** - Add WITH SYNONYMS for natural language query matching
 - **Test with SnowCLI** - `snow cortex analyst query --semantic-view "DB.SCHEMA.VIEW"`
 
@@ -97,7 +97,7 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - **Iterative refinement**: Start with Generator, enhance with synonyms and comments
 - **Natural language focus**: Optimize for business user queries, not technical SQL
 - **Security inheritance**: Semantic views inherit RBAC and policies from base tables
-- **Development workflow**: Generate → Validate → Enhance → Test → Deploy
+- **Development workflow**: Generate, then Validate, then Enhance, then Test, then Deploy
 </design_principles>
 
 </contract>
@@ -165,7 +165,7 @@ CREATE SEMANTIC VIEW SEM_SALES AS
 **Development:**
 - [ ] Generator used for initial structure (if applicable)
 - [ ] Generator output validated before execution
-- [ ] Iterative workflow followed (Generate → Validate → Enhance → Test)
+- [ ] Iterative workflow followed (Generate, then Validate, then Enhance, then Test)
 - [ ] WITH SYNONYMS added for all key fields
 - [ ] COMMENT clauses include business definitions
 - [ ] Natural language queries tested and refined
@@ -786,7 +786,7 @@ ORDER BY total_sales DESC
 LIMIT 100;
 
 -- Review Query Profile for pruning efficiency
--- (Use Snowsight Query History → Query Profile)
+-- (Use Snowsight Query History > Query Profile)
 ```
 
 ### 3.3 Common Development Patterns
@@ -906,7 +906,7 @@ CREATE OR REPLACE SEMANTIC VIEW ANALYTICS.SEMANTIC.SALES_CUBE
 
 **During semantic view creation:**
 - [ ] Use correct mapping syntax: `logical_name AS physical_column`
-- [ ] Follow clause order: TABLES → FACTS → DIMENSIONS → METRICS
+- [ ] Follow clause order: TABLES, then FACTS, then DIMENSIONS, then METRICS
 - [ ] Add WITH SYNONYMS for all business-critical fields
 - [ ] Include COMMENT clauses with business definitions
 - [ ] Use equals sign in COMMENT syntax: `COMMENT = 'text'`

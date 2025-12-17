@@ -114,7 +114,6 @@ tasks:
 ```
 **Benefits:** Consistent versions; isolated execution; easy version updates; reproducible environments; CI reliability; no conflicts
 
----
 
 **Anti-Pattern 2: Hardcoding Credentials in Scripts**
 ```bash
@@ -137,7 +136,6 @@ snow sql -q "SELECT 1"
 ```
 **Benefits:** No credentials in code; secure storage; easy rotation; compliance-ready; audit-friendly; professional security
 
----
 
 **Anti-Pattern 3: Using Interactive Prompts in CI/CD**
 ```bash
@@ -158,7 +156,6 @@ snow sql \
 ```
 **Benefits:** Non-interactive execution; reliable CI; fast failures; machine-readable output; automated workflows; professional deployment
 
----
 
 **Anti-Pattern 4: Not Pinning Snow CLI Version in CI**
 ```yaml
@@ -193,7 +190,6 @@ steps:
 ```
 **Benefits:** Stable CI; predictable behavior; controlled upgrades; no surprise breaks; reliable deployments; professional CI/CD
 
----
 
 **Anti-Pattern 5: Using Wrong Compression Flag Syntax**
 ```bash
@@ -366,7 +362,7 @@ snow stage copy file.py @stage --no-auto-compress
 ```
 
 **Why This Matters:**
-- Python imports fail if files are compressed (.py → .py.gz)
+- Python imports fail if files are compressed (.py becomes .py.gz)
 - Streamlit apps get "TypeError: bad argument type for built-in operation"
 - **This is NOT version-specific** - applies to all snowflake-cli versions (3.11, 3.12, 3.13+)
 
@@ -380,13 +376,10 @@ uvx --from=snowflake-cli==3.13 snow stage copy \
   --no-auto-compress
 ```
 
-**Comparison Table:**
-
-| Context | Compression Syntax | Notes |
-|---------|-------------------|-------|
-| SQL `PUT` command | `AUTO_COMPRESS=FALSE` | SQL parameter syntax |
-| `snow stage copy` | `--no-auto-compress` | Boolean CLI flag |
-| `snow stage copy` | `--auto-compress false` | **WRONG** - causes error |
+**Compression Syntax by Context:**
+- **SQL `PUT` command:** `AUTO_COMPRESS=FALSE` (SQL parameter syntax)
+- **`snow stage copy`:** `--no-auto-compress` (Boolean CLI flag)
+- **WRONG:** `--auto-compress false` - causes error
 
 ### Stage Copy Common Flags
 

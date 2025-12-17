@@ -141,7 +141,6 @@ df = session.sql("""
 - Minimal memory usage
 - Lower warehouse costs
 
----
 
 **Anti-Pattern 2: Misleading Y-Axis Truncation**
 ```python
@@ -166,7 +165,6 @@ fig.add_annotation(text="Sales grew 3% ($2K increase)", xref="paper", yref="pape
 - Builds trust with stakeholders
 - Avoids misinterpretation
 
----
 
 **Anti-Pattern 3: Model Without Explainability**
 ```python
@@ -209,7 +207,6 @@ registry.log_artifact(
 - Easier to debug and improve
 - Builds trust in AI systems
 
----
 
 **Anti-Pattern 4: Training on Unvalidated Data**
 ```python
@@ -244,7 +241,6 @@ model.fit(X_train, y_train)
 - Early detection of data issues
 - Higher quality models
 
----
 
 **Anti-Pattern 5: No Confidence Intervals**
 ```python
@@ -529,13 +525,12 @@ else:
 
 **Always use pandas-aware functions for DataFrame values:**
 
-| Function | Purpose | When to Use |
-|----------|---------|-------------|
-| `pd.notna(x)` | Check if NOT null/NaN | Before formatting, calculations |
-| `pd.isna(x)` | Check if null/NaN | Filtering, validation |
-| `pd.isnull(x)` | Alias for pd.isna() | Same as pd.isna() |
-| `df.fillna(value)` | Replace NaN with value | Data preparation |
-| `df.dropna()` | Remove rows with NaN | Data cleaning |
+**Recommended Functions:**
+- **`pd.notna(x)`** - Check if NOT null/NaN (use before formatting, calculations)
+- **`pd.isna(x)`** - Check if null/NaN (use for filtering, validation)
+- **`pd.isnull(x)`** - Alias for pd.isna() (same behavior)
+- **`df.fillna(value)`** - Replace NaN with value (use for data preparation)
+- **`df.dropna()`** - Remove rows with NaN (use for data cleaning)
 
 **Do NOT use these on DataFrame values:**
 - `x is None` - Doesn't catch NaN
@@ -607,10 +602,10 @@ else:
  ```
 
 - **Always:** When notebook yields final model, refactor into production scripts:
- - Extract data pipeline → SQL stored procedures
- - Extract feature engineering → feature store
- - Extract model training → scheduled task
- - Extract predictions → Streamlit app or REST API
+ - Extract data pipeline into SQL stored procedures
+ - Extract feature engineering into feature store
+ - Extract model training into scheduled task
+ - Extract predictions into Streamlit app or REST API
 
 ## 2. Feature Engineering & Preparation
 

@@ -392,6 +392,7 @@ class SchemaValidator:
                             severity=header_config.get("severity", "HIGH"),
                             message=header_config["error_message"],
                             error_group="Metadata",
+                            line_num=1,  # Metadata header should be near top
                             fix_suggestion=header_config.get("fix_suggestion"),
                             docs_reference=header_config.get("docs_reference"),
                         )
@@ -418,6 +419,7 @@ class SchemaValidator:
                         severity=field_config["severity"],
                         message=field_config["error_message"],
                         error_group="Metadata",
+                        line_num=1,  # Metadata should be at top of file
                         fix_suggestion=field_config.get("fix_suggestion"),
                         docs_reference=field_config.get("docs_reference"),
                     )
@@ -578,11 +580,21 @@ class SchemaValidator:
             expected_present = [f for f in expected_order if f in dict(actual_order)]
 
             if actual_field_order != expected_present:
+                # Find first metadata field line for reference
+                first_field_line = min(
+                    (
+                        metadata.get(f"{f}_line", 999)
+                        for f in expected_order
+                        if f"{f}_line" in metadata
+                    ),
+                    default=1,
+                )
                 result.errors.append(
                     ValidationError(
                         severity=field_order_config["severity"],
                         message=field_order_config["error_message"],
                         error_group="Metadata",
+                        line_num=first_field_line,
                         fix_suggestion=field_order_config.get("fix_suggestion"),
                         docs_reference=field_order_config.get("docs_reference"),
                     )
@@ -613,11 +625,15 @@ class SchemaValidator:
             normalized_expected = self._normalize_section_name(section_name)
 
             if normalized_expected not in sections:
+                # Estimate where section should be based on existing sections
+                existing_lines = sorted(sections.values()) if sections else [1]
+                suggested_line = existing_lines[-1] if existing_lines else 1
                 result.errors.append(
                     ValidationError(
                         severity=section_config["severity"],
                         message=section_config["error_message"],
                         error_group=section_config["error_group"],
+                        line_num=suggested_line,
                         fix_suggestion=f"Add '## {section_name}' section",
                         docs_reference=section_config.get("docs_reference"),
                     )
@@ -650,11 +666,14 @@ class SchemaValidator:
                 # Generate detailed diff
                 diff = self._format_section_order_diff(expected_present, actual_order)
 
+                # Find line of first out-of-order section
+                first_wrong_line = actual_sections[0][1] if actual_sections else 1
                 result.errors.append(
                     ValidationError(
                         severity=section_order_config["severity"],
                         message=section_order_config["error_message"],
                         error_group="Structure",
+                        line_num=first_wrong_line,
                         fix_suggestion=diff,
                         expected_value=expected_present,
                         actual_value=actual_order,
@@ -952,6 +971,9 @@ class SchemaValidator:
         """Validate format restrictions."""
         restrictions_config = self.schema.get("restrictions", {})
 
+        # Check for ASCII patterns (decision trees, tables, arrows)
+        self._validate_ascii_patterns(content, lines, result)
+
         # Check for emojis
         if restrictions_config.get("no_emojis", {}).get("enabled"):
             emoji_config = restrictions_config["no_emojis"]
@@ -1005,17 +1027,140 @@ class SchemaValidator:
             else:
                 result.passed_checks += 1
 
+    def _validate_ascii_patterns(
+        self, content: str, lines: list[str], result: ValidationResult
+    ) -> None:
+        """Validate Priority 1 compliance: agent-parseable formatting.
+
+        Priority 1 violations (agent understanding) - See 000-global-core.md:
+        - ASCII decision trees (├─, └─, │)
+        - ASCII tables (|---|)
+        - Arrow characters (→)
+        - Mermaid diagrams (```mermaid)
+        - Horizontal rule separators (---) as visual dividers
+
+        These patterns are problematic for LLM sequential text processing.
+        See 002e-agent-optimization.md for alternatives.
+
+        Skips:
+        - Content inside code blocks (``` ... ```)
+        - Content inside inline code (`...`)
+        """
+        # Track code block state to allow examples in documentation
+        tracker = CodeBlockTracker()
+
+        # Priority 1 patterns to detect (agent understanding violations)
+        tree_pattern = re.compile(r"[├└│]")
+        table_pattern = re.compile(r"\|[-]+\|")
+        arrow_pattern = re.compile(r"→")
+        mermaid_pattern = re.compile(r"```mermaid", re.IGNORECASE)
+        hr_pattern = re.compile(r"^---+\s*$")
+
+        # Pattern to remove inline code before checking
+        inline_code_pattern = re.compile(r"`[^`]+`")
+
+        for i, line in enumerate(lines, 1):
+            # Capture state BEFORE updating (for accurate nested block detection)
+            was_in_code_block = tracker.in_code_block
+            tracker.update(line)
+
+            # Skip checks inside code blocks (allows examples in Anti-Patterns docs)
+            if tracker.in_code_block:
+                continue
+
+            # Also skip if we WERE in a code block (handles closing fence lines)
+            if was_in_code_block:
+                continue
+
+            # Remove inline code before checking (allows documenting patterns in backticks)
+            line_without_inline_code = inline_code_pattern.sub("", line)
+
+            # Check for ASCII decision tree characters (Priority 1 violation)
+            if tree_pattern.search(line_without_inline_code):
+                result.errors.append(
+                    ValidationError(
+                        severity="HIGH",
+                        message="Priority 1 violation: ASCII decision tree characters detected (├─, └─, │)",
+                        error_group="Priority 1",
+                        line_num=i,
+                        line_preview=line.strip()[:80],
+                        fix_suggestion="Replace with nested conditional lists. See 002e-agent-optimization.md Anti-Pattern 7",
+                        docs_reference="002e-agent-optimization.md",
+                    )
+                )
+
+            # Check for ASCII tables (Priority 1 violation)
+            if table_pattern.search(line_without_inline_code):
+                result.errors.append(
+                    ValidationError(
+                        severity="HIGH",
+                        message="Priority 1 violation: ASCII table pattern detected (|---|)",
+                        error_group="Priority 1",
+                        line_num=i,
+                        line_preview=line.strip()[:80],
+                        fix_suggestion="Replace with structured lists. See 002e-agent-optimization.md Anti-Pattern 1",
+                        docs_reference="002e-agent-optimization.md",
+                    )
+                )
+
+            # Check for arrow characters
+            if arrow_pattern.search(line_without_inline_code):
+                result.errors.append(
+                    ValidationError(
+                        severity="HIGH",
+                        message="Priority 1 violation: Arrow character (→) detected",
+                        error_group="Priority 1",
+                        line_num=i,
+                        line_preview=line.strip()[:80],
+                        fix_suggestion="Replace with text alternatives (then, to, becomes). See 002e-agent-optimization.md Anti-Pattern 6",
+                        docs_reference="002e-agent-optimization.md",
+                    )
+                )
+
+            # Check for Mermaid diagrams (Priority 1 violation)
+            # Only flag actual mermaid code fence openings (not examples in docs)
+            if mermaid_pattern.match(line.strip()):
+                result.errors.append(
+                    ValidationError(
+                        severity="HIGH",
+                        message="Priority 1 violation: Mermaid diagram detected",
+                        error_group="Priority 1",
+                        line_num=i,
+                        line_preview=line.strip()[:80],
+                        fix_suggestion="Replace with structured conditional lists. See 002e-agent-optimization.md Anti-Pattern 8",
+                        docs_reference="002e-agent-optimization.md",
+                    )
+                )
+
+            # Check for horizontal rule separators (Priority 1 violation)
+            # Only flag standalone --- lines, not YAML frontmatter or table separators
+            # Skip line 1 (could be YAML frontmatter start)
+            if hr_pattern.match(line) and not tracker.in_code_block and i > 1:
+                result.errors.append(
+                    ValidationError(
+                        severity="MEDIUM",
+                        message="Priority 2 violation: Horizontal rule separator (---) detected",
+                        error_group="Priority 2",
+                        line_num=i,
+                        line_preview=line.strip()[:80],
+                        fix_suggestion="Use headers (###) for structure instead of visual separators. See 002e-agent-optimization.md Anti-Pattern 9",
+                        docs_reference="002e-agent-optimization.md",
+                    )
+                )
+
     def _validate_links(self, content: str, lines: list[str], result: ValidationResult) -> None:
         """Validate links and references."""
         link_config = self.schema.get("link_validation", {})
 
-        # Validate Related Rules subsection for rules/ prefix
+        # Validate Related Rules subsection format
+        # Note: Both bare filenames (e.g., 000-global-core.md) and prefixed references
+        # (e.g., rules/000-global-core.md) are valid. The rules/ location is defined
+        # in AGENTS.md for token efficiency.
         refs_section_config = link_config.get("references_section", {})
         related_rules_config = refs_section_config.get("related_rules_subsection", {})
 
         if related_rules_config.get("rule_reference_format"):
             format_config = related_rules_config["rule_reference_format"]
-            required_prefix = format_config.get("required_prefix", "rules/")
             allowed_root_files = format_config.get("allowed_root_files", [])
 
             # Find ### Related Rules subsection
@@ -1026,34 +1171,19 @@ class SchemaValidator:
                 related_rules_content = related_rules_match.group(1)
 
                 # Find all .md references in Related Rules subsection
-                md_pattern = r"`([a-zA-Z0-9_-]+\.md)`"
+                # Accept both bare filenames and rules/ prefixed paths
+                md_pattern = r"`((?:rules/)?[a-zA-Z0-9_-]+\.md)`"
                 for match in re.finditer(md_pattern, related_rules_content):
                     filename = match.group(1)
 
-                    # Check if it's an allowed root file
-                    if filename in allowed_root_files:
+                    # Check if it's an allowed root file (strip rules/ prefix if present)
+                    bare_filename = filename.replace("rules/", "")
+                    if bare_filename in allowed_root_files or filename in allowed_root_files:
                         result.passed_checks += 1
                         continue
 
-                    # Check if it has rules/ prefix
-                    if not filename.startswith(required_prefix):
-                        line_num = (
-                            content[: related_rules_match.start() + match.start()].count("\n") + 1
-                        )
-                        result.errors.append(
-                            ValidationError(
-                                severity=format_config.get("severity", "HIGH"),
-                                message=format_config["error_message"],
-                                error_group="References",
-                                line_num=line_num,
-                                fix_suggestion=format_config["fix_suggestion"].format(
-                                    filename=filename
-                                ),
-                                docs_reference=format_config.get("docs_reference"),
-                            )
-                        )
-                    else:
-                        result.passed_checks += 1
+                    # Both formats are valid - just count as passed
+                    result.passed_checks += 1
 
         # Validate rule references
         if link_config.get("rule_references", {}).get("enabled"):
@@ -1183,6 +1313,47 @@ class SchemaValidator:
 
         return results
 
+    def validate_agents_md(self, agents_path: Path | None = None) -> ValidationResult:
+        """Validate AGENTS.md for ASCII patterns.
+
+        AGENTS.md is the bootstrap protocol file that should also follow
+        agent optimization patterns (no ASCII trees, tables, or arrows).
+
+        Args:
+            agents_path: Path to AGENTS.md. Defaults to project root.
+
+        Returns:
+            ValidationResult with any ASCII pattern violations
+        """
+        if agents_path is None:
+            agents_path = project_root / "AGENTS.md"
+
+        result = ValidationResult(file_path=agents_path)
+
+        if not agents_path.exists():
+            # AGENTS.md is optional, not an error if missing
+            return result
+
+        try:
+            with open(agents_path) as f:
+                content = f.read()
+        except Exception as e:
+            result.errors.append(
+                ValidationError(
+                    severity="CRITICAL",
+                    message=f"Failed to read AGENTS.md: {e}",
+                    error_group="File",
+                )
+            )
+            return result
+
+        lines = content.split("\n")
+
+        # Only validate ASCII patterns for AGENTS.md
+        self._validate_ascii_patterns(content, lines, result)
+
+        return result
+
     def format_json(self, results: list[ValidationResult]) -> str:
         """Format validation results as JSON.
 
@@ -1308,6 +1479,15 @@ def main():
 
     elif args.path.is_dir():
         results = validator.validate_directory(args.path)
+
+        # Also validate AGENTS.md if validating rules/ directory
+        # Look for AGENTS.md in the parent directory of rules/
+        if args.path.name == "rules" or str(args.path).endswith("rules"):
+            agents_path = args.path.parent / "AGENTS.md"
+            if agents_path.exists():
+                agents_result = validator.validate_agents_md(agents_path)
+                if agents_result.errors:
+                    results.append(agents_result)
 
         # JSON output mode
         if args.json:

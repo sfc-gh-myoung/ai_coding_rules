@@ -1,5 +1,11 @@
 # Bash Scripting Core Best Practices
 
+> **CORE RULE: PRESERVE WHEN POSSIBLE**
+> 
+> This rule defines essential Bash patterns. Load for shell scripting tasks.
+> Specialized rules depend on this foundation.
+
+
 ## Metadata
 
 **SchemaVersion:** v3.1
@@ -355,7 +361,7 @@ check_required_env() {
 check_required_env "HOME" "USER"
 ```
 
-**Note:** For comprehensive input validation and security practices, see `@300a-bash-security.md`
+**Note:** For comprehensive input validation and security practices, see `300a-bash-security.md`
 
 ## 4. Error Handling and Logging
 
@@ -568,7 +574,7 @@ debug_log() {
 }
 ```
 
-**Note:** For comprehensive testing frameworks and debugging techniques, see `@300b-bash-testing-tooling.md`
+**Note:** For comprehensive testing frameworks and debugging techniques, see `300b-bash-testing-tooling.md`
 
 ## 10. Performance Best Practices
 
@@ -617,7 +623,7 @@ readonly CONFIG_VAR="value"  # Used by sourced script
 source "$external_config"
 ```
 
-**Note:** For comprehensive tooling integration and CI/CD setup, see `@300b-bash-testing-tooling.md`
+**Note:** For comprehensive tooling integration and CI/CD setup, see `300b-bash-testing-tooling.md`
 
 ## 12. Basic Security Practices
 
@@ -641,7 +647,7 @@ temp_dir="$(mktemp -d)"
 chmod 700 "$temp_dir"
 ```
 
-**Note:** For comprehensive security practices including input validation and access control, see `@300a-bash-security.md`
+**Note:** For comprehensive security practices including input validation and access control, see `300a-bash-security.md`
 
 ## 13. Common Anti-Patterns to Avoid
 
@@ -695,5 +701,5 @@ calculate_hash() {
 
 ## Related Rules
 
-- **`@300a-bash-security.md`** - Comprehensive security practices, input validation, and access control
-- **`@300b-bash-testing-tooling.md`** - Testing frameworks, debugging, ShellCheck integration, and CI/CD
+- **`300a-bash-security.md`** - Comprehensive security practices, input validation, and access control
+- **`300b-bash-testing-tooling.md`** - Testing frameworks, debugging, ShellCheck integration, and CI/CD

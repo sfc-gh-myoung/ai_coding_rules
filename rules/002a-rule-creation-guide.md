@@ -1,5 +1,11 @@
 # Rule Creation Guide: Step-by-Step Workflow
 
+> **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
+> 
+> This rule defines essential governance patterns for the ai_coding_rules system.
+> Load when creating, reviewing, or maintaining rules.
+
+
 ## Metadata
 
 **SchemaVersion:** v3.1
@@ -21,7 +27,7 @@ All AI agents creating new rule files in the ai_coding_rules repository.
 
 **MANDATORY:**
 **Essential Patterns:**
-- **5-step workflow** - Choose number → Create file → Fill metadata → Write sections → Validate
+- **5-step workflow** - Choose number, then Create file, then Fill metadata, then Write sections, then Validate
 - **Naming convention** - `NNN-technology-aspect.md` (snake-case, 3-digit number)
 - **Number ranges** - 000-099: Core, 100-199: Snowflake, 200-299: Languages, 300-399: Frameworks, 400+: Specialized
 - **Required metadata** - RuleVersion (vX.Y.Z), Keywords (10-15), TokenBudget, ContextTier, Depends (in exact order)
@@ -119,15 +125,14 @@ python3 scripts/schema_validator.py rules/NNN-new-rule.md
 
 ### Numbering Ranges
 
-| Range | Category | Examples |
-|-------|----------|----------|
-| 000-099 | Core Framework | 000-global-core, 001-rule-composition, 002-rule-governance |
-| 100-199 | Snowflake | 100-snowflake-sql, 110-cortex-agent, 115-model-registry |
-| 200-299 | Programming Languages | 200-python, 210-javascript, 220-sql |
-| 300-399 | Frameworks | 300-react, 310-django, 320-streamlit |
-| 400-499 | Testing & Quality | 400-pytest, 410-integration-testing |
-| 500-599 | Security | 500-security-core, 510-authentication |
-| 600+ | Specialized Domains | 600-data-pipeline, 700-ml-ops |
+**Rule Number Categories:**
+- **000-099:** Core Framework (000-global-core, 001-rule-composition, 002-rule-governance)
+- **100-199:** Snowflake (100-snowflake-sql, 110-cortex-agent, 115-model-registry)
+- **200-299:** Programming Languages (200-python, 210-javascript, 220-sql)
+- **300-399:** Frameworks (300-react, 310-django, 320-streamlit)
+- **400-499:** Testing & Quality (400-pytest, 410-integration-testing)
+- **500-599:** Security (500-security-core, 510-authentication)
+- **600+:** Specialized Domains (600-data-pipeline, 700-ml-ops)
 
 ### Subdomain Patterns
 
@@ -230,7 +235,27 @@ Review 2-3 existing rules to understand:
 - [ ] Checklist item 3
 - [ ] Checklist item 4
 - [ ] Checklist item 5
+```
 
+### Importance Markers
+
+Add an importance marker after the title for foundation rules:
+
+**When to use CORE FOUNDATION marker (domain cores only):**
+- Rule name ends with `-core.md`
+- Defines essential patterns for a technology domain
+- Other rules in the domain depend on it
+
+**When to use FOUNDATION marker (governance rules only):**
+- Rule is in 002-series
+- Defines rule creation/maintenance patterns
+- Required for rule infrastructure work
+
+**When to use no marker (most rules):**
+- Standard specialized rules
+- Can be summarized if context limits reached
+
+```markdown
 ## Contract
 
 <inputs_prereqs>
@@ -284,7 +309,7 @@ Review 2-3 existing rules to understand:
 ## References
 
 ### Related Rules
-- `rules/000-global-core.md` - Description
+- `000-global-core.md` - Description
 ```
 
 ## Step 4: Fill Required Metadata
@@ -306,14 +331,13 @@ Review 2-3 existing rules to understand:
 
 ### Field Requirements
 
-| Field | Format | Example | Notes |
-|-------|--------|---------|-------|
-| **SchemaVersion** | `v3.0` | `**SchemaVersion:** v3.1` | Optional but recommended |
-| **RuleVersion** | `vX.Y.Z` | `**RuleVersion:** v1.0.0` | REQUIRED for issue tracking |
-| **Keywords** | 10-15 comma-separated | `**Keywords:** SQL, Snowflake, CTE, query optimization, performance` | CRITICAL for semantic discovery |
-| **TokenBudget** | `~NUMBER` | `**TokenBudget:** ~1200` | Use tilde prefix, estimate tokens |
-| **ContextTier** | Enum | `**ContextTier:** High` | Critical/High/Medium/Low only |
-| **Depends** | Rule path(s) | `**Depends:** rules/000-global-core.md` | At least one dependency required |
+**Required Metadata Fields:**
+- **SchemaVersion:** `v3.0` format (e.g., `**SchemaVersion:** v3.1`) - Optional but recommended
+- **RuleVersion:** `vX.Y.Z` format (e.g., `**RuleVersion:** v1.0.0`) - REQUIRED for issue tracking
+- **Keywords:** 10-15 comma-separated terms - CRITICAL for semantic discovery
+- **TokenBudget:** `~NUMBER` format (e.g., `**TokenBudget:** ~1200`) - Use tilde prefix
+- **ContextTier:** One of Critical/High/Medium/Low only
+- **Depends:** Rule path(s) (e.g., `rules/000-global-core.md`) - At least one required
 
 ### Keywords Best Practices
 
@@ -348,12 +372,11 @@ Review 2-3 existing rules to understand:
 
 ### ContextTier Selection
 
-| Tier | When to Use | Examples |
-|------|-------------|----------|
-| **Critical** | Framework core, always loaded | 000-global-core, 002-rule-governance |
-| **High** | Frequently used, broad applicability | 100-snowflake-sql, 200-python-core |
-| **Medium** | Specific features, moderate usage | 115-model-registry, 320-streamlit-widgets |
-| **Low** | Specialized, rarely used | 600-data-pipeline-advanced |
+**Tier Guidelines:**
+- **Critical:** Framework core, always loaded (000-global-core, 002-rule-governance)
+- **High:** Frequently used, broad applicability (100-snowflake-sql, 200-python-core)
+- **Medium:** Specific features, moderate usage (115-model-registry, 320-streamlit-widgets)
+- **Low:** Specialized, rarely used (600-data-pipeline-advanced)
 
 ## Step 4: Write Required Sections
 
@@ -523,14 +546,15 @@ python3 scripts/schema_validator.py rules/NNN-new-rule.md --verbose
 
 ### Common Errors and Fixes
 
-| Error | Cause | Fix |
-|-------|-------|-----|
-| Missing metadata field | Keywords, TokenBudget, ContextTier, or Depends not found | Add missing field in correct order |
-| Keywords count wrong | Less than 10 or more than 15 | Adjust to 10-15 comma-separated terms |
-| TokenBudget format | Missing tilde or non-numeric | Change to `~1200` format |
-| Missing required section | One of 9 sections not found | Add missing section per v3.0 order |
-| Contract missing XML tag | One of 6 XML tags not found | Add tag: `<inputs_prereqs>`, `<mandatory>`, etc. |
-| Contract after line 160 | Contract placed too late | Move Contract to before line 160 |
+**Metadata Errors:**
+- **Missing metadata field:** Add missing Keywords, TokenBudget, ContextTier, or Depends in correct order
+- **Keywords count wrong:** Adjust to 10-15 comma-separated terms
+- **TokenBudget format:** Change to `~1200` format (tilde + number)
+
+**Structure Errors:**
+- **Missing required section:** Add missing section per v3.0 order
+- **Contract missing XML tag:** Add tag: `<inputs_prereqs>`, `<mandatory>`, etc.
+- **Contract after line 160:** Move Contract section earlier in file
 
 **For detailed error resolution:** See `002d-schema-validator-usage.md`
 
@@ -539,9 +563,7 @@ python3 scripts/schema_validator.py rules/NNN-new-rule.md --verbose
 ### Index Entry Format
 
 ```markdown
-| Rule Number | Rule Name | Keywords |
-|-------------|-----------|----------|
-| NNN-new-rule | Brief description | keyword1, keyword2, keyword3 |
+- **NNN-new-rule:** Brief description (Keywords: keyword1, keyword2, keyword3)
 ```
 
 ### Example
@@ -558,19 +580,45 @@ vim RULES_INDEX.md
 
 ## Post-Execution Checklist
 
+### Priority 1: Agent Understanding (CRITICAL - Must Pass)
+
+These checks ensure agents can execute the rule reliably:
+
+- [ ] No ASCII tables in content (use structured lists instead)
+- [ ] No arrow characters (`→`) outside code blocks (use "then", "to", "Instead")
+- [ ] No ASCII decision trees (`├─`, `└─`, `│`) (use nested conditional lists)
+- [ ] No Mermaid diagrams or ASCII art (use structured text)
+- [ ] All subjective terms quantified with thresholds (e.g., "large" defined as ">1M rows")
+- [ ] All conditionals have explicit branches (if X, then Y; else Z)
+- [ ] Instructions use imperative voice (commands, not passive)
+- [ ] Critical information front-loaded in each section
+
+### Priority 2: Token Efficiency (HIGH - Should Pass)
+
+These checks ensure efficient context window usage:
+
+- [ ] TokenBudget declared with `~NUMBER` format
+- [ ] TokenBudget within ±15% of actual token count
+- [ ] No duplicate content (use references to other rules)
+- [ ] Lists preferred over prose paragraphs
+- [ ] Terminology consistent with existing rules (see glossary in 000-global-core.md)
+
+### Schema Compliance (Required)
+
 - [ ] Rule number chosen from correct range (000-099, 100-199, etc.)
 - [ ] File named with snake-case convention (NNN-technology-aspect.md)
-- [ ] Existing rules reviewed for structural patterns
-- [ ] All 4 metadata fields filled: Keywords (10-15), TokenBudget, ContextTier, Depends
+- [ ] All 5 metadata fields filled: RuleVersion, Keywords (10-15), TokenBudget, ContextTier, Depends
 - [ ] All 9 required sections present in correct order
-- [ ] Contract section has all 6 XML tags
-- [ ] Contract placed before line 160
+- [ ] Contract section has all 6 XML tags before line 160
 - [ ] Quick Start TL;DR has minimum 3 Essential Patterns
 - [ ] Post-Execution Checklist has 5+ verification items
-- [ ] Validation passes: `schema_validator.py` returns 0 CRITICAL errors
+
+### Final Validation
+
+- [ ] `python3 scripts/schema_validator.py rules/NNN-rule.md` returns 0 CRITICAL errors
 - [ ] Rule added to RULES_INDEX.md with keywords
-- [ ] Dependencies declared in Depends metadata
 - [ ] No emojis in rule file content
+- [ ] Existing rules reviewed for structural patterns
 
 ## Validation
 
@@ -650,10 +698,10 @@ python3 scripts/schema_validator.py rules/101d-snowflake-streamlit-testing.md
 ## References
 
 ### Related Rules
-- **Rule Governance**: `rules/002-rule-governance.md` - Schema requirements and standards
-- **Validator Usage**: `rules/002d-schema-validator-usage.md` - Detailed validation commands and error resolution
-- **Optimization Guide**: `rules/002b-rule-optimization.md` - Token budget optimization strategies
-- **Global Core**: `rules/000-global-core.md` - Foundation for all rules
+- **Rule Governance**: `002-rule-governance.md` - Schema requirements and standards
+- **Validator Usage**: `002d-schema-validator-usage.md` - Detailed validation commands and error resolution
+- **Optimization Guide**: `002b-rule-optimization.md` - Token budget optimization strategies
+- **Global Core**: `000-global-core.md` - Foundation for all rules
 
 ### External Documentation
 - **Schema Definition**: `schemas/rule-schema.yml` - Authoritative schema definition

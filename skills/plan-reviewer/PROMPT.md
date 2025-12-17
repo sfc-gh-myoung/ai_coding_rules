@@ -1,6 +1,6 @@
 # Plan Review Prompt (Template)
 
-~~~~markdown
+```markdown
 ## Plan Review Request
 
 **Target File(s):** [path/to/plan.md or list of paths]
@@ -200,7 +200,7 @@ Analyze the plan against these criteria, scoring each 1-5 (5 = excellent):
 
 Provide your assessment in this structure:
 
-~~~markdown
+```markdown
 ## Plan Review: [plan-name.md]
 
 **Plan:** [path/to/plan.md]
@@ -260,7 +260,7 @@ For each issue:
 1. **Location:** Line number or section name
 2. **Problem:** What's wrong and why it blocks agent execution
 3. **Recommendation:** Specific fix with example
-~~~
+```
 
 ---
 
@@ -270,7 +270,7 @@ For each issue:
 
 Scan the plan for phrases requiring human judgment:
 
-~~~markdown
+```markdown
 **Executability Audit:**
 
 | Phrase | Line(s) | Issue | Proposed Fix |
@@ -281,13 +281,13 @@ Scan the plan for phrases requiring human judgment:
 
 **Ambiguous Phrase Count:** N
 **Steps with Explicit Commands:** X/Y (Z%)
-~~~
+```
 
 **Scoring impact:** >10 ambiguous phrases → Executability ≤2/5
 
 ### Completeness Audit (Required for Completeness scoring)
 
-~~~markdown
+```markdown
 **Completeness Audit:**
 
 | Phase | Setup | Validation | Cleanup | Error Recovery |
@@ -297,13 +297,13 @@ Scan the plan for phrases requiring human judgment:
 
 **Phases with Full Coverage:** X/Y
 **Missing Elements:** [list]
-~~~
+```
 
 **Scoring impact:** <60% phases complete → Completeness ≤3/5
 
 ### Success Criteria Audit (Required for Success Criteria scoring)
 
-~~~markdown
+```markdown
 **Success Criteria Audit:**
 
 | Task/Milestone | Has Criteria? | Verifiable by Agent? | Notes |
@@ -314,7 +314,7 @@ Scan the plan for phrases requiring human judgment:
 
 **Tasks with Criteria:** X/Y (Z%)
 **Agent-Verifiable:** A/B (C%)
-~~~
+```
 
 **Scoring impact:** <70% agent-verifiable → Success Criteria ≤3/5
 
@@ -420,7 +420,7 @@ Use when evaluating multiple plans for the same task.
 
 ### Output Format
 
-~~~markdown
+```markdown
 ## Plan Comparison: [task-description]
 
 **Task:** [Brief description]
@@ -477,7 +477,7 @@ Use when evaluating multiple plans for the same task.
 
 **When to use Plan B instead:** If the task prioritizes [specific scenario],
 Plan B's [strength] may be preferable.
-~~~
+```
 
 ---
 
@@ -507,7 +507,7 @@ Analyze multiple reviews of the same document to:
 
 ### Output Format
 
-~~~markdown
+```markdown
 ## Meta-Review: [document-name] Reviews
 
 **Document Reviewed:** [path/to/original.md]
@@ -596,7 +596,7 @@ Analyze multiple reviews of the same document to:
 1. Investigate why Reviews A/C missed [Issue 1] and [Issue 2]
 2. Consider rubric clarification for [specific dimension]
 3. Use Review B as calibration example for future reviews
-~~~
+```
 
 ---
 
@@ -638,5 +638,5 @@ If file writing fails, output:
 followed by full review content.
 <!-- End of prompt template -->
 <!-- EOF -->
-~~~~
+```
 

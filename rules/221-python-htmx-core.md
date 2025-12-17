@@ -1,5 +1,11 @@
 # HTMX Core Patterns (Python)
 
+> **CORE RULE: PRESERVE WHEN POSSIBLE**
+> 
+> This rule defines essential HTMX patterns. Load for HTMX tasks.
+> Specialized rules depend on this foundation.
+
+
 ## Metadata
 
 **SchemaVersion:** v3.1
@@ -106,25 +112,21 @@ def users_list():
 
 ### 2. HTTP Header Management
 
-**Request Headers (Client → Server):**
-| Header | Purpose | Example Value |
-|--------|---------|---------------|
-| `HX-Request` | Identifies HTMX-initiated request | `true` |
-| `HX-Trigger` | ID of element that triggered request | `search-button` |
-| `HX-Trigger-Name` | Name attribute of trigger element | `search` |
-| `HX-Target` | ID of target element | `results-div` |
-| `HX-Current-URL` | Current page URL | `/dashboard` |
-| `HX-Prompt` | User input from `hx-prompt` | `search term` |
+**Request Headers (Client to Server):**
+- **`HX-Request`** - Identifies HTMX-initiated request (`true`)
+- **`HX-Trigger`** - ID of element that triggered request
+- **`HX-Trigger-Name`** - Name attribute of trigger element
+- **`HX-Target`** - ID of target element
+- **`HX-Current-URL`** - Current page URL
+- **`HX-Prompt`** - User input from `hx-prompt`
 
-**Response Headers (Server → Client):**
-| Header | Purpose | Example Usage |
-|--------|---------|---------------|
-| `HX-Trigger` | Trigger client-side events | `HX-Trigger: itemUpdated` |
-| `HX-Redirect` | Client-side redirect | `HX-Redirect: /login` |
-| `HX-Refresh` | Force page refresh | `HX-Refresh: true` |
-| `HX-Retarget` | Change target element | `HX-Retarget: #error-div` |
-| `HX-Reswap` | Override swap strategy | `HX-Reswap: outerHTML` |
-| `HX-Push-Url` | Update browser history | `HX-Push-Url: /users/123` |
+**Response Headers (Server to Client):**
+- **`HX-Trigger`** - Trigger client-side events (e.g., `HX-Trigger: itemUpdated`)
+- **`HX-Redirect`** - Client-side redirect (e.g., `HX-Redirect: /login`)
+- **`HX-Refresh`** - Force page refresh (`HX-Refresh: true`)
+- **`HX-Retarget`** - Change target element (e.g., `HX-Retarget: #error-div`)
+- **`HX-Reswap`** - Override swap strategy (e.g., `HX-Reswap: outerHTML`)
+- **`HX-Push-Url`** - Update browser history (e.g., `HX-Push-Url: /users/123`)
 
 **Response Header Implementation:**
 ```python
@@ -151,16 +153,14 @@ async def delete_item(item_id: int, response: Response):
 ### 3. Response Patterns
 
 **Swap Strategies:**
-| Strategy | Behavior | Use Case |
-|----------|----------|----------|
-| `innerHTML` | Replace inner HTML (default) | Update content within container |
-| `outerHTML` | Replace entire element | Replace element including container |
-| `beforebegin` | Insert before target | Prepend items to list |
-| `afterbegin` | Insert inside target, before first child | Insert at start of list |
-| `beforeend` | Insert inside target, after last child | Append items to list |
-| `afterend` | Insert after target | Add items after container |
-| `delete` | Remove target element | Delete element on success |
-| `none` | No swap (response ignored) | Fire event without DOM change |
+- **`innerHTML`** - Replace inner HTML (default) - Update content within container
+- **`outerHTML`** - Replace entire element - Replace element including container
+- **`beforebegin`** - Insert before target - Prepend items to list
+- **`afterbegin`** - Insert inside target, before first child - Insert at start of list
+- **`beforeend`** - Insert inside target, after last child - Append items to list
+- **`afterend`** - Insert after target - Add items after container
+- **`delete`** - Remove target element - Delete element on success
+- **`none`** - No swap (response ignored) - Fire event without DOM change
 
 **Out-of-Band (OOB) Swaps:**
 ```python
@@ -261,7 +261,7 @@ def user_detail(user_id):
 def order_actions(order_id):
     order = get_order(order_id)
 
-    # State machine: Draft → Submitted → Processing → Completed
+    # State machine: Draft -> Submitted -> Processing -> Completed
     if order.status == 'draft':
         return '''
         <button hx-post="/orders/{}/submit"
@@ -320,12 +320,9 @@ async def sse_status():
 ```
 
 **Critical SSE Anti-Patterns:**
-
-| Anti-Pattern | Problem | Solution |
-|--------------|---------|----------|
-| Mixing SSE approaches | Duplicate connections | Choose ONE per element |
-| Event type mismatch | Updates never trigger | Match backend event types exactly |
-| Using `sse:` with Alpine.js | HTMX ignores events | Use camelCase custom events |
+- **Mixing SSE approaches:** Causes duplicate connections - Choose ONE per element
+- **Event type mismatch:** Updates never trigger - Match backend event types exactly
+- **Using `sse:` with Alpine.js:** HTMX ignores events - Use camelCase custom events
 
 **WebSockets (with extension):**
 ```python

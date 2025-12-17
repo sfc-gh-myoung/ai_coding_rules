@@ -158,25 +158,25 @@ connection = snowflake.connector.connect(
 
 ## Post-Execution Checklist
 - [ ] All cells have descriptive, user-friendly names (not cell1, cell2, etc.)
-      Verify: Open notebook in Snowsight → Projects → Notebooks → [notebook name] → Check left sidebar cell names should follow action_subject format
+      Verify: Open notebook in Snowsight > Projects > Notebooks > [notebook name] > Check left sidebar cell names should follow action_subject format
 - [ ] Cell naming follows action_subject pattern with underscores (lowercase)
-      Verify: Review cell names in notebook left panel → Should be "load_customer_data", not "LoadCustomerData" or "Load Customer Data"
+      Verify: Review cell names in notebook left panel. Should be "load_customer_data", not "LoadCustomerData" or "Load Customer Data"
 - [ ] Environment and dependencies properly configured and pinned with exact versions
-      Verify: Check packages section in notebook settings → Versions should be pinned with == (e.g., pandas==2.0.0, not pandas>=2.0)
+      Verify: Check packages section in notebook settings. Versions should be pinned with == (e.g., pandas==2.0.0, not pandas>=2.0)
 - [ ] **CRITICAL:** `uvx nbqa ruff notebooks/` passes with zero errors
-      Verify: Run command in terminal → Must show "All checks passed!" or 0 errors, no E/W/F violations
+      Verify: Run command in terminal. Must show "All checks passed!" or 0 errors, no E/W/F violations
 - [ ] **CRITICAL:** `uvx nbqa ruff format --check notebooks/` passes
-      Verify: Run command in terminal → Must show "n files would be left unchanged" or no formatting changes needed
+      Verify: Run command in terminal. Must show "n files would be left unchanged" or no formatting changes needed
 - [ ] No hardcoded credentials or sensitive information present
-      Verify: Search notebook for keywords: "password", "token", "secret", "key", "api_key" → Should find zero matches outside of variable names
+      Verify: Search notebook for keywords: "password", "token", "secret", "key", "api_key". Should find zero matches outside of variable names
 - [ ] Computation pushed to Snowflake via Snowpark DataFrames (minimize local data)
-      Verify: Check for .to_pandas() calls → Should be minimal (<3 instances), used only for final results/visualization, not intermediate processing
+      Verify: Check for .to_pandas() calls. Should be minimal (<3 instances), used only for final results/visualization, not intermediate processing
 - [ ] Markdown cells provide clear narrative and documentation for each section
-      Verify: Read through notebook → Markdown should explain purpose of each section, why approaches chosen, business context
+      Verify: Read through notebook. Markdown should explain purpose of each section, why approaches chosen, business context
 - [ ] Notebook executes deterministically without hidden state (top-to-bottom)
-      Verify: Restart kernel and run all cells sequentially → Should execute in order without NameError or undefined variables
+      Verify: Restart kernel and run all cells sequentially. Should execute in order without NameError or undefined variables
 - [ ] Production code refactored to separate .py/.sql files when appropriate
-      Verify: Check if notebook has >500 lines of code OR reusable functions → Consider extracting to modules in src/ directory
+      Verify: Check if notebook has >500 lines of code OR reusable functions. Consider extracting to modules in src/ directory
 
 ## Validation
 - **Success checks:** Cell names are descriptive and follow naming conventions; `uvx nbqa ruff notebooks/` passes with zero errors; `uvx nbqa ruff format --check notebooks/` passes; notebook runs deterministically from top to bottom; all Snowpark connections work; no secrets exposed; production logic extracted to .py/.sql files

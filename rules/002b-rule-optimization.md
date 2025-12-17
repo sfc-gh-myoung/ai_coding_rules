@@ -1,5 +1,11 @@
 # Rule Optimization: Token Budgets and Performance
 
+> **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
+> 
+> This rule defines essential governance patterns for the ai_coding_rules system.
+> Load when creating, reviewing, or maintaining rules.
+
+
 ## Metadata
 
 **SchemaVersion:** v3.1
@@ -72,20 +78,16 @@ Rule file with TokenBudget and ContextTier metadata matching actual size
 
 ### Rule Size Summary
 
-| Category | Token Range | Agent Action |
-|----------|-------------|--------------|
-| **Optimal** | 2000-3500 | Load normally |
-| **Acceptable** | 3500-5000 | Load when task requires |
-| **Caution** | 5000-7000 | Consider if split needed |
-| **Avoid** | >7000 | Split into focused files |
+**Token Ranges:**
+- **Optimal (2000-3500):** Load normally
+- **Acceptable (3500-5000):** Load when task requires
+- **Caution (5000-7000):** Consider if split needed
+- **Avoid (>7000):** Split into focused files
 
-### Line Count Targets
-
-| Target | Line Count | Token Budget | Use Case |
-|--------|------------|--------------|----------|
-| **Optimal** | 200-400 lines | ~2000-3500 tokens | Standard rules |
-| **Maximum** | 600 lines | ~5000 tokens | Complex rules |
-| **Split Required** | >800 lines | >5500 tokens | Multi-concept rules |
+**Line Count Targets:**
+- **Optimal:** 200-400 lines (~2000-3500 tokens) - Standard rules
+- **Maximum:** 600 lines (~5000 tokens) - Complex rules
+- **Split Required:** >800 lines (>5500 tokens) - Multi-concept rules
 
 **Focus Principle:** One rule per major concept or technology area. Reference other rules rather than duplicating content.
 
@@ -125,20 +127,20 @@ Rule file with TokenBudget and ContextTier metadata matching actual size
 
 ## Token Budget Tiers
 
-### ContextTier Selection Guide
+### ContextTier Selection Guide (Secondary Signal)
 
-**Primary Factor:** Task relevance and loading frequency (not just token count)
-**Secondary Factor:** Token budget impact
+ContextTier provides fine-grained prioritization within natural language tiers:
 
-| Token Range | Recommended ContextTier | When to Use |
-|-------------|------------------------|-------------|
-| <1500       | Critical               | Foundation rules loaded in 90%+ of sessions |
-| <1500       | High                   | Domain cores loaded for specific file types |
-| 1500-2500   | High                   | Common patterns (testing, linting, formatting) |
-| 2500-4000   | Medium                 | Specialized workflows, advanced features |
-| >4000       | Low                    | Reference docs, comprehensive guides, rare use cases |
+**ContextTier Values:**
+- **Critical:** Bootstrap files only - always has CRITICAL marker
+- **High:** Domain cores, frequently referenced - usually has CORE RULE/FOUNDATION RULE marker
+- **Medium:** Specialized rules for common tasks - no marker (can be summarized)
+- **Low:** Reference documentation, examples - no marker (summarize first)
 
-**Decision Rule:** A 1400-token rule about obscure edge cases should be Low tier, not Critical. Tier reflects **how often the rule is needed**, not just its size.
+**Primary Mechanism:** Natural language markers (CRITICAL/CORE/FOUNDATION)
+**Secondary Mechanism:** ContextTier metadata
+
+See `000-global-core.md`, section "Context Window Management Protocol" for preservation hierarchy.
 
 ### Small (1000-2000 tokens)
 
@@ -223,10 +225,10 @@ Rule file with TokenBudget and ContextTier metadata matching actual size
 - Core file (no suffix) provides foundation; suffixes extend it
 - Load only the suffix needed for the task (saves tokens)
 - Examples:
-  - `101-snowflake-streamlit-core.md` → Foundation
-  - `101a-snowflake-streamlit-visualization.md` → Visualization patterns
-  - `101b-snowflake-streamlit-performance.md` → Performance optimization
-  - `101c-snowflake-streamlit-security.md` → Security patterns
+  - `101-snowflake-streamlit-core.md` - Foundation
+  - `101a-snowflake-streamlit-visualization.md` - Visualization patterns
+  - `101b-snowflake-streamlit-performance.md` - Performance optimization
+  - `101c-snowflake-streamlit-security.md` - Security patterns
 
 ## Model-Specific Optimization
 
@@ -247,12 +249,11 @@ Reserve remaining context for:
 - Generated code and outputs (~20-30%)
 - Safety margin for tool responses (~10-20%)
 
-| Model | Context Window | Loading Budget (30-40%) |
-|-------|---------------|------------------------|
-| GPT-4o | 128K | 38K-51K tokens |
-| GPT-5.1 | 400K | 120K-160K tokens |
-| Claude Sonnet 4.5 | 200K | 60K-80K tokens |
-| Gemini 3 Pro | 1M | 300K-400K tokens |
+**Model Context Windows (30-40% loading budget):**
+- **GPT-4o:** 128K context allows 38K-51K tokens for rules
+- **GPT-5.1:** 400K context allows 120K-160K tokens for rules
+- **Claude Sonnet 4.5:** 200K context allows 60K-80K tokens for rules
+- **Gemini 3 Pro:** 1M context allows 300K-400K tokens for rules
 
 **Rule of Thumb:** If you're loading >40% of context window with rules, you're likely over-loading.
 
@@ -483,14 +484,13 @@ wc -w rules/NNN-rule.md
 
 **Default threshold:** +/-15% (validator default, configurable via `--threshold`)
 
-| Variance | Status | Action |
-|----------|--------|--------|
-| ≤15%     | [PASS] | No update needed |
-| >15%     | [UPDATE] | Validator auto-updates TokenBudget |
+**Variance Handling:**
+- **≤15% variance:** PASS - No update needed
+- **>15% variance:** UPDATE - Validator auto-updates TokenBudget
 
 **Examples:**
-- Declared: `~2500`, Actual: `2650` (+6%) → [PASS] Within tolerance
-- Declared: `~2500`, Actual: `2950` (+18%) → [UPDATE] Auto-corrected to `~2950`
+- Declared: `~2500`, Actual: `2650` (+6%) - PASS (within tolerance)
+- Declared: `~2500`, Actual: `2950` (+18%) - UPDATE (auto-corrected to `~2950`)
 
 **Custom threshold:** Use `--threshold 10` for stricter validation during audits.
 
@@ -515,7 +515,6 @@ wc -w rules/NNN-rule.md
 ```
 **Benefits:** Parseable, enables progressive loading decisions, accurate context budget tracking.
 
----
 
 **Anti-Pattern 2: Loading All Rules at Start**
 
@@ -596,10 +595,10 @@ wc -w rules/NNN-rule.md
 ## References
 
 ### Related Rules
-- **Rule Governance**: `rules/002-rule-governance.md` - Schema requirements
-- **Creation Guide**: `rules/002a-rule-creation-guide.md` - Step-by-step rule creation workflow
-- **Advanced Patterns**: `rules/002c-advanced-rule-patterns.md` - System prompt altitude, multi-session workflows
-- **Validator Usage**: `rules/002d-schema-validator-usage.md` - Token validation commands
+- **Rule Governance**: `002-rule-governance.md` - Schema requirements
+- **Creation Guide**: `002a-rule-creation-guide.md` - Step-by-step rule creation workflow
+- **Advanced Patterns**: `002c-advanced-rule-patterns.md` - System prompt altitude, multi-session workflows
+- **Validator Usage**: `002d-schema-validator-usage.md` - Token validation commands
 
 ### Authoritative Sources
 - **RULES_INDEX.md**: Contains declared TokenBudget for all rules (auto-generated, always current)

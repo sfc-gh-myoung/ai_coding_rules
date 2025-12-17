@@ -146,7 +146,6 @@ def call_cortex_api_with_retry(prompt, model="mistral-large", max_retries=3):
 ```
 **Benefits:** Handles rate limits; retries transient errors; better reliability; professional API client; good user experience; production-ready
 
----
 
 **Anti-Pattern 2: Not Using Streaming for Long Responses**
 ```python
@@ -192,7 +191,6 @@ print()  # New line at end
 ```
 **Benefits:** Immediate feedback; better UX; shows progress; feels responsive; professional; lower perceived latency; user engagement
 
----
 
 **Anti-Pattern 3: Not Monitoring Token Usage and Costs**
 ```python
@@ -269,7 +267,6 @@ def analyze_token_usage(log_file='cortex_api_usage.log'):
 ```
 **Benefits:** Cost visibility; usage tracking; optimization insights; budget control; anomaly detection; performance monitoring; professional; financial responsibility
 
----
 
 **Anti-Pattern 4: Using REST API for Batch Processing Instead of AISQL**
 ```python

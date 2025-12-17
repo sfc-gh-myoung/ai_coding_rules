@@ -65,7 +65,7 @@ Error classification enum/constant with user-facing guidance string
 <validation>
 - Network policy errors NOT classified as auth errors
 - Error classification includes specific guidance (VPN reconnect vs auth refresh)
-- Detection order is specific → generic
+- Detection order is specific to generic
 - Message content checked before code matching
 </validation>
 
@@ -284,15 +284,14 @@ Actions:
 
 ## Common Error Code Patterns
 
-| Error Code | Common Causes | Required Check |
-|------------|---------------|----------------|
-| 08001 | VPN disconnect, auth expired, wrong URL | **Message content** (network policy vs auth) |
-| 250001 | Network policy violation | "not allowed to access" in message |
-| 390114 | Token expired | Auth-specific code |
-| 390318 | Session expired | Auth-specific code |
-| 390144 | Invalid token | Auth-specific code |
-| 002003 | SQL compilation error | Not connection-related |
-| 000606 | Object not found | Permission or object existence |
+**Error Code Reference:**
+- **08001** - VPN disconnect, auth expired, wrong URL - Check message content (network policy vs auth)
+- **250001** - Network policy violation - Look for "not allowed to access" in message
+- **390114** - Token expired - Auth-specific code
+- **390318** - Session expired - Auth-specific code
+- **390144** - Invalid token - Auth-specific code
+- **002003** - SQL compilation error - Not connection-related
+- **000606** - Object not found - Permission or object existence
 
 ## Implementation Example
 
@@ -450,7 +449,7 @@ Before deploying connection error handling:
 - [ ] Network policy detection runs FIRST (before auth/connection)
 - [ ] Error message content analyzed (not just codes)
 - [ ] Each error type has specific user guidance (VPN vs auth vs network)
-- [ ] Detection order: specific → generic
+- [ ] Detection order: specific to generic
 - [ ] VPN disconnection NOT classified as auth error
 - [ ] Auto-retry implemented for transient errors
 - [ ] Logging includes error type classification for debugging

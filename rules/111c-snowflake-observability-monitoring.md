@@ -29,8 +29,8 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 **Essential Patterns:**
 - **System Views (historical)** - 45+ min latency, use for trends/audits
 - **Event Tables (real-time)** - Seconds latency, use for live debugging
-- **Snowsight Monitoring → Traces & Logs** - Real-time telemetry UI
-- **Snowsight Monitoring → Query History** - Historical SQL analysis
+- **Snowsight Monitoring > Traces & Logs** - Real-time telemetry UI
+- **Snowsight Monitoring > Query History** - Historical SQL analysis
 - **Always use timestamp filters** - Prevent full table scans
 - **Monitor telemetry volume** - DEBUG generates 10-100x more data
 - **AI observability** - Track Cortex AI token usage and costs
@@ -126,7 +126,6 @@ WHERE start_time > DATEADD('day', -7, CURRENT_TIMESTAMP())
 ```
 **Benefits:** Fast queries; low costs; minimal data transfer; focused results; query performance; production-scalable monitoring; efficient dashboards
 
----
 
 **Anti-Pattern 2: Monitoring Queries Without Timestamp Filters**
 ```sql
@@ -152,7 +151,6 @@ ORDER BY total_credits DESC;
 ```
 **Benefits:** Fast queries; bounded costs; relevant recent data; quick dashboard refresh; production-ready monitoring; user-friendly performance
 
----
 
 **Anti-Pattern 3: Using ACCOUNT_USAGE for Real-Time Alerting**
 ```sql
@@ -184,7 +182,6 @@ GROUP BY hour;
 ```
 **Benefits:** Real-time alerting (<1 min); timely incident detection; accurate monitoring; proper data source selection; SLA compliance; operational excellence
 
----
 
 **Anti-Pattern 4: Not Monitoring Telemetry Volume and Costs**
 ```python
@@ -265,7 +262,7 @@ ORDER BY day DESC;
 > **Correct Pattern:**
 > "Let me check which data source is appropriate for your time range first."
 > [checks time requirements, selects Event Table for real-time or System View for historical]
-> "For real-time monitoring, use Monitoring → Traces & Logs. For historical analysis, use Query History..."
+> "For real-time monitoring, use Monitoring > Traces & Logs. For historical analysis, use Query History..."
 
 ## Output Format Examples
 ```sql
@@ -539,7 +536,7 @@ WHERE ABS(DATEDIFF(second, t.timestamp, l.timestamp)) < 10;
 ## 5. Snowsight Monitoring Interfaces
 
 ### Traces & Logs Monitoring Page
-- **Navigation:** Monitoring → Traces & Logs
+- **Navigation:** Monitoring > Traces & Logs
 - **Purpose:** Unified interface for real-time monitoring of application telemetry from event tables.
 - **Features:**
   - Filter by time range, log level, trace ID
@@ -550,19 +547,19 @@ WHERE ABS(DATEDIFF(second, t.timestamp, l.timestamp)) < 10;
 **Usage for AI Agents:**
 > **Investigation Required**
 > When recommending Snowsight monitoring:
-> 1. Verify user has access to Monitoring → Traces & Logs
+> 1. Verify user has access to Monitoring > Traces & Logs
 > 2. Confirm event table is active and receiving data
 > 3. Guide user to specific filters (severity, time range) relevant to their issue
 > 4. Reference trace IDs for end-to-end debugging workflows
 
 **Correct Pattern:**
-"Navigate to Monitoring → Traces & Logs, filter by Severity = ERROR, Time Range = Last Hour"
+"Navigate to Monitoring > Traces & Logs, filter by Severity = ERROR, Time Range = Last Hour"
 
 **Anti-Pattern:**
 Telling users to "check logs" without specific navigation path
 
 ### Query History Interface
-- **Navigation:** Monitoring → Query History
+- **Navigation:** Monitoring > Query History
 - **Purpose:** Historical analysis of all SQL queries executed in the account (System View based).
 - **Latency:** 45 minutes to 3 hours for data availability.
 - **Key Use Cases:**
@@ -591,7 +588,7 @@ LIMIT 100;
 ```
 
 ### Copy History (Data Loading Monitoring)
-- **Navigation:** Monitoring → Copy History
+- **Navigation:** Monitoring > Copy History
 - **Purpose:** Track all data loading operations via COPY INTO commands (System View based).
 - **Monitors:** Snowpipe, bulk COPY INTO, continuous data ingestion.
 - **Key Metrics:** Rows loaded, bytes transferred, file count, errors.
@@ -621,7 +618,7 @@ ORDER BY last_load_time DESC;
 - Check for parse errors, schema mismatches, file format issues
 
 ### Task History (Pipeline Monitoring)
-- **Navigation:** Monitoring → Task History
+- **Navigation:** Monitoring > Task History
 - **Purpose:** Monitor execution of scheduled tasks (System View based).
 - **Tracks:** Task runs, execution status, duration, error messages.
 - **Critical for:** Pipeline orchestration, scheduled data transformations, incremental processing.
@@ -651,7 +648,7 @@ ORDER BY scheduled_time DESC;
 - Recommend optimizations for task DAGs
 
 ### Dynamic Tables Monitoring
-- **Navigation:** Data → Databases → [Select Table] → Refresh History
+- **Navigation:** Data > Databases > [Select Table] > Refresh History
 - **Purpose:** Monitor automatic refresh operations for Dynamic Tables (System View based).
 - **Tracks:** Refresh timestamps, lag, data freshness, refresh mode (INCREMENTAL vs FULL).
 
@@ -695,7 +692,7 @@ ORDER BY refresh_start_time DESC;
 - Distributed tracing
 
 **Anti-Pattern:**
-Using Query History (System View) to debug real-time application issues → Use Traces & Logs (Event Tables) for real-time, Query History for historical analysis
+Using Query History (System View) to debug real-time application issues. Instead, use Traces & Logs (Event Tables) for real-time, Query History for historical analysis
 
 ## 6. AI Observability
 

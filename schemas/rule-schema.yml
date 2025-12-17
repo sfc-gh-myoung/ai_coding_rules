@@ -64,6 +64,7 @@ metadata:
       fix_suggestion: "Choose appropriate tier based on rule importance"
       severity: "HIGH"
       docs_reference: "002-rule-governance.md Section 11.1"
+      description: "Secondary priority signal for context management. Primary preservation mechanism is natural language importance markers (CRITICAL/CORE/FOUNDATION) that work universally across all LLMs. ContextTier helps agents make fine-grained decisions within priority tiers. All four values remain valid and enforced by schema."
     
     - name: "Depends"
       format: "**Depends:**"
@@ -511,18 +512,18 @@ link_validation:
     related_rules_subsection:
       required: false  # Subsection is recommended but optional
       rule_reference_format:
-        required_prefix: "rules/"
-        pattern: "rules/[a-zA-Z0-9_-]+\\.md"
-        # Allow root-level project files without rules/ prefix
+        # Rules can be referenced with or without 'rules/' prefix
+        # The rules/ location is defined in AGENTS.md for token efficiency
+        pattern: "([a-zA-Z0-9_-]+\\.md|rules/[a-zA-Z0-9_-]+\\.md)"
+        # Allow root-level project files
         allowed_root_files:
           - "AGENTS.md"
           - "CHANGELOG.md"
           - "CONTRIBUTING.md"
           - "README.md"
           - "RULES_INDEX.md"
-        error_message: "Related Rules must use 'rules/' prefix for all rule references"
-        fix_suggestion: "Update reference from '{filename}' to 'rules/{filename}'"
-        severity: "HIGH"
+        # No error for missing prefix - both formats valid
+        severity: "INFO"
         docs_reference: "002-rule-governance.md Section 11"
 
 # ==============================================================================

@@ -210,19 +210,22 @@ def scan_rules(rules_dir: Path) -> list[RuleMetadata]:
     return rules
 
 
-def generate_table_row(metadata: RuleMetadata) -> str:
-    """Generate markdown table row for one rule.
+def generate_rule_entry(metadata: RuleMetadata) -> str:
+    """Generate structured list entry for one rule.
 
-    Format: | `file` | Scope | Keywords | Depends |
+    Format:
+    **`filename`** - Scope description
+    - Keywords: keyword1, keyword2, ...
+    - Depends: `dep1`, `dep2` or —
 
     Args:
         metadata: RuleMetadata object
 
     Returns:
-        Formatted markdown table row string
+        Formatted markdown list entry string
     """
-    # Wrap filename in backticks
-    filename = f"`{metadata.filename}`"
+    # Wrap filename in backticks and bold
+    filename = f"**`{metadata.filename}`**"
 
     # Scope (extracted from ## Rule Scope section)
     scope = metadata.scope
@@ -237,10 +240,117 @@ def generate_table_row(metadata: RuleMetadata) -> str:
         deps = [f"`{d.strip()}`" for d in metadata.depends.split(",")]
         depends = ", ".join(deps)
 
-    # Build row
-    row = f"| {filename} | {scope} | {keywords} | {depends} |"
+    # Build structured entry
+    entry = f"{filename} - {scope}\n- Keywords: {keywords}\n- Depends: {depends}"
 
-    return row
+    return entry
+
+
+def get_domain_name(prefix: str) -> str:
+    """Get human-readable domain name for rule prefix.
+
+    Args:
+        prefix: Rule prefix (e.g., "000", "100", "200")
+
+    Returns:
+        Domain name string
+    """
+    domain_map = {
+        "000": "Core Foundation (000-series)",
+        "001": "Core Foundation (000-series)",
+        "002": "Core Foundation (000-series)",
+        "003": "Core Foundation (000-series)",
+        "004": "Core Foundation (000-series)",
+        "100": "Snowflake (100-series)",
+        "101": "Snowflake (100-series)",
+        "102": "Snowflake (100-series)",
+        "103": "Snowflake (100-series)",
+        "104": "Snowflake (100-series)",
+        "105": "Snowflake (100-series)",
+        "106": "Snowflake (100-series)",
+        "107": "Snowflake (100-series)",
+        "108": "Snowflake (100-series)",
+        "109": "Snowflake (100-series)",
+        "110": "Snowflake (100-series)",
+        "111": "Snowflake (100-series)",
+        "112": "Snowflake (100-series)",
+        "113": "Snowflake (100-series)",
+        "114": "Snowflake (100-series)",
+        "115": "Snowflake (100-series)",
+        "116": "Snowflake (100-series)",
+        "117": "Snowflake (100-series)",
+        "118": "Snowflake (100-series)",
+        "119": "Snowflake (100-series)",
+        "120": "Snowflake (100-series)",
+        "121": "Snowflake (100-series)",
+        "122": "Snowflake (100-series)",
+        "123": "Snowflake (100-series)",
+        "124": "Snowflake (100-series)",
+        "125": "Snowflake (100-series)",
+        "200": "Python (200-series)",
+        "201": "Python (200-series)",
+        "202": "Python (200-series)",
+        "203": "Python (200-series)",
+        "204": "Python (200-series)",
+        "205": "Python (200-series)",
+        "206": "Python (200-series)",
+        "207": "Python (200-series)",
+        "210": "Python (200-series)",
+        "220": "Python (200-series)",
+        "221": "Python (200-series)",
+        "230": "Python (200-series)",
+        "240": "Python (200-series)",
+        "250": "Python (200-series)",
+        "251": "Python (200-series)",
+        "252": "Python (200-series)",
+        "300": "Shell Scripting (300-series)",
+        "310": "Shell Scripting (300-series)",
+        "350": "Docker/Containers (300-series)",
+        "420": "JavaScript/TypeScript (400-series)",
+        "421": "JavaScript/TypeScript (400-series)",
+        "430": "JavaScript/TypeScript (400-series)",
+        "440": "React/Frontend (400-series)",
+        "441": "React/Frontend (400-series)",
+        "500": "Frontend/HTMX (500-series)",
+        "600": "Go/Systems (600-series)",
+        "800": "Project Management (800-series)",
+        "801": "Project Management (800-series)",
+        "802": "Project Management (800-series)",
+        "803": "Project Management (800-series)",
+        "820": "Project Management (800-series)",
+        "900": "Demo/Analytics (900-series)",
+        "901": "Demo/Analytics (900-series)",
+        "920": "Demo/Analytics (900-series)",
+        "930": "Demo/Analytics (900-series)",
+        "940": "Demo/Analytics (900-series)",
+    }
+    return domain_map.get(prefix, "Other")
+
+
+def group_rules_by_domain(rules: list[RuleMetadata]) -> dict[str, list[RuleMetadata]]:
+    """Group rules by domain based on filename prefix.
+
+    Args:
+        rules: List of RuleMetadata objects
+
+    Returns:
+        Dictionary mapping domain names to lists of rules
+    """
+    from collections import OrderedDict
+
+    # Use OrderedDict to preserve insertion order
+    domains: dict[str, list[RuleMetadata]] = OrderedDict()
+
+    for rule in rules:
+        # Extract prefix (first 3 digits)
+        prefix = rule.filename[:3]
+        domain = get_domain_name(prefix)
+
+        if domain not in domains:
+            domains[domain] = []
+        domains[domain].append(rule)
+
+    return domains
 
 
 def generate_agent_guidance() -> str:
@@ -393,48 +503,46 @@ def generate_footer() -> str:
 
 ## Common Rule Dependency Chains
 
-Two representative examples demonstrating all dependency patterns. Apply these patterns to other rule combinations using the Depends On column in the table above.
+Two representative examples demonstrating all dependency patterns. Apply these patterns to other rule combinations using the Depends field in the catalog above.
 
-**Reading the Trees:**
+**Reading the Chains:**
 - Indentation shows dependency relationships
 - Token budgets shown in parentheses
 - "Minimal/Standard/Complete" shows progressive loading strategies
 
 ### Example 1: Linear Chain (Streamlit Dashboard)
-```
-000-global-core (3300 tokens)
-└── 100-snowflake-core (2850 tokens)
-    └── 101-snowflake-streamlit-core (3700 tokens)
-        ├── 101a-snowflake-streamlit-visualization (3600 tokens)
-        ├── 101b-snowflake-streamlit-performance (5950 tokens)
-        └── 101c-snowflake-streamlit-security (2550 tokens)
 
-Token Cost Scenarios:
-• Minimal (basic app):        000 + 100 + 101      = ~9,850 tokens
-• Standard (with viz):         + 101a               = ~13,450 tokens
-• Complete (production-ready): + 101b + 101c        = ~21,950 tokens
-```
+**`000-global-core.md`** (3300 tokens) - Foundation
+- **`100-snowflake-core.md`** (2850 tokens) - Snowflake foundation
+  - **`101-snowflake-streamlit-core.md`** (3700 tokens) - Streamlit core
+    - **`101a-snowflake-streamlit-visualization.md`** (3600 tokens) - Visualization
+    - **`101b-snowflake-streamlit-performance.md`** (5950 tokens) - Performance
+    - **`101c-snowflake-streamlit-security.md`** (2550 tokens) - Security
+
+**Token Cost Scenarios:**
+- Minimal (basic app): 000 + 100 + 101 = ~9,850 tokens
+- Standard (with viz): + 101a = ~13,450 tokens
+- Complete (production-ready): + 101b + 101c = ~21,950 tokens
 
 ### Example 2: Multi-Branch (Cortex Agent)
-```
-000-global-core (3300 tokens)
-├── 100-snowflake-core (2850 tokens)
-│   ├── 106-snowflake-semantic-views-core (5550 tokens)
-│   └── 111-snowflake-observability-core (4200 tokens)
-└── 115-snowflake-cortex-agents-core (4650 tokens)
-    ├── 115a-snowflake-cortex-agents-instructions (3450 tokens)
-    └── 115b-snowflake-cortex-agents-operations (3650 tokens)
 
-Token Cost Scenarios:
-• Minimal (agent setup):    000 + 100 + 115        = ~10,800 tokens
-• Standard (+ semantic):    + 106                   = ~16,350 tokens
-• Production (+ ops):       + 115b + 111           = ~24,200 tokens
-```
+**`000-global-core.md`** (3300 tokens) - Foundation
+- **`100-snowflake-core.md`** (2850 tokens) - Snowflake foundation
+  - **`106-snowflake-semantic-views-core.md`** (5550 tokens) - Semantic views
+  - **`111-snowflake-observability-core.md`** (4200 tokens) - Observability
+- **`115-snowflake-cortex-agents-core.md`** (4650 tokens) - Cortex agents
+  - **`115a-snowflake-cortex-agents-instructions.md`** (3450 tokens) - Instructions
+  - **`115b-snowflake-cortex-agents-operations.md`** (3650 tokens) - Operations
+
+**Token Cost Scenarios:**
+- Minimal (agent setup): 000 + 100 + 115 = ~10,800 tokens
+- Standard (+ semantic): + 106 = ~16,350 tokens
+- Production (+ ops): + 115b + 111 = ~24,200 tokens
 
 **Usage Tips:**
 - "Minimal" covers 70-80% of typical use cases
 - Start minimal, add rules as complexity requires
-- Check Depends On column for prerequisites
+- Check Depends field for prerequisites
 """
     return footer
 
@@ -443,6 +551,7 @@ def generate_rules_index(rules: list[RuleMetadata]) -> str:
     """Generate complete RULES_INDEX.md content.
 
     All content is dynamically generated - no preservation of existing content.
+    Uses structured list format instead of tables for better agent comprehension.
 
     Args:
         rules: List of RuleMetadata objects
@@ -476,9 +585,9 @@ This index provides semantic discovery for AI agents.
 This index provides semantic rule discovery for AI agents. All rules in `rules/` are production-ready and deployment-ready.
 
 **How to Use This Index:**
-- Browse by category (000=Core, 100=Snowflake, 200=Python, 300=Shell, 400=Docker, 500-900=Domain-specific)
-- Search Keywords column for semantic discovery (technologies, patterns, use cases)
-- Check Depends On column for prerequisite rules
+- Browse by domain section (Core, Snowflake, Python, Shell, etc.)
+- Search Keywords field for semantic discovery (technologies, patterns, use cases)
+- Check Depends field for prerequisite rules
 """
 
     # Generate agent guidance
@@ -487,26 +596,33 @@ This index provides semantic rule discovery for AI agents. All rules in `rules/`
     # Generate loading strategy
     loading_strategy = generate_loading_strategy()
 
-    # Generate table
-    table_header = "| File | Scope | Keywords/Hints | Depends On |"
-    table_separator = "|------|-------|----------------|------------|"
+    # Generate rule catalog grouped by domain
+    catalog_header = "\n## Rule Catalog\n"
 
-    table_rows = [generate_table_row(rule) for rule in rules]
+    # Group rules by domain
+    domains = group_rules_by_domain(rules)
+
+    # Generate entries for each domain
+    catalog_entries = []
+    for domain_name, domain_rules in domains.items():
+        # Domain section header
+        catalog_entries.append(f"\n### {domain_name}\n")
+
+        # Generate entry for each rule in domain
+        for rule in domain_rules:
+            catalog_entries.append(generate_rule_entry(rule))
+            catalog_entries.append("")  # Blank line between entries
 
     # Generate footer
     footer = generate_footer()
 
-    # Combine everything (header + agent_guidance + loading_strategy + table + footer)
+    # Combine everything
     content = (
         header
         + agent_guidance
         + loading_strategy
-        + "\n\n"
-        + table_header
-        + "\n"
-        + table_separator
-        + "\n"
-        + "\n".join(table_rows)
+        + catalog_header
+        + "\n".join(catalog_entries)
         + footer
     )
 

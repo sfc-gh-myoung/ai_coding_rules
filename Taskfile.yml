@@ -369,6 +369,7 @@ tasks:
 
   rule:new:
     desc: "Generate v3.0 rule template (requires FILENAME=)"
+    silent: true
     requires:
       vars: [FILENAME]
     deps:
@@ -382,6 +383,7 @@ tasks:
 
   rule:new:force:
     desc: "Generate rule template with overwrite (requires FILENAME=)"
+    silent: true
     requires:
       vars: [FILENAME]
     deps:

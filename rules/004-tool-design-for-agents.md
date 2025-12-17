@@ -370,8 +370,8 @@ process()  # What does it process?
 **Decision Framework:**
 ```
 Is there exactly ONE obvious tool for this task?
-├─ Yes → Good tool boundaries
-└─ No  → Refactor to eliminate ambiguity
+- If Yes: Good tool boundaries
+- If No: Refactor to eliminate ambiguity
 ```
 
 **Example of Poor Boundaries:**
@@ -928,16 +928,16 @@ Task: Implement user authentication
 # Common agent mistakes might indicate tool design issues
 
 Agent repeatedly provides wrong parameter format
-→ Parameter naming/documentation unclear
+- Cause: Parameter naming/documentation unclear
 
 Agent uses tool A when tool B is more appropriate
-→ Tool boundaries need clarification
+- Cause: Tool boundaries need clarification
 
 Agent loads too much data
-→ Tool should have better filtering/limiting
+- Cause: Tool should have better filtering/limiting
 
 Agent gets confused by error messages
-→ Error messages need improvement
+- Cause: Error messages need improvement
 ```
 
 ## Tool Design Analysis

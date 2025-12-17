@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.4.3] - 2025-12-17
+
 ### Added
 - feat(taskfile): add task naming conventions and standard namespace registry (820-taskfile-automation.md)
   - Added `namespace:action` pattern as default naming convention
@@ -812,7 +814,9 @@ Processed 2 retrospective findings from Cortex Agent testing project:
 - Basic validation scripts
 - Documentation templates
 
-[Unreleased]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.4.0...HEAD
+[Unreleased]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.4.3...HEAD
+[3.4.3]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.4.2...v3.4.3
+[3.4.2]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.4.0...v3.4.2
 [3.4.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.3.0...v3.4.0
 [3.3.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.2.1...v3.3.0
 [3.2.1]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.2.0...v3.2.1

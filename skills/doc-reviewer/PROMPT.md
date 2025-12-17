@@ -1,6 +1,6 @@
 # Documentation Review Prompt (Template)
 
-~~~~markdown
+```markdown
 ## Documentation Review Request
 
 **Target File(s):** [path/to/doc.md or list of paths]
@@ -179,7 +179,7 @@ Analyze the documentation against these criteria, scoring each 1-5 (5 = excellen
 
 Provide your assessment in this structure:
 
-~~~markdown
+```markdown
 ## Documentation Review: [doc-name.md]
 
 ### Scores
@@ -230,7 +230,7 @@ For each issue, provide:
 1. **Location:** Line number or section name
 2. **Problem:** What's wrong and why it matters for users
 3. **Recommendation:** Specific fix with example if helpful
-~~~
+```
 
 ### Mandatory Verification Tables (Required for Scoring Justification)
 
@@ -241,7 +241,7 @@ analysis and provide actionable feedback.
 
 Scan the documentation for code references and verify they exist in the codebase:
 
-~~~markdown
+```markdown
 **Cross-Reference Verification:**
 
 | Reference | Type | Location in Doc | Exists? | Notes |
@@ -259,7 +259,7 @@ Scan the documentation for code references and verify they exist in the codebase
 - `function`: Function/method references
 - `class`: Class references
 - `config`: Configuration keys/values
-~~~
+```
 
 **Scoring impact:** Each missing reference reduces Accuracy score.
 More than 3 missing references = score ≤3/5.
@@ -268,7 +268,7 @@ More than 3 missing references = score ≤3/5.
 
 Scan the documentation for all links and verify their status:
 
-~~~markdown
+```markdown
 **Link Validation:**
 
 | Link | Type | Source Location | Status | Notes |
@@ -289,7 +289,7 @@ Scan the documentation for all links and verify their status:
 - ✅ Verified (internal links checked, anchors validated)
 - ⚠️ Manual check needed (external URLs)
 - ❌ Broken (file/anchor not found)
-~~~
+```
 
 **Scoring impact:** Each broken internal link reduces Staleness score.
 More than 2 broken links = score ≤3/5.
@@ -299,7 +299,7 @@ External links flagged but don't reduce score (manual verification needed).
 
 If project has documentation rules, verify compliance:
 
-~~~markdown
+```markdown
 **Baseline Compliance Check:**
 
 Checking against: [rules/801-project-readme.md | rules/802-project-contributing.md | General best practices]
@@ -315,7 +315,7 @@ Checking against: [rules/801-project-readme.md | rules/802-project-contributing.
 **If no project rules found:**
 - Using general documentation best practices
 - Note: Consider creating rules/801-project-readme.md for consistent standards
-~~~
+```
 
 **Scoring impact:** Non-compliance with project rules reduces Consistency score.
 
@@ -442,5 +442,5 @@ include the intended path on the first line exactly as:
 `OUTPUT_FILE: reviews/<doc-name>-<model>-<YYYY-MM-DD>.md`
 <!-- End of prompt template -->
 <!-- EOF -->
-~~~~
+```
 

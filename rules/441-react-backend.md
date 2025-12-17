@@ -80,15 +80,21 @@ TypeScript React code (`.tsx`) with TanStack Query hooks; Python backend code (F
 
 #### 1.1 Decision Tree
 
-| Requirement | Recommended Framework |
-|-------------|----------------------|
-| Async operations, WebSockets | **FastAPI** |
-| Auto-generated OpenAPI docs | **FastAPI** |
-| Simple REST API, quick setup | **Flask** |
-| Large existing Flask codebase | **Flask** |
-| ML/AI integration (common in Python) | **FastAPI** (async) or **Flask** |
-| Simple API within Next.js app | **Next.js API Routes** |
-| Team has strong Node.js expertise | **Express** (when user requests) |
+**When to use FastAPI:**
+- Async operations, WebSockets
+- Auto-generated OpenAPI docs needed
+- ML/AI integration (async preferred)
+
+**When to use Flask:**
+- Simple REST API, quick setup
+- Large existing Flask codebase
+- ML/AI integration (sync acceptable)
+
+**When to use Next.js API Routes:**
+- Simple API within Next.js app
+
+**When to use Express:**
+- Team has strong Node.js expertise (when user requests)
 
 #### 1.2 Organizational Default Rationale
 
@@ -282,7 +288,6 @@ localStorage.setItem('token', jwt);
 fetch('/api/data', { credentials: 'include' });
 ```
 
----
 
 **Anti-Pattern 2: Hardcoded API URLs**
 ```typescript
@@ -298,7 +303,6 @@ const API_URL = import.meta.env.VITE_API_URL;
 fetch(`${API_URL}/users`);
 ```
 
----
 
 **Anti-Pattern 3: Data Fetching in useEffect**
 ```typescript

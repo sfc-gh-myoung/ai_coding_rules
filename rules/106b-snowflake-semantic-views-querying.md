@@ -132,7 +132,6 @@ SELECT * FROM SEMANTIC_VIEW(my_view
 ```
 **Benefits:** Valid queries that execute successfully - choose FACTS for row-level data, METRICS for aggregated results.
 
----
 
 **Anti-Pattern 2: Missing All Required Clauses**
 ```sql

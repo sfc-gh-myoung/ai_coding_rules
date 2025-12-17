@@ -1,5 +1,11 @@
 # JavaScript Core: Modern Standards & Best Practices
 
+> **CORE RULE: PRESERVE WHEN POSSIBLE**
+> 
+> This rule defines essential JavaScript patterns. Load for JavaScript tasks.
+> Specialized rules depend on this foundation.
+
+
 ## Metadata
 
 **SchemaVersion:** v3.1
@@ -82,7 +88,6 @@ import fs from 'node:fs';
 export default { ... };
 ```
 
----
 
 **Anti-Pattern 2: Mutating State**
 ```javascript
@@ -98,7 +103,6 @@ users.sort();
 const sortedUsers = users.toSorted();
 ```
 
----
 
 **Anti-Pattern 3: Ignoring Promise Failures**
 ```javascript

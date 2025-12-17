@@ -227,7 +227,7 @@ uv run pytest tests/
 ## 1. Project Setup and Structure
 
 ### Installation and Dependencies
-- **Requirement:** Use `uv` for dependency management following `@200-python-core.md` patterns
+- **Requirement:** Use `uv` for dependency management following `200-python-core.md` patterns
 - **Requirement:** Install Typer with: `uv add typer` or `uv add "typer[all]"` for full features
 - **Rule:** Use `typer-slim` for minimal installations when rich formatting isn't needed
 - **Always:** Include Typer in `[project.dependencies]` not `[project.optional-dependencies]`
@@ -248,34 +248,26 @@ myapp = "myapp.cli.main:app"
 - **Rule:** Separate CLI logic from business logic in different modules
 - **Always:** Create dedicated CLI module structure:
 
-```
-cli-project/
-├── pyproject.toml
-├── src/
-│   └── myapp/
-│       ├── __init__.py
-│       ├── cli/
-│       │   ├── __init__.py
-│       │   ├── main.py          # Main CLI app and entry point
-│       │   ├── commands/        # Command modules
-│       │   │   ├── __init__.py
-│       │   │   ├── config.py    # Config-related commands
-│       │   │   └── data.py      # Data processing commands
-│       │   └── utils.py         # CLI utilities and helpers
-│       ├── core/                # Business logic (CLI-independent)
-│       │   ├── __init__.py
-│       │   ├── models.py
-│       │   └── services.py
-│       └── config/
-│           ├── __init__.py
-│           └── settings.py
-└── tests/
-    ├── __init__.py
-    ├── cli/
-    │   └── test_commands.py
-    └── core/
-        └── test_services.py
-```
+Directory structure for `cli-project/`:
+- `pyproject.toml`
+- **src/myapp/** - Source package
+  - `__init__.py`
+  - **cli/** - CLI layer
+    - `__init__.py`
+    - `main.py` - Main CLI app and entry point
+    - **commands/** - Command modules
+      - `__init__.py`
+      - `config.py` - Config-related commands
+      - `data.py` - Data processing commands
+    - `utils.py` - CLI utilities and helpers
+  - **core/** - Business logic (CLI-independent)
+    - `__init__.py`, `models.py`, `services.py`
+  - **config/** - Configuration
+    - `__init__.py`, `settings.py`
+- **tests/** - Test suite
+  - `__init__.py`
+  - **cli/** - `test_commands.py`
+  - **core/** - `test_services.py`
 
 ## 2. CLI Application Design Patterns
 
@@ -607,7 +599,7 @@ myapp = "myapp.cli.main:app"
 ```
 
 ### Installation Setup
-- **Rule:** Follow `@203-python-project-setup.md` patterns
+- **Rule:** Follow `203-python-project-setup.md` patterns
 - **Always:** Include CLI testing dependencies
 
 ```bash
@@ -680,7 +672,7 @@ def main(
 
 ## Related Rules
 
-- **`@200-python-core.md`** - Core Python patterns and uv usage
-- **`@201-python-lint-format.md`** - Ruff linting and formatting standards
-- **`@203-python-project-setup.md`** - Python project structure and packaging
-- **`@800-project-changelog-rules.md`** - Changelog discipline for CLI changes
+- **`200-python-core.md`** - Core Python patterns and uv usage
+- **`201-python-lint-format.md`** - Ruff linting and formatting standards
+- **`203-python-project-setup.md`** - Python project structure and packaging
+- **`800-project-changelog-rules.md`** - Changelog discipline for CLI changes

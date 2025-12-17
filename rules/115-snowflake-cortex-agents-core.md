@@ -1,5 +1,11 @@
 # Snowflake Cortex Agents Best Practices
 
+> **CORE RULE: PRESERVE WHEN POSSIBLE**
+> 
+> This rule defines essential Cortex Agents patterns. Load for Cortex Agent tasks.
+> Specialized rules depend on this foundation.
+
+
 ## Metadata
 
 **SchemaVersion:** v3.1
@@ -32,7 +38,7 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - **Define clear tool descriptions** - Help agent understand when to use each tool
 - **Write planning instructions** - Guide agent orchestration and tool selection
 - **Enforce RBAC and allowlists** - Least-privilege access to models, tools, data
-- **Test systematically** - Component testing → integration → eval framework
+- **Test systematically** - Component testing, then integration, then eval framework
 - **Never put business logic in semantic views** - Use agent response instructions
 
 **Quick Checklist:**
@@ -155,7 +161,6 @@ tools = [{
 ```
 **Benefits:** Clear tool selection criteria; agent knows exact use cases; predictable routing; better user experience; easier debugging; optimal tool usage
 
----
 
 **Anti-Pattern 2: Missing Planning Instructions for Multi-Tool Orchestration**
 ```python
@@ -188,7 +193,6 @@ agent = cortex.Agent(
 ```
 **Benefits:** Systematic tool orchestration; efficient execution order; comprehensive answers; proper synthesis; predictable behavior; better user satisfaction
 
----
 
 **Anti-Pattern 3: No Semantic View for Cortex Analyst Tool**
 ```python
@@ -220,7 +224,6 @@ analyst_tool = cortex.AnalystTool(
 ```
 **Benefits:** Business-friendly queries; accurate SQL generation; correct metric calculations; schema abstraction; business user accessibility; better analyst results
 
----
 
 **Anti-Pattern 4: Not Testing Agent with Out-of-Scope Questions**
 ```python

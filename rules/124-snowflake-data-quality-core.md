@@ -1,5 +1,11 @@
 # Snowflake Data Quality Monitoring Best Practices
 
+> **CORE RULE: PRESERVE WHEN POSSIBLE**
+> 
+> This rule defines essential Data Quality patterns. Load for data quality tasks.
+> Specialized rules depend on this foundation.
+
+
 ## Metadata
 
 **SchemaVersion:** v3.1
@@ -122,7 +128,6 @@ ALTER TABLE critical_table
 ```
 **Benefits:** Automated pass/fail evaluation; proactive alerting; clear quality thresholds; actionable results; enables quality gates; compliance-ready
 
----
 
 **Anti-Pattern 2: Not Profiling Data Before Setting Thresholds**
 ```sql
@@ -153,7 +158,6 @@ ALTER TABLE sales_data
 ```
 **Benefits:** Realistic thresholds; fewer false positives; actionable alerts; baseline understanding; trust in monitoring; effective quality gates
 
----
 
 **Anti-Pattern 3: Exceeding 10,000 DMF-Object Association Limit**
 ```sql
@@ -184,7 +188,6 @@ WHERE tag_name = 'CRITICALITY' AND tag_value = 'HIGH';
 ```
 **Benefits:** Stays under 10,000 limit; focuses on high-value tables; cost-effective monitoring; complete critical coverage; scalable approach; prioritized quality
 
----
 
 **Anti-Pattern 4: Using Database Roles as DMF Table Owners**
 ```sql
@@ -420,13 +423,12 @@ System DMFs are pre-built functions in the SNOWFLAKE.CORE schema for common qual
 
 ### Available System DMFs
 
-| DMF Name | Purpose | Returns | Example Use Case |
-|---|---|---|---|
-| **NULL_COUNT** | Count NULL values in column | FLOAT | Monitor unexpected NULLs in required fields |
-| **DUPLICATE_COUNT** | Count duplicate values in column(s) | FLOAT | Detect duplicate keys in dimensional tables |
-| **UNIQUE_COUNT** | Count distinct values | FLOAT | Monitor cardinality of categorical columns |
-| **ROW_COUNT** | Count total rows in table | FLOAT | Track table growth over time |
-| **FRESHNESS** | Measure data staleness (minutes since last update) | FLOAT | SLA monitoring for data pipelines |
+**System Data Metric Functions:**
+- **NULL_COUNT** - Count NULL values in column (returns FLOAT) - Monitor unexpected NULLs in required fields
+- **DUPLICATE_COUNT** - Count duplicate values in column(s) (returns FLOAT) - Detect duplicate keys in dimensional tables
+- **UNIQUE_COUNT** - Count distinct values (returns FLOAT) - Monitor cardinality of categorical columns
+- **ROW_COUNT** - Count total rows in table (returns FLOAT) - Track table growth over time
+- **FRESHNESS** - Measure data staleness in minutes since last update (returns FLOAT) - SLA monitoring for data pipelines
 
 ### System DMF Usage Patterns
 

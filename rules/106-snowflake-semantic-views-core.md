@@ -1,5 +1,11 @@
 # Snowflake Native Semantic Views: Core DDL
 
+> **CORE RULE: PRESERVE WHEN POSSIBLE**
+> 
+> This rule defines essential Semantic Views patterns. Load for Semantic Views tasks.
+> Specialized rules depend on this foundation.
+
+
 ## Metadata
 
 **SchemaVersion:** v3.1
@@ -44,7 +50,7 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 **Essential Patterns:**
 - **Use `CREATE SEMANTIC VIEW` DDL** - Native database objects, not YAML files
 - **Correct mapping syntax** - `logical_name AS physical_column` (NOT reversed)
-- **Clause order matters** - TABLES → FACTS → DIMENSIONS → METRICS (strict sequence)
+- **Clause order matters** - TABLES, then FACTS, then DIMENSIONS, then METRICS (strict sequence)
 - **Simple expressions in DIMENSIONS** - No CAST, DATE_TRUNC, or complex functions
 - **COMMENT uses equals sign** - `COMMENT = 'text'` (NOT `COMMENT 'text'`)
 - **PRIMARY KEY uses physical columns** - Required for relationships
@@ -53,7 +59,7 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - **Window function metrics cannot nest** - Cannot use in dimensions, facts, or other metrics
 
 **Quick Checklist:**
-- [ ] Clause order: TABLES → FACTS → DIMENSIONS → METRICS
+- [ ] Clause order: TABLES, then FACTS, then DIMENSIONS, then METRICS
 - [ ] PRIMARY KEY defined in TABLES block (uses physical columns only)
 - [ ] Mappings use correct syntax: `logical_name AS physical_column`
 - [ ] All COMMENT clauses have equals sign
@@ -113,7 +119,7 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 <design_principles>
 - **Native database objects**: Semantic views are schema-level objects stored in Snowflake's metadata
 - **Explicit syntax**: Column mappings use `logical_name AS physical_expression` format
-- **Clause ordering**: Must follow TABLES → FACTS → DIMENSIONS → METRICS sequence
+- **Clause ordering**: Must follow TABLES, then FACTS, then DIMENSIONS, then METRICS sequence
 - **Simple expressions**: DIMENSIONS use simple columns only (no CAST, DATE_TRUNC)
 - **Comment syntax**: Use `COMMENT = 'text'` (with equals sign)
 - **Validation first**: Understand validation rules to prevent errors
@@ -139,7 +145,7 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 
 ## Anti-Patterns and Common Mistakes
 
-**Anti-Pattern 1: Not Following TABLES → FACTS → DIMENSIONS → METRICS Sequence**
+**Anti-Pattern 1: Not Following TABLES, FACTS, DIMENSIONS, METRICS Sequence**
 ```sql
 -- Bad: Wrong clause ordering
 CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
@@ -186,7 +192,6 @@ CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
 ```
 **Benefits:** Valid DDL; successful deployment; Cortex Analyst compatible; professional; clear structure; maintainable
 
----
 
 **Anti-Pattern 2: Using Complex Expressions in DIMENSIONS (CAST, DATE_TRUNC Not Allowed)**
 ```sql
@@ -249,7 +254,6 @@ CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
 ```
 **Benefits:** Valid syntax; deployment succeeds; Cortex Analyst compatible; query reliability; maintainable; professional; separation of concerns
 
----
 
 **Anti-Pattern 3: Missing Equals Sign in COMMENT Syntax**
 ```sql
@@ -290,7 +294,6 @@ CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
 ```
 **Benefits:** Valid syntax; successful deployment; clear documentation; Cortex Analyst compatible; professional; no deployment delays
 
----
 
 **Anti-Pattern 4: Not Validating Semantic View DDL Before Deployment**
 ```sql
@@ -361,7 +364,6 @@ CREATE OR REPLACE SEMANTIC VIEW prod_db.analytics.sales_analysis AS
 ```
 **Benefits:** No production failures; validated before deployment; user confidence; professional; tested thoroughly; reliable; no emergency fixes
 
----
 
 **Anti-Pattern 5: Attempting to Define Verified Queries in DDL**
 ```sql
@@ -476,7 +478,6 @@ CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
 - See `106c-snowflake-semantic-views-integration` for using verified queries with Cortex Analyst
 - See `106c-snowflake-semantic-views-integration` for integration patterns
 
----
 
 **Anti-Pattern 6: Using Template Characters in SYNONYMS or COMMENT**
 ```sql
@@ -527,12 +528,10 @@ CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
 - `{{` and `}}` - Common templating syntax (Jinja2, dbt)
 
 **Alternatives:**
-| Avoid | Use Instead |
-|-------|-------------|
-| `R&D` | `R and D`, `Research and Development` |
-| `Sales & Marketing` | `Sales and Marketing` |
-| `P&L` | `P and L`, `Profit and Loss` |
-| `M&A` | `M and A`, `Mergers and Acquisitions` |
+- **`R&D`** - Use `R and D` or `Research and Development` instead
+- **`Sales & Marketing`** - Use `Sales and Marketing` instead
+- **`P&L`** - Use `P and L` or `Profit and Loss` instead
+- **`M&A`** - Use `M and A` or `Mergers and Acquisitions` instead
 
 ## Post-Execution Checklist
 
@@ -975,7 +974,7 @@ SHOW PARAMETERS LIKE 'CORTEX%' IN ACCOUNT;
 SELECT SYSTEM$GET_ACCOUNT_CAPABILITIES() AS capabilities;
 
 -- Alternative: Check via Snowsight UI
--- Navigate to: Data → Databases → [Your Database] → [Schema]
+-- Navigate to: Data, then Databases, then [Your Database], then [Schema]
 -- Look for "Generate Semantic View" button on table context menu
 ```
 

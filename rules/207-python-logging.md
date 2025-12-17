@@ -258,7 +258,6 @@ def process_data():
     log_success(f"Processed {len(result)} items")  # Shows as SUCCESS in web UI
 ```
 
----
 
 **Anti-Pattern 2: Global Handler Attachment**
 ```python
@@ -286,7 +285,6 @@ def run_with_handler(operation_id: str, func):
         logger.removeHandler(handler)  # Clean removal
 ```
 
----
 
 **Anti-Pattern 3: Duplicate Logging (Console + Logger)**
 ```python

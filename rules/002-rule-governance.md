@@ -1,11 +1,17 @@
 # Rule Governance: Schema Standards
 
+> **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
+> 
+> This rule defines essential governance patterns for the ai_coding_rules system.
+> Load when creating, reviewing, or maintaining rules.
+
+
 ## Metadata
 
 **SchemaVersion:** v3.1
 **RuleVersion:** v1.0.0
 **Keywords:** rule governance, schema, metadata requirements, required sections, Contract XML tags, validation, schema compliance, rule structure, semantic discovery, RULES_INDEX
-**TokenBudget:** ~1850
+**TokenBudget:** ~2300
 **ContextTier:** Critical
 **Depends:** rules/000-global-core.md
 
@@ -76,35 +82,52 @@ Markdown file (.md) with v3.0 metadata and required sections
 
 ## Schema Requirements
 
-### Metadata Fields (5 Required)
+### Metadata Fields (6 Required)
 
-| Field | Format | Validation | Example |
-|-------|--------|------------|---------|
-| **RuleVersion** | `**RuleVersion:**` | Semantic version (vX.Y.Z) | `**RuleVersion:** v1.0.0` |
-| **Keywords** | `**Keywords:**` | 10-15 comma-separated terms | `**Keywords:** SQL, performance, optimization, CTE, query` |
-| **TokenBudget** | `**TokenBudget:**` | `~NUMBER` format | `**TokenBudget:** ~1200` |
-| **ContextTier** | `**ContextTier:**` | Critical \| High \| Medium \| Low | `**ContextTier:** High` |
-| **Depends** | `**Depends:**` | At least one rule dependency | `**Depends:** rules/000-global-core.md` |
-
-**Required Field (CRITICAL):**
-- `**SchemaVersion:** vX.Y` - Must match current schema version (e.g., v3.1)
+**Required Fields:**
+- **SchemaVersion:** `vX.Y` format, must match current schema (e.g., v3.1) - CRITICAL
+- **RuleVersion:** Semantic version `vX.Y.Z` (e.g., v1.0.0)
+- **Keywords:** 10-15 comma-separated terms for discovery
+- **TokenBudget:** `~NUMBER` format (e.g., ~1200)
+- **ContextTier:** One of: Critical, High, Medium, Low
+- **Depends:** At least one rule dependency (e.g., `rules/000-global-core.md`)
 
 **Field Order:** Must appear in exact order: RuleVersion, Keywords, TokenBudget, ContextTier, Depends
 
 ### Required Sections (9 Mandatory)
 
-| Section | Order | Required | Description |
-|---------|-------|----------|-------------|
-| **Purpose** | 1 | [PASS] | 1-2 sentences explaining rule purpose |
-| **Rule Scope** | 2 | [PASS] | Single line scope statement |
-| **Quick Start TL;DR** | 3 | [PASS] | 30-second overview with Essential Patterns (min 3) + Pre-Execution Checklist (5-7 items) |
-| **Contract** | 4 | [PASS] | Structured contract with 6 XML tags (before line 160) |
-| **Key Principles** | 5 | Optional | Core concepts (optional for simple rules) |
-| **Anti-Patterns** | 6 | Optional | Problem/Correct Pattern pairs (strongly recommended) |
-| **Post-Execution Checklist** | 7 | [PASS] | Verification checklist (5+ items, different from Pre-Execution) |
-| **Validation** | 8 | [PASS] | Success checks and negative tests |
+**Required Sections (in order):**
+1. **Purpose** - 1-2 sentences explaining rule purpose
+2. **Rule Scope** - Single line scope statement
+3. **Quick Start TL;DR** - 30-second overview with Essential Patterns (min 3) + Pre-Execution Checklist (5-7 items)
+4. **Contract** - Structured contract with 6 XML tags (must appear before line 160)
+5. **Key Principles** - Core concepts (optional for simple rules)
+6. **Anti-Patterns** - Problem/Correct Pattern pairs (optional but strongly recommended)
+7. **Post-Execution Checklist** - Verification checklist (5+ items, different from Pre-Execution)
+8. **Validation** - Success checks and negative tests
+9. **References** - Related rules and external resources
 | **Output Format Examples** | 9 | [PASS] | Concrete code examples (min 1 code block) |
 | **References** | 10 | [PASS] | External docs + related rules |
+
+### Context Preservation Mechanisms
+
+**Primary Mechanism: Natural Language Markers (Universal)**
+
+All rules use natural language importance markers that work across all LLM providers:
+
+**Importance Markers:**
+- **CRITICAL: DO NOT SUMMARIZE** - Bootstrap files (AGENTS.md, 000-global-core.md), never summarize
+- **CORE RULE: PRESERVE WHEN POSSIBLE** - Domain cores (*-core.md files), preserve for domain tasks
+- **FOUNDATION RULE: PRESERVE WHEN POSSIBLE** - Governance rules (002-series), preserve for rule work
+- **(none)** - Standard rules, can be summarized if needed
+
+**Secondary Mechanism: ContextTier Metadata (Project-Specific)**
+
+The `ContextTier` field (Critical/High/Medium/Low) provides fine-grained prioritization
+within natural language tiers. This metadata is validated by schema but not universally
+recognized by all LLMs - rely on natural language markers as primary signal.
+
+See `000-global-core.md`, section "Context Window Management Protocol" for full details.
 
 ### Contract XML Tags (6 Required)
 
@@ -165,24 +188,30 @@ python3 scripts/schema_validator.py rules/NNN-rule.md --verbose
 
 ### Common Validation Errors
 
-| Error | Cause | Fix |
-|-------|-------|-----|
-| Missing metadata field | Keywords, TokenBudget, ContextTier, or Depends not present | Add missing field in correct order |
-| Keywords count wrong | Less than 10 or more than 15 keywords | Adjust to 10-15 comma-separated terms |
-| TokenBudget format | Not using `~NUMBER` format | Change to `~500`, `~1200`, etc. |
-| Missing required section | One of 9 required sections absent | Add missing section per schema structure |
-| Contract missing XML tag | One of 6 XML tags not found | Add missing tag: `<inputs_prereqs>`, etc. |
-| Section order wrong | Sections not in schema order | Reorder: Purpose → Rule Scope → Quick Start → Contract... |
+**Metadata Errors:**
+- **Missing metadata field** - Add missing Keywords, TokenBudget, ContextTier, or Depends in correct order
+- **Keywords count wrong** - Adjust to 10-15 comma-separated terms
+- **TokenBudget format** - Use `~NUMBER` format (e.g., ~500, ~1200)
+
+**Structure Errors:**
+- **Missing required section** - Add missing section per schema structure
+- **Contract missing XML tag** - Add missing tag: `<inputs_prereqs>`, `<mandatory>`, etc.
+- **Section order wrong** - Reorder sections: Purpose, then Rule Scope, then Quick Start, then Contract...
 
 **For detailed error resolution:** See `002d-schema-validator-usage.md`
 
 ## Key Principles
 
+- **Priority Hierarchy:** All rules follow the design priorities defined in `000-global-core.md`:
+  1. **Agent understanding and execution reliability** (PRIMARY) - Instructions must be deterministic
+  2. **Token and context window efficiency** (SECONDARY) - Minimize without sacrificing clarity
+  3. **Human readability** (TERTIARY) - Organize logically for reviewers
 - **Schema Compliance:** All rules must validate against schemas/rule-schema.yml with zero CRITICAL errors
 - **Semantic Discovery:** Keywords (10-15) enable AI agents to automatically discover relevant rules
 - **Progressive Disclosure:** Quick Start TL;DR provides 30-second overview, detailed sections follow
 - **Validation-First:** Always run schema_validator.py before committing rule changes
 - **Text-Only Format:** No emojis in rule files (schema requirement for universal compatibility)
+- **Agent-First Formatting:** See `002e-agent-optimization.md` for required formatting patterns
 
 ## Anti-Patterns and Common Mistakes
 
@@ -291,11 +320,11 @@ structure:
 ## References
 
 ### Related Rules
-- **Rule Creation Workflow**: `rules/002a-rule-creation-guide.md` - Step-by-step guide for creating new rules
-- **Optimization Guide**: `rules/002b-rule-optimization.md` - Token budgets, performance tuning, model-specific tips
-- **Advanced Patterns**: `rules/002c-advanced-rule-patterns.md` - System prompt altitude, investigation-first, multi-session workflows
-- **Validator Usage**: `rules/002d-schema-validator-usage.md` - Detailed validator commands, error interpretation, CI/CD integration
-- **Global Core**: `rules/000-global-core.md` - Foundation for all rules
+- **Rule Creation Workflow**: `002a-rule-creation-guide.md` - Step-by-step guide for creating new rules
+- **Optimization Guide**: `002b-rule-optimization.md` - Token budgets, performance tuning, model-specific tips
+- **Advanced Patterns**: `002c-advanced-rule-patterns.md` - System prompt altitude, investigation-first, multi-session workflows
+- **Validator Usage**: `002d-schema-validator-usage.md` - Detailed validator commands, error interpretation, CI/CD integration
+- **Global Core**: `000-global-core.md` - Foundation for all rules
 
 ### External Documentation
 - **Schema Definition**: `schemas/rule-schema.yml` - Authoritative schema with validation rules

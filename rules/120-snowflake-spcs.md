@@ -151,7 +151,6 @@ GROUP BY pool_name, active_nodes, idle_nodes;
 ```
 **Benefits:** Cost-effective; right-sized; scalable; monitored; data-driven scaling; professional; financially responsible
 
----
 
 **Anti-Pattern 2: Exposing Internal Services Publicly**
 ```yaml
@@ -204,7 +203,6 @@ spec:
 ```
 **Benefits:** Security hardened; credentials protected; authentication required; internal services isolated; compliance-friendly; no unauthorized access
 
----
 
 **Anti-Pattern 3: Creating New Database Connections Per Request**
 ```python
@@ -269,7 +267,6 @@ def shutdown():
 ```
 **Benefits:** Fast responses; connection reuse; scalable; resource-efficient; professional; better performance; SQL injection prevention
 
----
 
 **Anti-Pattern 4: Not Setting Resource Limits, Causing OOM**
 ```yaml
@@ -568,21 +565,24 @@ SPCS platform events provide visibility into container lifecycle and failures. T
 
 **Supported Container Status Events:**
 
-| RECORD:name | RECORD:severity_text | VALUE:status | VALUE:message | Interpretation |
-|---|---|---|---|---|
-| CONTAINER.STATUS_CHANGE | INFO | READY | Running | Container is healthy and operational |
-| CONTAINER.STATUS_CHANGE | INFO | PENDING | Waiting to start | Container initialization in progress |
-| CONTAINER.STATUS_CHANGE | INFO | PENDING | Compute pool node(s) are being provisioned | Awaiting node resources |
-| CONTAINER.STATUS_CHANGE | INFO | PENDING | Readiness probe is failing at path: <path>, port: <port> | Health check endpoint not responding |
-| CONTAINER.STATUS_CHANGE | ERROR | PENDING | Failed to pull image | Image registry authentication or availability issue |
-| CONTAINER.STATUS_CHANGE | ERROR | FAILED | Provided image name uses an invalid format | Image reference malformed (check path syntax) |
-| CONTAINER.STATUS_CHANGE | ERROR | FAILED | Encountered fatal error, retrying | Application crashed; automatic restart in progress |
-| CONTAINER.STATUS_CHANGE | ERROR | FAILED | Encountered fatal error | Application crashed; maximum retries reached |
-| CONTAINER.STATUS_CHANGE | ERROR | FAILED | Encountered fatal error while running, check container logs | Application error detected; see logs for details |
-| CONTAINER.STATUS_CHANGE | ERROR | FAILED | Container was OOMKilled due to resource usage | Memory limit exceeded; increase resource limits |
-| CONTAINER.STATUS_CHANGE | ERROR | FAILED | User application error, check container logs | Application threw exception; review logs |
-| CONTAINER.STATUS_CHANGE | ERROR | FAILED | Encountered fatal error while starting container | Startup failure; check configuration and logs |
-| CONTAINER.STATUS_CHANGE | INFO | DONE | Completed successfully | Job service task completed (job services only) |
+**INFO Severity Events:**
+- **READY / Running** - Container is healthy and operational
+- **PENDING / Waiting to start** - Container initialization in progress
+- **PENDING / Compute pool node(s) are being provisioned** - Awaiting node resources
+- **PENDING / Readiness probe is failing** - Health check endpoint not responding (check path/port)
+
+**ERROR Severity Events:**
+- **PENDING / Failed to pull image** - Image registry authentication or availability issue
+- **FAILED / Provided image name uses an invalid format** - Image reference malformed (check path syntax)
+- **FAILED / Encountered fatal error, retrying** - Application crashed; automatic restart in progress
+- **FAILED / Encountered fatal error** - Application crashed; maximum retries reached
+- **FAILED / Encountered fatal error while running** - Application error detected; see logs for details
+- **FAILED / Container was OOMKilled** - Memory limit exceeded; increase resource limits
+- **FAILED / User application error** - Application threw exception; review logs
+- **FAILED / Encountered fatal error while starting container** - Startup failure; check configuration and logs
+
+**INFO Severity Events:**
+- **DONE / Completed successfully** - Job service task completed (job services only)
 
 **Enable Platform Event Logging:**
 

@@ -20,8 +20,10 @@ from scripts.index_generator import (  # noqa: E402
     extract_scope_from_content,
     generate_agent_guidance,
     generate_loading_strategy,
+    generate_rule_entry,
     generate_rules_index,
-    generate_table_row,
+    get_domain_name,
+    group_rules_by_domain,
     main,
     scan_rules,
 )
@@ -368,28 +370,48 @@ Test scope.
         assert "Warning" in captured.out
         assert "Failed to read" in captured.out
 
-    def test_generate_table_row_formats_correctly(self, sample_rule_file):
-        """Test table row generation produces valid markdown."""
+    def test_generate_rule_entry_formats_correctly(self, sample_rule_file):
+        """Test rule entry generation produces valid structured list format."""
         metadata = extract_metadata(sample_rule_file)
-        row = generate_table_row(metadata)
+        entry = generate_rule_entry(metadata)
 
-        assert row.startswith("|")
-        assert not row.startswith("||")
-        assert "`100-test-rule.md`" in row
-        assert "testing, validation, CI/CD" in row
-        assert "`000-global-core.md`" in row
-        assert "`001-foundations.md`" in row
+        # Should use structured list format, not table
+        assert not entry.startswith("|")
+        assert "**`100-test-rule.md`**" in entry
+        assert "Keywords: testing, validation, CI/CD" in entry
+        assert "Depends:" in entry
+        assert "`000-global-core.md`" in entry
+        assert "`001-foundations.md`" in entry
 
-    def test_generate_table_row_handles_no_dependencies(self, rule_file_minimal_metadata):
-        """Test table row generation with no dependencies."""
+    def test_generate_rule_entry_handles_no_dependencies(self, rule_file_minimal_metadata):
+        """Test rule entry generation with no dependencies."""
         metadata = extract_metadata(rule_file_minimal_metadata)
-        row = generate_table_row(metadata)
+        entry = generate_rule_entry(metadata)
 
-        assert "—" in row
-        assert "`300-minimal.md`" in row
+        assert "Depends: —" in entry
+        assert "**`300-minimal.md`**" in entry
+
+    def test_get_domain_name_returns_correct_domains(self):
+        """Test domain name mapping for rule prefixes."""
+        assert "Core" in get_domain_name("000")
+        assert "Snowflake" in get_domain_name("100")
+        assert "Python" in get_domain_name("200")
+        assert "Shell" in get_domain_name("300")
+        assert get_domain_name("999") == "Other"
+
+    def test_group_rules_by_domain(self, multiple_rule_files):
+        """Test rules are correctly grouped by domain."""
+        rules = scan_rules(multiple_rule_files)
+        domains = group_rules_by_domain(rules)
+
+        # Should have multiple domain groups
+        assert len(domains) >= 1
+        # Rules should be in their correct domains
+        for _domain_name, domain_rules in domains.items():
+            assert len(domain_rules) > 0
 
     def test_generate_rules_index_includes_all_sections(self, multiple_rule_files):
-        """Test full index includes header, agent guidance, loading strategy, table, and footer."""
+        """Test full index includes header, agent guidance, loading strategy, catalog, and footer."""
         rules = scan_rules(multiple_rule_files)
         index_content = generate_rules_index(rules)
 
@@ -401,30 +423,27 @@ Test scope.
         assert "Rule Loading Strategy" in index_content
         assert "Token Budget Management" in index_content
 
-        # Check for table structure (standard markdown pipes)
-        assert "| File | Scope | Keywords/Hints | Depends On |" in index_content
-        assert "|------|-------|----------------|------------|" in index_content
+        # Check for catalog section with structured list format (no tables)
+        assert "## Rule Catalog" in index_content
+        assert "| File | Scope |" not in index_content  # No table format
 
-        # Verify no double pipes (old format)
-        assert (
-            "||" not in index_content or "||" in index_content.split("```")[0]
-        )  # Allow in code blocks
-
-        # Check rules are present
-        assert "`000-core.md`" in index_content
-        assert "`100-python.md`" in index_content
-        assert "`200-snowflake.md`" in index_content
+        # Check rules are present in structured format
+        assert "**`000-core.md`**" in index_content
+        assert "**`100-python.md`**" in index_content
+        assert "**`200-snowflake.md`**" in index_content
+        assert "Keywords:" in index_content
+        assert "Depends:" in index_content
 
         # Check footer is present
         assert "Common Rule Dependency Chains" in index_content
 
-        # Verify section ordering (catalog header removed, so check table comes after strategy)
+        # Verify section ordering
         agent_pos = index_content.find("For AI Agents:")
         strategy_pos = index_content.find("Rule Loading Strategy")
-        table_pos = index_content.find("| File | Scope | Keywords/Hints | Depends On |")
+        catalog_pos = index_content.find("## Rule Catalog")
         footer_pos = index_content.find("Common Rule Dependency Chains")
 
-        assert agent_pos < strategy_pos < table_pos < footer_pos
+        assert agent_pos < strategy_pos < catalog_pos < footer_pos
 
     def test_generate_rules_index_empty_rules_list(self):
         """Test index generation with empty rules list."""
@@ -436,9 +455,8 @@ Test scope.
         # Should still have loading strategy
         assert "Rule Loading Strategy" in index_content
 
-        # Should still have table structure (standard markdown pipes)
-        assert "| File | Scope | Keywords/Hints | Depends On |" in index_content
-        assert "|------|-------|----------------|------------|" in index_content
+        # Should still have catalog header (even if empty)
+        assert "## Rule Catalog" in index_content
 
         # Should have footer
         assert "Common Rule Dependency Chains" in index_content
@@ -806,8 +824,8 @@ This rule contains unicode: café, naïve, 日本語
         assert metadata.keywords == "unicode, émojis, 中文"
         assert "café" in metadata.scope or "unicode" in metadata.scope
 
-    def test_generate_table_row_escapes_pipe_characters(self, tmp_path):
-        """Test table row generation handles pipe characters in content."""
+    def test_generate_rule_entry_handles_pipe_characters(self, tmp_path):
+        """Test rule entry generation handles pipe characters in content."""
         rule_file = tmp_path / "pipes.md"
         content = """# Pipes Rule
 
@@ -821,12 +839,12 @@ Scope with | pipe characters.
         rule_file.write_text(content, encoding="utf-8")
 
         metadata = extract_metadata(rule_file)
-        row = generate_table_row(metadata)
+        entry = generate_rule_entry(metadata)
 
-        # Should still be valid markdown table row (single pipe start)
-        assert row.startswith("|")
-        assert not row.startswith("||")
-        assert "`pipes.md`" in row
+        # Should use structured list format (not table)
+        assert not entry.startswith("|")
+        assert "**`pipes.md`**" in entry
+        assert "Keywords:" in entry
 
     def test_scan_rules_handles_nested_directories(self, tmp_path):
         """Test scanner finds rules in nested directories."""

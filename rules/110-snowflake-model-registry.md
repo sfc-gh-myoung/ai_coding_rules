@@ -152,7 +152,6 @@ registry.log_model(
 ```
 **Benefits:** Input schema captured; SQL inference enabled; clear model signature; deployment-ready; production-usable; automatic schema validation
 
----
 
 **Anti-Pattern 2: Using WAREHOUSE Target Platform Without Understanding SQL Compatibility**
 ```python
@@ -188,7 +187,6 @@ registry.log_model(
 ```
 **Benefits:** Reliable deployment; supports all model types; no SQL translation issues; Python inference flexibility; production-ready; predictable behavior
 
----
 
 **Anti-Pattern 3: Not Tagging Models with Metadata for Governance**
 ```python
@@ -238,7 +236,6 @@ session.sql(f"""
 ```
 **Benefits:** Full governance; discoverable by metadata; clear ownership; performance tracked; audit-ready; compliance-friendly; scalable model management
 
----
 
 **Anti-Pattern 4: Not Testing Model Inference After Registration**
 ```python

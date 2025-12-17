@@ -1,5 +1,11 @@
 # Snowflake Core Directives
 
+> **CORE RULE: PRESERVE WHEN POSSIBLE**
+> 
+> This rule defines essential Snowflake patterns. Load for Snowflake tasks.
+> Specialized rules depend on this foundation.
+
+
 ## Metadata
 
 **SchemaVersion:** v3.1
@@ -104,7 +110,6 @@ WHERE order_date >= '2024-01-01';
 ```
 **Benefits:** Minimal I/O; faster queries; lower credits; efficient pruning; reduced data transfer; better performance; cost-effective
 
----
 
 **Anti-Pattern 2: Parsing VARIANT Fields Multiple Times**
 ```sql
@@ -145,7 +150,6 @@ GROUP BY customer_id, customer_name;
 ```
 **Benefits:** Parse once; reuse values; lower CPU; faster queries; fewer credits; efficient; better performance; professional
 
----
 
 **Anti-Pattern 3: Not Using Streams and Tasks for Incremental Processing**
 ```sql
@@ -199,7 +203,6 @@ ALTER TASK incremental_aggregation RESUME;
 ```
 **Benefits:** Incremental processing; minimal scans; low credits; fast updates; scalable; efficient MERGE; professional; cost-effective
 
----
 
 **Anti-Pattern 4: Using DISTINCT for Deduplication Instead of QUALIFY**
 ```sql

@@ -1,5 +1,11 @@
 # Python Core Engineering Directives
 
+> **CORE RULE: PRESERVE WHEN POSSIBLE**
+> 
+> This rule defines essential Python patterns. Load for Python tasks.
+> Specialized rules depend on this foundation.
+
+
 ## Metadata
 
 **SchemaVersion:** v3.1
@@ -93,7 +99,6 @@ uv run uvicorn app.main:app --reload
 ```
 **Benefits:** Consistent dependency resolution; all project modules available; reproducible behavior; no environment activation needed
 
----
 
 **Anti-Pattern 2: Skipping Validation Before Task Completion**
 ```python
@@ -115,7 +120,6 @@ uv run pytest
 ```
 **Benefits:** Catches errors immediately; ensures code quality standards; user receives working, tested code; no surprises
 
----
 
 **Anti-Pattern 3: Using Deprecated `datetime.utcnow()`**
 ```python
@@ -133,7 +137,6 @@ timestamp = datetime.now(UTC)  # Modern, timezone-aware
 ```
 **Benefits:** Future-proof code; explicit timezone handling; follows Python 3.11+ best practices; no deprecation warnings
 
----
 
 **Anti-Pattern 4: Installing Tools in Project Environment Instead of Using `uvx`**
 ```bash
@@ -153,7 +156,6 @@ uvx ty check .
 ```
 **Benefits:** Clean project dependencies; no version conflicts; faster uv sync; tools always latest stable versions; simpler pyproject.toml
 
----
 
 **Anti-Pattern 5: Skipping Type Checking Before Task Completion**
 ```python
@@ -343,8 +345,8 @@ Common pitfalls and guidance:
 - Keep configuration centralized in `pyproject.toml`, but remember that only `uv run` guarantees access to project-installed integrations referenced there.
 
 Quick decision guide:
-- Imports project code or needs project plugins? → Use `uv run ...`
-- Pure external tool, no project imports/plugins? → Use `uvx ...`
+- Imports project code or needs project plugins? Use `uv run ...`
+- Pure external tool, no project imports/plugins? Use `uvx ...`
 
 ### Command Patterns
 **CORRECT:**
@@ -457,13 +459,14 @@ uv run mypy --strict src/         # Strict mode for maximum type safety
 
 ### When to Use ty vs mypy
 
-| Scenario | Tool | Reason |
-|----------|------|--------|
-| Standard type checking | `uvx ty check .` | Fast, no setup, Astral ecosystem |
-| CI/CD pipelines | `uvx ty check .` | Consistent, isolated execution |
-| Projects with mypy plugins | `uv run mypy` | ty doesn't support mypy plugins |
-| Django/SQLAlchemy type stubs | `uv run mypy` | Better ecosystem support for stubs |
-| Maximum strictness needed | `uv run mypy --strict` | mypy has more strict mode options |
+**Use `uvx ty check .` for:**
+- Standard type checking (fast, no setup, Astral ecosystem)
+- CI/CD pipelines (consistent, isolated execution)
+
+**Use `uv run mypy` for:**
+- Projects with mypy plugins (ty doesn't support mypy plugins)
+- Django/SQLAlchemy type stubs (better ecosystem support for stubs)
+- Maximum strictness needed (`uv run mypy --strict` has more strict mode options)
 
 ### Configuration in pyproject.toml
 ```toml

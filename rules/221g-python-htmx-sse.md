@@ -75,13 +75,16 @@ SSE endpoint returning EventSourceResponse with events in format: `event: event_
 
 ## SSE Approach Decision Matrix
 
-| Scenario | Recommended Approach | Reason |
-|----------|---------------------|--------|
-| Simple element updates | HTMX SSE extension | Minimal JavaScript, declarative |
-| Multiple elements from one channel | Alpine.js SSE manager | Single connection, multiple targets |
-| Complex event handling logic | Alpine.js SSE manager | Full JavaScript control |
-| Toast notifications on events | Alpine.js SSE manager | Requires JavaScript for toasts |
-| Streaming progress updates | Dedicated SSE endpoint | Per-operation stream |
+**When to use HTMX SSE extension:**
+- Simple element updates (minimal JavaScript, declarative)
+
+**When to use Alpine.js SSE manager:**
+- Multiple elements from one channel (single connection, multiple targets)
+- Complex event handling logic (full JavaScript control)
+- Toast notifications on events (requires JavaScript for toasts)
+
+**When to use Dedicated SSE endpoint:**
+- Streaming progress updates (per-operation stream)
 
 ## Pattern 1: HTMX SSE Extension
 
@@ -331,12 +334,11 @@ Maintain `docs/SSE_EVENTS.md` with this structure:
 
 ## Channel: /api/sse/demos
 
-| Event Type | Payload | Description |
-|------------|---------|-------------|
-| `installed` | `{demo_id, name}` | Demo was installed |
-| `uninstalled` | `{demo_id}` | Demo was uninstalled |
-| `operation_started` | `{demo_id, operation}` | Operation began |
-| `operation_completed` | `{demo_id, status}` | Operation finished |
+**Event Types:**
+- **`installed`** - Demo was installed (payload: `{demo_id, name}`)
+- **`uninstalled`** - Demo was uninstalled (payload: `{demo_id}`)
+- **`operation_started`** - Operation began (payload: `{demo_id, operation}`)
+- **`operation_completed`** - Operation finished (payload: `{demo_id, status}`)
 ```
 
 ## Post-Execution Checklist

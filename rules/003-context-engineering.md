@@ -264,6 +264,21 @@ Validation:
 - [x] Documentation updated
 ```
 
+## Rule Loading and Discovery
+
+**Canonical Source:** See `RULES_INDEX.md` for the authoritative mapping of 
+file extensions, keywords, and technologies to rule files. Always consult
+RULES_INDEX.md rather than hardcoding rule discovery logic.
+
+## Context Preservation Mechanism
+
+**Primary Preservation Mechanism:**
+
+Natural language markers (CRITICAL, CORE RULE, FOUNDATION RULE) are the primary
+mechanism for context preservation. ContextTier metadata is secondary.
+
+See `000-global-core.md`, section "Context Window Management Protocol" for full hierarchy.
+
 ## References
 
 ### External Documentation
@@ -283,10 +298,10 @@ Validation:
 - [Documentation Systems](https://documentation.divio.com/) - Information architecture principles
 
 ### Related Rules
-- **Global Core**: `rules/000-global-core.md` - Foundational workflow and safety protocols
-- **Memory Bank System**: `rules/001-memory-bank.md` - Structured documentation for context continuity
-- **Rule Governance**: `rules/002-rule-governance.md` - Token budgets and rule sizing standards
-- **Tool Design**: `rules/004-tool-design-for-agents.md` - Token-efficient tool development patterns
+- **Global Core**: `000-global-core.md` - Foundational workflow and safety protocols
+- **Memory Bank System**: `001-memory-bank.md` - Structured documentation for context continuity
+- **Rule Governance**: `002-rule-governance.md` - Token budgets and rule sizing standards
+- **Tool Design**: `004-tool-design-for-agents.md` - Token-efficient tool development patterns
 - **AGENTS Workflow**: `AGENTS.md` - Rule discovery and operational protocols
 
 ## 1. Context vs Prompt Engineering
@@ -508,9 +523,9 @@ You are a customer support agent for SaaS product X.
 ```
 
 **Agent Behavior:**
-1. Read Quick Start → Understand objective immediately
-2. Check Current Session → Know what's done and what's next
-3. Load Resources → Only when needed for specific task
+1. Read Quick Start to understand objective immediately
+2. Check Current Session to know what's done and what's next
+3. Load Resources only when needed for specific task
 
 ## 6. Agentic Search vs Pre-computed Retrieval
 
@@ -600,10 +615,10 @@ context = "\n".join([r.content for r in results])
 - State can be summarized without loss
 
 ## What to Compact
-1. Tool call history → Keep only recent/unique calls
-2. Conversation history → Summarize older turns
-3. Code exploration → Keep architectural decisions, discard raw outputs
-4. Decisions made → Document outcome, remove deliberation
+1. Tool call history - Keep only recent/unique calls
+2. Conversation history - Summarize older turns
+3. Code exploration - Keep architectural decisions, discard raw outputs
+4. Decisions made - Document outcome, remove deliberation
 
 ## What to Preserve
 - Active task objectives
@@ -711,15 +726,14 @@ state = memory.retrieve("oauth_progress")
 **Purpose:** Specialized agents handle focused tasks, return condensed summaries to coordinator.
 
 **Pattern:**
-```
-Main Agent (Coordinator)
-├─> Sub-Agent 1: Research OAuth2 patterns
-│   └─> Returns: 2K token summary
-├─> Sub-Agent 2: Implement authentication endpoints
-│   └─> Returns: 1K token summary + code
-└─> Sub-Agent 3: Write integration tests
-    └─> Returns: 1K token summary + test results
-```
+
+Main Agent (Coordinator) delegates to:
+1. **Sub-Agent 1:** Research OAuth2 patterns
+   - Returns: 2K token summary
+2. **Sub-Agent 2:** Implement authentication endpoints
+   - Returns: 1K token summary + code
+3. **Sub-Agent 3:** Write integration tests
+   - Returns: 1K token summary + test results
 
 **Benefits:**
 - Each sub-agent has clean context window

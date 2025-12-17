@@ -136,7 +136,6 @@ ALTER WAREHOUSE analytics_wh SET WAREHOUSE_SIZE = 'SMALL';
 ```
 **Benefits:** Start cost-effective; data-driven sizing; 10x cost savings; baseline established; justified upgrades; excellent cost governance
 
----
 
 **Anti-Pattern 2: Not Enabling AUTO_SUSPEND**
 ```sql
@@ -160,7 +159,6 @@ CREATE WAREHOUSE reporting_wh
 ```
 **Benefits:** Pay only for actual usage; 10-100x cost reduction; automatic idle shutdown; budget-friendly; production best practice; no manual management
 
----
 
 **Anti-Pattern 3: Using Single Large Warehouse for All Workloads**
 ```sql
@@ -202,7 +200,6 @@ GROUP BY cost_center, workload;
 ```
 **Benefits:** Cost attribution by team/workload; independent optimization; no resource contention; chargeback-ready; governance-friendly; workload isolation
 
----
 
 **Anti-Pattern 4: Not Using GEN 2 Warehouses**
 ```sql
@@ -337,25 +334,23 @@ SELECT * FROM TABLE(INFORMATION_SCHEMA.TAG_REFERENCES('WH_[WORKLOAD]_M', 'WAREHO
 
 **Available Resource Constraints:**
 
-| Type | Constraint | Architecture | Memory | Use When |
-|------|-----------|--------------|--------|----------|
-| **Standard GEN 1** | `STANDARD_GEN_1` | x86 | Standard | Legacy/compatibility only |
-| **Standard GEN 2** | `STANDARD_GEN_2` | ARM | Standard | **Default for all new warehouses** |
-| **High-Memory** | `MEMORY_16X` | ARM | 16X (256GB @ LARGE) | Memory-intensive queries (prove need first) |
-| **High-Memory x86** | `MEMORY_16X_x86` | x86 | 16X | x86-specific compatibility + memory |
-| **Snowpark GPU** | *(implicit)* | GPU | Standard | ML training, GPU UDFs (set WAREHOUSE_TYPE) |
+- **Standard GEN 1 (`STANDARD_GEN_1`):** x86, Standard memory - Legacy/compatibility only
+- **Standard GEN 2 (`STANDARD_GEN_2`):** ARM, Standard memory - **Default for all new warehouses**
+- **High-Memory (`MEMORY_16X`):** ARM, 16X memory (256GB @ LARGE) - Memory-intensive queries (prove need first)
+- **High-Memory x86 (`MEMORY_16X_x86`):** x86, 16X memory - x86-specific compatibility + memory
+- **Snowpark GPU:** GPU, Standard memory - ML training, GPU UDFs (set WAREHOUSE_TYPE)
 
 **Note:** Snowpark-Optimized uses `WAREHOUSE_TYPE = 'SNOWPARK-OPTIMIZED'` (GPU implicit, no RESOURCE_CONSTRAINT needed).
 
 ### 1.2 Warehouse Type Decision Matrix
 
-| Workload Type | Warehouse Type | Use Cases | Notes |
-|---------------|----------------|-----------|-------|
-| **General BI/Analytics** | Standard (CPU) | Dashboards, ad-hoc queries, reporting, most SQL workloads | Default choice for 80%+ of workloads |
-| **ML Training/Inference** | Snowpark-Optimized (GPU) | Snowpark ML model training, GPU-accelerated UDFs, vector operations | Requires GPU-enabled account features |
-| **Complex Aggregations** | High-Memory | Large window functions, complex joins on billions of rows, memory-intensive analytics | Use only when Standard shows memory pressure |
-| **ETL/Data Loading** | Standard (CPU) | COPY INTO, data transformation, incremental pipelines | Size based on data volume and SLAs |
-| **Streaming/Real-Time** | Standard (CPU) | Snowpipe, continuous data ingestion, low-latency queries | Keep running or very short auto-suspend |
+**Warehouse Selection by Workload:**
+
+- **General BI/Analytics:** Use Standard (CPU) - Dashboards, ad-hoc queries, reporting - Default for 80%+ of workloads
+- **ML Training/Inference:** Use Snowpark-Optimized (GPU) - Model training, GPU UDFs, vector operations - Requires GPU-enabled features
+- **Complex Aggregations:** Use High-Memory - Large window functions, complex joins on billions of rows - Use only when Standard shows memory pressure
+- **ETL/Data Loading:** Use Standard (CPU) - COPY INTO, data transformation, pipelines - Size based on volume and SLAs
+- **Streaming/Real-Time:** Use Standard (CPU) - Snowpipe, continuous ingestion, low-latency - Keep running or very short auto-suspend
 
 ### 1.3 When to Use GPU (Snowpark-Optimized) Warehouses
 
@@ -438,14 +433,12 @@ ALTER WAREHOUSE WH_ANALYTICS_HIMEM_L SET TAG
 
 **Sizing Reference:**
 
-| Size | Servers/Credits per Hour | Best For | Typical Use Cases |
-|------|--------------------------|----------|-------------------|
-| **XSMALL** | 1 / 1 | Single-user queries, testing, light dashboards | Dev/test, personal analytics |
-| **SMALL** | 2 / 2 | Small team BI, light ETL, scheduled reports | Team dashboards, nightly loads |
-| **MEDIUM** | 4 / 4 | Department-wide BI, moderate ETL, concurrent users | Production BI tools, daily ETL |
-| **LARGE** | 8 / 8 | Heavy ETL, complex queries, high concurrency | Enterprise dashboards, large transformations |
-| **XLARGE** | 16 / 16 | Very large datasets, time-critical workloads | Critical ETL, real-time analytics |
-| **2X/3X/4XLARGE** | 32-128 / 32-128 | Massive parallel processing, extreme performance needs | Rare; requires executive approval |
+- **XSMALL (1 credit/hr):** Single-user queries, testing, light dashboards - Dev/test, personal analytics
+- **SMALL (2 credits/hr):** Small team BI, light ETL, scheduled reports - Team dashboards, nightly loads
+- **MEDIUM (4 credits/hr):** Department-wide BI, moderate ETL, concurrent users - Production BI, daily ETL
+- **LARGE (8 credits/hr):** Heavy ETL, complex queries, high concurrency - Enterprise dashboards
+- **XLARGE (16 credits/hr):** Very large datasets, time-critical workloads - Critical ETL, real-time analytics
+- **2X/3X/4XLARGE (32-128 credits/hr):** Massive parallel processing - Rare; requires executive approval
 
 ### 2.2 Multi-Cluster Warehouses
 
@@ -472,14 +465,12 @@ CREATE OR REPLACE WAREHOUSE WH_BI_PRODUCTION_M
 
 **Recommended Auto-Suspend Settings:**
 
-| Workload Type | Seconds | Rationale |
-|---------------|---------|-----------|
-| **Interactive BI** | 300-600 (5-10 min) | Balance UX and cost |
-| **Batch ETL** | 60-120 (1-2 min) | Quick shutdown post-job |
-| **Dev/Test** | 60-180 (1-3 min) | Minimize dev costs |
-| **Streaming** | 60 (1 min) | Near-continuous use |
-| **ML Training** | 300-600 (5-10 min) | Interactive experimentation |
-| **24/7 Critical** | 600+ (10+ min) | Balance availability/cost |
+- **Interactive BI:** 300-600 sec (5-10 min) - Balance UX and cost
+- **Batch ETL:** 60-120 sec (1-2 min) - Quick shutdown post-job
+- **Dev/Test:** 60-180 sec (1-3 min) - Minimize dev costs
+- **Streaming:** 60 sec (1 min) - Near-continuous use
+- **ML Training:** 300-600 sec (5-10 min) - Interactive experimentation
+- **24/7 Critical:** 600+ sec (10+ min) - Balance availability/cost
 
 ```sql
 -- Example: Interactive BI with 5-min timeout
@@ -503,14 +494,15 @@ CREATE OR REPLACE WAREHOUSE WH_INTERACTIVE_BI_M
 
 **Mandatory Tags:**
 
-| Tag Name | Purpose | Example Values | Required |
-|----------|---------|----------------|----------|
-| **COST_CENTER** | Chargeback allocation | FINANCE, MARKETING, DATA_SCIENCE | Yes |
-| **WORKLOAD_TYPE** | Workload categorization | BI_INTERACTIVE, ETL_BATCH, ML_TRAINING | Yes |
-| **ENVIRONMENT** | Deployment stage | DEV, QA, PROD | Yes |
-| **OWNER_TEAM** | Responsible team | DATA_ENGINEERING, ANALYTICS, BI_PLATFORM | Yes |
-| **DATA_CLASSIFICATION** | Data sensitivity | PUBLIC, INTERNAL, CONFIDENTIAL, RESTRICTED | Recommended |
-| **LIFECYCLE_STAGE** | Operational status | ACTIVE, DEPRECATED, EXPERIMENTAL | Recommended |
+**Required:**
+- **COST_CENTER** - Chargeback allocation (e.g., FINANCE, MARKETING, DATA_SCIENCE)
+- **WORKLOAD_TYPE** - Workload categorization (e.g., BI_INTERACTIVE, ETL_BATCH, ML_TRAINING)
+- **ENVIRONMENT** - Deployment stage (e.g., DEV, QA, PROD)
+- **OWNER_TEAM** - Responsible team (e.g., DATA_ENGINEERING, ANALYTICS, BI_PLATFORM)
+
+**Recommended:**
+- **DATA_CLASSIFICATION** - Data sensitivity (e.g., PUBLIC, INTERNAL, CONFIDENTIAL, RESTRICTED)
+- **LIFECYCLE_STAGE** - Operational status (e.g., ACTIVE, DEPRECATED, EXPERIMENTAL)
 
 ### 4.2 Tag Schema Setup and Application
 

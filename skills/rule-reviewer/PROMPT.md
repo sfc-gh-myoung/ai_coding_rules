@@ -1,6 +1,6 @@
 # Agent-Centric Rule Review Prompt (Template)
 
-~~~~markdown
+```markdown
 ## Rule Review Request
 
 **Target File:** [path/to/rule.md]
@@ -34,11 +34,41 @@ Points are allocated based on criticality for autonomous agent execution:
 
 ---
 
+### Priority Compliance Check (Required - Before Scoring)
+
+Before scoring dimensions, verify the rule follows the design priority hierarchy
+defined in `000-global-core.md`:
+
+**Priority 1 Compliance (Agent Understanding) - CRITICAL:**
+- [ ] No ASCII tables in content (use structured lists)
+- [ ] No arrow characters (`→`) outside code blocks
+- [ ] No ASCII decision trees (`├─`, `└─`, `│`)
+- [ ] No Mermaid diagrams or ASCII art
+- [ ] All subjective terms quantified (see Threshold Audit below)
+- [ ] All conditionals have explicit branches (if X, then Y; else Z)
+- [ ] Instructions use imperative voice (commands, not passive)
+
+**Priority 2 Compliance (Token Efficiency) - HIGH:**
+- [ ] TokenBudget within ±15% of actual
+- [ ] No duplicate content (references used where appropriate)
+- [ ] Critical information front-loaded in sections
+- [ ] Lists preferred over prose paragraphs
+
+**Scoring Impact:**
+- Priority 1 violations: Reduce Actionability and Parsability scores
+- Multiple Priority 1 violations (3+): Maximum Actionability = 3/5
+- Priority 2 violations: Reduce Token Efficiency score
+
+---
+
 ### Review Criteria
 
 Analyze the rule against these criteria, scoring each 1-5 (5 = excellent):
 
 #### 1. Actionability (Can an agent follow this?) — 25 points
+
+**Priority 1 Alignment:** This dimension directly measures Priority 1 compliance.
+Rules must pass the Priority Compliance Check above to score ≥4/5.
 - Are instructions unambiguous with no room for interpretation?
 - Does every conditional have explicit branches (if X, then Y; else Z)?
 - Are there edge cases that would leave an agent uncertain what to do?
@@ -151,7 +181,7 @@ Analyze the rule against these criteria, scoring each 1-5 (5 = excellent):
 
 Provide your assessment in this structure:
 
-~~~markdown
+```markdown
 ## Rule Review: [rule-name.md]
 
 ### Scores
@@ -215,7 +245,7 @@ If rule declares dependencies, verify alignment:
 - **Depends:** [list from rule metadata]
 - **Conflicts Found:** [any guidance that contradicts dependencies]
 - **Missing Dependencies:** [rules that should be listed but aren't]
-~~~
+```
 
 ### Agent Perspective Checklist (REQUIRED)
 
@@ -232,6 +262,32 @@ Answer each question explicitly in your assessment:
 - [ ] **Threshold audit:** List all undefined thresholds found
   (subjective terms without numeric criteria)
 
+### Priority Compliance Summary (REQUIRED)
+
+Include this table in every review to track priority violations:
+
+```markdown
+**Priority Compliance:**
+
+| Check | Status | Notes |
+|-------|--------|-------|
+| No ASCII tables | ✅/❌ | [location if found] |
+| No arrow chars (`→`) | ✅/❌ | [location if found] |
+| No ASCII trees | ✅/❌ | [location if found] |
+| No diagrams/art | ✅/❌ | [location if found] |
+| Terms quantified | ✅/❌ | [count undefined] |
+| Explicit branches | ✅/❌ | [count missing] |
+| Imperative voice | ✅/❌ | [passive instances] |
+| TokenBudget ±15% | ✅/❌ | [variance %] |
+| No duplicates | ✅/❌ | [sections if found] |
+| Info front-loaded | ✅/❌ | [sections if buried] |
+
+**Priority 1 Violations:** [count]
+**Priority 2 Violations:** [count]
+```
+
+**Scoring adjustment:** If Priority 1 violations ≥3, cap Actionability at 15/25 (3/5).
+
 ### Mandatory Verification Tables (Required for Scoring Justification)
 
 Include these tables in your assessment to support your scores. These ensure systematic
@@ -241,12 +297,12 @@ analysis and enable cross-model comparison:
 
 Scan the rule for subjective terms without quantified criteria. Create this table:
 
-~~~markdown
+```markdown
 | Term | Line(s) | Defined? | Issue | Proposed Fix |
 |------|---------|----------|-------|--------------|
 | critical query | 269 | ❌ | Undefined term | >30s OR >100GB OR >100/day |
 | large table | 340 | ❌ | Undefined size | >10M rows OR >1GB |
-~~~
+```
 
 **Terms to scan for:**
 
@@ -266,7 +322,7 @@ More than 5 undefined = score ≤3/5.
 
 Calculate actual token count and compare to declared budget:
 
-~~~markdown
+```markdown
 **TokenBudget Verification:**
 - Declared TokenBudget: ~[X] tokens
 - Word count: [Y] words (if available)
@@ -274,7 +330,7 @@ Calculate actual token count and compare to declared budget:
 - Variance: [(Z-X)/X × 100 = N%]
 - Within ±15%? [Yes/No]
 - Assessment: [Accurate / Underestimated / Overestimated]
-~~~
+```
 
 If verification tools unavailable, note limitation but review for obvious redundancy
 (repeated sections, excessive prose, duplicated examples).
@@ -285,7 +341,7 @@ If verification tools unavailable, note limitation but review for obvious redund
 
 For each code example in the rule, verify compliance with the rule's own requirements:
 
-~~~markdown
+```markdown
 **Example-Mandate Alignment Check:**
 
 Verification steps:
@@ -303,7 +359,7 @@ Verification steps:
 OR
 
 - None found - all examples comply with rule mandates
-~~~
+```
 
 **Scoring impact:** Each example-mandate violation reduces Consistency score. Major
 violations (contradicting core mandates) = score ≤2/5.
@@ -411,4 +467,4 @@ include the intended path on the first line exactly as:
 `OUTPUT_FILE: reviews/<rule-name>-<model>-<YYYY-MM-DD>.md`
 <!-- End of prompt template -->
 <!-- EOF -->
-~~~~
+```

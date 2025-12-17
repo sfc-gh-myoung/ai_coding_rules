@@ -71,7 +71,7 @@ SQL files with .sql extension, UTF-8 encoding, Unix line endings
 </output_format>
 
 <validation>
-Run setup → verify objects created → run teardown → verify cleanup → rerun setup (idempotency test)
+Run setup, then verify objects created, then run teardown, then verify cleanup, then rerun setup (idempotency test)
 </validation>
 
 <design_principles>
@@ -117,7 +117,6 @@ DROP SCHEMA IF EXISTS DEMO_DB.CUSTOMER_ANALYTICS CASCADE;
 ```
 **Benefits:** Schema isolation; no data loss; other demos unaffected; production-safe; professional; selective cleanup; reliable
 
----
 
 **Anti-Pattern 2: Not Making Demo Files Idempotent**
 ```sql
@@ -155,7 +154,6 @@ WHEN NOT MATCHED THEN INSERT (id, name) VALUES (src.id, src.name);
 ```
 **Benefits:** Rerunnable; no manual cleanup; demo-friendly; professional; reliable; good UX; frustration-free
 
----
 
 **Anti-Pattern 3: Missing Environment Variables for Portability**
 ```sql
@@ -197,7 +195,6 @@ SELECT * FROM <%DATABASE%>.PUBLIC.source_data;
 ```
 **Benefits:** Environment portable; testable in dev; no manual edits; error-free; production-safe; CI/CD friendly; professional
 
----
 
 **Anti-Pattern 4: No Sample Output or Expected Results Documentation**
 ```sql
@@ -765,11 +762,9 @@ CREATE TABLE GRID_ASSETS (...);  -- May fail in CLI automation
 **Why:** Demo SQL files are often executed via CLI tools (`snow sql`, `snowsql`) or CI/CD pipelines. Template characters cause cryptic errors that are hard to debug.
 
 **Forbidden Characters:**
-| Character | Tool | Issue |
-|-----------|------|-------|
-| `&` | Snowflake CLI (`snow sql`) | Interpreted as template variable prefix |
-| `<%` and `%>` | SnowSQL | Interpreted as variable delimiters |
-| `{{` and `}}` | Jinja2, dbt | Interpreted as template syntax |
+- **`&`** - Snowflake CLI (`snow sql`) interprets as template variable prefix
+- **`<%` and `%>`** - SnowSQL interprets as variable delimiters
+- **`{{` and `}}`** - Jinja2, dbt interpret as template syntax
 
 **Incorrect:**
 ```sql
@@ -806,12 +801,10 @@ CREATE SEMANTIC VIEW my_view AS
 ```
 
 **Common Substitutions:**
-| Avoid | Use Instead |
-|-------|-------------|
-| `R&D` | `R and D`, `Research and Development` |
-| `Sales & Marketing` | `Sales and Marketing` |
-| `P&L` | `P and L`, `Profit and Loss` |
-| `<%VAR%>` | Use Snowflake CLI `--variable` flag instead |
+- **`R&D`** - Use `R and D` or `Research and Development` instead
+- **`Sales & Marketing`** - Use `Sales and Marketing` instead
+- **`P&L`** - Use `P and L` or `Profit and Loss` instead
+- **`<%VAR%>`** - Use Snowflake CLI `--variable` flag instead
 
 ## 5. File Headers for Demos
 
@@ -881,21 +874,20 @@ CREATE OR REPLACE VIEW UTILITY_DEMO_V2.GRID_DATA.VW_SUMMARY AS ...;
 ### 6.1 Recommended Directory Structure
 
 **Pattern:**
-```text
-sql/
-├── setup/
-│   ├── database_setup.sql       # Create database and RBAC
-│   ├── grid_setup.sql           # Create GRID_DATA schema
-│   └── customer_setup.sql       # Create CUSTOMER_DATA schema
-├── features/
-│   ├── grid_load.sql            # Load grid data
-│   ├── customer_load.sql        # Load customer data
-│   └── semantic_views.sql       # Optional: Create semantic models
-└── teardown/
-    ├── grid_teardown.sql        # Drop GRID_DATA schema
-    ├── customer_teardown.sql    # Drop CUSTOMER_DATA schema
-    └── database_teardown.sql    # Drop entire database
-```
+
+Directory structure for `sql/`:
+- **setup/** - Initial setup scripts
+  - `database_setup.sql` - Create database and RBAC
+  - `grid_setup.sql` - Create GRID_DATA schema
+  - `customer_setup.sql` - Create CUSTOMER_DATA schema
+- **features/** - Feature-specific scripts
+  - `grid_load.sql` - Load grid data
+  - `customer_load.sql` - Load customer data
+  - `semantic_views.sql` - Optional: Create semantic models
+- **teardown/** - Cleanup scripts
+  - `grid_teardown.sql` - Drop GRID_DATA schema
+  - `customer_teardown.sql` - Drop CUSTOMER_DATA schema
+  - `database_teardown.sql` - Drop entire database
 
 **Benefits:**
 - Clear organization by purpose

@@ -107,7 +107,6 @@ if pd.Timestamp(py_dt) > pd_ts:
 ```
 **Benefits:** Type-safe comparisons; Pandas 2.x compatible; explicit timezone handling; no implicit conversion surprises
 
----
 
 **Anti-Pattern 2: Using Deprecated `datetime.utcnow()`**
 ```python
@@ -125,7 +124,6 @@ timestamp = datetime.now(UTC)  # Timezone-aware, future-proof
 ```
 **Benefits:** Timezone-aware datetime; Python 3.11+ best practice; no deprecation warnings; explicit UTC handling; future-proof
 
----
 
 **Anti-Pattern 3: Parsing Dates Without Format Specification**
 ```python
@@ -144,7 +142,6 @@ df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d %H:%M:%S')  # Fast, exp
 ```
 **Benefits:** 10-100x faster parsing; consistent date interpretation; no ambiguity; predictable behavior across locales
 
----
 
 **Anti-Pattern 4: Using Timedelta for Calendar Arithmetic**
 ```python
@@ -343,10 +340,10 @@ def ensure_python_datetime(dt):
     Convert any datetime-like object to Python datetime.
 
     Handles:
-    - None/NaT → None
-    - datetime.datetime → unchanged
-    - pd.Timestamp → to_pydatetime()
-    - Strings → parse via pd.to_datetime
+    - None/NaT: returns None
+    - datetime.datetime: unchanged
+    - pd.Timestamp: converted via to_pydatetime()
+    - Strings: parsed via pd.to_datetime
 
     Safe for Pandas 2.x+ strict type checking.
     """
@@ -431,7 +428,7 @@ df['date'] = pd.to_datetime(df['date'])  # 01/02/2024 - Jan 2 or Feb 1?
 
 ```python
 # Handle parsing errors gracefully
-df['date'] = pd.to_datetime(df['date'], errors='coerce')  # Invalid → NaT
+df['date'] = pd.to_datetime(df['date'], errors='coerce')  # Invalid becomes NaT
 df['date'] = pd.to_datetime(df['date'], errors='ignore')  # Keep original on error
 
 # Report parsing failures

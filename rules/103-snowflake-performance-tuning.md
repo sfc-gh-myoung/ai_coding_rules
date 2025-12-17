@@ -124,7 +124,6 @@ WHERE order_timestamp >= '2024-01-15'
 ```
 **Benefits:** Partition pruning enabled; scans minimal partitions; 100x faster; low costs; production-ready; excellent performance
 
----
 
 **Anti-Pattern 2: Adding Clustering Keys Without Query Profile Evidence**
 ```sql
@@ -142,9 +141,9 @@ SELECT * FROM sales_fact WHERE region = 'WEST' AND product_category = 'Electroni
 -- Get query_id from result
 
 -- Step 2: Check Query Profile for pruning statistics
--- In Snowsight: Query History → Click query → Query Profile
+-- In Snowsight: Query History > Click query > Query Profile
 -- Look for: "Partitions scanned" vs "Partitions total"
--- If scanning >50% of partitions for selective query → clustering may help
+-- If scanning >50% of partitions for selective query, clustering may help
 
 -- Step 3: Only add clustering if Query Profile shows poor pruning
 -- AND if query pattern is consistent
@@ -155,7 +154,6 @@ ALTER TABLE sales_fact CLUSTER BY (region, product_category);
 ```
 **Benefits:** Data-driven clustering decisions; proven performance gains; cost-justified; Query Profile validated; measurable improvements; production evidence-based
 
----
 
 **Anti-Pattern 3: Using SELECT * Instead of Specific Columns**
 ```sql
@@ -182,7 +180,6 @@ JOIN fact_table t2 ON t1.id = t2.dim_id;
 ```
 **Benefits:** Minimal data transfer; faster queries; lower costs; focused results; memory efficient; production-optimized
 
----
 
 **Anti-Pattern 4: Not Using Query Profile to Diagnose Slow Queries**
 ```python
@@ -200,10 +197,10 @@ SET query_id = (SELECT LAST_QUERY_ID());
 
 -- Step 2: Analyze in Snowsight Query Profile
 -- Check for:
--- - Partition pruning: Are most partitions scanned? → Add clustering or fix WHERE
--- - Spillage: Is data spilling to remote storage? → Increase warehouse size
--- - Join explosion: Are joins creating massive intermediate results? → Optimize join order
--- - External function latency: Are UDFs/external APIs slow? → Optimize or cache
+-- - Partition pruning: Are most partitions scanned? If yes, add clustering or fix WHERE
+-- - Spillage: Is data spilling to remote storage? If yes, increase warehouse size
+-- - Join explosion: Are joins creating massive intermediate results? If yes, optimize join order
+-- - External function latency: Are UDFs/external APIs slow? If yes, optimize or cache
 
 -- Step 3: Apply targeted fix based on Query Profile evidence
 -- Example: If 90% partitions scanned for selective query:

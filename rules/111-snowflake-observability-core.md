@@ -1,5 +1,11 @@
 # Snowflake Observability Core
 
+> **CORE RULE: PRESERVE WHEN POSSIBLE**
+> 
+> This rule defines essential Observability patterns. Load for observability tasks.
+> Specialized rules depend on this foundation.
+
+
 ## Metadata
 
 **SchemaVersion:** v3.1
@@ -39,7 +45,7 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 
 **MANDATORY:**
 **Essential Patterns:**
-- **Configure telemetry hierarchically** - Account → Database → Schema → Object
+- **Configure telemetry hierarchically** - Account, then Database, then Schema, then Object
 - **Verify event tables first** - Use `SHOW PARAMETERS LIKE 'EVENT_TABLE'`
 - **Use appropriate log levels** - WARN+ for production, DEBUG for dev
 - **Understand System Views vs Telemetry** - Historical (45+ min lag) vs Real-time
@@ -131,7 +137,6 @@ ALTER DATABASE dev_db SET LOG_LEVEL = DEBUG;
 ```
 **Benefits:** Cost-effective logging; manageable event table size; signal-to-noise balance; production performance maintained; actionable logs only
 
----
 
 **Anti-Pattern 2: Not Setting Retention Policy on Event Tables**
 ```sql
@@ -155,7 +160,6 @@ ALTER EVENT TABLE my_logs
 ```
 **Benefits:** Bounded storage costs; automatic cleanup; predictable costs; optimal query performance; compliance-aligned retention; no manual maintenance
 
----
 
 **Anti-Pattern 3: Querying System Views for Real-Time Monitoring**
 ```sql
@@ -186,7 +190,6 @@ WHERE start_time BETWEEN DATEADD('day', -7, CURRENT_DATE())
 ```
 **Benefits:** Real-time monitoring (<1 min); accurate dashboards; timely incident detection; proper data source selection; cost-effective historical analysis
 
----
 
 **Anti-Pattern 4: Not Verifying Event Table Active Before Emitting Telemetry**
 ```python
@@ -470,7 +473,7 @@ ALTER DATABASE analytics_db SET EVENT_TABLE = observability_db.telemetry.custom_
 ```
 
 **Step 3: Configure via Snowsight UI (Alternative Method)**
-- **Navigation:** Admin → Monitoring → Event Tables
+- **Navigation:** Admin > Monitoring > Event Tables
 - **Actions:** View active event table, create new event table, set as account default
 - **Benefit:** Visual interface for event table management without SQL
 

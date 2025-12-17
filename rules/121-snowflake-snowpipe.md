@@ -125,7 +125,6 @@ ON_ERROR = CONTINUE;
 ```
 **Benefits:** Fully automated; no API calls; near real-time loading (5-10 min); cloud-native; simple setup; reliable; low maintenance; cost-effective
 
----
 
 **Anti-Pattern 2: Missing FILE_FORMAT Specifications**
 ```sql
@@ -171,7 +170,6 @@ VALIDATION_MODE = RETURN_ERRORS;
 ```
 **Benefits:** Predictable parsing; data quality; explicit expectations; easy debugging; documented format; testable; reliable production
 
----
 
 **Anti-Pattern 3: Not Monitoring COPY_HISTORY for Load Errors**
 ```sql
@@ -240,7 +238,6 @@ FROM TABLE(INFORMATION_SCHEMA.COPY_HISTORY(
 ```
 **Benefits:** Early error detection; data quality assurance; proactive alerts; no silent failures; audit trail; business continuity; professional operations
 
----
 
 **Anti-Pattern 4: Not Handling File Naming Patterns Correctly**
 ```sql
@@ -429,16 +426,25 @@ ORDER BY START_TIME DESC;
 
 ### 1.2 Snowpipe vs Bulk Loading
 
-| Aspect | Bulk Loading (COPY INTO) | Snowpipe |
-|--------|--------------------------|----------|
-| **Use Case** | Large historical loads, scheduled batches | Continuous, near-real-time micro-batches |
-| **Compute** | User-specified warehouse | Snowflake-managed serverless compute |
-| **Triggering** | Manual or scheduled execution | Automated (event-driven or REST API) |
-| **Transactions** | Single transaction per COPY | Multiple transactions based on file size/count |
-| **Load History** | 64 days in table metadata | 14 days in pipe metadata |
-| **Authentication** | User session (any method) | JWT with key pairs (REST API) |
-| **Cost Model** | Warehouse time (per-second billing) | Snowpipe compute (per-second billing) |
-| **Best For** | Initial loads, large batches, scheduled ETL | Streaming sources, event-driven, continuous feeds |
+**Bulk Loading (COPY INTO):**
+- Use Case: Large historical loads, scheduled batches
+- Compute: User-specified warehouse
+- Triggering: Manual or scheduled execution
+- Transactions: Single transaction per COPY
+- Load History: 64 days in table metadata
+- Authentication: User session (any method)
+- Cost Model: Warehouse time (per-second billing)
+- Best For: Initial loads, large batches, scheduled ETL
+
+**Snowpipe:**
+- Use Case: Continuous, near-real-time micro-batches
+- Compute: Snowflake-managed serverless compute
+- Triggering: Automated (event-driven or REST API)
+- Transactions: Multiple transactions based on file size/count
+- Load History: 14 days in pipe metadata
+- Authentication: JWT with key pairs (REST API)
+- Cost Model: Snowpipe compute (per-second billing)
+- Best For: Streaming sources, event-driven, continuous feeds
 
 **Rule:** Do NOT use Snowpipe for one-time bulk historical loads. Use COPY INTO with appropriately sized warehouses instead.
 
@@ -492,14 +498,21 @@ ORDER BY START_TIME DESC;
 
 ### 2.3 Comparison Matrix
 
-| Feature | Auto-Ingest | REST API |
-|---------|-------------|----------|
-| **Stage Type** | External only | Internal or external |
-| **Automation** | Fully automated | Manual/programmatic |
-| **Event Source** | Cloud storage events | Application-initiated |
-| **Setup Complexity** | Moderate (cloud config) | Low (API calls) |
-| **Authentication** | IAM/service principal | JWT key pair |
-| **Best For** | Continuous external feeds | Custom workflows, internal stages |
+**Auto-Ingest:**
+- Stage Type: External only
+- Automation: Fully automated
+- Event Source: Cloud storage events
+- Setup Complexity: Moderate (cloud config)
+- Authentication: IAM/service principal
+- Best For: Continuous external feeds
+
+**REST API:**
+- Stage Type: Internal or external
+- Automation: Manual/programmatic
+- Event Source: Application-initiated
+- Setup Complexity: Low (API calls)
+- Authentication: JWT key pair
+- Best For: Custom workflows, internal stages
 
 ## 3. File Sizing Best Practices
 
@@ -1018,14 +1031,21 @@ ORDER BY total_credits DESC;
 
 ### 10.2 High-Performance vs Classic Architecture
 
-| Feature | High-Performance Architecture | Classic Architecture |
-|---------|-------------------------------|----------------------|
-| **Latency** | Sub-second (optimized) | 1-2 seconds |
-| **Throughput** | Higher (optimized for large volumes) | Moderate |
-| **Overhead** | Lower (direct write path) | Higher (metadata operations) |
-| **Complexity** | Slightly more complex setup | Simpler setup |
-| **Use Case** | High-volume, low-latency streaming | Standard streaming workloads |
-| **Availability** | AWS, Azure, GCP | AWS, Azure, GCP |
+**High-Performance Architecture:**
+- Latency: Sub-second (optimized)
+- Throughput: Higher (optimized for large volumes)
+- Overhead: Lower (direct write path)
+- Complexity: Slightly more complex setup
+- Use Case: High-volume, low-latency streaming
+- Availability: AWS, Azure, GCP
+
+**Classic Architecture:**
+- Latency: 1-2 seconds
+- Throughput: Moderate
+- Overhead: Higher (metadata operations)
+- Complexity: Simpler setup
+- Use Case: Standard streaming workloads
+- Availability: AWS, Azure, GCP
 
 **Rule:** Prefer **High-Performance Architecture** for production workloads with strict latency and throughput requirements.
 

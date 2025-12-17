@@ -469,14 +469,14 @@ DROP TAG IF EXISTS GOVERNANCE.TAGS.DEPRECATED_TAG;
 ### Inheritance Rules
 
 **Snowflake Object Hierarchy:**
-```
-Account
-├── Database (tags inherit to schemas, tables, columns)
-│   ├── Schema (tags inherit to tables, views, columns)
-│   │   ├── Table (tags inherit to columns)
-│   │   └── View (tags inherit to columns)
-└── Warehouse (standalone, no inheritance)
-```
+
+Tag inheritance flows top-down:
+- **Account** (root)
+  - **Database** - tags inherit to schemas, tables, columns
+    - **Schema** - tags inherit to tables, views, columns
+      - **Table** - tags inherit to columns
+      - **View** - tags inherit to columns
+  - **Warehouse** - standalone, no inheritance
 
 **How Inheritance Works:**
 - Tags set on a database automatically apply to all schemas, tables, and columns within
@@ -966,16 +966,15 @@ ORDER BY tag_name, object_count DESC;
 **MANDATORY:**
 Tags can be applied to the following Snowflake objects (partial list of most common):
 
-| Object Type | Notes |
-|---|---|
-| Account | Requires APPLY TAG privilege globally |
-| Database | Tags inherit to all child objects |
-| Schema | Tags inherit to tables, views, columns |
-| Table | Tags inherit to columns; includes event tables |
-| View | Tags inherit to columns |
-| Materialized View | Supports tagging |
-| Dynamic Table | Supports tagging |
-| External Table | Use ALTER TABLE to manage tags |
+**Taggable Object Types:**
+- **Account** - Requires APPLY TAG privilege globally
+- **Database** - Tags inherit to all child objects
+- **Schema** - Tags inherit to tables, views, columns
+- **Table** - Tags inherit to columns; includes event tables
+- **View** - Tags inherit to columns
+- **Materialized View** - Supports tagging
+- **Dynamic Table** - Supports tagging
+- **External Table** - Use ALTER TABLE to manage tags
 | Iceberg Table | Supports tagging |
 | Stream | Supports tagging |
 | Task | Use ALTER TASK to set tags |

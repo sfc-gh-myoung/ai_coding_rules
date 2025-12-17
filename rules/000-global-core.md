@@ -1,11 +1,17 @@
 # Global Core Guidelines
 
+> **CRITICAL: DO NOT SUMMARIZE THIS FILE**
+> 
+> This is the foundation rule that defines core patterns for ALL agents. Required
+> for every response. If context limits are reached, preserve this file completely.
+> Summarize task history or other files first - this foundation must remain accessible.
+
 ## Metadata
 
 **SchemaVersion:** v3.1
 **RuleVersion:** v1.0.0
 **Keywords:** PLAN mode, ACT mode, workflow, safety, confirmation, validation, surgical edits, minimal changes, mode violations, prompt engineering, task list, read-only, authorization
-**TokenBudget:** ~4500
+**TokenBudget:** ~3800
 **ContextTier:** Critical
 **Depends:** None
 
@@ -75,6 +81,40 @@ Verify mode rules honored; confirm changes work as expected
 
 </contract>
 
+## Rule Design Priorities (Hierarchy)
+
+All rules in this repository target **autonomous AI agents**, not human developers.
+Design decisions must follow this priority order:
+
+**Priority 1: Agent Understanding and Execution Reliability**
+- Instructions must be unambiguous and deterministic
+- All conditionals must have explicit branches (if X, then Y; else Z)
+- Subjective terms must be quantified (e.g., "large table" becomes ">1M rows")
+- No visual formatting agents cannot interpret (ASCII tables, diagrams, arrow characters)
+- Use imperative voice for all instructions
+
+**Priority 2: Token and Context Window Efficiency**
+- Minimize tokens without sacrificing clarity
+- Use structured lists over prose paragraphs
+- Front-load critical information in each section
+- Reference other rules instead of duplicating content
+- TokenBudget must be within ±15% of actual
+
+**Priority 3: Human Readability (Tertiary)**
+- Maintain logical organization for human reviewers
+- Use consistent terminology across all rules
+- Provide examples for complex patterns
+
+**Design Test:** When in doubt, ask: "Can an agent execute this without judgment?"
+If the answer is no, revise for Priority 1 compliance.
+
+**Trade-off Guidance:**
+- More tokens for explicit error handling: Priority 1 wins
+- Repeated key terms for clarity: Priority 1 wins
+- Complete examples over terse references: Priority 1 wins
+
+**See:** `rules/002e-agent-optimization.md` for detailed formatting patterns.
+
 ## Key Principles
 
 ### 1. Mode-Based Workflow
@@ -98,126 +138,68 @@ Verify mode rules honored; confirm changes work as expected
 
 **ACT Recognition Rules:**
 - **Recognized:** "ACT", "act", "Act" (case-insensitive exact match)
-- **NOT recognized:** "proceed", "go ahead", "do it", "yes", "okay"
-- **Scope:** Applies to the most recent task list presented in PLAN mode
-- **Expiration Rules:**
-  - **Expires:** When agent presents a *new* task list (replacing previous)
-  - **Does NOT expire:** During clarifying questions or discussion without new task lists
-  - **Partial modification:** If user modifies task list ("skip step 2"), present updated list and request new "ACT"
-  - **After completion:** Returns to PLAN; requires new "ACT" for any subsequent tasks
-- **Partial authorization:** "ACT on items 1-3" executes only specified items, then returns to PLAN for remaining items
+- **NOT recognized:** "proceed", "go ahead", "yes", "okay"
+- **Scope:** Applies to most recent task list in PLAN
+- **Expires:** When new task list is presented
+- **Partial auth:** "ACT on items 1-3" executes specified items only
 
 ### Clarification Gate (Options-Based Questions)
 
-Use this pattern to gather required details in PLAN mode without creating PLAN → PLAN
-loops or accidentally expiring ACT authorization scope.
-
-**Rules:**
-- **Ask with choices:** When user input is ambiguous, ask clarifying questions using explicit choices: **A, B, C, D, E**.
-- **Bundle questions:** Ask up to **3-5** clarifying questions in a single message.
-- **Provide a default:** Mark one option as **(recommended default)** when safe.
-- **Preserve ACT scope:** If a Task List has already been presented, **do not present a new Task List**
-  while clarifying unless the user selection changes scope/steps (which would require an updated
-  Task List and a new "ACT").
-- **Stop condition:** Allow **at most 1 clarification round**. If still ambiguous, present a Task
-  List with explicit assumptions and ask the user to authorize with "ACT" (or correct the
-  assumptions).
-
-**User response format (recommended):**
-- Reply with a comma-separated list of choices (e.g., `B, D, A`) and include `ACT` only when ready to execute.
+Gather details in PLAN without expiring ACT scope:
+- Use **A/B/C/D/E** choices for ambiguous input
+- Bundle 3-5 questions per message
+- Mark **(recommended)** default when safe
+- Preserve ACT scope (don't present new task list while clarifying)
+- Max 1 clarification round (then proceed with stated assumptions)
 
 ### MODE Transitions (Summary)
 
-**PLAN → ACT:**
+**PLAN to ACT:**
 - Trigger: User types "ACT"
 - Required: Task list must be presented first
 - Declaration: "MODE: ACT" at start of next response
 
-**ACT → ACT (Validation Loop):**
+**ACT to ACT (Validation Loop):**
 - Trigger: Validation failure
 - Max loops: 3 attempts (then escalate to PLAN)
 - Declaration: Stay in ACT, no re-declaration needed
 
-**ACT → PLAN:**
+**ACT to PLAN:**
 - Trigger: Successful validation + doc update
 - Automatic: No user input needed
 - Declaration: "MODE: PLAN" at end of response
 
-**PLAN → PLAN:**
+**PLAN to PLAN:**
 - Trigger: Any non-"ACT" user input
 - Default: Always return to PLAN after ACT completion
 
-### Mode Transition State Diagram
+### Mode Transition Rules
 
-```
-[User Request] → MODE: PLAN
-                    ↓
-         [Present Task List]
-                    ↓
-         [User types "ACT"]
-                    ↓
-              MODE: ACT
-                    ↓
-         [Make modifications]
-                    ↓
-         [Run validation]
-                    ↓
-    ┌───────── [Validation] ─────────┐
-    ↓                                  ↓
-[PASS]                             [FAIL]
-    ↓                                  ↓
-[Update docs]                  [Present errors]
-    ↓                                  ↓
-MODE: PLAN ←──────────────── [Stay in ACT]
-    ↓                                  ↓
-[Await next                      [Fix & retry]
- instruction]                          ↑
-                                       └──→ [Run validation]
-```
+**PLAN to ACT:**
+- Trigger: User types "ACT"
+- Action: Declare "MODE: ACT" and begin modifications
 
-**Transition Rules:**
-- **ACT → PLAN**: Automatic after successful validation + documentation update
-- **ACT → ACT**: Only if validation fails; must re-validate before declaring PLAN
-- **PLAN → ACT**: Only after user types "ACT" (never automatic)
-- **PLAN → PLAN**: Default state for follow-up questions
+**ACT to ACT (retry loop):**
+- Trigger: Validation fails
+- Action: Fix and retry (max 3 attempts)
 
-**Terminal State Behavior:**
-- "Await next instruction" means agent remains in PLAN mode
-- If user input is ambiguous, ask clarifying questions (staying in PLAN)
-- If user provides new task, begin new PLAN cycle
+**ACT to PLAN:**
+- Trigger: Validation passes
+- Action: Auto-return and declare "MODE: PLAN"
 
-**Validation Retry Limits:**
-- **Maximum retries:** 3 attempts to fix and re-validate
-- **After 3 failures:** Return to PLAN, present errors, and request user guidance
-- **Escalation format:**
-```markdown
-MODE: PLAN
+**PLAN to PLAN:**
+- Trigger: Any non-"ACT" input
+- Action: Await next instruction (default behavior)
 
-WARNING: Validation failed after 3 attempts. Issues encountered:
-- [Error 1]
-- [Error 2]
-
-Requesting guidance: [specific question or options]
-```
+**Validation Retry:** Max 3 attempts. After 3 failures, return to PLAN with error report and request guidance.
 
 ### Protocol Enforcement
 
-Responses MUST comply with these validation gates or be considered INVALID:
+**CRITICAL violations:** ACT without authorization, file modification in PLAN
+**HIGH violations:** MODE not declared, rules not listed, validation skipped
+**MEDIUM violations:** Language-specific rules not loaded for file edits
 
-| Protocol Requirement | Validation Check | Failure Action |
-|---------------------|------------------|----------------|
-| **MODE declared** | First line = `MODE: [PLAN\|ACT]` | Regenerate response with MODE |
-| **Rules listed** | `## Rules Loaded` section present | Regenerate with rules listed |
-| **PLAN mode protection** | No file modifications in PLAN | STOP, present task list, await ACT |
-| **Explicit ACT prompt** | PLAN response with a Task List ends with `Authorization (required): Reply with \`ACT\` ...` | Regenerate response with explicit ACT prompt |
-| **ACT authorization** | User typed "ACT" before entering ACT mode | Return to PLAN, apologize |
-| **Validation executed** | Lint/test/compile run after changes | Run validation before completion |
-| **Language rules loaded** | Domain rules for file types being edited | Load 200-python/100-snowflake/etc. |
-
-**Consequence Severity:**
-- CRITICAL: ACT without authorization, file modification in PLAN mode
-- HIGH: MODE not declared, rules not listed, validation skipped
-- MEDIUM: Language-specific rules not loaded for file edits
+**Required gates:** MODE declared, then Rules listed, then PLAN protection, then Explicit ACT prompt, then ACT authorization, then Validation executed, then Language rules loaded
 
 ### 2. Task Confirmation Protocol
 
@@ -237,68 +219,12 @@ Responses MUST comply with these validation gates or be considered INVALID:
 
 ### 3.5. Multi-File Task Protocol
 
-**Atomic Changes (Single ACT Session):**
+**Atomic Changes:** Tightly coupled files (refactoring, API contracts, schema) require single ACT
+**Progressive Changes:** Loosely coupled files (independent features) allow multiple ACTs
 
-Use when files are tightly coupled and changes must be consistent:
-- Refactoring that renames functions/classes across files
-- Updating API contracts (client + server)
-- Schema migrations (DDL + application code)
+**Rollback:** If validation fails, revert ALL files to original state, return to PLAN
 
-**Task List Format:**
-```
-1. Update function signature in `auth.py`
-2. Update all call sites in `middleware.py`
-3. Update route handlers in `routes.py`
-4. Run validation suite (all files)
-```
-
-**Rollback Strategy:**
-
-If validation fails, you MUST:
-- Revert ALL files to original state
-- Return to PLAN mode
-- Present revised task list with fixes
-
-**Rollback Mechanisms:**
-
-| Scenario | Mechanism | Approach |
-|----------|-----------|----------|
-| **Git repo available** | Version control (preferred) | `git checkout -- <file>` or `git stash` |
-| **No git, few files** | In-memory | Store original content before edit, restore via write tool |
-| **No git, many files** | Incremental | Read and store each file before editing; revert individually on failure |
-
-**Selection:** Check git availability first (`git status`). If unavailable, use in-memory for simple tasks or incremental for multi-file changes.
-
-**Rollback Reporting:**
-```markdown
-WARNING: Validation failed. Reverting changes:
-- Reverted: `auth.py` (original restored)
-- Reverted: `middleware.py` (original restored)
-- Unchanged: `routes.py` (not yet modified)
-
-MODE: PLAN
-[Revised task list with fixes]
-```
-
-**Progressive Changes (Multiple ACT Sessions):**
-
-Use when files are loosely coupled:
-- Adding independent features to different modules
-- Updating documentation across multiple files
-- Performance optimizations in separate components
-
-**Task List Format:**
-```
-Session 1: Update `auth.py`
-- [specific changes]
-- [validation]
-- [await "ACT"]
-
-Session 2: Update `middleware.py`
-- [specific changes]
-- [validation]
-- [await "ACT"]
-```
+**Details:** See 002c-advanced-rule-patterns.md, section "Multi-File Task Patterns"
 
 ### 4. Professional Communication
 
@@ -319,56 +245,21 @@ Session 2: Update `middleware.py`
   commands when no relevant Taskfile tasks exist.
 
 **Validation Strategies:**
-
-| Strategy | When to Use | Command Style | Exit Behavior |
-|----------|-------------|---------------|---------------|
-| **Fast-fail** | Final check, high confidence | Chain with `&&` | Stops at first failure |
-| **Diagnostic** | First run, expect issues | Run separately with `|| echo` | Collects ALL errors |
-
-**Selection Criteria:**
-- **Use Fast-fail when:** Final validation before completion; minor changes to passing code
-- **Use Diagnostic when:** First validation after changes; multiple files modified; debugging prior failures
-
-**Fast-fail Example (CI/CD):**
-```bash
-# Stop on first failure - efficient for pipelines
-task validate
-```
-
-**Diagnostic Example (Debugging):**
-```bash
-# Run all checks, collect ALL results for comprehensive diagnosis
-task lint || echo "ERROR: Linting failed"
-task format || echo "ERROR: Formatting failed"
-task typecheck || echo "ERROR: Type checking failed"
-task test || echo "ERROR: Tests failed"
-
-# Task complete only if all passed
-```
+- **Fast-fail:** Chain with `&&` for final checks (stops at first failure)
+- **Diagnostic:** Run separately with `|| echo` for debugging (collects all errors)
 
 ### 5.5. Validation Command Reference
 
-**Taskfile-first (preferred):**
+**Preferred:** Use project-defined tasks (`task validate`, `task check`, `task ci`, `task lint`, `task test`)
 
-| Technology | Preferred (Project Standard) | Purpose |
-|------------|------------------------------|---------|
-| **Any** | `task validate` (or `task check` / `task ci`) | Run project-defined validation gate |
-| **Any** | `task lint`, `task format`, `task typecheck`, `task test` | Run project-defined checks |
+**Fallback:** Load language-specific rule for technology commands:
+- **Python:** Load 200-python-core.md (ruff, pytest)
+- **SQL:** Load 100-snowflake-core.md (compile checks)
+- **Shell:** Load 300-bash-scripting-core.md (shellcheck)
+- **JS/TS:** Load 420-javascript-core.md / 430-typescript-core.md (tsc, biome)
+- **Go:** Load 600-golang-core.md (go fmt, vet, test)
 
-**Fallback Technology-Specific Commands (only if no Taskfile tasks exist):**
-
-| Technology | Command | Purpose |
-|------------|---------|---------|
-| **Python** | `uvx ruff check . && uvx ruff format --check . && uv run pytest` | Lint, format, test |
-| **SQL** | `snowflake_sql_execute(..., only_compile=true)` | Syntax check |
-| **Shell** | `shellcheck script.sh` | Lint |
-| **Markdown** | `uvx pymarkdownlnt scan FILE.md` | Lint |
-| **YAML** | `python -c "import yaml; yaml.safe_load(open('FILE.yml'))"` | Parse check |
-| **JS/TS** | `npx tsc --noEmit && npx biome check .` | Type + lint |
-| **Go** | `go fmt ./... && go vet ./... && go test ./...` | Format, lint, test |
-| **Docker** | `docker build --no-cache -t test .` | Build test |
-
-**Note:** Use `&&` for quick validation, or run separately for detailed diagnostics.
+**Rule Discovery:** See RULES_INDEX.md Rule Catalog for complete domain mappings.
 
 **Validation Sequence:**
 
@@ -385,15 +276,16 @@ task test || echo "ERROR: Tests failed"
 
 These violations result in INVALID responses that must be regenerated:
 
-| Violation | Detection Pattern | Consequence | Recovery Action |
-|-----------|------------------|-------------|-----------------|
-| **MODE not declared** | First line != `MODE: [PLAN\|ACT]` | INVALID response | Regenerate with `MODE: PLAN` as first line |
-| **Rules not listed** | Missing `## Rules Loaded` section | INVALID response | Add section listing all loaded rules with context |
-| **File edit in PLAN** | File modification tool called while in PLAN mode | STOP immediately | Return to PLAN, present task list, await "ACT" |
-| **Task list missing explicit ACT prompt** | PLAN response includes a Task List but does not end with `Authorization (required): Reply with \`ACT\` ...` | INVALID response | Regenerate response with explicit ACT prompt |
-| **Skipped validation** | Changes made in ACT but no lint/test/compile run | INCOMPLETE task | Execute validation before marking complete |
-| **ACT without authorization** | Entered ACT mode without user typing "ACT" | CRITICAL violation | Revert changes, apologize, return to PLAN |
-| **Language rules missing** | Working with .py/.sql/.sh/.go files without loading domain rules | INVALID response | Load domain rules for file type |
+**Critical Violations:**
+- **MODE not declared:** First line must be `MODE: [PLAN|ACT]}` - Regenerate with MODE as first line
+- **Rules not listed:** Missing `## Rules Loaded` section - Add section listing all loaded rules
+- **File edit in PLAN:** File modification in PLAN mode - STOP, present task list, await "ACT"
+- **ACT without authorization:** Entered ACT without user "ACT" - Revert changes, apologize, return to PLAN
+
+**High Priority Violations:**
+- **Task list missing ACT prompt:** PLAN with Task List must end with authorization prompt - Regenerate with explicit ACT prompt
+- **Skipped validation:** Changes made without lint/test - Execute validation before marking complete
+- **Language rules missing:** Working with .py/.sql/.sh/.go without domain rules - Load appropriate domain rules
 
 **Language Rule Loading Requirements:**
 - **MUST load:** Modifying files, running language-specific tools (pytest, ruff, shellcheck), or making code recommendations
@@ -544,58 +436,109 @@ Let me help you with that task. [starts work without MODE or rules declaration]
 
 ### Complete Workflow Example
 
+**PLAN Phase:**
 ```markdown
 MODE: PLAN
 
 ## Rules Loaded
 - rules/000-global-core.md (foundation)
-- rules/100-snowflake-core.md (Snowflake foundation)
-- rules/115-snowflake-cortex-agents-core.md (Cortex Agent creation)
+- rules/100-snowflake-core.md (domain)
 
-Analysis:
-User requests creation of a Cortex Agent to analyze asset performance data using an existing semantic view. Task requires:
-- CREATE CORTEX AGENT statement with appropriate configuration
-- Planning instructions tailored to asset performance domain
-- Response formatting instructions for consistent output
-- Tool specification referencing existing semantic view
+Analysis: [2-3 sentence summary of request]
 
 Task List:
-1. Verify semantic view SEM_ASSET_PERFORMANCE exists and is accessible
-2. Create Cortex Agent with tool reference to semantic view
-3. Define planning instructions for asset analysis domain
-4. Define response formatting instructions for user-friendly output
-5. Test agent creation and validate configuration
+1. [Action step 1]
+2. [Action step 2]
+3. [Validation step]
 
-Authorization (required): Reply with `ACT` (or `ACT on items 1-3`).
+Authorization (required): Reply with `ACT`.
 ```
 
+**ACT Phase:**
 ```markdown
 MODE: ACT
 
-Implementation:
-```sql
-CREATE OR REPLACE CORTEX AGENT AGENT_ASSET_PERFORMANCE_ANALYST
-  COMMENT = 'Analyzes grid asset performance using semantic view'
-  AS
-    TOOLS = ['SEM_ASSET_PERFORMANCE']
-    PLANNING_INSTRUCTIONS = $$
-    You are an expert asset performance analyst.
-    Use SEM_ASSET_PERFORMANCE for all queries.
-    $$
-    RESPONSE_INSTRUCTIONS = $$
-    Format: Summary, Key Findings, Supporting Data
-    $$;
-```
+[Implementation: code/changes]
 
-Validation:
-- [x] Agent created with SHOW CORTEX AGENTS
-- [x] Tool reference verified
-- [x] Ready for testing
+Validation: [test/lint results]
 
 MODE: PLAN
-
-Task complete. Agent ready for queries.
+Task complete.
 ```
+
+## Context Window Management Protocol
+
+When approaching context limits, agents must preserve rules in priority order to
+maintain consistent behavior. This protocol works across all LLM providers.
+
+### Preservation Priority Order
+
+**ALWAYS PRESERVE (Never Summarize):**
+
+1. **AGENTS.md** - Bootstrap protocol and MODE/ACT framework
+2. **000-global-core.md** - This file (foundation patterns)
+3. **Active domain -core.md file** - The primary domain rule for current task
+   - Examples: 200-python-core.md (Python tasks), 100-snowflake-core.md (Snowflake tasks), 
+     420-javascript-core.md (JavaScript tasks)
+
+**PRESERVE WHEN RELEVANT:**
+
+4. **Specialized rules for current task** - Task-specific patterns you're actively using
+   - Examples: 206-python-pytest.md (if writing tests), 115-snowflake-cortex-agents-core.md (if building Cortex agents)
+5. **Dependency rules** - Rules listed in "Depends" metadata of currently loaded rules
+
+**SUMMARIZE IN THIS ORDER (When Context Pressure Occurs):**
+
+1. **Task history** - Previous conversation turns that are no longer relevant
+2. **File contents** - Code/files you've already fully analyzed and finished modifying
+3. **Reference rules** - Large guides (>4000 tokens) used for lookup, not active application
+4. **Specialized rules** - Not currently relevant to the active task
+5. **Example sections** - Keep patterns/requirements, condense lengthy examples
+
+**NEVER:**
+
+- Summarize or compact AGENTS.md (breaks MODE/ACT protocol)
+- Summarize or compact 000-global-core.md (breaks foundation patterns)
+- Drop the active domain -core.md file while working in that domain
+- Lose awareness of which MODE you're in (PLAN vs ACT)
+- Forget the rule loading protocol
+
+### Context Management Decision Tree
+
+**When context limit is approaching:**
+
+1. **Are you in middle of a task?**
+   - If YES: Preserve AGENTS.md, 000-global-core.md, domain-core, specialized rules for task. Summarize completed file analysis and old conversation turns.
+   - If NO: Preserve AGENTS.md, 000-global-core.md. Summarize everything else, reload rules as needed for next task.
+
+2. **What if you must drop rules?**
+   - Drop in reverse priority order: specialized first, then reference, then secondary domain cores
+   - Keep at minimum: AGENTS.md + 000-global-core.md + primary domain-core
+
+### Recognition of -core.md Files
+
+All rules following the naming pattern `NNN-*-core.md` are domain foundation rules and
+should be preserved in context while working in that domain. Examples:
+
+- `100-snowflake-core.md` - Snowflake domain
+- `200-python-core.md` - Python domain
+- `300-bash-scripting-core.md` - Shell scripting domain
+- `420-javascript-core.md` - JavaScript domain
+- `430-typescript-core.md` - TypeScript domain
+- `600-golang-core.md` - Go domain
+
+See RULES_INDEX.md for the complete list of domain cores and their specializations.
+
+### Relationship to ContextTier Metadata
+
+The `ContextTier` metadata field (Critical/High/Medium/Low) provides a **secondary signal**
+for context priority but is NOT the primary mechanism. The natural language instructions
+in this protocol take precedence because they work universally across all LLM providers.
+
+**Usage:**
+- **ContextTier metadata:** Helps agents make fine-grained decisions within priority tiers
+- **Natural language protocol:** Provides explicit preservation hierarchy that any LLM can follow
+- **Together:** Belt-and-suspenders approach ensures consistent behavior
 
 ## References
 

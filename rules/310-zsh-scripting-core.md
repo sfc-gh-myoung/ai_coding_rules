@@ -1,5 +1,11 @@
 # Zsh Scripting Core Best Practices
 
+> **CORE RULE: PRESERVE WHEN POSSIBLE**
+> 
+> This rule defines essential Zsh patterns. Load for shell scripting tasks.
+> Specialized rules depend on this foundation.
+
+
 ## Metadata
 
 **SchemaVersion:** v3.1
@@ -757,6 +763,6 @@ EOF
 
 ## Related Rules
 
-- **`@310a-zsh-advanced-features.md`** - Advanced zsh features, completion, and modules
-- **`@310b-zsh-compatibility.md`** - Cross-shell compatibility and migration strategies
-- **`@300-bash-scripting-core.md`** - Bash scripting fundamentals for comparison
+- **`310a-zsh-advanced-features.md`** - Advanced zsh features, completion, and modules
+- **`310b-zsh-compatibility.md`** - Cross-shell compatibility and migration strategies
+- **`300-bash-scripting-core.md`** - Bash scripting fundamentals for comparison

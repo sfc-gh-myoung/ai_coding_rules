@@ -1,5 +1,11 @@
 # Streamlit Core: Setup, Navigation, and State Management
 
+> **CORE RULE: PRESERVE WHEN POSSIBLE**
+> 
+> This rule defines essential Streamlit patterns. Load for Streamlit tasks.
+> Specialized rules depend on this foundation.
+
+
 ## Metadata
 
 **SchemaVersion:** v3.1
@@ -767,12 +773,12 @@ Values that commonly return NULL and require pandas-aware handling:
 ### Quick Decision Guide
 
 **Question**: Does this value come from a pandas DataFrame?
-- Yes → Use `pd.notna()` or `pd.isna()`
-- No → Use `is not None` or `is None`
+- Yes: Use `pd.notna()` or `pd.isna()`
+- No: Use `is not None` or `is None`
 
 **Question**: Am I applying format specifiers (`.1f`, `.0f`)?
-- Yes → MUST validate not NULL/NaN first
-- No → Still validate for display purposes
+- Yes: MUST validate not NULL/NaN first
+- No: Still validate for display purposes
 
 ## Related Rules
 

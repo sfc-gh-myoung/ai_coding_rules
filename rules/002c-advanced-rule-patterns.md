@@ -1,11 +1,17 @@
 # Advanced Rule Patterns: System Prompt Altitude & Complex Workflows
 
+> **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
+> 
+> This rule defines essential governance patterns for the ai_coding_rules system.
+> Load when creating, reviewing, or maintaining rules.
+
+
 ## Metadata
 
 **SchemaVersion:** v3.1
 **RuleVersion:** v1.0.0
 **Keywords:** system prompt altitude, investigation-first, anti-patterns, multi-session workflows, parallel execution, advanced patterns, heuristics, goldilocks zone, context management, state management
-**TokenBudget:** ~2900
+**TokenBudget:** ~3550
 **ContextTier:** Medium
 **Depends:** rules/002-rule-governance.md, rules/000-global-core.md
 
@@ -294,7 +300,7 @@ Required tools and permissions
 
 ### Problem: Lost Context Between Sessions
 
-AI agents often work across multiple sessions (e.g., PR review → implementation → testing). Without explicit state management, context is lost.
+AI agents often work across multiple sessions (e.g., PR review, then implementation, then testing). Without explicit state management, context is lost.
 
 ### Solution: Explicit State Tracking
 
@@ -552,13 +558,88 @@ def refactor_with_investigation(file_path: str):
 - Run tests before and after changes
 ```
 
+## Multi-File Task Patterns
+
+### Atomic Changes (Single ACT Session)
+
+Use when files are tightly coupled and changes must be consistent:
+- Refactoring that renames functions/classes across files
+- Updating API contracts (client + server)
+- Schema migrations (DDL + application code)
+
+**Task List Format:**
+```
+1. Update function signature in `auth.py`
+2. Update all call sites in `middleware.py`
+3. Update route handlers in `routes.py`
+4. Run validation suite (all files)
+```
+
+**Rollback Strategy:**
+
+If validation fails, you MUST:
+- Revert ALL files to original state
+- Return to PLAN mode
+- Present revised task list with fixes
+
+**Rollback Mechanisms:**
+- **Git repo available (preferred):** Use `git checkout -- <file>` or `git stash`
+- **No git, few files:** Store original content in-memory before edit, restore via write tool
+- **No git, many files:** Read and store each file before editing; revert individually on failure
+
+**Selection:** Check git availability first (`git status`). If unavailable, use in-memory for simple tasks or incremental for multi-file changes.
+
+**Rollback Reporting:**
+```markdown
+WARNING: Validation failed. Reverting changes:
+- Reverted: `auth.py` (original restored)
+- Reverted: `middleware.py` (original restored)
+- Unchanged: `routes.py` (not yet modified)
+
+MODE: PLAN
+[Revised task list with fixes]
+```
+
+### Progressive Changes (Multiple ACT Sessions)
+
+Use when files are loosely coupled:
+- Adding independent features to different modules
+- Updating documentation across multiple files
+- Performance optimizations in separate components
+
+**Task List Format:**
+```
+Session 1: Update `auth.py`
+- [specific changes]
+- [validation]
+- [await "ACT"]
+
+Session 2: Update `middleware.py`
+- [specific changes]
+- [validation]
+- [await "ACT"]
+```
+
+## Importance Marker Inheritance
+
+When splitting rules (e.g., 100-snowflake-core.md into 100a, 100b, 100c):
+
+- Parent rule keeps original marker (CORE/FOUNDATION)
+- Child rules inherit same marker if they're core dependencies
+- Child rules use no marker if they're specialized topics
+
+Example:
+- `200-python-core.md` - CORE RULE (parent)
+- `200a-python-typing.md` - CORE RULE (core dependency)
+- `206-python-pytest.md` - no marker (specialized testing rule)
+
 ## References
 
 ### Related Rules
-- **Rule Governance**: `rules/002-rule-governance.md` - Schema requirements
-- **Creation Guide**: `rules/002a-rule-creation-guide.md` - Step-by-step workflow
-- **Optimization**: `rules/002b-rule-optimization.md` - Token budget and performance
-- **Global Core**: `rules/000-global-core.md` - Foundation patterns
+- **Rule Governance**: `002-rule-governance.md` - Schema requirements
+- **Creation Guide**: `002a-rule-creation-guide.md` - Step-by-step workflow
+- **Optimization**: `002b-rule-optimization.md` - Token budget and performance
+- **Global Core**: `000-global-core.md` - Foundation patterns
 
 ### External Resources
 - **Claude System Prompt Guide**: Anthropic documentation on prompt engineering

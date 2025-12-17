@@ -23,7 +23,7 @@ Debugging and troubleshooting deployment issues for notebooks, Streamlit apps, U
 **MANDATORY:**
 **Common Issues & Quick Fixes:**
 - **SiS TypeError** - Check AUTO_COMPRESS=FALSE and ROOT_LOCATION match
-- **Stale notebook code** - Run full deploy: drop → remove → upload → create
+- **Stale notebook code** - Run full deploy: drop, then remove, then upload, then create
 - **Stage file not found** - Verify with `LIST @stage` before CREATE
 - **Import errors** - Ensure .py files uncompressed (no .gz extension)
 - **Path mismatch** - ROOT_LOCATION must match PUT target paths
@@ -171,12 +171,12 @@ tasks:
 **Anti-Pattern 2: Manual uploads via Snowsight UI**
 ```
 User workflow:
-1. Navigate to Snowsight → Data → Databases → PROD_DB → Stages → NOTEBOOK_STAGE
+1. Navigate to Snowsight > Data > Databases > PROD_DB > Stages > NOTEBOOK_STAGE
 2. Click "Upload Files" button
 3. Select app.ipynb from local filesystem
 4. Click "Upload" and wait for confirmation
-5. Navigate to Projects → Notebooks
-6. Click "Create Notebook" → Select stage location
+5. Navigate to Projects > Notebooks
+6. Click "Create Notebook", then Select stage location
 7. Repeat steps 1-6 for every update
 ```
 **Problem:** Not reproducible (no script record of deployment), no version control (can't audit who deployed what when), no automation (manual clicking required for each deploy), error-prone (easy to forget files or upload to wrong stage), team friction (process differs per developer)
@@ -425,7 +425,7 @@ CREATE STREAMLIT APP
 > 1. **Execute diagnostic commands BEFORE making assumptions** - LIST @stage, DESCRIBE object, SHOW objects
 > 2. **Verify file compression status** - Look for .gz extensions (indicates compression problem)
 > 3. **Check ROOT_LOCATION alignment** - DESCRIBE output must match LIST paths exactly
-> 4. **Validate full workflow executed** - Confirm drop → remove → upload → create all ran
+> 4. **Validate full workflow executed** - Confirm drop, then remove, then upload, then create all ran
 > 5. **Test in isolation** - Run individual task operations to identify failing step
 >
 > **Anti-Pattern:**
@@ -458,7 +458,7 @@ task streamlit:create:app
 uvx snow sql -q "LIST @DB.SCHEMA.STAGE;" | grep "\.py$"  # Should show .py, not .py.gz
 
 # 5. Test in Snowsight
-# Navigate to Apps → Streamlit → APP_NAME
+# Navigate to Apps > Streamlit > APP_NAME
 # Expected: Application loads without TypeError
 ```
 
@@ -580,7 +580,7 @@ uvx snow sql -q "LIST @STAGE;" | grep -E "\.py$|\.yml$"
 # streamlit_stage/streamlit/app.py          ✗ Wrong path (ROOT_LOCATION mismatch)
 
 # Verify Streamlit app loads without errors
-# Navigate to Snowsight → Apps → Streamlit → APP_NAME
+# Navigate to Snowsight > Apps > Streamlit > APP_NAME
 # Expected: Application loads, pages render, no TypeError
 
 # Verify import system works

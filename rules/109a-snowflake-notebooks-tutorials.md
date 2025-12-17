@@ -34,9 +34,9 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - **Checkpoint validations between major sections** - Automated checks with actionable error messages
 - **Anti-pattern sections** - Show incorrect AND correct approaches with "why wrong" explanations
 - **Teaching point callouts** - Use [NOTE] prefix, explain business rationale before code, context first
-- **Progressive complexity** - Simple → Real-World → Advanced pattern
+- **Progressive complexity** - Simple, then Real-World, then Advanced pattern
 - **Time estimates** - Provide quick demo and full tutorial modes
-- **Never use vague objectives** - "Learn about ML" → specific: "Organize 16 features using Feature Store"
+- **Never use vague objectives** - Instead of "Learn about ML", use specific: "Organize 16 features using Feature Store"
 
 **Quick Checklist:**
 - [ ] Learning objectives at cell #2 (3-6 measurable outcomes)
@@ -75,7 +75,7 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 3. Add anti-pattern sections showing what NOT to do
 4. Insert checkpoint validations between major sections
 5. Include teaching point callouts explaining "why"
-6. Provide progressive complexity (simple → advanced)
+6. Provide progressive complexity (simple, then advanced)
 7. Add self-assessment opportunities
 </steps>
 
@@ -96,7 +96,7 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 </validation>
 
 <design_principles>
-- **Clear Learning Path:** Objectives → Structure → Checkpoints → Assessment
+- **Clear Learning Path:** Objectives, then Structure, then Checkpoints, then Assessment
 - **Show Don't Tell:** Anti-patterns teach as effectively as best practices
 - **Validate Progress:** Checkpoints prevent learners from proceeding with errors
 - **Progressive Disclosure:** Simple concepts first, complexity builds gradually
@@ -129,7 +129,6 @@ By the end of this notebook, you will understand:
 ```
 **Benefits:** Specific, measurable outcomes with clear deliverables that learners can validate.
 
----
 
 **Anti-Pattern 2: No Anti-Pattern Teaching**
 ```markdown
@@ -159,7 +158,7 @@ By the end of this notebook, you will understand:
 - [ ] Anti-pattern sections with incorrect and correct examples (3-5 per topic)
 - [ ] Checkpoint validation cells between major sections (3-7 checks each)
 - [ ] Teaching point callouts ([NOTE] prefix) explaining "why" before implementations
-- [ ] Progressive complexity (simple → real-world → advanced pattern)
+- [ ] Progressive complexity (simple, then real-world, then advanced pattern)
 - [ ] Self-paced friendly (can skip sections, prerequisites stated clearly)
 - [ ] Two-approach clarifications when demonstrating but not fully using features
 - [ ] Time estimates realistic and tested
@@ -430,7 +429,7 @@ else:
     print("\nALL CHECKS PASSED - Ready for [next section]!")
     print("=" * 80)
     print("\nNext Steps:")
-    print("  → [Description of what comes next]")
+    print("  - [Description of what comes next]")
 ```
 
 **Best Practices:**
@@ -481,7 +480,7 @@ else:
 **The Real-World Problem:**
 - In production datasets, failures are rare (often <5% of samples)
 - Standard ML algorithms optimize for overall accuracy
-- Result: Model predicts "healthy" for everything → 95% accuracy but 0% recall!
+- Result: Model predicts "healthy" for everything, achieving 95% accuracy but 0% recall!
 
 **Why This Fails in Practice:**
 - **Business Cost Asymmetry:** Missed failure = $100,000+ in emergency repairs
@@ -698,7 +697,6 @@ else:
     print("ALL CHECKS PASSED")
 ```
 
----
 
 ### [NOTE] Teaching Point: [Topic]
 

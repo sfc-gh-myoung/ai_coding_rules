@@ -147,7 +147,7 @@ task deploy DEST=~/my-project
 
 **What just happened?**
 
-- ✅ Copied `rules/` directory (106 rules) to your project
+- ✅ Copied `rules/` directory (107 rules) to your project
 - ✅ Copied `AGENTS.md` and `RULES_INDEX.md` for automatic AI discovery
 - ✅ Ready to use immediately—no additional configuration needed!
 
@@ -672,7 +672,7 @@ task status                            # Show project status summary
 
 ## Rule Categories
 
-The 106 rules are organized by domain using a three-digit numbering system. Each category focuses on a specific technology or practice area.
+The 107 rules are organized by domain using a three-digit numbering system. Each category focuses on a specific technology or practice area.
 
 | Domain | Range | # Rules | Focus Area | Key Topics |
 |--------|-------|---------|------------|------------|
@@ -752,7 +752,7 @@ The project uses a **production-ready rules architecture**. Rules are authored o
 - **Direct deployment** - no generation or transformation steps needed
 - **Validation tools** ensure rules follow schema before deployment
 
-Rules preserve essential metadata (Keywords, TokenBudget, ContextTier, Depends) while remaining readable Markdown. AI assistants use `AGENTS.md` to understand loading protocol and `RULES_INDEX.md` to discover relevant rules by keyword search.
+Rules preserve essential metadata (Keywords, TokenBudget, ContextTier, Depends) while remaining readable Markdown. ContextTier provides secondary priority signaling; see `000-global-core.md` for primary preservation mechanism (natural language markers). AI assistants use `AGENTS.md` to understand loading protocol and `RULES_INDEX.md` to discover relevant rules by keyword search.
 
 **See [Architecture Documentation](docs/ARCHITECTURE.md) for complete technical details and design decisions.**
 

@@ -236,7 +236,7 @@ uv run pytest tests/
 ## 1. Installation and Setup
 
 ### Dependencies and Environment
-- **Requirement:** Use `uv` for dependency management following `@200-python-core.md` patterns
+- **Requirement:** Use `uv` for dependency management following `200-python-core.md` patterns
 - **Requirement:** Install Pydantic with: `uv add pydantic` or `uv add "pydantic[email]"` for additional validators
 - **Rule:** Use specific feature sets: `pydantic[email,dotenv]` for email validation and settings
 - **Always:** Pin Pydantic to v2.x for modern features and performance
@@ -256,22 +256,14 @@ dependencies = [
 - **Rule:** Separate domain models from API schemas when using with FastAPI
 - **Always:** Use clear naming conventions for different model types
 
-```
-project/
-├── src/
-│   └── myapp/
-│       ├── models/              # Domain models
-│       │   ├── __init__.py
-│       │   ├── user.py
-│       │   └── product.py
-│       ├── schemas/             # API request/response schemas
-│       │   ├── __init__.py
-│       │   ├── user_schemas.py
-│       │   └── api_models.py
-│       └── config/
-│           ├── __init__.py
-│           └── settings.py      # Pydantic Settings
-```
+Directory structure for `project/`:
+- **src/myapp/** - Source package
+  - **models/** - Domain models
+    - `__init__.py`, `user.py`, `product.py`
+  - **schemas/** - API request/response schemas
+    - `__init__.py`, `user_schemas.py`, `api_models.py`
+  - **config/** - Configuration
+    - `__init__.py`, `settings.py` (Pydantic Settings)
 
 ## 2. Model Definition Best Practices
 
@@ -693,8 +685,8 @@ class TestUserModel:
 
 ## Related Rules
 
-- **`@200-python-core.md`** - Core Python patterns and uv usage
-- **`@201-python-lint-format.md`** - Ruff linting and formatting standards
-- **`@203-python-project-setup.md`** - Python project structure and packaging
-- **`@210-python-fastapi-core.md`** - FastAPI integration patterns
-- **`@800-project-changelog-rules.md`** - Changelog discipline for data model changes
+- **`200-python-core.md`** - Core Python patterns and uv usage
+- **`201-python-lint-format.md`** - Ruff linting and formatting standards
+- **`203-python-project-setup.md`** - Python project structure and packaging
+- **`210-python-fastapi-core.md`** - FastAPI integration patterns
+- **`800-project-changelog-rules.md`** - Changelog discipline for data model changes

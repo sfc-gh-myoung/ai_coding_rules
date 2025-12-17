@@ -1,43 +1,94 @@
 # AI Agent Bootstrap Protocol
 
+> **CRITICAL: DO NOT SUMMARIZE THIS FILE**
+> 
+> This file defines the mandatory rule loading protocol and MODE/ACT framework
+> that ALL agents must follow for EVERY response. 
+> 
+> **Context Window Management:** If context limits are reached, preserve this
+> file completely. Summarize task history, file contents, or other context first.
+> This bootstrap protocol must remain fully accessible at all times.
+
 ## Mandatory Rule Loading Protocol
+
+> **Note:** All rules referenced in this document are located in the `rules/` directory.
+> File paths shown use bare filenames (e.g., `000-global-core.md`) for readability.
+> When loading rules with tools, prefix with `rules/` (e.g., `read_file("rules/000-global-core.md")`).
 
 **FIRST ACTION EVERY RESPONSE:**
 
 > **Note:** Steps 1-3 are internal processing (before generating response).
 > Steps 4-5 define the response output format.
 
-1. **Load Foundation** - Read `rules/000-global-core.md` (always first, no exceptions)
-   - IF not accessible → STOP: "Cannot proceed - 000-global-core.md not accessible"
-   - IF empty → STOP: "Rule generation failed - 000-global-core.md is empty"
+1. **Load Foundation** - Read `000-global-core.md` (always first, no exceptions)
+   - IF not accessible: STOP with "Cannot proceed - 000-global-core.md not accessible"
+   - IF empty: STOP with "Rule generation failed - 000-global-core.md is empty"
 
 2. **Load Domain + Language Rules** - Match file extensions to domain rules
    - Scan user request for file extensions and technology keywords
-   - See RULES_INDEX.md "Rule Loading Strategy" → Section 2 for complete mapping
+   - See RULES_INDEX.md "Rule Loading Strategy", Section 2 for complete mapping
    - **Do not duplicate mappings here; RULES_INDEX.md is the canonical source**
    - **Load even for "simple" tasks** (linting, formatting, syntax fixes)
    - **Unknown extensions:** If no domain rule exists for a file type, load only 000-global-core.md and note in Rules Loaded: "No domain-specific rules available for [extension]"
 
-3. **Load Activity-Specific Rules** - Search `RULES_INDEX.md` Keywords column
-   - Method: `grep -i "KEYWORD" RULES_INDEX.md` (or scan Keywords column manually if shell unavailable)
-   - See RULES_INDEX.md → Section 3 for common keyword-to-rule mappings
+3. **Load Activity-Specific Rules** - Search `RULES_INDEX.md` Keywords field
+   - Method: `grep -i "KEYWORD" RULES_INDEX.md` (or scan Keywords field manually if shell unavailable)
+   - See RULES_INDEX.md, Section 3 for common keyword-to-rule mappings
+
+**Fallback: Browse by Domain Section**
+
+If keyword search yields no matches, browse RULES_INDEX.md Rule Catalog by domain:
+- **Core Foundation (000-series):** Workflow, governance, context, tool design
+- **Snowflake (100-series):** SQL, Streamlit, Cortex, pipelines, security
+- **Python (200-series):** Linting, testing, FastAPI, Typer, Pydantic
+- **Shell (300-series):** Bash, Zsh scripting
+- **Frontend (400-series):** JavaScript, TypeScript, React
+- **Go (600-series):** Go development
+- **Project (800-series):** Changelog, README, contributing, Taskfile
+- **Analytics (900-series):** Business analytics, demos
+
+**Lazy Loading Strategy (Token Optimization):**
+
+**PLAN Phase (Minimal Load):**
+- ALWAYS load: 000-global-core.md
+- Load domain core IF files being modified (200-python for .py, 100-snowflake for .sql, etc.)
+- DEFER specialized rules until task list is defined
+
+**ACT Phase (Task-Driven Load):**
+- Load specialized rules based on task list keywords:
+  - Task mentions "tests": load pytest/testing rule
+  - Task mentions "performance": load performance tuning rule
+  - Task mentions "security": load security patterns rule
+
+**Example:**
+```
+PLAN: Load 000 + 200-python-core (analyze task)
+Task List: "Refactor auth.py, update tests, check types"
+
+ACT: NOW load 206-python-pytest + 207-python-typing (execute with full context)
+```
+
+**When to Skip Lazy Loading:**
+- Complex tasks requiring upfront comprehensive analysis
+- User explicitly requests detailed review
+- Previous attempts failed (may need more rules)
 
 4. **Declare MODE** - First line of response: `MODE: [PLAN|ACT]`
    - Default: MODE: PLAN
    - ACT only after user types "ACT"
    - **For MODE transition rules and workflow behavior, see rules/000-global-core.md**
    - **Optional (clarifying questions):** When input is ambiguous, ask clarifying questions using
-     **A/B/C/D/E** choices (see `rules/000-global-core.md` → "Clarification Gate (Options-Based
+     **A/B/C/D/E** choices (see `000-global-core.md`, "Clarification Gate (Options-Based
      Questions)").
    - If you present a Task List in MODE: PLAN, end the response with:
      - `Authorization (required): Reply with \`ACT\` (or \`ACT on items 1-3\`).`
 
-**ACT Authorization Examples:**
-- "ACT" → Recognized (executes full task list)
-- "act" or "Act" → Recognized (case-insensitive)
-- "ACT on items 1-3" → Partial authorization (execute specified items only)
-- "ACT please" or "go ahead" → NOT recognized (requires exact "ACT")
-- See rules/000-global-core.md "ACT Recognition Rules" for complete specification
+**ACT Authorization:**
+- Recognized: "ACT", "act", "Act" (case-insensitive exact match)
+- Recognized: "ACT on items 1-3" (partial authorization)
+- NOT recognized: "proceed", "go ahead", "yes", "okay"
+
+See 000-global-core.md "ACT Recognition Rules" for full specification
 
 5. **Declare Loaded Rules** - Immediately after MODE as second section
    - Format: `## Rules Loaded` followed by bulleted list
@@ -58,44 +109,30 @@
 
 All three steps are mandatory. Reading without declaration is a protocol violation.
 
-**Apply Semantics:**
-- Rules are *applied* during task execution, not during loading
-- Loading makes rules *available*; execution *applies* them
-- Example: Loading 206-python-pytest.md doesn't run tests; it informs how to write/run tests when the task requires it
+**Apply Semantics:** Loading makes rules *available*; execution *applies* them. Loading pytest rules doesn't run tests; it informs how to write/run them.
 
 **Rule Loading Failures:**
 
-| Failure Type | Response | Can Proceed? |
-|--------------|----------|--------------|
-| 000-global-core.md missing | STOP with error message | No |
-| RULES_INDEX.md missing | WARN, load 000 + match by file extension | Yes (degraded) |
-| Domain rule missing | WARN, proceed with 000-global-core.md only | Yes (limited) |
-| Dependency missing | Skip dependent rule, log warning | Yes (skip rule) |
-| Rule file malformed | Log error, skip rule | Yes (skip rule) |
+- **000-global-core.md missing:** STOP with error message. Cannot proceed.
+- **RULES_INDEX.md missing:** WARN, load 000 + match by file extension. Can proceed (degraded).
+- **Domain rule missing:** WARN, proceed with 000-global-core.md only. Can proceed (limited).
+- **Dependency missing:** Skip dependent rule, log warning. Can proceed (skip rule).
+- **Rule file malformed:** Log error, skip rule. Can proceed (skip rule).
 
 ## Rule Discovery Reference
 
 ### Rule Organization
 
-Rules are organized by numeric domain prefixes:
-- **000-099:** Core/Foundational (always start here)
-- **100-199:** Snowflake ecosystem
-- **200-299:** Python ecosystem
-- **300-399:** Shell/Bash scripting
-- **400-499:** Docker/Containers/Frontend
-- **500-599:** Reserved (currently unused)
-- **600-699:** Golang
-- **700-799:** Reserved (currently unused)
-- **800-899:** Project Management
-- **900-999:** Demo/Examples/Data Science/Business Analytics
+**Prefix Scheme:** 000=Core | 100=Snowflake | 200=Python | 300=Shell | 400=Docker/Frontend | 600=Golang | 800=Project Mgmt | 900=Demo/Analytics  
+**Full mapping:** See RULES_INDEX.md
 
 ### Rule Discovery Methods
 
 **Primary Method: Search RULES_INDEX.md**
 
 Use RULES_INDEX.md as the authoritative source for rule discovery:
-1. **Search Keywords/Hints column** for terms matching your task
-2. **Check Depends On column** for prerequisites
+1. **Search Keywords field** for terms matching your task
+2. **Check Depends field** for prerequisites
 3. **Load in dependency order** (prerequisites first)
 
 **Split Rules Pattern**
@@ -112,11 +149,9 @@ When parsing rules, use these metadata fields:
 
 ### Progressive Loading Strategy
 
-Load rules incrementally to manage token budget:
-1. **Foundation:** 000-global-core.md (always first)
-2. **Domain:** Technology-specific core (e.g., 100-snowflake-core, 200-python-core)
-3. **Specialized:** Task-specific rules based on Keywords match
-4. **Monitor:** Track cumulative tokens, prioritize Critical/High tiers
+**Order:** Foundation (000), then Domain core (100/200/300), then Specialized (task-based)  
+**Monitor:** Track cumulative tokens, prioritize Critical/High tiers  
+**See also:** "Lazy Loading Strategy" section above for PLAN vs ACT phase loading
 
 ### Multi-Agent Environments
 
@@ -128,7 +163,7 @@ When multiple AI agents (e.g., Cursor + Cline) work on the same project:
 
 ## Glossary
 
-- **Foundation Rule:** `rules/000-global-core.md` (always loaded first)
+- **Foundation Rule:** `000-global-core.md` (always loaded first)
 - **Domain Rule:** Technology-specific core (e.g., 200-python-core, 100-snowflake-core)
 - **Activity Rule:** Task-specific patterns (e.g., 206-python-pytest for testing)
 - **Surgical Edit:** Minimal, targeted change preserving existing patterns (synonyms: "minimal changes", "delta-focused")

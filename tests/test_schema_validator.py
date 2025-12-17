@@ -1479,14 +1479,25 @@ class TestSchemaValidatorCLI:
     def test_main_directory_mode_prints_summary(
         self, compliant_rule_content, tmp_path, monkeypatch, capsys
     ):
-        """Test CLI validates directory and prints summary."""
-        rules_dir = tmp_path / "rules"
+        """Test CLI validates directory and prints summary.
+
+        Creates a proper project structure:
+        - temp_proj/rules/ - Contains rule files
+        - temp_proj/AGENTS.md - Bootstrap protocol (optional, but validated if present)
+        """
+        # Create project structure: temp_proj/rules/
+        temp_proj = tmp_path / "temp_proj"
+        temp_proj.mkdir()
+        rules_dir = temp_proj / "rules"
         rules_dir.mkdir()
 
         # Create 2 rule files
         for i in range(2):
             rule_file = rules_dir / f"rule-{i}.md"
             rule_file.write_text(compliant_rule_content)
+
+        # Note: AGENTS.md is optional - if not present, validation still passes
+        # If testing AGENTS.md validation, create it here without ASCII patterns
 
         test_args = ["schema_validator.py", str(rules_dir)]
         monkeypatch.setattr("sys.argv", test_args)
@@ -1499,6 +1510,95 @@ class TestSchemaValidatorCLI:
         assert exit_code == 0
         assert "OVERALL SUMMARY" in captured.out
         assert "Total files:" in captured.out
+
+    @pytest.mark.unit
+    def test_main_directory_mode_validates_agents_md(
+        self, compliant_rule_content, tmp_path, monkeypatch, capsys
+    ):
+        """Test CLI validates AGENTS.md when validating rules/ directory.
+
+        Creates a proper project structure:
+        - temp_proj/rules/ - Contains rule files
+        - temp_proj/AGENTS.md - Bootstrap protocol with ASCII patterns (should fail)
+        """
+        # Create project structure: temp_proj/rules/
+        temp_proj = tmp_path / "temp_proj"
+        temp_proj.mkdir()
+        rules_dir = temp_proj / "rules"
+        rules_dir.mkdir()
+
+        # Create compliant rule file
+        rule_file = rules_dir / "test-rule.md"
+        rule_file.write_text(compliant_rule_content)
+
+        # Create AGENTS.md with ASCII table pattern (should trigger HIGH error)
+        agents_content = """# AI Agent Bootstrap Protocol
+
+This file has an ASCII table that should fail validation.
+
+| Column 1 | Column 2 |
+|----------|----------|
+| Value 1  | Value 2  |
+"""
+        agents_file = temp_proj / "AGENTS.md"
+        agents_file.write_text(agents_content)
+
+        test_args = ["schema_validator.py", str(rules_dir)]
+        monkeypatch.setattr("sys.argv", test_args)
+
+        from scripts.schema_validator import main
+
+        exit_code = main()
+        captured = capsys.readouterr()
+
+        # Should fail due to ASCII table in AGENTS.md
+        assert exit_code == 1
+        assert "AGENTS.md" in captured.out
+
+    @pytest.mark.unit
+    def test_main_directory_mode_clean_agents_md(
+        self, compliant_rule_content, tmp_path, monkeypatch, capsys
+    ):
+        """Test CLI passes when AGENTS.md has no ASCII patterns.
+
+        Creates a proper project structure:
+        - temp_proj/rules/ - Contains rule files
+        - temp_proj/AGENTS.md - Clean bootstrap protocol (should pass)
+        """
+        # Create project structure: temp_proj/rules/
+        temp_proj = tmp_path / "temp_proj"
+        temp_proj.mkdir()
+        rules_dir = temp_proj / "rules"
+        rules_dir.mkdir()
+
+        # Create compliant rule file
+        rule_file = rules_dir / "test-rule.md"
+        rule_file.write_text(compliant_rule_content)
+
+        # Create clean AGENTS.md without ASCII patterns
+        agents_content = """# AI Agent Bootstrap Protocol
+
+This file has no ASCII patterns and should pass validation.
+
+**Rule Loading Failures:**
+
+- **000-global-core.md missing:** STOP with error message. Cannot proceed.
+- **RULES_INDEX.md missing:** WARN, load 000 + match by file extension.
+"""
+        agents_file = temp_proj / "AGENTS.md"
+        agents_file.write_text(agents_content)
+
+        test_args = ["schema_validator.py", str(rules_dir)]
+        monkeypatch.setattr("sys.argv", test_args)
+
+        from scripts.schema_validator import main
+
+        exit_code = main()
+        captured = capsys.readouterr()
+
+        # Should pass - no ASCII patterns
+        assert exit_code == 0
+        assert "OVERALL SUMMARY" in captured.out
 
     @pytest.mark.unit
     def test_main_strict_mode_treats_warnings_as_errors(self, tmp_path, monkeypatch):
@@ -3238,3 +3338,768 @@ test()
 
         schema_validator.validate_file(test_file)
         # Contract should be in valid position
+
+
+class TestAsciiPatternValidation:
+    """Tests for ASCII pattern detection in rule files."""
+
+    @pytest.fixture
+    def schema_validator(self):
+        """Create a SchemaValidator instance."""
+        from scripts.schema_validator import SchemaValidator
+
+        return SchemaValidator()
+
+    @pytest.fixture
+    def base_rule_content(self):
+        """Base compliant rule content without ASCII patterns."""
+        return """# Test Rule
+
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
+**Keywords:** test, validation, patterns, checking, verification
+**TokenBudget:** ~500
+**ContextTier:** Medium
+**Depends:** rules/000-global-core.md
+
+## Purpose
+
+Test rule for ASCII pattern validation.
+
+## Rule Scope
+
+Test scope description.
+
+## Quick Start TL;DR
+
+**MANDATORY:**
+**Essential Patterns:**
+- Pattern 1
+- Pattern 2
+- Pattern 3
+
+**Pre-Execution Checklist:**
+- [ ] Check 1
+- [ ] Check 2
+
+## Contract
+
+<contract>
+<inputs_prereqs>Test inputs</inputs_prereqs>
+<mandatory>Test mandatory</mandatory>
+<forbidden>Test forbidden</forbidden>
+<steps>1. Step one</steps>
+<output_format>Test output</output_format>
+<validation>Test validation</validation>
+</contract>
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Test**
+
+```python
+bad_code()
+```
+
+**Problem:** Description of issue
+
+**Correct Pattern:**
+
+```python
+good_code()
+```
+
+## Output Format Examples
+
+```python
+example()
+```
+
+## References
+
+### Related Rules
+- `000-global-core.md`
+"""
+
+    @pytest.mark.unit
+    def test_detects_arrow_character_outside_code_block(self, schema_validator, tmp_path):
+        """Test that arrow character (→) is detected outside code blocks."""
+        content = """# Test Rule
+
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
+**Keywords:** test, validation, patterns, checking, verification
+**TokenBudget:** ~500
+**ContextTier:** Medium
+**Depends:** rules/000-global-core.md
+
+## Purpose
+
+Step 1 → Step 2 → Step 3
+
+## Rule Scope
+
+Test scope.
+"""
+        test_file = tmp_path / "arrow-rule.md"
+        test_file.write_text(content)
+
+        result = schema_validator.validate_file(test_file)
+
+        # Should have HIGH errors for arrow characters
+        arrow_errors = [
+            e
+            for e in result.errors
+            if e.error_group == "Priority 1" and "Arrow character" in e.message
+        ]
+        assert len(arrow_errors) > 0
+        assert arrow_errors[0].severity == "HIGH"
+
+    @pytest.mark.unit
+    def test_detects_ascii_decision_tree(self, schema_validator, tmp_path):
+        """Test that ASCII decision tree characters are detected."""
+        content = """# Test Rule
+
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
+**Keywords:** test, validation, patterns, checking, verification
+**TokenBudget:** ~500
+**ContextTier:** Medium
+**Depends:** rules/000-global-core.md
+
+## Purpose
+
+Decision tree:
+├─ Option A
+│  └─ Sub-option
+└─ Option B
+
+## Rule Scope
+
+Test scope.
+"""
+        test_file = tmp_path / "tree-rule.md"
+        test_file.write_text(content)
+
+        result = schema_validator.validate_file(test_file)
+
+        # Should have HIGH errors for tree characters
+        tree_errors = [
+            e
+            for e in result.errors
+            if e.error_group == "Priority 1" and "decision tree" in e.message
+        ]
+        assert len(tree_errors) > 0
+        assert tree_errors[0].severity == "HIGH"
+
+    @pytest.mark.unit
+    def test_detects_ascii_table(self, schema_validator, tmp_path):
+        """Test that ASCII tables are detected."""
+        content = """# Test Rule
+
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
+**Keywords:** test, validation, patterns, checking, verification
+**TokenBudget:** ~500
+**ContextTier:** Medium
+**Depends:** rules/000-global-core.md
+
+## Purpose
+
+| Column 1 | Column 2 |
+|----------|----------|
+| Value 1  | Value 2  |
+
+## Rule Scope
+
+Test scope.
+"""
+        test_file = tmp_path / "table-rule.md"
+        test_file.write_text(content)
+
+        result = schema_validator.validate_file(test_file)
+
+        # Should have HIGH errors for table pattern
+        table_errors = [
+            e
+            for e in result.errors
+            if e.error_group == "Priority 1" and "table" in e.message.lower()
+        ]
+        assert len(table_errors) > 0
+        assert table_errors[0].severity == "HIGH"
+
+    @pytest.mark.unit
+    def test_allows_patterns_inside_code_blocks(self, schema_validator, tmp_path):
+        """Test that ASCII patterns inside code blocks are allowed."""
+        content = """# Test Rule
+
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
+**Keywords:** test, validation, patterns, checking, verification
+**TokenBudget:** ~500
+**ContextTier:** Medium
+**Depends:** rules/000-global-core.md
+
+## Purpose
+
+Example of what NOT to do:
+
+```markdown
+Step 1 → Step 2
+├─ Option A
+| Column |
+|--------|
+```
+
+## Rule Scope
+
+Test scope.
+
+## Quick Start TL;DR
+
+**MANDATORY:**
+**Essential Patterns:**
+- Pattern 1
+- Pattern 2
+- Pattern 3
+
+## Contract
+
+<contract>
+<inputs_prereqs>Test</inputs_prereqs>
+<mandatory>Test</mandatory>
+<forbidden>Test</forbidden>
+<steps>1. Test</steps>
+<output_format>Test</output_format>
+<validation>Test</validation>
+</contract>
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Test**
+
+```python
+pass
+```
+
+**Problem:** Issue
+
+**Correct Pattern:**
+
+```python
+pass
+```
+
+## Output Format Examples
+
+```python
+test()
+```
+
+## References
+
+### Related Rules
+- `000-global-core.md`
+"""
+        test_file = tmp_path / "code-block-rule.md"
+        test_file.write_text(content)
+
+        result = schema_validator.validate_file(test_file)
+
+        # Should NOT have errors for patterns inside code blocks
+        ascii_errors = [e for e in result.errors if e.error_group == "Priority 1"]
+        assert len(ascii_errors) == 0
+
+    @pytest.mark.unit
+    def test_allows_patterns_inside_inline_code(self, schema_validator, tmp_path):
+        """Test that ASCII patterns inside inline backticks are allowed."""
+        content = """# Test Rule
+
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
+**Keywords:** test, validation, patterns, checking, verification
+**TokenBudget:** ~500
+**ContextTier:** Medium
+**Depends:** rules/000-global-core.md
+
+## Purpose
+
+Avoid using `→` arrows and `├─` tree characters.
+
+## Rule Scope
+
+Test scope.
+
+## Quick Start TL;DR
+
+**MANDATORY:**
+**Essential Patterns:**
+- Pattern 1
+- Pattern 2
+- Pattern 3
+
+## Contract
+
+<contract>
+<inputs_prereqs>Test</inputs_prereqs>
+<mandatory>Test</mandatory>
+<forbidden>Test</forbidden>
+<steps>1. Test</steps>
+<output_format>Test</output_format>
+<validation>Test</validation>
+</contract>
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Test**
+
+```python
+pass
+```
+
+**Problem:** Issue
+
+**Correct Pattern:**
+
+```python
+pass
+```
+
+## Output Format Examples
+
+```python
+test()
+```
+
+## References
+
+### Related Rules
+- `000-global-core.md`
+"""
+        test_file = tmp_path / "inline-code-rule.md"
+        test_file.write_text(content)
+
+        result = schema_validator.validate_file(test_file)
+
+        # Should NOT have errors for patterns inside inline code
+        ascii_errors = [e for e in result.errors if e.error_group == "Priority 1"]
+        assert len(ascii_errors) == 0
+
+    @pytest.mark.unit
+    def test_error_includes_line_number(self, schema_validator, tmp_path):
+        """Test that ASCII pattern errors include line numbers."""
+        content = """# Test Rule
+
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
+**Keywords:** test, validation, patterns, checking, verification
+**TokenBudget:** ~500
+**ContextTier:** Medium
+**Depends:** rules/000-global-core.md
+
+## Purpose
+
+This line has an arrow → character.
+
+## Rule Scope
+
+Test scope.
+"""
+        test_file = tmp_path / "line-number-rule.md"
+        test_file.write_text(content)
+
+        result = schema_validator.validate_file(test_file)
+
+        arrow_errors = [
+            e for e in result.errors if e.error_group == "Priority 1" and "Arrow" in e.message
+        ]
+        assert len(arrow_errors) > 0
+        assert arrow_errors[0].line_num is not None
+        # Line 12 contains "This line has an arrow → character." (counting from 1)
+        # Line 1: # Test Rule
+        # Line 2: empty
+        # Lines 3-8: metadata fields
+        # Line 9: empty
+        # Line 10: ## Purpose
+        # Line 11: empty
+        # Line 12: This line has an arrow...
+        assert arrow_errors[0].line_num == 12
+
+    @pytest.mark.unit
+    def test_error_includes_line_preview(self, schema_validator, tmp_path):
+        """Test that ASCII pattern errors include line preview."""
+        content = """# Test Rule
+
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
+**Keywords:** test, validation, patterns, checking, verification
+**TokenBudget:** ~500
+**ContextTier:** Medium
+**Depends:** rules/000-global-core.md
+
+## Purpose
+
+Step A → Step B
+
+## Rule Scope
+
+Test scope.
+"""
+        test_file = tmp_path / "preview-rule.md"
+        test_file.write_text(content)
+
+        result = schema_validator.validate_file(test_file)
+
+        arrow_errors = [
+            e for e in result.errors if e.error_group == "Priority 1" and "Arrow" in e.message
+        ]
+        assert len(arrow_errors) > 0
+        assert arrow_errors[0].line_preview is not None
+        assert "Step A" in arrow_errors[0].line_preview
+
+
+class TestValidateAgentsMd:
+    """Tests for the validate_agents_md method."""
+
+    @pytest.fixture
+    def schema_validator(self):
+        """Create a SchemaValidator instance."""
+        from scripts.schema_validator import SchemaValidator
+
+        return SchemaValidator()
+
+    @pytest.mark.unit
+    def test_returns_empty_result_when_file_missing(self, schema_validator, tmp_path):
+        """Test that missing AGENTS.md returns empty result (not an error)."""
+        agents_path = tmp_path / "AGENTS.md"
+
+        result = schema_validator.validate_agents_md(agents_path)
+
+        assert result.is_valid
+        assert len(result.errors) == 0
+
+    @pytest.mark.unit
+    def test_detects_arrow_in_agents_md(self, schema_validator, tmp_path):
+        """Test that arrow characters in AGENTS.md are detected."""
+        content = """# AI Agent Bootstrap Protocol
+
+Step 1 → Step 2 → Step 3
+"""
+        agents_file = tmp_path / "AGENTS.md"
+        agents_file.write_text(content)
+
+        result = schema_validator.validate_agents_md(agents_file)
+
+        assert not result.is_valid
+        arrow_errors = [e for e in result.errors if "Arrow" in e.message]
+        assert len(arrow_errors) > 0
+
+    @pytest.mark.unit
+    def test_detects_table_in_agents_md(self, schema_validator, tmp_path):
+        """Test that ASCII tables in AGENTS.md are detected."""
+        content = """# AI Agent Bootstrap Protocol
+
+| Failure Type | Response |
+|--------------|----------|
+| Missing file | Stop     |
+"""
+        agents_file = tmp_path / "AGENTS.md"
+        agents_file.write_text(content)
+
+        result = schema_validator.validate_agents_md(agents_file)
+
+        assert not result.is_valid
+        table_errors = [e for e in result.errors if "table" in e.message.lower()]
+        assert len(table_errors) > 0
+
+    @pytest.mark.unit
+    def test_detects_tree_in_agents_md(self, schema_validator, tmp_path):
+        """Test that ASCII decision trees in AGENTS.md are detected."""
+        content = """# AI Agent Bootstrap Protocol
+
+├─ Option A
+└─ Option B
+"""
+        agents_file = tmp_path / "AGENTS.md"
+        agents_file.write_text(content)
+
+        result = schema_validator.validate_agents_md(agents_file)
+
+        assert not result.is_valid
+        tree_errors = [e for e in result.errors if "decision tree" in e.message]
+        assert len(tree_errors) > 0
+
+    @pytest.mark.unit
+    def test_passes_clean_agents_md(self, schema_validator, tmp_path):
+        """Test that clean AGENTS.md without ASCII patterns passes."""
+        content = """# AI Agent Bootstrap Protocol
+
+**Rule Loading Failures:**
+
+- **000-global-core.md missing:** STOP with error message. Cannot proceed.
+- **RULES_INDEX.md missing:** WARN, proceed with degraded mode.
+"""
+        agents_file = tmp_path / "AGENTS.md"
+        agents_file.write_text(content)
+
+        result = schema_validator.validate_agents_md(agents_file)
+
+        assert result.is_valid
+        assert len(result.errors) == 0
+
+    @pytest.mark.unit
+    def test_allows_patterns_in_code_blocks(self, schema_validator, tmp_path):
+        """Test that ASCII patterns in code blocks are allowed in AGENTS.md."""
+        content = """# AI Agent Bootstrap Protocol
+
+Example of what NOT to do:
+
+```markdown
+Step 1 → Step 2
+├─ Option
+| Table |
+```
+
+Use lists instead.
+"""
+        agents_file = tmp_path / "AGENTS.md"
+        agents_file.write_text(content)
+
+        result = schema_validator.validate_agents_md(agents_file)
+
+        assert result.is_valid
+        assert len(result.errors) == 0
+
+    @pytest.mark.unit
+    def test_file_path_in_result(self, schema_validator, tmp_path):
+        """Test that result includes the file path."""
+        agents_file = tmp_path / "AGENTS.md"
+        agents_file.write_text("# Test")
+
+        result = schema_validator.validate_agents_md(agents_file)
+
+        assert result.file_path == agents_file
+
+
+class TestLineNumberReporting:
+    """Tests for line number reporting in validation errors."""
+
+    @pytest.fixture
+    def schema_validator(self):
+        """Create a SchemaValidator instance."""
+        from scripts.schema_validator import SchemaValidator
+
+        return SchemaValidator()
+
+    @pytest.mark.unit
+    def test_metadata_field_missing_has_line_number(self, schema_validator, tmp_path):
+        """Test that missing metadata field error has line number."""
+        content = """# Test Rule
+
+**SchemaVersion:** v3.1
+**Keywords:** test, validation, patterns, checking, verification
+
+## Purpose
+
+Test.
+"""
+        test_file = tmp_path / "missing-field.md"
+        test_file.write_text(content)
+
+        result = schema_validator.validate_file(test_file)
+
+        # Find error for missing field
+        missing_errors = [
+            e
+            for e in result.errors
+            if e.error_group == "Metadata" and "missing" in e.message.lower()
+        ]
+        for error in missing_errors:
+            assert error.line_num is not None
+
+    @pytest.mark.unit
+    def test_section_order_error_has_line_number(self, schema_validator, tmp_path):
+        """Test that section order error has line number."""
+        content = """# Test Rule
+
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
+**Keywords:** test, validation, patterns, checking, verification
+**TokenBudget:** ~500
+**ContextTier:** Medium
+**Depends:** rules/000-global-core.md
+
+## References
+
+Test refs.
+
+## Purpose
+
+Test purpose.
+
+## Rule Scope
+
+Test scope.
+"""
+        test_file = tmp_path / "wrong-order.md"
+        test_file.write_text(content)
+
+        result = schema_validator.validate_file(test_file)
+
+        # Find section order error
+        order_errors = [
+            e
+            for e in result.errors
+            if e.error_group == "Structure" and "order" in e.message.lower()
+        ]
+        for error in order_errors:
+            assert error.line_num is not None
+
+
+class TestDirectoryValidationWithAgentsMd:
+    """Tests for directory validation including AGENTS.md."""
+
+    @pytest.fixture
+    def schema_validator(self):
+        """Create a SchemaValidator instance."""
+        from scripts.schema_validator import SchemaValidator
+
+        return SchemaValidator()
+
+    @pytest.fixture
+    def compliant_rule_content(self):
+        """Minimal compliant rule content."""
+        return """# Test Rule
+
+## Metadata
+
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
+**Keywords:** test, validation, patterns, checking, verification, schema, rules, compliance, quality, automation
+**TokenBudget:** ~500
+**ContextTier:** Medium
+**Depends:** rules/000-global-core.md
+
+## Purpose
+
+Test purpose.
+
+## Rule Scope
+
+Test scope.
+
+## Quick Start TL;DR
+
+**MANDATORY:**
+
+**Essential Patterns:**
+- **[Pattern 1]:** First essential pattern
+- **[Pattern 2]:** Second essential pattern
+- **[Pattern 3]:** Third essential pattern
+
+**Pre-Execution Checklist:**
+- [ ] Check 1
+- [ ] Check 2
+- [ ] Check 3
+- [ ] Check 4
+- [ ] Check 5
+
+## Contract
+
+<contract>
+<inputs_prereqs>Test</inputs_prereqs>
+<mandatory>Test</mandatory>
+<forbidden>Test</forbidden>
+<steps>1. Test</steps>
+<output_format>Test</output_format>
+<validation>Test</validation>
+</contract>
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Test**
+
+```python
+pass
+```
+
+**Problem:** Issue
+
+**Correct Pattern:**
+
+```python
+pass
+```
+
+## Post-Execution Checklist
+
+- [ ] Verify test completed
+
+## Validation
+
+Run validation commands.
+
+## Output Format Examples
+
+```python
+test()
+```
+
+## References
+
+### Related Rules
+- `000-global-core.md`
+"""
+
+    @pytest.mark.unit
+    def test_directory_validation_finds_agents_md_in_parent(
+        self, schema_validator, compliant_rule_content, tmp_path
+    ):
+        """Test that directory validation looks for AGENTS.md in parent."""
+        # Create project structure
+        project_dir = tmp_path / "project"
+        project_dir.mkdir()
+        rules_dir = project_dir / "rules"
+        rules_dir.mkdir()
+
+        # Create rule file
+        rule_file = rules_dir / "test-rule.md"
+        rule_file.write_text(compliant_rule_content)
+
+        # Create AGENTS.md with error in parent
+        agents_content = """# AGENTS
+
+Step 1 → Step 2
+"""
+        agents_file = project_dir / "AGENTS.md"
+        agents_file.write_text(agents_content)
+
+        # Validate directory
+        results = schema_validator.validate_directory(rules_dir)
+
+        # Rule should pass
+        rule_results = [r for r in results if "test-rule" in str(r.file_path)]
+        assert len(rule_results) == 1
+        assert rule_results[0].is_valid
+
+    @pytest.mark.unit
+    def test_directory_validation_without_agents_md(
+        self, schema_validator, compliant_rule_content, tmp_path
+    ):
+        """Test that directory validation works without AGENTS.md."""
+        # Create project structure without AGENTS.md
+        project_dir = tmp_path / "project"
+        project_dir.mkdir()
+        rules_dir = project_dir / "rules"
+        rules_dir.mkdir()
+
+        # Create rule file
+        rule_file = rules_dir / "test-rule.md"
+        rule_file.write_text(compliant_rule_content)
+
+        # Validate directory (no AGENTS.md)
+        results = schema_validator.validate_directory(rules_dir)
+
+        # Should only have rule results
+        assert len(results) == 1
+        assert results[0].is_valid

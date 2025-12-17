@@ -21,7 +21,7 @@ The AI Coding Rules v3.1 architecture represents a fundamental shift from templa
 
 ### Core Architecture Principles
 
-1. **Production-Ready by Default** — All 106 rule files in `rules/` are directly editable and deployment-ready
+1. **Production-Ready by Default** — All 107 rule files in `rules/` are directly editable and deployment-ready
 2. **No Generation Step** — Rules are maintained in their final form, eliminating build complexity
 3. **Universal Format** — Standard Markdown with embedded metadata works with any AI assistant or IDE
 4. **Schema-Validated** — Declarative YAML schema ensures consistency and quality
@@ -57,6 +57,27 @@ The AI Coding Rules v3.1 architecture represents a fundamental shift from templa
 - Reduced complexity (no generation engine)
 - Schema-driven validation (declarative)
 - Comprehensive test coverage (100+ tests)
+
+## Context Management System
+
+The repository uses a dual-layer approach for context preservation:
+
+**Primary Layer: Natural Language Instructions (Universal)**
+- CRITICAL warnings in AGENTS.md and 000-global-core.md
+- CORE RULE/FOUNDATION RULE markers in all -core.md and 002-series files
+- Context Management Protocol in 000-global-core.md teaching explicit preservation hierarchy
+- Works across all LLMs: Claude, GPT, Gemini, Llama, etc.
+
+**Secondary Layer: ContextTier Metadata (Project-Specific)**
+- Critical/High/Medium/Low values in rule metadata
+- Provides fine-grained prioritization within natural language tiers
+- Validated by schema but not universally recognized by LLMs
+- Kept for compatibility and secondary signaling
+
+**Design Principle:** Never rely solely on metadata that LLMs don't natively understand.
+Natural language instructions are the primary mechanism for ensuring consistent behavior.
+
+See `000-global-core.md` → "Context Window Management Protocol" for implementation details.
 
 ## Production-Ready Rules System
 
@@ -414,7 +435,7 @@ ai_coding_rules/
 - Production-ready files
 - Directly editable
 - No generation required
-- 106 rules covering all domains (including 8 HTMX rules, Go/Golang core, and Alpine.js)
+- 107 rules covering all domains (including 8 HTMX rules, Go/Golang core, and Alpine.js)
 
 **`scripts/`** — Automation and validation tools
 - `template_generator.py` creates new rules compliant with the schema
@@ -795,7 +816,7 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 **Target Structure (in user's project):**
 ```
 /path/to/user-project/
-├── rules/                  # 106 rule files
+├── rules/                  # 107 rule files
 │   ├── 000-global-core.md
 │   ├── 100-snowflake-core.md
 │   └── ...
@@ -861,8 +882,8 @@ Validation:
 
 Deployment:
   → Creating destination rules/ directory
-  → Copying 106 rule files...
-  ✓ Copied 106 rules to /path/to/project/rules/
+  → Copying 107 rule files...
+  ✓ Copied 107 rules to /path/to/project/rules/
   ✓ Copied AGENTS.md to /path/to/project/
   ✓ Copied RULES_INDEX.md to /path/to/project/
 

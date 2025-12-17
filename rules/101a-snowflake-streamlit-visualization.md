@@ -661,13 +661,10 @@ else:
 ```
 
 **Aggregation Level Guidelines:**
-
-| Original Interval | Recommended Aggregation | Data Reduction | Use Case |
-|---|---|---|---|
-| 15-minute SCADA | 1 hour (1H) | 4x reduction | Executive dashboards, trend analysis |
-| 15-minute SCADA | 2 hours (2H) | 8x reduction | High-level overviews, long time periods |
-| 1-minute PMU | 15 minutes (15min) | 15x reduction | Grid stability monitoring |
-| Hourly transformer | None (1H) | No reduction | Already appropriate granularity |
+- **15-minute SCADA to 1 hour (1H):** 4x reduction - Executive dashboards, trend analysis
+- **15-minute SCADA to 2 hours (2H):** 8x reduction - High-level overviews, long time periods
+- **1-minute PMU to 15 minutes (15min):** 15x reduction - Grid stability monitoring
+- **Hourly transformer to None (1H):** No reduction - Already appropriate granularity
 
 **Method Selection:**
 - **mean:** Smoothest results, best for general trends
@@ -676,6 +673,6 @@ else:
 - **min:** Preserves valley values (voltage sags)
 
 **Performance Impact:**
-- 15-min SCADA (96 points/day) → 1H aggregation (24 points/day) = 75% reduction
+- 15-min SCADA (96 points/day) aggregated to 1H (24 points/day) = 75% reduction
 - Faster chart rendering, better UX, preserved patterns
 - Always display both original and smoothed counts to user

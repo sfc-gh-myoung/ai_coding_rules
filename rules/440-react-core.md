@@ -1,5 +1,11 @@
 # React Core: Modern Architecture & Best Practices
 
+> **CORE RULE: PRESERVE WHEN POSSIBLE**
+> 
+> This rule defines essential React patterns. Load for React tasks.
+> Specialized rules depend on this foundation.
+
+
 ## Metadata
 
 **SchemaVersion:** v3.1
@@ -223,7 +229,6 @@ const { data } = useQuery({ queryKey: ['user'], queryFn: fetchUser });
 ```
 **Benefits:** Automatic caching, deduplication, background refetching, loading/error states handled.
 
----
 
 **Anti-Pattern 2: Prop Drilling**
 ```typescript

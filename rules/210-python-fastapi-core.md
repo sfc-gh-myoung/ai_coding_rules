@@ -1,5 +1,11 @@
 # FastAPI Best Practices
 
+> **CORE RULE: PRESERVE WHEN POSSIBLE**
+> 
+> This rule defines essential FastAPI patterns. Load for FastAPI tasks.
+> Specialized rules depend on this foundation.
+
+
 ## Metadata
 
 **SchemaVersion:** v3.1
@@ -295,32 +301,29 @@ uvx ruff check . && uvx ruff format .
 - **Always:** Organize code into logical modules: `routers/`, `models/`, `services/`, `database/`.
 - **Always:** Follow the project structure from `23-python-project-setup.md` with proper `__init__.py` files.
 
-```python
-# Recommended structure
-app/
-├── __init__.py
-├── main.py              # Application factory and startup
-├── config.py            # Configuration management
-├── dependencies.py      # Dependency injection
-├── exceptions.py        # Custom exception handlers
-├── routers/
-│   ├── __init__.py
-│   ├── auth.py         # Authentication endpoints
-│   ├── users.py        # User management
-│   └── api_v1.py       # API version routing
-├── models/
-│   ├── __init__.py
-│   ├── user.py         # Pydantic models
-│   └── responses.py    # Response schemas
-├── services/
-│   ├── __init__.py
-│   ├── auth_service.py # Business logic
-│   └── user_service.py
-└── database/
-    ├── __init__.py
-    ├── connection.py   # Database setup
-    └── models.py       # SQLAlchemy/ORM models
-```
+Recommended directory structure for `app/`:
+- `__init__.py`
+- `main.py` - Application factory and startup
+- `config.py` - Configuration management
+- `dependencies.py` - Dependency injection
+- `exceptions.py` - Custom exception handlers
+- **routers/** - API route definitions
+  - `__init__.py`
+  - `auth.py` - Authentication endpoints
+  - `users.py` - User management
+  - `api_v1.py` - API version routing
+- **models/** - Data models
+  - `__init__.py`
+  - `user.py` - Pydantic models
+  - `responses.py` - Response schemas
+- **services/** - Business logic
+  - `__init__.py`
+  - `auth_service.py`
+  - `user_service.py`
+- **database/** - Database layer
+  - `__init__.py`
+  - `connection.py` - Database setup
+  - `models.py` - SQLAlchemy/ORM models
 
 ### Application Factory Pattern
 - **Requirement:** Create FastAPI app instance through a factory function.

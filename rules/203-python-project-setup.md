@@ -221,42 +221,28 @@ uv run pytest tests/
 - **Always:** Create the main package directory structure before running `uv pip install -e .`.
 
 ### Example FastAPI Structure
-```
-fastapi-project/
-├── pyproject.toml
-├── app/
-│   ├── __init__.py          # Required for package recognition
-│   ├── main.py
-│   ├── routers/
-│   │   └── __init__.py      # Required for subpackages
-│   ├── models/
-│   │   └── __init__.py
-│   └── services/
-│       └── __init__.py
-└── tests/
-    └── __init__.py
-```
+
+Directory structure for `fastapi-project/`:
+- `pyproject.toml`
+- **app/** - Application package
+  - `__init__.py` - Required for package recognition
+  - `main.py`
+  - **routers/** - `__init__.py` (Required for subpackages)
+  - **models/** - `__init__.py`
+  - **services/** - `__init__.py`
+- **tests/** - `__init__.py`
 
 ### Example Command-Line App Structure
-```
-cli-project/
-├── pyproject.toml
-├── src/
-│   └── myapp/
-│       ├── __init__.py      # Required for package recognition
-│       ├── main.py          # Entry point with click/argparse
-│       ├── cli/
-│       │   ├── __init__.py
-│       │   └── commands.py  # CLI command definitions
-│       ├── core/
-│       │   ├── __init__.py
-│       │   └── logic.py     # Business logic
-│       └── utils/
-│           ├── __init__.py
-│           └── helpers.py   # Utility functions
-└── tests/
-    └── __init__.py
-```
+
+Directory structure for `cli-project/`:
+- `pyproject.toml`
+- **src/myapp/** - Source package
+  - `__init__.py` - Required for package recognition
+  - `main.py` - Entry point with click/argparse
+  - **cli/** - `__init__.py`, `commands.py` (CLI command definitions)
+  - **core/** - `__init__.py`, `logic.py` (Business logic)
+  - **utils/** - `__init__.py`, `helpers.py` (Utility functions)
+- **tests/** - `__init__.py`
 
 ## 2. pyproject.toml Configuration
 

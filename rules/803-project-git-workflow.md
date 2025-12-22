@@ -7,7 +7,7 @@
 **Keywords:** git, workflow, branching strategy, GitHub, pull requests, feature branches, protected branches, git validation, branch naming, PR workflow, Conventional Commits
 **TokenBudget:** ~5200
 **ContextTier:** Medium
-**Depends:** rules/800-project-changelog.md, rules/802-project-contributing.md
+**Depends:** 800-project-changelog.md, 802-project-contributing.md
 
 ## Purpose
 Establish comprehensive git workflow best practices for managing project updates on GitHub, ensuring consistent branching strategies, proper workflows, and robust validation before integration.
@@ -110,7 +110,6 @@ gh pr create --title "fix(core): resolve critical validation bug"
 ```
 **Benefits:** Maintains code quality, enables peer review, preserves audit trail, catches issues before production.
 
-
 **Anti-Pattern 2: Vague Branch Names**
 ```bash
 git checkout -b fix-bug # Too vague
@@ -128,7 +127,6 @@ git checkout -b docs/update-contributing-guidelines
 git checkout -b refactor/split-large-streamlit-rule
 ```
 **Benefits:** Clear purpose at a glance; easy to find related work; meaningful git history; self-documenting workflow.
-
 
 **Anti-Pattern 3: Skipping CHANGELOG.md Updates**
 ```bash
@@ -163,7 +161,6 @@ gh pr create
 ```
 **Benefits:** Complete documentation; users know what changed; audit trail maintained; governance compliance.
 
-
 **Anti-Pattern 4: Creating PR with Uncommitted Changes**
 ```bash
 # ... make changes to multiple files ...
@@ -194,7 +191,6 @@ gh pr create
 ```
 **Benefits:** PR reflects exact state; reviewers see complete work; no risk of data loss; clean git history.
 
-
 **Anti-Pattern 5: Force Pushing to Main**
 ```bash
 git checkout main
@@ -219,7 +215,6 @@ gh pr create --title "fix: revert problematic change"
 # Merge after review
 ```
 **Benefits:** Preserves history; allows rollback; follows review process; maintains team workflow.
-
 
 **Anti-Pattern 6: Ignoring Pre-Commit Hook Failures**
 ```bash
@@ -455,9 +450,9 @@ Preview:
 
 ### Related Rules
 - **Human Developer Guidelines**: `CONTRIBUTING.md` (lines 400-449)
-- **Changelog Management**: `rules/800-project-changelog.md`
-- **Contributing Workflow**: `rules/802-project-contributing.md`
-- **Global Core (Pre-Task-Completion Validation Gate)**: `rules/000-global-core.md`
+- **Changelog Management**: `800-project-changelog.md`
+- **Contributing Workflow**: `802-project-contributing.md`
+- **Global Core (Pre-Task-Completion Validation Gate)**: `000-global-core.md`
 - **Agents Workflow**: `AGENTS.md`
 
 ## 1. Branch Naming Conventions

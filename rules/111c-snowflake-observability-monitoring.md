@@ -7,7 +7,7 @@
 **Keywords:** Copy History, Task History, Dynamic Tables, cost management, AI observability, Cortex AI, token tracking, troubleshooting, performance analysis, monitor queries, monitoring dashboard, observability UI, query monitoring, telemetry volume, SQL
 **TokenBudget:** ~4300
 **ContextTier:** High
-**Depends:** rules/100-snowflake-core.md, rules/111-snowflake-observability-core.md
+**Depends:** 100-snowflake-core.md, 111-snowflake-observability-core.md
 
 ## Purpose
 Provide comprehensive monitoring, analysis, and cost management strategies for Snowflake observability, covering Snowsight monitoring interfaces, AI observability patterns, and troubleshooting workflows.
@@ -126,7 +126,6 @@ WHERE start_time > DATEADD('day', -7, CURRENT_TIMESTAMP())
 ```
 **Benefits:** Fast queries; low costs; minimal data transfer; focused results; query performance; production-scalable monitoring; efficient dashboards
 
-
 **Anti-Pattern 2: Monitoring Queries Without Timestamp Filters**
 ```sql
 -- Bad: No time filter on large historical table
@@ -150,7 +149,6 @@ ORDER BY total_credits DESC;
 -- Scans only last 30 days, fast and cost-effective
 ```
 **Benefits:** Fast queries; bounded costs; relevant recent data; quick dashboard refresh; production-ready monitoring; user-friendly performance
-
 
 **Anti-Pattern 3: Using ACCOUNT_USAGE for Real-Time Alerting**
 ```sql
@@ -181,7 +179,6 @@ WHERE start_time BETWEEN DATEADD('day', -7, CURRENT_DATE())
 GROUP BY hour;
 ```
 **Benefits:** Real-time alerting (<1 min); timely incident detection; accurate monitoring; proper data source selection; SLA compliance; operational excellence
-
 
 **Anti-Pattern 4: Not Monitoring Telemetry Volume and Costs**
 ```python
@@ -339,12 +336,12 @@ ORDER BY estimated_gb DESC;
 - [Snowflake AI Observability (Cortex)](https://docs.snowflake.com/en/user-guide/snowflake-cortex/ai-observability) - Evaluate and trace generative AI applications with evaluations, comparisons, and tracing features
 
 ### Related Rules
-- **Observability Core**: `rules/111-snowflake-observability-core.md` - Telemetry configuration and event tables
-- **Observability Logging**: `rules/111a-snowflake-observability-logging.md` - Logging best practices
-- **Observability Tracing**: `rules/111b-snowflake-observability-tracing.md` - Distributed tracing patterns
-- **Cost Governance**: `rules/105-snowflake-cost-governance.md` - Cost optimization strategies for telemetry data
-- **Cortex AISQL**: `rules/114-snowflake-cortex-aisql.md` - AI function cost governance and observability patterns
-- **Dynamic Tables**: `rules/122-snowflake-dynamic-tables.md` - Dynamic Table monitoring and optimization
+- **Observability Core**: `111-snowflake-observability-core.md` - Telemetry configuration and event tables
+- **Observability Logging**: `111a-snowflake-observability-logging.md` - Logging best practices
+- **Observability Tracing**: `111b-snowflake-observability-tracing.md` - Distributed tracing patterns
+- **Cost Governance**: `105-snowflake-cost-governance.md` - Cost optimization strategies for telemetry data
+- **Cortex AISQL**: `114-snowflake-cortex-aisql.md` - AI function cost governance and observability patterns
+- **Dynamic Tables**: `122-snowflake-dynamic-tables.md` - Dynamic Table monitoring and optimization
 
 ## 1. Cost and Volume Management
 

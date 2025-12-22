@@ -7,7 +7,7 @@
 **Keywords:** roles, grants, secure views, security policies, access control, data security, policy troubleshooting, grant management, Data Metric Functions, DMF, least privilege, create masking policy, tagging, SQL
 **TokenBudget:** ~2550
 **ContextTier:** High
-**Depends:** rules/100-snowflake-core.md
+**Depends:** 100-snowflake-core.md
 
 ## Purpose
 Establish comprehensive data security and access control practices using Snowflake's governance features, including RBAC, data masking, row-level security, and object tagging for enterprise-grade data protection.
@@ -111,7 +111,6 @@ GRANT SELECT ON TABLE customers TO ROLE analyst_role;
 ```
 **Benefits:** Least privilege enforcement; PII protected; role-based unmasking; compliance-ready; audit trail via POLICY_REFERENCES
 
-
 **Anti-Pattern 2: Not Using Role Hierarchies for Permission Management**
 ```sql
 -- Bad: Granting same permissions to many roles individually
@@ -141,7 +140,6 @@ GRANT ROLE analyst_base TO ROLE analyst3;
 REVOKE SELECT ON SCHEMA prod_db.sensitive FROM ROLE analyst_base;
 ```
 **Benefits:** Centralized permission management; consistent access patterns; easy bulk updates; role inheritance reduces grants; simplified audit; efficient onboarding/offboarding
-
 
 **Anti-Pattern 3: Missing Row Access Policies for Multi-Tenant Data**
 ```sql
@@ -174,7 +172,6 @@ ALTER TABLE customer_orders
 GRANT SELECT ON TABLE customer_orders TO ROLE analyst_role;
 ```
 **Benefits:** Automatic tenant isolation; no manual filtering; centralized security logic; compliance-ready; prevents accidental data leakage; auditable policy
-
 
 **Anti-Pattern 4: Not Applying Object Tags for Data Classification**
 ```sql
@@ -262,12 +259,12 @@ SHOW VIEWS LIKE '%view_name%';
 - [Working with data quality](https://docs.snowflake.com/en/user-guide/data-quality-working) - Associate, schedule, monitor, and manage DMFs
 
 ### Related Rules
-- **Snowflake Core**: `rules/100-snowflake-core.md`
-- **Cost Governance**: `rules/105-snowflake-cost-governance.md`
-- **Warehouse Management**: `rules/119-snowflake-warehouse-management.md`
-- **Object Tagging**: `rules/123-snowflake-object-tagging.md`
-- **Data Quality Monitoring**: `rules/124-snowflake-data-quality-core.md`
-- **Data Governance**: `rules/930-data-governance-quality.md`
+- **Snowflake Core**: `100-snowflake-core.md`
+- **Cost Governance**: `105-snowflake-cost-governance.md`
+- **Warehouse Management**: `119-snowflake-warehouse-management.md`
+- **Object Tagging**: `123-snowflake-object-tagging.md`
+- **Data Quality Monitoring**: `124-snowflake-data-quality-core.md`
+- **Data Governance**: `930-data-governance-quality.md`
 
 ## 1. Access Control
 - **Requirement:** Implement Role-Based Access Control (RBAC) following least privilege.

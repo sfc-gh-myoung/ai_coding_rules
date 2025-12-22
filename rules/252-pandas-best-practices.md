@@ -7,7 +7,7 @@
 **Keywords:** pandas, DataFrame, vectorization, SettingWithCopyWarning, memory optimization, dtypes, groupby, merge, performance, method chaining
 **TokenBudget:** ~3600
 **ContextTier:** High
-**Depends:** rules/200-python-core.md
+**Depends:** 200-python-core.md
 
 ## Purpose
 Establish comprehensive Pandas best practices focusing on vectorization, performance optimization, memory efficiency, and anti-pattern avoidance to prevent common issues like 100x+ performance slowdowns, SettingWithCopyWarning errors, and memory exhaustion in data-intensive workflows.
@@ -240,11 +240,11 @@ st.plotly_chart(fig, use_container_width=True)
 - [Pandas Optimization Tips](https://pandas.pydata.org/docs/user_guide/cookbook.html#optimization) - Official optimization cookbook
 
 ### Related Rules
-- **Python Core**: `rules/200-python-core.md` - Modern Python tooling
-- **DateTime Handling**: `rules/251-python-datetime-handling.md` - Comprehensive datetime guidance for Pandas
-- **Streamlit Visualization**: `rules/101a-snowflake-streamlit-visualization.md` - Plotly chart patterns
-- **Streamlit Performance**: `rules/101b-snowflake-streamlit-performance.md` - Caching strategies
-- **Data Science Analytics**: `rules/920-data-science-analytics.md` - ML workflows and analytics patterns
+- **Python Core**: `200-python-core.md` - Modern Python tooling
+- **DateTime Handling**: `251-python-datetime-handling.md` - Comprehensive datetime guidance for Pandas
+- **Streamlit Visualization**: `101a-snowflake-streamlit-visualization.md` - Plotly chart patterns
+- **Streamlit Performance**: `101b-snowflake-streamlit-performance.md` - Caching strategies
+- **Data Science Analytics**: `920-data-science-analytics.md` - ML workflows and analytics patterns
 
 > **[AI] Claude 4 Specific Guidance**
 > **Claude 4 Pandas Optimizations:**

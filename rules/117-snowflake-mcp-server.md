@@ -7,7 +7,7 @@
 **Keywords:** MCP, Model Context Protocol, Snowflake-managed MCP server, CREATE MCP SERVER, SYSTEM_EXECUTE_SQL, CORTEX_ANALYST_MESSAGE, CORTEX_SEARCH_SERVICE_QUERY, CORTEX_AGENT_RUN, tools/list, tools/call, initialize, OAuth, SECURITY INTEGRATION, RBAC, PAT
 **TokenBudget:** ~1650
 **ContextTier:** High
-**Depends:** rules/100-snowflake-core.md, rules/107-snowflake-security-governance.md, rules/112-snowflake-snowcli.md
+**Depends:** 100-snowflake-core.md, 107-snowflake-security-governance.md, 112-snowflake-snowcli.md
 
 ## Purpose
 
@@ -210,9 +210,9 @@ CREATE OR REPLACE MCP SERVER MY_MCP
 ## References
 
 ### Related Rules
-- `rules/100-snowflake-core.md` - Snowflake fundamentals (DDL, RBAC basics)
-- `rules/107-snowflake-security-governance.md` - Security governance and least privilege
-- `rules/112-snowflake-snowcli.md` - SnowCLI usage patterns
+- `100-snowflake-core.md` - Snowflake fundamentals (DDL, RBAC basics)
+- `107-snowflake-security-governance.md` - Security governance and least privilege
+- `112-snowflake-snowcli.md` - SnowCLI usage patterns
 
 ### External Documentation
 - [Snowflake-managed MCP server](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents-mcp) - Overview, client flow, security guidance

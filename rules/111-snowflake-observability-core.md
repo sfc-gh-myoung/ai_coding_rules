@@ -1,10 +1,9 @@
 # Snowflake Observability Core
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
-> 
+>
 > This rule defines essential Observability patterns. Load for observability tasks.
 > Specialized rules depend on this foundation.
-
 
 ## Metadata
 
@@ -13,7 +12,7 @@
 **Keywords:** LOG_LEVEL, TRACE_LEVEL, METRIC_LEVEL, SHOW PARAMETERS, OpenTelemetry, System Views vs Telemetry, monitoring, logging, tracing, debug observability, event table queries, observability patterns, configure telemetry
 **TokenBudget:** ~4200
 **ContextTier:** High
-**Depends:** rules/100-snowflake-core.md
+**Depends:** 100-snowflake-core.md
 
 ## Purpose
 Establish foundational observability practices for Snowflake environments through telemetry configuration and event table management, enabling effective monitoring, troubleshooting, and performance optimization.
@@ -137,7 +136,6 @@ ALTER DATABASE dev_db SET LOG_LEVEL = DEBUG;
 ```
 **Benefits:** Cost-effective logging; manageable event table size; signal-to-noise balance; production performance maintained; actionable logs only
 
-
 **Anti-Pattern 2: Not Setting Retention Policy on Event Tables**
 ```sql
 -- Bad: Create event table without retention policy
@@ -159,7 +157,6 @@ ALTER EVENT TABLE my_logs
 -- Typical retention: 7-90 days depending on compliance needs
 ```
 **Benefits:** Bounded storage costs; automatic cleanup; predictable costs; optimal query performance; compliance-aligned retention; no manual maintenance
-
 
 **Anti-Pattern 3: Querying System Views for Real-Time Monitoring**
 ```sql
@@ -189,7 +186,6 @@ WHERE start_time BETWEEN DATEADD('day', -7, CURRENT_DATE())
                      AND CURRENT_DATE();
 ```
 **Benefits:** Real-time monitoring (<1 min); accurate dashboards; timely incident detection; proper data source selection; cost-effective historical analysis
-
 
 **Anti-Pattern 4: Not Verifying Event Table Active Before Emitting Telemetry**
 ```python
@@ -296,11 +292,11 @@ GROUP BY record_type;
 - [Snowflake Builders Observability](https://docs.snowflake.com/en/developer-guide/builders/observability) - Best practices for building observable applications
 
 ### Related Rules
-- **Snowflake Core**: `rules/100-snowflake-core.md` - Foundation Snowflake practices
-- **Observability Logging**: `rules/111a-snowflake-observability-logging.md` - Logging best practices and patterns
-- **Observability Tracing**: `rules/111b-snowflake-observability-tracing.md` - Distributed tracing and metrics collection
-- **Observability Monitoring**: `rules/111c-snowflake-observability-monitoring.md` - Monitoring, analysis, Snowsight interfaces, AI observability
-- **Cost Governance**: `rules/105-snowflake-cost-governance.md` - Cost optimization strategies applicable to telemetry data
+- **Snowflake Core**: `100-snowflake-core.md` - Foundation Snowflake practices
+- **Observability Logging**: `111a-snowflake-observability-logging.md` - Logging best practices and patterns
+- **Observability Tracing**: `111b-snowflake-observability-tracing.md` - Distributed tracing and metrics collection
+- **Observability Monitoring**: `111c-snowflake-observability-monitoring.md` - Monitoring, analysis, Snowsight interfaces, AI observability
+- **Cost Governance**: `105-snowflake-cost-governance.md` - Cost optimization strategies applicable to telemetry data
 
 ## 0. Foundational Concepts
 

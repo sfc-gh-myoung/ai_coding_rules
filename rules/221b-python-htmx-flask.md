@@ -7,7 +7,7 @@
 **Keywords:** flask, flask-htmx, blueprints, flask-login, session management, flask routes, flask templates, flask csrf, flask extensions, request context
 **TokenBudget:** ~1950
 **ContextTier:** Medium
-**Depends:** rules/221-python-htmx-core.md, rules/221a-python-htmx-templates.md
+**Depends:** 221-python-htmx-core.md, 221a-python-htmx-templates.md
 
 ## Purpose
 
@@ -495,8 +495,8 @@ def create_app():
 - [Flask-Login](https://flask-login.readthedocs.io/) - User authentication
 
 ### Related Rules
-- **HTMX Foundation**: `rules/221-python-htmx-core.md` - HTMX core patterns
-- **Template Strategies**: `rules/221a-python-htmx-templates.md` - Jinja2 patterns
-- **Testing Patterns**: `rules/221d-python-htmx-testing.md` - Testing Flask+HTMX
-- **Common Patterns**: `rules/221e-python-htmx-patterns.md` - CRUD, forms, etc.
-- **Python Core**: `rules/200-python-core.md` - Python standards
+- **HTMX Foundation**: `221-python-htmx-core.md` - HTMX core patterns
+- **Template Strategies**: `221a-python-htmx-templates.md` - Jinja2 patterns
+- **Testing Patterns**: `221d-python-htmx-testing.md` - Testing Flask+HTMX
+- **Common Patterns**: `221e-python-htmx-patterns.md` - CRUD, forms, etc.
+- **Python Core**: `200-python-core.md` - Python standards

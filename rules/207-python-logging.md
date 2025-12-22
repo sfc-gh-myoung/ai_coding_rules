@@ -7,7 +7,7 @@
 **Keywords:** logging, Python logging, logger, handlers, formatters, log levels, WebLogHandler, Rich console, SSE streaming, structured logging, operation ID, thread safety, log hierarchy, log propagation
 **TokenBudget:** ~2000
 **ContextTier:** High
-**Depends:** rules/200-python-core.md
+**Depends:** 200-python-core.md
 
 ## Purpose
 
@@ -258,7 +258,6 @@ def process_data():
     log_success(f"Processed {len(result)} items")  # Shows as SUCCESS in web UI
 ```
 
-
 **Anti-Pattern 2: Global Handler Attachment**
 ```python
 # Bad: Handler attached at module import time
@@ -284,7 +283,6 @@ def run_with_handler(operation_id: str, func):
     finally:
         logger.removeHandler(handler)  # Clean removal
 ```
-
 
 **Anti-Pattern 3: Duplicate Logging (Console + Logger)**
 ```python
@@ -390,7 +388,7 @@ def execute_operation(operation_id: str, operation_type: str):
 
 ### Related Rules
 
-- **Python Core**: `rules/200-python-core.md` - Foundation for Python development
-- **FastAPI Monitoring**: `rules/210d-python-fastapi-monitoring.md` - Health checks and logging patterns
-- **Snowflake Observability**: `rules/111a-snowflake-observability-logging.md` - Snowflake logging patterns
-- **SSE Patterns**: `rules/221g-python-htmx-sse.md` - Server-Sent Events with log streaming
+- **Python Core**: `200-python-core.md` - Foundation for Python development
+- **FastAPI Monitoring**: `210d-python-fastapi-monitoring.md` - Health checks and logging patterns
+- **Snowflake Observability**: `111a-snowflake-observability-logging.md` - Snowflake logging patterns
+- **SSE Patterns**: `221g-python-htmx-sse.md` - Server-Sent Events with log streaming

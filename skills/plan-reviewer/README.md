@@ -239,21 +239,6 @@ If a plan references rules:
 
 This skill is **deployable** (included when running `task deploy`). After deployment to a project, users can review that project's plans for agent executability.
 
-## Version History
-
-- **v1.1.0** (2025-12-16): 100-point scoring system
-  - Updated to 100-point scale (from /60 weighted)
-  - Point allocation: 20/20/20/15/10/5/5/5
-  - Updated verdict thresholds for /100 scale
-
-- **v1.0.0** (2025-12-16): Initial release
-  - 8-dimension plan review rubric (4 critical, 4 standard)
-  - FULL mode for single-plan reviews
-  - COMPARISON mode for multi-plan ranking
-  - META-REVIEW mode for review consistency analysis
-  - Agent Executability Verdicts
-  - Deployable to other projects
-
 ## Troubleshooting
 
 See `workflows/error-handling.md` for common issues and resolutions.

@@ -7,7 +7,7 @@
 **Keywords:** memory bank, context, session recovery, project brief, active context, progress tracking, context rot, attention budget, compaction, context engineering, rapid recovery, failure recovery, staleness detection, archive policy, signal maximization
 **TokenBudget:** ~6200
 **ContextTier:** Critical
-**Depends:** rules/000-global-core.md
+**Depends:** 000-global-core.md
 
 ## Purpose
 Establish universal principles for maintaining project context and ensuring AI effectiveness through structured documentation, enabling seamless context recovery across session resets regardless of specific AI model or editor implementation.
@@ -461,7 +461,6 @@ Older than 30 days:                Archive or remove
 - **Remove:** Resolved issues, exploratory dead-ends, redundant tool outputs, verbose explanations
 - **Compress:** Completed tasks (outcomes only), historical decisions (rationale + result), old session logs
 
-
 ### Staleness Detection Rules
 
 Content is classified as **"outdated"** when it meets ANY of these criteria:
@@ -502,7 +501,6 @@ These files should NOT be pruned for temporal staleness:
 - techContext.md (technical stack reference)
 - productContext.md (product vision)
 - systemPatterns.md (architectural decisions - explicit preservation rule applies)
-
 
 ### Archive Policy (Single Source of Truth)
 
@@ -662,7 +660,6 @@ Any of these phrasings trigger the initialization protocol. This is a **user-ini
 [Previous session to be added]
 ```
 
-
 ### Update Process Steps
 
 Pre-step: If `memory-bank/` does not exist, run initialization protocol (see above) before proceeding.
@@ -690,7 +687,6 @@ Pre-step: If `memory-bank/` does not exist, run initialization protocol (see abo
 
 **Precondition:** Verify the `memory-bank/` folder exists. If missing, user must run initialization (see Initialization Protocol in Section 4) before any write operation.
 
-
 ### Failure Recovery Procedures
 
 #### Scenario 1: memory-bank/ Folder Missing
@@ -710,7 +706,6 @@ Pre-step: If `memory-bank/` does not exist, run initialization protocol (see abo
 - [ ] memory-bank/ exists
 - [ ] Core template files created
 
-
 #### Scenario 2: Context File Corrupted (Unparseable)
 
 **Detection:**
@@ -725,10 +720,10 @@ Pre-step: If `memory-bank/` does not exist, run initialization protocol (see abo
 4. Create new file from template with recovery notice:
    ```markdown
    # <Filename> (Recovered)
-   
+
    > **Recovery Notice:** Original file corrupted on YYYY-MM-DD and archived.
    > This is a fresh start. Refer to .corrupted backup if needed.
-   
+
    [Minimal required sections based on file type]
    ```
 5. Notify user: "Context file recovered from corruption. Review: <filename>"
@@ -738,7 +733,6 @@ Pre-step: If `memory-bank/` does not exist, run initialization protocol (see abo
 - [ ] Corrupted file preserved with timestamp
 - [ ] New file valid and parseable
 - [ ] User notified
-
 
 #### Scenario 3: Context Files Inconsistent
 
@@ -766,7 +760,6 @@ Pre-step: If `memory-bank/` does not exist, run initialization protocol (see abo
 - [ ] Critical dependencies resolved
 - [ ] User notified of inconsistencies
 
-
 #### Scenario 4: File Exceeds Size Budget
 
 **Detection:**
@@ -792,7 +785,6 @@ Pre-step: If `memory-bank/` does not exist, run initialization protocol (see abo
 - [ ] Archived content preserved
 - [ ] No critical current-session info lost
 
-
 #### Scenario 5: Read Operation Timeout or Network Error
 
 **Detection:**
@@ -815,7 +807,6 @@ Pre-step: If `memory-bank/` does not exist, run initialization protocol (see abo
 - [ ] Agent continues with available context
 - [ ] User notified of degraded state
 
-
 #### Recovery Best Practices
 
 **Logging Requirements:**
@@ -836,7 +827,6 @@ Pre-step: If `memory-bank/` does not exist, run initialization protocol (see abo
 - ALWAYS use timestamped filenames for backups (.corrupted-YYYY-MM-DD-HHMMSS)
 - Archive to memory-bank/archive/ or .corrupted suffix
 - Preserve user data unless explicitly confirmed safe to remove
-
 
 ## 5. IDE Integration (Reference Only - Out of Scope)
 

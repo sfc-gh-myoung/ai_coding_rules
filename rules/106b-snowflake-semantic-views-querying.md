@@ -7,7 +7,7 @@
 **Keywords:** window functions, dimension compatibility, testing, validation, TPC-DS, performance optimization, aliases, granularity, query semantic view, semantic view results, query patterns, result processing, SEMANTIC_VIEW function, query errors, dimension filters
 **TokenBudget:** ~5750
 **ContextTier:** High
-**Depends:** rules/106-snowflake-semantic-views-core.md
+**Depends:** 106-snowflake-semantic-views-core.md
 
 ## Purpose
 Provide comprehensive guidance for querying Snowflake Semantic Views using the `SEMANTIC_VIEW()` function and validating semantic view implementations through systematic testing. Covers query syntax, dimension compatibility, window function metrics, WHERE clause usage, and performance optimization.
@@ -132,7 +132,6 @@ SELECT * FROM SEMANTIC_VIEW(my_view
 ```
 **Benefits:** Valid queries that execute successfully - choose FACTS for row-level data, METRICS for aggregated results.
 
-
 **Anti-Pattern 2: Missing All Required Clauses**
 ```sql
 -- Problem: Query without DIMENSIONS, METRICS, or FACTS
@@ -244,11 +243,11 @@ ORDER BY <dimension_1>;
 - [Query Profile](https://docs.snowflake.com/en/user-guide/ui-query-profile) - Performance analysis tool
 
 ### Related Rules
-- **Semantic Views Core**: `rules/106-snowflake-semantic-views-core.md` - DDL creation, validation rules, components
-- **Semantic Views Integration**: `rules/106c-snowflake-semantic-views-integration.md` - Cortex Analyst, governance, workflows
-- **Snowflake Core**: `rules/100-snowflake-core.md` - Foundational Snowflake practices
-- **Performance Tuning**: `rules/103-snowflake-performance-tuning.md` - Query optimization strategies
-- **Cortex Analyst Integration**: `rules/106c-snowflake-semantic-views-integration.md` - Natural language query patterns
+- **Semantic Views Core**: `106-snowflake-semantic-views-core.md` - DDL creation, validation rules, components
+- **Semantic Views Integration**: `106c-snowflake-semantic-views-integration.md` - Cortex Analyst, governance, workflows
+- **Snowflake Core**: `100-snowflake-core.md` - Foundational Snowflake practices
+- **Performance Tuning**: `103-snowflake-performance-tuning.md` - Query optimization strategies
+- **Cortex Analyst Integration**: `106c-snowflake-semantic-views-integration.md` - Natural language query patterns
 
 ## 1) Validation and Testing
 

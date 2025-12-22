@@ -7,7 +7,7 @@
 **Keywords:** feature views, entity modeling, ML pipeline, ASOF JOIN, point-in-time correctness, Dynamic Tables, feature versioning, create features, feature catalog, feature pipeline, feature discovery, feature registry, feature lineage
 **TokenBudget:** ~4550
 **ContextTier:** Medium
-**Depends:** rules/100-snowflake-core.md, rules/110-snowflake-model-registry.md
+**Depends:** 100-snowflake-core.md, 110-snowflake-model-registry.md
 
 ## Purpose
 Establish comprehensive best practices for using Snowflake Feature Store to create, maintain, and serve ML features, ensuring consistency, reusability, and production-ready feature pipelines that integrate seamlessly with Snowflake ML workflows.
@@ -124,7 +124,6 @@ training_data = fs.generate_training_set(
 ```
 **Benefits:** No data leakage; realistic model performance; production accuracy matches training; point-in-time correctness; professional ML engineering; reliable models
 
-
 **Anti-Pattern 2: Not Versioning Feature Views**
 ```python
 # Bad: Overwrite feature view without versioning
@@ -176,7 +175,6 @@ model_v2 = train_model(features='customer_features@v2.0.0')
 ```
 **Benefits:** Reproducible models; clear lineage; no training/inference mismatch; rollback capability; audit trail; professional; multiple model versions coexist
 
-
 **Anti-Pattern 3: Using Non-Deterministic Functions in Feature Engineering**
 ```python
 # Bad: Non-deterministic transformations
@@ -218,7 +216,6 @@ def time_aware_features(df):
     )
 ```
 **Benefits:** Reproducible features; training/inference consistency; debuggable; reliable predictions; professional ML engineering; production-ready
-
 
 **Anti-Pattern 4: Not Monitoring Feature View Refresh Costs**
 ```python
@@ -395,13 +392,13 @@ training_data = fs.generate_dataset(
 - [Feature Store with dbt](https://quickstarts.snowflake.com/guide/getting-started-with-snowflake-feature-store-and-dbt/index.html) - Integration patterns for external feature views
 
 ### Related Rules
-- **Snowflake Core**: `rules/100-snowflake-core.md`
-- **Model Registry**: `rules/110-snowflake-model-registry.md`
-- **SQL Demo Engineering**: `rules/102-snowflake-sql-demo-engineering.md`
-- **Performance Tuning**: `rules/103-snowflake-performance-tuning.md`
-- **Warehouse Management**: `rules/119-snowflake-warehouse-management.md`
-- **Data Governance**: `rules/107-snowflake-security-governance.md`
-- **Python Core**: `rules/200-python-core.md`
+- **Snowflake Core**: `100-snowflake-core.md`
+- **Model Registry**: `110-snowflake-model-registry.md`
+- **SQL Demo Engineering**: `102-snowflake-sql-demo-engineering.md`
+- **Performance Tuning**: `103-snowflake-performance-tuning.md`
+- **Warehouse Management**: `119-snowflake-warehouse-management.md`
+- **Data Governance**: `107-snowflake-security-governance.md`
+- **Python Core**: `200-python-core.md`
 
 ## 1. Feature Store Setup and Organization
 

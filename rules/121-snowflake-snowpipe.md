@@ -7,7 +7,7 @@
 **Keywords:** streaming data, micro-batching, file-based ingestion, SDK, event notifications, COPY INTO, create pipe, auto ingest, data ingestion, streaming load, pipe errors, pipe management, ingestion monitoring
 **TokenBudget:** ~6900
 **ContextTier:** High
-**Depends:** rules/100-snowflake-core.md, rules/108-snowflake-data-loading.md, rules/104-snowflake-streams-tasks.md
+**Depends:** 100-snowflake-core.md, 108-snowflake-data-loading.md, 104-snowflake-streams-tasks.md
 
 ## Purpose
 Establish comprehensive best practices for continuous data ingestion using Snowflake Snowpipe (serverless, file-based) and Snowpipe Streaming (SDK-based, low-latency) including architecture selection, configuration, security, monitoring, and cost optimization.
@@ -125,7 +125,6 @@ ON_ERROR = CONTINUE;
 ```
 **Benefits:** Fully automated; no API calls; near real-time loading (5-10 min); cloud-native; simple setup; reliable; low maintenance; cost-effective
 
-
 **Anti-Pattern 2: Missing FILE_FORMAT Specifications**
 ```sql
 -- Bad: No file format, relies on defaults
@@ -169,7 +168,6 @@ FILE_FORMAT = (FORMAT_NAME = csv_pipe_format)
 VALIDATION_MODE = RETURN_ERRORS;
 ```
 **Benefits:** Predictable parsing; data quality; explicit expectations; easy debugging; documented format; testable; reliable production
-
 
 **Anti-Pattern 3: Not Monitoring COPY_HISTORY for Load Errors**
 ```sql
@@ -237,7 +235,6 @@ FROM TABLE(INFORMATION_SCHEMA.COPY_HISTORY(
 ));
 ```
 **Benefits:** Early error detection; data quality assurance; proactive alerts; no silent failures; audit trail; business continuity; professional operations
-
 
 **Anti-Pattern 4: Not Handling File Naming Patterns Correctly**
 ```sql
@@ -404,12 +401,12 @@ ORDER BY START_TIME DESC;
 - [Snowpipe Troubleshooting](https://docs.snowflake.com/en/user-guide/data-load-snowpipe-troubleshooting) - Common issues and solutions
 
 ### Related Rules
-- **Snowflake Core**: `rules/100-snowflake-core.md` - Foundational Snowflake practices
-- **Data Loading**: `rules/108-snowflake-data-loading.md` - Stages and bulk loading with COPY INTO
-- **Streams and Tasks**: `rules/104-snowflake-streams-tasks.md` - Incremental pipelines and change data capture
-- **Warehouse Management**: `rules/119-snowflake-warehouse-management.md` - Warehouse sizing (note: Snowpipe uses serverless compute)
-- **Cost Governance**: `rules/105-snowflake-cost-governance.md` - Resource monitors and cost optimization
-- **Security Governance**: `rules/107-snowflake-security-governance.md` - Access control and security policies
+- **Snowflake Core**: `100-snowflake-core.md` - Foundational Snowflake practices
+- **Data Loading**: `108-snowflake-data-loading.md` - Stages and bulk loading with COPY INTO
+- **Streams and Tasks**: `104-snowflake-streams-tasks.md` - Incremental pipelines and change data capture
+- **Warehouse Management**: `119-snowflake-warehouse-management.md` - Warehouse sizing (note: Snowpipe uses serverless compute)
+- **Cost Governance**: `105-snowflake-cost-governance.md` - Resource monitors and cost optimization
+- **Security Governance**: `107-snowflake-security-governance.md` - Access control and security policies
 
 ## 1. Snowpipe Overview and Architecture
 

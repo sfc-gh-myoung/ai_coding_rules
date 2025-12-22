@@ -7,7 +7,7 @@
 **Keywords:** quality assertions, custom metrics, validation functions, create custom DMF, custom quality checks, business rule validation, custom expectations, quality functions, UDF for quality, validation logic, custom quality metrics, quality rules, custom validation
 **TokenBudget:** ~2500
 **ContextTier:** Medium
-**Depends:** rules/100-snowflake-core.md, rules/124-snowflake-data-quality-core.md
+**Depends:** 100-snowflake-core.md, 124-snowflake-data-quality-core.md
 
 ## Purpose
 Provide patterns for creating custom Data Metric Functions (DMFs) and expectations to implement business-specific quality rules and validation logic.
@@ -172,7 +172,6 @@ $$;
 ```
 **Benefits:** Type-safe DMF; works with expectations; follows Snowflake DMF contract; deployment succeeds; can use EXPECT = 1.0 for validation
 
-
 **Anti-Pattern 2: Not Handling Edge Cases in Custom DMF Logic**
 ```sql
 -- Bad: Division by zero on empty table
@@ -202,7 +201,6 @@ AS $$
 $$;
 ```
 **Benefits:** Robust DMF logic; handles empty tables; no NULL results; predictable behavior; reliable expectations; production-ready validation
-
 
 **Anti-Pattern 3: Overly Complex Custom DMF Logic**
 ```sql
@@ -245,7 +243,6 @@ AS $$
 $$;
 ```
 **Benefits:** Fast DMF execution; lower serverless costs; clear separation; debuggable logic; reusable metrics view; better performance; maintainable validation
-
 
 **Anti-Pattern 4: Not Testing Custom DMF Before Production Deployment**
 ```sql

@@ -7,7 +7,7 @@
 **Keywords:** FastAPI security, authentication, OAuth2, JWT, CORS, middleware, API keys, security best practices, bcrypt, HTTPBearer, role-based access control, RBAC
 **TokenBudget:** ~2650
 **ContextTier:** High
-**Depends:** rules/210-python-fastapi-core.md
+**Depends:** 210-python-fastapi-core.md
 
 ## Purpose
 Establish comprehensive security practices for FastAPI applications including authentication, authorization, CORS configuration, and security middleware to protect APIs and user data.
@@ -230,9 +230,9 @@ uv run pytest tests/
 - [Pydantic v2 Validators](https://docs.pydantic.dev/latest/concepts/validators/)
 
 ### Related Rules
-- **FastAPI Core**: `rules/210-python-fastapi-core.md`
-- **FastAPI Testing**: `rules/210b-python-fastapi-testing.md`
-- **FastAPI Deployment**: `rules/210c-python-fastapi-deployment.md`
+- **FastAPI Core**: `210-python-fastapi-core.md`
+- **FastAPI Testing**: `210b-python-fastapi-testing.md`
+- **FastAPI Deployment**: `210c-python-fastapi-deployment.md`
 
 ## 1. Authentication Setup
 

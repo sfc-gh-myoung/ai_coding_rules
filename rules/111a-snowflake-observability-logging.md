@@ -7,7 +7,7 @@
 **Keywords:** DEBUG, INFO, WARN, ERROR, FATAL, conditional logging, sampling, tight loop logging, standard logging libraries, log volume control, cost management, log configuration, log handlers
 **TokenBudget:** ~3300
 **ContextTier:** High
-**Depends:** rules/100-snowflake-core.md, rules/111-snowflake-observability-core.md
+**Depends:** 100-snowflake-core.md, 111-snowflake-observability-core.md
 
 ## Purpose
 Provide comprehensive logging best practices for Snowflake handler code, covering standard library integration, strategic log level usage, conditional logging patterns, and volume control strategies to optimize observability while managing costs.
@@ -122,7 +122,6 @@ def process_data(records):
 ```
 **Benefits:** Logs persisted in event tables; queryable history; production debugging; proper log levels; structured data; automatic routing
 
-
 **Anti-Pattern 2: Logging Every Iteration in Tight Loops**
 ```python
 # Bad: Log every record in large dataset
@@ -143,7 +142,6 @@ logger.info(f"Completed processing {len(large_dataset)} records")
 ```
 **Benefits:** 1000x fewer logs; manageable costs; performance maintained; signal preserved; actionable logs; production-scalable
 
-
 **Anti-Pattern 3: Logging Sensitive Data (PII, Credentials)**
 ```python
 # Bad: Log sensitive information
@@ -163,7 +161,6 @@ def authenticate_user(username, password, ssn):
     # Never log: password, ssn, credit cards, tokens, API keys
 ```
 **Benefits:** Security maintained; compliance-ready; no PII exposure; safe debugging; audit-friendly; regulatory compliance; zero breach liability
-
 
 **Anti-Pattern 4: Using DEBUG Log Level in Production**
 ```python
@@ -298,10 +295,10 @@ def my_handler(session, input_data):
 - [SLF4J documentation](https://www.slf4j.org/manual.html) - Java/Scala logging framework
 
 ### Related Rules
-- **Observability Core**: `rules/111-snowflake-observability-core.md` - Telemetry configuration and event tables
-- **Observability Tracing**: `rules/111b-snowflake-observability-tracing.md` - Distributed tracing patterns
-- **Observability Monitoring**: `rules/111c-snowflake-observability-monitoring.md` - Monitoring and analysis
-- **Cost Governance**: `rules/105-snowflake-cost-governance.md` - Cost optimization strategies for telemetry data
+- **Observability Core**: `111-snowflake-observability-core.md` - Telemetry configuration and event tables
+- **Observability Tracing**: `111b-snowflake-observability-tracing.md` - Distributed tracing patterns
+- **Observability Monitoring**: `111c-snowflake-observability-monitoring.md` - Monitoring and analysis
+- **Cost Governance**: `105-snowflake-cost-governance.md` - Cost optimization strategies for telemetry data
 
 ## 1. Standard Library Integration
 

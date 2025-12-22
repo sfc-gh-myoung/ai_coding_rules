@@ -7,7 +7,7 @@
 **Keywords:** teardown, customer_load.sql, inline documentation, progress indicators, rerunnable demos, Snowflake SQL, CREATE OR REPLACE, educational SQL, demo patterns, demo data, setup scripts, demo automation, learning examples
 **TokenBudget:** ~4850
 **ContextTier:** High
-**Depends:** rules/100-snowflake-core.md
+**Depends:** 100-snowflake-core.md
 
 ## Purpose
 Guide SQL file creation for Snowflake demos and customer learning environments. Prioritizes ease of use, readability, and educational value over automation complexity. Optimized for pre-sales engineers, field teams, and customers learning Snowflake capabilities.
@@ -117,7 +117,6 @@ DROP SCHEMA IF EXISTS DEMO_DB.CUSTOMER_ANALYTICS CASCADE;
 ```
 **Benefits:** Schema isolation; no data loss; other demos unaffected; production-safe; professional; selective cleanup; reliable
 
-
 **Anti-Pattern 2: Not Making Demo Files Idempotent**
 ```sql
 -- Bad: Fails on second run
@@ -153,7 +152,6 @@ WHEN NOT MATCHED THEN INSERT (id, name) VALUES (src.id, src.name);
 -- Can run multiple times without errors!
 ```
 **Benefits:** Rerunnable; no manual cleanup; demo-friendly; professional; reliable; good UX; frustration-free
-
 
 **Anti-Pattern 3: Missing Environment Variables for Portability**
 ```sql
@@ -194,7 +192,6 @@ SELECT * FROM <%DATABASE%>.PUBLIC.source_data;
 -- Works in DEV, TEST, PROD without code changes!
 ```
 **Benefits:** Environment portable; testable in dev; no manual edits; error-free; production-safe; CI/CD friendly; professional
-
 
 **Anti-Pattern 4: No Sample Output or Expected Results Documentation**
 ```sql
@@ -357,10 +354,10 @@ SELECT 'GRID_DATA schema setup complete!' AS status;
 - [Stages Overview](https://docs.snowflake.com/en/user-guide/data-load-overview) - Understanding Snowflake stages
 
 ### Related Rules
-- **Snowflake Core**: `rules/100-snowflake-core.md` - Foundational Snowflake practices
-- **SQL Automation**: `rules/102a-snowflake-sql-automation.md` - Production SQL templates and CI/CD patterns
-- **Performance Tuning**: `rules/103-snowflake-performance-tuning.md` - Query optimization
-- **Data Loading**: `rules/108-snowflake-data-loading.md` - Comprehensive data loading patterns
+- **Snowflake Core**: `100-snowflake-core.md` - Foundational Snowflake practices
+- **SQL Automation**: `102a-snowflake-sql-automation.md` - Production SQL templates and CI/CD patterns
+- **Performance Tuning**: `103-snowflake-performance-tuning.md` - Query optimization
+- **Data Loading**: `108-snowflake-data-loading.md` - Comprehensive data loading patterns
 
 ## 1. File Naming for Demos
 

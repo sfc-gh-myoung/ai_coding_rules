@@ -7,7 +7,7 @@
 **Keywords:** Python classes, OOP, inheritance, dataclasses, @property, class design, encapsulation, composition, Protocol, ABC, type hints
 **TokenBudget:** ~2050
 **ContextTier:** Medium
-**Depends:** rules/200-python-core.md, rules/201-python-lint-format.md, rules/204-python-docs-comments.md
+**Depends:** 200-python-core.md, 201-python-lint-format.md, 204-python-docs-comments.md
 
 ## Purpose
 Provide practical, modern guidelines for when and how to use classes in Python, emphasizing composition over inheritance, type safety, encapsulation, and pythonic idioms that produce readable, maintainable, and testable code.
@@ -207,10 +207,10 @@ class Notifier:
 - [Descriptors and properties](https://docs.python.org/3/howto/descriptor.html)
 
 ### Related Rules
-- **Python Core**: `rules/200-python-core.md`
-- **Python Lint/Format**: `rules/201-python-lint-format.md`
-- **Python Project Setup**: `rules/203-python-project-setup.md`
-- **Python Docs & Comments**: `rules/204-python-docs-comments.md`
+- **Python Core**: `200-python-core.md`
+- **Python Lint/Format**: `201-python-lint-format.md`
+- **Python Project Setup**: `203-python-project-setup.md`
+- **Python Docs & Comments**: `204-python-docs-comments.md`
 
 ## 1. Class Design Guidelines
 

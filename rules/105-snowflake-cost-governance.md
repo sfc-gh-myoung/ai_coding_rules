@@ -7,7 +7,7 @@
 **Keywords:** budget alerts, spend tracking, Snowflake, SQL, CREDIT_QUOTA, WAREHOUSE_METERING_HISTORY, object tagging, monitor credits, warehouse spending, cost alerts, credit limits, budget management, resource monitor, tag enforcement
 **TokenBudget:** ~1700
 **ContextTier:** High
-**Depends:** rules/100-snowflake-core.md
+**Depends:** 100-snowflake-core.md
 
 ## Purpose
 Establish comprehensive cost management and optimization strategies for Snowflake environments, including resource monitoring, warehouse right-sizing, and governance policies to control and predict cloud data warehouse spending.
@@ -184,11 +184,11 @@ ALTER WAREHOUSE WH_ANALYTICS_M SET RESOURCE_MONITOR = rm_analytics_monthly;
 - [Resource Monitors](https://docs.snowflake.com/en/user-guide/resource-monitors) - Credit usage tracking, quotas, and automated controls
 
 ### Related Rules
-- **Snowflake Core**: `rules/100-snowflake-core.md`
-- **Performance Tuning**: `rules/103-snowflake-performance-tuning.md`
-- **Warehouse Management**: `rules/119-snowflake-warehouse-management.md`
-- **Object Tagging**: `rules/123-snowflake-object-tagging.md`
-- **Security Governance**: `rules/107-snowflake-security-governance.md`
+- **Snowflake Core**: `100-snowflake-core.md`
+- **Performance Tuning**: `103-snowflake-performance-tuning.md`
+- **Warehouse Management**: `119-snowflake-warehouse-management.md`
+- **Object Tagging**: `123-snowflake-object-tagging.md`
+- **Security Governance**: `107-snowflake-security-governance.md`
 
 ## 1. Cost Optimization Principles
 - **Requirement:** Treat cost as a primary design factor.

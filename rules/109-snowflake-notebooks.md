@@ -7,7 +7,7 @@
 **Keywords:** ML, reproducible notebooks, nbqa, notebook linting, code quality, Python, create notebook, debug notebook, notebook execution, notebook testing, notebook deployment, kernel management, cell execution
 **TokenBudget:** ~3200
 **ContextTier:** Medium
-**Depends:** rules/100-snowflake-core.md, rules/201-python-lint-format.md
+**Depends:** 100-snowflake-core.md, 201-python-lint-format.md
 
 ## Purpose
 Establish best practices for building reproducible, secure, and maintainable Jupyter Notebooks within the Snowflake environment, ensuring deterministic execution, proper state management, and seamless transition to production code.
@@ -224,13 +224,13 @@ monthly_summary = customers_df.group_by("REGISTRATION_MONTH").agg(
 - [nbqa Documentation](https://nbqa.readthedocs.io/) - Comprehensive guide for running Python code quality tools on Jupyter notebooks (industry-standard linting approach with 1.5M+ monthly downloads)
 
 ### Related Rules
-- **Snowflake Core**: `rules/100-snowflake-core.md`
-- **App Deployment**: `rules/109b-snowflake-app-deployment-core.md`
-- **Streamlit UI**: `rules/101-snowflake-streamlit-core.md`
-- **Warehouse Management**: `rules/119-snowflake-warehouse-management.md`
-- **Python Core**: `rules/200-python-core.md`
-- **Python Linting**: `rules/201-python-lint-format.md`
-- **Data Science Analytics**: `rules/920-data-science-analytics.md`
+- **Snowflake Core**: `100-snowflake-core.md`
+- **App Deployment**: `109b-snowflake-app-deployment-core.md`
+- **Streamlit UI**: `101-snowflake-streamlit-core.md`
+- **Warehouse Management**: `119-snowflake-warehouse-management.md`
+- **Python Core**: `200-python-core.md`
+- **Python Linting**: `201-python-lint-format.md`
+- **Data Science Analytics**: `920-data-science-analytics.md`
 
 ## 1. Reproducibility & State
 - **Requirement:** Ensure notebooks are deterministic; outputs must not depend on execution order or hidden state.

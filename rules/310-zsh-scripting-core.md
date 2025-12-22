@@ -1,10 +1,9 @@
 # Zsh Scripting Core Best Practices
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
-> 
+>
 > This rule defines essential Zsh patterns. Load for shell scripting tasks.
 > Specialized rules depend on this foundation.
-
 
 ## Metadata
 
@@ -13,7 +12,7 @@
 **Keywords:** Zsh, Z shell, zsh features, arrays, functions, oh-my-zsh, emulate, setopt, parameter expansion, globbing
 **TokenBudget:** ~3450
 **ContextTier:** Medium
-**Depends:** rules/300-bash-scripting-core.md
+**Depends:** 300-bash-scripting-core.md
 
 ## Purpose
 Establish foundational zsh scripting patterns covering unique zsh features, script structure, variables, functions, and essential practices to leverage zsh's advanced capabilities while maintaining compatibility.
@@ -217,9 +216,9 @@ shellcheck script.sh
 - [Oh My Zsh Framework](https://ohmyz.sh/) - Popular plugin and theme framework for zsh
 
 ### Related Rules
-- **Zsh Advanced Features**: `rules/310a-zsh-advanced-features.md`
-- **Zsh Compatibility**: `rules/310b-zsh-compatibility.md`
-- **Bash Core**: `rules/300-bash-scripting-core.md`
+- **Zsh Advanced Features**: `310a-zsh-advanced-features.md`
+- **Zsh Compatibility**: `310b-zsh-compatibility.md`
+- **Bash Core**: `300-bash-scripting-core.md`
 
 ## 1. Script Foundation & Zsh Setup
 

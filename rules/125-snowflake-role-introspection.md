@@ -7,7 +7,7 @@
 **Keywords:** account roles, database roles, SHOW GRANTS, role introspection, RBAC, Python automation, error 000906, too many qualifiers, grants inspection, programmatic RBAC
 **TokenBudget:** ~1200
 **ContextTier:** Medium
-**Depends:** rules/000-global-core.md, rules/100-snowflake-core.md
+**Depends:** 000-global-core.md, 100-snowflake-core.md
 
 ## Purpose
 
@@ -112,7 +112,7 @@ def get_role_grants(role_name):
         query = f"SHOW GRANTS TO DATABASE ROLE {role_name}"
     else:
         query = f"SHOW GRANTS TO ROLE {role_name}"
-    
+
     return execute_query(query)
 ```
 **Benefits:** Works for all database role patterns (`SNOWFLAKE.CORTEX_USER`, `MYDB.PUBLIC.CUSTOM`, `DB.ROLE`); no hard-coded role names; future-proof against new database role patterns
@@ -152,10 +152,10 @@ def execute_query(query):
 def get_role_grants(role_name):
     """
     Get grants for a Snowflake role (account or database role).
-    
+
     Args:
         role_name: Role name (e.g., 'PUBLIC', 'SNOWFLAKE.CORTEX_USER')
-    
+
     Returns:
         List of grant dictionaries
     """
@@ -163,7 +163,7 @@ def get_role_grants(role_name):
         query = f"SHOW GRANTS TO DATABASE ROLE {role_name}"
     else:
         query = f"SHOW GRANTS TO ROLE {role_name}"
-    
+
     return execute_query(query)
 
 # Example usage
@@ -178,14 +178,14 @@ def check_role_hierarchy(role_name, visited=None):
     """Recursively check role hierarchy for both account and database roles."""
     if visited is None:
         visited = set()
-    
+
     if role_name in visited:
         return  # Avoid infinite loops
     visited.add(role_name)
-    
+
     # Get grants using type-aware function
     grants = get_role_grants(role_name)
-    
+
     for grant in grants:
         # Check for parent role grants
         if grant.get('granted_on') == 'ROLE':
@@ -198,10 +198,10 @@ def check_role_hierarchy(role_name, visited=None):
 ## References
 
 ### Related Rules
-- `rules/000-global-core.md` - Global standards and conventions
-- `rules/100-snowflake-core.md` - Snowflake SQL foundations
-- `rules/107-snowflake-security-governance.md` - RBAC and security patterns
-- `rules/200-python-core.md` - Python development standards
+- `000-global-core.md` - Global standards and conventions
+- `100-snowflake-core.md` - Snowflake SQL foundations
+- `107-snowflake-security-governance.md` - RBAC and security patterns
+- `200-python-core.md` - Python development standards
 
 ### External Documentation
 - [Snowflake SHOW GRANTS](https://docs.snowflake.com/en/sql-reference/sql/show-grants) - SHOW GRANTS syntax reference

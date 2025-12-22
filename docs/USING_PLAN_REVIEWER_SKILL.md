@@ -1,6 +1,6 @@
 # Using the Plan Reviewer Skill
 
-The Plan Reviewer Skill evaluates LLM-generated plans to ensure autonomous agents can execute them successfully. It scores plans across 8 dimensions optimized for agent executability.
+The Plan Reviewer Skill evaluates LLM-generated plans to ensure autonomous agents can execute them successfully. It scores plans across 8 dimensions optimized for agent executability using a 100-point scoring system.
 
 ## Background
 
@@ -8,6 +8,9 @@ The plan-reviewer skill runs Agent-Centric Plan Reviews using the rubric in `ski
 
 Key behaviors:
 
+- **100-point scoring system** with weighted dimensions (Executability 20, Completeness 20, Success Criteria 20, Scope 15, Dependencies 10, Decomposition 5, Context 5, Risk Awareness 5)
+- **Priority Compliance Gate** — Evaluates plans against Design Priority Hierarchy before scoring
+- **Agent Execution Test** — First gate counts blocking issues (ambiguous phrases, implicit commands, missing branches, undefined thresholds)
 - Reviews plans against 8 dimensions: Executability, Completeness, Success Criteria, Scope, Dependencies, Decomposition, Context, Risk Awareness
 - Supports three review modes: FULL, COMPARISON, META-REVIEW
 - Computes `OUTPUT_FILE` as:
@@ -17,6 +20,18 @@ Key behaviors:
 - **No-overwrite safety:** If file exists, uses suffix `-01.md`, `-02.md`, etc.
 - Detects ambiguous phrases that require human judgment
 - Verifies success criteria are agent-verifiable
+
+## Design Priority Hierarchy
+
+Reviews evaluate plans against the priority order defined in `000-global-core.md`:
+
+1. **Priority 1:** Agent Understanding and Execution Reliability (CRITICAL)
+2. **Priority 2:** Token and Context Window Efficiency (HIGH)
+3. **Priority 3:** Human Readability (TERTIARY)
+
+**Scoring Impact (Priority 1 Gate):**
+- ≥10 blocking issues: Overall score capped at 60/100 (NEEDS_REFINEMENT)
+- ≥20 blocking issues: Overall score capped at 40/100 (NOT_EXECUTABLE)
 
 ## Quick Start
 
@@ -118,38 +133,61 @@ review_mode: META-REVIEW
 
 ### Critical Dimensions (75 points)
 
-| Dimension | Points | What It Checks |
-|-----------|--------|----------------|
-| **Executability** | 20 | Can agent execute without human judgment? Counts ambiguous phrases. |
-| **Completeness** | 20 | Are all steps present? Setup, validation, cleanup, error recovery. |
-| **Success Criteria** | 20 | Can agent verify completion programmatically? |
-| **Scope** | 15 | Are boundaries explicit? Start/end state defined? |
+**Executability (20 points):**
+- Can agent execute without human judgment?
+- Counts ambiguous phrases ("consider", "if appropriate", "as needed")
+- Counts implicit commands (descriptions vs explicit commands)
+
+**Completeness (20 points):**
+- Are all steps present?
+- Setup, validation, cleanup, error recovery coverage
+
+**Success Criteria (20 points):**
+- Can agent verify completion programmatically?
+- Percentage of tasks with agent-verifiable criteria
+
+**Scope (15 points):**
+- Are boundaries explicit?
+- Start/end state defined?
 
 ### Standard Dimensions (25 points)
 
-| Dimension | Points | What It Checks |
-|-----------|--------|----------------|
-| **Dependencies** | 10 | Is execution order explicit? Blocking relationships documented? |
-| **Decomposition** | 5 | Is task granularity appropriate? Single-action steps? |
-| **Context** | 5 | Is necessary background provided? Domain terms defined? |
-| **Risk Awareness** | 5 | Are fallbacks documented? Recovery paths defined? |
+**Dependencies (10 points):**
+- Is execution order explicit?
+- Blocking relationships documented?
+
+**Decomposition (5 points):**
+- Is task granularity appropriate?
+- Single-action steps?
+
+**Context (5 points):**
+- Is necessary background provided?
+- Domain terms defined?
+
+**Risk Awareness (5 points):**
+- Are fallbacks documented?
+- Recovery paths defined?
 
 ## Agent Executability Verdicts
 
-| Score Range | Verdict | Meaning |
-|-------------|---------|---------|
-| 90-100 | **EXECUTABLE** | Agent can execute as-is |
-| 80-89 | **EXECUTABLE_WITH_REFINEMENTS** | Minor refinements recommended |
-| 60-79 | **NEEDS_REFINEMENT** | Significant gaps; agent may fail |
-| <60 | **NOT_EXECUTABLE** | Major rework required |
+**Score Ranges:**
+- **90-100 (EXECUTABLE):** Agent can execute as-is
+- **80-89 (EXECUTABLE_WITH_REFINEMENTS):** Minor refinements recommended
+- **60-79 (NEEDS_REFINEMENT):** Significant gaps; agent may fail
+- **<60 (NOT_EXECUTABLE):** Major rework required
+
+**Priority 1 Overrides:**
+- ≥10 blocking issues: Verdict capped at NEEDS_REFINEMENT (max 60/100)
+- ≥20 blocking issues: Verdict = NOT_EXECUTABLE (max 40/100)
 
 ## Mandatory Verification Tables
 
 Reviews include these verification tables to support scoring:
 
-1. **Executability Audit** — Lists ambiguous phrases with line numbers and proposed fixes
+1. **Executability Audit** — Lists ambiguous phrases and implicit commands with line numbers and proposed fixes
 2. **Completeness Audit** — Phase-by-phase coverage (Setup, Validation, Cleanup, Error Recovery)
 3. **Success Criteria Audit** — Task-by-task criteria presence and agent-verifiability
+4. **Priority Compliance Summary** — Counts of Priority 1 and Priority 2 violations with score cap status
 
 ## Example Workflows
 

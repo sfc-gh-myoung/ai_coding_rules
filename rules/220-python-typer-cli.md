@@ -7,7 +7,7 @@
 **Keywords:** Typer, CLI development, command-line interface, click, argument parsing, CLI testing, typer.Argument, typer.Option, CliRunner, rich console
 **TokenBudget:** ~3150
 **ContextTier:** High
-**Depends:** rules/200-python-core.md
+**Depends:** 200-python-core.md
 
 ## Purpose
 Provide comprehensive guidance for building robust, user-friendly command-line applications using Typer, covering project setup, argument handling, testing strategies, and deployment patterns for maintainable CLI tools.
@@ -220,9 +220,9 @@ uv run pytest tests/
 - [Click Documentation](https://click.palletsprojects.com/) - Underlying CLI framework and advanced patterns
 
 ### Related Rules
-- **Python Core**: `rules/200-python-core.md`
-- **Python Project Setup**: `rules/203-python-project-setup.md`
-- **Pydantic**: `rules/230-python-pydantic.md`
+- **Python Core**: `200-python-core.md`
+- **Python Project Setup**: `203-python-project-setup.md`
+- **Pydantic**: `230-python-pydantic.md`
 
 ## 1. Project Setup and Structure
 

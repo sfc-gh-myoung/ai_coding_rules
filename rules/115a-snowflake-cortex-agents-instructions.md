@@ -7,7 +7,7 @@
 **Keywords:** Cortex Agents, planning instructions, response instructions, tool orchestration, flagging logic, agent prompts, multi-tool orchestration, tool selection, agent prompting, instruction patterns, agent planning
 **TokenBudget:** ~3450
 **ContextTier:** High
-**Depends:** rules/100-snowflake-core.md, rules/115-snowflake-cortex-agents-core.md
+**Depends:** 100-snowflake-core.md, 115-snowflake-cortex-agents-core.md
 
 ## Purpose
 Provide comprehensive patterns for writing planning instructions (tool orchestration logic) and response instructions (output formatting and flagging logic) for Cortex Agents.
@@ -98,7 +98,6 @@ When presenting revenue data:
 ```
 **Benefits:** Business rules in agent layer; easy to update without model changes; flexible per-agent customization; clear separation of concerns; version control friendly
 
-
 **Anti-Pattern 2: Vague Planning Instructions Without Tool Selection Criteria**
 ```markdown
 # Bad: Unclear when to use which tool
@@ -126,7 +125,6 @@ When presenting revenue data:
 ```
 **Benefits:** Predictable tool selection; consistent agent behavior; clear decision criteria; optimized tool usage; better user experience; debuggable logic
 
-
 **Anti-Pattern 3: No Graceful Degradation for Missing Data**
 ```markdown
 # Bad: Agent fails silently or errors when data unavailable
@@ -152,7 +150,6 @@ When presenting revenue data:
    - Suggest complementary searches
 ```
 **Benefits:** Clear failure communication; helpful user guidance; maintains trust; actionable alternatives; professional experience; reduces support burden
-
 
 **Anti-Pattern 4: Missing Tone and Formatting Guidance in Response Instructions**
 ```markdown

@@ -8,7 +8,14 @@ This document provides a complete example of the git workflow for developing a f
 - **Release version:** v3.4.3
 - **Remotes:**
   - `origin` — GitHub (primary)
-  - `gitlab` — GitLab (secondary)
+  - `gitlab` — GitLab (secondary, protected `main` branch)
+
+## Important Notes
+
+- **GitHub** (`origin`) is the primary repository where development occurs
+- **GitLab** (`gitlab`) mirrors releases from GitHub
+- **GitLab's `main` branch is protected** — direct pushes are not allowed; changes must go through a Merge Request
+- Due to diverged histories between GitHub and GitLab, special handling is required when syncing releases
 
 ## Prerequisites
 
@@ -121,30 +128,23 @@ Stash these changes to apply after squash merge:
 git stash push -m "v3.4.3 release documentation updates"
 ```
 
-### 2.3 Create Release Branches
+### 2.3 Create GitHub Release Branch
 
-Create release branches from each remote's main:
+Create the release branch from GitHub's main:
 
 ```bash
-# Fetch latest from both remotes
+# Fetch latest from origin
 git fetch origin
-git fetch gitlab
 
 # Create GitHub release branch
 git checkout -b release/v3.4.3 origin/main
-
-# Create GitLab release branch
-git checkout -b release/v3.4.3-gitlab gitlab/main
-
-# Verify branches exist
-git branch -l | grep release/v3.4.3
-# release/v3.4.3
-# release/v3.4.3-gitlab
 ```
+
+> **Note:** The GitLab release branch is created later in Phase 4, after the GitHub release is complete and pushed. This ensures `origin/main` contains the final release before syncing to GitLab.
 
 ## Phase 3: Merge Feature into Release Branches
 
-### 3.1 Merge into GitHub Release Branch
+### 3.1 Squash Merge into GitHub Release Branch
 
 ```bash
 # Switch to GitHub release branch
@@ -178,67 +178,123 @@ git commit -m "chore(release): prepare v3.4.3 release documentation
 task validate
 ```
 
-### 3.2 Merge into GitLab Release Branch
+### 3.2 Squash Merge into Main and Tag (GitHub)
+
+After the feature is merged into the release branch:
 
 ```bash
-# Switch to GitLab release branch
-git checkout release/v3.4.3-gitlab
+# Switch to main
+git checkout main
 
-# Squash merge the feature branch
-git merge --squash feat/improve-rule-loading
+# Squash merge the release branch into main
+git merge --squash release/v3.4.3
 
-# Commit the squash merge
-git commit -m "feat: improve rule loading with priority hierarchy and agent optimization
+# Commit with conventional commit message
+git commit -m "feat(release): v3.4.3 - rule loading improvements and agent optimization
 
-- Added Rule Design Priorities hierarchy to 000-global-core.md
-- Added 002e-agent-optimization.md for agent-first authoring patterns
-- Converted RULES_INDEX.md to structured list format
-- Updated schema_validator.py with Priority 1 violation detection
-- Added lazy loading strategy to AGENTS.md"
+SUMMARY:
+- Rule Design Priorities hierarchy for agent-first authoring
+- Agent optimization patterns (002e-agent-optimization.md)
+- RULES_INDEX.md converted to structured list format
+- Schema validator Priority 1 violation detection
+- Lazy loading strategy in AGENTS.md
+- Plan-reviewer skill added (107 total rules)"
 
-# Apply the stashed documentation changes (stash still available)
-git stash apply
+# Create annotated tag
+git tag -a v3.4.3 -m "chore: release v3.4.3"
 
-# Stage and commit documentation updates
-git add README.md CONTRIBUTING.md docs/ARCHITECTURE.md CHANGELOG.md pyproject.toml
-git commit -m "chore(release): prepare v3.4.3 release documentation
-
-- Updated version to 3.4.3
-- Updated rule count to 107
-- Moved CHANGELOG Unreleased to [3.4.3]
-- Added plan-reviewer skill documentation"
-
-# Validate the release
-task validate
+# Push main and tag to GitHub
+git push origin main --tags
 ```
 
-### 3.3 Cleanup
+### 3.3 Cleanup Stash
 
 ```bash
-# Drop the stash after both branches are done
+# Drop the stash after GitHub release is complete
 git stash drop
 
-# Return to feature branch or main
-git checkout feat/improve-rule-loading
-# or
-git checkout main
+# Verify stash is empty (or only has unrelated stashes)
+git stash list
 ```
 
-## Phase 4: Push Release Branches (Optional)
+## Phase 4: Sync Release to GitLab (Protected Branch Workflow)
 
-When ready to publish:
+GitLab's `main` branch is protected and requires a Merge Request. Since the histories between GitHub and GitLab have diverged, we need to:
+
+1. Create a release branch based on `gitlab/main`
+2. Squash merge `origin/main` (GitHub) into it
+3. Resolve conflicts by accepting GitHub's version
+4. Push the branch and create a Merge Request
+
+### 4.1 Create GitLab Release Branch
 
 ```bash
-# Push GitHub release branch
-git push origin release/v3.4.3
+# Fetch latest from GitLab
+git fetch gitlab
 
-# Push GitLab release branch
-git push gitlab release/v3.4.3-gitlab
+# Create release branch from gitlab/main
+git checkout -b release/v3.4.3-gitlab gitlab/main
+```
+
+### 4.2 Squash Merge GitHub Changes
+
+```bash
+# Squash merge origin/main (GitHub v3.4.3) with unrelated histories flag
+git merge --squash origin/main --allow-unrelated-histories
+
+# This will likely show many conflicts due to diverged histories
+# Resolve ALL conflicts by accepting GitHub's version (theirs)
+git checkout --theirs .
+git add .
+
+# Commit the squash merge
+git commit -m "feat(release): v3.4.3 - rule loading improvements and agent optimization
+
+SUMMARY:
+- Rule Design Priorities hierarchy for agent-first authoring
+- Agent optimization patterns (002e-agent-optimization.md)
+- RULES_INDEX.md converted to structured list format
+- Schema validator Priority 1 violation detection
+- Lazy loading strategy in AGENTS.md
+- Plan-reviewer skill added (107 total rules)
+
+Squash merge of origin/main (GitHub v3.4.3)"
+```
+
+### 4.3 Push and Create Merge Request
+
+```bash
+# Push to GitLab (use --force if branch already exists from previous attempt)
+git push gitlab release/v3.4.3-gitlab --force
+
+# GitLab will provide a URL to create the Merge Request
+# Example output:
+# remote: To create a merge request for release/v3.4.3-gitlab, visit:
+# remote:   https://snow.gitlab-dedicated.com/.../merge_requests/new?...
+```
+
+Then in GitLab UI:
+1. Open the Merge Request URL
+2. Set target branch to `main`
+3. Review the changes (should show single squash commit)
+4. Submit for approval and merge
+
+### 4.4 Return to Working Branch
+
+```bash
+# Return to main (tracks origin/main by default)
+git checkout main
+git pull origin main
+
+# Or start your next feature branch
+git checkout -b feat/your-next-feature
 ```
 
 ## Handling Merge Conflicts
 
-If conflicts occur during squash merge:
+### Standard Conflicts (Same History)
+
+If conflicts occur during squash merge within the same remote:
 
 ```bash
 # After git merge --squash shows conflicts
@@ -259,6 +315,23 @@ git commit -m "feat: improve rule loading with priority hierarchy and agent opti
 - `CHANGELOG.md` — Multiple entries in same section
 - `README.md` — Version badges, rule counts
 - `RULES_INDEX.md` — Rule entries
+
+### Diverged History Conflicts (GitHub to GitLab)
+
+When merging from GitHub to GitLab with diverged histories, you'll see many `CONFLICT (add/add)` errors. Since GitHub is the authoritative source:
+
+```bash
+# Accept ALL changes from GitHub (theirs = origin/main)
+git checkout --theirs .
+git add .
+
+# Then commit
+git commit -m "feat(release): vX.Y.Z - description
+
+Squash merge of origin/main (GitHub vX.Y.Z)"
+```
+
+**Why `--theirs`?** In a squash merge with `--allow-unrelated-histories`, "theirs" refers to the branch being merged in (`origin/main`), which contains the authoritative GitHub release.
 
 ## Quick Reference
 
@@ -293,18 +366,34 @@ Examples:
 
 ### Release Workflow Summary
 
+**GitHub Release (Primary):**
+
 ```
 1. git checkout -b feat/your-feature main
-2. [develop, commit, push]
-3. git stash push -m "release docs"
+2. [develop, commit, push to origin]
+3. git stash push -u -m "release docs"
 4. git checkout -b release/vX.Y.Z origin/main
 5. git merge --squash feat/your-feature
 6. git commit -m "feat: description"
-7. git stash apply
-8. git add . && git commit -m "chore(release): prepare vX.Y.Z"
-9. task validate
-10. [repeat for other remotes]
-11. git stash drop
+7. git stash apply && git add . && git commit -m "chore(release): prepare vX.Y.Z"
+8. task validate
+9. git checkout main && git merge --squash release/vX.Y.Z
+10. git commit -m "feat(release): vX.Y.Z - description"
+11. git tag -a vX.Y.Z -m "chore: release vX.Y.Z"
+12. git push origin main --tags
+13. git stash drop
+```
+
+**GitLab Sync (Protected Branch):**
+
+```
+14. git fetch gitlab
+15. git checkout -b release/vX.Y.Z-gitlab gitlab/main
+16. git merge --squash origin/main --allow-unrelated-histories
+17. git checkout --theirs . && git add .
+18. git commit -m "feat(release): vX.Y.Z - description (squash merge from GitHub)"
+19. git push gitlab release/vX.Y.Z-gitlab --force
+20. [Create Merge Request in GitLab UI: release/vX.Y.Z-gitlab → main]
 ```
 
 ## Related Documentation

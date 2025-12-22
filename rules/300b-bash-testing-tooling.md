@@ -7,7 +7,7 @@
 **Keywords:** Bash, testing, ShellCheck, bats, shell script testing, CI/CD, debugging, static analysis, linting, test automation
 **TokenBudget:** ~2650
 **ContextTier:** Medium
-**Depends:** rules/300-bash-scripting-core.md
+**Depends:** 300-bash-scripting-core.md
 
 ## Purpose
 Provide comprehensive bash testing, debugging, and modern tooling integration including ShellCheck, CI/CD workflows, and development practices to ensure script quality and reliability.
@@ -222,8 +222,8 @@ shellcheck script.sh
 - [Google Shell Testing Guide](https://google.github.io/styleguide/shellguide.html#s7-tests) - Professional shell script testing standards
 
 ### Related Rules
-- **Bash Core**: `rules/300-bash-scripting-core.md`
-- **Bash Security**: `rules/300a-bash-security.md`
+- **Bash Core**: `300-bash-scripting-core.md`
+- **Bash Security**: `300a-bash-security.md`
 
 ## 1. Static Analysis with ShellCheck
 

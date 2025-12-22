@@ -7,7 +7,7 @@
 **Keywords:** Docker, Dockerfile, containers, multi-stage builds, layer caching, image optimization, docker-compose, BuildKit, distroless, security scanning, SBOM, non-root, healthcheck
 **TokenBudget:** ~1950
 **ContextTier:** Medium
-**Depends:** rules/202-markup-config-validation.md
+**Depends:** 202-markup-config-validation.md
 
 ## Purpose
 Provide practical, production-ready guidance for authoring Dockerfiles, building images, and running containers securely and efficiently, minimizing image size, build time, and supply-chain risk.
@@ -203,11 +203,11 @@ docker run --rm myapp:latest python -c "print('Container validation passed')"
 - UV Dockerfile Documentation: https://docs.astral.sh/uv/guides/integration/docker/#non-editable-installs
 
 ### Related Rules
-- **YAML Best Practices**: `rules/202-markup-config-validation.md`
-- **Python Core**: `rules/200-python-core.md`
-- **FastAPI Deployment**: `rules/210c-python-fastapi-deployment.md`
-- **Bash Security**: `rules/300a-bash-security.md`
-- **Snowpark Container Services**: `rules/120-snowflake-spcs.md`
+- **YAML Best Practices**: `202-markup-config-validation.md`
+- **Python Core**: `200-python-core.md`
+- **FastAPI Deployment**: `210c-python-fastapi-deployment.md`
+- **Bash Security**: `300a-bash-security.md`
+- **Snowpark Container Services**: `120-snowflake-spcs.md`
 
 ## 1. Image Authoring Patterns
 ### 1.1 Multi-Stage Builds (Generic)

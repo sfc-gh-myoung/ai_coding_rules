@@ -7,7 +7,7 @@
 **Keywords:** bulk loading, ON_ERROR, FILE_FORMAT, load data, external stage, internal stage, data ingestion, file upload, COPY error, loading patterns, stage files, PUT command, GET command
 **TokenBudget:** ~1900
 **ContextTier:** High
-**Depends:** rules/100-snowflake-core.md
+**Depends:** 100-snowflake-core.md
 
 ## Purpose
 Provide comprehensive best practices for efficiently staging and bulk loading data into Snowflake using Stages and COPY INTO commands, optimizing for performance, reliability, and cost-effectiveness in batch loading scenarios.
@@ -115,7 +115,6 @@ FILE_FORMAT = (TYPE=CSV);
 ```
 **Benefits:** Optimal 100-250MB file size; faster loading; lower metadata overhead; better compression; efficient resource usage; no immediate compaction needed
 
-
 **Anti-Pattern 2: Not Specifying FILE_FORMAT for Semi-Structured Data**
 ```sql
 -- Bad: Let Snowflake infer format, inconsistent parsing
@@ -143,7 +142,6 @@ ALTER TABLE json_table
 ```
 **Benefits:** Consistent parsing; correct type handling; subcolumnarization enabled; better query performance; data quality assured; predictable loading behavior
 
-
 **Anti-Pattern 3: Using INSERT INTO for Bulk Data Loading**
 ```sql
 -- Bad: Row-by-row INSERT in loop (Python/stored proc)
@@ -170,7 +168,6 @@ WHERE load_date = CURRENT_DATE();
 -- Creates optimal partitions, fast bulk operation
 ```
 **Benefits:** 1000x faster than row-by-row; optimal partition sizes; no metadata bloat; efficient resource usage; production-grade performance; no compaction needed
-
 
 **Anti-Pattern 4: Not Using VALIDATION_MODE to Test Before Loading**
 ```sql
@@ -249,11 +246,11 @@ SHOW VIEWS LIKE '%view_name%';
 - [Data Loading Best Practices](https://docs.snowflake.com/en/user-guide/data-load-considerations) - File sizing and optimization guidance
 
 ### Related Rules
-- **Snowflake Core**: `rules/100-snowflake-core.md`
-- **Snowpipe and Snowpipe Streaming**: `rules/121-snowflake-snowpipe.md` - Continuous near-real-time ingestion
-- **Streams and Tasks**: `rules/104-snowflake-streams-tasks.md`
-- **Performance Tuning**: `rules/103-snowflake-performance-tuning.md`
-- **Warehouse Management**: `rules/119-snowflake-warehouse-management.md`
+- **Snowflake Core**: `100-snowflake-core.md`
+- **Snowpipe and Snowpipe Streaming**: `121-snowflake-snowpipe.md` - Continuous near-real-time ingestion
+- **Streams and Tasks**: `104-snowflake-streams-tasks.md`
+- **Performance Tuning**: `103-snowflake-performance-tuning.md`
+- **Warehouse Management**: `119-snowflake-warehouse-management.md`
 
 ## 1. Stages
 - **Requirement:** Stage data files in an internal or external stage before loading.

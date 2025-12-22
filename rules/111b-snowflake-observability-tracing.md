@@ -7,7 +7,7 @@
 **Keywords:** span attributes, trace_id, performance analysis, metrics collection, cpu_usage, memory_usage, telemetry.create_span, OpenTelemetry, nested spans, tracing patterns, span creation, trace analysis, distributed traces
 **TokenBudget:** ~3300
 **ContextTier:** High
-**Depends:** rules/100-snowflake-core.md, rules/111-snowflake-observability-core.md
+**Depends:** 100-snowflake-core.md, 111-snowflake-observability-core.md
 
 ## Purpose
 Provide comprehensive distributed tracing and metrics collection patterns for Snowflake handlers, enabling performance analysis, bottleneck identification, and resource monitoring through custom spans and metrics.
@@ -129,7 +129,6 @@ def process_order(order):
 ```
 **Benefits:** Minimal overhead; manageable trace volume; cost-effective; performance maintained; clear operation boundaries; actionable traces
 
-
 **Anti-Pattern 2: Exceeding 128 Events Per Span Limit**
 ```python
 # Bad: Add event for every loop iteration
@@ -153,7 +152,6 @@ with telemetry.create_span("process_batch") as span:
 ```
 **Benefits:** Stays under 128 limit; all events captured; complete traces; effective debugging; efficient sampling; production-scalable
 
-
 **Anti-Pattern 3: Using TRACE_LEVEL = ALWAYS in Production**
 ```sql
 -- Bad: Trace every execution in production
@@ -174,7 +172,6 @@ ALTER ACCOUNT SET TRACE_LEVEL = ON_EVENT;
 ALTER SESSION SET TRACE_LEVEL = ALWAYS;
 ```
 **Benefits:** Production cost-effective; traces only instrumented code; manageable volume; performance maintained; development flexibility; targeted debugging
-
 
 **Anti-Pattern 4: Not Adding Context Attributes to Spans**
 ```python
@@ -303,10 +300,10 @@ def my_handler(session, input_data):
 - [Snowflake Telemetry Levels](https://docs.snowflake.com/en/developer-guide/logging-tracing/telemetry-levels) - Complete guide to TRACE_LEVEL configuration
 
 ### Related Rules
-- **Observability Core**: `rules/111-snowflake-observability-core.md` - Telemetry configuration and event tables
-- **Observability Logging**: `rules/111a-snowflake-observability-logging.md` - Logging best practices
-- **Observability Monitoring**: `rules/111c-snowflake-observability-monitoring.md` - Monitoring, Snowsight interfaces, analysis
-- **Performance Tuning**: `rules/103-snowflake-performance-tuning.md` - Performance optimization using trace data
+- **Observability Core**: `111-snowflake-observability-core.md` - Telemetry configuration and event tables
+- **Observability Logging**: `111a-snowflake-observability-logging.md` - Logging best practices
+- **Observability Monitoring**: `111c-snowflake-observability-monitoring.md` - Monitoring, Snowsight interfaces, analysis
+- **Performance Tuning**: `103-snowflake-performance-tuning.md` - Performance optimization using trace data
 
 ## 1. Python Telemetry Package
 

@@ -7,7 +7,7 @@
 **Keywords:** Zsh, shell compatibility, bash vs zsh, portable scripts, cross-shell, migration, emulate, POSIX compliance, scripting, shell scripting
 **TokenBudget:** ~2950
 **ContextTier:** Low
-**Depends:** rules/300-bash-scripting-core.md
+**Depends:** 300-bash-scripting-core.md
 
 ## Purpose
 Establish zsh compatibility strategies, bash migration patterns, and cross-shell scripting best practices for mixed environments, ensuring seamless transitions and portable script solutions.
@@ -208,9 +208,9 @@ shellcheck script.sh
 - [POSIX Shell Standard](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html) - Portable shell scripting specification
 
 ### Related Rules
-- **Zsh Core**: `rules/310-zsh-scripting-core.md`
-- **Zsh Advanced Features**: `rules/310a-zsh-advanced-features.md`
-- **Bash Core**: `rules/300-bash-scripting-core.md`
+- **Zsh Core**: `310-zsh-scripting-core.md`
+- **Zsh Advanced Features**: `310a-zsh-advanced-features.md`
+- **Bash Core**: `300-bash-scripting-core.md`
 
 ## 1. Bash to Zsh Migration Strategies
 

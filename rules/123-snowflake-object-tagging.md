@@ -7,7 +7,7 @@
 **Keywords:** cost attribution, resource tagging, governance tags, masking policies, row access policies, tag lineage, create tags, apply tags, tag strategy, tag policies, tag compliance, tag hierarchy, tag discovery, tag management
 **TokenBudget:** ~5550
 **ContextTier:** High
-**Depends:** rules/100-snowflake-core.md, rules/105-snowflake-cost-governance.md, rules/107-snowflake-security-governance.md
+**Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md, 107-snowflake-security-governance.md
 
 ## Purpose
 Establish comprehensive best practices for Snowflake object tagging to enable effective data governance, cost attribution, security classification, and resource monitoring through consistent metadata management across all supported Snowflake objects.
@@ -349,11 +349,11 @@ FROM TABLE(INFORMATION_SCHEMA.TAG_REFERENCES(
 - [Setting up object tags for cost attribution](https://docs.snowflake.com/en/user-guide/cost-attribution-tags) - Cost tracking patterns with tags
 
 ### Related Rules
-- **Snowflake Core**: `rules/100-snowflake-core.md`
-- **Security Governance**: `rules/107-snowflake-security-governance.md`
-- **Cost Governance**: `rules/105-snowflake-cost-governance.md`
-- **Warehouse Management**: `rules/119-snowflake-warehouse-management.md`
-- **Data Governance**: `rules/930-data-governance-quality.md`
+- **Snowflake Core**: `100-snowflake-core.md`
+- **Security Governance**: `107-snowflake-security-governance.md`
+- **Cost Governance**: `105-snowflake-cost-governance.md`
+- **Warehouse Management**: `119-snowflake-warehouse-management.md`
+- **Data Governance**: `930-data-governance-quality.md`
 
 > **[AI] Claude 4 Specific Guidance**
 > **Claude 4 Optimizations:**

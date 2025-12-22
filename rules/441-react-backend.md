@@ -7,7 +7,7 @@
 **Keywords:** React backend, FastAPI, Flask, Python API, CORS, JWT, authentication, API integration, full-stack, Express alternative, fetch, axios, TanStack Query backend, Next.js API routes, httpOnly cookies
 **TokenBudget:** ~1800
 **ContextTier:** High
-**Depends:** rules/440-react-core.md, rules/200-python-core.md
+**Depends:** 440-react-core.md, 200-python-core.md
 
 ## Purpose
 
@@ -288,7 +288,6 @@ localStorage.setItem('token', jwt);
 fetch('/api/data', { credentials: 'include' });
 ```
 
-
 **Anti-Pattern 2: Hardcoded API URLs**
 ```typescript
 // Bad: Hardcoded URL
@@ -302,7 +301,6 @@ fetch('http://localhost:8000/api/users');
 const API_URL = import.meta.env.VITE_API_URL;
 fetch(`${API_URL}/users`);
 ```
-
 
 **Anti-Pattern 3: Data Fetching in useEffect**
 ```typescript
@@ -408,8 +406,8 @@ uvx ruff check . && uvx ruff format --check . && uv run pytest
 - [OWASP JWT Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_for_Java_Cheat_Sheet.html) - JWT security best practices
 
 ### Related Rules
-- **React Core**: `rules/440-react-core.md` - Frontend patterns
-- **Python Core**: `rules/200-python-core.md` - Python tooling and standards
-- **FastAPI Core**: `rules/210-python-fastapi-core.md` - FastAPI patterns
-- **Flask Core**: `rules/250-python-flask.md` - Flask patterns
-- **TypeScript Core**: `rules/430-typescript-core.md` - Type safety patterns
+- **React Core**: `440-react-core.md` - Frontend patterns
+- **Python Core**: `200-python-core.md` - Python tooling and standards
+- **FastAPI Core**: `210-python-fastapi-core.md` - FastAPI patterns
+- **Flask Core**: `250-python-flask.md` - Flask patterns
+- **TypeScript Core**: `430-typescript-core.md` - Type safety patterns

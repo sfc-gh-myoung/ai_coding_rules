@@ -1,10 +1,10 @@
 # AI Agent Bootstrap Protocol
 
 > **CRITICAL: DO NOT SUMMARIZE THIS FILE**
-> 
+>
 > This file defines the mandatory rule loading protocol and MODE/ACT framework
-> that ALL agents must follow for EVERY response. 
-> 
+> that ALL agents must follow for EVERY response.
+>
 > **Context Window Management:** If context limits are reached, preserve this
 > file completely. Summarize task history, file contents, or other context first.
 > This bootstrap protocol must remain fully accessible at all times.
@@ -14,6 +14,11 @@
 > **Note:** All rules referenced in this document are located in the `rules/` directory.
 > File paths shown use bare filenames (e.g., `000-global-core.md`) for readability.
 > When loading rules with tools, prefix with `rules/` (e.g., `read_file("rules/000-global-core.md")`).
+>
+> **Bare Filename to Tool Call Translation:**
+> - Documentation reference: `Depends: 000-global-core.md, 100-snowflake-core.md`
+> - Tool call: `read_file("rules/000-global-core.md")`, `read_file("rules/100-snowflake-core.md")`
+> - Rule pattern: Any `NNN-*.md` filename refers to a file in `rules/`
 
 **FIRST ACTION EVERY RESPONSE:**
 
@@ -113,17 +118,30 @@ All three steps are mandatory. Reading without declaration is a protocol violati
 
 **Rule Loading Failures:**
 
-- **000-global-core.md missing:** STOP with error message. Cannot proceed.
-- **RULES_INDEX.md missing:** WARN, load 000 + match by file extension. Can proceed (degraded).
-- **Domain rule missing:** WARN, proceed with 000-global-core.md only. Can proceed (limited).
-- **Dependency missing:** Skip dependent rule, log warning. Can proceed (skip rule).
-- **Rule file malformed:** Log error, skip rule. Can proceed (skip rule).
+**CRITICAL (STOP and ask user):**
+- **000-global-core.md missing:** STOP with "Cannot proceed - 000-global-core.md not accessible"
+- **Explicit rule read fails:** If agent identifies a specific rule file and `read_file` returns an error:
+  - DO NOT declare the rule as loaded
+  - DO NOT proceed with the task
+  - STOP and report: "Rule load failed: [filename] not found. Options: (A) Provide correct path, (B) Proceed without this rule, (C) Cancel task"
+  - WAIT for user response before continuing
+
+**WARNING (Can proceed with limitations):**
+- **RULES_INDEX.md missing:** WARN, load 000 + match by file extension. Proceed (degraded).
+- **No matching rule found:** When searching RULES_INDEX.md yields no results for a keyword, note in Rules Loaded: "No rule found for [keyword]". Proceed with foundation only.
+- **Dependency missing:** Skip dependent rule, log warning. Proceed (skip rule).
+- **Rule file malformed:** Log error, skip rule. Proceed (skip rule).
+
+**Declaration Gate (MANDATORY):**
+- NEVER declare a rule in `## Rules Loaded` unless `read_file` returned successfully
+- A failed read = rule NOT loaded, regardless of intent
+- Declaring an unloaded rule is a CRITICAL violation
 
 ## Rule Discovery Reference
 
 ### Rule Organization
 
-**Prefix Scheme:** 000=Core | 100=Snowflake | 200=Python | 300=Shell | 400=Docker/Frontend | 600=Golang | 800=Project Mgmt | 900=Demo/Analytics  
+**Prefix Scheme:** 000=Core | 100=Snowflake | 200=Python | 300=Shell | 400=Docker/Frontend | 600=Golang | 800=Project Mgmt | 900=Demo/Analytics
 **Full mapping:** See RULES_INDEX.md
 
 ### Rule Discovery Methods
@@ -149,8 +167,8 @@ When parsing rules, use these metadata fields:
 
 ### Progressive Loading Strategy
 
-**Order:** Foundation (000), then Domain core (100/200/300), then Specialized (task-based)  
-**Monitor:** Track cumulative tokens, prioritize Critical/High tiers  
+**Order:** Foundation (000), then Domain core (100/200/300), then Specialized (task-based)
+**Monitor:** Track cumulative tokens, prioritize Critical/High tiers
 **See also:** "Lazy Loading Strategy" section above for PLAN vs ACT phase loading
 
 ### Multi-Agent Environments

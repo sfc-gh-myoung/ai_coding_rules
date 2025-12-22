@@ -1,7 +1,7 @@
 ---
 name: rule-reviewer
 description: Execute agent-centric rule reviews (FULL/FOCUSED/STALENESS modes) using the PROMPT.md rubric and write results to reviews/ with no-overwrite safety. Triggers on keywords like "review rule", "audit rule", "check rule quality", "rule staleness", "rule compliance".
-version: 1.1.0
+version: 1.3.0
 author: AI Coding Rules Project
 tags: [rule-review, quality-audit, compliance, staleness-check, rubric-based, automated-review]
 dependencies: []
@@ -13,10 +13,18 @@ dependencies: []
 
 Run the Agent-Centric Rule Review using `PROMPT.md` (colocated in this skill folder) and write the full review output to `reviews/`.
 
+**Design Priority Hierarchy:** This skill evaluates rules against the priority order defined in `000-global-core.md`:
+1. **Priority 1:** Agent Understanding and Execution Reliability (CRITICAL)
+2. **Priority 2:** Token and Context Window Efficiency (HIGH)
+3. **Priority 3:** Human Readability (TERTIARY)
+
+Rules are scored primarily on whether autonomous agents can execute them without judgment calls.
+
 ## Use this skill when
 
 - The user asks to **review** a rule file under `rules/`.
-- The user asks for a **FULL / FOCUSED / STALENESS** review using the repository’s rubric.
+- The user asks for a **FULL / FOCUSED / STALENESS** review using the repository's rubric.
+- The user wants to verify a rule is **agent-executable** before deployment.
 
 ## Inputs (required)
 
@@ -122,24 +130,6 @@ This skill integrates with **rule-creator** for end-to-end quality assurance:
 - Overall score: ≥ 75/100
 - No CRITICAL issues
 - No HIGH issues in Actionability or Completeness dimensions
+- Priority 1 violations < 6 (otherwise score capped at 60/100)
 
 See: `skills/rule-creator/SKILL.md`
-
-## Version History
-
-- **v1.2.0** (2025-12-16): 100-point scoring system
-  - Updated to 100-point scale (from X/10 per dimension)
-  - Point allocation: 25/20/20/15/10/10
-  - Updated quality thresholds for /100 scale
-
-- **v1.1.0** (2025-12-15): Enhanced skill structure
-  - Added version, author, tags, dependencies to frontmatter
-  - Improved description with trigger keywords
-  - Added inline validation snippets
-  - Added version history section
-  - Added cross-reference to rule-creator skill
-- **v1.0.0** (2024-12-11): Initial release
-  - 5-workflow progressive disclosure structure
-  - FULL/FOCUSED/STALENESS review modes
-  - No-overwrite file safety
-  - Model slug normalization

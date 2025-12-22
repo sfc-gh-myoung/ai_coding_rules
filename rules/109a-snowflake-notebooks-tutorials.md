@@ -7,7 +7,7 @@
 **Keywords:** checkpoints, learning objectives, pedagogical design, educational content, progressive learning, Snowflake notebooks, teaching point callouts, validation gates, tutorial structure, learning design, educational notebooks, teaching methodology, notebook education
 **TokenBudget:** ~4700
 **ContextTier:** High
-**Depends:** rules/109-snowflake-notebooks.md, rules/920-data-science-analytics.md
+**Depends:** 109-snowflake-notebooks.md, 920-data-science-analytics.md
 
 ## Purpose
 Establish comprehensive patterns for designing educational Snowflake notebooks that effectively teach concepts through clear learning objectives, structured content, anti-pattern examples, validation checkpoints, and progressive complexity management.
@@ -129,7 +129,6 @@ By the end of this notebook, you will understand:
 ```
 **Benefits:** Specific, measurable outcomes with clear deliverables that learners can validate.
 
-
 **Anti-Pattern 2: No Anti-Pattern Teaching**
 ```markdown
 ## Best Practices
@@ -244,10 +243,10 @@ SHOW VIEWS LIKE '%view_name%';
 - [Instructional Design Principles](https://www.td.org/insights/instructional-design-101-getting-started) - Foundation for effective tutorials from Association for Talent Development (industry-standard framework for learning objective design and assessment)
 
 ### Related Rules
-- **Snowflake Notebooks Core**: `rules/109-snowflake-notebooks.md`
-- **Data Science Analytics**: `rules/920-data-science-analytics.md`
-- **Demo Creation**: `rules/900-demo-creation.md`
-- **Business Analytics**: `rules/940-business-analytics.md`
+- **Snowflake Notebooks Core**: `109-snowflake-notebooks.md`
+- **Data Science Analytics**: `920-data-science-analytics.md`
+- **Demo Creation**: `900-demo-creation.md`
+- **Business Analytics**: `940-business-analytics.md`
 
 ## 1. Learning Objectives Section
 
@@ -696,7 +695,6 @@ if checks_failed:
 else:
     print("ALL CHECKS PASSED")
 ```
-
 
 ### [NOTE] Teaching Point: [Topic]
 

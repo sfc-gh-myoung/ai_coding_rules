@@ -1,7 +1,7 @@
 # Global Core Guidelines
 
 > **CRITICAL: DO NOT SUMMARIZE THIS FILE**
-> 
+>
 > This is the foundation rule that defines core patterns for ALL agents. Required
 > for every response. If context limits are reached, preserve this file completely.
 > Summarize task history or other files first - this foundation must remain accessible.
@@ -113,7 +113,7 @@ If the answer is no, revise for Priority 1 compliance.
 - Repeated key terms for clarity: Priority 1 wins
 - Complete examples over terse references: Priority 1 wins
 
-**See:** `rules/002e-agent-optimization.md` for detailed formatting patterns.
+**See:** `002e-agent-optimization.md` for detailed formatting patterns.
 
 ## Key Principles
 
@@ -281,6 +281,7 @@ These violations result in INVALID responses that must be regenerated:
 - **Rules not listed:** Missing `## Rules Loaded` section - Add section listing all loaded rules
 - **File edit in PLAN:** File modification in PLAN mode - STOP, present task list, await "ACT"
 - **ACT without authorization:** Entered ACT without user "ACT" - Revert changes, apologize, return to PLAN
+- **False rule declaration:** Declared rule as loaded when `read_file` failed - STOP, remove false declaration, report failure to user with options (A) Provide correct path, (B) Proceed without rule, (C) Cancel task
 
 **High Priority Violations:**
 - **Task list missing ACT prompt:** PLAN with Task List must end with authorization prompt - Regenerate with explicit ACT prompt
@@ -478,7 +479,7 @@ maintain consistent behavior. This protocol works across all LLM providers.
 1. **AGENTS.md** - Bootstrap protocol and MODE/ACT framework
 2. **000-global-core.md** - This file (foundation patterns)
 3. **Active domain -core.md file** - The primary domain rule for current task
-   - Examples: 200-python-core.md (Python tasks), 100-snowflake-core.md (Snowflake tasks), 
+   - Examples: 200-python-core.md (Python tasks), 100-snowflake-core.md (Snowflake tasks),
      420-javascript-core.md (JavaScript tasks)
 
 **PRESERVE WHEN RELEVANT:**
@@ -550,9 +551,9 @@ in this protocol take precedence because they work universally across all LLM pr
 
 ### Related Rules
 - **Discovery Guide**: `AGENTS.md` - How to find and use rules
-- **Memory Bank**: `rules/001-memory-bank.md` - Context continuity
-- **Rule Governance**: `rules/002-rule-governance.md` - Rule authoring standards
-- **Context Engineering**: `rules/003-context-engineering.md` - Attention budget management
+- **Memory Bank**: `001-memory-bank.md` - Context continuity
+- **Rule Governance**: `002-rule-governance.md` - Rule authoring standards
+- **Context Engineering**: `003-context-engineering.md` - Attention budget management
 
 ## Task Definition Structure
 

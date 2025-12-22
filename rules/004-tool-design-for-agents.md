@@ -7,7 +7,7 @@
 **Keywords:** tool design, agent tools, token efficiency, tool parameters, function calling, tool overlap, tool contracts, error handling, minimal tool set, self-contained tools, LLM-friendly parameters, single responsibility
 **TokenBudget:** ~5000
 **ContextTier:** High
-**Depends:** rules/000-global-core.md, rules/003-context-engineering.md
+**Depends:** 000-global-core.md, 003-context-engineering.md
 
 ## Purpose
 Establish comprehensive tool design practices that maximize agent effectiveness through token-efficient outputs, minimal tool overlap, clear contracts, and patterns that promote efficient agent behaviors while maintaining robustness and clarity.
@@ -295,9 +295,9 @@ Validation:
 - [Function Calling Documentation](https://platform.openai.com/docs/guides/function-calling) - OpenAI's function calling patterns
 
 ### Related Rules
-- **Global Core**: `rules/000-global-core.md` - Foundational workflow and safety protocols
-- **Context Engineering**: `rules/003-context-engineering.md` - Token efficiency and attention budget management
-- **Rule Governance**: `rules/002-rule-governance.md` - Standards for rule and tool documentation
+- **Global Core**: `000-global-core.md` - Foundational workflow and safety protocols
+- **Context Engineering**: `003-context-engineering.md` - Token efficiency and attention budget management
+- **Rule Governance**: `002-rule-governance.md` - Standards for rule and tool documentation
 - **AGENTS Workflow**: `AGENTS.md` - Rule discovery and operational protocols
 
 ## 1. Tool Design Fundamentals

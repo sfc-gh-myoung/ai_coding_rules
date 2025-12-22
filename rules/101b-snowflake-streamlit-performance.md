@@ -7,7 +7,7 @@
 **Keywords:** @st.cache_data, @st.cache_resource, SQL error handling, st.error, SnowparkSQLException, st.fragment, NULL handling, slow streamlit, streamlit caching, optimize streamlit, fix slow queries, fragment batch processing
 **TokenBudget:** ~5950
 **ContextTier:** High
-**Depends:** rules/101-snowflake-streamlit-core.md, rules/103-snowflake-performance-tuning.md
+**Depends:** 101-snowflake-streamlit-core.md, 103-snowflake-performance-tuning.md
 
 ## Purpose
 Provide comprehensive guidance for optimizing Streamlit application performance through caching strategies, efficient data loading from Snowflake, SQL error handling with detailed debugging information, progress indicators, and performance profiling.
@@ -340,12 +340,12 @@ st.dataframe(df[['region', 'product', 'total_amount']])
 - [Snowpark Python](https://docs.snowflake.com/en/developer-guide/snowpark/python/index) - Snowpark for Python documentation
 
 ### Related Rules
-- **Streamlit Core**: `rules/101-snowflake-streamlit-core.md`
-- **Snowflake Core**: `rules/100-snowflake-core.md`
-- **Snowflake Performance Tuning**: `rules/103-snowflake-performance-tuning.md`
-- **Snowflake Cost Governance**: `rules/105-snowflake-cost-governance.md`
-- **DateTime Handling**: `rules/251-python-datetime-handling.md` (datetime optimization for time series)
-- **Pandas Best Practices**: `rules/252-pandas-best-practices.md` (DataFrame optimization and caching patterns)
+- **Streamlit Core**: `101-snowflake-streamlit-core.md`
+- **Snowflake Core**: `100-snowflake-core.md`
+- **Snowflake Performance Tuning**: `103-snowflake-performance-tuning.md`
+- **Snowflake Cost Governance**: `105-snowflake-cost-governance.md`
+- **DateTime Handling**: `251-python-datetime-handling.md` (datetime optimization for time series)
+- **Pandas Best Practices**: `252-pandas-best-practices.md` (DataFrame optimization and caching patterns)
 
 > **[AI] Claude 4 Specific Guidance**
 > **Claude 4 Streamlit Performance Optimizations:**
@@ -867,7 +867,6 @@ if st.button("Start"):
 ```
 **Benefits:** Fragment persists across reruns, continues polling until session state cleared.
 
-
 **Anti-Pattern 2: Using Widgets Inside Fragments**
 ```python
 @st.fragment(run_every="1s")
@@ -887,7 +886,6 @@ def display_only_fragment():
     st.write(f"Hello {user_input}")  # Read-only display OK
 ```
 **Benefits:** Follows Streamlit's fragment constraints, works reliably.
-
 
 **Anti-Pattern 3: No Termination Condition**
 ```python

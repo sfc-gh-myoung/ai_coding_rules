@@ -1,10 +1,9 @@
 # Go Core: Modern Standards & Best Practices
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
-> 
+>
 > This rule defines essential Golang patterns. Load for Go tasks.
 > Specialized rules depend on this foundation.
-
 
 ## Metadata
 
@@ -13,7 +12,7 @@
 **Keywords:** Go, Golang, go.mod, modules, error handling, interfaces, goroutines, channels, testing, go fmt, golangci-lint, concurrency, context, defer
 **TokenBudget:** ~3500
 **ContextTier:** High
-**Depends:** rules/000-global-core.md
+**Depends:** 000-global-core.md
 
 ## Purpose
 
@@ -234,7 +233,6 @@ if err != nil {
 _ = writer.Close() // Best-effort cleanup; main data already flushed
 ```
 
-
 **Anti-Pattern 2: Naked Returns in Long Functions**
 ```go
 // Bad: Hard to track what's being returned
@@ -269,7 +267,6 @@ func writeFile(path string, data []byte) (err error) {
 }
 ```
 
-
 **Anti-Pattern 3: Overusing `interface{}`/`any`**
 ```go
 // Bad: Loses type safety
@@ -291,7 +288,6 @@ func Process(data io.Reader) ([]byte, error) {
     return io.ReadAll(data)
 }
 ```
-
 
 **Anti-Pattern 4: Goroutine Leaks**
 ```go
@@ -325,7 +321,6 @@ func watch(ctx context.Context, ch chan Event) {
     }()
 }
 ```
-
 
 **Anti-Pattern 5: Package-Level `init()` with Side Effects**
 ```go
@@ -524,8 +519,8 @@ go mod tidy
 - [golangci-lint](https://golangci-lint.run/) - Fast linters runner for Go
 
 ### Related Rules
-- **Global Core**: `rules/000-global-core.md` - Foundation for all rules
-- **Taskfile Automation**: `rules/820-taskfile-automation.md` - Build automation patterns
+- **Global Core**: `000-global-core.md` - Foundation for all rules
+- **Taskfile Automation**: `820-taskfile-automation.md` - Build automation patterns
 
 ## 1. Tooling & Environment
 

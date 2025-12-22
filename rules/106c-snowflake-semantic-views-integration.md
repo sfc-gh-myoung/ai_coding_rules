@@ -7,7 +7,7 @@
 **Keywords:** RBAC, masking policy, row access policy, Generator workflow, iterative development, synonyms, natural language queries, cortex analyst, agent integration, semantic view security, analyst troubleshooting, fix analyst, debug analyst
 **TokenBudget:** ~5650
 **ContextTier:** Medium
-**Depends:** rules/106-snowflake-semantic-views-core.md, rules/106b-snowflake-semantic-views-querying.md
+**Depends:** 106-snowflake-semantic-views-core.md, 106b-snowflake-semantic-views-querying.md
 
 ## Purpose
 Provide comprehensive guidance for integrating Snowflake Semantic Views with Cortex Analyst and Cortex Agent, applying governance and security controls, and following production-ready development workflows including the Semantic View Generator tool.
@@ -269,12 +269,12 @@ print(cursor.fetchall())
 - [RBAC Overview](https://docs.snowflake.com/en/user-guide/security-access-control-overview) - Role-based access control
 
 ### Related Rules
-- **Semantic Views Core**: `rules/106-snowflake-semantic-views-core.md` - DDL creation, validation rules, components
-- **Semantic Views Querying**: `rules/106b-snowflake-semantic-views-querying.md` - Query patterns and testing
-- **Snowflake Core**: `rules/100-snowflake-core.md` - Foundational Snowflake practices
-- **Cortex AI/SQL**: `rules/114-snowflake-cortex-aisql.md` - Cortex functions and patterns
-- **Cortex Agents**: `rules/115-snowflake-cortex-agents-core.md` - Agent design and configuration
-- **Security Governance**: `rules/107-snowflake-security-governance.md` - Security policies and governance
+- **Semantic Views Core**: `106-snowflake-semantic-views-core.md` - DDL creation, validation rules, components
+- **Semantic Views Querying**: `106b-snowflake-semantic-views-querying.md` - Query patterns and testing
+- **Snowflake Core**: `100-snowflake-core.md` - Foundational Snowflake practices
+- **Cortex AI/SQL**: `114-snowflake-cortex-aisql.md` - Cortex functions and patterns
+- **Cortex Agents**: `115-snowflake-cortex-agents-core.md` - Agent design and configuration
+- **Security Governance**: `107-snowflake-security-governance.md` - Security policies and governance
 
 ## 1) Cortex Analyst Integration
 

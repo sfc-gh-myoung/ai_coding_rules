@@ -1,10 +1,9 @@
 # Rule Optimization: Token Budgets and Performance
 
 > **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
-> 
+>
 > This rule defines essential governance patterns for the ai_coding_rules system.
 > Load when creating, reviewing, or maintaining rules.
-
 
 ## Metadata
 
@@ -13,7 +12,7 @@
 **Keywords:** token budget, optimization, performance, rule sizing, progressive loading, context window, model limits, cost efficiency, caching, batch loading
 **TokenBudget:** ~3500
 **ContextTier:** High
-**Depends:** rules/002-rule-governance.md, rules/000-global-core.md
+**Depends:** 002-rule-governance.md, 000-global-core.md
 
 ## Purpose
 
@@ -515,7 +514,6 @@ wc -w rules/NNN-rule.md
 ```
 **Benefits:** Parseable, enables progressive loading decisions, accurate context budget tracking.
 
-
 **Anti-Pattern 2: Loading All Rules at Start**
 
 **Problem:** Loading all 100+ rules at session start (>250K tokens)
@@ -573,7 +571,7 @@ wc -w rules/NNN-rule.md
 **Keywords:** pytest, testing, fixtures, parametrization, test isolation
 **TokenBudget:** ~2050
 **ContextTier:** High
-**Depends:** rules/200-python-core.md
+**Depends:** 200-python-core.md
 
 # [Rule content - ~2050 tokens total]
 ```
@@ -587,7 +585,7 @@ wc -w rules/NNN-rule.md
 **Keywords:** Cortex Agents, multi-tool agents, planning instructions, testing
 **TokenBudget:** ~4650
 **ContextTier:** Medium
-**Depends:** rules/100-snowflake-core.md
+**Depends:** 100-snowflake-core.md
 
 # [Rule content - ~4650 tokens total]
 ```

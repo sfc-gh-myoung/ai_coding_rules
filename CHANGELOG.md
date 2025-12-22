@@ -5,7 +5,62 @@ All notable changes to the AI Coding Rules project will be documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [3.4.4] - 2025-12-22
+
+### Added
+- feat(rules): add Claude Code skills best practices guide (002f-claude-code-skills.md)
+  - Define SKILL.md structure with YAML frontmatter and directory organization
+  - Document progressive disclosure patterns and trigger keyword best practices
+- feat(scripts): support letter suffixes in rule filenames (template_generator.py)
+  - Update regex to match NNNx-technology-aspect pattern (e.g., 111a-snowflake-feature)
+- feat(skills): Priority Compliance Gate for rule-reviewer and plan-reviewer
+  - Added Design Priority Hierarchy as governing principle (Agent Understanding > Token Efficiency > Human Readability)
+  - Added Agent Execution Test as mandatory first gate before dimension scoring
+  - Added blocking issue counts with automatic score caps (≥10 caps at 60/100, ≥20 caps at 40/100)
+  - Added Priority Compliance Summary to required output format
+  - Standardized terminology: "undefined thresholds" replaces "subjective terms"
+- feat(agents): add Declaration Gate and explicit rule load failure handling (AGENTS.md)
+  - CRITICAL failures now require STOP and user intervention with A/B/C options
+  - Declaration Gate prohibits declaring rules when `read_file` fails
+  - Distinguishes explicit rule load failures from implicit discovery misses
+- feat(governance): add false rule declaration to Critical Violations (000-global-core.md)
+  - Declaring a rule as loaded when read failed is now a CRITICAL violation
+  - Recovery requires STOP, remove declaration, and present user options
+- feat(agents): add explicit bare filename to tool call translation examples (AGENTS.md)
+  - Documents pattern: `Depends: 000-global-core.md` to `read_file("rules/000-global-core.md")`
+- feat(index): add Filename Convention block to RULES_INDEX.md header (scripts/index_generator.py)
+  - CRITICAL section documenting bare filename convention and tool call translation
+  - Updated Rule Loading Strategy to use bare filenames consistently
+  - Kept `rules/` prefix in `## Rules Loaded` output examples (user-facing clarity)
+
+### Changed
+- refactor(skills): convert ASCII tables to structured lists in all reviewer skills
+  - rule-reviewer/PROMPT.md: Dimension Point Allocation, Scoring Impact Rules
+  - plan-reviewer/PROMPT.md: Dimension Point Allocation, Scoring Impact Rules, Audit tables
+  - plan-reviewer/SKILL.md: Review Modes, Review Dimensions, Verdicts tables
+  - doc-reviewer/SKILL.md: Review Dimensions table
+- refactor(skills): remove Version History sections from all 4 skills (~670 tokens recovered)
+  - Version tracking belongs in CHANGELOG.md, not agent-consumed skill definitions
+  - Frontmatter `version` field retained for current version identification
+- refactor(rules): remove redundant `rules/` prefix from ~737 rule references
+  - Depends fields now use bare filenames (e.g., `000-global-core.md`)
+  - Related Rules sections use bare filenames in backticks
+  - RULES_INDEX.md uses bare filenames for rule references
+  - Kept `rules/` prefix in shell command examples and `## Rules Loaded` output format
+  - Saves ~1,200 tokens across rule files
+- docs: remove hardcoded rule counts from README.md, CONTRIBUTING.md, and ARCHITECTURE.md
+  - Replaced "107 files" and "107 rules" references with generic "production-ready rules"
+  - Prevents documentation drift as rule count changes
+- docs(git-workflow): expand GitLab protected branch sync documentation (EXAMPLE_GIT_WORKFLOW.md)
+  - Added important notes about diverged histories between GitHub and GitLab
+  - Restructured workflow to create GitLab release branch after GitHub release
+  - Added Phase 4 for protected branch Merge Request workflow
+  - Added `--allow-unrelated-histories` and `--theirs` conflict resolution patterns
+  - Updated quick reference summary with GitHub and GitLab sync steps
+- style(markdown): fix trailing spaces and multiple blank lines across rule files
+  - Removed trailing whitespace from AGENTS.md and 65+ rule files
+  - Collapsed multiple consecutive blank lines to single blank lines
+  - Resolves pymarkdownlnt MD009 and MD012 violations
 
 ## [3.4.3] - 2025-12-17
 
@@ -814,7 +869,8 @@ Processed 2 retrospective findings from Cortex Agent testing project:
 - Basic validation scripts
 - Documentation templates
 
-[Unreleased]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.4.3...HEAD
+[Unreleased]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.4.4...HEAD
+[3.4.4]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.4.3...v3.4.4
 [3.4.3]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.4.2...v3.4.3
 [3.4.2]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.4.0...v3.4.2
 [3.4.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.3.0...v3.4.0

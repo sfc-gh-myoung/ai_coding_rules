@@ -1,10 +1,9 @@
 # HTMX Core Patterns (Python)
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
-> 
+>
 > This rule defines essential HTMX patterns. Load for HTMX tasks.
 > Specialized rules depend on this foundation.
-
 
 ## Metadata
 
@@ -13,7 +12,7 @@
 **Keywords:** htmx, hypermedia, hateoas, hx-request, hx-trigger, partial rendering, sse, websockets, csrf, xss, http headers, swap strategies, oob swaps, response patterns
 **TokenBudget:** ~2500
 **ContextTier:** High
-**Depends:** rules/200-python-core.md
+**Depends:** 200-python-core.md
 
 ## Purpose
 
@@ -288,7 +287,7 @@ SSE enables real-time updates from server to client. Choose between two approach
 1. **HTMX SSE Extension** - Simple, declarative, single-element updates
 2. **Alpine.js SSE Manager** - Complex logic, multiple elements, toast notifications
 
-See `rules/221g-python-htmx-sse.md` for comprehensive SSE patterns.
+See `221g-python-htmx-sse.md` for comprehensive SSE patterns.
 
 ```python
 # FastAPI SSE endpoint with named events
@@ -497,11 +496,11 @@ def update_item(item_id):
 
 ### Related Rules
 
-- **Python Foundation**: `rules/200-python-core.md` - Python coding standards
-- **Template Strategies**: `rules/221a-python-htmx-templates.md` - Jinja2 patterns for HTMX
-- **Flask Integration**: `rules/221b-python-htmx-flask.md` - Flask-specific HTMX patterns
-- **FastAPI Integration**: `rules/221c-python-htmx-fastapi.md` - FastAPI-specific HTMX patterns
-- **Testing Patterns**: `rules/221d-python-htmx-testing.md` - Testing HTMX endpoints
-- **Common Patterns**: `rules/221e-python-htmx-patterns.md` - CRUD, forms, infinite scroll
-- **Frontend Integrations**: `rules/221f-python-htmx-integrations.md` - Alpine.js, Tailwind, etc.
-- **SSE Patterns**: `rules/221g-python-htmx-sse.md` - Server-Sent Events patterns
+- **Python Foundation**: `200-python-core.md` - Python coding standards
+- **Template Strategies**: `221a-python-htmx-templates.md` - Jinja2 patterns for HTMX
+- **Flask Integration**: `221b-python-htmx-flask.md` - Flask-specific HTMX patterns
+- **FastAPI Integration**: `221c-python-htmx-fastapi.md` - FastAPI-specific HTMX patterns
+- **Testing Patterns**: `221d-python-htmx-testing.md` - Testing HTMX endpoints
+- **Common Patterns**: `221e-python-htmx-patterns.md` - CRUD, forms, infinite scroll
+- **Frontend Integrations**: `221f-python-htmx-integrations.md` - Alpine.js, Tailwind, etc.
+- **SSE Patterns**: `221g-python-htmx-sse.md` - Server-Sent Events patterns

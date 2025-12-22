@@ -1,10 +1,9 @@
 # Advanced Rule Patterns: System Prompt Altitude & Complex Workflows
 
 > **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
-> 
+>
 > This rule defines essential governance patterns for the ai_coding_rules system.
 > Load when creating, reviewing, or maintaining rules.
-
 
 ## Metadata
 
@@ -13,7 +12,7 @@
 **Keywords:** system prompt altitude, investigation-first, anti-patterns, multi-session workflows, parallel execution, advanced patterns, heuristics, goldilocks zone, context management, state management
 **TokenBudget:** ~3550
 **ContextTier:** Medium
-**Depends:** rules/002-rule-governance.md, rules/000-global-core.md
+**Depends:** 002-rule-governance.md, 000-global-core.md
 
 ## Purpose
 

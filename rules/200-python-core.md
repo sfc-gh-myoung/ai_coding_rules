@@ -1,10 +1,9 @@
 # Python Core Engineering Directives
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
-> 
+>
 > This rule defines essential Python patterns. Load for Python tasks.
 > Specialized rules depend on this foundation.
-
 
 ## Metadata
 
@@ -13,7 +12,7 @@
 **Keywords:** Python, uv, Ruff, pyproject.toml, dependency management, virtual environments, pytest, validation, uv run, uvx, ty, type checking, mypy, type hints
 **TokenBudget:** ~4050
 **ContextTier:** Critical
-**Depends:** rules/000-global-core.md
+**Depends:** 000-global-core.md
 
 ## Purpose
 Establish foundational Python development practices using modern tooling like `uv` and Ruff to ensure consistent, reliable, and performant codebases with proper dependency management, linting, formatting, and project structure.
@@ -99,7 +98,6 @@ uv run uvicorn app.main:app --reload
 ```
 **Benefits:** Consistent dependency resolution; all project modules available; reproducible behavior; no environment activation needed
 
-
 **Anti-Pattern 2: Skipping Validation Before Task Completion**
 ```python
 # AI makes code changes to fix a bug
@@ -120,7 +118,6 @@ uv run pytest
 ```
 **Benefits:** Catches errors immediately; ensures code quality standards; user receives working, tested code; no surprises
 
-
 **Anti-Pattern 3: Using Deprecated `datetime.utcnow()`**
 ```python
 # Bad: Using deprecated datetime API
@@ -136,7 +133,6 @@ from datetime import datetime, UTC
 timestamp = datetime.now(UTC)  # Modern, timezone-aware
 ```
 **Benefits:** Future-proof code; explicit timezone handling; follows Python 3.11+ best practices; no deprecation warnings
-
 
 **Anti-Pattern 4: Installing Tools in Project Environment Instead of Using `uvx`**
 ```bash
@@ -155,7 +151,6 @@ uvx ty check .
 # Tools run in isolation, no project pollution
 ```
 **Benefits:** Clean project dependencies; no version conflicts; faster uv sync; tools always latest stable versions; simpler pyproject.toml
-
 
 **Anti-Pattern 5: Skipping Type Checking Before Task Completion**
 ```python
@@ -289,10 +284,10 @@ uv run pytest tests/
 - [PEP 8 Style Guide](https://peps.python.org/pep-0008/) - Python style guide
 
 ### Related Rules
-- **Linting & Formatting**: `rules/201-python-lint-format.md`
-- **Project Setup**: `rules/203-python-project-setup.md`
-- **YAML Safety**: `rules/202-markup-config-validation.md`
-- **Global Core**: `rules/000-global-core.md`
+- **Linting & Formatting**: `201-python-lint-format.md`
+- **Project Setup**: `203-python-project-setup.md`
+- **YAML Safety**: `202-markup-config-validation.md`
+- **Global Core**: `000-global-core.md`
 
 ## 1. Environment & Tooling
 - **Requirement:** Use `uv` for all dependency and environment management.

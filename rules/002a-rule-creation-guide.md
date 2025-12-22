@@ -1,10 +1,9 @@
 # Rule Creation Guide: Step-by-Step Workflow
 
 > **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
-> 
+>
 > This rule defines essential governance patterns for the ai_coding_rules system.
 > Load when creating, reviewing, or maintaining rules.
-
 
 ## Metadata
 
@@ -13,7 +12,7 @@
 **Keywords:** rule creation, workflow, step-by-step guide, naming conventions, metadata setup, section structure, Contract XML, validation, rule numbering, from scratch
 **TokenBudget:** ~3350
 **ContextTier:** High
-**Depends:** rules/002-rule-governance.md, rules/000-global-core.md
+**Depends:** 002-rule-governance.md, 000-global-core.md
 
 ## Purpose
 
@@ -211,7 +210,7 @@ Review 2-3 existing rules to understand:
 **Keywords:** [10-15 keywords here]
 **TokenBudget:** ~[estimate]
 **ContextTier:** [Critical|High|Medium|Low]
-**Depends:** rules/000-global-core.md
+**Depends:** 000-global-core.md
 
 ## Purpose
 
@@ -337,7 +336,7 @@ Add an importance marker after the title for foundation rules:
 - **Keywords:** 10-15 comma-separated terms - CRITICAL for semantic discovery
 - **TokenBudget:** `~NUMBER` format (e.g., `**TokenBudget:** ~1200`) - Use tilde prefix
 - **ContextTier:** One of Critical/High/Medium/Low only
-- **Depends:** Rule path(s) (e.g., `rules/000-global-core.md`) - At least one required
+- **Depends:** Rule path(s) (e.g., `000-global-core.md`) - At least one required
 
 ### Keywords Best Practices
 
@@ -657,7 +656,7 @@ vim rules/121-snowflake-snowpipe.md
 # **Keywords:** Snowflake, Snowpipe, data ingestion, streaming, CDC, error handling, monitoring, cost optimization, retry logic, file formats
 # **TokenBudget:** ~1200
 # **ContextTier:** High
-# **Depends:** rules/000-global-core.md, rules/100-snowflake-core.md
+# **Depends:** 000-global-core.md, 100-snowflake-core.md
 
 # Step 4: Write all required sections with Contract
 # [Edit file with all 9 required sections]
@@ -686,7 +685,7 @@ vim rules/101d-snowflake-streamlit-testing.md
 # **Keywords:** Streamlit, validation, forms, widgets, error handling, user input, data validation, UI feedback, session state, form submission
 # **TokenBudget:** ~800
 # **ContextTier:** Medium
-# **Depends:** rules/000-global-core.md, rules/101-snowflake-streamlit-core.md
+# **Depends:** 000-global-core.md, 101-snowflake-streamlit-core.md
 
 # Write all required sections
 

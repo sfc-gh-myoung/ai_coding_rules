@@ -7,7 +7,7 @@
 **Keywords:** st.secrets, SQL injection, authentication, secure streamlit, protect app, credentials management, API keys, environment variables, secure deployment, input sanitization, RBAC streamlit, access control, security patterns
 **TokenBudget:** ~2550
 **ContextTier:** High
-**Depends:** rules/101-snowflake-streamlit-core.md, rules/107-snowflake-security-governance.md
+**Depends:** 101-snowflake-streamlit-core.md, 107-snowflake-security-governance.md
 
 ## Purpose
 Provide comprehensive security guidance for Streamlit applications including input validation, secrets management, authentication patterns, and security best practices to prevent common vulnerabilities.
@@ -242,9 +242,9 @@ if uploaded_file:
 - [Snowflake RBAC](https://docs.snowflake.com/en/user-guide/security-access-control) - Role-based access control
 
 ### Related Rules
-- **Streamlit Core**: `rules/101-snowflake-streamlit-core.md`
-- **Snowflake Security Governance**: `rules/107-snowflake-security-governance.md`
-- **Python Core**: `rules/200-python-core.md`
+- **Streamlit Core**: `101-snowflake-streamlit-core.md`
+- **Snowflake Security Governance**: `107-snowflake-security-governance.md`
+- **Python Core**: `200-python-core.md`
 
 > **[AI] Claude 4 Specific Guidance**
 > **Claude 4 Streamlit Security Optimizations:**

@@ -7,7 +7,7 @@
 **Keywords:** testing, pytest, unit tests, integration tests, fixtures, mocking, header validation, html assertions, test client, htmx testing
 **TokenBudget:** ~2400
 **ContextTier:** High
-**Depends:** rules/221-python-htmx-core.md, rules/206-python-pytest.md
+**Depends:** 221-python-htmx-core.md, 206-python-pytest.md
 
 ## Purpose
 
@@ -507,10 +507,10 @@ def parse_html(response_data):
 def test_users_list_htmx(htmx_client):
     """Test users list returns partial HTML for HTMX request"""
     response = htmx_client.get('/users')
-    
+
     assert response.status_code == 200
     assert '<html>' not in response.data.decode()
-    
+
     soup = parse_html(response.data)
     rows = soup.find_all('tr', id=lambda x: x and x.startswith('user-'))
     assert len(rows) > 0
@@ -518,7 +518,7 @@ def test_users_list_htmx(htmx_client):
 def test_users_list_full_page(client):
     """Test users list returns full page for regular request"""
     response = client.get('/users')
-    
+
     assert response.status_code == 200
     assert '<html>' in response.data.decode()
 ```
@@ -532,8 +532,8 @@ def test_users_list_full_page(client):
 - [BeautifulSoup Documentation](https://www.crummy.com/software/BeautifulSoup/bs4/doc/) - HTML parsing
 
 ### Related Rules
-- **HTMX Foundation**: `rules/221-python-htmx-core.md` - HTMX patterns to test
-- **Python Testing**: `rules/206-python-pytest.md` - Pytest best practices
-- **Flask Integration**: `rules/221b-python-htmx-flask.md` - Flask-specific testing
-- **FastAPI Integration**: `rules/221c-python-htmx-fastapi.md` - FastAPI-specific testing
-- **Python Core**: `rules/200-python-core.md` - Python standards
+- **HTMX Foundation**: `221-python-htmx-core.md` - HTMX patterns to test
+- **Python Testing**: `206-python-pytest.md` - Pytest best practices
+- **Flask Integration**: `221b-python-htmx-flask.md` - Flask-specific testing
+- **FastAPI Integration**: `221c-python-htmx-fastapi.md` - FastAPI-specific testing
+- **Python Core**: `200-python-core.md` - Python standards

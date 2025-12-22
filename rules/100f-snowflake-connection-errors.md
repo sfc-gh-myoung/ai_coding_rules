@@ -7,7 +7,7 @@
 **Keywords:** connection errors, error classification, network policy, authentication, VPN, error codes, 08001, 390114, error handling, snowflake.connector, DatabaseError, message analysis, error detection
 **TokenBudget:** ~2400
 **ContextTier:** High
-**Depends:** rules/100-snowflake-core.md
+**Depends:** 100-snowflake-core.md
 **LastUpdated:** 2025-12-09
 
 ## Purpose
@@ -106,19 +106,19 @@ def classify_snowflake_error(error_msg: str, error_code: str) -> ErrorType:
     # 1. Network Policy (HIGHEST PRIORITY)
     if _is_network_policy_error(error_msg):
         return ErrorType.NETWORK_POLICY
-    
+
     # 2. Authentication (specific codes)
     if _is_auth_error(error_code):
         return ErrorType.AUTH_EXPIRED
-    
+
     # 3. Transient
     if _is_transient_error(error_msg):
         return ErrorType.TRANSIENT
-    
+
     # 4. Permissions
     if _is_permission_error(error_msg):
         return ErrorType.PERMISSION
-    
+
     # 5. Generic Connection (fallback)
     return ErrorType.CONNECTION_FAILED
 ```
@@ -130,7 +130,7 @@ def classify_snowflake_error(error_msg: str, error_code: str) -> ErrorType:
 def _is_network_policy_error(error_msg: str) -> bool:
     """
     Detect network policy violations (VPN disconnect, IP not allowlisted).
-    
+
     MUST check BEFORE generic auth/connection checks.
     Often appears with error code 08001 or 250001.
     """
@@ -173,12 +173,12 @@ If still failing: Contact your Snowflake administrator to add your IP to the net
 def _is_auth_error(error_code: str) -> bool:
     """
     Detect authentication failures using specific error codes.
-    
+
     Only check AFTER network policy check.
     """
     AUTH_ERROR_CODES = {
         "390114": "Authentication token has expired",
-        "390318": "Session token has expired", 
+        "390318": "Session token has expired",
         "390144": "Invalid authentication token",
         "390195": "JWT token has expired"
     }
@@ -315,16 +315,16 @@ def classify_snowflake_connection_error(
 ) -> Tuple[SnowflakeErrorType, str]:
     """
     Classify Snowflake connection error and return user guidance.
-    
+
     Args:
         error_msg: Full error message string
         error_code: Snowflake error code (e.g., "08001")
-    
+
     Returns:
         (ErrorType, user_guidance_string)
     """
     # Order matters: Most specific first!
-    
+
     # 1. Network Policy (VPN disconnect)
     if _is_network_policy_error(error_msg):
         guidance = (
@@ -334,7 +334,7 @@ def classify_snowflake_connection_error(
             "3. Retry connection"
         )
         return (SnowflakeErrorType.NETWORK_POLICY, guidance)
-    
+
     # 2. Authentication
     if _is_auth_error(error_code):
         guidance = (
@@ -342,12 +342,12 @@ def classify_snowflake_connection_error(
             "Run: snow connection test"
         )
         return (SnowflakeErrorType.AUTH_EXPIRED, guidance)
-    
+
     # 3. Transient
     if _is_transient_error(error_msg):
         guidance = "NETWORK TIMEOUT - Retrying automatically"
         return (SnowflakeErrorType.TRANSIENT, guidance)
-    
+
     # 4. Permission
     if _is_permission_error(error_msg):
         guidance = (
@@ -355,7 +355,7 @@ def classify_snowflake_connection_error(
             "Contact administrator for privileges"
         )
         return (SnowflakeErrorType.PERMISSION, guidance)
-    
+
     # 5. Generic Connection
     if _is_connection_error(error_code):
         guidance = (
@@ -365,7 +365,7 @@ def classify_snowflake_connection_error(
             "3. Run: snow connection test"
         )
         return (SnowflakeErrorType.CONNECTION, guidance)
-    
+
     # 6. Unknown
     guidance = f"Error {error_code}: {error_msg}"
     return (SnowflakeErrorType.UNKNOWN, guidance)
@@ -388,7 +388,7 @@ except DatabaseError as e:
         str(e),
         e.errno if hasattr(e, 'errno') else ""
     )
-    
+
     if error_type == SnowflakeErrorType.NETWORK_POLICY:
         print(guidance)
         print("\nWaiting for VPN reconnection...")
@@ -483,10 +483,10 @@ print(guidance)          # NETWORK POLICY VIOLATION ... Reconnect to VPN ...
 ## References
 
 ### Related Rules
-- `rules/100-snowflake-core.md` - Foundational Snowflake practices
-- `rules/101e-snowflake-streamlit-sql-errors.md` - Streamlit error presentation
-- `rules/109c-snowflake-app-deployment-troubleshooting.md` - Production deployment errors
-- `rules/200-python-core.md` - Python exception handling patterns
+- `100-snowflake-core.md` - Foundational Snowflake practices
+- `101e-snowflake-streamlit-sql-errors.md` - Streamlit error presentation
+- `109c-snowflake-app-deployment-troubleshooting.md` - Production deployment errors
+- `200-python-core.md` - Python exception handling patterns
 
 ### External Documentation
 - [Snowflake CLI](https://docs.snowflake.com/developer-guide/snowflake-cli/index) - Connection testing and CLI usage

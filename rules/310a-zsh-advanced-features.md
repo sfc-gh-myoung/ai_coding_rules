@@ -7,7 +7,7 @@
 **Keywords:** Zsh, completion system, modules, hooks, advanced features, performance optimization, compinit, zstyle, autoload, scripting
 **TokenBudget:** ~3050
 **ContextTier:** Low
-**Depends:** rules/310-zsh-scripting-core.md
+**Depends:** 310-zsh-scripting-core.md
 
 ## Purpose
 Provide comprehensive guidance on zsh's advanced features including the completion system, modules, hooks, and performance optimization techniques to build sophisticated and efficient zsh environments.
@@ -217,8 +217,8 @@ shellcheck script.sh
 - [Zsh Modules](http://zsh.sourceforge.net/Doc/Release/Zsh-Modules.html) - Loadable modules for extended functionality
 
 ### Related Rules
-- **Zsh Core**: `rules/310-zsh-scripting-core.md`
-- **Zsh Compatibility**: `rules/310b-zsh-compatibility.md`
+- **Zsh Core**: `310-zsh-scripting-core.md`
+- **Zsh Compatibility**: `310b-zsh-compatibility.md`
 
 ## 1. Zsh Completion System
 

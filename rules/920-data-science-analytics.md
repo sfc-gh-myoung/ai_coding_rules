@@ -7,7 +7,7 @@
 **Keywords:** Data science, Snowflake, pandas, Snowpark, ML, model lifecycle, feature engineering, NaN handling, model versioning, Jupyter
 **TokenBudget:** ~6150
 **ContextTier:** High
-**Depends:** rules/200-python-core.md
+**Depends:** 200-python-core.md
 
 ## Purpose
 Establish comprehensive rules for performing data science and analytics on Snowflake, focusing on model lifecycle management, ML/AI insight presentation, advanced SQL techniques, performance optimization, and ethical visualization practices to ensure reproducible, performant, and trustworthy analytical workflows.
@@ -141,7 +141,6 @@ df = session.sql("""
 - Minimal memory usage
 - Lower warehouse costs
 
-
 **Anti-Pattern 2: Misleading Y-Axis Truncation**
 ```python
 # BAD: Truncated axis exaggerates small changes
@@ -164,7 +163,6 @@ fig.add_annotation(text="Sales grew 3% ($2K increase)", xref="paper", yref="pape
 - Honest representation of magnitude
 - Builds trust with stakeholders
 - Avoids misinterpretation
-
 
 **Anti-Pattern 3: Model Without Explainability**
 ```python
@@ -207,7 +205,6 @@ registry.log_artifact(
 - Easier to debug and improve
 - Builds trust in AI systems
 
-
 **Anti-Pattern 4: Training on Unvalidated Data**
 ```python
 # BAD: Train directly on raw data
@@ -240,7 +237,6 @@ model.fit(X_train, y_train)
 - Prevents garbage-in-garbage-out
 - Early detection of data issues
 - Higher quality models
-
 
 **Anti-Pattern 5: No Confidence Intervals**
 ```python
@@ -445,21 +441,21 @@ st.caption(f"Data as of: {last_update} | Quality Score: {quality_score:.0%}")
 - [Streamlit Documentation](https://docs.streamlit.io/) - Streamlit app development
 
 ### Related Rules
-- **Snowflake Core**: `rules/100-snowflake-core.md`
-- **Snowflake SQL Demo Engineering**: `rules/102-snowflake-sql-demo-engineering.md`
-- **Snowflake Performance Tuning**: `rules/103-snowflake-performance-tuning.md`
-- **Snowflake Cost Governance**: `rules/105-snowflake-cost-governance.md`
-- **Snowflake Notebooks**: `rules/109-snowflake-notebooks.md`
-- **Snowflake Model Registry**: `rules/110-snowflake-model-registry.md`
-- **Snowflake Observability**: `rules/111-snowflake-observability-core.md`
-- **Snowflake Feature Store**: `rules/113-snowflake-feature-store.md`
-- **Snowflake Cortex AISQL**: `rules/114-snowflake-cortex-aisql.md`
-- **Snowflake Data Quality**: `rules/124-snowflake-data-quality-core.md`
-- **Snowflake Streamlit UI**: `rules/101-snowflake-streamlit-core.md`
-- **Python Core**: `rules/200-python-core.md`
-- **DateTime Handling**: `rules/251-python-datetime-handling.md`
-- **Pandas Best Practices**: `rules/252-pandas-best-practices.md`
-- **Data Governance**: `rules/930-data-governance-quality.md`
+- **Snowflake Core**: `100-snowflake-core.md`
+- **Snowflake SQL Demo Engineering**: `102-snowflake-sql-demo-engineering.md`
+- **Snowflake Performance Tuning**: `103-snowflake-performance-tuning.md`
+- **Snowflake Cost Governance**: `105-snowflake-cost-governance.md`
+- **Snowflake Notebooks**: `109-snowflake-notebooks.md`
+- **Snowflake Model Registry**: `110-snowflake-model-registry.md`
+- **Snowflake Observability**: `111-snowflake-observability-core.md`
+- **Snowflake Feature Store**: `113-snowflake-feature-store.md`
+- **Snowflake Cortex AISQL**: `114-snowflake-cortex-aisql.md`
+- **Snowflake Data Quality**: `124-snowflake-data-quality-core.md`
+- **Snowflake Streamlit UI**: `101-snowflake-streamlit-core.md`
+- **Python Core**: `200-python-core.md`
+- **DateTime Handling**: `251-python-datetime-handling.md`
+- **Pandas Best Practices**: `252-pandas-best-practices.md`
+- **Data Governance**: `930-data-governance-quality.md`
 
 > ** Claude 4 Specific Guidance**
 > **Claude 4 Optimizations:**

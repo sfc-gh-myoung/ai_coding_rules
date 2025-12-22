@@ -1,10 +1,9 @@
 # JavaScript Core: Modern Standards & Best Practices
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
-> 
+>
 > This rule defines essential JavaScript patterns. Load for JavaScript tasks.
 > Specialized rules depend on this foundation.
-
 
 ## Metadata
 
@@ -13,7 +12,7 @@
 **Keywords:** JavaScript, ES2024, ESM, Node.js, JSDoc, Biome, node:test, Immutability, Async/Await, Functional Programming
 **TokenBudget:** ~2000
 **ContextTier:** High
-**Depends:** rules/000-global-core.md
+**Depends:** 000-global-core.md
 
 ## Purpose
 Establishes the definitive standards for writing modern, robust JavaScript in 2025. This rule enforces the use of ECMAScript Modules (ESM), immutable data patterns (using ES2023+ methods), Type Safety via JSDoc, and modern tooling (Biome, Node Native Test Runner) to ensure maintainability and performance without the need for a compilation step.
@@ -88,7 +87,6 @@ import fs from 'node:fs';
 export default { ... };
 ```
 
-
 **Anti-Pattern 2: Mutating State**
 ```javascript
 // Bad: Mutates 'users' array directly
@@ -102,7 +100,6 @@ users.sort();
 // Good: Returns a new array
 const sortedUsers = users.toSorted();
 ```
-
 
 **Anti-Pattern 3: Ignoring Promise Failures**
 ```javascript
@@ -208,8 +205,8 @@ test('processTransactions sorts by date', () => {
 - [JSDoc Documentation](https://jsdoc.app/) - Syntax reference for type comments.
 
 ### Related Rules
-- **Global Core**: `rules/000-global-core.md`
-- **React Core**: `rules/440-react-core.md`
+- **Global Core**: `000-global-core.md`
+- **React Core**: `440-react-core.md`
 
 > ** Claude 4 Specific Guidance**
 > **Claude 4 Optimizations:**

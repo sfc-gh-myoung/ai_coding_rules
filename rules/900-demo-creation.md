@@ -99,7 +99,6 @@ def generate_batch(n=1000):
 ```
 **Benefits:** Predictable timing, memory efficient, reproducible results with seeding.
 
-
 **Anti-Pattern 2: Fully Random Independent Columns**
 ```python
 # Problem: No realistic patterns
@@ -187,10 +186,10 @@ Next Steps:
 - [Streamlit Demo Gallery](https://streamlit.io/gallery) - Examples of effective data application demonstrations
 
 ### Related Rules
-- **Snowflake Core**: `rules/100-snowflake-core.md`
-- **Streamlit UI**: `rules/101-snowflake-streamlit-core.md`
-- **Faker**: `rules/240-python-faker.md`
-- **Data Science Analytics**: `rules/920-data-science-analytics.md`
+- **Snowflake Core**: `100-snowflake-core.md`
+- **Streamlit UI**: `101-snowflake-streamlit-core.md`
+- **Faker**: `240-python-faker.md`
+- **Data Science Analytics**: `920-data-science-analytics.md`
 
 ## 1. Core Principles
 - **Requirement:** Make demos story-first, leading with a customer problem and clear outcome.

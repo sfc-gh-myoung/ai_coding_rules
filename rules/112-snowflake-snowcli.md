@@ -7,7 +7,7 @@
 **Keywords:** snow CLI, SnowCLI, Snowflake CLI, snowflake-cli, uvx, Taskfile, task automation, deployment automation, snowflake.yml, profiles, CI/CD, JSON output, authentication, stage copy
 **TokenBudget:** ~2800
 **ContextTier:** Medium
-**Depends:** rules/100-snowflake-core.md
+**Depends:** 100-snowflake-core.md
 
 ## Purpose
 Provide clear, reproducible guidance for installing, invoking, and automating Snowflake CLI (SnowCLI) with a strong preference for hermetic, pinned execution to ensure consistency across local development and CI/CD.
@@ -114,7 +114,6 @@ tasks:
 ```
 **Benefits:** Consistent versions; isolated execution; easy version updates; reproducible environments; CI reliability; no conflicts
 
-
 **Anti-Pattern 2: Hardcoding Credentials in Scripts**
 ```bash
 # Bad: Credentials in scripts or environment files
@@ -136,7 +135,6 @@ snow sql -q "SELECT 1"
 ```
 **Benefits:** No credentials in code; secure storage; easy rotation; compliance-ready; audit-friendly; professional security
 
-
 **Anti-Pattern 3: Using Interactive Prompts in CI/CD**
 ```bash
 # Bad: Missing flags cause interactive prompts in CI
@@ -155,7 +153,6 @@ snow sql \
   --no-input       # Fail fast if input needed
 ```
 **Benefits:** Non-interactive execution; reliable CI; fast failures; machine-readable output; automated workflows; professional deployment
-
 
 **Anti-Pattern 4: Not Pinning Snow CLI Version in CI**
 ```yaml
@@ -189,7 +186,6 @@ steps:
         snow --version
 ```
 **Benefits:** Stable CI; predictable behavior; controlled upgrades; no surprise breaks; reliable deployments; professional CI/CD
-
 
 **Anti-Pattern 5: Using Wrong Compression Flag Syntax**
 ```bash
@@ -263,13 +259,13 @@ uvx --from=snowflake-cli==3.12 snow sql -q "select 1 as ok"
 - Snowflake Engineering blog (context for uv/library management and determinism): `https://www.snowflake.com/en/engineering-blog/how-we-built-library-powering-streamlit-apps/`
 
 ### Related Rules
-- **Snowflake Core**: `rules/100-snowflake-core.md`
-- **SQL Demo Engineering**: `rules/102-snowflake-sql-demo-engineering.md`
-- **SQL Automation**: `rules/102a-snowflake-sql-automation.md`
-- **Cost Governance**: `rules/105-snowflake-cost-governance.md`
-- **Security Governance**: `rules/107-snowflake-security-governance.md`
-- **Warehouse Management**: `rules/119-snowflake-warehouse-management.md`
-- **SPCS Best Practices**: `rules/120-snowflake-spcs.md`
+- **Snowflake Core**: `100-snowflake-core.md`
+- **SQL Demo Engineering**: `102-snowflake-sql-demo-engineering.md`
+- **SQL Automation**: `102a-snowflake-sql-automation.md`
+- **Cost Governance**: `105-snowflake-cost-governance.md`
+- **Security Governance**: `107-snowflake-security-governance.md`
+- **Warehouse Management**: `119-snowflake-warehouse-management.md`
+- **SPCS Best Practices**: `120-snowflake-spcs.md`
 
 ## 1. Installation and Invocation Patterns
 

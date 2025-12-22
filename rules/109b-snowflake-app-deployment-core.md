@@ -1,10 +1,9 @@
 # Snowflake Application Deployment Automation - Core Patterns
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
-> 
+>
 > This rule defines essential App Deployment patterns. Load for deployment tasks.
 > Specialized rules depend on this foundation.
-
 
 ## Metadata
 
@@ -13,7 +12,7 @@
 **Keywords:** CREATE NOTEBOOK, stages, deployment automation, SiS, deploy app, deployment pipeline, app publishing, deployment patterns, deploy to snowflake, stage deployment, production deployment, app versioning, automated deployment
 **TokenBudget:** ~4150
 **ContextTier:** Medium
-**Depends:** rules/100-snowflake-core.md, rules/109-snowflake-notebooks.md, rules/101-snowflake-streamlit-core.md, rules/820-taskfile-automation.md
+**Depends:** 100-snowflake-core.md, 109-snowflake-notebooks.md, 101-snowflake-streamlit-core.md, 820-taskfile-automation.md
 
 ## Purpose
 Establish core deployment automation patterns for Snowflake applications (Notebooks, Streamlit apps, UDFs, and other staged applications), ensuring reliable, deterministic deployments through proper stage file management and object lifecycle control.
@@ -280,11 +279,11 @@ tasks:
 - [Taskfile Documentation](https://taskfile.dev/) - Modern task automation framework with declarative YAML syntax, dependency management, and cross-platform support (industry-standard alternative to Makefiles with 10K+ GitHub stars)
 
 ### Related Rules
-- **Snowflake Notebooks**: `rules/109-snowflake-notebooks.md`
-- **Streamlit Core**: `rules/101-snowflake-streamlit-core.md`
-- **Taskfile Automation**: `rules/820-taskfile-automation.md`
-- **Snowflake Core**: `rules/100-snowflake-core.md`
-- **Deployment Troubleshooting**: `rules/109c-snowflake-app-deployment-troubleshooting.md` - See this rule for debugging deployment issues, SiS TypeError resolution, and anti-patterns with complete runnable code examples
+- **Snowflake Notebooks**: `109-snowflake-notebooks.md`
+- **Streamlit Core**: `101-snowflake-streamlit-core.md`
+- **Taskfile Automation**: `820-taskfile-automation.md`
+- **Snowflake Core**: `100-snowflake-core.md`
+- **Deployment Troubleshooting**: `109c-snowflake-app-deployment-troubleshooting.md` - See this rule for debugging deployment issues, SiS TypeError resolution, and anti-patterns with complete runnable code examples
 
 ## Core Deployment Pattern
 

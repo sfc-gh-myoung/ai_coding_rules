@@ -217,23 +217,6 @@ When no `target_files` specified, the skill reviews:
 
 This skill is **deployable** (included when running `task deploy`). After deployment to a project, users can review that project's documentation.
 
-## Version History
-
-- **v1.1.0** (2025-12-16): 100-point scoring system
-  - Updated to 100-point scale (from /30)
-  - Point allocation: 25/25/20/15/10/5
-  - Added PUBLISHABLE verdicts for score interpretation
-
-- **v1.0.0** (2025-12-16): Initial release
-  - 6-dimension documentation review rubric
-  - Cross-reference verification (code refs in docs)
-  - Link validation (internal verified, external flagged)
-  - Rule-aware baselines (801, 802 rules when present)
-  - Configurable target files with sensible defaults
-  - Single and collection review scopes
-  - FULL/FOCUSED/STALENESS review modes
-  - No-overwrite file safety
-
 ## Troubleshooting
 
 See `workflows/error-handling.md` for common issues and resolutions.

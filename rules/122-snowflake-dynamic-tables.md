@@ -7,7 +7,7 @@
 **Keywords:** automatic pipelines, DOWNSTREAM, FULL, warehouse sizing, data freshness, create dynamic table, dynamic table lag, refresh frequency, dynamic table error, materialized view alternative, pipeline automation, lag configuration, refresh strategies
 **TokenBudget:** ~5200
 **ContextTier:** High
-**Depends:** rules/100-snowflake-core.md, rules/104-snowflake-streams-tasks.md, rules/119-snowflake-warehouse-management.md
+**Depends:** 100-snowflake-core.md, 104-snowflake-streams-tasks.md, 119-snowflake-warehouse-management.md
 
 ## Purpose
 Establish comprehensive best practices for Snowflake Dynamic Tables to ensure efficient, maintainable, and cost-effective materialized query results that automatically refresh based on changes to base tables, following Snowflake's recommended patterns for refresh modes, lag configuration, and pipeline architecture.
@@ -373,12 +373,12 @@ LIMIT 5;
 - [DYNAMIC_TABLE_REFRESH_HISTORY](https://docs.snowflake.com/en/sql-reference/functions/dynamic_table_refresh_history) - Monitoring function reference
 
 ### Related Rules
-- **Snowflake Core**: `rules/100-snowflake-core.md`
-- **SQL Demo Engineering**: `rules/102-snowflake-sql-demo-engineering.md`
-- **Performance Tuning**: `rules/103-snowflake-performance-tuning.md`
-- **Streams and Tasks**: `rules/104-snowflake-streams-tasks.md`
-- **Cost Governance**: `rules/105-snowflake-cost-governance.md`
-- **Warehouse Management**: `rules/119-snowflake-warehouse-management.md`
+- **Snowflake Core**: `100-snowflake-core.md`
+- **SQL Demo Engineering**: `102-snowflake-sql-demo-engineering.md`
+- **Performance Tuning**: `103-snowflake-performance-tuning.md`
+- **Streams and Tasks**: `104-snowflake-streams-tasks.md`
+- **Cost Governance**: `105-snowflake-cost-governance.md`
+- **Warehouse Management**: `119-snowflake-warehouse-management.md`
 
 > **[AI] Claude 4 Specific Guidance**
 > **Claude 4 Optimizations:**

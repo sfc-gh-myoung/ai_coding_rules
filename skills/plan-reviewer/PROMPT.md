@@ -11,20 +11,43 @@
 **Review Objective:** Evaluate LLM-generated plans for **autonomous agent executability**.
 The winning plan must enable any agent to implement it successfully without human intervention.
 
+### Design Priority Hierarchy (Governing Principle)
+
+All plans target **autonomous AI agents**, not human developers. Scoring must reflect this priority order:
+
+**Priority 1: Agent Understanding and Execution Reliability (CRITICAL)**
+- Instructions must be unambiguous and deterministic
+- All steps must have explicit commands (not descriptions)
+- All undefined thresholds must be quantified (e.g., "large file" becomes ">100MB")
+- No phrases requiring human judgment ("consider", "if appropriate", "as needed")
+- All conditionals must have explicit branches
+
+**Priority 2: Token and Context Window Efficiency (HIGH)**
+- Minimize tokens without sacrificing Priority 1 clarity
+- Use structured lists over prose paragraphs
+- Front-load critical information in each section
+
+**Priority 3: Human Readability (TERTIARY)**
+- Maintain logical organization for human reviewers
+- Does NOT affect scoring; noted in recommendations only
+
+**Trade-off Rule:** When priorities conflict, Priority 1 wins. More steps for explicit error handling is acceptable. Repeated validation steps for clarity is acceptable.
+
 ### Dimension Point Allocation
 
-Not all review dimensions have equal impact. Points are allocated based on criticality for autonomous agent execution:
+Points are allocated based on criticality for autonomous agent execution:
 
-| Dimension | Points | Rationale |
-|-----------|--------|-----------|
-| **Executability** | 20 | Critical - agent must execute without human intervention |
-| **Completeness** | 20 | Critical - missing steps cause agent failure |
-| **Success Criteria** | 20 | Critical - agent needs measurable completion signals |
-| **Scope** | 15 | Critical - unbounded scope leads to drift and failure |
-| Dependencies | 10 | Important but agents can often infer order |
-| Decomposition | 5 | Important but recoverable if tasks too large |
-| Context | 5 | Important but agents can request clarification |
-| Risk Awareness | 5 | Nice-to-have, helps but not blocking |
+**Critical Dimensions (75 points total):**
+- **Executability:** 20 points - Agent must execute without human intervention
+- **Completeness:** 20 points - Missing steps cause agent failure
+- **Success Criteria:** 20 points - Agent needs measurable completion signals
+- **Scope:** 15 points - Unbounded scope leads to drift and failure
+
+**Standard Dimensions (25 points total):**
+- **Dependencies:** 10 points - Important but agents can often infer order
+- **Decomposition:** 5 points - Important but recoverable if tasks too large
+- **Context:** 5 points - Important but agents can request clarification
+- **Risk Awareness:** 5 points - Nice-to-have, helps but not blocking
 
 **Scoring formula:**
 - Executability: X/5 × 4 = Y/20
@@ -36,6 +59,27 @@ Not all review dimensions have equal impact. Points are allocated based on criti
 - Context: X/5 × 1 = Y/5
 - Risk Awareness: X/5 × 1 = Y/5
 - **Total: Z/100**
+
+---
+
+### Agent Execution Test (REQUIRED - First Gate)
+
+Before scoring any dimension, answer this question:
+
+**"Can an autonomous agent execute this plan end-to-end without asking for clarification or making judgment calls?"**
+
+- If YES: Proceed with dimension scoring
+- If NO: Document blocking issues, then proceed with scoring (issues will reduce scores)
+
+**Blocking Issue Categories (count each):**
+1. **Ambiguous phrases** - Terms requiring agent judgment (e.g., "consider", "if appropriate", "as needed")
+2. **Implicit commands** - Steps described but not specified (e.g., "run tests" vs "`pytest tests/ -v`")
+3. **Missing branches** - Conditionals without explicit else/default or error handling
+4. **Undefined thresholds** - Terms like "large", "significant", "appropriate" without quantified values
+
+**Gate Impact:**
+- If blocking issues ≥10: Maximum score = 60/100 (automatic NEEDS_REFINEMENT)
+- If blocking issues ≥20: Maximum score = 40/100 (automatic NOT_EXECUTABLE)
 
 ---
 
@@ -273,104 +317,139 @@ Scan the plan for phrases requiring human judgment:
 ```markdown
 **Executability Audit:**
 
-| Phrase | Line(s) | Issue | Proposed Fix |
-|--------|---------|-------|--------------|
-| "consider using" | 45 | Requires judgment | "use X" (concrete command) |
-| "if appropriate" | 89 | Conditional undefined | "if [condition], then..." |
-| "as needed" | 123 | Undefined trigger | "when [event], do [action]" |
+**Ambiguous Phrases Found:**
+- **"consider using"** (line 45) - Requires judgment. Fix: "use X" (concrete command)
+- **"if appropriate"** (line 89) - Conditional undefined. Fix: "if [condition], then..."
+- **"as needed"** (line 123) - Undefined trigger. Fix: "when [event], do [action]"
 
-**Ambiguous Phrase Count:** N
-**Steps with Explicit Commands:** X/Y (Z%)
+**Implicit Commands Found:**
+- **"run tests"** (line 67) - No explicit command. Fix: "`pytest tests/ -v --tb=short`"
+- **"deploy changes"** (line 145) - No explicit command. Fix: "`git push origin main`"
+
+**Summary:**
+- Ambiguous phrase count: [N]
+- Implicit command count: [N]
+- Steps with explicit commands: X/Y (Z%)
+- **Total blocking issues:** [N]
 ```
 
-**Scoring impact:** >10 ambiguous phrases → Executability ≤2/5
+**Scoring impact:**
+- >15 ambiguous phrases: Maximum 1/5 (4/20)
+- 8-15 ambiguous phrases: Maximum 2/5 (8/20)
+- 4-7 ambiguous phrases: Maximum 3/5 (12/20)
+- 2-3 ambiguous phrases: Maximum 4/5 (16/20)
+- 0-1 ambiguous phrases: Eligible for 5/5 (20/20)
 
 ### Completeness Audit (Required for Completeness scoring)
 
 ```markdown
 **Completeness Audit:**
 
-| Phase | Setup | Validation | Cleanup | Error Recovery |
-|-------|-------|------------|---------|----------------|
-| Phase 1 | ✅ | ✅ | ❌ | ❌ |
-| Phase 2 | ✅ | ✅ | ✅ | ⚠️ Partial |
+**Phase Coverage:**
+- **Phase 1:** Setup ✅, Validation ✅, Cleanup ❌, Error Recovery ❌
+- **Phase 2:** Setup ✅, Validation ✅, Cleanup ✅, Error Recovery ⚠️ Partial
 
-**Phases with Full Coverage:** X/Y
-**Missing Elements:** [list]
+**Summary:**
+- Phases with full coverage: X/Y (Z%)
+- Missing elements: [list specific gaps]
+- Error recovery procedures: [count]
 ```
 
-**Scoring impact:** <60% phases complete → Completeness ≤3/5
+**Scoring impact:**
+- <40% phases with validation: Maximum 1/5 (4/20)
+- 40-60% phases with validation: Maximum 2/5 (8/20)
+- 60-80% phases with validation: Maximum 3/5 (12/20)
+- 80-95% phases with validation: Maximum 4/5 (16/20)
+- >95% phases with validation: Eligible for 5/5 (20/20)
 
 ### Success Criteria Audit (Required for Success Criteria scoring)
 
 ```markdown
 **Success Criteria Audit:**
 
-| Task/Milestone | Has Criteria? | Verifiable by Agent? | Notes |
-|----------------|---------------|---------------------|-------|
-| Task 1.1 | ✅ | ✅ | "grep returns 0 matches" |
-| Task 1.2 | ✅ | ❌ | "looks correct" - subjective |
-| Phase 1 Complete | ✅ | ✅ | "pytest passes" |
+**Task Verification Status:**
+- **Task 1.1:** Has criteria ✅, Agent-verifiable ✅ - "grep returns 0 matches"
+- **Task 1.2:** Has criteria ✅, Agent-verifiable ❌ - "looks correct" (subjective)
+- **Phase 1 Complete:** Has criteria ✅, Agent-verifiable ✅ - "pytest exits 0"
 
-**Tasks with Criteria:** X/Y (Z%)
-**Agent-Verifiable:** A/B (C%)
+**Summary:**
+- Tasks with criteria: X/Y (Z%)
+- Agent-verifiable tasks: A/B (C%)
+- Tasks requiring human judgment: [count and list]
 ```
 
-**Scoring impact:** <70% agent-verifiable → Success Criteria ≤3/5
+**Scoring impact:**
+- <50% tasks with criteria: Maximum 1/5 (4/20)
+- 50-70% tasks with criteria: Maximum 2/5 (8/20)
+- 70-85% tasks with criteria: Maximum 3/5 (12/20)
+- 85-95% tasks with criteria: Maximum 4/5 (16/20)
+- >95% tasks with criteria: Eligible for 5/5 (20/20)
 
 ---
 
 ## Scoring Impact Rules (Algorithmic Overrides)
 
-These rules override subjective assessment:
+These rules override subjective assessment. Apply mechanically based on counts.
 
 ### Executability (20 points)
-| Finding | Maximum Score | Max Points |
-|---------|---------------|------------|
-| >15 ambiguous phrases | 1/5 | 4/20 |
-| 8-15 ambiguous phrases | 2/5 | 8/20 |
-| 4-7 ambiguous phrases | 3/5 | 12/20 |
-| 2-3 ambiguous phrases | 4/5 | 16/20 |
-| 0-1 ambiguous phrases | 5/5 | 20/20 |
+
+**Ambiguous Phrase Impact:**
+- >15 ambiguous phrases: Maximum 1/5 (4/20 points)
+- 8-15 ambiguous phrases: Maximum 2/5 (8/20 points)
+- 4-7 ambiguous phrases: Maximum 3/5 (12/20 points)
+- 2-3 ambiguous phrases: Maximum 4/5 (16/20 points)
+- 0-1 ambiguous phrases: Eligible for 5/5 (20/20 points)
 
 ### Completeness (20 points)
-| Finding | Maximum Score | Max Points |
-|---------|---------------|------------|
-| <40% phases with validation | 1/5 | 4/20 |
-| 40-60% phases with validation | 2/5 | 8/20 |
-| 60-80% phases with validation | 3/5 | 12/20 |
-| 80-95% phases with validation | 4/5 | 16/20 |
-| >95% phases with validation | 5/5 | 20/20 |
+
+**Phase Validation Coverage Impact:**
+- <40% phases with validation: Maximum 1/5 (4/20 points)
+- 40-60% phases with validation: Maximum 2/5 (8/20 points)
+- 60-80% phases with validation: Maximum 3/5 (12/20 points)
+- 80-95% phases with validation: Maximum 4/5 (16/20 points)
+- >95% phases with validation: Eligible for 5/5 (20/20 points)
 
 ### Success Criteria (20 points)
-| Finding | Maximum Score | Max Points |
-|---------|---------------|------------|
-| <50% tasks with criteria | 1/5 | 4/20 |
-| 50-70% tasks with criteria | 2/5 | 8/20 |
-| 70-85% tasks with criteria | 3/5 | 12/20 |
-| 85-95% tasks with criteria | 4/5 | 16/20 |
-| >95% tasks with criteria | 5/5 | 20/20 |
+
+**Task Criteria Coverage Impact:**
+- <50% tasks with criteria: Maximum 1/5 (4/20 points)
+- 50-70% tasks with criteria: Maximum 2/5 (8/20 points)
+- 70-85% tasks with criteria: Maximum 3/5 (12/20 points)
+- 85-95% tasks with criteria: Maximum 4/5 (16/20 points)
+- >95% tasks with criteria: Eligible for 5/5 (20/20 points)
 
 ### Scope (15 points)
-| Finding | Maximum Score | Max Points |
-|---------|---------------|------------|
-| No scope boundaries defined | 1/5 | 3/15 |
-| Partial boundaries, no end state | 2/5 | 6/15 |
-| Boundaries defined, vague end state | 3/5 | 9/15 |
-| Clear boundaries, measurable end state | 4/5 | 12/15 |
-| Explicit in/out, start/end, no ambiguity | 5/5 | 15/15 |
+
+**Scope Definition Impact:**
+- No scope boundaries defined: Maximum 1/5 (3/15 points)
+- Partial boundaries, no end state: Maximum 2/5 (6/15 points)
+- Boundaries defined, vague end state: Maximum 3/5 (9/15 points)
+- Clear boundaries, measurable end state: Maximum 4/5 (12/15 points)
+- Explicit in/out, start/end, no ambiguity: Eligible for 5/5 (15/15 points)
+
+### Priority 1 Gate (Overall Cap)
+
+**Total Blocking Issues (from Agent Execution Test):**
+- ≥20 blocking issues: Maximum overall score = 40/100 (NOT_EXECUTABLE)
+- ≥10 blocking issues: Maximum overall score = 60/100 (NEEDS_REFINEMENT)
+- <10 blocking issues: No cap applied
 
 ---
 
 ## Scoring Decision Matrix
 
-| Scenario | Resolution | Rationale |
-|----------|------------|-----------|
-| Phrase count at boundary (e.g., exactly 4) | Use lower score | Conservative for agent reliability |
-| Implicit validation (command returns exit code) | Counts as validation | Standard shell convention |
-| Success criteria in prose, not checklist | Counts if specific | Format less important than clarity |
-| Scope defined elsewhere (e.g., linked doc) | Partial credit (3/5 max) | Self-contained plans preferred |
-| Risk section absent but risks noted inline | Partial credit | Consolidated section preferred |
+**Boundary Decisions (when counts fall at thresholds):**
+- Phrase count at boundary (e.g., exactly 4): Use lower score - conservative for agent reliability
+- Implicit validation (command returns exit code): Counts as validation - standard shell convention
+- Success criteria in prose, not checklist: Counts if specific - format less important than clarity
+- Scope defined elsewhere (e.g., linked doc): Partial credit (3/5 max) - self-contained plans preferred
+- Risk section absent but risks noted inline: Partial credit - consolidated section preferred
+
+**Priority Conflict Resolution:**
+- Priority 1 (Agent Understanding) always wins over Priority 2 (Token Efficiency)
+- More explicit steps for clarity: Acceptable (do NOT reduce score for verbosity)
+- Repeated validation steps: Acceptable (reliability over brevity)
+- Missing error handling to save tokens: NOT acceptable (reduce Completeness score)
 
 ---
 
@@ -395,11 +474,13 @@ To ensure consistent scoring across models and runs:
 
 Answer each question explicitly:
 
-- [ ] **Agent execution test:** Could an autonomous agent execute this plan end-to-end
+- [ ] **Agent execution test:** Can an autonomous agent execute this plan end-to-end
   without asking for clarification? (Yes/No with explanation)
-  - *Scoring impact:* No → Executability ≤3/5
-- [ ] **Ambiguity count:** How many phrases require human interpretation?
+  - *Scoring impact:* No → Document blocking issues; apply Priority 1 Gate
+- [ ] **Ambiguous phrase count:** How many phrases require human interpretation?
   - *Scoring impact:* Per Executability Scoring Impact Rules
+- [ ] **Implicit command count:** How many steps lack explicit commands?
+  - *Scoring impact:* Adds to blocking issues; reduces Executability
 - [ ] **Validation coverage:** What percentage of phases have explicit validation steps?
   - *Scoring impact:* Per Completeness Scoring Impact Rules
 - [ ] **Success criteria coverage:** What percentage of tasks have agent-verifiable
@@ -407,6 +488,32 @@ Answer each question explicitly:
   - *Scoring impact:* Per Success Criteria Scoring Impact Rules
 - [ ] **Scope clarity:** Are start state, end state, and boundaries explicit?
   - *Scoring impact:* Per Scope Scoring Impact Rules
+- [ ] **Total blocking issues:** Sum of ambiguous phrases + implicit commands + missing branches
+  - *Scoring impact:* ≥10 caps score at 60/100; ≥20 caps at 40/100
+
+### Priority Compliance Summary (REQUIRED)
+
+Include this summary in every review:
+
+```markdown
+**Priority Compliance Summary:**
+
+**Priority 1 (Agent Understanding) - CRITICAL:**
+- Ambiguous phrases: [N]
+- Implicit commands: [N]
+- Missing conditional branches: [N]
+- Undefined thresholds: [N]
+- **Total Priority 1 violations:** [N]
+- **Score cap applied:** [Yes/No - state cap if ≥10 violations]
+
+**Priority 2 (Token Efficiency) - HIGH:**
+- Redundant steps: [N]
+- Verbose descriptions: [N]
+- **Total Priority 2 violations:** [N]
+
+**Priority 3 (Human Readability) - TERTIARY:**
+- [Notes for maintainers - does NOT affect scoring]
+```
 
 ---
 

@@ -7,7 +7,7 @@
 **Keywords:** remediation, RBAC, privilege requirements, automated monitoring, quality alerts, schedule DMF, quality event tables, quality alerting, DMF results, quality workflows, DMF RBAC, quality notifications, remediation workflows
 **TokenBudget:** ~4500
 **ContextTier:** High
-**Depends:** rules/100-snowflake-core.md, rules/124-snowflake-data-quality-core.md, rules/111-snowflake-observability-core.md
+**Depends:** 100-snowflake-core.md, 124-snowflake-data-quality-core.md, 111-snowflake-observability-core.md
 
 ## Purpose
 Provide operational patterns for Data Quality Monitoring including DMF scheduling, event table analysis, alerting, remediation workflows, and RBAC configuration.
@@ -413,10 +413,10 @@ ORDER BY usage_date DESC;
 - [Serverless Credit Usage](https://docs.snowflake.com/en/user-guide/cost-understanding-compute#serverless-credit-usage) - Understanding DMF billing
 
 ### Related Rules
-- **Snowflake Core**: `rules/100-snowflake-core.md`
-- **Security Governance**: `rules/107-snowflake-security-governance.md`
-- **Cost Governance**: `rules/105-snowflake-cost-governance.md`
-- **Data Governance**: `rules/930-data-governance-quality.md`
+- **Snowflake Core**: `100-snowflake-core.md`
+- **Security Governance**: `107-snowflake-security-governance.md`
+- **Cost Governance**: `105-snowflake-cost-governance.md`
+- **Data Governance**: `930-data-governance-quality.md`
 
 > **[AI] Claude 4 Specific Guidance**
 > **Claude 4 Optimizations:**

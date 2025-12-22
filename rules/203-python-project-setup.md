@@ -7,7 +7,7 @@
 **Keywords:** Python packaging, project structure, setup.py, pyproject.toml, dependencies, package distribution, __init__.py, hatchling, uv, src layout
 **TokenBudget:** ~2200
 **ContextTier:** High
-**Depends:** rules/200-python-core.md
+**Depends:** 200-python-core.md
 
 ## Purpose
 Provide essential Python project setup and packaging guidance to avoid common build and dependency issues, covering package structure, pyproject.toml configuration, and proper dependency management practices.
@@ -208,9 +208,9 @@ uv run pytest tests/
 - [Hatchling Documentation](https://hatch.pypa.io/latest/) - Modern Python build system and package manager
 
 ### Related Rules
-- **Python Core**: `rules/200-python-core.md`
-- **Python Linting**: `rules/201-python-lint-format.md`
-- **YAML Config**: `rules/202-markup-config-validation.md`
+- **Python Core**: `200-python-core.md`
+- **Python Linting**: `201-python-lint-format.md`
+- **YAML Config**: `202-markup-config-validation.md`
 
 ## 1. Package Structure Requirements
 

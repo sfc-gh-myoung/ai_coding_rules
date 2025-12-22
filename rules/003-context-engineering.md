@@ -7,7 +7,7 @@
 **Keywords:** context engineering, attention budget, context rot, token efficiency, compaction, progressive disclosure, sub-agents, agentic search, system prompts, right altitude, long-horizon tasks, memory management, state tracking
 **TokenBudget:** ~4750
 **ContextTier:** Critical
-**Depends:** rules/000-global-core.md
+**Depends:** 000-global-core.md
 
 ## Purpose
 Establish comprehensive context engineering practices that treat context as a finite resource with diminishing returns, enabling AI agents to maintain focus, minimize context rot, and work effectively across long-horizon tasks through strategic context management.
@@ -266,7 +266,7 @@ Validation:
 
 ## Rule Loading and Discovery
 
-**Canonical Source:** See `RULES_INDEX.md` for the authoritative mapping of 
+**Canonical Source:** See `RULES_INDEX.md` for the authoritative mapping of
 file extensions, keywords, and technologies to rule files. Always consult
 RULES_INDEX.md rather than hardcoding rule discovery logic.
 

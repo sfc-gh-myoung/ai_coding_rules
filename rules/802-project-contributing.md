@@ -7,7 +7,7 @@
 **Keywords:** CONTRIBUTING, pull requests, code review, contribution guidelines, branching strategy, Conventional Commits, rule authoring, PR templates, project governance, git workflow
 **TokenBudget:** ~2800
 **ContextTier:** Medium
-**Depends:** rules/000-global-core.md
+**Depends:** 000-global-core.md
 
 ## Purpose
 Establish directives for a professional contribution workflow covering commits, pull requests, changelog discipline, and rule authoring standards to ensure consistent project collaboration and quality.
@@ -125,7 +125,6 @@ git add rules/100-snowflake-core.md
 ```
 **Benefits:** Changes in canonical source location, validated before deployment
 
-
 **Anti-Pattern 2: Vague Commit Messages**
 ```bash
 # Bad: No context or type
@@ -143,7 +142,6 @@ git commit -m "fix(python): correct FastAPI async route examples"
 git commit -m "docs(readme): update Quick Start with dual-platform git clone"
 ```
 **Benefits:** Clear change type, automated changelog generation, searchable commit history
-
 
 **Anti-Pattern 3: Skipping Validation**
 ```bash
@@ -165,14 +163,12 @@ git commit -m "feat(rule): add new rule"
 ```
 **Benefits:** Catch errors early, ensure governance compliance, pass CI checks
 
-
 **Anti-Pattern 4: Mixing User and Contributor Content in README**
 ```markdown
 # Bad: Detailed development commands in README
 ```
 **Problem:** README should focus on users, not development setup
 **Correct Pattern:** Move development setup, build instructions, and contributor guidelines to CONTRIBUTING.md
-
 
 ## Post-Execution Checklist
 - [ ] Required dependencies and context verified
@@ -219,10 +215,10 @@ Updated CHANGELOG.md:
 - [Conventional Commits](https://www.conventionalcommits.org/) - Standardized commit message format
 
 ### Related Rules
-- **Global Core**: `rules/000-global-core.md`
-- **Changelog Rules**: `rules/800-project-changelog.md`
-- **README Rules**: `rules/801-project-readme.md`
-- **Rules Governance**: `rules/002-rule-governance.md`
+- **Global Core**: `000-global-core.md`
+- **Changelog Rules**: `800-project-changelog.md`
+- **README Rules**: `801-project-readme.md`
+- **Rules Governance**: `002-rule-governance.md`
 
 ## 1. Commit & Changelog Discipline
 - **Requirement:** Follow Conventional Commits: `<type>(<scope>): <imperative summary>`.

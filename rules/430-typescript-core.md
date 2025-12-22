@@ -1,10 +1,9 @@
 # TypeScript Core: Strictness & Modern Patterns
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
-> 
+>
 > This rule defines essential TypeScript patterns. Load for TypeScript tasks.
 > Specialized rules depend on this foundation.
-
 
 ## Metadata
 
@@ -13,7 +12,7 @@
 **Keywords:** TypeScript, Zod, Strict Mode, Type Inference, Union Types, Satisfies, Generics, Utility Types, Matt Pocock, Total TypeScript
 **TokenBudget:** ~1850
 **ContextTier:** High
-**Depends:** rules/000-global-core.md
+**Depends:** 000-global-core.md
 
 ## Purpose
 Establishes the definitive standards for writing production-grade TypeScript in 2025. This rule enforces **Strict Mode**, prioritizes **Type Inference** over manual typing, mandates **Runtime Validation** (Zod) at I/O boundaries, and explicitly forbids legacy features like Enums and Namespaces.
@@ -95,7 +94,6 @@ function process(data: unknown) {
 }
 ```
 
-
 **Anti-Pattern 2: The `I` Prefix (Hungarian Notation)**
 ```typescript
 // Bad: C# style naming
@@ -112,7 +110,6 @@ type UserData = {
  name: string;
 };
 ```
-
 
 **Anti-Pattern 3: Return Type `void` used incorrectly**
 ```typescript
@@ -205,8 +202,8 @@ npx tsc --noEmit
 - [TS Reset](https://github.com/total-typescript/ts-reset) - Better built-in types.
 
 ### Related Rules
-- **Global Core**: `rules/000-global-core.md`
-- **React Core**: `rules/440-react-core.md` (TypeScript usage in React)
+- **Global Core**: `000-global-core.md`
+- **React Core**: `440-react-core.md` (TypeScript usage in React)
 
 > ** Claude 4 Specific Guidance**
 > **Claude 4 Optimizations:**

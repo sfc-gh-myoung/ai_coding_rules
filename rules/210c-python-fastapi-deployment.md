@@ -7,7 +7,7 @@
 **Keywords:** FastAPI deployment, Uvicorn, Gunicorn, ASGI, Docker, production deployment, health checks, multi-stage build, OpenAPI, API documentation
 **TokenBudget:** ~2400
 **ContextTier:** High
-**Depends:** rules/210-python-fastapi-core.md
+**Depends:** 210-python-fastapi-core.md
 
 ## Purpose
 Establish production deployment patterns and API documentation practices for FastAPI applications using Docker, ASGI servers, and OpenAPI customization.
@@ -218,10 +218,10 @@ uv run pytest tests/
 - [Gunicorn Configuration](https://docs.gunicorn.org/en/stable/configure.html) - Worker processes, timeouts, and production settings
 
 ### Related Rules
-- **FastAPI Core**: `rules/210-python-fastapi-core.md`
-- **FastAPI Security**: `rules/210a-python-fastapi-security.md`
-- **FastAPI Monitoring**: `rules/210d-python-fastapi-monitoring.md`
-- **Python Core**: `rules/200-python-core.md`
+- **FastAPI Core**: `210-python-fastapi-core.md`
+- **FastAPI Security**: `210a-python-fastapi-security.md`
+- **FastAPI Monitoring**: `210d-python-fastapi-monitoring.md`
+- **Python Core**: `200-python-core.md`
 
 ## 1. API Documentation
 

@@ -11,10 +11,25 @@ format from `skills/rule-reviewer/PROMPT.md`.
 Key behaviors:
 
 - Uses the rubric and required output structure from `skills/rule-reviewer/PROMPT.md`
+- **100-point scoring system** with weighted dimensions (Actionability 25, Completeness 25, Consistency 15, Parsability 15, Token Efficiency 10, Staleness 10)
+- **Priority Compliance Gate** — Evaluates rules against Design Priority Hierarchy before scoring
+- **Agent Execution Test** — First gate counts blocking issues (undefined thresholds, missing branches, ambiguous actions)
 - Computes `OUTPUT_FILE` as:
   - `reviews/<rule-name>-<model>-<YYYY-MM-DD>.md`
 - **No-overwrite safety:** If file exists, uses suffix `-01.md`, `-02.md`, etc.
 - Supports three review modes: FULL, FOCUSED, STALENESS
+
+## Design Priority Hierarchy
+
+Reviews evaluate rules against the priority order defined in `000-global-core.md`:
+
+1. **Priority 1:** Agent Understanding and Execution Reliability (CRITICAL)
+2. **Priority 2:** Token and Context Window Efficiency (HIGH)
+3. **Priority 3:** Human Readability (TERTIARY)
+
+**Scoring Impact:**
+- 3-5 Priority 1 violations: Actionability capped at 15/25 (3/5)
+- 6+ Priority 1 violations: Overall score capped at 60/100 (NEEDS_REFINEMENT)
 
 ## Why Not Deployed?
 

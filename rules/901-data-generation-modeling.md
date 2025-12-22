@@ -7,7 +7,7 @@
 **Keywords:** Data modeling, naming conventions, Kimball, dimensional modeling, fact tables, dimension tables, foreign keys, view taxonomy, Business Analyst, data generation, backward compatibility, entity IDs, temporal columns, surrogate keys, SCD Type 2
 **TokenBudget:** ~5400
 **ContextTier:** High
-**Depends:** rules/000-global-core.md, rules/100-snowflake-core.md, rules/102-snowflake-sql-demo-engineering.md, rules/930-data-governance-quality.md, rules/940-business-analytics.md
+**Depends:** 000-global-core.md, 100-snowflake-core.md, 102-snowflake-sql-demo-engineering.md, 930-data-governance-quality.md, 940-business-analytics.md
 
 ## Purpose
 Establish comprehensive data generation and modeling standards ensuring intuitive, analytics-friendly data for Business Analysts, Executive Users, Data Scientists, and Data Engineers through consistent naming conventions, relationship patterns, and dimensional modeling best practices.
@@ -116,7 +116,6 @@ JOIN FACT_TRANSFORMER_READINGS t ON a.asset_id = t.asset_id;  -- Intuitive!
 
 **Benefits:** Self-documenting queries; reduced cognitive load
 
-
 ### Anti-Pattern 2: Ambiguous View Names
 
 ```sql
@@ -137,7 +136,6 @@ COMMENT = 'BA View: Simplified asset inventory for business reporting';
 ```
 
 **Benefits:** Users immediately know which view to use; self-documenting
-
 
 ### Anti-Pattern 3: Unitless Measurements
 
@@ -164,7 +162,6 @@ CREATE TABLE FACT_METER_READINGS (
 
 **Benefits:** Self-documenting; prevents unit conversion errors
 
-
 ### Anti-Pattern 4: Mixing Temporal Suffixes
 
 ```sql
@@ -189,7 +186,6 @@ CREATE TABLE FACT_CUSTOMER_CALLS (
 ```
 
 **Benefits:** Pattern is learnable; clear semantics
-
 
 ### Anti-Pattern 5: Missing Date Dimension
 
@@ -222,7 +218,6 @@ GROUP BY d.year_num, d.month_name, d.fiscal_quarter;
 
 **Benefits:** Better performance; rich time attributes; business calendar support
 
-
 ## Post-Execution Checklist
 
 **MANDATORY:**
@@ -241,7 +236,6 @@ Before committing any data generation or SQL changes, verify:
 - [ ] **Backward Compatibility**: Compatibility views created for any renamed objects
 - [ ] **Referential Integrity**: All FK values exist in parent tables (validated in generator)
 - [ ] **Documentation**: Changes documented in README, ARCHITECTURE.md, CHANGELOG.md
-
 
 ## Validation
 
@@ -310,13 +304,13 @@ test --run-all
 - [IEC 61970 (CIM)](https://en.wikipedia.org/wiki/Common_Information_Model_(electricity)) - Common Information Model for grid assets
 
 ### Related Rules
-- **Global Core**: `rules/000-global-core.md`
-- **Snowflake Core**: `rules/100-snowflake-core.md`
-- **SQL Demo Engineering**: `rules/102-snowflake-sql-demo-engineering.md`
-- **Performance Tuning**: `rules/103-snowflake-performance-tuning.md`
-- **Data Governance**: `rules/930-data-governance-quality.md`
-- **Business Analytics**: `rules/940-business-analytics.md`
-- **Demo Creation**: `rules/900-demo-creation.md`
+- **Global Core**: `000-global-core.md`
+- **Snowflake Core**: `100-snowflake-core.md`
+- **SQL Demo Engineering**: `102-snowflake-sql-demo-engineering.md`
+- **Performance Tuning**: `103-snowflake-performance-tuning.md`
+- **Data Governance**: `930-data-governance-quality.md`
+- **Business Analytics**: `940-business-analytics.md`
+- **Demo Creation**: `900-demo-creation.md`
 
 ## 1. Universal Naming Conventions
 
@@ -398,7 +392,6 @@ Categorical columns should use clear, self-documenting values:
 - **Category:** e.g., `rate_category = 'STANDARD'`, `'TIME_OF_USE'`
 
 **Abbreviations:** Only use if industry-standard (e.g., `RES`/`COMM` acceptable for utilities)
-
 
 ## 2. Dimensional Modeling Standards (Kimball Methodology)
 
@@ -562,7 +555,6 @@ JOIN DIM_DATE d ON DATE(f.read_timestamp) = d.date_key
 WHERE d.year_num = 2024
 GROUP BY d.year_num, d.month_name;
 ```
-
 
 ## 3. View Taxonomy (Business-First Design)
 
@@ -847,7 +839,6 @@ SELECT 'METER', 'Advanced metering infrastructure (AMI) endpoint', 4
 COMMENT = 'Reference View: Valid asset types with descriptions';
 ```
 
-
 ## 4. Backward Compatibility & Migration Strategy
 
 ### 4.1 Migration Principles
@@ -916,7 +907,6 @@ FROM FACT_TRANSFORMER_READINGS
 COMMENT = 'DEPRECATED: Use FACT_TRANSFORMER_READINGS instead. This view maps old column names for compatibility.';
 ```
 
-
 ## 5. Data Generator Requirements
 
 ### 5.1 Generator Output Standards
@@ -970,7 +960,6 @@ def validate_foreign_keys(df_child, df_parent, fk_column, pk_column):
             f"have {fk_column} values not found in parent {pk_column}"
         )
 ```
-
 
 ## 6. SQL DDL Standards
 
@@ -1028,7 +1017,6 @@ status VARCHAR(20) COMMENT 'Status',
 parent VARCHAR(50) COMMENT 'Parent ID'
 ```
 
-
 ## 7. Query Optimization Guidelines
 
 ### 7.1 Clustering Keys
@@ -1072,7 +1060,6 @@ AS
   SELECT *, CURRENT_TIMESTAMP() AS cache_refresh_timestamp
   FROM VW_BA_CUSTOMER_360;
 ```
-
 
 ## Data Modeling Assessment
 - **Entity**: [Entity being modeled]

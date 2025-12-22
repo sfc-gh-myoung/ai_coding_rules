@@ -1,10 +1,9 @@
 # FastAPI Best Practices
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
-> 
+>
 > This rule defines essential FastAPI patterns. Load for FastAPI tasks.
 > Specialized rules depend on this foundation.
-
 
 ## Metadata
 
@@ -13,7 +12,7 @@
 **Keywords:** FastAPI, async, REST API, Pydantic, dependency injection, routing, request validation, response models, APIRouter, uvicorn, async def, application factory
 **TokenBudget:** ~2950
 **ContextTier:** High
-**Depends:** rules/200-python-core.md
+**Depends:** 200-python-core.md
 
 ## Purpose
 Provide comprehensive FastAPI development best practices, organized into focused patterns that cover all aspects of modern web API development including application architecture, async programming, request/response handling, and error management for building maintainable, performant web APIs.
@@ -237,12 +236,12 @@ uv run pytest tests/
 - [SQLAlchemy Async](https://docs.sqlalchemy.org/en/20/orm/extensions/asyncio.html)
 
 ### Related Rules
-- **Python Core**: `rules/200-python-core.md`
-- **Python Project Setup**: `rules/203-python-project-setup.md`
-- **FastAPI Security**: `rules/210a-python-fastapi-security.md`
-- **FastAPI Testing**: `rules/210b-python-fastapi-testing.md`
-- **FastAPI Deployment**: `rules/210c-python-fastapi-deployment.md`
-- **FastAPI Monitoring**: `rules/210d-python-fastapi-monitoring.md`
+- **Python Core**: `200-python-core.md`
+- **Python Project Setup**: `203-python-project-setup.md`
+- **FastAPI Security**: `210a-python-fastapi-security.md`
+- **FastAPI Testing**: `210b-python-fastapi-testing.md`
+- **FastAPI Deployment**: `210c-python-fastapi-deployment.md`
+- **FastAPI Monitoring**: `210d-python-fastapi-monitoring.md`
 
 ## FastAPI Rule Categories
 

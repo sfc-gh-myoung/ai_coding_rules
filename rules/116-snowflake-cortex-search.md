@@ -7,7 +7,7 @@
 **Keywords:** embeddings, search index, RAG, agent tools, retrieval, troubleshooting, AI_EMBED, create search service, search service error, document retrieval, search index creation, hybrid search, search service debug, vector similarity
 **TokenBudget:** ~5150
 **ContextTier:** Medium
-**Depends:** rules/100-snowflake-core.md, rules/105-snowflake-cost-governance.md, rules/111-snowflake-observability-core.md, rules/114-snowflake-cortex-aisql.md
+**Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md, 111-snowflake-observability-core.md, 114-snowflake-cortex-aisql.md
 
 ## Purpose
 Provide reliable patterns for building and querying Cortex Search indices, including data preparation, embedding hygiene, metadata filters, hybrid retrieval, agent tool configuration, and cost/latency considerations.
@@ -135,7 +135,6 @@ AS (SELECT * FROM chunked_documents);
 ```
 **Benefits:** Better retrieval quality; relevant context surfaced; efficient embeddings; cost-effective; semantic search effective; high user satisfaction
 
-
 **Anti-Pattern 2: Missing Metadata for Filtering**
 ```sql
 -- Bad: No metadata, can't filter results
@@ -177,7 +176,6 @@ AS (
 ```
 **Benefits:** Filterable results; relevant results only; access control ready; scoped searches; excellent UX; security compliance; metadata-driven retrieval
 
-
 **Anti-Pattern 3: Vague Tool Descriptions in Agent Config**
 ```python
 # Bad: Unclear when to use this search tool
@@ -205,7 +203,6 @@ tools = [{
 }]
 ```
 **Benefits:** Clear tool selection criteria; predictable behavior; no overlap; excellent UX; agent knows exactly when to use; optimal results
-
 
 **Anti-Pattern 4: Not Validating Search Service After Creation**
 ```sql
@@ -333,13 +330,13 @@ Description: "Search {document_type} for {specific_use_case}. Use for questions 
 - [Cortex Agents](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents) - Agent tool configuration
 
 ### Related Rules
-- **Snowflake Core**: `rules/100-snowflake-core.md`
-- **AISQL**: `rules/114-snowflake-cortex-aisql.md`
-- **Cortex Agents**: `rules/115-snowflake-cortex-agents-core.md` - Agent archetypes, configuration templates, planning instructions, testing patterns
-- **Semantic Views Integration**: `rules/106c-snowflake-semantic-views-integration.md` - Analyst tool configuration for hybrid agents
-- **Cost Governance**: `rules/105-snowflake-cost-governance.md`
-- **Warehouse Management**: `rules/119-snowflake-warehouse-management.md`
-- **Observability**: `rules/111-snowflake-observability-core.md`
+- **Snowflake Core**: `100-snowflake-core.md`
+- **AISQL**: `114-snowflake-cortex-aisql.md`
+- **Cortex Agents**: `115-snowflake-cortex-agents-core.md` - Agent archetypes, configuration templates, planning instructions, testing patterns
+- **Semantic Views Integration**: `106c-snowflake-semantic-views-integration.md` - Analyst tool configuration for hybrid agents
+- **Cost Governance**: `105-snowflake-cost-governance.md`
+- **Warehouse Management**: `119-snowflake-warehouse-management.md`
+- **Observability**: `111-snowflake-observability-core.md`
 
 ## 0. Prerequisites Validation
 

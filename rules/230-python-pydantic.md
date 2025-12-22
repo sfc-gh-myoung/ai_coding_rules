@@ -7,7 +7,7 @@
 **Keywords:** Pydantic, data validation, models, settings, BaseModel, field validation, serialization, Field, validator, model_validator, EmailStr, pydantic-settings
 **TokenBudget:** ~3200
 **ContextTier:** High
-**Depends:** rules/200-python-core.md
+**Depends:** 200-python-core.md
 
 ## Purpose
 Establish comprehensive data validation and serialization patterns using Pydantic v2, covering model design, settings management, custom validators, and integration strategies for building type-safe, validated Python applications.
@@ -228,10 +228,10 @@ uv run pytest tests/
 - [FastAPI with Pydantic](https://fastapi.tiangolo.com/tutorial/body/) - Request/response models and API integration
 
 ### Related Rules
-- **Python Core**: `rules/200-python-core.md`
-- **FastAPI Core**: `rules/210-python-fastapi-core.md`
-- **Typer CLI**: `rules/220-python-typer-cli.md`
-- **Flask**: `rules/250-python-flask.md`
+- **Python Core**: `200-python-core.md`
+- **FastAPI Core**: `210-python-fastapi-core.md`
+- **Typer CLI**: `220-python-typer-cli.md`
+- **Flask**: `250-python-flask.md`
 
 ## 1. Installation and Setup
 

@@ -1,10 +1,9 @@
 # Snowflake Cortex Agents Best Practices
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
-> 
+>
 > This rule defines essential Cortex Agents patterns. Load for Cortex Agent tasks.
 > Specialized rules depend on this foundation.
-
 
 ## Metadata
 
@@ -13,7 +12,7 @@
 **Keywords:** multi-tool agents, planning instructions, testing, troubleshooting, semantic views, create agent, debug agent, agent not working, tool execution failed, agent error, fix agent, agent performance, agent tool integration, cortex agent configuration, UnboundedExecution
 **TokenBudget:** ~4650
 **ContextTier:** High
-**Depends:** rules/100-snowflake-core.md, rules/105-snowflake-cost-governance.md, rules/106-snowflake-semantic-views-core.md, rules/111-snowflake-observability-core.md
+**Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md, 106-snowflake-semantic-views-core.md, 111-snowflake-observability-core.md
 
 ## Purpose
 Provide comprehensive patterns to design, configure, secure, and operate Cortex Agents including agent archetypes, tool configurations, planning instructions, testing strategies, RBAC, observability, and quality evaluation, optimized for reliability and cost.
@@ -161,7 +160,6 @@ tools = [{
 ```
 **Benefits:** Clear tool selection criteria; agent knows exact use cases; predictable routing; better user experience; easier debugging; optimal tool usage
 
-
 **Anti-Pattern 2: Missing Planning Instructions for Multi-Tool Orchestration**
 ```python
 # Bad: No guidance on how to orchestrate multiple tools
@@ -193,7 +191,6 @@ agent = cortex.Agent(
 ```
 **Benefits:** Systematic tool orchestration; efficient execution order; comprehensive answers; proper synthesis; predictable behavior; better user satisfaction
 
-
 **Anti-Pattern 3: No Semantic View for Cortex Analyst Tool**
 ```python
 # Bad: Pointing Cortex Analyst at raw tables without semantic model
@@ -223,7 +220,6 @@ analyst_tool = cortex.AnalystTool(
 )
 ```
 **Benefits:** Business-friendly queries; accurate SQL generation; correct metric calculations; schema abstraction; business user accessibility; better analyst results
-
 
 **Anti-Pattern 4: Not Testing Agent with Out-of-Scope Questions**
 ```python

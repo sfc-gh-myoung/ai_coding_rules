@@ -173,10 +173,10 @@ test --run-all
 - [Incident Response Best Practices](https://www.sans.org/white-papers/incident-response/) - SANS incident response guidelines
 
 ### Related Rules
-- **Snowflake Core**: `rules/100-snowflake-core.md`
-- **Snowflake Security**: `rules/107-snowflake-security-governance.md`
-- **Semantic Views**: `rules/106-snowflake-semantic-views-core.md`
-- **Data Science Analytics**: `rules/920-data-science-analytics.md`
+- **Snowflake Core**: `100-snowflake-core.md`
+- **Snowflake Security**: `107-snowflake-security-governance.md`
+- **Semantic Views**: `106-snowflake-semantic-views-core.md`
+- **Data Science Analytics**: `920-data-science-analytics.md`
 
 ## 1. Data Quality as Code
 - **Requirement:** Treat data quality as code. Version expectation suites and integrate into CI/CD.

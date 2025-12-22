@@ -7,7 +7,7 @@
 **Keywords:** high-memory warehouse, warehouse tagging, auto-suspend, auto-resume, GEN 2, Snowpark-Optimized, warehouse edition, resource monitors, create warehouse, warehouse configuration, warehouse types, warehouse cost, size warehouse
 **TokenBudget:** ~4800
 **ContextTier:** High
-**Depends:** rules/100-snowflake-core.md, rules/103-snowflake-performance-tuning.md, rules/105-snowflake-cost-governance.md
+**Depends:** 100-snowflake-core.md, 103-snowflake-performance-tuning.md, 105-snowflake-cost-governance.md
 
 ## Purpose
 Establish comprehensive best practices for creating, configuring, and managing Snowflake virtual warehouses, including proper selection of warehouse types (CPU/GPU/High-Memory), mandatory GEN 2 preference, sizing strategies, auto-suspend configuration, tagging standards, and cost governance integration.
@@ -136,7 +136,6 @@ ALTER WAREHOUSE analytics_wh SET WAREHOUSE_SIZE = 'SMALL';
 ```
 **Benefits:** Start cost-effective; data-driven sizing; 10x cost savings; baseline established; justified upgrades; excellent cost governance
 
-
 **Anti-Pattern 2: Not Enabling AUTO_SUSPEND**
 ```sql
 -- Bad: No auto-suspend, warehouse runs 24/7
@@ -158,7 +157,6 @@ CREATE WAREHOUSE reporting_wh
 -- Example: 2 hours/day = 960 credits/month (92% savings!)
 ```
 **Benefits:** Pay only for actual usage; 10-100x cost reduction; automatic idle shutdown; budget-friendly; production best practice; no manual management
-
 
 **Anti-Pattern 3: Using Single Large Warehouse for All Workloads**
 ```sql
@@ -199,7 +197,6 @@ WHERE start_time >= DATEADD('month', -1, CURRENT_TIMESTAMP())
 GROUP BY cost_center, workload;
 ```
 **Benefits:** Cost attribution by team/workload; independent optimization; no resource contention; chargeback-ready; governance-friendly; workload isolation
-
 
 **Anti-Pattern 4: Not Using GEN 2 Warehouses**
 ```sql
@@ -316,13 +313,13 @@ SELECT * FROM TABLE(INFORMATION_SCHEMA.TAG_REFERENCES('WH_[WORKLOAD]_M', 'WAREHO
 - [Warehouse Credit Usage](https://docs.snowflake.com/en/user-guide/credits) - Credit consumption and billing
 
 ### Related Rules
-- **Snowflake Core**: `rules/100-snowflake-core.md` - Foundational Snowflake practices
-- **SQL Demo Engineering**: `rules/102-snowflake-sql-demo-engineering.md` - SQL patterns for demos
-- **Performance Tuning**: `rules/103-snowflake-performance-tuning.md` - Query profiling and optimization
-- **Cost Governance**: `rules/105-snowflake-cost-governance.md` - Resource monitors and cost optimization
-- **Security Governance**: `rules/107-snowflake-security-governance.md` - Tagging and access policies
-- **Object Tagging**: `rules/123-snowflake-object-tagging.md` - Comprehensive tagging patterns and governance
-- **Observability**: `rules/111-snowflake-observability-core.md` - Monitoring and telemetry
+- **Snowflake Core**: `100-snowflake-core.md` - Foundational Snowflake practices
+- **SQL Demo Engineering**: `102-snowflake-sql-demo-engineering.md` - SQL patterns for demos
+- **Performance Tuning**: `103-snowflake-performance-tuning.md` - Query profiling and optimization
+- **Cost Governance**: `105-snowflake-cost-governance.md` - Resource monitors and cost optimization
+- **Security Governance**: `107-snowflake-security-governance.md` - Tagging and access policies
+- **Object Tagging**: `123-snowflake-object-tagging.md` - Comprehensive tagging patterns and governance
+- **Observability**: `111-snowflake-observability-core.md` - Monitoring and telemetry
 
 ## 1. Warehouse Types and Resource Constraints
 

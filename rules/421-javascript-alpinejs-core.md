@@ -7,7 +7,7 @@
 **Keywords:** Alpine.js, reactivity, x-data, x-bind, x-on, x-model, x-show, x-if, magic properties, $el, $refs, $store, declarative, progressive enhancement, lightweight
 **TokenBudget:** ~3350
 **ContextTier:** Medium
-**Depends:** rules/000-global-core.md
+**Depends:** 000-global-core.md
 
 ## Purpose
 
@@ -894,7 +894,7 @@ Correct Pattern: Use reactive data instead of direct DOM manipulation
 - [Alpine.js GitHub](https://github.com/alpinejs/alpine) - Source code and issues
 
 ### Related Rules
-- **Global Core**: `rules/000-global-core.md` - Foundation for all rules
-- **JavaScript Core**: `rules/420-javascript-core.md` - Modern JavaScript patterns
-- **HTMX Frontend**: `rules/500-frontend-htmx-core.md` - Alternative lightweight framework
-- **HTMX Integration**: `rules/221f-python-htmx-integrations.md` - Alpine.js + HTMX patterns (future reference)
+- **Global Core**: `000-global-core.md` - Foundation for all rules
+- **JavaScript Core**: `420-javascript-core.md` - Modern JavaScript patterns
+- **HTMX Frontend**: `500-frontend-htmx-core.md` - Alternative lightweight framework
+- **HTMX Integration**: `221f-python-htmx-integrations.md` - Alpine.js + HTMX patterns (future reference)

@@ -7,7 +7,7 @@
 **Keywords:** test Streamlit app, pytest, test framework, test patterns, app testing, UI testing, test automation, streamlit test suite, integration testing, test coverage, debug tests, test fixtures, testing strategies
 **TokenBudget:** ~2600
 **ContextTier:** High
-**Depends:** rules/101-snowflake-streamlit-core.md, rules/206-python-pytest.md
+**Depends:** 101-snowflake-streamlit-core.md, 206-python-pytest.md
 
 ## Purpose
 Provide comprehensive testing and debugging guidance for Streamlit applications including AppTest patterns, unit testing strategies, debugging workflows, and common issue resolution.
@@ -265,10 +265,10 @@ def test_load_data(mock_session):
 - [Performance Profiling](https://docs.streamlit.io/develop/concepts/architecture/caching#debugging-cache-issues) - Cache debugging
 
 ### Related Rules
-- **Streamlit Core**: `rules/101-snowflake-streamlit-core.md`
-- **Streamlit Performance**: `rules/101b-snowflake-streamlit-performance.md` (cache testing)
-- **Python pytest**: `rules/206-python-pytest.md`
-- **Python Core**: `rules/200-python-core.md`
+- **Streamlit Core**: `101-snowflake-streamlit-core.md`
+- **Streamlit Performance**: `101b-snowflake-streamlit-performance.md` (cache testing)
+- **Python pytest**: `206-python-pytest.md`
+- **Python Core**: `200-python-core.md`
 
 > **[AI] Claude 4 Specific Guidance**
 > **Claude 4 Streamlit Testing Optimizations:**

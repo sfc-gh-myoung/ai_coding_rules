@@ -7,7 +7,7 @@
 **Keywords:** Faker, test data generation, fake data, providers, localization, synthetic data, pytest fixtures, seeding, deterministic testing, Python testing
 **TokenBudget:** ~3100
 **ContextTier:** Low
-**Depends:** rules/200-python-core.md
+**Depends:** 200-python-core.md
 
 ## Purpose
 Establish comprehensive patterns for generating realistic test data using Python's Faker library, covering setup, providers, localization, testing integration, and performance optimization to create maintainable and deterministic test suites.
@@ -219,9 +219,9 @@ uv run pytest tests/
 - [Factory Boy](https://factoryboy.readthedocs.io/) - Object factory patterns for complex test data
 
 ### Related Rules
-- **Python Core**: `rules/200-python-core.md`
-- **FastAPI Testing**: `rules/210b-python-fastapi-testing.md`
-- **Demo Creation**: `rules/900-demo-creation.md`
+- **Python Core**: `200-python-core.md`
+- **FastAPI Testing**: `210b-python-fastapi-testing.md`
+- **Demo Creation**: `900-demo-creation.md`
 
 ## 1. Installation and Setup
 

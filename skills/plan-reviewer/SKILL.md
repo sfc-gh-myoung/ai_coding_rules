@@ -1,7 +1,7 @@
 ---
 name: plan-reviewer
 description: Review LLM-generated plans for autonomous agent executability. Supports FULL (single plan), COMPARISON (multiple plans ranked), and META-REVIEW (review consistency analysis) modes. Triggers on keywords like "review plan", "compare plans", "plan quality", "meta-review", "plan executability".
-version: 1.0.0
+version: 1.2.0
 author: AI Coding Rules Project
 tags: [plan-review, agent-executability, comparison, meta-review, quality-audit, deployable]
 dependencies: []
@@ -13,20 +13,34 @@ dependencies: []
 
 Review LLM-generated plans using `PROMPT.md` (colocated in this skill folder) to ensure autonomous agents can execute them successfully. Evaluates plans across 8 dimensions with weighted scoring optimized for agent executability.
 
+**Design Priority Hierarchy:** This skill evaluates plans against the priority order defined in `000-global-core.md`:
+1. **Priority 1:** Agent Understanding and Execution Reliability (CRITICAL)
+2. **Priority 2:** Token and Context Window Efficiency (HIGH)
+3. **Priority 3:** Human Readability (TERTIARY)
+
+Plans are scored primarily on whether autonomous agents can execute them without judgment calls or clarification requests.
+
 ## Use this skill when
 
 - The user asks to **review a plan** file for agent executability
 - The user wants to **compare multiple plans** for the same task
 - The user wants a **meta-review** to analyze consistency across reviews
 - The user asks if a plan is **executable by an autonomous agent**
+- The user wants to verify a plan meets **Priority 1 compliance** before execution
 
 ## Review Modes
 
-| Mode | Purpose | When to Use |
-|------|---------|-------------|
-| **FULL** | Comprehensive single-plan review | Default; evaluating one plan |
-| **COMPARISON** | Rank multiple plans, declare winner | Choosing between competing plans |
-| **META-REVIEW** | Analyze review consistency | After multiple LLMs review same document |
+**FULL Mode:**
+- Purpose: Comprehensive single-plan review
+- When to use: Default; evaluating one plan
+
+**COMPARISON Mode:**
+- Purpose: Rank multiple plans, declare winner
+- When to use: Choosing between competing plans
+
+**META-REVIEW Mode:**
+- Purpose: Analyze review consistency
+- When to use: After multiple LLMs review same document
 
 ## Inputs
 
@@ -86,32 +100,33 @@ Follow these workflows in order:
 
 ## Review Dimensions
 
-### Critical Dimensions (75 points)
-| Dimension | Points | Focus |
-|-----------|--------|-------|
-| **Executability** | /20 | Can agent execute without human judgment? |
-| **Completeness** | /20 | Are all steps (setup, validation, cleanup) present? |
-| **Success Criteria** | /20 | Can agent verify completion programmatically? |
-| **Scope** | /15 | Are boundaries and end state explicit? |
+**Critical Dimensions (75 points total):**
+- **Executability:** 20 points - Can agent execute without human judgment?
+- **Completeness:** 20 points - Are all steps (setup, validation, cleanup) present?
+- **Success Criteria:** 20 points - Can agent verify completion programmatically?
+- **Scope:** 15 points - Are boundaries and end state explicit?
 
-### Standard Dimensions (25 points)
-| Dimension | Points | Focus |
-|-----------|--------|-------|
-| Dependencies | /10 | Is execution order explicit? |
-| Decomposition | /5 | Is task granularity appropriate? |
-| Context | /5 | Is necessary background provided? |
-| Risk Awareness | /5 | Are fallbacks documented? |
+**Standard Dimensions (25 points total):**
+- **Dependencies:** 10 points - Is execution order explicit?
+- **Decomposition:** 5 points - Is task granularity appropriate?
+- **Context:** 5 points - Is necessary background provided?
+- **Risk Awareness:** 5 points - Are fallbacks documented?
 
 **Total: /100**
 
+**Priority 1 Gate:** If blocking issues ≥10, maximum score = 60/100 (NEEDS_REFINEMENT cap)
+
 ## Agent Executability Verdicts
 
-| Score Range | Verdict | Meaning |
-|-------------|---------|---------|
-| 90-100 | EXECUTABLE | Agent can execute as-is |
-| 80-89 | EXECUTABLE_WITH_REFINEMENTS | Minor refinements recommended |
-| 60-79 | NEEDS_REFINEMENT | Significant gaps; agent may fail |
-| <60 | NOT_EXECUTABLE | Major rework required |
+**Score Ranges:**
+- **90-100 (EXECUTABLE):** Agent can execute as-is
+- **80-89 (EXECUTABLE_WITH_REFINEMENTS):** Minor refinements recommended
+- **60-79 (NEEDS_REFINEMENT):** Significant gaps; agent may fail
+- **<60 (NOT_EXECUTABLE):** Major rework required
+
+**Priority 1 Overrides:**
+- ≥10 blocking issues: Verdict capped at NEEDS_REFINEMENT (max 60/100)
+- ≥20 blocking issues: Verdict = NOT_EXECUTABLE (max 40/100)
 
 ## Examples
 
@@ -202,19 +217,3 @@ Plan files can also be reviewed as documentation using **doc-reviewer**:
 ### Integration with rule-reviewer
 
 If a plan references rules, use **rule-reviewer** to validate those rules are agent-executable.
-
-## Version History
-
-- **v1.1.0** (2025-12-16): 100-point scoring system
-  - Updated to 100-point scale (from /60 weighted)
-  - Point allocation: 20/20/20/15/10/5/5/5
-  - Updated verdict thresholds for /100 scale
-
-- **v1.0.0** (2025-12-16): Initial release
-  - 8-dimension plan review rubric (4 critical, 4 standard)
-  - FULL mode for single-plan reviews
-  - COMPARISON mode for multi-plan ranking
-  - META-REVIEW mode for review consistency analysis
-  - Agent Executability Verdicts (EXECUTABLE, NEEDS_REFINEMENT, NOT_EXECUTABLE)
-  - Deployable to other projects
-

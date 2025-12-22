@@ -7,7 +7,7 @@
 **Keywords:** crud, forms, validation, infinite scroll, lazy loading, sse, progressive enhancement, modals, search, autocomplete, real-time, polling, inline editing
 **TokenBudget:** ~2600
 **ContextTier:** High
-**Depends:** rules/221-python-htmx-core.md, rules/221a-python-htmx-templates.md
+**Depends:** 221-python-htmx-core.md, 221a-python-htmx-templates.md
 
 ## Purpose
 
@@ -701,9 +701,9 @@ def delete_user(user_id):
 - [HTMX Essays](https://htmx.org/essays/) - Architecture and design philosophy
 
 ### Related Rules
-- **HTMX Foundation**: `rules/221-python-htmx-core.md` - Core HTMX concepts
-- **Template Strategies**: `rules/221a-python-htmx-templates.md` - Jinja2 patterns
-- **Flask Integration**: `rules/221b-python-htmx-flask.md` - Flask-specific patterns
-- **FastAPI Integration**: `rules/221c-python-htmx-fastapi.md` - FastAPI patterns
-- **Testing**: `rules/221d-python-htmx-testing.md` - Testing these patterns
-- **Integrations**: `rules/221f-python-htmx-integrations.md` - Frontend library integrations
+- **HTMX Foundation**: `221-python-htmx-core.md` - Core HTMX concepts
+- **Template Strategies**: `221a-python-htmx-templates.md` - Jinja2 patterns
+- **Flask Integration**: `221b-python-htmx-flask.md` - Flask-specific patterns
+- **FastAPI Integration**: `221c-python-htmx-fastapi.md` - FastAPI patterns
+- **Testing**: `221d-python-htmx-testing.md` - Testing these patterns
+- **Integrations**: `221f-python-htmx-integrations.md` - Frontend library integrations

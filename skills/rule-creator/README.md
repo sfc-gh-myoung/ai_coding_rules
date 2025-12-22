@@ -399,23 +399,6 @@ Rule creation is successful when:
 - ✅ Contract has 6 XML tags before line 160
 - ✅ 2+ anti-patterns with code examples included
 
-## Version History
-
-- **v1.1.0** (2025-12-15): Enhanced skill structure
-  - Added version, author, tags, dependencies to SKILL.md frontmatter
-  - Improved description with trigger keywords and domain coverage
-  - Added inline validation snippets for quick checks
-  - Added edge-cases.md with 10 documented scenarios
-  - Added tests/ folder with input and workflow test cases
-  - Added VALIDATION.md for skill self-validation
-  - Cross-referenced with rule-reviewer for quality assurance
-- **v1.0.0** (2024-12-11): Initial release
-  - 5-phase workflow with script orchestration
-  - Claude Code–compliant structured skill format
-  - Complete examples for 3 domains
-  - Phase-specific workflow guides
-  - Comprehensive error handling
-
 ## Contributing
 
 To improve this skill:

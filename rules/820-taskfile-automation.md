@@ -7,7 +7,7 @@
 **Keywords:** Taskfile, Taskfile.yml, task automation, build automation, task runner, Task, portable tasks, error handling, categorized help, task discovery, command detection, auto-detection, cross-platform, uvx, machine-readable
 **TokenBudget:** ~7100
 **ContextTier:** Medium
-**Depends:** rules/202-markup-config-validation.md
+**Depends:** 202-markup-config-validation.md
 
 ## Purpose
 Provide directives for creating, modifying, and maintaining project automation using Taskfile.yml as the primary orchestrator, ensuring consistent, portable, and well-documented task management across development workflows.
@@ -52,7 +52,7 @@ Project automation using Taskfile.yml for consistent development workflows
 - `Taskfile.yml` present at project root
 - `task/` includes directory (if using modular structure)
 - `uv`/`uvx` installed for Python automation
-- Knowledge of: `rules/000-global-core.md`, `rules/200-python-core.md`, `rules/300-bash-scripting-core.md`
+- Knowledge of: `000-global-core.md`, `200-python-core.md`, `300-bash-scripting-core.md`
 </inputs_prereqs>
 
 <mandatory>
@@ -302,11 +302,11 @@ Preview:
 - [Astral uv Tools Concept](https://docs.astral.sh/uv/concepts/tools/) - `uvx` ephemeral tool execution
 
 ### Related Rules
-- **YAML Config**: `rules/202-markup-config-validation.md`
-- **Bash Core**: `rules/300-bash-scripting-core.md`
-- **Python Core**: `rules/200-python-core.md`
-- **Snowflake CLI**: `rules/112-snowflake-snowcli.md` - SnowCLI invocation patterns for Snowflake projects
-- **SQL Automation**: `rules/102a-snowflake-sql-automation.md` - SQL script automation patterns
+- **YAML Config**: `202-markup-config-validation.md`
+- **Bash Core**: `300-bash-scripting-core.md`
+- **Python Core**: `200-python-core.md`
+- **Snowflake CLI**: `112-snowflake-snowcli.md` - SnowCLI invocation patterns for Snowflake projects
+- **SQL Automation**: `102a-snowflake-sql-automation.md` - SQL script automation patterns
 
 ## 1. Core Principles
 - **Requirement:** Prefer a single source of truth for automation (`Taskfile.yml` recommended). Acceptable equivalents: `Makefile`, `npm scripts`, `justfile`.
@@ -733,7 +733,7 @@ cmds:
   - echo "Status{{":"}} Complete"
 ```
 
-See `rules/202-markup-config-validation.md` for comprehensive YAML quoting guidance.
+See `202-markup-config-validation.md` for comprehensive YAML quoting guidance.
 
 ### Emoji Usage in Terminal Output (Exception to Text-Only Rules)
 

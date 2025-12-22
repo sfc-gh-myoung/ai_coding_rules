@@ -7,7 +7,7 @@
 **Keywords:** pytest, testing, fixtures, parametrization, test isolation, mocking, test organization, coverage, AAA pattern, test markers, uv run pytest
 **TokenBudget:** ~2050
 **ContextTier:** High
-**Depends:** rules/200-python-core.md, rules/201-python-lint-format.md, rules/203-python-project-setup.md
+**Depends:** 200-python-core.md, 201-python-lint-format.md, 203-python-project-setup.md
 
 ## Purpose
 Define pragmatic, industry-standard testing practices with pytest to produce fast, reliable, maintainable tests that are easy to run locally and in CI, aligned with this repository's Python tooling conventions.
@@ -191,11 +191,11 @@ uv run pytest --cov=yourpkg --cov-report=term-missing
 - [pytest capsys/caplog](https://docs.pytest.org/en/stable/how-to/capture-stdout-stderr.html)
 
 ### Related Rules
-- **Python Core**: `rules/200-python-core.md`
-- **Python Lint/Format**: `rules/201-python-lint-format.md`
-- **Python Project Setup**: `rules/203-python-project-setup.md`
-- **Python Docs & Comments**: `rules/204-python-docs-comments.md`
-- **Python Classes**: `rules/205-python-classes.md`
+- **Python Core**: `200-python-core.md`
+- **Python Lint/Format**: `201-python-lint-format.md`
+- **Python Project Setup**: `203-python-project-setup.md`
+- **Python Docs & Comments**: `204-python-docs-comments.md`
+- **Python Classes**: `205-python-classes.md`
 
 ## Pre-Task-Completion Test Execution Gate (CRITICAL)
 

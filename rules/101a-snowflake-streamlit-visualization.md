@@ -7,7 +7,7 @@
 **Keywords:** st.plotly_chart, st.map, dashboard, interactive charts, map visualization, time series smoothing, data aggregation, create chart, chart types, plotly express, dashboard layout, chart configuration, streamlit plotting, chart customization
 **TokenBudget:** ~3600
 **ContextTier:** High
-**Depends:** rules/101-snowflake-streamlit-core.md, rules/940-business-analytics.md
+**Depends:** 101-snowflake-streamlit-core.md, 940-business-analytics.md
 
 ## Purpose
 Provide comprehensive guidance for data visualization in Streamlit using Plotly as the universal standard for charts, graphs, and maps, with integration patterns for analytics dashboards and ML insights.
@@ -288,12 +288,12 @@ else:
 - [st.plotly_chart](https://docs.streamlit.io/develop/api-reference/charts/st.plotly_chart) - Plotly chart display in Streamlit
 
 ### Related Rules
-- **Streamlit Core**: `rules/101-snowflake-streamlit-core.md`
-- **Streamlit Performance**: `rules/101b-snowflake-streamlit-performance.md` (caching for large datasets)
-- **DateTime Handling**: `rules/251-python-datetime-handling.md` (comprehensive datetime guidance for Plotly)
-- **Pandas Best Practices**: `rules/252-pandas-best-practices.md` (DataFrame optimization before visualization)
-- **Data Science Analytics**: `rules/920-data-science-analytics.md` (ML visualization, large dataset optimization)
-- **Business Analytics**: `rules/940-business-analytics.md` (dashboard design, chart type selection, accessibility)
+- **Streamlit Core**: `101-snowflake-streamlit-core.md`
+- **Streamlit Performance**: `101b-snowflake-streamlit-performance.md` (caching for large datasets)
+- **DateTime Handling**: `251-python-datetime-handling.md` (comprehensive datetime guidance for Plotly)
+- **Pandas Best Practices**: `252-pandas-best-practices.md` (DataFrame optimization before visualization)
+- **Data Science Analytics**: `920-data-science-analytics.md` (ML visualization, large dataset optimization)
+- **Business Analytics**: `940-business-analytics.md` (dashboard design, chart type selection, accessibility)
 
 > **[AI] Claude 4 Specific Guidance**
 > **Claude 4 Streamlit Visualization Optimizations:**

@@ -171,7 +171,7 @@ class TemplateGenerator:
         """Parse rule filename to extract number and generate title.
 
         Args:
-            filename: Rule filename (e.g., "100-snowflake-sql")
+            filename: Rule filename (e.g., "100-snowflake-sql" or "111a-snowflake-feature")
 
         Returns:
             Tuple of (number, slug, title)
@@ -182,21 +182,25 @@ class TemplateGenerator:
         # Remove .md extension if present
         filename = filename.replace(".md", "")
 
-        # Match pattern: NNN-technology-aspect
-        match = re.match(r"^(\d{3})-([a-z0-9]+(?:-[a-z0-9]+)*)$", filename)
+        # Match pattern: NNN-technology-aspect or NNNx-technology-aspect (where x is a-z)
+        match = re.match(r"^(\d{3})([a-z])?-([a-z0-9]+(?:-[a-z0-9]+)*)$", filename)
         if not match:
             raise ValueError(
                 f"Invalid filename format: {filename}\n"
-                "Expected format: NNN-technology-aspect (e.g., 100-snowflake-sql)"
+                "Expected format: NNN-technology-aspect (e.g., 100-snowflake-sql) "
+                "or NNNx-technology-aspect (e.g., 111a-snowflake-feature)"
             )
 
         number = int(match.group(1))
-        slug = match.group(2)
+        letter_suffix = match.group(2) or ""  # Optional letter suffix (a-z)
+        slug = match.group(3)
 
         # Generate title from slug
         title_parts = slug.split("-")
         title = " ".join(word.capitalize() for word in title_parts)
-        full_title = f"{filename}: {title}"
+        # Reconstruct the filename prefix (e.g., "111a" or "100")
+        prefix = f"{match.group(1)}{letter_suffix}"
+        full_title = f"{prefix}-{slug}: {title}"
 
         return number, slug, full_title
 
@@ -387,7 +391,7 @@ Examples:
 
     parser.add_argument(
         "filename",
-        help="Rule filename (e.g., 100-snowflake-sql or 100-snowflake-sql.md)",
+        help="Rule filename (e.g., 100-snowflake-sql, 111a-snowflake-feature, or with .md extension)",
     )
     parser.add_argument(
         "--output-dir",

@@ -1,10 +1,9 @@
 # Schema Validator Usage: Validation Commands and Error Resolution
 
 > **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
-> 
+>
 > This rule defines essential governance patterns for the ai_coding_rules system.
 > Load when creating, reviewing, or maintaining rules.
-
 
 ## Metadata
 
@@ -13,7 +12,7 @@
 **Keywords:** schema validator, validation errors, error resolution, CI/CD integration, exit codes, command selection, output parsing, automation workflow, JSON output, quiet mode, programmatic integration, regex patterns, error categorization
 **TokenBudget:** ~4800
 **ContextTier:** High
-**Depends:** rules/002-rule-governance.md, rules/000-global-core.md
+**Depends:** 002-rule-governance.md, 000-global-core.md
 
 ## Purpose
 

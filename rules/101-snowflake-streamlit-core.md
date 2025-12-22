@@ -1,10 +1,9 @@
 # Streamlit Core: Setup, Navigation, and State Management
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
-> 
+>
 > This rule defines essential Streamlit patterns. Load for Streamlit tasks.
 > Specialized rules depend on this foundation.
-
 
 ## Metadata
 
@@ -13,7 +12,7 @@
 **Keywords:** Streamlit, SPCS, SiS, navigation, multipage, session state, st.connection, config.toml, theming, deployment, pandas, null handling, session management
 **TokenBudget:** ~4500
 **ContextTier:** High
-**Depends:** rules/100-snowflake-core.md
+**Depends:** 100-snowflake-core.md
 
 ## Purpose
 Provide foundational guidance for Streamlit application setup, navigation patterns, state management, deployment mode selection (SiS vs SPCS), and theming configuration using config.toml as the primary styling method.
@@ -252,14 +251,14 @@ pg.run()
 - [Snowpark Container Services (SPCS)](https://docs.snowflake.com/en/developer-guide/snowpark-container-services) - Deploying containerized Streamlit apps
 
 ### Related Rules
-- **Snowflake Core**: `rules/100-snowflake-core.md`
-- **App Deployment**: `rules/109b-snowflake-app-deployment-core.md`
-- **Streamlit Visualization**: `rules/101a-snowflake-streamlit-visualization.md`
-- **Streamlit Performance**: `rules/101b-snowflake-streamlit-performance.md`
-- **Streamlit Security**: `rules/101c-snowflake-streamlit-security.md`
-- **Streamlit Testing**: `rules/101d-snowflake-streamlit-testing.md`
-- **Python Core**: `rules/200-python-core.md`
-- **Snowpark Container Services**: `rules/120-snowflake-spcs.md`
+- **Snowflake Core**: `100-snowflake-core.md`
+- **App Deployment**: `109b-snowflake-app-deployment-core.md`
+- **Streamlit Visualization**: `101a-snowflake-streamlit-visualization.md`
+- **Streamlit Performance**: `101b-snowflake-streamlit-performance.md`
+- **Streamlit Security**: `101c-snowflake-streamlit-security.md`
+- **Streamlit Testing**: `101d-snowflake-streamlit-testing.md`
+- **Python Core**: `200-python-core.md`
+- **Snowpark Container Services**: `120-snowflake-spcs.md`
 
 > **[AI] Claude 4 Specific Guidance**
 > **Claude 4 Streamlit Core Optimizations:**

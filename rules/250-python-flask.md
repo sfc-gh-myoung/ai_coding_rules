@@ -7,7 +7,7 @@
 **Keywords:** Flask, web development, blueprints, Flask-SQLAlchemy, templates, routing, Flask extensions, application factory, Jinja2, Flask-WTF, CSRF protection
 **TokenBudget:** ~3700
 **ContextTier:** High
-**Depends:** rules/200-python-core.md
+**Depends:** 200-python-core.md
 
 ## Purpose
 Provide comprehensive Flask development best practices, organized into focused patterns that cover all aspects of modern web application development including application architecture, security, templating, database integration, and deployment for building maintainable, secure web applications.
@@ -231,10 +231,10 @@ uv run pytest tests/
 - [SQLAlchemy Documentation](https://docs.sqlalchemy.org/)
 
 ### Related Rules
-- **Python Core**: `rules/200-python-core.md`
-- **Python Project Setup**: `rules/203-python-project-setup.md`
-- **Python Linting**: `rules/201-python-lint-format.md`
-- **Pydantic Integration**: `rules/230-python-pydantic.md`
+- **Python Core**: `200-python-core.md`
+- **Python Project Setup**: `203-python-project-setup.md`
+- **Python Linting**: `201-python-lint-format.md`
+- **Pydantic Integration**: `230-python-pydantic.md`
 
 ## Flask Rule Categories
 

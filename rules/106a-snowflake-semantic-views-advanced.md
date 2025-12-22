@@ -7,7 +7,7 @@
 **Keywords:** compliance, common mistakes, validation rules, semantic model quality, semantic view pitfalls, debug semantic view, fix semantic view errors, validation failures, relationship errors, mapping errors, quality assurance, semantic view testing, validation patterns
 **TokenBudget:** ~5000
 **ContextTier:** High
-**Depends:** rules/100-snowflake-core.md, rules/106-snowflake-semantic-views-core.md
+**Depends:** 100-snowflake-core.md, 106-snowflake-semantic-views-core.md
 
 ## Purpose
 Provide advanced patterns for semantic views including anti-patterns to avoid, comprehensive validation rules, quality checks, and compliance requirements.
@@ -107,7 +107,6 @@ CREATE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
 ```
 **Benefits:** Correct syntax compiles successfully.
 
-
 **Anti-Pattern 2: Complex Expressions in DIMENSIONS**
 ```sql
 -- INCORRECT - Complex functions in DIMENSIONS
@@ -145,7 +144,6 @@ CREATE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
 ```
 **Benefits:** Clean dimensions that work with Cortex Analyst's temporal intelligence.
 
-
 **Anti-Pattern 3: Missing Equals Sign in COMMENT**
 ```sql
 -- INCORRECT - COMMENT without equals sign
@@ -176,7 +174,6 @@ CREATE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
   );
 ```
 **Benefits:** Proper comment syntax compiles successfully.
-
 
 **Anti-Pattern 4: Wrong Clause Order**
 ```sql
@@ -325,10 +322,10 @@ SHOW SEMANTIC METRICS FOR SEMANTIC VIEW <view_name>;
 - [Validation Rules for Semantic Views](https://docs.snowflake.com/en/user-guide/views-semantic/validation-rules) - Complete validation rule reference
 
 ### Related Rules
-- **Querying Semantic Views**: `rules/106b-snowflake-semantic-views-querying.md` - SEMANTIC_VIEW() query patterns and testing
-- **Integration & Development**: `rules/106c-snowflake-semantic-views-integration.md` - Cortex Analyst, governance, workflows
-- **Snowflake Core**: `rules/100-snowflake-core.md` - Foundational Snowflake practices
-- **Cortex Analyst Integration**: `rules/106c-snowflake-semantic-views-integration.md` - Natural language query patterns
+- **Querying Semantic Views**: `106b-snowflake-semantic-views-querying.md` - SEMANTIC_VIEW() query patterns and testing
+- **Integration & Development**: `106c-snowflake-semantic-views-integration.md` - Cortex Analyst, governance, workflows
+- **Snowflake Core**: `100-snowflake-core.md` - Foundational Snowflake practices
+- **Cortex Analyst Integration**: `106c-snowflake-semantic-views-integration.md` - Natural language query patterns
 
 ## 4) Validation Rules
 

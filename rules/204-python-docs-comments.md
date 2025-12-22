@@ -7,7 +7,7 @@
 **Keywords:** Python docstrings, documentation, comments, pydocstyle, Ruff DOC rules, API documentation, Google style, NumPy style, PEP 257, code quality, semantic depth, side effects, preconditions, performance, thread safety
 **TokenBudget:** ~5700
 **ContextTier:** High
-**Depends:** rules/200-python-core.md, rules/201-python-lint-format.md
+**Depends:** 200-python-core.md, 201-python-lint-format.md
 
 ## Purpose
 Provide clear, enforceable standards for Python documentation (project docs), source code comments, and docstrings, aligned with widely accepted industry practices (PEP 257, PEP 8) and modern tooling (Ruff pydocstyle, Sphinx Napoleon).

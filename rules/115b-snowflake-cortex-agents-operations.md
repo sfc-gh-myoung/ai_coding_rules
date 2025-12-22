@@ -7,7 +7,7 @@
 **Keywords:** observability, evaluation, cost management, error troubleshooting, agent security, test agent, agent permissions, agent monitoring, agent evaluation, agent costs, debug agent, agent logs, agent trace, agent security policies
 **TokenBudget:** ~3650
 **ContextTier:** High
-**Depends:** rules/100-snowflake-core.md, rules/115-snowflake-cortex-agents-core.md, rules/111-snowflake-observability-core.md
+**Depends:** 100-snowflake-core.md, 115-snowflake-cortex-agents-core.md, 111-snowflake-observability-core.md
 
 ## Purpose
 Provide comprehensive operational patterns for Cortex Agents including testing strategies, RBAC configuration, observability, cost management, and error troubleshooting.
@@ -218,13 +218,13 @@ SHOW VIEWS LIKE '%view_name%';
 - [Cortex Search](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-search) - Semantic search service
 
 ### Related Rules
-- **Snowflake Core**: `rules/100-snowflake-core.md`
-- **Semantic Views Integration**: `rules/106c-snowflake-semantic-views-integration.md` - Semantic view design and Analyst tool configuration
-- **Cortex Search**: `rules/116-snowflake-cortex-search.md` - Search service setup and tool integration
-- **Semantic Views**: `rules/106-snowflake-semantic-views-core.md`
-- **Cost Governance**: `rules/105-snowflake-cost-governance.md`
-- **Warehouse Management**: `rules/119-snowflake-warehouse-management.md`
-- **Observability**: `rules/111-snowflake-observability-core.md`
+- **Snowflake Core**: `100-snowflake-core.md`
+- **Semantic Views Integration**: `106c-snowflake-semantic-views-integration.md` - Semantic view design and Analyst tool configuration
+- **Cortex Search**: `116-snowflake-cortex-search.md` - Search service setup and tool integration
+- **Semantic Views**: `106-snowflake-semantic-views-core.md`
+- **Cost Governance**: `105-snowflake-cost-governance.md`
+- **Warehouse Management**: `119-snowflake-warehouse-management.md`
+- **Observability**: `111-snowflake-observability-core.md`
 
 ## 6. Testing & Validation Patterns
 

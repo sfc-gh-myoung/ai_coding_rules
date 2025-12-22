@@ -7,7 +7,7 @@
 **Keywords:** README, project documentation, getting started, setup instructions, badges, Quick Start, Contributing, License, project structure, technical writing
 **TokenBudget:** ~4500
 **ContextTier:** Medium
-**Depends:** rules/000-global-core.md
+**Depends:** 000-global-core.md
 
 ## Purpose
 This rule establishes comprehensive standards for README.md files following widely accepted industry best practices. It ensures consistent, professional, and accessible project documentation that serves both technical and non-technical audiences.
@@ -297,9 +297,9 @@ Preview:
 - [Awesome README Examples](https://github.com/matiassingers/awesome-readme) - Curated collection of excellent README examples
 
 ### Related Rules
-- **Global Core**: `rules/000-global-core.md`
-- **Changelog Rules**: `rules/800-project-changelog.md`
-- **Contributing Guidelines**: `rules/802-project-contributing.md`
+- **Global Core**: `000-global-core.md`
+- **Changelog Rules**: `800-project-changelog.md`
+- **Contributing Guidelines**: `802-project-contributing.md`
 
 ## Implementation Details
 

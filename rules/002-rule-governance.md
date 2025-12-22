@@ -1,10 +1,9 @@
 # Rule Governance: Schema Standards
 
 > **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
-> 
+>
 > This rule defines essential governance patterns for the ai_coding_rules system.
 > Load when creating, reviewing, or maintaining rules.
-
 
 ## Metadata
 
@@ -13,7 +12,7 @@
 **Keywords:** rule governance, schema, metadata requirements, required sections, Contract XML tags, validation, schema compliance, rule structure, semantic discovery, RULES_INDEX
 **TokenBudget:** ~2300
 **ContextTier:** Critical
-**Depends:** rules/000-global-core.md
+**Depends:** 000-global-core.md
 
 ## Purpose
 
@@ -90,7 +89,7 @@ Markdown file (.md) with v3.0 metadata and required sections
 - **Keywords:** 10-15 comma-separated terms for discovery
 - **TokenBudget:** `~NUMBER` format (e.g., ~1200)
 - **ContextTier:** One of: Critical, High, Medium, Low
-- **Depends:** At least one rule dependency (e.g., `rules/000-global-core.md`)
+- **Depends:** At least one rule dependency (e.g., `000-global-core.md`)
 
 **Field Order:** Must appear in exact order: RuleVersion, Keywords, TokenBudget, ContextTier, Depends
 
@@ -244,7 +243,7 @@ python3 scripts/schema_validator.py rules/NNN-rule.md --verbose
 
 # GOOD: Hierarchical dependencies
 # 101-snowflake-streamlit-core.md
-**Depends:** rules/100-snowflake-core.md, rules/000-global-core.md
+**Depends:** 100-snowflake-core.md, 000-global-core.md
 
 # Rule 100 is foundation, 101 extends it (no reverse dependency)
 ```

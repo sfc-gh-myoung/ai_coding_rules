@@ -7,7 +7,7 @@
 **Keywords:** search optimization, pruning, spillage, SQL optimization, Snowflake, partition pruning, QUERY_HISTORY, optimize query, fix slow query, query bottleneck, warehouse performance, micro-partitions, clustering, performance analysis
 **TokenBudget:** ~2150
 **ContextTier:** High
-**Depends:** rules/100-snowflake-core.md
+**Depends:** 100-snowflake-core.md
 
 ## Purpose
 Provide systematic approaches for profiling, optimizing, and fine-tuning Snowflake queries and warehouse usage to achieve optimal performance while managing costs effectively.
@@ -124,7 +124,6 @@ WHERE order_timestamp >= '2024-01-15'
 ```
 **Benefits:** Partition pruning enabled; scans minimal partitions; 100x faster; low costs; production-ready; excellent performance
 
-
 **Anti-Pattern 2: Adding Clustering Keys Without Query Profile Evidence**
 ```sql
 -- Bad: Add clustering arbitrarily without analysis
@@ -154,7 +153,6 @@ ALTER TABLE sales_fact CLUSTER BY (region, product_category);
 ```
 **Benefits:** Data-driven clustering decisions; proven performance gains; cost-justified; Query Profile validated; measurable improvements; production evidence-based
 
-
 **Anti-Pattern 3: Using SELECT * Instead of Specific Columns**
 ```sql
 -- Bad: SELECT * returns unnecessary columns
@@ -179,7 +177,6 @@ JOIN fact_table t2 ON t1.id = t2.dim_id;
 -- Returns only 5 needed columns, much faster
 ```
 **Benefits:** Minimal data transfer; faster queries; lower costs; focused results; memory efficient; production-optimized
-
 
 **Anti-Pattern 4: Not Using Query Profile to Diagnose Slow Queries**
 ```python
@@ -255,10 +252,10 @@ SHOW VIEWS LIKE '%view_name%';
 - [Clustering Keys](https://docs.snowflake.com/en/user-guide/tables-clustering-keys) - Table clustering for query performance optimization
 
 ### Related Rules
-- **Snowflake Core**: `rules/100-snowflake-core.md`
-- **SQL Demo Engineering**: `rules/102-snowflake-sql-demo-engineering.md`
-- **Cost Governance**: `rules/105-snowflake-cost-governance.md`
-- **Warehouse Management**: `rules/119-snowflake-warehouse-management.md`
+- **Snowflake Core**: `100-snowflake-core.md`
+- **SQL Demo Engineering**: `102-snowflake-sql-demo-engineering.md`
+- **Cost Governance**: `105-snowflake-cost-governance.md`
+- **Warehouse Management**: `119-snowflake-warehouse-management.md`
 
 ## 1. Query Profiling & Optimization
 - **Always:** Use the Query Profile to diagnose execution, identify bottlenecks, and pinpoint expensive operations (e.g., large `TableScans`, join explosions).

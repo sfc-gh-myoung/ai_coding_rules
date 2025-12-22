@@ -214,11 +214,11 @@ uv run pytest tests/
 - [CommonMark Specification](https://spec.commonmark.org/) - Official Markdown specification
 
 ### Related Rules
-- **Python Core**: `rules/200-python-core.md`
-- **Python Linting**: `rules/201-python-lint-format.md`
-- **Project Setup**: `rules/203-python-project-setup.md`
-- **Taskfile Automation**: `rules/820-taskfile-automation.md`
-- **README Standards**: `rules/801-project-readme.md`
+- **Python Core**: `200-python-core.md`
+- **Python Linting**: `201-python-lint-format.md`
+- **Project Setup**: `203-python-project-setup.md`
+- **Taskfile Automation**: `820-taskfile-automation.md`
+- **README Standards**: `801-project-readme.md`
 
 ## 1. YAML Syntax Safety
 

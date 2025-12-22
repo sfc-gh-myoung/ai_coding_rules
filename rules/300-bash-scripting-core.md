@@ -1,10 +1,9 @@
 # Bash Scripting Core Best Practices
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
-> 
+>
 > This rule defines essential Bash patterns. Load for shell scripting tasks.
 > Specialized rules depend on this foundation.
-
 
 ## Metadata
 
@@ -13,7 +12,7 @@
 **Keywords:** Bash, shell scripting, set -euo pipefail, error handling, strict mode, functions, variables, script structure, trap, exit codes, shellcheck, input validation
 **TokenBudget:** ~3100
 **ContextTier:** High
-**Depends:** rules/000-global-core.md
+**Depends:** 000-global-core.md
 
 ## Purpose
 Establish foundational bash scripting patterns covering script structure, variables, functions, and essential error handling practices to create reliable, maintainable, and portable shell scripts.
@@ -223,9 +222,9 @@ shellcheck script.sh
 - [Bash Pitfalls](https://mywiki.wooledge.org/BashPitfalls) - Common scripting mistakes and how to avoid them
 
 ### Related Rules
-- **Bash Security**: `rules/300a-bash-security.md`
-- **Bash Testing**: `rules/300b-bash-testing-tooling.md`
-- **Taskfile Automation**: `rules/820-taskfile-automation.md`
+- **Bash Security**: `300a-bash-security.md`
+- **Bash Testing**: `300b-bash-testing-tooling.md`
+- **Taskfile Automation**: `820-taskfile-automation.md`
 
 ## 1. Script Foundation & Safety
 

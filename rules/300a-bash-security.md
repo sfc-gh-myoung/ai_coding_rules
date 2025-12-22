@@ -7,7 +7,7 @@
 **Keywords:** Bash, security, input validation, command injection, path security, secure shell scripts, sanitization, permissions, privilege escalation, secrets management
 **TokenBudget:** ~2750
 **ContextTier:** High
-**Depends:** rules/300-bash-scripting-core.md
+**Depends:** 300-bash-scripting-core.md
 
 ## Purpose
 Establish comprehensive bash scripting security practices covering input validation, path security, permissions, and secure coding patterns to prevent vulnerabilities and ensure safe script execution.
@@ -214,8 +214,8 @@ shellcheck script.sh
 - [NIST Cybersecurity Framework](https://www.nist.gov/cyberframework) - Comprehensive security risk management
 
 ### Related Rules
-- **Bash Core**: `rules/300-bash-scripting-core.md`
-- **Bash Testing**: `rules/300b-bash-testing-tooling.md`
+- **Bash Core**: `300-bash-scripting-core.md`
+- **Bash Testing**: `300b-bash-testing-tooling.md`
 
 ## 1. Input Validation and Sanitization
 

@@ -1,10 +1,9 @@
 # Snowflake Native Semantic Views: Core DDL
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
-> 
+>
 > This rule defines essential Semantic Views patterns. Load for Semantic Views tasks.
 > Specialized rules depend on this foundation.
-
 
 ## Metadata
 
@@ -13,13 +12,13 @@
 **Keywords:** TABLES, RELATIONSHIPS, PRIMARY KEY, validation rules, semantic view error, create semantic view, debug semantic view, SQL, verified queries, VQR, YAML semantic model, NLQ, mapping syntax, granularity rules
 **TokenBudget:** ~5550
 **ContextTier:** High
-**Depends:** rules/100-snowflake-core.md
+**Depends:** 100-snowflake-core.md
 
 ## Purpose
 Provide authoritative guidance for creating Snowflake Native Semantic Views using the `CREATE SEMANTIC VIEW` DDL syntax. Focuses on DDL structure, component definitions, anti-patterns, and comprehensive validation rules to prevent errors during semantic view creation.
 
-**For querying semantic views and testing strategies, see `rules/106b-snowflake-semantic-views-querying.md`.**
-**For Cortex Analyst integration and development workflows, see `rules/106c-snowflake-semantic-views-integration.md`.**
+**For querying semantic views and testing strategies, see `106b-snowflake-semantic-views-querying.md`.**
+**For Cortex Analyst integration and development workflows, see `106c-snowflake-semantic-views-integration.md`.**
 
 ## Rule Scope
 
@@ -192,7 +191,6 @@ CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
 ```
 **Benefits:** Valid DDL; successful deployment; Cortex Analyst compatible; professional; clear structure; maintainable
 
-
 **Anti-Pattern 2: Using Complex Expressions in DIMENSIONS (CAST, DATE_TRUNC Not Allowed)**
 ```sql
 -- Bad: Complex transformations in DIMENSIONS
@@ -254,7 +252,6 @@ CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
 ```
 **Benefits:** Valid syntax; deployment succeeds; Cortex Analyst compatible; query reliability; maintainable; professional; separation of concerns
 
-
 **Anti-Pattern 3: Missing Equals Sign in COMMENT Syntax**
 ```sql
 -- Bad: COMMENT without equals sign
@@ -293,7 +290,6 @@ CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
   );
 ```
 **Benefits:** Valid syntax; successful deployment; clear documentation; Cortex Analyst compatible; professional; no deployment delays
-
 
 **Anti-Pattern 4: Not Validating Semantic View DDL Before Deployment**
 ```sql
@@ -363,7 +359,6 @@ CREATE OR REPLACE SEMANTIC VIEW prod_db.analytics.sales_analysis AS
   ...;
 ```
 **Benefits:** No production failures; validated before deployment; user confidence; professional; tested thoroughly; reliable; no emergency fixes
-
 
 **Anti-Pattern 5: Attempting to Define Verified Queries in DDL**
 ```sql
@@ -477,7 +472,6 @@ CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
 - See [Snowflake Semantic Model Specification](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst/semantic-model-spec) for complete YAML format
 - See `106c-snowflake-semantic-views-integration` for using verified queries with Cortex Analyst
 - See `106c-snowflake-semantic-views-integration` for integration patterns
-
 
 **Anti-Pattern 6: Using Template Characters in SYNONYMS or COMMENT**
 ```sql

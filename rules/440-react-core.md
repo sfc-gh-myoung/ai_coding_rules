@@ -1,10 +1,9 @@
 # React Core: Modern Architecture & Best Practices
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
-> 
+>
 > This rule defines essential React patterns. Load for React tasks.
 > Specialized rules depend on this foundation.
-
 
 ## Metadata
 
@@ -13,7 +12,7 @@
 **Keywords:** React, Next.js, RSC, Hooks, Tailwind, Zustand, TanStack Query, Shadcn, Feature-based, TypeScript, Vitest, Testing Library, debug hooks, fix React error, component rendering
 **TokenBudget:** ~2050
 **ContextTier:** High
-**Depends:** rules/000-global-core.md, rules/420-javascript-core.md, rules/430-typescript-core.md
+**Depends:** 000-global-core.md, 420-javascript-core.md, 430-typescript-core.md
 
 ## Purpose
 Establishes the definitive standards for developing scalable, maintainable React applications in 2025. This rule enforces "Feature-based" architecture, Server Components (RSC) usage, and modern state management patterns to replace legacy approaches like global Redux or huge `useEffect` chains.
@@ -229,7 +228,6 @@ const { data } = useQuery({ queryKey: ['user'], queryFn: fetchUser });
 ```
 **Benefits:** Automatic caching, deduplication, background refetching, loading/error states handled.
 
-
 **Anti-Pattern 2: Prop Drilling**
 ```typescript
 // Bad: Passing props down 5 levels
@@ -336,7 +334,7 @@ npm run type-check
 - [Bulletproof React](https://github.com/alan2207/bulletproof-react) - Architecture reference for feature-based structure.
 
 ### Related Rules
-- **Global Core**: `rules/000-global-core.md`
-- **JavaScript Core**: `rules/420-javascript-core.md`
-- **TypeScript Core**: `rules/430-typescript-core.md`
-- **React Backend Integration**: `rules/441-react-backend.md` - Python backend patterns, API communication, authentication
+- **Global Core**: `000-global-core.md`
+- **JavaScript Core**: `420-javascript-core.md`
+- **TypeScript Core**: `430-typescript-core.md`
+- **React Backend Integration**: `441-react-backend.md` - Python backend patterns, API communication, authentication

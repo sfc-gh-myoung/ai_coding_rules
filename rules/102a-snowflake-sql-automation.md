@@ -7,7 +7,7 @@
 **Keywords:** idempotent, MERGE, operations, multi-environment, infrastructure as code, Snowflake variables, production-safe, upsert, SQL automation, deployment scripts, SQL pipeline, config management, environment variables
 **TokenBudget:** ~4050
 **ContextTier:** High
-**Depends:** rules/100-snowflake-core.md, rules/102-snowflake-sql-demo-engineering.md
+**Depends:** 100-snowflake-core.md, 102-snowflake-sql-demo-engineering.md
 
 ## Purpose
 Guide creation of parameterized SQL templates for automated Snowflake deployments in production environments. Supports CI/CD pipelines, multi-environment workflows, and infrastructure-as-code patterns. Optimized for DevOps engineers, data engineers, and automated deployment systems.
@@ -121,7 +121,6 @@ WHEN NOT MATCHED THEN
 ```
 **Benefits:** No data loss; incremental updates; idempotent; preserves permissions; production-safe; no outages; reliable automation
 
-
 **Anti-Pattern 2: Hardcoding Database/Schema Names Instead of Variables**
 ```sql
 -- Bad: Hardcoded names, can't reuse across environments
@@ -161,7 +160,6 @@ WHERE DATE_TRUNC('day', order_date) NOT IN (SELECT day FROM <%DATABASE%>.<%SCHEM
 GROUP BY day;
 ```
 **Benefits:** Environment-portable; testable in dev; CI/CD-friendly; no manual edits; reliable deployment; professional automation; multi-environment support
-
 
 **Anti-Pattern 3: Missing Documentation Header in SQL Templates**
 ```sql
@@ -206,7 +204,6 @@ Idempotency:
 SELECT * FROM customers WHERE region = '<%REGION%>';
 ```
 **Benefits:** Clear purpose; documented parameters; usage examples; easy maintenance; self-documenting; onboarding-friendly; reduced support; professional
-
 
 **Anti-Pattern 4: Not Making SQL Scripts Idempotent**
 ```sql
@@ -355,10 +352,10 @@ WHEN NOT MATCHED THEN INSERT /* ... */;
 - [GitHub Actions for Snowflake](https://github.com/Snowflake-Labs/snowflake-cli-action) - CI/CD integration
 
 ### Related Rules
-- **Snowflake Core**: `rules/100-snowflake-core.md` - Foundational Snowflake practices
-- **SQL Demo Engineering**: `rules/102-snowflake-sql-demo-engineering.md` - Demo and learning SQL patterns
-- **Taskfile Automation**: `rules/820-taskfile-automation.md` - Task automation patterns
-- **Git Workflow**: `rules/803-project-git-workflow.md` - Branching and PR strategies
+- **Snowflake Core**: `100-snowflake-core.md` - Foundational Snowflake practices
+- **SQL Demo Engineering**: `102-snowflake-sql-demo-engineering.md` - Demo and learning SQL patterns
+- **Taskfile Automation**: `820-taskfile-automation.md` - Task automation patterns
+- **Git Workflow**: `803-project-git-workflow.md` - Branching and PR strategies
 
 ## 1. SQL Template Patterns
 

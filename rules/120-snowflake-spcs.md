@@ -7,7 +7,7 @@
 **Keywords:** service deployment, compute pools, OCI images, image registry, health checks, GPU workloads, create service, compute pool, container deployment, service spec, container troubleshooting, SPCS error, service logs
 **TokenBudget:** ~5150
 **ContextTier:** High
-**Depends:** rules/100-snowflake-core.md
+**Depends:** 100-snowflake-core.md
 
 ## Purpose
 Provide comprehensive guidance for deploying, managing, and optimizing containerized applications using Snowflake Snowpark Container Services, covering architecture patterns, security, performance optimization, and operational best practices.
@@ -151,7 +151,6 @@ GROUP BY pool_name, active_nodes, idle_nodes;
 ```
 **Benefits:** Cost-effective; right-sized; scalable; monitored; data-driven scaling; professional; financially responsible
 
-
 **Anti-Pattern 2: Exposing Internal Services Publicly**
 ```yaml
 # Bad: spec.yaml exposes internal service to internet
@@ -202,7 +201,6 @@ spec:
         type: SNOWFLAKE_JWT  # Require Snowflake auth!
 ```
 **Benefits:** Security hardened; credentials protected; authentication required; internal services isolated; compliance-friendly; no unauthorized access
-
 
 **Anti-Pattern 3: Creating New Database Connections Per Request**
 ```python
@@ -266,7 +264,6 @@ def shutdown():
     connection_pool.close()  # Clean up pool on shutdown
 ```
 **Benefits:** Fast responses; connection reuse; scalable; resource-efficient; professional; better performance; SQL injection prevention
-
 
 **Anti-Pattern 4: Not Setting Resource Limits, Causing OOM**
 ```yaml
@@ -400,10 +397,10 @@ SHOW VIEWS LIKE '%view_name%';
 - [SPCS Platform Events Monitoring](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/platform-events) - Guide for monitoring and troubleshooting SPCS platform events
 
 ### Related Rules
-- **Snowflake Core**: `rules/100-snowflake-core.md`
-- **Cost Governance**: `rules/105-snowflake-cost-governance.md`
-- **Security Governance**: `rules/107-snowflake-security-governance.md`
-- **Warehouse Management**: `rules/119-snowflake-warehouse-management.md`
+- **Snowflake Core**: `100-snowflake-core.md`
+- **Cost Governance**: `105-snowflake-cost-governance.md`
+- **Security Governance**: `107-snowflake-security-governance.md`
+- **Warehouse Management**: `119-snowflake-warehouse-management.md`
 
 ## 1. Architecture, Images, and Service Types
 

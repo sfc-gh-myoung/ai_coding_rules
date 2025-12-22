@@ -1,10 +1,9 @@
 # Snowflake Data Quality Monitoring Best Practices
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
-> 
+>
 > This rule defines essential Data Quality patterns. Load for data quality tasks.
 > Specialized rules depend on this foundation.
-
 
 ## Metadata
 
@@ -13,7 +12,7 @@
 **Keywords:** data profiling, expectations, quality checks, data validation, NULL detection, uniqueness validation, freshness monitoring, anomaly detection, automated monitoring, event tables, create DMF, quality monitoring, data expectations, quality rules
 **TokenBudget:** ~3400
 **ContextTier:** High
-**Depends:** rules/100-snowflake-core.md, rules/105-snowflake-cost-governance.md, rules/107-snowflake-security-governance.md, rules/930-data-governance-quality.md
+**Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md, 107-snowflake-security-governance.md, 930-data-governance-quality.md
 
 ## Purpose
 Establish comprehensive best practices for Snowflake Data Quality Monitoring using Data Metric Functions (DMFs), data profiling, expectations, and automated quality checks to ensure data reliability, integrity, and compliance throughout the data lifecycle.
@@ -128,7 +127,6 @@ ALTER TABLE critical_table
 ```
 **Benefits:** Automated pass/fail evaluation; proactive alerting; clear quality thresholds; actionable results; enables quality gates; compliance-ready
 
-
 **Anti-Pattern 2: Not Profiling Data Before Setting Thresholds**
 ```sql
 -- Bad: Arbitrary expectation thresholds without baseline understanding
@@ -158,7 +156,6 @@ ALTER TABLE sales_data
 ```
 **Benefits:** Realistic thresholds; fewer false positives; actionable alerts; baseline understanding; trust in monitoring; effective quality gates
 
-
 **Anti-Pattern 3: Exceeding 10,000 DMF-Object Association Limit**
 ```sql
 -- Bad: Associating same DMF to every table without prioritization
@@ -187,7 +184,6 @@ WHERE tag_name = 'CRITICALITY' AND tag_value = 'HIGH';
 -- Use system DMFs efficiently: FRESHNESS, NULL_COUNT, ROW_COUNT
 ```
 **Benefits:** Stays under 10,000 limit; focuses on high-value tables; cost-effective monitoring; complete critical coverage; scalable approach; prioritized quality
-
 
 **Anti-Pattern 4: Using Database Roles as DMF Table Owners**
 ```sql

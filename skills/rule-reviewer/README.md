@@ -110,29 +110,6 @@ Use rule-reviewer to validate rule-creator output:
    ```
 3. Verify: score ≥ 75/100, no CRITICAL issues
 
-## Version History
-
-- **v1.2.0** (2025-12-16): 100-point scoring system
-  - Updated to 100-point scale (from X/10 per dimension)
-  - Point allocation: 25/20/20/15/10/10
-  - Updated quality thresholds for /100 scale
-  - Added AGENT_READY verdicts for score interpretation
-
-- **v1.1.0** (2025-12-15): Enhanced skill structure
-  - Added version, author, tags, dependencies to SKILL.md frontmatter
-  - Improved description with trigger keywords
-  - Added inline validation snippets for quick checks
-  - Expanded error-handling.md with 10 error patterns
-  - Added edge-cases.md with 10 documented scenarios
-  - Added tests/ folder with input, mode, and output test cases
-  - Added VALIDATION.md for skill self-validation
-  - Cross-referenced with rule-creator for quality assurance
-- **v1.0.0** (2024-12-11): Initial release
-  - 5-workflow progressive disclosure structure
-  - FULL/FOCUSED/STALENESS review modes
-  - No-overwrite file safety
-  - Model slug normalization
-
 ## Troubleshooting
 
 See `workflows/error-handling.md` for common issues and resolutions.

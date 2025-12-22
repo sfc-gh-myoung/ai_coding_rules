@@ -7,7 +7,7 @@
 **Keywords:** Ruff, linting, formatting, code quality, style checking, uvx ruff, lint errors, ruff check, ruff format, pyproject.toml configuration
 **TokenBudget:** ~1950
 **ContextTier:** High
-**Depends:** rules/200-python-core.md
+**Depends:** 200-python-core.md
 
 ## Purpose
 Establish authoritative Python code quality standards using Ruff as the primary tool for linting and formatting, with fallback strategies to ensure consistent code style, quality, and maintainability across all Python projects.
@@ -204,9 +204,9 @@ uv run pytest tests/
 - [Python Code Style PEP 8](https://peps.python.org/pep-0008/) - Official Python style guide standards
 
 ### Related Rules
-- **Python Core**: `rules/200-python-core.md`
-- **Project Setup**: `rules/203-python-project-setup.md`
- - **Python Docs & Comments**: `rules/204-python-docs-comments.md`
+- **Python Core**: `200-python-core.md`
+- **Project Setup**: `203-python-project-setup.md`
+ - **Python Docs & Comments**: `204-python-docs-comments.md`
 
 ## 1. Core Policy
 - **Requirement:** Ruff is the authoritative default for linting and formatting.

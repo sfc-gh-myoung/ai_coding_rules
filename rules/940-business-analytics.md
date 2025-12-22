@@ -150,7 +150,6 @@ with tab1:
 - Fast initial load
 - Progressive disclosure for details
 
-
 **Anti-Pattern 2: Technical Jargon Without Business Translation**
 ```sql
 -- BAD: Technical column names
@@ -180,7 +179,6 @@ FROM metrics;
 - Self-explanatory to business users
 - No translation needed
 - Higher dashboard adoption
-
 
 **Anti-Pattern 3: Pie Chart with 12 Slices**
 ```python
@@ -217,7 +215,6 @@ fig = go.Figure(go.Pie(
 - "Other" provides context without clutter
 - Easy to interpret at a glance
 
-
 **Anti-Pattern 4: Misleading Truncated Y-Axis**
 ```python
 # BAD: Axis starts at 950, makes small change look huge
@@ -245,7 +242,6 @@ fig.add_annotation(
 - Honest visual representation
 - Maintains stakeholder trust
 - Accurate perception of change magnitude
-
 
 **Anti-Pattern 5: Red/Green Color Scheme Only**
 ```python
@@ -486,14 +482,14 @@ with st.expander("ℹ️ Metric Definitions"):
 - [Streamlit Documentation](https://docs.streamlit.io/) - Interactive dashboard development
 
 ### Related Rules
-- **Snowflake Core**: `rules/100-snowflake-core.md`
-- **Snowflake SQL Demo Engineering**: `rules/102-snowflake-sql-demo-engineering.md`
-- **Snowflake Performance Tuning**: `rules/103-snowflake-performance-tuning.md`
-- **Snowflake Cost Governance**: `rules/105-snowflake-cost-governance.md`
-- **Snowflake Streamlit UI**: `rules/101-snowflake-streamlit-core.md`
-- **Snowflake Data Quality**: `rules/124-snowflake-data-quality-core.md`
-- **Data Science Analytics**: `rules/920-data-science-analytics.md`
-- **Data Governance**: `rules/930-data-governance-quality.md`
+- **Snowflake Core**: `100-snowflake-core.md`
+- **Snowflake SQL Demo Engineering**: `102-snowflake-sql-demo-engineering.md`
+- **Snowflake Performance Tuning**: `103-snowflake-performance-tuning.md`
+- **Snowflake Cost Governance**: `105-snowflake-cost-governance.md`
+- **Snowflake Streamlit UI**: `101-snowflake-streamlit-core.md`
+- **Snowflake Data Quality**: `124-snowflake-data-quality-core.md`
+- **Data Science Analytics**: `920-data-science-analytics.md`
+- **Data Governance**: `930-data-governance-quality.md`
 
 > ** Claude 4 Specific Guidance**
 > **Claude 4 Optimizations:**

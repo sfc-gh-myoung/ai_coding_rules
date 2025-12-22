@@ -7,7 +7,7 @@
 **Keywords:** FastAPI testing, TestClient, pytest-asyncio, API tests, integration testing, mocking, test fixtures, AAA pattern, async testing, Python
 **TokenBudget:** ~2050
 **ContextTier:** High
-**Depends:** rules/210-python-fastapi-core.md
+**Depends:** 210-python-fastapi-core.md
 
 ## Purpose
 Establish comprehensive testing strategies for FastAPI applications using TestClient, pytest-asyncio, and modern testing patterns to ensure reliability and maintainability.
@@ -227,10 +227,10 @@ uv run pytest tests/
 - [Pytest-asyncio Plugin](https://pytest-asyncio.readthedocs.io/) - Async test support and fixture management
 
 ### Related Rules
-- **FastAPI Core**: `rules/210-python-fastapi-core.md`
-- **FastAPI Security**: `rules/210a-python-fastapi-security.md`
-- **Python Core**: `rules/200-python-core.md`
-- **Faker**: `rules/240-python-faker.md`
+- **FastAPI Core**: `210-python-fastapi-core.md`
+- **FastAPI Security**: `210a-python-fastapi-security.md`
+- **Python Core**: `200-python-core.md`
+- **Faker**: `240-python-faker.md`
 
 ## 1. Test Structure and Setup
 

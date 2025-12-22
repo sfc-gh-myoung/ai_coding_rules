@@ -7,7 +7,7 @@
 **Keywords:** idempotency, rate limits, Complete endpoint, Embed endpoint, exponential backoff, REST API, Cortex API, authentication tokens, PAT, OAuth, JWT, SSE, token verification, response format
 **TokenBudget:** ~3950
 **ContextTier:** High
-**Depends:** rules/100-snowflake-core.md, rules/105-snowflake-cost-governance.md, rules/111-snowflake-observability-core.md
+**Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md, 111-snowflake-observability-core.md
 
 ## Purpose
 Provide production patterns for Cortex REST API usage for interactive/low-latency workloads: authentication, Complete/Embed/Agents endpoints, retries, idempotency, streaming, cost controls, and observability.
@@ -146,7 +146,6 @@ def call_cortex_api_with_retry(prompt, model="mistral-large", max_retries=3):
 ```
 **Benefits:** Handles rate limits; retries transient errors; better reliability; professional API client; good user experience; production-ready
 
-
 **Anti-Pattern 2: Not Using Streaming for Long Responses**
 ```python
 # Bad: Wait for entire response before showing anything
@@ -190,7 +189,6 @@ for line in response.iter_lines():
 print()  # New line at end
 ```
 **Benefits:** Immediate feedback; better UX; shows progress; feels responsive; professional; lower perceived latency; user engagement
-
 
 **Anti-Pattern 3: Not Monitoring Token Usage and Costs**
 ```python
@@ -266,7 +264,6 @@ def analyze_token_usage(log_file='cortex_api_usage.log'):
     print(f"Estimated cost: ${total_cost:.2f}")
 ```
 **Benefits:** Cost visibility; usage tracking; optimization insights; budget control; anomaly detection; performance monitoring; professional; financial responsibility
-
 
 **Anti-Pattern 4: Using REST API for Batch Processing Instead of AISQL**
 ```python
@@ -390,11 +387,11 @@ resp = with_retry(lambda: call_complete(client, {
 - [AI Observability](https://docs.snowflake.com/en/user-guide/snowflake-cortex/ai-observability)
 
 ### Related Rules
-- **Snowflake Core**: `rules/100-snowflake-core.md`
-- **AISQL**: `rules/114-snowflake-cortex-aisql.md`
-- **Cost Governance**: `rules/105-snowflake-cost-governance.md`
-- **Warehouse Management**: `rules/119-snowflake-warehouse-management.md`
-- **Observability**: `rules/111-snowflake-observability-core.md`
+- **Snowflake Core**: `100-snowflake-core.md`
+- **AISQL**: `114-snowflake-cortex-aisql.md`
+- **Cost Governance**: `105-snowflake-cost-governance.md`
+- **Warehouse Management**: `119-snowflake-warehouse-management.md`
+- **Observability**: `111-snowflake-observability-core.md`
 
 ## 1. Usage Guidance: REST vs AISQL
 - Use REST for: user-facing chat/assistants, embeddings on-demand, agentic interactions where latency matters

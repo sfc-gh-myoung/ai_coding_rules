@@ -1,4 +1,4 @@
-# Architecture: AI Coding Rules (v3.1)
+# Architecture: AI Coding Rules (v3.4.4)
 
 ## Table of Contents
 
@@ -17,11 +17,13 @@
 
 ## System Overview
 
-The AI Coding Rules v3.1 architecture represents a fundamental shift from template-based generation (v2.x) to a **production-ready rules system**. This architecture prioritizes simplicity, maintainability, and universal compatibility across all AI assistants and IDEs.
+> **Version Note:** This document describes project version v3.4.4. The rule schema version (v3.1) is separate from the project version. Schema version appears in rule metadata (`SchemaVersion: v3.1`), while project version tracks releases.
+
+The AI Coding Rules v3.4.4 architecture represents a fundamental shift from template-based generation (v2.x) to a **production-ready rules system**. This architecture prioritizes simplicity, maintainability, and universal compatibility across all AI assistants and IDEs.
 
 ### Core Architecture Principles
 
-1. **Production-Ready by Default** — All 107 rule files in `rules/` are directly editable and deployment-ready
+1. **Production-Ready by Default** — All rule files in `rules/` are directly editable and deployment-ready
 2. **No Generation Step** — Rules are maintained in their final form, eliminating build complexity
 3. **Universal Format** — Standard Markdown with embedded metadata works with any AI assistant or IDE
 4. **Schema-Validated** — Declarative YAML schema ensures consistency and quality
@@ -316,9 +318,10 @@ dependencies: []
 **Quality Threshold for Cross-Skill Validation:**
 
 When using rule-reviewer to validate rule-creator output:
-- Overall score: ≥ 7.5/10
+- Overall score: ≥ 75/100
 - No CRITICAL issues
-- No HIGH issues in Contract or Metadata dimensions
+- No HIGH issues in Actionability or Completeness dimensions
+- Priority 1 violations < 6 (otherwise score capped at 60/100)
 
 ### Go/Golang Rules Architecture
 
@@ -361,7 +364,7 @@ The 600s range is reserved for systems and backend programming languages, with G
 
 ```
 ai_coding_rules/
-├── rules/                      # 107 production-ready rule files
+├── rules/                      # Production-ready rule files
 │   ├── 000-global-core.md      # Foundation (ContextTier: Critical)
 │   ├── 001-memory-bank.md      # Universal memory bank system
 │   ├── 002-rule-governance.md  # Schema standards
@@ -376,7 +379,7 @@ ai_coding_rules/
 │   ├── 221f-python-htmx-integrations.md
 │   ├── 500-frontend-htmx-core.md
 │   ├── 600-golang-core.md      # Go/Golang foundation
-│   └── ... (107 total)
+│   └── ... (108 total)
 │
 ├── scripts/                    # Automation and validation
 │   ├── template_generator.py  # Creates new rule templates
@@ -455,7 +458,7 @@ ai_coding_rules/
 - Production-ready files
 - Directly editable
 - No generation required
-- 107 rules covering all domains (including 8 HTMX rules, Go/Golang core, and Alpine.js)
+- 108 rules covering all domains (including 8 HTMX rules, Go/Golang core, and Alpine.js)
 
 **`scripts/`** — Automation and validation tools
 - `template_generator.py` creates new rules compliant with the schema
@@ -828,7 +831,7 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 ### Deployment Architecture
 
 **Source Files (in ai_coding_rules repository):**
-- `rules/` — 107 production-ready rule files
+- `rules/` — 108 production-ready rule files
 - `AGENTS.md` — Discovery guide with loading protocol
 - `RULES_INDEX.md` — Searchable catalog with keywords
 
@@ -841,7 +844,7 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 **Target Structure (in user's project):**
 ```
 /path/to/user-project/
-├── rules/                  # 107 rule files
+├── rules/                  # 108 rule files
 │   ├── 000-global-core.md
 │   ├── 100-snowflake-core.md
 │   └── ...
@@ -900,15 +903,15 @@ Configuration:
   Mode: LIVE (files will be copied)
 
 Validation:
-  ✓ Source rules/ directory exists (107 files)
+  ✓ Source rules/ directory exists (108 files)
   ✓ Source AGENTS.md exists
   ✓ Source RULES_INDEX.md exists
   ✓ Destination writable
 
 Deployment:
   → Creating destination rules/ directory
-  → Copying 107 rule files...
-  ✓ Copied 107 rules to /path/to/project/rules/
+  → Copying 108 rule files...
+  ✓ Copied 108 rules to /path/to/project/rules/
   ✓ Copied AGENTS.md to /path/to/project/
   ✓ Copied RULES_INDEX.md to /path/to/project/
 
@@ -1442,7 +1445,7 @@ flowchart TD
 
 ```mermaid
 graph TD
-    Root[ai_coding_rules/] --> Rules[rules/<br/>107 production files]
+    Root[ai_coding_rules/] --> Rules[rules/<br/>108 production files]
     Root --> Scripts[scripts/<br/>5 Python scripts]
     Root --> Schemas[schemas/<br/>v3.0 YAML schema]
     Root --> Tests[tests/<br/>91 passing tests]
@@ -1452,7 +1455,7 @@ graph TD
     
     Rules --> Rule1[000-global-core.md]
     Rules --> Rule2[100-snowflake-core.md]
-    Rules --> Rule3[... 107 total]
+    Rules --> Rule3[... 108 total]
     
     Scripts --> S1[template_generator.py]
     Scripts --> S2[rule_deployer.py]
@@ -1578,33 +1581,50 @@ if sections["Contract"]["line"] > 160:
 
 ### Periodic Rule Review
 
-Use the **Agent-Centric Rule Review Prompt**:
-- Template: `skills/rule-reviewer/PROMPT.md`
-- Usage guide: `docs/USING_RULE_REVIEW_PROMPT.md`
+Use the **Agent-Centric Rule Review Skill**:
+- Skill: `skills/rule-reviewer/SKILL.md`
+- Rubric: `skills/rule-reviewer/PROMPT.md`
+- Usage guide: `docs/USING_RULE_REVIEW_SKILL.md`
+
+**Design Priority Hierarchy:**
+Reviews evaluate rules against the priority order defined in `000-global-core.md`:
+1. **Priority 1:** Agent Understanding and Execution Reliability (CRITICAL)
+2. **Priority 2:** Token and Context Window Efficiency (HIGH)
+3. **Priority 3:** Human Readability (TERTIARY)
 
 **Review Modes:**
 - **FULL** — Comprehensive review for new rules or major revisions (all 6 criteria)
 - **FOCUSED** — Targeted review when specific areas need attention
 - **STALENESS** — Periodic maintenance for quarterly/annual audits
 
-**Scoring Criteria (6 points, X/30 total):**
-1. **Actionability** — Can an agent follow instructions unambiguously?
-2. **Completeness** — Are all paths (including failures) covered?
-3. **Consistency** — Does guidance conflict within file or with dependencies?
-4. **Parsability** — Can an agent extract structured data?
-5. **Token Efficiency** — Is the rule appropriately sized?
-6. **Staleness** — Are tools, APIs, and best practices current?
+**Scoring Criteria (100 points total):**
+
+Critical Dimensions (50 points):
+- **Actionability (25)** — Can an agent follow instructions without judgment?
+- **Completeness (25)** — Are all paths (including failures) covered?
+
+Important Dimensions (30 points):
+- **Consistency (15)** — Does guidance conflict within file or with dependencies?
+- **Parsability (15)** — Can an agent extract structured data?
+
+Standard Dimensions (20 points):
+- **Token Efficiency (10)** — Is the rule appropriately sized?
+- **Staleness (10)** — Are tools, APIs, and best practices current?
+
+**Priority Compliance Gate:**
+- Agent Execution Test required before scoring
+- 3-5 Priority 1 violations: Actionability capped at 15/25
+- 6+ Priority 1 violations: Overall score capped at 60/100 (NEEDS_REFINEMENT)
 
 **Cross-Model Compatibility:**
 Tested on GPT-4o, GPT-5.1, GPT-5.2, Claude Sonnet 4.5, Claude Opus 4.5, Gemini 2.5 Pro, Gemini 3 Pro.
 
 **Recommended Cadence:**
-| Rule Type | Frequency | Mode |
-|-----------|-----------|------|
-| Foundation (000-*) | Quarterly | FULL |
-| Domain Cores (1XX, 2XX, etc.) | Quarterly | STALENESS |
-| Specialized/Activity Rules | Semi-annually | STALENESS |
-| Reference Rules (>5000 tokens) | Annually | STALENESS |
+
+- Foundation (000-*): Quarterly, FULL mode
+- Domain Cores (1XX, 2XX, etc.): Quarterly, STALENESS mode
+- Specialized/Activity Rules: Semi-annually, STALENESS mode
+- Reference Rules (>5000 tokens): Annually, STALENESS mode
 
 ### Adding New Rules
 
@@ -1845,16 +1865,3 @@ grep -i "keyword" ~/project/RULES_INDEX.md
 **Community:**
 - GitHub Issues — Report bugs or request features
 - GitHub Issues — Users and contributors
-
----
-
-## Document History
-
-| Version | Date | Changes |
-|---------|------|---------|
-| **v3.4.3** | 2025-12-17 | Added plan-reviewer skill, updated rule counts to 107 |
-| **v3.4.0** | 2025-12-16 | Added SchemaVersion/RuleVersion metadata fields, doc-reviewer skill, updated metadata to 6 fields |
-| **v3.3.0** | 2025-12-12 | Added Periodic Rule Review section with Agent-Centric Rule Review prompt, updated prompts/ directory documentation |
-| **v3.2.0** | 2025-12-04 | Added Go/Golang rules architecture section, updated rule counts to 100 |
-| **v3.1.0** | 2025-12-03 | Added HTMX rules architecture section |
-| **v3.0.0** | 2025-11-25 | Complete rewrite for production-ready architecture |

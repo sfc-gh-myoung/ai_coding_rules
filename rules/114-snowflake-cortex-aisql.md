@@ -7,7 +7,7 @@
 **Keywords:** Cortex AISQL, AI_COMPLETE, AI_CLASSIFY, AI_EXTRACT, AI_SENTIMENT, AI_SUMMARIZE, embeddings, LLM functions, batching, token costs, text generation, classification, sentiment analysis, summarization, AI function error
 **TokenBudget:** ~3200
 **ContextTier:** High
-**Depends:** rules/100-snowflake-core.md, rules/105-snowflake-cost-governance.md
+**Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md
 
 ## Purpose
 Provide pragmatic, production-focused patterns for using Snowflake Cortex AISQL functions for classification, extraction, summarization, translation, embeddings, transcriptions, document parsing, and aggregation—optimized for cost, throughput, security, and governance.
@@ -208,13 +208,13 @@ FROM src;
 - [AI Observability](https://docs.snowflake.com/en/user-guide/snowflake-cortex/ai-observability) - Evaluate, compare, and trace generative AI applications in Snowflake
 
 ### Related Rules
-- **Snowflake Core**: `rules/100-snowflake-core.md`
-- **SQL Demo Engineering**: `rules/102-snowflake-sql-demo-engineering.md`
-- **Cost Governance**: `rules/105-snowflake-cost-governance.md`
-- **Semantic Views**: `rules/106-snowflake-semantic-views-core.md`
-- **Observability**: `rules/111-snowflake-observability-core.md`
-- **Snowflake CLI**: `rules/112-snowflake-snowcli.md`
-- **Warehouse Management**: `rules/119-snowflake-warehouse-management.md`
+- **Snowflake Core**: `100-snowflake-core.md`
+- **SQL Demo Engineering**: `102-snowflake-sql-demo-engineering.md`
+- **Cost Governance**: `105-snowflake-cost-governance.md`
+- **Semantic Views**: `106-snowflake-semantic-views-core.md`
+- **Observability**: `111-snowflake-observability-core.md`
+- **Snowflake CLI**: `112-snowflake-snowcli.md`
+- **Warehouse Management**: `119-snowflake-warehouse-management.md`
 
 ## 1. Privileges and Governance
 - The `SNOWFLAKE.CORTEX_USER` database role permits use of Cortex AI functions. Revoke from `PUBLIC` and grant least privilege:

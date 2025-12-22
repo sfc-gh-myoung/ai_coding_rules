@@ -7,7 +7,7 @@
 **Keywords:** datetime, pandas, timezone, datetime64, timedelta, UTC, date arithmetic, tz_localize, tz_convert, datetime.now(UTC)
 **TokenBudget:** ~3700
 **ContextTier:** High
-**Depends:** rules/200-python-core.md
+**Depends:** 200-python-core.md
 
 ## Purpose
 Establish comprehensive datetime handling practices across Python, Pandas, Plotly, and Streamlit to prevent type errors, timezone bugs, and performance issues while ensuring Pandas 2.x compatibility and cross-library interoperability.
@@ -107,7 +107,6 @@ if pd.Timestamp(py_dt) > pd_ts:
 ```
 **Benefits:** Type-safe comparisons; Pandas 2.x compatible; explicit timezone handling; no implicit conversion surprises
 
-
 **Anti-Pattern 2: Using Deprecated `datetime.utcnow()`**
 ```python
 # Bad: Deprecated API returns naive datetime
@@ -123,7 +122,6 @@ from datetime import datetime, UTC
 timestamp = datetime.now(UTC)  # Timezone-aware, future-proof
 ```
 **Benefits:** Timezone-aware datetime; Python 3.11+ best practice; no deprecation warnings; explicit UTC handling; future-proof
-
 
 **Anti-Pattern 3: Parsing Dates Without Format Specification**
 ```python
@@ -141,7 +139,6 @@ df = pd.read_csv('large_file.csv')
 df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d %H:%M:%S')  # Fast, explicit
 ```
 **Benefits:** 10-100x faster parsing; consistent date interpretation; no ambiguity; predictable behavior across locales
-
 
 **Anti-Pattern 4: Using Timedelta for Calendar Arithmetic**
 ```python
@@ -255,11 +252,11 @@ filtered_df = df[df['date'] >= user_ts]
 - [Python zoneinfo](https://docs.python.org/3/library/zoneinfo.html) - Python 3.9+ timezone support
 
 ### Related Rules
-- **Python Core**: `rules/200-python-core.md` - Modern Python tooling and practices
-- **Pandas Best Practices**: `rules/252-pandas-best-practices.md` - Pandas performance and anti-patterns
-- **Streamlit Visualization**: `rules/101a-snowflake-streamlit-visualization.md` - Plotly datetime visualization patterns
-- **Streamlit Performance**: `rules/101b-snowflake-streamlit-performance.md` - Caching and optimization for time series
-- **Data Science Analytics**: `rules/920-data-science-analytics.md` - Time series analysis and ML workflows
+- **Python Core**: `200-python-core.md` - Modern Python tooling and practices
+- **Pandas Best Practices**: `252-pandas-best-practices.md` - Pandas performance and anti-patterns
+- **Streamlit Visualization**: `101a-snowflake-streamlit-visualization.md` - Plotly datetime visualization patterns
+- **Streamlit Performance**: `101b-snowflake-streamlit-performance.md` - Caching and optimization for time series
+- **Data Science Analytics**: `920-data-science-analytics.md` - Time series analysis and ML workflows
 
 > **[AI] Claude 4 Specific Guidance**
 > **Claude 4 DateTime Optimizations:**

@@ -7,7 +7,7 @@
 **Keywords:** alpinejs, hyperscript, tailwind, bootstrap, css frameworks, icon libraries, chartjs, frontend libraries, client-side enhancements, htmx integration, javascript frameworks
 **TokenBudget:** ~1900
 **ContextTier:** Low
-**Depends:** rules/221-python-htmx-core.md
+**Depends:** 221-python-htmx-core.md
 
 ## Purpose
 
@@ -161,7 +161,7 @@ function statusPage() {
 </script>
 ```
 
-See `rules/221g-python-htmx-sse.md` for comprehensive SSE patterns.
+See `221g-python-htmx-sse.md` for comprehensive SSE patterns.
 
 ### 2. _hyperscript Integration
 
@@ -513,7 +513,7 @@ document.body.addEventListener('htmx:afterSwap', function(event) {
 
 ### Related Rules
 
-- **HTMX Foundation**: `rules/221-python-htmx-core.md` - HTMX core patterns
-- **Template Strategies**: `rules/221a-python-htmx-templates.md` - Jinja2 patterns
-- **Common Patterns**: `rules/221e-python-htmx-patterns.md` - HTMX implementation patterns
-- **SSE Patterns**: `rules/221g-python-htmx-sse.md` - Server-Sent Events patterns
+- **HTMX Foundation**: `221-python-htmx-core.md` - HTMX core patterns
+- **Template Strategies**: `221a-python-htmx-templates.md` - Jinja2 patterns
+- **Common Patterns**: `221e-python-htmx-patterns.md` - HTMX implementation patterns
+- **SSE Patterns**: `221g-python-htmx-sse.md` - Server-Sent Events patterns

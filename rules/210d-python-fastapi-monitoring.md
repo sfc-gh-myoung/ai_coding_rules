@@ -7,7 +7,7 @@
 **Keywords:** FastAPI monitoring, health checks, logging, metrics, caching, Redis, observability, structured logging, health endpoints, correlation IDs
 **TokenBudget:** ~2500
 **ContextTier:** Medium
-**Depends:** rules/210-python-fastapi-core.md
+**Depends:** 210-python-fastapi-core.md
 
 ## Purpose
 Establish monitoring, logging, and performance optimization patterns for FastAPI applications including health checks, structured logging, caching, and observability.
@@ -221,9 +221,9 @@ uv run pytest tests/
 - [Redis Python Async](https://redis-py.readthedocs.io/en/stable/) - Async Redis operations and connection pooling
 
 ### Related Rules
-- **FastAPI Core**: `rules/210-python-fastapi-core.md`
-- **FastAPI Deployment**: `rules/210c-python-fastapi-deployment.md`
-- **Python Core**: `rules/200-python-core.md`
+- **FastAPI Core**: `210-python-fastapi-core.md`
+- **FastAPI Deployment**: `210c-python-fastapi-deployment.md`
+- **Python Core**: `200-python-core.md`
 
 ## 1. Health Checks and Monitoring
 

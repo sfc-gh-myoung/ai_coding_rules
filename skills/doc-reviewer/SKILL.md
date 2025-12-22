@@ -217,17 +217,3 @@ def extract_links(content: str) -> list[dict]:
     
     return links
 ```
-
-## Version History
-
-- **v1.0.0** (2025-12-16): Initial release
-  - 6-dimension documentation review rubric
-  - Configurable target files with sensible defaults
-  - Single and collection review scopes
-  - Cross-reference verification (code refs in docs)
-  - Link validation (internal verified, external flagged)
-  - Rule-aware baselines (801, 802 rules when present)
-  - FULL/FOCUSED/STALENESS review modes
-  - No-overwrite file safety
-  - Deployable to other projects
-

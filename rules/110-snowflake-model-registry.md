@@ -7,7 +7,7 @@
 **Keywords:** model governance, model lifecycle, model logging, model inference, RBAC, model privileges, register model, log model, model management, ML registry, model tracking, model metadata, deploy model, model lineage
 **TokenBudget:** ~3550
 **ContextTier:** Medium
-**Depends:** rules/100-snowflake-core.md
+**Depends:** 100-snowflake-core.md
 
 ## Purpose
 Establish comprehensive best practices for using Snowflake Model Registry to manage machine learning models, ensuring secure, performant, and governable ML operations through proper lifecycle management, access control, versioning strategies, and cost optimization.
@@ -152,7 +152,6 @@ registry.log_model(
 ```
 **Benefits:** Input schema captured; SQL inference enabled; clear model signature; deployment-ready; production-usable; automatic schema validation
 
-
 **Anti-Pattern 2: Using WAREHOUSE Target Platform Without Understanding SQL Compatibility**
 ```python
 # Bad: Use WAREHOUSE platform for complex sklearn model
@@ -186,7 +185,6 @@ registry.log_model(
 # Check compatibility: https://docs.snowflake.com/en/developer-guide/snowpark-ml/model-registry/overview
 ```
 **Benefits:** Reliable deployment; supports all model types; no SQL translation issues; Python inference flexibility; production-ready; predictable behavior
-
 
 **Anti-Pattern 3: Not Tagging Models with Metadata for Governance**
 ```python
@@ -235,7 +233,6 @@ session.sql(f"""
 """).collect()
 ```
 **Benefits:** Full governance; discoverable by metadata; clear ownership; performance tracked; audit-ready; compliance-friendly; scalable model management
-
 
 **Anti-Pattern 4: Not Testing Model Inference After Registration**
 ```python
@@ -349,12 +346,12 @@ SHOW VIEWS LIKE '%view_name%';
 - [Snowflake Security Guide](https://docs.snowflake.com/en/user-guide/security) - Security features and access control implementation
 
 ### Related Rules
-- **Snowflake Core**: `rules/100-snowflake-core.md`
-- **Data Science Analytics**: `rules/920-data-science-analytics.md`
-- **Snowflake Security**: `rules/107-snowflake-security-governance.md`
-- **Snowflake Cost Governance**: `rules/105-snowflake-cost-governance.md`
-- **Warehouse Management**: `rules/119-snowflake-warehouse-management.md`
-- **Snowflake Notebooks**: `rules/109-snowflake-notebooks.md`
+- **Snowflake Core**: `100-snowflake-core.md`
+- **Data Science Analytics**: `920-data-science-analytics.md`
+- **Snowflake Security**: `107-snowflake-security-governance.md`
+- **Snowflake Cost Governance**: `105-snowflake-cost-governance.md`
+- **Warehouse Management**: `119-snowflake-warehouse-management.md`
+- **Snowflake Notebooks**: `109-snowflake-notebooks.md`
 
 ## 1. Model Registry Setup and Organization
 

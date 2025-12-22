@@ -10,18 +10,44 @@
 **Review Objective:** Evaluate this rule file for use by
 **non-human AI agents** as an **instruction set**, not a reference document.
 
+### Design Priority Hierarchy (Governing Principle)
+
+All rules target **autonomous AI agents**, not human developers. Scoring must reflect this priority order:
+
+**Priority 1: Agent Understanding and Execution Reliability (CRITICAL)**
+- Instructions must be unambiguous and deterministic
+- All conditionals must have explicit branches (if X, then Y; else Z)
+- All undefined thresholds must be quantified (e.g., "large table" becomes ">1M rows")
+- No visual formatting agents cannot interpret (ASCII tables, diagrams, arrow characters)
+- Use imperative voice for all instructions
+
+**Priority 2: Token and Context Window Efficiency (HIGH)**
+- Minimize tokens without sacrificing Priority 1 clarity
+- Use structured lists over prose paragraphs
+- Front-load critical information in each section
+- Reference other rules instead of duplicating content
+
+**Priority 3: Human Readability (TERTIARY)**
+- Maintain logical organization for human reviewers
+- Does NOT affect scoring; noted in recommendations only
+
+**Trade-off Rule:** When priorities conflict, Priority 1 wins. More tokens for explicit error handling is acceptable. Repeated key terms for clarity is acceptable.
+
 ### Dimension Point Allocation
 
 Points are allocated based on criticality for autonomous agent execution:
 
-| Dimension | Points | Rationale |
-|-----------|--------|-----------|
-| **Actionability** | 25 | Critical - agent must follow instructions without judgment |
-| **Completeness** | 25 | Critical - missing paths cause agent failure |
-| Consistency | 15 | Important - conflicting guidance causes errors |
-| Parsability | 15 | Important - agent must extract structured data |
-| Token Efficiency | 10 | Affects context budget but not correctness |
-| Staleness | 10 | Affects accuracy over time |
+**Critical Dimensions (50 points total):**
+- **Actionability:** 25 points - Agent must follow instructions without judgment
+- **Completeness:** 25 points - Missing paths cause agent failure
+
+**Important Dimensions (30 points total):**
+- **Consistency:** 15 points - Conflicting guidance causes errors
+- **Parsability:** 15 points - Agent must extract structured data
+
+**Standard Dimensions (20 points total):**
+- **Token Efficiency:** 10 points - Affects context budget, not correctness
+- **Staleness:** 10 points - Affects accuracy over time
 
 **Scoring formula:**
 - Actionability: X/5 × 5 = Y/25
@@ -34,17 +60,37 @@ Points are allocated based on criticality for autonomous agent execution:
 
 ---
 
+### Agent Execution Test (REQUIRED - First Gate)
+
+Before scoring any dimension, answer this question:
+
+**"Can an autonomous agent execute this rule end-to-end without asking for clarification or making judgment calls?"**
+
+- If YES: Proceed with dimension scoring
+- If NO: Document blocking issues, then proceed with scoring (issues will reduce scores)
+
+**Blocking Issue Categories (count each):**
+1. **Undefined thresholds** - Terms requiring agent judgment (e.g., "large", "critical", "appropriate")
+2. **Missing branches** - Conditionals without explicit else/default
+3. **Ambiguous actions** - Instructions that could be interpreted multiple ways
+4. **Visual formatting** - ASCII tables, arrow characters (`→`), decision trees, Mermaid diagrams
+
+**Gate Impact:**
+- If blocking issues ≥10: Maximum score = 60/100 (automatic NEEDS_REFINEMENT)
+- If blocking issues ≥20: Maximum score = 40/100 (automatic NOT_EXECUTABLE)
+
+---
+
 ### Priority Compliance Check (Required - Before Scoring)
 
-Before scoring dimensions, verify the rule follows the design priority hierarchy
-defined in `000-global-core.md`:
+Before scoring dimensions, verify the rule follows the design priority hierarchy:
 
 **Priority 1 Compliance (Agent Understanding) - CRITICAL:**
 - [ ] No ASCII tables in content (use structured lists)
 - [ ] No arrow characters (`→`) outside code blocks
 - [ ] No ASCII decision trees (`├─`, `└─`, `│`)
 - [ ] No Mermaid diagrams or ASCII art
-- [ ] All subjective terms quantified (see Threshold Audit below)
+- [ ] All undefined thresholds quantified (see Threshold Audit below)
 - [ ] All conditionals have explicit branches (if X, then Y; else Z)
 - [ ] Instructions use imperative voice (commands, not passive)
 
@@ -56,8 +102,9 @@ defined in `000-global-core.md`:
 
 **Scoring Impact:**
 - Priority 1 violations: Reduce Actionability and Parsability scores
-- Multiple Priority 1 violations (3+): Maximum Actionability = 3/5
-- Priority 2 violations: Reduce Token Efficiency score
+- 3-5 Priority 1 violations: Maximum Actionability = 3/5 (15/25)
+- 6+ Priority 1 violations: Maximum overall score = 60/100 (NEEDS_REFINEMENT cap)
+- Priority 2 violations: Reduce Token Efficiency score only (do NOT reduce Priority 1 scores)
 
 ---
 
@@ -72,20 +119,20 @@ Rules must pass the Priority Compliance Check above to score ≥4/5.
 - Are instructions unambiguous with no room for interpretation?
 - Does every conditional have explicit branches (if X, then Y; else Z)?
 - Are there edge cases that would leave an agent uncertain what to do?
-- **Are all thresholds quantified?** (e.g., "large table" should specify ">1M rows",
-  "high change rate" should specify ">30%")
-- **Are subjective terms defined?** Use the **Threshold Audit table** (mandatory)
-  to systematically identify undefined terms.
+- **Are all thresholds quantified?** (e.g., "large table" must specify ">1M rows",
+  "high change rate" must specify ">30%")
+- **Are undefined thresholds eliminated?** Use the **Threshold Audit table** (mandatory)
+  to systematically identify and count undefined thresholds.
 
 **Scoring Scale:**
-- **5/5:** 0-1 undefined terms; all conditionals have explicit branches; agent executes without judgment.
-- **4/5:** 2-3 undefined terms; 95%+ instructions explicit; minor inference needed.
-- **3/5:** 4-5 undefined terms; major instructions clear but some require judgment.
-- **2/5:** 6-10 undefined terms; significant interpretation required.
-- **1/5:** >10 undefined terms; rule reads as guidance, not instructions.
+- **5/5:** 0-1 undefined thresholds; all conditionals have explicit branches; agent executes without judgment.
+- **4/5:** 2-3 undefined thresholds; 95%+ instructions explicit; minor inference needed.
+- **3/5:** 4-5 undefined thresholds; major instructions clear but some require judgment.
+- **2/5:** 6-10 undefined thresholds; significant interpretation required.
+- **1/5:** >10 undefined thresholds; rule reads as guidance, not instructions.
 
 **Quantifiable Metrics (Critical Dimension):**
-- Count undefined subjective terms (via Threshold Audit table)
+- Count undefined thresholds (via Threshold Audit table)
 - Count conditionals without explicit branches
 - Count edge cases without defined behavior
 
@@ -251,42 +298,47 @@ If rule declares dependencies, verify alignment:
 
 Answer each question explicitly in your assessment:
 
-- [ ] **Literal execution test:** If an agent followed every instruction literally,
-  would it produce correct output? (Yes/No with explanation)
-- [ ] **Judgment detection:** List any phrases requiring human judgment (e.g., "prefer,"
-  "consider," "when appropriate," "as needed")
+- [ ] **Agent execution test:** Can an autonomous agent execute this rule end-to-end
+  without asking for clarification? (Yes/No with explanation)
+- [ ] **Undefined threshold count:** Count all terms requiring agent judgment (e.g., "prefer,"
+  "consider," "when appropriate," "as needed", "large", "critical")
+- [ ] **Missing branch count:** Count conditionals without explicit else/default
 - [ ] **Example-mandate alignment:** Do all code examples comply with the rule's
   own requirements? (Yes/No, list violations)
 - [ ] **Failure coverage:** What percentage of examples show success patterns vs.
   failure/recovery paths? (e.g., "4 success, 0 failure")
-- [ ] **Threshold audit:** List all undefined thresholds found
-  (subjective terms without numeric criteria)
+- [ ] **Threshold audit:** List all undefined thresholds found in the Threshold Audit table
 
 ### Priority Compliance Summary (REQUIRED)
 
-Include this table in every review to track priority violations:
+Include this summary in every review to track priority violations:
 
 ```markdown
-**Priority Compliance:**
+**Priority Compliance Summary:**
 
-| Check | Status | Notes |
-|-------|--------|-------|
-| No ASCII tables | ✅/❌ | [location if found] |
-| No arrow chars (`→`) | ✅/❌ | [location if found] |
-| No ASCII trees | ✅/❌ | [location if found] |
-| No diagrams/art | ✅/❌ | [location if found] |
-| Terms quantified | ✅/❌ | [count undefined] |
-| Explicit branches | ✅/❌ | [count missing] |
-| Imperative voice | ✅/❌ | [passive instances] |
-| TokenBudget ±15% | ✅/❌ | [variance %] |
-| No duplicates | ✅/❌ | [sections if found] |
-| Info front-loaded | ✅/❌ | [sections if buried] |
+**Priority 1 (Agent Understanding) - CRITICAL:**
+- Undefined thresholds found: [N]
+- Missing conditional branches: [N]
+- Ambiguous phrases: [N]
+- Visual formatting issues: [N] (ASCII tables, arrows, diagrams)
+- Passive voice instructions: [N]
+- **Total Priority 1 violations:** [N]
+- **Score cap applied:** [Yes/No - state cap if ≥6 violations]
 
-**Priority 1 Violations:** [count]
-**Priority 2 Violations:** [count]
+**Priority 2 (Token Efficiency) - HIGH:**
+- TokenBudget variance: [N%] (target: ±15%)
+- Duplicate content sections: [N]
+- Buried critical information: [N]
+- **Total Priority 2 violations:** [N]
+
+**Priority 3 (Human Readability) - TERTIARY:**
+- [Notes for maintainers - does NOT affect scoring]
 ```
 
-**Scoring adjustment:** If Priority 1 violations ≥3, cap Actionability at 15/25 (3/5).
+**Scoring adjustments:**
+- 3-5 Priority 1 violations: Cap Actionability at 15/25 (3/5)
+- 6+ Priority 1 violations: Cap overall score at 60/100 (NEEDS_REFINEMENT)
+- Priority 2 violations: Reduce Token Efficiency only; do NOT reduce Priority 1 scores
 
 ### Mandatory Verification Tables (Required for Scoring Justification)
 
@@ -295,28 +347,32 @@ analysis and enable cross-model comparison:
 
 #### Threshold Audit (Required for Actionability scoring)
 
-Scan the rule for subjective terms without quantified criteria. Create this table:
+Scan the rule for undefined thresholds (terms requiring agent judgment). Create this list:
 
 ```markdown
-| Term | Line(s) | Defined? | Issue | Proposed Fix |
-|------|---------|----------|-------|--------------|
-| critical query | 269 | ❌ | Undefined term | >30s OR >100GB OR >100/day |
-| large table | 340 | ❌ | Undefined size | >10M rows OR >1GB |
+**Undefined Thresholds Found:**
+
+- **"critical query"** (line 269) - Undefined. Proposed fix: ">30s execution OR >100GB scan OR >100 calls/day"
+- **"large table"** (line 340) - Undefined. Proposed fix: ">10M rows OR >1GB"
+- **"high change rate"** (line 412) - Undefined. Proposed fix: ">30% delta between runs"
+
+**Total undefined thresholds:** [N]
 ```
 
-**Terms to scan for:**
+**Terms to scan for (non-exhaustive):**
 
-- "critical," "large," "high," "low," "important,"
-- "prefer," "consider," "when appropriate," "significant,"
-- "deep," "complex," "reasonable," "sufficient,"
-- "excessive," "simple," "advanced"
+- Size/scale: "large", "small", "significant", "excessive", "deep"
+- Importance: "critical", "important", "high", "low"
+- Judgment: "prefer", "consider", "when appropriate", "as needed", "if necessary"
+- Quality: "complex", "simple", "reasonable", "sufficient", "advanced"
+- Domain-specific: Any term requiring context to evaluate (e.g., "mutable", "production-ready")
 
-**Note:** This list is illustrative, not exhaustive.
-Include any term that would require agent judgment to evaluate (e.g., domain-specific
-terms like "mutable," "incremental," and "production-ready").
-
-**Scoring impact:** Each undefined threshold reduces Actionability score.
-More than 5 undefined = score ≤3/5.
+**Scoring impact:**
+- 0-1 undefined thresholds: 5/5 eligible
+- 2-3 undefined thresholds: 4/5 maximum
+- 4-5 undefined thresholds: 3/5 maximum
+- 6-10 undefined thresholds: 2/5 maximum
+- >10 undefined thresholds: 1/5 maximum
 
 #### Token Budget Verification (Required for Token Efficiency scoring)
 
@@ -371,40 +427,40 @@ violations (contradicting core mandates) = score ≤2/5.
 These rules override subjective assessment:
 
 ### Actionability (25 points)
-| Finding | Maximum Score | Max Points |
-|---------|---------------|------------|
-| >10 undefined terms | 1/5 | 5/25 |
-| 6-10 undefined terms | 2/5 | 10/25 |
-| 4-5 undefined terms | 3/5 | 15/25 |
-| 2-3 undefined terms | 4/5 | 20/25 |
-| 0-1 undefined terms | 5/5 | 25/25 |
+
+**Undefined Threshold Impact:**
+- >10 undefined thresholds: Maximum 1/5 (5/25 points)
+- 6-10 undefined thresholds: Maximum 2/5 (10/25 points)
+- 4-5 undefined thresholds: Maximum 3/5 (15/25 points)
+- 2-3 undefined thresholds: Maximum 4/5 (20/25 points)
+- 0-1 undefined thresholds: Eligible for 5/5 (25/25 points)
 
 ### Completeness (25 points)
-| Finding | Maximum Score | Max Points |
-|---------|---------------|------------|
-| No error handling | 1/5 | 5/25 |
-| Happy path only | 2/5 | 10/25 |
-| Partial error handling | 3/5 | 15/25 |
-| Most paths covered | 4/5 | 20/25 |
-| All paths + recovery | 5/5 | 25/25 |
+
+**Error Handling Coverage Impact:**
+- No error handling: Maximum 1/5 (5/25 points)
+- Happy path only: Maximum 2/5 (10/25 points)
+- Partial error handling: Maximum 3/5 (15/25 points)
+- Most paths covered: Maximum 4/5 (20/25 points)
+- All paths + recovery: Eligible for 5/5 (25/25 points)
 
 ### Consistency (15 points)
-| Finding | Maximum Score | Max Points |
-|---------|---------------|------------|
-| Major example-mandate violations | 1/5 | 3/15 |
-| 3+ example violations | 2/5 | 6/15 |
-| 2 example violations | 3/5 | 9/15 |
-| 1 example violation | 4/5 | 12/15 |
-| No violations | 5/5 | 15/15 |
+
+**Example-Mandate Violation Impact:**
+- Major example-mandate violations: Maximum 1/5 (3/15 points)
+- 3+ example violations: Maximum 2/5 (6/15 points)
+- 2 example violations: Maximum 3/5 (9/15 points)
+- 1 example violation: Maximum 4/5 (12/15 points)
+- No violations: Eligible for 5/5 (15/15 points)
 
 ### Parsability (15 points)
-| Finding | Maximum Score | Max Points |
-|---------|---------------|------------|
-| Unstructured, no metadata | 1/5 | 3/15 |
-| Missing required metadata | 2/5 | 6/15 |
-| Partial metadata, some format issues | 3/5 | 9/15 |
-| Minor format issues | 4/5 | 12/15 |
-| Complete and well-formatted | 5/5 | 15/15 |
+
+**Structure and Metadata Impact:**
+- Unstructured, no metadata: Maximum 1/5 (3/15 points)
+- Missing required metadata: Maximum 2/5 (6/15 points)
+- Partial metadata, some format issues: Maximum 3/5 (9/15 points)
+- Minor format issues: Maximum 4/5 (12/15 points)
+- Complete and well-formatted: Eligible for 5/5 (15/15 points)
 
 ---
 

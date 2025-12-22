@@ -7,7 +7,7 @@
 **Keywords:** Snowflake deployment troubleshooting, Streamlit debugging, SiS TypeError, notebook deployment issues, deployment errors, stage file debugging, AUTO_COMPRESS debugging, ROOT_LOCATION errors, deployment anti-patterns, diagnostic commands, deployment validation, cache issues
 **TokenBudget:** ~3850
 **ContextTier:** Medium
-**Depends:** rules/100-snowflake-core.md, rules/109-snowflake-notebooks.md, rules/101-snowflake-streamlit-core.md, rules/109b-snowflake-app-deployment-core.md
+**Depends:** 100-snowflake-core.md, 109-snowflake-notebooks.md, 101-snowflake-streamlit-core.md, 109b-snowflake-app-deployment-core.md
 
 ## Purpose
 Provide comprehensive troubleshooting guidance and anti-pattern identification for Snowflake application deployments, focusing on common errors, diagnostic commands, and proven solutions for Streamlit in Snowflake (SiS) TypeError issues and notebook caching problems.
@@ -472,11 +472,11 @@ uvx snow sql -q "LIST @DB.SCHEMA.STAGE;" | grep "\.py$"  # Should show .py, not 
 - [Snowflake Stages](https://docs.snowflake.com/en/user-guide/data-load-local-file-system-create-stage) - Stage architecture and file organization
 
 ### Related Rules
-- **Core Deployment Patterns**: `rules/109b-snowflake-app-deployment-core.md` - See this rule for foundational deployment automation patterns and workflows
-- **Snowflake Notebooks**: `rules/109-snowflake-notebooks.md`
-- **Streamlit Core**: `rules/101-snowflake-streamlit-core.md`
-- **Taskfile Automation**: `rules/820-taskfile-automation.md`
-- **Snowflake Core**: `rules/100-snowflake-core.md`
+- **Core Deployment Patterns**: `109b-snowflake-app-deployment-core.md` - See this rule for foundational deployment automation patterns and workflows
+- **Snowflake Notebooks**: `109-snowflake-notebooks.md`
+- **Streamlit Core**: `101-snowflake-streamlit-core.md`
+- **Taskfile Automation**: `820-taskfile-automation.md`
+- **Snowflake Core**: `100-snowflake-core.md`
 
 ## Troubleshooting Deployment Issues
 

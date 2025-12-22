@@ -7,7 +7,7 @@
 **Keywords:** sse, server-sent events, htmx, alpine.js, eventsource, real-time, streaming, live updates, push notifications, event types, sse-manager
 **TokenBudget:** ~2000
 **ContextTier:** High
-**Depends:** rules/221-python-htmx-core.md, rules/221f-python-htmx-integrations.md
+**Depends:** 221-python-htmx-core.md, 221f-python-htmx-integrations.md
 
 ## Purpose
 
@@ -422,9 +422,9 @@ function page() {
 
 ### Related Rules
 
-- **HTMX Core**: `rules/221-python-htmx-core.md` - Foundation patterns
-- **Alpine.js Integration**: `rules/221f-python-htmx-integrations.md` - Alpine.js patterns
-- **Logging Patterns**: `rules/207-python-logging.md` - Web logging with SSE
+- **HTMX Core**: `221-python-htmx-core.md` - Foundation patterns
+- **Alpine.js Integration**: `221f-python-htmx-integrations.md` - Alpine.js patterns
+- **Logging Patterns**: `207-python-logging.md` - Web logging with SSE
 
 ### Project Documentation
 

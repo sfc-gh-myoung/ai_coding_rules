@@ -9,7 +9,7 @@ FOUNDATION RULE: PRESERVE WHEN POSSIBLE
 **Keywords:** agent, LLM, optimization, format, token, efficiency, understanding, execution, comprehension, design, patterns, priority, agent-first
 **TokenBudget:** ~3200
 **ContextTier:** High
-**Depends:** rules/000-global-core.md, rules/002-rule-governance.md
+**Depends:** 000-global-core.md, 002-rule-governance.md
 
 ## Purpose
 
@@ -515,4 +515,3 @@ task rules:validate
 ### External Documentation
 - [Prompt Engineering Best Practices](https://platform.openai.com/docs/guides/prompt-engineering) - OpenAI guidance
 - [Claude's Constitution](https://www.anthropic.com/claude) - Anthropic's design principles
-

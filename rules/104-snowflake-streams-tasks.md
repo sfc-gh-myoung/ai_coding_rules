@@ -7,7 +7,7 @@
 **Keywords:** scheduled tasks, pipeline automation, MERGE patterns, SQL, Snowflake, task DAG, AFTER dependencies, Task History, create stream, create task, debug stream, task troubleshooting, stream consumption, task execution error, stream lag
 **TokenBudget:** ~1800
 **ContextTier:** High
-**Depends:** rules/100-snowflake-core.md
+**Depends:** 100-snowflake-core.md
 
 ## Purpose
 Establish patterns for building robust, incremental data pipelines using Snowflake Streams and Tasks, covering change data capture, scheduling, idempotency, and monitoring for reliable data processing workflows.
@@ -109,7 +109,6 @@ COMMIT;
 ```
 **Benefits:** Atomic stream consumption; transactional consistency; automatic rollback on failure; idempotent processing
 
-
 **Anti-Pattern 2: Not Using CREATE OR REPLACE for Task DDL**
 ```sql
 -- Bad: CREATE fails if task exists, requires manual DROP
@@ -131,7 +130,6 @@ AS
   CALL process_stream_data();
 ```
 **Benefits:** Idempotent deployments; CI/CD friendly; updates task definition safely; no manual cleanup needed; repeatable automation
-
 
 **Anti-Pattern 3: Missing Task Dependencies in DAGs**
 ```sql
@@ -162,7 +160,6 @@ CREATE OR REPLACE TASK load_data
 AS CALL load();
 ```
 **Benefits:** Correct execution order; automatic dependency resolution; Snowflake manages scheduling; no race conditions; transactional DAG execution
-
 
 **Anti-Pattern 4: Not Monitoring Task Execution Status**
 ```sql
@@ -239,11 +236,11 @@ SHOW VIEWS LIKE '%view_name%';
 - [Idempotent DDL](https://docs.snowflake.com/en/sql-reference/sql-ddl-idempotent) - CREATE OR REPLACE patterns for reliable automation
 
 ### Related Rules
-- **Snowflake Core**: `rules/100-snowflake-core.md`
-- **SQL Demo Engineering**: `rules/102-snowflake-sql-demo-engineering.md`
-- **Performance Tuning**: `rules/103-snowflake-performance-tuning.md`
-- **Warehouse Management**: `rules/119-snowflake-warehouse-management.md`
-- **Data Loading**: `rules/108-snowflake-data-loading.md`
+- **Snowflake Core**: `100-snowflake-core.md`
+- **SQL Demo Engineering**: `102-snowflake-sql-demo-engineering.md`
+- **Performance Tuning**: `103-snowflake-performance-tuning.md`
+- **Warehouse Management**: `119-snowflake-warehouse-management.md`
+- **Data Loading**: `108-snowflake-data-loading.md`
 
 ## 1. Incremental Pipeline Design
 - **Requirement:** Use a `STREAM` to capture change data (`INSERT`, `UPDATE`, `DELETE`) on a source table.

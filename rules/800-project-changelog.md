@@ -7,7 +7,7 @@
 **Keywords:** CHANGELOG, changelog format, semantic versioning, release notes, conventional commits, Unreleased section, scope patterns, project governance, git workflow, version control
 **TokenBudget:** ~2500
 **ContextTier:** Medium
-**Depends:** rules/000-global-core.md
+**Depends:** 000-global-core.md
 
 ## Purpose
 Establish directives for maintaining a high-signal, audit-friendly CHANGELOG.md following Keep a Changelog standard with strong preference for Conventional Commits format, ensuring consistent documentation of project changes for stakeholders and maintainers.
@@ -237,10 +237,10 @@ Preview:
 - [Semantic Versioning](https://semver.org/) - Version numbering scheme for software releases
 
 ### Related Rules
-- **Global Core**: `rules/000-global-core.md`
-- **Contributing Guidelines**: `rules/802-project-contributing.md`
-- **Git Workflow Management**: `rules/803-project-git-workflow.md`
-- **README Rules**: `rules/801-project-readme.md`
+- **Global Core**: `000-global-core.md`
+- **Contributing Guidelines**: `802-project-contributing.md`
+- **Git Workflow Management**: `803-project-git-workflow.md`
+- **README Rules**: `801-project-readme.md`
 
 ## 1. Required Structure & Format
 - **Requirement:** Maintain a single `CHANGELOG.md` at the project root.

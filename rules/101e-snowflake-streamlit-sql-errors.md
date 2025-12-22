@@ -7,7 +7,7 @@
 **Keywords:** SnowparkSQLException, error messages, Streamlit errors, Snowflake errors, debug SQL error, fix query error, SQL exception, error troubleshooting, query failed, database error, SQL debugging patterns, exception handling, error recovery, common SQL errors
 **TokenBudget:** ~2800
 **ContextTier:** Low
-**Depends:** rules/100-snowflake-core.md, rules/101-snowflake-streamlit-core.md, rules/101b-snowflake-streamlit-performance.md
+**Depends:** 100-snowflake-core.md, 101-snowflake-streamlit-core.md, 101b-snowflake-streamlit-performance.md
 
 ## Purpose
 Provide comprehensive SQL error handling patterns for Streamlit applications including multiple queries, user inputs, complex joins, and debugging techniques.
@@ -120,7 +120,6 @@ def load_data():
 ```
 **Benefits:** Clear SQL vs non-SQL errors; error code for support; actionable debugging info; professional error messages
 
-
 **Anti-Pattern 2: Error Messages Without Query Context**
 ```python
 # Bad: Generic error message - which query failed?
@@ -167,7 +166,6 @@ except SnowparkSQLException as e:
 ```
 **Benefits:** Immediate identification of failing query; table context clear; numbered queries for easy reference; fast debugging
 
-
 **Anti-Pattern 3: No st.stop() After SQL Errors**
 ```python
 # Bad: Continues execution after SQL failure
@@ -200,7 +198,6 @@ transformers = df[df['type'] == 'TRANSFORMER']
 st.dataframe(transformers)
 ```
 **Benefits:** Prevents cascading errors; clean single error message; professional error handling; user knows exactly what failed
-
 
 **Anti-Pattern 4: Using st.warning() for SQL Errors**
 ```python
@@ -245,7 +242,6 @@ except SnowparkSQLException as e:
     st.stop()
 ```
 **Benefits:** Correct severity levels; distinguishes data issues from system failures; user knows difference between "no data" vs "broken query"
-
 
 **Anti-Pattern 5: Missing Error Codes in Error Messages**
 ```python
@@ -404,49 +400,49 @@ from snowflake_error_utils import classify_snowflake_connection_error, Snowflake
 def handle_connection_error(error: DatabaseError):
     """
     Handle connection errors with Streamlit-specific UI.
-    
+
     Uses classification from 100f-snowflake-connection-errors.md
     and presents with Streamlit widgets.
     """
     error_msg = str(error)
     error_code = error.errno if hasattr(error, 'errno') else ""
-    
+
     error_type, guidance = classify_snowflake_connection_error(error_msg, str(error_code))
-    
+
     if error_type == SnowflakeErrorType.NETWORK_POLICY:
         # VPN disconnection - auto-retry with UI feedback
         with st.expander("🌐 Network Policy Violation", expanded=True):
             st.warning(guidance)
             st.info("**Tip:** Reconnect to your VPN and wait 5 seconds")
-            
+
             if st.button("Retry Connection"):
                 with st.spinner("Waiting for VPN reconnection..."):
                     time.sleep(5)
                     st.rerun()
-    
+
     elif error_type == SnowflakeErrorType.AUTH_EXPIRED:
         # Authentication expired - show command to run
         with st.expander("🔐 Authentication Expired", expanded=True):
             st.error(guidance)
             st.code("snow connection test", language="bash")
             st.info("After running the command, refresh this page")
-            
+
             if st.button("I've refreshed auth - Retry"):
                 st.rerun()
-    
+
     elif error_type == SnowflakeErrorType.TRANSIENT:
         # Transient error - auto-retry with backoff
         st.warning(guidance)
         with st.spinner("Retrying connection..."):
             time.sleep(2)
             st.rerun()
-    
+
     else:
         # Generic connection error
         with st.expander("🔌 Connection Error", expanded=True):
             st.error(guidance)
             st.code(error_msg, language="text")
-            
+
             if st.button("Retry Connection"):
                 st.rerun()
 ```
@@ -464,7 +460,7 @@ def connect_with_retry(
 ) -> Optional[object]:
     """
     Attempt Snowflake connection with exponential backoff.
-    
+
     Shows progress in Streamlit UI.
     """
     for attempt in range(max_retries):
@@ -472,21 +468,21 @@ def connect_with_retry(
             conn = snowflake.connector.connect(**connection_params)
             st.success(f"✅ Connected on attempt {attempt + 1}")
             return conn
-            
+
         except DatabaseError as e:
             error_type, guidance = classify_snowflake_connection_error(str(e), str(e.errno))
-            
+
             # Don't retry auth errors (user action required)
             if error_type == SnowflakeErrorType.AUTH_EXPIRED:
                 st.error(guidance)
                 return None
-            
+
             # Don't retry network policy errors initially (VPN reconnect needed)
             if error_type == SnowflakeErrorType.NETWORK_POLICY and attempt == 0:
                 st.warning(guidance)
                 st.info("Waiting for VPN reconnection...")
                 time.sleep(5)  # Give time for VPN to reconnect
-            
+
             # Retry transient errors with backoff
             if attempt < max_retries - 1:
                 delay = base_delay * (2 ** attempt)
@@ -496,7 +492,7 @@ def connect_with_retry(
                 st.error(f"❌ Connection failed after {max_retries} attempts")
                 st.error(guidance)
                 return None
-    
+
     return None
 ```
 
@@ -506,7 +502,7 @@ def connect_with_retry(
 def ensure_connection():
     """
     Ensure Snowflake connection exists in session state.
-    
+
     Creates new connection if needed, with error handling.
     """
     if 'snowflake_session' not in st.session_state:
@@ -517,7 +513,7 @@ def ensure_connection():
         except DatabaseError as e:
             handle_connection_error(e)
             st.stop()
-    
+
     return st.session_state.snowflake_session
 ```
 

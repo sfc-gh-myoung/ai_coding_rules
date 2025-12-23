@@ -2,56 +2,74 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**LastUpdated:** 2025-12-23
 **Keywords:** datetime, pandas, timezone, datetime64, timedelta, UTC, date arithmetic, tz_localize, tz_convert, datetime.now(UTC)
-**TokenBudget:** ~3700
+**TokenBudget:** ~6200
 **ContextTier:** High
 **Depends:** 200-python-core.md
 
-## Purpose
-Establish comprehensive datetime handling practices across Python, Pandas, Plotly, and Streamlit to prevent type errors, timezone bugs, and performance issues while ensuring Pandas 2.x compatibility and cross-library interoperability.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive datetime handling practices across Python, Pandas, Plotly, and Streamlit to prevent type errors, timezone bugs, and performance issues while ensuring Pandas 2.x compatibility and cross-library interoperability.
 
-DateTime handling for Python stdlib, Pandas, Plotly, Streamlit with focus on type safety, timezone management, date arithmetic, and performance optimization
+**When to Load This Rule:**
+- Working with datetime objects in Python or Pandas
+- Converting between datetime types (Python datetime, pd.Timestamp, datetime64)
+- Managing timezones in data processing
+- Performing date arithmetic or calendar calculations
+- Integrating datetime data with Plotly or Streamlit
+- Debugging datetime-related TypeErrors in Pandas 2.x
+- Optimizing datetime performance in large datasets
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Use datetime.now(UTC)** - NEVER use deprecated datetime.utcnow()
-- **Always be timezone-aware** - Use UTC or explicit timezones, never naive datetimes
-- **Use pd.to_datetime()** - With format= parameter for performance
-- **Convert before plotting** - Use .to_pydatetime() for Plotly/Streamlit
-- **Pandas 2.x compatibility** - Use datetime64[ns, UTC] not datetime64[ns]
-- **Never compare mixed types** - Convert pd.Timestamp ↔ datetime before comparison
+### Dependencies
 
-**Quick Checklist:**
-- [ ] All datetime objects are timezone-aware
-- [ ] datetime.now(UTC) used (not utcnow())
-- [ ] pd.to_datetime() includes format parameter
-- [ ] Timezone conversions use tz_localize/tz_convert
-- [ ] Plotly/Streamlit dates converted with to_pydatetime()
-- [ ] Date arithmetic uses appropriate types
-- [ ] Type conversions handled explicitly
+**Must Load First:**
+- **200-python-core.md** - Modern Python tooling and practices
+
+**Related:**
+- **252-python-pandas.md** - Pandas performance and anti-patterns
+- **101a-snowflake-streamlit-visualization.md** - Plotly datetime visualization patterns
+- **101b-snowflake-streamlit-performance.md** - Caching and optimization for time series
+- **920-data-science-analytics.md** - Time series analysis and ML workflows
+
+### External Documentation
+
+**Python datetime:**
+- [Python datetime Documentation](https://docs.python.org/3/library/datetime.html) - Official Python datetime module reference
+- [Python datetime Tutorial](https://docs.python.org/3/library/datetime.html#datetime-objects) - datetime object methods and properties
+
+**Pandas datetime:**
+- [Pandas Time Series / Date Functionality](https://pandas.pydata.org/docs/user_guide/timeseries.html) - Comprehensive time series guide
+- [Pandas to_datetime](https://pandas.pydata.org/docs/reference/api/pandas.to_datetime.html) - Date parsing reference
+- [Pandas Timedelta](https://pandas.pydata.org/docs/reference/api/pandas.Timedelta.html) - Duration arithmetic
+- [Pandas DateOffset](https://pandas.pydata.org/docs/reference/api/pandas.tseries.offsets.DateOffset.html) - Calendar-aware arithmetic
+- [Pandas dt accessor](https://pandas.pydata.org/docs/reference/api/pandas.Series.dt.html) - Datetime properties and methods
+
+**Timezone handling:**
+- [pytz Documentation](https://pypi.org/project/pytz/) - Timezone database for Python
+- [Python zoneinfo](https://docs.python.org/3/library/zoneinfo.html) - Python 3.9+ timezone support
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
+### Inputs and Prerequisites
+
 Python 3.11+, pandas 2.x+, understanding of datetime types, timezone awareness requirements
-</inputs_prereqs>
 
-<mandatory>
+### Mandatory
+
 pd.to_datetime(), pd.Timestamp, pd.Timedelta, pd.DateOffset, datetime.datetime, dt accessor methods, tz_localize(), tz_convert(), strftime(), to_pydatetime()
-</mandatory>
 
-<forbidden>
+### Forbidden
+
 Mixed datetime type comparisons without conversion, hardcoded timezone offsets, parsing dates without format specification, ignoring timezone information
-</forbidden>
 
-<steps>
+### Execution Steps
+
 1. Use consistent datetime types within operations (convert mixed types)
 2. Always be explicit about timezones (tz_localize, tz_convert)
 3. Parse dates with format specification when structure is known
@@ -59,25 +77,51 @@ Mixed datetime type comparisons without conversion, hardcoded timezone offsets, 
 5. Convert to Python datetime for cross-library compatibility when needed
 6. Validate datetime columns before visualization
 7. Optimize large time series for performance
-</steps>
 
-<output_format>
+### Output Format
+
 Type-safe datetime operations, explicit timezone handling, performant time series code
-</output_format>
 
-<validation>
-All datetime operations type-compatible, timezone handling explicit, no mixed-type comparison errors, performance tested on large datasets
-</validation>
+### Validation
 
-<design_principles>
+**Pre-Task-Completion Checks:**
+- All datetime type conversions handled explicitly (no mixed-type comparisons)
+- Timezone operations are explicit (tz_localize, tz_convert)
+- Date parsing uses format specification when structure is known
+- Timedelta used for duration arithmetic, DateOffset for calendar arithmetic
+- Large time series optimized (string conversion, downsampling, aggregation)
+
+**Success Criteria:**
+- All datetime operations type-safe
+- Timezone handling explicit
+- No Pandas 2.x TypeErrors
+- Large time series render quickly
+- Cross-library compatibility verified
+
+**Negative Tests:**
+- Mixed datetime comparison without conversion (should fail)
+- timezone-naive comparison with tz-aware (should warn)
+- ambiguous date parsing (should coerce or error)
+- inefficient datetime loops (should be slow)
+
+### Design Principles
+
 - **Type Safety First:** Never mix datetime types in comparisons without explicit conversion
 - **Timezone Explicit:** Always specify timezone handling (UTC default, convert as needed)
 - **Pandas 2.x Compatible:** Use patterns that work with strict type checking in Pandas 2.x+
 - **Performance Aware:** Optimize datetime operations for large time series
 - **Cross-Library Safe:** Ensure datetime types work across Python, Pandas, Plotly, Streamlit
-</design_principles>
 
-</contract>
+### Post-Execution Checklist
+
+- [ ] All datetime type conversions handled explicitly (no mixed-type comparisons)
+- [ ] Timezone operations are explicit (tz_localize, tz_convert)
+- [ ] Date parsing uses format specification when structure is known
+- [ ] Timedelta used for duration arithmetic, DateOffset for calendar arithmetic
+- [ ] Large time series optimized (string conversion, downsampling, aggregation)
+- [ ] Pandas 2.x compatibility validated (no TypeError on comparisons)
+- [ ] Cross-library datetime handling tested (Python, Pandas, Plotly, Streamlit)
+- [ ] Helper function (ensure_python_datetime) used for mixed-type scenarios
 
 ## Anti-Patterns and Common Mistakes
 
@@ -160,22 +204,6 @@ next_year = start + pd.DateOffset(years=1)    # Handles leap years
 ```
 **Benefits:** Calendar-aware arithmetic; handles month boundaries; leap year support; business logic correctness; "add 1 month" means "same day next month"
 
-## Post-Execution Checklist
-
-- [ ] All datetime type conversions handled explicitly (no mixed-type comparisons)
-- [ ] Timezone operations are explicit (tz_localize, tz_convert)
-- [ ] Date parsing uses format specification when structure is known
-- [ ] Timedelta used for duration arithmetic, DateOffset for calendar arithmetic
-- [ ] Large time series optimized (string conversion, downsampling, aggregation)
-- [ ] Pandas 2.x compatibility validated (no TypeError on comparisons)
-- [ ] Cross-library datetime handling tested (Python, Pandas, Plotly, Streamlit)
-- [ ] Helper function (ensure_python_datetime) used for mixed-type scenarios
-
-## Validation
-
-- **Success Checks:** All datetime operations type-safe, timezone handling explicit, no Pandas 2.x TypeErrors, large time series render quickly, cross-library compatibility verified
-- **Negative Tests:** Mixed datetime comparison without conversion (should fail), timezone-naive comparison with tz-aware (should warn), ambiguous date parsing (should coerce or error), inefficient datetime loops (should be slow)
-
 > **Investigation Required**
 > When applying this rule:
 > 1. **Read data files BEFORE datetime operations** - Check existing date formats, timezone awareness
@@ -232,40 +260,7 @@ user_ts = pd.Timestamp(user_date)
 filtered_df = df[df['date'] >= user_ts]
 ```
 
-## References
-
-### External Documentation
-
-**Python datetime:**
-- [Python datetime Documentation](https://docs.python.org/3/library/datetime.html) - Official Python datetime module reference
-- [Python datetime Tutorial](https://docs.python.org/3/library/datetime.html#datetime-objects) - datetime object methods and properties
-
-**Pandas datetime:**
-- [Pandas Time Series / Date Functionality](https://pandas.pydata.org/docs/user_guide/timeseries.html) - Comprehensive time series guide
-- [Pandas to_datetime](https://pandas.pydata.org/docs/reference/api/pandas.to_datetime.html) - Date parsing reference
-- [Pandas Timedelta](https://pandas.pydata.org/docs/reference/api/pandas.Timedelta.html) - Duration arithmetic
-- [Pandas DateOffset](https://pandas.pydata.org/docs/reference/api/pandas.tseries.offsets.DateOffset.html) - Calendar-aware arithmetic
-- [Pandas dt accessor](https://pandas.pydata.org/docs/reference/api/pandas.Series.dt.html) - Datetime properties and methods
-
-**Timezone handling:**
-- [pytz Documentation](https://pypi.org/project/pytz/) - Timezone database for Python
-- [Python zoneinfo](https://docs.python.org/3/library/zoneinfo.html) - Python 3.9+ timezone support
-
-### Related Rules
-- **Python Core**: `200-python-core.md` - Modern Python tooling and practices
-- **Pandas Best Practices**: `252-pandas-best-practices.md` - Pandas performance and anti-patterns
-- **Streamlit Visualization**: `101a-snowflake-streamlit-visualization.md` - Plotly datetime visualization patterns
-- **Streamlit Performance**: `101b-snowflake-streamlit-performance.md` - Caching and optimization for time series
-- **Data Science Analytics**: `920-data-science-analytics.md` - Time series analysis and ML workflows
-
-> **[AI] Claude 4 Specific Guidance**
-> **Claude 4 DateTime Optimizations:**
-> - Investigation-first: Check actual datetime types in DataFrames before making recommendations
-> - Parallel validation: Test datetime conversions across multiple scenarios simultaneously
-> - Context awareness: Reference existing datetime patterns from 101a and 500 rules
-> - Error prevention: Emphasize Pandas 2.x compatibility in all datetime code
-
-## 1. DateTime Type System
+## DateTime Type System
 
 ### Three Main DateTime Representations
 
@@ -318,7 +313,7 @@ datetime.datetime (Python stdlib)
 
 **Key Insight:** Pandas Series operations return datetime64[ns] arrays, but individual elements are pd.Timestamp objects.
 
-## 2. Type Conversions and Safety
+## Type Conversions and Safety
 
 **MANDATORY:**
 
@@ -399,7 +394,7 @@ df['date_python'] = df['date'].apply(lambda x: x.to_pydatetime() if pd.notna(x) 
 df['date'] = df['date'].dt.tz_localize(None)
 ```
 
-## 3. Date Parsing Best Practices
+## Date Parsing Best Practices
 
 **MANDATORY:**
 
@@ -448,7 +443,7 @@ df = pd.read_csv('data.csv',
                  date_parser=lambda x: pd.to_datetime(x, format='%Y-%m-%d', errors='coerce'))
 ```
 
-## 4. Timezone Management
+## Timezone Management
 
 **MANDATORY:**
 
@@ -502,7 +497,7 @@ df_display['date'] = df_display['date'].dt.tz_convert(user_tz)
 st.dataframe(df_display)
 ```
 
-## 5. Date Arithmetic and Math
+## Date Arithmetic and Math
 
 **MANDATORY:**
 
@@ -556,7 +551,7 @@ df['quarter_start'] = df['date'].dt.to_period('Q').dt.start_time
 df['quarter_end'] = df['date'].dt.to_period('Q').dt.end_time
 ```
 
-## 6. Performance Optimization for Time Series
+## Performance Optimization for Time Series
 
 **MANDATORY:**
 
@@ -614,7 +609,7 @@ def load_aggregated_data(granularity='day'):
     return session.sql(query).to_pandas()
 ```
 
-## 7. Streamlit Integration Patterns
+## Streamlit Integration Patterns
 
 ### Date Input Widgets
 
@@ -649,7 +644,7 @@ st.dataframe(
 )
 ```
 
-## 8. Anti-Patterns and Common Errors
+## Anti-Patterns and Common Errors
 
 **Anti-Pattern 1: Mixed datetime type comparisons**
 ```python

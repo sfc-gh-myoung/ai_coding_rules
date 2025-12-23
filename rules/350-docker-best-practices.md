@@ -2,32 +2,94 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**LastUpdated:** 2025-12-23
 **Keywords:** Docker, Dockerfile, containers, multi-stage builds, layer caching, image optimization, docker-compose, BuildKit, distroless, security scanning, SBOM, non-root, healthcheck
-**TokenBudget:** ~1950
+**TokenBudget:** ~3350
 **ContextTier:** Medium
-**Depends:** 202-markup-config-validation.md
+**Depends:** 000-global-core.md, 202-markup-config-validation.md
 
-## Purpose
-Provide practical, production-ready guidance for authoring Dockerfiles, building images, and running containers securely and efficiently, minimizing image size, build time, and supply-chain risk.
+## Scope
 
-## Rule Scope
-Dockerfiles, multi-stage builds, image security, supply-chain integrity, runtime hardening, Docker Compose usage, CI/CD integration. Applies to polyglot projects with emphasis on Python.
+**What This Rule Covers:**
+Provides practical, production-ready guidance for authoring Dockerfiles, building images, and running containers securely and efficiently, minimizing image size, build time, and supply-chain risk.
 
-## Quick Start TL;DR
+**When to Load This Rule:**
+- Creating or updating Dockerfiles
+- Implementing multi-stage builds
+- Optimizing Docker image size and build time
+- Securing container images and runtime
+- Setting up Docker Compose for development
+- Implementing CI/CD with Docker
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Multi-stage builds** - Separate build and runtime stages
-- **Pin base images** - Use specific versions/digests, not `latest`
-- **Non-root user** - Run containers with dedicated non-root user
-- **Layer caching** - Order instructions for maximum cache effectiveness
-- **Use .dockerignore** - Keep build context small
-- **Scan images** - Use hadolint, trivy, docker scout
-- **Never embed secrets** - Use build secrets or runtime mounts
+## References
 
-**Quick Checklist:**
+### Dependencies
+
+**Must Load First:**
+- **000-global-core.md** - Foundation for all rules
+- **202-markup-config-validation.md** - Configuration validation patterns
+
+**Related:**
+- **200-python-core.md** - Python-specific Docker patterns
+- **203-python-project-setup.md** - Python project structure for containers
+
+### External Documentation
+
+- [Docker Best Practices](https://docs.docker.com/develop/dev-best-practices/) - Official Docker guidance
+- [Dockerfile Reference](https://docs.docker.com/engine/reference/builder/) - Complete Dockerfile syntax
+- [Docker Security](https://docs.docker.com/engine/security/) - Security best practices
+- [BuildKit Documentation](https://docs.docker.com/build/buildkit/) - Advanced build features
+
+## Contract
+
+### Inputs and Prerequisites
+
+- Container runtime (Docker/Podman)
+- BuildKit enabled
+- Access to base images/registries
+- Project source with `.dockerignore`
+
+### Mandatory
+
+- Docker/Buildx/BuildKit
+- Docker Compose
+- Hadolint (Dockerfile linter)
+- Docker Scout/Trivy/Grype (security scanning)
+- SBOM tools (syft)
+- Cosign for signatures
+- SLSA provenance
+
+### Forbidden
+
+- Embedding secrets in images
+- Running containers with privileged mode without justification
+- `latest` floating tags in production
+- Copying secrets into image layers
+- Running as root user
+
+### Execution Steps
+
+1. Author a minimal, multi-stage Dockerfile with deterministic builds
+2. Implement `.dockerignore` and order layers for cache effectiveness
+3. Enforce least-privilege (non-root, read-only FS, drop capabilities)
+4. Pin image digests/versions; scan image; attach SBOM and provenance
+5. Define runtime healthchecks and resource limits; externalize secrets
+6. Use Compose for dev with overrides; separate prod config
+
+### Output Format
+
+Deterministic Dockerfile(s) and Compose files with:
+- Explicit versions
+- Comments where non-obvious
+- Validated by linters/scanners
+- Multi-stage builds
+- Security best practices
+
+### Validation
+
+**Pre-Task-Completion Checks:**
 - [ ] Multi-stage Dockerfile
 - [ ] Base images pinned
 - [ ] Non-root USER specified
@@ -36,51 +98,43 @@ Dockerfiles, multi-stage builds, image security, supply-chain integrity, runtime
 - [ ] HEALTHCHECK defined
 - [ ] Security scan passing
 
-## Contract
+**Success Criteria:**
+- Build with BuildKit succeeds
+- Image size optimized
+- Hadolint passes with no errors
+- Vulnerability scan clean or acceptable
+- Container runs as non-root
+- Healthcheck defined and working
+- Digest pinning verified
+- SBOM generated
 
-<contract>
-<inputs_prereqs>
-Container runtime (Docker/Podman), BuildKit enabled, access to base images/registries, project source with `.dockerignore`.
-</inputs_prereqs>
+### Design Principles
 
-<mandatory>
-Docker/Buildx/BuildKit, Compose, Hadolint, Docker Scout/Trivy/Grype, SBOM tools (syft), cosign for signatures, SLSA provenance.
-</mandatory>
+- **Always:** Use multi-stage builds; choose slim, LTS base images
+- **Always:** Add a `.dockerignore` to keep contexts tiny; avoid copying VCS/venv/node_modules
+- **Always:** Run as a dedicated non-root user; drop Linux capabilities; prefer read-only FS
+- **Always:** Pin base images and packages; avoid `latest`; prefer digest pinning for prod
+- **Always:** Structure layers to maximize caching; separate dependency installation from source copy
+- **Requirement:** Generate SBOM and sign images; store attestations in registry
+- **Requirement:** Provide a `HEALTHCHECK`; avoid long `CMD` shell strings; use JSON exec form
+- **Rule:** Prefer distroless/alpine only when appropriate; verify glibc/musl compatibility
+- **Avoid:** COPY-ing secrets; baking envs into image; using privileged containers
 
-<forbidden>
-Embedding secrets in images; running containers with privileged mode without justification; `latest` floating tags in production.
-</forbidden>
+### Post-Execution Checklist
 
-<steps>
-1. Author a minimal, multi-stage Dockerfile with deterministic builds.
-2. Implement `.dockerignore` and order layers for cache effectiveness.
-3. Enforce least-privilege (non-root, read-only FS, drop capabilities).
-4. Pin image digests/versions; scan image; attach SBOM and provenance.
-5. Define runtime healthchecks and resource limits; externalize secrets.
-6. Use Compose for dev with overrides; separate prod config.
-</steps>
-
-<output_format>
-Deterministic Dockerfile(s) and Compose files with explicit versions, comments where non-obvious, and validated by linters/scanners.
-</output_format>
-
-<validation>
-Build with BuildKit; verify image size and layers; run hadolint; scan with vulnerability scanner; check that container runs as non-root; confirm healthcheck; verify digest pinning and SBOM.
-</validation>
-
-<design_principles>
-- **Always:** Use multi-stage builds; choose slim, LTS base images.
-- **Always:** Add a `.dockerignore` to keep contexts tiny; avoid copying VCS/venv/node_modules.
-- **Always:** Run as a dedicated non-root user; drop Linux capabilities; prefer read-only FS.
-- **Always:** Pin base images and packages; avoid `latest`; prefer digest pinning for prod.
-- **Always:** Structure layers to maximize caching; separate dependency installation from source copy.
-- **Requirement:** Generate SBOM and sign images; store attestations in registry.
-- **Requirement:** Provide a `HEALTHCHECK`; avoid long `CMD` shell strings; use JSON exec form.
-- **Rule:** Prefer distroless/alpine only when appropriate; verify glibc/musl compatibility.
-- **Avoid:** COPY-ing secrets; baking envs into image; using privileged containers.
-</design_principles>
-
-</contract>
+- [ ] Multi-stage Dockerfile implemented
+- [ ] Base images pinned to specific versions/digests
+- [ ] Non-root USER specified in Dockerfile
+- [ ] .dockerignore configured and tested
+- [ ] Layers optimized for caching
+- [ ] HEALTHCHECK defined
+- [ ] Security scan passing (hadolint, trivy)
+- [ ] SBOM generated
+- [ ] Image signed with cosign
+- [ ] Docker Compose configured for development
+- [ ] Secrets externalized (not in image)
+- [ ] Resource limits defined
+- [ ] Container runs successfully as non-root
 
 ## Anti-Patterns and Common Mistakes
 
@@ -109,20 +163,6 @@ Build with BuildKit; verify image size and layers; run hadolint; scan with vulne
 ```python
 # Proper implementation
 ```
-
-## Post-Execution Checklist
-- Multi-stage Dockerfile with slim/LTS base
-- `.dockerignore` present and effective
-- Non-root `USER`; read-only FS; capabilities dropped
-- Dependencies cached and pinned; lock files used
-- Healthcheck defined; JSON `CMD`/`ENTRYPOINT`
-- Digest pinning for production deployments
-- SBOM generated; image scanned; provenance/signature attached
-- Compose uses separate prod overrides; secrets externalized
-
-## Validation
-- **Success Checks:** Image builds deterministically; scans pass with no criticals; container runs as non-root; healthcheck healthy; size and startup time meet targets; SBOM/provenance generated.
-- **Negative Tests:** Fails if image runs as root; missing `.dockerignore`; `latest` tag used in prod; secrets baked into image; critical CVEs found.
 
 > **Investigation Required**
 > When applying this rule:
@@ -188,29 +228,8 @@ docker build --no-cache -t myapp:latest .
 docker run --rm myapp:latest python -c "print('Container validation passed')"
 ```
 
-## References
-
-### External Documentation
-- Dockerfile reference: https://docs.docker.com/reference/dockerfile/
-- Docker best practices: https://docs.docker.com/build/building/best-practices/
-- Buildx/BuildKit: https://docs.docker.com/build/
-- Docker Content Trust & Signing: https://docs.docker.com/engine/security/trust/
-- Docker Scout: https://docs.docker.com/scout/
-- Hadolint: https://github.com/hadolint/hadolint
-- Compose Spec: https://compose-spec.io/
-- SLSA Provenance: https://slsa.dev/
-- OCI Image/Artifacts: https://github.com/opencontainers/image-spec
-- UV Dockerfile Documentation: https://docs.astral.sh/uv/guides/integration/docker/#non-editable-installs
-
-### Related Rules
-- **YAML Best Practices**: `202-markup-config-validation.md`
-- **Python Core**: `200-python-core.md`
-- **FastAPI Deployment**: `210c-python-fastapi-deployment.md`
-- **Bash Security**: `300a-bash-security.md`
-- **Snowpark Container Services**: `120-snowflake-spcs.md`
-
-## 1. Image Authoring Patterns
-### 1.1 Multi-Stage Builds (Generic)
+## Image Authoring Patterns
+### Multi-Stage Builds (Generic)
 ```Dockerfile
 # Filename: Dockerfile
 # Stage 1: builder
@@ -229,7 +248,7 @@ USER nonroot:nonroot
 ENTRYPOINT ["/app/app"]
 ```
 
-### 1.2 Python (uv/pip) Example
+### Python (uv/pip) Example
 ```Dockerfile
 # Filename: Dockerfile
 FROM python:3.11-slim AS base
@@ -254,7 +273,7 @@ HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD curl -fsS http://localho
 CMD ["uv", "run", "python", "-m", "myapp"]
 ```
 
-### 1.3 Example: .dockerignore (Industry-standard)
+### Example: .dockerignore (Industry-standard)
 ```
 # VCS & metadata
 .git

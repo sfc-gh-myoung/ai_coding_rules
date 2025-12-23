@@ -2,56 +2,77 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** testing, pytest, unit tests, integration tests, fixtures, mocking, header validation, html assertions, test client, htmx testing
-**TokenBudget:** ~2400
+**TokenBudget:** ~4250
 **ContextTier:** High
 **Depends:** 221-python-htmx-core.md, 206-python-pytest.md
+**LastUpdated:** 2025-12-23
 
-## Purpose
+## Scope
 
-Defines testing strategies for HTMX endpoints in Python applications, covering unit tests for header validation, integration tests for partial responses, pytest fixtures for HTMX requests, HTML assertion patterns, and mocking strategies.
+**What This Rule Covers:**
+Testing strategies for HTMX endpoints in Python applications, covering unit tests for header validation, integration tests for partial responses, pytest fixtures for HTMX requests, HTML assertion patterns, and mocking strategies.
 
-## Rule Scope
+**When to Load This Rule:**
+- Writing tests for HTMX endpoints
+- Creating pytest fixtures for HTMX requests
+- Validating HTMX response headers
+- Testing HTML structure in partials
+- Mocking external dependencies in HTMX tests
+- Setting up integration tests for HTMX applications
 
-Python web applications (Flask, FastAPI, Django) with HTMX integration requiring comprehensive test coverage
+## References
 
-## Quick Start TL;DR
+### Dependencies
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Test with HX-Request header** - Always include `HX-Request: true` for HTMX tests
-- **Assert response headers** - Validate `HX-Trigger`, `HX-Redirect`, `HX-Retarget`, etc.
-- **Validate HTML structure** - Use BeautifulSoup or lxml to assert partial HTML content
-- **Create HTMX fixtures** - Reusable pytest fixtures for HTMX request headers
-- **Test both request types** - Verify endpoint behavior with and without HTMX headers
-- **Mock external dependencies** - Isolate HTMX logic from database/API calls
+**Must Load First:**
+- **221-python-htmx-core.md** - HTMX patterns to test
+- **206-python-pytest.md** - Pytest best practices
 
-**Pre-Execution Checklist:**
-- [ ] Pytest installed with test client (Flask test_client, FastAPI TestClient)
-- [ ] HTMX request fixtures created
-- [ ] HTML parsing library installed (BeautifulSoup4 or lxml)
-- [ ] Unit tests for header detection logic
-- [ ] Integration tests for partial vs. full-page responses
-- [ ] Tests cover success and error cases
-- [ ] Mocking strategy defined for external dependencies
+**Related:**
+- **221b-python-htmx-flask.md** - Flask-specific testing
+- **221c-python-htmx-fastapi.md** - FastAPI-specific testing
+- **200-python-core.md** - Python standards
+
+### External Documentation
+
+- [Pytest Documentation](https://docs.pytest.org/) - Official pytest guide
+- [Flask Testing](https://flask.palletsprojects.com/en/latest/testing/) - Flask test client
+- [FastAPI Testing](https://fastapi.tiangolo.com/tutorial/testing/) - TestClient usage
+- [BeautifulSoup Documentation](https://www.crummy.com/software/BeautifulSoup/bs4/doc/) - HTML parsing
 
 ## Contract
 
-<inputs_prereqs>
-Pytest framework; Flask test_client or FastAPI TestClient; HTML parsing library (BeautifulSoup4/lxml); HTMX core patterns (221-python-htmx-core.md); pytest best practices (206-python-pytest.md)
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-Pytest; test client; HTMX request fixtures; HTML assertion utilities; mocking library (pytest-mock or unittest.mock); test database/fixtures
-</mandatory>
+- Pytest framework
+- Flask test_client or FastAPI TestClient
+- HTML parsing library (BeautifulSoup4/lxml)
+- HTMX core patterns (221-python-htmx-core.md)
+- Pytest best practices (206-python-pytest.md)
 
-<forbidden>
-Testing without HX-Request header; skipping HTML structure validation; not testing error cases; missing header assertions; testing only happy path; relying on visual inspection instead of assertions
-</forbidden>
+### Mandatory
 
-<steps>
+- Pytest
+- Test client
+- HTMX request fixtures
+- HTML assertion utilities
+- Mocking library (pytest-mock or unittest.mock)
+- Test database/fixtures
+
+### Forbidden
+
+- Testing without HX-Request header
+- Skipping HTML structure validation
+- Not testing error cases
+- Missing header assertions
+- Testing only happy path
+- Relying on visual inspection instead of assertions
+
+### Execution Steps
+
 1. Install pytest and test dependencies (BeautifulSoup4, pytest-mock)
 2. Create pytest fixtures for test client and HTMX headers
 3. Write unit tests for HTMX detection logic
@@ -60,20 +81,56 @@ Testing without HX-Request header; skipping HTML structure validation; not testi
 6. Test response headers (HX-Trigger, HX-Redirect, etc.)
 7. Mock external dependencies (database, APIs)
 8. Run tests with coverage reporting
-</steps>
 
-<output_format>
-Pytest test suite with fixtures, unit tests, integration tests, HTML assertions, header validations, and mocking
-</output_format>
+### Output Format
 
-<validation>
+- Pytest test suite with fixtures
+- Unit tests
+- Integration tests
+- HTML assertions
+- Header validations
+- Mocking
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Pytest installed with test client (Flask test_client, FastAPI TestClient)
+- HTMX request fixtures created
+- HTML parsing library installed (BeautifulSoup4 or lxml)
+- Unit tests for header detection logic
+- Integration tests for partial vs. full-page responses
+- Tests cover success and error cases
+
+**Success Criteria:**
 - All HTMX endpoints have test coverage (with and without HX-Request)
 - Response headers validated (HX-Trigger, HX-Redirect, etc.)
 - HTML structure assertions pass for partials
 - Error cases tested (400, 401, 404, 500)
 - Mocking isolates HTMX logic from dependencies
 - Test coverage >80% for HTMX routes
-</validation>
+
+### Design Principles
+
+- **Test with HX-Request header** - Always include `HX-Request: true` for HTMX tests
+- **Assert response headers** - Validate `HX-Trigger`, `HX-Redirect`, `HX-Retarget`, etc.
+- **Validate HTML structure** - Use BeautifulSoup or lxml to assert partial HTML content
+- **Create HTMX fixtures** - Reusable pytest fixtures for HTMX request headers
+- **Test both request types** - Verify endpoint behavior with and without HTMX headers
+- **Mock external dependencies** - Isolate HTMX logic from database/API calls
+
+### Post-Execution Checklist
+
+- [ ] Pytest fixtures created for HTMX requests
+- [ ] Unit tests validate HTMX detection logic
+- [ ] Integration tests cover full request/response cycle
+- [ ] HTML assertions validate partial structure
+- [ ] Response header assertions check HX-* headers
+- [ ] Error cases tested (400, 401, 404, 500)
+- [ ] External dependencies mocked appropriately
+- [ ] Parameterized tests reduce duplication
+- [ ] Test coverage >80% for HTMX routes
+- [ ] All tests pass consistently
+- [ ] Mocking strategy defined for external dependencies
 
 ## Key Principles
 
@@ -453,34 +510,6 @@ def test_user_row(htmx_client):
     assert tr.find('td', text='John Doe') is not None
 ```
 
-## Post-Execution Checklist
-
-- [ ] Pytest fixtures created for HTMX requests
-- [ ] Unit tests validate HTMX detection logic
-- [ ] Integration tests cover full request/response cycle
-- [ ] HTML assertions validate partial structure
-- [ ] Response header assertions check HX-* headers
-- [ ] Error cases tested (400, 401, 404, 500)
-- [ ] External dependencies mocked appropriately
-- [ ] Parameterized tests reduce duplication
-- [ ] Test coverage >80% for HTMX routes
-- [ ] All tests pass consistently
-
-## Validation
-
-**Success Checks:**
-- All HTMX endpoints have tests with `HX-Request` header
-- Response headers validated (HX-Trigger, HX-Redirect, etc.)
-- HTML structure assertions pass
-- Error responses tested and validated
-- Mocking isolates HTMX logic
-- Coverage report shows >80% for HTMX routes
-
-**Negative Tests:**
-- HTMX-only endpoint rejects non-HTMX requests (400)
-- Invalid input returns 400 with error HTML
-- Unauthorized request returns 401 with HX-Redirect
-- Missing resource returns 404
 
 ## Output Format Examples
 
@@ -523,17 +552,3 @@ def test_users_list_full_page(client):
     assert '<html>' in response.data.decode()
 ```
 
-## References
-
-### External Documentation
-- [Pytest Documentation](https://docs.pytest.org/) - Official pytest guide
-- [Flask Testing](https://flask.palletsprojects.com/en/latest/testing/) - Flask test client
-- [FastAPI Testing](https://fastapi.tiangolo.com/tutorial/testing/) - TestClient usage
-- [BeautifulSoup Documentation](https://www.crummy.com/software/BeautifulSoup/bs4/doc/) - HTML parsing
-
-### Related Rules
-- **HTMX Foundation**: `221-python-htmx-core.md` - HTMX patterns to test
-- **Python Testing**: `206-python-pytest.md` - Pytest best practices
-- **Flask Integration**: `221b-python-htmx-flask.md` - Flask-specific testing
-- **FastAPI Integration**: `221c-python-htmx-fastapi.md` - FastAPI-specific testing
-- **Python Core**: `200-python-core.md` - Python standards

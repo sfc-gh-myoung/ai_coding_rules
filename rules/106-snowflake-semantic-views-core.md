@@ -7,22 +7,30 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** TABLES, RELATIONSHIPS, PRIMARY KEY, validation rules, semantic view error, create semantic view, debug semantic view, SQL, verified queries, VQR, YAML semantic model, NLQ, mapping syntax, granularity rules
-**TokenBudget:** ~5550
+**TokenBudget:** ~8450
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
+**LastUpdated:** 2025-12-22
 
-## Purpose
-Provide authoritative guidance for creating Snowflake Native Semantic Views using the `CREATE SEMANTIC VIEW` DDL syntax. Focuses on DDL structure, component definitions, anti-patterns, and comprehensive validation rules to prevent errors during semantic view creation.
+## Scope
+
+**What This Rule Covers:**
+Authoritative guidance for creating Snowflake Native Semantic Views using the `CREATE SEMANTIC VIEW` DDL syntax. Focuses on DDL structure, component definitions, anti-patterns, and comprehensive validation rules to prevent errors during semantic view creation.
+
+**When to Load This Rule:**
+- Creating semantic views with CREATE SEMANTIC VIEW DDL
+- Defining TABLES, RELATIONSHIPS, and PRIMARY KEY components
+- Implementing validation rules and mappings
+- Debugging semantic view creation errors
+- Understanding semantic view best practices
 
 **For querying semantic views and testing strategies, see `106b-snowflake-semantic-views-querying.md`.**
 **For Cortex Analyst integration and development workflows, see `106c-snowflake-semantic-views-integration.md`.**
 
-## Rule Scope
-
-Snowflake native semantic view DDL creation and validation
+**Application:** Snowflake native semantic view DDL creation and validation
 
 **Progressive Disclosure - Token Budget:**
 - Quick Start + Contract: ~500 tokens (always load for semantic view tasks)
@@ -36,64 +44,58 @@ Snowflake native semantic view DDL creation and validation
 - **Debugging issues**: + Validation & Troubleshooting
 - **Advanced patterns**: + 106a (advanced), 106b (querying)
 
-## Quick Start TL;DR
+## References
 
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
+### Dependencies
 
-Position at top provides practical efficiency benefits for both LLMs and human developers.
+**Must Load First:**
+- **000-global-core.md** - Foundation rule with core patterns and validation gates
+- **100-snowflake-core.md** - Snowflake SQL patterns and best practices
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Use `CREATE SEMANTIC VIEW` DDL** - Native database objects, not YAML files
-- **Correct mapping syntax** - `logical_name AS physical_column` (NOT reversed)
-- **Clause order matters** - TABLES, then FACTS, then DIMENSIONS, then METRICS (strict sequence)
-- **Simple expressions in DIMENSIONS** - No CAST, DATE_TRUNC, or complex functions
-- **COMMENT uses equals sign** - `COMMENT = 'text'` (NOT `COMMENT 'text'`)
-- **PRIMARY KEY uses physical columns** - Required for relationships
-- **Relationships are many-to-one** - No circular, no self-ref, no multi-path
-- **Respect granularity rules** - Aggregate when referencing higher granularity
-- **Window function metrics cannot nest** - Cannot use in dimensions, facts, or other metrics
+### Related Rules
 
-**Quick Checklist:**
-- [ ] Clause order: TABLES, then FACTS, then DIMENSIONS, then METRICS
-- [ ] PRIMARY KEY defined in TABLES block (uses physical columns only)
-- [ ] Mappings use correct syntax: `logical_name AS physical_column`
-- [ ] All COMMENT clauses have equals sign
-- [ ] DIMENSIONS use simple columns only (no CAST, DATE_TRUNC)
-- [ ] At least one dimension or metric defined
-- [ ] Relationships are many-to-one (no circular, no self-ref)
-- [ ] Cross-table references use relationships (not direct column refs)
-- [ ] Granularity rules respected (aggregate when referencing higher granularity)
-- [ ] No `&` or template characters in SYNONYMS, COMMENT, or identifiers (CLI compatibility)
-- [ ] Validated with `SHOW SEMANTIC VIEWS`
+**Closely Related** (consider loading together):
+- **106a-snowflake-semantic-views-advanced.md** - Anti-patterns, validation rules, quality checks, compliance requirements
+- **106b-snowflake-semantic-views-querying.md** - Query patterns using SEMANTIC_VIEW() function, result processing
+- **106c-snowflake-semantic-views-integration.md** - Integration with Cortex Analyst, Cortex Agents, and troubleshooting
+
+**Sometimes Related** (load if specific scenario):
+- **115-snowflake-cortex-agents-core.md** - Configuring semantic views as tools for Cortex Agents
+- **103-snowflake-performance-tuning.md** - Optimizing base tables that semantic views reference
+
+**Complementary** (different aspects of same domain):
+- **100-snowflake-core.md** - DDL fundamentals and object naming conventions
+- **107-snowflake-security-governance.md** - Masking policies and row access policies on semantic views
+
+### External Documentation
+- [Snowflake Semantic Views Documentation](https://docs.snowflake.com/en/user-guide/semantic-views) - Official semantic view syntax and examples
+- [Cortex Analyst with Semantic Views](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst) - Using semantic views for natural language queries
+- [Semantic View Best Practices](https://docs.snowflake.com/en/user-guide/semantic-views-best-practices) - Guidelines for building effective semantic models
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
+### Inputs and Prerequisites
+
 - Target DATABASE.SCHEMA with appropriate privileges
 - Warehouse context with `CREATE SEMANTIC VIEW` privilege
 - Physical base tables/views with defined structure
 - Business glossary for naming dimensions, facts, and metrics
-</inputs_prereqs>
 
-<mandatory>
+### Mandatory
+
 - `CREATE SEMANTIC VIEW` DDL syntax
 - `SHOW SEMANTIC VIEWS`, `SHOW SEMANTIC DIMENSIONS`, `SHOW SEMANTIC METRICS`
 - Snowflake CLI for validation
-</mandatory>
 
-<forbidden>
+### Forbidden
+
 - YAML semantic model uploads (legacy approach - use native views instead)
 - Regular `CREATE VIEW` when semantic view is appropriate
 - CAST, DATE_TRUNC in DIMENSIONS (use simple columns)
 - Verified queries in DDL (must use YAML semantic model files)
-</forbidden>
 
-<steps>
+### Execution Steps
+
 1. Define TABLES block with physical base table references and PRIMARY KEY
 2. Declare FACTS (numeric measures at row level)
 3. Declare DIMENSIONS (categorical and temporal attributes - simple columns only)
@@ -101,27 +103,28 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 5. Add WITH SYNONYMS for improved NLQ accuracy
 6. Add COMMENT clauses for documentation (use `=` syntax)
 7. Validate using `SHOW SEMANTIC VIEWS`
-</steps>
 
-<output_format>
+### Output Format
+
 - Minimal, runnable `CREATE SEMANTIC VIEW` DDL statements
 - Clear separation of TABLES, FACTS, DIMENSIONS, METRICS blocks
-</output_format>
 
-<validation>
+### Validation
+
 - DDL compiles without syntax errors
 - `SHOW SEMANTIC VIEWS` confirms object creation
 - `SHOW SEMANTIC DIMENSIONS/METRICS` validates structure
 - Validation rules pass (relationships, granularity, expressions)
-</validation>
 
-<design_principles>
+### Design Principles
+
 - **Native database objects**: Semantic views are schema-level objects stored in Snowflake's metadata
 - **Explicit syntax**: Column mappings use `logical_name AS physical_expression` format
 - **Clause ordering**: Must follow TABLES, then FACTS, then DIMENSIONS, then METRICS sequence
 - **Simple expressions**: DIMENSIONS use simple columns only (no CAST, DATE_TRUNC)
 - **Comment syntax**: Use `COMMENT = 'text'` (with equals sign)
 - **Validation first**: Understand validation rules to prevent errors
+
 > **Investigation Required**
 > When working with semantic views:
 > 1. Check if semantic view exists first with `SHOW SEMANTIC VIEWS LIKE '%name%';`
@@ -138,9 +141,22 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 > "Let me read the semantic view DDL first to give accurate guidance."
 > [reads DDL using GET_DDL or SHOW commands]
 > "After reviewing the DDL, I found the view maps customer_id AS cust_id. Here's my recommendation..."
-</design_principles>
 
-</contract>
+### Post-Execution Checklist
+
+- [ ] All table references include database and schema qualifiers
+- [ ] PRIMARY KEY defined for all tables in TABLES block (uses physical columns only)
+- [ ] All mapping syntax follows `logical_name AS physical_column` (not reversed)
+- [ ] All COMMENT clauses use equals sign: `COMMENT = 'text'`
+- [ ] DIMENSIONS use simple columns only (no CAST, DATE_TRUNC, or complex functions)
+- [ ] At least one dimension or metric defined
+- [ ] Relationships validated (many-to-one, no circular, no self-ref, no multi-path)
+- [ ] Cross-table references use defined relationships (not direct column refs)
+- [ ] Granularity rules respected (aggregate when referencing higher granularity)
+- [ ] Window function metrics do not nest (not used in dimensions, facts, or other metrics)
+- [ ] No `&` or template characters in SYNONYMS, COMMENT, or identifiers (for CLI compatibility)
+- [ ] DDL validated with `SHOW SEMANTIC VIEWS`
+- [ ] Test queries run successfully against the view
 
 ## Anti-Patterns and Common Mistakes
 
@@ -527,31 +543,6 @@ CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
 - **`P&L`** - Use `P and L` or `Profit and Loss` instead
 - **`M&A`** - Use `M and A` or `Mergers and Acquisitions` instead
 
-## Post-Execution Checklist
-
-- [ ] All semantic view blocks present: TABLES, RELATIONSHIPS, DIMENSIONS, METRICS
-- [ ] TABLES block declares all base tables with unique aliases
-- [ ] RELATIONSHIPS block declares all join paths between tables
-- [ ] DIMENSIONS block uses correct mapping: `logical_name AS physical_column`
-- [ ] No CAST or transformation functions in DIMENSIONS block
-- [ ] METRICS block uses simple aggregates (COUNT, SUM, AVG, MIN, MAX)
-- [ ] All dimensions and metrics have synonyms for natural language querying
-- [ ] Comments provided for all dimensions and metrics explaining business meaning
-- [ ] No template characters (`&`, `<%`, `%>`, `{{`, `}}`) in SYNONYMS or COMMENT values
-- [ ] Semantic view tested with Cortex Analyst natural language questions
-- [ ] Base tables follow 100-snowflake-core naming conventions
-- [ ] Related semantic views follow consistent naming: SEM_ prefix or MODEL_ prefix
-
-## Validation
-
-- Create semantic view with all blocks (TABLES, RELATIONSHIPS, DIMENSIONS, METRICS) and verify it compiles
-- Test natural language questions with Cortex Analyst against the semantic view
-- Verify DIMENSIONS block uses correct mapping format: `logical_name AS physical_column`
-- Confirm RELATIONSHIPS block uses correct syntax with `identifier` and `references` keywords
-- Validate synonyms are comprehensive for all dimensions and metrics (3-5 per entity)
-- Check that METRICS use simple aggregate functions (COUNT, SUM, AVG, MIN, MAX)
-- Ensure no CAST, DATE_TRUNC, or transformation functions in DIMENSIONS block
-
 ## Output Format Examples
 
 ```sql
@@ -606,21 +597,7 @@ FROM TABLE(ANALYST_SEMANTIC_VIEW_QUERY(
 ));
 ```
 
-## References
-
-### Internal Documentation
-- **106a-snowflake-semantic-views-advanced:** Anti-patterns, validation rules, quality checks
-- **106b-snowflake-semantic-views-querying:** Query patterns using SEMANTIC_VIEW() function
-- **106c-snowflake-semantic-views-integration:** Integration with Cortex Analyst and Agents
-- **100-snowflake-core:** DDL fundamentals and naming conventions
-- **107-snowflake-security-governance:** Masking and row access policies
-
-### External Documentation
-- [Snowflake Semantic Views Documentation](https://docs.snowflake.com/en/user-guide/semantic-views) - Official semantic view syntax and examples
-- [Cortex Analyst with Semantic Views](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst) - Using semantic views for natural language queries
-- [Semantic View Best Practices](https://docs.snowflake.com/en/user-guide/semantic-views-best-practices) - Guidelines for building effective semantic models
-
-## 1) Native Semantic View Syntax
+## Native Semantic View Syntax
 
 ### Complete DDL Structure
 
@@ -1016,17 +993,3 @@ SELECT
     CURRENT_SCHEMA() AS current_schema;
 ```
 
-## Related Rules
-
-**Closely Related** (consider loading together):
-- `106a-snowflake-semantic-views-advanced` - Anti-patterns, validation rules, quality checks, compliance requirements
-- `106b-snowflake-semantic-views-querying` - Query patterns using SEMANTIC_VIEW() function, result processing
-- `106c-snowflake-semantic-views-integration` - Integration with Cortex Analyst, Cortex Agents, and troubleshooting
-
-**Sometimes Related** (load if specific scenario):
-- `115-snowflake-cortex-agents-core` - When configuring semantic views as tools for Cortex Agents
-- `103-snowflake-performance-tuning` - When optimizing base tables that semantic views reference
-
-**Complementary** (different aspects of same domain):
-- `100-snowflake-core` - For DDL fundamentals and object naming conventions
-- `107-snowflake-security-governance` - For masking policies and row access policies on semantic views

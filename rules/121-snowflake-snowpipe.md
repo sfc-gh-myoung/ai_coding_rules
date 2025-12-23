@@ -1,95 +1,178 @@
-# Snowflake Snowpipe and Snowpipe Streaming
+# Snowflake Snowpipe (File-Based Ingestion)
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
-**Keywords:** streaming data, micro-batching, file-based ingestion, SDK, event notifications, COPY INTO, create pipe, auto ingest, data ingestion, streaming load, pipe errors, pipe management, ingestion monitoring
-**TokenBudget:** ~6900
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**LastUpdated:** 2025-12-23
+**Keywords:** snowpipe, auto-ingest, REST API, file-based ingestion, event notifications, COPY INTO, create pipe, data ingestion, pipe errors, pipe management, micro-batching, serverless ingestion
+**TokenBudget:** ~8000
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 108-snowflake-data-loading.md, 104-snowflake-streams-tasks.md
 
-## Purpose
-Establish comprehensive best practices for continuous data ingestion using Snowflake Snowpipe (serverless, file-based) and Snowpipe Streaming (SDK-based, low-latency) including architecture selection, configuration, security, monitoring, and cost optimization.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive best practices for continuous file-based data ingestion using Snowflake Snowpipe (serverless, event-driven). Covers architecture selection (auto-ingest vs REST API), file sizing optimization, cloud event configuration, security, monitoring, cost management, and troubleshooting for file-based ingestion patterns.
 
-Snowpipe serverless (auto-ingest and REST API) and Snowpipe Streaming (high-performance and classic architectures) for continuous data loading
+**When to Load This Rule:**
+- Setting up continuous file-based data ingestion with Snowpipe
+- Configuring auto-ingest with cloud event notifications (SNS, Event Grid, Pub/Sub)
+- Implementing REST API-based pipe triggering
+- Optimizing file sizes and ingestion latency (1-2 min acceptable)
+- Troubleshooting Snowpipe load failures or high costs
+- Monitoring and managing Snowpipe load history
 
-## Quick Start TL;DR
+**For SDK-based streaming ingestion (sub-second latency), see `121a-snowflake-snowpipe-streaming.md`**
 
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
+## References
 
-Position at top provides practical efficiency benefits for both LLMs and human developers.
+### Dependencies
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Choose ingestion method** - Auto-ingest for event-driven, REST for programmatic, Streaming for low-latency
-- **Optimize file sizes** - 100-250MB compressed for Snowpipe
-- **Configure cloud events** - SNS/Event Grid/Pub/Sub for auto-ingest
-- **Validate COPY statements** - Test before pipe creation
-- **Monitor load history** - Track latency, errors, costs
-- **Set up error notifications** - Alert on ingestion failures
-- **Never use for bulk loads** - Use COPY INTO for historical data
+**Must Load First:**
+- **100-snowflake-core.md** - Snowflake foundation patterns
+- **108-snowflake-data-loading.md** - Stages and bulk loading with COPY INTO
 
-**Quick Checklist:**
-- [ ] Ingestion pattern determined
-- [ ] File sizes optimized (100-250MB)
-- [ ] Cloud storage configured
-- [ ] Stages created with permissions
-- [ ] COPY statement validated
-- [ ] Pipe created and tested
-- [ ] Monitoring queries configured
+**Related:**
+- **121a-snowflake-snowpipe-streaming.md** - SDK-based streaming ingestion for sub-second latency
+- **121b-snowflake-snowpipe-monitoring.md** - Monitoring, cost tracking, and performance analysis
+- **121c-snowflake-snowpipe-troubleshooting.md** - Troubleshooting and debugging patterns
+- **104-snowflake-streams-tasks.md** - Incremental pipelines and change data capture
+- **119-snowflake-warehouse-management.md** - Warehouse sizing (note: Snowpipe uses serverless compute)
+- **105-snowflake-cost-governance.md** - Resource monitors and cost optimization
+- **107-snowflake-security-governance.md** - Access control and security policies
+
+### External Documentation
+
+- [Snowpipe Introduction](https://docs.snowflake.com/en/user-guide/data-load-snowpipe-intro) - Overview of Snowpipe architecture and capabilities
+- [Snowpipe Auto-Ingest](https://docs.snowflake.com/en/user-guide/data-load-snowpipe-auto) - Configuring automated data loads with cloud messaging
+- [Snowpipe REST API](https://docs.snowflake.com/en/user-guide/data-load-snowpipe-rest-overview) - REST endpoint reference for programmatic control
+- [Snowpipe Costs](https://docs.snowflake.com/en/user-guide/data-load-snowpipe-billing) - Billing model and cost optimization
+- [Snowpipe Error Notifications](https://docs.snowflake.com/en/user-guide/data-load-snowpipe-errors) - Error handling and notification configuration
+- [Snowpipe Troubleshooting](https://docs.snowflake.com/en/user-guide/data-load-snowpipe-troubleshooting) - Common issues and solutions
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-Snowflake account with pipe creation privileges (`CREATE PIPE`); configured stages (internal or external); target tables with appropriate schema; cloud storage with event notifications (for auto-ingest); Snowpipe Streaming SDK setup (for streaming)
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-Snowflake DDL for pipes; cloud storage event configuration (SNS, Azure Event Grid, GCS Pub/Sub); Snowpipe REST API; Snowpipe Streaming SDK (Java, Python, .NET); monitoring queries
-</mandatory>
+- Snowflake account with pipe creation privileges (`CREATE PIPE`)
+- Configured stages (internal or external) with appropriate permissions
+- Target tables with appropriate schema
+- Cloud storage with event notifications configured (for auto-ingest: SNS, Event Grid, Pub/Sub)
+- Understanding of file sizing and ingestion patterns (100-250MB compressed recommended)
 
-<forbidden>
-Using Snowpipe for bulk historical loads; mixing bulk COPY and Snowpipe on same files; undersized files (<1MB); Snowpipe without proper file sizing
-</forbidden>
+### Mandatory
 
-<steps>
-1. Determine ingestion pattern (auto-ingest vs REST API vs Streaming)
-2. Configure cloud storage and stages with appropriate permissions
-3. Optimize file sizing (100-250MB compressed for Snowpipe)
-4. Create pipes with validated COPY statements
-5. Configure security and access controls
-6. Set up monitoring and alerting
-7. Test latency and throughput under expected load
-8. Document cost baseline and optimize
-</steps>
+- Snowflake DDL for CREATE PIPE statements
+- Cloud storage event configuration (SNS, Azure Event Grid, GCS Pub/Sub for auto-ingest)
+- Snowpipe REST API client (for REST API method)
+- Monitoring queries for load history and error tracking
+- File format specifications (explicit, not defaults)
 
-<output_format>
-Complete pipe DDL with comments; cloud event configuration; Snowpipe Streaming code examples; monitoring queries; cost tracking patterns
-</output_format>
+### Forbidden
 
-<validation>
-Pipe created successfully; files loading automatically (auto-ingest) or via API; load history accessible; latency within requirements; error notifications working; cost tracking functional
-</validation>
+- Using Snowpipe for bulk historical loads (use COPY INTO instead)
+- Mixing bulk COPY and Snowpipe on same files (causes duplicate data)
+- Undersized files (<1MB) for file-based Snowpipe (poor cost efficiency)
+- Omitting FILE_FORMAT specifications (causes parse errors)
+- Generic PATTERN matching (.*) without proper file filtering
 
-<design_principles>
-- **File-Based vs Streaming:** Use Snowpipe for micro-batch file ingestion; use Snowpipe Streaming for low-latency, row-level ingestion
-- **Auto-Ingest First:** Prefer auto-ingest with cloud event notifications over REST API for simplicity and automation
-- **File Sizing:** Stage files of 100-250MB compressed, ideally once per minute for optimal cost/performance
+### Execution Steps
+
+1. Determine ingestion pattern: auto-ingest (event-driven), REST API (programmatic), or Streaming (SDK-based)
+2. Configure cloud storage and create stages with appropriate permissions and storage integrations
+3. Optimize file sizing: 100-250MB compressed for Snowpipe, stage once per minute
+4. Create and test file format specifications explicitly
+5. Validate COPY statement manually before creating pipe
+6. Create pipe with validated COPY statement and appropriate ON_ERROR setting
+7. Configure cloud event notifications (for auto-ingest) or REST API authentication (for REST method)
+8. Set up monitoring queries for load history and error tracking
+9. Configure error notifications and alerting
+10. Test latency and throughput under expected load
+11. Document cost baseline and establish optimization targets
+
+### Output Format
+
+Pipe deployments produce:
+- Complete pipe DDL with comments and configuration
+- Cloud event configuration (SNS topics, Event Grid subscriptions, Pub/Sub topics)
+- Snowpipe Streaming code examples with channel management
+- Monitoring queries for load history, errors, and costs
+- Cost tracking patterns and optimization strategies
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Pipe creation privileges granted (CREATE PIPE, USAGE, SELECT, INSERT)
+- Stages configured with proper permissions and storage integrations
+- Target tables exist with appropriate schema
+- Cloud event notifications configured (for auto-ingest)
+- File format specifications explicit and tested
+- COPY statement validated manually before pipe creation
+- Monitoring queries configured and tested
+
+**Success Criteria:**
+- Pipe created successfully and shows in SHOW PIPES
+- Files loading automatically (auto-ingest) or via REST API/SDK
+- Load history accessible via INFORMATION_SCHEMA.PIPE_USAGE_HISTORY
+- Latency within requirements: <2 min for file-based, <1 sec for streaming
+- No duplicate data in target tables
+- Error rate acceptable (<5% of files)
+- Cost per GB within expected range
+- Error notifications working and alerts configured
+
+**Negative Tests:**
+- Pipe creation should fail without CREATE PIPE privilege
+- Files should not load with misconfigured cloud event notifications
+- Duplicate loads should not occur (Snowpipe tracks loaded files)
+- High latency should be detected with undersized files (<1MB)
+- Excessive costs should trigger alerts with micro-batches
+- Schema errors should be caught with missing columns or type mismatches
+- Offset tracking should prevent duplicate rows in streaming mode
+
+### Design Principles
+
+- **Auto-Ingest First:** Prefer auto-ingest with cloud event notifications over REST API for simplicity, automation, and reliability
+- **File Sizing:** Stage files of 100-250MB compressed, ideally once per minute for optimal cost/performance balance
 - **Serverless Compute:** Snowpipe uses Snowflake-managed compute (not user warehouses); billed per-second of compute used
-- **Load History:** Snowpipe metadata retained for 14 days (vs 64 days for bulk loads); query via REST API or SQL
-- **Idempotency:** Snowpipe tracks loaded files to prevent duplicates; do not mix bulk and Snowpipe on same files
-- **Latency Management:** Expect variable latency based on file size, format, transformations; test to establish baseline
-- **High-Performance Streaming:** Use for sub-second latency requirements with direct SDK integration
-</design_principles>
+- **Load History:** Snowpipe metadata retained for 14 days (vs 64 days for bulk loads); query via REST API or INFORMATION_SCHEMA
+- **Idempotency:** Snowpipe tracks loaded files to prevent duplicates; do not mix bulk COPY and Snowpipe on same files
+- **Latency Management:** Expect variable latency based on file size, format, transformations; test to establish baseline (typical: 1-2 minutes)
 
-</contract>
+> **Investigation Required**
+> When working with Snowpipe:
+> 1. **Read existing pipes BEFORE creating new ones** - Check SHOW PIPES, understand patterns, file sizes
+> 2. **Verify cloud storage setup** - Check stages, permissions, event notifications configuration
+> 3. **Never assume file patterns** - List stage to understand actual file sizes and frequency
+> 4. **Check COPY statement** - Test COPY INTO manually before creating pipe
+> 5. **Monitor first loads** - Verify latency and error rates after pipe creation
+>
+> **Anti-Pattern:**
+> "Creating Snowpipe... (without testing COPY statement first)"
+> "Using Snowpipe for bulk load... (wrong tool for the job)"
+>
+> **Correct Pattern:**
+> "Let me check your existing ingestion setup first."
+> [reads existing pipes, checks stages, tests COPY statement]
+> "I see you use auto-ingest with 200MB files. Creating new pipe following this pattern..."
+
+### Post-Execution Checklist
+
+- [ ] Ingestion method selected (auto-ingest, REST API, or Streaming)
+- [ ] File sizes optimized (100-250MB compressed for file-based Snowpipe)
+- [ ] Cloud event notifications configured correctly (for auto-ingest)
+- [ ] Stages created with proper permissions and storage integrations
+- [ ] Target tables exist with appropriate schema
+- [ ] File format specifications explicit and tested
+- [ ] COPY statement validated manually before pipe creation
+- [ ] Pipes created with validated COPY statements
+- [ ] ON_ERROR setting appropriate for workload (CONTINUE/SKIP_FILE/ABORT)
+- [ ] Security privileges granted (CREATE PIPE, USAGE, SELECT, INSERT)
+- [ ] Monitoring queries configured and tested
+- [ ] Load history accessible and reviewed
+- [ ] Cost tracking implemented and baseline established
+- [ ] Error notifications configured (for production pipes)
+- [ ] Documentation updated with pipe details and architecture
 
 ## Anti-Patterns and Common Mistakes
 
@@ -285,42 +368,6 @@ ORDER BY file_name;
 ```
 **Benefits:** Loads correct files only; no test data leakage; predictable behavior; fast processing; optimized credits; clean production data; easy debugging
 
-## Post-Execution Checklist
-- [ ] Ingestion method selected (auto-ingest, REST API, or Streaming)
-- [ ] File sizes optimized (100-250MB compressed for file-based Snowpipe)
-- [ ] Cloud event notifications configured correctly (for auto-ingest)
-- [ ] Stages created with proper permissions and storage integrations
-- [ ] Target tables exist with appropriate schema
-- [ ] Pipes created with validated COPY statements
-- [ ] ON_ERROR setting appropriate for workload (CONTINUE/SKIP_FILE/ABORT)
-- [ ] Security privileges granted (CREATE PIPE, USAGE, SELECT, INSERT)
-- [ ] Monitoring queries configured and tested
-- [ ] Load history accessible and reviewed
-- [ ] Cost tracking implemented and baseline established
-- [ ] Error notifications configured (for production pipes)
-- [ ] Documentation updated with pipe details and architecture
-
-## Validation
-- **Success Checks:** Pipe created successfully and shows in SHOW PIPES; files loading automatically (auto-ingest) or via REST API/SDK; load history shows successful inserts; latency within requirements (<2 min for file-based, <1 sec for streaming); no duplicate data; error rate acceptable (<5%); cost per GB within expected range
-- **Negative Tests:** Pipe creation fails without proper privileges; files not loading due to misconfigured notifications; duplicate loads when mixing bulk and Snowpipe; high latency with undersized files (<1MB); excessive costs with micro-batches; schema errors with missing columns; offset tracking failures in streaming
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Read existing pipes BEFORE creating new ones** - Check SHOW PIPES, understand patterns, file sizes
-> 2. **Verify cloud storage setup** - Check stages, permissions, event notifications configuration
-> 3. **Never assume file patterns** - List stage to understand actual file sizes and frequency
-> 4. **Check COPY statement** - Test COPY INTO manually before creating pipe
-> 5. **Monitor first loads** - Verify latency and error rates after pipe creation
->
-> **Anti-Pattern:**
-> "Creating Snowpipe... (without testing COPY statement first)"
-> "Using Snowpipe for bulk load... (wrong tool for the job)"
->
-> **Correct Pattern:**
-> "Let me check your existing ingestion setup first."
-> [reads existing pipes, checks stages, tests COPY statement]
-> "I see you use auto-ingest with 200MB files. Creating new pipe following this pattern..."
-
 ## Output Format Examples
 ```sql
 -- Complete Snowpipe auto-ingest example
@@ -386,29 +433,7 @@ FROM TABLE(INFORMATION_SCHEMA.PIPE_USAGE_HISTORY(
 ORDER BY START_TIME DESC;
 ```
 
-## References
-
-### External Documentation
-- [Snowpipe Introduction](https://docs.snowflake.com/en/user-guide/data-load-snowpipe-intro) - Overview of Snowpipe architecture and capabilities
-- [Snowpipe Auto-Ingest](https://docs.snowflake.com/en/user-guide/data-load-snowpipe-auto) - Configuring automated data loads with cloud messaging
-- [Snowpipe REST API](https://docs.snowflake.com/en/user-guide/data-load-snowpipe-rest-overview) - REST endpoint reference for programmatic control
-- [Snowpipe Costs](https://docs.snowflake.com/en/user-guide/data-load-snowpipe-billing) - Billing model and cost optimization
-- [Snowpipe Streaming Overview](https://docs.snowflake.com/en/user-guide/snowpipe-streaming/data-load-snowpipe-streaming-overview) - Introduction to Snowpipe Streaming SDK
-- [High-Performance Streaming Architecture](https://docs.snowflake.com/en/user-guide/snowpipe-streaming/snowpipe-streaming-high-performance-overview) - Optimized streaming for high-volume workloads
-- [Classic Streaming Architecture](https://docs.snowflake.com/en/user-guide/snowpipe-streaming/snowpipe-streaming-classic-overview) - Standard Snowpipe Streaming architecture
-- [Streaming Architecture Comparison](https://docs.snowflake.com/en/user-guide/snowpipe-streaming/snowpipe-streaming-high-performance-comparison) - High-performance vs classic comparison
-- [Snowpipe Error Notifications](https://docs.snowflake.com/en/user-guide/data-load-snowpipe-errors) - Error handling and notification configuration
-- [Snowpipe Troubleshooting](https://docs.snowflake.com/en/user-guide/data-load-snowpipe-troubleshooting) - Common issues and solutions
-
-### Related Rules
-- **Snowflake Core**: `100-snowflake-core.md` - Foundational Snowflake practices
-- **Data Loading**: `108-snowflake-data-loading.md` - Stages and bulk loading with COPY INTO
-- **Streams and Tasks**: `104-snowflake-streams-tasks.md` - Incremental pipelines and change data capture
-- **Warehouse Management**: `119-snowflake-warehouse-management.md` - Warehouse sizing (note: Snowpipe uses serverless compute)
-- **Cost Governance**: `105-snowflake-cost-governance.md` - Resource monitors and cost optimization
-- **Security Governance**: `107-snowflake-security-governance.md` - Access control and security policies
-
-## 1. Snowpipe Overview and Architecture
+## Snowpipe Overview and Architecture
 
 ### 1.1 What is Snowpipe?
 
@@ -445,7 +470,7 @@ ORDER BY START_TIME DESC;
 
 **Rule:** Do NOT use Snowpipe for one-time bulk historical loads. Use COPY INTO with appropriately sized warehouses instead.
 
-## 2. Snowpipe Ingestion Methods
+## Snowpipe Ingestion Methods
 
 ### 2.1 Auto-Ingest (Recommended)
 
@@ -511,7 +536,7 @@ ORDER BY START_TIME DESC;
 - Authentication: JWT key pair
 - Best For: Custom workflows, internal stages
 
-## 3. File Sizing Best Practices
+## File Sizing Best Practices
 
 ### 3.1 Recommended File Sizes
 
@@ -536,7 +561,7 @@ ORDER BY START_TIME DESC;
 
 **Rule:** Always compress files before staging. Uncompressed files waste storage and bandwidth.
 
-## 4. Snowpipe DDL and Configuration
+## Snowpipe DDL and Configuration
 
 ### 4.1 Creating Pipes
 
@@ -646,7 +671,7 @@ AS
   ON_ERROR = CONTINUE;
 ```
 
-## 5. Cloud Event Configuration
+## Cloud Event Configuration
 
 ### 5.1 AWS S3 Event Notifications
 
@@ -736,7 +761,7 @@ AS
 
 **Snowflake Documentation Reference:** [Automating Snowpipe using GCS Pub/Sub](https://docs.snowflake.com/en/user-guide/data-load-snowpipe-auto-gcs)
 
-## 6. Snowpipe REST API Usage
+## Snowpipe REST API Usage
 
 ### 6.1 Authentication Setup
 
@@ -823,7 +848,7 @@ print(response.json())
 
 **Snowflake Documentation Reference:** [Snowpipe REST API](https://docs.snowflake.com/en/user-guide/data-load-snowpipe-rest-gs)
 
-## 7. Security and Access Control
+## Security and Access Control
 
 ### 7.1 Privileges Required
 
@@ -880,421 +905,76 @@ ALTER PIPE PIPE_LOAD_RAW_EVENTS REFRESH;
 ALTER PIPE PIPE_LOAD_RAW_EVENTS REFRESH PREFIX = 'events/2025/01/';
 ```
 
-## 8. Monitoring and Load History
+## Monitoring and Cost Management
 
-### 8.1 Load History Queries
+**For comprehensive monitoring, cost tracking, and performance analysis, see `121b-snowflake-snowpipe-monitoring.md`**
 
-**View Recent Loads:**
+Key monitoring areas:
+- Load history queries and error tracking
+- Cost monitoring and credit usage analysis
+- Performance metrics and latency tracking
+- Alert configuration and dashboard queries
+
+**Quick Reference - Check Pipe Status:**
 ```sql
--- Get load history for a specific pipe (last 14 days)
+-- Check pipe status
+SHOW PIPES LIKE 'PIPE_NAME';
+
+-- Check recent loads
 SELECT *
 FROM TABLE(INFORMATION_SCHEMA.PIPE_USAGE_HISTORY(
-  DATE_RANGE_START => DATEADD(day, -7, CURRENT_TIMESTAMP()),
-  DATE_RANGE_END => CURRENT_TIMESTAMP(),
-  PIPE_NAME => 'MY_DB.MY_SCHEMA.PIPE_LOAD_RAW_EVENTS'
+  DATE_RANGE_START => DATEADD(hour, -1, CURRENT_TIMESTAMP()),
+  PIPE_NAME => 'DB.SCHEMA.PIPE_NAME'
 ))
 ORDER BY START_TIME DESC;
-
--- Summary of files loaded per day
-SELECT
-  DATE_TRUNC('day', START_TIME) AS load_date,
-  COUNT(*) AS num_loads,
-  SUM(FILES_INSERTED) AS total_files,
-  SUM(ROWS_INSERTED) AS total_rows,
-  SUM(BYTES_INSERTED) / POWER(1024, 3) AS total_gb,
-  AVG(BYTES_INSERTED / NULLIF(FILES_INSERTED, 0)) AS avg_file_size_bytes
-FROM TABLE(INFORMATION_SCHEMA.PIPE_USAGE_HISTORY(
-  DATE_RANGE_START => DATEADD(day, -30, CURRENT_TIMESTAMP()),
-  PIPE_NAME => 'MY_DB.MY_SCHEMA.PIPE_LOAD_RAW_EVENTS'
-))
-GROUP BY DATE_TRUNC('day', START_TIME)
-ORDER BY load_date DESC;
 ```
 
-**Check for Errors:**
-```sql
--- Find loads with errors
-SELECT
-  START_TIME,
-  FILES_INSERTED,
-  ROWS_INSERTED,
-  ERROR_COUNT,
-  ERROR_LIMIT,
-  FIRST_ERROR_MESSAGE,
-  FIRST_ERROR_LINE_NUMBER,
-  FIRST_ERROR_CHARACTER_POS,
-  FIRST_ERROR_COLUMN_NAME
-FROM TABLE(INFORMATION_SCHEMA.PIPE_USAGE_HISTORY(
-  DATE_RANGE_START => DATEADD(day, -7, CURRENT_TIMESTAMP()),
-  PIPE_NAME => 'MY_DB.MY_SCHEMA.PIPE_LOAD_RAW_EVENTS'
-))
-WHERE ERROR_COUNT > 0
-ORDER BY START_TIME DESC;
-```
+## File-Based vs SDK-Based Ingestion
 
-### 8.2 Copy History for Snowpipe
+**This rule covers file-based Snowpipe only.** For SDK-based streaming ingestion with sub-second latency, see `121a-snowflake-snowpipe-streaming.md`.
 
-```sql
--- Query COPY_HISTORY for Snowpipe loads
-SELECT
-  TABLE_NAME,
-  STAGE_LOCATION,
-  FILE_NAME,
-  FILE_SIZE,
-  ROW_COUNT,
-  ROW_PARSED,
-  FIRST_ERROR_MESSAGE,
-  FIRST_ERROR_LINE_NUMBER,
-  LAST_LOAD_TIME,
-  STATUS
-FROM SNOWFLAKE.ACCOUNT_USAGE.COPY_HISTORY
-WHERE TABLE_NAME = 'RAW_EVENTS'
-  AND PIPE_NAME = 'PIPE_LOAD_RAW_EVENTS'
-  AND LAST_LOAD_TIME >= DATEADD(day, -7, CURRENT_TIMESTAMP())
-ORDER BY LAST_LOAD_TIME DESC;
-```
+**Decision Matrix:**
 
-### 8.3 Monitoring Best Practices
+**Use File-Based Snowpipe (this rule) when:**
+- Data is already in files (S3, GCS, Azure Blob)
+- 1-2 minute latency is acceptable
+- Simpler setup preferred
+- File-based event notifications available
+- Batch processing patterns
 
-**Set up alerts for:**
-- Pipes in error state or paused unexpectedly
-- High error rates (>5% of rows)
-- Load latency exceeding SLAs
-- Significant changes in file counts or sizes
-- Pipes consuming excessive compute credits
-
-## 9. Cost Management
-
-### 9.1 Snowpipe Billing Model
-
-**How Snowpipe is billed:**
-- Billed based on **compute resources used** in the Snowpipe warehouse
-- Charged per-second with a 1-minute minimum per compute cluster
-- Separate from user warehouse credits
-- Costs appear in `SNOWPIPE` usage type in `ACCOUNT_USAGE.METERING_HISTORY`
-
-**Cost Monitoring Query:**
-```sql
--- Daily Snowpipe costs (last 30 days)
-SELECT
-  DATE_TRUNC('day', START_TIME) AS usage_date,
-  SUM(CREDITS_USED) AS snowpipe_credits,
-  COUNT(DISTINCT PIPE_NAME) AS num_pipes,
-  SUM(BYTES_INSERTED) / POWER(1024, 3) AS total_gb_loaded
-FROM SNOWFLAKE.ACCOUNT_USAGE.PIPE_USAGE_HISTORY
-WHERE START_TIME >= DATEADD(day, -30, CURRENT_TIMESTAMP())
-GROUP BY DATE_TRUNC('day', START_TIME)
-ORDER BY usage_date DESC;
-
--- Cost per pipe
-SELECT
-  PIPE_NAME,
-  SUM(CREDITS_USED) AS total_credits,
-  SUM(FILES_INSERTED) AS total_files,
-  SUM(ROWS_INSERTED) AS total_rows,
-  SUM(BYTES_INSERTED) / POWER(1024, 3) AS total_gb,
-  ROUND(SUM(CREDITS_USED) / NULLIF(SUM(FILES_INSERTED), 0), 6) AS credits_per_file,
-  ROUND(SUM(CREDITS_USED) / NULLIF(SUM(BYTES_INSERTED) / POWER(1024, 3), 0), 4) AS credits_per_gb
-FROM SNOWFLAKE.ACCOUNT_USAGE.PIPE_USAGE_HISTORY
-WHERE START_TIME >= DATEADD(day, -30, CURRENT_TIMESTAMP())
-GROUP BY PIPE_NAME
-ORDER BY total_credits DESC;
-```
-
-### 9.2 Cost Optimization Strategies
-
-**Best Practices:**
-1. **Optimize file sizes:** 100-250MB compressed files minimize overhead
-2. **Stage files once per minute:** Avoid micro-files (<1MB)
-3. **Use pattern matching:** Filter files at pipe level to reduce processing
-4. **Minimize transformations:** Complex SELECT logic increases compute time
-5. **Batch notifications:** Configure cloud event filtering to reduce noise
-6. **Monitor and right-size:** Review cost per GB and optimize accordingly
-
-**Snowflake Documentation Reference:** [Snowpipe Costs](https://docs.snowflake.com/en/user-guide/data-load-snowpipe-billing)
-
-## 10. Snowpipe Streaming Overview
-
-### 10.1 What is Snowpipe Streaming?
-
-**Snowpipe Streaming** provides a direct, low-latency alternative to file-based Snowpipe by using the Snowpipe Streaming SDK to write rows directly to Snowflake tables.
-
-**Key Characteristics:**
-- **Row-level ingestion:** No file staging required
-- **Sub-second latency:** Typically <1 second for data availability
-- **SDK-based:** Java, Python, .NET SDKs available
-- **Channel-based:** Uses channels for offset tracking and exactly-once semantics
-- **Schema evolution:** Automatic schema detection and evolution supported
-
-### 10.2 High-Performance vs Classic Architecture
-
-**High-Performance Architecture:**
-- Latency: Sub-second (optimized)
-- Throughput: Higher (optimized for large volumes)
-- Overhead: Lower (direct write path)
-- Complexity: Slightly more complex setup
-- Use Case: High-volume, low-latency streaming
-- Availability: AWS, Azure, GCP
-
-**Classic Architecture:**
-- Latency: 1-2 seconds
-- Throughput: Moderate
-- Overhead: Higher (metadata operations)
-- Complexity: Simpler setup
-- Use Case: Standard streaming workloads
-- Availability: AWS, Azure, GCP
-
-**Rule:** Prefer **High-Performance Architecture** for production workloads with strict latency and throughput requirements.
-
-**Snowflake Documentation References:**
-- [High-Performance Architecture Overview](https://docs.snowflake.com/en/user-guide/snowpipe-streaming/snowpipe-streaming-high-performance-overview)
-- [Classic Architecture Overview](https://docs.snowflake.com/en/user-guide/snowpipe-streaming/snowpipe-streaming-classic-overview)
-- [Architecture Comparison](https://docs.snowflake.com/en/user-guide/snowpipe-streaming/snowpipe-streaming-high-performance-comparison)
-
-### 10.3 When to Use Snowpipe Streaming
-
-**Use Snowpipe Streaming when:**
+**Use Snowpipe Streaming (121a) when:**
 - Sub-second latency is required
 - Data arrives row-by-row or in small micro-batches
 - Direct integration from streaming sources (Kafka, Kinesis, custom apps)
 - Need exactly-once semantics with offset tracking
 - Schema evolution is important
 
-**Use regular Snowpipe (file-based) when:**
-- Data is already in files (S3, GCS, Azure Blob)
-- 1-2 minute latency is acceptable
-- Simpler setup preferred
-- File-based event notifications available
+## Troubleshooting
 
-## 11. Snowpipe Streaming SDK Usage
+**For comprehensive troubleshooting and debugging patterns, see `121c-snowflake-snowpipe-troubleshooting.md`**
 
-### 11.1 Java SDK Example
+Common issues covered:
+- Files not loading (pipe paused, event notifications, permissions)
+- High latency (file sizes, transformations, concurrency)
+- Duplicate data (mixing bulk COPY and Snowpipe)
+- High costs (micro-files, staging frequency, transformations)
+- Schema errors and data type mismatches
+- Authentication and connection failures
 
-**Setup:**
-```xml
-<!-- Maven dependency -->
-<dependency>
-    <groupId>net.snowflake</groupId>
-    <artifactId>snowflake-ingest-sdk</artifactId>
-    <version>2.0.0</version>
-</dependency>
-```
-
-**Basic Ingestion:**
-```java
-import net.snowflake.ingest.streaming.*;
-import java.util.*;
-
-public class SnowpipeStreamingExample {
-    public static void main(String[] args) throws Exception {
-        // Create client
-        Properties props = new Properties();
-        props.put("user", "USERNAME");
-        props.put("private_key", "PRIVATE_KEY_CONTENT");
-        props.put("account", "ACCOUNT_IDENTIFIER");
-        props.put("role", "ROLE_NAME");
-        props.put("warehouse", "WAREHOUSE_NAME");  // Optional for high-perf
-        props.put("database", "DATABASE_NAME");
-        props.put("schema", "SCHEMA_NAME");
-
-        SnowflakeStreamingIngestClient client =
-            SnowflakeStreamingIngestClientFactory.builder("CLIENT_NAME")
-                .setProperties(props)
-                .build();
-
-        // Open channel
-        OpenChannelRequest channelRequest = OpenChannelRequest.builder("CHANNEL_NAME")
-            .setDBName("DATABASE_NAME")
-            .setSchemaName("SCHEMA_NAME")
-            .setTableName("TABLE_NAME")
-            .setOnErrorOption(OpenChannelRequest.OnErrorOption.CONTINUE)
-            .build();
-
-        SnowflakeStreamingIngestChannel channel = client.openChannel(channelRequest);
-
-        // Insert rows
-        Map<String, Object> row = new HashMap<>();
-        row.put("id", 1);
-        row.put("name", "Alice");
-        row.put("timestamp", System.currentTimeMillis());
-
-        InsertValidationResponse response = channel.insertRow(row, "offset_1");
-
-        if (response.hasErrors()) {
-            System.err.println("Insert errors: " + response.getInsertErrors());
-        }
-
-        // Close channel and client
-        channel.close().get();
-        client.close();
-    }
-}
-```
-
-### 11.2 Python SDK Example
-
-**Setup:**
-```bash
-pip install snowflake-ingest
-```
-
-**Basic Ingestion:**
-```python
-from snowflake.ingest import SnowflakeStreamingIngestClient
-from snowflake.ingest import StreamingIngestChannel
-from snowflake.ingest.utils.crypto import load_private_key
-import time
-
-# Load private key
-with open('snowflake_key.pem', 'rb') as f:
-    private_key = load_private_key(f.read(), None)
-
-# Create client
-client = SnowflakeStreamingIngestClient(
-    account='ACCOUNT_IDENTIFIER',
-    user='USERNAME',
-    private_key=private_key,
-    role='ROLE_NAME',
-    warehouse='WAREHOUSE_NAME',  # Optional for high-perf
-)
-
-# Open channel
-channel = client.open_channel(
-    database='DATABASE_NAME',
-    schema='SCHEMA_NAME',
-    table='TABLE_NAME',
-    channel_name='CHANNEL_NAME',
-    on_error='CONTINUE'
-)
-
-# Insert rows
-rows = [
-    {'id': 1, 'name': 'Alice', 'timestamp': int(time.time())},
-    {'id': 2, 'name': 'Bob', 'timestamp': int(time.time())},
-]
-
-for idx, row in enumerate(rows):
-    response = channel.insert_row(row, offset_token=f'offset_{idx}')
-    if response.has_errors():
-        print(f"Insert errors: {response.insert_errors}")
-
-# Close channel and client
-channel.close()
-client.close()
-```
-
-### 11.3 Channel Management
-
-**Channels** provide:
-- **Offset tracking:** Exactly-once semantics with offset tokens
-- **Isolation:** Separate channels for different data sources
-- **Monitoring:** Per-channel metrics and status
-
-**Best Practices:**
-- Use descriptive channel names (e.g., `kafka_topic1_partition0`)
-- One channel per logical data stream or partition
-- Monitor channel lag and throughput
-- Close channels gracefully on application shutdown
-
-## 12. Schema Evolution
-
-**Snowpipe Streaming supports automatic schema evolution:**
-
-```python
-# Initial table schema: id, name
-# Insert row with new column
-row = {'id': 1, 'name': 'Alice', 'email': 'alice@example.com'}
-channel.insert_row(row, 'offset_1')
-
-# Snowflake automatically adds 'email' column to table
-```
-
-**Schema Evolution Modes:**
-- **ADD_COLUMNS:** Automatically add missing columns (default)
-- **FAIL_MISSING_COLUMNS:** Reject rows with unknown columns
-- **IGNORE_MISSING_COLUMNS:** Insert only known columns
-
-**Rule:** Use schema evolution cautiously in production. Prefer explicit schema management for critical tables.
-
-## 13. Snowpipe Streaming Monitoring
-
-### 13.1 Channel Status
-
+**Quick Reference - Basic Diagnostics:**
 ```sql
--- Query channel status
-SELECT
-  channel_name,
-  table_name,
-  offset_token,
-  row_count,
-  start_time,
-  last_commit_time
-FROM SNOWFLAKE.ACCOUNT_USAGE.STREAMING_CHANNELS
-WHERE database_name = 'MY_DB'
-  AND schema_name = 'MY_SCHEMA'
-ORDER BY last_commit_time DESC;
+-- Check pipe status
+SHOW PIPES LIKE 'PIPE_NAME';
+
+-- Check for errors
+SELECT *
+FROM TABLE(INFORMATION_SCHEMA.PIPE_USAGE_HISTORY(
+  DATE_RANGE_START => DATEADD(hour, -1, CURRENT_TIMESTAMP()),
+  PIPE_NAME => 'DB.SCHEMA.PIPE_NAME'
+))
+WHERE ERROR_COUNT > 0
+ORDER BY START_TIME DESC;
+
+-- Verify stage contents
+LIST @STAGE_NAME;
 ```
-
-### 13.2 Streaming Load History
-
-```sql
--- Query streaming load history
-SELECT
-  table_name,
-  channel_name,
-  row_count,
-  bytes_received,
-  start_time,
-  end_time,
-  DATEDIFF(second, start_time, end_time) AS latency_seconds
-FROM SNOWFLAKE.ACCOUNT_USAGE.LOAD_HISTORY
-WHERE table_name = 'MY_TABLE'
-  AND start_time >= DATEADD(day, -1, CURRENT_TIMESTAMP())
-ORDER BY start_time DESC;
-```
-
-## 14. Troubleshooting
-
-### 14.1 Common Snowpipe Issues
-
-**Files not loading:**
-- Check pipe status: `SHOW PIPES;` - ensure not paused
-- Verify cloud event notifications are configured correctly
-- Check load history for errors: `INFORMATION_SCHEMA.PIPE_USAGE_HISTORY`
-- Verify stage permissions and file accessibility
-
-**High latency:**
-- Check file sizes (optimize to 100-250MB compressed)
-- Review COPY statement complexity (minimize transformations)
-- Check for concurrent loads and resource contention
-- Verify ON_ERROR setting (CONTINUE vs SKIP_FILE vs ABORT)
-
-**Duplicate data:**
-- Never mix bulk COPY and Snowpipe on same files
-- Snowpipe tracks loaded files automatically
-- Check if files were renamed/modified (different eTag)
-
-**High costs:**
-- Optimize file sizes (avoid micro-files <1MB)
-- Stage files once per minute, not continuously
-- Minimize transformations in COPY statement
-- Use pattern matching to filter files at pipe level
-
-### 14.2 Common Snowpipe Streaming Issues
-
-**Connection failures:**
-- Verify authentication (key pair, JWT generation)
-- Check network connectivity and firewall rules
-- Ensure warehouse is available (if using classic architecture)
-
-**Schema errors:**
-- Verify table exists and columns match
-- Check schema evolution settings
-- Ensure INSERT privileges on target table
-
-**Offset tracking issues:**
-- Use unique, monotonically increasing offset tokens
-- Handle channel reopens gracefully
-- Implement idempotency in application logic
-
-**Snowflake Documentation Reference:** [Snowpipe Troubleshooting](https://docs.snowflake.com/en/user-guide/data-load-snowpipe-troubleshooting)

@@ -2,92 +2,125 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.1.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** memory bank, context, session recovery, project brief, active context, progress tracking, context rot, attention budget, compaction, context engineering, rapid recovery, failure recovery, staleness detection, archive policy, signal maximization
 **TokenBudget:** ~6200
 **ContextTier:** Critical
 **Depends:** 000-global-core.md
 
-## Purpose
-Establish universal principles for maintaining project context and ensuring AI effectiveness through structured documentation, enabling seamless context recovery across session resets regardless of specific AI model or editor implementation.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Universal principles for maintaining project context through structured memory bank documentation. Establishes patterns for context recovery across session resets, context preservation, aggressive pruning, and attention budget management. All write operations must be scoped to `memory-bank/` directory only.
 
-Universal memory bank principles for project context management across all AI models and editors
+**When to Load This Rule:**
+- Implementing or maintaining memory bank systems
+- Managing project context across session resets
+- Setting up context preservation for AI agents
+- Designing documentation structure for rapid recovery
+- Working with `memory-bank/` directory operations
 
-## Context Management
+**Scope Boundary (CRITICAL):**
+- **This rule governs:** Write operations to `memory-bank/` directory ONLY
+- **Out of scope:** IDE/editor rule files, project files outside `memory-bank/`, IDE configuration
+- **Rationale:** Agents need unambiguous write permission boundary to prevent unintended side effects
 
-For context preservation strategy and priority order, see:
-- `000-global-core.md`, section "Context Window Management Protocol"
-- `AGENTS.md`, Bootstrap protocol (ALWAYS preserve)
+**Context Preservation:**
+For overall context preservation strategy and priority order, see `000-global-core.md` section "Context Window Management Protocol" and `AGENTS.md` Bootstrap protocol. Memory bank patterns complement but do not replace the core preservation hierarchy.
 
-Memory bank patterns complement but do not replace the core preservation hierarchy.
+## References
 
-## Quick Start TL;DR
+### Dependencies
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Read ALL memory bank files at session start** - Non-optional, enables rapid context recovery
-- **Keep activeContext.md ≤100 lines** - Most critical file (see Performance Standards for all budgets)
-- **Initialize before writing** - Run "initialize memory bank" if `memory-bank/` doesn't exist
-- **All writes scoped to `memory-bank/`** - Never write context files outside this directory
-- **Aggressive pruning** - Remove completed work details, archive old context (see Aggressive Pruning Rules)
-- **Zero redundancy** - Each piece of information lives in exactly ONE place
-- **Never duplicate information** - Reference existing docs, don't copy content
+**Must Load First:**
+- **000-global-core.md** - Foundational workflow, safety protocols, and Context Window Management Protocol
 
-## Scope Boundary
+**Related:**
+- **002-rule-governance.md** - Token budgets and rule sizing standards
+- **003-context-engineering.md** - Comprehensive attention budget and compaction strategies
 
-**This rule governs:** Write operations to `memory-bank/` directory only
+### External Documentation
 
-**Out of Scope:**
-- Editing IDE/editor rule files (requires separate authorization)
-- Modifying project files outside `memory-bank/`
-- Creating/updating `.cursorrules` or similar IDE configuration
+**Anthropic Engineering Articles:**
+- [Effective Context Engineering for AI Agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) - Context rot, attention budgets, compaction strategies, and memory management
 
-**Rationale:** Agents need a single, unambiguous write permission boundary. Memory bank operations are isolated to prevent unintended side effects on project code or IDE configuration.
-
-**Quick Checklist:**
-- [ ] `memory-bank/` directory exists (initialize if needed)
-- [ ] All writes scoped under `memory-bank/` only
-- [ ] Files within size budgets (see Section 3: Performance Standards for all limits)
-- [ ] Quick Start section in activeContext.md (lines 1-30)
-- [ ] No duplicate information across files
-- [ ] Outdated content removed or archived
+**Technical Writing and Documentation:**
+- [Technical Writing Best Practices](https://developers.google.com/tech-writing) - Google's guide for clear, effective documentation
+- [Documentation Systems](https://documentation.divio.com/) - Framework for organizing technical documentation
+- [Cursor Documentation](https://docs.cursor.com/) - AI-powered code editor features and capabilities
+- [Cursor Rules Guide](https://docs.cursor.com/en/context/rules) - Project rules and context management
+- [Markdown Guide](https://www.markdownguide.org/) - Complete Markdown syntax and formatting reference
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-Project context files; clear documentation structure; session reset understanding
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-Read-only context tools; documentation tools; structured update tools
-</mandatory>
+- Project context files
+- Clear documentation structure
+- Understanding of session reset scenarios
+- Knowledge of memory bank file organization
 
-<forbidden>
-Tools that duplicate information across contexts; unstructured narrative documentation
-</forbidden>
+### Mandatory
 
-<steps>
-1. Initialize memory bank if not already initialized: ensure `memory-bank/` exists (see Initialization Protocol in Section 4); all write operations must be scoped under `memory-bank/` only
+- Read-only context tools
+- Documentation tools
+- Structured update tools
+- **CRITICAL:** ALL writes must be scoped to `memory-bank/` directory only
+
+### Forbidden
+
+- Tools that duplicate information across contexts
+- Unstructured narrative documentation
+- Writing files outside `memory-bank/` directory
+- Skipping initialization check before first write
+
+### Execution Steps
+
+1. Initialize memory bank if not already initialized: ensure `memory-bank/` exists (see Initialization Protocol); all write operations must be scoped under `memory-bank/` only
 2. Read ALL memory bank files at session start (non-optional)
 3. Maintain single source of truth per information type
-4. Update context when update triggers are met (see Context Update Triggers in Section 4)
-5. Prune outdated information aggressively (see Aggressive Pruning Rules in Section 3)
+4. Update context when update triggers are met (see Context Update Triggers)
+5. Prune outdated information aggressively (see Aggressive Pruning Rules)
 6. Structure information for rapid context recovery
-</steps>
 
-<output_format>
-Structured documentation with clear sections, minimal redundancy, forward-looking focus
-</output_format>
+### Output Format
 
-<validation>
-Initialization verified; `memory-bank/` folder exists; no writes occurred outside `memory-bank/`; context completeness check; information uniqueness verification; Quick Start Requirements met (see Section 3 Performance Standards)
-</validation>
+Structured documentation with:
+- Clear sections
+- Minimal redundancy
+- Forward-looking focus
+- Quick Start information in first 30 lines of activeContext.md
 
-<design_principles>
+### Validation
+
+**Pre-Task-Completion Checks:**
+- `memory-bank/` folder exists (initialization verified)
+- No writes occurred outside `memory-bank/` directory
+- Context completeness check passed
+- Information uniqueness verification passed
+- Quick Start Requirements met (see Performance Standards)
+
+**Success Criteria:**
+- Initialization confirmed
+- AI can resume work effectively using only context files
+- No duplicate information exists
+- All references work
+- Context load completes within time targets
+
+**Investigation Required:**
+1. **Check if `memory-bank/` directory exists BEFORE any write operation** - Use list_dir to verify, run initialization if missing
+2. **Read ALL existing memory bank files at session start** - Never assume context structure
+3. **Never speculate about current project state** - Read activeContext.md for actual current focus
+4. **Verify file sizes against budgets** - Check line counts, not just file existence
+5. **Make grounded updates based on investigated context** - Don't add generic content
+
+**Anti-Pattern:** "Based on typical projects, you probably have these memory bank files..."
+
+**Correct Pattern:** "Let me check if memory-bank/ exists and what files are present." [runs list_dir]
+
+### Design Principles
+
 - **Rapid Recovery:** AI must be productive within first 20-30 lines of reading (Quick Start Requirements: objective, next 3 steps, blockers, validation)
 - **Signal Maximization:** Every line must provide actionable value
 - **Zero Redundancy:** Each piece of information lives in exactly one place
@@ -98,9 +131,22 @@ Initialization verified; `memory-bank/` folder exists; no writes occurred outsid
 - **Forward Focus:** Emphasize what's next, not what's done
 - **Context Rot Awareness:** As context grows, attention degrades (n² pairwise relationships) - keep context minimal
 - **Attention Budget:** Treat context like limited working memory - every token depletes attention budget
-</design_principles>
 
-</contract>
+### Post-Execution Checklist
+
+- [ ] All core memory bank files exist and are within size budgets
+- [ ] Initialization run before updates (or previously initialized)
+- [ ] `memory-bank/` directory exists
+- [ ] All writes are scoped under `memory-bank/` (no writes elsewhere)
+- [ ] activeContext.md updated when update triggers met
+- [ ] No information duplication across contexts
+- [ ] Quick start information readily accessible in activeContext.md
+- [ ] Outdated content removed or archived appropriately
+- [ ] All references and links are current and functional
+- [ ] Context structure follows hierarchical dependencies
+- [ ] Forward-looking focus maintained (what's next vs what's done)
+- [ ] Essential commands and workflows documented in techContext.md
+- [ ] AI can resume work effectively using only context files
 
 ## Anti-Patterns and Common Mistakes
 
@@ -142,42 +188,6 @@ We reviewed 5 different libraries. Sarah mentioned security concerns...
 # After pruning: 80 lines of current, actionable context
 ```
 
-## Post-Execution Checklist
-- [ ] All core memory bank files exist and are within size budgets
-- [ ] Initialization run before updates (or previously initialized)
-- [ ] `memory-bank/` directory exists
-- [ ] All writes are scoped under `memory-bank/` (no writes elsewhere)
-- [ ] activeContext.md updated when update triggers met (see Context Update Triggers)
-- [ ] No information duplication across contexts
-- [ ] Quick start information readily accessible in activeContext.md
-- [ ] Outdated content removed or archived appropriately
-- [ ] All references and links are current and functional
-- [ ] Context structure follows hierarchical dependencies
-- [ ] Forward-looking focus maintained (what's next vs what's done)
-- [ ] Essential commands and workflows documented in techContext.md
-- [ ] AI can resume work effectively using only context files
-
-## Validation
-- **Success Checks**: Initialization confirmed; `memory-bank/` exists; writes limited to `memory-bank/`; AI can resume work effectively using only context files; no duplicate information exists; all references work; Quick Start Requirements met (objective, steps, blockers, validation in lines 1-30); context load completes within time targets
-- **Negative Tests**: Update attempted before initialization; files written outside `memory-bank/`; context files with missing quick start fail effectiveness test; duplicate information causes confusion and wasted time; broken references impede progress; oversized contexts delay session recovery
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Check if `memory-bank/` directory exists BEFORE any write operation** - Use list_dir to verify, run initialization if missing
-> 2. **Read ALL existing memory bank files at session start** - Never assume context structure, always verify what exists
-> 3. **Never speculate about current project state** - Read activeContext.md to understand actual current focus
-> 4. **Verify file sizes against budgets** - Check line counts, not just file existence
-> 5. **Make grounded updates based on investigated context** - Don't add generic content that doesn't match project reality
->
-> **Anti-Pattern:**
-> "Based on typical projects, you probably have these memory bank files..."
-> "Let me update the memory bank with standard sections..."
->
-> **Correct Pattern:**
-> "Let me check if memory-bank/ exists and what files are present."
-> [runs list_dir to check memory-bank/]
-> "I see memory-bank/ exists with activeContext.md (85 lines) and projectbrief.md (110 lines). Based on activeContext.md, the current focus is [specific project task]. Here's how I'll update it..."
-
 ## Output Format Examples
 
 ```markdown
@@ -205,26 +215,7 @@ Validation:
 - [x] Documentation updated
 ```
 
-## References
-
-### External Documentation
-
-**Anthropic Engineering Articles:**
-- [Effective Context Engineering for AI Agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) - Context rot, attention budgets, compaction strategies, and memory management
-
-**Technical Writing and Documentation:**
-- [Technical Writing Best Practices](https://developers.google.com/tech-writing) - Google's guide for clear, effective documentation
-- [Documentation Systems](https://documentation.divio.com/) - Framework for organizing technical documentation
-- [Cursor Documentation](https://docs.cursor.com/) - AI-powered code editor features and capabilities
-- [Cursor Rules Guide](https://docs.cursor.com/en/context/rules) - Project rules and context management
-- [Markdown Guide](https://www.markdownguide.org/) - Complete Markdown syntax and formatting reference
-
-### Related Rules
-- **Global Core**: `000-global-core.md` - Foundational workflow and safety protocols
-- **Rule Governance**: `002-rule-governance.md` - Token budgets and rule sizing standards
-- **Context Engineering**: `003-context-engineering.md` - Comprehensive attention budget and compaction strategies
-
-## 1. Universal Context Structure
+## Universal Context Structure
 
 ### Core Information Types
 - **Project Brief**: Foundation, scope, and requirements (stable reference)
@@ -247,7 +238,7 @@ Validation:
 - **Bounded Size**: Each context file maintains specific size limits
 - **Forward Focus**: Current context emphasizes what's next, not what's done
 
-## 2. Content Guidelines
+## Content Guidelines
 
 ### Core Files (Required)
 
@@ -291,7 +282,7 @@ Validation:
 - Known issues and technical debt (current only)
 - Immediate roadmap (next 2-3 sprints maximum)
 
-## 3. Performance Standards
+## Performance Standards
 
 ### Size Budgets (Mandatory)
 
@@ -545,7 +536,7 @@ These files should NOT be pruned for temporal staleness:
 6. Validate: Source file now within size budget
 7. Log: "[ARCHIVE] Moved <N> lines from <source> to archive/YYYY-MM.md"
 
-## 4. Maintenance Workflows
+## Maintenance Workflows
 
 ### Context Update Triggers
 
@@ -827,24 +818,6 @@ Pre-step: If `memory-bank/` does not exist, run initialization protocol (see abo
 - ALWAYS use timestamped filenames for backups (.corrupted-YYYY-MM-DD-HHMMSS)
 - Archive to memory-bank/archive/ or .corrupted suffix
 - Preserve user data unless explicitly confirmed safe to remove
-
-## 5. IDE Integration (Reference Only - Out of Scope)
-
-> **[IMPORTANT]** This section is **reference-only**. Editing IDE/editor rule files is **out of scope** for this rule. IDE configuration requires separate authorization and is not covered by memory bank write permissions.
-
-### Project Intelligence Rules (Context/Informational Only)
-- **Purpose**: IDE-specific rules files serve as learning journals for projects
-- **Content**: Capture patterns, preferences, and project intelligence that improve AI effectiveness
-- **Format**: Flexible - focus on capturing valuable insights
-- **Evolution**: Treat as living documents that grow smarter over time
-
-### What Could Be Documented in IDE Rules (For Reference)
-- Critical implementation paths and user workflow patterns
-- Project-specific conventions and known challenges
-- Tool usage patterns and evolution of project decisions
-- Solutions to recurring problems
-
-**Note:** To update IDE rules, refer to a separate IDE integration rule or obtain explicit user authorization. Memory bank operations remain strictly scoped to `memory-bank/` directory.
 
 ## Memory Bank Analysis
 - **Precondition**: Memory bank initialized and `memory-bank/` folder exists

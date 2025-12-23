@@ -4,45 +4,51 @@ FOUNDATION RULE: PRESERVE WHEN POSSIBLE
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.1.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** agent, LLM, optimization, format, token, efficiency, understanding, execution, comprehension, design, patterns, priority, agent-first
 **TokenBudget:** ~3200
 **ContextTier:** High
 **Depends:** 000-global-core.md, 002-rule-governance.md
 
-## Purpose
+## Scope
 
-**This rule defines the PRIMARY design priority for all rules: agent understanding and execution reliability.**
+**What This Rule Covers:**
+The PRIMARY design priority for all rules: **agent understanding and execution reliability**. All rules are instruction sets for autonomous AI agents, not reference documents for humans.
 
-All rules in `rules/` are instruction sets for autonomous AI agents, not reference documents for humans. This rule establishes:
+**Design Priorities (Strictly Enforced):**
 
-1. **Priority 1:** Agent understanding and reliable execution (CRITICAL)
-2. **Priority 2:** Token efficiency without sacrificing Priority 1 (HIGH)
-3. **Priority 3:** Human readability (TERTIARY)
+See `000-global-core.md` "Rule Design Priorities (Hierarchy)" for canonical definitions.
 
-When human-friendly formatting conflicts with agent parsing, **agent parsing wins**.
+1. **Priority 1 (CRITICAL):** Agent understanding and execution reliability - All wording must be unambiguous for autonomous non-human agents
+2. **Priority 2 (HIGH):** Rule discovery efficacy and determinism
+3. **Priority 3 (HIGH):** Context window and token utilization efficiency
+4. **Priority 4 (LOW):** Human developer maintainability
 
-## Rule Scope
+**When to Load This Rule:**
+- Creating or updating any rule in the `rules/` directory
+- Reviewing rule formatting and structure decisions
+- Understanding agent-first design principles
+- Resolving conflicts between human-friendly vs agent-parseable formats
 
-Applies to all rule file authoring and modification. Required reading before creating or updating any rule in the `rules/` directory.
+**Rule:** When human-friendly formatting conflicts with agent parsing, **agent parsing wins**.
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
-- **[Use lists over tables]:** LLMs process sequential text better than grid structures
-- **[Explicit instructions over visual formatting]:** Bold headers and bullets beat ASCII art
-- **[Consistent terminology]:** Same term for same concept throughout all rules
-- **[Action-oriented language]:** "Do X" not "X should be done"
-- **[Front-load critical information]:** Most important content first in each section
+### Dependencies
 
-**Pre-Execution Checklist:**
+**Must Load First:**
+- **000-global-core.md** - Foundation for all rules
+- **002-rule-governance.md** - Schema requirements and v3.2 standards
 
-- [ ] Verify no ASCII tables in new content (use structured lists)
-- [ ] Verify no arrow characters (`→`) - use text alternatives
-- [ ] Verify no ASCII decision trees (`├─`, `└─`, `│`) - use nested lists
-- [ ] Verify no Mermaid diagrams or ASCII art (use structured text)
+**Related:**
+- **002a-rule-creation-guide.md** - Step-by-step rule creation with agent optimization
+- **002b-rule-optimization.md** - Token budgets and performance
+- **002c-advanced-rule-patterns.md** - System prompt altitude and investigation-first
+
+### External Documentation
+
+- **Schema Definition:** `schemas/rule-schema.yml` - Authoritative v3.2 schema optimized for agent parsing
 - [ ] Verify no horizontal rule separators (`---`) - use headers for structure
 - [ ] Confirm consistent terminology with existing rules
 - [ ] Check that instructions use imperative voice
@@ -51,13 +57,14 @@ Applies to all rule file authoring and modification. Required reading before cre
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
+### Inputs and Prerequisites
+
 - Rule file being created or modified
 - Understanding of target agent/LLM capabilities
 - Knowledge of existing rule terminology conventions
-</inputs_prereqs>
-<mandatory>
+
+### Mandatory
+
 - Replace all ASCII tables with structured lists
 - Replace arrow characters (`→`) with text alternatives
 - Replace ASCII decision trees (`├─`, `└─`, `│`) with nested lists
@@ -65,8 +72,9 @@ Applies to all rule file authoring and modification. Required reading before cre
 - Write instructions in imperative voice (commands)
 - Place critical information at start of sections
 - Follow schema-required structures exactly
-</mandatory>
-<forbidden>
+
+### Forbidden
+
 - ASCII tables in rule content
 - Arrow characters (`→`) outside code blocks
 - ASCII decision tree characters (`├─`, `└─`, `│`) outside code blocks
@@ -74,8 +82,9 @@ Applies to all rule file authoring and modification. Required reading before cre
 - Horizontal rule separators (`---`) as visual dividers
 - Passive voice in instructions
 - Inconsistent terminology across rules
-</forbidden>
-<steps>
+
+### Execution Steps
+
 1. Identify ASCII tables, arrows, and decision trees in content
 2. Replace tables with structured lists
 3. Replace arrows with text alternatives (then, to, Instead)
@@ -83,18 +92,48 @@ Applies to all rule file authoring and modification. Required reading before cre
 5. Review instructions for passive voice and rewrite
 6. Verify terminology matches standard terms
 7. Run `task rules:validate` to confirm compliance
-</steps>
-<output_format>
+
+### Output Format
+
 Rule files with optimized formatting for agent comprehension
-</output_format>
-<validation>
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Rule file identified for optimization
+- ASCII tables, arrows, decision trees detected
+- Terminology conventions reviewed
+- Schema requirements understood
+
+**Success Criteria:**
 - `task rules:validate` passes
 - No ASCII tables in content
 - No arrow characters (`→`) in content
 - No ASCII decision tree characters in content
 - Terminology matches glossary
-</validation>
-</contract>
+- Instructions use imperative voice
+- Critical information front-loaded
+
+**Negative Tests:**
+- Rule with ASCII table should trigger refactoring
+- Rule with arrow characters should use text alternatives
+- Rule with ASCII decision trees should use nested lists
+- Passive voice instructions should be rewritten
+- Inconsistent terminology should be standardized
+
+### Post-Execution Checklist
+
+- [ ] All ASCII tables replaced with structured lists
+- [ ] All arrow characters (`→`) replaced with text alternatives
+- [ ] All ASCII decision trees replaced with nested lists
+- [ ] All Mermaid diagrams and ASCII art removed (replaced with structured text)
+- [ ] All horizontal rule separators (`---`) removed
+- [ ] Instructions use imperative voice (commands)
+- [ ] Critical information front-loaded in sections
+- [ ] Terminology matches standard terms
+- [ ] Schema-critical sections use required structure
+- [ ] `task rules:validate` passes
+- [ ] Token budget within target range
 
 ## Priority Enforcement
 
@@ -120,14 +159,15 @@ These patterns waste context budget:
 - **Duplicate examples** across rules or within same rule
 - **Buried critical information** in middle of paragraphs
 
-### Acceptable Trade-offs (Priority 1 > Priority 2)
+### Acceptable Trade-offs (Priority 1 > Priority 2/3 > Priority 4)
 
-When priorities conflict, Priority 1 wins:
+When priorities conflict, higher priority wins:
 
-- **More tokens for explicit error handling** - Acceptable (reliability over brevity)
-- **Repeated key terms for clarity** - Acceptable (understanding over compression)
-- **Complete examples over terse references** - Acceptable (actionability over size)
-- **Explicit branches for all conditionals** - Required even if verbose
+- **More tokens for explicit error handling** - Acceptable (Priority 1 over Priority 3)
+- **Repeated key terms for clarity** - Acceptable (Priority 1 over Priority 3)
+- **Complete examples over terse references** - Acceptable (Priority 1 over Priority 3)
+- **Explicit branches for all conditionals** - Required even if verbose (Priority 1)
+- **Verbose discovery metadata over compact** - Acceptable (Priority 2 over Priority 3)
 
 ## Key Principles
 
@@ -444,46 +484,6 @@ Tables are acceptable only when:
 
 Even then, consider if the table is truly necessary or if restructuring would help agents.
 
-## Post-Execution Checklist
-
-- [ ] All ASCII tables replaced with structured lists
-- [ ] All arrow characters (`→`) replaced with text alternatives
-- [ ] All ASCII decision trees replaced with nested lists
-- [ ] All Mermaid diagrams and ASCII art removed (replaced with structured text)
-- [ ] All horizontal rule separators (`---`) removed
-- [ ] Instructions use imperative voice (commands)
-- [ ] Critical information front-loaded in sections
-- [ ] Terminology matches standard terms
-- [ ] Schema-critical sections use required structure
-- [ ] `task rules:validate` passes
-- [ ] Token budget within target range
-
-## Validation
-
-### Success Checks
-
-```bash
-# No ASCII tables in rule files
-grep -r '\|[-]+\|' rules/ && echo "FAIL: Tables found" || echo "PASS"
-
-# No arrow characters
-grep -r '→' rules/ && echo "FAIL: Arrows found" || echo "PASS"
-
-# No ASCII decision tree characters
-grep -rE '[├└│]' rules/ && echo "FAIL: Tree chars found" || echo "PASS"
-
-# Schema validation passes
-task rules:validate
-```
-
-### Negative Tests
-
-- Rule with ASCII table should trigger refactoring
-- Rule with arrow characters should use text alternatives
-- Rule with ASCII decision trees should use nested lists
-- Passive voice instructions should be rewritten
-- Inconsistent terminology should be standardized
-
 ## Output Format Examples
 
 ### Optimized List Format
@@ -503,15 +503,3 @@ task rules:validate
 - If NO: Skip optimization
 ```
 
-## References
-
-### Related Rules
-- `000-global-core.md` - Foundation patterns and MODE workflow
-- `002-rule-governance.md` - Rule structure requirements
-- `002a-rule-creation-guide.md` - Rule authoring workflow
-- `002b-rule-optimization.md` - Token budget management
-- `002d-schema-validator-usage.md` - Validation error resolution
-
-### External Documentation
-- [Prompt Engineering Best Practices](https://platform.openai.com/docs/guides/prompt-engineering) - OpenAI guidance
-- [Claude's Constitution](https://www.anthropic.com/claude) - Anthropic's design principles

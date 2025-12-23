@@ -2,93 +2,156 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**LastUpdated:** 2025-12-23
 **Keywords:** embeddings, search index, RAG, agent tools, retrieval, troubleshooting, AI_EMBED, create search service, search service error, document retrieval, search index creation, hybrid search, search service debug, vector similarity
-**TokenBudget:** ~5150
+**TokenBudget:** ~7500
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md, 111-snowflake-observability-core.md, 114-snowflake-cortex-aisql.md
 
-## Purpose
-Provide reliable patterns for building and querying Cortex Search indices, including data preparation, embedding hygiene, metadata filters, hybrid retrieval, agent tool configuration, and cost/latency considerations.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Reliable patterns for building and querying Cortex Search indices, including data preparation, embedding hygiene, metadata filters, hybrid retrieval, agent tool configuration, and cost/latency considerations.
 
-Cortex Search indexing and querying; embedding creation; metadata and security filters; agent tool integration; observability and cost control
+**When to Load This Rule:**
+- Creating Cortex Search indices
+- Querying search services with metadata filters
+- Integrating Cortex Search as agent tools
+- Troubleshooting search service errors
+- Optimizing search performance and costs
+- Configuring hybrid agents with document retrieval
 
-## Quick Start TL;DR
+## References
 
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
+### Dependencies
 
-Position at top provides practical efficiency benefits for both LLMs and human developers.
+**Must Load First:**
+- **100-snowflake-core.md** - Snowflake SQL and warehouse fundamentals
+- **114-snowflake-cortex-aisql.md** - AI_EMBED function for embeddings
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Clean and chunk data** - Normalize, remove boilerplate, chunk long docs with overlap
-- **Add metadata columns** - Source, author, timestamp, access tier for filtering
-- **Create search index** - Use CREATE CORTEX SEARCH INDEX with explicit columns
-- **Use metadata filters** - Filter by source, date, access level in queries
-- **Configure for agents** - Clear tool descriptions, when-to-use guidance
-- **Monitor costs** - Track embedding and query costs, prune outdated content
-- **Never index raw PII** - Apply masking/tagging before indexing
+**Related:**
+- **115-snowflake-cortex-agents-core.md** - Agent archetypes, configuration templates, planning instructions, testing patterns
+- **106c-snowflake-semantic-views-integration.md** - Analyst tool configuration for hybrid agents
+- **105-snowflake-cost-governance.md** - Cost monitoring and optimization
+- **111-snowflake-observability-core.md** - Logging and performance monitoring
+- **119-snowflake-warehouse-management.md** - Warehouse sizing and management
 
-**Quick Checklist:**
-- [ ] Data cleaned and chunked (if long documents)
-- [ ] Metadata columns added (source, timestamp, etc.)
-- [ ] Search index created and refreshed
-- [ ] Sample queries validated
-- [ ] Metadata filters configured
-- [ ] Agent tool descriptions written
-- [ ] Cost/latency monitoring enabled
+### External Documentation
+
+- [Cortex Search Overview](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-search/cortex-search-overview) - Indexing and retrieval concepts
+- [Snowflake Cortex AISQL](https://docs.snowflake.com/en/user-guide/snowflake-cortex/aisql) - Embeddings via AI_EMBED
+- [AI Observability](https://docs.snowflake.com/en/user-guide/snowflake-cortex/ai-observability) - Logging and evaluation
+- [Cortex Agents](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents) - Agent tool configuration
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
+### Inputs and Prerequisites
+
 - Cleaned source data with explicit columns; minimal sensitive content
-- Embeddings available via `AI_EMBED` or created during indexing
+- Embeddings available via AI_EMBED or created during indexing
 - RBAC and tagging for index/table access
-</inputs_prereqs>
+- Warehouse for index creation and queries
+- Understanding of metadata schema for filtering
 
-<mandatory>
-SQL (Cortex Search), Snowpark Python, AISQL embeddings, AI Observability, Cortex Agents
-</mandatory>
+### Mandatory
 
-<forbidden>
+- SQL (Cortex Search DDL and queries)
+- Snowpark Python for automation
+- AISQL embeddings (AI_EMBED function)
+- AI Observability for monitoring
+- Cortex Agents for tool integration
+
+### Forbidden
+
 - Indexing raw PII without masking/tagging
 - Overly long documents without chunking/normalization
-</forbidden>
+- Missing metadata columns (prevents filtering)
+- Skipping service validation after creation
+- Vague tool descriptions in agent configuration
 
-<steps>
-1. Normalize/clean data; remove boilerplate; chunk long documents with overlap
-2. Attach metadata (source, author, timestamp, access tier) for filtering
-3. Create or refresh indices; validate document counts and sample retrieval
-4. Configure search tools with clear descriptions and when-to-use guidance
-5. Query with metadata filters; tune top_k and hybrid weights
-6. Test search tools independently before agent integration
-7. Monitor costs/latency; prune outdated content
-</steps>
+### Execution Steps
 
-<output_format>
-SQL patterns for indexing and querying; agent tool configurations; Snowpark examples
-</output_format>
+1. **Data Preparation:** Normalize/clean data; remove boilerplate; chunk long documents (500-1000 tokens) with overlap
+2. **Metadata Enrichment:** Attach metadata (source, author, timestamp, access tier) for filtering
+3. **Index Creation:** Create or refresh search services; validate document counts
+4. **Validation:** Test sample queries and metadata filters; verify retrieval quality
+5. **Tool Configuration:** Configure search tools with clear descriptions and when-to-use guidance
+6. **Testing:** Test search tools independently before agent integration
+7. **Monitoring:** Monitor costs/latency; prune outdated content periodically
 
-<validation>
-Index contains expected docs; retrieval quality validated; filters enforce access; tool descriptions are clear; costs within budget
-</validation>
+### Output Format
 
-<design_principles>
-- High-quality retrieval requires clean text, consistent chunking, and rich metadata
-- Use metadata filters to enforce RBAC-like scoping; never rely on client-side filtering only
-- Clear tool descriptions with document type and when-to-use guidance for agents
-- Periodically rebuild or refresh indices; remove stale/duplicative content
-- Evaluate retrieval with gold queries and measure relevance
-</design_principles>
+```sql
+-- Search service creation with metadata
+CREATE CORTEX SEARCH SERVICE {DATABASE}.{SCHEMA}.{SERVICE_NAME}
+ON {SEARCH_COLUMN}
+ATTRIBUTES {METADATA_COLUMNS}
+WAREHOUSE = {WAREHOUSE_NAME}
+AS (SELECT * FROM {SOURCE_VIEW});
 
-</contract>
+-- Query with metadata filters
+SELECT SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
+    '{SERVICE_NAME}',
+    '{"query": "{QUERY_TEXT}", "limit": 10, "filter": {FILTER_JSON}}'
+);
+```
+
+```yaml
+# Agent tool configuration
+Tool Name: search_{document_type}
+Type: Cortex Search
+Service: {DATABASE}.{SCHEMA}.{SERVICE_NAME}
+Description: "Search {document_type} for {specific_use_case}. Use for questions about {when_to_use_guidance}."
+```
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Source data cleaned and chunked appropriately
+- Metadata columns populated (source, author, timestamp, access tier)
+- Search service created and status = READY
+- Sample queries return relevant results
+- Metadata filters work as expected
+- Tool descriptions are clear and specific
+- Component tests pass before agent integration
+
+**Success Criteria:**
+- Index contains expected document count
+- Retrieval quality validated with test queries
+- Metadata filters enforce access control
+- Tool descriptions include document type and when-to-use guidance
+- Costs within budget thresholds
+- Relevance scores meet target thresholds
+
+**Negative Tests:**
+- Queries without proper filters should be rejected
+- Stale content removed after refresh
+- Overlapping tool descriptions flagged in review
+- Empty or null content filtered out during indexing
+
+### Design Principles
+
+- **High-Quality Retrieval:** Clean text, consistent chunking (500-1000 tokens), and rich metadata enable accurate search
+- **Metadata-Driven Filtering:** Use metadata filters to enforce RBAC-like scoping; never rely on client-side filtering only
+- **Clear Tool Descriptions:** Include document type and when-to-use guidance for predictable agent behavior
+- **Regular Maintenance:** Periodically rebuild or refresh indices; remove stale/duplicative content
+- **Evaluation-Driven:** Evaluate retrieval with gold queries and measure relevance metrics
+
+### Post-Execution Checklist
+
+- [ ] Documents cleaned/normalized; long docs chunked appropriately (500-1000 tokens)
+- [ ] Metadata enriched (source, author, timestamp, access tier)
+- [ ] Search service created and status verified (READY)
+- [ ] Index validated: document counts match source data
+- [ ] Sample queries return relevant results with good relevance scores
+- [ ] Tool descriptions include clear document type and when-to-use guidance
+- [ ] Tool use cases are distinct (no overlaps with other search tools)
+- [ ] Citation requirements documented in agent response instructions
+- [ ] Component testing completed for search tools (SEARCH_PREVIEW validation)
+- [ ] Queries use metadata filters and tuned top_k values
+- [ ] Costs/latency monitored; stale docs pruned periodically
 
 ## Anti-Patterns and Common Mistakes
 
@@ -135,7 +198,7 @@ AS (SELECT * FROM chunked_documents);
 ```
 **Benefits:** Better retrieval quality; relevant context surfaced; efficient embeddings; cost-effective; semantic search effective; high user satisfaction
 
-**Anti-Pattern 2: Missing Metadata for Filtering**
+### Anti-Pattern 2: Missing Metadata for Filtering
 ```sql
 -- Bad: No metadata, can't filter results
 CREATE CORTEX SEARCH SERVICE product_docs_search
@@ -176,7 +239,7 @@ AS (
 ```
 **Benefits:** Filterable results; relevant results only; access control ready; scoped searches; excellent UX; security compliance; metadata-driven retrieval
 
-**Anti-Pattern 3: Vague Tool Descriptions in Agent Config**
+### Anti-Pattern 3: Vague Tool Descriptions in Agent Config
 ```python
 # Bad: Unclear when to use this search tool
 tools = [{
@@ -204,7 +267,7 @@ tools = [{
 ```
 **Benefits:** Clear tool selection criteria; predictable behavior; no overlap; excellent UX; agent knows exactly when to use; optimal results
 
-**Anti-Pattern 4: Not Validating Search Service After Creation**
+### Anti-Pattern 4: Not Validating Search Service After Creation
 ```sql
 -- Bad: Create service but never verify it works
 CREATE CORTEX SEARCH SERVICE docs_search
@@ -254,30 +317,6 @@ SELECT * FROM TABLE(
 ```
 **Benefits:** Early error detection; configuration validation; quality assurance; confidence in production; no user complaints; professional deployment; reliable search
 
-## Post-Execution Checklist
-- [ ] Documents cleaned/normalized; long docs chunked appropriately
-      Verify: Check document lengths in source table - look for >4000 token docs that need chunking
-- [ ] Metadata enriched (source, author, timestamp, access tier)
-      Verify: `SELECT DISTINCT metadata_columns FROM source_table` - ensure all required fields populated
-- [ ] Index validated: counts and sample retrievals correct
-      Verify: `SHOW CORTEX SEARCH SERVICES;` then test retrieval with sample query
-- [ ] Tool descriptions include clear document type and when-to-use guidance
-      Verify: Review agent config - tool description should specify document corpus and use cases
-- [ ] Tool use cases are distinct (no overlaps with other search tools)
-      Verify: Compare tool descriptions across all search tools in agent config
-- [ ] Citation requirements documented in agent response instructions
-      Verify: Check agent response instructions include citation format and source attribution
-- [ ] Component testing completed for search tools
-      Verify: Test search tool independently with SEARCH_PREVIEW before agent integration
-- [ ] Queries use metadata filters and tuned top_k
-      Verify: Review query patterns - check for filter usage and appropriate top_k values
-- [ ] Costs/latency monitored; stale docs pruned
-      Verify: Query SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY for search service usage patterns
-
-## Validation
-- **Success checks:** Retrieval returns relevant, access-compliant results; evaluation metrics meet targets; tool descriptions are clear; component tests pass; citations properly formatted
-- **Negative tests:** Queries without filters fail access checks; stale content removed from results after refresh; overlapping tool descriptions flagged in review
-
 > **Investigation Required**
 > When applying this rule:
 > 1. **Read existing search indices BEFORE creating new ones** - Check what indices exist, their structure, columns
@@ -321,28 +360,11 @@ Title Column: DOCUMENT_TITLE
 Description: "Search {document_type} for {specific_use_case}. Use for questions about {when_to_use_guidance}."
 ```
 
-## References
-
-### External Documentation
-- [Cortex Search Overview](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-search/cortex-search-overview) - Indexing and retrieval concepts
-- [Snowflake Cortex AISQL](https://docs.snowflake.com/en/user-guide/snowflake-cortex/aisql) - Embeddings via `AI_EMBED`
-- [AI Observability](https://docs.snowflake.com/en/user-guide/snowflake-cortex/ai-observability) - Logging and evaluation
-- [Cortex Agents](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents) - Agent tool configuration
-
-### Related Rules
-- **Snowflake Core**: `100-snowflake-core.md`
-- **AISQL**: `114-snowflake-cortex-aisql.md`
-- **Cortex Agents**: `115-snowflake-cortex-agents-core.md` - Agent archetypes, configuration templates, planning instructions, testing patterns
-- **Semantic Views Integration**: `106c-snowflake-semantic-views-integration.md` - Analyst tool configuration for hybrid agents
-- **Cost Governance**: `105-snowflake-cost-governance.md`
-- **Warehouse Management**: `119-snowflake-warehouse-management.md`
-- **Observability**: `111-snowflake-observability-core.md`
-
-## 0. Prerequisites Validation
+## Prerequisites Validation
 
 Before implementing Cortex Search, verify your environment meets requirements:
 
-### 0.1 Prerequisites Checklist
+### Prerequisites Checklist
 
 - [ ] Snowflake account has Cortex Search capability enabled
 - [ ] Source data cleaned and prepared for indexing
@@ -350,7 +372,7 @@ Before implementing Cortex Search, verify your environment meets requirements:
 - [ ] Warehouse available for index creation and queries
 - [ ] Understanding of metadata schema for filtering
 
-### 0.2 Verification Commands
+### Verification Commands
 
 **Check Cortex Search Availability:**
 ```sql
@@ -397,7 +419,7 @@ USE WAREHOUSE {WAREHOUSE_NAME};
 SELECT CURRENT_WAREHOUSE();
 ```
 
-### 0.3 Pre-Implementation Validation
+### Pre-Implementation Validation
 
 Run this comprehensive check before creating search services:
 
@@ -425,13 +447,14 @@ SELECT 'Warehouse Check' AS validation_step,
 
 **All checks should return non-zero counts and valid results.** If any fail, address prerequisites before proceeding.
 
-## 1. Data Preparation
+## Data Preparation
+
 - Lowercase, strip boilerplate, normalize whitespace; remove navigation/UI fragments
-- Chunk long docs (e.g., 500–1000 tokens) with overlap ~10–15%
+- Chunk long docs (e.g., 500-1000 tokens) with overlap ~10-15%
 
-## 2. Creating Cortex Search Services
+## Creating Cortex Search Services
 
-### 2.1 Prepare Search-Ready View
+### Prepare Search-Ready View
 
 First, create a view with clean content and metadata:
 
@@ -450,7 +473,7 @@ WHERE content_clean IS NOT NULL
   AND LENGTH(content_clean) > 50;  -- Filter out empty/tiny chunks
 ```
 
-### 2.2 Create Cortex Search Service
+### Create Cortex Search Service
 
 ```sql
 -- Create search service with complete working syntax
@@ -471,7 +494,7 @@ AS (
 );
 ```
 
-### 2.3 Verify Service Creation
+### Verify Service Creation
 
 ```sql
 -- Check service was created successfully
@@ -487,7 +510,7 @@ SELECT SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
 ) AS search_results;
 ```
 
-### 2.4 Grant Access to Service
+### Grant Access to Service
 
 ```sql
 -- Grant USAGE to roles that will query the service
@@ -498,13 +521,14 @@ GRANT USAGE ON CORTEX SEARCH SERVICE DOCS.SEARCH.research_reports_service TO ROL
 SHOW GRANTS ON CORTEX SEARCH SERVICE DOCS.SEARCH.research_reports_service;
 ```
 
-## 3. Embedding Hygiene
+## Embedding Hygiene
+
 - If embedding externally, store vectors in a dedicated column; ensure consistent model/version
 - Consider re-embedding only when content or model materially changes
 
-## 4. Querying Cortex Search Services
+## Querying Cortex Search Services
 
-### 4.1 Basic Query Pattern
+### Basic Query Pattern
 
 ```sql
 -- Query search service with SEARCH_PREVIEW function
@@ -517,7 +541,7 @@ SELECT SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
 ) AS search_results;
 ```
 
-### 4.2 Query with Metadata Filters
+### Query with Metadata Filters
 
 ```sql
 -- Filter by metadata attributes (access_tier, source, author, etc.)
@@ -534,7 +558,7 @@ SELECT SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
 ) AS filtered_results;
 ```
 
-### 4.3 Query with Date Range Filters
+### Query with Date Range Filters
 
 ```sql
 -- Filter by date range using metadata
@@ -553,7 +577,7 @@ SELECT SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
 ) AS date_filtered_results;
 ```
 
-### 4.4 Extract Results from JSON Response
+### Extract Results from JSON Response
 
 ```sql
 -- Parse search results from JSON response
@@ -575,7 +599,7 @@ LATERAL FLATTEN(input => results:results) r
 ORDER BY relevance_score DESC;
 ```
 
-### 4.5 Common Filter Patterns
+### Common Filter Patterns
 
 **Filter by Multiple Values (OR logic):**
 ```sql
@@ -607,9 +631,9 @@ SELECT SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
 );
 ```
 
-## 5. Cortex Search as Agent Tool
+## Cortex Search as Agent Tool
 
-### 5.1 Tool Configuration Pattern
+### Tool Configuration Pattern
 
 When using Cortex Search as a tool within Cortex Agents, configure with explicit document type and when-to-use guidance:
 
@@ -630,7 +654,7 @@ Title Column: DOCUMENT_TITLE
 Description: "Search investment research reports for analyst opinions, ratings, price targets, and market commentary. Use for questions about analyst views, investment recommendations, and qualitative research insights."
 ```
 
-### 5.2 Tool Description Best Practices
+### Tool Description Best Practices
 
 **Clear Document Type Selection:**
 ```yaml
@@ -661,7 +685,7 @@ Tool A: "Search financial documents"
 Tool B: "Search company reports"  # Too similar!
 ```
 
-### 5.3 Citation Requirements in Agent Context
+### Citation Requirements in Agent Context
 
 When Cortex Search is used in agents, proper citation is critical:
 
@@ -683,7 +707,7 @@ Response Instructions: |
 - Different document types have different authority/recency requirements
 - Proper citations enable traceability and compliance
 
-### 5.4 Testing Cortex Search Tools
+### Testing Cortex Search Tools
 
 **Component Testing Pattern:**
 ```python
@@ -717,7 +741,7 @@ After component tests pass, test agent's tool selection logic:
 "Show analyst opinions on {security}"                # Should use search tool
 ```
 
-### 5.5 Research-Focused Agents (Search Only)
+### Research-Focused Agents (Search Only)
 
 For agents using ONLY Cortex Search tools (no Cortex Analyst):
 
@@ -740,7 +764,7 @@ For agents using ONLY Cortex Search tools (no Cortex Analyst):
 
 **See Also:** `115-snowflake-cortex-agents-core.md` Section 1.3 for comprehensive research agent patterns
 
-### 5.6 Hybrid Agents (Search + Analyst)
+### Hybrid Agents (Search + Analyst)
 
 For agents combining Cortex Search with Cortex Analyst tools:
 
@@ -760,7 +784,7 @@ For agents combining Cortex Search with Cortex Analyst tools:
 
 **See Also:** `115-snowflake-cortex-agents-core.md` Section 1.4 for comprehensive hybrid agent patterns
 
-### 5.7 Cross-Reference to Agent Configuration
+### Cross-Reference to Agent Configuration
 
 For complete agent configuration including Cortex Search tools:
 - **Research-Focused Agents:** `115-snowflake-cortex-agents-core.md` Section 1.3
@@ -769,19 +793,22 @@ For complete agent configuration including Cortex Search tools:
 - **Response Instructions:** `115-snowflake-cortex-agents-core.md` Section 5.4
 - **Testing Patterns:** `115-snowflake-cortex-agents-core.md` Section 6
 
-## 6. Hybrid Retrieval
-- Blend dense vector search with sparse/text signals when supported; tune weights empirically
-- Keep top_k small initially (e.g., 10–20) and increase only if recall is insufficient
+## Hybrid Retrieval
 
-## 7. Evaluation and Observability
+- Blend dense vector search with sparse/text signals when supported; tune weights empirically
+- Keep top_k small initially (e.g., 10-20) and increase only if recall is insufficient
+
+## Evaluation and Observability
+
 - Maintain a gold set of query-to-expected-passage mappings; measure precision@k and MRR
 - Use AI Observability to log search queries and downstream answer quality
 
-## 8. Cost and Operations
+## Cost and Operations
+
 - Limit index rebuilds; prefer incremental updates where supported
 - Archive or delete stale content from indices; partition by recency/source if needed
 
-## 9. Common Errors and Solutions
+## Common Errors and Solutions
 
 ### Error: "Service not found" or "Object does not exist"
 
@@ -910,18 +937,3 @@ SHOW WAREHOUSES LIKE 'COMPUTE_WH';
 -- 4. Resume warehouse if suspended
 ALTER WAREHOUSE COMPUTE_WH RESUME;
 ```
-
-## Related Rules
-
-**Closely Related** (consider loading together):
-- `115-snowflake-cortex-agents-core` - When using Cortex Search as an agent tool for document retrieval
-- `114-snowflake-cortex-aisql` - For using AI_EMBED function to create embeddings
-
-**Sometimes Related** (load if specific scenario):
-- `106c-snowflake-semantic-views-integration` - When combining document search with quantitative analysis via Cortex Analyst
-- `108-snowflake-data-loading` - When loading documents into Snowflake for indexing
-- `111-snowflake-observability-core` - When monitoring search service performance and costs
-
-**Complementary** (different aspects of same domain):
-- `107-snowflake-security-governance` - For access control on search services and documents
-- `105-snowflake-cost-governance` - For monitoring search service and embedding costs

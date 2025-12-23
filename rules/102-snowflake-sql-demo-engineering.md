@@ -2,30 +2,99 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** teardown, customer_load.sql, inline documentation, progress indicators, rerunnable demos, Snowflake SQL, CREATE OR REPLACE, educational SQL, demo patterns, demo data, setup scripts, demo automation, learning examples
-**TokenBudget:** ~4850
+**TokenBudget:** ~6700
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
+**LastUpdated:** 2025-12-22
 
-## Purpose
-Guide SQL file creation for Snowflake demos and customer learning environments. Prioritizes ease of use, readability, and educational value over automation complexity. Optimized for pre-sales engineers, field teams, and customers learning Snowflake capabilities.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Guide SQL file creation for Snowflake demos and customer learning environments using schema_operation.sql naming, per-schema isolation with independent setup/teardown files, idempotent patterns (CREATE OR REPLACE, IF NOT EXISTS), progress indicators (SELECT '[PASS]' statements), inline educational comments explaining "why" and defining acronyms, fully qualified DATABASE.SCHEMA.OBJECT names, and rerunnable scripts. Prioritizes ease of use, readability, and educational value over automation complexity for pre-sales engineers, field teams, and customers learning Snowflake.
 
-Demo SQL files, workshop materials, customer learning environments, quickstart guides
+**When to Load This Rule:**
+- Creating demo SQL files for Snowflake workshops
+- Building customer learning environments or quickstart guides
+- Writing educational SQL with inline documentation
+- Setting up rerunnable demo scripts with progress indicators
+- Creating per-schema setup/load/teardown files
+- Teaching Snowflake concepts through SQL examples
+- Building workshop materials for field teams
 
-## Quick Start TL;DR
+## References
 
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
+### Dependencies
 
-Position at top provides practical efficiency benefits for both LLMs and human developers.
+**Must Load First:**
+- **100-snowflake-core.md** - Snowflake fundamentals
 
-**MANDATORY:**
+**Related:**
+- **102a-snowflake-sql-automation.md** - Production automation patterns (when demos evolve to production)
+
+### External Documentation
+
+**Snowflake:**
+- [SQL Command Reference](https://docs.snowflake.com/en/sql-reference-commands.html) - Complete SQL syntax
+- [COPY INTO](https://docs.snowflake.com/en/sql-reference/sql/copy-into-table.html) - Data loading reference
+- [CREATE TABLE](https://docs.snowflake.com/en/sql-reference/sql/create-table.html) - Table creation syntax
+- [FILE FORMAT](https://docs.snowflake.com/en/sql-reference/sql/create-file-format.html) - File format options
+
+**Best Practices:**
+- [Snowflake Best Practices](https://docs.snowflake.com/en/user-guide/best-practices.html) - General guidance
+- [Workshop Guide](https://quickstarts.snowflake.com/) - Snowflake Quickstarts examples
+
+## Contract
+
+### Inputs and Prerequisites
+
+Demo environment, Snowflake CLI access, CSV data files, database already created
+
+### Mandatory
+
+Snowflake CLI (`snow sql`), Taskfile, SnowSQL, Snowsight
+
+### Forbidden
+
+Production deployment tools, automated schedulers
+
+### Execution Steps
+
+1. Create per-schema setup files with inline documentation
+2. Add progress indicators after each major step
+3. Use idempotent patterns (CREATE OR REPLACE, IF NOT EXISTS)
+4. Create independent teardown files per schema
+5. Test rerunability (scripts should work multiple times)
+
+### Output Format
+
+SQL files with .sql extension, UTF-8 encoding, Unix line endings
+
+### Validation
+
+**Test Requirements:**
+- Run setup, verify objects created
+- Run teardown, verify cleanup
+- Rerun setup (idempotency test)
+
+**Success Criteria:**
+- Scripts execute without errors on multiple runs
+- Progress indicators appear at each step
+- Objects created with correct names and structure
+- Teardown removes all created objects
+- Comments educate readers on concepts
+
+### Design Principles
+
+- **Readability First**: Simple, self-documenting filenames and patterns
+- **Per-Schema Operations**: Independent setup/load/teardown per schema
+- **Educational Value**: Inline documentation that teaches concepts
+- **Rerunnable Demos**: Idempotent patterns (CREATE OR REPLACE, IF NOT EXISTS)
+- **Audience-Aware**: Comments explain "why" for learning, not just "what"
+- **Demo-Safe**: Patterns suitable for ephemeral environments, not production databases
+
 **Essential Patterns:**
 - **Use `<schema>_<operation>.sql` naming** - e.g., `grid_setup.sql`, `customer_load.sql` (self-documenting)
 - **Per-schema isolation** - setup/teardown files affect only their target schema, never the database
@@ -35,55 +104,16 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - **Fully qualified names** - Always use `DATABASE.SCHEMA.OBJECT` format
 - **Never use `ON_ERROR` inside `FILE_FORMAT`** - It's a COPY INTO parameter, not FILE_FORMAT parameter
 
-**Quick Checklist:**
+### Post-Execution Checklist
+
 - [ ] Filename follows `<schema>_<operation>.sql` pattern
 - [ ] File header lists prerequisites and what gets created
 - [ ] Progress SELECT statements after each major step
 - [ ] All object names fully qualified (DB.SCHEMA.OBJECT)
 - [ ] Script is rerunnable (idempotent patterns)
 - [ ] Comments teach concepts, not just describe syntax
-
-## Contract
-
-<contract>
-<inputs_prereqs>
-Demo environment, Snowflake CLI access, CSV data files, database already created
-</inputs_prereqs>
-
-<mandatory>
-Snowflake CLI (`snow sql`), Taskfile, SnowSQL, Snowsight
-</mandatory>
-
-<forbidden>
-Production deployment tools, automated schedulers
-</forbidden>
-
-<steps>
-1. Create per-schema setup files with inline documentation
-2. Add progress indicators after each major step
-3. Use idempotent patterns (CREATE OR REPLACE, IF NOT EXISTS)
-4. Create independent teardown files per schema
-5. Test rerunability (scripts should work multiple times)
-</steps>
-
-<output_format>
-SQL files with .sql extension, UTF-8 encoding, Unix line endings
-</output_format>
-
-<validation>
-Run setup, then verify objects created, then run teardown, then verify cleanup, then rerun setup (idempotency test)
-</validation>
-
-<design_principles>
-- **Readability First**: Simple, self-documenting filenames and patterns
-- **Per-Schema Operations**: Independent setup/load/teardown per schema
-- **Educational Value**: Inline documentation that teaches concepts
-- **Rerunnable Demos**: Idempotent patterns (CREATE OR REPLACE, IF NOT EXISTS)
-- **Audience-Aware**: Comments explain "why" for learning, not just "what"
-- **Demo-Safe**: Patterns suitable for ephemeral environments, not production databases
-</design_principles>
-
-</contract>
+- [ ] Teardown file created for cleanup
+- [ ] Tested multiple executions successfully
 
 ## Anti-Patterns and Common Mistakes
 
@@ -248,74 +278,6 @@ If you see errors or different output:
 ```
 **Benefits:** Clear expectations; easy validation; debuggable; documented; professional; good UX; confidence-building
 
-## Post-Execution Checklist
-
-**File Naming:**
-- [ ] Filename uses schema_operation.sql pattern (grid_setup.sql, customer_load.sql)
-- [ ] Clear what schema and operation from filename alone
-- [ ] No numeric prefixes unless order dependencies exist
-
-**Schema Isolation:**
-- [ ] File can run independently without affecting other schemas
-- [ ] Does NOT drop database or shared resources
-- [ ] Teardown only affects target schema
-
-**Educational Value:**
-- [ ] Inline comments explain concepts for learning
-- [ ] Acronyms and domain terms defined
-- [ ] "Why" explained, not just "what"
-
-**Demo-Safe Patterns:**
-- [ ] Uses CREATE OR REPLACE and IF NOT EXISTS for rerunnable demos
-- [ ] Includes progress indicators (SELECT statements)
-- [ ] Final success message confirms completion
-
-**File Structure:**
-- [ ] Header includes prerequisites and what gets created
-- [ ] Fully qualified object names used (DATABASE.SCHEMA.OBJECT)
-- [ ] COPY INTO syntax correct (ON_ERROR outside FILE_FORMAT)
-- [ ] CREATE VIEW has COMMENT before AS
-- [ ] No template characters (`&`, `<%`, `%>`, `{{`, `}}`) in comments, synonyms, or strings
-
-**Demo Experience:**
-- [ ] Scripts provide immediate feedback
-- [ ] Safe to rerun multiple times
-- [ ] Clear error messages if prerequisites missing
-- [ ] SQL files execute successfully via CLI (`snow sql -f file.sql`)
-
-## Validation
-- **Success Checks:**
-  - SQL files execute without errors in Snowsight and CLI
-  - Progress indicators display after each step
-  - Scripts can be rerun without errors (idempotent)
-  - Per-schema teardown removes only target schema
-  - Comments are educational and explain concepts
-  - Fully qualified names work regardless of session context
-- **Negative Tests:**
-  - Teardown does NOT drop other schemas
-  - Teardown does NOT drop database
-  - Missing prerequisites cause clear error messages
-  - ON_ERROR inside FILE_FORMAT causes syntax error
-  - COMMENT after AS in CREATE VIEW causes syntax error
-  - Non-qualified names may fail in CLI without session context
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Read existing SQL files BEFORE making recommendations** - Never assume demo structure or naming patterns
-> 2. **Verify actual object names and schemas** - Check what database/schema names are being used in the project
-> 3. **Never speculate about file organization** - List directory contents to understand current structure
-> 4. **Check for existing Taskfile.yml** - Read it to understand automation patterns before suggesting changes
-> 5. **Make grounded recommendations based on investigated project structure** - Don't recommend patterns that conflict with existing setup
->
-> **Anti-Pattern:**
-> "Based on typical demo patterns, you probably have a setup/ directory..."
-> "Usually demos use DATABASE_DEMO as the database name..."
->
-> **Correct Pattern:**
-> "Let me check your current SQL file organization first."
-> [reads sql/ directory and existing files]
-> "I see you're using UTILITY_DEMO_V2 as the database and have grid_setup.sql. Here's how to add customer_setup.sql following the same pattern..."
-
 ## Output Format Examples
 ```sql
 -- ============================================================================
@@ -344,22 +306,7 @@ SELECT '[PASS] Tables created' AS progress;
 SELECT 'GRID_DATA schema setup complete!' AS status;
 ```
 
-## References
-
-### External Documentation
-
-- [Snowflake SQL Reference](https://docs.snowflake.com/en/sql-reference) - Complete SQL command reference
-- [COPY INTO Documentation](https://docs.snowflake.com/en/sql-reference/sql/copy-into-table) - Loading data from stages
-- [CREATE VIEW Documentation](https://docs.snowflake.com/en/sql-reference/sql/create-view) - View syntax and options
-- [Stages Overview](https://docs.snowflake.com/en/user-guide/data-load-overview) - Understanding Snowflake stages
-
-### Related Rules
-- **Snowflake Core**: `100-snowflake-core.md` - Foundational Snowflake practices
-- **SQL Automation**: `102a-snowflake-sql-automation.md` - Production SQL templates and CI/CD patterns
-- **Performance Tuning**: `103-snowflake-performance-tuning.md` - Query optimization
-- **Data Loading**: `108-snowflake-data-loading.md` - Comprehensive data loading patterns
-
-## 1. File Naming for Demos
+## File Naming for Demos
 
 ### 1.1 Schema-Based Naming Pattern
 
@@ -407,7 +354,7 @@ grid_teardown.sql
 
 **When NOT to use:** If steps can run in any order, omit numbers
 
-## 2. Per-Schema Setup and Teardown
+## Per-Schema Setup and Teardown
 
 ### 2.1 Schema Isolation Requirements
 
@@ -576,7 +523,7 @@ SELECT 'Grid data load complete!' AS status;
 - Pattern matching for flexible file names
 - Progress after each table load
 
-## 3. Demo-Specific Best Practices
+## Demo-Specific Best Practices
 
 ### 3.1 Inline Documentation
 
@@ -650,7 +597,7 @@ CREATE OR REPLACE STAGE UTILITY_DEMO_V2.GRID_DATA.DATA_FILES;
 
 **NOT production-safe:** CREATE OR REPLACE TABLE deletes data. For production, use `102a-snowflake-sql-automation.md`.
 
-## 4. Common SQL Syntax Patterns
+## Common SQL Syntax Patterns
 
 ### 4.1 COPY INTO Syntax
 
@@ -803,7 +750,7 @@ CREATE SEMANTIC VIEW my_view AS
 - **`P&L`** - Use `P and L` or `Profit and Loss` instead
 - **`<%VAR%>`** - Use Snowflake CLI `--variable` flag instead
 
-## 5. File Headers for Demos
+## File Headers for Demos
 
 ### 5.1 Standard Header Format
 
@@ -866,7 +813,7 @@ CREATE OR REPLACE TABLE UTILITY_DEMO_V2.GRID_DATA.SCADA_DATA (...);
 CREATE OR REPLACE VIEW UTILITY_DEMO_V2.GRID_DATA.VW_SUMMARY AS ...;
 ```
 
-## 6. Demo Project Structure
+## Demo Project Structure
 
 ### 6.1 Recommended Directory Structure
 

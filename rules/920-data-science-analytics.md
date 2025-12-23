@@ -2,52 +2,60 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**LastUpdated:** 2025-12-23
 **Keywords:** Data science, Snowflake, pandas, Snowpark, ML, model lifecycle, feature engineering, NaN handling, model versioning, Jupyter
-**TokenBudget:** ~6150
+**TokenBudget:** ~9750
 **ContextTier:** High
-**Depends:** 200-python-core.md
+**Depends:** 200-python-core.md, 000-global-core.md
 
-## Purpose
-Establish comprehensive rules for performing data science and analytics on Snowflake, focusing on model lifecycle management, ML/AI insight presentation, advanced SQL techniques, performance optimization, and ethical visualization practices to ensure reproducible, performant, and trustworthy analytical workflows.
+## Scope
 
-## Rule Scope
-Data science and analytics on Snowflake with ML lifecycle, visualization best practices, performance optimization, and Snowflake-native tooling integration
+**What This Rule Covers:**
+Comprehensive rules for data science and analytics on Snowflake. Covers model lifecycle management, ML/AI insight presentation, advanced SQL techniques, performance optimization, and ethical visualization practices to ensure reproducible, performant, and trustworthy analytical workflows.
 
-## Quick Start TL;DR
+**When to Load This Rule:**
+- Performing data science or ML tasks on Snowflake
+- Building analytical workflows with Snowpark
+- Creating ML models with Snowflake Model Registry
+- Optimizing data science queries for performance
+- Building Streamlit dashboards for analytics
+- Implementing feature engineering pipelines
+- Ensuring visualization accessibility (WCAG AA)
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Use Snowpark for data access** - Avoid pandas read_sql, use Snowpark DataFrame
-- **Version models in registry** - Every trained model must be versioned
-- **Validate data quality** - Use DMFs before training
-- **Optimize SQL first** - SQL aggregation before Python loops
-- **Cache Streamlit data** - Use `@st.cache_data` for expensive queries
-- **Document model explainability** - Include SHAP values and feature importance
-- **Never SELECT * without LIMIT** - Causes cost explosion
+### Dependencies
 
-**Quick Checklist:**
-- [ ] Snowpark DataFrame API used
-- [ ] Models versioned in registry
-- [ ] Data quality validated
-- [ ] SQL optimized (Query Profile <5s)
-- [ ] Streamlit caching implemented
-- [ ] SHAP values generated
-- [ ] Visualizations accessible (WCAG AA)
+**Must Load First:**
+- **000-global-core.md** - Foundation for all rules
+- **200-python-core.md** - Python development patterns
+
+**Related:**
+- **100-snowflake-core.md** - Snowflake SQL patterns
+- **101-snowflake-streamlit-core.md** - Streamlit dashboard patterns
+- **110-snowflake-model-registry.md** - Model versioning and registry
+- **252-python-pandas.md** - Pandas best practices
+
+### External Documentation
+
+- [Snowpark Python API](https://docs.snowflake.com/en/developer-guide/snowpark/python/index) - Snowpark DataFrame operations
+- [Snowflake Model Registry](https://docs.snowflake.com/en/developer-guide/snowpark-ml/model-registry/overview) - Model versioning and deployment
+- [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/) - Web accessibility standards
+
 ## Contract
 
-<contract>
-<inputs_prereqs>
+### Inputs and Prerequisites
+
 - Snowflake connection with appropriate warehouse (CPU/GPU based on workload)
 - Python 3.11+ with snowflake-snowpark-python, pandas/polars, scikit-learn/snowflake-ml
 - Jupyter/Snowflake Notebooks environment or Streamlit for visualization
 - Model registry access (Snowflake Model Registry or external)
 - Data quality validation framework (DMFs, Great Expectations)
 - Query performance monitoring enabled (Query Profile access)
-</inputs_prereqs>
 
-<mandatory>
+### Mandatory
+
 - Snowflake SQL (CTEs, window functions, aggregations)
 - Python for ML/analytics (scikit-learn, snowflake-ml, pandas/polars)
 - Snowflake Model Registry for model versioning
@@ -55,50 +63,67 @@ Data science and analytics on Snowflake with ML lifecycle, visualization best pr
 - Data quality frameworks (DMFs, Great Expectations)
 - Streamlit for interactive dashboards
 - Git for version control (notebooks, SQL, configs)
-</mandatory>
 
-<forbidden>
+### Forbidden
+
 - SELECT * FROM large_tables without LIMIT (cost explosion)
 - Python loops over millions of rows (use SQL aggregation)
 - Unversioned model artifacts (breaks reproducibility)
 - Training on unvalidated data (use data quality gates)
 - Misleading visualizations (truncated axes without indicators, 3D pie charts)
 - Hardcoded credentials or secrets in notebooks
-</forbidden>
 
-<steps>
-1. **Investigate data first:** Read actual data schemas, distributions, volumes before recommending approaches
-2. **Establish baseline:** Create simple interpretable model before complex approaches
-3. **Validate data quality:** Run DMF checks or Great Expectations before training
-4. **Optimize SQL:** Use Query Profile to validate performance and cost
-5. **Version everything:** Pin dependencies, log seeds, hash datasets
-6. **Document metrics:** Define calculations, owners, update frequency
-7. **Present with uncertainty:** Show confidence intervals, not just point estimates
-8. **Test accessibility:** Verify WCAG 2.1 AA compliance for visualizations
-9. **Monitor drift:** Implement model and feature monitoring
-10. **Refactor to production:** Convert successful notebooks to production scripts
-</steps>
+### Execution Steps
 
-<output_format>
+1. Investigate data first: Read actual data schemas, distributions, volumes before recommending approaches
+2. Establish baseline: Create simple interpretable model before complex approaches
+3. Validate data quality: Run DMF checks or Great Expectations before training
+4. Optimize SQL: Use Query Profile to validate performance and cost
+5. Version everything: Pin dependencies, log seeds, hash datasets
+6. Document metrics: Define calculations, owners, update frequency
+7. Present with uncertainty: Show confidence intervals, not just point estimates
+8. Test accessibility: Verify WCAG 2.1 AA compliance for visualizations
+9. Monitor drift: Implement model and feature monitoring
+10. Refactor to production: Convert successful notebooks to production scripts
+
+### Output Format
+
 - Reproducible notebook with clear sections (Data Load, EDA, Feature Engineering, Modeling, Evaluation, Deployment)
 - SQL queries optimized for performance (use CTEs, explicit columns, APPROX_* where appropriate)
 - Streamlit dashboards with <2s load time, cached data operations
 - Model artifacts stored in registry with metadata (parameters, metrics, data hash, explainability)
 - Documentation including metric definitions, assumptions, data quality status
-</output_format>
 
-<validation>
-1. Run Query Profile on all dashboard queries (verify <5s execution, <$0.10 cost)
-2. Validate model performance on holdout set
-3. Test visualizations with screen reader (NVDA, JAWS)
-4. Check color contrast ratios (4.5:1 minimum)
-5. Verify data freshness indicators present
-6. Confirm all metrics have documented definitions
-7. Test with production-like data volumes
-8. Validate model explainability artifacts generated
-</validation>
+### Validation
 
-<design_principles>
+**Pre-Task-Completion Checks:**
+- Snowpark DataFrame API used for data access
+- Models versioned in Snowflake Model Registry
+- Data quality validated with DMFs or Great Expectations
+- SQL optimized (Query Profile <5s execution)
+- Streamlit caching implemented (`@st.cache_data`)
+- SHAP values or feature importance generated
+- Visualizations accessible (WCAG 2.1 AA)
+
+**Success Criteria:**
+- Query Profile shows <5s execution, <$0.10 cost for dashboard queries
+- Model performance validated on holdout set
+- Visualizations tested with screen reader (NVDA, JAWS)
+- Color contrast ratios meet 4.5:1 minimum
+- Data freshness indicators present
+- All metrics have documented definitions
+- Production-like data volumes tested
+- Model explainability artifacts generated
+
+**Negative Tests:**
+- SELECT * without LIMIT should trigger cost warning
+- Python loops over large datasets should fail performance review
+- Unversioned models should fail deployment
+- Unvalidated data should fail training gate
+- Misleading visualizations should fail accessibility review
+
+### Design Principles
+
 - **Reproducibility First:** Pin dependencies, version data, log all randomness sources
 - **Performance at Scale:** SQL aggregation over Python loops; use APPROX_* functions; sample for EDA
 - **Cost Awareness:** Monitor warehouse consumption; optimize queries; cache results
@@ -106,9 +131,21 @@ Data science and analytics on Snowflake with ML lifecycle, visualization best pr
 - **Ethical Visualization:** No misleading charts; transparent about uncertainty; accessible to all users
 - **Snowflake-Native:** Leverage Snowpark, Model Registry, Streamlit, Cortex AI
 - **Investigation-First:** Verify data characteristics before recommending approaches
-</design_principles>
 
-</contract>
+### Post-Execution Checklist
+
+- [ ] Snowpark DataFrame API used for data access
+- [ ] Models versioned in Snowflake Model Registry
+- [ ] Data quality validated (DMFs or Great Expectations)
+- [ ] SQL optimized (Query Profile <5s, <$0.10 cost)
+- [ ] Streamlit caching implemented (`@st.cache_data`)
+- [ ] SHAP values or feature importance generated
+- [ ] Visualizations accessible (WCAG 2.1 AA, 4.5:1 contrast)
+- [ ] Dependencies pinned (requirements.txt or environment.yml)
+- [ ] Metrics documented (definitions, owners, update frequency)
+- [ ] Uncertainty quantified (confidence intervals shown)
+- [ ] Model drift monitoring implemented
+- [ ] Notebooks refactored to production scripts (if applicable)
 
 ## Anti-Patterns and Common Mistakes
 
@@ -314,157 +351,6 @@ st.plotly_chart(fig)
 > st.info(" Large table detected. Recommend using APPROX_COUNT_DISTINCT for dashboard.")
 > ```
 
-## Post-Execution Checklist
-
-- [ ] Data investigation completed before recommendations
-- [ ] Data quality validation implemented (DMFs or Great Expectations)
-- [ ] SQL queries optimized (CTEs, explicit columns, APPROX_* where appropriate)
-- [ ] Query Profile analyzed for performance and cost
-- [ ] Model artifacts versioned in registry with metadata
-- [ ] Explainability artifacts generated (SHAP, feature importance)
-- [ ] Visualizations show uncertainty (confidence intervals, prediction bands)
-- [ ] Accessibility tested (WCAG 2.1 AA compliance, screen reader, keyboard nav)
-- [ ] Data freshness and quality indicators displayed
-- [ ] Metric definitions documented
-- [ ] Streamlit caching implemented (@st.cache_data, @st.cache_resource)
-- [ ] Ethical visualization standards followed (no misleading charts)
-- [ ] Anti-patterns avoided (confirmed via checklist review)
-
-## Validation
-
-- **Success Checks:**
- - Query Profile shows <5s execution time and <$0.10 cost per query
- - Model achieves >80% performance on holdout set
- - SHAP values generated and stored with model
- - Visualizations pass WCAG 2.1 AA color contrast checker
- - Screen reader successfully narrates all chart titles and data
- - Data freshness indicator shows <6 hours staleness
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Profile data BEFORE analysis** - Check row counts, distributions, data types
-> 2. **Verify model registry access** - Confirm ML registry connection and permissions
-> 3. **Never assume data quality** - Check for NULLs, outliers, data drift
-> 4. **Check query cost** - Review Query Profile before productionizing
-> 5. **Test visualizations** - Verify accessibility with screen readers and color contrast
->
-> **Anti-Pattern:**
-> "Training model on data... (without checking data quality first)"
-> "Using SELECT *... (without LIMIT or cost analysis)"
->
-> **Correct Pattern:**
-> "Let me profile your data first."
-> [checks row counts, NULLs, distributions, Query Profile]
-> "I see 50M rows with 2% NULLs. Using APPROX_COUNT_DISTINCT and sampling..."
- - All metrics have documented definitions
- - Streamlit dashboard loads in <2 seconds
-
-- **Negative Tests:**
- - Query without LIMIT on large table (should timeout or fail cost check)
- - Model training on data with <80% quality score (should raise error)
- - Chart with truncated Y-axis without annotation (should fail ethics review)
- - Visualization using red/green only (should fail colorblind accessibility test)
- - Dashboard without data freshness timestamp (should fail compliance check)
- - Prediction without confidence interval (should fail uncertainty requirement)
-
-## Output Format Examples
-
-```python
-# Data Science Analytics Implementation
-
-# 1. DATA INVESTIGATION
-schema = session.sql("DESCRIBE TABLE source_table").collect()
-row_count = session.sql("SELECT COUNT(*) FROM source_table").collect()[0][0]
-sample = session.sql("SELECT * FROM source_table SAMPLE (100 ROWS)").to_pandas()
-
-# 2. DATA QUALITY CHECK
-quality_report = run_dmf_checks(table="source_table")
-if quality_report['quality_score'] < 0.9:
- raise ValueError(f"Data quality insufficient: {quality_report}")
-
-# 3. OPTIMIZED SQL QUERY
-query = """
-WITH base_data AS (
- SELECT
- customer_id,
- order_date,
- SUM(order_amount) AS total_amount
- FROM orders
- WHERE order_date >= DATEADD('year', -1, CURRENT_DATE())
- GROUP BY 1, 2
-),
-aggregated AS (
- SELECT
- customer_id,
- COUNT(*) AS order_count,
- AVG(total_amount) AS avg_order_value
- FROM base_data
- GROUP BY 1
-)
-SELECT * FROM aggregated;
-"""
-
-# 4. PERFORMANCE VALIDATION
-df = session.sql(query).to_pandas()
-# Check Query Profile: <5s, <$0.10
-
-# 5. VISUALIZATION WITH ACCESSIBILITY
-import plotly.graph_objects as go
-
-fig = go.Figure(go.Bar(
- x=df['category'],
- y=df['value'],
- marker=dict(color='#0173B2') # Colorblind-safe
-))
-fig.update_layout(
- title="Sales by Category (Accessible)",
- xaxis_title="Category",
- yaxis_title="Sales ($)",
- yaxis=dict(range=[0, df['value'].max() * 1.1]) # Zero baseline
-)
-st.plotly_chart(fig)
-
-# 6. DATA QUALITY INDICATORS
-st.caption(f"Data as of: {last_update} | Quality Score: {quality_score:.0%}")
-```
-
-## References
-
-### External Documentation
-- [Snowflake for Data Science](https://docs.snowflake.com/en/user-guide/data-science) - Data science workflows and best practices in Snowflake
-- [Snowflake Cortex AI](https://docs.snowflake.com/en/user-guide/snowflake-cortex) - AI and machine learning capabilities in Snowflake
-- [Snowflake ML Documentation](https://docs.snowflake.com/en/developer-guide/snowflake-ml/overview) - Machine learning development guide
-- [Snowflake Model Registry](https://docs.snowflake.com/en/developer-guide/snowflake-ml/model-registry/overview) - Model versioning and management
-- [SHAP Documentation](https://shap.readthedocs.io/) - Model explainability and interpretability
-- [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/) - Web accessibility standards
-- [Plotly Python Documentation](https://plotly.com/python/) - Interactive visualization library
-- [Streamlit Documentation](https://docs.streamlit.io/) - Streamlit app development
-
-### Related Rules
-- **Snowflake Core**: `100-snowflake-core.md`
-- **Snowflake SQL Demo Engineering**: `102-snowflake-sql-demo-engineering.md`
-- **Snowflake Performance Tuning**: `103-snowflake-performance-tuning.md`
-- **Snowflake Cost Governance**: `105-snowflake-cost-governance.md`
-- **Snowflake Notebooks**: `109-snowflake-notebooks.md`
-- **Snowflake Model Registry**: `110-snowflake-model-registry.md`
-- **Snowflake Observability**: `111-snowflake-observability-core.md`
-- **Snowflake Feature Store**: `113-snowflake-feature-store.md`
-- **Snowflake Cortex AISQL**: `114-snowflake-cortex-aisql.md`
-- **Snowflake Data Quality**: `124-snowflake-data-quality-core.md`
-- **Snowflake Streamlit UI**: `101-snowflake-streamlit-core.md`
-- **Python Core**: `200-python-core.md`
-- **DateTime Handling**: `251-python-datetime-handling.md`
-- **Pandas Best Practices**: `252-pandas-best-practices.md`
-- **Data Governance**: `930-data-governance-quality.md`
-
-> ** Claude 4 Specific Guidance**
-> **Claude 4 Optimizations:**
-> - **Context awareness:** Track token budget; prioritize investigation-first sections
-> - **Explicit behavior:** Request "comprehensive analysis with uncertainty quantification" to get full implementation
-> - **Parallel tool calls:** Generate SHAP values, confusion matrix, ROC curve simultaneously
-> - **State discovery:** Leverage filesystem to check existing model artifacts before regenerating
-> - **Investigation-first:** Excel at schema discovery and data profiling - use this capability
-
 ## Anti-Patterns: Pandas NULL Handling
 
 **Note:** For comprehensive Pandas performance optimization, vectorization patterns, and anti-patterns, see `252-pandas-best-practices.md`. For datetime handling across Pandas, Python, and visualization libraries, see `251-python-datetime-handling.md`.
@@ -533,7 +419,7 @@ else:
 - `x == None` - Doesn't catch NaN
 - `not x` - Treats 0 as falsy
 
-## 1. Model Lifecycle & MLOps
+## Model Lifecycle and MLOps
 
 **MANDATORY:**
 
@@ -603,7 +489,7 @@ else:
  - Extract model training into scheduled task
  - Extract predictions into Streamlit app or REST API
 
-## 2. Feature Engineering & Preparation
+## Feature Engineering and Preparation
 
 **MANDATORY:**
 
@@ -654,7 +540,7 @@ else:
 - **Requirement:** Monitor feature drift and null ratios over time using DMFs
 - **Always:** Deduplicate highly correlated features (|correlation| > 0.95) to reduce model instability
 
-## 3. Advanced SQL for Analytics
+## Advanced SQL for Analytics
 
 **MANDATORY:**
 
@@ -707,7 +593,7 @@ else:
  FROM product_reviews;
  ```
 
-## 4. Specialized Data & Time Series
+## Specialized Data and Time Series
 
 **MANDATORY:**
 
@@ -760,7 +646,7 @@ else:
  - **Vector Functions**: https://docs.snowflake.com/en/sql-reference/functions/vector-functions
  - **Snowflake Machine Learning**: https://docs.snowflake.com/en/developer-guide/snowflake-ml/overview
 
-## 5. ML/AI Insight Presentation & Visualization
+## ML/AI Insight Presentation and Visualization
 
 **MANDATORY:**
 
@@ -968,7 +854,7 @@ col3.metric("Low Confidence ", f"{low_confidence}",
 st.warning(f"{low_confidence} predictions have <60% confidence. Manual review recommended.")
 ```
 
-## 6. Performance Optimization for Large Datasets
+## Performance Optimization for Large Datasets
 
 **MANDATORY:**
 
@@ -1062,7 +948,7 @@ except Exception as e:
  raise
 ```
 
-## 7. Ethical Visualization & Accessibility
+## Ethical Visualization and Accessibility
 
 **FORBIDDEN:**
 
@@ -1148,7 +1034,7 @@ with st.expander("View Data Table (Screen Reader Accessible)"):
 - Test with Tab, Enter, Space, Arrow keys
 - Provide visible focus indicators
 
-## 8. Data Quality & Metric Documentation
+## Data Quality and Metric Documentation
 
 **MANDATORY:**
 

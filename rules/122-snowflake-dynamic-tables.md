@@ -2,102 +2,175 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**LastUpdated:** 2025-12-23
 **Keywords:** automatic pipelines, DOWNSTREAM, FULL, warehouse sizing, data freshness, create dynamic table, dynamic table lag, refresh frequency, dynamic table error, materialized view alternative, pipeline automation, lag configuration, refresh strategies
-**TokenBudget:** ~5200
+**TokenBudget:** ~8200
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 104-snowflake-streams-tasks.md, 119-snowflake-warehouse-management.md
 
-## Purpose
-Establish comprehensive best practices for Snowflake Dynamic Tables to ensure efficient, maintainable, and cost-effective materialized query results that automatically refresh based on changes to base tables, following Snowflake's recommended patterns for refresh modes, lag configuration, and pipeline architecture.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive best practices for Snowflake Dynamic Tables for efficient, maintainable, and cost-effective materialized query results that automatically refresh based on changes to base tables. Covers refresh modes (INCREMENTAL vs FULL), lag configuration (TARGET_LAG, DOWNSTREAM), warehouse sizing, modular pipeline architecture, monitoring, troubleshooting, and cost optimization for automated materialized views and data pipeline orchestration.
 
-Snowflake Dynamic Tables for automated materialized views, incremental refresh patterns, and data pipeline orchestration
+**When to Load This Rule:**
+- Creating or configuring Snowflake Dynamic Tables
+- Troubleshooting Dynamic Table refresh issues or lag problems
+- Optimizing Dynamic Table refresh frequency and costs
+- Designing modular data pipelines with chained Dynamic Tables
+- Choosing between Dynamic Tables, materialized views, and Streams/Tasks
+- Monitoring Dynamic Table refresh operations and performance
+- Sizing warehouses for Dynamic Table refresh operations
 
-## Quick Start TL;DR
+## References
 
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
+### Dependencies
 
-Position at top provides practical efficiency benefits for both LLMs and human developers.
+**Must Load First:**
+- **100-snowflake-core.md** - Snowflake foundation patterns
+- **104-snowflake-streams-tasks.md** - Incremental pipelines and change data capture
+- **119-snowflake-warehouse-management.md** - Warehouse sizing and resource management
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Declare refresh mode explicitly** - FULL or AUTO (with DOWNSTREAM preferred)
-- **Set appropriate lag** - Balance freshness vs compute costs
-- **Never use SELECT *** - Explicit column selection required
-- **Size warehouse appropriately** - Based on data volume and frequency
-- **Monitor refresh operations** - Track costs, duration, failures
-- **Use for incremental patterns** - Perfect for aggregations, joins
-- **Don't use for real-time** - Streaming or Snowpipe for <1min latency
+**Related:**
+- **105-snowflake-cost-governance.md** - Resource monitors and cost optimization
+- **103-snowflake-performance-tuning.md** - Query optimization and clustering
 
-**Quick Checklist:**
-- [ ] Refresh mode declared (FULL/AUTO)
-- [ ] Target lag configured
-- [ ] Explicit column selection
-- [ ] Warehouse sized and assigned
-- [ ] Base table dependencies understood
-- [ ] Monitoring queries configured
-- [ ] Cost baseline established
+### External Documentation
 
-**Progressive Disclosure - Token Budget:**
-- Quick Start + Contract: ~500 tokens (always load for dynamic table tasks)
-- + Core Patterns (sections 1-2): ~1200 tokens (load for creation)
-- + Advanced Config & Troubleshooting (sections 3-4): ~2000 tokens (load for issues)
-- + Complete Reference: ~2500 tokens (full dynamic table guide)
+- [Dynamic Tables Introduction](https://docs.snowflake.com/en/user-guide/dynamic-tables-intro) - Overview and concepts
+- [Dynamic Tables Refresh](https://docs.snowflake.com/en/user-guide/dynamic-tables-refresh) - Refresh modes and strategies
+- [Dynamic Tables Tasks Reference](https://docs.snowflake.com/en/user-guide/dynamic-tables-tasks-create) - CREATE DYNAMIC TABLE syntax
+- [Dynamic Tables Monitoring](https://docs.snowflake.com/en/user-guide/dynamic-tables-tasks-monitor) - Monitoring refresh operations
 
-**Recommended Loading Strategy:**
-- **Understanding dynamic tables**: Quick Start only
-- **Creating tables**: + Core Patterns
-- **Lag/refresh issues**: + Advanced Config & Troubleshooting
-- **Production deployment**: Full reference
+### Related Rules
+
+**Closely Related** (consider loading together):
+- **104-snowflake-streams-tasks.md** - alternative imperative approach to CDC pipelines
+- **119-snowflake-warehouse-management.md** - warehouse assignment to dynamic table refreshes
+
+**Sometimes Related** (load if specific scenario):
+- **124-snowflake-data-quality-core.md** - adding quality checks to dynamic table pipelines
+- **103-snowflake-performance-tuning.md** - optimizing dynamic table refresh performance
+- **111-snowflake-observability-core.md** - monitoring dynamic table lag and refresh status
+
+**Complementary** (different aspects of same domain):
+- **100-snowflake-core.md** - DDL fundamentals and object naming conventions
+- **107-snowflake-security-governance.md** - access control on dynamic tables
+- **105-snowflake-cost-governance.md** - monitoring dynamic table refresh costs
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-Target database/schema; base tables; warehouse configuration; refresh requirements; data freshness SLAs
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-SQL DDL for Dynamic Tables; Query Profile; INFORMATION_SCHEMA queries; Snowsight monitoring
-</mandatory>
+- Target database and schema with appropriate permissions
+- Base tables with data
+- Warehouse configuration for refresh operations
+- Refresh requirements and data freshness SLAs
+- Understanding of incremental vs full refresh patterns
 
-<forbidden>
-Using Dynamic Tables without explicit refresh mode declaration; SELECT * in Dynamic Table definitions; unmonitored refresh operations
-</forbidden>
+### Mandatory
 
-<steps>
+- SQL DDL for Dynamic Tables with explicit REFRESH_MODE
+- Query Profile analysis for incremental refresh validation
+- INFORMATION_SCHEMA queries for monitoring
+- Snowsight for refresh operation visibility
+- Explicit column selection (no SELECT *)
+
+### Forbidden
+
+- Using Dynamic Tables without explicit REFRESH_MODE declaration
+- Using SELECT * in Dynamic Table definitions
+- Unmonitored refresh operations
+- Creating monolithic Dynamic Tables without modular design
+- Relying on default refresh behavior without explicit TARGET_LAG
+
+### Execution Steps
+
 1. Explicitly set `REFRESH_MODE` (INCREMENTAL or FULL) for all production Dynamic Tables
 2. Configure `TARGET_LAG` appropriately (time-based or DOWNSTREAM)
-3. Assign dedicated warehouses for refresh operations
-4. Chain Dynamic Tables into modular pipelines rather than creating monolithic definitions
-5. Validate incremental refresh eligibility using Query Profile
-6. Monitor refresh history and performance using INFORMATION_SCHEMA views
-</steps>
+3. Assign dedicated warehouses for refresh operations with appropriate sizing
+4. Use explicit column selection (avoid SELECT *)
+5. Chain Dynamic Tables into modular pipelines rather than creating monolithic definitions
+6. Validate incremental refresh eligibility using Query Profile
+7. Monitor refresh history and performance using INFORMATION_SCHEMA views
+8. Establish cost baseline and optimize refresh frequency
+9. Set up alerting for refresh failures and lag violations
 
-<output_format>
-Complete Dynamic Table DDL with all required parameters; monitoring queries
-</output_format>
+### Output Format
 
-<validation>
-- Verify refresh mode explicitly declared
-- Confirm TARGET_LAG aligns with data freshness requirements
-- Check Query Profile shows incremental refresh when expected
-- Validate warehouse assignment and sizing
-- Review refresh history for errors and performance
-</validation>
+Dynamic Table deployments produce:
+- Complete Dynamic Table DDL with all required parameters (REFRESH_MODE, TARGET_LAG, WAREHOUSE)
+- Monitoring queries for refresh history, lag, and costs
+- Modular pipeline architecture documentation
+- Cost baseline and optimization recommendations
 
-<design_principles>
+### Validation
+
+**Pre-Task-Completion Checks:**
+- REFRESH_MODE explicitly declared (INCREMENTAL or FULL)
+- TARGET_LAG configured appropriately (time-based or DOWNSTREAM)
+- Explicit column selection (no SELECT *)
+- Warehouse assigned and sized appropriately
+- Base table dependencies understood and documented
+- Monitoring queries configured and tested
+
+**Success Criteria:**
+- Dynamic Table created successfully and shows in SHOW DYNAMIC TABLES
+- Refresh operations complete within TARGET_LAG
+- Query Profile shows incremental refresh when expected (for INCREMENTAL mode)
+- Refresh history accessible via INFORMATION_SCHEMA
+- No refresh failures or errors
+- Costs within expected range based on data volume and frequency
+- Lag consistently meeting SLA requirements
+
+**Negative Tests:**
+- Dynamic Table creation should fail with invalid REFRESH_MODE
+- Incremental refresh should fall back to full refresh when query not supported
+- Excessive lag should trigger alerts when TARGET_LAG violated
+- Unassigned warehouse should prevent refresh operations
+- SELECT * should be flagged in code review (not enforced by Snowflake)
+
+### Design Principles
+
 - **Explicit Configuration:** Always declare `REFRESH_MODE` and `TARGET_LAG` explicitly to ensure predictable behavior across Snowflake releases
-- **Modular Pipelines:** Chain smaller, focused Dynamic Tables together rather than creating large, complex monolithic definitions
+- **Modular Pipelines:** Chain smaller, focused Dynamic Tables together rather than creating large, complex monolithic definitions for better maintainability
 - **Cost Optimization:** Use transient Dynamic Tables where fail-safe isn't needed; assign dedicated warehouses for monitoring and cost control
 - **Incremental First:** Design queries to support incremental refresh when possible; understand limitations and fallback to full refresh
-- **Downstream Dependencies:** Use `TARGET_LAG = 'DOWNSTREAM'` to refresh only when dependent objects need updates
+- **Downstream Dependencies:** Use `TARGET_LAG = 'DOWNSTREAM'` to refresh only when dependent objects need updates, optimizing compute usage
+
+> **Investigation Required**
+> When working with Dynamic Tables:
+> 1. **Check existing Dynamic Tables BEFORE creating new ones** - Use SHOW DYNAMIC TABLES to understand patterns
+> 2. **Verify incremental refresh eligibility** - Check Query Profile for incremental refresh indicators
+> 3. **Never assume refresh mode** - Explicitly declare REFRESH_MODE to avoid default behavior changes
+> 4. **Monitor refresh history** - Check INFORMATION_SCHEMA.DYNAMIC_TABLE_REFRESH_HISTORY for errors and performance
+> 5. **Validate lag configuration** - Ensure TARGET_LAG aligns with data freshness requirements
+>
+> **Anti-Pattern:**
+> "Creating Dynamic Table... (without explicit REFRESH_MODE)"
+> "Using SELECT * in Dynamic Table... (causes maintenance issues)"
+>
+> **Correct Pattern:**
+> "Let me check your existing Dynamic Tables first."
+> [reads SHOW DYNAMIC TABLES, checks refresh history, analyzes Query Profile]
+> "I see you use INCREMENTAL mode with 1 hour lag. Creating new Dynamic Table following this pattern..."
+
+### Post-Execution Checklist
+
+- [ ] REFRESH_MODE explicitly declared (INCREMENTAL or FULL)
+- [ ] TARGET_LAG configured appropriately (time-based or DOWNSTREAM)
+- [ ] Explicit column selection (no SELECT *)
+- [ ] Warehouse assigned and sized appropriately
+- [ ] Base table dependencies understood and documented
+- [ ] Query Profile validates incremental refresh (for INCREMENTAL mode)
+- [ ] Monitoring queries configured and tested
+- [ ] Refresh history accessible and reviewed
+- [ ] Cost tracking implemented and baseline established
+- [ ] Alerting configured for refresh failures and lag violations
+- [ ] Documentation updated with Dynamic Table details and pipeline architecture
+- [ ] Modular pipeline design implemented (if applicable)
 - **Security and Access:** Grant MONITOR privilege for metadata access without modification capability; use OWNERSHIP for administrative control
 </design_principles>
 
@@ -262,75 +335,6 @@ SELECT ...;
 ```
 **Benefits:** Appropriate technology choice; realistic expectations; cost-effective refresh cadence.
 
-## Post-Execution Checklist
-
-- [ ] `REFRESH_MODE` explicitly declared (INCREMENTAL or FULL) for all production Dynamic Tables
-- [ ] `TARGET_LAG` configured appropriately (time-based or DOWNSTREAM)
-- [ ] Dedicated warehouse assigned for refresh operations with appropriate sizing
-- [ ] Dynamic Table pipeline uses modular chaining instead of monolithic definitions
-- [ ] Explicit column selection (no SELECT *) in Dynamic Table definitions
-- [ ] Query Profile reviewed to confirm incremental refresh eligibility
-- [ ] Transient Dynamic Tables used where fail-safe isn't required
-- [ ] MONITOR privilege granted for appropriate roles
-- [ ] Refresh history monitoring queries established
-- [ ] Alert mechanisms configured for refresh failures
-- [ ] Compound grouping keys materialized in separate Dynamic Tables where applicable
-- [ ] Data locality optimized (filtered to recent windows, appropriate clustering)
-- [ ] Pipeline cloning strategy documented (clone all dependencies together)
-- [ ] Controller Dynamic Table pattern considered for complex pipeline networks
-- [ ] Cost tracking enabled via warehouse isolation and tagging
-
-## Validation
-
-- **Success Checks:**
-  - Query `INFORMATION_SCHEMA.DYNAMIC_TABLE_REFRESH_HISTORY` shows successful refreshes
-  - Query Profile confirms incremental refresh when REFRESH_MODE = INCREMENTAL
-  - Actual lag stays within target lag threshold
-  - Refresh duration is acceptable for business requirements
-  - Warehouse usage isolated and monitored
-  - No SELECT * patterns in production Dynamic Tables
-
-- **Negative Tests:**
-  - Dynamic Table without explicit REFRESH_MODE should trigger review
-  - Incremental refresh on unsupported operations should fall back to full refresh
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Read existing Dynamic Tables BEFORE creating new ones** - Check refresh modes, lag settings, patterns
-> 2. **Verify base table structure** - Understand data volume, change frequency, dependencies
-> 3. **Never assume refresh frequency** - Query REFRESH_HISTORY to understand actual patterns
-> 4. **Check warehouse assignments** - Review existing warehouse sizing and costs
-> 5. **Test refresh performance** - Monitor first few refreshes before production
->
-> **Anti-Pattern:**
-> "Creating Dynamic Table... (without understanding base table change patterns)"
-> "Using SELECT *... (violates explicit column requirement)"
->
-> **Correct Pattern:**
-> "Let me check your existing Dynamic Tables setup first."
-> [reads existing Dynamic Tables, checks refresh patterns, reviews costs]
-> "I see you use AUTO mode with 10-minute lag. Creating new table following this pattern..."
-  - Refresh failures logged in INFORMATION_SCHEMA with error details
-  - Target lag violations detected via monitoring queries
-  - Unassigned warehouses (using default) should trigger configuration review
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Read referenced base table schemas BEFORE designing Dynamic Table queries**
-> 2. **Check Query Profile to verify incremental refresh eligibility**
-> 3. **Never assume incremental refresh will work—validate against supported operations list**
-> 4. **Review existing warehouse configuration before assigning to Dynamic Table**
-> 5. **Query INFORMATION_SCHEMA to understand current Dynamic Table state before modifications**
->
-> **Anti-Pattern:**
-> "This query should work with incremental refresh..."
-> "Typically Dynamic Tables in this schema use..."
->
-> **Correct Pattern:**
-> "Let me check the Query Profile to confirm incremental refresh support."
-> [reviews Query Profile using EXPLAIN or actual execution]
-> "After reviewing the query plan, I found [specific operations]. Here's the appropriate refresh mode..."
-
 ## Output Format Examples
 
 ```sql
@@ -362,31 +366,6 @@ ORDER BY refresh_start_time DESC
 LIMIT 5;
 ```
 
-## References
-
-### External Documentation
-- [Dynamic Tables Introduction](https://docs.snowflake.com/en/user-guide/dynamic-tables-about) - Complete overview of Dynamic Tables concepts and capabilities
-- [Dynamic Tables Best Practices](https://docs.snowflake.com/en/user-guide/dynamic-tables-best-practices) - Official Snowflake recommendations and patterns
-- [Dynamic Table Performance Guide](https://docs.snowflake.com/en/user-guide/dynamic-table-performance-guide) - Optimization strategies for refresh operations
-- [Dynamic Tables Refresh Modes](https://docs.snowflake.com/en/user-guide/dynamic-tables-refresh) - Detailed refresh behavior and configuration
-- [Dynamic Tables Tasks Comparison](https://docs.snowflake.com/en/user-guide/dynamic-tables-tasks-create) - When to use Dynamic Tables vs Streams + Tasks
-- [DYNAMIC_TABLE_REFRESH_HISTORY](https://docs.snowflake.com/en/sql-reference/functions/dynamic_table_refresh_history) - Monitoring function reference
-
-### Related Rules
-- **Snowflake Core**: `100-snowflake-core.md`
-- **SQL Demo Engineering**: `102-snowflake-sql-demo-engineering.md`
-- **Performance Tuning**: `103-snowflake-performance-tuning.md`
-- **Streams and Tasks**: `104-snowflake-streams-tasks.md`
-- **Cost Governance**: `105-snowflake-cost-governance.md`
-- **Warehouse Management**: `119-snowflake-warehouse-management.md`
-
-> **[AI] Claude 4 Specific Guidance**
-> **Claude 4 Optimizations:**
-> - Use parallel tool calls to read base table schemas and Query Profile simultaneously
-> - Leverage investigation-first protocol: always check INFORMATION_SCHEMA before making recommendations
-> - When asked about incremental refresh eligibility, read the actual query definition and validate against supported operations list
-> - For complex pipelines, create visualization of dependencies before recommending changes
-
 ## Implementation Details
 
 ### Common Pitfalls
@@ -415,7 +394,7 @@ LIMIT 5;
 - **Correct approach**: Design queries to support incremental refresh (append-only, temporal predicates)
 - **Detection**: Check if query uses temporal columns or append-only patterns
 
-## 1. Dynamic Table Fundamentals
+## Dynamic Table Fundamentals
 
 ### What Are Dynamic Tables?
 
@@ -475,7 +454,7 @@ CREATE OR REPLACE DYNAMIC TABLE staging.CUSTOMER_360 ...
 - Prefix SCD implementations: `DT_DIM_<entity>_SCD1` or `DT_DIM_<entity>_SCD2`
 - Use schema prefixes for context: `staging.DT_*`, `analytics.DT_*`, `dimensions.DT_*`
 
-## 2. Refresh Mode Configuration
+## Refresh Mode Configuration
 
 ### Explicit Refresh Mode Declaration
 
@@ -555,7 +534,7 @@ SELECT
 FROM analytics.customer_summary;
 ```
 
-## 3. Target Lag Configuration
+## Target Lag Configuration
 
 ### Time-Based Lag
 
@@ -608,7 +587,7 @@ FROM staging.DT_RAW_ORDERS
 GROUP BY order_date;
 ```
 
-## 4. Warehouse Assignment and Isolation
+## Warehouse Assignment and Isolation
 
 **MANDATORY:**
 **CRITICAL:** Assign dedicated warehouses to Dynamic Table refreshes for cost monitoring and workload isolation.
@@ -639,7 +618,7 @@ AS
 SELECT ...
 ```
 
-## 5. Pipeline Design Patterns
+## Pipeline Design Patterns
 
 ### Modular Pipeline Chaining
 
@@ -750,7 +729,7 @@ ALTER DYNAMIC TABLE analytics.DT_PIPELINE_CONTROLLER SUSPEND;
 ALTER DYNAMIC TABLE analytics.DT_PIPELINE_CONTROLLER RESUME;
 ```
 
-## 6. Slowly Changing Dimensions (SCD) Patterns
+## Slowly Changing Dimensions (SCD) Patterns
 
 ### Type 1 SCD (Overwrite)
 
@@ -812,7 +791,7 @@ SELECT
 FROM changes_ordered;
 ```
 
-## 7. Performance Optimization
+## Performance Optimization
 
 ### Simplify Compound Grouping Keys
 
@@ -890,7 +869,7 @@ FROM raw.orders
 WHERE order_date >= DATEADD(day, -90, CURRENT_DATE());  -- Recent data only
 ```
 
-## 8. Cost Optimization
+## Cost Optimization
 
 ### Use Transient Dynamic Tables
 
@@ -929,7 +908,7 @@ CREATE SCHEMA analytics_dev CLONE analytics;
 -- Avoids reinitialization overhead
 ```
 
-## 9. Security and Access Control
+## Security and Access Control
 
 ### MONITOR Privilege
 
@@ -964,7 +943,7 @@ ALTER DYNAMIC TABLE analytics.DT_SALES_SUMMARY SET TARGET_LAG = '1 hour';
 ALTER DYNAMIC TABLE analytics.DT_SALES_SUMMARY REFRESH;
 ```
 
-## 10. Monitoring and Observability
+## Monitoring and Observability
 
 ### Query Refresh History
 
@@ -1029,19 +1008,3 @@ FROM TABLE(INFORMATION_SCHEMA.DYNAMIC_TABLE_REFRESH_HISTORY(
 WHERE state = 'FAILED'
 ORDER BY refresh_start_time DESC;
 ```
-
-## Related Rules
-
-**Closely Related** (consider loading together):
-- `104-snowflake-streams-tasks` - For alternative imperative approach to CDC pipelines
-- `119-snowflake-warehouse-management` - For warehouse assignment to dynamic table refreshes
-
-**Sometimes Related** (load if specific scenario):
-- `124-snowflake-data-quality-core` - When adding quality checks to dynamic table pipelines
-- `103-snowflake-performance-tuning` - When optimizing dynamic table refresh performance
-- `111-snowflake-observability-core` - When monitoring dynamic table lag and refresh status
-
-**Complementary** (different aspects of same domain):
-- `100-snowflake-core` - For DDL fundamentals and object naming conventions
-- `107-snowflake-security-governance` - For access control on dynamic tables
-- `105-snowflake-cost-governance` - For monitoring dynamic table refresh costs

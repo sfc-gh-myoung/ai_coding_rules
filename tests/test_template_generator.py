@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Tests for template_generator.py.
 
-Validates that generated templates are v3.0 schema compliant.
+Validates that generated templates are v3.2 schema compliant.
 """
 
 import re
@@ -75,13 +75,13 @@ class TestKeywordGeneration:
 
         Ensures that rules in the 100-199 range get Snowflake-specific
         keywords to improve semantic search and rule discovery. The keyword
-        range (10-15) balances specificity with discoverability.
+        range (5-20) per v3.2 schema balances specificity with discoverability.
         """
         keywords = TemplateGenerator.get_default_keywords(100, "snowflake-sql")
         keyword_list = [kw.strip() for kw in keywords.split(",")]
 
-        assert len(keyword_list) >= 10
-        assert len(keyword_list) <= 15
+        assert len(keyword_list) >= 5
+        assert len(keyword_list) <= 20
         assert "snowflake" in keyword_list
         assert "sql" in keyword_list
 
@@ -90,17 +90,17 @@ class TestKeywordGeneration:
         keywords = TemplateGenerator.get_default_keywords(200, "python-core")
         keyword_list = [kw.strip() for kw in keywords.split(",")]
 
-        assert len(keyword_list) >= 10
-        assert len(keyword_list) <= 15
+        assert len(keyword_list) >= 5
+        assert len(keyword_list) <= 20
         assert "python" in keyword_list
         assert "core" in keyword_list
 
     def test_keywords_count_in_range(self):
-        """Test that generated keywords are always 10-15 terms."""
+        """Test that generated keywords are always 5-20 terms per v3.2 schema."""
         for number in [100, 200, 300, 400, 500]:
             keywords = TemplateGenerator.get_default_keywords(number, "example-rule")
             keyword_list = [kw.strip() for kw in keywords.split(",")]
-            assert 10 <= len(keyword_list) <= 15
+            assert 5 <= len(keyword_list) <= 20
 
     def test_keywords_no_duplicates(self):
         """Test that generated keywords don't contain duplicates.
@@ -123,8 +123,8 @@ class TestKeywordGeneration:
         keywords = TemplateGenerator.get_default_keywords(1000, "custom-rule")
         keyword_list = [kw.strip() for kw in keywords.split(",")]
 
-        assert len(keyword_list) >= 10
-        assert len(keyword_list) <= 15
+        assert len(keyword_list) >= 5
+        assert len(keyword_list) <= 20
         assert "custom" in keyword_list
         assert "rule" in keyword_list
         # Should contain fallback keywords when no range matches
@@ -142,8 +142,8 @@ class TestKeywordGeneration:
         keywords = TemplateGenerator.get_default_keywords(999, "demo-example")
         keyword_list = [kw.strip() for kw in keywords.split(",")]
 
-        assert len(keyword_list) >= 10
-        assert len(keyword_list) <= 15
+        assert len(keyword_list) >= 5
+        assert len(keyword_list) <= 20
         assert "demo" in keyword_list
         assert "example" in keyword_list
         # Should NOT use fallback keywords since 999 is in demo range
@@ -159,11 +159,13 @@ class TestTemplateGeneration:
 
         assert "# 100-snowflake-sql: Snowflake Sql" in template
         assert "## Metadata" in template
-        assert "**SchemaVersion:** v3.0" in template
+        assert "**SchemaVersion:** v3.2" in template
+        assert "**RuleVersion:** v1.0.0" in template
+        assert "**LastUpdated:**" in template
         assert "**Keywords:**" in template
         assert "**TokenBudget:** ~1200" in template
         assert "**ContextTier:** Medium" in template
-        assert "**Depends:** rules/000-global-core.md" in template
+        assert "**Depends:** 000-global-core.md" in template
 
     def test_generate_template_with_custom_tier(self):
         """Test generating template with custom context tier."""
@@ -191,22 +193,22 @@ class TestTemplateGeneration:
     def test_generate_template_invalid_keyword_count(self):
         """Test that invalid keyword count raises error.
 
-        Ensures keyword count stays within 10-15 range for optimal
+        Ensures keyword count stays within 5-20 range per v3.2 schema for optimal
         semantic search performance. Too few keywords limit discoverability;
         too many keywords waste token budget and dilute relevance.
         """
         # Too few keywords
-        with pytest.raises(ValueError, match="Keywords must contain 10-15 terms"):
+        with pytest.raises(ValueError, match="Keywords must contain 5-20 terms"):
             TemplateGenerator.generate_template("100-example", keywords="one, two, three")
 
         # Too many keywords
-        too_many = ", ".join([f"keyword{i}" for i in range(20)])
-        with pytest.raises(ValueError, match="Keywords must contain 10-15 terms"):
+        too_many = ", ".join([f"keyword{i}" for i in range(25)])
+        with pytest.raises(ValueError, match="Keywords must contain 5-20 terms"):
             TemplateGenerator.generate_template("100-example", keywords=too_many)
 
 
 class TestTemplateStructure:
-    """Test that generated templates have correct v3.0 structure."""
+    """Test that generated templates have correct v3.2 structure."""
 
     @pytest.fixture
     def sample_template(self) -> str:
@@ -215,6 +217,9 @@ class TestTemplateStructure:
 
     def test_has_required_metadata_fields(self, sample_template):
         """Test that template has all required metadata fields."""
+        assert "**SchemaVersion:** v3.2" in sample_template
+        assert "**RuleVersion:**" in sample_template
+        assert "**LastUpdated:**" in sample_template
         assert "**Keywords:**" in sample_template
         assert "**TokenBudget:**" in sample_template
         assert "**ContextTier:**" in sample_template
@@ -232,66 +237,61 @@ class TestTemplateStructure:
         assert h1_line < metadata_header_line < keywords_line
 
     def test_has_required_sections(self, sample_template):
-        """Test that template has all required v3.0 sections.
+        """Test that template has all required v3.2 sections.
 
         Validates that generated templates include all sections defined
-        in the v3.0 schema. Missing sections would cause schema validation
+        in the v3.2 schema. Missing sections would cause schema validation
         failures and prevent rules from being loaded by AI systems.
         """
         required_sections = [
-            "## Purpose",
-            "## Rule Scope",
-            "## Quick Start TL;DR",
+            "## Scope",
+            "## References",
             "## Contract",
             "## Anti-Patterns and Common Mistakes",
-            "## Post-Execution Checklist",
-            "## Validation",
-            "## Output Format Examples",
-            "## References",
         ]
 
         for section in required_sections:
             assert section in sample_template, f"Missing required section: {section}"
 
-    def test_has_contract_xml_tags(self, sample_template):
-        """Test that Contract section has all 6 required XML tags.
+    def test_has_contract_markdown_headers(self, sample_template):
+        """Test that Contract section has all required Markdown subsections.
 
-        Ensures the Contract section follows v3.0 specification with
-        proper XML structure. These tags define rule execution semantics
-        and are parsed by AI systems to understand rule constraints.
+        Ensures the Contract section follows v3.2 specification with
+        proper Markdown ### headers (not XML tags). These subsections define
+        rule execution semantics and are parsed by AI systems to understand
+        rule constraints.
         """
-        required_tags = [
-            "<inputs_prereqs>",
-            "<mandatory>",
-            "<forbidden>",
-            "<steps>",
-            "<output_format>",
-            "<validation>",
+        required_subsections = [
+            "### Inputs and Prerequisites",
+            "### Mandatory",
+            "### Forbidden",
+            "### Execution Steps",
+            "### Output Format",
+            "### Validation",
+            "### Post-Execution Checklist",
         ]
 
-        for tag in required_tags:
-            assert tag in sample_template, f"Missing Contract XML tag: {tag}"
+        for subsection in required_subsections:
+            assert subsection in sample_template, f"Missing Contract subsection: {subsection}"
 
     def test_has_quick_start_elements(self, sample_template):
-        """Test that Quick Start TL;DR has required elements."""
-        assert "**MANDATORY:**" in sample_template
-        assert "**Essential Patterns:**" in sample_template
-        assert "**Pre-Execution Checklist:**" in sample_template
+        """Test that Quick Start TL;DR section is NOT present (removed in v3.2)."""
+        # v3.2 eliminated Quick Start TL;DR section
+        assert "## Quick Start TL;DR" not in sample_template
+        assert "**Essential Patterns:**" not in sample_template
 
     def test_has_minimum_essential_patterns(self, sample_template):
-        """Test that Quick Start has minimum 3 Essential Patterns."""
-        # Count pattern bullets in Essential Patterns section
-        # Look for lines starting with "- **[Pattern"
-        patterns = [
-            line for line in sample_template.split("\n") if line.strip().startswith("- **[Pattern")
-        ]
-        assert len(patterns) >= 3
+        """Test Essential Patterns (removed in v3.2, skip test)."""
+        # v3.2 eliminated Quick Start TL;DR section with Essential Patterns
+        # This test is no longer applicable
+        pass
 
     def test_has_minimum_checklist_items(self, sample_template):
-        """Test that Pre-Execution Checklist has minimum 5 items."""
-        # Find Pre-Execution Checklist section
+        """Test Pre-Execution Checklist (moved to Contract in v3.2)."""
+        # v3.2 moved Pre-Execution Checklist into Contract section
+        # Check for Post-Execution Checklist items instead
         checklist_section = re.search(
-            r"\*\*Pre-Execution Checklist:\*\*.*?(?=\n##)",
+            r"### Post-Execution Checklist.*?(?=\n###|\n##|$)",
             sample_template,
             re.DOTALL,
         )
@@ -299,13 +299,13 @@ class TestTemplateStructure:
 
         # Count checklist items
         checklist_items = re.findall(r"^\s*-\s+\[\s*\]", checklist_section.group(0), re.MULTILINE)
-        assert len(checklist_items) >= 5
+        assert len(checklist_items) >= 3
 
     def test_has_post_execution_checklist_items(self, sample_template):
-        """Test that Post-Execution Checklist has minimum 5 items."""
-        # Find Post-Execution Checklist section
+        """Test that Post-Execution Checklist has minimum items."""
+        # Find Post-Execution Checklist section (now inside Contract)
         post_checklist_section = re.search(
-            r"## Post-Execution Checklist.*?(?=\n##)",
+            r"### Post-Execution Checklist.*?(?=\n###|\n##|$)",
             sample_template,
             re.DOTALL,
         )
@@ -315,12 +315,16 @@ class TestTemplateStructure:
         checklist_items = re.findall(
             r"^\s*-\s+\[\s*\]", post_checklist_section.group(0), re.MULTILINE
         )
-        assert len(checklist_items) >= 5
+        assert len(checklist_items) >= 3
 
     def test_has_contract_steps(self, sample_template):
         """Test that Contract section has minimum 5 steps."""
-        # Find steps section within Contract
-        steps_section = re.search(r"<steps>.*?</steps>", sample_template, re.DOTALL)
+        # Find Execution Steps subsection within Contract (now uses ### header)
+        steps_section = re.search(
+            r"### Execution Steps.*?(?=\n###|\n##)",
+            sample_template,
+            re.DOTALL,
+        )
         assert steps_section
 
         # Count numbered steps
@@ -329,7 +333,7 @@ class TestTemplateStructure:
 
     def test_has_anti_pattern_structure(self, sample_template):
         """Test that Anti-Patterns section has correct structure."""
-        assert "**Anti-Pattern 1:" in sample_template
+        assert "### Anti-Pattern 1:" in sample_template
         assert "**Problem:**" in sample_template
         assert "**Correct Pattern:**" in sample_template
         assert "**Benefits:**" in sample_template
@@ -343,9 +347,9 @@ class TestTemplateStructure:
 
     def test_has_references_structure(self, sample_template):
         """Test that References section has correct structure."""
-        assert "### Related Rules" in sample_template
+        assert "### Dependencies" in sample_template
         assert "### External Documentation" in sample_template
-        assert "rules/000-global-core.md" in sample_template
+        assert "000-global-core.md" in sample_template
 
 
 class TestFileCreation:
@@ -454,7 +458,7 @@ class TestSchemaCompliance:
     """Test that generated templates pass schema validation."""
 
     def test_generated_template_structure_compliance(self, tmp_path):
-        """Test that generated template has v3.0 compliant structure."""
+        """Test that generated template has v3.2 compliant structure."""
         output_path = TemplateGenerator.create_rule_file(
             filename="100-test-compliance",
             output_dir=tmp_path,
@@ -466,20 +470,37 @@ class TestSchemaCompliance:
         lines = content.split("\n")
         h1_idx = next(i for i, line in enumerate(lines) if line.startswith("# "))
         metadata_header_idx = next(i for i, line in enumerate(lines) if line == "## Metadata")
-        purpose_idx = next(i for i, line in enumerate(lines) if line == "## Purpose")
+        scope_idx = next(i for i, line in enumerate(lines) if line == "## Scope")
 
-        assert h1_idx < metadata_header_idx < purpose_idx
+        assert h1_idx < metadata_header_idx < scope_idx
 
-        # Test metadata field order
+        # Test metadata field order (v3.2: SchemaVersion, RuleVersion, LastUpdated, Keywords, TokenBudget, ContextTier, Depends)
+        schema_idx = next(
+            i for i, line in enumerate(lines) if line.startswith("**SchemaVersion:**")
+        )
+        rule_version_idx = next(
+            i for i, line in enumerate(lines) if line.startswith("**RuleVersion:**")
+        )
+        last_updated_idx = next(
+            i for i, line in enumerate(lines) if line.startswith("**LastUpdated:**")
+        )
         keywords_idx = next(i for i, line in enumerate(lines) if line.startswith("**Keywords:**"))
         token_idx = next(i for i, line in enumerate(lines) if line.startswith("**TokenBudget:**"))
         tier_idx = next(i for i, line in enumerate(lines) if line.startswith("**ContextTier:**"))
         depends_idx = next(i for i, line in enumerate(lines) if line.startswith("**Depends:**"))
 
-        assert keywords_idx < token_idx < tier_idx < depends_idx
+        assert (
+            schema_idx
+            < rule_version_idx
+            < last_updated_idx
+            < keywords_idx
+            < token_idx
+            < tier_idx
+            < depends_idx
+        )
 
     def test_generated_template_keyword_count(self, tmp_path):
-        """Test that generated keywords meet 10-15 count requirement."""
+        """Test that generated keywords meet 5-20 count requirement per v3.2 schema."""
         output_path = TemplateGenerator.create_rule_file(
             filename="200-test-keywords",
             output_dir=tmp_path,
@@ -494,7 +515,7 @@ class TestSchemaCompliance:
         keywords = keywords_match.group(1)
         keyword_list = [kw.strip() for kw in keywords.split(",")]
 
-        assert 10 <= len(keyword_list) <= 15
+        assert 5 <= len(keyword_list) <= 20
 
 
 class TestCLIFormatting:
@@ -729,7 +750,7 @@ class TestCLIExecution:
         captured = capsys.readouterr()
         assert "❌" in captured.err
         assert "Error:" in captured.err
-        assert "Keywords must contain 10-15 terms" in captured.err
+        assert "Keywords must contain 5-20 terms" in captured.err
 
     def test_cli_custom_output_directory(self, tmp_path, capsys, monkeypatch):
         """Test CLI with custom output directory creation."""

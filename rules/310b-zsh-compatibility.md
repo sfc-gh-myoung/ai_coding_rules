@@ -2,69 +2,128 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** Zsh, shell compatibility, bash vs zsh, portable scripts, cross-shell, migration, emulate, POSIX compliance, scripting, shell scripting
-**TokenBudget:** ~2950
+**TokenBudget:** ~4850
 **ContextTier:** Low
 **Depends:** 300-bash-scripting-core.md
+**LastUpdated:** 2025-12-23
 
-## Purpose
-Establish zsh compatibility strategies, bash migration patterns, and cross-shell scripting best practices for mixed environments, ensuring seamless transitions and portable script solutions.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Zsh compatibility strategies, bash migration patterns, and cross-shell scripting best practices for mixed environments, ensuring seamless transitions and portable script solutions.
 
-Cross-shell compatibility, migration strategies, mixed environments
+**When to Load This Rule:**
+- Migrating bash scripts to zsh
+- Writing portable scripts for multiple shells
+- Ensuring cross-shell compatibility
+- Understanding bash vs zsh differences
+- Setting up mixed shell environments
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Use `emulate` for compatibility** - `emulate -L bash` for bash scripts
-- **Check feature availability** - Test before using shell-specific features
-- **Write portable POSIX code** - Use `/bin/sh` compatible patterns
-- **Document shell requirements** - Specify bash/zsh in shebang/docs
-- **Test in both shells** - Verify scripts work in target environments
-- **Migrate incrementally** - Convert bash to zsh feature by feature
-- **Never assume feature parity** - Bash and zsh differ significantly
+### Dependencies
 
-**Quick Checklist:**
-- [ ] Shell type clearly specified
-- [ ] Compatibility tested in both shells
-- [ ] POSIX-compliant where possible
-- [ ] Shell-specific features documented
-- [ ] Migration path defined
-- [ ] Tests pass in target shell
-- [ ] Fallbacks implemented
+**Must Load First:**
+- **300-bash-scripting-core.md** - Foundation bash scripting patterns
+
+**Related:**
+- **310-zsh-scripting-core.md** - Foundation zsh scripting patterns
+- **310a-zsh-advanced-features.md** - Advanced zsh features
+
+### External Documentation
+
+- [Zsh Compatibility](http://zsh.sourceforge.net/FAQ/zshfaq03.html) - Official FAQ on compatibility issues
+- [POSIX Shell Specification](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html) - Portable shell scripting standards
+- [Bash to Zsh Migration Guide](https://scriptingosx.com/2019/06/moving-to-zsh/) - Practical migration strategies
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-[Context, files, dependencies needed]
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-[Tools permitted for this domain]
-</mandatory>
+- Scripts requiring cross-shell compatibility or migration
+- Understanding of both bash and zsh syntax differences
+- Access to both bash and zsh for testing
+- Knowledge of POSIX shell standards for portable code
 
-<forbidden>
-[Tools not allowed for this domain]
-</forbidden>
+### Mandatory
 
-<steps>
-[Ordered steps the agent must follow]
-</steps>
+- Use `emulate` for compatibility mode when needed
+- Test scripts in both bash and zsh environments
+- Write POSIX-compliant code for maximum portability
+- Document shell requirements clearly in shebang and comments
+- Set required options explicitly in scripts (don't rely on .zshrc)
+- Implement feature detection for shell-specific functionality
 
-<output_format>
-[Expected output format]
-</output_format>
+### Forbidden
 
-<validation>
-[Checks to confirm success]
-</validation>
+- Using zsh-only syntax in bash scripts
+- Assuming bash behavior in zsh scripts
+- Relying on interactive shell options in scripts
+- Ignoring array indexing differences (0-based vs 1-based)
+- Skipping cross-shell testing
 
-</contract>
+### Execution Steps
+
+1. Identify target shells and compatibility requirements
+2. Analyze existing scripts for shell-specific syntax and features
+3. Choose strategy: POSIX portable, emulate mode, or shell-specific versions
+4. Set required options explicitly in scripts (setopt for zsh)
+5. Convert shell-specific syntax to portable alternatives or add feature detection
+6. Test scripts in both bash and zsh environments
+7. Document shell requirements and compatibility notes
+8. Implement fallbacks for shell-specific features if needed
+
+### Output Format
+
+Cross-shell compatible scripts with:
+- Clear shebang indicating target shell
+- Explicit option settings (setopt for zsh)
+- POSIX-compliant syntax where possible
+- Feature detection for shell-specific functionality
+- Documentation of shell requirements
+- Tests passing in both bash and zsh
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Shell type clearly specified in shebang
+- Required options set explicitly
+- Shell-specific features identified
+- Compatibility tested in target shells
+- POSIX compliance verified where applicable
+- Fallbacks implemented for shell-specific features
+
+**Success Criteria:**
+- Scripts execute successfully in both bash and zsh
+- Array operations work correctly (accounting for indexing differences)
+- No unexpected behavior from option differences
+- POSIX compliance verified with `checkbashisms` or similar
+- Tests pass in both shell environments
+- Documentation clearly states shell requirements
+
+### Design Principles
+
+- **Explicit Over Implicit:** Set all required options explicitly
+- **Test Both Ways:** Verify in both bash and zsh
+- **POSIX When Possible:** Use portable patterns for maximum compatibility
+- **Document Differences:** Clearly note shell-specific behavior
+- **Graceful Degradation:** Implement fallbacks for missing features
+
+### Post-Execution Checklist
+
+- [ ] Shell type specified in shebang
+- [ ] Options set explicitly
+- [ ] Tested in bash environment
+- [ ] Tested in zsh environment
+- [ ] POSIX compliance verified
+- [ ] Array indexing handled correctly
+- [ ] Shell-specific features documented
+- [ ] Fallbacks implemented
+- [ ] Migration path documented
+- [ ] All tests passing
 
 ## Anti-Patterns and Common Mistakes
 
@@ -117,33 +176,6 @@ if [[ $file == *.txt~backup* ]]; then
 fi
 ```
 
-## Post-Execution Checklist
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
-
-## Validation
-- **Success checks:** [How to verify correct implementation]
-- **Negative tests:** [What should fail and how to detect failures]
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Test in target shell BEFORE migration** - Verify current compatibility
-> 2. **Check feature usage** - Identify bash-specific vs zsh-specific features
-> 3. **Never assume behavior** - Test array indexing, string operations
-> 4. **Review dependencies** - Check if scripts source other bash/zsh files
-> 5. **Validate in both shells** - Ensure changes work in target environment
->
-> **Anti-Pattern:**
-> "Converting to zsh... (without testing in zsh first)"
-> "Using bash arrays... (without checking shell type)"
->
-> **Correct Pattern:**
-> "Let me check compatibility in both shells first."
-> [tests script in bash and zsh, identifies differences]
-> "I see array indexing differs. Using zsh-compatible patterns..."
 
 ## Output Format Examples
 
@@ -200,19 +232,7 @@ main "$@"
 shellcheck script.sh
 ```
 
-## References
-
-### External Documentation
-- [Zsh Compatibility Guide](http://zsh.sourceforge.net/Doc/Release/Compatibility.html) - Cross-shell compatibility and migration strategies
-- [Bash Compatibility Mode](https://www.gnu.org/software/bash/manual/html_node/Shell-Compatibility-Mode.html) - Bash emulation and feature differences
-- [POSIX Shell Standard](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html) - Portable shell scripting specification
-
-### Related Rules
-- **Zsh Core**: `310-zsh-scripting-core.md`
-- **Zsh Advanced Features**: `310a-zsh-advanced-features.md`
-- **Bash Core**: `300-bash-scripting-core.md`
-
-## 1. Bash to Zsh Migration Strategies
+## Bash to Zsh Migration Strategies
 
 ### Compatibility Assessment
 - **Rule:** Evaluate bash scripts for zsh compatibility:
@@ -280,7 +300,7 @@ emulate -L zsh
 setopt EXTENDED_GLOB
 ```
 
-## 2. Cross-Shell Compatibility Patterns
+## Cross-Shell Compatibility Patterns
 
 ### Portable Function Writing
 - **Rule:** Write functions that work in both bash and zsh:
@@ -417,7 +437,7 @@ if command -v fzf >/dev/null; then
 fi
 ```
 
-## 3. Environment Detection and Adaptation
+## Environment Detection and Adaptation
 
 ### Runtime Environment Detection
 - **Rule:** Detect and adapt to runtime environment:
@@ -528,7 +548,7 @@ load_advanced_features() {
 }
 ```
 
-## 4. Testing Cross-Shell Compatibility
+## Testing Cross-Shell Compatibility
 
 ### Multi-Shell Testing
 - **Rule:** Test across shells:
@@ -572,7 +592,7 @@ check_compatibility() {
 }
 ```
 
-## 5. Migration Tools and Utilities
+## Migration Tools and Utilities
 
 ### Automated Migration Assistant
 - **Rule:** Create tools to assist with migration:
@@ -661,7 +681,7 @@ if [[ -n "$BASH_VERSION" ]]; then
 fi
 ```
 
-## 6. Best Practices for Mixed Environments
+## Best Practices for Mixed Environments
 
 ### Project Structure
 - **Rule:** Organize for multi-shell support:
@@ -687,7 +707,7 @@ Directory structure for `project/`:
 }
 ```
 
-## 7. Performance Considerations
+## Performance Considerations
 
 ### Shell-Specific Optimizations
 - **Rule:** Optimize for target shell capabilities:

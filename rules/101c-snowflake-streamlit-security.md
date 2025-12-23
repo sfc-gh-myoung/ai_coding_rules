@@ -2,64 +2,76 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** st.secrets, SQL injection, authentication, secure streamlit, protect app, credentials management, API keys, environment variables, secure deployment, input sanitization, RBAC streamlit, access control, security patterns
-**TokenBudget:** ~2550
+**TokenBudget:** ~3650
 **ContextTier:** High
 **Depends:** 101-snowflake-streamlit-core.md, 107-snowflake-security-governance.md
+**LastUpdated:** 2025-12-22
 
-## Purpose
-Provide comprehensive security guidance for Streamlit applications including input validation, secrets management, authentication patterns, and security best practices to prevent common vulnerabilities.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive security guidance for Streamlit applications including input validation with bounds checking, secrets management via st.secrets, SQL injection prevention with parameterized queries, authentication patterns for sensitive apps, file upload validation, error handling that doesn't expose credentials, and production deployment security with HTTPS and RBAC.
 
-Streamlit security, input validation, secrets management, authentication
+**When to Load This Rule:**
+- Implementing credentials management in Streamlit apps
+- Securing user inputs and preventing SQL injection
+- Adding authentication to sensitive applications
+- Validating file uploads for security
+- Deploying Streamlit apps to production with HTTPS
+- Implementing error handling that doesn't expose secrets
+- Following OWASP security best practices for Streamlit
 
-## Quick Start TL;DR
+## References
 
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
+### Dependencies
 
-Position at top provides practical efficiency benefits for both LLMs and human developers.
+**Must Load First:**
+- **000-global-core.md** - Foundation rule with core patterns and validation gates
+- **101-snowflake-streamlit-core.md** - Core Streamlit patterns
+- **107-snowflake-security-governance.md** - Snowflake security and RBAC
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Use st.secrets for ALL credentials** - API keys, passwords, tokens (never hardcode)
-- **Validate user inputs:** Use `st.number_input(min_value=..., max_value=...)` with bounds
-- **Parameterized queries:** Use session.sql("SELECT * FROM ? WHERE id = ?", params) to prevent SQL injection
-- **File upload limits:** Validate file type, size, and content before processing
-- **Error handling:** Never expose secrets in error messages or logs
-- **Use HTTPS in production:** Deploy with TLS/SSL for encrypted connections
-- **Never hardcode credentials** - always use st.secrets or environment variables
+**Related:**
+- **200-python-core.md** - Python security patterns
 
-**Quick Checklist:**
-- [ ] All credentials in `.streamlit/secrets.toml` (not in code)
-- [ ] Numeric inputs have min/max bounds
-- [ ] File uploads validated (type, size, content)
-- [ ] Database queries use parameterized statements
-- [ ] Error messages don't expose secrets
-- [ ] Authentication implemented for sensitive apps
-- [ ] HTTPS configured for production deployment
+### External Documentation
+
+**Streamlit Security:**
+- [Streamlit Secrets Management](https://docs.streamlit.io/develop/concepts/connections/secrets-management) - Official secrets management guide
+- [Streamlit App Security](https://docs.streamlit.io/develop/concepts/design/custom-components#security) - Security considerations for apps
+- [Deploy with Authentication](https://docs.streamlit.io/deploy/streamlit-community-cloud/get-started/deploy-an-app) - Deployment authentication patterns
+
+**Security Best Practices:**
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Web application security risks
+- [OWASP Input Validation](https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html) - Input validation best practices
+- [SQL Injection Prevention](https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html) - SQL injection prevention guide
+
+**Snowflake Security:**
+- [Snowflake Security Overview](https://docs.snowflake.com/en/user-guide/security) - Snowflake security model
+- [Snowflake RBAC](https://docs.snowflake.com/en/user-guide/security-access-control) - Role-based access control
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
+### Inputs and Prerequisites
+
 Streamlit app configured (see 101-snowflake-streamlit-core.md), st.secrets configured, understanding of security principles
-</inputs_prereqs>
 
-<mandatory>
+### Mandatory
+
 st.secrets, st.text_input(), st.number_input(), st.file_uploader(), st.session_state (for auth state), type hints, validation functions
-</mandatory>
 
-<forbidden>
-Hardcoded credentials, unvalidated user inputs, raw SQL string interpolation, exposing secrets in logs or UI, storing passwords in plain text
-</forbidden>
+### Forbidden
 
-<steps>
+- Hardcoded credentials in source code
+- Unvalidated user inputs
+- Raw SQL string interpolation (use parameterized queries)
+- Exposing secrets in logs or UI
+- Storing passwords in plain text
+
+### Execution Steps
+
 1. Use st.secrets for ALL credentials (API keys, passwords, tokens)
 2. Validate and sanitize all user inputs before processing
 3. Set reasonable bounds on numeric inputs (min, max values)
@@ -67,25 +79,59 @@ Hardcoded credentials, unvalidated user inputs, raw SQL string interpolation, ex
 5. Use parameterized queries to prevent SQL injection
 6. Implement error handling that doesn't expose secrets
 7. Deploy production apps using HTTPS
-</steps>
 
-<output_format>
+### Output Format
+
 Secure Streamlit app with validated inputs, secrets management, error handling that doesn't expose sensitive information
-</output_format>
 
-<validation>
-Test with invalid inputs (should reject), verify secrets not exposed in UI/logs, test file upload limits, check error messages don't expose credentials
-</validation>
+### Validation
 
-<design_principles>
+**Test Requirements:**
+- Test with invalid inputs (should reject)
+- Verify secrets not exposed in UI/logs
+- Test file upload limits
+- Check error messages don't expose credentials
+
+**Success Criteria:**
+- Secrets loaded without errors
+- Invalid inputs rejected with clear messages
+- File upload limits enforced
+- SQL injection attempts fail
+- Error messages user-friendly without secrets
+
+**Negative Tests:**
+- Try uploading oversized file (should reject)
+- Test SQL injection attempt (should fail safely)
+- Remove secret (should show graceful error)
+- Expose error with secrets (should be sanitized)
+
+> **Investigation Required**
+> When applying this rule:
+> 1. Read secrets.toml and verify configuration (if accessible)
+> 2. Check all st.text_input, st.number_input, st.file_uploader for validation
+> 3. Verify SQL queries use safe patterns (no string interpolation)
+> 4. Never speculate about security - inspect actual code patterns
+> 5. Check error handling doesn't expose secrets
+> 6. Verify authentication implementation if present
+
+### Design Principles
+
 - **Secrets Management:** Use st.secrets for all credentials, never hardcode
 - **Input Validation:** Validate and sanitize all user inputs
 - **Error Handling:** Show user-friendly errors, never expose stack traces with secrets
 - **Authentication:** Implement proper auth for sensitive applications
 - **Deployment Security:** Use HTTPS, RBAC, audit logging
-</design_principles>
 
-</contract>
+### Post-Execution Checklist
+
+- [ ] st.secrets used for ALL credentials (never hardcoded)
+- [ ] All user inputs validated and sanitized
+- [ ] File uploads have size and type validation
+- [ ] SQL queries use parameterized patterns (no string interpolation)
+- [ ] Error messages don't expose secrets or sensitive info
+- [ ] Authentication implemented for sensitive applications
+- [ ] HTTPS used for production deployment
+- [ ] secrets.toml in .gitignore (never committed)
 
 ## Anti-Patterns and Common Mistakes
 
@@ -162,29 +208,6 @@ if uploaded_file:
         df = pd.read_csv(uploaded_file)
 ```
 
-## Post-Execution Checklist
-- [ ] st.secrets used for ALL credentials (never hardcoded)
-- [ ] All user inputs validated and sanitized
-- [ ] File uploads have size and type validation
-- [ ] SQL queries use parameterized patterns (no string interpolation)
-- [ ] Error messages don't expose secrets or sensitive info
-- [ ] Authentication implemented for sensitive applications
-- [ ] HTTPS used for production deployment
-- [ ] secrets.toml in .gitignore (never committed)
-
-## Validation
-- **Success Checks:** Secrets loaded without errors, invalid inputs rejected with clear messages, file upload limits enforced, SQL injection attempts fail, error messages user-friendly without secrets
-- **Negative Tests:** Try uploading oversized file (should reject), test SQL injection attempt (should fail safely), remove secret (should show graceful error), expose error with secrets (should be sanitized)
-
-> **Investigation Required**
-> When applying this rule:
-> 1. Read secrets.toml and verify configuration (if accessible)
-> 2. Check all st.text_input, st.number_input, st.file_uploader for validation
-> 3. Verify SQL queries use safe patterns (no string interpolation)
-> 4. Never speculate about security - inspect actual code patterns
-> 5. Check error handling doesn't expose secrets
-> 6. Verify authentication implementation if present
-
 ## Output Format Examples
 ```python
 import streamlit as st
@@ -223,37 +246,7 @@ if uploaded_file:
         st.error("Invalid file format")
 ```
 
-## References
-
-### External Documentation
-
-**Streamlit Security:**
-- [Streamlit Secrets Management](https://docs.streamlit.io/develop/concepts/connections/secrets-management) - Official secrets management guide
-- [Streamlit App Security](https://docs.streamlit.io/develop/concepts/design/custom-components#security) - Security considerations for apps
-- [Deploy with Authentication](https://docs.streamlit.io/deploy/streamlit-community-cloud/get-started/deploy-an-app) - Deployment authentication patterns
-
-**Security Best Practices:**
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/) - Web application security risks
-- [OWASP Input Validation](https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html) - Input validation best practices
-- [SQL Injection Prevention](https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html) - SQL injection prevention guide
-
-**Snowflake Security:**
-- [Snowflake Security Overview](https://docs.snowflake.com/en/user-guide/security) - Snowflake security model
-- [Snowflake RBAC](https://docs.snowflake.com/en/user-guide/security-access-control) - Role-based access control
-
-### Related Rules
-- **Streamlit Core**: `101-snowflake-streamlit-core.md`
-- **Snowflake Security Governance**: `107-snowflake-security-governance.md`
-- **Python Core**: `200-python-core.md`
-
-> **[AI] Claude 4 Specific Guidance**
-> **Claude 4 Streamlit Security Optimizations:**
-> - Parallel security audit: Can review multiple input validation patterns simultaneously
-> - Context awareness: Track secrets usage patterns across multiple files
-> - Investigation-first: Excel at discovering hardcoded credentials and validation gaps
-> - Pattern recognition: Quickly identify SQL injection vulnerabilities and unsafe patterns
-
-## 1. Secrets Management
+## Secrets Management
 
 **MANDATORY:**
 - **Mandatory:** Use `st.secrets` for all sensitive configuration (API keys, passwords, tokens)
@@ -304,7 +297,7 @@ password = "your_password"
 - Never display secrets in UI (even in debug mode)
 - Never pass secrets in URL parameters
 
-## 2. Input Validation
+## Input Validation
 
 **MANDATORY:**
 - **Mandatory:** Validate and sanitize all user inputs before processing
@@ -381,7 +374,7 @@ if uploaded_file:
         # Don't expose full exception to user
 ```
 
-## 3. SQL Injection Prevention
+## SQL Injection Prevention
 
 **MANDATORY:**
 **Always use parameterized queries to prevent SQL injection:**
@@ -410,7 +403,7 @@ else:
     st.error("Invalid user ID format")
 ```
 
-## 4. Authentication and Authorization
+## Authentication and Authorization
 
 **RECOMMENDED:**
 **For sensitive applications, implement authentication:**
@@ -457,7 +450,7 @@ check_authentication()
 st.write(f"Welcome, {st.session_state.username}!")
 ```
 
-## 5. Error Handling and Logging
+## Error Handling and Logging
 
 **MANDATORY:**
 **Show user-friendly errors, never expose secrets or stack traces:**
@@ -485,7 +478,7 @@ except Exception as e:
     st.exception(e)  # Exposes full stack trace!
 ```
 
-## 6. Deployment Security
+## Deployment Security
 
 **MANDATORY:**
 **Production Deployment Checklist:**

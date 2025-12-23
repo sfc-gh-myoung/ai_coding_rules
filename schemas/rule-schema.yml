@@ -1,13 +1,13 @@
-# YAML Schema for AI Coding Rules v3.1
+# YAML Schema for AI Coding Rules v3.2
 # ==============================================================================
-# Purpose: Validation schema for rule files per 002-rule-governance.md v3.1
+# Purpose: Validation schema for rule files per 002-rule-governance.md v3.2
 # Usage: python scripts/schema_validator.py rules/NNN-rule.md
 # ==============================================================================
 
 $schema: "http://json-schema.org/draft-07/schema#"
-version: "3.1"
-description: "Validation schema for AI coding rules v3.1 (added RuleVersion metadata field)"
-last_updated: "2025-12-16"
+version: "3.2"
+description: "Validation schema for AI coding rules v3.2 (eliminated Purpose/Quick Start, added Scope, early References, Markdown-only Contract)"
+last_updated: "2025-12-22"
 
 # ==============================================================================
 # METADATA VALIDATION RULES
@@ -34,14 +34,24 @@ metadata:
       severity: "HIGH"
       docs_reference: "002-rule-governance.md Section 11.1"
     
+    - name: "LastUpdated"
+      format: "**LastUpdated:**"
+      type: "string"
+      pattern: "^\\d{4}-\\d{2}-\\d{2}$"
+      error_message: "LastUpdated must be date format YYYY-MM-DD (e.g., 2025-12-23)"
+      fix_suggestion: "Add **LastUpdated:** YYYY-MM-DD with current date"
+      severity: "HIGH"
+      docs_reference: "002-rule-governance.md Section 11.1"
+      description: "Timestamp for last significant update. Provides temporal context for troubleshooting when RuleVersion and SchemaVersion alone are insufficient. Helps identify when breaking changes occurred and track rule maintenance history."
+    
     - name: "Keywords"
       format: "**Keywords:**"
       type: "array"
-      min_items: 10
-      max_items: 15
+      min_items: 5
+      max_items: 20
       item_type: "string"
       separator: ", "
-      error_message: "Keywords must contain 10-15 comma-separated terms"
+      error_message: "Keywords must contain 5-20 comma-separated terms"
       fix_suggestion: "Add {needed} more semantic keywords for better discovery"
       severity: "HIGH"
       docs_reference: "002-rule-governance.md Section 11.1"
@@ -81,15 +91,15 @@ metadata:
   
   field_order:
     required: true
-    order: ["SchemaVersion", "RuleVersion", "Keywords", "TokenBudget", "ContextTier", "Depends"]
-    error_message: "Metadata fields must appear in order: SchemaVersion, RuleVersion, Keywords, TokenBudget, ContextTier, Depends"
+    order: ["SchemaVersion", "RuleVersion", "LastUpdated", "Keywords", "TokenBudget", "ContextTier", "Depends"]
+    error_message: "Metadata fields must appear in order: SchemaVersion, RuleVersion, LastUpdated, Keywords, TokenBudget, ContextTier, Depends"
     fix_suggestion: "Reorder metadata fields per Section 11.1 of 002-rule-governance.md"
     severity: "HIGH"
     docs_reference: "002-rule-governance.md Section 11.1"
   
   placement:
-    before_section: "Purpose"
-    error_message: "Metadata must appear before Purpose section"
+    before_section: "Scope"
+    error_message: "Metadata must appear before Scope section"
     fix_suggestion: "Move metadata to lines 3-7, immediately after H1 title"
     severity: "CRITICAL"
   
@@ -121,84 +131,69 @@ structure:
   
   # Required sections with validation rules
   required_sections:
-    - name: "Purpose"
+    - name: "Scope"
       level: 2
       order: 1
       required: true
-      max_paragraphs: 2
-      max_sentences: 2
-      error_message: "Purpose section is required (1-2 sentences)"
+      max_paragraphs: 3
+      placement:
+        after: "Metadata"
+        before: "References"
+      content_validation:
+        required_keywords: ["What This Rule Covers", "When to Load This Rule"]
+        min_lines: 5
+      error_message: "Scope section is required after Metadata"
       error_group: "Structure"
       severity: "CRITICAL"
-      docs_reference: "002-rule-governance.md Section 5"
+      docs_reference: "002-rule-governance.md Section 11.2"
     
-    - name: "Rule Scope"
+    - name: "References"
       level: 2
       order: 2
       required: true
-      max_paragraphs: 1
-      single_line: true
       placement:
-        after: "Purpose"
-        before: "Quick Start TL;DR"
-      error_message: "Rule Scope section is required (single line)"
-      error_group: "Structure"
-      severity: "CRITICAL"
-      docs_reference: "002-rule-governance.md Section 11.3"
-    
-    - name: "Quick Start TL;DR"
-      level: 2
-      order: 3
-      required: true
-      pattern: "^##\\s+Quick Start TL;DR"
-      placement:
-        after: "Rule Scope"
+        after: "Scope"
         before: "Contract"
+        max_percentage: 10
       content_validation:
-        required_keywords: ["MANDATORY", "Essential Patterns", "Pre-Execution Checklist"]
-        essential_patterns:
-          min: 3
-          # No max constraint - quality over quantity
-          pattern: "^\\s*-\\s+\\*\\*[^*]+\\*\\*"
-        checklist_items:
-          min: 5
-          max: 7
-          pattern: "^\\s*-\\s+\\[\\s*\\]"
-          name: "Pre-Execution Checklist"
-      error_message: "Quick Start TL;DR section is required after Rule Scope"
-      error_group: "Quick Start"
-      severity: "CRITICAL"
+        required_subsections: ["Dependencies", "External Documentation"]
+        min_items: 1
+      error_message: "References section is required early in file (after Scope, before Contract)"
+      error_group: "Structure"
+      severity: "HIGH"
       docs_reference: "002-rule-governance.md Section 11.2"
     
     - name: "Contract"
       level: 2
-      order: 4
+      order: 3
       required: true
-      description: "Structured XML contract: inputs, tools, steps, output format, validation"
+      description: "Structured contract using Markdown headers (### subsections)"
       placement:
-        after: "Quick Start TL;DR"
-        max_line_number: 160
+        after: "References"
+        max_line_number: 200
         calculate_allowance: true
       content_validation:
-        required_fields:
-          - "Inputs/Prereqs"
-          - "Allowed Tools"
-          - "Forbidden Tools"
-          - "Required Steps"
+        required_subsections:
+          - "Inputs and Prerequisites"
+          - "Mandatory"
+          - "Forbidden"
+          - "Execution Steps"
           - "Output Format"
-          - "Validation Steps"
+          - "Validation"
+          - "Post-Execution Checklist"
+        no_xml_tags: true
         required_steps:
           min: 5
           max: 10
           pattern: "^\\s*\\d+\\."
-      error_message: "Contract section is required before line 160"
+      error_message: "Contract section is required after References (before line 200)"
       error_group: "Contract"
       severity: "CRITICAL"
       docs_reference: "002-rule-governance.md Section 11.3"
     
     - name: "Anti-Patterns and Common Mistakes"
       level: 2
-      order: 7
+      order: 4
       required: false
       description: "Problem/Correct Pattern pairs showing what NOT to do and why"
       content_validation:
@@ -212,74 +207,12 @@ structure:
       error_group: "Anti-Patterns"
       severity: "MEDIUM"
       docs_reference: "002-rule-governance.md Section 5a"
-    
-    - name: "Post-Execution Checklist"
-      level: 2
-      order: 8
-      required: true
-      description: "Verification checklist to run after completing implementation"
-      content_validation:
-        checklist_items:
-          min: 5
-          pattern: "^\\s*-\\s+\\[\\s*\\]"
-        must_differ_from_quick_start: true
-      error_message: "Post-Execution Checklist section is required"
-      error_group: "Structure"
-      severity: "CRITICAL"
-      docs_reference: "002-rule-governance.md Section 5"
-    
-    - name: "Validation"
-      level: 2
-      order: 9
-      required: true
-      description: "Expanded validation steps beyond Contract - must add context"
-      content_validation:
-        not_empty: true
-        quality_requirements:
-          - "Must expand on Contract validation section"
-          - "Add specific validation commands/tools"
-          - "Include edge cases and error scenarios"
-          - "Must not be exact duplicate of Contract <validation> tag"
-      error_message: "Validation section is required with expanded validation guidance"
-      error_group: "Structure"
-      severity: "CRITICAL"
-      docs_reference: "002-rule-governance.md Section 5"
-    
-    - name: "Output Format Examples"
-      level: 2
-      order: 10
-      required: true
-      content_validation:
-        code_blocks:
-          min: 1
-        not_empty: true
-        quality_requirements:
-          - "Examples must be concrete and specific"
-          - "Show actual code/output structure, not generic placeholders"
-          - "Include at least one complete example"
-      error_message: "Output Format Examples section is required with concrete examples"
-      error_group: "Output Format"
-      severity: "CRITICAL"
-      docs_reference: "002-rule-governance.md Section 11.4"
-    
-    - name: "References"
-      level: 2
-      order: 11
-      required: true
-      content_validation:
-        # Subsections recommended but not required
-        # References critical for grounding LLMs in current content
-        min_items: 1  # At least one reference required
-      error_message: "References section is required to ground LLMs in current content"
-      error_group: "Structure"
-      severity: "HIGH"
-      docs_reference: "002-rule-governance.md Section 5"
   
   # Optional sections
   optional_sections:
     - name: "Key Principles"
       level: 2
-      order_range: [4, 7]  # Between Contract and Anti-Patterns
+      order_range: [4, 10]  # Between Contract and Output Format Examples
       content_validation:
         principle_count:
           min: 3
@@ -290,7 +223,7 @@ structure:
   section_order:
     validate_sequence: true
     error_message: "Sections must appear in correct order per schema spec"
-    fix_suggestion: "Reorder sections: Purpose → Rule Scope → Quick Start → Contract → ... → References"
+    fix_suggestion: "Reorder sections: Metadata → Scope → References → Contract → ... → Output Format Examples"
     severity: "HIGH"
 
 # ==============================================================================
@@ -299,65 +232,48 @@ structure:
 content_rules:
   description: "Deep content validation beyond structure"
   
-  quick_start_tldr:
-    section: "Quick Start TL;DR"
-    validations:
-      - type: "keyword_presence"
-        required: ["MANDATORY"]
-        case_sensitive: true
-        error_message: "Quick Start TL;DR must contain 'MANDATORY' keyword"
-        severity: "HIGH"
-      
-      - type: "pattern_count"
-        name: "essential_patterns"
-        min: 3
-        # No max constraint - quality over quantity
-        pattern: "^\\s*-\\s+\\*\\*[^*]+\\*\\*"
-        error_message: "Quick Start TL;DR must have at least 3 Essential Patterns"
-        fix_suggestion: "Current: {actual}, Expected: 3+. Add {needed} more pattern(s)"
-        severity: "HIGH"
-      
-      - type: "checklist_count"
-        min: 5
-        max: 7
-        pattern: "^\\s*-\\s+\\[\\s*\\]"
-        error_message: "Quick Start TL;DR must have 5-7 Quick Checklist items"
-        fix_suggestion: "Current: {actual}, Expected: 5-7. Add {needed} more item(s)"
-        severity: "MEDIUM"
-  
   contract:
     section: "Contract"
     validations:
-      - type: "required_fields"
-        fields:
-          - name: "Inputs/Prereqs"
-            pattern: "(<inputs_prereqs>|\\*\\*Inputs/Prereqs:\\*\\*)"
+      - type: "required_subsections"
+        subsections:
+          - name: "Inputs and Prerequisites"
+            pattern: "###\\s+Inputs and Prerequisites"
             non_empty: true
-          - name: "Allowed Tools"
-            pattern: "(<mandatory>|\\*\\*Allowed Tools:\\*\\*)"
+          - name: "Mandatory"
+            pattern: "###\\s+Mandatory"
             non_empty: true
-          - name: "Forbidden Tools"
-            pattern: "(<forbidden>|\\*\\*Forbidden Tools:\\*\\*)"
+          - name: "Forbidden"
+            pattern: "###\\s+Forbidden"
             non_empty: true
-          - name: "Required Steps"
-            pattern: "(<steps>|\\*\\*Required Steps:\\*\\*)"
+          - name: "Execution Steps"
+            pattern: "###\\s+Execution Steps"
             non_empty: true
           - name: "Output Format"
-            pattern: "(<output_format>|\\*\\*Output Format:\\*\\*)"
+            pattern: "###\\s+Output Format"
             non_empty: true
-          - name: "Validation Steps"
-            pattern: "(<validation>|\\*\\*Validation Steps:\\*\\*)"
+          - name: "Validation"
+            pattern: "###\\s+Validation"
             non_empty: true
-        error_message: "Contract must contain all 6 required fields (XML tags or bold headings)"
-        fix_suggestion: "Missing field: **{field_name}:** [description] OR <tag_name>content</tag_name>"
+          - name: "Post-Execution Checklist"
+            pattern: "###\\s+Post-Execution Checklist"
+            non_empty: true
+        error_message: "Contract must contain all 7 required subsections (Markdown ### headers)"
+        fix_suggestion: "Missing subsection: ### {subsection_name}"
+        severity: "HIGH"
+      
+      - type: "no_xml_tags"
+        forbidden_patterns: ["<inputs_prereqs>", "<mandatory>", "<forbidden>", "<steps>", "<output_format>", "<validation>", "<design_principles>"]
+        error_message: "Contract must NOT use XML tags (v3.2 uses Markdown headers only)"
+        fix_suggestion: "Replace XML tags with Markdown headers (###)"
         severity: "HIGH"
       
       - type: "numbered_list"
-        name: "required_steps"
+        name: "execution_steps"
         min: 5
         max: 10
         pattern: "^\\s*\\d+\\."
-        error_message: "Contract Required Steps must have 5-10 steps"
+        error_message: "Contract Execution Steps must have 5-10 steps"
         fix_suggestion: "Current: {actual} steps. Add more explicit steps."
         severity: "MEDIUM"
   
@@ -382,19 +298,6 @@ content_rules:
         error_message: "Anti-Patterns must have Problem → Correct Pattern structure"
         severity: "MEDIUM"
   
-  output_format_examples:
-    section: "Output Format Examples"
-    validations:
-      - type: "code_block_count"
-        min: 1
-        error_message: "Output Format Examples must have at least 1 code example"
-        fix_suggestion: "Add example code showing expected output format"
-        severity: "HIGH"
-      
-      - type: "non_empty"
-        error_message: "Output Format Examples cannot be empty"
-        severity: "HIGH"
-  
   investigation_protocol:
     conditional:
       metadata_field: "ContextTier"
@@ -413,15 +316,25 @@ placement:
   description: "Section placement and positioning rules"
   
   metadata_placement:
-    before_section: "Purpose"
-    error_message: "Metadata must appear before Purpose section"
+    before_section: "Scope"
+    error_message: "Metadata must appear before Scope section"
     severity: "CRITICAL"
   
-  quick_start_placement:
-    section: "Quick Start TL;DR"
-    after: "Rule Scope"
+  scope_placement:
+    section: "Scope"
+    after: "Metadata"
+    before: "References"
+    max_percentage: 5
+    error_message: "Scope must be after Metadata, before References (early position)"
+    severity: "CRITICAL"
+    docs_reference: "002-rule-governance.md Section 11.2"
+  
+  references_placement:
+    section: "References"
+    after: "Scope"
     before: "Contract"
-    error_message: "Quick Start TL;DR must be after Rule Scope, before Contract"
+    max_percentage: 10
+    error_message: "References must be after Scope, before Contract (early position)"
     severity: "CRITICAL"
     docs_reference: "002-rule-governance.md Section 11.2"
 
@@ -430,6 +343,14 @@ placement:
 # ==============================================================================
 restrictions:
   description: "Format and markup restrictions"
+  
+  no_numbered_sections:
+    enabled: true
+    pattern: "^##\\s+\\d+\\."
+    error_message: "Numbered sections (## 1., ## 2.) are not allowed in v3.2"
+    fix_suggestion: "Replace with descriptive section names (e.g., '## Environment and Tooling Requirements')"
+    severity: "HIGH"
+    docs_reference: "002-rule-governance.md Section 11.2"
   
   no_emojis:
     enabled: true

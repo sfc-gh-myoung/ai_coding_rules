@@ -7,43 +7,95 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** CREATE NOTEBOOK, stages, deployment automation, SiS, deploy app, deployment pipeline, app publishing, deployment patterns, deploy to snowflake, stage deployment, production deployment, app versioning, automated deployment
-**TokenBudget:** ~4150
+**TokenBudget:** ~5800
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 109-snowflake-notebooks.md, 101-snowflake-streamlit-core.md, 820-taskfile-automation.md
+**LastUpdated:** 2025-12-22
 
-## Purpose
-Establish core deployment automation patterns for Snowflake applications (Notebooks, Streamlit apps, UDFs, and other staged applications), ensuring reliable, deterministic deployments through proper stage file management and object lifecycle control.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Core deployment automation patterns for Snowflake applications (Notebooks, Streamlit apps, UDFs, and other staged applications), ensuring reliable, deterministic deployments through proper stage file management and object lifecycle control.
 
-Deployment automation for Snowflake applications using internal stages, covering notebooks, Streamlit apps, UDFs, and stored procedures
+**When to Load This Rule:**
+- Deploying Streamlit apps to Snowflake
+- Automating notebook deployments
+- Managing staged application files
+- Implementing deployment pipelines
+- Controlling application lifecycle in Snowflake
 
-## Quick Start TL;DR
+## References
 
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for 80% of common use cases reduces need to read full sections
-- **Position advantage:** Early placement benefits from slight attention bias in LLM processing (first ~20% of content receives marginally more weight)
-- **Progressive disclosure:** Enables agents to assess rule relevance before loading full content
-- **Human-LLM collaboration:** Useful for both human developers (quick scanning) and AI assistants (decision point)
+### External Documentation
+- [CREATE NOTEBOOK](https://docs.snowflake.com/en/sql-reference/sql/create-notebook) - Official Notebook deployment syntax
+- [PUT Command](https://docs.snowflake.com/en/sql-reference/sql/put) - Stage file upload reference
+- [Internal Stages](https://docs.snowflake.com/en/user-guide/data-load-stages-intro) - Stage management guide
 
-**Note:** While LLMs read sequentially (not auto-prioritizing this section), the concentrated pattern format and early position provide practical efficiency benefits. To maximize value for agents, include in system prompts: "Read Quick Start TL;DR sections first to identify essential patterns."
+### Related Rules
+- **Snowflake Notebooks**: `109-snowflake-notebooks.md` - Core notebook patterns
+- **Streamlit Core**: `101-snowflake-streamlit-core.md` - Streamlit app development
+- **Taskfile Automation**: `820-taskfile-automation.md` - Task automation patterns
+- **Troubleshooting**: `109c-snowflake-app-deployment-troubleshooting.md` - Deployment debugging
 
-Position at top provides practical efficiency benefits for both LLMs and human developers.
+## Contract
 
-**MANDATORY:**
-**Essential Patterns:**
-- **3-step deployment** - 1) DROP object, 2) REMOVE stage files, 3) PUT + CREATE
-- **Use AUTO_COMPRESS=FALSE** - Prevents TypeError on imports
-- **Use OVERWRITE=TRUE** - Ensures clean deployments
-- **Automate with Taskfile** - Consistent deployment commands
-- **Test in dev first** - Validate before production
-- **Version control SQL** - Track deployment scripts in git
-- **Never skip REMOVE** - Stale files cause import errors
 
-**Quick Checklist:**
+### Inputs and Prerequisites
+- Snowflake connection and credentials
+- Application files ready for deployment (.ipynb, .py, environment.yml)
+- Taskfile.yml structure in place
+- Internal stages created in target schemas
+- SQL scripts for upload/remove/create operations
+
+
+### Mandatory
+- Task automation (Taskfile.yml)
+- Snowflake CLI (`uvx snow sql`)
+- SQL template files with Snowflake variables (`<%VARIABLE%>`)
+- PUT, REMOVE, CREATE NOTEBOOK, CREATE STREAMLIT, DROP commands
+
+
+### Forbidden
+- Manual file uploads via Snowsight UI (not reproducible)
+- Hardcoded credentials in automation scripts
+- Deployment without version control
+- Mixing deployment modes (don't deploy same app to multiple stages)
+
+
+### Execution Steps
+1. Create SQL scripts for each operation (upload, remove, create, drop)
+2. Implement task structure with 5 core operations
+3. Test deployment workflow end-to-end
+4. Document deployment process and troubleshooting
+5. Validate with actual deployment to Snowflake
+
+
+### Output Format
+- Taskfile.yml with modular deployment tasks
+- SQL script files in organized directory structure
+- Documentation of deployment workflow
+
+
+### Validation
+- Deploy to dev environment and verify object creation
+- Run `task app:deploy-dev` successfully
+- Check Snowsight for deployed notebook/streamlit
+- Test application functionality in Snowflake
+- Verify SQL scripts execute without errors
+
+
+### Design Principles
+- **Explicit Over Implicit:** Always use explicit REMOVE before PUT to ensure clean state
+- **Modular Operations:** Break deployment into discrete, testable steps
+- **Idempotent by Design:** All operations should be safely repeatable
+- **Stage as Source of Truth:** Application files in stage are the canonical source
+- **Separation of Concerns:** Object lifecycle (drop/create) separate from file management (remove/upload)
+
+### Post-Execution Checklist
+
 - [ ] DROP existing object SQL created
 - [ ] REMOVE stage files SQL created
 - [ ] PUT with AUTO_COMPRESS=FALSE
@@ -52,62 +104,8 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Deployment tested in dev
 - [ ] SQL scripts in version control
 
-## Contract
 
-<contract>
-<inputs_prereqs>
-- Snowflake connection and credentials
-- Application files ready for deployment (.ipynb, .py, environment.yml)
-- Taskfile.yml structure in place
-- Internal stages created in target schemas
-- SQL scripts for upload/remove/create operations
-</inputs_prereqs>
 
-<mandatory>
-- Task automation (Taskfile.yml)
-- Snowflake CLI (`uvx snow sql`)
-- SQL template files with Snowflake variables (`<%VARIABLE%>`)
-- PUT, REMOVE, CREATE NOTEBOOK, CREATE STREAMLIT, DROP commands
-</mandatory>
-
-<forbidden>
-- Manual file uploads via Snowsight UI (not reproducible)
-- Hardcoded credentials in automation scripts
-- Deployment without version control
-- Mixing deployment modes (don't deploy same app to multiple stages)
-</forbidden>
-
-<steps>
-1. Create SQL scripts for each operation (upload, remove, create, drop)
-2. Implement task structure with 5 core operations
-3. Test deployment workflow end-to-end
-4. Document deployment process and troubleshooting
-5. Validate with actual deployment to Snowflake
-</steps>
-
-<output_format>
-- Taskfile.yml with modular deployment tasks
-- SQL script files in organized directory structure
-- Documentation of deployment workflow
-</output_format>
-
-<validation>
-- Deploy to dev environment and verify object creation
-- Run `task app:deploy-dev` successfully
-- Check Snowsight for deployed notebook/streamlit
-- Test application functionality in Snowflake
-- Verify SQL scripts execute without errors
-</validation>
-
-<design_principles>
-- **Explicit Over Implicit:** Always use explicit REMOVE before PUT to ensure clean state
-- **Modular Operations:** Break deployment into discrete, testable steps
-- **Idempotent by Design:** All operations should be safely repeatable
-- **Stage as Source of Truth:** Application files in stage are the canonical source
-- **Separation of Concerns:** Object lifecycle (drop/create) separate from file management (remove/upload)
-</design_principles>
-
-</contract>
 
 ## Anti-Patterns and Common Mistakes
 
@@ -269,22 +267,6 @@ tasks:
       - echo "Application deployed successfully"
 ```
 
-## References
-
-### External Documentation
-- [Snowflake PUT Command](https://docs.snowflake.com/en/sql-reference/sql/put) - Official SQL reference for file upload command covering AUTO_COMPRESS options, OVERWRITE behavior, parallel upload optimization, and stage path syntax (authoritative documentation for all PUT parameters)
-- [Snowflake REMOVE Command](https://docs.snowflake.com/en/sql-reference/sql/remove) - Official SQL reference for stage file removal including pattern matching, recursive deletion, and idempotent behavior (critical for clean deployment workflows)
-- [Snowflake Stages](https://docs.snowflake.com/en/user-guide/data-load-local-file-system-create-stage) - Comprehensive guide to internal and external stages, directory structures, access control, and file organization patterns (essential reading for stage architecture decisions)
-- [Snowflake CLI](https://docs.snowflake.com/en/developer-guide/snowflake-cli/overview) - Official command-line interface documentation covering connection configuration, SQL execution, and automation patterns (required for deployment automation workflows)
-- [Taskfile Documentation](https://taskfile.dev/) - Modern task automation framework with declarative YAML syntax, dependency management, and cross-platform support (industry-standard alternative to Makefiles with 10K+ GitHub stars)
-
-### Related Rules
-- **Snowflake Notebooks**: `109-snowflake-notebooks.md`
-- **Streamlit Core**: `101-snowflake-streamlit-core.md`
-- **Taskfile Automation**: `820-taskfile-automation.md`
-- **Snowflake Core**: `100-snowflake-core.md`
-- **Deployment Troubleshooting**: `109c-snowflake-app-deployment-troubleshooting.md` - See this rule for debugging deployment issues, SiS TypeError resolution, and anti-patterns with complete runnable code examples
-
 ## Core Deployment Pattern
 
 ### The 5-Step Workflow
@@ -317,7 +299,7 @@ tasks:
 - Stage file (.ipynb/.py) = Actual file
 - Both must be managed for reliable deployment
 
-## 1. Directory Structure
+## Directory Structure
 
 ### Recommended Layout
 
@@ -334,7 +316,7 @@ Directory structure for `project/`:
   - **streamlit/** - Same structure as notebook
 - `Taskfile.yml` - Root taskfile with includes
 
-## 2. SQL Script Patterns
+## SQL Script Patterns
 
 ### Upload Script (PUT)
 
@@ -501,7 +483,7 @@ CREATE STREAMLIT IF NOT EXISTS <%DATABASE%>.<%SCHEMA%>.APP_NAME
     QUERY_WAREHOUSE = <%WAREHOUSE%>;
 ```
 
-## 3. Taskfile Implementation
+## Taskfile Implementation
 
 ### Task Structure Per Application
 
@@ -604,7 +586,7 @@ tasks:
       - msg: "app.ipynb not found"
 ```
 
-## 4. Why Explicit REMOVE Before PUT?
+## Why Explicit REMOVE Before PUT?
 
 ### The Stale Cache Problem
 
@@ -645,7 +627,7 @@ task notebook:deploy:all  # Uses explicit REMOVE
 # Result: Reliable updates every time
 ```
 
-## 6. Deployment Validation
+## Deployment Validation
 
 ### Post-Deployment Checklist
 
@@ -677,7 +659,7 @@ uvx snow sql -q "SHOW NOTEBOOKS IN SCHEMA DB.SCHEMA;"
 - `create` task: < 3 seconds
 - **Total deployment:** < 15 seconds
 
-## 7. Advanced Patterns
+## Advanced Patterns
 
 ### Multi-Environment Deployment
 

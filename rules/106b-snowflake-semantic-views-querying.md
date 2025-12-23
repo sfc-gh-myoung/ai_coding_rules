@@ -2,95 +2,93 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** window functions, dimension compatibility, testing, validation, TPC-DS, performance optimization, aliases, granularity, query semantic view, semantic view results, query patterns, result processing, SEMANTIC_VIEW function, query errors, dimension filters
-**TokenBudget:** ~5750
+**TokenBudget:** ~8500
 **ContextTier:** High
 **Depends:** 106-snowflake-semantic-views-core.md
+**LastUpdated:** 2025-12-22
 
-## Purpose
-Provide comprehensive guidance for querying Snowflake Semantic Views using the `SEMANTIC_VIEW()` function and validating semantic view implementations through systematic testing. Covers query syntax, dimension compatibility, window function metrics, WHERE clause usage, and performance optimization.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive guidance for querying Snowflake Semantic Views using the `SEMANTIC_VIEW()` function and validating semantic view implementations through systematic testing. Covers query syntax, dimension compatibility, window function metrics, WHERE clause usage, and performance optimization.
 
-Querying semantic views after creation, testing patterns, validation strategies
+**When to Load This Rule:**
+- Querying semantic views with SEMANTIC_VIEW() function
+- Testing and validating semantic view implementations
+- Debugging semantic view query errors
+- Optimizing semantic view query performance
+- Understanding dimension compatibility rules
 
-## Quick Start TL;DR
+## References
 
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
+### Dependencies
 
-Position at top provides practical efficiency benefits for both LLMs and human developers.
+**Must Load First:**
+- **000-global-core.md** - Foundation rule with core patterns and validation gates
+- **106-snowflake-semantic-views-core.md** - Semantic Views DDL fundamentals
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Use SEMANTIC_VIEW() function** - `SELECT * FROM SEMANTIC_VIEW(view_name DIMENSIONS ... METRICS ...)`
-- **Specify at least one clause** - DIMENSIONS, METRICS, or FACTS (one minimum required)
-- **Cannot mix FACTS and METRICS** - Choose one or the other, can combine either with DIMENSIONS
-- **Check dimension compatibility** - Use `SHOW SEMANTIC DIMENSIONS FOR METRIC metric_name`
-- **Window function metrics** - Must return all PARTITION BY and ORDER BY dimensions
-- **WHERE filters returned columns only** - Cannot filter on columns not in SELECT
-- **Validate with base tables** - Compare semantic view results to direct table queries
-- **Optimize base tables** - Semantic views are metadata, performance depends on underlying tables
+### External Documentation
+- [Querying Semantic Views](https://docs.snowflake.com/en/user-guide/views-semantic/querying) - Official query syntax reference
+- [SEMANTIC_VIEW() Function](https://docs.snowflake.com/en/sql-reference/functions/semantic_view) - Function documentation
+- [Window Function Metrics](https://docs.snowflake.com/en/user-guide/views-semantic/querying#window-function-metrics) - Window function patterns
+- [Cortex Analyst REST API](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst#rest-api) - Natural language query testing
+- [Query Profile](https://docs.snowflake.com/en/user-guide/ui-query-profile) - Performance analysis tool
 
-**Quick Checklist:**
-- [ ] Used SEMANTIC_VIEW() function (not direct SELECT)
-- [ ] Specified at least one of: DIMENSIONS, METRICS, FACTS
-- [ ] Did NOT combine FACTS and METRICS
-- [ ] Checked dimension/metric compatibility with SHOW commands
-- [ ] WHERE clause filters only returned columns
-- [ ] Window function metrics include required dimensions
-- [ ] Validated results against base table calculations
-- [ ] Reviewed Query Profile for performance
+### Related Rules
+- **Semantic Views Core**: `106-snowflake-semantic-views-core.md` - DDL creation, validation rules, components
+- **Semantic Views Integration**: `106c-snowflake-semantic-views-integration.md` - Cortex Analyst, governance, workflows
+- **Snowflake Core**: `100-snowflake-core.md` - Foundational Snowflake practices
+- **Performance Tuning**: `103-snowflake-performance-tuning.md` - Query optimization strategies
+- **Cortex Analyst Integration**: `106c-snowflake-semantic-views-integration.md` - Natural language query patterns
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
+### Inputs and Prerequisites
+
 - Semantic view exists in DATABASE.SCHEMA (created via `CREATE SEMANTIC VIEW`)
 - Understanding of DIMENSIONS, METRICS, and FACTS defined in semantic view
 - Query privileges on semantic view and underlying base tables
-</inputs_prereqs>
 
-<mandatory>
+### Mandatory
+
 - `SELECT * FROM SEMANTIC_VIEW(...)` query syntax
 - `SHOW SEMANTIC DIMENSIONS/METRICS/FACTS` for structure inspection
 - `SHOW SEMANTIC DIMENSIONS FOR METRIC` for compatibility checks
 - Query Profile for performance analysis
 - SnowCLI cortex analyst commands
-</mandatory>
 
-<forbidden>
+### Forbidden
+
 - Direct SELECT from semantic view without SEMANTIC_VIEW() function
 - Mixing FACTS and METRICS in same query
 - Querying without specifying at least one of DIMENSIONS, METRICS, or FACTS
-</forbidden>
 
-<steps>
+### Execution Steps
+
 1. Inspect semantic view structure with SHOW commands
 2. Identify dimensions compatible with metrics
 3. Construct SEMANTIC_VIEW() query with proper clause combination
 4. Apply WHERE filters on returned columns only
 5. Validate results against base table queries
 6. Review Query Profile for performance
-</steps>
 
-<output_format>
+### Output Format
+
 - Valid SEMANTIC_VIEW() SELECT statements
 - Test queries comparing semantic vs direct table results
-</output_format>
 
-<validation>
+### Validation
+
 - Query executes without errors
 - Results match expected business logic
 - Performance acceptable (check Query Profile)
 - Dimension compatibility validated via SHOW commands
-</validation>
 
-<design_principles>
+### Design Principles
+
 - **Function-based querying**: Use `SEMANTIC_VIEW()` function, not direct SELECT
 - **Clause requirements**: Must specify at least ONE of DIMENSIONS, METRICS, or FACTS
 - **Mutually exclusive**: Cannot combine FACTS and METRICS in same query
@@ -99,9 +97,17 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - **WHERE clause restrictions**: Can only filter on columns returned in query
 - **Performance depends on base tables**: Semantic views are metadata - optimize underlying tables
 - **Testing is mandatory**: Validate metrics match direct table calculations
-</design_principles>
 
-</contract>
+### Post-Execution Checklist
+
+- [ ] Used SEMANTIC_VIEW() function (not direct SELECT)
+- [ ] Specified at least one of: DIMENSIONS, METRICS, FACTS
+- [ ] Did NOT combine FACTS and METRICS
+- [ ] Checked dimension/metric compatibility with SHOW commands
+- [ ] WHERE clause filters only returned columns
+- [ ] Window function metrics include required dimensions
+- [ ] Validated results against base table calculations
+- [ ] Reviewed Query Profile for performance
 
 ## Anti-Patterns and Common Mistakes
 
@@ -233,23 +239,7 @@ ORDER BY <dimension_1>;
 > [runs SHOW SEMANTIC DIMENSIONS FOR METRIC]
 > "Here's a query using only compatible dimensions..."
 
-## References
-
-### External Documentation
-- [Querying Semantic Views](https://docs.snowflake.com/en/user-guide/views-semantic/querying) - Official query syntax reference
-- [SEMANTIC_VIEW() Function](https://docs.snowflake.com/en/sql-reference/functions/semantic_view) - Function documentation
-- [Window Function Metrics](https://docs.snowflake.com/en/user-guide/views-semantic/querying#window-function-metrics) - Window function patterns
-- [Cortex Analyst REST API](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst#rest-api) - Natural language query testing
-- [Query Profile](https://docs.snowflake.com/en/user-guide/ui-query-profile) - Performance analysis tool
-
-### Related Rules
-- **Semantic Views Core**: `106-snowflake-semantic-views-core.md` - DDL creation, validation rules, components
-- **Semantic Views Integration**: `106c-snowflake-semantic-views-integration.md` - Cortex Analyst, governance, workflows
-- **Snowflake Core**: `100-snowflake-core.md` - Foundational Snowflake practices
-- **Performance Tuning**: `103-snowflake-performance-tuning.md` - Query optimization strategies
-- **Cortex Analyst Integration**: `106c-snowflake-semantic-views-integration.md` - Natural language query patterns
-
-## 1) Validation and Testing
+## Validation and Testing
 
 ### 1.1 Verification Commands
 

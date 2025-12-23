@@ -7,112 +7,106 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** LOG_LEVEL, TRACE_LEVEL, METRIC_LEVEL, SHOW PARAMETERS, OpenTelemetry, System Views vs Telemetry, monitoring, logging, tracing, debug observability, event table queries, observability patterns, configure telemetry
-**TokenBudget:** ~4200
+**TokenBudget:** ~4550
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
+**LastUpdated:** 2025-12-22
 
-## Purpose
-Establish foundational observability practices for Snowflake environments through telemetry configuration and event table management, enabling effective monitoring, troubleshooting, and performance optimization.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Foundational observability practices for Snowflake environments through telemetry configuration and event table management, enabling effective monitoring, troubleshooting, and performance optimization.
 
-Snowflake observability foundations, telemetry configuration, event table setup, and basic patterns
+**When to Load This Rule:**
+- Configuring Snowflake telemetry and observability
+- Setting up event tables for logging
+- Implementing monitoring and tracing patterns
+- Troubleshooting with telemetry data
+- Understanding LOG_LEVEL, TRACE_LEVEL, and METRIC_LEVEL settings
 
-**Progressive Disclosure - Token Budget:**
-- Quick Start + Contract: ~400 tokens (always load for observability tasks)
-- + Telemetry Configuration (sections 1-2): ~1000 tokens (load for setup)
-- + Event Tables & Queries (sections 3-4): ~1800 tokens (load for querying)
-- + Complete Reference: ~2000 tokens (full observability guide)
+## References
 
-**Recommended Loading Strategy:**
-- **Understanding observability**: Quick Start only
-- **Setting up telemetry**: + Telemetry Configuration
-- **Querying events**: + Event Tables & Queries
-- **Advanced patterns**: + 111a (logging), 111b (tracing), 111c (monitoring)
+### Core Observability Documentation
+- [Snowflake Trail Observability Quickstart](https://quickstarts.snowflake.com/guide/getting-started-with-snowflake-trail-for-observability/) - Comprehensive quickstart for Snowflake Trail observability features
+- [Snowflake Logging, Tracing, and Metrics Overview](https://docs.snowflake.com/en/developer-guide/logging-tracing/logging-tracing-overview) - Overview of observability features and OpenTelemetry alignment
+- [Event Table Setup Guide](https://docs.snowflake.com/en/developer-guide/logging-tracing/event-table-setting-up) - Step-by-step guide for setting up and managing event tables
+- [Snowflake Telemetry Levels](https://docs.snowflake.com/en/developer-guide/logging-tracing/telemetry-levels) - Complete guide to configuring telemetry levels and hierarchy
 
-## Quick Start TL;DR
+### Related Rules
+**Closely Related** (consider loading together):
+- **111a-snowflake-observability-logging.md** - logging best practices and standard library integration
+- **111b-snowflake-observability-tracing.md** - distributed tracing patterns with custom spans
+- **111c-snowflake-observability-monitoring.md** - monitoring queries and Snowsight interfaces
 
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
+**Sometimes Related** (load if specific scenario):
+- **103-snowflake-performance-tuning.md** - using telemetry data for performance optimization
+- **115b-snowflake-cortex-agents-operations.md** - implementing agent observability and evaluation
+- **109-snowflake-notebooks.md** - adding telemetry to notebook executions
 
-Position at top provides practical efficiency benefits for both LLMs and human developers.
-
-**MANDATORY:**
-**Essential Patterns:**
-- **Configure telemetry hierarchically** - Account, then Database, then Schema, then Object
-- **Verify event tables first** - Use `SHOW PARAMETERS LIKE 'EVENT_TABLE'`
-- **Use appropriate log levels** - WARN+ for production, DEBUG for dev
-- **Understand System Views vs Telemetry** - Historical (45+ min lag) vs Real-time
-- **Never speculate about config** - Always read with `SHOW PARAMETERS`
-- **Consider cost implications** - DEBUG can generate 10-100x more data
-- **Load specialized rules as needed** - 111a (logging), 111b (tracing), 111c (monitoring)
-
-**Quick Checklist:**
-- [ ] Telemetry levels configured (`SHOW PARAMETERS` to verify)
-- [ ] Event tables created and active
-- [ ] Cost implications reviewed (DEBUG vs WARN)
-- [ ] System Views understood (not for real-time)
+**Complementary** (different aspects of same domain):
+- **105-snowflake-cost-governance.md** - monitoring costs using telemetry data
+- **107-snowflake-security-governance.md** - security event monitoring and audit logs
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
+### Inputs and Prerequisites
 - Active event table (verify with `SHOW PARAMETERS LIKE 'EVENT_TABLE' IN ACCOUNT`)
 - Appropriate telemetry level configuration for environment
 - Warehouse with SELECT privileges on `SNOWFLAKE.ACCOUNT_USAGE` schema
-</inputs_prereqs>
 
-<mandatory>
+### Mandatory
 - `ALTER ACCOUNT/DATABASE/SCHEMA/FUNCTION` for telemetry level configuration
 - SQL queries on event tables (`SNOWFLAKE.ACCOUNT_USAGE.EVENT_TABLE`)
 - `SHOW PARAMETERS` for investigating current telemetry configuration
 - `SHOW EVENT TABLES` for verifying event table setup
-</mandatory>
 
-<forbidden>
+### Forbidden
 - Modifying telemetry configuration without understanding retention and cost implications
 - Using System Views (ACCOUNT_USAGE) for real-time monitoring (45+ min latency)
 - Querying event tables with `SELECT *` (always use explicit column projection)
 - Creating event tables without specifying retention policy
 - Speculating about telemetry configuration without reading actual parameter values
-</forbidden>
 
-<steps>
+### Execution Steps
 1. **Investigate:** Check current telemetry configuration using `SHOW PARAMETERS LIKE '%LOG_LEVEL%'`, `SHOW PARAMETERS LIKE '%TRACE_LEVEL%'`, `SHOW PARAMETERS LIKE '%METRIC_LEVEL%'`
 2. **Verify:** Confirm active event table exists with `SHOW EVENT TABLES` and `SHOW PARAMETERS LIKE 'EVENT_TABLE'`
 3. **Configure:** Set appropriate telemetry levels based on environment (WARN+ for prod, DEBUG for dev)
 4. **Validate:** Query event tables to confirm data collection is working
 5. **Document:** Cross-reference specialized observability rules for logging, tracing, monitoring
-</steps>
 
-<output_format>
+### Output Format
 - SQL DDL statements with explicit telemetry level configuration
 - Monitoring queries with explicit column selection (no `SELECT *`)
 - Fully-qualified object names for production queries
 - Comments explaining telemetry strategy and cost considerations
-</output_format>
 
-<validation>
+### Validation
 - Verify telemetry parameters are set correctly with `SHOW PARAMETERS`
 - Confirm event table is receiving data with row count query
 - Ensure log levels are appropriate for environment (no DEBUG in production)
 - Verify retention policy on event tables aligns with cost budget
-</validation>
 
-<design_principles>
-- Configure telemetry levels hierarchically (Account then Database then Schema then Object) with cost-conscious data volume management.
-- Distinguish between System Views (historical, 45+ min latency) and Event Tables (real-time, seconds latency).
-- Always investigate current configuration before making changes (`SHOW PARAMETERS` is mandatory).
-- Set event table retention policies based on cost budget and analysis needs (7-90 days typical).
-- Use specialized rules for specific observability tasks: logging (111a), tracing (111b), monitoring (111c).
-</design_principles>
+### Design Principles
+- Configure telemetry levels hierarchically (Account then Database then Schema then Object) with cost-conscious data volume management
+- Distinguish between System Views (historical, 45+ min latency) and Event Tables (real-time, seconds latency) for appropriate data source selection
+- Always investigate current configuration before making changes (`SHOW PARAMETERS` is mandatory)
+- Set event table retention policies based on cost budget and analysis needs (7-90 days typical)
+- Use specialized rules for specific observability tasks: logging (111a), tracing (111b), monitoring (111c)
+- **CRITICAL:** DEBUG logging can generate 10-100x more data than WARN - always consider cost implications
+- **CRITICAL:** Never speculate about telemetry configuration - read actual settings first with `SHOW PARAMETERS`
+- Verify event tables are active before emitting telemetry (`SHOW PARAMETERS LIKE 'EVENT_TABLE'`)
 
-</contract>
+### Post-Execution Checklist
+- [ ] Event table verified as active before emitting telemetry (`SHOW PARAMETERS LIKE 'EVENT_TABLE'`)
+- [ ] Telemetry levels appropriate for environment (WARN+ for prod, DEBUG for dev only)
+- [ ] Cost implications reviewed for verbose logging levels (DEBUG can be 10-100x more data)
+- [ ] System Views used for historical analysis (>45 min old), Event Tables for real-time
+- [ ] Investigation-first protocol followed (read config with `SHOW PARAMETERS` before recommending changes)
+- [ ] Retention policy set on custom event tables (7-90 days typical)
+- [ ] Cross-references noted: 111a (logging), 111b (tracing), 111c (monitoring)
 
 ## Anti-Patterns and Common Mistakes
 
@@ -212,93 +206,7 @@ session.sql("SELECT SYSTEM$LOG('INFO', 'Process started')").collect()
 ```
 **Benefits:** Telemetry actually captured; operational visibility guaranteed; early detection of config issues; reliable observability; debuggable systems; production-ready instrumentation
 
-## Post-Execution Checklist
-- [ ] Event table verified as active before emitting telemetry (`SHOW PARAMETERS LIKE 'EVENT_TABLE'`)
-- [ ] Telemetry levels appropriate for environment (WARN+ for prod, DEBUG for dev only)
-- [ ] Cost implications reviewed for verbose logging levels (DEBUG can be 10-100x more data)
-- [ ] System Views used for historical analysis (>45 min old), Event Tables for real-time
-- [ ] Investigation-first protocol followed (read config with `SHOW PARAMETERS` before recommending changes)
-- [ ] Retention policy set on custom event tables (7-90 days typical)
-- [ ] Cross-references noted: 111a (logging), 111b (tracing), 111c (monitoring)
-
-## Validation
-- **Success Checks:**
-  - Telemetry parameters show expected levels: `SHOW PARAMETERS LIKE '%_LEVEL%' IN ACCOUNT` returns correct LOG_LEVEL, TRACE_LEVEL, METRIC_LEVEL
-  - Event table receives data: `SELECT COUNT(*) FROM snowflake.account_usage.event_table WHERE timestamp >= current_timestamp() - INTERVAL '1 hour'` returns > 0
-  - System View queries account for latency (no real-time expectations)
-  - Cost analysis confirms telemetry volume is within budget
-
-- **Negative Tests:**
-  - `SELECT * FROM snowflake.account_usage.event_table` should be rejected (use explicit columns)
-  - DEBUG level in production should trigger cost review (not automatically allowed)
-  - Querying System Views for real-time data (< 45 min) should show no recent results
-  - Telemetry configuration changes without `SHOW PARAMETERS` investigation should be caught
-  - Creating event tables without retention policy should prompt for cost consideration
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Read existing telemetry configuration BEFORE making changes** - Check current LOG_LEVEL, TRACE_LEVEL settings
-> 2. **Verify event table setup** - Check if event tables exist and are receiving data
-> 3. **Never assume monitoring patterns** - Review existing ACCOUNT_USAGE queries to understand patterns
-> 4. **Check Snowsight access** - Verify users can access monitoring dashboards
-> 5. **Test telemetry changes** - Validate logs/traces appear after configuration changes
->
-> **Anti-Pattern:**
-> "Enabling DEBUG logging... (without checking cost impact)"
-> "Querying event table with SELECT *... (inefficient, violates best practice)"
->
-> **Correct Pattern:**
-> "Let me check your current observability setup first."
-> [reads telemetry parameters, checks event tables, reviews queries]
-> "I see you use WARN level with daily ACCOUNT_USAGE queries. Adding new monitoring following this pattern..."
-
-## Output Format Examples
-```sql
--- Observability Core Setup Template
-
--- Step 1: Investigate current configuration
-SHOW PARAMETERS LIKE '%LOG_LEVEL%' IN ACCOUNT;
-SHOW PARAMETERS LIKE '%TRACE_LEVEL%' IN ACCOUNT;
-SHOW PARAMETERS LIKE '%METRIC_LEVEL%' IN ACCOUNT;
-SHOW PARAMETERS LIKE 'EVENT_TABLE' IN ACCOUNT;
-SHOW EVENT TABLES;
-
--- Step 2: Configure telemetry levels
-ALTER ACCOUNT SET LOG_LEVEL = WARN;      -- Production default
-ALTER ACCOUNT SET TRACE_LEVEL = ON_EVENT; -- Trace on errors only
-ALTER ACCOUNT SET METRIC_LEVEL = ALL;     -- Enable system metrics
-
--- Override for development database
-ALTER DATABASE dev_db SET LOG_LEVEL = DEBUG;
-ALTER DATABASE dev_db SET TRACE_LEVEL = ALWAYS;
-
--- Step 3: Verify event table is receiving data
-SELECT
-    record_type,
-    COUNT(*) as event_count,
-    MAX(timestamp) as latest_event
-FROM snowflake.account_usage.event_table
-WHERE timestamp >= current_timestamp() - INTERVAL '1 hour'
-GROUP BY record_type;
-```
-
-## References
-
-### Core Observability Documentation
-- [Snowflake Trail Observability Quickstart](https://quickstarts.snowflake.com/guide/getting-started-with-snowflake-trail-for-observability/) - Comprehensive quickstart for getting started with Snowflake Trail observability features
-- [Snowflake Logging, Tracing, and Metrics Overview](https://docs.snowflake.com/en/developer-guide/logging-tracing/logging-tracing-overview) - Comprehensive overview of observability features and OpenTelemetry alignment
-- [Event Table Setup Guide](https://docs.snowflake.com/en/developer-guide/logging-tracing/event-table-setting-up) - Step-by-step guide for setting up and managing event tables
-- [Snowflake Telemetry Levels](https://docs.snowflake.com/en/developer-guide/logging-tracing/telemetry-levels) - Complete guide to configuring telemetry levels and hierarchy
-- [Snowflake Builders Observability](https://docs.snowflake.com/en/developer-guide/builders/observability) - Best practices for building observable applications
-
-### Related Rules
-- **Snowflake Core**: `100-snowflake-core.md` - Foundation Snowflake practices
-- **Observability Logging**: `111a-snowflake-observability-logging.md` - Logging best practices and patterns
-- **Observability Tracing**: `111b-snowflake-observability-tracing.md` - Distributed tracing and metrics collection
-- **Observability Monitoring**: `111c-snowflake-observability-monitoring.md` - Monitoring, analysis, Snowsight interfaces, AI observability
-- **Cost Governance**: `105-snowflake-cost-governance.md` - Cost optimization strategies applicable to telemetry data
-
-## 0. Foundational Concepts
+## Foundational Concepts
 
 ### Snowflake Trail: Comprehensive Observability Suite
 - **Always:** Understand that "Snowflake Trail" is Snowflake's umbrella term for its complete observability suite encompassing logs, metrics, traces, events, alerts, and notifications.
@@ -375,7 +283,7 @@ FROM snowflake.account_usage.query_history
 WHERE start_time >= current_timestamp() - INTERVAL '24 hours';
 ```
 
-## 1. Telemetry Configuration
+## Telemetry Configuration
 
 ### Telemetry Level Hierarchy
 - **Always:** Understand the telemetry hierarchy: Account then Database then Schema then Object, and Session overrides.
@@ -430,7 +338,7 @@ GRANT MODIFY SESSION LOG LEVEL TO ROLE developer_debugging;
 GRANT MODIFY SESSION TRACE LEVEL TO ROLE developer_debugging;
 ```
 
-## 2. Event Table Management
+## Event Table Management
 
 ### Default Event Table (Enabled by Default)
 - **Always:** Snowflake accounts have a default event table automatically enabled in the `SNOWFLAKE.TELEMETRY` schema.
@@ -568,19 +476,3 @@ GROUP BY 1, 2
 HAVING avg_duration_ms > 1000
 ORDER BY avg_duration_ms DESC;
 ```
-
-## Related Rules
-
-**Closely Related** (consider loading together):
-- `111a-snowflake-observability-logging` - For logging best practices and standard library integration
-- `111b-snowflake-observability-tracing` - For distributed tracing patterns with custom spans
-- `111c-snowflake-observability-monitoring` - For monitoring queries and Snowsight interfaces
-
-**Sometimes Related** (load if specific scenario):
-- `103-snowflake-performance-tuning` - When using telemetry data for performance optimization
-- `115b-snowflake-cortex-agents-operations` - When implementing agent observability and evaluation
-- `109-snowflake-notebooks` - When adding telemetry to notebook executions
-
-**Complementary** (different aspects of same domain):
-- `105-snowflake-cost-governance` - For monitoring costs using telemetry data
-- `107-snowflake-security-governance` - For security event monitoring and audit logs

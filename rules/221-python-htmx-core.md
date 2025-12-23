@@ -7,25 +7,108 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** htmx, hypermedia, hateoas, hx-request, hx-trigger, partial rendering, sse, websockets, csrf, xss, http headers, swap strategies, oob swaps, response patterns
-**TokenBudget:** ~2500
+**TokenBudget:** ~4200
 **ContextTier:** High
 **Depends:** 200-python-core.md
+**LastUpdated:** 2025-12-23
 
-## Purpose
+## Scope
 
-Establishes foundational HTMX patterns for Python web applications, covering request/response lifecycle, HTTP header management, security considerations, and hypermedia-driven architecture principles for building interactive web applications without JavaScript frameworks.
+**What This Rule Covers:**
+Foundational HTMX patterns for Python web applications, covering request/response lifecycle, HTTP header management, security considerations, and hypermedia-driven architecture principles for building interactive web applications without JavaScript frameworks.
 
-## Rule Scope
+**When to Load This Rule:**
+- Building Python backend applications with HTMX
+- Implementing hypermedia-driven interactions (Flask, FastAPI, Django)
+- Working with HTMX request/response patterns
+- Managing HTTP headers for HTMX
+- Implementing security (CSRF, XSS) for HTMX endpoints
 
-Python backend applications using HTMX for hypermedia-driven interactions (Flask, FastAPI, Django, or other Python web frameworks)
+## References
 
-## Quick Start TL;DR
+### Dependencies
 
-**MANDATORY:**
-**Essential Patterns:**
+**Must Load First:**
+- **200-python-core.md** - Python coding standards
+
+**Related:**
+- **221a-python-htmx-templates.md** - Jinja2 patterns for HTMX
+- **221b-python-htmx-flask.md** - Flask-specific HTMX patterns
+- **221c-python-htmx-fastapi.md** - FastAPI-specific HTMX patterns
+- **221d-python-htmx-testing.md** - Testing HTMX endpoints
+- **221e-python-htmx-patterns.md** - CRUD, forms, infinite scroll
+- **221f-python-htmx-integrations.md** - Alpine.js, Tailwind, etc.
+- **221g-python-htmx-sse.md** - Server-Sent Events patterns
+
+### External Documentation
+
+- [HTMX Official Documentation](https://htmx.org/docs/) - Comprehensive HTMX reference
+- [HTMX Examples](https://htmx.org/examples/) - Common patterns and use cases
+- [Hypermedia Systems Book](https://hypermedia.systems/) - Carson Gross et al., HATEOAS principles
+- [OWASP CSRF Prevention](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html) - CSRF protection strategies
+
+## Contract
+
+### Inputs and Prerequisites
+
+- Python web framework installed (Flask/FastAPI)
+- HTMX library included in frontend
+- Understanding of HTTP request/response cycle
+- Template engine configured (Jinja2 recommended)
+
+### Mandatory
+
+- HTTP header inspection capability
+- Template rendering system
+- CSRF protection middleware
+- HTML sanitization for user-generated content
+- Test framework for validating headers/responses
+
+### Forbidden
+
+- Returning JSON for HTMX requests (anti-pattern)
+- Ignoring CSRF protection
+- Client-side routing (violates hypermedia principles)
+- Skipping XSS sanitization in partials
+- Using HTMX without server-side validation
+
+### Execution Steps
+
+1. Detect HTMX requests via `HX-Request: true` header
+2. Route logic: Return HTML fragment for HTMX, full page otherwise
+3. Set response headers: `HX-Trigger` for events, `HX-Redirect` for navigation
+4. Implement CSRF token validation for state-changing requests
+5. Use appropriate swap strategies in HTMX attributes
+6. Handle errors with proper HTTP status codes and `HX-Retarget`
+7. Test request/response cycle with header assertions
+
+### Output Format
+
+- HTML fragments for HTMX requests
+- Full HTML documents for non-HTMX requests
+- Response headers for client-side behavior control
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- HTMX request detection logic implemented (check `HX-Request` header)
+- Partial HTML templates created for HTMX responses
+- Full-page templates available for non-HTMX requests
+- CSRF protection configured for POST/PUT/DELETE endpoints
+- Response headers set appropriately (`HX-Trigger`, `HX-Redirect`, etc.)
+
+**Success Criteria:**
+- HTMX requests return partial HTML (not full documents or JSON)
+- `HX-Request` header correctly detected in backend
+- CSRF protection active for POST/PUT/DELETE
+- Response headers set correctly (`HX-Trigger`, `HX-Redirect`, etc.)
+- Tests validate headers and HTML structure
+
+### Design Principles
+
 - **Detect HTMX requests** - Check `HX-Request` header to differentiate HTMX from full-page requests
 - **Return HTML fragments** - HTMX requests return partial HTML, not JSON; full-page requests return complete documents
 - **Use response headers** - `HX-Trigger`, `HX-Redirect`, `HX-Refresh`, `HX-Retarget` control client behavior
@@ -34,50 +117,20 @@ Python backend applications using HTMX for hypermedia-driven interactions (Flask
 - **Validate swap strategies** - Use `innerHTML` (default), `outerHTML`, `beforebegin`, `afterend` based on DOM requirements
 - **Handle errors gracefully** - Return appropriate HTTP status codes; use `HX-Retarget` for error display
 
-**Pre-Execution Checklist:**
-- [ ] HTMX request detection logic implemented (check `HX-Request` header)
-- [ ] Partial HTML templates created for HTMX responses
-- [ ] Full-page templates available for non-HTMX requests
-- [ ] CSRF protection configured for POST/PUT/DELETE endpoints
-- [ ] Response headers set appropriately (`HX-Trigger`, `HX-Redirect`, etc.)
+### Post-Execution Checklist
+
+- [ ] HTMX requests detected via `HX-Request` header
+- [ ] Partial HTML templates created and tested
+- [ ] Response headers implemented (`HX-Trigger`, `HX-Redirect`, etc.)
+- [ ] CSRF protection configured and validated
+- [ ] XSS prevention verified in all partial responses
+- [ ] Swap strategies tested (innerHTML, outerHTML, etc.)
+- [ ] Error handling implemented with appropriate status codes
+- [ ] OOB swaps work correctly for multi-element updates
+- [ ] HATEOAS principles followed (server controls navigation)
+- [ ] Tests written for request headers and response structure
 - [ ] Security review completed (XSS prevention in partial responses)
 - [ ] Testing strategy defined (unit tests for headers, integration tests for HTML)
-
-## Contract
-
-<inputs_prereqs>
-Python web framework installed (Flask/FastAPI); HTMX library included in frontend; understanding of HTTP request/response cycle; template engine configured (Jinja2 recommended)
-</inputs_prereqs>
-
-<mandatory>
-HTTP header inspection capability; template rendering system; CSRF protection middleware; HTML sanitization for user-generated content; test framework for validating headers/responses
-</mandatory>
-
-<forbidden>
-Returning JSON for HTMX requests (anti-pattern); ignoring CSRF protection; client-side routing (violates hypermedia principles); skipping XSS sanitization in partials; using HTMX without server-side validation
-</forbidden>
-
-<steps>
-1. Detect HTMX requests via `HX-Request: true` header
-2. Route logic: Return HTML fragment for HTMX, full page otherwise
-3. Set response headers: `HX-Trigger` for events, `HX-Redirect` for navigation
-4. Implement CSRF token validation for state-changing requests
-5. Use appropriate swap strategies in HTMX attributes
-6. Handle errors with proper HTTP status codes and `HX-Retarget`
-7. Test request/response cycle with header assertions
-</steps>
-
-<output_format>
-HTML fragments for HTMX requests; full HTML documents for non-HTMX requests; response headers for client-side behavior control
-</output_format>
-
-<validation>
-- HTMX requests return partial HTML (not full documents or JSON)
-- `HX-Request` header correctly detected in backend
-- CSRF protection active for POST/PUT/DELETE
-- Response headers set correctly (`HX-Trigger`, `HX-Redirect`, etc.)
-- Tests validate headers and HTML structure
-</validation>
 
 ## Key Principles
 
@@ -408,34 +461,6 @@ def update():
         return response
 ```
 
-## Post-Execution Checklist
-
-- [ ] HTMX requests detected via `HX-Request` header
-- [ ] Partial HTML templates created and tested
-- [ ] Response headers implemented (`HX-Trigger`, `HX-Redirect`, etc.)
-- [ ] CSRF protection configured and validated
-- [ ] XSS prevention verified in all partial responses
-- [ ] Swap strategies tested (innerHTML, outerHTML, etc.)
-- [ ] Error handling implemented with appropriate status codes
-- [ ] OOB swaps work correctly for multi-element updates
-- [ ] HATEOAS principles followed (server controls navigation)
-- [ ] Tests written for request headers and response structure
-
-## Validation
-
-**Success Checks:**
-- `curl -H "HX-Request: true" /endpoint` returns HTML fragment
-- `curl /endpoint` (without HX-Request) returns full page
-- POST/PUT/DELETE requests require valid CSRF token
-- Response headers set correctly (`HX-Trigger`, etc.)
-- User-generated content escaped in templates
-- Tests pass for HTMX-specific behavior
-
-**Negative Tests:**
-- Request without CSRF token returns 403 Forbidden
-- Invalid input returns 400 with error message
-- Missing `HX-Request` header returns full page (not partial)
-- XSS attempts blocked (script tags escaped)
 
 ## Output Format Examples
 
@@ -486,21 +511,3 @@ def update_item(item_id):
 </script>
 ```
 
-## References
-
-### External Documentation
-- [HTMX Official Documentation](https://htmx.org/docs/) - Comprehensive HTMX reference
-- [HTMX Examples](https://htmx.org/examples/) - Common patterns and use cases
-- [Hypermedia Systems Book](https://hypermedia.systems/) - Carson Gross et al., HATEOAS principles
-- [OWASP CSRF Prevention](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html) - CSRF protection strategies
-
-### Related Rules
-
-- **Python Foundation**: `200-python-core.md` - Python coding standards
-- **Template Strategies**: `221a-python-htmx-templates.md` - Jinja2 patterns for HTMX
-- **Flask Integration**: `221b-python-htmx-flask.md` - Flask-specific HTMX patterns
-- **FastAPI Integration**: `221c-python-htmx-fastapi.md` - FastAPI-specific HTMX patterns
-- **Testing Patterns**: `221d-python-htmx-testing.md` - Testing HTMX endpoints
-- **Common Patterns**: `221e-python-htmx-patterns.md` - CRUD, forms, infinite scroll
-- **Frontend Integrations**: `221f-python-htmx-integrations.md` - Alpine.js, Tailwind, etc.
-- **SSE Patterns**: `221g-python-htmx-sse.md` - Server-Sent Events patterns

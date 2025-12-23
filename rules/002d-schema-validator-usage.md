@@ -7,71 +7,114 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
-**Keywords:** schema validator, validation errors, error resolution, CI/CD integration, exit codes, command selection, output parsing, automation workflow, JSON output, quiet mode, programmatic integration, regex patterns, error categorization
-**TokenBudget:** ~4800
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**Keywords:** schema validator, validation errors, error resolution, CI/CD integration, exit codes, command selection, output parsing, automation workflow, quiet mode, programmatic integration, error categorization
+**TokenBudget:** ~8150
 **ContextTier:** High
 **Depends:** 002-rule-governance.md, 000-global-core.md
 
-## Purpose
+## Scope
 
-Comprehensive guide for running schema_validator.py, interpreting validation output, resolving common errors, and integrating validation into CI/CD workflows.
+**What This Rule Covers:**
+Comprehensive guide for running `schema_validator.py` against v3.2 rules. Covers command usage, interpreting validation output, resolving common errors, CI/CD integration, and programmatic automation workflows.
 
-## Rule Scope
+**When to Load This Rule:**
+- Validating rule files against v3.2 schema
+- Debugging validation errors
+- Setting up CI/CD validation workflows
+- Understanding exit codes and error severity levels
+- Automating rule validation in scripts
 
-All AI agents validating rule files against schemas/rule-schema.yml.
+## References
 
-## Quick Start TL;DR
+### Dependencies
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Basic command** - `python3 scripts/schema_validator.py rules/NNN-rule.md`
-- **Verbose mode** - Add `--verbose` for detailed check output
-- **Directory validation** - `python3 scripts/schema_validator.py rules/` to validate all rules
-- **Success criteria** - 0 CRITICAL errors required, HIGH/MEDIUM errors review and fix
-- **Common errors** - Missing metadata, wrong Keywords count, Contract missing XML tags
+**Must Load First:**
+- **002-rule-governance.md** - Schema requirements and v3.2 standards
+- **000-global-core.md** - Foundation for all rules
 
-**Pre-Execution Checklist:**
-- [ ] Python 3.8+ installed with PyYAML library
-- [ ] schema_validator.py accessible in scripts/ directory
-- [ ] schemas/rule-schema.yml file present
-- [ ] Rule file exists and is readable
-- [ ] Ready to fix errors if validation fails
+**Related:**
+- **002a-rule-creation-guide.md** - Rule creation workflow with validation steps
+- **002b-rule-optimization.md** - Token budgets and performance
+
+### External Documentation
+
+- **Schema Definition:** `schemas/rule-schema.yml` - Authoritative v3.2 schema
+- **Validator Script:** `scripts/schema_validator.py` - Validation implementation
 
 ## Contract
 
-<inputs_prereqs>
-Rule file to validate; schemas/rule-schema.yml; Python 3.8+ environment; PyYAML installed
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-scripts/schema_validator.py; schemas/rule-schema.yml; Python 3 with PyYAML; text editor for fixes
-</mandatory>
+- Rule file to validate
+- `schemas/rule-schema.yml` (v3.2)
+- Python 3.8+ environment
+- PyYAML library installed
 
-<forbidden>
-Committing rules with CRITICAL errors; skipping validation; modifying schema_validator.py to pass invalid rules
-</forbidden>
+### Mandatory
 
-<steps>
-1. Run schema_validator.py on rule file
+- `scripts/schema_validator.py`
+- `schemas/rule-schema.yml`
+- Python 3 with PyYAML
+- Text editor for fixes
+
+### Forbidden
+
+- Committing rules with CRITICAL errors
+- Skipping validation before commits
+- Modifying `schema_validator.py` to pass invalid rules
+- Using outdated schema versions
+
+### Execution Steps
+
+1. Run `schema_validator.py` on rule file
 2. Review validation output (CRITICAL, HIGH, MEDIUM, INFO)
 3. Fix CRITICAL errors (required for passing)
 4. Review and fix HIGH errors (strongly recommended)
 5. Consider MEDIUM errors (optional improvements)
 6. Re-run validation until 0 CRITICAL errors
-</steps>
 
-<output_format>
-Validation report showing passed checks and error counts by severity
-</output_format>
+### Output Format
 
-<validation>
-- schema_validator.py runs without Python errors
-- Validation report generated successfully
-- CRITICAL error count displayed accurately
+Validation report showing:
+- Passed checks count
+- Error counts by severity (CRITICAL, HIGH, MEDIUM)
+- Line numbers and fix suggestions for each error
+- Overall PASS/FAIL result
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Python 3.8+ installed with PyYAML library
+- `schema_validator.py` accessible in scripts/ directory
+- `schemas/rule-schema.yml` file present
+- Rule file exists and is readable
+- Text editor ready for fixes
+
+**Success Criteria:**
+- Command `python3 scripts/schema_validator.py rules/NNN-rule.md` runs without Python errors
+- Validation report shows [PASS] RESULT: PASSED or [WARN] WARNINGS ONLY
+- CRITICAL error count is 0
 - Error messages include line numbers and fix suggestions
-</validation>
+- Re-validation after fixes shows improvement
+
+**Negative Tests:**
+- Missing metadata field triggers CRITICAL error
+- Wrong Keywords count triggers HIGH error
+- Missing Contract Markdown subsection triggers CRITICAL error
+- Section order violation triggers HIGH warning
+- Referenced non-existent files trigger MEDIUM warnings
+
+### Post-Execution Checklist
+
+- [ ] `schema_validator.py` runs without Python errors
+- [ ] Validation report generated successfully
+- [ ] All CRITICAL errors fixed (0 CRITICAL required)
+- [ ] HIGH errors reviewed and fixed (strongly recommended)
+- [ ] MEDIUM errors considered (optional)
+- [ ] Rule re-validated after fixes
+- [ ] CI/CD integration configured (if applicable)
 
 ## Running the Validator
 
@@ -573,19 +616,19 @@ else:
 **Keywords:** keyword1, keyword2, keyword3, keyword4, keyword5, keyword6, keyword7, keyword8, keyword9, keyword10
 ```
 
-**Validation:** Keywords field must have 10-15 comma-separated terms
+**Validation:** Keywords field must have 5-20 comma-separated terms
 
 ### Error 2: Keywords Count Wrong
 
 **Error Message:**
 ```
-[Metadata] Keywords count: 8 (expected 10-15)
+[Metadata] Keywords count: 3 (expected 5-20)
 ```
 
-**Fix:** Add more keywords to reach 10-15 count
+**Fix:** Add more keywords to reach 5-20 count
 ```markdown
-# Before (8 keywords - WRONG)
-**Keywords:** SQL, Snowflake, CTE, query, optimization, performance, tuning, warehouse
+# Before (3 keywords - WRONG)
+**Keywords:** SQL, Snowflake, CTE
 
 # After (12 keywords - CORRECT)
 **Keywords:** SQL, Snowflake, CTE, query optimization, performance, tuning, warehouse sizing, clustering, partitioning, EXPLAIN, query plan, cost analysis
@@ -602,7 +645,7 @@ else:
 ```markdown
 ## Metadata
 
-**RuleVersion:** v1.0.0
+**RuleVersion:** v2.0.0
 **Keywords:** keyword1, keyword2, ...
 ```
 
@@ -624,8 +667,8 @@ else:
 **RuleVersion:** version1.0.0   # Wrong prefix
 
 # Correct format
-**RuleVersion:** v1.0.0
-**RuleVersion:** v2.1.3
+**RuleVersion:** v2.0.0
+**RuleVersion:** v2.0.0
 ```
 
 ### Error 5: TokenBudget Format Wrong
@@ -646,89 +689,86 @@ else:
 **TokenBudget:** ~1200
 ```
 
-### Error 6: Missing Required Section
+### Error 6: Missing Required Section (v3.2)
 
 **Error Message:**
 ```
-[Structure] Missing required section: Quick Start TL;DR
+[Structure] Missing required section: Scope
 ```
 
-**Fix:** Add missing section in correct order
+**Fix:** Add missing Scope section after Metadata
 ```markdown
-## Quick Start TL;DR
+## Scope
 
-**MANDATORY:**
-**Essential Patterns:**
-- Pattern 1
-- Pattern 2
-- Pattern 3
+**What This Rule Covers:**
+[1-2 sentence description]
 
-**Pre-Execution Checklist:**
-- [ ] Item 1
-- [ ] Item 2
-- [ ] Item 3
+**When to Load This Rule:**
+- [Condition 1]
+- [Condition 2]
+- [Condition 3]
 ```
 
-### Error 7: Contract Missing XML Tag
+**Note:** v3.2 ELIMINATED Quick Start TL;DR. Required sections are: Metadata, Scope, References, Contract.
+
+### Error 7: Contract Missing Markdown Subsection (v3.2)
 
 **Error Message:**
 ```
-[Contract] Missing XML tag: <mandatory>
+[Contract] Missing Markdown subsection: ### Mandatory
   Line: 45
 ```
 
-**Fix:** Add missing XML tag to Contract section
+**Fix:** Add missing Markdown ### header to Contract section
 ```markdown
 ## Contract
 
-<inputs_prereqs>
+### Inputs and Prerequisites
 Prerequisites here
-</inputs_prereqs>
 
-<mandatory>
+### Mandatory
 Required tools and permissions
-</mandatory>
 
-<forbidden>
+### Forbidden
 Prohibited actions
-</forbidden>
 
-<steps>
+### Execution Steps
 1. Step 1
 2. Step 2
-</steps>
 
-<output_format>
+### Output Format
 Expected output
-</output_format>
 
-<validation>
+### Validation
 Success criteria
-</validation>
+
+### Post-Execution Checklist
+- [ ] Item 1
 ```
 
-### Error 8: Section Order Wrong
+**Note:** v3.2 uses Markdown ### headers. XML tags (`<inputs_prereqs>`, `<mandatory>`, etc.) are FORBIDDEN.
+
+### Error 8: Section Order Wrong (v3.2)
 
 **Error Message:**
 ```
 [Structure] Sections out of order: Contract should come before Key Principles
 ```
 
-**Fix:** Reorder sections per schema
+**Fix:** Reorder sections per v3.2 schema
 ```markdown
-# Correct order:
-1. Purpose
-2. Rule Scope
-3. Quick Start TL;DR
-4. Contract
+# Correct v3.2 order:
+1. Metadata (## Metadata with 6 required fields)
+2. Scope (## Scope - replaces Purpose + Rule Scope)
+3. References (## References - moved early for discovery)
+4. Contract (## Contract with 7 ### subsections)
 5. Key Principles (optional)
 6. [Main content sections]
-7. Anti-Patterns (optional)
-8. Post-Execution Checklist
-9. Validation
-10. Output Format Examples
-11. References
+7. Anti-Patterns and Common Mistakes (optional but recommended)
+8. Output Format Examples (optional)
 ```
+
+**Note:** v3.2 ELIMINATED Purpose, Rule Scope, Quick Start TL;DR sections. Post-Execution Checklist and Validation are now INSIDE Contract.
 
 ## Automated Validation + Fix Workflow
 
@@ -1062,32 +1102,6 @@ $ python3 scripts/schema_validator.py rules/ --json | jq '.summary'
   # Fix rules before merging, not after
 ```
 
-## Post-Execution Checklist
-
-- [ ] schema_validator.py runs without Python errors
-- [ ] Validation report generated successfully
-- [ ] All CRITICAL errors fixed (0 CRITICAL required)
-- [ ] HIGH errors reviewed and fixed (strongly recommended)
-- [ ] MEDIUM errors considered (optional)
-- [ ] Rule re-validated after fixes
-- [ ] CI/CD integration configured (if applicable)
-
-## Validation
-
-**Success Checks:**
-- Command `python3 scripts/schema_validator.py rules/NNN-rule.md` runs without errors
-- Validation report shows [PASS] RESULT: PASSED or [WARN] WARNINGS ONLY
-- CRITICAL error count is 0
-- Error messages include line numbers and fix suggestions
-- Re-validation after fixes shows improvement
-
-**Negative Tests:**
-- Missing metadata field triggers CRITICAL error
-- Wrong Keywords count triggers HIGH error
-- Missing Contract XML tag triggers CRITICAL error
-- Section order violation triggers HIGH warning
-- Referenced non-existent files trigger MEDIUM warnings
-
 ## Output Format Examples
 
 ### Example 1: Validating New Rule
@@ -1112,7 +1126,7 @@ SUMMARY:
 
 [FAIL] CRITICAL ISSUES (1):
 ────────────────────────────────────────────────────────────────────────────────
-[Metadata] Keywords count: 8 (expected 10-15)
+[Metadata] Keywords count: 3 (expected 5-20)
 
 # Fix: Add 2-7 more keywords
 vim rules/101d-snowflake-streamlit-testing.md
@@ -1151,18 +1165,7 @@ The schema validator checks that ContextTier is one of: Critical, High, Medium, 
 All four values remain valid - ContextTier is a secondary signal for fine-grained
 prioritization within natural language tiers (CRITICAL/CORE/FOUNDATION markers).
 
+For tier selection guidance, see `002b-rule-optimization.md`.
+
 The validator does NOT enforce relationships between markers and ContextTier values.
 
-## References
-
-### Related Rules
-- **Rule Governance**: `002-rule-governance.md` - Schema requirements and validation criteria
-- **Creation Guide**: `002a-rule-creation-guide.md` - Step 6 covers validation workflow
-- **Global Core**: `000-global-core.md` - Foundation patterns
-
-### Tools
-- **schema_validator.py**: `scripts/schema_validator.py` - Validation script
-- **token_validator.py**: `scripts/token_validator.py` - Token budget validation
-
-### Schema Definition
-- **v3.0 Schema**: `schemas/rule-schema.yml` - Authoritative validation rules

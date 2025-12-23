@@ -7,31 +7,72 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** Streamlit, SPCS, SiS, navigation, multipage, session state, st.connection, config.toml, theming, deployment, pandas, null handling, session management
-**TokenBudget:** ~4500
+**TokenBudget:** ~6500
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
+**LastUpdated:** 2025-12-22
 
-## Purpose
-Provide foundational guidance for Streamlit application setup, navigation patterns, state management, deployment mode selection (SiS vs SPCS), and theming configuration using config.toml as the primary styling method.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Foundational Streamlit application setup, navigation patterns, state management, deployment mode selection (SiS vs SPCS), and theming configuration using config.toml as the primary styling method.
 
-Streamlit core application architecture, multipage navigation, deployment modes, configuration management
+**When to Load This Rule:**
+- Building Streamlit applications on Snowflake
+- Implementing multipage Streamlit apps
+- Configuring Streamlit navigation (st.navigation or pages/)
+- Managing Streamlit session state
+- Setting up Streamlit themes and configuration
+- Deploying to SiS (Streamlit in Snowflake) or SPCS
+- Integrating Streamlit with Snowflake data sources
 
-## Quick Start TL;DR
+## References
 
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
+### Dependencies
 
-Position at top provides practical efficiency benefits for both LLMs and human developers.
+**Must Load First:**
+- **000-global-core.md** - Foundation rule with core patterns and validation gates
+- **100-snowflake-core.md** - Snowflake SQL patterns and best practices
 
-**MANDATORY:**
-**Essential Patterns:**
+**Recommended:**
+- **101a-snowflake-streamlit-visualization.md** - Charts and visualization patterns
+- **101b-snowflake-streamlit-performance.md** - Performance optimization (if exists)
+
+**Related:**
+- **101c-snowflake-streamlit-security.md** - Authentication, authorization, secure credentials
+- **102-snowflake-sql-demo-engineering.md** - SQL patterns for demo data
+- **103-snowflake-performance-tuning.md** - Query optimization
+- **107-snowflake-security-governance.md** - RBAC and security policies in Streamlit apps
+- **109-snowflake-notebooks.md** - Combining notebook development with Streamlit deployment
+- **111-snowflake-observability-core.md** - Monitoring Streamlit app performance and errors
+
+### External Documentation
+
+**Official Documentation:**
+- [Streamlit Documentation](https://docs.streamlit.io/) - Complete Streamlit reference
+- [Streamlit in Snowflake (SiS)](https://docs.snowflake.com/en/developer-guide/streamlit/about-streamlit) - SiS deployment guide
+- [Streamlit Navigation](https://docs.streamlit.io/develop/api-reference/navigation) - st.navigation() and multipage apps
+- [Streamlit Configuration](https://docs.streamlit.io/develop/concepts/configuration/options) - config.toml reference
+
+**Best Practices Guides:**
+- [Streamlit App Starter Kit](https://github.com/streamlit/app-starter-kit) - Official starter templates
+- [Streamlit Multipage Apps](https://docs.streamlit.io/develop/concepts/multipage-apps) - Navigation patterns
+
+## Contract
+
+### Inputs and Prerequisites
+
+- Python 3.11+ with Streamlit 1.46+
+- Snowflake connection configured
+- Deployment mode identified (SiS vs SPCS)
+- Project structure with pages/ or st.navigation() setup
+- .streamlit/config.toml for theming
+
+### Mandatory
+
 - **Deployment mode:** Verify SiS vs SPCS first (different capabilities)
 - **Theming:** Use .streamlit/config.toml ONLY (no custom CSS)
 - **Navigation:** st.navigation() (recommended) or pages/ directory (never both)
@@ -40,22 +81,17 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - **Secrets:** Use st.secrets (never hardcode credentials)
 - **Layout:** Native components only (st.columns, st.container, st.sidebar)
 
-## Contract
+### Forbidden
 
-<contract>
-<inputs_prereqs>
-Python 3.11+, Streamlit 1.46+, Snowflake connection, project structure with pages/ and/or st.navigation(), .streamlit/config.toml for theming, deployment mode identified (SiS vs SPCS)
-</inputs_prereqs>
+- Custom CSS/HTML injection via st.markdown(unsafe_allow_html=True)
+- Inline style attributes or JavaScript injection
+- Buttons for navigation (use st.page_link or st.switch_page)
+- Hardcoded theme values or secrets/credentials
+- Mixing st.navigation() with pages/ directory
+- Multiple st.set_page_config() calls
 
-<mandatory>
-st.navigation(), st.Page(), st.page_link(), st.switch_page(), st.set_page_config(), st.session_state, st.sidebar, st.columns, st.container, config.toml theme configuration (PRIMARY styling method), st.secrets
-</mandatory>
+### Execution Steps
 
-<forbidden>
-Custom CSS/HTML injection via st.markdown(unsafe_allow_html=True), inline style attributes, JavaScript injection, buttons for navigation (use st.page_link or st.switch_page), hardcoded theme values, hardcoded secrets/credentials
-</forbidden>
-
-<steps>
 1. Verify deployment mode (SiS vs SPCS) and apply correct configuration
 2. Set page config once in entrypoint file (title, icon, layout)
 3. Configure .streamlit/config.toml for all theming and styling
@@ -63,25 +99,107 @@ Custom CSS/HTML injection via st.markdown(unsafe_allow_html=True), inline style 
 5. Implement navigation using st.navigation() (recommended) or pages/ directory
 6. Use native Streamlit layout components (st.columns, st.container, st.sidebar)
 7. Configure secrets management (st.secrets)
-</steps>
 
-<output_format>
-Streamlit app with proper navigation, consistent theming via config.toml, secure configuration, responsive layout using native components
-</output_format>
+### Output Format
 
-<validation>
-Test navigation flow, verify theme loaded from config.toml, validate responsive design, check secrets loading, test multipage state persistence
-</validation>
+```python
+# app.py (entrypoint)
+import streamlit as st
 
-<design_principles>
+# ONCE only in entrypoint
+st.set_page_config(
+    page_title="My Streamlit App",
+    page_icon="🏔️",
+    layout="wide"
+)
+
+# Initialize session state
+if "user_id" not in st.session_state:
+    st.session_state.user_id = None
+
+# Navigation with st.navigation()
+pg = st.navigation([
+    st.Page("pages/home.py", title="Home", icon="🏠"),
+    st.Page("pages/dashboard.py", title="Dashboard", icon="📊"),
+])
+
+pg.run()
+```
+
+### Validation
+
+**Pre-Task-Completion Validation Gate (CRITICAL):**
+
+Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
+
+**Code Quality:**
+- **CRITICAL:** st.set_page_config() called ONCE in entrypoint only
+- **CRITICAL:** Theme configured via .streamlit/config.toml (no custom CSS)
+- **CRITICAL:** Secrets loaded from st.secrets (no hardcoded credentials)
+- **Format Check:** Navigation uses st.navigation() OR pages/ directory (not both)
+- **Format Check:** Session state initialized at top level
+
+**Functionality:**
+- **CRITICAL:** Navigation flows work correctly between pages
+- **CRITICAL:** Theme loads properly from config.toml
+- **CRITICAL:** Responsive layout using native components
+- **Deployment:** App works in target mode (SiS or SPCS)
+
+**Success Criteria:**
+- Navigation flows correctly
+- Theme consistent across pages
+- Session state persists across navigation
+- Secrets loading securely
+- No console errors
+
+**Investigation Required:**
+1. **Verify deployment mode first** (SiS vs SPCS capabilities differ)
+2. **Check existing navigation** (st.navigation or pages/ directory)
+3. **Review .streamlit/config.toml** for current theme settings
+4. **Test responsive behavior** on different screen sizes
+
+**Anti-Pattern Examples:**
+- Using custom CSS instead of config.toml
+- Multiple st.set_page_config() calls
+- Hardcoding secrets
+- Mixing navigation methods
+
+**Correct Pattern:**
+- "Let me check your deployment mode and existing Streamlit setup first."
+- [verifies SiS vs SPCS, reads config.toml, checks navigation pattern]
+- "I see you're using st.navigation(). Here's how to add a new page..."
+- [implements following established patterns]
+
+### Design Principles
+
 - **Deployment First:** Verify SiS vs SPCS deployment mode before implementation
 - **Configuration Over Code:** Use config.toml for all styling (no custom CSS/HTML)
 - **Native Components:** Leverage Streamlit's built-in layout system
 - **State Management:** Centralized session state initialization
-- **Security:** Use st.secrets for all credentials, never hardcode
-</design_principles>
+- **Secure By Default:** Use st.secrets for all sensitive data
+- **Single Page Config:** One st.set_page_config() call in entrypoint only
 
-</contract>
+### Post-Execution Checklist
+
+**Before Starting:**
+- [ ] Rule dependencies loaded (000-global-core.md, 100-snowflake-core.md)
+- [ ] Streamlit 1.46+ available
+- [ ] Deployment mode identified (SiS vs SPCS)
+- [ ] Existing Streamlit app structure reviewed (if modifying)
+
+**After Completion:**
+- [ ] **CRITICAL:** st.set_page_config() called ONCE in entrypoint only
+- [ ] **CRITICAL:** Theme configured via .streamlit/config.toml
+- [ ] **CRITICAL:** Secrets loaded from st.secrets
+- [ ] Navigation implemented (st.navigation() OR pages/)
+- [ ] Session state initialized at top level
+- [ ] Native layout components used (st.columns, st.container, st.sidebar)
+- [ ] No custom CSS or HTML injection
+- [ ] Navigation flows tested
+- [ ] Theme displays correctly
+- [ ] Responsive design verified
+- [ ] CHANGELOG.md and README.md updated as required
+
 
 ## Anti-Patterns and Common Mistakes
 
@@ -155,102 +273,6 @@ pg = st.navigation([home, settings])
 pg.run()  # Critical!
 ```
 
-## Post-Execution Checklist
-- [ ] Deployment mode verified (SiS vs SPCS) and correct configuration applied
-- [ ] st.set_page_config() called ONCE in entrypoint only (never in page files)
-- [ ] .streamlit/config.toml PRIMARY styling method (NO custom CSS/HTML)
-- [ ] Navigation uses st.navigation() (recommended) or pages/ directory (never both)
-- [ ] Session state initialized at top level with explicit variable names
-- [ ] st.secrets used for ALL credentials (never hardcoded)
-- [ ] Native layout components only (st.columns, st.container, st.sidebar)
-- [ ] pg.run() called after st.navigation() to execute selected page
-- [ ] Theme configuration tested and in version control
-- [ ] Responsive design tested on mobile/tablet viewports
-
-## Validation
-- **Success Checks:** App loads <2s, navigation works correctly, theme applied from config.toml, secrets loaded without errors, responsive layout works on mobile/desktop, state persists across page changes
-- **Negative Tests:** Try setting page config in child page (should error), test navigation without pg.run() (should not execute), verify custom CSS doesn't work in SiS deployment, test with missing secrets (should fail gracefully)
-
-> **Investigation Required**
-> When applying this rule:
-> 1. Read Streamlit app files BEFORE making recommendations
-> 2. Verify .streamlit/config.toml exists and check theme configuration
-> 3. Check actual navigation pattern (st.navigation() vs pages/ directory)
-> 4. Verify deployment mode (SiS vs SPCS) from project context or environment.yml
-> 5. Never speculate about component usage - inspect the code
-> 6. Check st.secrets configuration and usage patterns
-
-## Output Format Examples
-```python
-# streamlit_app.py (entrypoint file)
-import streamlit as st
-
-# Page configuration (ONCE, entrypoint only)
-st.set_page_config(
-    page_title="My App",
-    page_icon="",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
-# Initialize session state
-if 'authenticated' not in st.session_state:
-    st.session_state.authenticated = False
-
-# Shared sidebar widgets
-with st.sidebar:
-    environment = st.selectbox(
-        "Environment",
-        ["Development", "Production"],
-        key="env_filter"
-    )
-    st.divider()
-
-# Define pages with customization
-pages = {
-    "Main": [
-        st.Page("pages/home.py", title="Home", icon="🏠", default=True),
-        st.Page("pages/dashboard.py", title="Dashboard", icon=""),
-    ],
-    "Account": [
-        st.Page("pages/settings.py", title="Settings", icon=":gear:")
-    ]
-}
-
-# Configure and run navigation
-pg = st.navigation(pages, position="sidebar", expanded=True)
-pg.run()
-```
-
-## References
-
-### External Documentation
-
-**Core Streamlit Documentation:**
-- [Streamlit Documentation](https://docs.streamlit.io/) - Official Streamlit application development guide
-- [App Design Concepts](https://docs.streamlit.io/develop/concepts/design) - Comprehensive UI/UX design patterns
-- [Theming Overview](https://docs.streamlit.io/develop/concepts/configuration/theming) - Complete guide to theme customization using config.toml
-- [Configuration Options](https://docs.streamlit.io/develop/concepts/configuration) - Complete configuration reference
-
-**Navigation:**
-- [Streamlit Navigation and Pages](https://docs.streamlit.io/develop/api-reference/navigation) - Modern multipage navigation API
-- [st.navigation()](https://docs.streamlit.io/develop/api-reference/navigation/st.navigation) - Configure pages and navigation UI
-- [st.Page()](https://docs.streamlit.io/develop/api-reference/navigation/st.page) - Define and customize individual pages
-- [st.page_link()](https://docs.streamlit.io/develop/api-reference/navigation/st.page_link) - Create inline links between pages
-- [st.switch_page()](https://docs.streamlit.io/develop/api-reference/navigation/st.switch_page) - Programmatic page navigation
-- [Dynamic Navigation Tutorial](https://docs.streamlit.io/develop/tutorials/multipage/dynamic-navigation) - Advanced navigation patterns
-
-**Layout:**
-- [Layout API Reference](https://docs.streamlit.io/develop/api-reference/layout) - Complete layout component documentation
-- [st.columns()](https://docs.streamlit.io/develop/api-reference/layout/st.columns) - Multi-column responsive layouts
-- [st.container()](https://docs.streamlit.io/develop/api-reference/layout/st.container) - Content grouping and bordered sections
-- [st.sidebar](https://docs.streamlit.io/develop/api-reference/layout/st.sidebar) - Persistent sidebar panel
-
-**Snowflake Integration:**
-- [Snowflake Streamlit Guide](https://docs.snowflake.com/en/developer-guide/streamlit/about-streamlit) - Snowflake-specific Streamlit integration
-- [Snowpark Container Services (SPCS)](https://docs.snowflake.com/en/developer-guide/snowpark-container-services) - Deploying containerized Streamlit apps
-
-### Related Rules
 - **Snowflake Core**: `100-snowflake-core.md`
 - **App Deployment**: `109b-snowflake-app-deployment-core.md`
 - **Streamlit Visualization**: `101a-snowflake-streamlit-visualization.md`
@@ -267,7 +289,7 @@ pg.run()
 > - Investigation-first: Excel at discovering config.toml theme settings and navigation structure from filesystem
 > - State discovery: Can track st.session_state usage patterns across multiple page files
 
-## 1. Deployment Mode Selection: SiS vs SPCS
+## Deployment Mode Selection: SiS vs SPCS
 
 **MANDATORY:**
 **Choosing the right deployment mode is critical for long-term success.**
@@ -412,7 +434,7 @@ dependencies:
 
 **Key Takeaway:** SiS environment.yml files should contain **only package names** - no versions, no Python specification, no custom channels. Snowflake manages all versions automatically.
 
-## 2. Setup and Project Structure
+## Setup and Project Structure
 
 ### Basic Setup
 **MANDATORY:**
@@ -440,7 +462,7 @@ if 'data_loaded' not in st.session_state:
     st.session_state.data_loaded = False
 ```
 
-## 3. Multipage Navigation (Streamlit 1.26+)
+## Multipage Navigation
 
 **MANDATORY:**
 - **Requirement:** Use `st.navigation()` in your entrypoint file for dynamic multipage apps (**recommended pattern**)
@@ -503,7 +525,7 @@ pg.run()
 - Use `st.switch_page()` for programmatic navigation (e.g., after form submission)
 - Never use `st.button()` for navigation (use for actions only)
 
-## 4. Configuration and Theming
+## Configuration and Theming
 
 ### Core Theming Philosophy
 **FORBIDDEN:**
@@ -599,7 +621,7 @@ port = 8501
 gatherUsageStats = false
 ```
 
-## 5. State Management
+## State Management
 
 **MANDATORY:**
 - **Requirement:** Manage state predictably with `st.session_state` and callbacks for complex updates
@@ -623,7 +645,7 @@ def login_callback():
 st.button("Login", on_click=login_callback)
 ```
 
-## 6. Layout Components
+## Layout Components
 
 **MANDATORY:**
 **Use native Streamlit layout components as primary layout tools:**
@@ -668,7 +690,7 @@ with st.sidebar:
     status = st.selectbox("Status", ["All", "Active", "Inactive"])
 ```
 
-## 7. Secrets Management
+## Secrets Management
 
 **MANDATORY:**
 - **Mandatory:** Use `st.secrets` for all sensitive configuration (API keys, passwords, tokens)
@@ -691,7 +713,7 @@ except KeyError as e:
 api_key = "sk-1234567890abcdef"  # Hardcoded secret!
 ```
 
-## 8. Pandas NULL Handling: Snowflake NULL vs Python None
+## Pandas NULL Handling
 
 **MANDATORY:**
 
@@ -779,17 +801,3 @@ Values that commonly return NULL and require pandas-aware handling:
 - Yes: MUST validate not NULL/NaN first
 - No: Still validate for display purposes
 
-## Related Rules
-
-**Closely Related** (consider loading together):
-- `101b-snowflake-streamlit-performance` - For caching strategies, query optimization, error handling
-- `101a-snowflake-streamlit-visualization` - For chart types, customization, and visualization best practices
-
-**Sometimes Related** (load if specific scenario):
-- `101c-snowflake-streamlit-security` - When implementing authentication, authorization, secure credentials
-- `103-snowflake-performance-tuning` - When optimizing underlying Snowflake queries
-- `109-snowflake-notebooks` - When combining notebook development with Streamlit deployment
-
-**Complementary** (different aspects of same domain):
-- `107-snowflake-security-governance` - For RBAC and security policies in Streamlit apps
-- `111-snowflake-observability-core` - For monitoring Streamlit app performance and errors

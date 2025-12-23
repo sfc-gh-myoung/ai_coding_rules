@@ -2,69 +2,147 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**LastUpdated:** 2025-12-23
 **Keywords:** Demo creation, synthetic data, realistic demos, data generation, demo applications, narrative design, reproducible data, progressive disclosure, Streamlit, data visualization
-**TokenBudget:** ~1150
+**TokenBudget:** ~1900
 **ContextTier:** Low
-**Depends:** None
+**Depends:** 000-global-core.md
 
-## Purpose
-Establish directives for creating realistic, deterministic, and effective demo applications, covering data generation, narrative design, and visual clarity to deliver compelling demonstrations that showcase product capabilities.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Directives for creating realistic, deterministic, and effective demo applications. Covers data generation, narrative design, and visual clarity to deliver compelling demonstrations that showcase product capabilities.
 
-Realistic, deterministic, and effective demo application creation with narrative clarity
+**When to Load This Rule:**
+- Creating demo applications or proof-of-concepts
+- Generating synthetic data for demonstrations
+- Designing narrative-driven demos
+- Building reproducible demo environments
+- Optimizing demo performance and reliability
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Story-first approach** - Lead with customer problem and clear outcome
-- **Reproducible data** - Use consistent seeding for deterministic results
-- **Offline fallback** - Build resilience for live demo failures
-- **Progressive disclosure** - Start basic, show advanced features later
-- **Minimize latency** - Pre-warm data and caches
-- **Narrative-aligned data** - Realistic, not random noise
-- **Never generate massive datasets in memory** - Use batch generation
+### Dependencies
 
-**Quick Checklist:**
-- [ ] Demo narrative defined
-- [ ] Data reproducible with seeding
-- [ ] Offline mode available
-- [ ] Progressive disclosure path clear
-- [ ] Performance optimized
-- [ ] Data realistic and aligned
-- [ ] Batch generation used
+**Must Load First:**
+- **000-global-core.md** - Foundation for all rules
+
+**Related:**
+- **100-snowflake-core.md** - Snowflake SQL patterns
+- **101-snowflake-streamlit-core.md** - Streamlit UI patterns
+- **240-python-faker.md** - Synthetic data generation with Faker
+- **920-data-science-analytics.md** - Data science and analytics patterns
+
+### External Documentation
+
+- [Demo Design Best Practices](https://www.salesforce.com/resources/articles/sales-demo/) - Effective demonstration techniques and strategies
+- [Faker Documentation](https://faker.readthedocs.io/) - Synthetic data generation library documentation
+- [Streamlit Demo Gallery](https://streamlit.io/gallery) - Examples of effective data application demonstrations
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-[Context, files, dependencies needed]
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-[Tools permitted for this domain]
-</mandatory>
+- Demo narrative and target audience defined
+- Technology stack selected (Streamlit, Snowflake, etc.)
+- Data schema requirements identified
+- Performance and latency constraints understood
 
-<forbidden>
-[Tools not allowed for this domain]
-</forbidden>
+### Mandatory
 
-<steps>
-[Ordered steps the agent must follow]
-</steps>
+- Use Faker library for synthetic data generation with consistent seeding
+- Implement batch generation for large datasets (avoid in-memory generation)
+- Build offline fallback mechanisms for live demo resilience
+- Pre-warm data and caches to minimize latency
+- Use relative timestamps to keep demos fresh over time
+- Provide clean reset capability for session state
 
-<output_format>
-[Expected output format]
-</output_format>
+### Forbidden
 
-<validation>
-[Checks to confirm success]
-</validation>
+- Generating massive datasets in memory during live demos
+- Using fully random independent columns without realistic correlations
+- Showing raw stack traces to demo audiences
+- Hard-coding record counts (use DemoScenario pattern)
+- Random noise data without narrative alignment
 
-</contract>
+### Execution Steps
+
+1. Define demo narrative with customer problem and clear outcome
+2. Design data schema with referential integrity constraints
+3. Implement batch data generation with Faker seeding (seed=42 for reproducibility)
+4. Create progressive disclosure path from basic to advanced features
+5. Build offline fallback mechanisms for resilience
+6. Pre-warm caches and optimize for minimal latency
+7. Add user-friendly error messages and annotations
+8. Implement clean reset capability
+9. Test demo flow end-to-end with realistic timing
+10. Validate data reproducibility and narrative alignment
+
+### Output Format
+
+Demo application with:
+- Story-first narrative structure
+- Reproducible synthetic data (seeded)
+- Offline fallback mode
+- Progressive disclosure UI
+- Clean visual design with limited color palette
+- User-friendly error messages
+- Annotations for anomalies and AI outputs
+- Clean reset capability
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Demo narrative defined and clear
+- Data generation uses consistent seeding
+- Offline mode implemented and tested
+- Progressive disclosure path validated
+- Performance optimized (pre-warmed caches)
+- Data realistic with correlations
+- Batch generation used for large datasets
+
+**Success Criteria:**
+- Demo runs reproducibly with same seed
+- Data shows realistic correlations and patterns
+- Offline mode works without external dependencies
+- Demo timing predictable and optimized
+- Error messages user-friendly (no stack traces)
+- Reset capability clears all state cleanly
+- Visual design clean and consistent
+
+**Negative Tests:**
+- Massive dataset generation should NOT block UI
+- Random independent columns should NOT pass review
+- Raw stack traces should NOT appear to users
+- Hard-coded record counts should trigger refactoring
+- Demo should work offline (no external API failures)
+
+### Design Principles
+
+- **Story-first approach:** Lead with customer problem and clear outcome
+- **Reproducibility:** Use consistent seeding for deterministic results
+- **Resilience:** Build offline fallback for live demo failures
+- **Progressive disclosure:** Start basic, show advanced features later
+- **Performance:** Minimize latency with pre-warmed data and caches
+- **Realism:** Narrative-aligned data with correlations, not random noise
+- **Efficiency:** Batch generation for large datasets, never in-memory
+
+### Post-Execution Checklist
+
+- [ ] Demo narrative defined with customer problem and outcome
+- [ ] Data reproducible with consistent seeding (Faker seed=42)
+- [ ] Offline mode available and tested
+- [ ] Progressive disclosure path clear and validated
+- [ ] Performance optimized (pre-warmed caches, minimal latency)
+- [ ] Data realistic with correlations aligned to narrative
+- [ ] Batch generation used for large datasets
+- [ ] User-friendly error messages (no raw stack traces)
+- [ ] Annotations provided for anomalies and AI outputs
+- [ ] Clean reset capability implemented and tested
+- [ ] Visual design clean with limited color palette
+- [ ] Relative timestamps used to keep demos fresh
 
 ## Anti-Patterns and Common Mistakes
 
@@ -123,93 +201,28 @@ for _ in range(1000):
 ```
 **Benefits:** Realistic correlations, meaningful patterns, supports narrative storytelling.
 
-## Post-Execution Checklist
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
+## Core Principles
 
-## Validation
-- **Success checks:** [How to verify correct implementation]
-- **Negative tests:** [What should fail and how to detect failures]
+- **Story-first approach:** Make demos lead with a customer problem and clear outcome
+- **Reproducibility:** Ensure data is deterministic via consistent seeding (Faker seed=42)
+- **Resilience:** Build offline fallback for live failures
+- **Progressive disclosure:** Start with basic insights, show advanced features later
+- **Performance:** Minimize latency with pre-warmed data and caches
 
-## Output Format Examples
+## Data Generation and Loading
 
-```markdown
-Implementation Summary:
+- **Narrative alignment:** Keep synthetic data realistic, not random noise
+- **Referential integrity:** Enforce foreign key constraints for all relationships
+- **Batch generation:** Avoid generating massive datasets in memory; use generators to stream chunks
+- **Snowflake loading:** Use DataFrame vectorized writes and tag queries with `QUERY_TAG='demo_data_pipeline'`
+- **Write strategy:** Overwrite on first batch; append on subsequent batches
+- **Scenario pattern:** Do not hard-code record counts; use `DemoScenario` or similar pattern
 
-**Rule Applied:** [rule filename]
-**Domain:** [technology/framework]
-**Changes:** [high-level summary]
+## Demo Presentation and Reliability
 
-Investigation Results:
-- Current state: [what was found]
-- Requirements: [what needs to change]
-- Constraints: [limitations identified]
-
-Implementation Steps:
-1. **[Step 1]**: [Specific action taken]
-   - File: `path/to/file`
-   - Change: [delta description]
-
-2. **[Step 2]**: [Another action]
-   - Configuration: [what was configured]
-   - Rationale: [why this approach]
-
-3. **[Step 3]**: [Validation action]
-   - Test: [specific test run]
-   - Result: [outcome]
-
-Validation Results:
-```bash
-# Commands run to validate
-command --validate
-test --run-all
-```
-
-Output:
-```
-[Test output showing success]
-```
-
-Next Steps:
-- [Optional follow-up items]
-- [Monitoring recommendations]
-```
-
-## References
-
-### External Documentation
-- [Demo Design Best Practices](https://www.salesforce.com/resources/articles/sales-demo/) - Effective demonstration techniques and strategies
-- [Faker Documentation](https://faker.readthedocs.io/) - Synthetic data generation library documentation
-- [Streamlit Demo Gallery](https://streamlit.io/gallery) - Examples of effective data application demonstrations
-
-### Related Rules
-- **Snowflake Core**: `100-snowflake-core.md`
-- **Streamlit UI**: `101-snowflake-streamlit-core.md`
-- **Faker**: `240-python-faker.md`
-- **Data Science Analytics**: `920-data-science-analytics.md`
-
-## 1. Core Principles
-- **Requirement:** Make demos story-first, leading with a customer problem and clear outcome.
-- **Requirement:** Ensure data is reproducible and deterministic via consistent seeding.
-- **Requirement:** Build resilience with an offline fallback for live failures.
-- **Requirement:** Follow progressive disclosure, from basic insights to advanced features.
-- **Requirement:** Minimize latency with pre-warmed data and caches.
-
-## 2. Data Generation & Loading
-- **Requirement:** Keep synthetic data narrative-aligned and realistic, not random noise.
-- **Requirement:** Enforce referential integrity for all foreign keys.
-- **Requirement:** Avoid generating massive datasets in memory; use batch generation with generators to stream chunks.
-- **Always:** When loading into Snowflake, use DataFrame vectorized writes and tag queries with `QUERY_TAG='demo_data_pipeline'`.
-- **Always:** Overwrite on the first batch; append on subsequent batches.
-- **Requirement:** Do not hard-code record counts; use a `DemoScenario` or similar pattern.
-
-## 3. Demo Presentation & Reliability
-- **Requirement:** Keep the visual design clean and consistent with a limited color palette.
-- **Requirement:** Ensure each UI/UX element serves a clear purpose.
-- **Mandatory:** Never show raw stack traces; use user-friendly error messages.
-- **Always:** Provide annotations for anomalies and AI outputs for context and explainability.
-- **Always:** Provide a clean reset capability to clear caches and session state between runs.
-- **Requirement:** Use relative timestamps so demos stay fresh over time.
+- **Visual design:** Keep clean and consistent with limited color palette
+- **UI/UX clarity:** Ensure each element serves a clear purpose
+- **Error handling:** Never show raw stack traces; use user-friendly error messages
+- **Annotations:** Provide context for anomalies and AI outputs for explainability
+- **Reset capability:** Provide clean reset to clear caches and session state between runs
+- **Timestamps:** Use relative timestamps so demos stay fresh over time

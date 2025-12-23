@@ -2,25 +2,114 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** crud, forms, validation, infinite scroll, lazy loading, sse, progressive enhancement, modals, search, autocomplete, real-time, polling, inline editing
-**TokenBudget:** ~2600
+**TokenBudget:** ~5000
 **ContextTier:** High
 **Depends:** 221-python-htmx-core.md, 221a-python-htmx-templates.md
+**LastUpdated:** 2025-12-23
 
-## Purpose
+## Scope
 
-Provides reusable HTMX implementation patterns for common web application features including CRUD operations, form validation, infinite scroll, real-time updates, progressive enhancement, modals, search, and multi-step workflows.
+**What This Rule Covers:**
+Reusable HTMX implementation patterns for common web application features including CRUD operations, form validation, infinite scroll, real-time updates, progressive enhancement, modals, search, and multi-step workflows.
 
-## Rule Scope
+**When to Load This Rule:**
+- Implementing CRUD operations with HTMX
+- Building forms with server-side validation
+- Creating infinite scroll or lazy loading
+- Implementing search and autocomplete
+- Building modals and drawers with HTMX
+- Creating multi-step forms/wizards
+- Implementing real-time updates with SSE or polling
 
-Python web applications implementing common interactive patterns with HTMX (applicable to Flask, FastAPI, Django)
+## References
 
-## Quick Start TL;DR
+### Dependencies
 
-**MANDATORY:**
-**Essential Patterns:**
+**Must Load First:**
+- **221-python-htmx-core.md** - HTMX core concepts
+- **221a-python-htmx-templates.md** - Jinja2 patterns
+
+**Related:**
+- **221b-python-htmx-flask.md** - Flask-specific patterns
+- **221c-python-htmx-fastapi.md** - FastAPI patterns
+- **221d-python-htmx-testing.md** - Testing these patterns
+- **221f-python-htmx-integrations.md** - Frontend library integrations
+
+### External Documentation
+
+- [HTMX Examples](https://htmx.org/examples/) - Official pattern library
+- [Hypermedia Systems](https://hypermedia.systems/) - Book on hypermedia patterns
+- [HTMX Essays](https://htmx.org/essays/) - Architecture and design philosophy
+
+## Contract
+
+### Inputs and Prerequisites
+
+- HTMX library loaded
+- HTMX core patterns (221-python-htmx-core.md)
+- Template strategies (221a-python-htmx-templates.md)
+- Server-side validation
+- Python web framework configured
+
+### Mandatory
+
+- HTMX library
+- Server-side routing
+- Template engine (Jinja2)
+- Form validation logic
+- Unique element IDs
+- HTTP methods support (GET, POST, PUT, DELETE)
+
+### Forbidden
+
+- Client-side validation only
+- Missing server-side checks
+- No error handling
+- Hard-coded IDs
+- Skipping progressive enhancement
+- Using JSON responses for HTMX
+
+### Execution Steps
+
+1. Identify pattern requirements (CRUD, search, modal, etc.)
+2. Create partial templates for pattern components
+3. Define routes with appropriate HTTP methods
+4. Implement server-side validation and business logic
+5. Configure HTMX attributes (hx-*, hx-trigger, hx-target, hx-swap)
+6. Set response headers (HX-Trigger, HX-Redirect, etc.) as needed
+7. Test pattern with and without HTMX (progressive enhancement)
+8. Handle errors gracefully with retargeting
+
+### Output Format
+
+- Reusable pattern implementations with HTML templates
+- Python route handlers
+- HTMX attributes
+- Server-side logic
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Pattern requirements understood (CRUD, forms, search, etc.)
+- Templates created for partials (row, form, results, modal)
+- Server-side validation implemented
+- HTMX attributes configured (hx-get, hx-post, hx-target, hx-swap)
+- Event handling defined (HX-Trigger headers, client-side listeners)
+- Error handling implemented
+
+**Success Criteria:**
+- Pattern works with HTMX enabled
+- Graceful degradation without JavaScript
+- Server-side validation enforced
+- Error cases handled appropriately
+- Tests cover happy path and edge cases
+- Progressive enhancement verified
+
+### Design Principles
+
 - **Inline editing** - Click to edit, use `outerHTML` swap to replace element
 - **Form validation** - Server-side validation, return form with errors on invalid input
 - **Delete with confirm** - Use `hx-confirm` attribute for user confirmation
@@ -30,52 +119,17 @@ Python web applications implementing common interactive patterns with HTMX (appl
 - **Modals/drawers** - Target modal container, use `outerHTML` to replace content
 - **Multi-step forms** - Each step returns next form fragment, track state server-side
 
-**Pre-Execution Checklist:**
-- [ ] Pattern requirements understood (CRUD, forms, search, etc.)
-- [ ] Templates created for partials (row, form, results, modal)
-- [ ] Server-side validation implemented
-- [ ] HTMX attributes configured (hx-get, hx-post, hx-target, hx-swap)
-- [ ] Event handling defined (HX-Trigger headers, client-side listeners)
-- [ ] Error handling implemented
+### Post-Execution Checklist
+
+- [ ] Pattern implemented with appropriate HTMX attributes
+- [ ] Server-side validation enforced
+- [ ] Error handling returns HTML with proper status codes
 - [ ] Progressive enhancement tested (works without JavaScript)
-
-## Contract
-
-<inputs_prereqs>
-HTMX library loaded; HTMX core patterns (221-python-htmx-core.md); template strategies (221a-python-htmx-templates.md); server-side validation; Python web framework configured
-</inputs_prereqs>
-
-<mandatory>
-HTMX library; server-side routing; template engine (Jinja2); form validation logic; unique element IDs; HTTP methods support (GET, POST, PUT, DELETE)
-</mandatory>
-
-<forbidden>
-Client-side validation only; missing server-side checks; no error handling; hard-coded IDs; skipping progressive enhancement; using JSON responses for HTMX
-</forbidden>
-
-<steps>
-1. Identify pattern requirements (CRUD, search, modal, etc.)
-2. Create partial templates for pattern components
-3. Define routes with appropriate HTTP methods
-4. Implement server-side validation and business logic
-5. Configure HTMX attributes (hx-*, hx-trigger, hx-target, hx-swap)
-6. Set response headers (HX-Trigger, HX-Redirect, etc.) as needed
-7. Test pattern with and without HTMX (progressive enhancement)
-8. Handle errors gracefully with retargeting
-</steps>
-
-<output_format>
-Reusable pattern implementations with HTML templates, Python route handlers, HTMX attributes, and server-side logic
-</output_format>
-
-<validation>
-- Pattern works with HTMX enabled
-- Graceful degradation without JavaScript
-- Server-side validation enforced
-- Error cases handled appropriately
-- Tests cover happy path and edge cases
-- Progressive enhancement verified
-</validation>
+- [ ] Element IDs unique and properly targeted
+- [ ] Response headers set (HX-Trigger, HX-Redirect, etc.)
+- [ ] Tests cover success and error cases
+- [ ] Templates organized (partials separate from full pages)
+- [ ] Security reviewed (CSRF, XSS, input validation)
 
 ## Key Principles
 
@@ -627,33 +681,6 @@ def create_user():
 </form>
 ```
 
-## Post-Execution Checklist
-
-- [ ] Pattern implemented with appropriate HTMX attributes
-- [ ] Server-side validation enforced
-- [ ] Error handling returns HTML with proper status codes
-- [ ] Progressive enhancement tested (works without JavaScript)
-- [ ] Element IDs unique and properly targeted
-- [ ] Response headers set (HX-Trigger, HX-Redirect, etc.)
-- [ ] Tests cover success and error cases
-- [ ] Templates organized (partials separate from full pages)
-- [ ] Security reviewed (CSRF, XSS, input validation)
-
-## Validation
-
-**Success Checks:**
-- Pattern works with HTMX enabled
-- Graceful degradation without JavaScript
-- Server-side validation catches invalid input
-- Error messages display correctly
-- Events trigger appropriately (HX-Trigger headers)
-- Tests pass for all scenarios
-
-**Negative Tests:**
-- Invalid input returns 400 with error HTML
-- Missing required fields rejected
-- Unauthorized access returns 401/403
-- Non-existent resources return 404
 
 ## Output Format Examples
 
@@ -693,17 +720,3 @@ def delete_user(user_id):
     return response
 ```
 
-## References
-
-### External Documentation
-- [HTMX Examples](https://htmx.org/examples/) - Official pattern library
-- [Hypermedia Systems](https://hypermedia.systems/) - Book on hypermedia patterns
-- [HTMX Essays](https://htmx.org/essays/) - Architecture and design philosophy
-
-### Related Rules
-- **HTMX Foundation**: `221-python-htmx-core.md` - Core HTMX concepts
-- **Template Strategies**: `221a-python-htmx-templates.md` - Jinja2 patterns
-- **Flask Integration**: `221b-python-htmx-flask.md` - Flask-specific patterns
-- **FastAPI Integration**: `221c-python-htmx-fastapi.md` - FastAPI patterns
-- **Testing**: `221d-python-htmx-testing.md` - Testing these patterns
-- **Integrations**: `221f-python-htmx-integrations.md` - Frontend library integrations

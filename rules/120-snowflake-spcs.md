@@ -2,93 +2,141 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**LastUpdated:** 2025-12-23
 **Keywords:** service deployment, compute pools, OCI images, image registry, health checks, GPU workloads, create service, compute pool, container deployment, service spec, container troubleshooting, SPCS error, service logs
-**TokenBudget:** ~5150
+**TokenBudget:** ~7200
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 
-## Purpose
-Provide comprehensive guidance for deploying, managing, and optimizing containerized applications using Snowflake Snowpark Container Services, covering architecture patterns, security, performance optimization, and operational best practices.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive guidance for deploying, managing, and optimizing containerized applications using Snowflake Snowpark Container Services (SPCS). Covers architecture patterns, compute pools, security, performance optimization, monitoring, logging, troubleshooting, and operational best practices for containerized workloads and microservices.
 
-Snowflake Snowpark Container Services, containerized applications, microservices
+**When to Load This Rule:**
+- Deploying containerized applications on Snowflake SPCS
+- Creating or configuring SPCS compute pools
+- Troubleshooting SPCS service failures or container issues
+- Implementing security patterns for SPCS services
+- Optimizing SPCS resource usage and costs
+- Setting up monitoring and logging for containerized workloads
+- Working with GPU-enabled ML/AI workloads on SPCS
 
-**Progressive Disclosure - Token Budget:**
-- Quick Start + Contract: ~400 tokens (always load for SPCS tasks)
-- + Service Creation (sections 1-2): ~1000 tokens (load for setup)
-- + Networking & Security (sections 3-4): ~1800 tokens (load for configuration)
-- + Complete Reference: ~2400 tokens (full SPCS guide)
+## References
 
-**Recommended Loading Strategy:**
-- **Understanding SPCS**: Quick Start only
-- **Creating services**: + Service Creation
-- **Network/security config**: + Networking & Security
-- **Production deployment**: Full reference
+### Dependencies
 
-## Quick Start TL;DR
+**Must Load First:**
+- **100-snowflake-core.md** - Snowflake foundation patterns
 
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
+**Related:**
+- **105-snowflake-cost-governance.md** - For monitoring compute pool and service costs
+- **107-snowflake-security-governance.md** - For secrets, network rules, and RBAC on SPCS services
+- **111-snowflake-observability-core.md** - For container logging, tracing, and monitoring in SPCS
+- **119-snowflake-warehouse-management.md** - For compute pool sizing and resource management patterns
+- **115-snowflake-cortex-agents-core.md** - When deploying agent services on SPCS
+- **116-snowflake-cortex-search.md** - When running custom search services on SPCS
+- **109-snowflake-notebooks.md** - When running notebook workloads on SPCS compute
 
-Position at top provides practical efficiency benefits for both LLMs and human developers.
+### External Documentation
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Use OCI-compliant images** - Build with multi-stage for minimal size
-- **Snowflake managed registry** - Semantic versioning (v1.2.3, not latest)
-- **Include health checks** - Implement health endpoints in applications
-- **Optimize compute pools** - Choose correct size, use GPUs for ML/AI
-- **Implement service security** - Proper endpoint security, authentication
-- **Monitor and scale** - Track usage, scale based on metrics
-- **Never use 'latest' tag** - Always use semantic versioning
-
-**Quick Checklist:**
-- [ ] OCI-compliant image built
-- [ ] Image in Snowflake registry with version
-- [ ] Health check endpoint implemented
-- [ ] Compute pool configured
-- [ ] Resource limits set
-- [ ] Service security configured
-- [ ] Monitoring enabled
+- [Snowpark Container Services Overview](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/overview) - Architecture, concepts, and getting started guide
+- [SPCS Tutorials](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/tutorials) - Step-by-step implementation examples
+- [Service Specification Reference](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/specification-reference) - YAML service definition schema and options
+- [SPCS SQL Commands](https://docs.snowflake.com/en/sql-reference/sql/create-service) - CREATE SERVICE and related SQL command reference
+- [SPCS Cost Management](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/costs) - Pricing model and cost optimization strategies
+- [SPCS Platform Events Monitoring](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/platform-events) - Guide for monitoring and troubleshooting SPCS platform events
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-[Context, files, dependencies needed]
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-[Tools permitted for this domain]
-</mandatory>
+- Snowflake account with SPCS enabled
+- Compute pool configured for services
+- Image repository access and permissions
+- Service specification YAML file
+- Understanding of container architecture and OCI image standards
 
-<forbidden>
-[Tools not allowed for this domain]
-</forbidden>
+### Mandatory
 
-<steps>
-[Ordered steps the agent must follow]
-</steps>
+- OCI-compliant Docker images
+- Snowflake managed image registry
+- Semantic versioning for images (v1.2.3 format)
+- Health check endpoints in applications
+- Resource limits specified in service specs
+- Structured logging to stdout/stderr
+- Proper secret management (no hardcoded credentials)
 
-<output_format>
-[Expected output format]
-</output_format>
+### Forbidden
 
-<validation>
-[Checks to confirm success]
-</validation>
+- Using 'latest' tag for production images
+- Hardcoding secrets in images or specifications
+- Running containers as root unnecessarily
+- Exposing internal services publicly without authentication
+- Creating new database connections per request
+- Processing large datasets entirely in memory
+- Omitting resource limits on containers
 
-<design_principles>
-- Use OCI-compliant images; leverage Snowflake's managed image registry for secure storage.
-- Design services for high availability with proper health checks and resource limits.
-- Optimize compute pools for workload patterns; use GPUs for ML/AI workloads.
-- Implement proper service-to-service communication and external endpoint security.
-- Follow cost optimization patterns; monitor usage and scale appropriately.
+### Execution Steps
+
+1. Verify SPCS availability: `SHOW PARAMETERS LIKE 'ENABLE_SNOWPARK_CONTAINER_SERVICES' IN ACCOUNT;`
+2. Check compute pool exists and has capacity: `SHOW COMPUTE POOLS;`
+3. Verify image repository access: `SHOW IMAGE REPOSITORIES IN SCHEMA <db>.<schema>;`
+4. Confirm image exists with proper version: `SHOW IMAGES IN IMAGE REPOSITORY <repo>;`
+5. Create or update service specification YAML with resource limits and health checks
+6. Deploy service: `CREATE SERVICE ... FROM @stage SPECIFICATION = '...'`
+7. Monitor service startup: Check platform events for READY status
+8. Test service health endpoint before declaring deployment successful
+9. Verify service logs for errors: `SYSTEM$GET_SERVICE_LOGS()`
+10. Enable monitoring and configure alerting
+
+### Output Format
+
+Service deployments produce:
+- Service specification YAML with all required sections (containers, resources, endpoints)
+- CREATE SERVICE SQL statements with proper configuration
+- Health check endpoint implementations
+- Monitoring and logging configuration
+- Compute pool sizing and scaling policies
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- SPCS enabled in account
+- Compute pool exists with adequate capacity
+- Image exists in registry with semantic version tag
+- Service specification includes resource limits
+- Health check endpoint implemented and responding
+- Secrets managed via Snowflake secret objects
+- LOG_LEVEL configured for platform events
+
+**Success Criteria:**
+- Service status shows READY in platform events
+- Health endpoint returns 200 OK
+- Service logs show successful startup
+- Resource usage within specified limits
+- No OOMKilled or failed container events
+- External endpoints accessible with proper authentication
+- Service responds to requests within SLA
+
+**Negative Tests:**
+- Service should fail gracefully when compute pool unavailable
+- Missing image should produce clear "Failed to pull image" event
+- Exceeding memory limits should trigger OOMKilled event with clear message
+- Invalid YAML should fail at CREATE SERVICE with syntax error
+- Missing secrets should prevent container startup with clear error
+
+### Design Principles
+
+- **OCI-compliant images:** Use standard container formats; leverage Snowflake's managed image registry for secure storage
+- **High availability design:** Design services with proper health checks, resource limits, and graceful shutdown handling
+- **Compute optimization:** Optimize compute pools for workload patterns; use GPUs only for ML/AI workloads requiring acceleration
+- **Security first:** Implement proper service-to-service communication and external endpoint security; never expose internal services publicly
+- **Cost awareness:** Follow cost optimization patterns; monitor usage and scale appropriately; use auto-suspend for variable workloads
+- **Observability:** Enable structured logging, platform events, and health endpoints for comprehensive monitoring
+
 > **Investigation Required**
 > When working with Snowpark Container Services:
 > 1. Verify SPCS availability in account: `SHOW PARAMETERS LIKE 'ENABLE_SNOWPARK_CONTAINER_SERVICES' IN ACCOUNT;`
@@ -105,9 +153,21 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 > "Let me verify SPCS is enabled and check compute pool availability first."
 > [checks parameters, verifies compute pool, lists images]
 > "SPCS enabled, compute pool ready, image available. Deploying service..."
-</design_principles>
 
-</contract>
+### Post-Execution Checklist
+
+- [ ] SPCS enabled and available in account
+- [ ] Compute pool configured with appropriate instance family and scaling
+- [ ] OCI-compliant image built and pushed to Snowflake registry
+- [ ] Image tagged with semantic version (not 'latest')
+- [ ] Service specification includes resource limits and health checks
+- [ ] Secrets managed via Snowflake secret objects (not hardcoded)
+- [ ] Health check endpoint implemented and responding
+- [ ] LOG_LEVEL configured for platform events
+- [ ] Service status shows READY in platform events
+- [ ] Service logs reviewed for errors or warnings
+- [ ] Monitoring and alerting configured
+- [ ] Cost tracking enabled for compute pool usage
 
 ## Anti-Patterns and Common Mistakes
 
@@ -332,34 +392,6 @@ def process_data_streaming():
 ```
 **Benefits:** No OOM crashes; predictable resource usage; reliable service; professional; scalable; memory-efficient; good performance
 
-## Post-Execution Checklist
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
-
-## Validation
-- **Success checks:** [How to verify correct implementation]
-- **Negative tests:** [What should fail and how to detect failures]
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Read existing SPCS configurations BEFORE deploying services** - Check compute pools, service specs, image registries
-> 2. **Verify SPCS availability** - Check if SPCS is enabled in account
-> 3. **Never assume compute pool size** - Review existing pools and workload patterns
-> 4. **Check image registry** - Verify Snowflake image repository setup and access
-> 5. **Test service deployment** - Validate in dev environment before production
->
-> **Anti-Pattern:**
-> "Deploying SPCS service... (without checking existing patterns)"
-> "Using 'latest' image tag... (breaks reproducibility)"
->
-> **Correct Pattern:**
-> "Let me check your SPCS setup first."
-> [reads compute pools, checks service specs, reviews image registry]
-> "I see you use GPU_NV_S compute pools with versioned images. Deploying new service following this pattern..."
-
 ## Output Format Examples
 
 ```sql
@@ -386,23 +418,7 @@ SELECT * FROM schema.view_name LIMIT 5;
 SHOW VIEWS LIKE '%view_name%';
 ```
 
-## References
-
-### External Documentation
-- [Snowpark Container Services Overview](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/overview) - Architecture, concepts, and getting started guide
-- [SPCS Tutorials](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/tutorials) - Step-by-step implementation examples
-- [Service Specification Reference](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/specification-reference) - YAML service definition schema and options
-- [SPCS SQL Commands](https://docs.snowflake.com/en/sql-reference/sql/create-service) - CREATE SERVICE and related SQL command reference
-- [SPCS Cost Management](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/costs) - Pricing model and cost optimization strategies
-- [SPCS Platform Events Monitoring](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/platform-events) - Guide for monitoring and troubleshooting SPCS platform events
-
-### Related Rules
-- **Snowflake Core**: `100-snowflake-core.md`
-- **Cost Governance**: `105-snowflake-cost-governance.md`
-- **Security Governance**: `107-snowflake-security-governance.md`
-- **Warehouse Management**: `119-snowflake-warehouse-management.md`
-
-## 1. Architecture, Images, and Service Types
+## Architecture, Images, and Service Types
 
 ### Container and Image Management
 - **Rule:** Build OCI-compliant images optimized for Snowflake; use multi-stage builds to minimize size.
@@ -427,7 +443,7 @@ docker push <account>.registry.snowflakecomputing.com/my_db/my_schema/my_app_rep
 - **Rule:** Use job services for batch processing, ML training, and finite-duration tasks.
 - **Always:** Choose service type based on workload characteristics and implement proper lifecycle management.
 
-## 2. Compute Pools and Resource Management
+## Compute Pools and Resource Management
 
 ### Pool Configuration and Scaling
 - **Rule:** Right-size compute pools based on workload requirements; set appropriate min/max nodes for auto-scaling.
@@ -441,7 +457,7 @@ CREATE COMPUTE POOL my_app_pool MIN_NODES = 1 MAX_NODES = 5 INSTANCE_FAMILY = CP
 CREATE COMPUTE POOL ml_training_pool MIN_NODES = 1 MAX_NODES = 3 INSTANCE_FAMILY = GPU_NV_S;
 ```
 
-## 3. Service Specifications and Security
+## Service Specifications and Security
 
 ### YAML Configuration and Security Standards
 - **Rule:** Use explicit resource requests/limits; implement structured logging with `logExporters`.
@@ -479,7 +495,7 @@ serviceRoles:
   endpoints: [web-endpoint]
 ```
 
-## 4. Networking and Data Integration
+## Networking and Data Integration
 
 ### Service Communication and Endpoints
 - **Rule:** Use service DNS names for internal communication; configure public endpoints only when required.
@@ -518,7 +534,7 @@ spec:
   - { name: api, port: 8080, public: true, protocol: HTTP }
 ```
 
-## 5. Monitoring, Logging, and Troubleshooting
+## Monitoring, Logging, and Troubleshooting
 
 ### Service Monitoring and Health Checks
 - **Always:** Build health endpoints into applications; use structured JSON logging with correlation IDs.
@@ -749,7 +765,7 @@ SHOW COMPUTE POOLS;
 DESCRIBE SERVICE my_service;
 ```
 
-## 6. Performance Optimization and Cost Management
+## Performance Optimization and Cost Management
 
 ### Container and Resource Optimization
 - **Rule:** Use optimized base images (Alpine, distroless); minimize startup time through image optimization.
@@ -767,7 +783,7 @@ SELECT * FROM SNOWFLAKE.ACCOUNT_USAGE.COMPUTE_POOL_HISTORY
 WHERE START_TIME >= DATEADD(day, -7, CURRENT_TIMESTAMP());
 ```
 
-## 7. Development, Testing, and Deployment
+## Development, Testing, and Deployment
 
 ### CI/CD and Testing Strategies
 - **Rule:** Implement automated testing for images and specifications; use infrastructure as code.
@@ -775,7 +791,7 @@ WHERE START_TIME >= DATEADD(day, -7, CURRENT_TIMESTAMP());
 - **Rule:** Use proper environment promotion workflows (dev then test then prod) with approval gates.
 - **Always:** Test disaster recovery scenarios; maintain deployment runbooks.
 
-## 8. ML/AI Workloads and Advanced Patterns
+## ML/AI Workloads and Advanced Patterns
 
 ### Machine Learning and GPU Workloads
 - **Rule:** Use GPU-enabled compute pools for ML training; integrate with Snowflake ML features.
@@ -800,25 +816,10 @@ spec:
 - **Always:** Maintain audit logs; implement data lineage tracking and use Snowflake's governance features.
 - **Rule:** Implement data masking/encryption; follow data residency requirements and retention policies.
 
-## 9. Anti-Patterns and Common Pitfalls
+## Additional Anti-Patterns and Common Pitfalls
 
 ### Critical Anti-Patterns to Avoid
 - **Avoid:** Using `latest` tags in production; hardcoding secrets in images; running unnecessary root containers.
 - **Avoid:** Creating oversized pools for simple workloads; exposing internal services publicly.
 - **Avoid:** New connections per request (use pooling); processing large datasets in memory without streaming.
 - **Avoid:** Ignoring resource limits; using synchronous processing for long-running operations.
-
-## Related Rules
-
-**Closely Related** (consider loading together):
-- `119-snowflake-warehouse-management` - For compute pool sizing and resource management patterns
-- `111-snowflake-observability-core` - For container logging, tracing, and monitoring in SPCS
-
-**Sometimes Related** (load if specific scenario):
-- `115-snowflake-cortex-agents-core` - When deploying agent services on SPCS
-- `116-snowflake-cortex-search` - When running custom search services on SPCS
-- `109-snowflake-notebooks` - When running notebook workloads on SPCS compute
-
-**Complementary** (different aspects of same domain):
-- `107-snowflake-security-governance` - For secrets, network rules, and RBAC on SPCS services
-- `105-snowflake-cost-governance` - For monitoring compute pool and service costs

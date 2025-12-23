@@ -706,10 +706,6 @@ class SchemaValidator:
         """Validate section content per schema."""
         content_rules = self.schema.get("content_rules", {})
 
-        # Validate Quick Start TL;DR content
-        if "quick_start_tldr" in content_rules:
-            self._validate_quick_start(content, lines, result, content_rules["quick_start_tldr"])
-
         # Validate Contract content
         if "contract" in content_rules:
             self._validate_contract(content, lines, result, content_rules["contract"])
@@ -717,12 +713,6 @@ class SchemaValidator:
         # Validate Anti-Patterns content
         if "anti_patterns" in content_rules:
             self._validate_anti_patterns(content, lines, result, content_rules["anti_patterns"])
-
-        # Validate Output Format Examples content
-        if "output_format_examples" in content_rules:
-            self._validate_output_format_examples(
-                content, lines, result, content_rules["output_format_examples"]
-            )
 
     def _validate_quick_start(
         self, content: str, lines: list[str], result: ValidationResult, config: dict
@@ -819,22 +809,40 @@ class SchemaValidator:
         if not section_start:
             return
 
-        # Validate required fields
+        # Validate required subsections (v3.2 uses ### Markdown headers)
         for validation in config.get("validations", []):
-            if validation["type"] == "required_fields":
-                for field in validation["fields"]:
-                    field_name = field["name"]
-                    pattern = field["pattern"]
+            if validation["type"] == "required_subsections":
+                for subsection in validation["subsections"]:
+                    subsection_name = subsection["name"]
+                    pattern = subsection["pattern"]
 
                     if not re.search(pattern, section_content):
-                        fix_msg = validation["fix_suggestion"].format(field_name=field_name)
+                        fix_msg = validation["fix_suggestion"].format(
+                            subsection_name=subsection_name
+                        )
                         result.errors.append(
                             ValidationError(
                                 severity=validation["severity"],
-                                message=f"Contract missing required field: {field_name}",
+                                message=f"Contract missing required subsection: {subsection_name}",
                                 error_group="Contract",
                                 line_num=section_start + 1,
                                 fix_suggestion=fix_msg,
+                            )
+                        )
+                    else:
+                        result.passed_checks += 1
+
+            elif validation["type"] == "no_xml_tags":
+                # Check for XML tags (v3.2 prohibition)
+                for tag in validation["forbidden_patterns"]:
+                    if tag in section_content:
+                        result.errors.append(
+                            ValidationError(
+                                severity=validation["severity"],
+                                message=f"{validation['error_message']}: {tag}",
+                                error_group="Contract",
+                                line_num=section_start + 1,
+                                fix_suggestion=validation.get("fix_suggestion"),
                             )
                         )
                     else:
@@ -970,6 +978,34 @@ class SchemaValidator:
     ) -> None:
         """Validate format restrictions."""
         restrictions_config = self.schema.get("restrictions", {})
+
+        # Check for numbered sections (v3.2 prohibition)
+        if restrictions_config.get("no_numbered_sections", {}).get("enabled"):
+            numbered_config = restrictions_config["no_numbered_sections"]
+            numbered_pattern = numbered_config["pattern"]
+            tracker = CodeBlockTracker()
+
+            for i, line in enumerate(lines, 1):
+                tracker.update(line)
+
+                # Skip checking inside code blocks
+                if tracker.in_code_block:
+                    continue
+
+                if re.match(numbered_pattern, line):
+                    result.errors.append(
+                        ValidationError(
+                            severity=numbered_config["severity"],
+                            message=numbered_config["error_message"],
+                            error_group="Format",
+                            line_num=i,
+                            line_preview=line.strip(),
+                            fix_suggestion=numbered_config.get("fix_suggestion"),
+                            docs_reference=numbered_config.get("docs_reference"),
+                        )
+                    )
+                else:
+                    result.passed_checks += 1
 
         # Check for ASCII patterns (decision trees, tables, arrows)
         self._validate_ascii_patterns(content, lines, result)
@@ -1440,13 +1476,13 @@ def main():
         "--verbose",
         "-v",
         action="store_true",
-        help="Show detailed error information",
+        help="Show detailed reports for each file (default: summary only)",
     )
     parser.add_argument(
         "--quiet",
         "-q",
         action="store_true",
-        help="Show only summary, suppress individual file reports",
+        help="Minimal output (summary counts only, no file lists)",
     )
     parser.add_argument(
         "--json",
@@ -1498,12 +1534,11 @@ def main():
                 return 1
             return 0
 
-        # Print individual results (unless --quiet mode)
-        if not args.quiet:
+        # Print individual results only in verbose mode
+        if args.verbose:
             for result in results:
-                if result.errors or args.verbose:
-                    print(validator.format_result(result, detailed=args.verbose))
-                    print()
+                print(validator.format_result(result, detailed=True))
+                print()
 
         # Print summary
         total_files = len(results)
@@ -1519,32 +1554,33 @@ def main():
         print(f"⚠️  Warnings only: {warnings}")
         print(f"❌ Failed: {failed}")
 
-        # Show failed files list with error counts
-        if failed > 0:
-            print()
-            print("❌ FAILED FILES:")
-            for i, result in enumerate([r for r in results if r.has_critical_or_high], 1):
+        # Show failed files list (unless --quiet mode)
+        if not args.quiet:
+            if failed > 0:
+                print()
+                print("❌ FAILED FILES:")
+                for i, result in enumerate([r for r in results if r.has_critical_or_high], 1):
+                    print(
+                        f"  {i}. {result.file_path.name} "
+                        f"({result.critical_count} CRITICAL, {result.high_count} HIGH)"
+                    )
+
+            # Show warning files preview (first 5)
+            if warnings > 0:
+                print()
+                print("⚠️  WARNING FILES (showing first 5):")
+                warning_results = [r for r in results if r.errors and not r.has_critical_or_high]
+                for i, result in enumerate(warning_results[:5], 1):
+                    print(f"  {i}. {result.file_path.name} ({result.medium_count} MEDIUM)")
+                if len(warning_results) > 5:
+                    print(f"  ... and {len(warning_results) - 5} more")
+
+            # Helpful tip for detailed inspection
+            if failed > 0 or warnings > 0:
+                print()
                 print(
-                    f"  {i}. {result.file_path.name} "
-                    f"({result.critical_count} CRITICAL, {result.high_count} HIGH)"
+                    "💡 TIP: Run with --verbose to see detailed reports, or validate individual file"
                 )
-
-        # Show warning files preview (first 5)
-        if warnings > 0 and not args.verbose:
-            print()
-            print("⚠️  WARNING FILES (showing first 5):")
-            warning_results = [r for r in results if r.errors and not r.has_critical_or_high]
-            for i, result in enumerate(warning_results[:5], 1):
-                print(f"  {i}. {result.file_path.name} ({result.medium_count} MEDIUM)")
-            if len(warning_results) > 5:
-                print(f"  ... and {len(warning_results) - 5} more")
-
-        # Helpful tip for detailed inspection
-        if failed > 0 or warnings > 0:
-            print()
-            print(
-                "💡 TIP: Run with filename to see details: python scripts/schema_validator.py <file>"
-            )
 
         print("=" * 80)
 

@@ -2,24 +2,58 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**LastUpdated:** 2025-12-23
 **Keywords:** Python classes, OOP, inheritance, dataclasses, @property, class design, encapsulation, composition, Protocol, ABC, type hints
-**TokenBudget:** ~2050
+**TokenBudget:** ~3250
 **ContextTier:** Medium
 **Depends:** 200-python-core.md, 201-python-lint-format.md, 204-python-docs-comments.md
 
-## Purpose
-Provide practical, modern guidelines for when and how to use classes in Python, emphasizing composition over inheritance, type safety, encapsulation, and pythonic idioms that produce readable, maintainable, and testable code.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Practical, modern guidelines for when and how to use classes in Python, emphasizing composition over inheritance, type safety, encapsulation, and pythonic idioms. Covers dataclasses, properties, protocols, ABCs, resource management, and class design patterns that produce readable, maintainable, and testable code.
 
-Class design patterns and usage in Python 3.11+ (data models, behavior, encapsulation, inheritance, protocols, ABCs)
+**When to Load This Rule:**
+- Designing new Python classes
+- Refactoring procedural code to OOP
+- Choosing between classes, functions, or dataclasses
+- Implementing inheritance or composition patterns
+- Using protocols or abstract base classes
+- Troubleshooting class design issues
+- Reviewing OOP code for best practices
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
+### Dependencies
+
+**Must Load First:**
+- **200-python-core.md** - Python foundation patterns
+- **201-python-lint-format.md** - Code quality and linting
+- **204-python-docs-comments.md** - Documentation standards
+
+**Related:**
+- **207-python-typing.md** - Type hints and type checking
+- **208-python-error-handling.md** - Exception handling patterns
+
+### External Documentation
+
+- [Python Data Classes](https://docs.python.org/3/library/dataclasses.html) - dataclass module
+- [PEP 544](https://peps.python.org/pep-0544/) - Protocols (structural subtyping)
+- [Python ABC Module](https://docs.python.org/3/library/abc.html) - Abstract base classes
+
+## Contract
+
+### Inputs and Prerequisites
+
+- Python 3.11+ codebase
+- Project uses uv and Ruff
+- Understanding of OOP concepts
+- Familiarity with type hints
+
+### Mandatory
+
 - **Use @dataclass for data containers** - Prefer dataclass over manual __init__
 - **Composition over inheritance** - Favor has-a over is-a relationships
 - **Use @property for computed attributes** - Not Java-style getters/setters
@@ -27,7 +61,37 @@ Class design patterns and usage in Python 3.11+ (data models, behavior, encapsul
 - **frozen=True for immutable data** - Use @dataclass(frozen=True) when appropriate
 - **Never create classes for single functions** - Use plain functions instead
 
-**Quick Checklist:**
+### Forbidden
+
+- Classes that are just function holders
+- Java-style getters/setters (use @property instead)
+- Deep inheritance hierarchies (favor composition)
+- Missing type hints on class methods
+- Bare command execution (must use `uv run`/`uvx`)
+
+### Execution Steps
+
+1. Determine if a class is warranted vs function/module or dataclass
+2. Choose composition over inheritance; use ABC/Protocol only for stable interfaces
+3. Add type hints to all public APIs; document with clear docstrings
+4. Apply encapsulation with properties; avoid Java-style getters/setters
+5. Use @dataclass (frozen if appropriate) for data containers
+6. Provide helpful __repr__ for debugging
+7. Manage resources via context managers when needed
+8. Validate design via lints, tests, and runtime checks
+
+### Output Format
+
+Class implementations produce:
+- Type-hinted class definitions
+- Dataclasses for data containers
+- Properties for computed attributes
+- Context managers for resource management
+- Protocols or ABCs for stable interfaces
+
+### Validation
+
+**Pre-Task-Completion Checks:**
 - [ ] Class justified (not just a function holder)
 - [ ] @dataclass used for data containers
 - [ ] Type hints on all methods
@@ -36,56 +100,35 @@ Class design patterns and usage in Python 3.11+ (data models, behavior, encapsul
 - [ ] __repr__ provided (auto via dataclass)
 - [ ] Composition preferred over inheritance
 
-## Contract
+**Success Criteria:**
+- `uvx ruff check .` passes
+- `uvx ruff format --check .` passes
+- `uv run pytest` passes
+- Type-checkers (optional) report no issues for public APIs
 
-<contract>
-<inputs_prereqs>
-Python 3.11+; project uses `uv` and Ruff (see `200-python-core.md`, `201-python-lint-format.md`)
-</inputs_prereqs>
+**Negative Tests:**
+- Classes without justification should be refactored to functions
+- Missing type hints should trigger linting errors
+- Improper inheritance should be flagged in reviews
 
-<mandatory>
-`uv run` for execution; `uvx ruff` for lint/format; `pytest` via `uv run` for tests
-</mandatory>
+### Design Principles
 
-<forbidden>
-Bare `python`, `pytest`, `ruff` (must use `uv run`/`uvx` per core rules)
-</forbidden>
+- **Simplicity:** Use classes only when justified; prefer functions and dataclasses
+- **Composition:** Favor has-a over is-a relationships
+- **Pythonic:** Use @property, not Java-style getters/setters
+- **Type safety:** Add type hints to all class methods
+- **Immutability:** Use frozen=True for immutable data
 
-<steps>
-1. Determine if a class is warranted vs function/module or `NamedTuple`/`dataclass`.
-2. Choose composition over inheritance; select ABC/Protocol only when a stable interface is needed.
-3. Add type hints to all public APIs; document with clear docstrings (`204-python-docs-comments.md`).
-4. Apply encapsulation with properties; avoid Java-style getters/setters.
-5. Use `@dataclass` (frozen if appropriate) for data containers; define equality/ordering deliberately.
-6. Provide helpful `__repr__` for debugging; avoid logic in `__repr__`/`__str__` beyond formatting.
-7. Manage resources via context managers or `contextlib` utilities when needed.
-8. Validate design via lints, tests, and runtime checks where necessary.
-</steps>
+### Post-Execution Checklist
 
-<output_format>
-Focused diffs of class implementations and interfaces; runnable examples where applicable.
-</output_format>
-
-<validation>
-`uvx ruff check .` and `uvx ruff format --check .` pass; `uv run pytest` passes; type-checkers (optional) report no issues for public APIs.
-</validation>
-
-<design_principles>
-- **Prefer composition over inheritance:** Keep inheritance shallow. Use ABCs or Protocols to define capabilities.
-- **Use dataclasses for data containers:** Prefer `@dataclass(slots=True, kw_only=True)` for clarity; consider `frozen=True` for immutability.
-- **Encapsulation via properties:** Expose attributes with properties when invariants or validation are required; otherwise allow direct access.
-- **Explicit public API:** Make intent clear with method and attribute names; prefix non-public helpers with a single underscore.
-- **Type hints everywhere:** Public methods and constructors must have complete annotations; prefer standard collections types.
-- **Small, cohesive classes:** Each class should have a single responsibility; avoid god objects.
-- **Avoid side effects in `__init__`:** Only assign fields and do lightweight validation; perform I/O or heavy work in explicit methods.
-- **Equality and ordering:** Implement value semantics deliberately using dataclass options or explicit dunder methods when domain requires it.
-- **Good `__repr__`:** Make instances easy to debug; represent key fields, avoid leaking secrets.
-- **Resource safety:** Use context managers (`__enter__`/`__exit__` or `contextlib.contextmanager`) for external resources.
-- **Interfaces over concrete types:** Use `abc.ABC` + `@abstractmethod` for classic inheritance or `typing.Protocol` for structural typing.
-- **Performance awareness:** Consider `slots=True` for many-instance classes to reduce memory; measure before optimizing.
-</design_principles>
-
-</contract>
+- [ ] Class justified (not just a function holder)
+- [ ] @dataclass used for data containers
+- [ ] Type hints on all methods and __init__
+- [ ] Docstrings on class and public methods
+- [ ] Properties used for computed attributes
+- [ ] __repr__ provided (auto via dataclass or custom)
+- [ ] Composition preferred over inheritance
+- [ ] Resource management via context managers (if applicable)
 
 ## Anti-Patterns and Common Mistakes
 
@@ -196,23 +239,7 @@ class Notifier:
         self._sender.send(user.email, subject, "Thanks for joining.")
 ```
 
-## References
-
-### External Documentation
-- [PEP 8 - Style Guide for Python Code](https://peps.python.org/pep-0008/)
-- [Dataclasses — Python docs](https://docs.python.org/3/library/dataclasses.html)
-- [typing — Type Hints](https://docs.python.org/3/library/typing.html)
-- [abc — Abstract Base Classes](https://docs.python.org/3/library/abc.html)
-- [contextlib — Utilities for with-statement contexts](https://docs.python.org/3/library/contextlib.html)
-- [Descriptors and properties](https://docs.python.org/3/howto/descriptor.html)
-
-### Related Rules
-- **Python Core**: `200-python-core.md`
-- **Python Lint/Format**: `201-python-lint-format.md`
-- **Python Project Setup**: `203-python-project-setup.md`
-- **Python Docs & Comments**: `204-python-docs-comments.md`
-
-## 1. Class Design Guidelines
+## Class Design Guidelines
 
 ### 1.1 When to use a class
 - Rule: Use a class when modeling state + behavior that naturally belong together or when you need polymorphism via interfaces.

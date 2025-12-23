@@ -2,68 +2,107 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**LastUpdated:** 2025-12-23
 **Keywords:** quality assertions, custom metrics, validation functions, create custom DMF, custom quality checks, business rule validation, custom expectations, quality functions, UDF for quality, validation logic, custom quality metrics, quality rules, custom validation
-**TokenBudget:** ~2500
+**TokenBudget:** ~3500
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 124-snowflake-data-quality-core.md
 
-## Purpose
-Provide patterns for creating custom Data Metric Functions (DMFs) and expectations to implement business-specific quality rules and validation logic.
+## Scope
 
-## Rule Scope
-Custom DMFs, expectations, business rule validation
+**What This Rule Covers:**
+Patterns for creating custom Data Metric Functions (DMFs) and expectations to implement business-specific quality rules and validation logic beyond system DMFs. Covers custom DMF creation, business rule validation, expectation thresholds, testing strategies, and documentation requirements.
 
-## Quick Start TL;DR
+**When to Load This Rule:**
+- Creating custom DMFs for business-specific quality checks
+- Implementing business rule validation beyond system DMFs
+- Defining custom expectations with specific thresholds
+- Troubleshooting custom DMF execution issues
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Create custom DMFs for business rules** - Extend system DMFs with domain logic
-- **Set expectations on metrics** - Define thresholds and actions
-- **Test custom validations** - Verify business rules work correctly
-- **Document metric definitions** - Clear semantics for each custom metric
+## References
 
-**Quick Checklist:**
-- [ ] Custom DMF created with clear business rule
-- [ ] Expectation set with appropriate threshold
-- [ ] Validation tested with sample data
-- [ ] Metric semantics documented
+### Dependencies
+
+**Must Load First:**
+- **100-snowflake-core.md** - Snowflake foundation patterns
+- **124-snowflake-data-quality-core.md** - Data Quality fundamentals
+
+**Related:**
+- **124b-snowflake-data-quality-operations.md** - Operational patterns and scheduling
+
+### External Documentation
+
+- [Custom DMFs](https://docs.snowflake.com/en/user-guide/data-quality-custom) - Creating custom quality metrics
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-Understanding of DMF fundamentals (from 124-core), business rules defined
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-CREATE FUNCTION, SET, expectations patterns
-</mandatory>
+- Understanding of DMF fundamentals from 124-core
+- Business rules and quality requirements defined
+- EXECUTE DATA METRIC FUNCTION privilege
 
-<forbidden>
-None specific
-</forbidden>
+### Mandatory
 
-<steps>
-1) Define custom metric 2) Create DMF function 3) Set expectations 4) Test validation
-</steps>
+- CREATE FUNCTION for custom DMFs
+- FLOAT return type for DMF compatibility
+- Expectation definitions with thresholds
+- Testing with representative data
 
-<output_format>
-Custom DMF functions, expectation configurations
-</output_format>
+### Forbidden
 
-<validation>
-DMF returns expected metrics; expectations trigger correctly
-</validation>
+- Creating custom DMFs without clear business justification
+- Custom DMFs that don't return FLOAT type
 
-<design_principles>
-- Custom DMFs extend system DMFs for business-specific rules
-- Expectations define thresholds and trigger actions
-- Document metric semantics for maintainability
-- Test custom validations with representative data
-**RECOMMENDED:**
-Create custom DMFs for business-specific quality rules not covered by system DMFs.
+### Execution Steps
+
+1. Define custom metric and business rule
+2. Create DMF function returning FLOAT
+3. Set expectations with appropriate thresholds
+4. Test validation with representative and edge case data
+5. Document metric semantics and business rationale
+
+### Output Format
+
+Custom DMF implementations produce:
+- DMF function definitions (CREATE FUNCTION)
+- Expectation configurations
+- Test validation queries
+- Documentation of metric semantics
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Custom DMF returns FLOAT type
+- Business rule clearly documented
+- Expectations defined with thresholds
+
+**Success Criteria:**
+- DMF executes successfully and returns expected metrics
+- Expectations trigger correctly on threshold violations
+- Custom validation tested with edge cases
+
+**Negative Tests:**
+- DMF should fail gracefully with invalid inputs
+- Expectations should not trigger on valid data
+
+### Design Principles
+
+- **Business-specific rules:** Custom DMFs extend system DMFs for domain-specific validation
+- **Expectation-driven:** Define explicit thresholds and trigger actions
+- **Documentation:** Document metric semantics for maintainability
+- **Testing:** Test custom validations with representative data
+
+### Post-Execution Checklist
+
+- [ ] Custom DMF created with clear business rule
+- [ ] DMF returns FLOAT type for compatibility
+- [ ] Expectation set with appropriate threshold
+- [ ] Validation tested with sample data and edge cases
+- [ ] Metric semantics documented
+- [ ] Business rationale captured
 ### Custom DMF Requirements
 **Must return FLOAT:**
 - Custom DMFs must return FLOAT data type for compatibility with expectations
@@ -404,20 +443,7 @@ ORDER BY measurement_time DESC
 LIMIT 5;
 ```
 
-## References
-
-### Internal Documentation
-- **124-snowflake-data-quality-core:** Standard DMF patterns and built-in functions
-- **124b-snowflake-data-quality-operations:** Scheduling, monitoring, alerting
-- **100-snowflake-core:** UDF creation patterns and SQL best practices
-- **111-snowflake-observability-core:** Logging custom metrics to event tables
-
-### External Documentation
-- [Custom Data Metric Functions](https://docs.snowflake.com/en/user-guide/data-quality-custom) - Creating custom DMFs with UDFs
-- [SQL UDF Reference](https://docs.snowflake.com/en/developer-guide/udf/sql/udf-sql) - SQL user-defined function syntax
-- [Python UDF Reference](https://docs.snowflake.com/en/developer-guide/udf/python/udf-python) - Python UDF for complex validation logic
-
-## 5. Expectations
+## Expectations
 
 **MANDATORY:**
 **CRITICAL:** Define expectations for every DMF to establish pass/fail criteria and enable automated alerting.

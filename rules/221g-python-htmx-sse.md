@@ -2,53 +2,66 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** sse, server-sent events, htmx, alpine.js, eventsource, real-time, streaming, live updates, push notifications, event types, sse-manager
-**TokenBudget:** ~2000
+**TokenBudget:** ~3050
 **ContextTier:** High
 **Depends:** 221-python-htmx-core.md, 221f-python-htmx-integrations.md
+**LastUpdated:** 2025-12-23
 
-## Purpose
+## Scope
 
-Defines patterns for implementing Server-Sent Events (SSE) in HTMX applications, covering the decision between HTMX SSE extension and Alpine.js SSE manager, event type matching, thread-safe publishing, and common anti-patterns that lead to broken real-time updates.
+**What This Rule Covers:**
+Patterns for implementing Server-Sent Events (SSE) in HTMX applications, covering the decision between HTMX SSE extension and Alpine.js SSE manager, event type matching, thread-safe publishing, and common anti-patterns that lead to broken real-time updates.
 
-## Rule Scope
+**When to Load This Rule:**
+- Implementing Server-Sent Events with HTMX
+- Choosing between HTMX SSE extension and Alpine.js SSE manager
+- Setting up real-time updates in HTMX applications
+- Implementing thread-safe SSE publishing from background tasks
+- Debugging SSE event type mismatches
 
-Python web applications using HTMX with SSE for real-time updates (FastAPI, Flask, or other Python web frameworks)
+## References
 
-## Quick Start TL;DR
+### Dependencies
 
-**MANDATORY:**
+**Must Load First:**
+- **221-python-htmx-core.md** - HTMX foundation patterns
+- **221f-python-htmx-integrations.md** - Alpine.js patterns
 
-- **Choose ONE SSE approach** - Either HTMX SSE extension OR Alpine.js SSE manager, never both on same element
-- **Match event types exactly** - Frontend event listeners must match backend `event_type` values exactly
-- **Use camelCase for HTMX triggers** - When using Alpine.js to trigger HTMX, use camelCase (not `sse:` prefix)
-- **Capture event loop before threads** - Use `asyncio.get_running_loop()` before `asyncio.to_thread()`
-- **Document SSE channels** - Maintain `docs/SSE_EVENTS.md` with all channels, event types, and payloads
+**Related:**
+- **207-python-logging.md** - Web logging with SSE
 
-**Pre-Execution Checklist:**
+### Project Documentation
 
-- [ ] SSE approach chosen (HTMX extension vs Alpine.js manager)
-- [ ] Event types documented and consistent between frontend/backend
-- [ ] Thread-safe publishing pattern implemented for background tasks
-- [ ] SSE channel documentation created/updated
+- **SSE Events Reference**: `docs/SSE_EVENTS.md` - Channel and event type documentation
 
 ## Contract
 
-<inputs_prereqs>
-HTMX installed and configured; SSE endpoints returning `text/event-stream` content type; For Alpine.js approach: SSE manager module loaded; Understanding of async Python patterns
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-sse-starlette or equivalent SSE library; asyncio for thread-safe publishing; Browser with EventSource support; SSE channel documentation file (docs/SSE_EVENTS.md)
-</mandatory>
+- HTMX installed and configured
+- SSE endpoints returning `text/event-stream` content type
+- For Alpine.js approach: SSE manager module loaded
+- Understanding of async Python patterns
 
-<forbidden>
-Mixing HTMX SSE extension with Alpine.js SSE manager on same element; Using `sse:` prefix in HTMX triggers when events come from Alpine.js; Calling `asyncio.get_event_loop()` from background threads; Hardcoding event types without documentation
-</forbidden>
+### Mandatory
 
-<steps>
+- sse-starlette or equivalent SSE library
+- asyncio for thread-safe publishing
+- Browser with EventSource support
+- SSE channel documentation file (docs/SSE_EVENTS.md)
+
+### Forbidden
+
+- Mixing HTMX SSE extension with Alpine.js SSE manager on same element
+- Using `sse:` prefix in HTMX triggers when events come from Alpine.js
+- Calling `asyncio.get_event_loop()` from background threads
+- Hardcoding event types without documentation
+
+### Execution Steps
+
 1. Choose SSE approach based on decision matrix (HTMX extension vs Alpine.js manager)
 2. Create SSE endpoint with proper `text/event-stream` content type
 3. Define event types and document in `docs/SSE_EVENTS.md`
@@ -59,19 +72,44 @@ Mixing HTMX SSE extension with Alpine.js SSE manager on same element; Using `sse
 8. Implement heartbeat/ping for connection health monitoring
 9. Test reconnection behavior on connection drops
 10. Verify event type consistency between frontend and backend
-</steps>
 
-<output_format>
-SSE endpoint returning EventSourceResponse with events in format: `event: event_type\ndata: json_payload\n\n`
-</output_format>
+### Output Format
 
-<validation>
+- SSE endpoint returning EventSourceResponse
+- Events in format: `event: event_type\ndata: json_payload\n\n`
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- SSE approach chosen (HTMX extension vs Alpine.js manager)
+- Event types documented and consistent between frontend/backend
+- Thread-safe publishing pattern implemented for background tasks
+- SSE channel documentation created/updated
+
+**Success Criteria:**
 - SSE connection established (browser DevTools Network tab shows EventSource)
 - Events received match documented event types exactly
 - HTMX elements update when SSE events arrive
 - No duplicate connections when using Alpine.js manager
 - Background thread publishing works without RuntimeError
-</validation>
+
+### Design Principles
+
+- **Choose ONE SSE approach** - Either HTMX SSE extension OR Alpine.js SSE manager, never both on same element
+- **Match event types exactly** - Frontend event listeners must match backend `event_type` values exactly
+- **Use camelCase for HTMX triggers** - When using Alpine.js to trigger HTMX, use camelCase (not `sse:` prefix)
+- **Capture event loop before threads** - Use `asyncio.get_running_loop()` before `asyncio.to_thread()`
+- **Document SSE channels** - Maintain `docs/SSE_EVENTS.md` with all channels, event types, and payloads
+
+### Post-Execution Checklist
+
+- [ ] SSE approach chosen and consistent across page
+- [ ] Event types match exactly between backend and frontend
+- [ ] HTMX triggers use camelCase (not `sse:` prefix) when using Alpine.js
+- [ ] Thread-safe publishing pattern used for background tasks
+- [ ] SSE channel documentation updated
+- [ ] Heartbeat/ping handling implemented
+- [ ] Reconnection logic tested
 
 ## SSE Approach Decision Matrix
 
@@ -341,33 +379,6 @@ Maintain `docs/SSE_EVENTS.md` with this structure:
 - **`operation_completed`** - Operation finished (payload: `{demo_id, status}`)
 ```
 
-## Post-Execution Checklist
-
-- [ ] SSE approach chosen and consistent across page
-- [ ] Event types match exactly between backend and frontend
-- [ ] HTMX triggers use camelCase (not `sse:` prefix) when using Alpine.js
-- [ ] Thread-safe publishing pattern used for background tasks
-- [ ] SSE channel documentation updated
-- [ ] Heartbeat/ping handling implemented
-- [ ] Reconnection logic tested
-
-## Validation
-
-**Success Checks:**
-- SSE endpoint returns `Content-Type: text/event-stream` header
-- Browser DevTools Network tab shows EventSource connection (type: eventsource)
-- Events arrive with correct `event:` field matching documented types
-- HTMX elements swap content when SSE events trigger updates
-- Alpine.js SSE manager receives events and triggers HTMX refreshes
-- Background thread publishing completes without `RuntimeError: no running event loop`
-- Connection automatically reconnects after network interruption
-
-**Negative Tests:**
-- Mismatched event type: frontend listener does not fire (verify no silent failures)
-- Missing `sse:` prefix with HTMX extension: element does not update
-- Using `sse:` prefix with Alpine.js `htmx.trigger()`: element does not update
-- Calling `asyncio.get_event_loop()` in thread: raises RuntimeError
-- Duplicate SSE connections: only one EventSource per channel in Network tab
 
 ## Output Format Examples
 
@@ -417,15 +428,3 @@ function page() {
 }
 </script>
 ```
-
-## References
-
-### Related Rules
-
-- **HTMX Core**: `221-python-htmx-core.md` - Foundation patterns
-- **Alpine.js Integration**: `221f-python-htmx-integrations.md` - Alpine.js patterns
-- **Logging Patterns**: `207-python-logging.md` - Web logging with SSE
-
-### Project Documentation
-
-- **SSE Events Reference**: `docs/SSE_EVENTS.md` - Channel and event type documentation

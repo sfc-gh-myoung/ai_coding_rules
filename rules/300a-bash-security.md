@@ -2,69 +2,127 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** Bash, security, input validation, command injection, path security, secure shell scripts, sanitization, permissions, privilege escalation, secrets management
-**TokenBudget:** ~2750
+**TokenBudget:** ~4300
 **ContextTier:** High
 **Depends:** 300-bash-scripting-core.md
+**LastUpdated:** 2025-12-23
 
-## Purpose
-Establish comprehensive bash scripting security practices covering input validation, path security, permissions, and secure coding patterns to prevent vulnerabilities and ensure safe script execution.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive bash scripting security practices covering input validation, path security, permissions, and secure coding patterns to prevent vulnerabilities and ensure safe script execution.
 
-Shell script security, input validation, access control
+**When to Load This Rule:**
+- Writing security-sensitive shell scripts
+- Handling user input in bash scripts
+- Implementing access control or authentication
+- Preventing command injection vulnerabilities
+- Managing secrets and credentials in shell scripts
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Validate all inputs** - Never trust user data, validate patterns and types
-- **Quote variables** - Prevent injection (`"$var"`, not `$var`)
-- **Use absolute paths** - Avoid PATH manipulation attacks
-- **Set restrictive permissions** - 700 for scripts, 600 for data
-- **Sanitize file names** - Check for `../`, null bytes, special chars
-- **Never eval user input** - Disable eval/source of untrusted data
-- **Never trust environment** - Validate PATH, IFS, and all env vars
+### Dependencies
 
-**Quick Checklist:**
-- [ ] All inputs validated with regex
-- [ ] Variables properly quoted
-- [ ] Absolute paths used
-- [ ] File permissions set correctly
-- [ ] No eval of user input
-- [ ] Secrets in secure storage
-- [ ] Command injection prevented
+**Must Load First:**
+- **300-bash-scripting-core.md** - Foundation bash scripting patterns
+
+**Related:**
+- **300b-bash-testing-tooling.md** - Testing security implementations
+
+### External Documentation
+
+- [OWASP Command Injection Prevention](https://owasp.org/www-community/attacks/Command_Injection) - Security vulnerabilities and mitigation strategies
+- [CIS Security Controls](https://www.cisecurity.org/controls/) - Industry security configuration standards
+- [NIST Cybersecurity Framework](https://www.nist.gov/cyberframework) - Comprehensive security risk management
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-[Context, files, dependencies needed]
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-[Tools permitted for this domain]
-</mandatory>
+- Bash script requiring security hardening
+- Understanding of security threat models
+- Access to script execution environment
+- Knowledge of input sources and trust boundaries
 
-<forbidden>
-[Tools not allowed for this domain]
-</forbidden>
+### Mandatory
 
-<steps>
-[Ordered steps the agent must follow]
-</steps>
+- Input validation for all user-provided data
+- Proper variable quoting (`"$var"` not `$var`)
+- Absolute paths for critical operations
+- Restrictive file permissions (700 for scripts, 600 for secrets)
+- Environment variable validation
+- Secure credential storage (no hardcoded secrets)
 
-<output_format>
-[Expected output format]
-</output_format>
+### Forbidden
 
-<validation>
-[Checks to confirm success]
-</validation>
+- Using `eval` with user input
+- Hardcoding secrets in scripts
+- Trusting user input without validation
+- Using relative paths for security-critical operations
+- Storing secrets in command-line arguments
+- Executing commands constructed from user input
 
-</contract>
+### Execution Steps
+
+1. Identify all input sources (user input, environment variables, file contents)
+2. Implement input validation with regex patterns for each input type
+3. Sanitize file paths and names to prevent directory traversal
+4. Replace any `eval` usage with safe alternatives (arrays, case statements)
+5. Move secrets from script to environment variables or secure files
+6. Set appropriate file permissions (700 for executables, 600 for secrets)
+7. Validate environment variables (PATH, IFS, etc.) before use
+8. Test with malicious inputs to verify security controls work
+
+### Output Format
+
+Secure bash script with:
+- All inputs validated with explicit regex patterns
+- Variables properly quoted throughout
+- Absolute paths for critical operations
+- Secure credential management (environment variables or secure files)
+- Appropriate file permissions set
+- No eval or command injection vulnerabilities
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- All user input points identified and validated
+- Variables quoted in all command contexts
+- No hardcoded secrets present in script
+- File permissions set correctly (verify with `stat`)
+- No eval usage with untrusted input
+- Path traversal prevention implemented
+
+**Success Criteria:**
+- `shellcheck` passes with no security warnings
+- Script rejects malicious inputs (test with `'; rm -rf /'`, `../../../etc/passwd`)
+- Secrets loaded from environment or secure files only
+- File permissions verified: 700 for scripts, 600 for secrets
+- No command injection possible through any input vector
+
+### Design Principles
+
+- **Defense in Depth:** Multiple layers of security controls
+- **Least Privilege:** Run with minimum required permissions
+- **Input Validation:** Never trust user data, validate everything
+- **Secure by Default:** Restrictive permissions, safe defaults
+- **Fail Securely:** Errors should not expose sensitive information
+
+### Post-Execution Checklist
+
+- [ ] All user input validated with regex patterns
+- [ ] Variables quoted in all contexts
+- [ ] Absolute paths used for critical operations
+- [ ] File permissions set correctly (700/600)
+- [ ] No hardcoded secrets in script
+- [ ] Environment variables validated
+- [ ] No eval with user input
+- [ ] Tested with malicious inputs
+- [ ] shellcheck passes with no warnings
+- [ ] Path traversal prevention verified
 
 ## Anti-Patterns and Common Mistakes
 
@@ -123,33 +181,6 @@ read -s -p "Password: " PASSWORD
 echo  # Newline after hidden input
 ```
 
-## Post-Execution Checklist
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
-
-## Validation
-- **Success checks:** [How to verify correct implementation]
-- **Negative tests:** [What should fail and how to detect failures]
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Read existing scripts BEFORE adding security** - Check current validation, permissions
-> 2. **Verify input sources** - Identify all user input points, environment variables
-> 3. **Never assume sanitization exists** - Check for validation functions
-> 4. **Check file permissions** - Review current permissions on scripts and data
-> 5. **Test injection scenarios** - Verify defenses work against actual attacks
->
-> **Anti-Pattern:**
-> "Adding input validation... (without checking what inputs exist)"
-> "Sanitizing user input... (without testing injection scenarios)"
->
-> **Correct Pattern:**
-> "Let me check your script's security posture first."
-> [reads script, identifies input points, checks permissions]
-> "I see user input at lines X, Y. Adding validation and sanitization..."
 
 ## Output Format Examples
 
@@ -206,18 +237,7 @@ main "$@"
 shellcheck script.sh
 ```
 
-## References
-
-### External Documentation
-- [OWASP Command Injection Prevention](https://owasp.org/www-community/attacks/Command_Injection) - Security vulnerabilities and mitigation strategies
-- [CIS Security Controls](https://www.cisecurity.org/controls/) - Industry security configuration standards
-- [NIST Cybersecurity Framework](https://www.nist.gov/cyberframework) - Comprehensive security risk management
-
-### Related Rules
-- **Bash Core**: `300-bash-scripting-core.md`
-- **Bash Testing**: `300b-bash-testing-tooling.md`
-
-## 1. Input Validation and Sanitization
+## Input Validation and Sanitization
 
 ### User Input Validation
 - **Critical:** Validate and sanitize all user input before processing:
@@ -268,7 +288,7 @@ validate_dir() {
 }
 ```
 
-## 2. Path Security and Traversal Prevention
+## Path Security and Traversal Prevention
 
 ### Path Validation
 - **Critical:** Validate file paths to prevent directory traversal attacks:
@@ -366,7 +386,7 @@ create_user_file() {
 }
 ```
 
-## 3. Command Injection Prevention
+## Command Injection Prevention
 
 ### Safe Command Construction
 - **Critical:** Never use `eval` with user input:
@@ -462,7 +482,7 @@ escape_sql_string() {
 }
 ```
 
-## 4. Secrets and Credential Management
+## Secrets and Credential Management
 
 ### Environment Variable Security
 - **Requirement:** Never hardcode secrets in scripts:
@@ -522,7 +542,7 @@ create_temp_creds() {
 }
 ```
 
-## 5. File Permissions and Access Control
+## File Permissions and Access Control
 
 ### Secure File Creation
 - **Requirement:** Set appropriate permissions on created files:
@@ -578,7 +598,7 @@ check_perms() {
 }
 ```
 
-## 6. Process and System Security
+## Process and System Security
 
 ### Privilege Management
 - **Rule:** Run with minimum required privileges:
@@ -615,7 +635,7 @@ set_limits() {
 }
 ```
 
-## 7. Network Security
+## Network Security
 
 ### URL Validation
 - **Rule:** Validate URLs before requests:
@@ -627,7 +647,7 @@ validate_url() {
 }
 ```
 
-## 8. Secure Logging
+## Secure Logging
 
 ### Basic Audit Logging
 - **Rule:** Log security events:
@@ -639,7 +659,7 @@ audit_log() {
 }
 ```
 
-## 9. Security Testing and Validation
+## Security Testing and Validation
 
 ### Security Testing
 - **Consider:** Test with malicious inputs:

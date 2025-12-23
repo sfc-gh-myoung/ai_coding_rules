@@ -2,77 +2,122 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** FastAPI monitoring, health checks, logging, metrics, caching, Redis, observability, structured logging, health endpoints, correlation IDs
-**TokenBudget:** ~2500
+**TokenBudget:** ~3900
 **ContextTier:** Medium
 **Depends:** 210-python-fastapi-core.md
+**LastUpdated:** 2025-12-23
 
-## Purpose
+## Scope
+
+**What This Rule Covers:**
 Establish monitoring, logging, and performance optimization patterns for FastAPI applications including health checks, structured logging, caching, and observability.
 
-## Rule Scope
+**When to Load This Rule:**
+- FastAPI health checks, logging, monitoring, and performance optimization patterns
 
-FastAPI health checks, logging, monitoring, and performance optimization patterns
 
-## Quick Start TL;DR
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Implement /health endpoint** - Required for load balancers and orchestration
-- **Use structured JSON logging** - Include correlation IDs for distributed tracing
-- **Add caching strategically** - Use Redis for frequently accessed data
-- **Monitor database connections** - Check and log connection pool health
-- **Track request metrics** - Response times, error rates, throughput
-- **Never log sensitive data** - Sanitize credentials, tokens, PII from logs
 
-**Quick Checklist:**
-- [ ] /health endpoint returns 200 with status details
-- [ ] Structured logging configured (JSON format)
-- [ ] Correlation IDs in all log entries
-- [ ] Caching implemented for read-heavy endpoints
-- [ ] Database health checks in /health response
-- [ ] Error tracking and alerting configured
-- [ ] Performance metrics collected
+
+
+## References
+
+### External Documentation
+- [FastAPI Middleware Guide](https://fastapi.tiangolo.com/tutorial/middleware/) - Custom middleware, CORS, and request processing
+- [Python Logging Documentation](https://docs.python.org/3/library/logging.html) - Structured logging, handlers, and formatters
+- [Redis Python Async](https://redis-py.readthedocs.io/en/stable/) - Async Redis operations and connection pooling
+
+### Related Rules
+- **FastAPI Core**: `210-python-fastapi-core.md`
+- **FastAPI Deployment**: `210c-python-fastapi-deployment.md`
+- **Python Core**: `200-python-core.md`
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-[Context, files, dependencies needed]
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-[Tools permitted for this domain]
-</mandatory>
+- Existing FastAPI application with routes defined
+- Understanding of monitoring and observability requirements
+- Knowledge of health check patterns for load balancers
+- Access to logging and metrics infrastructure
 
-<forbidden>
-[Tools not allowed for this domain]
-</forbidden>
+### Mandatory
 
-<steps>
-[Ordered steps the agent must follow]
-</steps>
+- **FastAPI** application instance
+- **Health check endpoints** (/health, /health/ready, /health/live)
+- **Structured logging** with JSON formatter
+- **Correlation IDs** for request tracing
+- **Redis** for caching (if using caching patterns)
 
-<output_format>
-[Expected output format]
-</output_format>
+### Forbidden
 
-<validation>
-[Checks to confirm success]
-</validation>
+- Logging sensitive data (passwords, tokens, PII) without sanitization
+- Missing correlation IDs for distributed tracing
+- Single health check endpoint without readiness/liveness separation
+- Synchronous blocking operations in async endpoints
+- Hardcoded connection pool sizes without configuration
 
-<design_principles>
+### Execution Steps
+
+1. Implement health check endpoints (/health, /health/ready, /health/live)
+2. Configure structured logging with JSON formatter
+3. Add correlation ID middleware for request tracing
+4. Implement caching layer with Redis (if needed)
+5. Configure connection pool optimization for database
+6. Add metrics collection middleware
+7. Set up error tracking and alerting
+8. Validate with: `curl http://localhost:8000/health` and `uv run pytest tests/`
+
+### Output Format
+
+FastAPI application with:
+- Health check router with multiple endpoints
+- Structured logging configuration with JSON output
+- Correlation ID middleware
+- Caching manager with Redis integration
+- Metrics middleware for performance tracking
+- Error handlers with proper logging
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Health endpoints return 200 for healthy state
+- Structured logs include correlation_id field
+- Sensitive data is sanitized before logging
+- Cache hit/miss metrics are tracked
+- Database connection pool is configured
+
+**Success Criteria:**
+- `curl http://localhost:8000/health` returns {"status": "healthy"}
+- `curl http://localhost:8000/health/ready` checks database connectivity
+- Logs are in JSON format with correlation IDs
+- `uvx ruff check .` passes with zero errors
+- `uv run pytest tests/` passes all monitoring tests
+
+### Design Principles
+
 1. **Health Monitoring** - Implement comprehensive health checks for load balancers and orchestration
 2. **Structured Logging** - Use JSON logging with correlation IDs for distributed tracing
 3. **Performance Optimization** - Implement caching, connection pooling, and efficient patterns
 4. **Observability** - Metrics, distributed tracing, and monitoring integration
 5. **Error Tracking** - Comprehensive error logging and alerting
 6. **Resource Monitoring** - Track system resources and database performance
-</design_principles>
 
-</contract>
+### Post-Execution Checklist
+
+- [ ] Health check endpoints implemented (/health, /health/ready, /health/live)
+- [ ] Structured logging configured with JSON formatter
+- [ ] Correlation ID middleware added
+- [ ] Sensitive data sanitization in logs
+- [ ] Caching layer configured (if needed)
+- [ ] Connection pool optimized
+- [ ] Metrics middleware collecting performance data
+- [ ] Error tracking configured
+- [ ] Tests cover health checks and logging
+- [ ] Linting and tests pass
 
 ## Anti-Patterns and Common Mistakes
 
@@ -126,34 +171,6 @@ async def add_correlation_id(request: Request, call_next):
         response.headers["X-Correlation-ID"] = correlation_id
         return response
 ```
-
-## Post-Execution Checklist
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
-
-## Validation
-- **Success checks:** [How to verify correct implementation]
-- **Negative tests:** [What should fail and how to detect failures]
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Read existing health endpoints BEFORE adding monitoring** - Check if /health or similar already exists
-> 2. **Check logging configuration** - Read existing logging setup, format, handlers
-> 3. **Never assume monitoring stack** - Check if Redis, Prometheus, or other tools are available
-> 4. **Verify middleware order** - Read app initialization to understand middleware stack
-> 5. **Test health checks** - Ensure they don't cause cascading failures
->
-> **Anti-Pattern:**
-> "Adding /health endpoint... (without checking if it exists)"
-> "Configuring Redis caching... (without verifying Redis is available)"
->
-> **Correct Pattern:**
-> "Let me check your existing monitoring setup first."
-> [reads app files, checks for health endpoints, reviews logging config]
-> "I see you have basic health checks. Enhancing with database status and caching metrics..."
 
 ## Output Format Examples
 
@@ -213,19 +230,8 @@ uvx ruff format --check .
 uv run pytest tests/
 ```
 
-## References
 
-### External Documentation
-- [FastAPI Middleware Guide](https://fastapi.tiangolo.com/tutorial/middleware/) - Custom middleware, CORS, and request processing
-- [Python Logging Documentation](https://docs.python.org/3/library/logging.html) - Structured logging, handlers, and formatters
-- [Redis Python Async](https://redis-py.readthedocs.io/en/stable/) - Async Redis operations and connection pooling
-
-### Related Rules
-- **FastAPI Core**: `210-python-fastapi-core.md`
-- **FastAPI Deployment**: `210c-python-fastapi-deployment.md`
-- **Python Core**: `200-python-core.md`
-
-## 1. Health Checks and Monitoring
+## Health Checks and Monitoring
 
 ### Health Check Endpoints
 - **Always:** Implement health check endpoints for load balancers.
@@ -312,7 +318,7 @@ async def liveness_check():
     return {"status": "alive"}
 ```
 
-## 2. Structured Logging
+## Structured Logging
 
 ### Logging Configuration
 - **Always:** Use structured logging with JSON format.
@@ -399,7 +405,7 @@ class RequestLoggingMiddleware:
         await self.app(scope, receive, send)
 ```
 
-## 3. Performance Optimization
+## Performance Optimization
 
 ### Caching Strategies
 - **Always:** Implement caching for expensive operations.
@@ -498,7 +504,7 @@ engine = create_async_engine(
 )
 ```
 
-## 4. Performance Monitoring
+## Performance Monitoring
 
 ### Metrics Collection
 ```python
@@ -539,7 +545,7 @@ class MetricsMiddleware(BaseHTTPMiddleware):
         return response
 ```
 
-## 5. Integration with Core Rules
+## Integration with Core Rules
 
 ### Development Commands
 - **Always:** Follow Python core rules from `200-python-core.md`.

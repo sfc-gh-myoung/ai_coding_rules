@@ -2,98 +2,91 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** DEBUG, INFO, WARN, ERROR, FATAL, conditional logging, sampling, tight loop logging, standard logging libraries, log volume control, cost management, log configuration, log handlers
-**TokenBudget:** ~3300
+**TokenBudget:** ~4250
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 111-snowflake-observability-core.md
+**LastUpdated:** 2025-12-22
 
-## Purpose
-Provide comprehensive logging best practices for Snowflake handler code, covering standard library integration, strategic log level usage, conditional logging patterns, and volume control strategies to optimize observability while managing costs.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive logging best practices for Snowflake handler code, covering standard library integration, strategic log level usage, conditional logging patterns, and volume control strategies to optimize observability while managing costs.
 
-Logging patterns for Python, Java/Scala, and JavaScript handlers in Snowflake environments
+**When to Load This Rule:**
+- Implementing logging in Snowflake handlers (Python, Java, JavaScript)
+- Managing log volumes and costs
+- Using conditional logging patterns
+- Integrating with standard logging libraries
+- Optimizing logging for production environments
 
-## Quick Start TL;DR
+## References
 
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
+### External Documentation
+- [Snowflake Logging Overview](https://docs.snowflake.com/en/developer-guide/logging-tracing/logging) - Official logging documentation for Snowflake handlers
+- [Python Logging Library](https://docs.python.org/3/library/logging.html) - Standard Python logging library documentation
+- [SLF4J (Java)](https://www.slf4j.org/) - Standard Java logging facade
 
-Position at top provides practical efficiency benefits for both LLMs and human developers.
-
-**MANDATORY:**
-**Essential Patterns:**
-- **Use standard logging libraries** - Python `logging`, Java `slf4j` (NOT print statements)
-- **WARN+ for production** - DEBUG generates 10-100x more data
-- **Conditional logging** - Only log meaningful scenarios
-- **Sample tight loops** - Log every Nth iteration, not every record
-- **Include context** - Log relevant variables for troubleshooting
-- **Never log sensitive data** - PII, credentials, tokens must be excluded
-
-**Quick Checklist:**
-- [ ] Standard logging library imported (not print)
-- [ ] Log levels appropriate (WARN+ for prod, DEBUG for dev)
-- [ ] Tight loops use sampling (every Nth iteration)
-- [ ] Sensitive data excluded from logs
+### Related Rules
+- **Observability Core**: `111-snowflake-observability-core.md` - Foundation observability patterns and telemetry configuration
+- **Observability Tracing**: `111b-snowflake-observability-tracing.md` - Distributed tracing patterns
+- **Observability Monitoring**: `111c-snowflake-observability-monitoring.md` - Monitoring and analysis patterns
+- **Snowflake Core**: `100-snowflake-core.md` - Foundation Snowflake practices
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
+### Inputs and Prerequisites
 - Active event table configured (see `111-snowflake-observability-core.md`)
 - Telemetry levels configured appropriately for environment
 - Standard logging library available (Python `logging`, Java `slf4j`)
-</inputs_prereqs>
 
-<mandatory>
+### Mandatory
 - Standard logging libraries (Python `logging`, Java `slf4j`, JavaScript `console`)
 - Conditional logging with if-statements for volume control
 - Sampling strategies for high-frequency operations
-</mandatory>
 
-<forbidden>
+### Forbidden
 - `print` statements instead of logging (do NOT route to event tables)
 - DEBUG logging in production environments without cost analysis
 - Logging in tight loops without sampling
 - Logging sensitive data (PII, credentials, tokens)
-</forbidden>
 
-<steps>
+### Execution Steps
 1. **Import:** Use standard logging library at module level
 2. **Configure:** Set appropriate log levels for environment (see `111-snowflake-observability-core.md`)
 3. **Implement:** Add strategic log statements at key decision points
 4. **Sample:** Use conditional logging or sampling for high-frequency operations
 5. **Validate:** Verify logs appear in event tables after deployment
-</steps>
 
-<output_format>
+### Output Format
 - Python/Java/JavaScript code with proper logging import statements
 - Log messages with meaningful context (include relevant variables)
 - Conditional logging for volume control
 - Comments explaining sampling strategy
-</output_format>
 
-<validation>
+### Validation
 - Verify standard logging library is imported
 - Confirm log levels match environment (no DEBUG in prod)
 - Check tight loops use sampling or conditional logging
 - Validate logs appear in event tables
-</validation>
 
-<design_principles>
-- Use standard logging libraries that automatically route to event tables (Python `logging`, Java `slf4j`).
-- Set log levels based on environment: WARN+ for production, DEBUG for development only.
-- Implement conditional logging to capture only meaningful scenarios and control data volume.
-- Use sampling strategies for high-frequency operations (log every Nth iteration in tight loops).
-- Include relevant context in log messages (variable values, record counts, error details).
-- Never log sensitive data (PII, credentials, API tokens) - security and compliance violation.
-</design_principles>
+### Design Principles
+- Use standard logging libraries that automatically route to event tables (Python `logging`, Java `slf4j`)
+- Set log levels based on environment: WARN+ for production, DEBUG for development only
+- Implement conditional logging to capture only meaningful scenarios and control data volume
+- **CRITICAL:** Use sampling strategies for high-frequency operations (log every Nth iteration in tight loops)
+- Include relevant context in log messages (variable values, record counts, error details)
+- **CRITICAL:** Never log sensitive data (PII, credentials, API tokens) - security and compliance violation
 
-</contract>
+### Post-Execution Checklist
+- [ ] Standard logging library imported (not print statements)
+- [ ] Log levels appropriate (WARN+ for prod, DEBUG for dev)
+- [ ] Tight loops use sampling (every Nth iteration, typically 1000)
+- [ ] Sensitive data excluded from logs (PII, credentials, tokens)
+- [ ] Meaningful context included in log messages
+- [ ] Conditional logging used for volume control
 
 ## Anti-Patterns and Common Mistakes
 
@@ -199,45 +192,6 @@ def process_order(order):
 ```
 **Benefits:** Cost-effective production logging; manageable volume; performance maintained; actionable signal; development flexibility; production scalability
 
-## Post-Execution Checklist
-- [ ] Logging uses standard libraries (Python `logging`, Java `slf4j`, NOT print)
-- [ ] Log levels appropriate for environment (WARN+ for prod, DEBUG for dev only)
-- [ ] Tight loops use sampling (every Nth iteration, NOT every record)
-- [ ] Sensitive data excluded (no passwords, tokens, PII in logs)
-- [ ] Meaningful context included (variable values, record counts, error details)
-- [ ] Cost implications considered (DEBUG generates 10-100x more data)
-- [ ] Conditional logging implemented (only log meaningful scenarios)
-
-## Validation
-- **Success Checks:**
-  - Logging from handler code appears in event table within minutes
-  - Log messages include relevant context for troubleshooting
-  - Log volume is reasonable for environment (< 10MB/day for typical prod workload)
-  - Sensitive data NOT present in log messages
-
-- **Negative Tests:**
-  - Using `print` statements should NOT appear in event tables
-  - DEBUG level in production should trigger cost review
-  - Tight loop logging without sampling should be flagged
-  - Sensitive data in logs should be rejected in code review
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Check existing logging patterns** - Review current handler code for logging usage
-> 2. **Verify log levels** - Ensure environment-appropriate levels (WARN+ for prod)
-> 3. **Identify tight loops** - Look for high-frequency operations that need sampling
-> 4. **Review log volume** - Query event tables to understand current volume
-> 5. **Scan for sensitive data** - Check logs don't contain PII, credentials, tokens
->
-> **Anti-Pattern:**
-> "Adding DEBUG logging everywhere... (without cost analysis)"
-> "Using print statements for logging... (won't route to event tables)"
->
-> **Correct Pattern:**
-> "Let me review your current logging patterns first."
-> [checks event table volume, reviews log levels, scans for anti-patterns]
-> "I see you're using INFO level with 5MB/day volume. Adding WARN-level logging for errors following this pattern..."
-
 ## Output Format Examples
 ```python
 # Logging Best Practices Template
@@ -287,20 +241,12 @@ def my_handler(session, input_data):
         raise
 ```
 
-## References
-
 ### Logging Documentation
 - [Snowflake Logging Guide](https://docs.snowflake.com/en/developer-guide/logging-tracing/logging) - Comprehensive guide to logging messages from functions and procedures
 - [Python logging module](https://docs.python.org/3/library/logging.html) - Official Python logging documentation
 - [SLF4J documentation](https://www.slf4j.org/manual.html) - Java/Scala logging framework
 
-### Related Rules
-- **Observability Core**: `111-snowflake-observability-core.md` - Telemetry configuration and event tables
-- **Observability Tracing**: `111b-snowflake-observability-tracing.md` - Distributed tracing patterns
-- **Observability Monitoring**: `111c-snowflake-observability-monitoring.md` - Monitoring and analysis
-- **Cost Governance**: `105-snowflake-cost-governance.md` - Cost optimization strategies for telemetry data
-
-## 1. Standard Library Integration
+## Standard Library Integration
 
 ### Python Logging
 - **Always:** Use Python's built-in `logging` module which automatically routes to event tables.
@@ -372,7 +318,7 @@ public class DataProcessor {
 }
 ```
 
-## 2. Log Level Strategy
+## Log Level Strategy
 
 ### Environment-Based Log Levels
 - **Production:** Use WARN or ERROR to capture significant events without excessive verbosity.
@@ -418,7 +364,7 @@ logger.error(f"Failed to process record {record.id}: {str(e)}")
 logger.fatal(f"Database connection lost: {str(e)}")
 ```
 
-## 3. Conditional Logging
+## Conditional Logging
 
 ### Logging Only Meaningful Scenarios
 - **Rule:** Use conditional statements to log only when there's meaningful information to capture.
@@ -463,7 +409,7 @@ def process_large_dataset(records):
     logger.info(f"Processing complete: {total} records processed")
 ```
 
-## 4. Sampling Strategies
+## Sampling Strategies
 
 ### Anti-Pattern: Logging in Tight Loops
 **Anti-Pattern: Excessive logging without sampling**
@@ -515,7 +461,7 @@ for record in large_dataset:
         logger.warn(f"Failed to process record {record.id}: {result.error}")
 ```
 
-## 5. Common Logging Anti-Patterns
+## Common Logging Anti-Patterns
 
 ### Anti-Pattern 1: Using DEBUG level in production
 ```sql

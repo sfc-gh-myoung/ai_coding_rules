@@ -2,69 +2,116 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** Typer, CLI development, command-line interface, click, argument parsing, CLI testing, typer.Argument, typer.Option, CliRunner, rich console
-**TokenBudget:** ~3150
+**TokenBudget:** ~4850
 **ContextTier:** High
 **Depends:** 200-python-core.md
+**LastUpdated:** 2025-12-23
 
-## Purpose
+## Scope
+
+**What This Rule Covers:**
 Provide comprehensive guidance for building robust, user-friendly command-line applications using Typer, covering project setup, argument handling, testing strategies, and deployment patterns for maintainable CLI tools.
 
-## Rule Scope
+**When to Load This Rule:**
+- Python CLI development, command-line applications, user interfaces
 
-Python CLI development, command-line applications, user interfaces
 
-## Quick Start TL;DR
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Install with `uv add "typer[all]"`** - Includes rich and shellingham for full features
-- **Use `typer.Argument()` for required positional args** - Not function defaults
-- **Use `typer.Option()` for optional flags** - Clear help text, short names
-- **Separate CLI from business logic** - `cli/` for CLI, `core/` for logic
-- **Test with CliRunner** - From typer.testing, not bare command invocations
-- **Entry point in pyproject.toml** - `[project.scripts]` section
-- **Never use bare print()** - Use typer.echo() or rich console for output
 
-**Quick Checklist:**
-- [ ] Typer installed with `uv add "typer[all]"`
-- [ ] Entry point defined in `[project.scripts]`
-- [ ] CLI logic in separate cli/ directory
-- [ ] Arguments use `typer.Argument()`
-- [ ] Options use `typer.Option()` with help text
-- [ ] Tests use CliRunner
-- [ ] Output via typer.echo() or rich console
+
+
+## References
+
+### External Documentation
+- [Typer Documentation](https://typer.tiangolo.com/) - Modern CLI framework with automatic help generation
+- [Rich Documentation](https://rich.readthedocs.io/) - Terminal styling, progress bars, and rich text rendering
+- [Click Documentation](https://click.palletsprojects.com/) - Underlying CLI framework and advanced patterns
+
+### Related Rules
+- **200-python-core.md** - Core Python patterns and uv usage
+- **201-python-lint-format.md** - Ruff linting and formatting standards
+- **203-python-project-setup.md** - Python project structure and packaging
+- **230-python-pydantic.md** - Pydantic integration with Typer
+- **800-project-changelog-rules.md** - Changelog discipline for CLI changes
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-[Context, files, dependencies needed]
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-[Tools permitted for this domain]
-</mandatory>
+- Python project with `pyproject.toml` configured
+- Understanding of CLI requirements and user workflows
+- Knowledge of command-line argument patterns
+- Access to project codebase for CLI integration
 
-<forbidden>
-[Tools not allowed for this domain]
-</forbidden>
+### Mandatory
 
-<steps>
-[Ordered steps the agent must follow]
-</steps>
+- **uv** for dependency management
+- **typer[all]>=0.9.0** installed via `uv add "typer[all]"`
+- Type annotations on all command parameters
+- Console scripts configured in pyproject.toml
+- Explicit exit codes for error conditions
 
-<output_format>
-[Expected output format]
-</output_format>
+### Forbidden
 
-<validation>
-[Checks to confirm success]
-</validation>
+- Using argparse or click directly (use Typer instead)
+- Hardcoded file paths without configuration options
+- Missing exit codes (always exit 0)
+- Running single worker in production
+- Skipping help text and documentation
+- Mutable default values for command parameters
 
-</contract>
+### Execution Steps
+
+1. Install Typer with full features: `uv add "typer[all]"`
+2. Create CLI module structure (cli/main.py, cli/commands/)
+3. Define main Typer app with proper configuration
+4. Implement commands with Annotated parameters for metadata
+5. Add error handling with appropriate exit codes
+6. Configure console scripts in pyproject.toml [project.scripts]
+7. Write CLI tests using typer.testing.CliRunner
+8. Validate with: `uvx ruff check .` and `uv run pytest tests/cli/`
+
+### Output Format
+
+Python CLI application with:
+- Main Typer app with command groups
+- Command functions with comprehensive docstrings
+- Type-annotated parameters using Annotated
+- Error handling with typer.Exit(code)
+- Rich formatting for output (tables, panels, progress bars)
+- Console script entry points in pyproject.toml
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- All commands have type annotations
+- Help text is clear and includes examples
+- Exit codes are explicit (0 for success, non-zero for errors)
+- Configuration options support environment variables
+- Tests cover success and failure scenarios
+
+**Success Criteria:**
+- `uvx ruff check .` passes with zero errors
+- `uv run pytest tests/cli/` passes all CLI tests
+- `myapp --help` displays comprehensive help text
+- Error conditions return appropriate exit codes
+- CLI integrates with project business logic correctly
+
+### Post-Execution Checklist
+
+- [ ] Typer[all] installed with rich support
+- [ ] Main CLI app configured with command groups
+- [ ] All commands have type annotations
+- [ ] Help text and examples provided
+- [ ] Exit codes implemented for all error paths
+- [ ] Configuration supports CLI/env/file precedence
+- [ ] Tests use CliRunner for validation
+- [ ] Console scripts configured in pyproject.toml
+- [ ] Cross-platform compatibility verified
+- [ ] Linting and tests pass
 
 ## Anti-Patterns and Common Mistakes
 
@@ -126,34 +173,6 @@ def export_data(
     save_to_csv(output)
 ```
 
-## Post-Execution Checklist
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
-
-## Validation
-- **Success checks:** [How to verify correct implementation]
-- **Negative tests:** [What should fail and how to detect failures]
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Read existing CLI structure BEFORE adding commands** - Check cli/, main.py, pyproject.toml for entry points
-> 2. **Verify current Typer app setup** - Check how main app and sub-commands are organized
-> 3. **Never speculate about command structure** - Read existing command files to understand patterns
-> 4. **Check pyproject.toml for entry points** - Don't create duplicate [project.scripts] entries
-> 5. **Make grounded recommendations based on investigated CLI structure** - Match existing patterns
->
-> **Anti-Pattern:**
-> "Based on typical CLI apps, you probably organize commands like this..."
-> "Let me add this command - it should work with standard Typer patterns..."
->
-> **Correct Pattern:**
-> "Let me check your existing CLI structure first."
-> [reads cli/main.py, cli/commands/, pyproject.toml]
-> "I see you have a main Typer app with sub-commands in cli/commands/. Here's a new command following the same pattern with proper Argument() and Option() usage..."
-
 ## Output Format Examples
 
 ```python
@@ -212,19 +231,8 @@ uvx ruff format --check .
 uv run pytest tests/
 ```
 
-## References
 
-### External Documentation
-- [Typer Documentation](https://typer.tiangolo.com/) - Modern CLI framework with automatic help generation
-- [Rich Documentation](https://rich.readthedocs.io/) - Terminal styling, progress bars, and rich text rendering
-- [Click Documentation](https://click.palletsprojects.com/) - Underlying CLI framework and advanced patterns
-
-### Related Rules
-- **Python Core**: `200-python-core.md`
-- **Python Project Setup**: `203-python-project-setup.md`
-- **Pydantic**: `230-python-pydantic.md`
-
-## 1. Project Setup and Structure
+## Project Setup and Structure
 
 ### Installation and Dependencies
 - **Requirement:** Use `uv` for dependency management following `200-python-core.md` patterns
@@ -269,7 +277,7 @@ Directory structure for `cli-project/`:
   - **cli/** - `test_commands.py`
   - **core/** - `test_services.py`
 
-## 2. CLI Application Design Patterns
+## CLI Application Design Patterns
 
 ### Main Application Setup
 - **Rule:** Create a main Typer app with proper configuration:
@@ -404,7 +412,7 @@ def risky_operation(
         handle_processing_error(e, "Unexpected error occurred")
 ```
 
-## 3. Configuration and Environment Management
+## Configuration and Environment Management
 
 ### Configuration Patterns
 - **Rule:** Support multiple configuration sources (files, environment, CLI options)
@@ -479,7 +487,7 @@ def show_config():
     console.print(table)
 ```
 
-## 4. Testing Strategies
+## Testing Strategies
 
 ### CLI Testing with Typer's Test Client
 - **Rule:** Use Typer's built-in testing utilities for CLI tests
@@ -536,7 +544,7 @@ def test_complete_pipeline(tmp_path):
     assert result.exit_code == 0
 ```
 
-## 5. Performance and User Experience
+## Performance and User Experience
 
 ### Progress Indicators
 - **Rule:** Use Rich progress bars for long-running operations
@@ -580,7 +588,7 @@ def fetch_data(urls: List[str], concurrent: int = 5):
         console.print(f"{result['status']}: {result['url']}")
 ```
 
-## 6. Packaging and Distribution
+## Packaging and Distribution
 
 ### Console Scripts Configuration
 - **Rule:** Define entry points in `pyproject.toml` for easy installation
@@ -628,7 +636,7 @@ def get_config_dir() -> Path:
         return Path.home() / ".config" / "myapp"
 ```
 
-## 7. Documentation and Help
+## Documentation and Help
 
 ### Auto-Generated Documentation
 - **Rule:** Use comprehensive docstrings for help generation
@@ -670,9 +678,3 @@ def main(
     pass
 ```
 
-## Related Rules
-
-- **`200-python-core.md`** - Core Python patterns and uv usage
-- **`201-python-lint-format.md`** - Ruff linting and formatting standards
-- **`203-python-project-setup.md`** - Python project structure and packaging
-- **`800-project-changelog-rules.md`** - Changelog discipline for CLI changes

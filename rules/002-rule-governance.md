@@ -7,106 +7,161 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
-**Keywords:** rule governance, schema, metadata requirements, required sections, Contract XML tags, validation, schema compliance, rule structure, semantic discovery, RULES_INDEX
-**TokenBudget:** ~2300
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**Keywords:** rule governance, schema, metadata requirements, validation, schema compliance, rule structure, semantic discovery, RULES_INDEX, descriptive headings
+**TokenBudget:** ~3200
 **ContextTier:** Critical
 **Depends:** 000-global-core.md
 
-## Purpose
+## Scope
 
-Defines schema standards for AI coding rule files, ensuring consistent structure, semantic discoverability, and automated validation for AI agents creating and maintaining rules.
+**What This Rule Covers:**
+Schema standards (v3.2) for AI coding rule files. Defines required sections, metadata fields, Contract structure, and validation requirements. All rules must comply with `schemas/rule-schema.yml` v3.2 specifications.
 
-## Rule Scope
+**When to Load This Rule:**
+- Creating new rule files
+- Updating existing rules to v3.2 schema
+- Reviewing rule compliance
+- Understanding schema validation requirements
+- Working with schema_validator.py
 
-All rule files in the ai_coding_rules repository must comply with schema standards defined in schemas/rule-schema.yml
+## References
 
-## Quick Start TL;DR
+### Dependencies
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Required metadata (5 fields):** RuleVersion (vX.Y.Z), Keywords (10-15 terms), TokenBudget (~NUMBER), ContextTier (Critical/High/Medium/Low), Depends (at least one dependency)
-- **RuleVersion field is REQUIRED** - Enables version tracking for issue reporting (semantic versioning: v1.0.0)
-- **Keywords field is CRITICAL** - Enables semantic discovery and automatic rule loading (10-15 comma-separated terms)
-- **9 required sections** - Purpose, Rule Scope, Quick Start TL;DR, Contract, Post-Execution Checklist, Validation, Output Format Examples, References (+ optional: Key Principles, Anti-Patterns)
-- **Contract with 6 XML tags** - `<inputs_prereqs>`, `<mandatory>`, `<forbidden>`, `<steps>`, `<output_format>`, `<validation>`
-- **Minimum 3 Essential Patterns** - No maximum limit, quality over quantity
-- **Validation command** - `python3 scripts/schema_validator.py rules/NNN-rule.md`
+**Must Load First:**
+- **000-global-core.md** - Foundation for all rules
 
-**Pre-Execution Checklist:**
-- [ ] Metadata present: RuleVersion (vX.Y.Z), Keywords (10-15), TokenBudget, ContextTier, Depends
-- [ ] All 9 required sections present in correct order
-- [ ] Contract section has all 6 XML tags before line 160
-- [ ] Quick Start has minimum 3 Essential Patterns
-- [ ] Post-Execution Checklist has 5+ verification items
-- [ ] Output Format Examples has concrete code samples
-- [ ] Validation command runs without CRITICAL errors
+**Related:**
+- **002a-rule-creation-guide.md** - Step-by-step guide for creating new rules
+- **002b-rule-optimization.md** - Token budgets, performance tuning, model-specific tips
+- **002c-advanced-rule-patterns.md** - System prompt altitude, investigation-first, multi-session workflows
+- **002d-schema-validator-usage.md** - Detailed validator commands, error interpretation, CI/CD integration
+
+### External Documentation
+
+- **Schema Definition:** `schemas/rule-schema.yml` - Authoritative v3.2 schema with validation rules
+- **Rules Index:** `RULES_INDEX.md` - Master index of all rules with keywords
 
 ## Contract
 
-<inputs_prereqs>
-Rule creation/maintenance task; schema understanding; access to schemas/rule-schema.yml
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-Text editor; schema_validator.py; access to existing rules/ directory; schemas/rule-schema.yml file
-</mandatory>
+- Rule creation or maintenance task
+- Schema understanding (v3.2)
+- Access to `schemas/rule-schema.yml`
+- Understanding of required sections and metadata fields
 
-<forbidden>
-Creating rules without metadata; skipping validation; using outdated schema (v2.x); emojis in rule files
-</forbidden>
+### Mandatory
 
-<steps>
-1. Review schema requirements (metadata, sections, XML tags)
-2. Review existing rules in same category for patterns (use 002a-rule-creation-guide.md for workflow)
-3. Fill 5 required metadata fields correctly (RuleVersion, Keywords, TokenBudget, ContextTier, Depends)
-4. Write all 9 required sections in order
-5. Add Contract section with 6 XML tags
-6. Validate with schema_validator.py before committing
-</steps>
+- Text editor
+- `schema_validator.py` script
+- Access to existing `rules/` directory
+- `schemas/rule-schema.yml` file (v3.2)
 
-<output_format>
-Markdown file (.md) with v3.0 metadata and required sections
-</output_format>
+### Forbidden
 
-<validation>
-- schema_validator.py passes with zero CRITICAL errors
-- All 5 metadata fields present and correctly formatted
-- All 9 required sections present in correct order
-- Contract has all 6 XML tags
-- RuleVersion: semantic version format (vX.Y.Z)
-- Keywords count: 10-15 terms
-</validation>
+- Creating rules without metadata
+- Skipping validation
+- Using outdated schema (v3.0 or v3.1)
+- Using emojis in rule files
+- Using XML tags in Contract section (v3.2 uses Markdown headers)
+- Using numbered section headings (v3.2 uses descriptive names)
 
-## Schema Requirements
+### Execution Steps
+
+1. Review v3.2 schema requirements (metadata, required sections, Markdown headers)
+2. Review existing v3.2 rules in same category for patterns (use 002a-rule-creation-guide.md for workflow)
+3. Fill required metadata fields correctly (SchemaVersion: v3.2, RuleVersion, Keywords: 5-20 terms, TokenBudget, ContextTier, Depends)
+4. Write required sections in order: Scope, References, Contract, Anti-Patterns (optional)
+5. Add Contract section with Markdown subsections (###): Inputs and Prerequisites, Mandatory, Forbidden, Execution Steps, Output Format, Validation, Design Principles, Post-Execution Checklist
+6. Use descriptive section names (not numbered: "## Environment Setup" not "## 1. Environment Setup")
+7. Validate with `schema_validator.py` before committing
+
+### Output Format
+
+Markdown file (.md) with:
+- v3.2 schema metadata
+- Required sections in correct order
+- Contract with Markdown headers (###), not XML tags
+- Descriptive section names (not numbered)
+- 5-20 keywords for semantic discovery
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- All metadata fields present and correctly formatted
+- Required sections present in v3.2 order (Scope, References, Contract)
+- Contract has Markdown subsections (###), not XML tags
+- No numbered section headings
+- Keywords count is 5-20 terms (semantic and discoverable)
+- schema_validator.py ready to run
+
+**Success Criteria:**
+- `python3 scripts/schema_validator.py rules/NNN-rule.md` returns zero CRITICAL errors
+- All metadata fields parse correctly
+- All required sections found in correct order
+- Contract Markdown subsections validated successfully
+- Keywords count within 5-20 range
+- RuleVersion in semantic version format (vX.Y.Z)
+- TokenBudget reflects actual file size (±10% acceptable)
+
+**Negative Tests:**
+- Missing metadata field triggers CRITICAL error
+- Wrong section order triggers HIGH error
+- XML tags in Contract trigger HIGH error
+- Numbered section headings trigger HIGH error
+- Keywords <5 or >20 triggers HIGH error
+- TokenBudget without tilde triggers MEDIUM error
+
+### Post-Execution Checklist
+
+- [ ] New/updated rule has all required metadata fields correctly formatted
+- [ ] SchemaVersion is v3.2
+- [ ] All required sections present in v3.2 order
+- [ ] Contract section uses Markdown headers (###), not XML tags
+- [ ] No numbered section headings (## 1., ## 2., etc.)
+- [ ] Keywords count is 5-20 terms (semantic and discoverable)
+- [ ] schema_validator.py runs with 0 CRITICAL errors
+- [ ] TokenBudget reflects actual file size (±10% acceptable)
+- [ ] File added to RULES_INDEX.md with keywords
+- [ ] Dependencies declared in Depends metadata
+- [ ] No emojis in rule file content
+
+## Schema Requirements (v3.2)
 
 ### Metadata Fields (6 Required)
 
 **Required Fields:**
-- **SchemaVersion:** `vX.Y` format, must match current schema (e.g., v3.1) - CRITICAL
-- **RuleVersion:** Semantic version `vX.Y.Z` (e.g., v1.0.0)
-- **Keywords:** 10-15 comma-separated terms for discovery
+- **SchemaVersion:** `v3.2` - CRITICAL (must be v3.2 for new/updated rules)
+- **RuleVersion:** Semantic version `vX.Y.Z` (e.g., v1.0.0, v2.0.0)
+- **Keywords:** 5-20 comma-separated terms for semantic discovery
 - **TokenBudget:** `~NUMBER` format (e.g., ~1200)
-- **ContextTier:** One of: Critical, High, Medium, Low
+- **ContextTier:** One of: Critical, High, Medium, Low (see `002b-rule-optimization.md` for detailed tier selection guidance)
 - **Depends:** At least one rule dependency (e.g., `000-global-core.md`)
 
-**Field Order:** Must appear in exact order: RuleVersion, Keywords, TokenBudget, ContextTier, Depends
+**Field Order:** Must appear in exact order: SchemaVersion, RuleVersion, Keywords, TokenBudget, ContextTier, Depends
 
-### Required Sections (9 Mandatory)
+### Required Sections (v3.2)
 
 **Required Sections (in order):**
-1. **Purpose** - 1-2 sentences explaining rule purpose
-2. **Rule Scope** - Single line scope statement
-3. **Quick Start TL;DR** - 30-second overview with Essential Patterns (min 3) + Pre-Execution Checklist (5-7 items)
-4. **Contract** - Structured contract with 6 XML tags (must appear before line 160)
-5. **Key Principles** - Core concepts (optional for simple rules)
-6. **Anti-Patterns** - Problem/Correct Pattern pairs (optional but strongly recommended)
-7. **Post-Execution Checklist** - Verification checklist (5+ items, different from Pre-Execution)
-8. **Validation** - Success checks and negative tests
-9. **References** - Related rules and external resources
-| **Output Format Examples** | 9 | [PASS] | Concrete code examples (min 1 code block) |
-| **References** | 10 | [PASS] | External docs + related rules |
+1. **Metadata** - All 6 required fields in correct order
+2. **Scope** - What the rule covers + when to load it (replaces Purpose and Rule Scope from v3.1)
+3. **References** - Dependencies and external documentation (moved early for discovery)
+4. **Contract** - Structured contract with Markdown subsections (###), NOT XML tags
+5. **Anti-Patterns and Common Mistakes** - Optional but strongly recommended
+
+**Eliminated Sections (from v3.1):**
+- **Purpose** - ELIMINATED: Consolidated into Scope
+- **Rule Scope** - ELIMINATED: Consolidated into Scope
+- **Quick Start TL;DR** - ELIMINATED: Removed entirely
+- **Post-Execution Checklist** - MOVED: Now a subsection within Contract
+- **Validation** - MOVED: Now a subsection within Contract
+
+**Numbering:**
+- **FORBIDDEN:** Do NOT use numbered section headings (e.g., `## 1. Environment Setup`)
+- **REQUIRED:** Use descriptive section names (e.g., `## Environment and Tooling Requirements`)
 
 ### Context Preservation Mechanisms
 
@@ -128,38 +183,51 @@ recognized by all LLMs - rely on natural language markers as primary signal.
 
 See `000-global-core.md`, section "Context Window Management Protocol" for full details.
 
-### Contract XML Tags (6 Required)
+### Contract Structure (v3.2 - Markdown Headers)
 
-The Contract section must include these 6 XML tags in this order:
+The Contract section must use Markdown subsections (###), NOT XML tags:
 
 ```markdown
 ## Contract
 
-<inputs_prereqs>
+### Inputs and Prerequisites
 What the agent needs to have/know before starting
-</inputs_prereqs>
 
-<mandatory>
+### Mandatory
 Required tools, libraries, access permissions
-</mandatory>
 
-<forbidden>
-Prohibited actions, tools, or approaches
-</forbidden>
+### Forbidden
+Actions/patterns that must NOT be used
 
-<steps>
-1. First step
-2. Second step
-3. Third step (minimum 5 steps, maximum 10)
-</steps>
+### Execution Steps
+1. First step (actionable, specific)
+2. Second step (clear deliverable)
+3. Third step (validation criteria)
+...
+N. Final step (completion signal)
 
-<output_format>
-Description of expected output format
-</output_format>
+### Output Format
+Description of expected output structure
 
-<validation>
-How to verify success (success criteria)
-</validation>
+### Validation
+**Pre-Task-Completion Checks:**
+- Check 1
+- Check 2
+
+**Success Criteria:**
+- Criterion 1
+- Criterion 2
+
+### Post-Execution Checklist
+- [ ] Item 1
+- [ ] Item 2
+```
+
+**v3.2 Changes from v3.1:**
+- **REQUIRED:** Use Markdown headers (###) for subsections
+- **FORBIDDEN:** Do NOT use XML tags (`<inputs_prereqs>`, `<mandatory>`, etc.)
+- **CHANGED:** Validation is now a subsection with structured checks
+- **CHANGED:** Post-Execution Checklist is now inside Contract (not a separate section)
 ```
 
 **Note:** Contract section must appear before line 160 to ensure agent reads it early.
@@ -168,15 +236,15 @@ How to verify success (success criteria)
 
 ### Running the Validator
 
+See `002d-schema-validator-usage.md` for complete validation commands, options, and error resolution.
+
+Quick reference:
 ```bash
 # Validate single file
 python3 scripts/schema_validator.py rules/NNN-rule.md
 
 # Validate all rules
 python3 scripts/schema_validator.py rules/
-
-# Verbose output with detailed checks
-python3 scripts/schema_validator.py rules/NNN-rule.md --verbose
 ```
 
 ### Success Criteria
@@ -193,21 +261,22 @@ python3 scripts/schema_validator.py rules/NNN-rule.md --verbose
 - **TokenBudget format** - Use `~NUMBER` format (e.g., ~500, ~1200)
 
 **Structure Errors:**
-- **Missing required section** - Add missing section per schema structure
-- **Contract missing XML tag** - Add missing tag: `<inputs_prereqs>`, `<mandatory>`, etc.
-- **Section order wrong** - Reorder sections: Purpose, then Rule Scope, then Quick Start, then Contract...
+- **Missing required section** - Add missing section per v3.2 order (Scope, References, Contract)
+- **Contract missing Markdown subsection** - Add missing ### header (e.g., `### Inputs and Prerequisites`)
+- **Section order wrong** - Reorder sections per v3.2: Metadata, Scope, References, Contract
 
 **For detailed error resolution:** See `002d-schema-validator-usage.md`
 
 ## Key Principles
 
 - **Priority Hierarchy:** All rules follow the design priorities defined in `000-global-core.md`:
-  1. **Agent understanding and execution reliability** (PRIMARY) - Instructions must be deterministic
-  2. **Token and context window efficiency** (SECONDARY) - Minimize without sacrificing clarity
-  3. **Human readability** (TERTIARY) - Organize logically for reviewers
+  1. **Priority 1 (CRITICAL):** Agent understanding and execution reliability
+  2. **Priority 2 (HIGH):** Rule discovery efficacy and determinism
+  3. **Priority 3 (HIGH):** Context window and token utilization efficiency
+  4. **Priority 4 (LOW):** Human developer maintainability
 - **Schema Compliance:** All rules must validate against schemas/rule-schema.yml with zero CRITICAL errors
-- **Semantic Discovery:** Keywords (10-15) enable AI agents to automatically discover relevant rules
-- **Progressive Disclosure:** Quick Start TL;DR provides 30-second overview, detailed sections follow
+- **Semantic Discovery:** Keywords (5-20) enable AI agents to automatically discover relevant rules
+- **Progressive Disclosure:** Scope section provides overview, Contract defines execution requirements
 - **Validation-First:** Always run schema_validator.py before committing rule changes
 - **Text-Only Format:** No emojis in rule files (schema requirement for universal compatibility)
 - **Agent-First Formatting:** See `002e-agent-optimization.md` for required formatting patterns
@@ -248,35 +317,6 @@ python3 scripts/schema_validator.py rules/NNN-rule.md --verbose
 # Rule 100 is foundation, 101 extends it (no reverse dependency)
 ```
 
-## Post-Execution Checklist
-
-- [ ] New/updated rule has all 4 metadata fields correctly formatted
-- [ ] All 9 required sections present in correct order
-- [ ] Contract section includes all 6 XML tags
-- [ ] Quick Start TL;DR has min 3 Essential Patterns
-- [ ] Keywords count is 10-15 terms (semantic and discoverable)
-- [ ] schema_validator.py runs with 0 CRITICAL errors
-- [ ] TokenBudget reflects actual file size (±10% acceptable)
-- [ ] File added to RULES_INDEX.md with keywords
-- [ ] Dependencies declared in Depends metadata
-- [ ] No emojis in rule file content
-
-## Validation
-
-**Success Checks:**
-- `python3 scripts/schema_validator.py rules/NNN-rule.md` returns zero CRITICAL errors
-- All metadata fields parse correctly
-- All required sections found in correct order
-- Contract XML tags validated successfully
-- Keywords count within 10-15 range
-
-**Negative Tests:**
-- Missing metadata field triggers CRITICAL error
-- Wrong section order triggers HIGH error
-- Missing Contract XML tag triggers CRITICAL error
-- Keywords <10 or >15 triggers HIGH error
-- TokenBudget without tilde triggers MEDIUM error
-
 ## Output Format Examples
 
 ```bash
@@ -304,30 +344,17 @@ echo "| NNN-new-rule | Description | Keywords here |" >> RULES_INDEX.md
 
 ```yaml
 # schemas/rule-schema.yml structure (reference)
-version: "3.0"
+version: "3.2"
 metadata:
   required_fields:
-    - Keywords (10-15 items)
+    - SchemaVersion (v3.2)
+    - RuleVersion (vX.Y.Z)
+    - Keywords (5-20 items)
     - TokenBudget (~NUMBER format)
     - ContextTier (enum: Critical/High/Medium/Low)
     - Depends (min 1 dependency)
 structure:
-  required_sections: 9 sections
-  Contract_XML_tags: 6 tags required
+  required_sections: Metadata, Scope, References, Contract
+  Contract_subsections: 7 Markdown ### headers required
 ```
 
-## References
-
-### Related Rules
-- **Rule Creation Workflow**: `002a-rule-creation-guide.md` - Step-by-step guide for creating new rules
-- **Optimization Guide**: `002b-rule-optimization.md` - Token budgets, performance tuning, model-specific tips
-- **Advanced Patterns**: `002c-advanced-rule-patterns.md` - System prompt altitude, investigation-first, multi-session workflows
-- **Validator Usage**: `002d-schema-validator-usage.md` - Detailed validator commands, error interpretation, CI/CD integration
-- **Global Core**: `000-global-core.md` - Foundation for all rules
-
-### External Documentation
-- **Schema Definition**: `schemas/rule-schema.yml` - Authoritative schema with validation rules
-- **Rules Index**: `RULES_INDEX.md` - Master index of all rules with keywords
-
-### Schema File Location
-All rules must validate against: `schemas/rule-schema.yml`

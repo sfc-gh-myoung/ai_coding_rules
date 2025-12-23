@@ -2,100 +2,114 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** Copy History, Task History, Dynamic Tables, cost management, AI observability, Cortex AI, token tracking, troubleshooting, performance analysis, monitor queries, monitoring dashboard, observability UI, query monitoring, telemetry volume, SQL
-**TokenBudget:** ~4300
+**TokenBudget:** ~6350
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 111-snowflake-observability-core.md
+**LastUpdated:** 2025-12-23
 
-## Purpose
-Provide comprehensive monitoring, analysis, and cost management strategies for Snowflake observability, covering Snowsight monitoring interfaces, AI observability patterns, and troubleshooting workflows.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Monitoring, analysis, and cost management for Snowflake observability. Covers Snowsight monitoring interfaces (Traces & Logs, Query History, Copy History, Task History), AI observability patterns for Cortex AI token tracking, troubleshooting workflows, System Views vs Event Tables selection, and telemetry cost optimization.
 
-Monitoring queries, Snowsight navigation, cost management, AI observability, troubleshooting patterns
+**When to Load This Rule:**
+- Creating monitoring queries and dashboards
+- Troubleshooting performance or errors using Snowsight
+- Analyzing AI costs (Cortex AI token usage)
+- Setting up proactive alerts
+- Optimizing telemetry volume and costs
 
-## Quick Start TL;DR
+## References
 
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
+### Dependencies
 
-Position at top provides practical efficiency benefits for both LLMs and human developers.
+**Must Load First:**
+- **100-snowflake-core.md** - Snowflake foundation patterns
+- **111-snowflake-observability-core.md** - Telemetry configuration and event tables
 
-**MANDATORY:**
-**Essential Patterns:**
-- **System Views (historical)** - 45+ min latency, use for trends/audits
-- **Event Tables (real-time)** - Seconds latency, use for live debugging
-- **Snowsight Monitoring > Traces & Logs** - Real-time telemetry UI
-- **Snowsight Monitoring > Query History** - Historical SQL analysis
-- **Always use timestamp filters** - Prevent full table scans
-- **Monitor telemetry volume** - DEBUG generates 10-100x more data
-- **AI observability** - Track Cortex AI token usage and costs
+**Related:**
+- **111a-snowflake-observability-logging.md** - Logging best practices
+- **111b-snowflake-observability-tracing.md** - Distributed tracing and metrics
 
-**Quick Checklist:**
-- [ ] Data source identified (System View vs Event Table)
-- [ ] Monitoring queries have timestamp filters
-- [ ] Snowsight interfaces accessible
-- [ ] Cost implications reviewed (especially for DEBUG level)
+### External Documentation
+
+**Monitoring Documentation:**
+- [Snowflake Query History](https://docs.snowflake.com/en/sql-reference/account-usage/query_history) - QUERY_HISTORY view reference
+- [Snowsight Monitoring](https://docs.snowflake.com/en/user-guide/ui-snowsight-activity) - Snowsight monitoring interfaces
+- [Cortex AI Observability](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-observability) - AI token tracking
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
+### Inputs and Prerequisites
+
 - Active event table configured (see `111-snowflake-observability-core.md`)
 - Access to ACCOUNT_USAGE schema for System Views
 - Snowsight UI access for monitoring dashboards
 - Understanding of System Views vs Telemetry distinction (see core rule)
-</inputs_prereqs>
 
-<mandatory>
+### Mandatory
+
 - SQL queries on `SNOWFLAKE.ACCOUNT_USAGE` schema views
 - Snowsight monitoring interfaces (Traces & Logs, Query History, Copy History, Task History)
 - Monitoring views and stored procedures
 - Alert and notification mechanisms
-</mandatory>
 
-<forbidden>
+### Forbidden
+
 - Using System Views (QUERY_HISTORY) for real-time monitoring (45+ min latency)
 - Querying event tables with `SELECT *` (always use explicit columns)
 - Creating monitoring queries without timestamp filters (full table scan)
-</forbidden>
 
-<steps>
-1. **Identify:** Determine data source (System View historical vs Event Table real-time)
-2. **Query:** Create monitoring queries with explicit columns and timestamp filters
-3. **Visualize:** Use Snowsight interfaces for operational dashboards
-4. **Alert:** Set up proactive alerting for critical error patterns
-5. **Optimize:** Review cost implications and optimize telemetry volume
-</steps>
+### Execution Steps
 
-<output_format>
+1. Determine data source (System View historical vs Event Table real-time)
+2. Create monitoring queries with explicit columns and timestamp filters
+3. Use Snowsight interfaces for operational dashboards
+4. Set up proactive alerting for critical error patterns
+5. Review cost implications and optimize telemetry volume
+
+### Output Format
+
 - SQL queries with explicit column selection (no `SELECT *`)
 - Monitoring views with aggregated metrics
 - Snowsight navigation paths for UI access
 - Cost analysis queries with estimated storage impact
-</output_format>
 
-<validation>
-- Verify monitoring queries return expected data
-- Confirm Snowsight dashboards accessible
-- Validate timestamp filters prevent full table scans
-- Check cost implications of telemetry volume
-</validation>
+### Validation
 
-<design_principles>
-- Use System Views (ACCOUNT_USAGE) for historical analysis and trends (45+ min latency).
-- Use Event Tables for real-time monitoring and live debugging (seconds latency).
-- Always include timestamp filters in monitoring queries to prevent full table scans.
-- Create reusable monitoring views for common observability queries.
-- Monitor telemetry data volume and cost implications (DEBUG can generate 10-100x more data).
-- Use Snowsight monitoring interfaces for operational dashboards and troubleshooting.
-</design_principles>
+**Pre-Task-Completion Checks:**
+- Monitoring queries return expected data
+- Snowsight dashboards accessible
+- Timestamp filters prevent full table scans
+- Cost implications reviewed
 
-</contract>
+**Success Criteria:**
+- Queries execute within performance targets
+- Dashboards display real-time/historical data correctly
+- Alerts trigger on error conditions
+- Telemetry volume within budget
+
+### Design Principles
+
+- Use System Views (ACCOUNT_USAGE) for historical analysis and trends (45+ min latency)
+- Use Event Tables for real-time monitoring and live debugging (seconds latency)
+- Include timestamp filters in monitoring queries to prevent full table scans
+- Create reusable monitoring views for common observability queries
+- Monitor telemetry data volume and cost implications (DEBUG can generate 10-100x more data)
+- Use Snowsight monitoring interfaces for operational dashboards and troubleshooting
+
+### Post-Execution Checklist
+
+- [ ] Data source identified (System View vs Event Table)
+- [ ] Monitoring queries created with explicit columns
+- [ ] Timestamp filters applied to all queries
+- [ ] Snowsight interfaces verified accessible
+- [ ] Cost implications reviewed (especially for DEBUG level)
+- [ ] Alerts configured for critical patterns
+- [ ] Telemetry volume monitored
 
 ## Anti-Patterns and Common Mistakes
 
@@ -218,49 +232,6 @@ ORDER BY day DESC;
 ```
 **Benefits:** Cost visibility; budget control; early warning; informed decisions; predictable spending; resource optimization; financial accountability
 
-## Post-Execution Checklist
-- [ ] Data source identified (System View for historical, Event Table for real-time)
-- [ ] Monitoring queries include timestamp filters (prevent full table scans)
-- [ ] Explicit column selection used (no `SELECT *`)
-- [ ] Snowsight access verified for monitoring dashboards
-- [ ] Cost implications reviewed (DEBUG generates 10-100x more data)
-- [ ] Telemetry volume monitored regularly
-- [ ] AI observability enabled for Cortex AI functions
-- [ ] Token tracking configured for cost attribution
-- [ ] Cross-references noted (114-aisql for AI costs, 122-dynamic-tables for DT monitoring)
-
-## Validation
-- **Success Checks:**
-  - Monitoring queries return expected data within latency constraints
-  - Snowsight dashboards accessible and show current telemetry
-  - Event table queries execute efficiently with timestamp filters
-  - Cost analysis shows telemetry volume within budget
-  - System View queries account for latency (no real-time expectations)
-  - AI observability captures token usage and costs
-
-- **Negative Tests:**
-  - `SELECT *` on event tables should be discouraged
-  - System Views queried for real-time data (< 45 min) should show no recent results
-  - Event table queries without timestamp filters should be flagged
-  - DEBUG level in production should trigger cost review
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Identify data source** - System View (historical) vs Event Table (real-time)
-> 2. **Check Snowsight access** - Verify users can access monitoring dashboards
-> 3. **Review monitoring patterns** - Understand existing queries and dashboards
-> 4. **Verify cost implications** - Check telemetry volume and retention settings
-> 5. **Test navigation paths** - Ensure Snowsight interfaces accessible
->
-> **Anti-Pattern:**
-> "Querying Query History for real-time data... (45+ min latency)"
-> "Using SELECT * on event tables... (inefficient)"
->
-> **Correct Pattern:**
-> "Let me check which data source is appropriate for your time range first."
-> [checks time requirements, selects Event Table for real-time or System View for historical]
-> "For real-time monitoring, use Monitoring > Traces & Logs. For historical analysis, use Query History..."
-
 ## Output Format Examples
 ```sql
 -- Monitoring Setup Template
@@ -323,27 +294,7 @@ GROUP BY record_type
 ORDER BY estimated_gb DESC;
 ```
 
-## References
-
-### Snowsight UI and System Views
-- [Snowflake Query Profile](https://docs.snowflake.com/en/user-guide/ui-query-profile) - Query performance analysis and optimization using Query Profile
-- [Query History](https://docs.snowflake.com/en/sql-reference/account-usage/query_history) - QUERY_HISTORY System View reference
-- [Copy History](https://docs.snowflake.com/en/sql-reference/account-usage/copy_history) - COPY_HISTORY System View for data loading monitoring
-- [Task History](https://docs.snowflake.com/en/sql-reference/account-usage/task_history) - TASK_HISTORY System View for pipeline monitoring
-- [Dynamic Table Refresh History](https://docs.snowflake.com/en/sql-reference/account-usage/dynamic_table_refresh_history) - Monitoring Dynamic Table refresh operations
-
-### AI Observability
-- [Snowflake AI Observability (Cortex)](https://docs.snowflake.com/en/user-guide/snowflake-cortex/ai-observability) - Evaluate and trace generative AI applications with evaluations, comparisons, and tracing features
-
-### Related Rules
-- **Observability Core**: `111-snowflake-observability-core.md` - Telemetry configuration and event tables
-- **Observability Logging**: `111a-snowflake-observability-logging.md` - Logging best practices
-- **Observability Tracing**: `111b-snowflake-observability-tracing.md` - Distributed tracing patterns
-- **Cost Governance**: `105-snowflake-cost-governance.md` - Cost optimization strategies for telemetry data
-- **Cortex AISQL**: `114-snowflake-cortex-aisql.md` - AI function cost governance and observability patterns
-- **Dynamic Tables**: `122-snowflake-dynamic-tables.md` - Dynamic Table monitoring and optimization
-
-## 1. Cost and Volume Management
+## Cost and Volume Management
 
 ### Data Volume Control
 - **Rule:** Implement strategies to control telemetry data volume and associated storage costs.
@@ -405,7 +356,7 @@ GROUP BY record_type
 ORDER BY estimated_gb DESC;
 ```
 
-## 2. Monitoring and Analysis
+## Monitoring and Analysis
 
 ### Regular Monitoring Queries
 - **Always:** Implement regular monitoring queries to identify issues and performance trends.
@@ -461,7 +412,7 @@ GROUP BY hour
 ORDER BY hour;
 ```
 
-## 3. Security and Governance Integration
+## Security and Governance Integration
 
 ### Telemetry Data Protection
 - **Rule:** Apply appropriate access controls to event tables and telemetry data.
@@ -483,7 +434,7 @@ CREATE OR REPLACE MASKING POLICY log_message_mask AS (val string) RETURNS string
 ALTER TABLE custom_event_table MODIFY COLUMN body SET MASKING POLICY log_message_mask;
 ```
 
-## 4. Troubleshooting and Optimization
+## Troubleshooting and Optimization
 
 ### Performance Analysis
 - **Always:** Use trace data to identify performance bottlenecks and optimize critical paths.
@@ -530,7 +481,7 @@ JOIN (
 WHERE ABS(DATEDIFF(second, t.timestamp, l.timestamp)) < 10;
 ```
 
-## 5. Snowsight Monitoring Interfaces
+## Snowsight Monitoring Interfaces
 
 ### Traces & Logs Monitoring Page
 - **Navigation:** Monitoring > Traces & Logs
@@ -691,7 +642,7 @@ ORDER BY refresh_start_time DESC;
 **Anti-Pattern:**
 Using Query History (System View) to debug real-time application issues. Instead, use Traces & Logs (Event Tables) for real-time, Query History for historical analysis
 
-## 6. AI Observability
+## AI Observability
 
 ### Cortex AI Function Monitoring
 - **Purpose:** Track usage, cost, and performance of Snowflake Cortex AI functions (COMPLETE, CLASSIFY, EXTRACT, SENTIMENT, etc.).
@@ -791,7 +742,7 @@ ORDER BY estimated_cost_usd DESC;
 
 **Cross-Reference:** See `114-snowflake-cortex-aisql.md` for detailed AISQL cost governance patterns.
 
-## 7. Limitations and Considerations
+## Limitations and Considerations
 
 ### Event Table Retention
 - **Default:** Retention controlled by `DATA_RETENTION_TIME_IN_DAYS` on event table.

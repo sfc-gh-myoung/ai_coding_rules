@@ -7,86 +7,243 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** Go, Golang, go.mod, modules, error handling, interfaces, goroutines, channels, testing, go fmt, golangci-lint, concurrency, context, defer
-**TokenBudget:** ~3500
+**TokenBudget:** ~4500
 **ContextTier:** High
 **Depends:** 000-global-core.md
 
-## Purpose
+## Scope
 
-Establishes foundational Go development practices using idiomatic patterns, modern tooling, and industry-standard conventions to ensure reliable, maintainable, and performant Go codebases.
+**What This Rule Covers:**
+Foundational Go development practices using idiomatic patterns, modern tooling (Go 1.21+), and industry-standard conventions to ensure reliable, maintainable, and performant Go codebases.
 
-## Rule Scope
+**When to Load This Rule:**
+- Writing or modifying Go code
+- Setting up new Go projects with modules
+- Implementing error handling and concurrency patterns
+- Establishing Go project structure and organization
+- Configuring Go tooling (go fmt, vet, golangci-lint)
+- Writing Go tests with race detection
+- Implementing interfaces and goroutines
 
-Foundational Go development practices with modern tooling (Go 1.21+), project structure, error handling, testing, and concurrency fundamentals
+## References
 
-## Quick Start TL;DR
+### Dependencies
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Always use `go fmt`** - Format all code before committing (or `gofmt -s` for simplification)
+**Must Load First:**
+- **000-global-core.md** - Foundation rule with core patterns and validation gates
+
+**Related:**
+- **601-golang-testing.md** - Advanced Go testing patterns (if exists)
+- **602-golang-concurrency.md** - Advanced concurrency patterns (if exists)
+
+### External Documentation
+
+**Official Documentation:**
+- [Go Documentation](https://go.dev/doc/) - Official Go language documentation
+- [Effective Go](https://go.dev/doc/effective_go) - Essential reading for idiomatic Go
+- [Go Modules Reference](https://go.dev/ref/mod) - Module system documentation
+
+**Best Practices Guides:**
+- [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments) - Common code review feedback
+- [Standard Go Project Layout](https://github.com/golang-standards/project-layout) - Project structure conventions
+- [golangci-lint](https://golangci-lint.run/) - Fast linters runner for Go
+
+## Contract
+
+### Inputs and Prerequisites
+
+- Go 1.21+ installed (check with `go version`)
+- `go.mod` file present (or create with `go mod init`)
+- golangci-lint installed for comprehensive linting
+- Project requirements and existing codebase identified
+
+### Mandatory
+
+- **Always use `go fmt`** - Format all code before committing
 - **Run `go vet`** - Static analysis catches common mistakes
 - **Use `golangci-lint run`** - Comprehensive linting with multiple analyzers
 - **Run `go test -race ./...`** - Race detector catches concurrency bugs
 - **Handle all errors** - Never use `_` to ignore errors without explicit justification
 - **Use `context.Context`** - First parameter for functions that do I/O or may be cancelled
+- **Document exports** - All exported identifiers must have doc comments
 
-**Pre-Execution Checklist:**
-- [ ] `go fmt ./...` runs clean
-- [ ] `go vet ./...` passes with no issues
-- [ ] `golangci-lint run` passes
-- [ ] `go test -race ./...` passes
-- [ ] `go mod tidy` leaves no changes
-- [ ] All exported identifiers have doc comments
+### Forbidden
 
-## Contract
+- Ignoring errors with blank identifier `_` without explanatory comment
+- Bare `panic` in library code (libraries should return errors)
+- Global mutable state (use dependency injection)
+- `init()` functions with side effects (network calls, file I/O)
+- Missing error handling
+- Unexported error types (errors should be values, not types)
 
-<contract>
-<inputs_prereqs>
-Go 1.21+; `go.mod` present; golangci-lint installed
-</inputs_prereqs>
+### Execution Steps
 
-<mandatory>
-`go fmt`, `go vet`, `go test`, `golangci-lint`; Taskfile or Makefile for automation
-</mandatory>
-
-<forbidden>
-Ignoring errors with blank identifier without comment; bare `panic` in library code; global mutable state; `init()` with side effects
-</forbidden>
-
-<steps>
-1. Initialize module with `go mod init`
+1. Initialize module with `go mod init <module-path>`
 2. Structure code following standard layout (`cmd/`, `internal/`, `pkg/`)
 3. Write idiomatic Go following Effective Go guidelines
-4. Handle all errors explicitly with wrapping context
+4. Handle all errors explicitly with wrapping context (`fmt.Errorf` with `%w`)
 5. Write table-driven tests with race detection
-6. Run linters and formatters before committing
-</steps>
+6. Run formatters and linters before committing
 
-<output_format>
-Go source files (.go) with godoc comments; go.mod/go.sum for dependencies
-</output_format>
+### Output Format
 
-<validation>
-`go fmt` produces no changes; `go vet` passes; `golangci-lint run` passes; `go test -race ./...` passes
-</validation>
+```go
+// Package myservice provides user management functionality.
+package myservice
 
-<design_principles>
-- Accept interfaces, return structs
-- Make the zero value useful
-- Errors are values - handle them explicitly
-- Don't communicate by sharing memory; share memory by communicating
-- A little copying is better than a little dependency
-- Clear is better than clever
-</design_principles>
+import (
+	"context"
+	"fmt"
+)
 
-</contract>
+// User represents a user in the system.
+type User struct {
+	ID   int
+	Name string
+}
+
+// GetUser retrieves a user by ID.
+// Returns an error if the user is not found or if the database query fails.
+func GetUser(ctx context.Context, id int) (*User, error) {
+	if id <= 0 {
+		return nil, fmt.Errorf("invalid user ID: %d", id)
+	}
+	
+	// Simulate database query
+	user := &User{ID: id, Name: "John Doe"}
+	return user, nil
+}
+```
+
+```go
+// myservice_test.go
+package myservice_test
+
+import (
+	"context"
+	"testing"
+	
+	"example.com/myservice"
+)
+
+func TestGetUser(t *testing.T) {
+	tests := []struct {
+		name    string
+		id      int
+		wantErr bool
+	}{
+		{name: "valid user", id: 1, wantErr: false},
+		{name: "invalid ID", id: -1, wantErr: true},
+		{name: "zero ID", id: 0, wantErr: true},
+	}
+	
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			user, err := myservice.GetUser(ctx, tt.id)
+			
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetUser() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			
+			if !tt.wantErr && user == nil {
+				t.Error("GetUser() returned nil user without error")
+			}
+		})
+	}
+}
+```
+
+### Validation
+
+**Pre-Task-Completion Validation Gate (CRITICAL):**
+
+Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
+
+**Code Quality:**
+- **CRITICAL:** `go fmt ./...` produces no changes
+- **CRITICAL:** `go vet ./...` passes with no issues
+- **CRITICAL:** `golangci-lint run` passes with no errors
+- **CRITICAL:** All errors handled explicitly (no ignored errors with `_`)
+- **Format Check:** All exported identifiers have godoc comments
+- **Format Check:** Imports grouped (stdlib, external, internal)
+
+**Testing:**
+- **CRITICAL:** `go test ./...` passes all tests
+- **CRITICAL:** `go test -race ./...` passes with no race conditions
+- **Coverage:** Use `go test -cover ./...` for coverage metrics
+- **Benchmarks:** Use `go test -bench=. ./...` for performance tests
+
+**Module Management:**
+- **CRITICAL:** `go mod tidy` leaves no changes
+- **CRITICAL:** `go mod verify` confirms dependencies are unmodified
+- **Format Check:** `go.mod` has proper module path and Go version
+
+**Success Criteria:**
+- All Go tooling passes (fmt, vet, lint, test)
+- No race conditions detected
+- All errors handled with context
+- Exported APIs documented
+- Tests use table-driven pattern
+
+**Investigation Required:**
+1. **Check Go version** (`go version`) to ensure compatibility with modern features
+2. **Read existing code** to understand patterns before adding new code
+3. **Verify module path** in `go.mod` matches repository structure
+4. **Check for existing tests** to understand testing patterns
+5. **Review golangci-lint config** (`.golangci.yml`) for project-specific rules
+
+**Anti-Pattern Examples:**
+- Ignoring errors: `result, _ := doSomething()`
+- Using `panic` in library code
+- Global mutable state without synchronization
+- Missing context parameter for I/O operations
+- Unexported error types
+
+**Correct Pattern:**
+- "Let me check your go.mod and Go version first."
+- [checks go.mod, verifies Go 1.21+, reads existing code]
+- "I see you're using standard project layout. Here's the implementation with proper error handling..."
+- [implements with godoc, runs go fmt, go vet, golangci-lint, tests]
+
+### Design Principles
+
+- **Accept interfaces, return structs** - Functions should be flexible on input, concrete on output
+- **Make the zero value useful** - Types should work without explicit initialization
+- **Errors are values** - Handle them explicitly, don't ignore or panic
+- **Don't communicate by sharing memory** - Share memory by communicating (channels)
+- **A little copying is better than a little dependency** - Avoid unnecessary abstractions
+- **Clear is better than clever** - Write code that's easy to understand
+
+### Post-Execution Checklist
+
+**Before Starting:**
+- [ ] Rule dependencies loaded (000-global-core.md)
+- [ ] Go 1.21+ available
+- [ ] golangci-lint installed
+- [ ] Existing Go codebase reviewed (if modifying)
+
+**After Completion:**
+- [ ] **CRITICAL:** `go fmt ./...` produces no changes
+- [ ] **CRITICAL:** `go vet ./...` passes with no issues
+- [ ] **CRITICAL:** `golangci-lint run` passes with no errors
+- [ ] **CRITICAL:** `go test -race ./...` passes with no race conditions
+- [ ] **CRITICAL:** `go mod tidy` leaves no changes
+- [ ] All exported identifiers have godoc comments
+- [ ] All errors handled explicitly
+- [ ] Context.Context used for I/O operations
+- [ ] Tests use table-driven pattern
+- [ ] No global mutable state
+- [ ] No `init()` functions with side effects
+- [ ] CHANGELOG.md and README.md updated as required
 
 ## Key Principles
 
-### 1. Project Structure
+### Project Structure
 
 Follow the standard Go project layout:
 
@@ -107,7 +264,7 @@ Directory structure for `project/`:
 - Keep `main.go` minimal - delegate to internal packages
 - Use `pkg/` sparingly - only for truly reusable public APIs
 
-### 2. Naming Conventions
+### Naming Conventions
 
 **Package Names:**
 - Short, lowercase, single-word names
@@ -123,7 +280,7 @@ Directory structure for `project/`:
 - Lowercase with underscores: `user_service.go`, `http_handler.go`
 - Test files: `*_test.go`
 
-### 3. Error Handling
+### Error Handling
 
 **Always handle errors explicitly:**
 
@@ -151,7 +308,7 @@ if errors.As(err, &pathErr) {
 - Add context that helps debugging: what operation failed, what input caused it
 - Define sentinel errors for expected conditions: `var ErrNotFound = errors.New("not found")`
 
-### 4. Interfaces
+### Interfaces
 
 **Accept interfaces, return structs:**
 
@@ -172,7 +329,7 @@ func NewService(db *sql.DB) *Service {
 - Define interfaces where they are used, not where they are implemented
 - Don't export interfaces for mocking - use internal test doubles
 
-### 5. Concurrency
+### Concurrency Patterns
 
 **Use context for cancellation:**
 
@@ -347,184 +504,10 @@ func main() {
 }
 ```
 
-## Post-Execution Checklist
 
-- [ ] `go fmt ./...` produces no changes
-- [ ] `go vet ./...` passes with no issues
-- [ ] `golangci-lint run` passes (or project-specific linter config)
-- [ ] `go test -race ./...` passes with all tests green
-- [ ] `go mod tidy` leaves no uncommitted changes
-- [ ] All exported functions, types, and constants have doc comments
-- [ ] Errors are wrapped with context using `fmt.Errorf` and `%w`
-- [ ] No ignored errors without explicit justification comment
-- [ ] Context is passed as first parameter where applicable
-- [ ] No goroutine leaks (all goroutines have termination paths)
-- [ ] CHANGELOG.md updated for code changes
+## Tooling and Environment
 
-## Validation
-
-**Success Checks:**
-- `go build ./...` compiles without errors
-- `go fmt ./...` produces no diff
-- `go vet ./...` reports no issues
-- `golangci-lint run` passes
-- `go test -race -cover ./...` passes with acceptable coverage
-- `go mod tidy` produces no changes
-
-**Negative Tests:**
-- Unhandled errors should fail linting
-- Missing doc comments on exports should trigger warnings
-- Data races should be caught by `-race` flag
-- Unused dependencies should be caught by `go mod tidy`
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Check go.mod** for Go version and existing dependencies
-> 2. **Verify golangci-lint config** - Look for `.golangci.yml` or `.golangci.yaml`
-> 3. **Check existing code patterns** - Match project's error handling and naming conventions
-> 4. **Review test patterns** - Use existing test helpers and fixtures
-> 5. **Check for Makefile/Taskfile** - Use existing automation patterns
-
-## Output Format Examples
-
-```go
-// Example: Well-structured Go service
-
-package service
-
-import (
-    "context"
-    "errors"
-    "fmt"
-)
-
-// ErrNotFound is returned when a requested resource does not exist.
-var ErrNotFound = errors.New("not found")
-
-// UserService handles user-related operations.
-type UserService struct {
-    repo UserRepository
-}
-
-// UserRepository defines the interface for user data access.
-type UserRepository interface {
-    GetByID(ctx context.Context, id string) (*User, error)
-    Save(ctx context.Context, user *User) error
-}
-
-// NewUserService creates a new UserService with the given repository.
-func NewUserService(repo UserRepository) *UserService {
-    return &UserService{repo: repo}
-}
-
-// GetUser retrieves a user by ID.
-func (s *UserService) GetUser(ctx context.Context, id string) (*User, error) {
-    if id == "" {
-        return nil, errors.New("id cannot be empty")
-    }
-
-    user, err := s.repo.GetByID(ctx, id)
-    if err != nil {
-        return nil, fmt.Errorf("getting user %s: %w", id, err)
-    }
-
-    return user, nil
-}
-```
-
-```go
-// Example: Table-driven test
-
-package service_test
-
-import (
-    "context"
-    "errors"
-    "testing"
-
-    "myapp/internal/service"
-)
-
-func TestUserService_GetUser(t *testing.T) {
-    tests := []struct {
-        name    string
-        id      string
-        want    *service.User
-        wantErr error
-    }{
-        {
-            name:    "valid user",
-            id:      "user-123",
-            want:    &service.User{ID: "user-123", Name: "Alice"},
-            wantErr: nil,
-        },
-        {
-            name:    "empty id",
-            id:      "",
-            want:    nil,
-            wantErr: errors.New("id cannot be empty"),
-        },
-        {
-            name:    "not found",
-            id:      "nonexistent",
-            want:    nil,
-            wantErr: service.ErrNotFound,
-        },
-    }
-
-    for _, tt := range tests {
-        t.Run(tt.name, func(t *testing.T) {
-            repo := &mockRepo{users: map[string]*service.User{
-                "user-123": {ID: "user-123", Name: "Alice"},
-            }}
-            svc := service.NewUserService(repo)
-
-            got, err := svc.GetUser(context.Background(), tt.id)
-
-            if tt.wantErr != nil {
-                if err == nil {
-                    t.Errorf("expected error %v, got nil", tt.wantErr)
-                }
-                return
-            }
-            if err != nil {
-                t.Errorf("unexpected error: %v", err)
-                return
-            }
-            if got.ID != tt.want.ID {
-                t.Errorf("got ID %s, want %s", got.ID, tt.want.ID)
-            }
-        })
-    }
-}
-```
-
-```bash
-# Validation commands
-go fmt ./...
-go vet ./...
-golangci-lint run
-go test -race -cover ./...
-go mod tidy
-```
-
-## References
-
-### External Documentation
-- [Effective Go](https://go.dev/doc/effective_go) - Official Go style and idioms guide
-- [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments) - Common code review feedback
-- [Standard Go Project Layout](https://github.com/golang-standards/project-layout) - Community project structure guide
-- [Go Proverbs](https://go-proverbs.github.io/) - Rob Pike's guiding principles
-- [Uber Go Style Guide](https://github.com/uber-go/guide/blob/master/style.md) - Industry-adopted style guide
-- [golangci-lint](https://golangci-lint.run/) - Fast linters runner for Go
-
-### Related Rules
-- **Global Core**: `000-global-core.md` - Foundation for all rules
-- **Taskfile Automation**: `820-taskfile-automation.md` - Build automation patterns
-
-## 1. Tooling & Environment
-
-### 1.1 Required Tools
+### Required Tools
 
 - **Go 1.21+** - Use latest stable version; pin in `go.mod`
 - **gofmt/goimports** - Code formatting (use `goimports` for import organization)
@@ -532,7 +515,7 @@ go mod tidy
 - **golangci-lint** - Meta-linter aggregating multiple tools
 - **staticcheck** - Advanced static analysis (included in golangci-lint)
 
-### 1.2 Recommended golangci-lint Configuration
+### Golangci-lint Configuration
 
 ```yaml
 # .golangci.yml
@@ -563,7 +546,7 @@ run:
   timeout: 5m
 ```
 
-### 1.3 Makefile/Taskfile Integration
+### Automation with Taskfiles
 
 ```makefile
 # Makefile
@@ -588,9 +571,9 @@ build:
 all: fmt vet lint test build
 ```
 
-## 2. Testing Patterns
+## Testing Patterns
 
-### 2.1 Table-Driven Tests
+### Table-Driven Tests
 
 Standard pattern for testing multiple cases:
 
@@ -617,7 +600,7 @@ func TestAdd(t *testing.T) {
 }
 ```
 
-### 2.2 Test Helpers
+### Test Helpers
 
 ```go
 // testutil/helpers.go
@@ -642,7 +625,7 @@ func RequireNoError(t testing.TB, err error) {
 }
 ```
 
-### 2.3 Race Detection
+### Race Detection
 
 Always run tests with race detector in CI:
 
@@ -650,9 +633,9 @@ Always run tests with race detector in CI:
 go test -race ./...
 ```
 
-## 3. Dependencies & Modules
+## Dependencies and Modules
 
-### 3.1 Module Management
+### Module Management
 
 ```bash
 # Initialize new module
@@ -671,7 +654,7 @@ go mod tidy
 go mod vendor
 ```
 
-### 3.2 Dependency Guidelines
+### Dependency Guidelines
 
 - Pin major versions explicitly in `go.mod`
 - Run `go mod tidy` before committing

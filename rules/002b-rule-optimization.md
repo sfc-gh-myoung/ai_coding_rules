@@ -7,71 +7,112 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** token budget, optimization, performance, rule sizing, progressive loading, context window, model limits, cost efficiency, caching, batch loading
-**TokenBudget:** ~3500
+**TokenBudget:** ~5150
 **ContextTier:** High
 **Depends:** 002-rule-governance.md, 000-global-core.md
 
-## Purpose
+## Scope
 
-Guidelines for optimizing rule token budgets, sizing rules appropriately, and loading rules efficiently across different AI models for maximum performance and cost efficiency.
+**What This Rule Covers:**
+Guidelines for optimizing rule token budgets, sizing rules appropriately, and loading rules efficiently. Covers token budget tiers (Small: 1000-2000, Standard: 2000-3500, Large: 3500-5000+), progressive loading strategies, and performance optimization across different AI models for cost efficiency.
 
-## Rule Scope
+**When to Load This Rule:**
+- Creating rules with appropriate token budgets
+- Optimizing existing rules for performance
+- Understanding progressive rule loading strategies
+- Sizing rules for specific AI models and context windows
 
-All AI agents creating, maintaining, or loading rule files in the ai_coding_rules repository.
+## References
 
-## Quick Start TL;DR
+### Dependencies
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Token budget tiers** - Small (1000-2000), Standard (2000-3500), Large (3500-5000), Reference (5000+)
-- **Optimal rule size** - 2000-3500 tokens per rule for best performance across all models
-- **Progressive loading** - Load 000-global-core + domain core + 2-4 specialized rules as needed
-- **TokenBudget format** - `~NUMBER` (e.g., ~1850, ~2500, ~3300) - NEVER use text labels
-- **Avoid bloat** - Rules >5000 tokens should be split into multiple focused files
+**Must Load First:**
+- **002-rule-governance.md** - Schema requirements and standards
+- **000-global-core.md** - Foundation for all rules
 
-**Pre-Execution Checklist:**
-- [ ] TokenBudget declared in metadata with `~NUMBER` format
-- [ ] ContextTier matches token budget tier
-- [ ] Rule size 2000-3500 tokens for optimal performance
-- [ ] Rule focuses on single concept (not multiple unrelated topics)
-- [ ] Dependencies minimize token budget overlap
+**Related:**
+- **002a-rule-creation-guide.md** - Step-by-step rule creation workflow
+
+### External Documentation
+
+- **Schema Definition:** `schemas/rule-schema.yml` - Authoritative v3.2 schema
+- **Rules Index:** `RULES_INDEX.md` - Master index with current token budgets
+- **Token Validator:** `scripts/token_validator.py` - Script for measuring actual token counts
 
 ## Contract
 
-<inputs_prereqs>
-Rule content to optimize; token count estimation; target AI model; performance requirements
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-token_validator.py; schema_validator.py; word count tools (wc); model context window knowledge
-</mandatory>
+- Rule content to optimize
+- Token count estimation
+- Target AI model
+- Performance requirements
 
-<forbidden>
-Using text labels for TokenBudget (small/medium/large); creating rules >7000 tokens; duplicating content across rules
-</forbidden>
+### Mandatory
 
-<steps>
+- `token_validator.py` script
+- `schema_validator.py` script
+- Word count tools (wc)
+- Model context window knowledge
+
+### Forbidden
+
+- Using text labels for TokenBudget (small/medium/large)
+- Creating rules >7000 tokens without splitting
+- Duplicating content across rules
+
+### Execution Steps
+
 1. Estimate rule token count (words x 1.33 = tokens approximately)
 2. Choose appropriate TokenBudget tier based on size
 3. Set ContextTier to match tier (Small=Critical/High, Standard=High/Medium, etc.)
 4. Verify rule focuses on single concept
-5. Run token_validator.py to confirm actual count
+5. Run `token_validator.py` to confirm actual count
 6. Split rule if >5000 tokens or covers multiple unrelated topics
-</steps>
 
-<output_format>
-Rule file with TokenBudget and ContextTier metadata matching actual size
-</output_format>
+### Output Format
 
-<validation>
-- TokenBudget within +/-15% of actual token count (validator default threshold)
+Rule file with:
+- TokenBudget metadata matching actual size (`~NUMBER` format)
+- ContextTier aligned with token budget tier
+- Focused on single concept
+- Token count: 2000-3500 tokens (optimal) or <5000 tokens (maximum)
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- TokenBudget declared with `~NUMBER` format (no text labels)
+- ContextTier matches TokenBudget tier appropriately
+- Rule size calculated or estimated
+- Rule focuses on single concept (not multi-topic)
+- token_validator.py ready to run
+
+**Success Criteria:**
+- TokenBudget format: `~NUMBER` (e.g., ~2500)
+- ContextTier matches tier: Small=Critical/High, Standard=High/Medium, etc.
+- Actual token count within +/-15% of declared budget (validator default)
 - Rule size 2000-3500 tokens (preferred) or <5000 tokens (maximum)
-- ContextTier matches TokenBudget tier
-- token_validator.py confirms budget accuracy
-</validation>
+- `token_validator.py` passes without update warnings
+
+**Negative Tests:**
+- Text label TokenBudget (small/medium/large) triggers validation error
+- Missing tilde prefix triggers format error
+- Token variance >15% triggers auto-update (configurable via `--threshold`)
+- Rule >5500 tokens triggers split recommendation
+
+### Post-Execution Checklist
+
+- [ ] TokenBudget declared with `~NUMBER` format (no text labels)
+- [ ] ContextTier matches TokenBudget tier appropriately
+- [ ] Rule size 2000-3500 tokens (optimal) or <5000 tokens (preferred)
+- [ ] `token_validator.py` confirms budget within +/-10% of actual
+- [ ] Rule focuses on single concept (not multi-topic)
+- [ ] Dependencies declared to avoid loading duplicate content
+- [ ] Rule added to appropriate tier for progressive loading
+- [ ] If >5500 tokens, plan created to split into multiple focused files
 
 ## Rule Sizing Guidelines
 
@@ -127,6 +168,8 @@ Rule file with TokenBudget and ContextTier metadata matching actual size
 ## Token Budget Tiers
 
 ### ContextTier Selection Guide (Secondary Signal)
+
+This section extends the basic ContextTier definition in `002-rule-governance.md` with detailed selection criteria and use cases.
 
 ContextTier provides fine-grained prioritization within natural language tiers:
 
@@ -531,32 +574,6 @@ wc -w rules/NNN-rule.md
 ```
 **Benefits:** Efficient, focused, fast - uses 5-10% of context budget instead of 100%.
 
-## Post-Execution Checklist
-
-- [ ] TokenBudget declared with `~NUMBER` format (no text labels)
-- [ ] ContextTier matches TokenBudget tier appropriately
-- [ ] Rule size 2000-3500 tokens (optimal) or <5000 tokens (preferred)
-- [ ] token_validator.py confirms budget within +/-10% of actual
-- [ ] Rule focuses on single concept (not multi-topic)
-- [ ] Dependencies declared to avoid loading duplicate content
-- [ ] Rule added to appropriate tier for progressive loading
-- [ ] If >5500 tokens, plan created to split into multiple focused files
-
-## Validation
-
-**Success Checks:**
-- TokenBudget format: `~NUMBER` (e.g., ~2500)
-- ContextTier matches tier: Small=Critical/High, Standard=High/Medium, etc.
-- Actual token count within +/-15% of declared budget (validator default)
-- Rule size 2000-3500 tokens (preferred) or <5000 tokens (maximum)
-- token_validator.py passes without update warnings
-
-**Negative Tests:**
-- Text label TokenBudget (small/medium/large) triggers validation error
-- Missing tilde prefix triggers format error
-- Token variance >15% triggers auto-update (configurable via `--threshold`)
-- Rule >5500 tokens triggers split recommendation
-
 ## Output Format Examples
 
 ### Example 1: Standard Rule Token Budget
@@ -567,7 +584,7 @@ wc -w rules/NNN-rule.md
 ## Metadata
 
 **SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**RuleVersion:** v2.0.0
 **Keywords:** pytest, testing, fixtures, parametrization, test isolation
 **TokenBudget:** ~2050
 **ContextTier:** High
@@ -590,17 +607,3 @@ wc -w rules/NNN-rule.md
 # [Rule content - ~4650 tokens total]
 ```
 
-## References
-
-### Related Rules
-- **Rule Governance**: `002-rule-governance.md` - Schema requirements
-- **Creation Guide**: `002a-rule-creation-guide.md` - Step-by-step rule creation workflow
-- **Advanced Patterns**: `002c-advanced-rule-patterns.md` - System prompt altitude, multi-session workflows
-- **Validator Usage**: `002d-schema-validator-usage.md` - Token validation commands
-
-### Authoritative Sources
-- **RULES_INDEX.md**: Contains declared TokenBudget for all rules (auto-generated, always current)
-- **token_validator.py**: Validates token budgets against actual counts
-
-### External Documentation
-- **Schema Definition**: `schemas/rule-schema.yml` - Token budget validation rules

@@ -2,85 +2,135 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**LastUpdated:** 2025-12-23
 **Keywords:** Python docstrings, documentation, comments, pydocstyle, Ruff DOC rules, API documentation, Google style, NumPy style, PEP 257, code quality, semantic depth, side effects, preconditions, performance, thread safety
-**TokenBudget:** ~5700
+**TokenBudget:** ~8000
 **ContextTier:** High
 **Depends:** 200-python-core.md, 201-python-lint-format.md
 
-## Purpose
-Provide clear, enforceable standards for Python documentation (project docs), source code comments, and docstrings, aligned with widely accepted industry practices (PEP 257, PEP 8) and modern tooling (Ruff pydocstyle, Sphinx Napoleon).
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Clear, enforceable standards for Python documentation (project docs), source code comments, and docstrings, aligned with PEP 257, PEP 8, and modern tooling (Ruff pydocstyle, Sphinx Napoleon). Covers Google and NumPy docstring styles, semantic depth requirements, side effects documentation, preconditions, performance considerations, thread safety, and enforcement patterns.
 
-Python comments, docstrings, and developer-facing documentation across libraries, apps, CLIs, and services
+**When to Load This Rule:**
+- Writing or reviewing Python docstrings
+- Setting up docstring standards for a new project
+- Configuring Ruff pydocstyle rules (D rules)
+- Documenting public APIs (modules, classes, functions, methods)
+- Addressing docstring lint errors
+- Setting up Sphinx documentation generation
+- Enforcing documentation quality in code reviews
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
+### Dependencies
+
+**Must Load First:**
+- **200-python-core.md** - Python foundation patterns
+- **201-python-lint-format.md** - Ruff configuration and linting
+
+**Related:**
+- **203-python-project-setup.md** - Project configuration
+- **207-python-typing.md** - Type hints that complement docstrings
+
+### External Documentation
+
+- [PEP 257](https://peps.python.org/pep-0257/) - Docstring conventions
+- [PEP 8](https://peps.python.org/pep-0008/) - Style guide for Python code
+- [Google Style Guide](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings) - Google docstring format
+- [NumPy Style Guide](https://numpydoc.readthedocs.io/en/latest/format.html) - NumPy docstring format
+- [Sphinx Napoleon](https://www.sphinx-doc.org/en/master/usage/extensions/napoleon.html) - Parsing Google/NumPy docstrings
+
+## Contract
+
+### Inputs and Prerequisites
+
+- Python 3.11+ codebase
+- pyproject.toml for configuration
+- Ruff for linting (pydocstyle rules)
+- Optional: Sphinx with Napoleon for documentation generation
+
+### Mandatory
+
 - **Choose ONE docstring style** - Google (recommended) or NumPy, configure in pyproject.toml
 - **All public APIs need docstrings** - Modules, classes, functions, methods
 - **Enable Ruff D rules** - `select = ["D"]` in [tool.ruff.lint]
-- **Docstrings must be semantically valuable** - Not just syntactically correct; explain context, side effects, preconditions
-- **Document all side effects** - I/O operations, state mutations, subprocess calls, network requests
-- **Use comments for "why"** - Not "what" (code shows what)
-- **Follow PEP 257** - One-line summary, then blank line, then details
+- **Docstrings must be semantically valuable** - Explain context, side effects, preconditions
+- **Document all side effects** - I/O, state mutations, subprocess calls, network requests
+- **Follow PEP 257** - One-line summary, blank line, then details
 - **Never mix docstring styles** - Consistency across entire project
 
-**Quick Checklist:**
+### Forbidden
+
+- Mixing Google and NumPy docstring styles in the same project
+- Missing docstrings for public APIs
+- Duplicating type information already in type hints
+- Comments that merely restate the code ("what" instead of "why")
+- Inconsistent, ad-hoc documentation styles
+
+### Execution Steps
+
+1. Choose one docstring style for the repo: Google (recommended) or NumPy
+2. Configure Ruff pydocstyle rules and convention in pyproject.toml
+3. Add docstrings to all public modules, classes, functions, methods
+4. Use comments to explain "why" and intent; avoid restating code
+5. Document side effects, preconditions, performance, thread safety
+6. Run `uvx ruff check .` to validate D rules pass
+7. Review and fix common mistakes via lint and code review
+
+### Output Format
+
+Documentation produces:
+- Docstrings following Google or NumPy style
+- Comments explaining intent and trade-offs
+- Updated pyproject.toml with pydocstyle configuration
+- Optional: Generated Sphinx documentation
+
+### Validation
+
+**Pre-Task-Completion Checks:**
 - [ ] pyproject.toml has `[tool.ruff.lint.pydocstyle]` with convention
 - [ ] All public functions have docstrings
 - [ ] All classes have docstrings
 - [ ] Docstrings start with one-line summary
-- [ ] Args, Returns, Raises documented with semantic meaning (not just types)
+- [ ] Args, Returns, Raises documented with semantic meaning
+- [ ] Side effects explicitly documented
+- [ ] `uvx ruff check .` passes D rules
+
+**Success Criteria:**
+- `uvx ruff check .` passes all D rules (0 errors)
+- Docstrings provide semantic value beyond type hints
+- Comments explain "why", not "what"
+- Docs build successfully (if using Sphinx)
+
+**Negative Tests:**
+- Missing docstrings should trigger D rules
+- Malformed docstrings should be caught by Ruff
+- Inconsistent styles should fail validation
+
+### Design Principles
+
+- **Consistency:** One docstring style per project (Google or NumPy)
+- **Semantic depth:** Document behavior, constraints, side-effects, not just syntax
+- **PEP compliance:** Follow PEP 257 for docstrings, PEP 8 for comments
+- **Type hints first:** Use type annotations; don't duplicate in docstrings
+- **High-signal comments:** Explain intent and trade-offs, not obvious code
+
+### Post-Execution Checklist
+
+- [ ] pyproject.toml has `[tool.ruff.lint.pydocstyle]` with convention
+- [ ] All public functions have docstrings
+- [ ] All classes have docstrings
+- [ ] Docstrings start with one-line summary
+- [ ] Args, Returns, Raises documented with semantic meaning
 - [ ] Side effects explicitly documented (I/O, state, subprocess, network)
 - [ ] Preconditions and performance expectations documented
 - [ ] Thread safety / concurrency behavior documented
 - [ ] `uvx ruff check .` passes D rules
 - [ ] Comments explain "why", not "what"
-
-## Contract
-
-<contract>
-<inputs_prereqs>
-Python 3.11+; `pyproject.toml`; Ruff; optional Sphinx with Napoleon
-</inputs_prereqs>
-
-<mandatory>
-`uvx ruff` for lint/format; `uv run` for project execution; Sphinx for docs
-</mandatory>
-
-<forbidden>
-Inconsistent, project-specific ad-hoc styles without configuration
-</forbidden>
-
-<steps>
-1. Choose one docstring style for the repo: Google (recommended) or NumPy
-2. Configure Ruff pydocstyle rules and convention
-3. Add and maintain docstrings for all public modules/classes/functions/methods
-4. Use comments to explain "why" and intent; avoid restating code
-5. Prevent and fix common mistakes via lint and review
-</steps>
-
-<output_format>
-Docstrings and comments following requirements below; updated `pyproject.toml` config
-</output_format>
-
-<validation>
-`uvx ruff check .` passes with D-rules; docs build (if applicable) succeeds
-</validation>
-
-<design_principles>
-- Prefer Google-style docstrings with Sphinx Napoleon (or NumPy if already established)
-- Follow PEP 257 for structure and placement; PEP 8 for comment style
-- Document behavior, constraints, side-effects, exceptions, and units over implementation
-- Use type hints; do not duplicate types in docstrings
-- Keep comments high-signal: explain intent and trade-offs
-</design_principles>
-
-</contract>
 
 ## Anti-Patterns and Common Mistakes
 
@@ -251,13 +301,7 @@ uvx ruff format --check .
 uv run pytest tests/
 ```
 
-## References
-- PEP 257 Docstring Conventions: https://peps.python.org/pep-0257/
-- PEP 8 (Comments): https://peps.python.org/pep-0008/#comments
-- Ruff pydocstyle rules (D): https://docs.astral.sh/ruff/rules/#pydocstyle-d
-- Sphinx Napoleon: https://www.sphinx-doc.org/en/master/usage/extensions/napoleon.html
-
-## 1. Docstring Standards (PEP 257 + Google/NumPy)
+## Docstring Standards (PEP 257 + Google/NumPy)
 - **Requirement:** Use triple double-quotes for all docstrings. First line is a concise imperative summary ending with a period.
 - **Requirement:** For multi-line docstrings, include a blank line after the summary, then details.
 - **Requirement:** Maintain a single consistent style across the repo: Google (recommended) or NumPy.
@@ -568,19 +612,19 @@ def execute_operation(operation_id: str, operation_type: OperationType, config: 
 [PASS] Warns about race conditions
 [PASS] Estimates runtime ("may run for minutes")
 
-## 2. Comment Standards (PEP 8)
+## Comment Standards (PEP 8)
 - **Requirement:** Comments must explain intent, rationale, and trade-offs—the "why"—not restate the code.
 - **Requirement:** Place block comments above the code they describe; keep inline comments short and sparing.
 - **Requirement:** Remove commented-out code. Use version control or link to issues instead.
 - **Rule:** Prefer references to requirements or tickets over long narrative comments.
 - **Rule:** Keep comments up to date; when behavior changes, update adjacent comments/docstrings.
 
-## 3. Project Documentation (Optional)
+## Project Documentation (Optional)
 - **Rule:** If publishing developer docs, use Sphinx with Napoleon to parse Google/NumPy docstrings.
 - **Rule:** Consider AutoAPI/Autodoc to generate API docs from code; use Intersphinx for cross-project links.
 - **Consider:** Add a `docs/` folder with a minimal Sphinx configuration and CI job to build docs on PRs.
 
-## 4. Enforcement with Ruff (pydocstyle)
+## Enforcement with Ruff (pydocstyle)
 - **Requirement:** Enable pydocstyle (D) rules in Ruff and set a single convention.
 
 Example `pyproject.toml` snippet:
@@ -596,7 +640,7 @@ ignore = []
 convention = "google"  # or "numpy"
 ```
 
-## 5. Common Mistakes & How to Prevent Them
+## Common Mistakes & How to Prevent Them
 
 ### Syntax Mistakes (Caught by Ruff)
 - **Missing docstrings on public APIs** - Enforce D-rules; PRs must add docstrings.
@@ -839,7 +883,7 @@ class DatabaseError(Exception):
    - Check against quality standards
    - Update docstrings to match current code behavior
 
-## 6. Docstring Semantic Depth Checklist
+## Docstring Semantic Depth Checklist
 
 Use this checklist when writing or reviewing docstrings to ensure semantic value beyond syntax compliance.
 

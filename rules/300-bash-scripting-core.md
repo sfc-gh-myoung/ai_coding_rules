@@ -7,226 +7,216 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** Bash, shell scripting, set -euo pipefail, error handling, strict mode, functions, variables, script structure, trap, exit codes, shellcheck, input validation
-**TokenBudget:** ~3100
+**TokenBudget:** ~4550
 **ContextTier:** High
 **Depends:** 000-global-core.md
 
-## Purpose
-Establish foundational bash scripting patterns covering script structure, variables, functions, and essential error handling practices to create reliable, maintainable, and portable shell scripts.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Foundational bash scripting patterns covering script structure, variables, functions, and essential error handling practices to create reliable, maintainable, and portable shell scripts.
 
-Foundation bash scripting patterns and essential practices
+**When to Load This Rule:**
+- Writing or modifying Bash scripts
+- Implementing error handling in shell scripts
+- Creating script structure and organization patterns
+- Setting up signal trapping and cleanup handlers
+- Validating script inputs and exit codes
+- Debugging Bash scripts with shellcheck
+- Establishing Bash coding standards for projects
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
+### Dependencies
+
+**Must Load First:**
+- **000-global-core.md** - Foundation rule with core patterns and validation gates
+
+**Related:**
+- **300a-bash-security.md** - Security patterns for Bash scripts
+- **300b-bash-testing-tooling.md** - Testing and tooling for Bash
+- **820-taskfile-automation.md** - Task automation with Taskfiles
+
+### External Documentation
+
+**Official Documentation:**
+- [Bash Manual](https://www.gnu.org/software/bash/manual/) - Complete Bash reference
+- [Bash Pitfalls](https://mywiki.wooledge.org/BashPitfalls) - Common mistakes and solutions
+
+**Best Practices Guides:**
+- [Google Shell Style Guide](https://google.github.io/styleguide/shellguide.html) - Professional shell scripting standards
+- [ShellCheck](https://www.shellcheck.net/) - Static analysis tool for shell scripts
+
+## Contract
+
+### Inputs and Prerequisites
+
+- Bash 4.0+ available (check with `bash --version`)
+- shellcheck installed for static analysis
+- Existing scripts or new script requirements identified
+- Target platform compatibility requirements (Linux, macOS, etc.)
+
+### Mandatory
+
 - **Use `set -euo pipefail`** - Strict error handling in all scripts
 - **Quote all variables** - Prevent word splitting (`"$var"`, not `$var`)
 - **Use `local` in functions** - Prevent variable pollution
 - **Trap signals properly** - Clean up resources on exit/error
 - **Validate inputs** - Check arguments and exit codes
-- **Use shellcheck** - Static analysis catches common errors
-- **Never ignore exit codes** - Check `$?` or use `if command; then`
+- **Use shellcheck** - Static analysis to catch common errors
+- **`#!/usr/bin/env bash` shebang** - Portable script execution
 
-**Quick Checklist:**
-- [ ] `#!/usr/bin/env bash` shebang
-- [ ] `set -euo pipefail` at top
-- [ ] All variables quoted
-- [ ] Functions use `local` variables
-- [ ] Trap handlers for cleanup
-- [ ] Input validation implemented
-- [ ] Shellcheck passing
+### Forbidden
 
-## Contract
+- Unquoted variables (use `"$var"` not `$var`)
+- Ignoring exit codes or continuing after errors
+- Global variables in functions (use `local`)
+- Missing error handling (`set -euo pipefail` required)
+- Scripts without cleanup handlers (trap)
+- Untested shell expansions or glob patterns
 
-<contract>
-<inputs_prereqs>
-[Context, files, dependencies needed]
-</inputs_prereqs>
+### Execution Steps
 
-<mandatory>
-[Tools permitted for this domain]
-</mandatory>
+1. Start with `#!/usr/bin/env bash` shebang and `set -euo pipefail`
+2. Include script metadata, help functions, and proper signal trapping
+3. Quote all variables and validate inputs
+4. Use local variables in functions to prevent pollution
+5. Implement comprehensive error handling with meaningful exit codes
+6. Run shellcheck for static analysis
+7. Test scripts with edge cases (spaces in filenames, empty inputs)
 
-<forbidden>
-[Tools not allowed for this domain]
-</forbidden>
-
-<steps>
-[Ordered steps the agent must follow]
-</steps>
-
-<output_format>
-[Expected output format]
-</output_format>
-
-<validation>
-[Checks to confirm success]
-</validation>
-
-<design_principles>
-- Use `#!/usr/bin/env bash` shebang and `set -euo pipefail` for strict error handling
-- Include script metadata, help functions, and proper signal trapping
-- Quote variables, validate inputs, and use local variables in functions
-- Implement comprehensive error handling with meaningful exit codes
-- Follow consistent style with proper documentation and modular design
-</design_principles>
-
-</contract>
-
-## Anti-Patterns and Common Mistakes
-
-### Anti-Pattern 1: Unquoted Variables Leading to Word Splitting
-
-**Problem:** Using `$variable` instead of `"$variable"`, causing word splitting and glob expansion on whitespace or special characters.
-
-**Why It Fails:** Filenames with spaces break scripts. Glob patterns in variables expand unexpectedly. Security vulnerabilities from injection. Scripts work in testing but fail on real data.
-
-**Correct Pattern:**
-```bash
-# BAD: Unquoted variables
-file=$1
-rm $file  # "my file.txt" becomes rm my file.txt (deletes wrong files!)
-cp $source $dest  # Glob expansion if source contains *
-
-# GOOD: Always quote variables
-file="$1"
-rm "$file"  # Correctly handles "my file.txt"
-cp "$source" "$dest"  # No unexpected expansion
-
-# Use shellcheck to catch these: shellcheck script.sh
-```
-
-### Anti-Pattern 2: Missing Error Handling with set -e
-
-**Problem:** Scripts that continue executing after command failures, potentially corrupting data or leaving systems in inconsistent states.
-
-**Why It Fails:** Failed commands go unnoticed. Subsequent commands operate on missing or corrupt data. Partial deployments. Silent data loss. Debugging requires tracing through entire execution.
-
-**Correct Pattern:**
-```bash
-# BAD: No error handling
-#!/bin/bash
-cd /deploy/dir
-rm -rf old_version
-mv new_version current  # If cd failed, deletes wrong directory!
-
-# GOOD: Strict error handling
-#!/bin/bash
-set -euo pipefail  # Exit on error, undefined vars, pipe failures
-
-cd /deploy/dir || exit 1
-rm -rf old_version
-mv new_version current
-
-# Or explicit error handling
-if ! cd /deploy/dir; then
-    echo "ERROR: Cannot access deploy directory" >&2
-    exit 1
-fi
-```
-
-## Post-Execution Checklist
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
-
-## Validation
-- **Success checks:** [How to verify correct implementation]
-- **Negative tests:** [What should fail and how to detect failures]
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Read existing scripts BEFORE suggesting changes** - Check current patterns, error handling
-> 2. **Verify shell type** - Confirm bash vs sh, check shebang and features used
-> 3. **Never assume error handling exists** - Check for `set -euo pipefail`, trap handlers
-> 4. **Check for shellcheck compliance** - Run shellcheck to identify existing issues
-> 5. **Test with actual inputs** - Verify scripts work with edge cases
->
-> **Anti-Pattern:**
-> "Adding set -euo pipefail... (without checking if script is compatible)"
-> "Quoting variables... (without testing for unintended changes)"
->
-> **Correct Pattern:**
-> "Let me check your script's current error handling first."
-> [reads script, checks for existing patterns, runs shellcheck]
-> "I see you're missing error handling. Adding set -euo pipefail and trap handlers..."
-
-## Output Format Examples
+### Output Format
 
 ```bash
 #!/usr/bin/env bash
-# Script following bash best practices from rule
+# Script: example.sh
+# Description: Example bash script following best practices
+# Usage: ./example.sh [options] <args>
 
 set -euo pipefail  # Exit on error, undefined vars, pipe failures
-IFS=$'\n\t'      # Safe word splitting
+IFS=$'\n\t'        # Safe word splitting
 
 # Constants
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly LOG_FILE="${SCRIPT_DIR}/output.log"
+readonly SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
 
-# Functions with clear contracts
+# Cleanup handler
+cleanup() {
+    local exit_code=$?
+    # Cleanup actions here
+    exit "${exit_code}"
+}
+trap cleanup EXIT INT TERM
+
+# Function with local variables
+process_file() {
+    local file="$1"
+    
+    if [[ ! -f "$file" ]]; then
+        echo "ERROR: File not found: $file" >&2
+        return 1
+    fi
+    
+    # Process file...
+}
+
+# Main function
 main() {
-    # Investigation phase
-    check_prerequisites
-
-    # Implementation phase
-    perform_operations
-
-    # Validation phase
-    verify_results
+    if [[ $# -lt 1 ]]; then
+        echo "Usage: $SCRIPT_NAME <file>" >&2
+        exit 1
+    fi
+    
+    process_file "$1"
 }
 
-check_prerequisites() {
-    local -a required_commands=(jq curl git)
-
-    for cmd in "${required_commands[@]}"; do
-        if ! command -v "${cmd}" &>/dev/null; then
-            echo "ERROR: Required command not found: ${cmd}" >&2
-            exit 1
-        fi
-    done
-}
-
-perform_operations() {
-    echo "Performing operations following project patterns..."
-    # Implementation details here
-}
-
-verify_results() {
-    echo "Validating results..."
-    # Validation logic here
-}
-
-# Execute main function
 main "$@"
 ```
 
-```bash
-# Validation with shellcheck
-shellcheck script.sh
-```
+### Validation
 
-## References
+**Pre-Task-Completion Validation Gate (CRITICAL):**
 
-### External Documentation
-- [Bash Manual](https://www.gnu.org/software/bash/manual/) - Complete reference for Bash features and syntax
-- [Google Shell Style Guide](https://google.github.io/styleguide/shellguide.html) - Professional shell scripting standards and conventions
-- [Bash Pitfalls](https://mywiki.wooledge.org/BashPitfalls) - Common scripting mistakes and how to avoid them
+Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 
-### Related Rules
-- **Bash Security**: `300a-bash-security.md`
-- **Bash Testing**: `300b-bash-testing-tooling.md`
-- **Taskfile Automation**: `820-taskfile-automation.md`
+**Code Quality:**
+- **CRITICAL:** `shellcheck script.sh` passes with no errors
+- **CRITICAL:** All variables quoted (`"$var"`)
+- **CRITICAL:** `set -euo pipefail` present at top of script
+- **CRITICAL:** Functions use `local` for all variables
+- **Format Check:** Shebang is `#!/usr/bin/env bash`
+- **Format Check:** Trap handler for cleanup present
 
-## 1. Script Foundation & Safety
+**Error Handling:**
+- **CRITICAL:** Exit codes checked for all critical commands
+- **CRITICAL:** Error messages go to stderr (`>&2`)
+- **CRITICAL:** Meaningful exit codes used (0=success, 1=error, etc.)
+
+**Input Validation:**
+- **Argument Count:** Script checks `$#` and provides usage
+- **File Existence:** Scripts validate files exist before use
+- **Command Availability:** Required commands checked with `command -v`
+
+**Success Criteria:**
+- shellcheck passes with no warnings
+- Script handles spaces in filenames
+- Error conditions exit with non-zero codes
+- Cleanup handler executes on exit/signal
+
+**Investigation Required:**
+1. **Read existing scripts BEFORE suggesting changes** - Check current patterns, error handling
+2. **Verify shell type** - Confirm bash vs sh, check shebang and features used
+3. **Never assume error handling exists** - Check for `set -euo pipefail`, trap handlers
+4. **Check for shellcheck compliance** - Run shellcheck to identify existing issues
+5. **Test with actual inputs** - Verify scripts work with edge cases (spaces, special chars)
+
+**Anti-Pattern Examples:**
+- "Adding set -euo pipefail..." (without checking if script is compatible)
+- "Quoting variables..." (without testing for unintended changes)
+- Assuming script uses bash when it's actually sh
+
+**Correct Pattern:**
+- "Let me check your script's current error handling first."
+- [reads script, checks for existing patterns, runs shellcheck]
+- "I see you're missing error handling. Adding set -euo pipefail and trap handlers..."
+- [implements changes, runs shellcheck, tests with edge cases]
+
+### Design Principles
+
+- **Strict Error Handling:** Use `set -euo pipefail` to catch errors early
+- **Quote Everything:** Always quote variables to prevent word splitting
+- **Local Scope:** Use `local` in functions to prevent variable pollution
+- **Trap Signals:** Implement cleanup handlers for graceful exits
+- **Validate Inputs:** Check arguments, files, and command availability
+- **Clear Error Messages:** Write errors to stderr with context
+- **Consistent Style:** Follow established patterns for readability
+- **Portable Code:** Use `#!/usr/bin/env bash` and avoid bashisms when targeting sh
+
+### Post-Execution Checklist
+
+**Before Starting:**
+- [ ] Rule dependencies loaded (000-global-core.md)
+- [ ] Bash 4.0+ available
+- [ ] shellcheck installed
+- [ ] Existing scripts reviewed (if modifying)
+
+**After Completion:**
+- [ ] **CRITICAL:** `shellcheck script.sh` passes with no errors
+- [ ] **CRITICAL:** All variables quoted
+- [ ] **CRITICAL:** `set -euo pipefail` at top of script
+- [ ] **CRITICAL:** Functions use `local` variables
+- [ ] Shebang is `#!/usr/bin/env bash`
+- [ ] Trap handler for cleanup present
+- [ ] Input validation implemented
+- [ ] Exit codes meaningful and checked
+- [ ] Error messages go to stderr
+- [ ] Script tested with edge cases
+- [ ] CHANGELOG.md and README.md updated as required
+
+## Anti-Patterns and Common Mistakes
 
 ### Shebang and Interpreter
 - **Requirement:** Always start scripts with proper shebang: `#!/bin/bash` or `#!/usr/bin/env bash`
@@ -259,7 +249,7 @@ set -euo pipefail
 set -euo pipefail
 ```
 
-## 2. Variable Management
+## Variable Management
 
 ### Variable Declaration and Naming
 - **Requirement:** Use descriptive, lowercase variable names with underscores
@@ -314,7 +304,7 @@ if [[ ${#files[@]} -eq 0 ]]; then
 fi
 ```
 
-## 3. Basic Input Handling
+## Input Handling and Validation
 
 ### Command Line Arguments
 - **Rule:** Validate command line arguments:
@@ -362,7 +352,7 @@ check_required_env "HOME" "USER"
 
 **Note:** For comprehensive input validation and security practices, see `300a-bash-security.md`
 
-## 4. Error Handling and Logging
+## Error Handling and Logging
 
 ### Function Error Handling
 - **Rule:** Check conditions in functions:
@@ -402,7 +392,7 @@ log "Starting process"
 log "Process completed"
 ```
 
-## 5. Function Design and Modularity
+## Function Design and Modularity
 
 ### Function Structure
 - **Requirement:** Use functions for reusable code blocks:
@@ -456,7 +446,7 @@ check_file() {
 }
 ```
 
-## 6. File and Directory Operations
+## File and Directory Operations
 
 ### Safe File Operations
 - **Rule:** Check file existence before operations:
@@ -491,7 +481,7 @@ temp_dir="$(mktemp -d)"
 trap 'rm -f "$temp_file"; rm -rf "$temp_dir"' EXIT
 ```
 
-## 7. Command Execution and Pipelines
+## Command Execution and Pipelines
 
 ### Command Substitution
 - **Rule:** Use `$()` instead of backticks for command substitution:
@@ -525,7 +515,7 @@ local pid=$!
 wait "$pid"
 ```
 
-## 8. Configuration and Environment
+## Configuration and Environment
 
 ### Basic Configuration
 - **Rule:** Handle simple configuration files:
@@ -556,7 +546,7 @@ detect_os() {
 readonly OS="$(detect_os)"
 ```
 
-## 9. Basic Debugging
+## Debugging and Troubleshooting
 
 ### Debug Mode
 - **Rule:** Simple debug mode implementation:
@@ -575,7 +565,7 @@ debug_log() {
 
 **Note:** For comprehensive testing frameworks and debugging techniques, see `300b-bash-testing-tooling.md`
 
-## 10. Performance Best Practices
+## Performance Optimization
 
 ### Efficient String Operations
 - **Rule:** Use bash built-ins for string operations:
@@ -600,7 +590,7 @@ fi
 result=$((num1 + num2))
 ```
 
-## 11. Code Style and Standards
+## Code Style and Standards
 
 ### Formatting Standards
 - **Rule:** Use consistent formatting:
@@ -624,7 +614,7 @@ source "$external_config"
 
 **Note:** For comprehensive tooling integration and CI/CD setup, see `300b-bash-testing-tooling.md`
 
-## 12. Basic Security Practices
+## Security Best Practices
 
 ### File Permissions
 - **Rule:** Set appropriate basic permissions:
@@ -648,7 +638,7 @@ chmod 700 "$temp_dir"
 
 **Note:** For comprehensive security practices including input validation and access control, see `300a-bash-security.md`
 
-## 13. Common Anti-Patterns to Avoid
+## Additional Anti-Patterns
 
 ### Dangerous Practices
 - **Avoid:** Using `eval` with untrusted input
@@ -662,7 +652,7 @@ chmod 700 "$temp_dir"
 - **Avoid:** Using `expr` for arithmetic (use `$(())` instead)
 - **Avoid:** Unnecessary subshells and command substitutions
 
-## 14. Documentation Standards
+## Documentation and Comments
 
 ### Usage Documentation
 - **Requirement:** Provide clear usage information:
@@ -698,7 +688,3 @@ calculate_hash() {
 }
 ```
 
-## Related Rules
-
-- **`300a-bash-security.md`** - Comprehensive security practices, input validation, and access control
-- **`300b-bash-testing-tooling.md`** - Testing frameworks, debugging, ShellCheck integration, and CI/CD

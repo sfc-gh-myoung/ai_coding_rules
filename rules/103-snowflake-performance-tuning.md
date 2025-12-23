@@ -2,85 +2,123 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** search optimization, pruning, spillage, SQL optimization, Snowflake, partition pruning, QUERY_HISTORY, optimize query, fix slow query, query bottleneck, warehouse performance, micro-partitions, clustering, performance analysis
-**TokenBudget:** ~2150
+**TokenBudget:** ~2800
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
+**LastUpdated:** 2025-12-22
 
-## Purpose
-Provide systematic approaches for profiling, optimizing, and fine-tuning Snowflake queries and warehouse usage to achieve optimal performance while managing costs effectively.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Systematic approaches for profiling, optimizing, and fine-tuning Snowflake queries and warehouse usage to achieve optimal performance while managing costs effectively.
 
-Snowflake query performance tuning, warehouse optimization, and cost management
+**When to Load This Rule:**
+- Optimizing slow Snowflake queries
+- Tuning warehouse performance
+- Managing query costs
+- Analyzing Query Profile for bottlenecks
+- Implementing partition pruning strategies
 
-## Quick Start TL;DR
+## References
 
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
+### Dependencies
 
-Position at top provides practical efficiency benefits for both LLMs and human developers.
+**Must Load First:**
+- **000-global-core.md** - Foundation rule with core patterns and validation gates
+- **100-snowflake-core.md** - Snowflake SQL patterns and best practices
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Use Query Profile first** - identify bottlenecks (large TableScans, join explosions, spillage)
-- **Check partition pruning:** Compare "Partitions Scanned" vs "Partitions Total"
-- **Avoid functions in WHERE** - prevents partition pruning (e.g., `DATE(timestamp_col)`)
-- **Right-size warehouses:** Follow 119-snowflake-warehouse-management.md sizing guidance
-- **Enable AUTO_SUSPEND/RESUME** - prevent idle warehouse costs
-- **Don't add clustering keys without evidence** - Query Profile must show poor pruning first
+### External Documentation
+- [Query Profile Guide](https://docs.snowflake.com/en/user-guide/ui-query-profile) - Query execution analysis and performance diagnostics
+- [Virtual Warehouse Management](https://docs.snowflake.com/en/user-guide/warehouses) - Warehouse sizing, scaling, and cost optimization
+- [Clustering Keys](https://docs.snowflake.com/en/user-guide/tables-clustering-keys) - Table clustering for query performance optimization
 
-**Quick Checklist:**
-- [ ] Open Query Profile for slow query
-- [ ] Check "Partitions Scanned" vs "Partitions Total" (want <10% scanned)
-- [ ] Identify expensive operations (TableScan, JOIN, Aggregate)
-- [ ] Verify no functions in WHERE clause
-- [ ] Confirm warehouse size appropriate for workload
-- [ ] Only consider clustering if Query Profile shows poor pruning
+### Related Rules
 
-> **Investigation Required**
-> When applying this rule:
-> 1. Open Query Profile in Snowsight for the slow query BEFORE making recommendations
-> 2. Read actual partition statistics (scanned vs total)
-> 3. Never speculate about performance issues - verify in Query Profile
-> 4. Check warehouse size and utilization in QUERY_HISTORY
-> 5. Make grounded recommendations based on investigated Query Profile data
+**Closely Related** (consider loading together):
+- **119-snowflake-warehouse-management.md** - Warehouse sizing, type selection (CPU/GPU/High-Memory), auto-suspend config
+- **105-snowflake-cost-governance.md** - Cost monitoring, resource monitors, budget alerts during optimization
+
+**Sometimes Related** (load if specific scenario):
+- **100-snowflake-core.md** - CTE usage patterns and query structure fundamentals
+- **102-snowflake-sql-demo-engineering.md** - SQL demo patterns
+- **122-snowflake-dynamic-tables.md** - Optimizing dynamic table refresh performance
+- **104-snowflake-streams-tasks.md** - Optimizing stream/task pipeline performance
+
+**Complementary** (different aspects of same domain):
+- **108-snowflake-data-loading.md** - Optimizing COPY INTO and data loading performance
+- **111-snowflake-observability-core.md** - Query profiling and performance monitoring
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-[Context, files, dependencies needed]
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-[Tools permitted for this domain]
-</mandatory>
+- Snowflake account with query execution privileges
+- Access to Query Profile in Snowsight or via SQL
+- Warehouse context for query execution
+- QUERY_HISTORY view access for historical analysis
+- Slow query identified (>10s execution time or user complaint)
+- Understanding of table structures and data volumes
 
-<forbidden>
-[Tools not allowed for this domain]
-</forbidden>
+### Mandatory
 
-<steps>
-[Ordered steps the agent must follow]
-</steps>
+- Query Profile analysis before optimization (CRITICAL)
+- SHOW WAREHOUSES, SHOW TABLES for context
+- QUERY_HISTORY queries for execution patterns
+- Partition pruning verification (Partitions Scanned vs Total)
+- Spillage detection (remote vs local disk)
+- Warehouse sizing appropriate for workload (see 119-snowflake-warehouse-management.md)
 
-<output_format>
-[Expected output format]
-</output_format>
+### Forbidden
 
-<validation>
-[Checks to confirm success]
-</validation>
+- Optimizing queries without reviewing Query Profile
+- Adding clustering keys without evidence of poor pruning
+- Using functions in WHERE clause that prevent partition pruning (DATE(), CAST())
+- Oversizing warehouses without measuring impact
+- Speculating about performance issues without profiling data
 
-<design_principles>
+### Execution Steps
+
+1. Identify slow query (execution time, user report, monitoring alert)
+2. Open Query Profile in Snowsight or query QUERY_HISTORY
+3. Analyze partition pruning: Compare "Partitions Scanned" vs "Partitions Total" (target <10%)
+4. Identify bottlenecks: Large TableScans, join explosions, spillage to remote storage
+5. Check WHERE clause for functions that prevent pruning
+6. Verify warehouse size appropriate for data volume
+7. Apply optimization: Rewrite query, adjust warehouse, consider clustering only if justified
+8. Measure impact: Compare before/after execution times with same warehouse
+
+### Output Format
+
+- Optimized SQL query with explicit column selection
+- Query Profile screenshots or statistics (before/after)
+- Performance metrics: Execution time reduction, partitions scanned reduction
+- Warehouse sizing recommendations with justification
+- Clustering key recommendations (only if Query Profile shows poor pruning)
+
+### Validation
+
+**Test Requirements:**
+- Query executes successfully
+- Execution time reduced by ≥30% (or meets performance target)
+- Partition pruning improved (lower scanned:total ratio)
+- No spillage to remote storage (or significantly reduced)
+- Warehouse auto-suspend/resume enabled
+
+**Success Criteria:**
+- Query Profile shows pruning improvement
+- Execution time meets SLA (<2s for interactive, <30s for analytical)
+- No anti-patterns present (functions in WHERE, unnecessary DISTINCT)
+- Warehouse appropriately sized for workload
+
+### Design Principles
+
 - Use Query Profile to find bottlenecks; maximize pruning; avoid functions in WHERE.
 - Right-size warehouses; enable AUTO_SUSPEND/RESUME; consider clustering only with clear justification.
 - Reference official docs for profiling, warehouses, and clustering.
+
 > **Investigation Required**
 > When optimizing query performance:
 > 1. Check Query Profile first - never optimize without profiling: `SELECT * FROM TABLE(INFORMATION_SCHEMA.QUERY_HISTORY_BY_...)`
@@ -97,9 +135,14 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 > "Let me check the Query Profile first to identify the bottleneck."
 > [reviews Query Profile, finds large TableScan]
 > "The issue is partition pruning - 1000/1000 partitions scanned. Let me check the WHERE clause..."
-</design_principles>
 
-</contract>
+### Post-Execution Checklist
+
+- [ ] Required dependencies and context verified
+- [ ] Appropriate tools selected and validated
+- [ ] Implementation follows established patterns
+- [ ] Output format matches requirements
+- [ ] Validation steps completed successfully
 
 ## Anti-Patterns and Common Mistakes
 
@@ -207,17 +250,6 @@ ALTER TABLE my_table CLUSTER BY (date_column);
 ```
 **Benefits:** Evidence-based optimization; targeted fixes; cost-effective; root cause resolution; measurable results; professional performance tuning
 
-## Post-Execution Checklist
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
-
-## Validation
-- **Success checks:** [How to verify correct implementation]
-- **Negative tests:** [What should fail and how to detect failures]
-
 ## Output Format Examples
 
 ```sql
@@ -244,25 +276,12 @@ SELECT * FROM schema.view_name LIMIT 5;
 SHOW VIEWS LIKE '%view_name%';
 ```
 
-## References
-
-### External Documentation
-- [Query Profile Guide](https://docs.snowflake.com/en/user-guide/ui-query-profile) - Query execution analysis and performance diagnostics
-- [Virtual Warehouse Management](https://docs.snowflake.com/en/user-guide/warehouses) - Warehouse sizing, scaling, and cost optimization
-- [Clustering Keys](https://docs.snowflake.com/en/user-guide/tables-clustering-keys) - Table clustering for query performance optimization
-
-### Related Rules
-- **Snowflake Core**: `100-snowflake-core.md`
-- **SQL Demo Engineering**: `102-snowflake-sql-demo-engineering.md`
-- **Cost Governance**: `105-snowflake-cost-governance.md`
-- **Warehouse Management**: `119-snowflake-warehouse-management.md`
-
-## 1. Query Profiling & Optimization
+## Query Profiling & Optimization
 - **Always:** Use the Query Profile to diagnose execution, identify bottlenecks, and pinpoint expensive operations (e.g., large `TableScans`, join explosions).
 - **Always:** Compare `Partitions Scanned` vs. `Partitions Total` to find pruning opportunities.
 - **Requirement:** Avoid functions in `WHERE` clauses when they prevent pruning.
 
-## 2. Warehouse Sizing & Clustering
+## Warehouse Sizing & Clustering
 - **Always:** Follow comprehensive warehouse sizing guidance in `119-snowflake-warehouse-management.md` including type selection (CPU/GPU/High-Memory), sizing strategy, auto-suspend configuration, and cost governance.
 - **Requirement:** Consider clustering keys only with clear justification based on query patterns and Query Profile evidence of poor pruning.
 
@@ -278,17 +297,3 @@ SHOW VIEWS LIKE '%view_name%';
 - **Warehouse optimization**: + Warehouse & Clustering + 119 (warehouse management)
 - **Complete tuning**: Full reference
 
-## Related Rules
-
-**Closely Related** (consider loading together):
-- `119-snowflake-warehouse-management` - For warehouse sizing, type selection (CPU/GPU/High-Memory), auto-suspend config
-- `105-snowflake-cost-governance` - For cost monitoring, resource monitors, budget alerts during optimization
-
-**Sometimes Related** (load if specific scenario):
-- `100-snowflake-core` - For CTE usage patterns and query structure fundamentals
-- `122-snowflake-dynamic-tables` - When optimizing dynamic table refresh performance
-- `104-snowflake-streams-tasks` - When optimizing stream/task pipeline performance
-
-**Complementary** (different aspects of same domain):
-- `108-snowflake-data-loading` - For optimizing COPY INTO and data loading performance
-- `111-snowflake-observability-core` - For query profiling and performance monitoring

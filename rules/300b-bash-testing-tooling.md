@@ -2,69 +2,127 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** Bash, testing, ShellCheck, bats, shell script testing, CI/CD, debugging, static analysis, linting, test automation
-**TokenBudget:** ~2650
+**TokenBudget:** ~4200
 **ContextTier:** Medium
 **Depends:** 300-bash-scripting-core.md
+**LastUpdated:** 2025-12-23
 
-## Purpose
-Provide comprehensive bash testing, debugging, and modern tooling integration including ShellCheck, CI/CD workflows, and development practices to ensure script quality and reliability.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive bash testing, debugging, and modern tooling integration including ShellCheck, CI/CD workflows, and development practices to ensure script quality and reliability.
 
-Bash testing, debugging, development workflows, CI/CD
+**When to Load This Rule:**
+- Setting up testing infrastructure for bash scripts
+- Integrating ShellCheck static analysis
+- Writing automated tests with Bats or similar frameworks
+- Implementing CI/CD pipelines for shell scripts
+- Debugging complex bash script issues
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Use ShellCheck** - Run shellcheck on all scripts before commit
-- **Write tests with bats** - Automated testing for shell scripts
-- **Enable set -x for debugging** - Trace execution when troubleshooting
-- **CI/CD integration** - Automate shellcheck and tests in pipeline
-- **Mock external commands** - Isolate tests from external dependencies
-- **Test error paths** - Verify failures are handled correctly
-- **Never skip shellcheck warnings** - Address all SC codes
+### Dependencies
 
-**Quick Checklist:**
-- [ ] ShellCheck passing with no warnings
-- [ ] Bats tests written and passing
-- [ ] CI/CD pipeline runs tests
-- [ ] Error paths tested
-- [ ] External commands mocked
-- [ ] Debug mode available
-- [ ] Test coverage documented
+**Must Load First:**
+- **300-bash-scripting-core.md** - Foundation bash scripting patterns
+
+**Related:**
+- **300a-bash-security.md** - Security testing considerations
+
+### External Documentation
+
+- [ShellCheck Documentation](https://github.com/koalaman/shellcheck/wiki) - Static analysis tool for shell scripts and best practices
+- [BATS Testing Framework](https://github.com/bats-core/bats-core) - Bash Automated Testing System for unit testing
+- [Google Shell Testing Guide](https://google.github.io/styleguide/shellguide.html#s7-tests) - Professional shell script testing standards
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-[Context, files, dependencies needed]
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-[Tools permitted for this domain]
-</mandatory>
+- Bash scripts requiring testing and quality assurance
+- Development environment with shell access
+- Understanding of testing methodologies
+- Access to CI/CD pipeline configuration (if applicable)
 
-<forbidden>
-[Tools not allowed for this domain]
-</forbidden>
+### Mandatory
 
-<steps>
-[Ordered steps the agent must follow]
-</steps>
+- ShellCheck static analysis on all scripts
+- Automated test suite (Bats or equivalent framework)
+- CI/CD integration for automated testing
+- Debug mode implementation for troubleshooting
+- Pre-commit hooks for quality checks
+- Test coverage for critical functions
 
-<output_format>
-[Expected output format]
-</output_format>
+### Forbidden
 
-<validation>
-[Checks to confirm success]
-</validation>
+- Deploying scripts without ShellCheck validation
+- Relying solely on manual testing
+- Ignoring ShellCheck warnings without justification
+- Skipping error path testing
+- Testing only happy path scenarios
 
-</contract>
+### Execution Steps
+
+1. Install ShellCheck and configure for project (via package manager or Docker)
+2. Run ShellCheck on all existing scripts and document issues
+3. Set up testing framework (Bats recommended) with test directory structure
+4. Write unit tests for critical functions with positive and negative cases
+5. Implement debug mode with trace logging and error reporting
+6. Configure CI/CD pipeline to run ShellCheck and tests automatically
+7. Add pre-commit hooks to validate scripts before commit
+8. Document test coverage and testing procedures
+
+### Output Format
+
+Testing infrastructure with:
+- ShellCheck configuration file (`.shellcheckrc`)
+- Test directory with Bats test files (`test_*.bats`)
+- CI/CD pipeline configuration (`.github/workflows/shell.yml` or equivalent)
+- Pre-commit hooks (`.git/hooks/pre-commit`)
+- Debug mode implementation in scripts
+- Test documentation and coverage reports
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- ShellCheck installed and accessible
+- All scripts pass ShellCheck with 0 warnings (or documented exceptions)
+- Test framework installed and configured
+- Tests written for critical functions
+- CI/CD pipeline runs successfully
+- Pre-commit hooks functional
+
+**Success Criteria:**
+- `shellcheck scripts/*.sh` returns 0 exit code
+- `bats tests/` passes all tests
+- CI/CD pipeline green on latest commit
+- Debug mode produces useful trace output
+- Error paths tested and verified
+- Test coverage documented (>80% for critical functions)
+
+### Design Principles
+
+- **Automate Everything:** Testing, linting, and validation in CI/CD
+- **Fail Fast:** Catch issues early with pre-commit hooks and static analysis
+- **Test Error Paths:** Verify failures are handled correctly
+- **Debug-Friendly:** Comprehensive logging and trace modes
+- **Continuous Quality:** Maintain high standards through automation
+
+### Post-Execution Checklist
+
+- [ ] ShellCheck installed and configured
+- [ ] All scripts pass ShellCheck validation
+- [ ] Test framework (Bats) installed
+- [ ] Unit tests written and passing
+- [ ] CI/CD pipeline configured and green
+- [ ] Pre-commit hooks installed
+- [ ] Debug mode implemented
+- [ ] Error paths tested
+- [ ] Test coverage documented
+- [ ] Development environment setup documented
 
 ## Anti-Patterns and Common Mistakes
 
@@ -131,33 +189,6 @@ setup() {
 # Run: bats test_deploy.bats
 ```
 
-## Post-Execution Checklist
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
-
-## Validation
-- **Success checks:** [How to verify correct implementation]
-- **Negative tests:** [What should fail and how to detect failures]
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Run shellcheck BEFORE suggesting fixes** - See actual issues, not assumed ones
-> 2. **Check existing tests** - Review current test coverage and framework
-> 3. **Never assume test infrastructure** - Verify bats or other framework is available
-> 4. **Review CI/CD config** - Check what automation already exists
-> 5. **Test the tests** - Ensure tests actually catch intended failures
->
-> **Anti-Pattern:**
-> "Adding shellcheck... (without running it first to see issues)"
-> "Writing bats tests... (without checking if bats is installed)"
->
-> **Correct Pattern:**
-> "Let me run shellcheck on your scripts first."
-> [runs shellcheck, reviews output]
-> "I see 5 SC2086 warnings about unquoted variables. Let me fix those..."
 
 ## Output Format Examples
 
@@ -214,18 +245,7 @@ main "$@"
 shellcheck script.sh
 ```
 
-## References
-
-### External Documentation
-- [ShellCheck Documentation](https://github.com/koalaman/shellcheck/wiki) - Static analysis tool for shell scripts and best practices
-- [BATS Testing Framework](https://github.com/bats-core/bats-core) - Bash Automated Testing System for unit testing
-- [Google Shell Testing Guide](https://google.github.io/styleguide/shellguide.html#s7-tests) - Professional shell script testing standards
-
-### Related Rules
-- **Bash Core**: `300-bash-scripting-core.md`
-- **Bash Security**: `300a-bash-security.md`
-
-## 1. Static Analysis with ShellCheck
+## Static Analysis with ShellCheck
 
 ### ShellCheck Integration
 - **Requirement:** Use ShellCheck for static analysis of all bash scripts
@@ -287,7 +307,7 @@ MY_VAR="value"
 # Quote arrays: cmd "${array[@]}"
 ```
 
-## 2. Testing Frameworks and Strategies
+## Testing Frameworks and Strategies
 
 ### Simple Testing Framework
 - **Rule:** Basic test framework:
@@ -344,7 +364,7 @@ test_file_ops() {
 }
 ```
 
-## 3. Debugging Techniques
+## Debugging Techniques
 
 ### Debug Mode Implementation
 - **Rule:** Implement comprehensive debug modes:
@@ -457,7 +477,7 @@ profile() {
 }
 ```
 
-## 4. CI/CD Integration
+## CI/CD Integration
 
 ### CI/CD Integration
 - **Rule:** Automate testing:
@@ -489,7 +509,7 @@ for script in "${scripts[@]}"; do
 done
 ```
 
-## 5. Code Coverage and Quality Metrics
+## Code Coverage and Quality Metrics
 
 ### Coverage Tracking
 - **Consider:** Simple coverage:
@@ -504,7 +524,7 @@ show_coverage() {
 }
 ```
 
-## 6. Development Environment Setup
+## Development Environment Setup
 
 ### IDE Integration
 - **Rule:** Configure development environment for bash scripting:
@@ -606,7 +626,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
 fi
 ```
 
-## 7. Documentation and Maintenance
+## Documentation and Maintenance
 
 ### Automated Documentation Generation
 - **Consider:** Generate documentation from code:

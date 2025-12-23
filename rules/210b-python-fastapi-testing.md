@@ -2,78 +2,137 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** FastAPI testing, TestClient, pytest-asyncio, API tests, integration testing, mocking, test fixtures, AAA pattern, async testing, Python
-**TokenBudget:** ~2050
+**TokenBudget:** ~3050
 **ContextTier:** High
 **Depends:** 210-python-fastapi-core.md
+**LastUpdated:** 2025-12-23
 
-## Purpose
-Establish comprehensive testing strategies for FastAPI applications using TestClient, pytest-asyncio, and modern testing patterns to ensure reliability and maintainability.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive testing strategies for FastAPI applications. Covers TestClient usage, pytest-asyncio for async tests, test database fixtures, dependency overrides, AAA pattern, mocking external dependencies, and integration testing patterns to ensure reliability and maintainability.
 
-FastAPI testing strategies with TestClient, pytest-asyncio, and comprehensive API testing patterns
+**When to Load This Rule:**
+- Writing tests for FastAPI applications
+- Setting up test infrastructure and fixtures
+- Testing async endpoints and dependencies
+- Implementing test database isolation
+- Mocking external services in tests
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Use TestClient for API testing** - `from fastapi.testclient import TestClient`
-- **pytest-asyncio for async tests** - Mark tests with `@pytest.mark.asyncio`
-- **Override dependencies in tests** - Use `app.dependency_overrides` for mocks
-- **Test database fixture** - Create isolated test DB for each test
-- **AAA pattern** - Arrange-Act-Assert in all tests
-- **Test both success and errors** - Verify status codes, response bodies, error cases
-- **Never share state between tests** - Each test must be isolated
+### Dependencies
 
-**Quick Checklist:**
-- [ ] TestClient configured in conftest.py
-- [ ] Test database fixture with cleanup
-- [ ] Dependencies overridden via app.dependency_overrides
-- [ ] AAA pattern in all tests
-- [ ] Both 200 and error status codes tested
-- [ ] Async tests marked with @pytest.mark.asyncio
-- [ ] Tests isolated (no shared state)
+**Must Load First:**
+- **210-python-fastapi-core.md** - FastAPI foundation patterns
+
+**Related:**
+- **200-python-core.md** - Python core testing patterns
+- **206-python-pytest.md** - Pytest patterns and best practices
+
+### External Documentation
+
+- [FastAPI Testing Guide](https://fastapi.tiangolo.com/tutorial/testing/)
+- [Pytest Documentation](https://docs.pytest.org/)
+- [Pytest-asyncio Plugin](https://pytest-asyncio.readthedocs.io/)
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-[Context, files, dependencies needed]
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-[Tools permitted for this domain]
-</mandatory>
+- FastAPI application to test
+- Test requirements and coverage goals
+- Understanding of async/await patterns
+- Knowledge of pytest fixtures
 
-<forbidden>
-[Tools not allowed for this domain]
-</forbidden>
+### Mandatory
 
-<steps>
-[Ordered steps the agent must follow]
-</steps>
+- `pytest` testing framework
+- `fastapi.testclient.TestClient` for API testing
+- `pytest-asyncio` for async test support
+- Test database fixture with isolation
+- `httpx.AsyncClient` for async endpoint testing
 
-<output_format>
-[Expected output format]
-</output_format>
+### Forbidden
 
-<validation>
-[Checks to confirm success]
-</validation>
+- Testing against production database
+- Sharing state between tests
+- Using synchronous TestClient for async endpoints without understanding limitations
+- Skipping error scenario tests
+- Hardcoding test data without factories
 
-<design_principles>
+### Execution Steps
+
+1. Set up test infrastructure in `tests/conftest.py`
+2. Create test database fixture with proper isolation
+3. Configure TestClient with dependency overrides
+4. Write tests following AAA pattern (Arrange-Act-Assert)
+5. Test both success and error scenarios
+6. Use `@pytest.mark.asyncio` for async tests
+7. Mock external dependencies via `app.dependency_overrides`
+8. Create reusable test utilities and factories
+9. Run tests with `uv run pytest tests/`
+10. Verify coverage with `uv run pytest --cov=app`
+
+### Output Format
+
+Test suite with:
+- `tests/conftest.py` with fixtures
+- Test files following `test_*.py` pattern
+- AAA pattern in all tests
+- Isolated test database
+- Dependency overrides for mocking
+- Comprehensive success and error coverage
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- TestClient configured in conftest.py
+- Test database fixture created with cleanup
+- Dependencies overridden via app.dependency_overrides
+- AAA pattern used in tests
+- Both success and error status codes tested
+- Async tests marked with @pytest.mark.asyncio
+- Tests isolated (no shared state)
+
+**Success Criteria:**
+- `uv run pytest tests/` passes all tests
+- Test coverage >80% (`uv run pytest --cov=app`)
+- Tests run in isolation (can run in any order)
+- No tests modify production database
+- All API endpoints have test coverage
+- Error scenarios tested and validated
+
+**Negative Tests:**
+- Invalid input rejected with 422 status
+- Unauthorized requests return 401
+- Missing authentication returns 401
+- Tests fail if database state shared
+
+### Design Principles
+
 1. **Test-Driven Development** - Use TestClient and pytest-asyncio for comprehensive API testing
 2. **Async Testing** - Properly handle async operations in tests
 3. **Fixture Management** - Create reusable test fixtures and utilities
 4. **Mock External Dependencies** - Isolate units under test
 5. **Test Both Success and Error Scenarios** - Comprehensive coverage
 6. **Factory Patterns** - Use factory patterns for test data creation
-</design_principles>
 
-</contract>
+### Post-Execution Checklist
+
+- [ ] TestClient configured in conftest.py
+- [ ] Test database fixture with cleanup implemented
+- [ ] Dependencies overridden via app.dependency_overrides
+- [ ] AAA pattern used in all tests
+- [ ] Both 200 and error status codes tested
+- [ ] Async tests marked with @pytest.mark.asyncio
+- [ ] Tests isolated (no shared state)
+- [ ] Test coverage >80%
+- [ ] All tests passing (`uv run pytest tests/`)
+- [ ] External dependencies mocked properly
 
 ## Anti-Patterns and Common Mistakes
 
@@ -133,17 +192,6 @@ async def test_db():
     await engine.dispose()
 ```
 
-## Post-Execution Checklist
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
-
-## Validation
-- **Success checks:** [How to verify correct implementation]
-- **Negative tests:** [What should fail and how to detect failures]
-
 > **Investigation Required**
 > When applying this rule:
 > 1. **Read existing test structure BEFORE adding tests** - Check tests/ directory, conftest.py, existing fixtures
@@ -161,78 +209,7 @@ async def test_db():
 > [reads tests/conftest.py, tests/test_*.py]
 > "I see you have a test_app fixture that overrides get_db. Here's a new test following the same pattern with AAA structure..."
 
-## Output Format Examples
-
-```python
-# Investigation: Check current implementation
-# Read existing files, understand patterns
-
-# Implementation: Following uv + ruff + pytest standards
-from typing import Protocol
-from datetime import datetime, UTC
-
-class ServiceProtocol(Protocol):
-    """Clear contract for service implementations."""
-
-    def process(self, data: dict) -> dict:
-        """Process data following validation rules."""
-        ...
-
-def implementation_function(input_data: dict) -> dict:
-    """
-    Implement feature following project conventions.
-
-    Args:
-        input_data: Validated input following schema
-
-    Returns:
-        Processed result with metadata
-
-    Raises:
-        ValueError: If input validation fails
-    """
-    # Use datetime.now(UTC) not datetime.utcnow()
-    timestamp = datetime.now(UTC)
-
-    # Implement business logic
-    result = {"status": "success", "timestamp": timestamp}
-    return result
-
-# Validation: Test the implementation
-def test_implementation_function():
-    """Test following AAA pattern."""
-    # Arrange
-    test_input = {"key": "value"}
-
-    # Act
-    result = implementation_function(test_input)
-
-    # Assert
-    assert result["status"] == "success"
-    assert "timestamp" in result
-```
-
-```bash
-# Validation commands
-uvx ruff check .
-uvx ruff format --check .
-uv run pytest tests/
-```
-
-## References
-
-### External Documentation
-- [FastAPI Testing Guide](https://fastapi.tiangolo.com/tutorial/testing/) - Official testing patterns with TestClient and async support
-- [Pytest Documentation](https://docs.pytest.org/) - Comprehensive testing framework guide and API reference
-- [Pytest-asyncio Plugin](https://pytest-asyncio.readthedocs.io/) - Async test support and fixture management
-
-### Related Rules
-- **FastAPI Core**: `210-python-fastapi-core.md`
-- **FastAPI Security**: `210a-python-fastapi-security.md`
-- **Python Core**: `200-python-core.md`
-- **Faker**: `240-python-faker.md`
-
-## 1. Test Structure and Setup
+## Test Structure and Setup
 
 ### Basic Test Configuration
 - **Always:** Use TestClient for API testing.
@@ -292,7 +269,7 @@ def client(test_app):
     return TestClient(test_app)
 ```
 
-## 2. API Testing Patterns
+## API Testing Patterns
 
 ### Comprehensive Endpoint Testing
 - **Always:** Test all CRUD operations and edge cases.
@@ -370,7 +347,7 @@ class TestUserEndpoints:
         assert user.id is not None
 ```
 
-## 3. Test Utilities and Fixtures
+## Test Utilities and Fixtures
 
 ### Reusable Testing Components
 - **Always:** Create reusable test fixtures and utilities.
@@ -407,7 +384,7 @@ def auth_headers():
     return get_auth_headers()
 ```
 
-## 4. Integration with Core Rules
+## Integration with Core Rules
 
 ### Development Commands
 - **Always:** Follow Python core rules from `200-python-core.md` for testing commands.

@@ -2,105 +2,124 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** span attributes, trace_id, performance analysis, metrics collection, cpu_usage, memory_usage, telemetry.create_span, OpenTelemetry, nested spans, tracing patterns, span creation, trace analysis, distributed traces
-**TokenBudget:** ~3300
+**TokenBudget:** ~4600
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 111-snowflake-observability-core.md
+**LastUpdated:** 2025-12-23
 
-## Purpose
-Provide comprehensive distributed tracing and metrics collection patterns for Snowflake handlers, enabling performance analysis, bottleneck identification, and resource monitoring through custom spans and metrics.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Distributed tracing and metrics collection patterns for Snowflake handlers using `snowflake-telemetry-python` package. Covers span creation, nested tracing hierarchies, performance analysis, bottleneck identification, resource monitoring, and trace event limits (128 events/span maximum).
 
-Distributed tracing with `snowflake-telemetry-python` package and metrics collection for Snowflake handlers
+**When to Load This Rule:**
+- Implementing distributed tracing in Snowflake Python handlers
+- Performance analysis and bottleneck identification
+- Adding custom spans and metrics to handlers
+- Debugging slow operations with trace data
+- Configuring TRACE_LEVEL and METRIC_LEVEL
 
-## Quick Start TL;DR
+## References
 
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
+### Dependencies
 
-Position at top provides practical efficiency benefits for both LLMs and human developers.
+**Must Load First:**
+- **100-snowflake-core.md** - Snowflake foundation patterns
+- **111-snowflake-observability-core.md** - Telemetry configuration and event tables
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Import telemetry** - `from snowflake import telemetry`
-- **Create spans** - Use `create_span()` context manager
-- **Add attributes** - Include context (input_size, duration, success)
-- **Nest spans** - Show operation hierarchy
-- **Limit events** - Max 128 trace events per span
-- **Query traces** - Use `record_type = 'SPAN'` in event tables
-- **TRACE_LEVEL = ON_EVENT for prod** - Only trace errors
+**Related:**
+- **111a-snowflake-observability-logging.md** - Logging best practices
+- **111c-snowflake-observability-monitoring.md** - Monitoring, Snowsight interfaces, analysis
+- **103-snowflake-performance-tuning.md** - Performance optimization using trace data
 
-**Quick Checklist:**
-- [ ] `snowflake.telemetry` imported
-- [ ] Spans created for expensive operations
-- [ ] Attributes added for context
-- [ ] Nested spans for sub-operations
-- [ ] Event limit observed (<128 per span)
+### External Documentation
+
+**Tracing Documentation:**
+- [Snowflake Python Tracing](https://docs.snowflake.com/en/developer-guide/logging-tracing/tracing-python) - Python-specific tracing implementation guide
+- [OpenTelemetry Tracing](https://opentelemetry.io/docs/concepts/signals/traces/) - OpenTelemetry standard for distributed tracing
+- [Snowflake Telemetry Levels](https://docs.snowflake.com/en/developer-guide/logging-tracing/telemetry-levels) - TRACE_LEVEL configuration guide
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
+### Inputs and Prerequisites
+
 - `snowflake-telemetry-python` package installed for Python handlers
 - TRACE_LEVEL configured (see `111-snowflake-observability-core.md`)
 - METRIC_LEVEL configured for system metrics
 - Active event table receiving data
-</inputs_prereqs>
 
-<mandatory>
+### Mandatory
+
 - `snowflake.telemetry.create_span()` for Python handlers
 - `telemetry.set_attribute()` for span attributes
 - `telemetry.add_event()` for span events
 - `telemetry.emit_metric()` for custom metrics
-</mandatory>
 
-<forbidden>
+### Forbidden
+
 - Creating >128 trace events per span (hard limit)
 - Creating >128 custom attributes per span (hard limit)
 - Using TRACE_LEVEL = ALWAYS in production without performance analysis
-</forbidden>
 
-<steps>
-1. **Import:** Import `snowflake.telemetry` at module level
-2. **Create:** Use `create_span()` context manager for operations
-3. **Attribute:** Add relevant attributes to spans (`set_attribute()`)
-4. **Nest:** Create nested spans for sub-operations
-5. **Validate:** Query event tables to verify trace data collection
-</steps>
+### Execution Steps
 
-<output_format>
+1. Import `snowflake.telemetry` at module level
+2. Use `create_span()` context manager for operations
+3. Add relevant attributes to spans (`set_attribute()`)
+4. Create nested spans for sub-operations
+5. Query event tables to verify trace data collection
+
+### Output Format
+
 - Python code with `snowflake.telemetry` import
-- Spans with meaningful names describing the operation
+- Spans with meaningful names describing operations
 - Attributes providing context (input size, processing time, success status)
 - Nested spans showing operation hierarchy
-</output_format>
 
-<validation>
-- Verify spans appear in event tables with correct `record_type = 'SPAN'`
-- Confirm trace IDs link related events
-- Check span attributes provide meaningful context
-- Validate duration metrics are reasonable
-</validation>
+### Validation
 
-<design_principles>
-- Use `snowflake-telemetry-python` package for creating custom spans in Python handlers.
-- Create spans around expensive operations, external calls, and critical business logic.
-- Add relevant attributes to spans for performance analysis and troubleshooting context.
-- Use nested spans to show operation hierarchy and identify bottlenecks.
-- Respect span limits (128 events per span, 128 attributes per span).
-- Use TRACE_LEVEL = ON_EVENT for production (traces only on errors), ALWAYS for debugging.
-</design_principles>
+**Pre-Task-Completion Checks:**
+- Spans appear in event tables with `record_type = 'SPAN'`
+- Trace IDs link related events
+- Span attributes provide meaningful context
+- Duration metrics are reasonable
 
-</contract>
+**Success Criteria:**
+- Spans visible in Snowsight Traces UI
+- Nested spans show correct hierarchy
+- System metrics captured when METRIC_LEVEL = ALL
+- No spans exceed 128 events or 128 attributes
+
+**Negative Tests:**
+- Spans with >128 events trigger sampling strategy
+- Spans with >128 attributes trigger reduction
+- TRACE_LEVEL = ALWAYS in production triggers performance review
+
+### Design Principles
+
+- Use `snowflake-telemetry-python` package for custom spans in Python handlers
+- Create spans around expensive operations (>100ms), external calls, critical business logic
+- Add relevant attributes to spans for performance analysis and troubleshooting
+- Use nested spans to show operation hierarchy and identify bottlenecks
+- Respect span limits (128 events per span, 128 attributes per span)
+- Use TRACE_LEVEL = ON_EVENT for production (traces only on errors), ALWAYS for debugging
+
+### Post-Execution Checklist
+
+- [ ] `snowflake.telemetry` imported for Python handlers
+- [ ] Spans created around expensive operations (>100ms)
+- [ ] Span attributes added for context (input_size, success, error)
+- [ ] Nested spans used to show operation hierarchy
+- [ ] Event limit respected (<128 events per span)
+- [ ] Attribute limit respected (<128 attributes per span)
+- [ ] TRACE_LEVEL = ON_EVENT for production
+- [ ] System metrics enabled (METRIC_LEVEL = ALL)
+- [ ] Trace data verified in event tables
 
 ## Anti-Patterns and Common Mistakes
-
-**Anti-Pattern 1: Creating Spans for Every Function Call**
 ```python
 # Bad: Span for every small operation
 def process_order(order):
@@ -199,46 +218,6 @@ with telemetry.create_span("process_data") as span:
 ```
 **Benefits:** Filterable traces; rich debugging context; pattern identification; root cause analysis; production debugging; operational insights; actionable observability
 
-## Post-Execution Checklist
-- [ ] `snowflake.telemetry` imported for Python handlers
-- [ ] Spans created around expensive operations (>100ms)
-- [ ] Span attributes added for context (input_size, success, error)
-- [ ] Nested spans used to show operation hierarchy
-- [ ] Event limit respected (<128 events per span)
-- [ ] Attribute limit respected (<128 attributes per span)
-- [ ] TRACE_LEVEL = ON_EVENT for production
-- [ ] System metrics enabled (METRIC_LEVEL = ALL)
-
-## Validation
-- **Success Checks:**
-  - Spans appear in event tables with `record_type = 'SPAN'`
-  - Trace IDs link related logs and spans
-  - Span duration metrics are reasonable and reflect actual operation time
-  - Nested spans show correct hierarchy in Snowsight Traces UI
-  - System metrics captured when METRIC_LEVEL = ALL
-
-- **Negative Tests:**
-  - Spans with >128 events should be split or sampled
-  - Spans with >128 attributes should be reduced
-  - TRACE_LEVEL = ALWAYS in production should trigger performance review
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Check telemetry package** - Verify `snowflake-telemetry-python` is installed
-> 2. **Review TRACE_LEVEL** - Confirm appropriate for environment (ON_EVENT for prod)
-> 3. **Identify expensive operations** - Find operations >100ms that need spans
-> 4. **Verify span data** - Query event tables to see existing traces
-> 5. **Check span limits** - Ensure no spans exceed 128 events or attributes
->
-> **Anti-Pattern:**
-> "Adding spans everywhere... (without considering limits)"
-> "Using TRACE_LEVEL = ALWAYS in production... (performance impact)"
->
-> **Correct Pattern:**
-> "Let me identify expensive operations that need tracing first."
-> [queries event tables, identifies slow operations, reviews TRACE_LEVEL]
-> "I see 3 operations >1 second. Adding strategic spans for those following ON_EVENT pattern..."
-
 ## Output Format Examples
 ```python
 # Distributed Tracing Template
@@ -292,24 +271,12 @@ def my_handler(session, input_data):
             raise
 ```
 
-## References
-
-### Tracing Documentation
-- [Snowflake Python Tracing](https://docs.snowflake.com/en/developer-guide/logging-tracing/tracing-python) - Python-specific tracing implementation guide with telemetry package usage
-- [OpenTelemetry Tracing](https://opentelemetry.io/docs/concepts/signals/traces/) - OpenTelemetry standard for distributed tracing
-- [Snowflake Telemetry Levels](https://docs.snowflake.com/en/developer-guide/logging-tracing/telemetry-levels) - Complete guide to TRACE_LEVEL configuration
-
-### Related Rules
-- **Observability Core**: `111-snowflake-observability-core.md` - Telemetry configuration and event tables
-- **Observability Logging**: `111a-snowflake-observability-logging.md` - Logging best practices
-- **Observability Monitoring**: `111c-snowflake-observability-monitoring.md` - Monitoring, Snowsight interfaces, analysis
-- **Performance Tuning**: `103-snowflake-performance-tuning.md` - Performance optimization using trace data
-
-## 1. Python Telemetry Package
+## Python Telemetry Package
 
 ### Basic Span Creation
-- **Always:** Use the `snowflake-telemetry-python` package for Python handlers to emit trace events.
-- **Rule:** Import telemetry at the module level and create spans for significant processing segments.
+
+- Use `snowflake-telemetry-python` package for Python handlers to emit trace events
+- Import telemetry at module level and create spans for significant processing segments
 
 ```python
 from snowflake import telemetry
@@ -338,8 +305,9 @@ def complex_calculation(session, input_data):
 ```
 
 ### Span Context and Attributes
-- **Always:** Add relevant attributes to spans to aid in performance analysis and troubleshooting.
-- **Rule:** Include attributes like input size, processing time, success status, error details.
+
+- Add relevant attributes to spans to aid performance analysis and troubleshooting
+- Include attributes: input size, processing time, success status, error details
 
 **Common Span Attributes:**
 - `input_size`: Number of records/rows being processed
@@ -377,11 +345,12 @@ def data_pipeline_stage(session, stage_name, data):
             raise
 ```
 
-## 2. Custom Spans for Performance Analysis
+## Custom Spans for Performance Analysis
 
 ### Spans Around Expensive Operations
-- **Always:** Add custom spans around expensive operations, external calls, and critical business logic.
-- **Rule:** Create spans for operations that take >100ms or are critical for performance analysis.
+
+- Add custom spans around expensive operations, external calls, critical business logic
+- Create spans for operations taking >100ms or critical for performance analysis
 
 ```python
 import time
@@ -414,8 +383,9 @@ def process_with_performance_tracking(session, data):
 ```
 
 ### Nested Spans for Operation Hierarchy
-- **Rule:** Use nested spans to show operation hierarchy and identify bottlenecks.
-- **Benefit:** Visualize end-to-end operation flow and pinpoint slow sub-operations.
+
+- Use nested spans to show operation hierarchy and identify bottlenecks
+- Visualize end-to-end operation flow and pinpoint slow sub-operations
 
 ```python
 def multi_stage_pipeline(session, input_data):
@@ -450,12 +420,13 @@ def multi_stage_pipeline(session, input_data):
         return final_data
 ```
 
-## 3. Trace Events and Limitations
+## Trace Events and Limitations
 
 ### Trace Event Limits (Critical)
-- **Critical Constraint:** Maximum 128 trace events per span.
-- **Implication:** In high-frequency operations, not all events may be captured if limit exceeded.
-- **Mitigation:** Use strategic span creation for key operations rather than exhaustive logging.
+
+- **Maximum:** 128 trace events per span
+- **Implication:** High-frequency operations may not capture all events if limit exceeded
+- **Mitigation:** Use strategic span creation for key operations, not exhaustive logging
 
 **Anti-Pattern: Creating too many events per span**
 ```python
@@ -480,9 +451,10 @@ with telemetry.create_span("process_batch") as span:
 ```
 
 ### Span Attribute Limits
-- **Constraint:** Limited number of custom attributes per span (typically 128).
-- **Best Practice:** Use attributes judiciously for high-cardinality data.
-- **Rule:** Prefer logging detailed messages over excessive span attributes.
+
+- **Constraint:** Limited number of custom attributes per span (typically 128)
+- **Best Practice:** Use attributes judiciously for high-cardinality data
+- Prefer logging detailed messages over excessive span attributes
 
 ```python
 # Good: Essential attributes only
@@ -497,7 +469,7 @@ with telemetry.create_span("operation") as span:
         span.set_attribute(f"record_{i}_status", record.status)  # BAD
 ```
 
-## 4. Querying Trace Data
+## Querying Trace Data
 
 ### Trace Analysis Queries
 ```sql
@@ -541,11 +513,12 @@ JOIN (
 WHERE ABS(DATEDIFF(second, t.timestamp, l.timestamp)) < 10;
 ```
 
-## 5. System Metrics Collection
+## System Metrics Collection
 
 ### Enabling Metrics
-- **Always:** Enable system metrics collection to monitor CPU and memory usage automatically.
-- **Rule:** Use metrics data to identify resource bottlenecks and optimize warehouse sizing.
+
+- Enable system metrics collection to monitor CPU and memory usage automatically
+- Use metrics data to identify resource bottlenecks and optimize warehouse sizing
 
 ```sql
 -- Enable metrics collection at account level
@@ -565,7 +538,8 @@ ORDER BY timestamp DESC;
 ```
 
 ### Custom Metrics in Code
-- **Rule:** Emit custom metrics for business-relevant measurements and performance indicators.
+
+Emit custom metrics for business-relevant measurements and performance indicators:
 
 ```python
 from snowflake import telemetry
@@ -598,12 +572,13 @@ def process_batch(session, batch_data):
         return results
 ```
 
-## 6. TRACE_LEVEL Configuration
+## TRACE_LEVEL Configuration
 
 ### Performance Impact
-- **ALWAYS:** Generates trace spans for every function/procedure invocation regardless of errors.
-- **Performance:** Minimal overhead (<5% typically), but consider cumulative impact at scale.
-- **Recommendation:** Use `ON_EVENT` for production (traces only on errors), `ALWAYS` for debugging.
+
+- **ALWAYS:** Generates trace spans for every function/procedure invocation regardless of errors
+- **Performance:** Minimal overhead (<5% typically), but consider cumulative impact at scale
+- **Recommendation:** Use ON_EVENT for production (traces only on errors), ALWAYS for debugging
 
 ```sql
 -- Production: Trace only on errors

@@ -2,40 +2,109 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** RBAC, masking policy, row access policy, Generator workflow, iterative development, synonyms, natural language queries, cortex analyst, agent integration, semantic view security, analyst troubleshooting, fix analyst, debug analyst
-**TokenBudget:** ~5650
+**TokenBudget:** ~8600
 **ContextTier:** Medium
 **Depends:** 106-snowflake-semantic-views-core.md, 106b-snowflake-semantic-views-querying.md
+**LastUpdated:** 2025-12-22
 
-## Purpose
-Provide comprehensive guidance for integrating Snowflake Semantic Views with Cortex Analyst and Cortex Agent, applying governance and security controls, and following production-ready development workflows including the Semantic View Generator tool.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive guidance for integrating Snowflake Semantic Views with Cortex Analyst and Cortex Agent, applying governance and security controls, and following production-ready development workflows including the Semantic View Generator tool.
 
-Cortex integration, governance patterns, development workflows, Generator usage
+**When to Load This Rule:**
+- Integrating semantic views with Cortex Analyst
+- Using semantic views with Cortex Agent
+- Applying security policies to semantic views
+- Using the Semantic View Generator tool
+- Implementing production workflows for semantic views
 
-## Quick Start TL;DR
+## References
 
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
+### Dependencies
 
-Position at top provides practical efficiency benefits for both LLMs and human developers.
+**Must Load First:**
+- **000-global-core.md** - Foundation rule with core patterns and validation gates
+- **106-snowflake-semantic-views-core.md** - Semantic Views DDL fundamentals
+- **106b-snowflake-semantic-views-querying.md** - Querying semantic views
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Cortex Analyst integration** - Use `semantic_view` parameter in REST API (native views, not YAML)
-- **Cortex Agent grounding** - List semantic view fully qualified names in `grounding_sources`
-- **Apply governance to base tables** - Masking policies, row access policies on underlying tables (not semantic views)
-- **Use Generator for initial structure** - Accelerate development, then refine with synonyms and comments
-- **Iterative workflow** - Generate, then Validate, then Add synonyms, then Test NLQ, then Refine, then Deploy
-- **Comprehensive synonyms** - Add WITH SYNONYMS for natural language query matching
-- **Test with SnowCLI** - `snow cortex analyst query --semantic-view "DB.SCHEMA.VIEW"`
+### External Documentation
+- [Cortex Analyst Documentation](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst) - REST API usage and integration
+- [Cortex Analyst REST API](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst#rest-api) - API endpoint reference
+- [Cortex Agent Documentation](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents) - Agent grounding patterns
+- [Semantic View Generator](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst/semantic-model-generator) - Automated view creation tool
+- [Masking Policies](https://docs.snowflake.com/en/user-guide/security-column-ddm) - Data masking documentation
+- [Row Access Policies](https://docs.snowflake.com/en/user-guide/security-row) - Row-level security documentation
+- [RBAC Overview](https://docs.snowflake.com/en/user-guide/security-access-control-overview) - Role-based access control
 
-**Quick Checklist:**
+### Related Rules
+- **Semantic Views Core**: `106-snowflake-semantic-views-core.md` - DDL creation, validation rules, components
+- **Semantic Views Querying**: `106b-snowflake-semantic-views-querying.md` - Query patterns and testing
+- **Snowflake Core**: `100-snowflake-core.md` - Foundational Snowflake practices
+- **Cortex AI/SQL**: `114-snowflake-cortex-aisql.md` - Cortex functions and patterns
+- **Cortex Agents**: `115-snowflake-cortex-agents-core.md` - Agent design and configuration
+- **Security Governance**: `107-snowflake-security-governance.md` - Security policies and governance
+
+## Contract
+
+### Inputs and Prerequisites
+
+- Semantic view exists in DATABASE.SCHEMA (created via `CREATE SEMANTIC VIEW`)
+- Cortex Analyst/Agent access enabled in account
+- Governance policies defined (masking, row access)
+- Snowflake CLI configured (for testing)
+
+### Mandatory
+
+- Cortex Analyst REST API with `semantic_view` parameter
+- Cortex Agent Python SDK (`snowflake.core.cortex.Agent`)
+- Semantic View Generator (Snowsight UI or API)
+- SnowCLI cortex analyst commands
+- Standard Snowflake governance (masking policies, row access policies, RBAC)
+
+### Forbidden
+
+- Legacy YAML semantic models (use native views instead)
+- Direct policy application to semantic views (apply to base tables)
+- Hardcoded credentials in scripts
+
+### Execution Steps
+
+1. Create semantic view with comprehensive synonyms and comments
+2. Test with Cortex Analyst REST API or SnowCLI
+3. Apply governance policies to base tables (not semantic views)
+4. Use Generator for initial structure, refine iteratively
+5. Validate natural language query accuracy
+6. Document business context and usage patterns
+
+### Output Format
+
+- REST API payloads with `semantic_view` parameter
+- Cortex Agent Python code with grounding sources
+- SQL governance policy definitions
+
+### Validation
+
+- Cortex Analyst accepts semantic view and returns valid responses
+- Natural language queries match expected business logic
+- Governance policies enforce security correctly
+- Generator output produces valid DDL
+- Iterative refinements improve query accuracy
+
+### Design Principles
+
+- **Native integration**: Prefer semantic views via `semantic_view` (or `semantic_models` containing `semantic_view`) in Cortex Analyst REST API; avoid staged YAML unless required (`semantic_model_file`)
+- **Governance via base tables**: Apply masking and row access policies to underlying tables
+- **Iterative refinement**: Start with Generator, enhance with synonyms and comments
+- **Natural language focus**: Optimize for business user queries, not technical SQL
+- **Security inheritance**: Semantic views inherit RBAC and policies from base tables
+- **Development workflow**: Generate, then Validate, then Enhance, then Test, then Deploy
+
+### Post-Execution Checklist
+
 - [ ] Semantic view includes WITH SYNONYMS for key business terms
 - [ ] COMMENT clauses provide business definitions
 - [ ] Cortex Analyst REST API tested with `semantic_view` parameter
@@ -43,64 +112,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Generator output validated before execution
 - [ ] Natural language queries tested and refined
 - [ ] Security inheritance verified (RBAC, masking, row access)
-
-## Contract
-
-<contract>
-<inputs_prereqs>
-- Semantic view exists in DATABASE.SCHEMA (created via `CREATE SEMANTIC VIEW`)
-- Cortex Analyst/Agent access enabled in account
-- Governance policies defined (masking, row access)
-- Snowflake CLI configured (for testing)
-</inputs_prereqs>
-
-<mandatory>
-- Cortex Analyst REST API with `semantic_view` parameter
-- Cortex Agent Python SDK (`snowflake.core.cortex.Agent`)
-- Semantic View Generator (Snowsight UI or API)
-- SnowCLI cortex analyst commands
-- Standard Snowflake governance (masking policies, row access policies, RBAC)
-</mandatory>
-
-<forbidden>
-- Legacy YAML semantic models (use native views instead)
-- Direct policy application to semantic views (apply to base tables)
-- Hardcoded credentials in scripts
-</forbidden>
-
-<steps>
-1. Create semantic view with comprehensive synonyms and comments
-2. Test with Cortex Analyst REST API or SnowCLI
-3. Apply governance policies to base tables (not semantic views)
-4. Use Generator for initial structure, refine iteratively
-5. Validate natural language query accuracy
-6. Document business context and usage patterns
-</steps>
-
-<output_format>
-- REST API payloads with `semantic_view` parameter
-- Cortex Agent Python code with grounding sources
-- SQL governance policy definitions
-</output_format>
-
-<validation>
-- Cortex Analyst accepts semantic view and returns valid responses
-- Natural language queries match expected business logic
-- Governance policies enforce security correctly
-- Generator output produces valid DDL
-- Iterative refinements improve query accuracy
-</validation>
-
-<design_principles>
-- **Native integration**: Prefer semantic views via `semantic_view` (or `semantic_models` containing `semantic_view`) in Cortex Analyst REST API; avoid staged YAML unless required (`semantic_model_file`)
-- **Governance via base tables**: Apply masking and row access policies to underlying tables
-- **Iterative refinement**: Start with Generator, enhance with synonyms and comments
-- **Natural language focus**: Optimize for business user queries, not technical SQL
-- **Security inheritance**: Semantic views inherit RBAC and policies from base tables
-- **Development workflow**: Generate, then Validate, then Enhance, then Test, then Deploy
-</design_principles>
-
-</contract>
 
 ## Anti-Patterns and Common Mistakes
 
@@ -172,21 +183,7 @@ CREATE SEMANTIC VIEW SEM_SALES AS
 - [ ] Performance validated via Query Profile
 - [ ] Documentation created for business users
 
-## Validation
-- **Success Checks:**
-  - Cortex Analyst REST API accepts `semantic_view` parameter and returns valid responses
-  - Cortex Agent successfully grounds on semantic views
-  - Natural language queries return expected business results
-  - Synonyms map correctly to underlying columns
-  - Masking policies apply through semantic views
-  - Row access policies filter correctly through semantic views
-  - Generator produces valid DDL
-  - Iterative refinements improve query accuracy
-  - SnowCLI testing succeeds
-  - Security inheritance verified
-- **Negative Tests:**
-  - Cortex Analyst rejects invalid semantic view names
-  - Direct policy application to semantic views fails (must use base tables)
+## Output Format Examples
   - Missing synonyms cause natural language query failures
   - Incorrect RBAC prevents unauthorized access
   - Generator output requires validation (may misclassify columns)
@@ -257,26 +254,7 @@ print(cursor.fetchall())
 > [runs SHOW GRANTS]
 > "Your role has SELECT access. Here's the Cortex Analyst integration code with proper error handling..."
 
-## References
-
-### External Documentation
-- [Cortex Analyst Documentation](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst) - REST API usage and integration
-- [Cortex Analyst REST API](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst#rest-api) - API endpoint reference
-- [Cortex Agent Documentation](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents) - Agent grounding patterns
-- [Semantic View Generator](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst/semantic-model-generator) - Automated view creation tool
-- [Masking Policies](https://docs.snowflake.com/en/user-guide/security-column-ddm) - Data masking documentation
-- [Row Access Policies](https://docs.snowflake.com/en/user-guide/security-row) - Row-level security documentation
-- [RBAC Overview](https://docs.snowflake.com/en/user-guide/security-access-control-overview) - Role-based access control
-
-### Related Rules
-- **Semantic Views Core**: `106-snowflake-semantic-views-core.md` - DDL creation, validation rules, components
-- **Semantic Views Querying**: `106b-snowflake-semantic-views-querying.md` - Query patterns and testing
-- **Snowflake Core**: `100-snowflake-core.md` - Foundational Snowflake practices
-- **Cortex AI/SQL**: `114-snowflake-cortex-aisql.md` - Cortex functions and patterns
-- **Cortex Agents**: `115-snowflake-cortex-agents-core.md` - Agent design and configuration
-- **Security Governance**: `107-snowflake-security-governance.md` - Security policies and governance
-
-## 1) Cortex Analyst Integration
+## Cortex Analyst Integration
 
 ### 1.1 REST API Usage (Native Semantic Views)
 

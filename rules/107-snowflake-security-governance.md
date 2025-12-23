@@ -2,87 +2,147 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** roles, grants, secure views, security policies, access control, data security, policy troubleshooting, grant management, Data Metric Functions, DMF, least privilege, create masking policy, tagging, SQL
-**TokenBudget:** ~2550
+**TokenBudget:** ~3550
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
+**LastUpdated:** 2025-12-22
 
-## Purpose
-Establish comprehensive data security and access control practices using Snowflake's governance features, including RBAC, data masking, row-level security, and object tagging for enterprise-grade data protection.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive data security and access control practices using Snowflake's governance features, including RBAC, data masking, row-level security, and object tagging for enterprise-grade data protection.
 
-Snowflake security governance, RBAC, data masking, access control policies, and data quality monitoring best practices
+**When to Load This Rule:**
+- Implementing role-based access control (RBAC)
+- Creating data masking and row access policies
+- Setting up security governance frameworks
+- Managing object tagging for compliance
+- Troubleshooting access control issues
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Implement RBAC with least privilege** - functional roles mapped to business responsibilities
-- **Create masking policies** - dynamically mask/tokenize sensitive columns (PII, PHI)
-- **Use row access policies** - enforce row-level security based on role/context
-- **Apply object tagging:** Use 123-snowflake-object-tagging.md for data classification
-- **Monitor with DMFs:** Data Metric Functions for quality checks (NULL counts, duplicates, freshness)
-- **Define expectations for DMFs** - pass/fail thresholds with alerts on failures
-- **Don't grant SELECT on raw data** - use secure views or masking policies
+### External Documentation
+- [Access Control Overview](https://docs.snowflake.com/en/user-guide/security-access-control-overview) - RBAC, roles, and privilege management
+- [Column-Level Security](https://docs.snowflake.com/en/user-guide/security-column-intro) - Dynamic data masking and column-level policies
+- [Row-Level Security](https://docs.snowflake.com/en/user-guide/security-row-intro) - Row access policies and conditional data access
+- [Object Tagging](https://docs.snowflake.com/en/user-guide/object-tagging) - Metadata tagging for governance and classification
+- [Introduction to data quality and DMFs](https://docs.snowflake.com/en/user-guide/data-quality-intro) - Data metric functions, expectations, scheduling, billing
+- [Data Profile](https://docs.snowflake.com/en/user-guide/data-quality-profile) - Profiling datasets to baseline and discover issues
+- [Working with data quality](https://docs.snowflake.com/en/user-guide/data-quality-working) - Associate, schedule, monitor, and manage DMFs
 
-**Quick Checklist:**
-- [ ] CREATE ROLE hierarchy with least privilege
-- [ ] CREATE MASKING POLICY for PII columns
-- [ ] CREATE ROW ACCESS POLICY for multi-tenant data
-- [ ] Apply tags: SENSITIVITY_LEVEL, DATA_CLASSIFICATION
-- [ ] CREATE DATA METRIC FUNCTION for quality checks (or use system DMFs)
-- [ ] Associate DMFs to tables with schedules
-- [ ] Define expectations and alerts for DMF failures
-- [ ] Test policies: verify masking/filtering works correctly
+### Related Rules
+**Closely Related** (consider loading together):
+- **100-snowflake-core.md** - fundamental DDL patterns and object creation
+- **105-snowflake-cost-governance.md** - RBAC on resource monitors and cost controls
 
-> **Investigation Required**
-> When applying this rule:
-> 1. Query INFORMATION_SCHEMA to identify tables with PII BEFORE making recommendations
-> 2. Review existing policies: SHOW MASKING POLICIES, SHOW ROW ACCESS POLICIES
-> 3. Never speculate about data sensitivity - check table schemas and sample data
-> 4. Verify role hierarchies: SHOW GRANTS and SHOW ROLES
-> 5. Make grounded recommendations based on investigated schema and security posture
+**Sometimes Related** (load if specific scenario):
+- **106-snowflake-semantic-views-core.md** - applying masking policies and row access to semantic views
+- **119-snowflake-warehouse-management.md** - configuring warehouse access control and RBAC
+- **115b-snowflake-cortex-agents-operations.md** - implementing agent RBAC and security
+
+**Complementary** (different aspects of same domain):
+- **111-snowflake-observability-core.md** - security event monitoring and audit logs
+- **108-snowflake-data-loading.md** - stage encryption and secure data loading
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-[Context, files, dependencies needed]
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-[Tools permitted for this domain]
-</mandatory>
+- Snowflake account with SECURITYADMIN or ACCOUNTADMIN privileges
+- Data classification completed (PII, PHI, confidential, public)
+- Compliance requirements identified (GDPR, HIPAA, SOC 2, etc.)
+- Business role definitions and responsibilities documented
+- Understanding of data access patterns and user personas
+- Existing schema and table inventory
 
-<forbidden>
-[Tools not allowed for this domain]
-</forbidden>
+### Mandatory
 
-<steps>
-[Ordered steps the agent must follow]
-</steps>
+- RBAC implementation: CREATE ROLE, GRANT commands
+- Role hierarchy design: Functional roles -> Access roles -> User assignments
+- Masking policies: CREATE MASKING POLICY for PII/PHI columns
+- Row access policies: CREATE ROW ACCESS POLICY for multi-tenant data
+- Object tagging: CREATE TAG, ALTER ... SET TAG for governance metadata
+- Data Metric Functions (DMFs): CREATE DATA METRIC FUNCTION for quality monitoring
+- GRANT EXECUTE DATA METRIC FUNCTION with least privilege
+- Secure views: CREATE SECURE VIEW for controlled data access
+- Future grants: GRANT ... ON FUTURE TABLES for automated inheritance
 
-<output_format>
-[Expected output format]
-</output_format>
+### Forbidden
 
-<validation>
-[Checks to confirm success]
-</validation>
+- Direct SELECT grants on raw PII tables without masking
+- Over-privileged roles (e.g., granting ACCOUNTADMIN for application use)
+- Hardcoding passwords or credentials in SQL scripts
+- Exposing raw PII in views, UDFs, or stored procedures
+- Granting ownership without role hierarchy justification
+- Creating DMFs without clear expectations and alert thresholds
+- Skipping data profiling before implementing quality checks
 
-<design_principles>
+### Execution Steps
+
+1. Design role hierarchy: Map business functions to Snowflake roles
+2. Create functional roles (e.g., DATA_ENGINEER, ANALYST, BI_DEVELOPER)
+3. Create access roles (e.g., READ_ONLY_SALES, WRITE_MARKETING)
+4. Grant object privileges to access roles (SELECT, INSERT, UPDATE)
+5. Grant access roles to functional roles (role hierarchy)
+6. Create masking policies for PII columns (SSN, email, credit card, phone)
+7. Apply masking policies: ALTER TABLE ... ALTER COLUMN ... SET MASKING POLICY
+8. Create row access policies for multi-tenant or region-restricted data
+9. Apply row access policies: ALTER TABLE ... ADD ROW ACCESS POLICY
+10. Create and apply tags for cost attribution, data classification, compliance
+11. Create Data Metric Functions for critical quality checks (NULL detection, freshness)
+12. Schedule DMFs with appropriate warehouses and notification targets
+13. Verify with test queries from different roles to confirm policy enforcement
+
+### Output Format
+
+- Role hierarchy diagram showing functional -> access -> user assignments
+- DDL scripts: CREATE ROLE, GRANT, masking policies, row access policies
+- Masking policy definitions with exemption roles (for data stewards)
+- Row access policy logic with clear filtering conditions
+- Tag taxonomy: Tag names, allowed values, application strategy
+- DMF definitions: Expectations, schedules, alert thresholds
+- Documentation: Access control matrix, compliance mappings, runbook
+
+### Validation
+
+**Test Requirements:**
+- Roles created: SHOW ROLES, verify hierarchy with SHOW GRANTS
+- Masking policies active: Query as non-privileged role, verify masked data
+- Row access policies enforced: Query as different users, verify filtered results
+- Tags applied: SELECT SYSTEM$GET_TAG() for tagged objects
+- DMFs scheduled: SHOW DATA METRIC FUNCTIONS, check Task History for execution
+- No direct PII access for analyst roles
+- Least privilege verified: Attempt unauthorized operations, confirm denial
+
+**Success Criteria:**
+- Role hierarchy follows least privilege principle
+- PII columns masked for unauthorized roles
+- Row access policies enforce tenant/region isolation
+- Tags enable cost attribution and compliance reporting
+- DMFs detect quality issues and trigger alerts
+- Secure views prevent data exfiltration
+- Future grants automate access control for new objects
+- Compliance requirements met (GDPR right to be forgotten, HIPAA audit trails)
+
+### Design Principles
+
 - Enforce least-privilege RBAC; use role hierarchies; map roles to business responsibilities.
 - Protect data with masking policies, row access policies, and object tagging.
 - Reference official docs for RBAC, masking, row access, and tagging.
 - Integrate data quality monitoring using Data Metric Functions (DMFs) with clear expectations and alerts.
 - Apply least privilege for DMF execution (EXECUTE DATA METRIC FUNCTION) and ownership.
 - Use data profiling to baseline and discover issues; do not substitute for security policies.
-</design_principles>
 
-</contract>
+### Post-Execution Checklist
+
+- [ ] Required dependencies and context verified
+- [ ] Appropriate tools selected and validated
+- [ ] Implementation follows established patterns
+- [ ] Output format matches requirements
+- [ ] Validation steps completed successfully
 
 ## Anti-Patterns and Common Mistakes
 
@@ -210,17 +270,6 @@ WHERE tag_name = 'DATA_CLASSIFICATION'
 ```
 **Benefits:** Automated PII discovery; tag-based policy application; scalable governance; compliance automation; data catalog integration; consistent classification
 
-## Post-Execution Checklist
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
-
-## Validation
-- **Success checks:** [How to verify correct implementation]
-- **Negative tests:** [What should fail and how to detect failures]
-
 ## Output Format Examples
 
 ```sql
@@ -247,36 +296,17 @@ SELECT * FROM schema.view_name LIMIT 5;
 SHOW VIEWS LIKE '%view_name%';
 ```
 
-## References
-
-### External Documentation
-- [Access Control Overview](https://docs.snowflake.com/en/user-guide/security-access-control-overview) - RBAC, roles, and privilege management
-- [Column-Level Security](https://docs.snowflake.com/en/user-guide/security-column-intro) - Dynamic data masking and column-level policies
-- [Row-Level Security](https://docs.snowflake.com/en/user-guide/security-row-intro) - Row access policies and conditional data access
-- [Object Tagging](https://docs.snowflake.com/en/user-guide/object-tagging) - Metadata tagging for governance and classification
-- [Introduction to data quality and DMFs](https://docs.snowflake.com/en/user-guide/data-quality-intro) - Data metric functions, expectations, scheduling, billing
-- [Data Profile](https://docs.snowflake.com/en/user-guide/data-quality-profile) - Profiling datasets to baseline and discover issues
-- [Working with data quality](https://docs.snowflake.com/en/user-guide/data-quality-working) - Associate, schedule, monitor, and manage DMFs
-
-### Related Rules
-- **Snowflake Core**: `100-snowflake-core.md`
-- **Cost Governance**: `105-snowflake-cost-governance.md`
-- **Warehouse Management**: `119-snowflake-warehouse-management.md`
-- **Object Tagging**: `123-snowflake-object-tagging.md`
-- **Data Quality Monitoring**: `124-snowflake-data-quality-core.md`
-- **Data Governance**: `930-data-governance-quality.md`
-
-## 1. Access Control
+## Access Control
 - **Requirement:** Implement Role-Based Access Control (RBAC) following least privilege.
 - **Requirement:** Use role hierarchies to simplify permission management and inherit privileges.
 - **Always:** Define functional roles that map directly to business responsibilities.
 
-## 2. Data Protection Policies
+## Data Protection Policies
 - **Always:** Use masking policies to dynamically mask or tokenize sensitive data in columns.
 - **Always:** Use row access policies to enforce row-level security based on a user's role or other session context.
 - **Always:** Apply object tagging to classify data for governance purposes (e.g., PII, `SENSITIVITY_LEVEL`). See `123-snowflake-object-tagging.md` for comprehensive tagging patterns including tag-based masking policies.
 
-## 3. Data Quality Monitoring (DMFs)
+## Data Quality Monitoring (DMFs)
 - **Always:** Use Data Metric Functions (DMFs) to measure and monitor quality metrics (e.g., NULL counts, duplicates, freshness). System DMFs are available in `SNOWFLAKE.CORE`; create custom DMFs for domain-specific checks.
 - **Requirement:** Associate DMFs to supported objects (tables, views, dynamic tables, external tables, Iceberg tables, materialized views, event tables) and schedule evaluations; results are recorded in the dedicated event table for DMFs.
 - **Always:** Define expectations for each DMF association to determine pass/fail thresholds. Use alerts to notify owners on failures to drive remediation.
@@ -288,29 +318,14 @@ SHOW VIEWS LIKE '%view_name%';
 - **Avoid:** Relying on DMFs alone for protection. Combine DMFs with masking, row access, and tags for comprehensive governance.
 - **Note:** For comprehensive Data Quality Monitoring guidance including system/custom DMFs, data profiling, expectations, scheduling, and cost management, see `124-snowflake-data-quality-core.md`.
 
-## 4. Data Profiling
+## Data Profiling
 - **Always:** Use Snowflake Data Profile to baseline datasets (distributions, distinct counts, NULLs) and to inform policy design and DMF selection.
 - **Rule:** Profile sensitive datasets in segregated roles/warehouses to minimize blast radius and ensure least privilege during exploration.
 - **Rule:** Use profiling insights to refine masking policies, row access rules, and to prioritize DMFs for high-risk columns.
 - **Avoid:** Treating profiling as a one-time activity; re-profile after schema or source changes.
 
-## 5. Operational Monitoring & Cost
+## Operational Monitoring & Cost
 - **Always:** Track DMF schedules, results, and alerts in Snowsight; review event table outputs for trends and recurrence of failures.
 - **Rule:** Monitor serverless credits under the “Data Quality Monitoring” category and the logging service (“Logging”). Right-size schedules and scopes to control cost.
 - **Rule:** Version and review DMF definitions alongside application code; maintain owners, runbooks, and SLAs.
 - **Requirement:** Separate duties: creators of DMFs and operators of alerts should be distinct from data producers when feasible.
-
-## Related Rules
-
-**Closely Related** (consider loading together):
-- `100-snowflake-core` - For fundamental DDL patterns and object creation
-- `105-snowflake-cost-governance` - For RBAC on resource monitors and cost controls
-
-**Sometimes Related** (load if specific scenario):
-- `106-snowflake-semantic-views-core` - When applying masking policies and row access to semantic views
-- `119-snowflake-warehouse-management` - When configuring warehouse access control and RBAC
-- `115b-snowflake-cortex-agents-operations` - When implementing agent RBAC and security
-
-**Complementary** (different aspects of same domain):
-- `111-snowflake-observability-core` - For security event monitoring and audit logs
-- `108-snowflake-data-loading` - For stage encryption and secure data loading

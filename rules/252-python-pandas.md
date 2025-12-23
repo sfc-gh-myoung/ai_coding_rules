@@ -2,57 +2,69 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**LastUpdated:** 2025-12-23
 **Keywords:** pandas, DataFrame, vectorization, SettingWithCopyWarning, memory optimization, dtypes, groupby, merge, performance, method chaining
-**TokenBudget:** ~3600
+**TokenBudget:** ~6300
 **ContextTier:** High
 **Depends:** 200-python-core.md
 
-## Purpose
-Establish comprehensive Pandas best practices focusing on vectorization, performance optimization, memory efficiency, and anti-pattern avoidance to prevent common issues like 100x+ performance slowdowns, SettingWithCopyWarning errors, and memory exhaustion in data-intensive workflows.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive Pandas best practices focusing on vectorization, performance optimization, memory efficiency, and anti-pattern avoidance to prevent common issues like 100x+ performance slowdowns, SettingWithCopyWarning errors, and memory exhaustion in data-intensive workflows.
 
-Pandas DataFrame/Series operations, performance optimization, memory management, integration with Streamlit and Plotly
+**When to Load This Rule:**
+- Working with Pandas DataFrames or Series
+- Optimizing data processing performance
+- Debugging SettingWithCopyWarning errors
+- Implementing efficient groupby or merge operations
+- Integrating Pandas with Streamlit or Plotly
+- Managing memory in data-intensive workflows
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Never use iterrows() for computation** - Use vectorized operations (100x faster)
-- **Always use .loc/.iloc for assignment** - Prevents SettingWithCopyWarning
-- **Optimize dtypes immediately** - Use categorical, int8/int16 instead of int64/object
-- **Filter before groupby** - Pre-filter data to reduce processing
-- **Use method chaining** - `df.query(...).groupby(...).agg(...)` for clarity
-- **Validate merge keys** - Use `validate` parameter in merge()
-- **Never use chained assignment** - `df[df['col'] > 0]['new'] = 1` causes warnings
+### Dependencies
 
-**Quick Checklist:**
-- [ ] Vectorized operations (no iterrows for computation)
-- [ ] Explicit indexing with .loc/.iloc
-- [ ] Optimized dtypes (categorical, smaller ints)
-- [ ] Pre-filtering before aggregation
-- [ ] Method chaining for readability
-- [ ] Merge validation enabled
-- [ ] No chained assignment
+**Must Load First:**
+- **200-python-core.md** - Modern Python tooling and practices
+
+**Related:**
+- **251-python-datetime-handling.md** - Comprehensive datetime guidance for Pandas
+- **101a-snowflake-streamlit-visualization.md** - Plotly chart patterns
+- **101b-snowflake-streamlit-performance.md** - Caching strategies
+- **920-data-science-analytics.md** - ML workflows and analytics patterns
+
+### External Documentation
+
+**Pandas Documentation:**
+- [Pandas User Guide](https://pandas.pydata.org/docs/user_guide/index.html) - Comprehensive Pandas guide
+- [Enhancing Performance](https://pandas.pydata.org/docs/user_guide/enhancingperf.html) - Official performance optimization guide
+- [Indexing and Selecting Data](https://pandas.pydata.org/docs/user_guide/indexing.html) - .loc/.iloc best practices
+- [GroupBy Operations](https://pandas.pydata.org/docs/user_guide/groupby.html) - GroupBy documentation
+- [Merge, Join, Concatenate](https://pandas.pydata.org/docs/user_guide/merging.html) - Merge best practices
+- [Categorical Data](https://pandas.pydata.org/docs/user_guide/categorical.html) - Memory optimization with categorical
+
+**Performance Resources:**
+- [Pandas Optimization Tips](https://pandas.pydata.org/docs/user_guide/cookbook.html#optimization) - Official optimization cookbook
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
+### Inputs and Prerequisites
+
 Python 3.11+, pandas 2.x+, understanding of DataFrame operations, basic NumPy knowledge
-</inputs_prereqs>
 
-<mandatory>
+### Mandatory
+
 Vectorized operations, .loc/.iloc indexers, groupby(), merge(), concat(), astype(), query(), eval(), method chaining
-</mandatory>
 
-<forbidden>
+### Forbidden
+
 iterrows() for computation (read-only OK), apply() when vectorization possible, chained assignment without .loc, df.append() (deprecated), inplace=True (generally discouraged)
-</forbidden>
 
-<steps>
+### Execution Steps
+
 1. Use vectorized operations instead of loops (10x-100x+ faster)
 2. Use .loc/.iloc for explicit indexing (prevents SettingWithCopyWarning)
 3. Optimize dtypes for memory efficiency
@@ -60,25 +72,55 @@ iterrows() for computation (read-only OK), apply() when vectorization possible, 
 5. Use efficient merge strategies (validate merge keys)
 6. Profile performance for operations on large DataFrames
 7. Integrate efficiently with Streamlit caching and Plotly visualization
-</steps>
 
-<output_format>
+### Output Format
+
 Performant Pandas code, minimal memory footprint, clear anti-pattern avoidance
-</output_format>
 
-<validation>
-Performance benchmarking (vectorized vs loop), memory profiling (dtype optimization), no SettingWithCopyWarning, efficient DataFrame operations
-</validation>
+### Validation
 
-<design_principles>
+**Pre-Task-Completion Checks:**
+- Vectorized operations used instead of iterrows() for computation
+- apply() avoided when vectorization possible
+- .loc/.iloc used for explicit indexing (no chained assignment)
+- dtypes optimized for memory efficiency
+- Categorical data used for repeating strings
+
+**Success Criteria:**
+- Vectorized operations 10x+ faster than loops
+- No SettingWithCopyWarning
+- Memory usage optimized (dtype checks)
+- Efficient GroupBy/merge operations
+- Streamlit app loads quickly with caching
+
+**Negative Tests:**
+- iterrows() loop (should be very slow)
+- chained assignment (should warn)
+- int64 for small integers (should waste memory)
+- multiple separate groupby calls (should be slower than single .agg())
+- missing cache_data decorator (should reload data every rerun)
+
+### Design Principles
+
 - **Vectorization First:** Always prefer vectorized operations over loops (10x-100x+ faster)
 - **Explicit Indexing:** Use .loc/.iloc to prevent SettingWithCopyWarning
 - **Memory Conscious:** Optimize dtypes and use categorical data where appropriate
 - **Method Chaining:** Chain operations for clarity and efficiency
 - **Integration Ready:** Design for efficient Streamlit caching and Plotly visualization
-</design_principles>
 
-</contract>
+### Post-Execution Checklist
+
+- [ ] Vectorized operations used instead of iterrows() for computation
+- [ ] apply() avoided when vectorization possible
+- [ ] .loc/.iloc used for explicit indexing (no chained assignment)
+- [ ] dtypes optimized for memory efficiency
+- [ ] Categorical data used for repeating strings
+- [ ] GroupBy operations use .agg() for multiple aggregations
+- [ ] Merge operations validated (validate= and indicator=)
+- [ ] Method chaining used for clear data pipelines
+- [ ] Streamlit caching applied to DataFrame operations
+- [ ] Data aggregated before Plotly visualization
+- [ ] DateTime operations reference 251-python-datetime-handling.md
 
 ## Anti-Patterns and Common Mistakes
 
@@ -151,25 +193,6 @@ df = pd.read_csv('10gb_file.csv')
 ```
 **Correct:** `for chunk in pd.read_csv('10gb_file.csv', chunksize=10000):`
 
-## Post-Execution Checklist
-
-- [ ] Vectorized operations used instead of iterrows() for computation
-- [ ] apply() avoided when vectorization possible
-- [ ] .loc/.iloc used for explicit indexing (no chained assignment)
-- [ ] dtypes optimized for memory efficiency
-- [ ] Categorical data used for repeating strings
-- [ ] GroupBy operations use .agg() for multiple aggregations
-- [ ] Merge operations validated (validate= and indicator=)
-- [ ] Method chaining used for clear data pipelines
-- [ ] Streamlit caching applied to DataFrame operations
-- [ ] Data aggregated before Plotly visualization
-- [ ] DateTime operations reference 251-python-datetime-handling.md
-
-## Validation
-
-- **Success Checks:** Vectorized operations 10x+ faster than loops, no SettingWithCopyWarning, memory usage optimized (dtype checks), efficient GroupBy/merge operations, Streamlit app loads quickly with caching
-- **Negative Tests:** iterrows() loop (should be very slow), chained assignment (should warn), int64 for small integers (should waste memory), multiple separate groupby calls (should be slower than single .agg()), missing cache_data decorator (should reload data every rerun)
-
 > **Investigation Required**
 > When applying this rule:
 > 1. **Read existing DataFrame operations BEFORE optimizing** - Check current code for iterrows(), apply(), chained assignment patterns
@@ -224,36 +247,7 @@ fig = px.line(df_viz, x='date', y='total')
 st.plotly_chart(fig, use_container_width=True)
 ```
 
-## References
-
-### External Documentation
-
-**Pandas Documentation:**
-- [Pandas User Guide](https://pandas.pydata.org/docs/user_guide/index.html) - Comprehensive Pandas guide
-- [Enhancing Performance](https://pandas.pydata.org/docs/user_guide/enhancingperf.html) - Official performance optimization guide
-- [Indexing and Selecting Data](https://pandas.pydata.org/docs/user_guide/indexing.html) - .loc/.iloc best practices
-- [GroupBy Operations](https://pandas.pydata.org/docs/user_guide/groupby.html) - GroupBy documentation
-- [Merge, Join, Concatenate](https://pandas.pydata.org/docs/user_guide/merging.html) - Merge best practices
-- [Categorical Data](https://pandas.pydata.org/docs/user_guide/categorical.html) - Memory optimization with categorical
-
-**Performance Resources:**
-- [Pandas Optimization Tips](https://pandas.pydata.org/docs/user_guide/cookbook.html#optimization) - Official optimization cookbook
-
-### Related Rules
-- **Python Core**: `200-python-core.md` - Modern Python tooling
-- **DateTime Handling**: `251-python-datetime-handling.md` - Comprehensive datetime guidance for Pandas
-- **Streamlit Visualization**: `101a-snowflake-streamlit-visualization.md` - Plotly chart patterns
-- **Streamlit Performance**: `101b-snowflake-streamlit-performance.md` - Caching strategies
-- **Data Science Analytics**: `920-data-science-analytics.md` - ML workflows and analytics patterns
-
-> **[AI] Claude 4 Specific Guidance**
-> **Claude 4 Pandas Optimizations:**
-> - Performance comparison: Generate benchmarks showing vectorization speedups
-> - Anti-pattern detection: Identify iterrows()/apply() usage in code reviews
-> - Memory profiling: Analyze DataFrame memory usage and suggest dtype optimizations
-> - Integration awareness: Cross-reference datetime operations with 251-python-datetime-handling.md
-
-## 1. Vectorization vs Iteration
+## Vectorization vs Iteration
 
 **FORBIDDEN:**
 
@@ -336,7 +330,7 @@ df['first_word'] = df['description'].str.split().str[0]
 df['contains_keyword'] = df['text'].str.contains('important', case=False)
 ```
 
-## 2. Anti-Pattern: apply() When Vectorization Works
+## Anti-Pattern: apply() When Vectorization Works
 
 **FORBIDDEN:**
 
@@ -406,7 +400,7 @@ timeit.timeit(lambda: df.apply(lambda row: row['price'] * row['qty'], axis=1), n
 timeit.timeit(lambda: df['price'] * df['qty'], number=10)
 ```
 
-## 3. Chained Assignment (SettingWithCopyWarning)
+## Chained Assignment (SettingWithCopyWarning)
 
 **FORBIDDEN:**
 
@@ -465,7 +459,7 @@ df.loc[df['category'] == 'A', 'price'] *= 1.1  # Modifies original
 df.loc[df.query('status == "active" and price > 100').index, 'discount'] = 0.15
 ```
 
-## 4. Memory Optimization
+## Memory Optimization
 
 **MANDATORY:**
 
@@ -544,7 +538,7 @@ df['sparse'] = pd.arrays.SparseArray(df['column'])
 print(df['sparse'].memory_usage())  # 40 KB (95% savings!)
 ```
 
-## 5. Efficient GroupBy Operations
+## Efficient GroupBy Operations
 
 **MANDATORY:**
 
@@ -598,7 +592,7 @@ df['category_mean'] = df.groupby('category')['sales'].transform('mean')
 df['pct_of_category'] = df['sales'] / df['category_mean']
 ```
 
-## 6. Merge and Join Best Practices
+## Merge and Join Best Practices
 
 **MANDATORY:**
 
@@ -639,7 +633,7 @@ result = df1.merge(df2, on=['date', 'store_id'], how='inner')
 result = df1.merge(df2, left_on='customer_id', right_on='cust_id', how='left')
 ```
 
-## 7. Method Chaining
+## Method Chaining
 
 ### Readable Pipelines
 
@@ -673,7 +667,7 @@ df_processed = (
 )
 ```
 
-## 8. Index Operations
+## Index Operations
 
 ### When to Use Index
 
@@ -699,7 +693,7 @@ result = (
 )
 ```
 
-## 9. Streamlit Integration Patterns
+## Streamlit Integration Patterns
 
 ### Efficient Caching with Pandas
 
@@ -753,7 +747,7 @@ st.download_button(
 )
 ```
 
-## 10. Plotly Integration Patterns
+## Plotly Integration Patterns
 
 ### Aggregate Before Plotting
 

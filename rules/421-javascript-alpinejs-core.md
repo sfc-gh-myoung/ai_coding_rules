@@ -2,55 +2,69 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**LastUpdated:** 2025-12-23
 **Keywords:** Alpine.js, reactivity, x-data, x-bind, x-on, x-model, x-show, x-if, magic properties, $el, $refs, $store, declarative, progressive enhancement, lightweight
-**TokenBudget:** ~3350
+**TokenBudget:** ~5950
 **ContextTier:** Medium
 **Depends:** 000-global-core.md
 
-## Purpose
+## Scope
 
+**What This Rule Covers:**
 Provides comprehensive guidance for Alpine.js 3.x, a lightweight JavaScript framework for composing behavior directly in HTML markup through declarative directives, reactive data, and magic properties for progressive enhancement and interactive components.
 
-## Rule Scope
+**When to Load This Rule:**
+- Working with Alpine.js 3.x applications
+- Adding interactivity to server-rendered HTML
+- Implementing progressive enhancement patterns
+- Building lightweight reactive components
+- Choosing between Alpine.js and heavier frameworks
 
-Standalone Alpine.js 3.x usage in web applications (framework-agnostic, applies to all backends)
+## References
 
-## Quick Start TL;DR
+### Dependencies
 
-**MANDATORY:**
-**Essential Patterns:**
-- **x-data** - Declare component scope with reactive data object
-- **x-bind (`:`)** - Dynamically bind attributes to reactive data
-- **x-on (`@`)** - Listen for DOM events and execute expressions
-- **x-model** - Two-way data binding for form inputs
-- **x-show vs x-if** - Toggle visibility (CSS) vs conditional rendering (DOM)
-- **Magic properties** - Use `$el`, `$refs`, `$store`, `$dispatch`, `$watch`, `$nextTick` for advanced patterns
+**Must Load First:**
+- **000-global-core.md** - Foundation for all rules
 
-**Pre-Execution Checklist:**
-- [ ] Alpine.js 3.x library loaded (CDN or npm)
-- [ ] x-data components properly scoped
-- [ ] x-cloak directive used to prevent flash of unstyled content
-- [ ] Event handlers use correct syntax (@click, not onclick)
-- [ ] Alpine.data() used for reusable components
-- [ ] Magic properties understood ($el, $refs, $store)
+**Related:**
+- **420-javascript-core.md** - JavaScript patterns and best practices
+- **500-frontend-htmx-core.md** - HTMX patterns for server-driven interactivity
+
+### External Documentation
+
+- [Alpine.js Official Docs](https://alpinejs.dev/) - Complete Alpine.js documentation
+- [Alpine.js GitHub](https://github.com/alpinejs/alpine) - Source code and examples
+- [Alpine Toolbox](https://www.alpinetoolbox.com/) - Community plugins and resources
 
 ## Contract
 
-<inputs_prereqs>
-Alpine.js 3.x library; basic HTML/JavaScript knowledge; understanding of reactive programming concepts; modern browser (Chrome, Firefox, Safari, Edge)
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-Alpine.js 3.x library (CDN or npm); x-data directive for component scope; proper directive syntax; x-cloak for FOUC prevention
-</mandatory>
+- Alpine.js 3.x library available
+- Basic HTML/JavaScript knowledge
+- Understanding of reactive programming concepts
+- Modern browser (Chrome, Firefox, Safari, Edge)
 
-<forbidden>
-Using Alpine.js 2.x syntax; mixing jQuery with Alpine; direct DOM manipulation inside Alpine components; missing x-data scope; using x-html with untrusted content
-</forbidden>
+### Mandatory
 
-<steps>
+- Alpine.js 3.x library (CDN or npm)
+- x-data directive for component scope
+- Proper directive syntax
+- x-cloak for FOUC (Flash of Unstyled Content) prevention
+
+### Forbidden
+
+- Using Alpine.js 2.x syntax
+- Mixing jQuery with Alpine
+- Direct DOM manipulation inside Alpine components
+- Missing x-data scope
+- Using x-html with untrusted content (XSS risk)
+
+### Execution Steps
+
 1. Load Alpine.js library in HTML (CDN or bundler)
 2. Define component scope with x-data directive
 3. Add x-cloak directive and CSS to prevent flash
@@ -58,24 +72,56 @@ Using Alpine.js 2.x syntax; mixing jQuery with Alpine; direct DOM manipulation i
 5. Leverage magic properties ($el, $refs, $store) for advanced patterns
 6. Extract reusable components with Alpine.data()
 7. Test in browser with dev tools open
-</steps>
 
-<output_format>
-HTML with Alpine.js directives, optional JavaScript for Alpine.data() registration, CSS for x-cloak
-</output_format>
+### Output Format
 
-<validation>
+HTML with Alpine.js directives:
+- x-data for component scope
+- Directive attributes for reactivity
+- Optional JavaScript for Alpine.data() registration
+- CSS for x-cloak styling
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- [ ] Alpine.js 3.x library loaded (CDN or npm)
+- [ ] x-data components properly scoped
+- [ ] x-cloak directive used to prevent flash of unstyled content
+- [ ] Event handlers use correct syntax (@click, not onclick)
+- [ ] Alpine.data() used for reusable components
+- [ ] Magic properties understood ($el, $refs, $store)
+
+**Success Criteria:**
 - Alpine.js directives trigger reactive updates correctly
 - Data binding reflects state changes in real-time
 - Event handlers execute without errors
 - x-cloak prevents flash of unstyled content
 - Components are reusable with Alpine.data()
 - No console errors in browser dev tools
-</validation>
+
+### Design Principles
+
+- **Progressive Enhancement:** Start with semantic HTML, add interactivity with Alpine
+- **Declarative Syntax:** Express behavior through HTML attributes, not imperative JavaScript
+- **Lightweight:** Minimal JavaScript footprint (~15KB gzipped)
+- **Reactive Data:** Changes to data automatically update the DOM
+- **Component Scoping:** Each x-data creates an isolated reactive scope
+
+### Post-Execution Checklist
+
+- [ ] Alpine.js 3.x library loaded correctly
+- [ ] x-data components properly scoped
+- [ ] x-cloak directive and CSS implemented
+- [ ] Event handlers use @ syntax
+- [ ] Reactive data bindings work correctly
+- [ ] Magic properties used appropriately
+- [ ] Reusable components extracted with Alpine.data()
+- [ ] No console errors in browser
+- [ ] Flash of unstyled content prevented
 
 ## Key Principles
 
-### 1. Core Directives
+### Core Directives
 
 **Data Declaration (x-data):**
 ```html
@@ -198,7 +244,7 @@ HTML with Alpine.js directives, optional JavaScript for Alpine.data() registrati
 </template>
 ```
 
-### 2. Reactivity System
+### Reactivity System
 
 **Methods in x-data:**
 ```html
@@ -250,7 +296,7 @@ HTML with Alpine.js directives, optional JavaScript for Alpine.data() registrati
 </div>
 ```
 
-### 3. Magic Properties
+### Magic Properties
 
 **$el - Current Element Reference:**
 ```html
@@ -360,7 +406,7 @@ HTML with Alpine.js directives, optional JavaScript for Alpine.data() registrati
 </div>
 ```
 
-### 4. Component Patterns
+### Component Patterns
 
 **Alpine.data() - Reusable Components:**
 ```html
@@ -431,7 +477,7 @@ HTML with Alpine.js directives, optional JavaScript for Alpine.data() registrati
 </div>
 ```
 
-### 5. Lifecycle Hooks
+### Lifecycle Hooks
 
 **x-init - Initialization:**
 ```html
@@ -476,7 +522,7 @@ HTML with Alpine.js directives, optional JavaScript for Alpine.data() registrati
 </div>
 ```
 
-### 6. Advanced Patterns
+### Advanced Patterns
 
 **Preventing Flash (x-cloak):**
 ```html
@@ -726,38 +772,6 @@ Correct Pattern: Use reactive data instead of direct DOM manipulation
 </div>
 ```
 
-## Post-Execution Checklist
-
-- [ ] Alpine.js 3.x library loaded successfully
-- [ ] x-data components properly scoped
-- [ ] x-cloak directive and CSS added to prevent flash
-- [ ] Directives use correct syntax (@click, :class, not onclick, class=)
-- [ ] Methods use regular functions (not arrow functions for this binding)
-- [ ] x-show vs x-if used appropriately (visibility vs DOM)
-- [ ] x-model modifiers applied (.number, .debounce, .lazy)
-- [ ] Reusable components extracted with Alpine.data()
-- [ ] Magic properties used correctly ($el, $refs, $store)
-- [ ] No XSS vulnerabilities (x-html only with trusted content)
-- [ ] Lifecycle cleanup implemented (destroy() for intervals/listeners)
-- [ ] Tested in target browsers
-
-## Validation
-
-**Success Checks:**
-- Alpine.js directives trigger reactive updates without errors
-- Data binding reflects state changes in real-time
-- Event handlers execute correctly
-- x-cloak prevents flash of unstyled content
-- Components are reusable and maintainable
-- No console errors in browser dev tools
-- Reactivity works as expected (getters, watchers)
-
-**Negative Tests:**
-- Missing x-data scope triggers warning/error
-- Arrow functions in methods don't break this binding
-- x-html with user input doesn't create XSS vulnerability
-- Memory leaks caught (intervals cleaned up)
-
 ## Output Format Examples
 
 ### Complete Alpine.js Page
@@ -882,19 +896,3 @@ Correct Pattern: Use reactive data instead of direct DOM manipulation
     <span x-show="errors.general" x-text="errors.general" class="error"></span>
 </form>
 ```
-
-## References
-
-### External Documentation
-- [Alpine.js Start Here](https://alpinejs.dev/start-here) - Official getting started guide
-- [Alpine.js Directives](https://alpinejs.dev/directives/) - Complete directive reference
-- [Alpine.js Magics](https://alpinejs.dev/magics/) - Magic properties reference
-- [Alpine.js Globals](https://alpinejs.dev/globals/) - Alpine.data, Alpine.store, Alpine.bind
-- [Alpine.js Essentials](https://alpinejs.dev/essentials/installation) - Installation and core concepts
-- [Alpine.js GitHub](https://github.com/alpinejs/alpine) - Source code and issues
-
-### Related Rules
-- **Global Core**: `000-global-core.md` - Foundation for all rules
-- **JavaScript Core**: `420-javascript-core.md` - Modern JavaScript patterns
-- **HTMX Frontend**: `500-frontend-htmx-core.md` - Alternative lightweight framework
-- **HTMX Integration**: `221f-python-htmx-integrations.md` - Alpine.js + HTMX patterns (future reference)

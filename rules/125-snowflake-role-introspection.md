@@ -2,65 +2,114 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**LastUpdated:** 2025-12-23
 **Keywords:** account roles, database roles, SHOW GRANTS, role introspection, RBAC, Python automation, error 000906, too many qualifiers, grants inspection, programmatic RBAC
-**TokenBudget:** ~1200
+**TokenBudget:** ~1900
 **ContextTier:** Medium
 **Depends:** 000-global-core.md, 100-snowflake-core.md
 
-## Purpose
+## Scope
 
-Establish patterns for programmatically inspecting Snowflake roles and grants, handling both account-scoped roles and database roles to avoid SQL compilation errors when automating RBAC audits and permission checks.
+**What This Rule Covers:**
+Patterns for programmatically inspecting Snowflake roles and grants, handling both account-scoped roles and database roles to avoid SQL compilation errors when automating RBAC audits and permission checks. Covers role type detection, syntax differences, error handling (000906), and Python automation patterns.
 
-## Rule Scope
+**When to Load This Rule:**
+- Writing Python scripts or Jupyter notebooks that introspect roles
+- Automating RBAC audits and permission checks
+- Encountering SQL compilation error 000906 ("too many qualifiers")
+- Building tools that need to distinguish account roles from database roles
+- Troubleshooting `SHOW GRANTS` failures
 
-Python scripts, Jupyter notebooks, and automation tools that introspect Snowflake roles, grants, and permission hierarchies
+## References
 
-## Quick Start TL;DR
+### Dependencies
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Detect role type:** Check if role name contains `.` to distinguish database roles from account roles
-- **Use correct syntax:** `SHOW GRANTS TO ROLE` for account roles, `SHOW GRANTS TO DATABASE ROLE` for database roles
-- **Handle error 000906:** "too many qualifiers" means you used account role syntax on a database role
+**Must Load First:**
+- **000-global-core.md** - Core foundation patterns
+- **100-snowflake-core.md** - Snowflake foundation patterns
 
-**Pre-Execution Checklist:**
-- [ ] Script distinguishes between account roles and database roles
-- [ ] Role name qualification detection implemented (check for `.` character)
-- [ ] Correct `SHOW GRANTS` syntax used for each role type
-- [ ] Error handling catches SQL compilation error 000906
-- [ ] Test cases include both account roles and database roles
+**Related:**
+- **107-snowflake-security-governance.md** - RBAC and privilege patterns
+- **200-python-core.md** - Python development patterns
+
+### External Documentation
+
+- [SHOW GRANTS](https://docs.snowflake.com/en/sql-reference/sql/show-grants) - Grant inspection syntax
+- [Database Roles](https://docs.snowflake.com/en/user-guide/security-access-control-overview#database-roles) - Database role concepts
+- [Account Roles](https://docs.snowflake.com/en/user-guide/security-access-control-overview#account-roles) - Account role concepts
 
 ## Contract
 
-<inputs_prereqs>
-Access to Snowflake account; roles with SHOW GRANTS privileges; understanding of account vs database role distinction
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-`snowflake-connector-python` or equivalent; appropriate Snowflake privileges to run SHOW GRANTS commands
-</mandatory>
+- Access to Snowflake account
+- Roles with SHOW GRANTS privileges
+- Understanding of account vs database role distinction
+- `snowflake-connector-python` or equivalent
 
-<forbidden>
-Using `SHOW GRANTS TO ROLE` for database roles; assuming all roles are account-scoped; ignoring role name qualifiers
-</forbidden>
+### Mandatory
 
-<steps>
+- Detect role type by checking for `.` in role name
+- Use `SHOW GRANTS TO ROLE` for account roles
+- Use `SHOW GRANTS TO DATABASE ROLE` for database roles
+- Handle SQL compilation error 000906
+
+### Forbidden
+
+- Using `SHOW GRANTS TO ROLE` for database roles
+- Assuming all roles are account-scoped
+- Ignoring role name qualifiers (dots)
+
+### Execution Steps
+
 1. Extract role name from query result or user input
 2. Detect if role is database role by checking for `.` character in name
 3. Construct appropriate `SHOW GRANTS` command based on role type
 4. Execute command and handle results
 5. Validate results include expected grant structure
-</steps>
 
-<output_format>
-Python functions that return lists of grants, handling both role types transparently
-</output_format>
+### Output Format
 
-<validation>
-Test with both account roles (`ACCOUNTADMIN`, `PUBLIC`) and database roles (`SNOWFLAKE.CORTEX_USER`, `DB.SCHEMA.ROLE`); verify no SQL compilation errors
-</validation>
+Python functions produce:
+- Lists of grants for both role types
+- Transparent handling of account and database roles
+- Proper error handling for SQL compilation errors
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Script distinguishes between account roles and database roles
+- Role name qualification detection implemented (check for `.`)
+- Correct `SHOW GRANTS` syntax used for each role type
+- Error handling catches SQL compilation error 000906
+
+**Success Criteria:**
+- Test with account roles (`ACCOUNTADMIN`, `PUBLIC`) succeeds
+- Test with database roles (`SNOWFLAKE.CORTEX_USER`, `DB.SCHEMA.ROLE`) succeeds
+- No SQL compilation errors
+- Expected grant structure returned
+
+**Negative Tests:**
+- Invalid role names fail gracefully
+- Error 000906 handled correctly
+
+### Design Principles
+
+- **Type detection:** Distinguish account roles from database roles by checking for qualifiers
+- **Correct syntax:** Use appropriate `SHOW GRANTS` syntax for each role type
+- **Error handling:** Catch and handle SQL compilation error 000906
+- **Transparency:** Functions handle both role types seamlessly
+
+### Post-Execution Checklist
+
+- [ ] Script distinguishes between account roles and database roles
+- [ ] Role name qualification detection implemented (check for `.` character)
+- [ ] Correct `SHOW GRANTS` syntax used for each role type
+- [ ] Error handling catches SQL compilation error 000906
+- [ ] Test cases include both account roles and database roles
+- [ ] Script tested with production role names
 
 ## Anti-Patterns and Common Mistakes
 
@@ -194,16 +243,3 @@ def check_role_hierarchy(role_name, visited=None):
             # Recursively check parent (may be account or database role)
             check_role_hierarchy(parent_role, visited)
 ```
-
-## References
-
-### Related Rules
-- `000-global-core.md` - Global standards and conventions
-- `100-snowflake-core.md` - Snowflake SQL foundations
-- `107-snowflake-security-governance.md` - RBAC and security patterns
-- `200-python-core.md` - Python development standards
-
-### External Documentation
-- [Snowflake SHOW GRANTS](https://docs.snowflake.com/en/sql-reference/sql/show-grants) - SHOW GRANTS syntax reference
-- [Snowflake Database Roles](https://docs.snowflake.com/en/user-guide/security-access-control-considerations#database-roles) - Database roles vs account roles
-- [Error Reference 000906](https://community.snowflake.com/s/error-reference) - SQL compilation error details

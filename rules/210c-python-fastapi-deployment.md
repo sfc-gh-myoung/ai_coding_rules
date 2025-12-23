@@ -2,78 +2,122 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** FastAPI deployment, Uvicorn, Gunicorn, ASGI, Docker, production deployment, health checks, multi-stage build, OpenAPI, API documentation
-**TokenBudget:** ~2400
+**TokenBudget:** ~3750
 **ContextTier:** High
 **Depends:** 210-python-fastapi-core.md
+**LastUpdated:** 2025-12-23
 
-## Purpose
+## Scope
+
+**What This Rule Covers:**
 Establish production deployment patterns and API documentation practices for FastAPI applications using Docker, ASGI servers, and OpenAPI customization.
 
-## Rule Scope
+**When to Load This Rule:**
+- FastAPI production deployment with Docker, ASGI servers, and API documentation patterns
 
-FastAPI production deployment with Docker, ASGI servers, and API documentation patterns
 
-## Quick Start TL;DR
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Use Gunicorn + Uvicorn workers** - `gunicorn -k uvicorn.workers.UvicornWorker app.main:app`
-- **Multi-stage Docker builds** - Builder stage + production stage
-- **Non-root container user** - Create and use dedicated app user in Dockerfile
-- **Health check endpoint** - `/health` route for container health checks
-- **OpenAPI customization** - Add examples, descriptions, response schemas
-- **Environment-based config** - Different settings for dev/test/prod
-- **Never run as root in containers** - Security risk, always use non-root user
 
-**Quick Checklist:**
-- [ ] Gunicorn + Uvicorn workers configured
-- [ ] Multi-stage Dockerfile (builder + production)
-- [ ] Non-root user in container
-- [ ] Health check endpoint implemented
-- [ ] OpenAPI examples and descriptions
-- [ ] Environment-specific configuration
-- [ ] Docker Compose for local development
+
+
+## References
+
+### External Documentation
+- [FastAPI Deployment Guide](https://fastapi.tiangolo.com/deployment/) - Production deployment strategies and server configurations
+- [Uvicorn Deployment](https://www.uvicorn.org/deployment/) - ASGI server deployment and process management
+- [Gunicorn Configuration](https://docs.gunicorn.org/en/stable/configure.html) - Worker processes, timeouts, and production settings
+
+### Related Rules
+- **FastAPI Core**: `210-python-fastapi-core.md`
+- **FastAPI Security**: `210a-python-fastapi-security.md`
+- **FastAPI Monitoring**: `210d-python-fastapi-monitoring.md`
+- **Python Core**: `200-python-core.md`
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-[Context, files, dependencies needed]
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-[Tools permitted for this domain]
-</mandatory>
+- FastAPI application ready for production deployment
+- Understanding of ASGI server architecture (Uvicorn, Gunicorn)
+- Knowledge of Docker containerization
+- Access to deployment environment (cloud, on-premise)
 
-<forbidden>
-[Tools not allowed for this domain]
-</forbidden>
+### Mandatory
 
-<steps>
-[Ordered steps the agent must follow]
-</steps>
+- **Gunicorn** with UvicornWorker for production
+- **Docker** with multi-stage builds
+- **gunicorn.conf.py** configuration file
+- **Health check endpoints** for container orchestration
+- **Non-root user** in Docker containers
 
-<output_format>
-[Expected output format]
-</output_format>
+### Forbidden
 
-<validation>
-[Checks to confirm success]
-</validation>
+- Running single uvicorn worker in production
+- Using 'latest' tag for base Docker images
+- Running containers as root user
+- Missing health check endpoints
+- Hardcoded configuration values in code
 
-<design_principles>
+### Execution Steps
+
+1. Create gunicorn.conf.py with worker configuration
+2. Configure worker count: (2 * CPU_CORES) + 1
+3. Create multi-stage Dockerfile with builder and production stages
+4. Configure non-root user in Docker container
+5. Add HEALTHCHECK directive to Dockerfile
+6. Customize OpenAPI schema with metadata and examples
+7. Set up docker-compose.yml for local development
+8. Validate with: `docker build -t app .` and `docker run -p 8000:8000 app`
+
+### Output Format
+
+Production deployment configuration:
+- gunicorn.conf.py with worker and timeout settings
+- Multi-stage Dockerfile with security hardening
+- docker-compose.yml for development environment
+- Custom OpenAPI schema with comprehensive documentation
+- Environment-specific configuration files
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Gunicorn runs with multiple workers
+- Docker image builds successfully
+- Container runs as non-root user
+- Health check endpoint responds correctly
+- OpenAPI docs accessible at /docs
+
+**Success Criteria:**
+- `docker build -t app .` completes without errors
+- `docker run -p 8000:8000 app` starts application
+- `curl http://localhost:8000/health` returns 200
+- Multiple workers visible in process list
+- Container security scan passes (no critical vulnerabilities)
+
+### Design Principles
+
 1. **Production Ready** - Deploy with Uvicorn/Gunicorn and proper process management
 2. **Container Deployment** - Use Docker with multi-stage builds and security best practices
 3. **Documentation First** - Leverage OpenAPI with custom schemas and examples
 4. **Security Hardening** - Run containers as non-root user with minimal attack surface
 5. **Process Management** - Configure proper worker counts and timeout settings
 6. **Environment Configuration** - Use environment-specific configuration files
-</design_principles>
 
-</contract>
+### Post-Execution Checklist
+
+- [ ] gunicorn.conf.py configured with appropriate workers
+- [ ] Multi-stage Dockerfile created
+- [ ] Container runs as non-root user
+- [ ] HEALTHCHECK directive in Dockerfile
+- [ ] docker-compose.yml for development
+- [ ] OpenAPI schema customized
+- [ ] Environment variables documented
+- [ ] Production deployment tested
+- [ ] Security scan completed
+- [ ] Documentation updated
 
 ## Anti-Patterns and Common Mistakes
 
@@ -123,34 +167,6 @@ async def readiness(db: Session = Depends(get_db)):
     except Exception:
         raise HTTPException(503, "Database unavailable")
 ```
-
-## Post-Execution Checklist
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
-
-## Validation
-- **Success checks:** [How to verify correct implementation]
-- **Negative tests:** [What should fail and how to detect failures]
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Read existing deployment files BEFORE adding config** - Check Dockerfile, docker-compose.yml, gunicorn.conf.py
-> 2. **Verify current ASGI server setup** - Check if Uvicorn or Gunicorn is already configured
-> 3. **Never speculate about deployment target** - Ask user about deployment platform (AWS, GCP, Azure, etc.)
-> 4. **Check existing health check endpoints** - Don't create duplicate /health routes
-> 5. **Make grounded recommendations based on investigated deployment structure** - Match existing patterns
->
-> **Anti-Pattern:**
-> "Based on typical deployments, you probably use Docker..."
-> "Let me add a Dockerfile - it should work with standard multi-stage builds..."
->
-> **Correct Pattern:**
-> "Let me check your existing deployment configuration first."
-> [reads Dockerfile, docker-compose.yml, checks for ASGI server config]
-> "I see you have a Dockerfile using Gunicorn with Uvicorn workers. Here's how to add health checks following the same pattern..."
 
 ## Output Format Examples
 
@@ -210,20 +226,8 @@ uvx ruff format --check .
 uv run pytest tests/
 ```
 
-## References
 
-### External Documentation
-- [FastAPI Deployment Guide](https://fastapi.tiangolo.com/deployment/) - Production deployment strategies and server configurations
-- [Uvicorn Deployment](https://www.uvicorn.org/deployment/) - ASGI server deployment and process management
-- [Gunicorn Configuration](https://docs.gunicorn.org/en/stable/configure.html) - Worker processes, timeouts, and production settings
-
-### Related Rules
-- **FastAPI Core**: `210-python-fastapi-core.md`
-- **FastAPI Security**: `210a-python-fastapi-security.md`
-- **FastAPI Monitoring**: `210d-python-fastapi-monitoring.md`
-- **Python Core**: `200-python-core.md`
-
-## 1. API Documentation
+## API Documentation
 
 ### OpenAPI Customization
 - **Always:** Provide clear descriptions for all endpoints.
@@ -374,7 +378,7 @@ def custom_openapi():
 app.openapi = custom_openapi
 ```
 
-## 2. Production Deployment
+## Production Deployment
 
 ### ASGI Server Configuration
 - **Always:** Use Uvicorn with Gunicorn for production deployment.
@@ -538,7 +542,7 @@ volumes:
   postgres_data:
 ```
 
-## 3. Integration with Core Rules
+## Integration with Core Rules
 
 ### Development Commands
 - **Always:** Follow Python core rules from `200-python-core.md` for all commands.

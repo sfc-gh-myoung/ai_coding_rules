@@ -7,69 +7,128 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**LastUpdated:** 2025-12-23
 **Keywords:** TypeScript, Zod, Strict Mode, Type Inference, Union Types, Satisfies, Generics, Utility Types, Matt Pocock, Total TypeScript
-**TokenBudget:** ~1850
+**TokenBudget:** ~2600
 **ContextTier:** High
 **Depends:** 000-global-core.md
 
-## Purpose
+## Scope
+
+**What This Rule Covers:**
 Establishes the definitive standards for writing production-grade TypeScript in 2025. This rule enforces **Strict Mode**, prioritizes **Type Inference** over manual typing, mandates **Runtime Validation** (Zod) at I/O boundaries, and explicitly forbids legacy features like Enums and Namespaces.
 
-## Rule Scope
-Applies to all TypeScript files in frontend and backend environments. Covers type definitions, generics, validation schemas, and compiler configuration.
+**When to Load This Rule:**
+- Working with TypeScript files (.ts, .tsx)
+- Setting up TypeScript project configuration
+- Implementing type-safe validation patterns
+- Refactoring JavaScript to TypeScript
+- Reviewing TypeScript code for best practices
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
-- **[Config]** - Always set `"strict": true` and `"noImplicitAny": true`.
-- **[Validation]** - Define **Zod** schema first, then infer type: `type User = z.infer<typeof UserSchema>`.
-- **[No Enums]** - Use **String Unions**: `type Status = 'active' | 'pending';`.
-- **[No Any]** - Use `unknown` for uncertain data and narrow it.
-- **[Safe Casts]** - Use `satisfies` instead of `as` whenever possible.
-- **[Utilities]** - Use `Pick`, `Omit`, and `Partial` to derive types; don't duplicate them.
+### Dependencies
 
-**Quick Checklist:**
-- [ ] `tsconfig.json` has `"strict": true`
-- [ ] No `enum` keywords used (replaced with object const or union)
-- [ ] No explicit `any` types
-- [ ] External data inputs validated with Zod
-- [ ] Variables initialized without redundant type annotations
-- [ ] `satisfies` used for configuration objects
+**Must Load First:**
+- **000-global-core.md** - Foundation for all rules
+
+**Related:**
+- **440-react-core.md** - TypeScript usage in React applications
+- **420-javascript-core.md** - JavaScript patterns that complement TypeScript
+
+### External Documentation
+
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/) - Official documentation
+- [Total TypeScript (Matt Pocock)](https://www.totaltypescript.com/) - Advanced patterns and tips
+- [Zod Documentation](https://zod.dev/) - Schema validation library
+- [TS Reset](https://github.com/total-typescript/ts-reset) - Better built-in types
+
 ## Contract
 
-<contract>
-<inputs_prereqs>
-TypeScript 5.0+, Node.js 20+
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-`tsc` (checking), `zod` (validation), `ts-reset` (improved built-ins), `ts-pattern` (matching)
-</mandatory>
+- TypeScript 5.0+ installed
+- Node.js 20+ environment
+- Understanding of type systems
+- Familiarity with modern JavaScript
 
-<forbidden>
-`any` (strict ban), `enum` (use unions), `namespace` (use modules), `Hungarian Notation` (no `IInterface`), `d.ts` implementation pollution.
-</forbidden>
+### Mandatory
 
-<steps>
-1. **Enable Strictness:** Verify `tsconfig.json` has `"strict": true`.
-2. **Validate I/O:** All external data (API responses, URL params) MUST be validated with **Zod** schemas.
-3. **Narrow Unknowns:** Treat 3rd party untyped data as `unknown` and narrow via predicates or Zod.
-4. **Infer Types:** Do not manually type variables if the compiler can infer them (`const x = 5` not `const x: number = 5`).
-5. **Use Satisfies:** Use `satisfies` operator to validate types without widening them.
-</steps>
+- `tsc` compiler for type checking
+- `zod` library for runtime validation
+- `ts-reset` for improved built-in types (recommended)
+- `ts-pattern` for pattern matching (recommended)
 
-<output_format>
-`.ts` or `.tsx` files, strict typing, no errors.
-</output_format>
+### Forbidden
 
-<validation>
-Run `tsc --noEmit` and check for zero errors.
-</validation>
+- `any` type (strict ban - use `unknown` instead)
+- `enum` keyword (use string unions or const objects)
+- `namespace` keyword (use ES modules)
+- Hungarian Notation (no `IInterface` naming)
+- Implementation code in `.d.ts` files
 
-</contract>
+### Execution Steps
+
+1. **Enable Strictness:** Verify `tsconfig.json` has `"strict": true` and `"noImplicitAny": true`
+2. **Validate I/O:** All external data (API responses, URL params) MUST be validated with Zod schemas
+3. **Narrow Unknowns:** Treat 3rd party untyped data as `unknown` and narrow via predicates or Zod
+4. **Infer Types:** Do not manually type variables if the compiler can infer them (`const x = 5` not `const x: number = 5`)
+5. **Use Satisfies:** Use `satisfies` operator to validate types without widening them
+6. **Check Configuration:** Review existing `tsconfig.json` before making changes
+7. **Validate Output:** Run `tsc --noEmit` to ensure zero type errors
+
+### Output Format
+
+TypeScript files (`.ts` or `.tsx`) with:
+- Strict typing enabled
+- Zero compilation errors
+- Zod schemas for external data
+- Type inference where possible
+- No forbidden patterns
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- `tsconfig.json` has `"strict": true`
+- No `any` types in code
+- Zod schemas defined for all API responses
+- No `enum` definitions exist
+- No `ISomething` interface names
+- `satisfies` used for config objects
+- Generics have `extends` constraints where applicable
+
+**Success Criteria:**
+- `tsc --noEmit` passes with exit code 0
+- Zod schemas match their inferred types
+- Type inference works without explicit annotations
+- All external data validated at runtime
+
+**Negative Tests:**
+- Assigning string to number variable fails compilation
+- Accessing property on `unknown` without narrowing fails
+- Using `any` type triggers linter error
+
+### Design Principles
+
+- **Type Safety First:** Strict mode is non-negotiable for production code
+- **Runtime Validation:** Static types alone are insufficient - validate at I/O boundaries
+- **Inference Over Annotation:** Let TypeScript infer types when obvious
+- **Modern Patterns Only:** Avoid legacy features like enums and namespaces
+- **Composition Over Duplication:** Use utility types to derive new types
+
+### Post-Execution Checklist
+
+- [ ] `"strict": true` is set in tsconfig.json
+- [ ] `any` is nowhere to be found in code
+- [ ] Zod is used for all API responses and external data
+- [ ] No `enum` definitions exist
+- [ ] No `ISomething` interface names (Hungarian notation)
+- [ ] `satisfies` is used for configuration objects
+- [ ] Generics have `extends` constraints where applicable
+- [ ] `tsc --noEmit` passes with zero errors
+- [ ] Type inference used instead of explicit annotations where possible
 
 ## Anti-Patterns and Common Mistakes
 
@@ -124,23 +183,6 @@ type UserData = {
 type StrictCallback = () => undefined;
 ```
 
-## Post-Execution Checklist
-- [ ] `"strict": true` is set in tsconfig
-- [ ] `any` is nowhere to be found
-- [ ] Zod is used for all API responses
-- [ ] No `enum` definitions exist
-- [ ] No `ISomething` interface names
-- [ ] `satisfies` is used for config objects
-- [ ] Generics have `extends` constraints where applicable
-
-## Validation
-- **Success checks:**
- - `tsc --noEmit` passes with exit code 0
- - Zod schemas match their inferred types
-- **Negative tests:**
- - Assigning a string to a number variable should fail compilation
- - Accessing a property on `unknown` without narrowing should fail
-
 > **Investigation Required**
 > When applying this rule:
 > 1. **Read `tsconfig.json`** to understand strictness level and paths.
@@ -193,27 +235,9 @@ export async function fetchData(url: string): Promise<ApiResponse> {
 npx tsc --noEmit
 ```
 
-## References
+## Configuration & Project Setup
 
-### External Documentation
-- [TypeScript Handbook](https://www.typescriptlang.org/docs/) - Official docs.
-- [Total TypeScript (Matt Pocock)](https://www.totaltypescript.com/) - Advanced patterns and tips.
-- [Zod Documentation](https://zod.dev/) - Schema validation.
-- [TS Reset](https://github.com/total-typescript/ts-reset) - Better built-in types.
-
-### Related Rules
-- **Global Core**: `000-global-core.md`
-- **React Core**: `440-react-core.md` (TypeScript usage in React)
-
-> ** Claude 4 Specific Guidance**
-> **Claude 4 Optimizations:**
-> - **Inference Mastery:** Claude is excellent at deriving types. Ask it to "infer types from this Zod schema" rather than writing them manually.
-> - **Utility Types:** Claude knows `Pick`, `Omit`, `ReturnType` well. Ask it to use them to reduce duplication.
-> - **Refactoring:** Ask Claude to "remove explicit types where inference is sufficient" to clean up code.
-
-## 1. Configuration & Project Setup
-
-### 1.1 Compiler Options
+### Compiler Options
 - **Requirement:** Strict mode is non-negotiable.
 - **Recommendation:** Use `skipLibCheck: true` to avoid breaking on broken 3rd party types.
 
@@ -236,12 +260,12 @@ npx tsc --noEmit
 }
 ```
 
-### 1.2 Global Resets
+### Global Resets
 - **Consider:** using `@total-typescript/ts-reset` to fix standard library annoyances (like `JSON.parse` returning `any` instead of `unknown`).
 
-## 2. Core Typing Patterns
+## Core Typing Patterns
 
-### 2.1 Unions vs Enums
+### Unions vs Enums
 - **Rule:** DO NOT use `enum`. They add runtime code and have nominal typing quirks.
 - **Correct Pattern:** Use String Unions or `as const` objects.
 
@@ -263,7 +287,7 @@ const STATUS = {
 type StatusType = typeof STATUS[keyof typeof STATUS];
 ```
 
-### 2.2 Validation & Type Inference
+### Validation & Type Inference
 - **Requirement:** Define the source of truth in Zod (runtime), then derive the static type.
 
 ```typescript
@@ -287,7 +311,7 @@ function createUser(input: unknown) {
 }
 ```
 
-### 2.3 The `satisfies` Operator
+### The `satisfies` Operator
 - **Rule:** Use `satisfies` to ensure an object matches a type without widening it (preserving exact values).
 
 ```typescript
@@ -305,9 +329,9 @@ const routes = {
 // TS knows routes.home.path is exactly '/'
 ```
 
-## 3. Advanced Patterns
+## Advanced Patterns
 
-### 3.1 Generic Constraints
+### Generic Constraints
 - **Rule:** Always constrain generics to the minimal required shape.
 - **Avoid:** `T extends any` or unconstrained `T`.
 
@@ -318,7 +342,7 @@ function getProperty<T extends object, K extends keyof T>(obj: T, key: K) {
 }
 ```
 
-### 3.2 Branded Types
+### Branded Types
 - **Consider:** Use "Branded Types" for primitive identifiers (IDs) to prevent mixing them up.
 
 ```typescript

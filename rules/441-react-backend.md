@@ -2,83 +2,141 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**LastUpdated:** 2025-12-23
 **Keywords:** React backend, FastAPI, Flask, Python API, CORS, JWT, authentication, API integration, full-stack, Express alternative, fetch, axios, TanStack Query backend, Next.js API routes, httpOnly cookies
-**TokenBudget:** ~1800
+**TokenBudget:** ~3050
 **ContextTier:** High
 **Depends:** 440-react-core.md, 200-python-core.md
 
-## Purpose
+## Scope
 
+**What This Rule Covers:**
 Establishes backend integration patterns for React applications, with Python (FastAPI/Flask) as the organizational default. Covers API communication, authentication flows, CORS configuration, and type sharing between frontend and backend.
 
-## Rule Scope
+**When to Load This Rule:**
+- Building full-stack React applications
+- Integrating React frontend with Python backend
+- Implementing authentication flows
+- Configuring CORS for API communication
+- Choosing backend framework for React apps
+- Setting up API layer with TanStack Query
 
-Applies to all React applications requiring backend API integration. Covers framework selection, API patterns, authentication, and development workflows for full-stack applications.
+## References
 
-## Quick Start TL;DR
+### Dependencies
 
-**MANDATORY:**
-**Essential Patterns:**
-- **[Organizational Default]** - Use **Python backend** (FastAPI or Flask) unless user explicitly requests otherwise.
-- **[Lightweight Option]** - For Next.js apps with simple APIs, **Next.js API routes** are acceptable.
-- **[Alternative]** - **Node.js/Express** only when user explicitly requests or team has Node expertise.
-- **[API Communication]** - Use **TanStack Query** for all API calls; never raw `useEffect` + `fetch`.
-- **[Authentication]** - Store JWT in **httpOnly cookies**, not localStorage.
-- **[CORS]** - Configure CORS on backend; never use `*` in production.
+**Must Load First:**
+- **440-react-core.md** - React patterns and architecture
+- **200-python-core.md** - Python development standards
 
-**Pre-Execution Checklist:**
+**Related:**
+- **210-python-fastapi-core.md** - FastAPI patterns and best practices
+- **250-python-flask.md** - Flask patterns and best practices
+
+### External Documentation
+
+- [FastAPI Documentation](https://fastapi.tiangolo.com/) - Modern async Python web framework
+- [Flask Documentation](https://flask.palletsprojects.com/) - Mature Python web framework
+- [TanStack Query](https://tanstack.com/query/latest) - Async state management for React
+- [CORS MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) - Cross-Origin Resource Sharing
+
+## Contract
+
+### Inputs and Prerequisites
+
+- React application (per 440-react-core.md)
+- Python environment (per 200-python-core.md)
+- Understanding of REST API patterns
+- Knowledge of authentication flows
+
+### Mandatory
+
+- TanStack Query for API state management
+- httpOnly cookies for JWT storage
+- Environment variables for API URLs
+- CORS middleware on backend
+- Type-safe API layer
+
+### Forbidden
+
+- Node.js/Express backend (unless user explicitly requests)
+- JWT in localStorage (security risk)
+- Hardcoded API URLs
+- `*` CORS origin in production
+- Raw fetch in useEffect for data fetching
+
+### Execution Steps
+
+1. **Determine Backend Need:** Assess if Next.js API routes suffice or separate backend required
+2. **Select Framework:** Choose FastAPI (async, auto-docs) or Flask (simpler) based on requirements
+3. **Configure CORS:** Set up CORS middleware with specific origins for dev and production
+4. **Implement Authentication:** Set up JWT with httpOnly cookies and refresh token rotation
+5. **Set Up TanStack Query:** Configure QueryClient with appropriate defaults for API communication
+6. **Create API Layer:** Build typed API functions that TanStack Query will call
+7. **Configure Environment:** Set up environment variables for API URLs across environments
+8. **Validate Integration:** Test CORS, auth flow, and API calls end-to-end
+
+### Output Format
+
+TypeScript React code (`.tsx`) with:
+- TanStack Query hooks for API calls
+- Type-safe API layer
+- Environment-based configuration
+
+Python backend code (FastAPI or Flask) with:
+- CORS middleware configured
+- Authentication middleware
+- Type hints and validation
+
+### Validation
+
+**Pre-Task-Completion Checks:**
 - [ ] Determine if separate backend is needed (vs Next.js API routes)
 - [ ] Identify backend framework: FastAPI (async, OpenAPI) vs Flask (simpler, mature)
 - [ ] Check existing backend code/patterns before adding new endpoints
 - [ ] Verify CORS configuration exists for development and production
 - [ ] Confirm authentication strategy (JWT, session, OAuth)
 - [ ] Review environment variable setup for API URLs
+- [ ] TanStack Query configured with proper defaults
+- [ ] API layer is type-safe
+- [ ] Authentication uses httpOnly cookies
+- [ ] CORS allows specific origins only
 
-## Contract
-
-<contract>
-<inputs_prereqs>
-React application (per 440-react-core.md); Python environment (per 200-python-core.md); understanding of REST API patterns
-</inputs_prereqs>
-
-<mandatory>
-TanStack Query for API state; httpOnly cookies for JWT; environment variables for API URLs; CORS middleware on backend
-</mandatory>
-
-<forbidden>
-Node.js/Express backend (unless user explicitly requests); JWT in localStorage; hardcoded API URLs; `*` CORS origin in production; raw fetch in useEffect for data fetching
-</forbidden>
-
-<steps>
-1. **Determine Backend Need:** Assess if Next.js API routes suffice or separate backend required.
-2. **Select Framework:** Choose FastAPI (async, auto-docs) or Flask (simpler) based on requirements.
-3. **Configure CORS:** Set up CORS middleware with specific origins for dev and production.
-4. **Implement Authentication:** Set up JWT with httpOnly cookies and refresh token rotation.
-5. **Set Up TanStack Query:** Configure QueryClient with appropriate defaults for API communication.
-6. **Create API Layer:** Build typed API functions that TanStack Query will call.
-7. **Configure Environment:** Set up environment variables for API URLs across environments.
-8. **Validate Integration:** Test CORS, auth flow, and API calls end-to-end.
-</steps>
-
-<output_format>
-TypeScript React code (`.tsx`) with TanStack Query hooks; Python backend code (FastAPI or Flask) with CORS and auth middleware.
-</output_format>
-
-<validation>
+**Success Criteria:**
 - Frontend: `npm run test` passes, `npm run type-check` clean
 - Backend: `uv run pytest` passes, `uvx ruff check .` clean
 - Integration: API calls succeed with proper CORS headers and auth tokens
-</validation>
+- No CORS errors in browser console
+- JWT tokens stored securely in httpOnly cookies
 
-</contract>
+### Design Principles
+
+- **Python Backend Default:** Use FastAPI or Flask unless explicitly requested otherwise
+- **Secure Authentication:** Store JWT in httpOnly cookies, never localStorage
+- **Type Safety:** Share types between frontend and backend where possible
+- **Environment Configuration:** Use environment variables for all URLs and secrets
+- **Proper CORS:** Configure specific origins, never use wildcard in production
+
+### Post-Execution Checklist
+
+- [ ] Backend framework selected (FastAPI or Flask)
+- [ ] CORS middleware configured with specific origins
+- [ ] Authentication implemented with httpOnly cookies
+- [ ] TanStack Query configured for API communication
+- [ ] Environment variables set up for API URLs
+- [ ] Frontend tests pass (`npm run test`)
+- [ ] Backend tests pass (`uv run pytest`)
+- [ ] Type checking clean on both frontend and backend
+- [ ] No CORS errors in browser console
+- [ ] API calls work end-to-end with authentication
 
 ## Key Principles
 
-### 1. Backend Framework Selection
+### Backend Framework Selection
 
-#### 1.1 Decision Tree
+#### Decision Tree
 
 **When to use FastAPI:**
 - Async operations, WebSockets
@@ -96,7 +154,7 @@ TypeScript React code (`.tsx`) with TanStack Query hooks; Python backend code (F
 **When to use Express:**
 - Team has strong Node.js expertise (when user requests)
 
-#### 1.2 Organizational Default Rationale
+#### Organizational Default Rationale
 
 This organization defaults to Python backends because:
 - Team expertise in Python ecosystem
@@ -106,9 +164,9 @@ This organization defaults to Python backends because:
 
 **Note:** This is an organizational preference, not a universal industry standard. Node.js backends are equally valid when team expertise or project requirements favor them.
 
-### 2. API Communication Patterns
+### API Communication Patterns
 
-#### 2.1 TanStack Query Setup
+#### TanStack Query Setup
 
 ```typescript
 // src/lib/queryClient.ts
@@ -125,7 +183,7 @@ export const queryClient = new QueryClient({
 });
 ```
 
-#### 2.2 Typed API Layer
+#### Typed API Layer
 
 ```typescript
 // src/features/users/api/userApi.ts
@@ -151,7 +209,7 @@ export async function fetchUser(userId: string): Promise<User> {
 }
 ```
 
-#### 2.3 Query Hook Usage
+#### Query Hook Usage
 
 ```typescript
 // src/features/users/hooks/useUser.ts
@@ -167,9 +225,9 @@ export const useUser = (userId: string) => {
 };
 ```
 
-### 3. Authentication Flow
+### Authentication Flow
 
-#### 3.1 JWT with httpOnly Cookies (Recommended)
+#### JWT with httpOnly Cookies (Recommended)
 
 ```python
 # FastAPI backend - auth endpoint
@@ -229,9 +287,9 @@ export const useAuth = () => {
 };
 ```
 
-### 4. CORS Configuration
+### CORS Configuration
 
-#### 4.1 FastAPI CORS
+#### FastAPI CORS
 
 ```python
 # Development: specific origin
@@ -259,7 +317,7 @@ app = Flask(__name__)
 CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
 ```
 
-### 5. Environment Management
+### Environment Management
 
 ```bash
 # Frontend (.env.development)
@@ -320,31 +378,6 @@ const { data: user } = useQuery({
 });
 ```
 
-## Post-Execution Checklist
-
-- [ ] Backend framework selected (FastAPI/Flask) with clear rationale
-- [ ] CORS configured with specific origins (no `*` in production)
-- [ ] JWT stored in httpOnly cookies (not localStorage)
-- [ ] TanStack Query configured with appropriate defaults
-- [ ] API layer created with Zod validation
-- [ ] Environment variables set up for API URLs
-- [ ] Authentication flow tested end-to-end
-- [ ] Both frontend and backend tests passing
-- [ ] Development workflow documented (how to run both servers)
-
-## Validation
-
-- **Success checks:**
-  - Frontend `npm run test` and `npm run type-check` pass
-  - Backend `uv run pytest` and `uvx ruff check .` pass
-  - CORS headers present in API responses
-  - Cookies set correctly with httpOnly flag
-  - API calls work across environments (dev, staging, prod)
-- **Negative tests:**
-  - Requests from unauthorized origins should be blocked
-  - Missing auth token should return 401
-  - Invalid JWT should be rejected
-
 > **Investigation Required**
 > When applying this rule:
 > 1. **Check existing backend** - Is there already a backend? What framework?
@@ -396,18 +429,3 @@ npm run lint && npm run test && npm run type-check
 # Backend
 uvx ruff check . && uvx ruff format --check . && uv run pytest
 ```
-
-## References
-
-### External Documentation
-- [TanStack Query Docs](https://tanstack.com/query/latest) - Server state management
-- [FastAPI Documentation](https://fastapi.tiangolo.com/) - Python async API framework
-- [Flask Documentation](https://flask.palletsprojects.com/) - Python micro-framework
-- [OWASP JWT Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/JSON_Web_Token_for_Java_Cheat_Sheet.html) - JWT security best practices
-
-### Related Rules
-- **React Core**: `440-react-core.md` - Frontend patterns
-- **Python Core**: `200-python-core.md` - Python tooling and standards
-- **FastAPI Core**: `210-python-fastapi-core.md` - FastAPI patterns
-- **Flask Core**: `250-python-flask.md` - Flask patterns
-- **TypeScript Core**: `430-typescript-core.md` - Type safety patterns

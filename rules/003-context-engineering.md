@@ -2,74 +2,103 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** context engineering, attention budget, context rot, token efficiency, compaction, progressive disclosure, sub-agents, agentic search, system prompts, right altitude, long-horizon tasks, memory management, state tracking
-**TokenBudget:** ~4750
+**TokenBudget:** ~6050
 **ContextTier:** Critical
 **Depends:** 000-global-core.md
 
-## Purpose
-Establish comprehensive context engineering practices that treat context as a finite resource with diminishing returns, enabling AI agents to maintain focus, minimize context rot, and work effectively across long-horizon tasks through strategic context management.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive context engineering practices that treat context as a finite resource with diminishing returns. Covers attention budgets (n² pairwise relationships), context rot, progressive disclosure, sub-agent patterns, agentic search vs RAG, compaction strategies, and long-horizon task management.
 
-Universal context management principles for all AI agents across all models (Claude, GPT, Gemini) and editors
+**When to Load This Rule:**
+- Managing context window efficiently
+- Preventing context rot in long tasks
+- Understanding attention budget trade-offs
+- Implementing progressive disclosure patterns
+- Working with long-horizon multi-session tasks
+- Designing sub-agent workflows
+- Compacting context before limits
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Treat context as finite resource** - Every token depletes attention budget (n² pairwise relationships)
-- **Progressive disclosure** - Load summaries first, details on-demand (not everything at once)
-- **Use sub-agents for complex tasks** - Split work into focused agents with minimal context each
-- **Compact before context limits** - Summarize completed work, preserve critical details only
-- **Agentic search over RAG** - Explore dynamically instead of pre-loading entire knowledge base
-- **Right altitude system prompts** - Specific heuristics (not brittle if-else, not vague guidance)
-- **Never load entire codebase** - Context rot degrades recall, use targeted file reading
+### Dependencies
 
-**Quick Checklist:**
-- [ ] Assess attention budget before adding context
-- [ ] Prioritize high-signal, actionable information
-- [ ] Use progressive disclosure (load details only when needed)
-- [ ] Compact context when approaching limits
-- [ ] Use sub-agents for multi-faceted tasks
-- [ ] Maintain structured notes outside context window
-- [ ] Validate context stays within attention budget
+**Must Load First:**
+- **000-global-core.md** - Foundation for all rules, Context Window Management Protocol
+
+**Related:**
+- **001-memory-bank.md** - Structured documentation and context preservation
+- **002c-advanced-rule-patterns.md** - System prompt altitude and investigation-first
+- **002b-rule-optimization.md** - Token budgets and optimization
+
+### External Documentation
+
+- **[Effective Context Engineering for AI Agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)** - Anthropic article on context rot, attention budgets, and compaction strategies
+- **[Claude Context Window Management](https://docs.anthropic.com/)** - Official Anthropic documentation
+- **Schema Definition:** `schemas/rule-schema.yml` - v3.2 schema with context-optimized structures
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-Understanding of token budgets; awareness of context window limits; ability to prioritize information; access to memory/state management tools
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-All context-aware tools; memory tools; file reading tools; state tracking tools; compaction tools
-</mandatory>
+- Understanding of token budgets
+- Awareness of context window limits
+- Ability to prioritize information
+- Access to memory/state management tools
 
-<forbidden>
-Tools that blindly load entire codebases without filtering; tools that duplicate information unnecessarily
-</forbidden>
+### Mandatory
 
-<steps>
+- All context-aware tools
+- Memory tools
+- File reading tools
+- State tracking tools
+- Compaction tools
+
+### Forbidden
+
+- Tools that blindly load entire codebases without filtering
+- Tools that duplicate information unnecessarily
+- Pre-loading entire knowledge bases (use agentic search)
+- Never compacting context in long tasks
+
+### Execution Steps
+
 1. Assess available attention budget before adding context
 2. Prioritize high-signal, actionable information over noise
 3. Use progressive disclosure - load details only when needed
 4. Apply compaction when approaching context limits
 5. Employ sub-agents for complex, multi-faceted tasks
 6. Maintain structured notes outside context window for long tasks
-</steps>
 
-<output_format>
-Minimal, high-signal responses; structured state tracking; clear context summaries
-</output_format>
+### Output Format
 
-<validation>
-Context stays within attention budget; information is non-redundant; agent remains focused on task; compaction maintains fidelity
-</validation>
+- Minimal, high-signal responses
+- Structured state tracking
+- Clear context summaries
+- Token-efficient tool outputs
 
-<design_principles>
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Attention budget assessed
+- High-signal information identified
+- Progressive disclosure plan ready
+- Compaction strategy defined (if long task)
+- Sub-agent needs assessed
+
+**Success Criteria:**
+- Context stays within attention budget
+- Information is non-redundant
+- Agent remains focused on task
+- Compaction maintains fidelity
+- Forward-focused (what's next vs what's done)
+
+### Design Principles
+
 - **Context as Finite Resource:** Treat context like limited working memory - every token depletes attention budget
 - **Context Rot:** As context grows, model's ability to recall specific information degrades (n² pairwise attention relationships)
 - **Progressive Disclosure:** Load information hierarchically - summaries first, details on-demand
@@ -77,9 +106,21 @@ Context stays within attention budget; information is non-redundant; agent remai
 - **Token Efficiency:** Minimize context pollution - every token must provide actionable value
 - **Agentic Search:** Prefer just-in-time exploration over pre-computed retrieval when information space is dynamic
 - **Compaction Strategy:** Summarize and compress context before hitting limits while preserving critical details
-</design_principles>
 
-</contract>
+### Post-Execution Checklist
+
+- [ ] Context window usage monitored (not exceeding attention budget)
+- [ ] High-signal, actionable information prioritized
+- [ ] Progressive disclosure used (summaries before details)
+- [ ] System prompts at "right altitude" (neither brittle nor vague)
+- [ ] Redundant information eliminated
+- [ ] Compaction strategy defined for long tasks
+- [ ] Structured note-taking for persistent state
+- [ ] Sub-agents considered for complex multi-faceted work
+- [ ] Tool outputs are token-efficient
+- [ ] Forward-focused (what's next vs what's done)
+- [ ] Agentic search used when appropriate
+- [ ] Context rot actively prevented
 
 ## Anti-Patterns and Common Mistakes
 
@@ -204,40 +245,6 @@ implement_caching_layer()  # Premature
 ```
 **Benefits:** Avoid premature complexity; validate need first; iterative improvement
 
-## Post-Execution Checklist
-
-After applying context engineering principles:
-
-- [ ] Context budget tracked throughout task execution
-- [ ] Progressive disclosure used for large information sources
-- [ ] System prompts written at appropriate altitude (not too low-level)
-- [ ] Memory bank updated with learnings and patterns
-- [ ] Token-efficient tools used where applicable
-- [ ] Sub-agents or agentic search employed for complex research
-- [ ] Context compaction performed when approaching limits
-- [ ] High-signal information prioritized in context window
-
-## Validation
-
-**Success Checks:**
-- Context usage stays within attention budget (< 80% recommended)
-- Information retrieval is efficient (no redundant reads/searches)
-- System prompts are maintainable and appropriate altitude
-- Memory bank captures essential project context
-- Task completed with minimal context overhead
-
-**Negative Tests:**
-- Context thrashing prevented (not re-reading same files repeatedly)
-- Token budget not exceeded causing truncation
-- Low-signal information excluded from context
-- Prompt patterns generalized appropriately (not over-fitted to single examples)
-
-**Performance Metrics:**
-- Tokens per task completion (lower is better)
-- Context window utilization (< 80% target)
-- Information retrieval efficiency (cache hit rate)
-- Task completion rate with bounded context
-
 ## Output Format Examples
 
 ```markdown
@@ -304,7 +311,7 @@ See `000-global-core.md`, section "Context Window Management Protocol" for full 
 - **Tool Design**: `004-tool-design-for-agents.md` - Token-efficient tool development patterns
 - **AGENTS Workflow**: `AGENTS.md` - Rule discovery and operational protocols
 
-## 1. Context vs Prompt Engineering
+## Context vs Prompt Engineering
 
 ### The Evolution from Prompts to Context
 
@@ -323,7 +330,7 @@ See `000-global-core.md`, section "Context Window Management Protocol" for full 
 **Key Difference:**
 Context engineering is iterative - the curation phase happens **each time** we decide what to pass to the model, not just once when writing the system prompt.
 
-## 2. Context as Finite Resource
+## Context as Finite Resource
 
 ### Attention Budget and Architectural Constraints
 
@@ -359,7 +366,7 @@ Models have:
 
 **Result:** Performance gradient rather than hard cliff - models remain capable at long contexts but show reduced precision.
 
-## 3. System Prompts at "Right Altitude"
+## System Prompts at Right Altitude
 
 ### The Goldilocks Zone
 
@@ -419,7 +426,7 @@ You are a customer support agent for SaaS product X.
 
 **Principle:** Give the model strong heuristics, not brittle if-else trees.
 
-## 4. Context Curation Strategies
+## Context Curation Strategies
 
 ### What to Include
 
@@ -474,7 +481,7 @@ You are a customer support agent for SaaS product X.
 - Stale context
 ```
 
-## 5. Progressive Disclosure
+## Progressive Disclosure
 
 ### Hierarchical Information Loading
 
@@ -527,7 +534,7 @@ You are a customer support agent for SaaS product X.
 2. Check Current Session to know what's done and what's next
 3. Load Resources only when needed for specific task
 
-## 6. Agentic Search vs Pre-computed Retrieval
+## Agentic Search vs Pre-computed Retrieval
 
 ### When to Use Each Strategy
 
@@ -599,7 +606,7 @@ context = "\n".join([r.content for r in results])
 4. Follow imports as needed (agentic)
 ```
 
-## 7. Long-Horizon Task Strategies
+## Long-Horizon Task Strategies
 
 ### Strategy 1: Compaction
 
@@ -764,7 +771,7 @@ implementation = sub_agent_implement(
 - Tasks benefiting from parallel execution
 - When detailed work can be summarized concisely
 
-## 8. Token Efficiency Guidelines
+## Token Efficiency Guidelines
 
 ### Minimize Context Pollution
 
@@ -805,7 +812,7 @@ implementation = sub_agent_implement(
 - Token budgets declared in metadata
 - Composition over duplication
 
-## 9. Context Engineering Workflow
+## Context Engineering Workflow
 
 ### Standard Operating Procedure
 

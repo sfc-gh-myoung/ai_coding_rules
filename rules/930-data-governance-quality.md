@@ -2,68 +2,141 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**LastUpdated:** 2025-12-23
 **Keywords:** Data governance, data quality, lineage, metadata management, compliance, data catalog, Great Expectations, schema evolution, data observability, incident response
-**TokenBudget:** ~1200
+**TokenBudget:** ~1650
 **ContextTier:** Medium
-**Depends:** None
+**Depends:** 000-global-core.md
 
-## Purpose
-Establish comprehensive directives for ensuring data quality, governance, and operational reliability throughout the data lifecycle, using code-based validation, schema evolution management, and automated quality gates.
+## Scope
 
-## Rule Scope
-Data quality, governance, and operational reliability throughout the data lifecycle
+**What This Rule Covers:**
+Comprehensive directives for ensuring data quality, governance, and operational reliability throughout the data lifecycle. Covers code-based validation, schema evolution management, automated quality gates, data lineage, and incident response.
 
-## Quick Start TL;DR
+**When to Load This Rule:**
+- Implementing data quality validation frameworks
+- Managing schema evolution and migrations
+- Setting up automated quality gates in pipelines
+- Establishing data governance policies
+- Monitoring data drift and observability
+- Defining incident response procedures for data issues
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Data quality as code** - Version expectation suites in Git
-- **Profile before expectations** - Use profiling to discover initial checks
-- **Schema evolution** - Add columns first, avoid destructive changes
-- **Single source of truth** - Every metric has one canonical definition
-- **Automate quality gates** - Integrate validation into ETL/ELT pipelines
-- **Monitor data drift** - Track distribution changes with thresholds
-- **Never hard-code credentials** - Use secrets management
+## References
 
-**Quick Checklist:**
-- [ ] Expectation suites in version control
-- [ ] Data profiling completed
-- [ ] Schema changes non-destructive
-- [ ] Metrics documented in catalog
-- [ ] Quality gates in CI/CD
-- [ ] Drift monitoring configured
-- [ ] Incident response plan documented
+### Dependencies
+
+**Must Load First:**
+- **000-global-core.md** - Foundation for all rules
+
+**Related:**
+- **100-snowflake-core.md** - Snowflake SQL patterns
+- **124-snowflake-data-quality-core.md** - Snowflake-specific data quality patterns
+- **901-data-generation-modeling.md** - Data modeling standards
+
+### External Documentation
+
+- [Great Expectations Documentation](https://docs.greatexpectations.io/) - Data quality validation framework
+- [Snowflake Data Governance](https://docs.snowflake.com/en/user-guide/governance) - Governance features and best practices
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-[Context, files, dependencies needed]
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-[Tools permitted for this domain]
-</mandatory>
+- Data quality validation framework (Great Expectations, Snowflake DMFs)
+- Version control system (Git) for expectation suites
+- Data catalog or metadata management system
+- CI/CD pipeline for automated quality gates
+- Schema evolution strategy defined
 
-<forbidden>
-[Tools not allowed for this domain]
-</forbidden>
+### Mandatory
 
-<steps>
-[Ordered steps the agent must follow]
-</steps>
+- Data quality as code (version expectation suites in Git)
+- Data profiling before creating expectations
+- Schema evolution (add columns first, avoid destructive changes)
+- Single source of truth for metric definitions
+- Automated quality gates in ETL/ELT pipelines
+- Data drift monitoring with thresholds
+- Secrets management (no hard-coded credentials)
 
-<output_format>
-[Expected output format]
-</output_format>
+### Forbidden
 
-<validation>
-[Checks to confirm success]
-</validation>
+- Hard-coded credentials in code or configuration files
+- Destructive schema changes without backward compatibility
+- Unversioned expectation suites or quality rules
+- Manual quality checks without automation
+- Undocumented metric definitions
 
-</contract>
+### Execution Steps
+
+1. Profile data to discover initial quality checks and distributions
+2. Create expectation suites based on profiling results
+3. Version expectation suites in Git
+4. Integrate quality gates into ETL/ELT pipelines
+5. Document metric definitions in data catalog
+6. Set up data drift monitoring with thresholds
+7. Define incident response plan for data quality issues
+8. Implement schema evolution strategy (add columns, avoid destructive changes)
+9. Validate quality gates in CI/CD
+10. Monitor and iterate on quality expectations
+
+### Output Format
+
+- Expectation suites versioned in Git
+- Data quality reports with pass/fail status
+- Schema evolution documentation
+- Metric definitions in data catalog
+- Incident response runbooks
+- Data drift monitoring dashboards
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Expectation suites in version control
+- Data profiling completed
+- Schema changes non-destructive
+- Metrics documented in catalog
+- Quality gates integrated in CI/CD
+- Drift monitoring configured
+- Incident response plan documented
+
+**Success Criteria:**
+- All expectation suites pass validation
+- Schema changes backward compatible
+- Quality gates automated in pipelines
+- Metrics have single source of truth
+- Data drift alerts configured
+- Incident response plan tested
+
+**Negative Tests:**
+- Hard-coded credentials should trigger security scan failure
+- Destructive schema changes should fail review
+- Unversioned expectations should fail compliance check
+- Manual quality checks should trigger automation requirement
+
+### Design Principles
+
+- **Data Quality as Code:** Version all quality rules and expectations
+- **Profile First:** Use data profiling to discover initial checks
+- **Non-Destructive Evolution:** Add columns, avoid breaking changes
+- **Single Source of Truth:** One canonical definition per metric
+- **Automate Everything:** Quality gates in CI/CD, not manual checks
+- **Monitor Drift:** Track distribution changes with thresholds
+- **Secure by Default:** Use secrets management, never hard-code credentials
+
+### Post-Execution Checklist
+
+- [ ] Expectation suites versioned in Git
+- [ ] Data profiling completed and documented
+- [ ] Schema changes non-destructive and backward compatible
+- [ ] All metrics documented in data catalog with single source of truth
+- [ ] Quality gates integrated into CI/CD pipelines
+- [ ] Data drift monitoring configured with thresholds
+- [ ] Incident response plan documented and tested
+- [ ] Secrets management implemented (no hard-coded credentials)
+- [ ] Quality validation automated (no manual checks)
+- [ ] Schema evolution strategy documented
 
 ## Anti-Patterns and Common Mistakes
 
@@ -93,92 +166,7 @@ Data quality, governance, and operational reliability throughout the data lifecy
 # Proper implementation
 ```
 
-## Post-Execution Checklist
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
-
-## Validation
-- **Success checks:** [How to verify correct implementation]
-- **Negative tests:** [What should fail and how to detect failures]
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Profile data BEFORE creating expectations** - Understand baseline characteristics
-> 2. **Check existing quality checks** - Review current validation framework
-> 3. **Never assume schema stability** - Check for recent schema changes
-> 4. **Verify catalog existence** - Confirm metrics are documented
-> 5. **Test quality gates** - Ensure validation catches known bad data
->
-> **Anti-Pattern:**
-> "Adding quality check... (without profiling data first)"
-> "Changing schema... (without impact analysis)"
->
-> **Correct Pattern:**
-> "Let me check your data quality setup first."
-> [profiles data, reviews existing checks, checks catalog]
-> "I see 5% NULL rate. Adding expectation with threshold..."
-
-## Output Format Examples
-
-```markdown
-Implementation: Summary
-
-**Rule Applied:** [rule filename]
-**Domain:** [technology/framework]
-**Changes:** [high-level summary]
-
-### Investigation Results
-- Current state: [what was found]
-- Requirements: [what needs to change]
-- Constraints: [limitations identified]
-
-### Implementation Steps
-1. **[Step 1]**: [Specific action taken]
-   - File: `path/to/file`
-   - Change: [delta description]
-
-2. **[Step 2]**: [Another action]
-   - Configuration: [what was configured]
-   - Rationale: [why this approach]
-
-3. **[Step 3]**: [Validation action]
-   - Test: [specific test run]
-   - Result: [outcome]
-
-### Validation Results
-```bash
-# Commands run to validate
-command --validate
-test --run-all
-```
-
-**Output:**
-```
-[Test output showing success]
-```
-
-### Next Steps
-- [Optional follow-up items]
-- [Monitoring recommendations]
-```
-
-## References
-
-### External Documentation
-- [Data Management Body of Knowledge (DMBOK)](https://www.dama.org/cpages/body-of-knowledge) - Comprehensive data management framework
-- [Data Quality Assessment](https://www.dataversity.net/data-quality-assessment/) - Data quality evaluation methodologies
-- [Incident Response Best Practices](https://www.sans.org/white-papers/incident-response/) - SANS incident response guidelines
-
-### Related Rules
-- **Snowflake Core**: `100-snowflake-core.md`
-- **Snowflake Security**: `107-snowflake-security-governance.md`
-- **Semantic Views**: `106-snowflake-semantic-views-core.md`
-- **Data Science Analytics**: `920-data-science-analytics.md`
-
-## 1. Data Quality as Code
+## Data Quality as Code
 - **Requirement:** Treat data quality as code. Version expectation suites and integrate into CI/CD.
 - **Requirement:** Layer expectations: start with schema/basic validity, then add business rules.
 - **Requirement:** Keep suites lean and focused; avoid noisy or redundant checks.
@@ -188,7 +176,7 @@ test --run-all
 - **Always:** Monitor for data drift by tracking distribution changes with thresholds.
 - **Always:** Reference Great Expectations docs: https://docs.greatexpectations.io/
 
-## 2. Data Stewardship & Schema Evolution
+## Data Stewardship and Schema Evolution
 - **Requirement:** Every metric must have a Single Source of Truth in a catalog, with formula, lineage, and ownership.
 - **Requirement:** Version metrics and schemas immutably when updated.
 - **Always:** Add new columns first; avoid destructive in-place changes.
@@ -197,12 +185,12 @@ test --run-all
 - **Requirement:** Validate that downstream consumers are unaffected before production deployment.
 - **Always:** Reference Snowflake schema management docs: https://docs.snowflake.com/en/user-guide/database-schemas
 
-## 3. Data Observability
+## Data Observability
 - **Always:** Implement observability to monitor freshness, volume, and schema changes.
 - **Always:** Use Snowflake Tasks to automate freshness checks and other metrics.
 - **Always:** Create automated alerts for anomalies and quality failures.
 
-## 4. Incident Response & Reliability
+## Incident Response and Reliability
 - **Always:** Respond with a clear plan; triage severity and assign an incident commander.
 - **Requirement:** Avoid uncoordinated fixes; log all actions with timestamps.
 - **Requirement:** After stabilization, run a blameless postmortem focusing on systems/processes.

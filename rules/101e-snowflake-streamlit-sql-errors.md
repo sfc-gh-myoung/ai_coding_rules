@@ -2,23 +2,100 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** SnowparkSQLException, error messages, Streamlit errors, Snowflake errors, debug SQL error, fix query error, SQL exception, error troubleshooting, query failed, database error, SQL debugging patterns, exception handling, error recovery, common SQL errors
-**TokenBudget:** ~2800
+**TokenBudget:** ~4150
 **ContextTier:** Low
 **Depends:** 100-snowflake-core.md, 101-snowflake-streamlit-core.md, 101b-snowflake-streamlit-performance.md
+**LastUpdated:** 2025-12-22
 
-## Purpose
-Provide comprehensive SQL error handling patterns for Streamlit applications including multiple queries, user inputs, complex joins, and debugging techniques.
+## Scope
 
-## Rule Scope
-Detailed SQL error handling patterns and examples
+**What This Rule Covers:**
+Comprehensive SQL error handling patterns for Streamlit applications using SnowparkSQLException with error codes, query context display (table names, operations, filters), numbered queries for multiple query scenarios, user input validation, complex join debugging, empty result handling (st.warning vs st.error), and st.stop() cascade prevention.
 
-## Quick Start TL;DR
+**When to Load This Rule:**
+- Handling SQL errors in Streamlit applications
+- Debugging SnowparkSQLException errors
+- Implementing error messages with error codes
+- Managing multiple queries with clear identification
+- Handling empty query results gracefully
+- Preventing cascading errors with st.stop()
+- Building user-friendly SQL error displays
 
-**MANDATORY:**
-**Essential Patterns:**
+## References
+
+### Dependencies
+
+**Must Load First:**
+- **000-global-core.md** - Foundation rule with core patterns and validation gates
+- **100-snowflake-core.md** - Snowflake fundamentals
+- **101-snowflake-streamlit-core.md** - Core Streamlit patterns
+- **101b-snowflake-streamlit-performance.md** - Performance and caching patterns
+
+**Related:**
+- **101c-snowflake-streamlit-security.md** - Input validation for SQL injection prevention
+
+### External Documentation
+
+**Snowflake:**
+- [Snowpark Exceptions](https://docs.snowflake.com/en/developer-guide/snowpark/reference/python/api/snowflake.snowpark.exceptions.SnowparkSQLException.html) - SnowparkSQLException API
+- [SQL Error Codes](https://docs.snowflake.com/en/sql-reference/error-codes.html) - Snowflake error code reference
+
+**Streamlit:**
+- [st.error](https://docs.streamlit.io/develop/api-reference/status/st.error) - Error display widget
+- [st.warning](https://docs.streamlit.io/develop/api-reference/status/st.warning) - Warning display widget
+- [st.stop](https://docs.streamlit.io/develop/api-reference/execution-flow/st.stop) - Stop execution
+
+## Contract
+
+### Inputs and Prerequisites
+
+Snowflake session established; SQL queries to execute; tables/schemas accessible
+
+### Mandatory
+
+- try/except blocks with SnowparkSQLException
+- st.error() for error display
+- st.warning() for empty results
+- st.info() for query context
+- st.stop() to halt execution
+
+### Forbidden
+
+- Generic Exception catching without SnowparkSQLException
+- Silent error handling (no user notification)
+- Error messages without query context or error codes
+
+### Execution Steps
+
+1. Wrap every session.sql() call in try/except
+2. Catch SnowparkSQLException before generic Exception
+3. Display error message with st.error() including: error text, error code, table names, operation description, common causes
+4. Call st.stop() to prevent cascading failures
+5. Handle empty DataFrames with st.warning() (yellow) not st.error() (red)
+
+### Output Format
+
+Streamlit error messages with full context; stopped execution on SQL failure; empty DataFrame handling
+
+### Validation
+
+**Test Requirements:**
+- Verify all SQL queries have error handling
+- Confirm error messages include all required context
+- Test with invalid queries to see error display
+
+**Success Criteria:**
+- SnowparkSQLException caught specifically
+- Error codes displayed
+- Query context shown (table, operation, filters)
+- st.stop() prevents cascade failures
+- Empty results handled with st.warning()
+
+### Design Principles
+
 - **Wrap all SQL in try/except** - Catch SnowparkSQLException specifically
 - **Include error code** - Always show `{e.error_code}` for Snowflake support
 - **Show query context** - Table names, operations, filters in every error message
@@ -27,51 +104,16 @@ Detailed SQL error handling patterns and examples
 - **Number multiple queries** - "Query 1", "Query 2" for easy identification
 - **Handle empty results separately** - Use st.warning() vs st.error() for no results
 
-**Pre-Execution Checklist:**
+### Post-Execution Checklist
+
 - [ ] Identified all SQL queries that need error handling
 - [ ] Confirmed table/schema names exist in Snowflake
 - [ ] Reviewed common SQL errors for this data model
 - [ ] Planned error messages with adequate context
 - [ ] Determined empty result handling strategy
-
-## Contract
-
-<contract>
-<inputs_prereqs>
-Snowflake session established; SQL queries to execute; tables/schemas accessible
-</inputs_prereqs>
-
-<mandatory>
-- try/except blocks with SnowparkSQLException
-- st.error() for error display
-- st.warning() for empty results
-- st.info() for query context
-- st.stop() to halt execution
-</mandatory>
-
-<forbidden>
-- Generic Exception catching without SnowparkSQLException
-- Silent error handling (no user notification)
-- Error messages without query context or error codes
-</forbidden>
-
-<steps>
-1. Wrap every session.sql() call in try/except
-2. Catch SnowparkSQLException before generic Exception
-3. Display error message with st.error() including: error text, error code, table names, operation description, common causes
-4. Call st.stop() to prevent cascading failures
-5. Handle empty DataFrames with st.warning() (yellow) not st.error() (red)
-</steps>
-
-<output_format>
-Streamlit error messages with full context; stopped execution on SQL failure; empty DataFrame handling
-</output_format>
-
-<validation>
-Verify all SQL queries have error handling; confirm error messages include all required context; test with invalid queries to see error display
-</validation>
-
-</contract>
+- [ ] All SQL queries wrapped in try/except with SnowparkSQLException
+- [ ] Error codes included in error messages
+- [ ] st.stop() called after errors to prevent cascades
 
 ## Anti-Patterns and Common Mistakes
 
@@ -276,38 +318,6 @@ except SnowparkSQLException as e:
     st.stop()
 ```
 **Benefits:** Error code enables fast Snowflake support lookup; documentation searchable by code; professional error handling; reproducible error reporting
-
-## Post-Execution Checklist
-
-- [ ] All session.sql() calls wrapped in try/except blocks
-- [ ] SnowparkSQLException caught before generic Exception
-- [ ] Error messages include error code: {e.error_code}
-- [ ] Error messages show table names and schemas
-- [ ] Error messages describe the operation being attempted
-- [ ] Error messages list 3-5 common causes
-- [ ] st.error() used for SQL exceptions (red box)
-- [ ] st.warning() used for empty results (yellow box)
-- [ ] st.stop() called after displaying SQL errors
-- [ ] Multi-query functions number queries ("Query 1", "Query 2")
-- [ ] Parameterized queries show user input in error context
-- [ ] Join queries show both tables and join condition in error message
-
-> **Investigation Required**
-> When applying this rule:
-> 1. Read existing SQL queries and error handling BEFORE making recommendations
-> 2. Verify table names, schema names, and column names match actual Snowflake objects
-> 3. Never speculate about error codes or causes without checking actual query context
-> 4. Test error messages by intentionally triggering errors (missing tables, wrong columns)
-> 5. Make grounded recommendations based on investigated SQL patterns and error scenarios
-
-## Validation
-
-- Test SQL error handling with intentionally invalid queries (missing tables, wrong column names, syntax errors)
-- Verify error messages display all required context: error code, table names, operation description
-- Confirm empty result handling uses st.warning() not st.error()
-- Validate multi-query scenarios show which specific query failed
-- Check that st.stop() prevents downstream errors when SQL fails
-- Ensure parameterized queries show user input values in error messages
 
 ## Output Format Examples
 
@@ -516,17 +526,3 @@ def ensure_connection():
 
     return st.session_state.snowflake_session
 ```
-
-## References
-
-### Internal Documentation
-- **100f-snowflake-connection-errors.md:** Connection error classification logic (network policy vs auth vs connection)
-- **101b-snowflake-streamlit-performance.md:** Performance optimization patterns including basic SQL error handling
-- **101-snowflake-streamlit-core.md:** Core Streamlit patterns and st.error(), st.warning(), st.stop() usage
-- **100-snowflake-core.md:** Snowflake SQL best practices and query patterns
-
-### External Documentation
-- [Snowflake Error Codes Reference](https://docs.snowflake.com/en/user-guide/admin-error-codes.html) - Complete list of SQL error codes
-- [Snowpark Python API - Exceptions](https://docs.snowflake.com/en/developer-guide/snowpark/reference/python/latest/api/snowflake.snowpark.exceptions.SnowparkSQLException.html) - SnowparkSQLException documentation
-- [Streamlit Error Handling](https://docs.streamlit.io/develop/api-reference/status) - st.error(), st.warning(), st.info(), st.stop()
-- [Python Exception Handling Best Practices](https://docs.python.org/3/tutorial/errors.html) - General exception handling patterns

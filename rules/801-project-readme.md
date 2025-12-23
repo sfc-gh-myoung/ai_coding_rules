@@ -2,44 +2,139 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** README, project documentation, getting started, setup instructions, badges, Quick Start, Contributing, License, project structure, technical writing
-**TokenBudget:** ~4500
+**TokenBudget:** ~5700
 **ContextTier:** Medium
 **Depends:** 000-global-core.md
+**LastUpdated:** 2025-12-23
 
-## Purpose
-This rule establishes comprehensive standards for README.md files following widely accepted industry best practices. It ensures consistent, professional, and accessible project documentation that serves both technical and non-technical audiences.
+## Scope
 
-## Rule Scope
-Project documentation, technical writing, developer experience
+**What This Rule Covers:**
+Comprehensive standards for README.md files following widely accepted industry best practices, ensuring consistent, professional, and accessible project documentation that serves both technical and non-technical audiences.
 
-## Quick Start TL;DR
+**When to Load This Rule:**
+- Creating or updating README.md files
+- Reviewing project documentation standards
+- Establishing Quick Start sections for users
+- Defining project structure and setup instructions
+- Implementing professional documentation practices
 
-**MANDATORY:**
-**Essential Patterns:**
-- **One primary path** - Show the simplest, most common installation method first
-- **2-4 commands maximum** - Clone, install, run - that's it
-- **Immediate feedback** - User sees something working within 60 seconds
-- **Clear success indicator** - Tell users what they should see when it works
-- **Next steps signposted** - Point to configuration, deployment, or docs
+## References
 
-**Pre-Execution Checklist:**
-- [ ] Identified the most common/simplest installation path
-- [ ] Verified commands work on fresh environment
-- [ ] Prepared clear success indicators for users
-- [ ] Planned where to direct users after Quick Start
-- [ ] Separated alternative methods to dedicated sections
+### Dependencies
 
-**Example:**
+**Must Load First:**
+- **000-global-core.md** - Foundation for all rules
+
+**Related:**
+- **800-project-changelog.md** - Changelog management standards
+- **802-project-contributing.md** - Contributing guidelines
+- **803-project-git-workflow.md** - Git workflow management
+
+### External Documentation
+- [GitHub README Guide](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes) - Official GitHub documentation standards
+- [Make a README](https://www.makeareadme.com/) - Interactive README creation guide and best practices
+- [Awesome README Examples](https://github.com/matiassingers/awesome-readme) - Curated collection of excellent README examples
+
+## Contract
+
+### Inputs and Prerequisites
+- Project repository with README.md file
+- Understanding of project type (library, application, framework)
+- Knowledge of target audience (technical/non-technical)
+- Access to project dependencies and tech stack information
+
+### Mandatory
+- Text editor for README.md
+- Markdown validation tools
+- Link checker for external references
+- Understanding of project structure and setup
+
+### Forbidden
+- Adding Quick Start without testing commands
+- Duplicating content from CONTRIBUTING.md in README
+- Using hard-coded paths or environment-specific instructions
+- Adding badges without verifying they work
+- Assuming tech stack without verification
+
+### Execution Steps
+1. Read existing README.md to understand current structure
+2. Identify project type and verify tech stack
+3. Test all installation commands in clean environment
+4. Create or update Quick Start section with ONE primary path
+5. Add post-action explanations after command blocks
+6. Verify all links are working and current
+7. Update badges to reflect current project status
+8. Validate markdown syntax and formatting
+
+### Output Format
+Markdown file (README.md) with:
+- Project title and description
+- Quick Overview section (30-second summary)
+- Quick Start with tested installation commands
+- Usage examples with code blocks
+- Contributing section (minimal pointer to CONTRIBUTING.md)
+- License section
+
+### Validation
+**Pre-Task-Completion Checks:**
+- README update triggers checked (see 000-global-core.md)
+- All required sections present and complete
+- Installation instructions tested on clean system
+- All code examples syntactically correct and tested
+- All links working and pointing to current resources
+- Badges reflect current project status
+- Language is clear, inclusive, and professional
+
+**Success Criteria:**
+- README.md validates with markdown linter
+- All links accessible and valid
+- Quick Start commands work in clean environment
+- Code examples tested and functional
+- Formatting consistent throughout
+- Contact/support information current
+
+### Design Principles
+- **Progressive Disclosure** - Users first, contributors second
+- **One Primary Path** - Show simplest installation method in Quick Start
+- **Immediate Feedback** - Users see results within 60 seconds
+- **Clear Success Indicators** - Tell users what they should see
+- **Investigation-First** - Read existing README before modifying
+
+### Post-Execution Checklist
+- [ ] **CRITICAL:** README update triggers checked (see 000-global-core.md)
+- [ ] **CRITICAL:** If triggers apply, README.md reviewed and updated
+- [ ] Existing README structure checked before modifications
+- [ ] Project type and tech stack verified
+- [ ] Installation commands tested in clean environment
+- [ ] All code examples syntactically correct
+- [ ] All links working and current
+- [ ] Badges reflect current status
+- [ ] Formatting consistent throughout
+- [ ] Contributing section links to CONTRIBUTING.md
+- [ ] License section present with key points
+
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Adding Quick Start Without Testing Commands
+
+**Problem:** Creating Quick Start section with installation commands that haven't been tested in a clean environment.
+
+**Why It Fails:** Commands may fail due to missing dependencies, incorrect paths, or environment-specific assumptions. Users get frustrated when the "quick" start doesn't work, eroding trust in the project documentation.
+
+**Correct Pattern:**
+```markdown
+## Quick Start
+
+**Prerequisites:** Node.js 18+, npm 9+
+
 ```bash
-# Clone the repository
+# Clone and install
 git clone https://github.com/org/repo.git
-
 cd repo
-
-# Install
 npm install
 
 # Run
@@ -47,259 +142,54 @@ npm start
 ```
 
 **What just happened?**
-- Cloned the repository to your local machine
-- Installed all dependencies
-- Started the development server
+- Cloned repository to your local machine
+- Installed all dependencies from package.json
+- Started development server on http://localhost:3000
 
-**Next Steps:**
-- [PASS] Installation complete - See [Configure](#configuration)
-- [?] Want to understand how it works - See [Understanding](#understanding)
-- [!] Need different setup - Continue reading options below
-
-### Quick Start Complexity Management
-
-**Rule:** Limit Quick Start to ONE primary path for immediate success
-**Always:** Move alternative installation methods to separate "Deployment Options" section
-**Consider:** Use "Need different setup?" link to alternatives section
-**Avoid:** Presenting multiple options (A, B, C, D) in Quick Start - creates decision fatigue
-
-**Anti-Pattern:**
-```markdown
-## Quick Start
-Choose option A, B, C, or D...
-[Four different installation paths]
+**Next Steps:** See [Configuration](#configuration) for customization options.
 ```
+
+### Anti-Pattern 2: Duplicating CONTRIBUTING.md Content in README
+
+**Problem:** Including detailed development workflow, environment setup, and contribution guidelines in README instead of linking to CONTRIBUTING.md.
+
+**Why It Fails:** Creates maintenance burden (two places to update), overwhelms end users with contributor information, violates progressive disclosure principle.
 
 **Correct Pattern:**
 ```markdown
-## Quick Start
+## Contributing
 
-**Get started in 2 commands:**
+**This section is for developers who want to modify or contribute.**
+If you're using the project, setup is complete. See [Troubleshooting](#troubleshooting) for support.
 
-    # 1. Simple path
-    # 2. Primary installation
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for complete guidelines.
 
-**That's it!** Installation complete.
-
-**Need different setup?** See [Deployment Options](#deployment-options)
-```
-
-### Installation Section
-- **Requirement:** List all prerequisites and system requirements
-- **Always:** Provide step-by-step installation instructions
-- **Rule:** Include troubleshooting for common installation issues
-- **Consider:** Separate installation methods (npm, Docker, manual)
-- **Multi-Platform:** Show all repository platform options with "(choose one)" guidance
-
-### Post-Action Explanations ("What just happened?")
-
-**Requirement:** After EVERY command block in Quick Start, include "What just happened?" section
-**Always:** Explain in user-friendly terms (avoid jargon)
-**Rule:** List 2-4 bullet points describing state changes
-**Format:** Use checkmarks and past tense ("[PASS] Cloned", "[PASS] Installed", "[PASS] Started")
-
-**Pattern:**
-```markdown
-    npm install
-    npm start
-```
-
-**What just happened?**
-
-- [PASS] Installed all dependencies from package.json
-- [PASS] Started development server on http://localhost:3000
-- [PASS] Enabled hot-reload for code changes
-
-**Next Steps:** [link to next section]
-```
-
-**Anti-Pattern:**
+**Quick Reference:**
 ```bash
-npm install && npm start
-# Good to go!
+task quality:fix  # Fix code quality issues
+task test         # Run tests
+task validate     # Run all checks
 ```
-[FAIL] No explanation of state change or what was accomplished
 
-### Usage Section
-- **Requirement:** Include practical, runnable examples
-- **Always:** Show the most common use cases first
-- **Rule:** Use code blocks with proper syntax highlighting
-- **Consider:** Include screenshots for UI-heavy projects
+For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
+```
 
-### Understanding/Concepts Section (Recommended)
+### Anti-Pattern 3: Assuming Tech Stack Without Verification
 
-**Purpose:** Consolidate conceptual explanations between Quick Start and advanced topics
-**Placement:** After Quick Start, before detailed configuration/usage
+**Problem:** Adding installation instructions or badges based on assumptions rather than checking actual project dependencies.
 
-**Include:**
-- High-level architecture or system design
-- Key concepts and terminology
-- How automatic features work (discovery, loading, etc.)
-- "Why" rationale for architectural decisions (brief summary, link to detailed docs)
-
-```markdown
-## Contract
-
-<contract>
-<inputs_prereqs>
-[Context, files, dependencies needed]
-</inputs_prereqs>
-
-<mandatory>
-[Tools permitted for this domain]
-</mandatory>
-
-<forbidden>
-[Tools not allowed for this domain]
-</forbidden>
-
-<steps>
-[Ordered steps the agent must follow]
-</steps>
-
-<output_format>
-[Expected output format]
-</output_format>
-
-<validation>
-[Checks to confirm success]
-</validation>
-
-</contract>
-
-## Anti-Patterns and Common Mistakes
-
-### Pattern 1: [Common Mistake Title]
-
-**Problem:**
-[Describe what developers commonly do wrong]
-
-**Why It Fails:**
-[Explain why this approach causes issues]
+**Why It Fails:** Incorrect instructions confuse users, invalid badges damage credibility, may recommend wrong tools or versions.
 
 **Correct Pattern:**
-```python
-# Correct approach with explanation
-```
-
-### Pattern 2: [Another Common Mistake]
-
-**Problem:**
-[Description of the anti-pattern]
-
-**Why It Fails:**
-[Technical explanation of the problem]
-
-**Correct Pattern:**
-```python
-# Proper implementation
-```
-
-## Post-Execution Checklist
-- [ ] **CRITICAL:** README update triggers checked (see 000-global-core.md section 6)
-- [ ] **CRITICAL:** If triggers apply, README.md reviewed and updated before task completion
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
-
-## Validation
-
-### Pre-Publication Review
-- [ ] **CRITICAL:** README update triggers checked (see 000-global-core.md section 6)
-- [ ] **CRITICAL:** If triggers apply, README.md updated before task completion
-- [ ] All required sections present and complete
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Read existing README BEFORE modifying** - Check current structure
-> 2. **Verify project type** - Different projects need different sections
-> 3. **Never assume tech stack** - Check actual dependencies
-> 4. **Check for existing badges** - Don't duplicate or remove valid ones
-> 5. **Test installation steps** - Verify Quick Start actually works
->
-> **Anti-Pattern:**
-> "Adding Quick Start... (without checking if it works)"
-> "Adding badges... (without verifying they're valid)"
->
-> **Correct Pattern:**
-> "Let me check your existing README structure first."
-> [reads README, identifies missing sections, verifies tech stack]
-> "I see you're missing Quick Start. Adding installation steps for [tech]..."
-- [ ] Installation instructions tested on clean system
-- [ ] All code examples are syntactically correct and tested
-- [ ] All links are working and point to current resources
-- [ ] Badges reflect current project status
-- [ ] Language is clear, inclusive, and professional
-- [ ] Formatting is consistent throughout
-- [ ] Contact/support information is current
-
-### Ongoing Maintenance
-- [ ] README updated with significant feature changes
-- [ ] Version compatibility information current
-- [ ] Dependencies and prerequisites accurate
-- [ ] Examples work with current version
-- [ ] Links checked and updated quarterly
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Read existing README BEFORE modifying** - Check current structure, badges, sections
-> 2. **Verify project type** - Different projects need different sections (library vs app vs framework)
-> 3. **Never assume tech stack** - Check actual dependencies, build tools, test frameworks
-> 4. **Check for existing badges** - Don't duplicate or remove valid badges without reason
-> 5. **Test installation steps** - Verify Quick Start commands actually work in clean environment
->
-> **Anti-Pattern:**
-> "Adding Quick Start section... (without checking if commands work)"
-> "Adding badges... (without verifying they're valid for this project)"
->
-> **Correct Pattern:**
-> "Let me read your existing README first to understand current structure."
-> [reads README, package.json, identifies tech stack]
-> "I see you're using [tech]. Let me verify the installation commands work..."
-
-## Output Format Examples
-
 ```markdown
-Project Documentation Changes:
+# Investigation-First Approach
 
-**File Modified:** [README.md|CHANGELOG.md|CONTRIBUTING.md]
-**Section Updated:** [specific section]
-**Validation:** [documentation standards checklist]
-
-Changes Made:
-1. **[Section Name]**
-   - Added: [specific content]
-   - Updated: [what changed and why]
-   - Format: [Markdown standards followed]
-
-2. **[Another Section]**
-   - Clarified: [ambiguous content]
-   - Examples: [added working examples]
-
-Validation Checklist:
-- [x] Markdown lint passes
-- [x] Links are valid and accessible
-- [x] Code examples are tested
-- [x] Formatting is consistent
-- [x] Table of contents updated (if applicable)
-
-Preview:
-[Show relevant excerpt of updated documentation]
+1. Read existing README.md
+2. Check package.json / pyproject.toml / go.mod for actual dependencies
+3. Verify build tools and test frameworks
+4. Test installation commands in clean environment
+5. Only then add/update README sections
 ```
-
-## References
-
-### External Documentation
-- [GitHub README Guide](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes) - Official GitHub documentation standards
-- [Make a README](https://www.makeareadme.com/) - Interactive README creation guide and best practices
-- [Awesome README Examples](https://github.com/matiassingers/awesome-readme) - Curated collection of excellent README examples
-
-### Related Rules
-- **Global Core**: `000-global-core.md`
-- **Changelog Rules**: `800-project-changelog.md`
-- **Contributing Guidelines**: `802-project-contributing.md`
 
 ## Implementation Details
 

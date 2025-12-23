@@ -2,208 +2,144 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** pytest, testing, fixtures, parametrization, test isolation, mocking, test organization, coverage, AAA pattern, test markers, uv run pytest
-**TokenBudget:** ~2050
+**TokenBudget:** ~3100
 **ContextTier:** High
 **Depends:** 200-python-core.md, 201-python-lint-format.md, 203-python-project-setup.md
 
-## Purpose
-Define pragmatic, industry-standard testing practices with pytest to produce fast, reliable, maintainable tests that are easy to run locally and in CI, aligned with this repository's Python tooling conventions.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Pragmatic, industry-standard testing practices with pytest to produce fast, reliable, maintainable tests aligned with modern Python tooling conventions.
 
-pytest usage for Python 3.11+ projects (test layout, fixtures, parametrization, isolation, markers, CI integration)
-
-## Quick Start TL;DR
-
-**MANDATORY:**
-**Essential Patterns:**
-- **Always use `uv run pytest`** - Never bare `pytest` command
-- **AAA pattern** - Arrange (setup), Act (execute), Assert (verify) - one behavior per test
-- **Fixtures for setup** - Prefer fixtures over setUp/tearDown, keep them small and focused
-- **Parametrize inputs** - Use `@pytest.mark.parametrize` instead of loops
-- **Isolate externalities** - Use `tmp_path`, `monkeypatch`, `capsys` for I/O, env, time
-- **Tests must pass before completion** - MANDATORY gate, never skip without explicit user override
-- **Never use bare `assert` without context** - Include descriptive failure messages
-
-**Quick Checklist:**
-- [ ] Tests in `tests/` directory, files named `test_*.py`
-- [ ] Run `uv run pytest` (not bare `pytest`)
-- [ ] AAA pattern: Arrange-Act-Assert
-- [ ] Fixtures for setup (not setUp/tearDown)
-- [ ] Parametrize with `@pytest.mark.parametrize`
-- [ ] Isolate I/O with `tmp_path`, `monkeypatch`
-- [ ] All tests pass before task completion
-
-## Contract
-
-<contract>
-<inputs_prereqs>
-Python 3.11+; `uv` and `uvx` installed; project configured per `200-python-core.md` and `201-python-lint-format.md`
-</inputs_prereqs>
-
-<mandatory>
-`uv run pytest`; `uvx ruff` for lint/format; optional `pytest-cov` for coverage; `task` wrappers
-</mandatory>
-
-<forbidden>
-Bare `pytest` (use `uv run pytest`), ad-hoc sleeps/timeouts without justification
-</forbidden>
-
-<steps>
-1. Organize tests under `tests/` with clear naming: `test_*.py` and `Test*` classes (optional).
-2. Use AAA (Arrange-Act-Assert); one behavior per test; prefer plain `assert`.
-3. Model setup with fixtures; avoid `setUp`/`tearDown` from unittest; keep fixtures small and focused.
-4. Parametrize inputs with `@pytest.mark.parametrize` instead of loops.
-5. Isolate external effects (I/O, time, randomness, env vars, network) with `tmp_path`, `monkeypatch`, `capsys`, `freezegun`/`time` control, and mocks.
-6. Categorize tests with markers (e.g., `unit`, `integration`, `slow`) and filter in CI.
-7. Run via `uv run pytest`; ensure lints/format pass before completion.
-</steps>
-
-<output_format>
-Focused diffs to test code; runnable examples for fixtures/parametrization; minimal CI commands.
-</output_format>
-
-<validation>
-`uvx ruff check .` and `uvx ruff format --check .` pass; `uv run pytest` passes; optional coverage thresholds met.
-</validation>
-
-<design_principles>
-- **Fast and deterministic:** Tests must be hermetic, avoiding hidden time or network dependencies.
-- **Clear intent:** Descriptive test names; one assertion group per behavior; meaningful failure messages.
-- **Fixtures over inheritance:** Prefer fixtures with appropriate scope; avoid deep fixture dependency chains.
-- **Parametrize broadly:** Use parametrization to cover input spaces succinctly.
-- **Isolate externalities:** Patch environment, clock, filesystem, and network.
-- **Selective execution:** Use markers to include/exclude categories in different pipelines.
-- **Visibility and diagnostics:** Capture logs and stdout/stderr when helpful; ensure `__repr__` of domain objects is informative (`205-python-classes.md`).
-</design_principles>
-
-</contract>
-
-## Anti-Patterns and Common Mistakes
-
-### Anti-Pattern 1: Excessive Mocking That Tests Implementation Details
-
-**Problem:** Mocking every dependency and internal function call, making tests tightly coupled to implementation rather than behavior.
-
-**Why It Fails:** Tests break on any refactoring even when behavior is unchanged. Mocks don't catch integration bugs. Tests verify "code was called" not "feature works." False confidence from passing tests.
-
-**Correct Pattern:**
-```python
-# BAD: Over-mocked test
-def test_create_user(mocker):
-    mocker.patch('app.services.user.validate_email')
-    mocker.patch('app.services.user.hash_password')
-    mocker.patch('app.services.user.db.insert')
-    mocker.patch('app.services.user.send_email')
-    result = create_user({"email": "test@example.com"})
-    # Tests nothing about actual behavior
-
-# GOOD: Test behavior with minimal mocking
-def test_create_user(test_db, mock_email_service):
-    # Only mock external services (email), use real DB
-    result = create_user({"email": "test@example.com", "password": "secure123"})
-    assert result.id is not None
-    assert test_db.query(User).filter_by(email="test@example.com").first()
-```
-
-### Anti-Pattern 2: Flaky Tests With Time or Order Dependencies
-
-**Problem:** Tests that pass or fail inconsistently due to reliance on system time, test execution order, or shared mutable state.
-
-**Why It Fails:** Erodes trust in test suite. Developers ignore failures assuming "it's just flaky." Real bugs slip through. CI/CD becomes unreliable. Time wasted re-running tests.
-
-**Correct Pattern:**
-```python
-# BAD: Time-dependent test
-def test_token_expiry():
-    token = create_token(expires_in=1)
-    time.sleep(2)  # Flaky: sleep timing varies
-    assert token.is_expired()
-
-# GOOD: Use freezegun or explicit time control
-from freezegun import freeze_time
-
-def test_token_expiry():
-    with freeze_time("2024-01-01 12:00:00"):
-        token = create_token(expires_in=3600)
-    with freeze_time("2024-01-01 13:00:01"):
-        assert token.is_expired()
-```
-
-## Post-Execution Checklist
-- [ ] **CRITICAL:** Pre-Task-Completion Test Execution Gate passed (all tests pass)
-- [ ] **CRITICAL:** `uv run pytest` passed with all tests passing
-- [ ] Tests run via `uv run pytest` (never bare pytest)
-- [ ] Tests live under `tests/` and follow naming conventions
-- [ ] Fixtures small, explicit, function-scoped by default; minimal autouse
-- [ ] Parametrization used for input matrices; clear ids
-- [ ] Isolation for time, randomness, env, FS, and network
-- [ ] Markers defined and used for selection; CI filters slow/e2e
-- [ ] Assertions clear; exceptions verified with `pytest.raises`
-- [ ] Lints and formatting pass; optional coverage thresholds satisfied
-- [ ] CHANGELOG.md and README.md updated as required
-
-## Validation
-- **Success Checks:** Pre-Task-Completion Test Execution Gate passed; `uv run pytest` passes with all tests passing; lint/format pass; deterministic behavior; meaningful failures; CHANGELOG.md and README.md updated as required.
-- **Negative Tests:** Flaky tests; global state coupling; sleeps; live network; bare `pytest` usage; shared mutable fixtures; task completion attempted with failing tests is blocked.
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Read existing test files BEFORE adding new tests** - Check current test patterns, fixture usage, and organization
-> 2. **Run `uv run pytest` to verify tests pass** - Never assume tests work without running them
-> 3. **Never speculate about test coverage** - Run `uv run pytest --cov` to check actual coverage
-> 4. **Check conftest.py for existing fixtures** - Don't create duplicate fixtures
-> 5. **Make grounded recommendations based on investigated test structure** - Don't suggest patterns that conflict with existing tests
->
-> **Anti-Pattern:**
-> "Based on typical pytest projects, you probably have these fixtures..."
-> "Let me add this test - it should work with the existing setup..."
->
-> **Correct Pattern:**
-> "Let me check the existing test structure first."
-> [reads tests/ directory and conftest.py]
-> "I see you're using pytest fixtures for database setup in conftest.py. Here's a new test following the same pattern..."
-
-## Output Format Examples
-```bash
-# Local run
-uv run pytest -q
-
-# With markers
-uv run pytest -m "unit and not slow" -q
-
-# With coverage
-uv run pytest --cov=yourpkg --cov-report=term-missing
-```
+**When to Load This Rule:**
+- Writing or modifying Python tests
+- Setting up pytest configuration and fixtures
+- Implementing test parametrization
+- Organizing test suites (layout, markers, CI integration)
+- Debugging test failures or flaky tests
+- Adding test coverage to Python projects
+- Integrating tests into CI/CD pipelines
 
 ## References
 
+### Dependencies
+
+**Must Load First:**
+- **000-global-core.md** - Foundation rule with core patterns and validation gates
+- **200-python-core.md** - Python core patterns (uv, pytest execution)
+
+**Recommended:**
+- **201-python-lint-format.md** - Ruff linting and formatting for test code
+- **203-python-project-setup.md** - Project structure and pytest configuration
+
+**Related:**
+- **204-python-docs-comments.md** - Documentation standards for test docstrings
+- **205-python-classes.md** - Class patterns for test organization
+
 ### External Documentation
-- [pytest Documentation](https://docs.pytest.org/) — Official docs
-- [pytest Fixtures](https://docs.pytest.org/en/stable/how-to/fixtures.html)
-- [pytest Parametrize](https://docs.pytest.org/en/stable/how-to/parametrize.html)
-- [pytest Marks](https://docs.pytest.org/en/stable/reference/reference.html#marks)
-- [pytest Monkeypatch](https://docs.pytest.org/en/stable/how-to/monkeypatch.html)
-- [pytest tmp_path](https://docs.pytest.org/en/stable/how-to/tmp_path.html)
-- [pytest capsys/caplog](https://docs.pytest.org/en/stable/how-to/capture-stdout-stderr.html)
 
-### Related Rules
-- **Python Core**: `200-python-core.md`
-- **Python Lint/Format**: `201-python-lint-format.md`
-- **Python Project Setup**: `203-python-project-setup.md`
-- **Python Docs & Comments**: `204-python-docs-comments.md`
-- **Python Classes**: `205-python-classes.md`
+**Official Documentation:**
+- [pytest Documentation](https://docs.pytest.org/) - Official pytest docs
+- [pytest Fixtures](https://docs.pytest.org/en/stable/how-to/fixtures.html) - Fixture patterns and scopes
+- [pytest Parametrize](https://docs.pytest.org/en/stable/how-to/parametrize.html) - Test parametrization
+- [pytest Marks](https://docs.pytest.org/en/stable/reference/reference.html#marks) - Test markers and selection
 
-## Pre-Task-Completion Test Execution Gate (CRITICAL)
+**Best Practices Guides:**
+- [pytest Monkeypatch](https://docs.pytest.org/en/stable/how-to/monkeypatch.html) - Environment and attribute patching
+- [pytest tmp_path](https://docs.pytest.org/en/stable/how-to/tmp_path.html) - Temporary filesystem fixtures
+- [pytest capsys/caplog](https://docs.pytest.org/en/stable/how-to/capture-stdout-stderr.html) - Output capture
 
-**Reference:** Complete validation protocol in `000-global-core.md` and `AGENTS.md`
+## Contract
+
+### Inputs and Prerequisites
+
+- Python 3.11+ installed
+- `uv` and `uvx` available
+- Project configured per `200-python-core.md` (uv, Ruff, pytest)
+- Test files or existing test suite identified
+
+### Mandatory
+
+- **Always use `uv run pytest`** - Never bare `pytest` command
+- **AAA pattern** - Arrange (setup), Act (execute), Assert (verify)
+- **Fixtures for setup** - Prefer fixtures over setUp/tearDown
+- **Parametrize inputs** - Use `@pytest.mark.parametrize` instead of loops
+- **Isolate externalities** - Use `tmp_path`, `monkeypatch`, `capsys`
+- **Tests must pass** - MANDATORY gate before task completion
+- **Lint and format** - Run `uvx ruff` on test code
+
+### Forbidden
+
+- Bare `pytest` command (use `uv run pytest`)
+- Ad-hoc sleeps/timeouts without justification
+- Tests coupled to execution order or global state
+- Shared mutable fixtures
+- Excessive mocking of internal implementation details
+- Skipping tests without explicit user override
+
+### Execution Steps
+
+1. Organize tests under `tests/` with clear naming: `test_*.py` and `Test*` classes (optional)
+2. Use AAA pattern (Arrange-Act-Assert); one behavior per test
+3. Model setup with fixtures; avoid `setUp`/`tearDown`; keep fixtures small and focused
+4. Parametrize inputs with `@pytest.mark.parametrize` instead of loops
+5. Isolate external effects (I/O, time, randomness, env vars) with `tmp_path`, `monkeypatch`, `capsys`
+6. Categorize tests with markers (e.g., `unit`, `integration`, `slow`) and filter in CI
+7. Run via `uv run pytest`; ensure lints/format pass before completion
+
+### Output Format
+
+```python
+# tests/test_user_service.py
+import pytest
+from yourapp.services import UserService
+
+# Arrange-Act-Assert pattern
+def test_create_user_success():
+    # Arrange
+    service = UserService()
+    user_data = {"email": "test@example.com", "name": "Test User"}
+    
+    # Act
+    result = service.create_user(user_data)
+    
+    # Assert
+    assert result.id is not None
+    assert result.email == "test@example.com"
+
+# Parametrization
+@pytest.mark.parametrize(
+    "email,valid",
+    [
+        ("user@example.com", True),
+        ("invalid-email", False),
+        ("", False),
+    ],
+    ids=["valid", "missing_at", "empty"],
+)
+def test_email_validation(email: str, valid: bool):
+    assert UserService.validate_email(email) == valid
+```
+
+```bash
+# Validation commands
+uv run pytest -q
+uv run pytest -m "unit and not slow"
+uv run pytest --cov=yourpkg --cov-report=term-missing
+```
+
+### Validation
+
+**Pre-Task-Completion Test Execution Gate (CRITICAL):**
+
+Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 
 **CRITICAL:** Test execution is MANDATORY before task completion. Tests are not optional.
 
-### Mandatory Test Requirements
+**Test Execution:**
 - **CRITICAL:** `uv run pytest` - All tests must pass before marking task complete
 - **CRITICAL:** Never skip tests unless user explicitly requests override with acknowledged risks
 - **CRITICAL:** Run tests immediately after code modifications, not in batches
@@ -211,14 +147,85 @@ uv run pytest --cov=yourpkg --cov-report=term-missing
 - **Rule:** Fix all test failures before responding to user
 - **Exception:** Only skip with explicit user override (e.g., "skip tests") - acknowledge risks
 
-### Test Execution Protocol
+**Code Quality:**
+- **CRITICAL:** `uvx ruff check .` passes on test code
+- **CRITICAL:** `uvx ruff format --check .` passes on test code
+- **Format Check:** Tests follow AAA pattern (Arrange-Act-Assert)
+- **Organization:** Tests in `tests/` directory, files named `test_*.py`
+
+**Test Quality:**
+- **Fixtures:** Small, explicit, function-scoped by default; minimal autouse
+- **Parametrization:** Used for input matrices with clear ids
+- **Isolation:** Time, randomness, env, FS, and network isolated
+- **Markers:** Defined and used for selection; CI filters slow/e2e tests
+- **Assertions:** Clear with meaningful failure messages
+
+**Success Criteria:**
+- `uv run pytest` passes with all tests passing
+- Lint and format pass
+- Tests are deterministic (no flaky failures)
+- Meaningful failure messages
+- CHANGELOG.md and README.md updated as required
+
+**Test Execution Protocol:**
 1. After any code modification, run `uv run pytest`
 2. If tests fail, stop and report failures
 3. Fix all failures
 4. Re-run tests to confirm pass
 5. Only then proceed to task completion
 
-## 1. Test Layout & Naming
+**Investigation Required:**
+1. **Read existing test files BEFORE adding new tests** - Check current patterns, fixtures, organization
+2. **Run `uv run pytest` to verify tests pass** - Never assume tests work without running them
+3. **Never speculate about test coverage** - Run `uv run pytest --cov` to check actual coverage
+4. **Check conftest.py for existing fixtures** - Don't create duplicate fixtures
+5. **Make grounded recommendations** - Don't suggest patterns that conflict with existing tests
+
+**Anti-Pattern Examples:**
+- "Based on typical pytest projects, you probably have these fixtures..."
+- "Let me add this test - it should work with the existing setup..."
+- Marking task complete without running tests
+- Skipping tests without user override
+
+**Correct Pattern:**
+- "Let me check the existing test structure first."
+- [reads tests/ directory and conftest.py]
+- "I see you're using pytest fixtures for database setup. Here's a new test following the same pattern..."
+- [runs uv run pytest]
+- "Tests passing (15/15). Task complete."
+
+### Design Principles
+
+- **Fast and Deterministic:** Tests must be hermetic, avoiding hidden time or network dependencies
+- **Clear Intent:** Descriptive test names; one assertion group per behavior; meaningful failure messages
+- **Fixtures Over Inheritance:** Prefer fixtures with appropriate scope; avoid deep dependency chains
+- **Parametrize Broadly:** Use parametrization to cover input spaces succinctly
+- **Isolate Externalities:** Patch environment, clock, filesystem, and network
+- **Selective Execution:** Use markers to include/exclude categories in different pipelines
+- **Visibility:** Capture logs and stdout/stderr when helpful; ensure `__repr__` is informative
+
+### Post-Execution Checklist
+
+**Before Starting:**
+- [ ] Rule dependencies loaded (000-global-core.md, 200-python-core.md)
+- [ ] Python 3.11+ available
+- [ ] uv and pytest installed
+- [ ] Existing test structure reviewed
+
+**After Completion:**
+- [ ] **CRITICAL:** `uv run pytest` passed with all tests passing
+- [ ] **CRITICAL:** Tests run via `uv run pytest` (never bare pytest)
+- [ ] Tests live under `tests/` and follow naming conventions
+- [ ] Fixtures small, explicit, function-scoped by default
+- [ ] Parametrization used for input matrices with clear ids
+- [ ] Isolation for time, randomness, env, FS, and network
+- [ ] Markers defined and used for selection
+- [ ] Assertions clear with meaningful messages
+- [ ] Lints and formatting pass (`uvx ruff`)
+- [ ] Optional coverage thresholds satisfied
+- [ ] CHANGELOG.md and README.md updated as required
+
+## Anti-Patterns and Common Mistakes
 - Requirement: Place tests in a top-level `tests/` directory mirroring the source structure.
 - Rule: Name files `test_<module>.py`; name tests `test_<behavior>` with descriptive intent.
 - Consider: Group related tests in classes for shared fixtures, not for inheritance.
@@ -239,7 +246,7 @@ def test_addition_parametrized(a: int, b: int, expected: int) -> None:
     assert a + b == expected
 ```
 
-## 2. Fixtures: Small, Focused, and Explicit
+## Fixture Patterns and Best Practices
 - Requirement: Prefer function-scoped fixtures; use module/session scope only for expensive shared setup.
 - Rule: Avoid `autouse=True` except for universally required safety (e.g., environment isolation).
 - Rule: Keep fixtures single-responsibility; compose instead of nesting complex dependency trees.
@@ -261,7 +268,7 @@ def tmp_file(tmp_path):
     return p
 ```
 
-## 3. Parametrization over Loops
+## Test Parametrization
 - Requirement: Use `@pytest.mark.parametrize` for input matrices.
 - Consider: Combine multiple parameters and ids for readability.
 
@@ -277,7 +284,7 @@ def test_email_validation(email: str, valid: bool) -> None:
     assert ("@" in email) is valid
 ```
 
-## 4. Isolation: Time, Randomness, I/O, and Network
+## Test Isolation and Mocking
 - Rule: Control randomness with a fixed seed in setup; inject RNG where possible.
 - Rule: Freeze or stub clocks for time-dependent code; avoid `time.sleep` in tests.
 - Rule: Use `tmp_path` for filesystem; `monkeypatch` for env vars and module attributes; `capsys` for CLI output.
@@ -292,7 +299,7 @@ def _seed_rng():
     random.seed(1337)
 ```
 
-## 5. Markers and Test Selection
+## Test Markers and Selection
 - Requirement: Define markers in `pyproject.toml` (or `pytest.ini`) with descriptions.
 - Rule: Use markers like `unit`, `integration`, `slow`, `e2e` and filter in CI (e.g., `-m "not slow and not e2e"`).
 
@@ -305,7 +312,7 @@ markers = [
 ]
 ```
 
-## 6. Assertions & Error Handling
+## Assertions and Error Handling
 - Requirement: Use plain `assert` with helpful context; pytest rewrites provide clarity.
 - Rule: Use `pytest.raises` for exceptions and assert on the message where relevant.
 
@@ -322,7 +329,7 @@ def test_divide_raises_on_zero():
         divide(1, 0)
 ```
 
-## 7. CLI, Logs, and Output Capture
+## Output Capture and Logging
 - Rule: Use `capsys`/`caplog` to assert on stdout/stderr/logs.
 - Consider: Configure log level for tests to reduce noise while preserving diagnostics.
 
@@ -336,7 +343,7 @@ def test_main_prints_ok(capsys):
     assert out.strip() == "ok"
 ```
 
-## 8. Coverage and CI
+## Coverage and CI Integration
 - Consider: Use `pytest-cov` for coverage reporting with realistic thresholds.
 - Rule: Avoid coverage gaming; focus on assertion quality and meaningful branches.
 

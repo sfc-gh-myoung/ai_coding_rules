@@ -2,69 +2,105 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**LastUpdated:** 2025-12-23
 **Keywords:** Flask, web development, blueprints, Flask-SQLAlchemy, templates, routing, Flask extensions, application factory, Jinja2, Flask-WTF, CSRF protection
-**TokenBudget:** ~3700
+**TokenBudget:** ~6800
 **ContextTier:** High
 **Depends:** 200-python-core.md
 
-## Purpose
-Provide comprehensive Flask development best practices, organized into focused patterns that cover all aspects of modern web application development including application architecture, security, templating, database integration, and deployment for building maintainable, secure web applications.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive Flask development best practices, organized into focused patterns that cover all aspects of modern web application development including application architecture, security, templating, database integration, and deployment for building maintainable, secure web applications.
 
-Flask web application development with modern patterns, security, and maintainable architecture
+**When to Load This Rule:**
+- Building Flask web applications
+- Implementing application factory pattern
+- Organizing code with blueprints
+- Securing Flask applications (CSRF, authentication)
+- Integrating Flask-SQLAlchemy for database operations
+- Deploying Flask applications to production
+- Testing Flask applications
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Use application factory pattern** - `create_app()` function, not global Flask instance
-- **Organize with Blueprints** - Modular code in `blueprints/`, register with `app.register_blueprint()`
-- **Enable CSRF protection** - Use Flask-WTF: `CSRFProtect(app)`
-- **Environment-based config** - `app.config.from_object(config[env])`, never hardcode secrets
-- **Template auto-escaping enabled** - Jinja2 XSS protection (default, but verify)
-- **Use Flask-SQLAlchemy** - `db = SQLAlchemy(app)` for database integration
-- **Never use global Flask instance** - Prevents testing, multi-environment support
+### Dependencies
 
-**Quick Checklist:**
-- [ ] App created via factory function
-- [ ] Blueprints for modular organization
-- [ ] CSRF protection enabled
-- [ ] Environment-based configuration
-- [ ] Templates use auto-escaping
-- [ ] Flask-SQLAlchemy configured
-- [ ] Run with `uv run flask --app app run`
+**Must Load First:**
+- **200-python-core.md** - Core Python patterns and uv usage
+
+**Related:**
+- **203-python-project-setup.md** - Python project structure and packaging
+- **201-python-lint-format.md** - Ruff linting and formatting standards
+- **230-python-pydantic.md** - Pydantic integration for data validation
+
+### External Documentation
+
+- [Flask Documentation](https://flask.palletsprojects.com/en/stable/)
+- [Flask User's Guide](https://flask.palletsprojects.com/en/stable/#user-s-guide)
+- [Flask API Reference](https://flask.palletsprojects.com/en/stable/#api-reference)
+- [Jinja2 Documentation](https://jinja.palletsprojects.com/)
+- [Werkzeug Documentation](https://werkzeug.palletsprojects.com/)
+- [SQLAlchemy Documentation](https://docs.sqlalchemy.org/)
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-[Context, files, dependencies needed]
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-[Tools permitted for this domain]
-</mandatory>
+Python 3.11+, Flask framework, understanding of web application architecture, knowledge of HTTP protocols
 
-<forbidden>
-[Tools not allowed for this domain]
-</forbidden>
+### Mandatory
 
-<steps>
-[Ordered steps the agent must follow]
-</steps>
+Application factory pattern, blueprints, Flask-WTF for forms, Flask-SQLAlchemy for database, CSRF protection, environment-based configuration, Jinja2 templates
 
-<output_format>
-[Expected output format]
-</output_format>
+### Forbidden
 
-<validation>
-[Checks to confirm success]
-</validation>
+Global Flask instance, hardcoded secrets in code, development server in production, storing passwords in plaintext, disabled CSRF protection
 
-<design_principles>
+### Execution Steps
+
+1. Create Flask app using application factory pattern
+2. Organize code into blueprints for modularity
+3. Configure environment-based settings (development, production, testing)
+4. Enable CSRF protection with Flask-WTF
+5. Integrate Flask-SQLAlchemy for database operations
+6. Implement proper error handling and logging
+7. Create Jinja2 templates with auto-escaping
+8. Test with Flask test client
+9. Deploy with production WSGI server (Gunicorn)
+
+### Output Format
+
+Flask application with factory pattern, modular blueprints, secure configuration, proper error handling, production-ready deployment
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- App created via factory function
+- Blueprints for modular organization
+- CSRF protection enabled
+- Environment-based configuration
+- Templates use auto-escaping
+- Flask-SQLAlchemy configured
+
+**Success Criteria:**
+- Application starts without errors
+- All routes accessible
+- CSRF protection working
+- Database connections successful
+- Tests passing
+- Production deployment ready
+
+**Negative Tests:**
+- Global Flask instance (should be avoided)
+- Hardcoded secrets (should fail security review)
+- Development server in production (should be flagged)
+- Missing CSRF protection (should fail security tests)
+
+### Design Principles
+
 1. **Application Factory Pattern** - Use factory functions for app creation and configuration
 2. **Blueprint Modularization** - Organize code into logical, reusable blueprints
 3. **Security by Design** - Implement CSRF protection, input validation, and secure sessions
@@ -76,9 +112,19 @@ Flask web application development with modern patterns, security, and maintainab
 9. **Production Readiness** - WSGI deployment with proper monitoring and logging
 10. **Extension Integration** - Proper use of Flask ecosystem extensions
 11. **Request Context Management** - Understand and leverage Flask's application and request contexts
-</design_principles>
 
-</contract>
+### Post-Execution Checklist
+
+- [ ] App created via factory function
+- [ ] Blueprints for modular organization
+- [ ] CSRF protection enabled
+- [ ] Environment-based configuration
+- [ ] Templates use auto-escaping
+- [ ] Flask-SQLAlchemy configured
+- [ ] Error handlers registered
+- [ ] Logging configured
+- [ ] Tests written and passing
+- [ ] Production deployment configured
 
 ## Anti-Patterns and Common Mistakes
 
@@ -133,17 +179,6 @@ class Config:
 from dotenv import load_dotenv
 load_dotenv()  # Loads from .env file (not committed to git)
 ```
-
-## Post-Execution Checklist
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
-
-## Validation
-- **Success checks:** [How to verify correct implementation]
-- **Negative tests:** [What should fail and how to detect failures]
 
 > **Investigation Required**
 > When applying this rule:
@@ -220,22 +255,6 @@ uvx ruff format --check .
 uv run pytest tests/
 ```
 
-## References
-
-### External Documentation
-- [Flask Documentation](https://flask.palletsprojects.com/en/stable/)
-- [Flask User's Guide](https://flask.palletsprojects.com/en/stable/#user-s-guide)
-- [Flask API Reference](https://flask.palletsprojects.com/en/stable/#api-reference)
-- [Jinja2 Documentation](https://jinja.palletsprojects.com/)
-- [Werkzeug Documentation](https://werkzeug.palletsprojects.com/)
-- [SQLAlchemy Documentation](https://docs.sqlalchemy.org/)
-
-### Related Rules
-- **Python Core**: `200-python-core.md`
-- **Python Project Setup**: `203-python-project-setup.md`
-- **Python Linting**: `201-python-lint-format.md`
-- **Pydantic Integration**: `230-python-pydantic.md`
-
 ## Flask Rule Categories
 
 ### Core Development Patterns (This File)
@@ -284,7 +303,7 @@ uvx ruff check . && uvx ruff format .
 - **Error Handling**: Custom error pages and proper exception handling
 - **Configuration**: Environment-based settings with proper validation
 
-## 1. Application Structure and Organization
+## Application Structure and Organization
 
 ### Project Layout
 - **Always:** Use the application factory pattern for Flask applications.
@@ -377,7 +396,7 @@ login_manager.login_message = 'Please log in to access this page.'
 login_manager.login_message_category = 'info'
 ```
 
-## 2. Blueprint Architecture and Modular Design
+## Blueprint Architecture and Modular Design
 
 ### Blueprint Organization
 - **Always:** Use blueprints to organize related functionality.
@@ -441,7 +460,7 @@ app.register_blueprint(api_bp, url_prefix='/api/v1')
 app.register_blueprint(admin_bp, url_prefix='/admin')
 ```
 
-## 3. Configuration Management
+## Configuration Management
 
 ### Environment-Based Configuration
 - **Always:** Use class-based configuration for different environments.
@@ -510,7 +529,7 @@ config = {
 }
 ```
 
-## 4. Database Integration and Models
+## Database Integration and Models
 
 ### SQLAlchemy Integration
 - **Always:** Use Flask-SQLAlchemy for database operations.
@@ -594,7 +613,7 @@ def create_post():
     return render_template('main/create_post.html', form=form)
 ```
 
-## 5. Security Best Practices
+## Security Best Practices
 
 ### CSRF Protection
 - **Always:** Enable CSRF protection for all forms.
@@ -666,7 +685,7 @@ def validate_strong_password(form, field):
         raise ValidationError('Password must contain at least one digit.')
 ```
 
-## 6. Template Management and Rendering
+## Template Management and Rendering
 
 ### Jinja2 Template Best Practices
 - **Always:** Use template inheritance for consistent layouts.
@@ -734,7 +753,7 @@ def datetime_filter(value, format='%Y-%m-%d %H:%M'):
     return value.strftime(format)
 ```
 
-## 7. Error Handling and Logging
+## Error Handling and Logging
 
 ### Custom Error Pages
 - **Always:** Implement custom error handlers for better user experience.
@@ -802,7 +821,7 @@ def configure_logging(app):
         app.logger.info('Application startup')
 ```
 
-## 8. Testing Strategies
+## Testing Strategies
 
 ### Flask Test Client
 - **Always:** Use Flask's built-in test client for testing routes.
@@ -859,7 +878,7 @@ def test_user_registration(client, app):
         assert user.username == 'testuser'
 ```
 
-## 9. Production Deployment
+## Production Deployment
 
 ### WSGI Configuration
 - **Always:** Use a production WSGI server like Gunicorn or uWSGI.
@@ -887,7 +906,7 @@ if __name__ == "__main__":
 - **Critical:** Enable CSRF protection
 - **Critical:** Configure secure session cookies
 
-## 10. Integration with Python Core Rules
+## Integration with Python Core Rules
 
 ### Compliance with Existing Rules
 - **Always:** Follow all directives from `200-python-core.md` for Python best practices.

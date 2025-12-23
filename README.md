@@ -143,8 +143,12 @@ cd ai_coding rules && task deploy DEST=~/my-project
 
 ### Use in your AI assistant
 The benefit of this project is that it uses AGENTS.md to start the rule loading process.  AGENTS.md is
-automatically loaded
-# Add to prompt: "Load AGENTS.md and follow guidance for rule loading with RULES_INDEX.md"
+automatically loaded by most agentic tools and IDEs.  If you are having issues with your tool of choice
+not loading AGENTS.md, then you can add the following to your prompt:
+
+```text
+Load AGENTS.md and follow guidance for rule loading with RULES_INDEX.md.
+```
 
 **That's it!** Your project now has production-ready rules ready to use.
 

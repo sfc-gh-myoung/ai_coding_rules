@@ -2,56 +2,74 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** jinja2, templates, partials, fragments, template composition, conditional rendering, htmx templates, template organization, reusable components, template context
-**TokenBudget:** ~2300
+**TokenBudget:** ~3550
 **ContextTier:** High
 **Depends:** 221-python-htmx-core.md
+**LastUpdated:** 2025-12-23
 
-## Purpose
+## Scope
 
-Defines Jinja2 template organization patterns for HTMX applications, covering partial rendering, fragment composition, conditional template logic, and reusable component strategies for hypermedia-driven interfaces.
+**What This Rule Covers:**
+Jinja2 template organization patterns for HTMX applications, covering partial rendering, fragment composition, conditional template logic, and reusable component strategies for hypermedia-driven interfaces.
 
-## Rule Scope
+**When to Load This Rule:**
+- Organizing templates for HTMX applications
+- Creating partial templates for HTMX responses
+- Implementing conditional rendering for HTMX vs full-page requests
+- Building reusable template components
+- Managing template context for HTMX endpoints
 
-Python web applications using Jinja2 templates with HTMX (applies to Flask, FastAPI, Django with Jinja2, and other Python frameworks)
+## References
 
-## Quick Start TL;DR
+### Dependencies
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Organize by purpose** - Separate base templates, full pages, partials, and fragments
-- **Detect HTMX in templates** - Use `request.headers.get('HX-Request')` for conditional rendering
-- **Create reusable partials** - Small, focused template fragments for HTMX responses
-- **Use template inheritance** - Base templates for full pages, partials extend sparingly or not at all
-- **Minimize context** - Partials receive only necessary data, avoid passing entire app state
-- **Include IDs for targeting** - All HTMX-swappable elements need unique IDs
+**Must Load First:**
+- **221-python-htmx-core.md** - HTMX foundation patterns
 
-**Pre-Execution Checklist:**
-- [ ] Template directory structure defined (base, pages, partials)
-- [ ] Base template includes HTMX library and configuration
-- [ ] Partial templates created for HTMX responses
-- [ ] Template naming convention established (e.g., `_partial_name.html`)
-- [ ] HTMX detection logic available in templates or views
-- [ ] Component IDs consistently applied for targeting
-- [ ] Template context minimized for partials
+**Related:**
+- **221b-python-htmx-flask.md** - Flask-specific template patterns
+- **221c-python-htmx-fastapi.md** - FastAPI template setup
+- **221e-python-htmx-patterns.md** - Template patterns for CRUD, forms, etc.
+- **200-python-core.md** - Python coding standards
+
+### External Documentation
+
+- [Jinja2 Documentation](https://jinja.palletsprojects.com/) - Official Jinja2 reference
+- [HTMX Examples](https://htmx.org/examples/) - Template patterns with HTMX
+- [Flask Templates](https://flask.palletsprojects.com/en/latest/tutorial/templates/) - Flask template guide
+- [FastAPI Templates](https://fastapi.tiangolo.com/advanced/templates/) - Jinja2 with FastAPI
 
 ## Contract
 
-<inputs_prereqs>
-Jinja2 template engine configured; HTMX library available; understanding of template inheritance; template directory structure; HTMX core patterns (221-python-htmx-core.md)
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-Jinja2 installed; template loader configured; HTMX library in base template; unique element IDs for HTMX targets; partial template directory
-</mandatory>
+- Jinja2 template engine configured
+- HTMX library available
+- Understanding of template inheritance
+- Template directory structure
+- HTMX core patterns (221-python-htmx-core.md)
 
-<forbidden>
-Mixing full-page and partial logic in single template; returning partials without proper IDs; deeply nested template inheritance for partials; passing unnecessary context to partials; hard-coding URLs in templates
-</forbidden>
+### Mandatory
 
-<steps>
+- Jinja2 installed
+- Template loader configured
+- HTMX library in base template
+- Unique element IDs for HTMX targets
+- Partial template directory
+
+### Forbidden
+
+- Mixing full-page and partial logic in single template
+- Returning partials without proper IDs
+- Deeply nested template inheritance for partials
+- Passing unnecessary context to partials
+- Hard-coding URLs in templates
+
+### Execution Steps
+
 1. Create template directory structure (base, pages, partials)
 2. Define base template with HTMX library and configuration
 3. Build full-page templates using inheritance
@@ -59,20 +77,52 @@ Mixing full-page and partial logic in single template; returning partials withou
 5. Add HTMX detection logic in views or templates
 6. Implement conditional rendering for HTMX vs. full-page requests
 7. Test partial rendering in isolation and within full pages
-</steps>
 
-<output_format>
-Organized template files: base.html, page templates, partial templates; conditional rendering logic in views; reusable template components
-</output_format>
+### Output Format
 
-<validation>
+- Organized template files: base.html, page templates, partial templates
+- Conditional rendering logic in views
+- Reusable template components
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Template directory structure defined (base, pages, partials)
+- Base template includes HTMX library and configuration
+- Partial templates created for HTMX responses
+- Template naming convention established (e.g., `_partial_name.html`)
+- HTMX detection logic available in templates or views
+- Component IDs consistently applied for targeting
+
+**Success Criteria:**
 - Templates organized by purpose (base, pages, partials)
 - Partials render correctly in isolation
 - HTMX requests return appropriate partials
 - Full-page requests return complete documents
 - Element IDs unique and consistent
 - Tests validate template rendering for both request types
-</validation>
+
+### Design Principles
+
+- **Organize by purpose** - Separate base templates, full pages, partials, and fragments
+- **Detect HTMX in templates** - Use `request.headers.get('HX-Request')` for conditional rendering
+- **Create reusable partials** - Small, focused template fragments for HTMX responses
+- **Use template inheritance** - Base templates for full pages, partials extend sparingly or not at all
+- **Minimize context** - Partials receive only necessary data, avoid passing entire app state
+- **Include IDs for targeting** - All HTMX-swappable elements need unique IDs
+
+### Post-Execution Checklist
+
+- [ ] Template directory organized by purpose (base, pages, partials)
+- [ ] Base template includes HTMX library and configuration
+- [ ] Partials created as standalone fragments (no/minimal inheritance)
+- [ ] All HTMX-swappable elements have unique IDs
+- [ ] HTMX detection logic implemented (view or template level)
+- [ ] Template context minimized for partials
+- [ ] Reusable components created using macros/includes
+- [ ] Naming conventions consistent (underscore prefix for partials)
+- [ ] Tests validate partial and full-page rendering
+- [ ] No hard-coded URLs (using `url_for()` or equivalent)
 
 ## Key Principles
 
@@ -390,33 +440,6 @@ Files in `templates/partials/`:
 - `_user_form.html`
 - `_user_row.html`
 
-## Post-Execution Checklist
-
-- [ ] Template directory organized by purpose (base, pages, partials)
-- [ ] Base template includes HTMX library and configuration
-- [ ] Partials created as standalone fragments (no/minimal inheritance)
-- [ ] All HTMX-swappable elements have unique IDs
-- [ ] HTMX detection logic implemented (view or template level)
-- [ ] Template context minimized for partials
-- [ ] Reusable components created using macros/includes
-- [ ] Naming conventions consistent (underscore prefix for partials)
-- [ ] Tests validate partial and full-page rendering
-- [ ] No hard-coded URLs (using `url_for()` or equivalent)
-
-## Validation
-
-**Success Checks:**
-- Partials render correctly in isolation
-- Full pages display properly with embedded partials
-- HTMX requests return appropriate partials
-- Non-HTMX requests return complete pages
-- Element IDs unique across all templates
-- Template context contains only necessary data
-
-**Negative Tests:**
-- Partial without ID cannot be targeted
-- Requesting partial without HTMX headers returns full page
-- Deep inheritance in partials causes rendering issues
 
 ## Output Format Examples
 
@@ -456,17 +479,3 @@ def users_list():
     return render_template('pages/users.html', users=users)
 ```
 
-## References
-
-### External Documentation
-- [Jinja2 Documentation](https://jinja.palletsprojects.com/) - Official Jinja2 reference
-- [HTMX Examples](https://htmx.org/examples/) - Template patterns with HTMX
-- [Flask Templates](https://flask.palletsprojects.com/en/latest/tutorial/templates/) - Flask template guide
-- [FastAPI Templates](https://fastapi.tiangolo.com/advanced/templates/) - Jinja2 with FastAPI
-
-### Related Rules
-- **HTMX Foundation**: `221-python-htmx-core.md` - HTMX core patterns
-- **Flask Integration**: `221b-python-htmx-flask.md` - Flask-specific template patterns
-- **FastAPI Integration**: `221c-python-htmx-fastapi.md` - FastAPI template setup
-- **Common Patterns**: `221e-python-htmx-patterns.md` - Template patterns for CRUD, forms, etc.
-- **Python Core**: `200-python-core.md` - Python coding standards

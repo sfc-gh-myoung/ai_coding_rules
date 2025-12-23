@@ -2,78 +2,118 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**LastUpdated:** 2025-12-23
 **Keywords:** remediation, RBAC, privilege requirements, automated monitoring, quality alerts, schedule DMF, quality event tables, quality alerting, DMF results, quality workflows, DMF RBAC, quality notifications, remediation workflows
-**TokenBudget:** ~4500
+**TokenBudget:** ~6550
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 124-snowflake-data-quality-core.md, 111-snowflake-observability-core.md
 
-## Purpose
-Provide operational patterns for Data Quality Monitoring including DMF scheduling, event table analysis, alerting, remediation workflows, and RBAC configuration.
+## Scope
 
-## Rule Scope
-DMF scheduling, event tables, alerts, remediation, RBAC
+**What This Rule Covers:**
+Operational patterns for Data Quality Monitoring including DMF scheduling, event table analysis, alerting, remediation workflows, and RBAC configuration. Covers automated monitoring, quality event tables, alerting strategies, remediation patterns, and privilege requirements.
 
-## Quick Start TL;DR
+**When to Load This Rule:**
+- Scheduling DMF evaluations with Snowflake Tasks
+- Monitoring DMF results and quality trends
+- Configuring alerts and notifications for quality issues
+- Defining remediation workflows (automated or manual)
+- Setting up RBAC for DMF operations
+- Troubleshooting DMF execution or alerting issues
 
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
+## References
 
-Position at top provides practical efficiency benefits for both LLMs and human developers.
-**MANDATORY:**
-**Essential Patterns:**
-- **Schedule DMF evaluations** - Automate quality checks with Tasks
-- **Monitor event tables** - Track DMF results and violations
-- **Configure alerts** - Notify on quality issues
-- **Define remediation** - Automated or manual fix workflows
-- **Enforce RBAC** - Least-privilege access to DMF operations
+### Dependencies
 
-**Quick Checklist:**
-- [ ] DMF evaluation tasks scheduled
-- [ ] Event tables configured for results
-- [ ] Alerts set up for quality violations
-- [ ] Remediation workflows defined
-- [ ] RBAC configured with least privilege
+**Must Load First:**
+- **100-snowflake-core.md** - Snowflake foundation patterns
+- **124-snowflake-data-quality-core.md** - Data Quality fundamentals
+- **111-snowflake-observability-core.md** - Event tables and monitoring patterns
+
+**Related:**
+- **124a-snowflake-data-quality-custom.md** - Custom DMF creation
+- **113-snowflake-task-scheduling.md** - Task scheduling patterns
+
+### External Documentation
+
+- [DMF Scheduling](https://docs.snowflake.com/en/user-guide/data-quality-schedule) - Scheduling quality evaluations
+- [Data Quality Event Tables](https://docs.snowflake.com/en/user-guide/data-quality-events) - Monitoring DMF results
+- [Task Management](https://docs.snowflake.com/en/sql-reference/sql/create-task) - Creating scheduled tasks
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-DMFs configured (from 124-core), expectations set (from 124a-custom)
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-Tasks, event tables, alert configurations, RBAC commands
-</mandatory>
+- DMFs configured from 124-core or 124a-custom
+- Expectations set with thresholds
+- Event tables available for monitoring
+- EXECUTE DATA METRIC FUNCTION privilege
 
-<forbidden>
-None specific
-</forbidden>
+### Mandatory
 
-<steps>
-1) Schedule DMF evaluations 2) Configure event tables 3) Set up alerts 4) Define remediation 5) Configure RBAC
-</steps>
+- Schedule DMF evaluations with Tasks
+- Configure event tables for results
+- Set up alerts for quality violations
+- Define remediation workflows
+- Configure RBAC with least privilege
 
-<output_format>
-Task schedules, event table queries, alert configs, RBAC grants
-</output_format>
+### Forbidden
 
-<validation>
-Tasks run successfully; alerts trigger correctly; RBAC enforced
-</validation>
+- Scheduling DMF evaluations too frequently (causing compute waste)
+- Ignoring event table analysis for quality trends
 
-<design_principles>
-- Automate DMF evaluations with scheduled Tasks
-- Monitor event tables for quality trends and violations
-- Configure proactive alerts for critical quality issues
-- Define clear remediation workflows
-- Enforce least-privilege RBAC for DMF operations
-</design_principles>
+### Execution Steps
 
-</contract>
+1. Schedule DMF evaluations with Snowflake Tasks
+2. Configure event tables to capture DMF results
+3. Set up alerts and notifications for violations
+4. Define remediation workflows (automated or manual)
+5. Configure RBAC with least privilege access
+
+### Output Format
+
+Operational configurations produce:
+- Task schedules for DMF evaluations
+- Event table queries for monitoring
+- Alert configurations
+- Remediation workflow definitions
+- RBAC grant statements
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Tasks created and scheduled
+- Event tables configured
+- Alert thresholds defined
+
+**Success Criteria:**
+- Tasks run successfully on schedule
+- Alerts trigger correctly on violations
+- RBAC enforced with least privilege
+- Remediation workflows executed
+
+**Negative Tests:**
+- Alerts should not trigger on valid data
+- RBAC should deny unauthorized access
+
+### Design Principles
+
+- **Automation:** Schedule DMF evaluations with Tasks
+- **Observability:** Monitor event tables for quality trends
+- **Proactive alerts:** Configure alerts for critical quality issues
+- **Clear remediation:** Define explicit remediation workflows
+- **Least privilege:** Enforce RBAC for DMF operations
+
+### Post-Execution Checklist
+
+- [ ] DMF evaluation tasks scheduled with appropriate frequency
+- [ ] Event tables configured for results
+- [ ] Alerts set up for quality violations
+- [ ] Remediation workflows defined and tested
+- [ ] RBAC configured with least privilege
+- [ ] Monitoring dashboards created for quality trends
 
 ## Anti-Patterns and Common Mistakes
 
@@ -398,34 +438,7 @@ GROUP BY usage_date, object_name
 ORDER BY usage_date DESC;
 ```
 
-## References
-
-### External Documentation
-- [Introduction to Data Quality and DMFs](https://docs.snowflake.com/en/user-guide/data-quality-intro) - Complete overview of data quality monitoring concepts
-- [Data Profile](https://docs.snowflake.com/en/user-guide/data-quality-profile) - Using data profiling to understand data characteristics
-- [Tutorial: Getting Started with DMFs](https://docs.snowflake.com/en/user-guide/tutorials/data-quality-tutorial-start) - Step-by-step DMF implementation guide
-- [System DMFs](https://docs.snowflake.com/en/user-guide/data-quality-system-dmfs) - Pre-built system data metric functions
-- [Custom DMFs](https://docs.snowflake.com/en/user-guide/data-quality-custom-dmfs) - Creating user-defined data metric functions
-- [Working with DMFs](https://docs.snowflake.com/en/user-guide/data-quality-working) - Associating, scheduling, and managing DMFs
-- [View DMF Results](https://docs.snowflake.com/en/user-guide/data-quality-results) - Querying and analyzing DMF execution results
-- [Remediate Data Quality Issues](https://docs.snowflake.com/en/user-guide/data-quality-remediate) - Troubleshooting and fixing quality issues
-- [DMF Access Control](https://docs.snowflake.com/en/user-guide/data-quality-access-control) - Privilege requirements and security
-- [Serverless Credit Usage](https://docs.snowflake.com/en/user-guide/cost-understanding-compute#serverless-credit-usage) - Understanding DMF billing
-
-### Related Rules
-- **Snowflake Core**: `100-snowflake-core.md`
-- **Security Governance**: `107-snowflake-security-governance.md`
-- **Cost Governance**: `105-snowflake-cost-governance.md`
-- **Data Governance**: `930-data-governance-quality.md`
-
-> **[AI] Claude 4 Specific Guidance**
-> **Claude 4 Optimizations:**
-> - Always profile data first using Snowsight or SQL before recommending DMFs
-> - Query event tables to verify DMF execution before troubleshooting
-> - Check table ownership and privileges before suggesting DMF associations
-> - Use parallel tool calls to check both data profile and existing DMFs simultaneously
-
-## 6. Scheduling DMF Evaluations
+## Scheduling DMF Evaluations
 
 **MANDATORY:**
 Schedule DMF evaluations to run automatically at defined intervals.
@@ -473,7 +486,7 @@ ALTER TABLE BUSINESS_METRICS
 - Balance monitoring needs with budget constraints
 - Use CRON expressions for business hours-only monitoring
 
-## 7. Event Tables and Results
+## Event Tables and Results
 
 **MANDATORY:**
 DMF results are automatically captured in event tables for monitoring and analysis.
@@ -558,7 +571,7 @@ GROUP BY table_name
 ORDER BY failure_rate_pct DESC;
 ```
 
-## 8. Alerts and Remediation
+## Alerts and Remediation
 
 **MANDATORY:**
 Configure alerts to notify stakeholders when expectations fail and establish remediation workflows.
@@ -633,7 +646,7 @@ WHERE email IS NULL
   AND updated_timestamp >= DATEADD(hour, -2, CURRENT_TIMESTAMP());
 ```
 
-## 9. Privilege Requirements
+## Privilege Requirements
 
 **MANDATORY:**
 **CRITICAL:** Understand and configure privileges correctly for DMF operations.
@@ -681,7 +694,7 @@ GRANT OWNERSHIP ON TABLE ANALYTICS.CORE.CUSTOMERS TO ROLE DATA_ENGINEERING;
 -- Now DATA_ENGINEERING role can set DMFs on CUSTOMERS table
 ```
 
-## 10. Supported Objects
+## Supported Objects
 
 **MANDATORY:**
 DMFs can be set on the following Snowflake objects:
@@ -700,7 +713,7 @@ DMFs can be set on the following Snowflake objects:
 - Objects in reader accounts
 - Object tags (cannot set DMFs on tags themselves)
 
-## 11. Billing and Cost Management
+## Billing and Cost Management
 
 **MANDATORY:**
 **COST AWARENESS:** DMFs use serverless compute and consume credits from your Snowflake account.
@@ -748,7 +761,7 @@ ORDER BY total_credits DESC;
 4. **Consolidate checks:** Combine related metrics in custom DMFs
 5. **Review consumption:** Regularly query usage history and adjust
 
-## 12. Limitations and Quotas
+## Limitations and Quotas
 
 **MANDATORY:**
 **ACCOUNT LIMITS:** Understand and plan for DMF limitations.

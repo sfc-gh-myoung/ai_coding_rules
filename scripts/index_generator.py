@@ -65,9 +65,10 @@ class RuleMetadata:
 
 
 def extract_scope_from_content(content: str) -> str:
-    """Extract scope description from ## Rule Scope section.
+    """Extract scope description from ## Scope section (v3.2 schema).
 
-    Looks for the ## Rule Scope heading and extracts the next non-empty line.
+    Looks for the ## Scope heading and extracts the "What This Rule Covers:" content.
+    Only supports proper v3.2 format - no fallbacks to legacy formats.
 
     Args:
         content: Full file content
@@ -77,14 +78,35 @@ def extract_scope_from_content(content: str) -> str:
     """
     lines = content.split("\n")
 
-    # Find ## Rule Scope heading
+    # Find ## Scope heading (v3.2 schema only)
     for i, line in enumerate(lines):
-        if line.strip() == "## Rule Scope":
-            # Extract next non-empty line
-            for j in range(i + 1, min(i + 10, len(lines))):
-                scope_line = lines[j].strip()
-                if scope_line and not scope_line.startswith("#"):
-                    return scope_line
+        if line.strip() == "## Scope":
+            # Look for "What This Rule Covers:" subsection (v3.2 format)
+            for j in range(i + 1, min(i + 20, len(lines))):
+                current_line = lines[j].strip()
+
+                # Check if we've reached another section
+                if current_line.startswith("##") and current_line != "## Scope":
+                    break
+
+                # Found the "What This Rule Covers:" marker (v3.2 format)
+                if current_line.startswith("**What This Rule Covers:**"):
+                    # Extract content after the marker on same line or next line
+                    content_after_marker = current_line.replace(
+                        "**What This Rule Covers:**", ""
+                    ).strip()
+                    if content_after_marker:
+                        return content_after_marker
+
+                    # Content is on next line
+                    for k in range(j + 1, min(j + 5, len(lines))):
+                        next_line = lines[k].strip()
+                        if (
+                            next_line
+                            and not next_line.startswith("**")
+                            and not next_line.startswith("#")
+                        ):
+                            return next_line
             break
 
     return "No scope provided"
@@ -147,7 +169,7 @@ def extract_metadata(filepath: Path) -> RuleMetadata:
         elif match := RE_CONTEXT_TIER.match(stripped):
             metadata["context_tier"] = match.group(1).strip()
 
-    # Extract scope from ## Rule Scope section
+    # Extract scope from ## Scope section (v3.2 schema)
     metadata["scope"] = extract_scope_from_content(content)
 
     # Validate critical fields
@@ -155,7 +177,7 @@ def extract_metadata(filepath: Path) -> RuleMetadata:
         print(f"⚠️  Warning: {filepath.name} missing Keywords field, using empty string")
 
     if not metadata["scope"] or metadata["scope"] == "No scope provided":
-        print(f"⚠️  Warning: {filepath.name} missing ## Rule Scope section")
+        print(f"⚠️  Warning: {filepath.name} missing ## Scope section")
 
     # Construct with explicit field assignments for type safety
     token_budget_val = metadata["token_budget"]

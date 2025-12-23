@@ -2,32 +2,120 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**LastUpdated:** 2025-12-23
 **Keywords:** Python packaging, project structure, setup.py, pyproject.toml, dependencies, package distribution, __init__.py, hatchling, uv, src layout
-**TokenBudget:** ~2200
+**TokenBudget:** ~3150
 **ContextTier:** High
 **Depends:** 200-python-core.md
 
-## Purpose
-Provide essential Python project setup and packaging guidance to avoid common build and dependency issues, covering package structure, pyproject.toml configuration, and proper dependency management practices.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Essential Python project setup and packaging guidance covering package structure, pyproject.toml configuration, dependency management, and build error prevention. Includes __init__.py requirements, hatchling build system configuration, uv-based dependency management, virtual environment setup, and modern packaging patterns (src layout, optional dependencies, entry points).
 
-Python project setup, packaging, and dependency management with modern build tools
+**When to Load This Rule:**
+- Setting up new Python projects
+- Creating Python packages or distributions
+- Configuring pyproject.toml for builds
+- Troubleshooting build or import errors
+- Managing project dependencies with uv
+- Encountering "package not found" or "module not found" errors
+- Converting legacy setup.py to pyproject.toml
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Always create __init__.py** - Even if empty, required for package recognition
-- **Use pyproject.toml** - Modern build configuration, centralize all metadata
-- **Specify package location** - `packages = ["app"]` in hatchling config
-- **Create structure before install** - mkdir + __init__.py BEFORE `uv pip install -e .`
-- **Use uv for dependency management** - `uv add package` not manual pyproject.toml edits
-- **Never use bare pip** - Always use `uv` for consistency
+### Dependencies
 
-**Quick Checklist:**
+**Must Load First:**
+- **200-python-core.md** - Python foundation patterns
+
+**Related:**
+- **201-python-lint-format.md** - Code quality configuration in pyproject.toml
+- **204-python-docs-comments.md** - Documentation standards
+- **207-python-typing.md** - Type checking configuration
+
+### External Documentation
+
+- [PEP 621](https://peps.python.org/pep-0621/) - pyproject.toml project metadata
+- [Hatchling](https://hatch.pypa.io/latest/config/build/) - Modern Python build backend
+- [uv Documentation](https://docs.astral.sh/uv/) - Fast Python package manager
+
+## Contract
+
+### Inputs and Prerequisites
+
+- Python project directory
+- Understanding of package structure concepts
+- uv installed for dependency management
+- Basic knowledge of pyproject.toml format
+
+### Mandatory
+
+- **Always create __init__.py** files (even if empty) for package recognition
+- Use pyproject.toml for modern build configuration
+- Specify package location in hatchling config: `packages = ["app"]`
+- Create structure before install (mkdir + __init__.py BEFORE `uv pip install -e .`)
+- Use `uv add package` for dependency management (not manual edits)
+- Never use bare `pip` (always use `uv`)
+
+### Forbidden
+
+- Using bare `pip` commands (use `uv` instead)
+- Manual pyproject.toml dependency edits (use `uv add`)
+- Missing __init__.py files in packages
+- Unpinned dependencies in production
+- Legacy setup.py in new projects
+
+### Execution Steps
+
+1. Create project structure with package directories
+2. Add __init__.py to all package directories
+3. Create pyproject.toml with [project] section
+4. Configure [tool.hatch.build.targets.wheel] with packages
+5. Add dependencies using `uv add package`
+6. Install package in editable mode: `uv pip install -e .`
+7. Verify package is importable
+
+### Output Format
+
+Project setup produces:
+- Structured package directories with __init__.py files
+- pyproject.toml with complete project metadata
+- Virtual environment with dependencies installed
+- Installable package (editable or distribution)
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- [ ] All package directories have __init__.py
+- [ ] pyproject.toml exists with [project] section
+- [ ] [tool.hatch.build.targets.wheel] specifies packages
+- [ ] Package structure created before installation
+- [ ] Dependencies added via `uv add`
+
+**Success Criteria:**
+- Package installable with `uv pip install -e .`
+- Imports work correctly: `python -c "import mypackage"`
+- Dependencies resolve without conflicts
+- Build succeeds: `uv build`
+
+**Negative Tests:**
+- Missing __init__.py should cause import errors
+- Incorrect package specification should fail build
+- Circular dependencies should be detected
+
+### Design Principles
+
+- **Modern tooling:** Use pyproject.toml and uv, not legacy setup.py
+- **Explicit structure:** Always include __init__.py for clarity
+- **Reproducible builds:** Pin dependencies, use lock files
+- **Isolation:** Use virtual environments, never global installs
+- **Build-first:** Validate package structure before distribution
+
+### Post-Execution Checklist
+
 - [ ] All package directories have __init__.py
 - [ ] pyproject.toml exists with [project] section
 - [ ] [tool.hatch.build.targets.wheel] specifies packages
@@ -35,35 +123,7 @@ Python project setup, packaging, and dependency management with modern build too
 - [ ] Dependencies added via `uv add`
 - [ ] Optional dependencies in [project.optional-dependencies]
 - [ ] Package installable with `uv pip install -e .`
-
-## Contract
-
-<contract>
-<inputs_prereqs>
-[Context, files, dependencies needed]
-</inputs_prereqs>
-
-<mandatory>
-[Tools permitted for this domain]
-</mandatory>
-
-<forbidden>
-[Tools not allowed for this domain]
-</forbidden>
-
-<steps>
-[Ordered steps the agent must follow]
-</steps>
-
-<output_format>
-[Expected output format]
-</output_format>
-
-<validation>
-[Checks to confirm success]
-</validation>
-
-</contract>
+- [ ] Imports verified with test script
 
 ## Anti-Patterns and Common Mistakes
 
@@ -200,19 +260,7 @@ uvx ruff format --check .
 uv run pytest tests/
 ```
 
-## References
-
-### External Documentation
-- [Python Packaging User Guide](https://packaging.python.org/) - Official Python packaging documentation
-- [pyproject.toml Specification](https://peps.python.org/pep-0621/) - PEP 621 specification for project metadata
-- [Hatchling Documentation](https://hatch.pypa.io/latest/) - Modern Python build system and package manager
-
-### Related Rules
-- **Python Core**: `200-python-core.md`
-- **Python Linting**: `201-python-lint-format.md`
-- **YAML Config**: `202-markup-config-validation.md`
-
-## 1. Package Structure Requirements
+## Package Structure Requirements
 
 ### Critical Package Setup
 - **Critical:** Always create `__init__.py` files for Python packages, even if empty.
@@ -244,7 +292,7 @@ Directory structure for `cli-project/`:
   - **utils/** - `__init__.py`, `helpers.py` (Utility functions)
 - **tests/** - `__init__.py`
 
-## 2. pyproject.toml Configuration
+## pyproject.toml Configuration
 
 ### Build System Configuration
 - **Critical:** Include `[tool.hatch.build.targets.wheel]` section when using hatchling.
@@ -256,7 +304,7 @@ Directory structure for `cli-project/`:
 - **Always:** Use optional dependencies for development tools: `[project.optional-dependencies]`.
 - **Always:** Group related dependencies logically (dev, test, docs).
 
-## 3. Virtual Environment Setup
+## Virtual Environment Setup
 
 ### uv Best Practices
 - **Always:** Use `uv venv --clear` to ensure clean environment setup.
@@ -271,7 +319,7 @@ uv pip install -e .
 uv pip install -e ".[dev]"
 ```
 
-## 4. Dependency Configuration
+## Dependency Configuration
 
 ### Tool Configuration in pyproject.toml
 - **Always:** Configure development tools (ruff, ty, mypy, pytest) in `[tool.TOOLNAME]` sections.
@@ -301,7 +349,7 @@ disallow_untyped_defs = true
 check_untyped_defs = true
 ```
 
-## 5. Common Build Errors Prevention
+## Common Build Errors Prevention
 
 ### Hatchling Package Discovery
 - **Critical:** Create package directories before running `uv pip install -e .`.
@@ -313,7 +361,7 @@ check_untyped_defs = true
 - **Critical:** Use double quotes for arguments containing brackets: `".[dev]"`.
 - **Always:** Test shell commands independently before adding to automation tools.
 
-## 6. Application-Specific Setup
+## Application-Specific Setup
 
 ### FastAPI Applications
 - **Always:** Use application factory pattern (see `210-python-fastapi-core.md` for detailed patterns).
@@ -335,7 +383,7 @@ myapp = "myapp.main:main"
 myapp-dev = "myapp.cli.dev:dev_main"
 ```
 
-## 7. Testing Setup
+## Testing Setup
 
 ### Test Structure
 - **Always:** Create `tests/` directory with `__init__.py`.
@@ -355,7 +403,7 @@ addopts = [
 ]
 ```
 
-## 8. Troubleshooting Common Issues
+## Troubleshooting Common Issues
 
 ### Build Failures
 1. **"Unable to determine which files to ship"**: Add `[tool.hatch.build.targets.wheel]` with `packages` list.

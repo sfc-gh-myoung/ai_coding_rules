@@ -7,75 +7,117 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
-**Keywords:** rule creation, workflow, step-by-step guide, naming conventions, metadata setup, section structure, Contract XML, validation, rule numbering, from scratch
-**TokenBudget:** ~3350
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**Keywords:** rule creation, workflow, step-by-step guide, naming conventions, metadata setup, v3.2 schema, validation, rule numbering, from scratch
+**TokenBudget:** ~5200
 **ContextTier:** High
 **Depends:** 002-rule-governance.md, 000-global-core.md
 
-## Purpose
+## Scope
 
-Step-by-step workflow guide for AI agents creating new rules from scratch, covering naming, numbering, metadata setup, section structure, and validation.
+**What This Rule Covers:**
+Step-by-step workflow for creating new rules from scratch. Covers rule numbering, naming conventions, metadata setup, v3.2 section structure, Contract with Markdown headers, and validation.
 
-## Rule Scope
+**When to Load This Rule:**
+- Creating a new rule file from scratch
+- Understanding rule creation workflow
+- Setting up rule metadata correctly
+- Structuring rule sections per v3.2 schema
 
-All AI agents creating new rule files in the ai_coding_rules repository.
+## References
 
-## Quick Start TL;DR
+### Dependencies
 
-**MANDATORY:**
-**Essential Patterns:**
-- **5-step workflow** - Choose number, then Create file, then Fill metadata, then Write sections, then Validate
-- **Naming convention** - `NNN-technology-aspect.md` (snake-case, 3-digit number)
-- **Number ranges** - 000-099: Core, 100-199: Snowflake, 200-299: Languages, 300-399: Frameworks, 400+: Specialized
-- **Required metadata** - RuleVersion (vX.Y.Z), Keywords (10-15), TokenBudget, ContextTier, Depends (in exact order)
-- **Validation before commit** - `python3 scripts/schema_validator.py rules/NNN-new-rule.md`
+**Must Load First:**
+- **002-rule-governance.md** - Schema requirements and standards
+- **000-global-core.md** - Foundation for all rules
 
-**Pre-Execution Checklist:**
-- [ ] Rule number chosen from correct range
-- [ ] File named with snake-case convention
-- [ ] Existing rules reviewed for similar patterns
-- [ ] 5 metadata fields filled correctly
-- [ ] All 9 required sections present
-- [ ] Contract has all 6 XML tags
-- [ ] Validation passes with 0 CRITICAL errors
+**Related:**
+- **002d-schema-validator-usage.md** - Detailed validation commands and error resolution
+- **002b-rule-optimization.md** - Token budget optimization strategies
+
+### External Documentation
+
+- **Schema Definition:** `schemas/rule-schema.yml` - Authoritative v3.2 schema definition
+- **Rules Index:** `RULES_INDEX.md` - Master index of all rules
 
 ## Contract
 
-<inputs_prereqs>
-Rule creation task; schema understanding; rule number assignment; technology/domain scope
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-Text editor; schema_validator.py; RULES_INDEX.md access; access to existing rules/ directory for reference
-</mandatory>
+- Rule creation task
+- v3.2 schema understanding
+- Rule number assignment
+- Technology/domain scope
 
-<forbidden>
-Skipping validation; using emojis in rule content; omitting required metadata; creating rules without dependencies
-</forbidden>
+### Mandatory
 
-<steps>
+- Text editor
+- `schema_validator.py` script
+- `RULES_INDEX.md` access
+- Access to existing rules/ directory for reference
+
+### Forbidden
+
+- Skipping validation
+- Using emojis in rule content
+- Omitting required metadata
+- Creating rules without dependencies
+- Using XML tags in Contract (v3.2 uses Markdown headers)
+- Using numbered section headings
+
+### Execution Steps
+
 1. Choose rule number from appropriate range (000-099 core, 100-199 Snowflake, etc.)
 2. Review existing rules in same category for patterns and structure
-3. Create new file rules/NNN-technology-aspect.md with H1 title and ## Metadata header
-4. Fill 5 required metadata fields (RuleVersion, Keywords, TokenBudget, ContextTier, Depends)
-5. Write all 9 required sections in order, including Contract with 6 XML tags before line 160
-6. Validate with schema_validator.py (must pass with 0 CRITICAL errors)
-7. Add rule to RULES_INDEX.md with keywords
-</steps>
+3. Create new file `rules/NNN-technology-aspect.md` with H1 title and `## Metadata` header
+4. Fill required metadata fields (SchemaVersion: v3.2, RuleVersion, Keywords: 5-20 terms, TokenBudget, ContextTier, Depends)
+5. Write required sections in v3.2 order: Scope, References, Contract, Anti-Patterns (optional)
+6. Add Contract section with Markdown subsections (###), NOT XML tags
+7. Use descriptive section names (not numbered: "Environment Setup" not "1. Environment Setup")
+8. Validate with `schema_validator.py` (must pass with 0 CRITICAL errors)
+9. Add rule to `RULES_INDEX.md` with keywords
 
-<output_format>
-Markdown file named NNN-technology-aspect.md with v3.0-compliant structure
-</output_format>
+### Output Format
 
-<validation>
-- schema_validator.py returns 0 CRITICAL errors
+Markdown file named `NNN-technology-aspect.md` with:
+- v3.2-compliant structure
+- Metadata with SchemaVersion: v3.2
+- Contract with Markdown headers (###), not XML tags
+- Descriptive section names (not numbered)
+- 5-20 keywords
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Rule number chosen from correct range
+- File naming follows convention (snake-case)
+- Metadata fields all present
+- Required sections in v3.2 order
+- Contract uses Markdown headers, not XML tags
+- No numbered section headings
+- Keywords count is 5-20 terms
+
+**Success Criteria:**
+- `schema_validator.py` returns 0 CRITICAL errors
 - File named correctly (NNN-technology-aspect.md)
-- All 5 metadata fields present and formatted correctly
-- All 9 required sections present in order
-- Rule added to RULES_INDEX.md
-</validation>
+- All required metadata fields present and formatted correctly
+- All required sections present in v3.2 order
+- Rule added to `RULES_INDEX.md`
+
+### Post-Execution Checklist
+
+- [ ] Rule number chosen from correct range for domain
+- [ ] File named with snake-case convention (NNN-technology-aspect.md)
+- [ ] Existing rules reviewed for similar patterns
+- [ ] All metadata fields filled correctly (SchemaVersion: v3.2)
+- [ ] Keywords count is 5-20 terms
+- [ ] All required sections present in v3.2 order (Scope, References, Contract)
+- [ ] Contract uses Markdown headers (###), not XML tags
+- [ ] No numbered section headings in file
+- [ ] Validation passes with 0 CRITICAL errors
+- [ ] Rule added to RULES_INDEX.md with keywords
 
 ## Anti-Patterns and Common Mistakes
 
@@ -111,7 +153,7 @@ python3 scripts/schema_validator.py rules/NNN-new-rule.md
 
 **Anti-Pattern 3: Insufficient Keywords**
 
-**Problem:** Adding only 5-8 keywords in metadata instead of the required 10-15.
+**Problem:** Adding only 3-4 keywords in metadata instead of the required 5-20.
 
 **Why It Fails:** Reduces discoverability in RULES_INDEX.md; makes semantic search less effective; triggers HIGH severity errors.
 
@@ -120,7 +162,7 @@ python3 scripts/schema_validator.py rules/NNN-new-rule.md
 **Keywords:** rule creation, schema, metadata, validation, schema_validator, numbering, governance, template, workflow, RULES_INDEX, keywords, TokenBudget, ContextTier
 ```
 
-## Step 1: Choose Rule Number and Name
+## Choose Rule Number and Name (Overview)
 
 ### Numbering Ranges
 
@@ -170,7 +212,7 @@ Within each range, use logical grouping:
 - [FAIL] `streamlit.md` (wrong: no number)
 - [FAIL] `100_snowflake_sql.md` (wrong: underscores in number)
 
-## Step 2: Review Existing Rules for Patterns
+## Review Existing Rules for Patterns (Overview)
 
 ### Find Similar Rules
 
@@ -187,53 +229,53 @@ grep -l "your-technology" rules/*.md
 ### Reference Structure
 
 Review 2-3 existing rules to understand:
-- Metadata format and keyword selection
-- Section structure and ordering
-- Contract XML tag usage
-- Quick Start TL;DR patterns
+- Metadata format and keyword selection (5-20 keywords)
+- Section structure and v3.2 ordering (Scope, References, Contract)
+- Contract Markdown ### header usage (NOT XML tags)
 - Anti-Patterns section examples
 - Output Format Examples style
 
 **Use existing rules as structural guides** - maintain consistency with established patterns.
 
-## Step 3: Create New Rule File
+## Create New Rule File (Overview)
 
-### File Structure Template
+### File Structure Template (v3.2)
 
 ```markdown
 # [NNN]-[technology]-[aspect]
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
-**Keywords:** [10-15 keywords here]
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**Keywords:** [5-20 keywords here]
 **TokenBudget:** ~[estimate]
 **ContextTier:** [Critical|High|Medium|Low]
 **Depends:** 000-global-core.md
 
-## Purpose
+## Scope
 
-[1-2 sentence description]
+**What This Rule Covers:**
+[1-2 sentence description of what this rule accomplishes]
 
-## Rule Scope
+**When to Load This Rule:**
+- [Condition 1]
+- [Condition 2]
+- [Condition 3]
 
-[Single line defining applicability]
+## References
 
-## Quick Start TL;DR
+### Dependencies
 
-**MANDATORY:**
-**Essential Patterns:**
-- **[Pattern 1]:** Description
-- **[Pattern 2]:** Description
-- **[Pattern 3]:** Description
+**Must Load First:**
+- **000-global-core.md** - Foundation for all rules
 
-**Pre-Execution Checklist:**
-- [ ] Checklist item 1
-- [ ] Checklist item 2
-- [ ] Checklist item 3
-- [ ] Checklist item 4
-- [ ] Checklist item 5
+**Related:**
+- **[related-rule].md** - [Brief description]
+
+### External Documentation
+
+- **[Resource Name]:** [URL or path]
 ```
 
 ### Importance Markers
@@ -257,61 +299,41 @@ Add an importance marker after the title for foundation rules:
 ```markdown
 ## Contract
 
-<inputs_prereqs>
+### Inputs and Prerequisites
 [Prerequisites here]
-</inputs_prereqs>
 
-<mandatory>
+### Mandatory
 [Required tools/libraries]
-</mandatory>
 
-<forbidden>
+### Forbidden
 [Prohibited actions]
-</forbidden>
 
-<steps>
+### Execution Steps
 1. [Step 1]
 2. [Step 2]
 3. [Step 3]
 4. [Step 4]
 5. [Step 5]
-</steps>
 
-<output_format>
+### Output Format
 [Expected output description]
-</output_format>
 
-<validation>
-[How to verify success]
-</validation>
+### Validation
+**Pre-Task-Completion Checks:**
+- [Check 1]
 
-## Anti-Patterns and Common Mistakes
+**Success Criteria:**
+- [Criterion 1]
 
-[Anti-patterns with code examples]
-
-## Post-Execution Checklist
-
+### Post-Execution Checklist
 - [ ] Verification item 1
 - [ ] Verification item 2
-- [ ] Verification item 3
-- [ ] Verification item 4
-- [ ] Verification item 5
 
-## Validation
-
-[Success criteria and negative tests]
-
-## Output Format Examples
-
-[Code examples and sample outputs]
-
-## References
-
-### Related Rules
-- `000-global-core.md` - Description
+## Anti-Patterns and Common Mistakes
+[Anti-patterns with code examples]
 ```
 
-## Step 4: Fill Required Metadata
+## Fill Required Metadata
 
 ### Metadata Field Order (MANDATORY)
 
@@ -320,9 +342,9 @@ Add an importance marker after the title for foundation rules:
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
-**Keywords:** [10-15 comma-separated keywords]
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**Keywords:** [5-20 comma-separated keywords]
 **TokenBudget:** ~[number]
 **ContextTier:** [Critical | High | Medium | Low]
 **Depends:** [rule-dependencies]
@@ -331,11 +353,11 @@ Add an importance marker after the title for foundation rules:
 ### Field Requirements
 
 **Required Metadata Fields:**
-- **SchemaVersion:** `v3.0` format (e.g., `**SchemaVersion:** v3.1`) - Optional but recommended
+- **SchemaVersion:** `v3.2` format (e.g., `**SchemaVersion:** v3.2`) - REQUIRED for v3.2 compliance
 - **RuleVersion:** `vX.Y.Z` format (e.g., `**RuleVersion:** v1.0.0`) - REQUIRED for issue tracking
-- **Keywords:** 10-15 comma-separated terms - CRITICAL for semantic discovery
-- **TokenBudget:** `~NUMBER` format (e.g., `**TokenBudget:** ~1200`) - Use tilde prefix
-- **ContextTier:** One of Critical/High/Medium/Low only
+- **Keywords:** 5-20 comma-separated terms - CRITICAL for semantic discovery
+- **TokenBudget:** See `002-rule-governance.md` for complete format requirements
+- **ContextTier:** One of Critical/High/Medium/Low only (see `002b-rule-optimization.md` for selection guidance)
 - **Depends:** Rule path(s) (e.g., `000-global-core.md`) - At least one required
 
 ### Keywords Best Practices
@@ -377,141 +399,124 @@ Add an importance marker after the title for foundation rules:
 - **Medium:** Specific features, moderate usage (115-model-registry, 320-streamlit-widgets)
 - **Low:** Specialized, rarely used (600-data-pipeline-advanced)
 
-## Step 4: Write Required Sections
+## Write Required Sections (v3.2)
 
 ### Section Order (MANDATORY)
 
-1. **Purpose** (1-2 sentences)
-2. **Rule Scope** (1 line)
-3. **Quick Start TL;DR** (Essential Patterns + Pre-Execution Checklist)
-4. **Contract** (6 XML tags)
-5. **Key Principles** (Optional, 3-5 bullets)
-6. **Anti-Patterns** (Optional but strongly recommended)
-7. **Post-Execution Checklist** (5+ items)
-8. **Validation** (Success checks + negative tests)
-9. **Output Format Examples** (Concrete code samples)
-10. **References** (Related rules + external docs)
+See `002-rule-governance.md` for complete v3.2 schema changes and section requirements.
 
-### Purpose Section
+**Required sections (in order):**
+1. **Metadata** - All 6 required fields
+2. **Scope** - What the rule covers + when to load it
+3. **References** - Dependencies and external documentation
+4. **Contract** - Structured contract with Markdown subsections (###)
+5. **Anti-Patterns and Common Mistakes** - Optional but strongly recommended
+
+**Key v3.2 changes:**
+- Scope replaces Purpose + Rule Scope
+- Contract uses Markdown headers (###), not XML tags
+- Post-Execution Checklist moved inside Contract
+- Validation moved inside Contract
+
+### Scope Section (v3.2 - Replaces Purpose + Rule Scope)
 
 **Format:**
 ```markdown
-## Purpose
+## Scope
 
+**What This Rule Covers:**
 [1-2 sentence description of what this rule accomplishes and why it matters]
+
+**When to Load This Rule:**
+- [Loading condition 1]
+- [Loading condition 2]
+- [Loading condition 3]
 ```
 
 **Example:**
 ```markdown
-## Purpose
+## Scope
 
-Defines best practices for Snowflake SQL query optimization, focusing on CTE usage, join strategies, and warehouse sizing for cost-effective performance.
+**What This Rule Covers:**
+Best practices for Snowflake SQL query optimization, focusing on CTE usage, join strategies, and warehouse sizing for cost-effective performance.
+
+**When to Load This Rule:**
+- Writing or optimizing Snowflake SQL queries
+- Debugging slow query performance
+- Designing warehouse sizing strategies
 ```
 
-### Rule Scope Section
+**Note:** v3.2 ELIMINATED the separate Purpose, Rule Scope, and Quick Start TL;DR sections. Use Scope for overview.
 
-**Format:**
-```markdown
-## Rule Scope
-
-[Single line defining what contexts this rule applies to]
-```
-
-**Example:**
-```markdown
-## Rule Scope
-
-All SQL queries executed in Snowflake data warehouses, particularly queries with complex joins or large data volumes.
-```
-
-### Quick Start TL;DR Section
-
-**Structure:**
-```markdown
-## Quick Start TL;DR
-
-**Essential Patterns:**
-- **Pattern 1:** Description
-- **Pattern 2:** Description
-- **Pattern 3:** Description
-[Minimum 3 patterns, no maximum]
-
-**Pre-Execution Checklist:**
-- [ ] Checklist item 1
-- [ ] Checklist item 2
-- [ ] Checklist item 3
-- [ ] Checklist item 4
-- [ ] Checklist item 5
-[5-7 items recommended]
-```
-
-**Purpose:** 30-second overview for agents to understand core patterns without reading entire file.
-
-## Step 5: Add Contract Section with XML Tags
+## Add Contract Section (v3.2 - Markdown Headers)
 
 ### Contract Structure (MANDATORY)
 
 ```markdown
 ## Contract
 
-<inputs_prereqs>
+### Inputs and Prerequisites
 What the agent needs to have/know before starting this task
-</inputs_prereqs>
 
-<mandatory>
+### Mandatory
 Required tools, libraries, permissions, access
-</mandatory>
 
-<forbidden>
+### Forbidden
 Prohibited actions, tools, approaches
-</forbidden>
 
-<steps>
+### Execution Steps
 1. First required step
 2. Second required step
 3. Third required step
 4. Fourth required step
 5. Fifth required step
 [Minimum 5 steps, maximum 10 steps]
-</steps>
 
-<output_format>
+### Output Format
 Description of expected output format (file type, structure, content)
-</output_format>
 
-<validation>
-How to verify success - specific checks agent should run
-</validation>
+### Validation
+**Pre-Task-Completion Checks:**
+- Check 1
+- Check 2
+
+**Success Criteria:**
+- Criterion 1
+- Criterion 2
+
+### Post-Execution Checklist
+- [ ] Item 1
+- [ ] Item 2
 ```
 
 ### Contract Best Practices
 
-**inputs_prereqs:**
+**Inputs and Prerequisites:**
 - List required knowledge, files, data, context
 - Be specific about prerequisites
 - Include required access permissions
 
-**mandatory:**
+**Mandatory:**
 - List exact tool names (e.g., `schema_validator.py`, not "validator")
 - Include required libraries with versions if critical
 - Specify required file access
 
-**forbidden:**
+**Forbidden:**
 - Explicitly prohibit problematic approaches
 - List tools that should NOT be used
 - Call out common mistakes to avoid
 
-**steps:**
+**Execution Steps:**
 - Actionable, sequential steps
 - 5-10 steps (not too granular, not too high-level)
 - Each step should be verifiable
 
-**output_format:**
+**Output Format:**
 - Describe exact format (Markdown, Python, SQL, etc.)
 - Specify required structure
 - Include file naming conventions if relevant
 
-**validation:**
+**Validation:**
 - List specific commands to run
 - Define success criteria
 - Include negative tests (what should NOT happen)
@@ -522,9 +527,13 @@ How to verify success - specific checks agent should run
 
 **Why:** Ensures AI agents read requirements early before processing detailed content.
 
-## Step 6: Validate with schema_validator.py
+## Validate with schema_validator.py
 
 ### Running Validation
+
+See `002d-schema-validator-usage.md` for complete validation commands and options.
+
+Quick reference:
 
 ```bash
 # Validate single file
@@ -532,32 +541,23 @@ python3 scripts/schema_validator.py rules/NNN-new-rule.md
 
 # Verbose output (detailed checks)
 python3 scripts/schema_validator.py rules/NNN-new-rule.md --verbose
-
-# Expected success output:
-# ================================================================================
-# VALIDATION REPORT: rules/NNN-new-rule.md
-# ================================================================================
-# [PASS] Passed: 458 checks
-#
-# [PASS] RESULT: PASSED
-# ================================================================================
 ```
 
 ### Common Errors and Fixes
 
 **Metadata Errors:**
 - **Missing metadata field:** Add missing Keywords, TokenBudget, ContextTier, or Depends in correct order
-- **Keywords count wrong:** Adjust to 10-15 comma-separated terms
-- **TokenBudget format:** Change to `~1200` format (tilde + number)
+- **Keywords count wrong:** Adjust to 5-20 comma-separated terms
+- **TokenBudget format:** See `002-rule-governance.md` for format requirements
 
 **Structure Errors:**
-- **Missing required section:** Add missing section per v3.0 order
-- **Contract missing XML tag:** Add tag: `<inputs_prereqs>`, `<mandatory>`, etc.
+- **Missing required section:** Add missing section per v3.2 order
+- **Contract missing Markdown subsection:** Add subsection with ### header
 - **Contract after line 160:** Move Contract section earlier in file
 
 **For detailed error resolution:** See `002d-schema-validator-usage.md`
 
-## Step 7: Add to RULES_INDEX.md
+## Add to RULES_INDEX.md
 
 ### Index Entry Format
 
@@ -606,11 +606,10 @@ These checks ensure efficient context window usage:
 
 - [ ] Rule number chosen from correct range (000-099, 100-199, etc.)
 - [ ] File named with snake-case convention (NNN-technology-aspect.md)
-- [ ] All 5 metadata fields filled: RuleVersion, Keywords (10-15), TokenBudget, ContextTier, Depends
-- [ ] All 9 required sections present in correct order
-- [ ] Contract section has all 6 XML tags before line 160
-- [ ] Quick Start TL;DR has minimum 3 Essential Patterns
-- [ ] Post-Execution Checklist has 5+ verification items
+- [ ] All 6 metadata fields filled: SchemaVersion (v3.2), RuleVersion, Keywords (5-20), TokenBudget, ContextTier, Depends
+- [ ] All required sections present in v3.2 order (Scope, References, Contract, Anti-Patterns)
+- [ ] Contract section has all Markdown subsections (###) before line 160
+- [ ] Post-Execution Checklist inside Contract section
 
 ### Final Validation
 
@@ -624,17 +623,17 @@ These checks ensure efficient context window usage:
 **Success Checks:**
 - New rule file exists at `rules/NNN-technology-aspect.md`
 - `python3 scripts/schema_validator.py rules/NNN-new-rule.md` returns 0 CRITICAL errors
-- All 4 metadata fields present and correctly formatted
-- All 9 required sections present in order
-- Contract has all 6 XML tags before line 160
-- Keywords count is 10-15
+- All 6 metadata fields present and correctly formatted
+- All required sections present in v3.2 order
+- Contract has all Markdown subsections (###) before line 160
+- Keywords count is 5-20
 - Rule appears in RULES_INDEX.md
 
 **Negative Tests:**
 - File named with spaces triggers error
 - Missing metadata field triggers CRITICAL error
 - Wrong section order triggers HIGH error
-- Missing Contract XML tag triggers CRITICAL error
+- Missing Contract Markdown subsection triggers CRITICAL error
 - Contract after line 160 triggers HIGH warning
 
 ## Output Format Examples
@@ -694,14 +693,3 @@ python3 scripts/schema_validator.py rules/101d-snowflake-streamlit-testing.md
 # [PASS] RESULT: PASSED
 ```
 
-## References
-
-### Related Rules
-- **Rule Governance**: `002-rule-governance.md` - Schema requirements and standards
-- **Validator Usage**: `002d-schema-validator-usage.md` - Detailed validation commands and error resolution
-- **Optimization Guide**: `002b-rule-optimization.md` - Token budget optimization strategies
-- **Global Core**: `000-global-core.md` - Foundation for all rules
-
-### External Documentation
-- **Schema Definition**: `schemas/rule-schema.yml` - Authoritative schema definition
-- **Rules Index**: `RULES_INDEX.md` - Master index of all rules

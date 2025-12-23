@@ -2,43 +2,71 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** checkpoints, learning objectives, pedagogical design, educational content, progressive learning, Snowflake notebooks, teaching point callouts, validation gates, tutorial structure, learning design, educational notebooks, teaching methodology, notebook education
-**TokenBudget:** ~4700
+**TokenBudget:** ~5250
 **ContextTier:** High
 **Depends:** 109-snowflake-notebooks.md, 920-data-science-analytics.md
+**LastUpdated:** 2025-12-22
 
-## Purpose
-Establish comprehensive patterns for designing educational Snowflake notebooks that effectively teach concepts through clear learning objectives, structured content, anti-pattern examples, validation checkpoints, and progressive complexity management.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive patterns for designing educational Snowflake notebooks that effectively teach concepts through clear learning objectives, structured content, anti-pattern examples, validation checkpoints, and progressive complexity management.
 
-Tutorial and learning design for Snowflake notebooks, educational content, and self-paced learning materials
+**When to Load This Rule:**
+- Creating tutorial notebooks for Snowflake
+- Designing educational content and learning materials
+- Building self-paced learning experiences
+- Structuring notebook-based training
+- Implementing learning checkpoints and validation
 
-## Quick Start TL;DR
+## References
 
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for 80% of common use cases reduces need to read full sections
-- **Position advantage:** Early placement benefits from slight attention bias in LLM processing (first ~20% of content receives marginally more weight)
-- **Progressive disclosure:** Enables agents to assess rule relevance before loading full content
-- **Human-LLM collaboration:** Useful for both human developers (quick scanning) and AI assistants (decision point)
+### External Documentation
+- [Snowflake Notebooks Getting Started](https://docs.snowflake.com/en/user-guide/ui-snowsight-notebooks-gs) - Official quickstart guide
+- [Snowpark for Python Tutorials](https://quickstarts.snowflake.com/guide/getting_started_with_snowpark_python/index.html) - Hands-on learning
+- [Jupyter Best Practices](https://jupyter-notebook.readthedocs.io/en/stable/notebook.html) - General notebook guidelines
 
-**Note:** While LLMs read sequentially (not auto-prioritizing this section), the concentrated pattern format and early position provide practical efficiency benefits. To maximize value for agents, include in system prompts: "Read Quick Start TL;DR sections first to identify essential patterns."
+### Related Rules
+- **Notebook Core**: `109-snowflake-notebooks.md` - Core notebook patterns
+- **App Deployment**: `109b-snowflake-app-deployment-core.md` - Production deployment
+- **Snowflake Core**: `100-snowflake-core.md` - Foundational practices
 
-Position at top provides practical efficiency benefits for both LLMs and human developers.
+## Contract
 
-**MANDATORY:**
-**Essential Patterns:**
-- **3-6 measurable learning objectives** - Place at cell #2, use action verbs (understand, implement, compare, optimize)
-- **Checkpoint validations between major sections** - Automated checks with actionable error messages
-- **Anti-pattern sections** - Show incorrect AND correct approaches with "why wrong" explanations
-- **Teaching point callouts** - Use [NOTE] prefix, explain business rationale before code, context first
-- **Progressive complexity** - Simple, then Real-World, then Advanced pattern
-- **Time estimates** - Provide quick demo and full tutorial modes
-- **Never use vague objectives** - Instead of "Learn about ML", use specific: "Organize 16 features using Feature Store"
 
-**Quick Checklist:**
+### Inputs and Prerequisites
+- Technical notebook content from `109-snowflake-notebooks.md`
+- Target audience definition (beginner/intermediate/advanced)
+- Learning outcomes to achieve
+- Time budget for tutorial completion
+
+
+### Mandatory
+- `edit_notebook` for adding educational cells
+- `read_file` for reviewing existing content
+- Markdown cells for narrative and teaching points
+
+
+### Forbidden
+- Overly technical jargon without definitions for beginner content
+- Copy-paste code without explanation
+- Examples without context or business rationale
+
+
+### Execution Steps
+1. Define clear learning objectives (3-6 outcomes)
+2. Structure content into logical parts with time estimates
+3. Add anti-pattern sections showing what NOT to do
+4. Insert checkpoint validations between major sections
+5. Include teaching point callouts explaining "why"
+6. Provide progressive complexity (simple, then advanced)
+7. Add self-assessment opportunities
+
+### Post-Execution Checklist
+
 - [ ] Learning objectives at cell #2 (3-6 measurable outcomes)
 - [ ] Tutorial structure overview with time estimates
 - [ ] Checkpoint validation cells between major sections
@@ -47,64 +75,32 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Progressive complexity (simple first, advanced marked)
 - [ ] All jargon defined on first use
 
-## Contract
-
-<contract>
-<inputs_prereqs>
-- Technical notebook content from `109-snowflake-notebooks.md`
-- Target audience definition (beginner/intermediate/advanced)
-- Learning outcomes to achieve
-- Time budget for tutorial completion
-</inputs_prereqs>
-
-<mandatory>
-- `edit_notebook` for adding educational cells
-- `read_file` for reviewing existing content
-- Markdown cells for narrative and teaching points
-</mandatory>
-
-<forbidden>
-- Overly technical jargon without definitions for beginner content
-- Copy-paste code without explanation
-- Examples without context or business rationale
-</forbidden>
-
-<steps>
-1. Define clear learning objectives (3-6 outcomes)
-2. Structure content into logical parts with time estimates
-3. Add anti-pattern sections showing what NOT to do
-4. Insert checkpoint validations between major sections
-5. Include teaching point callouts explaining "why"
-6. Provide progressive complexity (simple, then advanced)
-7. Add self-assessment opportunities
-</steps>
-
-<output_format>
+### Output Format
 - Learning objectives section (markdown cell #2 after main header)
 - Tutorial structure overview with time estimates
 - Anti-pattern sections with incorrect and correct examples
 - Checkpoint validation cells (code cells with assertions)
 - Teaching point callouts ([NOTE] prefix in markdown)
-</output_format>
 
-<validation>
+
+### Validation
 1. Verify learning objectives are measurable and clear
 2. Confirm all major sections have checkpoint validations
 3. Check anti-patterns have both incorrect and correct examples
 4. Validate time estimates are realistic
 5. Test self-paced learning flow (can skip ahead)
-</validation>
 
-<design_principles>
+
+### Design Principles
 - **Clear Learning Path:** Objectives, then Structure, then Checkpoints, then Assessment
 - **Show Don't Tell:** Anti-patterns teach as effectively as best practices
 - **Validate Progress:** Checkpoints prevent learners from proceeding with errors
 - **Progressive Disclosure:** Simple concepts first, complexity builds gradually
 - **Self-Paced Friendly:** Can skip sections, clear prerequisites stated
 - **Context First:** Business rationale before technical implementation
-</design_principles>
 
-</contract>
+
+
 
 ## Anti-Patterns and Common Mistakes
 
@@ -234,21 +230,7 @@ SELECT * FROM schema.view_name LIMIT 5;
 SHOW VIEWS LIKE '%view_name%';
 ```
 
-## References
-
-### External Documentation
-- [Learning Science Principles for Technical Education](https://www.edutopia.org/topic/learning-science) - Evidence-based teaching strategies from George Lucas Educational Foundation (peer-reviewed research applying cognitive load theory and active learning principles to tutorial design)
-- [Jupyter Notebook Best Practices for Education](https://jupyter4edu.github.io/jupyter-edu-book/) - Pedagogical patterns for educational notebooks from Jupyter community (comprehensive guide covering narrative structure, progressive complexity, and assessment strategies)
-- [Cognitive Load Theory](https://www.aft.org/ae/winter2023-2024/paas_ayres) - Managing complexity in learning materials (foundational research on working memory limits and chunking strategies, essential for tutorial pacing)
-- [Instructional Design Principles](https://www.td.org/insights/instructional-design-101-getting-started) - Foundation for effective tutorials from Association for Talent Development (industry-standard framework for learning objective design and assessment)
-
-### Related Rules
-- **Snowflake Notebooks Core**: `109-snowflake-notebooks.md`
-- **Data Science Analytics**: `920-data-science-analytics.md`
-- **Demo Creation**: `900-demo-creation.md`
-- **Business Analytics**: `940-business-analytics.md`
-
-## 1. Learning Objectives Section
+## Learning Objectives Section
 
 **MANDATORY:**
 
@@ -292,7 +274,7 @@ By the end of this notebook, you will understand:
 ```
 Too vague, not measurable, no clear outcome
 
-## 2. Tutorial Structure Overview
+## Tutorial Structure Overview
 
 **MANDATORY:**
 
@@ -331,7 +313,7 @@ This notebook is organized into [N] parts:
 - **Always:** Indicate what each part teaches
 - **Consider:** Show dependencies between parts (can skip if prerequisites known)
 
-## 3. Anti-Pattern Sections
+## Anti-Pattern Sections
 
 **MANDATORY:**
 
@@ -377,7 +359,7 @@ This notebook avoids all these pitfalls through careful design!
 - Correct: Use recall, ROC-AUC, Matthews Correlation, PR curve
 ```
 
-## 4. Checkpoint Validations
+## Checkpoint Validations
 
 **MANDATORY:**
 
@@ -386,7 +368,7 @@ This notebook avoids all these pitfalls through careful design!
 **Structure:**
 ```markdown
 
-## Checkpoint [N]: [Name] Complete
+## Checkpoint N - [Name] Complete
 
 Before proceeding to [next section], verify all [previous section] steps succeeded.
 ```
@@ -439,7 +421,7 @@ else:
 - **Always:** Show progress summary (what's complete, what's next)
 - **Consider:** Include diagnostic information (row counts, feature counts, time elapsed)
 
-## 5. Teaching Point Callouts
+## Teaching Point Callouts
 
 **MANDATORY:**
 
@@ -493,7 +475,7 @@ else:
 **Demo Strategy:** We'll train 4 models (2 from each path) and compare results.
 ```
 
-## 6. Progressive Complexity Management
+## Progressive Complexity Management
 
 **MANDATORY:**
 
@@ -515,17 +497,17 @@ else:
 **Example Structure:**
 ```markdown
 
-## Step 1: Basic Implementation (Simple)
+## Step 1 - Basic Implementation (Simple)
 [Minimal code that works]
 
-## Step 2: Production Considerations (Real-World)
+## Step 2 - Production Considerations (Real-World)
 [Add error handling, validation, logging]
 
-## Step 3: Performance Optimization (Advanced - Optional)
+## Step 3 - Performance Optimization (Advanced - Optional)
 [Caching, parallelization, cost optimization]
 ```
 
-## 7. Two-Approach Clarification Pattern
+## Two-Approach Clarification Pattern
 
 **MANDATORY:**
 
@@ -678,7 +660,7 @@ Part 3: Evaluation
 **Correct Pattern:**
 ```markdown
 
-## Checkpoint 1: [Name] Complete
+## Checkpoint 1 - [Name] Complete
 
 ```python
 # Checkpoint 1 Validation

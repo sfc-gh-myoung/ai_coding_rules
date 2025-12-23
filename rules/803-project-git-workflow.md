@@ -2,59 +2,68 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** git, workflow, branching strategy, GitHub, pull requests, feature branches, protected branches, git validation, branch naming, PR workflow, Conventional Commits
-**TokenBudget:** ~5200
+**TokenBudget:** ~7000
 **ContextTier:** Medium
 **Depends:** 800-project-changelog.md, 802-project-contributing.md
+**LastUpdated:** 2025-12-23
 
-## Purpose
-Establish comprehensive git workflow best practices for managing project updates on GitHub, ensuring consistent branching strategies, proper workflows, and robust validation before integration.
+## Scope
 
-## Rule Scope
-Git workflow management including branching strategies, pull requests, protected branches, and pre-merge validation for GitHub
+**What This Rule Covers:**
+Comprehensive git workflow best practices for managing project updates on GitHub, ensuring consistent branching strategies, proper workflows, and robust validation before integration.
 
-## Quick Start TL;DR
+**When to Load This Rule:**
+- Setting up git workflows for projects
+- Implementing branching strategies
+- Configuring protected branches
+- Establishing PR and code review processes
+- Implementing pre-merge validation gates
+- Working with Conventional Commits and branch naming
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Feature branch workflow** - Create branch from main with proper naming
-- **Conventional Commits REQUIRED** - `type(scope): description` per https://www.conventionalcommits.org/en/v1.0.0/#specification
-- **Conventional Branch REQUIRED** - `type/description` per https://conventional-branch.github.io/#specification
-- **Update CHANGELOG** - Add entries under ## [Unreleased]
-- **Clean git state** - Validate before push (no uncommitted changes)
-- **PR required** - Never commit directly to protected branches
-- **Pre-merge validation** - Run all checks before creating PR
-- **Never force push to main** - Breaks history for team
-- **Pre-commit aware** - Request elevated permissions when hooks are configured
+## References
 
-**Quick Checklist:**
-- [ ] Feature branch created
-- [ ] Conventional Commits used
-- [ ] CHANGELOG.md updated
-- [ ] Git state clean
-- [ ] Validation checks passed
-- [ ] Pre-commit hooks pass (or permissions granted)
-- [ ] PR created with description
-- [ ] CI checks passing
+### Dependencies
+
+**Must Load First:**
+- **800-project-changelog.md** - Changelog management
+- **802-project-contributing.md** - Contribution workflow
+
+**Related:**
+- **000-global-core.md** - Pre-Task-Completion Validation Gate
+- **801-project-readme.md** - README best practices
+- **AGENTS.md** - Agent workflow integration
+
+### External Documentation
+- [GitHub Flow](https://docs.github.com/en/get-started/quickstart/github-flow) - GitHub's lightweight branch-based workflow
+- [Git Branching Strategies](https://git-scm.com/book/en/v2/Git-Branching-Branching-Workflows) - Official Git documentation on branching
+- [Protected Branches (GitHub)](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches) - GitHub branch protection configuration
+- [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/#specification) - REQUIRED commit message format specification
+- [Conventional Branch v1.0.0](https://conventional-branch.github.io/#specification) - REQUIRED branch naming convention specification
+- [GitHub CLI](https://cli.github.com/manual/) - GitHub command-line tool documentation
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-Git repository initialized; remote configured on GitHub; understanding of Conventional Commits; access to Pre-Task-Completion Validation Gate requirements; awareness of pre-commit hooks and their permission requirements in sandboxed environments
-</inputs_prereqs>
+### Inputs and Prerequisites
+- Git repository initialized
+- Remote configured on GitHub
+- Understanding of Conventional Commits
+- Access to Pre-Task-Completion Validation Gate requirements
+- Awareness of pre-commit hooks and their permission requirements in sandboxed environments
 
-<mandatory>
-Git commands (`git branch`, `git checkout`, `git commit`, `git push`, `git status`); GitHub CLI (`gh`); validation commands
-</mandatory>
+### Mandatory
+- Git commands (`git branch`, `git checkout`, `git commit`, `git push`, `git status`)
+- GitHub CLI (`gh`)
+- Validation commands
 
-<forbidden>
-Direct commits to protected branches without PR; force push to `main`/`master` without override; git commands that bypass validation
-</forbidden>
+### Forbidden
+- Direct commits to protected branches without PR
+- Force push to `main`/`master` without override
+- Git commands that bypass validation
 
-<steps>
+### Execution Steps
 1. Create feature branch from `main` with proper naming convention
 2. Make changes following project standards
 3. Run Pre-Task-Completion Validation Gate checks
@@ -63,30 +72,51 @@ Direct commits to protected branches without PR; force push to `main`/`master` w
 6. Validate git state (clean working directory, proper branch)
 7. Push and create PR on GitHub
 8. Await review and status checks before merge
-</steps>
 
-<output_format>
+### Output Format
 Clean git history with semantic commits; properly named branches; complete PR descriptions
-</output_format>
 
-<validation>
-Git state validation passes; branch name follows convention; CHANGELOG.md updated; all status checks pass; code review approved
-</validation>
+### Validation
+**Pre-Task-Completion Checks:**
+- Git repository state verified
+- Branch protection settings checked
+- Pre-commit hooks detected
+- Validation commands available
 
-<design_principles>
+**Success Criteria:**
+- Git state validation passes
+- Branch name follows convention
+- CHANGELOG.md updated
+- All status checks pass
+- Code review approved
+
+### Design Principles
 - **Feature Branch Workflow:** All changes go through feature branches and PR review
 - **Protected Branches:** `main`/`master` branches require status checks and approvals
 - **Conventional Commits:** All commits follow standardized format for automated changelog generation
 - **Clean State:** No uncommitted changes before creating PR
 - **Platform Agnostic:** Patterns work across different Git hosting platforms
 - **Validation First:** All Pre-Task-Completion Validation Gate checks must pass before merge
-</design_principles>
 
-</contract>
+### Post-Execution Checklist
+- [ ] Branch created with proper naming convention (feature/, fix/, docs/, refactor/, chore/)
+- [ ] Branch created from up-to-date `main` branch
+- [ ] All Pre-Task-Completion Validation Gate checks pass
+- [ ] CHANGELOG.md updated under `## [Unreleased]` section
+- [ ] README.md reviewed and updated if triggers apply
+- [ ] All changes committed with Conventional Commits format
+- [ ] Pre-commit hooks pass (or elevated permissions granted)
+- [ ] Git state validated: `git status --porcelain` returns empty
+- [ ] Not on protected branch (main/master)
+- [ ] Branch pushed to remote successfully
+- [ ] PR created with clear title and description
+- [ ] Reviewers assigned (if multi-user project)
+- [ ] All status checks passing before merge
+- [ ] Code review approved before merge
 
 ## Anti-Patterns and Common Mistakes
 
-**Anti-Pattern 1: Committing Directly to Main**
+### Anti-Pattern 1: Committing Directly to Main
 ```bash
 git checkout main
 # ... make changes ...
@@ -110,7 +140,7 @@ gh pr create --title "fix(core): resolve critical validation bug"
 ```
 **Benefits:** Maintains code quality, enables peer review, preserves audit trail, catches issues before production.
 
-**Anti-Pattern 2: Vague Branch Names**
+### Anti-Pattern 2: Vague Branch Names
 ```bash
 git checkout -b fix-bug # Too vague
 git checkout -b update # What update?
@@ -128,7 +158,7 @@ git checkout -b refactor/split-large-streamlit-rule
 ```
 **Benefits:** Clear purpose at a glance; easy to find related work; meaningful git history; self-documenting workflow.
 
-**Anti-Pattern 3: Skipping CHANGELOG.md Updates**
+### Anti-Pattern 3: Skipping CHANGELOG.md Updates
 ```bash
 git checkout -b feature/new-rule
 # ... create new rule file ...
@@ -161,7 +191,7 @@ gh pr create
 ```
 **Benefits:** Complete documentation; users know what changed; audit trail maintained; governance compliance.
 
-**Anti-Pattern 4: Creating PR with Uncommitted Changes**
+### Anti-Pattern 4: Creating PR with Uncommitted Changes
 ```bash
 # ... make changes to multiple files ...
 git add some-file.md
@@ -191,7 +221,7 @@ gh pr create
 ```
 **Benefits:** PR reflects exact state; reviewers see complete work; no risk of data loss; clean git history.
 
-**Anti-Pattern 5: Force Pushing to Main**
+### Anti-Pattern 5: Force Pushing to Main
 ```bash
 git checkout main
 git reset --hard HEAD~3 # Rewind commits
@@ -216,7 +246,7 @@ gh pr create --title "fix: revert problematic change"
 ```
 **Benefits:** Preserves history; allows rollback; follows review process; maintains team workflow.
 
-**Anti-Pattern 6: Ignoring Pre-Commit Hook Failures**
+### Anti-Pattern 6: Ignoring Pre-Commit Hook Failures
 ```bash
 git commit -m "feat: new feature"
 # Error: PermissionError: [Errno 1] Operation not permitted
@@ -365,49 +395,6 @@ Agents should follow this validation approach:
 
 **Flexibility:** If project conventions differ or user has specific naming requirements, adapt while documenting the rationale.
 
-## Post-Execution Checklist
-
-- [ ] Branch created with proper naming convention (feature/, fix/, docs/, refactor/, chore/)
-- [ ] Branch created from up-to-date `main` branch
-- [ ] All Pre-Task-Completion Validation Gate checks pass (lint, format, tests)
-- [ ] CHANGELOG.md updated under `## [Unreleased]` section
-- [ ] README.md reviewed and updated if triggers apply
-- [ ] All changes committed with Conventional Commits format
-- [ ] Pre-commit hooks pass (or elevated permissions granted for sandboxed environments)
-- [ ] Git state validated: `git status --porcelain` returns empty
-- [ ] Not on protected branch (main/master)
-- [ ] Branch pushed to remote successfully
-- [ ] PR created with clear title and description
-- [ ] Reviewers assigned (if multi-user project)
-- [ ] All status checks passing before merge
-- [ ] Code review approved before merge
-
-## Validation
-
-- **Success Checks:** Branch name follows convention; git working directory clean (`git status --porcelain` empty); CHANGELOG.md has entry under [Unreleased]; PR created successfully; all status checks pass; code review approved; merge completes without conflicts
-- **Negative Tests:** Invalid branch name rejected by validation script; uncommitted changes block PR creation; missing CHANGELOG entry causes validation failure; direct commit to main blocked by branch protection; force push to main rejected; status check failures prevent merge
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Verify git repository state BEFORE making recommendations** using `git status`, `git branch`, `git log`
-> 2. **Check actual branch protection settings** on GitHub before advising
-> 3. **Never assume branch names or git state** - always inspect with git commands
-> 4. **If uncertain about remote configuration, explicitly state:** "I need to check your GitHub settings to provide accurate guidance"
-> 5. **Make grounded recommendations based on actual git state inspection**
->
-> **Anti-Pattern:**
-> "Based on typical patterns, you probably have feature branches..."
-> "Usually projects configure branch protection..."
->
-> **Correct Pattern:**
-> "Let me check your git state first:"
-> ```bash
-> git branch -a
-> git remote -v
-> git status
-> ```
-> "After reviewing your git configuration, I found [specific facts]. Here's my recommendation..."
-
 ## Output Format Examples
 
 ```markdown
@@ -438,30 +425,15 @@ Preview:
 [Show relevant excerpt of updated documentation]
 ```
 
-## References
+## Implementation Details
 
-### External Documentation
-- [GitHub Flow](https://docs.github.com/en/get-started/quickstart/github-flow) - GitHub's lightweight branch-based workflow
-- [Git Branching Strategies](https://git-scm.com/book/en/v2/Git-Branching-Branching-Workflows) - Official Git documentation on branching
-- [Protected Branches (GitHub)](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches) - GitHub branch protection configuration
-- [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/#specification) - REQUIRED commit message format specification
-- [Conventional Branch v1.0.0](https://conventional-branch.github.io/#specification) - REQUIRED branch naming convention specification
-- [GitHub CLI](https://cli.github.com/manual/) - GitHub command-line tool documentation
-
-### Related Rules
-- **Human Developer Guidelines**: `CONTRIBUTING.md` (lines 400-449)
-- **Changelog Management**: `800-project-changelog.md`
-- **Contributing Workflow**: `802-project-contributing.md`
-- **Global Core (Pre-Task-Completion Validation Gate)**: `000-global-core.md`
-- **Agents Workflow**: `AGENTS.md`
-
-## 1. Branch Naming Conventions
+### Branch Naming Conventions
 
 **Specification:** This project strongly follows [Conventional Branch v1.0.0](https://conventional-branch.github.io/#specification) for all branch naming.
 
 **Core Principle:** Branch names should use the format `type/description-in-kebab-case` where type indicates the purpose and description is concise yet meaningful.
 
-### Standard Prefixes
+#### Standard Prefixes
 
 **Requirement:** All feature branches must use one of these prefixes:
 
@@ -485,7 +457,7 @@ Preview:
  - Example: `chore/update-ruff-version`
  - Example: `chore/cleanup-temp-files`
 
-### Branch Naming Best Practices
+#### Branch Naming Best Practices
 
 - **Rule:** Use descriptive, kebab-case names after prefix
 - **Rule:** Keep branch names concise but meaningful (3-5 words)
@@ -493,9 +465,9 @@ Preview:
 - **Avoid:** JIRA ticket numbers only (include description)
 - **Consider:** Including ticket reference: `feature/SF-123-add-cortex-agents`
 
-## 2. Feature Branch Workflow
+### Feature Branch Workflow
 
-### Step-by-Step Process
+#### Step-by-Step Process
 
 ```bash
 # 1. Ensure main is up to date
@@ -529,9 +501,9 @@ git push origin feature/my-new-feature
 # 9. Create PR (see section below)
 ```
 
-## 3. GitHub Workflow
+### GitHub Workflow
 
-### Creating Pull Requests
+#### Creating Pull Requests
 
 **Using GitHub CLI:**
 ```bash
@@ -555,7 +527,7 @@ gh pr create --fill
 6. Assign reviewers if applicable
 7. Click "Create pull request"
 
-### Branch Protection Rules (GitHub)
+#### Branch Protection Rules (GitHub)
 
 **Requirement:** Configure protection for `main` branch:
 
@@ -576,7 +548,7 @@ Protection settings:
  Allow deletions (keep disabled)
 ```
 
-### GitHub Actions Status Checks
+#### GitHub Actions Status Checks
 
 **Example `.github/workflows/validate.yml`:**
 ```yaml
@@ -596,9 +568,9 @@ jobs:
      run: task validate
 ```
 
-## 4. Protected Branch Strategy
+### Protected Branch Strategy
 
-### Configuration Requirements
+#### Configuration Requirements
 
 **Mandatory for all projects:**
 - **Always:** Protect `main` and `master` branches
@@ -609,7 +581,7 @@ jobs:
 - **Forbidden:** Direct commits to `main`/`master`
 - **Forbidden:** Force pushes to protected branches (except emergency override with team notification)
 
-### Branch Protection Benefits
+#### Branch Protection Benefits
 
 - **Code Quality:** Automated checks catch issues before merge
 - **Review Process:** Ensures peer review of all changes
@@ -617,9 +589,9 @@ jobs:
 - **Rollback Safety:** Easy to revert problematic merges
 - **Team Collaboration:** Forces communication about changes
 
-## 5. Pre-Merge Validation
+### Pre-Merge Validation
 
-### Git State Validation Commands
+#### Git State Validation Commands
 
 **Requirement:** Run these checks before creating PR:
 
@@ -651,7 +623,7 @@ grep -A 10 "## \[Unreleased\]" CHANGELOG.md | grep -v "^## \[Unreleased\]$" | gr
 # Entry must be present
 ```
 
-### Complete Validation Script
+#### Complete Validation Script
 
 **Create `scripts/validate-git-state.sh`:**
 ```bash
@@ -714,7 +686,7 @@ chmod +x scripts/validate-git-state.sh
 ./scripts/validate-git-state.sh
 ```
 
-### Integration with Pre-Task-Completion Validation Gate
+#### Integration with Pre-Task-Completion Validation Gate
 
 **Reference:** See `AGENTS.md` Section 3.4: Git State Validation
 
@@ -725,9 +697,9 @@ chmod +x scripts/validate-git-state.sh
 3. Documentation: CHANGELOG.md and README.md updated
 4. **Git State:** Clean working directory, valid branch, CHANGELOG entry verified
 
-## 6. Pre-Commit Hooks
+### Pre-Commit Hooks
 
-### Understanding Pre-Commit Hooks
+#### Understanding Pre-Commit Hooks
 
 **Context:** Many projects use pre-commit hooks to enforce code quality checks automatically before commits. These hooks run on every `git commit` command.
 
@@ -736,7 +708,7 @@ chmod +x scripts/validate-git-state.sh
 - **husky** (Node.js-based) - Uses `.husky/` directory
 - **Native git hooks** - Scripts in `.git/hooks/`
 
-### Permission Requirements
+#### Permission Requirements
 
 **Critical:** Pre-commit hooks often require elevated permissions beyond basic file access:
 
@@ -751,7 +723,7 @@ chmod +x scripts/validate-git-state.sh
 PermissionError: [Errno 1] Operation not permitted
 ```
 
-### Handling Pre-Commit Hook Failures
+#### Handling Pre-Commit Hook Failures
 
 **Pattern 1: Request Full Permissions (Preferred)**
 ```bash
@@ -782,7 +754,7 @@ git commit --no-verify -m "feat(scope): description"
 # Must ensure quality checks passed before using this option
 ```
 
-### Detecting Pre-Commit Configuration
+#### Detecting Pre-Commit Configuration
 
 ```bash
 # Check if pre-commit is configured

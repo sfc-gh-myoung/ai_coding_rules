@@ -2,69 +2,120 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** FastAPI security, authentication, OAuth2, JWT, CORS, middleware, API keys, security best practices, bcrypt, HTTPBearer, role-based access control, RBAC
-**TokenBudget:** ~2650
+**TokenBudget:** ~4900
 **ContextTier:** High
 **Depends:** 210-python-fastapi-core.md
+**LastUpdated:** 2025-12-23
 
-## Purpose
-Establish comprehensive security practices for FastAPI applications including authentication, authorization, CORS configuration, and security middleware to protect APIs and user data.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive security practices for FastAPI applications. Covers authentication (OAuth2, JWT), authorization (RBAC), password hashing (bcrypt), CORS configuration, security middleware, input validation, and production security hardening to protect APIs and user data.
 
-FastAPI security patterns for authentication, authorization, CORS, and security middleware
+**When to Load This Rule:**
+- Implementing authentication and authorization in FastAPI
+- Securing FastAPI endpoints with JWT tokens
+- Configuring CORS and security middleware
+- Setting up role-based access control (RBAC)
+- Hardening FastAPI applications for production deployment
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Use bcrypt for password hashing** - `passlib.context.CryptContext(schemes=["bcrypt"])`
-- **JWT tokens with HTTPBearer** - Use `fastapi.security.HTTPBearer()` for token auth
-- **Environment variables for secrets** - Never hardcode `SECRET_KEY`, `DATABASE_URL`
-- **Dependency injection for RBAC** - Create `get_current_user`, `require_role` dependencies
-- **Configure CORS properly** - Specify allowed origins, methods, headers explicitly
-- **Disable docs in production** - Set `docs_url=None`, `redoc_url=None` when `ENV=production`
-- **Never store plaintext passwords** - Always hash with bcrypt before database storage
+### Dependencies
 
-**Quick Checklist:**
-- [ ] Passwords hashed with bcrypt (passlib)
-- [ ] JWT authentication with HTTPBearer
-- [ ] All secrets in environment variables
-- [ ] RBAC implemented via dependency injection
-- [ ] CORS configured with explicit origins
-- [ ] Rate limiting middleware configured
-- [ ] Docs disabled in production
+**Must Load First:**
+- **210-python-fastapi-core.md** - FastAPI foundation patterns
+
+**Related:**
+- **200-python-core.md** - Python core patterns
+- **210b-python-fastapi-testing.md** - Testing security implementations
+
+### External Documentation
+
+- [FastAPI Security Documentation](https://fastapi.tiangolo.com/tutorial/security/)
+- [OWASP API Security](https://owasp.org/www-project-api-security/)
+- [JWT Best Practices](https://tools.ietf.org/html/rfc8725)
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-[Context, files, dependencies needed]
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-[Tools permitted for this domain]
-</mandatory>
+- FastAPI application structure
+- User authentication requirements
+- RBAC requirements and role definitions
+- Environment configuration system
+- Understanding of OAuth2/JWT patterns
 
-<forbidden>
-[Tools not allowed for this domain]
-</forbidden>
+### Mandatory
 
-<steps>
-[Ordered steps the agent must follow]
-</steps>
+- `passlib` for password hashing (bcrypt)
+- `python-jose` or `pyjwt` for JWT tokens
+- `fastapi.security` modules (HTTPBearer, OAuth2PasswordBearer)
+- Environment variables for secrets
+- CORS middleware configuration
 
-<output_format>
-[Expected output format]
-</output_format>
+### Forbidden
 
-<validation>
-[Checks to confirm success]
-</validation>
+- Hardcoding secrets in source code
+- Storing plaintext passwords
+- Using `allow_origins=["*"]` in production CORS
+- Exposing API docs in production without auth
+- Skipping input validation on security-critical endpoints
 
-<design_principles>
+### Execution Steps
+
+1. Set up password hashing with bcrypt via passlib
+2. Implement JWT token generation and validation
+3. Create authentication dependencies (get_current_user)
+4. Implement role-based access control via dependency injection
+5. Configure CORS middleware with explicit allowed origins
+6. Add security middleware (trusted hosts, rate limiting)
+7. Move all secrets to environment variables
+8. Disable API docs in production (docs_url=None)
+9. Validate with security testing (auth flows, RBAC)
+10. Audit for security best practices
+
+### Output Format
+
+Secured FastAPI application with:
+- Bcrypt password hashing
+- JWT authentication with HTTPBearer
+- RBAC via dependency injection
+- Properly configured CORS
+- Environment-based secrets management
+- Production security hardening
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Password hashing configured with bcrypt
+- JWT tokens generated and validated correctly
+- Authentication dependencies implemented
+- RBAC dependencies created
+- CORS configured with explicit origins
+- All secrets in environment variables
+- API docs disabled in production
+
+**Success Criteria:**
+- Passwords never stored in plaintext
+- JWT tokens validated on protected endpoints
+- Unauthorized requests return 401
+- Forbidden requests return 403 (RBAC)
+- CORS only allows specified origins
+- No secrets in source code or git history
+- API docs inaccessible in production
+
+**Negative Tests:**
+- Invalid JWT token rejected with 401
+- Missing role returns 403
+- CORS blocks unauthorized origins
+- Hardcoded secrets trigger security scan alerts
+
+### Design Principles
+
 1. **Authentication First** - Implement proper JWT-based authentication with secure token handling
 2. **Authorization Controls** - Use dependency injection for role-based access control
 3. **Password Security** - Hash passwords with bcrypt; never store plaintext credentials
@@ -72,9 +123,19 @@ FastAPI security patterns for authentication, authorization, CORS, and security 
 5. **Security Middleware** - Layer security controls with trusted hosts and rate limiting
 6. **Environment Secrets** - Store all secrets in environment variables, never in code
 7. **Production Hardening** - Disable debug features and docs in production environments
-</design_principles>
 
-</contract>
+### Post-Execution Checklist
+
+- [ ] Passwords hashed with bcrypt (passlib)
+- [ ] JWT authentication implemented with HTTPBearer
+- [ ] All secrets stored in environment variables
+- [ ] RBAC implemented via dependency injection
+- [ ] CORS configured with explicit allowed origins
+- [ ] Rate limiting middleware added
+- [ ] API docs disabled in production
+- [ ] Security testing completed
+- [ ] No hardcoded secrets in codebase
+- [ ] Input validation on all security-critical endpoints
 
 ## Anti-Patterns and Common Mistakes
 
@@ -133,16 +194,6 @@ app.add_middleware(
 )
 ```
 
-## Post-Execution Checklist
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
-
-## Validation
-- **Success checks:** [How to verify correct implementation]
-- **Negative tests:** [What should fail and how to detect failures]
 
 > **Investigation Required**
 > When applying this rule:
@@ -219,22 +270,9 @@ uvx ruff format --check .
 uv run pytest tests/
 ```
 
-## References
-
-### External Documentation
-- [FastAPI Security](https://fastapi.tiangolo.com/tutorial/security/)
-- [OAuth2 with JWT](https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/)
-- [CORS](https://fastapi.tiangolo.com/tutorial/cors/)
-- [Passlib Documentation](https://passlib.readthedocs.io/)
-- [Python-JOSE](https://python-jose.readthedocs.io/)
-- [Pydantic v2 Validators](https://docs.pydantic.dev/latest/concepts/validators/)
-
-### Related Rules
-- **FastAPI Core**: `210-python-fastapi-core.md`
-- **FastAPI Testing**: `210b-python-fastapi-testing.md`
 - **FastAPI Deployment**: `210c-python-fastapi-deployment.md`
 
-## 1. Authentication Setup
+## Authentication Setup
 
 ### JWT Token Authentication
 - **Always:** Implement proper authentication for protected endpoints.
@@ -346,7 +384,7 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     return user
 ```
 
-## 2. Authorization and Access Control
+## Authorization and Access Control
 
 ### Role-Based Access Control
 - **Always:** Implement role-based permissions using dependency injection.
@@ -406,7 +444,7 @@ async def delete_user(
     return {"message": "User deleted successfully"}
 ```
 
-## 3. Security Middleware
+## Security Middleware
 
 ### CORS Configuration
 - **Always:** Configure CORS properly for your use case.
@@ -482,7 +520,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         return response
 ```
 
-## 4. Input Sanitization and Validation
+## Input Sanitization and Validation
 
 ### SQL Injection Prevention
 - **Always:** Use parameterized queries with SQLAlchemy.
@@ -549,7 +587,7 @@ class SecureUserInput(BaseModel):
         return v
 ```
 
-## 5. Environment and Configuration Security
+## Environment and Configuration Security
 
 ### Secure Configuration Management
 - **Always:** Store secrets in environment variables or secure vaults.
@@ -605,7 +643,7 @@ class SecuritySettings(BaseSettings):
         return v
 ```
 
-## 6. Production Security Hardening
+## Production Security Hardening
 
 ### Deployment Security Checklist
 - **Always:** Disable debug mode in production.

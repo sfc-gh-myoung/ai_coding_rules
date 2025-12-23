@@ -2,19 +2,25 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** ML, reproducible notebooks, nbqa, notebook linting, code quality, Python, create notebook, debug notebook, notebook execution, notebook testing, notebook deployment, kernel management, cell execution
-**TokenBudget:** ~3200
+**TokenBudget:** ~4150
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 201-python-lint-format.md
+**LastUpdated:** 2025-12-22
 
-## Purpose
-Establish best practices for building reproducible, secure, and maintainable Jupyter Notebooks within the Snowflake environment, ensuring deterministic execution, proper state management, and seamless transition to production code.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Best practices for building reproducible, secure, and maintainable Jupyter Notebooks within the Snowflake environment, ensuring deterministic execution, proper state management, and seamless transition to production code.
 
-Jupyter Notebooks in Snowflake with Snowpark for Python and reproducible data science workflows
+**When to Load This Rule:**
+- Creating Jupyter Notebooks in Snowflake
+- Building reproducible data science workflows
+- Using Snowpark for Python in notebooks
+- Managing notebook state and dependencies
+- Transitioning notebooks to production code
 
 **Progressive Disclosure - Token Budget:**
 - Quick Start + Contract: ~400 tokens (always load for notebook tasks)
@@ -28,29 +34,66 @@ Jupyter Notebooks in Snowflake with Snowpark for Python and reproducible data sc
 - **Production workflows**: + Advanced Features
 - **Deployment**: + 109c (app deployment)
 
-## Quick Start TL;DR
+## References
 
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for 80% of common use cases reduces need to read full sections
-- **Position advantage:** Early placement benefits from slight attention bias in LLM processing (first ~20% of content receives marginally more weight)
-- **Progressive disclosure:** Enables agents to assess rule relevance before loading full content
-- **Human-LLM collaboration:** Useful for both human developers (quick scanning) and AI assistants (decision point)
+### External Documentation
+- [Snowflake Notebooks](https://docs.snowflake.com/en/user-guide/ui-snowsight-notebooks-gs) - Official Notebooks documentation
+- [Snowpark for Python](https://docs.snowflake.com/en/developer-guide/snowpark/python/index) - Snowpark Python API reference
+- [nbqa](https://nbqa.readthedocs.io/) - Code quality tools for Jupyter notebooks
+- [Jupyter Best Practices](https://jupyter-notebook.readthedocs.io/en/stable/notebook.html) - Notebook usage guidelines
 
-**Note:** While LLMs read sequentially (not auto-prioritizing this section), the concentrated pattern format and early position provide practical efficiency benefits. To maximize value for agents, include in system prompts: "Read Quick Start TL;DR sections first to identify essential patterns."
+### Related Rules
+**Closely Related** (consider loading together):
+- **100-snowflake-core.md** - Snowflake fundamentals, connection patterns, DDL syntax
+- **111-snowflake-observability-core.md** - adding telemetry and monitoring to notebook executions
 
-Position at top provides practical efficiency benefits for both LLMs and human developers.
+**Sometimes Related** (load if specific scenario):
+- **101-snowflake-streamlit-core.md** - combining notebook development with Streamlit deployment
+- **114-snowflake-cortex-aisql.md** - using Cortex AI functions in notebook workflows
+- **124-snowflake-data-quality-core.md** - running data quality checks in notebooks
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Deterministic execution** - notebooks must run top-to-bottom without hidden state
-- **All imports at top** - single dedicated cell for all imports
-- **Descriptive cell names** - use `action_subject` format (e.g., `load_customer_data`)
-- **Push compute to Snowflake** - use Snowpark DataFrames, avoid large local pulls
-- **Use nbqa for linting** - `uvx nbqa ruff notebooks/` for code quality
-- **Never hard-code secrets** - use environment variables or st.secrets
-- **Don't rely on execution order** - cells must be independent and deterministic
+**Complementary** (different aspects of same domain):
+- **103-snowflake-performance-tuning.md** - optimizing queries in notebook cells
+- **107-snowflake-security-governance.md** - secrets management and RBAC in notebooks
 
-**Quick Checklist:**
+## Contract
+
+### Inputs and Prerequisites
+
+Snowflake account access; Snowpark for Python environment; Jupyter notebook environment; virtual environment with pinned dependencies
+
+### Mandatory
+
+`edit_notebook`, `read_file`, `run_terminal_cmd` (for notebook execution), `codebase_search`, `write` (for .py/.sql refactoring)
+
+### Forbidden
+
+Direct database credential exposure; notebook execution without environment validation
+
+### Execution Steps
+
+1. Validate environment and dependencies
+2. Implement descriptive cell naming conventions
+3. Structure notebook with proper Markdown documentation
+4. Push computation to Snowflake via Snowpark
+5. Refactor production code to separate files
+
+### Output Format
+
+Jupyter notebook (.ipynb) with named cells, Markdown documentation, and optional refactored .py/.sql files
+
+### Validation
+
+Verify cell names follow naming conventions; validate deterministic execution; confirm no hardcoded secrets; test Snowpark connectivity
+
+### Design Principles
+
+- Deterministic notebooks; one environment with pinned versions; imports centralized at top.
+- Parameterize runs; narrative in Markdown cells; keep code cells focused and avoid hidden state.
+- Never hard-code secrets; push heavy compute to Snowflake (Snowpark); refactor final code into .py/.sql.
+
+### Post-Execution Checklist
+
 - [ ] All imports in single top cell
 - [ ] Cell names are descriptive (`action_subject` format)
 - [ ] Markdown cells for narrative/documentation
@@ -58,53 +101,6 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - [ ] Snowpark DataFrames for large computations
 - [ ] Run `uvx nbqa ruff notebooks/` for linting
 - [ ] Test: "Restart Kernel & Run All" works without errors
-
-> **Investigation Required**
-> When applying this rule:
-> 1. Run the notebook top-to-bottom BEFORE making recommendations
-> 2. Verify cell execution order doesn't cause hidden state issues
-> 3. Never speculate about notebook structure - read the actual .ipynb file
-> 4. Check for hardcoded secrets or credentials in cells
-> 5. Make grounded recommendations based on investigated notebook execution
-
-## Contract
-
-<contract>
-<inputs_prereqs>
-Snowflake account access; Snowpark for Python environment; Jupyter notebook environment; virtual environment with pinned dependencies
-</inputs_prereqs>
-
-<mandatory>
-`edit_notebook`, `read_file`, `run_terminal_cmd` (for notebook execution), `codebase_search`, `write` (for .py/.sql refactoring)
-</mandatory>
-
-<forbidden>
-Direct database credential exposure; notebook execution without environment validation
-</forbidden>
-
-<steps>
-1. Validate environment and dependencies
-2. Implement descriptive cell naming conventions
-3. Structure notebook with proper Markdown documentation
-4. Push computation to Snowflake via Snowpark
-5. Refactor production code to separate files
-</steps>
-
-<output_format>
-Jupyter notebook (.ipynb) with named cells, Markdown documentation, and optional refactored .py/.sql files
-</output_format>
-
-<validation>
-Verify cell names follow naming conventions; validate deterministic execution; confirm no hardcoded secrets; test Snowpark connectivity
-</validation>
-
-<design_principles>
-- Deterministic notebooks; one environment with pinned versions; imports centralized at top.
-- Parameterize runs; narrative in Markdown cells; keep code cells focused and avoid hidden state.
-- Never hard-code secrets; push heavy compute to Snowflake (Snowpark); refactor final code into .py/.sql.
-</design_principles>
-
-</contract>
 
 ## Anti-Patterns and Common Mistakes
 
@@ -216,47 +212,31 @@ monthly_summary = customers_df.group_by("REGISTRATION_MONTH").agg(
 )
 ```
 
-## References
-
-### External Documentation
-- [Snowpark for Python](https://docs.snowflake.com/en/developer-guide/snowpark/python) - Official Snowflake documentation for DataFrames, distributed computing patterns, UDFs, and complete API reference (authoritative source, updated with each Snowflake release)
-- [Python Connector](https://docs.snowflake.com/en/developer-guide/python-connector) - Official database connectivity guide covering authentication patterns, connection pooling, and session management (required reading for production deployments)
-- [nbqa Documentation](https://nbqa.readthedocs.io/) - Comprehensive guide for running Python code quality tools on Jupyter notebooks (industry-standard linting approach with 1.5M+ monthly downloads)
-
-### Related Rules
-- **Snowflake Core**: `100-snowflake-core.md`
-- **App Deployment**: `109b-snowflake-app-deployment-core.md`
-- **Streamlit UI**: `101-snowflake-streamlit-core.md`
-- **Warehouse Management**: `119-snowflake-warehouse-management.md`
-- **Python Core**: `200-python-core.md`
-- **Python Linting**: `201-python-lint-format.md`
-- **Data Science Analytics**: `920-data-science-analytics.md`
-
-## 1. Reproducibility & State
+## Reproducibility & State
 - **Requirement:** Ensure notebooks are deterministic; outputs must not depend on execution order or hidden state.
 - **Requirement:** Use a single virtual environment and pin versions for consistent dependencies.
 - **Always:** Use a dedicated top cell for all imports.
 - **Always:** Parameterize for environments (dev/prod) or inputs (e.g., with `papermill`).
 
-## 2. Structure & Documentation
+## Structure & Documentation
 - **Always:** Use Markdown cells for narrative: purpose, business logic, assumptions.
 - **Requirement:** Do not use code cells for documentation or static text.
 - **Always:** Keep code cells focused on a single task; avoid mixing ingestion, transformation, and visualization.
 
-## 3. Cell Naming & Organization
+## Cell Naming & Organization
 - **Requirement:** Use descriptive, user-friendly cell names that reflect the cell's purpose, not generic names like `cell1`, `cell2`.
 - **Always:** Name cells with clear, action-oriented descriptions (e.g., `setup_snowpark_session`, `load_customer_data`, `calculate_monthly_metrics`).
 - **Requirement:** Use consistent naming patterns: `action_subject` format with lowercase and underscores.
 - **Always:** Group related cells with consistent prefixes (e.g., `data_ingestion_customers`, `data_ingestion_orders`).
 - **Requirement:** For parameterized notebooks, use descriptive parameter cell names (e.g., `config_environment_settings`, `params_date_range`).
 
-## 4. Data & Performance
+## Data & Performance
 - **Requirement:** Never hard-code credentials or sensitive information. Use environment variables or a secrets manager.
 - **Always:** Follow the rules in `100-snowflake-core.md` for performant, cost-effective queries.
 - **Requirement:** For large datasets, push computation to Snowflake via Snowpark DataFrames; avoid large local pulls.
 - **Requirement:** Refactor production-ready code out of the notebook into `.py` or `.sql` files; notebooks serve as reports or exploratory tools.
 
-## 5. Code Quality & Linting
+## Code Quality & Linting
 
 ### Purpose
 Jupyter notebooks should maintain the same code quality standards as Python modules. Use **nbqa** (Notebook Quality Assurance) to run standard Python linters on notebook code cells.
@@ -409,18 +389,3 @@ result = large_df.describe()  # Quick stats for investigation
 ```
 
 **When in Doubt:** Default to linting. Exceptions should be rare (<10% of notebooks) and explicitly documented with rationale.
-
-## Related Rules
-
-**Closely Related** (consider loading together):
-- `100-snowflake-core` - For Snowflake fundamentals, connection patterns, DDL syntax
-- `111-snowflake-observability-core` - When adding telemetry and monitoring to notebook executions
-
-**Sometimes Related** (load if specific scenario):
-- `101-snowflake-streamlit-core` - When combining notebook development with Streamlit deployment
-- `114-snowflake-cortex-aisql` - When using Cortex AI functions in notebook workflows
-- `124-snowflake-data-quality-core` - When running data quality checks in notebooks
-
-**Complementary** (different aspects of same domain):
-- `103-snowflake-performance-tuning` - For optimizing queries in notebook cells
-- `107-snowflake-security-governance` - For secrets management and RBAC in notebooks

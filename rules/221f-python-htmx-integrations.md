@@ -2,54 +2,71 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** alpinejs, hyperscript, tailwind, bootstrap, css frameworks, icon libraries, chartjs, frontend libraries, client-side enhancements, htmx integration, javascript frameworks
-**TokenBudget:** ~1900
+**TokenBudget:** ~3900
 **ContextTier:** Low
 **Depends:** 221-python-htmx-core.md
+**LastUpdated:** 2025-12-23
 
-## Purpose
+## Scope
 
-Provides integration patterns for using HTMX with popular frontend libraries and frameworks including Alpine.js, _hyperscript, CSS frameworks (Tailwind, Bootstrap), icon libraries, and visualization libraries.
+**What This Rule Covers:**
+Integration patterns for using HTMX with popular frontend libraries and frameworks including Alpine.js, _hyperscript, CSS frameworks (Tailwind, Bootstrap), icon libraries, and visualization libraries.
 
-## Rule Scope
+**When to Load This Rule:**
+- Integrating HTMX with Alpine.js for client-side state
+- Using _hyperscript with HTMX
+- Styling HTMX applications with CSS frameworks
+- Adding icon libraries to HTMX applications
+- Integrating chart/visualization libraries with HTMX
 
-HTMX applications integrating with frontend libraries for enhanced interactivity and styling
+## References
 
-## Quick Start TL;DR
+### Dependencies
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Alpine.js for client-side state** - Use for dropdowns, toggles, local UI state
-- **_hyperscript for inline behavior** - Simple event handling and DOM manipulation
-- **CSS framework integration** - Tailwind/Bootstrap work seamlessly with HTMX
-- **Icon libraries** - Use SVG sprites or icon fonts, load once globally
-- **Chart libraries** - Re-initialize charts after HTMX swaps using `htmx:afterSwap` event
+**Must Load First:**
+- **221-python-htmx-core.md** - HTMX foundation patterns
 
-**Pre-Execution Checklist:**
-- [ ] Frontend libraries loaded in base template
-- [ ] Alpine.js/hyperscript integrated for client-side behavior
-- [ ] CSS framework configured (if using Tailwind/Bootstrap)
-- [ ] Icon library loaded (FontAwesome, Heroicons, etc.)
-- [ ] Chart/visualization library initialization hooked to HTMX events
-- [ ] No conflicts between HTMX and frontend libraries
+**Related:**
+- **221a-python-htmx-templates.md** - Jinja2 patterns
+- **221e-python-htmx-patterns.md** - HTMX implementation patterns
+- **221g-python-htmx-sse.md** - Server-Sent Events patterns
+
+### External Documentation
+
+- [Alpine.js Documentation](https://alpinejs.dev/) - Alpine.js guide
+- [Hyperscript Documentation](https://hyperscript.org/) - _hyperscript reference
+- [Tailwind CSS](https://tailwindcss.com/) - Tailwind documentation
+- [Bootstrap](https://getbootstrap.com/) - Bootstrap documentation
+- [Chart.js](https://www.chartjs.org/) - Chart.js guide
+- [HTMX Events](https://htmx.org/events/) - HTMX event reference
 
 ## Contract
 
-<inputs_prereqs>
-HTMX core patterns (221-python-htmx-core.md); frontend library documentation; understanding of HTMX event lifecycle
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-HTMX library; chosen frontend libraries; event listeners for HTMX lifecycle; base template for script/CSS loading
-</mandatory>
+- HTMX core patterns (221-python-htmx-core.md)
+- Frontend library documentation
+- Understanding of HTMX event lifecycle
 
-<forbidden>
-jQuery (not recommended with HTMX); heavy JavaScript frameworks (React, Vue, Angular); conflicting event handlers; global state in JavaScript
-</forbidden>
+### Mandatory
 
-<steps>
+- HTMX library
+- Chosen frontend libraries
+- Event listeners for HTMX lifecycle
+- Base template for script/CSS loading
+
+### Forbidden
+
+- jQuery (not recommended with HTMX)
+- Heavy JavaScript frameworks (React, Vue, Angular)
+- Conflicting event handlers
+- Global state in JavaScript
+
+### Execution Steps
+
 1. Load HTMX and frontend libraries in base template
 2. Configure Alpine.js or _hyperscript for client-side behavior
 3. Style with CSS framework (Tailwind, Bootstrap, etc.)
@@ -57,20 +74,51 @@ jQuery (not recommended with HTMX); heavy JavaScript frameworks (React, Vue, Ang
 5. Hook chart/visualization library to HTMX events (htmx:afterSwap)
 6. Test integration with HTMX swaps
 7. Verify no conflicts or memory leaks
-</steps>
 
-<output_format>
-Integrated application using HTMX with Alpine.js/_hyperscript, CSS framework, icons, and charts
-</output_format>
+### Output Format
 
-<validation>
+- Integrated application using HTMX with Alpine.js/_hyperscript
+- CSS framework
+- Icons
+- Charts
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Frontend libraries loaded in base template
+- Alpine.js/hyperscript integrated for client-side behavior
+- CSS framework configured (if using Tailwind/Bootstrap)
+- Icon library loaded (FontAwesome, Heroicons, etc.)
+- Chart/visualization library initialization hooked to HTMX events
+
+**Success Criteria:**
 - Frontend libraries load correctly
 - Alpine.js/hyperscript work after HTMX swaps
 - CSS framework styles apply to dynamically loaded content
 - Icons render in HTMX-loaded partials
 - Charts re-initialize after swaps
 - No console errors or memory leaks
-</validation>
+
+### Design Principles
+
+- **Alpine.js for client-side state** - Use for dropdowns, toggles, local UI state
+- **_hyperscript for inline behavior** - Simple event handling and DOM manipulation
+- **CSS framework integration** - Tailwind/Bootstrap work seamlessly with HTMX
+- **Icon libraries** - Use SVG sprites or icon fonts, load once globally
+- **Chart libraries** - Re-initialize charts after HTMX swaps using `htmx:afterSwap` event
+
+### Post-Execution Checklist
+
+- [ ] Frontend libraries loaded in base template
+- [ ] Alpine.js or _hyperscript integrated for client-side behavior
+- [ ] CSS framework styles apply to HTMX-loaded content
+- [ ] Icons display correctly in partials
+- [ ] Charts/visualizations reinitialize after swaps
+- [ ] Event listeners hooked to HTMX lifecycle
+- [ ] Memory cleanup implemented (destroy chart instances, etc.)
+- [ ] No console errors after HTMX swaps
+- [ ] Integration tested with multiple swap operations
+- [ ] No conflicts between HTMX and frontend libraries
 
 ## Key Principles
 
@@ -431,30 +479,6 @@ document.body.addEventListener('htmx:afterSwap', function(event) {
 });
 ```
 
-## Post-Execution Checklist
-
-- [ ] Frontend libraries loaded in base template
-- [ ] Alpine.js or _hyperscript integrated for client-side behavior
-- [ ] CSS framework styles apply to HTMX-loaded content
-- [ ] Icons display correctly in partials
-- [ ] Charts/visualizations reinitialize after swaps
-- [ ] Event listeners hooked to HTMX lifecycle
-- [ ] Memory cleanup implemented (destroy chart instances, etc.)
-- [ ] No console errors after HTMX swaps
-- [ ] Integration tested with multiple swap operations
-
-## Validation
-
-**Success Checks:**
-- Alpine.js/hyperscript work after HTMX swaps
-- CSS framework styles apply to dynamic content
-- Icons render in HTMX-loaded partials
-- Charts update correctly after data changes
-- No memory leaks (check browser dev tools)
-
-**Negative Tests:**
-- Plugin cleanup prevents memory leaks
-- Multiple swaps don't create duplicate event listeners
 
 ## Output Format Examples
 
@@ -501,19 +525,3 @@ document.body.addEventListener('htmx:afterSwap', function(event) {
 </html>
 ```
 
-## References
-
-### External Documentation
-- [Alpine.js Documentation](https://alpinejs.dev/) - Alpine.js guide
-- [Hyperscript Documentation](https://hyperscript.org/) - _hyperscript reference
-- [Tailwind CSS](https://tailwindcss.com/) - Tailwind documentation
-- [Bootstrap](https://getbootstrap.com/) - Bootstrap documentation
-- [Chart.js](https://www.chartjs.org/) - Chart.js guide
-- [HTMX Events](https://htmx.org/events/) - HTMX event reference
-
-### Related Rules
-
-- **HTMX Foundation**: `221-python-htmx-core.md` - HTMX core patterns
-- **Template Strategies**: `221a-python-htmx-templates.md` - Jinja2 patterns
-- **Common Patterns**: `221e-python-htmx-patterns.md` - HTMX implementation patterns
-- **SSE Patterns**: `221g-python-htmx-sse.md` - Server-Sent Events patterns

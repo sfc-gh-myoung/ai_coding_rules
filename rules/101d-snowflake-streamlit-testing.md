@@ -2,89 +2,117 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** test Streamlit app, pytest, test framework, test patterns, app testing, UI testing, test automation, streamlit test suite, integration testing, test coverage, debug tests, test fixtures, testing strategies
-**TokenBudget:** ~2600
+**TokenBudget:** ~3750
 **ContextTier:** High
 **Depends:** 101-snowflake-streamlit-core.md, 206-python-pytest.md
+**LastUpdated:** 2025-12-22
 
-## Purpose
-Provide comprehensive testing and debugging guidance for Streamlit applications including AppTest patterns, unit testing strategies, debugging workflows, and common issue resolution.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive testing and debugging guidance for Streamlit applications using AppTest patterns (Streamlit 1.28+), unit testing strategies with pytest for data functions, mocking external services with unittest.mock, cache behavior testing, edge case coverage (empty, NULL, invalid), and debugging workflows targeting >80% test coverage without hitting production data.
 
-Streamlit testing with AppTest, unit testing data functions, debugging patterns
+**When to Load This Rule:**
+- Writing automated tests for Streamlit apps
+- Setting up unit tests for data processing functions
+- Implementing UI/integration tests with AppTest
+- Mocking database or API calls in tests
+- Testing cache behavior (@st.cache_data validation)
+- Debugging Streamlit applications
+- Establishing test coverage standards (>80%)
+- Setting up CI/CD test automation
 
-## Quick Start TL;DR
+## References
 
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
+### Dependencies
 
-Position at top provides practical efficiency benefits for both LLMs and human developers.
+**Must Load First:**
+- **000-global-core.md** - Foundation rule with core patterns and validation gates
+- **101-snowflake-streamlit-core.md** - Core Streamlit patterns
+- **206-python-pytest.md** - Python testing with pytest
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Unit test data functions:** Use `pytest` for all data processing logic
-- **AppTest for UI testing:** Use `streamlit.testing.v1.AppTest` for UI/integration tests (Streamlit 1.28+)
-- **Mock external services:** Use `unittest.mock` to avoid hitting real databases/APIs
-- **Test edge cases:** Empty data, invalid inputs, NULL/NaN values, error conditions
-- **Test cache behavior:** Verify `@st.cache_data` hits, misses, and invalidation
-- **Target >80% coverage:** Use `pytest-cov` to measure test coverage
-- **Never test against production data** - always use mocks or test databases
+**Related:**
+- **101b-snowflake-streamlit-performance.md** - Cache behavior testing
+- **200-python-core.md** - Python testing fundamentals
 
-**Quick Checklist:**
-- [ ] Unit tests for all data processing functions
-- [ ] AppTest for UI/integration testing
-- [ ] Mocks for database/API calls
-- [ ] Edge cases covered (empty, NULL, invalid)
-- [ ] Cache behavior tested
-- [ ] All tests pass: `uv run pytest`
-- [ ] Coverage >80%: `uv run pytest --cov`
+### External Documentation
+
+**Streamlit Testing:**
+- [Streamlit App Testing](https://docs.streamlit.io/develop/api-reference/app-testing) - Official AppTest documentation
+- [AppTest Tutorial](https://docs.streamlit.io/develop/concepts/app-testing) - Testing Streamlit apps guide
+
+**Python Testing:**
+- [pytest Documentation](https://docs.pytest.org/) - pytest testing framework
+- [unittest.mock](https://docs.python.org/3/library/unittest.mock.html) - Mock object library
+- [pytest-cov](https://pytest-cov.readthedocs.io/) - Coverage plugin for pytest
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
+### Inputs and Prerequisites
+
 Streamlit app configured (see 101-snowflake-streamlit-core.md), pytest installed, Streamlit 1.28+ for AppTest
-</inputs_prereqs>
 
-<mandatory>
+### Mandatory
+
 streamlit.testing.v1.AppTest, pytest, unittest, mock objects, debugger
-</mandatory>
 
-<forbidden>
-Manual testing only (no automated tests), testing without mocks for external services, tests that modify production data
-</forbidden>
+### Forbidden
 
-<steps>
+- Manual testing only (no automated tests)
+- Testing without mocks for external services
+- Tests that modify production data
+
+### Execution Steps
+
 1. Write unit tests for data processing functions using pytest
 2. Use AppTest for UI/integration testing (Streamlit 1.28+)
 3. Test cached functions to ensure proper cache invalidation
 4. Test with various input combinations and edge cases
 5. Mock external services (databases, APIs) in tests
 6. Test error handling and edge cases
-</steps>
 
-<output_format>
+### Output Format
+
 Test suite with unit tests for data functions, AppTest integration tests, >80% code coverage
-</output_format>
 
-<validation>
-All tests pass, edge cases covered, mocks used for external services, cache behavior tested
-</validation>
+### Validation
 
-<design_principles>
+**Test Requirements:**
+- All tests pass (uv run pytest)
+- Edge cases covered (empty, NULL, invalid)
+- Mocks used for external services
+- Cache behavior tested
+
+**Success Criteria:**
+- Unit tests for all data processing functions
+- AppTest integration tests for UI flows
+- Test coverage >80%
+- No tests hitting production data
+- CI/CD integration working
+
+**Coverage Target:** >80% code coverage with pytest-cov
+
+### Design Principles
+
 - **Test Data Functions:** Unit test all data processing logic
 - **AppTest for UI:** Use Streamlit AppTest for UI/integration testing
 - **Mock External Services:** Don't hit real databases/APIs in tests
 - **Test Edge Cases:** Empty data, invalid inputs, error conditions
 - **Cache Testing:** Verify cache behavior (hits, misses, invalidation)
-</design_principles>
 
-</contract>
+### Post-Execution Checklist
+
+- [ ] Unit tests for all data processing functions
+- [ ] AppTest for UI/integration testing
+- [ ] Mocks for database/API calls (no production data access)
+- [ ] Edge cases covered (empty data, NULL, invalid inputs)
+- [ ] Cache behavior tested (@st.cache_data validation)
+- [ ] All tests pass: `uv run pytest`
+- [ ] Test coverage >80%: `uv run pytest --cov`
+- [ ] CI/CD pipeline configured to run tests
 
 ## Anti-Patterns and Common Mistakes
 
@@ -173,29 +201,6 @@ def test_cache_with_mock():
         assert mock_query.call_count == 1  # Still 1, cache hit
 ```
 
-## Post-Execution Checklist
-- [ ] Unit tests for all data processing functions
-- [ ] AppTest integration tests for core UI workflows
-- [ ] Mock objects used for external services (databases, APIs)
-- [ ] Edge cases tested (empty data, invalid inputs, errors)
-- [ ] Cache behavior tested (hits, misses, invalidation)
-- [ ] Test coverage >80% for data processing logic
-- [ ] All tests pass in CI/CD pipeline
-- [ ] Manual testing checklist completed before deployment
-
-## Validation
-- **Success Checks:** All tests pass, edge cases covered, cache behavior verified, mocks used correctly, AppTest integration tests validate UI workflows
-- **Negative Tests:** Introduce bugs (should fail tests), break cache (tests should catch it), test with invalid inputs (should handle gracefully)
-
-> **Investigation Required**
-> When applying this rule:
-> 1. Read test files BEFORE making recommendations
-> 2. Verify pytest and AppTest are installed and configured
-> 3. Check if tests use mocks for external services
-> 4. Never speculate about test coverage - inspect actual test files
-> 5. Verify cache testing patterns if caching is used
-> 6. Check if edge cases are covered in tests
-
 ## Output Format Examples
 ```python
 # test_app.py
@@ -246,38 +251,7 @@ def test_load_data(mock_session):
     assert len(result) == 3
 ```
 
-## References
-
-### External Documentation
-
-**Streamlit Testing:**
-- [Streamlit AppTest](https://docs.streamlit.io/develop/api-reference/app-testing) - Official AppTest documentation
-- [Testing Apps Tutorial](https://docs.streamlit.io/develop/concepts/app-testing) - Complete guide to testing Streamlit apps
-- [App Testing Release Notes](https://docs.streamlit.io/develop/quick-reference/release-notes#version-1280) - AppTest introduced in 1.28.0
-
-**Python Testing:**
-- [pytest Documentation](https://docs.pytest.org/) - pytest testing framework
-- [unittest.mock](https://docs.python.org/3/library/unittest.mock.html) - Python mock objects for testing
-- [pytest-cov](https://pytest-cov.readthedocs.io/) - Coverage reporting for pytest
-
-**Debugging:**
-- [Streamlit Debugging](https://docs.streamlit.io/develop/concepts/app-design/app-debugging) - Official debugging guide
-- [Performance Profiling](https://docs.streamlit.io/develop/concepts/architecture/caching#debugging-cache-issues) - Cache debugging
-
-### Related Rules
-- **Streamlit Core**: `101-snowflake-streamlit-core.md`
-- **Streamlit Performance**: `101b-snowflake-streamlit-performance.md` (cache testing)
-- **Python pytest**: `206-python-pytest.md`
-- **Python Core**: `200-python-core.md`
-
-> **[AI] Claude 4 Specific Guidance**
-> **Claude 4 Streamlit Testing Optimizations:**
-> - Parallel test analysis: Can review multiple test files simultaneously for coverage gaps
-> - Context awareness: Track test patterns and mock usage across test suite
-> - Investigation-first: Excel at discovering missing tests and untested edge cases
-> - Pattern recognition: Quickly identify test anti-patterns (no mocks, missing edge cases)
-
-## 1. Unit Testing Data Functions
+## Unit Testing Data Functions
 
 **MANDATORY:**
 **Write unit tests for data processing functions using pytest:**
@@ -333,7 +307,7 @@ def test_aggregation(sample_data):
     assert result[result['category'] == 'A']['total'].iloc[0] == 40
 ```
 
-## 2. UI and Integration Testing with AppTest
+## UI and Integration Testing with AppTest
 
 **MANDATORY:**
 **Use Streamlit AppTest (Streamlit 1.28+) for UI/integration testing:**
@@ -433,7 +407,7 @@ def test_caching():
     assert cached_load_time < initial_load_time or cached_load_time == 0
 ```
 
-## 3. Testing Cached Functions
+## Testing Cached Functions
 
 **MANDATORY:**
 **Test cached functions to ensure proper cache invalidation:**
@@ -479,7 +453,7 @@ def test_cache_resource_behavior():
         assert conn1 is conn2
 ```
 
-## 4. Common Debugging Issues
+## Common Debugging Issues
 
 ### App Crashes or Freezes
 - **Avoid:** Infinite loops in widget callbacks
@@ -518,7 +492,7 @@ st.write(f"Count: {st.session_state.counter}")
 - **Always:** Normalize to lowercase in data loaders
 - **Reference:** See 101b-snowflake-streamlit-performance.md
 
-## 5. Manual Testing Checklist
+## Manual Testing Checklist
 
 **RECOMMENDED:**
 **Manual Testing Before Deployment:**

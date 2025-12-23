@@ -2,113 +2,105 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** model governance, model lifecycle, model logging, model inference, RBAC, model privileges, register model, log model, model management, ML registry, model tracking, model metadata, deploy model, model lineage
-**TokenBudget:** ~3550
+**TokenBudget:** ~4250
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md
+**LastUpdated:** 2025-12-22
 
-## Purpose
-Establish comprehensive best practices for using Snowflake Model Registry to manage machine learning models, ensuring secure, performant, and governable ML operations through proper lifecycle management, access control, versioning strategies, and cost optimization.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive best practices for using Snowflake Model Registry to manage machine learning models, ensuring secure, performant, and governable ML operations through proper lifecycle management, access control, versioning strategies, and cost optimization.
 
-Snowflake Model Registry operations including model logging, versioning, access control, inference, and lifecycle management for Python ML models
+**When to Load This Rule:**
+- Logging models to Snowflake Model Registry
+- Managing ML model versions and lifecycle
+- Implementing model access control and governance
+- Running model inference in Snowflake
+- Optimizing model registry costs
 
-**Progressive Disclosure - Token Budget:**
-- Quick Start + Contract: ~450 tokens (always load for model registry tasks)
-- + Model Logging & Versioning (sections 1-2): ~1100 tokens (load for registration)
-- + Inference & Governance (sections 3-4): ~2000 tokens (load for deployment)
-- + Complete Reference: ~2600 tokens (full model registry guide)
+## References
 
-**Recommended Loading Strategy:**
-- **Understanding model registry**: Quick Start only
-- **Logging models**: + Model Logging & Versioning
-- **Model inference**: + Inference & Governance
-- **Production MLOps**: Full reference
+### External Documentation
+- [Snowflake Model Registry Overview](https://docs.snowflake.com/en/developer-guide/snowflake-ml/model-registry/overview) - Complete model registry documentation and API reference
+- [Snowflake Model Registry API](https://docs.snowflake.com/en/developer-guide/snowpark-ml/reference/1.2.0/api/registry/snowflake.ml.registry.Registry) - Python API reference for registry operations
+- [Snowflake Model Management](https://docs.snowflake.com/en/developer-guide/snowflake-ml/model-registry/model-management) - Model lifecycle and management best practices
 
-## Quick Start TL;DR
-
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
-
-Position at top provides practical efficiency benefits for both LLMs and human developers.
-
-**MANDATORY:**
-**Essential Patterns:**
-- **Registry-first approach** - All models logged through Model Registry
-- **Use least-privilege RBAC** - Grant only needed privileges (OWNERSHIP, USAGE, READ)
-- **Version all models** - Comprehensive versioning with metadata
-- **Log metrics and comments** - Track model performance and lineage
-- **Optimize inference** - Choose appropriate compute, optimize serving
-- **Maintain environment consistency** - Pin dependencies, reproducible envs
-- **Never deploy unregistered models** - Always use Model Registry
-
-**Quick Checklist:**
-- [ ] Dedicated schema for registry created
-- [ ] Models logged with version and metadata
-- [ ] RBAC privileges configured
-- [ ] Inference tested and optimized
-- [ ] Dependencies pinned
-- [ ] Audit logging enabled
-- [ ] Lifecycle stages tracked
+### Related Rules
+- **Snowflake Core**: `100-snowflake-core.md`
+- **Data Science Analytics**: `920-data-science-analytics.md`
+- **Snowflake Security**: `107-snowflake-security-governance.md`
+- **Cost Governance**: `105-snowflake-cost-governance.md`
+- **Warehouse Management**: `119-snowflake-warehouse-management.md`
+- **Snowflake Notebooks**: `109-snowflake-notebooks.md`
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-[Context, files, dependencies needed]
-</inputs_prereqs>
+### Inputs and Prerequisites
+- Snowflake session with appropriate ML privileges
+- Trained ML model (sklearn, xgboost, etc.)
+- Sample input data for schema inference
+- Required conda dependencies identified
 
-<mandatory>
-[Tools permitted for this domain]
-</mandatory>
+### Mandatory
+- `snowflake.ml.registry.Registry` for model operations
+- Sample input data for all model registrations
+- Comprehensive metadata (comments, metrics, versioning)
+- RBAC privilege configuration
+- Inference testing before production deployment
 
-<forbidden>
-[Tools not allowed for this domain]
-</forbidden>
+### Forbidden
+- Registering models without sample input data
+- Using generic model names without business context
+- Deploying models without testing inference
+- Granting excessive privileges (always use least-privilege)
+- Overwriting existing model versions
 
-<steps>
-[Ordered steps the agent must follow]
-</steps>
+### Execution Steps
+1. Create or verify dedicated registry schema exists
+2. Initialize Registry with proper session and schema context
+3. Prepare sample input data matching training data structure
+4. Log model with comprehensive metadata and versioning
+5. Configure RBAC privileges (OWNERSHIP, USAGE, READ)
+6. Test model inference with validation dataset
+7. Set performance metrics and business metadata
+8. Enable audit logging and monitoring
 
-<output_format>
-[Expected output format]
-</output_format>
+### Output Format
+- Registered models with semantic version names (v1_2_0 format)
+- Comprehensive metadata including metrics and comments
+- SQL grants for appropriate RBAC privileges
+- Inference validation results
+- Model performance dashboard queries
 
-<validation>
-[Checks to confirm success]
-</validation>
+### Validation
+- Verify model exists in registry: `SHOW MODELS LIKE '%name%' IN SCHEMA`
+- Check model version registered: Query `INFORMATION_SCHEMA.MODEL_VERSIONS`
+- Test inference returns expected predictions
+- Validate RBAC privileges are correctly assigned
+- Confirm metrics and metadata are populated
 
-<design_principles>
+### Design Principles
 - Registry-first approach: all models must be logged and versioned through the Model Registry
 - Least-privilege access: use RBAC with appropriate model privileges (OWNERSHIP, USAGE, READ)
 - Metadata-driven governance: comprehensive logging of metrics, comments, and lifecycle information
 - Cost-conscious inference: choose appropriate compute resources and optimize model serving patterns
 - Environment consistency: maintain reproducible model environments and dependencies
 - Security-first: implement proper access controls, audit logging, and compliance measures
-> **Investigation Required**
-> When working with Model Registry:
-> 1. Verify registry exists: `SHOW SCHEMAS LIKE '%REGISTRY%' IN DATABASE <db>;`
-> 2. Check model exists before operations: `SHOW MODELS LIKE '%name%' IN SCHEMA <db>.<schema>;`
-> 3. Verify model version exists: `SELECT * FROM <db>.<schema>.INFORMATION_SCHEMA.MODELS WHERE MODEL_NAME = '<name>';`
-> 4. Check permissions before logging: `SHOW GRANTS ON SCHEMA <db>.<schema>;`
-> 5. Never assume conda dependencies - check available packages in Snowflake conda channel
-> 6. Test model inference before production deployment
->
-> **Anti-Pattern:**
-> "Let me log this model - it should work with these dependencies."
->
-> **Correct Pattern:**
-> "Let me verify the registry exists and check available conda packages first."
-> [checks registry, verifies conda channel has required packages]
-> "Registry verified. Required packages available in Snowflake conda channel. Logging model..."
-</design_principles>
 
-</contract>
+### Post-Execution Checklist
+- [ ] Dedicated schema for registry created
+- [ ] Models logged with version and metadata (semantic versioning)
+- [ ] Sample input data included for all registrations
+- [ ] RBAC privileges configured (least-privilege)
+- [ ] Inference tested and validated
+- [ ] Performance metrics logged
+- [ ] Dependencies pinned in conda_dependencies
+- [ ] Audit logging enabled
+- [ ] Business metadata and comments added
 
 ## Anti-Patterns and Common Mistakes
 
@@ -282,78 +274,7 @@ print("✓ Model inference validated, ready for production")
 ```
 **Benefits:** Early error detection; validated inference; confidence in production; no surprises; professional deployment; reliable predictions; user trust
 
-## Post-Execution Checklist
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
-
-## Validation
-- **Success checks:** [How to verify correct implementation]
-- **Negative tests:** [What should fail and how to detect failures]
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Read existing model registry setup BEFORE logging models** - Check registry schema, naming conventions
-> 2. **Verify model format compatibility** - Check if model type supported by registry
-> 3. **Never assume RBAC privileges** - Query existing privileges to understand access patterns
-> 4. **Check inference patterns** - Review how existing models are served
-> 5. **Test model loading** - Validate model can be loaded and run inference before deployment
->
-> **Anti-Pattern:**
-> "Logging model to registry... (without checking registry structure)"
-> "Granting OWNERSHIP... (without understanding least-privilege needs)"
->
-> **Correct Pattern:**
-> "Let me check your Model Registry setup first."
-> [reads registry schema, checks existing models, reviews privileges]
-> "I see you organize models by ML.REGISTRY schema with version tags. Logging new model following this pattern..."
-
-## Output Format Examples
-
-```sql
--- Analysis Query: Investigate current state
-SELECT column_pattern, COUNT(*) as usage_count
-FROM information_schema.columns
-WHERE table_schema = 'TARGET_SCHEMA'
-GROUP BY column_pattern;
-
--- Implementation: Apply Snowflake best practices
-CREATE OR REPLACE VIEW schema.view_name
-COMMENT = 'Business purpose following semantic model standards'
-AS
-SELECT
-    -- Explicit column list with business context
-    id COMMENT 'Surrogate key',
-    name COMMENT 'Business entity name',
-    created_at COMMENT 'Record creation timestamp'
-FROM schema.source_table
-WHERE is_active = TRUE;
-
--- Validation: Confirm implementation
-SELECT * FROM schema.view_name LIMIT 5;
-SHOW VIEWS LIKE '%view_name%';
-```
-
-## References
-
-### External Documentation
-- [Snowflake Model Registry Overview](https://docs.snowflake.com/en/developer-guide/snowflake-ml/model-registry/overview) - Complete model registry documentation and API reference
-- [Snowflake Model Registry API](https://docs.snowflake.com/en/developer-guide/snowpark-ml/reference/1.2.0/api/registry/snowflake.ml.registry.Registry) - Python API reference for registry operations
-- [Snowflake Model Management](https://docs.snowflake.com/en/developer-guide/snowflake-ml/model-registry/model-management) - Model lifecycle and management best practices
-- [Snowflake ML Documentation](https://docs.snowflake.com/en/developer-guide/snowflake-ml/overview) - Complete Snowflake ML ecosystem documentation
-- [Snowflake Security Guide](https://docs.snowflake.com/en/user-guide/security) - Security features and access control implementation
-
-### Related Rules
-- **Snowflake Core**: `100-snowflake-core.md`
-- **Data Science Analytics**: `920-data-science-analytics.md`
-- **Snowflake Security**: `107-snowflake-security-governance.md`
-- **Snowflake Cost Governance**: `105-snowflake-cost-governance.md`
-- **Warehouse Management**: `119-snowflake-warehouse-management.md`
-- **Snowflake Notebooks**: `109-snowflake-notebooks.md`
-
-## 1. Model Registry Setup and Organization
+## Model Registry Setup and Organization
 
 ### Registry Initialization
 - **Requirement:** Create dedicated schemas for model registries (e.g., `ML.REGISTRY`, `ANALYTICS.MODELS`)
@@ -379,7 +300,7 @@ reg = Registry(
   - Production: `ML_PROD.REGISTRY`
 - **Consider:** Create separate schemas for different model types or business domains
 
-## 2. Model Logging and Versioning
+## Model Logging and Versioning
 
 ### Model Registration Best Practices
 - **Requirement:** Always include comprehensive metadata when logging models:
@@ -429,7 +350,7 @@ mv.set_metric("training_info", {
 - **Rule:** Include business-relevant metrics alongside technical metrics
 - **Always:** Document model purpose, assumptions, and limitations in comments
 
-## 3. Access Control and Security
+## Access Control and Security
 
 ### Role-Based Access Control (RBAC)
 - **Rule:** Implement least-privilege access using Snowflake's three model privilege levels:
@@ -459,7 +380,7 @@ GRANT READ ON FUTURE MODELS IN SCHEMA ml.registry TO ROLE ml_team;
 - **Always:** Use secure stages for model artifacts and dependencies
 - **Rule:** Implement row access policies for sensitive model metadata when required
 
-## 4. Model Inference and Serving
+## Model Inference and Serving
 
 ### Warehouse-Based Inference
 - **Rule:** Choose appropriate warehouse sizes based on model complexity and data volume:
@@ -491,7 +412,7 @@ except Exception as e:
 - **Rule:** Use appropriate data types and minimize data movement
 - **Consider:** Implement model result caching for frequently accessed predictions
 
-## 5. Model Lifecycle Management
+## Model Lifecycle Management
 
 ### Development to Production Pipeline
 - **Requirement:** Establish clear promotion criteria between environments:
@@ -521,7 +442,7 @@ def promote_model(source_reg, target_reg, model_name, version_name):
 - **Always:** Archive rather than delete historical model versions
 - **Consider:** Automated cleanup of development versions while preserving production versions
 
-## 6. Cost Governance and Optimization
+## Cost Governance and Optimization
 
 ### Storage Optimization
 - **Rule:** Monitor model storage costs and implement cleanup policies
@@ -546,7 +467,7 @@ TRIGGERS
   ON 100 PERCENT DO SUSPEND_IMMEDIATE;
 ```
 
-## 7. Model Registry Queries and Administration
+## Model Registry Queries and Administration
 
 ### Information Schema Queries
 - **Always:** Use `INFORMATION_SCHEMA.MODEL_VERSIONS` for model governance:
@@ -584,7 +505,7 @@ WHERE days_since_update > 90
 ORDER BY days_since_update DESC;
 ```
 
-## 8. Integration with ML Workflows
+## Integration with ML Workflows
 
 ### Notebook Integration
 - **Rule:** Use registry operations within Snowflake notebooks for seamless ML workflows
@@ -596,7 +517,7 @@ ORDER BY days_since_update DESC;
 - **Rule:** Implement automated testing for model versions before production deployment
 - **Always:** Use version control for model training scripts and registry operations
 
-## 9. Compliance and Governance
+## Compliance and Governance
 
 ### Model Documentation
 - **Requirement:** Maintain comprehensive model documentation including:

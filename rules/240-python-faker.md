@@ -2,32 +2,106 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**LastUpdated:** 2025-12-23
 **Keywords:** Faker, test data generation, fake data, providers, localization, synthetic data, pytest fixtures, seeding, deterministic testing, Python testing
-**TokenBudget:** ~3100
+**TokenBudget:** ~5200
 **ContextTier:** Low
 **Depends:** 200-python-core.md
 
-## Purpose
-Establish comprehensive patterns for generating realistic test data using Python's Faker library, covering setup, providers, localization, testing integration, and performance optimization to create maintainable and deterministic test suites.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive patterns for generating realistic test data using Python's Faker library, covering setup, providers, localization, testing integration, and performance optimization to create maintainable and deterministic test suites.
 
-Python testing, data generation, test fixtures, development utilities
+**When to Load This Rule:**
+- Generating test data for Python applications
+- Creating pytest fixtures with fake data
+- Building synthetic datasets for development
+- Implementing custom Faker providers
+- Localizing test data for international applications
+- Optimizing fake data generation performance
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Install with uv** - `uv add --group dev faker` for deterministic versions
-- **Always seed for tests** - `Faker.seed(0)` for reproducible test data
-- **Use specific providers** - faker.name(), faker.email() for type-safe data
-- **Localize when needed** - `Faker('es_ES')` for locale-specific data
-- **Create pytest fixtures** - Centralize Faker instances for consistency
-- **Never use in production** - Faker is for testing/development only
+### Dependencies
 
-**Quick Checklist:**
+**Must Load First:**
+- **200-python-core.md** - Core Python patterns and uv usage
+
+**Related:**
+- **201-python-lint-format.md** - Ruff linting and formatting standards
+- **203-python-project-setup.md** - Python project structure and packaging
+- **230-python-pydantic.md** - Pydantic integration for data validation
+- **800-project-changelog-rules.md** - Changelog discipline for testing changes
+
+### External Documentation
+
+- [Faker Documentation](https://faker.readthedocs.io/en/stable/) - Comprehensive guide to fake data generation
+- [pytest-faker Plugin](https://pypi.org/project/pytest-faker/) - Pytest fixtures and integration patterns
+- [Factory Boy](https://factoryboy.readthedocs.io/) - Object factory patterns for complex test data
+
+## Contract
+
+### Inputs and Prerequisites
+
+Python 3.11+, faker library, pytest for testing integration, understanding of test data generation patterns
+
+### Mandatory
+
+faker.Faker(), Faker.seed(), faker providers (name, email, address, etc.), pytest fixtures, custom providers via BaseProvider
+
+### Forbidden
+
+Non-deterministic test data without seeding, using Faker in production code, generating unrealistic data that bypasses validation, hardcoding test data instead of using Faker
+
+### Execution Steps
+
+1. Install Faker with uv: `uv add --group dev faker`
+2. Seed Faker instances for reproducible test data
+3. Use specific providers for type-safe data generation
+4. Create pytest fixtures for reusable fake data
+5. Implement custom providers for domain-specific data
+6. Localize data generation for international testing
+7. Optimize performance for large dataset generation
+
+### Output Format
+
+Deterministic, realistic test data with proper seeding, reusable pytest fixtures, custom providers for domain models
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- faker added to dev dependencies
+- Faker.seed() called in tests
+- Custom providers defined for domain models
+- pytest fixtures created for reusable instances
+- Localization configured if needed
+- Performance optimized for large datasets
+
+**Success Criteria:**
+- Test data is reproducible (same seed produces same data)
+- Fake data matches domain constraints
+- Custom providers work correctly
+- pytest fixtures are reusable
+- No Faker usage in production code
+
+**Negative Tests:**
+- Non-seeded Faker (should produce different data each run)
+- Unrealistic data (should fail validation)
+- Production code using Faker (should be flagged in review)
+
+### Design Principles
+
+- **Deterministic Testing:** Always seed Faker for reproducible test data
+- **Domain-Specific:** Create custom providers for business-specific data
+- **Reusable Fixtures:** Centralize fake data generation in pytest fixtures
+- **Realistic Constraints:** Generate data matching real-world validation rules
+- **Performance Aware:** Optimize for large dataset generation
+
+### Post-Execution Checklist
+
 - [ ] faker added to dev dependencies
 - [ ] Faker.seed() called in tests
 - [ ] Custom providers defined for domain models
@@ -35,35 +109,6 @@ Python testing, data generation, test fixtures, development utilities
 - [ ] Localization configured if needed
 - [ ] Performance optimized for large datasets
 - [ ] No Faker usage in production code
-
-## Contract
-
-<contract>
-<inputs_prereqs>
-[Context, files, dependencies needed]
-</inputs_prereqs>
-
-<mandatory>
-[Tools permitted for this domain]
-</mandatory>
-
-<forbidden>
-[Tools not allowed for this domain]
-</forbidden>
-
-<steps>
-[Ordered steps the agent must follow]
-</steps>
-
-<output_format>
-[Expected output format]
-</output_format>
-
-<validation>
-[Checks to confirm success]
-</validation>
-
-</contract>
 
 ## Anti-Patterns and Common Mistakes
 
@@ -124,17 +169,6 @@ class OrderProvider(BaseProvider):
 
 fake.add_provider(OrderProvider)
 ```
-
-## Post-Execution Checklist
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
-
-## Validation
-- **Success checks:** [How to verify correct implementation]
-- **Negative tests:** [What should fail and how to detect failures]
 
 > **Investigation Required**
 > When applying this rule:
@@ -211,19 +245,7 @@ uvx ruff format --check .
 uv run pytest tests/
 ```
 
-## References
-
-### External Documentation
-- [Faker Documentation](https://faker.readthedocs.io/en/stable/) - Comprehensive guide to fake data generation
-- [pytest-faker Plugin](https://pypi.org/project/pytest-faker/) - Pytest fixtures and integration patterns
-- [Factory Boy](https://factoryboy.readthedocs.io/) - Object factory patterns for complex test data
-
-### Related Rules
-- **Python Core**: `200-python-core.md`
-- **FastAPI Testing**: `210b-python-fastapi-testing.md`
-- **Demo Creation**: `900-demo-creation.md`
-
-## 1. Installation and Setup
+## Installation and Setup
 
 ### Dependencies and Environment
 - **Requirement:** Use `uv` for dependency management following `200-python-core.md` patterns
@@ -261,7 +283,7 @@ Directory structure for `project/`:
   - `generate_test_data.py` - Data generation scripts
   - `seed_database.py` - Database seeding
 
-## 2. Basic Faker Usage Patterns
+## Basic Faker Usage Patterns
 
 ### Core Provider Usage
 - **Rule:** Use appropriate providers for different data types
@@ -401,7 +423,7 @@ german_user = localized_gen.generate_localized_user('germany')
 international_users = localized_gen.generate_multi_locale_dataset(5)
 ```
 
-## 3. Custom Providers and Extensions
+## Custom Providers and Extensions
 
 ### Creating Custom Providers
 - **Rule:** Create custom providers for domain-specific data
@@ -514,7 +536,7 @@ tech_profile = {
 }
 ```
 
-## 4. Testing Integration
+## Testing Integration
 
 ### Pytest Integration
 - **Rule:** Use pytest-faker for seamless integration with pytest
@@ -623,7 +645,7 @@ def test_create_order():
     assert order.quantity > 0
 ```
 
-## 5. Performance and Optimization
+## Performance and Optimization
 
 ### Efficient Data Generation
 - **Rule:** Use generators for large datasets to manage memory
@@ -692,11 +714,3 @@ def test_with_seeded_data():
     users = generator.generate_test_data('user_registration', 5)
     assert len(users) == 5
 ```
-
-## Related Rules
-
-- **`200-python-core.md`** - Core Python patterns and uv usage
-- **`201-python-lint-format.md`** - Ruff linting and formatting standards
-- **`203-python-project-setup.md`** - Python project structure and packaging
-- **`230-python-pydantic.md`** - Pydantic integration for data validation
-- **`800-project-changelog-rules.md`** - Changelog discipline for testing changes

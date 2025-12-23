@@ -2,90 +2,119 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** feature views, entity modeling, ML pipeline, ASOF JOIN, point-in-time correctness, Dynamic Tables, feature versioning, create features, feature catalog, feature pipeline, feature discovery, feature registry, feature lineage
-**TokenBudget:** ~4550
+**TokenBudget:** ~6150
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 110-snowflake-model-registry.md
+**LastUpdated:** 2025-12-23
 
-## Purpose
-Establish comprehensive best practices for using Snowflake Feature Store to create, maintain, and serve ML features, ensuring consistency, reusability, and production-ready feature pipelines that integrate seamlessly with Snowflake ML workflows.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive best practices for Snowflake Feature Store: creating, maintaining, and serving ML features with consistency and reusability. Covers feature engineering, entity modeling, feature views (Snowflake-managed and external), point-in-time correctness with ASOF JOIN, ML dataset creation, and Model Registry integration for production-ready pipelines.
 
-Snowflake Feature Store (Enterprise Edition), feature engineering, entity modeling, feature views, ML dataset creation, and Model Registry integration
+**When to Load This Rule:**
+- Implementing Snowflake Feature Store for ML projects
+- Creating feature views and entity definitions
+- Generating training datasets with point-in-time correctness
+- Integrating features with Model Registry
+- Setting up feature governance and access control
 
-## Quick Start TL;DR
+## References
 
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
+### Dependencies
 
-Position at top provides practical efficiency benefits for both LLMs and human developers.
+**Must Load First:**
+- **100-snowflake-core.md** - Snowflake foundation patterns
+- **110-snowflake-model-registry.md** - Model Registry integration patterns
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Create feature store schema** - Dedicated schema for organized feature management
-- **Define entities with tags** - Clear entity modeling with appropriate tags
-- **Use feature views** - Snowflake-managed or external feature views
-- **ASOF JOIN for point-in-time** - Ensures training/serving consistency
-- **Version feature transformations** - Track all feature logic changes
-- **Integrate with Model Registry** - Complete lineage tracking
-- **Never duplicate feature logic** - Centralize in Feature Store
+**Related:**
+- **120-snowflake-dynamic-tables.md** - Dynamic Tables for feature views
+- **117-snowflake-ml-feature-engineering.md** - ML feature engineering patterns
 
-**Quick Checklist:**
-- [ ] Feature Store schema created
-- [ ] Entities defined with tags
-- [ ] Feature views implemented
-- [ ] Point-in-time joins configured
-- [ ] Training datasets generated
-- [ ] Model Registry integration
-- [ ] Access controls applied
+### External Documentation
+
+**Feature Store Documentation:**
+- [Snowflake Feature Store](https://docs.snowflake.com/en/developer-guide/snowflake-ml/feature-store/overview) - Official Feature Store documentation
+- [Feature Store Python API](https://docs.snowflake.com/en/developer-guide/snowpark-ml/reference/latest/api/feature_store) - Python API reference
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-Snowflake Enterprise Edition; snowflake-ml-python >= 1.5.0; ACCOUNTADMIN or role with CREATE SCHEMA privileges; raw data tables/views; feature engineering requirements; entity definitions
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-Feature Store Python API; SQL feature transformations; Dynamic Tables for managed views; ASOF JOIN for point-in-time correctness; Snowflake Model Registry
-</mandatory>
+- Snowflake Enterprise Edition
+- snowflake-ml-python >= 1.5.0
+- ACCOUNTADMIN or role with CREATE SCHEMA privileges
+- Raw data tables/views
+- Feature engineering requirements
+- Entity definitions
 
-<forbidden>
-Ad-hoc feature calculations in notebooks; duplicated feature logic across projects; unversioned feature transformations; feature stores without access control
-</forbidden>
+### Mandatory
 
-<steps>
+- Feature Store Python API
+- SQL feature transformations
+- Dynamic Tables for managed views
+- ASOF JOIN for point-in-time correctness
+- Snowflake Model Registry
+
+### Forbidden
+
+- Ad-hoc feature calculations in notebooks
+- Duplicated feature logic across projects
+- Unversioned feature transformations
+- Feature stores without access control
+
+### Execution Steps
+
 1. Create or connect to feature store (schema)
 2. Define entities with appropriate tags
 3. Create feature views (Snowflake-managed or external)
 4. Generate training datasets with point-in-time correctness
 5. Integrate with Model Registry for lineage tracking
 6. Implement access control and governance
-</steps>
 
-<output_format>
-Feature Store schema with organized feature views; Python/SQL feature transformations; training datasets ready for ML workflows
-</output_format>
+### Output Format
 
-<validation>
-Verify feature view refresh schedules; test point-in-time joins; validate entity tagging; confirm Model Registry integration; check access controls
-</validation>
+- Feature Store schema with organized feature views
+- Python/SQL feature transformations
+- Training datasets ready for ML workflows
 
-<design_principles>
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Feature view refresh schedules configured
+- Point-in-time joins tested
+- Entity tagging validated
+- Model Registry integration confirmed
+- Access controls checked
+
+**Success Criteria:**
+- Feature views refresh correctly
+- ASOF JOINs produce point-in-time correct datasets
+- Model Registry shows feature lineage
+- Access controls enforce governance
+
+### Design Principles
+
 - Feature Store is a schema; feature views are dynamic tables/views; entities are tags
 - Centralize feature logic for reuse; avoid duplicating transformations across projects
 - Use Snowflake-managed feature views for automatic incremental refresh
 - Leverage ASOF JOIN for point-in-time correct training datasets
 - Integrate with Model Registry for end-to-end ML lineage and governance
 - Apply role-based access control at feature view and entity levels
-</design_principles>
 
-</contract>
+### Post-Execution Checklist
+
+- [ ] Feature Store schema created
+- [ ] Entities defined with tags
+- [ ] Feature views implemented (Snowflake-managed or external)
+- [ ] Point-in-time joins configured with ASOF JOIN
+- [ ] Training datasets generated and validated
+- [ ] Model Registry integration complete
+- [ ] Access controls applied
+- [ ] Feature versioning tracked
 
 ## Anti-Patterns and Common Mistakes
 
@@ -298,40 +327,6 @@ HAVING SUM(credits_used) > 10;  -- Alert if >10 credits/day
 ```
 **Benefits:** Cost visibility; optimized refreshes; budget control; ROI tracking; proactive alerts; financial responsibility; professional operations; sustainable ML
 
-## Post-Execution Checklist
-- [ ] Feature store schema created with proper access control
-- [ ] Entities registered with appropriate join keys
-- [ ] Feature views use SQL or Python transformations (no ad-hoc calculations)
-- [ ] Snowflake-managed feature views have refresh schedules configured
-- [ ] Training datasets use ASOF JOIN for point-in-time correctness
-- [ ] Feature views versioned with semantic versioning
-- [ ] Model Registry integration implemented for lineage tracking
-- [ ] Sensitive features have data masking policies applied
-- [ ] Feature naming follows consistent convention
-- [ ] Refresh costs monitored and optimized
-- [ ] Feature definitions documented with business logic and rationale
-
-## Validation
-- **Success Checks:** Feature views refresh successfully on schedule; datasets generate with expected schema and row counts; ASOF JOIN preserves temporal correctness; Model Registry shows feature lineage; access controls prevent unauthorized access; features produce consistent values across generations
-- **Negative Tests:** Attempt to access features without proper role (should fail); generate dataset without spine timestamp (should warn about data leakage); modify feature view without versioning (should be tracked); use stale features in inference (lineage should detect mismatch)
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Read existing feature store setup BEFORE creating features** - Check schema structure, entity definitions
-> 2. **Verify Enterprise Edition availability** - Feature Store requires Enterprise Edition
-> 3. **Never assume entity structure** - Read existing entities to understand modeling patterns
-> 4. **Check refresh schedules** - Review existing feature view refresh patterns
-> 5. **Test point-in-time joins** - Validate ASOF JOIN correctness before deployment
->
-> **Anti-Pattern:**
-> "Creating feature view... (without checking existing entity definitions)"
-> "Using regular JOIN... (breaks point-in-time correctness)"
->
-> **Correct Pattern:**
-> "Let me check your Feature Store setup first."
-> [reads feature store schema, checks entities, reviews feature views]
-> "I see you have CUSTOMER entity with daily refresh pattern. Creating new feature view following this pattern..."
-
 ## Output Format Examples
 ```python
 # Feature Store initialization
@@ -381,26 +376,7 @@ training_data = fs.generate_dataset(
 )
 ```
 
-## References
-
-### External Documentation
-- [Snowflake Feature Store Overview](https://docs.snowflake.com/en/developer-guide/snowflake-ml/feature-store/overview) - Complete Feature Store documentation and architecture
-- [Introduction to Feature Store Quickstart](https://quickstarts.snowflake.com/guide/intro-to-feature-store/index.html) - Hands-on tutorial for entities, feature views, and datasets
-- [Feature Store API Reference](https://docs.snowflake.com/en/developer-guide/snowflake-ml/reference/latest/api/feature_store/snowflake.ml.feature_store) - Python API documentation
-- [Snowflake ML Python Package](https://docs.snowflake.com/en/developer-guide/snowflake-ml/snowpark-ml) - Installation and setup guide
-- [Dynamic Tables](https://docs.snowflake.com/en/user-guide/dynamic-tables-about) - Backend implementation for managed feature views
-- [Feature Store with dbt](https://quickstarts.snowflake.com/guide/getting-started-with-snowflake-feature-store-and-dbt/index.html) - Integration patterns for external feature views
-
-### Related Rules
-- **Snowflake Core**: `100-snowflake-core.md`
-- **Model Registry**: `110-snowflake-model-registry.md`
-- **SQL Demo Engineering**: `102-snowflake-sql-demo-engineering.md`
-- **Performance Tuning**: `103-snowflake-performance-tuning.md`
-- **Warehouse Management**: `119-snowflake-warehouse-management.md`
-- **Data Governance**: `107-snowflake-security-governance.md`
-- **Python Core**: `200-python-core.md`
-
-## 1. Feature Store Setup and Organization
+## Feature Store Setup and Organization
 
 ### Creating a Feature Store
 - **Always:** A feature store is simply a Snowflake schema - create or designate existing schema
@@ -435,7 +411,7 @@ GRANT CREATE DYNAMIC TABLE ON SCHEMA ML_DATABASE.CUSTOMER_FEATURE_STORE TO ROLE 
 - **Always:** Use clear naming: `<ENTITY>_<AGGREGATION>_<TIMEFRAME>` (e.g., `customer_purchases_30d`, `product_views_weekly`)
 - **Rule:** Document feature definitions, transformations, and business logic in comments
 
-## 2. Entity Modeling and Tagging
+## Entity Modeling and Tagging
 
 ### Defining Entities
 - **Requirement:** Entities represent the subject matter of features (customers, products, assets, etc.)
@@ -468,7 +444,7 @@ product_entity = fs.register_entity(
 - **Rule:** For composite keys, specify all columns in join_keys list
 - **Avoid:** Using mutable attributes or timestamps as entity join keys
 
-## 3. Feature Views - Snowflake-Managed
+## Feature Views - Snowflake-Managed
 
 ### Creating Managed Feature Views
 - **Requirement:** Snowflake-managed feature views use Dynamic Tables for automatic incremental refresh
@@ -518,7 +494,7 @@ refresh_freq="1 day"     # Daily batch features (most common)
 refresh_freq="1 week"    # Static/slow-changing features
 ```
 
-## 4. Feature Views - External (User-Managed)
+## Feature Views - External (User-Managed)
 
 ### External Feature Views with dbt
 - **Rule:** Use external feature views when features are managed by tools like dbt
@@ -545,7 +521,7 @@ fs.register_feature_view(
 - **Snowflake-Managed:** New features; standard aggregations; want automatic refresh
 - **External:** Existing dbt/Airflow pipelines; complex multi-step transformations; custom orchestration
 
-## 5. Dataset Generation and Point-in-Time Correctness
+## Dataset Generation and Point-in-Time Correctness
 
 ### Creating Training Datasets
 - **Critical:** Use `generate_dataset()` with ASOF JOIN for point-in-time correctness
@@ -595,7 +571,7 @@ With ASOF JOIN (point-in-time correct):
   2024-03-01 prediction uses features calculated on 2024-03-01
 ```
 
-## 6. Feature Engineering Patterns
+## Feature Engineering Patterns
 
 ### Aggregation Features
 - **Rule:** Use time-window aggregations (7d, 30d, 90d) for behavioral features
@@ -629,7 +605,7 @@ GROUP BY customer_id
 - **Always:** Use `NULLIF` to prevent division by zero errors
 - **Consider:** Normalize features within feature view for model stability
 
-## 7. Feature Versioning and Lineage
+## Feature Versioning and Lineage
 
 ### Feature View Versioning
 - **Requirement:** Version all feature views for reproducibility
@@ -652,7 +628,7 @@ fs.register_feature_view(feature_view=customer_fv_v2, version="2.0")
 - **Rule:** When training models, retrieve features through Feature Store for lineage capture
 - **Requirement:** Document which feature view versions were used for each model version
 
-## 8. Access Control and Governance
+## Access Control and Governance
 
 ### RBAC for Feature Store
 - **Requirement:** Implement role-based access control at schema and feature view levels
@@ -681,7 +657,7 @@ GRANT SELECT ON FUTURE DYNAMIC TABLES IN SCHEMA ML_DATABASE.CUSTOMER_FEATURE_STO
 - **Always:** Tag sensitive features with appropriate classification tags
 - **Rule:** Use row access policies to restrict feature access by role or context
 
-## 9. Performance and Cost Optimization
+## Performance and Cost Optimization
 
 ### Feature View Performance
 - **Rule:** Use clustering keys on high-cardinality join keys in feature views
@@ -708,7 +684,7 @@ WHERE table_schema = 'CUSTOMER_FEATURE_STORE'
 ORDER BY credits_used DESC;
 ```
 
-## 10. Integration with Model Registry
+## Integration with Model Registry
 
 ### End-to-End ML Pipeline
 - **Always:** Use Feature Store datasets in model training for automatic lineage tracking
@@ -742,7 +718,7 @@ model_ref = registry.log_model(
 )
 ```
 
-## 11. Common Feature Patterns
+## Common Feature Patterns
 
 ### Recency Features
 ```sql
@@ -771,7 +747,7 @@ orders_7d / NULLIF(orders_30d, 0) AS order_acceleration,
 spend_7d - spend_30d AS spend_trend
 ```
 
-## 12. Best Practices Summary
+## Best Practices Summary
 
 ### Feature View Design
 - **Rule:** One feature view per logical feature group (purchase behavior, engagement metrics, demographics)

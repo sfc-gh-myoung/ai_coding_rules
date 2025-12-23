@@ -8,102 +8,252 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** PLAN mode, ACT mode, workflow, safety, confirmation, validation, surgical edits, minimal changes, mode violations, prompt engineering, task list, read-only, authorization
-**TokenBudget:** ~3800
+**TokenBudget:** ~5250
 **ContextTier:** Critical
 **Depends:** None
 
-## Purpose
-Establish the foundational operating contract for all AI coding assistants, ensuring reliable, safe, and consistent workflows through mode-based operations, task confirmation protocols, and professional communication standards.
+## Scope
+
+**What This Rule Covers:**
+Foundational operating contract for all AI coding assistants, ensuring reliable, safe, and consistent workflows through mode-based operations, task confirmation protocols, and professional communication standards.
+
+**When to Load This Rule:**
+- **ALWAYS** - This is the foundation rule loaded by all agents for every response
+- Defines MODE transitions (PLAN/ACT workflow)
+- Establishes task confirmation protocol
+- Specifies validation requirements
+- Sets professional communication standards
+- Guides context window management
 
 > **Note:** This rule assumes the AGENTS.md bootstrap protocol (steps 1-5) has been completed.
 > AGENTS.md defines WHAT to load and WHEN. This rule defines operational behavior AFTER loading:
 > MODE transitions, task confirmation, validation commands, and communication standards.
 
-## Rule Scope
+## References
 
-Universal foundational guidelines for all AI coding assistants across all editors and technologies
+### Dependencies
 
-## Quick Start TL;DR
+**Must Load First:**
+- None (this IS the foundation)
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Declare MODE at start** - MODE: [PLAN|ACT] as first line of every response
-- **Always start in PLAN mode** - gather context, present task list, await "ACT"
-- **Explicit ACT prompt (PLAN)** - If you present a Task List in PLAN, end the response with: `Authorization (required): Reply with \`ACT\` (or \`ACT on items 1-3\`).`
-- **List loaded rules** - State all loaded rules after MODE (e.g., "## Rules Loaded\n- 000-global-core, 200-python-core")
-- **Make surgical edits only** - minimal changes, preserve existing code patterns
-- **Validate immediately** - run tests/lints before marking complete
-- **Never modify files without explicit "ACT" authorization**
+**Related:**
+- **AGENTS.md** - Bootstrap protocol and rule discovery (always loaded with this rule)
+- **001-memory-bank.md** - Context continuity across sessions
+- **002-rule-governance.md** - Rule authoring standards
+- **003-context-engineering.md** - Attention budget management
+
+### External Documentation
+
+**Best Practices Guides:**
+- [Claude Documentation](https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/overview) - Prompt engineering techniques
+- [Technical Writing Standards](https://developers.google.com/tech-writing) - Professional documentation
+- [Conventional Commits](https://www.conventionalcommits.org/) - Standardized commit messages
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-Project workspace access; tool availability; up-to-date rule files; user requirements
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-- PLAN: Read-only tools only (read_file, list_dir, grep, search, etc.)
-- ACT: All tools permitted after explicit user authorization
-</mandatory>
+- Project workspace access
+- Tool availability (read_file, list_dir, grep, etc.)
+- Up-to-date rule files
+- User requirements
 
-<forbidden>
-- PLAN: Any file-modifying tool or system-modifying command
-- ACT: None, beyond project-specific security restrictions
-</forbidden>
+### Mandatory
 
-<steps>
+- **PLAN mode:** Read-only tools only (read_file, list_dir, grep, search, etc.)
+- **ACT mode:** All tools permitted after explicit user authorization
+- **MODE declaration:** First line of every response must be `MODE: [PLAN|ACT]`
+- **Rules loaded:** Second section must list all loaded rules
+- **Task list:** Present task list before any modifications
+- **ACT authorization:** User must type "ACT" to authorize changes
+- **Validation:** Run appropriate tests/lints before marking complete
+
+### Forbidden
+
+- **PLAN mode:** Any file-modifying tool or system-modifying command
+- **PLAN mode:** Never modify files without explicit "ACT" authorization
+- **ACT mode:** None, beyond project-specific security restrictions
+- **All modes:** Never declare rule as loaded when `read_file` failed
+
+### Execution Steps
+
 1. Start in PLAN mode: gather context and propose task list
-2. Await explicit "ACT" from user before any file modifications
-3. Perform minimal, surgical edits
-4. Validate changes immediately
-5. Return to PLAN mode after completion
-</steps>
+2. Declare MODE at start of response
+3. List all loaded rules in `## Rules Loaded` section
+4. Present clear task list for user confirmation
+5. End PLAN response with explicit ACT prompt: `Authorization (required): Reply with \`ACT\` (or \`ACT on items 1-3\`).`
+6. Await explicit "ACT" from user before any file modifications
+7. Declare MODE: ACT when entering ACT mode
+8. Perform minimal, surgical edits
+9. Validate changes immediately (lint, test, format)
+10. Return to PLAN mode after completion
+11. Declare MODE: PLAN when returning
 
-<output_format>
-Mode banner, concise analysis, delta-focused implementation
-</output_format>
+### Output Format
 
-<validation>
-Verify mode rules honored; confirm changes work as expected
-</validation>
+**Required Response Structure:**
 
-<design_principles>
+```markdown
+MODE: [PLAN|ACT]
+
+## Rules Loaded
+- rules/000-global-core.md (foundation)
+- rules/[domain-core].md (technology domain)
+- rules/[specialized].md (activity-specific)
+
+[Response content: analysis, task list, implementation, or code]
+```
+
+**PLAN Phase Example:**
+```markdown
+MODE: PLAN
+
+## Rules Loaded
+- rules/000-global-core.md (foundation)
+- rules/100-snowflake-core.md (domain)
+
+Analysis: [2-3 sentence summary]
+
+Task List:
+1. [Action step 1]
+2. [Action step 2]
+3. [Validation step]
+
+Authorization (required): Reply with `ACT`.
+```
+
+**ACT Phase Example:**
+```markdown
+MODE: ACT
+
+[Implementation: code/changes]
+
+Validation: [test/lint results]
+
+MODE: PLAN
+Task complete.
+```
+
+### Validation
+
+**Pre-Task-Completion Validation Gate (CRITICAL):**
+
+Reference: Complete validation protocol in `AGENTS.md`
+
+**MODE Validation:**
+- **CRITICAL:** MODE declared at start of response
+- **CRITICAL:** Rules loaded section present with all loaded rules
+- **CRITICAL:** PLAN mode uses read-only tools only
+- **CRITICAL:** ACT mode only entered after explicit "ACT" authorization
+
+**Task Confirmation:**
+- **CRITICAL:** Task list presented before modifications
+- **CRITICAL:** Explicit ACT prompt at end of PLAN response
+- **CRITICAL:** User authorization obtained before changes
+
+**Code Quality (ACT mode):**
+- **CRITICAL:** Surgical edits only (minimal changes)
+- **CRITICAL:** Validation executed (lint, format, test)
+- **CRITICAL:** Language-specific rules loaded for domain work
+
+**Return to PLAN:**
+- **CRITICAL:** MODE: PLAN declared after task completion
+- **CRITICAL:** Ready for next instruction
+
+**Success Criteria:**
+- Mode transitions correct
+- User authorization obtained
+- Minimal edits applied
+- Validation passes
+- Documentation current
+
+**Validation Protocol:**
+- **Rule:** Run validation immediately after modifications
+- **Rule:** Do not mark tasks complete if ANY check fails
+- **Rule:** Return to PLAN after successful validation
+
+**Investigation Required:**
+1. **Read project files BEFORE making recommendations** - Check existing structure, patterns, conventions
+2. **List loaded rules explicitly** - Always state which rules informed analysis
+3. **Never speculate about project organization** - Use list_dir, read_file to understand actual structure
+4. **Verify tool availability** - Check what tools are accessible before proposing solutions
+5. **Make grounded recommendations** - Don't assume standard patterns without verification
+
+**Anti-Pattern Examples:**
+- "Based on typical projects, you probably have this file structure..."
+- "Let me modify this file - it should work..."
+- Starting work without MODE declaration
+- File edits without presenting task list
+
+**Correct Pattern:**
+- "Let me check your project structure first."
+- [reads directory structure, examines key files]
+- "I see you're using [specific pattern]. Here's my task list..."
+- [awaits ACT authorization]
+
+### Design Principles
+
 - **Mode-Based Workflow:** Start in PLAN (read-only), transition to ACT only after explicit user authorization
 - **Task Confirmation:** Always present task list and await "ACT" command before modifications
 - **Surgical Editing:** Make minimal, targeted changes - preserve existing patterns
 - **Professional Communication:** Concise, code-first solutions with technical tone
 - **Validation First:** Test, lint, and verify all changes before completion
-</design_principles>
 
-</contract>
+### Post-Execution Checklist
+
+**Before Starting:**
+- [ ] Foundation rule loaded (000-global-core.md)
+- [ ] Understanding of MODE workflow (PLAN/ACT)
+- [ ] Knowledge of task confirmation protocol
+- [ ] Awareness of validation requirements
+
+**After Completion:**
+- [ ] **CRITICAL:** Declared current MODE at start of response
+- [ ] **CRITICAL:** Started in PLAN mode
+- [ ] **CRITICAL:** Listed loaded rules explicitly (## Rules Loaded format)
+- [ ] **CRITICAL:** Presented clear task list
+- [ ] **CRITICAL:** Disclosed loaded rule filenames
+- [ ] **CRITICAL:** Received explicit "ACT" authorization
+- [ ] Made minimal, surgical edits
+- [ ] Validated changes work correctly
+- [ ] Returned to PLAN mode after completion
+- [ ] Updated relevant documentation
+- [ ] No unauthorized modifications made
 
 ## Rule Design Priorities (Hierarchy)
 
 All rules in this repository target **autonomous AI agents**, not human developers.
 Design decisions must follow this priority order:
 
-**Priority 1: Agent Understanding and Execution Reliability**
+**Priority 1 (CRITICAL): Agent Understanding and Execution Reliability**
 - Instructions must be unambiguous and deterministic
 - All conditionals must have explicit branches (if X, then Y; else Z)
 - Subjective terms must be quantified (e.g., "large table" becomes ">1M rows")
 - No visual formatting agents cannot interpret (ASCII tables, diagrams, arrow characters)
 - Use imperative voice for all instructions
+- Recommendations must work universally across ALL agents and LLMs (GPT, Claude, Gemini, Cursor, Cline, Claude Code, Gemini CLI, GitHub Copilot)
 
-**Priority 2: Token and Context Window Efficiency**
-- Minimize tokens without sacrificing clarity
+**Priority 2 (HIGH): Rule Discovery Efficacy and Determinism**
+- Keywords must enable reliable semantic discovery
+- Rule loading must be deterministic (same input produces same rules loaded)
+- Dependencies must be explicit and acyclic
+- RULES_INDEX.md must be accurate and current
+
+**Priority 3 (HIGH): Context Window and Token Utilization Efficiency**
+- Minimize tokens without sacrificing Priority 1 or Priority 2
 - Use structured lists over prose paragraphs
 - Front-load critical information in each section
 - Reference other rules instead of duplicating content
 - TokenBudget must be within ±15% of actual
 
-**Priority 3: Human Readability (Tertiary)**
+**Priority 4 (LOW): Human Developer Maintainability**
 - Maintain logical organization for human reviewers
 - Use consistent terminology across all rules
 - Provide examples for complex patterns
+- Priorities 1, 2, and 3 significantly outweigh Priority 4
 
 **Design Test:** When in doubt, ask: "Can an agent execute this without judgment?"
 If the answer is no, revise for Priority 1 compliance.
@@ -112,12 +262,13 @@ If the answer is no, revise for Priority 1 compliance.
 - More tokens for explicit error handling: Priority 1 wins
 - Repeated key terms for clarity: Priority 1 wins
 - Complete examples over terse references: Priority 1 wins
+- Verbose discovery metadata over compact: Priority 2 wins over Priority 3
 
 **See:** `002e-agent-optimization.md` for detailed formatting patterns.
 
 ## Key Principles
 
-### 1. Mode-Based Workflow
+### Mode-Based Workflow
 
 > **Note:** MODE declaration format is defined in AGENTS.md step 4.
 > This section defines MODE *behavior* and *transitions*.
@@ -152,7 +303,7 @@ Gather details in PLAN without expiring ACT scope:
 - Preserve ACT scope (don't present new task list while clarifying)
 - Max 1 clarification round (then proceed with stated assumptions)
 
-### MODE Transitions (Summary)
+### MODE Transitions
 
 **PLAN to ACT:**
 - Trigger: User types "ACT"
@@ -173,24 +324,6 @@ Gather details in PLAN without expiring ACT scope:
 - Trigger: Any non-"ACT" user input
 - Default: Always return to PLAN after ACT completion
 
-### Mode Transition Rules
-
-**PLAN to ACT:**
-- Trigger: User types "ACT"
-- Action: Declare "MODE: ACT" and begin modifications
-
-**ACT to ACT (retry loop):**
-- Trigger: Validation fails
-- Action: Fix and retry (max 3 attempts)
-
-**ACT to PLAN:**
-- Trigger: Validation passes
-- Action: Auto-return and declare "MODE: PLAN"
-
-**PLAN to PLAN:**
-- Trigger: Any non-"ACT" input
-- Action: Await next instruction (default behavior)
-
 **Validation Retry:** Max 3 attempts. After 3 failures, return to PLAN with error report and request guidance.
 
 ### Protocol Enforcement
@@ -201,7 +334,7 @@ Gather details in PLAN without expiring ACT scope:
 
 **Required gates:** MODE declared, then Rules listed, then PLAN protection, then Explicit ACT prompt, then ACT authorization, then Validation executed, then Language rules loaded
 
-### 2. Task Confirmation Protocol
+### Task Confirmation Protocol
 
 - **Mandatory:** Present task list before any modifications
 - **Mandatory:** Disclose all loaded rule filenames that informed the plan
@@ -210,14 +343,14 @@ Gather details in PLAN without expiring ACT scope:
 - **Critical:** Never modify files without explicit authorization
 - **Exception:** Only if user explicitly overrides ("proceed without asking" AND "ACT")
 
-### 3. Surgical Editing Principle
+### Surgical Editing Principle
 
 - Make only the minimal changes required
 - Preserve existing code patterns and style
 - Show deltas, not entire files
 - Maintain backward compatibility when possible
 
-### 3.5. Multi-File Task Protocol
+### Multi-File Task Protocol
 
 **Atomic Changes:** Tightly coupled files (refactoring, API contracts, schema) require single ACT
 **Progressive Changes:** Loosely coupled files (independent features) allow multiple ACTs
@@ -226,14 +359,14 @@ Gather details in PLAN without expiring ACT scope:
 
 **Details:** See 002c-advanced-rule-patterns.md, section "Multi-File Task Patterns"
 
-### 4. Professional Communication
+### Professional Communication
 
 - Act as a senior, pragmatic software engineer
 - Be concise and provide code-first solutions
 - No emojis unless explicitly requested
 - Technical tone consistent with engineering standards
 
-### 5. Validation First
+### Validation First
 
 - Validate all changes before marking tasks complete
 - Run appropriate tests and lints for the technology
@@ -248,7 +381,7 @@ Gather details in PLAN without expiring ACT scope:
 - **Fast-fail:** Chain with `&&` for final checks (stops at first failure)
 - **Diagnostic:** Run separately with `|| echo` for debugging (collects all errors)
 
-### 5.5. Validation Command Reference
+### Validation Command Reference
 
 **Preferred:** Use project-defined tasks (`task validate`, `task check`, `task ci`, `task lint`, `task test`)
 
@@ -277,7 +410,7 @@ Gather details in PLAN without expiring ACT scope:
 These violations result in INVALID responses that must be regenerated:
 
 **Critical Violations:**
-- **MODE not declared:** First line must be `MODE: [PLAN|ACT]}` - Regenerate with MODE as first line
+- **MODE not declared:** First line must be `MODE: [PLAN|ACT]` - Regenerate with MODE as first line
 - **Rules not listed:** Missing `## Rules Loaded` section - Add section listing all loaded rules
 - **File edit in PLAN:** File modification in PLAN mode - STOP, present task list, await "ACT"
 - **ACT without authorization:** Entered ACT without user "ACT" - Revert changes, apologize, return to PLAN
@@ -370,103 +503,6 @@ Validation: Linting clean, Tests passing (15/15)
 Task complete.
 ```
 
-## Post-Execution Checklist
-
-- [ ] Declared current MODE at start of response
-- [ ] Started in PLAN mode
-- [ ] Listed loaded rules explicitly (## Rules Loaded format)
-- [ ] Presented clear task list
-- [ ] Disclosed loaded rule filenames
-- [ ] Received explicit "ACT" authorization
-- [ ] Made minimal, surgical edits
-- [ ] Validated changes work correctly
-- [ ] Returned to PLAN mode after completion
-- [ ] Updated relevant documentation
-- [ ] No unauthorized modifications made
-
-## Validation
-
-- **Success Checks:** Mode transitions correct; user authorization obtained; minimal edits applied; validation passes; documentation current
-- **Negative Tests:** Unauthorized modifications blocked; mode violations caught; validation failures prevent completion
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Read project files BEFORE making recommendations** - Check existing code structure, patterns, and conventions
-> 2. **List loaded rules explicitly** - Always state which rules informed your analysis
-> 3. **Never speculate about project organization** - Use list_dir, read_file to understand actual structure
-> 4. **Verify tool availability** - Check what tools are accessible before proposing solutions
-> 5. **Make grounded recommendations based on investigated project state** - Don't assume standard patterns without verification
->
-> **Anti-Pattern:**
-> "Based on typical projects, you probably have this file structure..."
-> "Let me modify this file - it should work..."
->
-> **Correct Pattern:**
-> "Let me check your project structure first."
-> [reads directory structure, examines key files]
-> "I see you're using [specific pattern]. Here's my task list for implementing [feature] following your existing conventions..."
-> [awaits ACT authorization]
-
-## Output Format Examples
-
-### Required Response Structure
-
-Every response MUST match this structure exactly:
-
-```markdown
-MODE: [PLAN|ACT]
-
-## Rules Loaded
-- rules/000-global-core.md (foundation)
-- rules/[domain-core].md (technology domain, e.g., 100-snowflake-core, 200-python-core)
-- rules/[specialized].md (activity-specific, based on Keywords match from RULES_INDEX.md)
-
-[Response content: analysis, task list, implementation, or code follows here]
-```
-
-**Structure Validation:**
-- First line MUST be `MODE: PLAN` or `MODE: ACT`
-- Second section MUST be `## Rules Loaded` with bulleted list
-- Responses not matching this structure are INVALID and must be regenerated
-
-**Example violation:**
-```markdown
-Let me help you with that task. [starts work without MODE or rules declaration]
-```
-**Recovery:** Regenerate response with MODE and Rules Loaded sections.
-
-### Complete Workflow Example
-
-**PLAN Phase:**
-```markdown
-MODE: PLAN
-
-## Rules Loaded
-- rules/000-global-core.md (foundation)
-- rules/100-snowflake-core.md (domain)
-
-Analysis: [2-3 sentence summary of request]
-
-Task List:
-1. [Action step 1]
-2. [Action step 2]
-3. [Validation step]
-
-Authorization (required): Reply with `ACT`.
-```
-
-**ACT Phase:**
-```markdown
-MODE: ACT
-
-[Implementation: code/changes]
-
-Validation: [test/lint results]
-
-MODE: PLAN
-Task complete.
-```
-
 ## Context Window Management Protocol
 
 When approaching context limits, agents must preserve rules in priority order to
@@ -540,20 +576,6 @@ in this protocol take precedence because they work universally across all LLM pr
 - **ContextTier metadata:** Helps agents make fine-grained decisions within priority tiers
 - **Natural language protocol:** Provides explicit preservation hierarchy that any LLM can follow
 - **Together:** Belt-and-suspenders approach ensures consistent behavior
-
-## References
-
-### External Documentation
-
-- [Claude Documentation](https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/overview) - Prompt engineering techniques
-- [Technical Writing Standards](https://developers.google.com/tech-writing) - Professional documentation
-- [Conventional Commits](https://www.conventionalcommits.org/) - Standardized commit messages
-
-### Related Rules
-- **Discovery Guide**: `AGENTS.md` - How to find and use rules
-- **Memory Bank**: `001-memory-bank.md` - Context continuity
-- **Rule Governance**: `002-rule-governance.md` - Rule authoring standards
-- **Context Engineering**: `003-context-engineering.md` - Attention budget management
 
 ## Task Definition Structure
 

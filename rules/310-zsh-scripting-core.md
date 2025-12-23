@@ -7,69 +7,128 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** Zsh, Z shell, zsh features, arrays, functions, oh-my-zsh, emulate, setopt, parameter expansion, globbing
-**TokenBudget:** ~3450
+**TokenBudget:** ~5300
 **ContextTier:** Medium
 **Depends:** 300-bash-scripting-core.md
+**LastUpdated:** 2025-12-23
 
-## Purpose
-Establish foundational zsh scripting patterns covering unique zsh features, script structure, variables, functions, and essential practices to leverage zsh's advanced capabilities while maintaining compatibility.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Foundational zsh scripting patterns covering unique zsh features, script structure, variables, functions, and essential practices to leverage zsh's advanced capabilities while maintaining compatibility.
 
-Foundation zsh scripting patterns and essential practices
+**When to Load This Rule:**
+- Writing zsh scripts or configuration files
+- Converting bash scripts to zsh
+- Leveraging zsh-specific features (arrays, parameter expansion, globbing)
+- Setting up zsh development environment
+- Troubleshooting zsh compatibility issues
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Use `#!/usr/bin/env zsh`** - Portable zsh shebang
-- **Set `emulate -L zsh`** - Consistent behavior in functions
-- **Use setopt for strictness** - ERR_EXIT, NO_UNSET, PIPE_FAIL
-- **Leverage arrays** - Zero-indexed, powerful operations
-- **Use parameter expansion** - `${var:...}`, `${var//...}`
-- **Quote variables** - Always use `"$var"` for safety
-- **Never assume bash compatibility** - Zsh has different semantics
+### Dependencies
 
-**Quick Checklist:**
-- [ ] `#!/usr/bin/env zsh` shebang
-- [ ] `emulate -L zsh` in functions
-- [ ] setopt configured properly
-- [ ] Arrays used correctly (0-indexed)
-- [ ] Variables quoted
-- [ ] Zsh-specific features leveraged
-- [ ] Compatibility with bash checked if needed
+**Must Load First:**
+- **300-bash-scripting-core.md** - Foundation bash scripting patterns
+
+**Related:**
+- **310a-zsh-advanced-features.md** - Advanced zsh features, completion, and modules
+- **310b-zsh-compatibility.md** - Cross-shell compatibility and migration strategies
+
+### External Documentation
+
+- [Zsh Manual](http://zsh.sourceforge.net/Doc/) - Complete official documentation for zsh features and syntax
+- [Zsh User Guide](https://zsh-guide.hyperreal.coffee/) - Comprehensive tutorial and best practices guide
+- [Oh My Zsh Framework](https://ohmyz.sh/) - Popular plugin and theme framework for zsh
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-[Context, files, dependencies needed]
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-[Tools permitted for this domain]
-</mandatory>
+- Zsh script or configuration file requiring development
+- Understanding of shell scripting fundamentals
+- Access to zsh shell (version 5.0+ recommended)
+- Knowledge of bash differences (if migrating from bash)
 
-<forbidden>
-[Tools not allowed for this domain]
-</forbidden>
+### Mandatory
 
-<steps>
-[Ordered steps the agent must follow]
-</steps>
+- Use `#!/usr/bin/env zsh` shebang for portability
+- Set `emulate -L zsh` in functions for consistent behavior
+- Configure setopt for strictness (ERR_EXIT, NO_UNSET, PIPE_FAIL)
+- Quote variables properly (`"$var"` not `$var`)
+- Use zsh arrays correctly (1-indexed by default, or set KSH_ARRAYS for 0-indexed)
+- Leverage zsh parameter expansion features
 
-<output_format>
-[Expected output format]
-</output_format>
+### Forbidden
 
-<validation>
-[Checks to confirm success]
-</validation>
+- Assuming bash compatibility without testing
+- Using unquoted variables in command contexts
+- Polluting global namespace in .zshrc
+- Shadowing system commands with custom functions
+- Ignoring zsh-specific array indexing differences
 
-</contract>
+### Execution Steps
+
+1. Set proper shebang (`#!/usr/bin/env zsh`) and configure setopt for error handling
+2. Identify zsh-specific features to leverage (arrays, parameter expansion, globbing)
+3. Implement functions with `emulate -L zsh` for consistent behavior
+4. Use zsh arrays correctly (1-indexed or configure KSH_ARRAYS for 0-indexed)
+5. Apply zsh parameter expansion for string manipulation
+6. Quote all variables to prevent word splitting issues
+7. Test script with `zsh -n` for syntax validation
+8. Verify compatibility if script needs to run on multiple shells
+
+### Output Format
+
+Zsh script with:
+- Proper shebang (`#!/usr/bin/env zsh`)
+- setopt configuration for error handling
+- Functions using `emulate -L zsh`
+- Correct array usage (1-indexed or KSH_ARRAYS set)
+- Proper variable quoting throughout
+- Zsh-specific features leveraged appropriately
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Shebang is `#!/usr/bin/env zsh`
+- setopt configured for error handling
+- Functions use `emulate -L zsh`
+- Arrays indexed correctly (1-based or KSH_ARRAYS set)
+- Variables quoted in all contexts
+- No bash-specific syntax without compatibility mode
+
+**Success Criteria:**
+- `zsh -n script.zsh` passes syntax check
+- Script executes without errors on target zsh version
+- Arrays accessed correctly (test with sample data)
+- Parameter expansion works as expected
+- No word splitting issues with unquoted variables
+- Functions behave consistently with emulate set
+
+### Design Principles
+
+- **Leverage Zsh Features:** Use advanced capabilities (arrays, globbing, parameter expansion)
+- **Explicit Configuration:** Set options explicitly, don't rely on defaults
+- **Namespace Safety:** Avoid polluting global namespace in configuration files
+- **Compatibility Awareness:** Understand bash differences, test cross-shell if needed
+- **Consistent Behavior:** Use `emulate -L zsh` in functions for predictability
+
+### Post-Execution Checklist
+
+- [ ] Shebang set to `#!/usr/bin/env zsh`
+- [ ] setopt configured for error handling
+- [ ] Functions use `emulate -L zsh`
+- [ ] Arrays indexed correctly
+- [ ] Variables quoted properly
+- [ ] Zsh-specific features used appropriately
+- [ ] Syntax validated with `zsh -n`
+- [ ] Script tested on target zsh version
+- [ ] No namespace pollution in .zshrc
+- [ ] Compatibility verified if needed
 
 ## Anti-Patterns and Common Mistakes
 
@@ -125,33 +184,6 @@ path=(/my/path $path)  # zsh array syntax
 typeset -U path  # Remove duplicates
 ```
 
-## Post-Execution Checklist
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
-
-## Validation
-- **Success checks:** [How to verify correct implementation]
-- **Negative tests:** [What should fail and how to detect failures]
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Check shell type BEFORE suggesting zsh features** - Verify shebang is zsh
-> 2. **Verify zsh version** - Some features require specific versions
-> 3. **Never assume bash compatibility** - Check for bash-specific patterns
-> 4. **Test array operations** - Zsh arrays are 0-indexed unlike bash
-> 5. **Verify setopt settings** - Check current options with `setopt`
->
-> **Anti-Pattern:**
-> "Using zsh arrays... (without checking if script is actually zsh)"
-> "Adding setopt... (without checking current settings)"
->
-> **Correct Pattern:**
-> "Let me check your script's shell type first."
-> [reads shebang, checks for zsh features]
-> "I see this is a zsh script. Using zsh-specific array operations..."
 
 ## Output Format Examples
 
@@ -208,19 +240,9 @@ main "$@"
 shellcheck script.sh
 ```
 
-## References
+- ****300-bash-scripting-core.md**** - Bash scripting fundamentals for comparison
 
-### External Documentation
-- [Zsh Manual](http://zsh.sourceforge.net/Doc/) - Complete official documentation for zsh features and syntax
-- [Zsh User Guide](https://zsh-guide.hyperreal.coffee/) - Comprehensive tutorial and best practices guide
-- [Oh My Zsh Framework](https://ohmyz.sh/) - Popular plugin and theme framework for zsh
-
-### Related Rules
-- **Zsh Advanced Features**: `310a-zsh-advanced-features.md`
-- **Zsh Compatibility**: `310b-zsh-compatibility.md`
-- **Bash Core**: `300-bash-scripting-core.md`
-
-## 1. Script Foundation & Zsh Setup
+## Script Foundation & Zsh Setup
 
 ### Shebang and Environment
 - **Requirement:** Use proper zsh shebang: `#!/usr/bin/env zsh` or `#!/bin/zsh`
@@ -268,7 +290,7 @@ emulate -L zsh
 setopt ERR_EXIT NO_UNSET PIPE_FAIL EXTENDED_GLOB
 ```
 
-## 2. Zsh-Specific Variable Management
+## Zsh-Specific Variable Management
 
 ### Variable Declaration and Scoping
 - **Rule:** Use zsh-specific variable declarations:
@@ -347,7 +369,7 @@ echo "All keys: ${(k)config}"
 echo "All values: ${(v)config}"
 ```
 
-## 3. Function Definition and Advanced Features
+## Function Definition and Advanced Features
 
 ### Function Declaration
 - **Rule:** Use zsh function syntax with proper scoping:
@@ -388,7 +410,7 @@ function create_backup() {
 }
 ```
 
-## 4. Error Handling and Debugging
+## Error Handling and Debugging
 
 ### Zsh Error Handling
 - **Requirement:** Implement robust error handling:
@@ -464,7 +486,7 @@ temp_dir=$(mktemp -d)
 readonly temp_dir
 ```
 
-## 5. Zsh Globbing and Pattern Matching
+## Zsh Globbing and Pattern Matching
 
 ### Extended Globbing
 - **Rule:** Use zsh globbing features:
@@ -507,7 +529,7 @@ if [[ "$version" == <1-9>.<0-9>.<0-9> ]]; then  # Numeric ranges
 fi
 ```
 
-## 6. Input/Output and Command Execution
+## Input/Output and Command Execution
 
 ### Command Substitution and Pipelines
 - **Rule:** Use zsh-optimized command execution:
@@ -553,7 +575,7 @@ cat <<-EOF
 EOF
 ```
 
-## 7. Configuration and Environment
+## Configuration and Environment
 
 ### Zsh Configuration
 - **Rule:** Understand startup files:
@@ -597,7 +619,7 @@ if [[ "$TERM" == *color* ]] || [[ "$COLORTERM" == *color* ]]; then
 fi
 ```
 
-## 8. Performance and Optimization
+## Performance and Optimization
 
 ### Zsh Performance Best Practices
 - **Rule:** Optimize for zsh performance:
@@ -639,7 +661,7 @@ function process_large_data() {
 }
 ```
 
-## 9. Zsh Modules and Autoloading
+## Zsh Modules and Autoloading
 
 ### Loading Modules
 - **Rule:** Load useful modules:
@@ -657,7 +679,7 @@ fpath=(~/.zsh/functions $fpath)
 autoload -Uz colors && colors
 ```
 
-## 10. Compatibility and Portability
+## Compatibility and Portability
 
 ### Bash Compatibility Mode
 - **Rule:** Handle bash compatibility when needed:
@@ -697,7 +719,7 @@ portable_function() {
 }
 ```
 
-## 11. Common Anti-Patterns to Avoid
+## Common Anti-Patterns to Avoid
 
 ### Zsh-Specific Pitfalls
 - **Avoid:** Mixing zsh and bash syntax without proper emulation
@@ -712,7 +734,7 @@ portable_function() {
 - **Avoid:** Creating subshells for array operations
 - **Avoid:** Using `eval` with dynamic content
 
-## 12. Documentation and Style
+## Documentation and Style
 
 ### Code Documentation
 - **Rule:** Document zsh-specific features and requirements:
@@ -759,9 +781,3 @@ Examples:
 EOF
 }
 ```
-
-## Related Rules
-
-- **`310a-zsh-advanced-features.md`** - Advanced zsh features, completion, and modules
-- **`310b-zsh-compatibility.md`** - Cross-shell compatibility and migration strategies
-- **`300-bash-scripting-core.md`** - Bash scripting fundamentals for comparison

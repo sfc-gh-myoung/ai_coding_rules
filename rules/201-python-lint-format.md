@@ -2,68 +2,122 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**LastUpdated:** 2025-12-23
 **Keywords:** Ruff, linting, formatting, code quality, style checking, uvx ruff, lint errors, ruff check, ruff format, pyproject.toml configuration
-**TokenBudget:** ~1950
+**TokenBudget:** ~3100
 **ContextTier:** High
 **Depends:** 200-python-core.md
 
-## Purpose
-Establish authoritative Python code quality standards using Ruff as the primary tool for linting and formatting, with fallback strategies to ensure consistent code style, quality, and maintainability across all Python projects.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Authoritative Python code quality standards using Ruff as the primary tool for linting and formatting. Covers Ruff command patterns (`uvx ruff check`, `uvx ruff format`), pyproject.toml configuration, pydocstyle rules, pre-commit integration, and validation requirements. Includes tool isolation strategies and fallback approaches for environments without uv.
 
-Python code linting and formatting with Ruff for consistent code quality and style
+**When to Load This Rule:**
+- Writing or modifying Python code
+- Setting up new Python projects
+- Configuring linting and formatting tools
+- Reviewing code quality issues
+- Troubleshooting Ruff errors or configuration
+- Before completing any Python-related task (validation gate)
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Always use `uvx ruff check .` and `uvx ruff format .`** - MANDATORY before task completion
-- **Configure in pyproject.toml** - Centralize all Ruff settings
-- **Set target-version = "py311"** - Minimum Python version
-- **Enable pydocstyle (D rules)** - Enforce docstring standards
-- **All checks must pass with 0 errors** - Non-negotiable validation gate
-- **Never use `uv run ruff`** - Always use isolated `uvx ruff` for consistency
+### Dependencies
 
-**Quick Checklist:**
+**Must Load First:**
+- **200-python-core.md** - Python foundation patterns
+
+**Related:**
+- **203-python-project-setup.md** - Project structure and configuration
+- **204-python-docs-comments.md** - Documentation standards
+
+### External Documentation
+
+- [Ruff Documentation](https://docs.astral.sh/ruff/) - Official Ruff documentation
+- [Ruff Rules](https://docs.astral.sh/ruff/rules/) - Complete rule reference
+- [Ruff Configuration](https://docs.astral.sh/ruff/configuration/) - Configuration options
+
+## Contract
+
+### Inputs and Prerequisites
+
+- Python codebase with .py files
+- pyproject.toml for configuration
+- uv/uvx available (or fallback to pip-installed ruff)
+- Understanding of Python code quality standards
+
+### Mandatory
+
+- **Always use `uvx ruff check .` and `uvx ruff format .`** before task completion
+- Configure Ruff in pyproject.toml
+- Set `target-version = "py311"` minimum
+- Enable pydocstyle (D rules) for docstring standards
+- All checks must pass with 0 errors (non-negotiable validation gate)
+- Use isolated `uvx ruff` (never `uv run ruff`)
+
+### Forbidden
+
+- Submitting code with linting errors
+- Using blanket `# noqa` comments without specific codes
+- Mixing formatters (use Ruff exclusively)
+- Skipping pre-commit hooks in production projects
+- Using `uv run ruff` instead of `uvx ruff`
+
+### Execution Steps
+
+1. Run `uvx ruff check .` to identify linting issues
+2. Review errors and fix manually or run `uvx ruff check --fix .`
+3. Run `uvx ruff format .` to apply consistent formatting
+4. Verify with `uvx ruff format --check .`
+5. Commit changes with formatted code
+6. Validate all checks pass with 0 errors
+
+### Output Format
+
+Linting and formatting produces:
+- Clean code passing all Ruff checks (0 errors)
+- Consistently formatted Python files
+- pyproject.toml with [tool.ruff] configuration
+- Pre-commit hooks configured (optional but recommended)
+
+### Validation
+
+**Pre-Task-Completion Checks:**
 - [ ] Run `uvx ruff check .` (must pass with 0 errors)
 - [ ] Run `uvx ruff format --check .` (must pass)
 - [ ] pyproject.toml has [tool.ruff] config
 - [ ] target-version = "py311" set
 - [ ] pydocstyle rules enabled (D)
-- [ ] Use `uvx ruff check --fix .` to auto-fix
-- [ ] Use `uvx ruff format .` to format
 
-## Contract
+**Success Criteria:**
+- `uvx ruff check .` returns 0 errors
+- `uvx ruff format --check .` confirms no formatting changes needed
+- All code follows pydocstyle standards
 
-<contract>
-<inputs_prereqs>
-[Context, files, dependencies needed]
-</inputs_prereqs>
+**Negative Tests:**
+- Ruff should catch common errors (undefined variables, unused imports)
+- Ruff should reject improperly formatted code
 
-<mandatory>
-[Tools permitted for this domain]
-</mandatory>
+### Design Principles
 
-<forbidden>
-[Tools not allowed for this domain]
-</forbidden>
+- **Ruff-first:** Use Ruff as the single source of truth for linting and formatting
+- **Tool isolation:** Use `uvx ruff` for consistent, isolated execution
+- **Zero tolerance:** All checks must pass with 0 errors
+- **Configuration centralization:** All settings in pyproject.toml
+- **Automation:** Integrate with pre-commit hooks and CI/CD
 
-<steps>
-[Ordered steps the agent must follow]
-</steps>
+### Post-Execution Checklist
 
-<output_format>
-[Expected output format]
-</output_format>
-
-<validation>
-[Checks to confirm success]
-</validation>
-
-</contract>
+- [ ] `uvx ruff check .` passed with 0 errors
+- [ ] `uvx ruff format --check .` passed
+- [ ] pyproject.toml configured with [tool.ruff]
+- [ ] target-version = "py311" set
+- [ ] pydocstyle rules (D) enabled
+- [ ] Pre-commit hooks configured (if applicable)
+- [ ] No blanket `# noqa` comments without justification
 
 ## Anti-Patterns and Common Mistakes
 
@@ -196,26 +250,14 @@ uvx ruff format --check .
 uv run pytest tests/
 ```
 
-## References
-
-### External Documentation
-- [Ruff Documentation](https://docs.astral.sh/ruff/) - Complete linter and formatter configuration guide
-- [Ruff Rules Reference](https://docs.astral.sh/ruff/rules/) - Comprehensive list of linting rules and error codes
-- [Python Code Style PEP 8](https://peps.python.org/pep-0008/) - Official Python style guide standards
-
-### Related Rules
-- **Python Core**: `200-python-core.md`
-- **Project Setup**: `203-python-project-setup.md`
- - **Python Docs & Comments**: `204-python-docs-comments.md`
-
-## 1. Core Policy
+## Core Policy
 - **Requirement:** Ruff is the authoritative default for linting and formatting.
 - **Requirement:** Centralize Ruff configuration in `pyproject.toml`.
 - **Requirement:** Set `target-version = "py311"` and exclude directories like `.venv`, `notebooks`, and `output`.
 - **Always:** If Ruff is unavailable, fall back to `flake8` (lint) and `black` + `isort` (format/imports) with equivalent configuration. Document the chosen fallback in the PR.
  - **Requirement:** Enable pydocstyle (D) rules and set a single convention (`google` or `numpy`) consistent with `204-python-docs-comments.md`.
 
-## 2. Agent Workflow
+## Agent Workflow
 
 **CRITICAL:** Lint and format checks are MANDATORY before task completion (see Pre-Task-Completion Validation Gate).
 
@@ -241,7 +283,7 @@ ignore = []
 convention = "google"  # or "numpy"
 ```
 
-## 3. Compliance Checklist (MANDATORY)
+## Compliance Checklist (MANDATORY)
 
 **CRITICAL:** These checks are MANDATORY and must pass before task completion.
 
@@ -256,7 +298,7 @@ convention = "google"  # or "numpy"
 - **CRITICAL:** Do NOT mark tasks complete if any check fails.
 - **CRITICAL:** Reference Pre-Task-Completion Validation Gate in `000-global-core.md` and `AGENTS.md`.
 
-## 4. Taskfile Integration
+## Taskfile Integration
 - **Requirement:** Taskfile lint tasks must use `uvx ruff` for tool isolation.
 - **Requirement:** Separate check and fix tasks for better workflow control.
 - **Pattern:** Structure linting tasks to provide both check-only and fix modes.
@@ -288,7 +330,7 @@ lint:
     # - task: lint-mypy  # fallback: uv run mypy when mypy plugins needed
 ```
 
-## 5. Tool Isolation Benefits
+## Tool Isolation Benefits
 - **Benefit:** `uvx ruff` ensures consistent tool versions across environments.
 - **Benefit:** Avoids conflicts with project dependencies.
 - **Benefit:** Faster execution without project environment overhead.

@@ -2,95 +2,157 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**LastUpdated:** 2025-12-23
 **Keywords:** cost attribution, resource tagging, governance tags, masking policies, row access policies, tag lineage, create tags, apply tags, tag strategy, tag policies, tag compliance, tag hierarchy, tag discovery, tag management
-**TokenBudget:** ~5550
+**TokenBudget:** ~8450
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md, 107-snowflake-security-governance.md
 
-## Purpose
-Establish comprehensive best practices for Snowflake object tagging to enable effective data governance, cost attribution, security classification, and resource monitoring through consistent metadata management across all supported Snowflake objects.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive best practices for Snowflake object tagging to enable effective data governance, cost attribution, security classification, and resource monitoring through consistent metadata management. Covers tag taxonomy design, tag hierarchy, inheritance patterns, tag-based policies (masking, row access), cost attribution, tag lineage tracking, and governance enforcement across all supported Snowflake objects.
 
-Snowflake object tagging for governance, cost tracking, data classification, policy enforcement, and metadata management
+**When to Load This Rule:**
+- Designing or implementing Snowflake object tagging strategy
+- Setting up cost attribution and chargeback systems
+- Implementing tag-based masking or row access policies
+- Troubleshooting tag inheritance or lineage issues
+- Auditing tag coverage and compliance
+- Integrating tags with governance frameworks
+- Managing tag lifecycle and taxonomy evolution
 
-## Quick Start TL;DR
+## References
 
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
+### Dependencies
 
-Position at top provides practical efficiency benefits for both LLMs and human developers.
+**Must Load First:**
+- **100-snowflake-core.md** - Snowflake foundation patterns
+- **105-snowflake-cost-governance.md** - Resource monitors and cost optimization
+- **107-snowflake-security-governance.md** - Access control and security policies
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Tag-based policies** - Masking, row access driven by tags
-- **Tag hierarchy** - Project, Cost Center, Environment, Owner
-- **Tag at schema level** - Inheritance propagates to objects
-- **Cost attribution tags** - Required for tracking/chargebacks
-- **Document definitions** - Clear meaning, allowed values
-- **Query tag lineage** - Understand propagation/coverage
-- **Never tag inconsistently** - Use standard names across account
+**Related:**
+- **103-snowflake-performance-tuning.md** - Query optimization and clustering
 
-**Quick Checklist:**
-- [ ] Tag hierarchy defined
-- [ ] Tags created at account level
-- [ ] Schema-level tags applied
-- [ ] Tag-based policies configured
-- [ ] Cost attribution tags on warehouses
-- [ ] Tag lineage queries working
-- [ ] Tag governance documented
+### External Documentation
+
+- [Snowflake Object Tagging](https://docs.snowflake.com/en/user-guide/object-tagging) - Overview and concepts
+- [Tag-Based Masking Policies](https://docs.snowflake.com/en/user-guide/tag-based-masking-policies) - Implementing tag-driven masking
+- [Tag-Based Row Access Policies](https://docs.snowflake.com/en/user-guide/tag-based-row-access-policies) - Implementing tag-driven row filtering
+- [Tag Lineage](https://docs.snowflake.com/en/user-guide/object-tagging-lineage) - Understanding tag propagation
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-Snowflake account with tag creation privileges (`CREATE TAG`); governance requirements; cost allocation strategy; security classification taxonomy
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-SQL DDL for tag creation; tag assignment statements; TAG_REFERENCES functions; INFORMATION_SCHEMA and ACCOUNT_USAGE views
-</mandatory>
+- Snowflake account with tag creation privileges (`CREATE TAG`)
+- Governance requirements and compliance framework
+- Cost allocation strategy and chargeback model
+- Security classification taxonomy
+- Understanding of tag inheritance and lineage
 
-<forbidden>
-Creating more than 50 tags per object; creating tags without documented taxonomy; uncontrolled tag proliferation; tags without clear ownership
-</forbidden>
+### Mandatory
 
-<steps>
+- SQL DDL for tag creation with ALLOWED_VALUES
+- Tag assignment statements across object hierarchy
+- TAG_REFERENCES functions for lineage tracking
+- INFORMATION_SCHEMA and ACCOUNT_USAGE views for monitoring
+- Documented tag taxonomy and governance policies
+
+### Forbidden
+
+- Creating more than 50 tags per object (Snowflake limit)
+- Creating tags without documented taxonomy
+- Uncontrolled tag proliferation across teams
+- Tags without clear ownership and lifecycle management
+- Inconsistent tag naming conventions
+
+### Execution Steps
+
 1. Define tag taxonomy aligned with governance and business requirements
 2. Create tags with appropriate ALLOWED_VALUES constraints where applicable
 3. Establish tag ownership and management approach (centralized vs decentralized)
 4. Apply tags consistently across object hierarchy to leverage inheritance
 5. Document tag purposes, allowed values, and responsible teams
 6. Monitor tag usage and coverage using TAG_REFERENCES functions
-7. Integrate tags with masking policies and cost monitoring systems
-</steps>
+7. Integrate tags with masking policies, row access policies, and cost monitoring systems
+8. Set up automated tag compliance monitoring and reporting
+9. Establish tag lifecycle management processes (creation, modification, deprecation)
 
-<output_format>
-Tag DDL with documentation; tag assignment statements; monitoring queries; governance reports
-</output_format>
+### Output Format
 
-<validation>
-- Verify tags created successfully with correct privileges
-- Confirm tag assignments appear in TAG_REFERENCES views
-- Validate tag inheritance working as expected
-- Check tag-based policies functioning correctly
-- Ensure cost attribution queries returning accurate results
-</validation>
+Tag deployments produce:
+- Tag DDL with documentation and ALLOWED_VALUES
+- Tag assignment statements across object hierarchy
+- Monitoring queries for tag lineage and coverage
+- Governance reports for compliance auditing
+- Cost attribution queries for chargeback systems
 
-<design_principles>
-- **Define Once, Apply Many:** Create tags in a centralized schema and apply across multiple object types
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Tags created successfully with correct privileges
+- Tag taxonomy documented with clear definitions
+- ALLOWED_VALUES constraints defined where applicable
+- Tag ownership assigned to responsible teams
+- Tag assignment strategy defined (schema-level vs object-level)
+
+**Success Criteria:**
+- Tags appear in SHOW TAGS output
+- Tag assignments visible in TAG_REFERENCES views
+- Tag inheritance working as expected (parent to child propagation)
+- Tag-based policies functioning correctly (masking, row access)
+- Cost attribution queries returning accurate results
+- Tag coverage meeting governance requirements (>90% for critical objects)
+
+**Negative Tests:**
+- Tag creation should fail without CREATE TAG privilege
+- Tag assignment should fail with invalid ALLOWED_VALUES
+- Tag-based policies should not apply without proper tag assignments
+- Tag inheritance should not propagate to explicitly overridden objects
+
+### Design Principles
+
+- **Define Once, Apply Many:** Create tags in a centralized schema and apply across multiple object types for consistency
 - **Leverage Inheritance:** Set tags on parent objects (databases, schemas, tables) to automatically apply to children (columns, views)
 - **Control with Constraints:** Use ALLOWED_VALUES to enforce consistent tag values across the organization
 - **Integrate with Policies:** Combine tags with masking policies, row access policies, and resource monitors for automated governance
 - **Monitor Coverage:** Regularly audit tag usage to ensure governance policies are enforced
 - **Document Taxonomy:** Maintain clear documentation of tag purposes, ownership, and allowed values
-</design_principles>
 
-</contract>
+> **Investigation Required**
+> When working with tags:
+> 1. **Check existing tags BEFORE creating new ones** - Use SHOW TAGS to understand current taxonomy
+> 2. **Verify tag inheritance** - Query TAG_REFERENCES to understand propagation
+> 3. **Never assume tag values** - Check ALLOWED_VALUES constraints before assignment
+> 4. **Review tag-based policies** - Understand how tags drive masking and row access
+> 5. **Audit tag coverage** - Ensure critical objects are properly tagged
+>
+> **Anti-Pattern:**
+> "Creating tag... (without checking existing taxonomy)"
+> "Tagging every column manually... (ignoring inheritance)"
+>
+> **Correct Pattern:**
+> "Let me check your existing tag taxonomy first."
+> [reads SHOW TAGS, checks TAG_REFERENCES, reviews governance docs]
+> "I see you use centralized tags with ALLOWED_VALUES. Applying tags at schema level for inheritance..."
+
+### Post-Execution Checklist
+
+- [ ] Tag taxonomy defined and documented
+- [ ] Tags created at account level with ALLOWED_VALUES
+- [ ] Tag ownership assigned to responsible teams
+- [ ] Schema-level tags applied for inheritance
+- [ ] Tag-based policies configured (masking, row access)
+- [ ] Cost attribution tags applied to warehouses
+- [ ] Tag lineage queries working and validated
+- [ ] Tag governance documented and communicated
+- [ ] Tag coverage monitoring automated
+- [ ] Tag lifecycle management processes established
+- [ ] Compliance reporting configured
+- [ ] Team training completed on tag usage
 
 ## Anti-Patterns and Common Mistakes
 
@@ -245,23 +307,6 @@ WHERE table_schema NOT IN ('INFORMATION_SCHEMA', 'ACCOUNT_USAGE')
 ```
 **Benefits:** Continuous compliance, proactive governance, early detection of gaps, audit readiness.
 
-## Post-Execution Checklist
-
-- [ ] Tag taxonomy defined and documented with clear ownership
-- [ ] Tags created in centralized governance schema (e.g., GOVERNANCE.TAGS)
-- [ ] ALLOWED_VALUES constraints applied to tags requiring consistency
-- [ ] Tag creation privileges restricted to TAG_ADMIN or equivalent role
-- [ ] APPLY TAG privileges granted to functional roles appropriately
-- [ ] Tag inheritance leveraged at schema/database level where applicable
-- [ ] Warehouse tagging follows `119-snowflake-warehouse-management.md` requirements
-- [ ] Tag-based masking policies configured for sensitive data categories
-- [ ] Cost attribution tags applied to all warehouses (COST_CENTER minimum)
-- [ ] Monitoring queries established for tag coverage auditing
-- [ ] TAG_REFERENCES views queried regularly to verify governance
-- [ ] Tag quota limits understood and monitored (<50 per object)
-- [ ] Replication behavior documented for replicated databases
-- [ ] Management approach (centralized/decentralized/hybrid) documented and enforced
-
 ## Validation
 
 - **Success Checks:**
@@ -281,26 +326,6 @@ WHERE table_schema NOT IN ('INFORMATION_SCHEMA', 'ACCOUNT_USAGE')
   - Querying TAG_REFERENCES with invalid object name returns empty set (not error)
   - Tag removal (UNSET TAG) works correctly without affecting other tags
   - Dropped tags no longer appear in TAG_REFERENCES views
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Read actual tag definitions BEFORE recommending tag applications**
-> 2. **Query TAG_REFERENCES to verify existing tag coverage before creating duplicates**
-> 3. **Never assume tag taxonomy—check INFORMATION_SCHEMA.TAGS or ACCOUNT_USAGE views**
-> 4. **Verify ALLOWED_VALUES constraints before recommending tag values**
-> 5. **Check object hierarchy to determine optimal tagging level (database vs schema vs table)**
->
-> **Anti-Pattern:**
-> "You should tag this table with COST_CENTER = 'ANALYTICS'..."
-> "Typically tags are created in the PUBLIC schema..."
->
-> **Correct Pattern:**
-> "Let me check existing tags first:"
-> ```sql
-> SHOW TAGS IN SCHEMA GOVERNANCE.TAGS;
-> SELECT * FROM TABLE(INFORMATION_SCHEMA.TAG_REFERENCES('YOUR_TABLE', 'TABLE'));
-> ```
-> "After reviewing the existing tag taxonomy, I found [specific tags]. Here's my recommendation based on what I observed..."
 
 ## Output Format Examples
 
@@ -336,33 +361,7 @@ FROM TABLE(INFORMATION_SCHEMA.TAG_REFERENCES(
 -- [Coverage monitoring query specific to use case]
 ```
 
-## References
-
-### External Documentation
-- [Object Tagging Introduction](https://docs.snowflake.com/en/user-guide/object-tagging/introduction) - Complete overview of Snowflake object tagging concepts and capabilities
-- [Tag Inheritance](https://docs.snowflake.com/en/user-guide/object-tagging/tag-inheritance) - How tags inherit through object hierarchies
-- [Automatic Tag Propagation](https://docs.snowflake.com/en/user-guide/object-tagging/tag-propagation) - Tag propagation through views, CTAS, and lineage
-- [Working with Object Tags](https://docs.snowflake.com/en/user-guide/object-tagging/work-with-tags) - Create, assign, and manage tags
-- [Monitor Object Tags](https://docs.snowflake.com/en/user-guide/object-tagging/monitor-tags) - Query and audit tag usage
-- [Tag-Based Masking Policies](https://docs.snowflake.com/en/user-guide/security-column-ext) - Automated data protection using tags
-- [TAG_REFERENCES Function](https://docs.snowflake.com/en/sql-reference/info-schema/tag_references) - Query tag assignments
-- [Setting up object tags for cost attribution](https://docs.snowflake.com/en/user-guide/cost-attribution-tags) - Cost tracking patterns with tags
-
-### Related Rules
-- **Snowflake Core**: `100-snowflake-core.md`
-- **Security Governance**: `107-snowflake-security-governance.md`
-- **Cost Governance**: `105-snowflake-cost-governance.md`
-- **Warehouse Management**: `119-snowflake-warehouse-management.md`
-- **Data Governance**: `930-data-governance-quality.md`
-
-> **[AI] Claude 4 Specific Guidance**
-> **Claude 4 Optimizations:**
-> - Use parallel tool calls to check existing tags and object state simultaneously
-> - Investigation-first: Always query INFORMATION_SCHEMA.TAGS before recommending tag creation
-> - Verify tag inheritance by querying TAG_REFERENCES with level column
-> - When analyzing coverage gaps, read actual tag assignments before recommending fixes
-
-## 1. Tag Fundamentals
+## Tag Fundamentals
 
 ### What is a Tag?
 
@@ -461,7 +460,7 @@ ALTER TABLE CUSTOMERS UNSET TAG
 DROP TAG IF EXISTS GOVERNANCE.TAGS.DEPRECATED_TAG;
 ```
 
-## 2. Tag Inheritance
+## Tag Inheritance
 
 **RECOMMENDED:**
 **CRITICAL:** Leverage tag inheritance to minimize manual tagging and ensure consistent governance across object hierarchies.
@@ -531,7 +530,7 @@ ALTER TABLE ANALYTICS.SENSITIVE.CUSTOMER_PII MODIFY COLUMN ssn SET TAG
   GOVERNANCE.TAGS.PII_LEVEL = 'CRITICAL';
 ```
 
-## 3. Automatic Tag Propagation
+## Automatic Tag Propagation
 
 **RECOMMENDED:**
 **ENTERPRISE EDITION REQUIRED:** Automatic tag propagation is an Enterprise Edition feature.
@@ -591,7 +590,7 @@ FROM TABLE(INFORMATION_SCHEMA.TAG_REFERENCES_ALL_COLUMNS(
 ));
 ```
 
-## 4. Tag-Based Masking Policies
+## Tag-Based Masking Policies
 
 **MANDATORY:**
 **CRITICAL:** Combine tags with masking policies for scalable, automated data protection.
@@ -679,7 +678,7 @@ LEFT JOIN INFORMATION_SCHEMA.POLICY_REFERENCES pr
 WHERE tr.tag_name = 'SEMANTIC_CATEGORY';
 ```
 
-## 5. Cost Attribution with Tags
+## Cost Attribution with Tags
 
 **MANDATORY:**
 **BEST PRACTICE:** Use tags on warehouses and other resources for granular cost tracking and chargeback.
@@ -739,7 +738,7 @@ GROUP BY tr.tag_name, tr.tag_value, ts.table_catalog, ts.table_schema
 ORDER BY active_storage_gb DESC;
 ```
 
-## 6. Tag Quotas and Limitations
+## Tag Quotas and Limitations
 
 **MANDATORY:**
 **QUOTA LIMITS:** Understand and plan for tag quotas to avoid hitting limits.
@@ -786,7 +785,7 @@ CREATE TABLE t1 (
 **Maximum 100 tags in single statement:**
 When executing multiple CREATE/ALTER statements in a single batch, limit to 100 total tag assignments.
 
-## 7. Management Approaches
+## Management Approaches
 
 ### Centralized Management
 
@@ -868,7 +867,7 @@ USE ROLE ML_LEAD;
 CREATE TAG ML.METADATA.MODEL_ACCURACY_SCORE;
 ```
 
-## 8. Monitoring and Querying Tags
+## Monitoring and Querying Tags
 
 ### TAG_REFERENCES Functions
 
@@ -961,7 +960,7 @@ GROUP BY tag_name, tag_value, object_domain
 ORDER BY tag_name, object_count DESC;
 ```
 
-## 9. Supported Objects
+## Supported Objects
 
 **MANDATORY:**
 Tags can be applied to the following Snowflake objects (partial list of most common):
@@ -991,7 +990,7 @@ Tags can be applied to the following Snowflake objects (partial list of most com
 
 **Full list:** See [official documentation](https://docs.snowflake.com/en/user-guide/object-tagging/introduction#supported-objects) for complete supported objects table.
 
-## 10. Replication and Cloning
+## Replication and Cloning
 
 ### Tag Replication
 

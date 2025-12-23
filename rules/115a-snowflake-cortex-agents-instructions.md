@@ -2,73 +2,117 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** Cortex Agents, planning instructions, response instructions, tool orchestration, flagging logic, agent prompts, multi-tool orchestration, tool selection, agent prompting, instruction patterns, agent planning
-**TokenBudget:** ~3450
+**TokenBudget:** ~4200
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 115-snowflake-cortex-agents-core.md
+**LastUpdated:** 2025-12-23
 
-## Purpose
-Provide comprehensive patterns for writing planning instructions (tool orchestration logic) and response instructions (output formatting and flagging logic) for Cortex Agents.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive patterns for writing planning instructions (tool orchestration logic) and response instructions (output formatting and flagging logic) for Cortex Agents.
 
-Planning instructions, response instructions, tool selection logic, agent orchestration patterns
+**When to Load This Rule:**
+- Writing planning instructions for agent tool orchestration
+- Defining response instructions with formatting and flagging logic
+- Implementing tool selection patterns
+- Creating multi-tool orchestration workflows
+- **CRITICAL:** Implementing business rule flagging (belongs in agent instructions, NOT semantic views)
 
-## Quick Start TL;DR
+> **Investigation Required**
+> When applying this rule:
+> 1. Read existing agent definitions and instructions BEFORE making recommendations
+> 2. Verify tool definitions match actual available tools (semantic views, functions, documents)
+> 3. Never speculate about data availability or tool capabilities without checking
+> 4. Test instructions with actual questions to verify agent behavior
+> 5. Make grounded recommendations based on investigated agent responses and tool outputs
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Planning instructions define tool selection** - Be explicit about when to use each tool
-- **Response instructions define output format** - Include tone, structure, flagging logic
-- **Never put flagging in semantic views** - Business rules belong in agent instructions
-- **Test orchestration logic** - Verify tools selected appropriately
+## References
 
-**Quick Checklist:**
-- [ ] Planning instructions written for tool selection
-- [ ] Response instructions define tone and format
-- [ ] Flagging logic in response instructions (NOT semantic views)
-- [ ] Orchestration tested with sample queries
+### Dependencies
+
+**Must Load First:**
+- **100-snowflake-core.md** - Snowflake foundation patterns
+- **115-snowflake-cortex-agents-core.md** - Core agent creation and tool configuration
+
+**Related:**
+- **115b-snowflake-cortex-agents-operations.md** - Testing, observability, RBAC
+- **106c-snowflake-semantic-views-integration.md** - Using Cortex Analyst as agent tool
+- **106-snowflake-semantic-views-core.md** - Semantic views as agent data sources
+
+### External Documentation
+
+- [Cortex Agent Instructions Guide](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents-instructions) - Writing effective planning and response instructions
+- [Agent Prompting Best Practices](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents-prompting) - Guidelines for instruction design
+- [Multi-Tool Orchestration](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents-orchestration) - Coordinating multiple tools in agent workflows
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
+### Inputs and Prerequisites
+
 Agent architecture defined (from 115-snowflake-cortex-agents-core), tools configured
-</inputs_prereqs>
 
-<mandatory>
+### Mandatory
+
 Planning instruction templates, response instruction templates
-</mandatory>
 
-<forbidden>
+### Forbidden
+
 Putting business logic in semantic views (belongs in agent instructions)
-</forbidden>
 
-<steps>
-1) Define planning logic for tool selection 2) Write response instructions with flagging 3) Test orchestration patterns
-</steps>
+### Execution Steps
 
-<output_format>
+1. Define planning logic for tool selection
+2. Write response instructions with flagging
+3. Test orchestration patterns
+
+### Output Format
+
 Planning/response instruction templates
-</output_format>
 
-<validation>
-Test tool selection logic; verify flagging works; confirm tone/format appropriate
-</validation>
+### Validation
 
-<design_principles>
+**Pre-Task-Completion Checks:**
+- Planning instructions written for tool selection
+- Response instructions define tone and format
+- Flagging logic in response instructions (NOT semantic views)
+- Orchestration logic ready for testing
+
+**Success Criteria:**
+- Test tool selection logic works correctly
+- Verify flagging triggers appropriately
+- Confirm tone/format meet requirements
+- Multi-tool orchestration tested successfully
+
+**Negative Tests:**
+- Wrong tool selected should trigger review
+- Missing flagging logic should be caught
+- Vague instructions should be refined
+
+### Design Principles
+
 - Planning instructions guide HOW agents select and orchestrate tools
 - Response instructions define output format, tone, and business rule flagging
 - **CRITICAL:** Business rule flagging belongs in response instructions, NEVER in semantic views
 - Explicit is better than implicit for multi-tool agents
 - Test tool selection logic independently before integration
-</design_principles>
 
-</contract>
+### Post-Execution Checklist
 
-## Anti-Patterns and Common Mistakes
+- [ ] Planning instructions define agent role and expertise clearly
+- [ ] Planning instructions break down reasoning into numbered steps
+- [ ] Planning instructions specify when and how to use each tool
+- [ ] Response instructions define consistent formatting structure
+- [ ] Response instructions specify tone (conversational, formal, technical)
+- [ ] Flagging rules defined with specific thresholds and severity levels
+- [ ] Citation requirements specified for data sources and documents
+- [ ] Graceful degradation messages defined for missing data scenarios
+- [ ] Domain-specific terminology and conventions documented
+- [ ] Instructions tested with edge cases (empty results, errors, ambiguous questions)
+- [ ] Agent responses reviewed for consistency with instructions
 
 **Anti-Pattern 1: Putting Business Logic in Semantic Views Instead of Agent Instructions**
 ```yaml
@@ -184,38 +228,6 @@ Consider focusing Q1 investment on APAC enterprise expansion given strong moment
 ```
 **Benefits:** Consistent professional tone; readable formatting; structured insights; brand-aligned voice; clear communication; better user satisfaction
 
-## Post-Execution Checklist
-
-- [ ] Planning instructions define agent role and expertise clearly
-- [ ] Planning instructions break down reasoning into numbered steps
-- [ ] Planning instructions specify when and how to use each tool
-- [ ] Response instructions define consistent formatting structure
-- [ ] Response instructions specify tone (conversational, formal, technical)
-- [ ] Flagging rules defined with specific thresholds and severity levels
-- [ ] Citation requirements specified for data sources and documents
-- [ ] Graceful degradation messages defined for missing data scenarios
-- [ ] Domain-specific terminology and conventions documented
-- [ ] Instructions tested with edge cases (empty results, errors, ambiguous questions)
-- [ ] Agent responses reviewed for consistency with instructions
-
-> **Investigation Required**
-> When applying this rule:
-> 1. Read existing agent definitions and instructions BEFORE making recommendations
-> 2. Verify tool definitions match actual available tools (semantic views, functions, documents)
-> 3. Never speculate about data availability or tool capabilities without checking
-> 4. Test instructions with actual questions to verify agent behavior
-> 5. Make grounded recommendations based on investigated agent responses and tool outputs
-
-## Validation
-
-- Test planning instructions with multi-step questions requiring tool orchestration
-- Verify response instructions format outputs consistently across different question types
-- Validate tone and formatting guidelines are followed in agent responses
-- Test citation requirements work correctly (data sources, document references)
-- Confirm flagging rules trigger appropriately (thresholds, severity levels)
-- Verify graceful degradation when tools or data unavailable
-- Check that domain-specific terminology is used correctly
-
 ## Output Format Examples
 
 ```sql
@@ -295,20 +307,7 @@ FROM TABLE(AGENT_QUERY(
 ));
 ```
 
-## References
-
-### Internal Documentation
-- **115-snowflake-cortex-agents-core:** Core agent creation and tool configuration
-- **115b-snowflake-cortex-agents-operations:** Testing, observability, RBAC
-- **106c-snowflake-semantic-views-integration:** Using Cortex Analyst as agent tool
-- **106-snowflake-semantic-views-core:** Semantic views as agent data sources
-
-### External Documentation
-- [Cortex Agent Instructions Guide](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents-instructions) - Writing effective planning and response instructions
-- [Agent Prompting Best Practices](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents-prompting) - Guidelines for instruction design
-- [Multi-Tool Orchestration](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents-orchestration) - Coordinating multiple tools in agent workflows
-
-## 4. Planning Instructions Patterns
+## Planning Instructions Patterns
 
 Planning instructions define HOW the agent selects and orchestrates tools. Be explicit.
 
@@ -368,7 +367,7 @@ Planning instructions define HOW the agent selects and orchestrates tools. Be ex
 6. If no relevant documents found, suggest alternative search terms or document types
 ```
 
-## 5. Response Instructions Templates
+## Response Instructions Templates
 
 Response instructions define HOW the agent formats and presents answers.
 

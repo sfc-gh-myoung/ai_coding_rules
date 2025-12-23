@@ -5,8 +5,8 @@ This script analyzes all rule files, calculates accurate token estimates,
 and updates TokenBudget metadata to reflect current file sizes.
 
 Token Estimation Method:
-    Uses word count method with 1.3 tokens per word multiplier, which
-    provides more accurate estimates than line count for markdown files.
+    Uses tiktoken with GPT-4o encoding (o200k_base) for exact token counts.
+    This provides 100% accurate token estimates for GPT-4o models.
     Results are rounded to nearest 50 for cleaner budget numbers.
 
 Default threshold: ±15% (updates triggered when difference exceeds threshold)
@@ -22,6 +22,8 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+
+import tiktoken
 
 
 @dataclass
@@ -57,8 +59,6 @@ class UpdateConfig:
 
     # Minimum difference percentage to trigger update
     update_threshold: float = 30.0
-    # Token estimation multiplier (tokens per word)
-    tokens_per_word: float = 1.3
     # Rounding increment for cleaner budget numbers
     rounding_increment: int = 50
     # Dry run mode (don't actually update files)
@@ -73,18 +73,19 @@ class TokenBudgetUpdater:
     def __init__(self, config: UpdateConfig | None = None):
         """Initialize updater with configuration."""
         self.config = config or UpdateConfig()
+        self.encoding = tiktoken.encoding_for_model("gpt-4o")
 
     def estimate_tokens(self, content: str) -> int:
-        """Estimate tokens using word count method.
+        """Estimate tokens using tiktoken with GPT-4o encoding.
 
         Args:
             content: File content to analyze
 
         Returns:
-            Estimated token count
+            Exact token count for GPT-4o model
         """
-        word_count = len(content.split())
-        return int(word_count * self.config.tokens_per_word)
+        tokens = self.encoding.encode(content)
+        return len(tokens)
 
     def round_to_increment(self, value: int) -> int:
         """Round value to nearest increment for cleaner numbers.
@@ -400,7 +401,7 @@ Examples:
         print()
         print(f"File: {args.path}")
         print(f"Update threshold: ±{args.threshold:.1f}%")
-        print(f"Tokens per word: {config.tokens_per_word}")
+        print("Token counting: tiktoken (GPT-4o, o200k_base encoding)")
         print(f"Rounding increment: {config.rounding_increment}")
         if args.dry_run:
             print()
@@ -455,7 +456,7 @@ Examples:
         print()
         print(f"Directory: {args.path}")
         print(f"Update threshold: ±{args.threshold:.1f}%")
-        print(f"Tokens per word: {config.tokens_per_word}")
+        print("Token counting: tiktoken (GPT-4o, o200k_base encoding)")
         print(f"Rounding increment: {config.rounding_increment}")
         if args.dry_run:
             print()

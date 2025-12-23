@@ -7,72 +7,115 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** system prompt altitude, investigation-first, anti-patterns, multi-session workflows, parallel execution, advanced patterns, heuristics, goldilocks zone, context management, state management
-**TokenBudget:** ~3550
+**TokenBudget:** ~4300
 **ContextTier:** Medium
 **Depends:** 002-rule-governance.md, 000-global-core.md
 
-## Purpose
+## Scope
 
-Advanced patterns for writing rules that balance specificity with flexibility, focusing on system prompt altitude (the "Goldilocks Zone"), investigation-first protocols, and multi-session workflows.
+**What This Rule Covers:**
+Advanced patterns for writing rules that balance specificity with flexibility. Focuses on system prompt altitude (the "Goldilocks Zone"), investigation-first protocols, anti-pattern structures, multi-session workflows, and parallel execution design.
 
-## Rule Scope
+**When to Load This Rule:**
+- Writing complex rules requiring advanced patterns
+- Designing anti-pattern libraries
+- Creating multi-step workflows with state management
+- Understanding system prompt engineering for rules
+- Avoiding common rule design pitfalls
 
-AI agents writing complex rules requiring advanced patterns, anti-pattern libraries, or multi-step workflows.
+## References
 
-## Quick Start TL;DR
+### Dependencies
 
-**MANDATORY:**
-**Essential Patterns:**
-- **System prompt altitude** - Right level of specificity ("Goldilocks Zone") - not too low (brittle), not too high (vague)
-- **Investigation-First Protocol** - Read files before recommendations, verify assumptions, avoid hallucinations
-- **Anti-Patterns structure** - Show both Problem and Correct patterns with explanations
-- **Multi-session state** - Manage context across sessions with explicit state tracking
-- **Parallel execution** - Design rules for concurrent tool usage when applicable
+**Must Load First:**
+- **002-rule-governance.md** - Schema requirements and standards
+- **000-global-core.md** - Foundation for all rules
 
-**Pre-Execution Checklist:**
-- [ ] Rules provide clear heuristics, not brittle if-else trees
-- [ ] Investigation Required blocks added for file/code references
-- [ ] Anti-Patterns show Problem vs Correct with explanations
-- [ ] Multi-step workflows have explicit state management
-- [ ] Success criteria are measurable and specific
+**Related:**
+- **002a-rule-creation-guide.md** - Step-by-step rule creation workflow
+- **002b-rule-optimization.md** - Token budgets and performance
+
+### External Documentation
+
+- **Schema Definition:** `schemas/rule-schema.yml` - Authoritative v3.2 schema
 
 ## Contract
 
-<inputs_prereqs>
-Complex rule design task; understanding of system prompt engineering; knowledge of LLM limitations
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-Advanced pattern templates; Anti-Pattern structure; Investigation-First template; multi-session examples
-</mandatory>
+- Complex rule design task
+- Understanding of system prompt engineering
+- Knowledge of LLM limitations
+- Familiarity with advanced rule patterns
 
-<forbidden>
-Over-specifying with brittle if-else rules; vague general guidance; omitting investigation requirements; assuming file contents
-</forbidden>
+### Mandatory
 
-<steps>
+- Advanced pattern templates
+- Anti-Pattern structure
+- Investigation-First template
+- Multi-session examples
+
+### Forbidden
+
+- Over-specifying with brittle if-else rules
+- Vague general guidance without actionable heuristics
+- Omitting investigation requirements for file/code references
+- Assuming file contents without reading them first
+
+### Execution Steps
+
 1. Identify rule complexity level (simple vs advanced patterns needed)
 2. Choose appropriate altitude for guidance (specific heuristics, flexible application)
 3. Add Investigation-First blocks for file/code references
-4. Structure Anti-Patterns with Problem/Correct pairs
+4. Structure Anti-Patterns with Problem/Correct pairs and explanations
 5. Design multi-session state management if needed
 6. Specify measurable validation criteria
-</steps>
 
-<output_format>
-Rule file with advanced patterns: system prompt altitude balance, Investigation-First protocols, Anti-Patterns library
-</output_format>
+### Output Format
 
-<validation>
-- Rules provide actionable heuristics without brittleness
-- Investigation Required blocks present for file references
-- Anti-Patterns structured with Problem and Correct examples
-- Success criteria are explicit and measurable
-- Multi-session workflows have clear state management
-</validation>
+Rule file with:
+- System prompt altitude balance ("Goldilocks Zone")
+- Investigation-First protocols for file references
+- Anti-Patterns library with Problem and Correct examples
+- Explicit state management for multi-session workflows
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Rule complexity level identified
+- Altitude level chosen (not too low, not too high)
+- Investigation blocks identified for file references
+- Anti-Pattern structure planned
+- Multi-session state management designed (if applicable)
+
+**Success Criteria:**
+- Another engineer can understand intended behavior from rule guidance
+- Rules provide actionable heuristics without hardcoding edge cases
+- Investigation Required blocks present for all file/code references
+- Anti-Patterns show both Problem and Correct with explanations
+- Multi-session workflows preserve state explicitly
+- Success criteria are measurable (not vague "good enough")
+
+**Negative Tests:**
+- Brittle if-else rules fail with variations
+- Vague guidance produces inconsistent behavior
+- Missing investigation blocks lead to hallucinations
+- Anti-Patterns without explanations don't teach principles
+- Lost context between sessions causes rework
+
+### Post-Execution Checklist
+
+- [ ] Rules provide clear heuristics without brittle if-else conditions
+- [ ] System prompt altitude in "Goldilocks Zone" (not too low, not too high)
+- [ ] Investigation Required blocks added for file/code references
+- [ ] Anti-Patterns structured with Problem and Correct examples
+- [ ] Multi-session workflows have explicit state management (STATE files or checklists)
+- [ ] Parallel execution patterns used where applicable
+- [ ] Success criteria are explicit and measurable
+- [ ] Self-test questions passed (engineer understanding, clear heuristics, adaptability)
 
 ## System Prompt Altitude: The Goldilocks Zone
 
@@ -268,21 +311,33 @@ You are a technical support agent for ProductX.
 - Produces wrong outputs
 - Misses validation steps
 
-[PASS] **Correct Pattern:**
+[PASS] **Correct Pattern (v3.2 - Markdown Headers):**
 ```markdown
 # Rule Title
 
 ## Contract  <!-- Line 22! Early! -->
 
-<inputs_prereqs>
+### Inputs and Prerequisites
 What AI needs before starting
-</inputs_prereqs>
 
-<mandatory>
+### Mandatory
 Required tools and permissions
-</mandatory>
 
-[... rest of contract XML tags ...]
+### Forbidden
+Prohibited actions
+
+### Execution Steps
+1. Step 1
+2. Step 2
+
+### Output Format
+Expected output description
+
+### Validation
+Success criteria
+
+### Post-Execution Checklist
+- [ ] Item 1
 
 ### 1. Detailed Section
 [300 lines with AI understanding requirements]
@@ -462,34 +517,6 @@ STATE_session_handoff.yml
 # Complex task (5+ sessions): Consider dedicated STATE.md
 ```
 
-## Post-Execution Checklist
-
-- [ ] Rules provide clear heuristics without brittle if-else conditions
-- [ ] System prompt altitude in "Goldilocks Zone" (not too low, not too high)
-- [ ] Investigation Required blocks added for file/code references
-- [ ] Anti-Patterns structured with Problem and Correct examples
-- [ ] Multi-session workflows have explicit state management (STATE files or checklists)
-- [ ] Parallel execution patterns used where applicable
-- [ ] Success criteria are explicit and measurable
-- [ ] Self-test questions passed (engineer understanding, clear heuristics, adaptability)
-
-## Validation
-
-**Success Checks:**
-- Another engineer can understand intended behavior from rule guidance
-- Rules provide actionable heuristics without hardcoding edge cases
-- Investigation Required blocks present for all file/code references
-- Anti-Patterns show both Problem and Correct with explanations
-- Multi-session workflows preserve state explicitly
-- Success criteria are measurable (not vague "good enough")
-
-**Negative Tests:**
-- Brittle if-else rules fail with variations
-- Vague guidance produces inconsistent behavior
-- Missing investigation blocks lead to hallucinations
-- Anti-Patterns without explanations don't teach principles
-- Lost context between sessions causes rework
-
 ## Output Format Examples
 
 ### Example 1: Investigation-First Pattern in Python Rule
@@ -632,14 +659,3 @@ Example:
 - `200a-python-typing.md` - CORE RULE (core dependency)
 - `206-python-pytest.md` - no marker (specialized testing rule)
 
-## References
-
-### Related Rules
-- **Rule Governance**: `002-rule-governance.md` - Schema requirements
-- **Creation Guide**: `002a-rule-creation-guide.md` - Step-by-step workflow
-- **Optimization**: `002b-rule-optimization.md` - Token budget and performance
-- **Global Core**: `000-global-core.md` - Foundation patterns
-
-### External Resources
-- **Claude System Prompt Guide**: Anthropic documentation on prompt engineering
-- **Schema Definition**: `schemas/rule-schema.yml` - Anti-Patterns validation

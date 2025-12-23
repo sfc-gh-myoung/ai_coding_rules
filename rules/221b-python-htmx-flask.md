@@ -2,54 +2,78 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** flask, flask-htmx, blueprints, flask-login, session management, flask routes, flask templates, flask csrf, flask extensions, request context
-**TokenBudget:** ~1950
+**TokenBudget:** ~3450
 **ContextTier:** Medium
 **Depends:** 221-python-htmx-core.md, 221a-python-htmx-templates.md
+**LastUpdated:** 2025-12-23
 
-## Purpose
+## Scope
 
-Defines Flask-specific integration patterns for HTMX applications, covering Flask-HTMX extension usage, blueprint organization, route decorators, session management, and Flask-specific authentication patterns.
+**What This Rule Covers:**
+Flask-specific integration patterns for HTMX applications, covering Flask-HTMX extension usage, blueprint organization, route decorators, session management, and Flask-specific authentication patterns.
 
-## Rule Scope
+**When to Load This Rule:**
+- Building Flask applications with HTMX
+- Using Flask-HTMX extension for request detection
+- Organizing Flask routes with blueprints for HTMX
+- Implementing Flask-Login with HTMX
+- Managing CSRF protection for HTMX requests in Flask
 
-Flask web applications integrating HTMX for hypermedia-driven interfaces
+## References
 
-## Quick Start TL;DR
+### Dependencies
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Use Flask-HTMX extension** - Simplifies HTMX request detection with `htmx` object
-- **Organize routes in blueprints** - Separate HTMX endpoints from full-page routes
-- **Leverage Flask-Login** - Compatible with HTMX requests, use `@login_required` decorator
-- **Configure CSRF protection** - Flask-WTF handles CSRF tokens for HTMX requests
-- **Use `abort()` for errors** - Return error responses with proper status codes
+**Must Load First:**
+- **221-python-htmx-core.md** - HTMX foundation patterns
+- **221a-python-htmx-templates.md** - Jinja2 patterns
 
-**Pre-Execution Checklist:**
-- [ ] Flask-HTMX extension installed and configured
-- [ ] Blueprints created for API/HTMX routes
-- [ ] Flask-WTF configured for CSRF protection
-- [ ] Flask-Login integrated (if authentication required)
-- [ ] Template directory structure follows conventions
-- [ ] Route decorators applied consistently
+**Related:**
+- **221d-python-htmx-testing.md** - Testing Flask+HTMX
+- **221e-python-htmx-patterns.md** - CRUD, forms, etc.
+- **200-python-core.md** - Python standards
+
+### External Documentation
+
+- [Flask-HTMX Extension](https://github.com/edmondchuc/flask-htmx) - Official extension documentation
+- [Flask Documentation](https://flask.palletsprojects.com/) - Flask framework guide
+- [Flask-WTF](https://flask-wtf.readthedocs.io/) - CSRF protection and forms
+- [Flask-Login](https://flask-login.readthedocs.io/) - User authentication
 
 ## Contract
 
-<inputs_prereqs>
-Flask installed; Flask-HTMX extension; Flask-WTF for CSRF; Flask-Login for auth (optional); Jinja2 templates configured; HTMX core patterns (221-python-htmx-core.md); template strategies (221a-python-htmx-templates.md)
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-Flask framework; Flask-HTMX extension; Flask-WTF; Jinja2; CSRF protection enabled; blueprint registration; route decorators
-</mandatory>
+- Flask installed
+- Flask-HTMX extension
+- Flask-WTF for CSRF
+- Flask-Login for auth (optional)
+- Jinja2 templates configured
+- HTMX core patterns (221-python-htmx-core.md)
+- Template strategies (221a-python-htmx-templates.md)
 
-<forbidden>
-Mixing business logic in routes; bypassing CSRF protection; returning JSON for HTMX requests; using global state instead of session; skipping authentication checks for HTMX endpoints
-</forbidden>
+### Mandatory
 
-<steps>
+- Flask framework
+- Flask-HTMX extension
+- Flask-WTF
+- Jinja2
+- CSRF protection enabled
+- Blueprint registration
+- Route decorators
+
+### Forbidden
+
+- Mixing business logic in routes
+- Bypassing CSRF protection
+- Returning JSON for HTMX requests
+- Using global state instead of session
+- Skipping authentication checks for HTMX endpoints
+
+### Execution Steps
+
 1. Install Flask-HTMX and Flask-WTF extensions
 2. Configure Flask app with extensions (CSRF, HTMX, Login if needed)
 3. Create blueprints for organizing routes (pages, api, htmx)
@@ -57,19 +81,50 @@ Mixing business logic in routes; bypassing CSRF protection; returning JSON for H
 5. Implement HTMX request detection using Flask-HTMX extension
 6. Configure CSRF token inclusion in HTMX requests
 7. Test routes with and without HTMX headers
-</steps>
 
-<output_format>
-Flask application with blueprints, route handlers, HTMX integration via Flask-HTMX extension, CSRF-protected endpoints
-</output_format>
+### Output Format
 
-<validation>
+- Flask application with blueprints
+- Route handlers
+- HTMX integration via Flask-HTMX extension
+- CSRF-protected endpoints
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Flask-HTMX extension installed and configured
+- Blueprints created for API/HTMX routes
+- Flask-WTF configured for CSRF protection
+- Flask-Login integrated (if authentication required)
+- Template directory structure follows conventions
+- Route decorators applied consistently
+
+**Success Criteria:**
 - Flask-HTMX extension detects HTMX requests correctly
 - CSRF tokens validated for state-changing requests
 - Authentication works for HTMX and full-page requests
 - Blueprints registered and routes accessible
 - Tests validate HTMX-specific behavior
-</validation>
+
+### Design Principles
+
+- **Use Flask-HTMX extension** - Simplifies HTMX request detection with `htmx` object
+- **Organize routes in blueprints** - Separate HTMX endpoints from full-page routes
+- **Leverage Flask-Login** - Compatible with HTMX requests, use `@login_required` decorator
+- **Configure CSRF protection** - Flask-WTF handles CSRF tokens for HTMX requests
+- **Use `abort()` for errors** - Return error responses with proper status codes
+
+### Post-Execution Checklist
+
+- [ ] Flask-HTMX extension installed and configured
+- [ ] Blueprints created and registered
+- [ ] CSRF protection enabled (Flask-WTF)
+- [ ] CSRF token included in HTMX requests
+- [ ] Flask-Login integrated (if authentication required)
+- [ ] Unauthorized handler returns `HX-Redirect` for HTMX
+- [ ] Error handlers check `htmx` and respond appropriately
+- [ ] Session used for user-specific state
+- [ ] Tests cover HTMX-specific routes and behavior
 
 ## Key Principles
 
@@ -433,31 +488,6 @@ def get_data():
 </script>
 ```
 
-## Post-Execution Checklist
-
-- [ ] Flask-HTMX extension installed and configured
-- [ ] Blueprints created and registered
-- [ ] CSRF protection enabled (Flask-WTF)
-- [ ] CSRF token included in HTMX requests
-- [ ] Flask-Login integrated (if authentication required)
-- [ ] Unauthorized handler returns `HX-Redirect` for HTMX
-- [ ] Error handlers check `htmx` and respond appropriately
-- [ ] Session used for user-specific state
-- [ ] Tests cover HTMX-specific routes and behavior
-
-## Validation
-
-**Success Checks:**
-- `htmx` object correctly detects HTMX requests
-- CSRF-protected routes reject requests without token
-- Authentication required for protected HTMX routes
-- Error handlers return partial HTML for HTMX requests
-- Session data persists across HTMX requests
-
-**Negative Tests:**
-- HTMX request without CSRF token returns 403
-- Unauthenticated HTMX request redirects to login
-- Non-HTMX request to HTMX-only route returns 400
 
 ## Output Format Examples
 
@@ -486,17 +516,3 @@ def create_app():
     return app
 ```
 
-## References
-
-### External Documentation
-- [Flask-HTMX Extension](https://github.com/edmondchuc/flask-htmx) - Official extension documentation
-- [Flask Documentation](https://flask.palletsprojects.com/) - Flask framework guide
-- [Flask-WTF](https://flask-wtf.readthedocs.io/) - CSRF protection and forms
-- [Flask-Login](https://flask-login.readthedocs.io/) - User authentication
-
-### Related Rules
-- **HTMX Foundation**: `221-python-htmx-core.md` - HTMX core patterns
-- **Template Strategies**: `221a-python-htmx-templates.md` - Jinja2 patterns
-- **Testing Patterns**: `221d-python-htmx-testing.md` - Testing Flask+HTMX
-- **Common Patterns**: `221e-python-htmx-patterns.md` - CRUD, forms, etc.
-- **Python Core**: `200-python-core.md` - Python standards

@@ -2,75 +2,96 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** compliance, common mistakes, validation rules, semantic model quality, semantic view pitfalls, debug semantic view, fix semantic view errors, validation failures, relationship errors, mapping errors, quality assurance, semantic view testing, validation patterns
-**TokenBudget:** ~5000
+**TokenBudget:** ~6800
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 106-snowflake-semantic-views-core.md
+**LastUpdated:** 2025-12-22
 
-## Purpose
-Provide advanced patterns for semantic views including anti-patterns to avoid, comprehensive validation rules, quality checks, and compliance requirements.
+## Scope
 
-## Rule Scope
-Anti-patterns, validation rules, quality checks, compliance
+**What This Rule Covers:**
+Advanced patterns for semantic views including anti-patterns to avoid, comprehensive validation rules, quality checks, and compliance requirements.
 
-## Quick Start TL;DR
+**When to Load This Rule:**
+- Avoiding common semantic view mistakes
+- Implementing validation rules and quality checks
+- Ensuring semantic view compliance
+- Debugging semantic view errors
+- Reviewing semantic view quality
 
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
+## References
 
-Position at top provides practical efficiency benefits for both LLMs and human developers.
-**MANDATORY:**
-**Essential Patterns:**
-- **Avoid common anti-patterns** - No business logic in views, no circular refs
-- **Apply validation rules** - Check dimensions, measures, filters
-- **Run quality checks** - Verify data quality and completeness
-- **Ensure compliance** - Meet governance and security requirements
+### External Documentation
+- [CREATE SEMANTIC VIEW DDL](https://docs.snowflake.com/en/sql-reference/sql/create-semantic-view) - Official DDL syntax reference
+- [Semantic Views Overview](https://docs.snowflake.com/en/user-guide/views-semantic/overview) - Conceptual overview and use cases
+- [Using SQL to create and manage views](https://docs.snowflake.com/en/user-guide/views-semantic/sql) - SQL workflow and examples
+- [Validation Rules for Semantic Views](https://docs.snowflake.com/en/user-guide/views-semantic/validation-rules) - Complete validation rule reference
 
-**Quick Checklist:**
-- [ ] Anti-patterns reviewed and avoided
-- [ ] Validation rules applied
-- [ ] Quality checks passed
-- [ ] Compliance verified
+### Dependencies
+
+**Must Load First:**
+- **000-global-core.md** - Foundation rule with core patterns and validation gates
+- **100-snowflake-core.md** - Snowflake SQL patterns and best practices
+- **106-snowflake-semantic-views-core.md** - Semantic Views DDL fundamentals
+
+### Related Rules
+
+**Related Semantic View Rules:**
+- **106-snowflake-semantic-views-core.md** - Semantic Views DDL fundamentals
+- **106b-snowflake-semantic-views-querying.md** - Query patterns, testing, SEMANTIC_VIEW() function, dimension compatibility, window function metrics, WHERE clause usage, performance optimization
+- **106c-snowflake-semantic-views-integration.md** - Cortex Analyst/Agent integration, REST API usage, governance (RBAC, masking, row access), Generator workflow, iterative development, synonym design
+
+**Foundational:**
+- **100-snowflake-core.md** - Snowflake SQL patterns and best practices
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
+### Inputs and Prerequisites
+
 Understanding of semantic view basics (from 106-core), semantic view created
-</inputs_prereqs>
 
-<mandatory>
+
+### Mandatory
+
 Validation queries, compliance checks, quality tools
-</mandatory>
 
-<forbidden>
+
+### Forbidden
+
 None specific
-</forbidden>
 
-<steps>
+
+### Execution Steps
+
 1) Review anti-patterns 2) Apply validation rules 3) Run quality checks 4) Verify compliance
-</steps>
 
-<output_format>
+
+### Output Format
+
 Validation queries, compliance checklists, quality reports
-</output_format>
 
-<validation>
+
+### Validation
+
 No anti-patterns detected; validation passes; compliant with requirements
-</validation>
 
-<design_principles>
+
+### Design Principles
+
 - Avoid anti-patterns for maintainability and performance
 - Apply comprehensive validation rules before deployment
 - Run quality checks to ensure data correctness
 - Verify compliance with governance policies
-</design_principles>
 
-</contract>
+### Post-Execution Checklist
+
+- [ ] Anti-patterns reviewed and avoided
+- [ ] Validation rules applied
+- [ ] Quality checks passed
+- [ ] Compliance verified
 
 ## Anti-Patterns and Common Mistakes
 
@@ -211,51 +232,6 @@ CREATE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
 ```
 **Benefits:** Correct clause order: TABLES, then FACTS, then DIMENSIONS, then METRICS.
 
-## Post-Execution Checklist
-
-**DDL Creation:**
-- [ ] Use `CREATE SEMANTIC VIEW` (not `CREATE VIEW`)
-- [ ] Clause order: TABLES, then FACTS, then DIMENSIONS, then METRICS
-- [ ] Mapping syntax: `logical_name AS physical_column` (NOT reversed)
-- [ ] PRIMARY KEY defined in TABLES block (uses physical columns only)
-- [ ] COMMENT clauses use equals sign: `COMMENT = 'text'`
-- [ ] DIMENSIONS use simple columns (no CAST, DATE_TRUNC)
-- [ ] At least one dimension or metric defined
-- [ ] Verified with `SHOW SEMANTIC VIEWS`
-
-**Validation Rules:**
-- [ ] Relationships are many-to-one (no circular, no self-ref, no multi-path)
-- [ ] Table aliases used consistently in expressions
-- [ ] No circular expression or table reference cycles
-- [ ] Cross-table references use relationships (not direct column refs)
-- [ ] Row-level expressions respect granularity rules (aggregate for higher granularity)
-- [ ] Metrics use proper aggregation (nested when referencing higher granularity)
-- [ ] Window function metrics not used in dimensions, facts, or other metrics
-- [ ] Only scalar functions in dimensions (no table functions)
-- [ ] No template characters (`&`, `<%`, `%>`, `{{`, `}}`) in SYNONYMS or COMMENT values
-
-## Validation
-- **Success Checks:**
-  - DDL compiles without syntax errors
-  - `SHOW SEMANTIC VIEWS` confirms object creation
-  - `SHOW SEMANTIC DIMENSIONS/METRICS` returns expected structure
-  - Validation rules pass (relationships, granularity, expressions)
-  - Correct mapping syntax used (logical_name AS physical_expression)
-  - Clause order correct (TABLES, then FACTS, then DIMENSIONS, then METRICS)
-  - COMMENT syntax correct (uses equals sign)
-  - PRIMARY KEY uses physical columns only
-- **Negative Tests:**
-  - Reversed mappings cause syntax error ("invalid identifier")
-  - CAST/DATE_TRUNC in DIMENSIONS causes syntax error
-  - Wrong COMMENT syntax (missing equals) causes syntax error
-  - Wrong clause order causes syntax error or unexpected behavior
-  - Missing PRIMARY KEY prevents relationships
-  - Circular relationships cause error
-  - Self-referencing relationships cause error
-  - Direct cross-table references without relationships cause error
-  - Dimension referencing metric (same granularity) causes error
-  - Window function metric in dimension/fact/other metric causes error
-
 ## Output Format Examples
 
 ```sql
@@ -313,21 +289,7 @@ SHOW SEMANTIC METRICS FOR SEMANTIC VIEW <view_name>;
 > [runs DESCRIBE TABLE or queries INFORMATION_SCHEMA]
 > "I see your table has these columns: [actual columns]. Here's a semantic view definition using your actual schema..."
 
-## References
-
-### External Documentation
-- [CREATE SEMANTIC VIEW DDL](https://docs.snowflake.com/en/sql-reference/sql/create-semantic-view) - Official DDL syntax reference
-- [Semantic Views Overview](https://docs.snowflake.com/en/user-guide/views-semantic/overview) - Conceptual overview and use cases
-- [Using SQL to create and manage views](https://docs.snowflake.com/en/user-guide/views-semantic/sql) - SQL workflow and examples
-- [Validation Rules for Semantic Views](https://docs.snowflake.com/en/user-guide/views-semantic/validation-rules) - Complete validation rule reference
-
-### Related Rules
-- **Querying Semantic Views**: `106b-snowflake-semantic-views-querying.md` - SEMANTIC_VIEW() query patterns and testing
-- **Integration & Development**: `106c-snowflake-semantic-views-integration.md` - Cortex Analyst, governance, workflows
-- **Snowflake Core**: `100-snowflake-core.md` - Foundational Snowflake practices
-- **Cortex Analyst Integration**: `106c-snowflake-semantic-views-integration.md` - Natural language query patterns
-
-## 4) Validation Rules
+## Validation Rules
 
 ### 4.1 General Validation Rules
 
@@ -936,8 +898,3 @@ SYNONYMS ('R and D', 'Research and Development', 'Sales and Marketing')
 
 **Best Practice:** Always test semantic view DDL via Snowflake CLI (`snow sql -f file.sql`) before committing to ensure CI/CD compatibility.
 
-## Related Rules
-
-**Related Semantic View Rules:**
-- **106b-snowflake-semantic-views-querying.mdc** - Query patterns, testing, SEMANTIC_VIEW() function, dimension compatibility, window function metrics, WHERE clause usage, performance optimization
-- **106b-snowflake-semantic-views-integration.mdc** - Cortex Analyst/Agent integration, REST API usage, governance (RBAC, masking, row access), Generator workflow, iterative development, synonym design

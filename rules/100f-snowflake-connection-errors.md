@@ -2,81 +2,114 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.0
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** connection errors, error classification, network policy, authentication, VPN, error codes, 08001, 390114, error handling, snowflake.connector, DatabaseError, message analysis, error detection
-**TokenBudget:** ~2400
+**TokenBudget:** ~3400
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
-**LastUpdated:** 2025-12-09
+**LastUpdated:** 2025-12-22
 
-## Purpose
+## Scope
 
-Provide systematic error classification for Snowflake connection errors to prevent misdiagnosis of network policy violations as authentication failures, enabling accurate troubleshooting guidance across all Python-based Snowflake applications.
+**What This Rule Covers:**
+Systematic error classification for Snowflake connection errors using message-first analysis (never 1:1 error code mapping) to prevent misdiagnosis of network policy violations as authentication failures. Detection order: network policy indicators -> specific auth codes (390114, 390318, 390144) -> transient errors -> permissions -> generic 08001 fallback. Applies to snowflake-connector-python across Python scripts, CLI tools, REST APIs, Streamlit apps, and Snowpark applications.
 
-## Rule Scope
+**When to Load This Rule:**
+- Handling Snowflake connection errors (snowflake.connector.errors.DatabaseError)
+- Diagnosing network policy violations vs authentication failures
+- Implementing connection error classification logic
+- Troubleshooting VPN-related connection issues
+- Providing actionable error guidance in Python applications
+- Handling error code 08001 ambiguity (VPN/auth/network/URL)
 
-Connection error handling for `snowflake-connector-python` across Python scripts, CLI tools, REST APIs, Streamlit apps, and Snowpark applications.
+## References
 
-## Quick Start TL;DR
+### Dependencies
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Message-first classification**: Never map Snowflake error codes 1:1 to problem types. Error codes are categories; message content contains diagnosis.
-- **Specific-to-generic order**: Check for network policy indicators before auth checks, before transient checks, before generic connection fallbacks.
-- **Actionable guidance output**: Each classification must yield a concrete next action (VPN reconnect vs auth refresh vs retry/backoff vs request privileges).
+**Must Load First:**
+- **100-snowflake-core.md** - Snowflake fundamentals and connection patterns
 
-**Detection Order (Most Specific First):**
-1. **Network Policy Violations** - Check for "not allowed to access", "IP/Token" patterns
-2. **Authentication Errors** - Check specific auth codes (390114, 390318, 390144)
-3. **Generic Connection Errors** - Fallback for 08001, 08003
+**Related:**
+- **101e-snowflake-streamlit-sql-errors.md** - SQL error handling patterns for Streamlit
+- **101b-snowflake-streamlit-performance.md** - Connection caching with @st.cache_resource
 
-**Anti-Pattern:** `if error_code == "08001": return "Auth expired"` [FAIL]
-**Correct:** Check message content first, then code [PASS]
+### External Documentation
+
+**Snowflake:**
+- [Snowflake Error Codes](https://docs.snowflake.com/en/user-guide/admin-error-codes.html) - Complete error code reference
+- [Network Policies](https://docs.snowflake.com/en/user-guide/network-policies.html) - IP allowlist configuration
+- [snowflake-connector-python Errors](https://docs.snowflake.com/en/developer-guide/python-connector/python-connector-api.html#errors) - Connector exception classes
+
+**Authentication:**
+- [OAuth Integration](https://docs.snowflake.com/en/user-guide/oauth-snowflake.html) - OAuth authentication patterns
+- [Key Pair Authentication](https://docs.snowflake.com/en/user-guide/key-pair-auth.html) - Certificate-based authentication
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
+### Inputs and Prerequisites
+
 Exception object from snowflake.connector.errors; error message string; error code
-</inputs_prereqs>
 
-<mandatory>
+### Mandatory
+
 Message content analysis before error code matching; detection order from specific to generic
-</mandatory>
 
-<forbidden>
+### Forbidden
+
 1:1 error code to problem type mapping; skipping message content analysis; generic-first detection order
-</forbidden>
 
-<steps>
+### Execution Steps
+
 1. Extract error message and code from exception
 2. Check for network policy indicators in message (highest priority)
 3. Check for authentication-specific error codes
 4. Check for transient/permission errors
 5. Fall back to generic connection error
 6. Return error classification with appropriate guidance
-</steps>
 
-<output_format>
+### Output Format
+
 Error classification enum/constant with user-facing guidance string
-</output_format>
 
-<validation>
+### Validation
+
+**Test Requirements:**
 - Network policy errors NOT classified as auth errors
 - Error classification includes specific guidance (VPN reconnect vs auth refresh)
 - Detection order is specific to generic
 - Message content checked before code matching
-</validation>
 
-<design_principles>
+**Success Criteria:**
+- Message-first classification implemented
+- Specific-to-generic detection order enforced
+- Actionable guidance provided for each error type
+- VPN/network policy errors correctly identified
+
+### Design Principles
+
 - **Specificity First:** Check most specific patterns before generic codes
 - **Message Analysis:** Error codes are categories; messages contain diagnosis
 - **Actionable Guidance:** Each error type maps to specific user actions
 - **VPN Awareness:** Network policy violations are common in enterprise environments
-</design_principles>
 
-</contract>
+**Detection Order (Most Specific First):**
+1. **Network Policy Violations** - Check for "not allowed to access", "IP/Token" patterns
+2. **Authentication Errors** - Check specific auth codes (390114, 390318, 390144)
+3. **Generic Connection Errors** - Fallback for 08001, 08003
+
+**Anti-Pattern:** `if error_code == "08001": return "Auth expired"` [FAIL]  
+**Correct:** Check message content first, then code [PASS]
+
+### Post-Execution Checklist
+
+- [ ] Message content analyzed before error code matching
+- [ ] Detection order: network policy -> auth -> transient -> generic
+- [ ] Network policy errors NOT misclassified as auth errors
+- [ ] Each error type provides actionable guidance
+- [ ] VPN reconnect guidance for network policy violations
+- [ ] Auth refresh guidance for authentication errors
+- [ ] Retry/backoff guidance for transient errors
 
 ## Error Classification Hierarchy
 
@@ -442,32 +475,6 @@ def classify_error(error_code: str):
 
 **Correct Pattern:** Parse message content first (network policy strings), then use codes only as supporting signal.
 
-## Post-Execution Checklist
-
-Before deploying connection error handling:
-
-- [ ] Network policy detection runs FIRST (before auth/connection)
-- [ ] Error message content analyzed (not just codes)
-- [ ] Each error type has specific user guidance (VPN vs auth vs network)
-- [ ] Detection order: specific to generic
-- [ ] VPN disconnection NOT classified as auth error
-- [ ] Auto-retry implemented for transient errors
-- [ ] Logging includes error type classification for debugging
-
-## Validation
-
-**Success Checks:**
-- Network policy errors (message includes "not allowed to access") are classified as NETWORK_POLICY even if error code is 08001/250001
-- Auth errors (e.g., 390114/390318/390144) are classified as AUTH_EXPIRED only after network policy check fails
-- Transient messages (timeout/reset) are classified as TRANSIENT and trigger retry/backoff
-- Permission messages ("insufficient privileges") are classified as PERMISSION
-- Generic connection codes (08001/08003/08004) only classify as CONNECTION when no more-specific match exists
-
-**Negative Tests:**
-- A network policy message must not be classified as AUTH_EXPIRED
-- A generic 08001 without network policy indicators must not automatically map to auth expiry
-- Reordering checks to generic-first should be caught in review (it breaks the hierarchy)
-
 ## Output Format Examples
 
 ```python
@@ -479,23 +486,3 @@ error_type, guidance = classify_snowflake_connection_error(
 print(error_type.value)  # network_policy
 print(guidance)          # NETWORK POLICY VIOLATION ... Reconnect to VPN ...
 ```
-
-## References
-
-### Related Rules
-- `100-snowflake-core.md` - Foundational Snowflake practices
-- `101e-snowflake-streamlit-sql-errors.md` - Streamlit error presentation
-- `109c-snowflake-app-deployment-troubleshooting.md` - Production deployment errors
-- `200-python-core.md` - Python exception handling patterns
-
-### External Documentation
-- [Snowflake CLI](https://docs.snowflake.com/developer-guide/snowflake-cli/index) - Connection testing and CLI usage
-- [Network policies](https://docs.snowflake.com/en/user-guide/network-policies) - IP allowlist enforcement and troubleshooting context
-- [`snowflake-connector-python` docs](https://docs.snowflake.com/en/developer-guide/python-connector/python-connector) - Connector behaviors and error surfaces
-
-## Related Rules
-
-- **100-snowflake-core.md**: Foundational Snowflake practices
-- **101e-snowflake-streamlit-sql-errors.md**: Streamlit error presentation
-- **109c-snowflake-app-deployment-troubleshooting.md**: Production deployment errors
-- **200-python-core.md**: Python exception handling patterns

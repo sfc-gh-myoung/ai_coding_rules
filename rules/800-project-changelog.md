@@ -2,75 +2,82 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** CHANGELOG, changelog format, semantic versioning, release notes, conventional commits, Unreleased section, scope patterns, project governance, git workflow, version control
-**TokenBudget:** ~2500
+**TokenBudget:** ~3350
 **ContextTier:** Medium
 **Depends:** 000-global-core.md
 
-## Purpose
-Establish directives for maintaining a high-signal, audit-friendly CHANGELOG.md following Keep a Changelog standard with strong preference for Conventional Commits format, ensuring consistent documentation of project changes for stakeholders and maintainers.
+## Scope
 
-## Rule Scope
-High-signal, audit-friendly changelog maintenance using Conventional Commits
+**What This Rule Covers:**
+Maintaining high-signal, audit-friendly CHANGELOG.md following Keep a Changelog standard with Conventional Commits format for consistent project change documentation.
 
-## Quick Start TL;DR
+**When to Load This Rule:**
+- Modifying CHANGELOG.md directly
+- Any code change requiring changelog entry
+- Project releases (moving Unreleased to version)
+- Implementing Conventional Commits workflow
+- Setting up changelog standards for new projects
+- Reviewing changelog compliance during pull requests
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Maintain Unreleased section** - All new changes go here first
-- **Use standard types** - Added, Changed, Deprecated, Removed, Fixed, Security
-- **Group by type** - Keep a Changelog v1.1.0 standard categories
-- **Human-readable summaries** - Focus on user impact, not internal details
-- **Preferred format: Conventional Commits** - `type(scope): summary` per https://www.conventionalcommits.org/en/v1.0.0/#specification
-- **Collapse micro-fixes** - One meaningful entry, not 10 tweaks
-- **Move to version on release** - ## [x.y.z] - YYYY-MM-DD
+## References
 
-**Quick Checklist:**
-- [ ] Unreleased section exists
-- [ ] Standard header with Keep a Changelog reference
-- [ ] Grouped by standard types (Added, Changed, Deprecated, Removed, Fixed, Security)
-- [ ] Human-readable summaries
-- [ ] Optional: Conventional Commits format for consistency
-- [ ] Micro-fixes collapsed
-- [ ] Ready for release versioning
-- [ ] Version comparison links (optional)
+### Dependencies
+
+**Must Load First:**
+- **000-global-core.md** - Foundation rule with core patterns and validation gates
+
+**Related:**
+- **801-project-readme.md** - README documentation standards
+- **802-project-contributing.md** - Contributing guidelines and workflow
+- **803-project-git-workflow.md** - Git workflow and branch management
+
+### External Documentation
+
+**Official Standards:**
+- [Keep a Changelog v1.1.0](https://keepachangelog.com/) - Primary changelog format standard
+- [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/#specification) - PREFERRED commit message format (strongly recommended for changelog entries)
+- [Semantic Versioning](https://semver.org/) - Version numbering scheme for software releases
+
+**Additional Resources:**
+- Follow contributing guidelines: `802-project-contributing.md`
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
+### Inputs and Prerequisites
+
 - Existing CHANGELOG.md file (or create new)
 - Knowledge of changes made to codebase
 - Understanding of Keep a Changelog v1.1.0 standard
 - Project's version control system URL (for comparison links)
-</inputs_prereqs>
 
-<mandatory>
+### Mandatory
+
 - Read existing CHANGELOG.md to understand format and scope patterns
 - Use Keep a Changelog v1.1.0 standard types: Added, Changed, Deprecated, Removed, Fixed, Security
 - Add entries under ## [Unreleased] section
 - Ensure human-readable, user-impact focused summaries
-</mandatory>
 
-<forbidden>
+### Forbidden
+
 - Never add entries outside standard Keep a Changelog types
 - Never skip CHANGELOG update for code changes
 - Never use jargon or internal-only terminology
 - Never duplicate full commit messages in changelog entries
-</forbidden>
 
-<steps>
+### Execution Steps
+
 1. Read CHANGELOG.md to check format, existing scopes, and structure
 2. Identify change type: Added, Changed, Deprecated, Removed, Fixed, or Security
 3. Write concise, human-readable summary focusing on user impact
 4. Add entry under appropriate type heading in ## [Unreleased] section
 5. Optionally use Conventional Commits format: type(scope): summary
 6. Verify entry is not duplicate and follows existing patterns
-</steps>
 
-<output_format>
+### Output Format
+
 ```markdown
 ## [Unreleased]
 
@@ -80,17 +87,64 @@ High-signal, audit-friendly changelog maintenance using Conventional Commits
 ### Fixed
 - Bug that was affecting user workflows
 ```
-</output_format>
 
-<validation>
-- Entry added under ## [Unreleased] section
-- Entry uses standard Keep a Changelog type (Added, Changed, Deprecated, Removed, Fixed, Security)
-- Summary is human-readable and user-impact focused
-- Format matches existing entries in file
-- No duplicate entries
-</validation>
+### Validation
 
-</contract>
+**Pre-Task-Completion Validation Gate (CRITICAL):**
+
+Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
+
+**Documentation Requirements:**
+- **CRITICAL:** Entry added under `## [Unreleased]` section
+- **CRITICAL:** Entry uses standard Keep a Changelog type (Added, Changed, Deprecated, Removed, Fixed, Security)
+- **CRITICAL:** Summary is human-readable and user-impact focused
+- **Format Check:** Entry matches existing format patterns in file
+- **Duplication Check:** No duplicate entries exist
+
+**Success Criteria:**
+- CHANGELOG.md contains entry under `## [Unreleased]`
+- Entry follows Conventional Commit format: `<type>(<scope>): <summary>`
+- Entry is concise and user-impact oriented
+- Pre-Task-Completion Validation Gate passed
+
+**Validation Protocol:**
+- **Rule:** Run validation after modifications
+- **Rule:** Do not mark tasks complete if checks fail
+- **Exception:** Only skip with explicit user override
+
+**Investigation Required:**
+1. **Read existing CHANGELOG BEFORE adding** - Check format, scope patterns
+2. **Verify Unreleased section exists** - Create if missing
+3. **Never assume scope conventions** - Check existing scopes in file
+4. **Check for duplicates** - Avoid redundant entries
+5. **Validate Conventional Commits format** - Ensure `type(scope): summary`
+
+**Anti-Pattern Examples:**
+- "Adding changelog entry..." (without checking existing format)
+- "Using arbitrary scope..." (doesn't match project patterns)
+
+**Correct Pattern:**
+- "Let me check your CHANGELOG format first."
+- [reads CHANGELOG, checks scopes, reviews categories]
+- "I see you use 'snowflake' and 'python' scopes. Adding entry following this pattern..."
+
+### Post-Execution Checklist
+
+**Before Starting:**
+- [ ] Rule dependencies loaded (000-global-core.md)
+- [ ] CHANGELOG.md file exists (or ready to create)
+- [ ] Understanding of Keep a Changelog v1.1.0 standard
+- [ ] Knowledge of changes made to codebase
+
+**After Completion:**
+- [ ] **CRITICAL:** CHANGELOG.md updated with entry under `## [Unreleased]`
+- [ ] **CRITICAL:** Entry follows Conventional Commit format: `<type>(<scope>): <summary>`
+- [ ] Entry uses standard Keep a Changelog type
+- [ ] Summary is human-readable and user-impact focused
+- [ ] Format matches existing entries in file
+- [ ] No duplicate entries
+- [ ] Micro-fixes collapsed into meaningful entries
+- [ ] Version comparison links updated (if applicable)
 
 ## Anti-Patterns and Common Mistakes
 
@@ -169,36 +223,6 @@ Copying raw commit messages or technical details into changelog.
 - Resolved login failures for users with special characters in passwords
 ```
 
-## Post-Execution Checklist
-- [ ] **CRITICAL:** CHANGELOG.md updated with entry under `## [Unreleased]` for code changes
-- [ ] **CRITICAL:** Entry follows Conventional Commit format: `<type>(<scope>): <summary>`
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
-
-## Validation
-- **Success checks:** CHANGELOG.md contains entry under `## [Unreleased]` for code changes; entry follows Conventional Commit format; entry is concise and user-impact oriented; Pre-Task-Completion Validation Gate passed
-- **Negative tests:** Code changes without CHANGELOG.md updates block task completion; entries with incorrect format fail validation; task completion attempted without changelog update is prevented
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Read existing CHANGELOG BEFORE adding** - Check format, scope patterns
-> 2. **Verify Unreleased section exists** - Create if missing
-> 3. **Never assume scope conventions** - Check existing scopes in file
-> 4. **Check for duplicates** - Avoid redundant entries
-> 5. **Validate Conventional Commits format** - Ensure type(scope): summary
->
-> **Anti-Pattern:**
-> "Adding changelog entry... (without checking existing format)"
-> "Using arbitrary scope... (doesn't match project patterns)"
->
-> **Correct Pattern:**
-> "Let me check your CHANGELOG format first."
-> [reads CHANGELOG, checks scopes, reviews categories]
-> "I see you use 'snowflake' and 'python' scopes. Adding entry following this pattern..."
-
 ## Output Format Examples
 
 ```markdown
@@ -229,20 +253,8 @@ Preview:
 [Show relevant excerpt of updated documentation]
 ```
 
-## References
+## Document Structure and Format
 
-### External Documentation
-- [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/#specification) - PREFERRED commit message format specification (strongly recommended for changelog entries)
-- [Keep a Changelog](https://keepachangelog.com/) - Changelog format and best practices guide (primary standard)
-- [Semantic Versioning](https://semver.org/) - Version numbering scheme for software releases
-
-### Related Rules
-- **Global Core**: `000-global-core.md`
-- **Contributing Guidelines**: `802-project-contributing.md`
-- **Git Workflow Management**: `803-project-git-workflow.md`
-- **README Rules**: `801-project-readme.md`
-
-## 1. Required Structure & Format
 - **Requirement:** Maintain a single `CHANGELOG.md` at the project root.
 - **Requirement:** Keep a top-level `## [Unreleased]` section for new changes.
 - **Requirement:** On release, move entries from Unreleased to `## [x.y.z] - YYYY-MM-DD`.
@@ -284,7 +296,8 @@ Preview:
   - Project: `changelog`, `readme`, `contributing`, `taskfile`
   - Analytics: `data-science`, `governance`, `business`
 
-## 2. Quality and Content
+## Content Quality Guidelines
+
 - **Requirement:** Summaries are concise and user-impact oriented; avoid duplicating commit body details.
 - **Requirement:** Do not include raw stack traces, personal names, or internal-only jargon.
 - **Requirement:** Mark breaking changes with `!` in Conventional Commits format and explain them clearly.
@@ -292,7 +305,7 @@ Preview:
 - **CRITICAL:** Deprecated features must use **Deprecated** type and include removal timeline.
 - **Always:** Link to relevant PRs or issues (`[#123]`) when helpful.
 
-## 3. Workflow & Maintenance (MANDATORY)
+## Workflow and Maintenance
 
 **Reference:** Pre-Task-Completion Validation Gate in `000-global-core.md` and `AGENTS.md`
 
@@ -305,6 +318,7 @@ Preview:
 - **Exception:** Only skip if user explicitly requests override (acknowledge that changelog will be incomplete).
 
 ### What Constitutes a Change Requiring Changelog Entry
+
 - **MANDATORY:** Any modification to Python files (`.py`)
 - **MANDATORY:** Any modification to SQL files (`.sql`)
 - **MANDATORY:** Any modification to configuration files (`pyproject.toml`, `Taskfile.yml`, etc.)
@@ -315,9 +329,10 @@ Preview:
 - **MANDATORY:** Documentation-only changes (no longer optional - ALWAYS update CHANGELOG.md)
 - **Rationale:** Documentation changes are user-facing and must be tracked for complete audit trail
 
-## 4. Scope Examples for New Domains
+## Usage Examples and Patterns
 
 ### Example 1: New Features (Added)
+
 ```markdown
 ## [Unreleased]
 ### Added
@@ -328,6 +343,7 @@ Preview:
 ```
 
 ### Example 2: Bug Fixes (Fixed)
+
 ```markdown
 ## [Unreleased]
 ### Fixed
@@ -337,6 +353,7 @@ Preview:
 ```
 
 ### Example 3: Security Vulnerabilities (Security)
+
 ```markdown
 ## [Unreleased]
 ### Security
@@ -346,6 +363,7 @@ Preview:
 ```
 
 ### Example 4: Deprecations (Deprecated)
+
 ```markdown
 ## [Unreleased]
 ### Deprecated
@@ -354,6 +372,7 @@ Preview:
 ```
 
 ### Example 5: Breaking Changes (Removed)
+
 ```markdown
 ## [Unreleased]
 ### Removed
@@ -362,6 +381,7 @@ Preview:
 ```
 
 ### Example 6: With Optional Conventional Commits Format
+
 ```markdown
 ## [Unreleased]
 ### Added
@@ -372,7 +392,3 @@ Preview:
 - fix(cli): keyboard interrupt handling
 - fix(pydantic): serialization issues with nested models
 ```
-
-## 5. Documentation
-- **Always:** Reference Conventional Commits: https://www.conventionalcommits.org/en/v1.1.0/#specification
-- **Always:** Follow contributing guidelines: `802-project-contributing.md`

@@ -2,24 +2,57 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**LastUpdated:** 2025-12-23
 **Keywords:** YAML, configuration files, YAML syntax, parsing errors, indentation, anchors, aliases, Markdown, markdown linting, pymarkdownlnt, markup validation, TOML, environment files
-**TokenBudget:** ~2800
+**TokenBudget:** ~3850
 **ContextTier:** Medium
 **Depends:** None
 
-## Purpose
-Establish safe markup and configuration file practices to prevent parsing errors, ensure reliability, and maintain consistency across YAML, TOML, environment files, and Markdown documentation.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Safe markup and configuration file practices to prevent parsing errors and maintain consistency across YAML, TOML, environment files, and Markdown documentation. Covers YAML syntax safety, quoting rules, indentation standards, shell command safety, Taskfile patterns, TOML validation, Markdown linting with pymarkdownlnt, and security considerations for configuration files.
 
-Markup and configuration file validation best practices (YAML, TOML, environment files, Markdown)
+**When to Load This Rule:**
+- Writing or editing YAML configuration files
+- Creating or modifying Taskfile.yml
+- Troubleshooting YAML parsing errors
+- Validating TOML configuration (pyproject.toml, etc.)
+- Linting Markdown documentation
+- Setting up configuration file validation
+- Preventing secrets in version control
+- Encountering "mapping values not allowed" errors
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
+### Dependencies
+
+**Must Load First:**
+- None (standalone rule)
+
+**Related:**
+- **203-python-project-setup.md** - pyproject.toml configuration
+- **820-taskfile-automation.md** - Taskfile patterns
+
+### External Documentation
+
+- [YAML Specification](https://yaml.org/spec/) - Official YAML spec
+- [yamllint](https://yamllint.readthedocs.io/) - YAML linter
+- [pymarkdownlnt](https://github.com/jackdewinter/pymarkdown) - Markdown linter
+- [TOML Specification](https://toml.io/) - TOML format spec
+
+## Contract
+
+### Inputs and Prerequisites
+
+- Project configuration files (YAML, TOML, .env, Markdown)
+- uv/uvx available for running linters
+- Basic understanding of YAML/TOML syntax
+
+### Mandatory
+
 - **Quote YAML strings with colons** - `description: "API at: http://..."` prevents parsing errors
 - **Avoid Unicode bullets in YAML** - Use ASCII characters only (-, *, +)
 - **Consistent indentation** - 2 spaces for YAML, 4 for TOML
@@ -27,7 +60,33 @@ Markup and configuration file validation best practices (YAML, TOML, environment
 - **No secrets in configs** - Use .env files with .gitignore
 - **Never commit .env files** - Always add to .gitignore
 
-**Quick Checklist:**
+### Forbidden
+
+- Direct file modification without validation
+- Unicode characters in YAML values
+- Secrets in version-controlled config files
+- Inconsistent indentation
+- Unquoted strings containing colons in YAML
+
+### Execution Steps
+
+1. Run appropriate linter for file type (yamllint, pymarkdownlnt, TOML validator)
+2. Review errors and warnings
+3. Fix issues following rule guidelines
+4. Re-run validation to confirm
+5. Document any rule exceptions with inline comments
+
+### Output Format
+
+Validation produces:
+- Clean linter output with zero errors
+- Properly formatted YAML, TOML, Markdown files
+- Configuration files that parse successfully
+- No secrets exposed in version control
+
+### Validation
+
+**Pre-Task-Completion Checks:**
 - [ ] All YAML files pass yamllint
 - [ ] Strings with colons are quoted
 - [ ] No Unicode characters in YAML values
@@ -36,38 +95,36 @@ Markup and configuration file validation best practices (YAML, TOML, environment
 - [ ] Markdown linted (if using pymarkdownlnt)
 - [ ] All configs parse successfully
 
-## Contract
+**Success Criteria:**
+- yamllint returns 0 errors
+- TOML files parse without errors
+- Markdown passes pymarkdownlnt checks
+- No secrets detected in version control
+- All config files load successfully
 
-<contract>
-<inputs_prereqs>
-Project files (YAML, TOML, .env, Markdown); `uv`/`uvx` available
-</inputs_prereqs>
+**Negative Tests:**
+- Unquoted colons should trigger YAML parsing errors
+- Unicode bullets should be flagged by linters
+- Invalid TOML syntax should fail parsing
 
-<mandatory>
-`uvx pymarkdownlnt`, YAML parsers, TOML validators, IDE linters
-</mandatory>
+### Design Principles
 
-<forbidden>
-Direct file modification without validation
-</forbidden>
+- **Validation-first:** Run linters before committing config changes
+- **Consistency:** Use standard indentation and formatting
+- **Safety:** Quote strings, avoid Unicode, validate syntax
+- **Security:** Never commit secrets or sensitive data
+- **Automation:** Integrate linting into CI/CD pipelines
 
-<steps>
-1. Run appropriate linter for file type
-2. Review errors and warnings
-3. Fix issues following rule guidelines
-4. Re-run validation to confirm
-5. Document any rule exceptions
-</steps>
+### Post-Execution Checklist
 
-<output_format>
-Clean validation output with zero errors
-</output_format>
-
-<validation>
-Run linters again to verify all issues resolved
-</validation>
-
-</contract>
+- [ ] All YAML files pass yamllint
+- [ ] Strings with colons are quoted
+- [ ] No Unicode characters in YAML values
+- [ ] TOML arrays use consistent formatting
+- [ ] .env files in .gitignore
+- [ ] Markdown linted (if using pymarkdownlnt)
+- [ ] All configs parse successfully
+- [ ] No secrets in version-controlled files
 
 ## Anti-Patterns and Common Mistakes
 
@@ -203,24 +260,7 @@ uvx ruff format --check .
 uv run pytest tests/
 ```
 
-## References
-
-### External Documentation
-- [YAML Specification](https://yaml.org/spec/) - Official YAML specification and syntax reference
-- [TOML Specification](https://toml.io/) - TOML format specification for configuration files
-- [Python YAML Library](https://pyyaml.org/wiki/PyYAMLDocumentation) - PyYAML documentation for Python YAML processing
-- [pymarkdownlnt Documentation](https://github.com/jackdewinter/pymarkdown) - Python-native Markdown linter documentation
-- [Markdown Guide](https://www.markdownguide.org/) - Comprehensive Markdown syntax reference
-- [CommonMark Specification](https://spec.commonmark.org/) - Official Markdown specification
-
-### Related Rules
-- **Python Core**: `200-python-core.md`
-- **Python Linting**: `201-python-lint-format.md`
-- **Project Setup**: `203-python-project-setup.md`
-- **Taskfile Automation**: `820-taskfile-automation.md`
-- **README Standards**: `801-project-readme.md`
-
-## 1. YAML Syntax Safety
+## YAML Syntax Safety
 
 ### Critical Character Restrictions
 - **Critical:** Avoid Unicode bullet characters (bullets, checkmarks, stars) in YAML strings as they cause parsing errors.
@@ -248,7 +288,7 @@ cmds:
 - **Always:** Quote strings with special shell characters: `"command --flag=\"value\""`
 - **Critical:** Use double quotes for strings containing variables: `"{{.VARIABLE}}"`
 
-## 2. Shell Command Safety in YAML
+## Shell Command Safety in YAML
 
 ### Argument Quoting
 - **Critical:** Quote shell arguments with brackets: `".[dev]"` not `.[dev]`
@@ -260,7 +300,7 @@ cmds:
 - **Always:** Test complex shell commands outside YAML first.
 - **Critical:** Escape quotes properly in nested contexts: `"echo \"Hello World\""`
 
-## 3. Taskfile-Specific Guidelines
+## Taskfile-Specific Guidelines
 
 ### Silent Mode Usage
 - **Always:** Add `silent: true` to tasks with multiple echo statements.
@@ -277,7 +317,7 @@ cmds:
 - **Always:** Use `preconditions:` for environment checks.
 - **Critical:** Test dependency order to avoid circular dependencies.
 
-## 4. Configuration File Patterns
+## Configuration File Patterns
 
 ### Environment Files (.env)
 - **Always:** Use KEY=VALUE format without spaces around `=`.
@@ -291,7 +331,7 @@ cmds:
 - **Always:** Use arrays for multiple values: `select = ["E", "W", "F"]`
 - **Reference:** See `201-python-lint-format.md` for complete Ruff configuration patterns.
 
-## 5. Common Parsing Errors and Solutions
+## Common Parsing Errors and Solutions
 
 ### YAML Parsing Issues
 1. **"mapping values are not allowed"**: Usually caused by unquoted colons in strings.
@@ -310,7 +350,7 @@ cmds:
 2. **"command not found"**: Variable expansion issues.
    - Fix: Use proper `{{.VARIABLE}}` syntax and quote expansions.
 
-## 6. Validation and Testing
+## Validation and Testing
 
 ### YAML Validation
 - **Always:** Test YAML syntax after changes: `task --list` for Taskfiles.
@@ -322,7 +362,7 @@ cmds:
 - **Always:** Validate environment variable parsing.
 - **Critical:** Test configuration with different environments (dev, test, prod).
 
-## 7. Documentation and Comments
+## Documentation and Comments
 
 ### YAML Comments
 - **Always:** Use `#` for comments in YAML files.
@@ -334,7 +374,7 @@ cmds:
 - **Always:** Provide example configurations.
 - **Critical:** Document any non-obvious configuration interactions.
 
-## 8. Security Considerations
+## Security Considerations
 
 ### Sensitive Data
 - **Never:** Include secrets or passwords in configuration files.
@@ -347,7 +387,7 @@ cmds:
 - **Always:** Provide clear error messages for missing required configuration.
 - **Consider:** Use configuration schemas for validation (e.g., Pydantic Settings).
 
-## 9. Markdown Linting
+## Markdown Linting
 
 ### Purpose
 Markdown linting ensures consistent syntax, formatting, and structure across all project documentation files.

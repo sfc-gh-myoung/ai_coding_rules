@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate rule file templates compliant with v3.0 schema.
+"""Generate rule file templates compliant with v3.2 schema.
 
 This script creates new rule files with all required sections and placeholders,
 making it easier for users to create rules that pass schema validation.
@@ -13,122 +13,88 @@ Usage:
 import argparse
 import re
 import sys
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import ClassVar
 
 
 class TemplateGenerator:
-    """Generate v3.0 compliant rule file templates."""
+    """Generate v3.2 compliant rule file templates."""
 
     TEMPLATE = """# {title}
 
 ## Metadata
 
-**SchemaVersion:** v3.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v1.0.0
+**LastUpdated:** {last_updated}
 **Keywords:** {keywords}
 **TokenBudget:** ~1200
 **ContextTier:** {context_tier}
-**Depends:** rules/000-global-core.md
+**Depends:** 000-global-core.md
 
-## Purpose
+## Scope
 
+**What This Rule Covers:**
 [1-2 sentence description of what this rule accomplishes and why it matters]
 
-## Rule Scope
+**When to Load This Rule:**
+- [Context 1 when this rule should be loaded]
+- [Context 2 when this rule should be loaded]
+- [Context 3 when this rule should be loaded]
 
-[Single line defining what contexts this rule applies to]
+## References
 
-## Quick Start TL;DR
+### Dependencies
 
-**MANDATORY:**
-**Essential Patterns:**
-- **[Pattern 1]:** [Description of first essential pattern]
-- **[Pattern 2]:** [Description of second essential pattern]
-- **[Pattern 3]:** [Description of third essential pattern]
+**Must Load First:**
+- **000-global-core.md** - Foundation rule with core patterns
 
-**Pre-Execution Checklist:**
-- [ ] [First prerequisite check]
-- [ ] [Second prerequisite check]
-- [ ] [Third prerequisite check]
-- [ ] [Fourth prerequisite check]
-- [ ] [Fifth prerequisite check]
+**Recommended:**
+- [Optional related rules that enhance this rule]
+
+**Related:**
+- [Other rules that may be relevant]
+
+### External Documentation
+
+**Official Documentation:**
+- [Link description](https://example.com) - Brief explanation of resource
+
+**Best Practices Guides:**
+- [Link description](https://example.com) - Brief explanation of resource
 
 ## Contract
 
-<inputs_prereqs>
-[What the agent needs to have/know before starting this task]
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-[Required tools, libraries, permissions, access]
-</mandatory>
+- [What the agent needs to have/know before starting this task]
+- [Required environment, tools, or access]
+- [Expected initial state]
 
-<forbidden>
-[Prohibited actions, tools, or approaches]
-</forbidden>
+### Mandatory
 
-<steps>
+- [Required tools, libraries, permissions, access]
+- [Must-follow patterns or conventions]
+- [Critical requirements that cannot be skipped]
+
+### Forbidden
+
+- [Prohibited actions, tools, or approaches]
+- [Anti-patterns to avoid]
+- [Security or safety restrictions]
+
+### Execution Steps
+
 1. [First required step]
 2. [Second required step]
 3. [Third required step]
 4. [Fourth required step]
 5. [Fifth required step]
-</steps>
 
-<output_format>
+### Output Format
+
 [Description of expected output format (file type, structure, content)]
-</output_format>
-
-<validation>
-[How to verify success - specific checks agent should run]
-</validation>
-
-## Anti-Patterns and Common Mistakes
-
-**Anti-Pattern 1: [Name of anti-pattern]**
-```[language]
-[Code example showing the wrong way]
-```
-**Problem:** [Explanation of why this is problematic]
-
-**Correct Pattern:**
-```[language]
-[Code example showing the right way]
-```
-**Benefits:** [Explanation of why the correct pattern is better]
-
-**Anti-Pattern 2: [Name of anti-pattern]**
-```[language]
-[Code example showing the wrong way]
-```
-**Problem:** [Explanation of why this is problematic]
-
-**Correct Pattern:**
-```[language]
-[Code example showing the right way]
-```
-**Benefits:** [Explanation of why the correct pattern is better]
-
-## Post-Execution Checklist
-
-- [ ] [First verification item]
-- [ ] [Second verification item]
-- [ ] [Third verification item]
-- [ ] [Fourth verification item]
-- [ ] [Fifth verification item]
-
-## Validation
-
-**Success Checks:**
-- [How to verify rule compliance]
-- [Specific commands or tools to run]
-- [Expected outcomes]
-
-**Negative Tests:**
-- [What should fail and how to detect it]
-- [Edge cases to verify]
-
-## Output Format Examples
 
 ```bash
 # Example command
@@ -143,13 +109,100 @@ class TemplateGenerator:
 [code example here]
 ```
 
-## References
+### Validation
 
-### Related Rules
-- `rules/000-global-core.md` - Global standards and conventions
+**Pre-Task-Completion Validation Gate (CRITICAL):**
 
-### External Documentation
-- [Link description](https://example.com) - Brief explanation of resource
+Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
+
+**CRITICAL:** Before marking any task as complete, ALL of the following checks MUST pass:
+
+**Code Quality:**
+- **CRITICAL:** [Validation command 1] - Must pass with zero errors
+- **CRITICAL:** [Validation command 2] - Must pass with zero errors
+
+**Success Criteria:**
+- [How to verify rule compliance]
+- [Specific commands or tools to run]
+- [Expected outcomes]
+
+**Investigation Required:**
+1. [What to check before making recommendations]
+2. [How to verify project structure]
+3. [What patterns to look for]
+
+### Design Principles
+
+- **[Principle 1]:** [Description of design principle]
+- **[Principle 2]:** [Description of design principle]
+- **[Principle 3]:** [Description of design principle]
+
+### Post-Execution Checklist
+
+**Before Starting:**
+- [ ] Rule dependencies loaded (000-global-core.md)
+- [ ] [First prerequisite check]
+- [ ] [Second prerequisite check]
+
+**After Completion:**
+- [ ] **CRITICAL:** [First verification item]
+- [ ] **CRITICAL:** [Second verification item]
+- [ ] [Third verification item]
+- [ ] [Fourth verification item]
+- [ ] [Fifth verification item]
+
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: [Name of anti-pattern]
+
+```[language]
+# Bad: [Code example showing the wrong way]
+[code here]
+```
+
+**Problem:** [Explanation of why this is problematic]
+
+**Correct Pattern:**
+```[language]
+# Good: [Code example showing the right way]
+[code here]
+```
+
+**Benefits:** [Explanation of why the correct pattern is better]
+
+### Anti-Pattern 2: [Name of anti-pattern]
+
+```[language]
+# Bad: [Code example showing the wrong way]
+[code here]
+```
+
+**Problem:** [Explanation of why this is problematic]
+
+**Correct Pattern:**
+```[language]
+# Good: [Code example showing the right way]
+[code here]
+```
+
+**Benefits:** [Explanation of why the correct pattern is better]
+
+### Anti-Pattern 3: [Name of anti-pattern]
+
+```[language]
+# Bad: [Code example showing the wrong way]
+[code here]
+```
+
+**Problem:** [Explanation of why this is problematic]
+
+**Correct Pattern:**
+```[language]
+# Good: [Code example showing the right way]
+[code here]
+```
+
+**Benefits:** [Explanation of why the correct pattern is better]
 """
 
     # Numbering ranges and their default keywords
@@ -213,7 +266,7 @@ class TemplateGenerator:
             slug: Rule slug (e.g., "snowflake-sql")
 
         Returns:
-            Comma-separated keyword string (10-15 keywords)
+            Comma-separated keyword string (5-20 keywords per v3.2 schema)
         """
         # Find matching range
         range_keywords = ""
@@ -235,8 +288,8 @@ class TemplateGenerator:
         keyword_list = [kw.strip() for kw in all_keywords.split(",")]
         keyword_list = list(dict.fromkeys(keyword_list))  # Remove duplicates, preserve order
 
-        # Ensure we have 10-15 keywords
-        if len(keyword_list) < 10:
+        # Ensure we have 5-20 keywords (v3.2 schema requirement)
+        if len(keyword_list) < 5:
             # Add filler keywords
             fillers = [
                 "implementation",
@@ -245,9 +298,9 @@ class TemplateGenerator:
                 "guidelines",
                 "optimization",
             ]
-            keyword_list.extend(fillers[: 10 - len(keyword_list)])
+            keyword_list.extend(fillers[: 5 - len(keyword_list)])
 
-        keyword_list = keyword_list[:15]  # Cap at 15
+        keyword_list = keyword_list[:20]  # Cap at 20
 
         return ", ".join(keyword_list)
 
@@ -279,15 +332,19 @@ class TemplateGenerator:
         if keywords is None:
             keywords = cls.get_default_keywords(number, slug)
         else:
-            # Validate keyword count
+            # Validate keyword count (v3.2: 5-20 keywords)
             keyword_list = [kw.strip() for kw in keywords.split(",")]
-            if len(keyword_list) < 10 or len(keyword_list) > 15:
-                raise ValueError(f"Keywords must contain 10-15 terms, got {len(keyword_list)}")
+            if len(keyword_list) < 5 or len(keyword_list) > 20:
+                raise ValueError(f"Keywords must contain 5-20 terms, got {len(keyword_list)}")
+
+        # Get current date in UTC for LastUpdated field
+        last_updated = datetime.now(UTC).strftime("%Y-%m-%d")
 
         return cls.TEMPLATE.format(
             title=title,
             keywords=keywords,
             context_tier=context_tier,
+            last_updated=last_updated,
         )
 
     @classmethod
@@ -371,7 +428,7 @@ class TemplateGenerator:
 def main():
     """CLI entry point."""
     parser = argparse.ArgumentParser(
-        description="Generate v3.0 compliant rule file templates",
+        description="Generate v3.2 compliant rule file templates",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -381,8 +438,8 @@ Examples:
   # Create a Python rule with custom tier
   python scripts/template_generator.py 200-python-example --context-tier High
 
-  # Create a rule with custom keywords
-  python scripts/template_generator.py 300-react-hooks --keywords "react, hooks, state, effects, custom hooks, lifecycle, functional components, useState, useEffect, optimization, performance, patterns, best practices, debugging, testing"
+  # Create a rule with custom keywords (5-20 terms per v3.2 schema)
+  python scripts/template_generator.py 300-react-hooks --keywords "react, hooks, state, effects, custom hooks, lifecycle, functional components, useState, useEffect, optimization"
 
   # Overwrite existing file
   python scripts/template_generator.py 100-example --force
@@ -407,7 +464,7 @@ Examples:
     )
     parser.add_argument(
         "--keywords",
-        help="Custom comma-separated keywords (10-15 terms)",
+        help="Custom comma-separated keywords (5-20 terms per v3.2 schema)",
     )
     parser.add_argument(
         "--force",

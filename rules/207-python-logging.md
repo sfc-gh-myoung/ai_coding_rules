@@ -2,25 +2,56 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**LastUpdated:** 2025-12-23
 **Keywords:** logging, Python logging, logger, handlers, formatters, log levels, WebLogHandler, Rich console, SSE streaming, structured logging, operation ID, thread safety, log hierarchy, log propagation
-**TokenBudget:** ~2000
+**TokenBudget:** ~2900
 **ContextTier:** High
 **Depends:** 200-python-core.md
 
-## Purpose
+## Scope
 
-Establish best practices for Python logging in applications that require both CLI output (Rich console) and web UI log streaming (SSE/WebSocket), ensuring consistent logging patterns, proper handler configuration, and avoiding common pitfalls like duplicate logs.
+**What This Rule Covers:**
+Best practices for Python logging in applications with dual output requirements (CLI and web UI), covering hierarchical logger names, handler configuration, Rich console integration, SSE/WebSocket streaming, structured logging, operation IDs, thread safety, and avoiding duplicate logs.
 
-## Rule Scope
+**When to Load This Rule:**
+- Setting up logging for Python applications
+- Integrating Rich console with Python logging
+- Implementing web UI log streaming (SSE/WebSocket)
+- Troubleshooting duplicate log entries
+- Adding operation IDs for log correlation
+- Configuring handlers and formatters
+- Debugging log propagation issues
 
-Python applications using the `logging` module, especially those with dual output requirements (CLI and web UI)
+## References
 
-## Quick Start TL;DR
+### Dependencies
 
-**MANDATORY:**
-**Essential Patterns:**
+**Must Load First:**
+- **200-python-core.md** - Python foundation patterns
+
+**Related:**
+- **201-python-lint-format.md** - Code quality standards
+- **210-python-fastapi-core.md** - FastAPI SSE streaming patterns
+
+### External Documentation
+
+- [Python Logging HOWTO](https://docs.python.org/3/howto/logging.html) - Official logging guide
+- [Logging Cookbook](https://docs.python.org/3/howto/logging-cookbook.html) - Advanced logging patterns
+- [Rich Logging Handler](https://rich.readthedocs.io/en/stable/logging.html) - Rich console integration
+
+## Contract
+
+### Inputs and Prerequisites
+
+- Python 3.11+ codebase
+- logging module (standard library)
+- Optional: Rich console for CLI output
+- Optional: Web framework with SSE support for streaming
+
+### Mandatory
+
 - **Use Python `logging` module** - never `print()` for operational messages
 - **Bridge Rich console to logger** - emit to both console AND logger for web UI capture
 - **Use hierarchical logger names** - `app.module.submodule` enables selective handler attachment
@@ -28,7 +59,33 @@ Python applications using the `logging` module, especially those with dual outpu
 - **Prefix SUCCESS messages** - use `"SUCCESS: {message}"` pattern since Python has no SUCCESS level
 - **Include operation IDs** - tag logs with operation context for filtering in web UI
 
-**Pre-Execution Checklist:**
+### Forbidden
+
+- Using `print()` for operational messages
+- Global handler attachment causing duplicate logs
+- Bare `except` swallowing log errors
+- Modifying root logger configuration in libraries
+
+### Execution Steps
+
+1. Define logger with hierarchical name at module level
+2. Create console output functions that also emit to logger
+3. Implement WebLogHandler for SSE streaming (if web UI needed)
+4. Attach WebLogHandler only during operation execution
+5. Remove handler after operation completes to prevent duplicates
+6. Use operation IDs for log filtering and correlation
+
+### Output Format
+
+Logging implementations produce:
+- Logger configuration with hierarchical names
+- Handler implementations (console, web, file)
+- Formatter definitions for structured output
+- Usage examples for common patterns
+
+### Validation
+
+**Pre-Task-Completion Checks:**
 - [ ] Logger uses hierarchical naming (`app.module`)
 - [ ] No `print()` statements for operational messages
 - [ ] Console functions bridge to Python logger
@@ -36,50 +93,36 @@ Python applications using the `logging` module, especially those with dual outpu
 - [ ] SUCCESS messages use consistent prefix pattern
 - [ ] Thread safety considered for custom handlers
 
-## Contract
-
-<contract>
-<inputs_prereqs>
-Python 3.11+; logging module; Rich console (optional); web framework with SSE support (optional)
-</inputs_prereqs>
-
-<mandatory>
-Use `logging.getLogger()` with hierarchical names; bridge console output to logger; attach handlers at appropriate scope
-</mandatory>
-
-<forbidden>
-Using `print()` for operational messages; global handler attachment causing duplicate logs; bare `except` swallowing log errors
-</forbidden>
-
-<steps>
-1. Define logger with hierarchical name at module level
-2. Create console output functions that also emit to logger
-3. Implement WebLogHandler for SSE streaming (if web UI needed)
-4. Attach WebLogHandler only during operation execution
-5. Remove handler after operation completes to prevent duplicates
-6. Use operation IDs for log filtering and correlation
-</steps>
-
-<output_format>
-Python code with logging configuration, handler implementations, and usage examples
-</output_format>
-
-<validation>
+**Success Criteria:**
 - Logs appear in both CLI and web UI
 - No duplicate log entries
 - SUCCESS messages render with correct styling
+- Operation IDs enable log filtering
+- Thread-safe handler operations
+
+**Negative Tests:**
+- Handlers should not leak between operations
+- Duplicate handlers should be detected and prevented
+- Log levels should filter appropriately
+
+### Design Principles
+
+- **Hierarchical naming:** Use dot-separated logger names for selective configuration
+- **Handler isolation:** Attach handlers at operation scope, not globally
+- **Bridge patterns:** Connect Rich console to Python logging for dual output
+- **Structured logging:** Include operation IDs and context for filtering
+- **Thread safety:** Ensure custom handlers are thread-safe
+
+### Post-Execution Checklist
+
+- [ ] Logger uses hierarchical naming (`app.module`)
+- [ ] No `print()` statements for operational messages
+- [ ] Console functions bridge to Python logger
+- [ ] WebLogHandler attached only during operation execution
+- [ ] SUCCESS messages use consistent prefix pattern
+- [ ] Thread safety considered for custom handlers
+- [ ] Operation IDs included for log correlation
 - Operation filtering works correctly
-</validation>
-
-<design_principles>
-- Use Python's logging module as the single source of truth for operational messages
-- Bridge Rich console output to logging for dual-output scenarios
-- Attach handlers at the narrowest scope needed (operation-level, not global)
-- Use hierarchical logger names to enable selective capture
-- Include structured context (operation IDs) for filtering and correlation
-</design_principles>
-
-</contract>
 
 ## Key Principles
 
@@ -378,17 +421,3 @@ def execute_operation(operation_id: str, operation_type: str):
     finally:
         op_logger.removeHandler(handler)
 ```
-
-## References
-
-### External Documentation
-- [Python Logging HOWTO](https://docs.python.org/3/howto/logging.html) - Official logging tutorial
-- [Python Logging Cookbook](https://docs.python.org/3/howto/logging-cookbook.html) - Advanced patterns
-- [Rich Console Documentation](https://rich.readthedocs.io/en/stable/console.html) - Rich console output
-
-### Related Rules
-
-- **Python Core**: `200-python-core.md` - Foundation for Python development
-- **FastAPI Monitoring**: `210d-python-fastapi-monitoring.md` - Health checks and logging patterns
-- **Snowflake Observability**: `111a-snowflake-observability-logging.md` - Snowflake logging patterns
-- **SSE Patterns**: `221g-python-htmx-sse.md` - Server-Sent Events with log streaming

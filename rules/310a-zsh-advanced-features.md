@@ -2,69 +2,127 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** Zsh, completion system, modules, hooks, advanced features, performance optimization, compinit, zstyle, autoload, scripting
-**TokenBudget:** ~3050
+**TokenBudget:** ~5000
 **ContextTier:** Low
 **Depends:** 310-zsh-scripting-core.md
+**LastUpdated:** 2025-12-23
 
-## Purpose
-Provide comprehensive guidance on zsh's advanced features including the completion system, modules, hooks, and performance optimization techniques to build sophisticated and efficient zsh environments.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive guidance on zsh's advanced features including the completion system, modules, hooks, and performance optimization techniques to build sophisticated and efficient zsh environments.
 
-Advanced zsh features, performance optimization, complex scripting patterns
+**When to Load This Rule:**
+- Implementing zsh completion system
+- Optimizing zsh performance and startup time
+- Using zsh hooks (precmd, preexec)
+- Loading and configuring zsh modules
+- Writing custom completion functions
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Initialize completion system** - `autoload -Uz compinit && compinit`
-- **Use modules for performance** - Load only needed zsh modules
-- **Implement hooks** - precmd, preexec for automation
-- **Cache completions** - Improve startup time with caching
-- **Custom completions** - Write _command functions for tools
-- **Profile startup time** - Use `zprof` to identify slow code
-- **Never load unnecessary modules** - Impacts performance
+### Dependencies
 
-**Quick Checklist:**
-- [ ] Completion system initialized
-- [ ] Modules loaded selectively
-- [ ] Hooks implemented correctly
-- [ ] Completions cached
-- [ ] Startup time profiled
-- [ ] Custom completions working
-- [ ] Performance optimized
+**Must Load First:**
+- **310-zsh-scripting-core.md** - Foundation zsh scripting patterns
+
+**Related:**
+- **310b-zsh-compatibility.md** - Cross-shell compatibility strategies
+
+### External Documentation
+
+- [Zsh Completion System](http://zsh.sourceforge.net/Doc/Release/Completion-System.html) - Official completion documentation
+- [Zsh Modules](http://zsh.sourceforge.net/Doc/Release/Zsh-Modules.html) - Available modules and their functions
+- [Zsh Line Editor (ZLE)](http://zsh.sourceforge.net/Doc/Release/Zsh-Line-Editor.html) - Advanced line editing features
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-[Context, files, dependencies needed]
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-[Tools permitted for this domain]
-</mandatory>
+- Zsh environment requiring advanced features
+- Understanding of basic zsh scripting (from 310-zsh-scripting-core.md)
+- Access to zsh version 5.0+ with module support
+- Performance profiling goals or completion requirements
 
-<forbidden>
-[Tools not allowed for this domain]
-</forbidden>
+### Mandatory
 
-<steps>
-[Ordered steps the agent must follow]
-</steps>
+- Initialize completion system with `autoload -Uz compinit && compinit`
+- Load modules selectively (only what's needed)
+- Implement hooks correctly (precmd, preexec)
+- Cache completions for performance
+- Profile startup time with zprof
+- Use async operations for expensive prompt commands
 
-<output_format>
-[Expected output format]
-</output_format>
+### Forbidden
 
-<validation>
-[Checks to confirm success]
-</validation>
+- Loading unnecessary modules (impacts performance)
+- Running expensive operations synchronously in prompts
+- Complex logic in completion functions without caching
+- Blocking operations in hooks
+- Ignoring startup time performance
 
-</contract>
+### Execution Steps
+
+1. Profile current zsh startup time with `zprof` to establish baseline
+2. Initialize completion system with proper caching configuration
+3. Load only required zsh modules (check with `zmodload` list)
+4. Implement hooks (precmd, preexec) with async operations for expensive tasks
+5. Write or configure custom completions with caching for external data
+6. Optimize prompt rendering with cached expensive operations
+7. Re-profile startup time and verify improvements
+8. Test completions and hooks work correctly
+
+### Output Format
+
+Optimized zsh configuration with:
+- Completion system initialized with caching
+- Selective module loading
+- Async hooks for expensive operations
+- Custom completions with TTL caching
+- Profiling results showing improved startup time
+- Working prompt and completion system
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Completion system initialized
+- Modules loaded selectively
+- Hooks implemented without blocking
+- Completions cached appropriately
+- Startup time profiled
+- Async operations working
+
+**Success Criteria:**
+- `zprof` shows improved startup time (target <100ms)
+- Completions work correctly and respond quickly
+- Hooks execute without noticeable lag
+- Prompt updates without blocking
+- Custom completions functional
+- No unnecessary modules loaded
+
+### Design Principles
+
+- **Performance First:** Optimize for fast startup and responsive shell
+- **Async by Default:** Never block on expensive operations
+- **Cache Aggressively:** Cache completions and expensive computations
+- **Load Lazily:** Load modules and completions only when needed
+- **Profile Continuously:** Measure performance impact of changes
+
+### Post-Execution Checklist
+
+- [ ] Completion system initialized
+- [ ] Modules loaded selectively
+- [ ] Hooks implemented correctly
+- [ ] Completions cached with TTL
+- [ ] Startup time profiled and optimized
+- [ ] Custom completions working
+- [ ] Prompt rendering async
+- [ ] No blocking operations in hooks
+- [ ] Performance targets met
+- [ ] All features tested
 
 ## Anti-Patterns and Common Mistakes
 
@@ -126,33 +184,6 @@ _my_cli_complete() {
 }
 ```
 
-## Post-Execution Checklist
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
-
-## Validation
-- **Success checks:** [How to verify correct implementation]
-- **Negative tests:** [What should fail and how to detect failures]
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Check existing completions BEFORE adding new ones** - Review current setup
-> 2. **Profile performance** - Use zprof to identify bottlenecks
-> 3. **Never assume module availability** - Check if modules are installed
-> 4. **Test completions** - Verify custom completions work correctly
-> 5. **Measure startup time** - Compare before and after changes
->
-> **Anti-Pattern:**
-> "Adding completion... (without checking existing completion setup)"
-> "Loading module... (without profiling performance impact)"
->
-> **Correct Pattern:**
-> "Let me check your completion setup first."
-> [reads .zshrc, tests completions, profiles startup]
-> "I see compinit takes 300ms. Adding caching to improve performance..."
 
 ## Output Format Examples
 
@@ -209,18 +240,7 @@ main "$@"
 shellcheck script.sh
 ```
 
-## References
-
-### External Documentation
-- [Zsh Completion System](http://zsh.sourceforge.net/Doc/Release/Completion-System.html) - Advanced tab completion configuration and customization
-- [Zsh Parameter Expansion](http://zsh.sourceforge.net/Doc/Release/Expansion.html) - String manipulation and variable expansion techniques
-- [Zsh Modules](http://zsh.sourceforge.net/Doc/Release/Zsh-Modules.html) - Loadable modules for extended functionality
-
-### Related Rules
-- **Zsh Core**: `310-zsh-scripting-core.md`
-- **Zsh Compatibility**: `310b-zsh-compatibility.md`
-
-## 1. Zsh Completion System
+## Zsh Completion System
 
 ### Completion System Setup
 - **Rule:** Initialize and configure the completion system:
@@ -273,7 +293,7 @@ zstyle ':completion:*:*:kill:*' menu yes select
 zstyle ':completion:*:kill:*' force-list always
 ```
 
-## 2. Zsh Hook System
+## Zsh Hook System
 
 ### Hook Functions
 - **Rule:** Use zsh hooks for automated actions:
@@ -328,7 +348,7 @@ periodic() {
 }
 ```
 
-## 3. Advanced Parameter Expansion
+## Advanced Parameter Expansion
 
 ### Complex Parameter Transformations
 - **Rule:** Master zsh's parameter expansion flags:
@@ -378,7 +398,7 @@ txt_files=(${files:#*.bak})      # Exclude .bak files
 conf_files=(${(M)files:#*.conf}) # Match only .conf files
 ```
 
-## 4. Zsh Modules and Built-in Extensions
+## Zsh Modules and Built-in Extensions
 
 ### Mathematical Functions
 - **Rule:** Use zsh math capabilities:
@@ -407,7 +427,7 @@ syswrite -o $fd "Hello"
 sysclose $fd
 ```
 
-## 5. Advanced Globbing and File Operations
+## Advanced Globbing and File Operations
 
 ### Recursive and Conditional Globbing
 - **Rule:** Master zsh's globbing qualifiers:
@@ -460,7 +480,7 @@ configs=(*.{conf,cfg,ini})     # Multiple extensions
 backups=(**/*.(bak|backup|~))  # Multiple backup patterns recursively
 ```
 
-## 6. Performance Optimization Techniques
+## Performance Optimization Techniques
 
 ### Efficient Data Processing
 - **Rule:** Optimize for large data sets:
@@ -534,7 +554,7 @@ cached_command() {
 }
 ```
 
-## 7. Advanced Prompt Engineering
+## Advanced Prompt Engineering
 
 ### Dynamic Prompt Components
 - **Rule:** Create sophisticated prompts:
@@ -600,7 +620,7 @@ update_prompt() {
 add-zsh-hook precmd update_prompt
 ```
 
-## 8. Advanced Scripting Patterns
+## Advanced Scripting Patterns
 
 ### Advanced Patterns
 - **Rule:** Implement complex logic patterns:
@@ -623,7 +643,7 @@ load_plugin() {
 }
 ```
 
-## 9. Testing and Debugging Advanced Features
+## Testing and Debugging Advanced Features
 
 ### Advanced Debugging Techniques
 - **Rule:** Use zsh debugging capabilities:

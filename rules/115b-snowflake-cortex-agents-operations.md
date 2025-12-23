@@ -2,84 +2,136 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** observability, evaluation, cost management, error troubleshooting, agent security, test agent, agent permissions, agent monitoring, agent evaluation, agent costs, debug agent, agent logs, agent trace, agent security policies
-**TokenBudget:** ~3650
+**TokenBudget:** ~4900
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 115-snowflake-cortex-agents-core.md, 111-snowflake-observability-core.md
+**LastUpdated:** 2025-12-23
 
-## Purpose
-Provide comprehensive operational patterns for Cortex Agents including testing strategies, RBAC configuration, observability, cost management, and error troubleshooting.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive operational patterns for Cortex Agents including testing strategies, RBAC configuration, observability, cost management, and error troubleshooting.
 
-Testing, RBAC, allowlists, observability, evaluation, cost optimization, error resolution
+**When to Load This Rule:**
+- Testing Cortex Agents (component and integration testing)
+- Configuring RBAC and allowlists
+- Setting up observability and evaluation frameworks
+- Managing costs and monitoring latency
+- Troubleshooting agent errors
+- Implementing security policies for agents
 
-## Quick Start TL;DR
+> **Investigation Required**
+> When applying this rule:
+> 1. **Read existing agent configurations BEFORE making changes** - Check current grounding sources, tools, instructions
+> 2. **Verify available Cortex features** - Check if Cortex Analyst, Search, semantic views are available
+> 3. **Never assume agent architecture** - Read existing agents to understand patterns
+> 4. **Check RBAC and permissions** - Verify what roles and objects are accessible
+> 5. **Test after changes** - Run component and integration tests to verify behavior
+>
+> **Anti-Pattern:**
+> "Creating a Cortex Agent with these tools... (without checking available features)"
+> "Adding semantic view grounding... (without verifying semantic views exist)"
+>
+> **Correct Pattern:**
+> "Let me check your Cortex setup first."
+> [reads existing agents, checks Cortex Search indices, verifies semantic views]
+> "I see you have semantic views for sales data and Cortex Search for docs. Creating agent with these grounding sources..."
 
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
+## References
 
-Position at top provides practical efficiency benefits for both LLMs and human developers.
+### Dependencies
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Test components independently** - Tools before agents
-- **Enforce RBAC and allowlists** - Least-privilege access
-- **Add evaluation framework** - Gold questions, assertions
-- **Monitor costs and latency** - Track token usage
-- **Trace agent execution** - Use AI Observability
+**Must Load First:**
+- **100-snowflake-core.md** - Snowflake foundation patterns
+- **115-snowflake-cortex-agents-core.md** - Core agent creation and tool configuration
+- **111-snowflake-observability-core.md** - Observability patterns
 
-**Quick Checklist:**
-- [ ] Component tests pass (tools work independently)
-- [ ] Integration tests pass (agent orchestration works)
-- [ ] RBAC configured with least privilege
-- [ ] Allowlists enforced (models, tools, data)
-- [ ] Evaluation framework in place
-- [ ] Observability enabled (tracing, metrics)
-- [ ] Cost monitoring active
+**Related:**
+- **106c-snowflake-semantic-views-integration.md** - Semantic view design and Analyst tool configuration
+- **116-snowflake-cortex-search.md** - Search service setup and tool integration
+- **106-snowflake-semantic-views-core.md** - Semantic views foundation
+- **105-snowflake-cost-governance.md** - Cost monitoring and governance
+- **119-snowflake-warehouse-management.md** - Warehouse sizing
+
+### External Documentation
+
+- [Cortex Agents](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents) - Agent concepts, tools, and setup
+- [AI Observability](https://docs.snowflake.com/en/user-guide/snowflake-cortex/ai-observability) - Tracing, evaluations, comparisons
+- [Cortex Analyst](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst) - Natural language to SQL
+- [Cortex Search](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-search) - Semantic search service
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
+### Inputs and Prerequisites
+
 Agent created and configured, tools defined, role strategy established
-</inputs_prereqs>
 
-<mandatory>
+### Mandatory
+
 Testing frameworks, RBAC commands, AI Observability, evaluation tools
-</mandatory>
 
-<forbidden>
+### Forbidden
+
 Unbounded tool execution, privilege escalation
-</forbidden>
 
-<steps>
-1) Component testing 2) Integration testing 3) RBAC enforcement 4) Add observability 5) Monitor costs
-</steps>
+### Execution Steps
 
-<output_format>
+1. Component testing
+2. Integration testing
+3. RBAC enforcement
+4. Add observability
+5. Monitor costs
+
+### Output Format
+
 Test patterns, RBAC configs, observability queries, troubleshooting steps
-</output_format>
 
-<validation>
-Tests pass; RBAC enforced; traces captured; costs within budget
-</validation>
+### Validation
 
-<design_principles>
+**Pre-Task-Completion Checks:**
+- Component tests defined
+- Integration tests planned
+- RBAC strategy documented
+- Observability setup ready
+- Cost monitoring configured
+
+**Success Criteria:**
+- Tests pass (component and integration)
+- RBAC enforced (least privilege)
+- Traces captured (AI Observability)
+- Costs within budget
+- Error handling graceful
+
+**Negative Tests:**
+- Unauthorized access blocked
+- Invalid inputs rejected
+- Out-of-scope queries handled
+
+### Design Principles
+
 - Test tools independently before integration
 - Enforce least-privilege RBAC and allowlists
 - Add evaluation (gold questions, assertions) and tracing
 - Monitor costs, latency, and quality continuously
 - Use AI Observability for debugging and optimization
-</design_principles>
 
-</contract>
+### Post-Execution Checklist
 
-## Anti-Patterns and Common Mistakes
+- [ ] Agent archetype chosen based on use case and tool requirements
+- [ ] Agent objectives defined; smallest sufficient model chosen
+- [ ] Grounding uses governed sources (semantic views or indices)
+- [ ] Tools have clear descriptions with when-to-use guidance
+- [ ] Tool use cases are distinct (no overlaps)
+- [ ] Planning instructions are explicit about tool selection logic
+- [ ] Flagging logic is in AGENT instructions (NOT semantic views)
+- [ ] Tools are deterministic, validated, and least-privilege
+- [ ] Component testing completed before integration testing
+- [ ] Model/tool/table allowlists configured; secrets/PII excluded from prompts
+- [ ] Tracing and evaluation enabled; thresholds monitored
+- [ ] Token/output caps set; cost/latency tracked
 
 **Anti-Pattern 1: Flagging Logic in Semantic Views**
 ```yaml
@@ -148,41 +200,6 @@ test_multi_tool_workflow()
 "For numerical questions (how much, what percentage, top N), use portfolio_analyzer. For opinions and research (what do analysts say, latest commentary), use search_research_reports."
 ```
 
-## Post-Execution Checklist
-- [ ] Agent archetype chosen based on use case and tool requirements
-- [ ] Agent objectives defined; smallest sufficient model chosen
-- [ ] Grounding uses governed sources (semantic views or indices)
-- [ ] Tools have clear descriptions with when-to-use guidance
-- [ ] Tool use cases are distinct (no overlaps)
-- [ ] Planning instructions are explicit about tool selection logic
-- [ ] Flagging logic is in AGENT instructions (NOT semantic views)
-- [ ] Tools are deterministic, validated, and least-privilege
-- [ ] Component testing completed before integration testing
-- [ ] Model/tool/table allowlists configured; secrets/PII excluded from prompts
-- [ ] Tracing and evaluation enabled; thresholds monitored
-- [ ] Token/output caps set; cost/latency tracked
-
-## Validation
-- **Success checks:** Component tests pass; integration tests pass; evaluation meets targets; tool selection logic works correctly; flagging applies consistently; traces show bounded tool use; costs stable
-- **Negative tests:** Prompt injections fail; unauthorized tool/data access blocked; oversized prompts rejected; overlapping tools don't confuse agent; flagging in semantic views flagged in code review
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Read existing agent configurations BEFORE making changes** - Check current grounding sources, tools, instructions
-> 2. **Verify available Cortex features** - Check if Cortex Analyst, Search, semantic views are available
-> 3. **Never assume agent architecture** - Read existing agents to understand patterns
-> 4. **Check RBAC and permissions** - Verify what roles and objects are accessible
-> 5. **Test after changes** - Run component and integration tests to verify behavior
->
-> **Anti-Pattern:**
-> "Creating a Cortex Agent with these tools... (without checking available features)"
-> "Adding semantic view grounding... (without verifying semantic views exist)"
->
-> **Correct Pattern:**
-> "Let me check your Cortex setup first."
-> [reads existing agents, checks Cortex Search indices, verifies semantic views]
-> "I see you have semantic views for sales data and Cortex Search for docs. Creating agent with these grounding sources..."
-
 ## Output Format Examples
 
 ```sql
@@ -209,24 +226,7 @@ SELECT * FROM schema.view_name LIMIT 5;
 SHOW VIEWS LIKE '%view_name%';
 ```
 
-## References
-
-### External Documentation
-- [Cortex Agents](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents) - Agent concepts, tools, and setup
-- [AI Observability](https://docs.snowflake.com/en/user-guide/snowflake-cortex/ai-observability) - Tracing, evaluations, comparisons
-- [Cortex Analyst](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst) - Natural language to SQL
-- [Cortex Search](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-search) - Semantic search service
-
-### Related Rules
-- **Snowflake Core**: `100-snowflake-core.md`
-- **Semantic Views Integration**: `106c-snowflake-semantic-views-integration.md` - Semantic view design and Analyst tool configuration
-- **Cortex Search**: `116-snowflake-cortex-search.md` - Search service setup and tool integration
-- **Semantic Views**: `106-snowflake-semantic-views-core.md`
-- **Cost Governance**: `105-snowflake-cost-governance.md`
-- **Warehouse Management**: `119-snowflake-warehouse-management.md`
-- **Observability**: `111-snowflake-observability-core.md`
-
-## 6. Testing & Validation Patterns
+## Testing & Validation Patterns
 
 ### 6.1 Component Testing (Test Tools Independently)
 
@@ -337,7 +337,7 @@ Performance & Cost:
 - [ ] Token usage is within budget
 - [ ] Tool invocation counts are reasonable
 
-## 7. RBAC and Permissions
+## RBAC and Permissions
 
 ### 7.1 Required Grants for Cortex Agents
 
@@ -434,21 +434,21 @@ Apply these security patterns:
 - **Roles:** Grant minimum permissions required for functionality
 - **Warehouses:** Use dedicated warehouses with auto-suspend for cost control
 
-## 8. Observability and Evaluation
+## Observability and Evaluation
 
 - Use AI Observability to capture traces of agent reasoning, tool invocations, and outcomes
 - Employ golden questions and assertions; compare model/tool variants and track regression
 - Monitor tool selection accuracy (is agent picking right tool?)
 - Track flagging accuracy (are thresholds applied correctly?)
 
-## 9. Cost and Latency
+## Cost and Latency
 
 - Prefer cached retrieval; restrict tool invocations per turn
 - Control token budgets and cap output tokens; fail fast on oversized requests
 - Monitor costs by agent and by tool type
 - Optimize expensive tools (multiple Cortex Analyst calls) vs cheaper alternatives
 
-## 10. Common Errors and Solutions
+## Common Errors and Solutions
 
 ### Error: "Semantic view not found" or "Object does not exist"
 

@@ -7,80 +7,137 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**LastUpdated:** 2025-12-23
 **Keywords:** data profiling, expectations, quality checks, data validation, NULL detection, uniqueness validation, freshness monitoring, anomaly detection, automated monitoring, event tables, create DMF, quality monitoring, data expectations, quality rules
-**TokenBudget:** ~3400
+**TokenBudget:** ~4550
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md, 107-snowflake-security-governance.md, 930-data-governance-quality.md
 
-## Purpose
-Establish comprehensive best practices for Snowflake Data Quality Monitoring using Data Metric Functions (DMFs), data profiling, expectations, and automated quality checks to ensure data reliability, integrity, and compliance throughout the data lifecycle.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive best practices for Snowflake Data Quality Monitoring using Data Metric Functions (DMFs), data profiling, expectations, and automated quality checks. Covers system DMFs, custom DMF creation, data profiling workflows, expectation definitions, scheduling strategies, event table monitoring, alerting, remediation workflows, and cost optimization to ensure data reliability, integrity, and compliance throughout the data lifecycle.
 
-Snowflake Data Quality Monitoring including system and custom DMFs, data profiling, expectations, scheduling, monitoring, and remediation workflows
+**When to Load This Rule:**
+- Implementing Snowflake Data Quality Monitoring with DMFs
+- Creating or configuring Data Metric Functions (system or custom)
+- Setting up data profiling and baseline quality metrics
+- Defining quality expectations and pass/fail criteria
+- Troubleshooting DMF execution or expectation failures
+- Monitoring data quality trends and violations
+- Establishing automated quality monitoring schedules
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Use Data Metric Functions (DMFs)** - Native Snowflake quality monitoring
-- **Profile data systematically** - Understand baseline NULL rates, distributions, patterns
-- **Set quality expectations** - Define acceptable thresholds for pass/fail criteria
-- **Automate checks** - Schedule DMF evaluations at appropriate intervals
-- **Alert on violations** - Proactive detection of quality issues
-- **Track over time** - Historical quality trends via event tables
-- **Never skip validation** - Quality checks required for critical tables
+### Dependencies
 
-**Quick Checklist:**
-- [ ] DMFs created for critical tables
-- [ ] Data profiling queries configured
-- [ ] Quality expectations defined
-- [ ] Automated monitoring tasks created
-- [ ] Alert thresholds configured
-- [ ] Dashboard for quality metrics
-- [ ] Remediation workflows documented
+**Must Load First:**
+- **100-snowflake-core.md** - Snowflake foundation patterns
+- **105-snowflake-cost-governance.md** - Resource monitors and cost optimization
+- **107-snowflake-security-governance.md** - Access control and security policies
+- **930-data-governance-quality.md** - Data governance framework
+
+**Related:**
+- **124a-snowflake-data-quality-custom.md** - Custom DMF creation patterns
+- **124b-snowflake-data-quality-operations.md** - Operational patterns and remediation
+
+### External Documentation
+
+- [Data Quality Introduction](https://docs.snowflake.com/en/user-guide/data-quality-intro) - Overview and concepts
+- [Data Metric Functions](https://docs.snowflake.com/en/user-guide/data-metric-functions) - DMF creation and usage
+- [System DMFs](https://docs.snowflake.com/en/sql-reference/data-metric-functions) - Built-in quality metrics
+- [Data Quality Monitoring](https://docs.snowflake.com/en/user-guide/ui-snowsight-data-quality-monitoring) - Snowsight monitoring
+
+### Related Rules
+
+**Closely Related** (consider loading together):
+- **124a-snowflake-data-quality-custom.md** - creating custom DMFs with SQL or Python UDFs
+- **124b-snowflake-data-quality-operations.md** - scheduling, monitoring, and alerting on DMF results
+
+**Sometimes Related** (load if specific scenario):
+- **122-snowflake-dynamic-tables.md** - adding quality checks to dynamic table pipelines
+- **104-snowflake-streams-tasks.md** - triggering tasks based on data quality events
+- **111-snowflake-observability-core.md** - logging data quality metrics to event tables
+
+**Complementary** (different aspects of same domain):
+- **107-snowflake-security-governance.md** - access control on DMFs and quality monitoring
+- **100-snowflake-core.md** - DDL fundamentals and object creation patterns
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-Snowflake Enterprise Edition account; tables/views requiring quality monitoring; defined quality expectations; EXECUTE DATA METRIC FUNCTION privilege; event table for results
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-System DMFs in SNOWFLAKE.CORE; custom DMF creation; ALTER TABLE/VIEW for DMF associations; Snowsight Data Quality tab; INFORMATION_SCHEMA and ACCOUNT_USAGE views
-</mandatory>
+- Snowflake Enterprise Edition account
+- Tables/views requiring quality monitoring
+- Defined quality expectations and pass/fail criteria
+- EXECUTE DATA METRIC FUNCTION privilege
+- Event table for capturing results
 
-<forbidden>
-Exceeding 10,000 DMF-object associations per account; setting DMFs on shared objects or reader accounts; setting DMFs on object tags; using database roles as table owners for DMF operations
-</forbidden>
+### Mandatory
 
-<steps>
+- System DMFs in SNOWFLAKE.CORE schema
+- Custom DMF creation (when system DMFs insufficient)
+- ALTER TABLE/VIEW for DMF associations
+- Snowsight Data Quality tab for monitoring
+- INFORMATION_SCHEMA and ACCOUNT_USAGE views for analysis
+
+### Forbidden
+
+- Exceeding 10,000 DMF-object associations per account
+- Setting DMFs on shared objects or reader accounts
+- Setting DMFs on object tags
+- Using database roles as table owners for DMF operations
+
+### Execution Steps
+
 1. Profile data using Snowsight Data Profile to understand baseline characteristics
 2. Select appropriate system DMFs or create custom DMFs for specific quality checks
-3. Associate DMFs with tables/views and define expectations for pass/fail criteria
-4. Schedule DMF evaluations at appropriate intervals
-5. Configure event table to capture results and alerts for failures
-6. Monitor DMF execution via Snowsight and query event table for trends
-7. Establish remediation workflows for failures with clear SLAs
-8. Track cost consumption via DATA_QUALITY_MONITORING_USAGE_HISTORY
-</steps>
+3. Associate DMFs with tables/views using ALTER TABLE/VIEW statements
+4. Define expectations for pass/fail criteria with appropriate thresholds
+5. Schedule DMF evaluations at appropriate intervals based on data refresh frequency
+6. Configure event table to capture results and enable alerts for failures
+7. Monitor DMF execution via Snowsight Data Quality tab and query event tables for trends
+8. Establish remediation workflows for failures with clear SLAs and ownership
+9. Track cost consumption via DATA_QUALITY_MONITORING_USAGE_HISTORY view
+10. Continuously refine expectations based on historical performance
 
-<output_format>
-DMF DDL; ALTER TABLE/VIEW statements for associations; expectation definitions; monitoring queries; alert configurations
-</output_format>
+### Output Format
 
-<validation>
-- Verify DMFs execute successfully and write to event table
-- Confirm expectations evaluate correctly (pass/fail logic working)
-- Check alerts trigger appropriately for failures
-- Validate cost consumption within expected ranges
-- Ensure remediation workflows are followed
-</validation>
+Data quality implementations produce:
+- DMF DDL for custom metric functions
+- ALTER TABLE/VIEW statements for DMF associations
+- Expectation definitions with pass/fail thresholds
+- Monitoring queries for event table analysis
+- Alert configurations for proactive notifications
+- Remediation workflow documentation
 
-<design_principles>
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Enterprise Edition enabled for account
+- EXECUTE DATA METRIC FUNCTION privilege granted to table owner role
+- Event table configured and accessible
+- DMFs created successfully (system or custom)
+- Expectations defined for all critical quality checks
+
+**Success Criteria:**
+- DMFs execute successfully and write results to event table
+- Expectations evaluate correctly (pass/fail logic functioning)
+- Alerts trigger appropriately for expectation failures
+- Cost consumption within expected ranges for monitoring frequency
+- Remediation workflows documented and followed
+- Quality trends visible in Snowsight Data Quality tab
+
+**Negative Tests:**
+- DMF execution should fail without EXECUTE DATA METRIC FUNCTION privilege
+- Invalid DMF associations should be rejected at ALTER TABLE/VIEW time
+- Exceeding 10,000 DMF associations should produce clear error
+- Expectations with invalid syntax should fail validation
+
+### Design Principles
+
 - **Enterprise Edition Required:** Data Quality and DMFs require Snowflake Enterprise Edition
 - **Serverless Compute:** DMFs use serverless compute billed under "Data Quality Monitoring" category
 - **Proactive Monitoring:** Scheduled DMF evaluations provide continuous quality assurance
@@ -88,9 +145,39 @@ DMF DDL; ALTER TABLE/VIEW statements for associations; expectation definitions; 
 - **Automated Alerting:** Configure alerts on expectation failures to drive timely remediation
 - **Cost Awareness:** Monitor serverless credit consumption and right-size schedules
 - **Least Privilege:** Table owner role must have global EXECUTE DATA METRIC FUNCTION privilege
-</design_principles>
 
-</contract>
+> **Investigation Required**
+> When working with Data Quality:
+> 1. **Check existing DMFs BEFORE creating new ones** - Use SHOW DATA METRIC FUNCTIONS to understand current setup
+> 2. **Verify Enterprise Edition** - Data Quality features require Enterprise Edition
+> 3. **Profile data first** - Use Snowsight Data Profile to understand baseline before setting expectations
+> 4. **Review event table** - Check DMF_EVALUATION_HISTORY for execution patterns and failures
+> 5. **Monitor costs** - Query DATA_QUALITY_MONITORING_USAGE_HISTORY for credit consumption
+>
+> **Anti-Pattern:**
+> "Creating DMF... (without profiling data first)"
+> "Setting expectations... (without understanding baseline)"
+>
+> **Correct Pattern:**
+> "Let me check your existing data quality setup first."
+> [reads SHOW DATA METRIC FUNCTIONS, checks event table, profiles data]
+> "I see you have NULL rate monitoring with 5% threshold. Creating new DMF following this pattern..."
+
+### Post-Execution Checklist
+
+- [ ] Enterprise Edition verified for account
+- [ ] Data profiling completed to understand baselines
+- [ ] System DMFs evaluated for applicability
+- [ ] Custom DMFs created where system DMFs insufficient
+- [ ] DMFs associated with critical tables/views
+- [ ] Expectations defined with appropriate thresholds
+- [ ] Monitoring schedule configured based on data refresh frequency
+- [ ] Event table configured and accessible
+- [ ] Alerts configured for expectation failures
+- [ ] Remediation workflows documented with SLAs
+- [ ] Cost monitoring queries established
+- [ ] Snowsight Data Quality tab reviewed
+- [ ] EXECUTE DATA METRIC FUNCTION privilege granted appropriately
 
 ## Anti-Patterns and Common Mistakes
 
@@ -211,38 +298,6 @@ ALTER TABLE customers ADD DATA METRIC FUNCTION check_freshness ON ();
 ```
 **Benefits:** DMF operations work; proper privilege model; account-scoped role inheritance; cross-database DMF support; clean ownership model; no deployment issues
 
-## Post-Execution Checklist
-
-- [ ] DMF created with clear naming convention (DMF_ prefix)
-- [ ] Measurements defined for critical quality dimensions (freshness, nulls, uniqueness)
-- [ ] EXPECT statements use appropriate functions (freshness, null_count, row_count, custom SQL)
-- [ ] Thresholds set based on business requirements (not arbitrary)
-- [ ] DMF scheduled to run on appropriate frequency (hourly, daily, on-trigger)
-- [ ] Results logged to event table for trend analysis
-- [ ] Alerting configured for threshold breaches
-- [ ] DMF tested with bad data to verify failure detection
-- [ ] Access controls configured (who can create, execute, view DMF results)
-- [ ] DMF integrated into data pipeline quality gates
-- [ ] Documentation includes business rationale for each quality metric
-
-> **Investigation Required**
-> When applying this rule:
-> 1. Read table definitions and data profiles BEFORE setting quality thresholds
-> 2. Verify expected data patterns through actual data analysis (not assumptions)
-> 3. Never speculate about data quality issues without querying the data
-> 4. Check DMF execution history to understand actual vs expected quality
-> 5. Make grounded recommendations based on investigated data characteristics and DMF results
-
-## Validation
-
-- Create DMF with all measurement types (freshness, null check, uniqueness, custom SQL) and verify it executes
-- Test DMF with intentionally bad data to confirm failures are detected
-- Verify EXPECT statements work correctly with standard and custom functions
-- Schedule DMF to run on target table and check execution history
-- Validate DMF results are logged to event table for monitoring
-- Test integration with dynamic tables or tasks for automated quality gates
-- Confirm alerting triggers when thresholds breached
-
 ## Output Format Examples
 
 ```sql
@@ -309,20 +364,7 @@ ORDER BY measurement_time DESC
 LIMIT 10;
 ```
 
-## References
-
-### Internal Documentation
-- **124a-snowflake-data-quality-custom:** Creating custom DMFs with SQL and Python UDFs
-- **124b-snowflake-data-quality-operations:** Scheduling, monitoring, alerting on DMF results
-- **122-snowflake-dynamic-tables:** Integrating quality checks into dynamic table pipelines
-- **111-snowflake-observability-core:** Logging quality metrics to event tables
-
-### External Documentation
-- [Snowflake Data Metric Functions](https://docs.snowflake.com/en/user-guide/data-quality-intro) - Official DMF documentation and syntax
-- [DMF Best Practices](https://docs.snowflake.com/en/user-guide/data-quality-best-practices) - Guidelines for effective quality monitoring
-- [EXPECT Statement Reference](https://docs.snowflake.com/en/user-guide/data-quality-expect) - Assertion syntax and standard functions
-
-## 1. Data Quality Fundamentals
+## Data Quality Fundamentals
 
 ### What are Data Metric Functions (DMFs)?
 
@@ -352,7 +394,7 @@ LIMIT 10;
 
 **REQUIREMENT:** Data Quality and DMFs require Snowflake Enterprise Edition. Trial accounts do not support this feature.
 
-## 2. Data Profiling
+## Data Profiling
 
 **RECOMMENDED:**
 **BEST PRACTICE:** Always start with data profiling to understand baseline characteristics before implementing DMFs.
@@ -412,7 +454,7 @@ ALTER TABLE CUSTOMERS
     EXPECT (SNOWFLAKE.CORE.NULL_COUNT ON email) < 100;
 ```
 
-## 3. System DMFs
+## System DMFs
 
 **MANDATORY:**
 System DMFs are pre-built functions in the SNOWFLAKE.CORE schema for common quality metrics.
@@ -476,19 +518,4 @@ ALTER TABLE TRANSACTIONS
     EXPECT (SNOWFLAKE.CORE.ROW_COUNT ON ()) > 1000;
 ```
 
-## 4. Custom DMFs
-
-## Related Rules
-
-**Closely Related** (consider loading together):
-- `124a-snowflake-data-quality-custom` - For creating custom DMFs with SQL or Python UDFs
-- `124b-snowflake-data-quality-operations` - For scheduling, monitoring, and alerting on DMF results
-
-**Sometimes Related** (load if specific scenario):
-- `122-snowflake-dynamic-tables` - When adding quality checks to dynamic table pipelines
-- `104-snowflake-streams-tasks` - When triggering tasks based on data quality events
-- `111-snowflake-observability-core` - When logging data quality metrics to event tables
-
-**Complementary** (different aspects of same domain):
-- `107-snowflake-security-governance` - For access control on DMFs and quality monitoring
-- `100-snowflake-core` - For DDL fundamentals and object creation patterns
+## Custom DMFs

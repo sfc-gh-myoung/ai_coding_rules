@@ -2,96 +2,106 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** Snowflake deployment troubleshooting, Streamlit debugging, SiS TypeError, notebook deployment issues, deployment errors, stage file debugging, AUTO_COMPRESS debugging, ROOT_LOCATION errors, deployment anti-patterns, diagnostic commands, deployment validation, cache issues
-**TokenBudget:** ~3850
+**TokenBudget:** ~5800
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 109-snowflake-notebooks.md, 101-snowflake-streamlit-core.md, 109b-snowflake-app-deployment-core.md
+**LastUpdated:** 2025-12-22
 
-## Purpose
-Provide comprehensive troubleshooting guidance and anti-pattern identification for Snowflake application deployments, focusing on common errors, diagnostic commands, and proven solutions for Streamlit in Snowflake (SiS) TypeError issues and notebook caching problems.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive troubleshooting guidance and anti-pattern identification for Snowflake application deployments, focusing on common errors, diagnostic commands, and proven solutions for Streamlit in Snowflake (SiS) TypeError issues and notebook caching problems.
 
-Debugging and troubleshooting deployment issues for notebooks, Streamlit apps, UDFs, and stored procedures in Snowflake
+**When to Load This Rule:**
+- Debugging Streamlit deployment errors
+- Troubleshooting notebook caching issues
+- Resolving TypeError in Streamlit in Snowflake (SiS)
+- Diagnosing stage file problems
+- Fixing application deployment failures
 
-## Quick Start TL;DR
+## References
 
-**Purpose:** Concentrated reference of critical diagnostic patterns for efficient debugging.
+### External Documentation
+- [Streamlit in Snowflake (SiS) Documentation](https://docs.snowflake.com/en/developer-guide/streamlit/about-streamlit) - Official SiS guide
+- [Snowflake Notebooks Troubleshooting](https://docs.snowflake.com/en/user-guide/ui-snowsight-notebooks-troubleshoot) - Notebook debugging
+- [Stage Management](https://docs.snowflake.com/en/user-guide/data-load-stages-intro) - Stage operations reference
+- [Python Imports in Snowflake](https://docs.snowflake.com/en/developer-guide/udf/python/udf-python-packages) - Package and import handling
 
-**MANDATORY:**
-**Common Issues & Quick Fixes:**
-- **SiS TypeError** - Check AUTO_COMPRESS=FALSE and ROOT_LOCATION match
-- **Stale notebook code** - Run full deploy: drop, then remove, then upload, then create
-- **Stage file not found** - Verify with `LIST @stage` before CREATE
-- **Import errors** - Ensure .py files uncompressed (no .gz extension)
-- **Path mismatch** - ROOT_LOCATION must match PUT target paths
-- **Cached content** - Always use explicit REMOVE before upload
-
-**Quick Diagnostic Commands:**
-```bash
-uvx snow sql -q "LIST @STAGE;"                    # Check file locations
-uvx snow sql -q "DESCRIBE STREAMLIT DB.SCHEMA.APP;"  # Verify ROOT_LOCATION
-uvx snow sql -q "SHOW NOTEBOOKS IN SCHEMA DB.SCHEMA;"  # Confirm object exists
-```
+### Related Rules
+- **Core Deployment**: `109b-snowflake-app-deployment-core.md` - Base deployment patterns
+- **Streamlit Core**: `101-snowflake-streamlit-core.md` - Streamlit development
+- **Snowflake Notebooks**: `109-snowflake-notebooks.md` - Notebook best practices
+- **Snowflake Core**: `100-snowflake-core.md` - Foundational practices
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
+
+### Inputs and Prerequisites
 - Active Snowflake connection
 - Access to stage LIST/DESCRIBE permissions
 - Knowledge of deployed application names and stage locations
 - Taskfile deployment scripts for re-deployment
-</inputs_prereqs>
 
-<mandatory>
+
+### Mandatory
 - Snowflake CLI diagnostic commands (LIST, DESCRIBE, SHOW)
 - Task automation for re-deployment
 - grep/filtering for log analysis
 - Browser dev tools for client-side debugging
-</mandatory>
 
-<forbidden>
+
+### Forbidden
 - Skipping diagnostic phase and guessing solutions
 - Manual file manipulation in Snowsight during troubleshooting
 - Partial re-deployment without full cleanup (REMOVE)
 - Ignoring ROOT_LOCATION path mismatches
-</forbidden>
 
-<steps>
+
+### Execution Steps
 1. Execute diagnostic commands to identify root cause
 2. Verify stage file locations and compression status
 3. Check ROOT_LOCATION alignment with actual paths
 4. Validate full deployment workflow with explicit REMOVE
 5. Confirm resolution with post-deployment verification
-</steps>
 
-<output_format>
+
+### Output Format
 - Diagnostic command outputs with interpretation
 - Root cause analysis with evidence
 - Step-by-step remediation commands
 - Verification commands to confirm fix
-</output_format>
 
-<validation>
+
+### Validation
 - Run diagnostic commands and verify expected outputs
 - Execute remediation steps and check for errors
 - Re-deploy application using full workflow
 - Verify application loads without import errors
 - Confirm stage files match expected structure (LIST @stage)
-</validation>
 
-<design_principles>
+
+### Design Principles
 - **Diagnose Before Fixing:** Always run diagnostic commands before suggesting solutions
 - **Evidence-Based Debugging:** Use command outputs to validate assumptions
 - **Root Cause Focus:** Address underlying issues, not symptoms
 - **Reproducible Solutions:** Provide automation-based fixes, not manual workarounds
 - **Verification Required:** Confirm every fix with validation commands
-</design_principles>
 
-</contract>
+### Post-Execution Checklist
+
+- [ ] Diagnostic commands executed and outputs captured
+- [ ] Root cause identified with evidence
+- [ ] Full deployment workflow run (DROP, REMOVE, PUT, CREATE)
+- [ ] AUTO_COMPRESS=FALSE verified in PUT commands
+- [ ] ROOT_LOCATION matches stage file paths
+- [ ] Post-fix verification commands confirm resolution
+- [ ] Application loads without errors in Snowflake
+
+
+
 
 ## Anti-Patterns and Common Mistakes
 
@@ -438,45 +448,11 @@ CREATE STREAMLIT APP
 > [runs DESCRIBE STREAMLIT to verify ROOT_LOCATION]
 > "Found the issue: files are compressed (.py.gz). Need to redeploy with AUTO_COMPRESS=FALSE."
 
-## Output Format Examples
-
-```bash
-# Diagnostic workflow for SiS TypeError
-
-# 1. Check file compression status
-uvx snow sql -q "LIST @DB.SCHEMA.STAGE;" | grep -E "\.py|\.yml"
-
-# 2. Verify ROOT_LOCATION configuration
-uvx snow sql -q "DESCRIBE STREAMLIT DB.SCHEMA.APP_NAME;"
-
-# 3. If compression issue found:
-task streamlit:remove:app
-task streamlit:upload:app  # With AUTO_COMPRESS=FALSE
-task streamlit:create:app
-
-# 4. Verify fix
-uvx snow sql -q "LIST @DB.SCHEMA.STAGE;" | grep "\.py$"  # Should show .py, not .py.gz
-
-# 5. Test in Snowsight
-# Navigate to Apps > Streamlit > APP_NAME
-# Expected: Application loads without TypeError
-```
-
-## References
-
-### External Documentation
-- [Snowflake PUT Command](https://docs.snowflake.com/en/sql-reference/sql/put) - AUTO_COMPRESS behavior and troubleshooting
+## Troubleshooting Deployment Issues
 - [Snowflake REMOVE Command](https://docs.snowflake.com/en/sql-reference/sql/remove) - Idempotent file removal patterns
 - [Snowflake LIST Command](https://docs.snowflake.com/en/sql-reference/sql/list) - Stage file inspection and diagnostics
 - [Streamlit in Snowflake Troubleshooting](https://docs.snowflake.com/en/developer-guide/streamlit/troubleshooting) - Official SiS debugging guide
 - [Snowflake Stages](https://docs.snowflake.com/en/user-guide/data-load-local-file-system-create-stage) - Stage architecture and file organization
-
-### Related Rules
-- **Core Deployment Patterns**: `109b-snowflake-app-deployment-core.md` - See this rule for foundational deployment automation patterns and workflows
-- **Snowflake Notebooks**: `109-snowflake-notebooks.md`
-- **Streamlit Core**: `101-snowflake-streamlit-core.md`
-- **Taskfile Automation**: `820-taskfile-automation.md`
-- **Snowflake Core**: `100-snowflake-core.md`
 
 ## Troubleshooting Deployment Issues
 

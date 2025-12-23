@@ -2,84 +2,144 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**LastUpdated:** 2025-12-23
 **Keywords:** Data modeling, naming conventions, Kimball, dimensional modeling, fact tables, dimension tables, foreign keys, view taxonomy, Business Analyst, data generation, backward compatibility, entity IDs, temporal columns, surrogate keys, SCD Type 2
-**TokenBudget:** ~5400
+**TokenBudget:** ~8850
 **ContextTier:** High
 **Depends:** 000-global-core.md, 100-snowflake-core.md, 102-snowflake-sql-demo-engineering.md, 930-data-governance-quality.md, 940-business-analytics.md
 
-## Purpose
-Establish comprehensive data generation and modeling standards ensuring intuitive, analytics-friendly data for Business Analysts, Executive Users, Data Scientists, and Data Engineers through consistent naming conventions, relationship patterns, and dimensional modeling best practices.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive data generation and modeling standards ensuring intuitive, analytics-friendly data for Business Analysts, Executive Users, Data Scientists, and Data Engineers. Covers naming conventions, relationship patterns, dimensional modeling (Kimball methodology), view taxonomy, and backward compatibility strategies.
 
-All data generation (Python generators), SQL schema design (DDL), view creation, and analytics queries for utility demo project. Applies to grid data, customer data, and all future data domains.
+**When to Load This Rule:**
+- Designing data models for analytics or demos
+- Creating Python data generators
+- Writing SQL DDL for fact and dimension tables
+- Building view hierarchies (BASE, INTERMEDIATE, ANALYTICS)
+- Ensuring Business Analyst-friendly naming conventions
+- Implementing backward-compatible schema changes
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Kimball dimensional modeling** - Fact tables + dimension tables
-- **Standardized primary keys** - <entity>_id (e.g., customer_id)
-- **BA-first naming** - Business Analyst-friendly, not technical jargon
-- **View taxonomy** - BASE, then INTERMEDIATE, then ANALYTICS hierarchy
-- **Referential integrity** - Enforce FK relationships
-- **Temporal columns** - created_at, updated_at timestamps
-- **Never break backward compatibility** - Add columns, don't rename
+### Dependencies
 
-**Quick Checklist:**
-- [ ] Fact/dimension tables defined
-- [ ] Primary keys standardized
-- [ ] Column names BA-friendly
-- [ ] View hierarchy established
-- [ ] FK relationships documented
-- [ ] Temporal columns present
-- [ ] Backward compatibility maintained
+**Must Load First:**
+- **000-global-core.md** - Foundation for all rules
+- **100-snowflake-core.md** - Snowflake SQL patterns
+- **102-snowflake-sql-demo-engineering.md** - SQL demo engineering patterns
+
+**Related:**
+- **930-data-governance-quality.md** - Data governance and quality patterns
+- **940-business-analytics.md** - Business analytics patterns
+
+### External Documentation
+
+- [Kimball Dimensional Modeling](https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/) - Authoritative dimensional modeling methodology
+- [Snowflake Data Modeling](https://docs.snowflake.com/en/user-guide/data-modeling) - Snowflake-specific modeling best practices
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-Data entity requirements, relationship diagrams, target analytical use cases, audience priority (Business Analysts first)
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-Python generators, SQL DDL, view creation, Snowflake stages, data validation scripts
-</mandatory>
+- Data entity requirements and relationship diagrams
+- Target analytical use cases defined
+- Audience priority (Business Analysts first)
+- Understanding of Kimball dimensional modeling
+- Snowflake SQL DDL knowledge
 
-<forbidden>
-Ad-hoc naming without documented rationale; breaking changes without backward compatibility; undocumented FK relationships
-</forbidden>
+### Mandatory
 
-<steps>
-1. Define entity model with standardized primary keys (see Section 1)
-2. Apply universal naming conventions (see Section 2)
-3. Implement dimensional modeling patterns (see Section 3)
-4. Create business-friendly view taxonomy (see Section 4)
-5. Document all relationships and metadata
-6. Validate with compliance checklist (see Section 9)
-</steps>
+- Python generators for synthetic data
+- SQL DDL with explicit primary keys and foreign keys
+- View creation with taxonomy prefixes (BASE, INTERMEDIATE, ANALYTICS)
+- Snowflake stages for data loading
+- Data validation scripts
+- Column and view COMMENT documentation
 
-<output_format>
-Python DataFrames with standardized columns; SQL DDL with explicit PKs/FKs; View definitions with clear taxonomy prefixes
-</output_format>
+### Forbidden
 
-<validation>
-Run validation script; verify FK integrity; test business analyst queries; check view taxonomy compliance
-</validation>
+- Ad-hoc naming without documented rationale
+- Breaking changes without backward compatibility strategy
+- Undocumented foreign key relationships
+- Primary keys that don't follow `<entity>_id` pattern
+- Foreign keys that don't match referenced primary key names
+- Views without PURPOSE comments
 
-<design_principles>
-- **Business-First Naming**: Column and table names must be immediately understandable to non-technical business analysts
-- **Consistent Identity**: Every entity uses `<entity>_id` as primary key; external identifiers use `<entity>_number`
-- **FK Matching**: Foreign key names MUST exactly match referenced primary key names
-- **Dimensional Modeling**: Separate facts (measures) from dimensions (attributes) using Kimball patterns
-- **View Layering**: Progressive abstraction from raw tables to analytical views to business KPI views
-- **Self-Documenting**: Every column has a clear COMMENT; every view has a PURPOSE comment
-- **Backward Compatible**: All schema changes must provide migration path via views
-</design_principles>
+### Execution Steps
 
-</contract>
+1. Define entity model with standardized primary keys (`<entity>_id` pattern)
+2. Apply universal naming conventions (Business Analyst-friendly)
+3. Implement dimensional modeling patterns (Kimball methodology)
+4. Create business-friendly view taxonomy (BASE, INTERMEDIATE, ANALYTICS)
+5. Document all relationships and metadata with COMMENT
+6. Add temporal columns (created_at, updated_at)
+7. Enforce referential integrity with foreign key constraints
+8. Validate with compliance checklist
+9. Test Business Analyst queries against views
+10. Verify backward compatibility for schema changes
+
+### Output Format
+
+- Python DataFrames with standardized columns (`<entity>_id`, temporal columns)
+- SQL DDL with explicit PKs/FKs and COMMENT documentation
+- View definitions with clear taxonomy prefixes and PURPOSE comments
+- Data generator scripts with referential integrity enforcement
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Entity model defined with standardized primary keys
+- Naming conventions applied (Business Analyst-friendly)
+- Dimensional modeling patterns implemented
+- View taxonomy established (BASE, INTERMEDIATE, ANALYTICS)
+- Foreign key relationships documented
+- Temporal columns present (created_at, updated_at)
+- Backward compatibility maintained
+
+**Success Criteria:**
+- All primary keys follow `<entity>_id` pattern
+- Foreign key names exactly match referenced primary key names
+- All columns have clear COMMENT documentation
+- All views have PURPOSE comments
+- Business Analyst queries execute successfully against views
+- FK integrity validation passes
+- View taxonomy compliance verified
+- Backward compatibility tests pass
+
+**Negative Tests:**
+- Ad-hoc naming should trigger review
+- Breaking changes without backward compatibility should fail
+- Undocumented FK relationships should fail validation
+- Mismatched FK/PK names should fail integrity checks
+
+### Design Principles
+
+- **Business-First Naming:** Column and table names immediately understandable to non-technical business analysts
+- **Consistent Identity:** Every entity uses `<entity>_id` as primary key; external identifiers use `<entity>_number`
+- **FK Matching:** Foreign key names MUST exactly match referenced primary key names
+- **Dimensional Modeling:** Separate facts (measures) from dimensions (attributes) using Kimball patterns
+- **View Layering:** Progressive abstraction from raw tables to analytical views to business KPI views
+- **Self-Documenting:** Every column has clear COMMENT; every view has PURPOSE comment
+- **Backward Compatible:** All schema changes provide migration path via views
+
+### Post-Execution Checklist
+
+- [ ] Entity model defined with standardized primary keys (`<entity>_id`)
+- [ ] Universal naming conventions applied (Business Analyst-friendly)
+- [ ] Dimensional modeling patterns implemented (Kimball)
+- [ ] View taxonomy established (BASE, INTERMEDIATE, ANALYTICS)
+- [ ] All FK relationships documented with COMMENT
+- [ ] Temporal columns present (created_at, updated_at)
+- [ ] Backward compatibility maintained for schema changes
+- [ ] All columns have clear COMMENT documentation
+- [ ] All views have PURPOSE comments
+- [ ] FK integrity validation passed
+- [ ] Business Analyst queries tested successfully
+- [ ] View taxonomy compliance verified
 
 ## Anti-Patterns and Common Mistakes
 
@@ -294,25 +354,7 @@ test --run-all
 - [Monitoring recommendations]
 ```
 
-## References
-
-### External Documentation
-- [Kimball Dimensional Modeling](https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/) - Ralph Kimball's dimensional modeling methodology
-- [Snowflake Data Modeling Best Practices](https://docs.snowflake.com/en/user-guide/data-modeling) - Official Snowflake guidance
-- [Snowflake View Best Practices](https://docs.snowflake.com/en/user-guide/views-introduction) - View creation and optimization
-- [Smart Grid Interoperability Standards (NIST)](https://www.nist.gov/programs-projects/smart-grid) - Utility industry data standards
-- [IEC 61970 (CIM)](https://en.wikipedia.org/wiki/Common_Information_Model_(electricity)) - Common Information Model for grid assets
-
-### Related Rules
-- **Global Core**: `000-global-core.md`
-- **Snowflake Core**: `100-snowflake-core.md`
-- **SQL Demo Engineering**: `102-snowflake-sql-demo-engineering.md`
-- **Performance Tuning**: `103-snowflake-performance-tuning.md`
-- **Data Governance**: `930-data-governance-quality.md`
-- **Business Analytics**: `940-business-analytics.md`
-- **Demo Creation**: `900-demo-creation.md`
-
-## 1. Universal Naming Conventions
+## Universal Naming Conventions
 
 ### 1.1 Entity Identifier Standards
 
@@ -393,7 +435,7 @@ Categorical columns should use clear, self-documenting values:
 
 **Abbreviations:** Only use if industry-standard (e.g., `RES`/`COMM` acceptable for utilities)
 
-## 2. Dimensional Modeling Standards (Kimball Methodology)
+## Dimensional Modeling Standards (Kimball Methodology)
 
 ### 2.1 Fact Table Patterns
 
@@ -556,7 +598,7 @@ WHERE d.year_num = 2024
 GROUP BY d.year_num, d.month_name;
 ```
 
-## 3. View Taxonomy (Business-First Design)
+## View Taxonomy (Business-First Design)
 
 ### 3.1 View Naming Conventions
 
@@ -839,7 +881,7 @@ SELECT 'METER', 'Advanced metering infrastructure (AMI) endpoint', 4
 COMMENT = 'Reference View: Valid asset types with descriptions';
 ```
 
-## 4. Backward Compatibility & Migration Strategy
+## Backward Compatibility and Migration Strategy
 
 ### 4.1 Migration Principles
 
@@ -907,7 +949,7 @@ FROM FACT_TRANSFORMER_READINGS
 COMMENT = 'DEPRECATED: Use FACT_TRANSFORMER_READINGS instead. This view maps old column names for compatibility.';
 ```
 
-## 5. Data Generator Requirements
+## Data Generator Requirements
 
 ### 5.1 Generator Output Standards
 
@@ -961,7 +1003,7 @@ def validate_foreign_keys(df_child, df_parent, fk_column, pk_column):
         )
 ```
 
-## 6. SQL DDL Standards
+## SQL DDL Standards
 
 ### 6.1 Table Definition Template
 
@@ -1017,7 +1059,7 @@ status VARCHAR(20) COMMENT 'Status',
 parent VARCHAR(50) COMMENT 'Parent ID'
 ```
 
-## 7. Query Optimization Guidelines
+## Query Optimization Guidelines
 
 ### 7.1 Clustering Keys
 

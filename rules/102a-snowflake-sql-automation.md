@@ -2,30 +2,105 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** idempotent, MERGE, operations, multi-environment, infrastructure as code, Snowflake variables, production-safe, upsert, SQL automation, deployment scripts, SQL pipeline, config management, environment variables
-**TokenBudget:** ~4050
+**TokenBudget:** ~5700
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 102-snowflake-sql-demo-engineering.md
+**LastUpdated:** 2025-12-22
 
-## Purpose
-Guide creation of parameterized SQL templates for automated Snowflake deployments in production environments. Supports CI/CD pipelines, multi-environment workflows, and infrastructure-as-code patterns. Optimized for DevOps engineers, data engineers, and automated deployment systems.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Guide creation of parameterized SQL templates using <%VARIABLE%> syntax for automated Snowflake deployments in production environments. NEVER use CREATE OR REPLACE TABLE (data loss risk), instead use CREATE TABLE IF NOT EXISTS and MERGE for idempotent upserts. Supports CI/CD pipelines with environment-specific secrets, multi-environment workflows (dev/test/prod), infrastructure-as-code patterns, documented parameters in headers, and safe-to-rerun operations. Optimized for DevOps engineers, data engineers, and automated deployment systems.
 
-Production SQL templates, CI/CD pipelines, multi-environment deployments, automated workflows
+**When to Load This Rule:**
+- Creating parameterized SQL templates for production
+- Setting up CI/CD pipelines for Snowflake deployments
+- Implementing multi-environment workflows (dev/test/prod)
+- Automating Snowflake infrastructure as code
+- Converting demo SQL to production-safe templates
+- Using MERGE for idempotent data operations
+- Preventing data loss from CREATE OR REPLACE TABLE
 
-## Quick Start TL;DR
+## References
 
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
+### Dependencies
 
-Position at top provides practical efficiency benefits for both LLMs and human developers.
+**Must Load First:**
+- **100-snowflake-core.md** - Snowflake fundamentals
+- **102-snowflake-sql-demo-engineering.md** - Demo SQL patterns (this extends to production)
 
-**MANDATORY:**
+**Related:**
+- **117-snowflake-ci-cd.md** - CI/CD pipeline patterns
+
+### External Documentation
+
+**Snowflake:**
+- [MERGE Statement](https://docs.snowflake.com/en/sql-reference/sql/merge.html) - Idempotent upsert operations
+- [SQL Variables](https://docs.snowflake.com/en/sql-reference/variables.html) - Variable substitution
+- [CREATE TABLE IF NOT EXISTS](https://docs.snowflake.com/en/sql-reference/sql/create-table.html) - Safe table creation
+
+**CI/CD:**
+- [GitHub Actions](https://docs.github.com/en/actions) - CI/CD automation
+- [Terraform Snowflake Provider](https://registry.terraform.io/providers/Snowflake-Labs/snowflake/latest/docs) - Infrastructure as code
+
+**Task Automation:**
+- [Taskfile](https://taskfile.dev/) - Task runner for SQL templates
+
+## Contract
+
+### Inputs and Prerequisites
+
+Production Snowflake account, CI/CD pipeline, SQL templates with variables, environment-specific secrets
+
+### Mandatory
+
+Snowflake CLI, Task automation, GitHub Actions, Terraform
+
+### Forbidden
+
+Manual UI operations, hardcoded credentials, CREATE OR REPLACE for tables with data
+
+### Execution Steps
+
+1. Create parameterized SQL templates with variables
+2. Use idempotent patterns (MERGE, IF NOT EXISTS)
+3. Never use CREATE OR REPLACE for tables (data loss risk)
+4. Add validation scripts for pre/post deployment
+5. Integrate with CI/CD pipeline
+6. Test across dev/test environments before production
+
+### Output Format
+
+SQL template files (.sql), Taskfile.yml tasks, CI/CD workflow files
+
+### Validation
+
+**Test Requirements:**
+- Template validation (syntax check)
+- Dev deployment test
+- Test environment verification
+- Production deployment
+- Post-deploy checks
+
+**Success Criteria:**
+- Templates deploy without errors across environments
+- Idempotent operations work correctly on rerun
+- No data loss from table operations
+- All parameters correctly substituted
+- CI/CD pipeline executes successfully
+
+### Design Principles
+
+- **Parameterization**: All environment-specific values as variables
+- **Idempotency**: Safe to run multiple times (MERGE, WHERE NOT EXISTS)
+- **Environment Agnostic**: Works across dev/test/prod with different parameters
+- **Automation Ready**: Integrates with Taskfile, GitHub Actions
+- **Audit Trail**: Clear tracking of what was executed and when
+- **Data Preservation**: Never use CREATE OR REPLACE for tables with data
+
 **Essential Patterns:**
 - **Use `<%VARIABLE%>` for parameterization** - All environment values as variables: `<%DATABASE%>`, `<%SCHEMA%>`, `<%STAGE%>`
 - **NEVER use `CREATE OR REPLACE TABLE` in production** - Data loss risk! Use `CREATE TABLE IF NOT EXISTS` instead
@@ -34,56 +109,16 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 - **Test across dev/test before production** - Same SQL, different variables per environment
 - **Never hardcode database/schema names** - Breaks environment portability
 
-**Quick Checklist:**
+### Post-Execution Checklist
+
 - [ ] All environment values parameterized (`<%VARIABLE%>`)
 - [ ] Header documents parameters with usage examples
 - [ ] Uses `CREATE TABLE IF NOT EXISTS` (never `CREATE OR REPLACE TABLE`)
 - [ ] Data updates use MERGE or `INSERT WHERE NOT EXISTS`
 - [ ] Tested in dev/test environments
 - [ ] CI/CD pipeline configured with environment secrets
-
-## Contract
-
-<contract>
-<inputs_prereqs>
-Production Snowflake account, CI/CD pipeline, SQL templates with variables, environment-specific secrets
-</inputs_prereqs>
-
-<mandatory>
-Snowflake CLI, Task automation, GitHub Actions, Terraform
-</mandatory>
-
-<forbidden>
-Manual UI operations, hardcoded credentials, CREATE OR REPLACE for tables with data
-</forbidden>
-
-<steps>
-1. Create parameterized SQL templates with variables
-2. Use idempotent patterns (MERGE, IF NOT EXISTS)
-3. Never use CREATE OR REPLACE for tables (data loss risk)
-4. Add validation scripts for pre/post deployment
-5. Integrate with CI/CD pipeline
-6. Test across dev/test environments before production
-</steps>
-
-<output_format>
-SQL template files (.sql), Taskfile.yml tasks, CI/CD workflow files
-</output_format>
-
-<validation>
-Template validation, then dev deployment, then test verification, then production deployment, then post-deploy checks
-</validation>
-
-<design_principles>
-- **Parameterization**: All environment-specific values as variables
-- **Idempotency**: Safe to run multiple times (MERGE, WHERE NOT EXISTS)
-- **Environment Agnostic**: Works across dev/test/prod with different parameters
-- **Automation Ready**: Integrates with Taskfile, GitHub Actions
-- **Audit Trail**: Clear tracking of what was executed and when
-- **Data Preservation**: Never use CREATE OR REPLACE for tables with data
-</design_principles>
-
-</contract>
+- [ ] Pre/post deployment validation scripts added
+- [ ] Rollback procedures documented
 
 ## Anti-Patterns and Common Mistakes
 
@@ -241,70 +276,6 @@ WHEN NOT MATCHED THEN INSERT (report_date, row_count) VALUES (CURRENT_DATE(), s.
 ```
 **Benefits:** Repeatable execution; safe re-runs; no manual cleanup; automation-friendly; CI/CD reliable; production-ready; professional deployment
 
-## Post-Execution Checklist
-
-**Template Requirements:**
-- [ ] Uses Snowflake variables (`<%DATABASE%>`, `<%SCHEMA%>`)
-- [ ] Header documents all parameters with examples
-- [ ] Usage section shows concrete example
-- [ ] Idempotency explained in header
-
-**Production Safety:**
-- [ ] Uses CREATE TABLE IF NOT EXISTS (never CREATE OR REPLACE for tables)
-- [ ] Data updates use MERGE or INSERT WHERE NOT EXISTS
-- [ ] Views can use CREATE OR REPLACE (safe)
-- [ ] No hardcoded database or schema names
-
-**File Organization:**
-- [ ] Located in sql/operations/ directory structure
-- [ ] Grouped by domain and operation type
-- [ ] Testable independently
-- [ ] Reusable across environments
-
-**Automation Integration:**
-- [ ] Taskfile defines reusable tasks
-- [ ] CI/CD workflow defined
-- [ ] Environment variables externalized
-- [ ] Validation scripts included
-
-**Idempotency:**
-- [ ] Safe to run multiple times
-- [ ] MERGE used for data upserts
-- [ ] IF NOT EXISTS for object creation
-- [ ] No data loss risk from reruns
-
-## Validation
-- **Success Checks:**
-  - Templates execute successfully across dev/test/prod
-  - Same SQL works with different variables
-  - Reruns don't cause errors or data loss
-  - MERGE operations handle duplicates correctly
-  - CI/CD pipeline deploys changes automatically
-  - Validation scripts catch issues before production
-- **Negative Tests:**
-  - Missing variable causes clear error
-  - Invalid database name fails gracefully
-  - CREATE OR REPLACE on tables is flagged in code review
-  - Duplicate key in MERGE handled correctly
-  - Failed deployment rolls back cleanly
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Read existing CI/CD files BEFORE making recommendations** - Check for GitHub Actions or other automation
-> 2. **Verify current Taskfile.yml structure** - Understand existing task patterns and variable usage
-> 3. **Never speculate about deployment environments** - Ask user about dev/test/prod setup if unclear
-> 4. **Check existing SQL templates for patterns** - Match parameterization style with current codebase
-> 5. **Make grounded recommendations based on investigated automation setup** - Don't recommend CI/CD platforms without checking what's in use
->
-> **Anti-Pattern:**
-> "Most projects use GitHub Actions for CI/CD, so let's set that up..."
-> "Based on typical patterns, you probably have a .github/workflows/ directory..."
->
-> **Correct Pattern:**
-> "Let me check your current automation setup first."
-> [reads Taskfile.yml, .github/workflows/]
-> "I see you're using GitHub Actions with Taskfile integration. Here's how to add SQL template deployment to your existing workflow..."
-
 ## Output Format Examples
 ```sql
 -- ============================================================================
@@ -342,22 +313,7 @@ WHEN MATCHED THEN UPDATE SET /* ... */
 WHEN NOT MATCHED THEN INSERT /* ... */;
 ```
 
-## References
-
-### External Documentation
-
-- [Snowflake SQL Variables](https://docs.snowflake.com/en/user-guide/snowsql-use#using-variables) - Variable syntax and usage
-- [MERGE Statement](https://docs.snowflake.com/en/sql-reference/sql/merge) - Idempotent upsert patterns
-- [Snowflake CLI](https://docs.snowflake.com/en/developer-guide/snowflake-cli-v2/index) - CLI automation
-- [GitHub Actions for Snowflake](https://github.com/Snowflake-Labs/snowflake-cli-action) - CI/CD integration
-
-### Related Rules
-- **Snowflake Core**: `100-snowflake-core.md` - Foundational Snowflake practices
-- **SQL Demo Engineering**: `102-snowflake-sql-demo-engineering.md` - Demo and learning SQL patterns
-- **Taskfile Automation**: `820-taskfile-automation.md` - Task automation patterns
-- **Git Workflow**: `803-project-git-workflow.md` - Branching and PR strategies
-
-## 1. SQL Template Patterns
+## SQL Template Patterns
 
 ### 1.1 Snowflake Variable Syntax
 
@@ -417,7 +373,7 @@ ON_ERROR = 'CONTINUE';
 <%ROLE%>               # Role name for grants
 ```
 
-## 2. Directory Structure for Operations
+## Directory Structure for Operations
 
 ### 2.1 Operations Directory Pattern
 
@@ -456,7 +412,7 @@ drop_schema.sql
 
 **No numeric prefixes:** Execution order controlled by automation, not filenames
 
-## 3. Idempotent Production Patterns
+## Idempotent Production Patterns
 
 ### 3.1 Schema and Database Creation
 
@@ -577,7 +533,7 @@ FROM <%DATABASE%>.<%SCHEMA%>.GRID_ASSETS
 GROUP BY asset_type;
 ```
 
-## 4. CI/CD Integration
+## CI/CD Integration
 
 ### 4.1 Taskfile Integration
 
@@ -697,7 +653,7 @@ snow sql -D DATABASE=PROD -D SCHEMA=GRID -f template.sql
 - `SNOWFLAKE_ACCOUNT_TEST`
 - `SNOWFLAKE_ACCOUNT_PROD`
 
-## 5. Production SQL File Headers
+## Production SQL File Headers
 
 ### 5.1 Template Header Format
 
@@ -751,7 +707,7 @@ snow sql -D DATABASE=PROD -D SCHEMA=GRID -f template.sql
 -- ============================================================================
 ```
 
-## 6. Validation and Testing
+## Validation and Testing
 
 ### 6.1 Pre-Deployment Validation
 

@@ -2,57 +2,68 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** tool design, agent tools, token efficiency, tool parameters, function calling, tool overlap, tool contracts, error handling, minimal tool set, self-contained tools, LLM-friendly parameters, single responsibility
-**TokenBudget:** ~5000
+**TokenBudget:** ~6400
 **ContextTier:** High
 **Depends:** 000-global-core.md, 003-context-engineering.md
 
-## Purpose
-Establish comprehensive tool design practices that maximize agent effectiveness through token-efficient outputs, minimal tool overlap, clear contracts, and patterns that promote efficient agent behaviors while maintaining robustness and clarity.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive tool design practices that maximize agent effectiveness. Covers single responsibility, token-efficient outputs, LLM-friendly parameters, clear contracts, minimal tool overlap, self-contained design, robust error handling, and patterns that promote efficient agent behaviors.
 
-Tool development for AI agents across all platforms (Claude, GPT, Gemini) and frameworks
+**When to Load This Rule:**
+- Designing new tools for AI agents
+- Evaluating existing tool effectiveness
+- Understanding token-efficient tool outputs
+- Creating clear tool contracts
+- Minimizing tool overlap in tool sets
+- Implementing LLM-friendly parameters
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Single responsibility per tool** - One clear purpose, do it extremely well
-- **Token-efficient outputs** - Return only necessary info (not full dumps)
-- **LLM-friendly parameters** - Use semantic names like "query" not mode codes like 0/1/2
-- **Clear contracts** - Explicitly specify inputs, outputs, errors
-- **Minimal overlap** - No ambiguity about which tool to use for a task
-- **Self-contained** - No hidden dependencies or required setup
-- **Never return verbose outputs** - Agents pay token cost for every character returned
+### Dependencies
 
-**Quick Checklist:**
-- [ ] Tool has single clear purpose (one thing well)
-- [ ] Parameters are unambiguous (semantic names)
-- [ ] Outputs are minimal and actionable
-- [ ] No overlap with existing tools
-- [ ] Clear contract (inputs, outputs, errors specified)
-- [ ] Robust error handling (actionable messages)
-- [ ] Token-efficient (no verbose dumps)
+**Must Load First:**
+- **000-global-core.md** - Foundation for all rules
+- **003-context-engineering.md** - Context management and attention budgets
+
+**Related:**
+- **002e-agent-optimization.md** - Agent-first design principles
+- **002b-rule-optimization.md** - Token budgets and optimization
+
+### External Documentation
+
+- **Claude Tool Use:** Anthropic documentation on function calling
+- **OpenAI Function Calling:** GPT function calling best practices
+- **Schema Definition:** `schemas/rule-schema.yml` - v3.2 schema with tool design principles
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-Understanding of agent capabilities; knowledge of token budgets; awareness of LLM strengths/weaknesses; access to tool development framework
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-All development tools; testing frameworks; agent evaluation tools
-</mandatory>
+- Understanding of agent capabilities
+- Knowledge of token budgets
+- Awareness of LLM strengths/weaknesses
+- Access to tool development framework
 
-<forbidden>
-Tools that create bloated, redundant tool sets without clear boundaries
-</forbidden>
+### Mandatory
 
-<steps>
+- All development tools
+- Testing frameworks
+- Agent evaluation tools
+
+### Forbidden
+
+- Tools that create bloated, redundant tool sets without clear boundaries
+- Verbose tool outputs that waste tokens
+- Ambiguous parameter names
+- Stateful tools that assume context memory
+
+### Execution Steps
+
 1. Design tool with clear, single responsibility
 2. Define unambiguous parameters that play to LLM strengths
 3. Implement token-efficient outputs (return only necessary information)
@@ -60,17 +71,45 @@ Tools that create bloated, redundant tool sets without clear boundaries
 5. Ensure no overlap with existing tools
 6. Test with actual agent to validate usability
 7. Document tool purpose and usage patterns
-</steps>
 
-<output_format>
-Self-contained tools with clear specifications; token-efficient responses; structured error messages
-</output_format>
+### Output Format
 
-<validation>
-Tool has single clear purpose; parameters are unambiguous; outputs are minimal and actionable; no overlap with other tools; agent can use tool effectively
-</validation>
+Self-contained tools with:
+- Clear specifications
+- Token-efficient responses
+- Structured error messages
+- No hidden dependencies
 
-<design_principles>
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Tool purpose clearly defined (single responsibility)
+- Parameters designed (semantic, unambiguous)
+- Output format planned (token-efficient)
+- Existing tools reviewed for overlap
+- Contract documented (inputs, outputs, errors)
+
+**Success Criteria:**
+- Tool has single clear purpose
+- Parameters are unambiguous
+- Outputs are minimal and actionable
+- No overlap with other tools
+- Agent can use tool effectively
+- Tool is self-contained and stateless
+
+**Investigation Required:**
+1. **Review existing tool set BEFORE adding new tools** - Check for overlap, identify gaps
+2. **Test tool outputs for token efficiency** - Measure actual token counts
+3. **Never assume tool behavior** - Run tools with test inputs to verify outputs
+4. **Verify tool contracts match implementation** - Check parameter types, return values, error handling
+5. **Make grounded recommendations based on investigated tool behavior** - Don't suggest tools without understanding their actual outputs
+
+**Anti-Pattern:** "Based on typical tool design, this probably returns a JSON object..."
+
+**Correct Pattern:** "Let me check the existing tools first to see if any handle this use case." [reviews tool specifications and tests relevant tools]
+
+### Design Principles
+
 - **Self-Contained:** Each tool does one thing well, with no hidden dependencies
 - **Minimal Overlap:** Clear boundaries between tools; no ambiguity about which tool to use
 - **Token Efficient:** Return only necessary information; avoid verbose outputs
@@ -79,9 +118,21 @@ Tool has single clear purpose; parameters are unambiguous; outputs are minimal a
 - **Promote Good Patterns:** Tool design guides agents toward efficient behaviors
 - **Robust Error Handling:** Clear, actionable error messages
 - **Minimal Viable Set:** Curate smallest set of tools that covers use cases
-</design_principles>
 
-</contract>
+### Post-Execution Checklist
+
+- [ ] Each tool has single, clear responsibility
+- [ ] Tool names are descriptive (verb-noun pairs)
+- [ ] No ambiguous overlap between tools
+- [ ] Parameters are semantic and self-documenting
+- [ ] Tool outputs are token-efficient (minimal necessary info)
+- [ ] Clear contracts: inputs, outputs, errors documented
+- [ ] Error messages are actionable and specific
+- [ ] Tools promote efficient agent behaviors
+- [ ] Minimal viable tool set (resist tool bloat)
+- [ ] Tested with actual agent to validate usability
+- [ ] No stateful tools that assume context memory
+- [ ] Validation provides clear feedback for correction
 
 ## Anti-Patterns and Common Mistakes
 
@@ -215,43 +266,6 @@ def search(query: str, page: int = 1, limit: int = 10) -> SearchResponse:
 ```
 **Benefits:** Explicit state; agent can resume after context reset; clear API
 
-## Post-Execution Checklist
-
-- [ ] Each tool has single, clear responsibility
-- [ ] Tool names are descriptive (verb-noun pairs)
-- [ ] No ambiguous overlap between tools
-- [ ] Parameters are semantic and self-documenting
-- [ ] Tool outputs are token-efficient (minimal necessary info)
-- [ ] Clear contracts: inputs, outputs, errors documented
-- [ ] Error messages are actionable and specific
-- [ ] Tools promote efficient agent behaviors
-- [ ] Minimal viable tool set (resist tool bloat)
-- [ ] Tested with actual agent to validate usability
-- [ ] No stateful tools that assume context memory
-- [ ] Validation provides clear feedback for correction
-
-## Validation
-
-- **Success Checks:** Agent can discover which tool to use; parameters are unambiguous; outputs are token-efficient; no tool overlap causes confusion; error messages enable self-correction; tool set covers needs without bloat; agent follows efficient patterns; tools are self-contained and stateless
-- **Negative Tests:** Ambiguous tool boundaries cause agent confusion; verbose outputs waste attention budget; opaque parameter names require memorization; vague error messages prevent correction; bloated tool sets overwhelm agent; stateful tools break after context reset
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Review existing tool set BEFORE adding new tools** - Check for overlap, identify gaps
-> 2. **Test tool outputs for token efficiency** - Measure actual token counts, not theoretical
-> 3. **Never assume tool behavior** - Run tools with test inputs to verify outputs
-> 4. **Verify tool contracts match implementation** - Check parameter types, return values, error handling
-> 5. **Make grounded recommendations based on investigated tool behavior** - Don't suggest tools without understanding their actual outputs
->
-> **Anti-Pattern:**
-> "Based on typical tool design, this probably returns a JSON object..."
-> "Let me add a new tool for this - it shouldn't overlap with existing ones..."
->
-> **Correct Pattern:**
-> "Let me check the existing tools first to see if any handle this use case."
-> [reviews tool specifications and tests relevant tools]
-> "I see tool X already handles part of this, but returns 500+ token outputs. Here's a new token-efficient tool that complements it without overlap..."
-
 ## Output Format Examples
 
 ```markdown
@@ -278,29 +292,7 @@ Validation:
 - [x] Documentation updated
 ```
 
-## References
-
-### External Documentation
-
-**Anthropic Engineering Articles:**
-- [Writing Tools for AI Agents](https://www.anthropic.com/engineering/writing-tools-for-agents) - Comprehensive guide to token-efficient tool design, clear contracts, and promoting efficient agent behaviors
-- [Effective Context Engineering for AI Agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) - Context management strategies that inform tool output design
-
-**Claude Documentation:**
-- [Claude 4 Best Practices](https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/claude-4-best-practices) - Model-specific tool usage patterns
-- [Prompt Engineering Overview](https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/overview) - Tool specification best practices
-
-**Additional Resources:**
-- [API Design Best Practices](https://developers.google.com/tech-writing) - Principles for clear, usable interfaces
-- [Function Calling Documentation](https://platform.openai.com/docs/guides/function-calling) - OpenAI's function calling patterns
-
-### Related Rules
-- **Global Core**: `000-global-core.md` - Foundational workflow and safety protocols
-- **Context Engineering**: `003-context-engineering.md` - Token efficiency and attention budget management
-- **Rule Governance**: `002-rule-governance.md` - Standards for rule and tool documentation
-- **AGENTS Workflow**: `AGENTS.md` - Rule discovery and operational protocols
-
-## 1. Tool Design Fundamentals
+## Tool Design Fundamentals
 
 ### Single Responsibility Principle
 
@@ -403,7 +395,7 @@ def codebase_search(semantic_query: str) -> List[Result]:
 ```
 **Benefits:** Clear use cases; no overlap; agent knows which to use when
 
-## 2. Token Efficiency in Tool Outputs
+## Token Efficiency in Tool Outputs
 
 ### Return Only Necessary Information
 
@@ -511,7 +503,7 @@ def search_documents(
 - Load full content only if needed
 - Prevents context overflow
 
-## 3. Parameter Design
+## Parameter Design
 
 ### Play to LLM Strengths
 
@@ -613,7 +605,7 @@ def search_date_range(
 - Can self-correct based on validation feedback
 - Prevents silent failures
 
-## 4. Explicit Tool Specifications
+## Explicit Tool Specifications
 
 ### Tool Specification Standards
 
@@ -714,7 +706,7 @@ raise PermissionError(
 - Error message suggests how to fix the issue
 - Can retry with corrected parameters
 
-## 5. Promoting Efficient Agent Behaviors
+## Promoting Efficient Agent Behaviors
 
 ### Guide Agents Toward Good Patterns
 
@@ -789,7 +781,7 @@ def get_document_by_id(doc_id: str) -> Document:
     Use for: When you have the exact document ID from previous search"""
 ```
 
-## 6. Tool Set Curation
+## Tool Set Curation
 
 ### Minimal Viable Tool Set
 
@@ -886,7 +878,7 @@ user_data = get_user_profile(user_id)  # Returns user + prefs + settings
 
 **Trade-off:** Balance between tool focus and efficiency.
 
-## 7. Testing Tool Usability
+## Testing Tool Usability
 
 ### Agent-Centric Testing
 

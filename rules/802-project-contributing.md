@@ -2,81 +2,66 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** CONTRIBUTING, pull requests, code review, contribution guidelines, branching strategy, Conventional Commits, rule authoring, PR templates, project governance, git workflow
-**TokenBudget:** ~2800
+**TokenBudget:** ~3550
 **ContextTier:** Medium
 **Depends:** 000-global-core.md
+**LastUpdated:** 2025-12-23
 
-## Purpose
-Establish directives for a professional contribution workflow covering commits, pull requests, changelog discipline, and rule authoring standards to ensure consistent project collaboration and quality.
+## Scope
 
-## Rule Scope
-Professional contribution workflows for commits, pull requests, and rule authoring standards
+**What This Rule Covers:**
+Professional contribution workflow directives covering commits, pull requests, changelog discipline, and rule authoring standards to ensure consistent project collaboration and quality.
 
-## Quick Start TL;DR
+**When to Load This Rule:**
+- Creating or reviewing CONTRIBUTING.md files
+- Establishing contribution workflows
+- Implementing Conventional Commits standards
+- Defining PR and code review processes
+- Setting up rule authoring guidelines
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Conventional Commits** - type(scope): imperative summary
-- **Update CHANGELOG** - Add under ## [Unreleased] for user-facing changes
-- **Descriptive scopes** - Align with project structure
-- **PR templates** - Use issue linking, clear descriptions
-- **Code review** - Address all feedback before merge
-- **Rule authoring** - Follow 002-rule-governance standards
-- **Never use "WIP" subjects** - Write meaningful commit messages
+## References
 
-**Pre-Execution Checklist:**
-- [ ] Fork repository and create feature branch
-- [ ] Development environment set up (Python 3.11+, Task, uv, Ruff)
-- [ ] Read CONTRIBUTING.md and understand project conventions
-- [ ] Verified rule numbering scheme (if creating new rules)
-- [ ] Identified correct scope for conventional commit
+### Dependencies
 
-> **Investigation Required**
-> When applying this rule:
-> 1. **Read CONTRIBUTING.md BEFORE making changes** - Understand current workflow and standards
-> 2. **Check existing rule structure** - Verify numbering scheme, inspect similar rules
-> 3. **Never assume project conventions** - Read 002-rule-governance.md for actual standards
-> 4. **Verify tool availability** - Check Taskfile.yml for available commands, don't invent tasks
-> 5. **Validate before committing** - Run task rules:validate, never skip validation
->
-> **Anti-Pattern:**
-> "I'll add a new rule as 150-new-feature.md (without checking if 150 range is appropriate)"
-> "Updating deployed rules without validation"
->
-> **Correct Pattern:**
-> "Let me check the rule numbering scheme in 002-rule-governance.md first."
-> [reads governance, identifies correct range]
-> "I see 100-199 is for Snowflake. I'll use next available number in that range and edit rules/"
+**Must Load First:**
+- **000-global-core.md** - Foundation for all rules
+
+**Related:**
+- **800-project-changelog.md** - Changelog management standards
+- **801-project-readme.md** - README best practices
+- **803-project-git-workflow.md** - Git workflow management
+- **002-rule-governance.md** - Rule authoring standards
+
+### External Documentation
+- [GitHub Contributing Guidelines](https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/setting-guidelines-for-repository-contributors) - GitHub's guide for contribution workflows
+- [Open Source Guides](https://opensource.guide/) - Best practices for open source project management
+- [Conventional Commits](https://www.conventionalcommits.org/) - Standardized commit message format
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
+### Inputs and Prerequisites
 - Forked repository with feature branch
 - Development environment set up (Python 3.11+, Task, uv, Ruff)
 - Understanding of rule numbering scheme and governance standards
 - Access to CONTRIBUTING.md and 002-rule-governance.md
-</inputs_prereqs>
 
-<mandatory>
+### Mandatory
 - Git (fork, clone, branch, commit, PR)
 - Task runner (lint, format, validate, generate)
 - Ruff (linting and formatting)
 - uv (package management)
 - Python validation scripts
-</mandatory>
 
-<forbidden>
+### Forbidden
 - Direct editing of deployed rule files outside rules/ directory
 - Committing without validation (task rules:validate)
 - Force push to main/master branches
 - Amending commits authored by others
-</forbidden>
 
-<steps>
+### Execution Steps
 1. Fork repository and create feature branch following naming conventions
 2. Edit rules/ directory files directly (production-ready rules)
 3. Follow Conventional Commits format for all commit messages
@@ -84,31 +69,51 @@ Professional contribution workflows for commits, pull requests, and rule authori
 5. Validate with task rules:validate and task lint
 6. Submit PR with descriptive title and complete description
 7. Address all code review feedback before merge
-</steps>
 
-<output_format>
-- Well-structured pull request with:
+### Output Format
+Well-structured pull request with:
 - Conventional Commit title
 - Clear description of changes and motivation
 - Links to related issues
 - Validation checklist completed
 - Before/after examples (if applicable)
-</output_format>
 
-<validation>
+### Validation
+**Pre-Task-Completion Checks:**
+- CONTRIBUTING.md read before making changes
+- Rule numbering scheme verified
+- Tool availability checked in Taskfile.yml
+- Conventional Commits format understood
+
+**Success Criteria:**
 - task rules:validate passes without critical errors
 - task lint passes cleanly
 - task format passes without changes
 - CHANGELOG.md updated (if user-facing change)
 - All commits follow Conventional Commits format
 - Generated files included in PR (task rule:all run)
-</validation>
 
-</contract>
+### Design Principles
+- **Investigation-First** - Read CONTRIBUTING.md before making changes
+- **Conventional Commits** - Standardized commit message format
+- **Changelog Discipline** - Update CHANGELOG.md for user-facing changes
+- **Validation-First** - Run validation before committing
+- **Code Review** - Address all feedback before merge
+
+### Post-Execution Checklist
+- [ ] CONTRIBUTING.md read and understood
+- [ ] Feature branch created with proper naming
+- [ ] Development environment set up correctly
+- [ ] Rule numbering scheme verified (if creating rules)
+- [ ] Conventional Commits format used for all commits
+- [ ] CHANGELOG.md updated under ## [Unreleased]
+- [ ] Validation passed (task rules:validate, task lint)
+- [ ] PR created with descriptive title and description
+- [ ] All code review feedback addressed
 
 ## Anti-Patterns and Common Mistakes
 
-**Anti-Pattern 1: Editing Deployed Rules Without Validation**
+### Anti-Pattern 1: Editing Deployed Rules Without Validation
 ```bash
 # Bad: Direct edit without validation
 vim /some/project/.cursor/rules/100-snowflake-core.md
@@ -125,7 +130,7 @@ git add rules/100-snowflake-core.md
 ```
 **Benefits:** Changes in canonical source location, validated before deployment
 
-**Anti-Pattern 2: Vague Commit Messages**
+### Anti-Pattern 2: Vague Commit Messages
 ```bash
 # Bad: No context or type
 git commit -m "updated stuff"
@@ -143,7 +148,7 @@ git commit -m "docs(readme): update Quick Start with dual-platform git clone"
 ```
 **Benefits:** Clear change type, automated changelog generation, searchable commit history
 
-**Anti-Pattern 3: Skipping Validation**
+### Anti-Pattern 3: Skipping Validation
 ```bash
 # Bad: Commit without validation
 git add rules/new-rule.md
@@ -163,23 +168,12 @@ git commit -m "feat(rule): add new rule"
 ```
 **Benefits:** Catch errors early, ensure governance compliance, pass CI checks
 
-**Anti-Pattern 4: Mixing User and Contributor Content in README**
+### Anti-Pattern 4: Mixing User and Contributor Content in README
 ```markdown
 # Bad: Detailed development commands in README
 ```
 **Problem:** README should focus on users, not development setup
 **Correct Pattern:** Move development setup, build instructions, and contributor guidelines to CONTRIBUTING.md
-
-## Post-Execution Checklist
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
-
-## Validation
-- **Success checks:** [How to verify correct implementation]
-- **Negative tests:** [What should fail and how to detect failures]
 
 ## Output Format Examples
 
@@ -207,20 +201,9 @@ File Structure:
 Updated CHANGELOG.md:
 ```markdown
 
-## References
+## Implementation Details
 
-### External Documentation
-- [GitHub Contributing Guidelines](https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/setting-guidelines-for-repository-contributors) - GitHub's guide for contribution workflows
-- [Open Source Guides](https://opensource.guide/) - Best practices for open source project management
-- [Conventional Commits](https://www.conventionalcommits.org/) - Standardized commit message format
-
-### Related Rules
-- **Global Core**: `000-global-core.md`
-- **Changelog Rules**: `800-project-changelog.md`
-- **README Rules**: `801-project-readme.md`
-- **Rules Governance**: `002-rule-governance.md`
-
-## 1. Commit & Changelog Discipline
+### Commit & Changelog Discipline
 - **Requirement:** Follow Conventional Commits: `<type>(<scope>): <imperative summary>`.
 - **Requirement:** Valid types: `feat`, `fix`, `perf`, `refactor`, `style`, `docs`, `chore`, `build`, `ci`, `test`.
 - **Requirement:** Use descriptive scopes aligned with rule categories:
@@ -234,9 +217,9 @@ Updated CHANGELOG.md:
 - **Requirement:** Each changelog entry is a single concise line; collapse micro-fixes.
 - **Requirement:** Avoid anti-patterns: "WIP" subjects, unscoped types for multi-domain changes, mixing features and fixes.
 
-## 2. Rule Authoring Standards
+### Rule Authoring Standards
 
-### Rule File Structure
+#### Rule File Structure
 - **Requirement:** Follow 3-digit numbering scheme with clear domain separation:
   - `000-099`: Core Foundation (global, memory-bank, governance)
   - `100-199`: Data Platform - Snowflake
@@ -248,28 +231,28 @@ Updated CHANGELOG.md:
   - `800-899`: Project Management
   - `900-999`: Demo & Synthetic Data
 
-### Rule Content Guidelines
+#### Rule Content Guidelines
 - **Requirement:** Keep rules focused and concise (target 150-300 lines; max 500 lines).
 - **Requirement:** Split large topics into multiple composable rules within the same range.
 - **Requirement:** Use explicit directive language: `Requirement`, `Always`, `Avoid`, `Rule`, `Consider`.
 - **Always:** Include metadata header with Description, AppliesTo, AutoAttach, Type, Version, LastUpdated.
 - **Always:** Reference related rules using `@rule-name.md` syntax.
 
-### Subdomain Organization
+#### Subdomain Organization
 - **Rule:** Use 10-number ranges for framework-specific rules:
   - Python FastAPI: `210-219`
   - Bash Scripting: `300-309`
   - Zsh Scripting: `310-319`
 - **Rule:** Use 20-number jumps for major feature areas (e.g., `120` for Snowflake SPCS).
 
-## 3. General Code Standards
+### General Code Standards
 - **Requirement:** SQL must use uppercase keywords and explicit identifiers (avoid `SELECT *`).
 - **Requirement:** Shell scripts must include proper shebang and error handling (`set -euo pipefail`).
 - **Always:** New behavior should include at least one happy-path test and one negative/edge case test.
 - **Requirement:** Test function names follow `test_<function>_when_<condition>_should_<result>`.
 - **Always:** Reference specialized rules as needed (e.g., `200-python-core.md`, `300-bash-scripting-core.md`).
 
-## Contributing
+### Contributing Content Boundaries
 [50 lines of detailed development workflow]
 [Environment setup instructions]
 [Rule generation commands]
@@ -313,16 +296,16 @@ Updated CHANGELOG.md:
 **Quick Start Section Pattern:**
 ```markdown
 
-## 4. Pull Requests & Branching
+### Pull Requests & Branching
 - **Requirement:** PR titles must follow Conventional Commits.
 - **Requirement:** PRs must contain delta-only edits; avoid unrelated formatting.
 - **Always:** For multi-user projects, submit PRs to a protected `main` branch.
 - **Rule:** When adding new rules, update README.md to reflect the new structure.
 - **Rule:** When modifying rule numbering, ensure all cross-references are updated.
 
-## 5. Rule Categories and Examples
+### Rule Categories and Examples
 
-### Current Rule Structure
+#### Current Rule Structure
 
 **Core Foundation (000-099):**
 - `000-global-core.md`
@@ -353,14 +336,14 @@ Updated CHANGELOG.md:
 **Demo & Templates (900-999):**
 - 900-999: Demo Creation
 
-### Adding New Rules
+#### Adding New Rules
 - **Rule:** Choose appropriate number range based on domain
 - **Rule:** Use next available number in sequence within the range
 - **Rule:** For new frameworks, reserve 10-number subrange (e.g., 220-229 for Django)
 - **Always:** Update README.md rule categories section
 - **Always:** Validate rule follows governance standards in `002-rule-governance.md`
 
-## 6. Documentation References
+### Documentation References
 - **Always:** Reference Conventional Commits: https://www.conventionalcommits.org/en/v1.0.0/#specification
 - **Always:** Follow rule governance: `002-rule-governance.md`
 - **Always:** Use README standards: `801-project-readme.md`

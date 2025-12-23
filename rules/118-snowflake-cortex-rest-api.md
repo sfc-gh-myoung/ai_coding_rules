@@ -2,93 +2,146 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**LastUpdated:** 2025-12-23
 **Keywords:** idempotency, rate limits, Complete endpoint, Embed endpoint, exponential backoff, REST API, Cortex API, authentication tokens, PAT, OAuth, JWT, SSE, token verification, response format
-**TokenBudget:** ~3950
+**TokenBudget:** ~6550
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md, 111-snowflake-observability-core.md
 
-## Purpose
-Provide production patterns for Cortex REST API usage for interactive/low-latency workloads: authentication, Complete/Embed/Agents endpoints, retries, idempotency, streaming, cost controls, and observability.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Production patterns for Cortex REST API usage for interactive/low-latency workloads: authentication, Complete/Embed/Agents endpoints, retries, idempotency, streaming, cost controls, and observability.
 
-REST API usage for Complete, Embed, Agents; client patterns; when to use REST vs AISQL
+**When to Load This Rule:**
+- Building applications using Cortex REST API
+- Implementing low-latency/interactive workloads with Cortex models
+- Configuring retry logic and error handling for REST APIs
+- Streaming responses for better UX
+- Optimizing API performance and cost
+- Choosing between REST API vs AISQL for workloads
 
-## Quick Start TL;DR
+## References
 
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
+### Dependencies
 
-Position at top provides practical efficiency benefits for both LLMs and human developers.
+**Must Load First:**
+- **100-snowflake-core.md** - Snowflake fundamentals
+- **105-snowflake-cost-governance.md** - Cost monitoring and optimization
+- **111-snowflake-observability-core.md** - Logging and performance monitoring
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Use REST for low-latency** - Interactive, latency-sensitive tasks
-- **Use AISQL for batch** - High-throughput batch processing
-- **Implement retry with backoff** - Exponential backoff + jitter on retryable errors
-- **Enforce idempotency keys** - For non-idempotent operations
-- **Stream responses** - When supported, for better UX
-- **Limit tokens** - Set max_tokens and response size limits
-- **Never use infinite retries** - Always set retry limits
+**Related:**
+- **114-snowflake-cortex-aisql.md** - AISQL for batch processing
+- **115-snowflake-cortex-agents-core.md** - Cortex Agents REST API
+- **107-snowflake-security-governance.md** - Authentication and security
 
-**Quick Checklist:**
-- [ ] Proper authentication configured
-- [ ] Retry logic with exponential backoff
-- [ ] Idempotency keys for writes
-- [ ] Token limits enforced
-- [ ] Streaming enabled where appropriate
-- [ ] Request/response logging (no PII)
-- [ ] Rate limits respected
+### External Documentation
+
+- [Cortex REST API Documentation](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-rest-api) - API endpoints and authentication
+- [Complete API Reference](https://docs.snowflake.com/en/user-guide/snowflake-cortex/llm-functions#complete) - Text generation endpoint
+- [Embed API Reference](https://docs.snowflake.com/en/user-guide/snowflake-cortex/vector-embeddings#embed) - Embedding endpoint
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
+### Inputs and Prerequisites
+
 - Connectivity and credentials for Snowflake REST API (per account region)
 - Model allowlists and RBAC aligned with organizational policy
 - Clear latency/throughput SLOs
-</inputs_prereqs>
+- Understanding of REST vs AISQL trade-offs
 
-<mandatory>
-REST clients with backoff/retry; streaming APIs; structured logging/tracing; AI Observability
-</mandatory>
+### Mandatory
 
-<forbidden>
+- REST clients with backoff/retry logic
+- Streaming API support (when available)
+- Structured logging/tracing
+- AI Observability integration
+- Token and response size limits
+
+### Forbidden
+
 - Unauthenticated/implicit credential flows
-- Infinite retries; unbounded request payloads
-</forbidden>
+- Infinite retries or unbounded request payloads
+- Storing credentials in code or version control
+- Ignoring rate limits or retryable errors
 
-<steps>
-1. Prefer REST for interactive latency-sensitive tasks; prefer AISQL for batch throughput
-2. Implement retry with exponential backoff and jitter on retryable statuses
-3. Enforce idempotency keys for non-idempotent operations
-4. Limit tokens and response size; stream outputs when supported
-5. Log request/response metadata (not PII) and integrate tracing
-</steps>
+### Execution Steps
 
-<output_format>
-Minimal client snippets with safe defaults
-</output_format>
+1. **Choose API:** Prefer REST for interactive latency-sensitive tasks; prefer AISQL for batch throughput
+2. **Implement Retry:** Use exponential backoff and jitter on retryable statuses (429, 503, 504)
+3. **Enforce Idempotency:** Add idempotency keys for non-idempotent operations
+4. **Limit Resources:** Set max_tokens and response size limits; stream outputs when supported
+5. **Monitor:** Log request/response metadata (not PII) and integrate distributed tracing
+6. **Validate:** Run canary tests, verify SLO latency, respect rate limits, monitor costs
 
-<validation>
-Canary tests pass; SLO latency met; rate limits respected; costs within budget
-</validation>
+### Output Format
 
-<design_principles>
-- Align client design with SLOs: use streaming and timeouts; cap tokens
-- Separate per-request model options (e.g., max_tokens) from global defaults
-- Capture metrics (latency, tokens, error rates); build alerting for regressions
-</design_principles>
+```python
+# Python client with retry and streaming
+import requests
+from tenacity import retry, wait_exponential, stop_after_attempt
 
-</contract>
+@retry(wait=wait_exponential(multiplier=1, min=2, max=30), stop=stop_after_attempt(5))
+def call_complete(prompt: str, model: str = "mistral-large") -> str:
+    response = requests.post(
+        f"https://{account}.snowflakecomputing.com/api/v2/cortex/inference:complete",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"model": model, "prompt": prompt, "max_tokens": 500},
+        stream=True
+    )
+    response.raise_for_status()
+    return response.json()
+```
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Authentication configured correctly (PAT, OAuth, or JWT)
+- Retry logic implemented with exponential backoff and jitter
+- Idempotency keys used for non-idempotent operations
+- Token limits enforced (max_tokens set)
+- Streaming enabled where appropriate
+- Request/response logging configured (no PII)
+- Rate limits respected
+
+**Success Criteria:**
+- Canary tests pass with expected latency
+- SLO latency requirements met (p95, p99)
+- Rate limits respected (no 429 errors under normal load)
+- Costs within budget thresholds
+- Error rates below acceptable thresholds
+
+**Negative Tests:**
+- Transient errors (503, 504) trigger retry with backoff
+- Rate limit errors (429) trigger backoff before retry
+- Invalid requests (400) do not trigger retry
+- Token limits prevent runaway generation costs
+
+### Design Principles
+
+- **Align with SLOs:** Use streaming and timeouts; cap tokens to meet latency requirements
+- **Separate Concerns:** Per-request model options (max_tokens) vs global defaults (retry policy)
+- **Observability:** Capture metrics (latency, tokens, error rates); build alerting for regressions
+- **Cost Control:** Enforce token limits, monitor usage, alert on anomalies
+
+### Post-Execution Checklist
+
+- [ ] Authentication configured (PAT, OAuth, or JWT)
+- [ ] Retry logic with exponential backoff and jitter
+- [ ] Idempotency keys for non-idempotent operations
+- [ ] Token limits enforced (max_tokens set)
+- [ ] Streaming enabled where appropriate
+- [ ] Request/response logging (no PII)
+- [ ] Rate limits respected
+- [ ] Canary tests passing
+- [ ] SLO latency met
+- [ ] Costs within budget
 
 ## Anti-Patterns and Common Mistakes
 
-**Anti-Pattern 1: Not Implementing Retry Logic with Exponential Backoff**
+### Anti-Pattern 1: Not Implementing Retry Logic with Exponential Backoff
 ```python
 # Bad: No retry on transient errors
 import requests
@@ -146,7 +199,7 @@ def call_cortex_api_with_retry(prompt, model="mistral-large", max_retries=3):
 ```
 **Benefits:** Handles rate limits; retries transient errors; better reliability; professional API client; good user experience; production-ready
 
-**Anti-Pattern 2: Not Using Streaming for Long Responses**
+### Anti-Pattern 2: Not Using Streaming for Long Responses
 ```python
 # Bad: Wait for entire response before showing anything
 response = requests.post(
@@ -190,7 +243,7 @@ print()  # New line at end
 ```
 **Benefits:** Immediate feedback; better UX; shows progress; feels responsive; professional; lower perceived latency; user engagement
 
-**Anti-Pattern 3: Not Monitoring Token Usage and Costs**
+### Anti-Pattern 3: Not Monitoring Token Usage and Costs
 ```python
 # Bad: No tracking of token usage
 for user_query in user_queries:
@@ -265,7 +318,7 @@ def analyze_token_usage(log_file='cortex_api_usage.log'):
 ```
 **Benefits:** Cost visibility; usage tracking; optimization insights; budget control; anomaly detection; performance monitoring; professional; financial responsibility
 
-**Anti-Pattern 4: Using REST API for Batch Processing Instead of AISQL**
+### Anti-Pattern 4: Using REST API for Batch Processing Instead of AISQL
 ```python
 # Bad: REST API for processing 10,000 records
 records = load_records()  # 10,000 records
@@ -330,17 +383,6 @@ results = cursor.fetchall()
 ```
 **Benefits:** 100x+ faster; parallel processing; no rate limits; native Snowflake optimization; reliable; cost-effective; professional; scalable
 
-## Post-Execution Checklist
-- [ ] REST used for interactive use cases; AISQL for batch
-- [ ] Retry with exponential backoff and jitter implemented
-- [ ] Idempotency keys used for non-idempotent operations
-- [ ] Token limits and streaming enabled where applicable
-- [ ] Logging/tracing integrated; costs and latency monitored
-
-## Validation
-- **Success checks:** SLO latency met; low error rates; duplicate request safety via idempotency
-- **Negative tests:** Simulated timeouts and 429/5xx retried successfully; oversized prompts rejected
-
 > **Investigation Required**
 > When applying this rule:
 > 1. **Read existing REST API client code BEFORE adding new calls** - Check retry logic, auth patterns
@@ -379,25 +421,11 @@ resp = with_retry(lambda: call_complete(client, {
 }))
 ```
 
-## References
-
-### External Documentation
-- [Cortex REST API](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-rest-api)
-- [Snowflake Cortex AISQL](https://docs.snowflake.com/en/user-guide/snowflake-cortex/aisql)
-- [AI Observability](https://docs.snowflake.com/en/user-guide/snowflake-cortex/ai-observability)
-
-### Related Rules
-- **Snowflake Core**: `100-snowflake-core.md`
-- **AISQL**: `114-snowflake-cortex-aisql.md`
-- **Cost Governance**: `105-snowflake-cost-governance.md`
-- **Warehouse Management**: `119-snowflake-warehouse-management.md`
-- **Observability**: `111-snowflake-observability-core.md`
-
-## 1. Usage Guidance: REST vs AISQL
+### REST vs AISQL
 - Use REST for: user-facing chat/assistants, embeddings on-demand, agentic interactions where latency matters
 - Use AISQL for: large table processing, batch embeddings, aggregations across many rows
 
-## 2. Retry & Backoff (Python sketch)
+## Retry and Backoff Implementation
 ```python
 import time, random
 
@@ -414,7 +442,7 @@ def with_retry(call, max_attempts=5, base=0.5, cap=8.0):
             time.sleep(sleep + random.random() * 0.2)
 ```
 
-## 3. Idempotency Key (HTTP sketch)
+## Idempotency Keys
 ```http
 POST /cortex/complete HTTP/1.1
 Idempotency-Key: 4f2b6c1d-8c0d-4a32-8a2a-98a1aa0b0c77
@@ -423,22 +451,22 @@ Content-Type: application/json
 {"model":"llama3.1-8b","prompt":"Answer briefly.","max_tokens":64}
 ```
 
-## 4. Streaming (pseudo)
+## Streaming Responses
 ```python
 for chunk in client.complete_stream(model="llama3.1-8b", prompt=prompt, max_tokens=64):
     print(chunk.delta, end="")
 ```
 
-## 5. Cost Controls
+## Cost Controls
 - Cap `max_tokens` and truncate inputs; preflight with token counters when available
 - Cache frequent prompts/responses; deduplicate with hashes
 - Set sane client timeouts; drop requests exceeding UX thresholds
 
-## 6. Observability
+## Observability
 - Log request metadata (model, token counts, latency, status)
 - Emit traces and associate with evaluation events in AI Observability
 
-## 7. Authentication Token Types
+## Authentication Token Types
 
 **Rule:** Session tokens from `snowflake-connector-python` are INTERNAL ONLY and cannot be used with Snowflake REST APIs.
 
@@ -473,7 +501,7 @@ headers = {
 }
 ```
 
-## 8. Response Format Verification
+## Response Format Verification
 
 **Rule:** Never assume REST API endpoints return JSON. Verify response format from documentation before implementing.
 

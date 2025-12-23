@@ -2,83 +2,140 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** scheduled tasks, pipeline automation, MERGE patterns, SQL, Snowflake, task DAG, AFTER dependencies, Task History, create stream, create task, debug stream, task troubleshooting, stream consumption, task execution error, stream lag
-**TokenBudget:** ~1800
+**TokenBudget:** ~2550
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
+**LastUpdated:** 2025-12-22
 
-## Purpose
-Establish patterns for building robust, incremental data pipelines using Snowflake Streams and Tasks, covering change data capture, scheduling, idempotency, and monitoring for reliable data processing workflows.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Patterns for building robust, incremental data pipelines using Snowflake Streams and Tasks, covering change data capture, scheduling, idempotency, and monitoring for reliable data processing workflows.
 
-Snowflake Streams and Tasks for incremental data pipelines and automated workflows
+**When to Load This Rule:**
+- Building incremental data pipelines with Streams and Tasks
+- Implementing change data capture (CDC) patterns
+- Scheduling automated data workflows
+- Monitoring task execution and stream lag
+- Troubleshooting stream/task pipeline issues
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
-- **CREATE STREAM on source table** - captures INSERT/UPDATE/DELETE changes
-- **CREATE TASK with MERGE** - consumes stream and applies changes to target
-- **Chain tasks for DAGs:** Use `AFTER task1, task2` for dependencies
-- **Consume stream at end of transaction** - ensures offset advances correctly
-- **Use CREATE OR REPLACE** - ensures idempotent DDL operations
-- **Monitor with Task History** - check execution status in Snowsight
-- **Never consume stream mid-transaction** - breaks incremental processing
+### Dependencies
 
-**Quick Checklist:**
-- [ ] CREATE STREAM on source table
-- [ ] CREATE TASK with MERGE statement
-- [ ] Assign task to appropriate warehouse (see 119-snowflake-warehouse-management.md)
-- [ ] Set SCHEDULE or AFTER dependencies
-- [ ] Ensure idempotent operations (CREATE OR REPLACE, MERGE)
-- [ ] Test stream consumption advances offset
-- [ ] Monitor in Snowsight Task History
+**Must Load First:**
+- **000-global-core.md** - Foundation rule with core patterns and validation gates
+- **100-snowflake-core.md** - Snowflake SQL patterns and best practices
 
-> **Investigation Required**
-> When applying this rule:
-> 1. Read existing STREAM and TASK definitions BEFORE making recommendations
-> 2. Verify stream type (STANDARD, APPEND_ONLY) matches use case
-> 3. Never speculate about task dependencies - check SHOW TASKS output
-> 4. Review Task History for actual execution patterns
-> 5. Make grounded recommendations based on investigated pipeline structure
+### External Documentation
+- [Streams Management](https://docs.snowflake.com/en/user-guide/streams-manage) - Change data capture with streams for incremental processing
+- [Tasks Introduction](https://docs.snowflake.com/en/user-guide/tasks-intro) - Scheduled task execution and workflow automation
+- [Idempotent DDL](https://docs.snowflake.com/en/sql-reference/sql-ddl-idempotent) - CREATE OR REPLACE patterns for reliable automation
+
+### Related Rules
+
+**Closely Related** (consider loading together):
+- **122-snowflake-dynamic-tables.md** - Alternative declarative approach to CDC pipelines
+- **119-snowflake-warehouse-management.md** - Warehouse sizing and configuration for task execution
+
+**Sometimes Related** (load if specific scenario):
+- **103-snowflake-performance-tuning.md** - Optimizing task SQL statements
+- **124-snowflake-data-quality-core.md** - Triggering tasks based on data quality events
+- **111-snowflake-observability-core.md** - Monitoring task execution and stream consumption
+
+**Complementary** (different aspects of same domain):
+- **100-snowflake-core.md** - Naming conventions and DDL fundamentals
+- **102-snowflake-sql-demo-engineering.md** - SQL demo patterns
+- **107-snowflake-security-governance.md** - RBAC on tasks and streams
+- **105-snowflake-cost-governance.md** - Monitoring task compute costs
+- **108-snowflake-data-loading.md** - Data loading patterns
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-[Context, files, dependencies needed]
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-[Tools permitted for this domain]
-</mandatory>
+- Source table(s) with change data capture requirements
+- Target table(s) for incremental updates
+- Warehouse for task execution
+- ACCOUNTADMIN or role with CREATE STREAM, CREATE TASK privileges
+- Understanding of data update patterns (frequency, volume, latency requirements)
+- Idempotency requirements defined
 
-<forbidden>
-[Tools not allowed for this domain]
-</forbidden>
+### Mandatory
 
-<steps>
-[Ordered steps the agent must follow]
-</steps>
+- CREATE STREAM on source table to capture changes
+- CREATE TASK with MERGE statement for idempotent processing
+- WAREHOUSE assignment for task execution
+- SCHEDULE or AFTER dependencies for task orchestration
+- CREATE OR REPLACE pattern for idempotent DDL
+- SYSTEM$STREAM_HAS_DATA() check in task WHEN clause
+- Task History monitoring in Snowsight
+- ALTER TASK ... RESUME to activate tasks
 
-<output_format>
-[Expected output format]
-</output_format>
+### Forbidden
 
-<validation>
-[Checks to confirm success]
-</validation>
+- Consuming stream mid-transaction (breaks offset advancement)
+- Tasks without MERGE (non-idempotent INSERT/UPDATE/DELETE)
+- Hardcoded schedules without SYSTEM$STREAM_HAS_DATA() check
+- Tasks without warehouse assignment
+- Circular task dependencies
+- Tasks that modify source tables (creates infinite loops)
 
-<design_principles>
+### Execution Steps
+
+1. Analyze source table change patterns and target table requirements
+2. CREATE STREAM on source table (STANDARD for updates/deletes, APPEND_ONLY for inserts)
+3. Design MERGE statement with proper join conditions and WHEN clauses
+4. CREATE TASK with MERGE logic, WHEN clause checks SYSTEM$STREAM_HAS_DATA()
+5. Assign appropriate warehouse to task (see 119-snowflake-warehouse-management.md)
+6. Set SCHEDULE (time-based) or AFTER dependencies (DAG-based)
+7. Test stream consumption: Verify offset advances after MERGE completes
+8. ALTER TASK ... RESUME to activate task
+9. Monitor in Snowsight Task History for execution status and errors
+
+### Output Format
+
+- Stream DDL: CREATE STREAM statements with appropriate type
+- Task DDL: CREATE TASK with MERGE logic and scheduling
+- MERGE statement: Idempotent logic handling INSERT/UPDATE/DELETE
+- Monitoring queries: Task History, stream offset, row counts
+- Documentation: Pipeline description, dependencies, SLA
+
+### Validation
+
+**Test Requirements:**
+- Stream created successfully: SHOW STREAMS
+- Task created and resumed: SHOW TASKS, status = 'started'
+- Test data inserted into source triggers stream
+- Task executes successfully (check Task History)
+- Stream offset advances after task completion
+- Target table updated correctly (compare source + stream to target)
+- Idempotency verified: Re-running task with same data produces same result
+
+**Success Criteria:**
+- Stream captures all changes (INSERT, UPDATE, DELETE as needed)
+- Task executes on schedule or when data available
+- MERGE handles duplicates, late arrivals, out-of-order data
+- No failed task executions in Task History
+- Stream offset advances consistently
+- Target table matches source table (accounting for stream lag)
+
+### Design Principles
+
 - Capture changes with STREAM; apply with TASK-driven MERGE; chain tasks for DAGs.
 - Ensure idempotency; consume stream at end of transaction; monitor with Task History.
 - Follow official docs for implementation details and idempotent DDL.
-</design_principles>
 
-</contract>
+### Post-Execution Checklist
+
+- [ ] Required dependencies and context verified
+- [ ] Appropriate tools selected and validated
+- [ ] Implementation follows established patterns
+- [ ] Output format matches requirements
+- [ ] Validation steps completed successfully
 
 ## Anti-Patterns and Common Mistakes
 
@@ -191,17 +248,6 @@ LIMIT 10;
 ```
 **Benefits:** Proactive error detection; execution pattern visibility; SLA monitoring; credit usage tracking; automated alerting on failures
 
-## Post-Execution Checklist
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
-
-## Validation
-- **Success checks:** [How to verify correct implementation]
-- **Negative tests:** [What should fail and how to detect failures]
-
 ## Output Format Examples
 
 ```sql
@@ -228,43 +274,14 @@ SELECT * FROM schema.view_name LIMIT 5;
 SHOW VIEWS LIKE '%view_name%';
 ```
 
-## References
-
-### External Documentation
-- [Streams Management](https://docs.snowflake.com/en/user-guide/streams-manage) - Change data capture with streams for incremental processing
-- [Tasks Introduction](https://docs.snowflake.com/en/user-guide/tasks-intro) - Scheduled task execution and workflow automation
-- [Idempotent DDL](https://docs.snowflake.com/en/sql-reference/sql-ddl-idempotent) - CREATE OR REPLACE patterns for reliable automation
-
-### Related Rules
-- **Snowflake Core**: `100-snowflake-core.md`
-- **SQL Demo Engineering**: `102-snowflake-sql-demo-engineering.md`
-- **Performance Tuning**: `103-snowflake-performance-tuning.md`
-- **Warehouse Management**: `119-snowflake-warehouse-management.md`
-- **Data Loading**: `108-snowflake-data-loading.md`
-
-## 1. Incremental Pipeline Design
+## Incremental Pipeline Design
 - **Requirement:** Use a `STREAM` to capture change data (`INSERT`, `UPDATE`, `DELETE`) on a source table.
 - **Requirement:** Use a `TASK` to schedule a `MERGE` that consumes the stream and applies changes to the target.
 - **Requirement:** Build task graphs (DAGs) for multi-step pipelines with explicit dependencies.
 - **Always:** Assign tasks to appropriate warehouses following `119-snowflake-warehouse-management.md` sizing and configuration guidance.
 
-## 2. Idempotency and Monitoring
+## Idempotency and Monitoring
 - **Requirement:** Tasks and DML must be idempotent. Use `CREATE OR REPLACE` for DDL and ensure re-runs do not duplicate data.
 - **Always:** Consume the `STREAM` at the end of the transaction so its offset advances correctly.
 - **Always:** Monitor task execution and status using Snowsight's Task History.
 
-## Related Rules
-
-**Closely Related** (consider loading together):
-- `122-snowflake-dynamic-tables` - For alternative declarative approach to CDC pipelines
-- `119-snowflake-warehouse-management` - For warehouse sizing and configuration for task execution
-
-**Sometimes Related** (load if specific scenario):
-- `103-snowflake-performance-tuning` - When optimizing task SQL statements
-- `124-snowflake-data-quality-core` - When triggering tasks based on data quality events
-- `111-snowflake-observability-core` - When monitoring task execution and stream consumption
-
-**Complementary** (different aspects of same domain):
-- `100-snowflake-core` - For naming conventions and DDL fundamentals
-- `107-snowflake-security-governance` - For RBAC on tasks and streams
-- `105-snowflake-cost-governance` - For monitoring task compute costs

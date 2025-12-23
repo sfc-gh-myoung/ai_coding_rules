@@ -2,97 +2,132 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** Taskfile, Taskfile.yml, task automation, build automation, task runner, Task, portable tasks, error handling, categorized help, task discovery, command detection, auto-detection, cross-platform, uvx, machine-readable
-**TokenBudget:** ~7100
+**TokenBudget:** ~11350
 **ContextTier:** Medium
 **Depends:** 202-markup-config-validation.md
+**LastUpdated:** 2025-12-23
 
-## Purpose
-Provide directives for creating, modifying, and maintaining project automation using Taskfile.yml as the primary orchestrator, ensuring consistent, portable, and well-documented task management across development workflows.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Directives for creating, modifying, and maintaining project automation using Taskfile.yml as the primary orchestrator, ensuring consistent, portable, and well-documented task management across development workflows.
 
-Project automation using Taskfile.yml for consistent development workflows
+**When to Load This Rule:**
+- Creating or modifying Taskfile.yml files
+- Implementing project automation
+- Setting up portable task runners
+- Configuring cross-platform build automation
+- Establishing task discovery and categorization
+- Implementing command auto-detection patterns
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Specify version** - Use `version: '3.45'` or later
-- **Default/help task** - Explain how to get started
-- **Error handling** - Use `set -e`, check exit codes
-- **Portable tasks** - Work across OS unless explicitly scoped
-- **Single source of truth** - Centralize automation in Taskfile
-- **Document commands** - Add desc: for each task
-- **Never hard-code paths** - Use variables and built-ins
-- **Auto-detect commands** - Use `command -v` in vars, never hard-code paths
-- **Use `uvx` for tools** - Run Python CLI tools without installation
-- **Design for agents** - Predictable names, clear errors, idempotent tasks
+### Dependencies
 
-**Quick Checklist:**
-- [ ] Version specified (≥3.45)
-- [ ] default/help task exists
-- [ ] Error handling in place
-- [ ] Tasks are portable
-- [ ] Commands documented
-- [ ] Variables used for paths
-- [ ] Task dependencies defined
-- [ ] Commands auto-detected (no hard-coded paths)
-- [ ] Preconditions check tool availability
-- [ ] Cross-platform tested (if applicable)
-- [ ] Task names use `namespace:action` pattern (Section 2)
+**Must Load First:**
+- **202-markup-config-validation.md** - YAML validation patterns
+
+**Related:**
+- **000-global-core.md** - Foundation patterns
+- **200-python-core.md** - Python automation patterns
+- **300-bash-scripting-core.md** - Shell scripting patterns
+- **112-snowflake-snowcli.md** - SnowCLI invocation patterns
+- **102a-snowflake-sql-automation.md** - SQL script automation
+
+### External Documentation
+- [Taskfile Documentation](https://taskfile.dev/) - Official Task runner documentation and syntax guide
+- [Taskfile Includes](https://taskfile.dev/usage/#including-other-taskfiles) - Namespacing, `dir`/`taskfile`, `aliases`, `optional`, `flatten`
+- [Taskfile Preconditions](https://taskfile.dev/usage/#preconditions) - Command validation
+- [Taskfile Variables](https://taskfile.dev/usage/#variables) - Dynamic variable resolution
+- [YAML Specification](https://yaml.org/spec/) - YAML syntax reference
+- [POSIX Shell Scripting](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html) - `command -v` specification
+- [Astral uv Tools Concept](https://docs.astral.sh/uv/concepts/tools/) - `uvx` ephemeral tool execution
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
+### Inputs and Prerequisites
 - Task CLI installed (v3.45+)
 - `Taskfile.yml` present at project root
 - `task/` includes directory (if using modular structure)
 - `uv`/`uvx` installed for Python automation
 - Knowledge of: `000-global-core.md`, `200-python-core.md`, `300-bash-scripting-core.md`
-</inputs_prereqs>
 
-<mandatory>
+### Mandatory
 - Use `version: '3.45'` and `set: [pipefail]` in all Taskfiles
 - Run `task --list` and `task --dry-run <task>` after edits
 - Use `uv run`/`uvx` for Python commands (not bare `python`/`pip`)
 - Provide `desc:` for all public tasks
 - Use `preconditions:` for tool availability checks
-</mandatory>
 
-<forbidden>
+### Forbidden
 - Absolute paths (use `{{.ROOT_DIR}}` or `command -v`)
 - Bypassing `uv`/`uvx` for Python tooling
 - OS-specific commands without `platforms:` guards
 - Tasks that skip validation gates
 - Silent fallback to alternative tools
-</forbidden>
 
-<steps>
+### Execution Steps
 1. Read existing `Taskfile.yml` and included taskfiles
 2. Identify toolchain(s) used (Python? Go? Node? Docker?)
 3. Determine portability requirements (macOS/Linux/Windows; CI)
 4. Plan minimal change set; confirm with user if adding dependencies
-5. Implement changes using patterns from Sections 1.2-1.4
+5. Implement changes using patterns from Implementation Details sections
 6. Validate with `task --list` and `task --dry-run <task>`
-</steps>
 
-<output_format>
+### Output Format
 When modifying Taskfiles, provide:
 - Summary of changes made
 - Validation commands run and their output
 - Instructions for invoking new/modified tasks
-</output_format>
 
-<validation>
-- **Success:** `task --list` executes without errors; `task --dry-run <task>` shows correct command expansion
-- **Negative tests:** Tasks fail gracefully with helpful messages when tools are missing
-</validation>
+### Validation
+**Pre-Task-Completion Checks:**
+- Taskfile.yml read before modifying
+- Task dependencies verified
+- OS-specific requirements checked
+- Error handling verified
+- Variable usage checked
 
-</contract>
+**Success Criteria:**
+- `task --list` executes without errors
+- `task --dry-run <task>` shows correct command expansion
+- Tasks execute successfully on multiple platforms (macOS, Linux)
+- Commands auto-detected from PATH (no hard-coded paths)
+- Preconditions trigger with helpful messages when tools missing
+
+**Negative Tests:**
+- Task fails gracefully with clear message when required tool unavailable
+- Hard-coded paths detected during review (should not exist)
+- Cross-platform validation catches OS-specific issues
+
+### Design Principles
+- **Taskfile-First** - Centralize automation in Taskfile.yml
+- **Portability** - Work across OS unless explicitly scoped
+- **Auto-Detection** - Use `command -v` for dynamic command resolution
+- **Error Handling** - Use `set: [pipefail]` and proper error messages
+- **Documentation** - Add `desc:` for all public tasks
+- **Investigation-First** - Read existing Taskfile before modifying
+
+### Post-Execution Checklist
+- [ ] **Version specified:** `version: '3.45'` or later in all Taskfiles
+- [ ] **Error handling:** `set: [pipefail]` added after version
+- [ ] Existing Taskfile structure checked before modifications
+- [ ] Task dependencies verified
+- [ ] Portability requirements checked
+- [ ] Error handling verified
+- [ ] Variable usage checked for paths
+- [ ] Includes validated with `task --list`
+- [ ] Dry-run tested for key tasks
+- [ ] Namespaces used for includes
+- [ ] Public tasks have `desc`
+- [ ] Non-CLI tasks marked `internal: true`
+- [ ] **User-friendly help:** Default task provides categorized output for 8+ tasks
+- [ ] **Commands auto-detected:** No hard-coded paths to executables
+- [ ] **Preconditions present:** Tool availability checks with helpful messages
+- [ ] **Cross-platform tested:** Works on macOS and Linux (if applicable)
 
 ## Anti-Patterns and Common Mistakes
 
@@ -193,72 +228,6 @@ vars:
   UV: '{{env "UV_PATH" | default "uv"}}'
 ```
 
-## Post-Execution Checklist
-- [ ] **Version specified:** `version: '3.45'` or later in all Taskfiles
-- [ ] **Error handling:** `set: [pipefail]` added after version in all Taskfiles
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
-- [ ] Includes validated with `task --list`; dry-run tested for key tasks
-- [ ] Namespaces used for includes; `flatten` avoided or explicitly justified
-- [ ] Optional modules marked with `optional: true` where appropriate
-- [ ] Public tasks have `desc`; non-CLI tasks marked `internal: true`
-- [ ] `task/` directory used to organize domain-specific Taskfiles
-- [ ] **User-friendly help:** Default task provides categorized output for 8+ tasks (Section 4.2)
-- [ ] **Category names:** Follow standard naming patterns (Quickstart, Quality, Testing, etc.)
-- [ ] **Visual design:** Meets standards (borders, alignment at column 30, 72-char width)
-- [ ] **Footer hint:** References `task -l` for alternative view
-- [ ] **Commands auto-detected:** No hard-coded paths to executables
-- [ ] **Preconditions present:** Tool availability checks with helpful messages
-- [ ] **Cross-platform tested:** Works on macOS and Linux (if applicable)
-
-## Validation
-
-### Success Checks
-- `task --list` executes without errors
-- `task --dry-run <task-name>` shows resolved command paths
-- Tasks execute successfully on multiple platforms (macOS, Linux)
-- Commands auto-detected from PATH (no hard-coded paths)
-- Preconditions trigger with helpful messages when tools missing
-
-### Negative Tests
-- Task fails gracefully with clear message when required tool unavailable
-- Hard-coded paths detected during review (should not exist)
-- Cross-platform validation catches OS-specific issues
-- `task --dry-run` shows variable resolution failures before execution
-
-### Validation Commands
-```bash
-# Syntax validation
-task --list
-
-# Dry-run validation (shows expanded commands)
-task --dry-run default
-task --dry-run quality:lint
-
-# Schema validation (for rule file)
-python3 scripts/schema_validator.py rules/820-taskfile-automation.md
-```
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Read existing Taskfile BEFORE modifying** - Check version, task structure
-> 2. **Verify task dependencies** - Understand current task relationships
-> 3. **Never assume portability** - Check OS-specific requirements
-> 4. **Test error handling** - Verify failures are caught properly
-> 5. **Check variable usage** - Ensure paths are parameterized
->
-> **Anti-Pattern:**
-> "Adding task... (without checking existing task structure)"
-> "Hard-coding path... (should use Taskfile variables)"
->
-> **Correct Pattern:**
-> "Let me check your Taskfile structure first."
-> [reads Taskfile, checks version, reviews tasks]
-> "I see you're using version 3.45. Adding task with proper error handling..."
-
 ## Output Format Examples
 
 ```markdown
@@ -289,35 +258,18 @@ Preview:
 [Show relevant excerpt of updated documentation]
 ```
 
-## References
+## Implementation Details
 
-### External Documentation
-- [Taskfile Documentation](https://taskfile.dev/) - Official Task runner documentation and syntax guide
-- [Taskfile Includes](https://taskfile.dev/usage/#including-other-taskfiles) - Namespacing, `dir`/`taskfile`, `aliases`, `optional`, `flatten`
-- [Taskfile Preconditions](https://taskfile.dev/usage/#preconditions) - Command validation
-- [Taskfile Variables](https://taskfile.dev/usage/#variables) - Dynamic variable resolution
-- [YAML Specification](https://yaml.org/spec/) - YAML syntax reference for Taskfile configuration
-- [Make Documentation](https://www.gnu.org/software/make/manual/) - GNU Make manual for Makefile alternatives
-- [POSIX Shell Scripting](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html) - `command -v` specification
-- [Astral uv Tools Concept](https://docs.astral.sh/uv/concepts/tools/) - `uvx` ephemeral tool execution
-
-### Related Rules
-- **YAML Config**: `202-markup-config-validation.md`
-- **Bash Core**: `300-bash-scripting-core.md`
-- **Python Core**: `200-python-core.md`
-- **Snowflake CLI**: `112-snowflake-snowcli.md` - SnowCLI invocation patterns for Snowflake projects
-- **SQL Automation**: `102a-snowflake-sql-automation.md` - SQL script automation patterns
-
-## 1. Core Principles
+### Core Principles
 - **Requirement:** Prefer a single source of truth for automation (`Taskfile.yml` recommended). Acceptable equivalents: `Makefile`, `npm scripts`, `justfile`.
 - **Requirement:** Do not hard-code commands in docs or scripts if they can be run via the orchestrator.
 - **Always:** Define a `default`/`help` task that explains how to get started.
-- **Guidance:** For Taskfiles with 8+ tasks, implement categorized help output for improved user experience and faster task discovery (see Section 4.2).
+- **Guidance:** For Taskfiles with 8+ tasks, implement categorized help output for improved user experience and faster task discovery.
 - **Requirement:** Ensure tasks are portable and not OS-specific unless explicitly scoped.
 
-## 1.1 Version and Error Handling (CRITICAL)
+### Version and Error Handling (CRITICAL)
 
-### Version Specification
+#### Version Specification
 - **Critical:** Always specify a minimum version in your Taskfile
 - **Recommended:** Use `version: '3.45'` or later (includes built-in UNIX commands)
 - **Avoid:** Generic `version: '3'` without specific minimum version
@@ -332,7 +284,7 @@ version: '3'
 
 **Why:** Version 3.45+ includes built-in UNIX commands and ensures consistent behavior across environments.
 
-### Global Error Handling
+#### Global Error Handling
 - **Critical:** Add `set: [pipefail]` immediately after version declaration
 - **Requirement:** This must be present in every Taskfile (root and included modules)
 - **Effect:** Ensures shell pipelines fail on the first error, preventing cascading failures
@@ -348,7 +300,7 @@ vars:
 
 **Why:** Without `pipefail`, commands in a pipeline can fail silently. For example, `cat missing.txt | grep error` might appear to succeed even if `cat` fails.
 
-### Task-Level Error Handling (Optional)
+#### Task-Level Error Handling (Optional)
 For critical operations, consider explicit error handling:
 
 ```yaml
@@ -368,16 +320,16 @@ tasks:
 - `set -o pipefail`: Fail on any pipeline error
 - `>&2`: Redirect errors to stderr
 
-## 1.2 Command Auto-Detection for Portability (CRITICAL)
+### Command Auto-Detection for Portability (CRITICAL)
 
-### Why Auto-Detection Matters
+#### Why Auto-Detection Matters
 Hard-coded command paths (e.g., `/opt/homebrew/bin/uv`) break portability across:
 - Different OS (macOS vs Linux vs Windows)
 - Different package managers (Homebrew vs apt vs pip)
 - CI/CD environments (GitHub Actions, GitLab CI)
 - Containerized environments (Docker, SPCS)
 
-### Dynamic Variable Patterns
+#### Dynamic Variable Patterns
 
 **Pattern 1: Shell Command Detection (Recommended)**
 ```yaml
@@ -418,14 +370,14 @@ tasks:
       - uvx ruff check .  # Runs ruff in isolated env, no path needed
 ```
 
-### When to Use Each Pattern
+#### When to Use Each Pattern
 
 **Pattern Selection:**
 - **`uvx TOOL`** - One-off tool execution (Excellent portability, slower - creates env)
 - **`command -v` in vars** - Repeated tool use (Good portability, fast - resolved once)
 - **Hard-coded paths** - Never use (except local override) - Breaks portability
 
-### Migration Guide
+#### Migration Guide
 
 **Before (Hard-Coded Paths):**
 ```yaml
@@ -453,15 +405,15 @@ tasks:
       - "{{.UV}} run pytest"
 ```
 
-## 1.3 Ephemeral Tool Execution with `uvx`
+### Ephemeral Tool Execution with `uvx`
 
-### What is `uvx`?
+#### What is `uvx`?
 `uvx` (alias for `uv tool run`) executes Python CLI tools in temporary virtual environments without prior installation. This ensures:
 - **Portability:** No global installation required
 - **Isolation:** Tools don't conflict with project dependencies
 - **Reproducibility:** Same tool version across all environments (when pinned)
 
-### Basic Usage Patterns
+#### Basic Usage Patterns
 
 **Running tools without installation:**
 ```yaml
@@ -493,7 +445,7 @@ tasks:
       - uvx ruff@0.8.0 check .  # Pinned version
 ```
 
-### When to Use `uvx` vs `uv run`
+#### When to Use `uvx` vs `uv run`
 
 **Use `uvx` for:**
 - Project-independent tools (e.g., `uvx ruff check .`)
@@ -503,9 +455,9 @@ tasks:
 - Project dependencies (e.g., `uv run pytest`)
 - Scripts needing project context (e.g., `uv run python scripts/build.py`)
 
-## 1.4 Cross-Platform Task Patterns
+### Cross-Platform Task Patterns
 
-### Platform Detection
+#### Platform Detection
 ```yaml
 vars:
   # Detect operating system
@@ -515,7 +467,7 @@ vars:
     sh: uname -m 2>/dev/null || echo "unknown"
 ```
 
-### Platform-Specific Tasks
+#### Platform-Specific Tasks
 ```yaml
 tasks:
   install:deps:
@@ -535,7 +487,7 @@ tasks:
       - sudo apt-get install -y libpq-dev postgresql
 ```
 
-### Platform Guards
+#### Platform Guards
 ```yaml
 tasks:
   open:coverage:
@@ -551,14 +503,14 @@ tasks:
       - xdg-open htmlcov/index.html
 ```
 
-## 2. Structure and Syntax
+### Structure and Syntax
 - **Requirement:** Give all tasks a clear, descriptive name.
 - **Requirement:** Provide a human-readable description for public tasks.
 - **Requirement:** Define explicit dependencies/ordering.
 - **Requirement:** Specify clear shell commands to execute.
 - **Always:** Use variables to make tasks reusable and reduce repetition.
 
-### Required Variables Pattern
+#### Required Variables Pattern
 
 Use `requires.vars` to enforce mandatory task parameters. Tasks will fail with a clear error if required variables are not provided.
 
@@ -583,7 +535,7 @@ tasks:
 
 **Best Practice:** Include the required variable in the task description (e.g., `"requires DEST="`) for discoverability via `task --list`.
 
-### Task Naming Conventions
+#### Task Naming Conventions
 
 **Requirement:** Use `namespace:action` pattern with colon (`:`) separator for all task names. This provides consistent, predictable task discovery for both humans and AI agents.
 
@@ -602,7 +554,7 @@ tasks:
 - AI agents can discover tasks by namespace pattern
 - Consistent with Taskfile includes namespacing
 
-### Standard Namespace Registry
+#### Standard Namespace Registry
 
 Use these standard namespaces for consistency across projects. Namespaces are listed in order of typical workflow.
 
@@ -677,7 +629,7 @@ Use these standard namespaces for consistency across projects. Namespaces are li
 
 **Project-Specific Namespaces:** Add custom namespaces as needed (e.g., `spcs:`, `snowflake:`, `api:`), but follow the `namespace:action` pattern.
 
-### Naming Anti-Patterns
+#### Naming Anti-Patterns
 
 ```yaml
 # BAD: Hyphen-separated flat names
@@ -700,7 +652,7 @@ tasks:
 
 **User Override:** If a user explicitly requests a different naming convention (e.g., flat names for a simple project), follow their request but maintain consistency throughout the Taskfile.
 
-## 3. YAML Syntax and Shell Safety
+### YAML Syntax and Shell Safety
 - **Critical:** Add `silent: true` to tasks that contain informational echo commands to prevent verbose output showing command execution.
 - **Critical:** Avoid special Unicode characters (bullets, checkmarks, etc.) in echo strings as they can cause YAML parsing errors.
 - **Critical:** **COLON HANDLING:** Avoid colons (`:`) in echo statements as they cause YAML parsing errors. Use alternatives:
@@ -713,7 +665,7 @@ tasks:
 - **Always:** Test YAML syntax with `task --list` immediately after changes.
 - **Always:** Use double quotes for echo strings containing special characters or variables.
 
-### Handling Colons in YAML
+#### Handling Colons in YAML
 
 **Preferred:** Quote strings containing colons or use block scalars.
 
@@ -735,7 +687,7 @@ cmds:
 
 See `202-markup-config-validation.md` for comprehensive YAML quoting guidance.
 
-### Emoji Usage in Terminal Output (Exception to Text-Only Rules)
+#### Emoji Usage in Terminal Output (Exception to Text-Only Rules)
 
 **Allowed:** Emojis in terminal output generated by task commands (echo statements)
 
@@ -762,14 +714,14 @@ tasks:
 - **Echo output to terminal**: Emojis allowed (human-facing display)
 - **Rule files, docs**: Follow `002-rule-governance.md` text-only standards
 
-## 4. Best Practices
+### Best Practices
 - **Requirement:** Keep tasks single-purpose; break complex processes into smaller, composable tasks.
 - **Always:** On changes, validate `Taskfile.yml` via `task --list` or `task --dry-run <task_name>`.
 - **Requirement:** For multi-line commands, use YAML pipe (`|`) or chevron (`>`) for readability.
 - **Always:** Remove unneeded tasks to avoid clutter.
 - **Always:** Use `silent: true` for tasks with multiple echo statements to provide clean user output.
 
-## 4.1 Subtask Files and Includes
+#### Subtask Files and Includes
 - **Requirement:** Organize domain-focused tasks into subtask files under a `task/` directory to keep the root `Taskfile.yml` lean and discoverable. Common domains include `dev`, `db`, `docker`, `ci`, `release`, `docs`.
 - **Requirement:** Use `includes` with explicit namespaces to import subtask files. Prefer directory-based modules with `dir:` pointing to a folder containing `Taskfile.yml`.
 - **Requirement:** Avoid `flatten` unless you intentionally curate a collision-free, public API of tasks. Namespacing is the default and safest pattern.
@@ -817,9 +769,9 @@ When to create a subtask file (use 2+ as a strong signal):
 - You need OS/toolchain-specific variants or optional modules
 - You want to isolate vendor/integration-specific logic
 
-## 4.2 Categorized Help Output for Improved User Experience
+#### Categorized Help Output for Improved User Experience
 
-### Purpose and Benefits
+**Purpose and Benefits**
 For Taskfiles with 8+ tasks, implement a categorized help display in the `default` task to significantly improve task discoverability and user onboarding.
 
 **Benefits:**
@@ -828,7 +780,7 @@ For Taskfiles with 8+ tasks, implement a categorized help display in the `defaul
 - **Better scannability** with visual hierarchy and consistent formatting
 - **Zero breaking changes** - standard `task -l` remains available
 
-### When to Use Categorized Help
+**When to Use Categorized Help**
 
 **Threshold:** 8+ tasks in your Taskfile
 
@@ -843,7 +795,7 @@ For Taskfiles with 8+ tasks, implement a categorized help display in the `defaul
 - All tasks are self-explanatory from names alone
 - Team prefers minimal output
 
-### Visual Design Standards
+**Visual Design Standards**
 
 **Requirement:** Follow these standards for consistent, professional output:
 
@@ -868,7 +820,7 @@ For Taskfiles with 8+ tasks, implement a categorized help display in the `defaul
 - **Rationale**: Improves visual scanning and category recognition
 - **Alternative**: Use text-only category labels if emojis cause display issues
 
-### Standard Category Names
+**Standard Category Names**
 
 Use these universal category names for consistency across projects:
 
@@ -883,7 +835,7 @@ Use these universal category names for consistency across projects:
 - **Cleanup** - Remove generated files, reset environment
 - **Utilities** - Helper commands, status checks, maintenance
 
-### Project-Type Category Templates
+**Project-Type Category Templates**
 
 Adapt these templates to your project type:
 
@@ -935,7 +887,7 @@ Categories:
   - Cleanup (clean:cache, clean:logs)
 ```
 
-### Minimal Working Example
+**Minimal Working Example**
 
 ```yaml
 version: '3.45'
@@ -990,7 +942,7 @@ tasks:
 - **Multiline string (`|`)**: Clean, readable echo statements
 - **Footer hint**: Directs users to `task -l` for alternative view
 
-### Integration with Section 4.1 (Subtask Files)
+**Integration with Subtask Files**
 
 **Complementary Patterns:**
 
@@ -1032,15 +984,15 @@ tasks:
         echo "  task db:seed                Seed test data"
 ```
 
-## 5. Shell Command Guidelines
+### Shell Command Guidelines
 - **Critical:** Quote shell arguments that contain special characters: `uv pip install -e ".[dev]"`
 - **Always:** Use `{{.VARIABLE}}` syntax for Taskfile variables in commands.
 - **Always:** Test shell commands independently before adding to Taskfile.
 - **Requirement:** Use `&&` for command chaining when subsequent commands depend on previous success.
 
-## 6. Common YAML Parsing Issues and Solutions
+### Common YAML Parsing Issues and Solutions
 
-### Colon Problems
+#### Colon Problems
 ```yaml
 # WRONG - Causes "invalid keys in command" error
 cmds:
@@ -1057,7 +1009,7 @@ cmds:
   - echo "Next steps{{":"}} task spcs-setup"
 ```
 
-### Unicode Character Problems
+#### Unicode Character Problems
 ```yaml
 # WRONG - Unicode can cause parsing errors
 cmds:
@@ -1070,13 +1022,13 @@ cmds:
   - echo "- Step 1 complete"
 ```
 
-### Troubleshooting YAML Errors
+#### Troubleshooting YAML Errors
 - **Error:** `invalid keys in command` - Check for unescaped colons in echo statements
 - **Error:** `yaml: line X: mapping values are not allowed` - Check for unquoted special characters
 - **Always:** Run `task --list` after any Taskfile changes to validate syntax
 - **Always:** Use `task --dry <task-name>` to test individual task parsing
 
-### Debugging Command Detection Issues
+#### Debugging Command Detection Issues
 
 **Common Issue: Variable Not Resolving**
 ```yaml
@@ -1126,10 +1078,10 @@ tasks:
       - "{{.UV}} run pytest"
 ```
 
-## 7. Documentation
+### Documentation
 - **Always:** Reference Taskfile docs: https://taskfile.dev/
 
-## 8. Common Taskfile Mistakes and Prevention
+### Common Taskfile Mistakes and Prevention
 - **Mistake:** Using generic `version: '3'` without specifying minimum version.
   - **Prevention:** Always use `version: '3.45'` or later to ensure consistent behavior and built-in command support.
 - **Mistake:** Missing `set: [pipefail]` global error handling.
@@ -1153,9 +1105,9 @@ tasks:
 - **Mistake:** Hard-coding command paths instead of using PATH resolution.
   - **Prevention:** Use `command -v` in vars for dynamic detection; use `uvx` for ephemeral tools (see Section 1.2).
 
-## 9. AI Agent Considerations
+### AI Agent Considerations
 
-### Machine-Readable Task Output
+#### Machine-Readable Task Output
 **Requirement:** When tasks may be consumed by AI agents, provide structured output options.
 
 ```yaml
@@ -1169,7 +1121,7 @@ tasks:
       JSON: '{{.JSON | default ""}}'
 ```
 
-### Predictable Task Discovery
+#### Predictable Task Discovery
 **Requirement:** AI agents rely on `task --list` for discovery. Ensure:
 - All public tasks have `desc:` fields
 - Internal tasks are marked `internal: true`
@@ -1196,7 +1148,7 @@ tasks:
   run-tests:
 ```
 
-### Idempotent Task Design
+#### Idempotent Task Design
 **Requirement:** AI agents may re-run tasks multiple times. Design tasks to be idempotent.
 
 ```yaml
@@ -1211,7 +1163,7 @@ tasks:
       - uv sync
 ```
 
-### Error Messages for Agents
+#### Error Messages for Agents
 **Requirement:** Provide clear, parseable error messages.
 
 ```yaml
@@ -1224,7 +1176,7 @@ tasks:
         msg: "ERROR: uv not installed. Install with: curl -LsSf https://astral.sh/uv/install.sh | sh"
 ```
 
-### Agent-Friendly Output Patterns
+#### Agent-Friendly Output Patterns
 
 **Structured Output for Parsing:**
 ```yaml
@@ -1256,7 +1208,7 @@ tasks:
     # Task runner propagates non-zero exit codes automatically
 ```
 
-### Agent Workflow Integration
+#### Agent Workflow Integration
 
 **Pre-flight Checks:**
 ```yaml

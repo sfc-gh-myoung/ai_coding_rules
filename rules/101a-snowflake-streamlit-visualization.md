@@ -2,32 +2,53 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** st.plotly_chart, st.map, dashboard, interactive charts, map visualization, time series smoothing, data aggregation, create chart, chart types, plotly express, dashboard layout, chart configuration, streamlit plotting, chart customization
-**TokenBudget:** ~3600
+**TokenBudget:** ~5900
 **ContextTier:** High
 **Depends:** 101-snowflake-streamlit-core.md, 940-business-analytics.md
+**LastUpdated:** 2025-12-22
 
-## Purpose
-Provide comprehensive guidance for data visualization in Streamlit using Plotly as the universal standard for charts, graphs, and maps, with integration patterns for analytics dashboards and ML insights.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive data visualization in Streamlit using Plotly as the universal standard for charts, graphs, and maps, with integration patterns for analytics dashboards and ML insights.
 
-Streamlit data visualization using Plotly, chart configuration, map rendering, dashboard integration
+**When to Load This Rule:**
+- Creating charts and graphs in Streamlit
+- Building interactive dashboards
+- Implementing map visualizations
+- Configuring Plotly charts for Streamlit
+- Visualizing time series data
+- Creating business analytics dashboards
+- Rendering data aggregations visually
 
-## Quick Start TL;DR
+## References
 
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
+### Dependencies
 
-Position at top provides practical efficiency benefits for both LLMs and human developers.
+**Must Load First:**
+- **000-global-core.md** - Foundation rule with core patterns and validation gates
+- **101-snowflake-streamlit-core.md** - Streamlit core patterns and navigation
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Use Plotly for ALL visualizations** - charts, graphs, and maps (never PyDeck)
+**Recommended:**
+- **940-business-analytics.md** - Business analytics patterns and metrics
+
+**Related:**
+- **100-snowflake-core.md** - Snowflake SQL for data preparation
+- **103-snowflake-performance-tuning.md** - Query optimization for visualization
+
+### External Documentation
+
+**Official Documentation:**
+- [Streamlit Plotly Chart](https://docs.streamlit.io/develop/api-reference/charts/st.plotly_chart) - st.plotly_chart() reference
+- [Plotly Express](https://plotly.com/python/plotly-express/) - High-level plotting API
+- [Plotly Python](https://plotly.com/python/) - Complete Plotly documentation
+
+**Best Practices Guides:**
+- [Streamlit Dashboard Examples](https://streamlit.io/gallery) - Dashboard inspiration
+- [Plotly Chart Types](https://plotly.com/python/basic-charts/) - Chart selection guide
 - **Responsive display:** `st.plotly_chart(fig, use_container_width=True)` always
 - **Clear labeling:** Title, axis labels, legends on every chart
 - **Plotly Express first:** Use `plotly.express` for standard charts (simpler API)
@@ -45,45 +66,139 @@ Position at top provides practical efficiency benefits for both LLMs and human d
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-Streamlit app configured (see 101-snowflake-streamlit-core.md), Plotly installed, pandas/polars for data manipulation
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-plotly.express (px), plotly.graph_objects (go), st.plotly_chart(), use_container_width=True, Plotly map functions (scatter_mapbox, choropleth_mapbox, line_mapbox, density_mapbox)
-</mandatory>
+- Streamlit 1.46+ with Plotly installed
+- 101-snowflake-streamlit-core.md patterns established
+- Data prepared in pandas DataFrame
+- Chart requirements identified
 
-<forbidden>
-PyDeck (SiS compatibility issues), custom visualization libraries without justification, JavaScript charting libraries requiring st.components, static charts when interactivity would improve UX
-</forbidden>
+### Mandatory
 
-<steps>
-1. Use Plotly for ALL visualizations (charts, graphs, maps)
-2. Configure charts with clear titles, axis labels, and legends
-3. Use st.plotly_chart(fig, use_container_width=True) for responsive display
-4. Implement error handling for missing or invalid data
-5. Choose colorblind-safe palettes (reference 940-business-analytics.md)
-6. For dashboard patterns, reference 500/700 specialized rules
-</steps>
+- **Use Plotly for ALL visualizations** - charts, graphs, and maps (never PyDeck)
+- **st.plotly_chart()** - Standard method for rendering Plotly figures
+- **plotly.express** - Use for quick, high-level charts
+- **Responsive design** - Charts adapt to container width
+- **Clear axis labels** - Always label x/y axes and provide titles
+- **Consistent theming** - Match Streamlit theme from config.toml
 
-<output_format>
-Interactive Plotly visualizations with proper labeling, responsive sizing, error handling
-</output_format>
+### Forbidden
 
-<validation>
-Test chart interactivity (zoom, pan, hover), verify responsive display, validate color accessibility, check error handling with invalid data
-</validation>
+- PyDeck for maps (use Plotly maps instead)
+- Matplotlib or other plotting libraries (Plotly only)
+- Hardcoded chart dimensions (use `use_container_width=True`)
+- Missing axis labels or titles
+- Inconsistent color schemes across dashboard
 
-<design_principles>
-- **Plotly Universal:** Use Plotly for all visualization types (consistent API, works in SiS and SPCS)
-- **Interactivity First:** Leverage Plotly's interactive features (hover, zoom, pan)
-- **Responsive Design:** Always use use_container_width=True for adaptive layouts
-- **Accessibility:** Choose colorblind-safe palettes and clear labels
-- **Cross-Reference:** Use specialized rules (500/700) for advanced patterns
-</design_principles>
+### Execution Steps
 
-</contract>
+1. Prepare data in pandas DataFrame
+2. Choose appropriate Plotly chart type (bar, line, scatter, map, etc.)
+3. Create chart using plotly.express or plotly.graph_objects
+4. Configure chart layout (titles, labels, colors)
+5. Render with st.plotly_chart(fig, use_container_width=True)
+6. Test responsiveness and interactivity
+
+### Output Format
+
+```python
+import streamlit as st
+import plotly.express as px
+import pandas as pd
+
+# Prepare data
+df = pd.DataFrame({
+    'x': [1, 2, 3, 4, 5],
+    'y': [10, 15, 13, 17, 20],
+    'category': ['A', 'B', 'A', 'B', 'A']
+})
+
+# Create chart
+fig = px.line(
+    df,
+    x='x',
+    y='y',
+    color='category',
+    title='Sample Time Series',
+    labels={'x': 'Time Period', 'y': 'Value'}
+)
+
+# Render in Streamlit
+st.plotly_chart(fig, use_container_width=True)
+```
+
+### Validation
+
+**Pre-Task-Completion Validation Gate (CRITICAL):**
+
+Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
+
+**Code Quality:**
+- **CRITICAL:** All visualizations use Plotly (no PyDeck, Matplotlib, etc.)
+- **CRITICAL:** Charts rendered with st.plotly_chart()
+- **CRITICAL:** `use_container_width=True` for responsive design
+- **Format Check:** All charts have titles and axis labels
+- **Format Check:** Consistent color scheme across dashboard
+
+**Functionality:**
+- **CRITICAL:** Charts display correctly and are interactive
+- **CRITICAL:** Charts responsive to container width
+- **Data Quality:** Data properly prepared in pandas DataFrame
+- **Performance:** Charts render quickly without lag
+
+**Success Criteria:**
+- All charts use Plotly
+- Charts are responsive and interactive
+- Consistent theming across dashboard
+- Clear labels and titles
+- No errors in console
+
+**Investigation Required:**
+1. **Review existing dashboard** to understand current chart patterns
+2. **Check data preparation** to ensure DataFrame is correctly formatted
+3. **Verify Plotly version** for compatibility with features
+4. **Test responsiveness** on different screen sizes
+
+**Anti-Pattern Examples:**
+- Using PyDeck for maps
+- Missing `use_container_width=True`
+- Hardcoded chart dimensions
+- Inconsistent colors across charts
+
+**Correct Pattern:**
+- "Let me check your existing dashboard and data first."
+- [reviews existing charts, checks DataFrame structure]
+- "I see you're using Plotly. Here's the new chart following the same pattern..."
+- [implements with proper labels, responsive sizing, theme consistency]
+
+### Design Principles
+
+- **Plotly Universal:** Use Plotly for all visualization types
+- **Responsive First:** Always use `use_container_width=True`
+- **Clear Communication:** Label axes, provide titles, add context
+- **Consistent Theming:** Match Streamlit theme from config.toml
+- **Interactive by Default:** Leverage Plotly's built-in interactivity
+- **Performance Conscious:** Optimize data preparation, limit chart complexity
+
+### Post-Execution Checklist
+
+**Before Starting:**
+- [ ] Rule dependencies loaded (000-global-core.md, 101-snowflake-streamlit-core.md)
+- [ ] Plotly installed
+- [ ] Existing dashboard patterns reviewed
+- [ ] Data prepared in DataFrame
+
+**After Completion:**
+- [ ] **CRITICAL:** All visualizations use Plotly
+- [ ] **CRITICAL:** Charts rendered with st.plotly_chart()
+- [ ] **CRITICAL:** `use_container_width=True` for responsiveness
+- [ ] All charts have titles and axis labels
+- [ ] Consistent color scheme across dashboard
+- [ ] Charts are interactive
+- [ ] Charts display correctly on different screen sizes
+- [ ] No console errors
+- [ ] CHANGELOG.md and README.md updated as required
+
 
 ## Anti-Patterns and Common Mistakes
 
@@ -204,105 +319,7 @@ for timestamp in failure_timestamps:
 
 **Note:** For comprehensive datetime handling guidance including type conversions, timezone management, and date arithmetic, see `251-python-datetime-handling.md`.
 
-## Post-Execution Checklist
-- [ ] Plotly used for ALL visualizations (no PyDeck, custom libraries without justification)
-- [ ] All charts use st.plotly_chart(fig, use_container_width=True) for responsive display
-- [ ] Charts have clear titles, axis labels, and legends
-- [ ] Maps have error handling for invalid coordinates
-- [ ] Colorblind-safe palettes used (reference 940-business-analytics.md)
-- [ ] Datetime columns normalized to tz-naive datetime64[ns] before charting
-- [ ] Datetime comparisons use ensure_python_datetime() helper for Pandas 2.0+ compatibility
-- [ ] Vline/annotation rendering wrapped in try-except with st.warning() for environment compatibility
-- [ ] High-frequency time series data (e.g., 15-min intervals) offers aggregation controls
-- [ ] User controls for aggregation level and method provided for noisy datasets
-- [ ] Dashboard patterns reference 500/700 rules (no content duplication)
-- [ ] Chart interactivity tested (zoom, pan, hover tooltips)
-- [ ] Visualizations tested with production-like data volumes
-
-## Validation
-- **Success Checks:** Charts render correctly, interactive features work (zoom, pan, hover), responsive display on mobile/desktop, maps handle invalid coordinates gracefully, colors are accessible
-- **Negative Tests:** Test with empty dataframe (should show helpful message), test with invalid coordinates (should filter or warn), test with very large datasets (should aggregate first), verify PyDeck doesn't work in SiS deployment
-
-> **Investigation Required**
-> When applying this rule:
-> 1. Read visualization code BEFORE making recommendations
-> 2. Verify Plotly is installed and version is compatible
-> 3. Check actual data structure and coordinate validity
-> 4. Never speculate about chart configurations - inspect the code
-> 5. Verify deployment mode (SiS vs SPCS) for library compatibility
-> 6. Check if dashboard follows patterns from 500/700 rules
-
-## Output Format Examples
-```python
-import plotly.express as px
-import streamlit as st
-
-# Load and prepare data
-df = load_data()
-df.columns = [col.lower() for col in df.columns]  # Normalize column names
-
-# Create interactive chart
-fig = px.line(
-    df,
-    x='date',
-    y='value',
-    color='category',
-    title='Time Series Analysis',
-    labels={'value': 'Metric Value', 'date': 'Date'},
-    hover_data=['additional_info']
-)
-
-# Display with responsive sizing
-st.plotly_chart(fig, use_container_width=True)
-
-# Map visualization with error handling
-df_valid = df.dropna(subset=['latitude', 'longitude'])
-if len(df_valid) > 0:
-    fig_map = px.scatter_mapbox(
-        df_valid,
-        lat='latitude',
-        lon='longitude',
-        color='status',
-        zoom=10,
-        height=600
-    )
-    fig_map.update_layout(mapbox_style="open-street-map")
-    st.plotly_chart(fig_map, use_container_width=True)
-else:
-    st.warning("No valid coordinates to display")
-```
-
-## References
-
-### External Documentation
-
-**Plotly Documentation:**
-- [Plotly Python Documentation](https://plotly.com/python/) - Official Plotly Python graphing library documentation
-- [Plotly Express API](https://plotly.com/python-api-reference/plotly.express.html) - Plotly Express high-level API reference
-- [Plotly Maps](https://plotly.com/python/maps/) - Comprehensive guide to maps in Plotly
-- [Plotly Mapbox Layers](https://plotly.com/python/mapbox-layers/) - Mapbox choropleth and scatter maps
-- [Plotly Geo Maps](https://plotly.com/python/map-configuration/) - Map configuration and styling guide
-
-**Streamlit Visualization:**
-- [Streamlit Chart Elements](https://docs.streamlit.io/develop/api-reference/charts) - Native Streamlit chart components
-- [st.plotly_chart](https://docs.streamlit.io/develop/api-reference/charts/st.plotly_chart) - Plotly chart display in Streamlit
-
-### Related Rules
-- **Streamlit Core**: `101-snowflake-streamlit-core.md`
-- **Streamlit Performance**: `101b-snowflake-streamlit-performance.md` (caching for large datasets)
-- **DateTime Handling**: `251-python-datetime-handling.md` (comprehensive datetime guidance for Plotly)
-- **Pandas Best Practices**: `252-pandas-best-practices.md` (DataFrame optimization before visualization)
-- **Data Science Analytics**: `920-data-science-analytics.md` (ML visualization, large dataset optimization)
-- **Business Analytics**: `940-business-analytics.md` (dashboard design, chart type selection, accessibility)
-
-> **[AI] Claude 4 Specific Guidance**
-> **Claude 4 Streamlit Visualization Optimizations:**
-> - Parallel chart generation: Can analyze multiple visualization patterns simultaneously
-> - Context awareness: Efficiently cross-reference dashboard patterns from 500/700 rules
-> - Investigation-first: Excel at discovering existing chart configurations and data structures
-> - Pattern recognition: Quickly identify visualization anti-patterns (e.g., PyDeck in SiS)
-
-## 1. Visualization Philosophy
+## Visualization Philosophy
 
 **MANDATORY:**
 **Primary Library: Plotly (Universal Standard)**
@@ -331,7 +348,7 @@ else:
 - **Requirement:** Document specific technical limitation preventing Plotly use
 - **Always:** Verify SiS/SPCS compatibility before using fallback libraries
 
-## 2. Plotly for Charts
+## Plotly for Charts
 
 **MANDATORY:**
 - **Requirement:** Use Plotly Express (`plotly.express`) for most chart types (interactive, performant, works in both SiS and SPCS)
@@ -418,7 +435,7 @@ fig = px.box(df, x='category', y='value', title='Value Distribution')
 fig = px.imshow(correlation_matrix, title='Correlation Matrix')
 ```
 
-## 3. Plotly for Maps
+## Plotly for Maps
 
 **MANDATORY:**
 - **Requirement:** Use Plotly for all geospatial visualizations (consistent API, works seamlessly in both SiS and SPCS)
@@ -514,7 +531,7 @@ st.plotly_chart(fig, use_container_width=True)
 - `"stamen-terrain"` - Terrain visualization
 - `"mapbox://styles/..."` - Custom Mapbox styles (requires token)
 
-## 4. Dashboard Integration Patterns
+## Dashboard Integration Patterns
 
 **For comprehensive visualization and dashboard design, reference specialized rules:**
 
@@ -573,7 +590,7 @@ st.plotly_chart(fig, use_container_width=True)
 - **Uncertainty:** Confidence intervals, prediction bands, error bars
 - **SHAP values:** Summary plots, force plots, dependence plots
 
-## 5. Time Series Data Smoothing
+## Time Series Data Smoothing
 
 **RECOMMENDED:**
 **When to Apply Smoothing:**

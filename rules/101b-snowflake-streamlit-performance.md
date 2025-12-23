@@ -2,104 +2,154 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
-**Keywords:** @st.cache_data, @st.cache_resource, SQL error handling, st.error, SnowparkSQLException, st.fragment, NULL handling, slow streamlit, streamlit caching, optimize streamlit, fix slow queries, fragment batch processing
-**TokenBudget:** ~5950
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**Keywords:** @st.cache_data, @st.cache_resource, st.fragment, NULL handling, slow streamlit, streamlit caching, optimize streamlit, fix slow queries, fragment batch processing
+**TokenBudget:** ~7950
 **ContextTier:** High
 **Depends:** 101-snowflake-streamlit-core.md, 103-snowflake-performance-tuning.md
+**LastUpdated:** 2025-12-22
 
-## Purpose
-Provide comprehensive guidance for optimizing Streamlit application performance through caching strategies, efficient data loading from Snowflake, SQL error handling with detailed debugging information, progress indicators, and performance profiling.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive guidance for optimizing Streamlit application performance through caching strategies (@st.cache_data, @st.cache_resource), efficient data loading from Snowflake with column normalization, progress indicators (st.spinner, st.progress, fragments), and performance profiling targeting <2s load times. For detailed SQL error handling patterns, see 101e-snowflake-streamlit-sql-errors.md.
 
-Streamlit performance optimization, caching patterns, Snowflake data loading, SQL error handling and debugging, progress indicators
+**When to Load This Rule:**
+- Optimizing slow Streamlit applications
+- Implementing caching strategies for database queries
+- Adding progress indicators for long operations
+- Fixing KeyError issues from Snowflake column names
+- Resolving query loop performance problems
+- Profiling and targeting <2s load time
+- For SQL error handling, load 101e-snowflake-streamlit-sql-errors.md
 
-**Progressive Disclosure - Token Budget:**
-- Quick Start + Contract: ~500 tokens (always load for performance tasks)
-- + Caching Strategies (section 1): ~1200 tokens (load for caching issues)
-- + Data Loading & Error Handling (sections 2-3): ~2100 tokens (load for data/SQL issues)
-- + Complete Reference: ~3800 tokens (full performance guide)
+## References
 
-**Recommended Loading Strategy:**
-- **Quick performance check**: Quick Start only
-- **Caching problems**: + Caching Strategies
-- **Data/SQL issues**: + Data Loading & Error Handling
-- **Complete optimization**: Full reference
+### Dependencies
 
-## Quick Start TL;DR
+**Must Load First:**
+- **000-global-core.md** - Foundation rule with core patterns and validation gates
+- **101-snowflake-streamlit-core.md** - Core Streamlit patterns and session management
+- **103-snowflake-performance-tuning.md** - Snowflake query optimization
 
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
+**Related:**
+- **101e-snowflake-streamlit-sql-errors.md** - Comprehensive SQL error handling patterns
+- **101a-snowflake-streamlit-visualization.md** - Chart/visualization performance
+- **101c-snowflake-streamlit-security.md** - Secure caching patterns
+- **105-snowflake-cost-governance.md** - Cost monitoring for cached queries
+- **111-snowflake-observability-core.md** - Query profiling and monitoring
+- **119-snowflake-warehouse-management.md** - Warehouse sizing for query performance
+- **251-python-datetime-handling.md** - Datetime optimization for time series
+- **252-pandas-best-practices.md** - DataFrame optimization and caching
 
-Position at top provides practical efficiency benefits for both LLMs and human developers.
+### External Documentation
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Cache database queries:** `@st.cache_data(ttl=300)` for query results
-- **Cache connections:** `@st.cache_resource` for database connections/expensive objects
-- **Normalize columns immediately:** `df.columns = df.columns.str.lower()` after Snowflake fetch
-- **Wrap SQL in try/except:** Use `st.error()` with specific query name, full error message, table names, and error code
-- **Show progress:** Use `st.spinner()` for ops >2s, `st.progress()+st.status()` for >5s
-- **Fetch once:** Aggregate in SQL, avoid query loops (use WHERE, GROUP BY, LIMIT)
-- **Target <2s load time:** Profile with Chrome DevTools, optimize slowest queries
-- **Never run query loops** - fetch all data at once with aggregation
+**Streamlit Performance:**
+- [Streamlit Caching](https://docs.streamlit.io/develop/concepts/architecture/caching) - Comprehensive caching guide
+- [st.cache_data](https://docs.streamlit.io/develop/api-reference/caching-and-state/st.cache_data) - Cache data and dataframes
+- [st.cache_resource](https://docs.streamlit.io/develop/api-reference/caching-and-state/st.cache_resource) - Cache connections and resources
+- [Optimize Performance](https://docs.streamlit.io/develop/concepts/architecture/app-design) - Performance optimization patterns
+- [st.fragment](https://docs.streamlit.io/develop/api-reference/execution-flow/st.fragment) - Fragment API for scoped reruns
 
-**Quick Checklist:**
-- [ ] Add `@st.cache_data(ttl=...)` to query functions
-- [ ] Add `@st.cache_resource` to connection functions
-- [ ] Normalize column names: `df.columns = df.columns.str.lower()`
-- [ ] Wrap all SQL queries in try/except with SnowparkSQLException
-- [ ] Error messages show query name, full error, table name, and error code
-- [ ] Add progress indicators for operations >2 seconds
-- [ ] Verify queries use WHERE/LIMIT clauses
-- [ ] Test cache behavior with different inputs
-- [ ] Test SQL error handling with invalid query
-- [ ] Measure load time (<2s target)
+**Progress Indicators:**
+- [st.spinner](https://docs.streamlit.io/develop/api-reference/status/st.spinner) - Simple loading spinner
+- [st.progress](https://docs.streamlit.io/develop/api-reference/status/st.progress) - Progress bar for long operations
+- [st.status](https://docs.streamlit.io/develop/api-reference/status/st.status) - Detailed status updates
+
+**Snowflake Performance:**
+- [Snowflake Query Profile](https://docs.snowflake.com/en/user-guide/ui-query-profile) - Query performance analysis
+- [Snowpark Python](https://docs.snowflake.com/en/developer-guide/snowpark/python/index) - Snowpark for Python documentation
+
+### Related Rules
+
+**Closely Related** (consider loading together):
+- **101-snowflake-streamlit-core.md** - fundamental Streamlit patterns and session management
+- **101e-snowflake-streamlit-sql-errors.md** - comprehensive SQL error handling patterns (extracted from this rule)
+- **103-snowflake-performance-tuning.md** - optimizing underlying Snowflake queries
+
+**Sometimes Related** (load if specific scenario):
+- **101a-snowflake-streamlit-visualization.md** - optimizing chart/visualization performance
+- **101c-snowflake-streamlit-security.md** - implementing secure caching patterns
+- **111-snowflake-observability-core.md** - adding query profiling and monitoring
+
+**Complementary** (different aspects of same domain):
+- **119-snowflake-warehouse-management.md** - warehouse sizing affecting query performance
+- **105-snowflake-cost-governance.md** - monitoring costs of cached query executions
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
+### Inputs and Prerequisites
+
 Streamlit app configured (see 101-snowflake-streamlit-core.md), Snowflake connection established, pandas/polars for data manipulation
-</inputs_prereqs>
 
-<mandatory>
+### Mandatory
+
 @st.cache_data, @st.cache_resource, st.spinner(), st.progress(), st.status(), Snowflake session.table(), session.sql()
-</mandatory>
 
-<forbidden>
-Raw SQL loops without aggregation, redundant database connections, unoptimized queries without LIMIT or WHERE clauses, operations without user feedback
-</forbidden>
+### Forbidden
 
-<steps>
+- Raw SQL loops without aggregation
+- Redundant database connections
+- Unoptimized queries without LIMIT or WHERE clauses
+- Operations without user feedback (>2s without spinner)
+
+### Execution Steps
+
 1. Cache database queries with @st.cache_data and appropriate ttl
 2. Cache connections and expensive objects with @st.cache_resource
 3. Normalize Snowflake column names to lowercase immediately after loading
-4. Wrap all SQL queries in try/except blocks with detailed error messages using st.error()
-5. Show user feedback for operations >2s (st.spinner) or >5s (st.progress + st.status)
-6. Avoid raw database query loops; fetch all needed data at once
-7. Profile performance and target <2s load time
-</steps>
+4. Show user feedback for operations >2s (st.spinner) or >5s (st.progress + st.status)
+5. Avoid raw database query loops; fetch all needed data at once
+6. Profile performance and target <2s load time
+7. For SQL error handling, apply patterns from 101e-snowflake-streamlit-sql-errors.md
 
-<output_format>
-Optimized Streamlit app with <2s initial load, cached data operations, normalized column names, comprehensive SQL error handling with red st.error() boxes, appropriate progress indicators
-</output_format>
+### Output Format
 
-<validation>
-Test cache behavior, verify column name normalization, test SQL error handling with invalid queries, measure load time, validate progress indicators show for long operations
-</validation>
+Optimized Streamlit app with <2s initial load, cached data operations, normalized column names, appropriate progress indicators. For SQL error handling output, see 101e-snowflake-streamlit-sql-errors.md.
 
-<design_principles>
+### Validation
+
+**Test Requirements:**
+- Test cache behavior with different inputs
+- Verify column name normalization (lowercase after Snowflake fetch)
+- Measure load time (<2s target)
+- Validate progress indicators show for long operations
+- For SQL error testing, see 101e-snowflake-streamlit-sql-errors.md
+
+**Success Criteria:**
+- Cache hits on subsequent loads
+- Column names lowercase after normalization
+- Progress indicators show for slow operations
+- Initial load <2s
+- No database query loops
+- Error messages identify specific query that failed
+
+**Negative Tests:**
+- Clear cache and verify data reloads
+- Test column access with lowercase (should work)
+- Test with production data volume
+- For SQL error negative tests, see 101e-snowflake-streamlit-sql-errors.md
+
+> **Investigation Required**
+> When applying this rule:
+> 1. Read data loading code BEFORE making recommendations
+> 2. Verify @st.cache_data and @st.cache_resource usage
+> 3. Check if column names are normalized after Snowflake queries
+> 4. Never speculate about cache behavior - inspect the decorators and ttl values
+> 5. Verify Snowflake connection patterns (should be cached)
+> 6. Check for query loops that should be replaced with single aggregated query
+> 7. For SQL error handling investigation, see 101e-snowflake-streamlit-sql-errors.md
+
+### Design Principles
+
 - **Cache Aggressively:** Use @st.cache_data for queries, @st.cache_resource for connections
 - **Normalize Early:** Convert Snowflake UPPERCASE column names to lowercase immediately
-- **Error Visibility:** Wrap all SQL queries in try/except with detailed st.error() messages showing which query failed and why
 - **Fetch Once:** Avoid query loops; aggregate in SQL and fetch once
 - **User Feedback:** Show progress for operations >2 seconds
 - **Profile Always:** Target <2s load time, measure and optimize
+- **Error Handling:** For SQL error patterns, see 101e-snowflake-streamlit-sql-errors.md
+
 > **Investigation Required**
 > When optimizing Streamlit performance:
 > 1. Profile the application first - use Chrome DevTools or st.profiler to identify actual bottlenecks
@@ -118,9 +168,28 @@ Test cache behavior, verify column name normalization, test SQL error handling w
 > "The load_dashboard_data() function takes 4.2s. Let me check the Snowflake query history."
 > [checks QUERY_HISTORY]
 > "The query itself runs in 0.3s, so the issue is likely in data processing. Let me add caching."
-</design_principles>
 
-</contract>
+### Post-Execution Checklist
+
+- [ ] @st.cache_data used for all database queries with appropriate ttl
+      Verify: Search code for "session.sql" without @st.cache_data decorator
+- [ ] @st.cache_resource used for connections and expensive objects
+      Verify: Check connection/session creation functions have @st.cache_resource
+- [ ] Snowflake column names normalized to lowercase immediately after loading
+      Verify: Check for ".columns = " or ".columns.str.lower()" after each .to_pandas()
+- [ ] Progress indicators shown for operations >2 seconds
+      Verify: Profile with Chrome DevTools; check slow operations have st.spinner/st.progress
+- [ ] No raw SQL loops; data aggregated in SQL and fetched once
+      Verify: Search for "session.sql" inside "for" loops or list comprehensions
+- [ ] Initial load time <2 seconds with cached data
+      Verify: Profile with Chrome DevTools Network tab; check initial page load time
+- [ ] All data loader functions have column normalization
+      Verify: Check each function with .to_pandas() includes column normalization
+- [ ] For SQL error handling checklist, see 101e-snowflake-streamlit-sql-errors.md
+- [ ] Cache behavior tested (verify data refreshes after ttl)
+      Verify: Wait for TTL expiry + refresh page; check data updates
+- [ ] SQL error handling tested with invalid query
+      Verify: Temporarily break query (invalid table name); check st.error() appears
 
 ## Anti-Patterns and Common Mistakes
 
@@ -203,51 +272,14 @@ session1 = get_connection()
 session2 = get_connection()  # Same session object
 ```
 
-## Post-Execution Checklist
-- [ ] @st.cache_data used for all database queries with appropriate ttl
-      Verify: Search code for "session.sql" without @st.cache_data decorator
-- [ ] @st.cache_resource used for connections and expensive objects
-      Verify: Check connection/session creation functions have @st.cache_resource
-- [ ] Snowflake column names normalized to lowercase immediately after loading
-      Verify: Check for ".columns = " or ".columns.str.lower()" after each .to_pandas()
-- [ ] All SQL queries wrapped in try/except with SnowparkSQLException
-      Verify: Search for "session.sql" without surrounding try/except block
-- [ ] Error messages use st.error() and show query name, full error, table, and error code
-      Verify: Check st.error() calls include query name and table name
-- [ ] Progress indicators shown for operations >2 seconds
-      Verify: Profile with Chrome DevTools; check slow operations have st.spinner/st.progress
-- [ ] No raw SQL loops; data aggregated in SQL and fetched once
-      Verify: Search for "session.sql" inside "for" loops or list comprehensions
-- [ ] Initial load time <2 seconds with cached data
-      Verify: Profile with Chrome DevTools Network tab; check initial page load time
-- [ ] All data loader functions have column normalization
-      Verify: Check each function with .to_pandas() includes column normalization
-- [ ] Cache behavior tested (verify data refreshes after ttl)
-      Verify: Wait for TTL expiry + refresh page; check data updates
-- [ ] SQL error handling tested with invalid query
-      Verify: Temporarily break query (invalid table name); check st.error() appears
-
-## Validation
-- **Success Checks:** Cache hits on subsequent loads, column names lowercase after normalization, SQL errors display red st.error() boxes with full context, progress indicators show for slow operations, initial load <2s, no database query loops, error messages identify specific query that failed
-- **Negative Tests:** Clear cache and verify data reloads, test column access with lowercase (should work), test with invalid table name (should show detailed error), test with missing column (should show SQL error with code), remove progress indicator and verify user sees feedback gap, test with production data volume
-
-> **Investigation Required**
-> When applying this rule:
-> 1. Read data loading code BEFORE making recommendations
-> 2. Verify @st.cache_data and @st.cache_resource usage
-> 3. Check if column names are normalized after Snowflake queries
-> 4. Check if SQL queries have try/except blocks with detailed error messages
-> 5. Verify error messages use st.error() and include query name, full error, table, and error code
-> 6. Never speculate about cache behavior - inspect the decorators and ttl values
-> 7. Verify Snowflake connection patterns (should be cached)
-> 8. Check for query loops that should be replaced with single aggregated query
-
 ## Output Format Examples
+
+### Caching Pattern with Column Normalization
+
 ```python
 import streamlit as st
 import pandas as pd
 from snowflake.snowpark import Session
-from snowflake.snowpark.exceptions import SnowparkSQLException
 
 @st.cache_resource
 def get_snowflake_session() -> Session:
@@ -257,49 +289,30 @@ def get_snowflake_session() -> Session:
 @st.cache_data(ttl=600)
 def load_data() -> pd.DataFrame:
     """
-    Load data from Snowflake with caching and comprehensive error handling.
+    Load data from Snowflake with caching.
+    For SQL error handling, see 101e-snowflake-streamlit-sql-errors.md.
 
     Returns:
         DataFrame with lowercase column names
     """
-    try:
-        session = get_snowflake_session()
+    session = get_snowflake_session()
 
-        with st.spinner("Loading data from Snowflake..."):
-            query = """
-            SELECT
-                region,
-                product,
-                SUM(amount) as total_amount
-            FROM sales
-            WHERE order_date >= DATEADD(day, -90, CURRENT_DATE())
-            GROUP BY region, product
-            """
-            df = session.sql(query).to_pandas()
+    with st.spinner("Loading data from Snowflake..."):
+        query = """
+        SELECT
+            region,
+            product,
+            SUM(amount) as total_amount
+        FROM sales
+        WHERE order_date >= DATEADD(day, -90, CURRENT_DATE())
+        GROUP BY region, product
+        """
+        df = session.sql(query).to_pandas()
 
-            # CRITICAL: Normalize column names
-            df.columns = [col.lower() for col in df.columns]
+        # CRITICAL: Normalize column names
+        df.columns = [col.lower() for col in df.columns]
 
-        return df
-
-    except SnowparkSQLException as e:
-        st.error(f"""
-        **SQL Query Failed: load_data()**
-
-        **Error:** {str(e)}
-        **SQL Error Code:** {e.error_code if hasattr(e, 'error_code') else 'N/A'}
-
-        **Query Context:**
-        - Table: sales
-        - Operation: Loading sales data (last 90 days, aggregated by region/product)
-
-        **Common Causes:**
-        - Table 'sales' does not exist
-        - Missing columns: region, product, amount, order_date
-        - Insufficient SELECT permission on sales table
-        - Invalid date function syntax
-        """)
-        st.stop()
+    return df
 
     except Exception as e:
         st.error(f"""
@@ -319,40 +332,6 @@ st.success(f"Loaded {len(df):,} records")
 # Access with lowercase column names
 st.dataframe(df[['region', 'product', 'total_amount']])
 ```
-
-## References
-
-### External Documentation
-
-**Streamlit Performance:**
-- [Streamlit Caching](https://docs.streamlit.io/develop/concepts/architecture/caching) - Comprehensive caching guide
-- [st.cache_data](https://docs.streamlit.io/develop/api-reference/caching-and-state/st.cache_data) - Cache data and dataframes
-- [st.cache_resource](https://docs.streamlit.io/develop/api-reference/caching-and-state/st.cache_resource) - Cache connections and resources
-- [Optimize Performance](https://docs.streamlit.io/develop/concepts/architecture/app-design) - Performance optimization patterns
-
-**Progress Indicators:**
-- [st.spinner](https://docs.streamlit.io/develop/api-reference/status/st.spinner) - Simple loading spinner
-- [st.progress](https://docs.streamlit.io/develop/api-reference/status/st.progress) - Progress bar for long operations
-- [st.status](https://docs.streamlit.io/develop/api-reference/status/st.status) - Detailed status updates
-
-**Snowflake Performance:**
-- [Snowflake Query Profile](https://docs.snowflake.com/en/user-guide/ui-query-profile) - Query performance analysis
-- [Snowpark Python](https://docs.snowflake.com/en/developer-guide/snowpark/python/index) - Snowpark for Python documentation
-
-### Related Rules
-- **Streamlit Core**: `101-snowflake-streamlit-core.md`
-- **Snowflake Core**: `100-snowflake-core.md`
-- **Snowflake Performance Tuning**: `103-snowflake-performance-tuning.md`
-- **Snowflake Cost Governance**: `105-snowflake-cost-governance.md`
-- **DateTime Handling**: `251-python-datetime-handling.md` (datetime optimization for time series)
-- **Pandas Best Practices**: `252-pandas-best-practices.md` (DataFrame optimization and caching patterns)
-
-> **[AI] Claude 4 Specific Guidance**
-> **Claude 4 Streamlit Performance Optimizations:**
-> - Parallel code analysis: Can review multiple data loader functions simultaneously for caching patterns
-> - Context awareness: Efficiently track cache usage patterns across multiple files
-> - Investigation-first: Excel at discovering missing @st.cache_data decorators and column normalization issues
-> - Pattern recognition: Quickly identify query loops that should be replaced with aggregated queries
 
 ## Implementation Details
 
@@ -388,7 +367,7 @@ st.dataframe(df[['region', 'product', 'total_amount']])
 - **Correct approach**: Use SQL WHERE, GROUP BY, JOIN to aggregate before fetching; see Section 5
 - **Detection**: Search for "session.sql" inside loops or list comprehensions
 
-## 1. Caching Strategies
+## Caching Strategies
 
 **MANDATORY:**
 **Cache database queries and data fetches with @st.cache_data:**
@@ -489,7 +468,7 @@ for _, row in metrics_df.iterrows():
 - Format strings (`.1f`, `.0f`) crash on NaN values
 - Cached NaN values persist and cause repeated errors
 
-## 2. Data Loading from Snowflake - Critical Column Name Normalization
+## Data Loading from Snowflake - Critical Column Name Normalization
 
 **MANDATORY:**
 **Column Name Normalization (CRITICAL):**
@@ -542,7 +521,7 @@ def load_grid_assets() -> pd.DataFrame:
 - **Error Prevention:** Prevents `KeyError` exceptions that are hard to debug in production
 - **Best Practice:** Single normalization point in data loaders vs. scattered `.upper()` calls in UI code
 
-## 3. SQL Error Handling and Debugging
+## SQL Error Handling and Debugging
 
 **MANDATORY:**
 **Show specific error messages that identify which query failed and why:**
@@ -557,68 +536,7 @@ def load_grid_assets() -> pd.DataFrame:
 2. The full SQL error message from Snowflake
 3. Relevant context (table names, filters, parameters)
 
-### 3.1 Basic SQL Error Handling Pattern
-
-**Standard Pattern:**
-```python
-import streamlit as st
-from snowflake.snowpark.exceptions import SnowparkSQLException
-
-@st.cache_data(ttl=600)
-def load_grid_assets():
-    """Load grid assets from Snowflake with comprehensive error handling."""
-    try:
-        session = get_snowflake_session()
-        query = """
-            SELECT asset_id, asset_type, latitude, longitude, install_date
-            FROM UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS
-            WHERE asset_type IN ('TRANSFORMER', 'SUBSTATION')
-        """
-        df = session.sql(query).to_pandas()
-        df.columns = [col.lower() for col in df.columns]
-        return df
-
-    except SnowparkSQLException as e:
-        st.error(f"""
-        **SQL Query Failed: load_grid_assets()**
-
-        **Error:** {str(e)}
-
-        **Query Context:**
-        - Table: UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS
-        - Operation: Loading grid assets (transformers and substations)
-        - SQL Error Code: {e.error_code if hasattr(e, 'error_code') else 'N/A'}
-
-        **Possible Causes:**
-        - Table does not exist or has been renamed
-        - Missing permissions (SELECT privilege required)
-        - Invalid column names in query
-        - Database/schema does not exist
-        """)
-        st.stop()  # Stop execution to prevent cascading errors
-
-    except Exception as e:
-        st.error(f"""
-        **Unexpected Error: load_grid_assets()**
-
-        **Error Type:** {type(e).__name__}
-        **Error Message:** {str(e)}
-
-        **Query Context:**
-        - Table: UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS
-        - Operation: Loading grid assets
-
-        Please contact support if this error persists.
-        """)
-        st.stop()
-```
-
-**Why This Pattern:**
-- **Specific identification:** "load_grid_assets()" tells exactly which query failed
-- **Full error details:** Shows complete Snowflake error message
-- **Context:** Table name, operation description, error code
-- **Actionable guidance:** Lists possible causes for common SQL errors
-- **Red st.error() box:** Makes errors immediately visible
+**For comprehensive SQL error handling patterns and examples, see 101e-snowflake-streamlit-sql-errors.md.**
 
 ### 3.2 Advanced Error Handling Patterns
 
@@ -636,7 +554,7 @@ def load_grid_assets():
 - Complex joins with potential data quality issues
 - Need for comprehensive error message templates
 
-## 4. Progress Indicators and User Feedback
+## Progress Indicators and User Feedback
 
 **MANDATORY:**
 **Show user feedback for operations that may take time:**
@@ -914,7 +832,7 @@ def polling_with_termination():
 - **Database Load:** Each auto-refresh queries database; ensure queries are indexed and fast (<100ms)
 - **Connection Pooling:** Use Streamlit's `st.connection()` for efficient connection management
 
-## 5. Performance Optimization Patterns
+## Performance Optimization Patterns
 
 **MANDATORY:**
 **Avoid raw database query loops; fetch all needed data at once and cache it:**
@@ -949,7 +867,7 @@ df = load_all_sales()  # Single query, cached
 - **Query Execution:** <5s (optimize with Query Profile if slower)
 - **Cost:** <$0.10 per query (reference 105-snowflake-cost-governance.md)
 
-## 6. Performance Profiling
+## Performance Profiling
 
 **Monitor rerun frequency and identify unnecessary reruns:**
 ```python
@@ -969,19 +887,3 @@ with st.expander("Debug Info"):
 - **Consider:** Use Python profilers (cProfile, line_profiler) for computational bottlenecks
 - **Always:** Test with production-like data volumes during development
 - **Requirement:** Use Snowflake Query Profile to validate query performance
-
-## Related Rules
-
-**Closely Related** (consider loading together):
-- `101-snowflake-streamlit-core` - For fundamental Streamlit patterns and session management
-- `101e-snowflake-streamlit-sql-errors` - For comprehensive SQL error handling patterns (extracted from this rule)
-- `103-snowflake-performance-tuning` - For optimizing underlying Snowflake queries
-
-**Sometimes Related** (load if specific scenario):
-- `101a-snowflake-streamlit-visualization` - When optimizing chart/visualization performance
-- `101c-snowflake-streamlit-security` - When implementing secure caching patterns
-- `111-snowflake-observability-core` - When adding query profiling and monitoring
-
-**Complementary** (different aspects of same domain):
-- `119-snowflake-warehouse-management` - For warehouse sizing affecting query performance
-- `105-snowflake-cost-governance` - For monitoring costs of cached query executions

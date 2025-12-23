@@ -2,91 +2,139 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** bulk loading, ON_ERROR, FILE_FORMAT, load data, external stage, internal stage, data ingestion, file upload, COPY error, loading patterns, stage files, PUT command, GET command
-**TokenBudget:** ~1900
+**TokenBudget:** ~2800
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
+**LastUpdated:** 2025-12-22
 
-## Purpose
-Provide comprehensive best practices for efficiently staging and bulk loading data into Snowflake using Stages and COPY INTO commands, optimizing for performance, reliability, and cost-effectiveness in batch loading scenarios.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive best practices for efficiently staging and bulk loading data into Snowflake using Stages and COPY INTO commands, optimizing for performance, reliability, and cost-effectiveness in batch loading scenarios.
 
-Snowflake data staging and bulk loading with Stages and COPY INTO commands (for continuous ingestion with Snowpipe, see `121-snowflake-snowpipe.md`)
+**When to Load This Rule:**
+- Staging files for bulk data loading
+- Using COPY INTO for batch data ingestion
+- Configuring file formats and error handling
+- Optimizing bulk load performance
+- Troubleshooting COPY INTO errors
 
-## Quick Start TL;DR
+**For continuous ingestion with Snowpipe, see `121-snowflake-snowpipe.md`**
 
-**Purpose:** Concentrated reference of critical patterns for efficient rule consumption. Provides:
-- **Token efficiency:** Self-sufficient guidance for common use cases
-- **Position advantage:** Early placement benefits from attention bias
-- **Progressive disclosure:** Assessment point for full rule loading decision
+## References
 
-Position at top provides practical efficiency benefits for both LLMs and human developers.
+### External Documentation
+- [COPY INTO Command](https://docs.snowflake.com/en/sql-reference/sql/copy-into-table) - Bulk data loading syntax and options
+- [Data Loading Stages](https://docs.snowflake.com/en/user-guide/data-load-stages-intro) - Internal and external stage management
+- [Data Loading Best Practices](https://docs.snowflake.com/en/user-guide/data-load-considerations) - File sizing and optimization guidance
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Stage files first:** CREATE STAGE before loading data
-- **Use COPY INTO for bulk loads** - scheduled/one-time batch loading
-- **Target 100-250MB compressed file sizes** - optimal performance and cost
-- **Be explicit about error handling:** `ON_ERROR = CONTINUE | SKIP_FILE | ABORT_STATEMENT`
-- **Specify file format:** `FILE_FORMAT = (TYPE = 'CSV' SKIP_HEADER = 1 ...)`
-- **For continuous ingestion, use Snowpipe** - see 121-snowflake-snowpipe.md
-- **Don't use COPY INTO for real-time streaming** - use Snowpipe instead
+### Related Rules
+**Closely Related** (consider loading together):
+- **100-snowflake-core.md** - stage creation, COPY INTO fundamentals, and object naming
+- **103-snowflake-performance-tuning.md** - optimizing COPY INTO performance and file sizing
 
-**Quick Checklist:**
-- [ ] CREATE STAGE (internal or external)
-- [ ] Prepare files: 100-250MB compressed, consistent schema
-- [ ] Create FILE_FORMAT with explicit options
-- [ ] COPY INTO with FILE_FORMAT and ON_ERROR specified
-- [ ] Verify loaded row count matches expected
-- [ ] Check COPY_HISTORY for errors
-- [ ] If continuous ingestion needed, use Snowpipe (121)
+**Sometimes Related** (load if specific scenario):
+- **104-snowflake-streams-tasks.md** - setting up automated loading pipelines with tasks
+- **116-snowflake-cortex-search.md** - loading documents for indexing and search
+- **119-snowflake-warehouse-management.md** - warehouse sizing for data loading workloads
 
-> **Investigation Required**
-> When applying this rule:
-> 1. Read existing STAGE definitions BEFORE making recommendations
-> 2. Verify file format (CSV, JSON, Parquet) matches actual data
-> 3. Never speculate about file structure - check sample files
-> 4. Review COPY_HISTORY for actual load patterns and errors
-> 5. Make grounded recommendations based on investigated stage and file metadata
+**Complementary** (different aspects of same domain):
+- **107-snowflake-security-governance.md** - encryption, masking during loading, stage access
+- **111-snowflake-observability-core.md** - monitoring COPY INTO performance and errors
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-[Context, files, dependencies needed]
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-[Tools permitted for this domain]
-</mandatory>
+- Source data files in supported format (CSV, JSON, Parquet, Avro, ORC, XML)
+- Snowflake stage (internal or external) configured and accessible
+- Target table schema defined and created
+- Warehouse for COPY execution
+- File format definition (delimiter, compression, encoding, null handling)
+- Understanding of data volume and load frequency requirements
+- Error handling strategy defined (ON_ERROR behavior)
 
-<forbidden>
-[Tools not allowed for this domain]
-</forbidden>
+### Mandatory
 
-<steps>
-[Ordered steps the agent must follow]
-</steps>
+- Stage files: CREATE STAGE or configure external stage (S3, Azure, GCS)
+- File format: CREATE FILE FORMAT with explicit configuration
+- COPY INTO command with error handling (ON_ERROR = CONTINUE | SKIP_FILE | ABORT)
+- VALIDATION_MODE for testing before full load
+- COPY_HISTORY monitoring for load tracking
+- File size optimization: Target 100-250MB compressed per file
+- Semi-structured data: MATCH_BY_COLUMN_NAME for parquet, explicit VARIANT handling for JSON
+- LIST @stage to verify files before loading
 
-<output_format>
-[Expected output format]
-</output_format>
+### Forbidden
 
-<validation>
-[Checks to confirm success]
-</validation>
+- Loading many small files (<10MB) without batching
+- Missing error handling (no ON_ERROR clause)
+- Skipping VALIDATION_MODE for first-time loads
+- Loading without FILE_FORMAT definition (implicit parsing unreliable)
+- Using SELECT * in COPY INTO (specify columns explicitly)
+- Loading duplicate data without deduplication strategy
+- Ignoring COPY_HISTORY errors (silent data quality issues)
 
-<design_principles>
+### Execution Steps
+
+1. Analyze source files: Size, format, structure, data types
+2. CREATE STAGE (internal) or configure external stage with storage integration
+3. Upload files to stage: PUT for internal, cloud provider tools for external
+4. LIST @stage to verify files present and accessible
+5. CREATE FILE_FORMAT with explicit configuration (delimiter, compression, NULL_IF, etc.)
+6. CREATE target table if not exists (match file schema)
+7. Test with VALIDATION_MODE: COPY INTO ... VALIDATION_MODE = RETURN_ERRORS
+8. Review validation errors, adjust FILE_FORMAT or file content
+9. Execute load: COPY INTO target_table FROM @stage FILE_FORMAT = (...) ON_ERROR = CONTINUE
+10. Monitor progress for large loads (query COPY_HISTORY while running)
+11. Verify load: Check row counts, query COPY_HISTORY for errors
+12. Handle errors: Review rejected rows, fix and reload
+
+### Output Format
+
+- Stage DDL: CREATE STAGE with URL, credentials (via storage integration)
+- File format DDL: CREATE FILE_FORMAT with all parsing rules
+- COPY INTO statement: With error handling and file pattern matching
+- Load statistics: Rows loaded, errors, execution time, warehouse credits
+- Error report: COPY_HISTORY query showing file-level and row-level errors
+- Validation results from VALIDATION_MODE execution
+
+### Validation
+
+**Test Requirements:**
+- Stage accessible: LIST @stage returns files
+- File format parses correctly: VALIDATION_MODE returns 0 errors (or acceptable error rate)
+- COPY INTO executes successfully
+- Row count matches expected (source file rows vs loaded rows)
+- Error rate acceptable (<1% for production loads)
+- Data types correct (no truncation, no precision loss)
+- NULL handling correct (empty strings vs NULL values)
+
+**Success Criteria:**
+- All files loaded from stage: COPY_HISTORY shows status = 'LOADED'
+- Error rate within SLA: <1% rows rejected for data quality, 0% for schema mismatch
+- Load performance acceptable: ≥50MB/s per warehouse size (XS: 50MB/s, L: 400MB/s)
+- Target table row count matches source (accounting for deduplication)
+- Semi-structured columns properly parsed (VARIANT fields accessible)
+- No excessive metadata overhead (file count reasonable, not 100k+ small files)
+
+### Design Principles
+
 - Stage files first; use dedicated stages per source; manage with PUT/GET for internal stages.
 - Use COPY INTO for bulk, scheduled, and one-time loads; target 100–250MB compressed files.
 - For continuous near-real-time ingestion, use Snowpipe (see `121-snowflake-snowpipe.md`).
 - Prepare semi-structured data for subcolumnarization; be explicit about ON_ERROR and file formats.
-</design_principles>
 
-</contract>
+### Post-Execution Checklist
+
+- [ ] Required dependencies and context verified
+- [ ] Appropriate tools selected and validated
+- [ ] Implementation follows established patterns
+- [ ] Output format matches requirements
+- [ ] Validation steps completed successfully
 
 ## Anti-Patterns and Common Mistakes
 
@@ -201,17 +249,6 @@ FILE_FORMAT = (TYPE=CSV);
 ```
 **Benefits:** Errors caught before loading; no partial loads; no data corruption; production safety; confidence in load; zero downtime; professional deployment
 
-## Post-Execution Checklist
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
-
-## Validation
-- **Success checks:** [How to verify correct implementation]
-- **Negative tests:** [What should fail and how to detect failures]
-
 ## Output Format Examples
 
 ```sql
@@ -238,46 +275,17 @@ SELECT * FROM schema.view_name LIMIT 5;
 SHOW VIEWS LIKE '%view_name%';
 ```
 
-## References
-
-### External Documentation
-- [COPY INTO Command](https://docs.snowflake.com/en/sql-reference/sql/copy-into-table) - Bulk data loading syntax and options
-- [Data Loading Stages](https://docs.snowflake.com/en/user-guide/data-load-stages-intro) - Internal and external stage management
-- [Data Loading Best Practices](https://docs.snowflake.com/en/user-guide/data-load-considerations) - File sizing and optimization guidance
-
-### Related Rules
-- **Snowflake Core**: `100-snowflake-core.md`
-- **Snowpipe and Snowpipe Streaming**: `121-snowflake-snowpipe.md` - Continuous near-real-time ingestion
-- **Streams and Tasks**: `104-snowflake-streams-tasks.md`
-- **Performance Tuning**: `103-snowflake-performance-tuning.md`
-- **Warehouse Management**: `119-snowflake-warehouse-management.md`
-
-## 1. Stages
+## Stages
 - **Requirement:** Stage data files in an internal or external stage before loading.
 - **Requirement:** Use a separate, dedicated stage for each external data source for organization and security.
 - **Always:** Use `PUT` and `GET` to manage files in internal stages.
 
-## 2. Bulk Data Loading with COPY INTO
+## Bulk Data Loading with COPY INTO
 - **Requirement:** Use `COPY INTO` for bulk, one-time, and scheduled batch loads.
 - **Always:** For continuous, near-real-time ingestion, use Snowpipe instead (see `121-snowflake-snowpipe.md`).
 - **Requirement:** Be explicit about error handling (`ON_ERROR = CONTINUE`, `SKIP_FILE`, or `ABORT_STATEMENT`).
 - **Requirement:** Specify file formats explicitly with `FILE_FORMAT` parameter.
 
-## 3. File Preparation and Optimization
+## File Preparation and Optimization
 - **Requirement:** Aim for compressed file sizes between 100–250 MB for optimal performance and cost.
 - **Requirement:** For semi-structured data, ensure consistent data types within elements to enable subcolumnarization.
-
-## Related Rules
-
-**Closely Related** (consider loading together):
-- `100-snowflake-core` - For stage creation, COPY INTO fundamentals, and object naming
-- `103-snowflake-performance-tuning` - For optimizing COPY INTO performance and file sizing
-
-**Sometimes Related** (load if specific scenario):
-- `104-snowflake-streams-tasks` - When setting up automated loading pipelines with tasks
-- `116-snowflake-cortex-search` - When loading documents for indexing and search
-- `119-snowflake-warehouse-management` - For warehouse sizing for data loading workloads
-
-**Complementary** (different aspects of same domain):
-- `107-snowflake-security-governance` - For encryption, masking during loading, stage access
-- `111-snowflake-observability-core` - For monitoring COPY INTO performance and errors

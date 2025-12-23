@@ -2,104 +2,127 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**LastUpdated:** 2025-12-23
 **Keywords:** Business intelligence, dashboards, KPIs, reporting, visualization, stakeholder reports, metrics, Snowsight, executive dashboards, data storytelling, WCAG accessibility
-**TokenBudget:** ~6400
+**TokenBudget:** ~9750
 **ContextTier:** High
-**Depends:** None
+**Depends:** 000-global-core.md, 100-snowflake-core.md
 
-## Purpose
-Provide comprehensive directives for creating business-oriented queries, reports, dashboards, and visualizations targeted at non-technical stakeholders, emphasizing clarity, actionable insights, ethical presentation, accessibility, effective data storytelling, and Snowflake-native dashboard capabilities.
+## Scope
 
-## Rule Scope
-Business-oriented queries, reports, visualizations, and dashboards for business audience consumption across executive, director, analyst, and operational roles
+**What This Rule Covers:**
+Comprehensive directives for creating business-oriented queries, reports, dashboards, and visualizations targeted at non-technical stakeholders. Emphasizes clarity, actionable insights, ethical presentation, accessibility (WCAG 2.1 AA), effective data storytelling, and Snowflake-native dashboard capabilities.
 
-## Quick Start TL;DR
+**When to Load This Rule:**
+- Creating business intelligence dashboards for stakeholders
+- Building executive reports and KPI visualizations
+- Designing Snowsight dashboards or Streamlit apps for business users
+- Ensuring accessibility compliance (WCAG 2.1 AA)
+- Implementing data storytelling and narrative-driven reports
+- Optimizing queries for business-facing views
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Business language first** - Use terminology stakeholders understand
-- **Clear KPI definitions** - Document every metric calculation
-- **WCAG AA accessibility** - Color contrast, screen readers, keyboard nav
-- **F-pattern layout** - Key insights top-left for executive dashboards
-- **Show data freshness** - Display "Last updated" prominently
-- **Explicit columns** - Never SELECT * in production queries
-- **Never mislead** - No truncated axes, 3D effects, or ambiguous charts
+## References
 
-**Quick Checklist:**
-- [ ] Business terminology used
-- [ ] KPIs clearly defined
-- [ ] WCAG 2.1 AA compliant
-- [ ] F-pattern layout (execs) or Z-pattern (analysts)
-- [ ] Data freshness indicator
-- [ ] Explicit column selection
-- [ ] Charts tested for clarity
+### Dependencies
+
+**Must Load First:**
+- **000-global-core.md** - Foundation for all rules
+- **100-snowflake-core.md** - Snowflake SQL patterns
+
+**Related:**
+- **101-snowflake-streamlit-core.md** - Streamlit dashboard patterns
+- **920-data-science-analytics.md** - Analytics and visualization patterns
+- **901-data-generation-modeling.md** - Data modeling and naming conventions
+
+### External Documentation
+
+- [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/) - Web accessibility standards
+- [WebAIM Contrast Checker](https://webaim.org/resources/contrastchecker/) - Color contrast validation tool
+- [Snowsight Dashboards](https://docs.snowflake.com/en/user-guide/ui-snowsight-dashboards) - Snowflake-native dashboards
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
+### Inputs and Prerequisites
+
 - Snowflake connection with read access to business-facing views/tables
 - Understanding of target audience (C-Level, Directors, Analysts, Operations)
 - Snowsight access for native dashboards or Streamlit for interactive apps
 - Business context: KPIs, goals, decision-making needs
 - Data freshness requirements and update schedules
 - Accessibility requirements (WCAG 2.1 AA compliance)
-</inputs_prereqs>
 
-<mandatory>
+### Mandatory
+
 - Snowflake SQL (CTEs, window functions, explicit columns)
 - Snowsight Dashboards or Streamlit for visualization
 - Query Profile for performance validation
 - Accessibility testing tools (WebAIM contrast checker, screen readers)
 - Business-friendly naming conventions
 - Data quality indicators and freshness timestamps
-</mandatory>
 
-<forbidden>
+### Forbidden
+
 - Technical jargon without business translation
 - SELECT * in production queries (use explicit columns)
 - Misleading visualizations (truncated axes, 3D effects, dual Y-axes without clear marking)
 - Non-accessible colors (red/green only, insufficient contrast)
 - Undocumented metrics or calculations
 - Unqualified object names (always use DATABASE.SCHEMA.TABLE)
-</forbidden>
 
-<steps>
-1. **Understand audience:** Identify stakeholder role and information needs
-2. **Investigate data:** Verify actual table schemas, data volumes, freshness
-3. **Define metrics:** Document calculation logic, owners, update frequency
-4. **Optimize queries:** Use CTEs, explicit columns, proper aggregation
-5. **Choose layout:** Select F-pattern (dashboard) or Z-pattern (storytelling)
-6. **Select charts:** Match visualization to data type and business question
-7. **Ensure accessibility:** Test color contrast (4.5:1), screen reader, keyboard nav
-8. **Validate ethics:** No misleading truncations, cherry-picking, or distortions
-9. **Add context:** Include data freshness, filters, quality indicators
-10. **Test with users:** Validate dashboard meets business needs
-</steps>
+### Execution Steps
 
-<output_format>
+1. Understand audience: Identify stakeholder role and information needs
+2. Investigate data: Verify actual table schemas, data volumes, freshness
+3. Define metrics: Document calculation logic, owners, update frequency
+4. Optimize queries: Use CTEs, explicit columns, proper aggregation
+5. Choose layout: Select F-pattern (dashboard) or Z-pattern (storytelling)
+6. Select charts: Match visualization to data type and business question
+7. Ensure accessibility: Test color contrast (4.5:1), screen reader, keyboard nav
+8. Validate ethics: No misleading truncations, cherry-picking, or distortions
+9. Add context: Include data freshness, filters, quality indicators
+10. Test with users: Validate dashboard meets business needs
+
+### Output Format
+
 - SQL queries with business-friendly column names, proper comments
 - Dashboards with 5-7 visualizations max, clear hierarchy, <2s load time
 - KPIs prominently displayed (top-left to top-right, above the fold)
 - Visualizations with clear titles, labeled axes, legends, annotations
 - Data storytelling structure: Situation, then Complication, then Resolution, then Evidence
 - Accessibility: WCAG 2.1 AA compliant, screen reader tested, keyboard accessible
-</output_format>
 
-<validation>
-1. Query execution <5s (test in Query Profile)
-2. Dashboard loads <2s (test with production data)
-3. Color contrast ratio ≥4.5:1 (test with WebAIM contrast checker)
-4. Screen reader narrates all content (test with NVDA/JAWS)
-5. Keyboard navigation works (Tab, Enter, Arrow keys)
-6. Business stakeholder confirms insights are actionable
-7. All metrics documented with definitions
-8. Data freshness indicator visible and accurate
-</validation>
+### Validation
 
-<design_principles>
+**Pre-Task-Completion Checks:**
+- Business terminology used (no technical jargon)
+- KPIs clearly defined and documented
+- WCAG 2.1 AA compliant (color contrast ≥4.5:1)
+- F-pattern layout (execs) or Z-pattern (analysts)
+- Data freshness indicator visible
+- Explicit column selection (no SELECT *)
+- Charts tested for clarity
+
+**Success Criteria:**
+- Query execution <5s (verified in Query Profile)
+- Dashboard loads <2s (tested with production data)
+- Color contrast ratio ≥4.5:1 (verified with WebAIM contrast checker)
+- Screen reader narrates all content (tested with NVDA/JAWS)
+- Keyboard navigation works (Tab, Enter, Arrow keys)
+- Business stakeholder confirms insights are actionable
+- All metrics documented with definitions
+- Data freshness indicator visible and accurate
+
+**Negative Tests:**
+- Technical jargon without translation should fail review
+- SELECT * in production should fail code review
+- Misleading visualizations should fail ethics review
+- Non-accessible colors should fail WCAG compliance
+- Undocumented metrics should fail documentation review
+
+### Design Principles
+
 - **Business-First Language:** Translate technical outputs into business insights
 - **Actionable Insights:** Every visualization should support a decision
 - **Visual Hierarchy:** Most important information prominently placed (top-left)
@@ -109,9 +132,22 @@ Business-oriented queries, reports, visualizations, and dashboards for business 
 - **Accessibility:** Universal design for all users including colorblind, screen readers
 - **Performance:** Optimize for fast loading and responsive interaction
 - **Snowflake-Native:** Leverage Snowsight, Streamlit, cost-effective SQL patterns
-</design_principles>
 
-</contract>
+### Post-Execution Checklist
+
+- [ ] Business terminology used (no untranslated technical jargon)
+- [ ] All KPIs clearly defined and documented
+- [ ] WCAG 2.1 AA compliant (color contrast ≥4.5:1)
+- [ ] F-pattern layout (execs) or Z-pattern (analysts) applied
+- [ ] Data freshness indicator visible and accurate
+- [ ] Explicit column selection (no SELECT *)
+- [ ] Charts tested for clarity with stakeholders
+- [ ] Query execution <5s (verified in Query Profile)
+- [ ] Dashboard loads <2s (tested with production data)
+- [ ] Screen reader tested (NVDA/JAWS)
+- [ ] Keyboard navigation works (Tab, Enter, Arrow keys)
+- [ ] Business stakeholder confirms insights actionable
+- [ ] All metrics documented with calculation logic
 
 ## Anti-Patterns and Common Mistakes
 
@@ -363,151 +399,6 @@ fig.add_trace(go.Bar(
 > 5. **Verify query cost** - Review Query Profile before deploying
 >
 > **Anti-Pattern:**
-> "Creating dashboard... (without knowing target audience)"
-> "Using red/green colors... (without colorblind testing)"
->
-> **Correct Pattern:**
-> "Let me confirm your dashboard requirements first."
-> [identifies audience, checks data, verifies KPI definitions]
-> "I see this is for C-Level. Using F-pattern with 5 KPIs and colorblind-safe palette..."
- - User testing shows >90% task completion rate
- - All metrics have documented definitions in METRIC_DEFINITIONS
-
-- **Negative Tests:**
- - Dashboard with >10 visualizations (should simplify with tabs/drill-downs)
- - Chart with truncated Y-axis without annotation (should fail ethics review)
- - Red/green only color scheme (should fail colorblind accessibility test)
- - Text with <4.5:1 contrast ratio (should fail WCAG compliance)
- - Query taking >10 seconds (should optimize with Query Profile)
- - Metric without documented definition (should fail documentation requirement)
- - Technical jargon without business translation (should fail user comprehension test)
-
-## Output Format Examples
-
-```sql
--- Business Analytics Query Template
--- Filename: monthly_sales_analysis.sql
--- Description: Monthly sales trends by region for executive dashboard
-
--- Always use CTEs for clarity
-WITH base_sales AS (
- SELECT
- DATE_TRUNC('month', order_date) AS month,
- region,
- customer_id,
- sales_amount
- FROM PROD_DB.SALES.ORDERS
- WHERE order_date >= DATEADD('year', -2, CURRENT_DATE())
- AND status = 'completed'
-),
-
-aggregated AS (
- SELECT
- month,
- region,
- SUM(sales_amount) AS "Total Sales",
- APPROX_COUNT_DISTINCT(customer_id) AS "Unique Customers",
- SUM(sales_amount) / NULLIF(APPROX_COUNT_DISTINCT(customer_id), 0) AS "Avg Revenue per Customer"
- FROM base_sales
- GROUP BY 1, 2
-)
-
-SELECT * FROM aggregated
-ORDER BY month DESC, "Total Sales" DESC;
-
--- Visualization: Line chart (time series trend)
--- Audience: C-Level executives
--- Update Frequency: Daily
-```
-
-```python
-# Streamlit Dashboard Template
-import streamlit as st
-import plotly.graph_objects as go
-from snowflake.snowpark import Session
-
-# Page config
-st.set_page_config(
- page_title="Sales Executive Dashboard",
- page_icon="",
- layout="wide"
-)
-
-# Data freshness indicator
-st.caption(f" Data as of: {last_update} | Updated: {hours_ago:.1f}h ago")
-
-# KPIs (above the fold)
-col1, col2, col3, col4 = st.columns(4)
-col1.metric("Revenue", "$12.5M", delta="+8.2%")
-col2.metric("Customers", "15,234", delta="+12%")
-col3.metric("Retention", "94%", delta="-2%", delta_color="inverse")
-col4.metric("NPS Score", "72", delta="+5")
-
-# Primary visualization
-fig = go.Figure(go.Scatter(
- x=df['month'],
- y=df['revenue'],
- mode='lines+markers',
- line=dict(color='#0173B2', width=3),
- marker=dict(size=8)
-))
-fig.update_layout(
- title="Monthly Revenue Trend",
- xaxis_title="Month",
- yaxis_title="Revenue ($ Millions)",
- yaxis=dict(range=[0, df['revenue'].max() * 1.1]) # Zero baseline
-)
-st.plotly_chart(fig, use_container_width=True)
-
-# Supporting details in expander
-with st.expander(" View Detailed Breakdown"):
- st.dataframe(df, use_container_width=True)
-
-# Metric definitions
-with st.expander("ℹ️ Metric Definitions"):
- st.write("**Revenue:** Total value of completed orders (excludes refunds and cancellations)")
- st.write("**Customers:** Count of unique customer IDs with at least one completed order")
-```
-
-## References
-
-### External Documentation
-- [Business Intelligence Best Practices](https://docs.microsoft.com/en-us/power-bi/guidance/) - Microsoft Power BI guidance for business analytics
-- [Data Visualization Principles](https://www.tableau.com/learn/articles/data-visualization) - Tableau's guide to effective data visualization
-- [SQL for Business Analysis](https://mode.com/sql-tutorial/) - Comprehensive SQL tutorial focused on business analytics
-- [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/) - Web Content Accessibility Guidelines
-- [WebAIM Contrast Checker](https://webaim.org/resources/contrastchecker/) - Tool for testing color contrast ratios
-- [Colorblind-Safe Palettes](https://davidmathlogic.com/colorblind/) - Research-based colorblind-friendly color schemes
-- [Snowsight Dashboard Documentation](https://docs.snowflake.com/en/user-guide/ui-snowsight-dashboards) - Snowflake native dashboards
-- [Streamlit Documentation](https://docs.streamlit.io/) - Interactive dashboard development
-
-### Related Rules
-- **Snowflake Core**: `100-snowflake-core.md`
-- **Snowflake SQL Demo Engineering**: `102-snowflake-sql-demo-engineering.md`
-- **Snowflake Performance Tuning**: `103-snowflake-performance-tuning.md`
-- **Snowflake Cost Governance**: `105-snowflake-cost-governance.md`
-- **Snowflake Streamlit UI**: `101-snowflake-streamlit-core.md`
-- **Snowflake Data Quality**: `124-snowflake-data-quality-core.md`
-- **Data Science Analytics**: `920-data-science-analytics.md`
-- **Data Governance**: `930-data-governance-quality.md`
-
-> ** Claude 4 Specific Guidance**
-> **Claude 4 Optimizations:**
-> - **Context awareness:** Track token budget; prioritize audience segmentation and ethical standards sections
-> - **Explicit behavior:** Request "comprehensive dashboard with accessibility compliance" to get full implementation
-> - **Parallel tool calls:** Generate multiple chart types, validate SQL queries, check accessibility simultaneously
-> - **State discovery:** Leverage filesystem to check existing dashboard templates before creating new ones
-> - **Investigation-first:** Excel at business context discovery through data exploration - use this capability to understand stakeholder needs before designing dashboards
-
-## 1. Audience Segmentation & Tailoring
-
-**MANDATORY:**
-
-### Dashboard Design by Audience
-
-**C-Level (CEO, CFO, COO):**
-- KPI Count: 3-5, Detail: High-level trends/variance to goals
-- Update: Daily/Weekly, Charts: Trend lines, variance bars, bullet charts
 - Interaction: Minimal filters, drill to summary
 
 **Directors/VPs:**
@@ -554,7 +445,7 @@ elif user_role == 'analyst':
  st.dataframe(detailed_data, use_container_width=True)
 ```
 
-## 2. Dashboard Layout & Visual Hierarchy
+## Dashboard Layout and Visual Hierarchy
 
 **MANDATORY:**
 
@@ -625,7 +516,7 @@ with tab3:
  show_product_analysis()
 ```
 
-## 3. Visualization Selection Framework
+## Visualization Selection Framework
 
 **MANDATORY:**
 
@@ -755,7 +646,7 @@ st.plotly_chart(fig)
 - **Area charts for overlapping data** (use line charts instead)
 - **Radar charts for more than 5-7 dimensions** (cluttered and hard to interpret)
 
-## 4. Ethical Visualization Standards
+## Ethical Visualization Standards
 
 **FORBIDDEN:**
 
@@ -856,7 +747,7 @@ else:
  st.success(f"Data quality: {quality_score:.0%} | All checks passed")
 ```
 
-## 5. Accessibility (WCAG 2.1 AA Compliance)
+## Accessibility (WCAG 2.1 AA Compliance)
 
 **MANDATORY:**
 
@@ -977,7 +868,7 @@ with st.expander("View Data Table (Accessible Format)"):
 - [ ] Skip-to-content link available
 - [ ] No keyboard traps (can always navigate away)
 
-## 6. Data Storytelling Framework
+## Data Storytelling Framework
 
 **MANDATORY:**
 
@@ -1042,7 +933,7 @@ st.markdown("""
 """)
 ```
 
-## 7. Snowflake-Native Dashboard Patterns
+## Snowflake-Native Dashboard Patterns
 
 **MANDATORY:**
 
@@ -1142,7 +1033,7 @@ if not slow_queries.empty:
  st.warning(f"{len(slow_queries)} slow queries detected. Review Query Profile.")
 ```
 
-## 8. Metric Definition & Documentation
+## Metric Definition and Documentation
 
 **MANDATORY:**
 

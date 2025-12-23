@@ -7,71 +7,125 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** FastAPI, async, REST API, Pydantic, dependency injection, routing, request validation, response models, APIRouter, uvicorn, async def, application factory
-**TokenBudget:** ~2950
+**TokenBudget:** ~4950
 **ContextTier:** High
 **Depends:** 200-python-core.md
+**LastUpdated:** 2025-12-23
 
-## Purpose
-Provide comprehensive FastAPI development best practices, organized into focused patterns that cover all aspects of modern web API development including application architecture, async programming, request/response handling, and error management for building maintainable, performant web APIs.
+## Scope
 
-## Rule Scope
+**What This Rule Covers:**
+Comprehensive FastAPI development best practices for modern web API development. Covers application architecture (factory pattern, APIRouter), async programming patterns, request/response handling with Pydantic, error management, and cross-thread communication for building maintainable, performant web APIs.
 
-FastAPI web API development with modern Python patterns, async/await, and Pydantic integration
+**When to Load This Rule:**
+- Developing FastAPI web applications
+- Implementing async REST APIs with Python
+- Setting up FastAPI project structure and routing
+- Implementing request validation and error handling
+- Working with async/await and Pydantic integration
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Use `uv run uvicorn app.main:app --reload`** - Never bare `uvicorn` command
-- **Application factory pattern** - Create app through factory functions for testability
-- **Separate request/response models** - Use Pydantic models, never reuse same model
-- **APIRouter for modularity** - Organize routes in separate files, include in main app
-- **Async def for I/O operations** - Use `async def` for database, HTTP, file operations
-- **Dependency injection** - Use `Depends()` for services, database sessions, auth
-- **Never mix sync and async** - All I/O should be async or properly wrapped
-- **Cross-thread communication** - Use `asyncio.get_running_loop()` + `loop.call_soon_threadsafe()` for thread-to-async communication (SSE, progress callbacks)
+### Dependencies
 
-**Quick Checklist:**
-- [ ] App created via factory function
-- [ ] Routes organized with APIRouter
-- [ ] Separate request/response Pydantic models
-- [ ] All I/O operations use async def
-- [ ] Dependency injection for services
-- [ ] Global exception handlers configured
-- [ ] Run with `uv run uvicorn`
-- [ ] Cross-thread callbacks use `loop.call_soon_threadsafe()` (not `asyncio.get_event_loop()`)
+**Must Load First:**
+- **200-python-core.md** - Python foundation for all Python projects
+
+**Related:**
+- **203-python-project-setup.md** - Project structure and uv setup
+- **201-python-lint-format.md** - Linting and formatting standards
+- **210a-python-fastapi-security.md** - FastAPI security patterns
+- **210b-python-fastapi-testing.md** - FastAPI testing strategies
+- **210c-python-fastapi-deployment.md** - FastAPI deployment patterns
+- **210d-python-fastapi-monitoring.md** - FastAPI monitoring and observability
+
+### External Documentation
+
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
+- [Pydantic v2 Documentation](https://docs.pydantic.dev/latest/)
+- [SQLAlchemy Async](https://docs.sqlalchemy.org/en/20/orm/extensions/asyncio.html)
 
 ## Contract
 
-<contract>
-<inputs_prereqs>
-[Context, files, dependencies needed]
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-[Tools permitted for this domain]
-</mandatory>
+- FastAPI project requirements
+- Python 3.9+ environment
+- Understanding of async/await patterns
+- Basic knowledge of REST API design
 
-<forbidden>
-[Tools not allowed for this domain]
-</forbidden>
+### Mandatory
 
-<steps>
-[Ordered steps the agent must follow]
-</steps>
+- `uv` for dependency management
+- FastAPI and Pydantic libraries
+- `uvicorn` ASGI server
+- Async database driver (if using database)
+- Text editor or IDE
 
-<output_format>
-[Expected output format]
-</output_format>
+### Forbidden
 
-<validation>
-[Checks to confirm success]
-</validation>
+- Bare `uvicorn` command (always use `uv run uvicorn`)
+- Blocking synchronous code in async route handlers
+- Mixing sync and async without proper handling
+- Reusing same Pydantic model for request and response
+- Creating database sessions directly in route handlers
+- Exposing internal error details to clients in production
 
-<design_principles>
+### Execution Steps
+
+1. Set up FastAPI project with `uv init` and install dependencies
+2. Create application factory function in `app/main.py`
+3. Organize routes using APIRouter in separate router modules
+4. Define separate Pydantic models for requests and responses
+5. Implement dependency injection for database sessions and services
+6. Add global exception handlers for consistent error responses
+7. Use `async def` for all I/O operations (database, HTTP, files)
+8. Configure CORS, middleware, and security settings
+9. Run development server with `uv run uvicorn app.main:app --reload`
+10. Validate with tests and linting (`uv run pytest`, `uvx ruff check .`)
+
+### Output Format
+
+FastAPI application with:
+- Application factory pattern
+- Modular routing with APIRouter
+- Pydantic request/response models
+- Async route handlers for I/O operations
+- Dependency injection for services
+- Global exception handlers
+- Type-safe code with comprehensive type hints
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Application factory function exists
+- Routes organized with APIRouter
+- Separate request/response Pydantic models defined
+- All I/O operations use async def
+- Dependency injection configured
+- Global exception handlers added
+- Development server runs with `uv run uvicorn`
+
+**Success Criteria:**
+- `uv run uvicorn app.main:app --reload` starts successfully
+- API docs available at `/docs` endpoint
+- `uvx ruff check .` passes with no errors
+- `uv run pytest` passes all tests
+- Pydantic validates all requests and responses
+- Database sessions properly managed with dependency injection
+- Exception handlers return consistent error responses
+
+**Negative Tests:**
+- Invalid request body rejected with 422 status
+- Missing required fields caught by Pydantic validation
+- Database errors return 500 with safe error messages
+- Async operations don't block event loop
+
+### Design Principles
+
 1. **Modular Architecture** - Organize code into logical, testable modules
 2. **Async-First Development** - Leverage Python's async capabilities for performance
 3. **Security by Design** - Implement authentication, authorization, and input validation
@@ -83,9 +137,20 @@ FastAPI web API development with modern Python patterns, async/await, and Pydant
 9. **Dependency Injection** - Use FastAPI's dependency system for services and database sessions
 10. **Structured Error Handling** - Implement global exception handlers with consistent responses
 11. **Type Safety** - Use comprehensive type hints with Pydantic and FastAPI integration
-</design_principles>
 
-</contract>
+### Post-Execution Checklist
+
+- [ ] Application factory function created in `app/main.py`
+- [ ] Routes organized with APIRouter in separate modules
+- [ ] Separate Pydantic models for requests and responses
+- [ ] All I/O operations use async def
+- [ ] Dependency injection configured for database sessions
+- [ ] Global exception handlers added
+- [ ] Development server runs with `uv run uvicorn app.main:app --reload`
+- [ ] API documentation accessible at `/docs`
+- [ ] Linting passes (`uvx ruff check .`)
+- [ ] Tests pass (`uv run pytest`)
+- [ ] Cross-thread communication uses `loop.call_soon_threadsafe()` (if applicable)
 
 ## Anti-Patterns and Common Mistakes
 
@@ -142,17 +207,6 @@ async def get_user(user_id: int, db: Session = Depends(get_db)):
     return db.query(User).get(user_id)
 ```
 
-## Post-Execution Checklist
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
-
-## Validation
-- **Success checks:** [How to verify correct implementation]
-- **Negative tests:** [What should fail and how to detect failures]
-
 > **Investigation Required**
 > When applying this rule:
 > 1. **Read existing FastAPI app structure BEFORE adding routes** - Check main.py, routers/, models/ organization
@@ -170,130 +224,7 @@ async def get_user(user_id: int, db: Session = Depends(get_db)):
 > [reads main.py, routers/, checks for APIRouter usage]
 > "I see you're using APIRouter in routers/users.py with dependency injection for database sessions. Here's a new endpoint following the same pattern..."
 
-## Output Format Examples
-
-```python
-# Investigation: Check current implementation
-# Read existing files, understand patterns
-
-# Implementation: Following uv + ruff + pytest standards
-from typing import Protocol
-from datetime import datetime, UTC
-
-class ServiceProtocol(Protocol):
-    """Clear contract for service implementations."""
-
-    def process(self, data: dict) -> dict:
-        """Process data following validation rules."""
-        ...
-
-def implementation_function(input_data: dict) -> dict:
-    """
-    Implement feature following project conventions.
-
-    Args:
-        input_data: Validated input following schema
-
-    Returns:
-        Processed result with metadata
-
-    Raises:
-        ValueError: If input validation fails
-    """
-    # Use datetime.now(UTC) not datetime.utcnow()
-    timestamp = datetime.now(UTC)
-
-    # Implement business logic
-    result = {"status": "success", "timestamp": timestamp}
-    return result
-
-# Validation: Test the implementation
-def test_implementation_function():
-    """Test following AAA pattern."""
-    # Arrange
-    test_input = {"key": "value"}
-
-    # Act
-    result = implementation_function(test_input)
-
-    # Assert
-    assert result["status"] == "success"
-    assert "timestamp" in result
-```
-
-```bash
-# Validation commands
-uvx ruff check .
-uvx ruff format --check .
-uv run pytest tests/
-```
-
-## References
-
-### External Documentation
-- [FastAPI Documentation](https://fastapi.tiangolo.com/)
-- [Pydantic v2 Documentation](https://docs.pydantic.dev/latest/)
-- [SQLAlchemy Async](https://docs.sqlalchemy.org/en/20/orm/extensions/asyncio.html)
-
-### Related Rules
-- **Python Core**: `200-python-core.md`
-- **Python Project Setup**: `203-python-project-setup.md`
-- **FastAPI Security**: `210a-python-fastapi-security.md`
-- **FastAPI Testing**: `210b-python-fastapi-testing.md`
-- **FastAPI Deployment**: `210c-python-fastapi-deployment.md`
-- **FastAPI Monitoring**: `210d-python-fastapi-monitoring.md`
-
-## FastAPI Rule Categories
-
-### Core Development Patterns (This File)
-- Application structure and organization
-- Async programming and performance
-- Request/response handling with Pydantic
-- Error handling and exception management
-- Configuration management
-- Integration with Python core rules
-
-### [SECURE] Security and Authentication
-**Rule:** `210a-python-fastapi-security.md`
-- JWT token authentication
-- Role-based access control
-- Security middleware (CORS, rate limiting)
-- Input sanitization and validation
-- Production security hardening
-- Environment secrets management
-
-### [DEPLOY] Testing and Deployment
-**Rule:** `26-python-fastapi-deployment.md`
-- Comprehensive testing strategies
-- API documentation with OpenAPI
-- Production deployment with Docker
-- Health checks and monitoring
-- Performance optimization and caching
-- Structured logging and observability
-
-## Quick Reference
-
-### Development Workflow
-```bash
-# Setup (following 200-python-core.md)
-uv run uvicorn app.main:app --reload
-
-# Testing
-uv run pytest tests/ -v --cov=app
-
-# Linting (see 201-python-lint-format.md for complete configuration)
-uvx ruff check . && uvx ruff format .
-```
-
-### Essential Patterns
-- **Application Factory**: Create apps through factory functions
-- **Dependency Injection**: Use FastAPI's dependency system for services
-- **Async Throughout**: Use async/await for all I/O operations
-- **Pydantic Validation**: Separate request/response models
-- **Security First**: Implement authentication and input validation
-- **Production Ready**: Health checks, logging, and monitoring
-
-## 1. Application Structure and Organization
+## Application Structure and Organization
 
 ### Project Layout
 - **Always:** Use the application factory pattern for FastAPI apps.
@@ -358,7 +289,7 @@ def create_app() -> FastAPI:
 app = create_app()
 ```
 
-## 2. Async Programming and Performance
+## Async Programming and Performance
 
 ### Async Best Practices
 - **Critical:** Use `async def` for all route handlers that perform I/O operations.
@@ -477,7 +408,7 @@ async def get_db() -> AsyncSession:
             await session.close()
 ```
 
-## 3. Request/Response Handling and Validation
+## Request/Response Handling and Validation
 
 ### Pydantic Models
 - **Always:** Use Pydantic models for request and response validation.
@@ -534,7 +465,7 @@ class ProductCreate(BaseModel):
         return v.strip()
 ```
 
-## 4. Error Handling and Exception Management
+## Error Handling and Exception Management
 
 ### Custom Exception Handlers
 - **Always:** Implement global exception handlers for consistent error responses.
@@ -584,7 +515,7 @@ def add_exception_handlers(app: FastAPI):
     app.add_exception_handler(RequestValidationError, validation_exception_handler)
 ```
 
-## 5. Configuration Management
+## Configuration Management
 
 ### Environment-Based Configuration
 - **Always:** Use environment variables for configuration.
@@ -627,7 +558,7 @@ def get_settings() -> Settings:
     return Settings()
 ```
 
-## 6. Integration with Python Core Rules
+## Integration with Python Core Rules
 
 ### Compliance with Existing Rules
 - **Always:** Follow all directives from `200-python-core.md` for Python best practices.

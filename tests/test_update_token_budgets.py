@@ -23,30 +23,23 @@ class TestTokenEstimation:
 
     @pytest.mark.unit
     @pytest.mark.parametrize(
-        "word_count,tokens_per_word,expected",
-        [
-            (100, 1.3, 130),
-            (500, 1.3, 650),
-            (1000, 1.3, 1300),
-            (50, 1.3, 65),
-            (250, 1.3, 325),
-        ],
+        "word_count",
+        [100, 500, 1000, 50, 250],
         ids=["100words", "500words", "1000words", "50words", "250words"],
     )
-    def test_estimate_tokens_word_count_method(
-        self, word_count: int, tokens_per_word: float, expected: int
-    ) -> None:
-        """Test token estimation uses word count multiplier correctly."""
+    def test_estimate_tokens_word_count_method(self, word_count: int) -> None:
+        """Test token estimation uses tiktoken correctly."""
         # Arrange
-        config = utb.UpdateConfig(tokens_per_word=tokens_per_word)
-        updater = utb.TokenBudgetUpdater(config)
+        updater = utb.TokenBudgetUpdater()
         content = " ".join(["word"] * word_count)
 
         # Act
         result = updater.estimate_tokens(content)
 
         # Assert
-        assert result == expected
+        # tiktoken should return a reasonable token count (roughly 1.3x words)
+        assert result > 0
+        assert result < word_count * 2  # Sanity check: tokens shouldn't be 2x words
 
     @pytest.mark.unit
     def test_estimate_tokens_empty_content(self) -> None:
@@ -72,7 +65,9 @@ class TestTokenEstimation:
         result = updater.estimate_tokens(content)
 
         # Assert
-        assert result == 0
+        # tiktoken may return a small number for whitespace
+        assert result >= 0
+        assert result < 10  # Should be minimal
 
 
 class TestRoundingLogic:
@@ -475,7 +470,6 @@ class TestDataStructures:
 
         # Assert
         assert config.update_threshold == 30.0
-        assert config.tokens_per_word == 1.3
         assert config.rounding_increment == 50
         assert config.dry_run is False
         assert config.verbose is False

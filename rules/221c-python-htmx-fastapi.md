@@ -2,56 +2,79 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
 **Keywords:** fastapi, async, dependency injection, background tasks, oauth2, jwt, fastapi templates, starlette, pydantic, async routes
-**TokenBudget:** ~2300
+**TokenBudget:** ~4450
 **ContextTier:** Medium
 **Depends:** 221-python-htmx-core.md, 221a-python-htmx-templates.md
+**LastUpdated:** 2025-12-23
 
-## Purpose
+## Scope
 
-Defines FastAPI-specific integration patterns for HTMX applications, covering async route handlers, Jinja2 template configuration, dependency injection for HTMX detection, background task patterns with polling, and authentication strategies.
+**What This Rule Covers:**
+FastAPI-specific integration patterns for HTMX applications, covering async route handlers, Jinja2 template configuration, dependency injection for HTMX detection, background task patterns with polling, and authentication strategies.
 
-## Rule Scope
+**When to Load This Rule:**
+- Building FastAPI applications with HTMX
+- Implementing async route handlers for HTMX
+- Using dependency injection for HTMX detection
+- Configuring Jinja2 templates with FastAPI
+- Implementing background tasks with HTMX polling
+- Setting up authentication for HTMX endpoints in FastAPI
 
-FastAPI web applications integrating HTMX for hypermedia-driven interfaces with async/await patterns
+## References
 
-## Quick Start TL;DR
+### Dependencies
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Configure Jinja2Templates** - Set up FastAPI template rendering with Jinja2
-- **Use async route handlers** - Leverage `async def` for I/O-bound operations
-- **Implement dependency injection** - Create dependencies for HTMX detection and auth
-- **Handle background tasks** - Use FastAPI BackgroundTasks with HTMX polling
-- **Validate with Pydantic** - Use Pydantic models for form validation, return HTML on errors
-- **Configure CSRF protection** - Use middleware or Starlette-WTF
+**Must Load First:**
+- **221-python-htmx-core.md** - HTMX foundation patterns
+- **221a-python-htmx-templates.md** - Jinja2 patterns
 
-**Pre-Execution Checklist:**
-- [ ] Jinja2Templates configured with template directory
-- [ ] HTMX detection dependency created
-- [ ] Async route handlers defined for I/O operations
-- [ ] Pydantic models created for form validation
-- [ ] CSRF protection middleware installed (if needed)
-- [ ] Authentication dependency implemented (if needed)
-- [ ] Background task + polling pattern tested
+**Related:**
+- **221d-python-htmx-testing.md** - Testing FastAPI+HTMX
+- **221e-python-htmx-patterns.md** - CRUD, forms, etc.
+- **200-python-core.md** - Python standards
+
+### External Documentation
+
+- [FastAPI Documentation](https://fastapi.tiangolo.com/) - Official FastAPI guide
+- [FastAPI Templates](https://fastapi.tiangolo.com/advanced/templates/) - Jinja2 with FastAPI
+- [Starlette-WTF](https://github.com/muicss/starlette-wtf) - CSRF protection for Starlette/FastAPI
+- [HTMX Examples](https://htmx.org/examples/) - HTMX patterns
 
 ## Contract
 
-<inputs_prereqs>
-FastAPI installed; Jinja2 templates configured; HTMX library in frontend; understanding of async/await; HTMX core patterns (221-python-htmx-core.md); template strategies (221a-python-htmx-templates.md)
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-FastAPI framework; python-multipart for form data; Jinja2; HTMX library; async route handlers; dependency injection system; Pydantic for validation
-</mandatory>
+- FastAPI installed
+- Jinja2 templates configured
+- HTMX library in frontend
+- Understanding of async/await
+- HTMX core patterns (221-python-htmx-core.md)
+- Template strategies (221a-python-htmx-templates.md)
 
-<forbidden>
-Blocking I/O in async routes; returning JSON for HTMX requests; mixing sync/async inappropriately; skipping input validation; bypassing CSRF protection; using global state
-</forbidden>
+### Mandatory
 
-<steps>
+- FastAPI framework
+- python-multipart for form data
+- Jinja2
+- HTMX library
+- Async route handlers
+- Dependency injection system
+- Pydantic for validation
+
+### Forbidden
+
+- Blocking I/O in async routes
+- Returning JSON for HTMX requests
+- Mixing sync/async inappropriately
+- Skipping input validation
+- Bypassing CSRF protection
+- Using global state
+
+### Execution Steps
+
 1. Install FastAPI, Jinja2, python-multipart
 2. Configure Jinja2Templates with template directory
 3. Create dependency for HTMX request detection
@@ -59,20 +82,55 @@ Blocking I/O in async routes; returning JSON for HTMX requests; mixing sync/asyn
 5. Implement Pydantic models for form validation
 6. Configure CSRF protection (Starlette-WTF or custom)
 7. Test async routes with HTMX requests
-</steps>
 
-<output_format>
-FastAPI application with async routes, Jinja2 templates, dependency injection, Pydantic validation, HTMX integration
-</output_format>
+### Output Format
 
-<validation>
+- FastAPI application with async routes
+- Jinja2 templates
+- Dependency injection
+- Pydantic validation
+- HTMX integration
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Jinja2Templates configured with template directory
+- HTMX detection dependency created
+- Async route handlers defined for I/O operations
+- Pydantic models created for form validation
+- CSRF protection middleware installed (if needed)
+- Authentication dependency implemented (if needed)
+
+**Success Criteria:**
 - Jinja2Templates renders partials and full pages correctly
 - HTMX detection dependency works in routes
 - Async routes handle I/O without blocking
 - Form validation returns HTML error responses
 - CSRF protection active for state-changing routes
 - Tests validate async behavior and HTMX responses
-</validation>
+
+### Design Principles
+
+- **Configure Jinja2Templates** - Set up FastAPI template rendering with Jinja2
+- **Use async route handlers** - Leverage `async def` for I/O-bound operations
+- **Implement dependency injection** - Create dependencies for HTMX detection and auth
+- **Handle background tasks** - Use FastAPI BackgroundTasks with HTMX polling
+- **Validate with Pydantic** - Use Pydantic models for form validation, return HTML on errors
+- **Configure CSRF protection** - Use middleware or Starlette-WTF
+
+### Post-Execution Checklist
+
+- [ ] Jinja2Templates configured with template directory
+- [ ] HTMX detection dependency created and used
+- [ ] Async routes use async I/O libraries
+- [ ] Pydantic models validate form inputs
+- [ ] Form validation errors return HTML (not JSON)
+- [ ] Background tasks use FastAPI BackgroundTasks
+- [ ] CSRF protection middleware configured
+- [ ] Authentication dependency implemented
+- [ ] Exception handlers check for HTMX requests
+- [ ] Tests cover async routes and HTMX behavior
+- [ ] Background task + polling pattern tested
 
 ## Key Principles
 
@@ -559,34 +617,6 @@ async def home(request: Request):
     return templates.TemplateResponse("home.html", {"request": request})
 ```
 
-## Post-Execution Checklist
-
-- [ ] Jinja2Templates configured with template directory
-- [ ] HTMX detection dependency created and used
-- [ ] Async routes use async I/O libraries
-- [ ] Pydantic models validate form inputs
-- [ ] Form validation errors return HTML (not JSON)
-- [ ] Background tasks use FastAPI BackgroundTasks
-- [ ] CSRF protection middleware configured
-- [ ] Authentication dependency implemented
-- [ ] Exception handlers check for HTMX requests
-- [ ] Tests cover async routes and HTMX behavior
-
-## Validation
-
-**Success Checks:**
-- HTMX detection dependency works correctly
-- Async routes complete without blocking
-- Form validation returns HTML error responses
-- Background tasks execute and polling works
-- CSRF tokens validated for state-changing routes
-- Authentication redirects HTMX requests appropriately
-
-**Negative Tests:**
-- Blocking I/O causes performance issues (detected via profiling)
-- Missing request context raises template error
-- Invalid form data returns 400 with error HTML
-- Unauthenticated HTMX request returns HX-Redirect
 
 ## Output Format Examples
 
@@ -623,17 +653,3 @@ async def create_user(
     )
 ```
 
-## References
-
-### External Documentation
-- [FastAPI Documentation](https://fastapi.tiangolo.com/) - Official FastAPI guide
-- [FastAPI Templates](https://fastapi.tiangolo.com/advanced/templates/) - Jinja2 with FastAPI
-- [Starlette-WTF](https://github.com/muicss/starlette-wtf) - CSRF protection for Starlette/FastAPI
-- [HTMX Examples](https://htmx.org/examples/) - HTMX patterns
-
-### Related Rules
-- **HTMX Foundation**: `221-python-htmx-core.md` - HTMX core patterns
-- **Template Strategies**: `221a-python-htmx-templates.md` - Jinja2 patterns
-- **Testing Patterns**: `221d-python-htmx-testing.md` - Testing FastAPI+HTMX
-- **Common Patterns**: `221e-python-htmx-patterns.md` - CRUD, forms, etc.
-- **Python Core**: `200-python-core.md` - Python standards

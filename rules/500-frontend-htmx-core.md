@@ -7,55 +7,66 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v2.0.0
+**LastUpdated:** 2025-12-23
 **Keywords:** htmx attributes, client-side, events, css transitions, debugging, browser compatibility, hx-get, hx-post, hx-swap, hx-trigger, hx-target
-**TokenBudget:** ~2100
+**TokenBudget:** ~3600
 **ContextTier:** Low
-**Depends:** None
+**Depends:** 000-global-core.md
 
-## Purpose
+## Scope
 
+**What This Rule Covers:**
 Provides a standalone frontend reference for HTMX attributes, client-side events, CSS transitions, debugging techniques, and browser compatibility considerations for pure HTMX usage without backend specifics.
 
-## Rule Scope
+**When to Load This Rule:**
+- Working with HTMX frontend applications
+- Adding hypermedia-driven interactivity
+- Implementing server-driven UI updates
+- Debugging HTMX requests and responses
+- Choosing between HTMX and JavaScript frameworks
 
-Frontend developers using HTMX in web applications (framework-agnostic, applies to all backends)
+## References
 
-## Quick Start TL;DR
+### Dependencies
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Core attributes** - `hx-get`, `hx-post`, `hx-put`, `hx-delete`, `hx-patch` for HTTP requests
-- **Targeting** - `hx-target` specifies where response goes, `hx-swap` controls how it's inserted
-- **Triggering** - `hx-trigger` defines events (click, input, load, revealed, etc.)
-- **CSS transitions** - Use `htmx-swapping` and `htmx-settling` classes for animations
-- **Events** - Listen for `htmx:beforeRequest`, `htmx:afterSwap`, `htmx:responseError`, etc.
-- **Debugging** - Enable `htmx.logAll()` for detailed request/response logging
+**Must Load First:**
+- **000-global-core.md** - Foundation for all rules
 
-**Pre-Execution Checklist:**
-- [ ] HTMX library loaded (CDN or local)
-- [ ] HTMX attributes configured on elements
-- [ ] Swap strategies understood (innerHTML, outerHTML, etc.)
-- [ ] Event listeners set up for lifecycle hooks
-- [ ] CSS transitions defined for smooth UX
-- [ ] Debugging tools ready (browser dev tools, htmx.logAll())
+**Related:**
+- **221-python-htmx-core.md** - HTMX with Python backends
+- **421-javascript-alpinejs-core.md** - Alpine.js for client-side reactivity
+
+### External Documentation
+
+- [HTMX Official Docs](https://htmx.org/docs/) - Complete HTMX documentation
+- [HTMX Examples](https://htmx.org/examples/) - Practical HTMX patterns
+- [HTMX Essays](https://htmx.org/essays/) - Hypermedia philosophy
 
 ## Contract
 
-<inputs_prereqs>
-HTMX library loaded; basic HTML/CSS knowledge; understanding of HTTP methods; browser dev tools access
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-HTMX library (1.9.x or higher); modern browser (Chrome, Firefox, Safari, Edge); HTTP server for testing
-</mandatory>
+- HTMX library loaded (1.9.x or higher)
+- Basic HTML/CSS knowledge
+- Understanding of HTTP methods
+- Browser dev tools access
 
-<forbidden>
-Using HTMX with incompatible browsers (IE11 and below); missing CSRF protection for state-changing requests; skipping progressive enhancement fallbacks
-</forbidden>
+### Mandatory
 
-<steps>
+- HTMX library (1.9.x or higher)
+- Modern browser (Chrome, Firefox, Safari, Edge)
+- HTTP server for testing
+
+### Forbidden
+
+- Using HTMX with incompatible browsers (IE11 and below)
+- Missing CSRF protection for state-changing requests
+- Skipping progressive enhancement fallbacks
+
+### Execution Steps
+
 1. Load HTMX library in HTML document
 2. Add HTMX attributes to HTML elements (hx-get, hx-target, hx-swap)
 3. Configure triggers (hx-trigger) for user interactions
@@ -63,24 +74,57 @@ Using HTMX with incompatible browsers (IE11 and below); missing CSRF protection 
 5. Add event listeners for HTMX lifecycle hooks
 6. Test in browser with dev tools open
 7. Enable debugging (htmx.logAll()) if issues arise
-</steps>
 
-<output_format>
-HTML with HTMX attributes, CSS transitions, JavaScript event listeners for HTMX lifecycle
-</output_format>
+### Output Format
 
-<validation>
+HTML with HTMX attributes:
+- Core attributes (hx-get, hx-post, etc.)
+- Targeting and swapping configuration
+- CSS transitions for animations
+- JavaScript event listeners for HTMX lifecycle
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- [ ] HTMX library loaded (CDN or local)
+- [ ] HTMX attributes configured on elements
+- [ ] Swap strategies understood (innerHTML, outerHTML, etc.)
+- [ ] Event listeners set up for lifecycle hooks
+- [ ] CSS transitions defined for smooth UX
+- [ ] Debugging tools ready (browser dev tools, htmx.logAll())
+
+**Success Criteria:**
 - HTMX attributes correctly trigger requests
 - Responses swap into target elements as expected
 - CSS transitions animate smoothly
 - Event listeners fire at appropriate lifecycle points
 - No console errors
 - Works in all target browsers
-</validation>
+
+### Design Principles
+
+- **Hypermedia-Driven:** Server returns HTML fragments, not JSON
+- **Progressive Enhancement:** Works without JavaScript, enhanced with HTMX
+- **Declarative:** Express behavior through HTML attributes
+- **Minimal JavaScript:** Most interactivity through HTMX attributes
+- **Server-Centric:** Logic lives on server, not client
+
+### Post-Execution Checklist
+
+- [ ] HTMX library loaded correctly
+- [ ] HTMX attributes configured on elements
+- [ ] Swap strategies working as expected
+- [ ] Event listeners registered for lifecycle hooks
+- [ ] CSS transitions smooth and performant
+- [ ] Debugging enabled if needed (htmx.logAll())
+- [ ] CSRF protection implemented for state-changing requests
+- [ ] Progressive enhancement fallbacks in place
+- [ ] Tested in all target browsers
+- [ ] No console errors
 
 ## Key Principles
 
-### 1. Core HTMX Attributes
+### Core HTMX Attributes
 
 **HTTP Method Attributes:**
 - **`hx-get`** - Issue GET request (e.g., `<button hx-get="/data">Load</button>`)
@@ -117,7 +161,7 @@ HTML with HTMX attributes, CSS transitions, JavaScript event listeners for HTMX 
 </div>
 ```
 
-### 2. Trigger Patterns
+### Trigger Patterns
 
 **Basic Triggers:**
 ```html
@@ -168,7 +212,7 @@ HTML with HTMX attributes, CSS transitions, JavaScript event listeners for HTMX 
 </button>
 ```
 
-### 3. Request Configuration
+### Request Configuration
 
 **Including Values:**
 ```html
@@ -218,7 +262,7 @@ HTML with HTMX attributes, CSS transitions, JavaScript event listeners for HTMX 
 </button>
 ```
 
-### 4. Response Indicators
+### Response Indicators
 
 **Loading Indicators:**
 ```html
@@ -250,7 +294,7 @@ HTMX automatically adds classes during request lifecycle:
 - `htmx-swapping` - Added during swap
 - `htmx-settling` - Added during settle (400ms default)
 
-### 5. CSS Transitions
+### CSS Transitions
 
 **Fade Transition:**
 ```css
@@ -283,7 +327,7 @@ HTMX automatically adds classes during request lifecycle:
 </div>
 ```
 
-### 6. Client-Side Events
+### Client-Side Events
 
 **Event Listening:**
 ```javascript
@@ -325,7 +369,7 @@ document.body.addEventListener('showNotification', function(event) {
 });
 ```
 
-### 7. Debugging Techniques
+### Debugging Techniques
 
 **Enable Logging:**
 ```javascript
@@ -362,7 +406,7 @@ htmx.trigger(element, 'click');
 - Look for requests with `HX-Request: true` header
 - Check response headers for `HX-Trigger`, `HX-Redirect`, etc.
 
-### 8. Browser Compatibility
+### Browser Compatibility
 
 **Supported Browsers:**
 - Chrome 70+
@@ -439,34 +483,6 @@ htmx.trigger(element, 'click');
 </form>
 ```
 
-## Post-Execution Checklist
-
-- [ ] HTMX library loaded successfully
-- [ ] HTMX attributes configured on elements
-- [ ] Targets specified for all requests
-- [ ] Swap strategies appropriate for use case
-- [ ] Loading indicators implemented
-- [ ] CSS transitions defined for smooth animations
-- [ ] Event listeners set up for lifecycle hooks
-- [ ] Debugging enabled during development
-- [ ] Progressive enhancement fallbacks in place
-- [ ] Tested in target browsers
-
-## Validation
-
-**Success Checks:**
-- HTMX requests appear in browser network tab
-- Responses swap into target elements correctly
-- Loading indicators display during requests
-- CSS transitions animate smoothly
-- Event listeners fire at appropriate times
-- Works in all target browsers
-
-**Negative Tests:**
-- Missing target doesn't break page
-- Invalid server response handled gracefully
-- Network errors trigger error handlers
-
 ## Output Format Examples
 
 ### Complete HTMX Page
@@ -515,18 +531,3 @@ htmx.trigger(element, 'click');
 </body>
 </html>
 ```
-
-## References
-
-### External Documentation
-- [HTMX Documentation](https://htmx.org/docs/) - Official HTMX reference
-- [HTMX Attributes](https://htmx.org/attributes/) - Complete attribute list
-- [HTMX Events](https://htmx.org/events/) - Event reference
-- [HTMX Examples](https://htmx.org/examples/) - Pattern library
-- [HTMX Essays](https://htmx.org/essays/) - Architecture and philosophy
-
-### Related Rules
-- **Python Backend**: `221-python-htmx-core.md` - HTMX with Python
-- **Template Strategies**: `221a-python-htmx-templates.md` - Server-side templates
-- **Common Patterns**: `221e-python-htmx-patterns.md` - Implementation patterns
-- **Frontend Integrations**: `221f-python-htmx-integrations.md` - Alpine.js, CSS frameworks

@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** span attributes, trace_id, performance analysis, metrics collection, cpu_usage, memory_usage, telemetry.create_span, OpenTelemetry, nested spans, tracing patterns, span creation, trace analysis, distributed traces
 **TokenBudget:** ~4600
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 111-snowflake-observability-core.md
-**LastUpdated:** 2025-12-23
 
 ## Scope
 

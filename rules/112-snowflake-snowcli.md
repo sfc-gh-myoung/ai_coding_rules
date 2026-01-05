@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** snow CLI, SnowCLI, Snowflake CLI, snowflake-cli, uvx, Taskfile, task automation, deployment automation, snowflake.yml, profiles, CI/CD, JSON output, authentication, stage copy
 **TokenBudget:** ~3250
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md
-**LastUpdated:** 2025-12-23
 
 ## Scope
 

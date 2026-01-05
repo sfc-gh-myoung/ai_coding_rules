@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** feature views, entity modeling, ML pipeline, ASOF JOIN, point-in-time correctness, Dynamic Tables, feature versioning, create features, feature catalog, feature pipeline, feature discovery, feature registry, feature lineage
 **TokenBudget:** ~6150
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 110-snowflake-model-registry.md
-**LastUpdated:** 2025-12-23
 
 ## Scope
 

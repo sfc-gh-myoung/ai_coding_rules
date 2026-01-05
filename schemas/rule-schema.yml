@@ -295,7 +295,7 @@ content_rules:
       - type: "pattern_pairs"
         min: 2
         pattern: "Problem:.*?Correct Pattern:"
-        error_message: "Anti-Patterns must have Problem → Correct Pattern structure"
+        error_message: "Anti-Patterns must have at least 2 Problem → Correct Pattern pairs"
         severity: "MEDIUM"
   
   investigation_protocol:

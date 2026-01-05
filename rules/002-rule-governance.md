@@ -8,7 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** rule governance, schema, metadata requirements, validation, schema compliance, rule structure, semantic discovery, RULES_INDEX, descriptive headings
 **TokenBudget:** ~3200
 **ContextTier:** Critical
@@ -228,7 +229,6 @@ Description of expected output structure
 - **FORBIDDEN:** Do NOT use XML tags (`<inputs_prereqs>`, `<mandatory>`, etc.)
 - **CHANGED:** Validation is now a subsection with structured checks
 - **CHANGED:** Post-Execution Checklist is now inside Contract (not a separate section)
-```
 
 **Note:** Contract section must appear before line 160 to ensure agent reads it early.
 

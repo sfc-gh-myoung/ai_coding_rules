@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** Cortex Agents, planning instructions, response instructions, tool orchestration, flagging logic, agent prompts, multi-tool orchestration, tool selection, agent prompting, instruction patterns, agent planning
-**TokenBudget:** ~4200
+**TokenBudget:** ~4900
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 115-snowflake-cortex-agents-core.md
-**LastUpdated:** 2025-12-23
 
 ## Scope
 
@@ -441,4 +441,85 @@ Response instructions define HOW the agent formats and presents answers.
 6. Synthesize across sources: "Multiple research reports (3 sources) indicate..."
 7. If no documents found: "No {document type} found for {topic}. Suggest expanding search to {alternatives}."
 8. Highlight contradictory information and explain differences
+```
+
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Mixing Data Calculation and Presentation Logic
+
+**Problem:** Combining SQL calculation instructions and response formatting rules in the same instruction block, making it unclear whether instructions are for Cortex Analyst (data layer) or the agent (presentation layer).
+
+**Why It Fails:** Cortex Analyst processes semantic view instructions differently than agent response instructions. Mixing them causes calculation errors, formatting failures, and unpredictable behavior. The agent can't distinguish between "how to calculate" vs "how to present."
+
+**Correct Pattern:**
+```yaml
+# BAD: Mixed instructions
+Agent Instructions: |
+  Calculate portfolio concentration as sum of top 5 holdings divided by total AUM.
+  Flag any concentration >25% in red with warning icon.
+  Format as percentage with 2 decimals.
+
+# GOOD: Separated by layer
+Semantic View Custom Instructions: |
+  Calculate top5_concentration as:
+  SUM(CASE WHEN holding_rank <= 5 THEN holding_value ELSE 0 END) / total_aum
+
+Agent Response Instructions: |
+  When presenting concentration metrics:
+  1. Use portfolio_analyzer tool to get top5_concentration
+  2. Flag concentration >25% with [⚠️ HIGH CONCENTRATION] prefix
+  3. Format as percentage with 2 decimals (e.g., "28.50%")
+  4. Explain concentration risk implications
+```
+
+### Anti-Pattern 2: Vague Flagging Criteria Without Exact Thresholds
+
+**Problem:** Using subjective terms like "high," "concerning," or "significant" for flagging without defining exact numeric thresholds and formatting rules.
+
+**Why It Fails:** Agent interprets thresholds inconsistently across queries, produces different flags for identical values, and confuses users with unpredictable warnings. Vague criteria prevent reproducible behavior and audit trails.
+
+**Correct Pattern:**
+```yaml
+# BAD: Vague flagging
+Response Instructions: |
+  Flag high concentration positions with appropriate warnings.
+  Highlight concerning risk levels.
+
+# GOOD: Explicit thresholds and formatting
+Response Instructions: |
+  Flagging Logic (apply to all holdings):
+  - Concentration >10%: Prefix with [⚠️ CONCENTRATION]
+  - Volatility >25%: Prefix with [📊 HIGH VOLATILITY]
+  - Liquidity <$1M daily: Prefix with [💧 LOW LIQUIDITY]
+  
+  Format: "{flag} {security_name}: {metric_value} ({threshold} threshold)"
+  Example: "[⚠️ CONCENTRATION] AAPL: 12.5% (10% threshold)"
+```
+
+### Anti-Pattern 3: Overloading Planning Instructions with Response Formatting
+
+**Problem:** Including detailed response formatting, tone guidelines, and output structure in Planning Instructions instead of Response Instructions.
+
+**Why It Fails:** Planning Instructions should focus on tool selection logic only. Overloading them with formatting details makes tool selection logic hard to find, confuses the agent's decision-making process, and violates separation of concerns.
+
+**Correct Pattern:**
+```yaml
+# BAD: Formatting in Planning Instructions
+Planning Instructions: |
+  For portfolio questions, use portfolio_analyzer and format results as tables
+  with clear headers, include charts, use professional tone, and flag risks.
+
+# GOOD: Separated concerns
+Planning Instructions: |
+  Tool Selection:
+  - Portfolio metrics (allocation, holdings, weights): portfolio_analyzer
+  - Risk metrics (volatility, VaR, correlation): risk_analyzer
+  - Document questions (research, policies): search_research_docs
+
+Response Instructions: |
+  Formatting Standards:
+  - Present tabular data with clear headers
+  - Include visualizations for trends and distributions
+  - Use professional, analytical tone
+  - Apply flagging logic per thresholds defined above
 ```

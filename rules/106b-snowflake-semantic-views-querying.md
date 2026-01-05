@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** window functions, dimension compatibility, testing, validation, TPC-DS, performance optimization, aliases, granularity, query semantic view, semantic view results, query patterns, result processing, SEMANTIC_VIEW function, query errors, dimension filters
 **TokenBudget:** ~8500
 **ContextTier:** High
 **Depends:** 106-snowflake-semantic-views-core.md
-**LastUpdated:** 2025-12-22
 
 ## Scope
 

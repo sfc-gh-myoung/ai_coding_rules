@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
-**LastUpdated:** 2025-12-23
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** logging, Python logging, logger, handlers, formatters, log levels, WebLogHandler, Rich console, SSE streaming, structured logging, operation ID, thread safety, log hierarchy, log propagation
 **TokenBudget:** ~2900
 **ContextTier:** High

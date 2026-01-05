@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
-**LastUpdated:** 2025-12-23
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** Data science, Snowflake, pandas, Snowpark, ML, model lifecycle, feature engineering, NaN handling, model versioning, Jupyter
 **TokenBudget:** ~9750
 **ContextTier:** High
@@ -366,7 +366,7 @@ if duration is not None:
  formatted = f"{duration:.1f}s" # CRASHES if duration is NaN
 ```
 
-**Problem**: Snowflake NULL becomes pandas NaN, not Python None. The check `is not None` returns True for NaN values, but format strings crash on NaN.
+**Problem:** Snowflake NULL becomes pandas NaN, not Python None. The check `is not None` returns True for NaN values, but format strings crash on NaN.
 
 **Correct Pattern:**
 ```python
@@ -390,7 +390,7 @@ file_size = df["SIZE"].mean()
 st.metric("Avg Size", f"{file_size:.1f} KB") # CRASHES if all NULL
 ```
 
-**Problem**: If all values are NULL, mean() returns NaN, causing format string error.
+**Problem:** If all values are NULL, mean() returns NaN, causing format string error.
 
 **Correct Pattern:**
 ```python

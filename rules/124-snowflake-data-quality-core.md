@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
-**LastUpdated:** 2025-12-23
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** data profiling, expectations, quality checks, data validation, NULL detection, uniqueness validation, freshness monitoring, anomaly detection, automated monitoring, event tables, create DMF, quality monitoring, data expectations, quality rules
 **TokenBudget:** ~4550
 **ContextTier:** High

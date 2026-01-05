@@ -8,12 +8,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** LOG_LEVEL, TRACE_LEVEL, METRIC_LEVEL, SHOW PARAMETERS, OpenTelemetry, System Views vs Telemetry, monitoring, logging, tracing, debug observability, event table queries, observability patterns, configure telemetry
 **TokenBudget:** ~4550
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
-**LastUpdated:** 2025-12-22
 
 ## Scope
 

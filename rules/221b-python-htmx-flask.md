@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** flask, flask-htmx, blueprints, flask-login, session management, flask routes, flask templates, flask csrf, flask extensions, request context
 **TokenBudget:** ~3450
 **ContextTier:** Medium
 **Depends:** 221-python-htmx-core.md, 221a-python-htmx-templates.md
-**LastUpdated:** 2025-12-23
 
 ## Scope
 

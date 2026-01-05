@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** idempotent, MERGE, operations, multi-environment, infrastructure as code, Snowflake variables, production-safe, upsert, SQL automation, deployment scripts, SQL pipeline, config management, environment variables
 **TokenBudget:** ~5700
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 102-snowflake-sql-demo-engineering.md
-**LastUpdated:** 2025-12-22
 
 ## Scope
 

@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** FastAPI monitoring, health checks, logging, metrics, caching, Redis, observability, structured logging, health endpoints, correlation IDs
 **TokenBudget:** ~3900
 **ContextTier:** Medium
 **Depends:** 210-python-fastapi-core.md
-**LastUpdated:** 2025-12-23
 
 ## Scope
 

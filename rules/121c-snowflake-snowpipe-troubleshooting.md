@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
-**LastUpdated:** 2025-12-23
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** snowpipe troubleshooting, debugging, error resolution, pipe errors, streaming errors, connection failures, schema errors, offset tracking, latency issues, duplicate data, authentication errors, channel errors
 **TokenBudget:** ~4450
 **ContextTier:** Medium
@@ -565,3 +565,62 @@ SHOW GRANTS ON TABLE DB.SCHEMA.TABLE;
 > 4. **Fix one thing at a time** - Avoid changing multiple things simultaneously
 > 5. **Verify resolution** - Confirm issue is resolved before closing investigation
 
+
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Jumping to Solutions Without Root Cause Analysis
+
+**Problem:** Immediately applying fixes (restart pipe, refresh stage, resize warehouse) when errors occur, without systematically investigating the underlying cause.
+
+**Why It Fails:** Fixes symptoms temporarily but root cause persists, same issues recur repeatedly, wastes time on repeated firefighting, and prevents implementing preventive measures. Band-aid solutions don't solve systemic problems.
+
+**Correct Pattern:**
+```sql
+-- BAD: Immediate fix without investigation
+-- Error: "Snowpipe not loading files"
+ALTER PIPE my_pipe REFRESH;  -- Restart without understanding why
+
+-- GOOD: Systematic root cause analysis
+-- Step 1: Check pipe status
+SHOW PIPES LIKE 'my_pipe';
+
+-- Step 2: Check recent load history
+SELECT status, COUNT(*), error_message
+FROM SNOWFLAKE.ACCOUNT_USAGE.COPY_HISTORY
+WHERE pipe_name = 'MY_PIPE'
+  AND start_time >= DATEADD(hour, -24, CURRENT_TIMESTAMP())
+GROUP BY status, error_message;
+
+-- Step 3: Identify root cause (e.g., schema mismatch)
+-- Step 4: Fix root cause (update table schema or file format)
+-- Step 5: THEN refresh pipe
+ALTER PIPE my_pipe REFRESH;
+```
+
+### Anti-Pattern 2: Ignoring File Size and Batch Patterns in Performance Issues
+
+**Problem:** Troubleshooting slow Snowpipe performance by only checking warehouse size and query execution, without analyzing file sizes, arrival patterns, and batching behavior.
+
+**Why It Fails:** Small files (<1MB) cause excessive overhead regardless of warehouse size, bursty arrival patterns create latency spikes, and batching issues waste compute. Warehouse resizing doesn't fix file-level inefficiencies.
+
+**Correct Pattern:**
+```sql
+-- BAD: Only check warehouse
+SHOW WAREHOUSES LIKE 'SNOWPIPE_WH';  -- Check size, assume that's the issue
+
+-- GOOD: Analyze file patterns first
+SELECT 
+  pipe_name,
+  AVG(file_size_bytes) / POWER(1024, 2) as avg_file_size_mb,
+  MIN(file_size_bytes) / POWER(1024, 2) as min_file_size_mb,
+  COUNT(*) as file_count,
+  COUNT(*) / NULLIF(DATEDIFF(hour, MIN(start_time), MAX(start_time)), 0) as files_per_hour,
+  CASE 
+    WHEN AVG(file_size_bytes) < 1048576 THEN 'ISSUE: Small files causing overhead'
+    WHEN COUNT(*) / NULLIF(DATEDIFF(hour, MIN(start_time), MAX(start_time)), 0) > 1000 THEN 'ISSUE: High frequency causing batching problems'
+    ELSE 'File patterns OK'
+  END as diagnosis
+FROM SNOWFLAKE.ACCOUNT_USAGE.COPY_HISTORY
+WHERE start_time >= DATEADD(day, -1, CURRENT_TIMESTAMP())
+GROUP BY pipe_name;
+```

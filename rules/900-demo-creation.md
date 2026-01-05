@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
-**LastUpdated:** 2025-12-23
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** Demo creation, synthetic data, realistic demos, data generation, demo applications, narrative design, reproducible data, progressive disclosure, Streamlit, data visualization
 **TokenBudget:** ~1900
 **ContextTier:** Low

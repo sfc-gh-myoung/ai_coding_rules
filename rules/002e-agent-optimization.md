@@ -5,7 +5,8 @@ FOUNDATION RULE: PRESERVE WHEN POSSIBLE
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** agent, LLM, optimization, format, token, efficiency, understanding, execution, comprehension, design, patterns, priority, agent-first
 **TokenBudget:** ~3200
 **ContextTier:** High

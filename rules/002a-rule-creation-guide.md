@@ -8,7 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** rule creation, workflow, step-by-step guide, naming conventions, metadata setup, v3.2 schema, validation, rule numbering, from scratch
 **TokenBudget:** ~5200
 **ContextTier:** High
@@ -247,7 +248,7 @@ Review 2-3 existing rules to understand:
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
 **Keywords:** [5-20 keywords here]
 **TokenBudget:** ~[estimate]
 **ContextTier:** [Critical|High|Medium|Low]
@@ -343,7 +344,7 @@ Add an importance marker after the title for foundation rules:
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
 **Keywords:** [5-20 comma-separated keywords]
 **TokenBudget:** ~[number]
 **ContextTier:** [Critical | High | Medium | Low]

@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** sse, server-sent events, htmx, alpine.js, eventsource, real-time, streaming, live updates, push notifications, event types, sse-manager
 **TokenBudget:** ~3050
 **ContextTier:** High
 **Depends:** 221-python-htmx-core.md, 221f-python-htmx-integrations.md
-**LastUpdated:** 2025-12-23
 
 ## Scope
 

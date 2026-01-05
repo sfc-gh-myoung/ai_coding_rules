@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** roles, grants, secure views, security policies, access control, data security, policy troubleshooting, grant management, Data Metric Functions, DMF, least privilege, create masking policy, tagging, SQL
 **TokenBudget:** ~3550
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
-**LastUpdated:** 2025-12-22
 
 ## Scope
 

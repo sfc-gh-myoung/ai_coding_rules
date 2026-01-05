@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** Pydantic, data validation, models, settings, BaseModel, field validation, serialization, Field, validator, model_validator, EmailStr, pydantic-settings
 **TokenBudget:** ~5150
 **ContextTier:** High
 **Depends:** 200-python-core.md
-**LastUpdated:** 2025-12-23
 
 ## Scope
 

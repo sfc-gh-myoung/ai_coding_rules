@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** jinja2, templates, partials, fragments, template composition, conditional rendering, htmx templates, template organization, reusable components, template context
 **TokenBudget:** ~3550
 **ContextTier:** High
 **Depends:** 221-python-htmx-core.md
-**LastUpdated:** 2025-12-23
 
 ## Scope
 

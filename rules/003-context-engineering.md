@@ -3,7 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** context engineering, attention budget, context rot, token efficiency, compaction, progressive disclosure, sub-agents, agentic search, system prompts, right altitude, long-horizon tasks, memory management, state tracking
 **TokenBudget:** ~6050
 **ContextTier:** Critical
@@ -28,18 +29,31 @@ Comprehensive context engineering practices that treat context as a finite resou
 ### Dependencies
 
 **Must Load First:**
-- **000-global-core.md** - Foundation for all rules, Context Window Management Protocol
+- `000-global-core.md` - Foundation for all rules, Context Window Management Protocol
 
-**Related:**
-- **001-memory-bank.md** - Structured documentation and context preservation
-- **002c-advanced-rule-patterns.md** - System prompt altitude and investigation-first
-- **002b-rule-optimization.md** - Token budgets and optimization
+### Related Rules
+
+- `001-memory-bank.md` - Structured documentation and context preservation
+- `002c-advanced-rule-patterns.md` - System prompt altitude and investigation-first
+- `002b-rule-optimization.md` - Token budgets and optimization
+- `004-tool-design-for-agents.md` - Token-efficient tool development patterns
 
 ### External Documentation
 
-- **[Effective Context Engineering for AI Agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)** - Anthropic article on context rot, attention budgets, and compaction strategies
-- **[Claude Context Window Management](https://docs.anthropic.com/)** - Official Anthropic documentation
-- **Schema Definition:** `schemas/rule-schema.yml` - v3.2 schema with context-optimized structures
+**Anthropic Engineering Articles:**
+- [Effective Context Engineering for AI Agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) - Comprehensive guide to context management, attention budgets, and optimization strategies
+- [Writing Tools for AI Agents](https://www.anthropic.com/engineering/writing-tools-for-agents) - Best practices for token-efficient tool design
+- [Equipping Agents for the Real World with Agent Skills](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills) - Progressive disclosure and skill-based agent architectures
+
+**Claude Documentation:**
+- [Prompt Engineering Overview](https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/overview) - Foundational prompt engineering techniques
+- [Claude 4 Best Practices](https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/claude-4-best-practices) - Model-specific optimization guidance
+- [Prompt Templates and Variables](https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/prompt-templates-and-variables) - Structured prompt patterns
+
+**Additional Resources:**
+- [Technical Writing Best Practices](https://developers.google.com/tech-writing) - Clear, efficient documentation
+- [Documentation Systems](https://documentation.divio.com/) - Information architecture principles
+- Schema Definition: `schemas/rule-schema.yml` - v3.2 schema with context-optimized structures
 
 ## Contract
 
@@ -285,31 +299,6 @@ Natural language markers (CRITICAL, CORE RULE, FOUNDATION RULE) are the primary
 mechanism for context preservation. ContextTier metadata is secondary.
 
 See `000-global-core.md`, section "Context Window Management Protocol" for full hierarchy.
-
-## References
-
-### External Documentation
-
-**Anthropic Engineering Articles:**
-- [Effective Context Engineering for AI Agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) - Comprehensive guide to context management, attention budgets, and optimization strategies
-- [Writing Tools for AI Agents](https://www.anthropic.com/engineering/writing-tools-for-agents) - Best practices for token-efficient tool design
-- [Equipping Agents for the Real World with Agent Skills](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills) - Progressive disclosure and skill-based agent architectures
-
-**Claude Documentation:**
-- [Prompt Engineering Overview](https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/overview) - Foundational prompt engineering techniques
-- [Claude 4 Best Practices](https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/claude-4-best-practices) - Model-specific optimization guidance
-- [Prompt Templates and Variables](https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/prompt-templates-and-variables) - Structured prompt patterns
-
-**Additional Resources:**
-- [Technical Writing Best Practices](https://developers.google.com/tech-writing) - Clear, efficient documentation
-- [Documentation Systems](https://documentation.divio.com/) - Information architecture principles
-
-### Related Rules
-- **Global Core**: `000-global-core.md` - Foundational workflow and safety protocols
-- **Memory Bank System**: `001-memory-bank.md` - Structured documentation for context continuity
-- **Rule Governance**: `002-rule-governance.md` - Token budgets and rule sizing standards
-- **Tool Design**: `004-tool-design-for-agents.md` - Token-efficient tool development patterns
-- **AGENTS Workflow**: `AGENTS.md` - Rule discovery and operational protocols
 
 ## Context vs Prompt Engineering
 

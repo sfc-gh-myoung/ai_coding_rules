@@ -8,7 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** token budget, optimization, performance, rule sizing, progressive loading, context window, model limits, cost efficiency, caching, batch loading
 **TokenBudget:** ~5150
 **ContextTier:** High
@@ -584,7 +585,7 @@ wc -w rules/NNN-rule.md
 ## Metadata
 
 **SchemaVersion:** v3.1
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
 **Keywords:** pytest, testing, fixtures, parametrization, test isolation
 **TokenBudget:** ~2050
 **ContextTier:** High

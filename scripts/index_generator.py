@@ -249,7 +249,7 @@ def generate_rule_entry(metadata: RuleMetadata) -> str:
     # Wrap filename in backticks and bold
     filename = f"**`{metadata.filename}`**"
 
-    # Scope (extracted from ## Rule Scope section)
+    # Scope (extracted from ## Scope section)
     scope = metadata.scope
 
     # Keywords (as-is, already comma-separated)

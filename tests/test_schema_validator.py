@@ -31,72 +31,85 @@ def schema_validator() -> SchemaValidator:
 
 @pytest.fixture
 def compliant_rule_content() -> str:
-    """Fully compliant rule content per v3.1 spec."""
+    """Fully compliant rule content per v3.2 spec."""
     return """# Compliant Test Rule
 
 ## Metadata
 
-**SchemaVersion:** v3.1
+**SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
-**Keywords:** rule, validation, testing, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, quick-start, references, examples
+**LastUpdated:** 2025-01-05
+**Keywords:** rule, validation, testing, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, references, examples
 **TokenBudget:** ~500
 **ContextTier:** High
 **Depends:** rules/000-global-core.md
 
-## Purpose
-This rule demonstrates complete v3.0 compliance for testing.
+## Scope
 
-## Rule Scope
-**Applies to:** Testing scenarios
-**Does NOT apply to:** Production rules
+**What This Rule Covers:**
+This rule demonstrates complete v3.2 compliance for testing validation scenarios.
 
-## Quick Start TL;DR
-**MANDATORY:**
-**Essential Patterns:**
-- **[Pattern 1]:** Always validate metadata
-- **[Pattern 2]:** Include required sections
-- **[Pattern 3]:** Follow section order
-- **[Pattern 4]:** Add code examples
-- **[Pattern 5]:** Document anti-patterns
-- **[Pattern 6]:** Reference related rules
+**When to Load This Rule:**
+- Validating rule files against v3.2 schema
+- Testing schema validator functionality
+- Ensuring compliance with governance standards
 
-**Pre-Execution Checklist:**
-- [ ] Check 1
-- [ ] Check 2
-- [ ] Check 3
-- [ ] Check 4
-- [ ] Check 5
+## References
+
+### Dependencies
+
+**Must Load First:**
+- **rules/000-global-core.md** - Global standards
+
+### External Documentation
+
+- **002-rule-governance.md** - Governance v3.2 standards
 
 ## Contract
-<inputs_prereqs>
-Valid markdown file
-</inputs_prereqs>
 
-<mandatory>
-All validation tools
-</mandatory>
+### Inputs and Prerequisites
 
-<forbidden>
-None
-</forbidden>
+- Valid markdown file
+- Schema validator installed
+- Python 3.8+ environment
 
-<steps>
+### Mandatory
+
+- All validation tools
+- Schema file (rule-schema.yml)
+- Test fixtures
+
+### Forbidden
+
+- Skipping validation checks
+- Ignoring CRITICAL errors
+
+### Execution Steps
+
 1. Parse rule file
 2. Validate structure
 3. Check content
 4. Verify compliance
 5. Generate report
-</steps>
 
-<output_format>
-ValidationResult object
-</output_format>
+### Output Format
 
-<validation>
-All checks pass
-</validation>
+ValidationResult object with errors list and pass/fail status
+
+### Validation
+
+All checks pass with zero CRITICAL or HIGH errors
+
+### Post-Execution Checklist
+
+- [ ] All metadata fields present
+- [ ] Required sections included
+- [ ] Sections in correct order
+- [ ] Contract has all subsections
+- [ ] Anti-Patterns has 2+ code blocks
 
 ## Anti-Patterns and Common Mistakes
+
 **Anti-Pattern 1: Missing Metadata**
 ```markdown
 # Rule Without Metadata
@@ -111,69 +124,97 @@ No keywords or token budget.
 ```
 **Benefits:** Proper categorization and resource planning
 
-**Anti-Pattern 2: Missing Quick Start**
+**Anti-Pattern 2: Using XML Tags in Contract**
 ```markdown
-## Validation
-Jump straight to validation without Quick Start
+## Contract
+<inputs_prereqs>
+Prerequisites here
+</inputs_prereqs>
 ```
-**Problem:** No progressive disclosure
+**Problem:** v3.2 requires Markdown headers, not XML tags
 
-## Post-Execution Checklist
-- [ ] All metadata fields present
-- [ ] 9 required sections included
-- [ ] Sections in correct order
-- [ ] Quick Start has 3+ patterns
-- [ ] Anti-Patterns has 2+ code blocks
+**Correct Pattern:**
+```markdown
+## Contract
+
+### Inputs and Prerequisites
+
+Prerequisites here
+```
+**Benefits:** Universal Markdown format, better readability
 
 ## Validation
+
 - **Success Checks:** All validations pass
 - **Negative Tests:** Invalid rules caught
 
 ## Output Format Examples
+
 ```bash
 python scripts/schema_validator.py rules/ --verbose
 ```
-
-## References
-### Related Rules
-- `rules/000-global-core.md` - Global standards
-- `rules/002-rule-governance.md` - Governance v3.0
 """
 
 
 @pytest.fixture
 def missing_metadata_content() -> str:
-    """Rule content missing required metadata fields."""
-    return """**Keywords:** test, validation
-**TokenBudget:** ~500
+    """Rule content missing required metadata fields (ContextTier, Depends, LastUpdated)."""
+    return """# Rule Missing Metadata
 
-# Rule Missing Metadata
+## Metadata
 
-## Purpose
-Test rule missing ContextTier and Depends.
+**SchemaVersion:** v3.2
+**RuleVersion:** v1.0.0
+**Keywords:** test, validation, metadata, missing, fields
 
-## Rule Scope
+# Missing: LastUpdated, ContextTier, Depends
+
+## Scope
+
+**What This Rule Covers:**
+Test rule missing ContextTier, Depends, and LastUpdated metadata fields.
+
+**When to Load This Rule:**
 Testing metadata validation
 
-## Quick Start TL;DR
-**MANDATORY:**
-**Essential Patterns:**
-- **[Pattern 1]:** Test
-- **[Pattern 2]:** Test
-- **[Pattern 3]:** Test
-- **[Pattern 4]:** Test
-- **[Pattern 5]:** Test
-- **[Pattern 6]:** Test
+## References
+
+### Dependencies
+
+None specified (missing Depends field)
 
 ## Contract
-- **Inputs/Prereqs:** None
-- **Allowed Tools:** All
-- **Forbidden Tools:** None
-- **Required Steps:** Test
-- **Output Format:** Test
-- **Validation Steps:** Test
+
+### Inputs and Prerequisites
+
+None
+
+### Mandatory
+
+All tools
+
+### Forbidden
+
+None
+
+### Execution Steps
+
+1. Test step
+
+### Output Format
+
+Test output
+
+### Validation
+
+Test validation
+
+### Post-Execution Checklist
+
+- [ ] Check
 
 ## Anti-Patterns and Common Mistakes
+
 **Anti-Pattern 1: Example**
 ```python
 # Bad
@@ -188,58 +229,80 @@ pass
 ```
 **Benefits:** Better
 
-## Post-Execution Checklist
-- [ ] Check
-
 ## Validation
+
 - **Success Checks:** Pass
 
 ## Output Format Examples
+
 ```bash
 test
 ```
-
-## References
-### Related Rules
-- `000-global-core.md`
 """
 
 
 @pytest.fixture
 def invalid_keywords_content() -> str:
-    """Rule with too few keywords (less than 15)."""
-    return """**Keywords:** test, validation, schema
+    """Rule with too few keywords (less than 5 minimum)."""
+    return """# Rule With Invalid Keywords
+
+## Metadata
+
+**SchemaVersion:** v3.2
+**RuleVersion:** v1.0.0
+**LastUpdated:** 2025-01-05
+**Keywords:** test, validation, schema
 **TokenBudget:** ~500
 **ContextTier:** High
 **Depends:** 000-global-core.md
 
-# Rule With Invalid Keywords
+## Scope
 
-## Purpose
-Test keywords validation (only 3 keywords).
+**What This Rule Covers:**
+Test keywords validation (only 3 keywords, needs 5-20).
 
-## Rule Scope
-Testing keyword count
+**When to Load This Rule:**
+Testing keyword count validation
 
-## Quick Start TL;DR
-**MANDATORY:**
-**Essential Patterns:**
-- **[Pattern 1]:** Test
-- **[Pattern 2]:** Test
-- **[Pattern 3]:** Test
-- **[Pattern 4]:** Test
-- **[Pattern 5]:** Test
-- **[Pattern 6]:** Test
+## References
+
+### Dependencies
+
+**Must Load First:**
+- **000-global-core.md**
 
 ## Contract
-- **Inputs/Prereqs:** None
-- **Allowed Tools:** All
-- **Forbidden Tools:** None
-- **Required Steps:** Test
-- **Output Format:** Test
-- **Validation Steps:** Test
+
+### Inputs and Prerequisites
+
+None
+
+### Mandatory
+
+All tools
+
+### Forbidden
+
+None
+
+### Execution Steps
+
+1. Test step
+
+### Output Format
+
+Test output
+
+### Validation
+
+Test validation
+
+### Post-Execution Checklist
+
+- [ ] Check
 
 ## Anti-Patterns and Common Mistakes
+
 **Anti-Pattern 1: Example**
 ```python
 # Bad
@@ -254,99 +317,137 @@ pass
 ```
 **Benefits:** Better
 
-## Post-Execution Checklist
-- [ ] Check
-
 ## Validation
+
 - **Success Checks:** Pass
 
 ## Output Format Examples
+
 ```bash
 test
 ```
-
-## References
-### Related Rules
-- `000-global-core.md`
 """
 
 
 @pytest.fixture
 def missing_sections_content() -> str:
-    """Rule missing required sections (Quick Start TL;DR, Anti-Patterns)."""
-    return """**Keywords:** test, validation, schema, metadata, structure, content, format, compliance, checklist, contract, references, examples, patterns, rules, governance
+    """Rule missing required Scope section."""
+    return """# Rule Missing Sections
+
+## Metadata
+
+**SchemaVersion:** v3.2
+**RuleVersion:** v1.0.0
+**LastUpdated:** 2025-01-05
+**Keywords:** test, validation, schema, metadata, structure, content, format, compliance, checklist, contract, references, examples, patterns, rules, governance
 **TokenBudget:** ~500
 **ContextTier:** High
 **Depends:** 000-global-core.md
 
-# Rule Missing Sections
+## References
 
-## Purpose
-Test rule missing Quick Start TL;DR and Anti-Patterns sections.
+### Dependencies
 
-## Rule Scope
-Testing structural validation
+**Must Load First:**
+- **000-global-core.md**
 
 ## Contract
-- **Inputs/Prereqs:** None
-- **Allowed Tools:** All
-- **Forbidden Tools:** None
-- **Required Steps:** Test
-- **Output Format:** Test
-- **Validation Steps:** Test
 
-## Post-Execution Checklist
+### Inputs and Prerequisites
+
+None
+
+### Mandatory
+
+All tools
+
+### Forbidden
+
+None
+
+### Execution Steps
+
+1. Test step
+
+### Output Format
+
+Test output
+
+### Validation
+
+Test validation
+
+### Post-Execution Checklist
+
 - [ ] Check
 
 ## Validation
+
 - **Success Checks:** Pass
 
 ## Output Format Examples
+
 ```bash
 test
 ```
-
-## References
-### Related Rules
-- `000-global-core.md`
 """
 
 
 @pytest.fixture
 def wrong_section_order_content() -> str:
-    """Rule with sections in wrong order (Contract before Quick Start)."""
-    return """**Keywords:** test, validation, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, quick-start, references, examples, rules
+    """Rule with sections in wrong order (Contract before References)."""
+    return """# Rule With Wrong Order
+
+## Metadata
+
+**SchemaVersion:** v3.2
+**RuleVersion:** v1.0.0
+**LastUpdated:** 2025-01-05
+**Keywords:** test, validation, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, references, examples, rules
 **TokenBudget:** ~500
 **ContextTier:** High
 **Depends:** 000-global-core.md
 
-# Rule With Wrong Order
+## Scope
 
-## Purpose
-Test rule with sections out of order.
+**What This Rule Covers:**
+Test rule with sections out of order (Contract before References violates v3.2).
 
-## Rule Scope
+**When to Load This Rule:**
 Testing section order validation
 
 ## Contract
-- **Inputs/Prereqs:** None
-- **Allowed Tools:** All
-- **Forbidden Tools:** None
-- **Required Steps:** Test
-- **Output Format:** Test
-- **Validation Steps:** Test
 
-## Quick Start TL;DR
-**MANDATORY:**
-**Essential Patterns:**
-- **[Pattern 1]:** Test
-- **[Pattern 2]:** Test
-- **[Pattern 3]:** Test
-- **[Pattern 4]:** Test
-- **[Pattern 5]:** Test
-- **[Pattern 6]:** Test
+### Inputs and Prerequisites
+
+None
+
+### Mandatory
+
+All tools
+
+### Forbidden
+
+None
+
+### Execution Steps
+
+1. Test step
+
+### Output Format
+
+Test output
+
+### Validation
+
+Test validation
+
+### Post-Execution Checklist
+
+- [ ] Check
 
 ## Anti-Patterns and Common Mistakes
+
 **Anti-Pattern 1: Example**
 ```python
 # Bad
@@ -361,54 +462,86 @@ pass
 ```
 **Benefits:** Better
 
-## Post-Execution Checklist
-- [ ] Check
+## References
+
+### Related Rules
+
+- `000-global-core.md`
 
 ## Validation
+
 - **Success Checks:** Pass
 
 ## Output Format Examples
+
 ```bash
 test
 ```
-
-## References
-### Related Rules
-- `000-global-core.md`
 """
 
 
 @pytest.fixture
 def insufficient_patterns_content() -> str:
-    """Rule with Quick Start having too few patterns (less than 3)."""
-    return """**Keywords:** test, validation, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, quick-start, references, examples, rules
+    """Rule with Anti-Patterns having only 1 pattern pair (needs 2+)."""
+    return """# Rule With Insufficient Patterns
+
+## Metadata
+
+**SchemaVersion:** v3.2
+**RuleVersion:** v1.0.0
+**LastUpdated:** 2025-01-05
+**Keywords:** test, validation, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, references, examples, rules
 **TokenBudget:** ~500
 **ContextTier:** High
 **Depends:** 000-global-core.md
 
-# Rule With Insufficient Patterns
+## Scope
 
-## Purpose
-Test Quick Start with only 2 patterns (needs 3+).
+**What This Rule Covers:**
+Test Anti-Patterns with only 1 pattern pair (needs 2+ for quality).
 
-## Rule Scope
-Testing Quick Start content validation
+**When to Load This Rule:**
+Testing Anti-Patterns content validation
 
-## Quick Start TL;DR
-**MANDATORY:**
-**Essential Patterns:**
-- **[Pattern 1]:** Test
-- **[Pattern 2]:** Test
+## References
+
+### Dependencies
+
+**Must Load First:**
+- **000-global-core.md**
 
 ## Contract
-- **Inputs/Prereqs:** None
-- **Allowed Tools:** All
-- **Forbidden Tools:** None
-- **Required Steps:** Test
-- **Output Format:** Test
-- **Validation Steps:** Test
+
+### Inputs and Prerequisites
+
+None
+
+### Mandatory
+
+All tools
+
+### Forbidden
+
+None
+
+### Execution Steps
+
+1. Test step
+
+### Output Format
+
+Test output
+
+### Validation
+
+Test validation
+
+### Post-Execution Checklist
+
+- [ ] Check
 
 ## Anti-Patterns and Common Mistakes
+
 **Anti-Pattern 1: Example**
 ```python
 # Bad
@@ -423,58 +556,80 @@ pass
 ```
 **Benefits:** Better
 
-## Post-Execution Checklist
-- [ ] Check
-
 ## Validation
+
 - **Success Checks:** Pass
 
 ## Output Format Examples
+
 ```bash
 test
 ```
-
-## References
-### Related Rules
-- `000-global-core.md`
 """
 
 
 @pytest.fixture
 def insufficient_antipatterns_content() -> str:
     """Rule with Anti-Patterns section but only 1 code block (needs 2+)."""
-    return """**Keywords:** test, validation, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, quick-start, references, examples, rules
+    return """# Rule With Insufficient Anti-Patterns
+
+## Metadata
+
+**SchemaVersion:** v3.2
+**RuleVersion:** v1.0.0
+**LastUpdated:** 2025-01-05
+**Keywords:** test, validation, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, references, examples, rules
 **TokenBudget:** ~500
 **ContextTier:** High
 **Depends:** 000-global-core.md
 
-# Rule With Insufficient Anti-Patterns
+## Scope
 
-## Purpose
+**What This Rule Covers:**
 Test Anti-Patterns with only 1 code block (needs 2+).
 
-## Rule Scope
+**When to Load This Rule:**
 Testing Anti-Patterns content validation
 
-## Quick Start TL;DR
-**MANDATORY:**
-**Essential Patterns:**
-- **[Pattern 1]:** Test
-- **[Pattern 2]:** Test
-- **[Pattern 3]:** Test
-- **[Pattern 4]:** Test
-- **[Pattern 5]:** Test
-- **[Pattern 6]:** Test
+## References
+
+### Dependencies
+
+**Must Load First:**
+- **000-global-core.md**
 
 ## Contract
-- **Inputs/Prereqs:** None
-- **Allowed Tools:** All
-- **Forbidden Tools:** None
-- **Required Steps:** Test
-- **Output Format:** Test
-- **Validation Steps:** Test
+
+### Inputs and Prerequisites
+
+None
+
+### Mandatory
+
+All tools
+
+### Forbidden
+
+None
+
+### Execution Steps
+
+1. Test step
+
+### Output Format
+
+Test output
+
+### Validation
+
+Test validation
+
+### Post-Execution Checklist
+
+- [ ] Check
 
 ## Anti-Patterns and Common Mistakes
+
 **Anti-Pattern 1: Example**
 Only one code block here:
 ```python
@@ -483,58 +638,80 @@ pass
 ```
 **Problem:** Not enough examples
 
-## Post-Execution Checklist
-- [ ] Check
-
 ## Validation
+
 - **Success Checks:** Pass
 
 ## Output Format Examples
+
 ```bash
 test
 ```
-
-## References
-### Related Rules
-- `000-global-core.md`
 """
 
 
 @pytest.fixture
 def rule_with_emojis_content() -> str:
-    """Rule containing emojis (forbidden per v3.0)."""
-    return """**Keywords:** test, validation, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, quick-start, references, examples, rules
+    """Rule containing emojis (forbidden per v3.2)."""
+    return """# Rule With Emojis ✅
+
+## Metadata
+
+**SchemaVersion:** v3.2
+**RuleVersion:** v1.0.0
+**LastUpdated:** 2025-01-05
+**Keywords:** test, validation, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, references, examples, rules
 **TokenBudget:** ~500
 **ContextTier:** High
 **Depends:** 000-global-core.md
 
-# Rule With Emojis ✅
+## Scope
 
-## Purpose
+**What This Rule Covers:**
 Test rule with emojis ⚠️ in content.
 
-## Rule Scope
+**When to Load This Rule:**
 Testing format restrictions 🚀
 
-## Quick Start TL;DR
-**MANDATORY:**
-**Essential Patterns:**
-- **[Pattern 1]:** Test ✅
-- **[Pattern 2]:** Test
-- **[Pattern 3]:** Test
-- **[Pattern 4]:** Test
-- **[Pattern 5]:** Test
-- **[Pattern 6]:** Test
+## References
+
+### Dependencies
+
+**Must Load First:**
+- **000-global-core.md**
 
 ## Contract
-- **Inputs/Prereqs:** None
-- **Allowed Tools:** All
-- **Forbidden Tools:** None
-- **Required Steps:** Test
-- **Output Format:** Test
-- **Validation Steps:** Test
+
+### Inputs and Prerequisites
+
+None
+
+### Mandatory
+
+All tools
+
+### Forbidden
+
+None
+
+### Execution Steps
+
+1. Test step ✅
+
+### Output Format
+
+Test output
+
+### Validation
+
+Test validation
+
+### Post-Execution Checklist
+
+- [ ] Check
 
 ## Anti-Patterns and Common Mistakes
+
 **Anti-Pattern 1: Example**
 ```python
 # Bad
@@ -549,54 +726,60 @@ pass
 ```
 **Benefits:** Better
 
-## Post-Execution Checklist
-- [ ] Check
-
 ## Validation
+
 - **Success Checks:** Pass
 
 ## Output Format Examples
+
 ```bash
 test
 ```
-
-## References
-### Related Rules
-- `000-global-core.md`
 """
 
 
 @pytest.fixture
 def incomplete_contract_content() -> str:
-    """Rule with Contract section missing required fields."""
-    return """**Keywords:** test, validation, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, quick-start, references, examples, rules
+    """Rule with Contract section missing required subsections."""
+    return """# Rule With Incomplete Contract
+
+## Metadata
+
+**SchemaVersion:** v3.2
+**RuleVersion:** v1.0.0
+**LastUpdated:** 2025-01-05
+**Keywords:** test, validation, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, references, examples, rules
 **TokenBudget:** ~500
 **ContextTier:** High
 **Depends:** 000-global-core.md
 
-# Rule With Incomplete Contract
+## Scope
 
-## Purpose
-Test Contract section missing required fields.
+**What This Rule Covers:**
+Test Contract section missing required subsections (only has 2 of 7 required).
 
-## Rule Scope
+**When to Load This Rule:**
 Testing Contract content validation
 
-## Quick Start TL;DR
-**MANDATORY:**
-**Essential Patterns:**
-- **[Pattern 1]:** Test
-- **[Pattern 2]:** Test
-- **[Pattern 3]:** Test
-- **[Pattern 4]:** Test
-- **[Pattern 5]:** Test
-- **[Pattern 6]:** Test
+## References
+
+### Dependencies
+
+**Must Load First:**
+- **000-global-core.md**
 
 ## Contract
-- **Inputs/Prereqs:** None
-- **Allowed Tools:** All
+
+### Inputs and Prerequisites
+
+None
+
+### Mandatory
+
+All tools
 
 ## Anti-Patterns and Common Mistakes
+
 **Anti-Pattern 1: Example**
 ```python
 # Bad
@@ -611,20 +794,15 @@ pass
 ```
 **Benefits:** Better
 
-## Post-Execution Checklist
-- [ ] Check
-
 ## Validation
+
 - **Success Checks:** Pass
 
 ## Output Format Examples
+
 ```bash
 test
 ```
-
-## References
-### Related Rules
-- `000-global-core.md`
 """
 
 
@@ -635,13 +813,13 @@ class TestSchemaValidatorInitialization:
     def test_schema_validator_loads_default_schema(self, schema_validator):
         """Test that SchemaValidator loads default schema successfully.
 
-        Validates that the v3.0 schema YAML file loads correctly and
+        Validates that the v3.2 schema YAML file loads correctly and
         contains the version field. This ensures the schema file is
         well-formed and the validator can begin validation operations.
         """
         assert schema_validator.schema is not None
         assert "version" in schema_validator.schema
-        assert schema_validator.schema["version"] == "3.1"
+        assert schema_validator.schema["version"] == "3.2"
 
     @pytest.mark.unit
     def test_schema_validator_has_required_sections(self, schema_validator):
@@ -730,7 +908,7 @@ class TestMetadataValidation:
     def test_invalid_keywords_count_detected(
         self, schema_validator, invalid_keywords_content, tmp_path
     ):
-        """Test that Keywords with less than 10 terms are detected."""
+        """Test that Keywords with less than 5 terms are detected (v3.2: 5-20 range)."""
         rule_file = tmp_path / "invalid-keywords.md"
         rule_file.write_text(invalid_keywords_content)
 
@@ -740,7 +918,7 @@ class TestMetadataValidation:
         keyword_errors = [e for e in metadata_errors if "Keywords" in e.message]
 
         assert len(keyword_errors) > 0, "Should detect insufficient keywords"
-        assert any("10" in e.message or "15" in e.message for e in keyword_errors)
+        assert any("5" in e.message or "20" in e.message for e in keyword_errors)
 
     @pytest.mark.unit
     def test_invalid_token_budget_format_detected(self, schema_validator, tmp_path):
@@ -1046,18 +1224,16 @@ class TestStructuralValidation:
 
     @pytest.mark.unit
     def test_missing_sections_detected(self, schema_validator, missing_sections_content, tmp_path):
-        """Test that missing required sections are detected."""
+        """Test that missing required Scope section is detected (v3.2)."""
         rule_file = tmp_path / "missing-sections.md"
         rule_file.write_text(missing_sections_content)
 
         result = schema_validator.validate_file(rule_file)
 
-        # Check for missing section errors (each section has its own error_group)
-        quick_start_errors = [e for e in result.errors if "Quick Start" in e.message]
-        anti_patterns_errors = [e for e in result.errors if "Anti-Patterns" in e.message]
+        # Check for missing Scope section (required in v3.2)
+        scope_errors = [e for e in result.errors if "Scope" in e.message]
 
-        assert len(quick_start_errors) >= 1, "Should detect missing Quick Start TL;DR"
-        assert len(anti_patterns_errors) >= 1, "Should detect missing Anti-Patterns"
+        assert len(scope_errors) >= 1, "Should detect missing Scope section"
 
     @pytest.mark.unit
     def test_wrong_section_order_detected(
@@ -1127,17 +1303,17 @@ class TestContentValidation:
     def test_insufficient_patterns_detected(
         self, schema_validator, insufficient_patterns_content, tmp_path
     ):
-        """Test that Quick Start with too few patterns is detected."""
+        """Test that Anti-Patterns with too few pattern pairs is detected (v3.2: needs 2+)."""
         rule_file = tmp_path / "insufficient-patterns.md"
         rule_file.write_text(insufficient_patterns_content)
 
         result = schema_validator.validate_file(rule_file)
 
-        quickstart_errors = [e for e in result.errors if e.error_group == "Quick Start"]
-        pattern_errors = [e for e in quickstart_errors if "pattern" in e.message.lower()]
+        antipattern_errors = [e for e in result.errors if e.error_group == "Anti-Patterns"]
+        pattern_errors = [e for e in antipattern_errors if "pattern" in e.message.lower()]
 
         assert len(pattern_errors) > 0, "Should detect insufficient patterns"
-        assert any("3" in e.message for e in pattern_errors)
+        assert any("2" in e.message or "pair" in e.message.lower() for e in pattern_errors)
 
     @pytest.mark.unit
     def test_insufficient_antipatterns_detected(
@@ -1158,61 +1334,86 @@ class TestContentValidation:
     def test_incomplete_contract_detected(
         self, schema_validator, incomplete_contract_content, tmp_path
     ):
-        """Test that Contract missing required fields is detected."""
+        """Test that Contract missing required subsections is detected (v3.2: 7 required)."""
         rule_file = tmp_path / "incomplete-contract.md"
         rule_file.write_text(incomplete_contract_content)
 
         result = schema_validator.validate_file(rule_file)
 
         contract_errors = [e for e in result.errors if e.error_group == "Contract"]
-        assert len(contract_errors) >= 1, "Should detect missing Contract fields"
+        assert len(contract_errors) >= 1, "Should detect missing Contract subsections"
 
         error_messages = [e.message for e in contract_errors]
         assert any(
             field in msg
             for msg in error_messages
             for field in [
-                "Forbidden Tools",
-                "Required Steps",
+                "Forbidden",
+                "Execution Steps",
                 "Output Format",
-                "Validation Steps",
+                "Validation",
+                "Post-Execution Checklist",
             ]
         )
 
     @pytest.mark.unit
     def test_missing_mandatory_keyword_detected(self, schema_validator, tmp_path):
-        """Test that Quick Start missing MANDATORY keyword is detected."""
-        invalid_content = """**Keywords:** test, validation, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, quick-start, references, examples, rules
+        """Test that Contract missing Mandatory subsection is detected (v3.2)."""
+        invalid_content = """# Rule Missing Mandatory
+
+## Metadata
+
+**SchemaVersion:** v3.2
+**RuleVersion:** v1.0.0
+**LastUpdated:** 2025-01-05
+**Keywords:** test, validation, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, references, examples, rules
 **TokenBudget:** ~500
 **ContextTier:** High
 **Depends:** 000-global-core.md
 
-# Rule Missing MANDATORY
+## Scope
 
-## Purpose
-Test Quick Start without MANDATORY keyword.
+**What This Rule Covers:**
+Test Contract without Mandatory subsection.
 
-## Rule Scope
-Testing keyword detection
+**When to Load This Rule:**
+Testing Contract subsection detection
 
-## Quick Start TL;DR
-**Essential Patterns:**
-- **[Pattern 1]:** Test
-- **[Pattern 2]:** Test
-- **[Pattern 3]:** Test
-- **[Pattern 4]:** Test
-- **[Pattern 5]:** Test
-- **[Pattern 6]:** Test
+## References
+
+### Dependencies
+
+**Must Load First:**
+- **000-global-core.md**
 
 ## Contract
-- **Inputs/Prereqs:** None
-- **Allowed Tools:** All
-- **Forbidden Tools:** None
-- **Required Steps:** Test
-- **Output Format:** Test
-- **Validation Steps:** Test
+
+### Inputs and Prerequisites
+
+None
+
+### Forbidden
+
+None
+
+### Execution Steps
+
+1. Test step
+
+### Output Format
+
+Test output
+
+### Validation
+
+Test validation
+
+### Post-Execution Checklist
+
+- [ ] Check
 
 ## Anti-Patterns and Common Mistakes
+
 **Anti-Pattern 1: Example**
 ```python
 # Bad
@@ -1227,30 +1428,25 @@ pass
 ```
 **Benefits:** Better
 
-## Post-Execution Checklist
-- [ ] Check
-
 ## Validation
+
 - **Success Checks:** Pass
 
 ## Output Format Examples
+
 ```bash
 test
 ```
-
-## References
-### Related Rules
-- `000-global-core.md`
 """
         rule_file = tmp_path / "missing-mandatory.md"
         rule_file.write_text(invalid_content)
 
         result = schema_validator.validate_file(rule_file)
 
-        quickstart_errors = [e for e in result.errors if e.error_group == "Quick Start"]
-        keyword_errors = [e for e in quickstart_errors if "MANDATORY" in e.message]
+        contract_errors = [e for e in result.errors if e.error_group == "Contract"]
+        keyword_errors = [e for e in contract_errors if "Mandatory" in e.message]
 
-        assert len(keyword_errors) > 0, "Should detect missing MANDATORY keyword"
+        assert len(keyword_errors) > 0, "Should detect missing Mandatory subsection"
 
 
 class TestFormatRestrictions:
@@ -1707,62 +1903,68 @@ class TestCodeBlockHandling:
 
 ## Metadata
 
-**SchemaVersion:** v3.1
+**SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
+**LastUpdated:** 2025-01-05
 **Keywords:** testing, code blocks, examples, markdown, validation, structure, headers, ignore, parsing, schema, demonstration, compliance, patterns, tutorial, guide
 **TokenBudget:** ~500
 **ContextTier:** Medium
 **Depends:** rules/000-global-core.md
 
-## Purpose
+## Scope
+
+**What This Rule Covers:**
 This rule demonstrates that headers inside code blocks are properly ignored.
 
-## Rule Scope
+**When to Load This Rule:**
 Testing code block header parsing
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Code blocks:** Headers in code blocks should be ignored
-- **Real headers:** Only real headers count for structure validation
-- **Examples:** Allow showing rule structure as examples
+### Dependencies
 
-**Pre-Execution Checklist:**
-- [ ] Code blocks properly closed
-- [ ] Real sections in correct order
-- [ ] Example headers don't interfere
-- [ ] Structure validation passes
-- [ ] No false positives from examples
+**Must Load First:**
+- **rules/000-global-core.md** - Core validation patterns
+
+### External Documentation
+
+- **002-rule-governance.md** - Rule structure requirements
 
 ## Contract
 
-<inputs_prereqs>
+### Inputs and Prerequisites
+
 Markdown parsing; code block detection
-</inputs_prereqs>
 
-<mandatory>
+### Mandatory
+
 Code block boundaries tracked correctly
-</mandatory>
 
-<forbidden>
+### Forbidden
+
 Detecting headers inside code blocks as real sections
-</forbidden>
 
-<steps>
+### Execution Steps
+
 1. Parse markdown line by line
 2. Track code block boundaries (``` markers)
 3. Skip ## headers when inside code blocks
 4. Only detect real structural headers
-</steps>
 
-<output_format>
+### Output Format
+
 Correct section detection ignoring code block headers
-</output_format>
 
-<validation>
+### Validation
+
 Real headers detected; code block headers ignored
-</validation>
+
+### Post-Execution Checklist
+
+- [ ] Code block headers ignored
+- [ ] Real section order validated
+- [ ] No false positive errors
+- [ ] Structure validation passes
 
 ## Anti-Patterns and Common Mistakes
 
@@ -1783,13 +1985,6 @@ This should also be ignored by the validator
 
 The above headers are in a code block and should NOT trigger validation errors.
 
-## Post-Execution Checklist
-
-- [ ] Code block headers ignored
-- [ ] Real section order validated
-- [ ] No false positive errors
-- [ ] Structure validation passes
-
 ## Validation
 
 - **Success Checks:** Headers in code blocks ignored; only real headers validated; section order correct
@@ -1808,11 +2003,6 @@ def validate_structure(content):
             # This is a real header
             process_header(line)
 ```
-
-## References
-
-- rules/000-global-core.md - Core validation patterns
-- rules/002-rule-governance.md - Rule structure requirements
 """
         rule_file = tmp_path / "test_code_blocks.md"
         rule_file.write_text(content)
@@ -1834,17 +2024,20 @@ def validate_structure(content):
 
 ## Metadata
 
-**SchemaVersion:** v3.1
+**SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
+**LastUpdated:** 2025-01-05
 **Keywords:** testing, code blocks, mixed headers, validation, structure, parsing, markdown, examples, real sections, demonstration, schema, compliance, patterns, tutorial, guide
 **TokenBudget:** ~400
 **ContextTier:** Low
 **Depends:** rules/000-global-core.md
 
-## Purpose
+## Scope
+
+**What This Rule Covers:**
 Test mixed real and code block headers.
 
-## Rule Scope
+**When to Load This Rule:**
 Testing mixed header scenarios
 
 ```markdown
@@ -1852,48 +2045,46 @@ Testing mixed header scenarios
 This Purpose header is in a code block
 ```
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
-- **Real headers:** Detected correctly
-- **Code blocks:** Example headers ignored
-- **Validation:** Works with mixed content
+### Dependencies
 
-**Pre-Execution Checklist:**
-- [ ] Real headers validated
-- [ ] Code block headers ignored
-- [ ] Structure order correct
-- [ ] No false errors
-- [ ] Mixed content handled
+**Must Load First:**
+- **rules/000-global-core.md**
 
 ## Contract
 
-<inputs_prereqs>
+### Inputs and Prerequisites
+
 Mixed content with code blocks
-</inputs_prereqs>
 
-<mandatory>
+### Mandatory
+
 Correct header detection
-</mandatory>
 
-<forbidden>
+### Forbidden
+
 Mixing up real and example headers
-</forbidden>
 
-<steps>
+### Execution Steps
+
 1. Track code block state
 2. Detect only real headers
 3. Validate structure order
-</steps>
 
-<output_format>
+### Output Format
+
 Correct validation results
-</output_format>
 
-<validation>
+### Validation
+
 Only real headers validated
-</validation>
+
+### Post-Execution Checklist
+
+- [ ] Structure validated
+- [ ] Code blocks ignored
+- [ ] No false positives
 
 ```markdown
 ## Fake Anti-Patterns
@@ -1905,12 +2096,6 @@ This should not cause structure errors
 **Anti-Pattern 1:** Not handling code blocks
 **Problem:** Parser confused by examples
 **Correct Pattern:** Track code block boundaries
-
-## Post-Execution Checklist
-
-- [ ] Structure validated
-- [ ] Code blocks ignored
-- [ ] No false positives
 
 ```markdown
 ## Fake Validation
@@ -1928,10 +2113,6 @@ Another example header that should be ignored
 # This ## header in bash code should also be ignored
 echo "Testing"
 ```
-
-## References
-
-- rules/000-global-core.md
 """
         rule_file = tmp_path / "test_mixed_headers.md"
         rule_file.write_text(content)
@@ -2104,7 +2285,7 @@ Examples
         test_dir.mkdir()
 
         # Create rules with MEDIUM errors only (warnings, not failures)
-        # These have Anti-Patterns missing (MEDIUM severity)
+        # These have Anti-Patterns with only 1 code block (MEDIUM severity)
         for i in range(7):
             warning_rule = test_dir / f"00{i}-warning.md"
             warning_rule.write_text(
@@ -2112,46 +2293,70 @@ Examples
 
 ## Metadata
 
-**SchemaVersion:** v3.1
+**SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
-**Keywords:** warning, test, validation, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, quick-start, references, examples
+**LastUpdated:** 2025-01-05
+**Keywords:** warning, test, validation, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, references, examples
 **TokenBudget:** ~500
 **ContextTier:** High
 **Depends:** rules/000-global-core.md
 
-## Purpose
+## Scope
+
+**What This Rule Covers:**
 Warning test rule {i}.
 
-## Rule Scope
+**When to Load This Rule:**
 Testing warnings
 
-## Quick Start TL;DR
-**MANDATORY:**
-**Essential Patterns:**
-- **Pattern 1:** Test
-- **Pattern 2:** Test
-- **Pattern 3:** Test
-- **Pattern 4:** Test
-- **Pattern 5:** Test
-- **Pattern 6:** Test
+## References
 
-**Pre-Execution Checklist:**
-- [ ] Check 1
-- [ ] Check 2
-- [ ] Check 3
+### Dependencies
+
+**Must Load First:**
+- **rules/000-global-core.md**
 
 ## Contract
-<inputs_prereqs>Test</inputs_prereqs>
-<mandatory>Test</mandatory>
-<forbidden>Test</forbidden>
-<steps>1. Test</steps>
-<output_format>Test</output_format>
-<validation>Test</validation>
 
-## Post-Execution Checklist
+### Inputs and Prerequisites
+
+Test
+
+### Mandatory
+
+Test
+
+### Forbidden
+
+Test
+
+### Execution Steps
+
+1. Test
+
+### Output Format
+
+Test
+
+### Validation
+
+Test
+
+### Post-Execution Checklist
+
 - [ ] Done
 
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1:** Only one code block here (MEDIUM error)
+
+```python
+# Example code
+pass
+```
+
 ## Validation
+
 Success checks
 
 ## Output Format Examples
@@ -2160,9 +2365,6 @@ Success checks
 # Example code
 pass
 ```
-
-## References
-- ref
 """
             )
 
@@ -2222,7 +2424,7 @@ Test
 
         # Should show helpful tip
         assert "💡 TIP:" in captured.out
-        assert "python scripts/schema_validator.py <file>" in captured.out
+        assert "--verbose" in captured.out or "validate individual file" in captured.out
 
         assert exit_code == 1
 
@@ -2306,12 +2508,11 @@ Test
         assert "Total files: 1" in captured.out
         assert "❌ Failed:" in captured.out
 
-        # Should show failed files list
-        assert "❌ FAILED FILES:" in captured.out
-        assert "failing.md" in captured.out
+        # Should NOT show detailed failed files list in quiet mode
+        assert "❌ FAILED FILES:" not in captured.out
 
-        # Should show helpful tip
-        assert "💡 TIP:" in captured.out
+        # Should NOT show helpful tip in quiet mode
+        assert "💡 TIP:" not in captured.out
 
         assert exit_code == 1
 
@@ -2440,53 +2641,77 @@ Test
         test_dir = tmp_path / "test_json_warnings"
         test_dir.mkdir()
 
-        # Create a rule with only MEDIUM warnings
+        # Create a rule with only MEDIUM warnings (Anti-Patterns with 1 code block)
         warning_rule = test_dir / "warning.md"
         warning_rule.write_text(
             """# Warning Rule
 
 ## Metadata
 
-**SchemaVersion:** v3.1
+**SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
-**Keywords:** warning, test, validation, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, quick-start, references, examples
+**LastUpdated:** 2025-01-05
+**Keywords:** warning, test, validation, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, references, examples
 **TokenBudget:** ~500
 **ContextTier:** High
 **Depends:** rules/000-global-core.md
 
-## Purpose
+## Scope
+
+**What This Rule Covers:**
 Test
 
-## Rule Scope
+**When to Load This Rule:**
 Testing
 
-## Quick Start TL;DR
-**MANDATORY:**
-**Essential Patterns:**
-- **Pattern 1:** Test
-- **Pattern 2:** Test
-- **Pattern 3:** Test
-- **Pattern 4:** Test
-- **Pattern 5:** Test
-- **Pattern 6:** Test
+## References
 
-**Pre-Execution Checklist:**
-- [ ] Check 1
-- [ ] Check 2
-- [ ] Check 3
+### Dependencies
+
+**Must Load First:**
+- **rules/000-global-core.md**
 
 ## Contract
-<inputs_prereqs>Test</inputs_prereqs>
-<mandatory>Test</mandatory>
-<forbidden>Test</forbidden>
-<steps>1. Test</steps>
-<output_format>Test</output_format>
-<validation>Test</validation>
 
-## Post-Execution Checklist
+### Inputs and Prerequisites
+
+Test
+
+### Mandatory
+
+Test
+
+### Forbidden
+
+Test
+
+### Execution Steps
+
+1. Test
+
+### Output Format
+
+Test
+
+### Validation
+
+Test
+
+### Post-Execution Checklist
+
 - [ ] Done
 
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1:** Only one code block (MEDIUM error)
+
+```python
+# Example
+pass
+```
+
 ## Validation
+
 Success checks
 
 ## Output Format Examples
@@ -2495,9 +2720,6 @@ Success checks
 # Example
 pass
 ```
-
-## References
-- ref
 """
         )
 
@@ -3064,47 +3286,64 @@ class TestContentValidationEdgeCases:
     def test_validate_content_multiline_pattern(
         self, schema_validator: SchemaValidator, tmp_path: Path
     ):
-        """Test content validation with multiline patterns."""
+        """Test content validation with multiline patterns (Anti-Patterns pairs)."""
         test_file = tmp_path / "test.md"
         test_file.write_text("""# Test Rule
 
 ## Metadata
 
-**Keywords:** test, validation, multiline, pattern, content, rules, schema, check, quick, start, essential, patterns, minimum, count, validation
+**SchemaVersion:** v3.2
+**RuleVersion:** v1.0.0
+**LastUpdated:** 2025-01-05
+**Keywords:** test, validation, multiline, pattern, content, rules, schema, check, anti-patterns, pairs, minimum, count, validation
 **TokenBudget:** ~500
 **ContextTier:** High
 **Depends:** rules/000-global-core.md
 
-## Purpose
+## Scope
+
+**What This Rule Covers:**
 Test multiline pattern matching.
 
-## Rule Scope
+**When to Load This Rule:**
 Test scope.
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
-- Pattern 1
-- Pattern 2
+### Dependencies
 
-**Pre-Execution Checklist:**
-- [ ] Item 1
-- [ ] Item 2
-- [ ] Item 3
-- [ ] Item 4
-- [ ] Item 5
+**Must Load First:**
+- **rules/000-global-core.md**
 
 ## Contract
 
-<contract>
-<inputs_prereqs>Test</inputs_prereqs>
-<allowed_tools>Test</allowed_tools>
-<forbidden_tools>Test</forbidden_tools>
-<required_steps>Test</required_steps>
-<output_format>Test</output_format>
-<validation_steps>Test</validation_steps>
-</contract>
+### Inputs and Prerequisites
+
+Test
+
+### Mandatory
+
+Test
+
+### Forbidden
+
+Test
+
+### Execution Steps
+
+1. Test
+
+### Output Format
+
+Test
+
+### Validation
+
+Test
+
+### Post-Execution Checklist
+
+- [ ] Check 1
 
 ## Anti-Patterns and Common Mistakes
 
@@ -3124,10 +3363,6 @@ pass
 
 **Benefits:** Better
 
-## Post-Execution Checklist
-
-- [ ] Check 1
-
 ## Validation
 
 Test
@@ -3137,19 +3372,16 @@ Test
 ```python
 test()
 ```
-
-## References
-
-### External Documentation
-- [Test](https://test.com)
-
-### Related Rules
-- `rules/000-global-core.md`
 """)
 
         result = schema_validator.validate_file(test_file)
 
-        pattern_errors = [e for e in result.errors if "Essential Patterns" in e.message]
+        # Should detect insufficient pattern pairs (only 1, needs 2+)
+        pattern_errors = [
+            e
+            for e in result.errors
+            if "pattern" in e.message.lower() and "pair" in e.message.lower()
+        ]
         assert len(pattern_errors) > 0
 
 
@@ -3922,8 +4154,11 @@ Test.
         """Test that section order error has line number."""
         content = """# Test Rule
 
-**SchemaVersion:** v3.1
+## Metadata
+
+**SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
+**LastUpdated:** 2025-01-05
 **Keywords:** test, validation, patterns, checking, verification
 **TokenBudget:** ~500
 **ContextTier:** Medium
@@ -3933,11 +4168,11 @@ Test.
 
 Test refs.
 
-## Purpose
+## Contract
 
-Test purpose.
+Test contract.
 
-## Rule Scope
+## Scope
 
 Test scope.
 """
@@ -3973,67 +4208,91 @@ class TestDirectoryValidationWithAgentsMd:
 
 ## Metadata
 
-**SchemaVersion:** v3.1
+**SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
+**LastUpdated:** 2025-01-05
 **Keywords:** test, validation, patterns, checking, verification, schema, rules, compliance, quality, automation
 **TokenBudget:** ~500
 **ContextTier:** Medium
 **Depends:** rules/000-global-core.md
 
-## Purpose
+## Scope
 
+**What This Rule Covers:**
 Test purpose.
 
-## Rule Scope
-
+**When to Load This Rule:**
 Test scope.
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
+### Dependencies
 
-**Essential Patterns:**
-- **[Pattern 1]:** First essential pattern
-- **[Pattern 2]:** Second essential pattern
-- **[Pattern 3]:** Third essential pattern
-
-**Pre-Execution Checklist:**
-- [ ] Check 1
-- [ ] Check 2
-- [ ] Check 3
-- [ ] Check 4
-- [ ] Check 5
+**Must Load First:**
+- **000-global-core.md**
 
 ## Contract
 
-<contract>
-<inputs_prereqs>Test</inputs_prereqs>
-<mandatory>Test</mandatory>
-<forbidden>Test</forbidden>
-<steps>1. Test</steps>
-<output_format>Test</output_format>
-<validation>Test</validation>
-</contract>
+### Inputs and Prerequisites
+
+Test
+
+### Mandatory
+
+Test
+
+### Forbidden
+
+Test
+
+### Execution Steps
+
+1. Test
+
+### Output Format
+
+Test
+
+### Validation
+
+Test
+
+### Post-Execution Checklist
+
+- [ ] Verify test completed
 
 ## Anti-Patterns and Common Mistakes
 
 **Anti-Pattern 1: Test**
 
-```python
-pass
-```
-
-**Problem:** Issue
-
-**Correct Pattern:**
+**Problem:** Issue with test pattern
 
 ```python
 pass
 ```
 
-## Post-Execution Checklist
+**Correct Pattern:** Fixed test pattern
 
-- [ ] Verify test completed
+```python
+# Fixed
+pass
+```
+
+**Anti-Pattern 2: Another Test**
+
+**Problem:** Another issue
+
+```python
+# Bad
+x = 1
+```
+
+**Correct Pattern:** Fixed version
+
+```python
+# Good
+x = 1
+```
 
 ## Validation
 
@@ -4044,11 +4303,6 @@ Run validation commands.
 ```python
 test()
 ```
-
-## References
-
-### Related Rules
-- `000-global-core.md`
 """
 
     @pytest.mark.unit

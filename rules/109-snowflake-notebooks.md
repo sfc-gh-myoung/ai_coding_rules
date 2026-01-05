@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** ML, reproducible notebooks, nbqa, notebook linting, code quality, Python, create notebook, debug notebook, notebook execution, notebook testing, notebook deployment, kernel management, cell execution
 **TokenBudget:** ~4150
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 201-python-lint-format.md
-**LastUpdated:** 2025-12-22
 
 ## Scope
 

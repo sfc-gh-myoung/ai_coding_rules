@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** RBAC, masking policy, row access policy, Generator workflow, iterative development, synonyms, natural language queries, cortex analyst, agent integration, semantic view security, analyst troubleshooting, fix analyst, debug analyst
 **TokenBudget:** ~8600
 **ContextTier:** Medium
 **Depends:** 106-snowflake-semantic-views-core.md, 106b-snowflake-semantic-views-querying.md
-**LastUpdated:** 2025-12-22
 
 ## Scope
 

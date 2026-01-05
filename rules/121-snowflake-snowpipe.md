@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
-**LastUpdated:** 2025-12-23
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** snowpipe, auto-ingest, REST API, file-based ingestion, event notifications, COPY INTO, create pipe, data ingestion, pipe errors, pipe management, micro-batching, serverless ingestion
 **TokenBudget:** ~8000
 **ContextTier:** High

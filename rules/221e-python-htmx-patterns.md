@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** crud, forms, validation, infinite scroll, lazy loading, sse, progressive enhancement, modals, search, autocomplete, real-time, polling, inline editing
 **TokenBudget:** ~5000
 **ContextTier:** High
 **Depends:** 221-python-htmx-core.md, 221a-python-htmx-templates.md
-**LastUpdated:** 2025-12-23
 
 ## Scope
 

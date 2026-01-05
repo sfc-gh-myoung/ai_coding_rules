@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** Typer, CLI development, command-line interface, click, argument parsing, CLI testing, typer.Argument, typer.Option, CliRunner, rich console
 **TokenBudget:** ~4850
 **ContextTier:** High
 **Depends:** 200-python-core.md
-**LastUpdated:** 2025-12-23
 
 ## Scope
 

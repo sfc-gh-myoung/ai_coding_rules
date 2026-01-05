@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** observability, evaluation, cost management, error troubleshooting, agent security, test agent, agent permissions, agent monitoring, agent evaluation, agent costs, debug agent, agent logs, agent trace, agent security policies
 **TokenBudget:** ~4900
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 115-snowflake-cortex-agents-core.md, 111-snowflake-observability-core.md
-**LastUpdated:** 2025-12-23
 
 ## Scope
 
@@ -616,3 +616,102 @@ SELECT SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
 - Planning instructions: <explicit tool selection logic>
 - Response instructions: <flagging logic, formatting>
 - Observability: <traces/metrics enabled>
+
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Deploying Agents Without Role-Based Access Control
+
+**Problem:** Creating agents with unrestricted access to all semantic views and search services, allowing any user to query sensitive data regardless of their role or permissions.
+
+**Why It Fails:** Violates data governance and compliance requirements, exposes confidential information to unauthorized users, creates audit and security risks, and fails regulatory requirements for data access controls.
+
+**Correct Pattern:**
+```sql
+-- BAD: No RBAC restrictions
+CREATE CORTEX AGENT my_agent
+  TOOLS = (portfolio_analyzer, risk_analyzer, search_all_docs);
+
+-- GOOD: Role-based access with allowed objects
+CREATE CORTEX AGENT portfolio_agent_restricted
+  TOOLS = (portfolio_analyzer)
+  ALLOWED_OBJECTS = (
+    'DB.SCHEMA.PUBLIC_HOLDINGS_VIEW',
+    'DB.SCHEMA.PUBLIC_PERFORMANCE_VIEW'
+  )
+  ALLOWED_ROLES = ('PORTFOLIO_VIEWER', 'ANALYST');
+
+-- Users in PORTFOLIO_VIEWER role can only access public views
+-- Sensitive PII and trading data remain restricted
+```
+
+### Anti-Pattern 2: Skipping Component Testing Before Integration Testing
+
+**Problem:** Testing the full agent end-to-end without first validating individual tools (Cortex Analyst, Cortex Search) work correctly in isolation.
+
+**Why It Fails:** When integration tests fail, impossible to determine if the issue is in the semantic view, search service, agent configuration, or tool integration. Wastes debugging time and makes root cause analysis difficult.
+
+**Correct Pattern:**
+```python
+# BAD: Only integration testing
+def test_agent():
+    response = agent.query("What are top holdings?")
+    assert "AAPL" in response  # Fails - but why?
+
+# GOOD: Component testing first, then integration
+def test_cortex_analyst_tool_directly():
+    # Test semantic view + Cortex Analyst in isolation
+    result = session.sql("""
+        SELECT SNOWFLAKE.CORTEX.COMPLETE(
+            'analyst_tool_name',
+            'What are top 5 holdings?'
+        )
+    """).collect()
+    assert "AAPL" in result[0][0]  # Validates tool works
+
+def test_cortex_search_tool_directly():
+    # Test search service in isolation
+    result = session.sql("""
+        SELECT SNOWFLAKE.CORTEX.SEARCH(
+            'search_service_name',
+            'portfolio strategy'
+        )
+    """).collect()
+    assert len(result) > 0  # Validates search works
+
+def test_agent_integration():
+    # Now test full agent with known-good tools
+    response = agent.query("What are top holdings?")
+    assert "AAPL" in response  # If fails, issue is agent config
+```
+
+### Anti-Pattern 3: Ignoring Cost and Latency Budgets in Production
+
+**Problem:** Deploying agents without query cost limits, timeout settings, or latency monitoring, allowing unbounded compute usage and slow user experiences.
+
+**Why It Fails:** Agents can generate expensive queries that consume credits rapidly, queries may hang indefinitely causing poor UX, and lack of monitoring prevents identifying performance issues until users complain.
+
+**Correct Pattern:**
+```sql
+-- BAD: No cost or latency controls
+CREATE CORTEX AGENT expensive_agent
+  TOOLS = (analyst_tool_1, analyst_tool_2, search_all);
+
+-- GOOD: Cost and latency budgets with monitoring
+CREATE CORTEX AGENT optimized_agent
+  TOOLS = (analyst_tool_1, analyst_tool_2, search_docs)
+  WAREHOUSE = AGENT_WH  -- Dedicated warehouse for cost tracking
+  QUERY_TIMEOUT = 30    -- 30 second timeout
+  MAX_CREDITS_PER_QUERY = 0.5;  -- Cost cap per query
+
+-- Monitor performance
+SELECT 
+  agent_name,
+  AVG(query_latency_ms) as avg_latency,
+  SUM(credits_used) as total_credits,
+  COUNT(*) as query_count
+FROM SNOWFLAKE.ACCOUNT_USAGE.CORTEX_AGENT_HISTORY
+WHERE start_time >= DATEADD(day, -7, CURRENT_TIMESTAMP())
+GROUP BY agent_name
+HAVING avg_latency > 10000  -- Flag agents >10s avg latency
+ORDER BY total_credits DESC;
+```

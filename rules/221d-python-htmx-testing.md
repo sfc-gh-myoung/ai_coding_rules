@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** testing, pytest, unit tests, integration tests, fixtures, mocking, header validation, html assertions, test client, htmx testing
 **TokenBudget:** ~4250
 **ContextTier:** High
 **Depends:** 221-python-htmx-core.md, 206-python-pytest.md
-**LastUpdated:** 2025-12-23
 
 ## Scope
 

@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
-**LastUpdated:** 2025-12-23
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** snowpipe monitoring, cost management, load history, pipe usage, streaming monitoring, channel status, credits tracking, performance metrics, cost optimization, observability, metering history, monitoring queries
-**TokenBudget:** ~3500
+**TokenBudget:** ~4550
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 121-snowflake-snowpipe.md, 121a-snowflake-snowpipe-streaming.md
 
@@ -487,3 +487,58 @@ ORDER BY total_credits DESC;
 > 4. **Review error patterns** - Analyze error types to identify systemic issues
 > 5. **Test alerts** - Verify alert logic triggers correctly before production deployment
 
+
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Setting Static Alert Thresholds Without Baseline Analysis
+
+**Problem:** Configuring alert thresholds (e.g., "alert if latency >5 seconds") based on assumptions or arbitrary values instead of analyzing actual performance patterns over time.
+
+**Why It Fails:** Causes alert fatigue with false positives when normal patterns exceed arbitrary thresholds, misses real issues when thresholds are too high, and wastes time investigating non-issues. Static thresholds don't account for workload variations or growth.
+
+**Correct Pattern:**
+```sql
+-- BAD: Arbitrary threshold without baseline
+CREATE ALERT snowpipe_latency_alert IF (SELECT AVG(latency_seconds) FROM METRICS) > 5;
+
+-- GOOD: Baseline-driven threshold with percentile analysis
+-- Step 1: Establish baseline (run for 1-2 weeks)
+SELECT 
+  PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY latency_seconds) as p95_latency
+FROM SNOWFLAKE.ACCOUNT_USAGE.PIPE_USAGE_HISTORY
+WHERE start_time >= DATEADD(day, -14, CURRENT_TIMESTAMP());
+-- Results: p95=8.3s
+
+-- Step 2: Set threshold above p95 to catch anomalies
+CREATE ALERT snowpipe_latency_alert IF (SELECT AVG(latency_seconds) FROM METRICS) > 10;
+```
+
+### Anti-Pattern 2: Monitoring Only Load Success Without Cost Tracking
+
+**Problem:** Tracking file ingestion counts and success rates but ignoring credit consumption, cost per GB, and warehouse utilization patterns.
+
+**Why It Fails:** Snowpipe costs can spiral uncontrollably without cost monitoring, inefficient file sizes waste credits, and lack of cost visibility prevents optimization opportunities. Success metrics alone don't indicate cost efficiency.
+
+**Correct Pattern:**
+```sql
+-- BAD: Only success monitoring
+SELECT pipe_name, COUNT(*) as files_loaded
+FROM SNOWFLAKE.ACCOUNT_USAGE.COPY_HISTORY
+GROUP BY pipe_name;
+
+-- GOOD: Combined success and cost monitoring
+SELECT 
+  pipe_name,
+  COUNT(*) as files_loaded,
+  SUM(bytes_loaded) / POWER(1024, 3) as gb_loaded,
+  SUM(credits_used) as total_credits,
+  SUM(credits_used) / NULLIF(SUM(bytes_loaded) / POWER(1024, 3), 0) as cost_per_gb,
+  CASE 
+    WHEN SUM(credits_used) / NULLIF(SUM(bytes_loaded) / POWER(1024, 3), 0) > 0.5 
+    THEN 'WARNING: High cost per GB'
+    ELSE 'OK'
+  END as efficiency_flag
+FROM SNOWFLAKE.ACCOUNT_USAGE.COPY_HISTORY
+GROUP BY pipe_name
+ORDER BY total_credits DESC;
+```

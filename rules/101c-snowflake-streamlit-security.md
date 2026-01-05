@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** st.secrets, SQL injection, authentication, secure streamlit, protect app, credentials management, API keys, environment variables, secure deployment, input sanitization, RBAC streamlit, access control, security patterns
 **TokenBudget:** ~3650
 **ContextTier:** High
 **Depends:** 101-snowflake-streamlit-core.md, 107-snowflake-security-governance.md
-**LastUpdated:** 2025-12-22
 
 ## Scope
 

@@ -8,7 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** Bash, shell scripting, set -euo pipefail, error handling, strict mode, functions, variables, script structure, trap, exit codes, shellcheck, input validation
 **TokenBudget:** ~4550
 **ContextTier:** High
@@ -218,35 +219,79 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 
 ## Anti-Patterns and Common Mistakes
 
-### Shebang and Interpreter
-- **Requirement:** Always start scripts with proper shebang: `#!/bin/bash` or `#!/usr/bin/env bash`
-- **Rule:** Use `#!/usr/bin/env bash` for portability across systems
-- **Avoid:** Generic `#!/bin/sh` unless specifically targeting POSIX compliance
-- **Always:** Specify bash when using bash-specific features
+### Anti-Pattern 1: Unquoted Variables Leading to Word Splitting
 
-### Strict Mode Configuration
-- **Requirement:** Enable strict error handling at script start:
+**Problem:** Using variables without quotes (`$var` instead of `"$var"`), causing unexpected word splitting and glob expansion when values contain spaces or special characters.
+
+**Why It Fails:** File paths with spaces break scripts, command arguments split incorrectly, and glob patterns expand unexpectedly. Unquoted variables are the #1 cause of bash script bugs in production.
+
+**Correct Pattern:**
 ```bash
-#!/usr/bin/env bash
-set -euo pipefail
+# BAD: Unquoted variables cause word splitting
+file_path="/path/to/my documents/file.txt"
+cat $file_path  # Fails: cat tries to open 3 files: /path/to/my, documents/file.txt
+
+files="*.txt"
+rm $files  # Dangerous: glob expands, might delete unintended files
+
+# GOOD: Always quote variables
+file_path="/path/to/my documents/file.txt"
+cat "$file_path"  # Works: treated as single argument
+
+files="*.txt"
+rm "$files"  # Safe: treats *.txt as literal string, not glob
 ```
-- **Critical:** `set -e` - Exit immediately on command failure
-- **Critical:** `set -u` - Treat unset variables as errors
-- **Critical:** `set -o pipefail` - Return exit status of failed command in pipeline
-- **Consider:** Add `set -x` for debugging (remove in production)
 
-### Script Metadata and Documentation
-- **Requirement:** Include header documentation:
+### Anti-Pattern 2: Missing Error Handling and Strict Mode
+
+**Problem:** Running scripts without `set -euo pipefail`, allowing commands to fail silently and scripts to continue executing with undefined variables or failed pipeline commands.
+
+**Why It Fails:** Silent failures corrupt data, scripts appear to succeed when critical steps failed, and undefined variables cause unpredictable behavior. Production incidents occur because errors weren't caught during testing.
+
+**Correct Pattern:**
 ```bash
-#!/usr/bin/env bash
-# Script: script_name.sh
-# Description: Brief description of script purpose
-# Author: Your Name
-# Version: 1.0
-# Last Updated: YYYY-MM-DD
-# Usage: ./script_name.sh [options] [arguments]
+# BAD: No error handling, continues after failures
+#!/bin/bash
+mkdir /tmp/data
+cp important.txt /tmp/data/  # Fails silently if file doesn't exist
+process_data /tmp/data/important.txt  # Processes wrong/missing file
+echo "Success!"  # Prints even though cp failed
 
-set -euo pipefail
+# GOOD: Strict mode catches errors immediately
+#!/usr/bin/env bash
+set -euo pipefail  # Exit on error, undefined vars, pipe failures
+
+mkdir /tmp/data
+cp important.txt /tmp/data/  # Script stops here if file missing
+process_data /tmp/data/important.txt  # Only runs if cp succeeded
+echo "Success!"  # Only prints if all commands succeeded
+```
+
+### Anti-Pattern 3: Using `ls` for File Iteration Instead of Globs
+
+**Problem:** Parsing `ls` output to iterate over files (`for file in $(ls *.txt)`), which breaks with filenames containing spaces, newlines, or special characters.
+
+**Why It Fails:** `ls` output is designed for human reading, not parsing. Filenames with spaces split into multiple items, newlines break loops, and special characters cause unexpected behavior.
+
+**Correct Pattern:**
+```bash
+# BAD: Parsing ls output breaks with spaces
+for file in $(ls *.txt); do
+    echo "Processing $file"  # Breaks if filename has spaces
+done
+
+# Also bad: ls in command substitution
+files=$(ls *.txt)  # Loses filename structure
+
+# GOOD: Use glob patterns directly
+for file in *.txt; do
+    echo "Processing $file"  # Works with spaces and special chars
+done
+
+# GOOD: Use find for complex searches
+while IFS= read -r -d '' file; do
+    echo "Processing $file"
+done < <(find . -name "*.txt" -print0)  # Handles all filenames safely
 ```
 
 ## Variable Management

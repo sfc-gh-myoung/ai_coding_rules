@@ -8,12 +8,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** Zsh, Z shell, zsh features, arrays, functions, oh-my-zsh, emulate, setopt, parameter expansion, globbing
 **TokenBudget:** ~5300
 **ContextTier:** Medium
 **Depends:** 300-bash-scripting-core.md
-**LastUpdated:** 2025-12-23
 
 ## Scope
 

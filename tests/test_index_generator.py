@@ -40,9 +40,14 @@ def sample_rule_file(tmp_path):
 **TokenBudget:** ~500
 **ContextTier:** 2
 
-## Rule Scope
+## Scope
 
+**What This Rule Covers:**
 This rule applies to all test files and validation scripts.
+
+**When to Load This Rule:**
+- Testing scenarios
+- Validation workflows
 
 ## Quick Start TL;DR
 
@@ -65,8 +70,9 @@ def rule_file_missing_keywords(tmp_path):
 **Depends:** None
 **TokenBudget:** ~300
 
-## Rule Scope
+## Scope
 
+**What This Rule Covers:**
 This rule has no keywords defined.
 """
     rule_file.write_text(content, encoding="utf-8")
@@ -81,8 +87,9 @@ def rule_file_minimal_metadata(tmp_path):
 
 **Keywords:** minimal
 
-## Rule Scope
+## Scope
 
+**What This Rule Covers:**
 Minimal rule scope description.
 """
     rule_file.write_text(content, encoding="utf-8")
@@ -103,8 +110,9 @@ def multiple_rule_files(tmp_path):
 **Keywords:** keyword{i}, test
 **Depends:** {"—" if i == 1 else "000-core.md"}
 
-## Rule Scope
+## Scope
 
+**What This Rule Covers:**
 Rule {i} scope description.
 """
         rule_file.write_text(content, encoding="utf-8")
@@ -180,7 +188,7 @@ class TestRuleMetadata:
         assert "missing Keywords field" in captured.out
 
     def test_extract_handles_missing_scope(self, tmp_path, capsys):
-        """Test extraction warns when Rule Scope section is missing (line 157)."""
+        """Test extraction warns when Scope section is missing (v3.2)."""
         rule_file = tmp_path / "no-scope.md"
         content = """# Rule Without Scope
 
@@ -196,7 +204,7 @@ class TestRuleMetadata:
 
         captured = capsys.readouterr()
         assert "Warning" in captured.out
-        assert "missing ## Rule Scope section" in captured.out
+        assert "missing ## Scope section" in captured.out
 
     def test_extract_handles_depends_none(self, tmp_path):
         """Test Depends field normalization for None/— values."""
@@ -206,8 +214,9 @@ class TestRuleMetadata:
 **Keywords:** test
 **Depends:** None
 
-## Rule Scope
+## Scope
 
+**What This Rule Covers:**
 Test scope.
 """
         rule_file.write_text(content, encoding="utf-8")
@@ -223,11 +232,12 @@ Test scope.
             extract_metadata(non_existent)
 
     def test_extract_scope_from_content_valid(self):
-        """Test scope extraction from valid content."""
+        """Test scope extraction from valid content (v3.2)."""
         content = """# Title
 
-## Rule Scope
+## Scope
 
+**What This Rule Covers:**
 This is the scope description.
 
 More content here.
@@ -250,7 +260,7 @@ Content here.
         """Test scope extraction when section is empty."""
         content = """# Title
 
-## Rule Scope
+## Scope
 
 ## Next Section
 """
@@ -296,7 +306,10 @@ class TestIndexGenerator:
             rule_file = rules_dir / name
             content = f"""# {name}
 **Keywords:** test
-## Rule Scope
+
+## Scope
+
+**What This Rule Covers:**
 Test scope.
 """
             rule_file.write_text(content, encoding="utf-8")
@@ -317,7 +330,10 @@ Test scope.
         rule_file = rules_dir / "valid.md"
         content = """# Valid Rule
 **Keywords:** test
-## Rule Scope
+
+## Scope
+
+**What This Rule Covers:**
 Test scope.
 """
         rule_file.write_text(content, encoding="utf-8")
@@ -348,7 +364,10 @@ Test scope.
         rule_file = rules_dir / "invalid.md"
         content = """# Invalid Rule
 **Keywords:** test
-## Rule Scope
+
+## Scope
+
+**What This Rule Covers:**
 Test scope.
 """
         rule_file.write_text(content, encoding="utf-8")
@@ -653,7 +672,10 @@ class TestIndexGeneratorCLI:
             rule_file = rules_dir / name
             content = f"""# {name}
 **Keywords:** test
-## Rule Scope
+
+## Scope
+
+**What This Rule Covers:**
 Test scope.
 """
             rule_file.write_text(content, encoding="utf-8")
@@ -814,8 +836,9 @@ class TestEdgeCases:
 **Keywords:** unicode, émojis, 中文
 **Depends:** —
 
-## Rule Scope
+## Scope
 
+**What This Rule Covers:**
 This rule contains unicode: café, naïve, 日本語
 """
         rule_file.write_text(content, encoding="utf-8")
@@ -832,8 +855,9 @@ This rule contains unicode: café, naïve, 日本語
 **Keywords:** test
 **Depends:** —
 
-## Rule Scope
+## Scope
 
+**What This Rule Covers:**
 Scope with | pipe characters.
 """
         rule_file.write_text(content, encoding="utf-8")
@@ -856,7 +880,10 @@ Scope with | pipe characters.
         rule_file = nested_dir / "nested-rule.md"
         content = """# Nested Rule
 **Keywords:** nested
-## Rule Scope
+
+## Scope
+
+**What This Rule Covers:**
 Nested scope.
 """
         rule_file.write_text(content, encoding="utf-8")
@@ -874,8 +901,9 @@ Nested scope.
 **Keywords:** test
 **Depends:** 000-core, 100-python
 
-## Rule Scope
+## Scope
 
+**What This Rule Covers:**
 Test scope.
 """
         rule_file.write_text(content, encoding="utf-8")
@@ -893,8 +921,9 @@ Test scope.
 **Keywords:** large, performance
 **Depends:** —
 
-## Rule Scope
+## Scope
 
+**What This Rule Covers:**
 Large rule scope.
 
 """

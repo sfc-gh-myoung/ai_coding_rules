@@ -3,9 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** pytest, testing, fixtures, parametrization, test isolation, mocking, test organization, coverage, AAA pattern, test markers, uv run pytest
-**TokenBudget:** ~3100
+**TokenBudget:** ~3600
 **ContextTier:** High
 **Depends:** 200-python-core.md, 201-python-lint-format.md, 203-python-project-setup.md
 
@@ -226,24 +227,94 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 - [ ] CHANGELOG.md and README.md updated as required
 
 ## Anti-Patterns and Common Mistakes
-- Requirement: Place tests in a top-level `tests/` directory mirroring the source structure.
-- Rule: Name files `test_<module>.py`; name tests `test_<behavior>` with descriptive intent.
-- Consider: Group related tests in classes for shared fixtures, not for inheritance.
 
+### Anti-Pattern 1: Running Tests Without uv run Prefix
+
+**Problem:** Executing pytest directly (`pytest tests/`) instead of using `uv run pytest tests/`, causing tests to run outside the project's virtual environment with wrong dependencies.
+
+**Why It Fails:** Tests may pass locally but fail in CI/CD due to dependency mismatches, import errors occur when packages aren't in system Python, and version conflicts go undetected until production deployment.
+
+**Correct Pattern:**
+```bash
+# BAD: Running pytest without uv
+pytest tests/
+python -m pytest tests/
+
+# GOOD: Always use uv run
+uv run pytest tests/
+uv run pytest tests/ -v --tb=short
+uv run pytest tests/test_specific.py::test_function
+```
+
+### Anti-Pattern 2: Using Broad Exception Catching in Test Assertions
+
+**Problem:** Writing tests that catch all exceptions or use overly broad `try/except` blocks, hiding actual test failures and making debugging difficult.
+
+**Why It Fails:** Tests pass when they should fail, root cause of failures is obscured, and debugging requires re-running tests with modified code. Broad exception handling defeats the purpose of testing.
+
+**Correct Pattern:**
 ```python
-# tests/test_math_ops.py
-import pytest
+# BAD: Broad exception catching hides failures
+def test_division():
+    try:
+        result = divide(10, 0)
+        assert result == 0  # Never reached, but test passes
+    except:
+        pass  # Swallows ZeroDivisionError, test passes incorrectly
 
-def test_addition_basic():
-    assert 1 + 2 == 3
+# GOOD: Explicit exception testing with pytest.raises
+def test_division_by_zero():
+    with pytest.raises(ZeroDivisionError, match="division by zero"):
+        divide(10, 0)
 
-@pytest.mark.parametrize("a,b,expected", [
-    (1, 2, 3),
-    (-1, 1, 0),
-    (0, 0, 0),
-])
-def test_addition_parametrized(a: int, b: int, expected: int) -> None:
-    assert a + b == expected
+def test_division_success():
+    result = divide(10, 2)
+    assert result == 5  # Clear assertion, fails loudly if wrong
+```
+
+### Anti-Pattern 3: Creating Complex Fixture Dependency Chains
+
+**Problem:** Building deeply nested fixture dependencies where fixtures depend on other fixtures which depend on more fixtures, creating hard-to-understand test setup.
+
+**Why It Fails:** Test failures are hard to debug because setup logic is scattered across multiple fixtures, changing one fixture breaks unrelated tests, and new developers can't understand test requirements.
+
+**Correct Pattern:**
+```python
+# BAD: Deep fixture dependency chain
+@pytest.fixture
+def database():
+    return create_db()
+
+@pytest.fixture
+def user_table(database):
+    return database.create_table("users")
+
+@pytest.fixture
+def test_user(user_table):
+    return user_table.insert({"name": "test"})
+
+@pytest.fixture
+def user_session(test_user):
+    return create_session(test_user)
+
+def test_something(user_session):  # What does this need? Unclear!
+    assert user_session.is_active()
+
+# GOOD: Flat, explicit fixtures with composition
+@pytest.fixture
+def database():
+    return create_db()
+
+@pytest.fixture
+def test_user(database):
+    # Single fixture handles user creation directly
+    table = database.create_table("users")
+    return table.insert({"name": "test"})
+
+def test_user_session(database, test_user):
+    # Test explicitly requests what it needs
+    session = create_session(test_user)
+    assert session.is_active()
 ```
 
 ## Fixture Patterns and Best Practices

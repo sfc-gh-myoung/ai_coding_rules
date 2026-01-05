@@ -8,7 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** system prompt altitude, investigation-first, anti-patterns, multi-session workflows, parallel execution, advanced patterns, heuristics, goldilocks zone, context management, state management
 **TokenBudget:** ~4300
 **ContextTier:** Medium
@@ -252,7 +253,7 @@ You are a technical support agent for ProductX.
 - **Confirm assumptions** against actual schema
 ```
 
-## Anti-Patterns Library Structure
+## Writing Effective Anti-Patterns
 
 ### Problem/Correct Pattern Pairs
 

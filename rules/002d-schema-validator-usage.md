@@ -8,7 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** schema validator, validation errors, error resolution, CI/CD integration, exit codes, command selection, output parsing, automation workflow, quiet mode, programmatic integration, error categorization
 **TokenBudget:** ~8150
 **ContextTier:** High
@@ -645,7 +646,7 @@ else:
 ```markdown
 ## Metadata
 
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
 **Keywords:** keyword1, keyword2, ...
 ```
 
@@ -667,8 +668,8 @@ else:
 **RuleVersion:** version1.0.0   # Wrong prefix
 
 # Correct format
-**RuleVersion:** v2.0.0
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**RuleVersion:** v3.0.0
 ```
 
 ### Error 5: TokenBudget Format Wrong

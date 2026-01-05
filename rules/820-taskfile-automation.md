@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** Taskfile, Taskfile.yml, task automation, build automation, task runner, Task, portable tasks, error handling, categorized help, task discovery, command detection, auto-detection, cross-platform, uvx, machine-readable
 **TokenBudget:** ~11350
 **ContextTier:** Medium
 **Depends:** 202-markup-config-validation.md
-**LastUpdated:** 2025-12-23
 
 ## Scope
 

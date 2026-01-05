@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
-**LastUpdated:** 2025-12-23
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** Docker, Dockerfile, containers, multi-stage builds, layer caching, image optimization, docker-compose, BuildKit, distroless, security scanning, SBOM, non-root, healthcheck
 **TokenBudget:** ~3350
 **ContextTier:** Medium
@@ -372,14 +372,14 @@ id_dsa
 # examples/
 ```
 
-## 2. Build Performance & Caching
+## Build Performance and Caching
 - **Rule:** Order layers: dependencies first, app code last.
 - **Rule:** Use BuildKit features: `--mount=type=cache` for pip/npm caches.
 - **Rule:** Use `--platform` for cross-building; prefer `docker buildx bake` for matrix builds.
 - **Requirement:** Pin versions; rely on lock files (`uv.lock`, `poetry.lock`, `package-lock.json`).
 - **Consider:** Produce SBOM: `docker buildx build --sbom=true` or `syft packages`.
 
-## 3. Security & Least Privilege
+## Security and Least Privilege
 - **Mandatory:** Run as non-root; set `USER` to an unprivileged UID/GID.
 - **Mandatory:** Drop capabilities and use read-only FS when possible:
   - `--cap-drop=ALL --read-only --tmpfs /tmp` at runtime.
@@ -388,13 +388,13 @@ id_dsa
 - **Rule:** Avoid package managers in runtime stage; copy only built artifacts.
 - **Avoid:** Exposing SSH or adding debug tools in prod images.
 
-## 4. Supply Chain Integrity
+## Supply Chain Integrity
 - **Requirement:** Pin images by digest in prod deployments.
 - **Requirement:** Generate SBOM and attach provenance (SLSA/Attestations).
 - **Rule:** Sign images with cosign; enforce signature verification in deployment.
 - **Consider:** Use private registries; restrict pull from trusted sources only.
 
-## 5. Language-Specific Notes
+## Language-Specific Notes
 ### Python
 - Use `uv` or `pip --no-cache-dir`; separate `requirements.txt` or lockfile from sources.
 - For FastAPI/Uvicorn: prefer gunicorn/uvicorn workers and graceful shutdown signals.
@@ -405,18 +405,18 @@ id_dsa
 ### Java
 - Use multi-stage with Maven/Gradle in builder; run with JRE or distroless Java.
 
-## 6. Runtime & Orchestration
+## Runtime and Orchestration
 - **Requirement:** Provide `HEALTHCHECK` in image or orchestrator.
 - **Rule:** Configure resource limits (CPU/memory), ulimits, and log drivers.
 - **Rule:** Externalize configuration via env and mounted secrets; never bake secrets.
 - **Consider:** Readiness/liveness probes, graceful shutdown, and PID 1 handling.
 
-## 7. Compose & YAML
+## Compose and YAML
 - **Always:** Separate `compose.yml` (dev) and `compose.prod.yml` (prod overrides).
 - **Rule:** Use `.env` files for local development; do not commit secrets.
 - **Requirement:** Follow YAML safety practices (see `202-markup-config-validation.md`).
 
-## 8. CI/CD & Testing
+## CI/CD and Testing
 - **Rule:** Lint Dockerfile with Hadolint; scan image on each build.
 - **Rule:** Cache layers in CI with BuildKit; enable `--provenance` and `--sbom`.
 - **Consider:** Smoke tests using Testcontainers or docker run in CI.

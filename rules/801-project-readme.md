@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** README, project documentation, getting started, setup instructions, badges, Quick Start, Contributing, License, project structure, technical writing
 **TokenBudget:** ~5700
 **ContextTier:** Medium
 **Depends:** 000-global-core.md
-**LastUpdated:** 2025-12-23
 
 ## Scope
 

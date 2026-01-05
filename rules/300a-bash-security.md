@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** Bash, security, input validation, command injection, path security, secure shell scripts, sanitization, permissions, privilege escalation, secrets management
 **TokenBudget:** ~4300
 **ContextTier:** High
 **Depends:** 300-bash-scripting-core.md
-**LastUpdated:** 2025-12-23
 
 ## Scope
 

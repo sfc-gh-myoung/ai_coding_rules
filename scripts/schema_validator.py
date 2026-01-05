@@ -371,7 +371,6 @@ class SchemaValidator:
         self._validate_metadata(content, lines, result)
         self._validate_structure(content, lines, result)
         self._validate_content(content, lines, result)
-        self._validate_placement(content, lines, result)
         self._validate_restrictions(content, lines, result)
         self._validate_links(content, lines, result)
 
@@ -714,89 +713,6 @@ class SchemaValidator:
         if "anti_patterns" in content_rules:
             self._validate_anti_patterns(content, lines, result, content_rules["anti_patterns"])
 
-    def _validate_quick_start(
-        self, content: str, lines: list[str], result: ValidationResult, config: dict
-    ) -> None:
-        """Validate Quick Start TL;DR content."""
-        # Extract section content using centralized utility
-        section_start, _, section_content = self._extract_section(
-            lines, r"Quick Start TL;DR", track_code_blocks=True
-        )
-
-        if not section_start:
-            return  # Section missing error already reported
-
-        # Run validations
-        for validation in config.get("validations", []):
-            if validation["type"] == "keyword_presence":
-                for keyword in validation["required"]:
-                    if keyword not in section_content:
-                        result.errors.append(
-                            ValidationError(
-                                severity=validation["severity"],
-                                message=validation["error_message"],
-                                error_group="Quick Start",
-                                line_num=section_start + 1,
-                                fix_suggestion=f"Add '{keyword}' keyword to Quick Start TL;DR",
-                            )
-                        )
-                    else:
-                        result.passed_checks += 1
-
-            elif validation["type"] == "pattern_count":
-                pattern = validation["pattern"]
-
-                # For essential_patterns, extract only content after MANDATORY marker
-                if validation.get("name") == "essential_patterns":
-                    # Find MANDATORY or Essential Patterns marker
-                    mandatory_match = re.search(
-                        r"\*\*MANDATORY:\*\*|\*\*Essential Patterns:\*\*", section_content
-                    )
-                    if mandatory_match:
-                        # Only count patterns after the marker
-                        content_after_marker = section_content[mandatory_match.end() :]
-                        matches = re.findall(pattern, content_after_marker, re.MULTILINE)
-                    else:
-                        matches = re.findall(pattern, section_content, re.MULTILINE)
-                else:
-                    matches = re.findall(pattern, section_content, re.MULTILINE)
-
-                count = len(matches)
-                min_count = validation["min"]
-                max_count = validation.get("max")  # Optional in v3.1
-
-                if max_count is not None:
-                    if not (min_count <= count <= max_count):
-                        needed = min_count - count if count < min_count else 0
-                        fix_msg = validation["fix_suggestion"].format(actual=count, needed=needed)
-                        result.errors.append(
-                            ValidationError(
-                                severity=validation["severity"],
-                                message=validation["error_message"],
-                                error_group="Quick Start",
-                                line_num=section_start + 1,
-                                fix_suggestion=fix_msg,
-                            )
-                        )
-                    else:
-                        result.passed_checks += 1
-                else:
-                    # No max constraint - only check minimum
-                    if count < min_count:
-                        needed = min_count - count
-                        fix_msg = validation["fix_suggestion"].format(actual=count, needed=needed)
-                        result.errors.append(
-                            ValidationError(
-                                severity=validation["severity"],
-                                message=validation["error_message"],
-                                error_group="Quick Start",
-                                line_num=section_start + 1,
-                                fix_suggestion=fix_msg,
-                            )
-                        )
-                    else:
-                        result.passed_checks += 1
-
     def _validate_contract(
         self, content: str, lines: list[str], result: ValidationResult, config: dict
     ) -> None:
@@ -911,67 +827,25 @@ class SchemaValidator:
                     else:
                         result.passed_checks += 1
 
-    def _validate_output_format_examples(
-        self, content: str, lines: list[str], result: ValidationResult, config: dict
-    ) -> None:
-        """Validate Output Format Examples section content."""
-        # Extract section using centralized utility with code block tracking
-        section_start, _, section_content = self._extract_section(
-            lines, r"Output Format Examples", track_code_blocks=True
-        )
+            elif validation["type"] == "pattern_pairs":
+                # Check for Problem: ... Correct Pattern: pairs
+                pattern = validation["pattern"]
+                min_pairs = validation["min"]
+                matches = re.findall(pattern, section_content, re.DOTALL)
+                count = len(matches)
 
-        if not section_start:
-            return
-
-        # Validate code blocks
-        for validation in config.get("validations", []):
-            if validation["type"] == "code_block_count":
-                code_blocks = re.findall(r"```", section_content)
-                count = len(code_blocks) // 2
-                min_count = validation["min"]
-
-                if count < min_count:
+                if count < min_pairs:
                     result.errors.append(
                         ValidationError(
                             severity=validation["severity"],
                             message=validation["error_message"],
-                            error_group="Output Format",
+                            error_group="Anti-Patterns",
                             line_num=section_start + 1,
                             fix_suggestion=validation.get("fix_suggestion"),
                         )
                     )
                 else:
                     result.passed_checks += 1
-
-    def _validate_placement(self, content: str, lines: list[str], result: ValidationResult) -> None:
-        """Validate section placement rules."""
-        placement_config = self.schema.get("placement", {})
-
-        # Find Contract section line
-        contract_line = None
-        for i, line in enumerate(lines, 1):
-            if re.match(r"^##\s+(?:\d+\.\s+)?Contract", line):
-                contract_line = i
-                break
-
-        # Check Contract placement
-        if "contract_placement" in placement_config:
-            config = placement_config["contract_placement"]
-            max_line = config["max_line_number"]
-
-            if contract_line and contract_line > max_line:
-                result.errors.append(
-                    ValidationError(
-                        severity=config["severity"],
-                        message=f"{config['error_message']} (current line: {contract_line})",
-                        error_group="Contract",
-                        line_num=contract_line,
-                        fix_suggestion=config.get("fix_suggestion"),
-                        docs_reference=config.get("docs_reference"),
-                    )
-                )
-            elif contract_line:
-                result.passed_checks += 1
 
     def _validate_restrictions(
         self, content: str, lines: list[str], result: ValidationResult

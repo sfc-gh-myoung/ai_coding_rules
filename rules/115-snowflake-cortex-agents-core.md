@@ -8,12 +8,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** multi-tool agents, planning instructions, testing, troubleshooting, semantic views, create agent, debug agent, agent not working, tool execution failed, agent error, fix agent, agent performance, agent tool integration, cortex agent configuration, UnboundedExecution
 **TokenBudget:** ~7950
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md, 106-snowflake-semantic-views-core.md, 111-snowflake-observability-core.md
-**LastUpdated:** 2025-12-23
 
 ## Scope
 
@@ -642,6 +642,84 @@ After component tests pass, test agent's tool selection logic:
 "What are the top 10 holdings by weight?"          # Should use analyst tool
 "Calculate sector allocation breakdown"             # Should use analyst tool
 "Show me a chart of performance over time"          # Should use analyst tool + viz
+```
+
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Putting Business Logic in Semantic Views
+
+**Problem:** Embedding flagging thresholds, business rules, and conditional formatting logic in semantic view custom instructions instead of agent instructions.
+
+**Why It Fails:** Semantic views should define data relationships and calculations only. When business logic lives in semantic views, it becomes invisible to the agent, can't be adjusted per use case, and violates separation of concerns. The agent can't explain or modify flagging behavior because it's hidden in the data layer.
+
+**Correct Pattern:**
+```yaml
+# BAD: Business logic in semantic view
+# semantic_view.yaml custom_instructions:
+"Flag holdings where weight > 5% as 'concentrated risk' and highlight in red"
+
+# GOOD: Business logic in agent instructions
+# Agent Response Instructions:
+"When presenting holdings:
+1. Calculate weight percentages using portfolio_analyzer tool
+2. Flag any holding with weight > 5% as 'concentrated risk'
+3. Format flagged holdings with [⚠️ RISK] prefix
+4. Explain concentration risk implications"
+
+# Semantic view only defines data:
+# semantic_view.yaml custom_instructions:
+"Calculate holding weight as (holding_value / total_portfolio_value) * 100"
+```
+
+### Anti-Pattern 2: Creating Single-Tool Agents for Multi-Domain Questions
+
+**Problem:** Building separate agents for each Cortex Analyst tool when users ask questions spanning multiple domains (e.g., "Show portfolio performance and related research documents").
+
+**Why It Fails:** Forces users to ask multiple questions across different agents, breaks conversation flow, prevents cross-domain synthesis, and creates poor user experience. Users expect one agent to handle related quantitative and qualitative questions.
+
+**Correct Pattern:**
+```yaml
+# BAD: Separate single-tool agents
+Agent: portfolio_agent (only portfolio_analyzer tool)
+Agent: research_agent (only document_search tool)
+User must switch agents mid-conversation
+
+# GOOD: Multi-tool hybrid agent
+Agent: investment_agent
+Tools:
+  - portfolio_analyzer (Cortex Analyst)
+  - risk_analyzer (Cortex Analyst)
+  - search_research_reports (Cortex Search)
+  - search_fund_documents (Cortex Search)
+
+Planning Instructions:
+"For quantitative questions (performance, allocation, metrics): use analyst tools
+For qualitative questions (research, documents, policies): use search tools
+For comprehensive questions: combine both tool types and synthesize findings"
+```
+
+### Anti-Pattern 3: Vague Tool Selection Logic in Planning Instructions
+
+**Problem:** Writing generic planning instructions like "Use the appropriate tool for the question" without explicit criteria for when to use each tool.
+
+**Why It Fails:** Agent makes inconsistent tool choices, uses wrong tools for questions, or fails to use multiple tools when needed. Vague instructions lead to unpredictable behavior and poor user experience.
+
+**Correct Pattern:**
+```yaml
+# BAD: Vague planning instructions
+Planning Instructions: "Select the most appropriate tool based on the user's question"
+
+# GOOD: Explicit tool selection criteria
+Planning Instructions: |
+  Tool Selection Logic:
+  1. Portfolio questions (holdings, weights, allocation): portfolio_analyzer
+  2. Risk questions (volatility, VaR, correlation): risk_analyzer
+  3. Performance questions (returns, attribution): performance_analyzer
+  4. Document questions (research, policies, prospectus): search_research_docs
+  5. Multi-domain questions: Use multiple tools in sequence:
+     - First: Relevant analyst tool(s) for quantitative data
+     - Second: Relevant search tool(s) for supporting documents
+     - Third: Synthesize findings into coherent response
 ```
 
 ## Agent Configuration Templates

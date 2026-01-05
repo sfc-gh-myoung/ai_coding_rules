@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** model governance, model lifecycle, model logging, model inference, RBAC, model privileges, register model, log model, model management, ML registry, model tracking, model metadata, deploy model, model lineage
 **TokenBudget:** ~4250
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md
-**LastUpdated:** 2025-12-22
 
 ## Scope
 

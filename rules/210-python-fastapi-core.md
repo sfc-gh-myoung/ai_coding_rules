@@ -8,12 +8,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** FastAPI, async, REST API, Pydantic, dependency injection, routing, request validation, response models, APIRouter, uvicorn, async def, application factory
 **TokenBudget:** ~4950
 **ContextTier:** High
 **Depends:** 200-python-core.md
-**LastUpdated:** 2025-12-23
 
 ## Scope
 

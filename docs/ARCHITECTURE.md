@@ -1,4 +1,4 @@
-# Architecture: AI Coding Rules (v3.4.4)
+# Architecture: AI Coding Rules (v3.5.0)
 
 ## Table of Contents
 
@@ -13,13 +13,11 @@
 - [Architecture Diagrams](#architecture-diagrams)
 - [Design Decisions](#design-decisions)
 - [Extension Points](#extension-points)
-- [Migration from v2.x](#migration-from-v2x)
+- [Related Documentation](#related-documentation)
 
 ## System Overview
 
-> **Version Note:** This document describes project version v3.4.4. The rule schema version (v3.1) is separate from the project version. Schema version appears in rule metadata (`SchemaVersion: v3.1`), while project version tracks releases.
-
-The AI Coding Rules v3.4.4 architecture represents a fundamental shift from template-based generation (v2.x) to a **production-ready rules system**. This architecture prioritizes simplicity, maintainability, and universal compatibility across all AI assistants and IDEs.
+> **Version Note:** This document describes project version v3.5.0. The rule schema version (v3.2) is separate from the project version. Schema version appears in rule metadata (`SchemaVersion: v3.2`), while project version tracks releases.
 
 ### Core Architecture Principles
 
@@ -28,18 +26,6 @@ The AI Coding Rules v3.4.4 architecture represents a fundamental shift from temp
 3. **Universal Format** — Standard Markdown with embedded metadata works with any AI assistant or IDE
 4. **Schema-Validated** — Declarative YAML schema ensures consistency and quality
 5. **Agent-Agnostic Deployment** — Single `--dest` flag deploys to any project structure
-
-### What Changed in v3.x
-
-| Aspect | v2.x (Template-Based) | v3.0 (Production-Ready) |
-|--------|----------------------|-------------------------|
-| **Source Location** | `templates/` directory | `rules/` directory |
-| **File State** | Templates requiring generation | Production-ready files |
-| **Workflow** | Edit → Generate → Deploy | Edit → Deploy |
-| **Formats** | 4 formats (Cursor .mdc, Copilot, Cline, Universal) | 1 universal format (.md) |
-| **Discovery Files** | `discovery/` directory | Project root (AGENTS.md, RULES_INDEX.md) |
-| **Deployment** | Agent-specific paths | Agent-agnostic `--dest` flag |
-| **Complexity** | Monolithic generation | ~37% reduction with focused scripts |
 
 ### Architecture Benefits
 
@@ -85,40 +71,91 @@ See `000-global-core.md` → "Context Window Management Protocol" for implementa
 
 ### Philosophy
 
-v3.0 eliminates the template-generation-deployment pipeline in favor of **direct rule editing**. Rules are stored in their final, deployable form with embedded metadata that enables intelligent discovery and loading.
+The AI Coding Rules system uses **direct rule editing** with production-ready files. Rules are stored in their final, deployable form with embedded metadata that enables intelligent discovery and loading.
+
+**Core Principles:**
+- Rules are production-ready by default (no build step)
+- Universal Markdown format works with any AI assistant
+- Schema validation ensures consistency and quality
+- Metadata enables intelligent rule discovery and loading
 
 ### Rule File Format
 
-Every rule file follows this structure:
+Every rule file follows this structure per schema v3.2:
 
 ```markdown
 # Rule Title
 
 ## Metadata
 
-**SchemaVersion:** v3.1
+**SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
-**Keywords:** keyword1, keyword2, keyword3, ... (10-15 total)
+**LastUpdated:** 2025-01-05
+**Keywords:** keyword1, keyword2, keyword3, ... (5-20 total)
 **TokenBudget:** ~1200
 **ContextTier:** Critical|High|Medium|Low
-**Depends:** rules/000-global-core.md, rules/XXX-dependency.md
+**Depends:** 000-global-core.md, XXX-dependency.md
 
-## Purpose
-[1-2 sentence description]
+## Scope
 
-## Rule Scope
-[Single line scope statement]
+**What This Rule Covers:**
+- Specific feature or technology aspect
+- Boundaries of this rule's domain
+- Related concepts included
 
-## Quick Start TL;DR
-[30-second overview with Essential Patterns and Pre-Execution Checklist]
+**When to Load This Rule:**
+- Scenario 1 (e.g., "When working with X")
+- Scenario 2 (e.g., "When implementing Y")
+- Scenario 3 (e.g., "When troubleshooting Z")
+
+## References
+
+### Dependencies
+- 000-global-core.md
+- XXX-dependency.md
+
+### External Documentation
+- [Official Docs](https://...)
+- [API Reference](https://...)
+
+### Related Rules
+- XXX-related-rule.md
+- YYY-related-rule.md
 
 ## Contract
-<inputs_prereqs>...</inputs_prereqs>
-<mandatory>...</mandatory>
-<forbidden>...</forbidden>
-<steps>...</steps>
-<output_format>...</output_format>
-<validation>...</validation>
+
+### Inputs and Prerequisites
+- Prerequisite 1
+- Prerequisite 2
+
+### Mandatory
+- Must do A
+- Must do B
+
+### Forbidden
+- Never do X
+- Avoid doing Y
+
+### Execution Steps
+1. Step 1
+2. Step 2
+3. Step 3
+4. Step 4
+5. Step 5
+
+### Output Format
+[Expected output structure with examples]
+
+### Validation
+- Check 1
+- Check 2
+
+### Post-Execution Checklist
+- [ ] Item 1
+- [ ] Item 2
+- [ ] Item 3
+- [ ] Item 4
+- [ ] Item 5
 
 ## Key Principles
 [Core concepts - optional for simple rules]
@@ -126,34 +163,27 @@ Every rule file follows this structure:
 ## Anti-Patterns and Common Mistakes
 [Problem/Correct Pattern pairs - strongly recommended]
 
-## Post-Execution Checklist
-[5+ verification items]
-
-## Validation
-[Success checks and negative tests]
-
 ## Output Format Examples
 [Concrete code/command examples]
-
-## References
-[Related rules and external documentation]
 ```
 
 ### Metadata Fields
 
 | Field | Purpose | Format | Severity | Example |
 |-------|---------|--------|----------|---------|
-| **SchemaVersion** | Schema compatibility tracking | `vX.Y` or `vX.Y.Z` | CRITICAL | `v3.1` |
+| **SchemaVersion** | Schema compatibility tracking | `vX.Y` or `vX.Y.Z` | CRITICAL | `v3.2` |
 | **RuleVersion** | Individual rule versioning | `vX.Y.Z` (semver) | HIGH | `v1.0.0` |
-| **Keywords** | Semantic discovery by AI agents | 10-15 comma-separated terms | HIGH | `python, testing, pytest, fixtures, coverage` |
-| **TokenBudget** | LLM context management | `~NUMBER` (approximate tokens) | HIGH | `~1200` |
+| **LastUpdated** | Temporal context for troubleshooting | `YYYY-MM-DD` | HIGH | `2025-01-05` |
+| **Keywords** | Semantic discovery by AI agents | 5-20 comma-separated terms | HIGH | `python, testing, pytest, fixtures, coverage` |
+| **TokenBudget** | LLM context management | `~NUMBER` (approximate tokens) | MEDIUM | `~1200` |
 | **ContextTier** | Loading prioritization | Critical \| High \| Medium \| Low | HIGH | `High` |
-| **Depends** | Prerequisite rules | Comma-separated rule paths | HIGH | `rules/000-global-core.md, rules/200-python-core.md` |
+| **Depends** | Prerequisite rules | Comma-separated rule filenames | HIGH | `000-global-core.md, 200-python-core.md` |
 
 **Why These Fields Matter:**
 
-- **SchemaVersion** ensures rules are validated against the correct schema version
+- **SchemaVersion** ensures rules are validated against the correct schema version (v3.2 is current)
 - **RuleVersion** enables users to report issues against specific rule versions
+- **LastUpdated** provides temporal context for troubleshooting and maintenance tracking
 - **Keywords** enable AI assistants to automatically discover relevant rules based on task descriptions
 - **TokenBudget** helps LLMs manage attention budget and decide which rules to load
 - **ContextTier** provides prioritization when context windows are constrained
@@ -379,7 +409,7 @@ ai_coding_rules/
 │   ├── 221f-python-htmx-integrations.md
 │   ├── 500-frontend-htmx-core.md
 │   ├── 600-golang-core.md      # Go/Golang foundation
-│   └── ... (108 total)
+│   └── ... (113 total)
 │
 ├── scripts/                    # Automation and validation
 │   ├── template_generator.py  # Creates new rule templates
@@ -458,7 +488,7 @@ ai_coding_rules/
 - Production-ready files
 - Directly editable
 - No generation required
-- 108 rules covering all domains (including 8 HTMX rules, Go/Golang core, and Alpine.js)
+- 113 rules covering all domains (including 8 HTMX rules, Go/Golang core, and Alpine.js)
 
 **`scripts/`** — Automation and validation tools
 - `template_generator.py` creates new rules compliant with the schema
@@ -532,10 +562,10 @@ task rule:new:force FILENAME=300-example-rule
 
 **What Happens:**
 1. `scripts/template_generator.py` executes
-2. Generates v3.0-compliant template in `rules/300-example-rule.md`
+2. Generates v3.2-compliant template in `rules/300-example-rule.md`
 3. Auto-populates metadata based on numbering range
 4. Includes all required sections with placeholders
-5. Contract section pre-filled with 6 XML tags
+5. Contract section pre-filled with 7 Markdown subsections
 
 **Step 2: Fill Template Content**
 
@@ -545,23 +575,24 @@ Edit `rules/300-example-rule.md`:
 # Example Rule Title
 
 ## Metadata
-**SchemaVersion:** v3.1
+**SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
+**LastUpdated:** 2025-01-05
 **Keywords:** [AUTO-GENERATED - review and adjust]
 **TokenBudget:** ~1200
 **ContextTier:** Medium
-**Depends:** rules/000-global-core.md
+**Depends:** 000-global-core.md
 
-## Purpose
-[Write 1-2 sentences explaining what this rule does]
+## Scope
+**What This Rule Covers:**
+- [Describe coverage]
 
-## Rule Scope
-[Single line: who/what this applies to]
+**When to Load This Rule:**
+- [Describe scenarios]
 
-## Quick Start TL;DR
-**Essential Patterns:**
-- Pattern 1
-- Pattern 2
+## References
+### Dependencies
+- 000-global-core.md
 - Pattern 3 (minimum)
 
 **Pre-Execution Checklist:**
@@ -588,10 +619,10 @@ python scripts/schema_validator.py rules/300-example-rule.md --verbose
 **Validation Checks:**
 - 6 metadata fields present and correctly formatted
 - SchemaVersion and RuleVersion in semantic version format
-- Keywords count: 10-15 terms
-- 9 required sections present in correct order
-- Contract has 6 XML tags before line 160
-- Quick Start has minimum 3 Essential Patterns
+- Keywords count: 5-20 terms
+- All required sections present in correct order
+- Contract has 7 Markdown subsections (### headers)
+- Scope section has required markers
 - Post-Execution Checklist has 5+ items
 
 **Step 4: Generate Index Entry**
@@ -692,8 +723,9 @@ contract:
 - Section hierarchy validation
 
 **3. Contract Validation**
-- All 6 XML tags required: `<inputs_prereqs>`, `<mandatory>`, `<forbidden>`, `<steps>`, `<output_format>`, `<validation>`
-- Must appear before line 160
+- All 7 Markdown subsections required: Inputs and Prerequisites, Mandatory, Forbidden, Execution Steps, Output Format, Validation, Post-Execution Checklist
+- Must use `###` headers (not XML tags)
+- Must appear before line 200
 - Non-empty content required
 
 **4. Content Quality**
@@ -798,30 +830,6 @@ uv run python scripts/schema_validator.py rules/
 uv run python scripts/index_generator.py --check
 ```
 
-### Schema Evolution (v3.0 Phases)
-
-**Phase 1: Relaxation (2025-11-23)**
-- Removed 160-line limit constraint
-- Reduced Essential Patterns minimum (7 → 3)
-- Industry best practices alignment
-
-**Phase 2: Enhancement (2025-11-24)**
-- Clearer section names and descriptions
-- Enhanced quality requirements
-- Better error messages
-
-**Phase 3: Content Cleanup (2025-11-25)**
-- Keyword optimization: 50.6% → 96.6% compliance (43 rules)
-- Section renaming: "Response Template" → "Output Format Examples"
-- Section ordering fixes: 85.1% → 93.1% compliance (13 rules)
-- Contract field completion: 95.4% → 100% compliance (4 rules)
-
-**Current Compliance (v3.0.0):**
-- Keywords (10-15): 97% (89/92 rules)
-- Section names: 100% (92/92 rules)
-- Section ordering: 93% (86/92 rules)
-- Contract fields: 100% (92/92 rules)
-
 ## Deployment System
 
 ### Philosophy
@@ -831,7 +839,7 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 ### Deployment Architecture
 
 **Source Files (in ai_coding_rules repository):**
-- `rules/` — 108 production-ready rule files
+- `rules/` — 113 production-ready rule files
 - `AGENTS.md` — Discovery guide with loading protocol
 - `RULES_INDEX.md` — Searchable catalog with keywords
 
@@ -844,7 +852,7 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 **Target Structure (in user's project):**
 ```
 /path/to/user-project/
-├── rules/                  # 108 rule files
+├── rules/                  # 113 rule files
 │   ├── 000-global-core.md
 │   ├── 100-snowflake-core.md
 │   └── ...
@@ -903,15 +911,15 @@ Configuration:
   Mode: LIVE (files will be copied)
 
 Validation:
-  ✓ Source rules/ directory exists (108 files)
+  ✓ Source rules/ directory exists (113 files)
   ✓ Source AGENTS.md exists
   ✓ Source RULES_INDEX.md exists
   ✓ Destination writable
 
 Deployment:
   → Creating destination rules/ directory
-  → Copying 108 rule files...
-  ✓ Copied 108 rules to /path/to/project/rules/
+  → Copying 113 rule files...
+  ✓ Copied 113 rules to /path/to/project/rules/
   ✓ Copied AGENTS.md to /path/to/project/
   ✓ Copied RULES_INDEX.md to /path/to/project/
 
@@ -1031,7 +1039,7 @@ v3.0 includes comprehensive test coverage ensuring script reliability:
 - Schema loading and parsing
 - Metadata validation tests
 - Section validation tests
-- Contract XML tag validation
+- Contract Markdown subsection validation
 - Error reporting accuracy
 
 **`tests/test_token_validator.py`**
@@ -1092,10 +1100,10 @@ task test:coverage
 ### Test Fixtures
 
 **`tests/fixtures/`** — Sample rule files for testing
-- `valid_rule.md` — Fully compliant v3.0 rule
+- `valid_rule.md` — Fully compliant v3.2 rule
 - `invalid_metadata.md` — Missing Keywords field
 - `invalid_sections.md` — Sections out of order
-- `invalid_contract.md` — Missing XML tags
+- `invalid_contract.md` — Missing Contract subsections
 
 ### CI/CD Integration
 
@@ -1185,7 +1193,7 @@ Use `task ASCII=true` for terminals without Unicode support.
 
 ### 1. template_generator.py
 
-**Purpose:** Create new v3.0-compliant rule templates
+**Purpose:** Create new v3.2-compliant rule templates
 
 **Usage:**
 ```bash
@@ -1201,9 +1209,9 @@ python scripts/template_generator.py FILENAME [OPTIONS]
 
 **Features:**
 - Auto-generates keywords based on numbering range
-- Creates all 9 required sections with placeholders
-- Pre-fills Contract section with 6 XML tags
-- Validates output against schema
+- Creates all required sections with placeholders
+- Pre-fills Contract section with 7 Markdown subsections
+- Validates output against schema v3.2
 
 **Example:**
 ```bash
@@ -1260,7 +1268,7 @@ python scripts/schema_validator.py PATH [OPTIONS]
 - Declarative schema-based validation
 - Metadata field validation
 - Section ordering validation
-- Contract XML tag validation
+- Contract Markdown subsection validation
 - Detailed error reporting with line numbers
 
 **Example:**
@@ -1445,7 +1453,7 @@ flowchart TD
 
 ```mermaid
 graph TD
-    Root[ai_coding_rules/] --> Rules[rules/<br/>108 production files]
+    Root[ai_coding_rules/] --> Rules[rules/<br/>113 production files]
     Root --> Scripts[scripts/<br/>5 Python scripts]
     Root --> Schemas[schemas/<br/>v3.0 YAML schema]
     Root --> Tests[tests/<br/>91 passing tests]
@@ -1455,7 +1463,7 @@ graph TD
     
     Rules --> Rule1[000-global-core.md]
     Rules --> Rule2[100-snowflake-core.md]
-    Rules --> Rule3[... 108 total]
+    Rules --> Rule3[... 113 total]
     
     Scripts --> S1[template_generator.py]
     Scripts --> S2[rule_deployer.py]
@@ -1749,119 +1757,27 @@ python scripts/deploy_cursor.py --dest ~/project/.cursor/rules/
 - IDE features available when needed
 - No maintenance of multiple source formats
 
-## Migration from v2.x
+## Related Documentation
 
-### Overview
+### Migration Guides
 
-v3.0 represents a **breaking architectural change**. v2.x template-based systems are incompatible with v3.0 production-ready systems.
+For migration paths and historical context:
 
-### Migration Strategy
+- **[Migration Guides](MIGRATION.md)** - Project architecture migrations (v2.x → v3.0) and schema migrations (v3.1 → v3.2)
+- **[Schema Migration Guide](MIGRATION_SCHEMA_v3.1_to_v3.2.md)** - Detailed guide for schema v3.1 → v3.2 changes
 
-**Option 1: Fresh Adoption (Recommended)**
+### Core Documentation
 
-1. **Deploy v3.0 rules** to new location:
-   ```bash
-   git clone https://github.com/sfc-gh-myoung/ai_coding_rules.git /tmp/rules-v3
-   cd /tmp/rules-v3
-   task deploy -- --dest ~/project
-   ```
+- **[README.md](../README.md)** - Quick start, overview, and deployment instructions
+- **[CONTRIBUTING.md](../CONTRIBUTING.md)** - Development guidelines and contribution workflow
+- **[CHANGELOG.md](../CHANGELOG.md)** - Version history and detailed change log
 
-2. **Update AI assistant** to reference new location:
-   ```
-   ~/project/rules/
-   ~/project/AGENTS.md
-   ```
+### Schema and Validation
 
-3. **Verify** deployment:
-   ```bash
-   ls ~/project/rules/*.md | wc -l  # Should show 92
-   ```
+- **[Schema Documentation](../schemas/README.md)** - Current schema v3.2 specification and field documentation
+- **[Rule Schema YAML](../schemas/rule-schema.yml)** - Declarative validation schema
 
-**Option 2: Gradual Migration**
+### Community
 
-1. **Deploy v3.0 in parallel**:
-   ```bash
-   task deploy -- --dest ~/project/rules-v3
-   ```
-
-2. **Test with subset of tasks** using v3.0 rules
-
-3. **Compare results** with v2.x rules (if previously deployed)
-
-4. **Switch fully** when confident:
-   ```bash
-   mv ~/project/rules ~/project/rules.old  # if exists
-   mv ~/project/rules-v3 ~/project/rules
-   ```
-
-### Key Differences
-
-| Aspect | v2.x | v3.0 |
-|--------|------|------|
-| **Source** | `templates/` | `rules/` (production-ready) |
-| **Workflow** | Edit → Generate → Deploy | Edit → Deploy |
-| **Formats** | 4 (Cursor, Copilot, Cline, Universal) | 1 (Universal Markdown) |
-| **Discovery** | `discovery/AGENTS.md` | Root `AGENTS.md` |
-| **Deployment** | Agent-specific paths | Agent-agnostic `--dest` |
-| **Scripts** | `generate_agent_rules.py` (monolithic) | `rule_deployer.py` (focused) |
-
-### Breaking Changes
-
-**Removed Features:**
-- Template generation system
-- IDE-specific formats (.mdc, appliesTo patterns)
-- Agent-specific deployment paths
-- Placeholder substitution (`{rule_path}`)
-- Multi-format generation commands
-
-**Removed Commands:**
-```bash
-# v2.x commands (no longer work)
-task generate:rules:cursor
-task generate:rules:copilot
-task deploy:cursor
-task deploy:copilot
-```
-
-**v3.0 Equivalents:**
-```bash
-# v3.0 commands
-task deploy -- --dest ~/project
-```
-
-### Troubleshooting Migration
-
-**Issue: AI assistant not loading rules**
-
-Solution: Check configuration
-```bash
-# Verify files deployed
-ls ~/project/rules/*.md | wc -l  # Should be 92
-ls ~/project/AGENTS.md  # Should exist
-ls ~/project/RULES_INDEX.md  # Should exist
-```
-
-**Issue: Missing metadata fields**
-
-Solution: v3.0 requires 4 metadata fields. Validate rules:
-```bash
-python scripts/schema_validator.py ~/project/rules/
-```
-
-**Issue: Keywords not triggering rules**
-
-Solution: Check RULES_INDEX.md for keyword matches:
-```bash
-grep -i "keyword" ~/project/RULES_INDEX.md
-```
-
-### Getting Help
-
-**Documentation:**
-- README.md — Quick start and overview
-- CONTRIBUTING.md — Development guidelines
-- CHANGELOG.md — Version history
-
-**Community:**
-- GitHub Issues — Report bugs or request features
-- GitHub Issues — Users and contributors
+- **[GitHub Repository](https://github.com/sfc-gh-myoung/ai_coding_rules)** - Source code and issue tracking
+- **[GitHub Issues](https://github.com/sfc-gh-myoung/ai_coding_rules/issues)** - Report bugs or request features

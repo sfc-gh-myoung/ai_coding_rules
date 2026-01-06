@@ -1,7 +1,7 @@
 # AI Coding Rules
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://opensource.org/license/apache-2-0)
-![Version](https://img.shields.io/badge/version-3.4.3-blue)
+![Version](https://img.shields.io/badge/version-3.5.0-blue)
 [![CI](https://github.com/sfc-gh-myoung/ai_coding_rules/actions/workflows/ci.yml/badge.svg)](https://github.com/sfc-gh-myoung/ai_coding_rules/actions/workflows/ci.yml)
 ![Tests](https://img.shields.io/badge/tests-100%25%20passing-brightgreen)
 ![Coverage](https://img.shields.io/badge/coverage-98%25-brightgreen)
@@ -34,7 +34,7 @@ This repository provides a **universal ai coding rule system** designed to work 
 
 ## Key Features
 
-- **📚 108 Production-Ready Rules** — Comprehensive coverage across Snowflake, Python, Go, React, HTMX, Alpine.js, Docker, Shell scripting, and project management
+- **📚 113 Production-Ready Rules** — Comprehensive coverage across Snowflake, Python, Go, React, HTMX, Alpine.js, Docker, Shell scripting, and project management
 - **🔄 Universal Format** — Write once, use everywhere: Cursor, VS Code, Claude, ChatGPT, GitHub Copilot, and more
 - **🤖 Intelligent Discovery** — AI assistants automatically find and load relevant rules using semantic keyword matching
 - **🎯 Dependency-Aware** — Explicit dependency chains ensure rules load in the correct order

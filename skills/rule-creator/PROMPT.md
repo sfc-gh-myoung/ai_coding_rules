@@ -2,12 +2,12 @@
 
 ## Purpose
 
-This example demonstrates how to request creation of a new Cursor rule following v3.0 schema standards by orchestrating existing automation scripts (`template_generator.py` and `schema_validator.py`).
+This example demonstrates how to request creation of a new Cursor rule following v3.2 schema standards by orchestrating existing automation scripts (`template_generator.py` and `schema_validator.py`).
 
 ## Prompt Template
 
 ```markdown
-Create a new Cursor rule documenting [TECHNOLOGY] best practices following v3.0 schema.
+Create a new Cursor rule documenting [TECHNOLOGY] best practices following v3.2 schema.
 
 MANDATORY PRE-FLIGHT CHECKS:
 1. Search RULES_INDEX.md Keywords column for existing [TECHNOLOGY] rules
@@ -121,7 +121,7 @@ PHASE 4: VALIDATION & ITERATION
      - Keywords count wrong → Adjust to 10-15 terms
      - TokenBudget format → Change to ~NUMBER format
      - Missing Contract XML tag → Add tag in Contract section
-     - Section order wrong → Reorder per v3.0 schema
+     - Section order wrong → Reorder per v3.2 schema
    - Apply fixes to rule file
    - Go to step 1 (re-validate)
 
@@ -167,7 +167,7 @@ Production-ready rule file at rules/NNN-[technology]-[aspect].md ready for immed
 ### Example 1: DaisyUI Component Library Rule
 
 ```markdown
-Create a new Cursor rule documenting DaisyUI best practices following v3.0 schema.
+Create a new Cursor rule documenting DaisyUI best practices following v3.2 schema.
 
 [Agent follows 5-phase workflow above]
 
@@ -181,7 +181,7 @@ Expected output:
 ### Example 2: Python Testing Library Rule
 
 ```markdown
-Create a new Cursor rule documenting pytest-mock best practices following v3.0 schema.
+Create a new Cursor rule documenting pytest-mock best practices following v3.2 schema.
 
 [Agent follows 5-phase workflow above]
 
@@ -195,7 +195,7 @@ Expected output:
 ### Example 3: Snowflake Feature Rule
 
 ```markdown
-Create a new Cursor rule documenting Snowflake Hybrid Tables best practices following v3.0 schema.
+Create a new Cursor rule documenting Snowflake Hybrid Tables best practices following v3.2 schema.
 
 [Agent follows 5-phase workflow above]
 
@@ -239,17 +239,17 @@ Expected output:
 
 **Problem:** Adding rule to RULES_INDEX.md and considering it "done" despite CRITICAL validation errors.
 
-**Why It Fails:** Rule won't load correctly in Cursor, breaks semantic discovery, violates v3.0 schema.
+**Why It Fails:** Rule won't load correctly in Cursor, breaks semantic discovery, violates v3.2 schema.
 
 **Correct Pattern:** Block progression to Phase 5 (indexing) until `schema_validator.py` returns exit code 0.
 
 ## References
 
-- **Rule Governance:** `rules/002-rule-governance.md` - v3.0 schema requirements
+- **Rule Governance:** `rules/002-rule-governance.md` - v3.2 schema requirements
 - **Creation Guide:** `rules/002a-rule-creation-guide.md` - Detailed rule creation workflow
 - **Optimization Guide:** `rules/002b-rule-optimization.md` - Token budget guidance
 - **Validator Usage:** `rules/002d-schema-validator-usage.md` - Validation commands and error resolution
 - **Template Generator:** `scripts/template_generator.py` - Rule template creation script
-- **Schema Validator:** `scripts/schema_validator.py` - v3.0 schema validation script
+- **Schema Validator:** `scripts/schema_validator.py` - v3.2 schema validation script
 - **Rules Index:** `RULES_INDEX.md` - Master index for semantic discovery
 

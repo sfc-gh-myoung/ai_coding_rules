@@ -87,7 +87,7 @@ focus_area: (not provided)
 FOCUSED review requires a focus_area parameter.
 
 Available focus areas for rule reviews:
-A. metadata - Keywords, TokenBudget, ContextTier, Depends
+A. metadata - Keywords, TokenBudget (use scripts/token_validator.py), ContextTier, Depends
 B. contract - XML tags, placement, completeness
 C. examples - Code examples, anti-patterns quality
 D. references - External links, related rules accuracy
@@ -153,7 +153,10 @@ Large rule file detected:
 
 File: rules/000-global-core.md
 Lines: 622
-Estimated tokens: ~6500
+Estimated tokens (tiktoken): ~6500
+
+Run token validation:
+$ python scripts/token_validator.py rules/000-global-core.md
 
 Considerations:
 - Full review may timeout

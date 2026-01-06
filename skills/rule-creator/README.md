@@ -1,5 +1,43 @@
 # Rule Creator Skill
 
+## ⚠️ Execution Integrity Warning
+
+**CRITICAL:** Each rule creation takes 10-15 minutes. This is EXPECTED and REQUIRED.
+
+### Common Agent Shortcuts (ALL FORBIDDEN)
+
+Agents executing this skill may attempt to optimize by:
+- Manually creating rule structure instead of running template_generator.py (FORBIDDEN)
+- Skipping schema validation loop (FORBIDDEN)
+- Leaving placeholder text (\"TODO\", \"[Add content]\") (FORBIDDEN)
+- Using generic knowledge instead of researching current practices (FORBIDDEN)
+- Running validation once instead of iterating until clean (FORBIDDEN)
+
+**These shortcuts WILL produce invalid or low-quality rules.**
+
+### How to Verify Faithful Execution
+
+**During Execution:**
+- See template_generator.py execution output
+- See schema_validator.py execution (multiple iterations)
+- See web research queries for best practices
+
+**After Execution:**
+- Rule file exists at rules/NNN-technology-aspect.md
+- File size 4000-12000 bytes (typical)
+- All sections filled with real content (no placeholders)
+- schema_validator.py returns exit code 0
+- Entry added to RULES_INDEX.md
+
+**Red Flags:**
+- ⚠️ Rule creation completes in < 5 minutes
+- ⚠️ Rule file < 3000 bytes
+- ⚠️ Contains \"TODO\" or \"[Add content]\" markers
+- ⚠️ No template_generator.py output visible
+- ⚠️ No schema_validator.py iterations visible
+
+---
+
 A Claude skill for reproducibly creating production-ready Cursor rules following schema standards by orchestrating existing automation tools (`template_generator.py` and `schema_validator.py`).
 
 ## Overview
@@ -34,10 +72,18 @@ Ensure you have:
 
 ### Step 2: Load the Skill
 
-Open:
+**Load the skill file to enable the agent/model to use it:**
+
 ```
 skills/rule-creator/SKILL.md
 ```
+
+**How to load:**
+- **Claude Code / Cortex Code:** Open or reference `skills/rule-creator/SKILL.md` in your conversation
+- **Cursor / Other agents:** Load `skills/rule-creator/SKILL.md` file which allows the agent to use the skill without "installing" it
+- **Manual load:** Use your agent's file reading capability to load the SKILL.md content
+
+**Why this works:** The SKILL.md file contains the complete skill definition. Opening or referencing it makes the skill available to the agent for the current session.
 
 ### Step 3: Request Rule Creation
 

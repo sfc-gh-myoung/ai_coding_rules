@@ -1,9 +1,9 @@
 ---
 name: rule-creator
-description: Create production-ready v3.0 Cursor rule files by orchestrating template generation, schema validation, and RULES_INDEX.md indexing. Triggers on keywords like "create rule", "add rule", "new rule", "generate rule". Supports Python, Snowflake, JavaScript, Shell, Docker, Golang domains (000-999 range).
-version: 1.1.0
+description: Create production-ready v3.2 Cursor rule files by orchestrating template generation, schema validation, and RULES_INDEX.md indexing. Triggers on keywords like "create rule", "add rule", "new rule", "generate rule". Supports Python, Snowflake, JavaScript, Shell, Docker, Golang domains (000-999 range).
+version: 1.2.0
 author: AI Coding Rules Project
-tags: [rule-generation, automation, v3.0-schema, template, validation, indexing]
+tags: [rule-generation, automation, v3.2-schema, template, validation, indexing]
 dependencies: []
 ---
 
@@ -11,7 +11,7 @@ dependencies: []
 
 ## Purpose
 
-Create production-ready Cursor rule files that comply with the repository’s v3.0 rule schema by orchestrating:
+Create production-ready Cursor rule files that comply with the repository’s v3.2 rule schema by orchestrating:
 - `scripts/template_generator.py`
 - `scripts/schema_validator.py`
 - (optional) web research for current best practices
@@ -82,6 +82,39 @@ def check_context_tier(tier: str) -> bool:
 ```
 
 For full schema validation, use: `python scripts/schema_validator.py rules/<file>.md`
+
+## Phase Requirements
+
+**Phase 1: Discovery & Research**
+- Search RULES_INDEX.md for domain
+- Identify next available number
+- Web research for best practices (REQUIRED)
+- Extract 10-15 keywords
+
+**Phase 2: Template Generation**
+- Execute template_generator.py (REQUIRED)
+- Verify structure (9 sections, 6 XML tags)
+- Confirm Contract before line 160
+
+**Phase 3: Content Population**
+- Fill ALL sections with researched content
+- Add code examples (minimum 2)
+- Add anti-patterns (minimum 2)
+- NO placeholder text allowed
+
+**Phase 4: Validation Loop**
+- Execute schema_validator.py (REQUIRED)
+- Parse CRITICAL/HIGH/MEDIUM errors
+- Apply fixes
+- Re-validate until exit code 0
+- Max 3 iterations (escalate if failing)
+
+**Phase 5: Indexing**
+- Add entry to RULES_INDEX.md
+- Insert in correct numeric position
+- Verify entry format matches existing
+
+**Phase Skipping FORBIDDEN:** Do NOT skip any phase to save time
 
 ## Related Skills
 

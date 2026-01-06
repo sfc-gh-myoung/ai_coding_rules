@@ -1,5 +1,58 @@
 # Agent-Centric Rule Review Prompt (Template)
 
+# 🚨 CRITICAL EXECUTION PROTOCOL 🚨
+
+**READ THIS FIRST - NON-NEGOTIABLE REQUIREMENTS**
+
+You are about to execute a rule review using the agent-centric rubric. You MUST follow this rubric EXACTLY as written.
+
+## Protocol Violations (FORBIDDEN)
+
+Agents commonly attempt these optimizations. **ALL ARE FORBIDDEN:**
+
+### ❌ Skipping dimensions
+**Violation:** "I'll score only Actionability since that's most important..."
+**Why Forbidden:** Loses comprehensive quality assessment; weighted scoring requires all 6 dimensions
+
+### ❌ Quick estimates instead of rubric
+**Violation:** "This looks like a 4/5, so I'll give it 20/25..."
+**Why Forbidden:** Rubric contains nuanced criteria; estimates lose accuracy and consistency
+
+### ❌ Generic recommendations
+**Violation:** "Improve actionability by making instructions clearer..."
+**Why Forbidden:** Requires specific examples from rule content; generic advice not actionable
+
+### ❌ Skipping priority checks
+**Violation:** "I'll skip the ASCII table check since there aren't many..."
+**Why Forbidden:** Priority 1 violations cap score at 60/100; must count all violations
+
+### ❌ Token-saving shortcuts
+**Violation:** "I'll skim the rule to save tokens..."
+**Why Forbidden:** Incomplete reading misses issues and produces inaccurate scores
+
+## Required Behavior
+
+**YOU MUST:**
+1. ✅ Read ENTIRE rule file before scoring
+2. ✅ Execute Agent Execution Test (count blocking issues)
+3. ✅ Score ALL 6 dimensions using rubric criteria
+4. ✅ Apply weighted formula: (Actionability×5 + Completeness×5 + Consistency×3 + Parsability×3 + TokenEfficiency×2 + Staleness×2)
+5. ✅ Generate specific recommendations with examples from rule content
+6. ✅ Write complete output to reviews/ with all required sections
+
+## Execution Acknowledgment
+
+**Before proceeding, confirm:**
+- [ ] I will read the complete rule file
+- [ ] I will score all 6 dimensions per rubric
+- [ ] I will count blocking issues accurately
+- [ ] I will provide specific (not generic) recommendations
+- [ ] I understand this takes 3-5 minutes per rule
+
+**If you cannot commit to these requirements, STOP and report error.**
+
+---
+
 ```markdown
 ## Rule Review Request
 
@@ -196,7 +249,8 @@ Rules must pass the Priority Compliance Check above to score ≥4/5.
 
 #### 5. Token Efficiency (Is the rule appropriately sized?) — 10 points
 - **Is the TokenBudget accurate (within ±15% of actual)?** Use the
-  **Token Budget Verification** (mandatory) to calculate and compare
+  **Token Budget Verification** (mandatory) with `scripts/token_validator.py` to
+  calculate tiktoken-accurate counts and compare
 - Could sections be split without losing coherence?
 - Is there redundant content that could be removed or referenced?
 - Look for: repeated concepts, duplicate examples, explanatory prose not needed for
@@ -376,20 +430,25 @@ Scan the rule for undefined thresholds (terms requiring agent judgment). Create 
 
 #### Token Budget Verification (Required for Token Efficiency scoring)
 
-Calculate actual token count and compare to declared budget:
+Calculate actual token count using scripts/token_validator.py (tiktoken-based) and compare to declared budget:
+
+```bash
+python scripts/token_validator.py <rule-file>
+```
+
+This script uses tiktoken with GPT-4o encoding (o200k_base) for 100% accurate token counts.
 
 ```markdown
 **TokenBudget Verification:**
 - Declared TokenBudget: ~[X] tokens
-- Word count: [Y] words (if available)
-- Calculated tokens: [Y × 1.3 = Z] (rough estimate)
-- Variance: [(Z-X)/X × 100 = N%]
+- Actual tokens (tiktoken): [Y] tokens
+- Variance: [(Y-X)/X × 100 = N%]
 - Within ±15%? [Yes/No]
 - Assessment: [Accurate / Underestimated / Overestimated]
 ```
 
-If verification tools unavailable, note limitation but review for obvious redundancy
-(repeated sections, excessive prose, duplicated examples).
+If token_validator.py unavailable, review for obvious redundancy (repeated sections,
+excessive prose, duplicated examples) but note limitation.
 
 **Scoring impact:** Variance >15% OR significant redundancy = score ≤3/5.
 

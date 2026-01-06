@@ -2,8 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.1
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.2
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-05
 **Keywords:** dbt, semantic view, Snowflake, dbt_semantic_view, materialization, Cortex Analyst, YAML, semantic model, dbt models, analytics, business intelligence, data modeling
 **TokenBudget:** ~3200
 **ContextTier:** High
@@ -13,9 +14,22 @@
 
 Guide creation of Snowflake semantic views using the dbt-snowflake native integration through the `dbt_semantic_view` package to materialize semantic views as native dbt models with version control, CI/CD integration, and lineage tracking.
 
-## Rule Scope
+## Scope
 
 Creating Snowflake semantic views through dbt using the `dbt_semantic_view` package for analytics and Cortex Agent integration
+
+## References
+
+### Related Rules
+- `200-python-core.md` - Python development standards for dbt projects
+- `100-snowflake-core.md` - Snowflake SQL best practices
+- `106-snowflake-semantic-views-core.md` - Semantic view query patterns
+
+### External Documentation
+- [dbt_semantic_view Package](https://github.com/Snowflake-Labs/dbt_semantic_view) - Official package documentation
+- [Snowflake Semantic Views](https://docs.snowflake.com/en/user-guide/semantic-views) - Snowflake documentation
+- [dbt Materializations](https://docs.getdbt.com/docs/build/materializations) - dbt materialization concepts
+- [Cortex Analyst](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst) - Integration with semantic views
 
 ## Quick Start TL;DR
 
@@ -38,19 +52,16 @@ Creating Snowflake semantic views through dbt using the `dbt_semantic_view` pack
 
 ## Contract
 
-<inputs_prereqs>
+### Inputs and Prerequisites
 dbt project with base models; Snowflake warehouse; understanding of star schema design; business requirements for metrics and dimensions
-</inputs_prereqs>
 
-<mandatory>
+### Mandatory
 dbt 1.x+; Snowflake warehouse; dbt_semantic_view package; base models with primary keys; packages.yml file
-</mandatory>
 
-<forbidden>
+### Forbidden
 Direct DDL creation of semantic views; TIME_DIMENSIONS clause; COUNT_IF or RATIO_TO_REPORT functions; table qualification in SEMANTIC_VIEW() queries; skipping primary key definitions
-</forbidden>
 
-<steps>
+### Execution Steps
 1. Add dbt_semantic_view package to packages.yml and run dbt deps
 2. Analyze existing dbt models to identify tables, relationships, dimensions, and metrics
 3. Create semantic view model file in models/ directory with semantic_view materialization
@@ -62,15 +73,28 @@ Direct DDL creation of semantic views; TIME_DIMENSIONS clause; COUNT_IF or RATIO
 9. Build semantic view with dbt run --select model_name
 10. Test with SEMANTIC_VIEW() queries in Snowflake
 11. Add documentation to schema.yml and integrate into CI/CD pipeline
-</steps>
 
-<output_format>
+### Output Format
 dbt model SQL file with semantic_view materialization; SHOW SEMANTIC VIEWS output; test query results; schema.yml documentation
-</output_format>
 
-<validation>
+### Validation
 dbt run succeeds without errors; SHOW SEMANTIC VIEWS shows created object; DESCRIBE SEMANTIC VIEW returns structure; test queries return expected results; downstream models can reference with ref()
-</validation>
+
+### Post-Execution Checklist
+- [ ] dbt_semantic_view package added to packages.yml
+- [ ] Package installed via dbt deps
+- [ ] Semantic view model created in models/ directory
+- [ ] TABLES section defined with PRIMARY KEY for each table
+- [ ] RELATIONSHIPS section defined for foreign keys (if multi-table)
+- [ ] DIMENSIONS section defined with business-friendly names
+- [ ] METRICS section defined with aggregation expressions
+- [ ] COMMENT clauses added for all components
+- [ ] Model built successfully with dbt run
+- [ ] Semantic view exists in Snowflake (verified with SHOW SEMANTIC VIEWS)
+- [ ] Test queries executed successfully with SEMANTIC_VIEW() function
+- [ ] Documentation added to schema.yml
+- [ ] Downstream models can reference semantic view (if applicable)
+- [ ] CI/CD pipeline updated to build semantic views
 
 ## Anti-Patterns and Common Mistakes
 
@@ -170,6 +194,21 @@ SELECT * FROM SEMANTIC_VIEW(
 ```
 **Benefits:** Valid syntax, cleaner query interface, matches semantic view design.
 
+## Validation
+
+**Success Checks:**
+- `dbt run --select <model_name>` completes without errors
+- `SHOW SEMANTIC VIEWS IN SCHEMA <database>.<schema>` shows the created view
+- `DESCRIBE SEMANTIC VIEW <database>.<schema>.<view_name>` returns structure
+- Test query returns expected results: `SELECT * FROM SEMANTIC_VIEW(<view_name> DIMENSIONS <dim> METRICS <metric>) LIMIT 10`
+- Downstream models can reference with `{{ ref('<model_name>') }}`
+
+**Negative Tests:**
+- Using TIME_DIMENSIONS clause should fail with syntax error
+- Using COUNT_IF or RATIO_TO_REPORT should fail with syntax error
+- Missing PRIMARY KEY should fail with validation error
+- Table-qualified dimensions in queries should fail with syntax error
+
 ## Post-Execution Checklist
 
 - [ ] dbt_semantic_view package added to packages.yml
@@ -186,21 +225,6 @@ SELECT * FROM SEMANTIC_VIEW(
 - [ ] Documentation added to schema.yml
 - [ ] Downstream models can reference semantic view (if applicable)
 - [ ] CI/CD pipeline updated to build semantic views
-
-## Validation
-
-**Success Checks:**
-- `dbt run --select <model_name>` completes without errors
-- `SHOW SEMANTIC VIEWS IN SCHEMA <database>.<schema>` shows the created view
-- `DESCRIBE SEMANTIC VIEW <database>.<schema>.<view_name>` returns structure
-- Test query returns expected results: `SELECT * FROM SEMANTIC_VIEW(<view_name> DIMENSIONS <dim> METRICS <metric>) LIMIT 10`
-- Downstream models can reference with `{{ ref('<model_name>') }}`
-
-**Negative Tests:**
-- Using TIME_DIMENSIONS clause should fail with syntax error
-- Using COUNT_IF or RATIO_TO_REPORT should fail with syntax error
-- Missing PRIMARY KEY should fail with validation error
-- Table-qualified dimensions in queries should fail with syntax error
 
 ## Output Format Examples
 
@@ -269,19 +293,6 @@ dbt run --select sv_sales_performance
 SHOW SEMANTIC VIEWS IN SCHEMA my_db.my_schema;
 DESCRIBE SEMANTIC VIEW my_db.my_schema.sv_sales_performance;
 ```
-
-## References
-
-### Related Rules
-- `200-python-core.md` - Python development standards for dbt projects
-- `100-snowflake-core.md` - Snowflake SQL best practices
-- `106-snowflake-semantic-views-core.md` - Semantic view query patterns
-
-### External Documentation
-- [dbt_semantic_view Package](https://github.com/Snowflake-Labs/dbt_semantic_view) - Official package documentation
-- [Snowflake Semantic Views](https://docs.snowflake.com/en/user-guide/semantic-views) - Snowflake documentation
-- [dbt Materializations](https://docs.getdbt.com/docs/build/materializations) - dbt materialization concepts
-- [Cortex Analyst](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst) - Integration with semantic views
 
 ## Setup and Installation
 

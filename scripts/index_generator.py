@@ -67,8 +67,9 @@ class RuleMetadata:
 def extract_scope_from_content(content: str) -> str:
     """Extract scope description from ## Scope section (v3.2 schema).
 
-    Looks for the ## Scope heading and extracts the "What This Rule Covers:" content.
-    Only supports proper v3.2 format - no fallbacks to legacy formats.
+    Looks for the ## Scope heading and extracts content in one of two formats:
+    1. v3.2 format with "What This Rule Covers:" marker
+    2. Plain text format (first non-empty line after ## Scope)
 
     Args:
         content: Full file content
@@ -78,10 +79,10 @@ def extract_scope_from_content(content: str) -> str:
     """
     lines = content.split("\n")
 
-    # Find ## Scope heading (v3.2 schema only)
+    # Find ## Scope heading
     for i, line in enumerate(lines):
         if line.strip() == "## Scope":
-            # Look for "What This Rule Covers:" subsection (v3.2 format)
+            # Look for content in the next 20 lines
             for j in range(i + 1, min(i + 20, len(lines))):
                 current_line = lines[j].strip()
 
@@ -89,7 +90,11 @@ def extract_scope_from_content(content: str) -> str:
                 if current_line.startswith("##") and current_line != "## Scope":
                     break
 
-                # Found the "What This Rule Covers:" marker (v3.2 format)
+                # Skip empty lines
+                if not current_line:
+                    continue
+
+                # Format 1: Found the "What This Rule Covers:" marker (v3.2 format)
                 if current_line.startswith("**What This Rule Covers:**"):
                     # Extract content after the marker on same line or next line
                     content_after_marker = current_line.replace(
@@ -107,6 +112,12 @@ def extract_scope_from_content(content: str) -> str:
                             and not next_line.startswith("#")
                         ):
                             return next_line
+                    break  # Marker found but no content
+
+                # Format 2: Plain text (first non-empty line after ## Scope)
+                # This is the fallback for files that don't use the marker format
+                if not current_line.startswith("#"):
+                    return current_line
             break
 
     return "No scope provided"

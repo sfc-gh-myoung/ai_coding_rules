@@ -6,7 +6,7 @@
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-05
 **Keywords:** browser globals, javascript globals, window.history, HTMX history, Alpine.js, name collisions, reserved identifiers, implicit globals, historyRestore, hx-push-url, popstate, best practices, anti-patterns
-**TokenBudget:** ~1000
+**TokenBudget:** ~1400
 **ContextTier:** High
 **Depends:** 500-frontend-htmx-core.md
 
@@ -29,21 +29,6 @@ HTMX-driven UIs and server-rendered apps that embed small JavaScript/Alpine help
 - [MDN: `Window.history`](https://developer.mozilla.org/en-US/docs/Web/API/Window/history) - Browser history object
 - [HTMX Events](https://htmx.org/events/) - `htmx:afterSwap` and `htmx:historyRestore` lifecycle hooks
 
-## Quick Start TL;DR
-
-**MANDATORY:**
-**Essential Patterns:**
-- **No globals by default:** Don’t define top-level functions/vars that shadow browser globals; keep helpers module-scoped or namespaced.
-- **Avoid reserved browser identifiers:** Never name your functions/vars `history`, `location`, `event`, `name`, `top`, `parent`, `frames`, etc.
-- **Namespace if you must expose:** If something must be referenced from HTML (`x-data="..."`), expose it under a single app namespace (e.g., `window.unistore.*`).
-
-**Pre-Execution Checklist:**
-- [ ] Search for `function history(` / `const history =` / `var history` in templates and frontend scripts
-- [ ] Confirm HTMX uses `hx-push-url` / `hx-history-elt` / back-forward behavior in the UI you’re working on
-- [ ] Confirm Alpine component factories referenced from HTML are not globals (or are namespaced)
-- [ ] Confirm no “implicit globals” (missing `const`/`let`) are introduced
-- [ ] Re-test browser back/forward on swapped pages (HTMX history restore)
-
 ## Contract
 
 ### Inputs and Prerequisites
@@ -51,6 +36,11 @@ Basic knowledge of browser global objects (`window`, `history`, `location`) and 
 
 ### Mandatory
 Ability to edit templates/JS; browser devtools access to verify history behavior; HTMX/Alpine loaded if used in the app.
+
+**Essential Patterns:**
+- **No globals by default:** Keep helpers module-scoped or namespaced; don't define top-level functions/vars that shadow browser globals
+- **Avoid reserved browser identifiers:** Never name functions/vars `history`, `location`, `event`, `name`, `top`, `parent`, `frames`, etc.
+- **Namespace if you must expose:** If something must be referenced from HTML (`x-data="..."`), expose it under a single app namespace (e.g., `window.unistore.*`)
 
 ### Forbidden
 Creating new top-level globals named after browser APIs; using implicit globals; "fixing" by disabling HTMX history unless explicitly requested.

@@ -6,7 +6,7 @@
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-05
 **Keywords:** dbt, semantic view, Snowflake, dbt_semantic_view, materialization, Cortex Analyst, YAML, semantic model, dbt models, analytics, business intelligence, data modeling
-**TokenBudget:** ~3200
+**TokenBudget:** ~4800
 **ContextTier:** High
 **Depends:** 200-python-core.md
 
@@ -31,32 +31,31 @@ Creating Snowflake semantic views through dbt using the `dbt_semantic_view` pack
 - [dbt Materializations](https://docs.getdbt.com/docs/build/materializations) - dbt materialization concepts
 - [Cortex Analyst](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst) - Integration with semantic views
 
-## Quick Start TL;DR
-
-**MANDATORY:**
-**Essential Patterns:**
-- **Always use dbt** - Create semantic views through dbt using `dbt_semantic_view` package, never direct DDL
-- **Use ref() and source()** - Reference base models with `{{ ref() }}` and `{{ source() }}` for lineage
-- **Add inline comments** - Document with COMMENT clauses (persist_docs not supported)
-- **No TIME_DIMENSIONS** - Time columns are regular dimensions, not a separate clause
-- **Standard SQL only** - Use CASE statements, no COUNT_IF or RATIO_TO_REPORT functions
-- **Test thoroughly** - Query semantic views with SEMANTIC_VIEW() function before deployment
-
-**Pre-Execution Checklist:**
-- [ ] dbt project exists with models directory
-- [ ] Base models (facts/dimensions) are materialized as tables or views
-- [ ] Primary keys identified for all tables
-- [ ] Relationships (foreign keys) mapped between tables
-- [ ] Metrics and dimensions defined for business requirements
-- [ ] dbt_semantic_view package version identified
-
 ## Contract
 
 ### Inputs and Prerequisites
-dbt project with base models; Snowflake warehouse; understanding of star schema design; business requirements for metrics and dimensions
+- dbt project with base models (materialized as tables or views)
+- Snowflake warehouse access
+- Understanding of star schema design
+- Business requirements for metrics and dimensions
+- Primary keys identified for all tables
+- Relationships (foreign keys) mapped between tables
+- dbt_semantic_view package version identified
 
 ### Mandatory
-dbt 1.x+; Snowflake warehouse; dbt_semantic_view package; base models with primary keys; packages.yml file
+- dbt 1.x+
+- Snowflake warehouse
+- dbt_semantic_view package installed
+- Base models with primary keys defined
+- packages.yml file
+
+**Essential Patterns:**
+- **Always use dbt:** Create semantic views through dbt using `dbt_semantic_view` package, never direct DDL
+- **Use ref() and source():** Reference base models with `{{ ref() }}` and `{{ source() }}` for lineage tracking
+- **Add inline comments:** Document with COMMENT clauses (persist_docs not supported)
+- **No TIME_DIMENSIONS:** Time columns are regular dimensions, not a separate clause
+- **Standard SQL only:** Use CASE statements, no COUNT_IF or RATIO_TO_REPORT functions
+- **Test thoroughly:** Query semantic views with SEMANTIC_VIEW() function before deployment
 
 ### Forbidden
 Direct DDL creation of semantic views; TIME_DIMENSIONS clause; COUNT_IF or RATIO_TO_REPORT functions; table qualification in SEMANTIC_VIEW() queries; skipping primary key definitions

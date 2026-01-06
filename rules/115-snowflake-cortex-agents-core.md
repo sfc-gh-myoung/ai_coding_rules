@@ -11,7 +11,7 @@
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-05
 **Keywords:** multi-tool agents, planning instructions, testing, troubleshooting, semantic views, create agent, debug agent, agent not working, tool execution failed, agent error, fix agent, agent performance, agent tool integration, cortex agent configuration, UnboundedExecution
-**TokenBudget:** ~7950
+**TokenBudget:** ~8400
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md, 106-snowflake-semantic-views-core.md, 111-snowflake-observability-core.md
 
@@ -37,6 +37,16 @@ Comprehensive patterns to design, configure, secure, and operate Cortex Agents i
 > 4. Verify role permissions: `SHOW GRANTS TO ROLE <agent_role>;`
 > 5. Never assume tool availability - test each tool independently before agent integration
 > 6. Test Cortex function access: `SELECT SNOWFLAKE.CORTEX.COMPLETE('llama3.1-8b', 'test');`
+>
+> **STOP Gate - Prerequisites Check:**
+> Before creating any Cortex Agent, verify ALL of these conditions:
+> - [ ] Cortex features enabled: Run `SHOW PARAMETERS LIKE 'CORTEX%' IN ACCOUNT` and confirm CORTEX_ENABLED_CROSS_REGION = true
+> - [ ] Required tools exist and are functional: Test each tool (semantic view, Cortex Search, functions) independently
+> - [ ] Role has CORTEX privileges: Run `SHOW GRANTS TO ROLE role_name` and verify USAGE ON CORTEX privileges
+> - [ ] Budget/resource monitor configured: Verify cost governance is in place for agent execution
+>
+> IF ANY condition fails, STOP immediately and report the missing prerequisite to the user.
+> DO NOT create the agent using assumptions or without verifying tool functionality.
 >
 > **Anti-Pattern:**
 > "Let me create an agent with these tools - they should work."

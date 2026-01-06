@@ -659,4 +659,3 @@ Example:
 - `200-python-core.md` - CORE RULE (parent)
 - `200a-python-typing.md` - CORE RULE (core dependency)
 - `206-python-pytest.md` - no marker (specialized testing rule)
-

@@ -488,7 +488,6 @@ def get_data():
 </script>
 ```
 
-
 ## Output Format Examples
 
 ### Complete Flask App Structure
@@ -515,4 +514,3 @@ def create_app():
 
     return app
 ```
-

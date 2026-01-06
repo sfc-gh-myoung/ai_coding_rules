@@ -194,7 +194,6 @@ app.add_middleware(
 )
 ```
 
-
 > **Investigation Required**
 > When applying this rule:
 > 1. **Read existing auth implementation BEFORE adding security** - Check for auth_service.py, security.py, existing JWT patterns

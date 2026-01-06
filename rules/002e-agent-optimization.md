@@ -503,4 +503,3 @@ Even then, consider if the table is truly necessary or if restructuring would he
 - If YES: Apply agent optimization patterns
 - If NO: Skip optimization
 ```
-

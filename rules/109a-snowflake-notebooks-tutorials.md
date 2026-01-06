@@ -36,25 +36,21 @@ Comprehensive patterns for designing educational Snowflake notebooks that effect
 
 ## Contract
 
-
 ### Inputs and Prerequisites
 - Technical notebook content from `109-snowflake-notebooks.md`
 - Target audience definition (beginner/intermediate/advanced)
 - Learning outcomes to achieve
 - Time budget for tutorial completion
 
-
 ### Mandatory
 - `edit_notebook` for adding educational cells
 - `read_file` for reviewing existing content
 - Markdown cells for narrative and teaching points
 
-
 ### Forbidden
 - Overly technical jargon without definitions for beginner content
 - Copy-paste code without explanation
 - Examples without context or business rationale
-
 
 ### Execution Steps
 1. Define clear learning objectives (3-6 outcomes)
@@ -82,14 +78,12 @@ Comprehensive patterns for designing educational Snowflake notebooks that effect
 - Checkpoint validation cells (code cells with assertions)
 - Teaching point callouts ([NOTE] prefix in markdown)
 
-
 ### Validation
 1. Verify learning objectives are measurable and clear
 2. Confirm all major sections have checkpoint validations
 3. Check anti-patterns have both incorrect and correct examples
 4. Validate time estimates are realistic
 5. Test self-paced learning flow (can skip ahead)
-
 
 ### Design Principles
 - **Clear Learning Path:** Objectives, then Structure, then Checkpoints, then Assessment
@@ -98,9 +92,6 @@ Comprehensive patterns for designing educational Snowflake notebooks that effect
 - **Progressive Disclosure:** Simple concepts first, complexity builds gradually
 - **Self-Paced Friendly:** Can skip sections, clear prerequisites stated
 - **Context First:** Business rationale before technical implementation
-
-
-
 
 ## Anti-Patterns and Common Mistakes
 

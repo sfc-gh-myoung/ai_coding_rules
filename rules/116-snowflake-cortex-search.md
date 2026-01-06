@@ -6,7 +6,7 @@
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-05
 **Keywords:** embeddings, search index, RAG, agent tools, retrieval, troubleshooting, AI_EMBED, create search service, search service error, document retrieval, search index creation, hybrid search, search service debug, vector similarity
-**TokenBudget:** ~7500
+**TokenBudget:** ~8000
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md, 111-snowflake-observability-core.md, 114-snowflake-cortex-aisql.md
 
@@ -22,6 +22,25 @@ Reliable patterns for building and querying Cortex Search indices, including dat
 - Troubleshooting search service errors
 - Optimizing search performance and costs
 - Configuring hybrid agents with document retrieval
+
+> **Investigation Required**
+> When working with Cortex Search:
+> 1. Verify source data exists and has required columns: `SHOW COLUMNS IN TABLE source_table`
+> 2. Check existing search services: `SHOW CORTEX SEARCH SERVICES IN SCHEMA db.schema`
+> 3. Test AI_EMBED access: `SELECT SNOWFLAKE.CORTEX.EMBED_TEXT_768('snowflake-arctic-embed-m', 'test')`
+> 4. Verify warehouse is active: `SELECT CURRENT_WAREHOUSE()`
+> 5. Never assume search service configuration - always query service details first
+>
+> **STOP Gate - Prerequisites Check:**
+> Before creating Cortex Search services, verify ALL of these conditions:
+> - [ ] Source table exists with non-zero rows: Run `SELECT COUNT(*) FROM source_table`
+> - [ ] Search column contains text data: Run `SELECT search_column FROM source_table LIMIT 5` to verify content
+> - [ ] Metadata columns exist if using filters: Verify column schema matches planned attributes
+> - [ ] User has CREATE CORTEX SEARCH SERVICE privilege: Run `SHOW GRANTS TO ROLE role_name`
+> - [ ] Warehouse is sized appropriately: Large indices require MEDIUM or larger warehouses
+>
+> IF ANY condition fails, STOP immediately and report the missing prerequisite to the user.
+> DO NOT create search services using placeholder values or assumptions about data structure.
 
 ## References
 

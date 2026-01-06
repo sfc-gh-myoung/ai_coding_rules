@@ -6,7 +6,7 @@
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-05
 **Keywords:** bulk loading, ON_ERROR, FILE_FORMAT, load data, external stage, internal stage, data ingestion, file upload, COPY error, loading patterns, stage files, PUT command, GET command
-**TokenBudget:** ~2800
+**TokenBudget:** ~3150
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 
@@ -21,6 +21,15 @@ Comprehensive best practices for efficiently staging and bulk loading data into 
 - Configuring file formats and error handling
 - Optimizing bulk load performance
 - Troubleshooting COPY INTO errors
+
+### Quantification Standards
+
+**File Sizing Thresholds:**
+- **Optimal file size:** 100-250MB compressed per file (context: COPY INTO performance)
+- **Small files threshold:** <10MB compressed (context: avoid without batching, causes metadata overhead)
+- **Excessive file count:** >100K files (context: metadata overhead degradation)
+- **Large load monitoring:** >10GB total data OR >100 files OR >10M rows (context: monitor COPY_HISTORY during execution)
+- **Batching requirement:** Concatenate files <10MB into 100-250MB batches before loading
 
 **For continuous ingestion with Snowpipe, see `121-snowflake-snowpipe.md`**
 
@@ -89,7 +98,7 @@ Comprehensive best practices for efficiently staging and bulk loading data into 
 7. Test with VALIDATION_MODE: COPY INTO ... VALIDATION_MODE = RETURN_ERRORS
 8. Review validation errors, adjust FILE_FORMAT or file content
 9. Execute load: COPY INTO target_table FROM @stage FILE_FORMAT = (...) ON_ERROR = CONTINUE
-10. Monitor progress for large loads (query COPY_HISTORY while running)
+10. Monitor progress for large loads (>10GB total OR >100 files OR >10M rows): Query COPY_HISTORY while running
 11. Verify load: Check row counts, query COPY_HISTORY for errors
 12. Handle errors: Review rejected rows, fix and reload
 

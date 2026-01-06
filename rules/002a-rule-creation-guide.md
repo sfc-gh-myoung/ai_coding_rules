@@ -693,4 +693,3 @@ vim rules/101d-snowflake-streamlit-testing.md
 python3 scripts/schema_validator.py rules/101d-snowflake-streamlit-testing.md
 # [PASS] RESULT: PASSED
 ```
-

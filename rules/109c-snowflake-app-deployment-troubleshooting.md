@@ -38,13 +38,11 @@ Comprehensive troubleshooting guidance and anti-pattern identification for Snowf
 
 ## Contract
 
-
 ### Inputs and Prerequisites
 - Active Snowflake connection
 - Access to stage LIST/DESCRIBE permissions
 - Knowledge of deployed application names and stage locations
 - Taskfile deployment scripts for re-deployment
-
 
 ### Mandatory
 - Snowflake CLI diagnostic commands (LIST, DESCRIBE, SHOW)
@@ -52,13 +50,11 @@ Comprehensive troubleshooting guidance and anti-pattern identification for Snowf
 - grep/filtering for log analysis
 - Browser dev tools for client-side debugging
 
-
 ### Forbidden
 - Skipping diagnostic phase and guessing solutions
 - Manual file manipulation in Snowsight during troubleshooting
 - Partial re-deployment without full cleanup (REMOVE)
 - Ignoring ROOT_LOCATION path mismatches
-
 
 ### Execution Steps
 1. Execute diagnostic commands to identify root cause
@@ -67,13 +63,11 @@ Comprehensive troubleshooting guidance and anti-pattern identification for Snowf
 4. Validate full deployment workflow with explicit REMOVE
 5. Confirm resolution with post-deployment verification
 
-
 ### Output Format
 - Diagnostic command outputs with interpretation
 - Root cause analysis with evidence
 - Step-by-step remediation commands
 - Verification commands to confirm fix
-
 
 ### Validation
 - Run diagnostic commands and verify expected outputs
@@ -81,7 +75,6 @@ Comprehensive troubleshooting guidance and anti-pattern identification for Snowf
 - Re-deploy application using full workflow
 - Verify application loads without import errors
 - Confirm stage files match expected structure (LIST @stage)
-
 
 ### Design Principles
 - **Diagnose Before Fixing:** Always run diagnostic commands before suggesting solutions
@@ -99,9 +92,6 @@ Comprehensive troubleshooting guidance and anti-pattern identification for Snowf
 - [ ] ROOT_LOCATION matches stage file paths
 - [ ] Post-fix verification commands confirm resolution
 - [ ] Application loads without errors in Snowflake
-
-
-
 
 ## Anti-Patterns and Common Mistakes
 

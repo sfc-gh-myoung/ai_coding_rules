@@ -18,11 +18,6 @@ Establish monitoring, logging, and performance optimization patterns for FastAPI
 **When to Load This Rule:**
 - FastAPI health checks, logging, monitoring, and performance optimization patterns
 
-
-
-
-
-
 ## References
 
 ### External Documentation
@@ -229,7 +224,6 @@ uvx ruff check .
 uvx ruff format --check .
 uv run pytest tests/
 ```
-
 
 ## Health Checks and Monitoring
 

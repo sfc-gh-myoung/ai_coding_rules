@@ -6,7 +6,7 @@
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-05
 **Keywords:** DEBUG, INFO, WARN, ERROR, FATAL, conditional logging, sampling, tight loop logging, standard logging libraries, log volume control, cost management, log configuration, log handlers
-**TokenBudget:** ~4250
+**TokenBudget:** ~4600
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 111-snowflake-observability-core.md
 
@@ -21,6 +21,14 @@ Comprehensive logging best practices for Snowflake handler code, covering standa
 - Using conditional logging patterns
 - Integrating with standard logging libraries
 - Optimizing logging for production environments
+
+### Quantification Standards
+
+**Frequency Thresholds:**
+- **High-frequency operation:** >1000 log calls per minute OR >100 iterations per second in a loop (context: requires sampling strategy)
+- **Sampling rate for tight loops:** Log every 100th-1000th iteration (e.g., log every 100th row processed in batch of 10K+ rows)
+- **Acceptable log volume:** <10MB per handler execution OR <1000 log entries per minute (context: cost management)
+- **Production log level:** WARN or ERROR only (DEBUG generates 10-100x more volume, see 111-snowflake-observability-core.md)
 
 ## References
 
@@ -45,7 +53,7 @@ Comprehensive logging best practices for Snowflake handler code, covering standa
 ### Mandatory
 - Standard logging libraries (Python `logging`, Java `slf4j`, JavaScript `console`)
 - Conditional logging with if-statements for volume control
-- Sampling strategies for high-frequency operations
+- Sampling strategies for high-frequency operations (>1000 log calls/min OR >100 iterations/sec)
 
 ### Forbidden
 - `print` statements instead of logging (do NOT route to event tables)
@@ -57,7 +65,7 @@ Comprehensive logging best practices for Snowflake handler code, covering standa
 1. **Import:** Use standard logging library at module level
 2. **Configure:** Set appropriate log levels for environment (see `111-snowflake-observability-core.md`)
 3. **Implement:** Add strategic log statements at key decision points
-4. **Sample:** Use conditional logging or sampling for high-frequency operations
+4. **Sample:** Use conditional logging or sampling (every 100th-1000th iteration) for high-frequency operations (>1000 calls/min OR >100 iter/sec)
 5. **Validate:** Verify logs appear in event tables after deployment
 
 ### Output Format
@@ -76,7 +84,7 @@ Comprehensive logging best practices for Snowflake handler code, covering standa
 - Use standard logging libraries that automatically route to event tables (Python `logging`, Java `slf4j`)
 - Set log levels based on environment: WARN+ for production, DEBUG for development only
 - Implement conditional logging to capture only meaningful scenarios and control data volume
-- **CRITICAL:** Use sampling strategies for high-frequency operations (log every Nth iteration in tight loops)
+- **CRITICAL:** Use sampling strategies for high-frequency operations (>1000 log calls/min OR >100 iter/sec: log every Nth iteration in tight loops)
 - Include relevant context in log messages (variable values, record counts, error details)
 - **CRITICAL:** Never log sensitive data (PII, credentials, API tokens) - security and compliance violation
 

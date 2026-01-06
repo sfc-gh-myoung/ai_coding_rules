@@ -440,7 +440,6 @@ Files in `templates/partials/`:
 - `_user_form.html`
 - `_user_row.html`
 
-
 ## Output Format Examples
 
 ### Complete Template Structure
@@ -478,4 +477,3 @@ def users_list():
 
     return render_template('pages/users.html', users=users)
 ```
-

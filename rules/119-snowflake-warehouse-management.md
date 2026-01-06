@@ -6,7 +6,7 @@
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-05
 **Keywords:** high-memory warehouse, warehouse tagging, auto-suspend, auto-resume, GEN 2, Snowpark-Optimized, warehouse edition, resource monitors, create warehouse, warehouse configuration, warehouse types, warehouse cost, size warehouse
-**TokenBudget:** ~6100
+**TokenBudget:** ~6500
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 103-snowflake-performance-tuning.md, 105-snowflake-cost-governance.md
 
@@ -22,6 +22,26 @@ Comprehensive best practices for creating, configuring, and managing Snowflake v
 - Selecting warehouse types (Standard, Snowpark-Optimized, High-Memory)
 - Optimizing warehouse costs
 - Implementing warehouse governance and tagging
+
+### Quantification Standards
+
+**Warehouse Sizing Decision Matrix:**
+- **Scale UP if:** Query execution time >30s AND warehouse utilization >80% for 5+ consecutive minutes
+- **Scale DOWN if:** Warehouse utilization <20% for 10+ consecutive minutes AND no queued queries
+- **MAINTAIN current size if:** Utilization 20-80% AND queries meet SLA (<30s analytical, <2s interactive)
+
+**Auto-Suspend Thresholds:**
+- **Interactive/BI workloads:** AUTO_SUSPEND = 60 seconds (1 minute)
+- **ETL/batch workloads:** AUTO_SUSPEND = 300 seconds (5 minutes)
+- **Development/testing:** AUTO_SUSPEND = 30 seconds
+- **Never use:** AUTO_SUSPEND = 0 (disables auto-suspend, generates runaway costs)
+
+**Cost Benchmarks (per hour):**
+- **XSMALL:** 1 credit/hour (~$2-4/hour depending on region)
+- **SMALL:** 2 credits/hour
+- **MEDIUM:** 4 credits/hour
+- **LARGE:** 8 credits/hour
+- **XLARGE:** 16 credits/hour
 
 ## References
 
@@ -59,27 +79,19 @@ Comprehensive best practices for creating, configuring, and managing Snowflake v
 
 ## Contract
 
-
 ### Inputs and Prerequisites
-
 
 Snowflake account with warehouse creation privileges (`CREATE WAREHOUSE`); workload requirements; cost baseline; resource monitor strategy
 
-
 ### Mandatory
-
 
 Snowflake DDL commands; warehouse configuration; SHOW/DESCRIBE commands; Query Profile analysis; resource monitors
 
-
 ### Forbidden
-
 
 Creating warehouses without mandatory tags; using Standard edition when GEN 2 available; oversized warehouses without documented justification; disabling auto-suspend in non-production
 
-
 ### Execution Steps
-
 
 1. Assess workload type (interactive BI, batch ETL, ML training/inference, complex analytics)
 2. Select appropriate warehouse type (Standard CPU, Snowpark-Optimized GPU, High-Memory)
@@ -91,21 +103,15 @@ Creating warehouses without mandatory tags; using Standard edition when GEN 2 av
 8. Document sizing justification and expected workload patterns
 9. Validate configuration and monitor usage patterns
 
-
 ### Output Format
-
 
 Complete DDL with inline comments; configuration tables; decision matrices; monitoring queries
 
-
 ### Validation
-
 
 Warehouse created successfully; correct type and edition selected; mandatory tags applied; auto-suspend working as expected; resource monitor associated; initial query performance meets expectations
 
-
 ### Design Principles
-
 
 - **GEN 2 First:** Always prefer GEN 2 warehouses over Standard edition for improved performance and cost efficiency
 - **Type Selection:** Use Standard CPU for general workloads, Snowpark-Optimized for GPU-accelerated ML, High-Memory for complex analytics
@@ -114,9 +120,6 @@ Warehouse created successfully; correct type and edition selected; mandatory tag
 - **Tag Everything:** Apply mandatory tags for cost allocation, governance, and lifecycle management
 - **Cost Integration:** Every warehouse must be associated with a resource monitor
 - **Monitor and Optimize:** Continuously review warehouse usage and right-size based on Query Profile data
-
-
-
 
 ### Post-Execution Checklist
 

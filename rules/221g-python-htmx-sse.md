@@ -379,7 +379,6 @@ Maintain `docs/SSE_EVENTS.md` with this structure:
 - **`operation_completed`** - Operation finished (payload: `{demo_id, status}`)
 ```
 
-
 ## Output Format Examples
 
 ### SSE Event Wire Format

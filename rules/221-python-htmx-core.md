@@ -461,7 +461,6 @@ def update():
         return response
 ```
 
-
 ## Output Format Examples
 
 ### Endpoint with HTMX Detection
@@ -510,4 +509,3 @@ def update_item(item_id):
   });
 </script>
 ```
-

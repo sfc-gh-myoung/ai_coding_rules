@@ -11,7 +11,7 @@
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-05
 **Keywords:** TABLES, RELATIONSHIPS, PRIMARY KEY, validation rules, semantic view error, create semantic view, debug semantic view, SQL, verified queries, VQR, YAML semantic model, NLQ, mapping syntax, granularity rules
-**TokenBudget:** ~8450
+**TokenBudget:** ~9000
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 
@@ -133,6 +133,16 @@ Authoritative guidance for creating Snowflake Native Semantic Views using the `C
 > 4. Never assume mapping syntax - always verify logical_name AS physical_column order
 > 5. Test queries against the semantic view before using in production
 > 6. Check for COMMENT syntax (must have equals sign: `COMMENT = 'text'`)
+>
+> **STOP Gate - Prerequisites Check:**
+> Before creating or modifying any semantic view, verify ALL of these conditions:
+> - [ ] Base tables exist: Run `SHOW TABLES IN SCHEMA` to confirm physical tables are present
+> - [ ] Tables have data: Run `SELECT COUNT(*) FROM base_table` to verify non-zero row count
+> - [ ] User has CREATE SEMANTIC VIEW privilege: Run `SHOW GRANTS ON SCHEMA schema_name`
+> - [ ] Warehouse context is set: Run `SELECT CURRENT_WAREHOUSE()` to confirm active warehouse
+>
+> IF ANY condition fails, STOP immediately and report the missing prerequisite to the user.
+> DO NOT proceed with semantic view creation using assumptions or placeholder values.
 >
 > **Anti-Pattern:**
 > "Based on typical patterns, this view probably maps customer_id to..."
@@ -992,4 +1002,3 @@ SELECT
     CURRENT_DATABASE() AS current_database,
     CURRENT_SCHEMA() AS current_schema;
 ```
-

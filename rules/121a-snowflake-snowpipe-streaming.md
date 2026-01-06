@@ -815,4 +815,3 @@ DESC TABLE DB.SCHEMA.TABLE;
 -- Check user privileges
 SHOW GRANTS TO USER USERNAME;
 ```
-

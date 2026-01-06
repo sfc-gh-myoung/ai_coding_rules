@@ -53,31 +53,25 @@ Advanced patterns for semantic views including anti-patterns to avoid, comprehen
 
 Understanding of semantic view basics (from 106-core), semantic view created
 
-
 ### Mandatory
 
 Validation queries, compliance checks, quality tools
-
 
 ### Forbidden
 
 None specific
 
-
 ### Execution Steps
 
 1) Review anti-patterns 2) Apply validation rules 3) Run quality checks 4) Verify compliance
-
 
 ### Output Format
 
 Validation queries, compliance checklists, quality reports
 
-
 ### Validation
 
 No anti-patterns detected; validation passes; compliant with requirements
-
 
 ### Design Principles
 
@@ -897,4 +891,3 @@ SYNONYMS ('R and D', 'Research and Development', 'Sales and Marketing')
 ```
 
 **Best Practice:** Always test semantic view DDL via Snowflake CLI (`snow sql -f file.sql`) before committing to ensure CI/CD compatibility.
-

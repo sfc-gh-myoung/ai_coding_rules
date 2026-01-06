@@ -200,7 +200,6 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 - [ ] Responsive design verified
 - [ ] CHANGELOG.md and README.md updated as required
 
-
 ## Anti-Patterns and Common Mistakes
 
 **Anti-Pattern 1: Using buttons for navigation**
@@ -800,4 +799,3 @@ Values that commonly return NULL and require pandas-aware handling:
 **Question**: Am I applying format specifiers (`.1f`, `.0f`)?
 - Yes: MUST validate not NULL/NaN first
 - No: Still validate for display purposes
-

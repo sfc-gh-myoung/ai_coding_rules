@@ -487,7 +487,6 @@ ORDER BY total_credits DESC;
 > 4. **Review error patterns** - Analyze error types to identify systemic issues
 > 5. **Test alerts** - Verify alert logic triggers correctly before production deployment
 
-
 ## Anti-Patterns and Common Mistakes
 
 ### Anti-Pattern 1: Setting Static Alert Thresholds Without Baseline Analysis

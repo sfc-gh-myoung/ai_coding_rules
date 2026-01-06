@@ -617,7 +617,6 @@ async def home(request: Request):
     return templates.TemplateResponse("home.html", {"request": request})
 ```
 
-
 ## Output Format Examples
 
 ### Complete FastAPI App
@@ -652,4 +651,3 @@ async def create_user(
         {"request": request, "user": user}
     )
 ```
-

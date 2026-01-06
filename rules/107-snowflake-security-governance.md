@@ -6,7 +6,7 @@
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-05
 **Keywords:** roles, grants, secure views, security policies, access control, data security, policy troubleshooting, grant management, Data Metric Functions, DMF, least privilege, create masking policy, tagging, SQL
-**TokenBudget:** ~3550
+**TokenBudget:** ~3900
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 
@@ -21,6 +21,14 @@ Comprehensive data security and access control practices using Snowflake's gover
 - Setting up security governance frameworks
 - Managing object tagging for compliance
 - Troubleshooting access control issues
+
+### Quantification Standards
+
+**Security and Governance Thresholds:**
+- **Over-privileged role:** >5 direct privilege grants OR direct ACCOUNTADMIN inheritance
+- **Excessive comment length:** >500 characters per comment (aim for 50-200 characters)
+- **Role assignment limit:** User with >3 role assignments requires review
+- **Privilege audit trigger:** Role with ALL privileges on schema (use specific grants instead)
 
 ## References
 
@@ -73,7 +81,7 @@ Comprehensive data security and access control practices using Snowflake's gover
 ### Forbidden
 
 - Direct SELECT grants on raw PII tables without masking
-- Over-privileged roles (e.g., granting ACCOUNTADMIN for application use)
+- Over-privileged roles (>5 direct privilege grants OR granting ACCOUNTADMIN for application use)
 - Hardcoding passwords or credentials in SQL scripts
 - Exposing raw PII in views, UDFs, or stored procedures
 - Granting ownership without role hierarchy justification

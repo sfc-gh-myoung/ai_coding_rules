@@ -11,7 +11,7 @@
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-05
 **Keywords:** LOG_LEVEL, TRACE_LEVEL, METRIC_LEVEL, SHOW PARAMETERS, OpenTelemetry, System Views vs Telemetry, monitoring, logging, tracing, debug observability, event table queries, observability patterns, configure telemetry
-**TokenBudget:** ~4550
+**TokenBudget:** ~4900
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 
@@ -26,6 +26,19 @@ Foundational observability practices for Snowflake environments through telemetr
 - Implementing monitoring and tracing patterns
 - Troubleshooting with telemetry data
 - Understanding LOG_LEVEL, TRACE_LEVEL, and METRIC_LEVEL settings
+
+### Quantification Standards
+
+**Telemetry Cost Model:**
+- **DEBUG log level cost:** 10x baseline telemetry costs (estimate $100-500 per TB per month for DEBUG level)
+- **Baseline log level:** WARN or ERROR for production (1x cost baseline)
+- **Event table retention:** 7-90 days typical (compliance may require 365+ days)
+- **Log volume multiplier:** DEBUG generates 10-100x more data than WARN
+
+**Latency Thresholds:**
+- **Near real-time (telemetry):** 5-60 seconds typical latency, up to 5 minutes worst case during high system load
+- **Historical data (system views):** 45-60 minutes latency for ACCOUNT_USAGE views
+- **Immediate data (INFORMATION_SCHEMA):** Sub-second latency, 10-30 days retention
 
 ## References
 
@@ -112,7 +125,7 @@ Foundational observability practices for Snowflake environments through telemetr
 
 **Anti-Pattern 1: Using DEBUG Log Level in Production**
 ```sql
--- Bad: DEBUG logging in production generates massive costs
+-- Bad: DEBUG logging in production generates 10x baseline telemetry costs (estimate $100-500 per TB per month for DEBUG level)
 ALTER ACCOUNT SET LOG_LEVEL = DEBUG;
 -- Generates 100x more log data, massive event table costs!
 ```
@@ -224,7 +237,7 @@ session.sql("SELECT SYSTEM$LOG('INFO', 'Process started')").collect()
 **Telemetry Data (Event-Driven):**
 - **Purpose:** Real-time monitoring of application behavior, errors, and performance from user code.
 - **Data Source:** Event tables populated by handler code (functions, procedures, Snowpark).
-- **Latency:** Near real-time (seconds to minutes).
+- **Latency:** Near real-time (5-60 seconds typical latency, up to 5 minutes worst case during high system load).
 - **Retention:** Configurable based on event table settings.
 - **Use Cases:** Live debugging, application monitoring, distributed tracing, immediate alerting.
 

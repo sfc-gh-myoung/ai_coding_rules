@@ -479,7 +479,6 @@ document.body.addEventListener('htmx:afterSwap', function(event) {
 });
 ```
 
-
 ## Output Format Examples
 
 ### Complete Integration Example
@@ -524,4 +523,3 @@ document.body.addEventListener('htmx:afterSwap', function(event) {
 </body>
 </html>
 ```
-

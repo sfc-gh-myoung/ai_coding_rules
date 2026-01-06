@@ -189,7 +189,6 @@ setup() {
 # Run: bats test_deploy.bats
 ```
 
-
 ## Output Format Examples
 
 ```bash

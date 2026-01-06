@@ -42,7 +42,6 @@ Core deployment automation patterns for Snowflake applications (Notebooks, Strea
 
 ## Contract
 
-
 ### Inputs and Prerequisites
 - Snowflake connection and credentials
 - Application files ready for deployment (.ipynb, .py, environment.yml)
@@ -50,20 +49,17 @@ Core deployment automation patterns for Snowflake applications (Notebooks, Strea
 - Internal stages created in target schemas
 - SQL scripts for upload/remove/create operations
 
-
 ### Mandatory
 - Task automation (Taskfile.yml)
 - Snowflake CLI (`uvx snow sql`)
 - SQL template files with Snowflake variables (`<%VARIABLE%>`)
 - PUT, REMOVE, CREATE NOTEBOOK, CREATE STREAMLIT, DROP commands
 
-
 ### Forbidden
 - Manual file uploads via Snowsight UI (not reproducible)
 - Hardcoded credentials in automation scripts
 - Deployment without version control
 - Mixing deployment modes (don't deploy same app to multiple stages)
-
 
 ### Execution Steps
 1. Create SQL scripts for each operation (upload, remove, create, drop)
@@ -72,12 +68,10 @@ Core deployment automation patterns for Snowflake applications (Notebooks, Strea
 4. Document deployment process and troubleshooting
 5. Validate with actual deployment to Snowflake
 
-
 ### Output Format
 - Taskfile.yml with modular deployment tasks
 - SQL script files in organized directory structure
 - Documentation of deployment workflow
-
 
 ### Validation
 - Deploy to dev environment and verify object creation
@@ -85,7 +79,6 @@ Core deployment automation patterns for Snowflake applications (Notebooks, Strea
 - Check Snowsight for deployed notebook/streamlit
 - Test application functionality in Snowflake
 - Verify SQL scripts execute without errors
-
 
 ### Design Principles
 - **Explicit Over Implicit:** Always use explicit REMOVE before PUT to ensure clean state
@@ -103,9 +96,6 @@ Core deployment automation patterns for Snowflake applications (Notebooks, Strea
 - [ ] Taskfile targets defined
 - [ ] Deployment tested in dev
 - [ ] SQL scripts in version control
-
-
-
 
 ## Anti-Patterns and Common Mistakes
 

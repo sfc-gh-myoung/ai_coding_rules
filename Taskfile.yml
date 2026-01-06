@@ -120,6 +120,7 @@ tasks:
         echo "  task deploy:dry DEST=<path>   Preview deployment"
         echo "  task deploy:verbose DEST=...  Deploy with verbose output"
         echo "  task deploy:no-skills DEST=   Deploy rules only (skip skills)"
+        echo "  task deploy:only-skills DEST= Deploy only skills (for agent configs)"
         echo
         echo "{{.E_TOKEN}}TOKEN MANAGEMENT"
         echo "{{.BORDER_SINGLE}}"
@@ -431,6 +432,15 @@ tasks:
       - env:sync
     cmds:
       - "{{.PYTHON}} scripts/rule_deployer.py --dest '{{.DEST}}' --skip-skills"
+
+  deploy:only-skills:
+    desc: "Deploy only skills to destination (requires DEST=)"
+    requires:
+      vars: [DEST]
+    deps:
+      - env:sync
+    cmds:
+      - "{{.PYTHON}} scripts/rule_deployer.py --dest '{{.DEST}}' --only-skills"
 
   # Token Budgets
   tokens:update:

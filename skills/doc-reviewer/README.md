@@ -8,7 +8,7 @@ This skill automates the complete documentation review workflow:
 
 - Validates inputs (target files, date, mode, scope)
 - Discovers default documentation files if none specified
-- Executes review using `PROMPT.md` rubric (colocated in this skill folder)
+- Executes review using 6-dimension rubric optimized for user success
 - Verifies code references exist in the codebase
 - Validates internal links and flags external URLs
 - Checks compliance with project documentation rules (if present)
@@ -76,7 +76,6 @@ ls reviews/docs-collection-claude-sonnet45-2025-12-16.md
 ```text
 skills/doc-reviewer/
 ├── SKILL.md               # Main skill instructions (Claude Code entrypoint)
-├── PROMPT.md              # Review rubric and output format template
 ├── README.md              # This file - usage documentation
 ├── VALIDATION.md          # Skill self-validation procedures
 ├── examples/              # Review mode examples
@@ -92,7 +91,7 @@ skills/doc-reviewer/
 └── workflows/             # Step-by-step workflow guides
     ├── input-validation.md    # Input checking procedures
     ├── model-slugging.md      # Model name normalization
-    ├── review-execution.md    # Review generation steps
+    ├── review-execution.md    # Review generation steps (includes complete rubric)
     ├── file-write.md          # Output file handling
     └── error-handling.md      # Error recovery procedures
 ```

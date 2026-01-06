@@ -33,7 +33,7 @@ Comprehensive foundational practices for all Snowflake development work, ensurin
 ### Quantification Standards
 
 **Data Volume Thresholds:**
-- **Large table:** >10M rows OR >5GB uncompressed OR >1M rows with frequent updates (context: incremental patterns with Streams + Tasks)
+- **Large table:** >10M rows OR >5GB uncompressed OR >1M rows with >1000 updates/hour OR >10% rows modified per day (context: incremental patterns with Streams + Tasks)
 - **Minimal data movement:** <10% of source data copied or transformed (context: validation of efficient query design)
 
 ## References
@@ -83,7 +83,7 @@ Comprehensive foundational practices for all Snowflake development work, ensurin
 - **Column Selection:** Explicit column lists (never `SELECT *` in production)
 - **Performance Profiling:** Use Snowflake UI/CLI Query Profile for optimization
 - **Security Policies:** Apply masking/row access policies for sensitive data
-- **Incremental Patterns:** Use Streams + Tasks for mutable large tables (>10M rows OR >5GB uncompressed OR >1M rows with frequent updates)
+- **Incremental Patterns:** Use Streams + Tasks for mutable large tables (>10M rows OR >5GB uncompressed OR >1M rows with >1000 updates/hour OR >10% rows modified per day)
 
 ### Forbidden
 
@@ -95,10 +95,10 @@ Comprehensive foundational practices for all Snowflake development work, ensurin
 
 ### Execution Steps
 
-1. Define explicit columns and joins; add early filters for partition pruning
+1. Define explicit columns and joins; add WHERE filters in the first CTE (before JOINs/aggregations) for partition pruning
 2. Normalize VARIANT fields once in a dedicated CTE
 3. Prefer set-based operations; avoid row-wise loops
-4. For mutable large tables (>10M rows OR >5GB OR >1M rows with frequent updates), design Streams + Tasks incremental pattern with idempotency
+4. For mutable large tables (>10M rows OR >5GB OR >1M rows with >1000 updates/hour OR >10% rows modified per day), design Streams + Tasks incremental pattern with idempotency
 5. Validate with Query Profile before scaling warehouse
 6. Apply security policies (masking/row access) where needed
 7. Verify no anti-patterns present (SELECT *, DISTINCT dedupe, repeated VARIANT parsing)
@@ -147,7 +147,7 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 - **Warehouse Config:** Follows `119-snowflake-warehouse-management.md`
 
 **Incremental Processing:**
-- **Where Applicable:** Streams and Tasks used for mutable large tables (>10M rows OR >5GB OR >1M rows with frequent updates)
+- **Where Applicable:** Streams and Tasks used for mutable large tables (>10M rows OR >5GB OR >1M rows with >1000 updates/hour OR >10% rows modified per day)
 - **Idempotency:** MERGE operations handle late arrivals and duplicates
 
 **Success Criteria:**
@@ -186,9 +186,9 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 - **Explicit Object Qualification:** Fully qualify objects (`DATABASE.SCHEMA.TABLE`)
 - **Set-Based Operations:** Prefer declarative SQL over procedural loops
 - **CTE Usage:** Use CTEs for logical segmentation and readability
-- **Early Filtering:** Push filters as early as possible for partition pruning
+- **Early Filtering:** Push WHERE filters in the first CTE (before JOINs/aggregations) for partition pruning
 - **VARIANT Optimization:** Parse semi-structured data once at edge, normalize critical fields
-- **Incremental Processing:** Use Streams + Tasks for mutable large tables (>10M rows OR >5GB OR >1M rows with frequent updates)
+- **Incremental Processing:** Use Streams + Tasks for mutable large tables (>10M rows OR >5GB OR >1M rows with >1000 updates/hour OR >10% rows modified per day)
 - **Security by Design:** Enforce governance with masking policies, row access, and tagging
 - **Query Profiling:** Always use Query Profile to validate performance assumptions
 
@@ -258,7 +258,7 @@ GROUP BY raw_json:customer:id::string, raw_json:customer:name::string;
 -- Parses raw_json 7 times! Extremely expensive!
 ```
 
-**Problem:** Repeated parsing overhead; high CPU usage; slow queries; wasted credits; inefficient; poor performance; unprofessional
+**Problem:** Repeated parsing overhead; high CPU usage; slow queries; wasted credits; inefficient; poor performance; violates Snowflake best practices
 
 **Correct Pattern:**
 ```sql
@@ -305,13 +305,19 @@ GROUP BY customer_id, hour;
 -- Scans entire table, deletes and recreates everything, very expensive!
 ```
 
-**Problem:** Full table scans; unnecessary processing; high credits; slow updates; DELETE/INSERT overhead; not scalable; unprofessional; expensive
+**Problem:** Full table scans; unnecessary processing; high credits; slow updates; DELETE/INSERT overhead; not scalable; violates Snowflake best practices; high cost
 
 **Correct Pattern:**
 ```sql
 -- Good: Incremental processing with Streams and Tasks
--- Step 1: Create Stream to capture changes
-CREATE STREAM orders_stream ON TABLE orders;
+-- Step 1: Create Stream to capture changes (with error handling)
+CREATE STREAM IF NOT EXISTS orders_stream ON TABLE orders;
+
+-- Error handling for Stream creation:
+-- If orders table doesn't exist:
+--   1. Verify table name: SELECT * FROM information_schema.tables WHERE table_name = 'ORDERS';
+--   2. If found, check permissions: SHOW GRANTS ON TABLE orders;
+--   3. If not found, report error: "Table orders does not exist. Verify table name and database/schema."
 
 -- Step 2: Create Task for incremental aggregation
 CREATE TASK incremental_aggregation
@@ -336,6 +342,13 @@ WHEN NOT MATCHED THEN INSERT (customer_id, hour, total_amount)
 
 ALTER TASK incremental_aggregation RESUME;
 -- Processes only new rows, MERGE updates incrementally, extremely efficient!
+
+-- Error handling for Task failures:
+-- If MERGE fails with timeout: Increase warehouse size (ALTER WAREHOUSE compute_wh SET WAREHOUSE_SIZE = 'MEDIUM') OR reduce batch window
+-- If MERGE fails with constraint violation: Add data validation CTE before MERGE to filter invalid rows
+-- If warehouse suspended: Check resource monitor settings (SHOW RESOURCE MONITORS) and credit limits
+-- If repeated failures: Add error notification via SYSTEM$SEND_EMAIL or external integration
+-- Monitor with: SELECT * FROM TABLE(INFORMATION_SCHEMA.TASK_HISTORY()) WHERE NAME = 'incremental_aggregation' ORDER BY SCHEDULED_TIME DESC LIMIT 10;
 ```
 
 **Benefits:** Incremental processing; minimal scans; low credits; fast updates; scalable; efficient MERGE; professional; cost-effective
@@ -362,7 +375,7 @@ WHERE rn = 1;
 -- DISTINCT on entire result set, inefficient, extra processing!
 ```
 
-**Problem:** Unnecessary DISTINCT; extra sorting; wasted memory; inefficient; unclear intent; poor performance; unprofessional
+**Problem:** Unnecessary DISTINCT; extra sorting; wasted memory; inefficient; unclear intent; poor performance; violates Snowflake best practices
 
 **Correct Pattern:**
 ```sql
@@ -389,7 +402,7 @@ QUALIFY ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY updated_at DESC) = 1;
 
 ## Optimization and Performance
 
-- **Always:** Push filtering and partition pruning as early as possible in queries
+- **Always:** Push WHERE filters in the first CTE (before JOINs/aggregations) for partition pruning
 - **Rule:** Minimize data movement by avoiding unnecessary re-materialization
 - **Always:** Use semi-structured data types (VARIANT) only at the ingestion edge; normalize critical fields
 - **Always:** Use Snowflake's Query Profile to diagnose performance issues and propose optimizations
@@ -405,7 +418,7 @@ QUALIFY ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY updated_at DESC) = 1;
 - **Rule:** Avoid deep view nesting (>5 layers)
 - **Rule:** Do not use `DISTINCT` to fix duplicates; solve the root cause upstream
 - **Rule:** Avoid repeated casting of `VARIANT` fields; parse them once in a CTE
-- **Rule:** Avoid recomputing large fact tables from scratch daily unless high change rate necessary
+- **Rule:** Avoid recomputing large fact tables from scratch daily unless >70% of rows change per batch OR source system requires full snapshots
 
 ## Incremental Patterns
 
@@ -418,7 +431,7 @@ QUALIFY ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY updated_at DESC) = 1;
 - Are objects fully qualified?
 - Are joins explicit?
 - Is `SELECT *` removed?
-- Is an incremental pattern used for mutable, large tables (>10M rows OR >5GB OR >1M rows with frequent updates)?
+- Is an incremental pattern used for mutable, large tables (>10M rows OR >5GB OR >1M rows with >1000 updates/hour OR >10% rows modified per day)?
 - Are security policies or masks applied where needed?
 - Are anti-patterns absent?
 

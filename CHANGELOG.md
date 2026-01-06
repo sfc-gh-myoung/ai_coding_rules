@@ -5,6 +5,36 @@ All notable changes to the AI Coding Rules project will be documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **feat(deployment):** add skills-only deployment mode for agent configuration directories
+  - New `--only-skills` flag in rule_deployer.py for deploying skills without rules
+  - New `task deploy:only-skills DEST=<path>` command in Taskfile.yml
+  - Validates skills directory structure independently from rules validation
+  - Preserves directory structure: deploys to `DEST/skills/` with pyproject.toml exclusions
+  - Conflict detection prevents simultaneous use of `--only-skills` and `--skip-skills`
+  - Use cases: Claude Code (~/.claude/skills), Cortex Code (~/.snowflake/cortex/skills)
+
+### Changed
+- **refactor(skills):** consolidate SKILL.md and PROMPT.md per Anthropic Agent Skills best practices
+  - Merged PROMPT.md content into SKILL.md for all 5 skills (rule-creator, rule-reviewer, bulk-rule-reviewer, plan-reviewer, doc-reviewer)
+  - Applied progressive disclosure: detailed rubrics/workflows in separate files, SKILL.md provides overview with references
+  - Reduced SKILL.md files to <500 lines for token efficiency (rule-creator: 558→220 lines)
+  - Updated frontmatter with name, description, version, and allowed-tools fields
+  - Updated README.md files to reflect new structure (removed PROMPT.md references)
+  - Removed per-skill CHANGELOG files in favor of git history tracking
+  - Condensed verbose sections: Design Priority Hierarchy, dimension summaries, mode details
+- **enhance(rules):** improve 100-snowflake-core.md agent executability to 100/100
+  - Quantify "frequent updates" threshold: >1000 updates/hour OR >10% rows modified per day (6 locations)
+  - Quantify "high change rate" threshold: >70% of rows change per batch OR requires full snapshots (1 location)
+  - Clarify "early" filtering: "WHERE filters in the first CTE (before JOINs/aggregations)" (3 locations)
+  - Add Stream creation error handling with defensive patterns and diagnostics
+  - Add Task failure recovery guidance for timeout, constraint violations, and monitoring
+  - Replace subjective terms ("unprofessional") with objective impact descriptions (3 locations)
+  - Review score improved from 90/100 to 100/100 (Actionability: 4/5→5/5, Completeness: 4/5→5/5)
+  - Token budget: 4761 tokens (+3.5% from declared ~4600, within ±15% threshold)
+
 ## [3.5.0] - 2025-01-05
 
 ### Breaking Changes

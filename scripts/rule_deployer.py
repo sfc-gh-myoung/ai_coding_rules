@@ -48,8 +48,12 @@ def log_warning(message: str) -> None:
     print(f"[!] {message}")
 
 
-def validate_source_structure(project_root: Path) -> tuple[bool, list[str]]:
+def validate_source_structure(project_root: Path, only_skills: bool = False) -> tuple[bool, list[str]]:
     """Validate that source structure exists and is complete.
+
+    Args:
+        project_root: Root directory of the project
+        only_skills: If True, only validate skills directory (skip rules validation)
 
     Returns:
         Tuple of (is_valid, error_messages)
@@ -60,22 +64,37 @@ def validate_source_structure(project_root: Path) -> tuple[bool, list[str]]:
     rules_dir = project_root / "rules"
     agents_md = project_root / "AGENTS.md"
     rules_index_md = project_root / "RULES_INDEX.md"
+    skills_dir = project_root / "skills"
 
-    if not rules_dir.exists():
-        errors.append(f"Source rules directory not found: {rules_dir}")
-    elif not rules_dir.is_dir():
-        errors.append(f"Source rules path is not a directory: {rules_dir}")
+    if only_skills:
+        # Only validate skills directory for skills-only deployment
+        if not skills_dir.exists():
+            errors.append(f"Source skills directory not found: {skills_dir}")
+        elif not skills_dir.is_dir():
+            errors.append(f"Source skills path is not a directory: {skills_dir}")
+        else:
+            # Check if skills directory contains subdirectories
+            skill_items = list(skills_dir.iterdir())
+            skill_dirs = [s for s in skill_items if s.is_dir() and not s.name.startswith(".")]
+            if not skill_dirs:
+                errors.append(f"No skill directories found in source skills directory: {skills_dir}")
     else:
-        # Check if rules directory contains .md files
-        rule_files = list(rules_dir.glob("*.md"))
-        if not rule_files:
-            errors.append(f"No .md files found in source rules directory: {rules_dir}")
+        # Validate rules and root files for normal deployment
+        if not rules_dir.exists():
+            errors.append(f"Source rules directory not found: {rules_dir}")
+        elif not rules_dir.is_dir():
+            errors.append(f"Source rules path is not a directory: {rules_dir}")
+        else:
+            # Check if rules directory contains .md files
+            rule_files = list(rules_dir.glob("*.md"))
+            if not rule_files:
+                errors.append(f"No .md files found in source rules directory: {rules_dir}")
 
-    if not agents_md.exists():
-        errors.append(f"AGENTS.md not found in project root: {agents_md}")
+        if not agents_md.exists():
+            errors.append(f"AGENTS.md not found in project root: {agents_md}")
 
-    if not rules_index_md.exists():
-        errors.append(f"RULES_INDEX.md not found in project root: {rules_index_md}")
+        if not rules_index_md.exists():
+            errors.append(f"RULES_INDEX.md not found in project root: {rules_index_md}")
 
     return (len(errors) == 0, errors)
 
@@ -281,13 +300,18 @@ def copy_skills(
 
 
 def deploy_rules(
-    dest: Path, skip_skills: bool = False, dry_run: bool = False, verbose: bool = True
+    dest: Path,
+    skip_skills: bool = False,
+    only_skills: bool = False,
+    dry_run: bool = False,
+    verbose: bool = True,
 ) -> bool:
     """Deploy rules and skills to destination directory.
 
     Args:
         dest: Destination directory path
         skip_skills: If True, skip deploying skills/ directory (default: False, skills deployed)
+        only_skills: If True, deploy only skills/ directory (skip rules and root files)
         dry_run: If True, don't actually copy files
         verbose: If True, print detailed logging
 
@@ -304,8 +328,12 @@ def deploy_rules(
     if dry_run:
         log_warning("DRY RUN MODE - No files will be copied")
 
+    if only_skills and skip_skills:
+        log_error("Cannot use both --only-skills and --skip-skills flags together")
+        return False
+
     # Validate source structure
-    is_valid, errors = validate_source_structure(project_root)
+    is_valid, errors = validate_source_structure(project_root, only_skills=only_skills)
     if not is_valid:
         log_error("Source structure validation failed:")
         for error in errors:
@@ -319,38 +347,62 @@ def deploy_rules(
         dest.mkdir(parents=True, exist_ok=True)
         log_info(f"Ensured destination directory exists: {dest}", verbose)
 
-    # Copy rules
-    log_info("Copying rule files...", verbose)
-    rules_copied, rules_failed = copy_rules(project_root / "rules", dest, dry_run, verbose)
-
-    # Copy root files
-    log_info("Copying root files (AGENTS.md, RULES_INDEX.md)...", verbose)
-    root_copied, root_failed = copy_root_files(project_root, dest, dry_run, verbose)
-
-    # Copy skills unless explicitly skipped
+    # Initialize counters
+    rules_copied = 0
+    rules_failed = 0
+    root_copied = 0
+    root_failed = 0
     skills_copied = 0
     skills_failed = 0
-    if not skip_skills:
+
+    if only_skills:
+        # Skills-only deployment mode
+        log_info("SKILLS-ONLY DEPLOYMENT MODE", verbose)
         log_info("Copying skills directory (respecting pyproject.toml exclusions)...", verbose)
         skills_copied, skills_failed = copy_skills(project_root, dest, dry_run, verbose)
     else:
-        log_info("Skipping skills deployment (--skip-skills flag set)", verbose)
+        # Normal deployment mode (rules + optional skills)
+        # Copy rules
+        log_info("Copying rule files...", verbose)
+        rules_copied, rules_failed = copy_rules(project_root / "rules", dest, dry_run, verbose)
+
+        # Copy root files
+        log_info("Copying root files (AGENTS.md, RULES_INDEX.md)...", verbose)
+        root_copied, root_failed = copy_root_files(project_root, dest, dry_run, verbose)
+
+        # Copy skills unless explicitly skipped
+        if not skip_skills:
+            log_info("Copying skills directory (respecting pyproject.toml exclusions)...", verbose)
+            skills_copied, skills_failed = copy_skills(project_root, dest, dry_run, verbose)
+        else:
+            log_info("Skipping skills deployment (--skip-skills flag set)", verbose)
 
     # Summary
     total_copied = rules_copied + root_copied + skills_copied
     total_failed = rules_failed + root_failed + skills_failed
 
     print("\n" + "=" * 60)
-    print("DEPLOYMENT SUMMARY")
-    print("=" * 60)
-    print(f"Rules copied:      {rules_copied}")
-    print(f"Root files copied: {root_copied}")
-    if not skip_skills:
-        print(f"Skills copied:     {skills_copied}")
+    if only_skills:
+        print("SKILLS-ONLY DEPLOYMENT SUMMARY")
     else:
-        print("Skills copied:     0 (skipped)")
-    print(f"Total copied:      {total_copied}")
-    print(f"Total failed:      {total_failed}")
+        print("DEPLOYMENT SUMMARY")
+    print("=" * 60)
+    
+    if only_skills:
+        # Skills-only summary
+        print(f"Skills copied:     {skills_copied}")
+        print(f"Total copied:      {total_copied}")
+        print(f"Total failed:      {total_failed}")
+    else:
+        # Full deployment summary
+        print(f"Rules copied:      {rules_copied}")
+        print(f"Root files copied: {root_copied}")
+        if not skip_skills:
+            print(f"Skills copied:     {skills_copied}")
+        else:
+            print("Skills copied:     0 (skipped)")
+        print(f"Total copied:      {total_copied}")
+        print(f"Total failed:      {total_failed}")
     print("=" * 60)
 
     if total_failed > 0:
@@ -376,6 +428,9 @@ Examples:
 
   Deploy rules only (skip skills):
     python scripts/rule_deployer.py --dest /path/to/project --skip-skills
+
+  Deploy only skills (for agent configuration directories):
+    python scripts/rule_deployer.py --dest ~/.claude/skills --only-skills
 
   Deploy with verbose output:
     python scripts/rule_deployer.py --dest . --verbose
@@ -407,6 +462,12 @@ Examples:
         help="Skip deploying skills/ directory (default: skills are deployed)",
     )
 
+    parser.add_argument(
+        "--only-skills",
+        action="store_true",
+        help="Deploy only skills/ directory (skip rules and root files)",
+    )
+
     args = parser.parse_args()
 
     # Handle quiet mode
@@ -423,7 +484,11 @@ Examples:
 
     # Deploy
     success = deploy_rules(
-        dest=dest_path, skip_skills=args.skip_skills, dry_run=args.dry_run, verbose=verbose
+        dest=dest_path,
+        skip_skills=args.skip_skills,
+        only_skills=args.only_skills,
+        dry_run=args.dry_run,
+        verbose=verbose,
     )
 
     return 0 if success else 1

@@ -1,43 +1,92 @@
-# Bulk Rule Reviewer Skill
-
 ---
 name: bulk-rule-reviewer
 description: Execute agent-centric reviews on all rules in rules/ directory and generate prioritized improvement report
 version: 1.1.0
-author: AI Coding Rules Project
-tags: [bulk-review, rule-audit, batch-processing, quality-report, prioritization]
-dependencies: [rule-reviewer]
 ---
 
-## Purpose
+# Bulk Rule Reviewer
 
-Execute comprehensive agent-centric reviews on all rule files in the `rules/` directory, then generate a consolidated priority report showing which rules need attention. Designed for periodic quality audits, pre-release validation, and technical debt tracking.
+## Overview
 
-## Execution Contract (CRITICAL - NON-NEGOTIABLE)
+Execute comprehensive agent-centric reviews on all rule files in `rules/` directory, then generate consolidated priority report. Designed for periodic quality audits, pre-release validation, and technical debt tracking.
 
-**MANDATORY ENFORCEMENT:**
+### When to Use
 
-This skill MUST invoke the `rule-reviewer` skill exactly once for each rule file. The agent executing bulk-rule-reviewer is **FORBIDDEN** from:
+- Periodic quality audits (quarterly/monthly)
+- Pre-release validation before major version releases
+- Technical debt tracking and prioritization
+- Baseline quality measurement for improvement initiatives
 
-❌ **FORBIDDEN ACTIONS (Protocol Violations):**
-1. **Reimplementing review logic** - Do NOT recreate rule-reviewer's workflow in Python/bash/any language
-2. **Batch optimization** - Do NOT aggregate multiple rules into single review
-3. **Parallel shortcuts** - Do NOT run reviews concurrently unless max_parallel explicitly set
-4. **Token-saving shortcuts** - Do NOT skip review steps to save tokens
-5. **Time-saving shortcuts** - Do NOT abbreviate reviews to save time
-6. **Cached/precomputed reviews** - Do NOT generate reviews without invoking rule-reviewer
-7. **Summary-only reviews** - Do NOT create lightweight reviews; FULL reviews required
+### Inputs
 
-✅ **REQUIRED ACTIONS (Protocol Compliance):**
-1. **Invoke rule-reviewer skill** - Exactly once per rule file
-2. **Pass all parameters** - target_file, review_date, review_mode, model
-3. **Wait for completion** - Do NOT proceed until review file written
-4. **Parse output path** - Extract review file path from rule-reviewer response
-5. **Validate output** - Confirm review file exists before continuing
+**Required:**
+- **review_date**: `YYYY-MM-DD` (default: today)
+- **review_mode**: `FULL` | `FOCUSED` | `STALENESS` (default: FULL)
+- **model**: Lowercase-hyphenated slug (default: `claude-sonnet-45`)
 
-**Enforcement Mechanism:**
+**Optional:**
+- **filter_pattern**: Glob pattern (default: `rules/*.md`)
+  - Examples: `rules/100-*.md` (Snowflake only), `rules/*-core.md` (cores only)
+- **skip_existing**: Boolean (default: true) - Resume capability
+- **max_parallel**: Integer 1-10 (default: 1) - Concurrent reviews
 
-Each review invocation MUST produce this exact pattern:
+### Outputs
+
+**Individual reviews:** `reviews/<rule-name>-<model>-<date>.md` (up to 113 files)
+
+**Master summary:** `reviews/_bulk-review-<model>-<date>.md` with sections:
+1. Executive Summary (score distribution, dimension analysis)
+2. Priority 1: Urgent (score <60, NOT_EXECUTABLE)
+3. Priority 2: High (score 60-79, NEEDS_REFINEMENT)
+4. Priority 3: Medium (score 80-89, EXECUTABLE_WITH_REFINEMENTS)
+5. Priority 4: Excellent (score 90-100, EXECUTABLE)
+6. Failed Reviews (execution errors)
+7. Top 10 Recommendations (impact × effort prioritization)
+8. Next Steps (immediate/short-term/long-term)
+9. Appendix: All Rules by Score (sorted table)
+
+## Critical Execution Protocol
+
+### 🚨 MANDATORY ENFORCEMENT
+
+This skill MUST invoke `rule-reviewer` skill exactly once for each rule file. 
+
+### Protocol Violations (FORBIDDEN)
+
+Agents commonly attempt these optimizations. **ALL ARE FORBIDDEN:**
+
+- ❌ **Reimplementing review logic** - Creating Python/bash scoring scripts
+- ❌ **Batch optimization** - Aggregating multiple rules into single review
+- ❌ **Parallel shortcuts** - Running concurrently unless max_parallel set
+- ❌ **Token-saving shortcuts** - Skipping review steps
+- ❌ **Time-saving shortcuts** - Abbreviating reviews
+- ❌ **Cached reviews** - Generating without invoking rule-reviewer
+- ❌ **Summary-only reviews** - Creating lightweight reviews
+
+### Required Actions
+
+- ✅ Invoke `rule-reviewer` skill once per rule file
+- ✅ Pass all parameters: target_file, review_date, review_mode, model
+- ✅ Wait for "Review written to: ..." confirmation
+- ✅ Parse output path from response
+- ✅ Validate review file exists before continuing
+- ✅ Follow workflows/01-04 sequentially
+- ✅ Show progress every 10 reviews (not more frequently)
+
+### Execution Acknowledgment
+
+**Before proceeding, agent must confirm:**
+- [ ] Will invoke rule-reviewer for each rule (no reimplementation)
+- [ ] Will follow workflows/01-04 exactly as written
+- [ ] Will NOT optimize for time/tokens at expense of quality
+- [ ] Understands process takes 5-10 hours for 113 rules
+- [ ] Will use resume capability (skip_existing) if interrupted
+
+**If cannot commit: STOP and report error.**
+
+### Enforcement Mechanism
+
+Each review invocation must produce:
 ```
 Use the rule-reviewer skill.
 
@@ -47,228 +96,78 @@ review_mode: FULL
 model: <model>
 ```
 
-**Verification:** Each invocation MUST return: `"Review written to: reviews/<filename>.md"`
+**Verification:** Response must contain: `"Review written to: reviews/<filename>.md"`
 
-**Violation Consequences:**
+**Violation consequences:**
 - Invalid reviews rejected from summary
 - Execution halted with protocol violation error
 - User notified of shortcut attempt
 
-**Why This Matters:**
-- rule-reviewer contains domain expertise (scoring rubrics, priority checks, dimension analysis)
+**Why this matters:**
+- rule-reviewer contains domain expertise (rubrics, priority checks)
 - Reimplementation loses review quality and consistency
 - Token/time optimization sacrifices accuracy
-- Each rule deserves full evaluation per rule-reviewer standards
+- Each rule deserves full evaluation
 
-## Scope
+## Workflow
 
-**What This Skill Does:**
-- Discovers all rule files in `rules/` directory (113 files expected)
-- Invokes `rule-reviewer` skill for each file
-- Collects scores, verdicts, and critical issues from all reviews
-- Generates master summary report with prioritized improvement recommendations
-- Supports filtering, resume capability, and progress tracking
+### Stage 1: Discovery
 
-**When to Use This Skill:**
-- Periodic quality audits of entire rule repository (quarterly/monthly)
-- Pre-release validation before major version releases
-- Technical debt tracking and prioritization
-- Baseline quality measurement for improvement initiatives
+Find all `.md` files in `rules/` directory, apply filter_pattern, sort alphabetically.
 
-## Input Contract
+**See:** `workflows/01-discovery.md`
 
-### Required Parameters
+### Stage 2: Review Execution
 
-**review_date:**
-- Format: YYYY-MM-DD
-- Description: Date stamp for review files
-- Default: Today's date
-- Example: `2026-01-06`
+For each rule file:
+1. Extract rule name from path
+2. Check if review exists (if skip_existing=true)
+3. Invoke rule-reviewer skill with parameters
+4. Parse output path from response
+5. Store (rule_name, score, verdict, review_path)
+6. Show progress every 10 reviews
 
-**review_mode:**
-- Format: FULL | FOCUSED | STALENESS
-- Description: Review depth (passed to rule-reviewer)
-- Default: FULL
-- Values:
-  - FULL: Complete evaluation (all 6 dimensions)
-  - FOCUSED: Actionability and completeness only
-  - STALENESS: Freshness check only
+**See:** `workflows/02-review-execution.md` for orchestration details, resume capability, error handling.
 
-**model:**
-- Format: Lowercase-hyphenated slug
-- Description: Model identifier for review execution
-- Default: claude-sonnet-45
-- Examples: `claude-sonnet-45`, `gpt-4`, `gemini-pro`
+### Stage 3: Aggregation
 
-### Optional Parameters
+For each review file:
+1. Read first 150 lines only (context management)
+2. Extract: overall score, verdict, critical issues, dimension scores
+3. Build lightweight data structure (no full content)
+4. Calculate statistics: average, median, distribution
 
-**filter_pattern:**
-- Format: Glob pattern
-- Description: Filter rules by pattern
-- Default: `rules/*.md` (all rules)
-- Examples:
-  - `rules/100-*.md` (Snowflake rules only)
-  - `rules/200-*.md` (Python rules only)
-  - `rules/*-core.md` (Core rules only)
+**See:** `workflows/03-aggregation.md` for parsing strategy and statistics calculations.
 
-**skip_existing:**
-- Format: Boolean
-- Description: Skip files with existing reviews for date
-- Default: true
-- Usage: Set to false to force re-review
+### Stage 4: Summary Report
 
-**max_parallel:**
-- Format: Integer (1-10)
-- Description: Max concurrent reviews
-- Default: 1 (sequential)
-- Note: Higher values risk context overflow
-
-## Output Contract
-
-### Individual Review Files
-
-**Location:** `reviews/<rule-name>-<model>-<date>.md`
-**Count:** One per rule file (up to 113)
-**Format:** Standard rule-reviewer output format
-**Example:** `reviews/100-snowflake-core-claude-sonnet-45-2026-01-06.md`
-
-### Master Summary Report
-
-**Location:** `reviews/_bulk-review-<model>-<date>.md`
-**Format:** Consolidated report with sections:
-1. Executive Summary (score distribution, dimension analysis)
-2. Priority 1: Urgent (score <60, NOT_EXECUTABLE)
-3. Priority 2: High (score 60-79, NEEDS_REFINEMENT)
-4. Priority 3: Medium (score 80-89, EXECUTABLE_WITH_REFINEMENTS)
-5. Priority 4: Excellent (score 90-100, EXECUTABLE)
-6. Failed Reviews (errors during execution)
-7. Top 10 Improvement Recommendations (prioritized by impact × effort)
-8. Next Steps (immediate, short-term, long-term)
-9. Appendix: All Rules by Score (sorted table)
-
-**No-overwrite:** If file exists, increment suffix (`-01.md`, `-02.md`)
-
-### Progress Output
-
-**Format:** Console output during execution
-**Content:**
-- Current progress: "Reviewing 45/113: rules/200-python-core.md"
-- Running totals: Average score, verdict distribution
-- Estimated time remaining (based on average review time)
-- Error summary (failed reviews logged immediately)
-
-## Execution Workflow
-
-The skill follows a 4-stage workflow (see `workflows/` directory for details):
-
-### Stage 1: Discovery (workflows/01-discovery.md)
-- Find all `.md` files in `rules/` directory
-- Apply filter_pattern if specified
-- Sort alphabetically
-- Output: List of rule file paths
-
-### Stage 2: Review Execution (workflows/02-review-execution.md)
-- For each rule file:
-  - Extract rule name from path
-  - Check if review exists (if skip_existing=true)
-  - Invoke rule-reviewer skill with parameters
-  - Parse output path from response
-  - Store (rule_name, score, verdict, review_path) in results list
-  - Continue to next file (error handling: log and continue)
-- Output: Results list with metadata for all reviews
-
-### Stage 3: Aggregation (workflows/03-aggregation.md)
-- For each review file:
-  - Read first 100 lines only (context management)
-  - Extract: overall score, verdict, critical issues count, dimension scores
-  - Build lightweight data structure (no full content)
-- Calculate statistics: average, median, distribution
-- Output: Summary data structure
-
-### Stage 4: Summary Report (workflows/04-summary-report.md)
-- Generate master summary report with prioritized sections
-- Sort rules by score within priority tiers
-- Calculate impact × effort ratios for recommendations
+Generate master summary with:
+- Prioritized sections (Priority 1-4)
+- Rules sorted by score within tiers
+- Impact × effort ratios for recommendations
 - Write to `reviews/_bulk-review-<model>-<date>.md`
-- Output: File path of master summary
 
-## Workflow References
-
-**Detailed Implementation:**
-- `workflows/01-discovery.md` - File discovery logic
-- `workflows/02-review-execution.md` - Rule-reviewer orchestration
-- `workflows/03-aggregation.md` - Score extraction and statistics
-- `workflows/04-summary-report.md` - Master report generation
-
-**Examples:**
-- `examples/full-bulk-review.md` - Complete walkthrough
-
-**Validation:**
-- `VALIDATION.md` - Input validation rules
-- `tests/validation-tests.md` - Test cases
+**See:** `workflows/04-summary-report.md` for report format and section generation.
 
 ## Critical Design Decisions
 
-### Context Management Strategy
+**Context Management:** Parse only first 150 lines of each review (scores/verdicts only). Full details remain in individual files.
 
-**Problem:** 113 full reviews exceed context token limits
+**Stateless Execution:** Review failures don't stop batch. Resume via skip_existing parameter.
 
-**Solution:** Parse only metadata from review files
-- Read first 100 lines of each review only
-- Extract: overall score, verdict, critical issues count, dimension scores
-- Store in lightweight data structure
-- Never load full review content into context
-- Full details remain in individual review files
-
-**Trade-off:** Can't provide detailed issue analysis in bulk summary, only scores and counts
-
-### Stateless Execution Model
-
-**Problem:** Reviews may fail mid-batch
-
-**Solution:** Each review is independent
-- Review failure doesn't stop batch
-- Log errors, continue with next file
-- Failed reviews marked in summary with error reason
-- Resume capability skips already-completed reviews
-
-**Trade-off:** Must handle partial completion gracefully
-
-### Resume and Idempotency
-
-**Problem:** Bulk review may take hours, can't restart from scratch
-
-**Solution:** Check for existing reviews before invoking
-- Default: skip_existing = true
-- If review exists for (rule, date, model): Load score from existing file
-- If review doesn't exist: Invoke rule-reviewer skill
-- User can force re-review with skip_existing = false
-
-**Benefit:** Can resume after interruption without wasted work
+**See:** `workflows/03-aggregation.md` for complete strategy.
 
 ## Error Handling
 
-**Review Failure:**
-- Continue with next file
-- Log error in progress output
-- Mark as FAILED in master summary with error reason
+**Review failure:** Continue with next file, log error, mark FAILED in summary.
 
-**Context Overflow:**
-- Switch to minimal output mode
-- Report warning to user
-- Continue with remaining files
+**Context overflow:** Switch to minimal output mode, report warning, continue.
 
-**File Write Failure:**
-- Print OUTPUT_FILE directive for manual save
-- Continue with execution
+**File write failure:** Print OUTPUT_FILE directive for manual save, continue.
 
-**Empty Rules Directory:**
-- Report error: "No rule files found in rules/"
-- Exit gracefully without creating empty summary
+**Empty rules directory:** Report error, exit gracefully without empty summary.
 
-**Partial Completion:**
-- Resume capability allows continuation
-- Existing reviews are reused (skip_existing=true)
+**Partial completion:** Resume capability allows continuation using existing reviews.
 
 ## Usage Examples
 
@@ -326,79 +225,53 @@ model: claude-sonnet-45
 
 ## Expected Outcomes
 
-### Score Distribution
-- Average score across all rules
-- Median score
-- Distribution by priority tier (Excellent/Good/Needs Work/Poor)
+**Score distribution:** Average, median, distribution by priority tier.
 
-### Dimension Analysis
-- Average scores for each dimension: Actionability, Completeness, Consistency, Parsability, Token Efficiency, Staleness
+**Dimension analysis:** Average scores for all 6 dimensions.
 
-### Critical Issues Summary
-- Count of rules with 0, 1-2, 3+ critical issues
+**Critical issues summary:** Count of rules with 0, 1-2, 3+ critical issues.
 
-### Prioritized Recommendations
-- Top 10 rules to improve (sorted by impact × effort ratio)
-- Estimated effort for each improvement
-- Expected score improvement
+**Prioritized recommendations:** Top 10 rules to improve (impact × effort), estimated effort, expected score improvement.
 
-### Next Steps
-- Immediate actions (this week)
-- Short-term goals (this month)
-- Long-term strategy (quarterly)
-
-## Maintenance Notes
-
-### Version History
-- v1.0.0 (2026-01-06): Initial implementation
-
-### Future Enhancements
-- v1.1.0: Trend tracking across multiple review dates (score deltas)
-- v1.2.0: CI/CD integration for automated quality gates
-- v1.3.0: Parallel execution support (max_parallel > 1)
-- v1.4.0: Incremental reviews (only modified rules)
+**Next steps:** Immediate actions, short-term goals, long-term strategy.
 
 ## Installation Requirements
 
-**Dependencies:** [rule-reviewer]
+**Dependency:** rule-reviewer skill (required)
 
-**Skill Location Resolution:**
+**Skill location resolution supports two patterns:**
 
-This skill supports two installation patterns:
+1. **Installed Skill (Recommended):** Install `rule-reviewer` via agent tool's skill management
+2. **Local Skill (Fallback):** Ensure `skills/rule-reviewer/` exists in project
 
-1. **Installed Skill (Recommended):**
-   - Install `rule-reviewer` via your agent tool's skill management
-   - bulk-rule-reviewer will detect and use installed version
-   - Example: Cursor/Cline skill installation
+**Auto-detection:** Automatically detects which pattern is available.
 
-2. **Local Skill (Fallback):**
-   - Ensure `skills/rule-reviewer/` exists in project
-   - bulk-rule-reviewer will execute local skill manually
-   - Useful for standalone projects or custom agent setups
+**Error handling:** If neither found, execution stops with installation guidance.
 
-**Auto-detection:** The skill automatically detects which pattern is available.
+## Validation
 
-**Error Handling:** If neither is found, execution stops with installation guidance.
+**See:** `VALIDATION.md` for complete validation rules. Key checks:
+- `review_date` must match YYYY-MM-DD format
+- `review_mode` must be FULL | FOCUSED | STALENESS
+- `model` must be lowercase-hyphenated
+- `filter_pattern` must be valid glob
+- `rules/` directory must exist and be readable
+- `skip_existing` must be boolean
+- `max_parallel` must be 1-10
 
-## References
+## Examples
 
-### Related Skills
+- `examples/full-bulk-review.md` - Complete walkthrough with 113 rules
+
+## Related Skills
+
 - **rule-reviewer** - Single rule review (required dependency)
 - **rule-creator** - Create new rules (complementary)
 
-### Related Rules
-- **002f-claude-code-skills.md** - Skill authoring best practices
-- **002-rule-governance.md** - Rule schema and standards
-- **000-global-core.md** - Foundation patterns
+## References
 
-## Appendix: Input Validation
+### Rules
 
-See `VALIDATION.md` for complete validation rules. Key checks:
-
-- `review_date` must match YYYY-MM-DD format
-- `review_mode` must be FULL | FOCUSED | STALENESS
-- `model` must be lowercase-hyphenated (no spaces, underscores)
-- `filter_pattern` must be valid glob pattern
-- `rules/` directory must exist and be readable
-- `skip_existing` must be boolean (if provided)
-- `max_parallel` must be 1-10 (if provided)
+- `rules/002f-claude-code-skills.md` - Skill authoring best practices
+- `rules/002-rule-governance.md` - Rule schema and standards
+- `rules/000-global-core.md` - Foundation patterns

@@ -7,8 +7,8 @@ A Claude skill for reviewing LLM-generated plans to ensure autonomous agents can
 This skill automates the complete plan review workflow:
 
 - Validates inputs (target files, date, mode, model)
-- Executes review using `PROMPT.md` rubric (colocated in this skill folder)
-- Evaluates plans across 8 dimensions optimized for agent executability
+- Executes review using 8-dimension rubric optimized for agent executability
+- Evaluates plans across Critical (75 points) and Standard (25 points) dimensions
 - Supports FULL, COMPARISON, and META-REVIEW modes
 - Writes results to `reviews/` with automatic suffix for duplicates
 
@@ -79,7 +79,6 @@ ls reviews/meta-IMPROVE_RULE_LOADING-claude-sonnet45-2025-12-16.md
 ```text
 skills/plan-reviewer/
 ├── SKILL.md               # Main skill instructions (Claude Code entrypoint)
-├── PROMPT.md              # Review rubric and output format template
 ├── README.md              # This file - usage documentation
 ├── VALIDATION.md          # Skill self-validation procedures
 ├── examples/              # Review mode examples
@@ -95,7 +94,7 @@ skills/plan-reviewer/
 └── workflows/             # Step-by-step workflow guides
     ├── input-validation.md    # Input checking procedures
     ├── model-slugging.md      # Model name normalization
-    ├── review-execution.md    # Review generation steps
+    ├── review-execution.md    # Review generation steps (includes complete rubric)
     ├── file-write.md          # Output file handling
     └── error-handling.md      # Error recovery procedures
 ```

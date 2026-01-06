@@ -4,6 +4,41 @@
 
 A Claude skill for executing agent-centric rule reviews using a standardized rubric and writing results to `reviews/` with no-overwrite safety.
 
+## ⚠️ Execution Integrity Warning
+
+**CRITICAL:** Each review takes 3-5 minutes. This is EXPECTED and REQUIRED.
+
+### Common Agent Shortcuts (ALL FORBIDDEN)
+
+Agents executing this skill may attempt to optimize by:
+- Skipping dimension scoring (FORBIDDEN)
+- Using quick estimates instead of rubric criteria (FORBIDDEN)
+- Generating generic recommendations without examples (FORBIDDEN)
+- Skimming rule content to save tokens (FORBIDDEN)
+- Abbreviating FULL mode to FOCUSED mode (FORBIDDEN)
+
+**These shortcuts WILL compromise review quality.**
+
+### How to Verify Faithful Execution
+
+**During Execution:**
+- Agent reads entire rule file
+- All 6 dimensions scored (FULL mode)
+- Specific recommendations with examples from rule content
+
+**After Execution:**
+- Review file should be 3000-8000 bytes (typical)
+- All required sections present (see PROMPT.md)
+- Dimension scores show rationales (not just numbers)
+
+**Red Flags:**
+- ⚠️ Review completes in < 2 minutes
+- ⚠️ Review file < 2000 bytes
+- ⚠️ Generic recommendations without examples
+- ⚠️ Missing dimension scores or rationales
+
+---
+
 ## Overview
 
 This skill automates the complete rule review workflow:
@@ -16,10 +51,18 @@ This skill automates the complete rule review workflow:
 
 ### Step 1: Load the Skill
 
-Open:
+**Load the skill file to enable the agent/model to use it:**
+
 ```text
 skills/rule-reviewer/SKILL.md
 ```
+
+**How to load:**
+- **Claude Code / Cortex Code:** Open or reference `skills/rule-reviewer/SKILL.md` in your conversation
+- **Cursor / Other agents:** Load `skills/rule-reviewer/SKILL.md` file which allows the agent to use the skill without "installing" it
+- **Manual load:** Use your agent's file reading capability to load the SKILL.md content
+
+**Why this works:** The SKILL.md file contains the complete skill definition. Opening or referencing it makes the skill available to the agent for the current session.
 
 ### Step 2: Trigger Review
 

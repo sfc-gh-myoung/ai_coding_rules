@@ -110,6 +110,9 @@ model: claude-sonnet-45
 
 ### TokenBudget
 - Value: ~XXXX
+- Validation: Run `python scripts/token_validator.py <rule-file>`
+- Actual tokens (tiktoken): [value]
+- Variance: [%]
 - Appropriateness: [assessment]
 
 ### ContextTier

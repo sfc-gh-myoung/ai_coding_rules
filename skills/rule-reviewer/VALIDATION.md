@@ -264,3 +264,110 @@ Dimension scores table must be valid markdown:
 | Weekly | Quick health check |
 | Monthly | Performance baseline |
 
+---
+
+## Post-Execution Validation (Quality Assurance)
+
+### Review Output Quality Check
+
+After review execution, validate output wasn't abbreviated:
+
+**Check 1: Review File Size**
+```python
+def validate_review_size(review_path):
+    """Ensure review meets minimum quality standards."""
+    import os
+    
+    file_size = os.path.getsize(review_path)
+    
+    # Legitimate FULL reviews are typically 3000-8000 bytes
+    # Suspiciously small = likely abbreviated
+    if file_size < 2000:
+        return False, f"Suspiciously small ({file_size} bytes) - likely abbreviated review"
+    
+    return True, f"Valid size ({file_size} bytes)"
+```
+
+**Check 2: Required Sections Present**
+```python
+def validate_review_structure(review_path):
+    """Verify review contains all required sections."""
+    
+    required_sections = [
+        "### Agent Execution Test",
+        "### Dimension Scores",
+        "**Overall:**",
+        "**Actionability:**",
+        "**Completeness:**",
+        "**Consistency:**",
+        "**Parsability:**",
+        "**Token Efficiency:**",
+        "**Staleness:**",
+        "### Agent Executability Verdict",
+        "### Critical Issues",
+        "### Recommendations"
+    ]
+    
+    with open(review_path, 'r') as f:
+        content = f.read()
+    
+    missing = [s for s in required_sections if s not in content]
+    
+    if missing:
+        return False, f"Missing sections: {missing}"
+    
+    return True, "All required sections present"
+```
+
+**Check 3: Dimension Score Rationales**
+```python
+def validate_dimension_rationales(review_path):
+    """Verify dimensions have rationales, not just scores."""
+    
+    with open(review_path, 'r') as f:
+        content = f.read()
+    
+    # Check for dimension scores with explanations
+    # Each dimension should have score + rationale text
+    dimensions = [
+        "Actionability",
+        "Completeness", 
+        "Consistency",
+        "Parsability",
+        "Token Efficiency",
+        "Staleness"
+    ]
+    
+    issues = []
+    for dim in dimensions:
+        # Look for pattern: **Dimension:** N/5 followed by explanation text
+        import re
+        pattern = f"\\*\\*{dim}:\\*\\* \\d/5(.{{50,}}?)(?=\\*\\*|###|$)"
+        if not re.search(pattern, content, re.DOTALL):
+            issues.append(f"{dim} missing rationale (score without explanation)")
+    
+    if issues:
+        return False, f"Incomplete dimension scoring: {issues}"
+    
+    return True, "All dimensions have rationales"
+```
+
+**Protocol Violation Report:**
+
+If validation fails, generate report:
+```
+PROTOCOL VIOLATION DETECTED
+
+Review quality issues found:
+  - Review file size: 1,234 bytes (expected: 3000-8000)
+  - Missing sections: ['### Critical Issues']
+  - Missing rationales: ['Actionability', 'Completeness']
+
+Likely cause: Agent abbreviated review instead of following PROMPT.md rubric
+
+Required action:
+  1. Delete incomplete review file
+  2. Re-run review with full rubric compliance
+  3. Verify review file meets quality checks
+```
+

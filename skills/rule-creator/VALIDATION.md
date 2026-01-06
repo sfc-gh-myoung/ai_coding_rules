@@ -173,3 +173,140 @@ model: claude-sonnet-45
 | Monthly | Performance baseline |
 | After schema update | Full regression + all examples |
 
+---
+
+## Post-Execution Validation (Quality Assurance)
+
+### Rule Output Quality Check
+
+After rule creation, validate output wasn't incomplete:
+
+**Check 1: Rule File Size**
+```python
+def validate_rule_size(rule_path):
+    """Ensure rule meets minimum completeness standards."""
+    import os
+    
+    file_size = os.path.getsize(rule_path)
+    
+    # Production rules are typically 4000-12000 bytes
+    # Suspiciously small = likely incomplete
+    if file_size < 3000:
+        return False, f"Suspiciously small ({file_size} bytes) - likely incomplete content"
+    
+    return True, f"Valid size ({file_size} bytes)"
+```
+
+**Check 2: Required Sections Present**
+```python
+def validate_rule_structure(rule_path):
+    """Verify rule contains all required sections."""
+    
+    required_sections = [
+        "## Metadata",
+        "## Scope",
+        "## References",
+        "## Contract",
+        "### Inputs and Prerequisites",
+        "### Mandatory",
+        "### Forbidden",
+        "### Execution Steps",
+        "### Output Format",
+        "### Validation"
+    ]
+    
+    with open(rule_path, 'r') as f:
+        content = f.read()
+    
+    missing = [s for s in required_sections if s not in content]
+    
+    if missing:
+        return False, f"Missing sections: {missing}"
+    
+    return True, "All required sections present"
+```
+
+**Check 3: No Placeholder Text**
+```python
+def validate_no_placeholders(rule_path):
+    """Verify rule has no placeholder text."""
+    
+    placeholders = [
+        "TODO",
+        "[Add content]",
+        "[Fill in]",
+        "[Example]",
+        "[TBD]",
+        "...",  # Ellipsis indicating incomplete content
+        "placeholder"
+    ]
+    
+    with open(rule_path, 'r') as f:
+        content = f.read().lower()
+    
+    found = [p for p in placeholders if p.lower() in content]
+    
+    if found:
+        return False, f"Placeholder text found: {found}"
+    
+    return True, "No placeholders"
+```
+
+**Check 4: Schema Validation Clean**
+```python
+def validate_schema_clean(rule_path):
+    """Verify schema_validator.py returns exit code 0."""
+    import subprocess
+    
+    result = subprocess.run(
+        ["python", "scripts/schema_validator.py", rule_path],
+        capture_output=True,
+        text=True
+    )
+    
+    if result.returncode != 0:
+        return False, f"Schema validation failed: {result.stdout}"
+    
+    # Check for CRITICAL errors in output
+    if "CRITICAL" in result.stdout:
+        return False, f"CRITICAL errors present"
+    
+    return True, "Schema validation clean (exit code 0)"
+```
+
+**Check 5: RULES_INDEX Entry Present**
+```python
+def validate_indexed(rule_name):
+    """Verify rule is indexed in RULES_INDEX.md."""
+    
+    with open("RULES_INDEX.md", 'r') as f:
+        content = f.read()
+    
+    if f"rules/{rule_name}.md" not in content:
+        return False, f"Rule not found in RULES_INDEX.md"
+    
+    return True, "Rule properly indexed"
+```
+
+**Protocol Violation Report:**
+
+If validation fails, generate report:
+```
+PROTOCOL VIOLATION DETECTED
+
+Rule creation issues found:
+  - Rule file size: 1,856 bytes (expected: 4000-12000)
+  - Missing sections: ['### Anti-Patterns', '### Post-Execution Checklist']
+  - Placeholder text found: ['TODO', '[Add content]']
+  - Schema validation: FAILED (3 CRITICAL errors)
+  - RULES_INDEX entry: MISSING
+
+Likely cause: Agent skipped phases or left rule incomplete
+
+Required action:
+  1. Delete incomplete rule file
+  2. Re-run rule-creator skill from Phase 1
+  3. Verify all 5 phases executed
+  4. Confirm schema validation passes (exit code 0)
+```
+

@@ -5,6 +5,53 @@ All notable changes to the AI Coding Rules project will be documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.5.0] - 2025-01-05
+
+### Breaking Changes
+- **feat!:** restructure rule schema with standardized metadata (v3.1 → v3.2)
+  - New frontmatter schema with required fields: Keywords, TokenBudget, ContextTier, Depends, LastUpdated
+  - Removed Quick Start TL;DR validation requirement
+  - All 113 rule files upgraded to SchemaVersion v3.2
+  - Enhanced schema validator with strict structural validation
+  - **BREAKING CHANGE:** Rules no longer require Quick Start TL;DR section
+
+### Added
+- **feat(rules):** add 3 GitLab-specific rules (501, 950, 252)
+  - Browser globals collision prevention for HTMX/Alpine.js (501)
+  - dbt semantic view creation for Snowflake (950)
+  - Pandas best practices for data manipulation (252)
+- **feat(rules):** enhance Snowflake rules with quantification standards
+  - Performance thresholds, data volume definitions, cost benchmarks
+  - Warehouse sizing decision matrix with concrete criteria
+  - Updated 100-series rules with quantified success criteria
+- **feat(rules):** add Snowpipe split rules (121a/b/c) for modular coverage
+  - Streaming implementation, monitoring, and troubleshooting patterns
+
+### Changed
+- **refactor(rules):** eliminate Quick Start TL;DR duplication in 501 and 950
+  - Merged content into Contract → Mandatory subsection
+  - Eliminated ~80% content duplication, improved maintainability
+- **refactor(schema):** enhance content structure across multiple rules
+  - Context engineering, pytest, bash scripting, and Snowflake rules
+  - Improved organization and examples
+- **refactor(tests):** improve test suite coverage and maintainability
+  - Enhanced schema_validator.py and template_generator.py tests
+
+### Fixed
+- **fix(rules):** upgrade 501 and 950 to schema v3.2 compliance
+  - Updated SchemaVersion, added LastUpdated field
+  - Converted Contract XML tags to Markdown headers
+  - Both files pass validation with 0 errors
+- **fix(scripts):** handle multiple Scope section formats in index generator
+  - Support v3.2 marker format and plain text format
+  - Fixes false warnings, updated TokenBudget values (501: 1400, 950: 4800)
+- **fix(rules):** remove duplicate 252-pandas-best-practices.md
+  - Consolidated to 252-python-pandas.md following naming convention
+  - Updated references in 920 and 101b rules
+
+### Documentation
+- **chore(release):** version bump to 3.5.0
+
 ## [3.4.4] - 2025-12-22
 
 ### Added
@@ -681,7 +728,7 @@ Processed 2 retrospective findings from Cortex Agent testing project:
 - "Example Prompts" section in main README.md linking to prompt templates
 - Production-ready rule system with 87 rules in `rules/` directory
 - Simplified deployment script with agent-agnostic `--dest` flag
-- Comprehensive migration guide (MIGRATION.md)
+- Comprehensive migration guide (docs/MIGRATION.md)
 - Test suite for deployment and validation scripts
 
 ### Changed

@@ -1,6 +1,15 @@
-# Migration Guide: v2.x → v3.0
+# Migration Guides
 
 ## Overview
+
+This directory contains migration guides for different aspects of the AI Coding Rules project:
+
+- **[Project Architecture Migration (v2.x → v3.0)](#project-architecture-migration-v2x--v30)** - Template system removal, production-ready rules
+- **[Schema Migration (v3.1 → v3.2)](MIGRATION_SCHEMA_v3.1_to_v3.2.md)** - Rule format changes, section restructuring
+
+---
+
+## Project Architecture Migration: v2.x → v3.0
 
 Version 3.0 represents a major architectural shift from a template-based generation system to a **production-ready rule system**. This guide helps you migrate from the old workflow to the new simplified approach.
 

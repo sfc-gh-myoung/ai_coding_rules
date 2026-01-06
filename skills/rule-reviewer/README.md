@@ -43,7 +43,7 @@ Agents executing this skill may attempt to optimize by:
 
 This skill automates the complete rule review workflow:
 - Validates inputs (target file, date, mode, model)
-- Executes review using `PROMPT.md` rubric (colocated in this skill folder)
+- Executes review using 6-dimension rubric optimized for agent executability
 - Writes results to `reviews/` with automatic suffix for duplicates
 - Supports FULL, FOCUSED, and STALENESS review modes
 
@@ -87,7 +87,6 @@ ls reviews/810-project-readme-claude-sonnet45-2025-12-12.md
 ```
 skills/rule-reviewer/
 ├── SKILL.md               # Main skill instructions (Claude Code entrypoint)
-├── PROMPT.md              # Review rubric and output format template
 ├── README.md              # This file - usage documentation
 ├── VALIDATION.md          # Skill self-validation procedures
 ├── examples/              # Review mode examples
@@ -103,7 +102,8 @@ skills/rule-reviewer/
 └── workflows/             # Step-by-step workflow guides
     ├── input-validation.md    # Input checking procedures
     ├── model-slugging.md      # Model name normalization
-    ├── review-execution.md    # Review generation steps
+    ├── review-execution.md    # Review generation steps (includes complete rubric)
+    ├── schema-validation.md   # Schema error categorization
     ├── file-write.md          # Output file handling
     └── error-handling.md      # Error recovery procedures
 ```

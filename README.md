@@ -217,6 +217,33 @@ exclude_skills = [
 
 **Note:** The `doc-reviewer` skill is deployed by default and can be used in target projects.
 
+**Deploy Skills Only (Agent Configuration Directories):**
+
+```bash
+python scripts/rule_deployer.py --dest ~/.claude/skills --only-skills
+# Or use task:
+task deploy:only-skills DEST=~/.claude/skills
+```
+
+**What happens:**
+
+- ✅ Copies only `skills/` directory to `DEST/skills/` (excludes internal-only skills)
+- ✅ Skips rules and root files (AGENTS.md, RULES_INDEX.md)
+- ✅ Ideal for deploying skills to agent-specific configuration directories
+
+**Common use cases:**
+
+```bash
+# Claude Code (Cursor/Windsurf)
+task deploy:only-skills DEST=~/.claude/skills
+
+# Cortex Code
+task deploy:only-skills DEST=~/.snowflake/cortex/skills
+
+# Custom project location
+task deploy:only-skills DEST=./my-project/.ai/skills
+```
+
 **Deploy Rules Only (Skip Skills):**
 
 ```bash
@@ -635,6 +662,7 @@ task deploy DEST=~/my-project          # Deploy rules to project
 task deploy:dry DEST=~/my-project      # Preview deployment
 task deploy:verbose DEST=~/my-project  # Deploy with verbose output
 task deploy:no-skills DEST=~/my-project # Deploy rules only (skip skills)
+task deploy:only-skills DEST=~/.claude/skills # Deploy only skills (for agent configs)
 
 # Rule Management
 task rule:new FILENAME=100-example     # Create new rule from template

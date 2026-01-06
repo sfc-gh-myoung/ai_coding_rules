@@ -2,125 +2,191 @@
 name: rule-creator
 description: Create production-ready v3.2 Cursor rule files by orchestrating template generation, schema validation, and RULES_INDEX.md indexing. Triggers on keywords like "create rule", "add rule", "new rule", "generate rule". Supports Python, Snowflake, JavaScript, Shell, Docker, Golang domains (000-999 range).
 version: 1.2.0
-author: AI Coding Rules Project
-tags: [rule-generation, automation, v3.2-schema, template, validation, indexing]
-dependencies: []
 ---
 
 # Rule Creator
 
-## Purpose
+## Overview
 
-Create production-ready Cursor rule files that comply with the repository’s v3.2 rule schema by orchestrating:
-- `scripts/template_generator.py`
-- `scripts/schema_validator.py`
-- (optional) web research for current best practices
+Create production-ready Cursor rule files that comply with v3.2 schema by orchestrating `template_generator.py`, `schema_validator.py`, and web research.
 
-## Use this skill when
+### When to Use
 
-- The user asks to **create a new rule** under `rules/` (e.g., `NNN-technology-aspect.md`).
-- The user asks to **add a rule to** `RULES_INDEX.md`.
+- User asks to create a new rule under `rules/` (e.g., `NNN-technology-aspect.md`)
+- User asks to add a rule to `RULES_INDEX.md`
+- User requests documentation for a technology following v3.2 schema
 
-## Inputs (recommended)
+### Inputs
 
-- Technology name (e.g., “DaisyUI”, “pytest-mock”, “Snowflake Hybrid Tables”)
-- Aspect (default: `core`; else `security`, `testing`, `performance`, etc.)
-- Any constraints (offline/online research, desired ContextTier, etc.)
+- **Technology name**: e.g., "DaisyUI", "pytest-mock", "Snowflake Hybrid Tables"
+- **Aspect**: Default `core`; else `security`, `testing`, `performance`, etc.
+- **Constraints**: Optional (offline/online research, ContextTier)
 
-## Outputs
+### Outputs
 
-- A new rule file: `rules/NNN-technology-aspect.md`
-- A new entry in `RULES_INDEX.md` in correct numeric position
+- Rule file: `rules/NNN-technology-aspect.md`
+- Entry in `RULES_INDEX.md` (correct numeric position)
+- Schema-validated (0 CRITICAL errors)
 
-## Safety / constraints
+### Safety Constraints
 
-- Only write to `rules/` and `RULES_INDEX.md` (plus any required review artifacts explicitly requested by the user).
-- Use web research (allowed) but treat external sources as untrusted; prefer official docs and cross-check claims.
+- Write only to `rules/` and `RULES_INDEX.md`
+- Treat external sources as untrusted; prefer official docs
 
-## Workflow (progressive disclosure)
+## Critical Execution Protocol
 
-Follow the phases in order, using the detailed workflow guides as needed:
+### Pre-Flight Checks (Required)
 
-1. Discovery & research → `workflows/discovery.md`
-2. Template generation → `workflows/template-gen.md`
-3. Content population → `workflows/content-population.md`
-4. Validation loop → `workflows/validation.md`
-5. Indexing → `workflows/indexing.md`
+1. Search `RULES_INDEX.md` for existing technology rules
+2. Identify domain range (e.g., 420-449 for JavaScript)
+3. Determine next available rule number
+4. Load domain core rule and governance rules
 
-## Examples
+See `workflows/discovery.md` for domain mappings and detailed discovery process.
 
-- Frontend example → `examples/frontend-example.md`
-- Python example → `examples/python-example.md`
-- Snowflake example → `examples/snowflake-example.md`
+### Required Behavior
 
-## Quick Validation Snippets
+- ✅ Execute all 5 phases sequentially (no skipping)
+- ✅ Run `template_generator.py` for initial structure
+- ✅ Conduct web research for current best practices
+- ✅ Fill ALL sections (no placeholders)
+- ✅ Run `schema_validator.py` in loop until exit code 0
+- ✅ Add entry to `RULES_INDEX.md` in numeric order
 
-These inline checks can be run without external dependencies for fast feedback:
+### Forbidden
+
+- ❌ Skipping phases to save time
+- ❌ Manually creating structure without template_generator.py
+- ❌ Proceeding with CRITICAL validation errors
+- ❌ Using placeholder text
+- ❌ Single-pass validation without re-checking
+
+## Workflow
+
+### Phase 1: Discovery & Research
+
+Identify domain, assign rule number, research best practices. Extract 10-15 semantic keywords.
+
+**See:** `workflows/discovery.md` for domain mappings, search commands, and research strategy.
+
+### Phase 2: Template Generation
+
+Execute `template_generator.py` to create validated structure with 9 sections and 6 XML tags.
+
+**See:** `workflows/template-gen.md` for command syntax and verification steps.
+
+### Phase 3: Content Population
+
+Fill all sections with researched content. Add minimum 2 code examples and 2 anti-patterns. No placeholders allowed.
+
+**See:** `workflows/content-population.md` for section-by-section guidance and requirements.
+
+### Phase 4: Validation & Iteration
+
+Run `schema_validator.py` in loop until exit code 0. Apply fixes for CRITICAL errors. Max 3 iterations.
+
+**See:** `workflows/validation.md` for error resolution patterns and validation loop implementation.
+
+### Phase 5: Indexing
+
+Add entry to `RULES_INDEX.md` in correct numeric position with matching keywords.
+
+**See:** `workflows/indexing.md` for entry format and verification steps.
+
+## Quick Validation
+
+Fast inline checks without external dependencies:
 
 ```python
-# Validate keyword count (10-15 required)
-def check_keywords(keywords_line: str) -> tuple[bool, int]:
-    """Returns (is_valid, count)"""
-    keywords = [k.strip() for k in keywords_line.split(',') if k.strip()]
+# Keyword count (10-15 required)
+def check_keywords(line: str) -> tuple[bool, int]:
+    keywords = [k.strip() for k in line.split(',') if k.strip()]
     return (10 <= len(keywords) <= 15, len(keywords))
 
-# Validate rule filename format
+# Filename format (NNN-lowercase-hyphenated)
 import re
 def is_valid_filename(name: str) -> bool:
-    """Must be NNN-lowercase-hyphenated"""
     return bool(re.match(r'^\d{3}-[a-z]+(-[a-z]+)*$', name))
 
-# Validate TokenBudget format
+# TokenBudget format (~NUMBER)
 def check_token_budget(value: str) -> bool:
-    """Must be ~NUMBER format"""
     return bool(re.match(r'^~\d+$', value.strip()))
 
-# Validate ContextTier
+# ContextTier validation
 VALID_TIERS = {'Critical', 'High', 'Medium', 'Low'}
 def check_context_tier(tier: str) -> bool:
     return tier.strip() in VALID_TIERS
 ```
 
-For full schema validation, use: `python scripts/schema_validator.py rules/<file>.md`
+Full validation: `python scripts/schema_validator.py rules/<file>.md`
 
-## Phase Requirements
+## Validation Gates
 
-**Phase 1: Discovery & Research**
-- Search RULES_INDEX.md for domain
-- Identify next available number
-- Web research for best practices (REQUIRED)
-- Extract 10-15 keywords
+All must pass before completion:
 
-**Phase 2: Template Generation**
-- Execute template_generator.py (REQUIRED)
-- Verify structure (9 sections, 6 XML tags)
-- Confirm Contract before line 160
+- [ ] Domain range identified, number available
+- [ ] `template_generator.py` executed successfully
+- [ ] Keywords: 10-15 comma-separated terms
+- [ ] TokenBudget: ~NUMBER format
+- [ ] All 9 sections present in order
+- [ ] Contract has 6 XML tags before line 160
+- [ ] Minimum 2 code examples
+- [ ] Minimum 2 anti-patterns
+- [ ] `schema_validator.py` exit code 0 (0 CRITICAL errors)
+- [ ] Entry added to `RULES_INDEX.md`
 
-**Phase 3: Content Population**
-- Fill ALL sections with researched content
-- Add code examples (minimum 2)
-- Add anti-patterns (minimum 2)
-- NO placeholder text allowed
+## Examples
 
-**Phase 4: Validation Loop**
-- Execute schema_validator.py (REQUIRED)
-- Parse CRITICAL/HIGH/MEDIUM errors
-- Apply fixes
-- Re-validate until exit code 0
-- Max 3 iterations (escalate if failing)
+### Example 1: DaisyUI Rule
 
-**Phase 5: Indexing**
-- Add entry to RULES_INDEX.md
-- Insert in correct numeric position
-- Verify entry format matches existing
+```markdown
+Create a new Cursor rule documenting DaisyUI best practices.
 
-**Phase Skipping FORBIDDEN:** Do NOT skip any phase to save time
+Expected output:
+- rules/422-daisyui-core.md
+- Validates with 0 CRITICAL errors
+- Added to RULES_INDEX.md
+```
+
+### Example 2: pytest-mock Rule
+
+```markdown
+Create a new Cursor rule documenting pytest-mock best practices.
+
+Expected output:
+- rules/209-python-pytest-mock.md (if 209 is next in 200-299)
+- Validates with 0 CRITICAL errors
+- Added to RULES_INDEX.md
+```
+
+### Example 3: Snowflake Hybrid Tables Rule
+
+```markdown
+Create a new Cursor rule documenting Snowflake Hybrid Tables.
+
+Expected output:
+- rules/125-snowflake-hybrid-tables.md (if 125 is next in 100-199)
+- Validates with 0 CRITICAL errors
+- Added to RULES_INDEX.md
+```
+
+**More examples:** See `examples/` for detailed walkthroughs (frontend, python, snowflake, edge-cases).
+
+## Anti-Patterns
+
+Common mistakes to avoid:
+- ❌ Manual structure creation (always use `template_generator.py`)
+- ❌ Single-pass validation (loop until exit code 0)
+- ❌ Proceeding with CRITICAL errors (must resolve first)
+- ❌ Placeholder text (complete all sections before validation)
+
+**See:** `examples/edge-cases.md` for detailed examples and resolution strategies.
 
 ## Related Skills
 
-### Quality Assurance with rule-reviewer
+### Quality Assurance
 
-After creating a rule, validate quality using the **rule-reviewer** skill:
+After creating a rule, validate with **rule-reviewer** skill:
 
 ```
 Use the rule-reviewer skill.
@@ -131,9 +197,24 @@ review_mode: FULL
 model: <current>
 ```
 
-**Quality threshold for new rules:**
-- Overall score: ≥ 75/100
-- No CRITICAL issues
-- No HIGH issues in Actionability or Completeness dimensions
+**Quality threshold:** Score ≥ 75/100, no CRITICAL issues, no HIGH issues in Actionability/Completeness.
 
-See: `skills/rule-reviewer/SKILL.md`
+## References
+
+### Scripts
+
+- `scripts/template_generator.py` - Create rule templates
+- `scripts/schema_validator.py` - Validate v3.2 schema
+- `scripts/index_generator.py` - Maintain RULES_INDEX.md
+
+### Rules
+
+- `rules/002-rule-governance.md` - v3.2 schema requirements
+- `rules/002a-rule-creation-guide.md` - Detailed workflow
+- `rules/002b-rule-optimization.md` - Token budget guidance
+- `rules/002d-schema-validator-usage.md` - Validation commands
+
+### Documentation
+
+- `RULES_INDEX.md` - Semantic discovery index
+- `schemas/rule-schema.yml` - v3.2 schema specification

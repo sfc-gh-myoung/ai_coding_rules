@@ -156,7 +156,6 @@ Check that:
 ```
 skills/rule-creator/
 ├── SKILL.md               # Main skill instructions (Claude Code entrypoint)
-├── PROMPT.md              # Rule creation prompt template and workflow
 ├── README.md              # This file - usage documentation
 ├── VALIDATION.md          # Skill self-validation procedures
 ├── examples/              # Complete workflow examples
@@ -425,7 +424,6 @@ For complete end-to-end examples:
 - **Optimization:** `rules/002b-rule-optimization.md` - Token budgets
 - **Validator Usage:** `rules/002d-schema-validator-usage.md` - Validation details
 - **Rules Index:** `RULES_INDEX.md` - Master index for discovery
-- **Prompt Template:** `PROMPT.md` - Rule creation prompt template (colocated in this skill folder)
 
 ### Tool Documentation
 

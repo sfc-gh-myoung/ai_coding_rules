@@ -544,4 +544,24 @@ filter_pattern: rules/[12]*.md
 
 ---
 
+## File Structure
+
+```
+skills/bulk-rule-reviewer/
+├── SKILL.md               # Main skill instructions (Claude Code entrypoint)
+├── README.md              # This file - usage documentation
+├── VALIDATION.md          # Skill self-validation procedures
+├── examples/              # Complete workflow examples
+│   └── full-bulk-review.md    # Complete 113-rule walkthrough
+├── tests/                 # Skill test cases
+│   └── validation-tests.md    # Validation test cases
+└── workflows/             # Stage-specific detailed guides
+    ├── 01-discovery.md        # Stage 1: File discovery
+    ├── 02-review-execution.md # Stage 2: Rule-reviewer orchestration
+    ├── 03-aggregation.md      # Stage 3: Score extraction and statistics
+    └── 04-summary-report.md   # Stage 4: Master report generation
+```
+
+---
+
 **For detailed implementation guidance, see workflow files in `workflows/` directory.**

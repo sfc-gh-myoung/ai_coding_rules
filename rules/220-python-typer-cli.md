@@ -18,11 +18,6 @@ Provide comprehensive guidance for building robust, user-friendly command-line a
 **When to Load This Rule:**
 - Python CLI development, command-line applications, user interfaces
 
-
-
-
-
-
 ## References
 
 ### External Documentation
@@ -230,7 +225,6 @@ uvx ruff check .
 uvx ruff format --check .
 uv run pytest tests/
 ```
-
 
 ## Project Setup and Structure
 
@@ -677,4 +671,3 @@ def main(
 ):
     pass
 ```
-

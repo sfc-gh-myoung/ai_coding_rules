@@ -199,7 +199,6 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 - [ ] No console errors
 - [ ] CHANGELOG.md and README.md updated as required
 
-
 ## Anti-Patterns and Common Mistakes
 
 **Anti-Pattern 1: Using PyDeck for maps in SiS**

@@ -396,4 +396,3 @@ def check_inputs(target_file: str, mode: str) -> tuple[bool, list[str]]:
         errors.append(f"Invalid mode: {mode}")
     return (len(errors) == 0, errors)
 ```
-

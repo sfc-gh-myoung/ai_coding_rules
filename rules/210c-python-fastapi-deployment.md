@@ -18,11 +18,6 @@ Establish production deployment patterns and API documentation practices for Fas
 **When to Load This Rule:**
 - FastAPI production deployment with Docker, ASGI servers, and API documentation patterns
 
-
-
-
-
-
 ## References
 
 ### External Documentation
@@ -225,7 +220,6 @@ uvx ruff check .
 uvx ruff format --check .
 uv run pytest tests/
 ```
-
 
 ## API Documentation
 

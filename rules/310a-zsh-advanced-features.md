@@ -184,7 +184,6 @@ _my_cli_complete() {
 }
 ```
 
-
 ## Output Format Examples
 
 ```bash

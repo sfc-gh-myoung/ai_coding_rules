@@ -6,7 +6,7 @@
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-05
 **Keywords:** Cortex AISQL, AI_COMPLETE, AI_CLASSIFY, AI_EXTRACT, AI_SENTIMENT, AI_SUMMARIZE, embeddings, LLM functions, batching, token costs, text generation, classification, sentiment analysis, summarization, AI function error
-**TokenBudget:** ~5150
+**TokenBudget:** ~5500
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md
 
@@ -21,6 +21,14 @@ Pragmatic, production-focused patterns for using Snowflake Cortex AISQL function
 - SQL and Snowpark Python usage for AI functions
 - Governance (CORTEX_USER role management)
 - AI function observability
+
+### Quantification Standards
+
+**Performance Thresholds:**
+- **High-throughput batch processing:** >1000 rows/minute OR batch processing >10K rows total (context: AISQL for large-scale inference)
+- **Low-latency interactive needs:** <500ms response time required OR single-row/few-row queries (context: REST API for real-time inference)
+- **Batching threshold:** Process ≥100 rows at once to amortize function call overhead
+- **Token budget per query:** Aim for <4000 tokens per prompt (model context limits: 8K-128K depending on model)
 
 > **Investigation Required**
 > When applying this rule:
@@ -85,7 +93,7 @@ SQL AISQL functions; Snowpark Python; Snowflake CLI (`snow cortex` older-style);
 2. Control tokens using `AI_COUNT_TOKENS` and concise prompts; prefer templates via `PROMPT`
 3. Use `TO_FILE` for file references; store files in internal stages
 4. Batch over tables using `AI_AGG` / `AI_SUMMARIZE_AGG` for cross-row context
-5. Prefer AISQL for high-throughput batch processing; prefer REST for low-latency interactive needs
+5. Prefer AISQL for high-throughput batch processing (>1000 rows/min OR >10K rows total); prefer REST for low-latency interactive needs (<500ms response time required)
 6. Enforce RBAC with `SNOWFLAKE.CORTEX_USER` and apply masking/row access policies to sensitive data
 7. Track costs and performance; integrate with AI Observability where applicable
 

@@ -18,11 +18,6 @@ Establish comprehensive data validation and serialization patterns using Pydanti
 **When to Load This Rule:**
 - Python data validation, model definition, settings management
 
-
-
-
-
-
 ## References
 
 ### External Documentation
@@ -237,7 +232,6 @@ uvx ruff check .
 uvx ruff format --check .
 uv run pytest tests/
 ```
-
 
 ## Installation and Setup
 
@@ -688,4 +682,3 @@ class TestUserModel:
         user_dict = user.model_dump()
         assert user_dict['email'] == "test@example.com"
 ```
-

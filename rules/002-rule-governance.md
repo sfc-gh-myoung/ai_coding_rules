@@ -357,4 +357,3 @@ structure:
   required_sections: Metadata, Scope, References, Contract
   Contract_subsections: 7 Markdown ### headers required
 ```
-

@@ -732,4 +732,3 @@ calculate_hash() {
     sha256sum "$file" | cut -d' ' -f1
 }
 ```
-

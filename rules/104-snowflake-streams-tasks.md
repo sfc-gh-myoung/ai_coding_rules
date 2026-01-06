@@ -284,4 +284,3 @@ SHOW VIEWS LIKE '%view_name%';
 - **Requirement:** Tasks and DML must be idempotent. Use `CREATE OR REPLACE` for DDL and ensure re-runs do not duplicate data.
 - **Always:** Consume the `STREAM` at the end of the transaction so its offset advances correctly.
 - **Always:** Monitor task execution and status using Snowsight's Task History.
-

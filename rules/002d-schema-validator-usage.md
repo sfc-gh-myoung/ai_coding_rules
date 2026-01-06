@@ -1169,4 +1169,3 @@ prioritization within natural language tiers (CRITICAL/CORE/FOUNDATION markers).
 For tier selection guidance, see `002b-rule-optimization.md`.
 
 The validator does NOT enforce relationships between markers and ContextTier values.
-

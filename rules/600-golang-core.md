@@ -96,26 +96,26 @@ Foundational Go development practices using idiomatic patterns, modern tooling (
 package myservice
 
 import (
-	"context"
-	"fmt"
+    "context"
+    "fmt"
 )
 
 // User represents a user in the system.
 type User struct {
-	ID   int
-	Name string
+    ID   int
+    Name string
 }
 
 // GetUser retrieves a user by ID.
 // Returns an error if the user is not found or if the database query fails.
 func GetUser(ctx context.Context, id int) (*User, error) {
-	if id <= 0 {
-		return nil, fmt.Errorf("invalid user ID: %d", id)
-	}
-	
-	// Simulate database query
-	user := &User{ID: id, Name: "John Doe"}
-	return user, nil
+    if id <= 0 {
+        return nil, fmt.Errorf("invalid user ID: %d", id)
+    }
+    
+    // Simulate database query
+    user := &User{ID: id, Name: "John Doe"}
+    return user, nil
 }
 ```
 
@@ -124,38 +124,38 @@ func GetUser(ctx context.Context, id int) (*User, error) {
 package myservice_test
 
 import (
-	"context"
-	"testing"
-	
-	"example.com/myservice"
+    "context"
+    "testing"
+    
+    "example.com/myservice"
 )
 
 func TestGetUser(t *testing.T) {
-	tests := []struct {
-		name    string
-		id      int
-		wantErr bool
-	}{
-		{name: "valid user", id: 1, wantErr: false},
-		{name: "invalid ID", id: -1, wantErr: true},
-		{name: "zero ID", id: 0, wantErr: true},
-	}
-	
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			ctx := context.Background()
-			user, err := myservice.GetUser(ctx, tt.id)
-			
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetUser() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			
-			if !tt.wantErr && user == nil {
-				t.Error("GetUser() returned nil user without error")
-			}
-		})
-	}
+    tests := []struct {
+        name    string
+        id      int
+        wantErr bool
+    }{
+        {name: "valid user", id: 1, wantErr: false},
+        {name: "invalid ID", id: -1, wantErr: true},
+        {name: "zero ID", id: 0, wantErr: true},
+    }
+    
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            ctx := context.Background()
+            user, err := myservice.GetUser(ctx, tt.id)
+            
+            if (err != nil) != tt.wantErr {
+                t.Errorf("GetUser() error = %v, wantErr %v", err, tt.wantErr)
+                return
+            }
+            
+            if !tt.wantErr && user == nil {
+                t.Error("GetUser() returned nil user without error")
+            }
+        })
+    }
 }
 ```
 
@@ -504,7 +504,6 @@ func main() {
     http.Handle("/", svc.Handler())
 }
 ```
-
 
 ## Tooling and Environment
 

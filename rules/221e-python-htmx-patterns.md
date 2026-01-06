@@ -681,7 +681,6 @@ def create_user():
 </form>
 ```
 
-
 ## Output Format Examples
 
 ### Complete CRUD Implementation
@@ -719,4 +718,3 @@ def delete_user(user_id):
     response.headers['HX-Trigger'] = 'userDeleted'
     return response
 ```
-

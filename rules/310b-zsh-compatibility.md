@@ -176,7 +176,6 @@ if [[ $file == *.txt~backup* ]]; then
 fi
 ```
 
-
 ## Output Format Examples
 
 ```bash

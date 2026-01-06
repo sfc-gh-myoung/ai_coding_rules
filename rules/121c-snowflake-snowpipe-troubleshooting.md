@@ -565,7 +565,6 @@ SHOW GRANTS ON TABLE DB.SCHEMA.TABLE;
 > 4. **Fix one thing at a time** - Avoid changing multiple things simultaneously
 > 5. **Verify resolution** - Confirm issue is resolved before closing investigation
 
-
 ## Anti-Patterns and Common Mistakes
 
 ### Anti-Pattern 1: Jumping to Solutions Without Root Cause Analysis

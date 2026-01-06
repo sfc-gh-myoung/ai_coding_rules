@@ -510,7 +510,6 @@ def test_user_row(htmx_client):
     assert tr.find('td', text='John Doe') is not None
 ```
 
-
 ## Output Format Examples
 
 ### Complete Test Suite Structure
@@ -551,4 +550,3 @@ def test_users_list_full_page(client):
     assert response.status_code == 200
     assert '<html>' in response.data.decode()
 ```
-

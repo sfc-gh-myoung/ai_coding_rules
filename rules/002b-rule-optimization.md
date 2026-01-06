@@ -607,4 +607,3 @@ wc -w rules/NNN-rule.md
 
 # [Rule content - ~4650 tokens total]
 ```
-

@@ -186,4 +186,3 @@ ALTER WAREHOUSE WH_ANALYTICS_M SET RESOURCE_MONITOR = rm_analytics_monthly;
 - **Always:** Use Resource Monitors to track and control credit usage.
 - **Always:** Create resource monitors with specific `CREDIT_QUOTA` and `TRIGGERS` to suspend or notify on thresholds.
 - **Always:** Use Snowflake's anomaly detection features to monitor for unexpected credit spikes.
-

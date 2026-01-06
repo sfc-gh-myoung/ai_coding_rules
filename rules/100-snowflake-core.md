@@ -11,7 +11,7 @@
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-05
 **Keywords:** SQL, CTE, performance, cost optimization, query profile, warehouse, security, governance, stages, COPY INTO, streams, tasks, warehouse creation
-**TokenBudget:** ~4250
+**TokenBudget:** ~4600
 **ContextTier:** High
 **Depends:** 000-global-core.md
 
@@ -29,6 +29,12 @@ Comprehensive foundational practices for all Snowflake development work, ensurin
 - Optimizing Snowflake costs and warehouse usage
 - Loading data into Snowflake (COPY INTO, Snowpipe)
 - Working with VARIANT/semi-structured data
+
+### Quantification Standards
+
+**Data Volume Thresholds:**
+- **Large table:** >10M rows OR >5GB uncompressed OR >1M rows with frequent updates (context: incremental patterns with Streams + Tasks)
+- **Minimal data movement:** <10% of source data copied or transformed (context: validation of efficient query design)
 
 ## References
 
@@ -77,7 +83,7 @@ Comprehensive foundational practices for all Snowflake development work, ensurin
 - **Column Selection:** Explicit column lists (never `SELECT *` in production)
 - **Performance Profiling:** Use Snowflake UI/CLI Query Profile for optimization
 - **Security Policies:** Apply masking/row access policies for sensitive data
-- **Incremental Patterns:** Use Streams + Tasks for mutable large tables
+- **Incremental Patterns:** Use Streams + Tasks for mutable large tables (>10M rows OR >5GB uncompressed OR >1M rows with frequent updates)
 
 ### Forbidden
 
@@ -92,7 +98,7 @@ Comprehensive foundational practices for all Snowflake development work, ensurin
 1. Define explicit columns and joins; add early filters for partition pruning
 2. Normalize VARIANT fields once in a dedicated CTE
 3. Prefer set-based operations; avoid row-wise loops
-4. For mutable large tables, design Streams + Tasks incremental pattern with idempotency
+4. For mutable large tables (>10M rows OR >5GB OR >1M rows with frequent updates), design Streams + Tasks incremental pattern with idempotency
 5. Validate with Query Profile before scaling warehouse
 6. Apply security policies (masking/row access) where needed
 7. Verify no anti-patterns present (SELECT *, DISTINCT dedupe, repeated VARIANT parsing)
@@ -141,7 +147,7 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 - **Warehouse Config:** Follows `119-snowflake-warehouse-management.md`
 
 **Incremental Processing:**
-- **Where Applicable:** Streams and Tasks used for mutable large tables
+- **Where Applicable:** Streams and Tasks used for mutable large tables (>10M rows OR >5GB OR >1M rows with frequent updates)
 - **Idempotency:** MERGE operations handle late arrivals and duplicates
 
 **Success Criteria:**
@@ -182,7 +188,7 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 - **CTE Usage:** Use CTEs for logical segmentation and readability
 - **Early Filtering:** Push filters as early as possible for partition pruning
 - **VARIANT Optimization:** Parse semi-structured data once at edge, normalize critical fields
-- **Incremental Processing:** Use Streams + Tasks for mutable large tables
+- **Incremental Processing:** Use Streams + Tasks for mutable large tables (>10M rows OR >5GB OR >1M rows with frequent updates)
 - **Security by Design:** Enforce governance with masking policies, row access, and tagging
 - **Query Profiling:** Always use Query Profile to validate performance assumptions
 
@@ -412,7 +418,7 @@ QUALIFY ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY updated_at DESC) = 1;
 - Are objects fully qualified?
 - Are joins explicit?
 - Is `SELECT *` removed?
-- Is an incremental pattern used for mutable, large tables?
+- Is an incremental pattern used for mutable, large tables (>10M rows OR >5GB OR >1M rows with frequent updates)?
 - Are security policies or masks applied where needed?
 - Are anti-patterns absent?
 

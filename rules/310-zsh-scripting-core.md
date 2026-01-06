@@ -184,7 +184,6 @@ path=(/my/path $path)  # zsh array syntax
 typeset -U path  # Remove duplicates
 ```
 
-
 ## Output Format Examples
 
 ```bash

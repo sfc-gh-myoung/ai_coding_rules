@@ -181,7 +181,6 @@ read -s -p "Password: " PASSWORD
 echo  # Newline after hidden input
 ```
 
-
 ## Output Format Examples
 
 ```bash

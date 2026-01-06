@@ -6,7 +6,7 @@
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-05
 **Keywords:** search optimization, pruning, spillage, SQL optimization, Snowflake, partition pruning, QUERY_HISTORY, optimize query, fix slow query, query bottleneck, warehouse performance, micro-partitions, clustering, performance analysis
-**TokenBudget:** ~2800
+**TokenBudget:** ~3200
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 
@@ -21,6 +21,14 @@ Systematic approaches for profiling, optimizing, and fine-tuning Snowflake queri
 - Managing query costs
 - Analyzing Query Profile for bottlenecks
 - Implementing partition pruning strategies
+
+### Quantification Standards
+
+**Performance Thresholds:**
+- **Large table:** >1M rows OR >1GB uncompressed (context: partition pruning)
+- **Slow query:** >10s execution time (context: query optimization)
+- **Heavy workload:** >50 concurrent queries (context: warehouse sizing)
+- **Complex query:** >5 table joins OR >3 CTEs (context: SQL patterns)
 
 ## References
 
@@ -84,7 +92,7 @@ Systematic approaches for profiling, optimizing, and fine-tuning Snowflake queri
 1. Identify slow query (execution time, user report, monitoring alert)
 2. Open Query Profile in Snowsight or query QUERY_HISTORY
 3. Analyze partition pruning: Compare "Partitions Scanned" vs "Partitions Total" (target <10%)
-4. Identify bottlenecks: Large TableScans, join explosions, spillage to remote storage
+4. Identify bottlenecks: Large TableScans (>1M rows scanned per query), join explosions, spillage to remote storage
 5. Check WHERE clause for functions that prevent pruning
 6. Verify warehouse size appropriate for data volume
 7. Apply optimization: Rewrite query, adjust warehouse, consider clustering only if justified
@@ -296,4 +304,3 @@ SHOW VIEWS LIKE '%view_name%';
 - **Slow query investigation**: + Query Profiling
 - **Warehouse optimization**: + Warehouse & Clustering + 119 (warehouse management)
 - **Complete tuning**: Full reference
-

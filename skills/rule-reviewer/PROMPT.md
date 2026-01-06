@@ -134,6 +134,58 @@ Before scoring any dimension, answer this question:
 
 ---
 
+### Schema Validation Check (REQUIRED - Second Gate)
+
+Before scoring dimensions, run automated schema validation:
+
+**Command:**
+```bash
+python scripts/schema_validator.py [target_file]
+```
+
+**Parse validator output for:**
+1. **CRITICAL errors** - Schema non-compliance (missing metadata, wrong structure)
+2. **HIGH errors** - Important quality issues (section order, format violations)
+3. **MEDIUM/INFO** - Recommendations (optimization opportunities)
+
+**Gate Impact:**
+- CRITICAL errors ≥1: Parsability score capped at 2/5 (6/15)
+- HIGH errors ≥3: Parsability score capped at 3/5 (9/15)
+- All schema errors must be listed in "Critical Issues" section
+
+**Schema Error Categories:**
+- **Metadata violations:** Missing fields, wrong order, format issues
+- **Structure violations:** Missing sections, incorrect section order
+- **Content violations:** Missing Contract subsections, XML tags in v3.2
+- **Format restrictions:** Emojis, numbered sections, YAML frontmatter
+- **Link violations:** Broken rule references, invalid dependencies
+
+**Example Output Analysis:**
+```
+[CRITICAL] Missing metadata field: Depends
+[HIGH] Section order violation: Contract appears before References
+[MEDIUM] TokenBudget ±20% off actual
+
+SUMMARY:
+  ❌ CRITICAL: 1
+  ⚠️  HIGH: 1
+  ℹ️  MEDIUM: 1
+```
+
+**Required in Review Output:**
+```markdown
+Schema Validation Results:
+- CRITICAL: N errors
+- HIGH: N errors
+- MEDIUM: N errors
+
+Critical Schema Violations (if any):
+1. [Error message from validator with line number]
+2. [Error message from validator with line number]
+```
+
+---
+
 ### Priority Compliance Check (Required - Before Scoring)
 
 Before scoring dimensions, verify the rule follows the design priority hierarchy:
@@ -226,26 +278,52 @@ Rules must pass the Priority Compliance Check above to score ≥4/5.
   compliance (avoiding prohibitions) and positive compliance (demonstrating requirements)
 
 #### 4. Parsability (Can an agent extract structured data?) — 15 points
-- Are tables, lists, and code blocks properly formatted?
-- Is metadata (TokenBudget, ContextTier, Keywords) machine-readable?
-- Are examples clearly delineated from prose?
+
+**Priority 1 Alignment:** Agent must parse metadata, sections, and Contract subsections reliably.
+
+**Schema Validation Integration (MANDATORY):**
+- Run `python scripts/schema_validator.py [target_file]` BEFORE scoring this dimension
+- Count CRITICAL, HIGH, MEDIUM errors from validator output
+- Schema errors directly reduce this dimension's score per the caps below
 
 **Scoring Scale:**
-- **5/5:** All structured elements properly formatted; metadata complete; examples clearly marked.
-- **4/5:** Minor formatting issues; metadata mostly complete; examples identifiable.
-- **3/5:** Some malformed tables/lists; metadata partial; examples mixed with prose.
-- **2/5:** Significant formatting problems; missing required metadata; hard to extract data.
-- **1/5:** Unstructured prose; no metadata; examples indistinguishable from text.
+- **5/5:** Schema validation PASSES with 0 CRITICAL, 0 HIGH errors; metadata complete; all sections properly structured; examples clearly marked
+- **4/5:** 0 CRITICAL, 1-2 HIGH errors; minor schema violations (e.g., field order); metadata mostly complete
+- **3/5:** 0 CRITICAL, 3-5 HIGH errors; OR 1 CRITICAL error (e.g., missing metadata field); some structural issues
+- **2/5:** 1 CRITICAL + multiple HIGH errors; significant schema violations; missing required sections
+- **1/5:** Multiple CRITICAL errors; rule unparsable by schema standards; no metadata section
+
+**Schema Validation Caps (Override Manual Scoring):**
+- If CRITICAL errors ≥1: Maximum score = 2/5 (6/15)
+- If HIGH errors ≥3: Maximum score = 3/5 (9/15)
 
 **Quantifiable Metrics:**
-- Count of malformed tables/lists/code blocks
-- Metadata completeness (TokenBudget, ContextTier, Keywords, Depends present?)
-- Count of examples without clear delimiters
+- Schema validator CRITICAL errors count (from automated check)
+- Schema validator HIGH errors count (from automated check)
+- Missing metadata fields count (SchemaVersion, RuleVersion, LastUpdated, Keywords, TokenBudget, ContextTier, Depends)
+- Missing required sections count (Metadata header, Scope, References, Contract)
+- Count of malformed tables/lists/code blocks (manual inspection)
+
+**Required Output Format:**
+```markdown
+Parsability Score: X/5 (Y/15)
+
+Schema Validation Results:
+- CRITICAL: N errors
+- HIGH: N errors
+- MEDIUM: N errors
+
+Rationale: [Explain how schema errors impacted score]
+
+Critical Schema Violations (if any):
+1. [Error message from validator with line number]
+2. [Error message from validator with line number]
+```
 
 **Calibration Examples:**
-- **5/5:** Proper markdown tables, fenced code blocks with language tags, complete metadata header
-- **3/5:** Some tables render incorrectly, metadata missing ContextTier
-- **1/5:** Plain text with no structure, inline code mixed with prose
+- **5/5:** Passes `schema_validator.py` with 0 CRITICAL/HIGH errors; proper markdown; complete metadata
+- **3/5:** Missing "Depends" field (CRITICAL), section order wrong (HIGH) = capped at 3/5
+- **1/5:** No metadata section, missing Contract, emojis present (multiple CRITICAL)
 
 #### 5. Token Efficiency (Is the rule appropriately sized?) — 10 points
 - **Is the TokenBudget accurate (within ±15% of actual)?** Use the

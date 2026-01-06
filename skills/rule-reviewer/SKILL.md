@@ -37,21 +37,24 @@ This skill MUST follow the complete review workflow defined in `PROMPT.md`. The 
 
 ✅ **REQUIRED ACTIONS (Protocol Compliance):**
 1. **Read complete rule file** - Load entire rule content before evaluation
-2. **Execute Agent Execution Test** - Answer blocking issue questions before scoring
-3. **Score all 6 dimensions** - Actionability, Completeness, Consistency, Parsability, Token Efficiency, Staleness
-4. **Apply weighted scoring** - Use point allocations (25+25+15+15+10+10 = 100)
-5. **Generate specific recommendations** - Include actionable fixes with examples
-6. **Write complete output** - All sections required per PROMPT.md format
-7. **Validate output** - Confirm review file contains all required sections
+2. **Run schema validation** - Execute `python scripts/schema_validator.py [target_file]` and parse output
+3. **Execute Agent Execution Test** - Answer blocking issue questions before scoring
+4. **Score all 6 dimensions** - Actionability, Completeness, Consistency, Parsability, Token Efficiency, Staleness
+5. **Incorporate schema errors** - Count and categorize CRITICAL/HIGH/MEDIUM validation errors in Parsability scoring
+6. **Apply weighted scoring** - Use point allocations (25+25+15+15+10+10 = 100)
+7. **Generate specific recommendations** - Include actionable fixes with examples
+8. **Write complete output** - All sections required per PROMPT.md format
+9. **Validate output** - Confirm review file contains all required sections
 
 **Enforcement Mechanism:**
 
 Each review MUST include:
+- Schema validation results (CRITICAL/HIGH/MEDIUM counts)
 - Agent Execution Test results (blocking issues count)
 - All 6 dimension scores with rationales
 - Overall score calculation showing weighted formula
 - Agent Executability Verdict (EXECUTABLE | EXECUTABLE_WITH_REFINEMENTS | NEEDS_REFINEMENT | NOT_EXECUTABLE)
-- Critical issues list with specific examples
+- Critical issues list with specific examples (including schema violations)
 - Recommendations with actionable fixes
 
 **Verification:** Review file must be 3000-8000 bytes for typical rules (< 2000 bytes indicates abbreviated review)
@@ -104,6 +107,11 @@ Follow these workflows in order:
 
 - Do not ask the user to manually copy/paste the review into a file.
 - Do not print the entire review in chat if file writing succeeds.
+- Run schema validation using: `python scripts/schema_validator.py [target_file]`
+- Parse validator output and count CRITICAL/HIGH/MEDIUM errors
+- Schema CRITICAL errors cap Parsability at 2/5 (6/15)
+- Schema HIGH errors ≥3 cap Parsability at 3/5 (9/15)
+- All schema violations must appear in "Critical Issues" section of review
 - If file writing fails unexpectedly, print:
   - `OUTPUT_FILE: <path>`
   - then the full Markdown review content.

@@ -41,7 +41,7 @@ Comprehensive guidance for optimizing Streamlit application performance through 
 - **111-snowflake-observability-core.md** - Query profiling and monitoring
 - **119-snowflake-warehouse-management.md** - Warehouse sizing for query performance
 - **251-python-datetime-handling.md** - Datetime optimization for time series
-- **252-pandas-best-practices.md** - DataFrame optimization and caching
+- **252-python-pandas.md** - DataFrame optimization and caching
 
 ### External Documentation
 

@@ -353,7 +353,7 @@ st.plotly_chart(fig)
 
 ## Anti-Patterns: Pandas NULL Handling
 
-**Note:** For comprehensive Pandas performance optimization, vectorization patterns, and anti-patterns, see `252-pandas-best-practices.md`. For datetime handling across Pandas, Python, and visualization libraries, see `251-python-datetime-handling.md`.
+**Note:** For comprehensive Pandas performance optimization, vectorization patterns, and anti-patterns, see `252-python-pandas.md`. For datetime handling across Pandas, Python, and visualization libraries, see `251-python-datetime-handling.md`.
 
 **Anti-Pattern 1: Using Python None checks on pandas DataFrames**
 ```python

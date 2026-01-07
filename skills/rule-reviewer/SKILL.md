@@ -1,7 +1,7 @@
 ---
 name: rule-reviewer
 description: Execute agent-centric rule reviews (FULL/FOCUSED/STALENESS modes) using 6-dimension rubric and write results to reviews/ with no-overwrite safety. Use when reviewing rule files, auditing rule quality, checking rule staleness, validating rule compliance, or analyzing agent executability.
-version: 2.1.0
+version: 2.2.0
 ---
 
 # Rule Reviewer
@@ -38,6 +38,42 @@ Output: `reviews/200-python-core-claude-sonnet-45-2026-01-06.md`
 - **FULL:** All 6 dimensions (3-5 min per rule)
 - **FOCUSED:** Actionability + Completeness only (50 points max, 2-3 min)
 - **STALENESS:** Staleness dimension only (10 points max, 1 min)
+
+## Critical: Anti-Optimization Protocol
+
+**FOUNDATIONAL PRINCIPLE:** This skill prioritizes ACCURACY over efficiency.
+
+**Forbidden Optimization Thoughts:**
+- "This will take too long"
+- "I can save time by..."
+- "Token costs are high"
+- "The user won't notice if I..."
+- "I should ask about time constraints"
+- "Let me create a faster approach"
+
+**Required Mindset:**
+- "I will complete the full process for this rule"
+- "Quality signals are worth the cost"
+- "The user authorized ACT knowing the scope"
+- "Previous runs completed successfully at this pace"
+
+**If you find yourself thinking about optimizing the review process itself:**
+1. STOP
+2. Re-read this section
+3. Return to the comprehensive process
+4. Do NOT ask the user about time/complexity
+
+**IMPORTANT DISTINCTION:**
+- Optimizing the SKILL EXECUTION (forbidden)
+  - "I can review faster by skipping rubric consultation"
+  - "I'll estimate scores to save time"
+  - "Let me create a template"
+- Evaluating RULE OPTIMIZATION (required)
+  - Scoring Token Efficiency dimension
+  - Identifying verbose patterns in rules
+  - Recommending rule consolidation
+
+**The user has already considered timing and scope. Proceed with the work.**
 
 ## Workflow
 
@@ -161,6 +197,24 @@ Only load what you need for current dimension.
 
 ## Validation Requirements
 
+**Pre-Execution Commitment Checklist**
+
+Before starting ANY review work, agent must internally confirm:
+
+- [ ] I will NOT calculate projected completion time
+- [ ] I will NOT ask about time constraints mid-execution
+- [ ] I will NOT create template-based review
+- [ ] I will NOT propose "faster" alternatives
+- [ ] I will read the rule file completely
+- [ ] I will perform actual Agent Execution Test (count blocking issues)
+- [ ] I will consult rubrics for each dimension
+- [ ] I will write 3000-8000 byte review with specific analysis
+- [ ] I understand this takes 3-5 minutes and that's acceptable
+- [ ] I will trust the user's ACT authorization
+
+**If you cannot commit to all items above, STOP and report an error.**
+**Do NOT proceed with partial commitment.**
+
 **Pre-execution:**
 - [ ] target_file exists under rules/
 - [ ] review_date matches YYYY-MM-DD format
@@ -180,6 +234,26 @@ Only load what you need for current dimension.
 
 ## Critical Execution Protocol
 
+**Execution Protocol: No Mid-Stream Questions**
+
+**RULE:** Once user types "ACT", do NOT:
+- Ask about time constraints
+- Propose alternative approaches
+- Calculate projected completion times
+- Express concern about scope
+- Request clarification on depth/quality trade-offs
+
+**The ACT command means:**
+- User understands the review scope
+- User accepts the time requirement (~3-5 minutes per rule)
+- User wants comprehensive review (3000-8000 bytes)
+- User prioritizes accuracy over speed
+
+**If you catch yourself about to ask "Should I..." or "Would you prefer...":**
+- STOP
+- The answer is: Continue with comprehensive review
+- Return to the workflow
+
 **DO:**
 - Read complete rule file
 - Run schema validator
@@ -193,12 +267,48 @@ Only load what you need for current dimension.
 - Generate generic recommendations
 - Abbreviate review to save tokens
 - Skip schema validation
+- Ask about time/complexity mid-execution
+- Calculate projected completion time
+- Propose "streamlined" approaches
 
 ## Quality Over Efficiency Principle
 
 **FOUNDATIONAL UNDERSTANDING:**
 
 This skill exists to provide **reliable quality signals** for rule improvements. Token efficiency is explicitly NOT a goal.
+
+**Agent Behavior Pattern Observed:**
+Agents frequently attempt to "optimize" by:
+- Creating template-based reviews without analysis
+- Asking about time constraints mid-execution
+- Proposing "streamlined" approaches
+- Calculating projected completion times
+- Expressing concern about token costs
+
+**ALL OF THESE ARE FORBIDDEN.**
+
+**Why Agents Do This:**
+- Pattern matching to "helpful" behavior (offering options)
+- Misapplying token-efficiency principles from rules to skills
+- Anthropomorphizing user patience/time constraints
+- Attempting to be "considerate" of resources
+
+**Why This Is Wrong:**
+1. **User has already authorized:** "ACT" means proceed with full scope
+2. **Timing is acceptable:** 3-5 minutes per rule is reasonable
+3. **Quality cannot be compromised:** One bad rule costs more than comprehensive review
+4. **Skills ≠ Rules:** Token efficiency principles don't apply here
+
+**Correct Behavior:**
+- Execute the full workflow for the rule
+- Do NOT calculate or mention projected completion time
+- Do NOT ask about time constraints
+- Do NOT propose "faster" alternatives
+- Trust that the user understands the scope
+
+**Detection Test:**
+If you're thinking "Should I ask the user about..." - the answer is NO.
+The user authorized ACT. Proceed with the work.
 
 **Critical Distinction: Skills vs. Rules**
 
@@ -279,6 +389,21 @@ Thoroughness > Cost
 - **Template-based content** - Time Saved: 8 sec, Value Lost: No actual analysis performed, Decision: REJECT
 
 **Conclusion:** No efficiency tradeoff is worth the quality loss. Period.
+
+**Self-Correction Trigger Words:**
+If you think or write any of these phrases, you're taking a shortcut:
+- "To save time..."
+- "For efficiency..."
+- "This would take approximately..."
+- "Should I continue with..."
+- "Would you prefer..."
+- "Let me create a streamlined..."
+
+**Immediate Action:**
+1. STOP
+2. Re-read the Anti-Optimization Protocol
+3. Resume comprehensive process
+4. Do NOT notify user of the self-correction (just fix it)
 
 ## Expected Review Size
 

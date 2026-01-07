@@ -1,6 +1,6 @@
 # Skill Testing Guide: rule-creator
 
-> **⚠️ AUDIENCE:** This document is for **skill maintainers** (humans), not for Claude.
+> ** AUDIENCE:** This document is for **skill maintainers** (humans), not for Claude.
 > It provides testing procedures, troubleshooting guides, and health checks for the skill itself.
 
 This document describes how to verify that the rule-creator skill is functioning correctly.
@@ -103,11 +103,9 @@ Run after any skill modifications:
 
 ## Performance Baseline
 
-| Metric | Target | Acceptable |
-|--------|--------|------------|
-| Total time | < 20 min | < 30 min |
-| Validation iterations | 1-2 | ≤ 3 |
-| User interventions | 0 | ≤ 1 |
+- **Total time** - Target: < 20 min, Acceptable: < 30 min
+- **Validation iterations** - Target: 1-2, Acceptable: ≤ 3
+- **User interventions** - Target: 0, Acceptable: ≤ 1
 
 ## Troubleshooting
 
@@ -160,21 +158,17 @@ model: claude-sonnet-45
 
 ## Version Compatibility
 
-| Component | Minimum Version |
-|-----------|-----------------|
-| Python | 3.11+ |
-| PyYAML | 6.0+ |
-| Schema | v3.0 |
-| RULES_INDEX | Current |
+- **Python** - 3.11+
+- **PyYAML** - 6.0+
+- **Schema** - v3.0
+- **RULES_INDEX** - Current
 
 ## Validation Schedule
 
-| Frequency | Checks |
-|-----------|--------|
-| After skill edit | Full regression |
-| Weekly | Quick health check |
-| Monthly | Performance baseline |
-| After schema update | Full regression + all examples |
+- **After skill edit** - Full regression
+- **Weekly** - Quick health check
+- **Monthly** - Performance baseline
+- **After schema update** - Full regression + all examples
 
 ---
 

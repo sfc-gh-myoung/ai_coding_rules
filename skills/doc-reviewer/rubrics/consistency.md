@@ -108,12 +108,10 @@ Or consistent (sentence case):
 
 Track how project/product is referenced:
 
-| Variation | Occurrences | Should Be |
-|-----------|-------------|-----------|
-| MyApp | 15 | ✅ Standard |
-| my-app | 8 | ❌ Inconsistent |
-| myapp | 3 | ❌ Inconsistent |
-| My App | 2 | ❌ Inconsistent |
+- **MyApp** - Occurrences: 15, Should Be: Standard
+- **my-app** - Occurrences: 8, Should Be: Inconsistent
+- **myapp** - Occurrences: 3, Should Be: Inconsistent
+- **My App** - Occurrences: 2, Should Be: Inconsistent
 
 **Fix:** Use one consistent name (usually the official one)
 
@@ -121,11 +119,9 @@ Track how project/product is referenced:
 
 Track terminology:
 
-| Term 1 | Term 2 | Usage | Preferred |
-|--------|--------|-------|-----------|
-| "API endpoint" | "API route" | Both used | Choose one |
-| "function" | "method" | Both used | Context-dependent (OK) |
-| "config" | "configuration" | Both used | Choose one |
+- **"API endpoint"** - Term 2: "API route", Usage: Both used, Preferred: Choose one
+- **"function"** - Term 2: "method", Usage: Both used, Preferred: Context-dependent (OK)
+- **"config"** - Term 2: "configuration", Usage: Both used, Preferred: Choose one
 
 **Penalty:** -0.3 points per inconsistent term pair (up to -2)
 
@@ -139,11 +135,9 @@ If project has documentation rules:
 
 **Verify compliance:**
 
-| Rule | Requirement | Compliant? | Fix |
-|------|-------------|------------|-----|
-| 801 | Badges at top | ✅ Yes | - |
-| 801 | Installation section | ✅ Yes | - |
-| 801 | MIT license badge | ❌ No | Add badge |
+- **801** - Requirement: Badges at top, Compliant?: Yes, Fix: -
+- **801** - Requirement: Installation section, Compliant?: Yes, Fix: -
+- **801** - Requirement: MIT license badge, Compliant?: No, Fix: Add badge
 
 **Non-compliance penalty:** -0.5 points per violation (up to -2)
 
@@ -282,11 +276,9 @@ During review, verify:
 
 Use during review:
 
-| Category | Variations Found | Occurrences | Recommendation |
-|----------|------------------|-------------|----------------|
-| Product name | MyApp, my-app, myapp | 15, 8, 3 | Standardize on "MyApp" |
-| Code blocks | Fenced, indented | 45, 3 | Convert 3 indented to fenced |
-| List markers | -, * | 32, 5 | Convert 5 * to - |
-| Heading caps | Title, sentence, mixed | 15, 12, 3 | Standardize on title case |
+- **Product name** - Variations Found: MyApp, my-app, myapp, Occurrences: 15, 8, 3, Recommendation: Standardize on "MyApp"
+- **Code blocks** - Variations Found: Fenced, indented, Occurrences: 45, 3, Recommendation: Convert 3 indented to fenced
+- **List markers** - Variations Found: -, *, Occurrences: 32, 5, Recommendation: Convert 5 * to -
+- **Heading caps** - Variations Found: Title, sentence, mixed, Occurrences: 15, 12, 3, Recommendation: Standardize on title case
 
 **Total inconsistencies:** 4 issues → Score: 3/5 (3 points)

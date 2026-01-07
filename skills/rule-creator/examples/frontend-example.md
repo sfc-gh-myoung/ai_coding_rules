@@ -73,7 +73,7 @@ utility-first, design system, best practices, patterns, optimization
 - https://daisyui.com/components/
 - https://github.com/saadeghi/daisyui
 
-✓ **Phase 1 Complete**
+ **Phase 1 Complete**
 
 ---
 
@@ -91,7 +91,7 @@ $ python scripts/template_generator.py 422-daisyui-core \
     --context-tier Medium \
     --output-dir rules/
 
-✅ Created rule template: rules/422-daisyui-core.md
+ Created rule template: rules/422-daisyui-core.md
 
 Next steps:
 1. Edit rules/422-daisyui-core.md and replace all placeholders
@@ -105,16 +105,16 @@ $ ls -lh rules/422-daisyui-core.md
 -rw-r--r--  1 user  staff   3.2K Dec 11 15:30 rules/422-daisyui-core.md
 
 $ grep -c "^## " rules/422-daisyui-core.md
-9  # All 9 required sections present ✓
+9  # All 9 required sections present 
 
 $ grep -c "<inputs_prereqs>\|<mandatory>\|<forbidden>\|<steps>\|<output_format>\|<validation>" rules/422-daisyui-core.md
-6  # All 6 Contract XML tags present ✓
+6  # All 6 Contract XML tags present 
 
 $ grep -n "^## Contract" rules/422-daisyui-core.md
-35:## Contract  # Before line 160 ✓
+35:## Contract  # Before line 160 
 ```
 
-✓ **Phase 2 Complete**
+ **Phase 2 Complete**
 
 ---
 
@@ -170,7 +170,7 @@ All web applications using DaisyUI v4.0+ component library for UI development wi
 
 **Step 3.7-3.10: Complete remaining sections...**
 
-✓ **Phase 3 Complete** - All placeholders replaced with real content
+ **Phase 3 Complete** - All placeholders replaced with real content
 
 ---
 
@@ -185,18 +185,18 @@ VALIDATION REPORT: rules/422-daisyui-core.md
 ================================================================================
 
 SUMMARY:
-  ❌ CRITICAL: 1
-  ⚠️  HIGH: 0
+   CRITICAL: 1
+    HIGH: 0
   ℹ️  MEDIUM: 0
-  ✓ Passed: 457 checks
+   Passed: 457 checks
 
-❌ CRITICAL ISSUES (1):
+ CRITICAL ISSUES (1):
 ────────────────────────────────────────────────────────────────────────────────
 [Metadata] Keywords count: 14 (expected 10-15)
   Line: 5
   Fix: Keywords count is within range, but validator detected as 9 - recount
 
-RESULT: ❌ FAILED (exit code 1)
+RESULT:  FAILED (exit code 1)
 ```
 
 **Fix Applied:**
@@ -211,19 +211,19 @@ VALIDATION REPORT: rules/422-daisyui-core.md
 ================================================================================
 
 SUMMARY:
-  ❌ CRITICAL: 0
-  ⚠️  HIGH: 0
+   CRITICAL: 0
+    HIGH: 0
   ℹ️  MEDIUM: 1
-  ✓ Passed: 458 checks
+   Passed: 458 checks
 
 ℹ️  MEDIUM ISSUES (1):
 ────────────────────────────────────────────────────────────────────────────────
 [Output Format] Could include additional code examples for completeness
 
-RESULT: ⚠️  WARNINGS ONLY (exit code 0)
+RESULT:   WARNINGS ONLY (exit code 0)
 ```
 
-✓ **Phase 4 Complete** - Validation passed (exit code 0)
+ **Phase 4 Complete** - Validation passed (exit code 0)
 
 ---
 
@@ -252,19 +252,19 @@ $ grep "^|| \`42[0-9]-\|^|| \`43[0-9]-" RULES_INDEX.md
 $ grep "422-daisyui-core" RULES_INDEX.md
 || `422-daisyui-core.md` | DaisyUI component library patterns and best practices | daisyui, tailwind, components, ui library, themes, accessibility, semantic html, css variables, responsive design, customization | rules/420-javascript-core.md |
 
-✓ Entry added successfully
-✓ Numeric order maintained (421 → 422 → 430)
-✓ Table formatting intact
+ Entry added successfully
+ Numeric order maintained (421 → 422 → 430)
+ Table formatting intact
 ```
 
-✓ **Phase 5 Complete** - Rule indexed
+ **Phase 5 Complete** - Rule indexed
 
 ---
 
 ## Final Output
 
 ```
-✅ Production-ready rule created: rules/422-daisyui-core.md
+ Production-ready rule created: rules/422-daisyui-core.md
 
 File Details:
 - Location: rules/422-daisyui-core.md

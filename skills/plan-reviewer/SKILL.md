@@ -72,19 +72,17 @@ Plans are scored on whether autonomous agents can execute them without judgment 
 
 **Total: 100 points weighted across 8 dimensions:**
 
-| Dimension | Raw | Weight | Points | Category |
-|-----------|-----|--------|--------|----------|
-| Executability | X/5 | ×4 | Y/20 | Critical |
-| Completeness | X/5 | ×4 | Y/20 | Critical |
-| Success Criteria | X/5 | ×4 | Y/20 | Critical |
-| Scope | X/5 | ×3 | Y/15 | Critical |
-| Dependencies | X/5 | ×2 | Y/10 | Standard |
-| Decomposition | X/5 | ×1 | Y/5 | Standard |
-| Context | X/5 | ×1 | Y/5 | Standard |
-| Risk Awareness | X/5 | ×1 | Y/5 | Standard |
+**Critical Dimensions (75 points - agent must execute without human intervention):**
+- **Executability** - Raw: X/5, Weight: ×4, Points: Y/20
+- **Completeness** - Raw: X/5, Weight: ×4, Points: Y/20
+- **Success Criteria** - Raw: X/5, Weight: ×4, Points: Y/20
+- **Scope** - Raw: X/5, Weight: ×3, Points: Y/15
 
-**Critical dimensions:** 75 points (agent must execute without human intervention)
-**Standard dimensions:** 25 points (important but recoverable)
+**Standard Dimensions (25 points - important but recoverable):**
+- **Dependencies** - Raw: X/5, Weight: ×2, Points: Y/10
+- **Decomposition** - Raw: X/5, Weight: ×1, Points: Y/5
+- **Context** - Raw: X/5, Weight: ×1, Points: Y/5
+- **Risk Awareness** - Raw: X/5, Weight: ×1, Points: Y/5
 
 ### Dimension Summaries
 
@@ -146,13 +144,12 @@ Count blocking issues:
 
 ### Verdict Thresholds
 
-| Score | Verdict | Meaning |
-|-------|---------|---------|
-| 90-100 | EXCELLENT_PLAN | Ready for execution |
-| 80-89 | GOOD_PLAN | Minor refinements needed |
-| 60-79 | NEEDS_WORK | Significant refinement required |
-| 40-59 | POOR_PLAN | Not executable, major revision |
-| <40 | INADEQUATE_PLAN | Rewrite from scratch |
+**Score Ranges:**
+- **90-100** - EXCELLENT_PLAN - Ready for execution
+- **80-89** - GOOD_PLAN - Minor refinements needed
+- **60-79** - NEEDS_WORK - Significant refinement required
+- **40-59** - POOR_PLAN - Not executable, major revision
+- **<40** - INADEQUATE_PLAN - Rewrite from scratch
 
 **Critical dimension overrides:**
 - Executability ≤2/5 → Minimum NEEDS_WORK

@@ -30,7 +30,7 @@ Test Categories:
 review_date: 2026-01-06
 ```
 
-**Expected Result:** ✅ PASS
+**Expected Result:**  PASS
 
 **Validation:**
 - Matches YYYY-MM-DD format
@@ -46,7 +46,7 @@ review_date: 2026-01-06
 review_date: 2026/01/06
 ```
 
-**Expected Result:** ❌ FAIL
+**Expected Result:**  FAIL
 
 **Error Message:**
 ```
@@ -63,7 +63,7 @@ Expected format: YYYY-MM-DD (e.g., 2026-01-06)
 review_date: 01-06-2026
 ```
 
-**Expected Result:** ❌ FAIL
+**Expected Result:**  FAIL
 
 **Error Message:**
 ```
@@ -80,7 +80,7 @@ Expected format: YYYY-MM-DD (e.g., 2026-01-06)
 review_date: 2026-02-30
 ```
 
-**Expected Result:** ❌ FAIL
+**Expected Result:**  FAIL
 
 **Error Message:**
 ```
@@ -97,7 +97,7 @@ Not a valid calendar date
 review_date: 2024-02-29
 ```
 
-**Expected Result:** ✅ PASS (2024 is leap year)
+**Expected Result:**  PASS (2024 is leap year)
 
 ---
 
@@ -108,7 +108,7 @@ review_date: 2024-02-29
 review_date: 2025-02-29
 ```
 
-**Expected Result:** ❌ FAIL (2025 is not leap year)
+**Expected Result:**  FAIL (2025 is not leap year)
 
 ---
 
@@ -121,7 +121,7 @@ review_date: 2025-02-29
 review_mode: FULL
 ```
 
-**Expected Result:** ✅ PASS
+**Expected Result:**  PASS
 
 ---
 
@@ -132,7 +132,7 @@ review_mode: FULL
 review_mode: FOCUSED
 ```
 
-**Expected Result:** ✅ PASS
+**Expected Result:**  PASS
 
 ---
 
@@ -143,7 +143,7 @@ review_mode: FOCUSED
 review_mode: STALENESS
 ```
 
-**Expected Result:** ✅ PASS
+**Expected Result:**  PASS
 
 ---
 
@@ -154,7 +154,7 @@ review_mode: STALENESS
 review_mode: full
 ```
 
-**Expected Result:** ❌ FAIL
+**Expected Result:**  FAIL
 
 **Error Message:**
 ```
@@ -171,7 +171,7 @@ Expected one of: FULL, FOCUSED, STALENESS
 review_mode: COMPREHENSIVE
 ```
 
-**Expected Result:** ❌ FAIL
+**Expected Result:**  FAIL
 
 **Error Message:**
 ```
@@ -190,7 +190,7 @@ Expected one of: FULL, FOCUSED, STALENESS
 model: claude-sonnet-45
 ```
 
-**Expected Result:** ✅ PASS
+**Expected Result:**  PASS
 
 ---
 
@@ -201,7 +201,7 @@ model: claude-sonnet-45
 model: gpt-4
 ```
 
-**Expected Result:** ✅ PASS
+**Expected Result:**  PASS
 
 ---
 
@@ -212,7 +212,7 @@ model: gpt-4
 model: Claude-Sonnet-45
 ```
 
-**Expected Result:** ❌ FAIL
+**Expected Result:**  FAIL
 
 **Error Message:**
 ```
@@ -229,7 +229,7 @@ Expected format: lowercase-hyphenated (e.g., claude-sonnet-45, gpt-4)
 model: claude_sonnet_45
 ```
 
-**Expected Result:** ❌ FAIL
+**Expected Result:**  FAIL
 
 **Error Message:**
 ```
@@ -246,7 +246,7 @@ Expected format: lowercase-hyphenated (e.g., claude-sonnet-45, gpt-4)
 model: claude sonnet 45
 ```
 
-**Expected Result:** ❌ FAIL
+**Expected Result:**  FAIL
 
 **Error Message:**
 ```
@@ -263,7 +263,7 @@ Expected format: lowercase-hyphenated (e.g., claude-sonnet-45, gpt-4)
 model: claude-sonnet-45-
 ```
 
-**Expected Result:** ❌ FAIL
+**Expected Result:**  FAIL
 
 **Error Message:**
 ```
@@ -284,7 +284,7 @@ Expected format: lowercase-hyphenated (e.g., claude-sonnet-45, gpt-4)
 filter_pattern: rules/*.md
 ```
 
-**Expected Result:** ✅ PASS
+**Expected Result:**  PASS
 
 ---
 
@@ -295,7 +295,7 @@ filter_pattern: rules/*.md
 filter_pattern: rules/100-*.md
 ```
 
-**Expected Result:** ✅ PASS
+**Expected Result:**  PASS
 
 ---
 
@@ -306,7 +306,7 @@ filter_pattern: rules/100-*.md
 filter_pattern: rules/*-core.md
 ```
 
-**Expected Result:** ✅ PASS
+**Expected Result:**  PASS
 
 ---
 
@@ -317,7 +317,7 @@ filter_pattern: rules/*-core.md
 filter_pattern: *.md
 ```
 
-**Expected Result:** ❌ FAIL
+**Expected Result:**  FAIL
 
 **Error Message:**
 ```
@@ -334,7 +334,7 @@ Expected format: rules/*.md (glob pattern within rules/ directory)
 filter_pattern: rules/*
 ```
 
-**Expected Result:** ❌ FAIL
+**Expected Result:**  FAIL
 
 **Error Message:**
 ```
@@ -351,7 +351,7 @@ Expected format: rules/*.md (glob pattern within rules/ directory)
 filter_pattern: rules/../secrets/*.md
 ```
 
-**Expected Result:** ❌ FAIL
+**Expected Result:**  FAIL
 
 **Error Message:**
 ```
@@ -370,7 +370,7 @@ Expected format: rules/*.md (glob pattern within rules/ directory)
 skip_existing: true
 ```
 
-**Expected Result:** ✅ PASS
+**Expected Result:**  PASS
 
 ---
 
@@ -381,7 +381,7 @@ skip_existing: true
 skip_existing: false
 ```
 
-**Expected Result:** ✅ PASS
+**Expected Result:**  PASS
 
 ---
 
@@ -392,7 +392,7 @@ skip_existing: false
 skip_existing: True
 ```
 
-**Expected Result:** ❌ FAIL
+**Expected Result:**  FAIL
 
 **Error Message:**
 ```
@@ -409,7 +409,7 @@ Expected: true or false (boolean)
 skip_existing: yes
 ```
 
-**Expected Result:** ❌ FAIL
+**Expected Result:**  FAIL
 
 **Error Message:**
 ```
@@ -428,7 +428,7 @@ Expected: true or false (boolean)
 max_parallel: 1
 ```
 
-**Expected Result:** ✅ PASS
+**Expected Result:**  PASS
 
 ---
 
@@ -439,7 +439,7 @@ max_parallel: 1
 max_parallel: 5
 ```
 
-**Expected Result:** ✅ PASS
+**Expected Result:**  PASS
 
 ---
 
@@ -450,7 +450,7 @@ max_parallel: 5
 max_parallel: 10
 ```
 
-**Expected Result:** ✅ PASS
+**Expected Result:**  PASS
 
 ---
 
@@ -461,7 +461,7 @@ max_parallel: 10
 max_parallel: 0
 ```
 
-**Expected Result:** ❌ FAIL
+**Expected Result:**  FAIL
 
 **Error Message:**
 ```
@@ -478,7 +478,7 @@ Expected: integer between 1 and 10 (inclusive)
 max_parallel: 15
 ```
 
-**Expected Result:** ❌ FAIL
+**Expected Result:**  FAIL
 
 **Error Message:**
 ```
@@ -495,7 +495,7 @@ Expected: integer between 1 and 10 (inclusive)
 max_parallel: 2.5
 ```
 
-**Expected Result:** ❌ FAIL
+**Expected Result:**  FAIL
 
 **Error Message:**
 ```
@@ -517,7 +517,7 @@ mkdir -p rules
 touch rules/example.md
 ```
 
-**Expected Result:** ✅ PASS
+**Expected Result:**  PASS
 
 ---
 
@@ -528,7 +528,7 @@ touch rules/example.md
 rm -rf rules
 ```
 
-**Expected Result:** ❌ FAIL
+**Expected Result:**  FAIL
 
 **Error Message:**
 ```
@@ -546,7 +546,7 @@ mkdir -p rules
 # No .md files inside
 ```
 
-**Expected Result:** ❌ FAIL (in discovery stage)
+**Expected Result:**  FAIL (in discovery stage)
 
 **Error Message:**
 ```
@@ -565,7 +565,7 @@ mkdir -p reviews
 chmod 755 reviews
 ```
 
-**Expected Result:** ✅ PASS
+**Expected Result:**  PASS
 
 ---
 
@@ -576,7 +576,7 @@ chmod 755 reviews
 rm -rf reviews
 ```
 
-**Expected Result:** ✅ PASS (directory auto-created)
+**Expected Result:**  PASS (directory auto-created)
 
 ---
 
@@ -588,7 +588,7 @@ mkdir -p reviews
 chmod 444 reviews  # Read-only
 ```
 
-**Expected Result:** ❌ FAIL
+**Expected Result:**  FAIL
 
 **Error Message:**
 ```
@@ -616,7 +616,7 @@ touch rules/101-snowflake-sql.md
 filter_pattern: rules/100-*.md
 ```
 
-**Expected Result:** ✅ PASS (2 files matched)
+**Expected Result:**  PASS (2 files matched)
 
 ---
 
@@ -632,7 +632,7 @@ filter_pattern: rules/100-*.md
 filter_pattern: rules/999-*.md
 ```
 
-**Expected Result:** ❌ FAIL
+**Expected Result:**  FAIL
 
 **Error Message:**
 ```
@@ -656,7 +656,7 @@ Try: rules/*.md (all rules) or rules/100-*.md (Snowflake rules)
 max_parallel: 5
 ```
 
-**Expected Result:** ⚠️ WARNING (but proceed)
+**Expected Result:**  WARNING (but proceed)
 
 **Warning Message:**
 ```
@@ -677,7 +677,7 @@ Recommended: max_parallel=1 (sequential) for stability
 review_date: "2026-01-06 "
 ```
 
-**Expected Result:** ❌ FAIL (whitespace not trimmed)
+**Expected Result:**  FAIL (whitespace not trimmed)
 
 ---
 
@@ -688,7 +688,7 @@ review_date: "2026-01-06 "
 model: " claude-sonnet-45"
 ```
 
-**Expected Result:** ❌ FAIL (whitespace not trimmed)
+**Expected Result:**  FAIL (whitespace not trimmed)
 
 ---
 
@@ -701,7 +701,7 @@ model: " claude-sonnet-45"
 review_date: 2024-01-01
 ```
 
-**Expected Result:** ✅ PASS
+**Expected Result:**  PASS
 
 ---
 
@@ -712,7 +712,7 @@ review_date: 2024-01-01
 review_date: 2030-12-31
 ```
 
-**Expected Result:** ✅ PASS
+**Expected Result:**  PASS
 
 ---
 
@@ -723,7 +723,7 @@ review_date: 2030-12-31
 review_date: 2023-12-31
 ```
 
-**Expected Result:** ❌ FAIL (year <2024)
+**Expected Result:**  FAIL (year <2024)
 
 ---
 
@@ -736,7 +736,7 @@ review_date: 2023-12-31
 model: claude-sonnet-45!
 ```
 
-**Expected Result:** ❌ FAIL (special char not allowed)
+**Expected Result:**  FAIL (special char not allowed)
 
 ---
 
@@ -777,10 +777,10 @@ def run_validation_tests():
     for test in test_cases:
         result = validate_inputs(**test["params"])
         if (result and test["expect"] == "PASS") or (not result and test["expect"] == "FAIL"):
-            print(f"✓ Test {test['name']}: PASS")
+            print(f" Test {test['name']}: PASS")
             passed += 1
         else:
-            print(f"✗ Test {test['name']}: FAIL (expected {test['expect']})")
+            print(f" Test {test['name']}: FAIL (expected {test['expect']})")
             failed += 1
     
     print(f"\nTest Results: {passed} passed, {failed} failed")

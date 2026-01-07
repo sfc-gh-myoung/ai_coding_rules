@@ -55,9 +55,9 @@ target_files: [README.md, src/config.py, docs/guide.md]
 Input validation warning: Non-markdown files in target list.
 
 Files provided:
-- README.md ✅ (markdown)
-- src/config.py ❌ (Python file)
-- docs/guide.md ✅ (markdown)
+- README.md  (markdown)
+- src/config.py  (Python file)
+- docs/guide.md  (markdown)
 
 This skill reviews markdown documentation only.
 
@@ -122,9 +122,7 @@ See `scripts/deprecated_tool.py` for details.
 ```
 Cross-reference verification found issues:
 
-| Reference | Type | Location | Exists? | Notes |
-|-----------|------|----------|---------|-------|
-| `scripts/deprecated_tool.py` | file | README:45 | ❌ | Not found |
+- **`scripts/deprecated_tool.py`** - Type: file, Location: README:45, Exists?: , Notes: Not found
 
 Impact on review:
 - Reduces Accuracy score
@@ -199,8 +197,8 @@ rules/
 Baseline rules not found:
 
 Checked:
-- rules/801-project-readme.md ❌ (not found)
-- rules/802-project-contributing.md ❌ (not found)
+- rules/801-project-readme.md  (not found)
+- rules/802-project-contributing.md  (not found)
 
 Impact on review:
 - Consistency scoring will use general best practices
@@ -354,10 +352,8 @@ Internal links found: 0
 All links are external URLs, which cannot be automatically verified.
 
 Link Validation Table:
-| Link | Type | Source | Status | Notes |
-|------|------|--------|--------|-------|
-| https://docs.python.org | external | README:5 | ⚠️ | Manual check |
-| https://taskfile.dev | external | README:8 | ⚠️ | Manual check |
+- **https://docs.python.org** - Type: external, Source: README:5, Status: , Notes: Manual check
+- **https://taskfile.dev** - Type: external, Source: README:8, Status: , Notes: Manual check
 
 Impact on scoring:
 - Staleness score based on URL patterns and version references
@@ -439,10 +435,8 @@ The doc-reviewer will:
 
 Suggested thresholds for documentation quality:
 
-| Metric | Good | Acceptable | Needs Work |
-|--------|------|------------|------------|
-| Overall Score | ≥90/100 | 70-89/100 | <70/100 |
-| Accuracy | ≥20/25 | 15-19/25 | <15/25 |
-| Broken Links | 0 | 1-2 | ≥3 |
-| Placeholders | 0 | 0 | ≥1 |
+- **Overall Score** - Good: ≥90/100, Acceptable: 70-89/100, Needs Work: <70/100
+- **Accuracy** - Good: ≥20/25, Acceptable: 15-19/25, Needs Work: <15/25
+- **Broken Links** - Good: 0, Acceptable: 1-2, Needs Work: ≥3
+- **Placeholders** - Good: 0, Acceptable: 0, Needs Work: ≥1
 

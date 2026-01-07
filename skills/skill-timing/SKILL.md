@@ -157,14 +157,15 @@ bash skills/skill-timing/scripts/run_timing.sh analyze \
 
 ## MODE Compatibility
 
-| Operation | PLAN Mode | ACT Mode |
-|-----------|-----------|----------|
-| timing-start | ✓ Safe | ✓ Safe |
-| timing-checkpoint | ✓ Safe | ✓ Safe |
-| timing-end (Python module) | ✓ Safe | ✓ Safe |
-| timing-end (metadata embed) | ✗ Not safe | ✓ Required |
-| baseline set | ✗ Not safe | ✓ Required |
-| analyze | ✓ Safe | ✓ Safe |
+**PLAN Mode Safe Operations:**
+- timing-start - Safe
+- timing-checkpoint - Safe
+- timing-end (Python module) - Safe (outputs to STDOUT only)
+- analyze - Safe
+
+**ACT Mode Required Operations:**
+- timing-end (metadata embed) - Required (appends to file)
+- baseline set - Required (modifies file)
 
 **Note:** The Python module outputs to STDOUT only (PLAN safe). The agent must parse STDOUT and append timing metadata to the output file (ACT required).
 

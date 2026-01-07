@@ -87,11 +87,9 @@ reviews/docs-collection-claude-sonnet45-2025-12-16.md
 - Review date: 2025-12-16
 
 ### Summary Scores
-| Document | Accuracy | Completeness | Clarity | Structure | Staleness | Consistency | Overall |
-|----------|----------|--------------|---------|-----------|-----------|-------------|---------|
-| README.md | 20/25 | 25/25 | 16/20 | 15/15 | 6/10 | 5/5 | 87/100 |
-| CONTRIBUTING.md | 25/25 | 20/25 | 20/20 | 12/15 | 8/10 | 5/5 | 90/100 |
-| ARCHITECTURE.md | 20/25 | 25/25 | 16/20 | 15/15 | 8/10 | 5/5 | 89/100 |
+- **README.md** - Accuracy: 20/25, Completeness: 25/25, Clarity: 16/20, Structure: 15/15, Staleness: 6/10, Consistency: 5/5, Overall: 87/100
+- **CONTRIBUTING.md** - Accuracy: 25/25, Completeness: 20/25, Clarity: 20/20, Structure: 12/15, Staleness: 8/10, Consistency: 5/5, Overall: 90/100
+- **ARCHITECTURE.md** - Accuracy: 20/25, Completeness: 25/25, Clarity: 16/20, Structure: 15/15, Staleness: 8/10, Consistency: 5/5, Overall: 89/100
 
 ### Collection Average: 88.7/100
 
@@ -119,14 +117,12 @@ reviews/docs-collection-claude-sonnet45-2025-12-16.md
 ## Documentation Review: README.md
 
 ### Scores
-| Criterion | Max | Raw | Points | Notes |
-|-----------|-----|-----|--------|-------|
-| Accuracy | 25 | 4/5 | 20/25 | 2 outdated command references |
-| Completeness | 25 | 5/5 | 25/25 | All major features documented |
-| Clarity | 20 | 4/5 | 16/20 | Good structure, some jargon unexplained |
-| Structure | 15 | 5/5 | 15/15 | Clear TOC, logical flow |
-| Staleness | 10 | 3/5 | 6/10 | 3 broken links, outdated Python version |
-| Consistency | 5 | 5/5 | 5/5 | Follows project conventions |
+- **Accuracy** - Max: 25, Raw: 4/5, Points: 20/25, Notes: 2 outdated command references
+- **Completeness** - Max: 25, Raw: 5/5, Points: 25/25, Notes: All major features documented
+- **Clarity** - Max: 20, Raw: 4/5, Points: 16/20, Notes: Good structure, some jargon unexplained
+- **Structure** - Max: 15, Raw: 5/5, Points: 15/15, Notes: Clear TOC, logical flow
+- **Staleness** - Max: 10, Raw: 3/5, Points: 6/10, Notes: 3 broken links, outdated Python version
+- **Consistency** - Max: 5, Raw: 5/5, Points: 5/5, Notes: Follows project conventions
 
 **Overall:** 87/100
 
@@ -136,32 +132,26 @@ reviews/docs-collection-claude-sonnet45-2025-12-16.md
 
 ### Cross-Reference Verification
 
-| Reference | Type | Location | Exists? | Notes |
-|-----------|------|----------|---------|-------|
-| `scripts/deploy.py` | file | README:45 | ✅ | — |
-| `task validate` | command | README:78 | ✅ | — |
-| `scripts/old_script.py` | file | README:112 | ❌ | Removed in v3.0 |
-| `docs/ARCHITECTURE.md` | file | README:156 | ✅ | — |
+- **`scripts/deploy.py`** - Type: file, Location: README:45, Exists?: , Notes: —
+- **`task validate`** - Type: command, Location: README:78, Exists?: , Notes: —
+- **`scripts/old_script.py`** - Type: file, Location: README:112, Exists?: , Notes: Removed in v3.0
+- **`docs/ARCHITECTURE.md`** - Type: file, Location: README:156, Exists?: , Notes: —
 
 ### Link Validation
 
-| Link | Type | Source | Status | Notes |
-|------|------|--------|--------|-------|
-| `./docs/ARCHITECTURE.md` | internal | README:12 | ✅ | — |
-| `#installation` | anchor | README:5 | ✅ | — |
-| `https://taskfile.dev` | external | README:89 | ⚠️ | Manual check |
-| `./docs/DEPRECATED.md` | internal | README:134 | ❌ | File removed |
+- **`./docs/ARCHITECTURE.md`** - Type: internal, Source: README:12, Status: , Notes: —
+- **`#installation`** - Type: anchor, Source: README:5, Status: , Notes: —
+- **`https://taskfile.dev`** - Type: external, Source: README:89, Status: , Notes: Manual check
+- **`./docs/DEPRECATED.md`** - Type: internal, Source: README:134, Status: , Notes: File removed
 
 ### Baseline Compliance Check
 
 Checking against: rules/801-project-readme.md
 
-| Requirement | Source | Compliant? | Notes |
-|-------------|--------|------------|-------|
-| Quick Start section | 801 | ✅ | Lines 45-78 |
-| Prerequisites listed | 801 | ✅ | Lines 23-35 |
-| License section | 801 | ✅ | Lines 890-920 |
-| Troubleshooting | 801 | ✅ | Lines 750-850 |
+- **Quick Start section** - Source: 801, Compliant?: , Notes: Lines 45-78
+- **Prerequisites listed** - Source: 801, Compliant?: , Notes: Lines 23-35
+- **License section** - Source: 801, Compliant?: , Notes: Lines 890-920
+- **Troubleshooting** - Source: 801, Compliant?: , Notes: Lines 750-850
 
 ### Critical Issues (Must Fix)
 

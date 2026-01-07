@@ -48,11 +48,9 @@ curl -I --max-time 5 https://example.com/ 2>&1 | head -1
 
 **Track results:**
 
-| URL | Line | Status | Action |
-|-----|------|--------|--------|
-| https://docs.python.org/3/ | 23 | 200 ✅ | None |
-| https://oldsite.com/guide | 45 | 404 ❌ | Remove or update |
-| https://api.service.com/v1 | 67 | 301 ➡️  | Update to final URL |
+- **https://docs.python.org/3/** - Line: 23, Status: 200, Action: None
+- **https://oldsite.com/guide** - Line: 45, Status: 404, Action: Remove or update
+- **https://api.service.com/v1** - Line: 67, Status: 301 ➡️, Action: Update to final URL
 
 **Scoring:**
 - 100% valid: No penalty
@@ -80,12 +78,10 @@ https://github.com/user/repo/blob/main/docs/
 
 Check all tool versions mentioned:
 
-| Tool | Doc Version | Current Version | Status |
-|------|-------------|-----------------|--------|
-| Python | 3.8 | 3.12 | ❌ Outdated (3.8 EOL) |
-| Node.js | 18.x | 20.x | ⚠️  Prev LTS |
-| PostgreSQL | 15 | 16 | ✅ Current |
-| React | 18 | 18 | ✅ Current |
+- **Python** - Doc Version: 3.8, Current Version: 3.12, Status: Outdated (3.8 EOL)
+- **Node.js** - Doc Version: 18.x, Current Version: 20.x, Status: Prev LTS
+- **PostgreSQL** - Doc Version: 15, Current Version: 16, Status: Current
+- **React** - Doc Version: 18, Current Version: 18, Status: Current
 
 **Outdated tool penalty:** -0.5 points per tool (up to -3)
 
@@ -94,22 +90,22 @@ Check all tool versions mentioned:
 Search for outdated patterns:
 
 **Python:**
-- ❌ `setup.py install` → Use `pip install .`
-- ❌ `python -m pytest` still OK, but `pytest` preferred
-- ❌ `requirements.txt` alone → Use `pyproject.toml`
+-  `setup.py install` → Use `pip install .`
+-  `python -m pytest` still OK, but `pytest` preferred
+-  `requirements.txt` alone → Use `pyproject.toml`
 
 **JavaScript:**
-- ❌ `npm install --save` → Unnecessary (default since npm 5)
-- ❌ `var` → Use `const`/`let`
-- ❌ `create-react-app` → Use Vite
+-  `npm install --save` → Unnecessary (default since npm 5)
+-  `var` → Use `const`/`let`
+-  `create-react-app` → Use Vite
 
 **Docker:**
-- ❌ `MAINTAINER` → Use `LABEL maintainer=`
-- ❌ `ADD` (for URLs) → Use `RUN curl`
+-  `MAINTAINER` → Use `LABEL maintainer=`
+-  `ADD` (for URLs) → Use `RUN curl`
 
 **Git:**
-- ❌ `git checkout -b` → `git switch -c` (modern)
-- ❌ `master` branch → `main` (convention)
+-  `git checkout -b` → `git switch -c` (modern)
+-  `master` branch → `main` (convention)
 
 **Penalty:** -0.5 points per deprecated pattern (up to -3)
 
@@ -117,11 +113,9 @@ Search for outdated patterns:
 
 Check if screenshots match current UI:
 
-| Screenshot | Line | Matches Current UI? | Action |
-|------------|------|---------------------|--------|
-| dashboard.png | 45 | ❌ No | Update screenshot |
-| login-flow.gif | 67 | ✅ Yes | None |
-| settings.png | 89 | ⚠️  Partial | Update or remove |
+- **dashboard.png** - Line: 45, Matches Current UI?: No, Action: Update screenshot
+- **login-flow.gif** - Line: 67, Matches Current UI?: Yes, Action: None
+- **settings.png** - Line: 89, Matches Current UI?: Partial, Action: Update or remove
 
 **Penalty:** -0.5 points per outdated image (up to -2)
 
@@ -235,12 +229,10 @@ During review, verify:
 
 Use during review:
 
-| URL | Line | Status | Response Time | Action |
-|-----|------|--------|---------------|--------|
-| https://docs.python.org/3/ | 23 | 200 ✅ | 0.3s | None |
-| https://oldsite.com | 45 | 404 ❌ | - | Remove |
-| https://api.v1.com | 67 | 301 ➡️  | 0.5s | Update to v2 |
-| https://example.com | 89 | Timeout ⏱️  | >5s | Check URL |
+- **https://docs.python.org/3/** - Line: 23, Status: 200, Response Time: 0.3s, Action: None
+- **https://oldsite.com** - Line: 45, Status: 404, Response Time: -, Action: Remove
+- **https://api.v1.com** - Line: 67, Status: 301 ➡️, Response Time: 0.5s, Action: Update to v2
+- **https://example.com** - Line: 89, Status: Timeout ⏱️, Response Time: >5s, Action: Check URL
 
 **Summary:**
 - Total links: 4

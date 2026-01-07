@@ -16,13 +16,11 @@
 
 ## Examples
 
-| Input | Output |
-|-------|--------|
-| `claude-sonnet45` | `claude-sonnet45` |
-| `Claude Sonnet 4.5` | `claude-sonnet-45` |
-| `GPT-4 Turbo` | `gpt-4-turbo` |
-| `gpt_4_turbo` | `gpt-4-turbo` |
-| `Claude Opus 4` | `claude-opus-4` |
+- **`claude-sonnet45`** - `claude-sonnet45`
+- **`Claude Sonnet 4.5`** - `claude-sonnet-45`
+- **`GPT-4 Turbo`** - `gpt-4-turbo`
+- **`gpt_4_turbo`** - `gpt-4-turbo`
+- **`Claude Opus 4`** - `claude-opus-4`
 
 ## Implementation
 

@@ -198,9 +198,7 @@ code without language tag
 Must have separator row:
 ```markdown
 GOOD:
-| Column 1 | Column 2 |
-|----------|----------|
-| Value 1  | Value 2  |
+- **Value 1** - Value 2
 
 BAD (1 issue):
 | Column 1 | Column 2 |

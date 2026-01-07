@@ -168,7 +168,7 @@ model: claude-sonnet45
 **Expected Format:**
 
 ```
-⚠️ Review completed but file write failed.
+ Review completed but file write failed.
 
 OUTPUT_FILE: reviews/README-claude-sonnet45-2025-12-16.md
 
@@ -198,7 +198,7 @@ model: claude-sonnet45
 **Expected Confirmation:**
 
 ```
-✓ Review complete
+ Review complete
 
 OUTPUT_FILE: reviews/README-claude-sonnet45-2025-12-16.md
 Target: README.md

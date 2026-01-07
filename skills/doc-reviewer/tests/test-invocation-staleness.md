@@ -18,20 +18,20 @@ target_files: README.md
 ## Expected Behavior
 
 ### Phase 1: Input Validation
-- ✅ Date format valid
-- ✅ Mode recognized (STALENESS)
-- ✅ Target file exists
+-  Date format valid
+-  Mode recognized (STALENESS)
+-  Target file exists
 
 ### Phase 2: Review Execution (Fast Mode)
-- ✅ Read README.md
-- ✅ Load ONLY staleness.md rubric
-- ✅ Test external links (200/404/301)
-- ✅ Check tool versions
-- ✅ Score Staleness dimension only
+-  Read README.md
+-  Load ONLY staleness.md rubric
+-  Test external links (200/404/301)
+-  Check tool versions
+-  Score Staleness dimension only
 
 ### Phase 3: Output
-- ✅ Write to: `reviews/README-claude-sonnet-45-2026-01-06.md`
-- ✅ Execution time: <1 minute (fast mode)
+-  Write to: `reviews/README-claude-sonnet-45-2026-01-06.md`
+-  Execution time: <1 minute (fast mode)
 
 ## Expected Output Structure
 
@@ -49,10 +49,8 @@ target_files: README.md
 
 ### Link Validation
 
-| URL | Line | Status | Response Time | Action |
-|-----|------|--------|---------------|--------|
-| https://docs.python.org/3/ | 23 | 200 ✅ | 0.3s | None |
-| https://oldsite.com | 45 | 404 ❌ | - | Remove |
+- **https://docs.python.org/3/** - Line: 23, Status: 200, Response Time: 0.3s, Action: None
+- **https://oldsite.com** - Line: 45, Status: 404, Response Time: -, Action: Remove
 
 **Summary:**
 - Total links: X
@@ -62,10 +60,8 @@ target_files: README.md
 
 ### Tool Version Currency
 
-| Tool | Doc Version | Current Version | Status |
-|------|-------------|-----------------|--------|
-| Python | 3.11 | 3.12 | ✅ Current |
-| Node.js | 18 | 20 | ⚠️  Prev LTS |
+- **Python** - Doc Version: 3.11, Current Version: 3.12, Status: Current
+- **Node.js** - Doc Version: 18, Current Version: 20, Status: Prev LTS
 
 ## Recommendations
 

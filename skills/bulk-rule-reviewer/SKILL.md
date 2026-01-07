@@ -48,7 +48,7 @@ Execute comprehensive agent-centric reviews on all rule files in `rules/` direct
 
 ## Critical Execution Protocol
 
-### 🚨 MANDATORY ENFORCEMENT
+### MANDATORY ENFORCEMENT
 
 This skill MUST execute the complete rule-reviewer workflow for each rule file.
 
@@ -73,25 +73,25 @@ This skill MUST execute the complete rule-reviewer workflow for each rule file.
 
 Agents commonly attempt these shortcuts. **ALL ARE FORBIDDEN:**
 
-- ❌ **Skipping rubric consultation** - Scoring without reading dimension rubrics
-- ❌ **Batch optimization** - Aggregating multiple rules into single review
-- ❌ **Parallel shortcuts** - Running concurrently unless max_parallel set
-- ❌ **Token-saving shortcuts** - Generating abbreviated reviews
-- ❌ **Time-saving shortcuts** - Estimating scores without proper analysis
-- ❌ **Template-based reviews** - Using examples/ as templates without actual analysis
-- ❌ **Skipping schema validation** - Not running schema_validator.py
+- **Skipping rubric consultation** - Scoring without reading dimension rubrics
+- **Batch optimization** - Aggregating multiple rules into single review
+- **Parallel shortcuts** - Running concurrently unless max_parallel set
+- **Token-saving shortcuts** - Generating abbreviated reviews
+- **Time-saving shortcuts** - Estimating scores without proper analysis
+- **Template-based reviews** - Using examples/ as templates without actual analysis
+- **Skipping schema validation** - Not running schema_validator.py
 
 ### Required Actions
 
-- ✅ Load rule-reviewer/SKILL.md to understand complete workflow
-- ✅ Load rubrics/*.md files as needed for each dimension being scored
-- ✅ Run schema_validator.py for each rule
-- ✅ Perform Agent Execution Test (count blocking issues)
-- ✅ Score all dimensions according to review_mode (FULL/FOCUSED/STALENESS)
-- ✅ Generate specific recommendations with line numbers
-- ✅ Write complete review to reviews/ with proper formatting
-- ✅ Follow workflows sequentially (discovery → review-execution → aggregation → summary-report)
-- ✅ Show progress every 10 reviews (not more frequently)
+- Load rule-reviewer/SKILL.md to understand complete workflow
+- Load rubrics/*.md files as needed for each dimension being scored
+- Run schema_validator.py for each rule
+- Perform Agent Execution Test (count blocking issues)
+- Score all dimensions according to review_mode (FULL/FOCUSED/STALENESS)
+- Generate specific recommendations with line numbers
+- Write complete review to reviews/ with proper formatting
+- Follow workflows sequentially (discovery → review-execution → aggregation → summary-report)
+- Show progress every 10 reviews (not more frequently)
 
 ### Execution Acknowledgment
 
@@ -114,13 +114,19 @@ This skill is designed for **quality assurance**, not efficiency. Short-circuiti
 
 **Skills vs. Rules - Different Optimization Goals:**
 
-| Dimension | Rules (e.g., 100-snowflake-core.md) | Skills (e.g., bulk-rule-reviewer) |
-|-----------|-------------------------------------|-----------------------------------|
-| **Usage Frequency** | Loaded repeatedly (100s-1000s of times) | Used occasionally (quarterly/monthly) |
-| **Token Efficiency** | CRITICAL (repeated cost multiplier) | IRRELEVANT (one-time QA cost) |
-| **Optimization Goal** | Minimize tokens while preserving quality | Maximize quality regardless of tokens |
-| **Acceptable Size** | Minimize (5K-8K tokens ideal) | Whatever it takes (50K-100K acceptable) |
-| **Design Priority** | Token budget discipline | Comprehensive coverage |
+**Rules (e.g., 100-snowflake-core.md):**
+- **Usage Frequency:** Loaded repeatedly (100s-1000s of times)
+- **Token Efficiency:** CRITICAL (repeated cost multiplier)
+- **Optimization Goal:** Minimize tokens while preserving quality
+- **Acceptable Size:** Minimize (5K-8K tokens ideal)
+- **Design Priority:** Token budget discipline
+
+**Skills (e.g., bulk-rule-reviewer):**
+- **Usage Frequency:** Used occasionally (quarterly/monthly)
+- **Token Efficiency:** IRRELEVANT (one-time QA cost)
+- **Optimization Goal:** Maximize quality regardless of tokens
+- **Acceptable Size:** Whatever it takes (50K-100K acceptable)
+- **Design Priority:** Comprehensive coverage
 
 **Why This Matters:**
 
@@ -141,27 +147,27 @@ You may have noticed rule files emphasize token efficiency (TokenBudget metadata
 
 **Common Efficiency Instincts (ALL WRONG):**
 
-1. ❌ **"I can create streamlined reviews to save time"**
+1. **"I can create streamlined reviews to save time"**
    - **Reality:** Streamlined reviews miss critical issues
    - **Impact:** False confidence in rule quality, undetected blocking issues
    - **Consequence:** Agents fail in production with "streamlined" rules
 
-2. ❌ **"Template-based reviews are consistent"**
+2. **"Template-based reviews are consistent"**
    - **Reality:** Templates skip actual analysis
    - **Impact:** Miss rule-specific issues, score drift, no improvement signal
    - **Consequence:** Repository degrades over time with passing scores
 
-3. ❌ **"Batch processing multiple rules is efficient"**
+3. **"Batch processing multiple rules is efficient"**
    - **Reality:** Aggregation loses per-rule detail
    - **Impact:** Cannot track individual rule improvements
    - **Consequence:** Actionable recommendations impossible
 
-4. ❌ **"This will take too long (5-10 hours)"**
+4. **"This will take too long (5-10 hours)"**
    - **Reality:** 113 rules × 10 sec = 19 minutes (actual measured time)
    - **Impact:** Premature optimization based on incorrect estimate
    - **Consequence:** Unnecessary shortcuts for non-existent problem
 
-5. ❌ **"Token costs are too high"**
+5. **"Token costs are too high"**
    - **Reality:** 50K tokens ≈ $0.45 for repository-wide quality audit (quarterly = $1.80/year)
    - **Impact:** False economy—one bad rule costs more in debugging
    - **Consequence:** Penny-wise, pound-foolish optimization
@@ -190,8 +196,8 @@ ROI: 10-100× return
 **Token Efficiency Category Error:**
 
 Skills are NOT rules. Do not apply rule optimization principles here:
-- ❌ "Skills should be token-efficient like rules" → WRONG context
-- ✅ "Skills should be comprehensive regardless of tokens" → CORRECT context
+- "Skills should be token-efficient like rules" → WRONG context
+- "Skills should be comprehensive regardless of tokens" → CORRECT context
 
 **When Shortcuts Are Acceptable:**
 **NEVER.** If time/tokens are constraints, use these instead:
@@ -243,7 +249,7 @@ Each review must contain:
 
 **During execution, HALT immediately if agent exhibits:**
 
-**🚨 RED FLAGS (Stop and Self-Correct):**
+**RED FLAGS (Stop and Self-Correct):**
 
 1. **Suggesting efficiency improvements mid-review**
    - Example: "To save time, I'll create streamlined reviews..."
@@ -331,7 +337,7 @@ Find all `.md` files in `rules/` directory, apply filter_pattern, sort alphabeti
 
 ### Stage 2: Review Execution
 
-**⚠️ CRITICAL: This is where shortcut temptation peaks. Resist it.**
+**CRITICAL: This is where shortcut temptation peaks. Resist it.**
 
 For each rule file:
 1. Extract rule name from path
@@ -349,7 +355,7 @@ For each rule file:
 **Time per rule:** 8-15 seconds (measured average: 10.4 seconds)  
 **Quality:** Comprehensive, reliable, actionable
 
-**⚠️ ANTI-PATTERN ALERT:**
+**ANTI-PATTERN ALERT:**
 
 If you're thinking ANY of these thoughts, STOP and re-read this skill:
 - "This will take too long" → Measured: 19 minutes for 113 rules
@@ -493,13 +499,13 @@ model: claude-sonnet-45
 
 ## Success Criteria
 
-- ✅ All matching rules reviewed (or filtered subset)
-- ✅ Individual review files written to `reviews/`
-- ✅ Master summary report generated with valid path
-- ✅ Prioritized improvement list included
-- ✅ No context overflow during execution
-- ✅ Resume capability functional (existing reviews skipped)
-- ✅ Error handling graceful (failed reviews don't stop batch)
+- All matching rules reviewed (or filtered subset)
+- Individual review files written to `reviews/`
+- Master summary report generated with valid path
+- Prioritized improvement list included
+- No context overflow during execution
+- Resume capability functional (existing reviews skipped)
+- Error handling graceful (failed reviews don't stop batch)
 
 ## Expected Outcomes
 

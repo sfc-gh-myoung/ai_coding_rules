@@ -35,8 +35,8 @@ python scripts/schema_validator.py rules/801-project-readme.md
 [MEDIUM] TokenBudget ±18% off actual (stated ~2000, actual ~2360)
 
 SUMMARY:
-  ❌ CRITICAL: 1
-  ⚠️  HIGH: 1
+   CRITICAL: 1
+    HIGH: 1
   ℹ️  MEDIUM: 1
 
 Result: FAILED

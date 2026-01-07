@@ -201,25 +201,21 @@ model: claude-sonnet45
 
 ## Mode Comparison Matrix
 
-| Feature | FULL | FOCUSED | STALENESS |
-|---------|------|---------|-----------|
-| All 6 dimensions | ✅ | ❌ (1 only) | ❌ (2 only) |
-| Cross-Reference table | ✅ | If accuracy | ❌ |
-| Link Validation table | ✅ | If staleness | ✅ |
-| Baseline Compliance | ✅ | If consistency | ❌ |
-| Version References | ✅ | If staleness | ✅ |
-| Deprecated Patterns | ✅ | If staleness | ✅ |
-| Clarity analysis | ✅ | If clarity | ❌ |
-| Structure analysis | ✅ | If structure | ✅ |
+- **All 6 dimensions** - FULL: , FOCUSED: (1 only), STALENESS: (2 only)
+- **Cross-Reference table** - FULL: , FOCUSED: If accuracy, STALENESS: 
+- **Link Validation table** - FULL: , FOCUSED: If staleness, STALENESS: 
+- **Baseline Compliance** - FULL: , FOCUSED: If consistency, STALENESS: 
+- **Version References** - FULL: , FOCUSED: If staleness, STALENESS: 
+- **Deprecated Patterns** - FULL: , FOCUSED: If staleness, STALENESS: 
+- **Clarity analysis** - FULL: , FOCUSED: If clarity, STALENESS: 
+- **Structure analysis** - FULL: , FOCUSED: If structure, STALENESS: 
 
 ---
 
 ## Scope Comparison
 
-| Feature | Single | Collection |
-|---------|--------|------------|
-| Output files | One per doc | One total |
-| Summary table | Per doc | All docs |
-| Cross-doc analysis | ❌ | ✅ |
-| Best for | Detailed feedback | Overall health |
+- **Output files** - Single: One per doc, Collection: One total
+- **Summary table** - Single: Per doc, Collection: All docs
+- **Cross-doc analysis** - Single: , Collection: 
+- **Best for** - Single: Detailed feedback, Collection: Overall health
 

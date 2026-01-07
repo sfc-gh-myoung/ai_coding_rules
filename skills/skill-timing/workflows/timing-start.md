@@ -59,8 +59,8 @@ If this command fails:
 
 ## MODE Compatibility
 
-**PLAN Mode:** ✓ Safe to execute (creates temp file only)
-**ACT Mode:** ✓ Also safe
+**PLAN Mode:**  Safe to execute (creates temp file only)
+**ACT Mode:**  Also safe
 
 ## Next Step
 

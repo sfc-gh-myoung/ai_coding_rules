@@ -39,12 +39,10 @@
 
 List all features in codebase, mark if documented:
 
-| Feature | Location | Documented? | Gap |
-|---------|----------|-------------|-----|
-| User authentication | `src/auth.py` | ✅ Yes | - |
-| Data export | `src/export.py` | ❌ No | Need export docs |
-| API integration | `src/api/` | ✅ Yes | - |
-| Caching | `src/cache.py` | ❌ No | Need caching docs |
+- **User authentication** - Location: `src/auth.py`, Documented?: Yes, Gap: -
+- **Data export** - Location: `src/export.py`, Documented?: No, Gap: Need export docs
+- **API integration** - Location: `src/api/`, Documented?: Yes, Gap: -
+- **Caching** - Location: `src/cache.py`, Documented?: No, Gap: Need caching docs
 
 **Coverage calculation:**
 - Total features: 4
@@ -189,12 +187,10 @@ brew services start postgresql@15
 
 Use during review:
 
-| Category | Items | Documented | Missing | Coverage % |
-|----------|-------|------------|---------|------------|
-| Features | 10 | 8 | 2 | 80% |
-| Setup steps | 5 | 5 | 0 | 100% |
-| API methods | 25 | 20 | 5 | 80% |
-| CLI commands | 8 | 8 | 0 | 100% |
-| Troubleshooting | 10 common errors | 6 | 4 | 60% |
+- **Features** - Items: 10, Documented: 8, Missing: 2, Coverage %: 80%
+- **Setup steps** - Items: 5, Documented: 5, Missing: 0, Coverage %: 100%
+- **API methods** - Items: 25, Documented: 20, Missing: 5, Coverage %: 80%
+- **CLI commands** - Items: 8, Documented: 8, Missing: 0, Coverage %: 100%
+- **Troubleshooting** - Items: 10 common errors, Documented: 6, Missing: 4, Coverage %: 60%
 
 **Overall:** 41/48 documented = 85% → Score: 4/5 (20 points)

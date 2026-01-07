@@ -1,6 +1,6 @@
 # Skill Testing Guide: rule-reviewer
 
-> **⚠️ AUDIENCE:** This document is for **skill maintainers** (humans), not for Claude.
+> ** AUDIENCE:** This document is for **skill maintainers** (humans), not for Claude.
 > It provides testing procedures, troubleshooting guides, and health checks for the skill itself.
 
 This document describes how to verify that the rule-reviewer skill is functioning correctly.
@@ -147,11 +147,9 @@ review_mode: STALENESS
 
 ## Performance Baseline
 
-| Metric | Target | Acceptable |
-|--------|--------|------------|
-| Review time (FULL) | < 2 min | < 5 min |
-| Review time (FOCUSED) | < 1 min | < 2 min |
-| File write | < 1 sec | < 5 sec |
+- **Review time (FULL)** - Target: < 2 min, Acceptable: < 5 min
+- **Review time (FOCUSED)** - Target: < 1 min, Acceptable: < 2 min
+- **File write** - Target: < 1 sec, Acceptable: < 5 sec
 
 ## Troubleshooting
 
@@ -244,28 +242,22 @@ Every review output must contain:
 Dimension scores table must be valid markdown:
 
 ```markdown
-| Criterion | Max | Raw | Points | Notes |
-|-----------|-----|-----|--------|-------|
-| Actionability | 25 | X/5 | Y/25 | ... |
-| ... | ... | ... | ... | ... |
+- **Actionability** - Max: 25, Raw: X/5, Points: Y/25, Notes: ...
+- **...** - Max: ..., Raw: ..., Points: ..., Notes: ...
 ```
 
 ## Version Compatibility
 
-| Component | Minimum Version |
-|-----------|-----------------|
-| SKILL.md (with rubric) | Current |
-| Rule schema | v3.0 |
-| reviews/ directory | Writable |
+- **SKILL.md (with rubric)** - Current
+- **Rule schema** - v3.0
+- **reviews/ directory** - Writable
 
 ## Validation Schedule
 
-| Frequency | Checks |
-|-----------|--------|
-| After skill edit | Full regression |
-| After prompt edit | All modes test |
-| Weekly | Quick health check |
-| Monthly | Performance baseline |
+- **After skill edit** - Full regression
+- **After prompt edit** - All modes test
+- **Weekly** - Quick health check
+- **Monthly** - Performance baseline
 
 ---
 

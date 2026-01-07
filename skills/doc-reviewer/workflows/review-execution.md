@@ -91,13 +91,11 @@ Check critical dimensions (Accuracy, Completeness):
 
 ### Step 6: Determine Verdict
 
-| Score | Verdict | Meaning |
-|-------|---------|---------|
-| 90-100 | EXCELLENT | High-quality documentation |
-| 80-89 | GOOD | Minor improvements needed |
-| 60-79 | NEEDS_IMPROVEMENT | Significant updates required |
-| 40-59 | POOR | Major revision needed |
-| <40 | INADEQUATE | Rewrite from scratch |
+- **90-100** - Verdict: EXCELLENT, Meaning: High-quality documentation
+- **80-89** - Verdict: GOOD, Meaning: Minor improvements needed
+- **60-79** - Verdict: NEEDS_IMPROVEMENT, Meaning: Significant updates required
+- **40-59** - Verdict: POOR, Meaning: Major revision needed
+- **<40** - Verdict: INADEQUATE, Meaning: Rewrite from scratch
 
 ### Step 7: Generate Recommendations
 

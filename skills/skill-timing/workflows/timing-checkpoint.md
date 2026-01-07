@@ -30,13 +30,11 @@ uv run python skills/skill-timing/scripts/skill_timing.py checkpoint \
 
 ## Predefined Checkpoint Names
 
-| Name | When to Use |
-|------|-------------|
-| `skill_loaded` | After loading SKILL.md |
-| `schema_validated` | After schema validation completes |
-| `target_loaded` | After loading target file |
-| `review_complete` | After review/task execution |
-| `file_written` | After output file write |
+- **`skill_loaded`** - After loading SKILL.md
+- **`schema_validated`** - After schema validation completes
+- **`target_loaded`** - After loading target file
+- **`review_complete`** - After review/task execution
+- **`file_written`** - After output file write
 
 ## Error Handling
 
@@ -46,5 +44,5 @@ If this command fails:
 
 ## MODE Compatibility
 
-**PLAN Mode:** ✓ Safe (modifies temp file only)
-**ACT Mode:** ✓ Also safe
+**PLAN Mode:**  Safe (modifies temp file only)
+**ACT Mode:**  Also safe

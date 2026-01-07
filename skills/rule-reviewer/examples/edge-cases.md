@@ -118,8 +118,8 @@ Dependency validation warning:
 
 Rule: rules/422-daisyui-core.md
 Declared dependencies:
-  ✓ rules/420-javascript-core.md (exists)
-  ✗ rules/421-tailwind-core.md (NOT FOUND)
+   rules/420-javascript-core.md (exists)
+   rules/421-tailwind-core.md (NOT FOUND)
 
 Impact on review:
 - Cannot verify dependency chain completeness
@@ -357,10 +357,10 @@ Workflow:
    - model: [current]
 
 3. Compare against creation quality gates:
-   - Keywords: 10-15 ✓
-   - TokenBudget: ~NUMBER format ✓
-   - Contract before line 160 ✓
-   - All 6 XML tags present ✓
+   - Keywords: 10-15 
+   - TokenBudget: ~NUMBER format 
+   - Contract before line 160 
+   - All 6 XML tags present 
 
 4. Additional review dimensions:
    - Content accuracy (web research quality)

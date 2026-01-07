@@ -1,6 +1,6 @@
 # Skill Testing Guide: doc-reviewer
 
-> **⚠️ AUDIENCE:** This document is for **skill maintainers** (humans), not for Claude.
+> ** AUDIENCE:** This document is for **skill maintainers** (humans), not for Claude.
 > It provides testing procedures, troubleshooting guides, and health checks for the skill itself.
 
 This document describes how to verify that the doc-reviewer skill is functioning correctly.
@@ -224,7 +224,7 @@ review_scope: collection
 - [ ] Reference column (file paths, commands, etc.)
 - [ ] Type column (file, directory, command, function)
 - [ ] Location column (doc:line)
-- [ ] Exists? column (✅/❌)
+- [ ] Exists? column (/)
 - [ ] Notes column
 
 ### Link Validation
@@ -234,7 +234,7 @@ review_scope: collection
 - [ ] Link column (URL or path)
 - [ ] Type column (internal, anchor, external)
 - [ ] Source column (doc:line)
-- [ ] Status column (✅/⚠️/❌)
+- [ ] Status column (//)
 - [ ] Notes column
 
 ### Baseline Compliance
@@ -248,12 +248,10 @@ review_scope: collection
 
 ## Performance Baseline
 
-| Metric | Target | Acceptable |
-|--------|--------|------------|
-| Review time (FULL, single doc) | < 2 min | < 5 min |
-| Review time (FULL, 5 docs) | < 5 min | < 10 min |
-| Review time (STALENESS) | < 1 min | < 2 min |
-| File write | < 1 sec | < 5 sec |
+- **Review time (FULL, single doc)** - Target: < 2 min, Acceptable: < 5 min
+- **Review time (FULL, 5 docs)** - Target: < 5 min, Acceptable: < 10 min
+- **Review time (STALENESS)** - Target: < 1 min, Acceptable: < 2 min
+- **File write** - Target: < 1 sec, Acceptable: < 5 sec
 
 ## Troubleshooting
 
@@ -357,26 +355,20 @@ Every review output must contain:
 Score table must be valid markdown:
 
 ```markdown
-| Criterion | Max | Raw | Points | Notes |
-|-----------|-----|-----|--------|-------|
-| Accuracy | 25 | X/5 | Y/25 | ... |
-| ... | ... | ... | ... | ... |
+- **Accuracy** - Max: 25, Raw: X/5, Points: Y/25, Notes: ...
+- **...** - Max: ..., Raw: ..., Points: ..., Notes: ...
 ```
 
 ## Version Compatibility
 
-| Component | Minimum Version |
-|-----------|-----------------|
-| SKILL.md (with rubric) | Current |
-| reviews/ directory | Writable |
-| Target docs | Valid markdown |
+- **SKILL.md (with rubric)** - Current
+- **reviews/ directory** - Writable
+- **Target docs** - Valid markdown
 
 ## Validation Schedule
 
-| Frequency | Checks |
-|-----------|--------|
-| After skill edit | Full regression |
-| After prompt edit | All modes test |
-| Weekly | Quick health check |
-| Monthly | Performance baseline |
+- **After skill edit** - Full regression
+- **After prompt edit** - All modes test
+- **Weekly** - Quick health check
+- **Monthly** - Performance baseline
 

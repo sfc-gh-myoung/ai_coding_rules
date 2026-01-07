@@ -77,13 +77,11 @@ Execute plan review per specified mode using progressive rubric loading.
    - 2+ critical dimensions ≤2/5 → POOR_PLAN
 
 6. **Determine verdict:**
-   | Score | Verdict | Meaning |
-   |-------|---------|---------|
-   | 90-100 | EXCELLENT_PLAN | Ready for execution |
-   | 80-89 | GOOD_PLAN | Minor refinements needed |
-   | 60-79 | NEEDS_WORK | Significant refinement required |
-   | 40-59 | POOR_PLAN | Not executable, major revision |
-   | <40 | INADEQUATE_PLAN | Rewrite from scratch |
+- **90-100** - Verdict: EXCELLENT_PLAN, Meaning: Ready for execution
+- **80-89** - Verdict: GOOD_PLAN, Meaning: Minor refinements needed
+- **60-79** - Verdict: NEEDS_WORK, Meaning: Significant refinement required
+- **40-59** - Verdict: POOR_PLAN, Meaning: Not executable, major revision
+- **<40** - Verdict: INADEQUATE_PLAN, Meaning: Rewrite from scratch
 
 7. **Generate recommendations** with specific examples
 
@@ -167,13 +165,13 @@ Execute plan review per specified mode using progressive rubric loading.
 **Key principle:** Only read rubric files when scoring that dimension.
 
 **Don't:**
-- ❌ Read all rubrics upfront
-- ❌ Load unused rubrics in FOCUSED/STALENESS modes
+-  Read all rubrics upfront
+-  Load unused rubrics in FOCUSED/STALENESS modes
 
 **Do:**
-- ✅ Read rubric immediately before scoring dimension
-- ✅ Apply rubric criteria to plan content
-- ✅ Move to next dimension
+-  Read rubric immediately before scoring dimension
+-  Apply rubric criteria to plan content
+-  Move to next dimension
 
 ---
 

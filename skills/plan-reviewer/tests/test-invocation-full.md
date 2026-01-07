@@ -18,21 +18,21 @@ target_file: plans/example-plan.md
 ## Expected Behavior
 
 ### Phase 1: Input Validation
-- ✅ Date format valid (YYYY-MM-DD)
-- ✅ Mode recognized (FULL)
-- ✅ Target file exists
+-  Date format valid (YYYY-MM-DD)
+-  Mode recognized (FULL)
+-  Target file exists
 
 ### Phase 2: Agent Execution Test
-- ✅ Count blocking issues:
+-  Count blocking issues:
   - Ambiguous phrases
   - Implicit commands
   - Missing conditional branches
   - Undefined thresholds
-- ✅ Apply scoring cap if ≥10 issues
+-  Apply scoring cap if ≥10 issues
 
 ### Phase 3: Review Execution
-- ✅ Read plan file completely
-- ✅ Load rubrics progressively:
+-  Read plan file completely
+-  Load rubrics progressively:
   - executability.md (ambiguous phrases)
   - completeness.md (setup, validation, error recovery)
   - success-criteria.md (measurable criteria)
@@ -41,14 +41,14 @@ target_file: plans/example-plan.md
   - decomposition.md (task sizing)
   - context.md (rationale)
   - risk-awareness.md (failures, rollback)
-- ✅ Score each dimension (8 scores)
-- ✅ Apply weighted formula
-- ✅ Determine verdict
+-  Score each dimension (8 scores)
+-  Apply weighted formula
+-  Determine verdict
 
 ### Phase 4: Output
-- ✅ Generate recommendations
-- ✅ Write to: `reviews/example-plan-claude-sonnet-45-2026-01-06.md`
-- ✅ Confirm: "Review written to: ..."
+-  Generate recommendations
+-  Write to: `reviews/example-plan-claude-sonnet-45-2026-01-06.md`
+-  Confirm: "Review written to: ..."
 
 ## Expected Output Structure
 
@@ -79,16 +79,14 @@ target_file: plans/example-plan.md
 
 ## Dimension Scores
 
-| Dimension | Raw | Weight | Points | Status |
-|-----------|-----|--------|--------|--------|
-| Executability | X/5 | ×4 | Y/20 | ... |
-| Completeness | X/5 | ×4 | Y/20 | ... |
-| Success Criteria | X/5 | ×4 | Y/20 | ... |
-| Scope | X/5 | ×3 | Y/15 | ... |
-| Dependencies | X/5 | ×2 | Y/10 | ... |
-| Decomposition | X/5 | ×1 | Y/5 | ... |
-| Context | X/5 | ×1 | Y/5 | ... |
-| Risk Awareness | X/5 | ×1 | Y/5 | ... |
+- **Executability** - Raw: X/5, Weight: ×4, Points: Y/20, Status: ...
+- **Completeness** - Raw: X/5, Weight: ×4, Points: Y/20, Status: ...
+- **Success Criteria** - Raw: X/5, Weight: ×4, Points: Y/20, Status: ...
+- **Scope** - Raw: X/5, Weight: ×3, Points: Y/15, Status: ...
+- **Dependencies** - Raw: X/5, Weight: ×2, Points: Y/10, Status: ...
+- **Decomposition** - Raw: X/5, Weight: ×1, Points: Y/5, Status: ...
+- **Context** - Raw: X/5, Weight: ×1, Points: Y/5, Status: ...
+- **Risk Awareness** - Raw: X/5, Weight: ×1, Points: Y/5, Status: ...
 
 **Total:** XX/100
 

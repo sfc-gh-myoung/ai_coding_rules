@@ -137,7 +137,7 @@ ls reviews/200-python-core-claude-sonnet-45-2025-12-15*.md | wc -l
 
 **Expected Confirmation:**
 ```
-✓ Review complete
+ Review complete
 
 OUTPUT_FILE: reviews/200-python-core-claude-sonnet-45-2025-12-15.md
 Target: rules/200-python-core.md
@@ -158,7 +158,7 @@ Model: claude-sonnet-45
 
 **Expected (when suffix used):**
 ```
-✓ Review complete
+ Review complete
 
 OUTPUT_FILE: reviews/200-python-core-claude-sonnet-45-2025-12-15-01.md
 Note: Base filename existed, using suffix -01
@@ -271,12 +271,10 @@ reviews/115-snowflake-cortex-agents-core-claude-opus-4-2025-12-15.md
 ### Test FN.3: Model Slug Normalization in Filename
 
 **Input Variations:**
-| Input | Normalized |
-|-------|------------|
-| `Claude Sonnet 4.5` | `claude-sonnet-45` |
-| `claude-sonnet-45` | `claude-sonnet-45` |
-| `CLAUDE_OPUS_4` | `claude-opus-4` |
-| `gpt-4-turbo` | `gpt-4-turbo` |
+- **`Claude Sonnet 4.5`** - `claude-sonnet-45`
+- **`claude-sonnet-45`** - `claude-sonnet-45`
+- **`CLAUDE_OPUS_4`** - `claude-opus-4`
+- **`gpt-4-turbo`** - `gpt-4-turbo`
 
 **Pass Criteria:**
 - [ ] Spaces → hyphens

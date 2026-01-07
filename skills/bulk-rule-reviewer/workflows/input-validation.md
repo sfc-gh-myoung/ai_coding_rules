@@ -110,11 +110,11 @@ def validate_inputs(review_date, review_mode, model, filter_pattern=None,
     if errors:
         print("VALIDATION FAILED:\n")
         for error in errors:
-            print(f"  ❌ {error}")
+            print(f"   {error}")
         print("\nAbort execution. Fix validation errors and retry.")
         return False
     
-    print("✓ Input validation passed")
+    print(" Input validation passed")
     return True
 ```
 

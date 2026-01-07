@@ -43,7 +43,7 @@ $ python scripts/template_generator.py 209-python-pytest-mock \
     --context-tier Medium \
     --output-dir rules/
 
-✅ Created rule template: rules/209-python-pytest-mock.md
+ Created rule template: rules/209-python-pytest-mock.md
 ```
 
 ---
@@ -110,15 +110,15 @@ def test_something(mocker):
 $ python scripts/schema_validator.py rules/209-python-pytest-mock.md
 
 SUMMARY:
-  ❌ CRITICAL: 0
-  ⚠️  HIGH: 0
+   CRITICAL: 0
+    HIGH: 0
   ℹ️  MEDIUM: 0
-  ✓ Passed: 458 checks
+   Passed: 458 checks
 
-RESULT: ✅ PASSED (exit code 0)
+RESULT:  PASSED (exit code 0)
 ```
 
-✓ Passed on first try!
+ Passed on first try!
 
 ---
 
@@ -136,14 +136,14 @@ RESULT: ✅ PASSED (exit code 0)
 || `210-python-fastapi-core.md` | ...
 ```
 
-✓ Indexed successfully
+ Indexed successfully
 
 ---
 
 ## Final Output
 
 ```
-✅ Production-ready rule created: rules/209-python-pytest-mock.md
+ Production-ready rule created: rules/209-python-pytest-mock.md
 
 Statistics:
 - Total time: ~17 minutes

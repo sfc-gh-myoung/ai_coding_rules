@@ -218,12 +218,12 @@ Calculate impact × effort ratio and rank:
 ```markdown
 ## Appendix: All Rules by Score
 
-| Rank | Rule | Score | Verdict | Critical Issues | Review |
-|------|------|-------|---------|----------------|--------|
-| 1 | 000-global-core | 100 | EXECUTABLE | 0 | [review](reviews/...) |
-| 2 | 100-snowflake-core | 100 | EXECUTABLE | 0 | [review](reviews/...) |
-| ... | ... | ... | ... | ... | ... |
-| 113 | xyz-deprecated | 45 | NOT_EXECUTABLE | 7 | [review](reviews/...) |
+**Rules ranked by score (highest to lowest):**
+
+1. **000-global-core** - Score: 100, Verdict: EXECUTABLE, Critical Issues: 0, [review](reviews/...)
+2. **100-snowflake-core** - Score: 100, Verdict: EXECUTABLE, Critical Issues: 0, [review](reviews/...)
+...
+113. **xyz-deprecated** - Score: 45, Verdict: NOT_EXECUTABLE, Critical Issues: 7, [review](reviews/...)
 
 ---
 

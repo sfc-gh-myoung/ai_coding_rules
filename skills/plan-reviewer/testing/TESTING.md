@@ -1,6 +1,6 @@
 # Skill Testing Guide: plan-reviewer
 
-> **⚠️ AUDIENCE:** This document is for **skill maintainers** (humans), not for Claude.
+> ** AUDIENCE:** This document is for **skill maintainers** (humans), not for Claude.
 > It provides testing procedures, troubleshooting guides, and health checks for the skill itself.
 
 ## Purpose
@@ -40,11 +40,9 @@ Verify SKILL.md contains:
 
 ### 3. Mode Coverage Check
 
-| Mode | Output Template | Verification Tables | Example File |
-|------|-----------------|---------------------|--------------|
-| FULL | ✅ Required | ✅ All 3 | examples/full-review.md |
-| COMPARISON | ✅ Required | ❌ N/A | examples/comparison-review.md |
-| META-REVIEW | ✅ Required | ❌ N/A | examples/meta-review.md |
+- **FULL** - Output Template: Required, Verification Tables: All 3, Example File: examples/full-review.md
+- **COMPARISON** - Output Template: Required, Verification Tables: N/A, Example File: examples/comparison-review.md
+- **META-REVIEW** - Output Template: Required, Verification Tables: N/A, Example File: examples/meta-review.md
 
 ## Functional Validation
 
@@ -90,12 +88,10 @@ Using a test plan, verify:
 
 ### Test 4: Verdict Assignment
 
-| Score | Expected Verdict |
-|-------|------------------|
-| 92/100 | EXECUTABLE |
-| 85/100 | EXECUTABLE_WITH_REFINEMENTS |
-| 70/100 | NEEDS_REFINEMENT |
-| 50/100 | NOT_EXECUTABLE |
+- **92/100** - EXECUTABLE
+- **85/100** - EXECUTABLE_WITH_REFINEMENTS
+- **70/100** - NEEDS_REFINEMENT
+- **50/100** - NOT_EXECUTABLE
 
 ### Test 5: Output File Generation
 
@@ -129,11 +125,9 @@ Run the same plan through multiple models and verify:
 
 Create test plans with known characteristics:
 
-| Test Plan | Characteristic | Expected Score Cap |
-|-----------|----------------|-------------------|
-| plan-ambiguous.md | 12 ambiguous phrases | Executability ≤ 2/5 |
-| plan-incomplete.md | 50% validation coverage | Completeness ≤ 3/5 |
-| plan-no-criteria.md | 40% success criteria | Success Criteria ≤ 2/5 |
+- **plan-ambiguous.md** - Characteristic: 12 ambiguous phrases, Expected Score Cap: Executability ≤ 2/5
+- **plan-incomplete.md** - Characteristic: 50% validation coverage, Expected Score Cap: Completeness ≤ 3/5
+- **plan-no-criteria.md** - Characteristic: 40% success criteria, Expected Score Cap: Success Criteria ≤ 2/5
 
 ## Regression Testing
 
@@ -146,12 +140,10 @@ After any SKILL.md changes:
 
 ## Common Validation Failures
 
-| Failure | Cause | Fix |
-|---------|-------|-----|
-| Missing dimension | SKILL.md incomplete | Add missing dimension |
-| Wrong total score | Weighting calculation error | Check × 2 vs × 1 |
-| Verdict mismatch | Threshold misconfigured | Check Overall Score Interpretation |
-| Output path wrong | Slugging error | Check model-slugging workflow |
+- **Missing dimension** - Cause: SKILL.md incomplete, Fix: Add missing dimension
+- **Wrong total score** - Cause: Weighting calculation error, Fix: Check × 2 vs × 1
+- **Verdict mismatch** - Cause: Threshold misconfigured, Fix: Check Overall Score Interpretation
+- **Output path wrong** - Cause: Slugging error, Fix: Check model-slugging workflow
 
 ## Validation Checklist
 

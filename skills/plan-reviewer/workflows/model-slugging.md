@@ -13,14 +13,12 @@ Normalize model names to consistent slugs for output filenames.
 
 ## Common Mappings
 
-| Input | Slug |
-|-------|------|
-| `Claude Sonnet 4.5` | `claude-sonnet45` |
-| `Claude Opus 4.5` | `claude-opus45` |
-| `GPT-5.2` | `gpt-52` |
-| `GPT-4o` | `gpt-4o` |
-| `Gemini 2.0 Flash` | `gemini-20-flash` |
-| `Llama 3.1 70B` | `llama-31-70b` |
+- **`Claude Sonnet 4.5`** - `claude-sonnet45`
+- **`Claude Opus 4.5`** - `claude-opus45`
+- **`GPT-5.2`** - `gpt-52`
+- **`GPT-4o`** - `gpt-4o`
+- **`Gemini 2.0 Flash`** - `gemini-20-flash`
+- **`Llama 3.1 70B`** - `llama-31-70b`
 
 ## Implementation
 
@@ -39,11 +37,9 @@ def slugify_model(model_name: str) -> str:
 
 ## Edge Cases
 
-| Scenario | Resolution |
-|----------|------------|
-| Empty model name | ERROR: "model is required" |
-| Already a valid slug | Use as-is |
-| Unknown model format | Apply standard slugging rules |
+- **Empty model name** - ERROR: "model is required"
+- **Already a valid slug** - Use as-is
+- **Unknown model format** - Apply standard slugging rules
 
 ## Next Step
 

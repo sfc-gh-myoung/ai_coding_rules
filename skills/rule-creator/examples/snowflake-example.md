@@ -46,7 +46,7 @@ $ python scripts/template_generator.py 125-snowflake-hybrid-tables \
     --context-tier High \
     --output-dir rules/
 
-✅ Created rule template: rules/125-snowflake-hybrid-tables.md
+ Created rule template: rules/125-snowflake-hybrid-tables.md
 ```
 
 **Note:** Used "High" tier because Hybrid Tables are a major Snowflake feature (not specialized/rare)
@@ -156,15 +156,15 @@ Don't use Hybrid Tables for bulk analytics; don't omit PRIMARY KEY; don't create
 $ python scripts/schema_validator.py rules/125-snowflake-hybrid-tables.md
 
 SUMMARY:
-  ❌ CRITICAL: 1
-  ⚠️  HIGH: 0
+   CRITICAL: 1
+    HIGH: 0
 
-❌ CRITICAL ISSUES (1):
+ CRITICAL ISSUES (1):
 [Metadata] TokenBudget format invalid: expected ~NUMBER format
   Line: 7
   Fix: Change "1800" to "~1800"
 
-RESULT: ❌ FAILED (exit code 1)
+RESULT:  FAILED (exit code 1)
 ```
 
 **Fix:** Added tilde to TokenBudget: `~1800`
@@ -174,15 +174,15 @@ RESULT: ❌ FAILED (exit code 1)
 $ python scripts/schema_validator.py rules/125-snowflake-hybrid-tables.md
 
 SUMMARY:
-  ❌ CRITICAL: 0
-  ⚠️  HIGH: 0
+   CRITICAL: 0
+    HIGH: 0
   ℹ️  MEDIUM: 1
-  ✓ Passed: 458 checks
+   Passed: 458 checks
 
-RESULT: ⚠️  WARNINGS ONLY (exit code 0)
+RESULT:   WARNINGS ONLY (exit code 0)
 ```
 
-✓ Validation passed
+ Validation passed
 
 ---
 
@@ -200,14 +200,14 @@ RESULT: ⚠️  WARNINGS ONLY (exit code 0)
 || `200-python-core.md` | ...
 ```
 
-✓ Indexed successfully
+ Indexed successfully
 
 ---
 
 ## Final Output
 
 ```
-✅ Production-ready rule created: rules/125-snowflake-hybrid-tables.md
+ Production-ready rule created: rules/125-snowflake-hybrid-tables.md
 
 Statistics:
 - Total time: ~23 minutes
@@ -241,15 +241,13 @@ Ready for use: rules/125-snowflake-hybrid-tables.md
 
 ## Comparison Across All 3 Examples
 
-| Aspect | DaisyUI (422) | pytest-mock (209) | Hybrid Tables (125) |
-|--------|---------------|-------------------|---------------------|
-| Domain | Frontend (420-449) | Python (200-299) | Snowflake (100-199) |
-| ContextTier | Medium | Medium | High |
-| TokenBudget | ~1200 | ~1000 | ~1800 |
-| Time | 19 min | 17 min | 23 min |
-| Iterations | 2 | 1 | 2 |
-| Complexity | Low | Low | Medium-High |
-| Research source | Community + docs | Library docs | Official platform docs |
+- **Domain** - DaisyUI (422): Frontend (420-449), pytest-mock (209): Python (200-299), Hybrid Tables (125): Snowflake (100-199)
+- **ContextTier** - DaisyUI (422): Medium, pytest-mock (209): Medium, Hybrid Tables (125): High
+- **TokenBudget** - DaisyUI (422): ~1200, pytest-mock (209): ~1000, Hybrid Tables (125): ~1800
+- **Time** - DaisyUI (422): 19 min, pytest-mock (209): 17 min, Hybrid Tables (125): 23 min
+- **Iterations** - DaisyUI (422): 2, pytest-mock (209): 1, Hybrid Tables (125): 2
+- **Complexity** - DaisyUI (422): Low, pytest-mock (209): Low, Hybrid Tables (125): Medium-High
+- **Research source** - DaisyUI (422): Community + docs, pytest-mock (209): Library docs, Hybrid Tables (125): Official platform docs
 
 **Universal success patterns:**
 - Clear domain identification

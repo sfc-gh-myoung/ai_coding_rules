@@ -54,12 +54,10 @@
 
 Search for unexplained technical terms:
 
-| Term | Line | Explained? | Fix Needed |
-|------|------|------------|------------|
-| "idempotent" | 45 | ❌ No | Add: "produces same result when repeated" |
-| "webhook" | 67 | ❌ No | Add: "HTTP callback when event occurs" |
-| "API" | 12 | ✅ Yes | Already explained |
-| "CRUD" | 89 | ❌ No | Add: "Create, Read, Update, Delete operations" |
+- **"idempotent"** - Line: 45, Explained?: No, Fix Needed: Add: "produces same result when repeated"
+- **"webhook"** - Line: 67, Explained?: No, Fix Needed: Add: "HTTP callback when event occurs"
+- **"API"** - Line: 12, Explained?: Yes, Fix Needed: Already explained
+- **"CRUD"** - Line: 89, Explained?: No, Fix Needed: Add: "Create, Read, Update, Delete operations"
 
 **Penalty:** -0.5 points per unexplained term (up to -5 points)
 
@@ -71,14 +69,14 @@ Check that concepts are explained before use:
 ```markdown
 Line 10: Configure your webhook endpoint
 Line 50: (later) A webhook is an HTTP callback...
-→ ❌ Used before explained
+→  Used before explained
 ```
 
 **Good example:**
 ```markdown
 Line 10: A webhook is an HTTP callback that notifies your app when events occur
 Line 15: Configure your webhook endpoint
-→ ✅ Explained before use
+→  Explained before use
 ```
 
 ## Language Complexity

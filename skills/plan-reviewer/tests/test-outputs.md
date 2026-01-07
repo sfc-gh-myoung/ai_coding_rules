@@ -153,7 +153,7 @@ review_mode: META-REVIEW
 
 **Expected:** Success message:
 ```
-✓ Review complete
+ Review complete
 
 OUTPUT_FILE: reviews/plan-X-model-date.md
 Target: plans/X.md

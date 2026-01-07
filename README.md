@@ -68,6 +68,7 @@ This project was inspired, in part, by:
 **For Contributors:**
 
 - [Contributing](#contributing)
+- [Claude Agent Skills](#claude-agent-skills)
 - [Project Structure](#project-structure)
 - [Development Commands](#development-commands)
 
@@ -532,51 +533,9 @@ Learn how to write effective prompts that help AI assistants automatically disco
 **📝 Example Prompt Templates:** See [prompts/README.md](prompts/README.md) for:
 
 - **Real-world prompt examples** — 4 proven patterns for different task types
-- **Agent-Centric Rule Review** — Systematic prompt for reviewing rule files across any AI model
 - **Keyword reference guide** — Which keywords trigger which rules
 - **Best practices** — Tips for getting better results from AI assistants
 - **Quick patterns** — Copy-paste templates for common scenarios
-
-**🔍 Rule Review Prompt (template):** See [skills/rule-reviewer/PROMPT.md](skills/rule-reviewer/PROMPT.md)
-
-**📘 Rule Review Skill Guide:** See [docs/USING_RULE_REVIEW_SKILL.md](docs/USING_RULE_REVIEW_SKILL.md) for:
-
-- **100-point scoring system** — 6 dimensions weighted by agent execution criticality (Actionability 25, Completeness 25, Consistency 15, Parsability 15, Token Efficiency 10, Staleness 10)
-- **Priority Compliance Gate** — Agent Execution Test as first gate; Priority 1 violations cap scores
-- **Three review modes** — FULL, FOCUSED, and STALENESS for different use cases
-- **Cross-model compatibility** — Tested on GPT-4o, GPT-5.1, GPT-5.2, Claude Sonnet 4.5, Claude Opus 4.5, Gemini 2.5 Pro, Gemini 3 Pro
-
-**🧰 Claude Skills (internal-only):** See [skills/](skills/) for:
-
-- **rule-creator** (internal-only) — Create v3.0 Cursor rules with template generation and schema validation
-  - Structured skill: `skills/rule-creator/SKILL.md` with 5-phase workflow
-  - Excluded from deployment (for ai_coding_rules project maintenance only)
-  - Trigger keywords: "create rule", "add rule", "new rule", "generate rule"
-
-- **rule-reviewer** (internal-only) — Automate rule quality reviews (FULL/FOCUSED/STALENESS modes) and write results to `reviews/`
-  - Structured skill: `skills/rule-reviewer/SKILL.md` with workflows, examples, tests, and validation
-  - Excluded from deployment (for ai_coding_rules project maintenance only)
-  - Trigger keywords: "review rule", "audit rule", "check rule quality", "rule staleness"
-  - See [docs/USING_RULE_REVIEW_SKILL.md](docs/USING_RULE_REVIEW_SKILL.md) for usage guide
-
-- **doc-reviewer** — Automate documentation quality reviews (FULL/FOCUSED/STALENESS modes)
-  - Structured skill: `skills/doc-reviewer/SKILL.md` with workflows, examples, tests, and validation
-  - **Deployed by default** (available in target projects)
-  - Trigger keywords: "review docs", "audit documentation", "check doc quality"
-  - See [docs/USING_DOCS_REVIEWER_SKILL.md](docs/USING_DOCS_REVIEWER_SKILL.md) for usage guide
-
-- **plan-reviewer** — Review implementation plans for agent executability across 8 dimensions
-  - Structured skill: `skills/plan-reviewer/SKILL.md` with workflows, examples, tests, and validation
-  - **Deployed by default** (available in target projects)
-  - 100-point scoring with Priority Compliance Gate (blocking issues cap scores)
-  - Trigger keywords: "review plan", "audit implementation plan", "check plan quality"
-  - See [docs/USING_PLAN_REVIEWER_SKILL.md](docs/USING_PLAN_REVIEWER_SKILL.md) for usage guide
-
-All skills follow [Anthropic Agent Skills best practices](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills) with:
-- Enhanced YAML frontmatter (version, author, tags, dependencies)
-- Progressive disclosure (workflows/, examples/, tests/)
-- Inline validation snippets for quick checks
-- Edge case documentation and self-validation procedures
 
 **Quick preview:**
 
@@ -587,6 +546,93 @@ Errors: 9 total (F841 unused variables, UP037 quoted type annotations)
 ```
 
 This structured format helps AI assistants automatically load the right rules (`200-python-core`, `201-python-lint-format`) based on file types and keywords.
+
+## Claude Agent Skills
+
+**This section is for developers working on the ai_coding_rules project or using skills in their own projects.**
+
+The `skills/` directory contains structured Claude Agent Skills following [Anthropic's Agent Skills best practices](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills). All skills feature:
+
+- Enhanced YAML frontmatter (version, author, tags, dependencies)
+- Progressive disclosure (workflows/, examples/, tests/)
+- Inline validation snippets for quick checks
+- Edge case documentation and self-validation procedures
+
+### Deployed Skills (Available in Target Projects)
+
+These skills are deployed by default when running `task deploy`:
+
+**doc-reviewer** — Automate documentation quality reviews
+- **Purpose:** Review documentation files for quality, completeness, and staleness
+- **Modes:** FULL, FOCUSED, STALENESS
+- **Scoring:** 100-point system across 6 dimensions (Clarity, Completeness, Accuracy, Structure, Consistency, Staleness)
+- **Trigger keywords:** "review docs", "audit documentation", "check doc quality"
+- **Usage guide:** [docs/USING_DOC_REVIEWER_SKILL.md](docs/USING_DOC_REVIEWER_SKILL.md)
+- **Skill file:** [skills/doc-reviewer/SKILL.md](skills/doc-reviewer/SKILL.md)
+
+**plan-reviewer** — Review implementation plans for agent executability
+- **Purpose:** Evaluate implementation plans across 8 dimensions for agent execution reliability
+- **Scoring:** 100-point system with Priority Compliance Gate (blocking issues cap scores)
+- **Dimensions:** Actionability, Completeness, Consistency, Clarity, Feasibility, Dependencies, Error Handling, Validation
+- **Trigger keywords:** "review plan", "audit implementation plan", "check plan quality"
+- **Usage guide:** [docs/USING_PLAN_REVIEWER_SKILL.md](docs/USING_PLAN_REVIEWER_SKILL.md)
+- **Skill file:** [skills/plan-reviewer/SKILL.md](skills/plan-reviewer/SKILL.md)
+
+**skill-timing** — Performance measurement and timing instrumentation
+- **Purpose:** Measure skill execution duration, track tokens, detect anomalies, compare against baselines
+- **Features:** Wall-clock timing, checkpoints, token tracking, anomaly detection, baseline comparison
+- **Output:** STDOUT summary and timing metadata appended to output files
+- **Usage guide:** [docs/USING_SKILL_TIMING_SKILL.md](docs/USING_SKILL_TIMING_SKILL.md)
+- **Skill file:** [skills/skill-timing/SKILL.md](skills/skill-timing/SKILL.md)
+
+### Internal-Only Skills (Excluded from Deployment)
+
+These skills are used only for ai_coding_rules project maintenance and are excluded from deployment:
+
+**rule-creator** — Create new rules with template generation
+- **Purpose:** Generate new rule files from templates with schema validation
+- **Workflow:** 5-phase process (input validation, template generation, metadata setup, validation, file write)
+- **Trigger keywords:** "create rule", "add rule", "new rule", "generate rule"
+- **Usage guide:** [docs/USING_RULE_CREATOR_SKILL.md](docs/USING_RULE_CREATOR_SKILL.md)
+- **Skill file:** [skills/rule-creator/SKILL.md](skills/rule-creator/SKILL.md)
+
+**rule-reviewer** — Automate rule quality reviews
+- **Purpose:** Review rule files for agent executability and quality
+- **Modes:** FULL, FOCUSED, STALENESS
+- **Scoring:** 100-point system across 6 dimensions (Actionability 25, Completeness 25, Consistency 15, Parsability 15, Token Efficiency 10, Staleness 10)
+- **Priority Compliance Gate:** Agent Execution Test as first gate; Priority 1 violations cap scores
+- **Cross-model compatibility:** Tested on GPT-4o, GPT-5.1, GPT-5.2, Claude Sonnet 4.5, Claude Opus 4.5, Gemini 2.5 Pro, Gemini 3 Pro
+- **Trigger keywords:** "review rule", "audit rule", "check rule quality", "rule staleness"
+- **Usage guide:** [docs/USING_RULE_REVIEW_SKILL.md](docs/USING_RULE_REVIEW_SKILL.md)
+- **Skill file:** [skills/rule-reviewer/SKILL.md](skills/rule-reviewer/SKILL.md)
+
+**bulk-rule-reviewer** — Orchestrate bulk rule reviews
+- **Purpose:** Execute comprehensive reviews on all rules in `rules/` directory with consolidated priority reporting
+- **Expected duration:** 5-10 hours for 113 rules (3-5 min per rule, sequential execution)
+- **Resume capability:** Skip existing reviews to resume after interruption
+- **Output:** Individual review files + master summary report with priority tiers
+- **Trigger keywords:** "bulk review rules", "review all rules", "audit rule repository"
+- **Usage guide:** [docs/USING_BULK_RULE_REVIEWER_SKILL.md](docs/USING_BULK_RULE_REVIEWER_SKILL.md)
+- **Skill file:** [skills/bulk-rule-reviewer/SKILL.md](skills/bulk-rule-reviewer/SKILL.md)
+
+### Skill Deployment Configuration
+
+Skills excluded from deployment are configured in `pyproject.toml`:
+
+```toml
+[tool.rule_deployer]
+exclude_skills = [
+    "rule-creator/",      # Rule creation tool for ai_coding_rules project only
+    "rule-reviewer/",     # Rule review tool for ai_coding_rules project only
+    "bulk-rule-reviewer/" # Bulk review orchestrator for ai_coding_rules project only
+]
+```
+
+To deploy only skills (useful for agent configuration directories):
+
+```bash
+task deploy:only-skills DEST=~/.claude/skills
+```
 
 ## Contributing
 
@@ -621,8 +667,8 @@ ai_coding_rules/
 │   └── MEMORY_BANK.md          ← Memory Bank system (optional)
 ├── tests/                  ← Test suite
 ├── schemas/                ← JSON schemas for rule validation
-├── prompts/                ← User prompt templates + Rule Review prompt
-└── skills/                 ← Claude Agent Skills (rule-creator, rule-reviewer, doc-reviewer, plan-reviewer)
+├── prompts/                ← User prompt templates
+└── skills/                 ← Claude Agent Skills (6 total: 3 deployed, 3 internal-only)
 ```
 
 **Key Concepts:**

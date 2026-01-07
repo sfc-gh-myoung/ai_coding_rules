@@ -2,6 +2,8 @@
 
 **Note:** The Bulk Rule Reviewer Skill is **not deployed** to team projects. It remains in the ai_coding_rules source repository for internal use only.
 
+**Last Updated:** 2026-01-07
+
 ## Background
 
 The bulk-rule-reviewer skill automates comprehensive agent-centric reviews of all rule files in the `rules/` directory, generating a consolidated priority report showing which rules need attention.
@@ -192,7 +194,7 @@ filter_pattern: rules/002*.md        # Governance rules only
 
 ### Q: Where does the rubric come from?
 
-**A:** The skill invokes the rule-reviewer skill for each rule, which uses `skills/rule-reviewer/PROMPT.md` as the rubric.
+**A:** The skill invokes the rule-reviewer skill for each rule, which uses rubric files in `skills/rule-reviewer/rubrics/` (actionability.md, completeness.md, consistency.md, parsability.md, token-efficiency.md, staleness.md) as the rubric.
 
 ### Q: Can I run reviews in parallel?
 
@@ -221,10 +223,10 @@ filter_pattern: rules/002*.md        # Governance rules only
 ## Support
 
 For detailed documentation:
-- **Skill README:** `@skills/bulk-rule-reviewer/README.md`
-- **Workflow guides:** `@skills/bulk-rule-reviewer/workflows/*.md`
-- **Examples:** `@skills/bulk-rule-reviewer/examples/full-bulk-review.md`
-- **Tests:** `@skills/bulk-rule-reviewer/tests/validation-tests.md`
+- **Skill README:** `skills/bulk-rule-reviewer/README.md`
+- **Workflow guides:** `skills/bulk-rule-reviewer/workflows/*.md`
+- **Examples:** `skills/bulk-rule-reviewer/examples/full-bulk-review.md`
+- **Tests:** `skills/bulk-rule-reviewer/tests/validation-tests.md`
 
 ## Related Skills
 

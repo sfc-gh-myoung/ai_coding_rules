@@ -1,5 +1,7 @@
 # Using the Skill Timing Skill
 
+**Last Updated:** 2026-01-07
+
 The Skill Timing Skill provides execution timing instrumentation for measuring and analyzing skill performance.
 
 ## Background
@@ -117,7 +119,7 @@ bash skills/skill-timing/scripts/run_timing.sh analyze \
     --days 7
 ```
 
-**Output:** Aggregate statistics, P50/P95 durations, outliers
+**Output:** Aggregate statistics, P50/P95 durations (median/95th percentile), outliers
 
 ## Output Format
 
@@ -203,8 +205,8 @@ If you need to adjust alert thresholds for your use case:
 **Maintenance Note:** Token costs in `COST_PER_1M_TOKENS` should be updated periodically as model pricing changes.
 
 **Sources for current pricing:**
-- Anthropic (Claude): https://www.anthropic.com/pricing
-- OpenAI (GPT): https://openai.com/pricing
+- Anthropic (Claude): [https://www.anthropic.com/pricing](https://www.anthropic.com/pricing)
+- OpenAI (GPT): [https://openai.com/pricing](https://openai.com/pricing)
 
 **Last updated:** 2026-01-06  
 **Next review:** 2026-04-06 (Quarterly maintenance)
@@ -315,8 +317,8 @@ This skill is **deployable** (included when running `task deploy`). After deploy
 ## Support
 
 For detailed documentation:
-- **Skill README:** `@skills/skill-timing/README.md`
-- **Workflow guides:** `@skills/skill-timing/workflows/*.md`
-- **Python module:** `@skills/skill-timing/scripts/skill_timing.py`
-- **Shell wrapper:** `@skills/skill-timing/scripts/run_timing.sh`
+- **Skill README:** `skills/skill-timing/README.md`
+- **Workflow guides:** `skills/skill-timing/workflows/*.md`
+- **Python module:** `skills/skill-timing/scripts/skill_timing.py`
+- **Shell wrapper:** `skills/skill-timing/scripts/run_timing.sh`
 

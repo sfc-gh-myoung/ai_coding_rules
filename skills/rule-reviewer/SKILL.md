@@ -1,7 +1,7 @@
 ---
 name: rule-reviewer
 description: Execute agent-centric rule reviews (FULL/FOCUSED/STALENESS modes) using 6-dimension rubric and write results to reviews/ with no-overwrite safety. Use when reviewing rule files, auditing rule quality, checking rule staleness, validating rule compliance, or analyzing agent executability.
-version: 2.0.0
+version: 2.1.0
 ---
 
 # Rule Reviewer
@@ -195,6 +195,94 @@ Only load what you need for current dimension.
 - ❌ Generate generic recommendations
 - ❌ Abbreviate review to save tokens
 - ❌ Skip schema validation
+
+## Quality Over Efficiency Principle
+
+**FOUNDATIONAL UNDERSTANDING:**
+
+This skill exists to provide **reliable quality signals** for rule improvements. Token efficiency is explicitly NOT a goal.
+
+**Critical Distinction: Skills vs. Rules**
+
+```
+RULES (100-snowflake-core.md):
+- Usage: Loaded 100s-1000s of times
+- Token Efficiency: CRITICAL priority
+- Optimization: Minimize tokens, preserve quality
+- TokenBudget metadata: REQUIRED
+
+SKILLS (rule-reviewer):
+- Usage: Occasional (quarterly/annually)
+- Token Efficiency: IRRELEVANT
+- Optimization: Maximize quality, ignore tokens
+- TokenBudget metadata: NOT APPLICABLE
+```
+
+**Why Skills Don't Optimize for Tokens:**
+
+1. **Usage Frequency:** Quarterly use = 4× annual execution
+2. **Annual Cost:** 50K tokens × 4 = 200K tokens ≈ $1.80
+3. **Value Delivered:** Comprehensive QA for 113 rules
+4. **Cost of Failure:** One bad rule = 10-100× the token cost
+
+**Design Philosophy:**
+
+```
+Quality Signal > Speed
+Reliability > Token Efficiency
+Completeness > Brevity
+Accuracy > Convenience
+Thoroughness > Cost
+```
+
+**If you're thinking about token costs during skill execution, you're in the wrong mindset.**
+
+**Why Each Step Matters:**
+
+1. **Schema Validation (schema_validator.py)**
+   - **Purpose:** Catch structural errors before agents load rules
+   - **Cannot skip:** Parsability score requires this
+   - **Time cost:** 0.5-1 second
+   - **Value:** Prevents agent confusion from malformed rules
+
+2. **Agent Execution Test**
+   - **Purpose:** Count specific blocking issues (undefined thresholds, ambiguity)
+   - **Cannot skip:** Directly impacts Actionability score
+   - **Time cost:** 1-2 seconds (manual reading)
+   - **Value:** Predicts agent failure modes
+
+3. **Dimension Scoring with Rubrics**
+   - **Purpose:** Consistent, reproducible scoring across reviewers
+   - **Cannot skip:** Without rubrics, scores drift arbitrarily
+   - **Time cost:** 2-3 seconds per dimension
+   - **Value:** Enables trend analysis across reviews
+
+4. **Specific Recommendations with Line Numbers**
+   - **Purpose:** Actionable improvements (not generic advice)
+   - **Cannot skip:** Without line numbers, rule authors can't act
+   - **Time cost:** 1-2 seconds per recommendation
+   - **Value:** Actual rule improvements happen
+
+5. **Complete Review Write**
+   - **Purpose:** Durable record for comparison, trend tracking
+   - **Cannot skip:** Summary aggregation depends on complete reviews
+   - **Time cost:** 1-2 seconds (file write)
+   - **Value:** Historical quality tracking
+
+**Total Time Per Rule:** 8-12 seconds  
+**Total Value:** Reliable quality measurement enabling continuous improvement
+
+**Efficiency Tradeoffs (ALL REJECTED):**
+
+| Shortcut | Time Saved | Value Lost | Decision |
+|----------|------------|------------|----------|
+| Skip schema validation | 1 sec | Parsability score invalid | ❌ REJECT |
+| Estimate scores without rubrics | 6 sec | Score consistency lost | ❌ REJECT |
+| Generic recommendations | 2 sec | No actionable improvements | ❌ REJECT |
+| Abbreviated review | 2 sec | Aggregation impossible | ❌ REJECT |
+| Template-based content | 8 sec | No actual analysis performed | ❌ REJECT |
+
+**Conclusion:** No efficiency tradeoff is worth the quality loss. Period.
 
 ## Expected Review Size
 

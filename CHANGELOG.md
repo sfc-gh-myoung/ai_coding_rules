@@ -8,6 +8,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **docs(skill-timing):** improve accuracy with prerequisites and clarifications
+  - Added Python 3.11+ and uv prerequisites before command examples
+  - Added note to verify pricing URLs before updating costs
+  - Clarified .timing-baselines.json is created on first `baseline set` command
+  - Added Notes column to Data Storage table for dynamic file context
+  - Addresses accuracy review recommendations for USING_SKILL_TIMING_SKILL.md
+  - Impact: Improves documentation accuracy from 80% to 100%
+
+- **docs(rules):** expand 803 keywords for commit message discoverability
+  - Added 8 commit-specific keywords: git commit, commit, commit message, staging, staged changes, conventional commit format
+  - Updated scope description to emphasize commit message formatting
+  - Added commit-related triggers to "When to Load This Rule" section
+  - Updated RULES_INDEX.md to match rule file changes
+  - Resolves issue where agents did not load rule 803 for git commit queries
+  - Impact: Rule 803 now discoverable for commit, staging, and Conventional Commits queries
+
+### Added (Previous)
 - **feat(skills):** implement shortcut prevention in bulk-rule-reviewer v2.0.0 and rule-reviewer v2.1.0
   - Added "Why This Process Cannot Be Shortened" section to bulk-rule-reviewer (107 lines)
   - Added Skills vs. Rules comparison table clarifying different optimization goals

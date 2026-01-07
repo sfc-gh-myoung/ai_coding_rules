@@ -1,7 +1,7 @@
 ---
 name: bulk-rule-reviewer
 description: Execute agent-centric reviews on all rules in rules/ directory and generate prioritized improvement report
-version: 2.0.0
+version: 2.1.0
 ---
 
 # Bulk Rule Reviewer
@@ -47,6 +47,42 @@ Execute comprehensive agent-centric reviews on all rule files in `rules/` direct
 9. Appendix: All Rules by Score (sorted table)
 
 ## Critical Execution Protocol
+
+### CRITICAL: Anti-Optimization Protocol
+
+**FOUNDATIONAL PRINCIPLE:** This skill prioritizes ACCURACY over efficiency.
+
+**Forbidden Optimization Thoughts:**
+- "This will take too long"
+- "I can save time by..."
+- "Token costs are high"
+- "The user won't notice if I..."
+- "I should ask about time constraints"
+- "Let me create a faster approach"
+
+**Required Mindset:**
+- "I will complete the full process for each rule"
+- "Quality signals are worth the cost"
+- "The user authorized ACT knowing the scope"
+- "Previous runs completed successfully at this pace"
+
+**If you find yourself thinking about optimizing the review process itself:**
+1. STOP
+2. Re-read this section
+3. Return to the comprehensive process
+4. Do NOT ask the user about time/complexity
+
+**IMPORTANT DISTINCTION:**
+- Optimizing the SKILL EXECUTION (forbidden)
+  - "I can review faster by skipping rubric consultation"
+  - "I'll batch these reviews to save time"
+  - "Let me create a template"
+- Evaluating RULE OPTIMIZATION (required)
+  - Scoring Token Efficiency dimension
+  - Identifying verbose patterns in rules
+  - Recommending rule consolidation
+
+**The user has already considered timing and scope. Proceed with the work.**
 
 ### MANDATORY ENFORCEMENT
 
@@ -101,16 +137,53 @@ Agents commonly attempt these shortcuts. **ALL ARE FORBIDDEN:**
 - [ ] Will run schema validation for each rule
 - [ ] Will perform Agent Execution Test for each rule
 - [ ] Will NOT optimize for time/tokens at expense of quality
-- [ ] Understands process takes 5-10 hours for 113 rules
+- [ ] Will NOT calculate projected completion times
+- [ ] Will NOT ask about time constraints mid-execution
+- [ ] Will NOT create template-based reviews
+- [ ] Will NOT propose "faster" alternatives
+- [ ] Understands this takes 20-30 minutes and that's acceptable
 - [ ] Will use resume capability (skip_existing) if interrupted
 
-**If cannot commit: STOP and report error.**
+**If cannot commit to ALL items: STOP and report error.**
 
 ### Why This Process Cannot Be Shortened
 
 **CRITICAL UNDERSTANDING:**
 
 This skill is designed for **quality assurance**, not efficiency. Short-circuiting defeats its purpose.
+
+**Agent Behavior Pattern Observed:**
+Agents frequently attempt to "optimize" by:
+- Creating template-based reviews without analysis
+- Asking about time constraints mid-execution
+- Proposing "streamlined" approaches
+- Calculating projected completion times
+- Expressing concern about token costs
+
+**ALL OF THESE ARE FORBIDDEN.**
+
+**Why Agents Do This:**
+- Pattern matching to "helpful" behavior (offering options)
+- Misapplying token-efficiency principles from rules to skills
+- Anthropomorphizing user patience/time constraints
+- Attempting to be "considerate" of resources
+
+**Why This Is Wrong:**
+1. **User has already authorized:** "ACT" means proceed with full scope
+2. **Timing is acceptable:** 20-30 minutes for 113 rules is reasonable
+3. **Quality cannot be compromised:** One bad rule costs more than comprehensive review
+4. **Skills ≠ Rules:** Token efficiency principles don't apply here
+
+**Correct Behavior:**
+- Execute the full workflow for each rule
+- Do NOT calculate or mention projected completion times
+- Do NOT ask about time constraints
+- Do NOT propose "faster" alternatives
+- Trust that the user understands the scope
+
+**Detection Test:**
+If you're thinking "Should I ask the user about..." - the answer is NO.
+The user authorized ACT. Proceed with the work.
 
 **Skills vs. Rules - Different Optimization Goals:**
 
@@ -207,21 +280,25 @@ Skills are NOT rules. Do not apply rule optimization principles here:
 
 **DO NOT create a "fast mode" that compromises quality.**
 
-**Time Expectations (Measured):**
+**Time Expectations (Measured - DO NOT RECALCULATE):**
 
 **Actual Performance (2026-01-06 run):**
-- 113 rules reviewed in 19 minutes 32 seconds
-- Average: 10.4 seconds per rule
-- NOT 5-10 hours (original estimate was 30-60× off)
+- 113 rules reviewed in 19-23 minutes
+- Average: 10-12 seconds per rule
 
-**Checkpoint Breakdown:**
-- Discovery: 10 seconds
-- Review execution: 409 seconds (6.8 min) - main work
-- Aggregation: 520 seconds (8.7 min)
-- Summary generation: 68 seconds (1.1 min)
-- Overhead: 174 seconds (2.9 min)
+**DO NOT:**
+- Recalculate these numbers during execution
+- Project "time remaining"
+- Express concern about duration
+- Ask if this is acceptable
 
-**Lesson:** The process is already efficient. Further optimization harms quality.
+**These numbers are provided for INFORMATION only.**
+**Your job is to execute, not to optimize or question timing.**
+
+**If you find yourself calculating time:**
+- STOP
+- You're optimizing instead of executing
+- Return to the workflow
 
 ### Verification
 
@@ -283,6 +360,30 @@ Each review must contain:
    - Example: "To improve token efficiency..." (category error)
    - **Action:** STOP. Skills are NOT rules. Different optimization goals.
 
+**HALT IMMEDIATELY if you:**
+1. Generate review text without reading the actual rule file
+2. Use the same review text for multiple rules
+3. Create reviews in a loop without individual analysis
+4. Think "I'll create a template and fill in details"
+5. Calculate "time remaining" or "rules per minute"
+6. Consider asking the user about scope/timing
+
+**Self-Correction Trigger Words:**
+If you think or write any of these phrases, you're taking a shortcut:
+- "To save time..."
+- "For efficiency..."
+- "Given the large number..."
+- "This would take approximately..."
+- "Should I continue with..."
+- "Would you prefer..."
+- "Let me create a streamlined..."
+
+**Immediate Action:**
+1. DELETE any work done with shortcuts
+2. Re-read the Anti-Optimization Protocol
+3. Resume comprehensive process
+4. Do NOT notify user of the self-correction (just fix it)
+
 **Self-Correction Protocol:**
 
 ```
@@ -339,6 +440,26 @@ Find all `.md` files in `rules/` directory, apply filter_pattern, sort alphabeti
 
 **CRITICAL: This is where shortcut temptation peaks. Resist it.**
 
+**Execution Protocol: No Mid-Stream Questions**
+
+**RULE:** Once user types "ACT", do NOT:
+- Ask about time constraints
+- Propose alternative approaches
+- Calculate projected completion times
+- Express concern about scope
+- Request clarification on depth/quality trade-offs
+
+**The ACT command means:**
+- User understands the scope (113 rules)
+- User accepts the time requirement (~20-30 minutes)
+- User wants comprehensive reviews (3000-8000 bytes each)
+- User prioritizes accuracy over speed
+
+**If you catch yourself about to ask "Should I..." or "Would you prefer...":**
+- STOP
+- The answer is: Continue with comprehensive reviews
+- Return to the workflow
+
 For each rule file:
 1. Extract rule name from path
 2. Check if review exists (if skip_existing=true)
@@ -352,17 +473,37 @@ For each rule file:
 10. Store (rule_name, score, verdict, review_path)
 11. Show progress every 10 reviews
 
-**Time per rule:** 8-15 seconds (measured average: 10.4 seconds)  
+**Time per rule:** 8-15 seconds (measured average: 10-12 seconds)  
 **Quality:** Comprehensive, reliable, actionable
 
 **ANTI-PATTERN ALERT:**
 
 If you're thinking ANY of these thoughts, STOP and re-read this skill:
-- "This will take too long" → Measured: 19 minutes for 113 rules
+- "This will take too long" → Measured: 19-23 minutes for 113 rules
 - "I can optimize this" → NO. Quality > efficiency
 - "Templates would be faster" → Templates = zero signal
 - "Token costs are high" → $0.45 for 113 rules is cheap QA (Skills ≠ Rules)
 - "Users won't notice abbreviated reviews" → They will. Bad rules escape.
+
+**Correct Agent Self-Talk During Execution:**
+
+**WRONG (Optimization-Seeking):**
+- "I've done 10 rules in 8 minutes, so 113 will take 90 minutes..."
+- "This seems like a lot of work, should I ask the user?"
+- "Maybe I can create a template to speed this up..."
+- "Let me calculate the token cost..."
+
+**RIGHT (Execution-Focused):**
+- "Next rule: 101a-snowflake-streamlit-visualization.md"
+- "Reading rule file... Running schema validation... Counting blocking issues..."
+- "Scoring dimension 1: Actionability... Evidence: line 52..."
+- "Writing review... Next rule: 101b-snowflake-streamlit-performance.md"
+
+**Notice the difference:**
+- WRONG: Meta-thinking about the process
+- RIGHT: Executing the process
+
+**Your internal monologue should be task steps, not process analysis.**
 
 **Reminder:** 
 - ONE bad rule in production costs 100× more than comprehensive review

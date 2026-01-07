@@ -284,7 +284,7 @@ model: <current>
 ### Rules
 
 - `rules/002-rule-governance.md` - v3.2 schema requirements
-- `rules/002a-rule-creation-guide.md` - Detailed workflow
+- `rules/002a-rule-creation.md` - Detailed workflow
 - `rules/002b-rule-optimization.md` - Token budget guidance
 - `rules/002d-schema-validator-usage.md` - Validation commands
 

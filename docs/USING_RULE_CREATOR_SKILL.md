@@ -93,7 +93,7 @@ If you need to create custom rules in your deployed project:
 ### Option 2: Manual Rule Creation
 
 Follow the manual rule creation workflow:
-1. Read `rules/002a-rule-creation-guide.md` in your deployed rules
+1. Read `rules/002a-rule-creation.md` in your deployed rules
 2. Copy an existing rule as a template
 3. Manually fill all sections
 4. Validate structure matches schema
@@ -151,7 +151,7 @@ exclude_skills = [
 ### Q: Can teams create their own rules without this skill?
 
 **A:** Yes! Teams can:
-1. Follow manual rule creation guide (`rules/002a-rule-creation-guide.md`)
+1. Follow manual rule creation guide (`rules/002a-rule-creation.md`)
 2. Reference the source repository and use the skill from there
 3. Copy and adapt existing rules as templates
 

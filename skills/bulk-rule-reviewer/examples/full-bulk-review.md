@@ -52,7 +52,7 @@ Found 113 rule files
 rules/000-global-core.md
 rules/001-memory-bank.md
 rules/002-rule-governance.md
-rules/002a-rule-creation-guide.md
+rules/002a-rule-creation.md
 rules/002b-rule-maintenance.md
 rules/002c-advanced-rule-patterns.md
 rules/002d-rule-optimization.md
@@ -100,7 +100,7 @@ Skip existing: true
    Complete: 88/100 (EXECUTABLE_WITH_REFINEMENTS)
   Review written to: reviews/002-rule-governance-claude-sonnet-45-2026-01-06.md
 
-[4/113] Reviewing: rules/002a-rule-creation-guide.md
+[4/113] Reviewing: rules/002a-rule-creation.md
   Invoking rule-reviewer skill...
   Parsing: Creation guide, 523 lines, ~4200 tokens
   Evaluating: Actionability (24/25), Completeness (24/25),
@@ -302,7 +302,7 @@ Files generated:
 **Impact:** Agents cannot execute this rule without extensive judgment calls. 
 Multiple code paths blocked by missing specifications.
 
-**Recommendation:** Complete rewrite using 002a-rule-creation-guide.md as template.
+**Recommendation:** Complete rewrite using 002a-rule-creation.md as template.
 Focus on quantifying all thresholds and adding explicit error recovery.
 
 **Estimated Effort:** 4-6 hours

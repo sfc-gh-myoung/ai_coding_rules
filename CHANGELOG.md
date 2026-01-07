@@ -8,6 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **feat(governance):** refactor 002-series rules to eliminate duplication and improve organization
+  - Created 002b-rule-update.md (v1.0.0) for update/maintenance workflows (~3500 tokens)
+  - Moved Rule Versioning Policy from 002-rule-governance.md to 002b-rule-update.md
+  - Added comprehensive update workflow guidance: when to update vs create, change type determination, common scenarios
+  - Added 5 anti-patterns for rule updates with correct patterns
+  - Renamed 002a-rule-creation-guide.md to 002a-rule-creation.md (v3.1.1 to v3.2.0)
+  - Shifted 002b-rule-optimization.md to 002c-rule-optimization.md (v3.0.0 to v3.0.1)
+  - Shifted 002c-advanced-rule-patterns.md to 002d-advanced-rule-patterns.md (v3.0.0 to v3.0.1)
+  - Shifted 002d-schema-validator-usage.md to 002e-schema-validator-usage.md (v3.0.0 to v3.0.1)
+  - Shifted 002e-agent-optimization.md to 002f-agent-optimization.md (v3.0.0 to v3.0.1)
+  - Shifted 002f-claude-code-skills.md to 002g-claude-code-skills.md (v3.1.0 to v3.1.1)
+  - Refactored 002-rule-governance.md (v3.1.0 to v3.2.0 MAJOR - removed versioning section, ~600 tokens saved)
+  - Refactored 002a-rule-creation.md (v3.1.1 to v3.2.0 MAJOR - removed duplication, focused on creation only, ~1000 tokens saved)
+  - Updated all Depends/Related references across 27 files to reflect new filenames
+  - Impact: Eliminates duplication between governance and creation rules, provides dedicated update guidance, improves rule discovery
+  - Total token savings: ~1600 tokens across refactored rules
+  - Rationale: Previous structure had versioning policy only in governance, creation guide duplicated schema content, no dedicated update workflow
+
 - **feat(governance):** implement rule versioning policy (002-rule-governance v3.1.0, 002a-rule-creation-guide v3.1.0)
   - Added comprehensive "Rule Versioning Policy" section to 002-rule-governance.md (~100 lines)
   - Defines semantic versioning for rules: MAJOR (breaking), MINOR (additive), PATCH (fixes)

@@ -32,7 +32,7 @@ Comprehensive tool design practices that maximize agent effectiveness. Covers si
 - **003-context-engineering.md** - Context management and attention budgets
 
 **Related:**
-- **002e-agent-optimization.md** - Agent-first design principles
+- **002f-agent-optimization.md** - Agent-first design principles
 - **002b-rule-optimization.md** - Token budgets and optimization
 
 ### External Documentation

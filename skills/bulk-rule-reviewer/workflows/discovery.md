@@ -73,7 +73,7 @@ Found 113 rule files
 rules/000-global-core.md
 rules/001-memory-bank.md
 rules/002-rule-governance.md
-rules/002a-rule-creation-guide.md
+rules/002a-rule-creation.md
 rules/002b-rule-maintenance.md
 ...
 rules/950-create-dbt-semantic-view.md

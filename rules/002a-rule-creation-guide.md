@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
-**Keywords:** rule creation, workflow, step-by-step guide, naming conventions, metadata setup, v3.2 schema, validation, rule numbering, from scratch
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-01-07
+**Keywords:** rule creation, workflow, step-by-step guide, naming conventions, metadata setup, v3.2 schema, validation, rule numbering, from scratch, versioning, RuleVersion, LastUpdated
 **TokenBudget:** ~5200
 **ContextTier:** High
 **Depends:** 002-rule-governance.md, 000-global-core.md
@@ -252,7 +252,8 @@ Review 2-3 existing rules to understand:
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
+**RuleVersion:** v1.0.0
+**LastUpdated:** [YYYY-MM-DD]
 **Keywords:** [5-20 keywords here]
 **TokenBudget:** ~[estimate]
 **ContextTier:** [Critical|High|Medium|Low]
@@ -281,6 +282,32 @@ Review 2-3 existing rules to understand:
 ### External Documentation
 
 - **[Resource Name]:** [URL or path]
+```
+
+### Metadata Field Guidance
+
+#### RuleVersion and LastUpdated
+
+**For New Rules:**
+- **RuleVersion:** Always start at `v1.0.0` for new rule files
+- **LastUpdated:** Set to creation date in `YYYY-MM-DD` format
+
+**For Existing Rules:**
+See `002-rule-governance.md` "Rule Versioning Policy" for complete semantic versioning guidance.
+
+**Quick Reference:**
+- **MAJOR (vX.0.0):** Breaking changes (removing sections, changing Contract structure)
+- **MINOR (vX.Y.0):** Additive changes (new keywords, expanded scope, new examples)
+- **PATCH (vX.Y.Z):** Non-functional fixes (typos, broken links, formatting)
+- **LastUpdated:** Update to current date for ANY change
+
+**Example Version Progression:**
+```
+v1.0.0 (2026-01-01) - Initial rule creation
+v1.1.0 (2026-01-05) - Added 5 new keywords for discoverability
+v1.1.1 (2026-01-06) - Fixed typo in Contract section
+v1.2.0 (2026-01-10) - Added anti-patterns section with 3 examples
+v2.0.0 (2026-02-01) - Migrated from v3.1 to v3.2 schema
 ```
 
 ### Importance Markers

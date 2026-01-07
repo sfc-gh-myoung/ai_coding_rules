@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-01-07
 **Keywords:** git, git commit, commit, commit message, commit messages, staging, staged changes, workflow, branching strategy, GitHub, pull requests, feature branches, protected branches, git validation, branch naming, PR workflow, Conventional Commits, conventional commit format
 **TokenBudget:** ~6500
 **ContextTier:** Medium

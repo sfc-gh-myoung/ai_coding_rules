@@ -38,7 +38,7 @@ python scripts/token_validator.py -d rules/
 ### How It Works
 1. **Estimates tokens** using word count × 1.3 multiplier
 2. **Compares** estimate against declared TokenBudget
-3. **Updates** if difference exceeds threshold (default ±15%)
+3. **Updates** if difference exceeds threshold (default ±5%)
 4. **Rounds** to nearest 50 for clean numbers
 5. **Updates** TokenBudget, LastUpdated, Version fields
 
@@ -59,7 +59,7 @@ task generate:tokens
 
 ### Options
 - `--directory, -d`: Target directory (default: templates/)
-- `--threshold, -t`: Update threshold % (default: 15.0)
+- `--threshold, -t`: Update threshold % (default: 5.0)
 - `--dry-run, -n`: Preview without modifying
 - `--detailed`: Show analysis for all files
 - `--verbose, -v`: Show verbose output
@@ -83,7 +83,7 @@ $ python scripts/token_validator.py --dry-run
 
 TOKEN BUDGET UPDATE SUMMARY
 Total files analyzed: 72
-  [OK]      Within ±15.0%: 70
+  [OK]      Within ±5.0%: 70
   [UPDATE]  Need updating: 2
   
 [DRY RUN] Would update 2 files
@@ -104,7 +104,7 @@ $ python scripts/token_validator.py
 
 TOKEN BUDGET UPDATE SUMMARY
 Total files analyzed: 72
-  [OK]      Within ±15.0%: 72
+  [OK]      Within ±5.0%: 72
   [UPDATE]  Need updating: 0
   
 Successfully updated 0 files
@@ -113,7 +113,7 @@ Successfully updated 0 files
 ### Notes
 - Always run with `--dry-run` first to preview changes
 - Token estimates are based on word count, not actual tokenization
-- Threshold of ±15% ensures high accuracy for token budgets
+- Threshold of ±5% ensures high accuracy for token budgets
 - Script preserves file structure and formatting
 - Updates are safe and reversible via git
 

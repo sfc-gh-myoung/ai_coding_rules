@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **fix(skills):** correct skill composition pattern in bulk-rule-reviewer
+  - Fixed incorrect "skill invocation" paradigm in bulk-rule-reviewer/SKILL.md
+  - Skills cannot invoke other skills programmatically; they load and follow documented workflows
+  - Updated Critical Execution Protocol section to clarify: load rule-reviewer/SKILL.md → follow its workflow
+  - Removed misleading "Present this exact syntax to yourself" invocation pattern
+  - Updated workflows/review-execution.md to explain direct workflow execution pattern
+  - Updated README.md to remove "invocation" language throughout
+  - Root cause: Skills are documentation for guiding behavior, not callable subroutines
+  - Impact: Prevents future skills from attempting impossible programmatic invocation patterns
+
+### Documentation
+- **docs(skills):** add skill composition pattern to 002f-claude-code-skills.md
+  - New "Advanced Patterns" subsection: "Skill Composition Pattern (Orchestrator + Worker)"
+  - Documents how bulk/batch skills work: load worker SKILL.md → follow its workflow for each item
+  - Explains architecture: orchestrator handles batch logic, worker handles item processing
+  - Provides correct vs incorrect implementation examples
+  - Real-world example: bulk-rule-reviewer following rule-reviewer workflow
+  - Critical: Skills cannot "invoke" or "call" other skills; they follow documented processes
+  - ~1500 tokens added to clarify this non-obvious pattern
+
 ### Added
 - **feat(deployment):** add skills-only deployment mode for agent configuration directories
   - New `--only-skills` flag in rule_deployer.py for deploying skills without rules
@@ -29,6 +50,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Full coverage: all 6 skills have corresponding USING_*_SKILL.md documentation
 
 ### Changed
+- **refactor(docs,rules,scripts,skills):** tighten token budget variance threshold from ±15% to ±5%
+  - Updated default threshold in scripts/token_validator.py (UpdateConfig.update_threshold and argparse default)
+  - Updated validation criteria in rules/000-global-core.md (Priority 3 specification)
+  - Updated rule creation checklist in rules/002a-rule-creation-guide.md
+  - Updated optimization guidelines in rules/002b-rule-optimization.md (success criteria, negative tests, variance tolerance examples)
+  - Updated anti-pattern detection in rules/002e-agent-optimization.md
+  - Updated architecture documentation in docs/ARCHITECTURE.md (test description, CLI options, features)
+  - Updated token budget guide in docs/TOKEN_BUDGETS.md (workflow, options, examples, notes)
+  - Updated review scoring in skills/rule-reviewer/SKILL.md and skills/rule-reviewer/rubrics/token-efficiency.md (scoring ranges: ±6-10% Good, ±11-20% Acceptable)
+  - Updated aggregate reporting in skills/bulk-rule-reviewer/workflows/summary-report.md
+  - Rationale: Stricter threshold improves token budget accuracy for context window management and progressive loading decisions
+  - Historical CHANGELOG.md entries preserved (no retroactive changes to past ±15% references)
 - **refactor(rules):** align 002f-claude-code-skills.md with official Anthropic best practices
   - Updated YAML frontmatter requirements to match official specification (name max 64 chars, description max 1024 chars, no reserved words)
   - Added CRITICAL requirement: descriptions must be written in third person for skill discovery

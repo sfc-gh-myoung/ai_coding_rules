@@ -1045,7 +1045,7 @@ v3.0 includes comprehensive test coverage ensuring script reliability:
 **`tests/test_token_validator.py`**
 - Token count accuracy
 - TokenBudget format validation
-- Tolerance checks (±15% default threshold)
+- Tolerance checks (±5% default threshold)
 - Multiple rule validation
 - Statistical reporting
 
@@ -1289,7 +1289,7 @@ python scripts/token_validator.py PATH [OPTIONS]
 
 **Options:**
 - `PATH` — Rule file or directory to validate (positional argument)
-- `--threshold PERCENT` — Minimum difference to trigger update (default: 15%)
+- `--threshold PERCENT` — Minimum difference to trigger update (default: 5%)
 - `--dry-run` — Show what would be updated without making changes
 - `--detailed` — Show detailed analysis for all files
 - `--verbose` — Show verbose output
@@ -1297,7 +1297,7 @@ python scripts/token_validator.py PATH [OPTIONS]
 **Features:**
 - Validates single files or entire directories
 - Calculates accurate token estimates using word count method
-- Compares against declared TokenBudget with configurable threshold (default: ±15%)
+- Compares against declared TokenBudget with configurable threshold (default: ±5%)
 - Statistical summary for multiple files
 - Auto-updates TokenBudget when variance exceeds threshold (unless `--dry-run`)
 

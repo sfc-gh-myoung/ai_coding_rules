@@ -77,8 +77,8 @@ def get_timing_file(run_id: str) -> Path:
 
 
 def get_completed_file(run_id: str) -> Path:
-    """Get path to completed timing file."""
-    return get_temp_dir() / f"skill-timing-{run_id}-complete.json"
+    """Get path to completed timing file (saved to reviews/ for persistence)."""
+    return Path("reviews/.timing-data") / f"skill-timing-{run_id}-complete.json"
 
 
 def get_registry_file() -> Path:
@@ -211,7 +211,8 @@ def cleanup_stale_files():
     temp_dir = get_temp_dir()
     cutoff = time.time() - (TTL_DAYS * 24 * 60 * 60)
 
-    for pattern in ["skill-timing-*-complete.json", "skill-timing-*.json"]:
+    # Only clean up temp directory files (not reviews/.timing-data/)
+    for pattern in ["skill-timing-*.json"]:
         for filepath in glob.glob(str(temp_dir / pattern)):
             try:
                 if Path(filepath).stat().st_mtime < cutoff:
@@ -456,8 +457,9 @@ def cmd_end(args):
     if baseline:
         data["baseline_comparison"] = baseline
 
-    # Write completed file
+    # Write completed file (ensure directory exists)
     completed_file = get_completed_file(data["run_id"])
+    completed_file.parent.mkdir(parents=True, exist_ok=True)
     write_timing_file(completed_file, data)
 
     # Cleanup
@@ -477,22 +479,23 @@ def cmd_end(args):
 
 def cmd_baseline_set(args):
     """Set baseline from recent timing data."""
-    temp_dir = get_temp_dir()
+    timing_data_dir = Path("reviews/.timing-data")
     cutoff = time.time() - (args.days * 24 * 60 * 60)
 
     durations = []
-    for filepath in glob.glob(str(temp_dir / "skill-timing-*-complete.json")):
-        try:
-            data = json.loads(Path(filepath).read_text())
-            if (
-                data.get("skill_name") == args.skill
-                and data.get("review_mode") == args.mode
-                and data.get("model") == args.model
-                and data.get("end_epoch", 0) >= cutoff
-            ):
-                durations.append(data["duration_seconds"])
-        except Exception:
-            pass
+    if timing_data_dir.exists():
+        for filepath in glob.glob(str(timing_data_dir / "skill-timing-*-complete.json")):
+            try:
+                data = json.loads(Path(filepath).read_text())
+                if (
+                    data.get("skill_name") == args.skill
+                    and data.get("review_mode") == args.mode
+                    and data.get("model") == args.model
+                    and data.get("end_epoch", 0) >= cutoff
+                ):
+                    durations.append(data["duration_seconds"])
+            except Exception:
+                pass
 
     min_required = getattr(args, "min_samples", 5)  # Configurable minimum samples
 
@@ -570,22 +573,23 @@ def cmd_baseline_compare(args):
 
 def cmd_analyze(args):
     """Analyze timing data."""
-    temp_dir = get_temp_dir()
+    timing_data_dir = Path("reviews/.timing-data")
     cutoff = time.time() - (args.days * 24 * 60 * 60)
 
     runs = []
-    for filepath in glob.glob(str(temp_dir / "skill-timing-*-complete.json")):
-        try:
-            data = json.loads(Path(filepath).read_text())
-            if data.get("end_epoch", 0) < cutoff:
-                continue
-            if args.skill and data.get("skill_name") != args.skill:
-                continue
-            if args.model and data.get("model") != args.model:
-                continue
-            runs.append(data)
-        except Exception:
-            pass
+    if timing_data_dir.exists():
+        for filepath in glob.glob(str(timing_data_dir / "skill-timing-*-complete.json")):
+            try:
+                data = json.loads(Path(filepath).read_text())
+                if data.get("end_epoch", 0) < cutoff:
+                    continue
+                if args.skill and data.get("skill_name") != args.skill:
+                    continue
+                if args.model and data.get("model") != args.model:
+                    continue
+                runs.append(data)
+            except Exception:
+                pass
 
     if not runs:
         print("No timing data found matching criteria.")

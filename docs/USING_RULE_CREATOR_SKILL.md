@@ -34,7 +34,7 @@ If you're contributing to ai_coding_rules and need to create new rules:
 ### 1. Load the skill in this repository
 
 ```
-@skills/rule-creator/SKILL.md
+Load skills/rule-creator/SKILL.md
 ```
 
 ### 2. Request rule creation

@@ -29,7 +29,7 @@ Output: `reviews/200-python-core-claude-sonnet-45-2026-01-06.md`
 | Completeness | 25% | 25 | All scenarios covered? |
 | Consistency | 15% | 15 | Internal alignment correct? |
 | Parsability | 15% | 15 | Schema valid? |
-| Token Efficiency | 10% | 10 | Within ±15% budget? |
+| Token Efficiency | 10% | 10 | Within ±5% budget? |
 | Staleness | 10% | 10 | Current patterns? |
 
 **Detailed rubrics:** `rubrics/[dimension].md`

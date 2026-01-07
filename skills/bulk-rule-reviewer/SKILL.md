@@ -50,58 +50,56 @@ Execute comprehensive agent-centric reviews on all rule files in `rules/` direct
 
 ### 🚨 MANDATORY ENFORCEMENT
 
-This skill MUST invoke `rule-reviewer` skill exactly once for each rule file.
+This skill MUST execute the complete rule-reviewer workflow for each rule file.
 
-### How to Invoke rule-reviewer
+### How Skills Work Together
 
-Present this exact syntax to yourself for each rule:
+**IMPORTANT:** Skills cannot "invoke" other skills programmatically. Skills are documentation that guides agent behavior, not callable subroutines.
 
-```
-Use the rule-reviewer skill.
+**Correct pattern:**
+1. Load `skills/rule-reviewer/SKILL.md` to understand the review workflow
+2. Load `skills/rule-reviewer/rubrics/*.md` as needed for each dimension
+3. Execute the review workflow for each rule file
+4. Write review to `reviews/` following rule-reviewer's output format
+5. Continue to next rule
 
-target_file: rules/XXX-YYY.md
-review_date: YYYY-MM-DD
-review_mode: FULL
-model: <model>
-```
-
-Claude will:
-1. Load rule-reviewer/SKILL.md (progressive disclosure)
-2. Read rubrics/ files as needed
-3. Execute complete review workflow
-4. Write review to reviews/
-5. Respond with: "Review written to: reviews/[filename].md"
-
-Wait for confirmation before proceeding to next rule.
+**Why this matters:**
+- The rule-reviewer skill documents a proven, high-quality review process
+- Following its workflow ensures consistency and completeness
+- Progressive disclosure (loading rubrics as needed) manages context efficiently
+- Each rule deserves full evaluation per the documented process
 
 ### Protocol Violations (FORBIDDEN)
 
-Agents commonly attempt these optimizations. **ALL ARE FORBIDDEN:**
+Agents commonly attempt these shortcuts. **ALL ARE FORBIDDEN:**
 
-- ❌ **Reimplementing review logic** - Reading rubrics and scoring yourself
+- ❌ **Skipping rubric consultation** - Scoring without reading dimension rubrics
 - ❌ **Batch optimization** - Aggregating multiple rules into single review
 - ❌ **Parallel shortcuts** - Running concurrently unless max_parallel set
-- ❌ **Token-saving shortcuts** - Generating abbreviated reviews directly
-- ❌ **Time-saving shortcuts** - Skipping rubric-based scoring
-- ❌ **Direct file writes** - Writing reviews without invoking rule-reviewer
-- ❌ **Template-based reviews** - Using examples/ as templates
+- ❌ **Token-saving shortcuts** - Generating abbreviated reviews
+- ❌ **Time-saving shortcuts** - Estimating scores without proper analysis
+- ❌ **Template-based reviews** - Using examples/ as templates without actual analysis
+- ❌ **Skipping schema validation** - Not running schema_validator.py
 
 ### Required Actions
 
-- ✅ Invoke `rule-reviewer` skill once per rule file
-- ✅ Pass all parameters: target_file, review_date, review_mode, model
-- ✅ Wait for "Review written to: ..." confirmation
-- ✅ Parse output path from response
-- ✅ Validate review file exists before continuing
+- ✅ Load rule-reviewer/SKILL.md to understand complete workflow
+- ✅ Load rubrics/*.md files as needed for each dimension being scored
+- ✅ Run schema_validator.py for each rule
+- ✅ Perform Agent Execution Test (count blocking issues)
+- ✅ Score all dimensions according to review_mode (FULL/FOCUSED/STALENESS)
+- ✅ Generate specific recommendations with line numbers
+- ✅ Write complete review to reviews/ with proper formatting
 - ✅ Follow workflows sequentially (discovery → review-execution → aggregation → summary-report)
 - ✅ Show progress every 10 reviews (not more frequently)
 
 ### Execution Acknowledgment
 
 **Before proceeding, agent must confirm:**
-- [ ] Will invoke rule-reviewer for each rule (no reimplementation)
-- [ ] Will present skill invocation syntax and let SKILL.md guide execution
-- [ ] Will follow workflows exactly as written (discovery → review-execution → aggregation → summary-report)
+- [ ] Will follow rule-reviewer workflow for each rule (complete process)
+- [ ] Will load and consult rubrics for dimension scoring
+- [ ] Will run schema validation for each rule
+- [ ] Will perform Agent Execution Test for each rule
 - [ ] Will NOT optimize for time/tokens at expense of quality
 - [ ] Understands process takes 5-10 hours for 113 rules
 - [ ] Will use resume capability (skip_existing) if interrupted
@@ -110,23 +108,25 @@ Agents commonly attempt these optimizations. **ALL ARE FORBIDDEN:**
 
 ### Verification
 
-Each review invocation must produce:
-- Skill invocation syntax presented
-- rule-reviewer executes complete workflow
-- Response contains: "Review written to: reviews/[filename].md"
-- Review file exists at specified path
+Each review must contain:
+- Executive Summary with scores table (all 6 dimensions for FULL mode)
+- Schema Validation Results (from schema_validator.py output)
+- Agent Executability Verdict (based on Agent Execution Test)
+- Dimension Analysis sections (detailed scoring rationale)
+- Critical Issues list (specific line numbers)
+- Recommendations (prioritized with expected score improvements)
+- Post-Review Checklist
+- Conclusion
 
 **Violation consequences:**
 - Invalid reviews rejected from summary
 - Execution halted with protocol violation error
 - User notified of shortcut attempt
 
-**Why this matters:**
-- rule-reviewer/SKILL.md contains concise overview
-- rubrics/ contain detailed scoring criteria (progressive disclosure)
-- Reimplementation loses review quality and consistency
-- Token/time optimization sacrifices accuracy
-- Each rule deserves full evaluation
+**Quality gate:**
+- Review file size 3000-8000 bytes (typical for FULL mode)
+- < 2000 bytes = too abbreviated (VIOLATION)
+- All required sections present (VIOLATION if missing)
 
 ## Workflow
 

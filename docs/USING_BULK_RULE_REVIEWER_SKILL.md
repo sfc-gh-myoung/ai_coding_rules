@@ -46,7 +46,7 @@ If you're working in the ai_coding_rules repository and want to run bulk rule re
 ### 1. Load the skill
 
 ```text
-@skills/bulk-rule-reviewer/SKILL.md
+Load skills/bulk-rule-reviewer/SKILL.md
 ```
 
 ### 2. Request a bulk review

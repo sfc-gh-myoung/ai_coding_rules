@@ -156,7 +156,7 @@ These patterns waste context budget:
 
 - **Redundant content** that could be referenced from other rules
 - **Verbose prose** where structured lists suffice
-- **TokenBudget variance >15%** from actual count
+- **TokenBudget variance >5%** from actual count
 - **Duplicate examples** across rules or within same rule
 - **Buried critical information** in middle of paragraphs
 

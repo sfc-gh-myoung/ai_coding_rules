@@ -2,6 +2,8 @@
 
 **Note:** The Rule Creator Skill is **not deployed** to team projects. It remains in the ai_coding_rules source repository for internal use only.
 
+**Last Updated:** 2026-01-07
+
 ## Background
 
 The rule-creator skill automates the creation of new Cursor rules following schema standards. It's designed for use within the ai_coding_rules project itself, not for deployment to other projects.
@@ -85,13 +87,13 @@ If you need to create custom rules in your deployed project:
 ### Option 1: Use the Source Repository
 
 1. Clone or reference the ai_coding_rules repository
-2. Load the skill from the source: `@../ai_coding_rules/skills/rule-creator/SKILL.md`
+2. Load the skill from the source: `../ai_coding_rules/skills/rule-creator/SKILL.md`
 3. Run scripts from the source repository as shown above
 
 ### Option 2: Manual Rule Creation
 
 Follow the manual rule creation workflow:
-1. Read `@rules/002a-rule-creation-guide.md` in your deployed rules
+1. Read `rules/002a-rule-creation-guide.md` in your deployed rules
 2. Copy an existing rule as a template
 3. Manually fill all sections
 4. Validate structure matches schema
@@ -99,9 +101,9 @@ Follow the manual rule creation workflow:
 ## Examples
 
 Complete workflow examples are available in the structured skill:
-- `@skills/rule-creator/examples/frontend-example.md` - DaisyUI (JavaScript)
-- `@skills/rule-creator/examples/python-example.md` - pytest-mock
-- `@skills/rule-creator/examples/snowflake-example.md` - Hybrid Tables
+- `skills/rule-creator/examples/frontend-example.md` - DaisyUI (JavaScript)
+- `skills/rule-creator/examples/python-example.md` - pytest-mock
+- `skills/rule-creator/examples/snowflake-example.md` - Hybrid Tables
 
 ## Time Savings
 
@@ -113,10 +115,10 @@ Using the skill vs. manual rule creation:
 ## Support
 
 For detailed documentation:
-- **Skill README:** `@skills/rule-creator/README.md`
-- **Workflow guides:** `@skills/rule-creator/workflows/*.md`
-- **Rule governance:** `@rules/002-rule-governance.md`
-- **Schema validation:** `@rules/002d-schema-validator-usage.md`
+- **Skill README:** `skills/rule-creator/README.md`
+- **Workflow guides:** `skills/rule-creator/workflows/*.md`
+- **Rule governance:** `rules/002-rule-governance.md`
+- **Schema validation:** `rules/002d-schema-validator-usage.md`
 
 ## FAQ
 
@@ -149,7 +151,7 @@ exclude_skills = [
 ### Q: Can teams create their own rules without this skill?
 
 **A:** Yes! Teams can:
-1. Follow manual rule creation guide (`@rules/002a-rule-creation-guide.md`)
+1. Follow manual rule creation guide (`rules/002a-rule-creation-guide.md`)
 2. Reference the source repository and use the skill from there
 3. Copy and adapt existing rules as templates
 

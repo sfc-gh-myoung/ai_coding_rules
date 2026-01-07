@@ -2,15 +2,17 @@
 
 **Note:** The Rule Reviewer Skill is **not deployed** to team projects. It remains in the ai_coding_rules source repository for internal use only.
 
+**Last Updated:** 2026-01-07
+
 ## Background
 
 The rule-reviewer skill automates running the Agent-Centric Rule Review prompt against
 a target rule file and writing the results to `reviews/` using the required filename
-format from `skills/rule-reviewer/PROMPT.md`.
+format from `skills/rule-reviewer/rubrics/*.md`.
 
 Key behaviors:
 
-- Uses the rubric and required output structure from `skills/rule-reviewer/PROMPT.md`
+- Uses the rubric and required output structure from `skills/rule-reviewer/rubrics/*.md`
 - **100-point scoring system** with weighted dimensions (Actionability 25, Completeness 25, Consistency 15, Parsability 15, Token Efficiency 10, Staleness 10)
 - **Priority Compliance Gate** — Evaluates rules against Design Priority Hierarchy before scoring
 - **Agent Execution Test** — First gate counts blocking issues (undefined thresholds, missing branches, ambiguous actions)
@@ -36,11 +38,11 @@ Reviews evaluate rules against the priority order defined in `000-global-core.md
 The rule-reviewer skill is designed for **rule maintainers** working in the source
 ai_coding_rules repository. It:
 
-1. **Requires the rubric prompt** — `skills/rule-reviewer/PROMPT.md` (colocated with skill)
+1. **Requires the rubric files** — `skills/rule-reviewer/rubrics/*.md` (colocated with skill)
 2. **Writes to reviews/** — A directory structure specific to rule maintenance
 3. **Targets rule files** — Most useful for rule authors validating their work
 
-For deployed projects, teams should reference the skill's `PROMPT.md` directly if they need to review rules.
+For deployed projects, teams should reference the skill's rubric files in `skills/rule-reviewer/rubrics/` directly if they need to review rules.
 
 ## Configuration
 
@@ -69,7 +71,7 @@ Load skills/rule-reviewer/SKILL.md
 ```text
 Use the rule-reviewer skill.
 
-target_file: rules/810-project-readme.md
+target_file: rules/801-project-readme.md
 review_date: 2026-01-06
 review_mode: FULL
 model: claude-sonnet-45
@@ -80,7 +82,7 @@ model: claude-sonnet-45
 ```text
 Use the rule-reviewer skill.
 
-target_file: rules/810-project-readme.md
+target_file: rules/801-project-readme.md
 review_date: 2026-01-06
 review_mode: FULL
 model: claude-sonnet-45
@@ -91,7 +93,7 @@ timing_enabled: true
 
 The skill will write the review to:
 
-`reviews/810-project-readme-claude-sonnet-45-2026-01-06.md`
+`reviews/801-project-readme-claude-sonnet-45-2026-01-06.md`
 
 If the file already exists, it uses suffixes: `-01.md`, `-02.md`, etc.
 
@@ -116,10 +118,10 @@ The output filename always uses the base filename (without extension) of `target
 
 ### Q: Where does the rubric come from?
 
-**A:** The skill uses `skills/rule-reviewer/PROMPT.md` as the rubric and required
+**A:** The skill uses rubric files in `skills/rule-reviewer/rubrics/` (actionability.md, completeness.md, consistency.md, parsability.md, token-efficiency.md, staleness.md) as the rubric and required
 output format and writes the final review to `reviews/`.
 
 ### Q: Can I use rule-reviewer in a deployed project?
 
 **A:** No, this skill is internal-only. For deployed projects, reference the
-skill's `PROMPT.md` directly for the review rubric.
+skill's rubric files in `skills/rule-reviewer/rubrics/` directly for the review rubric.

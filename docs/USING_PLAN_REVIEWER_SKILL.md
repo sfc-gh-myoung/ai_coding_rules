@@ -1,10 +1,12 @@
 # Using the Plan Reviewer Skill
 
+**Last Updated:** 2026-01-07
+
 The Plan Reviewer Skill evaluates LLM-generated plans to ensure autonomous agents can execute them successfully. It scores plans across 8 dimensions optimized for agent executability using a 100-point scoring system.
 
 ## Background
 
-The plan-reviewer skill runs Agent-Centric Plan Reviews using the rubric in `skills/plan-reviewer/PROMPT.md` and writes results to `reviews/`.
+The plan-reviewer skill runs Agent-Centric Plan Reviews using the rubrics in `skills/plan-reviewer/rubrics/*.md` and writes results to `reviews/`.
 
 Key behaviors:
 
@@ -285,7 +287,7 @@ Use plan-reviewer for plans an agent will execute. Use doc-reviewer for document
 
 ### Q: Where does the rubric come from?
 
-**A:** The skill uses `skills/plan-reviewer/PROMPT.md` as the rubric and required output format.
+**A:** The skill uses rubric files in `skills/plan-reviewer/rubrics/` (executability.md, completeness.md, success-criteria.md, scope.md, dependencies.md, decomposition.md, context.md, risk-awareness.md) as the rubric and required output format.
 
 ## Integration with Other Skills
 
@@ -304,8 +306,8 @@ If a plan references rules:
 ## Support
 
 For detailed documentation:
-- **Skill README:** `@skills/plan-reviewer/README.md`
-- **Workflow guides:** `@skills/plan-reviewer/workflows/*.md`
-- **Examples:** `@skills/plan-reviewer/examples/*.md`
-- **Validation tests:** `@skills/plan-reviewer/tests/*.md`
+- **Skill README:** `skills/plan-reviewer/README.md`
+- **Workflow guides:** `skills/plan-reviewer/workflows/*.md`
+- **Examples:** `skills/plan-reviewer/examples/*.md`
+- **Validation tests:** `skills/plan-reviewer/tests/*.md`
 

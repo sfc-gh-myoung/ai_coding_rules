@@ -1,10 +1,12 @@
 # Using the Doc Reviewer Skill
 
+**Last Updated:** 2026-01-07
+
 The Doc Reviewer Skill automates comprehensive documentation reviews for your project. It evaluates `README.md`, `CONTRIBUTING.md`, and files in `docs/` against six quality dimensions.
 
 ## Background
 
-The doc-reviewer skill runs Agent-Centric Documentation Reviews using the rubric in `skills/doc-reviewer/PROMPT.md` and writes results to `reviews/`.
+The doc-reviewer skill runs Agent-Centric Documentation Reviews using the rubrics in `skills/doc-reviewer/rubrics/*.md` and writes results to `reviews/`.
 
 Key behaviors:
 
@@ -230,7 +232,7 @@ Verify code references are still valid after major refactoring.
 
 ### Q: Can I customize the review dimensions?
 
-**A:** In FOCUSED mode, you can specify which dimensions to evaluate. The rubric itself (`PROMPT.md`) can be customized for project-specific needs.
+**A:** In FOCUSED mode, you can specify which dimensions to evaluate. The rubric files in `skills/doc-reviewer/rubrics/` can be customized for project-specific needs.
 
 ### Q: How long does a FULL review take?
 
@@ -241,13 +243,13 @@ Verify code references are still valid after major refactoring.
 
 ### Q: Where does the rubric come from?
 
-**A:** The skill uses `skills/doc-reviewer/PROMPT.md` as the rubric and required output format.
+**A:** The skill uses rubric files in `skills/doc-reviewer/rubrics/` (accuracy.md, completeness.md, clarity.md, structure.md, staleness.md, consistency.md) as the rubric and required output format.
 
 ## Support
 
 For detailed documentation:
-- **Skill README:** `@skills/doc-reviewer/README.md`
-- **Workflow guides:** `@skills/doc-reviewer/workflows/*.md`
-- **Examples:** `@skills/doc-reviewer/examples/*.md`
-- **Validation tests:** `@skills/doc-reviewer/tests/*.md`
+- **Skill README:** `skills/doc-reviewer/README.md`
+- **Workflow guides:** `skills/doc-reviewer/workflows/*.md`
+- **Examples:** `skills/doc-reviewer/examples/*.md`
+- **Validation tests:** `skills/doc-reviewer/tests/*.md`
 

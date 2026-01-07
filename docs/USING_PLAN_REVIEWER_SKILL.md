@@ -6,11 +6,11 @@ The Plan Reviewer Skill evaluates LLM-generated plans to ensure autonomous agent
 
 ## Background
 
-The plan-reviewer skill runs Agent-Centric Plan Reviews using the rubrics in `skills/plan-reviewer/rubrics/*.md` and writes results to `reviews/`.
+The plan-reviewer skill runs Agent-Centric Plan Reviews (reviews optimized for AI agent understanding and executability) using the rubrics in `skills/plan-reviewer/rubrics/*.md` and writes results to `reviews/`.
 
 Key behaviors:
 
-- **100-point scoring system** with weighted dimensions (Executability 20, Completeness 20, Success Criteria 20, Scope 15, Dependencies 10, Decomposition 5, Context 5, Risk Awareness 5)
+- **100-point scoring system** with weighted dimensions (dimensions with different point values based on importance) (Executability 20, Completeness 20, Success Criteria 20, Scope 15, Dependencies 10, Decomposition 5, Context 5, Risk Awareness 5)
 - **Priority Compliance Gate** — Evaluates plans against Design Priority Hierarchy before scoring
 - **Agent Execution Test** — First gate counts blocking issues (ambiguous phrases, implicit commands, missing branches, undefined thresholds)
 - Reviews plans against 8 dimensions: Executability, Completeness, Success Criteria, Scope, Dependencies, Decomposition, Context, Risk Awareness
@@ -159,7 +159,7 @@ review_mode: META-REVIEW
 - Setup, validation, cleanup, error recovery coverage
 
 **Success Criteria (20 points):**
-- Can agent verify completion programmatically?
+- Can agent verify completion programmatically? (Agent-verifiable criteria can be checked via exit codes, file existence, etc. without human judgment)
 - Percentage of tasks with agent-verifiable criteria
 
 **Scope (15 points):**

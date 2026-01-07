@@ -6,15 +6,16 @@
 
 ## Background
 
-The rule-reviewer skill automates running the Agent-Centric Rule Review prompt against
+The rule-reviewer skill automates running the Agent-Centric Rule Review (review optimized for AI agent understanding and executability) prompt against
 a target rule file and writing the results to `reviews/` using the required filename
 format from `skills/rule-reviewer/rubrics/*.md`.
 
 Key behaviors:
 
 - Uses the rubric and required output structure from `skills/rule-reviewer/rubrics/*.md`
-- **100-point scoring system** with weighted dimensions (Actionability 25, Completeness 25, Consistency 15, Parsability 15, Token Efficiency 10, Staleness 10)
+- **100-point scoring system** with weighted dimensions (dimensions with different point values based on importance) (Actionability 25, Completeness 25, Consistency 15, Parsability 15, Token Efficiency 10, Staleness 10)
 - **Priority Compliance Gate** — Evaluates rules against Design Priority Hierarchy before scoring
+  - Evaluates rules against the Design Priority Hierarchy from 000-global-core.md before scoring
 - **Agent Execution Test** — First gate counts blocking issues (undefined thresholds, missing branches, ambiguous actions)
 - Computes `OUTPUT_FILE` as:
   - `reviews/<rule-name>-<model>-<YYYY-MM-DD>.md`

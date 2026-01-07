@@ -8,11 +8,11 @@ The Skill Timing Skill provides execution timing instrumentation for measuring a
 
 The skill-timing skill enables performance measurement and comparison for skill executions through:
 
-- Wall-clock duration tracking with microsecond precision
+- Wall-clock duration (actual elapsed time) tracking with microsecond precision (accurate to millionths of a second)
 - Intermediate checkpoint recording for bottleneck identification
 - Token usage and cost estimation
 - Real-time anomaly detection (shortcuts, timeouts)
-- Historical baseline comparison
+- Historical baseline comparison (performance vs previous runs)
 - Cross-model and cross-agent performance analysis
 
 ## Quick Start
@@ -93,7 +93,7 @@ bash skills/skill-timing/scripts/run_timing.sh end \
     --output-tokens 3800
 ```
 
-**Output:** STDOUT timing summary (agent must parse and embed in file)
+**Output:** STDOUT (standard output) timing summary (agent must parse and embed in file)
 
 ### baseline set
 

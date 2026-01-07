@@ -145,7 +145,7 @@ skip_existing: true
 
 **Benefits:**
 - Resume after interruption without re-work
-- Idempotent execution (safe to run multiple times)
+- Idempotent execution (safe to run multiple times without side effects)
 - Save 3-4 hours when resuming mid-batch
 
 ## Execution Timing

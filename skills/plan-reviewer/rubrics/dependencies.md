@@ -3,48 +3,136 @@
 ## Scoring Criteria
 
 ### 5/5 (10 points): Excellent
-- All prerequisites listed
-- Tool versions specified
-- Ordering dependencies clear
-- Access requirements stated
-- Environment assumptions explicit
+- 5/5 dependency categories addressed
+- 100% tools have versions specified
+- Task ordering dependencies explicit
+- Access requirements with verification
+- Environment assumptions documented
 
 ### 4/5 (8 points): Good
-- Most prerequisites listed
-- Most versions specified
-- Ordering mostly clear
+- 4/5 dependency categories addressed
+- 80%+ tools have versions
+- Most ordering clear
+- Access requirements stated
 
 ### 3/5 (6 points): Acceptable
-- Some prerequisites listed
-- Some versions specified
+- 3/5 dependency categories addressed
+- 60-79% tools have versions
 - Some ordering clear
+- Partial access requirements
 
 ### 2/5 (4 points): Needs Work
-- Few prerequisites listed
-- Few versions specified
+- 2/5 dependency categories addressed
+- 40-59% tools have versions
 - Ordering unclear
+- Access requirements missing
 
 ### 1/5 (2 points): Poor
-- Prerequisites missing
-- No versions
+- 0-1/5 dependency categories addressed
+- <40% tools have versions
 - No ordering
+- No access requirements
 
-## Dependency Categories
+## Counting Definitions
+
+### Dependency Categories
+
+**Five categories (count 0-5):**
+
+**Dependency Category Checklist:**
+- 1. Tool dependencies: Present? Versions specified?
+- 2. Access requirements: Present? Verification commands?
+- 3. Ordering dependencies: Present? Explicit sequence?
+- 4. Environment assumptions: Present? Complete?
+- 5. Data dependencies: Present? Verification commands?
+
+**Scoring by categories:**
+- 5/5 categories: Full credit
+- 4/5 categories: 4/5 maximum
+- 3/5 categories: 3/5 maximum
+- 2/5 categories: 2/5 maximum
+- 0-1/5 categories: 1/5 maximum
+
+### Tool Version Coverage
+
+**Count tools with explicit versions:**
+
+**Tool Version Checklist (example):**
+- Python: Listed? Version specified (e.g., 3.11+)?
+- Node.js: Listed? Version specified (e.g., 20+)?
+- PostgreSQL: Listed? Version specified (e.g., 15+)?
+- Docker: Listed? Version specified (e.g., 24+)?
+
+**Coverage calculation:**
+```
+Version coverage % = (tools with versions / tools listed) × 100
+```
+
+### Ordering Clarity
+
+**Check for each task dependency:**
+- Is dependency stated explicitly?
+- Is order unambiguous?
+- Can agent determine sequence?
+
+**Scoring:**
+- All explicit with rationale: Full credit
+- All explicit, no rationale: -0.5 points
+- Some implicit: -1 point
+- Mostly unclear: -2 points
+
+### Access Requirements
+
+**Required elements:**
+- Credential types needed
+- Permission levels
+- Verification commands
+
+**Scoring:**
+- Complete with verification: Full credit
+- Listed without verification: -1 point
+- Missing: -2 points
+
+### Environment Assumptions
+
+**Required elements:**
+
+**Environment Element Checklist:**
+- Operating system: Documented?
+- Shell type: Documented?
+- Network access: Documented?
+- Disk space: Documented?
+- Memory: Documented?
+- Available ports: Documented?
+
+**Scoring by coverage:**
+- 5-6/6 elements: Full credit
+- 3-4/6 elements: -1 point
+- 1-2/6 elements: -2 points
+- 0/6 elements: -3 points
+
+## Score Decision Matrix
+
+**Score Tier Criteria:**
+- **5/5 (10 pts):** 5/5 categories, 100% tool versions, explicit ordering, complete access, 5-6/6 environment
+- **4/5 (8 pts):** 4/5 categories, 80%+ tool versions, mostly explicit ordering, listed access, 3-4/6 environment
+- **3/5 (6 pts):** 3/5 categories, 60-79% tool versions, some ordering, partial access, 1-2/6 environment
+- **2/5 (4 pts):** 2/5 categories, 40-59% tool versions, unclear ordering, missing access, 0/6 environment
+- **1/5 (2 pts):** 0-1/5 categories, <40% tool versions, no ordering, missing access, 0/6 environment
+
+## Dependency Category Details
 
 ### 1. Tool Dependencies
 
-List all required tools with versions:
-
-**Good example:**
 ```markdown
-## Prerequisites
+## Prerequisites (Example - Complete)
 
 **Required tools:**
-- Python 3.11+ (check: python --version)
-- Node.js 20+ (check: node --version)
-- PostgreSQL 15+ (check: psql --version)
-- Docker 24+ (check: docker --version)
-- uv 0.1.0+ (check: uv --version)
+- Python 3.11+ (check: python --version ≥ 3.11)
+- Node.js 20+ (check: node --version ≥ 20)
+- PostgreSQL 15+ (check: psql --version ≥ 15)
+- Docker 24+ (check: docker --version ≥ 24)
+- uv 0.1.0+ (check: uv --version ≥ 0.1)
 
 **Installation (if missing):**
 ```bash
@@ -55,11 +143,8 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ### 2. Access Requirements
 
-State required permissions/credentials:
-
-**Good example:**
 ```markdown
-## Required Access
+## Required Access (Example - Complete)
 
 - AWS account with S3 write permissions
 - GitHub personal access token (repo scope)
@@ -70,72 +155,71 @@ State required permissions/credentials:
 ```bash
 aws s3 ls  # Should list buckets
 gh auth status  # Should show logged in
-psql $PROD_DB_URL -c "SELECT 1"  # Should connect
+psql $PROD_DB_URL -c "SELECT 1"  # Should return 1
 ```
 ```
 
 ### 3. Ordering Dependencies
 
-Specify task execution order:
-
-**Good example:**
 ```markdown
-## Task Dependencies
-
-```
-graph TD
-  A[Install deps] --> B[Run tests]
-  A --> C[Build app]
-  B --> D[Deploy staging]
-  C --> D
-  D --> E[Deploy prod]
-```
+## Task Dependencies (Example - Complete)
 
 **Execution order:**
 1. Install deps (no dependencies)
-2. Run tests (depends: install deps)
-3. Build app (depends: install deps)
-4. Deploy staging (depends: tests + build)
-5. Deploy prod (depends: staging deploy)
+2. Run tests (depends: step 1)
+3. Build app (depends: step 1)
+4. Deploy staging (depends: steps 2 AND 3)
+5. Deploy prod (depends: step 4)
 
-**Can parallelize:** Tests and build can run simultaneously
+**Parallelization:**
+- Steps 2 and 3 can run simultaneously
+- Step 4 requires BOTH 2 and 3 complete
+
+**Dependency graph:**
+```
+1 -> 2 --+
+         +-> 4 -> 5
+1 -> 3 --+
+```
 ```
 
 ### 4. Environment Assumptions
 
-State assumed environment configuration:
-
-**Good example:**
 ```markdown
-## Environment Assumptions
+## Environment (Example - Complete)
 
-- Operating system: macOS or Linux (not Windows)
-- Shell: Bash or Zsh
-- Network: Internet access required
+- Operating system: macOS 12+ or Ubuntu 22.04+
+- Shell: Bash 5+ or Zsh 5.8+
+- Network: Internet access required (for package downloads)
 - Disk space: ≥5GB free
 - Memory: ≥8GB RAM
-- Ports: 8000, 5432 available
+- Ports: 8000, 5432, 6379 available
+
+**Verification:**
+```bash
+uname -s  # Darwin or Linux
+echo $0   # bash or zsh
+ping -c1 google.com  # Network works
+df -h .   # Check disk space
+```
 ```
 
 ### 5. Data Dependencies
 
-List required data or state:
-
-**Good example:**
 ```markdown
-## Required Data
+## Required Data (Example - Complete)
 
-- Database contains user table (≥1000 rows)
-- S3 bucket 'myapp-uploads' exists
-- Config file: config/production.yml present
-- SSL cert: /etc/ssl/certs/myapp.crt valid
+- Database: users table with ≥1000 rows
+- Storage: S3 bucket 'myapp-uploads' exists
+- Config: config/production.yml present
+- Certs: /etc/ssl/certs/myapp.crt valid (not expired)
 
 **Verification:**
 ```bash
 psql -c "SELECT COUNT(*) FROM users" | grep -q "1000"
 aws s3 ls s3://myapp-uploads/
-test -f config/production.yml
-openssl x509 -in /etc/ssl/certs/myapp.crt -noout -dates
+test -f config/production.yml && echo "OK"
+openssl x509 -in /etc/ssl/certs/myapp.crt -noout -checkend 0
 ```
 ```
 
@@ -143,114 +227,111 @@ openssl x509 -in /etc/ssl/certs/myapp.crt -noout -dates
 
 Use during review:
 
-| Category | Dependencies Listed | Complete? | Versions? | Notes |
-|----------|---------------------|-----------|-----------|-------|
-| Tools | Python, Node | ⚠️  Partial | ✅ Yes | Missing: PostgreSQL |
-| Access | AWS, GitHub | ✅ Complete | N/A | All listed |
-| Ordering | 5 tasks | ✅ Complete | N/A | Dependencies clear |
-| Environment | OS, disk | ⚠️  Partial | N/A | Missing: network |
-| Data | Database | ✅ Complete | N/A | Verification provided |
+**Dependency Tracking Checklist:**
+- Tools: Present? Complete? Missing items?
+- Access: Present? Complete? Missing items?
+- Ordering: Present? Complete? Issues?
+- Environment: Present? Complete? Missing items?
+- Data: Present? Complete? Missing items?
 
-## Scoring Formula
+## Worked Example
 
-```
-Base score = 5/5 (10 points)
+**Target:** Deployment plan
 
-Dependency categories:
-  All 5 categories addressed: 5/5 (10 points)
-  4/5 categories: 4/5 (8 points)
-  3/5 categories: 3/5 (6 points)
-  2/5 categories: 2/5 (4 points)
-  ≤1 category: 1/5 (2 points)
+### Step 1: Check Categories
 
-Additional deductions:
-  Missing tool versions: -0.5 per tool (up to -2)
-  Unclear ordering: -1 point
-  No access requirements: -1 point
+**Category Assessment:**
+- Tools: Yes, partial (80% versions)
+- Access: Yes, no verification
+- Ordering: Yes, explicit
+- Environment: Partial (2/6)
+- Data: No - Not mentioned
 
-Minimum score: 1/5 (2 points)
-```
+**Count:** 3/5 categories complete
 
-## Common Dependency Issues
+### Step 2: Tool Version Coverage
 
-### Issue 1: Missing Tool Versions
+**Tool Version Assessment:**
+- Python: Yes (3.11+)
+- Node.js: Yes (20+)
+- PostgreSQL: No - None specified
+- Docker: Yes (24+)
+- uv: No - None specified
 
-**Problem:**
+**Coverage:** 3/5 = 60%
+
+### Step 3: Ordering Assessment
+
 ```markdown
-Prerequisites: Python, PostgreSQL
+Tasks listed with "depends on" statements
+Sequence is unambiguous
+Parallelization noted
 ```
 
-**Fix:**
+**Quality:** Explicit (Full credit)
+
+### Step 4: Access Assessment
+
 ```markdown
-Prerequisites:
-- Python 3.11+ (check: python --version ≥ 3.11.0)
-- PostgreSQL 15+ (check: psql --version ≥ 15.0)
+Listed: AWS, GitHub, Database
+No verification commands provided
 ```
 
-### Issue 2: No Access Requirements
+**Quality:** Listed without verification (-1 point)
 
-**Problem:**
+### Step 5: Environment Assessment
+
+**Environment Inventory:**
+- OS: Yes
+- Shell: No
+- Network: Yes
+- Disk: No
+- Memory: No
+- Ports: No
+
+**Coverage:** 2/6 (-2 points)
+
+### Step 6: Calculate Score
+
+**Component Assessment:**
+- Categories: 3/5 = 3/5 baseline
+- Tool versions: 60% = Within range
+- Ordering: Explicit = Full credit
+- Access: No verification = -1 point
+- Environment: 2/6 = -2 points
+
+**Total deductions:** -3 points from 3/5 baseline
+**Final:** 3/5 (6 points)
+
+### Step 7: Document in Review
+
 ```markdown
-Task: Deploy to production
-(No mention of credentials)
+## Dependencies: 3/5 (6 points)
+
+**Categories addressed:** 3/5
+- [YES] Tool dependencies (60% versioned)
+- [PARTIAL] Access requirements (no verification)
+- [YES] Ordering dependencies (explicit)
+- [PARTIAL] Environment assumptions (2/6 elements)
+- [NO] Data dependencies (missing)
+
+**Tool version coverage:** 60%
+- Missing: PostgreSQL version, uv version
+
+**Access verification:** Missing
+- AWS, GitHub, DB listed but no verification commands
+
+**Environment:** Partial
+- Missing: Shell, disk, memory, ports
+
+**Priority fixes:**
+1. Add data dependencies section
+2. Add version for PostgreSQL, uv
+3. Add access verification commands
+4. Complete environment assumptions
 ```
 
-**Fix:**
-```markdown
-## Required Access
-
-Before deploying, verify you have:
-- AWS credentials configured: aws sts get-caller-identity
-- Production deploy permissions: aws iam get-user
-- Slack webhook URL: echo $SLACK_WEBHOOK_URL
-
-If missing, request from ops team (Slack: #ops-requests)
-```
-
-### Issue 3: Unclear Ordering
-
-**Problem:**
-```markdown
-Tasks:
-1. Deploy app
-2. Run migrations
-3. Build Docker image
-```
-→ Wrong order! (Deploy before build?)
-
-**Fix:**
-```markdown
-Tasks (in order):
-1. Build Docker image
-2. Run migrations
-3. Deploy app (depends: steps 1+2 complete)
-
-Rationale: Must build before deploy, migrate before deploy to avoid downtime
-```
-
-### Issue 4: Missing Environment Assumptions
-
-**Problem:**
-```markdown
-Run: make install
-(Assumes make is installed)
-```
-
-**Fix:**
-```markdown
-## Prerequisites
-
-**Build tools:**
-- make (check: make --version)
-- gcc/clang (check: gcc --version)
-
-**If missing:**
-- macOS: xcode-select --install
-- Ubuntu: sudo apt install build-essential
-- Fedora: sudo dnf groupinstall "Development Tools"
-```
-
-## Dependency Checklist
+## Dependencies Checklist
 
 During review, verify:
 
@@ -260,8 +341,19 @@ During review, verify:
 - [ ] Credentials verification commands
 - [ ] Task ordering dependencies clear
 - [ ] Parallel execution opportunities identified
-- [ ] Environment assumptions explicit
-- [ ] OS requirements stated
-- [ ] Network requirements stated
+- [ ] Environment assumptions explicit (OS, shell, network, disk, memory, ports)
 - [ ] Data dependencies listed
 - [ ] Data verification commands provided
+
+## Inter-Run Consistency Target
+
+**Expected variance:** ±1 category
+
+**Verification:**
+- Use 5-category checklist
+- Count versioned tools explicitly
+- Use environment element checklist
+
+**If variance exceeds threshold:**
+- Re-verify using category table
+- Apply completeness criteria strictly

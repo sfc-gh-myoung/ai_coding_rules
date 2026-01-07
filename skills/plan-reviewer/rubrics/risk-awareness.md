@@ -3,152 +3,222 @@
 ## Scoring Criteria
 
 ### 5/5 (5 points): Excellent
-- Failure scenarios identified
-- Mitigation strategies defined
+- 4+ risk categories addressed
+- All risks have probability + impact
+- Mitigation strategies for all risks
 - Rollback procedures documented
-- Risk assessment present
-- Contingency plans included
+- Contingency plans for critical risks
 
 ### 4/5 (4 points): Good
-- Most failures identified
-- Most mitigations defined
+- 3/4 risk categories addressed
+- Most risks have probability + impact
+- Mitigation for most risks
 - Basic rollback present
 
 ### 3/5 (3 points): Acceptable
-- Some failures identified
+- 2/4 risk categories addressed
+- Some risks assessed
 - Some mitigations defined
 - Limited rollback
 
 ### 2/5 (2 points): Needs Work
-- Few failures identified
+- 1/4 risk categories addressed
+- Few risks assessed
 - Few mitigations
 - No rollback
 
 ### 1/5 (1 point): Poor
-- No risk awareness
+- 0/4 risk categories addressed
+- No risk assessment
 - No mitigations
 - No rollback
 
-## Risk Categories
+## Counting Definitions
+
+### Risk Categories
+
+**Four categories (count 0-4):**
+
+**Risk Category Checklist:**
+- 1. Technical risks: Present? Risk count?
+- 2. Operational risks: Present? Risk count?
+- 3. Data risks: Present? Risk count?
+- 4. Integration risks: Present? Risk count?
+
+**Scoring by categories:**
+- 4/4 categories: Full credit
+- 3/4 categories: 4/5 maximum
+- 2/4 categories: 3/5 maximum
+- 1/4 categories: 2/5 maximum
+- 0/4 categories: 1/5 maximum
+
+### Risk Assessment Completeness
+
+**For each risk, check:**
+
+**Risk Assessment Checklist:**
+- Probability rating: Present?
+- Impact rating: Present?
+- Mitigation strategy: Present?
+
+**Probability levels:**
+- High: >50% likelihood
+- Medium: 10-50% likelihood
+- Low: <10% likelihood
+
+**Impact levels:**
+- CRITICAL: System down, data loss
+- HIGH: Major feature broken
+- MEDIUM: Degraded performance
+- LOW: Minor inconvenience
+
+### Mitigation Coverage
+
+**Count risks with explicit mitigation steps:**
+
+```
+Mitigation coverage % = (risks with mitigation / total risks) × 100
+```
+
+**Scoring:**
+- 90-100% coverage: Full credit
+- 70-89% coverage: -0.5 points
+- 50-69% coverage: -1 point
+- <50% coverage: -2 points
+
+### Rollback Procedures
+
+**Required elements:**
+
+**Rollback Element Checklist:**
+- Rollback trigger defined: Present?
+- Rollback steps documented: Present?
+- Rollback verification: Present?
+- Time estimate: Present?
+
+**Scoring:**
+- Complete (4/4): Full credit
+- Partial (2-3/4): -0.5 points
+- Minimal (1/4): -1 point
+- Missing (0/4): -2 points (CRITICAL)
+
+## Score Decision Matrix
+
+**Score Tier Criteria:**
+- **5/5 (5 pts):** 4/4 categories, complete assessment, 90%+ mitigation, complete rollback
+- **4/5 (4 pts):** 3/4 categories, most assessed, 70-89% mitigation, partial rollback
+- **3/5 (3 pts):** 2/4 categories, some assessed, 50-69% mitigation, minimal rollback
+- **2/5 (2 pts):** 1/4 categories, few assessed, <50% mitigation, missing rollback
+- **1/5 (1 pt):** 0/4 categories, none assessed, no mitigation, missing rollback
+
+**Critical gate:** If rollback missing for high-impact changes, cap at 2/5
+
+## Risk Categories Detail
 
 ### 1. Technical Risks
 
-Identify technical failure points:
+**Common technical risks:**
+- Build/compilation failures
+- Test failures
+- Performance degradation
+- Memory leaks
+- Resource exhaustion
+- Configuration errors
 
 **Example:**
 ```markdown
-## Technical Risks
-
 ### Risk: Database migration fails
-Probability: Medium
+Probability: Medium (10-50%)
 Impact: HIGH (production downtime)
 
 Mitigation:
-1. Test migration on staging (identical data volume)
-2. Create database backup before migration
-3. Use transactional DDL (PostgreSQL supports this)
-4. Set statement timeout to 30s (prevent locks)
+1. Test on staging with identical data
+2. Create backup before migration
+3. Use transactional DDL
+4. Set statement timeout to 30s
 
 Rollback:
 If migration fails:
-1. Stop application: kubectl scale deployment app --replicas=0
-2. Restore backup: psql myapp_prod < backup-2024-01-06.sql
-3. Verify: Run smoke tests
-4. Restart application: kubectl scale deployment app --replicas=3
-
-### Risk: Memory leak in new code
-Probability: Low
-Impact: Medium (gradual performance degradation)
-
-Mitigation:
-1. Memory profiling before deploy (py-spy, memory_profiler)
-2. Monitor RSS after deploy (alert if >2GB)
-3. Canary deployment (10% traffic first)
-
-Rollback:
-If memory leak detected:
-1. Immediate rollback: kubectl rollout undo deployment/app
-2. Monitor memory drops to baseline
-3. Investigation in development environment
+1. Stop application
+2. Restore from backup
+3. Verify data integrity
+4. Restart application
 ```
 
 ### 2. Operational Risks
 
-Identify operational failure points:
+**Common operational risks:**
+- Deployment outside business hours
+- Wrong environment deployment
+- Missing approvals
+- Insufficient monitoring
+- Documentation gaps
 
 **Example:**
 ```markdown
-## Operational Risks
-
 ### Risk: Deployment outside business hours
-Probability: Low (prevented by CI checks)
-Impact: HIGH (no support staff available)
+Probability: Low (<10%)
+Impact: HIGH (no support available)
 
 Mitigation:
-1. CI blocks deploys outside 9AM-5PM Pacific
+1. CI blocks deploys outside 9AM-5PM
 2. Override requires manager approval
-3. On-call engineer auto-paged for after-hours deploys
-
-### Risk: Wrong environment deployment
-Probability: Low
-Impact: CRITICAL (prod data corruption)
-
-Mitigation:
-1. Require explicit --env=production flag
-2. Confirmation prompt before production
-3. Production deploys require 2FA
-4. Audit log all deployments
+3. On-call auto-paged for after-hours
 ```
 
 ### 3. Data Risks
 
-Identify data loss/corruption risks:
+**Common data risks:**
+- Data loss during migration
+- Data corruption
+- Privacy/security exposure
+- Backup failures
+- Inconsistent state
 
 **Example:**
 ```markdown
-## Data Risks
-
 ### Risk: Data loss during migration
-Probability: Low (tested on staging)
-Impact: CRITICAL (irrecoverable user data)
+Probability: Low (<10%)
+Impact: CRITICAL (irrecoverable)
 
 Mitigation:
 1. Full backup before migration
-2. Incremental backups every hour during migration
-3. Data validation after migration (row counts, checksums)
-4. Keep old system running read-only for 7 days
+2. Incremental backups hourly during migration
+3. Data validation after (row counts, checksums)
+4. Keep old system read-only for 7 days
 
 Rollback:
-If data corruption detected:
-1. Stop accepting writes immediately
-2. Restore from last known good backup
+1. Stop accepting writes
+2. Restore from backup
 3. Replay write logs if available
-4. Data reconciliation (compare old vs new)
 ```
 
 ### 4. Integration Risks
 
-Identify third-party/integration risks:
+**Common integration risks:**
+- Third-party API downtime
+- API rate limiting
+- Authentication failures
+- Network connectivity
+- Version incompatibilities
 
 **Example:**
 ```markdown
-## Integration Risks
-
 ### Risk: Payment API downtime
 Probability: Low (99.9% SLA)
-Impact: HIGH (no purchases possible)
+Impact: HIGH (no purchases)
 
 Mitigation:
-1. Implement circuit breaker (fail after 3 timeouts)
-2. Queue payments for retry (up to 24 hours)
-3. Fallback to backup payment provider
-4. Monitor API health before peak hours
+1. Circuit breaker after 3 timeouts
+2. Queue payments for retry (24h max)
+3. Fallback to backup provider
+4. Monitor API health before peak
 
 Contingency:
-If payment API down >1 hour:
+If down >1 hour:
 1. Enable maintenance mode
 2. Queue all purchases
-3. Process queue when API returns
+3. Process when API returns
 4. Notify customers via email
 ```
 
@@ -156,186 +226,130 @@ If payment API down >1 hour:
 
 Use during review:
 
-| Risk | Probability | Impact | Mitigation? | Rollback? |
-|------|-------------|--------|-------------|-----------|
-| DB migration fails | Medium | HIGH | ✅ Yes | ✅ Yes |
-| Memory leak | Low | Medium | ✅ Yes | ✅ Yes |
-| API timeout | High | Low | ❌ No | ❌ No |
-| Data corruption | Low | CRITICAL | ✅ Yes | ✅ Yes |
+**Risk Assessment Inventory (example):**
+- DB migration (Technical): Probability Medium, Impact HIGH, Mitigation Yes, Rollback Yes
+- Memory leak (Technical): Probability Low, Impact Medium, Mitigation Yes, Rollback Yes
+- API timeout (Integration): Probability High, Impact LOW, Mitigation No, Rollback No
+- Data loss (Data): Probability Low, Impact CRITICAL, Mitigation Yes, Rollback Yes
 
-**Missing mitigations:** API timeout risk (no handling)
+**Missing:** API timeout mitigation
 
 ## Rollback Requirements
 
-Every high-impact change must have rollback:
+### Complete Rollback (Good)
 
-**Required elements:**
-1. Rollback trigger (when to rollback?)
-2. Rollback steps (how to rollback?)
-3. Rollback verification (how to confirm success?)
-4. Rollback time estimate
-
-**Example:**
 ```markdown
 ## Rollback Procedure
 
 **Trigger:** Any of:
 - Error rate >1% for 5 minutes
-- P95 latency >1000ms for 5 minutes  
-- Manual decision (critical bug found)
+- P95 latency >1000ms for 5 minutes
+- Manual decision (critical bug)
 
 **Steps:**
 1. Execute: kubectl rollout undo deployment/app
-2. Wait: 2 minutes for pods to restart
-3. Verify: curl https://app.com/health returns 200
-4. Verify: Error rate <0.1% for 5 minutes
+2. Wait: 2 minutes for pods
+3. Verify: curl /health returns 200
+4. Verify: Error rate <0.1%
 5. Verify: P95 latency <500ms
 
-**Time estimate:** 5 minutes total
+**Time estimate:** 5 minutes
 
 **If rollback fails:**
-1. Emergency: Scale to 0, restore from backup (15 min)
+1. Scale to 0, restore backup (15 min)
 2. Escalate to on-call manager
 3. Page database team if DB issues
 ```
 
-## Scoring Formula
+### Missing Rollback (Bad)
 
-```
-Base score = 5/5 (5 points)
-
-Risk identification:
-  All major risks identified: 5/5
-  Most risks identified: 4/5 (-1)
-  Some risks identified: 3/5 (-2)
-  Few risks identified: 2/5 (-3)
-  No risks identified: 1/5 (-4)
-
-Additional deductions:
-  No mitigation strategies: -1 point
-  No rollback procedures: -1 point (CRITICAL)
-
-Minimum score: 1/5 (1 point)
-```
-
-## Common Risk Issues
-
-### Issue 1: No Risk Identification
-
-**Problem:**
 ```markdown
-Deploy new authentication system
-(No risks mentioned)
-```
+## Deployment
 
-**Fix:**
-```markdown
-## Risks
-
-### Authentication failure locks out users
-Impact: CRITICAL
-Mitigation:
-- Deploy to 10% of users first (canary)
-- Keep old auth system running 48 hours
-- Emergency bypass code for admin access
-- Monitor login success rate (alert if <95%)
-
-### Session migration data loss
-Impact: HIGH
-Mitigation:
-- Backup session store before migration
-- Dual-write to old and new stores for 24 hours
-- Verify data consistency before cutover
-```
-
-### Issue 2: No Rollback Plan
-
-**Problem:**
-```markdown
-Task: Migrate to new database
+1. Run deploy script
+2. Verify health check
 (No rollback mentioned)
 ```
 
-**Fix:**
+## Worked Example
+
+**Target:** Feature release plan
+
+### Step 1: Identify Risk Categories
+
+**Category Assessment:**
+- Technical: Yes (2 risks)
+- Operational: No (0 risks)
+- Data: Yes (1 risk)
+- Integration: No (0 risks)
+
+**Count:** 2/4 categories
+
+### Step 2: Assess Risk Documentation
+
+**Risk Documentation Assessment:**
+- Build failure: Probability Yes (Medium), Impact Yes (HIGH), Mitigation Yes
+- Perf regression: Probability No, Impact No, Mitigation Partial
+- Data corruption: Probability Yes (Low), Impact Yes (CRITICAL), Mitigation Yes
+
+**Assessment coverage:** 2/3 complete
+
+### Step 3: Calculate Mitigation Coverage
+
+- Risks with mitigation: 2
+- Risks with partial: 1
+- Total risks: 3
+
+**Coverage:** 2.5/3 = 83%
+
+### Step 4: Check Rollback
+
+**Rollback Element Assessment:**
+- Trigger: Yes
+- Steps: Yes
+- Verification: No
+- Time estimate: No
+
+**Quality:** Partial (2/4)
+
+### Step 5: Calculate Score
+
+**Component Assessment:**
+- Categories: 2/4 = 3/5 baseline
+- Assessment: Incomplete = -0.5 points
+- Mitigation: 83% = OK
+- Rollback: 2/4 = -0.5 points
+
+**Total deductions:** -1 point
+**Final:** 3/5 - 1 = 2/5 (2 points)
+
+### Step 6: Document in Review
+
 ```markdown
-## Rollback Plan
+## Risk Awareness: 2/5 (2 points)
 
-**Trigger:** If any of:
-- Migration fails (exit code non-zero)
-- Data validation fails (row count mismatch >1%)
-- Performance degrades (p95 latency >2x baseline)
-- Data corruption detected
+**Categories addressed:** 2/4
+- [YES] Technical risks (build, performance)
+- [NO] Operational risks (missing)
+- [YES] Data risks (corruption)
+- [NO] Integration risks (missing)
 
-**Steps:**
-1. Stop application: systemctl stop myapp
-2. Restore database: psql -f backup-pre-migration.sql
-3. Revert application code: git checkout v1.2.3 && deploy
-4. Start application: systemctl start myapp
-5. Verify: pytest tests/smoke/ all pass
+**Risk assessment:** Incomplete
+- Build failure: Complete (prob, impact, mitigation)
+- Perf regression: Missing probability/impact
+- Data corruption: Complete
 
-**Time estimate:** 15 minutes
+**Mitigation coverage:** 83%
 
-**Data loss window:** 0 (writes disabled during migration)
-```
+**Rollback:** Partial (2/4 elements)
+- [YES] Trigger, steps
+- [NO] Verification, time estimate
 
-### Issue 3: Unquantified Impact
-
-**Problem:**
-```markdown
-Risk: High traffic might cause issues
-```
-
-**Fix:**
-```markdown
-Risk: Traffic spike exceeds capacity
-
-Details:
-- Current capacity: 1000 RPS
-- Expected peak: 2000 RPS (Black Friday)
-- Impact: 503 errors, user frustration, lost revenue
-
-Mitigation:
-- Pre-scale to 6 replicas (2x capacity = 2000 RPS)
-- Auto-scaling: 4-12 replicas based on CPU (>70%)
-- CDN for static assets (reduce origin load by 60%)
-- Queue non-critical requests (analytics, logs)
-
-Monitoring:
-- Alert if 5xx rate >1%
-- Alert if avg response time >1000ms
-- Dashboard: requests/sec, error rate, latency
-```
-
-### Issue 4: No Mitigation Strategy
-
-**Problem:**
-```markdown
-Risk: Payment API might be slow
-(No mitigation)
-```
-
-**Fix:**
-```markdown
-Risk: Payment API timeout
-
-Probability: Medium (p99 latency=5s, we timeout at 3s)
-Impact: High (failed purchases, user frustration)
-
-Mitigation:
-1. Implement retry with backoff (3 attempts)
-2. Increase timeout to 10s for payment calls
-3. Circuit breaker: fail fast after 3 consecutive timeouts
-4. Queue failed payments for manual processing
-5. Cache payment provider status (reduce calls by 30%)
-
-Monitoring:
-- Track payment API latency percentiles
-- Alert if p95 >5s or p99 >10s
-- Dashboard shows: success rate, timeout rate, circuit breaker state
-
-Fallback:
-- Backup payment provider (switch if primary fails)
-- Manual payment processing workflow
+**Priority fixes:**
+1. Add operational risks (deployment timing, approvals)
+2. Add integration risks (external APIs)
+3. Complete performance regression assessment
+4. Add rollback verification and time estimate
 ```
 
 ## Risk Awareness Checklist
@@ -354,3 +368,16 @@ During review, verify:
 - [ ] Time estimates for rollback
 - [ ] Monitoring/alerting for risks
 - [ ] Contingency plans for critical risks
+
+## Inter-Run Consistency Target
+
+**Expected variance:** ±1 category
+
+**Verification:**
+- Use 4-category checklist
+- Count risks with complete assessment
+- Use rollback element checklist
+
+**If variance exceeds threshold:**
+- Re-verify using category definitions
+- Apply assessment completeness strictly

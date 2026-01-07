@@ -3,141 +3,224 @@
 ## Scoring Criteria
 
 ### 5/5 (15 points): Excellent
-- Perfect internal consistency (no contradictions)
-- Terminology used uniformly throughout
-- All examples comply with stated mandates
-- Dependencies correctly referenced
-- Cross-references accurate and current
+- 0 internal contradictions
+- 0 terminology inconsistencies
+- 100% example-mandate alignment
+- All dependencies valid and referenced
+- All cross-references accurate
 
 ### 4/5 (12 points): Good
-- 1-2 minor inconsistencies (terminology variations)
-- Most examples align with mandates
-- Dependencies mostly correct
-- Cross-references accurate
+- 0 internal contradictions
+- 1-2 terminology variations
+- 95%+ example-mandate alignment
+- Dependencies mostly correct (1 minor issue)
 
 ### 3/5 (9 points): Acceptable
-- 3-4 inconsistencies (conflicting guidance)
-- Some examples don't follow mandates
-- 1-2 dependency errors
-- Some stale cross-references
+- 1 internal contradiction
+- 3-4 terminology variations
+- 85-94% example-mandate alignment
+- 2 dependency issues
 
 ### 2/5 (6 points): Needs Work
-- 5-7 major inconsistencies
-- Many examples contradict mandates
-- Multiple dependency errors
-- Many stale or incorrect references
+- 2-3 internal contradictions
+- 5-7 terminology variations
+- 70-84% example-mandate alignment
+- 3+ dependency issues
 
 ### 1/5 (3 points): Poor
-- >7 contradictions throughout rule
-- Examples don't align with mandates
-- Dependencies incorrect or circular
-- Cross-references broken
+- 4+ internal contradictions
+- 8+ terminology variations
+- <70% example-mandate alignment
+- Dependencies broken or circular
+
+## Counting Definitions
+
+### Internal Contradictions
+
+**Definition:** Two statements in the rule that cannot both be true.
+
+**Count as 1 contradiction:**
+- Direct conflict: "Always do X" vs "Never do X"
+- Threshold conflict: "Large = >10M rows" vs "Large = >5M rows"
+- Scope conflict: "Applies to all tables" vs "Skip temporary tables"
+
+**NOT contradictions (do not count):**
+- Scoped exceptions: "Always do X, except when Y"
+- Contextual variations: "In production do X, in development do Y"
+
+### Terminology Variations
+
+**Definition:** Same concept referred to by different terms without explicit equivalence.
+
+**Count as 1 variation:**
+- "surgical edits" vs "minimal changes" (same concept, different terms)
+- "task" vs "to-do" vs "action item" (same concept)
+- "must" vs "required" vs "mandatory" (same severity)
+
+**NOT variations (do not count):**
+- Defined synonyms: "surgical edits (also called minimal changes)"
+- Intentional distinctions: "error" (recoverable) vs "failure" (fatal)
+
+### Example-Mandate Alignment
+
+**Calculation:**
+```
+Alignment % = (compliant examples / total examples) × 100
+```
+
+**Count as misalignment:**
+- Example uses `SELECT *` when mandate says "no SELECT *"
+- Example omits error handling when mandate requires it
+- Example uses deprecated tool when mandate specifies current tool
+
+**Tracking checklist (for each example):**
+- Example at line 45: Mandate "No SELECT *" - Compliant?
+- Example at line 78: Mandate "Use ruff" - Compliant?
+- Example at line 120: Mandate "Error handling required" - Compliant?
+
+### Dependency Issues
+
+**Count as 1 issue:**
+- Listed dependency file doesn't exist
+- Dependency exists but isn't referenced in rule body
+- Circular dependency (A depends on B, B depends on A)
+- External link returns 404 or redirect
+- Description doesn't match actual content
+
+## Score Decision Matrix
+
+**Score Tier Criteria:**
+- **5/5 (15 pts):** 0 contradictions, 0-2 term variations, 95%+ example alignment, 0-1 dependency issues
+- **4/5 (12 pts):** 0 contradictions, 3-4 term variations, 85-94% example alignment, 2 dependency issues
+- **3/5 (9 pts):** 1 contradiction, 5-6 term variations, 75-84% example alignment, 3 dependency issues
+- **2/5 (6 pts):** 2-3 contradictions, 7+ term variations, 60-74% example alignment, 4+ dependency issues
+- **1/5 (3 pts):** 4+ contradictions, any term variations, <60% example alignment, any dependency issues
+
+**Tie-breaker:** If scores span tiers, use the contradiction count as primary determinant.
 
 ## Internal Consistency Check
 
-### 1. Terminology Consistency
+### 1. Terminology Tracking
 
-Track key terms used throughout rule:
+Create tracking list during review:
 
-**Example analysis:**
-```
-Line 45: "surgical edits"
-Line 120: "minimal changes" ← INCONSISTENT (same concept, different term)
-Line 200: "surgical edits" ← CONSISTENT
-```
+**Terminology Inventory:**
+- "surgical edits" (line 45, also 120, 200): OK - Consistent
+- "minimal changes" (line 180): ISSUE - Same as "surgical edits"?
+- "task" (line 30, also 60, 90): OK - Consistent
+- "action item" (line 150): ISSUE - Same as "task"?
 
-**Common inconsistencies:**
-- "task" vs "to-do" vs "action item"
-- "rule" vs "guideline" vs "directive"
-- "must" vs "required" vs "mandatory"
-- "forbidden" vs "prohibited" vs "not allowed"
+**Count:** 2 terminology variations
 
-### 2. Mandate vs Example Alignment
+### 2. Mandate vs Example Verification
 
-Check that all examples follow the rule's own requirements:
+For each example code block:
+1. Identify relevant mandates
+2. Check compliance
+3. Record findings
 
-**Example (checking compliance):**
-
-If rule says: "Always use explicit column selection (no SELECT *)"
-
-Then examples must not contain:
-```sql
-❌ BAD: SELECT * FROM table  -- Violates own mandate
-✅ GOOD: SELECT col1, col2 FROM table
-```
+**Example Compliance Inventory:**
+- SQL query (line 67): Mandates "No SELECT *, explicit columns" - Yes, compliant
+- Python snippet (line 134): Mandates "Use ruff, error handling" - No (uses black)
+- Config example (line 200): Mandate "Version specified" - Yes, compliant
 
 ### 3. Value Consistency
 
-Track specific values/thresholds mentioned:
+Track specific values/thresholds:
 
-**Example (inconsistent thresholds):**
-```
-Line 36: "Large table: >10M rows"
-Line 86: "Large table: >5M rows"  ← INCONSISTENT (different threshold)
-Line 150: "Large table: >10M rows" ← Which one is correct?
-```
+**Value Consistency Inventory:**
+- Large table: First defined line 36 as ">10M rows", also line 86 ">10M rows" - Consistent
+- Timeout: First defined line 50 as "30s", but line 150 says "60s" - NOT consistent
 
 ## Dependency Alignment Check
 
 ### 1. Verify Depends Field
 
-All dependencies listed in `Depends:` metadata must:
-- Actually exist as files
-- Be referenced in rule body
-- Contain content actually used by this rule
+For each dependency in `Depends:` metadata:
 
-### 2. Verify Related Rules
+**Dependency Verification Checklist:**
+- 000-global-core.md: File exists? Referenced in body? Content used?
+- 100-snowflake-core.md: File exists? Referenced in body? Content used?
 
-Check references in "Related" section:
-- Files exist at specified paths
-- Descriptions match actual rule content
-- No circular dependencies (A depends on B, B depends on A)
+### 2. Verify External Links
 
-### 3. Verify External Links
+**External Link Inventory:**
+- https://docs.snowflake.com/...: Status 200 - Valid
+- https://example.com/old-docs: Status 404 - Broken
 
-All external documentation links should:
-- Be current and accessible
-- Point to stable URLs (not version-specific unless necessary)
-- Match descriptions provided
+## Worked Example
 
-## Cross-Reference Verification
+**Target:** Rule with consistency issues
 
-### 1. Internal References
+### Step 1: Scan for Contradictions
 
-Check all `See:` references point to:
-- Sections that exist in same file
-- Correct line numbers (if specified)
-- Content that matches description
-
-**Example:**
 ```markdown
-"See: Validation section for details"
-→ Verify "Validation" section exists
-→ Verify it contains relevant details
+Line 45: "Always use explicit column selection (no SELECT *)"
+Line 200: Example shows "SELECT * FROM staging_table"
+= CONTRADICTION between mandate and example
 ```
 
-### 2. External References
+**Count:** 1 contradiction (example violates mandate)
 
-Verify references to other rules:
+### Step 2: Track Terminology
+
+**Terminology Inventory:**
+- "surgical edits" (lines 45, 120): OK
+- "minimal changes" (line 200): ISSUE - Variation of "surgical edits"
+- "mutable table" (lines 30, 60): OK
+- "updatable table" (line 90): ISSUE - Variation of "mutable table"
+
+**Count:** 2 terminology variations
+
+### Step 3: Check Example Alignment
+
+**Example Compliance:**
+- Line 67 SQL query: Mandate "No SELECT *" - Yes, compliant
+- Line 134 Python: Mandate "Use ruff" - Yes, compliant
+- Line 200 SQL: Mandate "No SELECT *" - No, uses SELECT *
+
+**Alignment:** 2/3 = 67%
+
+### Step 4: Verify Dependencies
+
+**Dependency Status:**
+- 000-global-core.md: Exists, referenced, valid
+- 202-python-old.md: Does not exist - File missing
+
+**Issues:** 1 (missing dependency file)
+
+### Step 5: Calculate Score
+
+**Component Assessment:**
+- Contradictions: 1 = 3/5 baseline
+- Term variations: 2 = Within 4/5 range
+- Example alignment: 67% = Confirms 2/5
+- Dependency issues: 1 = Minor
+
+**Final:** 2/5 (6 points) - example alignment is the determining factor
+
+### Step 6: Document in Review
+
 ```markdown
-"See: 100-snowflake-core.md for SQL patterns"
-→ Check: Does 100-snowflake-core.md exist?
-→ Check: Does it contain SQL patterns?
-→ Check: Are they the patterns this rule needs?
-```
+## Consistency: 2/5 (6 points)
 
-## Scoring Formula
+**Internal contradictions:** 1
+- Line 45 mandate "no SELECT *" violated by Line 200 example
 
-```
-Base score = 5/5 (15 points)
+**Terminology variations:** 2
+- "surgical edits" (45, 120) vs "minimal changes" (200)
+- "mutable table" (30, 60) vs "updatable table" (90)
 
-Internal contradictions: -0.5 points each (up to -5)
-Terminology inconsistencies: -0.3 points each (up to -3)
-Example-mandate misalignment: -1 point each (up to -4)
-Dependency errors: -0.5 points each (up to -2)
-Broken cross-references: -0.3 points each (up to -2)
+**Example alignment:** 67% (2/3 compliant)
+- Line 200: Uses SELECT * despite mandate
 
-Minimum score: 1/5 (3 points)
+**Dependency issues:** 1
+- 202-python-old.md listed but file doesn't exist
+
+**Priority fixes:**
+1. Fix Line 200 example to use explicit columns
+2. Standardize "surgical edits" terminology
+3. Update dependency to current file path
 ```
 
 ## Common Consistency Issues
@@ -148,7 +231,7 @@ Minimum score: 1/5 (3 points)
 ```
 Line 50: "mutable large tables (>10M rows OR >5GB...)" [full definition]
 Line 100: "mutable large tables" [no definition, assumes memory]
-Line 150: "mutable large tables (>5GB)" [partial definition - INCONSISTENT]
+Line 150: "mutable large tables (>5GB)" [partial - INCONSISTENT]
 ```
 
 **Fix:** Define once with anchor, reference later:
@@ -163,32 +246,26 @@ Line 100: Use Streams for large tables (see "Large table" definition)
 ```
 Section A: "Never use SELECT * in production"
 Section B: "Use SELECT * for initial exploration"
-→ CONFLICT: Is SELECT * ever allowed?
+CONFLICT: Is SELECT * ever allowed?
 ```
 
 **Fix:** Add explicit scoping:
 ```
 Section A: "Never use SELECT * in production code"
-Section B: "In development only: Use SELECT * for exploration, then replace with explicit columns before commit"
+Section B: "In development only: SELECT * for exploration, replace before commit"
 ```
 
-### Issue 3: Stale Dependencies
+## Inter-Run Consistency Target
 
-**Pattern:**
-```
-Depends: 202-python-virtual-environments.md
-→ File was merged into 200-python-core.md
-→ Dependency now incorrect
-```
+**Expected variance:** ±1 issue count per category
 
-**Fix:** Update dependencies to reflect actual structure.
+**Verification checklist:**
+- [ ] Scanned all code examples against mandates
+- [ ] Tracked all key terms with line numbers
+- [ ] Verified all dependency files exist
+- [ ] Checked all external links
 
-## Verification Table Template
-
-When reviewing, create consistency verification table:
-
-| Element | First Use | Other Uses | Status |
-|---------|-----------|------------|--------|
-| "Large table" threshold | Line 36: ">10M rows" | Lines 86, 150: ">10M rows" | ✅ Consistent |
-| Tool command | Line 54: `uvx ruff` | Line 120: `uv run ruff` | ❌ Inconsistent |
-| Mandate example | Line 90: No SELECT * | Line 200: SELECT * shown | ❌ Violates mandate |
+**If variance exceeds threshold:**
+- Use tracking tables (provided above)
+- Document each issue with line numbers
+- Note ambiguous cases

@@ -3,250 +3,268 @@
 ## Scoring Criteria
 
 ### 5/5 (20 points): Excellent
+- 0-3 blocking issues
 - All steps have explicit commands
-- No ambiguous phrases
-- All conditionals specify exact conditions
-- No judgment calls required
-- Agent can execute end-to-end
+- All conditionals specify exact conditions with else branches
+- 0 judgment calls required
 
 ### 4/5 (16 points): Good
-- Most steps explicit (1-3 ambiguous phrases)
-- Most conditionals clear
-- Minimal judgment needed
+- 4-6 blocking issues
+- 90%+ steps explicit
+- 90%+ conditionals complete
 
 ### 3/5 (12 points): Acceptable
-- Some steps explicit (4-6 ambiguous phrases)
-- Some conditionals clear
-- Some judgment calls required
+- 7-10 blocking issues
+- 70-89% steps explicit
+- 70-89% conditionals complete
 
 ### 2/5 (8 points): Needs Work
-- Few steps explicit (7-10 ambiguous phrases)
-- Many conditionals unclear
-- Frequent judgment calls
+- 11-15 blocking issues
+- 50-69% steps explicit
+- 50-69% conditionals complete
 
 ### 1/5 (4 points): Poor
-- Most steps ambiguous (>10 phrases)
-- Conditionals missing/unclear
+- >15 blocking issues
+- <50% steps explicit
 - Requires constant human input
 
-## Ambiguous Phrase Detection
+## Counting Definitions
 
-Count phrases that require judgment:
+### What Counts as ONE Blocking Issue
 
-### Category 1: Conditional Qualifiers
-
-**Ambiguous:**
+**Category 1: Conditional Qualifiers (1 issue each)**
 - "if appropriate"
 - "if necessary"
 - "as needed"
 - "when suitable"
 - "if required"
+- "where applicable"
 
-**Fix with explicit conditions:**
-```diff
-- Update dependencies if necessary
-+ Update dependencies if package.json was modified
-```
-
-### Category 2: Vague Actions
-
-**Ambiguous:**
+**Category 2: Vague Actions (1 issue each)**
 - "consider doing X"
 - "you may want to Y"
 - "optionally do Z"
 - "review and decide"
+- "evaluate whether"
 
-**Fix with explicit instructions:**
-```diff
-- Consider adding tests
-+ Add tests for all new functions in src/
-```
-
-### Category 3: Undefined Thresholds
-
-**Ambiguous:**
+**Category 3: Undefined Thresholds (1 issue each)**
 - "large file" (how large?)
 - "significant changes" (how significant?)
 - "many errors" (how many?)
 - "slow performance" (how slow?)
+- "too complex" (complexity threshold?)
 
-**Fix with quantified thresholds:**
-```diff
-- If file is large, split it
-+ If file is >500 lines, split it
-```
-
-### Category 4: Implicit Commands
-
-**Ambiguous:**
+**Category 4: Implicit Commands (1 issue each)**
 - "Ensure X is configured" (how?)
-- "Make sure Y works" (how?)
-- "Verify Z is correct" (how?)
+- "Make sure Y works" (how to verify?)
+- "Verify Z is correct" (verification method?)
+- "Set up the environment" (specific steps?)
 
-**Fix with explicit commands:**
-```diff
-- Ensure database is running
-+ Start database: docker-compose up -d postgres
-+ Verify: psql -c "SELECT 1"
+**Category 5: Missing Branches (1 issue each)**
+- `if X` without explicit else
+- `when Y` without alternative case
+- Decision point without all paths defined
+
+### Counting Compound Phrases
+
+**Examples:**
+- "Deploy the application": 0 issues (explicit action)
+- "Deploy if ready": 1 issue ("if ready" undefined)
+- "Deploy if appropriate": 1 issue ("if appropriate" vague)
+- "Consider deploying if needed": 2 issues ("Consider" + "if needed")
+- "Ensure proper deployment as needed": 3 issues ("Ensure" + "proper" + "as needed")
+
+## Score Decision Matrix
+
+**Score Tier Criteria:**
+- **5/5 (20 pts):** 0-3 blocking issues - Agent can execute end-to-end
+- **4/5 (16 pts):** 4-6 blocking issues - Minor clarifications needed
+- **3/5 (12 pts):** 7-10 blocking issues - Several steps need refinement
+- **2/5 (8 pts):** 11-15 blocking issues - Significant rewrite needed
+- **1/5 (4 pts):** 16+ blocking issues - Not executable by agents
+
+## Pre-Scoring Gate: Agent Execution Test
+
+**Before scoring, count total blocking issues across all categories.**
+
+**Score caps based on blocking issues:**
+- 0-9 blocking issues: 100/100 possible
+- 10-14 blocking issues: 60/100 maximum (NEEDS_WORK)
+- 15-19 blocking issues: 50/100 maximum (POOR_PLAN)
+- 20+ blocking issues: 40/100 maximum (INADEQUATE_PLAN)
+
+## Blocking Issue Tracking
+
+Use this checklist during review:
+
+**Blocking Issue Inventory (example):**
+- Line 23: "if necessary" (Conditional) - 1 issue
+- Line 45: "large table" (Threshold) - 1 issue
+- Line 67: "ensure configured" (Implicit) - 1 issue
+- Line 89: "consider adding" (Vague action) - 1 issue
+- Line 110: if/no else (Missing branch) - 1 issue
+
+**Total:** ___
+
+## Ambiguous Phrase Detection
+
+### Conditional Qualifiers to Flag
+
+```markdown
+BAD: "Update dependencies if necessary"
+GOOD: "Update dependencies if package.json was modified"
+
+BAD: "Add tests as needed"
+GOOD: "Add tests for all new functions in src/"
+
+BAD: "Scale resources when appropriate"
+GOOD: "Scale resources when CPU usage exceeds 80% for 5 minutes"
 ```
 
-## Ambiguity Tracking Table
+### Vague Actions to Flag
 
-Use during review:
+```markdown
+BAD: "Consider adding tests"
+GOOD: "Add unit tests for functions: login(), logout(), refresh_token()"
 
-| Line | Ambiguous Phrase | Type | Fix Needed |
-|------|------------------|------|------------|
-| 23 | "if necessary" | Conditional | Specify when necessary |
-| 45 | "large table" | Threshold | Define size (>1M rows?) |
-| 67 | "ensure configured" | Implicit | Provide config command |
-| 89 | "consider adding" | Vague action | Make directive or remove |
+BAD: "Review the code"
+GOOD: "Run: ruff check src/ --fix"
 
-**Count:** Total ambiguous phrases
+BAD: "Optimize performance"
+GOOD: "Reduce p95 latency from 800ms to <500ms"
+```
+
+### Undefined Thresholds to Flag
+
+```markdown
+BAD: "If file is large, split it"
+GOOD: "If file is >500 lines, split into modules of <=200 lines each"
+
+BAD: "Handle slow queries"
+GOOD: "Optimize queries with execution time >5 seconds"
+
+BAD: "For complex functions"
+GOOD: "For functions with cyclomatic complexity >10"
+```
+
+### Implicit Commands to Flag
+
+```markdown
+BAD: "Ensure database is running"
+GOOD: "Start database: docker-compose up -d postgres
+    Verify: psql -c 'SELECT 1' returns 1"
+
+BAD: "Make sure tests pass"
+GOOD: "Run: pytest tests/ -v
+    Expected: Exit code 0, all tests pass"
+```
 
 ## Conditional Completeness
 
-Check that all conditionals have else branches:
+### Incomplete (1 blocking issue)
 
-**Incomplete:**
 ```markdown
 If tests pass:
   - Deploy to production
 ```
-→ What if tests fail? (no else branch)
+Question: What if tests fail? Missing else branch
 
-**Complete:**
+### Complete (0 blocking issues)
+
 ```markdown
-If tests pass:
+If tests pass (exit code 0):
   - Deploy to production
-Else:
-  - Review test failures in CI logs
+  - Notify team on Slack #deploys
+Else (exit code non-zero):
+  - Review failures in CI logs
   - Fix failing tests
   - Re-run: pytest
+  - Do NOT deploy until passing
 ```
 
 ## Command Explicitness
 
-Every action should have an executable command:
+### Implicit (Multiple blocking issues)
 
-**Bad (implicit):**
 ```markdown
 1. Set up the database
 2. Configure the application
 3. Start the server
 ```
 
-**Good (explicit):**
+### Explicit (0 blocking issues)
+
 ```markdown
 1. Set up the database:
    ```bash
    createdb myapp_dev
    psql myapp_dev < schema.sql
    ```
+   Verify: psql -c "\dt" shows 5 tables
+
 2. Configure the application:
    ```bash
    cp .env.example .env
-   vim .env  # Set DATABASE_URL
    ```
+   Edit .env: Set DATABASE_URL=postgresql://localhost/myapp_dev
+
 3. Start the server:
    ```bash
    python manage.py runserver
    ```
+   Verify: curl localhost:8000/health returns 200
 ```
 
-## Scoring Formula
+## Worked Example
 
-```
-Base score = 5/5 (20 points)
+**Target:** Deployment plan
 
-Ambiguous phrases:
-  0-3: 5/5 (20 points)
-  4-6: 4/5 (16 points)
-  7-10: 3/5 (12 points)
-  11-15: 2/5 (8 points)
-  >15: 1/5 (4 points)
+### Step 1: Identify Blocking Issues
 
-Additional deductions:
-  Missing else branches: -0.5 per instance (up to -3)
-  Implicit commands: -0.5 per instance (up to -3)
-
-Minimum score: 1/5 (4 points)
-```
-
-## Pre-Scoring Gate: Agent Execution Test
-
-Before scoring, count **blocking issues**:
-1. Ambiguous phrases
-2. Implicit commands
-3. Missing conditional branches
-4. Undefined thresholds
-
-**Impact:**
-- Blocking issues ≥10: Cap at 60/100 (NEEDS_REFINEMENT)
-- Blocking issues ≥20: Cap at 40/100 (NOT_EXECUTABLE)
-
-## Common Executability Issues
-
-### Issue 1: Missing Conditions
-
-**Problem:**
 ```markdown
-If deployment succeeds, notify team
+Line 10: "Review changes and deploy if appropriate"
+Line 25: "Scale resources as needed"
+Line 40: "If deployment succeeds, notify team"
+Line 55: "Ensure monitoring is configured"
+Line 70: "Run tests" (no verification specified)
 ```
 
-**Fix:**
+### Step 2: Count by Category
+
+**Issue Inventory:**
+- Line 10: "if appropriate" (Conditional) - 1 issue
+- Line 25: "as needed" (Conditional) - 1 issue
+- Line 40: no else branch (Missing branch) - 1 issue
+- Line 55: "Ensure...configured" (Implicit) - 1 issue
+- Line 70: no verification (Implicit) - 1 issue
+
+**Total:** 5 blocking issues
+
+### Step 3: Determine Score
+
+5 blocking issues = **4/5 (16 points)**
+
+### Step 4: Document in Review
+
 ```markdown
-If deployment succeeds (exit code 0):
-  - Post to Slack: #deploys channel
-  - Message: "✓ Production deployed: v1.2.3"
-Else (exit code non-zero):
-  - Post to Slack: #incidents channel
-  - Message: "❌ Deployment failed: see CI logs"
-  - Do NOT merge PR
-```
+## Executability: 4/5 (16 points)
 
-### Issue 2: Vague Actions
+**Blocking issues:** 5
 
-**Problem:**
-```markdown
-Review the code and make improvements
-```
+**Issue Summary:**
+- Conditional qualifiers: 2 (lines 10, 25)
+- Missing branches: 1 (line 40)
+- Implicit commands: 2 (lines 55, 70)
 
-**Fix:**
-```markdown
-Run linter: ruff check src/
-Fix all HIGH severity issues
-Run formatter: ruff format src/
-Verify: git diff shows only whitespace changes
-```
+**Examples:**
+- Line 10: "if appropriate" - Specify deployment criteria
+- Line 40: No else branch - Add failure handling
+- Line 55: "Ensure configured" - Provide config commands
 
-### Issue 3: Undefined Thresholds
-
-**Problem:**
-```markdown
-If performance is slow, optimize
-```
-
-**Fix:**
-```markdown
-Run benchmark: pytest tests/bench --benchmark-only
-If p95 latency >500ms:
-  - Profile with py-spy: py-spy record -o profile.svg -- python app.py
-  - Optimize top 3 hotspots
-  - Re-run benchmark to verify <500ms
-```
-
-### Issue 4: Implicit Commands
-
-**Problem:**
-```markdown
-Make sure tests pass
-```
-
-**Fix:**
-```markdown
-Run tests: pytest tests/ -v
-Expected: All tests pass (exit code 0)
-If failures: Review output and fix issues
+**Recommended fixes:**
+1. Line 10: "Deploy if all tests pass AND staging verified"
+2. Line 40: Add "Else: rollback and page on-call"
+3. Line 55: Provide monitoring setup commands
 ```
 
 ## Executability Checklist
@@ -256,8 +274,22 @@ During review, verify:
 - [ ] All actions have explicit commands
 - [ ] All conditionals specify exact conditions
 - [ ] All if/when has corresponding else/default
-- [ ] All thresholds quantified
+- [ ] All thresholds quantified (sizes, counts, durations)
 - [ ] No "consider", "if appropriate", "as needed"
-- [ ] No implicit commands ("ensure", "make sure", "verify" without how)
+- [ ] No implicit commands ("ensure", "make sure" without how)
 - [ ] Agent could execute without asking for clarification
 - [ ] No judgment calls required
+
+## Inter-Run Consistency Target
+
+**Expected variance:** ±2 blocking issues
+
+**Verification method:**
+1. Use counting table with line numbers
+2. Categorize each issue explicitly
+3. Count compound phrases per breakdown rules
+
+**If counts differ by >3:**
+- Re-read Counting Definitions
+- Check compound phrase handling
+- Document ambiguous cases

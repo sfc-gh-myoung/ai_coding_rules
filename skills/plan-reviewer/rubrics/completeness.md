@@ -3,209 +3,366 @@
 ## Scoring Criteria
 
 ### 5/5 (20 points): Excellent
-- Setup steps complete
-- Validation checks present
-- Error recovery defined
-- Cleanup steps included
-- Edge cases addressed
+- Setup: 5/5 required elements present
+- Validation: 3/3 phases documented
+- Error recovery: 4+ scenarios with steps
+- Cleanup: Complete with verification
+- Edge cases: 80%+ coverage
 
 ### 4/5 (16 points): Good
-- Setup mostly complete (1 step missing)
-- Most validation present
-- Basic error recovery
-- Cleanup mostly present
+- Setup: 4/5 elements present
+- Validation: 2-3/3 phases documented
+- Error recovery: 2-3 scenarios
+- Cleanup: Present but partial
+- Edge cases: 60-79% coverage
 
 ### 3/5 (12 points): Acceptable
-- Setup has gaps (2-3 steps missing)
-- Some validation present
-- Limited error recovery
-- Some cleanup missing
+- Setup: 3/5 elements present
+- Validation: 1-2/3 phases documented
+- Error recovery: 1 scenario
+- Cleanup: Minimal
+- Edge cases: 40-59% coverage
 
 ### 2/5 (8 points): Needs Work
-- Setup incomplete (4+ steps missing)
-- Little validation
-- Minimal error recovery
-- Cleanup mostly missing
+- Setup: 2/5 elements present
+- Validation: 0-1/3 phases documented
+- Error recovery: 0 scenarios
+- Cleanup: Missing
+- Edge cases: 20-39% coverage
 
 ### 1/5 (4 points): Poor
-- Setup missing
-- No validation
-- No error recovery
-- No cleanup
+- Setup: 0-1/5 elements present
+- Validation: Not documented
+- Error recovery: Not documented
+- Cleanup: Not documented
+- Edge cases: <20% coverage
+
+## Counting Definitions
+
+### Setup Phase Elements
+
+**Required elements (count 0-5):**
+
+**Setup Element Checklist:**
+- Prerequisites verification: Present? Commands provided?
+- Environment preparation: Present? Steps specified?
+- Dependency installation: Present? Commands provided?
+- Configuration setup: Present? Values/files specified?
+- Initial state verification: Present? Verification command?
+
+**Scoring by count:**
+- 5/5 elements: Full credit
+- 4/5 elements: -1 point
+- 3/5 elements: -3 points
+- 2/5 elements: -5 points
+- 0-1/5 elements: -8 points
+
+### Validation Phases
+
+**Required phases (count 0-3):**
+
+**Validation Phase Checklist:**
+- Pre-execution: Present? Commands? Expected output?
+- During execution: Present? Commands? Expected output?
+- Post-execution: Present? Commands? Expected output?
+
+**Scoring by count:**
+- 3/3 phases: Full credit
+- 2/3 phases: -1 point
+- 1/3 phases: -3 points
+- 0/3 phases: -5 points
+
+### Error Recovery Scenarios
+
+**Count documented scenarios with recovery steps:**
+
+**Error Recovery Checklist:**
+- Input validation failures: Documented? Has recovery steps?
+- Execution errors (timeout, crash): Documented? Has recovery steps?
+- External dependency failures: Documented? Has recovery steps?
+- Permission/access errors: Documented? Has recovery steps?
+- Resource exhaustion: Documented? Has recovery steps?
+- State corruption: Documented? Has recovery steps?
+
+**Count only scenarios WITH recovery steps.**
+
+**Scoring by count:**
+- 4+ scenarios with recovery: Full credit
+- 2-3 scenarios with recovery: -2 points
+- 1 scenario with recovery: -4 points
+- 0 scenarios with recovery: -6 points (CRITICAL)
+
+### Cleanup Phase
+
+**Required elements:**
+
+**Cleanup Checklist:**
+- Temporary files removal: Present?
+- Resources released: Present?
+- State reset (if needed): Present?
+- Verification of cleanup: Present?
+
+**Scoring:**
+- Complete (4/4): Full credit
+- Partial (2-3/4): -1 point
+- Minimal (1/4): -2 points
+- Missing (0/4): -3 points
+
+### Edge Case Coverage
+
+**Categories to check:**
+
+**Edge Case Checklist:**
+- Empty states (Empty DB, no users, cold cache): Count addressed out of 3
+- Concurrent execution (Dual runs, locks, races): Count addressed out of 3
+- Partial completion (Interrupted, resume, idempotency): Count addressed out of 3
+- Resource constraints (Disk full, memory, network): Count addressed out of 3
+
+**Coverage calculation:**
+```
+Coverage % = (items addressed / 12 total) × 100
+```
+
+**Scoring by coverage:**
+- 80%+ (10-12/12): Full credit
+- 60-79% (7-9/12): -1 point
+- 40-59% (5-6/12): -2 points
+- 20-39% (3-4/12): -3 points
+- <20% (0-2/12): -4 points
+
+## Score Decision Matrix
+
+**Score Tier Criteria:**
+- **5/5 (20 pts):** 5/5 setup, 3/3 validation, 4+ error recovery, complete cleanup, 80%+ edge cases
+- **4/5 (16 pts):** 4/5 setup, 2-3/3 validation, 2-3 error recovery, partial cleanup, 60-79% edge cases
+- **3/5 (12 pts):** 3/5 setup, 1-2/3 validation, 1 error recovery, minimal cleanup, 40-59% edge cases
+- **2/5 (8 pts):** 2/5 setup, 0-1/3 validation, 0 error recovery, missing cleanup, 20-39% edge cases
+- **1/5 (4 pts):** 0-1/5 setup, 0/3 validation, 0 error recovery, missing cleanup, <20% edge cases
+
+**Critical gate:** If error recovery = 0, cap at 2/5 (8 points)
 
 ## Required Components Checklist
 
 ### Setup Phase
 
-Must include:
-- [ ] Prerequisites verification
-- [ ] Environment preparation
-- [ ] Dependency installation
-- [ ] Configuration setup
-- [ ] Initial state verification
-
-**Example:**
 ```markdown
-## Setup
+## Setup (Example - Complete)
 
 1. Verify prerequisites:
-   - Python 3.11+: python --version
-   - PostgreSQL running: pg_isready
+   - Python 3.11+: python --version ≥ 3.11
+   - PostgreSQL: pg_isready returns 0
 
-2. Create virtual environment:
+2. Create environment:
+   ```bash
    uv venv
+   source .venv/bin/activate
+   ```
 
 3. Install dependencies:
+   ```bash
    uv pip install -r requirements.txt
+   ```
+   Verify: uv pip list shows flask==3.0.0
 
 4. Configure:
+   ```bash
    cp .env.example .env
-   # Edit DATABASE_URL
+   ```
+   Edit: Set DATABASE_URL=postgresql://localhost/myapp
 
 5. Verify setup:
+   ```bash
    pytest tests/smoke/test_connection.py
+   ```
+   Expected: 1 passed
 ```
 
 ### Validation Checks
 
-Plans must include verification steps:
-
-**After each major action:**
-- [ ] Command execution verified
-- [ ] Output validated
-- [ ] State confirmed
-
-**Example:**
 ```markdown
-## Step 3: Apply Migrations
+## Validation (Example - Complete)
 
-Command: python manage.py migrate
+### Pre-execution
+- [ ] Prerequisites met: all checks pass
+- [ ] Input files exist: ls data/*.csv returns files
+- [ ] Permissions valid: test -w output/ returns 0
 
-Validation:
-- Exit code: 0
-- Output: "Applied X migrations"
-- Verify: psql -c "\dt" shows all tables
+### During execution
+- [ ] Progress logged: tail -f logs/process.log shows activity
+- [ ] No errors: grep ERROR logs/process.log returns empty
+- [ ] Resources stable: memory usage <2GB
+
+### Post-execution
+- [ ] Output exists: ls output/results.json returns file
+- [ ] Output valid: jq . output/results.json parses successfully
+- [ ] State consistent: pytest tests/integration/ passes
 ```
 
 ### Error Recovery
 
-Must address failures:
-
-- [ ] What can go wrong
-- [ ] How to detect failures
-- [ ] Recovery steps
-- [ ] Rollback procedures
-
-**Example:**
 ```markdown
-## Error Recovery
+## Error Recovery (Example - Complete)
 
-### Migration Failure
-
-Detection: Exit code non-zero OR "Error:" in output
-
+### Input Validation Failure
+Detection: Exit code 1, "ValidationError" in output
 Recovery:
-1. Check logs: tail -f logs/migrate.log
-2. Identify failed migration
-3. Manual fix: psql myapp_dev < migrations/XXX_fix.sql
-4. Re-run: python manage.py migrate
-5. If still fails: Rollback to previous version
+1. Check error message for specific field
+2. Fix input file: vim data/input.csv
+3. Re-run: python process.py
+4. If still fails: Contact data team
 
-Rollback:
-git checkout v1.2.3
-python manage.py migrate --fake-initial
+### Timeout (>30 minutes)
+Detection: Process killed, "Timeout" in logs
+Recovery:
+1. Check resource usage: htop
+2. Reduce batch size: --batch-size 100
+3. Re-run from checkpoint: --resume
+4. If still times out: Scale up resources
+
+### Database Connection Failed
+Detection: "Connection refused" in logs
+Recovery:
+1. Check DB status: pg_isready
+2. If down: docker-compose up -d postgres
+3. Wait 30 seconds
+4. Retry: python process.py
+5. If still fails: Check credentials in .env
 ```
 
 ### Cleanup Phase
 
-Must include:
-- [ ] Temporary files removed
-- [ ] Resources released
-- [ ] State reset (if needed)
-- [ ] Verification of cleanup
-
-**Example:**
 ```markdown
-## Cleanup
+## Cleanup (Example - Complete)
 
 1. Remove temp files:
-   rm -rf /tmp/build-*
+   ```bash
+   rm -rf /tmp/process-*
+   ```
 
 2. Stop services:
+   ```bash
    docker-compose down
+   ```
 
 3. Clear cache:
+   ```bash
    rm -rf .cache/
+   ```
 
-4. Verify:
-   ls /tmp/build-* (should error: No such file)
+4. Verify cleanup:
+   ```bash
+   ls /tmp/process-* 2>&1 | grep -q "No such file"
+   docker ps | grep -q myapp && echo "FAIL" || echo "OK"
+   ```
 ```
 
-## Edge Cases Coverage
+## Worked Example
 
-### Common Edge Cases
+**Target:** Data migration plan
 
-Plans should address:
+### Step 1: Assess Setup
 
-**Empty states:**
-- [ ] What if database is empty?
-- [ ] What if no users exist?
-- [ ] What if cache is cold?
+**Setup Assessment:**
+- Prerequisites: Yes (Python version, DB)
+- Environment: Yes (venv creation)
+- Dependencies: Yes (pip install)
+- Configuration: No - Missing
+- Initial verification: Yes (Smoke test)
 
-**Concurrent execution:**
-- [ ] What if plan runs twice simultaneously?
-- [ ] Lock files needed?
-- [ ] Race condition handling?
+**Count:** 4/5 elements
 
-**Partial completion:**
-- [ ] What if plan interrupted mid-execution?
-- [ ] Resume from checkpoint?
-- [ ] Idempotency guaranteed?
+### Step 2: Assess Validation
 
-**Resource constraints:**
-- [ ] What if disk full?
-- [ ] What if memory limited?
-- [ ] What if network unreliable?
+**Validation Assessment:**
+- Pre-execution: Yes, commands provided
+- During execution: No
+- Post-execution: Yes, commands provided
 
-## Scoring Formula
+**Count:** 2/3 phases
 
+### Step 3: Assess Error Recovery
+
+**Error Recovery Assessment:**
+- Input validation: Yes, has recovery steps
+- Timeout: No
+- DB failure: Yes, has recovery steps
+- Permission error: No
+
+**Count:** 2 scenarios with recovery
+
+### Step 4: Assess Cleanup
+
+**Cleanup Assessment:**
+- Temp files: Yes
+- Resources: No
+- State reset: No
+- Verification: Yes
+
+**Count:** 2/4 (Partial)
+
+### Step 5: Assess Edge Cases
+
+**Edge Case Coverage:**
+- Empty states: 1/3
+- Concurrent: 0/3
+- Partial completion: 2/3
+- Resources: 1/3
+
+**Coverage:** 4/12 = 33%
+
+### Step 6: Calculate Score
+
+**Component Assessment:**
+- Setup: 4/5 = -1 point
+- Validation: 2/3 = -1 point
+- Error recovery: 2 = -2 points
+- Cleanup: 2/4 = -1 point
+- Edge cases: 33% = -3 points
+
+**Total deductions:** -8 points
+**Final:** 12 points = 3/5 (Acceptable)
+
+### Step 7: Document in Review
+
+```markdown
+## Completeness: 3/5 (12 points)
+
+**Setup:** 4/5 elements
+- [YES] Prerequisites, environment, dependencies, verification
+- [NO] Configuration setup missing
+
+**Validation:** 2/3 phases
+- [YES] Pre-execution, post-execution
+- [NO] During-execution monitoring missing
+
+**Error recovery:** 2 scenarios
+- [YES] Input validation, DB failure
+- [NO] Timeout, permission errors missing
+
+**Cleanup:** Partial (2/4)
+- [YES] Temp files, verification
+- [NO] Resource release, state reset missing
+
+**Edge cases:** 33% (4/12)
+- Concurrent execution: Not addressed
+- Resource constraints: Partially addressed
+
+**Priority fixes:**
+1. Add configuration setup step
+2. Add during-execution monitoring
+3. Add timeout and permission error handling
+4. Complete cleanup section
 ```
-Base score = 5/5 (20 points)
 
-Missing components:
-  Setup incomplete: -1 per missing step (up to -4)
-  No validation: -2 points
-  No error recovery: -3 points (CRITICAL)
-  No cleanup: -1 point
-  Edge cases ignored: -0.5 each (up to -2)
+## Inter-Run Consistency Target
 
-Minimum score: 1/5 (4 points)
-```
+**Expected variance:** ±1 point per component
 
-## Critical Gate
+**Verification:**
+- Use checklists with Y/N for each item
+- Count only items explicitly documented
+- Edge case coverage: use category table
 
-If error recovery is missing:
-- Cap score at 2/5 (8 points) maximum
-- Mark as CRITICAL issue
-- Plan fails on first error
-
-## Completeness Tracking Table
-
-Use during review:
-
-| Component | Present? | Coverage | Missing Items |
-|-----------|----------|----------|---------------|
-| Setup | ✅ Yes | 100% | - |
-| Validation | ⚠️  Partial | 60% | 2 steps missing checks |
-| Error recovery | ❌ No | 0% | No recovery defined |
-| Cleanup | ✅ Yes | 100% | - |
-| Edge cases | ⚠️  Partial | 40% | 3 cases not addressed |
-
-**Score calculation:**
-- Setup: ✅ (0 deduction)
-- Validation: -1 point (partial)
-- Error recovery: -3 points (CRITICAL MISSING)
-- Cleanup: ✅ (0 deduction)
-- Edge cases: -1 point (3 missing)
-- Total deductions: -5 points
-- Score: 0/5 → But CRITICAL issue caps at 2/5 (8 points)
+**If variance exceeds threshold:**
+- Re-verify using checklist tables
+- Document borderline items

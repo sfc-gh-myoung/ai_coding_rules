@@ -3,44 +3,122 @@
 ## Scoring Criteria
 
 ### 5/5 (5 points): Excellent
-- Rationale provided for decisions
-- "Why" explained for non-obvious choices
-- Context preserved throughout
-- Assumptions documented
+- 100% of key decisions have rationale
+- All non-obvious choices explained
+- Assumptions documented explicitly
 - Tradeoffs acknowledged
+- Context preserved across tasks
 
 ### 4/5 (4 points): Good
-- Most rationale provided
-- Most "why" explained
-- Context mostly preserved
+- 80%+ of key decisions have rationale
+- Most non-obvious choices explained
+- Most assumptions documented
+- Some tradeoffs acknowledged
 
 ### 3/5 (3 points): Acceptable
-- Some rationale provided
-- Some "why" explained
-- Some context present
+- 60-79% of key decisions have rationale
+- Some non-obvious choices explained
+- Some assumptions documented
+- Few tradeoffs
 
 ### 2/5 (2 points): Needs Work
-- Little rationale
-- Minimal "why"
-- Context sparse
+- 40-59% of key decisions have rationale
+- Few explanations
+- Assumptions sparse
+- No tradeoffs
 
 ### 1/5 (1 point): Poor
-- No rationale
-- No "why"
-- No context
+- <40% of key decisions have rationale
+- No explanations
+- No assumptions
+- No tradeoffs
+
+## Counting Definitions
+
+### Key Decisions
+
+**Definition:** Choices that affect implementation approach, tool selection, or architecture.
+
+**Key decision types (count each):**
+- Tool/technology selection
+- Architecture choices
+- Configuration values
+- Ordering decisions
+- Scope boundaries
+- Resource allocations
+
+### Rationale Coverage
+
+**Step 1:** Count key decisions in plan
+**Step 2:** Count decisions with explicit "why" or rationale
+**Step 3:** Calculate coverage
+
+```
+Rationale coverage % = (decisions with rationale / total key decisions) × 100
+```
+
+### Non-Obvious Choices
+
+**Definition:** Values or selections that aren't self-evident defaults.
+
+**Non-obvious examples:**
+- Specific timeout values (why 30s?)
+- Connection pool sizes (why 100?)
+- Retry counts (why 3?)
+- Memory allocations (why 2GB?)
+- Batch sizes (why 1000?)
+
+**Count:**
+- Non-obvious choices identified
+- Non-obvious choices with explanation
+
+### Assumption Documentation
+
+**Required assumption types:**
+
+**Assumption Type Checklist:**
+- Data assumptions (volumes, formats): Documented?
+- Environment assumptions (resources): Documented?
+- Behavior assumptions (user patterns): Documented?
+- External assumptions (APIs, services): Documented?
+
+**Scoring:**
+- 4/4 types documented: Full credit
+- 3/4 types documented: -0.5 points
+- 2/4 types documented: -1 point
+- 0-1/4 types documented: -2 points
+
+### Tradeoff Acknowledgment
+
+**Requirements:**
+- Pros and cons listed
+- Decision justification
+- Alternatives considered
+
+**Scoring:**
+- Present with alternatives: Full credit
+- Present without alternatives: -0.5 points
+- Missing: -1 point
+
+## Score Decision Matrix
+
+**Score Tier Criteria:**
+- **5/5 (5 pts):** 100% rationale coverage, all non-obvious explained, 4/4 assumption types, tradeoffs present
+- **4/5 (4 pts):** 80%+ rationale coverage, most non-obvious explained, 3/4 assumption types, tradeoffs present
+- **3/5 (3 pts):** 60-79% rationale coverage, some non-obvious explained, 2/4 assumption types, some tradeoffs
+- **2/5 (2 pts):** 40-59% rationale coverage, few non-obvious explained, 1/4 assumption types, no tradeoffs
+- **1/5 (1 pt):** <40% rationale coverage, none explained, 0/4 assumption types, no tradeoffs
 
 ## Context Requirements
 
 ### 1. Provide Rationale
 
-Explain WHY for key decisions:
-
-**No context (poor):**
+**Without rationale (poor):**
 ```markdown
 Use PostgreSQL for the database
 ```
 
-**With context (good):**
+**With rationale (good):**
 ```markdown
 Use PostgreSQL for the database
 
@@ -52,14 +130,12 @@ Rationale:
 
 Alternatives considered:
 - MySQL: No native JSON support
-- MongoDB: No ACID guarantees for multi-document transactions
+- MongoDB: No ACID for multi-document transactions
 ```
 
 ### 2. Document Assumptions
 
-State assumptions explicitly:
-
-**Good example:**
+**Example (complete):**
 ```markdown
 ## Assumptions
 
@@ -67,12 +143,12 @@ State assumptions explicitly:
 2. 95% of requests are reads (justifies read replicas)
 3. Peak load: 1000 RPS (sizing consideration)
 4. Data retention: 7 years (legal requirement)
-5. Downtime window: Saturdays 2-4 AM UTC (maintenance)
+5. Downtime window: Saturdays 2-4 AM UTC
 ```
 
 ### 3. Explain Non-Obvious Choices
 
-**No explanation (poor):**
+**Without explanation (poor):**
 ```markdown
 Set MAX_CONNECTIONS=100
 ```
@@ -83,15 +159,15 @@ Set MAX_CONNECTIONS=100
 
 Reasoning:
 - Each connection uses ~10MB RAM
-- Server has 2GB RAM available for connections (2000MB / 10MB = 200 max)
-- Reserve 50% headroom → 100 connections
-- Current peak usage: 60 connections
-- Provides 40-connection buffer for traffic spikes
+- Server has 2GB available (2000MB / 10MB = 200 max)
+- Reserve 50% headroom = 100 connections
+- Current peak: 60 connections
+- Provides 40-connection buffer for spikes
 ```
 
 ### 4. Acknowledge Tradeoffs
 
-**No tradeoffs (poor):**
+**Without tradeoffs (poor):**
 ```markdown
 Use Redis for caching
 ```
@@ -107,8 +183,8 @@ Tradeoffs:
   - Simple key-value semantics
 
 ✗ Cons:
-  - Adds operational complexity (another service)
-  - Cache invalidation complexity
+  - Adds operational complexity
+  - Cache invalidation challenges
   - Memory cost: ~$200/month for 10GB
 
 Decision: Benefits outweigh costs for this use case
@@ -116,9 +192,7 @@ Decision: Benefits outweigh costs for this use case
 
 ### 5. Preserve Context
 
-Link related decisions:
-
-**Good example:**
+**Link related decisions:**
 ```markdown
 ## Architecture Decisions
 
@@ -126,136 +200,117 @@ Link related decisions:
 Rationale: Enable independent team scaling
 
 ### Decision 2: Use Docker
-Rationale: Supports Decision 1 (microservices need containerization)
+Rationale: Supports Decision 1 (microservices need containers)
 
 ### Decision 3: Use Kubernetes
-Rationale: Supports Decisions 1+2 (orchestrate multiple containerized services)
+Rationale: Supports Decisions 1+2 (orchestrate containers)
 ```
 
 ## Context Tracking Table
 
 Use during review:
 
-| Decision/Choice | Rationale Provided? | Assumptions Stated? | Tradeoffs Acknowledged? |
-|-----------------|---------------------|---------------------|-------------------------|
-| Use PostgreSQL | ✅ Yes | ✅ Yes | ✅ Yes |
-| Set timeout=30s | ❌ No | ❌ No | ❌ No |
-| 3 replicas | ⚠️  Partial | ❌ No | ✅ Yes |
-| Redis caching | ✅ Yes | ✅ Yes | ✅ Yes |
+**Decision Tracking Inventory (example):**
+- Use PostgreSQL (line 45): Rationale (Yes), Explained (Yes), Tradeoffs (Yes)
+- Set timeout=30s (line 67): Rationale (No), Explained (No), Tradeoffs (No)
+- 3 replicas (line 89): Rationale (Partial), Explained (No), Tradeoffs (Yes)
+- Redis caching (line 120): Rationale (Yes), Explained (Yes), Tradeoffs (Yes)
 
-**Missing context:** 1 decision has no rationale (timeout value)
+**Rationale coverage:** 3/4 = 75%
 
-## Scoring Formula
+## Worked Example
 
-```
-Base score = 5/5 (5 points)
+**Target:** Infrastructure plan
 
-Context quality:
-  All key decisions have rationale: 5/5
-  Most have rationale: 4/5 (-1)
-  Some have rationale: 3/5 (-2)
-  Few have rationale: 2/5 (-3)
-  No rationale: 1/5 (-4)
+### Step 1: Identify Key Decisions
 
-Additional deductions:
-  No assumptions documented: -1 point
-  No tradeoffs acknowledged: -0.5 points
+**Key Decision Inventory:**
+- Use PostgreSQL (line 30)
+- Set max_connections=100 (line 45)
+- Use Redis for caching (line 60)
+- 3 application replicas (line 75)
+- Use Kubernetes (line 90)
 
-Minimum score: 1/5 (1 point)
-```
+**Total:** 5 key decisions
 
-## Common Context Issues
+### Step 2: Check Rationale
 
-### Issue 1: No Rationale
+**Rationale Assessment:**
+- PostgreSQL: Yes - "ACID required"
+- max_connections=100: No - None provided
+- Redis caching: Yes - "Reduce DB load"
+- 3 replicas: No - None provided
+- Kubernetes: Yes - "Auto-scaling"
 
-**Problem:**
+**Coverage:** 3/5 = 60%
+
+### Step 3: Check Non-Obvious Explanations
+
+**Non-Obvious Value Assessment:**
+- max_connections=100: No explanation
+- 3 replicas: No explanation
+- Redis 10GB: Yes - "Working set size"
+
+**Explained:** 1/3 = 33%
+
+### Step 4: Check Assumptions
+
+**Assumption Type Assessment:**
+- Data: Yes - "10M rows"
+- Environment: No
+- Behavior: Yes - "95% reads"
+- External: No
+
+**Coverage:** 2/4 types
+
+### Step 5: Check Tradeoffs
+
 ```markdown
-Use Kubernetes for orchestration
+Only Redis section has tradeoffs listed
+PostgreSQL, Kubernetes: no alternatives mentioned
 ```
 
-**Fix:**
+**Quality:** Present but incomplete (-0.5)
+
+### Step 6: Calculate Score
+
+**Component Assessment:**
+- Rationale: 60% = 3/5 baseline
+- Non-obvious: 33% = -1 point
+- Assumptions: 2/4 = -1 point
+- Tradeoffs: Incomplete = -0.5 points
+
+**Total deductions:** -2.5 points from baseline
+**Final:** 3/5 (3 points)
+
+### Step 7: Document in Review
+
 ```markdown
-Use Kubernetes for orchestration
+## Context: 3/5 (3 points)
 
-Rationale:
-- 15 microservices need coordination
-- Auto-scaling required (traffic varies 10x daily)
-- Self-healing needed (services crash occasionally)
-- Industry standard (large talent pool)
-- Strong ecosystem (monitoring, logging, service mesh)
+**Rationale coverage:** 60% (3/5 decisions)
+- [YES] PostgreSQL: ACID requirements explained
+- [NO] max_connections=100: No rationale
+- [YES] Redis: Performance rationale
+- [NO] 3 replicas: No rationale
+- [YES] Kubernetes: Auto-scaling rationale
 
-Why not simpler alternatives:
-- Docker Compose: No auto-scaling or self-healing
-- ECS: AWS lock-in (want multi-cloud)
-- Nomad: Smaller ecosystem and talent pool
-```
+**Non-obvious values:** 33% explained
+- [NO] max_connections=100: Why 100?
+- [NO] 3 replicas: Why 3?
+- [YES] Redis 10GB: Working set explained
 
-### Issue 2: Undocumented Assumptions
+**Assumptions:** 2/4 types
+- [YES] Data, Behavior
+- [NO] Environment, External missing
 
-**Problem:**
-```markdown
-Scale to 100 servers
-```
+**Tradeoffs:** Partial (Redis only)
 
-**Fix:**
-```markdown
-Scale to 100 servers
-
-Assumptions:
-- Traffic projection: 10M requests/day by Q4
-- Each server handles: 100K requests/day
-- Required servers: 10M / 100K = 100
-- Based on: Current load testing + 20% headroom
-
-If assumptions change:
-- Actual traffic <5M/day: Scale down to 50 servers
-- Actual traffic >15M/day: Scale up to 150+ servers
-```
-
-### Issue 3: Missing Tradeoffs
-
-**Problem:**
-```markdown
-Use microservices architecture
-```
-
-**Fix:**
-```markdown
-Use microservices architecture
-
-Tradeoffs:
-✓ Pros:
-  - Independent deployments (reduce deployment risk)
-  - Technology flexibility (right tool per service)
-  - Team autonomy (5 teams, each owns services)
-  - Horizontal scaling per service
-
-✗ Cons:
-  - Operational complexity (monitoring, debugging distributed)
-  - Network overhead (inter-service calls)
-  - Data consistency challenges
-  - Deployment complexity (15 services vs 1 monolith)
-
-Decision: At our scale (5 teams, 15 services), benefits outweigh costs
-```
-
-### Issue 4: Lost Context
-
-**Problem:**
-```markdown
-Task 5: Add caching
-Task 15: Increase cache size to 10GB
-```
-→ Task 15 references cache but context is 10 tasks ago
-
-**Fix:**
-```markdown
-Task 5: Add Redis caching (2GB, TTL=1hour)
-
-Task 15: Increase cache size to 10GB
-Context: Builds on Task 5 (Redis caching)
-Reason: Cache hit rate only 60% with 2GB
-Target: 90% hit rate requires 10GB (analysis: logs show 10GB working set)
+**Priority fixes:**
+1. Add rationale for max_connections (memory calc)
+2. Add rationale for replica count (availability req)
+3. Document environment assumptions
+4. Add tradeoffs for PostgreSQL vs alternatives
 ```
 
 ## Context Checklist
@@ -265,9 +320,21 @@ During review, verify:
 - [ ] Key decisions have "why" explanation
 - [ ] Non-obvious values explained (timeouts, sizes, counts)
 - [ ] Assumptions documented explicitly
-- [ ] Alternatives considered and rejected (why not X?)
+- [ ] Alternatives considered (why not X?)
 - [ ] Tradeoffs acknowledged (pros and cons)
 - [ ] Context links decisions together
 - [ ] Technical choices justified
 - [ ] Sizing/scaling rationale provided
-- [ ] Future context preserved (why we did this)
+
+## Inter-Run Consistency Target
+
+**Expected variance:** ±10% rationale coverage
+
+**Verification:**
+- Count key decisions explicitly
+- Check for "rationale:", "why:", "reason:" keywords
+- Use tracking table
+
+**If variance exceeds threshold:**
+- Re-count using decision type list
+- Apply rationale definition strictly

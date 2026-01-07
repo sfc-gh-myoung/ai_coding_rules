@@ -3,146 +3,204 @@
 ## Scoring Criteria
 
 ### 5/5 (15 points): Excellent
-- Clear scope boundaries
-- Explicit inclusions
-- Explicit exclusions
-- Termination conditions defined
-- Work is bounded and finite
+- 4/4 boundary types defined (what, how much, when, what not)
+- Explicit in-scope list
+- Explicit out-of-scope list
+- Termination conditions with verification
+- 0 unbounded phrases
 
 ### 4/5 (12 points): Good
-- Scope mostly clear (1 boundary fuzzy)
-- Most inclusions clear
+- 3/4 boundary types defined
+- In-scope list present
 - Some exclusions stated
+- Termination conditions present
+- 1-2 unbounded phrases
 
 ### 3/5 (9 points): Acceptable
-- Scope somewhat clear (2-3 boundaries fuzzy)
-- Some inclusions clear
+- 2/4 boundary types defined
+- Partial in-scope list
 - Few exclusions
+- Vague termination
+- 3-4 unbounded phrases
 
 ### 2/5 (6 points): Needs Work
-- Scope unclear (4+ boundaries fuzzy)
+- 1/4 boundary types defined
 - Inclusions vague
 - No exclusions
+- No termination conditions
+- 5-6 unbounded phrases
 
 ### 1/5 (3 points): Poor
+- 0/4 boundary types defined
 - Unbounded scope
 - No boundaries
 - Never-ending work
+- >6 unbounded phrases
 
-## Scope Definition Requirements
+## Counting Definitions
 
-### 1. In-Scope (Inclusions)
+### Boundary Types
 
-Explicitly state what IS included:
+**Four boundary types (count 0-4):**
 
-**Good example:**
+**Boundary Checklist:**
+- What to change: What files/components? Present? Clear?
+- How much to change: What level of change? Present? Clear?
+- When to stop: What are done conditions? Present? Clear?
+- What NOT to change: What is excluded? Present? Clear?
+
+**Scoring:**
+- 4/4 clear: 5/5 eligible
+- 3/4 clear: 4/5 maximum
+- 2/4 clear: 3/5 maximum
+- 1/4 clear: 2/5 maximum
+- 0/4 clear: 1/5 maximum
+
+### Unbounded Phrases
+
+**Count each occurrence (1 issue each):**
+
+**Unbounded Phrase Patterns:**
+- "Improve X": Unbounded - improve how much?
+- "Optimize Y": Unbounded - optimize to what target?
+- "Refactor Z": Unbounded - refactor to what endpoint?
+- "As needed": Unbounded - infinite work possible
+- "Ongoing": Unbounded - no termination
+- "Continue until...": Unbounded - vague condition
+- "Clean up": Unbounded - clean to what standard?
+- "Enhance": Unbounded - enhance to what level?
+
+### In-Scope Clarity
+
+**Count explicit items:**
+- Named files/directories
+- Specific components
+- Defined deliverables
+
+**Scoring:**
+- 5+ explicit items: Full credit
+- 3-4 explicit items: -1 point
+- 1-2 explicit items: -2 points
+- 0 explicit items: -3 points
+
+### Out-of-Scope Clarity
+
+**Count explicit exclusions:**
+- Named items NOT being changed
+- Future work items
+- Related but separate concerns
+
+**Scoring:**
+- 3+ explicit exclusions: Full credit
+- 1-2 explicit exclusions: -1 point
+- 0 explicit exclusions: -2 points
+
+### Termination Conditions
+
+**Requirements:**
+- Explicit "done when" list
+- Measurable criteria
+- Verifiable by agent
+
+**Scoring:**
+- Measurable + verifiable: Full credit
+- Present but vague: -2 points
+- Missing: -4 points (CRITICAL)
+
+## Score Decision Matrix
+
+**Score Tier Criteria:**
+- **5/5 (15 pts):** 4/4 boundaries, 0 unbounded, 5+ in-scope items, 3+ out-of-scope items, measurable termination
+- **4/5 (12 pts):** 3/4 boundaries, 1-2 unbounded, 3-4 in-scope items, 1-2 out-of-scope items, present termination
+- **3/5 (9 pts):** 2/4 boundaries, 3-4 unbounded, 1-2 in-scope items, 0 out-of-scope items, vague termination
+- **2/5 (6 pts):** 1/4 boundaries, 5-6 unbounded, vague in-scope, none out-of-scope, missing termination
+- **1/5 (3 pts):** 0/4 boundaries, >6 unbounded, none in-scope, none out-of-scope, missing termination
+
+**Critical gate:** If termination conditions missing, cap at 2/5 (6 points)
+
+## Boundary Verification Table
+
+Use during review:
+
+**Boundary Verification Checklist:**
+- What to change: Defined? Description? Clear?
+- How much to change: Defined? Description? Clear?
+- When to stop: Defined? Description? Clear?
+- What NOT to change: Defined? Description? Clear?
+
+## Unbounded Phrase Tracking
+
+**Unbounded Phrase Inventory (example):**
+- "Improve performance" (line 45): Specify target - "<500ms p95"
+- "Refactor code" (line 67): Specify endpoint - "extract 3 classes"
+- "As needed" (line 89): Specify condition - "if >100 errors/hour"
+
+**Count:** ___
+
+## Scope Definition Examples
+
+### In-Scope (Good)
+
 ```markdown
 ## In-Scope
 
 - Migrate user authentication from custom to OAuth2
-- Update login/logout flows
-- Migrate existing user accounts
-- Update documentation
+- Update login/logout flows in src/auth/
+- Migrate existing 10,000 user accounts
+- Update authentication tests in tests/auth/
+- Update API documentation in docs/api/auth.md
 - Deploy to staging and production
 ```
 
-### 2. Out-of-Scope (Exclusions)
+**Count:** 6 explicit items
 
-Explicitly state what is NOT included:
+### Out-of-Scope (Good)
 
-**Good example:**
 ```markdown
 ## Out-of-Scope
 
-- Social login (Google, Facebook) - Future work
+- Social login (Google, Facebook) - Future: Ticket #457
 - Password reset flow - Already OAuth-managed
-- Admin authentication - Separate system
-- Mobile app login - Separate ticket #456
+- Admin authentication - Separate system, Ticket #458
+- Mobile app login - Separate team, Ticket #459
+- API rate limiting - Separate concern
 ```
 
-### 3. Termination Conditions
+**Count:** 5 explicit exclusions
 
-Define when work is complete:
+### Termination Conditions (Good)
 
-**Good example:**
 ```markdown
 ## Done When
 
-1. All tests pass (pytest exit code 0)
-2. OAuth login works in staging
-3. All 10,000 users migrated successfully
-4. Documentation updated
-5. Production deployed
+1. All src/auth/ tests pass (pytest exit code 0)
+2. OAuth login works in staging (manual verification)
+3. All 10,000 users migrated (migration script output: "10000 migrated")
+4. Documentation updated (docs/api/auth.md modified)
+5. Production deployed (health check returns 200)
 6. Monitoring shows 0 auth errors for 24 hours
 ```
 
-## Unbounded Scope Detection
+**Quality:** Measurable, verifiable
 
-Watch for open-ended phrases:
+### Unbounded Scope (Bad)
 
-**Red flags:**
-- "Improve X" (how much? when done?)
-- "Optimize Y" (to what target?)
-- "Refactor Z" (what's the endpoint?)
-- "As needed" (infinite work)
-- "Ongoing" (no termination)
-- "Continue until..." (no explicit condition)
-
-**Fix with boundaries:**
-```diff
-- Improve test coverage
-+ Increase test coverage from 70% to 90% for src/auth/ module
-```
-
-## Scope Boundary Verification
-
-Create table tracking boundaries:
-
-| Boundary | Defined? | How Defined | Clear? |
-|----------|----------|-------------|--------|
-| What to change | ✅ Yes | src/auth/ module only | ✅ Clear |
-| How much to change | ✅ Yes | OAuth migration complete | ✅ Clear |
-| When to stop | ✅ Yes | 6 done criteria listed | ✅ Clear |
-| What NOT to change | ✅ Yes | Out-of-scope section | ✅ Clear |
-
-## Scoring Formula
-
-```
-Base score = 5/5 (15 points)
-
-Scope definition:
-  All 4 boundaries clear: 5/5 (15 points)
-  3/4 boundaries clear: 4/5 (12 points)
-  2/4 boundaries clear: 3/5 (9 points)
-  1/4 boundaries clear: 2/5 (6 points)
-  0/4 boundaries clear: 1/5 (3 points)
-
-Additional deductions:
-  No termination conditions: -3 points (CRITICAL)
-  Unbounded phrases present: -0.5 each (up to -2)
-  No exclusions: -1 point
-
-Minimum score: 1/5 (3 points)
-```
-
-## Critical Gate
-
-If scope is unbounded (no termination conditions):
-- Cap score at 2/5 (6 points) maximum
-- Mark as CRITICAL issue
-- Work never completes
-
-## Common Scope Issues
-
-### Issue 1: No Boundaries
-
-**Problem:**
 ```markdown
+BAD:
 Refactor the codebase to be better
+
+Issues:
+- "Refactor" - unbounded (1)
+- "better" - undefined target (1)
+- No in-scope items
+- No out-of-scope items
+- No termination conditions
 ```
 
-**Fix:**
+### Bounded Scope (Good)
+
 ```markdown
+GOOD:
 ## Goal
 Refactor src/auth/ module to use OAuth2
 
@@ -153,7 +211,7 @@ Refactor src/auth/ module to use OAuth2
 
 ## Out-of-Scope
 - Other modules (src/api/, src/admin/)
-- Performance optimization (separate ticket)
+- Performance optimization (Ticket #460)
 - New features (separate tickets)
 
 ## Done When
@@ -163,70 +221,98 @@ Refactor src/auth/ module to use OAuth2
 - Documentation updated
 ```
 
-### Issue 2: Vague Termination
+## Worked Example
 
-**Problem:**
+**Target:** Feature plan
+
+### Step 1: Check Boundaries
+
+**Boundary Assessment:**
+- What to change: Yes - "src/auth/ module"
+- How much: Yes - "OAuth2 migration"
+- When to stop: Partial - "When complete" (vague)
+- What NOT: No - Not stated
+
+**Count:** 2/4 boundaries clear
+
+### Step 2: Count Unbounded Phrases
+
+**Unbounded Phrase Inventory:**
+- "Improve performance" (line 45)
+- "Clean up code" (line 67)
+- "As needed" (line 89)
+
+**Count:** 3 unbounded phrases
+
+### Step 3: Assess In-Scope
+
 ```markdown
-Done when performance is good enough
+In-scope items:
+- OAuth2 library integration
+- Login endpoint
+- Logout endpoint
+- Token refresh
 ```
 
-**Fix:**
+**Count:** 4 explicit items
+
+### Step 4: Assess Out-of-Scope
+
 ```markdown
-Done when:
-1. P95 latency <500ms (benchmark: pytest tests/bench/)
-2. Error rate <0.1% (logs: grep ERROR | wc -l)
-3. Load test passes: 1000 RPS sustained for 5 minutes
-4. Monitoring shows no alerts for 24 hours
+Out-of-scope: (none stated)
 ```
 
-### Issue 3: No Exclusions
+**Count:** 0 exclusions
 
-**Problem:**
+### Step 5: Assess Termination
+
 ```markdown
-Migrate to new database
-(No exclusions stated)
+"Complete when OAuth works"
 ```
 
-**Fix:**
+**Quality:** Present but vague (-2 points)
+
+### Step 6: Calculate Score
+
+**Component Assessment:**
+- Boundaries: 2/4 = 3/5 baseline
+- Unbounded phrases: 3 = Within range
+- In-scope: 4 items = -1 point
+- Out-of-scope: 0 items = -2 points
+- Termination: Vague = -2 points
+
+**Total deductions:** -5 points
+**Final:** 3/5 - 5 = Too low, Minimum 3/5 (9 points)
+
+Wait, recalculate: 3/5 baseline (9 pts), no additional deductions apply within tier.
+
+**Final:** 3/5 (9 points)
+
+### Step 7: Document in Review
+
 ```markdown
-## In-Scope
-- Migrate users table to PostgreSQL
-- Update user queries
+## Scope: 3/5 (9 points)
 
-## Out-of-Scope (future work)
-- Products table migration - Ticket #457
-- Orders table migration - Ticket #458
-- Analytics migration - Ticket #459
-- Data warehouse sync - Separate project
-```
+**Boundaries defined:** 2/4
+- [YES] What to change: src/auth/ module
+- [YES] How much: OAuth2 migration
+- [PARTIAL] When to stop: Vague ("when complete")
+- [NO] What NOT: Not stated
 
-### Issue 4: Open-Ended Work
+**Unbounded phrases:** 3
+- Line 45: "Improve performance"
+- Line 67: "Clean up code"
+- Line 89: "As needed"
 
-**Problem:**
-```markdown
-Improve error handling throughout the application
-```
+**In-scope:** 4 items (partial)
+**Out-of-scope:** 0 items (missing)
 
-**Fix:**
-```markdown
-## Goal
-Add error handling to src/api/ module
+**Termination:** Present but vague
 
-## In-Scope
-- Add try/except to all 15 API endpoints
-- Return proper HTTP status codes (400/500)
-- Log all errors to logs/errors.log
-
-## Out-of-Scope
-- Frontend error handling (separate ticket)
-- Background job errors (separate ticket)
-- Database error handling (already implemented)
-
-## Done When
-1. All 15 endpoints have error handling
-2. Test suite includes error cases (100% coverage)
-3. No unhandled exceptions in API layer
-4. Error log format validated: grep ERROR logs/errors.log
+**Priority fixes:**
+1. Add explicit out-of-scope section
+2. Replace "when complete" with measurable criteria
+3. Remove or quantify unbounded phrases
 ```
 
 ## Scope Checklist
@@ -237,7 +323,20 @@ During review, verify:
 - [ ] Out-of-scope items explicitly listed
 - [ ] Termination conditions defined (done when...)
 - [ ] Work is bounded (not open-ended)
-- [ ] No phrases like "improve", "optimize" without targets
+- [ ] No unbounded phrases ("improve", "optimize" without targets)
 - [ ] Clear boundaries (what/how much/when/what not)
 - [ ] Exclusions prevent scope creep
 - [ ] Completion is verifiable
+
+## Inter-Run Consistency Target
+
+**Expected variance:** ±1 boundary count
+
+**Verification:**
+- Use 4-boundary checklist
+- Count unbounded phrases with line numbers
+- Count in-scope/out-of-scope items explicitly
+
+**If variance exceeds threshold:**
+- Re-verify using boundary table
+- Apply phrase definitions strictly

@@ -6,7 +6,7 @@
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-05
 **Keywords:** Python packaging, project structure, setup.py, pyproject.toml, dependencies, package distribution, __init__.py, hatchling, uv, src layout
-**TokenBudget:** ~3150
+**TokenBudget:** ~3600
 **ContextTier:** High
 **Depends:** 200-python-core.md
 

@@ -6,7 +6,7 @@
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-05
 **Keywords:** roles, grants, secure views, security policies, access control, data security, policy troubleshooting, grant management, Data Metric Functions, DMF, least privilege, create masking policy, tagging, SQL
-**TokenBudget:** ~3900
+**TokenBudget:** ~3600
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 

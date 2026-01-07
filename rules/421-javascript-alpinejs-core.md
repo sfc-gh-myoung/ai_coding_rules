@@ -6,7 +6,7 @@
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-05
 **Keywords:** Alpine.js, reactivity, x-data, x-bind, x-on, x-model, x-show, x-if, magic properties, $el, $refs, $store, declarative, progressive enhancement, lightweight
-**TokenBudget:** ~5950
+**TokenBudget:** ~5650
 **ContextTier:** Medium
 **Depends:** 000-global-core.md
 

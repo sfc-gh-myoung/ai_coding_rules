@@ -6,7 +6,7 @@
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-05
 **Keywords:** Taskfile, Taskfile.yml, task automation, build automation, task runner, Task, portable tasks, error handling, categorized help, task discovery, command detection, auto-detection, cross-platform, uvx, machine-readable
-**TokenBudget:** ~11350
+**TokenBudget:** ~10700
 **ContextTier:** Medium
 **Depends:** 202-markup-config-validation.md
 

@@ -6,7 +6,7 @@
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-05
 **Keywords:** Python docstrings, documentation, comments, pydocstyle, Ruff DOC rules, API documentation, Google style, NumPy style, PEP 257, code quality, semantic depth, side effects, preconditions, performance, thread safety
-**TokenBudget:** ~8000
+**TokenBudget:** ~8400
 **ContextTier:** High
 **Depends:** 200-python-core.md, 201-python-lint-format.md
 

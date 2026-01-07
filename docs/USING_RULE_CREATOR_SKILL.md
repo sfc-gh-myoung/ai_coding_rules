@@ -6,7 +6,7 @@
 
 ## Background
 
-The rule-creator skill automates the creation of new Cursor rules following schema standards. It's designed for use within the ai_coding_rules project itself, not for deployment to other projects.
+The rule-creator skill automates the creation of new Cursor rules following schema standards (structured format requirements). It's designed for use within the ai_coding_rules project itself, not for deployment to other projects.
 
 ## Why Not Deployed?
 

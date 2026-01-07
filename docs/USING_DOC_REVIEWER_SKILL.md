@@ -6,7 +6,7 @@ The Doc Reviewer Skill automates comprehensive documentation reviews for your pr
 
 ## Background
 
-The doc-reviewer skill runs Agent-Centric Documentation Reviews using the rubrics in `skills/doc-reviewer/rubrics/*.md` and writes results to `reviews/`.
+The doc-reviewer skill runs Agent-Centric Documentation Reviews (reviews optimized for AI agent understanding) using the rubrics in `skills/doc-reviewer/rubrics/*.md` and writes results to `reviews/`.
 
 Key behaviors:
 

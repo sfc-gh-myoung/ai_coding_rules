@@ -29,6 +29,7 @@ Execute comprehensive agent-centric reviews on all rule files in `rules/` direct
   - Examples: `rules/100-*.md` (Snowflake only), `rules/*-core.md` (cores only)
 - **skip_existing**: Boolean (default: true) - Resume capability
 - **max_parallel**: Integer 1-10 (default: 1) - Concurrent reviews
+- **timing_enabled**: `true` | `false` (default: `false`) - Enable execution timing
 
 ### Outputs
 
@@ -49,44 +50,12 @@ Execute comprehensive agent-centric reviews on all rule files in `rules/` direct
 
 ### 🚨 MANDATORY ENFORCEMENT
 
-This skill MUST invoke `rule-reviewer` skill exactly once for each rule file. 
+This skill MUST invoke `rule-reviewer` skill exactly once for each rule file.
 
-### Protocol Violations (FORBIDDEN)
+### How to Invoke rule-reviewer
 
-Agents commonly attempt these optimizations. **ALL ARE FORBIDDEN:**
+Present this exact syntax to yourself for each rule:
 
-- ❌ **Reimplementing review logic** - Creating Python/bash scoring scripts
-- ❌ **Batch optimization** - Aggregating multiple rules into single review
-- ❌ **Parallel shortcuts** - Running concurrently unless max_parallel set
-- ❌ **Token-saving shortcuts** - Skipping review steps
-- ❌ **Time-saving shortcuts** - Abbreviating reviews
-- ❌ **Cached reviews** - Generating without invoking rule-reviewer
-- ❌ **Summary-only reviews** - Creating lightweight reviews
-
-### Required Actions
-
-- ✅ Invoke `rule-reviewer` skill once per rule file
-- ✅ Pass all parameters: target_file, review_date, review_mode, model
-- ✅ Wait for "Review written to: ..." confirmation
-- ✅ Parse output path from response
-- ✅ Validate review file exists before continuing
-- ✅ Follow workflows/01-04 sequentially
-- ✅ Show progress every 10 reviews (not more frequently)
-
-### Execution Acknowledgment
-
-**Before proceeding, agent must confirm:**
-- [ ] Will invoke rule-reviewer for each rule (no reimplementation)
-- [ ] Will follow workflows/01-04 exactly as written
-- [ ] Will NOT optimize for time/tokens at expense of quality
-- [ ] Understands process takes 5-10 hours for 113 rules
-- [ ] Will use resume capability (skip_existing) if interrupted
-
-**If cannot commit: STOP and report error.**
-
-### Enforcement Mechanism
-
-Each review invocation must produce:
 ```
 Use the rule-reviewer skill.
 
@@ -96,7 +65,56 @@ review_mode: FULL
 model: <model>
 ```
 
-**Verification:** Response must contain: `"Review written to: reviews/<filename>.md"`
+Claude will:
+1. Load rule-reviewer/SKILL.md (progressive disclosure)
+2. Read rubrics/ files as needed
+3. Execute complete review workflow
+4. Write review to reviews/
+5. Respond with: "Review written to: reviews/[filename].md"
+
+Wait for confirmation before proceeding to next rule.
+
+### Protocol Violations (FORBIDDEN)
+
+Agents commonly attempt these optimizations. **ALL ARE FORBIDDEN:**
+
+- ❌ **Reimplementing review logic** - Reading rubrics and scoring yourself
+- ❌ **Batch optimization** - Aggregating multiple rules into single review
+- ❌ **Parallel shortcuts** - Running concurrently unless max_parallel set
+- ❌ **Token-saving shortcuts** - Generating abbreviated reviews directly
+- ❌ **Time-saving shortcuts** - Skipping rubric-based scoring
+- ❌ **Direct file writes** - Writing reviews without invoking rule-reviewer
+- ❌ **Template-based reviews** - Using examples/ as templates
+
+### Required Actions
+
+- ✅ Invoke `rule-reviewer` skill once per rule file
+- ✅ Pass all parameters: target_file, review_date, review_mode, model
+- ✅ Wait for "Review written to: ..." confirmation
+- ✅ Parse output path from response
+- ✅ Validate review file exists before continuing
+- ✅ Follow workflows sequentially (discovery → review-execution → aggregation → summary-report)
+- ✅ Show progress every 10 reviews (not more frequently)
+
+### Execution Acknowledgment
+
+**Before proceeding, agent must confirm:**
+- [ ] Will invoke rule-reviewer for each rule (no reimplementation)
+- [ ] Will present skill invocation syntax and let SKILL.md guide execution
+- [ ] Will follow workflows exactly as written (discovery → review-execution → aggregation → summary-report)
+- [ ] Will NOT optimize for time/tokens at expense of quality
+- [ ] Understands process takes 5-10 hours for 113 rules
+- [ ] Will use resume capability (skip_existing) if interrupted
+
+**If cannot commit: STOP and report error.**
+
+### Verification
+
+Each review invocation must produce:
+- Skill invocation syntax presented
+- rule-reviewer executes complete workflow
+- Response contains: "Review written to: reviews/[filename].md"
+- Review file exists at specified path
 
 **Violation consequences:**
 - Invalid reviews rejected from summary
@@ -104,18 +122,44 @@ model: <model>
 - User notified of shortcut attempt
 
 **Why this matters:**
-- rule-reviewer contains domain expertise (rubrics, priority checks)
+- rule-reviewer/SKILL.md contains concise overview
+- rubrics/ contain detailed scoring criteria (progressive disclosure)
 - Reimplementation loses review quality and consistency
 - Token/time optimization sacrifices accuracy
 - Each rule deserves full evaluation
 
 ## Workflow
 
+### [OPTIONAL] Timing Start
+
+**When:** Only if `timing_enabled: true` in inputs  
+**MODE:** Safe in PLAN mode
+
+**See:** `../skill-timing/workflows/timing-start.md`
+
+**Action:** Capture `run_id` in working memory for later use.
+
+**Note:** Timing tracks the entire bulk review process (all stages), not individual rule-reviewer calls.
+
+### [OPTIONAL] Checkpoint: skill_loaded
+
+**When:** Only if timing was started  
+**Checkpoint name:** `skill_loaded`
+
+**See:** `../skill-timing/workflows/timing-checkpoint.md`
+
 ### Stage 1: Discovery
 
 Find all `.md` files in `rules/` directory, apply filter_pattern, sort alphabetically.
 
-**See:** `workflows/01-discovery.md`
+**See:** `workflows/discovery.md`
+
+### [OPTIONAL] Checkpoint: discovery_complete
+
+**When:** Only if timing was started  
+**Checkpoint name:** `discovery_complete`
+
+**See:** `../skill-timing/workflows/timing-checkpoint.md`
 
 ### Stage 2: Review Execution
 
@@ -127,7 +171,14 @@ For each rule file:
 5. Store (rule_name, score, verdict, review_path)
 6. Show progress every 10 reviews
 
-**See:** `workflows/02-review-execution.md` for orchestration details, resume capability, error handling.
+**See:** `workflows/review-execution.md` for orchestration details, resume capability, error handling.
+
+### [OPTIONAL] Checkpoint: reviews_complete
+
+**When:** Only if timing was started  
+**Checkpoint name:** `reviews_complete`
+
+**See:** `../skill-timing/workflows/timing-checkpoint.md`
 
 ### Stage 3: Aggregation
 
@@ -137,7 +188,14 @@ For each review file:
 3. Build lightweight data structure (no full content)
 4. Calculate statistics: average, median, distribution
 
-**See:** `workflows/03-aggregation.md` for parsing strategy and statistics calculations.
+**See:** `workflows/aggregation.md` for parsing strategy and statistics calculations.
+
+### [OPTIONAL] Checkpoint: aggregation_complete
+
+**When:** Only if timing was started  
+**Checkpoint name:** `aggregation_complete`
+
+**See:** `../skill-timing/workflows/timing-checkpoint.md`
 
 ### Stage 4: Summary Report
 
@@ -147,7 +205,36 @@ Generate master summary with:
 - Impact × effort ratios for recommendations
 - Write to `reviews/_bulk-review-<model>-<date>.md`
 
-**See:** `workflows/04-summary-report.md` for report format and section generation.
+**See:** `workflows/summary-report.md` for report format and section generation.
+
+### [OPTIONAL] Checkpoint: summary_complete
+
+**When:** Only if timing was started  
+**Checkpoint name:** `summary_complete`
+
+**See:** `../skill-timing/workflows/timing-checkpoint.md`
+
+### [OPTIONAL] Timing End (Compute)
+
+**When:** Only if timing was started  
+**MODE:** Safe in PLAN mode (outputs to STDOUT only)
+
+**See:** `../skill-timing/workflows/timing-end.md` (Step 1)
+
+**Action:** Capture STDOUT output for metadata embedding.
+
+### [MODE TRANSITION: PLAN → ACT]
+
+Authorization required for file modifications.
+
+### [OPTIONAL] Timing End (Embed)
+
+**When:** Only if timing was started  
+**MODE:** Requires ACT mode (appends metadata to file)
+
+**See:** `../skill-timing/workflows/timing-end.md` (Step 2)
+
+**Action:** Parse STDOUT, append timing metadata section to summary report file.
 
 ## Critical Design Decisions
 
@@ -155,7 +242,7 @@ Generate master summary with:
 
 **Stateless Execution:** Review failures don't stop batch. Resume via skip_existing parameter.
 
-**See:** `workflows/03-aggregation.md` for complete strategy.
+**See:** `workflows/aggregation.md` for complete strategy.
 
 ## Error Handling
 
@@ -250,14 +337,18 @@ model: claude-sonnet-45
 
 ## Validation
 
-**See:** `VALIDATION.md` for complete validation rules. Key checks:
-- `review_date` must match YYYY-MM-DD format
-- `review_mode` must be FULL | FOCUSED | STALENESS
-- `model` must be lowercase-hyphenated
-- `filter_pattern` must be valid glob
-- `rules/` directory must exist and be readable
-- `skip_existing` must be boolean
-- `max_parallel` must be 1-10
+**See:** `workflows/input-validation.md` for validation workflow and code patterns.
+
+**Key Requirements:**
+- `review_date`: YYYY-MM-DD format (valid calendar date)
+- `review_mode`: FULL | FOCUSED | STALENESS (uppercase)
+- `model`: lowercase-hyphenated (e.g., claude-sonnet-45)
+- `filter_pattern`: rules/*.md glob (optional, must match ≥1 file)
+- `skip_existing`: boolean true/false (optional, default: true)
+- `max_parallel`: integer 1-10 (optional, default: 1)
+- Environment: rules/ exists and readable, reviews/ writable
+
+**Execution:** Validate inputs before Stage 1 (Discovery). Fail fast on errors.
 
 ## Examples
 

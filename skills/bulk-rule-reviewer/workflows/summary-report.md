@@ -6,7 +6,7 @@ Generate master summary report from aggregated data with prioritized improvement
 
 ## Inputs
 
-- `summary_data`: Data structure from 03-aggregation.md
+- `summary_data`: Data structure from aggregation.md
 - `review_date`: Date stamp (YYYY-MM-DD)
 - `review_mode`: FULL | FOCUSED | STALENESS
 - `model`: Model identifier
@@ -367,7 +367,7 @@ def format_effort_estimate(hours):
 
 ## Integration Points
 
-**Input:** summary_data from 03-aggregation.md
+**Input:** summary_data from aggregation.md
 **Output:** Master summary file path
 
 This is the final workflow in the bulk review pipeline.

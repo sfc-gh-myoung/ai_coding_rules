@@ -55,7 +55,7 @@ Result: FAILED
 
 ### Step 4: Score All 6 Dimensions
 
-Using weighted formula from PROMPT.md:
+Using weighted formula from SKILL.md:
 - Actionability: 3/5 × 5 = 15/25
 - Completeness: 4/5 × 5 = 20/25
 - Consistency: 5/5 × 3 = 15/15

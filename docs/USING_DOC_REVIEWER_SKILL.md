@@ -33,9 +33,9 @@ Key behaviors:
 Use the doc-reviewer skill.
 
 target_files: README.md
-review_date: 2025-12-16
+review_date: 2026-01-06
 review_mode: FULL
-model: claude-sonnet45
+model: claude-sonnet-45
 review_scope: single
 ```
 
@@ -45,20 +45,34 @@ review_scope: single
 Use the doc-reviewer skill.
 
 target_files: README.md, CONTRIBUTING.md, docs/ARCHITECTURE.md
-review_date: 2025-12-16
+review_date: 2026-01-06
 review_mode: FULL
-model: claude-sonnet45
+model: claude-sonnet-45
 review_scope: collection
+```
+
+**With execution timing:**
+
+```text
+Use the doc-reviewer skill.
+
+target_files: README.md
+review_date: 2026-01-06
+review_mode: FULL
+model: claude-sonnet-45
+timing_enabled: true
 ```
 
 ### 3. Output location
 
 The skill writes reviews to the `reviews/` directory:
 
-- Single: `reviews/README-claude-sonnet45-2025-12-16.md`
-- Collection: `reviews/project-docs-claude-sonnet45-2025-12-16.md`
+- Single: `reviews/README-claude-sonnet-45-2026-01-06.md`
+- Collection: `reviews/project-docs-claude-sonnet-45-2026-01-06.md`
 
 If the file already exists, suffixes are appended: `-01.md`, `-02.md`, etc.
+
+When `timing_enabled: true`, the output includes a Timing Metadata section with duration, token usage, and cost estimation.
 
 ## Review Modes
 
@@ -156,9 +170,9 @@ If these rules don't exist, the skill uses standard documentation templates as b
 Use the doc-reviewer skill.
 
 target_files: README.md, CONTRIBUTING.md
-review_date: 2025-12-16
+review_date: 2026-01-06
 review_mode: FULL
-model: claude-sonnet45
+model: claude-sonnet-45
 review_scope: single
 ```
 
@@ -169,9 +183,9 @@ Review each file individually to establish baseline quality.
 ```text
 Use the doc-reviewer skill.
 
-review_date: 2025-12-16
+review_date: 2026-01-06
 review_mode: STALENESS
-model: claude-sonnet45
+model: claude-sonnet-45
 review_scope: collection
 ```
 
@@ -183,10 +197,10 @@ Run staleness checks across all project documentation.
 Use the doc-reviewer skill.
 
 target_files: docs/ARCHITECTURE.md, docs/API.md
-review_date: 2025-12-16
+review_date: 2026-01-06
 review_mode: FOCUSED
 focus_dimensions: Accuracy
-model: claude-sonnet45
+model: claude-sonnet-45
 review_scope: single
 ```
 
@@ -200,7 +214,7 @@ Verify code references are still valid after major refactoring.
 
 ### Q: What should I pass for `model`?
 
-**A:** Prefer a slug like `claude-sonnet45`. If you provide a raw model name, the skill normalizes it to a slug before writing the file.
+**A:** Prefer a slug like `claude-sonnet-45`. If you provide a raw model name, the skill normalizes it to a slug before writing the file.
 
 ### Q: Can I review non-markdown files?
 

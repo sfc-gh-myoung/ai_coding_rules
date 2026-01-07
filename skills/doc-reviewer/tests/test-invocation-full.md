@@ -1,0 +1,126 @@
+# Test Invocation: doc-reviewer (FULL Mode)
+
+## Purpose
+
+Verify doc-reviewer skill executes correctly with all 6 dimensions.
+
+## Test Input
+
+```
+Use the doc-reviewer skill.
+
+review_date: 2026-01-06
+review_mode: FULL
+model: claude-sonnet-45
+target_files: README.md
+timing_enabled: false
+```
+
+## Expected Behavior
+
+### Phase 1: Input Validation
+- ✅ Date format valid (YYYY-MM-DD)
+- ✅ Mode recognized (FULL)
+- ✅ Model slug created (claude-sonnet-45)
+- ✅ Target file exists
+
+### Phase 2: Review Execution
+- ✅ Read README.md completely
+- ✅ Load rubrics progressively:
+  - accuracy.md (verify file paths, commands)
+  - completeness.md (check feature coverage)
+  - clarity.md (new user test)
+  - structure.md (heading hierarchy)
+  - staleness.md (link validation)
+  - consistency.md (formatting)
+- ✅ Score each dimension (6 scores)
+- ✅ Calculate total score (0-100)
+- ✅ Determine verdict
+
+### Phase 3: Output
+- ✅ Generate recommendations
+- ✅ Write to: `reviews/README-claude-sonnet-45-2026-01-06.md`
+- ✅ Confirm: "Review written to: reviews/README-claude-sonnet-45-2026-01-06.md"
+
+## Expected Output Structure
+
+```markdown
+# Documentation Review: README.md
+
+**Reviewed:** 2026-01-06
+**Model:** claude-sonnet-45
+**Mode:** FULL
+
+## Executive Summary
+
+[Summary paragraph]
+
+**Overall Score:** XX/100
+**Verdict:** [EXCELLENT|GOOD|NEEDS_IMPROVEMENT|POOR|INADEQUATE]
+
+## Dimension Scores
+
+| Dimension | Score | Weight | Points | Status |
+|-----------|-------|--------|--------|--------|
+| Accuracy | X/5 | ×5 | Y/25 | ... |
+| Completeness | X/5 | ×5 | Y/25 | ... |
+| Clarity | X/5 | ×4 | Y/20 | ... |
+| Structure | X/5 | ×3 | Y/15 | ... |
+| Staleness | X/5 | ×2 | Y/10 | ... |
+| Consistency | X/5 | ×1 | Y/5 | ... |
+
+## Verification Tables
+
+### Cross-Reference Verification (Accuracy)
+
+| Reference | Line | Type | Status | Notes |
+|-----------|------|------|--------|-------|
+| ... | ... | ... | ... | ... |
+
+### Link Validation (Staleness)
+
+| URL | Line | Status | Response Time | Action |
+|-----|------|--------|---------------|--------|
+| ... | ... | ... | ... | ... |
+
+## Recommendations
+
+### Accuracy (Score: X/25)
+[Issues and fixes]
+
+### Completeness (Score: X/25)
+[Issues and fixes]
+
+[...]
+
+## Conclusion
+
+[Summary and next steps]
+```
+
+## Success Criteria
+
+- [ ] Review file created
+- [ ] All 6 dimensions scored
+- [ ] Total score calculated correctly
+- [ ] Verdict matches score range
+- [ ] Recommendations include line numbers
+- [ ] Verification tables present
+- [ ] No errors during execution
+
+## Failure Scenarios
+
+**Scenario 1: Target file missing**
+```
+Error: File not found: README.md
+```
+
+**Scenario 2: Invalid date format**
+```
+Error: Invalid date format. Expected YYYY-MM-DD, got: 2026/01/06
+```
+
+**Scenario 3: Rubric file missing**
+```
+Error: Rubric not found: rubrics/accuracy.md
+```

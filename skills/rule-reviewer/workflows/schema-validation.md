@@ -226,7 +226,7 @@ if not output or exit_code not in [0, 1]:
 This workflow integrates with:
 
 1. **review-execution.md** - Called as Step 2 (after file read, before dimension scoring)
-2. **PROMPT.md** - Provides scoring caps and format requirements
+2. **SKILL.md** - Provides scoring caps and format requirements
 3. **file-write.md** - Schema results included in final review output
 
 ## Expected Output
@@ -243,7 +243,7 @@ The workflow produces three outputs:
 - Error counts extracted correctly
 - Parsability cap applied per rubric rules
 - All CRITICAL/HIGH errors documented in review
-- Schema section formatted per PROMPT.md requirements
+- Schema section formatted per SKILL.md requirements
 
 ## Example Output
 

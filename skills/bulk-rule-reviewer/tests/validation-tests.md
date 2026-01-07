@@ -802,6 +802,6 @@ Tests should be run:
 ---
 
 **Related Documentation:**
-- **VALIDATION.md:** Validation rules specification
+- **workflows/input-validation.md:** Validation rules specification
 - **SKILL.md:** Skill definition with input contract
 - **README.md:** Usage examples

@@ -1,4 +1,7 @@
-# Skill Validation: doc-reviewer
+# Skill Testing Guide: doc-reviewer
+
+> **⚠️ AUDIENCE:** This document is for **skill maintainers** (humans), not for Claude.
+> It provides testing procedures, troubleshooting guides, and health checks for the skill itself.
 
 This document describes how to verify that the doc-reviewer skill is functioning correctly.
 
@@ -10,7 +13,6 @@ Run these checks to verify basic functionality:
 # 1. Verify skill files exist
 ls skills/doc-reviewer/SKILL.md
 ls skills/doc-reviewer/README.md
-ls skills/doc-reviewer/PROMPT.md
 ls skills/doc-reviewer/workflows/*.md
 ls skills/doc-reviewer/examples/*.md
 ls skills/doc-reviewer/tests/*.md
@@ -85,7 +87,7 @@ model: claude-sonnet45
 
 **Verify during review:**
 
-- [ ] Prompt file read: `PROMPT.md` (colocated in skill folder)
+- [ ] Skill file read: `SKILL.md` (contains review rubric)
 - [ ] Target files read successfully
 - [ ] Cross-reference verification performed
 - [ ] Link validation performed
@@ -271,7 +273,7 @@ review_scope: collection
 
 **Check:**
 
-1. `skills/doc-reviewer/PROMPT.md` exists and is readable
+1. `skills/doc-reviewer/SKILL.md` exists and is readable
 2. Target documentation files exist
 3. Target files are valid markdown
 
@@ -365,7 +367,7 @@ Score table must be valid markdown:
 
 | Component | Minimum Version |
 |-----------|-----------------|
-| PROMPT.md | Current |
+| SKILL.md (with rubric) | Current |
 | reviews/ directory | Writable |
 | Target docs | Valid markdown |
 

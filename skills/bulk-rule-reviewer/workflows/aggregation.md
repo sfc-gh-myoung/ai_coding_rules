@@ -6,7 +6,7 @@ Extract scores, verdicts, and critical issues from individual review files witho
 
 ## Inputs
 
-- Results list from 02-review-execution.md containing:
+- Results list from review-execution.md containing:
   - `rule_name`: Rule identifier
   - `score`: Overall score (0-100)
   - `verdict`: Verdict enum
@@ -353,7 +353,7 @@ return summary_data
 
 ## Integration with Next Workflow
 
-**Output of this workflow** → **Input to 04-summary-report.md**
+**Output of this workflow** → **Input to summary-report.md**
 
 The summary_data structure produced by this workflow is used by the summary report workflow to generate the master markdown report with prioritized recommendations.
 

@@ -94,6 +94,51 @@ model: claude-sonnet-45
 
 ---
 
+## Execution Timing
+
+Enable execution timing to measure bulk review duration and track performance:
+
+```
+Use the bulk-rule-reviewer skill.
+
+review_date: 2026-01-06
+review_mode: FULL
+model: claude-sonnet-45
+timing_enabled: true
+```
+
+When enabled, the output includes:
+- **Timing Metadata section** in the master summary report
+- **STDOUT summary** with total duration, checkpoints (discovery, reviews, aggregation, summary), tokens, baseline comparison
+- **Real-time anomaly alerts** if duration is suspicious
+
+**Example timing metadata:**
+
+```markdown
+## Timing Metadata
+
+| Metric | Value |
+|--------|-------|
+| Run ID | `a1b2c3d4e5f67890` |
+| Duration | 342m 15s (20535.5s) |
+| Model | claude-sonnet-45 |
+| Tokens | 1,840,300 (1,250,000 in / 590,300 out) |
+| Cost | ~$12.60 |
+```
+
+**Checkpoints tracked:**
+- `skill_loaded` - After loading SKILL.md
+- `discovery_complete` - After discovering all rule files
+- `reviews_complete` - After all individual rule reviews
+- `aggregation_complete` - After aggregating review data
+- `summary_complete` - After generating summary report
+
+**Note:** For bulk reviews with 100+ rules, timing duration can be 3-6 hours. Anomaly detection thresholds are configured separately for bulk-rule-reviewer.
+
+**See:** `skills/skill-timing/README.md` for full documentation on timing features, baseline comparison, and analysis tools.
+
+---
+
 ## Input Parameters
 
 ### Required Parameters
@@ -111,6 +156,7 @@ model: claude-sonnet-45
 | `filter_pattern` | Glob | `rules/*.md` | Filter rules by pattern | `rules/100-*.md` |
 | `skip_existing` | Boolean | `true` | Skip files with existing reviews | `true`, `false` |
 | `max_parallel` | Integer | `1` | Max concurrent reviews | `1` (sequential) |
+| `timing_enabled` | Boolean | `false` | Enable execution timing | `true`, `false` |
 
 ---
 
@@ -293,25 +339,25 @@ skip_existing: true
 
 The skill executes in 4 sequential stages:
 
-### Stage 1: Discovery (workflows/01-discovery.md)
+### Stage 1: Discovery (workflows/discovery.md)
 - Find all `.md` files in `rules/` directory
 - Apply filter_pattern if specified
 - Sort alphabetically
 - **Duration:** <1 second
 
-### Stage 2: Review Execution (workflows/02-review-execution.md)
+### Stage 2: Review Execution (workflows/review-execution.md)
 - For each rule: invoke rule-reviewer skill
 - Handle errors gracefully (continue on failure)
 - Track progress with console output
 - **Duration:** 3-5 min per rule × 113 rules = 5.6-9.4 hours
 
-### Stage 3: Aggregation (workflows/03-aggregation.md)
+### Stage 3: Aggregation (workflows/aggregation.md)
 - Extract scores/verdicts from review files
 - Calculate statistics (averages, distributions)
 - Group by priority tiers
 - **Duration:** <5 seconds
 
-### Stage 4: Summary Report (workflows/04-summary-report.md)
+### Stage 4: Summary Report (workflows/summary-report.md)
 - Generate master markdown report
 - Prioritize recommendations
 - Write to file
@@ -508,12 +554,19 @@ filter_pattern: rules/[12]*.md
 
 ---
 
+## Deployment
+
+This skill is **internal-only** and is not deployed to team projects. It remains in the ai_coding_rules source repository for bulk rule maintenance and quality audits.
+
+**Rationale:** Bulk reviews are infrastructure operations for rule repository maintenance, not typical project workflows.
+
+---
+
 ## Related Documentation
 
 - **Skill Definition:** `SKILL.md`
-- **Workflows:** `workflows/01-discovery.md`, `02-review-execution.md`, `03-aggregation.md`, `04-summary-report.md`
+- **Workflows:** `workflows/discovery.md`, `review-execution.md`, `aggregation.md`, `summary-report.md`, `input-validation.md`
 - **Examples:** `examples/full-bulk-review.md`
-- **Validation:** `VALIDATION.md`
 - **Tests:** `tests/validation-tests.md`
 
 ---
@@ -550,16 +603,16 @@ filter_pattern: rules/[12]*.md
 skills/bulk-rule-reviewer/
 ├── SKILL.md               # Main skill instructions (Claude Code entrypoint)
 ├── README.md              # This file - usage documentation
-├── VALIDATION.md          # Skill self-validation procedures
 ├── examples/              # Complete workflow examples
 │   └── full-bulk-review.md    # Complete 113-rule walkthrough
 ├── tests/                 # Skill test cases
 │   └── validation-tests.md    # Validation test cases
 └── workflows/             # Stage-specific detailed guides
-    ├── 01-discovery.md        # Stage 1: File discovery
-    ├── 02-review-execution.md # Stage 2: Rule-reviewer orchestration
-    ├── 03-aggregation.md      # Stage 3: Score extraction and statistics
-    └── 04-summary-report.md   # Stage 4: Master report generation
+    ├── discovery.md           # Stage 1: File discovery
+    ├── review-execution.md    # Stage 2: Rule-reviewer orchestration
+    ├── aggregation.md         # Stage 3: Score extraction and statistics
+    ├── summary-report.md      # Stage 4: Master report generation
+    └── input-validation.md    # Input validation workflow
 ```
 
 ---

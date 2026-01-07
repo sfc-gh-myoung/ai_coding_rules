@@ -1,7 +1,7 @@
 ---
 name: plan-reviewer
 description: Review LLM-generated plans for autonomous agent executability. Supports FULL (single plan), COMPARISON (multiple plans ranked), and META-REVIEW (review consistency analysis) modes. Triggers on keywords like "review plan", "compare plans", "plan quality", "meta-review", "plan executability".
-version: 1.2.0
+version: 2.0.0
 ---
 
 # Plan Reviewer
@@ -37,6 +37,9 @@ Plans are scored on whether autonomous agents can execute them without judgment 
 - **FULL mode**: `target_file` - Single plan file path
 - **COMPARISON mode**: `target_files` - List of plan file paths
 - **META-REVIEW mode**: `review_files` - List of review file paths
+
+**Optional:**
+- **timing_enabled**: `true` | `false` (default: `false`) - Enable execution timing
 
 ### Output
 
@@ -113,7 +116,17 @@ Plans are scored on whether autonomous agents can execute them without judgment 
 **8. Risk Awareness (5 points) - Are risks documented?**
 - Measures: Failure scenarios, mitigation strategies
 
-**See:** `workflows/review-execution.md` for complete rubric details, scoring criteria, and calibration examples.
+**Detailed rubrics:** See `rubrics/[dimension].md` for complete scoring criteria:
+- `rubrics/executability.md` - Ambiguous phrases, explicit commands
+- `rubrics/completeness.md` - Setup, validation, error recovery, cleanup
+- `rubrics/success-criteria.md` - Measurable, agent-testable criteria
+- `rubrics/scope.md` - Boundaries, termination conditions
+- `rubrics/dependencies.md` - Prerequisites, ordering, access
+- `rubrics/decomposition.md` - Task sizing, parallelization
+- `rubrics/context.md` - Rationale, assumptions, tradeoffs
+- `rubrics/risk-awareness.md` - Failure scenarios, mitigations, rollback
+
+**Progressive disclosure:** Read each rubric only when scoring that dimension.
 
 ### Agent Execution Test (Pre-Scoring Gate)
 
@@ -129,7 +142,7 @@ Count blocking issues:
 - Blocking issues ≥10: Max score = 60/100 (NEEDS_REFINEMENT)
 - Blocking issues ≥20: Max score = 40/100 (NOT_EXECUTABLE)
 
-**See:** `workflows/review-execution.md` section "Agent Execution Test"
+**See:** `rubrics/executability.md` for blocking issue criteria
 
 ### Verdict Thresholds
 
@@ -161,7 +174,23 @@ Convert model name to lowercase-hyphenated slug for filenames.
 
 **See:** `workflows/model-slugging.md`
 
-### 3. Review Execution
+### 3. [OPTIONAL] Timing Start
+
+**When:** Only if `timing_enabled: true` in inputs  
+**MODE:** Safe in PLAN mode
+
+**See:** `../skill-timing/workflows/timing-start.md`
+
+**Action:** Capture `run_id` in working memory for later use.
+
+### 4. [OPTIONAL] Checkpoint: skill_loaded
+
+**When:** Only if timing was started  
+**Checkpoint name:** `skill_loaded`
+
+**See:** `../skill-timing/workflows/timing-checkpoint.md`
+
+### 5. Review Execution
 
 Execute complete review per rubric. This is the core workflow.
 
@@ -171,13 +200,42 @@ Execute complete review per rubric. This is the core workflow.
 
 **See:** `workflows/review-execution.md` (detailed rubric, scoring criteria, mode-specific instructions)
 
-### 4. File Write
+### 6. [OPTIONAL] Checkpoint: review_complete
+
+**When:** Only if timing was started  
+**Checkpoint name:** `review_complete`
+
+**See:** `../skill-timing/workflows/timing-checkpoint.md`
+
+### 7. [OPTIONAL] Timing End (Compute)
+
+**When:** Only if timing was started  
+**MODE:** Safe in PLAN mode (outputs to STDOUT only)
+
+**See:** `../skill-timing/workflows/timing-end.md` (Step 1)
+
+**Action:** Capture STDOUT output for metadata embedding.
+
+### 8. [MODE TRANSITION: PLAN → ACT]
+
+Authorization required for file modifications.
+
+### 9. File Write
 
 Write review to `reviews/` with appropriate filename per mode.
 
 **See:** `workflows/file-write.md`
 
-### 5. Error Handling
+### 10. [OPTIONAL] Timing End (Embed)
+
+**When:** Only if timing was started  
+**MODE:** Requires ACT mode (appends metadata to file)
+
+**See:** `../skill-timing/workflows/timing-end.md` (Step 2)
+
+**Action:** Parse STDOUT from step 7, append timing metadata section to output file.
+
+### 11. Error Handling
 
 Handle validation failures, file write errors, mode-specific issues.
 

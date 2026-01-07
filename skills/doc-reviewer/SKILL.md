@@ -1,7 +1,7 @@
 ---
 name: doc-reviewer
 description: Review project documentation for accuracy, completeness, clarity, and structure. Verifies file references, tests commands, validates links. Use for documentation audits, README reviews, or staleness checks. Triggers on "review docs", "audit documentation", "check README".
-version: 1.0.0
+version: 2.0.0
 ---
 
 # Documentation Reviewer
@@ -28,6 +28,7 @@ Review project documentation for accuracy with codebase, completeness of coverag
 - **target_files**: List of file paths (defaults to project docs if not specified)
 - **review_scope**: `single` | `collection` (default: `single`)
 - **focus_area**: Required if `review_mode` is `FOCUSED`
+- **timing_enabled**: `true` | `false` (default: `false`) - Enable execution timing
 
 ### Default Target Files
 
@@ -89,7 +90,15 @@ When `target_files` not specified, reviews:
 - Measures: Formatting style, naming consistency, terminology alignment
 - If project has rules/801-project-readme.md or rules/802-project-contributing.md, verify compliance
 
-**See:** `workflows/review-execution.md` for complete rubric details, scoring criteria, and verification tables.
+**Detailed rubrics:** See `rubrics/[dimension].md` for complete scoring criteria:
+- `rubrics/accuracy.md` - File paths, commands, code examples
+- `rubrics/completeness.md` - Feature coverage, setup, troubleshooting
+- `rubrics/clarity.md` - New user accessibility, jargon, examples
+- `rubrics/structure.md` - Information flow, heading hierarchy
+- `rubrics/staleness.md` - Link validation, tool versions
+- `rubrics/consistency.md` - Formatting, terminology, conventions
+
+**Progressive disclosure:** Read each rubric only when scoring that dimension.
 
 ### Mandatory Verification Tables
 
@@ -99,7 +108,7 @@ When `target_files` not specified, reviews:
 2. **Link Validation** (Staleness) - Test external links, check tool versions
 3. **Coverage Checklist** (Completeness) - Track documented vs undocumented features
 
-**See:** `workflows/review-execution.md` section "Verification Tables"
+**See:** `rubrics/accuracy.md` and `rubrics/staleness.md` for table formats
 
 ### Verdict Thresholds
 
@@ -130,7 +139,23 @@ Convert model name to lowercase-hyphenated slug for filenames.
 
 **See:** `workflows/model-slugging.md`
 
-### 3. Review Execution
+### 3. [OPTIONAL] Timing Start
+
+**When:** Only if `timing_enabled: true` in inputs  
+**MODE:** Safe in PLAN mode
+
+**See:** `../skill-timing/workflows/timing-start.md`
+
+**Action:** Capture `run_id` in working memory for later use.
+
+### 4. [OPTIONAL] Checkpoint: skill_loaded
+
+**When:** Only if timing was started  
+**Checkpoint name:** `skill_loaded`
+
+**See:** `../skill-timing/workflows/timing-checkpoint.md`
+
+### 5. Review Execution
 
 Execute complete review per rubric. This is the core workflow.
 
@@ -140,13 +165,42 @@ Execute complete review per rubric. This is the core workflow.
 
 **See:** `workflows/review-execution.md` (detailed rubric, verification tables, scoring criteria)
 
-### 4. File Write
+### 6. [OPTIONAL] Checkpoint: review_complete
+
+**When:** Only if timing was started  
+**Checkpoint name:** `review_complete`
+
+**See:** `../skill-timing/workflows/timing-checkpoint.md`
+
+### 7. [OPTIONAL] Timing End (Compute)
+
+**When:** Only if timing was started  
+**MODE:** Safe in PLAN mode (outputs to STDOUT only)
+
+**See:** `../skill-timing/workflows/timing-end.md` (Step 1)
+
+**Action:** Capture STDOUT output for metadata embedding.
+
+### 8. [MODE TRANSITION: PLAN → ACT]
+
+Authorization required for file modifications.
+
+### 9. File Write
 
 Write review to `reviews/` with appropriate filename per scope.
 
 **See:** `workflows/file-write.md`
 
-### 5. Error Handling
+### 10. [OPTIONAL] Timing End (Embed)
+
+**When:** Only if timing was started  
+**MODE:** Requires ACT mode (appends metadata to file)
+
+**See:** `../skill-timing/workflows/timing-end.md` (Step 2)
+
+**Action:** Parse STDOUT from step 7, append timing metadata section to output file.
+
+### 11. Error Handling
 
 Handle validation failures, file write errors, broken links, missing files.
 

@@ -1,4 +1,7 @@
-# Skill Validation: rule-reviewer
+# Skill Testing Guide: rule-reviewer
+
+> **⚠️ AUDIENCE:** This document is for **skill maintainers** (humans), not for Claude.
+> It provides testing procedures, troubleshooting guides, and health checks for the skill itself.
 
 This document describes how to verify that the rule-reviewer skill is functioning correctly.
 
@@ -13,8 +16,8 @@ ls skills/rule-reviewer/README.md
 ls skills/rule-reviewer/workflows/*.md
 ls skills/rule-reviewer/examples/*.md
 
-# 2. Verify review prompt exists (colocated in skill folder)
-ls skills/rule-reviewer/PROMPT.md
+# 2. Verify skill file exists (contains review rubric)
+ls skills/rule-reviewer/SKILL.md
 
 # 3. Verify reviews directory exists (or can be created)
 ls reviews/ || mkdir -p reviews/
@@ -60,7 +63,7 @@ model: claude-sonnet-45
 ### Test 3: Review Execution
 
 **Verify during review:**
-- [ ] Prompt file read: `PROMPT.md` (colocated in skill folder)
+- [ ] Skill file read: `SKILL.md` (contains review rubric)
 - [ ] Target file read: `rules/200-python-core.md`
 - [ ] Review generated with all sections
 
@@ -166,7 +169,7 @@ review_mode: STALENESS
 **Symptom:** Error during review execution
 
 **Check:**
-1. `skills/rule-reviewer/PROMPT.md` exists and is readable
+1. `skills/rule-reviewer/SKILL.md` exists and is readable
 2. Target rule file exists
 3. Target rule has valid structure
 
@@ -251,7 +254,7 @@ Dimension scores table must be valid markdown:
 
 | Component | Minimum Version |
 |-----------|-----------------|
-| RULE_REVIEW_PROMPT.md | Current |
+| SKILL.md (with rubric) | Current |
 | Rule schema | v3.0 |
 | reviews/ directory | Writable |
 
@@ -363,7 +366,7 @@ Review quality issues found:
   - Missing sections: ['### Critical Issues']
   - Missing rationales: ['Actionability', 'Completeness']
 
-Likely cause: Agent abbreviated review instead of following PROMPT.md rubric
+Likely cause: Agent abbreviated review instead of following SKILL.md rubric
 
 Required action:
   1. Delete incomplete review file

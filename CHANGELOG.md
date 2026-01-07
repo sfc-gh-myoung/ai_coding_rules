@@ -16,7 +16,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Conflict detection prevents simultaneous use of `--only-skills` and `--skip-skills`
   - Use cases: Claude Code (~/.claude/skills), Cortex Code (~/.snowflake/cortex/skills)
 
+### Documentation
+- **docs(skills):** ensure all USING_*_SKILL.md files are complete and accurate
+  - Created USING_BULK_RULE_REVIEWER_SKILL.md (internal-only skill documentation)
+  - Created USING_SKILL_TIMING_SKILL.md (deployable timing instrumentation guide)
+  - Updated USING_DOC_REVIEWER_SKILL.md with timing_enabled parameter and current examples
+  - Updated USING_PLAN_REVIEWER_SKILL.md with timing_enabled parameter and current examples
+  - Updated USING_RULE_CREATOR_SKILL.md with timing_enabled parameter examples
+  - Updated USING_RULE_REVIEW_SKILL.md with timing_enabled parameter and current examples
+  - All examples now use 2026-01-06 date format and claude-sonnet-45 model slug
+  - All docs clearly indicate deployment status (Internal vs Deployable)
+  - Full coverage: all 6 skills have corresponding USING_*_SKILL.md documentation
+
 ### Changed
+- **refactor(rules):** align 002f-claude-code-skills.md with official Anthropic best practices
+  - Updated YAML frontmatter requirements to match official specification (name max 64 chars, description max 1024 chars, no reserved words)
+  - Added CRITICAL requirement: descriptions must be written in third person for skill discovery
+  - Added Core Principles section: concise is key, degrees of freedom, test with all models, naming conventions
+  - Added Technical Details section: MCP tool references (ServerName:tool_name), package dependencies, runtime environment
+  - Added Advanced Patterns section: verifiable intermediate outputs (plan-validate-execute), visual analysis pattern
+  - Added 500-line guideline for SKILL.md with progressive disclosure strategy
+  - Added 2 new anti-patterns: description not in third person, SKILL.md exceeds 500 lines
+  - Updated Post-Execution Checklist with 20 checks across 4 categories (YAML, Content, Progressive Disclosure, Documentation)
+  - Version v3.0.0 → v3.1.0, TokenBudget ~2800 → ~3700 tokens
+  - Based on: https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
 - **refactor(skills):** consolidate SKILL.md and PROMPT.md per Anthropic Agent Skills best practices
   - Merged PROMPT.md content into SKILL.md for all 5 skills (rule-creator, rule-reviewer, bulk-rule-reviewer, plan-reviewer, doc-reviewer)
   - Applied progressive disclosure: detailed rubrics/workflows in separate files, SKILL.md provides overview with references
@@ -34,6 +57,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Replace subjective terms ("unprofessional") with objective impact descriptions (3 locations)
   - Review score improved from 90/100 to 100/100 (Actionability: 4/5→5/5, Completeness: 4/5→5/5)
   - Token budget: 4761 tokens (+3.5% from declared ~4600, within ±15% threshold)
+- **refactor(rules):** improve 801-project-readme.md agent executability to 99/100
+  - Quantify "key metrics" threshold: replace with explicit list (test coverage, download count)
+  - Add Anti-Pattern 4: Broken Badge URLs with recovery procedures and Taskfile automation
+  - Standardize "Quick Start" terminology throughout (remove "Installation" variant)
+  - Update TokenBudget from ~5700 to ~5350 for accurate token accounting (-0.2% variance)
+  - Review score improved from 95/100 to 99/100 (Actionability: 24/25→25/25, Completeness: 24/25→25/25, Consistency: 14/15→15/15, Token Efficiency: 8/10→9/10)
+  - Token budget: 5338 tokens (-0.2% from declared ~5350, within ±15% threshold)
 
 ## [3.5.0] - 2025-01-05
 

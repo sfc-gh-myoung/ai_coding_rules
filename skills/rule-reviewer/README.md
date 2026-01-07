@@ -28,7 +28,7 @@ Agents executing this skill may attempt to optimize by:
 
 **After Execution:**
 - Review file should be 3000-8000 bytes (typical)
-- All required sections present (see PROMPT.md)
+- All required sections present (see SKILL.md)
 - Dimension scores show rationales (not just numbers)
 
 **Red Flags:**
@@ -72,15 +72,50 @@ Use the rule-reviewer skill.
 target_file: rules/810-project-readme.md
 review_date: 2025-12-12
 review_mode: FULL
-model: claude-sonnet45
+model: claude-sonnet-45
 ```
 
 ### Step 3: Verify Output
 
 Check the generated review file:
 ```bash
-ls reviews/810-project-readme-claude-sonnet45-2025-12-12.md
+ls reviews/810-project-readme-claude-sonnet-45-2025-12-12.md
 ```
+
+## Execution Timing
+
+Enable execution timing to measure skill duration and track performance:
+
+```text
+Use the rule-reviewer skill.
+
+target_file: rules/810-project-readme.md
+review_date: 2025-12-12
+review_mode: FULL
+model: claude-sonnet-45
+timing_enabled: true
+```
+
+When enabled, the output includes:
+- **Timing Metadata section** in the review file
+- **STDOUT summary** with duration, checkpoints, tokens, baseline comparison
+- **Real-time anomaly alerts** if duration is suspicious (< 60s or > 600s)
+
+**Example timing metadata:**
+
+```markdown
+## Timing Metadata
+
+| Metric | Value |
+|--------|-------|
+| Run ID | `a1b2c3d4e5f67890` |
+| Duration | 3m 45s (225.5s) |
+| Model | claude-sonnet-45 |
+| Tokens | 16,700 (12,500 in / 4,200 out) |
+| Cost | ~$0.04 |
+```
+
+**See:** `skills/skill-timing/README.md` for full documentation on timing features, baseline comparison, and analysis tools.
 
 ## File Structure
 
@@ -88,7 +123,15 @@ ls reviews/810-project-readme-claude-sonnet45-2025-12-12.md
 skills/rule-reviewer/
 ├── SKILL.md               # Main skill instructions (Claude Code entrypoint)
 ├── README.md              # This file - usage documentation
-├── VALIDATION.md          # Skill self-validation procedures
+├── rubrics/               # Dimension-specific scoring criteria (progressive disclosure)
+│   ├── actionability.md       # Agent executability criteria
+│   ├── completeness.md        # Coverage and thoroughness
+│   ├── consistency.md         # Style and terminology alignment
+│   ├── parsability.md         # Metadata and structure validation
+│   ├── staleness.md           # Currency and freshness checks
+│   └── token-efficiency.md    # Context window optimization
+├── testing/               # Testing and maintenance guides
+│   └── TESTING.md             # Skill health checks (for maintainers)
 ├── examples/              # Review mode examples
 │   ├── full-review.md         # FULL mode walkthrough
 │   ├── focused-review.md      # FOCUSED mode walkthrough
@@ -102,7 +145,7 @@ skills/rule-reviewer/
 └── workflows/             # Step-by-step workflow guides
     ├── input-validation.md    # Input checking procedures
     ├── model-slugging.md      # Model name normalization
-    ├── review-execution.md    # Review generation steps (includes complete rubric)
+    ├── review-execution.md    # Review generation steps
     ├── schema-validation.md   # Schema error categorization
     ├── file-write.md          # Output file handling
     └── error-handling.md      # Error recovery procedures
@@ -135,10 +178,10 @@ On success:
 ```
 ✓ Review complete
 
-OUTPUT_FILE: reviews/810-project-readme-claude-sonnet45-2025-12-12.md
+OUTPUT_FILE: reviews/810-project-readme-claude-sonnet-45-2025-12-12.md
 Target: rules/810-project-readme.md
 Mode: FULL
-Model: claude-sonnet45
+Model: claude-sonnet-45
 ```
 
 ## Integration with rule-creator
@@ -157,6 +200,6 @@ Use rule-reviewer to validate rule-creator output:
 
 See `workflows/error-handling.md` for common issues and resolutions.
 
-## Validation
+## Testing
 
-See `VALIDATION.md` for skill health checks and regression testing.
+See `testing/TESTING.md` for skill health checks and regression testing (for skill maintainers).

@@ -552,6 +552,116 @@ When inputs can be rendered as images, have Claude analyze them visually.
 
 Claude's vision capabilities help understand layouts and structures that are difficult to parse from text alone.
 
+### Skill Composition Pattern (Orchestrator + Worker)
+
+**Problem:** How do you create a "bulk" or "batch" skill that processes multiple items using another skill's workflow?
+
+**Critical Understanding:** Skills cannot invoke other skills programmatically like function calls. The phrase "Use the X skill" is just natural language guidance for human users, not a callable API for agents.
+
+**Solution:** Orchestrator skill loads and follows the worker skill's documented workflow.
+
+**Architecture:**
+
+```
+bulk-processor/ (orchestrator skill)
+├── SKILL.md - Defines batch processing logic
+└── workflows/
+    └── batch-execution.md - "For each item: load processor/SKILL.md and follow its workflow"
+
+processor/ (worker skill)
+├── SKILL.md - Defines single-item processing workflow
+├── rubrics/ - Progressive disclosure of detailed criteria
+└── workflows/ - Step-by-step processing instructions
+```
+
+**Orchestrator Implementation:**
+
+```markdown
+## Workflow: Batch Execution
+
+For each item in batch:
+
+1. **Load worker skill** (first iteration only):
+   - Read `skills/processor/SKILL.md` to understand workflow
+   - Note locations of rubrics/, workflows/, templates/
+   - Prepare to follow documented process
+
+2. **Execute worker workflow** for current item:
+   - Validate inputs per processor/SKILL.md requirements
+   - Run all preprocessing steps defined in workflow
+   - Load rubrics/ as needed (progressive disclosure)
+   - Generate output following processor format
+   - Write result to appropriate location
+
+3. **Track results**:
+   - Store (item_name, status, output_path, metadata)
+   - Continue to next item on failure (don't stop batch)
+
+4. **Progress reporting**:
+   - Show progress every N items
+   - Report: completed, failed, skipped counts
+```
+
+**What the orchestrator does:**
+- ✅ Loads worker SKILL.md to understand the workflow
+- ✅ Follows that workflow for each item
+- ✅ Uses progressive disclosure (loads rubrics/workflows as needed)
+- ✅ Maintains same quality standards as single-item processing
+- ✅ Tracks batch-level metadata (progress, failures, resume capability)
+
+**What the orchestrator does NOT do:**
+- ❌ Try to "invoke" or "call" the worker skill programmatically
+- ❌ Reimplement the worker's logic without consulting its documentation
+- ❌ Take shortcuts to optimize for speed/tokens at expense of quality
+- ❌ Skip progressive disclosure by guessing at scoring criteria
+
+**Real-world example:** `bulk-rule-reviewer` skill orchestrates reviews of 100+ rule files by:
+1. Loading `rule-reviewer/SKILL.md` once to understand review workflow
+2. For each rule: following that workflow (schema validation, rubric scoring, recommendations)
+3. Progressively loading rubrics as needed for dimension scoring
+4. Writing complete review files following rule-reviewer's output format
+5. Aggregating results into summary report
+
+**Why this pattern works:**
+- **Maintains quality:** Each item gets full treatment per documented workflow
+- **Promotes reuse:** Single-item skill remains usable independently
+- **Manages context:** Progressive disclosure loads detail only when needed
+- **Enables resume:** Batch can skip already-processed items
+- **Clear boundaries:** Orchestrator handles batch logic, worker handles item processing
+
+**When to use:**
+- Bulk operations on multiple files/items
+- Periodic audits across entire repositories
+- Batch validation or quality checks
+- Mass migrations or transformations
+
+**Anti-patterns to avoid:**
+
+```markdown
+# ❌ BAD: Trying to invoke skills programmatically
+For each rule:
+    Present to agent: "Use the rule-reviewer skill. target_file: {rule}"
+    Wait for response: "Review written to: ..."
+    Parse output path from response
+
+# ✅ GOOD: Load and follow the workflow
+# Load rule-reviewer workflow once
+workflow = load_file("skills/rule-reviewer/SKILL.md")
+
+For each rule:
+    # Follow the workflow for this rule
+    execute_review_workflow(
+        rule_file=rule,
+        workflow=workflow,
+        rubrics_path="skills/rule-reviewer/rubrics/"
+    )
+```
+
+**Documentation requirements:**
+- Orchestrator SKILL.md must clearly state: "This skill follows the X workflow by loading skills/X/SKILL.md"
+- Worker SKILL.md must be standalone and complete (assume both individual and batch usage)
+- Both skills should reference each other in Related Skills sections
+
 ## Anti-Patterns and Common Mistakes
 
 ### Anti-Pattern 1: Monolithic SKILL.md

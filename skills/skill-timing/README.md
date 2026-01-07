@@ -234,7 +234,7 @@ This sets timing files to 0600 (owner read/write only) instead of default 0644.
 | Location | Contents | Retention |
 |----------|----------|-----------|
 | `{temp}/skill-timing-{id}.json` | Active runs | Until end |
-| `{temp}/skill-timing-{id}-complete.json` | Completed runs | 7 days |
+| `reviews/.timing-data/skill-timing-{id}-complete.json` | Completed runs | Indefinite |
 | `{temp}/skill-timing-registry.json` | Agent recovery | Auto-cleaned |
 | `reviews/.timing-baselines.json` | Baselines | Indefinite |
 

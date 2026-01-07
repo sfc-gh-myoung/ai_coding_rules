@@ -10,19 +10,19 @@
 - References used instead of duplication
 
 ### 4/5 (8 points): Good
-- TokenBudget within ±6-15% of actual
+- TokenBudget within ±6-10% of actual
 - Minimal redundancy (1-2 instances)
 - Mostly structured format
 - Examples appropriate
 
 ### 3/5 (6 points): Acceptable
-- TokenBudget within ±16-25% of actual
+- TokenBudget within ±11-20% of actual
 - Some redundancy (3-5 instances)
 - Mixed structure and prose
 - Examples somewhat verbose
 
 ### 2/5 (4 points): Needs Work
-- TokenBudget variance >±25%
+- TokenBudget variance >±20%
 - Significant redundancy (>5 instances)
 - Heavy prose paragraphs
 - Verbose examples
@@ -58,9 +58,9 @@ Examples:
 | Variance | Score | Notes |
 |----------|-------|-------|
 | ±0-5% | 5/5 (10 pts) | Excellent accuracy |
-| ±6-15% | 4/5 (8 pts) | Acceptable per spec |
-| ±16-25% | 3/5 (6 pts) | Beyond target range |
-| ±26-40% | 2/5 (4 pts) | Significant error |
+| ±6-10% | 4/5 (8 pts) | Acceptable per spec |
+| ±11-20% | 3/5 (6 pts) | Beyond target range |
+| ±21-40% | 2/5 (4 pts) | Significant error |
 | >±40% | 1/5 (2 pts) | Major inaccuracy |
 | Not declared | 1/5 (2 pts) | Missing required metadata |
 
@@ -210,9 +210,9 @@ For troubleshooting, see: troubleshooting/README.md
 ```
 Step 1: Calculate token budget variance
   ±0-5%: 5/5 (10 points)
-  ±6-15%: 4/5 (8 points)
-  ±16-25%: 3/5 (6 points)
-  ±26-40%: 2/5 (4 points)
+  ±6-10%: 4/5 (8 points)
+  ±11-20%: 3/5 (6 points)
+  ±21-40%: 2/5 (4 points)
   >±40% or missing: 1/5 (2 points)
 
 Step 2: Identify redundancy instances

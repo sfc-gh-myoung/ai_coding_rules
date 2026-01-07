@@ -2,7 +2,18 @@
 
 ## Purpose
 
-Orchestrate rule-reviewer skill invocation for each rule file discovered in Stage 1. Manages progress tracking, error handling, resume capability, and result collection.
+Execute the rule-reviewer workflow for each rule file discovered in Stage 1. This workflow FOLLOWS the documented review process by loading and applying the rule-reviewer skill's methodology. Manages progress tracking, error handling, resume capability, and result collection.
+
+## Critical Understanding
+
+**Skills cannot invoke other skills programmatically.** This workflow achieves batch processing by:
+
+1. **Loading** `skills/rule-reviewer/SKILL.md` to understand the review workflow
+2. **Following** that workflow for each rule file
+3. **Using** progressive disclosure to load rubrics/ as needed
+4. **Maintaining** the same quality standards as single-rule reviews
+
+This is how skill composition works in Claude Code - orchestrator skills load and follow worker skill workflows.
 
 ## Inputs
 
@@ -55,9 +66,11 @@ def verify_protocol_compliance():
     print("="*60)
     print()
     print("This workflow REQUIRES:")
-    print("  ✓ Invoke rule-reviewer skill for EACH rule")
+    print("  ✓ Execute rule-reviewer workflow for EACH rule")
+    print("  ✓ Load rule-reviewer/SKILL.md to understand process")
+    print("  ✓ Load rubrics/*.md for dimension scoring")
+    print("  ✓ Run schema_validator.py for each rule")
     print("  ✓ NO batch processing or parallel shortcuts")
-    print("  ✓ NO reimplementation of review logic")
     print("  ✓ FULL reviews (not abbreviated)")
     print("  ✓ Sequential execution (unless max_parallel set)")
     print()
@@ -84,29 +97,38 @@ for rule_batch in chunks(rule_files, batch_size=10):
 
 **Correct Pattern:**
 ```python
-# ✅ REQUIRED - Individual invocations
+# ✅ REQUIRED - Individual workflow execution
 for rule_path in rule_file_paths:
-    review_result = invoke_rule_reviewer(  # Correct!
+    # Load rule-reviewer workflow if not already loaded
+    if not workflow_loaded:
+        load_rule_reviewer_skill()
+        workflow_loaded = True
+    
+    # Execute complete review workflow for this rule
+    review_result = execute_rule_review_workflow(
         target_file=rule_path,
         review_date=review_date,
         review_mode=review_mode,
-        model=model,
-        skill_location=skill_location
+        model=model
     )
 ```
 
-**Violation Pattern 2: Python reimplementation**
+**Violation Pattern 2: Skipping rubrics**
 ```python
-# ❌ FORBIDDEN - Recreating rule-reviewer logic
+# ❌ FORBIDDEN - Scoring without rubric consultation
 def quick_score_rule(rule_content):
-    score = calculate_actionability(rule_content)  # WRONG!
+    score = estimate_actionability(rule_content)  # WRONG! No rubric
     return score
 ```
 
 **Correct Pattern:**
 ```python
-# ✅ REQUIRED - Delegate to rule-reviewer skill
-review_result = invoke_rule_reviewer(...)  # Correct!
+# ✅ REQUIRED - Load rubric and score according to criteria
+def score_actionability(rule_content):
+    rubric = load_file("skills/rule-reviewer/rubrics/actionability.md")
+    # Apply rubric criteria to rule content
+    score = apply_rubric_criteria(rule_content, rubric)
+    return score
 ```
 
 **Violation Detection:**
@@ -122,6 +144,9 @@ If execution completes in < 2 hours for 100+ rules: **LIKELY PROTOCOL VIOLATION*
 ### Step 2: Process Each Rule File
 
 ```python
+# Load rule-reviewer workflow once at the start
+workflow_loaded = False
+
 for rule_path in rule_file_paths:
     # Extract rule name from path
     # Example: "rules/100-snowflake-core.md" → "100-snowflake-core"
@@ -149,23 +174,27 @@ for rule_path in rule_file_paths:
         skipped += 1
         continue
     
-    # Invoke rule-reviewer skill
+    # Load rule-reviewer workflow on first iteration
+    if not workflow_loaded:
+        print("Loading rule-reviewer workflow...")
+        load_rule_reviewer_skill()
+        workflow_loaded = True
+    
+    # Execute rule-reviewer workflow
     completed += 1
     print(f"[{completed}/{total_files}] Reviewing: {rule_path}")
     
     try:
-        # Invoke rule-reviewer with parameters
-        review_result = invoke_rule_reviewer(
+        # Execute complete review workflow following rule-reviewer/SKILL.md
+        review_result = execute_rule_review_workflow(
             target_file=rule_path,
             review_date=review_date,
             review_mode=review_mode,
-            model=model,
-            skill_location=skill_location
+            model=model
         )
         
-        # Parse output from rule-reviewer response
-        # Expected format: "Review written to: reviews/100-snowflake-core-claude-sonnet-45-2026-01-06.md"
-        review_path = parse_review_path(review_result)
+        # Review workflow writes file and returns path
+        review_path = review_result["review_path"]
         
         # Extract score and verdict (read first 100 lines only)
         metadata = extract_metadata_from_review(review_path)
@@ -313,46 +342,96 @@ def calculate_average_score(results):
     return round(sum(scores) / len(scores), 1)
 ```
 
-### invoke_rule_reviewer(target_file, review_date, review_mode, model, skill_location)
+### load_rule_reviewer_skill()
 
 ```python
-def invoke_rule_reviewer(target_file, review_date, review_mode, model, skill_location):
-    """Invoke rule-reviewer skill with location-aware logic.
+def load_rule_reviewer_skill():
+    """Load rule-reviewer skill to understand its workflow.
+    
+    This function reads the rule-reviewer SKILL.md to understand the
+    complete review process that will be followed for each rule.
+    """
+    skill_doc = read_file("skills/rule-reviewer/SKILL.md")
+    print(f"  Loaded rule-reviewer workflow ({len(skill_doc)} chars)")
+    
+    # Note rubric locations for progressive disclosure during reviews
+    rubric_paths = {
+        "actionability": "skills/rule-reviewer/rubrics/actionability.md",
+        "completeness": "skills/rule-reviewer/rubrics/completeness.md",
+        "consistency": "skills/rule-reviewer/rubrics/consistency.md",
+        "parsability": "skills/rule-reviewer/rubrics/parsability.md",
+        "token-efficiency": "skills/rule-reviewer/rubrics/token-efficiency.md",
+        "staleness": "skills/rule-reviewer/rubrics/staleness.md"
+    }
+    
+    return skill_doc, rubric_paths
+
+### execute_rule_review_workflow(target_file, review_date, review_mode, model)
+
+```python
+def execute_rule_review_workflow(target_file, review_date, review_mode, model):
+    """Execute the complete rule-reviewer workflow for a single rule.
+    
+    Follows the workflow defined in skills/rule-reviewer/SKILL.md:
+    1. Validate inputs
+    2. Run schema validation (scripts/schema_validator.py)
+    3. Perform Agent Execution Test
+    4. Score dimensions (load rubrics progressively as needed)
+    5. Generate recommendations
+    6. Write review file
+    
+    This function implements the workflow by following the documentation,
+    not by "invoking" the rule-reviewer skill (which is not possible).
     
     Args:
         target_file: Path to rule file (e.g., rules/100-snowflake-core.md)
         review_date: Date stamp (YYYY-MM-DD)
         review_mode: FULL | FOCUSED | STALENESS
         model: Model identifier (e.g., claude-sonnet-45)
-        skill_location: "installed" | "local"
     
     Returns:
-        Text response from rule-reviewer including review file path
+        dict with keys: review_path, score, verdict, critical_issues
     """
-    if skill_location == "installed":
-        # Use agent's skill invocation mechanism
-        result = invoke_skill(
-            "rule-reviewer",
-            target_file=target_file,
-            review_date=review_date,
-            review_mode=review_mode,
-            model=model
-        )
-    elif skill_location == "local":
-        # Execute local skill manually by following SKILL.md
-        skill_template = read_file("skills/rule-reviewer/SKILL.md")
-        
-        # Substitute parameters into template
-        prompt = skill_template.replace("[path/to/rule.md]", target_file)
-        prompt = prompt.replace("[YYYY-MM-DD]", review_date)
-        prompt = prompt.replace("[FULL | FOCUSED | STALENESS]", review_mode)
-        
-        # Execute the prompt instructions directly
-        result = execute_rule_reviewer_workflow(prompt, model)
-    else:
-        raise ValueError(f"Unknown skill_location: {skill_location}")
+    # Step 1: Validate inputs
+    validate_review_inputs(target_file, review_date, review_mode, model)
     
-    return result
+    # Step 2: Run schema validation
+    schema_results = run_schema_validation(target_file)
+    
+    # Step 3: Read rule file
+    rule_content = read_file(target_file)
+    
+    # Step 4: Agent Execution Test
+    blocking_issues = perform_agent_execution_test(rule_content)
+    
+    # Step 5: Score dimensions (load rubrics progressively)
+    dimension_scores = score_dimensions(rule_content, review_mode, blocking_issues)
+    
+    # Step 6: Generate recommendations
+    recommendations = generate_recommendations(
+        rule_content, 
+        dimension_scores, 
+        schema_results, 
+        blocking_issues
+    )
+    
+    # Step 7: Write review file
+    review_path = write_review_file(
+        target_file=target_file,
+        review_date=review_date,
+        model=model,
+        dimension_scores=dimension_scores,
+        schema_results=schema_results,
+        blocking_issues=blocking_issues,
+        recommendations=recommendations
+    )
+    
+    return {
+        "review_path": review_path,
+        "score": dimension_scores["overall"],
+        "verdict": dimension_scores["verdict"],
+        "critical_issues": len(blocking_issues)
+    }
 ```
 
 ## Error Handling

@@ -248,7 +248,7 @@ Design decisions must follow this priority order:
 - Use structured lists over prose paragraphs
 - Front-load critical information in each section
 - Reference other rules instead of duplicating content
-- TokenBudget must be within ±15% of actual
+- TokenBudget must be within ±5% of actual
 
 **Priority 4 (LOW): Human Developer Maintainability**
 - Maintain logical organization for human reviewers

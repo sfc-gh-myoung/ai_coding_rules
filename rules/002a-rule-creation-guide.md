@@ -598,7 +598,7 @@ These checks ensure agents can execute the rule reliably:
 These checks ensure efficient context window usage:
 
 - [ ] TokenBudget declared with `~NUMBER` format
-- [ ] TokenBudget within ±15% of actual token count
+- [ ] TokenBudget within ±5% of actual token count
 - [ ] No duplicate content (use references to other rules)
 - [ ] Lists preferred over prose paragraphs
 - [ ] Terminology consistent with existing rules (see glossary in 000-global-core.md)

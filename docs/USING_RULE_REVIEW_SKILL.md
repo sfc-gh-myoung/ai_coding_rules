@@ -61,7 +61,7 @@ If you're working in the ai_coding_rules repository and want to run rule reviews
 ### 1. Load the skill
 
 ```text
-@skills/rule-reviewer/SKILL.md
+Load skills/rule-reviewer/SKILL.md
 ```
 
 ### 2. Request a review

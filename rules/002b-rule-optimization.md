@@ -94,14 +94,14 @@ Rule file with:
 **Success Criteria:**
 - TokenBudget format: `~NUMBER` (e.g., ~2500)
 - ContextTier matches tier: Small=Critical/High, Standard=High/Medium, etc.
-- Actual token count within +/-15% of declared budget (validator default)
+- Actual token count within +/-5% of declared budget (validator default)
 - Rule size 2000-3500 tokens (preferred) or <5000 tokens (maximum)
 - `token_validator.py` passes without update warnings
 
 **Negative Tests:**
 - Text label TokenBudget (small/medium/large) triggers validation error
 - Missing tilde prefix triggers format error
-- Token variance >15% triggers auto-update (configurable via `--threshold`)
+- Token variance >5% triggers auto-update (configurable via `--threshold`)
 - Rule >5500 tokens triggers split recommendation
 
 ### Post-Execution Checklist
@@ -525,17 +525,17 @@ wc -w rules/NNN-rule.md
 
 ### Variance Tolerance
 
-**Default threshold:** +/-15% (validator default, configurable via `--threshold`)
+**Default threshold:** +/-5% (validator default, configurable via `--threshold`)
 
 **Variance Handling:**
-- **≤15% variance:** PASS - No update needed
-- **>15% variance:** UPDATE - Validator auto-updates TokenBudget
+- **≤5% variance:** PASS - No update needed
+- **>5% variance:** UPDATE - Validator auto-updates TokenBudget
 
 **Examples:**
-- Declared: `~2500`, Actual: `2650` (+6%) - PASS (within tolerance)
-- Declared: `~2500`, Actual: `2950` (+18%) - UPDATE (auto-corrected to `~2950`)
+- Declared: `~2500`, Actual: `2600` (+4%) - PASS (within tolerance)
+- Declared: `~2500`, Actual: `2650` (+6%) - UPDATE (auto-corrected to `~2650`)
 
-**Custom threshold:** Use `--threshold 10` for stricter validation during audits.
+**Custom threshold:** Use `--threshold 10` for more lenient validation during audits.
 
 ## Anti-Patterns and Common Mistakes
 

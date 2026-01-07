@@ -123,7 +123,7 @@ Aggregate summary for priority_3 (score 80-89):
 **Aggregate Issues:**
 - Undefined thresholds: {threshold_count} total across {count} rules (avg {avg_per_rule} per rule)
 - Minor consistency issues: {consistency_count} rules
-- Token budget variance >15%: {token_variance_count} rules
+- Token budget variance >5%: {token_variance_count} rules
 
 **Recommendation:** Address opportunistically during regular updates. Not urgent.
 

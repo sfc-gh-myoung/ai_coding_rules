@@ -38,7 +38,7 @@ Reviews evaluate plans against the priority order defined in `000-global-core.md
 ### 1. Load the skill
 
 ```text
-@skills/plan-reviewer/SKILL.md
+Load skills/plan-reviewer/SKILL.md
 ```
 
 ### 2. Request a review

@@ -22,7 +22,7 @@ Key behaviors:
 ### 1. Load the skill
 
 ```text
-@skills/doc-reviewer/SKILL.md
+Load skills/doc-reviewer/SKILL.md
 ```
 
 ### 2. Request a review

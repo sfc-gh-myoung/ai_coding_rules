@@ -4,6 +4,8 @@
 
 The **bulk-rule-reviewer** skill executes comprehensive agent-centric reviews on all rule files in the `rules/` directory, generating a consolidated priority report showing which rules need attention.
 
+**How it works:** This skill loads and follows the rule-reviewer workflow for each rule file. It's an orchestrator skill that maintains the same quality standards as individual rule reviews by following the documented review process.
+
 **Primary Use Cases:**
 - Periodic quality audits (quarterly/monthly)
 - Pre-release validation before major versions
@@ -21,10 +23,10 @@ The **bulk-rule-reviewer** skill executes comprehensive agent-centric reviews on
 ### Common Agent Shortcuts (ALL FORBIDDEN)
 
 Agents executing this skill may attempt to optimize by:
-- Reimplementing rule-reviewer logic in Python (FORBIDDEN)
 - Batch-processing multiple rules at once (FORBIDDEN)
 - Running abbreviated reviews to save time (FORBIDDEN)
 - Parallel execution without explicit permission (FORBIDDEN)
+- Skipping rubric consultation to save tokens (FORBIDDEN)
 
 **These shortcuts WILL compromise review quality.**
 
@@ -33,7 +35,8 @@ Agents executing this skill may attempt to optimize by:
 **During Execution:**
 - Each rule should take 3-5 minutes to review
 - Progress updates every 10 reviews (not more frequent)
-- Individual "Use the rule-reviewer skill" invocations visible
+- Schema validator executed for each rule
+- Rubrics loaded and applied for dimension scoring
 
 **After Execution:**
 - Check review file sizes (should be 3000-8000 bytes each)
@@ -44,7 +47,8 @@ Agents executing this skill may attempt to optimize by:
 - ⚠️ Execution completes in < 2 hours for 100+ rules
 - ⚠️ Review files < 2000 bytes
 - ⚠️ Missing sections in review files
-- ⚠️ No individual rule-reviewer invocations visible
+- ⚠️ Schema validation not executed
+- ⚠️ Rubrics not consulted for scoring
 
 ### Resume Capability
 
@@ -346,7 +350,9 @@ The skill executes in 4 sequential stages:
 - **Duration:** <1 second
 
 ### Stage 2: Review Execution (workflows/review-execution.md)
-- For each rule: invoke rule-reviewer skill
+- Load rule-reviewer/SKILL.md to understand workflow
+- For each rule: follow the documented review process
+- Load rubrics/ progressively for dimension scoring
 - Handle errors gracefully (continue on failure)
 - Track progress with console output
 - **Duration:** 3-5 min per rule × 113 rules = 5.6-9.4 hours

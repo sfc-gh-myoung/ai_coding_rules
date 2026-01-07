@@ -21,26 +21,26 @@ target_files:
 ## Expected Behavior
 
 ### Phase 1: Input Validation
-- ✅ Multiple target files provided
-- ✅ All target files exist
+-  Multiple target files provided
+-  All target files exist
 
 ### Phase 2: Review Each Plan
-- ✅ For each plan (A, B, C):
+-  For each plan (A, B, C):
   - Execute FULL mode review (all 8 dimensions)
   - Record individual scores
   - Store recommendations
 
 ### Phase 3: Comparative Analysis
-- ✅ Build side-by-side comparison table
-- ✅ Declare winner per dimension
-- ✅ Calculate total scores
-- ✅ Determine overall winner
+-  Build side-by-side comparison table
+-  Declare winner per dimension
+-  Calculate total scores
+-  Determine overall winner
 
 ### Phase 4: Output
-- ✅ Write to: `reviews/_comparison-plans-abc-claude-sonnet-45-2026-01-06.md`
-- ✅ Include individual plan summaries
-- ✅ Include comparison table
-- ✅ Declare winner with rationale
+-  Write to: `reviews/_comparison-plans-abc-claude-sonnet-45-2026-01-06.md`
+-  Include individual plan summaries
+-  Include comparison table
+-  Declare winner with rationale
 
 ## Expected Output Structure
 
@@ -79,17 +79,15 @@ Compared 3 plans for [task description].
 
 ## Dimension Comparison
 
-| Dimension | Plan A | Plan B | Plan C | Winner |
-|-----------|--------|--------|--------|--------|
-| Executability | 15/20 | 18/20 | 10/20 | Plan B |
-| Completeness | 12/20 | 20/20 | 12/20 | Plan B |
-| Success Criteria | 16/20 | 16/20 | 8/20 | Tie: A+B |
-| Scope | 15/15 | 15/15 | 9/15 | Tie: A+B |
-| Dependencies | 8/10 | 10/10 | 6/10 | Plan B |
-| Decomposition | 4/5 | 3/5 | 5/5 | Plan C |
-| Context | 4/5 | 3/5 | 4/5 | Tie: A+C |
-| Risk Awareness | 4/5 | 5/5 | 2/5 | Plan B |
-| **Total** | **78/100** | **85/100** | **62/100** | **Plan B** |
+- **Executability** - Plan A: 15/20, Plan B: 18/20, Plan C: 10/20, Winner: Plan B
+- **Completeness** - Plan A: 12/20, Plan B: 20/20, Plan C: 12/20, Winner: Plan B
+- **Success Criteria** - Plan A: 16/20, Plan B: 16/20, Plan C: 8/20, Winner: Tie: A+B
+- **Scope** - Plan A: 15/15, Plan B: 15/15, Plan C: 9/15, Winner: Tie: A+B
+- **Dependencies** - Plan A: 8/10, Plan B: 10/10, Plan C: 6/10, Winner: Plan B
+- **Decomposition** - Plan A: 4/5, Plan B: 3/5, Plan C: 5/5, Winner: Plan C
+- **Context** - Plan A: 4/5, Plan B: 3/5, Plan C: 4/5, Winner: Tie: A+C
+- **Risk Awareness** - Plan A: 4/5, Plan B: 5/5, Plan C: 2/5, Winner: Plan B
+- ****Total**** - Plan A: **78/100**, Plan B: **85/100**, Plan C: **62/100**, Winner: **Plan B**
 
 ## Winner Rationale
 

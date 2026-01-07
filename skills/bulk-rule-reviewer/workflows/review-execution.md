@@ -66,13 +66,13 @@ def verify_protocol_compliance():
     print("="*60)
     print()
     print("This workflow REQUIRES:")
-    print("  ✓ Execute rule-reviewer workflow for EACH rule")
-    print("  ✓ Load rule-reviewer/SKILL.md to understand process")
-    print("  ✓ Load rubrics/*.md for dimension scoring")
-    print("  ✓ Run schema_validator.py for each rule")
-    print("  ✓ NO batch processing or parallel shortcuts")
-    print("  ✓ FULL reviews (not abbreviated)")
-    print("  ✓ Sequential execution (unless max_parallel set)")
+    print("   Execute rule-reviewer workflow for EACH rule")
+    print("   Load rule-reviewer/SKILL.md to understand process")
+    print("   Load rubrics/*.md for dimension scoring")
+    print("   Run schema_validator.py for each rule")
+    print("   NO batch processing or parallel shortcuts")
+    print("   FULL reviews (not abbreviated)")
+    print("   Sequential execution (unless max_parallel set)")
     print()
     print("Estimated time: 5-10 hours for 113 rules")
     print("Resume capability: Use skip_existing=true to resume after interruption")
@@ -90,14 +90,14 @@ verify_protocol_compliance()
 
 **Violation Pattern 1: Batch implementation attempt**
 ```python
-# ❌ FORBIDDEN - This violates protocol
+#  FORBIDDEN - This violates protocol
 for rule_batch in chunks(rule_files, batch_size=10):
     results = batch_review_rules(rule_batch)  # WRONG!
 ```
 
 **Correct Pattern:**
 ```python
-# ✅ REQUIRED - Individual workflow execution
+#  REQUIRED - Individual workflow execution
 for rule_path in rule_file_paths:
     # Load rule-reviewer workflow if not already loaded
     if not workflow_loaded:
@@ -115,7 +115,7 @@ for rule_path in rule_file_paths:
 
 **Violation Pattern 2: Skipping rubrics**
 ```python
-# ❌ FORBIDDEN - Scoring without rubric consultation
+#  FORBIDDEN - Scoring without rubric consultation
 def quick_score_rule(rule_content):
     score = estimate_actionability(rule_content)  # WRONG! No rubric
     return score
@@ -123,7 +123,7 @@ def quick_score_rule(rule_content):
 
 **Correct Pattern:**
 ```python
-# ✅ REQUIRED - Load rubric and score according to criteria
+#  REQUIRED - Load rubric and score according to criteria
 def score_actionability(rule_content):
     rubric = load_file("skills/rule-reviewer/rubrics/actionability.md")
     # Apply rubric criteria to rule content
@@ -157,7 +157,7 @@ for rule_path in rule_file_paths:
     
     # Check if review already exists (resume capability)
     if skip_existing and file_exists(expected_review_path):
-        print(f"✓ Skipping {rule_name} (review exists)")
+        print(f" Skipping {rule_name} (review exists)")
         
         # Load existing score from file (read first 100 lines)
         existing_score = extract_score_from_existing_review(expected_review_path)
@@ -208,14 +208,14 @@ for rule_path in rule_file_paths:
             "status": "SUCCESS"
         })
         
-        print(f"  ✓ Complete: {metadata['score']}/100 ({metadata['verdict']})")
+        print(f"   Complete: {metadata['score']}/100 ({metadata['verdict']})")
         
     except Exception as e:
         # Log error and continue with next file
         failed += 1
         error_message = str(e)
         
-        print(f"  ✗ Failed: {error_message}")
+        print(f"   Failed: {error_message}")
         
         results.append({
             "rule_name": rule_name,
@@ -448,7 +448,7 @@ def execute_rule_review_workflow(target_file, review_date, review_mode, model):
 
 **Example:**
 ```
-  ✗ Failed: Malformed markdown syntax in rule file
+   Failed: Malformed markdown syntax in rule file
 ```
 
 ### Score Extraction Failure
@@ -500,10 +500,10 @@ def execute_rule_review_workflow(target_file, review_date, review_mode, model):
 
 **Example:**
 ```
-✓ Skipping 100-snowflake-core (review exists)
-✓ Skipping 101-snowflake-sql-style (review exists)
+ Skipping 100-snowflake-core (review exists)
+ Skipping 101-snowflake-sql-style (review exists)
 [3/113] Reviewing: rules/102-snowflake-warehouse-sizing.md
-  ✓ Complete: 85/100 (EXECUTABLE_WITH_REFINEMENTS)
+   Complete: 85/100 (EXECUTABLE_WITH_REFINEMENTS)
 ```
 
 ## Progress Tracking
@@ -516,18 +516,18 @@ Review mode: FULL | Model: claude-sonnet-45 | Date: 2026-01-06
 Skip existing: true
 
 [1/113] Reviewing: rules/000-global-core.md
-  ✓ Complete: 100/100 (EXECUTABLE)
+   Complete: 100/100 (EXECUTABLE)
 [2/113] Reviewing: rules/001-memory-bank.md
-  ✓ Complete: 92/100 (EXECUTABLE)
+   Complete: 92/100 (EXECUTABLE)
 [3/113] Reviewing: rules/002-rule-governance.md
-  ✓ Complete: 88/100 (EXECUTABLE_WITH_REFINEMENTS)
+   Complete: 88/100 (EXECUTABLE_WITH_REFINEMENTS)
 ...
 
 --- Progress: 10/113 complete, 0 failed, 0 skipped ---
     Average score: 89.3/100
 
 [11/113] Reviewing: rules/100-snowflake-core.md
-  ✓ Complete: 100/100 (EXECUTABLE)
+   Complete: 100/100 (EXECUTABLE)
 ...
 
 --- Progress: 20/113 complete, 1 failed, 0 skipped ---

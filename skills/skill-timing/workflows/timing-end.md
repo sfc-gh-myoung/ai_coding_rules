@@ -81,16 +81,14 @@ If timing completed (TIMING_STATUS=completed), append this section to the output
 
 ## Timing Metadata
 
-| Metric | Value |
-|--------|-------|
-| Run ID | `{{run_id}}` |
-| Start (UTC) | {{start_iso}} |
-| End (UTC) | {{end_iso}} |
-| Duration | {{duration_human}} ({{duration_seconds}}s) |
-| Model | {{model}} |
-| Agent | {{agent}} |
-| Tokens | {{total_tokens}} ({{input_tokens}} in / {{output_tokens}} out) |
-| Cost | ~${{estimated_cost_usd}} |
+- **Run ID** - `{{run_id}}`
+- **Start (UTC)** - {{start_iso}}
+- **End (UTC)** - {{end_iso}}
+- **Duration** - {{duration_human}} ({{duration_seconds}}s)
+- **Model** - {{model}}
+- **Agent** - {{agent}}
+- **Tokens** - {{total_tokens}} ({{input_tokens}} in / {{output_tokens}} out)
+- **Cost** - ~${{estimated_cost_usd}}
 ```
 
 ## Error Handling
@@ -109,12 +107,12 @@ If timing completed (TIMING_STATUS=completed), append this section to the output
 ## MODE Compatibility
 
 **Step 1 (Python module):**
-- PLAN Mode: ✓ Safe (no file modifications)
-- ACT Mode: ✓ Also safe
+- PLAN Mode:  Safe (no file modifications)
+- ACT Mode:  Also safe
 
 **Step 2 (Metadata embedding):**
-- PLAN Mode: ✗ NOT safe (modifies output file)
-- ACT Mode: ✓ Required
+- PLAN Mode:  NOT safe (modifies output file)
+- ACT Mode:  Required
 
 ## Next Step
 

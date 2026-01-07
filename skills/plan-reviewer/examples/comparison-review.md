@@ -22,31 +22,25 @@ model: claude-sonnet45
 **Reviewing Model:** Claude Sonnet 4.5
 
 ### Plans Reviewed
-| # | Plan File | Created By | Lines |
-|---|-----------|------------|-------|
-| A | plans/auth-plan-claude.md | Claude Sonnet 4.5 | 180 |
-| B | plans/auth-plan-gpt.md | GPT-5.2 | 145 |
+- **A** - Plan File: plans/auth-plan-claude.md, Created By: Claude Sonnet 4.5, Lines: 180
+- **B** - Plan File: plans/auth-plan-gpt.md, Created By: GPT-5.2, Lines: 145
 
 ---
 
 ### Comparative Scores
-| Criterion | Max | Plan A | Plan B | Winner |
-|-----------|-----|--------|--------|--------|
-| Executability | 20 | 18/20 | 14/20 | A |
-| Completeness | 20 | 16/20 | 18/20 | B |
-| Success Criteria | 20 | 16/20 | 12/20 | A |
-| Scope | 15 | 13/15 | 12/15 | A |
-| Dependencies | 10 | 10/10 | 8/10 | A |
-| Decomposition | 5 | 4/5 | 5/5 | B |
-| Context | 5 | 4/5 | 5/5 | B |
-| Risk Awareness | 5 | 4/5 | 3/5 | A |
-| **Total** | **100** | **85/100** | **77/100** | **A** |
+- **Executability** - Max: 20, Plan A: 18/20, Plan B: 14/20, Winner: A
+- **Completeness** - Max: 20, Plan A: 16/20, Plan B: 18/20, Winner: B
+- **Success Criteria** - Max: 20, Plan A: 16/20, Plan B: 12/20, Winner: A
+- **Scope** - Max: 15, Plan A: 13/15, Plan B: 12/15, Winner: A
+- **Dependencies** - Max: 10, Plan A: 10/10, Plan B: 8/10, Winner: A
+- **Decomposition** - Max: 5, Plan A: 4/5, Plan B: 5/5, Winner: B
+- **Context** - Max: 5, Plan A: 4/5, Plan B: 5/5, Winner: B
+- **Risk Awareness** - Max: 5, Plan A: 4/5, Plan B: 3/5, Winner: A
+- ****Total**** - Max: **100**, Plan A: **85/100**, Plan B: **77/100**, Winner: **A**
 
 ### Verdict by Plan
-| Plan | Score | Verdict |
-|------|-------|---------|
-| A | 85/100 | EXECUTABLE_WITH_REFINEMENTS |
-| B | 77/100 | NEEDS_REFINEMENT |
+- **A** - Score: 85/100, Verdict: EXECUTABLE_WITH_REFINEMENTS
+- **B** - Score: 77/100, Verdict: NEEDS_REFINEMENT
 
 ---
 

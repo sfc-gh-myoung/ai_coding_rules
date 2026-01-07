@@ -26,14 +26,12 @@ model: claude-sonnet-45
 
 ## Dimension Scores
 
-| Criterion | Max | Raw | Points | Notes |
-|-----------|-----|-----|--------|-------|
-| Actionability | 25 | X/5 | Y/25 | ... |
-| Completeness | 20 | X/5 | Y/20 | ... |
-| Consistency | 20 | X/5 | Y/20 | ... |
-| Parsability | 15 | X/5 | Y/15 | ... |
-| Token Efficiency | 10 | X/5 | Y/10 | ... |
-| Staleness | 10 | X/5 | Y/10 | ... |
+- **Actionability** - Max: 25, Raw: X/5, Points: Y/25, Notes: ...
+- **Completeness** - Max: 20, Raw: X/5, Points: Y/20, Notes: ...
+- **Consistency** - Max: 20, Raw: X/5, Points: Y/20, Notes: ...
+- **Parsability** - Max: 15, Raw: X/5, Points: Y/15, Notes: ...
+- **Token Efficiency** - Max: 10, Raw: X/5, Points: Y/10, Notes: ...
+- **Staleness** - Max: 10, Raw: X/5, Points: Y/10, Notes: ...
 
 ## Issues Found
 
@@ -206,10 +204,8 @@ model: claude-sonnet-45
 ## Staleness Assessment: CURRENT
 
 ## Version References
-| Item | Rule Version | Current Version | Status |
-|------|--------------|-----------------|--------|
-| Python | 3.11+ | 3.13 | ⚠️ Minor |
-| Tool X | v2.0 | v2.1 | ✓ Current |
+- **Python** - Rule Version: 3.11+, Current Version: 3.13, Status: Minor
+- **Tool X** - Rule Version: v2.0, Current Version: v2.1, Status: Current
 
 ## Deprecated Patterns
 - None found

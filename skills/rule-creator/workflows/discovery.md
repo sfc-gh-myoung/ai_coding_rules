@@ -63,18 +63,17 @@ From matches, extract:
 
 ### Step 1.4: Domain Range Reference
 
-| Domain | Range | Technologies |
-|--------|-------|--------------|
-| Core | 000-099 | Foundational, framework |
-| Snowflake | 100-199 | Snowflake platform, SQL |
-| Python | 200-299 | Python language, libraries |
-| Shell | 300-399 | Bash, Zsh, scripting |
-| Docker | 400-499 | Containers, Docker |
-| JavaScript | 420-449 | JavaScript, frontend frameworks |
-| Data Science | 500-599 | Analytics, ML |
-| Golang | 600-699 | Go language |
-| Project Mgmt | 800-899 | Docs, automation, workflow |
-| Demos | 900-999 | Examples, samples |
+**Domain Ranges:**
+- **Core** - Range: 000-099 - Foundational, framework
+- **Snowflake** - Range: 100-199 - Snowflake platform, SQL
+- **Python** - Range: 200-299 - Python language, libraries
+- **Shell** - Range: 300-399 - Bash, Zsh, scripting
+- **Docker** - Range: 400-499 - Containers, Docker
+- **JavaScript** - Range: 420-449 - JavaScript, frontend frameworks
+- **Data Science** - Range: 500-599 - Analytics, ML
+- **Golang** - Range: 600-699 - Go language
+- **Project Mgmt** - Range: 800-899 - Docs, automation, workflow
+- **Demos** - Range: 900-999 - Examples, samples
 
 ### Step 1.5: Confirm Domain Assignment
 
@@ -167,13 +166,13 @@ From web research, identify:
 ### Step 1.9: Validate Discovery Complete
 
 Check that you have:
-- ✓ Domain range identified (e.g., 420-449)
-- ✓ Next rule number determined (e.g., 422)
-- ✓ 10-15 semantic keywords extracted
-- ✓ 3+ essential patterns identified
-- ✓ 2+ anti-patterns identified
-- ✓ External reference links collected
-- ✓ Domain core rule loaded for context
+-  Domain range identified (e.g., 420-449)
+-  Next rule number determined (e.g., 422)
+-  10-15 semantic keywords extracted
+-  3+ essential patterns identified
+-  2+ anti-patterns identified
+-  External reference links collected
+-  Domain core rule loaded for context
 
 ## Example: Complete Discovery Phase
 
@@ -234,7 +233,7 @@ Step 9: Collect references
   - https://daisyui.com/components/
   - https://github.com/saadeghi/daisyui
 
-✓ Discovery complete, ready for Phase 2
+ Discovery complete, ready for Phase 2
 ```
 
 ## Decision Points
@@ -327,7 +326,7 @@ References:
 
 Domain Core Loaded: rules/[domain]-core.md
 
-✓ Ready for Phase 2: Template Generation
+ Ready for Phase 2: Template Generation
 ```
 
 ## Next Phase

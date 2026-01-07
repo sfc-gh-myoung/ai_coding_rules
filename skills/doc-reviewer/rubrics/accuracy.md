@@ -48,11 +48,9 @@ test -f path/to/file && echo "EXISTS" || echo "MISSING"
 
 **Track in table:**
 
-| Reference | Line | Type | Status | Notes |
-|-----------|------|------|--------|-------|
-| `src/main.py` | 45 | File | ✅ Exists | - |
-| `config/settings.json` | 67 | File | ❌ Missing | Should be `config/settings.yaml` |
-| `utils/helpers.py` | 89 | File | ✅ Exists | - |
+- **`src/main.py`** - Line: 45, Type: File, Status: Exists, Notes: -
+- **`config/settings.json`** - Line: 67, Type: File, Status: Missing, Notes: Should be `config/settings.yaml`
+- **`utils/helpers.py`** - Line: 89, Type: File, Status: Exists, Notes: -
 
 ### Command Verification
 
@@ -73,11 +71,9 @@ task build   # Does this succeed?
 
 **Track in table:**
 
-| Command | Line | Works? | Output | Fix Needed |
-|---------|------|--------|--------|------------|
-| `npm install` | 23 | ✅ Yes | Success | - |
-| `python setup.py test` | 45 | ❌ No | ModuleNotFoundError | Use `pytest` instead |
-| `task lint` | 67 | ✅ Yes | Success | - |
+- **`npm install`** - Line: 23, Works?: Yes, Output: Success, Fix Needed: -
+- **`python setup.py test`** - Line: 45, Works?: No, Output: ModuleNotFoundError, Fix Needed: Use `pytest` instead
+- **`task lint`** - Line: 67, Works?: Yes, Output: Success, Fix Needed: -
 
 ### Code Example Verification
 
@@ -97,7 +93,7 @@ from flask import Flask
 app = Flask(__name__)
 
 # Verify:
-✅ Flask still uses this pattern (valid as of 3.0.x)
+ Flask still uses this pattern (valid as of 3.0.x)
 ```
 
 ```python
@@ -122,11 +118,9 @@ grep -r "class UserManager" src/
 
 **Track mismatches:**
 
-| Doc Name | Line | Codebase Name | Status |
-|----------|------|---------------|--------|
-| `processData()` | 78 | `process_data()` | ❌ Wrong case |
-| `UserMgr` | 89 | `UserManager` | ❌ Abbreviated |
-| `calculate()` | 102 | `calculate()` | ✅ Correct |
+- **`processData()`** - Line: 78, Codebase Name: `process_data()`, Status: Wrong case
+- **`UserMgr`** - Line: 89, Codebase Name: `UserManager`, Status: Abbreviated
+- **`calculate()`** - Line: 102, Codebase Name: `calculate()`, Status: Correct
 
 ## Scoring Formula
 
@@ -194,14 +188,12 @@ If <60% of references are valid:
 
 Create this table during review:
 
-| Type | Reference | Line | Status | Fix Required |
-|------|-----------|------|--------|--------------|
-| File | `src/main.py` | 23 | ✅ Valid | - |
-| File | `config/old.json` | 45 | ❌ Missing | Update to `config/new.yaml` |
-| Command | `npm test` | 67 | ✅ Works | - |
-| Command | `make build` | 89 | ❌ Fails | No Makefile exists |
-| Function | `getData()` | 102 | ❌ Wrong | Should be `get_data()` |
-| Class | `Manager` | 134 | ✅ Valid | - |
+- **File** - Reference: `src/main.py`, Line: 23, Status: Valid, Fix Required: -
+- **File** - Reference: `config/old.json`, Line: 45, Status: Missing, Fix Required: Update to `config/new.yaml`
+- **Command** - Reference: `npm test`, Line: 67, Status: Works, Fix Required: -
+- **Command** - Reference: `make build`, Line: 89, Status: Fails, Fix Required: No Makefile exists
+- **Function** - Reference: `getData()`, Line: 102, Status: Wrong, Fix Required: Should be `get_data()`
+- **Class** - Reference: `Manager`, Line: 134, Status: Valid, Fix Required: -
 
 **Summary:**
 - Total references: 6

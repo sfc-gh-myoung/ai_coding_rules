@@ -490,33 +490,33 @@ Check that all content is populated:
 
 **Mistake 1:** Leaving placeholder text
 ```markdown
-❌ **Keywords:** [10-15 keywords here]
-✓ **Keywords:** daisyui, tailwind, components, ...
+ **Keywords:** [10-15 keywords here]
+ **Keywords:** daisyui, tailwind, components, ...
 ```
 
 **Mistake 2:** Wrong TokenBudget format
 ```markdown
-❌ **TokenBudget:** 1200
-❌ **TokenBudget:** medium
-✓ **TokenBudget:** ~1200
+ **TokenBudget:** 1200
+ **TokenBudget:** medium
+ **TokenBudget:** ~1200
 ```
 
 **Mistake 3:** Missing rules/ prefix in Related Rules
 ```markdown
-❌ - `420-javascript-core.md` - JavaScript foundation
-✓ - `rules/420-javascript-core.md` - JavaScript foundation
+ - `420-javascript-core.md` - JavaScript foundation
+ - `rules/420-javascript-core.md` - JavaScript foundation
 ```
 
 **Mistake 4:** Vague Essential Patterns
 ```markdown
-❌ - **Use best practices:** Follow recommended patterns
-✓ - **Semantic HTML first:** Use native HTML elements with DaisyUI classes
+ - **Use best practices:** Follow recommended patterns
+ - **Semantic HTML first:** Use native HTML elements with DaisyUI classes
 ```
 
 **Mistake 5:** Generic Anti-Patterns without code
 ```markdown
-❌ Don't do bad things with components
-✓ [Show specific wrong code, explain why it fails, show correct alternative]
+ Don't do bad things with components
+ [Show specific wrong code, explain why it fails, show correct alternative]
 ```
 
 ## Next Phase

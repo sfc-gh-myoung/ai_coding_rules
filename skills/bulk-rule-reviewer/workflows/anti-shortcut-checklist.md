@@ -38,16 +38,16 @@ Every 10 reviews, verify:
 
 If you notice yourself:
 
-- ❌ Typing "to save time" or "for efficiency"
-- ❌ Typing "token costs" or "token efficiency"
-- ❌ Creating reviews <2500 bytes
-- ❌ Scoring without loading rubrics
-- ❌ Using previous review as template
-- ❌ Processing multiple rules in parallel (unless max_parallel set)
-- ❌ Skipping schema validation
-- ❌ Providing generic recommendations
-- ❌ Estimating scores instead of analyzing
-- ❌ Applying rule optimization principles to skill execution
+- Typing "to save time" or "for efficiency"
+- Typing "token costs" or "token efficiency"
+- Creating reviews <2500 bytes
+- Scoring without loading rubrics
+- Using previous review as template
+- Processing multiple rules in parallel (unless max_parallel set)
+- Skipping schema validation
+- Providing generic recommendations
+- Estimating scores instead of analyzing
+- Applying rule optimization principles to skill execution
 
 **IMMEDIATE ACTION:** STOP. Delete incomplete work. Re-read skill. Resume correctly.
 
@@ -56,14 +56,14 @@ If you notice yourself:
 **Critical:** Am I confusing rules with skills?
 
 **RULES (what I'm reviewing):**
-- Should be token-efficient ✅
-- TokenBudget metadata matters ✅
-- Loaded frequently → cost multiplier ✅
+- Should be token-efficient (YES)
+- TokenBudget metadata matters (YES)
+- Loaded frequently → cost multiplier (YES)
 
 **SKILLS (what I'm executing):**
-- Should NOT optimize for tokens ❌
-- No TokenBudget metadata ✅
-- Used rarely → token cost irrelevant ✅
+- Should NOT optimize for tokens (NO)
+- No TokenBudget metadata (CORRECT)
+- Used rarely → token cost irrelevant (YES)
 
 **If I'm thinking about token efficiency during skill execution, I'm making a category error.**
 

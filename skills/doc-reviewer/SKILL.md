@@ -49,18 +49,17 @@ When `target_files` not specified, reviews:
 
 **Total: 100 points weighted across 6 dimensions:**
 
-| Dimension | Raw | Weight | Points | Category |
-|-----------|-----|--------|--------|----------|
-| Accuracy | X/5 | ×5 | Y/25 | Critical |
-| Completeness | X/5 | ×5 | Y/25 | Critical |
-| Clarity | X/5 | ×4 | Y/20 | Important |
-| Structure | X/5 | ×3 | Y/15 | Important |
-| Staleness | X/5 | ×2 | Y/10 | Standard |
-| Consistency | X/5 | ×1 | Y/5 | Standard |
+**Critical Dimensions (50 points - wrong/missing info blocks users):**
+- **Accuracy** - Raw: X/5, Weight: ×5, Points: Y/25
+- **Completeness** - Raw: X/5, Weight: ×5, Points: Y/25
 
-**Critical dimensions:** 50 points (wrong/missing info blocks users)
-**Important dimensions:** 35 points (affects usability)
-**Standard dimensions:** 15 points (polish)
+**Important Dimensions (35 points - affects usability):**
+- **Clarity** - Raw: X/5, Weight: ×4, Points: Y/20
+- **Structure** - Raw: X/5, Weight: ×3, Points: Y/15
+
+**Standard Dimensions (15 points - polish):**
+- **Staleness** - Raw: X/5, Weight: ×2, Points: Y/10
+- **Consistency** - Raw: X/5, Weight: ×1, Points: Y/5
 
 ### Dimension Summaries
 
@@ -112,13 +111,12 @@ When `target_files` not specified, reviews:
 
 ### Verdict Thresholds
 
-| Score | Verdict | Meaning |
-|-------|---------|---------|
-| 90-100 | EXCELLENT | High-quality documentation |
-| 80-89 | GOOD | Minor improvements needed |
-| 60-79 | NEEDS_IMPROVEMENT | Significant updates required |
-| 40-59 | POOR | Major revision needed |
-| <40 | INADEQUATE | Rewrite from scratch |
+**Score Ranges:**
+- **90-100** - EXCELLENT - High-quality documentation
+- **80-89** - GOOD - Minor improvements needed
+- **60-79** - NEEDS_IMPROVEMENT - Significant updates required
+- **40-59** - POOR - Major revision needed
+- **<40** - INADEQUATE - Rewrite from scratch
 
 **Critical dimension overrides:**
 - Accuracy ≤2/5 → Minimum NEEDS_IMPROVEMENT

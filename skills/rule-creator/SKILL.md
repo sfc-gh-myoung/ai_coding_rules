@@ -47,20 +47,20 @@ See `workflows/discovery.md` for domain mappings and detailed discovery process.
 
 ### Required Behavior
 
-- ✅ Execute all 5 phases sequentially (no skipping)
-- ✅ Run `template_generator.py` for initial structure
-- ✅ Conduct web research for current best practices
-- ✅ Fill ALL sections (no placeholders)
-- ✅ Run `schema_validator.py` in loop until exit code 0
-- ✅ Add entry to `RULES_INDEX.md` in numeric order
+- Execute all 5 phases sequentially (no skipping)
+- Run `template_generator.py` for initial structure
+- Conduct web research for current best practices
+- Fill ALL sections (no placeholders)
+- Run `schema_validator.py` in loop until exit code 0
+- Add entry to `RULES_INDEX.md` in numeric order
 
 ### Forbidden
 
-- ❌ Skipping phases to save time
-- ❌ Manually creating structure without template_generator.py
-- ❌ Proceeding with CRITICAL validation errors
-- ❌ Using placeholder text
-- ❌ Single-pass validation without re-checking
+- Skipping phases to save time
+- Manually creating structure without template_generator.py
+- Proceeding with CRITICAL validation errors
+- Using placeholder text
+- Single-pass validation without re-checking
 
 ## Workflow
 
@@ -249,10 +249,10 @@ Expected output:
 ## Anti-Patterns
 
 Common mistakes to avoid:
-- ❌ Manual structure creation (always use `template_generator.py`)
-- ❌ Single-pass validation (loop until exit code 0)
-- ❌ Proceeding with CRITICAL errors (must resolve first)
-- ❌ Placeholder text (complete all sections before validation)
+- Manual structure creation (always use `template_generator.py`)
+- Single-pass validation (loop until exit code 0)
+- Proceeding with CRITICAL errors (must resolve first)
+- Placeholder text (complete all sections before validation)
 
 **See:** `examples/edge-cases.md` for detailed examples and resolution strategies.
 

@@ -86,7 +86,7 @@ Write consolidated review to single output file.
 Print confirmation message:
 
 ```
-✓ Review complete
+ Review complete
 
 OUTPUT_FILE: reviews/<filename>.md
 Target(s): <list of reviewed files>
@@ -104,7 +104,7 @@ If file write fails (permission denied, disk full, etc.):
 3. Instruct user to manually save
 
 ```
-⚠️ Review completed but file write failed.
+ Review completed but file write failed.
 
 OUTPUT_FILE: reviews/<filename>.md
 

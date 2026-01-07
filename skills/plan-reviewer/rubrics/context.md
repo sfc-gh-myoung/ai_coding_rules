@@ -177,12 +177,12 @@ Use Redis for caching
 Use Redis for caching
 
 Tradeoffs:
-✓ Pros:
+ Pros:
   - Sub-millisecond latency
   - Reduces DB load by 80%
   - Simple key-value semantics
 
-✗ Cons:
+ Cons:
   - Adds operational complexity
   - Cache invalidation challenges
   - Memory cost: ~$200/month for 10GB

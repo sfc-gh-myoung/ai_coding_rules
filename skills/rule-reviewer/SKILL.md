@@ -23,14 +23,13 @@ Output: `reviews/200-python-core-claude-sonnet-45-2026-01-06.md`
 
 ## Scoring System (100 points)
 
-| Dimension | Weight | Max | Key Question |
-|-----------|--------|-----|--------------|
-| Actionability | 25% | 25 | Can agents execute without judgment? |
-| Completeness | 25% | 25 | All scenarios covered? |
-| Consistency | 15% | 15 | Internal alignment correct? |
-| Parsability | 15% | 15 | Schema valid? |
-| Token Efficiency | 10% | 10 | Within ±5% budget? |
-| Staleness | 10% | 10 | Current patterns? |
+**Dimensions:**
+- **Actionability** - Weight: 25%, Max: 25 points - Can agents execute without judgment?
+- **Completeness** - Weight: 25%, Max: 25 points - All scenarios covered?
+- **Consistency** - Weight: 15%, Max: 15 points - Internal alignment correct?
+- **Parsability** - Weight: 15%, Max: 15 points - Schema valid?
+- **Token Efficiency** - Weight: 10%, Max: 10 points - Within ±5% budget?
+- **Staleness** - Weight: 10%, Max: 10 points - Current patterns?
 
 **Detailed rubrics:** `rubrics/[dimension].md`
 
@@ -82,12 +81,11 @@ Output: `reviews/200-python-core-claude-sonnet-45-2026-01-06.md`
 
 ## Verdicts
 
-| Score | Verdict | Meaning |
-|-------|---------|---------|
-| 90-100 | EXECUTABLE | Production-ready |
-| 80-89 | EXECUTABLE_WITH_REFINEMENTS | Good, minor fixes |
-| 60-79 | NEEDS_REFINEMENT | Needs work |
-| <60 | NOT_EXECUTABLE | Major issues |
+**Score Ranges:**
+- **90-100** - EXECUTABLE - Production-ready
+- **80-89** - EXECUTABLE_WITH_REFINEMENTS - Good, minor fixes
+- **60-79** - NEEDS_REFINEMENT - Needs work
+- **<60** - NOT_EXECUTABLE - Major issues
 
 **Critical dimension override:** If both Actionability ≤2/5 AND Completeness ≤2/5 → NOT_EXECUTABLE regardless of total score
 
@@ -183,18 +181,18 @@ Only load what you need for current dimension.
 ## Critical Execution Protocol
 
 **DO:**
-- ✅ Read complete rule file
-- ✅ Run schema validator
-- ✅ Score all dimensions per rubrics
-- ✅ Generate specific recommendations
-- ✅ Write complete review
+- Read complete rule file
+- Run schema validator
+- Score all dimensions per rubrics
+- Generate specific recommendations
+- Write complete review
 
 **DON'T:**
-- ❌ Skip dimensions (FULL mode requires all 6)
-- ❌ Estimate scores without rubrics
-- ❌ Generate generic recommendations
-- ❌ Abbreviate review to save tokens
-- ❌ Skip schema validation
+- Skip dimensions (FULL mode requires all 6)
+- Estimate scores without rubrics
+- Generate generic recommendations
+- Abbreviate review to save tokens
+- Skip schema validation
 
 ## Quality Over Efficiency Principle
 
@@ -274,13 +272,11 @@ Thoroughness > Cost
 
 **Efficiency Tradeoffs (ALL REJECTED):**
 
-| Shortcut | Time Saved | Value Lost | Decision |
-|----------|------------|------------|----------|
-| Skip schema validation | 1 sec | Parsability score invalid | ❌ REJECT |
-| Estimate scores without rubrics | 6 sec | Score consistency lost | ❌ REJECT |
-| Generic recommendations | 2 sec | No actionable improvements | ❌ REJECT |
-| Abbreviated review | 2 sec | Aggregation impossible | ❌ REJECT |
-| Template-based content | 8 sec | No actual analysis performed | ❌ REJECT |
+- **Skip schema validation** - Time Saved: 1 sec, Value Lost: Parsability score invalid, Decision: REJECT
+- **Estimate scores without rubrics** - Time Saved: 6 sec, Value Lost: Score consistency lost, Decision: REJECT
+- **Generic recommendations** - Time Saved: 2 sec, Value Lost: No actionable improvements, Decision: REJECT
+- **Abbreviated review** - Time Saved: 2 sec, Value Lost: Aggregation impossible, Decision: REJECT
+- **Template-based content** - Time Saved: 8 sec, Value Lost: No actual analysis performed, Decision: REJECT
 
 **Conclusion:** No efficiency tradeoff is worth the quality loss. Period.
 

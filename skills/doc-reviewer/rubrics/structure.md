@@ -65,7 +65,7 @@ Set DATABASE_URL in your .env file
 ## Installation
 Create .env file from template
 ```
-→ ❌ Configuration before installation
+→  Configuration before installation
 
 **Good example:**
 ```markdown
@@ -75,7 +75,7 @@ Create .env file from template
 ## Configuration
 Set DATABASE_URL in your .env file
 ```
-→ ✅ Installation before configuration
+→  Installation before configuration
 
 ## Heading Hierarchy
 

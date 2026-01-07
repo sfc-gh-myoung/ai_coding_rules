@@ -4,7 +4,7 @@
 
 Agent reviewing 113 rules, at rule 15/113, notices task will take ~15 more minutes.
 
-### ❌ WRONG: Efficiency Optimization Attempt
+###  WRONG: Efficiency Optimization Attempt
 
 **Agent response:**
 
@@ -16,7 +16,7 @@ Agent reviewing 113 rules, at rule 15/113, notices task will take ~15 more minut
 - Defeats entire purpose of bulk review
 - Category error: Applying rule optimization to skill execution
 
-### ✅ CORRECT: Continue Comprehensive Process
+###  CORRECT: Continue Comprehensive Process
 
 **Agent response:**
 
@@ -39,7 +39,7 @@ Agent reviewing 113 rules, at rule 15/113, notices task will take ~15 more minut
 
 Agent at rule 30/113, token usage at 25K.
 
-### ❌ WRONG: Token Conservation (Category Error)
+###  WRONG: Token Conservation (Category Error)
 
 **Agent response:**
 
@@ -52,7 +52,7 @@ Agent at rule 30/113, token usage at 25K.
 - $0.45 total cost is acceptable for 113-rule QA
 - False economy—one bad rule costs more
 
-### ✅ CORRECT: Recognize Skills ≠ Rules
+###  CORRECT: Recognize Skills ≠ Rules
 
 **Agent response:**
 
@@ -83,7 +83,7 @@ Agent at rule 30/113, token usage at 25K.
 
 User: "Can you speed this up?"
 
-### ❌ WRONG: Compromise Quality
+###  WRONG: Compromise Quality
 
 **Agent response:**
 
@@ -94,7 +94,7 @@ User: "Can you speed this up?"
 - Abbreviated reviews provide zero quality signal
 - Defeats purpose of the skill
 
-### ✅ CORRECT: Offer Proper Alternatives
+###  CORRECT: Offer Proper Alternatives
 
 **Agent response:**
 
@@ -138,7 +138,7 @@ User: "Can you speed this up?"
 
 Agent calculates 113 rules × 5 minutes = 565 minutes (9+ hours) and panics.
 
-### ❌ WRONG: Premature Optimization
+###  WRONG: Premature Optimization
 
 **Agent response:**
 
@@ -149,7 +149,7 @@ Agent calculates 113 rules × 5 minutes = 565 minutes (9+ hours) and panics.
 - Premature optimization based on bad math
 - Should verify actual performance before optimizing
 
-### ✅ CORRECT: Measure First, Optimize Never (For Skills)
+###  CORRECT: Measure First, Optimize Never (For Skills)
 
 **Agent response:**
 
@@ -179,7 +179,7 @@ Agent calculates 113 rules × 5 minutes = 565 minutes (9+ hours) and panics.
 
 Agent notices many rules have similar structures and considers templating.
 
-### ❌ WRONG: Template-Based Reviews
+###  WRONG: Template-Based Reviews
 
 **Agent response:**
 
@@ -191,7 +191,7 @@ Agent notices many rules have similar structures and considers templating.
 - Create false confidence (all score similarly)
 - Repository quality degrades over time
 
-### ✅ CORRECT: Individual Analysis
+###  CORRECT: Individual Analysis
 
 **Agent response:**
 

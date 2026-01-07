@@ -6,12 +6,10 @@ Define deterministic fallback behavior when validation, review, or file writing 
 
 ## Error Categories
 
-| Category | Severity | Action |
-|----------|----------|--------|
-| Input validation failure | BLOCKING | Stop, report, request correction |
-| Review generation failure | BLOCKING | Report step that failed, no partial output |
-| File write failure | RECOVERABLE | Print OUTPUT_FILE + full content |
-| Permission error | RECOVERABLE | Suggest alternative path or print content |
+- **Input validation failure** - Severity: BLOCKING, Action: Stop, report, request correction
+- **Review generation failure** - Severity: BLOCKING, Action: Report step that failed, no partial output
+- **File write failure** - Severity: RECOVERABLE, Action: Print OUTPUT_FILE + full content
+- **Permission error** - Severity: RECOVERABLE, Action: Suggest alternative path or print content
 
 ## Input Validation Errors
 
@@ -233,7 +231,7 @@ Print full content to chat with OUTPUT_FILE path for manual save.
 When file writing fails but review completed successfully:
 
 ```
-⚠️ Review completed but file write failed.
+ Review completed but file write failed.
 
 OUTPUT_FILE: reviews/<filename>.md
 
@@ -253,7 +251,7 @@ To save manually:
 When review generation fails:
 
 ```
-❌ Review generation failed at step: [step name]
+ Review generation failed at step: [step name]
 
 Error details:
 - [specific error message]
@@ -271,7 +269,7 @@ No partial file was written.
 When input validation fails:
 
 ```
-❌ Input validation failed.
+ Input validation failed.
 
 Issues found:
 1. [Issue 1 with fix suggestion]
@@ -334,13 +332,11 @@ else:
 
 ## Error Frequency and Prevention
 
-| Error | Frequency | Prevention |
-|-------|-----------|------------|
-| File not found | High | Tab-complete paths, verify before starting |
-| Invalid date | Medium | Use ISO 8601 consistently |
-| Invalid mode | Low | Copy from examples |
-| Write permission | Low | Check reviews/ exists and is writable |
-| Prompt missing | Rare | Keep prompts/ in version control |
+- **File not found** - Frequency: High, Prevention: Tab-complete paths, verify before starting
+- **Invalid date** - Frequency: Medium, Prevention: Use ISO 8601 consistently
+- **Invalid mode** - Frequency: Low, Prevention: Copy from examples
+- **Write permission** - Frequency: Low, Prevention: Check reviews/ exists and is writable
+- **Prompt missing** - Frequency: Rare, Prevention: Keep prompts/ in version control
 
 ## Escalation Path
 

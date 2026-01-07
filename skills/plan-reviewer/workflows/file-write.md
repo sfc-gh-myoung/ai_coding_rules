@@ -80,7 +80,7 @@ def get_safe_path(base_path: str) -> str:
 ## Success Output
 
 ```
-✓ Review complete
+ Review complete
 
 OUTPUT_FILE: reviews/plan-IMPROVE_RULE_LOADING-claude-sonnet45-2025-12-16.md
 Target: plans/IMPROVE_RULE_LOADING.md

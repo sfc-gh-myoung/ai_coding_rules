@@ -46,6 +46,8 @@ When enabled, the output includes:
 
 ## Timing Operations
 
+**Prerequisites:** Python 3.11+ and uv installed
+
 ### timing-start
 
 Initialize timing for a skill execution.
@@ -208,6 +210,8 @@ If you need to adjust alert thresholds for your use case:
 - Anthropic (Claude): [https://www.anthropic.com/pricing](https://www.anthropic.com/pricing)
 - OpenAI (GPT): [https://openai.com/pricing](https://openai.com/pricing)
 
+**Note:** Verify URLs are current before updating costs.
+
 **Last updated:** 2026-01-06  
 **Next review:** 2026-04-06 (Quarterly maintenance)
 
@@ -228,12 +232,12 @@ When prices change, update the `COST_PER_1M_TOKENS` dict in `skills/skill-timing
 
 ## Data Storage
 
-| Location | Contents | Retention |
-|----------|----------|-----------|
-| `{temp}/skill-timing-{id}.json` | Active runs | Until end |
-| `{temp}/skill-timing-{id}-complete.json` | Completed runs | 7 days |
-| `{temp}/skill-timing-registry.json` | Agent recovery | Auto-cleaned |
-| `reviews/.timing-baselines.json` | Baselines | Indefinite |
+| Location | Contents | Retention | Notes |
+|----------|----------|-----------|-------|
+| `{temp}/skill-timing-{id}.json` | Active runs | Until end | - |
+| `{temp}/skill-timing-{id}-complete.json` | Completed runs | 7 days | - |
+| `{temp}/skill-timing-registry.json` | Agent recovery | Auto-cleaned | - |
+| `reviews/.timing-baselines.json` | Baselines | Indefinite | Created on first `baseline set` |
 
 ## Troubleshooting
 

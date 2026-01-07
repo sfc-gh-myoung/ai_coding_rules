@@ -9,10 +9,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-01-06
 **Keywords:** PLAN mode, ACT mode, workflow, safety, confirmation, validation, surgical edits, minimal changes, mode violations, prompt engineering, task list, read-only, authorization
-**TokenBudget:** ~5250
+**TokenBudget:** ~5450
 **ContextTier:** Critical
 **Depends:** None
 
@@ -176,6 +176,48 @@ Reference: Complete validation protocol in `AGENTS.md`
 - **Rule:** Do not mark tasks complete if ANY check fails
 - **Rule:** Return to PLAN after successful validation
 
+**Validation Error Message Format:**
+
+When validation fails, agents must report errors using this format:
+
+```
+Validation Failed: [Tool Name]
+
+Severity: [CRITICAL|HIGH|MEDIUM|LOW]
+Location: [file:line or component name]
+Error: [exact error message from tool]
+Fix: [specific action to resolve]
+
+[full tool output if helpful for debugging]
+```
+
+**Examples:**
+
+```
+Validation Failed: ruff
+
+Severity: HIGH
+Location: src/auth.py:42
+Error: F401 'os' imported but unused
+Fix: Remove unused import or use os module
+
+src/auth.py:42:1: F401 'os' imported but unused
+```
+
+```
+Validation Failed: pytest
+
+Severity: CRITICAL
+Location: tests/test_api.py::test_login
+Error: AssertionError: expected 200, got 401
+Fix: Update authentication test credentials or fix auth logic
+
+=== FAILURES ===
+tests/test_api.py::test_login - AssertionError: assert 401 == 200
+```
+
+**Rule:** Always include Severity, Location, Error, and Fix fields.
+
 **Investigation Required:**
 1. **Read project files BEFORE making recommendations** - Check existing structure, patterns, conventions
 2. **List loaded rules explicitly** - Always state which rules informed analysis
@@ -258,6 +300,18 @@ Design decisions must follow this priority order:
 
 **Design Test:** When in doubt, ask: "Can an agent execute this without judgment?"
 If the answer is no, revise for Priority 1 compliance.
+
+**Priority Weighting (Quantified):**
+- Priority 1: Accept up to 50% token overhead for explicit error handling
+- Priority 2: Accept up to 30% token overhead for semantic discovery metadata
+- Priority 3: Minimize tokens without sacrificing P1/P2 (baseline target)
+- Priority 4: Optimize only after P1-P3 satisfied (no token overhead allowed)
+
+**Trade-off Examples:**
+- 200 tokens of explicit conditionals (P1) vs 50 tokens of prose (P4) - Choose P1
+- 100 tokens of Keywords field (P2) vs 20 tokens minimal (P3) - Choose P2
+- Verbose examples (P1) vs terse references (P3) - Choose P1 if aids executability
+- 150 tokens for human maintainability (P4) vs 100 tokens P1 alternative - Choose P1
 
 **Trade-off Guidance:**
 - More tokens for explicit error handling: Priority 1 wins
@@ -374,9 +428,11 @@ Gather details in PLAN without expiring ACT scope:
 - Update documentation when changes affect usage
 - Ensure no regressions introduced
 - **Taskfile-first (project standards):** If the project provides an automation entrypoint (prefer
-  `Taskfile.yml`), run validation via the project-defined tasks (e.g., `task validate`, `task check`,
-  `task ci`, `task lint`, `task format`, `task typecheck`, `task test`). Only fall back to direct tool
-  commands when no relevant Taskfile tasks exist.
+  `Taskfile.yml`), run validation via project-defined tasks:
+  - **If task exits 0:** Success, continue to next validation step
+  - **If task exits non-zero:** Report failure with task output, STOP and return to PLAN mode
+  - **If Taskfile.yml missing OR task not found:** Fall back to direct tool commands
+  - **Common tasks:** `task validate`, `task check`, `task ci`, `task lint`, `task test`
 
 **Validation Strategies:**
 - **Fast-fail:** Chain with `&&` for final checks (stops at first failure)

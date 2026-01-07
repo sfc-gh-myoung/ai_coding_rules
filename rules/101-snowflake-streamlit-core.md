@@ -8,17 +8,17 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
-**Keywords:** Streamlit, SPCS, SiS, navigation, multipage, session state, st.connection, config.toml, theming, deployment, pandas, null handling, session management
-**TokenBudget:** ~6500
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-01-06
+**Keywords:** Streamlit, SPCS, SiS, navigation, multipage, session state, st.connection, config.toml, theming, deployment, pandas, null handling, session management, navigation performance
+**TokenBudget:** ~7700
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 
 ## Scope
 
 **What This Rule Covers:**
-Foundational Streamlit application setup, navigation patterns, state management, deployment mode selection (SiS vs SPCS), and theming configuration using config.toml as the primary styling method.
+Foundational Streamlit application setup, navigation patterns, state management, deployment mode selection (Streamlit in Snowflake [SiS] vs SPCS), and theming configuration using config.toml as the primary styling method.
 
 **When to Load This Rule:**
 - Building Streamlit applications on Snowflake
@@ -26,7 +26,7 @@ Foundational Streamlit application setup, navigation patterns, state management,
 - Configuring Streamlit navigation (st.navigation or pages/)
 - Managing Streamlit session state
 - Setting up Streamlit themes and configuration
-- Deploying to SiS (Streamlit in Snowflake) or SPCS
+- Deploying to SiS or SPCS
 - Integrating Streamlit with Snowflake data sources
 
 ## References
@@ -53,7 +53,7 @@ Foundational Streamlit application setup, navigation patterns, state management,
 
 **Official Documentation:**
 - [Streamlit Documentation](https://docs.streamlit.io/) - Complete Streamlit reference
-- [Streamlit in Snowflake (SiS)](https://docs.snowflake.com/en/developer-guide/streamlit/about-streamlit) - SiS deployment guide
+- [Streamlit in Snowflake](https://docs.snowflake.com/en/developer-guide/streamlit/about-streamlit) - SiS deployment guide
 - [Streamlit Navigation](https://docs.streamlit.io/develop/api-reference/navigation) - st.navigation() and multipage apps
 - [Streamlit Configuration](https://docs.streamlit.io/develop/concepts/configuration/options) - config.toml reference
 
@@ -293,7 +293,7 @@ pg.run()  # Critical!
 **MANDATORY:**
 **Choosing the right deployment mode is critical for long-term success.**
 
-### When to Use Streamlit in Snowflake (SiS)
+### When to Use SiS
 
 **Best For:**
 - Rapid prototyping and MVP development (minutes to first app)
@@ -342,7 +342,7 @@ pg.run()  # Critical!
 
 ### SiS Environment Configuration (environment.yml)
 
-**CRITICAL for Streamlit in Snowflake (SiS) Deployments:**
+**CRITICAL for SiS Deployments:**
 
 The `environment.yml` file for SiS has **strict requirements** that differ from local Conda environments:
 
@@ -432,6 +432,87 @@ dependencies:
 - [ ] Reference: [Snowflake Third-Party Packages](https://repo.anaconda.com/pkgs/snowflake/)
 
 **Key Takeaway:** SiS environment.yml files should contain **only package names** - no versions, no Python specification, no custom channels. Snowflake manages all versions automatically.
+
+### SPCS Deployment Error Scenarios
+
+**Common SPCS errors and resolution steps:**
+
+**Error 1: Docker Build Failure - Dependency Resolution**
+```
+Error: failed to solve: process "/bin/sh -c pip install -r requirements.txt" did not complete successfully
+exit code: 1
+```
+
+**Cause:** Package dependency resolution failed or package not available on PyPI  
+**Resolution:**
+1. Verify all packages in requirements.txt are available: `pip install --dry-run -r requirements.txt`
+2. Test Docker build locally before pushing: `docker build -t test-image .`
+3. Check for conflicting package versions: Review pip resolver output
+4. Pin working versions: Use `pip freeze > requirements.txt` from tested environment
+5. Consider using multi-stage builds to separate dependency installation
+
+**Error 2: Container Networking Timeout**
+```
+Error: dial tcp 10.0.0.5:443: i/o timeout
+```
+
+**Cause:** SPCS container cannot reach external API, Snowflake service, or internet resource  
+**Resolution:**
+1. Verify external access enabled in service specification: `EXTERNAL_ACCESS_INTEGRATIONS`
+2. Check network policy allows outbound connections: `SHOW NETWORK POLICIES`
+3. Confirm API endpoint is reachable from SPCS: Test with `curl` in container
+4. Review egress firewall rules and allowed endpoints list
+5. Validate external access integration configuration: `DESCRIBE INTEGRATION <name>`
+
+**Error 3: Image Registry Authentication Failure**
+```
+Error: failed to pull image <org>-<account>.registry.snowflakecomputing.com/mydb/myschema/myrepo/myapp:latest
+Error: unauthorized: authentication required
+```
+
+**Cause:** Missing or invalid authentication to Snowflake image repository  
+**Resolution:**
+1. Authenticate to repository: `docker login <org>-<account>.registry.snowflakecomputing.com`
+2. Verify repository exists: `SHOW IMAGE REPOSITORIES IN SCHEMA`
+3. Check repository grants: `SHOW GRANTS ON IMAGE REPOSITORY <name>`
+4. Confirm image was pushed successfully: `SHOW IMAGES IN IMAGE REPOSITORY <name>`
+5. Validate image tag matches service specification exactly (case-sensitive)
+
+**Error 4: Service Startup Timeout**
+```
+Error: Service failed to start within timeout period (300s)
+Container health check failed
+```
+
+**Cause:** Application takes too long to start or health check endpoint not responding  
+**Resolution:**
+1. Optimize container startup time: Reduce image size, pre-compile dependencies
+2. Increase service timeout: Adjust `MAX_STARTUP_TIME` in service specification (max 600s)
+3. Verify health check endpoint: Ensure `/healthz` or configured path responds quickly
+4. Review container logs: `CALL SYSTEM$GET_SERVICE_LOGS('<service_name>', 0, 'main')`
+5. Check resource allocation: Increase CPU/memory if application is resource-constrained
+
+**Error 5: Port Binding Conflict**
+```
+Error: failed to create endpoint: port 8501 already in use
+```
+
+**Cause:** Multiple containers trying to bind to same port or incorrect port mapping  
+**Resolution:**
+1. Verify service specification port mapping matches Dockerfile `EXPOSE` directive
+2. Check only one process binds to application port in container
+3. Review service specification: Ensure unique port assignments per endpoint
+4. Validate Streamlit runs on expected port: Check `config.toml` or `--server.port` flag
+5. Restart service to clear stale port bindings: `ALTER SERVICE <name> SUSPEND; ALTER SERVICE <name> RESUME;`
+
+**Validation Checklist for SPCS Deployments:**
+- [ ] Docker image builds successfully locally
+- [ ] All required external access integrations configured
+- [ ] Image pushed to Snowflake registry and accessible
+- [ ] Health check endpoint responds within timeout
+- [ ] Port mappings consistent between Dockerfile and service spec
+- [ ] Service logs reviewed for startup errors
+- [ ] Resource allocation sufficient for application requirements
 
 ## Setup and Project Structure
 
@@ -523,6 +604,29 @@ pg.run()
 - Use `st.page_link()` for inline links within page content
 - Use `st.switch_page()` for programmatic navigation (e.g., after form submission)
 - Never use `st.button()` for navigation (use for actions only)
+
+### Navigation Performance Characteristics
+
+**st.navigation() (Recommended):**
+- **Memory overhead:** Minimal (~10-20 KB per page definition)
+- **Page load time:** <50ms for navigation tree rendering
+- **Session state size:** Compact (single navigation state object)
+- **Concurrent users:** Scales well (navigation defined once, shared across sessions)
+- **Use when:** Standard multipage apps, 2-20 pages, shared navigation
+
+**pages/ Directory (Legacy):**
+- **Memory overhead:** Higher (~50-100 KB per page file)
+- **Page load time:** 100-300ms for page discovery and import
+- **Session state size:** Larger (separate state per page file)
+- **Concurrent users:** Moderate (each session imports page files)
+- **Use when:** Migrating legacy apps, file-based organization required
+
+**Quantified Thresholds:**
+- <10 pages: Performance difference negligible, choose st.navigation() for modern pattern
+- 10-20 pages: st.navigation() provides 2-3x faster page switches
+- >20 pages: Consider splitting into multiple apps rather than single large app
+
+**Cross-reference:** See 101b-snowflake-streamlit-performance.md for detailed profiling guidance
 
 ## Configuration and Theming
 

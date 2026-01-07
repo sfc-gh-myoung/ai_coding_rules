@@ -11,7 +11,7 @@
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-05
 **Keywords:** rule governance, schema, metadata requirements, validation, schema compliance, rule structure, semantic discovery, RULES_INDEX, descriptive headings
-**TokenBudget:** ~3200
+**TokenBudget:** ~3400
 **ContextTier:** Critical
 **Depends:** 000-global-core.md
 
@@ -153,13 +153,6 @@ Markdown file (.md) with:
 4. **Contract** - Structured contract with Markdown subsections (###), NOT XML tags
 5. **Anti-Patterns and Common Mistakes** - Optional but strongly recommended
 
-**Eliminated Sections (from v3.1):**
-- **Purpose** - ELIMINATED: Consolidated into Scope
-- **Rule Scope** - ELIMINATED: Consolidated into Scope
-- **Quick Start TL;DR** - ELIMINATED: Removed entirely
-- **Post-Execution Checklist** - MOVED: Now a subsection within Contract
-- **Validation** - MOVED: Now a subsection within Contract
-
 **Numbering:**
 - **FORBIDDEN:** Do NOT use numbered section headings (e.g., `## 1. Environment Setup`)
 - **REQUIRED:** Use descriptive section names (e.g., `## Environment and Tooling Requirements`)
@@ -224,12 +217,6 @@ Description of expected output structure
 - [ ] Item 2
 ```
 
-**v3.2 Changes from v3.1:**
-- **REQUIRED:** Use Markdown headers (###) for subsections
-- **FORBIDDEN:** Do NOT use XML tags (`<inputs_prereqs>`, `<mandatory>`, etc.)
-- **CHANGED:** Validation is now a subsection with structured checks
-- **CHANGED:** Post-Execution Checklist is now inside Contract (not a separate section)
-
 **Note:** Contract section must appear before line 160 to ensure agent reads it early.
 
 ## Validation Process
@@ -257,7 +244,7 @@ python3 scripts/schema_validator.py rules/
 
 **Metadata Errors:**
 - **Missing metadata field** - Add missing Keywords, TokenBudget, ContextTier, or Depends in correct order
-- **Keywords count wrong** - Adjust to 10-15 comma-separated terms
+- **Keywords count wrong** - Adjust to 5-20 comma-separated terms
 - **TokenBudget format** - Use `~NUMBER` format (e.g., ~500, ~1200)
 
 **Structure Errors:**
@@ -266,6 +253,52 @@ python3 scripts/schema_validator.py rules/
 - **Section order wrong** - Reorder sections per v3.2: Metadata, Scope, References, Contract
 
 **For detailed error resolution:** See `002d-schema-validator-usage.md`
+
+### Validator Not Available
+
+If schema_validator.py fails or is not found:
+
+**Option 1: Install Dependencies**
+```bash
+# Using uv (recommended)
+uv sync
+
+# Or using pip
+pip install -r requirements.txt
+```
+
+**Option 2: Manual Verification**
+If validator installation fails:
+1. Open schemas/rule-schema.yml
+2. Verify metadata fields present (SchemaVersion, RuleVersion, LastUpdated, Keywords, TokenBudget, ContextTier, Depends)
+3. Check section order: Metadata, Scope, References, Contract, Content
+4. Verify no XML tags in Contract section (use Markdown headers ###)
+5. Confirm Keywords count: 5-20 terms
+6. Validate TokenBudget format: ~NUMBER
+
+**Option 3: Request Assistance**
+If both options fail, note the validation gap in commit message and request review.
+
+**Schema Version Mismatch:**
+- **Error:** "Expected v3.2, found v3.1" or "SchemaVersion field missing"
+- **Fix:** 
+  1. Update SchemaVersion field to `v3.2`
+  2. Verify section order matches v3.2 requirements:
+     - Metadata at top
+     - Scope section
+     - References section
+     - Contract section (with Inputs/Outputs/Execution Workflow subsections)
+  3. Remove deprecated sections (Preconditions, Setup, Validation if separate)
+  4. Merge validation steps into Contract, Execution Workflow
+- **Bulk migration:** If updating multiple rules, see `002a-rule-creation-guide.md` for batch update workflow
+- **Example:**
+  ```markdown
+  <!-- Change from v3.1: -->
+  **SchemaVersion:** v3.1
+  
+  <!-- To v3.2: -->
+  **SchemaVersion:** v3.2
+  ```
 
 ## Key Principles
 

@@ -11,7 +11,7 @@
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-01-06
 **Keywords:** Claude Code, skills, SKILL.md, skill structure, progressive disclosure, workflows, trigger keywords, skill authoring, skill testing, skill validation, input contracts, output contracts, skill examples, YAML frontmatter, description writing, MCP tools, degrees of freedom, context window, third person, naming conventions
-**TokenBudget:** ~3700
+**TokenBudget:** ~7200
 **ContextTier:** High
 **Depends:** 000-global-core.md, 002-rule-governance.md
 
@@ -603,17 +603,17 @@ For each item in batch:
 ```
 
 **What the orchestrator does:**
-- ✅ Loads worker SKILL.md to understand the workflow
-- ✅ Follows that workflow for each item
-- ✅ Uses progressive disclosure (loads rubrics/workflows as needed)
-- ✅ Maintains same quality standards as single-item processing
-- ✅ Tracks batch-level metadata (progress, failures, resume capability)
+- [CORRECT] Loads worker SKILL.md to understand the workflow
+- [CORRECT] Follows that workflow for each item
+- [CORRECT] Uses progressive disclosure (loads rubrics/workflows as needed)
+- [CORRECT] Maintains same quality standards as single-item processing
+- [CORRECT] Tracks batch-level metadata (progress, failures, resume capability)
 
 **What the orchestrator does NOT do:**
-- ❌ Try to "invoke" or "call" the worker skill programmatically
-- ❌ Reimplement the worker's logic without consulting its documentation
-- ❌ Take shortcuts to optimize for speed/tokens at expense of quality
-- ❌ Skip progressive disclosure by guessing at scoring criteria
+- [INCORRECT] Try to "invoke" or "call" the worker skill programmatically
+- [INCORRECT] Reimplement the worker's logic without consulting its documentation
+- [INCORRECT] Take shortcuts to optimize for speed/tokens at expense of quality
+- [INCORRECT] Skip progressive disclosure by guessing at scoring criteria
 
 **Real-world example:** `bulk-rule-reviewer` skill orchestrates reviews of 100+ rule files by:
 1. Loading `rule-reviewer/SKILL.md` once to understand review workflow
@@ -638,13 +638,13 @@ For each item in batch:
 **Anti-patterns to avoid:**
 
 ```markdown
-# ❌ BAD: Trying to invoke skills programmatically
+# [INCORRECT] BAD: Trying to invoke skills programmatically
 For each rule:
     Present to agent: "Use the rule-reviewer skill. target_file: {rule}"
     Wait for response: "Review written to: ..."
     Parse output path from response
 
-# ✅ GOOD: Load and follow the workflow
+# [CORRECT] GOOD: Load and follow the workflow
 # Load rule-reviewer workflow once
 workflow = load_file("skills/rule-reviewer/SKILL.md")
 

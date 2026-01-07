@@ -199,11 +199,15 @@ Within each range, use logical grouping:
 **Pattern:** `NNN-technology-aspect.md`
 
 **Requirements:**
-- Use snake_case (underscores, not hyphens) - WRONG: `streamlit-best-practices.md`, RIGHT: `streamlit_best_practices.md`
+- Use hyphens between components (not underscores): `NNN-technology-aspect.md`
 - 3-digit number prefix (pad with zeros: 001, 099, 100)
 - Technology or domain identifier
 - Specific aspect or feature
 - `.md` extension
+
+**Examples:**
+- CORRECT: `100-snowflake-core.md`, `200-python-pytest.md`, `101-snowflake-streamlit-core.md`
+- INCORRECT: `100_snowflake_core.md`, `200-python_pytest.md`, `streamlit_best_practices.md`
 
 **Examples:**
 - [PASS] `100-snowflake-core.md`

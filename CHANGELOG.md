@@ -8,6 +8,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **feat(governance):** implement rule versioning policy (002-rule-governance v3.1.0, 002a-rule-creation-guide v3.1.0)
+  - Added comprehensive "Rule Versioning Policy" section to 002-rule-governance.md (~100 lines)
+  - Defines semantic versioning for rules: MAJOR (breaking), MINOR (additive), PATCH (fixes)
+  - Specifies when to increment RuleVersion (vX.Y.Z format)
+  - Requires LastUpdated field updates for ANY content change (YYYY-MM-DD format)
+  - Provides 3 concrete examples: keyword addition (MINOR), typo fix (PATCH), schema migration (MAJOR)
+  - Added version update checklist with 6 validation steps
+  - Added "Metadata Field Guidance" section to 002a-rule-creation-guide.md
+  - Includes version progression example showing v1.0.0 → v2.0.0 evolution
+  - Updated keywords: added "versioning", "RuleVersion", "LastUpdated", "semantic versioning"
+  - Impact: Closes governance gap - agents now have explicit guidance on when/how to version rules
+  - Rationale: Previously no rule defined versioning semantics, causing inconsistent version management
+
+- **fix(rules):** correct version fields for 803-project-git-workflow (v3.0.0 → v3.1.0)
+  - Updated RuleVersion from v3.0.0 to v3.1.0 (MINOR - added keywords for discoverability)
+  - Updated LastUpdated from 2026-01-06 to 2026-01-07
+  - Applies new versioning policy retroactively to recent keyword expansion changes
+  - Impact: Rule 803 now properly versioned according to semantic versioning policy
+
 - **docs(skill-timing):** improve accuracy with prerequisites and clarifications
   - Added Python 3.11+ and uv prerequisites before command examples
   - Added note to verify pricing URLs before updating costs

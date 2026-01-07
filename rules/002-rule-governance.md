@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
-**Keywords:** rule governance, schema, metadata requirements, validation, schema compliance, rule structure, semantic discovery, RULES_INDEX, descriptive headings
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-01-07
+**Keywords:** rule governance, schema, metadata requirements, validation, schema compliance, rule structure, semantic discovery, RULES_INDEX, descriptive headings, versioning, RuleVersion, LastUpdated, semantic versioning
 **TokenBudget:** ~3400
 **ContextTier:** Critical
 **Depends:** 000-global-core.md
@@ -143,6 +143,103 @@ Markdown file (.md) with:
 - **Depends:** At least one rule dependency (e.g., `000-global-core.md`)
 
 **Field Order:** Must appear in exact order: SchemaVersion, RuleVersion, Keywords, TokenBudget, ContextTier, Depends
+
+### Rule Versioning Policy
+
+**Requirement:** All rule modifications must update version fields according to semantic versioning principles.
+
+#### RuleVersion Semantic Versioning
+
+**Format:** `vMAJOR.MINOR.PATCH` (e.g., v1.0.0, v2.1.3, v3.0.0)
+
+**MAJOR (vX.0.0)** - Breaking changes requiring agent adaptation:
+- Removing or renaming required sections
+- Changing Contract structure fundamentally (e.g., XML to Markdown migration)
+- Removing mandatory tools, commands, or dependencies
+- Changing execution workflow in incompatible ways
+- Schema version upgrades (v3.1 to v3.2)
+- Removing keywords that agents rely on for discovery
+
+**MINOR (vX.Y.0)** - Additive changes enhancing functionality:
+- Adding new keywords for improved discoverability
+- Expanding "When to Load This Rule" triggers
+- Adding new anti-patterns, examples, or guidance sections
+- Adding new optional tools or commands
+- Clarifying ambiguous guidance without changing intent
+- Adding new Contract subsections (non-breaking)
+- Expanding scope description to be more explicit
+
+**PATCH (vX.Y.Z)** - Non-functional corrections:
+- Fixing typos, grammar, or spelling errors
+- Correcting broken links or outdated URLs
+- Updating external documentation references
+- Formatting improvements (whitespace, markdown)
+- TokenBudget adjustments to reflect actual size
+- Updating examples without changing patterns
+
+#### LastUpdated Field
+
+**Requirement:** Update `LastUpdated` to current date (YYYY-MM-DD format) for ANY content change.
+
+**Always update LastUpdated for:**
+- MAJOR version increments
+- MINOR version increments
+- PATCH version increments
+- Metadata field updates (Keywords, TokenBudget, ContextTier)
+- Any text modifications, including typo fixes
+
+**Format:** `YYYY-MM-DD` (e.g., 2026-01-07)
+
+#### Version Update Examples
+
+**Example 1: Adding Keywords (MINOR)**
+```markdown
+Before:
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-06
+**Keywords:** git, workflow, branching strategy
+
+After:
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-01-07
+**Keywords:** git, git commit, commit message, workflow, branching strategy
+```
+
+**Example 2: Fixing Typo (PATCH)**
+```markdown
+Before:
+**RuleVersion:** v2.1.0
+**LastUpdated:** 2026-01-05
+Content: "Use teh validation command"
+
+After:
+**RuleVersion:** v2.1.1
+**LastUpdated:** 2026-01-07
+Content: "Use the validation command"
+```
+
+**Example 3: Schema Migration (MAJOR)**
+```markdown
+Before:
+**SchemaVersion:** v3.1
+**RuleVersion:** v2.5.0
+**LastUpdated:** 2025-12-15
+
+After:
+**SchemaVersion:** v3.2
+**RuleVersion:** v3.0.0
+**LastUpdated:** 2026-01-06
+```
+
+#### Version Update Checklist
+
+When modifying any rule file:
+- [ ] Determine change type: MAJOR, MINOR, or PATCH
+- [ ] Increment RuleVersion according to semantic versioning
+- [ ] Update LastUpdated to current date (YYYY-MM-DD)
+- [ ] Update CHANGELOG.md with version change details
+- [ ] Run schema validator to ensure compliance
+- [ ] Update RULES_INDEX.md (regenerate with `task index:generate`)
 
 ### Required Sections (v3.2)
 

@@ -44,6 +44,8 @@ Foundational operating contract for all AI coding assistants, ensuring reliable,
 - **AGENTS.md** - Bootstrap protocol and rule discovery (always loaded with this rule)
 - **001-memory-bank.md** - Context continuity across sessions
 - **002-rule-governance.md** - Rule authoring standards
+- **002a-rule-creation.md** - Creating new rules
+- **002b-rule-update.md** - Updating existing rules
 - **003-context-engineering.md** - Attention budget management
 
 ### External Documentation

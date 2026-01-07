@@ -8,22 +8,22 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
+**RuleVersion:** v3.2.0
 **LastUpdated:** 2026-01-07
-**Keywords:** rule creation, workflow, step-by-step guide, naming conventions, metadata setup, v3.2 schema, validation, rule numbering, from scratch, versioning, RuleVersion, LastUpdated
-**TokenBudget:** ~5200
+**Keywords:** rule creation, workflow, step-by-step guide, naming conventions, metadata setup, v3.2 schema, validation, rule numbering, from scratch, new rule
+**TokenBudget:** ~4200
 **ContextTier:** High
 **Depends:** 002-rule-governance.md, 000-global-core.md
 
 ## Scope
 
 **What This Rule Covers:**
-Step-by-step workflow for creating new rules from scratch. Covers rule numbering, naming conventions, metadata setup, v3.2 section structure, Contract with Markdown headers, and validation.
+Step-by-step workflow for creating new rules from scratch. Covers rule numbering, naming conventions, metadata setup, v3.2 section structure, Contract with Markdown headers, and validation. For updating existing rules, see 002b-rule-update.md.
 
 **When to Load This Rule:**
 - Creating a new rule file from scratch
 - Understanding rule creation workflow
-- Setting up rule metadata correctly
+- Setting up rule metadata correctly for new rules
 - Structuring rule sections per v3.2 schema
 
 ## References
@@ -35,8 +35,9 @@ Step-by-step workflow for creating new rules from scratch. Covers rule numbering
 - **000-global-core.md** - Foundation for all rules
 
 **Related:**
-- **002d-schema-validator-usage.md** - Detailed validation commands and error resolution
-- **002b-rule-optimization.md** - Token budget optimization strategies
+- **002b-rule-update.md** - Updating and maintaining existing rules
+- **002e-schema-validator-usage.md** - Detailed validation commands and error resolution
+- **002c-rule-optimization.md** - Token budget optimization strategies
 
 ### External Documentation
 
@@ -292,23 +293,8 @@ Review 2-3 existing rules to understand:
 - **RuleVersion:** Always start at `v1.0.0` for new rule files
 - **LastUpdated:** Set to creation date in `YYYY-MM-DD` format
 
-**For Existing Rules:**
-See `002-rule-governance.md` "Rule Versioning Policy" for complete semantic versioning guidance.
-
-**Quick Reference:**
-- **MAJOR (vX.0.0):** Breaking changes (removing sections, changing Contract structure)
-- **MINOR (vX.Y.0):** Additive changes (new keywords, expanded scope, new examples)
-- **PATCH (vX.Y.Z):** Non-functional fixes (typos, broken links, formatting)
-- **LastUpdated:** Update to current date for ANY change
-
-**Example Version Progression:**
-```
-v1.0.0 (2026-01-01) - Initial rule creation
-v1.1.0 (2026-01-05) - Added 5 new keywords for discoverability
-v1.1.1 (2026-01-06) - Fixed typo in Contract section
-v1.2.0 (2026-01-10) - Added anti-patterns section with 3 examples
-v2.0.0 (2026-02-01) - Migrated from v3.1 to v3.2 schema
-```
+**For Updating Existing Rules:**
+See `002b-rule-update.md` for complete versioning policy and update workflows.
 
 ### Importance Markers
 

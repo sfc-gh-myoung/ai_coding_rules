@@ -34,8 +34,8 @@ Comprehensive context engineering practices that treat context as a finite resou
 ### Related Rules
 
 - `001-memory-bank.md` - Structured documentation and context preservation
-- `002c-advanced-rule-patterns.md` - System prompt altitude and investigation-first
-- `002b-rule-optimization.md` - Token budgets and optimization
+- `002d-advanced-rule-patterns.md` - System prompt altitude and investigation-first
+- `002c-rule-optimization.md` - Token budgets and optimization
 - `004-tool-design-for-agents.md` - Token-efficient tool development patterns
 
 ### External Documentation

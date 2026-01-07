@@ -1,0 +1,251 @@
+# Staleness Rubric (10 points)
+
+## Scoring Criteria
+
+### 5/5 (10 points): Excellent
+- All tool versions current
+- No deprecated patterns
+- All links valid (200 status)
+- References match current codebase
+- No outdated screenshots/images
+
+### 4/5 (8 points): Good
+- Most tools current (1-2 minor versions old)
+- 1-2 deprecated patterns
+- Most links valid (90%+)
+- References mostly current
+
+### 3/5 (6 points): Acceptable
+- Some tools outdated (3-5 versions old)
+- 3-4 deprecated patterns
+- Some broken links (75-89% valid)
+- Some stale references
+
+### 2/5 (4 points): Needs Work
+- Many tools outdated (6-10 versions old)
+- 5-7 deprecated patterns
+- Many broken links (60-74% valid)
+- Many stale references
+
+### 1/5 (2 points): Poor
+- Most tools obsolete (>10 versions old)
+- >7 deprecated patterns
+- Most links broken (<60% valid)
+- References completely outdated
+
+## Link Validation
+
+### Test External Links
+
+Test each external URL:
+
+```bash
+# Quick test
+curl -I --max-time 5 https://example.com/ 2>&1 | head -1
+
+# Expected: HTTP/2 200 or HTTP/1.1 200
+```
+
+**Track results:**
+
+| URL | Line | Status | Action |
+|-----|------|--------|--------|
+| https://docs.python.org/3/ | 23 | 200 ✅ | None |
+| https://oldsite.com/guide | 45 | 404 ❌ | Remove or update |
+| https://api.service.com/v1 | 67 | 301 ➡️  | Update to final URL |
+
+**Scoring:**
+- 100% valid: No penalty
+- 90-99% valid: -0 points
+- 75-89% valid: -1 point
+- 60-74% valid: -2 points
+- <60% valid: -4 points (cap at 1/5)
+
+### Check Redirects
+
+Permanent redirects (301/308) should be updated:
+
+**Example:**
+```markdown
+# Old (redirects)
+https://github.com/user/repo/wiki
+
+# Updated
+https://github.com/user/repo/blob/main/docs/
+```
+
+## Tool Version Currency
+
+### Version References
+
+Check all tool versions mentioned:
+
+| Tool | Doc Version | Current Version | Status |
+|------|-------------|-----------------|--------|
+| Python | 3.8 | 3.12 | ❌ Outdated (3.8 EOL) |
+| Node.js | 18.x | 20.x | ⚠️  Prev LTS |
+| PostgreSQL | 15 | 16 | ✅ Current |
+| React | 18 | 18 | ✅ Current |
+
+**Outdated tool penalty:** -0.5 points per tool (up to -3)
+
+### Deprecated Pattern Detection
+
+Search for outdated patterns:
+
+**Python:**
+- ❌ `setup.py install` → Use `pip install .`
+- ❌ `python -m pytest` still OK, but `pytest` preferred
+- ❌ `requirements.txt` alone → Use `pyproject.toml`
+
+**JavaScript:**
+- ❌ `npm install --save` → Unnecessary (default since npm 5)
+- ❌ `var` → Use `const`/`let`
+- ❌ `create-react-app` → Use Vite
+
+**Docker:**
+- ❌ `MAINTAINER` → Use `LABEL maintainer=`
+- ❌ `ADD` (for URLs) → Use `RUN curl`
+
+**Git:**
+- ❌ `git checkout -b` → `git switch -c` (modern)
+- ❌ `master` branch → `main` (convention)
+
+**Penalty:** -0.5 points per deprecated pattern (up to -3)
+
+## Screenshot/Image Staleness
+
+Check if screenshots match current UI:
+
+| Screenshot | Line | Matches Current UI? | Action |
+|------------|------|---------------------|--------|
+| dashboard.png | 45 | ❌ No | Update screenshot |
+| login-flow.gif | 67 | ✅ Yes | None |
+| settings.png | 89 | ⚠️  Partial | Update or remove |
+
+**Penalty:** -0.5 points per outdated image (up to -2)
+
+## Code Example Currency
+
+Verify examples use current syntax:
+
+**Outdated:**
+```python
+# Old async syntax
+@asyncio.coroutine
+def fetch_data():
+    result = yield from http.get(url)
+```
+
+**Current:**
+```python
+# Modern async/await
+async def fetch_data():
+    result = await http.get(url)
+```
+
+## Scoring Formula
+
+```
+Base score = 5/5 (10 points)
+
+Link validation:
+  100%: No penalty
+  90-99%: -0 points
+  75-89%: -1 point
+  60-74%: -2 points
+  <60%: -4 points
+
+Tool versions outdated: -0.5 each (up to -3)
+Deprecated patterns: -0.5 each (up to -3)
+Outdated screenshots: -0.5 each (up to -2)
+
+Minimum score: 1/5 (2 points)
+```
+
+## Critical Gate
+
+If most links are broken (<60% valid):
+- Cap score at 1/5 (2 points) maximum
+- Mark as CRITICAL issue
+- Documentation is unreliable
+
+## Common Staleness Issues
+
+### Issue 1: Broken Documentation Links
+
+**Problem:**
+```markdown
+See [official docs](https://docs.example.com/v1.0/)
+→ Returns 404
+```
+
+**Fix:**
+```markdown
+See [official docs](https://docs.example.com/latest/)
+```
+
+### Issue 2: Outdated Tool Versions
+
+**Problem:**
+```markdown
+Requires Python 3.7+ (3.7 is EOL)
+```
+
+**Fix:**
+```markdown
+Requires Python 3.11+ (3.11 is current stable)
+```
+
+### Issue 3: Deprecated Commands
+
+**Problem:**
+```markdown
+npm install --save react
+```
+
+**Fix:**
+```markdown
+npm install react
+```
+(--save is default since npm 5)
+
+### Issue 4: Old Screenshots
+
+**Problem:** Screenshot shows UI from 2 years ago
+
+**Fix:** Update screenshot or add note "UI may differ slightly"
+
+## Staleness Audit Checklist
+
+During review, verify:
+
+- [ ] All external links return 200 status
+- [ ] Redirects (301/308) updated to final URLs
+- [ ] Tool versions are current or prev LTS
+- [ ] No EOL software recommended
+- [ ] No deprecated commands/patterns
+- [ ] Screenshots match current UI
+- [ ] Code examples use modern syntax
+- [ ] API endpoints still valid
+- [ ] References match current codebase
+- [ ] Last updated date reasonable
+
+## Link Validation Table Template
+
+Use during review:
+
+| URL | Line | Status | Response Time | Action |
+|-----|------|--------|---------------|--------|
+| https://docs.python.org/3/ | 23 | 200 ✅ | 0.3s | None |
+| https://oldsite.com | 45 | 404 ❌ | - | Remove |
+| https://api.v1.com | 67 | 301 ➡️  | 0.5s | Update to v2 |
+| https://example.com | 89 | Timeout ⏱️  | >5s | Check URL |
+
+**Summary:**
+- Total links: 4
+- Valid (200): 1 (25%)
+- Broken/Timeout: 2 (50%)
+- Redirects: 1 (25%)
+- Action required: 3 links need updates
+- Score: 2/5 (4 points) due to <60% valid

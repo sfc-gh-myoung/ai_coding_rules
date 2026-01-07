@@ -177,7 +177,7 @@ ERROR: Cannot read rules/ directory - check permissions
 
 ## Integration with Next Workflow
 
-**Output of this workflow** → **Input to 02-review-execution.md**
+**Output of this workflow** → **Input to review-execution.md**
 
 The list of file paths produced by this workflow is passed to the review execution workflow, which iterates through each file and invokes the rule-reviewer skill.
 

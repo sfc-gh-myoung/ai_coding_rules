@@ -4,9 +4,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**LastUpdated:** 2026-01-06
 **Keywords:** README, project documentation, getting started, setup instructions, badges, Quick Start, Contributing, License, project structure, technical writing
-**TokenBudget:** ~5700
+**TokenBudget:** ~5350
 **ContextTier:** Medium
 **Depends:** 000-global-core.md
 
@@ -191,6 +191,47 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 5. Only then add/update README sections
 ```
 
+### Anti-Pattern 4: Broken Badge URLs After Deployment
+
+**Problem:** Badge URLs become invalid after service changes, repository moves, or service deprecation.
+
+**Why It Fails:** Broken badges damage credibility, confuse users about project status, and suggest unmaintained project. Users may question reliability if basic documentation elements are broken.
+
+**Correct Pattern:**
+```markdown
+## Automated Badge Validation
+
+Add to Taskfile.yml:
+
+```yaml
+validate:badges:
+  desc: Verify all README badges are accessible
+  cmds:
+    - |
+      grep -oP 'https://[^)]+\.svg' README.md | while read url; do
+        if ! curl -f -s -o /dev/null "$url"; then
+          echo "BROKEN: $url"
+          exit 1
+        fi
+      done
+    - echo "All badges validated"
+```
+
+**Recovery Procedure:**
+1. Test all badge URLs: `curl -I [badge_url]` (expect HTTP 200)
+2. If 404: Check service documentation for new URL format
+3. If 301/302: Update to final redirect destination URL
+4. If service deprecated: Remove badge or migrate to alternative service (shields.io)
+5. Add badge validation to CI/CD pipeline
+6. Document badge service dependencies in CONTRIBUTING.md
+
+**Prevention:**
+- Use shields.io for custom badges (stable, maintained service)
+- Avoid service-specific badges when alternatives exist
+- Test badges in pull request validation
+- Monitor badge status monthly
+```
+
 ## Implementation Details
 
 ### Quick Start TL;DR for README Content
@@ -268,7 +309,7 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Description
 
-## Quick Start / Installation
+## Quick Start
 
 ## Usage
 
@@ -323,7 +364,7 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 ### Project Title and Description
 - **Requirement:** Use a single H1 (`#`) for the project title
 - **Requirement:** Include a concise one-line description immediately after the title
-- **Always:** Add badges/shields for build status, version, license, and key metrics
+- **Always:** Add badges/shields for build status, version, license, test coverage, and download count
 - **Rule:** Keep description under 160 characters for social media compatibility
 - **Multi-Platform Projects:** Include badges for hosting platforms
 
@@ -378,6 +419,7 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 - **Always:** Include the minimal commands to get started
 - **Rule:** Test all installation commands on clean systems
 - **Multi-Platform:** Show both platform options for dual-hosted repositories
+- **Note:** "Quick Start" and "Installation" may be used interchangeably, but prefer "Quick Start" for consistency
 
 ```markdown
 

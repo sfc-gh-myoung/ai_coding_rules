@@ -21,6 +21,7 @@ Create production-ready Cursor rule files that comply with v3.2 schema by orches
 - **Technology name**: e.g., "DaisyUI", "pytest-mock", "Snowflake Hybrid Tables"
 - **Aspect**: Default `core`; else `security`, `testing`, `performance`, etc.
 - **Constraints**: Optional (offline/online research, ContextTier)
+- **timing_enabled**: `true` | `false` (default: `false`) - Enable execution timing
 
 ### Outputs
 
@@ -63,11 +64,34 @@ See `workflows/discovery.md` for domain mappings and detailed discovery process.
 
 ## Workflow
 
+### [OPTIONAL] Timing Start
+
+**When:** Only if `timing_enabled: true` in inputs  
+**MODE:** Safe in PLAN mode
+
+**See:** `../skill-timing/workflows/timing-start.md`
+
+**Action:** Capture `run_id` in working memory for later use.
+
+### [OPTIONAL] Checkpoint: skill_loaded
+
+**When:** Only if timing was started  
+**Checkpoint name:** `skill_loaded`
+
+**See:** `../skill-timing/workflows/timing-checkpoint.md`
+
 ### Phase 1: Discovery & Research
 
 Identify domain, assign rule number, research best practices. Extract 10-15 semantic keywords.
 
 **See:** `workflows/discovery.md` for domain mappings, search commands, and research strategy.
+
+### [OPTIONAL] Checkpoint: discovery_complete
+
+**When:** Only if timing was started  
+**Checkpoint name:** `discovery_complete`
+
+**See:** `../skill-timing/workflows/timing-checkpoint.md`
 
 ### Phase 2: Template Generation
 
@@ -75,11 +99,25 @@ Execute `template_generator.py` to create validated structure with 9 sections an
 
 **See:** `workflows/template-gen.md` for command syntax and verification steps.
 
+### [OPTIONAL] Checkpoint: template_generated
+
+**When:** Only if timing was started  
+**Checkpoint name:** `template_generated`
+
+**See:** `../skill-timing/workflows/timing-checkpoint.md`
+
 ### Phase 3: Content Population
 
 Fill all sections with researched content. Add minimum 2 code examples and 2 anti-patterns. No placeholders allowed.
 
 **See:** `workflows/content-population.md` for section-by-section guidance and requirements.
+
+### [OPTIONAL] Checkpoint: content_populated
+
+**When:** Only if timing was started  
+**Checkpoint name:** `content_populated`
+
+**See:** `../skill-timing/workflows/timing-checkpoint.md`
 
 ### Phase 4: Validation & Iteration
 
@@ -87,11 +125,47 @@ Run `schema_validator.py` in loop until exit code 0. Apply fixes for CRITICAL er
 
 **See:** `workflows/validation.md` for error resolution patterns and validation loop implementation.
 
+### [OPTIONAL] Checkpoint: validation_complete
+
+**When:** Only if timing was started  
+**Checkpoint name:** `validation_complete`
+
+**See:** `../skill-timing/workflows/timing-checkpoint.md`
+
 ### Phase 5: Indexing
 
 Add entry to `RULES_INDEX.md` in correct numeric position with matching keywords.
 
 **See:** `workflows/indexing.md` for entry format and verification steps.
+
+### [OPTIONAL] Checkpoint: indexing_complete
+
+**When:** Only if timing was started  
+**Checkpoint name:** `indexing_complete`
+
+**See:** `../skill-timing/workflows/timing-checkpoint.md`
+
+### [OPTIONAL] Timing End (Compute)
+
+**When:** Only if timing was started  
+**MODE:** Safe in PLAN mode (outputs to STDOUT only)
+
+**See:** `../skill-timing/workflows/timing-end.md` (Step 1)
+
+**Action:** Capture STDOUT output for metadata embedding.
+
+### [MODE TRANSITION: PLAN → ACT]
+
+Authorization required for final file modifications (if any).
+
+### [OPTIONAL] Timing End (Embed)
+
+**When:** Only if timing was started  
+**MODE:** Requires ACT mode (appends metadata to file)
+
+**See:** `../skill-timing/workflows/timing-end.md` (Step 2)
+
+**Action:** Parse STDOUT, append timing metadata section to rule file.
 
 ## Quick Validation
 

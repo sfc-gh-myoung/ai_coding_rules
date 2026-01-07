@@ -2,97 +2,208 @@
 
 ## Purpose
 
-Execute the plan review according to the specified mode.
+Execute plan review per specified mode using progressive rubric loading.
 
 ## Mode-Specific Execution
 
 ### FULL Mode
 
+**Steps:**
+
 1. **Read plan file** completely
-2. **Apply PROMPT.md rubric:**
-   - Evaluate all 8 dimensions
-   - Complete verification tables (Executability Audit, Completeness Audit, Success Criteria Audit)
-   - Answer Plan Perspective Checklist
-3. **Calculate point score:**
-   - Executability: raw × 4 = /20
-   - Completeness: raw × 4 = /20
-   - Success Criteria: raw × 4 = /20
-   - Scope: raw × 3 = /15
-   - Dependencies: raw × 2 = /10
-   - Decomposition, Context, Risk Awareness: raw × 1 = /5 each
-   - Total: /100
-4. **Apply Scoring Impact Rules** (algorithmic overrides)
-5. **Determine verdict:** EXECUTABLE, NEEDS_REFINEMENT, or NOT_EXECUTABLE
-6. **Generate recommendations** prioritized by impact
+
+2. **Score dimensions** (progressive loading - read rubric only when scoring):
+
+   **Critical dimensions (75 points):**
+   
+   - **Executability (20 points):**
+     - Read `../rubrics/executability.md`
+     - Count ambiguous phrases
+     - Verify explicit commands
+     - Check conditional completeness
+   
+   - **Completeness (20 points):**
+     - Read `../rubrics/completeness.md`
+     - Check setup, validation, error recovery, cleanup
+     - Verify edge case coverage
+   
+   - **Success Criteria (20 points):**
+     - Read `../rubrics/success-criteria.md`
+     - Verify measurable, agent-testable criteria
+     - Check completion signals
+   
+   - **Scope (15 points):**
+     - Read `../rubrics/scope.md`
+     - Check boundaries, termination conditions
+     - Verify in-scope/out-of-scope sections
+
+   **Standard dimensions (25 points):**
+   
+   - **Dependencies (10 points):**
+     - Read `../rubrics/dependencies.md`
+     - Check tool versions, access requirements
+     - Verify ordering dependencies
+   
+   - **Decomposition (5 points):**
+     - Read `../rubrics/decomposition.md`
+     - Check task sizing (30-120 min)
+     - Identify parallelization opportunities
+   
+   - **Context (5 points):**
+     - Read `../rubrics/context.md`
+     - Check rationale, assumptions, tradeoffs
+   
+   - **Risk Awareness (5 points):**
+     - Read `../rubrics/risk-awareness.md`
+     - Check failure scenarios, mitigations, rollback
+
+3. **Agent Execution Test** (pre-scoring gate):
+   - Count blocking issues (see `../rubrics/executability.md`)
+   - If ≥10: Cap total score at 60/100
+   - If ≥20: Cap total score at 40/100
+
+4. **Calculate total score:**
+   ```
+   Total = (Executability × 4) + (Completeness × 4) + (Success Criteria × 4)
+         + (Scope × 3) + (Dependencies × 2)
+         + (Decomposition × 1) + (Context × 1) + (Risk Awareness × 1)
+   Max = 100 points
+   ```
+
+5. **Apply critical dimension overrides:**
+   - Executability ≤2/5 → Minimum NEEDS_WORK
+   - Completeness ≤2/5 → Minimum NEEDS_WORK
+   - Success Criteria ≤2/5 → Minimum NEEDS_WORK
+   - 2+ critical dimensions ≤2/5 → POOR_PLAN
+
+6. **Determine verdict:**
+   | Score | Verdict | Meaning |
+   |-------|---------|---------|
+   | 90-100 | EXCELLENT_PLAN | Ready for execution |
+   | 80-89 | GOOD_PLAN | Minor refinements needed |
+   | 60-79 | NEEDS_WORK | Significant refinement required |
+   | 40-59 | POOR_PLAN | Not executable, major revision |
+   | <40 | INADEQUATE_PLAN | Rewrite from scratch |
+
+7. **Generate recommendations** with specific examples
+
+---
 
 ### COMPARISON Mode
 
+**Steps:**
+
 1. **Read all plan files** completely
+
 2. **For each plan:**
    - Execute FULL mode review (all 8 dimensions)
-   - Record individual scores
+   - Record individual scores and recommendations
+
 3. **Create comparative analysis:**
-   - Side-by-side dimension scores
-   - Head-to-head winner per dimension
-   - Evidence for each comparison
-4. **Declare winner:**
-   - Highest total score
-   - If tied: prefer plan with higher critical dimension scores
-5. **Generate rationale** for recommendation
+   - Build side-by-side dimension comparison table
+   - Declare winner per dimension with evidence
+   - Calculate total scores
+
+4. **Declare overall winner:**
+   - Highest total score wins
+   - If tied: Prefer plan with higher critical dimension scores
+
+5. **Generate integration recommendations:**
+   - Identify best elements from each plan
+   - Suggest combining strengths
+
+6. **Format output:**
+   - Individual plan summaries
+   - Comparison table
+   - Winner declaration with rationale
+   - Integration recommendations
+
+---
 
 ### META-REVIEW Mode
 
+**Steps:**
+
 1. **Read all review files** completely
+
 2. **Extract from each review:**
    - Overall score
-   - Critical issues found
    - Dimension-by-dimension scores
+   - Verdict
+   - Critical issues found
+   - Model used
+
 3. **Calculate variance metrics:**
-   - Score spread (max - min)
-   - Issue detection rate per review
-   - Verification table completeness
-4. **Evaluate each review on META-REVIEW dimensions:**
-   - Thoroughness (5 points)
-   - Evidence Quality (5 points)
-   - Calibration (5 points)
-   - Actionability (5 points)
-5. **Determine consensus:**
-   - Weight reviews by calibration score
-   - Calculate weighted average
-6. **Identify best review** and explain why
+   ```python
+   import statistics
+   
+   scores = [review.total_score for review in reviews]
+   mean_score = statistics.mean(scores)
+   stdev_score = statistics.stdev(scores)
+   variance = statistics.variance(scores)
+   ```
 
-## Verification Table Requirements
+4. **Identify agreement/disagreement:**
+   - Dimensions with high agreement (stdev <5)
+   - Dimensions with high disagreement (stdev >10)
+   - Verdict consensus (all agree?)
 
-### Executability Audit (FULL mode)
+5. **Analyze patterns:**
+   - Which model is strictest?
+   - Which dimensions have most variance?
+   - Are there systematic biases?
 
-Must include:
-- All ambiguous phrases found with line numbers
-- Proposed fixes for each
-- Total count
+6. **Format output:**
+   - Score distribution table
+   - Variance analysis
+   - Agreement/disagreement breakdown
+   - Patterns and insights
+   - Recommendations for plan improvement
 
-### Completeness Audit (FULL mode)
+---
 
-Must include:
-- Phase-by-phase coverage (Setup, Validation, Cleanup, Error Recovery)
-- Percentage with full coverage
+## Progressive Disclosure
 
-### Success Criteria Audit (FULL mode)
+**Key principle:** Only read rubric files when scoring that dimension.
 
-Must include:
-- Task-by-task criteria presence
-- Agent-verifiability assessment
-- Percentages
+**Don't:**
+- ❌ Read all rubrics upfront
+- ❌ Load unused rubrics in FOCUSED/STALENESS modes
 
-## Quality Checks
+**Do:**
+- ✅ Read rubric immediately before scoring dimension
+- ✅ Apply rubric criteria to plan content
+- ✅ Move to next dimension
 
-Before finalizing:
-- [ ] All 8 dimensions scored with justification
-- [ ] All verification tables completed
-- [ ] Plan Perspective Checklist answered
-- [ ] Scoring Impact Rules applied
-- [ ] Recommendations include line numbers
+---
 
-## Next Step
+## Error Handling
 
-Proceed to `file-write.md`.
+**If plan file missing:**
+- Error: "Plan file not found: [path]"
+- Abort review
 
+**If rubric file missing:**
+- Error: "Rubric not found: [path]"
+- Cannot score dimension
+- Abort review
+
+**If multiple plans in FULL mode:**
+- Error: "FULL mode requires single plan, use COMPARISON for multiple"
+- Abort review
+
+**If review files invalid in META-REVIEW:**
+- Warning: "Skipping invalid review: [path]"
+- Continue with valid reviews
+
+---
+
+## Output
+
+Returns populated review structure ready for file write:
+- Metadata section
+- Executive summary
+- Score breakdown
+- Dimension-by-dimension analysis
+- Recommendations
+- Verdict

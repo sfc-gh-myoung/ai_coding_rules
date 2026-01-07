@@ -7,7 +7,7 @@ Orchestrate rule-reviewer skill invocation for each rule file discovered in Stag
 ## Inputs
 
 - skill_location: Output from Stage 0 ("installed" | "local")
-- List of rule file paths (from 01-discovery.md)
+- List of rule file paths (from discovery.md)
 - `review_date`: Date stamp for reviews (YYYY-MM-DD)
 - `review_mode`: FULL | FOCUSED | STALENESS
 - `model`: Model identifier (e.g., claude-sonnet-45)
@@ -339,11 +339,11 @@ def invoke_rule_reviewer(target_file, review_date, review_mode, model, skill_loc
             model=model
         )
     elif skill_location == "local":
-        # Execute local skill manually by following PROMPT.md
-        prompt_template = read_file("skills/rule-reviewer/PROMPT.md")
+        # Execute local skill manually by following SKILL.md
+        skill_template = read_file("skills/rule-reviewer/SKILL.md")
         
         # Substitute parameters into template
-        prompt = prompt_template.replace("[path/to/rule.md]", target_file)
+        prompt = skill_template.replace("[path/to/rule.md]", target_file)
         prompt = prompt.replace("[YYYY-MM-DD]", review_date)
         prompt = prompt.replace("[FULL | FOCUSED | STALENESS]", review_mode)
         
@@ -476,7 +476,7 @@ Average score: 87.2/100
 
 ## Integration with Next Workflow
 
-**Output of this workflow** → **Input to 03-aggregation.md**
+**Output of this workflow** → **Input to aggregation.md**
 
 The results list produced by this workflow is passed to the aggregation workflow, which calculates statistics and prepares data for the master summary report.
 

@@ -109,28 +109,28 @@ This skill reviews rule files only. For other file types:
 
 ## Review Generation Errors
 
-### Error 5: Prompt File Not Found
+### Error 5: Skill File Not Found
 
 **Symptom:**
 ```
-Error: Could not read skills/rule-reviewer/PROMPT.md
+Error: Could not read skills/rule-reviewer/SKILL.md
 ```
 
 **Resolution:**
-1. Verify prompt file exists
+1. Verify skill file exists
 2. Check file permissions
 3. Report to user with fallback
 
 **Response:**
 ```
-Review generation failed: Prompt file not accessible.
+Review generation failed: Skill file not accessible.
 
-Missing: skills/rule-reviewer/PROMPT.md
+Missing: skills/rule-reviewer/SKILL.md
 
 Actions:
-1. Verify file exists: ls skills/rule-reviewer/PROMPT.md
+1. Verify file exists: ls skills/rule-reviewer/SKILL.md
 2. Check permissions: ls -la skills/rule-reviewer/
-3. If missing, restore from version control: git checkout skills/rule-reviewer/PROMPT.md
+3. If missing, restore from version control: git checkout skills/rule-reviewer/SKILL.md
 ```
 
 ---
@@ -261,7 +261,7 @@ Error details:
 Recovery options:
 1. Fix input error and retry
 2. Use alternative review mode
-3. Manual review using skills/rule-reviewer/PROMPT.md rubric
+3. Manual review using skills/rule-reviewer/SKILL.md rubric
 
 No partial file was written.
 ```

@@ -173,7 +173,7 @@ model: claude-sonnet45
 **Action Items:**
 1. ✅ Accept GPT-5.2's findings as authoritative
 2. ⚠️ Investigate why Sonnet missed the pytest/task inconsistency
-3. 📝 Update PROMPT.md to clarify Executability scoring for command inconsistencies
+3. 📝 Update SKILL.md to clarify Executability scoring for command inconsistencies
 4. 🔄 Re-run Sonnet review after rubric clarification
 
 **Consensus Verdict:** EXECUTABLE_WITH_REFINEMENTS (80/100)

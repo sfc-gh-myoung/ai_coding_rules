@@ -48,6 +48,13 @@ Create a new rule for [TECHNOLOGY] best practices following schema standards
 Create a new rule for React Testing Library best practices following schema standards
 ```
 
+**With execution timing:**
+```
+Create a new rule for DaisyUI best practices following schema standards
+
+timing_enabled: true
+```
+
 ### 3. Follow the 5-phase workflow
 
 The skill will guide you through:

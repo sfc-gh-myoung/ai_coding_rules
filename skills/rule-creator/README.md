@@ -113,6 +113,45 @@ Check that:
 - Indexed: Entry present in `RULES_INDEX.md`
 - Loadable: `rules/NNN-technology-aspect.md` exists and contains the new rule content
 
+## Execution Timing
+
+Enable execution timing to measure rule creation duration and track performance:
+
+```
+Create a new rule for DaisyUI best practices following schema
+
+timing_enabled: true
+```
+
+When enabled, the output includes:
+- **Timing Metadata section** in the rule file
+- **STDOUT summary** with duration, checkpoints (discovery, template, content, validation, indexing), tokens, baseline comparison
+- **Real-time anomaly alerts** if duration is suspicious
+
+**Example timing metadata:**
+
+```markdown
+## Timing Metadata
+
+| Metric | Value |
+|--------|-------|
+| Run ID | `a1b2c3d4e5f67890` |
+| Duration | 8m 30s (510.5s) |
+| Model | claude-sonnet-45 |
+| Tokens | 28,400 (19,500 in / 8,900 out) |
+| Cost | ~$0.08 |
+```
+
+**Checkpoints tracked:**
+- `skill_loaded` - After loading SKILL.md
+- `discovery_complete` - After domain discovery and research
+- `template_generated` - After template_generator.py execution
+- `content_populated` - After filling all sections
+- `validation_complete` - After schema validation passes
+- `indexing_complete` - After RULES_INDEX.md update
+
+**See:** `skills/skill-timing/README.md` for full documentation on timing features, baseline comparison, and analysis tools.
+
 ## Workflow Architecture
 
 ```
@@ -157,7 +196,8 @@ Check that:
 skills/rule-creator/
 ├── SKILL.md               # Main skill instructions (Claude Code entrypoint)
 ├── README.md              # This file - usage documentation
-├── VALIDATION.md          # Skill self-validation procedures
+├── testing/               # Testing and maintenance guides
+│   └── TESTING.md             # Skill health checks (for maintainers)
 ├── examples/              # Complete workflow examples
 │   ├── frontend-example.md    # DaisyUI (JavaScript 420-449)
 │   ├── python-example.md      # pytest-mock (Python 200-299)
@@ -442,6 +482,14 @@ Rule creation is successful when:
 - ✅ All 9 required sections present with quality content
 - ✅ Contract has 6 XML tags before line 160
 - ✅ 2+ anti-patterns with code examples included
+
+## Deployment
+
+This skill is **internal-only** and is not deployed to team projects. It remains in the ai_coding_rules source repository for rule creation and maintenance.
+
+**Rationale:** Rule creation requires access to the rules repository, RULES_INDEX.md, and validation scripts that are specific to this project's infrastructure.
+
+---
 
 ## Contributing
 

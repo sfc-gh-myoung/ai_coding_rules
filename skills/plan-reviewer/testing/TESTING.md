@@ -1,4 +1,7 @@
-# Plan Reviewer Validation
+# Skill Testing Guide: plan-reviewer
+
+> **⚠️ AUDIENCE:** This document is for **skill maintainers** (humans), not for Claude.
+> It provides testing procedures, troubleshooting guides, and health checks for the skill itself.
 
 ## Purpose
 
@@ -16,17 +19,16 @@ ls -la skills/plan-reviewer/
 
 # Expected:
 # SKILL.md
-# PROMPT.md
 # README.md
-# VALIDATION.md
+# testing/TESTING.md
 # examples/
 # tests/
 # workflows/
 ```
 
-### 2. PROMPT.md Rubric Check
+### 2. SKILL.md Rubric Check
 
-Verify PROMPT.md contains:
+Verify SKILL.md contains:
 
 - [ ] 8 review dimensions defined
 - [ ] Dimension weighting table (4 critical × 2, 4 standard × 1)
@@ -135,7 +137,7 @@ Create test plans with known characteristics:
 
 ## Regression Testing
 
-After any PROMPT.md changes:
+After any SKILL.md changes:
 
 1. Re-run `examples/full-review.md` walkthrough
 2. Verify scores match expected (±1 point tolerance)
@@ -146,7 +148,7 @@ After any PROMPT.md changes:
 
 | Failure | Cause | Fix |
 |---------|-------|-----|
-| Missing dimension | PROMPT.md incomplete | Add missing dimension |
+| Missing dimension | SKILL.md incomplete | Add missing dimension |
 | Wrong total score | Weighting calculation error | Check × 2 vs × 1 |
 | Verdict mismatch | Threshold misconfigured | Check Overall Score Interpretation |
 | Output path wrong | Slugging error | Check model-slugging workflow |

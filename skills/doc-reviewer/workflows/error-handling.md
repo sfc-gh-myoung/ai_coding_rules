@@ -179,26 +179,26 @@ Please specify a valid scope.
 
 ## Review Generation Errors
 
-### Error 7: Prompt File Not Found
+### Error 7: Skill File Not Found
 
 **Symptom:**
 
 ```
-Error: Could not read skills/doc-reviewer/PROMPT.md
+Error: Could not read skills/doc-reviewer/SKILL.md
 ```
 
 **Resolution:**
 
 ```
-Review generation failed: Prompt file not accessible.
+Review generation failed: Skill file not accessible.
 
-Missing: skills/doc-reviewer/PROMPT.md
+Missing: skills/doc-reviewer/SKILL.md
 
 Actions:
-1. Verify file exists: ls skills/doc-reviewer/PROMPT.md
+1. Verify file exists: ls skills/doc-reviewer/SKILL.md
 2. Check permissions: ls -la skills/doc-reviewer/
 3. If missing, restore from version control:
-   git checkout skills/doc-reviewer/PROMPT.md
+   git checkout skills/doc-reviewer/SKILL.md
 ```
 
 ---
@@ -348,7 +348,7 @@ Error details:
 Recovery options:
 1. Fix input error and retry
 2. Use alternative review mode
-3. Manual review using skills/doc-reviewer/PROMPT.md rubric
+3. Manual review using skills/doc-reviewer/SKILL.md rubric
 
 No partial file was written.
 ```

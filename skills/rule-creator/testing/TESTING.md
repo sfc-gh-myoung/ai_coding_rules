@@ -1,4 +1,7 @@
-# Skill Validation: rule-creator
+# Skill Testing Guide: rule-creator
+
+> **⚠️ AUDIENCE:** This document is for **skill maintainers** (humans), not for Claude.
+> It provides testing procedures, troubleshooting guides, and health checks for the skill itself.
 
 This document describes how to verify that the rule-creator skill is functioning correctly.
 

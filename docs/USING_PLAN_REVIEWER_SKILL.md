@@ -49,9 +49,21 @@ Reviews evaluate plans against the priority order defined in `000-global-core.md
 Use the plan-reviewer skill.
 
 target_file: plans/IMPROVE_RULE_LOADING.md
-review_date: 2025-12-16
+review_date: 2026-01-06
 review_mode: FULL
-model: claude-sonnet45
+model: claude-sonnet-45
+```
+
+**With execution timing:**
+
+```text
+Use the plan-reviewer skill.
+
+target_file: plans/IMPROVE_RULE_LOADING.md
+review_date: 2026-01-06
+review_mode: FULL
+model: claude-sonnet-45
+timing_enabled: true
 ```
 
 **COMPARISON mode (multiple plans):**
@@ -61,9 +73,9 @@ Use the plan-reviewer skill.
 
 target_files: plans/auth-plan-claude.md, plans/auth-plan-gpt.md
 task_description: Implement OAuth2 authentication
-review_date: 2025-12-16
+review_date: 2026-01-06
 review_mode: COMPARISON
-model: claude-sonnet45
+model: claude-sonnet-45
 ```
 
 **META-REVIEW mode (review consistency):**
@@ -71,22 +83,24 @@ model: claude-sonnet45
 ```text
 Use the plan-reviewer skill.
 
-target_files: reviews/plan-X-sonnet-2025-12-16.md, reviews/plan-X-gpt-2025-12-16.md
+target_files: reviews/plan-X-sonnet-2026-01-06.md, reviews/plan-X-gpt-2026-01-06.md
 original_document: plans/X.md
-review_date: 2025-12-16
+review_date: 2026-01-06
 review_mode: META-REVIEW
-model: claude-sonnet45
+model: claude-sonnet-45
 ```
 
 ### 3. Output location
 
 The skill writes reviews to the `reviews/` directory:
 
-- FULL: `reviews/plan-IMPROVE_RULE_LOADING-claude-sonnet45-2025-12-16.md`
-- COMPARISON: `reviews/plan-comparison-claude-sonnet45-2025-12-16.md`
-- META-REVIEW: `reviews/meta-IMPROVE_RULE_LOADING-claude-sonnet45-2025-12-16.md`
+- FULL: `reviews/plan-IMPROVE_RULE_LOADING-claude-sonnet-45-2026-01-06.md`
+- COMPARISON: `reviews/plan-comparison-claude-sonnet-45-2026-01-06.md`
+- META-REVIEW: `reviews/meta-IMPROVE_RULE_LOADING-claude-sonnet-45-2026-01-06.md`
 
 If the file already exists, suffixes are appended: `-01.md`, `-02.md`, etc.
+
+When `timing_enabled: true`, the output includes a Timing Metadata section with duration, token usage, and cost estimation.
 
 ## Review Modes
 
@@ -197,9 +211,9 @@ Reviews include these verification tables to support scoring:
 Use the plan-reviewer skill.
 
 target_file: plans/deploy-feature.md
-review_date: 2025-12-16
+review_date: 2026-01-06
 review_mode: FULL
-model: claude-sonnet45
+model: claude-sonnet-45
 ```
 
 Validate a plan before handing it to an autonomous agent.
@@ -211,9 +225,9 @@ Use the plan-reviewer skill.
 
 target_files: plans/approach-a.md, plans/approach-b.md, plans/approach-c.md
 task_description: Migrate database to new schema
-review_date: 2025-12-16
+review_date: 2026-01-06
 review_mode: COMPARISON
-model: claude-sonnet45
+model: claude-sonnet-45
 ```
 
 Compare multiple approaches and get a recommendation.
@@ -223,11 +237,11 @@ Compare multiple approaches and get a recommendation.
 ```text
 Use the plan-reviewer skill.
 
-target_files: reviews/plan-X-claude-2025-12-16.md, reviews/plan-X-gpt-2025-12-16.md
+target_files: reviews/plan-X-claude-2026-01-06.md, reviews/plan-X-gpt-2026-01-06.md
 original_document: plans/X.md
-review_date: 2025-12-16
+review_date: 2026-01-06
 review_mode: META-REVIEW
-model: claude-sonnet45
+model: claude-sonnet-45
 ```
 
 After multiple models review the same plan, analyze consistency.
@@ -240,7 +254,7 @@ After multiple models review the same plan, analyze consistency.
 
 ### Q: What should I pass for `model`?
 
-**A:** Prefer a slug like `claude-sonnet45`. If you provide a raw model name, the skill normalizes it to a slug before writing the file.
+**A:** Prefer a slug like `claude-sonnet-45`. If you provide a raw model name, the skill normalizes it to a slug before writing the file.
 
 ### Q: What makes a plan "executable" by an agent?
 

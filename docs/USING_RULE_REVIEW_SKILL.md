@@ -70,18 +70,32 @@ If you're working in the ai_coding_rules repository and want to run rule reviews
 Use the rule-reviewer skill.
 
 target_file: rules/810-project-readme.md
-review_date: 2025-12-12
+review_date: 2026-01-06
 review_mode: FULL
-model: claude-sonnet45
+model: claude-sonnet-45
+```
+
+**With execution timing:**
+
+```text
+Use the rule-reviewer skill.
+
+target_file: rules/810-project-readme.md
+review_date: 2026-01-06
+review_mode: FULL
+model: claude-sonnet-45
+timing_enabled: true
 ```
 
 ### 3. Output location
 
 The skill will write the review to:
 
-`reviews/810-project-readme-claude-sonnet45-2025-12-12.md`
+`reviews/810-project-readme-claude-sonnet-45-2026-01-06.md`
 
 If the file already exists, it uses suffixes: `-01.md`, `-02.md`, etc.
+
+When `timing_enabled: true`, the output includes a Timing Metadata section with duration, token usage, and cost estimation.
 
 ## FAQ
 
@@ -91,7 +105,7 @@ If the file already exists, it uses suffixes: `-01.md`, `-02.md`, etc.
 
 ### Q: What should I pass for `model`?
 
-**A:** Prefer a slug like `claude-sonnet45`. If you provide a raw model name, the
+**A:** Prefer a slug like `claude-sonnet-45`. If you provide a raw model name, the
 skill will normalize it to a slug before writing the file.
 
 ### Q: Does `target_file` have to be under `rules/`?

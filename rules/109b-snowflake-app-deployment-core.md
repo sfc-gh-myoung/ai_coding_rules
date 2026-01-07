@@ -9,7 +9,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**LastUpdated:** 2026-01-06
 **Keywords:** CREATE NOTEBOOK, stages, deployment automation, SiS, deploy app, deployment pipeline, app publishing, deployment patterns, deploy to snowflake, stage deployment, production deployment, app versioning, automated deployment
 **TokenBudget:** ~5800
 **ContextTier:** Medium

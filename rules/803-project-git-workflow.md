@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**LastUpdated:** 2026-01-06
 **Keywords:** git, workflow, branching strategy, GitHub, pull requests, feature branches, protected branches, git validation, branch naming, PR workflow, Conventional Commits
 **TokenBudget:** ~6500
 **ContextTier:** Medium

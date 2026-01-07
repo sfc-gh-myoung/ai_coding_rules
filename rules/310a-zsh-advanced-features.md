@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**LastUpdated:** 2026-01-06
 **Keywords:** Zsh, completion system, modules, hooks, advanced features, performance optimization, compinit, zstyle, autoload, scripting
 **TokenBudget:** ~5000
 **ContextTier:** Low

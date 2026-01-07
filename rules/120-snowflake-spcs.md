@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**LastUpdated:** 2026-01-06
 **Keywords:** service deployment, compute pools, OCI images, image registry, health checks, GPU workloads, create service, compute pool, container deployment, service spec, container troubleshooting, SPCS error, service logs
 **TokenBudget:** ~7200
 **ContextTier:** High

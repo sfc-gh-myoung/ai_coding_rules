@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**LastUpdated:** 2026-01-06
 **Keywords:** Data modeling, naming conventions, Kimball, dimensional modeling, fact tables, dimension tables, foreign keys, view taxonomy, Business Analyst, data generation, backward compatibility, entity IDs, temporal columns, surrogate keys, SCD Type 2
 **TokenBudget:** ~8850
 **ContextTier:** High

@@ -9,7 +9,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**LastUpdated:** 2026-01-06
 **Keywords:** rule creation, workflow, step-by-step guide, naming conventions, metadata setup, v3.2 schema, validation, rule numbering, from scratch
 **TokenBudget:** ~5200
 **ContextTier:** High

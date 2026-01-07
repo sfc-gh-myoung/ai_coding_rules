@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**LastUpdated:** 2026-01-06
 **Keywords:** dbt, semantic view, Snowflake, dbt_semantic_view, materialization, Cortex Analyst, YAML, semantic model, dbt models, analytics, business intelligence, data modeling
 **TokenBudget:** ~4800
 **ContextTier:** High

@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**LastUpdated:** 2026-01-06
 **Keywords:** compliance, common mistakes, validation rules, semantic model quality, semantic view pitfalls, debug semantic view, fix semantic view errors, validation failures, relationship errors, mapping errors, quality assurance, semantic view testing, validation patterns
 **TokenBudget:** ~6800
 **ContextTier:** High

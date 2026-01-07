@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**LastUpdated:** 2026-01-06
 **Keywords:** window functions, dimension compatibility, testing, validation, TPC-DS, performance optimization, aliases, granularity, query semantic view, semantic view results, query patterns, result processing, SEMANTIC_VIEW function, query errors, dimension filters
 **TokenBudget:** ~8500
 **ContextTier:** High

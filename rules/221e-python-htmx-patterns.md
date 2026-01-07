@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**LastUpdated:** 2026-01-06
 **Keywords:** crud, forms, validation, infinite scroll, lazy loading, sse, progressive enhancement, modals, search, autocomplete, real-time, polling, inline editing
 **TokenBudget:** ~5000
 **ContextTier:** High

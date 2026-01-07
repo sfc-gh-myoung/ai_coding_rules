@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**LastUpdated:** 2026-01-06
 **Keywords:** st.plotly_chart, st.map, dashboard, interactive charts, map visualization, time series smoothing, data aggregation, create chart, chart types, plotly express, dashboard layout, chart configuration, streamlit plotting, chart customization
 **TokenBudget:** ~5900
 **ContextTier:** High

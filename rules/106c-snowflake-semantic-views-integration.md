@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**LastUpdated:** 2026-01-06
 **Keywords:** RBAC, masking policy, row access policy, Generator workflow, iterative development, synonyms, natural language queries, cortex analyst, agent integration, semantic view security, analyst troubleshooting, fix analyst, debug analyst
 **TokenBudget:** ~8600
 **ContextTier:** Medium

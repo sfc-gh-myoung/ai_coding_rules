@@ -9,7 +9,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**LastUpdated:** 2026-01-06
 **Keywords:** schema validator, validation errors, error resolution, CI/CD integration, exit codes, command selection, output parsing, automation workflow, quiet mode, programmatic integration, error categorization
 **TokenBudget:** ~8150
 **ContextTier:** High

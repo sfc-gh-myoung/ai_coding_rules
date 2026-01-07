@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-06
-**Keywords:** git, workflow, branching strategy, GitHub, pull requests, feature branches, protected branches, git validation, branch naming, PR workflow, Conventional Commits
+**Keywords:** git, git commit, commit, commit message, commit messages, staging, staged changes, workflow, branching strategy, GitHub, pull requests, feature branches, protected branches, git validation, branch naming, PR workflow, Conventional Commits, conventional commit format
 **TokenBudget:** ~6500
 **ContextTier:** Medium
 **Depends:** 800-project-changelog.md, 802-project-contributing.md
@@ -13,9 +13,12 @@
 ## Scope
 
 **What This Rule Covers:**
-Comprehensive git workflow best practices for managing project updates on GitHub, ensuring consistent branching strategies, proper workflows, and robust validation before integration.
+Comprehensive git workflow best practices for managing project updates on GitHub, including commit message formatting, branching strategies, proper workflows, and robust validation before integration.
 
 **When to Load This Rule:**
+- Writing or formatting git commit messages
+- Using Conventional Commits format
+- Staging and committing changes
 - Setting up git workflows for projects
 - Implementing branching strategies
 - Configuring protected branches

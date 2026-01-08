@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-01-07
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-01-08
 **Keywords:** git, git commit, commit, commit message, commit messages, staging, staged changes, workflow, branching strategy, GitHub, pull requests, feature branches, protected branches, git validation, branch naming, PR workflow, Conventional Commits, conventional commit format
 **TokenBudget:** ~6500
 **ContextTier:** Medium
@@ -339,6 +339,20 @@ Agents should follow this validation approach:
 3. **Best practice:** Validate scope matches project patterns (check existing commits)
 4. **Required for breaking changes:** Verify `!` or `BREAKING CHANGE:` footer present
 5. **When deviating:** Document reason for non-standard format in commit body
+
+**AI Attribution Footer:**
+
+Some AI coding tools append attribution footers to commit messages:
+```
+.... Generated with [Cortex Code](https://docs.snowflake.com/user-guide/snowflake-cortex/cortex-agents)
+
+Co-Authored-By: Cortex Code <noreply@snowflake.com>
+```
+
+**Requirement:** Before committing, ask the user whether to include the AI attribution footer. User preferences vary by:
+- Project policy (some require attribution, some forbid it)
+- Commit visibility (public vs private repos)
+- Personal preference
 
 **Flexibility:** If user explicitly requests different format or context requires deviation, document the reason and proceed.
 

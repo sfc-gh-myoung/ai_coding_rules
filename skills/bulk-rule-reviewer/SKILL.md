@@ -1,7 +1,7 @@
 ---
 name: bulk-rule-reviewer
 description: Execute agent-centric reviews on all rules in rules/ directory and generate prioritized improvement report
-version: 2.1.0
+version: 2.2.0
 ---
 
 # Bulk Rule Reviewer
@@ -141,7 +141,6 @@ Agents commonly attempt these shortcuts. **ALL ARE FORBIDDEN:**
 - [ ] Will NOT ask about time constraints mid-execution
 - [ ] Will NOT create template-based reviews
 - [ ] Will NOT propose "faster" alternatives
-- [ ] Understands this takes 20-30 minutes and that's acceptable
 - [ ] Will use resume capability (skip_existing) if interrupted
 
 **If cannot commit to ALL items: STOP and report error.**
@@ -170,7 +169,7 @@ Agents frequently attempt to "optimize" by:
 
 **Why This Is Wrong:**
 1. **User has already authorized:** "ACT" means proceed with full scope
-2. **Timing is acceptable:** 20-30 minutes for 113 rules is reasonable
+2. **Scope is acceptable:** Comprehensive review of all rules is expected
 3. **Quality cannot be compromised:** One bad rule costs more than comprehensive review
 4. **Skills ≠ Rules:** Token efficiency principles don't apply here
 
@@ -235,8 +234,8 @@ You may have noticed rule files emphasize token efficiency (TokenBudget metadata
    - **Impact:** Cannot track individual rule improvements
    - **Consequence:** Actionable recommendations impossible
 
-4. **"This will take too long (5-10 hours)"**
-   - **Reality:** 113 rules × 10 sec = 19 minutes (actual measured time)
+4. **"This will take too long"**
+   - **Reality:** Comprehensive review completes efficiently with measured execution
    - **Impact:** Premature optimization based on incorrect estimate
    - **Consequence:** Unnecessary shortcuts for non-existent problem
 
@@ -252,19 +251,13 @@ You may have noticed rule files emphasize token efficiency (TokenBudget metadata
 - Debugging one bad rule in production: 2+ hours, frustrated users
 
 **Annual Economic Reality:**
-```
-Annual skill usage: 4 bulk reviews
-Cost per review: $0.45 (50K tokens)
-Annual cost: $1.80
 
-One bad rule in production:
-- Debug time: 2-4 hours
-- Token cost: 50K-100K tokens ($0.45-$0.90)
-- Opportunity cost: Delayed features
-
-Cost to prevent: $0.45 per review
-ROI: 10-100× return
-```
+- **Annual skill usage:** 4 bulk reviews
+- **Cost per review:** $0.45 (50K tokens)
+- **Annual cost:** $1.80
+- **One bad rule in production:** Debug time 2-4 hours, token cost 50K-100K ($0.45-$0.90), opportunity cost from delayed features
+- **Cost to prevent:** $0.45 per review
+- **ROI:** 10-100× return
 
 **Token Efficiency Category Error:**
 
@@ -283,8 +276,8 @@ Skills are NOT rules. Do not apply rule optimization principles here:
 **Time Expectations (Measured - DO NOT RECALCULATE):**
 
 **Actual Performance (2026-01-06 run):**
-- 113 rules reviewed in 19-23 minutes
-- Average: 10-12 seconds per rule
+- 113 rules reviewed comprehensively
+- Execution completes efficiently
 
 **DO NOT:**
 - Recalculate these numbers during execution
@@ -386,14 +379,12 @@ If you think or write any of these phrases, you're taking a shortcut:
 
 **Self-Correction Protocol:**
 
-```
-IF shortcut_detected:
-  1. ACKNOWLEDGE: "I was attempting [shortcut]. This violates skill protocol."
-  2. DELETE: Remove any abbreviated/templated reviews created
-  3. RESET: Re-read bulk-rule-reviewer/SKILL.md and rule-reviewer/SKILL.md
-  4. RESUME: Return to comprehensive process at last valid checkpoint
-  5. COMMIT: "I will complete comprehensive reviews without shortcuts."
-```
+**If shortcut detected:**
+1. ACKNOWLEDGE: "I was attempting [shortcut]. This violates skill protocol."
+2. DELETE: Remove any abbreviated/templated reviews created
+3. RESET: Re-read bulk-rule-reviewer/SKILL.md and rule-reviewer/SKILL.md
+4. RESUME: Return to comprehensive process at last valid checkpoint
+5. COMMIT: "I will complete comprehensive reviews without shortcuts."
 
 **User Intervention:**
 
@@ -451,7 +442,6 @@ Find all `.md` files in `rules/` directory, apply filter_pattern, sort alphabeti
 
 **The ACT command means:**
 - User understands the scope (113 rules)
-- User accepts the time requirement (~20-30 minutes)
 - User wants comprehensive reviews (3000-8000 bytes each)
 - User prioritizes accuracy over speed
 
@@ -473,13 +463,13 @@ For each rule file:
 10. Store (rule_name, score, verdict, review_path)
 11. Show progress every 10 reviews
 
-**Time per rule:** 8-15 seconds (measured average: 10-12 seconds)  
+**Time per rule:** Efficient execution with comprehensive analysis
 **Quality:** Comprehensive, reliable, actionable
 
 **ANTI-PATTERN ALERT:**
 
 If you're thinking ANY of these thoughts, STOP and re-read this skill:
-- "This will take too long" → Measured: 19-23 minutes for 113 rules
+- "This will take too long" → Comprehensive review completes efficiently
 - "I can optimize this" → NO. Quality > efficiency
 - "Templates would be faster" → Templates = zero signal
 - "Token costs are high" → $0.45 for 113 rules is cheap QA (Skills ≠ Rules)
@@ -563,7 +553,7 @@ Generate master summary with:
 
 ### [MODE TRANSITION: PLAN → ACT]
 
-Authorization required for file modifications.
+Request user ACT authorization before file modifications.
 
 ### [OPTIONAL] Timing End (Embed)
 
@@ -701,6 +691,6 @@ model: claude-sonnet-45
 
 ### Rules
 
-- `rules/002f-claude-code-skills.md` - Skill authoring best practices
+- `rules/002g-claude-code-skills.md` - Skill authoring best practices
 - `rules/002-rule-governance.md` - Rule schema and standards
 - `rules/000-global-core.md` - Foundation patterns

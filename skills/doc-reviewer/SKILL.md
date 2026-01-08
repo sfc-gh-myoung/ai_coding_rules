@@ -1,7 +1,7 @@
 ---
 name: doc-reviewer
 description: Review project documentation for accuracy, completeness, clarity, and structure. Verifies file references, tests commands, validates links. Use for documentation audits, README reviews, or staleness checks. Triggers on "review docs", "audit documentation", "check README".
-version: 2.0.0
+version: 2.1.0
 ---
 
 # Documentation Reviewer
@@ -27,7 +27,7 @@ Review project documentation for accuracy with codebase, completeness of coverag
 **Optional:**
 - **target_files**: List of file paths (defaults to project docs if not specified)
 - **review_scope**: `single` | `collection` (default: `single`)
-- **focus_area**: Required if `review_mode` is `FOCUSED`
+- **focus_area**: Required if `review_mode` is `FOCUSED`. If FOCUSED mode and focus_area missing: STOP, report error `Missing required input: focus_area for FOCUSED mode`
 - **timing_enabled**: `true` | `false` (default: `false`) - Enable execution timing
 
 ### Default Target Files
@@ -57,7 +57,7 @@ When `target_files` not specified, reviews:
 - **Clarity** - Raw: X/5, Weight: ×4, Points: Y/20
 - **Structure** - Raw: X/5, Weight: ×3, Points: Y/15
 
-**Standard Dimensions (15 points - polish):**
+**Standard Dimensions (15 points - formatting/conventions):**
 - **Staleness** - Raw: X/5, Weight: ×2, Points: Y/10
 - **Consistency** - Raw: X/5, Weight: ×1, Points: Y/5
 
@@ -65,7 +65,7 @@ When `target_files` not specified, reviews:
 
 **1. Accuracy (25 points) - Is documentation current with codebase?**
 - Measures: File paths exist, commands work, code examples current
-- Key gate: <60% references valid caps at 1/5
+- Key gate: <60% references valid caps at 1/5 (Formula: Valid references / Total references in Cross-Reference Verification Table)
 - **Requires:** Cross-Reference Verification Table
 
 **2. Completeness (25 points) - Are all features documented?**
@@ -181,7 +181,7 @@ Execute complete review per rubric. This is the core workflow.
 
 ### 8. [MODE TRANSITION: PLAN → ACT]
 
-Authorization required for file modifications.
+Request user ACT authorization before file modifications.
 
 ### 9. File Write
 
@@ -250,7 +250,7 @@ Tests external URLs for 200 status, identifies redirects and 404s, checks tool v
 - Do NOT ask user to manually copy/paste review
 - Do NOT print entire review if file writing succeeds
 - Verify file references against actual project structure
-- Test commands shown in documentation (when safe to execute)
+- Test commands shown in documentation if: (1) read-only (ls, cat, grep), (2) uses --dry-run flag, OR (3) targets test/sandbox directories
 - Test external links for 404s
 - If file write fails: Print `OUTPUT_FILE: <path>` then full review
 

@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **refactor(skills):** apply agent-centric optimizations to all 6 skills per Priority 1 compliance
+  - **doc-reviewer** (v2.0.0 → v2.1.0): Added explicit error branch for missing focus_area, replaced subjective "polish" with "formatting/conventions", added 60% threshold formula, changed passive voice to imperative, defined safe command execution criteria
+  - **plan-reviewer** (v2.0.0 → v2.1.0): Added STOP/error branches for missing mode-specific inputs, aligned priority naming with 000-global-core.md (4-priority hierarchy), added 50% threshold count formula, fixed rule reference 002f→002g
+  - **skill-timing** (v1.0.0 → v1.1.0): Removed 5 forbidden horizontal rule separators (`---`), added explicit skip branch for failed timing-start, clarified review_mode default, added N/A behavior for omitted token inputs
+  - **rule-reviewer** (v2.2.0 → v2.3.0): Added STOP branches for byte size validation (<2000/>12000), removed human-centric time references, added max `-99.md` overflow error, converted code blocks to structured lists
+  - **bulk-rule-reviewer** (v2.1.0 → v2.2.0): Removed human-centric time references (7 occurrences), converted pseudo-code to imperative lists, converted economic data block to structured format, fixed rule reference 002f→002g
+  - **rule-creator** (v1.2.0 → v1.3.0): Added STOP branch after 3 failed validation iterations, added action for score <75, clarified ACT required for Phases 2-5, fixed rule reference 002d→002e
+  - Common patterns fixed across all skills: passive voice → imperative commands, missing conditional branches → explicit STOP/error handling, undefined thresholds → quantified values, code block visual formatting → structured lists, incorrect rule references corrected
+  - Impact: All skills now comply with Priority 1 (Agent Understanding and Execution Reliability) from 000-global-core.md
+
 ### Added
 - **feat(governance):** refactor 002-series rules to eliminate duplication and improve organization
   - Created 002b-rule-update.md (v1.0.0) for update/maintenance workflows (~3500 tokens)

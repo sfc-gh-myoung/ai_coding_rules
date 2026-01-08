@@ -1,7 +1,7 @@
 ---
 name: skill-timing
 description: Measures skill execution time and tracks performance. Use when you want to time a skill, measure duration, track how long something takes, compare performance across models, analyze execution speed, or detect agent shortcuts.
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Skill Timing
@@ -48,7 +48,7 @@ Initialize timing for a skill execution.
 - `skill_name`: Name of the skill being timed (required)
 - `target_file`: Target file path (required)
 - `model`: Model slug (required)
-- `review_mode`: Review mode if applicable (default: FULL)
+- `review_mode`: Review mode if applicable (default: FULL; omit if target skill has no modes)
 
 **Quick Reference:**
 ```bash
@@ -60,8 +60,6 @@ bash skills/skill-timing/scripts/run_timing.sh start \
 ```
 
 **Output:** `TIMING_RUN_ID`, `TIMING_FILE`, `TIMING_AGENT_ID`
-
----
 
 ### timing-checkpoint
 
@@ -80,8 +78,6 @@ bash skills/skill-timing/scripts/run_timing.sh checkpoint \
     --name {{checkpoint_name}}
 ```
 
----
-
 ### timing-end
 
 Finalize timing and compute duration.
@@ -90,14 +86,14 @@ Finalize timing and compute duration.
 
 **Important:** This operation has two parts:
 1. **Python module (PLAN safe):** Computes duration, outputs to STDOUT
-2. **Agent action (ACT required):** Parses STDOUT, appends metadata to output file
+2. **Agent action (ACT required):** Parse STDOUT and append timing metadata to output file
 
 **Inputs:**
 - `run_id`: Run ID from timing-start (required)
 - `output_file`: Path to output file (required)
 - `skill_name`: Skill name for recovery (required)
-- `input_tokens`: Input token count (optional)
-- `output_tokens`: Output token count (optional)
+- `input_tokens`: Input token count (optional; if omitted: timing metadata shows 'N/A')
+- `output_tokens`: Output token count (optional; if omitted: timing metadata shows 'N/A')
 
 **Quick Reference:**
 ```bash
@@ -110,8 +106,6 @@ bash skills/skill-timing/scripts/run_timing.sh end \
 ```
 
 **Output:** STDOUT timing summary (agent must parse and embed in file)
-
----
 
 ### baseline set
 
@@ -132,8 +126,6 @@ bash skills/skill-timing/scripts/run_timing.sh baseline set \
     --days {{days}}
 ```
 
----
-
 ### analyze
 
 Analyze timing data across runs.
@@ -153,8 +145,6 @@ bash skills/skill-timing/scripts/run_timing.sh analyze \
     --output {{output}}
 ```
 
----
-
 ## MODE Compatibility
 
 **PLAN Mode Safe Operations:**
@@ -167,11 +157,11 @@ bash skills/skill-timing/scripts/run_timing.sh analyze \
 - timing-end (metadata embed) - Required (appends to file)
 - baseline set - Required (modifies file)
 
-**Note:** The Python module outputs to STDOUT only (PLAN safe). The agent must parse STDOUT and append timing metadata to the output file (ACT required).
+**Note:** The Python module outputs to STDOUT only (PLAN safe). Parse STDOUT and append timing metadata to the output file (ACT required).
 
 ## Error Handling
 
-- If timing-start fails: Log warning, set run_id to 'none', continue without timing
+- If timing-start fails: Log warning, set run_id='none', skip all subsequent timing operations (checkpoints, timing-end)
 - If timing-checkpoint fails: Log warning, continue execution
 - If timing-end fails: Log warning, skill execution still succeeds
 - Timing failures are NEVER fatal to skill execution

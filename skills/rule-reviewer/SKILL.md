@@ -1,7 +1,7 @@
 ---
 name: rule-reviewer
 description: Execute agent-centric rule reviews (FULL/FOCUSED/STALENESS modes) using 6-dimension rubric and write results to reviews/ with no-overwrite safety. Use when reviewing rule files, auditing rule quality, checking rule staleness, validating rule compliance, or analyzing agent executability.
-version: 2.2.0
+version: 2.3.0
 ---
 
 # Rule Reviewer
@@ -35,9 +35,9 @@ Output: `reviews/200-python-core-claude-sonnet-45-2026-01-06.md`
 
 ## Review Modes
 
-- **FULL:** All 6 dimensions (3-5 min per rule)
-- **FOCUSED:** Actionability + Completeness only (50 points max, 2-3 min)
-- **STALENESS:** Staleness dimension only (10 points max, 1 min)
+- **FULL:** All 6 dimensions scored
+- **FOCUSED:** Actionability + Completeness only (50 points max)
+- **STALENESS:** Staleness dimension only (10 points max)
 
 ## Critical: Anti-Optimization Protocol
 
@@ -182,7 +182,8 @@ See `../skill-timing/workflows/` for integration details
 If `reviews/[rule-name]-[model]-[date].md` exists:
 - Try `-01.md`
 - Try `-02.md`
-- Increment until available
+- Increment until available (max: `-99.md`)
+- If `-99.md` exists: STOP, report error `Maximum review versions exceeded for [rule-name]`
 
 Never overwrite existing reviews.
 
@@ -199,7 +200,7 @@ Only load what you need for current dimension.
 
 **Pre-Execution Commitment Checklist**
 
-Before starting ANY review work, agent must internally confirm:
+Before starting ANY review work, confirm each item:
 
 - [ ] I will NOT calculate projected completion time
 - [ ] I will NOT ask about time constraints mid-execution
@@ -209,7 +210,6 @@ Before starting ANY review work, agent must internally confirm:
 - [ ] I will perform actual Agent Execution Test (count blocking issues)
 - [ ] I will consult rubrics for each dimension
 - [ ] I will write 3000-8000 byte review with specific analysis
-- [ ] I understand this takes 3-5 minutes and that's acceptable
 - [ ] I will trust the user's ACT authorization
 
 **If you cannot commit to all items above, STOP and report an error.**
@@ -245,7 +245,6 @@ Before starting ANY review work, agent must internally confirm:
 
 **The ACT command means:**
 - User understands the review scope
-- User accepts the time requirement (~3-5 minutes per rule)
 - User wants comprehensive review (3000-8000 bytes)
 - User prioritizes accuracy over speed
 
@@ -295,7 +294,7 @@ Agents frequently attempt to "optimize" by:
 
 **Why This Is Wrong:**
 1. **User has already authorized:** "ACT" means proceed with full scope
-2. **Timing is acceptable:** 3-5 minutes per rule is reasonable
+2. **Scope is acceptable:** Comprehensive review is expected
 3. **Quality cannot be compromised:** One bad rule costs more than comprehensive review
 4. **Skills ≠ Rules:** Token efficiency principles don't apply here
 
@@ -312,19 +311,17 @@ The user authorized ACT. Proceed with the work.
 
 **Critical Distinction: Skills vs. Rules**
 
-```
-RULES (100-snowflake-core.md):
+**RULES (100-snowflake-core.md):**
 - Usage: Loaded 100s-1000s of times
 - Token Efficiency: CRITICAL priority
 - Optimization: Minimize tokens, preserve quality
 - TokenBudget metadata: REQUIRED
 
-SKILLS (rule-reviewer):
+**SKILLS (rule-reviewer):**
 - Usage: Occasional (quarterly/annually)
 - Token Efficiency: IRRELEVANT
 - Optimization: Maximize quality, ignore tokens
 - TokenBudget metadata: NOT APPLICABLE
-```
 
 **Why Skills Don't Optimize for Tokens:**
 
@@ -334,14 +331,11 @@ SKILLS (rule-reviewer):
 4. **Cost of Failure:** One bad rule = 10-100× the token cost
 
 **Design Philosophy:**
-
-```
-Quality Signal > Speed
-Reliability > Token Efficiency
-Completeness > Brevity
-Accuracy > Convenience
-Thoroughness > Cost
-```
+- Quality Signal > Speed
+- Reliability > Token Efficiency
+- Completeness > Brevity
+- Accuracy > Convenience
+- Thoroughness > Cost
 
 **If you're thinking about token costs during skill execution, you're in the wrong mindset.**
 
@@ -409,9 +403,10 @@ If you think or write any of these phrases, you're taking a shortcut:
 
 Typical FULL mode review: 3000-8000 bytes
 
-**Red flags:**
-- < 2000 bytes (too abbreviated)
-- > 12000 bytes (excessive detail)
+**Size validation:**
+- If <2000 bytes: STOP, expand analysis with more specific findings
+- If 2000-12000 bytes: Acceptable range
+- If >12000 bytes: STOP, consolidate redundant content before writing
 
 ## Examples
 

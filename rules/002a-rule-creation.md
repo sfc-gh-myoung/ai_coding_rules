@@ -11,7 +11,7 @@
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-01-07
 **Keywords:** rule creation, workflow, step-by-step guide, naming conventions, metadata setup, v3.2 schema, validation, rule numbering, from scratch, new rule
-**TokenBudget:** ~4200
+**TokenBudget:** ~5400
 **ContextTier:** High
 **Depends:** 002-rule-governance.md, 000-global-core.md
 

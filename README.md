@@ -34,9 +34,9 @@ This repository provides a **universal ai coding rule system** designed to work 
 
 ## Key Features
 
-- **📚 113 Production-Ready Rules** — Comprehensive coverage across Snowflake, Python, Go, React, HTMX, Alpine.js, Docker, Shell scripting, and project management
+- **📚 114 Production-Ready Rules** — Comprehensive coverage across Snowflake, Python, Go, React, HTMX, Alpine.js, Docker, Shell scripting, and project management
 - **🔄 Universal Format** — Write once, use everywhere: Cursor, VS Code, Claude, ChatGPT, GitHub Copilot, and more
-- **🤖 Intelligent Discovery** — AI assistants automatically find and load relevant rules using semantic keyword matching
+- **🤖 Intelligent Discovery** — AI assistants automatically find and load relevant rules using semantic keyword matching (matching by meaning, not just exact text)
 - **🎯 Dependency-Aware** — Explicit dependency chains ensure rules load in the correct order
 - **⚡ Token-Efficient** — Modular, focused rules (150-500 lines) minimize context window usage
 - **🔓 No Lock-In** — Standard Markdown with embedded metadata works with any tool or custom integration
@@ -139,7 +139,7 @@ git clone git@github.com:sfc-gh-myoung/ai_coding_rules.git
 cd ai_coding_rules && python scripts/rule_deployer.py --dest ~/my-project
 
 # Or use task:
-cd ai_coding rules && task deploy DEST=~/my-project
+cd ai_coding_rules && task deploy DEST=~/my-project
 ```
 
 ### Use in your AI assistant
@@ -211,8 +211,9 @@ Some skills are internal-only and excluded from deployment (configured in `pypro
 ```toml
 [tool.rule_deployer]
 exclude_skills = [
-    "rule-creator/",   # Rule creation tool for ai_coding_rules project only
-    "rule-reviewer/",  # Rule review tool for ai_coding_rules project only
+    "rule-creator/",      # Rule creation tool for ai_coding_rules project only
+    "rule-reviewer/",     # Rule review tool for ai_coding_rules project only
+    "bulk-rule-reviewer/" # Bulk review orchestrator for ai_coding_rules project only
 ]
 ```
 
@@ -554,7 +555,7 @@ This structured format helps AI assistants automatically load the right rules (`
 The `skills/` directory contains structured Claude Agent Skills following [Anthropic's Agent Skills best practices](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills). All skills feature:
 
 - Enhanced YAML frontmatter (version, author, tags, dependencies)
-- Progressive disclosure (workflows/, examples/, tests/)
+- Progressive disclosure (showing details only when needed: workflows/, examples/, tests/)
 - Inline validation snippets for quick checks
 - Edge case documentation and self-validation procedures
 
@@ -608,7 +609,7 @@ These skills are used only for ai_coding_rules project maintenance and are exclu
 
 **bulk-rule-reviewer** — Orchestrate bulk rule reviews
 - **Purpose:** Execute comprehensive reviews on all rules in `rules/` directory with consolidated priority reporting
-- **Expected duration:** 5-10 hours for 113 rules (3-5 min per rule, sequential execution)
+- **Expected duration:** 5-10 hours for 114 rules (3-5 min per rule, sequential execution)
 - **Resume capability:** Skip existing reviews to resume after interruption
 - **Output:** Individual review files + master summary report with priority tiers
 - **Trigger keywords:** "bulk review rules", "review all rules", "audit rule repository"

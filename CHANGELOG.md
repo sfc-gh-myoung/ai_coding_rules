@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **feat(agents):** add Project Tool Discovery protocol to AGENTS.md
+  - Added "Project Tool Discovery" section for Taskfile/Makefile detection before running quality commands
+  - Added "Python Runtime Discovery" subsection for uv/uvx detection before Python commands
+  - Agents now check for `Taskfile.yml`, `Makefile`, `uv.lock` before defaulting to direct tool invocation
+  - Preference hierarchy: `task lint` > `ruff check .`, `uv run pytest` > `pytest`
+  - Impact: Reduces agent tendency to bypass project-defined conventions
+
+- **docs(rules):** add AI attribution footer guidance to 803-project-git-workflow (v3.1.0 → v3.2.0)
+  - Added "AI Attribution Footer" section under AI Agent Guidance Protocol
+  - Requirement: Agents must ask users whether to include Cortex Code footer before committing
+  - Lists user preference factors: project policy, commit visibility, personal preference
+
 - **fix(skills):** consolidate timing integration to prevent agent execution failures
   - **Problem:** Agents (e.g., Cursor) failed to execute skill-timing when scattered across 5 optional steps (3, 4, 6, 7, 10)
   - **Root cause:** Working memory loss of `_timing_run_id` across steps, no validation gate to catch missing timing

@@ -140,6 +140,46 @@ All three steps are mandatory. Reading without declaration is a protocol violati
 - A failed read = rule NOT loaded, regardless of intent
 - Declaring an unloaded rule is a CRITICAL violation
 
+## Project Tool Discovery
+
+**BEFORE running quality/lint/format/test commands:**
+
+1. **Check for automation files** (in order of preference):
+   - `Taskfile.yml` → Use `task --list` to discover available tasks
+   - `Makefile` → Use `make help` or scan for targets
+   - `package.json` scripts → Check `scripts` section
+   - `pyproject.toml` scripts → Check `[tool.taskipy]` or similar
+
+2. **Prefer project-defined commands over direct tool invocation:**
+   - YES: `task lint`, `task test`, `task validate`
+   - NO: `ruff check .`, `pytest`, `npx markdownlint` (unless no automation file exists)
+
+3. **Common task patterns to check:**
+   - `task validate` / `task ci` - Full validation suite
+   - `task lint` / `task quality:lint` - Linting only
+   - `task format` / `task quality:format` - Formatting only
+   - `task test` - Test execution
+
+**Python Runtime Discovery:**
+
+**BEFORE running any Python command**, check for `uv` (modern Python tooling):
+
+1. **Check for uv indicators:**
+   - `uv.lock` file exists → Project uses uv
+   - `pyproject.toml` with `[tool.uv]` section → Project uses uv
+   - `.python-version` file → Check if uv manages Python version
+
+2. **Prefer uv over bare python:**
+   - YES: `uv run python`, `uv run pytest`, `uvx ruff check .`
+   - NO: `python`, `python3`, `pytest`, `ruff` (direct invocation)
+
+3. **Tool execution patterns:**
+   - Scripts/modules: `uv run python script.py`, `uv run pytest`
+   - Isolated tools: `uvx ruff check .`, `uvx ty check .`, `uvx black .`
+   - Package install: `uv add package`, `uv sync`
+
+**Rationale:** Project-defined tasks encode team conventions, tool versions, and flag configurations that direct invocation may miss. `uv run` ensures correct virtual environment and Python version; `uvx` provides hermetic, isolated tool execution without polluting project dependencies.
+
 ## Rule Discovery Reference
 
 ### Rule Organization

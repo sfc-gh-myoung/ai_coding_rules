@@ -29,11 +29,14 @@
    - IF not accessible: STOP with "Cannot proceed - 000-global-core.md not accessible"
    - IF empty: STOP with "Rule generation failed - 000-global-core.md is empty"
 
-2. **Load Domain + Language Rules** - Match file extensions to domain rules
-   - Scan user request for file extensions and technology keywords
+2. **Load Domain + Language Rules** - Match file extensions AND directories to domain rules
+   - Scan user request for file extensions, technology keywords, AND directory paths
    - See RULES_INDEX.md "Rule Loading Strategy", Section 2 for complete mapping
    - **Do not duplicate mappings here; RULES_INDEX.md is the canonical source**
    - **Load even for "simple" tasks** (linting, formatting, syntax fixes)
+   - **Directory-based rules (check BEFORE file extension):**
+     - `skills/` directory → Load `002g-claude-code-skills.md`
+     - `rules/` directory → Load `002-rule-governance.md`
    - **Unknown extensions:** If no domain rule exists for a file type, load only 000-global-core.md and note in Rules Loaded: "No domain-specific rules available for [extension]"
 
 3. **Load Activity-Specific Rules** - Search `RULES_INDEX.md` Keywords field

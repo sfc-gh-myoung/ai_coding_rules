@@ -152,12 +152,48 @@ bulk-rule-reviewer invokes this skill once per rule file. **Never** implement re
 
 ### With skill-timing
 
-If `timing_enabled: true`:
-1. **Before review:** skill-timing creates timing session
-2. **During review:** Checkpoints recorded
-3. **After review:** Timing metadata appended to review file
+**Execute IF:** `timing_enabled: true`  
+**Skip IF:** `timing_enabled: false` (default)
 
-See `../skill-timing/workflows/` for integration details
+**When enabled, execute ALL steps below (not optional once enabled):**
+
+| When | Action | Command | Track |
+|------|--------|---------|-------|
+| Before review | Start timing | `run_timing.sh start --skill rule-reviewer --target {{target_file}} --model {{model}} --mode {{review_mode}}` | Store `_timing_run_id` |
+| After schema validation | Checkpoint | `run_timing.sh checkpoint --run-id {{_timing_run_id}} --name skill_loaded` | - |
+| After scoring complete | Checkpoint | `run_timing.sh checkpoint --run-id {{_timing_run_id}} --name review_complete` | - |
+| Before file write | Compute | `run_timing.sh end --run-id {{_timing_run_id}} --output-file {{output_file}} --skill rule-reviewer` | Store `_timing_stdout` |
+| After file write (ACT) | Embed | Parse `_timing_stdout`, append timing metadata section to output file | - |
+
+**Working memory contract:** Retain `_timing_run_id` and `_timing_stdout` from start through embed.
+
+**Quick Reference:**
+```bash
+# 1. Start (store _timing_run_id from output)
+bash skills/skill-timing/scripts/run_timing.sh start \
+    --skill rule-reviewer --target rules/200-python-core.md --model claude-sonnet-45 --mode FULL
+# Output: TIMING_RUN_ID=rule-reviewer-200-python-core-20260108-abc123
+
+# 2. Checkpoint: skill_loaded
+bash skills/skill-timing/scripts/run_timing.sh checkpoint \
+    --run-id rule-reviewer-200-python-core-20260108-abc123 --name skill_loaded
+
+# 3. Checkpoint: review_complete
+bash skills/skill-timing/scripts/run_timing.sh checkpoint \
+    --run-id rule-reviewer-200-python-core-20260108-abc123 --name review_complete
+
+# 4. End (store _timing_stdout from output)
+bash skills/skill-timing/scripts/run_timing.sh end \
+    --run-id rule-reviewer-200-python-core-20260108-abc123 \
+    --output-file reviews/200-python-core-claude-sonnet-45-2026-01-08.md \
+    --skill rule-reviewer
+
+# 5. Embed: Parse _timing_stdout, append to output file (ACT mode required)
+```
+
+**Post-execution validation:** Verify timing metadata exists in output file (see Error Handling).
+
+**See:** `../skill-timing/workflows/` for detailed workflow documentation
 
 ## Error Handling
 

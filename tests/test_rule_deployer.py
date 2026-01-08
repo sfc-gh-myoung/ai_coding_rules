@@ -453,7 +453,7 @@ class TestCopyErrorHandling:
 
         # Act
         with patch("shutil.copy2", side_effect=OSError("I/O error")):
-            _files_copied, files_failed = dr.copy_skills(
+            _skills_count, _files_copied, files_failed = dr.copy_skills(
                 mock_project_root, dest_dir, dry_run=False, verbose=False
             )
 
@@ -474,7 +474,7 @@ class TestCopyErrorHandling:
 
         # Act
         with patch("shutil.copytree", side_effect=OSError("Copy error")):
-            _files_copied, files_failed = dr.copy_skills(
+            _skills_count, _files_copied, files_failed = dr.copy_skills(
                 mock_project_root, dest_dir, dry_run=False, verbose=False
             )
 
@@ -587,9 +587,10 @@ name = "test"
         dest.mkdir()
 
         # Act
-        files_copied, files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
+        skills_count, files_copied, files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
 
         # Assert
+        assert skills_count == 2
         assert files_copied == 2
         assert files_failed == 0
         assert (dest / "skills" / "skill1.md").exists()
@@ -612,9 +613,10 @@ name = "test"
         dest.mkdir()
 
         # Act
-        files_copied, files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
+        skills_count, files_copied, files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
 
         # Assert
+        assert skills_count == 1  # One skill directory
         assert files_copied == 2  # Counts files in directory
         assert files_failed == 0
         assert (dest / "skills" / "skill-dir" / "file1.md").exists()
@@ -636,9 +638,10 @@ name = "test"
         dest.mkdir()
 
         # Act
-        files_copied, files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
+        skills_count, files_copied, files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
 
         # Assert
+        assert skills_count == 2  # 1 file skill + 1 directory skill
         assert files_copied == 2  # 1 file + 1 in directory
         assert files_failed == 0
 
@@ -661,9 +664,10 @@ exclude_skills = ["internal-skill.md"]
         dest.mkdir()
 
         # Act
-        files_copied, _files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
+        skills_count, files_copied, _files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
 
         # Assert
+        assert skills_count == 1
         assert files_copied == 1
         assert not (dest / "skills" / "internal-skill.md").exists()
         assert (dest / "skills" / "public-skill.md").exists()
@@ -691,9 +695,10 @@ exclude_skills = ["internal-dir"]
         dest.mkdir()
 
         # Act
-        files_copied, _files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
+        skills_count, files_copied, _files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
 
         # Assert
+        assert skills_count == 1
         assert files_copied == 1
         assert not (dest / "skills" / "internal-dir").exists()
         assert (dest / "skills" / "public-dir").exists()
@@ -718,9 +723,10 @@ exclude_skills = ["internal-dir/"]
         dest.mkdir()
 
         # Act
-        files_copied, _files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
+        skills_count, files_copied, _files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
 
         # Assert
+        assert skills_count == 0
         assert files_copied == 0
         assert not (dest / "skills" / "internal-dir").exists()
 
@@ -742,9 +748,10 @@ exclude_skills = ["internal-dir/"]
         dest.mkdir()
 
         # Act
-        files_copied, _files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
+        skills_count, files_copied, _files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
 
         # Assert
+        assert skills_count == 1
         assert files_copied == 1  # Only visible-file.md
         assert not (dest / "skills" / ".hidden-file.md").exists()
         assert not (dest / "skills" / ".hidden-dir").exists()
@@ -761,9 +768,10 @@ exclude_skills = ["internal-dir/"]
         dest.mkdir()
 
         # Act
-        files_copied, files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
+        skills_count, files_copied, files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
 
         # Assert
+        assert skills_count == 0
         assert files_copied == 0
         assert files_failed == 0
         captured = capsys.readouterr()
@@ -783,9 +791,10 @@ exclude_skills = ["internal-dir/"]
         dest.mkdir()
 
         # Act
-        files_copied, _files_failed = dr.copy_skills(project, dest, dry_run=True, verbose=False)
+        skills_count, files_copied, _files_failed = dr.copy_skills(project, dest, dry_run=True, verbose=False)
 
         # Assert
+        assert skills_count == 1
         assert files_copied == 1  # Reports would copy
         assert not (dest / "skills").exists()  # No actual copy
 
@@ -806,9 +815,10 @@ exclude_skills = ["internal-dir/"]
         dest.mkdir()
 
         # Act
-        files_copied, _files_failed = dr.copy_skills(project, dest, dry_run=True, verbose=False)
+        skills_count, files_copied, _files_failed = dr.copy_skills(project, dest, dry_run=True, verbose=False)
 
         # Assert
+        assert skills_count == 1  # One skill directory
         assert files_copied == 2  # Reports would copy 2 files
         assert not (dest / "skills").exists()  # No actual copy
 
@@ -828,9 +838,10 @@ exclude_skills = ["internal-dir/"]
         dest.mkdir()
 
         # Act
-        files_copied, _files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
+        skills_count, files_copied, _files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
 
         # Assert
+        assert skills_count == 1
         assert files_copied == 1
         assert (dest / "skills" / "skill" / "nested" / "deep" / "file.md").exists()
 
@@ -882,7 +893,7 @@ class TestMainFunctionAndCLI:
         captured = capsys.readouterr()
         assert "SKILLS-ONLY DEPLOYMENT SUMMARY" in captured.out
         assert "Skills copied:" in captured.out
-        assert "Total copied:" in captured.out
+        assert "Files copied:" in captured.out
         assert "Total failed:" in captured.out
 
     @pytest.mark.integration
@@ -946,7 +957,7 @@ class TestMainFunctionAndCLI:
         # Assert
         captured = capsys.readouterr()
         assert "Skills copied:" in captured.out
-        assert "2" in captured.out
+        assert "Files copied:" in captured.out
 
     @pytest.mark.integration
     def test_deploy_summary_shows_skills_skipped(

@@ -123,4 +123,5 @@ exclude_lines = [
 exclude_skills = [
     "rule-creator/",
     "rule-reviewer/",
+    "bulk-rule-reviewer/",
 ]

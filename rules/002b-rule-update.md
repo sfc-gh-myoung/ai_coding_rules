@@ -11,7 +11,7 @@
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-01-07
 **Keywords:** rule update, rule maintenance, versioning, RuleVersion, LastUpdated, semantic versioning, MAJOR, MINOR, PATCH, rule modification, keyword expansion, scope updates, metadata updates, CHANGELOG updates
-**TokenBudget:** ~3500
+**TokenBudget:** ~4500
 **ContextTier:** High
 **Depends:** 002-rule-governance.md, 000-global-core.md
 
@@ -304,7 +304,9 @@ Edit the rule file with your changes. Common update scenarios:
 **Why It Fails:** Explanation of failure mechanism
 
 **Correct Pattern:**
-```code example```
+\```
+code example
+\```
 
 **Benefits:** Why correct pattern works
 ```

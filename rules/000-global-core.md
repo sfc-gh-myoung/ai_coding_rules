@@ -12,7 +12,7 @@
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-01-06
 **Keywords:** PLAN mode, ACT mode, workflow, safety, confirmation, validation, surgical edits, minimal changes, mode violations, prompt engineering, task list, read-only, authorization
-**TokenBudget:** ~5450
+**TokenBudget:** ~5750
 **ContextTier:** Critical
 **Depends:** None
 

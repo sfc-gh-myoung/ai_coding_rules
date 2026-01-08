@@ -11,7 +11,7 @@
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-01-07
 **Keywords:** rule governance, schema, metadata requirements, validation, schema compliance, rule structure, semantic discovery, RULES_INDEX, descriptive headings
-**TokenBudget:** ~2800
+**TokenBudget:** ~3500
 **ContextTier:** Critical
 **Depends:** 000-global-core.md
 

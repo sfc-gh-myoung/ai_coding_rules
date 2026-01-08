@@ -214,15 +214,16 @@ def load_skill_exclusions(project_root: Path) -> set[str]:
 
 def copy_skills(
     project_root: Path, dest_dir: Path, dry_run: bool = False, verbose: bool = True
-) -> tuple[int, int]:
+) -> tuple[int, int, int]:
     """Copy skills/ directory to destination, respecting exclusions.
 
     Exclusions are loaded from [tool.rule_deployer] in pyproject.toml.
     Copies both files and directories, skipping excluded items.
 
     Returns:
-        Tuple of (files_copied, files_failed)
+        Tuple of (skills_count, files_copied, files_failed)
     """
+    skills_count = 0
     files_copied = 0
     files_failed = 0
 
@@ -231,7 +232,7 @@ def copy_skills(
 
     if not source_skills_dir.exists():
         log_warning(f"Skills directory not found: {source_skills_dir}")
-        return (0, 0)
+        return (0, 0, 0)
 
     # Load exclusion patterns from pyproject.toml
     exclusions = load_skill_exclusions(project_root)
@@ -263,16 +264,17 @@ def copy_skills(
 
         try:
             if item.is_file():
-                # Copy individual file
+                # Copy individual file (counts as 1 skill)
                 if not dry_run:
                     shutil.copy2(item, dest_item)
                     log_info(f"Copied: {item.name} → {dest_item}", verbose)
                 else:
                     log_info(f"[DRY RUN] Would copy: {item.name} → {dest_item}", verbose)
+                skills_count += 1
                 files_copied += 1
 
             elif item.is_dir():
-                # Copy directory recursively
+                # Copy directory recursively (counts as 1 skill)
                 if not dry_run:
                     shutil.copytree(item, dest_item, dirs_exist_ok=True)
                     # Count files in directory
@@ -282,6 +284,7 @@ def copy_skills(
                         f"Copied directory: {item.name} ({len(dir_files)} files) → {dest_item}",
                         verbose,
                     )
+                    skills_count += 1
                     files_copied += len(dir_files)
                 else:
                     dir_files = list(item.rglob("*"))
@@ -290,13 +293,14 @@ def copy_skills(
                         f"[DRY RUN] Would copy directory: {item.name} ({len(dir_files)} files)",
                         verbose,
                     )
+                    skills_count += 1
                     files_copied += len(dir_files)
 
         except Exception as e:
             log_error(f"Failed to copy {item.name}: {e}")
             files_failed += 1
 
-    return (files_copied, files_failed)
+    return (skills_count, files_copied, files_failed)
 
 
 def deploy_rules(
@@ -352,14 +356,15 @@ def deploy_rules(
     rules_failed = 0
     root_copied = 0
     root_failed = 0
-    skills_copied = 0
+    skills_count = 0
+    skills_files_copied = 0
     skills_failed = 0
 
     if only_skills:
         # Skills-only deployment mode
         log_info("SKILLS-ONLY DEPLOYMENT MODE", verbose)
         log_info("Copying skills directory (respecting pyproject.toml exclusions)...", verbose)
-        skills_copied, skills_failed = copy_skills(project_root, dest, dry_run, verbose)
+        skills_count, skills_files_copied, skills_failed = copy_skills(project_root, dest, dry_run, verbose)
     else:
         # Normal deployment mode (rules + optional skills)
         # Copy rules
@@ -373,12 +378,12 @@ def deploy_rules(
         # Copy skills unless explicitly skipped
         if not skip_skills:
             log_info("Copying skills directory (respecting pyproject.toml exclusions)...", verbose)
-            skills_copied, skills_failed = copy_skills(project_root, dest, dry_run, verbose)
+            skills_count, skills_files_copied, skills_failed = copy_skills(project_root, dest, dry_run, verbose)
         else:
             log_info("Skipping skills deployment (--skip-skills flag set)", verbose)
 
     # Summary
-    total_copied = rules_copied + root_copied + skills_copied
+    total_files = rules_copied + root_copied + skills_files_copied
     total_failed = rules_failed + root_failed + skills_failed
 
     print("\n" + "=" * 60)
@@ -390,18 +395,18 @@ def deploy_rules(
     
     if only_skills:
         # Skills-only summary
-        print(f"Skills copied:     {skills_copied}")
-        print(f"Total copied:      {total_copied}")
+        print(f"Skills copied:     {skills_count}")
+        print(f"Files copied:      {skills_files_copied}")
         print(f"Total failed:      {total_failed}")
     else:
         # Full deployment summary
         print(f"Rules copied:      {rules_copied}")
         print(f"Root files copied: {root_copied}")
         if not skip_skills:
-            print(f"Skills copied:     {skills_copied}")
+            print(f"Skills copied:     {skills_count}")
         else:
             print("Skills copied:     0 (skipped)")
-        print(f"Total copied:      {total_copied}")
+        print(f"Files copied:      {total_files}")
         print(f"Total failed:      {total_failed}")
     print("=" * 60)
 

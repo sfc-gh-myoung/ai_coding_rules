@@ -557,10 +557,12 @@ def cmd_baseline_compare(args):
         data["skill_name"], data["review_mode"], data["model"], data["duration_seconds"]
     )
 
-    if not comparison:
+    if comparison is None:
         print(f"No baseline found for {data['skill_name']}/{data['review_mode']}/{data['model']}")
         sys.exit(1)
 
+    # Type narrowing: comparison is now guaranteed to be non-None
+    assert comparison is not None
     sign = "+" if comparison["delta_percent"] >= 0 else ""
     print(f"Baseline Comparison for {args.run_id}:")
     print(f"  Current: {format_duration(data['duration_seconds'])} ({data['duration_seconds']}s)")

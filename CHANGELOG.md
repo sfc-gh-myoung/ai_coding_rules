@@ -8,6 +8,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **fix(skills):** consolidate timing integration to prevent agent execution failures
+  - **Problem:** Agents (e.g., Cursor) failed to execute skill-timing when scattered across 5 optional steps (3, 4, 6, 7, 10)
+  - **Root cause:** Working memory loss of `_timing_run_id` across steps, no validation gate to catch missing timing
+  - **skill-timing** (v1.1.0): Added working memory contract requiring explicit tracking of `_timing_run_id`, `_timing_enabled`, `_timing_stdout`
+  - **doc-reviewer** (v2.1.0): Consolidated 5 `[OPTIONAL]` steps into single `[CONDITIONAL] Timing Instrumentation` block with inline quick reference
+  - **rule-reviewer** (v2.3.0): Same consolidation pattern with skill-specific command examples
+  - Added timing validation gate to error-handling.md for both skills (post-execution check with recovery path)
+  - Fixed type narrowing bug in skill_timing.py (added assertion after None check)
+  - Impact: Timing integration now has single conditional gate, explicit memory tracking, and validation to catch failures
+
+- **feat(agents):** add directory-based rule loading for `skills/` directory
+  - **AGENTS.md:** Added `skills/` → `002g-claude-code-skills.md` mapping (check BEFORE file extension)
+  - **scripts/index_generator.py:** Updated `generate_loading_strategy()` with directory-based rules section
+  - **RULES_INDEX.md:** Regenerated with new Section 2 structure (directory rules first, then file extensions)
+  - Added `skill` keyword to Section 3 activity rules for discoverability
+  - Impact: Agents now automatically load skill authoring rule when working on files in `skills/` directory
+
 - **refactor(skills):** apply agent-centric optimizations to all 6 skills per Priority 1 compliance
   - **doc-reviewer** (v2.0.0 → v2.1.0): Added explicit error branch for missing focus_area, replaced subjective "polish" with "formatting/conventions", added 60% threshold formula, changed passive voice to imperative, defined safe command execution criteria
   - **plan-reviewer** (v2.0.0 → v2.1.0): Added STOP/error branches for missing mode-specific inputs, aligned priority naming with 000-global-core.md (4-priority hierarchy), added 50% threshold count formula, fixed rule reference 002f→002g

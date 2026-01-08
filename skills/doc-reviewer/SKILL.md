@@ -137,23 +137,50 @@ Convert model name to lowercase-hyphenated slug for filenames.
 
 **See:** `workflows/model-slugging.md`
 
-### 3. [OPTIONAL] Timing Start
+### 3. [CONDITIONAL] Timing Instrumentation
 
-**When:** Only if `timing_enabled: true` in inputs  
-**MODE:** Safe in PLAN mode
+**Execute IF:** `timing_enabled: true`  
+**Skip IF:** `timing_enabled: false` (default) → Proceed to step 4
 
-**See:** `../skill-timing/workflows/timing-start.md`
+**When enabled, execute ALL steps below (not optional once enabled):**
 
-**Action:** Capture `run_id` in working memory for later use.
+| When | Action | Command | Track |
+|------|--------|---------|-------|
+| Before review | Start timing | `run_timing.sh start --skill doc-reviewer --target {{target_file}} --model {{model}} --mode {{review_mode}}` | Store `_timing_run_id` |
+| After rubrics loaded | Checkpoint | `run_timing.sh checkpoint --run-id {{_timing_run_id}} --name skill_loaded` | - |
+| After review complete | Checkpoint | `run_timing.sh checkpoint --run-id {{_timing_run_id}} --name review_complete` | - |
+| Before file write | Compute | `run_timing.sh end --run-id {{_timing_run_id}} --output-file {{output_file}} --skill doc-reviewer` | Store `_timing_stdout` |
+| After file write (ACT) | Embed | Parse `_timing_stdout`, append timing metadata section to output file | - |
 
-### 4. [OPTIONAL] Checkpoint: skill_loaded
+**Working memory contract:** Retain `_timing_run_id` and `_timing_stdout` from start through embed.
 
-**When:** Only if timing was started  
-**Checkpoint name:** `skill_loaded`
+**Quick Reference:**
+```bash
+# 1. Start (store _timing_run_id from output)
+bash skills/skill-timing/scripts/run_timing.sh start \
+    --skill doc-reviewer --target README.md --model claude-sonnet-45 --mode FULL
+# Output: TIMING_RUN_ID=doc-reviewer-README-20260108-abc123
 
-**See:** `../skill-timing/workflows/timing-checkpoint.md`
+# 2. Checkpoint: skill_loaded
+bash skills/skill-timing/scripts/run_timing.sh checkpoint \
+    --run-id doc-reviewer-README-20260108-abc123 --name skill_loaded
 
-### 5. Review Execution
+# 3. Checkpoint: review_complete  
+bash skills/skill-timing/scripts/run_timing.sh checkpoint \
+    --run-id doc-reviewer-README-20260108-abc123 --name review_complete
+
+# 4. End (store _timing_stdout from output)
+bash skills/skill-timing/scripts/run_timing.sh end \
+    --run-id doc-reviewer-README-20260108-abc123 \
+    --output-file reviews/README-claude-sonnet-45-2026-01-08.md \
+    --skill doc-reviewer
+
+# 5. Embed: Parse _timing_stdout, append to output file (ACT mode required)
+```
+
+**See:** `../skill-timing/workflows/` for detailed workflow documentation.
+
+### 4. Review Execution
 
 Execute complete review per rubric. This is the core workflow.
 
@@ -163,42 +190,26 @@ Execute complete review per rubric. This is the core workflow.
 
 **See:** `workflows/review-execution.md` (detailed rubric, verification tables, scoring criteria)
 
-### 6. [OPTIONAL] Checkpoint: review_complete
-
-**When:** Only if timing was started  
-**Checkpoint name:** `review_complete`
-
-**See:** `../skill-timing/workflows/timing-checkpoint.md`
-
-### 7. [OPTIONAL] Timing End (Compute)
-
-**When:** Only if timing was started  
-**MODE:** Safe in PLAN mode (outputs to STDOUT only)
-
-**See:** `../skill-timing/workflows/timing-end.md` (Step 1)
-
-**Action:** Capture STDOUT output for metadata embedding.
-
-### 8. [MODE TRANSITION: PLAN → ACT]
+### 5. [MODE TRANSITION: PLAN → ACT]
 
 Request user ACT authorization before file modifications.
 
-### 9. File Write
+### 6. File Write
 
 Write review to `reviews/` with appropriate filename per scope.
 
 **See:** `workflows/file-write.md`
 
-### 10. [OPTIONAL] Timing End (Embed)
+### 7. Post-Execution Validation
 
-**When:** Only if timing was started  
-**MODE:** Requires ACT mode (appends metadata to file)
+**Always:** Verify review file was written successfully.
 
-**See:** `../skill-timing/workflows/timing-end.md` (Step 2)
+**IF `timing_enabled: true`:**
+1. Check timing metadata exists: `grep -q "## Timing Metadata" {{output_file}}`
+2. IF missing AND `_timing_run_id` captured: Attempt recovery embed now
+3. IF missing AND no `_timing_run_id`: WARN "Timing enabled but run_id not captured"
 
-**Action:** Parse STDOUT from step 7, append timing metadata section to output file.
-
-### 11. Error Handling
+### 8. Error Handling
 
 Handle validation failures, file write errors, broken links, missing files.
 

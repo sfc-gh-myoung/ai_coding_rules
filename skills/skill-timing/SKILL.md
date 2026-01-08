@@ -168,22 +168,48 @@ bash skills/skill-timing/scripts/run_timing.sh analyze \
 
 ## Integration with Other Skills
 
-Add timing to any skill by including these steps in the procedure:
+**CRITICAL: Working Memory Contract**
+
+When `timing_enabled: true`, the agent MUST track these values across ALL workflow steps:
+
+| Variable | Source | Used In |
+|----------|--------|---------|
+| `_timing_run_id` | timing-start STDOUT | checkpoint, timing-end |
+| `_timing_enabled` | Input parameter | Conditional checks |
+| `_timing_stdout` | timing-end STDOUT | Metadata embedding |
+
+**If agent loses `_timing_run_id` mid-execution:** timing-end attempts recovery from registry, but may fail. Track it explicitly.
+
+**Integration Pattern:**
+
+Add a single `[CONDITIONAL] Timing Instrumentation` step (not scattered optional steps):
 
 ```markdown
-## Procedure
+### N. [CONDITIONAL] Timing Instrumentation
 
-1. Input validation → `workflows/input-validation.md`
-2. **[OPTIONAL] Timing start** → `../skill-timing/workflows/timing-start.md`
-   - When: `timing_enabled: true`
-   - Store `run_id` in working memory
-3. [Skill-specific steps...]
-4. **[OPTIONAL] Checkpoint** → `../skill-timing/workflows/timing-checkpoint.md`
-5. [More steps...]
-6. **[OPTIONAL] Timing end (compute)** → `../skill-timing/workflows/timing-end.md` (Step 1)
-   - Outputs timing data to STDOUT (PLAN mode safe)
-7. **[MODE TRANSITION: PLAN → ACT]**
-8. File write → `workflows/file-write.md`
-9. **[OPTIONAL] Timing end (embed)** → `../skill-timing/workflows/timing-end.md` (Step 2)
-   - Agent parses STDOUT and appends metadata to file (ACT mode required)
+**Execute IF:** `timing_enabled: true`
+**Skip IF:** `timing_enabled: false` (default) → Proceed to next step
+
+**When enabled, execute ALL steps below (not optional once enabled):**
+
+| When | Action | Track |
+|------|--------|-------|
+| Before core work | timing-start | Store `_timing_run_id` |
+| After setup complete | checkpoint: skill_loaded | - |
+| After core work done | checkpoint: work_complete | - |
+| Before file write | timing-end (compute) | Store `_timing_stdout` |
+| After file write (ACT) | Embed metadata | Append to output file |
+
+**Post-execution validation:** Verify timing metadata exists in output file.
+```
+
+**Validation Gate (add to error handling):**
+
+```markdown
+## Post-Execution Validation
+
+**IF `timing_enabled: true`:**
+1. Check: `grep -q "## Timing Metadata" {{output_file}}`
+2. IF missing AND `_timing_run_id` exists: Attempt recovery embed
+3. IF missing AND no `_timing_run_id`: WARN "Timing enabled but not captured"
 ```

@@ -461,6 +461,47 @@ else:
 - **Missing focus_area** - Frequency: Medium, Prevention: Remember FOCUSED requires it
 - **Write permission** - Frequency: Low, Prevention: Check reviews/ exists and is writable
 - **Prompt missing** - Frequency: Rare, Prevention: Keep skill files in version control
+- **Timing not embedded** - Frequency: Medium, Prevention: Track `_timing_run_id` across all steps
+
+## Timing Validation (Post-Execution)
+
+**Execute IF:** `timing_enabled: true` was specified in inputs
+
+**Validation Check:**
+
+1. Verify timing metadata section exists in output file:
+   ```bash
+   grep -q "## Timing Metadata" {{output_file}}
+   ```
+
+2. **IF missing AND `_timing_run_id` was captured:**
+   - Attempt recovery: Re-run timing-end with stored run_id
+   - Append metadata now (ACT mode must be active)
+   - Log: "Timing metadata recovered and embedded"
+
+3. **IF missing AND no `_timing_run_id`:**
+   - WARN: "Timing was enabled but run_id not captured"
+   - Log which step likely failed (start vs. memory loss)
+   - Skill execution still succeeds (timing is non-fatal)
+
+4. **IF present:** Validation passes, no action needed
+
+**Error Message Template:**
+```
+⚠️ Timing validation warning:
+- timing_enabled: true (requested)
+- _timing_run_id: [value or 'not captured']
+- Timing metadata in output: [present/missing]
+- Recovery action: [attempted/skipped/succeeded]
+
+Note: Review file was written successfully. Timing is non-fatal.
+```
+
+**Common Causes of Missing Timing:**
+- Agent forgot `_timing_run_id` between steps (working memory loss)
+- timing-start failed silently (check for warning logs)
+- timing-end STDOUT not captured before file write
+- Metadata embed step skipped (wasn't in ACT mode)
 
 ## Escalation Path
 

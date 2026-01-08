@@ -587,7 +587,9 @@ name = "test"
         dest.mkdir()
 
         # Act
-        skills_count, files_copied, files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
+        skills_count, files_copied, files_failed = dr.copy_skills(
+            project, dest, dry_run=False, verbose=False
+        )
 
         # Assert
         assert skills_count == 2
@@ -613,7 +615,9 @@ name = "test"
         dest.mkdir()
 
         # Act
-        skills_count, files_copied, files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
+        skills_count, files_copied, files_failed = dr.copy_skills(
+            project, dest, dry_run=False, verbose=False
+        )
 
         # Assert
         assert skills_count == 1  # One skill directory
@@ -638,7 +642,9 @@ name = "test"
         dest.mkdir()
 
         # Act
-        skills_count, files_copied, files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
+        skills_count, files_copied, files_failed = dr.copy_skills(
+            project, dest, dry_run=False, verbose=False
+        )
 
         # Assert
         assert skills_count == 2  # 1 file skill + 1 directory skill
@@ -664,7 +670,9 @@ exclude_skills = ["internal-skill.md"]
         dest.mkdir()
 
         # Act
-        skills_count, files_copied, _files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
+        skills_count, files_copied, _files_failed = dr.copy_skills(
+            project, dest, dry_run=False, verbose=False
+        )
 
         # Assert
         assert skills_count == 1
@@ -695,7 +703,9 @@ exclude_skills = ["internal-dir"]
         dest.mkdir()
 
         # Act
-        skills_count, files_copied, _files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
+        skills_count, files_copied, _files_failed = dr.copy_skills(
+            project, dest, dry_run=False, verbose=False
+        )
 
         # Assert
         assert skills_count == 1
@@ -723,7 +733,9 @@ exclude_skills = ["internal-dir/"]
         dest.mkdir()
 
         # Act
-        skills_count, files_copied, _files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
+        skills_count, files_copied, _files_failed = dr.copy_skills(
+            project, dest, dry_run=False, verbose=False
+        )
 
         # Assert
         assert skills_count == 0
@@ -748,7 +760,9 @@ exclude_skills = ["internal-dir/"]
         dest.mkdir()
 
         # Act
-        skills_count, files_copied, _files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
+        skills_count, files_copied, _files_failed = dr.copy_skills(
+            project, dest, dry_run=False, verbose=False
+        )
 
         # Assert
         assert skills_count == 1
@@ -768,7 +782,9 @@ exclude_skills = ["internal-dir/"]
         dest.mkdir()
 
         # Act
-        skills_count, files_copied, files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
+        skills_count, files_copied, files_failed = dr.copy_skills(
+            project, dest, dry_run=False, verbose=False
+        )
 
         # Assert
         assert skills_count == 0
@@ -791,7 +807,9 @@ exclude_skills = ["internal-dir/"]
         dest.mkdir()
 
         # Act
-        skills_count, files_copied, _files_failed = dr.copy_skills(project, dest, dry_run=True, verbose=False)
+        skills_count, files_copied, _files_failed = dr.copy_skills(
+            project, dest, dry_run=True, verbose=False
+        )
 
         # Assert
         assert skills_count == 1
@@ -815,7 +833,9 @@ exclude_skills = ["internal-dir/"]
         dest.mkdir()
 
         # Act
-        skills_count, files_copied, _files_failed = dr.copy_skills(project, dest, dry_run=True, verbose=False)
+        skills_count, files_copied, _files_failed = dr.copy_skills(
+            project, dest, dry_run=True, verbose=False
+        )
 
         # Assert
         assert skills_count == 1  # One skill directory
@@ -838,7 +858,9 @@ exclude_skills = ["internal-dir/"]
         dest.mkdir()
 
         # Act
-        skills_count, files_copied, _files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
+        skills_count, files_copied, _files_failed = dr.copy_skills(
+            project, dest, dry_run=False, verbose=False
+        )
 
         # Assert
         assert skills_count == 1

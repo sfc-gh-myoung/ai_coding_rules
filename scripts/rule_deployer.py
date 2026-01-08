@@ -48,7 +48,9 @@ def log_warning(message: str) -> None:
     print(f"[!] {message}")
 
 
-def validate_source_structure(project_root: Path, only_skills: bool = False) -> tuple[bool, list[str]]:
+def validate_source_structure(
+    project_root: Path, only_skills: bool = False
+) -> tuple[bool, list[str]]:
     """Validate that source structure exists and is complete.
 
     Args:
@@ -77,7 +79,9 @@ def validate_source_structure(project_root: Path, only_skills: bool = False) -> 
             skill_items = list(skills_dir.iterdir())
             skill_dirs = [s for s in skill_items if s.is_dir() and not s.name.startswith(".")]
             if not skill_dirs:
-                errors.append(f"No skill directories found in source skills directory: {skills_dir}")
+                errors.append(
+                    f"No skill directories found in source skills directory: {skills_dir}"
+                )
     else:
         # Validate rules and root files for normal deployment
         if not rules_dir.exists():
@@ -364,7 +368,9 @@ def deploy_rules(
         # Skills-only deployment mode
         log_info("SKILLS-ONLY DEPLOYMENT MODE", verbose)
         log_info("Copying skills directory (respecting pyproject.toml exclusions)...", verbose)
-        skills_count, skills_files_copied, skills_failed = copy_skills(project_root, dest, dry_run, verbose)
+        skills_count, skills_files_copied, skills_failed = copy_skills(
+            project_root, dest, dry_run, verbose
+        )
     else:
         # Normal deployment mode (rules + optional skills)
         # Copy rules
@@ -378,7 +384,9 @@ def deploy_rules(
         # Copy skills unless explicitly skipped
         if not skip_skills:
             log_info("Copying skills directory (respecting pyproject.toml exclusions)...", verbose)
-            skills_count, skills_files_copied, skills_failed = copy_skills(project_root, dest, dry_run, verbose)
+            skills_count, skills_files_copied, skills_failed = copy_skills(
+                project_root, dest, dry_run, verbose
+            )
         else:
             log_info("Skipping skills deployment (--skip-skills flag set)", verbose)
 
@@ -392,7 +400,7 @@ def deploy_rules(
     else:
         print("DEPLOYMENT SUMMARY")
     print("=" * 60)
-    
+
     if only_skills:
         # Skills-only summary
         print(f"Skills copied:     {skills_count}")

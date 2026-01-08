@@ -1,7 +1,7 @@
 ---
 name: rule-creator
 description: Create production-ready v3.2 Cursor rule files by orchestrating template generation, schema validation, and RULES_INDEX.md indexing. Triggers on keywords like "create rule", "add rule", "new rule", "generate rule". Supports Python, Snowflake, JavaScript, Shell, Docker, Golang domains (000-999 range).
-version: 1.2.0
+version: 1.3.0
 ---
 
 # Rule Creator
@@ -121,7 +121,7 @@ Fill all sections with researched content. Add minimum 2 code examples and 2 ant
 
 ### Phase 4: Validation & Iteration
 
-Run `schema_validator.py` in loop until exit code 0. Apply fixes for CRITICAL errors. Max 3 iterations.
+Run `schema_validator.py` in loop until exit code 0. Apply fixes for CRITICAL errors. Max 3 iterations. If CRITICAL errors remain after 3 iterations: STOP, report unresolved errors to user with specific fix guidance.
 
 **See:** `workflows/validation.md` for error resolution patterns and validation loop implementation.
 
@@ -156,7 +156,7 @@ Add entry to `RULES_INDEX.md` in correct numeric position with matching keywords
 
 ### [MODE TRANSITION: PLAN → ACT]
 
-Authorization required for final file modifications (if any).
+Request user ACT authorization before file modifications in Phases 2-5.
 
 ### [OPTIONAL] Timing End (Embed)
 
@@ -271,7 +271,7 @@ review_mode: FULL
 model: <current>
 ```
 
-**Quality threshold:** Score ≥ 75/100, no CRITICAL issues, no HIGH issues in Actionability/Completeness.
+**Quality threshold:** Score ≥ 75/100, no CRITICAL issues, no HIGH issues in Actionability/Completeness. If score <75: report issues and recommend specific fixes before considering rule complete.
 
 ## References
 
@@ -286,7 +286,7 @@ model: <current>
 - `rules/002-rule-governance.md` - v3.2 schema requirements
 - `rules/002a-rule-creation.md` - Detailed workflow
 - `rules/002b-rule-optimization.md` - Token budget guidance
-- `rules/002d-schema-validator-usage.md` - Validation commands
+- `rules/002e-schema-validator-usage.md` - Validation commands
 
 ### Documentation
 

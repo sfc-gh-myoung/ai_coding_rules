@@ -1,7 +1,7 @@
 ---
 name: plan-reviewer
 description: Review LLM-generated plans for autonomous agent executability. Supports FULL (single plan), COMPARISON (multiple plans ranked), and META-REVIEW (review consistency analysis) modes. Triggers on keywords like "review plan", "compare plans", "plan quality", "meta-review", "plan executability".
-version: 2.0.0
+version: 2.1.0
 ---
 
 # Plan Reviewer
@@ -13,9 +13,10 @@ Review LLM-generated plans for autonomous agent executability using an 8-dimensi
 ### Design Priority Hierarchy
 
 Evaluates plans against the priority order from `000-global-core.md`:
-1. **Priority 1:** Agent Understanding and Execution Reliability (CRITICAL)
-2. **Priority 2:** Token and Context Window Efficiency (HIGH)
-3. **Priority 3:** Human Readability (TERTIARY)
+1. **Priority 1 (CRITICAL):** Agent Understanding and Execution Reliability
+2. **Priority 2 (HIGH):** Rule Discovery Efficacy and Determinism
+3. **Priority 3 (HIGH):** Context Window and Token Utilization Efficiency
+4. **Priority 4 (LOW):** Human Developer Maintainability
 
 Plans are scored on whether autonomous agents can execute them without judgment calls or clarification requests.
 
@@ -33,10 +34,10 @@ Plans are scored on whether autonomous agents can execute them without judgment 
 - **review_mode**: `FULL` | `COMPARISON` | `META-REVIEW`
 - **model**: Model slug (e.g., `claude-sonnet-45`)
 
-**Mode-specific:**
-- **FULL mode**: `target_file` - Single plan file path
-- **COMPARISON mode**: `target_files` - List of plan file paths
-- **META-REVIEW mode**: `review_files` - List of review file paths
+**Mode-specific (REQUIRED for each mode):**
+- **FULL mode**: `target_file` - Single plan file path. If missing: STOP, report error `Missing required input: target_file for FULL mode`
+- **COMPARISON mode**: `target_files` - List of plan file paths. If missing: STOP, report error `Missing required input: target_files for COMPARISON mode`
+- **META-REVIEW mode**: `review_files` - List of review file paths. If missing: STOP, report error `Missing required input: review_files for META-REVIEW mode`
 
 **Optional:**
 - **timing_enabled**: `true` | `false` (default: `false`) - Enable execution timing
@@ -96,7 +97,7 @@ Plans are scored on whether autonomous agents can execute them without judgment 
 
 **3. Success Criteria (20 points) - Are completion signals clear?**
 - Measures: Verifiable outputs, measurable criteria, agent-testable
-- Key gate: <50% tasks with criteria caps at 2/5
+- Key gate: <50% tasks with criteria caps at 2/5 (Count: Tasks with verifiable success criteria / Total tasks in plan)
 
 **4. Scope (15 points) - Is work bounded?**
 - Measures: Scope definition, exclusions, termination conditions
@@ -215,7 +216,7 @@ Execute complete review per rubric. This is the core workflow.
 
 ### 8. [MODE TRANSITION: PLAN → ACT]
 
-Authorization required for file modifications.
+Request user ACT authorization before file modifications.
 
 ### 9. File Write
 
@@ -276,4 +277,4 @@ Analyzes consistency across multiple reviews of same plan. Calculates score vari
 ### Rules
 
 - `rules/000-global-core.md` - Priority hierarchy definition
-- `rules/002f-claude-code-skills.md` - Skill best practices
+- `rules/002g-claude-code-skills.md` - Skill best practices

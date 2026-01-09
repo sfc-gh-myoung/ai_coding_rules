@@ -11,7 +11,7 @@
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-01-07
 **Keywords:** rule governance, schema, metadata requirements, validation, schema compliance, rule structure, semantic discovery, RULES_INDEX, descriptive headings
-**TokenBudget:** ~3500
+**TokenBudget:** ~3800
 **ContextTier:** Critical
 **Depends:** 000-global-core.md
 
@@ -45,6 +45,7 @@ Schema standards (v3.2) for AI coding rule files. Defines required sections, met
 
 - **Schema Definition:** `schemas/rule-schema.yml` - Authoritative v3.2 schema with validation rules
 - **Rules Index:** `RULES_INDEX.md` - Master index of all rules with keywords
+- **[CommonMark Spec](https://spec.commonmark.org/)** - Authoritative Markdown specification (all rule files MUST comply)
 
 ## Contract
 
@@ -70,6 +71,7 @@ Schema standards (v3.2) for AI coding rule files. Defines required sections, met
 - Using emojis in rule files
 - Using XML tags in Contract section (v3.2 uses Markdown headers)
 - Using numbered section headings (v3.2 uses descriptive names)
+- Non-compliant Markdown (must follow CommonMark spec)
 
 ### Execution Steps
 
@@ -312,11 +314,49 @@ If both options fail, note the validation gap in commit message and request revi
   3. **Priority 3 (HIGH):** Context window and token utilization efficiency
   4. **Priority 4 (LOW):** Human developer maintainability
 - **Schema Compliance:** All rules must validate against schemas/rule-schema.yml with zero CRITICAL errors
+- **CommonMark Compliance:** All Markdown must follow [CommonMark spec](https://spec.commonmark.org/) for consistent parsing
 - **Semantic Discovery:** Keywords (5-20) enable AI agents to automatically discover relevant rules
 - **Progressive Disclosure:** Scope section provides overview, Contract defines execution requirements
 - **Validation-First:** Always run schema_validator.py before committing rule changes
 - **Text-Only Format:** No emojis in rule files (schema requirement for universal compatibility)
 - **Agent-First Formatting:** See `002e-agent-optimization.md` for required formatting patterns
+
+## CommonMark Compliance
+
+All rule files MUST follow [CommonMark specification](https://spec.commonmark.org/). Key requirements:
+
+### Code Fence Rules
+
+**Nested Code Blocks:** When showing markdown examples containing code blocks:
+- Outer fence MUST have MORE characters than any inner fence
+- Use 4 backticks (`` ```` ``) to wrap content containing 3 backticks (`` ``` ``)
+
+```markdown
+<!-- WRONG: Inner fence closes outer fence prematurely -->
+```markdown
+## Example
+```python
+# This closes the outer block!
+```
+```
+
+<!-- CORRECT: Outer fence longer than inner -->
+````markdown
+## Example
+```python
+# This stays inside the outer block
+```
+````
+```
+
+**Fence Character Consistency:**
+- Do not mix backticks (`` ` ``) and tildes (`~`) in the same document
+- Closing fence must use same character as opening fence
+- Closing fence must be at least as long as opening fence
+
+**Indentation:**
+- Fenced code blocks inside lists must maintain consistent indentation
+- Opening and closing fences must have matching indentation levels
 
 ## Anti-Patterns and Common Mistakes
 

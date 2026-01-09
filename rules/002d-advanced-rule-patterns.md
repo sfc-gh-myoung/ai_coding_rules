@@ -42,6 +42,7 @@ Advanced patterns for writing rules that balance specificity with flexibility. F
 ### External Documentation
 
 - **Schema Definition:** `schemas/rule-schema.yml` - Authoritative v3.2 schema
+- **[CommonMark Spec](https://spec.commonmark.org/)** - Authoritative Markdown specification (nested code blocks must comply)
 
 ## Contract
 

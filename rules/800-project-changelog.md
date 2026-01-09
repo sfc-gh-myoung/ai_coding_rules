@@ -41,6 +41,7 @@ Maintaining high-signal, audit-friendly CHANGELOG.md following Keep a Changelog 
 - [Keep a Changelog v1.1.0](https://keepachangelog.com/) - Primary changelog format standard
 - [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/#specification) - PREFERRED commit message format (strongly recommended for changelog entries)
 - [Semantic Versioning](https://semver.org/) - Version numbering scheme for software releases
+- [CommonMark Spec](https://spec.commonmark.org/) - Authoritative Markdown specification (CHANGELOG.md MUST comply)
 
 **Additional Resources:**
 - Follow contributing guidelines: `802-project-contributing.md`

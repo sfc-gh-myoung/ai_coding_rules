@@ -38,6 +38,7 @@ Comprehensive standards for README.md files following widely accepted industry b
 - [GitHub README Guide](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes) - Official GitHub documentation standards
 - [Make a README](https://www.makeareadme.com/) - Interactive README creation guide and best practices
 - [Awesome README Examples](https://github.com/matiassingers/awesome-readme) - Curated collection of excellent README examples
+- [CommonMark Spec](https://spec.commonmark.org/) - Authoritative Markdown specification (README.md MUST comply)
 
 ## Contract
 
@@ -59,6 +60,7 @@ Comprehensive standards for README.md files following widely accepted industry b
 - Using hard-coded paths or environment-specific instructions
 - Adding badges without verifying they work
 - Assuming tech stack without verification
+- Non-compliant Markdown (must follow [CommonMark spec](https://spec.commonmark.org/))
 
 ### Execution Steps
 1. Read existing README.md to understand current structure

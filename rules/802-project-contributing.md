@@ -39,6 +39,7 @@ Professional contribution workflow directives covering commits, pull requests, c
 - [GitHub Contributing Guidelines](https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/setting-guidelines-for-repository-contributors) - GitHub's guide for contribution workflows
 - [Open Source Guides](https://opensource.guide/) - Best practices for open source project management
 - [Conventional Commits](https://www.conventionalcommits.org/) - Standardized commit message format
+- [CommonMark Spec](https://spec.commonmark.org/) - Authoritative Markdown specification (CONTRIBUTING.md MUST comply)
 
 ## Contract
 

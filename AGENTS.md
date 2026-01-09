@@ -25,6 +25,18 @@
 > **Note:** Steps 1-3 are internal processing (before generating response).
 > Steps 4-5 define the response output format.
 
+**Required Response Format (Example):**
+```
+MODE: PLAN
+
+## Rules Loaded
+- rules/000-global-core.md (foundation)
+- rules/200-python-core.md (file extension: .py)
+- rules/206-python-pytest.md (keyword: test)
+
+[Response content here...]
+```
+
 1. **Load Foundation** - Read `000-global-core.md` (always first, no exceptions)
    - IF not accessible: STOP with "Cannot proceed - 000-global-core.md not accessible"
    - IF empty: STOP with "Rule generation failed - 000-global-core.md is empty"
@@ -230,3 +242,15 @@ When multiple AI agents (e.g., Cursor + Cline) work on the same project:
 - **Surgical Edit:** Minimal, targeted change preserving existing patterns (synonyms: "minimal changes", "delta-focused")
 - **Load:** Read + Apply + Declare a rule (all three steps mandatory)
 - **Token Budget:** Cumulative token count of all loaded rules
+
+## Response Validation Checklist
+
+**Before submitting ANY response, verify:**
+
+- [ ] First line is `MODE: PLAN` or `MODE: ACT`
+- [ ] Second section is `## Rules Loaded` with bulleted list
+- [ ] `rules/000-global-core.md (foundation)` is always listed
+- [ ] Domain rules included if working with specific file types
+- [ ] Activity rules included if keywords matched
+
+**If any check fails:** Self-correct before responding. Do not proceed with invalid format.

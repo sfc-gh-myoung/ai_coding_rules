@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **feat(agents):** add response format enforcement to AGENTS.md
+  - Added "Required Response Format (Example)" template after "FIRST ACTION EVERY RESPONSE"
+  - Added "Response Validation Checklist" section at end of file
+  - Visual example shows expected MODE + Rules Loaded structure
+  - Checklist provides 5 verification items for self-correction before responding
+  - Impact: Reinforces mandatory MODE/Rules Loaded protocol through pattern matching and validation
+
 - **feat(agents):** add Project Tool Discovery protocol to AGENTS.md
   - Added "Project Tool Discovery" section for Taskfile/Makefile detection before running quality commands
   - Added "Python Runtime Discovery" subsection for uv/uvx detection before Python commands

@@ -559,6 +559,26 @@ The `skills/` directory contains structured Claude Agent Skills following [Anthr
 - Inline validation snippets for quick checks
 - Edge case documentation and self-validation procedures
 
+### Install Skills
+There are several ways you can take advantage of these skills in your tool of choice.  The skills have been tested with Cursor, Cortex Code CLI (CoCo), and Claude Code.
+
+#### Cursor
+You can use these skills in Cursor by telling Cursor to explicitly load the skill in your prompt.
+- Prompt: `Load skills/<skill_name>/SKILL.md`
+
+#### Claude Code
+You can use these skills in Claude Code by deploying the skills to the `.claude/skills` directory, either project or personal locations using the `task deploy` command or via filesystem `cp` command.
+
+You can also use these skill by telling Claude Code to explicitly load the skill in your prompt.
+- Prompt: `Load skills/<skill_name>/SKILL.md`
+
+#### Cortex Code CLI
+You can use these skills in Cortex Code CLI by running the skill add command.
+- Prompt: `/skill add <project_path>/skills/<skill_name>` 
+
+You can also use these skills by telling Cortex Code CLI to explicitly load the skill in your prompt.
+- Prompt: `Load skills/<skill_name>/SKILL.md`
+
 ### Deployed Skills (Available in Target Projects)
 
 These skills are deployed by default when running `task deploy`:
@@ -667,7 +687,7 @@ ai_coding_rules/
 │   ├── ARCHITECTURE.md         ← System design decisions
 │   └── MEMORY_BANK.md          ← Memory Bank system (optional)
 ├── tests/                  ← Test suite
-├── schemas/                ← JSON schemas for rule validation
+├── schemas/                ← YAML schemas for rule validation
 ├── prompts/                ← User prompt templates
 └── skills/                 ← Claude Agent Skills (6 total: 3 deployed, 3 internal-only)
 ```
@@ -765,16 +785,16 @@ The rules are organized by domain using a three-digit numbering system. Each cat
 
 | Domain | Range | # Rules | Focus Area | Key Topics |
 |--------|-------|---------|------------|------------|
-| **Core Foundation** | 000-099 | 7 | Universal patterns | Operating principles, memory bank, rule governance, boilerplate template, context engineering, tool design |
-| **Snowflake** | 100-199 | 39 | Data platform | SQL, Streamlit, performance, Cortex AI, security, notebooks, pipelines |
-| **Python** | 200-299 | 23 | Software engineering | Core patterns, FastAPI, Flask, Typer CLI, Pydantic, pytest, Pandas, **HTMX** |
+| **Core Foundation** | 000-099 | 12 | Universal patterns | Operating principles, memory bank, rule governance, context engineering, tool design, skills |
+| **Snowflake** | 100-199 | 49 | Data platform | SQL, Streamlit, performance, Cortex AI, security, notebooks, pipelines |
+| **Python** | 200-299 | 27 | Software engineering | Core patterns, FastAPI, Flask, Typer CLI, Pydantic, pytest, Pandas, **HTMX** |
 | **Shell Scripts** | 300-399 | 7 | Automation | Bash and Zsh scripting, security, testing |
 | **Frontend/Containers** | 400-499 | 5 | Infrastructure & UI | Docker, JavaScript, TypeScript, React, **HTMX frontend** |
-| **Frontend** | 500-599 | 1 | Client-side | HTMX frontend reference |
+| **Frontend** | 500-599 | 2 | Client-side | HTMX frontend, browser globals |
 | **Systems/Backend Languages** | 600-699 | 1 | Backend development | **Go/Golang** core patterns, error handling, concurrency |
-| **Business Intelligence** | 700-799 | 1 | Reporting | Business analytics, visualization |
+| **Reserved** | 700-799 | 0 | Future use | Reserved for future domain expansion |
 | **Project Management** | 800-899 | 6 | Workflows | Git, changelog, README, contributing, Taskfile, automation |
-| **Demo & Synthetic Data** | 900-999 | 5 | Examples | Demo creation, data generation, data science, data governance, business analytics |
+| **Demo & Synthetic Data** | 900-999 | 6 | Examples | Demo creation, data generation, data science, data governance, business analytics, semantic views |
 
 ### HTMX Rules (New in v3.1.0)
 
@@ -978,7 +998,7 @@ choco install go-task
 
 **Option B - Deployment Without Task**
 
-See [Option D: Deployment Without Task](#option-d-deployment-without-task) in Quick Start for complete instructions.
+See [Deployment Without Task](#option-deployment-without-task) in Quick Start for complete instructions.
 
 Quick example for universal rules:
 

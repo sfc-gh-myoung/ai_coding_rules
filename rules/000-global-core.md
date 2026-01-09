@@ -221,11 +221,12 @@ tests/test_api.py::test_login - AssertionError: assert 401 == 200
 **Rule:** Always include Severity, Location, Error, and Fix fields.
 
 **Investigation Required:**
-1. **Read project files BEFORE making recommendations** - Check existing structure, patterns, conventions
-2. **List loaded rules explicitly** - Always state which rules informed analysis
-3. **Never speculate about project organization** - Use list_dir, read_file to understand actual structure
-4. **Verify tool availability** - Check what tools are accessible before proposing solutions
-5. **Make grounded recommendations** - Don't assume standard patterns without verification
+1. **Search RULES_INDEX.md for task keywords** - Extract keywords from user request, search Keywords field for matching rules
+2. **Read project files BEFORE making recommendations** - Check existing structure, patterns, conventions
+3. **List loaded rules explicitly** - Always state which rules informed analysis
+4. **Never speculate about project organization** - Use list_dir, read_file to understand actual structure
+5. **Verify tool availability** - Check what tools are accessible before proposing solutions
+6. **Make grounded recommendations** - Don't assume standard patterns without verification
 
 **Anti-Pattern Examples:**
 - "Based on typical projects, you probably have this file structure..."

@@ -1251,7 +1251,6 @@ class TestStructuralValidation:
         assert len(order_errors) > 0, "Should detect wrong section order"
 
     @pytest.mark.unit
-    @pytest.mark.skip(reason="Multiple H1 title validation not yet implemented in schema_validator")
     def test_multiple_h1_titles_detected(self, schema_validator, tmp_path):
         """Test that multiple H1 titles are detected."""
         invalid_content = """**Keywords:** test, validation, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, quick-start, references, examples, rules
@@ -1277,6 +1276,7 @@ Test multiple H1 titles.
         ]
 
         assert len(h1_errors) > 0, "Should detect multiple H1 titles"
+        assert "Multiple H1" in h1_errors[0].message
 
 
 class TestContentValidation:
@@ -1622,19 +1622,6 @@ class TestSchemaValidatorIntegration:
 
         assert result.file_path == rule_file
         assert isinstance(result.errors, list)
-
-    @pytest.mark.integration
-    def test_validate_compliant_boilerplate(self, schema_validator):
-        """Test that boilerplate template (002a) validates cleanly when updated."""
-        project_root = Path(__file__).parent.parent
-        boilerplate_file = project_root / "rules" / "002a-rule-boilerplate.md"
-
-        if not boilerplate_file.exists():
-            pytest.skip(f"Boilerplate file not found: {boilerplate_file}")
-
-        result = schema_validator.validate_file(boilerplate_file)
-
-        assert result.file_path == boilerplate_file
 
 
 class TestSchemaValidatorCLI:

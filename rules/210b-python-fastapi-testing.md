@@ -390,7 +390,7 @@ def auth_headers():
 - **Always:** Follow Python core rules from `200-python-core.md` for testing commands.
 - **Always:** Apply linting rules from `201-python-lint-format.md` to test code.
 
-# See 200-python-core.md for complete uv command patterns
+> See `200-python-core.md` for complete uv command patterns
 
 ### Test Configuration
 ```toml

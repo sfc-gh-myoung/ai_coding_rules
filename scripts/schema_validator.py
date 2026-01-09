@@ -135,16 +135,18 @@ class CodeBlockTracker:
     """Track code block and contextual state while parsing markdown.
 
     Enhanced to handle:
-    - Both ``` and ~~~ fence styles
+    - Both ``` and ~~~ fence styles (3+ characters)
+    - Variable-length fences (e.g., ```` for nesting)
     - Indented code blocks (within lists, blockquotes)
-    - Proper fence matching by type and indentation level
+    - Proper fence matching by type, length, and indentation level
     """
 
     def __init__(self):
         """Initialize code block tracker with default state."""
         self.in_code_block = False
         self.code_block_language: str | None = None
-        self.fence_type: str | None = None  # Track ``` vs ~~~
+        self.fence_char: str | None = None  # Track ` vs ~
+        self.fence_length: int = 0  # Track fence length (3, 4, etc.)
         self.fence_indent: int = 0
         self.in_blockquote = False
         self.current_section: str | None = None
@@ -153,22 +155,30 @@ class CodeBlockTracker:
         """Update state based on current line with robust fence detection."""
         stripped = line.strip()
 
-        # Detect fence type and language (supports both ``` and ~~~)
-        fence_match = re.match(r"^(\s*)(```|~~~)(\w*)", line)
+        # Detect fence type, length, and language (supports ```, ~~~, ````, etc.)
+        fence_match = re.match(r"^(\s*)(`{3,}|~{3,})(\w*)", line)
         if fence_match:
             indent_str, fence, lang = fence_match.groups()
             indent_level = len(indent_str)
+            fence_char = fence[0]  # ` or ~
+            fence_len = len(fence)
 
             if not self.in_code_block:
                 # Opening fence
                 self.in_code_block = True
-                self.fence_type = fence
+                self.fence_char = fence_char
+                self.fence_length = fence_len
                 self.fence_indent = indent_level
                 self.code_block_language = lang if lang else None
-            elif fence == self.fence_type and indent_level == self.fence_indent:
-                # Closing fence (must match type and indentation)
+            elif (
+                fence_char == self.fence_char
+                and fence_len >= self.fence_length
+                and indent_level == self.fence_indent
+            ):
+                # Closing fence (must match char type, be at least as long, and match indent)
                 self.in_code_block = False
-                self.fence_type = None
+                self.fence_char = None
+                self.fence_length = 0
                 self.fence_indent = 0
                 self.code_block_language = None
 

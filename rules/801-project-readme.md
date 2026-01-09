@@ -126,7 +126,7 @@ Markdown file (README.md) with:
 **Why It Fails:** Commands may fail due to missing dependencies, incorrect paths, or environment-specific assumptions. Users get frustrated when the "quick" start doesn't work, eroding trust in the project documentation.
 
 **Correct Pattern:**
-```markdown
+````markdown
 ## Quick Start
 
 **Prerequisites:** Node.js 18+, npm 9+
@@ -147,7 +147,7 @@ npm start
 - Started development server on http://localhost:3000
 
 **Next Steps:** See [Configuration](#configuration) for customization options.
-```
+````
 
 ### Anti-Pattern 2: Duplicating CONTRIBUTING.md Content in README
 
@@ -282,7 +282,7 @@ validate:badges:
 - Validation procedures
 
 **Boundary Pattern:**
-```markdown
+````markdown
 
 ## Contributing (in README.md)
 
@@ -297,7 +297,7 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for complete gu
 ```
 
 For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
-```
+````
 
 ### Required Sections (In Order)
 - **Requirement:** Every README.md must include these core sections:
@@ -336,6 +336,7 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 - [Testing](#testing)
 ```
 
+```markdown
 ## Features
 
 ## Prerequisites

@@ -15,6 +15,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Integrates with existing structure validation in `_validate_structure()`
 
 ### Fixed
+- **fix(validator):** CodeBlockTracker now handles variable-length fences per CommonMark spec
+  - Updated regex from `(```|~~~)` to `(`{3,}|~{3,})` to match 3+ fence characters
+  - Added `fence_length` tracking to properly close nested code blocks
+  - Closing fence must match character type and be at least as long as opening fence
+  - Fixes false positive H1 detection inside nested markdown code blocks
+
+- **fix(rules):** correct nested markdown code block fencing in 6 rule files
+  - Changed outer fences from ` ``` ` to ` ```` ` for blocks containing code examples
+  - Affected files: 002d, 109a, 210b, 801, 802, 901
+  - Resolves "Multiple H1 titles" validation errors caused by `# comments` in nested blocks
+
 - **fix(tests):** update test expectations for UpdateConfig.update_threshold default
   - Changed expected default from 30.0 to 5.0 in test_token_validator.py and test_update_token_budgets.py
   - Aligns tests with actual default value in scripts/token_validator.py

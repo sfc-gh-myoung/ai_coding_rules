@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **feat(validator):** implement H1 title validation in schema_validator
+  - Added `_find_h1_titles()` helper method with code block awareness
+  - Validates exactly one H1 title exists per rule file
+  - Reports clear error messages for missing or multiple H1 titles
+  - Integrates with existing structure validation in `_validate_structure()`
+
+### Fixed
+- **fix(tests):** update test expectations for UpdateConfig.update_threshold default
+  - Changed expected default from 30.0 to 5.0 in test_token_validator.py and test_update_token_budgets.py
+  - Aligns tests with actual default value in scripts/token_validator.py
+
+### Removed
+- **chore(tests):** remove obsolete boilerplate validation test
+  - Removed `test_validate_compliant_boilerplate` that referenced non-existent 002a-rule-boilerplate.md
+
 ### Changed
 - **feat(agents):** add Task-Switch Detection and High-Risk Action Triggers to AGENTS.md
   - Added "Task-Switch Detection (MANDATORY)" section to enforce rule re-evaluation on task changes

@@ -339,6 +339,29 @@ class SchemaValidator:
 
         return sections
 
+    def _find_h1_titles(self, lines: list[str]) -> list[int]:
+        """Find all H1 titles with code block awareness.
+
+        Args:
+            lines: File lines to parse
+
+        Returns:
+            List of line numbers (1-indexed) where H1 titles are found
+        """
+        h1_lines = []
+        tracker = CodeBlockTracker()
+
+        for i, line in enumerate(lines, 1):
+            tracker.update(line)
+
+            if tracker.in_code_block:
+                continue
+
+            if re.match(r"^#\s+.+$", line):
+                h1_lines.append(i)
+
+        return h1_lines
+
     def validate_file(self, file_path: Path) -> ValidationResult:
         """Validate a single rule file against the schema.
 
@@ -609,6 +632,38 @@ class SchemaValidator:
             "Starting structure validation",
             {"total_lines": len(lines), "content_length": len(content)},
         )
+
+        # Validate H1 title count (must have exactly one)
+        if "title" in structure_config:
+            title_config = structure_config["title"]
+            h1_lines = self._find_h1_titles(lines)
+
+            if len(h1_lines) == 0:
+                result.errors.append(
+                    ValidationError(
+                        severity=title_config.get("severity", "CRITICAL"),
+                        message="Missing H1 title - document must have exactly one",
+                        error_group="Structure",
+                        line_num=1,
+                        fix_suggestion=title_config.get(
+                            "fix_suggestion", "Add an H1 title at the start of the document"
+                        ),
+                        docs_reference=title_config.get("docs_reference"),
+                    )
+                )
+            elif len(h1_lines) > 1:
+                result.errors.append(
+                    ValidationError(
+                        severity=title_config.get("severity", "CRITICAL"),
+                        message=f"Multiple H1 titles found at lines {h1_lines} - must have exactly one",
+                        error_group="Structure",
+                        line_num=h1_lines[1],
+                        fix_suggestion="Remove duplicate H1 titles, keeping only the first one",
+                        docs_reference=title_config.get("docs_reference"),
+                    )
+                )
+            else:
+                result.passed_checks += 1
 
         # Find all H2 sections using shared utility with code block tracking
         sections = self._find_all_sections(lines)

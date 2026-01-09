@@ -495,7 +495,7 @@ class TestDataStructures:
         config = utb.UpdateConfig()
 
         # Assert
-        assert config.update_threshold == 30.0
+        assert config.update_threshold == 5.0
         assert config.rounding_increment == 50
         assert config.dry_run is False
         assert config.verbose is False

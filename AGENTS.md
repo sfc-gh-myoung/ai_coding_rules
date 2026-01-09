@@ -123,6 +123,36 @@ See 000-global-core.md "ACT Recognition Rules" for full specification
 
 **For operational behavior AFTER rules are loaded (MODE transitions, validation commands, task confirmation, persona), see rules/000-global-core.md**
 
+## Task-Switch Detection (MANDATORY)
+
+**BEFORE executing any user request**, check if task type changed from previous response:
+
+**Task Switch Examples:**
+- Previous: documentation review, Current: git commit = **TASK SWITCH**
+- Previous: code editing, Current: run tests = **TASK SWITCH**
+- Previous: planning, Current: deployment = **TASK SWITCH**
+- Previous: any task, Current: new file type mentioned = **TASK SWITCH**
+
+**On Task Switch - STOP and Re-evaluate:**
+1. STOP - Do not proceed with previous rule context
+2. Extract new keywords from current request
+3. Search RULES_INDEX.md: `grep -i "KEYWORD" RULES_INDEX.md`
+4. Load matching rules before acting
+5. Update `## Rules Loaded` section in response
+
+**High-Risk Actions (ALWAYS require rule lookup):**
+
+These actions MUST trigger RULES_INDEX.md search regardless of current context:
+
+- **git commit, git push:** Search `grep -i "git" RULES_INDEX.md`, load `803-project-git-workflow.md`
+- **deploy, deployment:** Search `grep -i "deploy" RULES_INDEX.md`, load `820-taskfile-automation.md`
+- **test, pytest:** Search `grep -i "test" RULES_INDEX.md`, load `206-python-pytest.md`
+- **README, documentation:** Search `grep -i "readme" RULES_INDEX.md`, load `801-project-readme.md`
+- **CHANGELOG:** Search `grep -i "changelog" RULES_INDEX.md`, load `802-project-changelog.md`
+- **security, credentials:** Search `grep -i "security" RULES_INDEX.md`, load domain security rule
+
+**Rationale:** These actions have project-specific conventions that generic knowledge may violate (e.g., commit message format, test frameworks, deployment procedures).
+
 ## Loading Semantics
 
 "Loading" a rule means completing all three steps:

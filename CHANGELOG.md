@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **feat(agents):** add Task-Switch Detection and High-Risk Action Triggers to AGENTS.md
+  - Added "Task-Switch Detection (MANDATORY)" section to enforce rule re-evaluation on task changes
+  - Task switch examples: documentation to git commit, code editing to tests, planning to deployment
+  - On task switch: STOP, extract new keywords, search RULES_INDEX.md, load rules, update Rules Loaded
+  - Added "High-Risk Actions" list requiring mandatory rule lookup regardless of context
+  - High-risk actions: git commit/push, deploy, test, README, CHANGELOG, security
+  - Impact: Prevents agents from using stale rule context when user requests change task type
+
 - **fix(docs):** improve RULES_INDEX.md keyword search discoverability and ASCII compliance
   - **AGENTS.md:** Made step 3 MANDATORY with explicit REQUIRED markers for keyword extraction and search
   - **AGENTS.md:** Updated Response Validation Checklist to verify RULES_INDEX.md was searched

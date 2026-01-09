@@ -8,6 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **fix(docs):** improve RULES_INDEX.md keyword search discoverability and ASCII compliance
+  - **AGENTS.md:** Made step 3 MANDATORY with explicit REQUIRED markers for keyword extraction and search
+  - **AGENTS.md:** Updated Response Validation Checklist to verify RULES_INDEX.md was searched
+  - **AGENTS.md:** Replaced all arrow characters (→) with colons for ASCII compliance
+  - **rules/000-global-core.md:** Added RULES_INDEX.md keyword search as first Investigation Required item
+  - **scripts/index_generator.py:** Replaced arrows with colons in loading strategy section
+  - **scripts/index_generator.py:** Added README keyword mapping to Section 3 activity rules
+  - **scripts/schema_validator.py:** Fixed bug where AGENTS.md was incorrectly validated as rule file
+  - **RULES_INDEX.md:** Regenerated with ASCII-compliant formatting and README keyword mapping
+  - Impact: Agents now have clearer guidance to search RULES_INDEX.md before each response
+
+- **docs(readme):** update README.md for accuracy against current project state
+  - Fixed rule counts in Rule Categories table (000-series: 7→12, 100-series: 39→49, etc.)
+  - Changed "JSON schemas" to "YAML schemas" in directory structure
+  - Fixed "Option D" reference to "Deployment Without Task"
+  - Added "Install Skills" section with instructions for Cursor, Claude Code, and Cortex Code CLI
+  - Updated prompts/README.md rule count from 84 to 114
+
 - **feat(agents):** add response format enforcement to AGENTS.md
   - Added "Required Response Format (Example)" template after "FIRST ACTION EVERY RESPONSE"
   - Added "Response Validation Checklist" section at end of file

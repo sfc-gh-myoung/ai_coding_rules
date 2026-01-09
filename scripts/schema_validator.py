@@ -1380,7 +1380,11 @@ def main():
 
     # Validate file or directory
     if args.path.is_file():
-        result = validator.validate_file(args.path)
+        # Special handling for AGENTS.md - only validate ASCII patterns, not rule schema
+        if args.path.name == "AGENTS.md":
+            result = validator.validate_agents_md(args.path)
+        else:
+            result = validator.validate_file(args.path)
         print(validator.format_result(result, detailed=args.verbose))
 
         if result.has_critical_or_high or (args.strict and result.errors):

@@ -47,12 +47,15 @@ MODE: PLAN
    - **Do not duplicate mappings here; RULES_INDEX.md is the canonical source**
    - **Load even for "simple" tasks** (linting, formatting, syntax fixes)
    - **Directory-based rules (check BEFORE file extension):**
-     - `skills/` directory → Load `002g-claude-code-skills.md`
-     - `rules/` directory → Load `002-rule-governance.md`
+     - `skills/` directory: Load `002g-claude-code-skills.md`
+     - `rules/` directory: Load `002-rule-governance.md`
    - **Unknown extensions:** If no domain rule exists for a file type, load only 000-global-core.md and note in Rules Loaded: "No domain-specific rules available for [extension]"
 
-3. **Load Activity-Specific Rules** - Search `RULES_INDEX.md` Keywords field
-   - Method: `grep -i "KEYWORD" RULES_INDEX.md` (or scan Keywords field manually if shell unavailable)
+3. **Load Activity-Specific Rules (MANDATORY)** - Search `RULES_INDEX.md` Keywords field
+   - **REQUIRED:** Extract 2-4 keywords from user request (e.g., "README", "test", "Streamlit", "performance")
+   - **REQUIRED:** Search RULES_INDEX.md for each keyword: `grep -i "KEYWORD" RULES_INDEX.md`
+   - Load any rules where Keywords field contains matches
+   - If no shell available, manually scan Rule Catalog section for keyword matches
    - See RULES_INDEX.md, Section 3 for common keyword-to-rule mappings
 
 **Fallback: Browse by Domain Section**
@@ -157,10 +160,10 @@ All three steps are mandatory. Reading without declaration is a protocol violati
 **BEFORE running quality/lint/format/test commands:**
 
 1. **Check for automation files** (in order of preference):
-   - `Taskfile.yml` → Use `task --list` to discover available tasks
-   - `Makefile` → Use `make help` or scan for targets
-   - `package.json` scripts → Check `scripts` section
-   - `pyproject.toml` scripts → Check `[tool.taskipy]` or similar
+   - `Taskfile.yml`: Use `task --list` to discover available tasks
+   - `Makefile`: Use `make help` or scan for targets
+   - `package.json` scripts: Check `scripts` section
+   - `pyproject.toml` scripts: Check `[tool.taskipy]` or similar
 
 2. **Prefer project-defined commands over direct tool invocation:**
    - YES: `task lint`, `task test`, `task validate`
@@ -177,9 +180,9 @@ All three steps are mandatory. Reading without declaration is a protocol violati
 **BEFORE running any Python command**, check for `uv` (modern Python tooling):
 
 1. **Check for uv indicators:**
-   - `uv.lock` file exists → Project uses uv
-   - `pyproject.toml` with `[tool.uv]` section → Project uses uv
-   - `.python-version` file → Check if uv manages Python version
+   - `uv.lock` file exists: Project uses uv
+   - `pyproject.toml` with `[tool.uv]` section: Project uses uv
+   - `.python-version` file: Check if uv manages Python version
 
 2. **Prefer uv over bare python:**
    - YES: `uv run python`, `uv run pytest`, `uvx ruff check .`
@@ -251,6 +254,7 @@ When multiple AI agents (e.g., Cursor + Cline) work on the same project:
 - [ ] Second section is `## Rules Loaded` with bulleted list
 - [ ] `rules/000-global-core.md (foundation)` is always listed
 - [ ] Domain rules included if working with specific file types
-- [ ] Activity rules included if keywords matched
+- [ ] RULES_INDEX.md searched for task keywords (grep -i or manual scan)
+- [ ] Activity rules loaded based on keyword search results
 
 **If any check fails:** Self-correct before responding. Do not proceed with invalid format.

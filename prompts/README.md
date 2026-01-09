@@ -11,7 +11,7 @@ AI assistants work best when you provide:
 2. **File type context** - Which files/languages are involved  
 3. **Activity keywords** - Type of work (linting, testing, optimization, etc.)
 
-These examples show how to structure your prompts to automatically trigger the right rules from the 84+ specialized rules in this framework.
+These examples show how to structure your prompts to automatically trigger the right rules from the 114 specialized rules in this framework.
 
 ## Available Examples
 

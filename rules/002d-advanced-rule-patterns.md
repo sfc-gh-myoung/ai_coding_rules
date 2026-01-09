@@ -288,7 +288,7 @@ You are a technical support agent for ProductX.
 
 ### Example: Contract Placement
 
-```markdown
+````markdown
 ### Anti-Pattern: Late Contract Placement
 
 [FAIL] **Problem: Contract after 500 lines**
@@ -349,7 +349,7 @@ Success criteria
 - Understands constraints early
 - Produces correct outputs
 - Follows validation steps
-```
+````
 
 ## Multi-Session State Management
 

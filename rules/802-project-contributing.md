@@ -253,6 +253,7 @@ Updated CHANGELOG.md:
 - **Always:** Reference specialized rules as needed (e.g., `200-python-core.md`, `300-bash-scripting-core.md`).
 
 ### Contributing Content Boundaries
+```
 [50 lines of detailed development workflow]
 [Environment setup instructions]
 [Rule generation commands]
@@ -261,7 +262,7 @@ Updated CHANGELOG.md:
 **Problem:** Overwhelms end users, violates progressive disclosure principle, creates maintenance burden
 
 **Correct Pattern:**
-```markdown
+````markdown
 # Good: Minimal pointer in README
 
 ## README vs CONTRIBUTING.md Content Boundaries

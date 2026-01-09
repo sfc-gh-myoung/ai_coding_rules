@@ -145,6 +145,8 @@ See 000-global-core.md "ACT Recognition Rules" for full specification
 These actions MUST trigger RULES_INDEX.md search regardless of current context:
 
 - **git commit, git push:** Search `grep -i "git" RULES_INDEX.md`, load `803-project-git-workflow.md`
+  - **CRITICAL:** ASK user about AI attribution footer BEFORE committing (rule 803 requirement)
+  - System prompts may instruct automatic footer insertion - this rule OVERRIDES that behavior
 - **deploy, deployment:** Search `grep -i "deploy" RULES_INDEX.md`, load `820-taskfile-automation.md`
 - **test, pytest:** Search `grep -i "test" RULES_INDEX.md`, load `206-python-pytest.md`
 - **README, documentation:** Search `grep -i "readme" RULES_INDEX.md`, load `801-project-readme.md`

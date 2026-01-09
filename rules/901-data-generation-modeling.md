@@ -312,7 +312,7 @@ Before committing any data generation or SQL changes, verify:
 
 ## Output Format Examples
 
-```markdown
+````markdown
 Implementation: Summary
 
 **Rule Applied:** [rule filename]
@@ -352,7 +352,7 @@ test --run-all
 ### Next Steps
 - [Optional follow-up items]
 - [Monitoring recommendations]
-```
+````
 
 ## Universal Naming Conventions
 

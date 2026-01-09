@@ -43,6 +43,7 @@ Step-by-step workflow for creating new rules from scratch. Covers rule numbering
 
 - **Schema Definition:** `schemas/rule-schema.yml` - Authoritative v3.2 schema definition
 - **Rules Index:** `RULES_INDEX.md` - Master index of all rules
+- **[CommonMark Spec](https://spec.commonmark.org/)** - Authoritative Markdown specification (all rule files MUST comply)
 
 ## Contract
 
@@ -68,6 +69,7 @@ Step-by-step workflow for creating new rules from scratch. Covers rule numbering
 - Creating rules without dependencies
 - Using XML tags in Contract (v3.2 uses Markdown headers)
 - Using numbered section headings
+- Non-compliant Markdown (must follow CommonMark spec - see 002-rule-governance.md)
 
 ### Execution Steps
 

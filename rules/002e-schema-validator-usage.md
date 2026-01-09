@@ -43,6 +43,7 @@ Comprehensive guide for running `schema_validator.py` against v3.2 rules. Covers
 
 - **Schema Definition:** `schemas/rule-schema.yml` - Authoritative v3.2 schema
 - **Validator Script:** `scripts/schema_validator.py` - Validation implementation
+- **[CommonMark Spec](https://spec.commonmark.org/)** - Markdown specification (validator enforces compliance)
 
 ## Contract
 

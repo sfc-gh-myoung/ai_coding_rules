@@ -14,6 +14,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Reports clear error messages for missing or multiple H1 titles
   - Integrates with existing structure validation in `_validate_structure()`
 
+- **docs(rules):** add CommonMark specification compliance requirements
+  - Added CommonMark spec reference to External Documentation in 7 rules
+  - New "CommonMark Compliance" section in 002-rule-governance.md with nested fence rules
+  - Added to Forbidden lists: "Non-compliant Markdown (must follow CommonMark spec)"
+  - Affected rules: 002, 002a, 002d, 002e, 800, 801, 802
+
 ### Fixed
 - **fix(validator):** CodeBlockTracker now handles variable-length fences per CommonMark spec
   - Updated regex from `(```|~~~)` to `(`{3,}|~{3,})` to match 3+ fence characters

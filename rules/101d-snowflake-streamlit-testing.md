@@ -461,7 +461,7 @@ def test_cache_resource_behavior():
 - **Check:** Blocking operations without feedback (add st.spinner)
 
 ### Slow Performance
-- **Profile:** Use `st.write(st.experimental_get_query_params())` to check rerun frequency
+- **Profile:** Use `st.write(st.query_params)` to check rerun frequency (Streamlit 1.30+)
 - **Optimize:** Expensive operations with proper caching
 - **Consider:** Lazy loading for large datasets, sampling for development/testing
 

@@ -197,26 +197,10 @@ df = load_data()  # Cached, hits database once per ttl
 
 **Anti-Pattern 2: Forgetting column normalization**
 ```python
-@st.cache_data(ttl=600)
-def load_assets():
-    return session.table('ASSETS').to_pandas()
-
 df = load_assets()
 transformers = df[df['asset_type'] == 'TRANSFORMER']  # KeyError!
 ```
-**Problem:** Snowflake returns UPPERCASE column names; Python expects lowercase
-
-**Correct Pattern:**
-```python
-@st.cache_data(ttl=600)
-def load_assets():
-    df = session.table('ASSETS').to_pandas()
-    df.columns = [col.lower() for col in df.columns]  # CRITICAL
-    return df
-
-df = load_assets()
-transformers = df[df['asset_type'] == 'TRANSFORMER']  # Works!
-```
+**Problem:** Snowflake returns UPPERCASE column names; Python expects lowercase. See "Data Loading from Snowflake" section below for normalization pattern.
 
 **Anti-Pattern 3: No user feedback for slow operations**
 ```python

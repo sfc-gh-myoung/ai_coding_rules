@@ -297,22 +297,23 @@ def load_data() -> pd.DataFrame:
     """
     session = get_snowflake_session()
 
-    with st.spinner("Loading data from Snowflake..."):
-        query = """
-        SELECT
-            region,
-            product,
-            SUM(amount) as total_amount
-        FROM sales
-        WHERE order_date >= DATEADD(day, -90, CURRENT_DATE())
-        GROUP BY region, product
-        """
-        df = session.sql(query).to_pandas()
+    try:
+        with st.spinner("Loading data from Snowflake..."):
+            query = """
+            SELECT
+                region,
+                product,
+                SUM(amount) as total_amount
+            FROM sales
+            WHERE order_date >= DATEADD(day, -90, CURRENT_DATE())
+            GROUP BY region, product
+            """
+            df = session.sql(query).to_pandas()
 
-        # CRITICAL: Normalize column names
-        df.columns = [col.lower() for col in df.columns]
+            # CRITICAL: Normalize column names
+            df.columns = [col.lower() for col in df.columns]
 
-    return df
+        return df
 
     except Exception as e:
         st.error(f"""

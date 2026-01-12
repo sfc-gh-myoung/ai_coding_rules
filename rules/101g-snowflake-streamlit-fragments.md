@@ -37,6 +37,12 @@ Advanced Streamlit fragment patterns for real-time progress tracking, live polli
 
 ## Contract
 
+### Inputs and Prerequisites
+
+- Streamlit app with long-running operation (>30s)
+- Database table or API endpoint for progress tracking
+- Understanding of st.session_state
+
 ### When to Use Fragments
 
 - Database operations with progress table tracking (Snowflake stored procedures, Cortex AI functions)
@@ -57,6 +63,32 @@ Advanced Streamlit fragment patterns for real-time progress tracking, live polli
 - Creating fragments inside button blocks
 - Using widgets (st.text_input, st.button, etc.) inside fragment body
 - Fragments without termination conditions (infinite polling)
+
+### Execution Steps
+
+1. Define fragment function at module level with `@st.fragment(run_every="...")`
+2. Store operation state in `st.session_state` when starting
+3. Render fragment conditionally based on session state (outside button block)
+4. Poll progress source inside fragment
+5. Clear session state and call `st.stop()` when operation completes
+
+### Output Format
+
+Working fragment with live progress updates that terminates cleanly.
+
+### Validation
+
+- Fragment continues polling after button click
+- Progress updates display in real-time
+- Fragment stops when operation completes
+- No infinite polling loops
+
+### Post-Execution Checklist
+
+- [ ] Fragment defined at module level (not inside button block)
+- [ ] Session state used for operation tracking
+- [ ] Termination condition implemented with st.stop()
+- [ ] No widgets inside fragment body
 
 ## Complete Working Example
 

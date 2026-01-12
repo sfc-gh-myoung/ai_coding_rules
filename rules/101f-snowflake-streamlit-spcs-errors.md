@@ -39,11 +39,23 @@ SPCS-specific deployment error scenarios and resolution steps for Streamlit appl
 
 ## Contract
 
+### Inputs and Prerequisites
+
+- SPCS service deployment attempted
+- Error message from deployment or service logs
+- Access to Snowflake account with SPCS permissions
+
 ### Mandatory
 
 - Identify error type from error message
 - Follow resolution steps in order
 - Verify fix before redeploying
+
+### Forbidden
+
+- Deploying without testing Docker build locally first
+- Ignoring service logs when debugging
+- Hardcoding credentials in Dockerfiles
 
 ### Execution Steps
 
@@ -51,6 +63,23 @@ SPCS-specific deployment error scenarios and resolution steps for Streamlit appl
 2. Follow resolution steps for that scenario
 3. Verify fix locally if possible
 4. Redeploy and monitor logs
+
+### Output Format
+
+Resolved SPCS deployment with service status READY.
+
+### Validation
+
+- Service logs show successful startup
+- Health check endpoint responds
+- Application accessible via endpoint URL
+
+### Post-Execution Checklist
+
+- [ ] Error identified and matched to scenario
+- [ ] Resolution steps followed in order
+- [ ] Fix verified locally before redeploying
+- [ ] Service status shows READY after deployment
 
 ## Error Scenarios
 

@@ -11,28 +11,28 @@ Automatically update token budgets in AI coding rule files to ensure accuracy.
 ### Quick Start
 ```bash
 # Preview what would be updated
-python scripts/token_validator.py --dry-run
+python scripts/token_validator.py rules/ --dry-run
 
 # Show detailed analysis
-python scripts/token_validator.py --detailed
+python scripts/token_validator.py rules/ --detailed
 
 # Apply updates
-python scripts/token_validator.py
+python scripts/token_validator.py rules/
 ```
 
 ### Common Commands
 ```bash
 # Dry run with details
-python scripts/token_validator.py -n --detailed
+python scripts/token_validator.py rules/ -n --detailed
 
 # Update with custom threshold (20%)
-python scripts/token_validator.py --threshold 20
+python scripts/token_validator.py rules/ --threshold 20
 
 # Verbose output
-python scripts/token_validator.py -v --detailed
+python scripts/token_validator.py rules/ -v --detailed
 
-# Update specific directory
-python scripts/token_validator.py -d rules/
+# Validate single file
+python scripts/token_validator.py rules/000-global-core.md
 ```
 
 ### How It Works
@@ -45,20 +45,20 @@ python scripts/token_validator.py -d rules/
 ### Integration Workflow
 ```bash
 # After making content changes
-python scripts/token_validator.py --dry-run --detailed
+python scripts/token_validator.py rules/ --dry-run --detailed
 
 # Review and apply
-python scripts/token_validator.py
+python scripts/token_validator.py rules/
 
 # Validate
 python scripts/schema_validator.py rules/
 
-# Regenerate
-task generate:tokens
+# Or use task runner
+task tokens:update
 ```
 
 ### Options
-- `--directory, -d`: Target directory (default: templates/)
+- `path`: Target file or directory (positional argument, required)
 - `--threshold, -t`: Update threshold % (default: 5.0)
 - `--dry-run, -n`: Preview without modifying
 - `--detailed`: Show analysis for all files
@@ -134,7 +134,3 @@ Successfully updated 0 files
 - Check if file has unusual formatting
 - Review with `--detailed` flag
 
-### Version
-Script version: 1.0.0
-Compatible with: Rule governance v4.0
-Last updated: 2025-11-07

@@ -448,6 +448,53 @@ Apply these security patterns:
 - Monitor costs by agent and by tool type
 - Optimize expensive tools (multiple Cortex Analyst calls) vs cheaper alternatives
 
+### Dedicated Warehouses for Cortex Analyst Tools
+
+**Best Practice:** Configure a dedicated warehouse for each agent's Cortex Analyst tools:
+
+```yaml
+# Agent: Investment Analyst
+Cortex Analyst Tool: portfolio_analyzer
+Warehouse: AGENT_PORTFOLIO_WH    # Dedicated for cost tracking
+Query Timeout: 120
+
+# Agent: Risk Analyst  
+Cortex Analyst Tool: risk_analyzer
+Warehouse: AGENT_RISK_WH         # Separate warehouse for isolation
+Query Timeout: 180
+```
+
+**Benefits:**
+- **Cost Attribution:** Track compute costs per agent in Account Usage
+- **Performance Isolation:** Queries don't compete with other workloads
+- **Sizing Control:** Right-size warehouse per agent's query complexity
+- **Auto-Suspend:** Configure aggressive auto-suspend (60s) for cost savings
+
+**Warehouse Setup Pattern:**
+```sql
+CREATE WAREHOUSE IF NOT EXISTS AGENT_ANALYTICS_WH
+  WAREHOUSE_SIZE = 'X-SMALL'
+  AUTO_SUSPEND = 60
+  AUTO_RESUME = TRUE
+  INITIALLY_SUSPENDED = TRUE
+  COMMENT = 'Dedicated warehouse for analytics agent Cortex Analyst tools';
+
+GRANT USAGE ON WAREHOUSE AGENT_ANALYTICS_WH TO ROLE AGENT_RUNNER;
+```
+
+**Cost Monitoring Query:**
+```sql
+SELECT
+    warehouse_name,
+    DATE_TRUNC('day', start_time) AS usage_date,
+    SUM(credits_used) AS daily_credits
+FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY
+WHERE warehouse_name LIKE 'AGENT_%'
+  AND start_time >= DATEADD('day', -30, CURRENT_DATE())
+GROUP BY 1, 2
+ORDER BY 2 DESC, 3 DESC;
+```
+
 ## Common Errors and Solutions
 
 ### Error: "Semantic view not found" or "Object does not exist"

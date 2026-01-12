@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **feat(rules):** add Cortex Analyst warehouse requirements to agent rules
+  - rules/115-snowflake-cortex-agents-core.md: Added warehouse to tool configuration pattern
+  - rules/115-snowflake-cortex-agents-core.md: Added Anti-Pattern 4 for missing warehouse failures
+  - rules/115b-snowflake-cortex-agents-operations.md: Added dedicated warehouse setup and cost monitoring guidance
+  - Warehouse now required in tool_resources for cost attribution and performance isolation
+
+- **docs(memory-bank):** add Table of Contents to docs/MEMORY_BANK.md
+  - Document exceeds 300-line threshold requiring TOC per structure rubric
+  - Added 15 anchor links for all major sections
+
 - **feat(validator):** implement H1 title validation in schema_validator
   - Added `_find_h1_titles()` helper method with code block awareness
   - Validates exactly one H1 title exists per rule file
@@ -21,6 +31,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Affected rules: 002, 002a, 002d, 002e, 800, 801, 802
 
 ### Fixed
+- **fix(docs):** update TOKEN_BUDGETS.md CLI examples for positional path argument
+  - Changed all examples from `python scripts/token_validator.py --dry-run` to `python scripts/token_validator.py rules/ --dry-run`
+  - Updated --directory/-d option documentation to positional `path` argument
+  - Removed outdated version footer
+
+- **fix(rules):** update redirect URLs in rules/001-memory-bank.md
+  - `https://documentation.divio.com/` → `https://docs.divio.com/documentation-system/`
+  - `https://docs.cursor.com/` → `https://cursor.com/docs`
+  - `https://docs.cursor.com/en/context/rules` → `https://cursor.com/docs`
+
 - **fix(validator):** CodeBlockTracker now handles variable-length fences per CommonMark spec
   - Updated regex from `(```|~~~)` to `(`{3,}|~{3,})` to match 3+ fence characters
   - Added `fence_length` tracking to properly close nested code blocks

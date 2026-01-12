@@ -6,6 +6,22 @@
 
 The Memory Bank is a structured documentation system that helps AI assistants maintain context across multiple sessions. Since AI assistants reset between sessions, the Memory Bank provides continuity by capturing project state, architectural decisions, and current work focus.
 
+## Table of Contents
+
+- [Key Benefits](#key-benefits)
+- [When to Use](#when-to-use)
+- [Setup](#setup)
+- [Memory Bank File Structure](#memory-bank-file-structure)
+- [Usage Patterns](#usage-patterns)
+- [Example: activeContext.md](#example-activecontextmd)
+- [Example: projectbrief.md](#example-projectbriefmd)
+- [Example: systemPatterns.md](#example-systempatternsmd)
+- [Best Practices](#best-practices)
+- [Integration with AI Coding Rules](#integration-with-ai-coding-rules)
+- [Troubleshooting](#troubleshooting)
+- [Advanced: Multi-Project Memory Bank](#advanced-multi-project-memory-bank)
+- [Support](#support)
+
 ## Key Benefits
 
 - **Maintains project context** across development sessions

@@ -48,9 +48,9 @@ For overall context preservation strategy and priority order, see `000-global-co
 
 **Technical Writing and Documentation:**
 - [Technical Writing Best Practices](https://developers.google.com/tech-writing) - Google's guide for clear, effective documentation
-- [Documentation Systems](https://documentation.divio.com/) - Framework for organizing technical documentation
-- [Cursor Documentation](https://docs.cursor.com/) - AI-powered code editor features and capabilities
-- [Cursor Rules Guide](https://docs.cursor.com/en/context/rules) - Project rules and context management
+- [Documentation Systems](https://docs.divio.com/documentation-system/) - Framework for organizing technical documentation
+- [Cursor Documentation](https://cursor.com/docs) - AI-powered code editor features and capabilities
+- [Cursor Rules Guide](https://cursor.com/docs) - Project rules and context management
 - [Markdown Guide](https://www.markdownguide.org/) - Complete Markdown syntax and formatting reference
 
 ## Contract

@@ -54,7 +54,7 @@ Comprehensive data visualization in Streamlit using Plotly as the universal stan
 - **Plotly Express first:** Use `plotly.express` for standard charts (simpler API)
 - **Accessibility:** Colorblind-safe palettes (e.g., plotly.colors.qualitative.Safe)
 - **Maps:** Use Plotly mapbox functions (scatter_mapbox, choropleth_mapbox, line_mapbox)
-- **Never use PyDeck** - has SiS compatibility issues; Plotly 3D replaces it
+- **Prefer Plotly over PyDeck** - PyDeck has SiS compatibility issues; use only if explicitly requested
 
 **Quick Checklist:**
 - [ ] Import `plotly.express as px`
@@ -75,7 +75,7 @@ Comprehensive data visualization in Streamlit using Plotly as the universal stan
 
 ### Mandatory
 
-- **Use Plotly for ALL visualizations** - charts, graphs, and maps (never PyDeck)
+- **Use Plotly for ALL visualizations** - charts, graphs, and maps (preferred over PyDeck)
 - **st.plotly_chart()** - Standard method for rendering Plotly figures
 - **plotly.express** - Use for quick, high-level charts
 - **Responsive design** - Charts adapt to container width
@@ -84,7 +84,7 @@ Comprehensive data visualization in Streamlit using Plotly as the universal stan
 
 ### Forbidden
 
-- PyDeck for maps (use Plotly maps instead)
+- PyDeck for maps unless user explicitly requests it (prefer Plotly maps)
 - Matplotlib or other plotting libraries (Plotly only)
 - Hardcoded chart dimensions (use `use_container_width=True`)
 - Missing axis labels or titles
@@ -134,7 +134,7 @@ st.plotly_chart(fig, use_container_width=True)
 Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 
 **Code Quality:**
-- **CRITICAL:** All visualizations use Plotly (no PyDeck, Matplotlib, etc.)
+- **CRITICAL:** All visualizations use Plotly by default (PyDeck only if explicitly requested)
 - **CRITICAL:** Charts rendered with st.plotly_chart()
 - **CRITICAL:** `use_container_width=True` for responsive design
 - **Format Check:** All charts have titles and axis labels
@@ -160,7 +160,7 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 4. **Test responsiveness** on different screen sizes
 
 **Anti-Pattern Examples:**
-- Using PyDeck for maps
+- Using PyDeck for maps without explicit user request
 - Missing `use_container_width=True`
 - Hardcoded chart dimensions
 - Inconsistent colors across charts
@@ -201,17 +201,17 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 
 ## Anti-Patterns and Common Mistakes
 
-**Anti-Pattern 1: Using PyDeck for maps in SiS**
+**Anti-Pattern 1: Using PyDeck for maps without explicit user request**
 ```python
 import pydeck as pdk
 
-# Will fail or behave unpredictably in SiS
+# May fail or behave unpredictably in SiS
 deck = pdk.Deck(layers=[...])
 st.pydeck_chart(deck)
 ```
-**Problem:** PyDeck has serialization issues in SiS; Snowflake doesn't guarantee compatibility
+**Problem:** PyDeck has serialization issues in SiS; Snowflake doesn't guarantee compatibility. Use Plotly by default.
 
-**Correct Pattern:**
+**Correct Pattern (default):**
 ```python
 import plotly.express as px
 
@@ -336,9 +336,8 @@ for timestamp in failure_timestamps:
 - **3D Visualizations:** scatter_3d, surface plots, mesh plots
 - **Advanced:** Animations, subplots, custom interactivity
 
-**FORBIDDEN:**
-**Forbidden:**
-- **PyDeck:** SiS compatibility issues; Plotly 3D makes it unnecessary
+**AVOID UNLESS EXPLICITLY REQUESTED:**
+- **PyDeck:** SiS compatibility issues; Plotly is preferred but PyDeck allowed if user explicitly requests it
 - **Custom visualization libraries:** Avoid without explicit business justification
 - **JavaScript charting libraries:** Require st.components.v1.html (maintenance burden)
 

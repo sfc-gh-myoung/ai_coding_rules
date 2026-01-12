@@ -1,9 +1,6 @@
 # Streamlit Core: Setup, Navigation, and State Management
 
-> **CORE RULE: PRESERVE WHEN POSSIBLE**
->
-> This rule defines essential Streamlit patterns. Load for Streamlit tasks.
-> Specialized rules depend on this foundation.
+**CRITICAL: Load this rule for ALL Streamlit tasks. Specialized rules (101a-101e) depend on this foundation.**
 
 ## Metadata
 

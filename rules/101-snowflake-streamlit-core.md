@@ -6,9 +6,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.1.0
-**LastUpdated:** 2026-01-06
+**LastUpdated:** 2026-01-12
 **Keywords:** Streamlit, SPCS, SiS, navigation, multipage, session state, st.connection, config.toml, theming, deployment, pandas, null handling, session management, navigation performance, streamlit app, streamlit snowflake, build streamlit, create streamlit, multipage app, secrets management
-**TokenBudget:** ~7700
+**TokenBudget:** ~6750
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 

@@ -717,18 +717,16 @@ with st.sidebar:
 - **Always:** For SPCS, use Kubernetes secrets or environment variables
 - **Always:** Validate that required secrets exist before use
 
+**For secrets.toml structure and security rules, see `101c-snowflake-streamlit-security.md`.**
+
 **Secrets Pattern:**
 ```python
-# [PASS] Proper secrets usage
 try:
     api_key = st.secrets["api"]["key"]
     db_password = st.secrets["database"]["password"]
 except KeyError as e:
     st.error(f"Missing required secret: {e}")
     st.stop()
-
-# Never do this
-api_key = "sk-1234567890abcdef"  # Hardcoded secret!
 ```
 
 ## Pandas NULL Handling

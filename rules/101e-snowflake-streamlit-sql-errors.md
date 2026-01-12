@@ -1,4 +1,4 @@
-# Streamlit SQL Error Handling: Comprehensive Reference
+# Streamlit SQL Error Handling Patterns
 
 ## Metadata
 

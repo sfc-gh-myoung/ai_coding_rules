@@ -415,24 +415,23 @@ session = get_snowflake_session()  # Reuses cached session
 
 ### Caching with NULL-Safe Data
 
-**Rule**: Validate cached data doesn't contain unexpected NaN values that cause display errors:
+**For NULL/NaN handling patterns, see Section "Pandas NULL Handling" in `101-snowflake-streamlit-core.md`.**
+
+**Key Rules for Caching:**
+- Validate cached data doesn't contain unexpected NaN values that cause display errors
+- Use `pd.notna()` instead of `is not None` to correctly handle Snowflake NULL values that become pandas NaN
+- Format strings (`.1f`, `.0f`) crash on NaN values - validate first
 
 ```python
-import pandas as pd
-
 @st.cache_data(ttl=300)
 def load_metrics():
     """Load KPI metrics from Snowflake with NULL-safe handling."""
     session = get_snowflake_session()
     df = session.sql("SELECT metric_name, value FROM kpis").to_pandas()
-
-    # Validate no critical NaN values before caching
     if df["value"].isna().any():
-        st.warning("Some metrics unavailable - showing cached values where possible")
-
+        st.warning("Some metrics unavailable")
     return df
 
-# Use cached data with NULL-safe display
 metrics_df = load_metrics()
 for _, row in metrics_df.iterrows():
     value = row["value"]
@@ -441,14 +440,6 @@ for _, row in metrics_df.iterrows():
     else:
         st.metric(row["metric_name"], "N/A")
 ```
-
-**Performance Note**: Validating for NaN in cached data prevents expensive re-computation when display errors occur. Using `pd.notna()` instead of `is not None` correctly handles Snowflake NULL values that become pandas NaN.
-
-**Why This Matters:**
-- Snowflake NULL becomes pandas NaN (not Python None)
-- Standard Python checks (`is not None`) don't catch NaN
-- Format strings (`.1f`, `.0f`) crash on NaN values
-- Cached NaN values persist and cause repeated errors
 
 ## Data Loading from Snowflake - Critical Column Name Normalization
 

@@ -150,25 +150,6 @@ Optimized Streamlit app with <2s initial load, cached data operations, normalize
 - **Profile Always:** Target <2s load time, measure and optimize
 - **Error Handling:** For SQL error patterns, see 101e-snowflake-streamlit-sql-errors.md
 
-> **Investigation Required**
-> When optimizing Streamlit performance:
-> 1. Profile the application first - use Chrome DevTools or st.profiler to identify actual bottlenecks
-> 2. Check query execution times in Snowflake (QUERY_HISTORY view) before optimizing
-> 3. Verify cache behavior - confirm TTL values and check st.cache_data/st.cache_resource are being used
-> 4. Never assume column names - always normalize after fetching from Snowflake
-> 5. Test error handling - verify st.error() messages appear when queries fail
-> 6. Measure impact - profile before/after optimization to verify improvements
->
-> **Anti-Pattern:**
-> "Let me add caching everywhere to speed this up."
->
-> **Correct Pattern:**
-> "Let me profile the application first to see which operations are slow."
-> [profiles with Chrome DevTools]
-> "The load_dashboard_data() function takes 4.2s. Let me check the Snowflake query history."
-> [checks QUERY_HISTORY]
-> "The query itself runs in 0.3s, so the issue is likely in data processing. Let me add caching."
-
 ### Post-Execution Checklist
 
 - [ ] @st.cache_data used for all database queries with appropriate ttl

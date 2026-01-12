@@ -35,6 +35,12 @@ Time-based aggregation and smoothing patterns for high-frequency data visualizat
 
 ## Contract
 
+### Inputs and Prerequisites
+
+- DataFrame with time series data (timestamp column + value columns)
+- High-frequency data causing noisy visualizations or performance issues
+- pandas library available
+
 ### When to Apply Smoothing
 
 - High-frequency data creates noisy, cluttered visualizations (e.g., 15-minute SCADA readings = ~96 points/day)
@@ -47,6 +53,37 @@ Time-based aggregation and smoothing patterns for high-frequency data visualizat
 - Always show original and smoothed data point counts to users
 - Provide user controls for aggregation level and method
 - Default to mean aggregation for smoothest results
+
+### Forbidden
+
+- Smoothing without showing original data point count
+- Applying smoothing without user control options
+- Using inappropriate aggregation (e.g., mean for preserving peaks)
+
+### Execution Steps
+
+1. Identify timestamp and value columns in DataFrame
+2. Add UI controls for aggregation level and method
+3. Apply `smooth_time_series_data()` function
+4. Display original vs smoothed point counts to user
+5. Render smoothed data in chart
+
+### Output Format
+
+Smoothed DataFrame with reduced data points and user feedback showing reduction.
+
+### Validation
+
+- Chart renders without performance issues
+- Trends visible in smoothed data
+- User informed of data reduction
+
+### Post-Execution Checklist
+
+- [ ] UI controls for aggregation level provided
+- [ ] UI controls for aggregation method provided
+- [ ] Original and smoothed counts displayed
+- [ ] Appropriate method selected for use case
 
 ## Smoothing Function
 
@@ -128,12 +165,21 @@ else:
 
 ### Aggregation Level Selection
 
-| Source Data | Target Level | Reduction | Use Case |
-|------------|--------------|-----------|----------|
-| 15-min SCADA | 1H | 4x | Executive dashboards, trend analysis |
-| 15-min SCADA | 2H | 8x | High-level overviews, long time periods |
-| 1-min PMU | 15min | 15x | Grid stability monitoring |
-| Hourly transformer | None | 0% | Already appropriate granularity |
+**15-minute SCADA to 1 hour (1H):**
+- Reduction: 4x
+- Use case: Executive dashboards, trend analysis
+
+**15-minute SCADA to 2 hours (2H):**
+- Reduction: 8x
+- Use case: High-level overviews, long time periods
+
+**1-minute PMU to 15 minutes (15min):**
+- Reduction: 15x
+- Use case: Grid stability monitoring
+
+**Hourly transformer data:**
+- Reduction: None (0%)
+- Use case: Already appropriate granularity
 
 ### Method Selection
 

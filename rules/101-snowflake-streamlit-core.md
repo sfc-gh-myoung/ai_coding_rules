@@ -281,13 +281,6 @@ pg.run()  # Critical!
 - **Python Core**: `200-python-core.md`
 - **Snowpark Container Services**: `120-snowflake-spcs.md`
 
-> **[AI] Claude 4 Specific Guidance**
-> **Claude 4 Streamlit Core Optimizations:**
-> - Parallel file reading: Load config.toml and all page files simultaneously when analyzing multipage apps
-> - Context awareness: Efficiently manage token budget across multiple Streamlit rule files (core + specialized)
-> - Investigation-first: Excel at discovering config.toml theme settings and navigation structure from filesystem
-> - State discovery: Can track st.session_state usage patterns across multiple page files
-
 ## Deployment Mode Selection: SiS vs SPCS
 
 **MANDATORY:**

@@ -537,7 +537,7 @@ pg.run()
 - **Use when:** Migrating legacy apps, file-based organization required
 
 **Quantified Thresholds:**
-- <10 pages: Performance difference negligible, choose st.navigation() for modern pattern
+- <10 pages: Performance difference <50ms for page switches, choose st.navigation() for modern pattern
 - 10-20 pages: st.navigation() provides 2-3x faster page switches
 - >20 pages: Consider splitting into multiple apps rather than single large app
 

@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-06
-**Keywords:** @st.cache_data, @st.cache_resource, st.fragment, NULL handling, slow streamlit, streamlit caching, optimize streamlit, fix slow queries, fragment batch processing
+**Keywords:** @st.cache_data, @st.cache_resource, st.fragment, NULL handling, slow streamlit, streamlit caching, optimize streamlit, fix slow queries, fragment batch processing, streamlit performance, app slow, loading data, caching pattern
 **TokenBudget:** ~7950
 **ContextTier:** High
 **Depends:** 101-snowflake-streamlit-core.md, 103-snowflake-performance-tuning.md

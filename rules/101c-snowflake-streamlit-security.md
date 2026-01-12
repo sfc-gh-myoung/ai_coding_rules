@@ -412,8 +412,12 @@ else:
 import streamlit as st
 import hashlib
 
+# WARNING: SHA-256 alone is inadequate for production password hashing.
+# For production apps, use bcrypt or argon2 instead.
+# This example is for demonstration purposes only.
+
 def hash_password(password: str) -> str:
-    """Hash password using SHA-256."""
+    """Hash password using SHA-256. Use bcrypt/argon2 in production."""
     return hashlib.sha256(password.encode()).hexdigest()
 
 def check_authentication():

@@ -57,7 +57,8 @@ Streamlit app configured (see 101-snowflake-streamlit-core.md), pytest installed
 
 ### Mandatory
 
-streamlit.testing.v1.AppTest, pytest, unittest, mock objects, debugger
+- **Coverage Target:** >80% code coverage with pytest-cov
+- streamlit.testing.v1.AppTest, pytest, unittest, mock objects, debugger
 
 ### Forbidden
 

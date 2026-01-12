@@ -404,8 +404,9 @@ from snowflake.connector.errors import DatabaseError
 import streamlit as st
 import time
 
-# Import classification from 100f patterns
-from snowflake_error_utils import classify_snowflake_connection_error, SnowflakeErrorType
+# Example pattern - implement classify_snowflake_connection_error() in your app
+# based on error codes and messages. See classification logic below.
+# from your_app.error_utils import classify_snowflake_connection_error, SnowflakeErrorType
 
 def handle_connection_error(error: DatabaseError):
     """

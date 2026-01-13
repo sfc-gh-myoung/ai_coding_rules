@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **refactor(rules):** apply bulk-rule-reviewer improvements to 4xx/5xx/6xx series
+  - Updated 420-javascript-core.md: Biome linting now required (was recommended)
+  - Updated 421-javascript-alpinejs-core.md: Clarified "lightweight" terminology
+  - Updated 430-typescript-core.md: ts-reset and branded types now required (was "consider")
+  - Updated 440-react-core.md: Added >50 lines threshold for custom hook complexity
+  - Updated 441-react-backend.md: Added <10 endpoints threshold for Flask use case
+  - Updated 500-frontend-htmx-core.md: Added network failure handling guidance, version notation
+  - Updated 501-frontend-browser-globals-collisions.md: Expanded reserved identifiers list, added scope threshold
+  - Updated 600-golang-core.md: Version bump for consistency
+
 - **refactor(rules):** apply bulk-rule-reviewer improvements to 8xx/9xx series
   - Updated 800-project-changelog.md: Conventional Commits now required (was recommended)
   - Updated 801-project-readme.md: Clarified conditional language ("For complex projects", "For AI projects")

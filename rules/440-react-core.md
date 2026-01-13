@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-13
 **Keywords:** React, Next.js, RSC, Hooks, Tailwind, Zustand, TanStack Query, Shadcn, Feature-based, TypeScript, Vitest, Testing Library, debug hooks, fix React error, component rendering
 **TokenBudget:** ~3050
 **ContextTier:** High
@@ -128,7 +128,7 @@ TypeScript code (`.tsx`, `.ts`) with:
 
 - **Feature-Based Architecture:** Organize by business domain, not technical layers
 - **Server State Separation:** Use TanStack Query or RSC for async data, never `useEffect`
-- **Composition Over Complexity:** Prefer component composition over complex custom hooks
+- **Composition Over Complexity:** Prefer component composition over custom hooks with >50 lines of logic
 - **Type Safety:** All components and state fully typed with TypeScript
 - **Test User Behavior:** Test interactions, not implementation details
 

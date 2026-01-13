@@ -40,6 +40,7 @@ Plans are scored on whether autonomous agents can execute them without judgment 
 - **META-REVIEW mode**: `review_files` - List of review file paths. If missing: STOP, report error `Missing required input: review_files for META-REVIEW mode`
 
 **Optional:**
+- **overwrite**: `true` | `false` (default: `false`) - If true, overwrite existing review file. If false, use sequential numbering (-01, -02, etc.)
 - **timing_enabled**: `true` | `false` (default: `false`) - Enable execution timing
 
 ### Output
@@ -277,4 +278,4 @@ Analyzes consistency across multiple reviews of same plan. Calculates score vari
 ### Rules
 
 - `rules/000-global-core.md` - Priority hierarchy definition
-- `rules/002g-claude-code-skills.md` - Skill best practices
+- `rules/002h-claude-code-skills.md` - Skill best practices

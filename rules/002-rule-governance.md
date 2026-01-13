@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-01-07
+**RuleVersion:** v3.2.1
+**LastUpdated:** 2026-01-13
 **Keywords:** rule governance, schema, metadata requirements, validation, schema compliance, rule structure, semantic discovery, RULES_INDEX, descriptive headings
 **TokenBudget:** ~3800
 **ContextTier:** Critical
@@ -119,6 +119,11 @@ Markdown file (.md) with:
 - Numbered section headings trigger HIGH error
 - Keywords <5 or >20 triggers HIGH error
 - TokenBudget without tilde triggers MEDIUM error
+
+**Error Recovery:**
+- **Permission denied on rules/:** Report error, suggest checking file permissions or running as different user
+- **Validator script not found:** Check scripts/ directory exists, offer to create from schema
+- **Schema file missing:** Report which schema version expected, provide path to download/create
 
 ### Post-Execution Checklist
 

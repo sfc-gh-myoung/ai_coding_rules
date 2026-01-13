@@ -6,7 +6,7 @@
 **RuleVersion:** v4.0.0
 **LastUpdated:** 2026-01-12
 **Keywords:** st.plotly_chart, st.pydeck_chart, st.altair_chart, dashboard, interactive charts, map visualization, chart types, visualization selection, streamlit plotting
-**TokenBudget:** ~1400
+**TokenBudget:** ~1650
 **ContextTier:** High
 **Depends:** 101-snowflake-streamlit-core.md
 

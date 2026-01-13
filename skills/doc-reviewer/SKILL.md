@@ -28,6 +28,7 @@ Review project documentation for accuracy with codebase, completeness of coverag
 - **target_files**: List of file paths (defaults to project docs if not specified)
 - **review_scope**: `single` | `collection` (default: `single`)
 - **focus_area**: Required if `review_mode` is `FOCUSED`. If FOCUSED mode and focus_area missing: STOP, report error `Missing required input: focus_area for FOCUSED mode`
+- **overwrite**: `true` | `false` (default: `false`) - If true, overwrite existing review file. If false, use sequential numbering (-01, -02, etc.)
 - **timing_enabled**: `true` | `false` (default: `false`) - Enable execution timing
 
 ### Default Target Files

@@ -8,6 +8,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **feat(skills):** add `overwrite` parameter and anti-shortcut verification to reviewer skills
+  - Added `overwrite` parameter to rule-reviewer, bulk-rule-reviewer, doc-reviewer, plan-reviewer
+  - When `overwrite: true`, replaces existing review files; when `false` (default), uses sequential numbering (-01, -02)
+  - Added `workflows/review-verification.md` to rule-reviewer for unforgeable evidence requirements
+  - Added `workflows/per-rule-verification.md` to bulk-rule-reviewer for per-rule verification
+  - Verification requires: ≥15 line references, direct quotes with line numbers, rule-specific findings
+  - Prevents shortcut-based reviews by requiring evidence that can only come from reading the actual file
+
+- **feat(rules):** split 002e-schema-validator-usage.md into core and advanced rules
+  - Created 002f-schema-validator-advanced.md for CI/CD integration and automation workflows
+  - Reduced 002e from ~8150 to ~2250 tokens (72% reduction)
+  - Renamed 002f-agent-optimization.md → 002g-agent-optimization.md
+  - Renamed 002g-claude-code-skills.md → 002h-claude-code-skills.md
+
+- **feat(rules):** optimize foundation rules for token efficiency
+  - 003-context-engineering.md: Reduced ~500 tokens by removing redundant sections
+  - 004-tool-design-for-agents.md: Reduced ~400 tokens by consolidating patterns
+  - 002h-claude-code-skills.md: Major reduction by removing duplicate content
+
 - **feat(rules):** add 130-series Snowflake demo rules consolidation
   - Created 130-snowflake-demo-sql.md for demo-specific SQL patterns (progress indicators, teardown, CREATE OR REPLACE)
   - Renamed 900-demo-creation.md → 131-snowflake-demo-creation.md
@@ -184,7 +203,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Impact: Timing integration now has single conditional gate, explicit memory tracking, and validation to catch failures
 
 - **feat(agents):** add directory-based rule loading for `skills/` directory
-  - **AGENTS.md:** Added `skills/` → `002g-claude-code-skills.md` mapping (check BEFORE file extension)
+  - **AGENTS.md:** Added `skills/` → `002h-claude-code-skills.md` mapping (check BEFORE file extension)
   - **scripts/index_generator.py:** Updated `generate_loading_strategy()` with directory-based rules section
   - **RULES_INDEX.md:** Regenerated with new Section 2 structure (directory rules first, then file extensions)
   - Added `skill` keyword to Section 3 activity rules for discoverability
@@ -210,8 +229,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Shifted 002b-rule-optimization.md to 002c-rule-optimization.md (v3.0.0 to v3.0.1)
   - Shifted 002c-advanced-rule-patterns.md to 002d-advanced-rule-patterns.md (v3.0.0 to v3.0.1)
   - Shifted 002d-schema-validator-usage.md to 002e-schema-validator-usage.md (v3.0.0 to v3.0.1)
-  - Shifted 002e-agent-optimization.md to 002f-agent-optimization.md (v3.0.0 to v3.0.1)
-  - Shifted 002f-claude-code-skills.md to 002g-claude-code-skills.md (v3.1.0 to v3.1.1)
+  - Shifted 002e-agent-optimization.md to 002g-agent-optimization.md (v3.0.0 to v3.0.1)
+  - Shifted 002f-claude-code-skills.md to 002h-claude-code-skills.md (v3.1.0 to v3.1.1)
   - Refactored 002-rule-governance.md (v3.1.0 to v3.2.0 MAJOR - removed versioning section, ~600 tokens saved)
   - Refactored 002a-rule-creation.md (v3.1.1 to v3.2.0 MAJOR - removed duplication, focused on creation only, ~1000 tokens saved)
   - Updated all Depends/Related references across 27 files to reflect new filenames

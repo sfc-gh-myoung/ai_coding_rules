@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-13
 **Keywords:** memory bank, context, session recovery, project brief, active context, progress tracking, context rot, attention budget, compaction, context engineering, rapid recovery, failure recovery, staleness detection, archive policy, signal maximization
-**TokenBudget:** ~6900
+**TokenBudget:** ~7100
 **ContextTier:** Critical
 **Depends:** 000-global-core.md
 
@@ -477,15 +477,7 @@ Content is classified as **"outdated"** when it meets ANY of these criteria:
 - Section headers without content (obsolete placeholders)
 - Broken cross-references
 
-**Action Rules:**
-
-- **Completed work details (>7 days):** Condense to 1-line summary
-- **Completed work summary (>30 days):** Archive to memory-bank/archive/
-- **Resolved blocker (>14 days):** Remove entirely
-- **Session logs (>14 days):** Archive to memory-bank/archive/YYYY-MM.md
-- **Superseded status (any age):** Remove immediately
-- **Deleted file references (any age):** Remove immediately
-- **Deprecated patterns (>30 days unused):** Remove or archive
+**Actions:** Apply pruning rules from "Aggressive Pruning Rules" section above.
 
 **Stable Reference Exemptions:**
 These files should NOT be pruned for temporal staleness:

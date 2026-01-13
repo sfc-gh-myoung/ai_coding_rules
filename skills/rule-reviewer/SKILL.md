@@ -111,9 +111,16 @@ Output: `reviews/200-python-core-claude-sonnet-45-2026-01-06.md`
    - Quantified fixes
    - Expected score improvements
 
-6. **Write review**
+6. **Verify review authenticity**
+   Before writing, verify review contains:
+   - ≥15 line references (FULL mode)
+   - Direct quotes with line numbers
+   - Rule-specific findings (not generic)
+   - See `workflows/review-verification.md`
+
+7. **Write review**
    Path: `reviews/[rule-name]-[model]-[date].md`
-   Auto-increment: `-01.md`, `-02.md` if exists
+   Auto-increment: `-01.md`, `-02.md` if exists (when overwrite=false)
 
 **See workflows/** for detailed error handling
 
@@ -144,6 +151,7 @@ Output: `reviews/200-python-core-claude-sonnet-45-2026-01-06.md`
 - **review_date:** ISO 8601 format (YYYY-MM-DD)
 - **review_mode:** FULL | FOCUSED | STALENESS
 - **model:** Lowercase-hyphenated slug (e.g., `claude-sonnet-45`)
+- **overwrite:** (optional) true | false (default: false) - If true, overwrite existing review file. If false, use sequential numbering (-01, -02, etc.)
 - **timing_enabled:** (optional) true | false (default: false)
 
 ## Integration with Other Skills
@@ -223,13 +231,17 @@ bash skills/skill-timing/scripts/run_timing.sh end \
 
 ## No-Overwrite Safety
 
+**When `overwrite: false` (default):**
+
 If `reviews/[rule-name]-[model]-[date].md` exists:
 - Try `-01.md`
 - Try `-02.md`
 - Increment until available (max: `-99.md`)
 - If `-99.md` exists: STOP, report error `Maximum review versions exceeded for [rule-name]`
 
-Never overwrite existing reviews.
+**When `overwrite: true`:**
+
+The existing file at `reviews/[rule-name]-[model]-[date].md` will be replaced. Use this when intentionally re-running a review to replace a previous version.
 
 ## Progressive Disclosure
 

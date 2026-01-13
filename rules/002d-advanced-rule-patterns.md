@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-07
+**RuleVersion:** v3.0.2
+**LastUpdated:** 2026-01-13
 **Keywords:** system prompt altitude, investigation-first, anti-patterns, multi-session workflows, parallel execution, advanced patterns, heuristics, goldilocks zone, context management, state management
 **TokenBudget:** ~4300
 **ContextTier:** Medium
@@ -107,6 +107,11 @@ Rule file with:
 - Missing investigation blocks lead to hallucinations
 - Anti-Patterns without explanations don't teach principles
 - Lost context between sessions causes rework
+
+**Error Recovery:**
+- **Tool timeout during investigation:** Retry with longer timeout, then report partial results with caveat
+- **File not found during investigation:** Report missing file, suggest alternatives or ask user to provide path
+- **State file corrupted:** Report corruption, offer to recreate from last known good state
 
 ### Post-Execution Checklist
 

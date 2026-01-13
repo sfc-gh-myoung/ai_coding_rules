@@ -6,7 +6,7 @@
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-01-12
 **Keywords:** pydeck, st.pydeck_chart, deck.gl, 3D visualization, hexagon layer, scatterplot layer, geojson layer, arc layer, heatmap layer, terrain, point cloud, WebGL, geospatial
-**TokenBudget:** ~3350
+**TokenBudget:** ~3600
 **ContextTier:** Medium
 **Depends:** 101a-snowflake-streamlit-visualization.md
 

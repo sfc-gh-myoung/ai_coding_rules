@@ -43,20 +43,33 @@ Example:
 
 ## No-Overwrite Safety
 
+**When `overwrite: false` (default):**
+
 If the target file already exists:
 
 1. Append `-01` before `.md`
 2. If `-01` exists, try `-02`, etc.
 3. Continue until unused suffix found
 
+**When `overwrite: true`:**
+
+The existing file will be replaced directly. Use this when intentionally re-running a review.
+
 ```python
-def get_safe_path(base_path: str) -> str:
+def get_safe_path(base_path: str, overwrite: bool = False) -> str:
     from pathlib import Path
     
     p = Path(base_path)
+    
+    # If overwrite, always use base path
+    if overwrite:
+        return base_path
+    
+    # If file doesn't exist, use base path
     if not p.exists():
         return base_path
     
+    # Sequential numbering for no-overwrite mode
     stem = p.stem
     suffix = p.suffix
     parent = p.parent

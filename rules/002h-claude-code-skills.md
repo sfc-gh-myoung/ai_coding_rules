@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-01-07
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-01-13
 **Keywords:** Claude Code, skills, SKILL.md, skill structure, progressive disclosure, workflows, trigger keywords, skill authoring, skill testing, skill validation, input contracts, output contracts, skill examples, YAML frontmatter, description writing, MCP tools, degrees of freedom, context window, third person, naming conventions
-**TokenBudget:** ~7200
+**TokenBudget:** ~5650
 **ContextTier:** High
 **Depends:** 000-global-core.md, 002-rule-governance.md
 
@@ -65,7 +65,7 @@ Best practices for authoring Claude Code skills in the `skills/` directory. Cove
 
 ### Forbidden
 
-- Putting detailed implementation in SKILL.md (use workflow files; keep SKILL.md under 500 lines)
+- Putting detailed implementation in SKILL.md (use workflow files; **see Size Limit below**)
 - Omitting required YAML frontmatter fields (`name`, `description`)
 - Writing description in first person ("I can help") or second person ("you can use")
 - Using vague or generic trigger keywords
@@ -85,7 +85,7 @@ Best practices for authoring Claude Code skills in the `skills/` directory. Cove
 4. Write "Use this skill when" section with activation scenarios
 5. Define Inputs section (required and optional with defaults)
 6. Define Outputs section (file paths, formats, no-overwrite behavior)
-7. Create workflow files in `workflows/` for each phase (keep SKILL.md under 500 lines)
+7. Create workflow files in `workflows/` for each phase (see Size Limit below)
 8. Create example files in `examples/` showing complete walkthroughs
 9. Create test files in `tests/` with input validation and workflow tests
 10. Create README.md with usage documentation and quick start
@@ -114,7 +114,7 @@ Skill directory structure with:
 - `name` follows format requirements (lowercase-hyphens, max 64 chars, no reserved words)
 - `description` written in third person, max 1024 chars, includes trigger keywords
 - `description` includes both WHAT skill does and WHEN to use it
-- SKILL.md body under 500 lines (progressive disclosure used if needed)
+- SKILL.md body under 500 lines (see Size Limit in Key Principles)
 - All workflow files referenced in SKILL.md exist
 - All example files demonstrate complete workflows
 - Input validation covers required fields and format constraints
@@ -139,7 +139,7 @@ Skill directory structure with:
 - [ ] YAML frontmatter is parseable (valid YAML syntax)
 
 **Content Quality:**
-- [ ] SKILL.md body under 500 lines (use progressive disclosure if longer)
+- [ ] SKILL.md body under 500 lines (see Size Limit in Key Principles)
 - [ ] Description written in third person (no "I" or "you")
 - [ ] Appropriate degrees of freedom set for task fragility
 - [ ] Assumes Claude's existing knowledge (concise, not verbose)
@@ -289,22 +289,13 @@ description: Review project documentation. Triggers on "review docs", "audit doc
 
 #### Concise is Key
 
-The context window is a public good shared with:
-- System prompt
-- Conversation history
-- Other skills' metadata
-- User's actual request
+The context window is shared with system prompt, conversation history, other skills' metadata, and user requests.
 
 **Default assumption:** Claude is already very smart. Only add context Claude doesn't already have.
 
-Challenge each piece of information:
-- "Does Claude really need this explanation?"
-- "Can I assume Claude knows this?"
-- "Does this paragraph justify its token cost?"
+**Size Limit:** Keep SKILL.md body under 500 lines for optimal performance. If content exceeds this, split into separate files using progressive disclosure patterns.
 
-**Keep SKILL.md body under 500 lines for optimal performance.** If content exceeds this, split into separate files using progressive disclosure patterns.
-
-**Example comparison:**
+**Example comparison:****
 
 ```markdown
 # Concise (Good): ~50 tokens
@@ -534,308 +525,122 @@ When Claude performs complex, open-ended tasks, it can make mistakes. The "plan-
 
 ### Visual Analysis Pattern
 
-When inputs can be rendered as images, have Claude analyze them visually.
-
-**Example: Form layout analysis**
-
-````markdown
-## Form layout analysis
-
-1. Convert PDF to images:
-   ```bash
-   python scripts/pdf_to_images.py form.pdf
-   ```
-
-2. Analyze each page image to identify form fields
-3. Claude can see field locations and types visually
-````
-
-Claude's vision capabilities help understand layouts and structures that are difficult to parse from text alone.
+When inputs can be rendered as images, have Claude analyze them visually. Convert PDFs to images, then Claude can see field locations and types. Useful for form layouts and structures difficult to parse from text alone.
 
 ### Skill Composition Pattern (Orchestrator + Worker)
 
 **Problem:** How do you create a "bulk" or "batch" skill that processes multiple items using another skill's workflow?
 
-**Critical Understanding:** Skills cannot invoke other skills programmatically like function calls. The phrase "Use the X skill" is just natural language guidance for human users, not a callable API for agents.
-
-**Solution:** Orchestrator skill loads and follows the worker skill's documented workflow.
-
 **Architecture:**
 
+Orchestrator skill loads and follows the worker skill's documented workflow. Skills cannot invoke other skills programmatically - "Use the X skill" is guidance for users, not a callable API.
+
 ```
-bulk-processor/ (orchestrator skill)
-├── SKILL.md - Defines batch processing logic
-└── workflows/
-    └── batch-execution.md - "For each item: load processor/SKILL.md and follow its workflow"
+bulk-processor/ (orchestrator)
+├── SKILL.md - Batch processing logic  
+└── workflows/batch-execution.md - "For each: load processor/SKILL.md, follow workflow"
 
-processor/ (worker skill)
-├── SKILL.md - Defines single-item processing workflow
-├── rubrics/ - Progressive disclosure of detailed criteria
-└── workflows/ - Step-by-step processing instructions
-```
-
-**Orchestrator Implementation:**
-
-```markdown
-## Workflow: Batch Execution
-
-For each item in batch:
-
-1. **Load worker skill** (first iteration only):
-   - Read `skills/processor/SKILL.md` to understand workflow
-   - Note locations of rubrics/, workflows/, templates/
-   - Prepare to follow documented process
-
-2. **Execute worker workflow** for current item:
-   - Validate inputs per processor/SKILL.md requirements
-   - Run all preprocessing steps defined in workflow
-   - Load rubrics/ as needed (progressive disclosure)
-   - Generate output following processor format
-   - Write result to appropriate location
-
-3. **Track results**:
-   - Store (item_name, status, output_path, metadata)
-   - Continue to next item on failure (don't stop batch)
-
-4. **Progress reporting**:
-   - Show progress every N items
-   - Report: completed, failed, skipped counts
+processor/ (worker)
+├── SKILL.md - Single-item workflow
+└── workflows/ - Step-by-step processing
 ```
 
-**What the orchestrator does:**
-- [CORRECT] Loads worker SKILL.md to understand the workflow
-- [CORRECT] Follows that workflow for each item
-- [CORRECT] Uses progressive disclosure (loads rubrics/workflows as needed)
-- [CORRECT] Maintains same quality standards as single-item processing
-- [CORRECT] Tracks batch-level metadata (progress, failures, resume capability)
+**What orchestrator does:**
+- Loads worker SKILL.md once to understand workflow
+- Follows that workflow for each item
+- Uses progressive disclosure (loads rubrics/workflows as needed)
+- Tracks batch metadata (progress, failures, resume)
 
-**What the orchestrator does NOT do:**
-- [INCORRECT] Try to "invoke" or "call" the worker skill programmatically
-- [INCORRECT] Reimplement the worker's logic without consulting its documentation
-- [INCORRECT] Take shortcuts to optimize for speed/tokens at expense of quality
-- [INCORRECT] Skip progressive disclosure by guessing at scoring criteria
+**What orchestrator does NOT do:**
+- Try to "invoke" worker skill programmatically
+- Reimplement worker logic without consulting docs
+- Skip progressive disclosure
 
-**Real-world example:** `bulk-rule-reviewer` skill orchestrates reviews of 100+ rule files by:
-1. Loading `rule-reviewer/SKILL.md` once to understand review workflow
-2. For each rule: following that workflow (schema validation, rubric scoring, recommendations)
-3. Progressively loading rubrics as needed for dimension scoring
-4. Writing complete review files following rule-reviewer's output format
-5. Aggregating results into summary report
-
-**Why this pattern works:**
-- **Maintains quality:** Each item gets full treatment per documented workflow
-- **Promotes reuse:** Single-item skill remains usable independently
-- **Manages context:** Progressive disclosure loads detail only when needed
-- **Enables resume:** Batch can skip already-processed items
-- **Clear boundaries:** Orchestrator handles batch logic, worker handles item processing
-
-**When to use:**
-- Bulk operations on multiple files/items
-- Periodic audits across entire repositories
-- Batch validation or quality checks
-- Mass migrations or transformations
-
-**Anti-patterns to avoid:**
-
-```markdown
-# [INCORRECT] BAD: Trying to invoke skills programmatically
-For each rule:
-    Present to agent: "Use the rule-reviewer skill. target_file: {rule}"
-    Wait for response: "Review written to: ..."
-    Parse output path from response
-
-# [CORRECT] GOOD: Load and follow the workflow
-# Load rule-reviewer workflow once
-workflow = load_file("skills/rule-reviewer/SKILL.md")
-
-For each rule:
-    # Follow the workflow for this rule
-    execute_review_workflow(
-        rule_file=rule,
-        workflow=workflow,
-        rubrics_path="skills/rule-reviewer/rubrics/"
-    )
-```
-
-**Documentation requirements:**
-- Orchestrator SKILL.md must clearly state: "This skill follows the X workflow by loading skills/X/SKILL.md"
-- Worker SKILL.md must be standalone and complete (assume both individual and batch usage)
-- Both skills should reference each other in Related Skills sections
+**When to use:** Bulk operations, periodic audits, batch validation, mass migrations.
 
 ## Anti-Patterns and Common Mistakes
 
 ### Anti-Pattern 1: Monolithic SKILL.md
 
-**Problem:** Putting all implementation details, examples, and edge cases directly in SKILL.md instead of using progressive disclosure.
-
-```text
-# Bad: Everything in SKILL.md (500+ lines)
-# Purpose section
-...
-# Detailed Step 1 section
-[50 lines of instructions]
-# Detailed Step 2 section
-[100 lines of instructions]
-# Example 1 section
-[Complete walkthrough]
-# Example 2 section
-[Another complete walkthrough]
-# Edge Cases section
-[All edge cases inline]
+**Problem:**
+```markdown
+# BAD: Everything inline (800+ lines)
+## Rubric
+[200 lines of rubric...]
+## Workflow  
+[400 lines of workflow...]
 ```
-
-**Why It Fails:**
-- Consumes excessive context tokens on every skill activation
-- Makes skill updates difficult (changes buried in large file)
-- Overwhelms agent with details before understanding workflow
 
 **Correct Pattern:**
+```markdown
+# GOOD: Progressive disclosure (~250 lines)
+## Quick Reference
+See rubrics/quality-rubric.md for full criteria.
 
-```text
-# Good: SKILL.md as orchestrator
-# Purpose section
-Brief description.
-
-# Workflow section (progressive disclosure)
-1. Phase 1: see workflows/phase-1.md
-2. Phase 2: see workflows/phase-2.md
-
-# Examples section
-- Basic: see examples/basic.md
-- Advanced: see examples/advanced.md
+## Workflow
+1. Read workflows/review-workflow.md
+2. Execute review steps
 ```
-
-**Benefits:**
-- Minimal token cost for skill activation
-- Easy to update individual phases
-- Agent loads detail only when needed
 
 ### Anti-Pattern 2: Missing Input Validation
 
-**Problem:** Accepting inputs without validation, leading to failures deep in workflow execution.
-
+**Problem:**
 ```markdown
-# Bad: No validation
-## Inputs
-- target_file: The file to process
-- mode: Processing mode
-
-[Proceeds directly to workflow without checking inputs]
+# BAD: No validation - fails deep in workflow
+1. Read the file at {path}
+2. Apply rubric...
 ```
-
-**Why It Fails:**
-- Invalid inputs cause cryptic errors mid-workflow
-- Agent wastes tokens on doomed execution paths
-- User experience degraded by late failures
 
 **Correct Pattern:**
-
-```python
-# Good: Explicit validation with quick snippets in SKILL.md
-# Inputs section defines: target_file (path, must exist, must be .md)
-#                         mode (FULL | FOCUSED | STALENESS)
-
-def check_inputs(target_file: str, mode: str) -> tuple[bool, list[str]]:
-    errors = []
-    if not Path(target_file).exists():
-        errors.append(f"File not found: {target_file}")
-    if mode.upper() not in {'FULL', 'FOCUSED', 'STALENESS'}:
-        errors.append(f"Invalid mode: {mode}")
-    return (len(errors) == 0, errors)
+```markdown
+# GOOD: Validate first
+1. Verify {path} exists and is readable
+2. If missing: Report error, stop workflow
+3. Read the file at {path}
 ```
-
-**Benefits:**
-- Fails fast with clear error messages
-- Reduces wasted computation on invalid inputs
-- Improves user experience with actionable feedback
 
 ### Anti-Pattern 3: Vague Trigger Keywords
 
-**Problem:** Using generic or ambiguous keywords that cause false activations or missed activations.
-
+**Problem:**
 ```yaml
-# Bad: Too generic
-description: A skill for working with files and doing things.
+# BAD: Too generic, causes false activations
+description: Helps with files and things.
 ```
-
-**Why It Fails:**
-- "files" and "things" match too many unrelated requests
-- Skill activates when it shouldn't, or fails to activate when it should
-- User confusion about when to use the skill
 
 **Correct Pattern:**
-
 ```yaml
-# Good: Specific action + domain combinations
-description: Create production-ready rule files. Triggers on "create rule", "add rule", "new rule", "generate rule for [technology]".
+# GOOD: Specific action + domain
+description: Reviews rule files for quality. Triggers on "review rule", "audit rules".
 ```
-
-**Benefits:**
-- Precise activation on intended requests
-- Clear user understanding of skill purpose
-- Reduced false positives and negatives
 
 ### Anti-Pattern 4: Description Not in Third Person
 
-**Problem:** Writing skill descriptions in first person ("I can...") or second person ("You can...") instead of third person.
-
+**Problem:**
 ```yaml
-# Bad: First person
-description: I can help you review rule files and check for quality issues.
-
-# Bad: Second person  
-description: You can use this skill to review rules and validate compliance.
+# BAD: First/second person causes skill discovery issues
+description: I can help you review rules.
 ```
-
-**Why It Fails:**
-- Description is injected into system prompt where point-of-view inconsistency causes confusion
-- Reduces skill discovery effectiveness
-- Doesn't match Anthropic's specification for skill descriptions
 
 **Correct Pattern:**
-
 ```yaml
-# Good: Third person with clear triggers
-description: Reviews rule files for quality and compliance. Use when reviewing rules, auditing quality, checking compliance, or validating executability.
+# GOOD: Third person, active voice
+description: Reviews rule files for quality and compliance.
 ```
 
-**Benefits:**
-- Consistent point-of-view in system prompt
-- Improved skill discovery and activation
-- Follows Anthropic's official specification
+### Anti-Pattern 5: SKILL.md Exceeds Size Limit
 
-### Anti-Pattern 5: SKILL.md Exceeds 500 Lines
-
-**Problem:** Including all content directly in SKILL.md without using progressive disclosure, resulting in excessive token consumption on every activation.
-
-```text
-# Bad: 800-line SKILL.md
-[Entire skill documentation inline]
-[All rubrics inline]
-[All examples inline]
-[All workflows inline]
+**Problem:**
+```markdown
+# BAD: 600 lines inline, excessive context consumption
+[All rubrics, workflows, examples embedded...]
 ```
-
-**Why It Fails:**
-- Consumes excessive context window on skill activation
-- Slower processing and higher costs
-- Harder to maintain and update
 
 **Correct Pattern:**
-
-```text
-# Good: 250-line SKILL.md with progressive disclosure
-SKILL.md (overview, input/output contracts, workflow references)
-├── rubrics/*.md (loaded only when scoring)
-├── workflows/*.md (loaded only when executing phase)
-└── examples/*.md (loaded only when needed)
+```markdown
+# GOOD: ~250 lines with references
+See rubrics/ for evaluation criteria.
+See workflows/ for step-by-step guides.
 ```
-
-**Benefits:**
-- Minimal token cost on activation
-- Files loaded on-demand as needed
-- Easier maintenance and updates
-- Better performance
 
 ## Output Format Examples
 

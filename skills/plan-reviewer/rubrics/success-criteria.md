@@ -1,32 +1,68 @@
 # Success Criteria Rubric (20 points)
 
+## Scoring Formula
+
+**Raw Score:** 0-10
+**Weight:** 4
+**Points:** Raw × (4/2) = Raw × 2.0
+
 ## Scoring Criteria
 
-### 5/5 (20 points): Excellent
-- 95-100% of tasks have completion signals
+### 10/10 (20 points): Perfect
+- 100% of tasks have completion signals
 - 100% of criteria are measurable (numbers, exit codes, file existence)
 - 100% of criteria are agent-testable (no human judgment)
 - Verification commands provided for all
 
-### 4/5 (16 points): Good
-- 80-94% of tasks have completion signals
-- 90%+ criteria measurable
-- 90%+ criteria agent-testable
+### 9/10 (18 points): Near-Perfect
+- 95-99% of tasks have completion signals
+- 100% criteria measurable
+- 100% criteria agent-testable
 
-### 3/5 (12 points): Acceptable
-- 60-79% of tasks have completion signals
-- 70-89% criteria measurable
-- 70-89% criteria agent-testable
+### 8/10 (16 points): Excellent
+- 90-94% of tasks have completion signals
+- 95%+ criteria measurable
+- 95%+ criteria agent-testable
 
-### 2/5 (8 points): Needs Work
-- 40-59% of tasks have completion signals
-- 50-69% criteria measurable
-- 50-69% criteria agent-testable
+### 7/10 (14 points): Good
+- 85-89% of tasks have completion signals
+- 90-94% criteria measurable
+- 90-94% criteria agent-testable
 
-### 1/5 (4 points): Poor
-- <40% of tasks have completion signals
-- <50% criteria measurable
-- <50% criteria agent-testable
+### 6/10 (12 points): Acceptable
+- 75-84% of tasks have completion signals
+- 85-89% criteria measurable
+- 85-89% criteria agent-testable
+
+### 5/10 (10 points): Borderline
+- 65-74% of tasks have completion signals
+- 75-84% criteria measurable
+- 75-84% criteria agent-testable
+
+### 4/10 (8 points): Needs Work
+- 55-64% of tasks have completion signals
+- 65-74% criteria measurable
+- 65-74% criteria agent-testable
+
+### 3/10 (6 points): Poor
+- 45-54% of tasks have completion signals
+- 55-64% criteria measurable
+- 55-64% criteria agent-testable
+
+### 2/10 (4 points): Very Poor
+- 35-44% of tasks have completion signals
+- 45-54% criteria measurable
+- 45-54% criteria agent-testable
+
+### 1/10 (2 points): Inadequate
+- 25-34% of tasks have completion signals
+- 35-44% criteria measurable
+- 35-44% criteria agent-testable
+
+### 0/10 (0 points): No Success Criteria
+- <25% of tasks have completion signals
+- <35% criteria measurable
+- <35% criteria agent-testable
 
 ## Counting Definitions
 
@@ -76,13 +112,19 @@ Coverage % = (tasks with criteria / total tasks) × 100
 ## Score Decision Matrix
 
 **Score Tier Criteria:**
-- **5/5 (20 pts):** 95-100% task coverage, 100% measurable, 100% agent-testable
-- **4/5 (16 pts):** 80-94% task coverage, 90%+ measurable, 90%+ agent-testable
-- **3/5 (12 pts):** 60-79% task coverage, 70-89% measurable, 70-89% agent-testable
-- **2/5 (8 pts):** 40-59% task coverage, 50-69% measurable, 50-69% agent-testable
-- **1/5 (4 pts):** <40% task coverage, <50% measurable, <50% agent-testable
+- **10/10 (20 pts):** 100% task coverage, 100% measurable, 100% agent-testable
+- **9/10 (18 pts):** 95-99% task coverage, 100% measurable, 100% agent-testable
+- **8/10 (16 pts):** 90-94% task coverage, 95%+ measurable, 95%+ agent-testable
+- **7/10 (14 pts):** 85-89% task coverage, 90-94% measurable, 90-94% agent-testable
+- **6/10 (12 pts):** 75-84% task coverage, 85-89% measurable, 85-89% agent-testable
+- **5/10 (10 pts):** 65-74% task coverage, 75-84% measurable, 75-84% agent-testable
+- **4/10 (8 pts):** 55-64% task coverage, 65-74% measurable, 65-74% agent-testable
+- **3/10 (6 pts):** 45-54% task coverage, 55-64% measurable, 55-64% agent-testable
+- **2/10 (4 pts):** 35-44% task coverage, 45-54% measurable, 45-54% agent-testable
+- **1/10 (2 pts):** 25-34% task coverage, 35-44% measurable, 35-44% agent-testable
+- **0/10 (0 pts):** <25% task coverage, <35% measurable, <35% agent-testable
 
-**Critical gate:** If <50% of tasks have criteria, cap at 2/5 (8 points)
+**Critical gate:** If <50% of tasks have criteria, cap at 4/10 (8 points)
 
 ## Completion Signal Types
 
@@ -262,12 +304,12 @@ echo "SUCCESS"
 
 ### Step 4: Determine Score
 
-67% coverage = **3/5 (12 points)**
+67% coverage = **5/10 (10 points)**
 
 ### Step 5: Document in Review
 
 ```markdown
-## Success Criteria: 3/5 (12 points)
+## Success Criteria: 5/10 (10 points)
 
 **Task coverage:** 67% (4/6 tasks have criteria)
 

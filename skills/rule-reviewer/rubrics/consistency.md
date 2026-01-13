@@ -1,37 +1,79 @@
 # Consistency Rubric (15 points)
 
+## Scoring Formula
+
+**Raw Score:** 0-10
+**Weight:** 3
+**Points:** Raw × (3/2) = Raw × 1.5
+
 ## Scoring Criteria
 
-### 5/5 (15 points): Excellent
+### 10/10 (15 points): Perfect
 - 0 internal contradictions
 - 0 terminology inconsistencies
 - 100% example-mandate alignment
 - All dependencies valid and referenced
 - All cross-references accurate
 
-### 4/5 (12 points): Good
+### 9/10 (13.5 points): Near-Perfect
 - 0 internal contradictions
-- 1-2 terminology variations
-- 95%+ example-mandate alignment
-- Dependencies mostly correct (1 minor issue)
+- 1 terminology variation
+- 99%+ example-mandate alignment
+- All dependencies valid
 
-### 3/5 (9 points): Acceptable
+### 8/10 (12 points): Excellent
+- 0 internal contradictions
+- 2 terminology variations
+- 97-98% example-mandate alignment
+- 1 minor dependency issue
+
+### 7/10 (10.5 points): Good
+- 0 internal contradictions
+- 3 terminology variations
+- 95-96% example-mandate alignment
+- 1-2 minor dependency issues
+
+### 6/10 (9 points): Acceptable
 - 1 internal contradiction
-- 3-4 terminology variations
-- 85-94% example-mandate alignment
+- 4 terminology variations
+- 90-94% example-mandate alignment
 - 2 dependency issues
 
-### 2/5 (6 points): Needs Work
-- 2-3 internal contradictions
-- 5-7 terminology variations
-- 70-84% example-mandate alignment
-- 3+ dependency issues
+### 5/10 (7.5 points): Borderline
+- 1 internal contradiction
+- 5 terminology variations
+- 85-89% example-mandate alignment
+- 2-3 dependency issues
 
-### 1/5 (3 points): Poor
-- 4+ internal contradictions
-- 8+ terminology variations
-- <70% example-mandate alignment
+### 4/10 (6 points): Needs Work
+- 2 internal contradictions
+- 6 terminology variations
+- 80-84% example-mandate alignment
+- 3 dependency issues
+
+### 3/10 (4.5 points): Poor
+- 2-3 internal contradictions
+- 7 terminology variations
+- 70-79% example-mandate alignment
+- 4 dependency issues
+
+### 2/10 (3 points): Very Poor
+- 3-4 internal contradictions
+- 8-9 terminology variations
+- 60-69% example-mandate alignment
+- 5+ dependency issues
+
+### 1/10 (1.5 points): Inadequate
+- 4-5 internal contradictions
+- 10+ terminology variations
+- 50-59% example-mandate alignment
 - Dependencies broken or circular
+
+### 0/10 (0 points): Not Consistent
+- 6+ internal contradictions
+- Pervasive terminology issues
+- <50% example-mandate alignment
+- Cannot reliably execute
 
 ## Counting Definitions
 
@@ -90,11 +132,17 @@ Alignment % = (compliant examples / total examples) × 100
 ## Score Decision Matrix
 
 **Score Tier Criteria:**
-- **5/5 (15 pts):** 0 contradictions, 0-2 term variations, 95%+ example alignment, 0-1 dependency issues
-- **4/5 (12 pts):** 0 contradictions, 3-4 term variations, 85-94% example alignment, 2 dependency issues
-- **3/5 (9 pts):** 1 contradiction, 5-6 term variations, 75-84% example alignment, 3 dependency issues
-- **2/5 (6 pts):** 2-3 contradictions, 7+ term variations, 60-74% example alignment, 4+ dependency issues
-- **1/5 (3 pts):** 4+ contradictions, any term variations, <60% example alignment, any dependency issues
+- **10/10 (15 pts):** 0 contradictions, 0 term variations, 100% example alignment, 0 dependency issues
+- **9/10 (13.5 pts):** 0 contradictions, 1 term variation, 99%+ example alignment, 0 dependency issues
+- **8/10 (12 pts):** 0 contradictions, 2 term variations, 97-98% example alignment, 1 dependency issue
+- **7/10 (10.5 pts):** 0 contradictions, 3 term variations, 95-96% example alignment, 1-2 dependency issues
+- **6/10 (9 pts):** 1 contradiction, 4 term variations, 90-94% example alignment, 2 dependency issues
+- **5/10 (7.5 pts):** 1 contradiction, 5 term variations, 85-89% example alignment, 2-3 dependency issues
+- **4/10 (6 pts):** 2 contradictions, 6 term variations, 80-84% example alignment, 3 dependency issues
+- **3/10 (4.5 pts):** 2-3 contradictions, 7 term variations, 70-79% example alignment, 4 dependency issues
+- **2/10 (3 pts):** 3-4 contradictions, 8-9 term variations, 60-69% example alignment, 5+ dependency issues
+- **1/10 (1.5 pts):** 4-5 contradictions, 10+ term variations, 50-59% example alignment, broken dependencies
+- **0/10 (0 pts):** 6+ contradictions, pervasive issues, <50% alignment
 
 **Tie-breaker:** If scores span tiers, use the contradiction count as primary determinant.
 
@@ -197,12 +245,12 @@ Line 200: Example shows "SELECT * FROM staging_table"
 - Example alignment: 67% = Confirms 2/5
 - Dependency issues: 1 = Minor
 
-**Final:** 2/5 (6 points) - example alignment is the determining factor
+**Final:** 4/10 (6 points) - example alignment is the determining factor
 
 ### Step 6: Document in Review
 
 ```markdown
-## Consistency: 2/5 (6 points)
+## Consistency: 4/10 (6 points)
 
 **Internal contradictions:** 1
 - Line 45 mandate "no SELECT *" violated by Line 200 example

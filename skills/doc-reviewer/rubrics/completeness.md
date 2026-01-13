@@ -1,37 +1,78 @@
 # Completeness Rubric (25 points)
 
+## Scoring Formula
+
+**Raw Score:** 0-10
+**Weight:** 5
+**Points:** Raw × (5/2) = Raw × 2.5
+
 ## Scoring Criteria
 
-### 5/5 (25 points): Excellent
+### 10/10 (25 points): Perfect
 - All features documented
 - Complete setup instructions (prerequisites → working state)
 - API/CLI reference complete
 - Troubleshooting section present
 - Examples for all major features
 
-### 4/5 (20 points): Good
-- Most features documented (90%+)
+### 9/10 (22.5 points): Near-Perfect
+- 98%+ features documented
+- Setup complete with verification
+- API/CLI complete
+- Comprehensive troubleshooting
+
+### 8/10 (20 points): Excellent
+- 95-97% features documented
+- Setup mostly complete (1 step missing)
+- API/CLI mostly covered
+- Good troubleshooting
+
+### 7/10 (17.5 points): Good
+- 90-94% features documented
 - Setup mostly complete (1-2 steps missing)
 - API/CLI mostly covered
 - Some troubleshooting present
 
-### 3/5 (15 points): Acceptable
-- Core features documented (75-89%)
-- Setup has gaps (3-4 steps missing)
+### 6/10 (15 points): Acceptable
+- 85-89% features documented
+- Setup has minor gaps (2-3 steps missing)
 - API/CLI partially documented
 - Limited troubleshooting
 
-### 2/5 (10 points): Needs Work
-- Many features missing (60-74%)
-- Setup incomplete (>4 steps missing)
+### 5/10 (12.5 points): Borderline
+- 75-84% features documented
+- Setup has gaps (3-4 steps missing)
+- API/CLI partially documented
+- Minimal troubleshooting
+
+### 4/10 (10 points): Needs Work
+- 65-74% features documented
+- Setup incomplete (4-5 steps missing)
 - API/CLI barely documented
 - No troubleshooting
 
-### 1/5 (5 points): Poor
-- Most features undocumented (<60%)
+### 3/10 (7.5 points): Poor
+- 55-64% features documented
+- Setup has major gaps (>5 steps missing)
+- API/CLI barely documented
+- No troubleshooting
+
+### 2/10 (5 points): Very Poor
+- 45-54% features documented
+- Setup unusable
+- Minimal API/CLI docs
+- No troubleshooting
+
+### 1/10 (2.5 points): Inadequate
+- 30-44% features documented
 - Setup unusable
 - No API/CLI docs
 - No troubleshooting
+
+### 0/10 (0 points): Not Complete
+- <30% features documented
+- No setup instructions
+- Not usable
 
 ## Coverage Checklist
 
@@ -100,26 +141,33 @@ Must include:
 ## Scoring Formula
 
 ```
-Base score = 5/5 (25 points)
+Base score = 10/10 (25 points)
 
 Feature coverage:
-  <60%: Cap at 2/5 (10 points)
-  60-74%: Max 3/5 (15 points)
-  75-89%: Max 4/5 (20 points)
-  90-100%: Full 5/5 available
+  <30%: Cap at 0/10 (0 points)
+  30-44%: Max 1/10 (2.5 points)
+  45-54%: Max 2/10 (5 points)
+  55-64%: Max 3/10 (7.5 points)
+  65-74%: Max 4/10 (10 points)
+  75-84%: Max 5/10 (12.5 points)
+  85-89%: Max 6/10 (15 points)
+  90-94%: Max 7/10 (17.5 points)
+  95-97%: Max 8/10 (20 points)
+  98-99%: Max 9/10 (22.5 points)
+  100%: Full 10/10 available
 
-Missing setup steps: -1 point each (up to -5)
-Incomplete API/CLI docs: -2 points
-No troubleshooting: -2 points
-Missing examples: -1 point per type (up to -4)
+Missing setup steps: -0.5 points each (up to -5)
+Incomplete API/CLI docs: -1 point
+No troubleshooting: -1 point
+Missing examples: -0.5 points per type (up to -2)
 
-Minimum score: 1/5 (5 points)
+Minimum score: 0/10 (0 points)
 ```
 
 ## Critical Gate
 
 If setup instructions are incomplete (can't get from zero to working):
-- Cap score at 2/5 (10 points) maximum
+- Cap score at 4/10 (10 points) maximum
 - Mark as CRITICAL issue
 - Users cannot onboard successfully
 
@@ -193,4 +241,4 @@ Use during review:
 - **CLI commands** - Items: 8, Documented: 8, Missing: 0, Coverage %: 100%
 - **Troubleshooting** - Items: 10 common errors, Documented: 6, Missing: 4, Coverage %: 60%
 
-**Overall:** 41/48 documented = 85% → Score: 4/5 (20 points)
+**Overall:** 41/48 documented = 85% → Score: 6/10 (15 points)

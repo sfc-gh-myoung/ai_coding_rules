@@ -1,36 +1,77 @@
 # Staleness Rubric (10 points)
 
+## Scoring Formula
+
+**Raw Score:** 0-10
+**Weight:** 2
+**Points:** Raw × (2/2) = Raw × 1.0
+
 ## Scoring Criteria
 
-### 5/5 (10 points): Excellent
-- LastUpdated: ≤60 days from review date
+### 10/10 (10 points): Perfect
+- LastUpdated: ≤30 days from review date
 - 0 deprecated tools
 - 0 deprecated patterns
 - 0 broken external links
 
-### 4/5 (8 points): Good
-- LastUpdated: 61-180 days
+### 9/10 (9 points): Near-Perfect
+- LastUpdated: 31-60 days
+- 0 deprecated tools
+- 0 deprecated patterns
+- 0 broken links
+
+### 8/10 (8 points): Excellent
+- LastUpdated: 61-90 days
+- 0 deprecated tools
+- 0 deprecated patterns
+- 0-1 broken links
+
+### 7/10 (7 points): Good
+- LastUpdated: 91-180 days
 - 0-1 deprecated tools
 - 0 deprecated patterns
 - 0-1 broken links
 
-### 3/5 (6 points): Acceptable
-- LastUpdated: 181-365 days
+### 6/10 (6 points): Acceptable
+- LastUpdated: 181-270 days
+- 1-2 deprecated tools
+- 0 deprecated patterns
+- 1-2 broken links
+
+### 5/10 (5 points): Borderline
+- LastUpdated: 271-365 days
 - 2-3 deprecated tools
 - 1 deprecated pattern
 - 2-3 broken links
 
-### 2/5 (4 points): Needs Work
-- LastUpdated: 366-730 days
+### 4/10 (4 points): Needs Work
+- LastUpdated: 366-500 days
+- 3-4 deprecated tools
+- 1-2 deprecated patterns
+- 3-4 broken links
+
+### 3/10 (3 points): Poor
+- LastUpdated: 501-730 days
 - 4-5 deprecated tools
 - 2-3 deprecated patterns
 - 4-5 broken links
 
-### 1/5 (2 points): Poor
-- LastUpdated: >730 days OR not declared
-- >5 deprecated tools
-- >3 deprecated patterns
-- >5 broken links
+### 2/10 (2 points): Very Poor
+- LastUpdated: 731-1000 days
+- 5-6 deprecated tools
+- 3-4 deprecated patterns
+- 5-6 broken links
+
+### 1/10 (1 point): Inadequate
+- LastUpdated: >1000 days OR not declared
+- >6 deprecated tools
+- >4 deprecated patterns
+- >6 broken links
+
+### 0/10 (0 points): Obsolete
+- LastUpdated not declared
+- Core technology deprecated
+- Rule no longer applicable
 
 ## Counting Definitions
 
@@ -117,11 +158,17 @@ curl -I --max-time 5 [URL] 2>&1 | head -1
 ## Score Decision Matrix
 
 **Score Tier Criteria:**
-- **5/5 (10 pts):** ≤60 days stale, 0 deprecated tools, 0 patterns, 0 broken links
-- **4/5 (8 pts):** 61-180 days stale, 0-1 deprecated tools, 0 patterns, 0-1 broken links
-- **3/5 (6 pts):** 181-365 days stale, 2-3 deprecated tools, 1 pattern, 2-3 broken links
-- **2/5 (4 pts):** 366-730 days stale, 4-5 deprecated tools, 2-3 patterns, 4-5 broken links
-- **1/5 (2 pts):** >730 days stale, >5 deprecated tools, >3 patterns, >5 broken links
+- **10/10 (10 pts):** ≤30 days stale, 0 deprecated tools, 0 patterns, 0 broken links
+- **9/10 (9 pts):** 31-60 days stale, 0 deprecated tools, 0 patterns, 0 broken links
+- **8/10 (8 pts):** 61-90 days stale, 0 deprecated tools, 0 patterns, 0-1 broken links
+- **7/10 (7 pts):** 91-180 days stale, 0-1 deprecated tools, 0 patterns, 0-1 broken links
+- **6/10 (6 pts):** 181-270 days stale, 1-2 deprecated tools, 0 patterns, 1-2 broken links
+- **5/10 (5 pts):** 271-365 days stale, 2-3 deprecated tools, 1 pattern, 2-3 broken links
+- **4/10 (4 pts):** 366-500 days stale, 3-4 deprecated tools, 1-2 patterns, 3-4 broken links
+- **3/10 (3 pts):** 501-730 days stale, 4-5 deprecated tools, 2-3 patterns, 4-5 broken links
+- **2/10 (2 pts):** 731-1000 days stale, 5-6 deprecated tools, 3-4 patterns, 5-6 broken links
+- **1/10 (1 pt):** >1000 days stale OR not declared, >6 deprecated tools, >4 patterns, >6 broken links
+- **0/10 (0 pts):** Not declared, core technology deprecated, rule obsolete
 
 **Primary determinant:** LastUpdated days (overrides if in lower tier)
 
@@ -279,7 +326,7 @@ Metadata:
 LastUpdated: 2025-06-15
 ```
 
-Days stale: 205 days = 3/5 tier (181-365 days)
+Days stale: 205 days = 6/10 tier (181-270 days)
 
 ### Step 2: Scan for Deprecated Tools
 
@@ -316,12 +363,12 @@ Days stale: 205 days = 3/5 tier (181-365 days)
 - Deprecated patterns: 0 = 5/5
 - Broken links: 1 = 4/5
 
-**Final:** 3/5 (6 points) - days stale is primary determinant
+**Final:** 5/10 (5 points) - days stale is primary determinant
 
 ### Step 6: Document in Review
 
 ```markdown
-## Staleness: 3/5 (6 points)
+## Staleness: 5/10 (5 points)
 
 **LastUpdated:** 2025-06-15 (205 days ago)
 - Status: Aging (181-365 days tier)

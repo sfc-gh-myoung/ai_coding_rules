@@ -1,33 +1,75 @@
 # Risk Awareness Rubric (5 points)
 
+## Scoring Formula
+
+**Raw Score:** 0-10
+**Weight:** 1
+**Points:** Raw × (1/2) = Raw × 0.5
+
 ## Scoring Criteria
 
-### 5/5 (5 points): Excellent
-- 4+ risk categories addressed
+### 10/10 (5 points): Perfect
+- 4/4 risk categories addressed
 - All risks have probability + impact
 - Mitigation strategies for all risks
-- Rollback procedures documented
+- Rollback procedures documented (4/4 elements)
 - Contingency plans for critical risks
 
-### 4/5 (4 points): Good
+### 9/10 (4.5 points): Near-Perfect
+- 4/4 risk categories addressed
+- All risks have probability + impact
+- Mitigation for all risks
+- Rollback documented (4/4 elements)
+
+### 8/10 (4 points): Excellent
+- 4/4 risk categories addressed
+- Most risks have probability + impact
+- Mitigation for 95%+ risks
+- Rollback documented (3-4/4 elements)
+
+### 7/10 (3.5 points): Good
+- 3-4/4 risk categories addressed
+- Most risks have probability + impact
+- Mitigation for 90%+ risks
+- Basic rollback present (3/4 elements)
+
+### 6/10 (3 points): Acceptable
 - 3/4 risk categories addressed
 - Most risks have probability + impact
-- Mitigation for most risks
-- Basic rollback present
+- Mitigation for most risks (80%+)
+- Basic rollback present (2-3/4 elements)
 
-### 3/5 (3 points): Acceptable
+### 5/10 (2.5 points): Borderline
+- 2-3/4 risk categories addressed
+- Some risks assessed
+- Some mitigations defined (60-79%)
+- Limited rollback (2/4 elements)
+
+### 4/10 (2 points): Needs Work
 - 2/4 risk categories addressed
 - Some risks assessed
-- Some mitigations defined
-- Limited rollback
+- Some mitigations defined (50-69%)
+- Limited rollback (1-2/4 elements)
 
-### 2/5 (2 points): Needs Work
+### 3/10 (1.5 points): Poor
+- 1-2/4 risk categories addressed
+- Few risks assessed
+- Few mitigations (40-59%)
+- No rollback (1/4 elements)
+
+### 2/10 (1 point): Very Poor
 - 1/4 risk categories addressed
 - Few risks assessed
-- Few mitigations
+- Few mitigations (30-49%)
+- No rollback (0-1/4 elements)
+
+### 1/10 (0.5 points): Inadequate
+- 0-1/4 risk categories addressed
+- No risk assessment
+- No mitigations (<30%)
 - No rollback
 
-### 1/5 (1 point): Poor
+### 0/10 (0 points): No Risk Awareness
 - 0/4 risk categories addressed
 - No risk assessment
 - No mitigations
@@ -105,13 +147,19 @@ Mitigation coverage % = (risks with mitigation / total risks) × 100
 ## Score Decision Matrix
 
 **Score Tier Criteria:**
-- **5/5 (5 pts):** 4/4 categories, complete assessment, 90%+ mitigation, complete rollback
-- **4/5 (4 pts):** 3/4 categories, most assessed, 70-89% mitigation, partial rollback
-- **3/5 (3 pts):** 2/4 categories, some assessed, 50-69% mitigation, minimal rollback
-- **2/5 (2 pts):** 1/4 categories, few assessed, <50% mitigation, missing rollback
-- **1/5 (1 pt):** 0/4 categories, none assessed, no mitigation, missing rollback
+- **10/10 (5 pts):** 4/4 categories, complete assessment, 100% mitigation, complete rollback (4/4)
+- **9/10 (4.5 pts):** 4/4 categories, complete assessment, 100% mitigation, complete rollback (4/4)
+- **8/10 (4 pts):** 4/4 categories, mostly assessed, 95%+ mitigation, rollback (3-4/4)
+- **7/10 (3.5 pts):** 3-4/4 categories, mostly assessed, 90%+ mitigation, rollback (3/4)
+- **6/10 (3 pts):** 3/4 categories, most assessed, 80%+ mitigation, rollback (2-3/4)
+- **5/10 (2.5 pts):** 2-3/4 categories, some assessed, 60-79% mitigation, limited rollback (2/4)
+- **4/10 (2 pts):** 2/4 categories, some assessed, 50-69% mitigation, limited rollback (1-2/4)
+- **3/10 (1.5 pts):** 1-2/4 categories, few assessed, 40-59% mitigation, no rollback (1/4)
+- **2/10 (1 pt):** 1/4 categories, few assessed, 30-49% mitigation, no rollback (0-1/4)
+- **1/10 (0.5 pts):** 0-1/4 categories, none assessed, <30% mitigation, no rollback
+- **0/10 (0 pts):** 0/4 categories, none assessed, no mitigation, no rollback
 
-**Critical gate:** If rollback missing for high-impact changes, cap at 2/5
+**Critical gate:** If rollback missing for high-impact changes, cap at 4/10
 
 ## Risk Categories Detail
 
@@ -321,12 +369,12 @@ Use during review:
 - Rollback: 2/4 = -0.5 points
 
 **Total deductions:** -1 point
-**Final:** 3/5 - 1 = 2/5 (2 points)
+**Final:** 5/10 - 1 = 4/10 (2 points)
 
 ### Step 6: Document in Review
 
 ```markdown
-## Risk Awareness: 2/5 (2 points)
+## Risk Awareness: 4/10 (2 points)
 
 **Categories addressed:** 2/4
 - [YES] Technical risks (build, performance)

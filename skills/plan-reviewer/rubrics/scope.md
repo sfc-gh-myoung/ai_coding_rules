@@ -1,41 +1,87 @@
 # Scope Rubric (15 points)
 
+## Scoring Formula
+
+**Raw Score:** 0-10
+**Weight:** 3
+**Points:** Raw × (3/2) = Raw × 1.5
+
 ## Scoring Criteria
 
-### 5/5 (15 points): Excellent
+### 10/10 (15 points): Perfect
 - 4/4 boundary types defined (what, how much, when, what not)
-- Explicit in-scope list
-- Explicit out-of-scope list
+- Explicit in-scope list (6+ items)
+- Explicit out-of-scope list (4+ items)
 - Termination conditions with verification
 - 0 unbounded phrases
 
-### 4/5 (12 points): Good
-- 3/4 boundary types defined
-- In-scope list present
-- Some exclusions stated
+### 9/10 (13.5 points): Near-Perfect
+- 4/4 boundary types defined
+- Explicit in-scope list (5+ items)
+- Explicit out-of-scope list (3+ items)
+- Termination conditions with verification
+- 1 unbounded phrase
+
+### 8/10 (12 points): Excellent
+- 4/4 boundary types defined
+- Explicit in-scope list (5+ items)
+- Explicit out-of-scope list (3+ items)
 - Termination conditions present
 - 1-2 unbounded phrases
 
-### 3/5 (9 points): Acceptable
-- 2/4 boundary types defined
-- Partial in-scope list
-- Few exclusions
-- Vague termination
+### 7/10 (10.5 points): Good
+- 3/4 boundary types defined
+- In-scope list present (4+ items)
+- Some exclusions stated (2+ items)
+- Termination conditions present
+- 2-3 unbounded phrases
+
+### 6/10 (9 points): Acceptable
+- 3/4 boundary types defined
+- In-scope list present (3-4 items)
+- Some exclusions stated (1-2 items)
+- Termination conditions present
 - 3-4 unbounded phrases
 
-### 2/5 (6 points): Needs Work
+### 5/10 (7.5 points): Borderline
+- 2/4 boundary types defined
+- Partial in-scope list (2-3 items)
+- Few exclusions (1 item)
+- Vague termination
+- 4-5 unbounded phrases
+
+### 4/10 (6 points): Needs Work
+- 2/4 boundary types defined
+- Partial in-scope list (1-2 items)
+- Few exclusions (0-1 items)
+- Vague termination
+- 5-6 unbounded phrases
+
+### 3/10 (4.5 points): Poor
 - 1/4 boundary types defined
 - Inclusions vague
 - No exclusions
 - No termination conditions
-- 5-6 unbounded phrases
+- 6-7 unbounded phrases
 
-### 1/5 (3 points): Poor
+### 2/10 (3 points): Very Poor
+- 1/4 boundary types defined
+- Inclusions vague
+- No exclusions
+- No termination conditions
+- 7-8 unbounded phrases
+
+### 1/10 (1.5 points): Inadequate
 - 0/4 boundary types defined
 - Unbounded scope
 - No boundaries
 - Never-ending work
-- >6 unbounded phrases
+- >8 unbounded phrases
+
+### 0/10 (0 points): No Scope
+- 0/4 boundary types defined
+- Completely unbounded
+- Cannot determine completion
 
 ## Counting Definitions
 
@@ -110,13 +156,19 @@
 ## Score Decision Matrix
 
 **Score Tier Criteria:**
-- **5/5 (15 pts):** 4/4 boundaries, 0 unbounded, 5+ in-scope items, 3+ out-of-scope items, measurable termination
-- **4/5 (12 pts):** 3/4 boundaries, 1-2 unbounded, 3-4 in-scope items, 1-2 out-of-scope items, present termination
-- **3/5 (9 pts):** 2/4 boundaries, 3-4 unbounded, 1-2 in-scope items, 0 out-of-scope items, vague termination
-- **2/5 (6 pts):** 1/4 boundaries, 5-6 unbounded, vague in-scope, none out-of-scope, missing termination
-- **1/5 (3 pts):** 0/4 boundaries, >6 unbounded, none in-scope, none out-of-scope, missing termination
+- **10/10 (15 pts):** 4/4 boundaries, 0 unbounded, 6+ in-scope items, 4+ out-of-scope items, measurable termination
+- **9/10 (13.5 pts):** 4/4 boundaries, 1 unbounded, 5+ in-scope items, 3+ out-of-scope items, measurable termination
+- **8/10 (12 pts):** 4/4 boundaries, 1-2 unbounded, 5+ in-scope items, 3+ out-of-scope items, present termination
+- **7/10 (10.5 pts):** 3/4 boundaries, 2-3 unbounded, 4+ in-scope items, 2+ out-of-scope items, present termination
+- **6/10 (9 pts):** 3/4 boundaries, 3-4 unbounded, 3-4 in-scope items, 1-2 out-of-scope items, present termination
+- **5/10 (7.5 pts):** 2/4 boundaries, 4-5 unbounded, 2-3 in-scope items, 1 out-of-scope item, vague termination
+- **4/10 (6 pts):** 2/4 boundaries, 5-6 unbounded, 1-2 in-scope items, 0-1 out-of-scope items, vague termination
+- **3/10 (4.5 pts):** 1/4 boundaries, 6-7 unbounded, vague in-scope, none out-of-scope, missing termination
+- **2/10 (3 pts):** 1/4 boundaries, 7-8 unbounded, vague in-scope, none out-of-scope, missing termination
+- **1/10 (1.5 pts):** 0/4 boundaries, >8 unbounded, none in-scope, none out-of-scope, missing termination
+- **0/10 (0 pts):** 0/4 boundaries, completely unbounded, cannot determine completion
 
-**Critical gate:** If termination conditions missing, cap at 2/5 (6 points)
+**Critical gate:** If termination conditions missing, cap at 4/10 (6 points)
 
 ## Boundary Verification Table
 
@@ -286,12 +338,12 @@ Out-of-scope: (none stated)
 
 Wait, recalculate: 3/5 baseline (9 pts), no additional deductions apply within tier.
 
-**Final:** 3/5 (9 points)
+**Final:** 5/10 (7.5 points)
 
 ### Step 7: Document in Review
 
 ```markdown
-## Scope: 3/5 (9 points)
+## Scope: 5/10 (7.5 points)
 
 **Boundaries defined:** 2/4
 - [YES] What to change: src/auth/ module

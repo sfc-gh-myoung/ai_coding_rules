@@ -1,36 +1,77 @@
 # Parsability Rubric (15 points)
 
+## Scoring Formula
+
+**Raw Score:** 0-10
+**Weight:** 3
+**Points:** Raw × (3/2) = Raw × 1.5
+
 ## Scoring Criteria
 
-### 5/5 (15 points): Excellent
+### 10/10 (15 points): Perfect
 - Schema validation: 0 errors
 - All 7 metadata fields present and correct
 - Markdown structure valid (proper heading hierarchy)
 - 0 visual formatting issues (no ASCII art, arrows, box drawing)
 
-### 4/5 (12 points): Good
-- Schema validation: 0-2 LOW severity issues only
+### 9/10 (13.5 points): Near-Perfect
+- Schema validation: 0 errors
+- All 7 metadata fields present
+- 1 minor markdown issue
+- 0 visual formatting issues
+
+### 8/10 (12 points): Excellent
+- Schema validation: 1 LOW severity issue
+- 7/7 metadata fields present
+- 2 minor markdown issues
+- 0 visual formatting issues
+
+### 7/10 (10.5 points): Good
+- Schema validation: 2 LOW severity issues
 - 6-7 metadata fields present
-- Markdown mostly valid (1-2 minor issues)
+- 3 markdown issues
 - 0-1 visual formatting issues
 
-### 3/5 (9 points): Acceptable
-- Schema validation: 1-2 MEDIUM errors
+### 6/10 (9 points): Acceptable
+- Schema validation: 1 MEDIUM error
+- 6/7 metadata fields present
+- 4 markdown issues
+- 1 visual formatting issue
+
+### 5/10 (7.5 points): Borderline
+- Schema validation: 2 MEDIUM errors
 - 5-6 metadata fields present
-- Markdown has 3-5 issues
-- 2-3 visual formatting issues
+- 5 markdown issues
+- 2 visual formatting issues
 
-### 2/5 (6 points): Needs Work
-- Schema validation: 1-2 HIGH errors OR 3+ MEDIUM
+### 4/10 (6 points): Needs Work
+- Schema validation: 1 HIGH error OR 3 MEDIUM
+- 4-5 metadata fields present
+- 6-7 markdown issues
+- 3 visual formatting issues
+
+### 3/10 (4.5 points): Poor
+- Schema validation: 2 HIGH errors
 - 3-4 metadata fields present
-- Significant markdown problems (6+ issues)
-- 4+ visual formatting issues
+- 8-9 markdown issues
+- 4 visual formatting issues
 
-### 1/5 (3 points): Poor
-- Schema validation: ≥1 CRITICAL error
-- <3 metadata fields present
+### 2/10 (3 points): Very Poor
+- Schema validation: 3+ HIGH errors
+- 2-3 metadata fields present
+- 10+ markdown issues
+- 5+ visual formatting issues
+
+### 1/10 (1.5 points): Inadequate
+- Schema validation: 1 CRITICAL error
+- 1-2 metadata fields present
 - Malformed markdown
 - Extensive visual formatting
+
+### 0/10 (0 points): Not Parsable
+- Schema validation: Multiple CRITICAL errors
+- Metadata missing or invalid
+- Cannot be parsed by agents
 
 ## Counting Definitions
 
@@ -97,13 +138,19 @@ uv run python scripts/schema_validator.py [target_file]
 ## Score Decision Matrix
 
 **Score Tier Criteria:**
-- **5/5 (15 pts):** 0 schema errors, 7/7 metadata, 0-2 markdown issues, 0 visual issues
-- **4/5 (12 pts):** LOW schema errors only, 6-7/7 metadata, 3-4 markdown issues, 0-1 visual issues
-- **3/5 (9 pts):** 1-2 MEDIUM schema errors, 5-6/7 metadata, 5-6 markdown issues, 2-3 visual issues
-- **2/5 (6 pts):** 1-2 HIGH or 3+ MEDIUM schema errors, 3-4/7 metadata, 7-10 markdown issues, 4-5 visual issues
-- **1/5 (3 pts):** 1+ CRITICAL schema errors, <3/7 metadata, 10+ markdown issues, 6+ visual issues
+- **10/10 (15 pts):** 0 schema errors, 7/7 metadata, 0 markdown issues, 0 visual issues
+- **9/10 (13.5 pts):** 0 schema errors, 7/7 metadata, 1 markdown issue, 0 visual issues
+- **8/10 (12 pts):** 1 LOW schema error, 7/7 metadata, 2 markdown issues, 0 visual issues
+- **7/10 (10.5 pts):** 2 LOW schema errors, 6-7/7 metadata, 3 markdown issues, 0-1 visual issues
+- **6/10 (9 pts):** 1 MEDIUM schema error, 6/7 metadata, 4 markdown issues, 1 visual issue
+- **5/10 (7.5 pts):** 2 MEDIUM schema errors, 5-6/7 metadata, 5 markdown issues, 2 visual issues
+- **4/10 (6 pts):** 1 HIGH or 3 MEDIUM schema errors, 4-5/7 metadata, 6-7 markdown issues, 3 visual issues
+- **3/10 (4.5 pts):** 2 HIGH schema errors, 3-4/7 metadata, 8-9 markdown issues, 4 visual issues
+- **2/10 (3 pts):** 3+ HIGH schema errors, 2-3/7 metadata, 10+ markdown issues, 5+ visual issues
+- **1/10 (1.5 pts):** 1 CRITICAL schema error, 1-2/7 metadata, malformed markdown, extensive visual
+- **0/10 (0 pts):** Multiple CRITICAL errors, metadata invalid, not parsable
 
-**Critical override:** Any CRITICAL schema error caps score at 2/5 (6 points)
+**Critical override:** Any CRITICAL schema error caps score at 2/10 (3 points)
 
 ## Schema Compliance Checklist
 
@@ -307,12 +354,12 @@ $ uv run python scripts/schema_validator.py rules/example.md
 - Markdown: 3 issues = 4/5 range
 - Visual: 1 issue = 4/5 range
 
-**Final:** 2/5 (6 points) - HIGH schema error caps score
+**Final:** 4/10 (6 points) - HIGH schema error caps score
 
 ### Step 6: Document in Review
 
 ```markdown
-## Parsability: 2/5 (6 points)
+## Parsability: 4/10 (6 points)
 
 **Schema validation:**
 - [HIGH] Missing Depends field (line 10) - CAPS SCORE

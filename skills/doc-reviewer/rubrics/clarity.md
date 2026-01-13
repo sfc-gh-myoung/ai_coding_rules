@@ -1,37 +1,78 @@
 # Clarity Rubric (20 points)
 
+## Scoring Formula
+
+**Raw Score:** 0-10
+**Weight:** 4
+**Points:** Raw × (4/2) = Raw × 2.0
+
 ## Scoring Criteria
 
-### 5/5 (20 points): Excellent
+### 10/10 (20 points): Perfect
 - New user can follow without prior knowledge
 - No unexplained jargon
 - Concepts explained before use
 - Examples clarify complex topics
 - Clear, simple language throughout
 
-### 4/5 (16 points): Good
+### 9/10 (18 points): Near-Perfect
+- Accessible to new users
+- 1 unexplained term
+- All concepts explained
+- Excellent examples
+
+### 8/10 (16 points): Excellent
 - Mostly accessible to new users
-- Minimal unexplained jargon (1-2 terms)
+- 1-2 unexplained jargon
 - Most concepts explained
 - Good examples present
 
-### 3/5 (12 points): Acceptable
+### 7/10 (14 points): Good
+- Accessible to most users
+- 2-3 unexplained jargon
+- Most concepts explained
+- Good examples present
+
+### 6/10 (12 points): Acceptable
 - Some assumptions about prior knowledge
-- Some unexplained jargon (3-5 terms)
+- 3-4 unexplained jargon
 - Concepts partially explained
 - Limited examples
 
-### 2/5 (8 points): Needs Work
+### 5/10 (10 points): Borderline
+- Assumes some prior knowledge
+- 4-5 unexplained jargon
+- Concepts partially explained
+- Few examples
+
+### 4/10 (8 points): Needs Work
 - Assumes significant prior knowledge
-- Much unexplained jargon (6-10 terms)
+- 5-7 unexplained jargon
 - Concepts rarely explained
 - Few examples
 
-### 1/5 (4 points): Poor
+### 3/10 (6 points): Poor
+- Assumes significant prior knowledge
+- 7-9 unexplained jargon
+- Concepts rarely explained
+- Inadequate examples
+
+### 2/10 (4 points): Very Poor
+- Assumes expert knowledge
+- 9-12 unexplained jargon
+- No concept explanations
+- Almost no examples
+
+### 1/10 (2 points): Inadequate
 - Impenetrable to new users
-- Extensive jargon (>10 terms)
+- >12 unexplained jargon
 - No concept explanations
 - No examples
+
+### 0/10 (0 points): Not Clear
+- Completely inaccessible
+- Pervasive unexplained terminology
+- Impossible to follow
 
 ## New User Test
 
@@ -44,11 +85,11 @@
 4. Can they troubleshoot basic error?
 
 **Scoring:**
-- All 4: 5/5
-- 3 of 4: 4/5
-- 2 of 4: 3/5
-- 1 of 4: 2/5
-- 0 of 4: 1/5
+- All 4: 10/10
+- 3 of 4: 7/10
+- 2 of 4: 5/10
+- 1 of 4: 3/10
+- 0 of 4: 1/10
 
 ## Jargon Audit
 
@@ -59,7 +100,7 @@ Search for unexplained technical terms:
 - **"API"** - Line: 12, Explained?: Yes, Fix Needed: Already explained
 - **"CRUD"** - Line: 89, Explained?: No, Fix Needed: Add: "Create, Read, Update, Delete operations"
 
-**Penalty:** -0.5 points per unexplained term (up to -5 points)
+**Penalty:** -0.25 points per unexplained term (up to -2.5 points)
 
 ## Concept Introduction Order
 
@@ -137,28 +178,28 @@ result = process_user(form_data)
 ## Scoring Formula
 
 ```
-Base score = 5/5 (20 points)
+Base score = 10/10 (20 points)
 
 New User Test:
-  0/4 scenarios: 1/5 (4 points)
-  1/4 scenarios: 2/5 (8 points)
-  2/4 scenarios: 3/5 (12 points)
-  3/4 scenarios: 4/5 (16 points)
-  4/4 scenarios: 5/5 (20 points)
+  0/4 scenarios: 1/10 (2 points)
+  1/4 scenarios: 3/10 (6 points)
+  2/4 scenarios: 5/10 (10 points)
+  3/4 scenarios: 7/10 (14 points)
+  4/4 scenarios: 10/10 (20 points)
 
 Deductions from base:
-  Unexplained jargon: -0.5 per term (up to -5)
-  Concepts out of order: -1 per instance (up to -3)
-  Overly complex sentences: -0.5 per instance (up to -2)
-  Poor examples: -1 per example (up to -3)
+  Unexplained jargon: -0.25 per term (up to -2.5)
+  Concepts out of order: -0.5 per instance (up to -1.5)
+  Overly complex sentences: -0.25 per instance (up to -1)
+  Poor examples: -0.5 per example (up to -1.5)
 
-Minimum score: 1/5 (4 points)
+Minimum score: 0/10 (0 points)
 ```
 
 ## Critical Gate
 
 If documentation is impenetrable to new users:
-- Cap score at 1/5 (4 points) maximum
+- Cap score at 2/10 (4 points) maximum
 - Mark as CRITICAL issue
 - Documentation fails primary purpose
 

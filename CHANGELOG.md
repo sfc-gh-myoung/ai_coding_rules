@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **refactor(skills):** upgrade all reviewer skills from 5-level to 11-level scoring
+  - All rubrics now use 0-10 raw scores with formula: Raw (0-10) × (Weight / 2) = Points
+  - Maintains 100-point total and unchanged verdict thresholds (90/80/60/40)
+  - Provides finer granularity for scoring (11 levels vs 5 levels)
+  - **rule-reviewer:** Updated 6 rubrics to 11-level scoring
+  - **doc-reviewer:** Updated 6 rubrics to 11-level scoring
+  - **plan-reviewer:** Updated 8 rubrics to 11-level scoring
+  - Critical override thresholds updated from /5 to /10 scale (e.g., ≤2/5 → ≤4/10)
+
+### Added
+- **feat(skills):** add Cross-Agent Consistency dimension to rule-reviewer
+  - New dimension measuring universal agent compatibility (5 points max)
+  - Evaluates: agent-specific syntax, tool-specific branches, universal conditionals
+  - Created `skills/rule-reviewer/rubrics/cross-agent-consistency.md` with 11 scoring levels
+  - Token Efficiency weight reduced from 2 (10 pts) to 1 (5 pts) to accommodate new dimension
+  - Total remains 100 points: 25+25+15+15+5+10+5 = 100
+
 ### Fixed
 - **fix(rules):** correct 26 invalid rule file references across 19 files
   - Fixed 002x series refs (002a-rule-creation-guide→002a-rule-creation, 002b-rule-optimization→002c-rule-optimization, etc.)

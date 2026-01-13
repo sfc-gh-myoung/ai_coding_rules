@@ -10,7 +10,7 @@ The doc-reviewer skill runs Agent-Centric Documentation Reviews (reviews optimiz
 
 Key behaviors:
 
-- **100-point scoring system** with weighted dimensions (Accuracy 25, Completeness 25, Clarity 20, Structure 15, Staleness 10, Consistency 5)
+- **100-point scoring system** using 0-10 raw scores with weighted dimensions: Formula `Raw (0-10) × (Weight / 2) = Points` (Accuracy 25, Completeness 25, Clarity 20, Structure 15, Staleness 10, Consistency 5)
 - Reviews documentation against 6 dimensions: Accuracy, Completeness, Clarity, Consistency, Staleness, Structure
 - Supports three review modes: FULL, FOCUSED, STALENESS
 - Computes `OUTPUT_FILE` as:

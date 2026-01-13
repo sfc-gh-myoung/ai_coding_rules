@@ -108,7 +108,7 @@ st.plotly_chart(fig, width="stretch")
 
 **Load:** `101i-snowflake-streamlit-viz-plotly.md`
 
-### Use PyDeck When:
+### Use PyDeck When
 
 **Use PyDeck (`st.pydeck_chart`) for:**
 - 3D visualizations (extruded polygons, 3D scatter)
@@ -121,7 +121,7 @@ st.plotly_chart(fig, width="stretch")
 
 **Load:** `101j-snowflake-streamlit-viz-pydeck.md`
 
-### Use Altair When:
+### Use Altair When
 
 **Use Altair (`st.altair_chart`) for:**
 - Linked brushing/selection across views

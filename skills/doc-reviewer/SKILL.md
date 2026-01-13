@@ -48,42 +48,45 @@ When `target_files` not specified, reviews:
 
 ### Scoring Formula
 
+**Raw Score Range:** 0-10 per dimension
+**Formula:** Raw (0-10) × (Weight / 2) = Points
+
 **Total: 100 points weighted across 6 dimensions:**
 
 **Critical Dimensions (50 points - wrong/missing info blocks users):**
-- **Accuracy** - Raw: X/5, Weight: ×5, Points: Y/25
-- **Completeness** - Raw: X/5, Weight: ×5, Points: Y/25
+- **Accuracy** - Raw: X/10, Weight: 5, Points: Y/25
+- **Completeness** - Raw: X/10, Weight: 5, Points: Y/25
 
 **Important Dimensions (35 points - affects usability):**
-- **Clarity** - Raw: X/5, Weight: ×4, Points: Y/20
-- **Structure** - Raw: X/5, Weight: ×3, Points: Y/15
+- **Clarity** - Raw: X/10, Weight: 4, Points: Y/20
+- **Structure** - Raw: X/10, Weight: 3, Points: Y/15
 
 **Standard Dimensions (15 points - formatting/conventions):**
-- **Staleness** - Raw: X/5, Weight: ×2, Points: Y/10
-- **Consistency** - Raw: X/5, Weight: ×1, Points: Y/5
+- **Staleness** - Raw: X/10, Weight: 2, Points: Y/10
+- **Consistency** - Raw: X/10, Weight: 1, Points: Y/5
 
 ### Dimension Summaries
 
 **1. Accuracy (25 points) - Is documentation current with codebase?**
 - Measures: File paths exist, commands work, code examples current
-- Key gate: <60% references valid caps at 1/5 (Formula: Valid references / Total references in Cross-Reference Verification Table)
+- Key gate: <60% references valid caps at 2/10 (Formula: Valid references / Total references in Cross-Reference Verification Table)
 - **Requires:** Cross-Reference Verification Table
 
 **2. Completeness (25 points) - Are all features documented?**
 - Measures: Feature coverage, setup steps, API docs, troubleshooting
-- Key gate: Incomplete setup caps at 2/5
+- Key gate: Incomplete setup caps at 4/10
 
 **3. Clarity (20 points) - Is it user-friendly?**
 - Measures: New user test, unexplained jargon, missing examples
-- Key gate: Impenetrable to new users caps at 1/5
+- Key gate: Impenetrable to new users caps at 2/10
 
 **4. Structure (15 points) - Is it well-organized?**
 - Measures: Logical flow, navigation, heading hierarchy
-- Key gate: No structure caps at 1/5
+- Key gate: No structure caps at 2/10
 
 **5. Staleness (10 points) - Are references current?**
 - Measures: Tool versions, broken links, deprecated patterns
-- Key gate: Most links broken caps at 1/5
+- Key gate: Most links broken caps at 2/10
 - **Requires:** Link Validation Table
 
 **6. Consistency (5 points) - Does it follow conventions?**
@@ -120,9 +123,9 @@ When `target_files` not specified, reviews:
 - **<40** - INADEQUATE - Rewrite from scratch
 
 **Critical dimension overrides:**
-- Accuracy ≤2/5 → Minimum NEEDS_IMPROVEMENT
-- Completeness ≤2/5 → Minimum NEEDS_IMPROVEMENT
-- Both ≤2/5 → POOR
+- Accuracy ≤4/10 → Minimum NEEDS_IMPROVEMENT
+- Completeness ≤4/10 → Minimum NEEDS_IMPROVEMENT
+- Both ≤4/10 → POOR
 
 ## Workflow
 

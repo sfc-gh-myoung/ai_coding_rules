@@ -1,32 +1,68 @@
 # Executability Rubric (20 points)
 
+## Scoring Formula
+
+**Raw Score:** 0-10
+**Weight:** 4
+**Points:** Raw × (4/2) = Raw × 2.0
+
 ## Scoring Criteria
 
-### 5/5 (20 points): Excellent
-- 0-3 blocking issues
+### 10/10 (20 points): Perfect
+- 0 blocking issues
 - All steps have explicit commands
 - All conditionals specify exact conditions with else branches
 - 0 judgment calls required
 
-### 4/5 (16 points): Good
-- 4-6 blocking issues
-- 90%+ steps explicit
-- 90%+ conditionals complete
+### 9/10 (18 points): Near-Perfect
+- 1-2 blocking issues
+- 99%+ steps explicit
+- 99%+ conditionals complete
 
-### 3/5 (12 points): Acceptable
-- 7-10 blocking issues
-- 70-89% steps explicit
-- 70-89% conditionals complete
+### 8/10 (16 points): Excellent
+- 3-4 blocking issues
+- 97-98% steps explicit
+- 97-98% conditionals complete
 
-### 2/5 (8 points): Needs Work
-- 11-15 blocking issues
-- 50-69% steps explicit
-- 50-69% conditionals complete
+### 7/10 (14 points): Good
+- 5-6 blocking issues
+- 95-96% steps explicit
+- 95-96% conditionals complete
 
-### 1/5 (4 points): Poor
-- >15 blocking issues
-- <50% steps explicit
+### 6/10 (12 points): Acceptable
+- 7-8 blocking issues
+- 90-94% steps explicit
+- 90-94% conditionals complete
+
+### 5/10 (10 points): Borderline
+- 9-10 blocking issues
+- 85-89% steps explicit
+- 85-89% conditionals complete
+
+### 4/10 (8 points): Needs Work
+- 11-13 blocking issues
+- 70-84% steps explicit
+- 70-84% conditionals complete
+
+### 3/10 (6 points): Poor
+- 14-16 blocking issues
+- 60-69% steps explicit
+- 60-69% conditionals complete
+
+### 2/10 (4 points): Very Poor
+- 17-19 blocking issues
+- 50-59% steps explicit
+- 50-59% conditionals complete
+
+### 1/10 (2 points): Inadequate
+- 20-25 blocking issues
+- 40-49% steps explicit
 - Requires constant human input
+
+### 0/10 (0 points): Not Executable
+- >25 blocking issues
+- <40% steps explicit
+- Cannot execute without major rewrite
 
 ## Counting Definitions
 
@@ -77,11 +113,17 @@
 ## Score Decision Matrix
 
 **Score Tier Criteria:**
-- **5/5 (20 pts):** 0-3 blocking issues - Agent can execute end-to-end
-- **4/5 (16 pts):** 4-6 blocking issues - Minor clarifications needed
-- **3/5 (12 pts):** 7-10 blocking issues - Several steps need refinement
-- **2/5 (8 pts):** 11-15 blocking issues - Significant rewrite needed
-- **1/5 (4 pts):** 16+ blocking issues - Not executable by agents
+- **10/10 (20 pts):** 0 blocking issues - Agent can execute end-to-end
+- **9/10 (18 pts):** 1-2 blocking issues - Near-perfect
+- **8/10 (16 pts):** 3-4 blocking issues - Excellent
+- **7/10 (14 pts):** 5-6 blocking issues - Minor clarifications needed
+- **6/10 (12 pts):** 7-8 blocking issues - Several steps need refinement
+- **5/10 (10 pts):** 9-10 blocking issues - Borderline
+- **4/10 (8 pts):** 11-13 blocking issues - Significant rewrite needed
+- **3/10 (6 pts):** 14-16 blocking issues - Poor
+- **2/10 (4 pts):** 17-19 blocking issues - Very poor
+- **1/10 (2 pts):** 20-25 blocking issues - Inadequate
+- **0/10 (0 pts):** >25 blocking issues - Not executable
 
 ## Pre-Scoring Gate: Agent Execution Test
 
@@ -91,7 +133,8 @@
 - 0-9 blocking issues: 100/100 possible
 - 10-14 blocking issues: 60/100 maximum (NEEDS_WORK)
 - 15-19 blocking issues: 50/100 maximum (POOR_PLAN)
-- 20+ blocking issues: 40/100 maximum (INADEQUATE_PLAN)
+- 20-25 blocking issues: 40/100 maximum (INADEQUATE_PLAN)
+- >25 blocking issues: 30/100 maximum
 
 ## Blocking Issue Tracking
 
@@ -242,12 +285,12 @@ Line 70: "Run tests" (no verification specified)
 
 ### Step 3: Determine Score
 
-5 blocking issues = **4/5 (16 points)**
+5 blocking issues = **7/10 (14 points)**
 
 ### Step 4: Document in Review
 
 ```markdown
-## Executability: 4/5 (16 points)
+## Executability: 7/10 (14 points)
 
 **Blocking issues:** 5
 

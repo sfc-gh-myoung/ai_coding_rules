@@ -1,30 +1,66 @@
 # Actionability Rubric (25 points)
 
+## Scoring Formula
+
+**Raw Score:** 0-10
+**Weight:** 5
+**Points:** Raw × (5/2) = Raw × 2.5
+
 ## Scoring Criteria
 
-### 5/5 (25 points): Excellent
+### 10/10 (25 points): Perfect
 - 0 blocking issues
 - All conditionals have explicit branches (if X then Y; else Z)
 - All actions use imperative voice
 - Quantified examples for all ambiguous terms
 
-### 4/5 (20 points): Good
-- 1-3 blocking issues
-- 90%+ conditionals have explicit branches
-- 90%+ imperative voice
+### 9/10 (22.5 points): Near-Perfect
+- 1 blocking issue
+- 99%+ conditionals have explicit branches
+- 99%+ imperative voice
 
-### 3/5 (15 points): Acceptable
-- 4-6 blocking issues
-- 70-89% conditionals have explicit branches
-- 70-89% imperative voice
+### 8/10 (20 points): Excellent
+- 2-3 blocking issues
+- 97-98% conditionals have explicit branches
+- 97-98% imperative voice
 
-### 2/5 (10 points): Needs Work
-- 7-10 blocking issues
-- 50-69% conditionals have explicit branches
-- 50-69% imperative voice
+### 7/10 (17.5 points): Good
+- 4-5 blocking issues
+- 95-96% conditionals have explicit branches
+- 95-96% imperative voice
 
-### 1/5 (5 points): Poor
-- >10 blocking issues
+### 6/10 (15 points): Acceptable
+- 6-7 blocking issues
+- 90-94% conditionals have explicit branches
+- 90-94% imperative voice
+
+### 5/10 (12.5 points): Borderline
+- 8-9 blocking issues
+- 85-89% conditionals have explicit branches
+- 85-89% imperative voice
+
+### 4/10 (10 points): Needs Work
+- 10-11 blocking issues
+- 80-84% conditionals have explicit branches
+- 80-84% imperative voice
+
+### 3/10 (7.5 points): Poor
+- 12-14 blocking issues
+- 70-79% conditionals have explicit branches
+- 70-79% imperative voice
+
+### 2/10 (5 points): Very Poor
+- 15-17 blocking issues
+- 60-69% conditionals have explicit branches
+- 60-69% imperative voice
+
+### 1/10 (2.5 points): Inadequate
+- 18-20 blocking issues
+- 50-59% conditionals have explicit branches
+- 50-59% imperative voice
+
+### 0/10 (0 points): Not Actionable
+- >20 blocking issues
 - <50% conditionals have explicit branches
 - Agent cannot execute without judgment calls
 
@@ -66,11 +102,17 @@
 ## Score Decision Matrix
 
 **Blocking Issues to Score:**
-- 0 issues: 5/5 (25 pts) - No agent judgment required
-- 1-3 issues: 4/5 (20 pts) - Minor refinements needed
-- 4-6 issues: 3/5 (15 pts) - Several clarifications needed
-- 7-10 issues: 2/5 (10 pts) - Significant rewrite required
-- 11+ issues: 1/5 (5 pts) - Not executable by agents
+- 0 issues: 10/10 (25 pts) - No agent judgment required
+- 1 issue: 9/10 (22.5 pts) - Near-perfect
+- 2-3 issues: 8/10 (20 pts) - Excellent
+- 4-5 issues: 7/10 (17.5 pts) - Minor refinements needed
+- 6-7 issues: 6/10 (15 pts) - Several clarifications needed
+- 8-9 issues: 5/10 (12.5 pts) - Borderline
+- 10-11 issues: 4/10 (10 pts) - Needs work
+- 12-14 issues: 3/10 (7.5 pts) - Poor
+- 15-17 issues: 2/10 (5 pts) - Very poor
+- 18-20 issues: 1/10 (2.5 pts) - Inadequate
+- >20 issues: 0/10 (0 pts) - Not actionable
 
 **Critical Override:**
 - If blocking issues ≥10: Cap overall rule score at 60/100 regardless of other dimensions
@@ -174,12 +216,12 @@ Line 150: "The configuration should be verified"
 
 ### Step 3: Determine Score
 
-7 blocking issues = **2/5 (10 points)**
+7 blocking issues = **6/10 (15 points)**
 
 ### Step 4: Document in Review
 
 ```markdown
-## Actionability: 2/5 (10 points)
+## Actionability: 6/10 (15 points)
 
 **Blocking issues:** 7
 
@@ -216,6 +258,6 @@ Line 150: "The configuration should be verified"
 ## Agent Execution Test Integration
 
 If Agent Execution Test finds ≥10 blocking issues:
-- Cap Actionability at 2/5 maximum
+- Cap Actionability at 4/10 maximum
 - Document each blocking issue with line number
 - Prioritize undefined thresholds in recommendations

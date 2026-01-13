@@ -1,37 +1,78 @@
 # Accuracy Rubric (25 points)
 
+## Scoring Formula
+
+**Raw Score:** 0-10
+**Weight:** 5
+**Points:** Raw × (5/2) = Raw × 2.5
+
 ## Scoring Criteria
 
-### 5/5 (25 points): Excellent
+### 10/10 (25 points): Perfect
 - All file paths exist and are correct
 - All commands execute successfully
 - Code examples are current and functional
 - Function/class names match codebase
-- No broken references (>95% valid)
+- 100% references valid
 
-### 4/5 (20 points): Good
-- 90-95% of references valid
+### 9/10 (22.5 points): Near-Perfect
+- 1 minor reference issue
+- 99%+ references valid
+- All commands work
+- Code examples current
+
+### 8/10 (20 points): Excellent
+- 97-98% of references valid
 - 1-2 minor path errors
+- All commands work
+- Code examples mostly current
+
+### 7/10 (17.5 points): Good
+- 95-96% of references valid
+- 2-3 minor path errors
 - Most commands work
 - Code examples mostly current
 
-### 3/5 (15 points): Acceptable
-- 75-89% of references valid
-- 3-5 path errors
+### 6/10 (15 points): Acceptable
+- 90-94% of references valid
+- 3-4 path errors
+- Most commands work
+- Some code examples outdated
+
+### 5/10 (12.5 points): Borderline
+- 85-89% of references valid
+- 4-5 path errors
 - Some commands outdated
 - Code examples partially outdated
 
-### 2/5 (10 points): Needs Work
-- 60-74% of references valid
-- 6-10 path errors
+### 4/10 (10 points): Needs Work
+- 75-84% of references valid
+- 5-6 path errors
+- Some commands don't work
+- Code examples outdated
+
+### 3/10 (7.5 points): Poor
+- 65-74% of references valid
+- 6-8 path errors
 - Many commands don't work
 - Code examples significantly outdated
 
-### 1/5 (5 points): Poor
-- <60% of references valid
+### 2/10 (5 points): Very Poor
+- 55-64% of references valid
+- 8-10 path errors
+- Many commands broken
+- Code examples very outdated
+
+### 1/10 (2.5 points): Inadequate
+- 40-54% of references valid
 - >10 path errors
 - Most commands broken
 - Code examples completely outdated
+
+### 0/10 (0 points): Not Accurate
+- <40% of references valid
+- Pervasive inaccuracies
+- Documentation unreliable
 
 ## Cross-Reference Verification
 
@@ -137,10 +178,14 @@ Minimum score: 1/5 (5 points)
 
 ## Critical Gate
 
-If <60% of references are valid:
-- Cap score at 1/5 (5 points) maximum
+If <40% of references are valid:
+- Cap score at 0/10 (0 points)
 - Mark as CRITICAL issue
 - Recommendation: Comprehensive accuracy audit required
+
+If <60% of references are valid:
+- Cap score at 2/10 (5 points) maximum
+- Mark as CRITICAL issue
 
 ## Common Accuracy Issues
 
@@ -199,4 +244,4 @@ Create this table during review:
 - Total references: 6
 - Valid: 4 (67%)
 - Invalid: 2 (33%)
-- Score: 3/5 (15 points) based on 67% accuracy
+- Score: 5/10 (12.5 points) based on 67% accuracy

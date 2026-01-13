@@ -13,7 +13,7 @@ format from `skills/rule-reviewer/rubrics/*.md`.
 Key behaviors:
 
 - Uses the rubric and required output structure from `skills/rule-reviewer/rubrics/*.md`
-- **100-point scoring system** with weighted dimensions (dimensions with different point values based on importance) (Actionability 25, Completeness 25, Consistency 15, Parsability 15, Token Efficiency 10, Staleness 10)
+- **100-point scoring system** using 0-10 raw scores with weighted dimensions: Formula `Raw (0-10) × (Weight / 2) = Points` (Actionability 25, Completeness 25, Consistency 15, Parsability 15, Token Efficiency 5, Staleness 10, Cross-Agent Consistency 5)
 - **Priority Compliance Gate** — Evaluates rules against Design Priority Hierarchy before scoring
   - Evaluates rules against the Design Priority Hierarchy from 000-global-core.md before scoring
 - **Agent Execution Test** — First gate counts blocking issues (undefined thresholds, missing branches, ambiguous actions)
@@ -60,15 +60,20 @@ Reviews evaluate rules against the priority order defined in `000-global-core.md
 - Metadata in correct format
 - Section headers at correct levels
 
-**Token Efficiency (10 points):**
+**Token Efficiency (5 points):**
 - Content density appropriate
 - No redundant explanations
-- TokenBudget accurate
+- TokenBudget accurate (within ±5% threshold)
 
 **Staleness (10 points):**
 - References current
 - Links valid
 - Examples up-to-date
+
+**Cross-Agent Consistency (5 points):**
+- Works across all agent types (Claude, GPT, Gemini, etc.)
+- No agent-specific syntax or assumptions
+- Universal conditionals without tool-specific branches
 
 ## Quality Verdicts
 
@@ -163,7 +168,7 @@ The output filename always uses the base filename (without extension) of `target
 
 ### Q: Where does the rubric come from?
 
-**A:** The skill uses rubric files in `skills/rule-reviewer/rubrics/` (actionability.md, completeness.md, consistency.md, parsability.md, token-efficiency.md, staleness.md) as the rubric and required
+**A:** The skill uses rubric files in `skills/rule-reviewer/rubrics/` (actionability.md, completeness.md, consistency.md, parsability.md, token-efficiency.md, staleness.md, cross-agent-consistency.md) as the rubric and required
 output format and writes the final review to `reviews/`.
 
 ### Q: Can I use rule-reviewer in a deployed project?

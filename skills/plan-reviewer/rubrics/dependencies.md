@@ -1,37 +1,89 @@
 # Dependencies Rubric (10 points)
 
+## Scoring Formula
+
+**Raw Score:** 0-10
+**Weight:** 2
+**Points:** Raw × (2/2) = Raw × 1.0
+
 ## Scoring Criteria
 
-### 5/5 (10 points): Excellent
+### 10/10 (10 points): Perfect
 - 5/5 dependency categories addressed
 - 100% tools have versions specified
 - Task ordering dependencies explicit
 - Access requirements with verification
-- Environment assumptions documented
+- Environment assumptions complete (6/6)
 
-### 4/5 (8 points): Good
+### 9/10 (9 points): Near-Perfect
+- 5/5 dependency categories addressed
+- 95-99% tools have versions
+- Ordering explicit
+- Access requirements with verification
+- Environment assumptions 5-6/6
+
+### 8/10 (8 points): Excellent
+- 5/5 dependency categories addressed
+- 90-94% tools have versions
+- Ordering explicit
+- Access requirements stated
+- Environment assumptions 5/6
+
+### 7/10 (7 points): Good
 - 4/5 dependency categories addressed
-- 80%+ tools have versions
+- 85-89% tools have versions
 - Most ordering clear
 - Access requirements stated
+- Environment assumptions 4/6
 
-### 3/5 (6 points): Acceptable
+### 6/10 (6 points): Acceptable
+- 4/5 dependency categories addressed
+- 80-84% tools have versions
+- Most ordering clear
+- Access requirements stated
+- Environment assumptions 3-4/6
+
+### 5/10 (5 points): Borderline
 - 3/5 dependency categories addressed
-- 60-79% tools have versions
+- 70-79% tools have versions
 - Some ordering clear
 - Partial access requirements
+- Environment assumptions 2-3/6
 
-### 2/5 (4 points): Needs Work
+### 4/10 (4 points): Needs Work
+- 3/5 dependency categories addressed
+- 60-69% tools have versions
+- Some ordering clear
+- Partial access requirements
+- Environment assumptions 2/6
+
+### 3/10 (3 points): Poor
 - 2/5 dependency categories addressed
-- 40-59% tools have versions
+- 50-59% tools have versions
 - Ordering unclear
 - Access requirements missing
+- Environment assumptions 1/6
 
-### 1/5 (2 points): Poor
-- 0-1/5 dependency categories addressed
-- <40% tools have versions
+### 2/10 (2 points): Very Poor
+- 2/5 dependency categories addressed
+- 40-49% tools have versions
+- Ordering unclear
+- Access requirements missing
+- Environment assumptions 0-1/6
+
+### 1/10 (1 point): Inadequate
+- 1/5 dependency categories addressed
+- 30-39% tools have versions
 - No ordering
 - No access requirements
+- Environment assumptions 0/6
+
+### 0/10 (0 points): No Dependencies
+- 0/5 dependency categories addressed
+- <30% tools have versions
+- No ordering
+- No access requirements
+- No environment assumptions
 
 ## Counting Definitions
 
@@ -114,11 +166,17 @@ Version coverage % = (tools with versions / tools listed) × 100
 ## Score Decision Matrix
 
 **Score Tier Criteria:**
-- **5/5 (10 pts):** 5/5 categories, 100% tool versions, explicit ordering, complete access, 5-6/6 environment
-- **4/5 (8 pts):** 4/5 categories, 80%+ tool versions, mostly explicit ordering, listed access, 3-4/6 environment
-- **3/5 (6 pts):** 3/5 categories, 60-79% tool versions, some ordering, partial access, 1-2/6 environment
-- **2/5 (4 pts):** 2/5 categories, 40-59% tool versions, unclear ordering, missing access, 0/6 environment
-- **1/5 (2 pts):** 0-1/5 categories, <40% tool versions, no ordering, missing access, 0/6 environment
+- **10/10 (10 pts):** 5/5 categories, 100% tool versions, explicit ordering, complete access, 6/6 environment
+- **9/10 (9 pts):** 5/5 categories, 95-99% tool versions, explicit ordering, access with verification, 5-6/6 environment
+- **8/10 (8 pts):** 5/5 categories, 90-94% tool versions, explicit ordering, access stated, 5/6 environment
+- **7/10 (7 pts):** 4/5 categories, 85-89% tool versions, mostly explicit ordering, access stated, 4/6 environment
+- **6/10 (6 pts):** 4/5 categories, 80-84% tool versions, mostly explicit ordering, access stated, 3-4/6 environment
+- **5/10 (5 pts):** 3/5 categories, 70-79% tool versions, some ordering, partial access, 2-3/6 environment
+- **4/10 (4 pts):** 3/5 categories, 60-69% tool versions, some ordering, partial access, 2/6 environment
+- **3/10 (3 pts):** 2/5 categories, 50-59% tool versions, unclear ordering, missing access, 1/6 environment
+- **2/10 (2 pts):** 2/5 categories, 40-49% tool versions, unclear ordering, missing access, 0-1/6 environment
+- **1/10 (1 pt):** 1/5 categories, 30-39% tool versions, no ordering, missing access, 0/6 environment
+- **0/10 (0 pts):** 0/5 categories, <30% tool versions, no ordering, no access, no environment
 
 ## Dependency Category Details
 
@@ -301,12 +359,12 @@ No verification commands provided
 - Environment: 2/6 = -2 points
 
 **Total deductions:** -3 points from 3/5 baseline
-**Final:** 3/5 (6 points)
+**Final:** 5/10 (5 points)
 
 ### Step 7: Document in Review
 
 ```markdown
-## Dependencies: 3/5 (6 points)
+## Dependencies: 5/10 (5 points)
 
 **Categories addressed:** 3/5
 - [YES] Tool dependencies (60% versioned)

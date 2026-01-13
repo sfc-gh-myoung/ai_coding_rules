@@ -1,33 +1,70 @@
 # Structure Rubric (15 points)
 
+## Scoring Formula
+
+**Raw Score:** 0-10
+**Weight:** 3
+**Points:** Raw × (3/2) = Raw × 1.5
+
 ## Scoring Criteria
 
-### 5/5 (15 points): Excellent
+### 10/10 (15 points): Perfect
 - Logical information flow
 - Clear heading hierarchy
 - Easy navigation
 - Table of contents (for long docs)
 - Sections in appropriate order
 
-### 4/5 (12 points): Good
+### 9/10 (13.5 points): Near-Perfect
+- Excellent flow (1 minor issue)
+- Perfect heading hierarchy
+- Clear navigation
+- TOC present if needed
+
+### 8/10 (12 points): Excellent
 - Mostly logical flow (1-2 ordering issues)
 - Good heading hierarchy
 - Navigation mostly clear
+- TOC present if needed
 
-### 3/5 (9 points): Acceptable
+### 7/10 (10.5 points): Good
+- Good flow (2-3 ordering issues)
+- Good heading hierarchy
+- Navigation mostly clear
+
+### 6/10 (9 points): Acceptable
 - Some flow issues (3-4 ordering problems)
-- Heading hierarchy has gaps
+- Heading hierarchy has 1-2 gaps
 - Navigation somewhat confusing
 
-### 2/5 (6 points): Needs Work
-- Poor flow (>4 ordering problems)
+### 5/10 (7.5 points): Borderline
+- Flow issues (4-5 ordering problems)
+- Heading hierarchy has gaps
+- Navigation confusing
+
+### 4/10 (6 points): Needs Work
+- Poor flow (5-6 ordering problems)
 - Heading hierarchy broken
 - Hard to navigate
 
-### 1/5 (3 points): Poor
+### 3/10 (4.5 points): Poor
+- Poor flow (>6 ordering problems)
+- Heading hierarchy broken
+- Very hard to navigate
+
+### 2/10 (3 points): Very Poor
+- Minimal logical structure
+- Chaotic organization
+- Navigation impossible
+
+### 1/10 (1.5 points): Inadequate
 - No logical structure
 - Chaotic organization
 - Impossible to navigate
+
+### 0/10 (0 points): No Structure
+- Completely unorganized
+- Cannot find information
 
 ## Information Flow
 
@@ -47,11 +84,12 @@ Standard structure for README.md:
 10. **License** (license type)
 
 **Scoring:**
-- Follows standard order: 5/5
-- 1-2 out of order: 4/5
-- 3-4 out of order: 3/5
-- 5+ out of order: 2/5
-- No structure: 1/5
+- Follows standard order: 10/10
+- 1-2 out of order: 8/10
+- 3-4 out of order: 6/10
+- 5-6 out of order: 4/10
+- 7+ out of order: 2/10
+- No structure: 0/10
 
 ### Information Dependencies
 
@@ -164,28 +202,29 @@ See the [setup guide](docs/setup.md)
 ## Scoring Formula
 
 ```
-Base score = 5/5 (15 points)
+Base score = 10/10 (15 points)
 
 Information flow:
-  Follows standard: 5/5
-  1-2 out of order: 4/5 (-1 point)
-  3-4 out of order: 3/5 (-2 points)
-  5+ out of order: 2/5 (-3 points)
-  No structure: 1/5 (-4 points)
+  Follows standard: 10/10
+  1-2 out of order: 8/10 (-0.75 points)
+  3-4 out of order: 6/10 (-1.5 points)
+  5-6 out of order: 4/10 (-2.25 points)
+  7+ out of order: 2/10 (-3 points)
+  No structure: 0/10 (-3.75 points)
 
 Deductions:
-  Broken heading hierarchy: -1 point per issue (up to -3)
-  Missing TOC (>300 lines): -1 point
-  Broken cross-references: -0.5 per link (up to -2)
-  Poor section order: -0.5 per issue (up to -2)
+  Broken heading hierarchy: -0.5 point per issue (up to -1.5)
+  Missing TOC (>300 lines): -0.5 point
+  Broken cross-references: -0.25 per link (up to -1)
+  Poor section order: -0.25 per issue (up to -1)
 
-Minimum score: 1/5 (3 points)
+Minimum score: 0/10 (0 points)
 ```
 
 ## Critical Gate
 
 If documentation has no logical structure:
-- Cap score at 1/5 (3 points) maximum
+- Cap score at 2/10 (3 points) maximum
 - Mark as CRITICAL issue
 - Users cannot find information
 

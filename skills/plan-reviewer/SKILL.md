@@ -72,37 +72,40 @@ Plans are scored on whether autonomous agents can execute them without judgment 
 
 ### Scoring Formula
 
+**Raw Score Range:** 0-10 per dimension
+**Formula:** Raw (0-10) × (Weight / 2) = Points
+
 **Total: 100 points weighted across 8 dimensions:**
 
 **Critical Dimensions (75 points - agent must execute without human intervention):**
-- **Executability** - Raw: X/5, Weight: ×4, Points: Y/20
-- **Completeness** - Raw: X/5, Weight: ×4, Points: Y/20
-- **Success Criteria** - Raw: X/5, Weight: ×4, Points: Y/20
-- **Scope** - Raw: X/5, Weight: ×3, Points: Y/15
+- **Executability** - Raw: X/10, Weight: 4, Points: Y/20
+- **Completeness** - Raw: X/10, Weight: 4, Points: Y/20
+- **Success Criteria** - Raw: X/10, Weight: 4, Points: Y/20
+- **Scope** - Raw: X/10, Weight: 3, Points: Y/15
 
 **Standard Dimensions (25 points - important but recoverable):**
-- **Dependencies** - Raw: X/5, Weight: ×2, Points: Y/10
-- **Decomposition** - Raw: X/5, Weight: ×1, Points: Y/5
-- **Context** - Raw: X/5, Weight: ×1, Points: Y/5
-- **Risk Awareness** - Raw: X/5, Weight: ×1, Points: Y/5
+- **Dependencies** - Raw: X/10, Weight: 2, Points: Y/10
+- **Decomposition** - Raw: X/10, Weight: 1, Points: Y/5
+- **Context** - Raw: X/10, Weight: 1, Points: Y/5
+- **Risk Awareness** - Raw: X/10, Weight: 1, Points: Y/5
 
 ### Dimension Summaries
 
 **1. Executability (20 points) - Can agent execute each step?**
 - Measures: Explicit commands, ambiguous phrases, undefined thresholds
-- Key gate: >15 ambiguous phrases caps at 1/5
+- Key gate: >15 ambiguous phrases caps at 2/10
 
 **2. Completeness (20 points) - Are all steps covered?**
 - Measures: Setup, validation, cleanup, error recovery
-- Key gate: No error recovery caps at 2/5
+- Key gate: No error recovery caps at 4/10
 
 **3. Success Criteria (20 points) - Are completion signals clear?**
 - Measures: Verifiable outputs, measurable criteria, agent-testable
-- Key gate: <50% tasks with criteria caps at 2/5 (Count: Tasks with verifiable success criteria / Total tasks in plan)
+- Key gate: <50% tasks with criteria caps at 4/10 (Count: Tasks with verifiable success criteria / Total tasks in plan)
 
 **4. Scope (15 points) - Is work bounded?**
 - Measures: Scope definition, exclusions, termination conditions
-- Key gate: Unbounded scope caps at 2/5
+- Key gate: Unbounded scope caps at 4/10
 
 **5. Dependencies (10 points) - Are prerequisites clear?**
 - Measures: Tool/package requirements, ordering, access needs
@@ -154,10 +157,10 @@ Count blocking issues:
 - **<40** - INADEQUATE_PLAN - Rewrite from scratch
 
 **Critical dimension overrides:**
-- Executability ≤2/5 → Minimum NEEDS_WORK
-- Completeness ≤2/5 → Minimum NEEDS_WORK
-- Success Criteria ≤2/5 → Minimum NEEDS_WORK
-- 2+ critical dimensions ≤2/5 → POOR_PLAN
+- Executability ≤4/10 → Minimum NEEDS_WORK
+- Completeness ≤4/10 → Minimum NEEDS_WORK
+- Success Criteria ≤4/10 → Minimum NEEDS_WORK
+- 2+ critical dimensions ≤4/10 → POOR_PLAN
 
 ## Workflow
 

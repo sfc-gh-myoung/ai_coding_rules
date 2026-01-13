@@ -1,37 +1,79 @@
 # Staleness Rubric (10 points)
 
+## Scoring Formula
+
+**Raw Score:** 0-10
+**Weight:** 2
+**Points:** Raw × (2/2) = Raw × 1.0
+
 ## Scoring Criteria
 
-### 5/5 (10 points): Excellent
+### 10/10 (10 points): Perfect
 - All tool versions current
 - No deprecated patterns
 - All links valid (200 status)
 - References match current codebase
 - No outdated screenshots/images
 
-### 4/5 (8 points): Good
-- Most tools current (1-2 minor versions old)
-- 1-2 deprecated patterns
-- Most links valid (90%+)
+### 9/10 (9 points): Near-Perfect
+- Tool versions current
+- 0 deprecated patterns
+- 99%+ links valid
+- References current
+
+### 8/10 (8 points): Excellent
+- Most tools current (1 minor version old)
+- 1 deprecated pattern
+- 97-98% links valid
 - References mostly current
 
-### 3/5 (6 points): Acceptable
-- Some tools outdated (3-5 versions old)
-- 3-4 deprecated patterns
-- Some broken links (75-89% valid)
+### 7/10 (7 points): Good
+- Most tools current (1-2 minor versions old)
+- 1-2 deprecated patterns
+- 95-96% links valid
+- References mostly current
+
+### 6/10 (6 points): Acceptable
+- Some tools current (2-3 minor versions old)
+- 2-3 deprecated patterns
+- 90-94% links valid
 - Some stale references
 
-### 2/5 (4 points): Needs Work
-- Many tools outdated (6-10 versions old)
-- 5-7 deprecated patterns
-- Many broken links (60-74% valid)
+### 5/10 (5 points): Borderline
+- Some tools outdated (3-4 versions old)
+- 3-4 deprecated patterns
+- 85-89% links valid
+- Some stale references
+
+### 4/10 (4 points): Needs Work
+- Tools outdated (4-6 versions old)
+- 4-5 deprecated patterns
+- 75-84% links valid
 - Many stale references
 
-### 1/5 (2 points): Poor
+### 3/10 (3 points): Poor
+- Many tools outdated (6-8 versions old)
+- 5-6 deprecated patterns
+- 65-74% links valid
+- Many stale references
+
+### 2/10 (2 points): Very Poor
+- Most tools outdated (8-10 versions old)
+- 6-7 deprecated patterns
+- 55-64% links valid
+- Most references stale
+
+### 1/10 (1 point): Inadequate
 - Most tools obsolete (>10 versions old)
 - >7 deprecated patterns
-- Most links broken (<60% valid)
+- 40-54% links valid
 - References completely outdated
+
+### 0/10 (0 points): Obsolete
+- Tools EOL
+- Pervasive deprecated patterns
+- <40% links valid
+- Documentation unreliable
 
 ## Link Validation
 
@@ -54,10 +96,12 @@ curl -I --max-time 5 https://example.com/ 2>&1 | head -1
 
 **Scoring:**
 - 100% valid: No penalty
-- 90-99% valid: -0 points
+- 97-99% valid: -0 points
+- 90-96% valid: -0.5 point
 - 75-89% valid: -1 point
-- 60-74% valid: -2 points
-- <60% valid: -4 points (cap at 1/5)
+- 60-74% valid: -1.5 points
+- 40-59% valid: -2 points
+- <40% valid: -3 points (cap at 2/10)
 
 ### Check Redirects
 
@@ -141,26 +185,28 @@ async def fetch_data():
 ## Scoring Formula
 
 ```
-Base score = 5/5 (10 points)
+Base score = 10/10 (10 points)
 
 Link validation:
   100%: No penalty
-  90-99%: -0 points
+  97-99%: -0 points
+  90-96%: -0.5 points
   75-89%: -1 point
-  60-74%: -2 points
-  <60%: -4 points
+  60-74%: -1.5 points
+  40-59%: -2 points
+  <40%: -3 points
 
-Tool versions outdated: -0.5 each (up to -3)
-Deprecated patterns: -0.5 each (up to -3)
-Outdated screenshots: -0.5 each (up to -2)
+Tool versions outdated: -0.25 each (up to -1.5)
+Deprecated patterns: -0.25 each (up to -1.5)
+Outdated screenshots: -0.25 each (up to -1)
 
-Minimum score: 1/5 (2 points)
+Minimum score: 0/10 (0 points)
 ```
 
 ## Critical Gate
 
-If most links are broken (<60% valid):
-- Cap score at 1/5 (2 points) maximum
+If most links are broken (<40% valid):
+- Cap score at 2/10 (2 points) maximum
 - Mark as CRITICAL issue
 - Documentation is unreliable
 
@@ -240,4 +286,4 @@ Use during review:
 - Broken/Timeout: 2 (50%)
 - Redirects: 1 (25%)
 - Action required: 3 links need updates
-- Score: 2/5 (4 points) due to <60% valid
+- Score: 4/10 (4 points) due to <60% valid

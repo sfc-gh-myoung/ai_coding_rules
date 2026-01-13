@@ -1,34 +1,76 @@
 # Context Rubric (5 points)
 
+## Scoring Formula
+
+**Raw Score:** 0-10
+**Weight:** 1
+**Points:** Raw × (1/2) = Raw × 0.5
+
 ## Scoring Criteria
 
-### 5/5 (5 points): Excellent
+### 10/10 (5 points): Perfect
 - 100% of key decisions have rationale
 - All non-obvious choices explained
-- Assumptions documented explicitly
-- Tradeoffs acknowledged
+- Assumptions documented explicitly (4/4 types)
+- Tradeoffs acknowledged with alternatives
 - Context preserved across tasks
 
-### 4/5 (4 points): Good
-- 80%+ of key decisions have rationale
+### 9/10 (4.5 points): Near-Perfect
+- 95-99% of key decisions have rationale
+- All non-obvious choices explained
+- Assumptions documented (4/4 types)
+- Tradeoffs acknowledged
+
+### 8/10 (4 points): Excellent
+- 90-94% of key decisions have rationale
 - Most non-obvious choices explained
-- Most assumptions documented
+- Assumptions documented (4/4 types)
+- Tradeoffs acknowledged
+
+### 7/10 (3.5 points): Good
+- 85-89% of key decisions have rationale
+- Most non-obvious choices explained
+- Most assumptions documented (3/4 types)
 - Some tradeoffs acknowledged
 
-### 3/5 (3 points): Acceptable
-- 60-79% of key decisions have rationale
+### 6/10 (3 points): Acceptable
+- 80-84% of key decisions have rationale
+- Most non-obvious choices explained
+- Most assumptions documented (3/4 types)
+- Some tradeoffs acknowledged
+
+### 5/10 (2.5 points): Borderline
+- 70-79% of key decisions have rationale
 - Some non-obvious choices explained
-- Some assumptions documented
+- Some assumptions documented (2/4 types)
 - Few tradeoffs
 
-### 2/5 (2 points): Needs Work
-- 40-59% of key decisions have rationale
+### 4/10 (2 points): Needs Work
+- 60-69% of key decisions have rationale
+- Some non-obvious choices explained
+- Some assumptions documented (2/4 types)
+- Few tradeoffs
+
+### 3/10 (1.5 points): Poor
+- 50-59% of key decisions have rationale
 - Few explanations
-- Assumptions sparse
+- Assumptions sparse (1/4 types)
 - No tradeoffs
 
-### 1/5 (1 point): Poor
-- <40% of key decisions have rationale
+### 2/10 (1 point): Very Poor
+- 40-49% of key decisions have rationale
+- Few explanations
+- Assumptions sparse (1/4 types)
+- No tradeoffs
+
+### 1/10 (0.5 points): Inadequate
+- 30-39% of key decisions have rationale
+- No explanations
+- No assumptions (0/4 types)
+- No tradeoffs
+
+### 0/10 (0 points): No Context
+- <30% of key decisions have rationale
 - No explanations
 - No assumptions
 - No tradeoffs
@@ -103,11 +145,17 @@ Rationale coverage % = (decisions with rationale / total key decisions) × 100
 ## Score Decision Matrix
 
 **Score Tier Criteria:**
-- **5/5 (5 pts):** 100% rationale coverage, all non-obvious explained, 4/4 assumption types, tradeoffs present
-- **4/5 (4 pts):** 80%+ rationale coverage, most non-obvious explained, 3/4 assumption types, tradeoffs present
-- **3/5 (3 pts):** 60-79% rationale coverage, some non-obvious explained, 2/4 assumption types, some tradeoffs
-- **2/5 (2 pts):** 40-59% rationale coverage, few non-obvious explained, 1/4 assumption types, no tradeoffs
-- **1/5 (1 pt):** <40% rationale coverage, none explained, 0/4 assumption types, no tradeoffs
+- **10/10 (5 pts):** 100% rationale coverage, all non-obvious explained, 4/4 assumption types, tradeoffs with alternatives
+- **9/10 (4.5 pts):** 95-99% rationale coverage, all non-obvious explained, 4/4 assumption types, tradeoffs present
+- **8/10 (4 pts):** 90-94% rationale coverage, most non-obvious explained, 4/4 assumption types, tradeoffs present
+- **7/10 (3.5 pts):** 85-89% rationale coverage, most non-obvious explained, 3/4 assumption types, some tradeoffs
+- **6/10 (3 pts):** 80-84% rationale coverage, most non-obvious explained, 3/4 assumption types, some tradeoffs
+- **5/10 (2.5 pts):** 70-79% rationale coverage, some non-obvious explained, 2/4 assumption types, few tradeoffs
+- **4/10 (2 pts):** 60-69% rationale coverage, some non-obvious explained, 2/4 assumption types, few tradeoffs
+- **3/10 (1.5 pts):** 50-59% rationale coverage, few explanations, 1/4 assumption types, no tradeoffs
+- **2/10 (1 pt):** 40-49% rationale coverage, few explanations, 1/4 assumption types, no tradeoffs
+- **1/10 (0.5 pts):** 30-39% rationale coverage, none explained, 0/4 assumption types, no tradeoffs
+- **0/10 (0 pts):** <30% rationale coverage, none explained, no assumptions, no tradeoffs
 
 ## Context Requirements
 
@@ -281,12 +329,12 @@ PostgreSQL, Kubernetes: no alternatives mentioned
 - Tradeoffs: Incomplete = -0.5 points
 
 **Total deductions:** -2.5 points from baseline
-**Final:** 3/5 (3 points)
+**Final:** 5/10 (2.5 points)
 
 ### Step 7: Document in Review
 
 ```markdown
-## Context: 3/5 (3 points)
+## Context: 5/10 (2.5 points)
 
 **Rationale coverage:** 60% (3/5 decisions)
 - [YES] PostgreSQL: ACID requirements explained

@@ -1,41 +1,89 @@
 # Completeness Rubric (20 points)
 
+## Scoring Formula
+
+**Raw Score:** 0-10
+**Weight:** 4
+**Points:** Raw × (4/2) = Raw × 2.0
+
 ## Scoring Criteria
 
-### 5/5 (20 points): Excellent
+### 10/10 (20 points): Perfect
 - Setup: 5/5 required elements present
+- Validation: 3/3 phases documented
+- Error recovery: 5+ scenarios with steps
+- Cleanup: Complete with verification
+- Edge cases: 90%+ coverage
+
+### 9/10 (18 points): Near-Perfect
+- Setup: 5/5 elements present
 - Validation: 3/3 phases documented
 - Error recovery: 4+ scenarios with steps
 - Cleanup: Complete with verification
-- Edge cases: 80%+ coverage
+- Edge cases: 85-89% coverage
 
-### 4/5 (16 points): Good
+### 8/10 (16 points): Excellent
+- Setup: 5/5 elements present
+- Validation: 3/3 phases documented
+- Error recovery: 4 scenarios with steps
+- Cleanup: Complete
+- Edge cases: 80-84% coverage
+
+### 7/10 (14 points): Good
+- Setup: 4/5 elements present
+- Validation: 2-3/3 phases documented
+- Error recovery: 3 scenarios with steps
+- Cleanup: Present but partial
+- Edge cases: 70-79% coverage
+
+### 6/10 (12 points): Acceptable
 - Setup: 4/5 elements present
 - Validation: 2-3/3 phases documented
 - Error recovery: 2-3 scenarios
 - Cleanup: Present but partial
-- Edge cases: 60-79% coverage
+- Edge cases: 60-69% coverage
 
-### 3/5 (12 points): Acceptable
+### 5/10 (10 points): Borderline
+- Setup: 3/5 elements present
+- Validation: 2/3 phases documented
+- Error recovery: 2 scenarios
+- Cleanup: Minimal
+- Edge cases: 50-59% coverage
+
+### 4/10 (8 points): Needs Work
 - Setup: 3/5 elements present
 - Validation: 1-2/3 phases documented
 - Error recovery: 1 scenario
 - Cleanup: Minimal
-- Edge cases: 40-59% coverage
+- Edge cases: 40-49% coverage
 
-### 2/5 (8 points): Needs Work
+### 3/10 (6 points): Poor
+- Setup: 2/5 elements present
+- Validation: 1/3 phase documented
+- Error recovery: 0-1 scenarios
+- Cleanup: Missing
+- Edge cases: 30-39% coverage
+
+### 2/10 (4 points): Very Poor
 - Setup: 2/5 elements present
 - Validation: 0-1/3 phases documented
 - Error recovery: 0 scenarios
 - Cleanup: Missing
-- Edge cases: 20-39% coverage
+- Edge cases: 20-29% coverage
 
-### 1/5 (4 points): Poor
-- Setup: 0-1/5 elements present
+### 1/10 (2 points): Inadequate
+- Setup: 1/5 elements present
 - Validation: Not documented
 - Error recovery: Not documented
 - Cleanup: Not documented
-- Edge cases: <20% coverage
+- Edge cases: 10-19% coverage
+
+### 0/10 (0 points): Not Complete
+- Setup: 0/5 elements present
+- Validation: Not documented
+- Error recovery: Not documented
+- Cleanup: Not documented
+- Edge cases: <10% coverage
 
 ## Counting Definitions
 
@@ -133,13 +181,19 @@ Coverage % = (items addressed / 12 total) × 100
 ## Score Decision Matrix
 
 **Score Tier Criteria:**
-- **5/5 (20 pts):** 5/5 setup, 3/3 validation, 4+ error recovery, complete cleanup, 80%+ edge cases
-- **4/5 (16 pts):** 4/5 setup, 2-3/3 validation, 2-3 error recovery, partial cleanup, 60-79% edge cases
-- **3/5 (12 pts):** 3/5 setup, 1-2/3 validation, 1 error recovery, minimal cleanup, 40-59% edge cases
-- **2/5 (8 pts):** 2/5 setup, 0-1/3 validation, 0 error recovery, missing cleanup, 20-39% edge cases
-- **1/5 (4 pts):** 0-1/5 setup, 0/3 validation, 0 error recovery, missing cleanup, <20% edge cases
+- **10/10 (20 pts):** 5/5 setup, 3/3 validation, 5+ error recovery, complete cleanup, 90%+ edge cases
+- **9/10 (18 pts):** 5/5 setup, 3/3 validation, 4+ error recovery, complete cleanup, 85-89% edge cases
+- **8/10 (16 pts):** 5/5 setup, 3/3 validation, 4 error recovery, complete cleanup, 80-84% edge cases
+- **7/10 (14 pts):** 4/5 setup, 2-3/3 validation, 3 error recovery, partial cleanup, 70-79% edge cases
+- **6/10 (12 pts):** 4/5 setup, 2-3/3 validation, 2-3 error recovery, partial cleanup, 60-69% edge cases
+- **5/10 (10 pts):** 3/5 setup, 2/3 validation, 2 error recovery, minimal cleanup, 50-59% edge cases
+- **4/10 (8 pts):** 3/5 setup, 1-2/3 validation, 1 error recovery, minimal cleanup, 40-49% edge cases
+- **3/10 (6 pts):** 2/5 setup, 1/3 validation, 0-1 error recovery, missing cleanup, 30-39% edge cases
+- **2/10 (4 pts):** 2/5 setup, 0-1/3 validation, 0 error recovery, missing cleanup, 20-29% edge cases
+- **1/10 (2 pts):** 1/5 setup, 0/3 validation, 0 error recovery, missing cleanup, 10-19% edge cases
+- **0/10 (0 pts):** 0/5 setup, 0/3 validation, 0 error recovery, missing cleanup, <10% edge cases
 
-**Critical gate:** If error recovery = 0, cap at 2/5 (8 points)
+**Critical gate:** If error recovery = 0, cap at 4/10 (8 points)
 
 ## Required Components Checklist
 
@@ -320,12 +374,12 @@ Recovery:
 - Edge cases: 33% = -3 points
 
 **Total deductions:** -8 points
-**Final:** 12 points = 3/5 (Acceptable)
+**Final:** 12 points = 6/10 (Acceptable)
 
 ### Step 7: Document in Review
 
 ```markdown
-## Completeness: 3/5 (12 points)
+## Completeness: 6/10 (12 points)
 
 **Setup:** 4/5 elements
 - [YES] Prerequisites, environment, dependencies, verification

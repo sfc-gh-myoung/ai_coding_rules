@@ -10,7 +10,7 @@ The plan-reviewer skill runs Agent-Centric Plan Reviews (reviews optimized for A
 
 Key behaviors:
 
-- **100-point scoring system** with weighted dimensions (dimensions with different point values based on importance) (Executability 20, Completeness 20, Success Criteria 20, Scope 15, Dependencies 10, Decomposition 5, Context 5, Risk Awareness 5)
+- **100-point scoring system** using 0-10 raw scores with weighted dimensions: Formula `Raw (0-10) × (Weight / 2) = Points` (Executability 20, Completeness 20, Success Criteria 20, Scope 15, Dependencies 10, Decomposition 5, Context 5, Risk Awareness 5)
 - **Priority Compliance Gate** — Evaluates plans against Design Priority Hierarchy before scoring
 - **Agent Execution Test** — First gate counts blocking issues (ambiguous phrases, implicit commands, missing branches, undefined thresholds)
 - Reviews plans against 8 dimensions: Executability, Completeness, Success Criteria, Scope, Dependencies, Decomposition, Context, Risk Awareness

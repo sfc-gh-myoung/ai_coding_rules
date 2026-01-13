@@ -1,32 +1,68 @@
-# Token Efficiency Rubric (10 points)
+# Token Efficiency Rubric (5 points)
+
+## Scoring Formula
+
+**Raw Score:** 0-10
+**Weight:** 1
+**Points:** Raw × (1/2) = Raw × 0.5
 
 ## Scoring Criteria
 
-### 5/5 (10 points): Excellent
-- TokenBudget variance: ≤5%
-- 0-1 redundancy instances
-- 90%+ structured format (lists over prose)
+### 10/10 (5 points): Perfect
+- TokenBudget variance: ≤3%
+- 0 redundancy instances
+- 95%+ structured format (lists over prose)
 - References used instead of duplication
 
-### 4/5 (8 points): Good
-- TokenBudget variance: 6-10%
+### 9/10 (4.5 points): Near-Perfect
+- TokenBudget variance: 4-5%
+- 0-1 redundancy instances
+- 93-94% structured format
+
+### 8/10 (4 points): Excellent
+- TokenBudget variance: 6-7%
+- 1-2 redundancy instances
+- 90-92% structured format
+
+### 7/10 (3.5 points): Good
+- TokenBudget variance: 8-10%
 - 2-3 redundancy instances
-- 80-89% structured format
+- 85-89% structured format
 
-### 3/5 (6 points): Acceptable
-- TokenBudget variance: 11-20%
-- 4-6 redundancy instances
-- 60-79% structured format
+### 6/10 (3 points): Acceptable
+- TokenBudget variance: 11-15%
+- 3-4 redundancy instances
+- 80-84% structured format
 
-### 2/5 (4 points): Needs Work
-- TokenBudget variance: 21-40%
-- 7-10 redundancy instances
-- 40-59% structured format
+### 5/10 (2.5 points): Borderline
+- TokenBudget variance: 16-20%
+- 4-5 redundancy instances
+- 70-79% structured format
 
-### 1/5 (2 points): Poor
-- TokenBudget variance: >40% OR not declared
+### 4/10 (2 points): Needs Work
+- TokenBudget variance: 21-30%
+- 5-6 redundancy instances
+- 60-69% structured format
+
+### 3/10 (1.5 points): Poor
+- TokenBudget variance: 31-40%
+- 7-8 redundancy instances
+- 50-59% structured format
+
+### 2/10 (1 point): Very Poor
+- TokenBudget variance: 41-50%
+- 9-10 redundancy instances
+- 40-49% structured format
+
+### 1/10 (0.5 points): Inadequate
+- TokenBudget variance: >50%
 - >10 redundancy instances
-- <40% structured format
+- 30-39% structured format
+
+### 0/10 (0 points): Not Token Efficient
+- TokenBudget not declared
+- Pervasive redundancy
+- <30% structured format
 
 ## Counting Definitions
 
@@ -108,11 +144,17 @@ Structured % = (structured lines / total content lines) × 100
 ## Score Decision Matrix
 
 **Score Tier Criteria:**
-- **5/5 (10 pts):** ≤5% variance, 0-1 redundancy instances, 90%+ structured format
-- **4/5 (8 pts):** 6-10% variance, 2-3 redundancy instances, 80-89% structured format
-- **3/5 (6 pts):** 11-20% variance, 4-6 redundancy instances, 60-79% structured format
-- **2/5 (4 pts):** 21-40% variance, 7-10 redundancy instances, 40-59% structured format
-- **1/5 (2 pts):** >40% variance, >10 redundancy instances, <40% structured format
+- **10/10 (5 pts):** ≤3% variance, 0 redundancy instances, 95%+ structured format
+- **9/10 (4.5 pts):** 4-5% variance, 0-1 redundancy instances, 93-94% structured format
+- **8/10 (4 pts):** 6-7% variance, 1-2 redundancy instances, 90-92% structured format
+- **7/10 (3.5 pts):** 8-10% variance, 2-3 redundancy instances, 85-89% structured format
+- **6/10 (3 pts):** 11-15% variance, 3-4 redundancy instances, 80-84% structured format
+- **5/10 (2.5 pts):** 16-20% variance, 4-5 redundancy instances, 70-79% structured format
+- **4/10 (2 pts):** 21-30% variance, 5-6 redundancy instances, 60-69% structured format
+- **3/10 (1.5 pts):** 31-40% variance, 7-8 redundancy instances, 50-59% structured format
+- **2/10 (1 pt):** 41-50% variance, 9-10 redundancy instances, 40-49% structured format
+- **1/10 (0.5 pts):** >50% variance, >10 redundancy instances, 30-39% structured format
+- **0/10 (0 pts):** Not declared, pervasive redundancy, <30% structured format
 
 **Primary determinant:** Token variance (overrides other factors if in lower tier)
 
@@ -266,12 +308,12 @@ Structure ratio: 120/200 = 60%
 - Redundancy: 4 instances = 3/5
 - Structure: 60% = 3/5
 
-**Final:** 2/5 (4 points) - variance is primary determinant
+**Final:** 4/10 (2 points) - variance is primary determinant
 
 ### Step 5: Document in Review
 
 ```markdown
-## Token Efficiency: 2/5 (4 points)
+## Token Efficiency: 4/10 (2 points)
 
 **Token budget:**
 - Declared: ~5250

@@ -1,35 +1,77 @@
 # Decomposition Rubric (5 points)
 
+## Scoring Formula
+
+**Raw Score:** 0-10
+**Weight:** 1
+**Points:** Raw × (1/2) = Raw × 0.5
+
 ## Scoring Criteria
 
-### 5/5 (5 points): Excellent
+### 10/10 (5 points): Perfect
 - 100% tasks within 15-120 min range
 - 0 monolithic tasks (>4 hours)
 - Parallelization opportunities identified
 - Logical grouping present
 - Dependencies minimized
 
-### 4/5 (4 points): Good
-- 80%+ tasks within range
+### 9/10 (4.5 points): Near-Perfect
+- 95-99% tasks within range
+- 0 monolithic tasks
+- Parallelization identified
+- Logical grouping present
+
+### 8/10 (4 points): Excellent
+- 90-94% tasks within range
+- 0 monolithic tasks
+- Parallelization identified
+- Grouping present
+
+### 7/10 (3.5 points): Good
+- 85-89% tasks within range
 - 0 monolithic tasks
 - Some parallelization noted
 - Grouping present
 
-### 3/5 (3 points): Acceptable
-- 60-79% tasks within range
+### 6/10 (3 points): Acceptable
+- 80-84% tasks within range
+- 0 monolithic tasks
+- Some parallelization noted
+- Grouping present
+
+### 5/10 (2.5 points): Borderline
+- 70-79% tasks within range
 - 1 monolithic task
 - Limited parallelization
 - Some grouping
 
-### 2/5 (2 points): Needs Work
-- 40-59% tasks within range
+### 4/10 (2 points): Needs Work
+- 60-69% tasks within range
+- 1 monolithic task
+- Limited parallelization
+- Some grouping
+
+### 3/10 (1.5 points): Poor
+- 50-59% tasks within range
+- 2 monolithic tasks
+- No parallelization
+- Poor grouping
+
+### 2/10 (1 point): Very Poor
+- 40-49% tasks within range
 - 2-3 monolithic tasks
 - No parallelization
 - Poor grouping
 
-### 1/5 (1 point): Poor
-- <40% tasks within range
-- 4+ monolithic tasks
+### 1/10 (0.5 points): Inadequate
+- 30-39% tasks within range
+- 3-4 monolithic tasks
+- No parallelization
+- No grouping
+
+### 0/10 (0 points): No Decomposition
+- <30% tasks within range
+- 5+ monolithic tasks
 - No decomposition
 - No grouping
 
@@ -101,11 +143,17 @@ In-range % = (optimal + acceptable) / total tasks × 100
 ## Score Decision Matrix
 
 **Score Tier Criteria:**
-- **5/5 (5 pts):** 100% in-range, 0 monolithic, parallelization identified, logical grouping
-- **4/5 (4 pts):** 80%+ in-range, 0 monolithic, some parallelization, grouping present
-- **3/5 (3 pts):** 60-79% in-range, 1 monolithic, limited parallelization, some grouping
-- **2/5 (2 pts):** 40-59% in-range, 2-3 monolithic, no parallelization, poor grouping
-- **1/5 (1 pt):** <40% in-range, 4+ monolithic, no parallelization, no grouping
+- **10/10 (5 pts):** 100% in-range, 0 monolithic, parallelization identified, logical grouping
+- **9/10 (4.5 pts):** 95-99% in-range, 0 monolithic, parallelization identified, logical grouping
+- **8/10 (4 pts):** 90-94% in-range, 0 monolithic, parallelization identified, grouping present
+- **7/10 (3.5 pts):** 85-89% in-range, 0 monolithic, some parallelization, grouping present
+- **6/10 (3 pts):** 80-84% in-range, 0 monolithic, some parallelization, grouping present
+- **5/10 (2.5 pts):** 70-79% in-range, 1 monolithic, limited parallelization, some grouping
+- **4/10 (2 pts):** 60-69% in-range, 1 monolithic, limited parallelization, some grouping
+- **3/10 (1.5 pts):** 50-59% in-range, 2 monolithic, no parallelization, poor grouping
+- **2/10 (1 pt):** 40-49% in-range, 2-3 monolithic, no parallelization, poor grouping
+- **1/10 (0.5 pts):** 30-39% in-range, 3-4 monolithic, no parallelization, no grouping
+- **0/10 (0 pts):** <30% in-range, 5+ monolithic, no decomposition, no grouping
 
 ## Task Sizing Guidelines
 
@@ -277,12 +325,12 @@ No phase grouping
 - Grouping: Informal = -0.5 points
 
 **Total deductions:** -1 point
-**Final:** 4/5 - 1 = 3/5 (3 points)
+**Final:** 6/10 - 1 = 5/10 (2.5 points)
 
 ### Step 6: Document in Review
 
 ```markdown
-## Decomposition: 3/5 (3 points)
+## Decomposition: 5/10 (2.5 points)
 
 **Task sizing:** 80% in range (4/5)
 

@@ -23,15 +23,24 @@ Output: `reviews/200-python-core-claude-sonnet-45-2026-01-06.md`
 
 ## Scoring System (100 points)
 
+**Raw Score Range:** 0-10 per dimension
+**Formula:** Raw (0-10) × (Weight / 2) = Points
+
 **Dimensions:**
-- **Actionability** - Weight: 25%, Max: 25 points - Can agents execute without judgment?
-- **Completeness** - Weight: 25%, Max: 25 points - All scenarios covered?
-- **Consistency** - Weight: 15%, Max: 15 points - Internal alignment correct?
-- **Parsability** - Weight: 15%, Max: 15 points - Schema valid?
-- **Token Efficiency** - Weight: 10%, Max: 10 points - Within ±5% budget?
-- **Staleness** - Weight: 10%, Max: 10 points - Current patterns?
+- **Actionability** - Weight: 5, Max: 25 points - Can agents execute without judgment?
+- **Completeness** - Weight: 5, Max: 25 points - All scenarios covered?
+- **Consistency** - Weight: 3, Max: 15 points - Internal alignment correct?
+- **Parsability** - Weight: 3, Max: 15 points - Schema valid?
+- **Token Efficiency** - Weight: 1, Max: 5 points - Within ±5% budget?
+- **Staleness** - Weight: 2, Max: 10 points - Current patterns?
+- **Cross-Agent Consistency** - Weight: 1, Max: 5 points - Works across all agents?
 
 **Detailed rubrics:** `rubrics/[dimension].md`
+
+**Example Calculation (Actionability):**
+- Raw score: 8/10
+- Weight: 5
+- Points: 8 × (5/2) = 8 × 2.5 = 20 points
 
 ## Review Modes
 
@@ -103,6 +112,7 @@ Output: `reviews/200-python-core-claude-sonnet-45-2026-01-06.md`
    - `rubrics/parsability.md`
    - `rubrics/token-efficiency.md`
    - `rubrics/staleness.md`
+   - `rubrics/cross-agent-consistency.md`
      - Includes documentation currency check via `web_fetch`
      - See `workflows/doc-currency-check.md` for details
 
@@ -132,7 +142,7 @@ Output: `reviews/200-python-core-claude-sonnet-45-2026-01-06.md`
 - **60-79** - NEEDS_REFINEMENT - Needs work
 - **<60** - NOT_EXECUTABLE - Major issues
 
-**Critical dimension override:** If both Actionability ≤2/5 AND Completeness ≤2/5 → NOT_EXECUTABLE regardless of total score
+**Critical dimension override:** If both Actionability ≤4/10 AND Completeness ≤4/10 → NOT_EXECUTABLE regardless of total score
 
 ## Required Sections in Review
 

@@ -22,9 +22,9 @@ Handle errors gracefully and provide actionable recovery guidance.
 
 ### 3. File System Errors
 
-- **`Cannot create reviews directory`** - Cause: Permission issue, Recovery: Check write permissions
+- **`Cannot create reviews directory`** - Cause: Permission issue, Recovery: Check write permissions for output_root
 - **`Cannot write output file`** - Cause: Disk full or permission issue, Recovery: Free space or fix permissions
-- **`Path too long`** - Cause: Generated filename exceeds OS limit, Recovery: Use shorter model name
+- **`Path too long`** - Cause: Generated filename exceeds OS limit, Recovery: Use shorter model name or output_root
 
 ### 4. Review Execution Errors
 
@@ -47,11 +47,11 @@ If this error persists, see workflows/error-handling.md for detailed guidance.
 
 ### File Write Failure
 
-If unable to write to `reviews/`:
+If unable to write to `{output_root}plan-reviews/`:
 
 1. Output the intended path:
    ```
-   OUTPUT_FILE: reviews/plan-<name>-<model>-<date>.md
+   OUTPUT_FILE: {output_root}plan-reviews/plan-<name>-<model>-<date>.md
    ```
 
 2. Output full review content as markdown

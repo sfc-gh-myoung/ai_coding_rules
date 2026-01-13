@@ -22,7 +22,7 @@ model: claude-sonnet45
 **Expected output file:**
 
 ```
-reviews/README-claude-sonnet45-2025-12-16.md
+reviews/doc-reviews/README-claude-sonnet45-2025-12-16.md
 ```
 
 ---

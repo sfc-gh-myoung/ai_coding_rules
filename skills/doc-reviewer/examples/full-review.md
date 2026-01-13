@@ -1,5 +1,26 @@
 # Example: FULL Review
 
+## Custom Output Directory
+
+```text
+Use the doc-reviewer skill.
+
+review_date: 2025-12-16
+review_mode: FULL
+model: claude-sonnet45
+output_root: mytest/
+```
+
+**Expected output files:**
+
+```
+mytest/doc-reviews/README-claude-sonnet45-2025-12-16.md
+mytest/doc-reviews/CONTRIBUTING-claude-sonnet45-2025-12-16.md
+mytest/doc-reviews/ARCHITECTURE-claude-sonnet45-2025-12-16.md
+```
+
+---
+
 ## Basic Usage (Default Targets)
 
 ```text
@@ -29,9 +50,9 @@ model: claude-sonnet45
 **Expected output files:**
 
 ```
-reviews/README-claude-sonnet45-2025-12-16.md
-reviews/CONTRIBUTING-claude-sonnet45-2025-12-16.md
-reviews/ARCHITECTURE-claude-sonnet45-2025-12-16.md
+reviews/doc-reviews/README-claude-sonnet45-2025-12-16.md
+reviews/doc-reviews/CONTRIBUTING-claude-sonnet45-2025-12-16.md
+reviews/doc-reviews/ARCHITECTURE-claude-sonnet45-2025-12-16.md
 ```
 
 (or `...-01.md`, `...-02.md`, etc. if base filenames already exist)
@@ -52,8 +73,8 @@ model: claude-sonnet45
 **Expected output files:**
 
 ```
-reviews/README-claude-sonnet45-2025-12-16.md
-reviews/ARCHITECTURE-claude-sonnet45-2025-12-16.md
+reviews/doc-reviews/README-claude-sonnet45-2025-12-16.md
+reviews/doc-reviews/ARCHITECTURE-claude-sonnet45-2025-12-16.md
 ```
 
 ---
@@ -73,7 +94,7 @@ model: claude-sonnet45
 **Expected output file:**
 
 ```
-reviews/docs-collection-claude-sonnet45-2025-12-16.md
+reviews/summaries/_docs-collection-claude-sonnet45-2025-12-16.md
 ```
 
 **Collection review structure:**

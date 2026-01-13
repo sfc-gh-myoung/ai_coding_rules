@@ -153,7 +153,7 @@ for rule_path in rule_file_paths:
     rule_name = extract_rule_name(rule_path)
     
     # Build expected review file path
-    expected_review_path = f"reviews/{rule_name}-{model}-{review_date}.md"
+    expected_review_path = f"reviews/rule-reviews/{rule_name}-{model}-{review_date}.md"
     
     # Check if review already exists (resume capability)
     if skip_existing and file_exists(expected_review_path):

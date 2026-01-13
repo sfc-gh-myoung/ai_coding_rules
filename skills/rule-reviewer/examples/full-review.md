@@ -1,5 +1,25 @@
 # Example: FULL Review
 
+## Custom Output Directory
+
+```text
+Use the rule-reviewer skill.
+
+target_file: rules/801-project-readme.md
+review_date: 2025-12-12
+review_mode: FULL
+model: claude-sonnet45
+output_root: mytest/
+```
+
+Expected output file:
+
+`mytest/rule-reviews/801-project-readme-claude-sonnet45-2025-12-12.md`
+
+---
+
+## Default Output Directory
+
 ```text
 Use the rule-reviewer skill.
 
@@ -11,7 +31,7 @@ model: claude-sonnet45
 
 Expected output file:
 
-`reviews/801-project-readme-claude-sonnet45-2025-12-12.md` (or `...-01.md`, `...-02.md`, etc. if the base filename already exists)
+`reviews/rule-reviews/801-project-readme-claude-sonnet45-2025-12-12.md` (or `...-01.md`, `...-02.md`, etc. if the base filename already exists)
 
 ## Review Workflow
 
@@ -100,7 +120,7 @@ Using weighted formula from SKILL.md:
 
 ```bash
 # Agent writes complete review to:
-reviews/801-project-readme-claude-sonnet45-2025-12-12.md
+reviews/rule-reviews/801-project-readme-claude-sonnet45-2025-12-12.md
 ```
 
 **File Size Validation:** 5,234 bytes (within expected range of 3000-8000 for typical rules)

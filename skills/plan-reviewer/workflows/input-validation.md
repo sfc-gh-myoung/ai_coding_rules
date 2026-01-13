@@ -6,6 +6,19 @@ Validate all required inputs before executing a plan review.
 
 ## Validation Steps
 
+### Step 0: Normalize output_root (Optional)
+
+```python
+# Default: reviews/
+# Normalize trailing slash
+output_root = (output_root or 'reviews/').rstrip('/') + '/'
+
+# Auto-create directories
+import os
+subdir = 'plan-reviews' if mode == 'FULL' else 'summaries'
+os.makedirs(f"{output_root}{subdir}", exist_ok=True)
+```
+
 ### Step 1: Check review_mode
 
 ```python

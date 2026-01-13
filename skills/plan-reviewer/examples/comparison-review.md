@@ -192,7 +192,7 @@ Combine the best of both plans:
 
 ---
 
-**Output written to:** reviews/plan-comparison-claude-sonnet45-2025-12-16.md
+**Output written to:** reviews/plan-reviews/summaries/_comparison-claude-sonnet45-2025-12-16.md
 ```
 
 ## Key Points Demonstrated

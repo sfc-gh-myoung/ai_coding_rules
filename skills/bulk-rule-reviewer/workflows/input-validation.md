@@ -4,9 +4,9 @@ Execute validation before Stage 1 (Discovery). Fail fast on invalid inputs.
 
 ## Validation Sequence
 
-1. **Environment checks** - Verify rules/ exists, reviews/ writable
+1. **Environment checks** - Verify rules/ exists, output directories writable
 2. **Required parameters** - review_date, review_mode, model
-3. **Optional parameters** - filter_pattern, skip_existing, max_parallel
+3. **Optional parameters** - filter_pattern, skip_existing, max_parallel, output_root
 4. **Cross-parameter checks** - filter_pattern matches files, etc.
 
 ## Parameter Requirements
@@ -24,6 +24,13 @@ Execute validation before Stage 1 (Discovery). Fail fast on invalid inputs.
 - Format: lowercase-hyphenated (e.g., `claude-sonnet-45`, `gpt-4`)
 - Regex: `^[a-z0-9]+(-[a-z0-9]+)*$`
 - Length: 3-50 characters
+
+### output_root (optional)
+- Root directory for output files
+- Default: `reviews/`
+- Trailing slash auto-normalized
+- Supports relative paths including `../`
+- Subdirectories `rule-reviews/` and `summaries/` appended automatically
 
 ### filter_pattern (optional)
 - Must start with `rules/` and end with `.md`
@@ -46,15 +53,21 @@ Execute validation before Stage 1 (Discovery). Fail fast on invalid inputs.
 - Must be readable
 - Must contain at least 1 .md file
 
-**reviews/ directory:**
+**{output_root}/rule-reviews/ directory:**
 - Must exist or be creatable
 - Must be writable
+
+**{output_root}/summaries/ directory:**
+- Must exist or be creatable
+- Must be writable
+
+(Default `output_root` is `reviews/`)
 
 ## Validation Code Pattern
 
 ```python
 def validate_inputs(review_date, review_mode, model, filter_pattern=None, 
-                    skip_existing=True, max_parallel=1):
+                    skip_existing=True, max_parallel=1, output_root='reviews/'):
     """Validate all input parameters before execution."""
     import re
     import os
@@ -100,11 +113,23 @@ def validate_inputs(review_date, review_mode, model, filter_pattern=None,
     if not os.path.isdir('rules'):
         errors.append("Environment error: rules/ directory not found")
     
-    if not os.path.exists('reviews'):
+    # Normalize output_root
+    output_root = output_root.rstrip('/') + '/'
+    
+    # Auto-create output directories
+    rule_reviews_dir = f"{output_root}rule-reviews"
+    if not os.path.exists(rule_reviews_dir):
         try:
-            os.makedirs('reviews')
+            os.makedirs(rule_reviews_dir, exist_ok=True)
         except OSError:
-            errors.append("Environment error: Cannot create reviews/ directory")
+            errors.append(f"Environment error: Cannot create {rule_reviews_dir}/ directory")
+    
+    summaries_dir = f"{output_root}summaries"
+    if not os.path.exists(summaries_dir):
+        try:
+            os.makedirs(summaries_dir, exist_ok=True)
+        except OSError:
+            errors.append(f"Environment error: Cannot create {summaries_dir}/ directory")
     
     # If errors found, report and exit
     if errors:

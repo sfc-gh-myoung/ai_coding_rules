@@ -16,9 +16,10 @@ Key behaviors:
 - Reviews plans against 8 dimensions: Executability, Completeness, Success Criteria, Scope, Dependencies, Decomposition, Context, Risk Awareness
 - Supports three review modes: FULL, COMPARISON, META-REVIEW
 - Computes `OUTPUT_FILE` as:
-  - FULL mode: `reviews/plan-<plan-name>-<model>-<YYYY-MM-DD>.md`
-  - COMPARISON mode: `reviews/plan-comparison-<model>-<YYYY-MM-DD>.md`
-  - META-REVIEW mode: `reviews/meta-<document-name>-<model>-<YYYY-MM-DD>.md`
+  - FULL mode: `{output_root}plan-reviews/plan-<plan-name>-<model>-<YYYY-MM-DD>.md`
+  - COMPARISON mode: `{output_root}summaries/_comparison-<model>-<YYYY-MM-DD>.md`
+  - META-REVIEW mode: `{output_root}summaries/_meta-<document-name>-<model>-<YYYY-MM-DD>.md`
+  - Default `output_root`: `reviews/`
 - **No-overwrite safety:** If file exists, uses suffix `-01.md`, `-02.md`, etc.
 - Detects ambiguous phrases that require human judgment
 - Verifies success criteria are agent-verifiable
@@ -68,6 +69,18 @@ model: claude-sonnet-45
 timing_enabled: true
 ```
 
+**With custom output directory:**
+
+```text
+Use the plan-reviewer skill.
+
+target_file: plans/IMPROVE_RULE_LOADING.md
+review_date: 2026-01-06
+review_mode: FULL
+model: claude-sonnet-45
+output_root: quarterly-audit/
+```
+
 **COMPARISON mode (multiple plans):**
 
 ```text
@@ -94,11 +107,12 @@ model: claude-sonnet-45
 
 ### 3. Output location
 
-The skill writes reviews to the `reviews/` directory:
+The skill writes reviews to the output directory:
 
-- FULL: `reviews/plan-IMPROVE_RULE_LOADING-claude-sonnet-45-2026-01-06.md`
-- COMPARISON: `reviews/plan-comparison-claude-sonnet-45-2026-01-06.md`
-- META-REVIEW: `reviews/meta-IMPROVE_RULE_LOADING-claude-sonnet-45-2026-01-06.md`
+- Default FULL: `reviews/plan-reviews/plan-IMPROVE_RULE_LOADING-claude-sonnet-45-2026-01-06.md`
+- Default COMPARISON: `reviews/summaries/_comparison-claude-sonnet-45-2026-01-06.md`
+- Default META-REVIEW: `reviews/summaries/_meta-IMPROVE_RULE_LOADING-claude-sonnet-45-2026-01-06.md`
+- With `output_root: quarterly-audit/`: `quarterly-audit/plan-reviews/plan-...`
 
 If the file already exists, suffixes are appended: `-01.md`, `-02.md`, etc.
 
@@ -257,6 +271,14 @@ After multiple models review the same plan, analyze consistency.
 ### Q: What should I pass for `model`?
 
 **A:** Prefer a slug like `claude-sonnet-45`. If you provide a raw model name, the skill normalizes it to a slug before writing the file.
+
+### Q: Can I customize the output directory?
+
+**A:** Yes, use the `output_root` parameter:
+```text
+output_root: quarterly-audit/
+```
+This writes reviews to `quarterly-audit/plan-reviews/` instead of `reviews/plan-reviews/`. The skill auto-creates directories and normalizes trailing slashes. Relative paths including `../` are supported.
 
 ### Q: What makes a plan "executable" by an agent?
 

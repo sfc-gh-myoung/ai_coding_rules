@@ -21,7 +21,7 @@ model: claude-sonnet45
 **Expected output file:**
 
 ```
-reviews/README-claude-sonnet45-2025-12-16.md
+reviews/doc-reviews/README-claude-sonnet45-2025-12-16.md
 ```
 
 ---
@@ -41,7 +41,7 @@ model: claude-sonnet45
 **Expected output file:**
 
 ```
-reviews/docs-collection-claude-sonnet45-2025-12-16.md
+reviews/summaries/_docs-collection-claude-sonnet45-2025-12-16.md
 ```
 
 ---

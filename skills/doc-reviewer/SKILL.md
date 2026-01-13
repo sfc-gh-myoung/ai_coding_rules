@@ -28,6 +28,7 @@ Review project documentation for accuracy with codebase, completeness of coverag
 - **target_files**: List of file paths (defaults to project docs if not specified)
 - **review_scope**: `single` | `collection` (default: `single`)
 - **focus_area**: Required if `review_mode` is `FOCUSED`. If FOCUSED mode and focus_area missing: STOP, report error `Missing required input: focus_area for FOCUSED mode`
+- **output_root**: Root directory for output files (default: `reviews/`). Subdirectories `doc-reviews/` or `summaries/` appended automatically. Supports relative paths including `../`.
 - **overwrite**: `true` | `false` (default: `false`) - If true, overwrite existing review file. If false, use sequential numbering (-01, -02, etc.)
 - **timing_enabled**: `true` | `false` (default: `false`) - Enable execution timing
 
@@ -40,9 +41,11 @@ When `target_files` not specified, reviews:
 
 ### Output
 
-**Single scope (per-file):** `reviews/<doc-name>-<model>-<YYYY-MM-DD>.md`
+**Single scope (per-file):** `{output_root}/doc-reviews/<doc-name>-<model>-<YYYY-MM-DD>.md`
 
-**Collection scope (all files):** `reviews/_docs-collection-<model>-<YYYY-MM-DD>.md` with consolidated report
+**Collection scope (all files):** `{output_root}/summaries/_docs-collection-<model>-<YYYY-MM-DD>.md` with consolidated report
+
+(Default `output_root: reviews/`. With `output_root: mytest/` → `mytest/doc-reviews/...`)
 
 ## Review Rubric
 
@@ -176,7 +179,7 @@ bash skills/skill-timing/scripts/run_timing.sh checkpoint \
 # 4. End (store _timing_stdout from output)
 bash skills/skill-timing/scripts/run_timing.sh end \
     --run-id doc-reviewer-README-20260108-abc123 \
-    --output-file reviews/README-claude-sonnet-45-2026-01-08.md \
+    --output-file reviews/doc-reviews/README-claude-sonnet-45-2026-01-08.md \
     --skill doc-reviewer
 
 # 5. Embed: Parse _timing_stdout, append to output file (ACT mode required)
@@ -200,7 +203,7 @@ Request user ACT authorization before file modifications.
 
 ### 6. File Write
 
-Write review to `reviews/` with appropriate filename per scope.
+Write review to `reviews/doc-reviews/` (single) or `reviews/summaries/` (collection) with appropriate filename.
 
 **See:** `workflows/file-write.md`
 
@@ -240,12 +243,12 @@ Handle validation failures, file write errors, broken links, missing files.
 
 **Single Scope (default):**
 - One review file per documentation file
-- Format: `reviews/<doc-name>-<model>-<date>.md`
+- Format: `reviews/doc-reviews/<doc-name>-<model>-<date>.md`
 - Use for detailed per-file analysis
 
 **Collection Scope:**
 - One consolidated review for all documentation files
-- Format: `reviews/_docs-collection-<model>-<date>.md`
+- Format: `reviews/summaries/_docs-collection-<model>-<date>.md`
 - Use for holistic documentation assessment
 
 ## Cross-Reference Verification

@@ -9,37 +9,40 @@ Write review output to the correct location with no-overwrite safety.
 ### FULL Mode
 
 ```
-reviews/plan-<plan-name>-<model>-<YYYY-MM-DD>.md
+{output_root}plan-reviews/plan-<plan-name>-<model>-<YYYY-MM-DD>.md
 ```
 
-Example:
+Example (default `output_root: reviews/`):
 - Plan: `plans/IMPROVE_RULE_LOADING.md`
 - Model: `claude-sonnet45`
 - Date: `2025-12-16`
-- Output: `reviews/plan-IMPROVE_RULE_LOADING-claude-sonnet45-2025-12-16.md`
+- Output: `reviews/plan-reviews/plan-IMPROVE_RULE_LOADING-claude-sonnet45-2025-12-16.md`
+
+Example (with `output_root: mytest/`):
+- Output: `mytest/plan-reviews/plan-IMPROVE_RULE_LOADING-claude-sonnet45-2025-12-16.md`
 
 ### COMPARISON Mode
 
 ```
-reviews/plan-comparison-<model>-<YYYY-MM-DD>.md
+{output_root}summaries/_comparison-<model>-<YYYY-MM-DD>.md
 ```
 
-Example:
+Example (default `output_root: reviews/`):
 - Model: `claude-sonnet45`
 - Date: `2025-12-16`
-- Output: `reviews/plan-comparison-claude-sonnet45-2025-12-16.md`
+- Output: `reviews/summaries/_comparison-claude-sonnet45-2025-12-16.md`
 
 ### META-REVIEW Mode
 
 ```
-reviews/meta-<document-name>-<model>-<YYYY-MM-DD>.md
+{output_root}summaries/_meta-<document-name>-<model>-<YYYY-MM-DD>.md
 ```
 
-Example:
+Example (default `output_root: reviews/`):
 - Original: `plans/IMPROVE_RULE_LOADING.md`
 - Model: `claude-sonnet45`
 - Date: `2025-12-16`
-- Output: `reviews/meta-IMPROVE_RULE_LOADING-claude-sonnet45-2025-12-16.md`
+- Output: `reviews/summaries/_meta-IMPROVE_RULE_LOADING-claude-sonnet45-2025-12-16.md`
 
 ## No-Overwrite Safety
 
@@ -95,7 +98,7 @@ def get_safe_path(base_path: str, overwrite: bool = False) -> str:
 ```
  Review complete
 
-OUTPUT_FILE: reviews/plan-IMPROVE_RULE_LOADING-claude-sonnet45-2025-12-16.md
+OUTPUT_FILE: reviews/plan-reviews/plan-IMPROVE_RULE_LOADING-claude-sonnet45-2025-12-16.md
 Target: plans/IMPROVE_RULE_LOADING.md
 Mode: FULL
 Model: claude-sonnet45

@@ -13,6 +13,8 @@ This example demonstrates a complete bulk review of all 113 rules in the `rules/
 
 ## Invocation
 
+### Default Output Directory
+
 ```
 Use the bulk-rule-reviewer skill.
 
@@ -20,6 +22,21 @@ review_date: 2026-01-06
 review_mode: FULL
 model: claude-sonnet-45
 ```
+
+**Output:** `reviews/rule-reviews/...` and `reviews/summaries/...`
+
+### Custom Output Directory
+
+```
+Use the bulk-rule-reviewer skill.
+
+review_date: 2026-01-06
+review_mode: FULL
+model: claude-sonnet-45
+output_root: quarterly-audit/
+```
+
+**Output:** `quarterly-audit/rule-reviews/...` and `quarterly-audit/summaries/...`
 
 ---
 
@@ -80,7 +97,7 @@ Skip existing: true
               Consistency (15/15), Parsability (15/15), 
               Token Efficiency (10/10), Staleness (10/10)
    Complete: 100/100 (EXECUTABLE)
-  Review written to: reviews/000-global-core-claude-sonnet-45-2026-01-06.md
+  Review written to: reviews/rule-reviews/000-global-core-claude-sonnet-45-2026-01-06.md
 
 [2/113] Reviewing: rules/001-memory-bank.md
   Invoking rule-reviewer skill...
@@ -89,7 +106,7 @@ Skip existing: true
               Consistency (14/15), Parsability (15/15),
               Token Efficiency (9/10), Staleness (10/10)
    Complete: 94/100 (EXECUTABLE)
-  Review written to: reviews/001-memory-bank-claude-sonnet-45-2026-01-06.md
+  Review written to: reviews/rule-reviews/001-memory-bank-claude-sonnet-45-2026-01-06.md
 
 [3/113] Reviewing: rules/002-rule-governance.md
   Invoking rule-reviewer skill...
@@ -98,7 +115,7 @@ Skip existing: true
               Consistency (13/15), Parsability (14/15),
               Token Efficiency (9/10), Staleness (8/10)
    Complete: 88/100 (EXECUTABLE_WITH_REFINEMENTS)
-  Review written to: reviews/002-rule-governance-claude-sonnet-45-2026-01-06.md
+  Review written to: reviews/rule-reviews/002-rule-governance-claude-sonnet-45-2026-01-06.md
 
 [4/113] Reviewing: rules/002a-rule-creation.md
   Invoking rule-reviewer skill...
@@ -107,7 +124,7 @@ Skip existing: true
               Consistency (14/15), Parsability (15/15),
               Token Efficiency (9/10), Staleness (10/10)
    Complete: 96/100 (EXECUTABLE)
-  Review written to: reviews/002a-rule-creation-guide-claude-sonnet-45-2026-01-06.md
+  Review written to: reviews/rule-reviews/002a-rule-creation-guide-claude-sonnet-45-2026-01-06.md
 
 [5/113] Reviewing: rules/002b-rule-maintenance.md
   Invoking rule-reviewer skill...
@@ -116,7 +133,7 @@ Skip existing: true
               Consistency (13/15), Parsability (14/15),
               Token Efficiency (8/10), Staleness (9/10)
    Complete: 89/100 (EXECUTABLE_WITH_REFINEMENTS)
-  Review written to: reviews/002b-rule-maintenance-claude-sonnet-45-2026-01-06.md
+  Review written to: reviews/rule-reviews/002b-rule-maintenance-claude-sonnet-45-2026-01-06.md
 
 ...
 ```
@@ -228,7 +245,7 @@ Generating master summary report...
 
 ============================================================
 Master summary report written to:
-  reviews/_bulk-review-claude-sonnet-45-2026-01-06.md
+  reviews/summaries/_bulk-review-claude-sonnet-45-2026-01-06.md
 ============================================================
 
 Bulk rule review complete!

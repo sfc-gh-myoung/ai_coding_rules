@@ -10,11 +10,14 @@ Generate master summary report from aggregated data with prioritized improvement
 - `review_date`: Date stamp (YYYY-MM-DD)
 - `review_mode`: FULL | FOCUSED | STALENESS
 - `model`: Model identifier
+- `output_root`: Root directory for output files (default: `reviews/`)
 
 ## Outputs
 
-- Master summary report file: `reviews/_bulk-review-<model>-<date>.md`
+- Master summary report file: `{output_root}summaries/_bulk-review-<model>-<date>.md`
 - Console message with file path
+
+(Default `output_root: reviews/`. With `output_root: mytest/` → `mytest/summaries/_bulk-review-...`)
 
 ## Implementation
 
@@ -234,20 +237,26 @@ Calculate impact × effort ratio and rank:
 ## File Writing and No-Overwrite Logic
 
 ```python
-def write_summary_report(summary_data, review_date, model, review_mode):
+def write_summary_report(summary_data, review_date, model, review_mode, output_root='reviews/'):
     """Write master summary report to file with no-overwrite protection."""
     import os
     from datetime import datetime
     
+    # Normalize output_root
+    output_root = output_root.rstrip('/') + '/'
+    
+    # Ensure summaries directory exists
+    os.makedirs(f"{output_root}summaries", exist_ok=True)
+    
     # Build base filename
-    base_filename = f"reviews/_bulk-review-{model}-{review_date}.md"
+    base_filename = f"{output_root}summaries/_bulk-review-{model}-{review_date}.md"
     
     # Check if file exists
     if os.path.exists(base_filename):
         # Increment suffix: _bulk-review-claude-sonnet-45-2026-01-06-01.md
         counter = 1
         while True:
-            incremented_filename = f"reviews/_bulk-review-{model}-{review_date}-{counter:02d}.md"
+            incremented_filename = f"{output_root}summaries/_bulk-review-{model}-{review_date}-{counter:02d}.md"
             if not os.path.exists(incremented_filename):
                 output_path = incremented_filename
                 break

@@ -592,7 +592,7 @@ chmod 444 reviews  # Read-only
 
 **Error Message:**
 ```
-Environment error: Cannot write to reviews/ directory
+Environment error: Cannot write to reviews/rule-reviews/ and reviews/summaries/ directories
 Check permissions and disk space
 ```
 

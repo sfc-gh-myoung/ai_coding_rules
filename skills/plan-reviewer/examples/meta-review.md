@@ -6,9 +6,9 @@ This example demonstrates analyzing multiple reviews of the same document to ass
 
 ```text
 target_files: [
-  reviews/plan-IMPROVE_RULE_LOADING-claude-sonnet45-2025-12-16.md,
-  reviews/plan-IMPROVE_RULE_LOADING-gpt-52-2025-12-16.md,
-  reviews/plan-IMPROVE_RULE_LOADING-claude-opus45-2025-12-16.md
+  reviews/plan-reviews/plan-IMPROVE_RULE_LOADING-claude-sonnet45-2025-12-16.md,
+  reviews/plan-reviews/plan-IMPROVE_RULE_LOADING-gpt-52-2025-12-16.md,
+  reviews/plan-reviews/plan-IMPROVE_RULE_LOADING-claude-opus45-2025-12-16.md
 ]
 original_document: plans/IMPROVE_RULE_LOADING.md
 review_date: 2025-12-16
@@ -169,7 +169,7 @@ model: claude-sonnet45
 
 ---
 
-**Output written to:** reviews/meta-IMPROVE_RULE_LOADING-claude-sonnet45-2025-12-16.md
+**Output written to:** reviews/summaries/_meta-IMPROVE_RULE_LOADING-claude-sonnet45-2025-12-16.md
 ```
 
 ## Key Points Demonstrated

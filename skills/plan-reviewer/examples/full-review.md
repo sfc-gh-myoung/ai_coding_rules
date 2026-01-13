@@ -2,6 +2,22 @@
 
 This example demonstrates a complete FULL mode review of a plan file.
 
+## Custom Output Directory
+
+```text
+target_file: plans/IMPROVE_RULE_LOADING.md
+review_date: 2025-12-16
+review_mode: FULL
+model: claude-sonnet45
+output_root: mytest/
+```
+
+**Output written to:** `mytest/plan-reviews/plan-IMPROVE_RULE_LOADING-claude-sonnet45-2025-12-16.md`
+
+---
+
+## Default Output Directory
+
 ## Input
 
 ```text
@@ -119,7 +135,7 @@ None identified.
 
 ---
 
-**Output written to:** reviews/plan-IMPROVE_RULE_LOADING-claude-sonnet45-2025-12-16.md
+**Output written to:** reviews/plan-reviews/plan-IMPROVE_RULE_LOADING-claude-sonnet45-2025-12-16.md
 ```
 
 ## Key Points Demonstrated

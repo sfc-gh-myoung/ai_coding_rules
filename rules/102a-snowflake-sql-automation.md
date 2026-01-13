@@ -32,7 +32,7 @@ Guide creation of parameterized SQL templates using <%VARIABLE%> syntax for auto
 - **102-snowflake-sql-core.md** - General SQL file patterns (headers, syntax, qualified names)
 
 **Related:**
-- **117-snowflake-ci-cd.md** - CI/CD pipeline patterns
+- **117-snowflake-mcp-server.md** - MCP server integration patterns
 - **130-snowflake-demo-sql.md** - Demo SQL patterns (this rule extends demo patterns to production)
 
 ### External Documentation

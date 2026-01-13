@@ -34,7 +34,7 @@ Essential Python project setup and packaging guidance covering package structure
 **Related:**
 - **201-python-lint-format.md** - Code quality configuration in pyproject.toml
 - **204-python-docs-comments.md** - Documentation standards
-- **207-python-typing.md** - Type checking configuration
+- **206-python-pytest.md** - Type checking configuration
 
 ### External Documentation
 

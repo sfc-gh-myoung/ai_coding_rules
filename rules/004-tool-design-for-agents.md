@@ -33,7 +33,7 @@ Comprehensive tool design practices that maximize agent effectiveness. Covers si
 
 **Related:**
 - **002g-agent-optimization.md** - Agent-first design principles
-- **002b-rule-optimization.md** - Token budgets and optimization
+- **002c-rule-optimization.md** - Token budgets and optimization
 
 ### External Documentation
 

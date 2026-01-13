@@ -36,8 +36,8 @@ Advanced patterns for writing rules that balance specificity with flexibility. F
 - **000-global-core.md** - Foundation for all rules
 
 **Related:**
-- **002a-rule-creation-guide.md** - Step-by-step rule creation workflow
-- **002b-rule-optimization.md** - Token budgets and performance
+- **002a-rule-creation.md** - Step-by-step rule creation workflow
+- **002c-rule-optimization.md** - Token budgets and performance
 
 ### External Documentation
 
@@ -663,5 +663,5 @@ When splitting rules (e.g., 100-snowflake-core.md into 100a, 100b, 100c):
 
 Example:
 - `200-python-core.md` - CORE RULE (parent)
-- `200a-python-typing.md` - CORE RULE (core dependency)
+- `201-python-lint-format.md` - CORE RULE (core dependency)
 - `206-python-pytest.md` - no marker (specialized testing rule)

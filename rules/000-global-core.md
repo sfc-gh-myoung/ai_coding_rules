@@ -322,7 +322,7 @@ If the answer is no, revise for Priority 1 compliance.
 - Complete examples over terse references: Priority 1 wins
 - Verbose discovery metadata over compact: Priority 2 wins over Priority 3
 
-**See:** `002e-agent-optimization.md` for detailed formatting patterns.
+**See:** `002g-agent-optimization.md` for detailed formatting patterns.
 
 ## Key Principles
 
@@ -415,7 +415,7 @@ Gather details in PLAN without expiring ACT scope:
 
 **Rollback:** If validation fails, revert ALL files to original state, return to PLAN
 
-**Details:** See 002c-advanced-rule-patterns.md, section "Multi-File Task Patterns"
+**Details:** See 002d-advanced-rule-patterns.md, section "Multi-File Task Patterns"
 
 ### Professional Communication
 

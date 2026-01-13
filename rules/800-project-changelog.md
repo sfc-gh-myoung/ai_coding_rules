@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-13
 **Keywords:** CHANGELOG, changelog format, semantic versioning, release notes, conventional commits, Unreleased section, scope patterns, project governance, git workflow, version control
 **TokenBudget:** ~3350
 **ContextTier:** Medium
@@ -277,7 +277,7 @@ Preview:
   - **Fixed** for any bug fixes
   - **Security** for vulnerability fixes (with CVE references when applicable)
 - **Requirement:** Each entry is a single line with human-readable summary.
-- **Strongly Recommended:** Use Conventional Commit format for consistency: `type(scope): summary`
+- **Requirement:** Use Conventional Commit format for consistency: `type(scope): summary`
   - This is the PREFERRED format per [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/#specification)
   - Conventional Commits enhances Keep a Changelog, not replaces it
   - Entries must remain human-readable and user-impact focused regardless of format

@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-13
 **Keywords:** README, project documentation, getting started, setup instructions, badges, Quick Start, Contributing, License, project structure, technical writing
 **TokenBudget:** ~5350
 **ContextTier:** Medium
@@ -321,7 +321,7 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 ```
 
 ### Recommended Additional Sections
-- **Consider:** Include these sections based on project complexity:
+- **For complex projects,** include these sections based on project complexity:
 
 ```markdown
 
@@ -444,7 +444,7 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ### Context-Aware Documentation (for AI/LLM Projects)
 
-**Consider:** For projects involving AI, LLMs, or context windows:
+**For AI projects,** document the following:
 - Document token budgets or context limitations
 - Explain modular loading strategies
 - Include searchable indexes (e.g., RULES_INDEX.md pattern)
@@ -648,7 +648,7 @@ Click [here](https://example.com/docs) for more info.
 - Snowflake + Streamlit: Load 101-snowflake-streamlit-core
 ```
 
-**Validation:** Test with screen reader (NVDA, JAWS, VoiceOver)
+**Validation:** Test with screen reader (NVDA, JAWS, VoiceOver, or equivalent accessibility testing tool)
 
 **Why This Matters:**
 - Screen readers cannot interpret ASCII art

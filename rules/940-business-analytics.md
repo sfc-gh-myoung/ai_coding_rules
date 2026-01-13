@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-12
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-13
 **Keywords:** Business intelligence, dashboards, KPIs, reporting, visualization, stakeholder reports, metrics, Snowsight, executive dashboards, data storytelling, WCAG accessibility
 **TokenBudget:** ~8700
 **ContextTier:** High
@@ -390,17 +390,6 @@ fig.add_trace(go.Bar(
  - Screen reader successfully narrates all content (NVDA/JAWS test)
  - Keyboard navigation works for all interactive elements
 
-> **Investigation Required**
-> When applying this rule:
-> 1. **Identify audience BEFORE designing dashboard** - Confirm exec vs analyst vs operational
-> 2. **Check data availability** - Verify tables/views exist and are accessible
-> 3. **Never assume KPI definitions** - Confirm metric calculations with stakeholders
-> 4. **Test accessibility** - Use screen readers and color contrast checkers
-> 5. **Verify query cost** - Review Query Profile before deploying
->
-> **Anti-Pattern:**
-- Interaction: Minimal filters, drill to summary
-
 **Directors/VPs:**
 - KPI Count: 5-8, Detail: Aggregated by department/region
 - Update: Daily, Charts: Comparison bars, heat maps, waterfall charts
@@ -466,7 +455,7 @@ elif user_role == 'analyst':
 5. **Detail Row (Drill-down data):** Detailed Table: Top 10 Customers
 
 **Layout Rules:**
-- **Above the fold:** 4-7 KPIs + 1 primary chart
+- **Above the fold:** 4-7 KPIs + 1 primary chart (note: KPIs are individual metrics; visualizations are charts/graphs)
 - **F-Pattern scanning:** Top-left = highest priority
 - **White space:** 30-40% empty for breathing room
 - **Grid alignment:** Snap to 12-column grid for consistency
@@ -555,9 +544,18 @@ with tab3:
 **Volume:**
 - Use: Bubble chart, Symbol map when 3rd dimension (size) needed
 - Avoid: When size differences too subtle
-| **Geospatial** | Choropleth map, Heat map, Point map | Location-based patterns | Data not tied to geography |
-| **Hierarchical** | Tree map, Sunburst chart | Nested categories, drill-down | Flat relationships |
-| **Flow** | Sankey diagram, Funnel chart | Process steps, conversion paths | No sequential relationship |
+
+**Geospatial:**
+- Use: Choropleth map, Heat map, Point map for location-based patterns
+- Avoid: Data not tied to geography
+
+**Hierarchical:**
+- Use: Tree map, Sunburst chart for nested categories, drill-down
+- Avoid: Flat relationships
+
+**Flow:**
+- Use: Sankey diagram, Funnel chart for process steps, conversion paths
+- Avoid: No sequential relationship
 
 ### Domain-Specific Visualization Patterns
 

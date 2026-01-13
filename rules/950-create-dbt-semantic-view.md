@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-13
 **Keywords:** dbt, semantic view, Snowflake, dbt_semantic_view, materialization, Cortex Analyst, YAML, semantic model, dbt models, analytics, business intelligence, data modeling
 **TokenBudget:** ~4800
 **ContextTier:** High
@@ -38,7 +38,7 @@ Creating Snowflake semantic views through dbt using the `dbt_semantic_view` pack
 - Snowflake warehouse access
 - Understanding of star schema design
 - Business requirements for metrics and dimensions
-- Primary keys identified for all tables
+- Primary keys identified for all tables (verify with `DESCRIBE TABLE <table_name>` or `SHOW PRIMARY KEYS IN TABLE <table_name>`)
 - Relationships (foreign keys) mapped between tables
 - dbt_semantic_view package version identified
 
@@ -210,20 +210,7 @@ SELECT * FROM SEMANTIC_VIEW(
 
 ## Post-Execution Checklist
 
-- [ ] dbt_semantic_view package added to packages.yml
-- [ ] Package installed via dbt deps
-- [ ] Semantic view model created in models/ directory
-- [ ] TABLES section defined with PRIMARY KEY for each table
-- [ ] RELATIONSHIPS section defined for foreign keys (if multi-table)
-- [ ] DIMENSIONS section defined with business-friendly names
-- [ ] METRICS section defined with aggregation expressions
-- [ ] COMMENT clauses added for all components
-- [ ] Model built successfully with dbt run
-- [ ] Semantic view exists in Snowflake (verified with SHOW SEMANTIC VIEWS)
-- [ ] Test queries executed successfully with SEMANTIC_VIEW() function
-- [ ] Documentation added to schema.yml
-- [ ] Downstream models can reference semantic view (if applicable)
-- [ ] CI/CD pipeline updated to build semantic views
+See [Post-Execution Checklist](#post-execution-checklist) in Contract section above.
 
 ## Output Format Examples
 

@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-13
 **Keywords:** CONTRIBUTING, pull requests, code review, contribution guidelines, branching strategy, Conventional Commits, rule authoring, PR templates, project governance, git workflow
 **TokenBudget:** ~3300
 **ContextTier:** Medium
@@ -233,7 +233,7 @@ Updated CHANGELOG.md:
   - `900-999`: Demo & Synthetic Data
 
 #### Rule Content Guidelines
-- **Requirement:** Keep rules focused and concise (target 150-300 lines; max 500 lines).
+- **Requirement:** Keep rules 150-300 lines (max 500 lines).
 - **Requirement:** Split large topics into multiple composable rules within the same range.
 - **Requirement:** Use explicit directive language: `Requirement`, `Always`, `Avoid`, `Rule`, `Consider`.
 - **Always:** Include metadata header with Description, AppliesTo, AutoAttach, Type, Version, LastUpdated.

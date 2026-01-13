@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **refactor(rules):** apply bulk-rule-reviewer improvements to 8xx/9xx series
+  - Updated 800-project-changelog.md: Conventional Commits now required (was recommended)
+  - Updated 801-project-readme.md: Clarified conditional language ("For complex projects", "For AI projects")
+  - Updated 802-project-contributing.md: Condensed rule content guidelines
+  - Updated 803-project-git-workflow.md: Clarified AI attribution footer protocol with explicit default behavior
+  - Updated 820-taskfile-automation.md: Categorized help now required for 8+ tasks
+  - Updated 920-data-science-analytics.md: Added verification methods for success criteria
+  - Updated 930-data-governance-quality.md: Added concrete anti-patterns with code examples, drift monitoring thresholds
+  - Updated 940-business-analytics.md: Fixed malformed table syntax, clarified KPI terminology
+  - Updated 950-create-dbt-semantic-view.md: Added primary key verification commands, simplified checklist reference
+
 - **refactor(skills):** add silent processing mode to reviewer skills
   - Added Progress Display Protocol to bulk-rule-reviewer SKILL.md
   - Updated proactive-canary.md to execute canary checks silently (no console output)

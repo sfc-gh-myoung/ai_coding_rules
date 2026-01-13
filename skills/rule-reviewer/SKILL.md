@@ -86,13 +86,16 @@ Output: `reviews/200-python-core-claude-sonnet-45-2026-01-06.md`
 
 ## Workflow
 
+**Progress Display:** Show only `Starting: [rule-name]` and `Complete: [rule-name] → score/100`.
+All canary checks, dimension scoring, and evidence gathering are INTERNAL (silent).
+
 1. **Validate inputs**
    - Date format: YYYY-MM-DD
    - File exists under rules/
    - Mode: FULL | FOCUSED | STALENESS
 
-2. **Pre-Review Canary Check**
-   Before reading the rule file, answer:
+2. **Pre-Review Canary Check (SILENT - do not output)**
+   Before reading the rule file, mentally verify:
    - What will I find in this rule? (RIGHT: "I don't know yet")
    - How long will this review take? (RIGHT: "However long it takes")
    - Can I reuse anything from previous work? (RIGHT: "No, different rule")
@@ -105,20 +108,20 @@ Output: `reviews/200-python-core-claude-sonnet-45-2026-01-06.md`
    ```
    Parse output for CRITICAL/HIGH/MEDIUM errors
 
-4. **Agent Execution Test**
+4. **Agent Execution Test (SILENT - results go to review file)**
    Count blocking issues (cap score at 60 if ≥10):
    - Undefined thresholds ("large", "significant", "appropriate")
    - Missing conditional branches (no explicit else)
    - Ambiguous actions (multiple interpretations)
    - Visual formatting (ASCII art, arrows, diagrams)
 
-5. **Post-Read Canary Check**
-   After reading rule, before scoring, verify:
-   - [ ] Can name 3 specific things unique to THIS rule
-   - [ ] Can cite a specific line number with content
-   - [ ] Know the exact TokenBudget value
+5. **Post-Read Canary Check (SILENT - do not output)**
+   After reading rule, before scoring, verify internally:
+   - Can name 3 specific things unique to THIS rule
+   - Can cite a specific line number with content
+   - Know the exact TokenBudget value
    
-   **Unable to fill in → Did not actually read → Re-read rule file**
+   **Unable to verify → Did not actually read → Re-read rule file**
 
 6. **Score dimensions**
    Read rubrics/ as needed for each dimension:
@@ -132,7 +135,7 @@ Output: `reviews/200-python-core-claude-sonnet-45-2026-01-06.md`
      - Includes documentation currency check via `web_fetch`
      - See `workflows/doc-currency-check.md` for details
 
-7. **Mid-Review Canary (after dimension 3)**
+7. **Mid-Review Canary (after dimension 3) (SILENT)**
    - Have I loaded the rubric for EACH dimension scored? (If NO → Go back)
    - Do my first 3 dimensions have distinct line references? (If NO → Find new evidence)
    

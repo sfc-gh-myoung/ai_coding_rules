@@ -93,6 +93,9 @@ def verify_review_authenticity(review_text: str, rule_path: str) -> bool:
 4. **Generic findings** - "Code examples are clear" (no specifics)
 5. **Missing metadata citation** - TokenBudget, LastUpdated not mentioned
 6. **No function/class names** - Every rule has code examples
+7. **"None required" without justification** - Must show what was searched
+8. **Consecutive perfect scores (5+ rules at 100/100)** - Statistically improbable, triggers audit
+9. **Recommendations under 3 sentences** - Indicates insufficient analysis depth
 
 ### Authentic Review Indicators
 

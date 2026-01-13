@@ -306,6 +306,32 @@ Each review must contain:
 - Post-Review Checklist
 - Conclusion
 
+**CRITICAL: Evidence-Based Verification (MANDATORY)**
+
+Every review MUST include evidence proving the file was actually read:
+
+| Requirement | Minimum | Example |
+|-------------|---------|---------|
+| Line references | ≥15 distinct | "line 47", "lines 120-135" |
+| Direct quotes | ≥3 with line numbers | `Line 156: "Use pd.to_datetime() with explicit format"` |
+| Metadata citation | TokenBudget value | "TokenBudget ~6550 declared at line 12" |
+| Pattern names | ≥2 exact names | "Anti-Pattern 2: Using Deprecated datetime.utcnow()" |
+| Code references | ≥1 function/class name | "The `ensure_python_datetime()` helper at lines 330-350" |
+
+**Zero-Recommendation Rule:**
+
+Reviews with "No recommendations" or "None required" MUST justify with:
+1. At least 3 specific attempts to find issues (with line references)
+2. Explicit statement: "Searched for [X, Y, Z] issues at lines [A, B, C] - none found"
+
+**If a review contains zero recommendations AND zero line references = AUTOMATIC REJECTION**
+
+Even excellent rules (95-100 score) should have at least LOW severity suggestions:
+- Minor terminology consistency opportunities
+- Potential future-proofing considerations
+- Cross-reference enhancement possibilities
+- Example expansion opportunities
+
 **Violation consequences:**
 - Invalid reviews rejected from summary
 - Execution halted with protocol violation error
@@ -315,6 +341,8 @@ Each review must contain:
 - Review file size 3000-8000 bytes (typical for FULL mode)
 - < 2000 bytes = too abbreviated (VIOLATION)
 - All required sections present (VIOLATION if missing)
+- ≥15 line references present (VIOLATION if missing)
+- ≥3 direct quotes with line numbers (VIOLATION if missing)
 
 ### Shortcut Detection and Prevention
 

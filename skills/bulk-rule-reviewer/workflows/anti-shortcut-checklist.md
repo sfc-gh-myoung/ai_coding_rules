@@ -48,8 +48,51 @@ If you notice yourself:
 - Providing generic recommendations
 - Estimating scores instead of analyzing
 - Applying rule optimization principles to skill execution
+- **Writing "None required" or "No recommendations" without line-referenced justification**
+- **Producing reviews with zero line references (e.g., "line 47", "lines 120-135")**
+- **Writing dimension analysis without direct quotes from the rule file**
+- **Multiple consecutive perfect scores (100/100) with no recommendations - statistically improbable**
+- **Recommendations section under 3 sentences for ANY rule**
 
 **IMMEDIATE ACTION:** STOP. Delete incomplete work. Re-read skill. Resume correctly.
+
+## The "Rubber Stamp" Detection Pattern
+
+**WARNING:** If you find yourself writing reviews that all look like:
+
+```markdown
+## Recommendations
+
+None required. [Positive statement about the rule].
+```
+
+**YOU ARE RUBBER-STAMPING, NOT REVIEWING.**
+
+Even excellent rules have improvement opportunities. A rigorous reviewer finds:
+- Terminology that could be more consistent with related rules
+- Examples that could cover one more edge case  
+- Cross-references that could be more explicit
+- TokenBudget that could be tighter or needs expansion
+- Patterns that could benefit from future-proofing notes
+
+**If you cannot find ANY of these after thorough analysis, you must document your search:**
+
+```markdown
+## Recommendations
+
+After thorough analysis, no HIGH or MEDIUM severity issues identified.
+
+**LOW severity opportunities considered but deemed unnecessary:**
+- Line 45-67: Terminology "refresh schedule" vs "refresh cadence" - consistent with 104-snowflake-streams-tasks.md, no change needed
+- Line 120-135: Example coverage - all common scenarios present
+- TokenBudget ~6550 (actual ~6400) - within 5% tolerance
+
+No actionable recommendations at this time.
+```
+
+**The difference:**
+- ❌ "None required" (no evidence of analysis)
+- ✅ "No HIGH/MEDIUM issues; LOW severity options evaluated at lines X, Y, Z" (proves thorough review)
 
 ## Category Confusion Check
 

@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **refactor(skills):** enhance bulk-rule-reviewer anti-shortcut verification
+  - Added evidence-based verification table with minimum requirements (≥15 line refs, ≥3 direct quotes)
+  - Added Zero-Recommendation Rule requiring justification with line-referenced search evidence
+  - Added "Rubber Stamp" Detection Pattern with correct vs incorrect examples
+  - Enhanced shortcut indicators: zero-line reviews, consecutive perfect scores, thin recommendations
+
 - **refactor(skills):** upgrade all reviewer skills from 5-level to 11-level scoring
   - All rubrics now use 0-10 raw scores with formula: Raw (0-10) × (Weight / 2) = Points
   - Maintains 100-point total and unchanged verdict thresholds (90/80/60/40)

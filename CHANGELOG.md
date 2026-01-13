@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **feat(skills):** add comprehensive optimization drift prevention to reviewer skills
+  - Added `workflows/proactive-canary.md` - Pre/post/mid-review self-test questions to detect optimization thinking before it produces bad output
+  - Added `workflows/inter-rule-gate.md` - Mandatory re-grounding checkpoint every 5 rules during bulk reviews
+  - Added `workflows/context-anchor.md` - Defines skill sections that MUST remain in context and cannot be summarized
+  - Added `workflows/reset-trigger.md` - Hard reset protocol when drift is detected (re-load skills, audit recent work, delete compromised reviews)
+  - Updated SKILL.md review loop with canary checks and gate integration
+  - Updated rule-reviewer workflow with canary checkpoints
+  - Root cause addressed: Context window management allows skill guidance to fade during long executions
+
 ### Changed
 - **refactor(skills):** enhance bulk-rule-reviewer anti-shortcut verification
   - Added evidence-based verification table with minimum requirements (≥15 line refs, ≥3 direct quotes)

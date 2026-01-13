@@ -89,6 +89,28 @@ Execute comprehensive agent-centric reviews on all rule files in `rules/` direct
 
 This skill MUST execute the complete rule-reviewer workflow for each rule file.
 
+### Context Anchor Protocol (CRITICAL)
+
+**These sections MUST remain in active context throughout execution. NEVER summarize or drop them:**
+
+1. **Anti-Optimization Protocol** (this section, lines 52-86)
+2. **Skills vs Rules distinction** (lines 188-218)  
+3. **Evidence Requirements** (lines 309-345)
+
+**When context pressure occurs:**
+- Summarize completed rule file contents FIRST
+- Summarize completed review contents SECOND
+- NEVER summarize anchor sections
+
+**See:** `workflows/context-anchor.md` for full protocol
+
+**Verification:** Every 10 rules, confirm you can recite from memory:
+- The 6 Forbidden Optimization Thoughts
+- Why Skills ≠ Rules for token efficiency
+- The 5 evidence requirements for valid reviews
+
+**If unable to recite → Anchors have faded → Re-read SKILL.md immediately**
+
 ### How Skills Work Together
 
 **IMPORTANT:** Skills cannot "invoke" other skills programmatically. Skills are documentation that guides agent behavior, not callable subroutines.
@@ -480,24 +502,31 @@ Find all `.md` files in `rules/` directory, apply filter_pattern, sort alphabeti
 - Return to the workflow
 
 For each rule file:
-1. Extract rule name from path
-2. Check if review exists (if skip_existing=true)
-3. **READ the actual rule file into working memory**
-4. **LOAD rule-reviewer/SKILL.md if not already loaded**
-5. **LOAD relevant rubrics for dimensions being scored**
-6. **RUN schema_validator.py on the rule file**
-7. **PERFORM Agent Execution Test (count blocking issues)**
-8. **SCORE each dimension according to rubric, citing line numbers and quotes**
-9. **GENERATE specific recommendations with line numbers**
-10. **VERIFY review authenticity (see workflows/per-rule-verification.md)**
+1. **INTER-RULE GATE (every 5 rules):** If rule_number % 5 == 0, execute `workflows/inter-rule-gate.md`
+2. **PRE-RULE CANARY:** Execute 3 canary questions from `workflows/proactive-canary.md`
+3. Extract rule name from path
+4. Check if review exists (if skip_existing=true)
+5. **READ the actual rule file into working memory**
+6. **POST-READ CANARY:** Verify you can name 3 specific things unique to THIS rule
+7. **LOAD rule-reviewer/SKILL.md if not already loaded**
+8. **LOAD relevant rubrics for dimensions being scored**
+9. **RUN schema_validator.py on the rule file**
+10. **PERFORM Agent Execution Test (count blocking issues)**
+11. **MID-REVIEW CANARY (after dimension 3):** Check rubric loading and reference reuse
+12. **SCORE each dimension according to rubric, citing line numbers and quotes**
+13. **GENERATE specific recommendations with line numbers**
+14. **VERIFY review authenticity (see workflows/per-rule-verification.md)**
     - Must have ≥15 line references
     - Must cite direct quotes from rule
     - Must include rule-specific findings
-11. **WRITE complete review to reviews/ directory** (respects overwrite parameter)
-12. Store (rule_name, score, verdict, review_path)
-13. Show progress every 10 reviews
+    - **FAILURE triggers `workflows/reset-trigger.md`**
+15. **WRITE complete review to reviews/ directory** (respects overwrite parameter)
+16. Store (rule_name, score, verdict, review_path)
+17. Show progress every 10 reviews
 
-**CRITICAL:** Step 3 (READ the actual rule file) MUST happen BEFORE steps 7-9. Reviews generated without reading the file will fail verification at step 10.
+**CRITICAL:** Step 5 (READ the actual rule file) MUST happen BEFORE steps 10-13. Reviews generated without reading the file will fail verification at step 14.
+
+**DRIFT PREVENTION:** Steps 1, 2, 6, 11 are canary/gate checks that detect optimization drift BEFORE it produces compromised output. These are NOT optional.
 
 **Time per rule:** Efficient execution with comprehensive analysis
 **Quality:** Comprehensive, reliable, actionable

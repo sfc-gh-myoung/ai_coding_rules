@@ -331,7 +331,7 @@ All rule files MUST follow [CommonMark specification](https://spec.commonmark.or
 - Outer fence MUST have MORE characters than any inner fence
 - Use 4 backticks (`` ```` ``) to wrap content containing 3 backticks (`` ``` ``)
 
-```markdown
+`````markdown
 <!-- WRONG: Inner fence closes outer fence prematurely -->
 ```markdown
 ## Example
@@ -347,7 +347,7 @@ All rule files MUST follow [CommonMark specification](https://spec.commonmark.or
 # This stays inside the outer block
 ```
 ````
-```
+`````
 
 **Fence Character Consistency:**
 - Do not mix backticks (`` ` ``) and tildes (`~`) in the same document

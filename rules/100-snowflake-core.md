@@ -9,7 +9,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**LastUpdated:** 2026-01-12
 **Keywords:** SQL, CTE, performance, cost optimization, query profile, warehouse, security, governance, stages, COPY INTO, streams, tasks, warehouse creation
 **TokenBudget:** ~4600
 **ContextTier:** High
@@ -50,7 +50,7 @@ Comprehensive foundational practices for all Snowflake development work, ensurin
 
 **Related:**
 - **101-snowflake-streamlit-core.md** - Streamlit UI development on Snowflake
-- **102-snowflake-sql-demo-engineering.md** - SQL patterns for demos
+- **102-snowflake-sql-core.md** - General SQL file patterns
 - **104-snowflake-streams-tasks.md** - Incremental pipelines with Streams + Tasks
 - **106-snowflake-semantic-views-core.md** - View layering and naming conventions
 - **107-snowflake-security-governance.md** - Security policies and governance

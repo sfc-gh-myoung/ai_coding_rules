@@ -1,14 +1,14 @@
-# Data Generation & Modeling Best Practices
+# Snowflake Demo: Data Modeling and Generation
 
 ## Metadata
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**LastUpdated:** 2026-01-12
 **Keywords:** Data modeling, naming conventions, Kimball, dimensional modeling, fact tables, dimension tables, foreign keys, view taxonomy, Business Analyst, data generation, backward compatibility, entity IDs, temporal columns, surrogate keys, SCD Type 2
 **TokenBudget:** ~8850
 **ContextTier:** High
-**Depends:** 000-global-core.md, 100-snowflake-core.md, 102-snowflake-sql-demo-engineering.md, 930-data-governance-quality.md, 940-business-analytics.md
+**Depends:** 130-snowflake-demo-sql.md, 131-snowflake-demo-creation.md
 
 ## Scope
 
@@ -28,13 +28,13 @@ Comprehensive data generation and modeling standards ensuring intuitive, analyti
 ### Dependencies
 
 **Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-- **100-snowflake-core.md** - Snowflake SQL patterns
-- **102-snowflake-sql-demo-engineering.md** - SQL demo engineering patterns
+- **130-snowflake-demo-sql.md** - Demo SQL patterns
+- **131-snowflake-demo-creation.md** - Demo creation and synthetic data
 
 **Related:**
 - **930-data-governance-quality.md** - Data governance and quality patterns
 - **940-business-analytics.md** - Business analytics patterns
+- **100-snowflake-core.md** - Snowflake SQL patterns
 
 ### External Documentation
 

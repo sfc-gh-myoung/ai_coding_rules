@@ -193,3 +193,38 @@ else:
 - 15-min SCADA (96 points/day) aggregated to 1H (24 points/day) = 75% reduction
 - Faster chart rendering, better UX, preserved patterns
 - Always display both original and smoothed counts to user
+
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Aggregating Without User Awareness
+
+**Problem:**
+```python
+df_smooth = df.resample('1H').mean()
+st.line_chart(df_smooth)
+```
+
+**Why It Fails:** User doesn't know data was aggregated. Original granularity and reduction percentage should be displayed for transparency.
+
+**Correct Pattern:**
+```python
+original_count = len(df)
+df_smooth = df.resample('1H').mean()
+st.info(f"Smoothed from {original_count:,} to {len(df_smooth):,} points (75% reduction)")
+st.line_chart(df_smooth)
+```
+
+### Anti-Pattern 2: Using Wrong Aggregation Method
+
+**Problem:**
+```python
+voltage_data = df['voltage_kv'].resample('1H').mean()
+```
+
+**Why It Fails:** Using mean for voltage obscures dangerous spikes. Peak voltage values matter for grid safety.
+
+**Correct Pattern:**
+```python
+voltage_max = df['voltage_kv'].resample('1H').max()
+voltage_min = df['voltage_kv'].resample('1H').min()
+```

@@ -4,9 +4,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**LastUpdated:** 2026-01-12
 **Keywords:** pandas, DataFrame, vectorization, SettingWithCopyWarning, memory optimization, dtypes, groupby, merge, performance, method chaining
-**TokenBudget:** ~6300
+**TokenBudget:** ~6000
 **ContextTier:** High
 **Depends:** 200-python-core.md
 
@@ -244,7 +244,7 @@ df_viz = filtered_df.groupby('date').agg({'total': 'sum'}).reset_index()
 
 # Plot
 fig = px.line(df_viz, x='date', y='total')
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig, width="stretch")
 ```
 
 ## Vectorization vs Iteration
@@ -775,5 +775,5 @@ df_viz = (
 )
 
 fig = px.line(df_viz, x='date', y='sales', color='category')
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig, width="stretch")
 ```

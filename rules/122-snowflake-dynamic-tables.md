@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**LastUpdated:** 2026-01-12
 **Keywords:** automatic pipelines, DOWNSTREAM, FULL, warehouse sizing, data freshness, create dynamic table, dynamic table lag, refresh frequency, dynamic table error, materialized view alternative, pipeline automation, lag configuration, refresh strategies
 **TokenBudget:** ~7650
 **ContextTier:** High
@@ -444,7 +444,7 @@ CREATE OR REPLACE DYNAMIC TABLE staging.CUSTOMER_360 ...
 
 **Benefits:**
 - **Clear Identification**: Immediately distinguishes Dynamic Tables from views (`VW_*`) and base tables in data lineage tools
-- **Consistent Taxonomy**: Aligns with organizational object naming standards (similar to `VW_` for views per `901-data-generation-modeling.md`)
+- **Consistent Taxonomy**: Aligns with organizational object naming standards (similar to `VW_` for views per `132-snowflake-demo-modeling.md`)
 - **Query Clarity**: Makes SQL queries self-documenting when referencing Dynamic Tables
 - **Tooling Integration**: Easier to filter and manage Dynamic Tables in monitoring queries and governance tools
 

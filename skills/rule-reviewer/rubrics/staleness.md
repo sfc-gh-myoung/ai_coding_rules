@@ -171,6 +171,103 @@ Scan rule for these terms and check against deprecated list:
 - Rebranded products
 - Deprecated service documentation
 
+### Documentation Currency Check
+
+**Purpose:** Detect deprecation warnings in linked documentation that HTTP status checks miss.
+
+**Scope:** Only URLs in `## External Documentation` or `### External Documentation` sections.
+
+**Step 1: Extract documentation links**
+
+```python
+import re
+
+def extract_doc_links(rule_content: str) -> list[str]:
+    """Extract URLs from External Documentation section only."""
+    # Find External Documentation section
+    pattern = r'##+ External Documentation\s*\n(.*?)(?=\n##|\Z)'
+    match = re.search(pattern, rule_content, re.DOTALL)
+    if not match:
+        return []
+    
+    section = match.group(1)
+    # Extract markdown links and bare URLs
+    urls = re.findall(r'\[.*?\]\((https?://[^\)]+)\)', section)
+    urls += re.findall(r'(?<!\()(https?://[^\s\)]+)', section)
+    return list(set(urls))
+```
+
+**Step 2: Fetch and scan each link**
+
+For each URL:
+1. Use `web_fetch(url, extract_text=true)` to retrieve content
+2. If fetch fails (timeout, auth required): Skip with note "Unable to fetch: [reason]"
+3. If fetch succeeds: Scan extracted text for deprecation signals
+
+**Step 3: Deprecation signal detection**
+
+Search fetched content (case-insensitive) for these patterns:
+
+**High-confidence signals (count 1.0 each):**
+- "deprecated" followed by feature/function name within 100 chars
+- "end of life" or "EOL"
+- "sunset" (as verb or noun related to features)
+- "no longer supported"
+- "removed in version"
+- "breaking change" (in changelog context)
+
+**Medium-confidence signals (count 0.5 each):**
+- "legacy" (when describing current feature, not migration docs)
+- "replaced by" or "superseded by"
+- "will be removed"
+- "scheduled for removal"
+
+**False positive filters (do NOT count):**
+- Signal appears in "Migration from..." or "Upgrading from..." sections
+- Signal describes a DIFFERENT product/feature than the rule references
+- Signal is in user comments or forum posts (not official docs)
+
+**Step 4: Calculate documentation currency penalty**
+
+| Signals Found | Penalty | Rationale |
+|---------------|---------|-----------|
+| 0 | 0 points | Documentation current |
+| 0.5-1.5 | -0.5 points | Minor concern |
+| 2-3 | -1 point | Moderate concern |
+| 3.5+ | -2 points | Significant staleness |
+
+**Maximum penalty:** -2 points (documentation currency cannot reduce score below 1/5)
+
+**Step 5: Document findings**
+
+```markdown
+**Documentation Currency Check:**
+- Links scanned: 4
+- Deprecation signals: 2
+
+| URL | Signal | Context |
+|-----|--------|---------|
+| https://docs.example.com/api | "deprecated since v3.0" | Auth endpoint mentioned in rule |
+| https://docs.example.com/guide | None | - |
+
+Penalty: -1 point
+```
+
+**See:** `workflows/doc-currency-check.md` for detailed execution steps.
+
+### Documentation Currency Error Handling
+
+**Network failures:**
+- Timeout (>10s): Skip link, note "Timeout - unable to verify"
+- Connection refused: Skip link, note "Connection refused"
+- HTTP 403/401: Skip link, note "Auth required - manual verification needed"
+
+**Content parsing failures:**
+- Empty response: Skip link, note "Empty response"
+- Non-text content: Skip link, note "Non-text content type"
+
+**Fallback:** If >50% of links cannot be fetched, note "Documentation currency check incomplete" and do not apply penalty.
+
 ## Worked Example
 
 **Target:** Rule reviewed on 2026-01-06

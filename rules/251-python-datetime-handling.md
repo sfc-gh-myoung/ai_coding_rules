@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**LastUpdated:** 2026-01-12
 **Keywords:** datetime, pandas, timezone, datetime64, timedelta, UTC, date arithmetic, tz_localize, tz_convert, datetime.now(UTC)
 **TokenBudget:** ~6200
 **ContextTier:** High
@@ -574,7 +574,7 @@ def load_time_series_data():
 # Use string column for x-axis
 df = load_time_series_data()
 fig = px.line(df, x='date_str', y='value')
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig, width="stretch")
 ```
 
 ### Timezone-Naive for Performance

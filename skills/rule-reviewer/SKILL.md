@@ -1,7 +1,7 @@
 ---
 name: rule-reviewer
 description: Execute agent-centric rule reviews (FULL/FOCUSED/STALENESS modes) using 6-dimension rubric and write results to reviews/ with no-overwrite safety. Use when reviewing rule files, auditing rule quality, checking rule staleness, validating rule compliance, or analyzing agent executability.
-version: 2.3.0
+version: 2.4.0
 ---
 
 # Rule Reviewer
@@ -103,6 +103,8 @@ Output: `reviews/200-python-core-claude-sonnet-45-2026-01-06.md`
    - `rubrics/parsability.md`
    - `rubrics/token-efficiency.md`
    - `rubrics/staleness.md`
+     - Includes documentation currency check via `web_fetch`
+     - See `workflows/doc-currency-check.md` for details
 
 5. **Generate recommendations**
    - Specific line numbers
@@ -210,6 +212,12 @@ bash skills/skill-timing/scripts/run_timing.sh end \
 - Print: `OUTPUT_FILE: [path]`
 - Print full review content
 - User must save manually
+
+**Documentation currency check fails:**
+- If `web_fetch` unavailable: Skip currency check, note in review
+- If >50% links timeout: Skip penalty, note "Currency check incomplete"
+- If all links fail: Note "Unable to verify documentation currency - manual review recommended"
+- Continue with remaining staleness scoring (LastUpdated, deprecated tools, patterns, link status)
 
 **See:** `workflows/error-handling.md`
 
@@ -474,6 +482,7 @@ Before considering review complete:
 
 ## Version History
 
+- **v2.4.0:** Added documentation currency check to staleness dimension
 - **v2.0.0:** Removed PROMPT.md, added progressive disclosure with rubrics/
 - **v1.4.0:** Added timing integration, schema validation
 - **v1.3.0:** Added FOCUSED and STALENESS modes

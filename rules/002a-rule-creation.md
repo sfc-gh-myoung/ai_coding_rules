@@ -190,16 +190,14 @@ Within each range, use logical grouping:
 
 ```markdown
 # Snowflake ML/AI Features (110-119)
-110-cortex-agent.md           # Base agent functionality
-111-cortex-agent-tools.md     # Tool usage patterns
-112-cortex-analyst.md         # Analyst features
-115-model-registry.md         # ML model registry
-116-model-training.md         # Model training workflows
+110-snowflake-model-registry.md   # ML model registry
+114-snowflake-cortex-aisql.md     # AI SQL features
+115-snowflake-cortex-agents-core.md  # Cortex agents
+116-snowflake-cortex-search.md    # Cortex search
 
 # Snowflake Data Engineering (120-129)
-121-snowflake-snowpipe.md               # Data ingestion
-121-dynamic-tables.md         # Dynamic table patterns
-122-streams.md                # Change data capture
+121-snowflake-snowpipe.md         # Data ingestion
+122-snowflake-dynamic-tables.md   # Dynamic table patterns
 ```
 
 ### Naming Convention
@@ -214,13 +212,13 @@ Within each range, use logical grouping:
 - `.md` extension
 
 **Examples:**
-- CORRECT: `100-snowflake-core.md`, `200-python-pytest.md`, `101-snowflake-streamlit-core.md`
+- CORRECT: `100-snowflake-core.md`, `206-python-pytest.md`, `101-snowflake-streamlit-core.md`
 - INCORRECT: `100_snowflake_core.md`, `200-python_pytest.md`, `streamlit_best_practices.md`
 
 **Examples:**
 - [PASS] `100-snowflake-core.md`
-- [PASS] `115-model-registry.md`
-- [PASS] `320-streamlit-widgets.md`
+- [PASS] `110-snowflake-model-registry.md`
+- [PASS] `206-python-pytest.md`
 - [FAIL] `100-SnowflakeSQL.md` (wrong: CamelCase)
 - [FAIL] `streamlit.md` (wrong: no number)
 - [FAIL] `100_snowflake_sql.md` (wrong: underscores in number)
@@ -382,7 +380,7 @@ Add an importance marker after the title for foundation rules:
 - **RuleVersion:** `vX.Y.Z` format (e.g., `**RuleVersion:** v1.0.0`) - REQUIRED for issue tracking
 - **Keywords:** 5-20 comma-separated terms - CRITICAL for semantic discovery
 - **TokenBudget:** See `002-rule-governance.md` for complete format requirements
-- **ContextTier:** One of Critical/High/Medium/Low only (see `002b-rule-optimization.md` for selection guidance)
+- **ContextTier:** One of Critical/High/Medium/Low only (see `002c-rule-optimization.md` for selection guidance)
 - **Depends:** Rule path(s) (e.g., `000-global-core.md`) - At least one required
 
 ### Keywords Best Practices
@@ -556,7 +554,7 @@ Description of expected output format (file type, structure, content)
 
 ### Running Validation
 
-See `002d-schema-validator-usage.md` for complete validation commands and options.
+See `002e-schema-validator-usage.md` for complete validation commands and options.
 
 Quick reference:
 
@@ -580,7 +578,7 @@ python3 scripts/schema_validator.py rules/NNN-new-rule.md --verbose
 - **Contract missing Markdown subsection:** Add subsection with ### header
 - **Contract after line 160:** Move Contract section earlier in file
 
-**For detailed error resolution:** See `002d-schema-validator-usage.md`
+**For detailed error resolution:** See `002e-schema-validator-usage.md`
 
 ## Add to RULES_INDEX.md
 

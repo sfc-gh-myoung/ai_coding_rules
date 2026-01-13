@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **fix(rules):** correct 26 invalid rule file references across 19 files
+  - Fixed 002x series refs (002a-rule-creation-guide→002a-rule-creation, 002b-rule-optimization→002c-rule-optimization, etc.)
+  - Fixed Snowflake refs (113-task-scheduling→104-streams-tasks, 120-dynamic-tables→122-dynamic-tables)
+  - Fixed Python refs (207-python-typing→200-python-core, 800-project-changelog-rules→800-project-changelog)
+  - Updated example rules in 002a-rule-creation.md to use actual existing rules
+  - Removed hypothetical 601/602 golang refs from 600-golang-core.md
+
 ### Added
 - **feat(skills):** add `overwrite` parameter and anti-shortcut verification to reviewer skills
   - Added `overwrite` parameter to rule-reviewer, bulk-rule-reviewer, doc-reviewer, plan-reviewer

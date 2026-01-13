@@ -148,7 +148,7 @@ Markdown file (.md) with:
 - **RuleVersion:** Semantic version `vX.Y.Z` (e.g., v1.0.0, v2.0.0)
 - **Keywords:** 5-20 comma-separated terms for semantic discovery
 - **TokenBudget:** `~NUMBER` format (e.g., ~1200)
-- **ContextTier:** One of: Critical, High, Medium, Low (see `002b-rule-optimization.md` for detailed tier selection guidance)
+- **ContextTier:** One of: Critical, High, Medium, Low (see `002c-rule-optimization.md` for detailed tier selection guidance)
 - **Depends:** At least one rule dependency (e.g., `000-global-core.md`)
 
 **Field Order:** Must appear in exact order: SchemaVersion, RuleVersion, Keywords, TokenBudget, ContextTier, Depends
@@ -234,7 +234,7 @@ Description of expected output structure
 
 ### Running the Validator
 
-See `002d-schema-validator-usage.md` for complete validation commands, options, and error resolution.
+See `002e-schema-validator-usage.md` for complete validation commands, options, and error resolution.
 
 Quick reference:
 ```bash
@@ -263,7 +263,7 @@ python3 scripts/schema_validator.py rules/
 - **Contract missing Markdown subsection** - Add missing ### header (e.g., `### Inputs and Prerequisites`)
 - **Section order wrong** - Reorder sections per v3.2: Metadata, Scope, References, Contract
 
-**For detailed error resolution:** See `002d-schema-validator-usage.md`
+**For detailed error resolution:** See `002e-schema-validator-usage.md`
 
 ### Validator Not Available
 
@@ -301,7 +301,7 @@ If both options fail, note the validation gap in commit message and request revi
      - Contract section (with Inputs/Outputs/Execution Workflow subsections)
   3. Remove deprecated sections (Preconditions, Setup, Validation if separate)
   4. Merge validation steps into Contract, Execution Workflow
-- **Bulk migration:** If updating multiple rules, see `002a-rule-creation-guide.md` for batch update workflow
+- **Bulk migration:** If updating multiple rules, see `002a-rule-creation.md` for batch update workflow
 - **Example:**
   ```markdown
   <!-- Change from v3.1: -->
@@ -324,7 +324,7 @@ If both options fail, note the validation gap in commit message and request revi
 - **Progressive Disclosure:** Scope section provides overview, Contract defines execution requirements
 - **Validation-First:** Always run schema_validator.py before committing rule changes
 - **Text-Only Format:** No emojis in rule files (schema requirement for universal compatibility)
-- **Agent-First Formatting:** See `002e-agent-optimization.md` for required formatting patterns
+- **Agent-First Formatting:** See `002g-agent-optimization.md` for required formatting patterns
 
 ## CommonMark Compliance
 

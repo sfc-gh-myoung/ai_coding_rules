@@ -34,7 +34,7 @@ Clear, enforceable standards for Python documentation (project docs), source cod
 
 **Related:**
 - **203-python-project-setup.md** - Project configuration
-- **207-python-typing.md** - Type hints that complement docstrings
+- **206-python-pytest.md** - Type hints that complement docstrings
 
 ### External Documentation
 

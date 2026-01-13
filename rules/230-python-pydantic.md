@@ -31,7 +31,7 @@ Establish comprehensive data validation and serialization patterns using Pydanti
 - **203-python-project-setup.md** - Python project structure and packaging
 - **210-python-fastapi-core.md** - FastAPI integration patterns
 - **220-python-typer-cli.md** - Typer CLI integration with Pydantic
-- **800-project-changelog-rules.md** - Changelog discipline for data model changes
+- **800-project-changelog.md** - Changelog discipline for data model changes
 
 ## Contract
 

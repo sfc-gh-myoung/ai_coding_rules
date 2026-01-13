@@ -34,8 +34,8 @@ Practical, modern guidelines for when and how to use classes in Python, emphasiz
 - **204-python-docs-comments.md** - Documentation standards
 
 **Related:**
-- **207-python-typing.md** - Type hints and type checking
-- **208-python-error-handling.md** - Exception handling patterns
+- **200-python-core.md** - Type hints and error handling patterns
+- **206-python-pytest.md** - Testing class-based code
 
 ### External Documentation
 

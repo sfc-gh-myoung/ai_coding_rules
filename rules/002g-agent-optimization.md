@@ -43,9 +43,9 @@ See `000-global-core.md` "Rule Design Priorities (Hierarchy)" for canonical defi
 - **002-rule-governance.md** - Schema requirements and v3.2 standards
 
 **Related:**
-- **002a-rule-creation-guide.md** - Step-by-step rule creation with agent optimization
-- **002b-rule-optimization.md** - Token budgets and performance
-- **002c-advanced-rule-patterns.md** - System prompt altitude and investigation-first
+- **002a-rule-creation.md** - Step-by-step rule creation with agent optimization
+- **002c-rule-optimization.md** - Token budgets and performance
+- **002d-advanced-rule-patterns.md** - System prompt altitude and investigation-first
 
 ### External Documentation
 

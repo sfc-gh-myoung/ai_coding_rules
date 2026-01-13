@@ -31,8 +31,7 @@ Comprehensive best practices for Snowflake Feature Store: creating, maintaining,
 - **110-snowflake-model-registry.md** - Model Registry integration patterns
 
 **Related:**
-- **120-snowflake-dynamic-tables.md** - Dynamic Tables for feature views
-- **117-snowflake-ml-feature-engineering.md** - ML feature engineering patterns
+- **122-snowflake-dynamic-tables.md** - Dynamic Tables for feature views
 
 ### External Documentation
 

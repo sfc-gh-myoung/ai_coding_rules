@@ -34,7 +34,7 @@ Comprehensive patterns for generating realistic test data using Python's Faker l
 - **201-python-lint-format.md** - Ruff linting and formatting standards
 - **203-python-project-setup.md** - Python project structure and packaging
 - **230-python-pydantic.md** - Pydantic integration for data validation
-- **800-project-changelog-rules.md** - Changelog discipline for testing changes
+- **800-project-changelog.md** - Changelog discipline for testing changes
 
 ### External Documentation
 

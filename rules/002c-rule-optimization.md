@@ -35,7 +35,7 @@ Guidelines for optimizing rule token budgets, sizing rules appropriately, and lo
 - **000-global-core.md** - Foundation for all rules
 
 **Related:**
-- **002a-rule-creation-guide.md** - Step-by-step rule creation workflow
+- **002a-rule-creation.md** - Step-by-step rule creation workflow
 
 ### External Documentation
 
@@ -221,7 +221,7 @@ See `000-global-core.md`, section "Context Window Management Protocol" for prese
 - `000-global-core.md` (~3300 tokens) - Foundation
 - `100-snowflake-core.md` (~2850 tokens) - Snowflake foundation
 - `001-memory-bank.md` (~2850 tokens) - Context management
-- `002c-advanced-rule-patterns.md` (~2900 tokens)
+- `002d-advanced-rule-patterns.md` (~2900 tokens)
 
 **Loading:** Loaded based on task domain (Python tasks -> load 200-python-core)
 

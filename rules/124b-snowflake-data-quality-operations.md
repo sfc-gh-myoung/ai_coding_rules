@@ -34,7 +34,7 @@ Operational patterns for Data Quality Monitoring including DMF scheduling, event
 
 **Related:**
 - **124a-snowflake-data-quality-custom.md** - Custom DMF creation
-- **113-snowflake-task-scheduling.md** - Task scheduling patterns
+- **104-snowflake-streams-tasks.md** - Task scheduling patterns
 
 ### External Documentation
 

@@ -38,8 +38,8 @@ Best practices for authoring Claude Code skills in the `skills/` directory. Cove
 - **002-rule-governance.md** - Schema requirements and v3.2 standards
 
 **Related:**
-- **002a-rule-creation-guide.md** - Rule authoring principles apply to skills
-- **002c-advanced-rule-patterns.md** - Progressive disclosure and workflows
+- **002a-rule-creation.md** - Rule authoring principles apply to skills
+- **002d-advanced-rule-patterns.md** - Progressive disclosure and workflows
 
 ### External Documentation
 

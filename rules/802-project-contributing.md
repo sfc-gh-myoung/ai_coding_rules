@@ -189,7 +189,7 @@ Investigation:
 
 Implementation:
 
-Created new rule: rules/215-python-django-core.md
+Created new rule: rules/210-python-fastapi-core.md
 
 File Structure:
 - Metadata: Description, Type, AppliesTo, Keywords, TokenBudget (~2200)
@@ -353,7 +353,7 @@ Updated CHANGELOG.md:
 
 ## [Unreleased]
 ### Added
-- New rule 215-python-django-core.md for Django framework patterns
+- New rule 210-python-fastapi-core.md for Django framework patterns
 ```
 
 Regenerated all formats:
@@ -382,7 +382,7 @@ task format
 
 Commit:
 ```bash
-git add rules/215-python-django-core.md
+git add rules/210-python-fastapi-core.md
 git add CHANGELOG.md
 git commit -m "$(cat <<'EOF'
 feat(python): add Django framework core patterns rule

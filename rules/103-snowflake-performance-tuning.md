@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**LastUpdated:** 2026-01-12
 **Keywords:** search optimization, pruning, spillage, SQL optimization, Snowflake, partition pruning, QUERY_HISTORY, optimize query, fix slow query, query bottleneck, warehouse performance, micro-partitions, clustering, performance analysis
 **TokenBudget:** ~2850
 **ContextTier:** High
@@ -51,7 +51,7 @@ Systematic approaches for profiling, optimizing, and fine-tuning Snowflake queri
 
 **Sometimes Related** (load if specific scenario):
 - **100-snowflake-core.md** - CTE usage patterns and query structure fundamentals
-- **102-snowflake-sql-demo-engineering.md** - SQL demo patterns
+- **102-snowflake-sql-core.md** - General SQL file patterns
 - **122-snowflake-dynamic-tables.md** - Optimizing dynamic table refresh performance
 - **104-snowflake-streams-tasks.md** - Optimizing stream/task pipeline performance
 

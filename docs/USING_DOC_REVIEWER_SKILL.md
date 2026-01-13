@@ -1,8 +1,8 @@
 # Using the Doc Reviewer Skill
 
-**Last Updated:** 2026-01-07
+**Last Updated:** 2026-01-13
 
-The Doc Reviewer Skill automates comprehensive documentation reviews for your project. It evaluates `README.md`, `CONTRIBUTING.md`, and files in `docs/` against six quality dimensions.
+The Doc Reviewer Skill automates comprehensive documentation reviews for your project. It evaluates `README.md`, `CONTRIBUTING.md`, and files in `docs/` against six quality dimensions using a 100-point scoring system.
 
 ## Background
 
@@ -10,6 +10,7 @@ The doc-reviewer skill runs Agent-Centric Documentation Reviews (reviews optimiz
 
 Key behaviors:
 
+- **100-point scoring system** with weighted dimensions (Accuracy 25, Completeness 25, Clarity 20, Structure 15, Staleness 10, Consistency 5)
 - Reviews documentation against 6 dimensions: Accuracy, Completeness, Clarity, Consistency, Staleness, Structure
 - Supports three review modes: FULL, FOCUSED, STALENESS
 - Computes `OUTPUT_FILE` as:
@@ -120,14 +121,47 @@ review_mode: STALENESS
 
 ## Review Dimensions
 
-| Dimension | What It Checks |
-|-----------|----------------|
-| **Accuracy** | Code references exist, examples are executable, API docs match implementation |
-| **Completeness** | All essential topics covered, prerequisites documented, error paths explained |
-| **Clarity** | Language is accessible, jargon defined, formatting aids readability |
-| **Consistency** | Follows project style guide, terminology standardized, patterns uniform |
-| **Staleness** | Links valid, versions current, screenshots/examples up-to-date |
-| **Structure** | Logical organization, clear hierarchy, easy navigation |
+### Critical Dimensions (70 points)
+
+**Accuracy (25 points):**
+- Code references exist in codebase
+- Examples are executable
+- API docs match implementation
+
+**Completeness (25 points):**
+- All essential topics covered
+- Prerequisites documented
+- Error paths explained
+
+**Clarity (20 points):**
+- Language is accessible
+- Jargon defined
+- Formatting aids readability
+
+### Standard Dimensions (30 points)
+
+**Structure (15 points):**
+- Logical organization
+- Clear hierarchy
+- Easy navigation
+
+**Staleness (10 points):**
+- Links valid
+- Versions current
+- Screenshots/examples up-to-date
+
+**Consistency (5 points):**
+- Follows project style guide
+- Terminology standardized
+- Patterns uniform
+
+## Quality Verdicts
+
+**Score Ranges:**
+- **90-100 (EXCELLENT):** Documentation is publication-ready
+- **80-89 (GOOD):** Minor improvements recommended
+- **60-79 (NEEDS_WORK):** Significant gaps; major revision needed
+- **<60 (POOR):** Documentation requires substantial rework
 
 ## Mandatory Verification Tables
 

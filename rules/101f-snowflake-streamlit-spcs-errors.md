@@ -174,3 +174,44 @@ Error: failed to create endpoint: port 8501 already in use
 - [ ] Service logs reviewed for startup errors
 - [ ] Resource allocation sufficient for application requirements
 - [ ] Service status shows READY
+
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Skipping Local Docker Build
+
+**Problem:**
+```bash
+snow spcs image-repository push myimage:latest
+```
+
+**Why It Fails:** Pushing directly without local build verification leads to runtime failures that are harder to debug in SPCS.
+
+**Correct Pattern:**
+```bash
+docker build -t myimage:latest .
+docker run -p 8501:8501 myimage:latest
+snow spcs image-repository push myimage:latest
+```
+
+### Anti-Pattern 2: Missing Health Check Endpoint
+
+**Problem:**
+```yaml
+spec:
+  containers:
+    - name: main
+      image: myimage:latest
+```
+
+**Why It Fails:** SPCS cannot verify container health, causing timeout failures and service instability.
+
+**Correct Pattern:**
+```yaml
+spec:
+  containers:
+    - name: main
+      image: myimage:latest
+      readinessProbe:
+        path: /healthz
+        port: 8501
+```

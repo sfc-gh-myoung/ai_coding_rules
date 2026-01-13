@@ -1,14 +1,14 @@
-# Demo & Synthetic Data Generation Directives
+# Snowflake Demo: Creation and Synthetic Data
 
 ## Metadata
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**LastUpdated:** 2026-01-12
 **Keywords:** Demo creation, synthetic data, realistic demos, data generation, demo applications, narrative design, reproducible data, progressive disclosure, Streamlit, data visualization
 **TokenBudget:** ~1900
 **ContextTier:** Low
-**Depends:** 000-global-core.md
+**Depends:** 130-snowflake-demo-sql.md
 
 ## Scope
 
@@ -27,10 +27,10 @@ Directives for creating realistic, deterministic, and effective demo application
 ### Dependencies
 
 **Must Load First:**
-- **000-global-core.md** - Foundation for all rules
+- **130-snowflake-demo-sql.md** - Demo SQL patterns
 
 **Related:**
-- **100-snowflake-core.md** - Snowflake SQL patterns
+- **132-snowflake-demo-modeling.md** - Data modeling for demos
 - **101-snowflake-streamlit-core.md** - Streamlit UI patterns
 - **240-python-faker.md** - Synthetic data generation with Faker
 - **920-data-science-analytics.md** - Data science and analytics patterns

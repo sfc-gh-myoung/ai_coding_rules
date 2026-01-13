@@ -8,11 +8,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **feat(rules):** add Cortex Analyst warehouse requirements to agent rules
-  - rules/115-snowflake-cortex-agents-core.md: Added warehouse to tool configuration pattern
-  - rules/115-snowflake-cortex-agents-core.md: Added Anti-Pattern 4 for missing warehouse failures
-  - rules/115b-snowflake-cortex-agents-operations.md: Added dedicated warehouse setup and cost monitoring guidance
-  - Warehouse now required in tool_resources for cost attribution and performance isolation
+- **feat(rules):** add 130-series Snowflake demo rules consolidation
+  - Created 130-snowflake-demo-sql.md for demo-specific SQL patterns (progress indicators, teardown, CREATE OR REPLACE)
+  - Renamed 900-demo-creation.md → 131-snowflake-demo-creation.md
+  - Renamed 901-data-generation-modeling.md → 132-snowflake-demo-modeling.md
+  - Demo rules now consolidated under Snowflake domain (100-199) for better discoverability
+
+- **feat(rules):** split 102-snowflake-sql-demo-engineering.md into general and demo-specific rules
+  - Created 102-snowflake-sql-core.md for general SQL patterns (file headers, COPY INTO, CREATE VIEW, qualified names)
+  - Demo-specific patterns moved to 130-snowflake-demo-sql.md
+  - Clearer separation between production SQL patterns and demo/educational patterns
+
+- **feat(rules):** add visualization sub-rules for Streamlit
+  - Added 101i-snowflake-streamlit-viz-plotly.md for Plotly Express and Graph Objects
+  - Added 101j-snowflake-streamlit-viz-pydeck.md for PyDeck 3D visualization
+  - Added 101k-snowflake-streamlit-viz-altair.md for Altair declarative charts
+
+- **feat(rules):** add Anti-Patterns sections to visualization rules
+  - Added Anti-Patterns to 101a, 101f, 101g, 101h, 101i, 101j, 101k
+  - All Anti-Patterns now follow Problem/Why It Fails/Correct Pattern structure
+
+- **docs(skills):** add scoring rubric documentation to USING_*.md files
+  - USING_DOC_REVIEWER_SKILL.md: Added 100-point scoring system with weighted dimensions
+  - USING_RULE_REVIEW_SKILL.md: Added Review Dimensions section with 6 rubric categories
+  - USING_BULK_RULE_REVIEWER_SKILL.md: Updated rule count from 113 to 121
+
+- **feat(skills):** add documentation currency check to rule-reviewer staleness dimension
+  - Added `rubrics/staleness.md` documentation currency check section
+  - Added `workflows/doc-currency-check.md` with detailed execution steps
+  - Updated SKILL.md to v2.4.0 with error handling for currency checks
+  - Uses web_fetch to detect deprecation warnings in linked documentation
+
+### Fixed
+- **fix(validator):** use CodeBlockTracker in _validate_anti_patterns for proper nested fence handling
+  - Replaced simple toggle logic with CodeBlockTracker class
+  - Fixes false positive when `## Example` appears inside 4-backtick code blocks
+
+- **fix(rules):** correct nested code block fencing in 002-rule-governance.md
+  - Changed outer fence from 3 to 5 backticks for nested fence demonstration examples
+  - Resolves schema_validator false positive for Anti-Patterns section
+
+- **fix(rules):** rename Anti-Patterns sections for schema compliance
+  - 101g-snowflake-streamlit-fragments.md: "Anti-Patterns and Corrections" → "Anti-Patterns and Common Mistakes"
+
+### Changed
+- **refactor(rules):** update 900-series to Analytics & Governance focus
+  - 900-series now contains: 920 (data science), 930 (data governance), 940 (business analytics), 950 (dbt semantic view)
+  - Demo creation rules moved to 130-series under Snowflake domain
+
+- **docs:** update rule counts and category descriptions across documentation
+  - README.md: Snowflake 49→58 rules, Project Management 6→5, Analytics & Governance 6→4
+  - CLAUDE.md: Updated rule counts and added 500-599 Frontend Core category
+  - docs/ARCHITECTURE.md: Updated 800-899 and 900-999 rule lists, added 130-series note
+
+- **chore(index):** regenerate RULES_INDEX.md with new 130-series and visualization rules
 
 - **docs(memory-bank):** add Table of Contents to docs/MEMORY_BANK.md
   - Document exceeds 300-line threshold requiring TOC per structure rubric

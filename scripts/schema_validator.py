@@ -834,17 +834,16 @@ class SchemaValidator:
     ) -> None:
         """Validate Anti-Patterns section content."""
         # Extract section (being careful to skip ## inside code blocks)
+        # Use CodeBlockTracker for proper handling of variable-length fences (```, ````, etc.)
         section_start = None
         section_end = None
-        in_code_block = False
+        tracker = CodeBlockTracker()
 
         for i, line in enumerate(lines):
-            # Track code block state
-            if line.strip().startswith("```"):
-                in_code_block = not in_code_block
+            tracker.update(line)
 
             # Only match H2 headers outside of code blocks
-            if not in_code_block:
+            if not tracker.in_code_block:
                 if re.match(r"^##\s+(?:\d+\.\s+)?Anti-Patterns", line):
                     section_start = i
                 elif section_start is not None and re.match(r"^##\s+", line):

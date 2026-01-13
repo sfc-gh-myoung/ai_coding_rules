@@ -40,7 +40,7 @@ Foundational Streamlit application setup, navigation patterns, state management,
 
 **Related:**
 - **101c-snowflake-streamlit-security.md** - Authentication, authorization, secure credentials
-- **102-snowflake-sql-demo-engineering.md** - SQL patterns for demo data
+- **102-snowflake-sql-core.md** - General SQL file patterns
 - **103-snowflake-performance-tuning.md** - Query optimization
 - **107-snowflake-security-governance.md** - RBAC and security policies in Streamlit apps
 - **109-snowflake-notebooks.md** - Combining notebook development with Streamlit deployment

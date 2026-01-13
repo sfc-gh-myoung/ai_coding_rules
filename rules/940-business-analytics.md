@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**LastUpdated:** 2026-01-12
 **Keywords:** Business intelligence, dashboards, KPIs, reporting, visualization, stakeholder reports, metrics, Snowsight, executive dashboards, data storytelling, WCAG accessibility
 **TokenBudget:** ~8700
 **ContextTier:** High
@@ -34,7 +34,7 @@ Comprehensive directives for creating business-oriented queries, reports, dashbo
 **Related:**
 - **101-snowflake-streamlit-core.md** - Streamlit dashboard patterns
 - **920-data-science-analytics.md** - Analytics and visualization patterns
-- **901-data-generation-modeling.md** - Data modeling and naming conventions
+- **132-snowflake-demo-modeling.md** - Data modeling and naming conventions
 
 ### External Documentation
 

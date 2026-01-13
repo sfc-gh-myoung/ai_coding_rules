@@ -4,11 +4,11 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**LastUpdated:** 2026-01-12
 **Keywords:** idempotent, MERGE, operations, multi-environment, infrastructure as code, Snowflake variables, production-safe, upsert, SQL automation, deployment scripts, SQL pipeline, config management, environment variables
 **TokenBudget:** ~5700
 **ContextTier:** High
-**Depends:** 100-snowflake-core.md, 102-snowflake-sql-demo-engineering.md
+**Depends:** 102-snowflake-sql-core.md
 
 ## Scope
 
@@ -29,11 +29,11 @@ Guide creation of parameterized SQL templates using <%VARIABLE%> syntax for auto
 ### Dependencies
 
 **Must Load First:**
-- **100-snowflake-core.md** - Snowflake fundamentals
-- **102-snowflake-sql-demo-engineering.md** - Demo SQL patterns (this extends to production)
+- **102-snowflake-sql-core.md** - General SQL file patterns (headers, syntax, qualified names)
 
 **Related:**
 - **117-snowflake-ci-cd.md** - CI/CD pipeline patterns
+- **130-snowflake-demo-sql.md** - Demo SQL patterns (this rule extends demo patterns to production)
 
 ### External Documentation
 

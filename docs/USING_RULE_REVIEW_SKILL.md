@@ -2,7 +2,7 @@
 
 **Note:** The Rule Reviewer Skill is **not deployed** to team projects. It remains in the ai_coding_rules source repository for internal use only.
 
-**Last Updated:** 2026-01-07
+**Last Updated:** 2026-01-13
 
 ## Background
 
@@ -33,6 +33,50 @@ Reviews evaluate rules against the priority order defined in `000-global-core.md
 **Scoring Impact:**
 - 3-5 Priority 1 violations: Actionability capped at 15/25 (3/5)
 - 6+ Priority 1 violations: Overall score capped at 60/100 (NEEDS_REFINEMENT)
+
+## Review Dimensions
+
+### Critical Dimensions (50 points)
+
+**Actionability (25 points):**
+- Can agent execute rule instructions without ambiguity?
+- Detects vague phrases ("consider", "as appropriate", "if needed")
+- Verifies explicit commands vs implicit suggestions
+
+**Completeness (25 points):**
+- All required sections present (Metadata, Scope, References, Contract)
+- Error handling documented
+- Edge cases covered
+
+### Standard Dimensions (50 points)
+
+**Consistency (15 points):**
+- Follows schema conventions
+- Terminology matches project standards
+- Formatting uniform throughout
+
+**Parsability (15 points):**
+- Structure supports automated parsing
+- Metadata in correct format
+- Section headers at correct levels
+
+**Token Efficiency (10 points):**
+- Content density appropriate
+- No redundant explanations
+- TokenBudget accurate
+
+**Staleness (10 points):**
+- References current
+- Links valid
+- Examples up-to-date
+
+## Quality Verdicts
+
+**Score Ranges:**
+- **90-100 (EXECUTABLE):** Agent can execute as-is
+- **80-89 (EXECUTABLE_WITH_REFINEMENTS):** Minor refinements recommended
+- **60-79 (NEEDS_REFINEMENT):** Significant gaps; agent may fail
+- **<60 (NOT_EXECUTABLE):** Major rework required
 
 ## Why Not Deployed?
 

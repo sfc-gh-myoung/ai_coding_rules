@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**LastUpdated:** 2026-01-12
 **Keywords:** Data governance, data quality, lineage, metadata management, compliance, data catalog, Great Expectations, schema evolution, data observability, incident response
 **TokenBudget:** ~1650
 **ContextTier:** Medium
@@ -33,7 +33,7 @@ Comprehensive directives for ensuring data quality, governance, and operational 
 **Related:**
 - **100-snowflake-core.md** - Snowflake SQL patterns
 - **124-snowflake-data-quality-core.md** - Snowflake-specific data quality patterns
-- **901-data-generation-modeling.md** - Data modeling standards
+- **132-snowflake-demo-modeling.md** - Data modeling standards
 
 ### External Documentation
 

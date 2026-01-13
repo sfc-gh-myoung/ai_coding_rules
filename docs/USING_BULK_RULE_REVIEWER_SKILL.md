@@ -2,7 +2,7 @@
 
 **Note:** The Bulk Rule Reviewer Skill is **not deployed** to team projects. It remains in the ai_coding_rules source repository for internal use only.
 
-**Last Updated:** 2026-01-07
+**Last Updated:** 2026-01-13
 
 ## Background
 
@@ -15,7 +15,7 @@ Key behaviors:
 - Generates individual review files in `reviews/` directory
 - Creates master summary report with prioritized improvement recommendations
 - Supports resume capability for long-running batches
-- Expected execution time: 5-10 hours for 113 rules (sequential)
+- Expected execution time: 5-10 hours for 121 rules (sequential)
 
 ## Why Not Deployed?
 
@@ -106,7 +106,7 @@ The master summary includes:
 
 **FULL Mode (Comprehensive):**
 - All 6 dimensions evaluated per rule
-- Expected duration: 5-10 hours for 113 rules
+- Expected duration: 5-10 hours for 121 rules
 - Use for: Quarterly audits, pre-release validation
 
 **FOCUSED Mode (Targeted):**
@@ -186,7 +186,7 @@ filter_pattern: rules/002*.md        # Governance rules only
 
 ### Q: How long does a full review take?
 
-**A:** For 113 rules in FULL mode: 5-10 hours (3-5 minutes per rule). This is EXPECTED and REQUIRED for quality reviews.
+**A:** For 121 rules in FULL mode: 5-10 hours (3-5 minutes per rule). This is EXPECTED and REQUIRED for quality reviews.
 
 ### Q: Why is it so slow?
 

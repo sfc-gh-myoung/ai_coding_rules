@@ -218,12 +218,12 @@ if st.button(
     st.rerun()  # Trigger rerun to show fragment
 ```
 
-## Anti-Patterns and Corrections
+## Anti-Patterns and Common Mistakes
 
 ### Anti-Pattern 1: Creating Fragment Inside Button Block
 
+**Problem:**
 ```python
-# WRONG: Fragment won't persist after button resets
 if st.button("Start"):
     @st.fragment(run_every="1s")
     def show_progress():
@@ -231,15 +231,15 @@ if st.button("Start"):
     show_progress()
 ```
 
-**Correct:**
+**Why It Fails:** Fragment won't persist after button resets. Fragments must be defined at module level, not inside conditional blocks.
+
+**Correct Pattern:**
 ```python
-# Fragment defined at module level
 @st.fragment(run_every="1s")
 def show_progress():
     if st.session_state.get("active"):
         st.write("Progress...")
 
-# Conditional rendering based on session state
 if st.session_state.get("active"):
     show_progress()
 
@@ -250,34 +250,37 @@ if st.button("Start"):
 
 ### Anti-Pattern 2: Using Widgets Inside Fragments
 
+**Problem:**
 ```python
-# WRONG: Widgets forbidden in fragment body
 @st.fragment(run_every="1s")
 def fragment_with_widgets():
     user_input = st.text_input("Name")
     st.write(f"Hello {user_input}")
 ```
 
-**Correct:**
+**Why It Fails:** Widgets are forbidden in fragment body. Fragments support display-only elements, not interactive inputs.
+
+**Correct Pattern:**
 ```python
-# Widgets outside fragment
 user_input = st.text_input("Name")
 
 @st.fragment(run_every="1s")
 def display_only_fragment():
-    st.write(f"Hello {user_input}")  # Read-only display OK
+    st.write(f"Hello {user_input}")
 ```
 
 ### Anti-Pattern 3: No Termination Condition
 
+**Problem:**
 ```python
-# WRONG: Fragment runs indefinitely
 @st.fragment(run_every="1s")
 def infinite_polling():
     st.write("Polling forever...")
 ```
 
-**Correct:**
+**Why It Fails:** Fragment runs indefinitely, wasting resources and database connections. Always include a termination condition.
+
+**Correct Pattern:**
 ```python
 @st.fragment(run_every="1s")
 def polling_with_termination():
@@ -286,7 +289,7 @@ def polling_with_termination():
 
     if status == "complete":
         del st.session_state.active_operation
-        st.stop()  # Halt auto-refresh
+        st.stop()
 ```
 
 ## Performance Considerations

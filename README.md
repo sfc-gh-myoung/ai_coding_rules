@@ -34,7 +34,7 @@ This repository provides a **universal ai coding rule system** designed to work 
 
 ## Key Features
 
-- **📚 117 Production-Ready Rules** — Comprehensive coverage across Snowflake, Python, Go, React, HTMX, Alpine.js, Docker, Shell scripting, and project management
+- **📚 121 Production-Ready Rules** — Comprehensive coverage across Snowflake, Python, Go, React, HTMX, Alpine.js, Docker, Shell scripting, and project management
 - **🔄 Universal Format** — Write once, use everywhere: Cursor, VS Code, Claude, ChatGPT, GitHub Copilot, and more
 - **🤖 Intelligent Discovery** — AI assistants automatically find and load relevant rules using semantic keyword matching (matching by meaning, not just exact text)
 - **🎯 Dependency-Aware** — Explicit dependency chains ensure rules load in the correct order
@@ -629,7 +629,7 @@ These skills are used only for ai_coding_rules project maintenance and are exclu
 
 **bulk-rule-reviewer** — Orchestrate bulk rule reviews
 - **Purpose:** Execute comprehensive reviews on all rules in `rules/` directory with consolidated priority reporting
-- **Expected duration:** 5-10 hours for 117 rules (3-5 min per rule, sequential execution)
+- **Expected duration:** 5-10 hours for 121 rules (3-5 min per rule, sequential execution)
 - **Resume capability:** Skip existing reviews to resume after interruption
 - **Output:** Individual review files + master summary report with priority tiers
 - **Trigger keywords:** "bulk review rules", "review all rules", "audit rule repository"
@@ -673,7 +673,7 @@ For questions or discussions, file an issue on the repository.
 
 ```ascii
 ai_coding_rules/
-├── rules/                  ← Production-ready rules
+├── rules/                  ← Production-ready rules (121 total)
 ├── AGENTS.md               ← Rule loading protocol for AI assistants
 ├── RULES_INDEX.md          ← Searchable rule catalog
 ├── scripts/                ← Validation and deployment tools
@@ -682,14 +682,23 @@ ai_coding_rules/
 │   ├── schema_validator.py     ← Validate rule structure
 │   ├── template_generator.py   ← Create new rule templates
 │   ├── keyword_generator.py    ← Generate semantic keywords for rules
-│   └── token_validator.py      ← Validate token budgets (single file or directory)
-├── docs/                   ← Documentation
+│   ├── token_validator.py      ← Validate token budgets
+│   └── badge_updater.py        ← Update README badges
+├── docs/                   ← Documentation (12 files)
 │   ├── ARCHITECTURE.md         ← System design decisions
-│   └── MEMORY_BANK.md          ← Memory Bank system (optional)
-├── tests/                  ← Test suite
+│   ├── MEMORY_BANK.md          ← Memory Bank system
+│   ├── TOKEN_BUDGETS.md        ← Token budget guidelines
+│   └── USING_*.md              ← Skill usage guides
+├── tests/                  ← Test suite (98% coverage)
 ├── schemas/                ← YAML schemas for rule validation
 ├── prompts/                ← User prompt templates
-└── skills/                 ← Claude Agent Skills (6 total: 3 deployed, 3 internal-only)
+└── skills/                 ← Claude Agent Skills (6 total)
+    ├── rule-reviewer/          ← Review individual rules
+    ├── bulk-rule-reviewer/     ← Review all rules at once
+    ├── doc-reviewer/           ← Review documentation
+    ├── plan-reviewer/          ← Review LLM-generated plans
+    ├── rule-creator/           ← Create new rules (internal)
+    └── skill-timing/           ← Measure skill performance
 ```
 
 **Key Concepts:**
@@ -786,15 +795,15 @@ The rules are organized by domain using a three-digit numbering system. Each cat
 | Domain | Range | # Rules | Focus Area | Key Topics |
 |--------|-------|---------|------------|------------|
 | **Core Foundation** | 000-099 | 12 | Universal patterns | Operating principles, memory bank, rule governance, context engineering, tool design, skills |
-| **Snowflake** | 100-199 | 49 | Data platform | SQL, Streamlit, performance, Cortex AI, security, notebooks, pipelines |
+| **Snowflake** | 100-199 | 58 | Data platform | SQL, Streamlit, performance, Cortex AI, security, notebooks, pipelines, demo creation |
 | **Python** | 200-299 | 27 | Software engineering | Core patterns, FastAPI, Flask, Typer CLI, Pydantic, pytest, Pandas, **HTMX** |
 | **Shell Scripts** | 300-399 | 7 | Automation | Bash and Zsh scripting, security, testing |
 | **Frontend/Containers** | 400-499 | 5 | Infrastructure & UI | Docker, JavaScript, TypeScript, React, **HTMX frontend** |
 | **Frontend** | 500-599 | 2 | Client-side | HTMX frontend, browser globals |
 | **Systems/Backend Languages** | 600-699 | 1 | Backend development | **Go/Golang** core patterns, error handling, concurrency |
 | **Reserved** | 700-799 | 0 | Future use | Reserved for future domain expansion |
-| **Project Management** | 800-899 | 6 | Workflows | Git, changelog, README, contributing, Taskfile, automation |
-| **Demo & Synthetic Data** | 900-999 | 6 | Examples | Demo creation, data generation, data science, data governance, business analytics, semantic views |
+| **Project Management** | 800-899 | 5 | Workflows | Git, changelog, README, contributing, Taskfile |
+| **Analytics & Governance** | 900-999 | 4 | Business intelligence | Data science, data governance, business analytics, semantic views |
 
 ### HTMX Rules (New in v3.1.0)
 

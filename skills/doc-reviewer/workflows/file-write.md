@@ -8,6 +8,7 @@
 - `review_scope`: `single` | `collection`
 - `model_slug`: normalized model identifier
 - `review_markdown`: full review content (or list of contents for single scope)
+- `overwrite`: `true` | `false` (default: `false`)
 
 ## Steps
 
@@ -40,10 +41,14 @@ Examples:
 - `README.md` → `reviews/README-claude-sonnet45-2025-12-16.md`
 - `docs/ARCHITECTURE.md` → `reviews/ARCHITECTURE-claude-sonnet45-2025-12-16.md`
 
-### Step 3: Check for Existing Files (No-Overwrite)
+### Step 3: Check for Existing Files (Overwrite Logic)
 
 For each output_file:
 
+**If `overwrite: true`:**
+- Use the base filename directly (will overwrite if exists)
+
+**If `overwrite: false` (default):**
 1. If `output_file` does not exist → use it
 2. If `output_file` exists → find next available suffix:
    - `reviews/<name>-<model>-<date>-01.md`
@@ -53,13 +58,19 @@ For each output_file:
 ```python
 from pathlib import Path
 
-def get_safe_output_path(base_name: str, model_slug: str, date: str) -> str:
-    """Returns next available filename without overwriting"""
+def get_safe_output_path(base_name: str, model_slug: str, date: str, overwrite: bool = False) -> str:
+    """Returns output filename based on overwrite setting."""
     base = f"reviews/{base_name}-{model_slug}-{date}"
     
+    # If overwrite, always use base path
+    if overwrite:
+        return f"{base}.md"
+    
+    # If file doesn't exist, use base
     if not Path(f"{base}.md").exists():
         return f"{base}.md"
     
+    # Sequential numbering for no-overwrite mode
     for i in range(1, 100):
         suffixed = f"{base}-{i:02d}.md"
         if not Path(suffixed).exists():

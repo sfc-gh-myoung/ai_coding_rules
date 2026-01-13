@@ -47,7 +47,7 @@ MODE: PLAN
    - **Do not duplicate mappings here; RULES_INDEX.md is the canonical source**
    - **Load even for "simple" tasks** (linting, formatting, syntax fixes)
    - **Directory-based rules (check BEFORE file extension):**
-     - `skills/` directory: Load `002g-claude-code-skills.md`
+     - `skills/` directory: Load `002h-claude-code-skills.md`
      - `rules/` directory: Load `002-rule-governance.md`
    - **Unknown extensions:** If no domain rule exists for a file type, load only 000-global-core.md and note in Rules Loaded: "No domain-specific rules available for [extension]"
 

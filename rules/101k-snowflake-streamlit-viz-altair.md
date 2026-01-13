@@ -6,7 +6,7 @@
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-01-13
 **Keywords:** altair, vega-lite, st.altair_chart, declarative visualization, grammar of graphics, mark_point, mark_line, mark_bar, encoding, selection, interactive, layered charts
-**TokenBudget:** ~3050
+**TokenBudget:** ~3350
 **ContextTier:** Medium
 **Depends:** 101a-snowflake-streamlit-visualization.md
 

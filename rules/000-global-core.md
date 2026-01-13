@@ -9,8 +9,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-01-06
+**RuleVersion:** v3.1.1
+**LastUpdated:** 2026-01-13
 **Keywords:** PLAN mode, ACT mode, workflow, safety, confirmation, validation, surgical edits, minimal changes, mode violations, prompt engineering, task list, read-only, authorization
 **TokenBudget:** ~5750
 **ContextTier:** Critical
@@ -561,6 +561,32 @@ AI: Changes made. Validating:
 
 Validation: Linting clean, Tests passing (15/15)
 Task complete.
+```
+
+**Anti-Pattern 4: No recovery strategy for resource exhaustion**
+
+**Problem:** Tool failures due to resource limits (context overflow, timeout, rate limiting) with no recovery path.
+
+**Why It Fails:** Agent blocks on errors without actionable recovery; user left without guidance.
+
+**Recovery Patterns by Error Type:**
+
+```markdown
+Context Overflow:
+  Action: Summarize task history, preserve rules (per Context Window Protocol)
+  Report: "Context limit reached. Summarizing history, preserving rules."
+
+Tool Timeout:
+  Action: Retry once with longer timeout, then report with workaround
+  Report: "Tool X timed out. Retrying with 5min timeout. If persistent, try [alternative]."
+
+Rate Limit:
+  Action: Wait suggested duration, then retry
+  Report: "Rate limited. Waiting 60s before retry."
+
+Memory/Disk Full:
+  Action: Report with cleanup suggestions
+  Report: "Disk full. Consider: (A) Clear temp files, (B) Reduce output scope."
 ```
 
 ## Context Window Management Protocol

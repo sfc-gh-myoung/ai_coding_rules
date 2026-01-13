@@ -28,6 +28,7 @@ Execute comprehensive agent-centric reviews on all rule files in `rules/` direct
 - **filter_pattern**: Glob pattern (default: `rules/*.md`)
   - Examples: `rules/100-*.md` (Snowflake only), `rules/*-core.md` (cores only)
 - **skip_existing**: Boolean (default: true) - Resume capability
+- **overwrite**: Boolean (default: false) - If true, overwrite existing review files. If false, use sequential numbering (-01, -02, etc.) for conflicts
 - **max_parallel**: Integer 1-10 (default: 1) - Concurrent reviews
 - **timing_enabled**: `true` | `false` (default: `false`) - Enable execution timing
 
@@ -453,15 +454,22 @@ Find all `.md` files in `rules/` directory, apply filter_pattern, sort alphabeti
 For each rule file:
 1. Extract rule name from path
 2. Check if review exists (if skip_existing=true)
-3. **LOAD rule-reviewer/SKILL.md if not already loaded**
-4. **LOAD relevant rubrics for dimensions being scored**
-5. **RUN schema_validator.py on the rule file**
-6. **PERFORM Agent Execution Test (count blocking issues)**
-7. **SCORE each dimension according to rubric**
-8. **GENERATE specific recommendations with line numbers**
-9. **WRITE complete review to reviews/ directory**
-10. Store (rule_name, score, verdict, review_path)
-11. Show progress every 10 reviews
+3. **READ the actual rule file into working memory**
+4. **LOAD rule-reviewer/SKILL.md if not already loaded**
+5. **LOAD relevant rubrics for dimensions being scored**
+6. **RUN schema_validator.py on the rule file**
+7. **PERFORM Agent Execution Test (count blocking issues)**
+8. **SCORE each dimension according to rubric, citing line numbers and quotes**
+9. **GENERATE specific recommendations with line numbers**
+10. **VERIFY review authenticity (see workflows/per-rule-verification.md)**
+    - Must have ≥15 line references
+    - Must cite direct quotes from rule
+    - Must include rule-specific findings
+11. **WRITE complete review to reviews/ directory** (respects overwrite parameter)
+12. Store (rule_name, score, verdict, review_path)
+13. Show progress every 10 reviews
+
+**CRITICAL:** Step 3 (READ the actual rule file) MUST happen BEFORE steps 7-9. Reviews generated without reading the file will fail verification at step 10.
 
 **Time per rule:** Efficient execution with comprehensive analysis
 **Quality:** Comprehensive, reliable, actionable
@@ -615,8 +623,24 @@ Use the bulk-rule-reviewer skill.
 review_date: 2026-01-06
 review_mode: FULL
 model: claude-sonnet-45
-skip_existing: false
+overwrite: true
 ```
+
+**Note:** Use `overwrite: true` to replace existing reviews. Use `skip_existing: false` combined with `overwrite: false` (default) to create new versions with sequential numbering (-01, -02).
+
+### Re-Review with Sequential Numbering (Preserve History)
+
+```
+Use the bulk-rule-reviewer skill.
+
+review_date: 2026-01-06
+review_mode: FULL
+model: claude-sonnet-45
+skip_existing: false
+overwrite: false
+```
+
+This creates `-01`, `-02` versions without overwriting previous reviews.
 
 ### Staleness Check Only
 
@@ -691,6 +715,6 @@ model: claude-sonnet-45
 
 ### Rules
 
-- `rules/002g-claude-code-skills.md` - Skill authoring best practices
+- `rules/002h-claude-code-skills.md` - Skill authoring best practices
 - `rules/002-rule-governance.md` - Rule schema and standards
 - `rules/000-global-core.md` - Foundation patterns

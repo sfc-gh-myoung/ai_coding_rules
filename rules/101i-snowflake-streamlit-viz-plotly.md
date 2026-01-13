@@ -6,7 +6,7 @@
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-01-12
 **Keywords:** plotly, plotly express, graph objects, st.plotly_chart, interactive charts, scatter, line, bar, histogram, heatmap, box plot, violin, sunburst, treemap, animations, faceting, subplots
-**TokenBudget:** ~2950
+**TokenBudget:** ~3150
 **ContextTier:** Medium
 **Depends:** 101a-snowflake-streamlit-visualization.md
 

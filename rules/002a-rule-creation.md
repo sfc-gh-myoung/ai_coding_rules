@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-01-07
+**RuleVersion:** v3.2.1
+**LastUpdated:** 2026-01-13
 **Keywords:** rule creation, workflow, step-by-step guide, naming conventions, metadata setup, v3.2 schema, validation, rule numbering, from scratch, new rule
 **TokenBudget:** ~5400
 **ContextTier:** High
@@ -109,6 +109,11 @@ Markdown file named `NNN-technology-aspect.md` with:
 - All required metadata fields present and formatted correctly
 - All required sections present in v3.2 order
 - Rule added to `RULES_INDEX.md`
+
+**Error Recovery:**
+- **Permission denied writing rule file:** Report error with path, suggest checking directory permissions
+- **Validator returns CRITICAL errors:** Fix each error per 002e guidance before proceeding
+- **RULES_INDEX.md not writable:** Report error, provide index entry for manual addition
 
 ### Post-Execution Checklist
 

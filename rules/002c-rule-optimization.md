@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-07
+**RuleVersion:** v3.0.2
+**LastUpdated:** 2026-01-13
 **Keywords:** token budget, optimization, performance, rule sizing, progressive loading, context window, model limits, cost efficiency, caching, batch loading
 **TokenBudget:** ~5150
 **ContextTier:** High
@@ -103,6 +103,11 @@ Rule file with:
 - Missing tilde prefix triggers format error
 - Token variance >5% triggers auto-update (configurable via `--threshold`)
 - Rule >5500 tokens triggers split recommendation
+
+**Error Recovery:**
+- **token_validator.py not found:** Check scripts/ exists, fall back to word count estimate (words x 1.33)
+- **Validator fails to parse rule:** Check for malformed YAML/frontmatter, validate Markdown syntax first
+- **Token count wildly off:** Re-run validator, check for binary content or encoding issues
 
 ### Post-Execution Checklist
 

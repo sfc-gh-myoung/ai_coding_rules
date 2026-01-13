@@ -6,7 +6,7 @@
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-01-12
 **Keywords:** time series smoothing, data aggregation, resample, SCADA data, high-frequency data, trend analysis, rolling average, EWMA, exponential smoothing
-**TokenBudget:** ~1600
+**TokenBudget:** ~1400
 **ContextTier:** Low
 **Depends:** 101a-snowflake-streamlit-visualization.md
 

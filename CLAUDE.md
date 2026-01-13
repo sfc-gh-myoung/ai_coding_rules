@@ -67,7 +67,7 @@ The system uses **direct rule editing** with no generation step. All rules in `r
 
 **Key Components:**
 
-1. **rules/** - Production-ready rule files (114 total)
+1. **rules/** - Production-ready rule files (117 total)
    - All rules use universal Markdown format
    - Embedded metadata enables intelligent discovery
    - Validated against `schemas/rule-schema.yml`
@@ -98,11 +98,11 @@ The system uses **direct rule editing** with no generation step. All rules in `r
 
 Rules use 3-digit numbering for domain organization:
 
-- **000-099:** Core Foundation (7 rules)
-  - Operating principles, memory bank, governance, context engineering
-- **100-199:** Snowflake (39 rules)
+- **000-099:** Core Foundation (12 rules)
+  - Operating principles, memory bank, governance, context engineering, skills
+- **100-199:** Snowflake (52 rules)
   - SQL, Streamlit, Cortex AI, security, notebooks, pipelines
-- **200-299:** Python (23 rules)
+- **200-299:** Python (27 rules)
   - Core patterns, FastAPI, Flask, Typer CLI, Pydantic, pytest, HTMX
 - **300-399:** Shell Scripts (7 rules)
   - Bash/Zsh scripting, security, testing
@@ -110,9 +110,9 @@ Rules use 3-digit numbering for domain organization:
   - Docker, JavaScript, TypeScript, React
 - **600-699:** Go/Golang (1 rule)
   - Core patterns, error handling, concurrency
-- **800-899:** Project Management (6 rules)
+- **800-899:** Project Management (5 rules)
   - Git workflow, changelog, README, Taskfile
-- **900-999:** Demo & Analytics (5 rules)
+- **900-999:** Demo & Analytics (6 rules)
   - Data generation, examples
 
 ### Rule Discovery and Loading

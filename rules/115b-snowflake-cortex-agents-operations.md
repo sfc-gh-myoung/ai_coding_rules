@@ -4,9 +4,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**LastUpdated:** 2026-01-12
 **Keywords:** observability, evaluation, cost management, error troubleshooting, agent security, test agent, agent permissions, agent monitoring, agent evaluation, agent costs, debug agent, agent logs, agent trace, agent security policies
-**TokenBudget:** ~5600
+**TokenBudget:** ~5950
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 115-snowflake-cortex-agents-core.md, 111-snowflake-observability-core.md
 

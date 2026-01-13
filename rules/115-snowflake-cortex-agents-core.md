@@ -9,9 +9,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**LastUpdated:** 2026-01-12
 **Keywords:** multi-tool agents, planning instructions, testing, troubleshooting, semantic views, create agent, debug agent, agent not working, tool execution failed, agent error, fix agent, agent performance, agent tool integration, cortex agent configuration, UnboundedExecution
-**TokenBudget:** ~8850
+**TokenBudget:** ~9300
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md, 106-snowflake-semantic-views-core.md, 111-snowflake-observability-core.md
 

@@ -6,7 +6,7 @@
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-01-12
 **Keywords:** st.fragment, run_every, real-time progress, polling, live updates, fragment pattern, auto-refresh, streaming, monitoring dashboard
-**TokenBudget:** ~2800
+**TokenBudget:** ~2300
 **ContextTier:** Medium
 **Depends:** 101-snowflake-streamlit-core.md, 101b-snowflake-streamlit-performance.md
 

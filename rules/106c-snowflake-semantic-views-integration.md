@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**LastUpdated:** 2026-01-12
 **Keywords:** RBAC, masking policy, row access policy, Generator workflow, iterative development, synonyms, natural language queries, cortex analyst, agent integration, semantic view security, analyst troubleshooting, fix analyst, debug analyst
 **TokenBudget:** ~8600
 **ContextTier:** Medium
@@ -67,7 +67,6 @@ Comprehensive guidance for integrating Snowflake Semantic Views with Cortex Anal
 
 ### Forbidden
 
-- Legacy YAML semantic models (use native views instead)
 - Direct policy application to semantic views (apply to base tables)
 - Hardcoded credentials in scripts
 
@@ -96,7 +95,7 @@ Comprehensive guidance for integrating Snowflake Semantic Views with Cortex Anal
 
 ### Design Principles
 
-- **Native integration**: Prefer semantic views via `semantic_view` (or `semantic_models` containing `semantic_view`) in Cortex Analyst REST API; avoid staged YAML unless required (`semantic_model_file`)
+- **Dual approach support**: Use `semantic_view` parameter for DDL-based views (preferred); use `semantic_model_file` for YAML-based models when verified queries or stage-based workflows are needed
 - **Governance via base tables**: Apply masking and row access policies to underlying tables
 - **Iterative refinement**: Start with Generator, enhance with synonyms and comments
 - **Natural language focus**: Optimize for business user queries, not technical SQL
@@ -163,7 +162,7 @@ CREATE SEMANTIC VIEW SEM_SALES AS
 - [ ] Cortex Agent grounding sources include fully qualified semantic view names
 - [ ] Natural language queries tested with SnowCLI
 - [ ] Synonym effectiveness validated with business user queries
-- [ ] No legacy YAML semantic models used
+- [ ] Approach documented (SQL DDL vs YAML with rationale if YAML chosen)
 
 **Governance:**
 - [ ] RBAC configured via base table privileges

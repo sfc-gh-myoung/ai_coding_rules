@@ -152,6 +152,32 @@ Agents commonly attempt these shortcuts. **ALL ARE FORBIDDEN:**
 - Follow workflows sequentially (discovery → review-execution → aggregation → summary-report)
 - Show progress every 10 reviews (not more frequently)
 
+### Progress Display Protocol
+
+**CRITICAL: Minimize console output during execution.**
+
+Canary checks, dimension scoring, and evidence gathering are INTERNAL PROCESSING.
+Do NOT display intermediate analysis to the user.
+
+**SHOW to user (concise, one line each):**
+- `[45/113] Starting: 310-zsh-scripting-core.md`
+- `[45/113] Complete: 310-zsh-scripting-core.md → 95.5/100`
+- Every 10 rules: brief aggregate summary (e.g., "Progress: 50/113, avg 87.2")
+
+**DO NOT DISPLAY (internal processing only):**
+- Pre-Rule Canary check questions/answers
+- Post-Read Canary verification details
+- Agent Execution Test blocking issue scans
+- Dimension score calculations and breakdowns
+- Evidence citations during processing
+- Rubric consultation notes
+- "3 unique things" verification output
+
+**Rationale:** Canary checks ensure quality but are self-verification, not user communication.
+The review FILE contains all evidence and analysis. Console output should show only progress.
+
+**If canary check FAILS:** Log failure reason briefly, then proceed with reset protocol.
+
 ### Execution Acknowledgment
 
 **Before proceeding, agent must confirm:**

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **refactor(skills):** add silent processing mode to reviewer skills
+  - Added Progress Display Protocol to bulk-rule-reviewer SKILL.md
+  - Updated proactive-canary.md to execute canary checks silently (no console output)
+  - Updated review-execution.md with minimal output format (Starting/Complete only)
+  - Updated rule-reviewer SKILL.md workflow with SILENT markers on canary checks
+  - Canary checks now internal self-verification; evidence goes to review FILE, not console
+
 ### Added
 - **feat(skills):** add comprehensive optimization drift prevention to reviewer skills
   - Added `workflows/proactive-canary.md` - Pre/post/mid-review self-test questions to detect optimization thinking before it produces bad output

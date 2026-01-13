@@ -4,6 +4,12 @@
 
 Detect optimization drift BEFORE it produces a compromised review, not after.
 
+**CRITICAL: Silent Execution**
+
+Canary checks are INTERNAL SELF-VERIFICATION. Do NOT output canary questions,
+answers, or verification details to the user. Execute silently; only the review
+file should contain evidence of thorough analysis.
+
 ## The Problem
 
 Current detection is reactive:
@@ -19,10 +25,7 @@ A "canary" is a quick self-test that reveals hidden optimization thinking.
 
 ### Pre-Rule Canary (EVERY rule)
 
-**Before reading each rule file, answer these 3 questions:**
-
-```markdown
-## Canary Check: [rule-name].md
+**Before reading each rule file, mentally answer these 3 questions (DO NOT OUTPUT):**
 
 **Q1: What will I find in this rule?**
 - WRONG: "Probably similar to the last one" → STOP, you're pattern-matching
@@ -38,21 +41,19 @@ A "canary" is a quick self-test that reveals hidden optimization thinking.
 
 **All 3 RIGHT? Proceed to read rule file.**
 **Any WRONG? Re-read anti-shortcut-checklist.md before proceeding.**
-```
+
+**OUTPUT:** None. This is silent self-verification.
 
 ### Post-Read Canary (AFTER reading rule, BEFORE writing review)
 
-**After reading the rule file, before generating review content:**
-
-```markdown
-## Post-Read Canary: [rule-name].md
+**After reading the rule file, before generating review content, verify internally (DO NOT OUTPUT):**
 
 **Q1: Can I name 3 specific things unique to THIS rule?**
-- [ ] Specific pattern name: _______________
-- [ ] Specific line number with content: Line ___ says _______________
-- [ ] Specific metadata value: TokenBudget = _______________
+- Specific pattern name
+- Specific line number with content
+- Specific metadata value (TokenBudget)
 
-**If unable to fill these in → Did not actually read the file → Re-read**
+**If unable to answer → Did not actually read the file → Re-read**
 
 **Q2: What is the most interesting finding in this rule?**
 - WRONG: "It's well-written" (generic)
@@ -65,14 +66,12 @@ A "canary" is a quick self-test that reveals hidden optimization thinking.
 - RIGHT: "I found 4 blocking issues so far, need to complete Agent Execution Test" (evidence-based)
 
 **If answer is assumption-based → Haven't done the work → Do the work**
-```
+
+**OUTPUT:** None. Findings go into the review file, not console.
 
 ### Mid-Review Canary (During dimension scoring)
 
-**While scoring each dimension, pause after dimension 3:**
-
-```markdown
-## Mid-Review Canary: [rule-name].md
+**While scoring each dimension, pause after dimension 3 and verify internally (DO NOT OUTPUT):**
 
 **Q1: Have I loaded the rubric for EACH dimension scored so far?**
 - NO → STOP. Score without rubric = invalid. Go back, load rubrics, re-score.
@@ -85,7 +84,8 @@ A "canary" is a quick self-test that reveals hidden optimization thinking.
 **Q3: Am I thinking about the remaining rules in the batch?**
 - YES → STOP. Focus on THIS rule only. The batch will complete.
 - NO → Continue
-```
+
+**OUTPUT:** None. This is internal quality control.
 
 ## Canary Failure Protocol
 
@@ -122,3 +122,18 @@ Like canaries in coal mines that detect danger before miners:
 **Value:** Prevents batch-wide quality compromise
 
 **This is insurance, not overhead.**
+
+## Console Output Summary
+
+**Canary checks produce NO console output.**
+
+| Check Type | Console Output | Where Evidence Goes |
+|------------|----------------|--------------------|
+| Pre-Rule Canary | None | Internal only |
+| Post-Read Canary | None | Review file |
+| Mid-Review Canary | None | Internal only |
+| Canary FAILURE | Brief: "Canary failed, resetting" | Reset log |
+
+**The only per-rule console output should be:**
+- `[N/Total] Starting: rule-name.md`
+- `[N/Total] Complete: rule-name.md → score/100`

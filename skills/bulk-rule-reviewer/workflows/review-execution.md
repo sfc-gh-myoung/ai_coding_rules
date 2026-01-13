@@ -508,43 +508,58 @@ def execute_rule_review_workflow(target_file, review_date, review_mode, model):
 
 ## Progress Tracking
 
-**Output Format:**
+**CRITICAL: Silent Processing Mode**
+
+All internal analysis (canary checks, dimension scoring, evidence gathering) is SILENT.
+Only show the minimal progress output below. Do NOT display:
+- Canary check questions/answers
+- Post-Read verification details ("3 unique things...")
+- Agent Execution Test scan results
+- Dimension score breakdowns during processing
+- Evidence citations while analyzing
+
+**Output Format (ONLY this format):**
 
 ```
 Starting bulk review: 113 rules
 Review mode: FULL | Model: claude-sonnet-45 | Date: 2026-01-06
 Skip existing: true
 
-[1/113] Reviewing: rules/000-global-core.md
-   Complete: 100/100 (EXECUTABLE)
-[2/113] Reviewing: rules/001-memory-bank.md
-   Complete: 92/100 (EXECUTABLE)
-[3/113] Reviewing: rules/002-rule-governance.md
-   Complete: 88/100 (EXECUTABLE_WITH_REFINEMENTS)
+[1/113] Starting: 000-global-core.md
+[1/113] Complete: 000-global-core.md → 100/100
+[2/113] Starting: 001-memory-bank.md
+[2/113] Complete: 001-memory-bank.md → 92/100
+[3/113] Starting: 002-rule-governance.md
+[3/113] Complete: 002-rule-governance.md → 88/100
 ...
 
---- Progress: 10/113 complete, 0 failed, 0 skipped ---
-    Average score: 89.3/100
+--- Progress: 10/113, avg 89.3 ---
 
-[11/113] Reviewing: rules/100-snowflake-core.md
-   Complete: 100/100 (EXECUTABLE)
+[11/113] Starting: 100-snowflake-core.md
+[11/113] Complete: 100-snowflake-core.md → 95/100
 ...
 
---- Progress: 20/113 complete, 1 failed, 0 skipped ---
-    Average score: 87.8/100
+--- Progress: 20/113, avg 87.8 ---
 
 ...
 
 ============================================================
 Bulk Review Complete
 ============================================================
-Total rules: 113
-Successful: 111
-Failed: 2
-Skipped: 0
+Total: 113 | Success: 111 | Failed: 2 | Skipped: 0
 Average score: 87.2/100
 ============================================================
 ```
+
+**What goes WHERE:**
+
+| Content | Destination |
+|---------|-------------|
+| Progress (Starting/Complete) | Console |
+| Canary checks | Internal only (silent) |
+| Dimension scores with evidence | Review FILE |
+| Agent Execution Test details | Review FILE |
+| Recommendations with line numbers | Review FILE |
 
 ## Performance Notes
 

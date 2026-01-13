@@ -9,7 +9,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**LastUpdated:** 2026-01-12
 **Keywords:** TABLES, RELATIONSHIPS, PRIMARY KEY, validation rules, semantic view error, create semantic view, debug semantic view, SQL, verified queries, VQR, YAML semantic model, NLQ, mapping syntax, granularity rules
 **TokenBudget:** ~9000
 **ContextTier:** High
@@ -89,10 +89,19 @@ Authoritative guidance for creating Snowflake Native Semantic Views using the `C
 
 ### Forbidden
 
-- YAML semantic model uploads (legacy approach - use native views instead)
 - Regular `CREATE VIEW` when semantic view is appropriate
 - CAST, DATE_TRUNC in DIMENSIONS (use simple columns)
 - Verified queries in DDL (must use YAML semantic model files)
+
+### Approach Selection
+
+**SQL (Preferred - Default):** Use `CREATE SEMANTIC VIEW` DDL for structure definition, synonyms, relationships, and standard semantic models. Provides version control via SQL migrations and native database object management.
+
+**YAML (Alternative - Stage-Based):** Use YAML semantic model files uploaded to stages when:
+- Verified queries (VQR) are required (YAML-only feature)
+- Team prefers file-based configuration management
+- Integration with existing YAML-based CI/CD pipelines
+- Referencing models via `semantic_model_file` parameter in Cortex Analyst REST API
 
 ### Execution Steps
 

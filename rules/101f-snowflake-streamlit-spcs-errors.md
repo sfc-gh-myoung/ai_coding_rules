@@ -6,7 +6,7 @@
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-01-12
 **Keywords:** SPCS error, Docker build failure, container networking, image registry, service startup timeout, port binding, deployment error, container error, SPCS troubleshooting
-**TokenBudget:** ~1200
+**TokenBudget:** ~1350
 **ContextTier:** Low
 **Depends:** 101-snowflake-streamlit-core.md
 

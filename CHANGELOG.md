@@ -61,6 +61,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Removed `test_validate_compliant_boilerplate` that referenced non-existent 002a-rule-boilerplate.md
 
 ### Changed
+- **feat(rules):** add YAML semantic model support as viable alternative in semantic view rules
+  - rules/106-snowflake-semantic-views-core.md: Removed YAML prohibition from Forbidden section
+  - rules/106-snowflake-semantic-views-core.md: Added "Approach Selection" section documenting SQL (preferred) vs YAML (alternative) approaches
+  - rules/106c-snowflake-semantic-views-integration.md: Updated Design Principles to "Dual approach support"
+  - rules/106c-snowflake-semantic-views-integration.md: Updated checklist to document approach rationale
+  - YAML now recognized as valid for verified queries (VQR), CI/CD pipelines, and stage-based workflows
+
+- **chore(index):** regenerate RULES_INDEX.md with new Streamlit rules and expanded keywords
+  - Added entries for 101f (SPCS errors), 101g (fragments), 101h (timeseries)
+  - Expanded keywords for 101 core, 101b performance, 101e SQL errors
+
+- **chore(rules):** update token budgets for 6 Snowflake rules
+  - 101f-snowflake-streamlit-spcs-errors.md: ~1200 → ~1350
+  - 101g-snowflake-streamlit-fragments.md: ~2800 → ~2300
+  - 101h-snowflake-streamlit-timeseries.md: ~1600 → ~1400
+  - 115-snowflake-cortex-agents-core.md: ~8850 → ~9300
+  - 115b-snowflake-cortex-agents-operations.md: ~5600 → ~5950
+
 - **feat(agents):** add Task-Switch Detection and High-Risk Action Triggers to AGENTS.md
   - Added "Task-Switch Detection (MANDATORY)" section to enforce rule re-evaluation on task changes
   - Task switch examples: documentation to git commit, code editing to tests, planning to deployment

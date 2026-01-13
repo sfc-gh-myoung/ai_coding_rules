@@ -39,8 +39,8 @@ timing_enabled: false
 
 ### Phase 3: Output
 -  Generate recommendations
--  Write to: `reviews/README-claude-sonnet-45-2026-01-06.md`
--  Confirm: "Review written to: reviews/README-claude-sonnet-45-2026-01-06.md"
+-  Write to: `reviews/doc-reviews/README-claude-sonnet-45-2026-01-06.md`
+-  Confirm: "Review written to: reviews/doc-reviews/README-claude-sonnet-45-2026-01-06.md"
 
 ## Expected Output Structure
 

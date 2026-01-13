@@ -14,8 +14,9 @@ Key behaviors:
 - Reviews documentation against 6 dimensions: Accuracy, Completeness, Clarity, Consistency, Staleness, Structure
 - Supports three review modes: FULL, FOCUSED, STALENESS
 - Computes `OUTPUT_FILE` as:
-  - Single scope: `reviews/<doc-name>-<model>-<YYYY-MM-DD>.md`
-  - Collection scope: `reviews/project-docs-<model>-<YYYY-MM-DD>.md`
+  - Single scope: `{output_root}doc-reviews/<doc-name>-<model>-<YYYY-MM-DD>.md`
+  - Collection scope: `{output_root}summaries/_docs-collection-<model>-<YYYY-MM-DD>.md`
+  - Default `output_root`: `reviews/`
 - **No-overwrite safety:** If file exists, uses suffix `-01.md`, `-02.md`, etc.
 - Verifies code references exist in the codebase
 - Validates internal links and flags external URLs for manual review
@@ -54,6 +55,18 @@ model: claude-sonnet-45
 review_scope: collection
 ```
 
+**With custom output directory:**
+
+```text
+Use the doc-reviewer skill.
+
+target_files: README.md
+review_date: 2026-01-06
+review_mode: FULL
+model: claude-sonnet-45
+output_root: quarterly-audit/
+```
+
 **With execution timing:**
 
 ```text
@@ -68,10 +81,11 @@ timing_enabled: true
 
 ### 3. Output location
 
-The skill writes reviews to the `reviews/` directory:
+The skill writes reviews to the output directory:
 
-- Single: `reviews/README-claude-sonnet-45-2026-01-06.md`
-- Collection: `reviews/project-docs-claude-sonnet-45-2026-01-06.md`
+- Default: `reviews/doc-reviews/README-claude-sonnet-45-2026-01-06.md`
+- Collection: `reviews/summaries/_docs-collection-claude-sonnet-45-2026-01-06.md`
+- With `output_root: quarterly-audit/`: `quarterly-audit/doc-reviews/README-...`
 
 If the file already exists, suffixes are appended: `-01.md`, `-02.md`, etc.
 
@@ -251,6 +265,14 @@ Verify code references are still valid after major refactoring.
 ### Q: What should I pass for `model`?
 
 **A:** Prefer a slug like `claude-sonnet-45`. If you provide a raw model name, the skill normalizes it to a slug before writing the file.
+
+### Q: Can I customize the output directory?
+
+**A:** Yes, use the `output_root` parameter:
+```text
+output_root: quarterly-audit/
+```
+This writes reviews to `quarterly-audit/doc-reviews/` instead of `reviews/doc-reviews/`. The skill auto-creates directories and normalizes trailing slashes. Relative paths including `../` are supported.
 
 ### Q: Can I review non-markdown files?
 

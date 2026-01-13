@@ -189,7 +189,7 @@ Error: Permission denied writing to reviews/
 
 **Fallback behavior:**
 ```
-OUTPUT_FILE: reviews/810-project-readme-claude-sonnet45-2025-12-15.md
+OUTPUT_FILE: {output_root}rule-reviews/810-project-readme-claude-sonnet45-2025-12-15.md
 
 [Full Markdown review content follows...]
 
@@ -204,7 +204,7 @@ Please manually save the above content to the indicated path.
 
 **Symptom:**
 ```
-Error: Directory reviews/ does not exist
+Error: Directory {output_root} does not exist
 ```
 
 **Resolution:**
@@ -314,9 +314,9 @@ def validate_review_inputs(target_file: str, review_date: str,
     if review_mode.upper() not in valid_modes:
         errors.append(f"Invalid mode: {review_mode} (valid: {', '.join(valid_modes)})")
     
-    # Check reviews directory
-    if not Path('reviews').exists():
-        errors.append("Directory 'reviews/' does not exist - will be created")
+    # Check {output_root}rule-reviews directory (default: reviews/rule-reviews)
+    if not Path('reviews/rule-reviews').exists():
+        errors.append("Directory 'reviews/rule-reviews/' does not exist - will be created")
     
     return errors
 

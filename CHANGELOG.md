@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **feat(skills):** add `output_root` parameter to all reviewer skills for customizable output directories
+  - All 4 reviewer skills (rule-reviewer, doc-reviewer, plan-reviewer, bulk-rule-reviewer) now support `output_root` parameter
+  - Default: `reviews/` (maintains backward compatibility)
+  - Subdirectories appended automatically: `rule-reviews/`, `doc-reviews/`, `plan-reviews/`, `summaries/`
+  - Trailing slash auto-normalized (both `reviews` and `reviews/` accepted)
+  - Supports relative paths including `../` for flexible directory placement
+  - Auto-creates output directories if they don't exist (`os.makedirs(path, exist_ok=True)`)
+  - Updated all workflows: input-validation, file-write, error-handling, summary-report
+  - Updated examples with custom output directory usage
+  - Updated docs/USING_*.md documentation with parameter details and FAQ entries
+
 ### Changed
 - **refactor(rules):** apply bulk-rule-reviewer improvements to 4xx/5xx/6xx series
   - Updated 420-javascript-core.md: Biome linting now required (was recommended)

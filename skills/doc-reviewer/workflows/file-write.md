@@ -8,14 +8,25 @@
 - `review_scope`: `single` | `collection`
 - `model_slug`: normalized model identifier
 - `review_markdown`: full review content (or list of contents for single scope)
+- `output_root`: root directory for output files (default: `reviews/`)
 - `overwrite`: `true` | `false` (default: `false`)
 
 ## Steps
 
-### Step 1: Ensure reviews/ Directory Exists
+### Step 1: Normalize output_root and Ensure Directories Exist
+
+```python
+# Normalize trailing slash
+output_root = output_root.rstrip('/') + '/'
+```
 
 ```bash
-mkdir -p reviews/
+mkdir -p {output_root}doc-reviews/
+```
+
+For collection scope, also ensure:
+```bash
+mkdir -p {output_root}summaries/
 ```
 
 If directory creation fails, proceed to fallback output.
@@ -25,7 +36,7 @@ If directory creation fails, proceed to fallback output.
 **For collection scope:**
 
 ```
-output_file = reviews/docs-collection-<model_slug>-<review_date>.md
+output_file = {output_root}summaries/_docs-collection-<model_slug>-<review_date>.md
 ```
 
 **For single scope:**
@@ -34,12 +45,15 @@ For each target file:
 
 ```
 doc_name = base filename without extension
-output_file = reviews/<doc_name>-<model_slug>-<review_date>.md
+output_file = {output_root}doc-reviews/<doc_name>-<model_slug>-<review_date>.md
 ```
 
-Examples:
-- `README.md` → `reviews/README-claude-sonnet45-2025-12-16.md`
-- `docs/ARCHITECTURE.md` → `reviews/ARCHITECTURE-claude-sonnet45-2025-12-16.md`
+Examples (with default `output_root: reviews/`):
+- `README.md` → `reviews/doc-reviews/README-claude-sonnet45-2025-12-16.md`
+- `docs/ARCHITECTURE.md` → `reviews/doc-reviews/ARCHITECTURE-claude-sonnet45-2025-12-16.md`
+
+Examples (with `output_root: mytest/`):
+- `README.md` → `mytest/doc-reviews/README-claude-sonnet45-2025-12-16.md`
 
 ### Step 3: Check for Existing Files (Overwrite Logic)
 
@@ -51,16 +65,20 @@ For each output_file:
 **If `overwrite: false` (default):**
 1. If `output_file` does not exist → use it
 2. If `output_file` exists → find next available suffix:
-   - `reviews/<name>-<model>-<date>-01.md`
-   - `reviews/<name>-<model>-<date>-02.md`
+   - `{output_root}doc-reviews/<name>-<model>-<date>-01.md`
+   - `{output_root}doc-reviews/<name>-<model>-<date>-02.md`
    - ... up to `-99.md`
 
 ```python
 from pathlib import Path
 
-def get_safe_output_path(base_name: str, model_slug: str, date: str, overwrite: bool = False) -> str:
+def get_safe_output_path(base_name: str, model_slug: str, date: str, 
+                         output_root: str = 'reviews/', overwrite: bool = False) -> str:
     """Returns output filename based on overwrite setting."""
-    base = f"reviews/{base_name}-{model_slug}-{date}"
+    # Normalize output_root
+    output_root = output_root.rstrip('/') + '/'
+    
+    base = f"{output_root}doc-reviews/{base_name}-{model_slug}-{date}"
     
     # If overwrite, always use base path
     if overwrite:

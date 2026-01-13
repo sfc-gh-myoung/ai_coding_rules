@@ -37,7 +37,7 @@ target_files:
 -  Determine overall winner
 
 ### Phase 4: Output
--  Write to: `reviews/_comparison-plans-abc-claude-sonnet-45-2026-01-06.md`
+-  Write to: `reviews/summaries/_comparison-plans-abc-claude-sonnet-45-2026-01-06.md`
 -  Include individual plan summaries
 -  Include comparison table
 -  Declare winner with rationale

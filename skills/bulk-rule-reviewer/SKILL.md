@@ -30,13 +30,16 @@ Execute comprehensive agent-centric reviews on all rule files in `rules/` direct
 - **skip_existing**: Boolean (default: true) - Resume capability
 - **overwrite**: Boolean (default: false) - If true, overwrite existing review files. If false, use sequential numbering (-01, -02, etc.) for conflicts
 - **max_parallel**: Integer 1-10 (default: 1) - Concurrent reviews
+- **output_root**: Root directory for output files (default: `reviews/`). Subdirectories `rule-reviews/` and `summaries/` appended automatically. Supports relative paths including `../`.
 - **timing_enabled**: `true` | `false` (default: `false`) - Enable execution timing
 
 ### Outputs
 
-**Individual reviews:** `reviews/<rule-name>-<model>-<date>.md` (up to 113 files)
+**Individual reviews:** `{output_root}/rule-reviews/<rule-name>-<model>-<date>.md` (up to 113 files)
 
-**Master summary:** `reviews/_bulk-review-<model>-<date>.md` with sections:
+**Master summary:** `{output_root}/summaries/_bulk-review-<model>-<date>.md` with sections:
+
+(Default `output_root: reviews/`. With `output_root: mytest/` → `mytest/rule-reviews/...` and `mytest/summaries/...`)
 1. Executive Summary (score distribution, dimension analysis)
 2. Priority 1: Urgent (score <60, NOT_EXECUTABLE)
 3. Priority 2: High (score 60-79, NEEDS_REFINEMENT)
@@ -119,7 +122,7 @@ This skill MUST execute the complete rule-reviewer workflow for each rule file.
 1. Load `skills/rule-reviewer/SKILL.md` to understand the review workflow
 2. Load `skills/rule-reviewer/rubrics/*.md` as needed for each dimension
 3. Execute the review workflow for each rule file
-4. Write review to `reviews/` following rule-reviewer's output format
+4. Write review to `reviews/rule-reviews/` following rule-reviewer's output format
 5. Continue to next rule
 
 **Why this matters:**
@@ -148,7 +151,7 @@ Agents commonly attempt these shortcuts. **ALL ARE FORBIDDEN:**
 - Perform Agent Execution Test (count blocking issues)
 - Score all dimensions according to review_mode (FULL/FOCUSED/STALENESS)
 - Generate specific recommendations with line numbers
-- Write complete review to reviews/ with proper formatting
+- Write complete review to reviews/rule-reviews/ with proper formatting
 - Follow workflows sequentially (discovery → review-execution → aggregation → summary-report)
 - Show progress every 10 reviews (not more frequently)
 
@@ -546,7 +549,7 @@ For each rule file:
     - Must cite direct quotes from rule
     - Must include rule-specific findings
     - **FAILURE triggers `workflows/reset-trigger.md`**
-15. **WRITE complete review to reviews/ directory** (respects overwrite parameter)
+15. **WRITE complete review to reviews/rule-reviews/ directory** (respects overwrite parameter)
 16. Store (rule_name, score, verdict, review_path)
 17. Show progress every 10 reviews
 
@@ -622,7 +625,7 @@ Generate master summary with:
 - Prioritized sections (Priority 1-4)
 - Rules sorted by score within tiers
 - Impact × effort ratios for recommendations
-- Write to `reviews/_bulk-review-<model>-<date>.md`
+- Write to `reviews/summaries/_bulk-review-<model>-<date>.md`
 
 **See:** `workflows/summary-report.md` for report format and section generation.
 
@@ -738,7 +741,7 @@ model: claude-sonnet-45
 ## Success Criteria
 
 - All matching rules reviewed (or filtered subset)
-- Individual review files written to `reviews/`
+- Individual review files written to `reviews/rule-reviews/`
 - Master summary report generated with valid path
 - Prioritized improvement list included
 - No context overflow during execution
@@ -781,7 +784,7 @@ model: claude-sonnet-45
 - `filter_pattern`: rules/*.md glob (optional, must match ≥1 file)
 - `skip_existing`: boolean true/false (optional, default: true)
 - `max_parallel`: integer 1-10 (optional, default: 1)
-- Environment: rules/ exists and readable, reviews/ writable
+- Environment: rules/ exists and readable, reviews/rule-reviews/ and reviews/summaries/ writable
 
 **Execution:** Validate inputs before Stage 1 (Discovery). Fail fast on errors.
 

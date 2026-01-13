@@ -18,7 +18,8 @@ Key behaviors:
   - Evaluates rules against the Design Priority Hierarchy from 000-global-core.md before scoring
 - **Agent Execution Test** — First gate counts blocking issues (undefined thresholds, missing branches, ambiguous actions)
 - Computes `OUTPUT_FILE` as:
-  - `reviews/<rule-name>-<model>-<YYYY-MM-DD>.md`
+  - `{output_root}rule-reviews/<rule-name>-<model>-<YYYY-MM-DD>.md`
+  - Default `output_root`: `reviews/`
 - **No-overwrite safety:** If file exists, uses suffix `-01.md`, `-02.md`, etc.
 - Supports three review modes: FULL, FOCUSED, STALENESS
 
@@ -127,6 +128,18 @@ review_mode: FULL
 model: claude-sonnet-45
 ```
 
+**With custom output directory:**
+
+```text
+Use the rule-reviewer skill.
+
+target_file: rules/801-project-readme.md
+review_date: 2026-01-06
+review_mode: FULL
+model: claude-sonnet-45
+output_root: quarterly-audit/
+```
+
 **With execution timing:**
 
 ```text
@@ -143,7 +156,8 @@ timing_enabled: true
 
 The skill will write the review to:
 
-`reviews/801-project-readme-claude-sonnet-45-2026-01-06.md`
+- Default: `reviews/rule-reviews/801-project-readme-claude-sonnet-45-2026-01-06.md`
+- With `output_root: quarterly-audit/`: `quarterly-audit/rule-reviews/801-project-readme-claude-sonnet-45-2026-01-06.md`
 
 If the file already exists, it uses suffixes: `-01.md`, `-02.md`, etc.
 
@@ -159,6 +173,14 @@ When `timing_enabled: true`, the output includes a Timing Metadata section with 
 
 **A:** Prefer a slug like `claude-sonnet-45`. If you provide a raw model name, the
 skill will normalize it to a slug before writing the file.
+
+### Q: Can I customize the output directory?
+
+**A:** Yes, use the `output_root` parameter:
+```text
+output_root: mytest/
+```
+This writes reviews to `mytest/rule-reviews/` instead of `reviews/rule-reviews/`. The skill auto-creates directories and normalizes trailing slashes. Relative paths including `../` are supported.
 
 ### Q: Does `target_file` have to be under `rules/`?
 

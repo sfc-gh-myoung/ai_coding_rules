@@ -40,16 +40,19 @@ Plans are scored on whether autonomous agents can execute them without judgment 
 - **META-REVIEW mode**: `review_files` - List of review file paths. If missing: STOP, report error `Missing required input: review_files for META-REVIEW mode`
 
 **Optional:**
+- **output_root**: Root directory for output files (default: `reviews/`). Subdirectories `plan-reviews/` or `summaries/` appended automatically. Supports relative paths including `../`.
 - **overwrite**: `true` | `false` (default: `false`) - If true, overwrite existing review file. If false, use sequential numbering (-01, -02, etc.)
 - **timing_enabled**: `true` | `false` (default: `false`) - Enable execution timing
 
 ### Output
 
-**FULL mode:** `reviews/<plan-name>-<model>-<date>.md`
+**FULL mode:** `{output_root}/plan-reviews/<plan-name>-<model>-<date>.md`
 
-**COMPARISON mode:** `reviews/_comparison-<plan-set-id>-<model>-<date>.md` with ranked plans and winner declaration
+**COMPARISON mode:** `{output_root}/summaries/_comparison-<plan-set-id>-<model>-<date>.md` with ranked plans and winner declaration
 
-**META-REVIEW mode:** `reviews/_meta-<doc-name>-<date>.md` with consistency analysis
+**META-REVIEW mode:** `{output_root}/summaries/_meta-<doc-name>-<date>.md` with consistency analysis
+
+(Default `output_root: reviews/`. With `output_root: mytest/` → `mytest/plan-reviews/...`)
 
 ## Review Modes
 
@@ -224,7 +227,7 @@ Request user ACT authorization before file modifications.
 
 ### 9. File Write
 
-Write review to `reviews/` with appropriate filename per mode.
+Write review to `reviews/plan-reviews/` (FULL) or `reviews/summaries/` (COMPARISON/META-REVIEW) with appropriate filename.
 
 **See:** `workflows/file-write.md`
 

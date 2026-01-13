@@ -237,7 +237,7 @@ Valid Claude slugs:
 - claude-haiku
 
 For output filename, will normalize to provided slug:
-reviews/810-project-readme-gpt-4-turbo-2025-12-15.md
+reviews/rule-reviews/810-project-readme-gpt-4-turbo-2025-12-15.md
 
 Note: The review will be performed by the current Claude model,
 regardless of the slug provided. The slug is for filename 
@@ -255,9 +255,9 @@ Proceed with slug "gpt-4-turbo"? (yes/no/use claude-sonnet-45)
 **Example:**
 ```
 Existing files:
-- reviews/810-project-readme-claude-sonnet45-2025-12-15.md
-- reviews/810-project-readme-claude-sonnet45-2025-12-15-01.md
-- reviews/810-project-readme-claude-sonnet45-2025-12-15-02.md
+- reviews/rule-reviews/810-project-readme-claude-sonnet45-2025-12-15.md
+- reviews/rule-reviews/810-project-readme-claude-sonnet45-2025-12-15-01.md
+- reviews/rule-reviews/810-project-readme-claude-sonnet45-2025-12-15-02.md
 ... through -99.md
 ```
 
@@ -266,7 +266,7 @@ Existing files:
 Output filename exhausted:
 
 All suffix slots (01-99) are occupied for:
-reviews/810-project-readme-claude-sonnet45-2025-12-15-XX.md
+reviews/rule-reviews/810-project-readme-claude-sonnet45-2025-12-15-XX.md
 
 Options:
 A. Use different date (tomorrow's date)
@@ -277,10 +277,10 @@ D. Use 3-digit suffix (-100.md)
 Recommendation: Option A or B
 
 Alternative filename:
-reviews/810-project-readme-claude-sonnet45-2025-12-16.md
+reviews/rule-reviews/810-project-readme-claude-sonnet45-2025-12-16.md
 
 Or with different slug:
-reviews/810-project-readme-claude-opus4-2025-12-15.md
+reviews/rule-reviews/810-project-readme-claude-opus4-2025-12-15.md
 ```
 
 ---

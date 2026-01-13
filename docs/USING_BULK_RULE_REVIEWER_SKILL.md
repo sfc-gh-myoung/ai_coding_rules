@@ -12,8 +12,9 @@ Key behaviors:
 
 - Reviews all rules in `rules/` directory (or filtered subset)
 - Invokes rule-reviewer skill for each rule individually
-- Generates individual review files in `reviews/` directory
-- Creates master summary report with prioritized improvement recommendations
+- Generates individual review files in `{output_root}rule-reviews/` directory
+- Creates master summary report in `{output_root}summaries/`
+- Default `output_root`: `reviews/`
 - Supports resume capability for long-running batches
 - Expected execution time: 5-10 hours for 121 rules (sequential)
 
@@ -63,6 +64,17 @@ review_mode: FULL
 model: claude-sonnet-45
 ```
 
+**With custom output directory:**
+
+```text
+Use the bulk-rule-reviewer skill.
+
+review_date: 2026-01-06
+review_mode: FULL
+model: claude-sonnet-45
+output_root: quarterly-audit/
+```
+
 **Filtered review (Snowflake rules only):**
 
 ```text
@@ -87,9 +99,15 @@ timing_enabled: true
 
 ### 3. Output locations
 
-**Individual reviews:** `reviews/<rule-name>-<model>-<date>.md` (one per rule)
+**Individual reviews:** `{output_root}rule-reviews/<rule-name>-<model>-<date>.md` (one per rule)
 
-**Master summary:** `reviews/_bulk-review-<model>-<date>.md`
+**Master summary:** `{output_root}summaries/_bulk-review-<model>-<date>.md`
+
+**Default output_root:** `reviews/`
+
+**Examples:**
+- Default: `reviews/rule-reviews/...` and `reviews/summaries/_bulk-review-...`
+- With `output_root: quarterly-audit/`: `quarterly-audit/rule-reviews/...` and `quarterly-audit/summaries/...`
 
 The master summary includes:
 - Executive Summary (score distribution, dimension analysis)
@@ -179,6 +197,14 @@ filter_pattern: rules/002*.md        # Governance rules only
 ### Q: What happens if the process is interrupted?
 
 **A:** Use the resume capability. Set `skip_existing: true` and re-run. The skill will skip already-reviewed files and continue from where it left off.
+
+### Q: Can I customize the output directory?
+
+**A:** Yes, use the `output_root` parameter:
+```text
+output_root: quarterly-audit/
+```
+This writes reviews to `quarterly-audit/rule-reviews/` and summary to `quarterly-audit/summaries/` instead of `reviews/`. The skill auto-creates directories and normalizes trailing slashes. Relative paths including `../` are supported.
 
 ### Q: Can I force a re-review of all rules?
 

@@ -12,7 +12,7 @@ review_date: 2025-12-16
 review_mode: FULL
 ```
 
-**Expected:** `reviews/plan-MY_PLAN-claude-sonnet45-2025-12-16.md`
+**Expected:** `reviews/plan-reviews/plan-MY_PLAN-claude-sonnet45-2025-12-16.md`
 
 **Verify:** Output file created at expected path.
 
@@ -28,7 +28,7 @@ review_date: 2025-12-16
 review_mode: COMPARISON
 ```
 
-**Expected:** `reviews/plan-comparison-gpt-52-2025-12-16.md`
+**Expected:** `reviews/plan-reviews/summaries/_comparison-gpt-52-2025-12-16.md`
 
 **Verify:** Output file created at expected path.
 
@@ -45,7 +45,7 @@ review_date: 2025-12-16
 review_mode: META-REVIEW
 ```
 
-**Expected:** `reviews/meta-IMPROVE_RULE_LOADING-claude-opus45-2025-12-16.md`
+**Expected:** `reviews/summaries/_meta-IMPROVE_RULE_LOADING-claude-opus45-2025-12-16.md`
 
 **Verify:** Output file created at expected path.
 
@@ -55,23 +55,23 @@ review_mode: META-REVIEW
 
 ### Test O4: First Write (No Conflict)
 
-**Setup:** Ensure `reviews/plan-TEST-model-2025-12-16.md` does not exist.
+**Setup:** Ensure `reviews/plan-reviews/plan-TEST-model-2025-12-16.md` does not exist.
 
 **Input:** Review that would create that file.
 
 **Expected:** File created without suffix.
 
-**Verify:** `reviews/plan-TEST-model-2025-12-16.md` exists.
+**Verify:** `reviews/plan-reviews/plan-TEST-model-2025-12-16.md` exists.
 
 ---
 
 ### Test O5: Second Write (First Conflict)
 
-**Setup:** Create `reviews/plan-TEST-model-2025-12-16.md`.
+**Setup:** Create `reviews/plan-reviews/plan-TEST-model-2025-12-16.md`.
 
 **Input:** Another review with same parameters.
 
-**Expected:** `reviews/plan-TEST-model-2025-12-16-01.md` created.
+**Expected:** `reviews/plan-reviews/plan-TEST-model-2025-12-16-01.md` created.
 
 **Verify:** Both files exist; original unchanged.
 
@@ -80,12 +80,12 @@ review_mode: META-REVIEW
 ### Test O6: Third Write (Second Conflict)
 
 **Setup:** Create both:
-- `reviews/plan-TEST-model-2025-12-16.md`
-- `reviews/plan-TEST-model-2025-12-16-01.md`
+- `reviews/plan-reviews/plan-TEST-model-2025-12-16.md`
+- `reviews/plan-reviews/plan-TEST-model-2025-12-16-01.md`
 
 **Input:** Another review with same parameters.
 
-**Expected:** `reviews/plan-TEST-model-2025-12-16-02.md` created.
+**Expected:** `reviews/plan-reviews/plan-TEST-model-2025-12-16-02.md` created.
 
 **Verify:** Three files exist; originals unchanged.
 
@@ -155,7 +155,7 @@ review_mode: META-REVIEW
 ```
  Review complete
 
-OUTPUT_FILE: reviews/plan-X-model-date.md
+OUTPUT_FILE: reviews/plan-reviews/plan-X-model-date.md
 Target: plans/X.md
 Mode: FULL
 Model: model
@@ -174,7 +174,7 @@ Verdict: [verdict]
 **Input:** Review where file write fails (simulate permission error).
 
 **Expected:**
-1. `OUTPUT_FILE: reviews/plan-X-model-date.md` printed
+1. `OUTPUT_FILE: reviews/plan-reviews/plan-X-model-date.md` printed
 2. Full review content printed as markdown
 
 **Verify:** Review content available for manual save.
@@ -183,11 +183,11 @@ Verdict: [verdict]
 
 ### Test O14: Reviews Directory Creation
 
-**Setup:** Delete `reviews/` directory.
+**Setup:** Delete `reviews/plan-reviews/` directory.
 
 **Input:** Run a review.
 
-**Expected:** `reviews/` directory created; file written.
+**Expected:** `reviews/plan-reviews/` directory created; file written.
 
 **Verify:** Directory and file both exist.
 
@@ -254,7 +254,7 @@ Verdict: [verdict]
 
 **Input:** `target_file: plans/my-plan_v2.0.md`
 
-**Expected:** `reviews/plan-my-plan_v20-model-date.md`
+**Expected:** `reviews/plan-reviews/plan-my-plan_v20-model-date.md`
 (Period removed to avoid extension confusion)
 
 **Verify:** Output path is filesystem-safe.

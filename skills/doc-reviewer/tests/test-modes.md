@@ -128,8 +128,8 @@ model: claude-sonnet45
 **Expected:**
 
 - [ ] Two separate output files created:
-  - `reviews/README-claude-sonnet45-2025-12-16.md`
-  - `reviews/CONTRIBUTING-claude-sonnet45-2025-12-16.md`
+  - `reviews/doc-reviews/README-claude-sonnet45-2025-12-16.md`
+  - `reviews/doc-reviews/CONTRIBUTING-claude-sonnet45-2025-12-16.md`
 - [ ] Each file contains complete review for that document
 
 ---
@@ -149,7 +149,7 @@ model: claude-sonnet45
 **Expected:**
 
 - [ ] Single output file:
-  - `reviews/docs-collection-claude-sonnet45-2025-12-16.md`
+  - `reviews/summaries/_docs-collection-claude-sonnet45-2025-12-16.md`
 - [ ] Contains Overview section with file list
 - [ ] Contains Summary Scores table (all docs)
 - [ ] Contains individual review sections for each doc
@@ -171,7 +171,7 @@ model: claude-sonnet45
 **Expected:**
 
 - [ ] Single output file:
-  - `reviews/docs-collection-claude-sonnet45-2025-12-16.md`
+  - `reviews/summaries/_docs-collection-claude-sonnet45-2025-12-16.md`
 - [ ] Consolidated link validation across all docs
 - [ ] Summary of staleness issues by document
 - [ ] Overall staleness risk assessment

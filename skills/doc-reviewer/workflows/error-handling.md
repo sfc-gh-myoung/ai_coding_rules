@@ -269,7 +269,7 @@ Error: Permission denied writing to reviews/
 **Fallback behavior:**
 
 ```
-OUTPUT_FILE: reviews/README-claude-sonnet45-2025-12-16.md
+OUTPUT_FILE: {output_root}doc-reviews/README-claude-sonnet45-2025-12-16.md
 
 [Full Markdown review content follows...]
 
@@ -278,7 +278,7 @@ Note: File write failed due to permission error.
 Please manually save the above content to the indicated path.
 
 To fix permissions:
-  mkdir -p reviews && chmod 755 reviews
+  mkdir -p {output_root}doc-reviews && chmod 755 {output_root}doc-reviews
 ```
 
 ---
@@ -288,7 +288,7 @@ To fix permissions:
 **Symptom:**
 
 ```
-Error: Directory reviews/ does not exist
+Error: Directory {output_root} does not exist
 ```
 
 **Resolution:**
@@ -433,9 +433,9 @@ def validate_docs_review_inputs(
         if not defaults_found:
             errors.append("No documentation files found (specify target_files)")
     
-    # Check reviews directory
-    if not Path('reviews').exists():
-        errors.append("Directory 'reviews/' does not exist - will be created")
+    # Check output directory (default: reviews/doc-reviews)
+    if not Path('reviews/doc-reviews').exists():
+        errors.append("Directory 'reviews/doc-reviews/' does not exist - will be created")
     
     return errors
 

@@ -30,7 +30,7 @@ target_files: README.md
 -  Score Staleness dimension only
 
 ### Phase 3: Output
--  Write to: `reviews/README-claude-sonnet-45-2026-01-06.md`
+-  Write to: `reviews/doc-reviews/README-claude-sonnet-45-2026-01-06.md`
 -  Execution time: <1 minute (fast mode)
 
 ## Expected Output Structure

@@ -245,7 +245,7 @@ B. Switch to single scope (recommended for clarity)
 Recommendation: Option B
 
 Using scope: single
-Output: reviews/README-claude-sonnet45-2025-12-16.md
+Output: reviews/doc-reviews/README-claude-sonnet45-2025-12-16.md
 ```
 
 ---
@@ -258,9 +258,9 @@ Output: reviews/README-claude-sonnet45-2025-12-16.md
 
 ```
 Existing files:
-- reviews/README-claude-sonnet45-2025-12-16.md
-- reviews/README-claude-sonnet45-2025-12-16-01.md
-- reviews/README-claude-sonnet45-2025-12-16-02.md
+- reviews/doc-reviews/README-claude-sonnet45-2025-12-16.md
+- reviews/doc-reviews/README-claude-sonnet45-2025-12-16-01.md
+- reviews/doc-reviews/README-claude-sonnet45-2025-12-16-02.md
 ... through -99.md
 ```
 
@@ -270,7 +270,7 @@ Existing files:
 Output filename exhausted:
 
 All suffix slots (01-99) are occupied for:
-reviews/README-claude-sonnet45-2025-12-16-XX.md
+reviews/doc-reviews/README-claude-sonnet45-2025-12-16-XX.md
 
 Options:
 A. Use different date (tomorrow's date)
@@ -281,7 +281,7 @@ D. Use timestamp suffix
 Recommendation: Option D
 
 Alternative filename:
-reviews/README-claude-sonnet45-2025-12-16-1734355200.md
+reviews/doc-reviews/README-claude-sonnet45-2025-12-16-1734355200.md
 (using Unix timestamp)
 ```
 

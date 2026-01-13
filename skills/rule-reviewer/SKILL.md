@@ -1,6 +1,6 @@
 ---
 name: rule-reviewer
-description: Execute agent-centric rule reviews (FULL/FOCUSED/STALENESS modes) using 6-dimension rubric and write results to reviews/ with no-overwrite safety. Use when reviewing rule files, auditing rule quality, checking rule staleness, validating rule compliance, or analyzing agent executability.
+description: Execute agent-centric rule reviews (FULL/FOCUSED/STALENESS modes) using 6-dimension rubric and write results to reviews/rule-reviews/ with no-overwrite safety. Use when reviewing rule files, auditing rule quality, checking rule staleness, validating rule compliance, or analyzing agent executability.
 version: 2.4.0
 ---
 
@@ -19,7 +19,9 @@ review_mode: FULL
 model: claude-sonnet-45
 ```
 
-Output: `reviews/200-python-core-claude-sonnet-45-2026-01-06.md`
+Output: `reviews/rule-reviews/200-python-core-claude-sonnet-45-2026-01-06.md`
+
+(With `output_root: mytest/` → `mytest/rule-reviews/200-python-core-claude-sonnet-45-2026-01-06.md`)
 
 ## Scoring System (100 points)
 
@@ -153,7 +155,7 @@ All canary checks, dimension scoring, and evidence gathering are INTERNAL (silen
    - **FAILURE → Trigger reset: Re-read SKILL.md completely**
 
 10. **Write review**
-   Path: `reviews/[rule-name]-[model]-[date].md`
+   Path: `{output_root}/rule-reviews/[rule-name]-[model]-[date].md`
    Auto-increment: `-01.md`, `-02.md` if exists (when overwrite=false)
 
 **See workflows/** for detailed error handling
@@ -185,6 +187,7 @@ All canary checks, dimension scoring, and evidence gathering are INTERNAL (silen
 - **review_date:** ISO 8601 format (YYYY-MM-DD)
 - **review_mode:** FULL | FOCUSED | STALENESS
 - **model:** Lowercase-hyphenated slug (e.g., `claude-sonnet-45`)
+- **output_root:** (optional) Root directory for output files (default: `reviews/`). Subdirectory `rule-reviews/` is appended automatically. Supports relative paths including `../`.
 - **overwrite:** (optional) true | false (default: false) - If true, overwrite existing review file. If false, use sequential numbering (-01, -02, etc.)
 - **timing_enabled:** (optional) true | false (default: false)
 
@@ -229,7 +232,7 @@ bash skills/skill-timing/scripts/run_timing.sh checkpoint \
 # 4. End (store _timing_stdout from output)
 bash skills/skill-timing/scripts/run_timing.sh end \
     --run-id rule-reviewer-200-python-core-20260108-abc123 \
-    --output-file reviews/200-python-core-claude-sonnet-45-2026-01-08.md \
+    --output-file reviews/rule-reviews/200-python-core-claude-sonnet-45-2026-01-08.md \
     --skill rule-reviewer
 
 # 5. Embed: Parse _timing_stdout, append to output file (ACT mode required)
@@ -267,7 +270,7 @@ bash skills/skill-timing/scripts/run_timing.sh end \
 
 **When `overwrite: false` (default):**
 
-If `reviews/[rule-name]-[model]-[date].md` exists:
+If `{output_root}/rule-reviews/[rule-name]-[model]-[date].md` exists:
 - Try `-01.md`
 - Try `-02.md`
 - Increment until available (max: `-99.md`)
@@ -275,7 +278,7 @@ If `reviews/[rule-name]-[model]-[date].md` exists:
 
 **When `overwrite: true`:**
 
-The existing file at `reviews/[rule-name]-[model]-[date].md` will be replaced. Use this when intentionally re-running a review to replace a previous version.
+The existing file at `{output_root}/rule-reviews/[rule-name]-[model]-[date].md` will be replaced. Use this when intentionally re-running a review to replace a previous version.
 
 ## Progressive Disclosure
 
@@ -523,7 +526,7 @@ Before considering review complete:
 - [ ] Critical issues identified
 - [ ] Recommendations prioritized
 - [ ] Line numbers provided for fixes
-- [ ] Review written to reviews/
+- [ ] Review written to {output_root}/rule-reviews/
 - [ ] File path confirmed
 
 ## Version History

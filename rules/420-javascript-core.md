@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-13
 **Keywords:** JavaScript, ES2024, ESM, Node.js, JSDoc, Biome, node:test, Immutability, Async/Await, Functional Programming
 **TokenBudget:** ~3200
 **ContextTier:** High
@@ -384,4 +384,4 @@ describe('Math Utils', () => {
 ```
 
 ### Linting with Biome
-- **Recommended:** Use **Biome** (`@biomejs/biome`) for linting and formatting. It is significantly faster than ESLint + Prettier and requires less configuration.
+- **Requirement:** Use **Biome** (`@biomejs/biome`) for linting and formatting. It is significantly faster than ESLint + Prettier and requires less configuration.

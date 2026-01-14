@@ -200,10 +200,12 @@ Rules use 3-digit prefixes for logical organization:
 | **200-299** | Python Ecosystem | 200-python-core, 201-python-lint-format, 221-python-htmx-core, 221b-python-htmx-flask, 221c-python-htmx-fastapi |
 | **300-399** | Shell/Bash Scripting | 300-bash-scripting-core, 310-zsh-scripting-core |
 | **400-499** | Frontend/Containers | 350-docker-best-practices, 420-javascript-core, 430-typescript-core, 440-react-core, 441-react-backend |
-| **500-599** | Frontend | 500-frontend-htmx-core |
+| **500-599** | Frontend | 500-frontend-htmx-core, 501-frontend-browser-globals-collisions |
 | **600-699** | Systems/Backend Languages | 600-golang-core (Go project structure, error handling, interfaces, testing, concurrency) |
-| **800-899** | Project Management | 800-project-changelog, 801-project-readme |
-| **900-999** | Demo/Examples | 900-demo-creation, 901-data-generation-modeling, 920-data-science-analytics, 930-data-governance-quality, 940-business-analytics |
+| **800-899** | Project Management | 800-project-changelog, 801-project-readme, 802-project-contributing, 803-project-git-workflow, 820-taskfile-automation |
+| **900-999** | Analytics/Governance | 920-data-science-analytics, 930-data-governance-quality, 940-business-analytics, 950-create-dbt-semantic-view |
+
+**Demo Rules (130-series):** Demo creation rules are now consolidated under Snowflake (130-snowflake-demo-sql, 131-snowflake-demo-creation, 132-snowflake-demo-modeling).
 
 **Split Rules Pattern:** Rules may use letter suffixes (e.g., 101a, 101b, 101c) for subtopic specialization, improving token efficiency by allowing focused loading.
 
@@ -1045,7 +1047,7 @@ v3.0 includes comprehensive test coverage ensuring script reliability:
 **`tests/test_token_validator.py`**
 - Token count accuracy
 - TokenBudget format validation
-- Tolerance checks (±15% default threshold)
+- Tolerance checks (±5% default threshold)
 - Multiple rule validation
 - Statistical reporting
 
@@ -1289,7 +1291,7 @@ python scripts/token_validator.py PATH [OPTIONS]
 
 **Options:**
 - `PATH` — Rule file or directory to validate (positional argument)
-- `--threshold PERCENT` — Minimum difference to trigger update (default: 15%)
+- `--threshold PERCENT` — Minimum difference to trigger update (default: 5%)
 - `--dry-run` — Show what would be updated without making changes
 - `--detailed` — Show detailed analysis for all files
 - `--verbose` — Show verbose output
@@ -1297,7 +1299,7 @@ python scripts/token_validator.py PATH [OPTIONS]
 **Features:**
 - Validates single files or entire directories
 - Calculates accurate token estimates using word count method
-- Compares against declared TokenBudget with configurable threshold (default: ±15%)
+- Compares against declared TokenBudget with configurable threshold (default: ±5%)
 - Statistical summary for multiple files
 - Auto-updates TokenBudget when variance exceeds threshold (unless `--dry-run`)
 

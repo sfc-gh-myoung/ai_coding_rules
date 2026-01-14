@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**LastUpdated:** 2026-01-06
 **Keywords:** feature views, entity modeling, ML pipeline, ASOF JOIN, point-in-time correctness, Dynamic Tables, feature versioning, create features, feature catalog, feature pipeline, feature discovery, feature registry, feature lineage
 **TokenBudget:** ~6150
 **ContextTier:** Medium
@@ -31,8 +31,7 @@ Comprehensive best practices for Snowflake Feature Store: creating, maintaining,
 - **110-snowflake-model-registry.md** - Model Registry integration patterns
 
 **Related:**
-- **120-snowflake-dynamic-tables.md** - Dynamic Tables for feature views
-- **117-snowflake-ml-feature-engineering.md** - ML feature engineering patterns
+- **122-snowflake-dynamic-tables.md** - Dynamic Tables for feature views
 
 ### External Documentation
 

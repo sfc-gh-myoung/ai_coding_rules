@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-13
 **Keywords:** TypeScript, Zod, Strict Mode, Type Inference, Union Types, Satisfies, Generics, Utility Types, Matt Pocock, Total TypeScript
 **TokenBudget:** ~2600
 **ContextTier:** High
@@ -261,7 +261,7 @@ npx tsc --noEmit
 ```
 
 ### Global Resets
-- **Consider:** using `@total-typescript/ts-reset` to fix standard library annoyances (like `JSON.parse` returning `any` instead of `unknown`).
+- **Use** `@total-typescript/ts-reset` to fix standard library annoyances (like `JSON.parse` returning `any` instead of `unknown`).
 
 ## Core Typing Patterns
 
@@ -343,7 +343,7 @@ function getProperty<T extends object, K extends keyof T>(obj: T, key: K) {
 ```
 
 ### Branded Types
-- **Consider:** Use "Branded Types" for primitive identifiers (IDs) to prevent mixing them up.
+- **Use** "Branded Types" for primitive identifiers (IDs) to prevent mixing them up.
 
 ```typescript
 declare const __brand: unique symbol;

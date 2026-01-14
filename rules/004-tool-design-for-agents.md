@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-13
 **Keywords:** tool design, agent tools, token efficiency, tool parameters, function calling, tool overlap, tool contracts, error handling, minimal tool set, self-contained tools, LLM-friendly parameters, single responsibility
-**TokenBudget:** ~6400
+**TokenBudget:** ~5800
 **ContextTier:** High
 **Depends:** 000-global-core.md, 003-context-engineering.md
 
@@ -32,8 +32,8 @@ Comprehensive tool design practices that maximize agent effectiveness. Covers si
 - **003-context-engineering.md** - Context management and attention budgets
 
 **Related:**
-- **002e-agent-optimization.md** - Agent-first design principles
-- **002b-rule-optimization.md** - Token budgets and optimization
+- **002g-agent-optimization.md** - Agent-first design principles
+- **002c-rule-optimization.md** - Token budgets and optimization
 
 ### External Documentation
 
@@ -508,21 +508,10 @@ def search_documents(
 
 ### Play to LLM Strengths
 
-**LLMs are good at:**
-- Semantic understanding
-- Natural language descriptions
-- Contextual reasoning
-- Pattern matching
+**LLMs excel at:** Semantic understanding, natural language, contextual reasoning
+**LLMs struggle with:** Arbitrary codes, complex nested structures, precise numerical values without context
 
-**LLMs are bad at:**
-- Precise numerical values without context
-- Complex nested structures from memory
-- Remembering exact syntax
-- Arbitrary identifiers
-
-**Design Parameters Accordingly:**
-
-**Good: Semantic, Descriptive Parameters**
+**Good: Semantic, Self-Documenting Parameters**
 ```python
 def create_task(
     title: str,
@@ -530,87 +519,47 @@ def create_task(
     category: Literal["bug", "feature", "docs", "test"],
     description: str
 ):
-    """Create a task with clear categorical parameters"""
-```
+    """Clear categorical parameters - agent understands options immediately"""
 
-**Bad: Arbitrary Codes**
-```python
-def create_task(
-    title: str,
-    priority: int,  # What does 1 vs 2 mean?
-    category_code: str,  # "BG" vs "FT" vs "DC"?
-    description: str
-):
-    """Create a task with opaque codes"""
-```
-
-### Descriptive Parameter Names
-
-**Parameters should be self-documenting:**
-
-```python
-# Good: Clear what each parameter means
 def send_notification(
-    recipient_email: str,
+    recipient_email: str,  # Clear what this is
     subject: str,
     message_body: str,
     include_timestamp: bool = True
 )
+```
 
-# Bad: Unclear parameter meanings
-def send_notification(
-    to: str,  # Email? User ID? Name?
-    s: str,  # Subject?
-    msg: str,  # Message?
-    ts: bool = True  # Timestamp? TLS? ???
-)
+**Bad: Opaque Parameters**
+```python
+def create_task(title: str, priority: int, category_code: str):  # What does 1 vs 2 mean? "BG" vs "FT"?
+def send_notification(to: str, s: str, msg: str, ts: bool):  # Unclear abbreviations
 ```
 
 ### Parameter Validation
 
-**Validate inputs and provide clear errors:**
+Validate inputs and provide clear, actionable errors:
 
 ```python
-def search_date_range(
-    start_date: str,
-    end_date: str,
-    resource_type: str
-) -> List[Result]:
+def search_date_range(start_date: str, end_date: str, resource_type: str):
     """Search resources within date range.
-
+    
     Args:
         start_date: ISO format (YYYY-MM-DD)
-        end_date: ISO format (YYYY-MM-DD)
+        end_date: ISO format (YYYY-MM-DD)  
         resource_type: One of: "users", "posts", "comments"
-
-    Raises:
-        ValueError: If dates not in ISO format or end < start
-        ValueError: If resource_type not recognized
     """
-    # Validate date format
     if not validate_iso_date(start_date):
         raise ValueError(f"start_date must be ISO format (YYYY-MM-DD), got: {start_date}")
-
-    # Validate logical constraints
     if end_date < start_date:
         raise ValueError(f"end_date ({end_date}) must be after start_date ({start_date})")
-
-    # Validate enumerated options
     valid_types = ["users", "posts", "comments"]
     if resource_type not in valid_types:
         raise ValueError(f"resource_type must be one of {valid_types}, got: {resource_type}")
 ```
 
-**Benefits:**
-- Agent receives actionable error messages
-- Can self-correct based on validation feedback
-- Prevents silent failures
-
 ## Explicit Tool Specifications
 
-### Tool Specification Standards
-
-**Every tool must clearly specify:**
+Every tool must clearly specify:
 1. **Purpose:** What it does (one sentence)
 2. **Parameters:** Each parameter's type, meaning, constraints
 3. **Returns:** What it returns (type and structure)
@@ -627,85 +576,41 @@ def create_pull_request(
     target_branch: str = "main",
     reviewers: List[str] = None
 ) -> Dict[str, Any]:
-    """Create a pull request in the repository.
-
-    Purpose:
-        Opens a new pull request from source_branch to target_branch
-        with specified title, description, and optional reviewers.
+    """Create a pull request from source_branch to target_branch.
 
     Args:
         title: PR title (max 200 characters)
         description: PR description (markdown supported)
         source_branch: Branch containing changes
         target_branch: Branch to merge into (default: "main")
-        reviewers: List of GitHub usernames to request review from
+        reviewers: GitHub usernames to request review from
 
-    Returns:
-        {
-            "pr_number": int,
-            "url": str,
-            "status": "open" | "draft"
-        }
+    Returns: {"pr_number": int, "url": str, "status": "open" | "draft"}
 
     Raises:
         ValueError: If title exceeds 200 chars
         BranchNotFoundError: If source_branch doesn't exist
-        PermissionError: If user lacks permission to create PR
-        GitHubAPIError: If GitHub API request fails
+        PermissionError: If user lacks permission
 
-    Side Effects:
-        - Creates PR in GitHub repository
-        - Sends notifications to reviewers
-        - Triggers CI/CD pipeline if configured
-
-    Example:
-        pr = create_pull_request(
-            title="Add authentication feature",
-            description="Implements OAuth2 login flow",
-            source_branch="feature/auth",
-            reviewers=["alice", "bob"]
-        )
-        print(f"Created PR #{pr['pr_number']}")
+    Side Effects: Creates PR, notifies reviewers, triggers CI/CD
     """
 ```
 
 ### Error Handling Patterns
 
-**Provide Clear, Actionable Errors:**
+**Bad:** `raise Exception("Error")` or `raise ValueError("Invalid input")`
 
-**Bad Error Messages:**
+**Good:** Specific problem with remediation guidance:
 ```python
-raise Exception("Error")  # What error?
-raise ValueError("Invalid input")  # What's invalid?
-raise RuntimeError("Something went wrong")  # What went wrong?
-```
-
-**Good Error Messages:**
-```python
-# Specific problem and remediation
 raise ValueError(
     f"source_branch '{source_branch}' does not exist. "
     f"Available branches: {', '.join(available_branches)}"
 )
-
-# Clear constraint violation
-raise ValueError(
-    f"title exceeds maximum length of 200 characters "
-    f"(current: {len(title)}). Please shorten the title."
-)
-
-# Actionable permission error
 raise PermissionError(
-    f"User '{username}' lacks permission to create pull requests. "
-    f"Required permission: 'repo:write'. "
-    f"Contact repository administrator to request access."
+    f"User '{username}' lacks 'repo:write' permission. "
+    f"Contact repository administrator."
 )
 ```
-
-**Benefits:**
-- Agent understands exactly what went wrong
-- Error message suggests how to fix the issue
-- Can retry with corrected parameters
 
 ## Promoting Efficient Agent Behaviors
 
@@ -883,71 +788,36 @@ user_data = get_user_profile(user_id)  # Returns user + prefs + settings
 
 ### Agent-Centric Testing
 
-**Don't just test if tool works - test if agent can use it effectively:**
+Don't just test if tool works - test if agent can use it effectively:
 
-```python
-# Test scenarios
 1. Can agent discover when to use this tool?
 2. Can agent provide correct parameters?
 3. Does agent understand the output?
 4. Can agent handle errors gracefully?
 5. Does tool guide agent toward efficient patterns?
-```
-
-**Testing Approach:**
-
-```python
-# Evaluation prompt
-"""
-You have these tools: [list tools]
-
-Task: Implement user authentication
-
-[Observe which tools agent chooses and how it uses them]
-"""
-
-# Look for:
-- Does agent pick right tool for each step?
-- Does it struggle with parameter formats?
-- Does it waste tokens loading unnecessary data?
-- Does it handle errors and retry correctly?
-```
 
 ### Iterate Based on Usage
 
-**Monitor how agents actually use tools:**
+Monitor agent mistakes to identify design issues:
+- **Wrong parameter format repeatedly:** Parameter naming/docs unclear
+- **Uses tool A when B is more appropriate:** Tool boundaries need clarification
+- **Loads too much data:** Tool should have better filtering
+- **Confused by error messages:** Error messages need improvement
 
-```python
-# Common agent mistakes might indicate tool design issues
+## Template: Tool Design Analysis
 
-Agent repeatedly provides wrong parameter format
-- Cause: Parameter naming/documentation unclear
-
-Agent uses tool A when tool B is more appropriate
-- Cause: Tool boundaries need clarification
-
-Agent loads too much data
-- Cause: Tool should have better filtering/limiting
-
-Agent gets confused by error messages
-- Cause: Error messages need improvement
-```
-
-## Tool Design Analysis
-- **Purpose:** [What this tool accomplishes in one sentence]
-- **Parameters:** [Each parameter with type and meaning]
-- **Returns:** [Return type and structure]
-- **Errors:** [Exceptions and when raised]
+```markdown
+## Tool: [name]
+- **Purpose:** [One sentence]
+- **Parameters:** [Type and meaning]
+- **Returns:** [Structure]
+- **Errors:** [Exceptions]
 
 ## Token Efficiency
-- **Output Size:** [Estimated tokens in typical response]
-- **Optimization:** [How output is minimized]
+- **Output Size:** [Estimated tokens]
+- **Optimization:** [How minimized]
 
 ## Agent Usability
-- **Clear Use Case:** [When agent should use this tool]
-- **Parameter Guidance:** [How agent should provide parameters]
-- **Error Handling:** [How agent should respond to errors]
-
-## Implementation
-[Tool code or specification]
+- **Use Case:** [When to use]
+- **Error Handling:** [How agent should respond]
 ```

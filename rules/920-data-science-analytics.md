@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-13
 **Keywords:** Data science, Snowflake, pandas, Snowpark, ML, model lifecycle, feature engineering, NaN handling, model versioning, Jupyter
-**TokenBudget:** ~9750
+**TokenBudget:** ~8500
 **ContextTier:** High
 **Depends:** 200-python-core.md, 000-global-core.md
 
@@ -106,9 +106,9 @@ Comprehensive rules for data science and analytics on Snowflake. Covers model li
 - Visualizations accessible (WCAG 2.1 AA)
 
 **Success Criteria:**
-- Query Profile shows <5s execution, <$0.10 cost for dashboard queries
+- Query Profile shows <5s execution, <$0.10 cost for dashboard queries (verify via Query Profile in Snowsight)
 - Model performance validated on holdout set
-- Visualizations tested with screen reader (NVDA, JAWS)
+- Visualizations tested with screen reader (NVDA, JAWS, or equivalent accessibility testing tool)
 - Color contrast ratios meet 4.5:1 minimum
 - Data freshness indicators present
 - All metrics have documented definitions

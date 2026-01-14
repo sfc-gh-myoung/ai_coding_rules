@@ -9,7 +9,7 @@ Token Estimation Method:
     This provides 100% accurate token estimates for GPT-4o models.
     Results are rounded to nearest 50 for cleaner budget numbers.
 
-Default threshold: ±15% (updates triggered when difference exceeds threshold)
+Default threshold: ±5% (updates triggered when difference exceeds threshold)
 
 Exit codes:
     0: Successfully updated all files
@@ -58,7 +58,7 @@ class UpdateConfig:
     """Configuration for token budget updates."""
 
     # Minimum difference percentage to trigger update
-    update_threshold: float = 30.0
+    update_threshold: float = 5.0
     # Rounding increment for cleaner budget numbers
     rounding_increment: int = 50
     # Dry run mode (don't actually update files)
@@ -353,8 +353,8 @@ Examples:
         "--threshold",
         "-t",
         type=float,
-        default=15.0,
-        help="Minimum difference percentage to trigger update (default: 15.0)",
+        default=5.0,
+        help="Minimum difference percentage to trigger update (default: 5.0)",
     )
     parser.add_argument(
         "--dry-run",

@@ -160,7 +160,7 @@ This document covers ambiguous scenarios and how to resolve them when reviewing 
 
 **Output example:**
 ```
-⚠️ Dimension mismatch detected:
+ Dimension mismatch detected:
 - Review A: 8 dimensions
 - Review B: 6 dimensions
 Comparing only common dimensions; Risk Awareness and Context excluded from comparison.
@@ -188,7 +188,7 @@ Comparing only common dimensions; Risk Awareness and Context excluded from compa
 
 **Output example:**
 ```
-⚠️ Calibration anomaly detected:
+ Calibration anomaly detected:
 All reviews scored Executability 5/5, but verification found 8 ambiguous phrases.
 Per Scoring Impact Rules, maximum score should be 2/5.
 Consensus score adjusted accordingly.
@@ -206,7 +206,7 @@ Consensus score adjusted accordingly.
 
 **Output example:**
 ```
-⚠️ Scope mismatch detected:
+ Scope mismatch detected:
 - Plan A scope: Authentication + User Management
 - Plan B scope: Authentication only
 Direct comparison invalid; scores reflect different deliverables.

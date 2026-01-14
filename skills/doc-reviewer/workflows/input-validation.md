@@ -13,6 +13,10 @@
 - `target_files`: list of file paths (defaults to project docs if not specified)
 - `review_scope`: must be one of `single`, `collection` (default: `single`)
 - `focus_area`: required if `review_mode` is `FOCUSED`
+- `output_root`: root directory for output files (default: `reviews/`)
+  - Trailing slash auto-normalized (both `reviews` and `reviews/` accepted)
+  - Supports relative paths including `../`
+  - Subdirectory `doc-reviews/` or `summaries/` appended automatically based on scope
 
 ## Steps
 
@@ -52,10 +56,11 @@ def validate_inputs(
     model: str,
     target_files: Optional[list[str]] = None,
     review_scope: str = 'single',
-    focus_area: Optional[str] = None
-) -> tuple[bool, list[str], list[str]]:
+    focus_area: Optional[str] = None,
+    output_root: str = 'reviews/'
+) -> tuple[bool, list[str], list[str], str]:
     """
-    Returns (is_valid, errors, resolved_targets)
+    Returns (is_valid, errors, resolved_targets, normalized_output_root)
     """
     errors = []
     resolved_targets = []
@@ -110,7 +115,20 @@ def validate_inputs(
     if not resolved_targets:
         errors.append("No documentation files found to review")
     
-    return (len(errors) == 0, errors, resolved_targets)
+    # 7. Normalize output_root
+    normalized_output_root = output_root.rstrip('/') + '/'
+    
+    # 8. Auto-create output directories
+    import os
+    subdir = 'summaries' if review_scope.lower() == 'collection' else 'doc-reviews'
+    output_dir = f"{normalized_output_root}{subdir}"
+    if not os.path.exists(output_dir):
+        try:
+            os.makedirs(output_dir, exist_ok=True)
+        except OSError as e:
+            errors.append(f"Cannot create output directory: {output_dir} - {e}")
+    
+    return (len(errors) == 0, errors, resolved_targets, normalized_output_root)
 ```
 
 ## Output
@@ -118,4 +136,5 @@ def validate_inputs(
 - Validated inputs ready for downstream workflows
 - `resolved_targets`: list of file paths to review
 - `baseline_rules`: list of available documentation rules for comparison
+- `output_root`: normalized path with trailing slash (e.g., `reviews/` or `../mytest/`)
 

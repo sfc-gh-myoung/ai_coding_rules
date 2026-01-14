@@ -1,7 +1,7 @@
 # AI Coding Rules
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://opensource.org/license/apache-2-0)
-![Version](https://img.shields.io/badge/version-3.5.0-blue)
+![Version](https://img.shields.io/badge/version-3.5.1-blue)
 [![CI](https://github.com/sfc-gh-myoung/ai_coding_rules/actions/workflows/ci.yml/badge.svg)](https://github.com/sfc-gh-myoung/ai_coding_rules/actions/workflows/ci.yml)
 ![Tests](https://img.shields.io/badge/tests-100%25%20passing-brightgreen)
 ![Coverage](https://img.shields.io/badge/coverage-98%25-brightgreen)
@@ -34,9 +34,9 @@ This repository provides a **universal ai coding rule system** designed to work 
 
 ## Key Features
 
-- **📚 113 Production-Ready Rules** — Comprehensive coverage across Snowflake, Python, Go, React, HTMX, Alpine.js, Docker, Shell scripting, and project management
+- **📚 121 Production-Ready Rules** — Comprehensive coverage across Snowflake, Python, Go, React, HTMX, Alpine.js, Docker, Shell scripting, and project management
 - **🔄 Universal Format** — Write once, use everywhere: Cursor, VS Code, Claude, ChatGPT, GitHub Copilot, and more
-- **🤖 Intelligent Discovery** — AI assistants automatically find and load relevant rules using semantic keyword matching
+- **🤖 Intelligent Discovery** — AI assistants automatically find and load relevant rules using semantic keyword matching (matching by meaning, not just exact text)
 - **🎯 Dependency-Aware** — Explicit dependency chains ensure rules load in the correct order
 - **⚡ Token-Efficient** — Modular, focused rules (150-500 lines) minimize context window usage
 - **🔓 No Lock-In** — Standard Markdown with embedded metadata works with any tool or custom integration
@@ -68,6 +68,7 @@ This project was inspired, in part, by:
 **For Contributors:**
 
 - [Contributing](#contributing)
+- [Claude Agent Skills](#claude-agent-skills)
 - [Project Structure](#project-structure)
 - [Development Commands](#development-commands)
 
@@ -138,7 +139,7 @@ git clone git@github.com:sfc-gh-myoung/ai_coding_rules.git
 cd ai_coding_rules && python scripts/rule_deployer.py --dest ~/my-project
 
 # Or use task:
-cd ai_coding rules && task deploy DEST=~/my-project
+cd ai_coding_rules && task deploy DEST=~/my-project
 ```
 
 ### Use in your AI assistant
@@ -210,12 +211,40 @@ Some skills are internal-only and excluded from deployment (configured in `pypro
 ```toml
 [tool.rule_deployer]
 exclude_skills = [
-    "rule-creator/",   # Rule creation tool for ai_coding_rules project only
-    "rule-reviewer/",  # Rule review tool for ai_coding_rules project only
+    "rule-creator/",      # Rule creation tool for ai_coding_rules project only
+    "rule-reviewer/",     # Rule review tool for ai_coding_rules project only
+    "bulk-rule-reviewer/" # Bulk review orchestrator for ai_coding_rules project only
 ]
 ```
 
 **Note:** The `doc-reviewer` skill is deployed by default and can be used in target projects.
+
+**Deploy Skills Only (Agent Configuration Directories):**
+
+```bash
+python scripts/rule_deployer.py --dest ~/.claude/skills --only-skills
+# Or use task:
+task deploy:only-skills DEST=~/.claude/skills
+```
+
+**What happens:**
+
+- ✅ Copies only `skills/` directory to `DEST/skills/` (excludes internal-only skills)
+- ✅ Skips rules and root files (AGENTS.md, RULES_INDEX.md)
+- ✅ Ideal for deploying skills to agent-specific configuration directories
+
+**Common use cases:**
+
+```bash
+# Claude Code (Cursor/Windsurf)
+task deploy:only-skills DEST=~/.claude/skills
+
+# Cortex Code
+task deploy:only-skills DEST=~/.snowflake/cortex/skills
+
+# Custom project location
+task deploy:only-skills DEST=./my-project/.ai/skills
+```
 
 **Deploy Rules Only (Skip Skills):**
 
@@ -505,51 +534,9 @@ Learn how to write effective prompts that help AI assistants automatically disco
 **📝 Example Prompt Templates:** See [prompts/README.md](prompts/README.md) for:
 
 - **Real-world prompt examples** — 4 proven patterns for different task types
-- **Agent-Centric Rule Review** — Systematic prompt for reviewing rule files across any AI model
 - **Keyword reference guide** — Which keywords trigger which rules
 - **Best practices** — Tips for getting better results from AI assistants
 - **Quick patterns** — Copy-paste templates for common scenarios
-
-**🔍 Rule Review Prompt (template):** See [skills/rule-reviewer/PROMPT.md](skills/rule-reviewer/PROMPT.md)
-
-**📘 Rule Review Skill Guide:** See [docs/USING_RULE_REVIEW_SKILL.md](docs/USING_RULE_REVIEW_SKILL.md) for:
-
-- **100-point scoring system** — 6 dimensions weighted by agent execution criticality (Actionability 25, Completeness 25, Consistency 15, Parsability 15, Token Efficiency 10, Staleness 10)
-- **Priority Compliance Gate** — Agent Execution Test as first gate; Priority 1 violations cap scores
-- **Three review modes** — FULL, FOCUSED, and STALENESS for different use cases
-- **Cross-model compatibility** — Tested on GPT-4o, GPT-5.1, GPT-5.2, Claude Sonnet 4.5, Claude Opus 4.5, Gemini 2.5 Pro, Gemini 3 Pro
-
-**🧰 Claude Skills (internal-only):** See [skills/](skills/) for:
-
-- **rule-creator** (internal-only) — Create v3.0 Cursor rules with template generation and schema validation
-  - Structured skill: `skills/rule-creator/SKILL.md` with 5-phase workflow
-  - Excluded from deployment (for ai_coding_rules project maintenance only)
-  - Trigger keywords: "create rule", "add rule", "new rule", "generate rule"
-
-- **rule-reviewer** (internal-only) — Automate rule quality reviews (FULL/FOCUSED/STALENESS modes) and write results to `reviews/`
-  - Structured skill: `skills/rule-reviewer/SKILL.md` with workflows, examples, tests, and validation
-  - Excluded from deployment (for ai_coding_rules project maintenance only)
-  - Trigger keywords: "review rule", "audit rule", "check rule quality", "rule staleness"
-  - See [docs/USING_RULE_REVIEW_SKILL.md](docs/USING_RULE_REVIEW_SKILL.md) for usage guide
-
-- **doc-reviewer** — Automate documentation quality reviews (FULL/FOCUSED/STALENESS modes)
-  - Structured skill: `skills/doc-reviewer/SKILL.md` with workflows, examples, tests, and validation
-  - **Deployed by default** (available in target projects)
-  - Trigger keywords: "review docs", "audit documentation", "check doc quality"
-  - See [docs/USING_DOCS_REVIEWER_SKILL.md](docs/USING_DOCS_REVIEWER_SKILL.md) for usage guide
-
-- **plan-reviewer** — Review implementation plans for agent executability across 8 dimensions
-  - Structured skill: `skills/plan-reviewer/SKILL.md` with workflows, examples, tests, and validation
-  - **Deployed by default** (available in target projects)
-  - 100-point scoring with Priority Compliance Gate (blocking issues cap scores)
-  - Trigger keywords: "review plan", "audit implementation plan", "check plan quality"
-  - See [docs/USING_PLAN_REVIEWER_SKILL.md](docs/USING_PLAN_REVIEWER_SKILL.md) for usage guide
-
-All skills follow [Anthropic Agent Skills best practices](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills) with:
-- Enhanced YAML frontmatter (version, author, tags, dependencies)
-- Progressive disclosure (workflows/, examples/, tests/)
-- Inline validation snippets for quick checks
-- Edge case documentation and self-validation procedures
 
 **Quick preview:**
 
@@ -560,6 +547,113 @@ Errors: 9 total (F841 unused variables, UP037 quoted type annotations)
 ```
 
 This structured format helps AI assistants automatically load the right rules (`200-python-core`, `201-python-lint-format`) based on file types and keywords.
+
+## Claude Agent Skills
+
+**This section is for developers working on the ai_coding_rules project or using skills in their own projects.**
+
+The `skills/` directory contains structured Claude Agent Skills following [Anthropic's Agent Skills best practices](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills). All skills feature:
+
+- Enhanced YAML frontmatter (version, author, tags, dependencies)
+- Progressive disclosure (showing details only when needed: workflows/, examples/, tests/)
+- Inline validation snippets for quick checks
+- Edge case documentation and self-validation procedures
+
+### Install Skills
+There are several ways you can take advantage of these skills in your tool of choice.  The skills have been tested with Cursor, Cortex Code CLI (CoCo), and Claude Code.
+
+#### Cursor
+You can use these skills in Cursor by telling Cursor to explicitly load the skill in your prompt.
+- Prompt: `Load skills/<skill_name>/SKILL.md`
+
+#### Claude Code
+You can use these skills in Claude Code by deploying the skills to the `.claude/skills` directory, either project or personal locations using the `task deploy` command or via filesystem `cp` command.
+
+You can also use these skill by telling Claude Code to explicitly load the skill in your prompt.
+- Prompt: `Load skills/<skill_name>/SKILL.md`
+
+#### Cortex Code CLI
+You can use these skills in Cortex Code CLI by running the skill add command.
+- Prompt: `/skill add <project_path>/skills/<skill_name>` 
+
+You can also use these skills by telling Cortex Code CLI to explicitly load the skill in your prompt.
+- Prompt: `Load skills/<skill_name>/SKILL.md`
+
+### Deployed Skills (Available in Target Projects)
+
+These skills are deployed by default when running `task deploy`:
+
+**doc-reviewer** — Automate documentation quality reviews
+- **Purpose:** Review documentation files for quality, completeness, and staleness
+- **Modes:** FULL, FOCUSED, STALENESS
+- **Scoring:** 100-point system across 6 dimensions (Clarity, Completeness, Accuracy, Structure, Consistency, Staleness)
+- **Trigger keywords:** "review docs", "audit documentation", "check doc quality"
+- **Usage guide:** [docs/USING_DOC_REVIEWER_SKILL.md](docs/USING_DOC_REVIEWER_SKILL.md)
+- **Skill file:** [skills/doc-reviewer/SKILL.md](skills/doc-reviewer/SKILL.md)
+
+**plan-reviewer** — Review implementation plans for agent executability
+- **Purpose:** Evaluate implementation plans across 8 dimensions for agent execution reliability
+- **Scoring:** 100-point system with Priority Compliance Gate (blocking issues cap scores)
+- **Dimensions:** Actionability, Completeness, Consistency, Clarity, Feasibility, Dependencies, Error Handling, Validation
+- **Trigger keywords:** "review plan", "audit implementation plan", "check plan quality"
+- **Usage guide:** [docs/USING_PLAN_REVIEWER_SKILL.md](docs/USING_PLAN_REVIEWER_SKILL.md)
+- **Skill file:** [skills/plan-reviewer/SKILL.md](skills/plan-reviewer/SKILL.md)
+
+**skill-timing** — Performance measurement and timing instrumentation
+- **Purpose:** Measure skill execution duration, track tokens, detect anomalies, compare against baselines
+- **Features:** Wall-clock timing, checkpoints, token tracking, anomaly detection, baseline comparison
+- **Output:** STDOUT summary and timing metadata appended to output files
+- **Usage guide:** [docs/USING_SKILL_TIMING_SKILL.md](docs/USING_SKILL_TIMING_SKILL.md)
+- **Skill file:** [skills/skill-timing/SKILL.md](skills/skill-timing/SKILL.md)
+
+### Internal-Only Skills (Excluded from Deployment)
+
+These skills are used only for ai_coding_rules project maintenance and are excluded from deployment:
+
+**rule-creator** — Create new rules with template generation
+- **Purpose:** Generate new rule files from templates with schema validation
+- **Workflow:** 5-phase process (input validation, template generation, metadata setup, validation, file write)
+- **Trigger keywords:** "create rule", "add rule", "new rule", "generate rule"
+- **Usage guide:** [docs/USING_RULE_CREATOR_SKILL.md](docs/USING_RULE_CREATOR_SKILL.md)
+- **Skill file:** [skills/rule-creator/SKILL.md](skills/rule-creator/SKILL.md)
+
+**rule-reviewer** — Automate rule quality reviews
+- **Purpose:** Review rule files for agent executability and quality
+- **Modes:** FULL, FOCUSED, STALENESS
+- **Scoring:** 100-point system across 6 dimensions (Actionability 25, Completeness 25, Consistency 15, Parsability 15, Token Efficiency 10, Staleness 10)
+- **Priority Compliance Gate:** Agent Execution Test as first gate; Priority 1 violations cap scores
+- **Cross-model compatibility:** Tested on GPT-4o, GPT-5.1, GPT-5.2, Claude Sonnet 4.5, Claude Opus 4.5, Gemini 2.5 Pro, Gemini 3 Pro
+- **Trigger keywords:** "review rule", "audit rule", "check rule quality", "rule staleness"
+- **Usage guide:** [docs/USING_RULE_REVIEW_SKILL.md](docs/USING_RULE_REVIEW_SKILL.md)
+- **Skill file:** [skills/rule-reviewer/SKILL.md](skills/rule-reviewer/SKILL.md)
+
+**bulk-rule-reviewer** — Orchestrate bulk rule reviews
+- **Purpose:** Execute comprehensive reviews on all rules in `rules/` directory with consolidated priority reporting
+- **Expected duration:** 5-10 hours for 121 rules (3-5 min per rule, sequential execution)
+- **Resume capability:** Skip existing reviews to resume after interruption
+- **Output:** Individual review files + master summary report with priority tiers
+- **Trigger keywords:** "bulk review rules", "review all rules", "audit rule repository"
+- **Usage guide:** [docs/USING_BULK_RULE_REVIEWER_SKILL.md](docs/USING_BULK_RULE_REVIEWER_SKILL.md)
+- **Skill file:** [skills/bulk-rule-reviewer/SKILL.md](skills/bulk-rule-reviewer/SKILL.md)
+
+### Skill Deployment Configuration
+
+Skills excluded from deployment are configured in `pyproject.toml`:
+
+```toml
+[tool.rule_deployer]
+exclude_skills = [
+    "rule-creator/",      # Rule creation tool for ai_coding_rules project only
+    "rule-reviewer/",     # Rule review tool for ai_coding_rules project only
+    "bulk-rule-reviewer/" # Bulk review orchestrator for ai_coding_rules project only
+]
+```
+
+To deploy only skills (useful for agent configuration directories):
+
+```bash
+task deploy:only-skills DEST=~/.claude/skills
+```
 
 ## Contributing
 
@@ -579,7 +673,7 @@ For questions or discussions, file an issue on the repository.
 
 ```ascii
 ai_coding_rules/
-├── rules/                  ← Production-ready rules
+├── rules/                  ← Production-ready rules (121 total)
 ├── AGENTS.md               ← Rule loading protocol for AI assistants
 ├── RULES_INDEX.md          ← Searchable rule catalog
 ├── scripts/                ← Validation and deployment tools
@@ -588,14 +682,23 @@ ai_coding_rules/
 │   ├── schema_validator.py     ← Validate rule structure
 │   ├── template_generator.py   ← Create new rule templates
 │   ├── keyword_generator.py    ← Generate semantic keywords for rules
-│   └── token_validator.py      ← Validate token budgets (single file or directory)
-├── docs/                   ← Documentation
+│   ├── token_validator.py      ← Validate token budgets
+│   └── badge_updater.py        ← Update README badges
+├── docs/                   ← Documentation (12 files)
 │   ├── ARCHITECTURE.md         ← System design decisions
-│   └── MEMORY_BANK.md          ← Memory Bank system (optional)
-├── tests/                  ← Test suite
-├── schemas/                ← JSON schemas for rule validation
-├── prompts/                ← User prompt templates + Rule Review prompt
-└── skills/                 ← Claude Agent Skills (rule-creator, rule-reviewer, doc-reviewer, plan-reviewer)
+│   ├── MEMORY_BANK.md          ← Memory Bank system
+│   ├── TOKEN_BUDGETS.md        ← Token budget guidelines
+│   └── USING_*.md              ← Skill usage guides
+├── tests/                  ← Test suite (98% coverage)
+├── schemas/                ← YAML schemas for rule validation
+├── prompts/                ← User prompt templates
+└── skills/                 ← Claude Agent Skills (6 total)
+    ├── rule-reviewer/          ← Review individual rules
+    ├── bulk-rule-reviewer/     ← Review all rules at once
+    ├── doc-reviewer/           ← Review documentation
+    ├── plan-reviewer/          ← Review LLM-generated plans
+    ├── rule-creator/           ← Create new rules (internal)
+    └── skill-timing/           ← Measure skill performance
 ```
 
 **Key Concepts:**
@@ -635,6 +738,7 @@ task deploy DEST=~/my-project          # Deploy rules to project
 task deploy:dry DEST=~/my-project      # Preview deployment
 task deploy:verbose DEST=~/my-project  # Deploy with verbose output
 task deploy:no-skills DEST=~/my-project # Deploy rules only (skip skills)
+task deploy:only-skills DEST=~/.claude/skills # Deploy only skills (for agent configs)
 
 # Rule Management
 task rule:new FILENAME=100-example     # Create new rule from template
@@ -690,16 +794,16 @@ The rules are organized by domain using a three-digit numbering system. Each cat
 
 | Domain | Range | # Rules | Focus Area | Key Topics |
 |--------|-------|---------|------------|------------|
-| **Core Foundation** | 000-099 | 7 | Universal patterns | Operating principles, memory bank, rule governance, boilerplate template, context engineering, tool design |
-| **Snowflake** | 100-199 | 39 | Data platform | SQL, Streamlit, performance, Cortex AI, security, notebooks, pipelines |
-| **Python** | 200-299 | 23 | Software engineering | Core patterns, FastAPI, Flask, Typer CLI, Pydantic, pytest, Pandas, **HTMX** |
+| **Core Foundation** | 000-099 | 12 | Universal patterns | Operating principles, memory bank, rule governance, context engineering, tool design, skills |
+| **Snowflake** | 100-199 | 58 | Data platform | SQL, Streamlit, performance, Cortex AI, security, notebooks, pipelines, demo creation |
+| **Python** | 200-299 | 27 | Software engineering | Core patterns, FastAPI, Flask, Typer CLI, Pydantic, pytest, Pandas, **HTMX** |
 | **Shell Scripts** | 300-399 | 7 | Automation | Bash and Zsh scripting, security, testing |
 | **Frontend/Containers** | 400-499 | 5 | Infrastructure & UI | Docker, JavaScript, TypeScript, React, **HTMX frontend** |
-| **Frontend** | 500-599 | 1 | Client-side | HTMX frontend reference |
+| **Frontend** | 500-599 | 2 | Client-side | HTMX frontend, browser globals |
 | **Systems/Backend Languages** | 600-699 | 1 | Backend development | **Go/Golang** core patterns, error handling, concurrency |
-| **Business Intelligence** | 700-799 | 1 | Reporting | Business analytics, visualization |
-| **Project Management** | 800-899 | 6 | Workflows | Git, changelog, README, contributing, Taskfile, automation |
-| **Demo & Synthetic Data** | 900-999 | 5 | Examples | Demo creation, data generation, data science, data governance, business analytics |
+| **Reserved** | 700-799 | 0 | Future use | Reserved for future domain expansion |
+| **Project Management** | 800-899 | 5 | Workflows | Git, changelog, README, contributing, Taskfile |
+| **Analytics & Governance** | 900-999 | 4 | Business intelligence | Data science, data governance, business analytics, semantic views |
 
 ### HTMX Rules (New in v3.1.0)
 
@@ -903,7 +1007,7 @@ choco install go-task
 
 **Option B - Deployment Without Task**
 
-See [Option D: Deployment Without Task](#option-d-deployment-without-task) in Quick Start for complete instructions.
+See [Deployment Without Task](#option-deployment-without-task) in Quick Start for complete instructions.
 
 Quick example for universal rules:
 

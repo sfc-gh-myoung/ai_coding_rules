@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-13
 **Keywords:** Alpine.js, reactivity, x-data, x-bind, x-on, x-model, x-show, x-if, magic properties, $el, $refs, $store, declarative, progressive enhancement, lightweight
-**TokenBudget:** ~5950
+**TokenBudget:** ~5650
 **ContextTier:** Medium
 **Depends:** 000-global-core.md
 
@@ -103,7 +103,7 @@ HTML with Alpine.js directives:
 
 - **Progressive Enhancement:** Start with semantic HTML, add interactivity with Alpine
 - **Declarative Syntax:** Express behavior through HTML attributes, not imperative JavaScript
-- **Lightweight:** Minimal JavaScript footprint (~15KB gzipped)
+- **Lightweight:** Small JavaScript footprint (~15KB gzipped)
 - **Reactive Data:** Changes to data automatically update the DOM
 - **Component Scoping:** Each x-data creates an isolated reactive scope
 

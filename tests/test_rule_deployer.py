@@ -336,6 +336,72 @@ class TestValidateSourceStructureExtended:
         assert is_valid is False
         assert any("not a directory" in e.lower() for e in errors)
 
+    @pytest.mark.unit
+    def test_validate_source_structure_only_skills_missing_dir(self, tmp_path: Path) -> None:
+        """Test validation fails when skills/ directory missing in only_skills mode."""
+        # Arrange
+        project = tmp_path / "project"
+        project.mkdir()
+        # No skills directory created
+
+        # Act
+        is_valid, errors = dr.validate_source_structure(project, only_skills=True)
+
+        # Assert
+        assert is_valid is False
+        assert any("skills directory not found" in e.lower() for e in errors)
+
+    @pytest.mark.unit
+    def test_validate_source_structure_only_skills_is_file(self, tmp_path: Path) -> None:
+        """Test validation fails when skills/ is a file in only_skills mode."""
+        # Arrange
+        project = tmp_path / "project"
+        project.mkdir()
+        (project / "skills").write_text("This is a file, not a directory")
+
+        # Act
+        is_valid, errors = dr.validate_source_structure(project, only_skills=True)
+
+        # Assert
+        assert is_valid is False
+        assert any("not a directory" in e.lower() for e in errors)
+
+    @pytest.mark.unit
+    def test_validate_source_structure_only_skills_empty_dir(self, tmp_path: Path) -> None:
+        """Test validation fails when skills/ has no subdirectories in only_skills mode."""
+        # Arrange
+        project = tmp_path / "project"
+        project.mkdir()
+        skills_dir = project / "skills"
+        skills_dir.mkdir()
+        # Empty skills directory (no subdirectories)
+
+        # Act
+        is_valid, errors = dr.validate_source_structure(project, only_skills=True)
+
+        # Assert
+        assert is_valid is False
+        assert any("No skill directories found" in e for e in errors)
+
+    @pytest.mark.unit
+    def test_validate_source_structure_only_skills_valid(self, tmp_path: Path) -> None:
+        """Test validation passes with valid skills structure in only_skills mode."""
+        # Arrange
+        project = tmp_path / "project"
+        project.mkdir()
+        skills_dir = project / "skills"
+        skills_dir.mkdir()
+        skill_subdir = skills_dir / "test-skill"
+        skill_subdir.mkdir()
+        (skill_subdir / "file.md").write_text("Content")
+
+        # Act
+        is_valid, errors = dr.validate_source_structure(project, only_skills=True)
+
+        # Assert
+        assert is_valid is True
+        assert len(errors) == 0
+
 
 class TestCopyErrorHandling:
     """Tests for error handling in copy functions."""
@@ -387,7 +453,7 @@ class TestCopyErrorHandling:
 
         # Act
         with patch("shutil.copy2", side_effect=OSError("I/O error")):
-            _files_copied, files_failed = dr.copy_skills(
+            _skills_count, _files_copied, files_failed = dr.copy_skills(
                 mock_project_root, dest_dir, dry_run=False, verbose=False
             )
 
@@ -408,7 +474,7 @@ class TestCopyErrorHandling:
 
         # Act
         with patch("shutil.copytree", side_effect=OSError("Copy error")):
-            _files_copied, files_failed = dr.copy_skills(
+            _skills_count, _files_copied, files_failed = dr.copy_skills(
                 mock_project_root, dest_dir, dry_run=False, verbose=False
             )
 
@@ -521,9 +587,12 @@ name = "test"
         dest.mkdir()
 
         # Act
-        files_copied, files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
+        skills_count, files_copied, files_failed = dr.copy_skills(
+            project, dest, dry_run=False, verbose=False
+        )
 
         # Assert
+        assert skills_count == 2
         assert files_copied == 2
         assert files_failed == 0
         assert (dest / "skills" / "skill1.md").exists()
@@ -546,9 +615,12 @@ name = "test"
         dest.mkdir()
 
         # Act
-        files_copied, files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
+        skills_count, files_copied, files_failed = dr.copy_skills(
+            project, dest, dry_run=False, verbose=False
+        )
 
         # Assert
+        assert skills_count == 1  # One skill directory
         assert files_copied == 2  # Counts files in directory
         assert files_failed == 0
         assert (dest / "skills" / "skill-dir" / "file1.md").exists()
@@ -570,9 +642,12 @@ name = "test"
         dest.mkdir()
 
         # Act
-        files_copied, files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
+        skills_count, files_copied, files_failed = dr.copy_skills(
+            project, dest, dry_run=False, verbose=False
+        )
 
         # Assert
+        assert skills_count == 2  # 1 file skill + 1 directory skill
         assert files_copied == 2  # 1 file + 1 in directory
         assert files_failed == 0
 
@@ -595,9 +670,12 @@ exclude_skills = ["internal-skill.md"]
         dest.mkdir()
 
         # Act
-        files_copied, _files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
+        skills_count, files_copied, _files_failed = dr.copy_skills(
+            project, dest, dry_run=False, verbose=False
+        )
 
         # Assert
+        assert skills_count == 1
         assert files_copied == 1
         assert not (dest / "skills" / "internal-skill.md").exists()
         assert (dest / "skills" / "public-skill.md").exists()
@@ -625,9 +703,12 @@ exclude_skills = ["internal-dir"]
         dest.mkdir()
 
         # Act
-        files_copied, _files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
+        skills_count, files_copied, _files_failed = dr.copy_skills(
+            project, dest, dry_run=False, verbose=False
+        )
 
         # Assert
+        assert skills_count == 1
         assert files_copied == 1
         assert not (dest / "skills" / "internal-dir").exists()
         assert (dest / "skills" / "public-dir").exists()
@@ -652,9 +733,12 @@ exclude_skills = ["internal-dir/"]
         dest.mkdir()
 
         # Act
-        files_copied, _files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
+        skills_count, files_copied, _files_failed = dr.copy_skills(
+            project, dest, dry_run=False, verbose=False
+        )
 
         # Assert
+        assert skills_count == 0
         assert files_copied == 0
         assert not (dest / "skills" / "internal-dir").exists()
 
@@ -676,9 +760,12 @@ exclude_skills = ["internal-dir/"]
         dest.mkdir()
 
         # Act
-        files_copied, _files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
+        skills_count, files_copied, _files_failed = dr.copy_skills(
+            project, dest, dry_run=False, verbose=False
+        )
 
         # Assert
+        assert skills_count == 1
         assert files_copied == 1  # Only visible-file.md
         assert not (dest / "skills" / ".hidden-file.md").exists()
         assert not (dest / "skills" / ".hidden-dir").exists()
@@ -695,9 +782,12 @@ exclude_skills = ["internal-dir/"]
         dest.mkdir()
 
         # Act
-        files_copied, files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
+        skills_count, files_copied, files_failed = dr.copy_skills(
+            project, dest, dry_run=False, verbose=False
+        )
 
         # Assert
+        assert skills_count == 0
         assert files_copied == 0
         assert files_failed == 0
         captured = capsys.readouterr()
@@ -717,9 +807,12 @@ exclude_skills = ["internal-dir/"]
         dest.mkdir()
 
         # Act
-        files_copied, _files_failed = dr.copy_skills(project, dest, dry_run=True, verbose=False)
+        skills_count, files_copied, _files_failed = dr.copy_skills(
+            project, dest, dry_run=True, verbose=False
+        )
 
         # Assert
+        assert skills_count == 1
         assert files_copied == 1  # Reports would copy
         assert not (dest / "skills").exists()  # No actual copy
 
@@ -740,9 +833,12 @@ exclude_skills = ["internal-dir/"]
         dest.mkdir()
 
         # Act
-        files_copied, _files_failed = dr.copy_skills(project, dest, dry_run=True, verbose=False)
+        skills_count, files_copied, _files_failed = dr.copy_skills(
+            project, dest, dry_run=True, verbose=False
+        )
 
         # Assert
+        assert skills_count == 1  # One skill directory
         assert files_copied == 2  # Reports would copy 2 files
         assert not (dest / "skills").exists()  # No actual copy
 
@@ -762,15 +858,65 @@ exclude_skills = ["internal-dir/"]
         dest.mkdir()
 
         # Act
-        files_copied, _files_failed = dr.copy_skills(project, dest, dry_run=False, verbose=False)
+        skills_count, files_copied, _files_failed = dr.copy_skills(
+            project, dest, dry_run=False, verbose=False
+        )
 
         # Assert
+        assert skills_count == 1
         assert files_copied == 1
         assert (dest / "skills" / "skill" / "nested" / "deep" / "file.md").exists()
 
 
 class TestMainFunctionAndCLI:
     """Tests for main function, CLI arguments, and deployment summary."""
+
+    @pytest.mark.integration
+    def test_deploy_with_conflicting_flags(self, mock_project_root: Path, tmp_path: Path) -> None:
+        """Test deployment fails with both --only-skills and --skip-skills flags."""
+        # Arrange
+        dest = tmp_path / "dest"
+        dest.mkdir()
+
+        # Act
+        with patch("scripts.rule_deployer.Path") as mock_path:
+            mock_path(__file__).resolve.return_value.parent.parent = mock_project_root
+            success = dr.deploy_rules(
+                dest, skip_skills=True, only_skills=True, dry_run=False, verbose=False
+            )
+
+        # Assert
+        assert success is False
+
+    @pytest.mark.integration
+    def test_deploy_only_skills_mode(self, mock_project_root: Path, tmp_path: Path, capsys) -> None:
+        """Test deployment with --only-skills flag."""
+        # Arrange
+        dest = tmp_path / "dest"
+        dest.mkdir()
+        skills_dir = mock_project_root / "skills"
+        skills_dir.mkdir()
+        skill_subdir = skills_dir / "test-skill"
+        skill_subdir.mkdir()
+        (skill_subdir / "file.md").write_text("Skill content")
+
+        # Act
+        with patch("scripts.rule_deployer.Path") as mock_path:
+            mock_path(__file__).resolve.return_value.parent.parent = mock_project_root
+            success = dr.deploy_rules(dest, only_skills=True, dry_run=False, verbose=False)
+
+        # Assert
+        assert success is True
+        assert (dest / "skills" / "test-skill" / "file.md").exists()
+        assert not (dest / "rules").exists()  # Rules not deployed
+        assert not (dest / "AGENTS.md").exists()  # Root files not deployed
+
+        # Check summary output
+        captured = capsys.readouterr()
+        assert "SKILLS-ONLY DEPLOYMENT SUMMARY" in captured.out
+        assert "Skills copied:" in captured.out
+        assert "Files copied:" in captured.out
+        assert "Total failed:" in captured.out
 
     @pytest.mark.integration
     def test_deploy_with_skip_skills_flag(self, mock_project_root: Path, tmp_path: Path) -> None:
@@ -833,7 +979,7 @@ class TestMainFunctionAndCLI:
         # Assert
         captured = capsys.readouterr()
         assert "Skills copied:" in captured.out
-        assert "2" in captured.out
+        assert "Files copied:" in captured.out
 
     @pytest.mark.integration
     def test_deploy_summary_shows_skills_skipped(
@@ -947,7 +1093,14 @@ class TestMainFunctionAndCLI:
         mock_args = type(
             "Args",
             (),
-            {"dest": None, "dry_run": False, "verbose": True, "quiet": False, "skip_skills": False},
+            {
+                "dest": None,
+                "dry_run": False,
+                "verbose": True,
+                "quiet": False,
+                "skip_skills": False,
+                "only_skills": False,
+            },
         )()
 
         # Act
@@ -958,6 +1111,30 @@ class TestMainFunctionAndCLI:
         assert exit_code == 1
         captured = capsys.readouterr()
         assert "Error: --dest argument is required" in captured.err
+
+    @pytest.mark.integration
+    def test_cli_only_skills_flag(self, mock_project_root: Path, tmp_path: Path, capsys) -> None:
+        """Test CLI --only-skills flag parameter."""
+        # Arrange
+        dest = tmp_path / "dest"
+        dest.mkdir()
+        skills_dir = mock_project_root / "skills"
+        skills_dir.mkdir()
+        skill_subdir = skills_dir / "test-skill"
+        skill_subdir.mkdir()
+        (skill_subdir / "file.md").write_text("Skill content")
+
+        # Act - Use deploy_rules directly since CLI mocking is complex
+        with patch("scripts.rule_deployer.Path") as mock_path:
+            mock_path(__file__).resolve.return_value.parent.parent = mock_project_root
+            success = dr.deploy_rules(dest, only_skills=True, dry_run=False, verbose=True)
+
+        # Assert
+        assert success is True
+        assert (dest / "skills" / "test-skill" / "file.md").exists()
+        assert not (dest / "rules").exists()
+        captured = capsys.readouterr()
+        assert "SKILLS-ONLY DEPLOYMENT SUMMARY" in captured.out
 
 
 # Run tests with: pytest tests/test_rule_deployer.py -v

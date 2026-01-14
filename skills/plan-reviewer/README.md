@@ -7,8 +7,8 @@ A Claude skill for reviewing LLM-generated plans to ensure autonomous agents can
 This skill automates the complete plan review workflow:
 
 - Validates inputs (target files, date, mode, model)
-- Executes review using `PROMPT.md` rubric (colocated in this skill folder)
-- Evaluates plans across 8 dimensions optimized for agent executability
+- Executes review using 8-dimension rubric optimized for agent executability
+- Evaluates plans across Critical (75 points) and Standard (25 points) dimensions
 - Supports FULL, COMPARISON, and META-REVIEW modes
 - Writes results to `reviews/` with automatic suffix for duplicates
 
@@ -32,7 +32,7 @@ Use the plan-reviewer skill.
 target_file: plans/IMPROVE_RULE_LOADING.md
 review_date: 2025-12-16
 review_mode: FULL
-model: claude-sonnet45
+model: claude-sonnet-45
 ```
 
 **COMPARISON mode (multiple plans):**
@@ -44,7 +44,7 @@ target_files: [plans/plan-a.md, plans/plan-b.md]
 task_description: Implement user authentication
 review_date: 2025-12-16
 review_mode: COMPARISON
-model: claude-sonnet45
+model: claude-sonnet-45
 ```
 
 **META-REVIEW mode (review consistency):**
@@ -56,7 +56,7 @@ target_files: [reviews/plan-X-sonnet-2025-12-16.md, reviews/plan-X-gpt-2025-12-1
 original_document: plans/X.md
 review_date: 2025-12-16
 review_mode: META-REVIEW
-model: claude-sonnet45
+model: claude-sonnet-45
 ```
 
 ### Step 3: Verify Output
@@ -65,23 +65,67 @@ Check the generated review file:
 
 ```bash
 # FULL mode
-ls reviews/plan-IMPROVE_RULE_LOADING-claude-sonnet45-2025-12-16.md
+ls reviews/plan-IMPROVE_RULE_LOADING-claude-sonnet-45-2025-12-16.md
 
 # COMPARISON mode
-ls reviews/plan-comparison-claude-sonnet45-2025-12-16.md
+ls reviews/plan-comparison-claude-sonnet-45-2025-12-16.md
 
 # META-REVIEW mode
-ls reviews/meta-IMPROVE_RULE_LOADING-claude-sonnet45-2025-12-16.md
+ls reviews/meta-IMPROVE_RULE_LOADING-claude-sonnet-45-2025-12-16.md
 ```
+
+## Execution Timing
+
+Enable execution timing to measure skill duration and track performance:
+
+```text
+Use the plan-reviewer skill.
+
+target_file: plans/IMPROVE_RULE_LOADING.md
+review_date: 2025-12-16
+review_mode: FULL
+model: claude-sonnet-45
+timing_enabled: true
+```
+
+When enabled, the output includes:
+- **Timing Metadata section** in the review file
+- **STDOUT summary** with duration, checkpoints, tokens, baseline comparison
+- **Real-time anomaly alerts** if duration is suspicious
+
+**Example timing metadata:**
+
+```markdown
+## Timing Metadata
+
+| Metric | Value |
+|--------|-------|
+| Run ID | `a1b2c3d4e5f67890` |
+| Duration | 4m 15s (255.5s) |
+| Model | claude-sonnet-45 |
+| Tokens | 18,200 (13,500 in / 4,700 out) |
+| Cost | ~$0.05 |
+```
+
+**See:** `skills/skill-timing/README.md` for full documentation on timing features, baseline comparison, and analysis tools.
 
 ## File Structure
 
 ```text
 skills/plan-reviewer/
 ├── SKILL.md               # Main skill instructions (Claude Code entrypoint)
-├── PROMPT.md              # Review rubric and output format template
 ├── README.md              # This file - usage documentation
-├── VALIDATION.md          # Skill self-validation procedures
+├── rubrics/               # Dimension-specific scoring criteria (progressive disclosure)
+│   ├── executability.md       # Agent execution without judgment
+│   ├── completeness.md        # All steps and edge cases covered
+│   ├── success-criteria.md    # Verifiable completion criteria
+│   ├── scope.md               # Clear boundaries and measurability
+│   ├── dependencies.md        # Execution order and blocking
+│   ├── decomposition.md       # Task granularity
+│   ├── context.md             # Background and domain terms
+│   └── risk-awareness.md      # Fallback and recovery strategies
+├── testing/               # Testing and maintenance guides
+│   └── TESTING.md             # Skill health checks (for maintainers)
 ├── examples/              # Review mode examples
 │   ├── full-review.md         # FULL mode walkthrough
 │   ├── comparison-review.md   # COMPARISON mode walkthrough
@@ -169,10 +213,10 @@ On success:
 ```text
 ✓ Review complete
 
-OUTPUT_FILE: reviews/plan-IMPROVE_RULE_LOADING-claude-sonnet45-2025-12-16.md
+OUTPUT_FILE: reviews/plan-IMPROVE_RULE_LOADING-claude-sonnet-45-2025-12-16.md
 Target: plans/IMPROVE_RULE_LOADING.md
 Mode: FULL
-Model: claude-sonnet45
+Model: claude-sonnet-45
 
 Summary:
 - Executability: 16/20
@@ -214,7 +258,7 @@ Use META-REVIEW mode after multiple LLMs review the same document:
 
 ```text
 target_files: [
-  reviews/plan-X-claude-sonnet45-2025-12-16.md,
+  reviews/plan-X-claude-sonnet-45-2025-12-16.md,
   reviews/plan-X-gpt-52-2025-12-16.md,
   reviews/plan-X-claude-opus45-2025-12-16.md
 ]
@@ -243,7 +287,7 @@ This skill is **deployable** (included when running `task deploy`). After deploy
 
 See `workflows/error-handling.md` for common issues and resolutions.
 
-## Validation
+## Testing
 
-See `VALIDATION.md` for skill health checks and regression testing.
+See `testing/TESTING.md` for skill health checks and regression testing (for skill maintainers).
 

@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**LastUpdated:** 2026-01-12
 **Keywords:** scheduled tasks, pipeline automation, MERGE patterns, SQL, Snowflake, task DAG, AFTER dependencies, Task History, create stream, create task, debug stream, task troubleshooting, stream consumption, task execution error, stream lag
 **TokenBudget:** ~2550
 **ContextTier:** High
@@ -48,7 +48,7 @@ Patterns for building robust, incremental data pipelines using Snowflake Streams
 
 **Complementary** (different aspects of same domain):
 - **100-snowflake-core.md** - Naming conventions and DDL fundamentals
-- **102-snowflake-sql-demo-engineering.md** - SQL demo patterns
+- **102-snowflake-sql-core.md** - General SQL file patterns
 - **107-snowflake-security-governance.md** - RBAC on tasks and streams
 - **105-snowflake-cost-governance.md** - Monitoring task compute costs
 - **108-snowflake-data-loading.md** - Data loading patterns

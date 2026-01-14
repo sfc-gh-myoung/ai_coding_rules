@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-13
 **Keywords:** CHANGELOG, changelog format, semantic versioning, release notes, conventional commits, Unreleased section, scope patterns, project governance, git workflow, version control
 **TokenBudget:** ~3350
 **ContextTier:** Medium
@@ -41,6 +41,7 @@ Maintaining high-signal, audit-friendly CHANGELOG.md following Keep a Changelog 
 - [Keep a Changelog v1.1.0](https://keepachangelog.com/) - Primary changelog format standard
 - [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/#specification) - PREFERRED commit message format (strongly recommended for changelog entries)
 - [Semantic Versioning](https://semver.org/) - Version numbering scheme for software releases
+- [CommonMark Spec](https://spec.commonmark.org/) - Authoritative Markdown specification (CHANGELOG.md MUST comply)
 
 **Additional Resources:**
 - Follow contributing guidelines: `802-project-contributing.md`
@@ -276,7 +277,7 @@ Preview:
   - **Fixed** for any bug fixes
   - **Security** for vulnerability fixes (with CVE references when applicable)
 - **Requirement:** Each entry is a single line with human-readable summary.
-- **Strongly Recommended:** Use Conventional Commit format for consistency: `type(scope): summary`
+- **Requirement:** Use Conventional Commit format for consistency: `type(scope): summary`
   - This is the PREFERRED format per [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/#specification)
   - Conventional Commits enhances Keep a Changelog, not replaces it
   - Entries must remain human-readable and user-impact focused regardless of format

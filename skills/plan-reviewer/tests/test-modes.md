@@ -254,7 +254,7 @@ Total: /20
 
 **Expected:** High variance warning with investigation recommendation.
 
-**Verify:** ⚠️ warning icon and "investigate" recommendation.
+**Verify:**  warning icon and "investigate" recommendation.
 
 ---
 

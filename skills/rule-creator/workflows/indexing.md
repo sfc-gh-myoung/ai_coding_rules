@@ -104,9 +104,7 @@ grep "^| 42[0-9]-" RULES_INDEX.md
 # Find line with 421-javascript-alpinejs-core
 # Add new line after it:
 
-|| `421-javascript-alpinejs-core.md` | ... |
-|| `422-daisyui-core.md` | DaisyUI component library patterns and best practices | daisyui, tailwind, components, ui library, themes, accessibility, semantic html, css variables, responsive design, customization, utility-first, design system | rules/420-javascript-core.md |
-|| `440-react-core.md` | ... |
+- **** - `421-javascript-alpinejs-core.md`: `440-react-core.md`, ...: ...
 ```
 
 **Important formatting:**
@@ -186,17 +184,13 @@ Compare keywords in index entry with rule metadata:
 
 **Before addition:**
 ```markdown
-|| `420-javascript-core.md` | JavaScript and frontend foundations | JavaScript, ES2024, ESM, Node.js, JSDoc, Biome | rules/000-global-core.md |
-|| `421-javascript-alpinejs-core.md` | Alpine.js 3.x usage in web applications | Alpine.js, reactivity, x-data, x-bind, x-on, x-model | rules/000-global-core.md |
-|| `430-typescript-core.md` | TypeScript files in frontend and backend | TypeScript, Zod, Strict Mode, Type Inference | rules/000-global-core.md |
+- **** - `420-javascript-core.md`: `430-typescript-core.md`, JavaScript and frontend foundations: TypeScript files in frontend and backend, JavaScript, ES2024, ESM, Node.js, JSDoc, Biome: TypeScript, Zod, Strict Mode, Type Inference, rules/000-global-core.md: rules/000-global-core.md
 ```
 
 **After addition:**
 ```markdown
-|| `420-javascript-core.md` | JavaScript and frontend foundations | JavaScript, ES2024, ESM, Node.js, JSDoc, Biome | rules/000-global-core.md |
-|| `421-javascript-alpinejs-core.md` | Alpine.js 3.x usage in web applications | Alpine.js, reactivity, x-data, x-bind, x-on, x-model | rules/000-global-core.md |
-|| `422-daisyui-core.md` | DaisyUI component library patterns and best practices | daisyui, tailwind, components, ui library, themes, accessibility, semantic html, css variables, responsive design, customization | rules/420-javascript-core.md |
-|| `430-typescript-core.md` | TypeScript files in frontend and backend | TypeScript, Zod, Strict Mode, Type Inference | rules/000-global-core.md |
+- **** - `420-javascript-core.md`: `422-daisyui-core.md`, JavaScript and frontend foundations: DaisyUI component library patterns and best practices, JavaScript, ES2024, ESM, Node.js, JSDoc, Biome: daisyui, tailwind, components, ui library, themes, accessibility, semantic html, css variables, responsive design, customization, rules/000-global-core.md: rules/420-javascript-core.md
+- **** - `420-javascript-core.md`: `430-typescript-core.md`, JavaScript and frontend foundations: TypeScript files in frontend and backend, JavaScript, ES2024, ESM, Node.js, JSDoc, Biome: TypeScript, Zod, Strict Mode, Type Inference, rules/000-global-core.md: rules/000-global-core.md
 ```
 
 **Verification:**
@@ -204,9 +198,9 @@ Compare keywords in index entry with rule metadata:
 $ grep "422-daisyui-core" RULES_INDEX.md
 || `422-daisyui-core.md` | DaisyUI component library patterns and best practices | daisyui, tailwind, components, ui library, themes, accessibility, semantic html, css variables, responsive design, customization | rules/420-javascript-core.md |
 
-✓ Entry added successfully
-✓ Numeric order maintained (421 → 422 → 430)
-✓ Table formatting intact
+ Entry added successfully
+ Numeric order maintained (421 → 422 → 430)
+ Table formatting intact
 ```
 
 ## Error Handling
@@ -293,23 +287,23 @@ grep "^|| \`422-" RULES_INDEX.md
 ## Success Criteria
 
 Indexing complete when:
-- ✅ Entry added to RULES_INDEX.md
-- ✅ Correct numeric position (between NNN-1 and NNN+1)
-- ✅ Table formatting intact and renders correctly
-- ✅ Keywords enable semantic discovery
-- ✅ Rule discoverable via grep searches
-- ✅ No duplicate entries
+-  Entry added to RULES_INDEX.md
+-  Correct numeric position (between NNN-1 and NNN+1)
+-  Table formatting intact and renders correctly
+-  Keywords enable semantic discovery
+-  Rule discoverable via grep searches
+-  No duplicate entries
 
 ## Completion
 
 **All 5 phases complete!**
 
 ```
-✅ Phase 1: Discovery & Research - Domain identified, best practices gathered
-✅ Phase 2: Template Generation - template_generator.py created structure
-✅ Phase 3: Content Population - All sections filled with quality content
-✅ Phase 4: Validation Loop - schema_validator.py returned exit code 0
-✅ Phase 5: Indexing - Rule added to RULES_INDEX.md
+ Phase 1: Discovery & Research - Domain identified, best practices gathered
+ Phase 2: Template Generation - template_generator.py created structure
+ Phase 3: Content Population - All sections filled with quality content
+ Phase 4: Validation Loop - schema_validator.py returned exit code 0
+ Phase 5: Indexing - Rule added to RULES_INDEX.md
 
 🎉 Production-ready rule created: rules/422-daisyui-core.md
 ```

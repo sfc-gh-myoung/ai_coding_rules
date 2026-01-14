@@ -4,9 +4,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**LastUpdated:** 2026-01-12
 **Keywords:** observability, evaluation, cost management, error troubleshooting, agent security, test agent, agent permissions, agent monitoring, agent evaluation, agent costs, debug agent, agent logs, agent trace, agent security policies
-**TokenBudget:** ~4900
+**TokenBudget:** ~5950
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 115-snowflake-cortex-agents-core.md, 111-snowflake-observability-core.md
 
@@ -447,6 +447,53 @@ Apply these security patterns:
 - Control token budgets and cap output tokens; fail fast on oversized requests
 - Monitor costs by agent and by tool type
 - Optimize expensive tools (multiple Cortex Analyst calls) vs cheaper alternatives
+
+### Dedicated Warehouses for Cortex Analyst Tools
+
+**Best Practice:** Configure a dedicated warehouse for each agent's Cortex Analyst tools:
+
+```yaml
+# Agent: Investment Analyst
+Cortex Analyst Tool: portfolio_analyzer
+Warehouse: AGENT_PORTFOLIO_WH    # Dedicated for cost tracking
+Query Timeout: 120
+
+# Agent: Risk Analyst  
+Cortex Analyst Tool: risk_analyzer
+Warehouse: AGENT_RISK_WH         # Separate warehouse for isolation
+Query Timeout: 180
+```
+
+**Benefits:**
+- **Cost Attribution:** Track compute costs per agent in Account Usage
+- **Performance Isolation:** Queries don't compete with other workloads
+- **Sizing Control:** Right-size warehouse per agent's query complexity
+- **Auto-Suspend:** Configure aggressive auto-suspend (60s) for cost savings
+
+**Warehouse Setup Pattern:**
+```sql
+CREATE WAREHOUSE IF NOT EXISTS AGENT_ANALYTICS_WH
+  WAREHOUSE_SIZE = 'X-SMALL'
+  AUTO_SUSPEND = 60
+  AUTO_RESUME = TRUE
+  INITIALLY_SUSPENDED = TRUE
+  COMMENT = 'Dedicated warehouse for analytics agent Cortex Analyst tools';
+
+GRANT USAGE ON WAREHOUSE AGENT_ANALYTICS_WH TO ROLE AGENT_RUNNER;
+```
+
+**Cost Monitoring Query:**
+```sql
+SELECT
+    warehouse_name,
+    DATE_TRUNC('day', start_time) AS usage_date,
+    SUM(credits_used) AS daily_credits
+FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY
+WHERE warehouse_name LIKE 'AGENT_%'
+  AND start_time >= DATEADD('day', -30, CURRENT_DATE())
+GROUP BY 1, 2
+ORDER BY 2 DESC, 3 DESC;
+```
 
 ## Common Errors and Solutions
 

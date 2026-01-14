@@ -1,5 +1,43 @@
 # Rule Creator Skill
 
+## ⚠️ Execution Integrity Warning
+
+**CRITICAL:** Each rule creation takes 10-15 minutes. This is EXPECTED and REQUIRED.
+
+### Common Agent Shortcuts (ALL FORBIDDEN)
+
+Agents executing this skill may attempt to optimize by:
+- Manually creating rule structure instead of running template_generator.py (FORBIDDEN)
+- Skipping schema validation loop (FORBIDDEN)
+- Leaving placeholder text (\"TODO\", \"[Add content]\") (FORBIDDEN)
+- Using generic knowledge instead of researching current practices (FORBIDDEN)
+- Running validation once instead of iterating until clean (FORBIDDEN)
+
+**These shortcuts WILL produce invalid or low-quality rules.**
+
+### How to Verify Faithful Execution
+
+**During Execution:**
+- See template_generator.py execution output
+- See schema_validator.py execution (multiple iterations)
+- See web research queries for best practices
+
+**After Execution:**
+- Rule file exists at rules/NNN-technology-aspect.md
+- File size 4000-12000 bytes (typical)
+- All sections filled with real content (no placeholders)
+- schema_validator.py returns exit code 0
+- Entry added to RULES_INDEX.md
+
+**Red Flags:**
+- ⚠️ Rule creation completes in < 5 minutes
+- ⚠️ Rule file < 3000 bytes
+- ⚠️ Contains \"TODO\" or \"[Add content]\" markers
+- ⚠️ No template_generator.py output visible
+- ⚠️ No schema_validator.py iterations visible
+
+---
+
 A Claude skill for reproducibly creating production-ready Cursor rules following schema standards by orchestrating existing automation tools (`template_generator.py` and `schema_validator.py`).
 
 ## Overview
@@ -34,10 +72,18 @@ Ensure you have:
 
 ### Step 2: Load the Skill
 
-Open:
+**Load the skill file to enable the agent/model to use it:**
+
 ```
 skills/rule-creator/SKILL.md
 ```
+
+**How to load:**
+- **Claude Code / Cortex Code:** Open or reference `skills/rule-creator/SKILL.md` in your conversation
+- **Cursor / Other agents:** Load `skills/rule-creator/SKILL.md` file which allows the agent to use the skill without "installing" it
+- **Manual load:** Use your agent's file reading capability to load the SKILL.md content
+
+**Why this works:** The SKILL.md file contains the complete skill definition. Opening or referencing it makes the skill available to the agent for the current session.
 
 ### Step 3: Request Rule Creation
 
@@ -66,6 +112,45 @@ Check that:
 - Validation passed: `python scripts/schema_validator.py rules/NNN-technology-aspect.md` returns exit code 0
 - Indexed: Entry present in `RULES_INDEX.md`
 - Loadable: `rules/NNN-technology-aspect.md` exists and contains the new rule content
+
+## Execution Timing
+
+Enable execution timing to measure rule creation duration and track performance:
+
+```
+Create a new rule for DaisyUI best practices following schema
+
+timing_enabled: true
+```
+
+When enabled, the output includes:
+- **Timing Metadata section** in the rule file
+- **STDOUT summary** with duration, checkpoints (discovery, template, content, validation, indexing), tokens, baseline comparison
+- **Real-time anomaly alerts** if duration is suspicious
+
+**Example timing metadata:**
+
+```markdown
+## Timing Metadata
+
+| Metric | Value |
+|--------|-------|
+| Run ID | `a1b2c3d4e5f67890` |
+| Duration | 8m 30s (510.5s) |
+| Model | claude-sonnet-45 |
+| Tokens | 28,400 (19,500 in / 8,900 out) |
+| Cost | ~$0.08 |
+```
+
+**Checkpoints tracked:**
+- `skill_loaded` - After loading SKILL.md
+- `discovery_complete` - After domain discovery and research
+- `template_generated` - After template_generator.py execution
+- `content_populated` - After filling all sections
+- `validation_complete` - After schema validation passes
+- `indexing_complete` - After RULES_INDEX.md update
+
+**See:** `skills/skill-timing/README.md` for full documentation on timing features, baseline comparison, and analysis tools.
 
 ## Workflow Architecture
 
@@ -110,9 +195,9 @@ Check that:
 ```
 skills/rule-creator/
 ├── SKILL.md               # Main skill instructions (Claude Code entrypoint)
-├── PROMPT.md              # Rule creation prompt template and workflow
 ├── README.md              # This file - usage documentation
-├── VALIDATION.md          # Skill self-validation procedures
+├── testing/               # Testing and maintenance guides
+│   └── TESTING.md             # Skill health checks (for maintainers)
 ├── examples/              # Complete workflow examples
 │   ├── frontend-example.md    # DaisyUI (JavaScript 420-449)
 │   ├── python-example.md      # pytest-mock (Python 200-299)
@@ -379,7 +464,6 @@ For complete end-to-end examples:
 - **Optimization:** `rules/002b-rule-optimization.md` - Token budgets
 - **Validator Usage:** `rules/002d-schema-validator-usage.md` - Validation details
 - **Rules Index:** `RULES_INDEX.md` - Master index for discovery
-- **Prompt Template:** `PROMPT.md` - Rule creation prompt template (colocated in this skill folder)
 
 ### Tool Documentation
 
@@ -398,6 +482,14 @@ Rule creation is successful when:
 - ✅ All 9 required sections present with quality content
 - ✅ Contract has 6 XML tags before line 160
 - ✅ 2+ anti-patterns with code examples included
+
+## Deployment
+
+This skill is **internal-only** and is not deployed to team projects. It remains in the ai_coding_rules source repository for rule creation and maintenance.
+
+**Rationale:** Rule creation requires access to the rules repository, RULES_INDEX.md, and validation scripts that are specific to this project's infrastructure.
+
+---
 
 ## Contributing
 

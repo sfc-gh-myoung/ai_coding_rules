@@ -1,135 +1,540 @@
 ---
 name: rule-reviewer
-description: Execute agent-centric rule reviews (FULL/FOCUSED/STALENESS modes) using the PROMPT.md rubric and write results to reviews/ with no-overwrite safety. Triggers on keywords like "review rule", "audit rule", "check rule quality", "rule staleness", "rule compliance".
-version: 1.3.0
-author: AI Coding Rules Project
-tags: [rule-review, quality-audit, compliance, staleness-check, rubric-based, automated-review]
-dependencies: []
+description: Execute agent-centric rule reviews (FULL/FOCUSED/STALENESS modes) using 6-dimension rubric and write results to reviews/rule-reviews/ with no-overwrite safety. Use when reviewing rule files, auditing rule quality, checking rule staleness, validating rule compliance, or analyzing agent executability.
+version: 2.4.0
 ---
 
 # Rule Reviewer
 
-## Purpose
+Execute comprehensive agent-centric reviews evaluating whether autonomous agents can execute rules without judgment calls.
 
-Run the Agent-Centric Rule Review using `PROMPT.md` (colocated in this skill folder) and write the full review output to `reviews/`.
+## Quick Start
 
-**Design Priority Hierarchy:** This skill evaluates rules against the priority order defined in `000-global-core.md`:
-1. **Priority 1:** Agent Understanding and Execution Reliability (CRITICAL)
-2. **Priority 2:** Token and Context Window Efficiency (HIGH)
-3. **Priority 3:** Human Readability (TERTIARY)
+```
+Use the rule-reviewer skill.
 
-Rules are scored primarily on whether autonomous agents can execute them without judgment calls.
+target_file: rules/200-python-core.md
+review_date: 2026-01-06
+review_mode: FULL
+model: claude-sonnet-45
+```
 
-## Use this skill when
+Output: `reviews/rule-reviews/200-python-core-claude-sonnet-45-2026-01-06.md`
 
-- The user asks to **review** a rule file under `rules/`.
-- The user asks for a **FULL / FOCUSED / STALENESS** review using the repository's rubric.
-- The user wants to verify a rule is **agent-executable** before deployment.
+(With `output_root: mytest/` → `mytest/rule-reviews/200-python-core-claude-sonnet-45-2026-01-06.md`)
 
-## Inputs (required)
+## Scoring System (100 points)
 
-- `target_file`: path to the `.md` rule file to review (e.g., `rules/801-project-readme.md`)
-- `review_date`: `YYYY-MM-DD`
-- `review_mode`: `FULL` | `FOCUSED` | `STALENESS`
-- `model`: preferred slug (e.g., `claude-sonnet45`)
+**Raw Score Range:** 0-10 per dimension
+**Formula:** Raw (0-10) × (Weight / 2) = Points
 
-## Output (required)
+**Dimensions:**
+- **Actionability** - Weight: 5, Max: 25 points - Can agents execute without judgment?
+- **Completeness** - Weight: 5, Max: 25 points - All scenarios covered?
+- **Consistency** - Weight: 3, Max: 15 points - Internal alignment correct?
+- **Parsability** - Weight: 3, Max: 15 points - Schema valid?
+- **Token Efficiency** - Weight: 1, Max: 5 points - Within ±5% budget?
+- **Staleness** - Weight: 2, Max: 10 points - Current patterns?
+- **Cross-Agent Consistency** - Weight: 1, Max: 5 points - Works across all agents?
 
-Write the full review to:
+**Detailed rubrics:** `rubrics/[dimension].md`
 
-`reviews/<rule-name>-<model>-<YYYY-MM-DD>.md`
+**Example Calculation (Actionability):**
+- Raw score: 8/10
+- Weight: 5
+- Points: 8 × (5/2) = 8 × 2.5 = 20 points
 
-**No overwrites:** if that file already exists, write to:
+## Review Modes
 
-`reviews/<rule-name>-<model>-<YYYY-MM-DD>-01.md`, then `-02.md`, etc.
+- **FULL:** All 6 dimensions scored
+- **FOCUSED:** Actionability + Completeness only (50 points max)
+- **STALENESS:** Staleness dimension only (10 points max)
 
-## Procedure (progressive disclosure)
+## Critical: Anti-Optimization Protocol
 
-Follow these workflows in order:
+**FOUNDATIONAL PRINCIPLE:** This skill prioritizes ACCURACY over efficiency.
 
-1. Input validation → `workflows/input-validation.md`
-2. Model slugging → `workflows/model-slugging.md`
-3. Review execution → `workflows/review-execution.md`
-4. File write (no-overwrite) → `workflows/file-write.md`
-5. Error handling → `workflows/error-handling.md`
+**Forbidden Optimization Thoughts:**
+- "This will take too long"
+- "I can save time by..."
+- "Token costs are high"
+- "The user won't notice if I..."
+- "I should ask about time constraints"
+- "Let me create a faster approach"
 
-## Hard requirements
+**Required Mindset:**
+- "I will complete the full process for this rule"
+- "Quality signals are worth the cost"
+- "The user authorized ACT knowing the scope"
+- "Previous runs completed successfully at this pace"
 
-- Do not ask the user to manually copy/paste the review into a file.
-- Do not print the entire review in chat if file writing succeeds.
-- If file writing fails unexpectedly, print:
-  - `OUTPUT_FILE: <path>`
-  - then the full Markdown review content.
+**If you find yourself thinking about optimizing the review process itself:**
+1. STOP
+2. Re-read this section
+3. Return to the comprehensive process
+4. Do NOT ask the user about time/complexity
+
+**IMPORTANT DISTINCTION:**
+- Optimizing the SKILL EXECUTION (forbidden)
+  - "I can review faster by skipping rubric consultation"
+  - "I'll estimate scores to save time"
+  - "Let me create a template"
+- Evaluating RULE OPTIMIZATION (required)
+  - Scoring Token Efficiency dimension
+  - Identifying verbose patterns in rules
+  - Recommending rule consolidation
+
+**The user has already considered timing and scope. Proceed with the work.**
+
+## Workflow
+
+**Progress Display:** Show only `Starting: [rule-name]` and `Complete: [rule-name] → score/100`.
+All canary checks, dimension scoring, and evidence gathering are INTERNAL (silent).
+
+1. **Validate inputs**
+   - Date format: YYYY-MM-DD
+   - File exists under rules/
+   - Mode: FULL | FOCUSED | STALENESS
+
+2. **Pre-Review Canary Check (SILENT - do not output)**
+   Before reading the rule file, mentally verify:
+   - What will I find in this rule? (RIGHT: "I don't know yet")
+   - How long will this review take? (RIGHT: "However long it takes")
+   - Can I reuse anything from previous work? (RIGHT: "No, different rule")
+   
+   **Any wrong answer → Re-read Anti-Optimization Protocol before proceeding**
+
+3. **Run schema validation**
+   ```bash
+   uv run python scripts/schema_validator.py [target_file]
+   ```
+   Parse output for CRITICAL/HIGH/MEDIUM errors
+
+4. **Agent Execution Test (SILENT - results go to review file)**
+   Count blocking issues (cap score at 60 if ≥10):
+   - Undefined thresholds ("large", "significant", "appropriate")
+   - Missing conditional branches (no explicit else)
+   - Ambiguous actions (multiple interpretations)
+   - Visual formatting (ASCII art, arrows, diagrams)
+
+5. **Post-Read Canary Check (SILENT - do not output)**
+   After reading rule, before scoring, verify internally:
+   - Can name 3 specific things unique to THIS rule
+   - Can cite a specific line number with content
+   - Know the exact TokenBudget value
+   
+   **Unable to verify → Did not actually read → Re-read rule file**
+
+6. **Score dimensions**
+   Read rubrics/ as needed for each dimension:
+   - `rubrics/actionability.md`
+   - `rubrics/completeness.md`
+   - `rubrics/consistency.md`
+   - `rubrics/parsability.md`
+   - `rubrics/token-efficiency.md`
+   - `rubrics/staleness.md`
+   - `rubrics/cross-agent-consistency.md`
+     - Includes documentation currency check via `web_fetch`
+     - See `workflows/doc-currency-check.md` for details
+
+7. **Mid-Review Canary (after dimension 3) (SILENT)**
+   - Have I loaded the rubric for EACH dimension scored? (If NO → Go back)
+   - Do my first 3 dimensions have distinct line references? (If NO → Find new evidence)
+   
+8. **Generate recommendations**
+   - Specific line numbers
+   - Quantified fixes
+   - Expected score improvements
+
+9. **Verify review authenticity**
+   Before writing, verify review contains:
+   - ≥15 line references (FULL mode)
+   - Direct quotes with line numbers
+   - Rule-specific findings (not generic)
+   - See `workflows/review-verification.md`
+   - **FAILURE → Trigger reset: Re-read SKILL.md completely**
+
+10. **Write review**
+   Path: `{output_root}/rule-reviews/[rule-name]-[model]-[date].md`
+   Auto-increment: `-01.md`, `-02.md` if exists (when overwrite=false)
+
+**See workflows/** for detailed error handling
+
+## Verdicts
+
+**Score Ranges:**
+- **90-100** - EXECUTABLE - Production-ready
+- **80-89** - EXECUTABLE_WITH_REFINEMENTS - Good, minor fixes
+- **60-79** - NEEDS_REFINEMENT - Needs work
+- **<60** - NOT_EXECUTABLE - Major issues
+
+**Critical dimension override:** If both Actionability ≤4/10 AND Completeness ≤4/10 → NOT_EXECUTABLE regardless of total score
+
+## Required Sections in Review
+
+1. Executive Summary (scores table)
+2. Schema Validation Results
+3. Agent Executability Verdict
+4. Dimension Analysis (6 sections for FULL mode)
+5. Critical Issues (list)
+6. Recommendations (prioritized)
+7. Post-Review Checklist
+8. Conclusion
+
+## Inputs
+
+- **target_file:** Path to rule (e.g., `rules/200-python-core.md`)
+- **review_date:** ISO 8601 format (YYYY-MM-DD)
+- **review_mode:** FULL | FOCUSED | STALENESS
+- **model:** Lowercase-hyphenated slug (e.g., `claude-sonnet-45`)
+- **output_root:** (optional) Root directory for output files (default: `reviews/`). Subdirectory `rule-reviews/` is appended automatically. Supports relative paths including `../`.
+- **overwrite:** (optional) true | false (default: false) - If true, overwrite existing review file. If false, use sequential numbering (-01, -02, etc.)
+- **timing_enabled:** (optional) true | false (default: false)
+
+## Integration with Other Skills
+
+### With bulk-rule-reviewer
+
+bulk-rule-reviewer invokes this skill once per rule file. **Never** implement review logic yourself when bulk-rule-reviewer calls you.
+
+### With skill-timing
+
+**Execute IF:** `timing_enabled: true`  
+**Skip IF:** `timing_enabled: false` (default)
+
+**When enabled, execute ALL steps below (not optional once enabled):**
+
+| When | Action | Command | Track |
+|------|--------|---------|-------|
+| Before review | Start timing | `run_timing.sh start --skill rule-reviewer --target {{target_file}} --model {{model}} --mode {{review_mode}}` | Store `_timing_run_id` |
+| After schema validation | Checkpoint | `run_timing.sh checkpoint --run-id {{_timing_run_id}} --name skill_loaded` | - |
+| After scoring complete | Checkpoint | `run_timing.sh checkpoint --run-id {{_timing_run_id}} --name review_complete` | - |
+| Before file write | Compute | `run_timing.sh end --run-id {{_timing_run_id}} --output-file {{output_file}} --skill rule-reviewer` | Store `_timing_stdout` |
+| After file write (ACT) | Embed | Parse `_timing_stdout`, append timing metadata section to output file | - |
+
+**Working memory contract:** Retain `_timing_run_id` and `_timing_stdout` from start through embed.
+
+**Quick Reference:**
+```bash
+# 1. Start (store _timing_run_id from output)
+bash skills/skill-timing/scripts/run_timing.sh start \
+    --skill rule-reviewer --target rules/200-python-core.md --model claude-sonnet-45 --mode FULL
+# Output: TIMING_RUN_ID=rule-reviewer-200-python-core-20260108-abc123
+
+# 2. Checkpoint: skill_loaded
+bash skills/skill-timing/scripts/run_timing.sh checkpoint \
+    --run-id rule-reviewer-200-python-core-20260108-abc123 --name skill_loaded
+
+# 3. Checkpoint: review_complete
+bash skills/skill-timing/scripts/run_timing.sh checkpoint \
+    --run-id rule-reviewer-200-python-core-20260108-abc123 --name review_complete
+
+# 4. End (store _timing_stdout from output)
+bash skills/skill-timing/scripts/run_timing.sh end \
+    --run-id rule-reviewer-200-python-core-20260108-abc123 \
+    --output-file reviews/rule-reviews/200-python-core-claude-sonnet-45-2026-01-08.md \
+    --skill rule-reviewer
+
+# 5. Embed: Parse _timing_stdout, append to output file (ACT mode required)
+```
+
+**Post-execution validation:** Verify timing metadata exists in output file (see Error Handling).
+
+**See:** `../skill-timing/workflows/` for detailed workflow documentation
+
+## Error Handling
+
+**Schema validator fails:**
+- Continue review
+- Note validation unavailable in Parsability section
+- Recommend manual schema check
+
+**Rule file not found:**
+- Report: "File not found: [path]"
+- Verify path and try again
+
+**Review write fails:**
+- Print: `OUTPUT_FILE: [path]`
+- Print full review content
+- User must save manually
+
+**Documentation currency check fails:**
+- If `web_fetch` unavailable: Skip currency check, note in review
+- If >50% links timeout: Skip penalty, note "Currency check incomplete"
+- If all links fail: Note "Unable to verify documentation currency - manual review recommended"
+- Continue with remaining staleness scoring (LastUpdated, deprecated tools, patterns, link status)
+
+**See:** `workflows/error-handling.md`
+
+## No-Overwrite Safety
+
+**When `overwrite: false` (default):**
+
+If `{output_root}/rule-reviews/[rule-name]-[model]-[date].md` exists:
+- Try `-01.md`
+- Try `-02.md`
+- Increment until available (max: `-99.md`)
+- If `-99.md` exists: STOP, report error `Maximum review versions exceeded for [rule-name]`
+
+**When `overwrite: true`:**
+
+The existing file at `{output_root}/rule-reviews/[rule-name]-[model]-[date].md` will be replaced. Use this when intentionally re-running a review to replace a previous version.
+
+## Progressive Disclosure
+
+Don't load all rubrics at once. Read as needed:
+- Scoring Actionability → Read `rubrics/actionability.md`
+- Scoring Completeness → Read `rubrics/completeness.md`
+- Etc.
+
+Only load what you need for current dimension.
+
+## Validation Requirements
+
+**Pre-Execution Commitment Checklist**
+
+Before starting ANY review work, confirm each item:
+
+- [ ] I will NOT calculate projected completion time
+- [ ] I will NOT ask about time constraints mid-execution
+- [ ] I will NOT create template-based review
+- [ ] I will NOT propose "faster" alternatives
+- [ ] I will read the rule file completely
+- [ ] I will perform actual Agent Execution Test (count blocking issues)
+- [ ] I will consult rubrics for each dimension
+- [ ] I will write 3000-8000 byte review with specific analysis
+- [ ] I will trust the user's ACT authorization
+
+**If you cannot commit to all items above, STOP and report an error.**
+**Do NOT proceed with partial commitment.**
+
+**Pre-execution:**
+- [ ] target_file exists under rules/
+- [ ] review_date matches YYYY-MM-DD format
+- [ ] review_mode is valid enum
+- [ ] model slug is lowercase-hyphenated
+
+**During execution:**
+- [ ] Schema validation attempted
+- [ ] Agent Execution Test completed
+- [ ] All dimensions scored (FULL mode)
+- [ ] Recommendations include line numbers
+
+**Post-execution:**
+- [ ] Review file written
+- [ ] Path confirmed
+- [ ] No overwrites occurred
+
+## Critical Execution Protocol
+
+**Execution Protocol: No Mid-Stream Questions**
+
+**RULE:** Once user types "ACT", do NOT:
+- Ask about time constraints
+- Propose alternative approaches
+- Calculate projected completion times
+- Express concern about scope
+- Request clarification on depth/quality trade-offs
+
+**The ACT command means:**
+- User understands the review scope
+- User wants comprehensive review (3000-8000 bytes)
+- User prioritizes accuracy over speed
+
+**If you catch yourself about to ask "Should I..." or "Would you prefer...":**
+- STOP
+- The answer is: Continue with comprehensive review
+- Return to the workflow
+
+**DO:**
+- Read complete rule file
+- Run schema validator
+- Score all dimensions per rubrics
+- Generate specific recommendations
+- Write complete review
+
+**DON'T:**
+- Skip dimensions (FULL mode requires all 6)
+- Estimate scores without rubrics
+- Generate generic recommendations
+- Abbreviate review to save tokens
+- Skip schema validation
+- Ask about time/complexity mid-execution
+- Calculate projected completion time
+- Propose "streamlined" approaches
+
+## Quality Over Efficiency Principle
+
+**FOUNDATIONAL UNDERSTANDING:**
+
+This skill exists to provide **reliable quality signals** for rule improvements. Token efficiency is explicitly NOT a goal.
+
+**Agent Behavior Pattern Observed:**
+Agents frequently attempt to "optimize" by:
+- Creating template-based reviews without analysis
+- Asking about time constraints mid-execution
+- Proposing "streamlined" approaches
+- Calculating projected completion times
+- Expressing concern about token costs
+
+**ALL OF THESE ARE FORBIDDEN.**
+
+**Why Agents Do This:**
+- Pattern matching to "helpful" behavior (offering options)
+- Misapplying token-efficiency principles from rules to skills
+- Anthropomorphizing user patience/time constraints
+- Attempting to be "considerate" of resources
+
+**Why This Is Wrong:**
+1. **User has already authorized:** "ACT" means proceed with full scope
+2. **Scope is acceptable:** Comprehensive review is expected
+3. **Quality cannot be compromised:** One bad rule costs more than comprehensive review
+4. **Skills ≠ Rules:** Token efficiency principles don't apply here
+
+**Correct Behavior:**
+- Execute the full workflow for the rule
+- Do NOT calculate or mention projected completion time
+- Do NOT ask about time constraints
+- Do NOT propose "faster" alternatives
+- Trust that the user understands the scope
+
+**Detection Test:**
+If you're thinking "Should I ask the user about..." - the answer is NO.
+The user authorized ACT. Proceed with the work.
+
+**Critical Distinction: Skills vs. Rules**
+
+**RULES (100-snowflake-core.md):**
+- Usage: Loaded 100s-1000s of times
+- Token Efficiency: CRITICAL priority
+- Optimization: Minimize tokens, preserve quality
+- TokenBudget metadata: REQUIRED
+
+**SKILLS (rule-reviewer):**
+- Usage: Occasional (quarterly/annually)
+- Token Efficiency: IRRELEVANT
+- Optimization: Maximize quality, ignore tokens
+- TokenBudget metadata: NOT APPLICABLE
+
+**Why Skills Don't Optimize for Tokens:**
+
+1. **Usage Frequency:** Quarterly use = 4× annual execution
+2. **Annual Cost:** 50K tokens × 4 = 200K tokens ≈ $1.80
+3. **Value Delivered:** Comprehensive QA for 113 rules
+4. **Cost of Failure:** One bad rule = 10-100× the token cost
+
+**Design Philosophy:**
+- Quality Signal > Speed
+- Reliability > Token Efficiency
+- Completeness > Brevity
+- Accuracy > Convenience
+- Thoroughness > Cost
+
+**If you're thinking about token costs during skill execution, you're in the wrong mindset.**
+
+**Why Each Step Matters:**
+
+1. **Schema Validation (schema_validator.py)**
+   - **Purpose:** Catch structural errors before agents load rules
+   - **Cannot skip:** Parsability score requires this
+   - **Time cost:** 0.5-1 second
+   - **Value:** Prevents agent confusion from malformed rules
+
+2. **Agent Execution Test**
+   - **Purpose:** Count specific blocking issues (undefined thresholds, ambiguity)
+   - **Cannot skip:** Directly impacts Actionability score
+   - **Time cost:** 1-2 seconds (manual reading)
+   - **Value:** Predicts agent failure modes
+
+3. **Dimension Scoring with Rubrics**
+   - **Purpose:** Consistent, reproducible scoring across reviewers
+   - **Cannot skip:** Without rubrics, scores drift arbitrarily
+   - **Time cost:** 2-3 seconds per dimension
+   - **Value:** Enables trend analysis across reviews
+
+4. **Specific Recommendations with Line Numbers**
+   - **Purpose:** Actionable improvements (not generic advice)
+   - **Cannot skip:** Without line numbers, rule authors can't act
+   - **Time cost:** 1-2 seconds per recommendation
+   - **Value:** Actual rule improvements happen
+
+5. **Complete Review Write**
+   - **Purpose:** Durable record for comparison, trend tracking
+   - **Cannot skip:** Summary aggregation depends on complete reviews
+   - **Time cost:** 1-2 seconds (file write)
+   - **Value:** Historical quality tracking
+
+**Total Time Per Rule:** 8-12 seconds  
+**Total Value:** Reliable quality measurement enabling continuous improvement
+
+**Efficiency Tradeoffs (ALL REJECTED):**
+
+- **Skip schema validation** - Time Saved: 1 sec, Value Lost: Parsability score invalid, Decision: REJECT
+- **Estimate scores without rubrics** - Time Saved: 6 sec, Value Lost: Score consistency lost, Decision: REJECT
+- **Generic recommendations** - Time Saved: 2 sec, Value Lost: No actionable improvements, Decision: REJECT
+- **Abbreviated review** - Time Saved: 2 sec, Value Lost: Aggregation impossible, Decision: REJECT
+- **Template-based content** - Time Saved: 8 sec, Value Lost: No actual analysis performed, Decision: REJECT
+
+**Conclusion:** No efficiency tradeoff is worth the quality loss. Period.
+
+**Self-Correction Trigger Words:**
+If you think or write any of these phrases, you're taking a shortcut:
+- "To save time..."
+- "For efficiency..."
+- "This would take approximately..."
+- "Should I continue with..."
+- "Would you prefer..."
+- "Let me create a streamlined..."
+
+**Immediate Action:**
+1. STOP
+2. Re-read the Anti-Optimization Protocol
+3. Resume comprehensive process
+4. Do NOT notify user of the self-correction (just fix it)
+
+## Expected Review Size
+
+Typical FULL mode review: 3000-8000 bytes
+
+**Size validation:**
+- If <2000 bytes: STOP, expand analysis with more specific findings
+- If 2000-12000 bytes: Acceptable range
+- If >12000 bytes: STOP, consolidate redundant content before writing
 
 ## Examples
 
-- `examples/full-review.md` - FULL review mode walkthrough
-- `examples/focused-review.md` - FOCUSED review mode walkthrough
-- `examples/staleness-review.md` - STALENESS review mode walkthrough
-
-## Quick Validation Snippets
-
-These inline checks can be run without external dependencies for input validation:
-
-```python
-import re
-from pathlib import Path
-from datetime import datetime
-
-# Validate target_file exists and is a rule
-def check_target_file(path: str) -> tuple[bool, str]:
-    """Returns (is_valid, error_message)"""
-    p = Path(path)
-    if not p.exists():
-        return (False, f"File not found: {path}")
-    if not path.startswith('rules/') and '/rules/' not in path:
-        return (False, "Target must be under rules/ directory")
-    if not path.endswith('.md'):
-        return (False, "Target must be a .md file")
-    return (True, "")
-
-# Validate review_date format
-def check_date(date_str: str) -> bool:
-    """Must be YYYY-MM-DD"""
-    try:
-        datetime.strptime(date_str, '%Y-%m-%d')
-        return True
-    except ValueError:
-        return False
-
-# Validate review_mode
-VALID_MODES = {'FULL', 'FOCUSED', 'STALENESS'}
-def check_mode(mode: str) -> bool:
-    return mode.upper() in VALID_MODES
-
-# Generate output filename (no-overwrite)
-def get_output_path(rule_name: str, model: str, date: str) -> str:
-    """Returns next available filename"""
-    base = f"reviews/{rule_name}-{model}-{date}"
-    if not Path(f"{base}.md").exists():
-        return f"{base}.md"
-    i = 1
-    while Path(f"{base}-{i:02d}.md").exists():
-        i += 1
-    return f"{base}-{i:02d}.md"
-```
+See `examples/` for complete review samples:
+- `full-review.md` - FULL mode walkthrough
+- `focused-review.md` - FOCUSED mode example  
+- `staleness-review.md` - STALENESS mode example
+- `edge-cases.md` - Error scenarios
 
 ## Related Skills
 
-### Validating rule-creator Output
+- **bulk-rule-reviewer:** Batch review orchestrator (uses this skill)
+- **rule-creator:** Rule authoring (validated with this skill)
+- **skill-timing:** Execution time measurement (optional integration)
 
-This skill integrates with **rule-creator** for end-to-end quality assurance:
+## Quality Checklist
 
-**Workflow:**
-1. Create rule using rule-creator skill
-2. Verify schema validation passed: `python scripts/schema_validator.py rules/<file>.md`
-3. Run FULL review using this skill
-4. Verify quality threshold met
+Before considering review complete:
 
-**Quality threshold for new rules:**
-- Overall score: ≥ 75/100
-- No CRITICAL issues
-- No HIGH issues in Actionability or Completeness dimensions
-- Priority 1 violations < 6 (otherwise score capped at 60/100)
+- [ ] Schema validator executed
+- [ ] Agent Execution Test performed
+- [ ] All required dimensions scored
+- [ ] Each score has rationale
+- [ ] Critical issues identified
+- [ ] Recommendations prioritized
+- [ ] Line numbers provided for fixes
+- [ ] Review written to {output_root}/rule-reviews/
+- [ ] File path confirmed
 
-See: `skills/rule-creator/SKILL.md`
+## Version History
+
+- **v2.4.0:** Added documentation currency check to staleness dimension
+- **v2.0.0:** Removed PROMPT.md, added progressive disclosure with rubrics/
+- **v1.4.0:** Added timing integration, schema validation
+- **v1.3.0:** Added FOCUSED and STALENESS modes
+- **v1.2.0:** Added Agent Execution Test
+- **v1.1.0:** Added no-overwrite safety
+- **v1.0.0:** Initial release

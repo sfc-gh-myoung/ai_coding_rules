@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-13
 **Keywords:** CONTRIBUTING, pull requests, code review, contribution guidelines, branching strategy, Conventional Commits, rule authoring, PR templates, project governance, git workflow
-**TokenBudget:** ~3550
+**TokenBudget:** ~3300
 **ContextTier:** Medium
 **Depends:** 000-global-core.md
 
@@ -39,6 +39,7 @@ Professional contribution workflow directives covering commits, pull requests, c
 - [GitHub Contributing Guidelines](https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/setting-guidelines-for-repository-contributors) - GitHub's guide for contribution workflows
 - [Open Source Guides](https://opensource.guide/) - Best practices for open source project management
 - [Conventional Commits](https://www.conventionalcommits.org/) - Standardized commit message format
+- [CommonMark Spec](https://spec.commonmark.org/) - Authoritative Markdown specification (CONTRIBUTING.md MUST comply)
 
 ## Contract
 
@@ -188,7 +189,7 @@ Investigation:
 
 Implementation:
 
-Created new rule: rules/215-python-django-core.md
+Created new rule: rules/210-python-fastapi-core.md
 
 File Structure:
 - Metadata: Description, Type, AppliesTo, Keywords, TokenBudget (~2200)
@@ -232,7 +233,7 @@ Updated CHANGELOG.md:
   - `900-999`: Demo & Synthetic Data
 
 #### Rule Content Guidelines
-- **Requirement:** Keep rules focused and concise (target 150-300 lines; max 500 lines).
+- **Requirement:** Keep rules 150-300 lines (max 500 lines).
 - **Requirement:** Split large topics into multiple composable rules within the same range.
 - **Requirement:** Use explicit directive language: `Requirement`, `Always`, `Avoid`, `Rule`, `Consider`.
 - **Always:** Include metadata header with Description, AppliesTo, AutoAttach, Type, Version, LastUpdated.
@@ -253,6 +254,7 @@ Updated CHANGELOG.md:
 - **Always:** Reference specialized rules as needed (e.g., `200-python-core.md`, `300-bash-scripting-core.md`).
 
 ### Contributing Content Boundaries
+```
 [50 lines of detailed development workflow]
 [Environment setup instructions]
 [Rule generation commands]
@@ -261,7 +263,7 @@ Updated CHANGELOG.md:
 **Problem:** Overwhelms end users, violates progressive disclosure principle, creates maintenance burden
 
 **Correct Pattern:**
-```markdown
+````markdown
 # Good: Minimal pointer in README
 
 ## README vs CONTRIBUTING.md Content Boundaries
@@ -351,7 +353,7 @@ Updated CHANGELOG.md:
 
 ## [Unreleased]
 ### Added
-- New rule 215-python-django-core.md for Django framework patterns
+- New rule 210-python-fastapi-core.md for Django framework patterns
 ```
 
 Regenerated all formats:
@@ -380,7 +382,7 @@ task format
 
 Commit:
 ```bash
-git add rules/215-python-django-core.md
+git add rules/210-python-fastapi-core.md
 git add CHANGELOG.md
 git commit -m "$(cat <<'EOF'
 feat(python): add Django framework core patterns rule

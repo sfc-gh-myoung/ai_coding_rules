@@ -208,12 +208,12 @@ python scripts/schema_validator.py rules/210-python-pydantic-core.md
 **Expected:**
 ```
 SUMMARY:
-  ❌ CRITICAL: 0
-  ⚠️  HIGH: 0
+   CRITICAL: 0
+    HIGH: 0
   ℹ️  MEDIUM: 0
-  ✓ Passed: 458 checks
+   Passed: 458 checks
 
-RESULT: ✅ PASSED (exit code 0)
+RESULT:  PASSED (exit code 0)
 ```
 
 **Pass Criteria:**
@@ -229,7 +229,7 @@ RESULT: ✅ PASSED (exit code 0)
 
 **Expected:**
 ```
-❌ CRITICAL ISSUES (1):
+ CRITICAL ISSUES (1):
 [Metadata] Keywords count: 8 (expected 10-15)
   Line: 5
   Fix: Add 2 more keywords to reach minimum of 10
@@ -264,7 +264,7 @@ RESULT: ✅ PASSED (exit code 0)
 
 **Expected:**
 ```
-✗ Still failing after 3 iterations
+ Still failing after 3 iterations
 Manual intervention required
 
 Unresolved errors:
@@ -314,9 +314,7 @@ grep "210-python-pydantic" RULES_INDEX.md
 
 **Expected:**
 ```markdown
-| 210-python-... | ... |
-| 215-python-... | ... |  ← NEW (correct position)
-| 220-python-... | ... |
+- **220-python-...** - ...
 ```
 
 **Pass Criteria:**

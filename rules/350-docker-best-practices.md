@@ -4,9 +4,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**LastUpdated:** 2026-01-06
 **Keywords:** Docker, Dockerfile, containers, multi-stage builds, layer caching, image optimization, docker-compose, BuildKit, distroless, security scanning, SBOM, non-root, healthcheck
-**TokenBudget:** ~3350
+**TokenBudget:** ~3150
 **ContextTier:** Medium
 **Depends:** 000-global-core.md, 202-markup-config-validation.md
 

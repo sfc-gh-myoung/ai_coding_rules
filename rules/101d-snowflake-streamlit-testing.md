@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**LastUpdated:** 2026-01-12
 **Keywords:** test Streamlit app, pytest, test framework, test patterns, app testing, UI testing, test automation, streamlit test suite, integration testing, test coverage, debug tests, test fixtures, testing strategies
 **TokenBudget:** ~3750
 **ContextTier:** High
@@ -57,7 +57,8 @@ Streamlit app configured (see 101-snowflake-streamlit-core.md), pytest installed
 
 ### Mandatory
 
-streamlit.testing.v1.AppTest, pytest, unittest, mock objects, debugger
+- **Coverage Target:** >80% code coverage with pytest-cov
+- streamlit.testing.v1.AppTest, pytest, unittest, mock objects, debugger
 
 ### Forbidden
 
@@ -461,7 +462,7 @@ def test_cache_resource_behavior():
 - **Check:** Blocking operations without feedback (add st.spinner)
 
 ### Slow Performance
-- **Profile:** Use `st.write(st.experimental_get_query_params())` to check rerun frequency
+- **Profile:** Use `st.write(st.query_params)` to check rerun frequency (Streamlit 1.30+)
 - **Optimize:** Expensive operations with proper caching
 - **Consider:** Lazy loading for large datasets, sampling for development/testing
 

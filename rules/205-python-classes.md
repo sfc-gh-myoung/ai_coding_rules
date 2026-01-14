@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**LastUpdated:** 2026-01-06
 **Keywords:** Python classes, OOP, inheritance, dataclasses, @property, class design, encapsulation, composition, Protocol, ABC, type hints
 **TokenBudget:** ~3250
 **ContextTier:** Medium
@@ -34,8 +34,8 @@ Practical, modern guidelines for when and how to use classes in Python, emphasiz
 - **204-python-docs-comments.md** - Documentation standards
 
 **Related:**
-- **207-python-typing.md** - Type hints and type checking
-- **208-python-error-handling.md** - Exception handling patterns
+- **200-python-core.md** - Type hints and error handling patterns
+- **206-python-pytest.md** - Testing class-based code
 
 ### External Documentation
 

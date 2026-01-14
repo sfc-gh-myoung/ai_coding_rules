@@ -8,7 +8,7 @@ This skill automates the complete documentation review workflow:
 
 - Validates inputs (target files, date, mode, scope)
 - Discovers default documentation files if none specified
-- Executes review using `PROMPT.md` rubric (colocated in this skill folder)
+- Executes review using 6-dimension rubric optimized for user success
 - Verifies code references exist in the codebase
 - Validates internal links and flags external URLs
 - Checks compliance with project documentation rules (if present)
@@ -35,7 +35,7 @@ Use the doc-reviewer skill.
 
 review_date: 2025-12-16
 review_mode: FULL
-model: claude-sonnet45
+model: claude-sonnet-45
 ```
 
 **Review specific files:**
@@ -46,7 +46,7 @@ Use the doc-reviewer skill.
 target_files: [README.md, CONTRIBUTING.md]
 review_date: 2025-12-16
 review_mode: FULL
-model: claude-sonnet45
+model: claude-sonnet-45
 ```
 
 **Collection review (consolidated output):**
@@ -58,7 +58,7 @@ target_files: [README.md, CONTRIBUTING.md, docs/ARCHITECTURE.md]
 review_date: 2025-12-16
 review_mode: FULL
 review_scope: collection
-model: claude-sonnet45
+model: claude-sonnet-45
 ```
 
 ### Step 3: Verify Output
@@ -66,19 +66,60 @@ model: claude-sonnet45
 Check the generated review file:
 
 ```bash
-ls reviews/README-claude-sonnet45-2025-12-16.md
+ls reviews/README-claude-sonnet-45-2025-12-16.md
 # Or for collection:
-ls reviews/docs-collection-claude-sonnet45-2025-12-16.md
+ls reviews/docs-collection-claude-sonnet-45-2025-12-16.md
 ```
+
+## Execution Timing
+
+Enable execution timing to measure skill duration and track performance:
+
+```text
+Use the doc-reviewer skill.
+
+review_date: 2025-12-16
+review_mode: FULL
+model: claude-sonnet-45
+timing_enabled: true
+```
+
+When enabled, the output includes:
+- **Timing Metadata section** in the review file
+- **STDOUT summary** with duration, checkpoints, tokens, baseline comparison
+- **Real-time anomaly alerts** if duration is suspicious
+
+**Example timing metadata:**
+
+```markdown
+## Timing Metadata
+
+| Metric | Value |
+|--------|-------|
+| Run ID | `a1b2c3d4e5f67890` |
+| Duration | 2m 30s (150.5s) |
+| Model | claude-sonnet-45 |
+| Tokens | 12,300 (8,500 in / 3,800 out) |
+| Cost | ~$0.03 |
+```
+
+**See:** `skills/skill-timing/README.md` for full documentation on timing features, baseline comparison, and analysis tools.
 
 ## File Structure
 
 ```text
 skills/doc-reviewer/
 ├── SKILL.md               # Main skill instructions (Claude Code entrypoint)
-├── PROMPT.md              # Review rubric and output format template
 ├── README.md              # This file - usage documentation
-├── VALIDATION.md          # Skill self-validation procedures
+├── rubrics/               # Dimension-specific scoring criteria (progressive disclosure)
+│   ├── accuracy.md            # Codebase alignment verification
+│   ├── clarity.md             # User experience and readability
+│   ├── completeness.md        # Coverage and thoroughness
+│   ├── consistency.md         # Style and convention compliance
+│   ├── staleness.md           # Currency and link validation
+│   └── structure.md           # Organization and navigation
+├── testing/               # Testing and maintenance guides
+│   └── TESTING.md             # Skill health checks (for maintainers)
 ├── examples/              # Review mode examples
 │   ├── full-review.md         # FULL mode walkthrough
 │   ├── focused-review.md      # FOCUSED mode walkthrough
@@ -188,11 +229,11 @@ On success:
 ```text
 ✓ Review complete
 
-OUTPUT_FILE: reviews/README-claude-sonnet45-2025-12-16.md
+OUTPUT_FILE: reviews/README-claude-sonnet-45-2025-12-16.md
 Target: README.md
 Mode: FULL
 Scope: single
-Model: claude-sonnet45
+Model: claude-sonnet-45
 
 Summary:
 - Accuracy: 20/25
@@ -221,7 +262,7 @@ This skill is **deployable** (included when running `task deploy`). After deploy
 
 See `workflows/error-handling.md` for common issues and resolutions.
 
-## Validation
+## Testing
 
-See `VALIDATION.md` for skill health checks and regression testing.
+See `testing/TESTING.md` for skill health checks and regression testing (for skill maintainers).
 

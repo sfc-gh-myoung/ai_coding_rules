@@ -38,10 +38,10 @@ python scripts/schema_validator.py rules/422-daisyui-core.md
 EXIT_CODE=$?
 
 if [ $EXIT_CODE -eq 0 ]; then
-  echo "✓ Validation PASSED - proceed to Phase 5"
+  echo " Validation PASSED - proceed to Phase 5"
   exit 0
 else
-  echo "✗ Validation FAILED - analyzing errors..."
+  echo " Validation FAILED - analyzing errors..."
   # Continue to error analysis
 fi
 ```
@@ -59,12 +59,12 @@ VALIDATION REPORT: rules/422-daisyui-core.md
 ================================================================================
 
 SUMMARY:
-  ❌ CRITICAL: 2
-  ⚠️  HIGH: 1
+   CRITICAL: 2
+    HIGH: 1
   ℹ️  MEDIUM: 0
-  ✓ Passed: 445 checks
+   Passed: 445 checks
 
-❌ CRITICAL ISSUES (2):
+ CRITICAL ISSUES (2):
 ────────────────────────────────────────────────────────────────────────────────
 [Metadata] Keywords count: 8 (expected 10-15)
   Line: 5
@@ -74,13 +74,13 @@ SUMMARY:
   Line: 78
   Fix: Add <validation> tag in Contract section
 
-⚠️  HIGH ISSUES (1):
+  HIGH ISSUES (1):
 ────────────────────────────────────────────────────────────────────────────────
 [Structure] Section order: Contract should appear before Key Principles
   Fix: Reorder sections per schema
 
 ================================================================================
-RESULT: ❌ FAILED
+RESULT:  FAILED
 ================================================================================
 ```
 
@@ -122,12 +122,12 @@ RESULT: ❌ FAILED
 **Fix:**
 ```markdown
 # Wrong formats
-**TokenBudget:** 1200         ❌ Missing tilde
-**TokenBudget:** small        ❌ Text label forbidden
-**TokenBudget:** ~medium      ❌ Text with tilde still wrong
+**TokenBudget:** 1200          Missing tilde
+**TokenBudget:** small         Text label forbidden
+**TokenBudget:** ~medium       Text with tilde still wrong
 
 # Correct format
-**TokenBudget:** ~1200        ✓ Tilde + number
+**TokenBudget:** ~1200         Tilde + number
 ```
 
 ---
@@ -308,11 +308,11 @@ while iteration <= max_iterations:
     result = validate_file()
     
     if result.exit_code == 0:
-        print(f"✓ Validation passed on iteration {iteration}")
+        print(f" Validation passed on iteration {iteration}")
         break
     
     if iteration == max_iterations:
-        print(f"✗ Still failing after {max_iterations} iterations")
+        print(f" Still failing after {max_iterations} iterations")
         print("Manual intervention required")
         break
     
@@ -370,22 +370,22 @@ while iteration <= max_iterations:
 $ python scripts/schema_validator.py rules/422-daisyui-core.md
 
 SUMMARY:
-  ❌ CRITICAL: 2
-  ⚠️  HIGH: 0
+   CRITICAL: 2
+    HIGH: 0
   ℹ️  MEDIUM: 0
 
-❌ CRITICAL ISSUES (2):
+ CRITICAL ISSUES (2):
 [Metadata] Keywords count: 9 (expected 10-15)
   Fix: Add 1 more keyword
 
 [Metadata] TokenBudget format invalid
   Fix: Change "1200" to "~1200"
 
-RESULT: ❌ FAILED (exit code 1)
+RESULT:  FAILED (exit code 1)
 
 Fixing errors...
-  ✓ Added keyword "design-patterns" (now 10 keywords)
-  ✓ Changed TokenBudget to ~1200
+   Added keyword "design-patterns" (now 10 keywords)
+   Changed TokenBudget to ~1200
 
 Re-validating...
 ```
@@ -395,18 +395,18 @@ Re-validating...
 $ python scripts/schema_validator.py rules/422-daisyui-core.md
 
 SUMMARY:
-  ❌ CRITICAL: 0
-  ⚠️  HIGH: 0
+   CRITICAL: 0
+    HIGH: 0
   ℹ️  MEDIUM: 1
-  ✓ Passed: 458 checks
+   Passed: 458 checks
 
 ℹ️  MEDIUM ISSUES (1):
 [Anti-Patterns] Could include more code examples
 
-RESULT: ⚠️  WARNINGS ONLY (exit code 0)
+RESULT:   WARNINGS ONLY (exit code 0)
 
-✓ Validation PASSED - 0 CRITICAL errors
-✓ Ready for Phase 5: Indexing
+ Validation PASSED - 0 CRITICAL errors
+ Ready for Phase 5: Indexing
 ```
 
 ## Using Verbose Mode for Debugging
@@ -506,11 +506,11 @@ grep -i "placeholder\|\[.*\]" rules/422-daisyui-core.md
 ## Success Criteria
 
 Validation complete when:
-- ✅ `schema_validator.py` returns exit code 0
-- ✅ 0 CRITICAL errors
-- ✅ 0 HIGH errors (or documented exceptions)
-- ✅ MEDIUM warnings acceptable
-- ✅ Iterations ≤ 3
+-  `schema_validator.py` returns exit code 0
+-  0 CRITICAL errors
+-  0 HIGH errors (or documented exceptions)
+-  MEDIUM warnings acceptable
+-  Iterations ≤ 3
 
 ## Next Phase
 

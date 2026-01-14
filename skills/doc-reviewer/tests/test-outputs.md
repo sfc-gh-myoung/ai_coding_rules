@@ -13,7 +13,7 @@ model: claude-sonnet45
 
 **Expected:**
 
-- [ ] File created: `reviews/README-claude-sonnet45-2025-12-16.md`
+- [ ] File created: `reviews/doc-reviews/README-claude-sonnet45-2025-12-16.md`
 - [ ] File contains complete review
 - [ ] Confirmation message printed (not full content)
 
@@ -32,7 +32,7 @@ model: claude-sonnet45
 
 **Expected:**
 
-- [ ] File created: `reviews/ARCHITECTURE-claude-sonnet45-2025-12-16.md`
+- [ ] File created: `reviews/doc-reviews/ARCHITECTURE-claude-sonnet45-2025-12-16.md`
 - [ ] Uses base filename only (not full path)
 - [ ] File contains complete review
 
@@ -44,7 +44,7 @@ model: claude-sonnet45
 
 ```bash
 # Create existing file
-touch reviews/README-claude-sonnet45-2025-12-16.md
+touch reviews/doc-reviews/README-claude-sonnet45-2025-12-16.md
 ```
 
 **Inputs:**
@@ -59,7 +59,7 @@ model: claude-sonnet45
 **Expected:**
 
 - [ ] Original file unchanged
-- [ ] New file created: `reviews/README-claude-sonnet45-2025-12-16-01.md`
+- [ ] New file created: `reviews/doc-reviews/README-claude-sonnet45-2025-12-16-01.md`
 - [ ] Confirmation shows actual filename used
 
 ---
@@ -70,9 +70,9 @@ model: claude-sonnet45
 
 ```bash
 # Create existing files
-touch reviews/README-claude-sonnet45-2025-12-16.md
-touch reviews/README-claude-sonnet45-2025-12-16-01.md
-touch reviews/README-claude-sonnet45-2025-12-16-02.md
+touch reviews/doc-reviews/README-claude-sonnet45-2025-12-16.md
+touch reviews/doc-reviews/README-claude-sonnet45-2025-12-16-01.md
+touch reviews/doc-reviews/README-claude-sonnet45-2025-12-16-02.md
 ```
 
 **Inputs:**
@@ -87,7 +87,7 @@ model: claude-sonnet45
 **Expected:**
 
 - [ ] All existing files unchanged
-- [ ] New file created: `reviews/README-claude-sonnet45-2025-12-16-03.md`
+- [ ] New file created: `reviews/doc-reviews/README-claude-sonnet45-2025-12-16-03.md`
 
 ---
 
@@ -105,7 +105,7 @@ model: claude-sonnet45
 
 **Expected:**
 
-- [ ] Single file created: `reviews/docs-collection-claude-sonnet45-2025-12-16.md`
+- [ ] Single file created: `reviews/summaries/_docs-collection-claude-sonnet45-2025-12-16.md`
 - [ ] File contains consolidated review
 
 ---
@@ -124,7 +124,7 @@ model: Claude Sonnet 4.5
 **Expected:**
 
 - [ ] Model normalized to: `claude-sonnet-45`
-- [ ] File created: `reviews/README-claude-sonnet-45-2025-12-16.md`
+- [ ] File created: `reviews/doc-reviews/README-claude-sonnet-45-2025-12-16.md`
 
 ---
 
@@ -168,9 +168,9 @@ model: claude-sonnet45
 **Expected Format:**
 
 ```
-⚠️ Review completed but file write failed.
+ Review completed but file write failed.
 
-OUTPUT_FILE: reviews/README-claude-sonnet45-2025-12-16.md
+OUTPUT_FILE: reviews/doc-reviews/README-claude-sonnet45-2025-12-16.md
 
 --- BEGIN REVIEW CONTENT ---
 [Full review markdown]
@@ -178,7 +178,7 @@ OUTPUT_FILE: reviews/README-claude-sonnet45-2025-12-16.md
 
 To save manually:
 1. Copy content between markers above
-2. Create file: touch reviews/README-claude-sonnet45-2025-12-16.md
+2. Create file: touch reviews/doc-reviews/README-claude-sonnet45-2025-12-16.md
 3. Paste content into file
 ```
 
@@ -198,9 +198,9 @@ model: claude-sonnet45
 **Expected Confirmation:**
 
 ```
-✓ Review complete
+ Review complete
 
-OUTPUT_FILE: reviews/README-claude-sonnet45-2025-12-16.md
+OUTPUT_FILE: reviews/doc-reviews/README-claude-sonnet45-2025-12-16.md
 Target: README.md
 Mode: FULL
 Scope: single
@@ -233,9 +233,9 @@ model: claude-sonnet45
 **Expected:**
 
 - [ ] Three files created:
-  - `reviews/README-claude-sonnet45-2025-12-16.md`
-  - `reviews/CONTRIBUTING-claude-sonnet45-2025-12-16.md`
-  - `reviews/ARCHITECTURE-claude-sonnet45-2025-12-16.md`
+  - `reviews/doc-reviews/README-claude-sonnet45-2025-12-16.md`
+  - `reviews/doc-reviews/CONTRIBUTING-claude-sonnet45-2025-12-16.md`
+  - `reviews/doc-reviews/ARCHITECTURE-claude-sonnet45-2025-12-16.md`
 - [ ] Each file contains complete review for that document
 - [ ] Confirmation lists all output files
 

@@ -8,41 +8,33 @@ Handle errors gracefully and provide actionable recovery guidance.
 
 ### 1. Input Validation Errors
 
-| Error | Cause | Recovery |
-|-------|-------|----------|
-| `Invalid review_mode` | Mode not FULL/COMPARISON/META-REVIEW | Correct mode spelling |
-| `Invalid date format` | Date not YYYY-MM-DD | Use correct format |
-| `File not found` | Target file doesn't exist | Verify path |
-| `Not a markdown file` | File doesn't end with .md | Use markdown file |
-| `Insufficient files for mode` | COMPARISON/META-REVIEW needs 2+ files | Add more files |
+- **`Invalid review_mode`** - Cause: Mode not FULL/COMPARISON/META-REVIEW, Recovery: Correct mode spelling
+- **`Invalid date format`** - Cause: Date not YYYY-MM-DD, Recovery: Use correct format
+- **`File not found`** - Cause: Target file doesn't exist, Recovery: Verify path
+- **`Not a markdown file`** - Cause: File doesn't end with .md, Recovery: Use markdown file
+- **`Insufficient files for mode`** - Cause: COMPARISON/META-REVIEW needs 2+ files, Recovery: Add more files
 
 ### 2. Content Errors
 
-| Error | Cause | Recovery |
-|-------|-------|----------|
-| `Cannot parse plan structure` | Malformed markdown | Fix plan formatting |
-| `Empty plan file` | File has no content | Add plan content |
-| `Review file missing scores table` | META-REVIEW target isn't a review | Use actual review files |
+- **`Cannot parse plan structure`** - Cause: Malformed markdown, Recovery: Fix plan formatting
+- **`Empty plan file`** - Cause: File has no content, Recovery: Add plan content
+- **`Review file missing scores table`** - Cause: META-REVIEW target isn't a review, Recovery: Use actual review files
 
 ### 3. File System Errors
 
-| Error | Cause | Recovery |
-|-------|-------|----------|
-| `Cannot create reviews directory` | Permission issue | Check write permissions |
-| `Cannot write output file` | Disk full or permission issue | Free space or fix permissions |
-| `Path too long` | Generated filename exceeds OS limit | Use shorter model name |
+- **`Cannot create reviews directory`** - Cause: Permission issue, Recovery: Check write permissions for output_root
+- **`Cannot write output file`** - Cause: Disk full or permission issue, Recovery: Free space or fix permissions
+- **`Path too long`** - Cause: Generated filename exceeds OS limit, Recovery: Use shorter model name or output_root
 
 ### 4. Review Execution Errors
 
-| Error | Cause | Recovery |
-|-------|-------|----------|
-| `Cannot complete verification table` | Plan lacks required structure | Note limitation in review |
-| `Scoring Impact Rules conflict` | Edge case in rubric | Document and use judgment |
+- **`Cannot complete verification table`** - Cause: Plan lacks required structure, Recovery: Note limitation in review
+- **`Scoring Impact Rules conflict`** - Cause: Edge case in rubric, Recovery: Document and use judgment
 
 ## Error Response Format
 
 ```
-❌ Error: [error type]
+ Error: [error type]
 
 Problem: [specific issue]
 Location: [file/line if applicable]
@@ -55,11 +47,11 @@ If this error persists, see workflows/error-handling.md for detailed guidance.
 
 ### File Write Failure
 
-If unable to write to `reviews/`:
+If unable to write to `{output_root}plan-reviews/`:
 
 1. Output the intended path:
    ```
-   OUTPUT_FILE: reviews/plan-<name>-<model>-<date>.md
+   OUTPUT_FILE: {output_root}plan-reviews/plan-<name>-<model>-<date>.md
    ```
 
 2. Output full review content as markdown

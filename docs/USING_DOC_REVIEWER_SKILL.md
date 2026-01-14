@@ -1,18 +1,22 @@
 # Using the Doc Reviewer Skill
 
-The Doc Reviewer Skill automates comprehensive documentation reviews for your project. It evaluates `README.md`, `CONTRIBUTING.md`, and files in `docs/` against six quality dimensions.
+**Last Updated:** 2026-01-13
+
+The Doc Reviewer Skill automates comprehensive documentation reviews for your project. It evaluates `README.md`, `CONTRIBUTING.md`, and files in `docs/` against six quality dimensions using a 100-point scoring system.
 
 ## Background
 
-The doc-reviewer skill runs Agent-Centric Documentation Reviews using the rubric in `skills/doc-reviewer/PROMPT.md` and writes results to `reviews/`.
+The doc-reviewer skill runs Agent-Centric Documentation Reviews (reviews optimized for AI agent understanding) using the rubrics in `skills/doc-reviewer/rubrics/*.md` and writes results to `reviews/`.
 
 Key behaviors:
 
+- **100-point scoring system** using 0-10 raw scores with weighted dimensions: Formula `Raw (0-10) × (Weight / 2) = Points` (Accuracy 25, Completeness 25, Clarity 20, Structure 15, Staleness 10, Consistency 5)
 - Reviews documentation against 6 dimensions: Accuracy, Completeness, Clarity, Consistency, Staleness, Structure
 - Supports three review modes: FULL, FOCUSED, STALENESS
 - Computes `OUTPUT_FILE` as:
-  - Single scope: `reviews/<doc-name>-<model>-<YYYY-MM-DD>.md`
-  - Collection scope: `reviews/project-docs-<model>-<YYYY-MM-DD>.md`
+  - Single scope: `{output_root}doc-reviews/<doc-name>-<model>-<YYYY-MM-DD>.md`
+  - Collection scope: `{output_root}summaries/_docs-collection-<model>-<YYYY-MM-DD>.md`
+  - Default `output_root`: `reviews/`
 - **No-overwrite safety:** If file exists, uses suffix `-01.md`, `-02.md`, etc.
 - Verifies code references exist in the codebase
 - Validates internal links and flags external URLs for manual review
@@ -22,7 +26,7 @@ Key behaviors:
 ### 1. Load the skill
 
 ```text
-@skills/doc-reviewer/SKILL.md
+Load skills/doc-reviewer/SKILL.md
 ```
 
 ### 2. Request a review
@@ -33,9 +37,9 @@ Key behaviors:
 Use the doc-reviewer skill.
 
 target_files: README.md
-review_date: 2025-12-16
+review_date: 2026-01-06
 review_mode: FULL
-model: claude-sonnet45
+model: claude-sonnet-45
 review_scope: single
 ```
 
@@ -45,20 +49,47 @@ review_scope: single
 Use the doc-reviewer skill.
 
 target_files: README.md, CONTRIBUTING.md, docs/ARCHITECTURE.md
-review_date: 2025-12-16
+review_date: 2026-01-06
 review_mode: FULL
-model: claude-sonnet45
+model: claude-sonnet-45
 review_scope: collection
+```
+
+**With custom output directory:**
+
+```text
+Use the doc-reviewer skill.
+
+target_files: README.md
+review_date: 2026-01-06
+review_mode: FULL
+model: claude-sonnet-45
+output_root: quarterly-audit/
+```
+
+**With execution timing:**
+
+```text
+Use the doc-reviewer skill.
+
+target_files: README.md
+review_date: 2026-01-06
+review_mode: FULL
+model: claude-sonnet-45
+timing_enabled: true
 ```
 
 ### 3. Output location
 
-The skill writes reviews to the `reviews/` directory:
+The skill writes reviews to the output directory:
 
-- Single: `reviews/README-claude-sonnet45-2025-12-16.md`
-- Collection: `reviews/project-docs-claude-sonnet45-2025-12-16.md`
+- Default: `reviews/doc-reviews/README-claude-sonnet-45-2026-01-06.md`
+- Collection: `reviews/summaries/_docs-collection-claude-sonnet-45-2026-01-06.md`
+- With `output_root: quarterly-audit/`: `quarterly-audit/doc-reviews/README-...`
 
 If the file already exists, suffixes are appended: `-01.md`, `-02.md`, etc.
+
+When `timing_enabled: true`, the output includes a Timing Metadata section with duration, token usage, and cost estimation.
 
 ## Review Modes
 
@@ -104,14 +135,47 @@ review_mode: STALENESS
 
 ## Review Dimensions
 
-| Dimension | What It Checks |
-|-----------|----------------|
-| **Accuracy** | Code references exist, examples are executable, API docs match implementation |
-| **Completeness** | All essential topics covered, prerequisites documented, error paths explained |
-| **Clarity** | Language is accessible, jargon defined, formatting aids readability |
-| **Consistency** | Follows project style guide, terminology standardized, patterns uniform |
-| **Staleness** | Links valid, versions current, screenshots/examples up-to-date |
-| **Structure** | Logical organization, clear hierarchy, easy navigation |
+### Critical Dimensions (70 points)
+
+**Accuracy (25 points):**
+- Code references exist in codebase
+- Examples are executable
+- API docs match implementation
+
+**Completeness (25 points):**
+- All essential topics covered
+- Prerequisites documented
+- Error paths explained
+
+**Clarity (20 points):**
+- Language is accessible
+- Jargon defined
+- Formatting aids readability
+
+### Standard Dimensions (30 points)
+
+**Structure (15 points):**
+- Logical organization
+- Clear hierarchy
+- Easy navigation
+
+**Staleness (10 points):**
+- Links valid
+- Versions current
+- Screenshots/examples up-to-date
+
+**Consistency (5 points):**
+- Follows project style guide
+- Terminology standardized
+- Patterns uniform
+
+## Quality Verdicts
+
+**Score Ranges:**
+- **90-100 (EXCELLENT):** Documentation is publication-ready
+- **80-89 (GOOD):** Minor improvements recommended
+- **60-79 (NEEDS_WORK):** Significant gaps; major revision needed
+- **<60 (POOR):** Documentation requires substantial rework
 
 ## Mandatory Verification Tables
 
@@ -156,9 +220,9 @@ If these rules don't exist, the skill uses standard documentation templates as b
 Use the doc-reviewer skill.
 
 target_files: README.md, CONTRIBUTING.md
-review_date: 2025-12-16
+review_date: 2026-01-06
 review_mode: FULL
-model: claude-sonnet45
+model: claude-sonnet-45
 review_scope: single
 ```
 
@@ -169,9 +233,9 @@ Review each file individually to establish baseline quality.
 ```text
 Use the doc-reviewer skill.
 
-review_date: 2025-12-16
+review_date: 2026-01-06
 review_mode: STALENESS
-model: claude-sonnet45
+model: claude-sonnet-45
 review_scope: collection
 ```
 
@@ -183,10 +247,10 @@ Run staleness checks across all project documentation.
 Use the doc-reviewer skill.
 
 target_files: docs/ARCHITECTURE.md, docs/API.md
-review_date: 2025-12-16
+review_date: 2026-01-06
 review_mode: FOCUSED
 focus_dimensions: Accuracy
-model: claude-sonnet45
+model: claude-sonnet-45
 review_scope: single
 ```
 
@@ -200,7 +264,15 @@ Verify code references are still valid after major refactoring.
 
 ### Q: What should I pass for `model`?
 
-**A:** Prefer a slug like `claude-sonnet45`. If you provide a raw model name, the skill normalizes it to a slug before writing the file.
+**A:** Prefer a slug like `claude-sonnet-45`. If you provide a raw model name, the skill normalizes it to a slug before writing the file.
+
+### Q: Can I customize the output directory?
+
+**A:** Yes, use the `output_root` parameter:
+```text
+output_root: quarterly-audit/
+```
+This writes reviews to `quarterly-audit/doc-reviews/` instead of `reviews/doc-reviews/`. The skill auto-creates directories and normalizes trailing slashes. Relative paths including `../` are supported.
 
 ### Q: Can I review non-markdown files?
 
@@ -216,7 +288,7 @@ Verify code references are still valid after major refactoring.
 
 ### Q: Can I customize the review dimensions?
 
-**A:** In FOCUSED mode, you can specify which dimensions to evaluate. The rubric itself (`PROMPT.md`) can be customized for project-specific needs.
+**A:** In FOCUSED mode, you can specify which dimensions to evaluate. The rubric files in `skills/doc-reviewer/rubrics/` can be customized for project-specific needs.
 
 ### Q: How long does a FULL review take?
 
@@ -227,13 +299,13 @@ Verify code references are still valid after major refactoring.
 
 ### Q: Where does the rubric come from?
 
-**A:** The skill uses `skills/doc-reviewer/PROMPT.md` as the rubric and required output format.
+**A:** The skill uses rubric files in `skills/doc-reviewer/rubrics/` (accuracy.md, completeness.md, clarity.md, structure.md, staleness.md, consistency.md) as the rubric and required output format.
 
 ## Support
 
 For detailed documentation:
-- **Skill README:** `@skills/doc-reviewer/README.md`
-- **Workflow guides:** `@skills/doc-reviewer/workflows/*.md`
-- **Examples:** `@skills/doc-reviewer/examples/*.md`
-- **Validation tests:** `@skills/doc-reviewer/tests/*.md`
+- **Skill README:** `skills/doc-reviewer/README.md`
+- **Workflow guides:** `skills/doc-reviewer/workflows/*.md`
+- **Examples:** `skills/doc-reviewer/examples/*.md`
+- **Validation tests:** `skills/doc-reviewer/tests/*.md`
 

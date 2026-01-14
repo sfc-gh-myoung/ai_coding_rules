@@ -1,5 +1,9 @@
 # Workflow: Review Execution
 
+## Purpose
+
+Execute documentation review per specified mode using progressive rubric loading.
+
 ## Inputs
 
 - `resolved_targets`: list of file paths to review
@@ -12,164 +16,160 @@
 
 ## Steps
 
-### Step 1: Read Review Prompt
-
-Read `PROMPT.md` (colocated in this skill folder).
-
-### Step 2: Read Target Documentation
+### Step 1: Read Target Documentation
 
 For each file in `resolved_targets`:
-- Read file contents
+- Read file contents completely
 - Note file path and line count
 - Extract existing structure (headings, sections)
 
-### Step 3: Read Baseline Rules (if available)
+### Step 2: Read Baseline Rules (if available)
 
-If baseline rules exist, read them for comparison:
+If baseline rules exist, read for comparison:
 - `rules/801-project-readme.md` - README standards
 - `rules/802-project-contributing.md` - CONTRIBUTING standards
 
-### Step 4: Perform Cross-Reference Verification
+### Step 3: Score Dimensions (Progressive Loading)
 
-For each target file:
-1. Extract code references (file paths, commands, functions)
-2. Verify each reference exists in the codebase
-3. Build Cross-Reference Verification Table
+**FULL mode:** Score all 6 dimensions
+**FOCUSED mode:** Score only `focus_area` dimensions
+**STALENESS mode:** Score only Staleness dimension
 
-```python
-import re
-from pathlib import Path
+**For each dimension, read corresponding rubric and score:**
 
-def verify_references(content: str, doc_path: str) -> list[dict]:
-    """Extract and verify code references"""
-    results = []
-    lines = content.split('\n')
-    
-    for line_num, line in enumerate(lines, 1):
-        # File paths in backticks
-        file_refs = re.findall(r'`([^`]+\.(py|md|yml|yaml|json|sh|ts|js|go|toml))`', line)
-        for ref, ext in file_refs:
-            exists = Path(ref).exists()
-            results.append({
-                'reference': ref,
-                'type': 'file',
-                'location': f"{doc_path}:{line_num}",
-                'exists': exists
-            })
-        
-        # Directory paths
-        dir_refs = re.findall(r'`([a-zA-Z_][a-zA-Z0-9_/]*/)`', line)
-        for ref in dir_refs:
-            exists = Path(ref).exists()
-            results.append({
-                'reference': ref,
-                'type': 'directory',
-                'location': f"{doc_path}:{line_num}",
-                'exists': exists
-            })
-        
-        # Task commands
-        task_refs = re.findall(r'`(task\s+[a-z:_-]+)`', line)
-        for ref in task_refs:
-            # Check if task exists in Taskfile.yml
-            taskfile = Path('Taskfile.yml')
-            task_name = ref.replace('task ', '')
-            exists = taskfile.exists()  # Basic check
-            results.append({
-                'reference': ref,
-                'type': 'command',
-                'location': f"{doc_path}:{line_num}",
-                'exists': exists
-            })
-    
-    return results
+1. **Accuracy (25 points):**
+   - Read `../rubrics/accuracy.md`
+   - Verify file paths, commands, code examples
+   - Create Cross-Reference Verification Table
+   - Score using rubric criteria
+
+2. **Completeness (25 points):**
+   - Read `../rubrics/completeness.md`
+   - Check feature coverage, setup, troubleshooting
+   - Create Coverage Checklist
+   - Score using rubric criteria
+
+3. **Clarity (20 points):**
+   - Read `../rubrics/clarity.md`
+   - Perform New User Test
+   - Count unexplained jargon
+   - Score using rubric criteria
+
+4. **Structure (15 points):**
+   - Read `../rubrics/structure.md`
+   - Check information flow and heading hierarchy
+   - Verify navigation aids
+   - Score using rubric criteria
+
+5. **Staleness (10 points):**
+   - Read `../rubrics/staleness.md`
+   - Test external links (200/404/301 status)
+   - Check tool versions
+   - Create Link Validation Table
+   - Score using rubric criteria
+
+6. **Consistency (5 points):**
+   - Read `../rubrics/consistency.md`
+   - Check formatting, terminology, conventions
+   - Score using rubric criteria
+
+**Progressive disclosure:** Only read rubric files as needed for scoring.
+
+### Step 4: Calculate Total Score
+
+```
+Total = Accuracy + Completeness + Clarity + Structure + Staleness + Consistency
+Max = 100 points
 ```
 
-### Step 5: Perform Link Validation
+### Step 5: Apply Critical Dimension Overrides
 
-For each target file:
-1. Extract all links (internal, anchor, external)
-2. Verify internal links exist
-3. Verify anchor links point to valid headings
-4. Flag external URLs for manual check
-5. Build Link Validation Table
+Check critical dimensions (Accuracy, Completeness):
+- If Accuracy ≤2/5: Minimum verdict = NEEDS_IMPROVEMENT
+- If Completeness ≤2/5: Minimum verdict = NEEDS_IMPROVEMENT
+- If both ≤2/5: Verdict = POOR
 
-```python
-import re
-from pathlib import Path
+### Step 6: Determine Verdict
 
-def validate_links(content: str, doc_path: str) -> list[dict]:
-    """Extract and validate links"""
-    results = []
-    lines = content.split('\n')
-    
-    # Extract headings for anchor validation
-    headings = set()
-    for line in lines:
-        if line.startswith('#'):
-            # Convert heading to anchor format
-            heading_text = re.sub(r'^#+\s*', '', line)
-            anchor = heading_text.lower()
-            anchor = re.sub(r'[^a-z0-9\s-]', '', anchor)
-            anchor = re.sub(r'\s+', '-', anchor)
-            headings.add(f"#{anchor}")
-    
-    for line_num, line in enumerate(lines, 1):
-        # Markdown links [text](url)
-        links = re.findall(r'\[([^\]]+)\]\(([^)]+)\)', line)
-        for text, url in links:
-            if url.startswith('http'):
-                link_type = 'external'
-                status = 'manual_check'
-            elif url.startswith('#'):
-                link_type = 'anchor'
-                status = 'valid' if url in headings else 'broken'
-            else:
-                link_type = 'internal'
-                # Resolve relative path
-                doc_dir = Path(doc_path).parent
-                target = doc_dir / url
-                status = 'valid' if target.exists() else 'broken'
-            
-            results.append({
-                'url': url,
-                'text': text,
-                'type': link_type,
-                'location': f"{doc_path}:{line_num}",
-                'status': status
-            })
-    
-    return results
+- **90-100** - Verdict: EXCELLENT, Meaning: High-quality documentation
+- **80-89** - Verdict: GOOD, Meaning: Minor improvements needed
+- **60-79** - Verdict: NEEDS_IMPROVEMENT, Meaning: Significant updates required
+- **40-59** - Verdict: POOR, Meaning: Major revision needed
+- **<40** - Verdict: INADEQUATE, Meaning: Rewrite from scratch
+
+### Step 7: Generate Recommendations
+
+For each dimension with score <4/5:
+- List specific issues found
+- Reference line numbers
+- Provide concrete fixes
+- Prioritize by dimension weight
+
+**Format:**
+```markdown
+### [Dimension] (Score: X/Y)
+
+**Issues:**
+1. [Specific issue] (Line X)
+2. [Specific issue] (Lines X-Y)
+
+**Recommendations:**
+1. [Concrete fix with example]
+2. [Concrete fix with example]
 ```
 
-### Step 6: Perform Review
+### Step 8: Format Review Output
 
-Using the rubric from `PROMPT.md`:
-1. Score each dimension (1-5)
-2. Identify Critical, Should Fix, and Minor issues
-3. Generate specific recommendations with line numbers
-4. Complete Documentation Perspective Checklist
+Structure review file per review mode:
 
-**Review mode determines scope:**
-- `FULL`: All 6 dimensions, all tables
-- `FOCUSED`: Only specified `focus_area` dimension
-- `STALENESS`: Dimensions 5-6 (Staleness, Structure) + Link Validation
+**Single scope:** One review per documentation file
 
-### Step 7: Generate Review Output
+**Collection scope:** Consolidated review for all files
 
-Produce the final review Markdown content:
-- Scores table
-- Verification tables (Cross-Reference, Link Validation, Baseline Compliance)
-- Issues by severity
-- Specific recommendations
-- Documentation Perspective Checklist
+**Output sections:**
+1. Review metadata (date, model, mode, file(s))
+2. Executive summary
+3. Total score and verdict
+4. Dimension-by-dimension breakdown
+5. Verification tables (Cross-Reference, Link Validation, Coverage)
+6. Recommendations (prioritized)
+7. Conclusion
 
-**Scope determines output structure:**
-- `single`: One complete review per document
-- `collection`: Consolidated review with per-document sections
+## Mode-Specific Behavior
+
+### FULL Mode
+- Score all 6 dimensions
+- Complete verification tables
+- Comprehensive recommendations
+
+### FOCUSED Mode
+- Score only dimensions in `focus_area`
+- Targeted verification
+- Focused recommendations
+
+### STALENESS Mode
+- Score only Staleness dimension
+- Link validation only
+- Quick maintenance check
+
+## Error Handling
+
+**If target file missing:**
+- Error: "File not found: [path]"
+- Skip to next file
+
+**If link validation fails:**
+- Note in Staleness table
+- Continue review
+
+**If baseline rule missing:**
+- Warning: "Baseline rule not found"
+- Proceed without baseline comparison
+
+**If rubric file missing:**
+- Error: "Rubric not found: [path]"
+- Cannot score dimension
 
 ## Output
 
-- `review_markdown`: full Markdown review content (single file or collection)
-- `doc_name`: base name for output filename
-
+Returns populated review structure ready for file write.

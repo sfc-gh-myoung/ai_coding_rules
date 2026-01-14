@@ -22,7 +22,7 @@ model: claude-sonnet45
 **Expected output file:**
 
 ```
-reviews/README-claude-sonnet45-2025-12-16.md
+reviews/doc-reviews/README-claude-sonnet45-2025-12-16.md
 ```
 
 ---
@@ -75,9 +75,7 @@ model: claude-sonnet45
 ## Documentation Review: README.md (FOCUSED: Accuracy)
 
 ### Score
-| Criterion | Score | Notes |
-|-----------|-------|-------|
-| Accuracy | 4/5 | 3 outdated references found |
+- **Accuracy** - Score: 4/5, Notes: 3 outdated references found
 
 **Focus Area:** Accuracy - Codebase alignment verification
 
@@ -85,20 +83,18 @@ model: claude-sonnet45
 
 ### Cross-Reference Verification
 
-| Reference | Type | Location | Exists? | Notes |
-|-----------|------|----------|---------|-------|
-| `scripts/rule_deployer.py` | file | README:45 | ✅ | — |
-| `scripts/schema_validator.py` | file | README:52 | ✅ | — |
-| `scripts/template_generator.py` | file | README:58 | ✅ | — |
-| `scripts/old_generator.py` | file | README:112 | ❌ | Removed in v3.0 |
-| `task deploy` | command | README:78 | ✅ | — |
-| `task generate:rules` | command | README:85 | ❌ | Command renamed |
-| `task validate` | command | README:92 | ✅ | — |
-| `pyproject.toml` | file | README:134 | ✅ | — |
-| `Taskfile.yml` | file | README:140 | ✅ | — |
-| `rules/` | directory | README:156 | ✅ | — |
-| `docs/ARCHITECTURE.md` | file | README:178 | ✅ | — |
-| `config.yaml` | file | README:190 | ❌ | File never existed |
+- **`scripts/rule_deployer.py`** - Type: file, Location: README:45, Exists?: , Notes: —
+- **`scripts/schema_validator.py`** - Type: file, Location: README:52, Exists?: , Notes: —
+- **`scripts/template_generator.py`** - Type: file, Location: README:58, Exists?: , Notes: —
+- **`scripts/old_generator.py`** - Type: file, Location: README:112, Exists?: , Notes: Removed in v3.0
+- **`task deploy`** - Type: command, Location: README:78, Exists?: , Notes: —
+- **`task generate:rules`** - Type: command, Location: README:85, Exists?: , Notes: Command renamed
+- **`task validate`** - Type: command, Location: README:92, Exists?: , Notes: —
+- **`pyproject.toml`** - Type: file, Location: README:134, Exists?: , Notes: —
+- **`Taskfile.yml`** - Type: file, Location: README:140, Exists?: , Notes: —
+- **`rules/`** - Type: directory, Location: README:156, Exists?: , Notes: —
+- **`docs/ARCHITECTURE.md`** - Type: file, Location: README:178, Exists?: , Notes: —
+- **`config.yaml`** - Type: file, Location: README:190, Exists?: , Notes: File never existed
 
 **Summary:**
 - Total references: 12
@@ -136,9 +132,7 @@ model: claude-sonnet45
 ## Documentation Review: docs/ARCHITECTURE.md (FOCUSED: Clarity)
 
 ### Score
-| Criterion | Score | Notes |
-|-----------|-------|-------|
-| Clarity | 3/5 | Technical jargon, missing examples |
+- **Clarity** - Score: 3/5, Notes: Technical jargon, missing examples
 
 **Focus Area:** Clarity - User experience and readability
 
@@ -153,22 +147,18 @@ model: claude-sonnet45
 
 #### Jargon Audit
 
-| Term | Location | Defined? | Suggestion |
-|------|----------|----------|------------|
-| "progressive disclosure" | Line 45 | ❌ | Add brief definition |
-| "token budget" | Line 78 | ⚠️ | Definition exists but buried |
-| "ContextTier" | Line 112 | ✅ | Well explained |
-| "semantic discovery" | Line 156 | ❌ | Needs explanation |
-| "agent-agnostic" | Line 189 | ❌ | Clarify meaning |
+- **"progressive disclosure"** - Location: Line 45, Defined?: , Suggestion: Add brief definition
+- **"token budget"** - Location: Line 78, Defined?: , Suggestion: Definition exists but buried
+- **"ContextTier"** - Location: Line 112, Defined?: , Suggestion: Well explained
+- **"semantic discovery"** - Location: Line 156, Defined?: , Suggestion: Needs explanation
+- **"agent-agnostic"** - Location: Line 189, Defined?: , Suggestion: Clarify meaning
 
 #### Example Coverage
 
-| Section | Has Examples? | Quality |
-|---------|---------------|---------|
-| Rule Creation Flow | ✅ | Good - code + diagram |
-| Deployment System | ✅ | Good - command examples |
-| Schema Validation | ⚠️ | Partial - missing error examples |
-| Testing Infrastructure | ❌ | No examples |
+- **Rule Creation Flow** - Has Examples?: , Quality: Good - code + diagram
+- **Deployment System** - Has Examples?: , Quality: Good - command examples
+- **Schema Validation** - Has Examples?: , Quality: Partial - missing error examples
+- **Testing Infrastructure** - Has Examples?: , Quality: No examples
 
 ### Critical Issues (Must Fix)
 

@@ -26,12 +26,10 @@ From Phase 1:
 
 Select appropriate tier based on rule importance and usage frequency:
 
-| Tier | When to Use | Token Range | Examples |
-|------|-------------|-------------|----------|
-| **Critical** | Core framework, always loaded | <500 | 000-global-core |
-| **High** | Domain foundations, frequent | 500-1500 | 100-snowflake-core, 200-python-core |
-| **Medium** | Specific features, moderate | 1500-3000 | Most new technology rules |
-| **Low** | Specialized, rare | 3000-5000 | Advanced/reference docs |
+- ****Critical**** - When to Use: Core framework, always loaded, Token Range: <500, Examples: 000-global-core
+- ****High**** - When to Use: Domain foundations, frequent, Token Range: 500-1500, Examples: 100-snowflake-core, 200-python-core
+- ****Medium**** - When to Use: Specific features, moderate, Token Range: 1500-3000, Examples: Most new technology rules
+- ****Low**** - When to Use: Specialized, rare, Token Range: 3000-5000, Examples: Advanced/reference docs
 
 **Decision criteria:**
 - Is this a domain foundation? → High
@@ -49,11 +47,11 @@ Format: `NNN-technology-aspect`
 - aspect: usually "core" for foundational rules
 
 **Examples:**
-- ✓ `422-daisyui-core`
-- ✓ `231-python-msgspec`
-- ✓ `125-snowflake-hybrid-tables`
-- ✗ `42-DaisyUI-Core` (wrong: not 3 digits, wrong case)
-- ✗ `422_daisyui_core` (wrong: underscores)
+-  `422-daisyui-core`
+-  `231-python-msgspec`
+-  `125-snowflake-hybrid-tables`
+-  `42-DaisyUI-Core` (wrong: not 3 digits, wrong case)
+-  `422_daisyui_core` (wrong: underscores)
 
 ### Step 2.3: Execute template_generator.py
 
@@ -89,7 +87,7 @@ python scripts/template_generator.py 231-python-msgspec \
 
 **Expected output:**
 ```
-✅ Created rule template: rules/422-daisyui-core.md
+ Created rule template: rules/422-daisyui-core.md
 
 Next steps:
 1. Edit rules/422-daisyui-core.md and replace all placeholders with actual content
@@ -100,9 +98,9 @@ Next steps:
 **Check exit code:**
 ```bash
 if [ $? -eq 0 ]; then
-  echo "✓ Template created successfully"
+  echo " Template created successfully"
 else
-  echo "✗ Template creation failed - check error message"
+  echo " Template creation failed - check error message"
   # See error handling below
 fi
 ```
@@ -205,26 +203,26 @@ Read created file and confirm presence of:
 
 Verify all 9 required sections present:
 
-1. ✓ Purpose
-2. ✓ Rule Scope
-3. ✓ Quick Start TL;DR
-4. ✓ Contract
-5. ✓ Anti-Patterns and Common Mistakes
-6. ✓ Post-Execution Checklist
-7. ✓ Validation
-8. ✓ Output Format Examples
-9. ✓ References
+1.  Purpose
+2.  Rule Scope
+3.  Quick Start TL;DR
+4.  Contract
+5.  Anti-Patterns and Common Mistakes
+6.  Post-Execution Checklist
+7.  Validation
+8.  Output Format Examples
+9.  References
 
 ### Step 2.7: Verify Contract XML Tags
 
 Confirm all 6 tags present in Contract section:
 
-1. ✓ `<inputs_prereqs>...</inputs_prereqs>`
-2. ✓ `<mandatory>...</mandatory>`
-3. ✓ `<forbidden>...</forbidden>`
-4. ✓ `<steps>...</steps>`
-5. ✓ `<output_format>...</output_format>`
-6. ✓ `<validation>...</validation>`
+1.  `<inputs_prereqs>...</inputs_prereqs>`
+2.  `<mandatory>...</mandatory>`
+3.  `<forbidden>...</forbidden>`
+4.  `<steps>...</steps>`
+5.  `<output_format>...</output_format>`
+6.  `<validation>...</validation>`
 
 ### Step 2.8: Check Contract Placement
 
@@ -345,7 +343,7 @@ $ python scripts/template_generator.py 422-daisyui-core \
     --context-tier Medium \
     --output-dir rules/
 
-✅ Created rule template: rules/422-daisyui-core.md
+ Created rule template: rules/422-daisyui-core.md
 
 Next steps:
 1. Edit rules/422-daisyui-core.md and replace all placeholders
@@ -363,7 +361,7 @@ $ grep -n "^## " rules/422-daisyui-core.md
 9:## Purpose
 13:## Rule Scope
 17:## Quick Start TL;DR
-35:## Contract (line 35 < 160 ✓)
+35:## Contract (line 35 < 160 )
 65:## Anti-Patterns and Common Mistakes
 85:## Post-Execution Checklist
 95:## Validation
@@ -371,17 +369,17 @@ $ grep -n "^## " rules/422-daisyui-core.md
 120:## References
 
 $ grep -c "<inputs_prereqs>\|<mandatory>\|<forbidden>\|<steps>\|<output_format>\|<validation>" rules/422-daisyui-core.md
-6  # All 6 XML tags present ✓
+6  # All 6 XML tags present 
 ```
 
 **Output Summary:**
 ```
-✓ Template created: rules/422-daisyui-core.md
-✓ Size: 3.2KB (reasonable starting point)
-✓ Sections: 9/9 present
-✓ Contract XML tags: 6/6 present
-✓ Contract placement: Line 35 (before 160 ✓)
-✓ Ready for Phase 3: Content Population
+ Template created: rules/422-daisyui-core.md
+ Size: 3.2KB (reasonable starting point)
+ Sections: 9/9 present
+ Contract XML tags: 6/6 present
+ Contract placement: Line 35 (before 160 )
+ Ready for Phase 3: Content Population
 ```
 
 ## Next Phase

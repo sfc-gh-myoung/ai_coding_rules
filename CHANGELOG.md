@@ -5,7 +5,7 @@ All notable changes to the AI Coding Rules project will be documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [3.5.1] - 2026-01-13
 
 ### Added
 - **feat(skills):** add `output_root` parameter to all reviewer skills for customizable output directories
@@ -18,37 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated all workflows: input-validation, file-write, error-handling, summary-report
   - Updated examples with custom output directory usage
   - Updated docs/USING_*.md documentation with parameter details and FAQ entries
-
-### Changed
-- **refactor(rules):** apply bulk-rule-reviewer improvements to 4xx/5xx/6xx series
-  - Updated 420-javascript-core.md: Biome linting now required (was recommended)
-  - Updated 421-javascript-alpinejs-core.md: Clarified "lightweight" terminology
-  - Updated 430-typescript-core.md: ts-reset and branded types now required (was "consider")
-  - Updated 440-react-core.md: Added >50 lines threshold for custom hook complexity
-  - Updated 441-react-backend.md: Added <10 endpoints threshold for Flask use case
-  - Updated 500-frontend-htmx-core.md: Added network failure handling guidance, version notation
-  - Updated 501-frontend-browser-globals-collisions.md: Expanded reserved identifiers list, added scope threshold
-  - Updated 600-golang-core.md: Version bump for consistency
-
-- **refactor(rules):** apply bulk-rule-reviewer improvements to 8xx/9xx series
-  - Updated 800-project-changelog.md: Conventional Commits now required (was recommended)
-  - Updated 801-project-readme.md: Clarified conditional language ("For complex projects", "For AI projects")
-  - Updated 802-project-contributing.md: Condensed rule content guidelines
-  - Updated 803-project-git-workflow.md: Clarified AI attribution footer protocol with explicit default behavior
-  - Updated 820-taskfile-automation.md: Categorized help now required for 8+ tasks
-  - Updated 920-data-science-analytics.md: Added verification methods for success criteria
-  - Updated 930-data-governance-quality.md: Added concrete anti-patterns with code examples, drift monitoring thresholds
-  - Updated 940-business-analytics.md: Fixed malformed table syntax, clarified KPI terminology
-  - Updated 950-create-dbt-semantic-view.md: Added primary key verification commands, simplified checklist reference
-
-- **refactor(skills):** add silent processing mode to reviewer skills
-  - Added Progress Display Protocol to bulk-rule-reviewer SKILL.md
-  - Updated proactive-canary.md to execute canary checks silently (no console output)
-  - Updated review-execution.md with minimal output format (Starting/Complete only)
-  - Updated rule-reviewer SKILL.md workflow with SILENT markers on canary checks
-  - Canary checks now internal self-verification; evidence goes to review FILE, not console
-
-### Added
 - **feat(skills):** add comprehensive optimization drift prevention to reviewer skills
   - Added `workflows/proactive-canary.md` - Pre/post/mid-review self-test questions to detect optimization thinking before it produces bad output
   - Added `workflows/inter-rule-gate.md` - Mandatory re-grounding checkpoint every 5 rules during bulk reviews
@@ -57,40 +26,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated SKILL.md review loop with canary checks and gate integration
   - Updated rule-reviewer workflow with canary checkpoints
   - Root cause addressed: Context window management allows skill guidance to fade during long executions
-
-### Changed
-- **refactor(skills):** enhance bulk-rule-reviewer anti-shortcut verification
-  - Added evidence-based verification table with minimum requirements (≥15 line refs, ≥3 direct quotes)
-  - Added Zero-Recommendation Rule requiring justification with line-referenced search evidence
-  - Added "Rubber Stamp" Detection Pattern with correct vs incorrect examples
-  - Enhanced shortcut indicators: zero-line reviews, consecutive perfect scores, thin recommendations
-
-- **refactor(skills):** upgrade all reviewer skills from 5-level to 11-level scoring
-  - All rubrics now use 0-10 raw scores with formula: Raw (0-10) × (Weight / 2) = Points
-  - Maintains 100-point total and unchanged verdict thresholds (90/80/60/40)
-  - Provides finer granularity for scoring (11 levels vs 5 levels)
-  - **rule-reviewer:** Updated 6 rubrics to 11-level scoring
-  - **doc-reviewer:** Updated 6 rubrics to 11-level scoring
-  - **plan-reviewer:** Updated 8 rubrics to 11-level scoring
-  - Critical override thresholds updated from /5 to /10 scale (e.g., ≤2/5 → ≤4/10)
-
-### Added
 - **feat(skills):** add Cross-Agent Consistency dimension to rule-reviewer
   - New dimension measuring universal agent compatibility (5 points max)
   - Evaluates: agent-specific syntax, tool-specific branches, universal conditionals
   - Created `skills/rule-reviewer/rubrics/cross-agent-consistency.md` with 11 scoring levels
   - Token Efficiency weight reduced from 2 (10 pts) to 1 (5 pts) to accommodate new dimension
   - Total remains 100 points: 25+25+15+15+5+10+5 = 100
-
-### Fixed
-- **fix(rules):** correct 26 invalid rule file references across 19 files
-  - Fixed 002x series refs (002a-rule-creation-guide→002a-rule-creation, 002b-rule-optimization→002c-rule-optimization, etc.)
-  - Fixed Snowflake refs (113-task-scheduling→104-streams-tasks, 120-dynamic-tables→122-dynamic-tables)
-  - Fixed Python refs (207-python-typing→200-python-core, 800-project-changelog-rules→800-project-changelog)
-  - Updated example rules in 002a-rule-creation.md to use actual existing rules
-  - Removed hypothetical 601/602 golang refs from 600-golang-core.md
-
-### Added
 - **feat(skills):** add `overwrite` parameter and anti-shortcut verification to reviewer skills
   - Added `overwrite` parameter to rule-reviewer, bulk-rule-reviewer, doc-reviewer, plan-reviewer
   - When `overwrite: true`, replaces existing review files; when `false` (default), uses sequential numbering (-01, -02)
@@ -98,211 +39,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added `workflows/per-rule-verification.md` to bulk-rule-reviewer for per-rule verification
   - Verification requires: ≥15 line references, direct quotes with line numbers, rule-specific findings
   - Prevents shortcut-based reviews by requiring evidence that can only come from reading the actual file
-
-- **feat(rules):** split 002e-schema-validator-usage.md into core and advanced rules
-  - Created 002f-schema-validator-advanced.md for CI/CD integration and automation workflows
-  - Reduced 002e from ~8150 to ~2250 tokens (72% reduction)
-  - Renamed 002f-agent-optimization.md → 002g-agent-optimization.md
-  - Renamed 002g-claude-code-skills.md → 002h-claude-code-skills.md
-
-- **feat(rules):** optimize foundation rules for token efficiency
-  - 003-context-engineering.md: Reduced ~500 tokens by removing redundant sections
-  - 004-tool-design-for-agents.md: Reduced ~400 tokens by consolidating patterns
-  - 002h-claude-code-skills.md: Major reduction by removing duplicate content
-
-- **feat(rules):** add 130-series Snowflake demo rules consolidation
-  - Created 130-snowflake-demo-sql.md for demo-specific SQL patterns (progress indicators, teardown, CREATE OR REPLACE)
-  - Renamed 900-demo-creation.md → 131-snowflake-demo-creation.md
-  - Renamed 901-data-generation-modeling.md → 132-snowflake-demo-modeling.md
-  - Demo rules now consolidated under Snowflake domain (100-199) for better discoverability
-
-- **feat(rules):** split 102-snowflake-sql-demo-engineering.md into general and demo-specific rules
-  - Created 102-snowflake-sql-core.md for general SQL patterns (file headers, COPY INTO, CREATE VIEW, qualified names)
-  - Demo-specific patterns moved to 130-snowflake-demo-sql.md
-  - Clearer separation between production SQL patterns and demo/educational patterns
-
-- **feat(rules):** add visualization sub-rules for Streamlit
-  - Added 101i-snowflake-streamlit-viz-plotly.md for Plotly Express and Graph Objects
-  - Added 101j-snowflake-streamlit-viz-pydeck.md for PyDeck 3D visualization
-  - Added 101k-snowflake-streamlit-viz-altair.md for Altair declarative charts
-
-- **feat(rules):** add Anti-Patterns sections to visualization rules
-  - Added Anti-Patterns to 101a, 101f, 101g, 101h, 101i, 101j, 101k
-  - All Anti-Patterns now follow Problem/Why It Fails/Correct Pattern structure
-
-- **docs(skills):** add scoring rubric documentation to USING_*.md files
-  - USING_DOC_REVIEWER_SKILL.md: Added 100-point scoring system with weighted dimensions
-  - USING_RULE_REVIEW_SKILL.md: Added Review Dimensions section with 6 rubric categories
-  - USING_BULK_RULE_REVIEWER_SKILL.md: Updated rule count from 113 to 121
-
+- **feat(skills):** implement shortcut prevention in bulk-rule-reviewer v2.0.0 and rule-reviewer v2.1.0
+  - Added "Why This Process Cannot Be Shortened" section to bulk-rule-reviewer (107 lines)
+  - Added Skills vs. Rules comparison table clarifying different optimization goals
+  - Added economic reality context: $1.80/year for comprehensive QA vs. $0.45-$0.90 debugging cost
+  - Refutes 5 common efficiency instincts with category error explanations
+  - Added measured performance data: 19 minutes for 113 rules (not 5-10 hours estimate)
+  - Added "Shortcut Detection and Prevention" section with 8 red flags and self-correction protocol
+  - Enhanced Stage 2 Review Execution with explicit anti-pattern warnings
+  - Added "Quality Over Efficiency Principle" section to rule-reviewer (93 lines)
+  - Explains why skills don't optimize for tokens (usage frequency makes efficiency irrelevant)
+  - Documents why each review step matters with time/value breakdown
+  - Created anti-shortcut-checklist.md workflow (174 lines) with pre/during/post-review checks
+  - Created shortcut-prevention.md example (245 lines) with 5 scenarios demonstrating correct behavior
+  - Total: 687 lines of shortcut prevention guidance
+  - Root cause addressed: Category confusion (agents apply rule token-efficiency principles to skill execution)
+  - Impact: Prevents efficiency-driven shortcuts that compromise review quality
 - **feat(skills):** add documentation currency check to rule-reviewer staleness dimension
   - Added `rubrics/staleness.md` documentation currency check section
   - Added `workflows/doc-currency-check.md` with detailed execution steps
   - Updated SKILL.md to v2.4.0 with error handling for currency checks
   - Uses web_fetch to detect deprecation warnings in linked documentation
-
-### Fixed
-- **fix(validator):** use CodeBlockTracker in _validate_anti_patterns for proper nested fence handling
-  - Replaced simple toggle logic with CodeBlockTracker class
-  - Fixes false positive when `## Example` appears inside 4-backtick code blocks
-
-- **fix(rules):** correct nested code block fencing in 002-rule-governance.md
-  - Changed outer fence from 3 to 5 backticks for nested fence demonstration examples
-  - Resolves schema_validator false positive for Anti-Patterns section
-
-- **fix(rules):** rename Anti-Patterns sections for schema compliance
-  - 101g-snowflake-streamlit-fragments.md: "Anti-Patterns and Corrections" → "Anti-Patterns and Common Mistakes"
-
-### Changed
-- **refactor(rules):** update 900-series to Analytics & Governance focus
-  - 900-series now contains: 920 (data science), 930 (data governance), 940 (business analytics), 950 (dbt semantic view)
-  - Demo creation rules moved to 130-series under Snowflake domain
-
-- **docs:** update rule counts and category descriptions across documentation
-  - README.md: Snowflake 49→58 rules, Project Management 6→5, Analytics & Governance 6→4
-  - CLAUDE.md: Updated rule counts and added 500-599 Frontend Core category
-  - docs/ARCHITECTURE.md: Updated 800-899 and 900-999 rule lists, added 130-series note
-
-- **chore(index):** regenerate RULES_INDEX.md with new 130-series and visualization rules
-
-- **docs(memory-bank):** add Table of Contents to docs/MEMORY_BANK.md
-  - Document exceeds 300-line threshold requiring TOC per structure rubric
-  - Added 15 anchor links for all major sections
-
-- **feat(validator):** implement H1 title validation in schema_validator
-  - Added `_find_h1_titles()` helper method with code block awareness
-  - Validates exactly one H1 title exists per rule file
-  - Reports clear error messages for missing or multiple H1 titles
-  - Integrates with existing structure validation in `_validate_structure()`
-
-- **docs(rules):** add CommonMark specification compliance requirements
-  - Added CommonMark spec reference to External Documentation in 7 rules
-  - New "CommonMark Compliance" section in 002-rule-governance.md with nested fence rules
-  - Added to Forbidden lists: "Non-compliant Markdown (must follow CommonMark spec)"
-  - Affected rules: 002, 002a, 002d, 002e, 800, 801, 802
-
-### Fixed
-- **fix(docs):** update TOKEN_BUDGETS.md CLI examples for positional path argument
-  - Changed all examples from `python scripts/token_validator.py --dry-run` to `python scripts/token_validator.py rules/ --dry-run`
-  - Updated --directory/-d option documentation to positional `path` argument
-  - Removed outdated version footer
-
-- **fix(rules):** update redirect URLs in rules/001-memory-bank.md
-  - `https://documentation.divio.com/` → `https://docs.divio.com/documentation-system/`
-  - `https://docs.cursor.com/` → `https://cursor.com/docs`
-  - `https://docs.cursor.com/en/context/rules` → `https://cursor.com/docs`
-
-- **fix(validator):** CodeBlockTracker now handles variable-length fences per CommonMark spec
-  - Updated regex from `(```|~~~)` to `(`{3,}|~{3,})` to match 3+ fence characters
-  - Added `fence_length` tracking to properly close nested code blocks
-  - Closing fence must match character type and be at least as long as opening fence
-  - Fixes false positive H1 detection inside nested markdown code blocks
-
-- **fix(rules):** correct nested markdown code block fencing in 6 rule files
-  - Changed outer fences from ` ``` ` to ` ```` ` for blocks containing code examples
-  - Affected files: 002d, 109a, 210b, 801, 802, 901
-  - Resolves "Multiple H1 titles" validation errors caused by `# comments` in nested blocks
-
-- **fix(tests):** update test expectations for UpdateConfig.update_threshold default
-  - Changed expected default from 30.0 to 5.0 in test_token_validator.py and test_update_token_budgets.py
-  - Aligns tests with actual default value in scripts/token_validator.py
-
-### Removed
-- **chore(tests):** remove obsolete boilerplate validation test
-  - Removed `test_validate_compliant_boilerplate` that referenced non-existent 002a-rule-boilerplate.md
-
-### Changed
-- **feat(rules):** add YAML semantic model support as viable alternative in semantic view rules
-  - rules/106-snowflake-semantic-views-core.md: Removed YAML prohibition from Forbidden section
-  - rules/106-snowflake-semantic-views-core.md: Added "Approach Selection" section documenting SQL (preferred) vs YAML (alternative) approaches
-  - rules/106c-snowflake-semantic-views-integration.md: Updated Design Principles to "Dual approach support"
-  - rules/106c-snowflake-semantic-views-integration.md: Updated checklist to document approach rationale
-  - YAML now recognized as valid for verified queries (VQR), CI/CD pipelines, and stage-based workflows
-
-- **chore(index):** regenerate RULES_INDEX.md with new Streamlit rules and expanded keywords
-  - Added entries for 101f (SPCS errors), 101g (fragments), 101h (timeseries)
-  - Expanded keywords for 101 core, 101b performance, 101e SQL errors
-
-- **chore(rules):** update token budgets for 6 Snowflake rules
-  - 101f-snowflake-streamlit-spcs-errors.md: ~1200 → ~1350
-  - 101g-snowflake-streamlit-fragments.md: ~2800 → ~2300
-  - 101h-snowflake-streamlit-timeseries.md: ~1600 → ~1400
-  - 115-snowflake-cortex-agents-core.md: ~8850 → ~9300
-  - 115b-snowflake-cortex-agents-operations.md: ~5600 → ~5950
-
-- **feat(agents):** add Task-Switch Detection and High-Risk Action Triggers to AGENTS.md
-  - Added "Task-Switch Detection (MANDATORY)" section to enforce rule re-evaluation on task changes
-  - Task switch examples: documentation to git commit, code editing to tests, planning to deployment
-  - On task switch: STOP, extract new keywords, search RULES_INDEX.md, load rules, update Rules Loaded
-  - Added "High-Risk Actions" list requiring mandatory rule lookup regardless of context
-  - High-risk actions: git commit/push, deploy, test, README, CHANGELOG, security
-  - Impact: Prevents agents from using stale rule context when user requests change task type
-
-- **fix(docs):** improve RULES_INDEX.md keyword search discoverability and ASCII compliance
-  - **AGENTS.md:** Made step 3 MANDATORY with explicit REQUIRED markers for keyword extraction and search
-  - **AGENTS.md:** Updated Response Validation Checklist to verify RULES_INDEX.md was searched
-  - **AGENTS.md:** Replaced all arrow characters (→) with colons for ASCII compliance
-  - **rules/000-global-core.md:** Added RULES_INDEX.md keyword search as first Investigation Required item
-  - **scripts/index_generator.py:** Replaced arrows with colons in loading strategy section
-  - **scripts/index_generator.py:** Added README keyword mapping to Section 3 activity rules
-  - **scripts/schema_validator.py:** Fixed bug where AGENTS.md was incorrectly validated as rule file
-  - **RULES_INDEX.md:** Regenerated with ASCII-compliant formatting and README keyword mapping
-  - Impact: Agents now have clearer guidance to search RULES_INDEX.md before each response
-
-- **docs(readme):** update README.md for accuracy against current project state
-  - Fixed rule counts in Rule Categories table (000-series: 7→12, 100-series: 39→49, etc.)
-  - Changed "JSON schemas" to "YAML schemas" in directory structure
-  - Fixed "Option D" reference to "Deployment Without Task"
-  - Added "Install Skills" section with instructions for Cursor, Claude Code, and Cortex Code CLI
-  - Updated prompts/README.md rule count from 84 to 114
-
-- **feat(agents):** add response format enforcement to AGENTS.md
-  - Added "Required Response Format (Example)" template after "FIRST ACTION EVERY RESPONSE"
-  - Added "Response Validation Checklist" section at end of file
-  - Visual example shows expected MODE + Rules Loaded structure
-  - Checklist provides 5 verification items for self-correction before responding
-  - Impact: Reinforces mandatory MODE/Rules Loaded protocol through pattern matching and validation
-
-- **feat(agents):** add Project Tool Discovery protocol to AGENTS.md
-  - Added "Project Tool Discovery" section for Taskfile/Makefile detection before running quality commands
-  - Added "Python Runtime Discovery" subsection for uv/uvx detection before Python commands
-  - Agents now check for `Taskfile.yml`, `Makefile`, `uv.lock` before defaulting to direct tool invocation
-  - Preference hierarchy: `task lint` > `ruff check .`, `uv run pytest` > `pytest`
-  - Impact: Reduces agent tendency to bypass project-defined conventions
-
-- **docs(rules):** add AI attribution footer guidance to 803-project-git-workflow (v3.1.0 → v3.2.0)
-  - Added "AI Attribution Footer" section under AI Agent Guidance Protocol
-  - Requirement: Agents must ask users whether to include Cortex Code footer before committing
-  - Lists user preference factors: project policy, commit visibility, personal preference
-
-- **fix(skills):** consolidate timing integration to prevent agent execution failures
-  - **Problem:** Agents (e.g., Cursor) failed to execute skill-timing when scattered across 5 optional steps (3, 4, 6, 7, 10)
-  - **Root cause:** Working memory loss of `_timing_run_id` across steps, no validation gate to catch missing timing
-  - **skill-timing** (v1.1.0): Added working memory contract requiring explicit tracking of `_timing_run_id`, `_timing_enabled`, `_timing_stdout`
-  - **doc-reviewer** (v2.1.0): Consolidated 5 `[OPTIONAL]` steps into single `[CONDITIONAL] Timing Instrumentation` block with inline quick reference
-  - **rule-reviewer** (v2.3.0): Same consolidation pattern with skill-specific command examples
-  - Added timing validation gate to error-handling.md for both skills (post-execution check with recovery path)
-  - Fixed type narrowing bug in skill_timing.py (added assertion after None check)
-  - Impact: Timing integration now has single conditional gate, explicit memory tracking, and validation to catch failures
-
-- **feat(agents):** add directory-based rule loading for `skills/` directory
-  - **AGENTS.md:** Added `skills/` → `002h-claude-code-skills.md` mapping (check BEFORE file extension)
-  - **scripts/index_generator.py:** Updated `generate_loading_strategy()` with directory-based rules section
-  - **RULES_INDEX.md:** Regenerated with new Section 2 structure (directory rules first, then file extensions)
-  - Added `skill` keyword to Section 3 activity rules for discoverability
-  - Impact: Agents now automatically load skill authoring rule when working on files in `skills/` directory
-
-- **refactor(skills):** apply agent-centric optimizations to all 6 skills per Priority 1 compliance
-  - **doc-reviewer** (v2.0.0 → v2.1.0): Added explicit error branch for missing focus_area, replaced subjective "polish" with "formatting/conventions", added 60% threshold formula, changed passive voice to imperative, defined safe command execution criteria
-  - **plan-reviewer** (v2.0.0 → v2.1.0): Added STOP/error branches for missing mode-specific inputs, aligned priority naming with 000-global-core.md (4-priority hierarchy), added 50% threshold count formula, fixed rule reference 002f→002g
-  - **skill-timing** (v1.0.0 → v1.1.0): Removed 5 forbidden horizontal rule separators (`---`), added explicit skip branch for failed timing-start, clarified review_mode default, added N/A behavior for omitted token inputs
-  - **rule-reviewer** (v2.2.0 → v2.3.0): Added STOP branches for byte size validation (<2000/>12000), removed human-centric time references, added max `-99.md` overflow error, converted code blocks to structured lists
-  - **bulk-rule-reviewer** (v2.1.0 → v2.2.0): Removed human-centric time references (7 occurrences), converted pseudo-code to imperative lists, converted economic data block to structured format, fixed rule reference 002f→002g
-  - **rule-creator** (v1.2.0 → v1.3.0): Added STOP branch after 3 failed validation iterations, added action for score <75, clarified ACT required for Phases 2-5, fixed rule reference 002d→002e
-  - Common patterns fixed across all skills: passive voice → imperative commands, missing conditional branches → explicit STOP/error handling, undefined thresholds → quantified values, code block visual formatting → structured lists, incorrect rule references corrected
-  - Impact: All skills now comply with Priority 1 (Agent Understanding and Execution Reliability) from 000-global-core.md
-
-### Added
+- **feat(rules):** split 002e-schema-validator-usage.md into core and advanced rules
+  - Created 002f-schema-validator-advanced.md for CI/CD integration and automation workflows
+  - Reduced 002e from ~8150 to ~2250 tokens (72% reduction)
+  - Renamed 002f-agent-optimization.md → 002g-agent-optimization.md
+  - Renamed 002g-claude-code-skills.md → 002h-claude-code-skills.md
+- **feat(rules):** optimize foundation rules for token efficiency
+  - 003-context-engineering.md: Reduced ~500 tokens by removing redundant sections
+  - 004-tool-design-for-agents.md: Reduced ~400 tokens by consolidating patterns
+  - 002h-claude-code-skills.md: Major reduction by removing duplicate content
+- **feat(rules):** add 130-series Snowflake demo rules consolidation
+  - Created 130-snowflake-demo-sql.md for demo-specific SQL patterns (progress indicators, teardown, CREATE OR REPLACE)
+  - Renamed 900-demo-creation.md → 131-snowflake-demo-creation.md
+  - Renamed 901-data-generation-modeling.md → 132-snowflake-demo-modeling.md
+  - Demo rules now consolidated under Snowflake domain (100-199) for better discoverability
+- **feat(rules):** split 102-snowflake-sql-demo-engineering.md into general and demo-specific rules
+  - Created 102-snowflake-sql-core.md for general SQL patterns (file headers, COPY INTO, CREATE VIEW, qualified names)
+  - Demo-specific patterns moved to 130-snowflake-demo-sql.md
+  - Clearer separation between production SQL patterns and demo/educational patterns
+- **feat(rules):** add visualization sub-rules for Streamlit
+  - Added 101i-snowflake-streamlit-viz-plotly.md for Plotly Express and Graph Objects
+  - Added 101j-snowflake-streamlit-viz-pydeck.md for PyDeck 3D visualization
+  - Added 101k-snowflake-streamlit-viz-altair.md for Altair declarative charts
+- **feat(rules):** add Anti-Patterns sections to visualization rules
+  - Added Anti-Patterns to 101a, 101f, 101g, 101h, 101i, 101j, 101k
+  - All Anti-Patterns now follow Problem/Why It Fails/Correct Pattern structure
 - **feat(governance):** refactor 002-series rules to eliminate duplication and improve organization
   - Created 002b-rule-update.md (v1.0.0) for update/maintenance workflows (~3500 tokens)
   - Moved Rule Versioning Policy from 002-rule-governance.md to 002b-rule-update.md
@@ -320,7 +102,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Impact: Eliminates duplication between governance and creation rules, provides dedicated update guidance, improves rule discovery
   - Total token savings: ~1600 tokens across refactored rules
   - Rationale: Previous structure had versioning policy only in governance, creation guide duplicated schema content, no dedicated update workflow
-
 - **feat(governance):** implement rule versioning policy (002-rule-governance v3.1.0, 002a-rule-creation-guide v3.1.0)
   - Added comprehensive "Rule Versioning Policy" section to 002-rule-governance.md (~100 lines)
   - Defines semantic versioning for rules: MAJOR (breaking), MINOR (additive), PATCH (fixes)
@@ -333,48 +114,66 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated keywords: added "versioning", "RuleVersion", "LastUpdated", "semantic versioning"
   - Impact: Closes governance gap - agents now have explicit guidance on when/how to version rules
   - Rationale: Previously no rule defined versioning semantics, causing inconsistent version management
-
-- **fix(rules):** correct version fields for 803-project-git-workflow (v3.0.0 → v3.1.0)
-  - Updated RuleVersion from v3.0.0 to v3.1.0 (MINOR - added keywords for discoverability)
-  - Updated LastUpdated from 2026-01-06 to 2026-01-07
-  - Applies new versioning policy retroactively to recent keyword expansion changes
-  - Impact: Rule 803 now properly versioned according to semantic versioning policy
-
-- **docs(skill-timing):** improve accuracy with prerequisites and clarifications
-  - Added Python 3.11+ and uv prerequisites before command examples
-  - Added note to verify pricing URLs before updating costs
-  - Clarified .timing-baselines.json is created on first `baseline set` command
-  - Added Notes column to Data Storage table for dynamic file context
-  - Addresses accuracy review recommendations for USING_SKILL_TIMING_SKILL.md
-  - Impact: Improves documentation accuracy from 80% to 100%
-
-- **docs(rules):** expand 803 keywords for commit message discoverability
-  - Added 8 commit-specific keywords: git commit, commit, commit message, staging, staged changes, conventional commit format
-  - Updated scope description to emphasize commit message formatting
-  - Added commit-related triggers to "When to Load This Rule" section
-  - Updated RULES_INDEX.md to match rule file changes
-  - Resolves issue where agents did not load rule 803 for git commit queries
-  - Impact: Rule 803 now discoverable for commit, staging, and Conventional Commits queries
-
-### Added (Previous)
-- **feat(skills):** implement shortcut prevention in bulk-rule-reviewer v2.0.0 and rule-reviewer v2.1.0
-  - Added "Why This Process Cannot Be Shortened" section to bulk-rule-reviewer (107 lines)
-  - Added Skills vs. Rules comparison table clarifying different optimization goals
-  - Added economic reality context: $1.80/year for comprehensive QA vs. $0.45-$0.90 debugging cost
-  - Refutes 5 common efficiency instincts with category error explanations
-  - Added measured performance data: 19 minutes for 113 rules (not 5-10 hours estimate)
-  - Added "Shortcut Detection and Prevention" section with 8 red flags and self-correction protocol
-  - Enhanced Stage 2 Review Execution with explicit anti-pattern warnings
-  - Added "Quality Over Efficiency Principle" section to rule-reviewer (93 lines)
-  - Explains why skills don't optimize for tokens (usage frequency makes efficiency irrelevant)
-  - Documents why each review step matters with time/value breakdown
-  - Created anti-shortcut-checklist.md workflow (174 lines) with pre/during/post-review checks
-  - Created shortcut-prevention.md example (245 lines) with 5 scenarios demonstrating correct behavior
-  - Total: 687 lines of shortcut prevention guidance
-  - Root cause addressed: Category confusion (agents apply rule token-efficiency principles to skill execution)
-  - Impact: Prevents efficiency-driven shortcuts that compromise review quality
+- **feat(deployment):** add skills-only deployment mode for agent configuration directories
+  - New `--only-skills` flag in rule_deployer.py for deploying skills without rules
+  - New `task deploy:only-skills DEST=<path>` command in Taskfile.yml
+  - Validates skills directory structure independently from rules validation
+  - Preserves directory structure: deploys to `DEST/skills/` with pyproject.toml exclusions
+  - Conflict detection prevents simultaneous use of `--only-skills` and `--skip-skills`
+  - Use cases: Claude Code (~/.claude/skills), Cortex Code (~/.snowflake/cortex/skills)
 
 ### Changed
+- **refactor(rules):** apply bulk-rule-reviewer improvements to 4xx/5xx/6xx series
+  - Updated 420-javascript-core.md: Biome linting now required (was recommended)
+  - Updated 421-javascript-alpinejs-core.md: Clarified "lightweight" terminology
+  - Updated 430-typescript-core.md: ts-reset and branded types now required (was "consider")
+  - Updated 440-react-core.md: Added >50 lines threshold for custom hook complexity
+  - Updated 441-react-backend.md: Added <10 endpoints threshold for Flask use case
+  - Updated 500-frontend-htmx-core.md: Added network failure handling guidance, version notation
+  - Updated 501-frontend-browser-globals-collisions.md: Expanded reserved identifiers list, added scope threshold
+  - Updated 600-golang-core.md: Version bump for consistency
+- **refactor(rules):** apply bulk-rule-reviewer improvements to 8xx/9xx series
+  - Updated 800-project-changelog.md: Conventional Commits now required (was recommended)
+  - Updated 801-project-readme.md: Clarified conditional language ("For complex projects", "For AI projects")
+  - Updated 802-project-contributing.md: Condensed rule content guidelines
+  - Updated 803-project-git-workflow.md: Clarified AI attribution footer protocol with explicit default behavior
+  - Updated 820-taskfile-automation.md: Categorized help now required for 8+ tasks
+  - Updated 920-data-science-analytics.md: Added verification methods for success criteria
+  - Updated 930-data-governance-quality.md: Added concrete anti-patterns with code examples, drift monitoring thresholds
+  - Updated 940-business-analytics.md: Fixed malformed table syntax, clarified KPI terminology
+  - Updated 950-create-dbt-semantic-view.md: Added primary key verification commands, simplified checklist reference
+- **refactor(skills):** add silent processing mode to reviewer skills
+  - Added Progress Display Protocol to bulk-rule-reviewer SKILL.md
+  - Updated proactive-canary.md to execute canary checks silently (no console output)
+  - Updated review-execution.md with minimal output format (Starting/Complete only)
+  - Updated rule-reviewer SKILL.md workflow with SILENT markers on canary checks
+  - Canary checks now internal self-verification; evidence goes to review FILE, not console
+- **refactor(skills):** enhance bulk-rule-reviewer anti-shortcut verification
+  - Added evidence-based verification table with minimum requirements (≥15 line refs, ≥3 direct quotes)
+  - Added Zero-Recommendation Rule requiring justification with line-referenced search evidence
+  - Added "Rubber Stamp" Detection Pattern with correct vs incorrect examples
+  - Enhanced shortcut indicators: zero-line reviews, consecutive perfect scores, thin recommendations
+- **refactor(skills):** upgrade all reviewer skills from 5-level to 11-level scoring
+  - All rubrics now use 0-10 raw scores with formula: Raw (0-10) × (Weight / 2) = Points
+  - Maintains 100-point total and unchanged verdict thresholds (90/80/60/40)
+  - Provides finer granularity for scoring (11 levels vs 5 levels)
+  - **rule-reviewer:** Updated 6 rubrics to 11-level scoring
+  - **doc-reviewer:** Updated 6 rubrics to 11-level scoring
+  - **plan-reviewer:** Updated 8 rubrics to 11-level scoring
+  - Critical override thresholds updated from /5 to /10 scale (e.g., ≤2/5 → ≤4/10)
+- **refactor(rules):** update 900-series to Analytics & Governance focus
+  - 900-series now contains: 920 (data science), 930 (data governance), 940 (business analytics), 950 (dbt semantic view)
+  - Demo creation rules moved to 130-series under Snowflake domain
+- **chore(index):** regenerate RULES_INDEX.md with new 130-series and visualization rules
+- **chore(index):** regenerate RULES_INDEX.md with new Streamlit rules and expanded keywords
+  - Added entries for 101f (SPCS errors), 101g (fragments), 101h (timeseries)
+  - Expanded keywords for 101 core, 101b performance, 101e SQL errors
+- **chore(rules):** update token budgets for 6 Snowflake rules
+  - 101f-snowflake-streamlit-spcs-errors.md: ~1200 → ~1350
+  - 101g-snowflake-streamlit-fragments.md: ~2800 → ~2300
+  - 101h-snowflake-streamlit-timeseries.md: ~1600 → ~1400
+  - 115-snowflake-cortex-agents-core.md: ~8850 → ~9300
+  - 115b-snowflake-cortex-agents-operations.md: ~5600 → ~5950
 - **chore(reviews):** complete bulk review of all 113 rules with claude-sonnet-45
   - Executed comprehensive FULL mode review (all 6 dimensions) on 2026-01-06
   - Average score: 98.97/100 (pre-update), 99.89/100 (post-update)
@@ -390,7 +189,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Batch updated 109 rules' LastUpdated fields to 2026-01-06
   - Post-update projection: ~109 rules elevated from 99/100 to 100/100
   - Repository status: Gold standard quality (99.89/100 average)
-
 - **chore(rules):** batch update LastUpdated fields to 2026-01-06
   - Updated 109 rules from LastUpdated: 2026-01-05 to 2026-01-06
   - Domains updated: Core (8), Snowflake (57), Python (23), Shell (6), Frontend (8), Golang (1), Project (4), Analytics (6)
@@ -400,50 +198,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Impact: Elevates overall scores from 98.97/100 to 99.89/100 average
   - Impact: ~96.5% of rules now achieve perfect 100/100 scores
   - Method: Automated sed replacement with verification
-
-### Fixed
-- **fix(skills):** correct skill composition pattern in bulk-rule-reviewer
-  - Fixed incorrect "skill invocation" paradigm in bulk-rule-reviewer/SKILL.md
-  - Skills cannot invoke other skills programmatically; they load and follow documented workflows
-  - Updated Critical Execution Protocol section to clarify: load rule-reviewer/SKILL.md → follow its workflow
-  - Removed misleading "Present this exact syntax to yourself" invocation pattern
-  - Updated workflows/review-execution.md to explain direct workflow execution pattern
-  - Updated README.md to remove "invocation" language throughout
-  - Root cause: Skills are documentation for guiding behavior, not callable subroutines
-  - Impact: Prevents future skills from attempting impossible programmatic invocation patterns
-
-### Documentation
-- **docs(skills):** add skill composition pattern to 002f-claude-code-skills.md
-  - New "Advanced Patterns" subsection: "Skill Composition Pattern (Orchestrator + Worker)"
-  - Documents how bulk/batch skills work: load worker SKILL.md → follow its workflow for each item
-  - Explains architecture: orchestrator handles batch logic, worker handles item processing
-  - Provides correct vs incorrect implementation examples
-  - Real-world example: bulk-rule-reviewer following rule-reviewer workflow
-  - Critical: Skills cannot "invoke" or "call" other skills; they follow documented processes
-  - ~1500 tokens added to clarify this non-obvious pattern
-
-### Added
-- **feat(deployment):** add skills-only deployment mode for agent configuration directories
-  - New `--only-skills` flag in rule_deployer.py for deploying skills without rules
-  - New `task deploy:only-skills DEST=<path>` command in Taskfile.yml
-  - Validates skills directory structure independently from rules validation
-  - Preserves directory structure: deploys to `DEST/skills/` with pyproject.toml exclusions
-  - Conflict detection prevents simultaneous use of `--only-skills` and `--skip-skills`
-  - Use cases: Claude Code (~/.claude/skills), Cortex Code (~/.snowflake/cortex/skills)
-
-### Documentation
-- **docs(skills):** ensure all USING_*_SKILL.md files are complete and accurate
-  - Created USING_BULK_RULE_REVIEWER_SKILL.md (internal-only skill documentation)
-  - Created USING_SKILL_TIMING_SKILL.md (deployable timing instrumentation guide)
-  - Updated USING_DOC_REVIEWER_SKILL.md with timing_enabled parameter and current examples
-  - Updated USING_PLAN_REVIEWER_SKILL.md with timing_enabled parameter and current examples
-  - Updated USING_RULE_CREATOR_SKILL.md with timing_enabled parameter examples
-  - Updated USING_RULE_REVIEW_SKILL.md with timing_enabled parameter and current examples
-  - All examples now use 2026-01-06 date format and claude-sonnet-45 model slug
-  - All docs clearly indicate deployment status (Internal vs Deployable)
-  - Full coverage: all 6 skills have corresponding USING_*_SKILL.md documentation
-
-### Changed
+- **feat(rules):** add YAML semantic model support as viable alternative in semantic view rules
+  - rules/106-snowflake-semantic-views-core.md: Removed YAML prohibition from Forbidden section
+  - rules/106-snowflake-semantic-views-core.md: Added "Approach Selection" section documenting SQL (preferred) vs YAML (alternative) approaches
+  - rules/106c-snowflake-semantic-views-integration.md: Updated Design Principles to "Dual approach support"
+  - rules/106c-snowflake-semantic-views-integration.md: Updated checklist to document approach rationale
+  - YAML now recognized as valid for verified queries (VQR), CI/CD pipelines, and stage-based workflows
+- **feat(agents):** add Task-Switch Detection and High-Risk Action Triggers to AGENTS.md
+  - Added "Task-Switch Detection (MANDATORY)" section to enforce rule re-evaluation on task changes
+  - Task switch examples: documentation to git commit, code editing to tests, planning to deployment
+  - On task switch: STOP, extract new keywords, search RULES_INDEX.md, load rules, update Rules Loaded
+  - Added "High-Risk Actions" list requiring mandatory rule lookup regardless of context
+  - High-risk actions: git commit/push, deploy, test, README, CHANGELOG, security
+  - Impact: Prevents agents from using stale rule context when user requests change task type
+- **feat(agents):** add response format enforcement to AGENTS.md
+  - Added "Required Response Format (Example)" template after "FIRST ACTION EVERY RESPONSE"
+  - Added "Response Validation Checklist" section at end of file
+  - Visual example shows expected MODE + Rules Loaded structure
+  - Checklist provides 5 verification items for self-correction before responding
+  - Impact: Reinforces mandatory MODE/Rules Loaded protocol through pattern matching and validation
+- **feat(agents):** add Project Tool Discovery protocol to AGENTS.md
+  - Added "Project Tool Discovery" section for Taskfile/Makefile detection before running quality commands
+  - Added "Python Runtime Discovery" subsection for uv/uvx detection before Python commands
+  - Agents now check for `Taskfile.yml`, `Makefile`, `uv.lock` before defaulting to direct tool invocation
+  - Preference hierarchy: `task lint` > `ruff check .`, `uv run pytest` > `pytest`
+  - Impact: Reduces agent tendency to bypass project-defined conventions
+- **feat(agents):** add directory-based rule loading for `skills/` directory
+  - **AGENTS.md:** Added `skills/` → `002h-claude-code-skills.md` mapping (check BEFORE file extension)
+  - **scripts/index_generator.py:** Updated `generate_loading_strategy()` with directory-based rules section
+  - **RULES_INDEX.md:** Regenerated with new Section 2 structure (directory rules first, then file extensions)
+  - Added `skill` keyword to Section 3 activity rules for discoverability
+  - Impact: Agents now automatically load skill authoring rule when working on files in `skills/` directory
+- **feat(validator):** implement H1 title validation in schema_validator
+  - Added `_find_h1_titles()` helper method with code block awareness
+  - Validates exactly one H1 title exists per rule file
+  - Reports clear error messages for missing or multiple H1 titles
+  - Integrates with existing structure validation in `_validate_structure()`
+- **refactor(skills):** apply agent-centric optimizations to all 6 skills per Priority 1 compliance
+  - **doc-reviewer** (v2.0.0 → v2.1.0): Added explicit error branch for missing focus_area, replaced subjective "polish" with "formatting/conventions", added 60% threshold formula, changed passive voice to imperative, defined safe command execution criteria
+  - **plan-reviewer** (v2.0.0 → v2.1.0): Added STOP/error branches for missing mode-specific inputs, aligned priority naming with 000-global-core.md (4-priority hierarchy), added 50% threshold count formula, fixed rule reference 002f→002g
+  - **skill-timing** (v1.0.0 → v1.1.0): Removed 5 forbidden horizontal rule separators (`---`), added explicit skip branch for failed timing-start, clarified review_mode default, added N/A behavior for omitted token inputs
+  - **rule-reviewer** (v2.2.0 → v2.3.0): Added STOP branches for byte size validation (<2000/>12000), removed human-centric time references, added max `-99.md` overflow error, converted code blocks to structured lists
+  - **bulk-rule-reviewer** (v2.1.0 → v2.2.0): Removed human-centric time references (7 occurrences), converted pseudo-code to imperative lists, converted economic data block to structured format, fixed rule reference 002f→002g
+  - **rule-creator** (v1.2.0 → v1.3.0): Added STOP branch after 3 failed validation iterations, added action for score <75, clarified ACT required for Phases 2-5, fixed rule reference 002d→002e
+  - Common patterns fixed across all skills: passive voice → imperative commands, missing conditional branches → explicit STOP/error handling, undefined thresholds → quantified values, code block visual formatting → structured lists, incorrect rule references corrected
+  - Impact: All skills now comply with Priority 1 (Agent Understanding and Execution Reliability) from 000-global-core.md
 - **refactor(docs,rules,scripts,skills):** tighten token budget variance threshold from ±15% to ±5%
   - Updated default threshold in scripts/token_validator.py (UpdateConfig.update_threshold and argparse default)
   - Updated validation criteria in rules/000-global-core.md (Priority 3 specification)
@@ -491,6 +290,139 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Update TokenBudget from ~5700 to ~5350 for accurate token accounting (-0.2% variance)
   - Review score improved from 95/100 to 99/100 (Actionability: 24/25→25/25, Completeness: 24/25→25/25, Consistency: 14/15→15/15, Token Efficiency: 8/10→9/10)
   - Token budget: 5338 tokens (-0.2% from declared ~5350, within ±15% threshold)
+
+### Fixed
+- **fix(rules):** correct 26 invalid rule file references across 19 files
+  - Fixed 002x series refs (002a-rule-creation-guide→002a-rule-creation, 002b-rule-optimization→002c-rule-optimization, etc.)
+  - Fixed Snowflake refs (113-task-scheduling→104-streams-tasks, 120-dynamic-tables→122-dynamic-tables)
+  - Fixed Python refs (207-python-typing→200-python-core, 800-project-changelog-rules→800-project-changelog)
+  - Updated example rules in 002a-rule-creation.md to use actual existing rules
+  - Removed hypothetical 601/602 golang refs from 600-golang-core.md
+- **fix(validator):** use CodeBlockTracker in _validate_anti_patterns for proper nested fence handling
+  - Replaced simple toggle logic with CodeBlockTracker class
+  - Fixes false positive when `## Example` appears inside 4-backtick code blocks
+- **fix(rules):** correct nested code block fencing in 002-rule-governance.md
+  - Changed outer fence from 3 to 5 backticks for nested fence demonstration examples
+  - Resolves schema_validator false positive for Anti-Patterns section
+- **fix(rules):** rename Anti-Patterns sections for schema compliance
+  - 101g-snowflake-streamlit-fragments.md: "Anti-Patterns and Corrections" → "Anti-Patterns and Common Mistakes"
+- **fix(docs):** update TOKEN_BUDGETS.md CLI examples for positional path argument
+  - Changed all examples from `python scripts/token_validator.py --dry-run` to `python scripts/token_validator.py rules/ --dry-run`
+  - Updated --directory/-d option documentation to positional `path` argument
+  - Removed outdated version footer
+- **fix(rules):** update redirect URLs in rules/001-memory-bank.md
+  - `https://documentation.divio.com/` → `https://docs.divio.com/documentation-system/`
+  - `https://docs.cursor.com/` → `https://cursor.com/docs`
+  - `https://docs.cursor.com/en/context/rules` → `https://cursor.com/docs`
+- **fix(validator):** CodeBlockTracker now handles variable-length fences per CommonMark spec
+  - Updated regex from `(```|~~~)` to `(`{3,}|~{3,})` to match 3+ fence characters
+  - Added `fence_length` tracking to properly close nested code blocks
+  - Closing fence must match character type and be at least as long as opening fence
+  - Fixes false positive H1 detection inside nested markdown code blocks
+- **fix(rules):** correct nested markdown code block fencing in 6 rule files
+  - Changed outer fences from ` ``` ` to ` ```` ` for blocks containing code examples
+  - Affected files: 002d, 109a, 210b, 801, 802, 901
+  - Resolves "Multiple H1 titles" validation errors caused by `# comments` in nested blocks
+- **fix(tests):** update test expectations for UpdateConfig.update_threshold default
+  - Changed expected default from 30.0 to 5.0 in test_token_validator.py and test_update_token_budgets.py
+  - Aligns tests with actual default value in scripts/token_validator.py
+- **fix(rules):** correct version fields for 803-project-git-workflow (v3.0.0 → v3.1.0)
+  - Updated RuleVersion from v3.0.0 to v3.1.0 (MINOR - added keywords for discoverability)
+  - Updated LastUpdated from 2026-01-06 to 2026-01-07
+  - Applies new versioning policy retroactively to recent keyword expansion changes
+  - Impact: Rule 803 now properly versioned according to semantic versioning policy
+- **fix(skills):** correct skill composition pattern in bulk-rule-reviewer
+  - Fixed incorrect "skill invocation" paradigm in bulk-rule-reviewer/SKILL.md
+  - Skills cannot invoke other skills programmatically; they load and follow documented workflows
+  - Updated Critical Execution Protocol section to clarify: load rule-reviewer/SKILL.md → follow its workflow
+  - Removed misleading "Present this exact syntax to yourself" invocation pattern
+  - Updated workflows/review-execution.md to explain direct workflow execution pattern
+  - Updated README.md to remove "invocation" language throughout
+  - Root cause: Skills are documentation for guiding behavior, not callable subroutines
+  - Impact: Prevents future skills from attempting impossible programmatic invocation patterns
+- **fix(docs):** improve RULES_INDEX.md keyword search discoverability and ASCII compliance
+  - **AGENTS.md:** Made step 3 MANDATORY with explicit REQUIRED markers for keyword extraction and search
+  - **AGENTS.md:** Updated Response Validation Checklist to verify RULES_INDEX.md was searched
+  - **AGENTS.md:** Replaced all arrow characters (→) with colons for ASCII compliance
+  - **rules/000-global-core.md:** Added RULES_INDEX.md keyword search as first Investigation Required item
+  - **scripts/index_generator.py:** Replaced arrows with colons in loading strategy section
+  - **scripts/index_generator.py:** Added README keyword mapping to Section 3 activity rules
+  - **scripts/schema_validator.py:** Fixed bug where AGENTS.md was incorrectly validated as rule file
+  - **RULES_INDEX.md:** Regenerated with ASCII-compliant formatting and README keyword mapping
+  - Impact: Agents now have clearer guidance to search RULES_INDEX.md before each response
+- **fix(skills):** consolidate timing integration to prevent agent execution failures
+  - **Problem:** Agents (e.g., Cursor) failed to execute skill-timing when scattered across 5 optional steps (3, 4, 6, 7, 10)
+  - **Root cause:** Working memory loss of `_timing_run_id` across steps, no validation gate to catch missing timing
+  - **skill-timing** (v1.1.0): Added working memory contract requiring explicit tracking of `_timing_run_id`, `_timing_enabled`, `_timing_stdout`
+  - **doc-reviewer** (v2.1.0): Consolidated 5 `[OPTIONAL]` steps into single `[CONDITIONAL] Timing Instrumentation` block with inline quick reference
+  - **rule-reviewer** (v2.3.0): Same consolidation pattern with skill-specific command examples
+  - Added timing validation gate to error-handling.md for both skills (post-execution check with recovery path)
+  - Fixed type narrowing bug in skill_timing.py (added assertion after None check)
+  - Impact: Timing integration now has single conditional gate, explicit memory tracking, and validation to catch failures
+
+### Removed
+- **chore(tests):** remove obsolete boilerplate validation test
+  - Removed `test_validate_compliant_boilerplate` that referenced non-existent 002a-rule-boilerplate.md
+
+### Documentation
+- **docs(skills):** add skill composition pattern to 002f-claude-code-skills.md
+  - New "Advanced Patterns" subsection: "Skill Composition Pattern (Orchestrator + Worker)"
+  - Documents how bulk/batch skills work: load worker SKILL.md → follow its workflow for each item
+  - Explains architecture: orchestrator handles batch logic, worker handles item processing
+  - Provides correct vs incorrect implementation examples
+  - Real-world example: bulk-rule-reviewer following rule-reviewer workflow
+  - Critical: Skills cannot "invoke" or "call" other skills; they follow documented processes
+  - ~1500 tokens added to clarify this non-obvious pattern
+- **docs(skills):** ensure all USING_*_SKILL.md files are complete and accurate
+  - Created USING_BULK_RULE_REVIEWER_SKILL.md (internal-only skill documentation)
+  - Created USING_SKILL_TIMING_SKILL.md (deployable timing instrumentation guide)
+  - Updated USING_DOC_REVIEWER_SKILL.md with timing_enabled parameter and current examples
+  - Updated USING_PLAN_REVIEWER_SKILL.md with timing_enabled parameter and current examples
+  - Updated USING_RULE_CREATOR_SKILL.md with timing_enabled parameter examples
+  - Updated USING_RULE_REVIEW_SKILL.md with timing_enabled parameter and current examples
+  - All examples now use 2026-01-06 date format and claude-sonnet-45 model slug
+  - All docs clearly indicate deployment status (Internal vs Deployable)
+  - Full coverage: all 6 skills have corresponding USING_*_SKILL.md documentation
+- **docs(skills):** add scoring rubric documentation to USING_*.md files
+  - USING_DOC_REVIEWER_SKILL.md: Added 100-point scoring system with weighted dimensions
+  - USING_RULE_REVIEW_SKILL.md: Added Review Dimensions section with 6 rubric categories
+  - USING_BULK_RULE_REVIEWER_SKILL.md: Updated rule count from 113 to 121
+- **docs:** update rule counts and category descriptions across documentation
+  - README.md: Snowflake 49→58 rules, Project Management 6→5, Analytics & Governance 6→4
+  - CLAUDE.md: Updated rule counts and added 500-599 Frontend Core category
+  - docs/ARCHITECTURE.md: Updated 800-899 and 900-999 rule lists, added 130-series note
+- **docs(memory-bank):** add Table of Contents to docs/MEMORY_BANK.md
+  - Document exceeds 300-line threshold requiring TOC per structure rubric
+  - Added 15 anchor links for all major sections
+- **docs(rules):** add CommonMark specification compliance requirements
+  - Added CommonMark spec reference to External Documentation in 7 rules
+  - New "CommonMark Compliance" section in 002-rule-governance.md with nested fence rules
+  - Added to Forbidden lists: "Non-compliant Markdown (must follow CommonMark spec)"
+  - Affected rules: 002, 002a, 002d, 002e, 800, 801, 802
+- **docs(readme):** update README.md for accuracy against current project state
+  - Fixed rule counts in Rule Categories table (000-series: 7→12, 100-series: 39→49, etc.)
+  - Changed "JSON schemas" to "YAML schemas" in directory structure
+  - Fixed "Option D" reference to "Deployment Without Task"
+  - Added "Install Skills" section with instructions for Cursor, Claude Code, and Cortex Code CLI
+  - Updated prompts/README.md rule count from 84 to 114
+- **docs(rules):** add AI attribution footer guidance to 803-project-git-workflow (v3.1.0 → v3.2.0)
+  - Added "AI Attribution Footer" section under AI Agent Guidance Protocol
+  - Requirement: Agents must ask users whether to include Cortex Code footer before committing
+  - Lists user preference factors: project policy, commit visibility, personal preference
+- **docs(skill-timing):** improve accuracy with prerequisites and clarifications
+  - Added Python 3.11+ and uv prerequisites before command examples
+  - Added note to verify pricing URLs before updating costs
+  - Clarified .timing-baselines.json is created on first `baseline set` command
+  - Added Notes column to Data Storage table for dynamic file context
+  - Addresses accuracy review recommendations for USING_SKILL_TIMING_SKILL.md
+  - Impact: Improves documentation accuracy from 80% to 100%
+- **docs(rules):** expand 803 keywords for commit message discoverability
+  - Added 8 commit-specific keywords: git commit, commit, commit message, staging, staged changes, conventional commit format
+  - Updated scope description to emphasize commit message formatting
+  - Added commit-related triggers to "When to Load This Rule" section
+  - Updated RULES_INDEX.md to match rule file changes
+  - Resolves issue where agents did not load rule 803 for git commit queries
+  - Impact: Rule 803 now discoverable for commit, staging, and Conventional Commits queries
 
 ## [3.5.0] - 2025-01-05
 

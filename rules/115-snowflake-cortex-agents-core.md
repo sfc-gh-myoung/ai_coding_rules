@@ -9,9 +9,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**LastUpdated:** 2026-01-12
 **Keywords:** multi-tool agents, planning instructions, testing, troubleshooting, semantic views, create agent, debug agent, agent not working, tool execution failed, agent error, fix agent, agent performance, agent tool integration, cortex agent configuration, UnboundedExecution
-**TokenBudget:** ~8400
+**TokenBudget:** ~9300
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md, 106-snowflake-semantic-views-core.md, 111-snowflake-observability-core.md
 
@@ -352,6 +352,9 @@ Before implementing Cortex Agents, verify your environment meets requirements:
 - [ ] Required permissions granted (USAGE, SELECT, EXECUTE)
 - [ ] Semantic views exist and are queryable (for Cortex Analyst tools)
 - [ ] Cortex Search services created and accessible (for Search tools)
+- [ ] **Warehouse explicitly specified** in all Cortex Analyst tool_resources
+- [ ] Warehouse has appropriate size for expected query workload
+- [ ] Warehouse usage grants configured for agent execution role
 - [ ] Test queries return expected results before agent integration
 - [ ] RBAC roles properly configured for agent execution
 
@@ -547,19 +550,48 @@ Tools should be:
 Tool Name: {analyst_tool_name}              # e.g., portfolio_analyzer, risk_analyzer
 Type: Cortex Analyst
 Semantic View: {DATABASE}.{SCHEMA}.{VIEW}   # e.g., ANALYTICS.AI.PORTFOLIO_VIEW
+Warehouse: {WAREHOUSE_NAME}                 # REQUIRED: Explicit warehouse for query execution
+Query Timeout: {seconds}                    # Optional: Query timeout in seconds (default: 120)
 Description: "Use this tool for {specific_analysis_type}. It can {capabilities_list}. Use for questions about {when_to_use_guidance}."
 
-# Example: Portfolio Analytics
+# Example: Portfolio Analytics (Complete Configuration)
 Tool Name: portfolio_analyzer
 Type: Cortex Analyst
 Semantic View: ANALYTICS.AI.PORTFOLIO_VIEW
+Warehouse: ANALYTICS_WH                     # Dedicated warehouse for cost tracking
+Query Timeout: 120                          # 2-minute timeout for complex queries
 Description: "Use this tool for quantitative portfolio analysis including holdings, exposures, sector breakdowns, performance metrics, and concentration calculations. It can calculate weights, generate lists of securities, perform aggregations, and create charts. Use for questions about numbers, percentages, rankings, comparisons, visualizations, and portfolio analytics."
 ```
 
 **Key Elements:**
 - **Tool Name:** Clear, descriptive, domain-focused
 - **Semantic View:** Fully qualified name with appropriate governance
+- **Warehouse:** MUST specify explicitly (see Anti-Pattern 4 for failures)
+- **Query Timeout:** Timeout in seconds to prevent runaway queries
 - **Description:** Three parts: purpose, capabilities, when-to-use
+
+**REST API Configuration with tool_resources:**
+
+```json
+{
+  "tools": [
+    {
+      "tool_spec": {
+        "type": "cortex_analyst_text_to_sql",
+        "name": "portfolio_analyzer",
+        "spec": {
+          "semantic_view_fqn": "ANALYTICS.AI.PORTFOLIO_VIEW",
+          "description": "Use this tool for quantitative portfolio analysis..."
+        }
+      },
+      "tool_resources": {
+        "warehouse": "ANALYTICS_WH",
+        "query_timeout": 120
+      }
+    }
+  ]
+}
+```
 
 ### Cortex Search Tool Configuration Pattern
 
@@ -730,6 +762,32 @@ Planning Instructions: |
      - First: Relevant analyst tool(s) for quantitative data
      - Second: Relevant search tool(s) for supporting documents
      - Third: Synthesize findings into coherent response
+```
+
+### Anti-Pattern 4: Missing Warehouse in Cortex Analyst Tool Configuration
+
+**Problem:** Cortex Analyst tool configured without `warehouse` in tool_resources. Agent relies on user's default warehouse.
+
+**Failures:**
+- Execution errors when users lack default warehouse
+- Service account access fails without warehouse defaults
+- Cost attribution impossible (mixed warehouse usage)
+- Unpredictable performance (varying warehouse sizes)
+- Silent failures when new users access production agents
+
+**Correct Pattern:**
+```yaml
+# BAD: No warehouse - relies on user default
+Tool Name: portfolio_analyzer
+Type: Cortex Analyst
+Semantic View: ANALYTICS.AI.PORTFOLIO_VIEW
+
+# GOOD: Explicit warehouse
+Tool Name: portfolio_analyzer
+Type: Cortex Analyst
+Semantic View: ANALYTICS.AI.PORTFOLIO_VIEW
+Warehouse: ANALYTICS_WH
+Query Timeout: 120
 ```
 
 ## Agent Configuration Templates

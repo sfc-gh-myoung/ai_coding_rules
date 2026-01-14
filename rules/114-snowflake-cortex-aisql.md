@@ -4,9 +4,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**LastUpdated:** 2026-01-12
 **Keywords:** Cortex AISQL, AI_COMPLETE, AI_CLASSIFY, AI_EXTRACT, AI_SENTIMENT, AI_SUMMARIZE, embeddings, LLM functions, batching, token costs, text generation, classification, sentiment analysis, summarization, AI function error
-**TokenBudget:** ~5500
+**TokenBudget:** ~4850
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md
 
@@ -56,7 +56,7 @@ Pragmatic, production-focused patterns for using Snowflake Cortex AISQL function
 - **105-snowflake-cost-governance.md** - Cost monitoring and optimization
 
 **Related:**
-- **102-snowflake-sql-demo-engineering.md** - SQL demo engineering patterns
+- **102-snowflake-sql-core.md** - General SQL file patterns
 - **106-snowflake-semantic-views-core.md** - Semantic views for Cortex Analyst
 - **111-snowflake-observability-core.md** - Observability and tracing
 - **112-snowflake-snowcli.md** - Snowflake CLI patterns

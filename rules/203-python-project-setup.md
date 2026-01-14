@@ -4,9 +4,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**LastUpdated:** 2026-01-06
 **Keywords:** Python packaging, project structure, setup.py, pyproject.toml, dependencies, package distribution, __init__.py, hatchling, uv, src layout
-**TokenBudget:** ~3150
+**TokenBudget:** ~3600
 **ContextTier:** High
 **Depends:** 200-python-core.md
 
@@ -34,7 +34,7 @@ Essential Python project setup and packaging guidance covering package structure
 **Related:**
 - **201-python-lint-format.md** - Code quality configuration in pyproject.toml
 - **204-python-docs-comments.md** - Documentation standards
-- **207-python-typing.md** - Type checking configuration
+- **206-python-pytest.md** - Type checking configuration
 
 ### External Documentation
 

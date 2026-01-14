@@ -6,13 +6,11 @@ Define deterministic fallback behavior when validation, review, or file writing 
 
 ## Error Categories
 
-| Category | Severity | Action |
-|----------|----------|--------|
-| Input validation failure | BLOCKING | Stop, report, request correction |
-| No documentation found | BLOCKING | Report, suggest creating docs |
-| Review generation failure | BLOCKING | Report step that failed, no partial output |
-| File write failure | RECOVERABLE | Print OUTPUT_FILE + full content |
-| Permission error | RECOVERABLE | Suggest alternative path or print content |
+- **Input validation failure** - Severity: BLOCKING, Action: Stop, report, request correction
+- **No documentation found** - Severity: BLOCKING, Action: Report, suggest creating docs
+- **Review generation failure** - Severity: BLOCKING, Action: Report step that failed, no partial output
+- **File write failure** - Severity: RECOVERABLE, Action: Print OUTPUT_FILE + full content
+- **Permission error** - Severity: RECOVERABLE, Action: Suggest alternative path or print content
 
 ## Input Validation Errors
 
@@ -179,26 +177,26 @@ Please specify a valid scope.
 
 ## Review Generation Errors
 
-### Error 7: Prompt File Not Found
+### Error 7: Skill File Not Found
 
 **Symptom:**
 
 ```
-Error: Could not read skills/doc-reviewer/PROMPT.md
+Error: Could not read skills/doc-reviewer/SKILL.md
 ```
 
 **Resolution:**
 
 ```
-Review generation failed: Prompt file not accessible.
+Review generation failed: Skill file not accessible.
 
-Missing: skills/doc-reviewer/PROMPT.md
+Missing: skills/doc-reviewer/SKILL.md
 
 Actions:
-1. Verify file exists: ls skills/doc-reviewer/PROMPT.md
+1. Verify file exists: ls skills/doc-reviewer/SKILL.md
 2. Check permissions: ls -la skills/doc-reviewer/
 3. If missing, restore from version control:
-   git checkout skills/doc-reviewer/PROMPT.md
+   git checkout skills/doc-reviewer/SKILL.md
 ```
 
 ---
@@ -271,7 +269,7 @@ Error: Permission denied writing to reviews/
 **Fallback behavior:**
 
 ```
-OUTPUT_FILE: reviews/README-claude-sonnet45-2025-12-16.md
+OUTPUT_FILE: {output_root}doc-reviews/README-claude-sonnet45-2025-12-16.md
 
 [Full Markdown review content follows...]
 
@@ -280,7 +278,7 @@ Note: File write failed due to permission error.
 Please manually save the above content to the indicated path.
 
 To fix permissions:
-  mkdir -p reviews && chmod 755 reviews
+  mkdir -p {output_root}doc-reviews && chmod 755 {output_root}doc-reviews
 ```
 
 ---
@@ -290,7 +288,7 @@ To fix permissions:
 **Symptom:**
 
 ```
-Error: Directory reviews/ does not exist
+Error: Directory {output_root} does not exist
 ```
 
 **Resolution:**
@@ -320,7 +318,7 @@ Print full content to chat with OUTPUT_FILE path for manual save.
 When file writing fails but review completed successfully:
 
 ```
-⚠️ Review completed but file write failed.
+ Review completed but file write failed.
 
 OUTPUT_FILE: reviews/<filename>.md
 
@@ -340,7 +338,7 @@ To save manually:
 When review generation fails:
 
 ```
-❌ Review generation failed at step: [step name]
+ Review generation failed at step: [step name]
 
 Error details:
 - [specific error message]
@@ -348,7 +346,7 @@ Error details:
 Recovery options:
 1. Fix input error and retry
 2. Use alternative review mode
-3. Manual review using skills/doc-reviewer/PROMPT.md rubric
+3. Manual review using skills/doc-reviewer/SKILL.md rubric
 
 No partial file was written.
 ```
@@ -358,7 +356,7 @@ No partial file was written.
 When input validation fails:
 
 ```
-❌ Input validation failed.
+ Input validation failed.
 
 Issues found:
 1. [Issue 1 with fix suggestion]
@@ -435,9 +433,9 @@ def validate_docs_review_inputs(
         if not defaults_found:
             errors.append("No documentation files found (specify target_files)")
     
-    # Check reviews directory
-    if not Path('reviews').exists():
-        errors.append("Directory 'reviews/' does not exist - will be created")
+    # Check output directory (default: reviews/doc-reviews)
+    if not Path('reviews/doc-reviews').exists():
+        errors.append("Directory 'reviews/doc-reviews/' does not exist - will be created")
     
     return errors
 
@@ -457,14 +455,53 @@ else:
 
 ## Error Frequency and Prevention
 
-| Error | Frequency | Prevention |
-|-------|-----------|------------|
-| No docs found | Medium | Check project structure first |
-| Invalid date | Medium | Use ISO 8601 consistently |
-| Invalid mode | Low | Copy from examples |
-| Missing focus_area | Medium | Remember FOCUSED requires it |
-| Write permission | Low | Check reviews/ exists and is writable |
-| Prompt missing | Rare | Keep skill files in version control |
+- **No docs found** - Frequency: Medium, Prevention: Check project structure first
+- **Invalid date** - Frequency: Medium, Prevention: Use ISO 8601 consistently
+- **Invalid mode** - Frequency: Low, Prevention: Copy from examples
+- **Missing focus_area** - Frequency: Medium, Prevention: Remember FOCUSED requires it
+- **Write permission** - Frequency: Low, Prevention: Check reviews/ exists and is writable
+- **Prompt missing** - Frequency: Rare, Prevention: Keep skill files in version control
+- **Timing not embedded** - Frequency: Medium, Prevention: Track `_timing_run_id` across all steps
+
+## Timing Validation (Post-Execution)
+
+**Execute IF:** `timing_enabled: true` was specified in inputs
+
+**Validation Check:**
+
+1. Verify timing metadata section exists in output file:
+   ```bash
+   grep -q "## Timing Metadata" {{output_file}}
+   ```
+
+2. **IF missing AND `_timing_run_id` was captured:**
+   - Attempt recovery: Re-run timing-end with stored run_id
+   - Append metadata now (ACT mode must be active)
+   - Log: "Timing metadata recovered and embedded"
+
+3. **IF missing AND no `_timing_run_id`:**
+   - WARN: "Timing was enabled but run_id not captured"
+   - Log which step likely failed (start vs. memory loss)
+   - Skill execution still succeeds (timing is non-fatal)
+
+4. **IF present:** Validation passes, no action needed
+
+**Error Message Template:**
+```
+⚠️ Timing validation warning:
+- timing_enabled: true (requested)
+- _timing_run_id: [value or 'not captured']
+- Timing metadata in output: [present/missing]
+- Recovery action: [attempted/skipped/succeeded]
+
+Note: Review file was written successfully. Timing is non-fatal.
+```
+
+**Common Causes of Missing Timing:**
+- Agent forgot `_timing_run_id` between steps (working memory loss)
+- timing-start failed silently (check for warning logs)
+- timing-end STDOUT not captured before file write
+- Metadata embed step skipped (wasn't in ACT mode)
 
 ## Escalation Path
 

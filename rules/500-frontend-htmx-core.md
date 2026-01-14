@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-13
 **Keywords:** htmx attributes, client-side, events, css transitions, debugging, browser compatibility, hx-get, hx-post, hx-swap, hx-trigger, hx-target
 **TokenBudget:** ~3600
 **ContextTier:** Low
@@ -48,14 +48,14 @@ Provides a standalone frontend reference for HTMX attributes, client-side events
 
 ### Inputs and Prerequisites
 
-- HTMX library loaded (1.9.x or higher)
+- HTMX library loaded (1.9.x+)
 - Basic HTML/CSS knowledge
 - Understanding of HTTP methods
 - Browser dev tools access
 
 ### Mandatory
 
-- HTMX library (1.9.x or higher)
+- HTMX library (1.9.x+)
 - Modern browser (Chrome, Firefox, Safari, Edge)
 - HTTP server for testing
 
@@ -100,6 +100,12 @@ HTML with HTMX attributes:
 - Event listeners fire at appropriate lifecycle points
 - No console errors
 - Works in all target browsers
+
+**Network Failure Handling:**
+- Implement `htmx:sendError` listener to show user-friendly error messages
+- Use `hx-indicator` to show loading state during requests
+- Provide retry mechanism for failed requests (e.g., `htmx:afterOnLoad` with status check)
+- Set appropriate timeouts via `hx-request="timeout:10000"`
 
 ### Design Principles
 

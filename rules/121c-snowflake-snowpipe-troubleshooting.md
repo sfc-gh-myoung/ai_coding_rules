@@ -4,9 +4,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**LastUpdated:** 2026-01-06
 **Keywords:** snowpipe troubleshooting, debugging, error resolution, pipe errors, streaming errors, connection failures, schema errors, offset tracking, latency issues, duplicate data, authentication errors, channel errors
-**TokenBudget:** ~4450
+**TokenBudget:** ~5050
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 121-snowflake-snowpipe.md, 121a-snowflake-snowpipe-streaming.md
 

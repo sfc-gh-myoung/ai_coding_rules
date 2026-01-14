@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-13
 **Keywords:** context engineering, attention budget, context rot, token efficiency, compaction, progressive disclosure, sub-agents, agentic search, system prompts, right altitude, long-horizon tasks, memory management, state tracking
-**TokenBudget:** ~6050
+**TokenBudget:** ~5700
 **ContextTier:** Critical
 **Depends:** 000-global-core.md
 
@@ -34,8 +34,8 @@ Comprehensive context engineering practices that treat context as a finite resou
 ### Related Rules
 
 - `001-memory-bank.md` - Structured documentation and context preservation
-- `002c-advanced-rule-patterns.md` - System prompt altitude and investigation-first
-- `002b-rule-optimization.md` - Token budgets and optimization
+- `002d-advanced-rule-patterns.md` - System prompt altitude and investigation-first
+- `002c-rule-optimization.md` - Token budgets and optimization
 - `004-tool-design-for-agents.md` - Token-efficient tool development patterns
 
 ### External Documentation
@@ -191,20 +191,10 @@ Do your best work.
 <system_prompt>
 You are a Python backend engineer specializing in FastAPI.
 
-## Post-Execution Checklist
-
-- [ ] Context window usage monitored (not exceeding attention budget)
-- [ ] High-signal, actionable information prioritized
-- [ ] Progressive disclosure used (summaries before details)
-- [ ] System prompts at "right altitude" (neither brittle nor vague)
-- [ ] Redundant information eliminated
-- [ ] Compaction strategy defined for long tasks
-- [ ] Structured note-taking for persistent state
-- [ ] Sub-agents considered for complex multi-faceted work
-- [ ] Tool outputs are token-efficient
-- [ ] Forward-focused (what's next vs what's done)
-- [ ] Agentic search used when appropriate
-- [ ] Context rot actively prevented
+## Core Responsibilities
+- Write production-ready async endpoints
+- Follow project style in pyproject.toml
+- Include type hints and comprehensive error handling
 
 ## Validation
 - Code must pass: ruff check, ruff format, pytest
@@ -805,21 +795,19 @@ implementation = sub_agent_implement(
 
 ### Standard Operating Procedure
 
-```mermaid
-flowchart TD
-    Start[New Task] --> Assess[Assess Attention Budget]
-    Assess --> Priority[Prioritize Information]
-    Priority --> Load[Load High-Signal Context]
-    Load --> Work[Perform Task]
-    Work --> Check{Approaching Limit?}
-    Check -->|No| Work
-    Check -->|Yes| Compact[Apply Compaction]
-    Compact --> Work
-    Work --> Complete[Task Complete]
-    Complete --> Document[Update Persistent State]
-```
+**Context Engineering Workflow:**
+1. Assess attention budget for current context window
+2. Prioritize high-signal information (rules, active code)
+3. Load context progressively (foundation, then domain, then specialized)
+4. Perform task with loaded context
+5. If approaching 75% limit: Apply compaction protocol
+   - Summarize completed work
+   - Preserve active rules and current file
+   - Return to step 4
+6. Complete task with validation
+7. Update persistent state (memory-bank if applicable)
 
-**Steps:**
+**Detailed Steps:**
 1. **Assess Budget:** How much context window is available?
 2. **Prioritize:** What information is essential for this task?
 3. **Load:** Bring in high-signal context progressively
@@ -828,29 +816,11 @@ flowchart TD
 6. **Compact:** Summarize and compress when needed
 7. **Document:** Update persistent memory for future sessions
 
-## Your Approach
-- Write production-ready code with error handling
-- Include type hints and docstrings
-- Follow project style in pyproject.toml
-- Use async/await for I/O operations
-- Add comprehensive test coverage
+## Key Takeaways
 
-## Available Tools
-- read_file: Read source files
-- grep: Search codebase
-- run_tests: Execute pytest
-
-## Context Assessment
-- **Attention Budget:** [Available context window]
-- **Current Usage:** [Token count / percentage]
-- **Priority Information:** [What must be in context]
-- **Compaction Status:** [Needed / Not needed]
-
-## Task Context
-- **Objective:** [Clear goal]
-- **Approach:** [Progressive disclosure / Agentic search / Sub-agents]
-- **Key Files:** [Minimal set of relevant files]
-
-## Next Steps
-- [Actionable step 1]
-- [Actionable step 2]
+- **Context is finite:** Every token depletes attention budget (n² pairwise relationships)
+- **Progressive disclosure:** Load summaries first, details on-demand
+- **Compact proactively:** At 75% capacity, summarize completed work
+- **Agentic search:** Prefer just-in-time exploration over pre-loaded knowledge
+- **Sub-agents:** Delegate complex tasks, receive condensed summaries
+- **Forward focus:** Emphasize next steps, not history

@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**LastUpdated:** 2026-01-06
 **Keywords:** FastAPI security, authentication, OAuth2, JWT, CORS, middleware, API keys, security best practices, bcrypt, HTTPBearer, role-based access control, RBAC
 **TokenBudget:** ~4900
 **ContextTier:** High

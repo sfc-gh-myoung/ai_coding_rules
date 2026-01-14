@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-13
 **Keywords:** memory bank, context, session recovery, project brief, active context, progress tracking, context rot, attention budget, compaction, context engineering, rapid recovery, failure recovery, staleness detection, archive policy, signal maximization
-**TokenBudget:** ~6200
+**TokenBudget:** ~7100
 **ContextTier:** Critical
 **Depends:** 000-global-core.md
 
@@ -48,9 +48,9 @@ For overall context preservation strategy and priority order, see `000-global-co
 
 **Technical Writing and Documentation:**
 - [Technical Writing Best Practices](https://developers.google.com/tech-writing) - Google's guide for clear, effective documentation
-- [Documentation Systems](https://documentation.divio.com/) - Framework for organizing technical documentation
-- [Cursor Documentation](https://docs.cursor.com/) - AI-powered code editor features and capabilities
-- [Cursor Rules Guide](https://docs.cursor.com/en/context/rules) - Project rules and context management
+- [Documentation Systems](https://docs.divio.com/documentation-system/) - Framework for organizing technical documentation
+- [Cursor Documentation](https://cursor.com/docs) - AI-powered code editor features and capabilities
+- [Cursor Rules Guide](https://cursor.com/docs) - Project rules and context management
 - [Markdown Guide](https://www.markdownguide.org/) - Complete Markdown syntax and formatting reference
 
 ## Contract
@@ -78,7 +78,7 @@ For overall context preservation strategy and priority order, see `000-global-co
 
 ### Execution Steps
 
-1. Initialize memory bank if not already initialized: ensure `memory-bank/` exists (see Initialization Protocol); all write operations must be scoped under `memory-bank/` only
+1. Initialize memory bank if needed (see Initialization Protocol in Section 4); all write operations must be scoped under `memory-bank/` only
 2. Read ALL memory bank files at session start (non-optional)
 3. Maintain single source of truth per information type
 4. Update context when update triggers are met (see Context Update Triggers)
@@ -477,15 +477,7 @@ Content is classified as **"outdated"** when it meets ANY of these criteria:
 - Section headers without content (obsolete placeholders)
 - Broken cross-references
 
-**Action Rules:**
-
-- **Completed work details (>7 days):** Condense to 1-line summary
-- **Completed work summary (>30 days):** Archive to memory-bank/archive/
-- **Resolved blocker (>14 days):** Remove entirely
-- **Session logs (>14 days):** Archive to memory-bank/archive/YYYY-MM.md
-- **Superseded status (any age):** Remove immediately
-- **Deleted file references (any age):** Remove immediately
-- **Deprecated patterns (>30 days unused):** Remove or archive
+**Actions:** Apply pruning rules from "Aggressive Pruning Rules" section above.
 
 **Stable Reference Exemptions:**
 These files should NOT be pruned for temporal staleness:
@@ -767,7 +759,7 @@ Pre-step: If `memory-bank/` does not exist, run initialization protocol (see abo
    - Archive content >14 days old
 4. Re-check line count after compaction
 5. If still exceeds budget:
-   - Archive oldest 50% of content to memory-bank/archive/YYYY-MM.md
+   - Archive oldest 50% of content (sort entries by timestamp, archive bottom half by count) to memory-bank/archive/YYYY-MM.md
    - Log: "[RECOVERY] Emergency archive: <filename> to archive/YYYY-MM.md"
 6. If still exceeds after emergency archive:
    - STOP and report: "Cannot compact further, manual review required"
@@ -798,6 +790,43 @@ Pre-step: If `memory-bank/` does not exist, run initialization protocol (see abo
 - [ ] Retry mechanism prevents transient failures
 - [ ] Agent continues with available context
 - [ ] User notified of degraded state
+
+#### Scenario 6: Concurrent Modifications
+
+**Situation:** Two agents simultaneously attempt to update memory bank files.
+
+**Detection:**
+1. Before writing, record current file timestamp
+2. After write operation, verify timestamp hasn't changed
+3. If timestamp differs, another agent has modified the file
+
+**Recovery Strategy:**
+1. Read updated file contents
+2. Merge changes if possible:
+   - Append-only files: Merge both updates
+   - Overwrite files: Use latest timestamp, archive conflicted version
+3. If merge not possible:
+   - Archive conflicted version to `memory-bank/conflicts/`
+   - Log conflict with both agent IDs and timestamps
+   - Continue with latest version
+
+**Example:**
+```
+[CONFLICT 2026-01-06T15:30:00Z] Agent A and Agent B both modified activeContext.md
+- Agent A version: Archived to memory-bank/conflicts/activeContext-agentA-20260106T153000Z.md
+- Agent B version: Current (newer timestamp)
+- Resolution: Manual review required
+```
+
+**Prevention:**
+- Use timestamp-based conflict detection
+- Implement exponential backoff for retries
+- Consider file locking for critical operations
+
+**Validation:**
+- [ ] Concurrent write detection works
+- [ ] Conflicts archived with clear naming
+- [ ] No data loss in conflict scenarios
 
 #### Recovery Best Practices
 

@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**LastUpdated:** 2026-01-06
 **Keywords:** alpinejs, hyperscript, tailwind, bootstrap, css frameworks, icon libraries, chartjs, frontend libraries, client-side enhancements, htmx integration, javascript frameworks
 **TokenBudget:** ~3900
 **ContextTier:** Low

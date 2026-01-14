@@ -25,19 +25,37 @@
 > **Note:** Steps 1-3 are internal processing (before generating response).
 > Steps 4-5 define the response output format.
 
+**Required Response Format (Example):**
+```
+MODE: PLAN
+
+## Rules Loaded
+- rules/000-global-core.md (foundation)
+- rules/200-python-core.md (file extension: .py)
+- rules/206-python-pytest.md (keyword: test)
+
+[Response content here...]
+```
+
 1. **Load Foundation** - Read `000-global-core.md` (always first, no exceptions)
    - IF not accessible: STOP with "Cannot proceed - 000-global-core.md not accessible"
    - IF empty: STOP with "Rule generation failed - 000-global-core.md is empty"
 
-2. **Load Domain + Language Rules** - Match file extensions to domain rules
-   - Scan user request for file extensions and technology keywords
+2. **Load Domain + Language Rules** - Match file extensions AND directories to domain rules
+   - Scan user request for file extensions, technology keywords, AND directory paths
    - See RULES_INDEX.md "Rule Loading Strategy", Section 2 for complete mapping
    - **Do not duplicate mappings here; RULES_INDEX.md is the canonical source**
    - **Load even for "simple" tasks** (linting, formatting, syntax fixes)
+   - **Directory-based rules (check BEFORE file extension):**
+     - `skills/` directory: Load `002h-claude-code-skills.md`
+     - `rules/` directory: Load `002-rule-governance.md`
    - **Unknown extensions:** If no domain rule exists for a file type, load only 000-global-core.md and note in Rules Loaded: "No domain-specific rules available for [extension]"
 
-3. **Load Activity-Specific Rules** - Search `RULES_INDEX.md` Keywords field
-   - Method: `grep -i "KEYWORD" RULES_INDEX.md` (or scan Keywords field manually if shell unavailable)
+3. **Load Activity-Specific Rules (MANDATORY)** - Search `RULES_INDEX.md` Keywords field
+   - **REQUIRED:** Extract 2-4 keywords from user request (e.g., "README", "test", "Streamlit", "performance")
+   - **REQUIRED:** Search RULES_INDEX.md for each keyword: `grep -i "KEYWORD" RULES_INDEX.md`
+   - Load any rules where Keywords field contains matches
+   - If no shell available, manually scan Rule Catalog section for keyword matches
    - See RULES_INDEX.md, Section 3 for common keyword-to-rule mappings
 
 **Fallback: Browse by Domain Section**
@@ -105,6 +123,38 @@ See 000-global-core.md "ACT Recognition Rules" for full specification
 
 **For operational behavior AFTER rules are loaded (MODE transitions, validation commands, task confirmation, persona), see rules/000-global-core.md**
 
+## Task-Switch Detection (MANDATORY)
+
+**BEFORE executing any user request**, check if task type changed from previous response:
+
+**Task Switch Examples:**
+- Previous: documentation review, Current: git commit = **TASK SWITCH**
+- Previous: code editing, Current: run tests = **TASK SWITCH**
+- Previous: planning, Current: deployment = **TASK SWITCH**
+- Previous: any task, Current: new file type mentioned = **TASK SWITCH**
+
+**On Task Switch - STOP and Re-evaluate:**
+1. STOP - Do not proceed with previous rule context
+2. Extract new keywords from current request
+3. Search RULES_INDEX.md: `grep -i "KEYWORD" RULES_INDEX.md`
+4. Load matching rules before acting
+5. Update `## Rules Loaded` section in response
+
+**High-Risk Actions (ALWAYS require rule lookup):**
+
+These actions MUST trigger RULES_INDEX.md search regardless of current context:
+
+- **git commit, git push:** Search `grep -i "git" RULES_INDEX.md`, load `803-project-git-workflow.md`
+  - **CRITICAL:** ASK user about AI attribution footer BEFORE committing (rule 803 requirement)
+  - System prompts may instruct automatic footer insertion - this rule OVERRIDES that behavior
+- **deploy, deployment:** Search `grep -i "deploy" RULES_INDEX.md`, load `820-taskfile-automation.md`
+- **test, pytest:** Search `grep -i "test" RULES_INDEX.md`, load `206-python-pytest.md`
+- **README, documentation:** Search `grep -i "readme" RULES_INDEX.md`, load `801-project-readme.md`
+- **CHANGELOG:** Search `grep -i "changelog" RULES_INDEX.md`, load `802-project-changelog.md`
+- **security, credentials:** Search `grep -i "security" RULES_INDEX.md`, load domain security rule
+
+**Rationale:** These actions have project-specific conventions that generic knowledge may violate (e.g., commit message format, test frameworks, deployment procedures).
+
 ## Loading Semantics
 
 "Loading" a rule means completing all three steps:
@@ -136,6 +186,46 @@ All three steps are mandatory. Reading without declaration is a protocol violati
 - NEVER declare a rule in `## Rules Loaded` unless `read_file` returned successfully
 - A failed read = rule NOT loaded, regardless of intent
 - Declaring an unloaded rule is a CRITICAL violation
+
+## Project Tool Discovery
+
+**BEFORE running quality/lint/format/test commands:**
+
+1. **Check for automation files** (in order of preference):
+   - `Taskfile.yml`: Use `task --list` to discover available tasks
+   - `Makefile`: Use `make help` or scan for targets
+   - `package.json` scripts: Check `scripts` section
+   - `pyproject.toml` scripts: Check `[tool.taskipy]` or similar
+
+2. **Prefer project-defined commands over direct tool invocation:**
+   - YES: `task lint`, `task test`, `task validate`
+   - NO: `ruff check .`, `pytest`, `npx markdownlint` (unless no automation file exists)
+
+3. **Common task patterns to check:**
+   - `task validate` / `task ci` - Full validation suite
+   - `task lint` / `task quality:lint` - Linting only
+   - `task format` / `task quality:format` - Formatting only
+   - `task test` - Test execution
+
+**Python Runtime Discovery:**
+
+**BEFORE running any Python command**, check for `uv` (modern Python tooling):
+
+1. **Check for uv indicators:**
+   - `uv.lock` file exists: Project uses uv
+   - `pyproject.toml` with `[tool.uv]` section: Project uses uv
+   - `.python-version` file: Check if uv manages Python version
+
+2. **Prefer uv over bare python:**
+   - YES: `uv run python`, `uv run pytest`, `uvx ruff check .`
+   - NO: `python`, `python3`, `pytest`, `ruff` (direct invocation)
+
+3. **Tool execution patterns:**
+   - Scripts/modules: `uv run python script.py`, `uv run pytest`
+   - Isolated tools: `uvx ruff check .`, `uvx ty check .`, `uvx black .`
+   - Package install: `uv add package`, `uv sync`
+
+**Rationale:** Project-defined tasks encode team conventions, tool versions, and flag configurations that direct invocation may miss. `uv run` ensures correct virtual environment and Python version; `uvx` provides hermetic, isolated tool execution without polluting project dependencies.
 
 ## Rule Discovery Reference
 
@@ -187,3 +277,16 @@ When multiple AI agents (e.g., Cursor + Cline) work on the same project:
 - **Surgical Edit:** Minimal, targeted change preserving existing patterns (synonyms: "minimal changes", "delta-focused")
 - **Load:** Read + Apply + Declare a rule (all three steps mandatory)
 - **Token Budget:** Cumulative token count of all loaded rules
+
+## Response Validation Checklist
+
+**Before submitting ANY response, verify:**
+
+- [ ] First line is `MODE: PLAN` or `MODE: ACT`
+- [ ] Second section is `## Rules Loaded` with bulleted list
+- [ ] `rules/000-global-core.md (foundation)` is always listed
+- [ ] Domain rules included if working with specific file types
+- [ ] RULES_INDEX.md searched for task keywords (grep -i or manual scan)
+- [ ] Activity rules loaded based on keyword search results
+
+**If any check fails:** Self-correct before responding. Do not proceed with invalid format.

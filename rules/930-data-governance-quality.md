@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-13
 **Keywords:** Data governance, data quality, lineage, metadata management, compliance, data catalog, Great Expectations, schema evolution, data observability, incident response
-**TokenBudget:** ~1650
+**TokenBudget:** ~2050
 **ContextTier:** Medium
 **Depends:** 000-global-core.md
 
@@ -33,7 +33,7 @@ Comprehensive directives for ensuring data quality, governance, and operational 
 **Related:**
 - **100-snowflake-core.md** - Snowflake SQL patterns
 - **124-snowflake-data-quality-core.md** - Snowflake-specific data quality patterns
-- **901-data-generation-modeling.md** - Data modeling standards
+- **132-snowflake-demo-modeling.md** - Data modeling standards
 
 ### External Documentation
 
@@ -98,8 +98,14 @@ Comprehensive directives for ensuring data quality, governance, and operational 
 - Schema changes non-destructive
 - Metrics documented in catalog
 - Quality gates integrated in CI/CD
-- Drift monitoring configured
+- Drift monitoring configured (>10% distribution shift threshold)
 - Incident response plan documented
+
+**During-Execution Monitoring:**
+- Quality gate pass/fail rates tracked per pipeline run
+- Data drift metrics collected at each checkpoint
+- Schema validation runs before and after migrations
+- Alert channels (Slack, PagerDuty) receiving notifications
 
 **Success Criteria:**
 - All expectation suites pass validation
@@ -140,30 +146,65 @@ Comprehensive directives for ensuring data quality, governance, and operational 
 
 ## Anti-Patterns and Common Mistakes
 
-### Pattern 1: [Common Mistake Title]
+### Pattern 1: Hard-Coded Thresholds Without Profiling
 
 **Problem:**
-[Describe what developers commonly do wrong]
+Creating expectation suites with arbitrary thresholds (e.g., "column must be >0") without first profiling actual data distributions.
 
 **Why It Fails:**
-[Explain why this approach causes issues]
+Thresholds that don't reflect real data patterns generate false positives (noise) or miss real anomalies. Teams disable noisy checks, defeating the purpose.
 
 **Correct Pattern:**
 ```python
-# Correct approach with explanation
+# WRONG: Arbitrary threshold
+expectation_suite.add_expectation(
+    ExpectationConfiguration(
+        expectation_type="expect_column_values_to_be_between",
+        kwargs={"column": "price", "min_value": 0, "max_value": 1000}
+    )
+)
+
+# CORRECT: Profile first, then set thresholds
+profile_result = profiler.profile(batch)
+stats = profile_result.columns["price"]
+expectation_suite.add_expectation(
+    ExpectationConfiguration(
+        expectation_type="expect_column_values_to_be_between",
+        kwargs={
+            "column": "price",
+            "min_value": stats["min"] * 0.9,  # 10% buffer
+            "max_value": stats["max"] * 1.1
+        }
+    )
+)
 ```
 
-### Pattern 2: [Another Common Mistake]
+### Pattern 2: Destructive Schema Changes in Production
 
 **Problem:**
-[Description of the anti-pattern]
+Dropping or renaming columns, changing data types, or deleting tables without backward compatibility period.
 
 **Why It Fails:**
-[Technical explanation of the problem]
+Downstream consumers (dashboards, ETL jobs, APIs) break immediately. No rollback path if issues discovered post-deployment.
 
 **Correct Pattern:**
-```python
-# Proper implementation
+```sql
+-- WRONG: Destructive change
+ALTER TABLE orders DROP COLUMN legacy_status;
+ALTER TABLE orders RENAME COLUMN status TO order_status;
+
+-- CORRECT: Non-destructive evolution
+-- Step 1: Add new column
+ALTER TABLE orders ADD COLUMN order_status VARCHAR;
+
+-- Step 2: Populate new column
+UPDATE orders SET order_status = status;
+
+-- Step 3: Mark old column deprecated (comment + docs)
+COMMENT ON COLUMN orders.status IS 'DEPRECATED: Use order_status. Removal date: 2026-04-01';
+
+-- Step 4: After 90-day deprecation period, drop old column
+-- ALTER TABLE orders DROP COLUMN status;
 ```
 
 ## Data Quality as Code
@@ -173,14 +214,14 @@ Comprehensive directives for ensuring data quality, governance, and operational 
 - **Always:** Use profiling to discover initial expectations, then manually curate and refine before acceptance.
 - **Requirement:** Never hard-code credentials or secrets in data quality configurations.
 - **Always:** Integrate validation as a gating step in ETL/ELT pipelines.
-- **Always:** Monitor for data drift by tracking distribution changes with thresholds.
+- **Always:** Monitor for data drift by tracking distribution changes. Threshold: >10% shift in mean, median, or standard deviation triggers alert.
 - **Always:** Reference Great Expectations docs: https://docs.greatexpectations.io/
 
 ## Data Stewardship and Schema Evolution
 - **Requirement:** Every metric must have a Single Source of Truth in a catalog, with formula, lineage, and ownership.
 - **Requirement:** Version metrics and schemas immutably when updated.
 - **Always:** Add new columns first; avoid destructive in-place changes.
-- **Always:** For major changes, prepare a communication plan with impact and rollback strategy.
+- **Always:** For major changes (>3 columns modified, data type changes, or breaking API contracts), prepare a communication plan with impact and rollback strategy.
 - **Requirement:** Use idempotent migration scripts under version control.
 - **Requirement:** Validate that downstream consumers are unaffected before production deployment.
 - **Always:** Reference Snowflake schema management docs: https://docs.snowflake.com/en/user-guide/database-schemas

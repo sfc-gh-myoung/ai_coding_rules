@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**LastUpdated:** 2026-01-06
 **Keywords:** Bash, testing, ShellCheck, bats, shell script testing, CI/CD, debugging, static analysis, linting, test automation
 **TokenBudget:** ~4200
 **ContextTier:** Medium

@@ -420,27 +420,34 @@ AI agents should follow this algorithm when loading rules:
 Load: 000-global-core.md
 ```
 
-### 2. Domain Rules (File Extension Match)
+### 2. Domain Rules (Directory and File Extension Match)
 Based on files mentioned in user request:
-- `.py`, `.pyi`, `pyproject.toml` → Load `200-python-core.md`
-- `.sql` → Load `100-snowflake-core.md`
-- `.sh`, `.bash`, `.zsh` → Load `300-bash-scripting-core.md`
-- `Dockerfile`, `docker-compose.yml` → Load `350-docker-best-practices.md`
-- `.md` (in `rules/`) → Load `002-rule-governance.md`
-- `.md` (outside `rules/`, e.g., README, CONTRIBUTING) → Load `202-markup-config-validation.md`
-- `.ts`, `.tsx` → Load `430-typescript-core.md`
-- `.js`, `.jsx` → Load `420-javascript-core.md`
-- `.go` → Load `600-golang-core.md`
+
+**Directory-based rules (check FIRST, before file extension):**
+- `skills/` directory: Load `002g-claude-code-skills.md`
+- `rules/` directory: Load `002-rule-governance.md`
+
+**File extension rules:**
+- `.py`, `.pyi`, `pyproject.toml`: Load `200-python-core.md`
+- `.sql`: Load `100-snowflake-core.md`
+- `.sh`, `.bash`, `.zsh`: Load `300-bash-scripting-core.md`
+- `Dockerfile`, `docker-compose.yml`: Load `350-docker-best-practices.md`
+- `.md` (outside `rules/` and `skills/`, e.g., README, CONTRIBUTING): Load `202-markup-config-validation.md`
+- `.ts`, `.tsx`: Load `430-typescript-core.md`
+- `.js`, `.jsx`: Load `420-javascript-core.md`
+- `.go`: Load `600-golang-core.md`
 
 ### 3. Activity Rules (Keyword Match)
 Use `grep -i "KEYWORD" RULES_INDEX.md` to search Keywords column:
-- **test**, pytest, coverage → Consider `206-python-pytest.md`
-- **lint**, format, code quality → Consider `201-python-lint-format.md`
-- **deploy**, CI/CD, automation → Consider `820-taskfile-automation.md`
-- **streamlit**, dashboard → Consider `101-snowflake-streamlit-core.md`
-- **docker**, container → Consider `350-docker-best-practices.md`
-- **agent**, cortex agent → Consider `115-snowflake-cortex-agents-core.md`
-- **semantic view** → Consider `106-snowflake-semantic-views-core.md`
+- **skill**, SKILL.md, skill authoring: Consider `002g-claude-code-skills.md`
+- **test**, pytest, coverage: Consider `206-python-pytest.md`
+- **lint**, format, code quality: Consider `201-python-lint-format.md`
+- **deploy**, CI/CD, automation: Consider `820-taskfile-automation.md`
+- **streamlit**, dashboard: Consider `101-snowflake-streamlit-core.md`
+- **docker**, container: Consider `350-docker-best-practices.md`
+- **agent**, cortex agent: Consider `115-snowflake-cortex-agents-core.md`
+- **semantic view**: Consider `106-snowflake-semantic-views-core.md`
+- **README**, documentation: Consider `801-project-readme.md`
 
 ### 4. Check Dependencies
 - For each rule to be loaded, read its **Depends On** column
@@ -504,9 +511,9 @@ After loading, list all rules in response:
 User: "Write tests for my Streamlit dashboard"
 
 **Rule Selection:**
-- Extension `.py` → 200-python-core.md
-- Keyword "test" → 206-python-pytest.md
-- Keyword "Streamlit" → 101-snowflake-streamlit-core.md
+- Extension `.py`: 200-python-core.md
+- Keyword "test": 206-python-pytest.md
+- Keyword "Streamlit": 101-snowflake-streamlit-core.md
 - Dependency check: 101 requires 100-snowflake-core.md
 
 **Token Budget:** 000 (3300) + 200 (1800) + 206 (3500) + 100 (1800) + 101 (3700) = 14,100 ✓

@@ -13,17 +13,17 @@ model: claude-sonnet-45
 ```
 
 **Pre-condition:**
-- `reviews/200-python-core-claude-sonnet-45-2025-12-15.md` does NOT exist
+- `reviews/rule-reviews/200-python-core-claude-sonnet-45-2025-12-15.md` does NOT exist
 
 **Expected:**
-- File created: `reviews/200-python-core-claude-sonnet-45-2025-12-15.md`
+- File created: `reviews/rule-reviews/200-python-core-claude-sonnet-45-2025-12-15.md`
 - Confirmation message shown
 - Full review NOT printed to chat
 
 **Verification:**
 ```bash
-ls reviews/200-python-core-claude-sonnet-45-2025-12-15.md
-cat reviews/200-python-core-claude-sonnet-45-2025-12-15.md | head -20
+ls reviews/rule-reviews/200-python-core-claude-sonnet-45-2025-12-15.md
+cat reviews/rule-reviews/200-python-core-claude-sonnet-45-2025-12-15.md | head -20
 ```
 
 **Pass Criteria:**
@@ -45,21 +45,21 @@ model: claude-sonnet-45
 ```
 
 **Pre-condition:**
-- `reviews/200-python-core-claude-sonnet-45-2025-12-15.md` EXISTS
+- `reviews/rule-reviews/200-python-core-claude-sonnet-45-2025-12-15.md` EXISTS
 
 **Expected:**
-- New file: `reviews/200-python-core-claude-sonnet-45-2025-12-15-01.md`
+- New file: `reviews/rule-reviews/200-python-core-claude-sonnet-45-2025-12-15-01.md`
 - Original file unchanged
 - Confirmation shows new filename
 
 **Verification:**
 ```bash
 # Both files should exist
-ls reviews/200-python-core-claude-sonnet-45-2025-12-15.md
-ls reviews/200-python-core-claude-sonnet-45-2025-12-15-01.md
+ls reviews/rule-reviews/200-python-core-claude-sonnet-45-2025-12-15.md
+ls reviews/rule-reviews/200-python-core-claude-sonnet-45-2025-12-15-01.md
 
 # Original unchanged
-diff reviews/200-python-core-claude-sonnet-45-2025-12-15.md <original>
+diff reviews/rule-reviews/200-python-core-claude-sonnet-45-2025-12-15.md <original>
 ```
 
 **Pass Criteria:**
@@ -81,7 +81,7 @@ diff reviews/200-python-core-claude-sonnet-45-2025-12-15.md <original>
 
 **Verification:**
 ```bash
-ls reviews/200-python-core-claude-sonnet-45-2025-12-15*.md | wc -l
+ls reviews/rule-reviews/200-python-core-claude-sonnet-45-2025-12-15*.md | wc -l
 # Should be 4 (base + 01 + 02 + 03)
 ```
 
@@ -94,14 +94,14 @@ ls reviews/200-python-core-claude-sonnet-45-2025-12-15*.md | wc -l
 
 ### Test O.4: File Write Failure - Permission Denied
 
-**Scenario:** reviews/ directory not writable
+**Scenario:** reviews/rule-reviews/ directory not writable
 
 **Expected:**
 - Error detected
 - Fallback: Print to chat
 - Format:
   ```
-  OUTPUT_FILE: reviews/200-python-core-claude-sonnet-45-2025-12-15.md
+  OUTPUT_FILE: reviews/rule-reviews/200-python-core-claude-sonnet-45-2025-12-15.md
   
   [Full review content]
   ```
@@ -137,9 +137,9 @@ ls reviews/200-python-core-claude-sonnet-45-2025-12-15*.md | wc -l
 
 **Expected Confirmation:**
 ```
-✓ Review complete
+ Review complete
 
-OUTPUT_FILE: reviews/200-python-core-claude-sonnet-45-2025-12-15.md
+OUTPUT_FILE: reviews/rule-reviews/200-python-core-claude-sonnet-45-2025-12-15.md
 Target: rules/200-python-core.md
 Mode: FULL
 Model: claude-sonnet-45
@@ -158,9 +158,9 @@ Model: claude-sonnet-45
 
 **Expected (when suffix used):**
 ```
-✓ Review complete
+ Review complete
 
-OUTPUT_FILE: reviews/200-python-core-claude-sonnet-45-2025-12-15-01.md
+OUTPUT_FILE: reviews/rule-reviews/200-python-core-claude-sonnet-45-2025-12-15-01.md
 Note: Base filename existed, using suffix -01
 
 Target: rules/200-python-core.md
@@ -231,7 +231,7 @@ model: claude-sonnet-45
 
 **Expected Filename:**
 ```
-reviews/200-python-core-claude-sonnet-45-2025-12-15.md
+reviews/rule-reviews/200-python-core-claude-sonnet-45-2025-12-15.md
 ```
 
 **Pattern:**
@@ -258,7 +258,7 @@ model: claude-opus-4
 
 **Expected:**
 ```
-reviews/115-snowflake-cortex-agents-core-claude-opus-4-2025-12-15.md
+reviews/rule-reviews/115-snowflake-cortex-agents-core-claude-opus-4-2025-12-15.md
 ```
 
 **Pass Criteria:**
@@ -271,12 +271,10 @@ reviews/115-snowflake-cortex-agents-core-claude-opus-4-2025-12-15.md
 ### Test FN.3: Model Slug Normalization in Filename
 
 **Input Variations:**
-| Input | Normalized |
-|-------|------------|
-| `Claude Sonnet 4.5` | `claude-sonnet-45` |
-| `claude-sonnet-45` | `claude-sonnet-45` |
-| `CLAUDE_OPUS_4` | `claude-opus-4` |
-| `gpt-4-turbo` | `gpt-4-turbo` |
+- **`Claude Sonnet 4.5`** - `claude-sonnet-45`
+- **`claude-sonnet-45`** - `claude-sonnet-45`
+- **`CLAUDE_OPUS_4`** - `claude-opus-4`
+- **`gpt-4-turbo`** - `gpt-4-turbo`
 
 **Pass Criteria:**
 - [ ] Spaces → hyphens

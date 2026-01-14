@@ -87,7 +87,7 @@ focus_area: (not provided)
 FOCUSED review requires a focus_area parameter.
 
 Available focus areas for rule reviews:
-A. metadata - Keywords, TokenBudget, ContextTier, Depends
+A. metadata - Keywords, TokenBudget (use scripts/token_validator.py), ContextTier, Depends
 B. contract - XML tags, placement, completeness
 C. examples - Code examples, anti-patterns quality
 D. references - External links, related rules accuracy
@@ -118,8 +118,8 @@ Dependency validation warning:
 
 Rule: rules/422-daisyui-core.md
 Declared dependencies:
-  ✓ rules/420-javascript-core.md (exists)
-  ✗ rules/421-tailwind-core.md (NOT FOUND)
+   rules/420-javascript-core.md (exists)
+   rules/421-tailwind-core.md (NOT FOUND)
 
 Impact on review:
 - Cannot verify dependency chain completeness
@@ -153,7 +153,10 @@ Large rule file detected:
 
 File: rules/000-global-core.md
 Lines: 622
-Estimated tokens: ~6500
+Estimated tokens (tiktoken): ~6500
+
+Run token validation:
+$ python scripts/token_validator.py rules/000-global-core.md
 
 Considerations:
 - Full review may timeout
@@ -234,7 +237,7 @@ Valid Claude slugs:
 - claude-haiku
 
 For output filename, will normalize to provided slug:
-reviews/810-project-readme-gpt-4-turbo-2025-12-15.md
+reviews/rule-reviews/810-project-readme-gpt-4-turbo-2025-12-15.md
 
 Note: The review will be performed by the current Claude model,
 regardless of the slug provided. The slug is for filename 
@@ -252,9 +255,9 @@ Proceed with slug "gpt-4-turbo"? (yes/no/use claude-sonnet-45)
 **Example:**
 ```
 Existing files:
-- reviews/810-project-readme-claude-sonnet45-2025-12-15.md
-- reviews/810-project-readme-claude-sonnet45-2025-12-15-01.md
-- reviews/810-project-readme-claude-sonnet45-2025-12-15-02.md
+- reviews/rule-reviews/810-project-readme-claude-sonnet45-2025-12-15.md
+- reviews/rule-reviews/810-project-readme-claude-sonnet45-2025-12-15-01.md
+- reviews/rule-reviews/810-project-readme-claude-sonnet45-2025-12-15-02.md
 ... through -99.md
 ```
 
@@ -263,7 +266,7 @@ Existing files:
 Output filename exhausted:
 
 All suffix slots (01-99) are occupied for:
-reviews/810-project-readme-claude-sonnet45-2025-12-15-XX.md
+reviews/rule-reviews/810-project-readme-claude-sonnet45-2025-12-15-XX.md
 
 Options:
 A. Use different date (tomorrow's date)
@@ -274,10 +277,10 @@ D. Use 3-digit suffix (-100.md)
 Recommendation: Option A or B
 
 Alternative filename:
-reviews/810-project-readme-claude-sonnet45-2025-12-16.md
+reviews/rule-reviews/810-project-readme-claude-sonnet45-2025-12-16.md
 
 Or with different slug:
-reviews/810-project-readme-claude-opus4-2025-12-15.md
+reviews/rule-reviews/810-project-readme-claude-opus4-2025-12-15.md
 ```
 
 ---
@@ -354,10 +357,10 @@ Workflow:
    - model: [current]
 
 3. Compare against creation quality gates:
-   - Keywords: 10-15 ✓
-   - TokenBudget: ~NUMBER format ✓
-   - Contract before line 160 ✓
-   - All 6 XML tags present ✓
+   - Keywords: 10-15 
+   - TokenBudget: ~NUMBER format 
+   - Contract before line 160 
+   - All 6 XML tags present 
 
 4. Additional review dimensions:
    - Content accuracy (web research quality)

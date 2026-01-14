@@ -135,16 +135,18 @@ class CodeBlockTracker:
     """Track code block and contextual state while parsing markdown.
 
     Enhanced to handle:
-    - Both ``` and ~~~ fence styles
+    - Both ``` and ~~~ fence styles (3+ characters)
+    - Variable-length fences (e.g., ```` for nesting)
     - Indented code blocks (within lists, blockquotes)
-    - Proper fence matching by type and indentation level
+    - Proper fence matching by type, length, and indentation level
     """
 
     def __init__(self):
         """Initialize code block tracker with default state."""
         self.in_code_block = False
         self.code_block_language: str | None = None
-        self.fence_type: str | None = None  # Track ``` vs ~~~
+        self.fence_char: str | None = None  # Track ` vs ~
+        self.fence_length: int = 0  # Track fence length (3, 4, etc.)
         self.fence_indent: int = 0
         self.in_blockquote = False
         self.current_section: str | None = None
@@ -153,22 +155,30 @@ class CodeBlockTracker:
         """Update state based on current line with robust fence detection."""
         stripped = line.strip()
 
-        # Detect fence type and language (supports both ``` and ~~~)
-        fence_match = re.match(r"^(\s*)(```|~~~)(\w*)", line)
+        # Detect fence type, length, and language (supports ```, ~~~, ````, etc.)
+        fence_match = re.match(r"^(\s*)(`{3,}|~{3,})(\w*)", line)
         if fence_match:
             indent_str, fence, lang = fence_match.groups()
             indent_level = len(indent_str)
+            fence_char = fence[0]  # ` or ~
+            fence_len = len(fence)
 
             if not self.in_code_block:
                 # Opening fence
                 self.in_code_block = True
-                self.fence_type = fence
+                self.fence_char = fence_char
+                self.fence_length = fence_len
                 self.fence_indent = indent_level
                 self.code_block_language = lang if lang else None
-            elif fence == self.fence_type and indent_level == self.fence_indent:
-                # Closing fence (must match type and indentation)
+            elif (
+                fence_char == self.fence_char
+                and fence_len >= self.fence_length
+                and indent_level == self.fence_indent
+            ):
+                # Closing fence (must match char type, be at least as long, and match indent)
                 self.in_code_block = False
-                self.fence_type = None
+                self.fence_char = None
+                self.fence_length = 0
                 self.fence_indent = 0
                 self.code_block_language = None
 
@@ -338,6 +348,29 @@ class SchemaValidator:
                 sections[normalized] = i
 
         return sections
+
+    def _find_h1_titles(self, lines: list[str]) -> list[int]:
+        """Find all H1 titles with code block awareness.
+
+        Args:
+            lines: File lines to parse
+
+        Returns:
+            List of line numbers (1-indexed) where H1 titles are found
+        """
+        h1_lines = []
+        tracker = CodeBlockTracker()
+
+        for i, line in enumerate(lines, 1):
+            tracker.update(line)
+
+            if tracker.in_code_block:
+                continue
+
+            if re.match(r"^#\s+.+$", line):
+                h1_lines.append(i)
+
+        return h1_lines
 
     def validate_file(self, file_path: Path) -> ValidationResult:
         """Validate a single rule file against the schema.
@@ -610,6 +643,38 @@ class SchemaValidator:
             {"total_lines": len(lines), "content_length": len(content)},
         )
 
+        # Validate H1 title count (must have exactly one)
+        if "title" in structure_config:
+            title_config = structure_config["title"]
+            h1_lines = self._find_h1_titles(lines)
+
+            if len(h1_lines) == 0:
+                result.errors.append(
+                    ValidationError(
+                        severity=title_config.get("severity", "CRITICAL"),
+                        message="Missing H1 title - document must have exactly one",
+                        error_group="Structure",
+                        line_num=1,
+                        fix_suggestion=title_config.get(
+                            "fix_suggestion", "Add an H1 title at the start of the document"
+                        ),
+                        docs_reference=title_config.get("docs_reference"),
+                    )
+                )
+            elif len(h1_lines) > 1:
+                result.errors.append(
+                    ValidationError(
+                        severity=title_config.get("severity", "CRITICAL"),
+                        message=f"Multiple H1 titles found at lines {h1_lines} - must have exactly one",
+                        error_group="Structure",
+                        line_num=h1_lines[1],
+                        fix_suggestion="Remove duplicate H1 titles, keeping only the first one",
+                        docs_reference=title_config.get("docs_reference"),
+                    )
+                )
+            else:
+                result.passed_checks += 1
+
         # Find all H2 sections using shared utility with code block tracking
         sections = self._find_all_sections(lines)
 
@@ -769,17 +834,16 @@ class SchemaValidator:
     ) -> None:
         """Validate Anti-Patterns section content."""
         # Extract section (being careful to skip ## inside code blocks)
+        # Use CodeBlockTracker for proper handling of variable-length fences (```, ````, etc.)
         section_start = None
         section_end = None
-        in_code_block = False
+        tracker = CodeBlockTracker()
 
         for i, line in enumerate(lines):
-            # Track code block state
-            if line.strip().startswith("```"):
-                in_code_block = not in_code_block
+            tracker.update(line)
 
             # Only match H2 headers outside of code blocks
-            if not in_code_block:
+            if not tracker.in_code_block:
                 if re.match(r"^##\s+(?:\d+\.\s+)?Anti-Patterns", line):
                     section_start = i
                 elif section_start is not None and re.match(r"^##\s+", line):
@@ -1380,7 +1444,11 @@ def main():
 
     # Validate file or directory
     if args.path.is_file():
-        result = validator.validate_file(args.path)
+        # Special handling for AGENTS.md - only validate ASCII patterns, not rule schema
+        if args.path.name == "AGENTS.md":
+            result = validator.validate_agents_md(args.path)
+        else:
+            result = validator.validate_file(args.path)
         print(validator.format_result(result, detailed=args.verbose))
 
         if result.has_critical_or_high or (args.strict and result.errors):

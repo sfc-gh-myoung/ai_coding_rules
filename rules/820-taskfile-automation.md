@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-13
 **Keywords:** Taskfile, Taskfile.yml, task automation, build automation, task runner, Task, portable tasks, error handling, categorized help, task discovery, command detection, auto-detection, cross-platform, uvx, machine-readable
-**TokenBudget:** ~11350
+**TokenBudget:** ~10700
 **ContextTier:** Medium
 **Depends:** 202-markup-config-validation.md
 
@@ -264,7 +264,7 @@ Preview:
 - **Requirement:** Prefer a single source of truth for automation (`Taskfile.yml` recommended). Acceptable equivalents: `Makefile`, `npm scripts`, `justfile`.
 - **Requirement:** Do not hard-code commands in docs or scripts if they can be run via the orchestrator.
 - **Always:** Define a `default`/`help` task that explains how to get started.
-- **Guidance:** For Taskfiles with 8+ tasks, implement categorized help output for improved user experience and faster task discovery.
+- **Requirement:** For Taskfiles with 8+ tasks, implement categorized help output for improved user experience and faster task discovery.
 - **Requirement:** Ensure tasks are portable and not OS-specific unless explicitly scoped.
 
 ### Version and Error Handling (CRITICAL)

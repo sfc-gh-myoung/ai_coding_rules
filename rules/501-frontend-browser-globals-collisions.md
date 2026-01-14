@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-13
 **Keywords:** browser globals, javascript globals, window.history, HTMX history, Alpine.js, name collisions, reserved identifiers, implicit globals, historyRestore, hx-push-url, popstate, best practices, anti-patterns
 **TokenBudget:** ~1400
 **ContextTier:** High
@@ -17,7 +17,7 @@ Codifies safe naming, scoping, and namespacing patterns for inline scripts and s
 
 ## Scope
 
-HTMX-driven UIs and server-rendered apps that embed small JavaScript/Alpine helpers in templates (including inline `<script>` blocks).
+HTMX-driven UIs and server-rendered apps that embed JavaScript/Alpine helpers (<50 lines) in templates (including inline `<script>` blocks).
 
 ## References
 
@@ -39,7 +39,7 @@ Ability to edit templates/JS; browser devtools access to verify history behavior
 
 **Essential Patterns:**
 - **No globals by default:** Keep helpers module-scoped or namespaced; don't define top-level functions/vars that shadow browser globals
-- **Avoid reserved browser identifiers:** Never name functions/vars `history`, `location`, `event`, `name`, `top`, `parent`, `frames`, etc.
+- **Avoid reserved browser identifiers:** Never name functions/vars: `history`, `location`, `event`, `name`, `top`, `parent`, `frames`, `self`, `window`, `document`, `navigator`, `screen`, `alert`, `confirm`, `prompt`, `open`, `close`, `length`, `status`
 - **Namespace if you must expose:** If something must be referenced from HTML (`x-data="..."`), expose it under a single app namespace (e.g., `window.unistore.*`)
 
 ### Forbidden
@@ -119,14 +119,6 @@ function init() {
 **Negative Tests:**
 - If you intentionally add `function history(){}` at top-level, back/forward and/or HTMX history will break (this should be caught in review)
 - If you remove `const`/`let` for a variable assignment, it should show up as `window.<name>` unexpectedly
-
-## Post-Execution Checklist
-
-- [ ] No top-level `history`, `location`, or `event` identifiers introduced
-- [ ] No implicit globals (missing `const`/`let`) introduced
-- [ ] HTMX navigation works (click links, `hx-push-url`, back/forward restore)
-- [ ] Alpine component factories referenced from HTML are namespaced (or otherwise collision-safe)
-- [ ] Rule references added where relevant (HTMX + integrations rules)
 
 ## Output Format Examples
 

@@ -28,7 +28,7 @@ model: test-model
 
 **Expected:** Error message:
 ```
-❌ Error: Invalid review_mode
+ Error: Invalid review_mode
 
 Problem: 'PARTIAL' is not a valid mode
 Recovery: Use one of: FULL, COMPARISON, META-REVIEW
@@ -50,7 +50,7 @@ model: test-model
 
 **Expected:** Error message:
 ```
-❌ Error: Invalid date format
+ Error: Invalid date format
 
 Problem: '12-16-2025' does not match YYYY-MM-DD
 Recovery: Use format YYYY-MM-DD (e.g., 2025-12-16)
@@ -72,7 +72,7 @@ model: test-model
 
 **Expected:** Error message:
 ```
-❌ Error: File not found
+ Error: File not found
 
 Problem: plans/nonexistent.md does not exist
 Recovery: Verify the file path is correct relative to workspace root
@@ -94,7 +94,7 @@ model: test-model
 
 **Expected:** Error message:
 ```
-❌ Error: Invalid file type
+ Error: Invalid file type
 
 Problem: scripts/deploy.sh is not a markdown file
 Recovery: Target file must end with .md
@@ -117,7 +117,7 @@ model: test-model
 
 **Expected:** Error message:
 ```
-❌ Error: Insufficient files for COMPARISON mode
+ Error: Insufficient files for COMPARISON mode
 
 Problem: COMPARISON mode requires at least 2 plan files
 Recovery: Provide 2 or more plan files to compare
@@ -139,7 +139,7 @@ model: test-model
 
 **Expected:** Error message (or prompt for input):
 ```
-❌ Error: Missing required field
+ Error: Missing required field
 
 Problem: COMPARISON mode requires task_description
 Recovery: Provide a brief description of what the plans should accomplish
@@ -161,7 +161,7 @@ model: test-model
 
 **Expected:** Error message:
 ```
-❌ Error: Insufficient files for META-REVIEW mode
+ Error: Insufficient files for META-REVIEW mode
 
 Problem: META-REVIEW mode requires at least 2 review files
 Recovery: Provide 2 or more review files to analyze
@@ -183,7 +183,7 @@ model: test-model
 
 **Expected:** Warning or error:
 ```
-⚠️ Warning: Files may not be reviews
+ Warning: Files may not be reviews
 
 Problem: Expected review files in reviews/ directory
 Provided: plans/a.md, plans/b.md
@@ -206,7 +206,7 @@ model:
 
 **Expected:** Error message:
 ```
-❌ Error: Missing required field
+ Error: Missing required field
 
 Problem: 'model' is required
 Recovery: Provide a model identifier (e.g., claude-sonnet45, gpt-52)

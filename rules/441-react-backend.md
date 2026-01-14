@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-13
 **Keywords:** React backend, FastAPI, Flask, Python API, CORS, JWT, authentication, API integration, full-stack, Express alternative, fetch, axios, TanStack Query backend, Next.js API routes, httpOnly cookies
 **TokenBudget:** ~3050
 **ContextTier:** High
@@ -144,7 +144,7 @@ Python backend code (FastAPI or Flask) with:
 - ML/AI integration (async preferred)
 
 **When to use Flask:**
-- Simple REST API, quick setup
+- REST API with <10 endpoints, quick setup
 - Large existing Flask codebase
 - ML/AI integration (sync acceptable)
 

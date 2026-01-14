@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**LastUpdated:** 2026-01-06
 **Keywords:** FastAPI testing, TestClient, pytest-asyncio, API tests, integration testing, mocking, test fixtures, AAA pattern, async testing, Python
 **TokenBudget:** ~3050
 **ContextTier:** High
@@ -390,7 +390,7 @@ def auth_headers():
 - **Always:** Follow Python core rules from `200-python-core.md` for testing commands.
 - **Always:** Apply linting rules from `201-python-lint-format.md` to test code.
 
-# See 200-python-core.md for complete uv command patterns
+> See `200-python-core.md` for complete uv command patterns
 
 ### Test Configuration
 ```toml

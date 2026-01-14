@@ -1,11 +1,11 @@
-# Streamlit SQL Error Handling: Comprehensive Reference
+# Streamlit SQL Error Handling Patterns
 
 ## Metadata
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
-**Keywords:** SnowparkSQLException, error messages, Streamlit errors, Snowflake errors, debug SQL error, fix query error, SQL exception, error troubleshooting, query failed, database error, SQL debugging patterns, exception handling, error recovery, common SQL errors
+**LastUpdated:** 2026-01-12
+**Keywords:** SnowparkSQLException, error messages, Streamlit errors, Snowflake errors, debug SQL error, fix query error, SQL exception, error troubleshooting, query failed, database error, SQL debugging patterns, exception handling, error recovery, common SQL errors, streamlit error, app error, fix error, error handling
 **TokenBudget:** ~4150
 **ContextTier:** Low
 **Depends:** 100-snowflake-core.md, 101-snowflake-streamlit-core.md, 101b-snowflake-streamlit-performance.md
@@ -404,8 +404,9 @@ from snowflake.connector.errors import DatabaseError
 import streamlit as st
 import time
 
-# Import classification from 100f patterns
-from snowflake_error_utils import classify_snowflake_connection_error, SnowflakeErrorType
+# Example pattern - implement classify_snowflake_connection_error() in your app
+# based on error codes and messages. See classification logic below.
+# from your_app.error_utils import classify_snowflake_connection_error, SnowflakeErrorType
 
 def handle_connection_error(error: DatabaseError):
     """

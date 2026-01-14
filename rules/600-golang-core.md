@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-13
 **Keywords:** Go, Golang, go.mod, modules, error handling, interfaces, goroutines, channels, testing, go fmt, golangci-lint, concurrency, context, defer
 **TokenBudget:** ~4500
 **ContextTier:** High
@@ -37,8 +37,7 @@ Foundational Go development practices using idiomatic patterns, modern tooling (
 - **000-global-core.md** - Foundation rule with core patterns and validation gates
 
 **Related:**
-- **601-golang-testing.md** - Advanced Go testing patterns (if exists)
-- **602-golang-concurrency.md** - Advanced concurrency patterns (if exists)
+- None currently - this is the core Go rule
 
 ### External Documentation
 

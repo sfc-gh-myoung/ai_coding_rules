@@ -1,0 +1,303 @@
+# Structure Rubric (15 points)
+
+## Scoring Formula
+
+**Raw Score:** 0-10
+**Weight:** 3
+**Points:** Raw × (3/2) = Raw × 1.5
+
+## Scoring Criteria
+
+### 10/10 (15 points): Perfect
+- Logical information flow
+- Clear heading hierarchy
+- Easy navigation
+- Table of contents (for long docs)
+- Sections in appropriate order
+
+### 9/10 (13.5 points): Near-Perfect
+- Excellent flow (1 minor issue)
+- Perfect heading hierarchy
+- Clear navigation
+- TOC present if needed
+
+### 8/10 (12 points): Excellent
+- Mostly logical flow (1-2 ordering issues)
+- Good heading hierarchy
+- Navigation mostly clear
+- TOC present if needed
+
+### 7/10 (10.5 points): Good
+- Good flow (2-3 ordering issues)
+- Good heading hierarchy
+- Navigation mostly clear
+
+### 6/10 (9 points): Acceptable
+- Some flow issues (3-4 ordering problems)
+- Heading hierarchy has 1-2 gaps
+- Navigation somewhat confusing
+
+### 5/10 (7.5 points): Borderline
+- Flow issues (4-5 ordering problems)
+- Heading hierarchy has gaps
+- Navigation confusing
+
+### 4/10 (6 points): Needs Work
+- Poor flow (5-6 ordering problems)
+- Heading hierarchy broken
+- Hard to navigate
+
+### 3/10 (4.5 points): Poor
+- Poor flow (>6 ordering problems)
+- Heading hierarchy broken
+- Very hard to navigate
+
+### 2/10 (3 points): Very Poor
+- Minimal logical structure
+- Chaotic organization
+- Navigation impossible
+
+### 1/10 (1.5 points): Inadequate
+- No logical structure
+- Chaotic organization
+- Impossible to navigate
+
+### 0/10 (0 points): No Structure
+- Completely unorganized
+- Cannot find information
+
+## Information Flow
+
+### Expected README Order
+
+Standard structure for README.md:
+
+1. **Title & badges** (project name, build status, version)
+2. **Brief description** (1-2 sentences: what it does)
+3. **Key features** (bullet list, 3-7 items)
+4. **Quick start** (fastest path to working state)
+5. **Installation** (detailed setup)
+6. **Usage** (basic examples)
+7. **Configuration** (options, environment)
+8. **Documentation** (links to full docs)
+9. **Contributing** (how to contribute)
+10. **License** (license type)
+
+**Scoring:**
+- Follows standard order: 10/10
+- 1-2 out of order: 8/10
+- 3-4 out of order: 6/10
+- 5-6 out of order: 4/10
+- 7+ out of order: 2/10
+- No structure: 0/10
+
+### Information Dependencies
+
+Check that information is introduced in dependency order:
+
+**Bad example:**
+```markdown
+## Configuration
+Set DATABASE_URL in your .env file
+
+## Installation
+Create .env file from template
+```
+→  Configuration before installation
+
+**Good example:**
+```markdown
+## Installation
+Create .env file from template
+
+## Configuration
+Set DATABASE_URL in your .env file
+```
+→  Installation before configuration
+
+## Heading Hierarchy
+
+### Proper Nesting
+
+Headings must nest properly:
+
+**Bad:**
+```markdown
+# Title
+### Subsection  ← Skipped H2!
+## Section      ← Out of order!
+```
+
+**Good:**
+```markdown
+# Title
+## Section
+### Subsection
+#### Detail
+```
+
+### Heading Consistency
+
+Check heading format consistency:
+
+**Inconsistent:**
+```markdown
+## installation
+## Configuration
+## USAGE
+```
+
+**Consistent:**
+```markdown
+## Installation
+## Configuration
+## Usage
+```
+
+## Navigation
+
+### Internal Links
+
+For long documents (>300 lines), require:
+
+- [ ] Table of contents at top
+- [ ] Section links in TOC
+- [ ] "Back to top" links for long sections
+
+**Example TOC:**
+```markdown
+## Table of Contents
+
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Usage](#usage)
+- [Troubleshooting](#troubleshooting)
+```
+
+### Cross-References
+
+Check that cross-references work:
+
+**Broken:**
+```markdown
+See the setup guide (link broken/missing)
+```
+
+**Working:**
+```markdown
+See the [setup guide](docs/setup.md)
+```
+
+## Page Length
+
+**Optimal lengths:**
+- README.md: 100-400 lines
+- Tutorial: 50-200 lines per page
+- Reference: As needed, but paginated
+
+**Issues:**
+- Single-page >1000 lines → Consider splitting
+- Many pages <50 lines → Consider combining
+
+## Scoring Formula
+
+```
+Base score = 10/10 (15 points)
+
+Information flow:
+  Follows standard: 10/10
+  1-2 out of order: 8/10 (-0.75 points)
+  3-4 out of order: 6/10 (-1.5 points)
+  5-6 out of order: 4/10 (-2.25 points)
+  7+ out of order: 2/10 (-3 points)
+  No structure: 0/10 (-3.75 points)
+
+Deductions:
+  Broken heading hierarchy: -0.5 point per issue (up to -1.5)
+  Missing TOC (>300 lines): -0.5 point
+  Broken cross-references: -0.25 per link (up to -1)
+  Poor section order: -0.25 per issue (up to -1)
+
+Minimum score: 0/10 (0 points)
+```
+
+## Critical Gate
+
+If documentation has no logical structure:
+- Cap score at 2/10 (3 points) maximum
+- Mark as CRITICAL issue
+- Users cannot find information
+
+## Common Structure Issues
+
+### Issue 1: Configuration Before Installation
+
+**Problem:**
+```markdown
+## Configuration
+Set these environment variables...
+
+## Installation
+Run npm install...
+```
+
+**Fix:** Move Installation before Configuration
+
+### Issue 2: Missing Table of Contents
+
+**Problem:** 800-line README with no navigation
+
+**Fix:**
+```markdown
+## Table of Contents
+
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Configuration](#configuration)
+...
+```
+
+### Issue 3: Broken Heading Hierarchy
+
+**Problem:**
+```markdown
+# Project Title
+### Getting Started  ← Skipped H2
+## Installation       ← Wrong level
+```
+
+**Fix:**
+```markdown
+# Project Title
+## Getting Started
+### Prerequisites
+### Installation
+```
+
+### Issue 4: Poor Logical Flow
+
+**Problem:**
+```markdown
+## Advanced Usage
+(complex patterns)
+
+## Basic Usage
+(simple patterns)
+```
+
+**Fix:** Basic before Advanced
+
+## Structure Checklist
+
+During review, verify:
+
+- [ ] README follows standard order
+- [ ] Information introduced in logical sequence
+- [ ] Prerequisites before installation
+- [ ] Installation before configuration
+- [ ] Basic usage before advanced
+- [ ] Headings nested properly (no skipped levels)
+- [ ] Heading capitalization consistent
+- [ ] TOC present if >300 lines
+- [ ] All cross-references work
+- [ ] Sections are right-sized (not too long/short)

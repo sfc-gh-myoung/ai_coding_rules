@@ -4,9 +4,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
-**Keywords:** @st.cache_data, @st.cache_resource, st.fragment, NULL handling, slow streamlit, streamlit caching, optimize streamlit, fix slow queries, fragment batch processing
-**TokenBudget:** ~7950
+**LastUpdated:** 2026-01-12
+**Keywords:** @st.cache_data, @st.cache_resource, st.fragment, NULL handling, slow streamlit, streamlit caching, optimize streamlit, fix slow queries, fragment batch processing, streamlit performance, app slow, loading data, caching pattern
+**TokenBudget:** ~5450
 **ContextTier:** High
 **Depends:** 101-snowflake-streamlit-core.md, 103-snowflake-performance-tuning.md
 
@@ -150,25 +150,6 @@ Optimized Streamlit app with <2s initial load, cached data operations, normalize
 - **Profile Always:** Target <2s load time, measure and optimize
 - **Error Handling:** For SQL error patterns, see 101e-snowflake-streamlit-sql-errors.md
 
-> **Investigation Required**
-> When optimizing Streamlit performance:
-> 1. Profile the application first - use Chrome DevTools or st.profiler to identify actual bottlenecks
-> 2. Check query execution times in Snowflake (QUERY_HISTORY view) before optimizing
-> 3. Verify cache behavior - confirm TTL values and check st.cache_data/st.cache_resource are being used
-> 4. Never assume column names - always normalize after fetching from Snowflake
-> 5. Test error handling - verify st.error() messages appear when queries fail
-> 6. Measure impact - profile before/after optimization to verify improvements
->
-> **Anti-Pattern:**
-> "Let me add caching everywhere to speed this up."
->
-> **Correct Pattern:**
-> "Let me profile the application first to see which operations are slow."
-> [profiles with Chrome DevTools]
-> "The load_dashboard_data() function takes 4.2s. Let me check the Snowflake query history."
-> [checks QUERY_HISTORY]
-> "The query itself runs in 0.3s, so the issue is likely in data processing. Let me add caching."
-
 ### Post-Execution Checklist
 
 - [ ] @st.cache_data used for all database queries with appropriate ttl
@@ -216,26 +197,10 @@ df = load_data()  # Cached, hits database once per ttl
 
 **Anti-Pattern 2: Forgetting column normalization**
 ```python
-@st.cache_data(ttl=600)
-def load_assets():
-    return session.table('ASSETS').to_pandas()
-
 df = load_assets()
 transformers = df[df['asset_type'] == 'TRANSFORMER']  # KeyError!
 ```
-**Problem:** Snowflake returns UPPERCASE column names; Python expects lowercase
-
-**Correct Pattern:**
-```python
-@st.cache_data(ttl=600)
-def load_assets():
-    df = session.table('ASSETS').to_pandas()
-    df.columns = [col.lower() for col in df.columns]  # CRITICAL
-    return df
-
-df = load_assets()
-transformers = df[df['asset_type'] == 'TRANSFORMER']  # Works!
-```
+**Problem:** Snowflake returns UPPERCASE column names; Python expects lowercase. See "Data Loading from Snowflake" section below for normalization pattern.
 
 **Anti-Pattern 3: No user feedback for slow operations**
 ```python
@@ -297,22 +262,23 @@ def load_data() -> pd.DataFrame:
     """
     session = get_snowflake_session()
 
-    with st.spinner("Loading data from Snowflake..."):
-        query = """
-        SELECT
-            region,
-            product,
-            SUM(amount) as total_amount
-        FROM sales
-        WHERE order_date >= DATEADD(day, -90, CURRENT_DATE())
-        GROUP BY region, product
-        """
-        df = session.sql(query).to_pandas()
+    try:
+        with st.spinner("Loading data from Snowflake..."):
+            query = """
+            SELECT
+                region,
+                product,
+                SUM(amount) as total_amount
+            FROM sales
+            WHERE order_date >= DATEADD(day, -90, CURRENT_DATE())
+            GROUP BY region, product
+            """
+            df = session.sql(query).to_pandas()
 
-        # CRITICAL: Normalize column names
-        df.columns = [col.lower() for col in df.columns]
+            # CRITICAL: Normalize column names
+            df.columns = [col.lower() for col in df.columns]
 
-    return df
+        return df
 
     except Exception as e:
         st.error(f"""
@@ -433,24 +399,23 @@ session = get_snowflake_session()  # Reuses cached session
 
 ### Caching with NULL-Safe Data
 
-**Rule**: Validate cached data doesn't contain unexpected NaN values that cause display errors:
+**For NULL/NaN handling patterns, see Section "Pandas NULL Handling" in `101-snowflake-streamlit-core.md`.**
+
+**Key Rules for Caching:**
+- Validate cached data doesn't contain unexpected NaN values that cause display errors
+- Use `pd.notna()` instead of `is not None` to correctly handle Snowflake NULL values that become pandas NaN
+- Format strings (`.1f`, `.0f`) crash on NaN values - validate first
 
 ```python
-import pandas as pd
-
 @st.cache_data(ttl=300)
 def load_metrics():
     """Load KPI metrics from Snowflake with NULL-safe handling."""
     session = get_snowflake_session()
     df = session.sql("SELECT metric_name, value FROM kpis").to_pandas()
-
-    # Validate no critical NaN values before caching
     if df["value"].isna().any():
-        st.warning("Some metrics unavailable - showing cached values where possible")
-
+        st.warning("Some metrics unavailable")
     return df
 
-# Use cached data with NULL-safe display
 metrics_df = load_metrics()
 for _, row in metrics_df.iterrows():
     value = row["value"]
@@ -459,14 +424,6 @@ for _, row in metrics_df.iterrows():
     else:
         st.metric(row["metric_name"], "N/A")
 ```
-
-**Performance Note**: Validating for NaN in cached data prevents expensive re-computation when display errors occur. Using `pd.notna()` instead of `is not None` correctly handles Snowflake NULL values that become pandas NaN.
-
-**Why This Matters:**
-- Snowflake NULL becomes pandas NaN (not Python None)
-- Standard Python checks (`is not None`) don't catch NaN
-- Format strings (`.1f`, `.0f`) crash on NaN values
-- Cached NaN values persist and cause repeated errors
 
 ## Data Loading from Snowflake - Critical Column Name Normalization
 
@@ -585,252 +542,9 @@ st.success("All batches processed!")
 
 ### 3.3 Advanced: Real-Time Progress with Fragments
 
-**RECOMMENDED:**
-**Use `st.fragment` with `run_every` for automatic polling and real-time progress updates:**
-- **Use Case:** Long-running operations (>30s) requiring live progress without user interaction
-- **Pattern:** Fragment auto-refreshes every N seconds, polling progress table/API
-- **Benefit:** Only fragment reruns (not full app), preserving rest of UI and user interaction state
+**For long-running operations (>30s) requiring live progress updates, see `101g-snowflake-streamlit-fragments.md`.**
 
-**When to Use Fragments:**
-- Database operations with progress table tracking (Snowflake stored procedures, Cortex AI functions)
-- API polling for job status (external services, batch processing)
-- Streaming data updates (real-time analytics, monitoring)
-- Real-time monitoring dashboards (live metrics, status boards)
-
-**Official Documentation:**
-- **API Reference:** https://docs.streamlit.io/develop/api-reference/execution-flow/st.fragment
-- **Architecture Guide:** https://docs.streamlit.io/develop/concepts/architecture/fragments
-
-**Complete Working Example (from Call Center Analytics):**
-
-```python
-import streamlit as st
-import time
-from concurrent.futures import ThreadPoolExecutor
-
-# ========================================================================
-# STREAMLIT FRAGMENT PATTERN: Live Progress Tracking
-# ========================================================================
-# This pattern implements Streamlit's recommended approach for long-running
-# operations with real-time progress updates.
-#
-# Key Components:
-# 1. st.session_state - Persists active operation state across reruns
-# 2. @st.fragment(run_every="0.5s") - Auto-refreshing fragment that polls progress
-# 3. Conditional rendering - Fragment called outside button's if block
-# 4. ThreadPoolExecutor - Non-blocking stored procedure execution
-# 5. st.stop() - Halts fragment auto-refresh when operation completes
-#
-# Why This Works:
-# - Button click sets session_state.active_analysis_file
-# - Fragment conditionally rendered on EVERY rerun (not just inside if block)
-# - Fragment's run_every triggers automatic reruns every 0.5s
-# - When complete, fragment clears session state and calls st.stop()
-#
-# Reference: https://docs.streamlit.io/develop/concepts/architecture/fragments
-# ========================================================================
-
-def initialize_analysis_progress(audio_file: str):
-    """Initialize progress tracking in database table"""
-    session.sql(f"""
-        INSERT INTO UTILITY_DEMO_V2.CUSTOMER_DATA.ANALYSIS_PROGRESS
-        (AUDIO_FILE_NAME, STATUS, CURRENT_STEP, TOTAL_STEPS)
-        VALUES ('{audio_file}', 'in_progress', 0, 18)
-    """).collect()
-
-def call_stored_procedure_async(proc_name: str, *args):
-    """Execute stored procedure in background thread"""
-    executor = ThreadPoolExecutor(max_workers=1)
-    def run_proc():
-        return session.call(proc_name, *args)
-    return executor.submit(run_proc)
-
-@st.fragment(run_every="0.5s")
-def show_analysis_progress_live(audio_file):
-    """
-    Auto-refreshing fragment that polls ANALYSIS_PROGRESS table.
-
-    Fragment Pattern (Streamlit Best Practice):
-    - Decorated with @st.fragment(run_every="0.5s") for automatic polling
-    - Called conditionally based on st.session_state.active_analysis_file
-    - Uses st.stop() to halt auto-refresh when operation completes
-    - Clears session state to prevent re-triggering on subsequent reruns
-
-    Why This Works:
-    - Fragment reruns independently every 0.5s (not entire app)
-    - Reads progress from database table updated by stored procedure
-    - Displays live updates without blocking main thread
-    - Stops cleanly when operation completes (no infinite loops)
-
-    Reference: https://docs.streamlit.io/develop/api-reference/execution-flow/st.fragment
-    Pattern: https://docs.streamlit.io/develop/concepts/architecture/fragments
-    """
-    # Query current progress from database
-    progress_result = session.sql(f"""
-        SELECT STATUS, CURRENT_STEP, TOTAL_STEPS, STEP_DESCRIPTION, LAST_UPDATED
-        FROM UTILITY_DEMO_V2.CUSTOMER_DATA.ANALYSIS_PROGRESS
-        WHERE AUDIO_FILE_NAME = '{audio_file}'
-        ORDER BY LAST_UPDATED DESC
-        LIMIT 1
-    """).collect()
-
-    if not progress_result:
-        st.warning("⏳ Initializing analysis...")
-        return
-
-    p = progress_result[0].as_dict()
-
-    # Show live progress bar and status
-    if p["STATUS"] == "in_progress" and p["TOTAL_STEPS"] > 0:
-        progress_pct = p["CURRENT_STEP"] / p["TOTAL_STEPS"]
-        st.progress(progress_pct, text=f"Step {p['CURRENT_STEP']}/{p['TOTAL_STEPS']}")
-        st.info(f"🔄 {p['STEP_DESCRIPTION']}")
-
-        # Show elapsed time
-        if "analysis_start_time" in st.session_state:
-            elapsed = time.time() - st.session_state.analysis_start_time
-            st.caption(f"Elapsed: {int(elapsed)}s")
-
-    # Stop polling when complete
-    if p["STATUS"] in ["completed", "partial", "failed"]:
-        if p["STATUS"] == "completed":
-            st.success(f"Analysis complete! Processed {p['CURRENT_STEP']}/{p['TOTAL_STEPS']} steps")
-        elif p["STATUS"] == "partial":
-            st.warning(f"Partial completion: {p['CURRENT_STEP']}/{p['TOTAL_STEPS']} steps")
-        else:  # failed
-            st.error(f"Analysis failed at step {p['CURRENT_STEP']}: {p['STEP_DESCRIPTION']}")
-
-        # Clear session state to stop fragment
-        if "active_analysis_file" in st.session_state:
-            del st.session_state.active_analysis_file
-        if "analysis_in_progress" in st.session_state:
-            st.session_state.analysis_in_progress = False
-        if "analysis_start_time" in st.session_state:
-            del st.session_state.analysis_start_time
-        if "analysis_future" in st.session_state:
-            del st.session_state.analysis_future
-
-        st.stop()  # Stop fragment auto-refresh
-
-# Main app code
-st.title("Call Center Analytics")
-
-# CRITICAL: Conditional fragment rendering (outside button block)
-# This ensures fragment continues to run on every rerun triggered by run_every
-if st.session_state.get("active_analysis_file"):
-    st.info(f"Analyzing: {st.session_state.active_analysis_file}")
-    show_analysis_progress_live(st.session_state.active_analysis_file)
-
-# Button handler (only runs when button is clicked)
-if st.button(
-    "[SEARCH] Analyze Transcription",
-    type="primary",
-    disabled=st.session_state.get("analysis_in_progress", False),
-):
-    selected_file = "call_de_20250924_003.mp3"
-
-    # Set session state to trigger fragment
-    st.session_state.active_analysis_file = selected_file
-    st.session_state.analysis_in_progress = True
-    st.session_state.analysis_start_time = time.time()
-
-    # Initialize progress tracking
-    with st.spinner("[DEPLOY] Launching analysis..."):
-        initialize_analysis_progress(selected_file)
-        future = call_stored_procedure_async(
-            "UTILITY_DEMO_V2.CUSTOMER_DATA.SP_ANALYZE_CALL_TRANSCRIPTION_PROGRESSIVE",
-            selected_file,
-        )
-        st.session_state.analysis_future = future
-
-    st.rerun()  # Trigger rerun to show fragment
-```
-
-**Fragment Pattern Requirements:**
-
-**MANDATORY:**
-- **Session State Persistence:** Store active operation state in `st.session_state` for cross-rerun tracking
-- **Conditional Rendering:** Fragment MUST be called outside button's `if` block to persist across reruns
-- **Cleanup on Completion:** Clear session state variables when operation completes to stop fragment
-- **Use `st.stop()`:** Call `st.stop()` inside fragment to halt auto-refresh when done
-- **Read-Only Display:** Fragment body should only contain display elements (no widgets)
-
-**Anti-Patterns and Limitations:**
-
-**Anti-Pattern 1: Creating Fragment Inside Button Block**
-```python
-if st.button("Start"):
-    @st.fragment(run_every="1s")  # Fragment won't persist after button resets
-    def show_progress():
-        st.write("Progress...")
-    show_progress()
-```
-**Problem:** Button state resets on rerun, fragment disappears after first auto-refresh.
-
-**Correct Pattern:**
-```python
-# Fragment defined at module level
-@st.fragment(run_every="1s")
-def show_progress():
-    if st.session_state.get("active"):
-        st.write("Progress...")
-
-# Conditional rendering based on session state
-if st.session_state.get("active"):
-    show_progress()
-
-if st.button("Start"):
-    st.session_state.active = True
-    st.rerun()
-```
-**Benefits:** Fragment persists across reruns, continues polling until session state cleared.
-
-**Anti-Pattern 2: Using Widgets Inside Fragments**
-```python
-@st.fragment(run_every="1s")
-def fragment_with_widgets():
-    user_input = st.text_input("Name")  # FORBIDDEN in fragments
-    st.write(f"Hello {user_input}")
-```
-**Problem:** Streamlit explicitly forbids widgets in fragment bodies (design limitation).
-
-**Correct Pattern:**
-```python
-# Widgets outside fragment
-user_input = st.text_input("Name")
-
-@st.fragment(run_every="1s")
-def display_only_fragment():
-    st.write(f"Hello {user_input}")  # Read-only display OK
-```
-**Benefits:** Follows Streamlit's fragment constraints, works reliably.
-
-**Anti-Pattern 3: No Termination Condition**
-```python
-@st.fragment(run_every="1s")
-def infinite_polling():
-    st.write("Polling forever...")  # Never stops
-```
-**Problem:** Fragment runs indefinitely, wasting resources and degrading UX.
-
-**Correct Pattern:**
-```python
-@st.fragment(run_every="1s")
-def polling_with_termination():
-    status = check_operation_status()
-    st.write(f"Status: {status}")
-
-    if status == "complete":
-        del st.session_state.active_operation
-        st.stop()  # Halt auto-refresh
-```
-**Benefits:** Cleans up automatically when operation completes.
-
-**Performance Considerations:**
-- **Polling Frequency:** Balance between responsiveness and database load (0.5s-2s typical)
-- **Scoped Reruns:** Only fragment reruns, not entire app (preserves user inputs, scroll position)
-- **Database Load:** Each auto-refresh queries database; ensure queries are indexed and fast (<100ms)
-- **Connection Pooling:** Use Streamlit's `st.connection()` for efficient connection management
+Covers: `@st.fragment(run_every=...)`, session state persistence, conditional rendering, anti-patterns, and complete working examples.
 
 ## Performance Optimization Patterns
 

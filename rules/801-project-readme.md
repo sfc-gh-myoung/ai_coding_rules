@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-13
 **Keywords:** README, project documentation, getting started, setup instructions, badges, Quick Start, Contributing, License, project structure, technical writing
-**TokenBudget:** ~5700
+**TokenBudget:** ~5350
 **ContextTier:** Medium
 **Depends:** 000-global-core.md
 
@@ -38,6 +38,7 @@ Comprehensive standards for README.md files following widely accepted industry b
 - [GitHub README Guide](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes) - Official GitHub documentation standards
 - [Make a README](https://www.makeareadme.com/) - Interactive README creation guide and best practices
 - [Awesome README Examples](https://github.com/matiassingers/awesome-readme) - Curated collection of excellent README examples
+- [CommonMark Spec](https://spec.commonmark.org/) - Authoritative Markdown specification (README.md MUST comply)
 
 ## Contract
 
@@ -59,6 +60,7 @@ Comprehensive standards for README.md files following widely accepted industry b
 - Using hard-coded paths or environment-specific instructions
 - Adding badges without verifying they work
 - Assuming tech stack without verification
+- Non-compliant Markdown (must follow [CommonMark spec](https://spec.commonmark.org/))
 
 ### Execution Steps
 1. Read existing README.md to understand current structure
@@ -126,7 +128,7 @@ Markdown file (README.md) with:
 **Why It Fails:** Commands may fail due to missing dependencies, incorrect paths, or environment-specific assumptions. Users get frustrated when the "quick" start doesn't work, eroding trust in the project documentation.
 
 **Correct Pattern:**
-```markdown
+````markdown
 ## Quick Start
 
 **Prerequisites:** Node.js 18+, npm 9+
@@ -147,7 +149,7 @@ npm start
 - Started development server on http://localhost:3000
 
 **Next Steps:** See [Configuration](#configuration) for customization options.
-```
+````
 
 ### Anti-Pattern 2: Duplicating CONTRIBUTING.md Content in README
 
@@ -189,6 +191,47 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 3. Verify build tools and test frameworks
 4. Test installation commands in clean environment
 5. Only then add/update README sections
+```
+
+### Anti-Pattern 4: Broken Badge URLs After Deployment
+
+**Problem:** Badge URLs become invalid after service changes, repository moves, or service deprecation.
+
+**Why It Fails:** Broken badges damage credibility, confuse users about project status, and suggest unmaintained project. Users may question reliability if basic documentation elements are broken.
+
+**Correct Pattern:**
+```markdown
+## Automated Badge Validation
+
+Add to Taskfile.yml:
+
+```yaml
+validate:badges:
+  desc: Verify all README badges are accessible
+  cmds:
+    - |
+      grep -oP 'https://[^)]+\.svg' README.md | while read url; do
+        if ! curl -f -s -o /dev/null "$url"; then
+          echo "BROKEN: $url"
+          exit 1
+        fi
+      done
+    - echo "All badges validated"
+```
+
+**Recovery Procedure:**
+1. Test all badge URLs: `curl -I [badge_url]` (expect HTTP 200)
+2. If 404: Check service documentation for new URL format
+3. If 301/302: Update to final redirect destination URL
+4. If service deprecated: Remove badge or migrate to alternative service (shields.io)
+5. Add badge validation to CI/CD pipeline
+6. Document badge service dependencies in CONTRIBUTING.md
+
+**Prevention:**
+- Use shields.io for custom badges (stable, maintained service)
+- Avoid service-specific badges when alternatives exist
+- Test badges in pull request validation
+- Monitor badge status monthly
 ```
 
 ## Implementation Details
@@ -241,7 +284,7 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 - Validation procedures
 
 **Boundary Pattern:**
-```markdown
+````markdown
 
 ## Contributing (in README.md)
 
@@ -256,7 +299,7 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for complete gu
 ```
 
 For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
-```
+````
 
 ### Required Sections (In Order)
 - **Requirement:** Every README.md must include these core sections:
@@ -268,7 +311,7 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Description
 
-## Quick Start / Installation
+## Quick Start
 
 ## Usage
 
@@ -278,7 +321,7 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 ```
 
 ### Recommended Additional Sections
-- **Consider:** Include these sections based on project complexity:
+- **For complex projects,** include these sections based on project complexity:
 
 ```markdown
 
@@ -295,6 +338,7 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 - [Testing](#testing)
 ```
 
+```markdown
 ## Features
 
 ## Prerequisites
@@ -323,7 +367,7 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 ### Project Title and Description
 - **Requirement:** Use a single H1 (`#`) for the project title
 - **Requirement:** Include a concise one-line description immediately after the title
-- **Always:** Add badges/shields for build status, version, license, and key metrics
+- **Always:** Add badges/shields for build status, version, license, test coverage, and download count
 - **Rule:** Keep description under 160 characters for social media compatibility
 - **Multi-Platform Projects:** Include badges for hosting platforms
 
@@ -378,6 +422,7 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 - **Always:** Include the minimal commands to get started
 - **Rule:** Test all installation commands on clean systems
 - **Multi-Platform:** Show both platform options for dual-hosted repositories
+- **Note:** "Quick Start" and "Installation" may be used interchangeably, but prefer "Quick Start" for consistency
 
 ```markdown
 
@@ -399,7 +444,7 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ### Context-Aware Documentation (for AI/LLM Projects)
 
-**Consider:** For projects involving AI, LLMs, or context windows:
+**For AI projects,** document the following:
 - Document token budgets or context limitations
 - Explain modular loading strategies
 - Include searchable indexes (e.g., RULES_INDEX.md pattern)
@@ -603,7 +648,7 @@ Click [here](https://example.com/docs) for more info.
 - Snowflake + Streamlit: Load 101-snowflake-streamlit-core
 ```
 
-**Validation:** Test with screen reader (NVDA, JAWS, VoiceOver)
+**Validation:** Test with screen reader (NVDA, JAWS, VoiceOver, or equivalent accessibility testing tool)
 
 **Why This Matters:**
 - Screen readers cannot interpret ASCII art

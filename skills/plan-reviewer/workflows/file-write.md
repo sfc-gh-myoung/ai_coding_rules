@@ -9,39 +9,44 @@ Write review output to the correct location with no-overwrite safety.
 ### FULL Mode
 
 ```
-reviews/plan-<plan-name>-<model>-<YYYY-MM-DD>.md
+{output_root}plan-reviews/plan-<plan-name>-<model>-<YYYY-MM-DD>.md
 ```
 
-Example:
+Example (default `output_root: reviews/`):
 - Plan: `plans/IMPROVE_RULE_LOADING.md`
 - Model: `claude-sonnet45`
 - Date: `2025-12-16`
-- Output: `reviews/plan-IMPROVE_RULE_LOADING-claude-sonnet45-2025-12-16.md`
+- Output: `reviews/plan-reviews/plan-IMPROVE_RULE_LOADING-claude-sonnet45-2025-12-16.md`
+
+Example (with `output_root: mytest/`):
+- Output: `mytest/plan-reviews/plan-IMPROVE_RULE_LOADING-claude-sonnet45-2025-12-16.md`
 
 ### COMPARISON Mode
 
 ```
-reviews/plan-comparison-<model>-<YYYY-MM-DD>.md
+{output_root}summaries/_comparison-<model>-<YYYY-MM-DD>.md
 ```
 
-Example:
+Example (default `output_root: reviews/`):
 - Model: `claude-sonnet45`
 - Date: `2025-12-16`
-- Output: `reviews/plan-comparison-claude-sonnet45-2025-12-16.md`
+- Output: `reviews/summaries/_comparison-claude-sonnet45-2025-12-16.md`
 
 ### META-REVIEW Mode
 
 ```
-reviews/meta-<document-name>-<model>-<YYYY-MM-DD>.md
+{output_root}summaries/_meta-<document-name>-<model>-<YYYY-MM-DD>.md
 ```
 
-Example:
+Example (default `output_root: reviews/`):
 - Original: `plans/IMPROVE_RULE_LOADING.md`
 - Model: `claude-sonnet45`
 - Date: `2025-12-16`
-- Output: `reviews/meta-IMPROVE_RULE_LOADING-claude-sonnet45-2025-12-16.md`
+- Output: `reviews/summaries/_meta-IMPROVE_RULE_LOADING-claude-sonnet45-2025-12-16.md`
 
 ## No-Overwrite Safety
+
+**When `overwrite: false` (default):**
 
 If the target file already exists:
 
@@ -49,14 +54,25 @@ If the target file already exists:
 2. If `-01` exists, try `-02`, etc.
 3. Continue until unused suffix found
 
+**When `overwrite: true`:**
+
+The existing file will be replaced directly. Use this when intentionally re-running a review.
+
 ```python
-def get_safe_path(base_path: str) -> str:
+def get_safe_path(base_path: str, overwrite: bool = False) -> str:
     from pathlib import Path
     
     p = Path(base_path)
+    
+    # If overwrite, always use base path
+    if overwrite:
+        return base_path
+    
+    # If file doesn't exist, use base path
     if not p.exists():
         return base_path
     
+    # Sequential numbering for no-overwrite mode
     stem = p.stem
     suffix = p.suffix
     parent = p.parent
@@ -80,9 +96,9 @@ def get_safe_path(base_path: str) -> str:
 ## Success Output
 
 ```
-✓ Review complete
+ Review complete
 
-OUTPUT_FILE: reviews/plan-IMPROVE_RULE_LOADING-claude-sonnet45-2025-12-16.md
+OUTPUT_FILE: reviews/plan-reviews/plan-IMPROVE_RULE_LOADING-claude-sonnet45-2025-12-16.md
 Target: plans/IMPROVE_RULE_LOADING.md
 Mode: FULL
 Model: claude-sonnet45

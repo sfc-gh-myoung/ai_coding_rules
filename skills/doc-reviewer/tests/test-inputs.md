@@ -225,18 +225,16 @@ model: claude-sonnet45
 
 ## Validation Summary
 
-| Test | Input Type | Expected Result |
-|------|------------|-----------------|
-| 1 | Valid (minimal) | Pass |
-| 2 | Valid (with targets) | Pass |
-| 3 | Invalid date (MM/DD/YYYY) | Fail with message |
-| 4 | Invalid date (no dashes) | Fail with message |
-| 5 | Invalid mode | Fail with message |
-| 6 | Invalid scope | Fail with message |
-| 7 | FOCUSED without focus_area | Fail with message |
-| 8 | FOCUSED with invalid focus_area | Fail with message |
-| 9 | FOCUSED with valid focus_area | Pass |
-| 10 | Target not found | Fail with message |
-| 11 | Non-markdown target | Warn, offer options |
-| 12 | No docs found | Fail with message |
+- **1** - Input Type: Valid (minimal), Expected Result: Pass
+- **2** - Input Type: Valid (with targets), Expected Result: Pass
+- **3** - Input Type: Invalid date (MM/DD/YYYY), Expected Result: Fail with message
+- **4** - Input Type: Invalid date (no dashes), Expected Result: Fail with message
+- **5** - Input Type: Invalid mode, Expected Result: Fail with message
+- **6** - Input Type: Invalid scope, Expected Result: Fail with message
+- **7** - Input Type: FOCUSED without focus_area, Expected Result: Fail with message
+- **8** - Input Type: FOCUSED with invalid focus_area, Expected Result: Fail with message
+- **9** - Input Type: FOCUSED with valid focus_area, Expected Result: Pass
+- **10** - Input Type: Target not found, Expected Result: Fail with message
+- **11** - Input Type: Non-markdown target, Expected Result: Warn, offer options
+- **12** - Input Type: No docs found, Expected Result: Fail with message
 

@@ -4,9 +4,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**LastUpdated:** 2026-01-06
 **Keywords:** snowpipe, auto-ingest, REST API, file-based ingestion, event notifications, COPY INTO, create pipe, data ingestion, pipe errors, pipe management, micro-batching, serverless ingestion
-**TokenBudget:** ~8000
+**TokenBudget:** ~8450
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 108-snowflake-data-loading.md, 104-snowflake-streams-tasks.md
 

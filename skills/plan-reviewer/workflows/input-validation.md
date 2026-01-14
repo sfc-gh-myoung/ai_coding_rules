@@ -6,6 +6,19 @@ Validate all required inputs before executing a plan review.
 
 ## Validation Steps
 
+### Step 0: Normalize output_root (Optional)
+
+```python
+# Default: reviews/
+# Normalize trailing slash
+output_root = (output_root or 'reviews/').rstrip('/') + '/'
+
+# Auto-create directories
+import os
+subdir = 'plan-reviews' if mode == 'FULL' else 'summaries'
+os.makedirs(f"{output_root}{subdir}", exist_ok=True)
+```
+
 ### Step 1: Check review_mode
 
 ```python
@@ -51,13 +64,11 @@ except ValueError:
 
 ## Error Messages
 
-| Error | Resolution |
-|-------|------------|
-| "File not found: X" | Verify path is correct relative to workspace root |
-| "Not a markdown file: X" | Ensure file ends with `.md` |
-| "COMPARISON mode requires at least 2 files" | Provide 2+ plan files |
-| "META-REVIEW mode requires at least 2 review files" | Provide 2+ review files |
-| "task_description required for COMPARISON mode" | Add brief task description |
+- **"File not found: X"** - Verify path is correct relative to workspace root
+- **"Not a markdown file: X"** - Ensure file ends with `.md`
+- **"COMPARISON mode requires at least 2 files"** - Provide 2+ plan files
+- **"META-REVIEW mode requires at least 2 review files"** - Provide 2+ review files
+- **"task_description required for COMPARISON mode"** - Add brief task description
 
 ## Validation Complete
 

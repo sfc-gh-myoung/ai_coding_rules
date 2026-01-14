@@ -21,7 +21,7 @@ model: claude-sonnet45
 **Expected output file:**
 
 ```
-reviews/README-claude-sonnet45-2025-12-16.md
+reviews/doc-reviews/README-claude-sonnet45-2025-12-16.md
 ```
 
 ---
@@ -41,21 +41,19 @@ model: claude-sonnet45
 **Expected output file:**
 
 ```
-reviews/docs-collection-claude-sonnet45-2025-12-16.md
+reviews/summaries/_docs-collection-claude-sonnet45-2025-12-16.md
 ```
 
 ---
 
 ## When to Use STALENESS Mode
 
-| Scenario | Recommended Mode |
-|----------|------------------|
-| Quarterly documentation audit | STALENESS |
-| After major release | STALENESS |
-| Before publishing docs | FULL |
-| After dependency updates | STALENESS |
-| Initial documentation review | FULL |
-| Fixing specific issues | FOCUSED |
+- **Quarterly documentation audit** - STALENESS
+- **After major release** - STALENESS
+- **Before publishing docs** - FULL
+- **After dependency updates** - STALENESS
+- **Initial documentation review** - FULL
+- **Fixing specific issues** - FOCUSED
 
 ---
 
@@ -65,10 +63,8 @@ reviews/docs-collection-claude-sonnet45-2025-12-16.md
 ## Documentation Review: README.md (STALENESS)
 
 ### Scores
-| Criterion | Score | Notes |
-|-----------|-------|-------|
-| Staleness | 3/5 | Multiple outdated references |
-| Structure | 5/5 | Well organized |
+- **Staleness** - Score: 3/5, Notes: Multiple outdated references
+- **Structure** - Score: 5/5, Notes: Well organized
 
 **Overall:** 8/10 (Staleness mode)
 
@@ -76,18 +72,16 @@ reviews/docs-collection-claude-sonnet45-2025-12-16.md
 
 ### Link Validation
 
-| Link | Type | Source | Status | Notes |
-|------|------|--------|--------|-------|
-| `./docs/ARCHITECTURE.md` | internal | README:12 | ✅ | — |
-| `./docs/MEMORY_BANK.md` | internal | README:18 | ✅ | — |
-| `./CONTRIBUTING.md` | internal | README:24 | ✅ | — |
-| `#quick-start` | anchor | README:5 | ✅ | — |
-| `#troubleshooting` | anchor | README:8 | ✅ | — |
-| `#installation` | anchor | README:6 | ❌ | Heading renamed to "Prerequisites" |
-| `./docs/DEPRECATED.md` | internal | README:134 | ❌ | File removed |
-| `https://taskfile.dev` | external | README:89 | ⚠️ | Manual check needed |
-| `https://docs.python.org/3.11` | external | README:156 | ⚠️ | Consider updating to 3.13 |
-| `https://github.com/user/repo` | external | README:200 | ⚠️ | Manual check needed |
+- **`./docs/ARCHITECTURE.md`** - Type: internal, Source: README:12, Status: , Notes: —
+- **`./docs/MEMORY_BANK.md`** - Type: internal, Source: README:18, Status: , Notes: —
+- **`./CONTRIBUTING.md`** - Type: internal, Source: README:24, Status: , Notes: —
+- **`#quick-start`** - Type: anchor, Source: README:5, Status: , Notes: —
+- **`#troubleshooting`** - Type: anchor, Source: README:8, Status: , Notes: —
+- **`#installation`** - Type: anchor, Source: README:6, Status: , Notes: Heading renamed to "Prerequisites"
+- **`./docs/DEPRECATED.md`** - Type: internal, Source: README:134, Status: , Notes: File removed
+- **`https://taskfile.dev`** - Type: external, Source: README:89, Status: , Notes: Manual check needed
+- **`https://docs.python.org/3.11`** - Type: external, Source: README:156, Status: , Notes: Consider updating to 3.13
+- **`https://github.com/user/repo`** - Type: external, Source: README:200, Status: , Notes: Manual check needed
 
 **Link Summary:**
 - Internal links: 4 valid, 2 broken
@@ -96,20 +90,16 @@ reviews/docs-collection-claude-sonnet45-2025-12-16.md
 
 ### Version References
 
-| Technology | Documented Version | Current Version | Status |
-|------------|-------------------|-----------------|--------|
-| Python | 3.11 | 3.13 | ⚠️ Update recommended |
-| Task | v3.x | v3.40 | ✅ Current |
-| uv | 0.4.x | 0.5.x | ⚠️ Minor update available |
-| Ruff | 0.7.x | 0.8.x | ⚠️ Minor update available |
+- **Python** - Documented Version: 3.11, Current Version: 3.13, Status: Update recommended
+- **Task** - Documented Version: v3.x, Current Version: v3.40, Status: Current
+- **uv** - Documented Version: 0.4.x, Current Version: 0.5.x, Status: Minor update available
+- **Ruff** - Documented Version: 0.7.x, Current Version: 0.8.x, Status: Minor update available
 
 ### Deprecated Patterns Found
 
-| Pattern | Location | Issue | Recommendation |
-|---------|----------|-------|----------------|
-| `pip install` | README:67 | Project uses uv | Change to `uv pip install` or `uv sync` |
-| `python setup.py` | README:89 | Deprecated in favor of pyproject.toml | Remove or update to `uv pip install -e .` |
-| `pytest.ini` | README:112 | Config now in pyproject.toml | Update reference |
+- **`pip install`** - Location: README:67, Issue: Project uses uv, Recommendation: Change to `uv pip install` or `uv sync`
+- **`python setup.py`** - Location: README:89, Issue: Deprecated in favor of pyproject.toml, Recommendation: Remove or update to `uv pip install -e .`
+- **`pytest.ini`** - Location: README:112, Issue: Config now in pyproject.toml, Recommendation: Update reference
 
 ### Staleness Indicators Found
 
@@ -120,12 +110,10 @@ reviews/docs-collection-claude-sonnet45-2025-12-16.md
 
 ### Structure Assessment
 
-| Aspect | Score | Notes |
-|--------|-------|-------|
-| Table of Contents | ✅ | Present and accurate |
-| Section Ordering | ✅ | Logical flow |
-| Navigation | ✅ | Clear anchor links |
-| Grouping | ✅ | Related topics together |
+- **Table of Contents** - Score: , Notes: Present and accurate
+- **Section Ordering** - Score: , Notes: Logical flow
+- **Navigation** - Score: , Notes: Clear anchor links
+- **Grouping** - Score: , Notes: Related topics together
 
 ### Critical Issues (Must Fix)
 
@@ -149,11 +137,9 @@ reviews/docs-collection-claude-sonnet45-2025-12-16.md
 
 ### Staleness Risk Assessment
 
-| Risk Level | Count | Action |
-|------------|-------|--------|
-| 🔴 High (broken links) | 3 | Fix immediately |
-| 🟡 Medium (outdated versions) | 4 | Update in next release |
-| 🟢 Low (style/minor) | 2 | Track for future |
+- **🔴 High (broken links)** - Count: 3, Action: Fix immediately
+- **🟡 Medium (outdated versions)** - Count: 4, Action: Update in next release
+- **🟢 Low (style/minor)** - Count: 2, Action: Track for future
 
 **Overall Staleness Risk:** Medium
 
@@ -173,12 +159,10 @@ reviews/docs-collection-claude-sonnet45-2025-12-16.md
 
 Recommended STALENESS review cadence:
 
-| Document Type | Frequency | Priority |
-|---------------|-----------|----------|
-| README.md | Quarterly | High |
-| CONTRIBUTING.md | Quarterly | High |
-| docs/ARCHITECTURE.md | Semi-annually | Medium |
-| docs/*.md (other) | Annually | Low |
+- **README.md** - Frequency: Quarterly, Priority: High
+- **CONTRIBUTING.md** - Frequency: Quarterly, Priority: High
+- **docs/ARCHITECTURE.md** - Frequency: Semi-annually, Priority: Medium
+- **docs/*.md (other)** - Frequency: Annually, Priority: Low
 
 **Trigger events for immediate STALENESS review:**
 

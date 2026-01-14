@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-05
+**LastUpdated:** 2026-01-06
 **Keywords:** checkpoints, learning objectives, pedagogical design, educational content, progressive learning, Snowflake notebooks, teaching point callouts, validation gates, tutorial structure, learning design, educational notebooks, teaching methodology, notebook education
 **TokenBudget:** ~5250
 **ContextTier:** High
@@ -556,7 +556,7 @@ The notebook demonstrates **two valid approaches** for [task]:
 
 **Scenario:** Notebook demonstrates Feature Store entity/feature organization but trains models using simplified DataFrame approach.
 
-```markdown
+````markdown
 
 ## [NOTE] Feature Store: Two Approaches Explained
 
@@ -604,7 +604,7 @@ training_df = spine.join(customer_features, on='CUSTOMER_ID') \
 **For production deployments:** Uncomment the `fs.generate_dataset()` code in Step 4 and use `training_df = fs.retrieve_feature_values(spine_df=spine, features=[...])` for automatic joins and lineage tracking.
 
 **Learning Takeaway:** Feature Store adds governance and automation valuable for production multi-entity scenarios. Use it when team collaboration, lineage tracking, and point-in-time correctness matter. Use direct DataFrames for exploration, learning, and single-entity feature engineering.
-```
+````
 
 This example demonstrates when to show feature setup (teaching organizational patterns) while using simpler execution (maintaining focus on primary learning objectives like imbalanced data handling).
 

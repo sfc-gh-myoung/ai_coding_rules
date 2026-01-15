@@ -11,7 +11,7 @@
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-06
 **Keywords:** Python, uv, Ruff, pyproject.toml, dependency management, virtual environments, pytest, validation, uv run, uvx, ty, type checking, mypy, type hints
-**TokenBudget:** ~5350
+**TokenBudget:** ~6500
 **ContextTier:** Critical
 **Depends:** 000-global-core.md
 

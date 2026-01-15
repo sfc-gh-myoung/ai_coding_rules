@@ -6,7 +6,7 @@
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-01-15
 **Keywords:** Ruff, linting, formatting, code quality, style checking, lint errors, ruff check, ruff format, pyproject.toml configuration, black, flake8
-**TokenBudget:** ~3100
+**TokenBudget:** ~3350
 **ContextTier:** High
 **Depends:** 200-python-core.md
 

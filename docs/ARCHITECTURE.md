@@ -46,6 +46,80 @@
 - Schema-driven validation (declarative)
 - Comprehensive test coverage (100+ tests)
 
+## Rule Loading Workflow
+
+AI assistants follow a two-phase loading process: auto-loading by the IDE/tool, then rule discovery via the bootstrap protocol.
+
+### Loading Sequence Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                     AI ASSISTANT INITIALIZATION                         │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│ PHASE 1: AUTO-LOADED BY IDE/TOOL (Parallel)                             │
+│                                                                         │
+│   ┌─────────────┐              ┌─────────────┐                          │
+│   │  AGENTS.md  │              │ PROJECT.md  │                          │
+│   │  (Bootstrap │              │  (Project   │                          │
+│   │   Protocol) │              │   Config)   │                          │
+│   └─────────────┘              └─────────────┘                          │
+│         │                            │                                  │
+│         │ Defines rule loading       │ Defines project-specific         │
+│         │ sequence and MODE/ACT      │ tooling requirements and         │
+│         │ framework                  │ validation gates                 │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│ PHASE 2: RULE LOADING PROTOCOL (Sequential, per AGENTS.md)              │
+│                                                                         │
+│   Step 1: Load Foundation                                               │
+│   ┌────────────────────────┐                                            │
+│   │ rules/000-global-core  │  Always loaded first, no exceptions        │
+│   │ (Foundation Rule)      │  Defines MODE transitions, validation      │
+│   └────────────────────────┘                                            │
+│              │                                                          │
+│              ▼                                                          │
+│   Step 2: Search for Domain Rules                                       │
+│   ┌────────────────────────┐                                            │
+│   │    RULES_INDEX.md      │  Search Keywords field for task matches    │
+│   │    (Rule Catalog)      │  Check Depends field for prerequisites     │
+│   └────────────────────────┘                                            │
+│              │                                                          │
+│              ▼                                                          │
+│   Step 3: Load Domain + Activity Rules                                  │
+│   ┌────────────────────────┐                                            │
+│   │  rules/XXX-domain.md   │  Load based on file extensions, keywords   │
+│   │  rules/YYY-activity.md │  Load dependencies first (Depends field)   │
+│   └────────────────────────┘                                            │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│ READY: Agent has loaded context, begins in MODE: PLAN                   │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### File Responsibilities
+
+| File | Loading | Purpose |
+|------|---------|---------|
+| **AGENTS.md** | Auto-loaded by IDE | Bootstrap protocol, MODE/ACT framework, rule discovery instructions |
+| **PROJECT.md** | Auto-loaded by IDE | Project-specific tooling, validation requirements, critical violations |
+| **RULES_INDEX.md** | Referenced by AGENTS.md | Searchable catalog of all rules with keywords and dependencies |
+| **rules/000-global-core.md** | First rule loaded | Foundation patterns, MODE transitions, validation gates |
+| **rules/XXX-*.md** | Loaded on demand | Domain and activity-specific rules based on task requirements |
+
+### Key Design Decisions
+
+1. **Parallel auto-loading**: AGENTS.md and PROJECT.md are loaded simultaneously by the IDE, not sequentially
+2. **PROJECT.md is not part of rule chain**: It's project configuration, not a rule file
+3. **Sequential rule loading**: Rules load in dependency order per AGENTS.md protocol
+4. **Lazy loading**: Specialized rules load only when needed (token optimization)
+
 ## Context Management System
 
 The repository uses a dual-layer approach for context preservation:

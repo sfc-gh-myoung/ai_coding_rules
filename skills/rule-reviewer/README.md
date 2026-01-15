@@ -41,11 +41,27 @@ Agents executing this skill may attempt to optimize by:
 
 ## Overview
 
-This skill automates the complete rule review workflow:
+This skill automates the complete review workflow for agent-executable documents:
 - Validates inputs (target file, date, mode, model)
 - Executes review using 6-dimension rubric optimized for agent executability
 - Writes results to `reviews/` with automatic suffix for duplicates
 - Supports FULL, FOCUSED, and STALENESS review modes
+- **Supports both rule files (rules/*.md) and project files (AGENTS.md, PROJECT.md)**
+
+## Supported File Types
+
+**Rule Files (rules/*.md):**
+- Domain-specific patterns and guidelines
+- Full schema validation against `schemas/rule-schema.yml`
+- TokenBudget variance check applies
+
+**Project Files (AGENTS.md, PROJECT.md):**
+- Bootstrap and configuration documents
+- Schema validation skipped (different structure)
+- TokenBudget variance skipped (no declared budget)
+- Still evaluated for actionability, completeness, consistency, markdown quality, and currency
+
+**Both file types:** Max 100 points, same verdict thresholds
 
 ## Quick Start
 
@@ -66,10 +82,21 @@ skills/rule-reviewer/SKILL.md
 
 ### Step 2: Trigger Review
 
+**Review a rule file:**
 ```text
 Use the rule-reviewer skill.
 
 target_file: rules/810-project-readme.md
+review_date: 2025-12-12
+review_mode: FULL
+model: claude-sonnet-45
+```
+
+**Review a project file:**
+```text
+Use the rule-reviewer skill.
+
+target_file: PROJECT.md
 review_date: 2025-12-12
 review_mode: FULL
 model: claude-sonnet-45
@@ -136,6 +163,7 @@ skills/rule-reviewer/
 │   ├── full-review.md         # FULL mode walkthrough
 │   ├── focused-review.md      # FOCUSED mode walkthrough
 │   ├── staleness-review.md    # STALENESS mode walkthrough
+│   ├── project-file-review.md # Project file review example
 │   └── edge-cases.md          # Ambiguous scenarios and resolutions
 ├── tests/                 # Skill test cases
 │   ├── README.md              # Test overview and instructions

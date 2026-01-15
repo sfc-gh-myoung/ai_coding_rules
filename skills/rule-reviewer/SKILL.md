@@ -33,7 +33,7 @@ Output: `reviews/rule-reviews/200-python-core-claude-sonnet-45-2026-01-06.md`
 - **Completeness** - Weight: 5, Max: 25 points - All scenarios covered?
 - **Consistency** - Weight: 3, Max: 15 points - Internal alignment correct?
 - **Parsability** - Weight: 3, Max: 15 points - Schema valid?
-- **Token Efficiency** - Weight: 1, Max: 5 points - Within ±5% budget?
+- **Token Efficiency** - Weight: 2, Max: 10 points - Within ±5% budget?
 - **Staleness** - Weight: 2, Max: 10 points - Current patterns?
 - **Cross-Agent Consistency** - Weight: 1, Max: 5 points - Works across all agents?
 
@@ -93,8 +93,26 @@ All canary checks, dimension scoring, and evidence gathering are INTERNAL (silen
 
 1. **Validate inputs**
    - Date format: YYYY-MM-DD
-   - File exists under rules/
+   - File exists (rules/*.md, AGENTS.md, or PROJECT.md)
    - Mode: FULL | FOCUSED | STALENESS
+
+1b. **Detect file type**
+   ```bash
+   target_basename=$(basename "$target_file")
+   
+   if [[ "$target_basename" =~ ^(AGENTS|PROJECT)\.md$ ]]; then
+       FILE_TYPE="project"
+       SKIP_SCHEMA=true
+       echo "File type: Project configuration (schema validation skipped)"
+   elif [[ "$target_file" == rules/*.md ]]; then
+       FILE_TYPE="rule"
+       SKIP_SCHEMA=false
+       echo "File type: Rule (full schema validation)"
+   else
+       echo "ERROR: Target must be AGENTS.md, PROJECT.md, or rules/*.md"
+       exit 1
+   fi
+   ```
 
 2. **Pre-Review Canary Check (SILENT - do not output)**
    Before reading the rule file, mentally verify:
@@ -104,11 +122,22 @@ All canary checks, dimension scoring, and evidence gathering are INTERNAL (silen
    
    **Any wrong answer → Re-read Anti-Optimization Protocol before proceeding**
 
-3. **Run schema validation**
+3. **Run schema validation (conditional)**
+   
+   **IF FILE_TYPE == "rule":**
    ```bash
    uv run python scripts/schema_validator.py [target_file]
    ```
    Parse output for CRITICAL/HIGH/MEDIUM errors
+   
+   **IF FILE_TYPE == "project":**
+   ```bash
+   echo "Schema validation skipped for project file"
+   echo "Note: Project files use different structure than rule schema"
+   ```
+   Set schema_validation_result = "SKIPPED (project file)"
+   
+   **Rationale:** AGENTS.md and PROJECT.md are bootstrap/configuration files with different structure than domain rules. They don't use rule metadata (SchemaVersion, RuleVersion, TokenBudget) or rule sections (Scope, Contract, References).
 
 4. **Agent Execution Test (SILENT - results go to review file)**
    Count blocking issues (cap score at 60 if ≥10):
@@ -118,12 +147,12 @@ All canary checks, dimension scoring, and evidence gathering are INTERNAL (silen
    - Visual formatting (ASCII art, arrows, diagrams)
 
 5. **Post-Read Canary Check (SILENT - do not output)**
-   After reading rule, before scoring, verify internally:
-   - Can name 3 specific things unique to THIS rule
+   After reading file, before scoring, verify internally:
+   - Can name 3 specific things unique to THIS file
    - Can cite a specific line number with content
-   - Know the exact TokenBudget value
+   - Know the exact TokenBudget value (rule files) OR file purpose (project files)
    
-   **Unable to verify → Did not actually read → Re-read rule file**
+   **Unable to verify → Did not actually read → Re-read file**
 
 6. **Score dimensions**
    Read rubrics/ as needed for each dimension:
@@ -170,6 +199,36 @@ All canary checks, dimension scoring, and evidence gathering are INTERNAL (silen
 
 **Critical dimension override:** If both Actionability ≤4/10 AND Completeness ≤4/10 → NOT_EXECUTABLE regardless of total score
 
+## Supported File Types
+
+**Rule Files (rules/*.md):**
+- Domain-specific patterns and guidelines
+- Loaded on-demand by agents
+- Full schema validation against `schemas/rule-schema.yml`
+- All 6 dimensions scored (100 points max)
+- TokenBudget variance check applies
+
+**Project Files (AGENTS.md, PROJECT.md):**
+- Bootstrap and configuration documents
+- Loaded once during project initialization
+- Schema validation skipped (different structure than rules)
+- All 6 dimensions scored (100 points max)
+- TokenBudget variance skipped (no declared budget)
+- Still evaluated for actionability, completeness, consistency, markdown quality, and currency
+
+**Key Differences:**
+
+| Aspect | Rule Files | Project Files |
+|--------|------------|---------------|
+| Schema validation | Full check | Skipped |
+| Parsability scoring | Schema + markdown | Markdown only |
+| Token efficiency | Budget variance + redundancy | Redundancy + structure only |
+| Metadata required | 7 fields (SchemaVersion, etc.) | None |
+| Section structure | Scope → Contract → Content | Custom per project |
+| Max score | 100 points | 100 points |
+
+**Both file types are agent-executable documents** - they just follow different schemas optimized for their architectural roles.
+
 ## Required Sections in Review
 
 1. Executive Summary (scores table)
@@ -183,7 +242,7 @@ All canary checks, dimension scoring, and evidence gathering are INTERNAL (silen
 
 ## Inputs
 
-- **target_file:** Path to rule (e.g., `rules/200-python-core.md`)
+- **target_file:** Path to file (e.g., `rules/200-python-core.md`, `AGENTS.md`, `PROJECT.md`)
 - **review_date:** ISO 8601 format (YYYY-MM-DD)
 - **review_mode:** FULL | FOCUSED | STALENESS
 - **model:** Lowercase-hyphenated slug (e.g., `claude-sonnet-45`)

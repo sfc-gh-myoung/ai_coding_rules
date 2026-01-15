@@ -42,6 +42,7 @@ MODE: PLAN
    - IF empty: STOP with "Rule generation failed - 000-global-core.md is empty"
 
 2. **Load Domain + Language Rules** - Match file extensions AND directories to domain rules
+   - **Check for PROJECT.md (MANDATORY):** If `PROJECT.md` exists in workspace root, read it FIRST for project-specific context, tooling requirements, conventions, and overrides
    - Scan user request for file extensions, technology keywords, AND directory paths
    - See RULES_INDEX.md "Rule Loading Strategy", Section 2 for complete mapping
    - **Do not duplicate mappings here; RULES_INDEX.md is the canonical source**
@@ -217,8 +218,9 @@ All three steps are mandatory. Reading without declaration is a protocol violati
    - `Pipfile.lock`  - Project uses **pipenv** (`pipenv run`)
    - `requirements.txt` only  - Project uses **pip** (bare commands or venv activation)
 
-2. **Check for project-specific overrides:**
-   - `PROJECT.md` or `CLAUDE.md` may specify required tooling
+2. **Check PROJECT.md for tooling directives:**
+   - PROJECT.md should already be loaded (per Step 2 of Mandatory Rule Loading Protocol)
+   - Extract tooling preferences from loaded PROJECT.md content
    - Respect explicit tool requirements documented in project
 
 3. **Match project's existing toolchain:**

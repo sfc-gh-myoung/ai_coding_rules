@@ -250,11 +250,11 @@ tasks:
       - task: quality:markdown:docs
 
   quality:markdown:rules:
-    desc: "Run pymarkdownlnt for agent-facing Markdown (rules/ + AGENTS.md)"
+    desc: "Run pymarkdownlnt for agent-facing Markdown (rules/ + AGENTS.md + PROJECT.md)"
     deps:
       - _check:uvx
     cmds:
-      - "{{.UVX}} pymarkdownlnt --config pymarkdown.rules.json scan rules/ AGENTS.md"
+      - "{{.UVX}} pymarkdownlnt --config pymarkdown.rules.json scan rules/ AGENTS.md PROJECT.md"
 
   quality:markdown:docs:
     desc: "Run pymarkdownlnt for human-facing docs (docs/ + top-level docs)"

@@ -97,6 +97,7 @@ This repository contains multiple documentation files for different audiences:
 |------|---------|--------------|
 | **README.md** | Project overview, setup, usage | Start here (you are here) |
 | **AGENTS.md** | Minimal bootstrap protocol for rule loading | AI agents: first action every response |
+| **PROJECT.md** | Project-specific tooling and guidelines | AI agents: auto-loaded by supporting tools |
 | **rules/000-global-core.md** | Execution protocols (MODE, validation, workflows) | AI agents: after loading foundation |
 | **CONTRIBUTING.md** | Development guidelines, PR process | When contributing rules |
 | **docs/ARCHITECTURE.md** | System architecture, design decisions | When understanding internals or extending |
@@ -161,6 +162,7 @@ Load AGENTS.md and follow guidance for rule loading with RULES_INDEX.md.
 
 **Next Steps:**
 
+- 📝 Customize `PROJECT.md` for your project's tooling and guidelines (recommended)
 - ✅ Deployment complete → [Watch Video Tutorials](#video-tutorials) or [Configure Your AI](#ai-configuration)
 - 🤔 Want to understand how rules work → [Understanding Rules](#understanding-rules)
 - 🔧 Need different setup? → See [Deployment Options](#deployment-options)

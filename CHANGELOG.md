@@ -8,13 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **BREAKING:** Renamed `CLAUDE.md` to `PROJECT.md` for tool-agnostic project configuration
+  - More universal naming (not Claude-specific)
+  - Auto-loaded by AI assistants that support project config files
+  - Added Critical Validation Requirements section: commits without passing lint/format/type/test are critical violations
+  - Generalized language from "Claude Code" to "AI assistants"
+  - Updated all documentation references (AGENTS.md, README.md, ARCHITECTURE.md)
 - **BREAKING:** Separated project-specific from universal tool requirements
   - **AGENTS.md (Universal):** Changed "Python Runtime Discovery" to "Python Tooling Discovery"
     - Now detects and respects project's existing toolchain (uv, poetry, pipenv, pip)
     - Removed prescriptive uv-only guidance
     - Added investigation-first approach for toolchain selection
     - Universal bootstrap protocol is now truly tool-agnostic
-  - **CLAUDE.md (ai_coding_rules):** Added "ai_coding_rules Project Requirements" section
+  - **PROJECT.md (ai_coding_rules):** Added "ai_coding_rules Project Requirements" section
     - Explicitly mandates uv/uvx/ruff/ty for THIS project only
     - Clarifies that deployed rules are more flexible
     - States rationale: demonstrate modern Python best practices
@@ -30,10 +36,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Added black/flake8 as documented alternatives
     - Execution steps support multiple toolchains
     - Made tooling investigation explicit requirement
-  - **Architecture:** Universal rules recommend modern tools but respect existing choices; project-specific mandates in CLAUDE.md only
+  - **Architecture:** Universal rules recommend modern tools but respect existing choices; project-specific mandates in PROJECT.md only
 
 ### Added
-- **Architecture:** Clear separation between universal (AGENTS.md, rules) and project-specific (CLAUDE.md) tool requirements
+- **Architecture:** Clear separation between universal (AGENTS.md, rules) and project-specific (PROJECT.md) tool requirements
 - **Flexibility:** Projects can now use their existing toolchains (poetry, pip, black, mypy) without violations
 - **Documentation:** Comprehensive command patterns for uv/poetry/pip equivalents across all rules
 

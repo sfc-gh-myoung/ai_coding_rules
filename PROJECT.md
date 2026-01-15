@@ -1,6 +1,20 @@
-# CLAUDE.md
+# PROJECT.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides project-specific guidance for AI coding assistants working with code in this repository. It is automatically loaded by AI assistants that support project configuration files (e.g., Cursor, Claude Code, GitHub Copilot, VS Code extensions).
+
+## Critical Validation Requirements
+
+**CRITICAL VIOLATION: Committing code without passing ALL validation checks.**
+
+AI assistants MUST NOT commit code unless ALL of the following pass:
+
+1. **Linting** - Code passes all lint checks
+2. **Formatting** - Code passes format verification
+3. **Type Checking** - Code passes type checker (if applicable)
+4. **Compilation** - Code compiles without errors (if applicable)
+5. **Tests** - All tests pass
+
+Committing code that fails any validation check is a **critical violation** of project standards. Always run the full validation suite before any commit.
 
 ## ai_coding_rules Project Requirements
 
@@ -20,13 +34,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Validation Gates:**
 
-All of the following MUST pass before task completion:
+All of the following MUST pass before any commit:
 
 ```bash
-uvx ruff check .
-uvx ruff format --check .
-uvx ty check .
-uv run pytest
+uvx ruff check .          # Linting
+uvx ruff format --check . # Format verification
+uvx ty check .            # Type checking
+uv run pytest             # Tests
+```
+
+**Shortcut command:**
+```bash
+task validate             # Runs all checks
 ```
 
 **Project Structure:**
@@ -225,7 +244,7 @@ Internal-only skills (excluded from deployment):
 
 ### Skills System
 
-6 Claude Agent Skills following Anthropic's best practices:
+6 AI Agent Skills following best practices:
 
 **Deployed Skills (available in target projects):**
 - doc-reviewer - Documentation quality reviews
@@ -254,7 +273,7 @@ task rules:validate:verbose
 # 4. Update index
 task index:generate
 
-# 5. Commit changes
+# 5. Commit changes (only after validation passes!)
 git add rules/XXX-new-rule.md RULES_INDEX.md
 git commit -m "feat: add XXX rule for [technology]"
 ```
@@ -274,7 +293,7 @@ uv run python scripts/token_validator.py rules/XXX-rule.md
 # 4. Regenerate index if metadata changed
 task index:generate
 
-# 5. Commit changes
+# 5. Commit changes (only after validation passes!)
 git add rules/XXX-rule.md RULES_INDEX.md
 git commit -m "fix: update XXX rule with [improvement]"
 ```
@@ -291,7 +310,7 @@ task quality:format       # Ruff formatting
 task quality:typecheck    # Type checking with ty
 task quality:markdown     # Markdown linting
 
-# Full CI/CD validation
+# Full CI/CD validation (REQUIRED before commits)
 task validate             # Runs: quality:check, test, rules:validate, index:check
 ```
 
@@ -315,20 +334,20 @@ task deploy:dry DEST=/tmp/test-project
 
 - **rules/** - Edit rule content here (production-ready)
 - **AGENTS.md** - Bootstrap protocol (project root)
+- **PROJECT.md** - Project-specific configuration (this file)
 - **rules/000-global-core.md** - Execution protocols and MODE framework
 - **RULES_INDEX.md** - Generated catalog (don't edit directly)
 - **schemas/rule-schema.yml** - Schema definition for validation
 - **scripts/** - Validation and deployment tools
 - **tests/** - Comprehensive test suite (98% coverage)
-- **skills/** - Claude Agent Skills (6 total)
+- **skills/** - AI Agent Skills (6 total)
 - **docs/** - Architecture and usage documentation
 
 ## Critical Development Rules
 
-1. **Always validate before committing:**
+1. **CRITICAL: Validate before committing:**
    ```bash
-   task rules:validate
-   task index:generate
+   task validate  # MUST pass before any commit
    ```
 
 2. **Use template generator for new rules:**
@@ -435,6 +454,7 @@ uv run pytest tests/test_schema_validator.py -v  # Specific test
 - **README.md** - User-facing documentation, setup, usage
 - **CONTRIBUTING.md** - Development guidelines, PR process
 - **AGENTS.md** - Bootstrap protocol for AI agents
+- **PROJECT.md** - Project-specific configuration (this file)
 - **CHANGELOG.md** - Version history (single source of truth)
 - **docs/ARCHITECTURE.md** - System design, technical decisions
 - **docs/MEMORY_BANK.md** - Context continuity system (optional)
@@ -469,7 +489,7 @@ uv run pytest tests/test_schema_validator.py -v  # Specific test
    task env:deps
    ```
 
-## Best Practices for Claude Code
+## Best Practices for AI Assistants
 
 1. **Read before editing:** Always read rule files before proposing changes
 2. **Use templates:** Never create rules manually - use template generator
@@ -479,3 +499,4 @@ uv run pytest tests/test_schema_validator.py -v  # Specific test
 6. **Surgical edits:** Make minimal, focused changes to existing rules
 7. **Follow schema:** All rules must validate against schemas/rule-schema.yml
 8. **Commit atomically:** Each commit should be self-contained and validated
+9. **CRITICAL:** Never commit without passing all validation checks

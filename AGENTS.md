@@ -212,10 +212,10 @@ All three steps are mandatory. Reading without declaration is a protocol violati
 **BEFORE running any Python command**, detect project's toolchain:
 
 1. **Check for Python tooling indicators:**
-   - `uv.lock` → Project uses **uv** (`uv run`, `uvx`)
-   - `poetry.lock` → Project uses **poetry** (`poetry run`)
-   - `Pipfile.lock` → Project uses **pipenv** (`pipenv run`)
-   - `requirements.txt` only → Project uses **pip** (bare commands or venv activation)
+   - `uv.lock`  - Project uses **uv** (`uv run`, `uvx`)
+   - `poetry.lock`  - Project uses **poetry** (`poetry run`)
+   - `Pipfile.lock`  - Project uses **pipenv** (`pipenv run`)
+   - `requirements.txt` only  - Project uses **pip** (bare commands or venv activation)
 
 2. **Check for project-specific overrides:**
    - `PROJECT.md` or `CLAUDE.md` may specify required tooling

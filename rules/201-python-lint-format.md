@@ -1,11 +1,11 @@
-# Python Linting & Formatting (uvx ruff-first, with fallbacks)
+# Python Linting & Formatting (Ruff recommended, toolchain-flexible)
 
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
-**Keywords:** Ruff, linting, formatting, code quality, style checking, uvx ruff, lint errors, ruff check, ruff format, pyproject.toml configuration
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-01-15
+**Keywords:** Ruff, linting, formatting, code quality, style checking, lint errors, ruff check, ruff format, pyproject.toml configuration, black, flake8
 **TokenBudget:** ~3100
 **ContextTier:** High
 **Depends:** 200-python-core.md
@@ -13,14 +13,14 @@
 ## Scope
 
 **What This Rule Covers:**
-Authoritative Python code quality standards using Ruff as the primary tool for linting and formatting. Covers Ruff command patterns (`uvx ruff check`, `uvx ruff format`), pyproject.toml configuration, pydocstyle rules, pre-commit integration, and validation requirements. Includes tool isolation strategies and fallback approaches for environments without uv.
+Python code quality standards with Ruff as the recommended tool for linting and formatting. Covers command patterns for multiple toolchains (uv, poetry, pip), pyproject.toml configuration, pydocstyle rules, pre-commit integration, and validation requirements. Respects existing project tooling while recommending modern alternatives.
 
 **When to Load This Rule:**
 - Writing or modifying Python code
 - Setting up new Python projects
 - Configuring linting and formatting tools
 - Reviewing code quality issues
-- Troubleshooting Ruff errors or configuration
+- Troubleshooting linting/formatting errors
 - Before completing any Python-related task (validation gate)
 
 ## References
@@ -28,7 +28,7 @@ Authoritative Python code quality standards using Ruff as the primary tool for l
 ### Dependencies
 
 **Must Load First:**
-- **200-python-core.md** - Python foundation patterns
+- **200-python-core.md** - Python foundation patterns and toolchain detection
 
 **Related:**
 - **203-python-project-setup.md** - Project structure and configuration
@@ -38,7 +38,8 @@ Authoritative Python code quality standards using Ruff as the primary tool for l
 
 - [Ruff Documentation](https://docs.astral.sh/ruff/) - Official Ruff documentation
 - [Ruff Rules](https://docs.astral.sh/ruff/rules/) - Complete rule reference
-- [Ruff Configuration](https://docs.astral.sh/ruff/configuration/) - Configuration options
+- [Black Documentation](https://black.readthedocs.io/) - Black formatter (alternative)
+- [Flake8 Documentation](https://flake8.pycqa.org/) - Flake8 linter (alternative)
 
 ## Contract
 
@@ -46,34 +47,67 @@ Authoritative Python code quality standards using Ruff as the primary tool for l
 
 - Python codebase with .py files
 - pyproject.toml for configuration
-- uv/uvx available (or fallback to pip-installed ruff)
+- Project's toolchain identified (uv, poetry, pip)
 - Understanding of Python code quality standards
 
 ### Mandatory
 
-- **Always use `uvx ruff check .` and `uvx ruff format .`** before task completion
-- Configure Ruff in pyproject.toml
-- Set `target-version = "py311"` minimum
-- Enable pydocstyle (D rules) for docstring standards
+- **Run linting before task completion** - Must pass with zero errors
+- **Run formatting before task completion** - Code must be properly formatted
+- Configure linter/formatter in pyproject.toml
+- Set appropriate Python version in configuration
+- Enable docstring linting (Ruff D rules or pydocstyle)
 - All checks must pass with 0 errors (non-negotiable validation gate)
-- Use isolated `uvx ruff` (never `uv run ruff`)
+
+### Tooling Approach
+
+**Investigate project's existing tools:**
+1. Check pyproject.toml for `[tool.ruff]`, `[tool.black]`, `[tool.flake8]` sections
+2. Match project's existing linter/formatter
+3. Only recommend changes if explicitly requested
+
+**Recommended (NEW projects):**
+- Ruff for linting AND formatting (single tool, fast)
+
+**Alternative (EXISTING projects):**
+- black + flake8 (established ecosystem)
+- pylint (comprehensive checking)
 
 ### Forbidden
 
 - Submitting code with linting errors
 - Using blanket `# noqa` comments without specific codes
-- Mixing formatters (use Ruff exclusively)
+- Mixing formatters (choose one: Ruff OR black, not both)
 - Skipping pre-commit hooks in production projects
-- Using `uv run ruff` instead of `uvx ruff`
+- Changing project's established linter without justification
 
 ### Execution Steps
 
-1. Run `uvx ruff check .` to identify linting issues
-2. Review errors and fix manually or run `uvx ruff check --fix .`
-3. Run `uvx ruff format .` to apply consistent formatting
-4. Verify with `uvx ruff format --check .`
-5. Commit changes with formatted code
-6. Validate all checks pass with 0 errors
+**Using project's toolchain:**
+
+1. **Identify linter/formatter:**
+   - Check pyproject.toml for existing configuration
+   - Respect project's choice (Ruff, black+flake8, etc.)
+
+2. **Run linting:**
+   - **uv + Ruff:** `uvx ruff check .`
+   - **poetry + Ruff:** `poetry run ruff check .`
+   - **pip + flake8:** `flake8 .`
+
+3. **Fix issues:**
+   - Auto-fix: `ruff check --fix .` or manual corrections
+   - Review and commit fixes
+
+4. **Run formatting:**
+   - **uv + Ruff:** `uvx ruff format .`
+   - **poetry + Ruff:** `poetry run ruff format .`
+   - **pip + black:** `black .`
+
+5. **Verify:**
+   - Linting: `ruff check .` (0 errors)
+   - Formatting: `ruff format --check .` (no changes needed)
+
+6. **Commit:** Changes with clean code quality
 
 ### Output Format
 

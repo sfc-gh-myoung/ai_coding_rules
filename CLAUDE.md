@@ -2,6 +2,46 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## ai_coding_rules Project Requirements
+
+**CRITICAL: This project mandates specific tooling. Other projects using these rules may choose different tools.**
+
+### Mandatory Tooling for ai_coding_rules
+
+**Python Runtime:**
+- **uv** for all Python execution (required)
+- **uvx** for isolated tool execution (required)
+- **NO** bare `python`, `pip`, `pytest` commands
+
+**Code Quality:**
+- `uvx ruff check .` for linting (required)
+- `uvx ruff format .` for formatting (required)
+- `uvx ty check .` for type checking (required)
+
+**Validation Gates:**
+
+All of the following MUST pass before task completion:
+
+```bash
+uvx ruff check .
+uvx ruff format --check .
+uvx ty check .
+uv run pytest
+```
+
+**Project Structure:**
+- `pyproject.toml` with uv configuration
+- `uv.lock` for dependency locking
+- `Taskfile.yml` for automation
+
+**Why These Requirements:**
+
+This project demonstrates modern Python best practices using Astral's toolchain (uv, ruff, ty). Rules deployed to other projects are more flexible and respect existing toolchains (poetry, pip, black, mypy, etc.).
+
+**Rules Are Not Mandates:**
+
+The rules in `rules/` directory provide **recommendations** and **preferences** for modern Python development. They allow projects to use alternative toolchains (poetry, pip, black, mypy) when appropriate. Only THIS project (ai_coding_rules) mandates uv/uvx/ruff/ty.
+
 ## Project Overview
 
 This is the **ai_coding_rules** project - a universal AI coding rule system that provides production-ready rules for consistent software engineering across all AI assistants and IDEs. The system uses a direct rule editing architecture where rules are stored in their final, deployable form.

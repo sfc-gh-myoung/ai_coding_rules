@@ -207,25 +207,32 @@ All three steps are mandatory. Reading without declaration is a protocol violati
    - `task format` / `task quality:format` - Formatting only
    - `task test` - Test execution
 
-**Python Runtime Discovery:**
+**Python Tooling Discovery:**
 
-**BEFORE running any Python command**, check for `uv` (modern Python tooling):
+**BEFORE running any Python command**, detect project's toolchain:
 
-1. **Check for uv indicators:**
-   - `uv.lock` file exists: Project uses uv
-   - `pyproject.toml` with `[tool.uv]` section: Project uses uv
-   - `.python-version` file: Check if uv manages Python version
+1. **Check for Python tooling indicators:**
+   - `uv.lock` → Project uses **uv** (`uv run`, `uvx`)
+   - `poetry.lock` → Project uses **poetry** (`poetry run`)
+   - `Pipfile.lock` → Project uses **pipenv** (`pipenv run`)
+   - `requirements.txt` only → Project uses **pip** (bare commands or venv activation)
 
-2. **Prefer uv over bare python:**
-   - YES: `uv run python`, `uv run pytest`, `uvx ruff check .`
-   - NO: `python`, `python3`, `pytest`, `ruff` (direct invocation)
+2. **Check for project-specific overrides:**
+   - `PROJECT.md` or `CLAUDE.md` may specify required tooling
+   - Respect explicit tool requirements documented in project
 
-3. **Tool execution patterns:**
-   - Scripts/modules: `uv run python script.py`, `uv run pytest`
-   - Isolated tools: `uvx ruff check .`, `uvx ty check .`, `uvx black .`
-   - Package install: `uv add package`, `uv sync`
+3. **Match project's existing toolchain:**
+   - **If uv:** `uv run python script.py`, `uvx ruff check .`, `uvx ty check .`
+   - **If poetry:** `poetry run python script.py`, `poetry run ruff check .`
+   - **If pipenv:** `pipenv run python script.py`, `pipenv run pytest`
+   - **If pip/venv:** `python script.py`, `pytest`, `ruff check .` (assumes venv active)
 
-**Rationale:** Project-defined tasks encode team conventions, tool versions, and flag configurations that direct invocation may miss. `uv run` ensures correct virtual environment and Python version; `uvx` provides hermetic, isolated tool execution without polluting project dependencies.
+4. **When no toolchain detected (new projects):**
+   - Check loaded rules for recommendations (200-python-core.md prefers uv)
+   - Ask user for toolchain preference
+   - Never assume a toolchain without evidence
+
+**Rationale:** Projects have established toolchains and conventions. Respect existing choices rather than forcing a particular tool. Investigation-first approach prevents breaking existing workflows.
 
 ## Rule Discovery Reference
 

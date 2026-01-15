@@ -75,14 +75,14 @@ Foundational Python development practices using modern tooling (uv, Ruff, pytest
 
 1. **Read pyproject.toml** for existing dependencies and tool configurations
 2. **Check for tool lock files:**
-   - `uv.lock` → Project uses **uv**
-   - `poetry.lock` → Project uses **poetry**
-   - `Pipfile.lock` → Project uses **pipenv**
-   - `requirements.txt` only → Project uses **pip**
+   - `uv.lock`  - Project uses **uv**
+   - `poetry.lock`  - Project uses **poetry**
+   - `Pipfile.lock`  - Project uses **pipenv**
+   - `requirements.txt` only  - Project uses **pip**
 3. **Look for tool configuration sections:**
-   - `[tool.uv]` → uv project
-   - `[tool.poetry]` → poetry project
-   - `[tool.black]` or `[tool.ruff]` → linter/formatter choice
+   - `[tool.uv]`  - uv project
+   - `[tool.poetry]`  - poetry project
+   - `[tool.black]` or `[tool.ruff]`  - linter/formatter choice
 4. **Respect project's existing choices** unless explicitly asked to change
 
 **Recommended Tooling (Modern Python Projects):**
@@ -381,10 +381,6 @@ pytest
 # "Changes validated: linting clean, formatting clean, types clean, tests passing (12/12). Task complete."
 ```
 
-# Only after ALL pass:
-# "Changes validated: ruff clean, format clean, types clean, tests passing (12/12). Task complete."
-```
-
 **Benefits:** Catches errors immediately; ensures code quality standards; user receives working, tested code; no surprises
 
 ### Anti-Pattern 3: Using Deprecated `datetime.utcnow()`
@@ -439,15 +435,15 @@ poetry run mypy .  # or: mypy .
 **Before prescribing tooling, detect project's existing setup:**
 
 1. **Check for dependency manager lock files:**
-   - `uv.lock` → Project uses **uv**
-   - `poetry.lock` → Project uses **poetry**
-   - `Pipfile.lock` → Project uses **pipenv**
-   - Only `requirements.txt` → Project uses **pip**
+   - `uv.lock`  - Project uses **uv**
+   - `poetry.lock`  - Project uses **poetry**
+   - `Pipfile.lock`  - Project uses **pipenv**
+   - Only `requirements.txt`  - Project uses **pip**
 
 2. **Check pyproject.toml for tool sections:**
-   - `[tool.uv]` → uv configuration
-   - `[tool.poetry]` → poetry configuration
-   - `[tool.black]` or `[tool.ruff]` → formatter preference
+   - `[tool.uv]`  - uv configuration
+   - `[tool.poetry]`  - poetry configuration
+   - `[tool.black]` or `[tool.ruff]`  - formatter preference
 
 3. **Match project's existing toolchain consistently**
 

@@ -5,6 +5,38 @@ All notable changes to the AI Coding Rules project will be documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- **BREAKING:** Separated project-specific from universal tool requirements
+  - **AGENTS.md (Universal):** Changed "Python Runtime Discovery" to "Python Tooling Discovery"
+    - Now detects and respects project's existing toolchain (uv, poetry, pipenv, pip)
+    - Removed prescriptive uv-only guidance
+    - Added investigation-first approach for toolchain selection
+    - Universal bootstrap protocol is now truly tool-agnostic
+  - **CLAUDE.md (ai_coding_rules):** Added "ai_coding_rules Project Requirements" section
+    - Explicitly mandates uv/uvx/ruff/ty for THIS project only
+    - Clarifies that deployed rules are more flexible
+    - States rationale: demonstrate modern Python best practices
+  - **rules/200-python-core.md:** Transformed from uv-mandatory to toolchain-flexible
+    - "Mandatory" section → "Tooling Approach (Investigation-First)"
+    - Shows uv/uvx as "Preferred" with poetry/pip alternatives documented
+    - Validation commands now support all toolchains (uv, poetry, pip)
+    - Removed uv-specific anti-patterns, added toolchain-awareness patterns
+    - Command patterns demonstrate uv/poetry/pip equivalents
+    - "Forbidden" section now allows different toolchains with investigation requirement
+  - **rules/201-python-lint-format.md:** Updated to respect existing linters/formatters
+    - Title changed to "Ruff recommended, toolchain-flexible"
+    - Added black/flake8 as documented alternatives
+    - Execution steps support multiple toolchains
+    - Made tooling investigation explicit requirement
+  - **Architecture:** Universal rules recommend modern tools but respect existing choices; project-specific mandates in CLAUDE.md only
+
+### Added
+- **Architecture:** Clear separation between universal (AGENTS.md, rules) and project-specific (CLAUDE.md) tool requirements
+- **Flexibility:** Projects can now use their existing toolchains (poetry, pip, black, mypy) without violations
+- **Documentation:** Comprehensive command patterns for uv/poetry/pip equivalents across all rules
+
 ## [3.5.1] - 2026-01-13
 
 ### Added

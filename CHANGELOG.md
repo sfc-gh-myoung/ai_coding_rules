@@ -39,6 +39,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Architecture:** Universal rules recommend modern tools but respect existing choices; project-specific mandates in PROJECT.md only
 
 ### Added
+- **feat(skills):** add project file review support to rule-reviewer
+  - Extends rule-reviewer skill to support PROJECT.md and AGENTS.md alongside rules/*.md files
+  - Schema validation skipped for project files (different structure than rule schema)
+  - Parsability scoring adapted to markdown-only (no metadata validation)
+  - Token Efficiency weight increased from 5 to 10 points for balanced rubric
+  - Added comprehensive example: project-file-review.md with scoring adjustments
+  - Updated README.md: 121→122 rules, revised bulk-review duration estimate
+  - Updated SKILL.md with file type detection logic and supported file types table
 - **Architecture:** Clear separation between universal (AGENTS.md, rules) and project-specific (PROJECT.md) tool requirements
 - **Flexibility:** Projects can now use their existing toolchains (poetry, pip, black, mypy) without violations
 - **Documentation:** Comprehensive command patterns for uv/poetry/pip equivalents across all rules

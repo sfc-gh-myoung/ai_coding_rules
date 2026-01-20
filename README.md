@@ -149,7 +149,7 @@ automatically loaded by most agentic tools and IDEs.  If you are having issues w
 not loading AGENTS.md, then you can add the following to your prompt:
 
 ```text
-Load AGENTS.md and follow guidance for rule loading with RULES_INDEX.md.
+Load AGENTS.md and follow guidance for rule loading with rules/RULES_INDEX.md.
 ```
 
 **That's it!** Your project now has production-ready rules ready to use.
@@ -157,7 +157,7 @@ Load AGENTS.md and follow guidance for rule loading with RULES_INDEX.md.
 **What just happened?**
 
 - ✅ Copied `rules/` directory to your project
-- ✅ Copied `AGENTS.md` and `RULES_INDEX.md` for automatic AI discovery
+- ✅ Copied `AGENTS.md` and `rules/RULES_INDEX.md` for automatic AI discovery
 - ✅ Ready to use immediately—no additional configuration needed!
 
 **Next Steps:**
@@ -203,7 +203,7 @@ task deploy DEST=~/my-project
 
 - ✅ Copies `rules/` directory to `DEST/rules/`
 - ✅ Copies `skills/` directory to `DEST/skills/` (excludes internal-only skills)
-- ✅ Copies `AGENTS.md` and `RULES_INDEX.md` to project root
+- ✅ Copies `AGENTS.md` and `rules/RULES_INDEX.md` to project root
 - ✅ Rules and skills ready to use immediately with any AI assistant or IDE
 
 **Skills Exclusions:**
@@ -232,7 +232,7 @@ task deploy:only-skills DEST=~/.claude/skills
 **What happens:**
 
 - ✅ Copies only `skills/` directory to `DEST/skills/` (excludes internal-only skills)
-- ✅ Skips rules and root files (AGENTS.md, RULES_INDEX.md)
+- ✅ Skips rules and root files (AGENTS.md, rules/RULES_INDEX.md)
 - ✅ Ideal for deploying skills to agent-specific configuration directories
 
 **Common use cases:**
@@ -309,7 +309,7 @@ uv run python scripts/rule_deployer.py --dest ~/my-project
 
 # Verify deployment
 ls ~/my-project/rules/*.md | wc -l
-ls ~/my-project/AGENTS.md ~/my-project/RULES_INDEX.md  # Both files should exist
+ls ~/my-project/AGENTS.md ~/my-project/rules/RULES_INDEX.md  # Both files should exist
 ```
 
 **Success!** Your AI assistant can now access specialized rules. See [AI Configuration](#ai-configuration) for IDE-specific setup.
@@ -350,7 +350,7 @@ AI assistants automatically discover and load relevant rules based on your task 
                                        │
                               ┌────────▼─────────┐
                               │ 2. Search        │
-                              │   RULES_INDEX.md │◄─── Keyword Match
+                              │   rules/RULES_INDEX.md │◄─── Keyword Match
                               │                  │     ("Streamlit")
                               └────────┬─────────┘
                                        │
@@ -379,7 +379,7 @@ Example Loading Sequence:
 
 1. **You provide a task** → "Build a Snowflake Streamlit dashboard"
 2. **AI reads AGENTS.md** → Understands loading protocol (MODE, validation gates)
-3. **AI searches RULES_INDEX.md** → Finds rules with "Streamlit" keyword
+3. **AI searches rules/RULES_INDEX.md** → Finds rules with "Streamlit" keyword
 4. **AI loads dependencies** → Follows dependency chain (000 → 100 → 101)
 5. **AI applies rules** → Generates code following loaded patterns
 
@@ -391,7 +391,7 @@ Example Loading Sequence:
 > **💡 Pro Tip: Keywords Drive Discovery**
 > 
 > The `Keywords` metadata in each rule enables semantic search. When you say "optimize Streamlit performance," 
-> the AI searches RULES_INDEX.md for rules with keywords: "performance", "streamlit", "caching", "optimization".
+> the AI searches rules/RULES_INDEX.md for rules with keywords: "performance", "streamlit", "caching", "optimization".
 > 
 > **This is why well-crafted prompts matter** - specific keywords help the AI load the most relevant rules.
 > See [prompts/README.md](prompts/README.md) for effective prompt patterns.
@@ -505,7 +505,7 @@ Loading Order (Follow Dependencies):
 
 **Step 4: Add specialized rules as needed**
 
-Use `RULES_INDEX.md` to search for additional rules by keyword (testing, security, performance, etc.)
+Use `rules/RULES_INDEX.md` to search for additional rules by keyword (testing, security, performance, etc.)
 
 ### Example Loading Sequences
 
@@ -677,9 +677,9 @@ For questions or discussions, file an issue on the repository.
 ai_coding_rules/
 ├── rules/                  ← Production-ready rules (122 total)
 ├── AGENTS.md               ← Rule loading protocol for AI assistants
-├── RULES_INDEX.md          ← Searchable rule catalog
+├── rules/RULES_INDEX.md          ← Searchable rule catalog
 ├── scripts/                ← Validation and deployment tools
-│   ├── index_generator.py      ← Generate RULES_INDEX.md
+│   ├── index_generator.py      ← Generate rules/RULES_INDEX.md
 │   ├── rule_deployer.py        ← Deploy rules to projects
 │   ├── schema_validator.py     ← Validate rule structure
 │   ├── template_generator.py   ← Create new rule templates
@@ -707,7 +707,7 @@ ai_coding_rules/
 
 - **rules/** — Production-ready rules, deploy directly (no generation needed)
 - **AGENTS.md** — AI discovery protocol in project root
-- **RULES_INDEX.md** — Searchable catalog in project root
+- **rules/RULES_INDEX.md** — Searchable catalog in project root
 - **scripts/** — Validation (`schema_validator.py`), deployment (`rule_deployer.py`)
 
 **Workflows:**
@@ -719,8 +719,8 @@ task deploy DEST=~/my-project
 # For contributors: Edit and validate
 vim rules/200-python-core.md
 task rules:validate          # Validate changes
-task index:generate          # Update RULES_INDEX.md
-git add rules/ RULES_INDEX.md && git commit -m "feat: update Python rules"
+task index:generate          # Update rules/RULES_INDEX.md
+git add rules/ rules/RULES_INDEX.md && git commit -m "feat: update Python rules"
 ```
 
 ## Development Commands
@@ -732,7 +732,7 @@ Run `task` to see the full categorized command list with quickstart guide.
 task quality:fix                       # Fix all code quality issues (alias: fix, qf)
 task test                              # Run all pytest tests (alias for test:all)
 task validate                          # Run all CI/CD checks (alias for validate:ci)
-task index:generate                    # Regenerate RULES_INDEX.md
+task index:generate                    # Regenerate rules/RULES_INDEX.md
 task deploy DEST=~/my-project          # Deploy rules to project
 
 # Deployment
@@ -748,7 +748,7 @@ task rules:validate                    # Validate all rules against schema
 task rules:validate:verbose            # Validate with detailed errors
 
 # Index Management
-task index:generate                    # Generate RULES_INDEX.md
+task index:generate                    # Generate rules/RULES_INDEX.md
 task index:check                       # Check if index is current
 
 # Token Management
@@ -822,7 +822,7 @@ The Python domain now includes comprehensive HTMX support for building hypermedi
 | **221f-python-htmx-integrations** | Frontend Libraries | Alpine.js, _hyperscript, Tailwind, Bootstrap, Chart.js integration |
 | **500-frontend-htmx-core** | Frontend Reference | HTMX attributes, events, CSS transitions, debugging, browser compatibility |
 
-**🔍 Searchable index:** See [RULES_INDEX.md](RULES_INDEX.md) for complete rule list with keywords, dependencies, and semantic search
+**🔍 Searchable index:** See [rules/RULES_INDEX.md](rules/RULES_INDEX.md) for complete rule list with keywords, dependencies, and semantic search
 
 ## Directive Language Hierarchy
 
@@ -868,11 +868,11 @@ The project uses a **production-ready rules architecture**. Rules are authored o
 
 - **Production-ready rules** in `rules/` directory
 - **Universal Markdown format** works with any IDE, LLM, or agent
-- **Automatic discovery** via `AGENTS.md` and `RULES_INDEX.md` in project root
+- **Automatic discovery** via `AGENTS.md` and `rules/RULES_INDEX.md` in project root
 - **Direct deployment** - no generation or transformation steps needed
 - **Validation tools** ensure rules follow schema before deployment
 
-Rules preserve essential metadata (Keywords, TokenBudget, ContextTier, Depends) while remaining readable Markdown. ContextTier provides secondary priority signaling; see `000-global-core.md` for primary preservation mechanism (natural language markers). AI assistants use `AGENTS.md` to understand loading protocol and `RULES_INDEX.md` to discover relevant rules by keyword search.
+Rules preserve essential metadata (Keywords, TokenBudget, ContextTier, Depends) while remaining readable Markdown. ContextTier provides secondary priority signaling; see `000-global-core.md` for primary preservation mechanism (natural language markers). AI assistants use `AGENTS.md` to understand loading protocol and `rules/RULES_INDEX.md` to discover relevant rules by keyword search.
 
 **See [Architecture Documentation](docs/ARCHITECTURE.md) for complete technical details and design decisions.**
 
@@ -891,7 +891,7 @@ AI loads: 000-global-core → 100-snowflake-core → 101-snowflake-streamlit-cor
 **Search for rules by keyword:**
 
 ```bash
-grep -i "performance" RULES_INDEX.md
+grep -i "performance" rules/RULES_INDEX.md
 ```
 
 **Check rule dependencies:**
@@ -1076,7 +1076,7 @@ pip install -e ".[dev]"
 You can force the AI assistant to load rules with simple additions to your prompt.
 
 ```
-Load AGENTS.md into the context.  Review RULES_INDEX.md based on the keywords in my prompt and load appropriate rules.
+Load AGENTS.md into the context.  Review rules/RULES_INDEX.md based on the keywords in my prompt and load appropriate rules.
 ```
 
 **For Universal Format (Claude, ChatGPT, Cursor, etc.):**
@@ -1087,15 +1087,15 @@ ls rules/*.md | wc -l
 ```
 
 2. **Add to AI Context**
-   - **Claude Projects:** Upload `AGENTS.md`, `RULES_INDEX.md`, and relevant `rules/*.md` files to project knowledge
+   - **Claude Projects:** Upload `AGENTS.md`, `rules/RULES_INDEX.md`, and relevant `rules/*.md` files to project knowledge
    - **ChatGPT:** Add files to custom instructions or upload via file attachment
    - **Cursor:** Rules automatically discovered from project root
    - **Other LLMs:** Refer to specific tool documentation for context management
 
 3. **Test Rule Loading**
    - Ask: "What rules are available for Snowflake development?"
-   - AI should reference RULES_INDEX.md and list rules
-   - If not working, verify RULES_INDEX.md is in context
+   - AI should reference rules/RULES_INDEX.md and list rules
+   - If not working, verify rules/RULES_INDEX.md is in context
 
 
 ### How to Verify Rules Are Working
@@ -1103,7 +1103,7 @@ ls rules/*.md | wc -l
 **Test 1: Rule Discovery**
 ```
 Prompt: "What rules are available for Snowflake development?"
-Expected: AI references RULES_INDEX.md and lists 100-series rules
+Expected: AI references rules/RULES_INDEX.md and lists 100-series rules
 ```
 
 **Test 2: Rule Application**
@@ -1125,11 +1125,11 @@ ls rules/*.md | wc -l
 
 # Check files in project root
 cat AGENTS.md | head -20
-cat RULES_INDEX.md | head -20
+cat rules/RULES_INDEX.md | head -20
 
 # Test keyword search
-grep -i "fastapi" RULES_INDEX.md
-grep -i "snowflake" RULES_INDEX.md
+grep -i "fastapi" rules/RULES_INDEX.md
+grep -i "snowflake" rules/RULES_INDEX.md
 ```
 
 
@@ -1233,8 +1233,8 @@ uv run python scripts/rule_deployer.py --dest ~/my-project
 # Check rule count
 ls rules/*.md | wc -l
 
-# Search rules (RULES_INDEX.md is in project root after deployment)
-grep -i "keyword" RULES_INDEX.md
+# Search rules (rules/RULES_INDEX.md is in project root after deployment)
+grep -i "keyword" rules/RULES_INDEX.md
 
 # Find specific rule
 find rules -name "*python*"
@@ -1255,6 +1255,6 @@ find rules -name "*python*"
 | File | Purpose | Location (after deployment) |
 |------|---------|----------|
 | `AGENTS.md` | Rule discovery guide | **Project root** |
-| `RULES_INDEX.md` | Searchable catalog | **Project root** |
+| `rules/RULES_INDEX.md` | Searchable catalog | **Project root** |
 | `000-global-core.md` | Foundation rules | `rules/` |
 | All rule files | Specialized rules | `rules/` |

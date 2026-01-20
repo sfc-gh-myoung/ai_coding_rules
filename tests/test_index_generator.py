@@ -126,8 +126,10 @@ Rule {i} scope description.
 
 @pytest.fixture
 def outdated_index_file(tmp_path):
-    """Create outdated RULES_INDEX.md file."""
-    index_file = tmp_path / "RULES_INDEX.md"
+    """Create outdated rules/RULES_INDEX.md file."""
+    rules_dir = tmp_path / "rules"
+    rules_dir.mkdir(parents=True, exist_ok=True)
+    index_file = rules_dir / "RULES_INDEX.md"
     content = """# RULES_INDEX
 
 || File | Scope | Keywords | Depends |
@@ -530,9 +532,12 @@ class TestIndexGeneratorCLI:
 
     def test_main_normal_mode_generates_index(self, multiple_rule_files, tmp_path, monkeypatch):
         """Test CLI generates index in normal mode."""
-        # Change to tmp_path so RULES_INDEX.md is created there
+        # Change to tmp_path so rules/RULES_INDEX.md is created there
         monkeypatch.chdir(tmp_path)
-        output_file = tmp_path / "RULES_INDEX.md"
+        # Create rules directory where output will be written
+        rules_output_dir = tmp_path / "rules"
+        rules_output_dir.mkdir(parents=True, exist_ok=True)
+        output_file = rules_output_dir / "RULES_INDEX.md"
 
         # Mock sys.argv
         test_args = [
@@ -558,7 +563,10 @@ class TestIndexGeneratorCLI:
     ):
         """Test --dry-run prints but doesn't write."""
         monkeypatch.chdir(tmp_path)
-        output_file = tmp_path / "RULES_INDEX.md"
+        # Create rules directory (even though dry-run won't write)
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir(parents=True, exist_ok=True)
+        output_file = rules_dir / "RULES_INDEX.md"
 
         test_args = [
             "index_generator.py",
@@ -623,7 +631,10 @@ class TestIndexGeneratorCLI:
     ):
         """Test --check mode succeeds when index is current."""
         monkeypatch.chdir(tmp_path)
-        output_file = tmp_path / "RULES_INDEX.md"
+        # Create rules directory and output file
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir(parents=True, exist_ok=True)
+        output_file = rules_dir / "RULES_INDEX.md"
 
         # First generate the index
         rules = scan_rules(multiple_rule_files)
@@ -771,14 +782,17 @@ Test scope.
     def test_main_check_mode_read_error(self, multiple_rule_files, tmp_path, monkeypatch, capsys):
         """Test --check mode handles file read errors (lines 513-515)."""
         monkeypatch.chdir(tmp_path)
-        output_file = tmp_path / "RULES_INDEX.md"
+        # Create rules directory and output file
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir(parents=True, exist_ok=True)
+        output_file = rules_dir / "RULES_INDEX.md"
         output_file.write_text("dummy content", encoding="utf-8")
 
         # Mock read_text to raise an exception
         original_read_text = Path.read_text
 
         def mock_read_text(self, *args, **kwargs):
-            if self.name == "RULES_INDEX.md":
+            if self.name == "RULES_INDEX.md" and "rules" in str(self.parent):
                 raise PermissionError("Permission denied")
             return original_read_text(self, *args, **kwargs)
 
@@ -797,16 +811,22 @@ Test scope.
         assert exit_code == 1
 
         captured = capsys.readouterr()
-        assert "Error reading RULES_INDEX.md" in captured.out
+        assert "Error reading rules/RULES_INDEX.md" in captured.out
 
     def test_main_write_error(self, multiple_rule_files, tmp_path, monkeypatch, capsys):
         """Test normal mode handles file write errors (lines 535-537)."""
         monkeypatch.chdir(tmp_path)
+        # Create rules directory
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir(parents=True, exist_ok=True)
 
         # Mock write_text to raise an exception
         original_write_text = Path.write_text
 
         def mock_write_text(self, *args, **kwargs):
+            if self.name == "RULES_INDEX.md":
+                raise PermissionError("Permission denied")
+            return original_write_text(self, *args, **kwargs)
             if self.name == "RULES_INDEX.md":
                 raise PermissionError("Permission denied")
             return original_write_text(self, *args, **kwargs)
@@ -821,7 +841,7 @@ Test scope.
         assert exit_code == 1
 
         captured = capsys.readouterr()
-        assert "Error writing RULES_INDEX.md" in captured.out
+        assert "Error writing rules/RULES_INDEX.md" in captured.out
 
 
 @pytest.mark.unit

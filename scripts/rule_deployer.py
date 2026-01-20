@@ -7,7 +7,8 @@ All rules and skills are production-ready with no generation step required.
 Features:
     - Copies rules/*.md to DEST/rules/
     - Copies skills/ to DEST/skills/ (respects pyproject.toml exclusions)
-    - Copies AGENTS.md and RULES_INDEX.md to DEST/
+    - Copies AGENTS.md to DEST/
+    - Copies rules/RULES_INDEX.md to DEST/rules/
     - Validates source files exist before copying
     - Supports dry-run mode for safety
     - Provides detailed logging
@@ -65,7 +66,7 @@ def validate_source_structure(
     # Check required source files
     rules_dir = project_root / "rules"
     agents_md = project_root / "AGENTS.md"
-    rules_index_md = project_root / "RULES_INDEX.md"
+    rules_index_md = project_root / "rules" / "RULES_INDEX.md"
     skills_dir = project_root / "skills"
 
     if only_skills:
@@ -98,7 +99,7 @@ def validate_source_structure(
             errors.append(f"AGENTS.md not found in project root: {agents_md}")
 
         if not rules_index_md.exists():
-            errors.append(f"RULES_INDEX.md not found in project root: {rules_index_md}")
+            errors.append(f"rules/RULES_INDEX.md not found: {rules_index_md}")
 
     return (len(errors) == 0, errors)
 
@@ -153,7 +154,7 @@ def copy_rules(
 def copy_root_files(
     project_root: Path, dest_dir: Path, dry_run: bool = False, verbose: bool = True
 ) -> tuple[int, int]:
-    """Copy AGENTS.md and RULES_INDEX.md to destination root.
+    """Copy AGENTS.md to destination root and rules/RULES_INDEX.md to destination rules/.
 
     Returns:
         Tuple of (files_copied, files_failed)
@@ -161,23 +162,37 @@ def copy_root_files(
     files_copied = 0
     files_failed = 0
 
-    root_files = ["AGENTS.md", "RULES_INDEX.md"]
+    # Copy AGENTS.md to destination root
+    try:
+        source_file = project_root / "AGENTS.md"
+        dest_file = dest_dir / "AGENTS.md"
+        if not dry_run:
+            shutil.copy2(source_file, dest_file)
+            log_info(f"Copied: AGENTS.md → {dest_file}", verbose)
+        else:
+            log_info(f"[DRY RUN] Would copy: AGENTS.md → {dest_file}", verbose)
+        files_copied += 1
+    except Exception as e:
+        log_error(f"Failed to copy AGENTS.md: {e}")
+        files_failed += 1
 
-    for filename in root_files:
-        source_file = project_root / filename
-        dest_file = dest_dir / filename
+    # Copy rules/RULES_INDEX.md to destination rules/
+    try:
+        source_file = project_root / "rules" / "RULES_INDEX.md"
+        dest_rules_dir = dest_dir / "rules"
+        dest_file = dest_rules_dir / "RULES_INDEX.md"
 
-        try:
-            if not dry_run:
-                shutil.copy2(source_file, dest_file)
-                log_info(f"Copied: {filename} → {dest_file}", verbose)
-            else:
-                log_info(f"[DRY RUN] Would copy: {filename} → {dest_file}", verbose)
-
-            files_copied += 1
-        except Exception as e:
-            log_error(f"Failed to copy {filename}: {e}")
-            files_failed += 1
+        # Ensure destination rules directory exists
+        if not dry_run:
+            dest_rules_dir.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source_file, dest_file)
+            log_info(f"Copied: rules/RULES_INDEX.md → {dest_file}", verbose)
+        else:
+            log_info(f"[DRY RUN] Would copy: rules/RULES_INDEX.md → {dest_file}", verbose)
+        files_copied += 1
+    except Exception as e:
+        log_error(f"Failed to copy rules/RULES_INDEX.md: {e}")
+        files_failed += 1
 
     return (files_copied, files_failed)
 
@@ -378,7 +393,7 @@ def deploy_rules(
         rules_copied, rules_failed = copy_rules(project_root / "rules", dest, dry_run, verbose)
 
         # Copy root files
-        log_info("Copying root files (AGENTS.md, RULES_INDEX.md)...", verbose)
+        log_info("Copying root files (AGENTS.md, rules/RULES_INDEX.md)...", verbose)
         root_copied, root_failed = copy_root_files(project_root, dest, dry_run, verbose)
 
         # Copy skills unless explicitly skipped

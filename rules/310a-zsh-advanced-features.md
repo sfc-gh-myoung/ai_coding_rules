@@ -3,12 +3,13 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-20
 **Keywords:** Zsh, completion system, modules, hooks, advanced features, performance optimization, compinit, zstyle, autoload, scripting
 **TokenBudget:** ~5000
 **ContextTier:** Low
 **Depends:** 310-zsh-scripting-core.md
+**LoadTrigger:** ext:.zsh, kw:zsh-advanced
 
 ## Scope
 

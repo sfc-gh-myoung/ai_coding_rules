@@ -3,12 +3,13 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-20
 **Keywords:** Python classes, OOP, inheritance, dataclasses, @property, class design, encapsulation, composition, Protocol, ABC, type hints
 **TokenBudget:** ~3250
 **ContextTier:** Medium
 **Depends:** 200-python-core.md, 201-python-lint-format.md, 204-python-docs-comments.md
+**LoadTrigger:** kw:class, kw:oop, kw:dataclass
 
 ## Scope
 

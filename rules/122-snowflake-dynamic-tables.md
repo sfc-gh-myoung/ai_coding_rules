@@ -5,6 +5,7 @@
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-12
+**LoadTrigger:** kw:dynamic-table, kw:incremental
 **Keywords:** automatic pipelines, DOWNSTREAM, FULL, warehouse sizing, data freshness, create dynamic table, dynamic table lag, refresh frequency, dynamic table error, materialized view alternative, pipeline automation, lag configuration, refresh strategies
 **TokenBudget:** ~7650
 **ContextTier:** High

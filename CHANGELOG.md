@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+- **refactor(index):** remove "Common Rule Dependency Chains" section from RULES_INDEX.md
+  - Removed `generate_footer()` function from scripts/index_generator.py (52 lines)
+  - Eliminated human-oriented examples (Streamlit Dashboard, Cortex Agent chains)
+  - Agent-centric rationale: dependency chains already encoded in Depends metadata
+  - Agents use algorithmic loading (AGENTS.md lazy loading + rule Depends fields)
+  - Static examples don't generalize to dynamic scenarios
+  - RULES_INDEX.md serves agents, not human documentation readers
+
 ### Added
 - **feat(loadtrigger):** implement LoadTrigger metadata across 67 rules (69% coverage, 125% of target)
   - Added LoadTrigger metadata to 67 high/medium priority rules across 4 batches

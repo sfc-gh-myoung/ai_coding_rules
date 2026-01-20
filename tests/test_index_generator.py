@@ -16,6 +16,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from scripts.index_generator import (  # noqa: E402
+    RuleMetadata,
     extract_metadata,
     extract_scope_from_content,
     generate_agent_guidance,
@@ -496,9 +497,30 @@ class TestNewSections:
         assert "AI Agents" in guidance
         assert "grep" in guidance or "read_file" in guidance
 
-    def test_generate_loading_strategy_returns_content(self):
+    def test_generate_loading_strategy_returns_content(self, tmp_path):
         """Test loading strategy section generation."""
-        strategy = generate_loading_strategy()
+        # Create mock rules with LoadTrigger metadata
+        from pathlib import Path
+
+        mock_rules = [
+            RuleMetadata(
+                filename="200-python-core.md",
+                filepath=Path("rules/200-python-core.md"),
+                keywords="python, testing",
+                depends="000-global-core.md",
+                scope="Python development",
+                load_trigger="ext:.py, ext:.pyi",
+            ),
+            RuleMetadata(
+                filename="206-python-pytest.md",
+                filepath=Path("rules/206-python-pytest.md"),
+                keywords="pytest, testing",
+                depends="200-python-core.md",
+                scope="Testing with pytest",
+                load_trigger="kw:test, kw:pytest",
+            ),
+        ]
+        strategy = generate_loading_strategy(mock_rules)
 
         assert len(strategy) > 0
         assert "Rule Loading Strategy" in strategy
@@ -507,16 +529,40 @@ class TestNewSections:
         assert "Activity Rules" in strategy
         assert "Token Budget" in strategy
 
-    def test_generate_loading_strategy_includes_example(self):
+    def test_generate_loading_strategy_includes_example(self, tmp_path):
         """Test loading strategy includes worked example."""
-        strategy = generate_loading_strategy()
+        from pathlib import Path
+
+        mock_rules = [
+            RuleMetadata(
+                filename="101-snowflake-streamlit-core.md",
+                filepath=Path("rules/101-snowflake-streamlit-core.md"),
+                keywords="streamlit",
+                depends="100-snowflake-core.md",
+                scope="Streamlit apps",
+                load_trigger="kw:streamlit",
+            ),
+        ]
+        strategy = generate_loading_strategy(mock_rules)
 
         assert "Example Workflow" in strategy or "example" in strategy.lower()
         assert "Write tests for my Streamlit dashboard" in strategy
 
-    def test_generate_loading_strategy_includes_six_steps(self):
+    def test_generate_loading_strategy_includes_six_steps(self, tmp_path):
         """Test loading strategy includes all 6 steps."""
-        strategy = generate_loading_strategy()
+        from pathlib import Path
+
+        mock_rules = [
+            RuleMetadata(
+                filename="200-python-core.md",
+                filepath=Path("rules/200-python-core.md"),
+                keywords="python",
+                depends="000-global-core.md",
+                scope="Python",
+                load_trigger="ext:.py",
+            ),
+        ]
+        strategy = generate_loading_strategy(mock_rules)
 
         assert "### 1. Foundation" in strategy
         assert "### 2. Domain Rules" in strategy

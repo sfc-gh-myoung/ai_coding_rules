@@ -14,6 +14,7 @@
 **TokenBudget:** ~6500
 **ContextTier:** Critical
 **Depends:** 000-global-core.md
+**LoadTrigger:** ext:.py, ext:.pyi, file:pyproject.toml
 
 ## Scope
 

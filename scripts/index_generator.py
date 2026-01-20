@@ -400,9 +400,7 @@ def generate_agent_guidance() -> str:
     Returns:
         Formatted markdown section with agent-specific instructions
     """
-    return """
-
-**For AI Agents:**
+    return """**For AI Agents:**
 - This file is **READ-ONLY** for rule discovery purposes
 - Use `grep`, `read_file`, or codebase_search to find relevant rules
 - **Never modify** this file during task execution
@@ -494,8 +492,7 @@ def generate_loading_strategy(rules: list[RuleMetadata]) -> str:
         kw_lines.append(f"- {kw_list}: Consider `{rule_file}`")
     kw_section = "\n".join(kw_lines) if kw_lines else "- (No keyword-based triggers defined)"
 
-    return f"""
-## Rule Loading Strategy
+    return f"""## Rule Loading Strategy
 
 AI agents should follow this algorithm when loading rules:
 
@@ -595,7 +592,6 @@ User: "Write tests for my Streamlit dashboard"
 - rules/101-snowflake-streamlit-core.md (keyword: Streamlit)
 - rules/206-python-pytest.md (keyword: test)
 ```
-
 """
 
 
@@ -605,9 +601,7 @@ def generate_footer() -> str:
     Returns:
         Formatted footer content with dependency visualization
     """
-    footer = """
-
----
+    footer = """---
 
 ## Common Rule Dependency Chains
 
@@ -720,12 +714,14 @@ This index provides semantic rule discovery for AI agents. All rules in `rules/`
     catalog_entries = []
     for domain_name, domain_rules in domains.items():
         # Domain section header
-        catalog_entries.append(f"\n### {domain_name}\n")
+        catalog_entries.append(f"### {domain_name}")
 
         # Generate entry for each rule in domain
-        for rule in domain_rules:
+        for i, rule in enumerate(domain_rules):
             catalog_entries.append(generate_rule_entry(rule))
-            catalog_entries.append("")  # Blank line between entries
+            # Add blank line between entries, but not after last entry in domain
+            if i < len(domain_rules) - 1:
+                catalog_entries.append("")
 
     # Generate footer
     footer = generate_footer()
@@ -825,7 +821,7 @@ Examples:
 
     if args.check:
         # Compare with existing
-        current_path = Path("RULES_INDEX.md")
+        current_path = Path("rules/RULES_INDEX.md")
         if not current_path.exists():
             print("❌ Error: RULES_INDEX.md does not exist")
             print("Run: python scripts/index_generator.py")
@@ -834,7 +830,7 @@ Examples:
         try:
             current_content = current_path.read_text(encoding="utf-8")
         except Exception as e:
-            print(f"❌ Error reading RULES_INDEX.md: {e}")
+            print(f"❌ Error reading rules/RULES_INDEX.md: {e}")
             return 1
 
         def _normalize_for_check(text: str) -> str:
@@ -864,14 +860,14 @@ Examples:
             return 1
 
     # Write to file
-    output_path = Path("RULES_INDEX.md")
+    output_path = Path("rules/RULES_INDEX.md")
     try:
         output_path.write_text(content, encoding="utf-8")
         print(f"✓ Generated {output_path}")
         print(f"  {len(rules)} rules indexed")
         return 0
     except Exception as e:
-        print(f"❌ Error writing RULES_INDEX.md: {e}")
+        print(f"❌ Error writing rules/RULES_INDEX.md: {e}")
         return 1
 
 

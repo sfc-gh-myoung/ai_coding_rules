@@ -419,7 +419,7 @@ Load: 000-global-core.md
 Based on files mentioned in user request:
 
 **Directory-based rules (check FIRST, before file extension):**
-- `skills/` directory: Load `002g-claude-code-skills.md`
+- `skills/` directory: Load `002h-claude-code-skills.md`
 - `rules/` directory: Load `002-rule-governance.md`
 
 **File extension rules:**
@@ -434,7 +434,7 @@ Based on files mentioned in user request:
 
 ### 3. Activity Rules (Keyword Match)
 Use `grep -i "KEYWORD" RULES_INDEX.md` to search Keywords column:
-- **skill**, SKILL.md, skill authoring: Consider `002g-claude-code-skills.md`
+- **skill**, SKILL.md, skill authoring: Consider `002h-claude-code-skills.md`
 - **test**, pytest, coverage: Consider `206-python-pytest.md`
 - **lint**, format, code quality: Consider `201-python-lint-format.md`
 - **deploy**, CI/CD, automation: Consider `820-taskfile-automation.md`

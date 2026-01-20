@@ -3,12 +3,13 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-20
 **Keywords:** Zsh, shell compatibility, bash vs zsh, portable scripts, cross-shell, migration, emulate, POSIX compliance, scripting, shell scripting
 **TokenBudget:** ~4850
 **ContextTier:** Low
 **Depends:** 300-bash-scripting-core.md
+**LoadTrigger:** ext:.zsh, kw:zsh-compatibility
 
 ## Scope
 

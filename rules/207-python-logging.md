@@ -3,12 +3,13 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-20
 **Keywords:** logging, Python logging, logger, handlers, formatters, log levels, WebLogHandler, Rich console, SSE streaming, structured logging, operation ID, thread safety, log hierarchy, log propagation
 **TokenBudget:** ~2900
 **ContextTier:** High
 **Depends:** 200-python-core.md
+**LoadTrigger:** kw:logging, kw:log, kw:logger
 
 ## Scope
 

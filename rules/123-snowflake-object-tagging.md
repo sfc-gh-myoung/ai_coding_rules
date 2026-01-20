@@ -3,8 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-20
+**LoadTrigger:** kw:tag, kw:tagging, kw:metadata
 **Keywords:** cost attribution, resource tagging, governance tags, masking policies, row access policies, tag lineage, create tags, apply tags, tag strategy, tag policies, tag compliance, tag hierarchy, tag discovery, tag management
 **TokenBudget:** ~8450
 **ContextTier:** High

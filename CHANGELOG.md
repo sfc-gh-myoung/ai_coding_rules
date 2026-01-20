@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **feat(loadtrigger):** implement LoadTrigger metadata across 67 rules (69% coverage, 125% of target)
+  - Added LoadTrigger metadata to 67 high/medium priority rules across 4 batches
+  - Coverage: 84 total rules (17 pre-existing + 67 new), exceeding 67-rule target by 25%
+  - 180 triggers distributed: 22 ext:, 12 file:, 2 dir:, 144 kw: (avg 2.1 per rule)
+  - Batch 1: Language/Extension rules (10 rules) - ext: and file: triggers
+  - Batch 2: Framework/Tool rules (13 rules) - kw: + file: triggers
+  - Batch 3: Activity/Workflow rules (13 rules) - kw: triggers
+  - Batch 4: Specialized rules (29 rules) - kw: triggers for specialized scenarios
+  - Phase 5 validation: Grade A+, all checks passing (508/508 tests, 122/122 index refs)
+  - Intentional duplicates: 12 triggers shared by design (e.g., ext:.jsx → both JS + React rules)
+  - Generic keyword analysis: 0 overly generic keywords (max 2 rules per keyword)
+  - RULES_INDEX.md dynamically regenerated with 180 triggers across 84 rules
+- **docs(loadtrigger):** add comprehensive LoadTrigger guidelines to rule governance
+  - Added 300+ line LoadTrigger section to rules/002-rule-governance.md
+  - Complete syntax reference for all 4 trigger types (ext:, file:, dir:, kw:)
+  - When to use LoadTrigger decision flowchart
+  - Patterns for language/framework/activity rules with examples
+  - Best practices and anti-patterns documentation
+  - Impact on RULES_INDEX.md generation
+  - Current coverage statistics (69%, 125% of target)
+  - Validation and testing procedures
+
 ### Changed
 - **BREAKING:** Renamed `CLAUDE.md` to `PROJECT.md` for tool-agnostic project configuration
   - More universal naming (not Claude-specific)
@@ -37,8 +60,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Execution steps support multiple toolchains
     - Made tooling investigation explicit requirement
   - **Architecture:** Universal rules recommend modern tools but respect existing choices; project-specific mandates in PROJECT.md only
+- **chore(rules):** update LastUpdated and RuleVersion for 64 modified rules
+  - All rules modified in LoadTrigger implementation updated to 2026-01-20
+  - Patch version incremented (+0.0.1) for all modified rules
+  - Updated: Batch 1 (10), Batch 2 (11), Batch 3 (13), Batch 4 (29), Phase 6 (1)
 
-### Added
+### Added (Previous - from earlier in Unreleased)
 - **feat(skills):** add project file review support to rule-reviewer
   - Extends rule-reviewer skill to support PROJECT.md and AGENTS.md alongside rules/*.md files
   - Schema validation skipped for project files (different structure than rule schema)

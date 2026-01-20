@@ -234,6 +234,28 @@ Test scope.
         with pytest.raises(ValueError, match="Failed to read"):
             extract_metadata(non_existent)
 
+    def test_extract_handles_load_trigger_field(self, tmp_path):
+        """Test extraction of LoadTrigger metadata field."""
+        rule_file = tmp_path / "101-with-trigger.md"
+        content = """# Rule With LoadTrigger
+
+**Keywords:** trigger, test
+**Depends:** 000-global-core.md
+**LoadTrigger:** ext:.py, file:pyproject.toml
+
+## Scope
+
+**What This Rule Covers:**
+Test LoadTrigger extraction.
+"""
+        rule_file.write_text(content, encoding="utf-8")
+
+        metadata = extract_metadata(rule_file)
+
+        assert metadata.filename == "101-with-trigger.md"
+        assert metadata.load_trigger == "ext:.py, file:pyproject.toml"
+        assert metadata.keywords == "trigger, test"
+
     def test_extract_scope_from_content_valid(self):
         """Test scope extraction from valid content (v3.2)."""
         content = """# Title
@@ -264,6 +286,45 @@ Content here.
         content = """# Title
 
 ## Scope
+
+## Next Section
+"""
+        scope = extract_scope_from_content(content)
+        assert scope == "No scope provided"
+
+    def test_extract_scope_from_content_inline_marker(self):
+        """Test scope extraction with content on same line as marker."""
+        content = """# Title
+
+## Scope
+
+**What This Rule Covers:** Inline scope description here.
+
+More content below.
+"""
+        scope = extract_scope_from_content(content)
+        assert scope == "Inline scope description here."
+
+    def test_extract_scope_from_content_plain_text_fallback(self):
+        """Test scope extraction using plain text fallback (no marker)."""
+        content = """# Title
+
+## Scope
+
+This is plain text without the marker format.
+
+More content.
+"""
+        scope = extract_scope_from_content(content)
+        assert scope == "This is plain text without the marker format."
+
+    def test_extract_scope_from_content_marker_no_following_content(self):
+        """Test scope extraction when marker exists but no content follows."""
+        content = """# Title
+
+## Scope
+
+**What This Rule Covers:**
 
 ## Next Section
 """
@@ -483,6 +544,37 @@ Test scope.
         # Should have footer
         assert "Common Rule Dependency Chains" in index_content
 
+    def test_generate_rules_index_with_multiple_rules_same_domain(self):
+        """Test index generation with multiple rules in same domain (blank line handling)."""
+        from pathlib import Path
+
+        mock_rules = [
+            RuleMetadata(
+                filename="100-first.md",
+                filepath=Path("rules/100-first.md"),
+                keywords="test1",
+                depends="000-global-core.md",
+                scope="First rule",
+                load_trigger="",
+            ),
+            RuleMetadata(
+                filename="101-second.md",
+                filepath=Path("rules/101-second.md"),
+                keywords="test2",
+                depends="000-global-core.md",
+                scope="Second rule",
+                load_trigger="",
+            ),
+        ]
+
+        index_content = generate_rules_index(mock_rules)
+
+        # Both rules should be in index
+        assert "100-first.md" in index_content
+        assert "101-second.md" in index_content
+        # Should have proper spacing between entries
+        assert "## Rule Catalog" in index_content
+
 
 @pytest.mark.unit
 class TestNewSections:
@@ -570,6 +662,84 @@ class TestNewSections:
         assert "### 4. Check Dependencies" in strategy
         assert "### 5. Token Budget Management" in strategy
         assert "### 6. Declare Loaded Rules" in strategy
+
+    def test_generate_loading_strategy_with_dir_triggers(self):
+        """Test loading strategy with directory triggers."""
+        from pathlib import Path
+
+        mock_rules = [
+            RuleMetadata(
+                filename="002h-skills.md",
+                filepath=Path("rules/002h-skills.md"),
+                keywords="skills",
+                depends="000-global-core.md",
+                scope="Skills development",
+                load_trigger="dir:skills/",
+            ),
+        ]
+        strategy = generate_loading_strategy(mock_rules)
+
+        assert "skills/" in strategy
+        assert "002h-skills.md" in strategy
+        assert "directory" in strategy.lower()
+
+    def test_generate_loading_strategy_with_file_triggers(self):
+        """Test loading strategy with file triggers."""
+        from pathlib import Path
+
+        mock_rules = [
+            RuleMetadata(
+                filename="820-taskfile.md",
+                filepath=Path("rules/820-taskfile.md"),
+                keywords="automation",
+                depends="000-global-core.md",
+                scope="Taskfile automation",
+                load_trigger="file:Taskfile.yml",
+            ),
+        ]
+        strategy = generate_loading_strategy(mock_rules)
+
+        assert "Taskfile.yml" in strategy
+        assert "820-taskfile.md" in strategy
+
+    def test_generate_loading_strategy_with_multiple_trigger_types(self):
+        """Test loading strategy with mixed trigger types."""
+        from pathlib import Path
+
+        mock_rules = [
+            RuleMetadata(
+                filename="200-python.md",
+                filepath=Path("rules/200-python.md"),
+                keywords="python",
+                depends="000-global-core.md",
+                scope="Python",
+                load_trigger="ext:.py, file:pyproject.toml",
+            ),
+            RuleMetadata(
+                filename="002-governance.md",
+                filepath=Path("rules/002-governance.md"),
+                keywords="rules",
+                depends="000-global-core.md",
+                scope="Rule governance",
+                load_trigger="dir:rules/",
+            ),
+            RuleMetadata(
+                filename="206-pytest.md",
+                filepath=Path("rules/206-pytest.md"),
+                keywords="test",
+                depends="000-global-core.md",
+                scope="Testing",
+                load_trigger="kw:test, kw:pytest",
+            ),
+        ]
+        strategy = generate_loading_strategy(mock_rules)
+
+        # Check all trigger types are present
+        assert ".py" in strategy
+        assert "pyproject.toml" in strategy
+        assert "rules/" in strategy
+        assert "test" in strategy
+        assert "pytest" in strategy
 
 
 @pytest.mark.unit

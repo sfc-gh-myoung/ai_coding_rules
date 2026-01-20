@@ -452,7 +452,7 @@ class TestCorpusBuildingAndTFIDF:
             "Snowflake warehouse optimization patterns for data processing"
         )
         (rules_dir / "valid2.md").write_text("Python coding standards testing validation methods")
-        (rules_dir / "rules/RULES_INDEX.md").write_text("Index - should be skipped")
+        (rules_dir / "RULES_INDEX.md").write_text("Index - should be skipped")
 
         # Act
         extractor = KeywordExtractor(corpus_dir=rules_dir, debug=False)
@@ -463,7 +463,7 @@ class TestCorpusBuildingAndTFIDF:
         names = {p.name for p in extractor.corpus_paths}
         assert "valid1.md" in names
         assert "valid2.md" in names
-        assert "rules/RULES_INDEX.md" not in names
+        assert "RULES_INDEX.md" not in names
 
     def test_extract_tfidf_for_document_in_corpus(self, tmp_path: Path):
         """Test TF-IDF extraction for a document that's in the corpus."""

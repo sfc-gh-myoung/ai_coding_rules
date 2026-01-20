@@ -75,7 +75,7 @@ class TestValidateSourceStructure:
         project = tmp_path / "incomplete_project"
         project.mkdir()
         (project / "AGENTS.md").write_text("content")
-        (project / "rules/RULES_INDEX.md").write_text("content")
+        # Note: Not creating rules/ directory - that's what we're testing
 
         # Act
         is_valid, errors = dr.validate_source_structure(project)
@@ -134,7 +134,7 @@ class TestValidateSourceStructure:
         # Create rules as a file, not a directory
         (project / "rules").write_text("not a directory")
         (project / "AGENTS.md").write_text("# Agents")
-        (project / "rules/RULES_INDEX.md").write_text("# Index")
+        # Note: Cannot create rules/RULES_INDEX.md since rules is a file
 
         # Act
         is_valid, errors = dr.validate_source_structure(project)

@@ -109,14 +109,16 @@ def copy_rules(
 ) -> tuple[int, int]:
     """Copy rule files from source to destination.
 
+    Skips RULES_INDEX.md as it's handled separately by copy_root_files().
+
     Returns:
         Tuple of (files_copied, files_failed)
     """
     files_copied = 0
     files_failed = 0
 
-    # Get all .md files in source rules directory
-    rule_files = sorted(source_dir.glob("*.md"))
+    # Get all .md files in source rules directory, excluding RULES_INDEX.md
+    rule_files = sorted([f for f in source_dir.glob("*.md") if f.name != "RULES_INDEX.md"])
 
     if not rule_files:
         log_warning(f"No .md files found in {source_dir}")

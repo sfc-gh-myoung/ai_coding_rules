@@ -44,7 +44,7 @@ SKIP_FILES = {
     "CONTRIBUTING.md",
     "AGENTS.md",
     "AGENTS_V2.md",
-    "rules/RULES_INDEX.md",
+    "RULES_INDEX.md",
 }
 
 # Domain-specific technology terms to prioritize

@@ -533,7 +533,7 @@ class TestCLIFormatting:
         assert "Edit" in message
         assert "Validate:" in message
         assert "schema_validator.py" in message
-        assert "RULES_INDEX.md" in message
+        assert "rules/RULES_INDEX.md" in message
 
     def test_format_error_message_value_error(self):
         """Test error message formatting for ValueError."""

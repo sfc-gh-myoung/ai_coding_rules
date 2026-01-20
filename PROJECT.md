@@ -93,7 +93,7 @@ task validate                  # Run full CI/CD validation
 
 # Rule management
 task rules:validate            # Validate all rules against schema
-task index:generate            # Regenerate RULES_INDEX.md
+task index:generate            # Regenerate rules/RULES_INDEX.md
 task rule:new FILENAME=XXX-name # Create new rule from template
 
 # Deployment
@@ -128,7 +128,7 @@ The system uses **direct rule editing** with no generation step. All rules in `r
    - Validation requirements
    - Always loaded first
 
-4. **RULES_INDEX.md** - Searchable catalog (project root)
+4. **rules/RULES_INDEX.md** - Searchable catalog (project root)
    - Generated from rule metadata
    - Enables keyword-based discovery
    - Shows dependencies and token budgets
@@ -174,7 +174,7 @@ Rules use metadata for intelligent discovery:
 
 AI assistants discover rules by:
 1. Reading AGENTS.md (bootstrap protocol)
-2. Searching RULES_INDEX.md by keywords
+2. Searching rules/RULES_INDEX.md by keywords
 3. Loading dependencies in correct order
 4. Applying rules to generate code
 
@@ -210,7 +210,7 @@ task deploy DEST=~/project
 
 # What happens:
 # 1. Copies rules/ directory to DEST/rules/
-# 2. Copies AGENTS.md and RULES_INDEX.md to DEST/
+# 2. Copies AGENTS.md and rules/RULES_INDEX.md to DEST/
 # 3. Copies skills/ (excludes internal-only skills)
 # 4. Reports: Rules copied (count of .md files), Skills copied (count of skill directories), Files copied (total files)
 # 5. Ready to use immediately
@@ -250,14 +250,14 @@ AI assistants must verify they have necessary permissions before performing oper
 **Read permissions required:**
 - `rules/` directory and all .md files (for validation, deployment)
 - `schemas/rule-schema.yml` (for schema validation)
-- `RULES_INDEX.md` (for index verification)
+- `rules/RULES_INDEX.md` (for index verification)
 - `AGENTS.md` (for deployment)
 - `scripts/` directory and all .py files (for running validation)
 - `tests/` directory and all test files (for testing)
 
 **Write permissions required:**
 - `rules/` directory (for creating/editing rules)
-- `RULES_INDEX.md` (for index regeneration)
+- `rules/RULES_INDEX.md` (for index regeneration)
 - `.pytest_cache/`, `__pycache__/` (for test execution)
 - `reviews/` directory (for review output, if using review skills)
 - `plans/` directory (for plan documents, if using plan-reviewer skill)
@@ -274,7 +274,7 @@ test -r schemas/rule-schema.yml && echo "✓ Can read schema" || echo "✗ Canno
 
 # Check write access
 touch rules/.write-test && rm rules/.write-test && echo "✓ Can write rules" || echo "✗ Cannot write rules"
-touch RULES_INDEX.md.test && rm RULES_INDEX.md.test && echo "✓ Can write index" || echo "✗ Cannot write index"
+touch rules/RULES_INDEX.md.test && rm RULES_INDEX.md.test && echo "✓ Can write index" || echo "✗ Cannot write index"
 
 # Check execute access
 test -x scripts/schema_validator.py && echo "✓ Can execute scripts" || echo "✗ Cannot execute scripts"
@@ -339,7 +339,7 @@ task rules:validate:verbose
 task index:generate
 
 # 5. Commit changes (only after validation passes!)
-git add rules/XXX-new-rule.md RULES_INDEX.md
+git add rules/XXX-new-rule.md rules/RULES_INDEX.md
 git commit -m "feat: add XXX rule for [technology]"
 ```
 
@@ -360,7 +360,7 @@ uv run python scripts/token_validator.py rules/XXX-rule.md
 task index:generate
 
 # 5. Commit changes (only after validation passes!)
-git add rules/XXX-rule.md RULES_INDEX.md
+git add rules/XXX-rule.md rules/RULES_INDEX.md
 git commit -m "fix: update XXX rule with [improvement]"
 ```
 
@@ -477,7 +477,7 @@ uv run python scripts/rule_deployer.py --dest /path/to/project
 **Progress indicators:**
 - Phase 1: "Copying rules/ → /path/rules/"
 - Phase 2: "Copying skills/ → /path/skills/"
-- Phase 3: "Copying AGENTS.md, RULES_INDEX.md → /path/"
+- Phase 3: "Copying AGENTS.md, rules/RULES_INDEX.md → /path/"
 - Completion: "Deployment complete: X rules, Y skills"
 
 **Example deployment output:**

@@ -82,7 +82,7 @@ tasks:
         echo "  task quality:fix              Fix all code quality issues"
         echo "  task test                     Run all pytest tests"
         echo "  task validate                 Run all CI/CD validation checks"
-        echo "  task index:generate           Regenerate RULES_INDEX.md"
+        echo "  task index:generate           Regenerate rules/RULES_INDEX.md"
         echo "  task deploy DEST=<path>       Deploy rules to project"
         echo
         echo "{{.E_WRENCH}}ENVIRONMENT SETUP"
@@ -111,8 +111,8 @@ tasks:
         echo "  task rules:validate           Validate rules with schema validator"
         echo "  task rules:validate:verbose   Validate rules (verbose output)"
         echo "  task rule:new FILENAME=...    Generate new rule template"
-        echo "  task index:generate           Generate RULES_INDEX.md from rules/"
-        echo "  task index:check              Check if RULES_INDEX.md is current"
+        echo "  task index:generate           Generate rules/RULES_INDEX.md from rules/"
+        echo "  task index:check              Check if rules/RULES_INDEX.md is current"
         echo
         echo "{{.E_DEPLOY}}DEPLOYMENT"
         echo "{{.BORDER_SINGLE}}"
@@ -327,25 +327,25 @@ tasks:
 
   # Rules & Index
   index:generate:
-    desc: "Generate RULES_INDEX.md from rules/"
+    desc: "Generate rules/RULES_INDEX.md from rules/"
     deps:
       - env:sync
     sources:
       - rules/**/*.md
     generates:
-      - RULES_INDEX.md
+      - rules/RULES_INDEX.md
     cmds:
       - "{{.PYTHON}} scripts/index_generator.py"
 
   index:check:
-    desc: "Check if RULES_INDEX.md is current"
+    desc: "Check if rules/RULES_INDEX.md is current"
     deps:
       - env:sync
     cmds:
       - "{{.PYTHON}} scripts/index_generator.py --check"
 
   index:dry:
-    desc: "Preview RULES_INDEX.md generation"
+    desc: "Preview rules/RULES_INDEX.md generation"
     deps:
       - env:sync
     cmds:

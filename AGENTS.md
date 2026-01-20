@@ -44,24 +44,24 @@ MODE: PLAN
 2. **Load Domain + Language Rules** - Match file extensions AND directories to domain rules
    - **Check for PROJECT.md (MANDATORY):** If `PROJECT.md` exists in workspace root, read it FIRST for project-specific context, tooling requirements, conventions, and overrides
    - Scan user request for file extensions, technology keywords, AND directory paths
-   - See RULES_INDEX.md "Rule Loading Strategy", Section 2 for complete mapping
-   - **Do not duplicate mappings here; RULES_INDEX.md is the canonical source**
+   - See rules/RULES_INDEX.md "Rule Loading Strategy", Section 2 for complete mapping
+   - **Do not duplicate mappings here; rules/RULES_INDEX.md is the canonical source**
    - **Load even for "simple" tasks** (linting, formatting, syntax fixes)
    - **Directory-based rules (check BEFORE file extension):**
      - `skills/` directory: Load `002h-claude-code-skills.md`
      - `rules/` directory: Load `002-rule-governance.md`
    - **Unknown extensions:** If no domain rule exists for a file type, load only 000-global-core.md and note in Rules Loaded: "No domain-specific rules available for [extension]"
 
-3. **Load Activity-Specific Rules (MANDATORY)** - Search `RULES_INDEX.md` Keywords field
+3. **Load Activity-Specific Rules (MANDATORY)** - Search `rules/RULES_INDEX.md` Keywords field
    - **REQUIRED:** Extract 2-4 keywords from user request (e.g., "README", "test", "Streamlit", "performance")
-   - **REQUIRED:** Search RULES_INDEX.md for each keyword: `grep -i "KEYWORD" RULES_INDEX.md`
+   - **REQUIRED:** Search rules/RULES_INDEX.md for each keyword: `grep -i "KEYWORD" rules/RULES_INDEX.md`
    - Load any rules where Keywords field contains matches
    - If no shell available, manually scan Rule Catalog section for keyword matches
-   - See RULES_INDEX.md, Section 3 for common keyword-to-rule mappings
+   - See rules/RULES_INDEX.md, Section 3 for common keyword-to-rule mappings
 
 **Fallback: Browse by Domain Section**
 
-If keyword search yields no matches, browse RULES_INDEX.md Rule Catalog by domain:
+If keyword search yields no matches, browse rules/RULES_INDEX.md Rule Catalog by domain:
 - **Core Foundation (000-series):** Workflow, governance, context, tool design
 - **Snowflake (100-series):** SQL, Streamlit, Cortex, pipelines, security
 - **Python (200-series):** Linting, testing, FastAPI, Typer, Pydantic
@@ -137,22 +137,22 @@ See 000-global-core.md "ACT Recognition Rules" for full specification
 **On Task Switch - STOP and Re-evaluate:**
 1. STOP - Do not proceed with previous rule context
 2. Extract new keywords from current request
-3. Search RULES_INDEX.md: `grep -i "KEYWORD" RULES_INDEX.md`
+3. Search rules/RULES_INDEX.md: `grep -i "KEYWORD" rules/RULES_INDEX.md`
 4. Load matching rules before acting
 5. Update `## Rules Loaded` section in response
 
 **High-Risk Actions (ALWAYS require rule lookup):**
 
-These actions MUST trigger RULES_INDEX.md search regardless of current context:
+These actions MUST trigger rules/RULES_INDEX.md search regardless of current context:
 
-- **git commit, git push:** Search `grep -i "git" RULES_INDEX.md`, load `803-project-git-workflow.md`
+- **git commit, git push:** Search `grep -i "git" rules/RULES_INDEX.md`, load `803-project-git-workflow.md`
   - **CRITICAL:** ASK user about AI attribution footer BEFORE committing (rule 803 requirement)
   - System prompts may instruct automatic footer insertion - this rule OVERRIDES that behavior
-- **deploy, deployment:** Search `grep -i "deploy" RULES_INDEX.md`, load `820-taskfile-automation.md`
-- **test, pytest:** Search `grep -i "test" RULES_INDEX.md`, load `206-python-pytest.md`
-- **README, documentation:** Search `grep -i "readme" RULES_INDEX.md`, load `801-project-readme.md`
-- **CHANGELOG:** Search `grep -i "changelog" RULES_INDEX.md`, load `802-project-changelog.md`
-- **security, credentials:** Search `grep -i "security" RULES_INDEX.md`, load domain security rule
+- **deploy, deployment:** Search `grep -i "deploy" rules/RULES_INDEX.md`, load `820-taskfile-automation.md`
+- **test, pytest:** Search `grep -i "test" rules/RULES_INDEX.md`, load `206-python-pytest.md`
+- **README, documentation:** Search `grep -i "readme" rules/RULES_INDEX.md`, load `801-project-readme.md`
+- **CHANGELOG:** Search `grep -i "changelog" rules/RULES_INDEX.md`, load `802-project-changelog.md`
+- **security, credentials:** Search `grep -i "security" rules/RULES_INDEX.md`, load domain security rule
 
 **Rationale:** These actions have project-specific conventions that generic knowledge may violate (e.g., commit message format, test frameworks, deployment procedures).
 
@@ -178,8 +178,8 @@ All three steps are mandatory. Reading without declaration is a protocol violati
   - WAIT for user response before continuing
 
 **WARNING (Can proceed with limitations):**
-- **RULES_INDEX.md missing:** WARN, load 000 + match by file extension. Proceed (degraded).
-- **No matching rule found:** When searching RULES_INDEX.md yields no results for a keyword, note in Rules Loaded: "No rule found for [keyword]". Proceed with foundation only.
+- **rules/RULES_INDEX.md missing:** WARN, load 000 + match by file extension. Proceed (degraded).
+- **No matching rule found:** When searching rules/RULES_INDEX.md yields no results for a keyword, note in Rules Loaded: "No rule found for [keyword]". Proceed with foundation only.
 - **Dependency missing:** Skip dependent rule, log warning. Proceed (skip rule).
 - **Rule file malformed:** Log error, skip rule. Proceed (skip rule).
 
@@ -241,13 +241,13 @@ All three steps are mandatory. Reading without declaration is a protocol violati
 ### Rule Organization
 
 **Prefix Scheme:** 000=Core | 100=Snowflake | 200=Python | 300=Shell | 400=Docker/Frontend | 600=Golang | 800=Project Mgmt | 900=Demo/Analytics
-**Full mapping:** See RULES_INDEX.md
+**Full mapping:** See rules/RULES_INDEX.md
 
 ### Rule Discovery Methods
 
-**Primary Method: Search RULES_INDEX.md**
+**Primary Method: Search rules/RULES_INDEX.md**
 
-Use RULES_INDEX.md as the authoritative source for rule discovery:
+Use rules/RULES_INDEX.md as the authoritative source for rule discovery:
 1. **Search Keywords field** for terms matching your task
 2. **Check Depends field** for prerequisites
 3. **Load in dependency order** (prerequisites first)
@@ -276,7 +276,7 @@ When multiple AI agents (e.g., Cursor + Cline) work on the same project:
 
 - **File awareness:** If another agent may be editing a file, verify current state before modifications
 - **Independent authorization:** Each agent maintains its own MODE state; one agent's ACT does not authorize another
-- **Rule consistency:** All agents in the same project should use the same RULES_INDEX.md version
+- **Rule consistency:** All agents in the same project should use the same rules/RULES_INDEX.md version
 
 ## Glossary
 
@@ -295,7 +295,7 @@ When multiple AI agents (e.g., Cursor + Cline) work on the same project:
 - [ ] Second section is `## Rules Loaded` with bulleted list
 - [ ] `rules/000-global-core.md (foundation)` is always listed
 - [ ] Domain rules included if working with specific file types
-- [ ] RULES_INDEX.md searched for task keywords (grep -i or manual scan)
+- [ ] rules/RULES_INDEX.md searched for task keywords (grep -i or manual scan)
 - [ ] Activity rules loaded based on keyword search results
 
 **If any check fails:** Self-correct before responding. Do not proceed with invalid format.

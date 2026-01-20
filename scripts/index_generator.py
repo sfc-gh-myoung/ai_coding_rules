@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
-"""Auto-generate rules/RULES_INDEX.md from production-ready rule file metadata.
+"""Auto-generate project root RULES_INDEX.md from production-ready rule file metadata.
 
 This script scans the rules/ directory, extracts metadata from rule files,
-and generates a comprehensive rules/RULES_INDEX.md table for semantic rule discovery.
+and generates a comprehensive RULES_INDEX.md table for semantic rule discovery
+in the project root.
 
 Usage:
     python scripts/index_generator.py [--check] [--dry-run] [--rules-dir DIR]
 
-    --check: Verify current rules/RULES_INDEX.md is up-to-date (CI mode, exit 1 if not)
+    --check: Verify current RULES_INDEX.md is up-to-date (CI mode, exit 1 if not)
     --dry-run: Print generated content without writing to file
     --rules-dir: Path to rules directory (default: rules/)
 
 Examples:
-    # Generate rules/RULES_INDEX.md
+    # Generate RULES_INDEX.md in project root
     python scripts/index_generator.py
 
     # Check if up-to-date (CI mode)
@@ -36,6 +37,7 @@ RE_KEYWORDS = re.compile(r"^\*\*Keywords:\*\*\s*(.*)$", re.IGNORECASE)
 RE_DEPENDS = re.compile(r"^\*\*Depends:\*\*\s*(.*)$", re.IGNORECASE)
 RE_TOKEN_BUDGET = re.compile(r"^\*\*TokenBudget:\*\*\s*(.*)$", re.IGNORECASE)
 RE_CONTEXT_TIER = re.compile(r"^\*\*ContextTier:\*\*\s*(.*)$", re.IGNORECASE)
+RE_LOAD_TRIGGER = re.compile(r"^\*\*LoadTrigger:\*\*\s*(.*)$", re.IGNORECASE)
 
 # Files to skip during scanning
 SKIP_FILES = {
@@ -61,6 +63,7 @@ class RuleMetadata:
     # Optional (for future use)
     token_budget: str | None = None
     context_tier: str | None = None
+    load_trigger: str | None = None  # e.g., "ext:.py, ext:.pyi, file:pyproject.toml"
 
 
 def extract_scope_from_content(content: str) -> str:
@@ -153,6 +156,7 @@ def extract_metadata(filepath: Path) -> RuleMetadata:
         "depends": "—",
         "token_budget": None,
         "context_tier": None,
+        "load_trigger": None,
         "scope": "",
     }
 
@@ -179,6 +183,9 @@ def extract_metadata(filepath: Path) -> RuleMetadata:
         elif match := RE_CONTEXT_TIER.match(stripped):
             metadata["context_tier"] = match.group(1).strip()
 
+        elif match := RE_LOAD_TRIGGER.match(stripped):
+            metadata["load_trigger"] = match.group(1).strip()
+
     # Extract scope from ## Scope section (v3.2 schema)
     metadata["scope"] = extract_scope_from_content(content)
 
@@ -192,6 +199,7 @@ def extract_metadata(filepath: Path) -> RuleMetadata:
     # Construct with explicit field assignments for type safety
     token_budget_val = metadata["token_budget"]
     context_tier_val = metadata["context_tier"]
+    load_trigger_val = metadata["load_trigger"]
     return RuleMetadata(
         filename=str(metadata["filename"]),
         filepath=Path(metadata["filepath"])
@@ -202,6 +210,7 @@ def extract_metadata(filepath: Path) -> RuleMetadata:
         scope=str(metadata["scope"] or ""),
         token_budget=str(token_budget_val) if token_budget_val else None,
         context_tier=str(context_tier_val) if context_tier_val else None,
+        load_trigger=str(load_trigger_val) if load_trigger_val else None,
     )
 
 
@@ -391,22 +400,102 @@ def generate_agent_guidance() -> str:
     Returns:
         Formatted markdown section with agent-specific instructions
     """
-    return """**For AI Agents:**
+    return """
+
+**For AI Agents:**
 - This file is **READ-ONLY** for rule discovery purposes
 - Use `grep`, `read_file`, or codebase_search to find relevant rules
 - **Never modify** this file during task execution
 - Regeneration happens automatically via `task index:generate`
 - To suggest improvements, modify source rule files or `scripts/index_generator.py`
+
 """
 
 
-def generate_loading_strategy() -> str:
+def parse_load_triggers(
+    rules: list[RuleMetadata],
+) -> tuple[dict[str, str], dict[str, str], dict[str, str], dict[str, str]]:
+    """Parse LoadTrigger metadata from rules into categorized mappings.
+
+    Args:
+        rules: List of RuleMetadata objects
+
+    Returns:
+        Tuple of (dir_triggers, ext_triggers, file_triggers, kw_triggers)
+        Each dict maps trigger value to rule filename
+    """
+    dir_triggers: dict[str, str] = {}  # dir:skills/ -> 002h-claude-code-skills.md
+    ext_triggers: dict[str, str] = {}  # ext:.py -> 200-python-core.md
+    file_triggers: dict[str, str] = {}  # file:Dockerfile -> 350-docker-best-practices.md
+    kw_triggers: dict[str, str] = {}  # kw:test -> 206-python-pytest.md
+
+    for rule in rules:
+        if not rule.load_trigger:
+            continue
+
+        # Parse comma-separated triggers
+        triggers = [t.strip() for t in rule.load_trigger.split(",")]
+        for trigger in triggers:
+            if trigger.startswith("dir:"):
+                dir_triggers[trigger[4:]] = rule.filename
+            elif trigger.startswith("ext:"):
+                ext_triggers[trigger[4:]] = rule.filename
+            elif trigger.startswith("file:"):
+                file_triggers[trigger[5:]] = rule.filename
+            elif trigger.startswith("kw:"):
+                kw_triggers[trigger[3:]] = rule.filename
+
+    return dir_triggers, ext_triggers, file_triggers, kw_triggers
+
+
+def generate_loading_strategy(rules: list[RuleMetadata]) -> str:
     """Generate rule loading strategy section for AI agents.
+
+    Dynamically builds the loading strategy from LoadTrigger metadata
+    in rule files, eliminating hardcoded rule references.
+
+    Args:
+        rules: List of RuleMetadata objects with LoadTrigger field
 
     Returns:
         Formatted markdown section with loading algorithm
     """
-    return """## Rule Loading Strategy
+    # Parse triggers from rule metadata
+    dir_triggers, ext_triggers, file_triggers, kw_triggers = parse_load_triggers(rules)
+
+    # Build directory rules section
+    dir_lines = []
+    for directory, rule_file in sorted(dir_triggers.items()):
+        dir_lines.append(f"- `{directory}` directory: Load `{rule_file}`")
+    dir_section = "\n".join(dir_lines) if dir_lines else "- (No directory-based triggers defined)"
+
+    # Build file extension rules section (group by rule)
+    # Invert: rule -> list of extensions
+    rule_to_exts: dict[str, list[str]] = {}
+    for ext, rule_file in ext_triggers.items():
+        rule_to_exts.setdefault(rule_file, []).append(ext)
+    for filename, rule_file in file_triggers.items():
+        rule_to_exts.setdefault(rule_file, []).append(filename)
+
+    ext_lines = []
+    for rule_file, triggers in sorted(rule_to_exts.items()):
+        trigger_list = ", ".join(f"`{t}`" for t in sorted(triggers))
+        ext_lines.append(f"- {trigger_list}: Load `{rule_file}`")
+    ext_section = "\n".join(ext_lines) if ext_lines else "- (No extension-based triggers defined)"
+
+    # Build keyword rules section (group by rule)
+    rule_to_kws: dict[str, list[str]] = {}
+    for kw, rule_file in kw_triggers.items():
+        rule_to_kws.setdefault(rule_file, []).append(kw)
+
+    kw_lines = []
+    for rule_file, keywords in sorted(rule_to_kws.items()):
+        kw_list = ", ".join(f"**{kw}**" for kw in sorted(keywords))
+        kw_lines.append(f"- {kw_list}: Consider `{rule_file}`")
+    kw_section = "\n".join(kw_lines) if kw_lines else "- (No keyword-based triggers defined)"
+
+    return f"""
+## Rule Loading Strategy
 
 AI agents should follow this algorithm when loading rules:
 
@@ -419,30 +508,14 @@ Load: 000-global-core.md
 Based on files mentioned in user request:
 
 **Directory-based rules (check FIRST, before file extension):**
-- `skills/` directory: Load `002h-claude-code-skills.md`
-- `rules/` directory: Load `002-rule-governance.md`
+{dir_section}
 
-**File extension rules:**
-- `.py`, `.pyi`, `pyproject.toml`: Load `200-python-core.md`
-- `.sql`: Load `100-snowflake-core.md`
-- `.sh`, `.bash`, `.zsh`: Load `300-bash-scripting-core.md`
-- `Dockerfile`, `docker-compose.yml`: Load `350-docker-best-practices.md`
-- `.md` (outside `rules/` and `skills/`, e.g., README, CONTRIBUTING): Load `202-markup-config-validation.md`
-- `.ts`, `.tsx`: Load `430-typescript-core.md`
-- `.js`, `.jsx`: Load `420-javascript-core.md`
-- `.go`: Load `600-golang-core.md`
+**File extension and filename rules:**
+{ext_section}
 
 ### 3. Activity Rules (Keyword Match)
 Use `grep -i "KEYWORD" RULES_INDEX.md` to search Keywords column:
-- **skill**, SKILL.md, skill authoring: Consider `002h-claude-code-skills.md`
-- **test**, pytest, coverage: Consider `206-python-pytest.md`
-- **lint**, format, code quality: Consider `201-python-lint-format.md`
-- **deploy**, CI/CD, automation: Consider `820-taskfile-automation.md`
-- **streamlit**, dashboard: Consider `101-snowflake-streamlit-core.md`
-- **docker**, container: Consider `350-docker-best-practices.md`
-- **agent**, cortex agent: Consider `115-snowflake-cortex-agents-core.md`
-- **semantic view**: Consider `106-snowflake-semantic-views-core.md`
-- **README**, documentation: Consider `801-project-readme.md`
+{kw_section}
 
 ### 4. Check Dependencies
 - For each rule to be loaded, read its **Depends On** column
@@ -511,7 +584,7 @@ User: "Write tests for my Streamlit dashboard"
 - Keyword "Streamlit": 101-snowflake-streamlit-core.md
 - Dependency check: 101 requires 100-snowflake-core.md
 
-**Token Budget:** 000 (3300) + 200 (1800) + 206 (3500) + 100 (1800) + 101 (3700) = 14,100 ✓
+**Token Budget:** 000 (3300) + 200 (1800) + 206 (3500) + 100 (1800) + 101 (3700) = 14,100
 
 **Declaration:**
 ```markdown
@@ -522,6 +595,7 @@ User: "Write tests for my Streamlit dashboard"
 - rules/101-snowflake-streamlit-core.md (keyword: Streamlit)
 - rules/206-python-pytest.md (keyword: test)
 ```
+
 """
 
 
@@ -531,7 +605,9 @@ def generate_footer() -> str:
     Returns:
         Formatted footer content with dependency visualization
     """
-    footer = """---
+    footer = """
+
+---
 
 ## Common Rule Dependency Chains
 
@@ -602,13 +678,12 @@ def generate_rules_index(rules: list[RuleMetadata]) -> str:
 ╚══════════════════════════════════════════════════════════════════════════╝
 
 Generated by: scripts/index_generator.py
-Generated at: rules/RULES_INDEX.md
 Last updated: {timestamp}
 
 To regenerate this index:
   1. Make changes to rule files in rules/ directory
   2. Run: task index:generate
-  3. Commit both rule files AND rules/RULES_INDEX.md together
+  3. Commit both rule files AND RULES_INDEX.md together
 
 This index provides semantic discovery for AI agents.
 -->
@@ -633,7 +708,7 @@ This index provides semantic rule discovery for AI agents. All rules in `rules/`
     agent_guidance = generate_agent_guidance()
 
     # Generate loading strategy
-    loading_strategy = generate_loading_strategy()
+    loading_strategy = generate_loading_strategy(rules)
 
     # Generate rule catalog grouped by domain
     catalog_header = "\n## Rule Catalog\n"
@@ -644,32 +719,24 @@ This index provides semantic rule discovery for AI agents. All rules in `rules/`
     # Generate entries for each domain
     catalog_entries = []
     for domain_name, domain_rules in domains.items():
-        # Domain section header (add blank line before each domain except first)
-        if catalog_entries:
-            catalog_entries.append("")  # Blank line before domain
-        catalog_entries.append(f"### {domain_name}")
-        catalog_entries.append("")  # Blank line after domain header
+        # Domain section header
+        catalog_entries.append(f"\n### {domain_name}\n")
 
         # Generate entry for each rule in domain
-        for i, rule in enumerate(domain_rules):
+        for rule in domain_rules:
             catalog_entries.append(generate_rule_entry(rule))
-            # Add blank line between entries (but not after last entry in domain)
-            if i < len(domain_rules) - 1:
-                catalog_entries.append("")
+            catalog_entries.append("")  # Blank line between entries
 
     # Generate footer
     footer = generate_footer()
 
-    # Combine everything with proper spacing
+    # Combine everything
     content = (
         header
-        + "\n"
         + agent_guidance
-        + "\n"
         + loading_strategy
         + catalog_header
         + "\n".join(catalog_entries)
-        + "\n"
         + footer
     )
 
@@ -758,22 +825,22 @@ Examples:
 
     if args.check:
         # Compare with existing
-        current_path = Path("rules/RULES_INDEX.md")
+        current_path = Path("RULES_INDEX.md")
         if not current_path.exists():
-            print("❌ Error: rules/RULES_INDEX.md does not exist")
+            print("❌ Error: RULES_INDEX.md does not exist")
             print("Run: python scripts/index_generator.py")
             return 1
 
         try:
             current_content = current_path.read_text(encoding="utf-8")
         except Exception as e:
-            print(f"❌ Error reading rules/RULES_INDEX.md: {e}")
+            print(f"❌ Error reading RULES_INDEX.md: {e}")
             return 1
 
         def _normalize_for_check(text: str) -> str:
             """Normalize generated content for deterministic comparisons.
 
-            rules/RULES_INDEX.md includes a timestamp in the auto-generated header.
+            RULES_INDEX.md includes a timestamp in the auto-generated header.
             For CI checks, ignore timestamp differences so --check can be stable.
             """
             # Replace "Last updated: <timestamp>" with a stable placeholder
@@ -786,10 +853,10 @@ Examples:
             return normalized.strip()
 
         if _normalize_for_check(current_content) == _normalize_for_check(content):
-            print("✓ rules/RULES_INDEX.md is up-to-date")
+            print("✓ RULES_INDEX.md is up-to-date")
             return 0
         else:
-            print("❌ rules/RULES_INDEX.md is out of date")
+            print("❌ RULES_INDEX.md is out of date")
             print("\nRun this to update:")
             print("  python scripts/index_generator.py")
             print("\nOr with task:")
@@ -797,14 +864,14 @@ Examples:
             return 1
 
     # Write to file
-    output_path = Path("rules/RULES_INDEX.md")
+    output_path = Path("RULES_INDEX.md")
     try:
         output_path.write_text(content, encoding="utf-8")
         print(f"✓ Generated {output_path}")
         print(f"  {len(rules)} rules indexed")
         return 0
     except Exception as e:
-        print(f"❌ Error writing rules/RULES_INDEX.md: {e}")
+        print(f"❌ Error writing RULES_INDEX.md: {e}")
         return 1
 
 

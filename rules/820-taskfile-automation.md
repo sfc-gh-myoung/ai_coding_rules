@@ -9,6 +9,7 @@
 **TokenBudget:** ~10700
 **ContextTier:** Medium
 **Depends:** 202-markup-config-validation.md
+**LoadTrigger:** file:Taskfile.yml, kw:deploy, kw:automation, kw:ci
 
 ## Scope
 

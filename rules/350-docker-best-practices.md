@@ -9,6 +9,7 @@
 **TokenBudget:** ~3150
 **ContextTier:** Medium
 **Depends:** 000-global-core.md, 202-markup-config-validation.md
+**LoadTrigger:** file:Dockerfile, file:docker-compose.yml, file:docker-compose.yaml, kw:docker, kw:container
 
 ## Scope
 

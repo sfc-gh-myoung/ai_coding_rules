@@ -14,6 +14,7 @@
 **TokenBudget:** ~4500
 **ContextTier:** High
 **Depends:** 000-global-core.md
+**LoadTrigger:** ext:.go, file:go.mod
 
 ## Scope
 

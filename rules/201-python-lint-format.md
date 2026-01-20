@@ -9,6 +9,7 @@
 **TokenBudget:** ~3350
 **ContextTier:** High
 **Depends:** 200-python-core.md
+**LoadTrigger:** kw:lint, kw:format, kw:ruff
 
 ## Scope
 

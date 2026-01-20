@@ -14,6 +14,7 @@
 **TokenBudget:** ~3800
 **ContextTier:** Critical
 **Depends:** 000-global-core.md
+**LoadTrigger:** dir:rules/
 
 ## Scope
 

@@ -1,4 +1,4 @@
-# Architecture: AI Coding Rules (v3.5.0)
+# Architecture: AI Coding Rules (v3.5.2)
 
 ## Table of Contents
 
@@ -17,7 +17,7 @@
 
 ## System Overview
 
-> **Version Note:** This document describes project version v3.5.0. The rule schema version (v3.2) is separate from the project version. Schema version appears in rule metadata (`SchemaVersion: v3.2`), while project version tracks releases.
+> **Version Note:** This document describes project version v3.5.2. The rule schema version (v3.2) is separate from the project version. Schema version appears in rule metadata (`SchemaVersion: v3.2`), while project version tracks releases.
 
 ### Core Architecture Principles
 
@@ -45,6 +45,80 @@
 - Reduced complexity (no generation engine)
 - Schema-driven validation (declarative)
 - Comprehensive test coverage (100+ tests)
+
+## Rule Loading Workflow
+
+AI assistants follow a two-phase loading process: auto-loading by the IDE/tool, then rule discovery via the bootstrap protocol.
+
+### Loading Sequence Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                     AI ASSISTANT INITIALIZATION                         │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│ PHASE 1: AUTO-LOADED BY IDE/TOOL (Parallel)                             │
+│                                                                         │
+│   ┌─────────────┐              ┌─────────────┐                          │
+│   │  AGENTS.md  │              │ PROJECT.md  │                          │
+│   │  (Bootstrap │              │  (Project   │                          │
+│   │   Protocol) │              │   Config)   │                          │
+│   └─────────────┘              └─────────────┘                          │
+│         │                            │                                  │
+│         │ Defines rule loading       │ Defines project-specific         │
+│         │ sequence and MODE/ACT      │ tooling requirements and         │
+│         │ framework                  │ validation gates                 │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│ PHASE 2: RULE LOADING PROTOCOL (Sequential, per AGENTS.md)              │
+│                                                                         │
+│   Step 1: Load Foundation                                               │
+│   ┌────────────────────────┐                                            │
+│   │ rules/000-global-core  │  Always loaded first, no exceptions        │
+│   │ (Foundation Rule)      │  Defines MODE transitions, validation      │
+│   └────────────────────────┘                                            │
+│              │                                                          │
+│              ▼                                                          │
+│   Step 2: Search for Domain Rules                                       │
+│   ┌────────────────────────┐                                            │
+│   │    RULES_INDEX.md      │  Search Keywords field for task matches    │
+│   │    (Rule Catalog)      │  Check Depends field for prerequisites     │
+│   └────────────────────────┘                                            │
+│              │                                                          │
+│              ▼                                                          │
+│   Step 3: Load Domain + Activity Rules                                  │
+│   ┌────────────────────────┐                                            │
+│   │  rules/XXX-domain.md   │  Load based on file extensions, keywords   │
+│   │  rules/YYY-activity.md │  Load dependencies first (Depends field)   │
+│   └────────────────────────┘                                            │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│ READY: Agent has loaded context, begins in MODE: PLAN                   │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### File Responsibilities
+
+| File | Loading | Purpose |
+|------|---------|---------|
+| **AGENTS.md** | Auto-loaded by IDE | Bootstrap protocol, MODE/ACT framework, rule discovery instructions |
+| **PROJECT.md** | Auto-loaded by IDE | Project-specific tooling, validation requirements, critical violations |
+| **RULES_INDEX.md** | Referenced by AGENTS.md | Searchable catalog of all rules with keywords and dependencies |
+| **rules/000-global-core.md** | First rule loaded | Foundation patterns, MODE transitions, validation gates |
+| **rules/XXX-*.md** | Loaded on demand | Domain and activity-specific rules based on task requirements |
+
+### Key Design Decisions
+
+1. **Parallel auto-loading**: AGENTS.md and PROJECT.md are loaded simultaneously by the IDE, not sequentially
+2. **PROJECT.md is not part of rule chain**: It's project configuration, not a rule file
+3. **Sequential rule loading**: Rules load in dependency order per AGENTS.md protocol
+4. **Lazy loading**: Specialized rules load only when needed (token optimization)
 
 ## Context Management System
 
@@ -411,7 +485,7 @@ ai_coding_rules/
 │   ├── 221f-python-htmx-integrations.md
 │   ├── 500-frontend-htmx-core.md
 │   ├── 600-golang-core.md      # Go/Golang foundation
-│   └── ... (113 total)
+│   └── ... (122 total)
 │
 ├── scripts/                    # Automation and validation
 │   ├── template_generator.py  # Creates new rule templates
@@ -490,7 +564,7 @@ ai_coding_rules/
 - Production-ready files
 - Directly editable
 - No generation required
-- 113 rules covering all domains (including 8 HTMX rules, Go/Golang core, and Alpine.js)
+- 122 rules covering all domains (including 8 HTMX rules, Go/Golang core, and Alpine.js)
 
 **`scripts/`** — Automation and validation tools
 - `template_generator.py` creates new rules compliant with the schema
@@ -841,7 +915,7 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 ### Deployment Architecture
 
 **Source Files (in ai_coding_rules repository):**
-- `rules/` — 113 production-ready rule files
+- `rules/` — 122 production-ready rule files
 - `AGENTS.md` — Discovery guide with loading protocol
 - `RULES_INDEX.md` — Searchable catalog with keywords
 
@@ -854,7 +928,7 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 **Target Structure (in user's project):**
 ```
 /path/to/user-project/
-├── rules/                  # 113 rule files
+├── rules/                  # 122 rule files
 │   ├── 000-global-core.md
 │   ├── 100-snowflake-core.md
 │   └── ...
@@ -913,15 +987,15 @@ Configuration:
   Mode: LIVE (files will be copied)
 
 Validation:
-  ✓ Source rules/ directory exists (113 files)
+  ✓ Source rules/ directory exists (122 files)
   ✓ Source AGENTS.md exists
   ✓ Source RULES_INDEX.md exists
   ✓ Destination writable
 
 Deployment:
   → Creating destination rules/ directory
-  → Copying 113 rule files...
-  ✓ Copied 113 rules to /path/to/project/rules/
+  → Copying 122 rule files...
+  ✓ Copied 122 rules to /path/to/project/rules/
   ✓ Copied AGENTS.md to /path/to/project/
   ✓ Copied RULES_INDEX.md to /path/to/project/
 
@@ -1455,7 +1529,7 @@ flowchart TD
 
 ```mermaid
 graph TD
-    Root[ai_coding_rules/] --> Rules[rules/<br/>113 production files]
+    Root[ai_coding_rules/] --> Rules[rules/<br/>122 production files]
     Root --> Scripts[scripts/<br/>5 Python scripts]
     Root --> Schemas[schemas/<br/>v3.0 YAML schema]
     Root --> Tests[tests/<br/>91 passing tests]
@@ -1465,7 +1539,7 @@ graph TD
     
     Rules --> Rule1[000-global-core.md]
     Rules --> Rule2[100-snowflake-core.md]
-    Rules --> Rule3[... 113 total]
+    Rules --> Rule3[... 122 total]
     
     Scripts --> S1[template_generator.py]
     Scripts --> S2[rule_deployer.py]

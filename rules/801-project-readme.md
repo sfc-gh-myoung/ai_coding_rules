@@ -9,6 +9,7 @@
 **TokenBudget:** ~5350
 **ContextTier:** Medium
 **Depends:** 000-global-core.md
+**LoadTrigger:** kw:readme, kw:documentation, file:README.md
 
 ## Scope
 

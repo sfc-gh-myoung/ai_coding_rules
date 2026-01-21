@@ -3,12 +3,13 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-13
+**RuleVersion:** v3.0.2
+**LastUpdated:** 2026-01-20
 **Keywords:** Alpine.js, reactivity, x-data, x-bind, x-on, x-model, x-show, x-if, magic properties, $el, $refs, $store, declarative, progressive enhancement, lightweight
 **TokenBudget:** ~5650
 **ContextTier:** Medium
 **Depends:** 000-global-core.md
+**LoadTrigger:** kw:alpinejs, kw:alpine
 
 ## Scope
 

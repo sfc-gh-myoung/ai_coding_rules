@@ -3,8 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-20
+**LoadTrigger:** kw:notebook, kw:jupyter
 **Keywords:** ML, reproducible notebooks, nbqa, notebook linting, code quality, Python, create notebook, debug notebook, notebook execution, notebook testing, notebook deployment, kernel management, cell execution
 **TokenBudget:** ~4150
 **ContextTier:** Medium

@@ -9,6 +9,7 @@
 **TokenBudget:** ~4100
 **ContextTier:** Medium
 **Depends:** None
+**LoadTrigger:** ext:.yml, ext:.yaml, ext:.toml, file:Taskfile.yml
 
 ## Scope
 

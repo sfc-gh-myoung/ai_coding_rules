@@ -395,3 +395,109 @@ $ uv run python scripts/schema_validator.py rules/example.md
 **If results differ between runs:**
 - Schema validator version may differ
 - Manual counting error - re-verify with checklists
+
+---
+
+## Parsability for Project Files
+
+**Applies to:** AGENTS.md, PROJECT.md
+
+**When FILE_TYPE == "project":**
+
+### What to Evaluate
+
+**Evaluate ONLY:**
+- ✓ Markdown structure (heading hierarchy, lists, code blocks)
+- ✓ No visual formatting (ASCII art, arrows, box drawing)
+- ✓ No broken external links
+- ✓ Code blocks properly fenced with language tags
+- ✓ Consistent list markers
+- ✓ Tables properly formatted
+
+**Do NOT evaluate:**
+- ✗ Schema validation (different schema than rules)
+- ✗ Metadata fields (SchemaVersion, RuleVersion, TokenBudget, etc.)
+- ✗ Section order (Scope, Contract, References)
+- ✗ Required rule sections
+
+### Scoring for Project Files
+
+**Start at 10/10 (15 points), deduct for markdown issues:**
+
+| Issue Type | Deduction | Max Penalty |
+|------------|-----------|-------------|
+| Heading hierarchy skips | -1 point each | -3 points |
+| Mixed list markers | -0.5 points each | -2 points |
+| Unclosed code fences | -2 points each | -4 points |
+| Missing language tags | -0.5 points each | -2 points |
+| Malformed tables | -1 point each | -2 points |
+| Broken external links | -1 point each | -3 points |
+| Visual formatting (ASCII art, arrows) | -1 point each | -3 points |
+
+**Score Ranges:**
+- 10/10 (15 pts): Perfect markdown, no issues
+- 9/10 (13.5 pts): 1-2 minor issues
+- 8/10 (12 pts): 3-4 minor issues OR 1 major issue
+- 7/10 (10.5 pts): 5-6 minor issues OR 2 major issues
+- 6/10 (9 pts): 7-8 minor issues OR 3 major issues
+- 5/10 (7.5 pts): 9-10 minor issues OR 4 major issues
+- <5/10: Extensive markdown problems
+
+**Major issues:** Unclosed code fences, extensive visual formatting
+**Minor issues:** Missing language tags, mixed list markers
+
+### Example: Project File Review
+
+```markdown
+## Parsability: 9/10 (13.5 points)
+
+**File Type:** Project configuration (schema validation skipped)
+
+**Schema Validation:** SKIPPED (project file)
+
+**Rationale:** AGENTS.md is a bootstrap/configuration file with different structure than domain rules. Schema validation against rule schema is not applicable.
+
+**Markdown Structure:** Excellent
+
+**Issues Found:**
+- Line 234: Code block missing language tag (bash)
+- Line 456: Code block missing language tag (python)
+
+**Strengths:**
+- Proper heading hierarchy (no skips)
+- Consistent list markers throughout
+- All tables properly formatted
+- No visual formatting issues
+- No broken external links
+
+**Priority fixes:**
+1. Add language tags to code blocks (lines 234, 456)
+
+**Expected Score Improvement:** +1 point (to 10/10, 15 points)
+```
+
+### Rationale for Different Treatment
+
+**Why project files skip schema validation:**
+
+1. **Different architectural role:**
+   - Rule files: Domain-specific patterns, loaded on-demand
+   - Project files: Bootstrap/configuration, loaded once at initialization
+
+2. **Different metadata requirements:**
+   - Rule files: Need SchemaVersion, RuleVersion, TokenBudget, ContextTier, Depends
+   - Project files: No standardized metadata, custom structure per project needs
+
+3. **Different section structure:**
+   - Rule files: Scope → References → Contract → Content → Checklist
+   - Project files: Custom sections optimized for onboarding (Overview, Commands, Workflows, etc.)
+
+4. **Still valuable to review:**
+   - Actionability for AI agents (critical)
+   - Completeness of guidance (critical)
+   - Consistency (important)
+   - Markdown quality (important for parsing)
+   - Token efficiency (helps agents)
+   - Currency (tools and patterns)
+
+**Project files ARE agent-executable documents** - they just follow a different schema than domain rules.

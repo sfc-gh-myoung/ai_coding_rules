@@ -221,7 +221,7 @@ tests/test_api.py::test_login - AssertionError: assert 401 == 200
 **Rule:** Always include Severity, Location, Error, and Fix fields.
 
 **Investigation Required:**
-1. **Search RULES_INDEX.md for task keywords** - Extract keywords from user request, search Keywords field for matching rules
+1. **Search rules/RULES_INDEX.md for task keywords** - Extract keywords from user request, search Keywords field for matching rules
 2. **Read project files BEFORE making recommendations** - Check existing structure, patterns, conventions
 3. **List loaded rules explicitly** - Always state which rules informed analysis
 4. **Never speculate about project organization** - Use list_dir, read_file to understand actual structure
@@ -286,7 +286,7 @@ Design decisions must follow this priority order:
 - Keywords must enable reliable semantic discovery
 - Rule loading must be deterministic (same input produces same rules loaded)
 - Dependencies must be explicit and acyclic
-- RULES_INDEX.md must be accurate and current
+- rules/RULES_INDEX.md must be accurate and current
 
 **Priority 3 (HIGH): Context Window and Token Utilization Efficiency**
 - Minimize tokens without sacrificing Priority 1 or Priority 2
@@ -452,7 +452,7 @@ Gather details in PLAN without expiring ACT scope:
 - **JS/TS:** Load 420-javascript-core.md / 430-typescript-core.md (tsc, biome)
 - **Go:** Load 600-golang-core.md (go fmt, vet, test)
 
-**Rule Discovery:** See RULES_INDEX.md Rule Catalog for complete domain mappings.
+**Rule Discovery:** See rules/RULES_INDEX.md Rule Catalog for complete domain mappings.
 
 **Validation Sequence:**
 
@@ -650,7 +650,7 @@ should be preserved in context while working in that domain. Examples:
 - `430-typescript-core.md` - TypeScript domain
 - `600-golang-core.md` - Go domain
 
-See RULES_INDEX.md for the complete list of domain cores and their specializations.
+See rules/RULES_INDEX.md for the complete list of domain cores and their specializations.
 
 ### Relationship to ContextTier Metadata
 

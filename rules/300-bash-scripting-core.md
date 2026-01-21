@@ -14,6 +14,7 @@
 **TokenBudget:** ~5000
 **ContextTier:** High
 **Depends:** 000-global-core.md
+**LoadTrigger:** ext:.sh, ext:.bash, ext:.zsh
 
 ## Scope
 

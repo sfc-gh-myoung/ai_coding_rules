@@ -3,8 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-20
+**LoadTrigger:** kw:feature-store, kw:ml-features
 **Keywords:** feature views, entity modeling, ML pipeline, ASOF JOIN, point-in-time correctness, Dynamic Tables, feature versioning, create features, feature catalog, feature pipeline, feature discovery, feature registry, feature lineage
 **TokenBudget:** ~6150
 **ContextTier:** Medium

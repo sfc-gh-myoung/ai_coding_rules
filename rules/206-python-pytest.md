@@ -9,6 +9,7 @@
 **TokenBudget:** ~3600
 **ContextTier:** High
 **Depends:** 200-python-core.md, 201-python-lint-format.md, 203-python-project-setup.md
+**LoadTrigger:** kw:test, kw:pytest, kw:coverage
 
 ## Scope
 

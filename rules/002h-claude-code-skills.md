@@ -14,6 +14,7 @@
 **TokenBudget:** ~5650
 **ContextTier:** High
 **Depends:** 000-global-core.md, 002-rule-governance.md
+**LoadTrigger:** dir:skills/, kw:skill
 
 ## Scope
 

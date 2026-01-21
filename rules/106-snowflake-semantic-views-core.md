@@ -14,6 +14,7 @@
 **TokenBudget:** ~9000
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
+**LoadTrigger:** kw:semantic-view, kw:semantic-model
 
 ## Scope
 

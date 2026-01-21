@@ -3,8 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-20
+**LoadTrigger:** kw:spcs, kw:container
 **Keywords:** service deployment, compute pools, OCI images, image registry, health checks, GPU workloads, create service, compute pool, container deployment, service spec, container troubleshooting, SPCS error, service logs
 **TokenBudget:** ~7200
 **ContextTier:** High

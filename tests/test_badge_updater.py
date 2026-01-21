@@ -544,6 +544,24 @@ class TestCoverageExtraction:
         # Assert
         assert coverage == 0.0
 
+    @pytest.mark.unit
+    def test_get_coverage_percentage_read_error(self, tmp_path: Path):
+        """Test handling file read errors."""
+        # Arrange
+        htmlcov = tmp_path / "htmlcov"
+        htmlcov.mkdir()
+        htmlcov / "index.html"
+        # Don't write any content - create a directory instead to cause read error
+
+        # Create a directory where the file should be (causes read error)
+        (htmlcov / "index.html").mkdir()
+
+        # Act
+        coverage = bu.get_coverage_percentage(tmp_path)
+
+        # Assert - should return 0.0 on error
+        assert coverage == 0.0
+
 
 class TestBadgeColor:
     """Test badge color selection based on percentage thresholds."""

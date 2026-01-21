@@ -3,8 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-20
+**LoadTrigger:** kw:bash-testing, kw:bats
 **Keywords:** Bash, testing, ShellCheck, bats, shell script testing, CI/CD, debugging, static analysis, linting, test automation
 **TokenBudget:** ~4200
 **ContextTier:** Medium

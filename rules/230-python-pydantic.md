@@ -3,8 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-20
+**LoadTrigger:** kw:pydantic, kw:validation
 **Keywords:** Pydantic, data validation, models, settings, BaseModel, field validation, serialization, Field, validator, model_validator, EmailStr, pydantic-settings
 **TokenBudget:** ~5150
 **ContextTier:** High

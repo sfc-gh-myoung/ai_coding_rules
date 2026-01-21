@@ -14,6 +14,7 @@
 **TokenBudget:** ~4600
 **ContextTier:** High
 **Depends:** 000-global-core.md
+**LoadTrigger:** ext:.sql
 
 ## Scope
 

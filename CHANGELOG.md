@@ -5,6 +5,122 @@ All notable changes to the AI Coding Rules project will be documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [3.5.2] - 2026-01-20
+
+### Chore
+- **chore(release):** version bump to 3.5.2
+  - Updated version in pyproject.toml: 3.5.1 → 3.5.2
+  - Updated version badge in README.md: 3.5.1 → 3.5.2
+  - Updated version references in docs/ARCHITECTURE.md: 3.5.0 → 3.5.2
+  - Updated rule count references in docs/ARCHITECTURE.md: 113 → 122 (9 locations)
+  - Updated TokenBudget in 3 rules: 002-rule-governance.md (~3800 → ~5300), 121a-snowflake-snowpipe-streaming.md (~6000 → ~6300), 207-python-logging.md (~2900 → ~3050)
+
+## [3.5.2] - 2026-01-20
+
+### Added
+- **feat(loadtrigger):** implement LoadTrigger metadata across 67 rules (69% coverage, 125% of target)
+  - Added LoadTrigger metadata to 67 high/medium priority rules across 4 batches
+  - Coverage: 84 total rules (17 pre-existing + 67 new), exceeding 67-rule target by 25%
+  - 180 triggers distributed: 22 ext:, 12 file:, 2 dir:, 144 kw: (avg 2.1 per rule)
+  - Batch 1: Language/Extension rules (10 rules) - ext: and file: triggers
+  - Batch 2: Framework/Tool rules (13 rules) - kw: + file: triggers
+  - Batch 3: Activity/Workflow rules (13 rules) - kw: triggers
+  - Batch 4: Specialized rules (29 rules) - kw: triggers for specialized scenarios
+  - Phase 5 validation: Grade A+, all checks passing (508/508 tests, 122/122 index refs)
+  - Intentional duplicates: 12 triggers shared by design (e.g., ext:.jsx → both JS + React rules)
+  - Generic keyword analysis: 0 overly generic keywords (max 2 rules per keyword)
+  - RULES_INDEX.md dynamically regenerated with 180 triggers across 84 rules
+- **docs(loadtrigger):** add comprehensive LoadTrigger guidelines to rule governance
+  - Added 300+ line LoadTrigger section to rules/002-rule-governance.md
+  - Complete syntax reference for all 4 trigger types (ext:, file:, dir:, kw:)
+  - When to use LoadTrigger decision flowchart
+  - Patterns for language/framework/activity rules with examples
+  - Best practices and anti-patterns documentation
+  - Impact on RULES_INDEX.md generation
+  - Current coverage statistics (69%, 125% of target)
+  - Validation and testing procedures
+- **feat(skills):** add project file review support to rule-reviewer
+  - Extends rule-reviewer skill to support PROJECT.md and AGENTS.md alongside rules/*.md files
+  - Schema validation skipped for project files (different structure than rule schema)
+  - Parsability scoring adapted to markdown-only (no metadata validation)
+  - Token Efficiency weight increased from 5 to 10 points for balanced rubric
+  - Added comprehensive example: project-file-review.md with scoring adjustments
+  - Updated README.md: 121→122 rules, revised bulk-review duration estimate
+  - Updated SKILL.md with file type detection logic and supported file types table
+- **Architecture:** Clear separation between universal (AGENTS.md, rules) and project-specific (PROJECT.md) tool requirements
+- **Flexibility:** Projects can now use their existing toolchains (poetry, pip, black, mypy) without violations
+- **Documentation:** Comprehensive command patterns for uv/poetry/pip equivalents across all rules
+
+### Changed
+- **BREAKING:** Renamed `CLAUDE.md` to `PROJECT.md` for tool-agnostic project configuration
+  - More universal naming (not Claude-specific)
+  - Auto-loaded by AI assistants that support project config files
+  - Added Critical Validation Requirements section: commits without passing lint/format/type/test are critical violations
+  - Generalized language from "Claude Code" to "AI assistants"
+  - Updated all documentation references (AGENTS.md, README.md, ARCHITECTURE.md)
+- **BREAKING:** Separated project-specific from universal tool requirements
+  - **AGENTS.md (Universal):** Changed "Python Runtime Discovery" to "Python Tooling Discovery"
+    - Now detects and respects project's existing toolchain (uv, poetry, pipenv, pip)
+    - Removed prescriptive uv-only guidance
+    - Added investigation-first approach for toolchain selection
+    - Universal bootstrap protocol is now truly tool-agnostic
+  - **PROJECT.md (ai_coding_rules):** Added "ai_coding_rules Project Requirements" section
+    - Explicitly mandates uv/uvx/ruff/ty for THIS project only
+    - Clarifies that deployed rules are more flexible
+    - States rationale: demonstrate modern Python best practices
+  - **rules/200-python-core.md:** Transformed from uv-mandatory to toolchain-flexible
+    - "Mandatory" section → "Tooling Approach (Investigation-First)"
+    - Shows uv/uvx as "Preferred" with poetry/pip alternatives documented
+    - Validation commands now support all toolchains (uv, poetry, pip)
+    - Removed uv-specific anti-patterns, added toolchain-awareness patterns
+    - Command patterns demonstrate uv/poetry/pip equivalents
+    - "Forbidden" section now allows different toolchains with investigation requirement
+  - **rules/201-python-lint-format.md:** Updated to respect existing linters/formatters
+    - Title changed to "Ruff recommended, toolchain-flexible"
+    - Added black/flake8 as documented alternatives
+    - Execution steps support multiple toolchains
+    - Made tooling investigation explicit requirement
+  - **Architecture:** Universal rules recommend modern tools but respect existing choices; project-specific mandates in PROJECT.md only
+- **refactor(docs):** reduce AGENTS.md and PROJECT.md token overhead by 27%
+  - AGENTS.md: Removed 29 lines of duplicate lazy loading content, enhanced error handling protocols
+  - PROJECT.md: Reduced from 954 to 582 lines by removing redundant sections and condensing verbose content
+  - Token savings: ~2,990 tokens total (~50 from AGENTS.md, ~2,940 from PROJECT.md)
+  - Preserved all critical information: rule loading protocols, validation gates, error recovery patterns
+- **chore(rules):** update LastUpdated and RuleVersion for 64 modified rules
+  - All rules modified in LoadTrigger implementation updated to 2026-01-20
+  - Patch version incremented (+0.0.1) for all modified rules
+  - Updated: Batch 1 (10), Batch 2 (11), Batch 3 (13), Batch 4 (29), Phase 6 (1)
+
+### Removed
+- **refactor(index):** remove "Common Rule Dependency Chains" section from RULES_INDEX.md
+  - Removed `generate_footer()` function from scripts/index_generator.py (52 lines)
+  - Eliminated human-oriented examples (Streamlit Dashboard, Cortex Agent chains)
+  - Agent-centric rationale: dependency chains already encoded in Depends metadata
+  - Agents use algorithmic loading (AGENTS.md lazy loading + rule Depends fields)
+  - Static examples don't generalize to dynamic scenarios
+  - RULES_INDEX.md serves agents, not human documentation readers
+
+### Fixed
+- **fix(validation):** resolve schema validation errors in 002-rule-governance.md
+  - Replaced horizontal rule separator (---) with proper header at line 447
+  - Replaced 4 emojis (❌/✅) with text equivalents ([BAD]/[GOOD]) at lines 562, 568, 574, 581
+  - Replaced 5 arrow characters (→) with "Then use:" text pattern at lines 625-629
+  - All changes comply with Priority 1 design principles (agent-readable text-only format)
+  - Result: 122/122 rule files now validate cleanly
+- **fix(tests):** remove obsolete "Common Rule Dependency Chains" assertions
+  - Removed 2 assertions expecting removed footer section in test_index_generator.py
+  - Updated section ordering validation to reflect current RULES_INDEX.md structure
+  - Result: All 508 tests now passing
+- **fix(lint):** add missing docstring to pytest fixture in test_schema_validator.py
+  - Added docstring to `schema_validator` fixture at line 4355
+  - Resolves D102 ruff linting error (missing docstring in public method)
+  - Result: All linting checks now passing
+- **chore(format):** auto-format index_generator.py with ruff
+  - Removed 4 blank lines (auto-formatting by ruff)
+  - No functional changes
+
 ## [3.5.1] - 2026-01-13
 
 ### Added

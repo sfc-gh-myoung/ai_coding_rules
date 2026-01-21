@@ -36,9 +36,9 @@ def mock_project_root(tmp_path: Path) -> Path:
     (rules_dir / "100-snowflake-core.md").write_text("# Snowflake Rule\nContent here")
     (rules_dir / "200-python-core.md").write_text("# Python Rule\nContent here")
 
-    # Create root files
+    # Create root files and rules/RULES_INDEX.md
     (project / "AGENTS.md").write_text("# AGENTS\nRule loading instructions")
-    (project / "RULES_INDEX.md").write_text("# Rules Index\nRule catalog")
+    (rules_dir / "RULES_INDEX.md").write_text("# Rules Index\nRule catalog")
 
     # Create scripts directory (where rule_deployer.py would be)
     scripts_dir = project / "scripts"
@@ -85,7 +85,7 @@ class TestValidateSourceStructure:
         project = tmp_path / "incomplete_project"
         project.mkdir()
         (project / "AGENTS.md").write_text("content")
-        (project / "RULES_INDEX.md").write_text("content")
+        # Note: Not creating rules/ directory - that's what we're testing
 
         # Act
         is_valid, errors = dr.validate_source_structure(project)
@@ -111,7 +111,7 @@ class TestValidateSourceStructure:
     def test_missing_rules_index(self, mock_project_root: Path) -> None:
         """Test validation fails when RULES_INDEX.md is missing."""
         # Arrange
-        (mock_project_root / "RULES_INDEX.md").unlink()
+        (mock_project_root / "rules" / "RULES_INDEX.md").unlink()
 
         # Act
         is_valid, errors = dr.validate_source_structure(mock_project_root)
@@ -215,7 +215,7 @@ class TestCopyRootFiles:
         assert files_copied == 2
         assert files_failed == 0
         assert (dest_dir / "AGENTS.md").exists()
-        assert (dest_dir / "RULES_INDEX.md").exists()
+        assert (dest_dir / "rules" / "RULES_INDEX.md").exists()
 
     @pytest.mark.unit
     def test_dry_run_root_files(self, mock_project_root: Path, dest_dir: Path) -> None:
@@ -229,7 +229,7 @@ class TestCopyRootFiles:
         assert files_copied == 2  # Reports would copy
         assert files_failed == 0
         assert not (dest_dir / "AGENTS.md").exists()  # No actual copy
-        assert not (dest_dir / "RULES_INDEX.md").exists()
+        assert not (dest_dir / "rules" / "RULES_INDEX.md").exists()
 
 
 class TestDeployRules:
@@ -249,7 +249,7 @@ class TestDeployRules:
         assert success is True
         assert (dest_dir / "rules" / "000-global-core.md").exists()
         assert (dest_dir / "AGENTS.md").exists()
-        assert (dest_dir / "RULES_INDEX.md").exists()
+        assert (dest_dir / "rules" / "RULES_INDEX.md").exists()
 
     @pytest.mark.integration
     def test_deployment_dry_run(self, mock_project_root: Path, dest_dir: Path) -> None:
@@ -327,7 +327,7 @@ class TestValidateSourceStructureExtended:
         project.mkdir()
         (project / "rules").write_text("This is a file, not a directory")  # File, not dir
         (project / "AGENTS.md").write_text("content")
-        (project / "RULES_INDEX.md").write_text("content")
+        # Note: Cannot create rules/RULES_INDEX.md since rules is a file
 
         # Act
         is_valid, errors = dr.validate_source_structure(project)

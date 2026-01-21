@@ -11,6 +11,7 @@
 **TokenBudget:** ~6750
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
+**LoadTrigger:** kw:streamlit, kw:dashboard
 
 ## Scope
 

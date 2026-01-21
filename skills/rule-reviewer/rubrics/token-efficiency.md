@@ -1,60 +1,60 @@
-# Token Efficiency Rubric (5 points)
+# Token Efficiency Rubric (10 points)
 
 ## Scoring Formula
 
 **Raw Score:** 0-10
-**Weight:** 1
-**Points:** Raw × (1/2) = Raw × 0.5
+**Weight:** 2
+**Points:** Raw × (2/2) = Raw × 1.0
 
 ## Scoring Criteria
 
-### 10/10 (5 points): Perfect
+### 10/10 (10 points): Perfect
 - TokenBudget variance: ≤3%
 - 0 redundancy instances
 - 95%+ structured format (lists over prose)
 - References used instead of duplication
 
-### 9/10 (4.5 points): Near-Perfect
+### 9/10 (9 points): Near-Perfect
 - TokenBudget variance: 4-5%
 - 0-1 redundancy instances
 - 93-94% structured format
 
-### 8/10 (4 points): Excellent
+### 8/10 (8 points): Excellent
 - TokenBudget variance: 6-7%
 - 1-2 redundancy instances
 - 90-92% structured format
 
-### 7/10 (3.5 points): Good
+### 7/10 (7 points): Good
 - TokenBudget variance: 8-10%
 - 2-3 redundancy instances
 - 85-89% structured format
 
-### 6/10 (3 points): Acceptable
+### 6/10 (6 points): Acceptable
 - TokenBudget variance: 11-15%
 - 3-4 redundancy instances
 - 80-84% structured format
 
-### 5/10 (2.5 points): Borderline
+### 5/10 (5 points): Borderline
 - TokenBudget variance: 16-20%
 - 4-5 redundancy instances
 - 70-79% structured format
 
-### 4/10 (2 points): Needs Work
+### 4/10 (4 points): Needs Work
 - TokenBudget variance: 21-30%
 - 5-6 redundancy instances
 - 60-69% structured format
 
-### 3/10 (1.5 points): Poor
+### 3/10 (3 points): Poor
 - TokenBudget variance: 31-40%
 - 7-8 redundancy instances
 - 50-59% structured format
 
-### 2/10 (1 point): Very Poor
+### 2/10 (2 points): Very Poor
 - TokenBudget variance: 41-50%
 - 9-10 redundancy instances
 - 40-49% structured format
 
-### 1/10 (0.5 points): Inadequate
+### 1/10 (1 point): Inadequate
 - TokenBudget variance: >50%
 - >10 redundancy instances
 - 30-39% structured format
@@ -144,16 +144,16 @@ Structured % = (structured lines / total content lines) × 100
 ## Score Decision Matrix
 
 **Score Tier Criteria:**
-- **10/10 (5 pts):** ≤3% variance, 0 redundancy instances, 95%+ structured format
-- **9/10 (4.5 pts):** 4-5% variance, 0-1 redundancy instances, 93-94% structured format
-- **8/10 (4 pts):** 6-7% variance, 1-2 redundancy instances, 90-92% structured format
-- **7/10 (3.5 pts):** 8-10% variance, 2-3 redundancy instances, 85-89% structured format
-- **6/10 (3 pts):** 11-15% variance, 3-4 redundancy instances, 80-84% structured format
-- **5/10 (2.5 pts):** 16-20% variance, 4-5 redundancy instances, 70-79% structured format
-- **4/10 (2 pts):** 21-30% variance, 5-6 redundancy instances, 60-69% structured format
-- **3/10 (1.5 pts):** 31-40% variance, 7-8 redundancy instances, 50-59% structured format
-- **2/10 (1 pt):** 41-50% variance, 9-10 redundancy instances, 40-49% structured format
-- **1/10 (0.5 pts):** >50% variance, >10 redundancy instances, 30-39% structured format
+- **10/10 (10 pts):** ≤3% variance, 0 redundancy instances, 95%+ structured format
+- **9/10 (9 pts):** 4-5% variance, 0-1 redundancy instances, 93-94% structured format
+- **8/10 (8 pts):** 6-7% variance, 1-2 redundancy instances, 90-92% structured format
+- **7/10 (7 pts):** 8-10% variance, 2-3 redundancy instances, 85-89% structured format
+- **6/10 (6 pts):** 11-15% variance, 3-4 redundancy instances, 80-84% structured format
+- **5/10 (5 pts):** 16-20% variance, 4-5 redundancy instances, 70-79% structured format
+- **4/10 (4 pts):** 21-30% variance, 5-6 redundancy instances, 60-69% structured format
+- **3/10 (3 pts):** 31-40% variance, 7-8 redundancy instances, 50-59% structured format
+- **2/10 (2 pts):** 41-50% variance, 9-10 redundancy instances, 40-49% structured format
+- **1/10 (1 pt):** >50% variance, >10 redundancy instances, 30-39% structured format
 - **0/10 (0 pts):** Not declared, pervasive redundancy, <30% structured format
 
 **Primary determinant:** Token variance (overrides other factors if in lower tier)
@@ -308,12 +308,12 @@ Structure ratio: 120/200 = 60%
 - Redundancy: 4 instances = 3/5
 - Structure: 60% = 3/5
 
-**Final:** 4/10 (2 points) - variance is primary determinant
+**Final:** 4/10 (4 points) - variance is primary determinant
 
 ### Step 5: Document in Review
 
 ```markdown
-## Token Efficiency: 4/10 (2 points)
+## Token Efficiency: 4/10 (4 points)
 
 **Token budget:**
 - Declared: ~5250
@@ -393,3 +393,144 @@ BAD:
 **If results differ:**
 - Token validator version may differ
 - Redundancy counting method inconsistent - use table
+
+---
+
+## Token Efficiency for Project Files
+
+**Applies to:** AGENTS.md, PROJECT.md
+
+**When FILE_TYPE == "project":**
+
+### What to Evaluate
+
+**Evaluate (same as rules):**
+- ✓ Redundancy instances (repeated definitions, duplicated examples)
+- ✓ Structured format ratio (lists/tables vs prose)
+- ✓ Use of references over duplication
+- ✓ Front-loaded critical information
+- ✓ Progressive disclosure patterns
+
+**Skip:**
+- ✗ TokenBudget variance (no declared budget to compare against)
+
+**Report:** Actual token count for reference (not scored)
+
+### Scoring for Project Files
+
+**Since no TokenBudget is declared, score based on:**
+
+**Primary Factor: Redundancy Instances**
+
+| Redundancy Count | Raw Score | Points |
+|------------------|-----------|--------|
+| 0 instances | 10/10 | 10 |
+| 1-2 instances | 8/10 | 8 |
+| 3-4 instances | 6/10 | 6 |
+| 5-6 instances | 4/10 | 4 |
+| 7-8 instances | 2/10 | 2 |
+| 9+ instances | 0/10 | 0 |
+
+**Secondary Factor: Structured Format Ratio**
+
+Apply adjustments to redundancy-based score:
+
+| Structure Ratio | Adjustment |
+|-----------------|------------|
+| 95%+ structured | +0 points (no penalty) |
+| 80-94% structured | -1 point |
+| 60-79% structured | -2 points |
+| <60% structured | -3 points |
+
+**Minimum score:** 0/10 (cannot go below 0)
+
+### Example: Project File Scoring
+
+**File:** PROJECT.md
+
+**Step 1: Count Redundancy**
+- Tool installation repeated (lines 39, 114) - 1 instance
+- Validation command repeated (lines 356, 380) - 1 instance
+- Total: 2 redundancy instances = 8/10 base score
+
+**Step 2: Assess Structure**
+- Total content lines: 450
+- Structured lines (lists, tables, code): 395
+- Structure ratio: 395/450 = 87.8%
+- Adjustment: -1 point (80-94% range)
+
+**Step 3: Calculate Final Score**
+- Base: 8/10
+- Structure penalty: -1
+- Final: 7/10 (7 points)
+
+**Step 4: Report Actual Tokens**
+```bash
+# For reference only (not scored)
+Token count: ~4800 tokens
+```
+
+**Step 5: Document in Review**
+
+```markdown
+## Token Efficiency: 7/10 (7 points)
+
+**File Type:** Project configuration (TokenBudget not declared)
+
+**Redundancy instances:** 2
+- Tool installation command repeated (lines 39, 114)
+- Validation command repeated (lines 356, 380)
+
+**Structure ratio:** 87.8% structured (395/450 lines)
+
+**Actual token count:** ~4800 tokens (reference only - not scored)
+
+**Rationale:** Without declared TokenBudget, score based on redundancy (primary) and structure (secondary). Two redundancy instances = 8/10 base, structure 80-94% = -1 adjustment, final 7/10.
+
+**Strengths:**
+- High use of bulleted lists and code blocks
+- Good progressive disclosure (commands → workflows → troubleshooting)
+- Front-loads critical validation requirements
+
+**Recommendations:**
+1. Consolidate tool installation to single section (lines 39, 114)
+2. Create shared "Validation Commands" section referenced from multiple locations
+3. Expected improvement: +1 point (to 8/10, 8 points)
+
+**Note:** Project files don't declare TokenBudget as they are loaded once during initialization, not accumulated with rules in agent context windows.
+```
+
+### Why TokenBudget Variance Doesn't Apply
+
+**Rule files:**
+- Loaded together in agent context (accumulation)
+- TokenBudget helps track cumulative context window usage
+- Variance check ensures declared budget is accurate
+- Formula: `|Actual - Declared| / Declared × 100%`
+
+**Project files:**
+- Loaded once during initialization (standalone)
+- Not accumulated with other files
+- No TokenBudget declared (expected)
+- Token count reported for reference only
+
+**Both file types still benefit from:**
+- Minimizing redundancy
+- Maximizing structure over prose
+- Using references over duplication
+- Front-loading critical information
+
+### Token Count Reporting (Optional)
+
+If token counter available, report actual count:
+
+```bash
+uv run python scripts/token_validator.py [target_file] --count-only
+```
+
+Include in review for reference:
+```markdown
+**Actual token count:** ~4800 tokens (reference only)
+```
+
+This helps project maintainers understand document size without scoring against a declared budget.

@@ -3,10 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-20
+**LoadTrigger:** kw:snowpipe-streaming
 **Keywords:** snowpipe streaming, streaming SDK, high-performance streaming, classic streaming, channel management, row-level ingestion, low-latency ingestion, offset tracking, schema evolution, streaming API, Java SDK, Python SDK, .NET SDK, sub-second latency, real-time ingestion, streaming channels
-**TokenBudget:** ~6000
+**TokenBudget:** ~6300
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 108-snowflake-data-loading.md
 

@@ -14,6 +14,7 @@
 **TokenBudget:** ~9300
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md, 106-snowflake-semantic-views-core.md, 111-snowflake-observability-core.md
+**LoadTrigger:** kw:agent, kw:cortex-agent
 
 ## Scope
 

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **refactor(docs):** reduce AGENTS.md and PROJECT.md token overhead by 27%
+  - AGENTS.md: Removed 29 lines of duplicate lazy loading content, enhanced error handling protocols
+  - PROJECT.md: Reduced from 954 to 582 lines by removing redundant sections and condensing verbose content
+  - Token savings: ~2,990 tokens total (~50 from AGENTS.md, ~2,940 from PROJECT.md)
+  - Preserved all critical information: rule loading protocols, validation gates, error recovery patterns
+
 ### Fixed
 - **fix(validation):** resolve schema validation errors in 002-rule-governance.md
   - Replaced horizontal rule separator (---) with proper header at line 447

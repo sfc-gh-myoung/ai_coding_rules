@@ -1,4 +1,4 @@
-# Architecture: AI Coding Rules (v3.5.0)
+# Architecture: AI Coding Rules (v3.5.2)
 
 ## Table of Contents
 
@@ -17,7 +17,7 @@
 
 ## System Overview
 
-> **Version Note:** This document describes project version v3.5.0. The rule schema version (v3.2) is separate from the project version. Schema version appears in rule metadata (`SchemaVersion: v3.2`), while project version tracks releases.
+> **Version Note:** This document describes project version v3.5.2. The rule schema version (v3.2) is separate from the project version. Schema version appears in rule metadata (`SchemaVersion: v3.2`), while project version tracks releases.
 
 ### Core Architecture Principles
 
@@ -485,7 +485,7 @@ ai_coding_rules/
 │   ├── 221f-python-htmx-integrations.md
 │   ├── 500-frontend-htmx-core.md
 │   ├── 600-golang-core.md      # Go/Golang foundation
-│   └── ... (113 total)
+│   └── ... (122 total)
 │
 ├── scripts/                    # Automation and validation
 │   ├── template_generator.py  # Creates new rule templates
@@ -564,7 +564,7 @@ ai_coding_rules/
 - Production-ready files
 - Directly editable
 - No generation required
-- 113 rules covering all domains (including 8 HTMX rules, Go/Golang core, and Alpine.js)
+- 122 rules covering all domains (including 8 HTMX rules, Go/Golang core, and Alpine.js)
 
 **`scripts/`** — Automation and validation tools
 - `template_generator.py` creates new rules compliant with the schema
@@ -915,7 +915,7 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 ### Deployment Architecture
 
 **Source Files (in ai_coding_rules repository):**
-- `rules/` — 113 production-ready rule files
+- `rules/` — 122 production-ready rule files
 - `AGENTS.md` — Discovery guide with loading protocol
 - `RULES_INDEX.md` — Searchable catalog with keywords
 
@@ -928,7 +928,7 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 **Target Structure (in user's project):**
 ```
 /path/to/user-project/
-├── rules/                  # 113 rule files
+├── rules/                  # 122 rule files
 │   ├── 000-global-core.md
 │   ├── 100-snowflake-core.md
 │   └── ...
@@ -987,15 +987,15 @@ Configuration:
   Mode: LIVE (files will be copied)
 
 Validation:
-  ✓ Source rules/ directory exists (113 files)
+  ✓ Source rules/ directory exists (122 files)
   ✓ Source AGENTS.md exists
   ✓ Source RULES_INDEX.md exists
   ✓ Destination writable
 
 Deployment:
   → Creating destination rules/ directory
-  → Copying 113 rule files...
-  ✓ Copied 113 rules to /path/to/project/rules/
+  → Copying 122 rule files...
+  ✓ Copied 122 rules to /path/to/project/rules/
   ✓ Copied AGENTS.md to /path/to/project/
   ✓ Copied RULES_INDEX.md to /path/to/project/
 
@@ -1529,7 +1529,7 @@ flowchart TD
 
 ```mermaid
 graph TD
-    Root[ai_coding_rules/] --> Rules[rules/<br/>113 production files]
+    Root[ai_coding_rules/] --> Rules[rules/<br/>122 production files]
     Root --> Scripts[scripts/<br/>5 Python scripts]
     Root --> Schemas[schemas/<br/>v3.0 YAML schema]
     Root --> Tests[tests/<br/>91 passing tests]
@@ -1539,7 +1539,7 @@ graph TD
     
     Rules --> Rule1[000-global-core.md]
     Rules --> Rule2[100-snowflake-core.md]
-    Rules --> Rule3[... 113 total]
+    Rules --> Rule3[... 122 total]
     
     Scripts --> S1[template_generator.py]
     Scripts --> S2[rule_deployer.py]

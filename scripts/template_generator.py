@@ -409,7 +409,7 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
             "\nNext steps:\n"
             f"1. Edit {output_path} and replace all placeholders with actual content\n"
             f"2. Validate: python scripts/schema_validator.py {output_path}\n"
-            "3. Add to RULES_INDEX.md"
+            "3. Add to rules/RULES_INDEX.md"
         )
 
     @staticmethod

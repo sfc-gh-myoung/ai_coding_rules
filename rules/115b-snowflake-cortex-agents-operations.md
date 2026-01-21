@@ -3,8 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-12
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-20
+**LoadTrigger:** kw:agent-operations
 **Keywords:** observability, evaluation, cost management, error troubleshooting, agent security, test agent, agent permissions, agent monitoring, agent evaluation, agent costs, debug agent, agent logs, agent trace, agent security policies
 **TokenBudget:** ~5950
 **ContextTier:** High

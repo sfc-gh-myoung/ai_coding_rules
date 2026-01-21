@@ -579,7 +579,7 @@ context = "\n".join([r.content for r in results])
 
 **Example:**
 ```markdown
-1. Load CLAUDE.md (pre-computed: always relevant)
+1. Load PROJECT.md (pre-computed: always relevant)
 2. Use grep to find specific functions (agentic)
 3. Read discovered files (agentic)
 4. Follow imports as needed (agentic)

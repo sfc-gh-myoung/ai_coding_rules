@@ -89,10 +89,25 @@ metadata:
       severity: "HIGH"
       docs_reference: "002-rule-governance.md Section 11.1"
   
+  # Optional metadata fields (used by index generator but not required for all rules)
+  optional_fields:
+    - name: "LoadTrigger"
+      format: "**LoadTrigger:**"
+      type: "array"
+      item_type: "string"
+      separator: ", "
+      pattern: "^(ext:\\.[a-z0-9]+|file:[a-zA-Z0-9_.-]+|dir:[a-zA-Z0-9_/-]+|kw:[a-z0-9_-]+)$"
+      description: "Triggers for automatic rule loading. Prefixes: ext: (file extension), file: (specific filename), dir: (directory), kw: (keyword)"
+      example: "ext:.py, ext:.pyi, file:pyproject.toml"
+      error_message: "LoadTrigger items must use prefix format: ext:.py, file:Dockerfile, dir:skills/, kw:test"
+      severity: "MEDIUM"
+      docs_reference: "002-rule-governance.md Section 11.1"
+  
   field_order:
     required: true
     order: ["SchemaVersion", "RuleVersion", "LastUpdated", "Keywords", "TokenBudget", "ContextTier", "Depends"]
-    error_message: "Metadata fields must appear in order: SchemaVersion, RuleVersion, LastUpdated, Keywords, TokenBudget, ContextTier, Depends"
+    optional_after: ["LoadTrigger"]  # Optional fields allowed after required fields
+    error_message: "Metadata fields must appear in order: SchemaVersion, RuleVersion, LastUpdated, Keywords, TokenBudget, ContextTier, Depends (LoadTrigger optional after Depends)"
     fix_suggestion: "Reorder metadata fields per Section 11.1 of 002-rule-governance.md"
     severity: "HIGH"
     docs_reference: "002-rule-governance.md Section 11.1"

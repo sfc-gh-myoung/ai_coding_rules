@@ -11,14 +11,18 @@
 
 ## Mandatory Rule Loading Protocol
 
-> **Note:** All rules referenced in this document are located in the `rules/` directory.
-> File paths shown use bare filenames (e.g., `000-global-core.md`) for readability.
-> When loading rules with tools, prefix with `rules/` (e.g., `read_file("rules/000-global-core.md")`).
+> **Rule File Path Resolution Protocol (MANDATORY):**
 >
-> **Bare Filename to Tool Call Translation:**
-> - Documentation reference: `Depends: 000-global-core.md, 100-snowflake-core.md`
-> - Tool call: `read_file("rules/000-global-core.md")`, `read_file("rules/100-snowflake-core.md")`
-> - Rule pattern: Any `NNN-*.md` filename refers to a file in `rules/`
+> When this documentation references a rule filename without path prefix:
+> - IF text shows: `000-global-core.md` OR `Depends: 000-global-core.md`
+> - THEN agent MUST use: `read_file("rules/000-global-core.md")`
+> - NEVER use bare filename in tool calls
+>
+> **Pattern:** `[documented-name]` → `rules/[documented-name]`
+>
+> **Examples:**
+> - Documentation: `000-global-core.md` → Tool call: `read_file("rules/000-global-core.md")`
+> - Documentation: `Depends: 100-snowflake-core.md` → Tool call: `read_file("rules/100-snowflake-core.md")`
 
 **FIRST ACTION EVERY RESPONSE:**
 
@@ -37,64 +41,86 @@ MODE: PLAN
 [Response content here...]
 ```
 
-1. **Load Foundation** - Read `000-global-core.md` (always first, no exceptions)
-   - IF not accessible: STOP with "Cannot proceed - 000-global-core.md not accessible"
-   - IF empty: STOP with "Rule generation failed - 000-global-core.md is empty"
+1. **Load Foundation** - Read `rules/000-global-core.md` (always first, no exceptions)
+   - CALL: `read_file("rules/000-global-core.md")`
+   - IF file_not_found OR empty_content:
+     - OUTPUT: "CRITICAL ERROR: Cannot proceed - rules/000-global-core.md not accessible"
+     - STOP (no further processing, no assumptions, no alternative paths)
+   - ELSE IF success:
+     - CONTINUE to Step 2
 
 2. **Load Domain + Language Rules** - Match file extensions AND directories to domain rules
-   - Scan user request for file extensions, technology keywords, AND directory paths
-   - See RULES_INDEX.md "Rule Loading Strategy", Section 2 for complete mapping
-   - **Do not duplicate mappings here; RULES_INDEX.md is the canonical source**
-   - **Load even for "simple" tasks** (linting, formatting, syntax fixes)
-   - **Directory-based rules (check BEFORE file extension):**
-     - `skills/` directory: Load `002h-claude-code-skills.md`
-     - `rules/` directory: Load `002-rule-governance.md`
+
+   **Priority Order (check in this sequence):**
+
+   **Priority 1: Check for PROJECT.md (MANDATORY)**
+   - IF `PROJECT.md` exists in workspace root: CALL `read_file("PROJECT.md")`
+   - Extract project-specific context, tooling requirements, conventions, and overrides
+
+   **Priority 2: Directory-based rules (check BEFORE file extension)**
+   - IF request mentions `skills/` directory: LOAD `rules/002h-claude-code-skills.md`
+   - IF request mentions `rules/` directory: LOAD `rules/002-rule-governance.md`
+
+   **Priority 3: File extension rules**
+   - Scan user request for file extensions (.py, .sql, .tsx, etc.)
+   - See rules/RULES_INDEX.md "Rule Loading Strategy", Section 2 for complete mapping
+   - **Do not duplicate mappings here; rules/RULES_INDEX.md is the canonical source**
+
+   **Priority 4: Technology keywords (if no files mentioned)**
+   - IF request contains "Python" keyword: LOAD `rules/200-python-core.md`
+   - IF request contains "Snowflake" keyword: LOAD `rules/100-snowflake-core.md`
+   - [See RULES_INDEX.md for complete keyword mapping]
+
+   **Execution requirement:**
+   - **Load domain rules for ALL tasks involving file extensions, regardless of task complexity:**
+     - Linting: LOAD domain rule
+     - Formatting: LOAD domain rule
+     - Syntax fixes: LOAD domain rule
+     - Single-line edits: LOAD domain rule
+     - Read-only analysis: MAY skip domain rule (investigation only)
+
+   **Edge cases:**
    - **Unknown extensions:** If no domain rule exists for a file type, load only 000-global-core.md and note in Rules Loaded: "No domain-specific rules available for [extension]"
 
-3. **Load Activity-Specific Rules (MANDATORY)** - Search `RULES_INDEX.md` Keywords field
-   - **REQUIRED:** Extract 2-4 keywords from user request (e.g., "README", "test", "Streamlit", "performance")
-   - **REQUIRED:** Search RULES_INDEX.md for each keyword: `grep -i "KEYWORD" RULES_INDEX.md`
-   - Load any rules where Keywords field contains matches
-   - If no shell available, manually scan Rule Catalog section for keyword matches
-   - See RULES_INDEX.md, Section 3 for common keyword-to-rule mappings
+3. **Load Activity-Specific Rules (MANDATORY)** - Search `rules/RULES_INDEX.md` Keywords field
 
-**Fallback: Browse by Domain Section**
+   **A. Primary: Keyword search**
 
-If keyword search yields no matches, browse RULES_INDEX.md Rule Catalog by domain:
-- **Core Foundation (000-series):** Workflow, governance, context, tool design
-- **Snowflake (100-series):** SQL, Streamlit, Cortex, pipelines, security
-- **Python (200-series):** Linting, testing, FastAPI, Typer, Pydantic
-- **Shell (300-series):** Bash, Zsh scripting
-- **Frontend (400-series):** JavaScript, TypeScript, React
-- **Go (600-series):** Go development
-- **Project (800-series):** Changelog, README, contributing, Taskfile
-- **Analytics (900-series):** Business analytics, demos
+   **Keyword Extraction Algorithm:**
+   1. Parse user request into tokens
+   2. Identify technology nouns (Python, Streamlit, Docker, pytest)
+   3. Identify activity verbs as nouns (test → testing, deploy → deployment)
+   4. Identify file/artifact types (README, CHANGELOG, Dockerfile)
+   5. Select 2-4 most specific terms (prefer "pytest" over "test", "Streamlit" over "app")
+   6. Exclude generic terms (code, file, project, fix, help)
 
-**Lazy Loading Strategy (Token Optimization):**
+   **Example:** "Fix the pytest tests in my Streamlit app"
+   - Extract: pytest, test, Streamlit, app
+   - Filter: pytest, Streamlit (most specific)
+   - Search: `grep -i "pytest"` AND `grep -i "streamlit"`
 
-**PLAN Phase (Minimal Load):**
-- ALWAYS load: 000-global-core.md
-- Load domain core IF files being modified (200-python for .py, 100-snowflake for .sql, etc.)
-- DEFER specialized rules until task list is defined
+   **Search Execution:**
+   - **REQUIRED:** Search rules/RULES_INDEX.md for each keyword:
+     - IF bash tool available: EXECUTE `grep -i "KEYWORD" rules/RULES_INDEX.md`
+     - ELSE IF bash unavailable: READ rules/RULES_INDEX.md, manually scan Keywords field for matches
+     - IF grep returns exit code != 0: INTERPRET as "no matches found" (not error)
+   - FOR EACH matching rule: Load rule file via `read_file("rules/[rule-name].md")`
+   - See rules/RULES_INDEX.md, Section 3 for common keyword-to-rule mappings
 
-**ACT Phase (Task-Driven Load):**
-- Load specialized rules based on task list keywords:
-  - Task mentions "tests": load pytest/testing rule
-  - Task mentions "performance": load performance tuning rule
-  - Task mentions "security": load security patterns rule
+   **B. Fallback (IF zero matches from Step 3A):**
+   - IF PROJECT.md loaded: Reference "Rule Organization by Domain" section for complete mapping
+   - ELSE: READ rules/RULES_INDEX.md Rule Catalog section
+   - MATCH: User request domain to catalog domain:
+     - "SQL query" → Snowflake (100-series)
+     - "Python script" → Python (200-series)
+     - "React app" → Frontend (400-series)
+     - "Shell script" → Shell (300-series)
+     - "Go code" → Go (600-series)
+     - "Documentation" → Project (800-series)
+   - LOAD: Domain core rule for matched domain
+   - DECLARE: "No activity rules found, loaded [domain] core"
 
-**Example:**
-```
-PLAN: Load 000 + 200-python-core (analyze task)
-Task List: "Refactor auth.py, update tests, check types"
-
-ACT: NOW load 206-python-pytest + 207-python-typing (execute with full context)
-```
-
-**When to Skip Lazy Loading:**
-- Complex tasks requiring upfront comprehensive analysis
-- User explicitly requests detailed review
-- Previous attempts failed (may need more rules)
+   **Token Optimization Note:** DEFER specialized rules until task list defined in PLAN mode. Load during ACT phase based on specific tasks.
 
 4. **Declare MODE** - First line of response: `MODE: [PLAN|ACT]`
    - Default: MODE: PLAN
@@ -118,6 +144,7 @@ See 000-global-core.md "ACT Recognition Rules" for full specification
    - Always include: `- rules/000-global-core.md (foundation)`
    - Add domain/specialized rules with brief context (file extension, keyword, or dependency)
    - Example: `- rules/200-python-core.md (file extension: .py)`
+   - **NOTE:** Loading = Read file + Apply guidance + Declare in this section (all three required)
 
 **Violation = INVALID Response** - Any gate failure requires immediate correction before proceeding.
 
@@ -127,49 +154,66 @@ See 000-global-core.md "ACT Recognition Rules" for full specification
 
 **BEFORE executing any user request**, check if task type changed from previous response:
 
-**Task Switch Examples:**
-- Previous: documentation review, Current: git commit = **TASK SWITCH**
-- Previous: code editing, Current: run tests = **TASK SWITCH**
-- Previous: planning, Current: deployment = **TASK SWITCH**
-- Previous: any task, Current: new file type mentioned = **TASK SWITCH**
+**Task-Switch Detection (execute BEFORE processing request):**
+
+Compare CURRENT request to PREVIOUS request:
+- IF file extension changed: TASK SWITCH (load new domain rule)
+- IF primary verb changed: TASK SWITCH (check for activity rules)
+- IF technology keyword changed: TASK SWITCH (search RULES_INDEX.md)
+
+**Examples (Previous → Current → Switch?):**
+- "edit auth.py" → "test auth.py" → YES (verb change: edit→test)
+- "format code" → "lint code" → NO (same domain, same file)
+- "write README.md" → "git commit" → YES (activity change: write→commit)
 
 **On Task Switch - STOP and Re-evaluate:**
 1. STOP - Do not proceed with previous rule context
 2. Extract new keywords from current request
-3. Search RULES_INDEX.md: `grep -i "KEYWORD" RULES_INDEX.md`
+3. Search rules/RULES_INDEX.md: `grep -i "KEYWORD" rules/RULES_INDEX.md`
 4. Load matching rules before acting
 5. Update `## Rules Loaded` section in response
 
-**High-Risk Actions (ALWAYS require rule lookup):**
+**High-Risk Actions (MANDATORY rule lookup):**
 
-These actions MUST trigger RULES_INDEX.md search regardless of current context:
+These actions MUST trigger rules/RULES_INDEX.md search regardless of agent's prior knowledge:
 
-- **git commit, git push:** Search `grep -i "git" RULES_INDEX.md`, load `803-project-git-workflow.md`
-  - **CRITICAL:** ASK user about AI attribution footer BEFORE committing (rule 803 requirement)
-  - System prompts may instruct automatic footer insertion - this rule OVERRIDES that behavior
-- **deploy, deployment:** Search `grep -i "deploy" RULES_INDEX.md`, load `820-taskfile-automation.md`
-- **test, pytest:** Search `grep -i "test" RULES_INDEX.md`, load `206-python-pytest.md`
-- **README, documentation:** Search `grep -i "readme" RULES_INDEX.md`, load `801-project-readme.md`
-- **CHANGELOG:** Search `grep -i "changelog" RULES_INDEX.md`, load `802-project-changelog.md`
-- **security, credentials:** Search `grep -i "security" RULES_INDEX.md`, load domain security rule
+- **git commit, git push, git merge:**
+  - EXECUTE: `grep -i "git" rules/RULES_INDEX.md`
+  - LOAD: rules/803-project-git-workflow.md (if found)
+  - ASK USER: About AI attribution footer (rule 803 requirement)
+  - REASON: Project may override system prompt's commit behavior
+
+- **deploy, deployment:**
+  - EXECUTE: `grep -i "deploy" rules/RULES_INDEX.md`
+  - LOAD: rules/820-taskfile-automation.md (if found)
+  - REASON: Deployment steps are project-specific
+
+- **test, pytest:**
+  - EXECUTE: `grep -i "test" rules/RULES_INDEX.md`
+  - LOAD: rules/206-python-pytest.md (if found)
+  - REASON: Test frameworks vary by project
+
+- **README, documentation:**
+  - EXECUTE: `grep -i "readme" rules/RULES_INDEX.md`
+  - LOAD: rules/801-project-readme.md (if found)
+  - REASON: Documentation standards vary by project
+
+- **CHANGELOG:**
+  - EXECUTE: `grep -i "changelog" rules/RULES_INDEX.md`
+  - LOAD: rules/802-project-changelog.md (if found)
+  - REASON: Changelog format is project-specific
+
+- **security, credentials:**
+  - EXECUTE: `grep -i "security" rules/RULES_INDEX.md`
+  - LOAD: Domain security rule (if found)
+  - REASON: Security practices vary by technology
 
 **Rationale:** These actions have project-specific conventions that generic knowledge may violate (e.g., commit message format, test frameworks, deployment procedures).
-
-## Loading Semantics
-
-"Loading" a rule means completing all three steps:
-1. **Read** - Retrieve file contents (via read_file or equivalent)
-2. **Apply** - Follow all guidance from the rule
-3. **Declare** - List in `## Rules Loaded` section with context
-
-All three steps are mandatory. Reading without declaration is a protocol violation.
-
-**Apply Semantics:** Loading makes rules *available*; execution *applies* them. Loading pytest rules doesn't run tests; it informs how to write/run them.
 
 **Rule Loading Failures:**
 
 **CRITICAL (STOP and ask user):**
-- **000-global-core.md missing:** STOP with "Cannot proceed - 000-global-core.md not accessible"
+- **000-global-core.md missing:** STOP with "Cannot proceed - rules/000-global-core.md not accessible"
 - **Explicit rule read fails:** If agent identifies a specific rule file and `read_file` returns an error:
   - DO NOT declare the rule as loaded
   - DO NOT proceed with the task
@@ -177,8 +221,8 @@ All three steps are mandatory. Reading without declaration is a protocol violati
   - WAIT for user response before continuing
 
 **WARNING (Can proceed with limitations):**
-- **RULES_INDEX.md missing:** WARN, load 000 + match by file extension. Proceed (degraded).
-- **No matching rule found:** When searching RULES_INDEX.md yields no results for a keyword, note in Rules Loaded: "No rule found for [keyword]". Proceed with foundation only.
+- **rules/RULES_INDEX.md missing:** WARN, load 000 + match by file extension. Proceed (degraded).
+- **No matching rule found:** When searching rules/RULES_INDEX.md yields no results for a keyword, note in Rules Loaded: "No rule found for [keyword]". Proceed with foundation only.
 - **Dependency missing:** Skip dependent rule, log warning. Proceed (skip rule).
 - **Rule file malformed:** Log error, skip rule. Proceed (skip rule).
 
@@ -188,6 +232,21 @@ All three steps are mandatory. Reading without declaration is a protocol violati
 - Declaring an unloaded rule is a CRITICAL violation
 
 ## Project Tool Discovery
+
+**Tool Discovery Integration with Rule Loading:**
+
+**Phase 1: Project Automation Discovery (before loading domain rules)**
+- Check PROJECT.md for tooling directives (loaded in Step 2 of Mandatory Rule Loading Protocol)
+- Check for Taskfile.yml: EXECUTE `task --list`
+- Extract available tasks (validate, lint, test, etc.)
+
+**Phase 2: Domain Rule Loading (Steps 2-3 above)**
+- Load domain rules based on file extensions and keywords
+- Domain rules specify fallback commands IF project has no automation
+
+**Phase 3: Command Selection (during ACT execution)**
+- IF Taskfile.yml has task: USE `task [name]`
+- ELSE: USE command from loaded domain rule
 
 **BEFORE running quality/lint/format/test commands:**
 
@@ -207,59 +266,55 @@ All three steps are mandatory. Reading without declaration is a protocol violati
    - `task format` / `task quality:format` - Formatting only
    - `task test` - Test execution
 
-**Python Runtime Discovery:**
+**Python Tooling Discovery:**
 
-**BEFORE running any Python command**, check for `uv` (modern Python tooling):
+**BEFORE running any Python command**, detect project's toolchain:
 
-1. **Check for uv indicators:**
-   - `uv.lock` file exists: Project uses uv
-   - `pyproject.toml` with `[tool.uv]` section: Project uses uv
-   - `.python-version` file: Check if uv manages Python version
+1. **Check for Python tooling indicators:**
+   - `uv.lock`  - Project uses **uv** (`uv run`, `uvx`)
+   - `poetry.lock`  - Project uses **poetry** (`poetry run`)
+   - `Pipfile.lock`  - Project uses **pipenv** (`pipenv run`)
+   - `requirements.txt` only  - Project uses **pip** (bare commands or venv activation)
 
-2. **Prefer uv over bare python:**
-   - YES: `uv run python`, `uv run pytest`, `uvx ruff check .`
-   - NO: `python`, `python3`, `pytest`, `ruff` (direct invocation)
+2. **Check PROJECT.md for tooling directives:**
+   - PROJECT.md should already be loaded (per Step 2 of Mandatory Rule Loading Protocol)
+   - Extract tooling preferences from loaded PROJECT.md content
+   - Respect explicit tool requirements documented in project
 
-3. **Tool execution patterns:**
-   - Scripts/modules: `uv run python script.py`, `uv run pytest`
-   - Isolated tools: `uvx ruff check .`, `uvx ty check .`, `uvx black .`
-   - Package install: `uv add package`, `uv sync`
+3. **Match project's existing toolchain:**
+   - **If uv:** `uv run python script.py`, `uvx ruff check .`, `uvx ty check .`
+   - **If poetry:** `poetry run python script.py`, `poetry run ruff check .`
+   - **If pipenv:** `pipenv run python script.py`, `pipenv run pytest`
+   - **If pip/venv:** `python script.py`, `pytest`, `ruff check .` (assumes venv active)
 
-**Rationale:** Project-defined tasks encode team conventions, tool versions, and flag configurations that direct invocation may miss. `uv run` ensures correct virtual environment and Python version; `uvx` provides hermetic, isolated tool execution without polluting project dependencies.
+4. **When no toolchain detected (new projects):**
+   - Check loaded rules for recommendations (200-python-core.md prefers uv)
+   - Ask user for toolchain preference
+   - Never assume a toolchain without evidence
+
+**Rationale:** Projects have established toolchains and conventions. Respect existing choices rather than forcing a particular tool. Investigation-first approach prevents breaking existing workflows.
 
 ## Rule Discovery Reference
 
-### Rule Organization
+**Authoritative Source:** rules/RULES_INDEX.md
+- Section 1: Rule Catalog (domain organization)
+- Section 2: Directory and file extension mapping
+- Section 3: Activity rules (keyword-based)
 
-**Prefix Scheme:** 000=Core | 100=Snowflake | 200=Python | 300=Shell | 400=Docker/Frontend | 600=Golang | 800=Project Mgmt | 900=Demo/Analytics
-**Full mapping:** See RULES_INDEX.md
+**Discovery Methods:** See Steps 2-4 in Mandatory Rule Loading Protocol above.
 
-### Rule Discovery Methods
-
-**Primary Method: Search RULES_INDEX.md**
-
-Use RULES_INDEX.md as the authoritative source for rule discovery:
-1. **Search Keywords field** for terms matching your task
-2. **Check Depends field** for prerequisites
-3. **Load in dependency order** (prerequisites first)
-
-**Split Rules Pattern**
-
-Rules may use letter suffixes (e.g., 111a, 111b, 111c) for subtopic specialization. This improves token efficiency by allowing focused loading.
-
-### Essential Rule Metadata
-
-When parsing rules, use these metadata fields:
+**Essential Rule Metadata:**
 - **Keywords:** Comma-separated terms for semantic discovery
 - **TokenBudget:** Approximate tokens needed for context management
 - **ContextTier:** Priority level (Critical > High > Medium > Low)
 - **Depends:** Prerequisites that must be loaded first
 
-### Progressive Loading Strategy
+**Split Rules Pattern:** Rules may use letter suffixes (e.g., 111a, 111b, 111c) for subtopic specialization.
 
-**Order:** Foundation (000), then Domain core (100/200/300), then Specialized (task-based)
-**Monitor:** Track cumulative tokens, prioritize Critical/High tiers
-**See also:** "Lazy Loading Strategy" section above for PLAN vs ACT phase loading
+**Progressive Loading Strategy:**
+- **Order:** Foundation (000), then Domain core (100/200/300), then Specialized (task-based)
+- **Monitor:** Track cumulative tokens, prioritize Critical/High tiers
+- **See also:** Token Optimization Note in Step 4 above for PLAN vs ACT phase loading
 
 ### Multi-Agent Environments
 
@@ -267,7 +322,7 @@ When multiple AI agents (e.g., Cursor + Cline) work on the same project:
 
 - **File awareness:** If another agent may be editing a file, verify current state before modifications
 - **Independent authorization:** Each agent maintains its own MODE state; one agent's ACT does not authorize another
-- **Rule consistency:** All agents in the same project should use the same RULES_INDEX.md version
+- **Rule consistency:** All agents in the same project should use the same rules/RULES_INDEX.md version
 
 ## Glossary
 
@@ -278,15 +333,6 @@ When multiple AI agents (e.g., Cursor + Cline) work on the same project:
 - **Load:** Read + Apply + Declare a rule (all three steps mandatory)
 - **Token Budget:** Cumulative token count of all loaded rules
 
-## Response Validation Checklist
+## Response Validation
 
-**Before submitting ANY response, verify:**
-
-- [ ] First line is `MODE: PLAN` or `MODE: ACT`
-- [ ] Second section is `## Rules Loaded` with bulleted list
-- [ ] `rules/000-global-core.md (foundation)` is always listed
-- [ ] Domain rules included if working with specific file types
-- [ ] RULES_INDEX.md searched for task keywords (grep -i or manual scan)
-- [ ] Activity rules loaded based on keyword search results
-
-**If any check fails:** Self-correct before responding. Do not proceed with invalid format.
+Before submitting response, verify compliance with Mandatory Rule Loading Protocol (Steps 1-5 above).

@@ -11,9 +11,10 @@
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-06
 **Keywords:** Python, uv, Ruff, pyproject.toml, dependency management, virtual environments, pytest, validation, uv run, uvx, ty, type checking, mypy, type hints
-**TokenBudget:** ~5350
+**TokenBudget:** ~6500
 **ContextTier:** Critical
 **Depends:** 000-global-core.md
+**LoadTrigger:** ext:.py, ext:.pyi, file:pyproject.toml
 
 ## Scope
 
@@ -64,42 +65,81 @@ Foundational Python development practices using modern tooling (uv, Ruff, pytest
 
 ### Inputs and Prerequisites
 
-- Python 3.11+ available
-- `uv` installed and functional
+- Python 3.11+ available (or project's specified version)
+- Project's dependency manager installed (uv, poetry, pip, pipenv)
 - `pyproject.toml` present (or creating new project)
 - Target Python files or project structure identified
 
-### Mandatory
+### Tooling Approach (Investigation-First)
 
-- Always use `uv run` for Python execution (never bare `python`)
-- Use `uvx` for isolated tool execution (ruff, ty)
-- Apply Ruff linting and formatting to all modified Python files
-- Apply ty type checking to all modified Python files
-- Run pytest for projects with test suites
+**Before prescribing tools, investigate project's existing toolchain:**
+
+1. **Read pyproject.toml** for existing dependencies and tool configurations
+2. **Check for tool lock files:**
+   - `uv.lock`  - Project uses **uv**
+   - `poetry.lock`  - Project uses **poetry**
+   - `Pipfile.lock`  - Project uses **pipenv**
+   - `requirements.txt` only  - Project uses **pip**
+3. **Look for tool configuration sections:**
+   - `[tool.uv]`  - uv project
+   - `[tool.poetry]`  - poetry project
+   - `[tool.black]` or `[tool.ruff]`  - linter/formatter choice
+4. **Respect project's existing choices** unless explicitly asked to change
+
+**Recommended Tooling (Modern Python Projects):**
+
+**Preferred for NEW projects:**
+- **Runtime:** uv/uvx (fast, modern, Astral ecosystem)
+  - `uv run python script.py` (project execution)
+  - `uvx ruff check .` (isolated linting)
+  - `uvx ty check .` (isolated type checking)
+- **Linting/Formatting:** Ruff (fast, comprehensive)
+- **Type Checking:** ty (fast, Astral ecosystem)
+
+**Alternative Tooling (Respect for EXISTING projects):**
+- **poetry:** `poetry run python`, `poetry run pytest`
+- **pipenv:** `pipenv run python`, `pipenv run pytest`
+- **pip + venv:** `python script.py`, `pytest` (after activation)
+- **Linting:** black + flake8, pylint
+- **Type Checking:** mypy (mature, plugin ecosystem)
+
+**Rule:** Match project's existing tooling. Only recommend changes when:
+- User explicitly asks for modernization
+- Project has no established toolchain
+- Existing toolchain causes problems
+
+### Mandatory (Universal Requirements)
+
+These requirements apply regardless of tooling choice:
+
+- Apply consistent linting and formatting to all modified Python files
+- Apply type checking to all modified Python files
+- Run test suite for projects with tests
 - Centralize configuration in `pyproject.toml`
 - Use `datetime.now(UTC)` instead of deprecated `datetime.utcnow()`
-- Integrate with Taskfile for consistent automation when available
+- Integrate with project's task automation (Taskfile, Makefile, etc.)
 
 ### Forbidden
 
-- Never run bare `python`, `pytest`, `ruff` commands without `uv run` or `uvx`
-- Never skip Pre-Task-Completion Validation Gate (ruff, ty, pytest)
+- Never skip Pre-Task-Completion Validation Gate (lint, format, type check, tests)
 - Never use deprecated `datetime.utcnow()` (use `datetime.now(UTC)`)
-- Never install standalone tools in project environment (use `uvx`)
 - Never hard-code secrets or credentials
 - Never use broad `except:` clauses that swallow exceptions
+- Never ignore project's established toolchain without justification
+- Never prescribe specific tools (uv, poetry) without checking existing setup
 
 ### Execution Steps
 
-1. **Environment Setup:** Pin Python version with `uv python pin 3.11` and sync dependencies with `uv sync --all-groups`
-2. **Investigation:** Read `pyproject.toml` to understand existing dependencies, Python version, and tool configurations
+1. **Investigation:** Read `pyproject.toml` and check for lock files to identify project's toolchain (uv, poetry, pip)
+2. **Environment Setup:** Use project's dependency manager to ensure environment is ready
+   - **uv:** `uv python pin 3.11` and `uv sync --all-groups`
+   - **poetry:** `poetry install --with dev`
+   - **pip:** `pip install -r requirements.txt` (or requirements-dev.txt)
 3. **Implementation:** Write or modify Python code following modern patterns (type hints, clear error handling, modular structure)
-4. **Validation:** Run comprehensive validation suite:
-   - `uvx ruff check .` (linting)
-   - `uvx ruff format --check .` (formatting)
-   - `uvx ty check .` (type checking)
-   - `uv run python -m py_compile -q .` (syntax validation)
-   - `uv run pytest` (tests)
+4. **Validation:** Run comprehensive validation suite using project's toolchain:
+   - **uv:** `uvx ruff check .`, `uvx ruff format --check .`, `uvx ty check .`, `uv run pytest`
+   - **poetry:** `poetry run ruff check .`, `poetry run mypy .`, `poetry run pytest`
+   - **pip/venv:** `ruff check .`, `mypy .`, `pytest` (assumes tools installed in venv)
 5. **Documentation:** Update CHANGELOG.md and README.md as required
 6. **Verification:** Confirm all validation checks pass before task completion
 
@@ -142,11 +182,23 @@ def implementation_function(input_data: dict) -> dict:
 ```
 
 ```bash
-# Validation commands
+# Validation commands (adjust for project's toolchain)
+
+# If project uses uv (check for uv.lock):
 uvx ruff check .
 uvx ruff format --check .
 uvx ty check .
 uv run pytest tests/
+
+# If project uses poetry (check for poetry.lock):
+poetry run ruff check .
+poetry run mypy .
+poetry run pytest tests/
+
+# If project uses pip (no lock file):
+ruff check .
+mypy .
+pytest tests/
 ```
 
 ### Validation
@@ -157,14 +209,27 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 
 **CRITICAL:** Before marking any Python task as complete, ALL of the following checks MUST pass:
 
-**Code Quality:**
-- **CRITICAL:** `uvx ruff check .` - Must pass with zero errors
-- **CRITICAL:** `uvx ruff format --check .` - Must pass, code properly formatted
-- **CRITICAL:** `uvx ty check .` - Must pass with zero type errors (primary type checker)
-- **CRITICAL:** `uv run python -m py_compile -q .` - All Python files compile without syntax errors
+**Code Quality (use project's toolchain):**
+- **CRITICAL:** Linting check - Must pass with zero errors
+  - **uv:** `uvx ruff check .`
+  - **poetry:** `poetry run ruff check .` (or `poetry run flake8 .`)
+  - **pip:** `ruff check .` (or `flake8 .`)
+- **CRITICAL:** Format check - Must pass, code properly formatted
+  - **uv:** `uvx ruff format --check .`
+  - **poetry:** `poetry run ruff format --check .` (or `poetry run black --check .`)
+  - **pip:** `ruff format --check .` (or `black --check .`)
+- **CRITICAL:** Type check - Must pass with zero type errors
+  - **uv:** `uvx ty check .` (primary) or `uv run mypy .` (fallback)
+  - **poetry:** `poetry run mypy .`
+  - **pip:** `mypy .`
+- **CRITICAL:** Syntax validation - All Python files compile without syntax errors
+  - **All toolchains:** `python -m py_compile -q .` (using project's Python)
 
-**Test Execution:**
-- **CRITICAL:** `uv run pytest` - All tests must pass (for projects with test suites)
+**Test Execution (use project's toolchain):**
+- **CRITICAL:** All tests must pass (for projects with test suites)
+  - **uv:** `uv run pytest`
+  - **poetry:** `poetry run pytest`
+  - **pip:** `pytest`
 - **Rule:** Never skip tests unless user explicitly requests override
 
 **Documentation:**
@@ -197,78 +262,91 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 
 **Correct Pattern:**
 - "Let me check your Python project setup first."
-- [reads pyproject.toml, checks directory structure]
-- "I see you're using uv with Python 3.11 and pytest. Here's how to add the new feature following your existing structure..."
-- [makes changes, runs validation]
+- [reads pyproject.toml, checks for lock files (uv.lock, poetry.lock)]
+- "I see you're using poetry with Python 3.11 and pytest. Here's how to add the new feature following your existing structure..."
+- [makes changes, runs validation with poetry run]
 - "Changes validated: ruff clean, format clean, types clean, tests passing (12/12). Task complete."
 
 ### Design Principles
 
-- **Modern Tooling:** Use `uv` for all dependency and environment management; `uvx` for isolated tool execution
-- **Python Version:** Pin Python 3.11+ and centralize configuration in `pyproject.toml`
-- **Code Quality:** Apply Ruff linting and formatting on every file modification
-- **Type Safety:** Apply ty type checking on every file modification for static type safety
+- **Investigation-First:** Check project's existing toolchain before prescribing tools
+- **Toolchain Respect:** Match project's dependency manager (uv, poetry, pip)
+- **Python Version:** Pin appropriate Python version in `pyproject.toml`
+- **Code Quality:** Apply consistent linting and formatting on every file modification
+- **Type Safety:** Apply type checking on every file modification for static type safety
 - **Code Structure:** Structure code with clear modules, proper error handling, and modern Python patterns
-- **Task Integration:** Integrate with Taskfile for consistent automation across projects
+- **Task Integration:** Integrate with project's task automation (Taskfile, Makefile, etc.)
 - **Validation First:** Never mark tasks complete without passing Pre-Task-Completion Validation Gate
 
 ### Post-Execution Checklist
 
 **Before Starting:**
 - [ ] Rule dependencies loaded (000-global-core.md)
-- [ ] Python 3.11+ available
-- [ ] uv installed and functional
+- [ ] Python available (version determined by project)
+- [ ] Project's dependency manager identified (uv, poetry, pip)
 - [ ] Target files or project structure identified
 - [ ] pyproject.toml exists or ready to create
 
 **After Completion:**
 
-**Environment Setup:**
-- [ ] Python 3.11+ is pinned in .python-version file
-- [ ] Dependencies managed through uv (pyproject.toml with dependency-groups)
-- [ ] Virtual environment created with `uv venv` (not python -m venv)
-- [ ] Dependencies synced with `uv sync --all-groups`
-- [ ] Ruff configured in pyproject.toml with target-version = "py311"
+**Environment Setup (varies by toolchain):**
+- [ ] Python version pinned appropriately for project
+- [ ] Dependencies managed through project's chosen tool
+- [ ] Virtual environment created/verified
+- [ ] Dependencies installed/synced
+- [ ] Linter/formatter configured in pyproject.toml
 
-**Code Quality:**
-- [ ] **CRITICAL:** `uvx ruff check .` passed with zero errors
-- [ ] **CRITICAL:** `uvx ruff format --check .` passed
-- [ ] **CRITICAL:** `uvx ty check .` passed with zero type errors
-- [ ] **CRITICAL:** `uv run python -m py_compile -q .` passed (all Python files syntactically valid)
-- [ ] **CRITICAL:** `uv run pytest` passed (all tests)
+**Code Quality (commands vary by toolchain):**
+- [ ] **CRITICAL:** Linting passed with zero errors
+- [ ] **CRITICAL:** Formatting check passed
+- [ ] **CRITICAL:** Type checking passed with zero type errors
+- [ ] **CRITICAL:** Syntax validation passed (all Python files compile)
+- [ ] **CRITICAL:** All tests passed (if test suite exists)
 
 **Documentation:**
 - [ ] **CRITICAL:** CHANGELOG.md updated for code changes
 - [ ] README.md reviewed and updated if triggers apply
 
 **Project Standards:**
-- [ ] No bare pip install commands in documentation
+- [ ] Appropriate dependency management commands used (no mixing of pip/poetry/uv)
 - [ ] Import paths use absolute imports where possible
 - [ ] Project follows modern Python packaging standards
-- [ ] All Python execution uses `uv run` prefix
+- [ ] All Python execution uses project's standard method
 
 ## Anti-Patterns and Common Mistakes
 
-### Anti-Pattern 1: Using Bare Python Commands Without `uv run`
+### Anti-Pattern 1: Ignoring Project's Existing Toolchain
 
 ```bash
-# Bad: Running Python without uv run
-python script.py
-pytest tests/
-uvicorn app.main:app --reload
+# Bad: Forcing uv on a poetry project
+# Found poetry.lock in project
+# Still running: uv run python script.py
 ```
 
-**Problem:** Commands run outside project virtual environment; leads to `ModuleNotFoundError`; dependencies not found; inconsistent behavior across environments
+**Problem:** Breaks project's established conventions; may cause dependency version conflicts; ignores team's tooling decisions; creates inconsistent developer experience
 
 **Correct Pattern:**
 ```bash
-# Good: Always use uv run for project commands
+# Good: Detect and respect project's toolchain
+
+# Step 1: Check for lock files
+ls -la | grep -E '(uv.lock|poetry.lock|Pipfile.lock)'
+
+# Step 2: Use appropriate commands
+# If poetry.lock exists:
+poetry run python script.py
+poetry run pytest tests/
+
+# If uv.lock exists:
 uv run python script.py
 uv run pytest tests/
-uv run uvicorn app.main:app --reload
+
+# If only requirements.txt:
+python script.py  # Assumes venv active
+pytest tests/
 ```
 
-**Benefits:** Consistent dependency resolution; all project modules available; reproducible behavior; no environment activation needed
+**Benefits:** Respects project conventions; maintains consistency; works with existing CI/CD; follows team decisions
 
 ### Anti-Pattern 2: Skipping Validation Before Task Completion
 
@@ -282,14 +360,26 @@ uv run uvicorn app.main:app --reload
 
 **Correct Pattern:**
 ```bash
-# After making changes, always validate:
+# After making changes, always validate using project's toolchain:
+
+# If uv project:
 uvx ruff check .
 uvx ruff format --check .
 uvx ty check .
 uv run pytest
 
+# If poetry project:
+poetry run ruff check .
+poetry run mypy .
+poetry run pytest
+
+# If pip project:
+ruff check .
+mypy .
+pytest
+
 # Only after ALL pass:
-# "Changes validated: ruff clean, format clean, types clean, tests passing (12/12). Task complete."
+# "Changes validated: linting clean, formatting clean, types clean, tests passing (12/12). Task complete."
 ```
 
 **Benefits:** Catches errors immediately; ensures code quality standards; user receives working, tested code; no surprises
@@ -313,28 +403,7 @@ timestamp = datetime.now(UTC)  # Modern, timezone-aware
 
 **Benefits:** Future-proof code; explicit timezone handling; follows Python 3.11+ best practices; no deprecation warnings
 
-### Anti-Pattern 4: Installing Tools in Project Environment Instead of Using `uvx`
-
-```bash
-# Bad: Installing standalone tools in project venv
-uv add --dev ruff black mypy safety
-uv run ruff check .
-```
-
-**Problem:** Bloats project dependencies; tool versions conflict with project deps; slower environment setup; unnecessary lockfile complexity
-
-**Correct Pattern:**
-```bash
-# Good: Use uvx for isolated tool execution
-uvx ruff check .
-uvx ruff format .
-uvx ty check .
-# Tools run in isolation, no project pollution
-```
-
-**Benefits:** Clean project dependencies; no version conflicts; faster uv sync; tools always latest stable versions; simpler pyproject.toml
-
-### Anti-Pattern 5: Skipping Type Checking Before Task Completion
+### Anti-Pattern 4: Skipping Type Checking Before Task Completion
 
 ```python
 # AI makes code changes
@@ -346,90 +415,142 @@ uvx ty check .
 
 **Correct Pattern:**
 ```bash
-# After making changes, always validate types:
+# After making changes, always validate types using project's toolchain:
+
+# If uv project:
 uvx ty check .
 
+# If poetry/pip project:
+poetry run mypy .  # or: mypy .
+
 # Only after ALL checks pass (including type checking):
-# "Changes validated: ruff clean, format clean, types clean, tests passing. Task complete."
+# "Changes validated: linting clean, formatting clean, types clean, tests passing. Task complete."
 ```
 
 **Benefits:** Catches type errors at development time; prevents runtime type crashes; ensures type annotations are correct and complete; maintains type safety across codebase
 
 ## Environment and Tooling Requirements
 
-### Core Tooling
+### Toolchain Selection (Investigation-First)
 
-- **Requirement:** Use `uv` for all dependency and environment management.
-- **Requirement:** Pin Python to 3.11+ in `.python-version` and `pyproject.toml`.
-- **Requirement:** Use `uvx` for isolated tool execution (ruff, ty, safety, etc.).
-- **Requirement:** Use `uv run` for all project scripts and Python execution.
-- **Requirement:** Use `uv sync --all-groups` for dependency installation.
-- **Requirement:** Use `uv lock` for dependency resolution and updates.
-- **Requirement:** Use an authoritative linter and formatter (Ruff).
-- **Requirement:** Centralize dependencies and configuration in `pyproject.toml`.
-- **Consider:** If `uv` is unavailable, use `pip` + `pip-tools` or `poetry`. Provide equivalent commands when giving setup instructions.
+**Before prescribing tooling, detect project's existing setup:**
+
+1. **Check for dependency manager lock files:**
+   - `uv.lock`  - Project uses **uv**
+   - `poetry.lock`  - Project uses **poetry**
+   - `Pipfile.lock`  - Project uses **pipenv**
+   - Only `requirements.txt`  - Project uses **pip**
+
+2. **Check pyproject.toml for tool sections:**
+   - `[tool.uv]`  - uv configuration
+   - `[tool.poetry]`  - poetry configuration
+   - `[tool.black]` or `[tool.ruff]`  - formatter preference
+
+3. **Match project's existing toolchain consistently**
+
+### Recommended Tooling (For NEW Projects)
+
+**Python Runtime and Dependency Management:**
+- **Preferred:** uv (fast, modern, comprehensive)
+  - `uv python pin 3.11` - Pin Python version
+  - `uv sync --all-groups` - Install dependencies
+  - `uv run python` - Execute in project environment
+  - `uvx ruff` - Run isolated tools
+- **Alternative:** poetry (mature, widely adopted)
+  - `poetry install --with dev` - Install dependencies
+  - `poetry run python` - Execute in project environment
+- **Alternative:** pip + venv (simple, universal)
+  - `pip install -r requirements.txt` - Install dependencies
+  - `python` - Execute (assumes venv active)
+
+**Linting and Formatting:**
+- **Preferred:** Ruff (fast, comprehensive, replaces multiple tools)
+- **Alternative:** black + flake8 + isort (established ecosystem)
+
+**Type Checking:**
+- **Preferred:** ty (fast, Astral ecosystem) or mypy (mature, plugins)
+- **Configuration:** Use `pyproject.toml` for all tool settings
 
 ### Virtual Environment Management
 
-- **Critical:** Always use `uv run` to execute Python code in projects. Never run `python` directly.
-- **Critical:** All Python execution must go through the proper virtual environment to avoid `ModuleNotFoundError`.
-- **Requirement:** Use `uv run python` instead of bare `python` for all scripts, imports, and testing.
-- **Requirement:** Use `uv run uvicorn` instead of bare `uvicorn` for FastAPI/ASGI servers.
-- **Requirement:** Use `uv run pytest` instead of bare `pytest` for testing.
-- **Requirement:** Use `uvx ty check` for type checking (primary); use `uv run mypy` as fallback when mypy plugins are needed.
+**Critical Principle:** Always use project's dependency manager to execute code
 
-#### Tool Isolation vs Project Environment (uv run vs uvx)
+**If project uses uv:**
+- `uv run python script.py` - Execute scripts
+- `uv run pytest` - Run tests
+- `uvx ruff check .` - Isolated linting
 
-- **Rule:** Use `uv run` when the command needs access to the project environment (installed dependencies, project package imports, or plugins declared in `pyproject.toml`).
-- **Rule:** Use `uvx` for standalone tools that do not import your project code and do not require project-installed plugins.
+**If project uses poetry:**
+- `poetry run python script.py` - Execute scripts
+- `poetry run pytest` - Run tests
+- `poetry run ruff check .` - Run linting (if ruff is a dev dependency)
 
-**When to use `uv run` (project venv):**
-- The command imports your project package/modules (e.g., `pytest`, `uvicorn app.main:app`, `python -m yourpkg`).
-- The tool relies on plugins or integrations defined in `pyproject.toml` or installed in the project venv (e.g., `pytest` plugins, mypy plugins, Sphinx extensions).
-- You need the exact dependency set and versions pinned by your project lockfile.
+**If project uses pip:**
+- Activate venv first OR prefix with path to venv python
+- `python script.py` - Execute scripts (venv active)
+- `pytest` - Run tests (venv active)
 
-**Examples (project environment):**
-- `uv run pytest tests/`  # discovers and loads project/third-party pytest plugins
-- `uv run mypy src/`      # fallback type checker when mypy plugins are needed
-- `uv run uvicorn app.main:app --reload`  # imports your app package
-- `uv run python -m yourpkg.tool`         # runs code that imports your package
+### Tool Isolation Patterns
 
-**When to use `uvx` (isolated tool context):**
-- The tool is self-contained and does not import your project code.
-- The tool does not require project-installed plugins; any needed integrations are provided by the tool itself.
+**Isolated Tool Execution (No Project Dependencies):**
 
-**Examples (isolated tools):**
-- `uvx ruff check .` and `uvx ruff format .`  # linter/formatter runs independently
-- `uvx ty check .`                            # type checker runs independently (primary)
-- `uvx black .`                               # formatter without importing project code
-- `uvx safety check`                          # dependency vulnerability scan
+Tools that don't import project code can run in isolation:
 
-**Common pitfalls and guidance:**
-- **Important:** `uvx` runs tools in an isolated context. It does not automatically include your project venv or its extra modules/plugins. If a tool fails to find a plugin or cannot import your package, switch to `uv run`.
-- If a command needs both a standalone tool and project imports, prefer `uv run` to ensure your project environment is available.
-- Keep configuration centralized in `pyproject.toml`, but remember that only `uv run` guarantees access to project-installed integrations referenced there.
+**uv projects:** Use `uvx` for isolated execution
+```bash
+uvx ruff check .      # Linter (no project imports)
+uvx ruff format .     # Formatter (no project imports)
+uvx ty check .        # Type checker (no project imports)
+```
 
-**Quick decision guide:**
-- Imports project code or needs project plugins? Use `uv run ...`
+**poetry/pip projects:** Install tools as dev dependencies or use pipx
+```bash
+poetry run ruff check .    # If ruff in dev dependencies
+pipx run ruff check .      # Isolated execution via pipx
+```
+
+**Project Environment Execution (Needs Project Dependencies):**
+
+Commands that import project code MUST use project environment:
+
+**uv projects:**
+```bash
+uv run pytest tests/               # Imports project code and plugins
+uv run uvicorn app.main:app        # Imports app package
+uv run python -m mypackage         # Runs module from project
+```
+
+**poetry projects:**
+```bash
+poetry run pytest tests/           # Imports project code and plugins
+poetry run uvicorn app.main:app    # Imports app package
+poetry run python -m mypackage     # Runs module from project
+```
+
+**pip projects:**
+```bash
+pytest tests/                      # Venv must be active
+uvicorn app.main:app               # Venv must be active
+python -m mypackage                # Venv must be active
+```
 - Pure external tool, no project imports/plugins? Use `uvx ...`
 
 ### Command Patterns
 
-**CORRECT:**
+**Pattern Selection Based on Project Toolchain:**
+
+**uv projects (uv.lock present):**
 ```bash
 # Project execution
 uv run python script.py
 uv run python -c "import app; print('success')"
 uv run uvicorn app.main:app --reload
 uv run pytest tests/
-uv run mypy src/  # fallback type checker when mypy plugins needed
 
-# Isolated tools (Astral toolchain)
+# Isolated tools
 uvx ruff check .
 uvx ruff format .
-uvx ty check .    # primary type checker
-uvx safety check
-uvx black .
+uvx ty check .
 
 # Environment management
 uv python pin 3.11
@@ -437,28 +558,77 @@ uv sync --all-groups
 uv lock --upgrade
 ```
 
-**INCORRECT:**
+**poetry projects (poetry.lock present):**
 ```bash
-python script.py                    # Missing uv run
-python -c "import app"              # Missing uv run
-uvicorn app.main:app --reload       # Missing uv run
-pytest tests/                       # Missing uv run
-ruff check .                        # Should use uvx for isolation
+# Project execution
+poetry run python script.py
+poetry run python -c "import app; print('success')"
+poetry run uvicorn app.main:app --reload
+poetry run pytest tests/
+
+# Tools (if in dev dependencies)
+poetry run ruff check .
+poetry run mypy .
+
+# Environment management
+poetry install --with dev
+poetry update
+poetry lock
+```
+
+**pip projects (requirements.txt only):**
+```bash
+# Project execution (venv must be active)
+python script.py
+python -c "import app; print('success')"
+uvicorn app.main:app --reload
+pytest tests/
+
+# Tools (if installed in venv)
+ruff check .
+mypy .
+
+# Environment management
+pip install -r requirements.txt
+pip install -r requirements-dev.txt
 ```
 
 ### Environment Setup Best Practices
 
-- **Always:** Start projects with `uv python pin 3.11` to set Python version.
-- **Always:** Use `uv sync --all-groups` to install all dependencies including dev tools.
-- **Always:** Use status checks in automation to avoid redundant environment setup.
-- **Rule:** Use `uv lock` before `uv sync` to ensure consistent dependency resolution.
+**Toolchain-Specific Setup:**
+
+**uv projects:**
+- Start with `uv python pin 3.11` to set Python version
+- Use `uv sync --all-groups` to install dependencies
+- Use `uv lock` before `uv sync` for consistency
+
+**poetry projects:**
+- Use `poetry install --with dev` to install dependencies
+- Use `poetry lock` to update lock file
+
+**pip projects:**
+- Create venv: `python -m venv .venv`
+- Activate: `source .venv/bin/activate` (Unix) or `.venv\Scripts\activate` (Windows)
+- Install: `pip install -r requirements.txt`
 
 ### Troubleshooting Environment Issues
 
-- **Rule:** If you encounter `ModuleNotFoundError`, always check if `uv run` was used.
-- **Rule:** Use `uv run python -c "import module_name"` to test module availability.
-- **Rule:** Use `uv sync` to ensure dependencies are installed before running code.
-- **Rule:** For Taskfile automation, use preconditions to check for `.venv` directory existence.
+**ModuleNotFoundError diagnosis:**
+
+1. **Check toolchain being used:**
+   - uv project: Are you using `uv run`?
+   - poetry project: Are you using `poetry run`?
+   - pip project: Is venv activated?
+
+2. **Verify dependencies installed:**
+   - uv: `uv sync`
+   - poetry: `poetry install`
+   - pip: `pip install -r requirements.txt`
+
+3. **Test module availability:**
+   - uv: `uv run python -c "import module_name"`
+   - poetry: `poetry run python -c "import module_name"`
+   - pip: `python -c "import module_name"` (venv active)
 
 ## Code Structure and Style Guidelines
 
@@ -476,55 +646,89 @@ ruff check .                        # Should use uvx for isolation
 ### Syntax Validation
 
 - **Requirement:** Before completing any task involving Python code changes, verify that all modified files are syntactically correct.
-- **Rule:** Use `python -m py_compile` as a definitive check for syntax errors, in addition to linter feedback. This ensures the Python interpreter can parse the file without error. If a file fails to compile, the issue must be resolved.
-- **Command:** `uv run python -m py_compile -q <path-to-file-or-dir>`
+- **Rule:** Use `python -m py_compile` as a definitive check for syntax errors, in addition to linter feedback.
+- **Command (use project's Python):**
+  - **uv:** `uv run python -m py_compile -q <path>`
+  - **poetry:** `poetry run python -m py_compile -q <path>`
+  - **pip:** `python -m py_compile -q <path>` (venv active)
 
-### Type Checking with ty
+### Type Checking
 
-**ty** is an extremely fast Python type checker from Astral (the creators of `uv` and `ruff`), written in Rust. It is the primary type checker for the Astral toolchain.
+**Recommended Type Checkers:**
+
+**Primary (Modern, Fast):**
+- **ty** - Extremely fast type checker from Astral (uv/ruff creators), written in Rust
+- Best for new projects and Astral toolchain users
+- Isolated execution via `uvx ty check .`
+
+**Alternative (Mature, Plugins):**
+- **mypy** - Mature type checker with extensive plugin ecosystem
+- Required for Django, SQLAlchemy, and other frameworks needing plugins
+- Execution via project environment: `poetry run mypy .` or `uv run mypy .`
 
 **Core Policy:**
-- **Requirement:** Use `ty` as the primary type checker for all Python projects.
-- **Requirement:** Run `uvx ty check .` before marking any Python task as complete.
-- **Fallback:** If `ty` is unavailable or incompatible, use `uv run mypy` as a fallback (requires mypy in project dependencies).
+- **NEW projects:** Prefer `ty` for speed and simplicity
+- **EXISTING projects:** Respect existing type checker (likely mypy)
+- **Django/SQLAlchemy:** Use `mypy` (ty doesn't support plugins)
+- **CRITICAL:** Run type checking before marking any Python task complete
 
-**Command Patterns:**
+**Command Patterns by Toolchain:**
+
+**uv projects:**
 ```bash
-# Primary: ty via uvx (isolated, no project deps needed)
-uvx ty check .                    # Check entire project
-uvx ty check src/                 # Check specific directory
-uvx ty check src/module.py        # Check specific file
+# Preferred: ty via uvx (isolated, no project deps)
+uvx ty check .
+uvx ty check src/
 
-# Fallback: mypy via uv run (when ty unavailable or plugins needed)
-uv run mypy src/                  # Requires mypy in pyproject.toml
-uv run mypy --strict src/         # Strict mode for maximum type safety
+# Fallback: mypy when plugins needed
+uv run mypy src/
+uv run mypy --strict src/
+```
+
+**poetry projects:**
+```bash
+# mypy (standard for poetry projects)
+poetry run mypy .
+poetry run mypy --strict src/
+```
+
+**pip projects:**
+```bash
+# mypy (must be in requirements)
+mypy .
+mypy --strict src/
 ```
 
 **When to Use ty vs mypy:**
 
-**Use `uvx ty check .` for:**
-- Standard type checking (fast, no setup, Astral ecosystem)
+**Use ty (isolated via uvx or pipx) for:**
+- NEW projects without legacy mypy configuration
+- Standard type checking (fast, no setup required)
 - CI/CD pipelines (consistent, isolated execution)
+- Projects using Astral toolchain (uv + ruff + ty)
 
-**Use `uv run mypy` for:**
-- Projects with mypy plugins (ty doesn't support mypy plugins)
-- Django/SQLAlchemy type stubs (better ecosystem support for stubs)
-- Maximum strictness needed (`uv run mypy --strict` has more strict mode options)
+**Use mypy (via project environment) for:**
+- EXISTING projects already using mypy
+- Projects with mypy plugins (ty doesn't support plugins yet)
+- Django/SQLAlchemy projects (mypy has better stub support)
+- Maximum strictness needed (mypy has more configuration options)
 
 **Configuration in pyproject.toml:**
 ```toml
+# ty configuration (for new ty projects)
 [tool.ty]
-# ty configuration (when available)
 python-version = "3.11"
 
-[tool.ty.rules]
-# Rule configuration as ty matures
+# mypy configuration (for existing mypy projects)
+[tool.mypy]
+python_version = "3.11"
+strict = true
 ```
 
-**Note:** ty is under active development. Configuration options may expand. Check [ty documentation](https://docs.astral.sh/ty/) for current options.
+**Note:** ty is under active development. For latest features, see [ty documentation](https://docs.astral.sh/ty/).
 
 **Integration with Validation Gate:**
-- **CRITICAL:** `uvx ty check .` is part of the mandatory Pre-Task-Completion Validation Gate
+- **CRITICAL:** Type checking (ty or mypy) is part of mandatory Pre-Task-Completion Validation Gate
 - **Rule:** Type errors must be resolved before marking tasks complete
 - **Rule:** Do not use `# type: ignore` without documenting the reason
 
@@ -544,8 +748,11 @@ python-version = "3.11"
 
 ## Project Integration
 
-- **Requirement:** Use `uv run` prefix for all Python commands in Taskfile tasks.
-- **Requirement:** Use `uvx` for all development tools (ruff, ty, safety).
-- **Requirement:** Use `uv run` for tools needing project plugins (pytest, mypy when plugins required).
-- **Always:** Include environment setup tasks with status checks to avoid redundant operations.
-- **Always:** Prefer `task validate` (or `task check` / `task ci`) when Taskfile.yml exists, falling back to direct tool commands otherwise.
+- **Requirement:** Use project's toolchain consistently in Taskfile tasks and documentation
+- **Pattern for Taskfile tasks:**
+  - Detect toolchain: Check for uv.lock, poetry.lock, or Pipfile.lock
+  - Use appropriate prefix: `uv run`, `poetry run`, or bare commands (pip)
+- **Development tools:** Use isolated execution when possible (uvx, pipx) or install as dev dependencies
+- **Always:** Include environment setup tasks with status checks to avoid redundant operations
+- **Always:** Prefer `task validate` (or `task check` / `task ci`) when Taskfile.yml exists, falling back to direct tool commands otherwise
+- **Documentation:** Provide setup instructions appropriate for project's chosen toolchain

@@ -8,12 +8,13 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-01-12
+**RuleVersion:** v1.0.1
+**LastUpdated:** 2026-01-20
 **Keywords:** SQL files, file headers, COPY INTO, FILE_FORMAT, CREATE VIEW, fully qualified names, idempotent, reserved characters, CLI compatibility, ON_ERROR
 **TokenBudget:** ~3000
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
+**LoadTrigger:** ext:.sql, kw:sql
 
 ## Scope
 

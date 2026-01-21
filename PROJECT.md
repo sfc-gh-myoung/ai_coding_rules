@@ -1,20 +1,46 @@
 # PROJECT.md
 
+**Loading Context:** This file is loaded as part of AGENTS.md Step 2 (Mandatory Rule Loading Protocol).
+AI agents MUST read this file after rules/000-global-core.md and before loading domain rules.
+
+**Purpose:** Project-specific tooling requirements, conventions, and overrides that apply to THIS project only.
+Rules in rules/ directory provide general guidance; this file specifies ai_coding_rules project specifics.
+
 This file provides project-specific guidance for AI coding assistants working with code in this repository. It is automatically loaded by AI assistants that support project configuration files (e.g., Cursor, Claude Code, GitHub Copilot, VS Code extensions).
+
+## Quick Reference (Most Common Operations)
+
+- **Fix linting/formatting:** `task quality:fix`
+- **Run full validation:** `task validate` (REQUIRED before commits)
+- **Run tests:** `task test`
+- **Create new rule:** `task rule:new FILENAME=XXX-name`
+- **Deploy rules:** `task deploy DEST=~/project`
+- **Regenerate index:** `task index:generate`
 
 ## Critical Validation Requirements
 
-**CRITICAL VIOLATION: Committing code without passing ALL validation checks.**
+**Validation Gate Protocol (execute before ANY commit):**
 
-AI assistants MUST NOT commit code unless ALL of the following pass:
+Step 1: Execute validation suite
+  - EXECUTE: `task validate`
+  - CAPTURE: Exit code
 
+Step 2: Interpret result
+  - IF exit_code == 0: ALL checks passed, PROCEED to Step 3
+  - ELSE IF exit_code != 0: At least one check failed, STOP
+
+Step 3: Commit authorization
+  - IF Step 2 result == PROCEED: Commit is authorized
+  - ELSE: DO NOT commit, report failure to user
+
+**CRITICAL VIOLATION:** Committing with exit_code != 0 invalidates all subsequent work.
+
+**Validation checks that MUST pass:**
 1. **Linting** - Code passes all lint checks
 2. **Formatting** - Code passes format verification
 3. **Type Checking** - Code passes type checker (if applicable)
 4. **Compilation** - Code compiles without errors (if applicable)
 5. **Tests** - All tests pass
-
-Committing code that fails any validation check is a **critical violation** of project standards. Always run the full validation suite before any commit.
 
 ## ai_coding_rules Project Requirements
 
@@ -22,26 +48,37 @@ Committing code that fails any validation check is a **critical violation** of p
 
 ### Mandatory Tooling for ai_coding_rules
 
-**Python Runtime:**
-- **uv** for all Python execution (required)
-- **uvx** for isolated tool execution (required)
-- **NO** bare `python`, `pip`, `pytest` commands
+**Python Runtime (REQUIRED):**
+- ALLOWED: `uv run python`, `uv run pytest`, `uvx ruff`
+- FORBIDDEN: `python` (bare), `pip` (bare), `pytest` (bare), `python3`
+- DETECTION: IF command starts with "python " OR "pip " OR "pytest ": HALT, rewrite as "uv run [command]"
 
-**Code Quality:**
-- `uvx ruff check .` for linting (required)
-- `uvx ruff format .` for formatting (required)
-- `uvx ty check .` for type checking (required)
+**Code Quality (REQUIRED):**
+- Linting: EXECUTE `uvx ruff check .` (NOT `ruff check .`)
+- Formatting: EXECUTE `uvx ruff format .` (NOT `ruff format .`)
+- Type checking: EXECUTE `uvx ty check .` (NOT `ty check .` OR `mypy .`)
 
-**Validation Gates:**
+**Validation Gates (all must succeed):**
 
-All of the following MUST pass before any commit:
+Gate 1: Linting
+  - EXECUTE: `uvx ruff check .`
+  - SUCCESS: Exit code 0, output "All checks passed!" OR no output
+  - FAILURE: Exit code != 0 OR output contains "error:" OR "warning:"
 
-```bash
-uvx ruff check .          # Linting
-uvx ruff format --check . # Format verification
-uvx ty check .            # Type checking
-uv run pytest             # Tests
-```
+Gate 2: Format Verification
+  - EXECUTE: `uvx ruff format --check .`
+  - SUCCESS: Exit code 0, no files would be reformatted
+  - FAILURE: Exit code != 0 OR output lists files that would change
+
+Gate 3: Type Checking
+  - EXECUTE: `uvx ty check .`
+  - SUCCESS: Exit code 0, output "Success: no issues found" OR similar
+  - FAILURE: Exit code != 0 OR output contains "error:" line
+
+Gate 4: Tests
+  - EXECUTE: `uv run pytest`
+  - SUCCESS: Exit code 0, output ends with "N passed" (0 failed)
+  - FAILURE: Exit code != 0 OR output contains "FAILED" OR "ERROR"
 
 **Shortcut command:**
 ```bash
@@ -53,193 +90,29 @@ task validate             # Runs all checks
 - `uv.lock` for dependency locking
 - `Taskfile.yml` for automation
 
-**Why These Requirements:**
-
-This project demonstrates modern Python best practices using Astral's toolchain:
-- **uv:** Fast Python package installer and resolver (replaces pip/pip-tools)
-- **ruff:** Extremely fast Python linter and formatter (replaces flake8/black/isort)
-- **ty:** Fast Python type checker (alternative to mypy)
-
-Rules deployed to other projects are more flexible and respect existing toolchains (poetry, pip, black, mypy, etc.).
+**Why:** This project demonstrates Astral's modern Python toolchain (uv/ruff/ty). Deployed rules respect alternative toolchains (poetry/pip/black/mypy).
 
 **Rules Are Not Mandates:**
 
 The rules in `rules/` directory provide **recommendations** and **preferences** for modern Python development. They allow projects to use alternative toolchains (poetry, pip, black, mypy) when appropriate. Only THIS project (ai_coding_rules) mandates uv/uvx/ruff/ty.
 
-## Project Overview
-
-This is the **ai_coding_rules** project - a universal AI coding rule system that provides production-ready rules for consistent software engineering across all AI assistants and IDEs. The system uses a direct rule editing architecture where rules are stored in their final, deployable form.
-
-**Core Architecture:**
-- Production-ready rules in `rules/` (no generation step)
-- Universal Markdown format with embedded metadata
-- Schema validation ensures quality and consistency
-- Simple deployment: `task deploy DEST=~/project`
-
-## Common Commands
-
-### Development Workflow
-
-```bash
-# Environment setup
-task env:deps                  # Install all dependencies
-task env:sync                  # Quick dependency sync
-
-# Code quality (most common - used in >80% of development sessions)
-task quality:fix               # Fix all linting/formatting issues
-task quality:check             # Run all quality checks before commits
-task test                      # Run test suite
-task validate                  # Run full CI/CD validation
-
-# Rule management
-task rules:validate            # Validate all rules against schema
-task index:generate            # Regenerate rules/RULES_INDEX.md
-task rule:new FILENAME=XXX-name # Create new rule from template
-
-# Deployment
-task deploy DEST=~/project     # Deploy rules to project
-task deploy:dry DEST=~/project # Preview deployment
-```
-
-**Advanced:** For direct script usage without Task, see "Appendix: Direct Script Usage (Advanced)" at end of document.
-
 ## High-Level Architecture
 
-### Production-Ready Rules System
+**System:** Direct rule editing with no generation step. Rules in `rules/` are production-ready and deploy directly.
 
-The system uses **direct rule editing** with no generation step. All rules in `rules/` are production-ready and deploy directly to projects.
+**Core Components:**
+- `rules/` - 122 production-ready Markdown files with embedded metadata (validated against `schemas/rule-schema.yml`)
+- `AGENTS.md` - Bootstrap protocol (always loaded with rules/000-global-core.md)
+- `rules/RULES_INDEX.md` - Auto-generated catalog for keyword-based discovery
+- `scripts/` - Validation/deployment tools (98% test coverage)
 
-**Key Components:**
+**Rule Organization:** 3-digit prefix (000-999) by domain: Core (000-099), Snowflake (100-199), Python (200-299), Shell (300-399), Frontend/Containers (400-499), Go (600-699), Project (800-899), Analytics (900-999)
 
-1. **rules/** - Production-ready rule files (122 total)
-   - All rules use universal Markdown format
-   - Embedded metadata enables intelligent discovery
-   - Validated against `schemas/rule-schema.yml`
-   - Organized by 3-digit prefix (000-999)
+**Discovery:** AGENTS.md → search RULES_INDEX.md by keywords → load dependencies → apply rules
 
-2. **AGENTS.md** - Bootstrap protocol (project root)
-   - Minimal rule loading sequence
-   - MODE/ACT framework initialization
-   - Always loaded with rules/000-global-core.md
+**Deployment:** `task deploy DEST=~/project` copies rules/, AGENTS.md, RULES_INDEX.md, and skills/ to target
 
-3. **rules/000-global-core.md** - Foundation rule
-   - MODE transitions (PLAN/ACT workflow)
-   - Task confirmation protocols
-   - Validation requirements
-   - Always loaded first
-
-4. **rules/RULES_INDEX.md** - Searchable catalog (project root)
-   - Generated from rule metadata
-   - Enables keyword-based discovery
-   - Shows dependencies and token budgets
-
-5. **scripts/** - Validation and deployment tools
-   - All scripts follow schema-driven validation
-   - Comprehensive test coverage (98%)
-   - Direct execution without build step
-
-### Rule Organization by Domain
-
-Rules use 3-digit numbering for domain organization:
-
-- **000-099:** Core Foundation (12 rules)
-  - Operating principles, memory bank, governance, context engineering, skills
-- **100-199:** Snowflake (58 rules)
-  - SQL, Streamlit, Cortex AI, security, notebooks, pipelines, demo creation
-- **200-299:** Python (27 rules)
-  - Core patterns, FastAPI, Flask, Typer CLI, Pydantic, pytest, HTMX
-- **300-399:** Shell Scripts (7 rules)
-  - Bash/Zsh scripting, security, testing
-- **400-499:** Frontend/Containers (5 rules)
-  - Docker, JavaScript, TypeScript, React
-- **500-599:** Frontend Core (2 rules)
-  - HTMX core, browser globals
-- **600-699:** Go/Golang (1 rule)
-  - Core patterns, error handling, concurrency
-- **800-899:** Project Management (5 rules)
-  - Git workflow, changelog, README, Taskfile
-- **900-999:** Analytics & Governance (4 rules)
-  - Data science, data governance, business analytics, semantic views
-
-### Rule Discovery and Loading
-
-Rules use metadata for intelligent discovery:
-
-```markdown
-**Keywords:** python, fastapi, async, api, rest, validation
-**TokenBudget:** ~1500
-**ContextTier:** High
-**Depends:** rules/000-global-core.md, rules/200-python-core.md
-```
-
-AI assistants discover rules by:
-1. Reading AGENTS.md (bootstrap protocol)
-2. Searching rules/RULES_INDEX.md by keywords
-3. Loading dependencies in correct order
-4. Applying rules to generate code
-
-### Validation System
-
-Schema validation ensures rule quality:
-
-```bash
-# Single file validation
-uv run python scripts/schema_validator.py rules/XXX-rule.md --verbose
-
-# All rules validation
-uv run python scripts/schema_validator.py rules/
-
-# What it validates:
-# - Metadata order and completeness
-# - Section structure and placement
-# - Quick Start TL;DR presence
-# - Token budget accuracy
-# - Dependency declarations
-# - Contract section placement (before line 160)
-```
-
-Schema location: `schemas/rule-schema.yml`
-
-### Deployment System
-
-The rule deployer copies rules to target projects:
-
-```bash
-# Basic deployment (rules + skills)
-task deploy DEST=~/project
-
-# What happens:
-# 1. Copies rules/ directory to DEST/rules/
-# 2. Copies AGENTS.md and rules/RULES_INDEX.md to DEST/
-# 3. Copies skills/ (excludes internal-only skills)
-# 4. Reports: Rules copied (count of .md files), Skills copied (count of skill directories), Files copied (total files)
-# 5. Ready to use immediately
-
-# Skills-only deployment
-task deploy:only-skills DEST=~/.claude/skills
-
-# Rules-only deployment
-task deploy:no-skills DEST=~/project
-```
-
-Internal-only skills (excluded from deployment):
-- rule-creator/ - Rule creation tool
-- rule-reviewer/ - Rule review tool
-- bulk-rule-reviewer/ - Bulk review orchestrator
-
-### Skills System
-
-6 AI Agent Skills following best practices:
-
-**Deployed Skills (available in target projects):**
-- doc-reviewer - Documentation quality reviews
-- plan-reviewer - Implementation plan evaluation
-- skill-timing - Performance measurement and timing
-
-**Internal-Only Skills (ai_coding_rules project only):**
-- rule-creator - Generate new rule templates
-- rule-reviewer - Automate rule quality reviews
-- bulk-rule-reviewer - Orchestrate bulk reviews
+**Skills:** 3 deployed (doc-reviewer, plan-reviewer, skill-timing), 3 internal-only (rule-creator, rule-reviewer, bulk-rule-reviewer)
 
 ## Required Permissions
 
@@ -266,20 +139,17 @@ AI assistants must verify they have necessary permissions before performing oper
 - Python scripts in `scripts/` directory
 - Task binary (for running Taskfile commands)
 
-**Verification commands:**
-```bash
-# Check read access
-test -r rules/000-global-core.md && echo "✓ Can read rules" || echo "✗ Cannot read rules"
-test -r schemas/rule-schema.yml && echo "✓ Can read schema" || echo "✗ Cannot read schema"
+**Permission Verification Protocol (execute before file operations):**
 
-# Check write access
-touch rules/.write-test && rm rules/.write-test && echo "✓ Can write rules" || echo "✗ Cannot write rules"
-touch rules/RULES_INDEX.md.test && rm RULES_INDEX.md.test && echo "✓ Can write index" || echo "✗ Cannot write index"
+Before ANY file write operation:
+  1. EXECUTE: `test -w [target_directory] && echo "WRITABLE" || echo "NOT_WRITABLE"`
+  2. IF output != "WRITABLE": STOP, report permission error to user
+  3. ELSE: Proceed with write operation
 
-# Check execute access
-test -x scripts/schema_validator.py && echo "✓ Can execute scripts" || echo "✗ Cannot execute scripts"
-command -v task >/dev/null && echo "✓ Task available" || echo "✗ Task not available"
-```
+Before ANY git commit:
+  1. EXECUTE: `git config user.name && git config user.email`
+  2. IF either command returns empty: STOP, report "Git not configured"
+  3. ELSE: Proceed with commit
 
 ### Git Permissions
 
@@ -295,31 +165,6 @@ command -v task >/dev/null && echo "✓ Task available" || echo "✗ Task not av
 **Required for deployment:**
 - Read access to source repository
 - Write access to destination directory
-
-**Verification commands:**
-```bash
-# Check git configuration
-git config user.name || echo "✗ Git user.name not set"
-git config user.email || echo "✗ Git user.email not set"
-
-# Check repository access
-git status >/dev/null 2>&1 && echo "✓ Git repository accessible" || echo "✗ Not a git repository"
-
-# Check commit access (dry-run)
-git commit --dry-run --allow-empty -m "test" 2>/dev/null && echo "✓ Can commit" || echo "✗ Cannot commit"
-
-# Check SSH key (if using SSH)
-ssh -T git@github.com 2>&1 | grep -q "successfully authenticated" && echo "✓ SSH key works" || echo "! Check SSH key"
-
-# Check remote access
-git ls-remote origin >/dev/null 2>&1 && echo "✓ Can access remote" || echo "✗ Cannot access remote"
-```
-
-**Common permission issues:**
-- Missing git config: Run `git config --global user.name "Your Name"` and `git config --global user.email "you@example.com"`
-- SSH key not added: Run `ssh-add ~/.ssh/id_rsa` (or your key path)
-- No write access to destination: Check directory permissions with `ls -la /destination/path`
-- Repository in detached HEAD: Run `git checkout main` to restore branch
 
 ## Key Workflows
 
@@ -366,181 +211,35 @@ git commit -m "fix: update XXX rule with [improvement]"
 
 ### Running Validation
 
-```bash
-# Fix all quality issues (recommended)
-task quality:fix
-
-# Individual checks
-task quality:lint         # Ruff linting
-task quality:format       # Ruff formatting
-task quality:typecheck    # Type checking with ty
-task quality:markdown     # Markdown linting
-
-# Full CI/CD validation (REQUIRED before commits)
-task validate             # Runs: quality:check, test, rules:validate, index:check
-```
+Use Quick Reference commands (lines 11-18). Run `task validate` before commits.
 
 ### Monitoring Execution Progress
 
 AI assistants should monitor long-running operations and report progress.
 
-**Watch test execution:**
-```bash
-# Run with verbose output
-uv run pytest -v
+**Universal Monitoring Pattern:**
+1. Execute command
+2. Watch for status indicators (PASSED/FAILED, error:, exit code)
+3. Note completion metrics (N passed, M failed)
+4. IF any failures: Investigate with -v flag
+5. Re-run after fixes
 
-# Monitor for failures
-# Output format: tests/test_file.py::test_function PASSED/FAILED
-# Look for lines marked `FAILED` - these require attention
-```
+**Command-Specific Status Indicators:**
+- `task validate`: "All checks passed" + exit code 0 = success
+- `uv run pytest`: "N passed, 0 failed" + exit code 0 = success
+- `task deploy`: "Deployment complete: X rules, Y skills" = success
+- `task rules:validate`: "RESULT: PASSED" + exit code 0 = success
+- `task index:check`: "RULES_INDEX.md is up-to-date" = success
 
-**Progress indicators:**
-- Total tests: Look for header "collected X items"
-- Current progress: Count PASSED/FAILED lines vs total
-- Failures: Note test names marked FAILED for investigation
-
-**Example output:**
-```
-collected 42 items
-
-tests/test_schema_validator.py::test_valid_rule PASSED           [ 2%]
-tests/test_schema_validator.py::test_invalid_rule PASSED         [ 4%]
-...
-tests/test_token_validator.py::test_budget_variance FAILED       [95%]
-tests/test_index_generator.py::test_generate PASSED             [100%]
-
-========================= 41 passed, 1 failed in 12.5s =========================
-```
-
-**During execution:**
-1. Watch for FAILED markers
-2. Note which test file has failures
-3. After completion, investigate failed tests: `uv run pytest tests/test_X.py -v`
-4. Fix issues, re-run: `uv run pytest`
-
-**Success criteria:** All tests PASSED, 0 FAILED
-
-**Watch validation execution:**
-```bash
-# Run full validation with output
-task validate
-
-# Individual check monitoring
-task quality:lint      # Watch for ruff linting errors
-task quality:format    # Watch for formatting violations
-task quality:typecheck # Watch for type errors
-task rules:validate    # Watch for schema violations
-```
-
-**Progress indicators:**
-- Each check reports: ✓ Passed OR ✗ Failed
-- Error count: "Found N errors"
-- Affected files: Lists files with issues
-
-**Example validation output:**
-```
-task: [quality:lint] uvx ruff check .
-All checks passed!
-
-task: [quality:format] uvx ruff format --check .
-All checks passed!
-
-task: [quality:typecheck] uvx ty check .
-error: incompatible type [line 45 in scripts/validator.py]
-Found 1 error
-
-task: [test] uv run pytest
-41 passed in 12.5s
-
-task: [rules:validate] uv run python scripts/schema_validator.py rules/
-Validating 122 files...
-Found 3 validation errors
-```
-
-**During execution:**
-1. Note which checks fail (in example above: typecheck, rules:validate)
-2. Address failures in order: typecheck first, then rules:validate
-3. Re-run `task validate` after fixes
-4. Repeat until all checks pass
-
-**Success criteria:** "All checks passed" for every validation step
-
-**Watch deployment execution:**
-```bash
-# Run deployment with progress
-task deploy DEST=/path/to/project
-
-# Or with script directly
-uv run python scripts/rule_deployer.py --dest /path/to/project
-```
-
-**Progress indicators:**
-- Phase 1: "Copying rules/ → /path/rules/"
-- Phase 2: "Copying skills/ → /path/skills/"
-- Phase 3: "Copying AGENTS.md, rules/RULES_INDEX.md → /path/"
-- Completion: "Deployment complete: X rules, Y skills"
-
-**Example deployment output:**
-```
-Starting deployment to /Users/dev/my-project
-
-Copying rules/ → /Users/dev/my-project/rules/
-- Copied 122 rule files (.md)
-
-Copying skills/ → /Users/dev/my-project/skills/
-- Copied doc-reviewer/
-- Copied plan-reviewer/
-- Copied skill-timing/
-- Skipped rule-creator/ (internal-only)
-- Skipped rule-reviewer/ (internal-only)
-- Skipped bulk-rule-reviewer/ (internal-only)
-
-Copying bootstrap files → /Users/dev/my-project/
-- Copied AGENTS.md
-- Copied RULES_INDEX.md
-
-Deployment complete: 122 rules, 3 skills
-```
-
-**During execution:**
-1. Verify phase 1 completes (122 rules copied)
-2. Verify phase 2 completes (3 deployed skills, 3 internal skipped)
-3. Verify phase 3 completes (2 bootstrap files)
-4. Note any errors or warnings
-
-**Post-deployment verification:**
-```bash
-# Verify deployment
-ls /path/rules/*.md | wc -l           # Should show 122
-ls -d /path/skills/*/ | wc -l        # Should show 3
-ls /path/AGENTS.md /path/RULES_INDEX.md  # Should exist
-```
-
-**Success criteria:**
-- 122 rules deployed
-- 3 skills deployed (doc-reviewer, plan-reviewer, skill-timing)
-- 2 bootstrap files deployed (AGENTS.md, RULES_INDEX.md)
-- No errors in deployment output
+**Success Criteria:** Exit code 0 + expected completion message
 
 ### Testing Changes
 
-```bash
-# Run all tests
-task test
+Use Quick Reference commands (lines 11-18). Run `task test` or `task test:coverage`.
 
-# Run with coverage
-task test:coverage
+## Error Recovery and Edge Cases
 
-# Run specific test file
-uv run pytest tests/test_schema_validator.py -v
-
-# Test deployment without copying
-task deploy:dry DEST=/tmp/test-project
-```
-
-## Edge Cases and Special Scenarios
-
-AI assistants must handle these edge cases according to documented procedures.
+AI assistants must handle these error scenarios and edge cases according to documented procedures.
 
 ### Empty/Zero-State Scenarios
 
@@ -572,17 +271,23 @@ AI assistants must handle these edge cases according to documented procedures.
 
 ### Concurrent Modifications
 
-**Git conflict on rule file:**
-- **Detection:** `git status` shows "both modified: rules/XXX-rule.md"
-- **Action:** Manual merge required (rules are atomic documents)
-- **Procedure:**
-  1. Run `git diff rules/XXX-rule.md` to see both versions
-  2. Edit file to resolve conflicts (remove <<<<<<< ======= >>>>>>> markers)
-  3. Validate merged result: `uv run python scripts/schema_validator.py rules/XXX-rule.md`
-  4. If validation fails: Revert and re-merge carefully
-  5. Stage resolved file: `git add rules/XXX-rule.md`
-  6. Continue: `git commit` (conflict resolved)
-- **Prevention:** Use git branches per agent, merge sequentially
+**Git Conflict Resolution Protocol:**
+
+Detection:
+  - EXECUTE: `git status`
+  - IF output contains "both modified:": Conflict detected, EXECUTE resolution
+
+Resolution (automated):
+  - IF conflicting file is .json OR .yml OR .lock: STOP, escalate to user (structured files require manual merge)
+  - ELSE IF conflicting file is .md: ATTEMPT automated merge (continue below)
+
+Automated Merge Procedure:
+  1. EXECUTE: `git diff [filename]`
+  2. IF both sides modified same line: STOP, escalate to user
+  3. ELSE IF different sections modified: Apply both changes
+  4. EXECUTE validation: `uv run python scripts/schema_validator.py [filename]`
+  5. IF validation fails: REVERT, escalate to user
+  6. ELSE: EXECUTE `git add [filename] && git commit`
 
 **Multiple agents editing same rule:**
 - **Detection:** Awareness of concurrent sessions
@@ -767,29 +472,6 @@ AI assistants must handle these edge cases according to documented procedures.
   - Follows semantic versioning
   - Independent of schema version
 
-## Quantification Standards
-
-**Threshold definitions for consistent interpretation:**
-
-- **Significant change:** >20% deviation from baseline (e.g., token budget variance, test coverage)
-- **Most common:** >80% frequency in typical usage patterns
-- **Large file/rule:** >500 lines OR >10KB
-- **Many instances:** >10 occurrences
-- **Validation success:** Exit code 0 (zero errors, zero warnings for critical checks)
-- **Critical requirement:** Must-have for commit (blocks merge if violated)
-
-## Terminology Standards
-
-**Consistent term usage throughout documentation:**
-
-- **Validation** (not "quality checks"): Process of verifying code correctness
-- **rules/** (not "rules directory" or "rules folder"): Directory containing rule files
-- **scripts/** (not "script directory"): Directory containing Python automation tools
-- **Task** (capitalized, not "task runner"): Taskfile automation tool
-- **Schema validation** (not "schema check"): Rule file validation against schemas/rule-schema.yml
-- **Token budget** (not "token count"): Declared token allocation in rule metadata
-- **Deployment** (not "copying" or "installing"): Process of distributing rules to target project
-
 ## Common Patterns
 
 ### Investigation-First Protocol
@@ -866,245 +548,35 @@ uv run pytest tests/test_schema_validator.py -v  # Specific test
 
 ## Troubleshooting
 
-### Common Issues
+### Network Timeout Recovery (max 2 attempts)
 
-1. **Schema validation fails:**
-   ```bash
-   # Run verbose validation to see detailed errors
-   uv run python scripts/schema_validator.py rules/XXX-rule.md --verbose
-   ```
+Attempt 1: `ping github.com -c 1` → IF success: Retry git operation → ELSE: Attempt 2
+Attempt 2: `ssh -T git@github.com` → IF authenticated: Retry → ELSE: STOP, report "Network unavailable. Work offline: commit locally, push when restored."
 
-2. **Index out of date:**
-   ```bash
-   # Regenerate index
-   task index:generate
-   ```
+### Permission Denied
 
-3. **Token budget mismatch:**
-   ```bash
-   # Check and update token budget
-   task tokens:update:file FILE=rules/XXX-rule.md
-   ```
+**Filesystem write fails:** Check `ls -la [path]`, verify ownership `stat [path]`, check parent permissions. Request access if needed.
+**Git commit fails:** Check `git config --list | grep user`, verify SSH key `ls -la ~/.ssh/id_*`, fix permissions `chmod 600 ~/.ssh/id_rsa`.
 
-4. **Dependency errors:**
-   ```bash
-   # Clean and reinstall
-   task clean:venv
-   task env:deps
-   ```
+### Tool Availability
 
-## Error Handling and Recovery
-
-AI assistants should handle these common error scenarios autonomously using the documented recovery steps.
-
-### Network/Connectivity Errors
-
-**If git operations fail with network timeout:**
-1. Check connection: `ping github.com`
-2. Verify SSH key: `ssh -T git@github.com`
-3. If timeout persists: Wait 60 seconds, retry operation
-4. If still fails: Work offline, commit locally, push when network restored
-
-**If package downloads fail (uv, uvx):**
-1. Check DNS resolution: `nslookup pypi.org`
-2. Try alternative mirror: `uv pip install --index-url https://pypi.org/simple/`
-3. If still fails: Download wheels manually, install from local cache
-
-**Recovery verification:**
-- Run `uv pip list` to verify packages installed
-- Run `git status` to verify repository state
-
-### Permission Denied Errors
-
-**If filesystem write fails:**
-1. Check permissions: `ls -la [path]`
-2. Verify ownership: `stat [path]`
-3. Check parent directory permissions: `ls -la $(dirname [path])`
-4. If incorrect owner: Request access from system admin
-5. If incorrect permissions: Document required access (read/write on rules/, reviews/, scripts/)
-
-**If git commit fails with permission error:**
-1. Check git config: `git config --list | grep user`
-2. Verify SSH key permissions: `ls -la ~/.ssh/id_*`
-3. If key permissions wrong: `chmod 600 ~/.ssh/id_rsa`
-4. If still fails: Check repository ownership
-
-**Recovery verification:**
-- Create test file: `touch /path/test.txt && rm /path/test.txt`
-- Run git test: `git status`
-
-### Tool Availability Errors
-
-**If `uv` not found:**
-1. Check installation: `which uv || echo "uv not found"`
-2. If missing: Install via `curl -LsSf https://astral.sh/uv/install.sh | sh`
-3. Reload shell: `source ~/.bashrc` (or `~/.zshrc`)
-4. Verify version: `uv --version` (require 0.1.0+)
-5. If wrong version: Update via `curl -LsSf https://astral.sh/uv/install.sh | sh`
-
-**If `ruff` not found:**
-1. Install via uv: `uvx ruff --version` (auto-installs if missing)
-2. If uvx fails: Install globally: `uv tool install ruff`
-3. Verify: `uvx ruff --version`
-
-**If `ty` not found:**
-1. Install via uv: `uvx ty --version` (auto-installs if missing)
-2. If uvx fails: Install globally: `uv tool install ty`
-3. Verify: `uvx ty --version`
-
-**If `task` not found:**
-1. Check installation: `which task`
-2. If missing: Install via package manager:
-   - macOS: `brew install go-task`
-   - Linux: `sh -c "$(curl -sSfL https://taskfile.dev/install.sh)"`
-3. Verify: `task --version` (require 3.0.0+)
-
-**Recovery verification:**
-- Run `task validate` to verify all tools available
+**uv not found:** Install via `curl -LsSf https://astral.sh/uv/install.sh | sh`, reload shell
+**ruff/ty not found:** Run `uvx ruff --version` or `uvx ty --version` (auto-installs)
+**task not found:** macOS: `brew install go-task`, Linux: `sh -c "$(curl -sSfL https://taskfile.dev/install.sh)"`
 
 ### Resource Exhaustion
 
-**If disk space exhausted during tests:**
-1. Check available space: `df -h .`
-2. If <1GB free: Clean pytest cache: `rm -rf .pytest_cache __pycache__`
-3. Clean Python cache: `find . -type d -name __pycache__ -exec rm -rf {} +`
-4. Clean uv cache: `uv cache clean`
-5. If still insufficient: Report minimum 2GB required for development
-
-**If memory exhausted during large operations:**
-1. Check memory usage: `free -h` (Linux) or `vm_stat` (macOS)
-2. Close other applications
-3. If processing large files: Process in batches (<1000 rules at once)
-4. Minimum requirement: 4GB RAM for development
-
-**If too many open files error:**
-1. Check limit: `ulimit -n`
-2. If <1024: Increase temporarily: `ulimit -n 4096`
-3. If persistent: Add to `~/.bashrc`: `ulimit -n 4096`
-
-**Recovery verification:**
-- Check disk space: `df -h .` (verify >1GB free)
-- Run test suite: `task test`
+**Disk space:** Clean caches: `rm -rf .pytest_cache __pycache__` + `uv cache clean` (require 2GB minimum)
+**Memory:** Close applications, process in batches <1000 rules (require 4GB RAM minimum)
+**Open files:** Increase limit: `ulimit -n 4096`
 
 ### Validation Failures
 
-**If `task validate` fails:**
-1. Run individual checks to identify failure:
-   ```bash
-   task quality:lint      # Check linting
-   task quality:format    # Check formatting
-   task quality:typecheck # Check types
-   task test              # Check tests
-   task rules:validate    # Check rule schemas
-   task index:check       # Check index sync
-   ```
-2. Fix reported issues in order shown
-3. Re-run `task validate` after each fix
-4. If all pass individually but `validate` fails: Check Taskfile.yml for task dependencies
-
-**If schema validation fails:**
-1. Run verbose validation: `uv run python scripts/schema_validator.py rules/XXX-rule.md --verbose`
-2. Fix errors in priority order: CRITICAL → HIGH → MEDIUM → LOW
-3. Re-validate after each fix
-4. If unclear: Compare against working rule (e.g., rules/000-global-core.md)
-
-**Recovery verification:**
-- Run `task validate` - all checks must pass (exit code 0)
-- Run `git status` - verify no unexpected changes
-
-## Best Practices for AI Assistants
-
-1. **Read before editing:** Always read rule files before proposing changes
-2. **Use templates:** Never create rules manually - use template generator
-3. **Validate early:** Run validation after each change
-4. **Update index:** Regenerate RULES_INDEX.md after metadata changes
-5. **Test deployment:** Use --dry-run to preview deployment
-6. **Surgical edits:** Make minimal, focused changes to existing rules
-7. **Follow schema:** All rules must validate against schemas/rule-schema.yml
-8. **Commit atomically:** Each commit should be self-contained and validated
-9. **CRITICAL:** Never commit without passing all validation checks
+**task validate fails:** Run individual checks (`task quality:lint`, `task test`, etc.), fix in order, re-run after each
+**Schema validation fails:** Run `uv run python scripts/schema_validator.py rules/XXX-rule.md --verbose`, fix CRITICAL → HIGH → MEDIUM → LOW
 
 ---
 
 ## Appendix: Direct Script Usage (Advanced)
 
-**Recommendation:** Use Task commands for standard workflows (shown in Development Workflow section). Direct script usage is for advanced scenarios where Task overhead is not desired or when integrating into custom automation.
-
-### Direct Script Commands
-
-**Rule validation:**
-```bash
-# Validate all rules
-uv run python scripts/schema_validator.py rules/
-
-# Validate specific rule with verbose output
-uv run python scripts/schema_validator.py rules/XXX-rule.md --verbose
-
-# Task equivalent (recommended)
-task rules:validate
-```
-
-**Index generation:**
-```bash
-# Regenerate RULES_INDEX.md
-uv run python scripts/index_generator.py
-
-# Task equivalent (recommended)
-task index:generate
-```
-
-**Deployment:**
-```bash
-# Deploy to project
-uv run python scripts/rule_deployer.py --dest ~/project
-
-# Dry-run (preview)
-uv run python scripts/rule_deployer.py --dest ~/project --dry-run
-
-# Task equivalent (recommended)
-task deploy DEST=~/project
-task deploy:dry DEST=~/project
-```
-
-**Token budget management:**
-```bash
-# Check all rules
-uv run python scripts/token_validator.py rules/
-
-# Check specific rule
-uv run python scripts/token_validator.py rules/XXX-rule.md
-
-# Task equivalent (recommended)
-task tokens:check
-task tokens:update:file FILE=rules/XXX-rule.md
-```
-
-**Template generation:**
-```bash
-# Create new rule from template
-uv run python scripts/template_generator.py XXX-rule-name
-
-# Task equivalent (recommended)
-task rule:new FILENAME=XXX-rule-name TIER=High
-```
-
-**Badge management:**
-```bash
-# Update README badges
-uv run python scripts/badge_updater.py
-
-# Task equivalent (recommended)
-task badge:update
-```
-
-**When to use direct scripts:**
-- Custom CI/CD pipelines requiring direct control
-- Integration with non-Task automation systems
-- Debugging script behavior without Task wrapper
-- Performance-critical batch operations
-
-**When to use Task (recommended):**
-- Interactive development (faster, memorizable)
-- Standard workflows (validation, deployment)
-- Multi-step operations (Task handles dependencies)
-- Team collaboration (consistent interface)
+**Recommendation:** Use Task commands (Quick Reference section). Direct script usage is only for custom CI/CD pipelines or non-Task automation. All scripts are in `scripts/` directory. Run with: `uv run python scripts/[script_name].py [args]`. Refer to scripts/README.md for complete documentation.

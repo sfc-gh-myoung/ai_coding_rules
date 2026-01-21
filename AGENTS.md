@@ -18,11 +18,11 @@
 > - THEN agent MUST use: `read_file("rules/000-global-core.md")`
 > - NEVER use bare filename in tool calls
 >
-> **Pattern:** `[documented-name]` → `rules/[documented-name]`
+> **Pattern:** `[documented-name]` maps to `rules/[documented-name]`
 >
 > **Examples:**
-> - Documentation: `000-global-core.md` → Tool call: `read_file("rules/000-global-core.md")`
-> - Documentation: `Depends: 100-snowflake-core.md` → Tool call: `read_file("rules/100-snowflake-core.md")`
+> - Documentation: `000-global-core.md` maps to Tool call: `read_file("rules/000-global-core.md")`
+> - Documentation: `Depends: 100-snowflake-core.md` maps to Tool call: `read_file("rules/100-snowflake-core.md")`
 
 **FIRST ACTION EVERY RESPONSE:**
 
@@ -89,7 +89,7 @@ MODE: PLAN
    **Keyword Extraction Algorithm:**
    1. Parse user request into tokens
    2. Identify technology nouns (Python, Streamlit, Docker, pytest)
-   3. Identify activity verbs as nouns (test → testing, deploy → deployment)
+   3. Identify activity verbs as nouns (test becomes testing, deploy becomes deployment)
    4. Identify file/artifact types (README, CHANGELOG, Dockerfile)
    5. Select 2-4 most specific terms (prefer "pytest" over "test", "Streamlit" over "app")
    6. Exclude generic terms (code, file, project, fix, help)
@@ -111,12 +111,12 @@ MODE: PLAN
    - IF PROJECT.md loaded: Reference "Rule Organization by Domain" section for complete mapping
    - ELSE: READ rules/RULES_INDEX.md Rule Catalog section
    - MATCH: User request domain to catalog domain:
-     - "SQL query" → Snowflake (100-series)
-     - "Python script" → Python (200-series)
-     - "React app" → Frontend (400-series)
-     - "Shell script" → Shell (300-series)
-     - "Go code" → Go (600-series)
-     - "Documentation" → Project (800-series)
+     - "SQL query": Snowflake (100-series)
+     - "Python script": Python (200-series)
+     - "React app": Frontend (400-series)
+     - "Shell script": Shell (300-series)
+     - "Go code": Go (600-series)
+     - "Documentation": Project (800-series)
    - LOAD: Domain core rule for matched domain
    - DECLARE: "No activity rules found, loaded [domain] core"
 
@@ -161,10 +161,10 @@ Compare CURRENT request to PREVIOUS request:
 - IF primary verb changed: TASK SWITCH (check for activity rules)
 - IF technology keyword changed: TASK SWITCH (search RULES_INDEX.md)
 
-**Examples (Previous → Current → Switch?):**
-- "edit auth.py" → "test auth.py" → YES (verb change: edit→test)
-- "format code" → "lint code" → NO (same domain, same file)
-- "write README.md" → "git commit" → YES (activity change: write→commit)
+**Examples (Previous then Current then Switch?):**
+- "edit auth.py" then "test auth.py": YES (verb change: edit to test)
+- "format code" then "lint code": NO (same domain, same file)
+- "write README.md" then "git commit": YES (activity change: write to commit)
 
 **On Task Switch - STOP and Re-evaluate:**
 1. STOP - Do not proceed with previous rule context

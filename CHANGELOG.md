@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **fix(AGENTS.md):** replace 14 arrow characters (`→`) with text alternatives ("maps to", "becomes", "then", `:`) per 002g-agent-optimization.md Anti-Pattern 6
+
 ### Changed
 - **feat(plan-reviewer):** major skill overhaul for deterministic scoring
   - Updated verdict names: EXECUTABLE → EXCELLENT_PLAN, EXECUTABLE_WITH_REFINEMENTS → GOOD_PLAN, NEEDS_REFINEMENT → NEEDS_WORK, NOT_EXECUTABLE → POOR_PLAN/INADEQUATE_PLAN
@@ -25,8 +28,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated version references in docs/ARCHITECTURE.md: 3.5.0 → 3.5.2
   - Updated rule count references in docs/ARCHITECTURE.md: 113 → 122 (9 locations)
   - Updated TokenBudget in 3 rules: 002-rule-governance.md (~3800 → ~5300), 121a-snowflake-snowpipe-streaming.md (~6000 → ~6300), 207-python-logging.md (~2900 → ~3050)
-
-## [3.5.2] - 2026-01-20
 
 ### Added
 - **feat(loadtrigger):** implement LoadTrigger metadata across 67 rules (69% coverage, 125% of target)

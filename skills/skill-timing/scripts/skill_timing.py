@@ -37,7 +37,7 @@ ALERT_THRESHOLDS = {
         "STALENESS": {"short": 30, "long": 240, "error": 15},
     },
     "plan-reviewer": {
-        "FULL": {"short": 120, "long": 720, "error": 60},
+        "FULL": {"short": 30, "long": 720, "error": 15},
     },
     "doc-reviewer": {
         "FULL": {"short": 90, "long": 480, "error": 45},

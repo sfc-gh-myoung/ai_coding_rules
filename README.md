@@ -594,10 +594,11 @@ These skills are deployed by default when running `task deploy`:
 - **Skill file:** [skills/doc-reviewer/SKILL.md](skills/doc-reviewer/SKILL.md)
 
 **plan-reviewer** — Review implementation plans for agent executability
-- **Purpose:** Evaluate implementation plans across 8 dimensions for agent execution reliability
-- **Scoring:** 100-point system with Priority Compliance Gate (blocking issues cap scores)
-- **Dimensions:** Actionability, Completeness, Consistency, Clarity, Feasibility, Dependencies, Error Handling, Validation
-- **Trigger keywords:** "review plan", "audit implementation plan", "check plan quality"
+- **Purpose:** Evaluate LLM-generated plans across 8 dimensions for autonomous agent execution
+- **Modes:** FULL (single plan), COMPARISON (rank multiple), META-REVIEW (consistency), DELTA (track fixes)
+- **Scoring:** 100-point system with weighted dimensions (Executability 20, Completeness 20, Success Criteria 20, Scope 15, Dependencies 10, Decomposition 5, Context 5, Risk Awareness 5)
+- **Verdicts:** EXCELLENT_PLAN (90-100), GOOD_PLAN (80-89), NEEDS_WORK (60-79), POOR_PLAN (40-59), INADEQUATE_PLAN (<40)
+- **Trigger keywords:** "review plan", "compare plans", "plan quality", "meta-review", "plan executability"
 - **Usage guide:** [docs/USING_PLAN_REVIEWER_SKILL.md](docs/USING_PLAN_REVIEWER_SKILL.md)
 - **Skill file:** [skills/plan-reviewer/SKILL.md](skills/plan-reviewer/SKILL.md)
 

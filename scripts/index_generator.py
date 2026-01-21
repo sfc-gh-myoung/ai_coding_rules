@@ -595,9 +595,6 @@ User: "Write tests for my Streamlit dashboard"
 """
 
 
-
-
-
 def generate_rules_index(rules: list[RuleMetadata]) -> str:
     """Generate complete RULES_INDEX.md content.
 

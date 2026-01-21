@@ -517,16 +517,12 @@ Test scope.
         assert "Keywords:" in index_content
         assert "Depends:" in index_content
 
-        # Check footer is present
-        assert "Common Rule Dependency Chains" in index_content
-
         # Verify section ordering
         agent_pos = index_content.find("For AI Agents:")
         strategy_pos = index_content.find("Rule Loading Strategy")
         catalog_pos = index_content.find("## Rule Catalog")
-        footer_pos = index_content.find("Common Rule Dependency Chains")
 
-        assert agent_pos < strategy_pos < catalog_pos < footer_pos
+        assert agent_pos < strategy_pos < catalog_pos
 
     def test_generate_rules_index_empty_rules_list(self):
         """Test index generation with empty rules list."""
@@ -540,9 +536,6 @@ Test scope.
 
         # Should still have catalog header (even if empty)
         assert "## Rule Catalog" in index_content
-
-        # Should have footer
-        assert "Common Rule Dependency Chains" in index_content
 
     def test_generate_rules_index_with_multiple_rules_same_domain(self):
         """Test index generation with multiple rules in same domain (blank line handling)."""

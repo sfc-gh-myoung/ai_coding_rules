@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **fix(validation):** resolve schema validation errors in 002-rule-governance.md
+  - Replaced horizontal rule separator (---) with proper header at line 447
+  - Replaced 4 emojis (❌/✅) with text equivalents ([BAD]/[GOOD]) at lines 562, 568, 574, 581
+  - Replaced 5 arrow characters (→) with "Then use:" text pattern at lines 625-629
+  - All changes comply with Priority 1 design principles (agent-readable text-only format)
+  - Result: 122/122 rule files now validate cleanly
+- **fix(tests):** remove obsolete "Common Rule Dependency Chains" assertions
+  - Removed 2 assertions expecting removed footer section in test_index_generator.py
+  - Updated section ordering validation to reflect current RULES_INDEX.md structure
+  - Result: All 508 tests now passing
+- **fix(lint):** add missing docstring to pytest fixture in test_schema_validator.py
+  - Added docstring to `schema_validator` fixture at line 4355
+  - Resolves D102 ruff linting error (missing docstring in public method)
+  - Result: All linting checks now passing
+- **chore(format):** auto-format index_generator.py with ruff
+  - Removed 4 blank lines (auto-formatting by ruff)
+  - No functional changes
+
 ### Removed
 - **refactor(index):** remove "Common Rule Dependency Chains" section from RULES_INDEX.md
   - Removed `generate_footer()` function from scripts/index_generator.py (52 lines)

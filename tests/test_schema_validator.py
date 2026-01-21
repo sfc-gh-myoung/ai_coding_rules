@@ -4353,6 +4353,7 @@ class TestCLIOutputFormatting:
 
     @pytest.fixture
     def schema_validator(self):
+        """Provide a SchemaValidator instance for CLI output formatting tests."""
         return SchemaValidator()
 
     def test_format_result_warnings_only(self, schema_validator, tmp_path):

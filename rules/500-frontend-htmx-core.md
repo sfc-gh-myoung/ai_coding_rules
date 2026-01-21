@@ -8,8 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-13
+**RuleVersion:** v3.0.2
+**LastUpdated:** 2026-01-20
+**LoadTrigger:** kw:htmx, kw:frontend
 **Keywords:** htmx attributes, client-side, events, css transitions, debugging, browser compatibility, hx-get, hx-post, hx-swap, hx-trigger, hx-target
 **TokenBudget:** ~3600
 **ContextTier:** Low

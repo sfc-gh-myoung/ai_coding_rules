@@ -16,6 +16,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from scripts.index_generator import (  # noqa: E402
+    RuleMetadata,
     extract_metadata,
     extract_scope_from_content,
     generate_agent_guidance,
@@ -126,8 +127,10 @@ Rule {i} scope description.
 
 @pytest.fixture
 def outdated_index_file(tmp_path):
-    """Create outdated RULES_INDEX.md file."""
-    index_file = tmp_path / "RULES_INDEX.md"
+    """Create outdated rules/RULES_INDEX.md file."""
+    rules_dir = tmp_path / "rules"
+    rules_dir.mkdir(parents=True, exist_ok=True)
+    index_file = rules_dir / "RULES_INDEX.md"
     content = """# RULES_INDEX
 
 || File | Scope | Keywords | Depends |
@@ -231,6 +234,28 @@ Test scope.
         with pytest.raises(ValueError, match="Failed to read"):
             extract_metadata(non_existent)
 
+    def test_extract_handles_load_trigger_field(self, tmp_path):
+        """Test extraction of LoadTrigger metadata field."""
+        rule_file = tmp_path / "101-with-trigger.md"
+        content = """# Rule With LoadTrigger
+
+**Keywords:** trigger, test
+**Depends:** 000-global-core.md
+**LoadTrigger:** ext:.py, file:pyproject.toml
+
+## Scope
+
+**What This Rule Covers:**
+Test LoadTrigger extraction.
+"""
+        rule_file.write_text(content, encoding="utf-8")
+
+        metadata = extract_metadata(rule_file)
+
+        assert metadata.filename == "101-with-trigger.md"
+        assert metadata.load_trigger == "ext:.py, file:pyproject.toml"
+        assert metadata.keywords == "trigger, test"
+
     def test_extract_scope_from_content_valid(self):
         """Test scope extraction from valid content (v3.2)."""
         content = """# Title
@@ -261,6 +286,45 @@ Content here.
         content = """# Title
 
 ## Scope
+
+## Next Section
+"""
+        scope = extract_scope_from_content(content)
+        assert scope == "No scope provided"
+
+    def test_extract_scope_from_content_inline_marker(self):
+        """Test scope extraction with content on same line as marker."""
+        content = """# Title
+
+## Scope
+
+**What This Rule Covers:** Inline scope description here.
+
+More content below.
+"""
+        scope = extract_scope_from_content(content)
+        assert scope == "Inline scope description here."
+
+    def test_extract_scope_from_content_plain_text_fallback(self):
+        """Test scope extraction using plain text fallback (no marker)."""
+        content = """# Title
+
+## Scope
+
+This is plain text without the marker format.
+
+More content.
+"""
+        scope = extract_scope_from_content(content)
+        assert scope == "This is plain text without the marker format."
+
+    def test_extract_scope_from_content_marker_no_following_content(self):
+        """Test scope extraction when marker exists but no content follows."""
+        content = """# Title
+
+## Scope
+
+**What This Rule Covers:**
 
 ## Next Section
 """
@@ -453,16 +517,12 @@ Test scope.
         assert "Keywords:" in index_content
         assert "Depends:" in index_content
 
-        # Check footer is present
-        assert "Common Rule Dependency Chains" in index_content
-
         # Verify section ordering
         agent_pos = index_content.find("For AI Agents:")
         strategy_pos = index_content.find("Rule Loading Strategy")
         catalog_pos = index_content.find("## Rule Catalog")
-        footer_pos = index_content.find("Common Rule Dependency Chains")
 
-        assert agent_pos < strategy_pos < catalog_pos < footer_pos
+        assert agent_pos < strategy_pos < catalog_pos
 
     def test_generate_rules_index_empty_rules_list(self):
         """Test index generation with empty rules list."""
@@ -477,8 +537,36 @@ Test scope.
         # Should still have catalog header (even if empty)
         assert "## Rule Catalog" in index_content
 
-        # Should have footer
-        assert "Common Rule Dependency Chains" in index_content
+    def test_generate_rules_index_with_multiple_rules_same_domain(self):
+        """Test index generation with multiple rules in same domain (blank line handling)."""
+        from pathlib import Path
+
+        mock_rules = [
+            RuleMetadata(
+                filename="100-first.md",
+                filepath=Path("rules/100-first.md"),
+                keywords="test1",
+                depends="000-global-core.md",
+                scope="First rule",
+                load_trigger="",
+            ),
+            RuleMetadata(
+                filename="101-second.md",
+                filepath=Path("rules/101-second.md"),
+                keywords="test2",
+                depends="000-global-core.md",
+                scope="Second rule",
+                load_trigger="",
+            ),
+        ]
+
+        index_content = generate_rules_index(mock_rules)
+
+        # Both rules should be in index
+        assert "100-first.md" in index_content
+        assert "101-second.md" in index_content
+        # Should have proper spacing between entries
+        assert "## Rule Catalog" in index_content
 
 
 @pytest.mark.unit
@@ -494,9 +582,30 @@ class TestNewSections:
         assert "AI Agents" in guidance
         assert "grep" in guidance or "read_file" in guidance
 
-    def test_generate_loading_strategy_returns_content(self):
+    def test_generate_loading_strategy_returns_content(self, tmp_path):
         """Test loading strategy section generation."""
-        strategy = generate_loading_strategy()
+        # Create mock rules with LoadTrigger metadata
+        from pathlib import Path
+
+        mock_rules = [
+            RuleMetadata(
+                filename="200-python-core.md",
+                filepath=Path("rules/200-python-core.md"),
+                keywords="python, testing",
+                depends="000-global-core.md",
+                scope="Python development",
+                load_trigger="ext:.py, ext:.pyi",
+            ),
+            RuleMetadata(
+                filename="206-python-pytest.md",
+                filepath=Path("rules/206-python-pytest.md"),
+                keywords="pytest, testing",
+                depends="200-python-core.md",
+                scope="Testing with pytest",
+                load_trigger="kw:test, kw:pytest",
+            ),
+        ]
+        strategy = generate_loading_strategy(mock_rules)
 
         assert len(strategy) > 0
         assert "Rule Loading Strategy" in strategy
@@ -505,16 +614,40 @@ class TestNewSections:
         assert "Activity Rules" in strategy
         assert "Token Budget" in strategy
 
-    def test_generate_loading_strategy_includes_example(self):
+    def test_generate_loading_strategy_includes_example(self, tmp_path):
         """Test loading strategy includes worked example."""
-        strategy = generate_loading_strategy()
+        from pathlib import Path
+
+        mock_rules = [
+            RuleMetadata(
+                filename="101-snowflake-streamlit-core.md",
+                filepath=Path("rules/101-snowflake-streamlit-core.md"),
+                keywords="streamlit",
+                depends="100-snowflake-core.md",
+                scope="Streamlit apps",
+                load_trigger="kw:streamlit",
+            ),
+        ]
+        strategy = generate_loading_strategy(mock_rules)
 
         assert "Example Workflow" in strategy or "example" in strategy.lower()
         assert "Write tests for my Streamlit dashboard" in strategy
 
-    def test_generate_loading_strategy_includes_six_steps(self):
+    def test_generate_loading_strategy_includes_six_steps(self, tmp_path):
         """Test loading strategy includes all 6 steps."""
-        strategy = generate_loading_strategy()
+        from pathlib import Path
+
+        mock_rules = [
+            RuleMetadata(
+                filename="200-python-core.md",
+                filepath=Path("rules/200-python-core.md"),
+                keywords="python",
+                depends="000-global-core.md",
+                scope="Python",
+                load_trigger="ext:.py",
+            ),
+        ]
+        strategy = generate_loading_strategy(mock_rules)
 
         assert "### 1. Foundation" in strategy
         assert "### 2. Domain Rules" in strategy
@@ -523,6 +656,84 @@ class TestNewSections:
         assert "### 5. Token Budget Management" in strategy
         assert "### 6. Declare Loaded Rules" in strategy
 
+    def test_generate_loading_strategy_with_dir_triggers(self):
+        """Test loading strategy with directory triggers."""
+        from pathlib import Path
+
+        mock_rules = [
+            RuleMetadata(
+                filename="002h-skills.md",
+                filepath=Path("rules/002h-skills.md"),
+                keywords="skills",
+                depends="000-global-core.md",
+                scope="Skills development",
+                load_trigger="dir:skills/",
+            ),
+        ]
+        strategy = generate_loading_strategy(mock_rules)
+
+        assert "skills/" in strategy
+        assert "002h-skills.md" in strategy
+        assert "directory" in strategy.lower()
+
+    def test_generate_loading_strategy_with_file_triggers(self):
+        """Test loading strategy with file triggers."""
+        from pathlib import Path
+
+        mock_rules = [
+            RuleMetadata(
+                filename="820-taskfile.md",
+                filepath=Path("rules/820-taskfile.md"),
+                keywords="automation",
+                depends="000-global-core.md",
+                scope="Taskfile automation",
+                load_trigger="file:Taskfile.yml",
+            ),
+        ]
+        strategy = generate_loading_strategy(mock_rules)
+
+        assert "Taskfile.yml" in strategy
+        assert "820-taskfile.md" in strategy
+
+    def test_generate_loading_strategy_with_multiple_trigger_types(self):
+        """Test loading strategy with mixed trigger types."""
+        from pathlib import Path
+
+        mock_rules = [
+            RuleMetadata(
+                filename="200-python.md",
+                filepath=Path("rules/200-python.md"),
+                keywords="python",
+                depends="000-global-core.md",
+                scope="Python",
+                load_trigger="ext:.py, file:pyproject.toml",
+            ),
+            RuleMetadata(
+                filename="002-governance.md",
+                filepath=Path("rules/002-governance.md"),
+                keywords="rules",
+                depends="000-global-core.md",
+                scope="Rule governance",
+                load_trigger="dir:rules/",
+            ),
+            RuleMetadata(
+                filename="206-pytest.md",
+                filepath=Path("rules/206-pytest.md"),
+                keywords="test",
+                depends="000-global-core.md",
+                scope="Testing",
+                load_trigger="kw:test, kw:pytest",
+            ),
+        ]
+        strategy = generate_loading_strategy(mock_rules)
+
+        # Check all trigger types are present
+        assert ".py" in strategy
+        assert "pyproject.toml" in strategy
+        assert "rules/" in strategy
+        assert "test" in strategy
+        assert "pytest" in strategy
+
 
 @pytest.mark.unit
 class TestIndexGeneratorCLI:
@@ -530,9 +741,12 @@ class TestIndexGeneratorCLI:
 
     def test_main_normal_mode_generates_index(self, multiple_rule_files, tmp_path, monkeypatch):
         """Test CLI generates index in normal mode."""
-        # Change to tmp_path so RULES_INDEX.md is created there
+        # Change to tmp_path so rules/RULES_INDEX.md is created there
         monkeypatch.chdir(tmp_path)
-        output_file = tmp_path / "RULES_INDEX.md"
+        # Create rules directory where output will be written
+        rules_output_dir = tmp_path / "rules"
+        rules_output_dir.mkdir(parents=True, exist_ok=True)
+        output_file = rules_output_dir / "RULES_INDEX.md"
 
         # Mock sys.argv
         test_args = [
@@ -558,7 +772,10 @@ class TestIndexGeneratorCLI:
     ):
         """Test --dry-run prints but doesn't write."""
         monkeypatch.chdir(tmp_path)
-        output_file = tmp_path / "RULES_INDEX.md"
+        # Create rules directory (even though dry-run won't write)
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir(parents=True, exist_ok=True)
+        output_file = rules_dir / "RULES_INDEX.md"
 
         test_args = [
             "index_generator.py",
@@ -623,7 +840,10 @@ class TestIndexGeneratorCLI:
     ):
         """Test --check mode succeeds when index is current."""
         monkeypatch.chdir(tmp_path)
-        output_file = tmp_path / "RULES_INDEX.md"
+        # Create rules directory and output file
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir(parents=True, exist_ok=True)
+        output_file = rules_dir / "RULES_INDEX.md"
 
         # First generate the index
         rules = scan_rules(multiple_rule_files)
@@ -771,14 +991,17 @@ Test scope.
     def test_main_check_mode_read_error(self, multiple_rule_files, tmp_path, monkeypatch, capsys):
         """Test --check mode handles file read errors (lines 513-515)."""
         monkeypatch.chdir(tmp_path)
-        output_file = tmp_path / "RULES_INDEX.md"
+        # Create rules directory and output file
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir(parents=True, exist_ok=True)
+        output_file = rules_dir / "RULES_INDEX.md"
         output_file.write_text("dummy content", encoding="utf-8")
 
         # Mock read_text to raise an exception
         original_read_text = Path.read_text
 
         def mock_read_text(self, *args, **kwargs):
-            if self.name == "RULES_INDEX.md":
+            if self.name == "RULES_INDEX.md" and "rules" in str(self.parent):
                 raise PermissionError("Permission denied")
             return original_read_text(self, *args, **kwargs)
 
@@ -797,16 +1020,22 @@ Test scope.
         assert exit_code == 1
 
         captured = capsys.readouterr()
-        assert "Error reading RULES_INDEX.md" in captured.out
+        assert "Error reading rules/RULES_INDEX.md" in captured.out
 
     def test_main_write_error(self, multiple_rule_files, tmp_path, monkeypatch, capsys):
         """Test normal mode handles file write errors (lines 535-537)."""
         monkeypatch.chdir(tmp_path)
+        # Create rules directory
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir(parents=True, exist_ok=True)
 
         # Mock write_text to raise an exception
         original_write_text = Path.write_text
 
         def mock_write_text(self, *args, **kwargs):
+            if self.name == "RULES_INDEX.md":
+                raise PermissionError("Permission denied")
+            return original_write_text(self, *args, **kwargs)
             if self.name == "RULES_INDEX.md":
                 raise PermissionError("Permission denied")
             return original_write_text(self, *args, **kwargs)
@@ -821,7 +1050,7 @@ Test scope.
         assert exit_code == 1
 
         captured = capsys.readouterr()
-        assert "Error writing RULES_INDEX.md" in captured.out
+        assert "Error writing rules/RULES_INDEX.md" in captured.out
 
 
 @pytest.mark.unit

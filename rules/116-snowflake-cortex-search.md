@@ -3,8 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-20
+**LoadTrigger:** kw:search, kw:cortex-search
 **Keywords:** embeddings, search index, RAG, agent tools, retrieval, troubleshooting, AI_EMBED, create search service, search service error, document retrieval, search index creation, hybrid search, search service debug, vector similarity
 **TokenBudget:** ~7500
 **ContextTier:** Medium

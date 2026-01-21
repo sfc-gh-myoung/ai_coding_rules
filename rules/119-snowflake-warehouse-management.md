@@ -5,6 +5,7 @@
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-06
+**LoadTrigger:** kw:warehouse, kw:compute
 **Keywords:** high-memory warehouse, warehouse tagging, auto-suspend, auto-resume, GEN 2, Snowpark-Optimized, warehouse edition, resource monitors, create warehouse, warehouse configuration, warehouse types, warehouse cost, size warehouse
 **TokenBudget:** ~6500
 **ContextTier:** High

@@ -14,6 +14,7 @@
 **TokenBudget:** ~2600
 **ContextTier:** High
 **Depends:** 000-global-core.md
+**LoadTrigger:** ext:.ts, ext:.tsx
 
 ## Scope
 

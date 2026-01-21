@@ -14,6 +14,7 @@
 **TokenBudget:** ~3200
 **ContextTier:** High
 **Depends:** 000-global-core.md
+**LoadTrigger:** ext:.js, ext:.jsx, ext:.mjs, ext:.cjs
 
 ## Scope
 

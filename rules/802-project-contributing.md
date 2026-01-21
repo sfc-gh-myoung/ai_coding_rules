@@ -3,8 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-13
+**RuleVersion:** v3.0.2
+**LastUpdated:** 2026-01-20
+**LoadTrigger:** kw:contributing, file:CONTRIBUTING.md
 **Keywords:** CONTRIBUTING, pull requests, code review, contribution guidelines, branching strategy, Conventional Commits, rule authoring, PR templates, project governance, git workflow
 **TokenBudget:** ~3300
 **ContextTier:** Medium

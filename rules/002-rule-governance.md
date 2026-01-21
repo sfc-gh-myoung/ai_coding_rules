@@ -8,12 +8,13 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-01-13
+**RuleVersion:** v3.2.2
+**LastUpdated:** 2026-01-20
 **Keywords:** rule governance, schema, metadata requirements, validation, schema compliance, rule structure, semantic discovery, RULES_INDEX, descriptive headings
 **TokenBudget:** ~3800
 **ContextTier:** Critical
 **Depends:** 000-global-core.md
+**LoadTrigger:** dir:rules/
 
 ## Scope
 
@@ -150,8 +151,9 @@ Markdown file (.md) with:
 - **TokenBudget:** `~NUMBER` format (e.g., ~1200)
 - **ContextTier:** One of: Critical, High, Medium, Low (see `002c-rule-optimization.md` for detailed tier selection guidance)
 - **Depends:** At least one rule dependency (e.g., `000-global-core.md`)
+- **LoadTrigger:** (Optional) Comma-separated triggers for dynamic rule loading (see LoadTrigger Guidelines below)
 
-**Field Order:** Must appear in exact order: SchemaVersion, RuleVersion, Keywords, TokenBudget, ContextTier, Depends
+**Field Order:** Must appear in exact order: SchemaVersion, RuleVersion, LastUpdated (if present), LoadTrigger (if present), Keywords, TokenBudget, ContextTier, Depends
 
 **Note on Versioning:** For guidance on when and how to increment RuleVersion and update LastUpdated fields, see `002b-rule-update.md`.
 
@@ -435,7 +437,195 @@ metadata:
     - TokenBudget (~NUMBER format)
     - ContextTier (enum: Critical/High/Medium/Low)
     - Depends (min 1 dependency)
+  optional_fields:
+    - LoadTrigger (dynamic loading triggers)
 structure:
   required_sections: Metadata, Scope, References, Contract
   Contract_subsections: 7 Markdown ### headers required
 ```
+
+### LoadTrigger Specification
+
+## LoadTrigger Guidelines
+
+### What is LoadTrigger?
+
+**LoadTrigger** is an optional metadata field that enables dynamic rule discovery based on file context, keywords, or activities. It allows the system to automatically suggest relevant rules when specific conditions are met.
+
+### When to Use LoadTrigger
+
+**Add LoadTrigger when:**
+- Rule applies to specific file extensions (e.g., `.py`, `.sql`, `.tsx`)
+- Rule applies to specific filenames (e.g., `pyproject.toml`, `Dockerfile`)
+- Rule applies to specific directories (e.g., `rules/`, `tests/`)
+- Rule provides guidance for specific activities or keywords (e.g., `kw:testing`, `kw:performance`)
+
+**Skip LoadTrigger for:**
+- Foundation/infrastructure rules (always loaded automatically)
+- Sub-rules with explicit Depends relationships (loaded via parent rule)
+- Highly specialized rules (loaded only when explicitly requested)
+
+### LoadTrigger Syntax
+
+LoadTrigger uses four trigger types:
+
+```markdown
+**LoadTrigger:** ext:.py, kw:python, kw:testing
+```
+
+**Trigger Types:**
+
+1. **ext:** - File extension triggers
+   - `ext:.py` - Python files
+   - `ext:.sql` - SQL files
+   - `ext:.tsx` - TypeScript React files
+
+2. **file:** - Specific filename triggers
+   - `file:pyproject.toml` - Python project config
+   - `file:Dockerfile` - Docker configuration
+   - `file:CHANGELOG.md` - Changelog file
+
+3. **dir:** - Directory-based triggers
+   - `dir:rules/` - Rules directory
+   - `dir:tests/` - Test directory
+
+4. **kw:** - Keyword/activity triggers
+   - `kw:testing` - Testing activities
+   - `kw:performance` - Performance optimization
+   - `kw:security` - Security-related work
+
+### LoadTrigger Patterns
+
+**Language Rules:**
+```markdown
+**LoadTrigger:** ext:.py, kw:python
+```
+
+**Framework Rules:**
+```markdown
+**LoadTrigger:** kw:fastapi, kw:api, file:main.py
+```
+
+**Activity Rules:**
+```markdown
+**LoadTrigger:** kw:testing, kw:unit-test, kw:pytest
+```
+
+**Multi-Context Rules:**
+```markdown
+**LoadTrigger:** ext:.tsx, kw:react, kw:frontend
+```
+
+### LoadTrigger Best Practices
+
+**DO:**
+- Use 2-4 triggers per rule (average: 2.1 based on current data)
+- Combine extension + keyword triggers for language rules
+- Use specific, descriptive keywords
+- Include synonyms for discoverability (e.g., `kw:mock, kw:test-data, kw:faker`)
+- Check existing rules for similar triggers to maintain consistency
+
+**DON'T:**
+- Use overly generic keywords that match 3+ rules
+- Duplicate triggers unnecessarily (some overlap is intentional)
+- Add LoadTriggers to foundation rules (000-series, 001-core, 002-governance)
+- Use LoadTriggers for sub-rules that should be loaded via Depends
+
+### LoadTrigger Examples
+
+**Example 1: Python Core Rule**
+```markdown
+**LoadTrigger:** ext:.py, ext:.pyi, kw:python
+```
+Triggers on: Python files OR "python" keyword
+
+**Example 2: FastAPI Testing Rule**
+```markdown
+**LoadTrigger:** kw:fastapi-testing, kw:test
+```
+Triggers on: FastAPI testing activities
+
+**Example 3: Multi-Extension React Rule**
+```markdown
+**LoadTrigger:** ext:.jsx, ext:.tsx, kw:react
+```
+Triggers on: JSX/TSX files OR "react" keyword
+
+**Example 4: Config File Rule**
+```markdown
+**LoadTrigger:** file:pyproject.toml, kw:python-project
+```
+Triggers on: pyproject.toml file OR "python-project" keyword
+
+### LoadTrigger Anti-Patterns
+
+**[BAD] Too Generic:**
+```markdown
+**LoadTrigger:** kw:code, kw:file
+```
+Problems: Matches almost everything, no specificity
+
+**[BAD] Redundant Keywords:**
+```markdown
+**LoadTrigger:** kw:python, kw:py, kw:python-lang, kw:python-code
+```
+Problems: All synonyms, no additional value
+
+**[BAD] Wrong Context:**
+```markdown
+# In 000-global-core.md
+**LoadTrigger:** kw:core
+```
+Problems: Foundation rules should NOT have LoadTriggers
+
+**[GOOD] Good LoadTrigger:**
+```markdown
+**LoadTrigger:** ext:.sql, kw:snowflake, kw:query
+```
+Benefits: Specific extension + domain keywords
+
+### LoadTrigger Impact on RULES_INDEX.md
+
+When you add LoadTrigger to a rule, it automatically appears in `RULES_INDEX.md` after running:
+
+```bash
+python3 scripts/index_generator.py
+```
+
+The index organizes rules by trigger type:
+- **Section 2:** Directory and file extension rules
+- **Section 3:** Activity rules (keyword-based)
+
+**Example Index Entry:**
+```markdown
+### 3. Activity Rules (Keyword Match)
+- **python**, **testing**: Consider `200-python-core.md`
+- **fastapi**, **api**: Consider `210-python-fastapi.md`
+```
+
+### Validation and Testing
+
+**After adding LoadTrigger:**
+
+1. Regenerate index: `python3 scripts/index_generator.py`
+2. Validate references: `uv run python scripts/validate_index_references.py --index-path rules/RULES_INDEX.md`
+3. Run tests: `uv run pytest --tb=short -q`
+4. Check formatting: `uvx ruff check .`
+
+**Current Coverage Statistics (as of 2026-01-20):**
+- Total rules: 122
+- Rules with LoadTrigger: 84 (69%)
+- Average triggers per rule: 2.1
+- Target achieved: 125% (target was 67 rules / 55%)
+
+### LoadTrigger Decision Process
+
+When creating or updating a rule, ask:
+
+1. **Is this a foundation rule?** Then use: No LoadTrigger (always loaded)
+2. **Does it have a parent rule via Depends?** Then use: No LoadTrigger (loaded by parent)
+3. **Does it apply to specific file types?** Then use: Add ext:/file: triggers
+4. **Does it guide specific activities?** Then use: Add kw: triggers
+5. **Is it highly specialized?** Then use: Skip LoadTrigger (on-demand only)
+
+**Refer to:** `docs/loadtrigger_decisions.md` for detailed categorization and rationale for all rules in the repository.

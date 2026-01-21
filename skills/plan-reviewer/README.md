@@ -1,6 +1,6 @@
 # Plan Reviewer Skill
 
-A Claude skill for reviewing LLM-generated plans to ensure autonomous agents can execute them successfully. Supports single-plan review, multi-plan comparison, and meta-review of review consistency.
+A Claude skill for reviewing LLM-generated plans to ensure autonomous agents can execute them successfully. Supports single-plan review (FULL), multi-plan comparison (COMPARISON), meta-review of review consistency (META-REVIEW), and issue resolution tracking (DELTA).
 
 ## Overview
 
@@ -9,7 +9,7 @@ This skill automates the complete plan review workflow:
 - Validates inputs (target files, date, mode, model)
 - Executes review using 8-dimension rubric optimized for agent executability
 - Evaluates plans across Critical (75 points) and Standard (25 points) dimensions
-- Supports FULL, COMPARISON, and META-REVIEW modes
+- Supports FULL, COMPARISON, META-REVIEW, and DELTA modes
 - Writes results to `reviews/` with automatic suffix for duplicates
 
 ## Quick Start
@@ -52,10 +52,22 @@ model: claude-sonnet-45
 ```text
 Use the plan-reviewer skill.
 
-target_files: [reviews/plan-X-sonnet-2025-12-16.md, reviews/plan-X-gpt-2025-12-16.md]
+review_files: [reviews/plan-X-sonnet-2025-12-16.md, reviews/plan-X-gpt-2025-12-16.md]
 original_document: plans/X.md
 review_date: 2025-12-16
 review_mode: META-REVIEW
+model: claude-sonnet-45
+```
+
+**DELTA mode (track issue resolution):**
+
+```text
+Use the plan-reviewer skill.
+
+target_file: plans/IMPROVE_RULE_LOADING.md
+baseline_review: reviews/plan-reviews/IMPROVE_RULE_LOADING-claude-sonnet-45-2025-12-01.md
+review_date: 2025-12-16
+review_mode: DELTA
 model: claude-sonnet-45
 ```
 
@@ -65,13 +77,16 @@ Check the generated review file:
 
 ```bash
 # FULL mode
-ls reviews/plan-IMPROVE_RULE_LOADING-claude-sonnet-45-2025-12-16.md
+ls reviews/plan-reviews/IMPROVE_RULE_LOADING-claude-sonnet-45-2025-12-16.md
 
 # COMPARISON mode
-ls reviews/plan-comparison-claude-sonnet-45-2025-12-16.md
+ls reviews/summaries/_comparison-<plan-set-id>-claude-sonnet-45-2025-12-16.md
 
 # META-REVIEW mode
-ls reviews/meta-IMPROVE_RULE_LOADING-claude-sonnet-45-2025-12-16.md
+ls reviews/summaries/_meta-IMPROVE_RULE_LOADING-2025-12-16.md
+
+# DELTA mode
+ls reviews/plan-reviews/IMPROVE_RULE_LOADING-delta-2025-12-01-to-2025-12-16-claude-sonnet-45.md
 ```
 
 ## Execution Timing
@@ -140,6 +155,7 @@ skills/plan-reviewer/
     ├── input-validation.md    # Input checking procedures
     ├── model-slugging.md      # Model name normalization
     ├── review-execution.md    # Review generation steps
+    ├── delta-review.md        # DELTA mode workflow
     ├── file-write.md          # Output file handling
     └── error-handling.md      # Error recovery procedures
 ```
@@ -171,15 +187,17 @@ skills/plan-reviewer/
 | **FULL** | Comprehensive single-plan review | All 8 dimensions scored, executability verdict |
 | **COMPARISON** | Rank multiple plans | Side-by-side scoring, winner declared with rationale |
 | **META-REVIEW** | Analyze review consistency | Variance analysis, calibration assessment, consensus score |
+| **DELTA** | Track issue resolution | Compares current plan to baseline review, tracks fixes and regressions |
 
 ## Agent Executability Verdicts
 
 | Score Range | Verdict | Action |
 |-------------|---------|--------|
-| 90-100 | **EXECUTABLE** | Agent can execute as-is |
-| 80-89 | **EXECUTABLE_WITH_REFINEMENTS** | Minor refinements recommended |
-| 60-79 | **NEEDS_REFINEMENT** | Fix critical issues before agent execution |
-| <60 | **NOT_EXECUTABLE** | Major rework required |
+| 90-100 | **EXCELLENT_PLAN** | Ready for execution |
+| 80-89 | **GOOD_PLAN** | Minor refinements needed |
+| 60-79 | **NEEDS_WORK** | Significant refinement required |
+| 40-59 | **POOR_PLAN** | Not executable, major revision needed |
+| <40 | **INADEQUATE_PLAN** | Rewrite from scratch |
 
 ## Output Format
 
@@ -187,23 +205,28 @@ Reviews are written to:
 
 **FULL mode:**
 ```text
-reviews/plan-<plan-name>-<model>-<YYYY-MM-DD>.md
+reviews/plan-reviews/<plan-name>-<model>-<YYYY-MM-DD>.md
 ```
 
 **COMPARISON mode:**
 ```text
-reviews/plan-comparison-<model>-<YYYY-MM-DD>.md
+reviews/summaries/_comparison-<plan-set-id>-<model>-<YYYY-MM-DD>.md
 ```
 
 **META-REVIEW mode:**
 ```text
-reviews/meta-<document-name>-<model>-<YYYY-MM-DD>.md
+reviews/summaries/_meta-<document-name>-<YYYY-MM-DD>.md
+```
+
+**DELTA mode:**
+```text
+reviews/plan-reviews/<plan-name>-delta-<baseline-date>-to-<current-date>-<model>.md
 ```
 
 **No-overwrite safety:** If file exists, uses suffixes:
 ```text
-reviews/plan-<name>-<model>-<date>-01.md
-reviews/plan-<name>-<model>-<date>-02.md
+reviews/plan-reviews/<name>-<model>-<date>-01.md
+reviews/plan-reviews/<name>-<model>-<date>-02.md
 ```
 
 ## Confirmation Message
@@ -213,7 +236,7 @@ On success:
 ```text
 ✓ Review complete
 
-OUTPUT_FILE: reviews/plan-IMPROVE_RULE_LOADING-claude-sonnet-45-2025-12-16.md
+OUTPUT_FILE: reviews/plan-reviews/IMPROVE_RULE_LOADING-claude-sonnet-45-2025-12-16.md
 Target: plans/IMPROVE_RULE_LOADING.md
 Mode: FULL
 Model: claude-sonnet-45
@@ -228,7 +251,7 @@ Summary:
 - Context: 4/5
 - Risk Awareness: 3/5
 Overall: 81/100
-Verdict: EXECUTABLE_WITH_REFINEMENTS
+Verdict: GOOD_PLAN
 ```
 
 ## Use Cases
@@ -257,12 +280,23 @@ review_mode: COMPARISON
 Use META-REVIEW mode after multiple LLMs review the same document:
 
 ```text
-target_files: [
-  reviews/plan-X-claude-sonnet-45-2025-12-16.md,
-  reviews/plan-X-gpt-52-2025-12-16.md,
-  reviews/plan-X-claude-opus45-2025-12-16.md
+review_files: [
+  reviews/plan-reviews/X-claude-sonnet-45-2025-12-16.md,
+  reviews/plan-reviews/X-gpt-52-2025-12-16.md,
+  reviews/plan-reviews/X-claude-opus45-2025-12-16.md
 ]
 review_mode: META-REVIEW
+```
+
+### 4. Tracking Plan Improvements
+
+Use DELTA mode after applying fixes from a prior review:
+
+```text
+target_file: plans/X.md
+baseline_review: reviews/plan-reviews/X-claude-sonnet-45-2025-12-01.md
+review_date: 2025-12-16
+review_mode: DELTA
 ```
 
 ## Integration with Other Skills

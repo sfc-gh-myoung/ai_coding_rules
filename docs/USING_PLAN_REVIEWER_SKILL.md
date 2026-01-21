@@ -1,6 +1,6 @@
 # Using the Plan Reviewer Skill
 
-**Last Updated:** 2026-01-07
+**Last Updated:** 2026-01-21
 
 The Plan Reviewer Skill evaluates LLM-generated plans to ensure autonomous agents can execute them successfully. It scores plans across 8 dimensions optimized for agent executability using a 100-point scoring system.
 
@@ -14,7 +14,7 @@ Key behaviors:
 - **Priority Compliance Gate** — Evaluates plans against Design Priority Hierarchy before scoring
 - **Agent Execution Test** — First gate counts blocking issues (ambiguous phrases, implicit commands, missing branches, undefined thresholds)
 - Reviews plans against 8 dimensions: Executability, Completeness, Success Criteria, Scope, Dependencies, Decomposition, Context, Risk Awareness
-- Supports three review modes: FULL, COMPARISON, META-REVIEW
+- Supports four review modes: FULL, COMPARISON, META-REVIEW, DELTA
 - Computes `OUTPUT_FILE` as:
   - FULL mode: `{output_root}plan-reviews/plan-<plan-name>-<model>-<YYYY-MM-DD>.md`
   - COMPARISON mode: `{output_root}summaries/_comparison-<model>-<YYYY-MM-DD>.md`
@@ -28,13 +28,14 @@ Key behaviors:
 
 Reviews evaluate plans against the priority order defined in `000-global-core.md`:
 
-1. **Priority 1:** Agent Understanding and Execution Reliability (CRITICAL)
-2. **Priority 2:** Token and Context Window Efficiency (HIGH)
-3. **Priority 3:** Human Readability (TERTIARY)
+1. **Priority 1 (CRITICAL):** Agent Understanding and Execution Reliability
+2. **Priority 2 (HIGH):** Rule Discovery Efficacy and Determinism
+3. **Priority 3 (HIGH):** Context Window and Token Utilization Efficiency
+4. **Priority 4 (LOW):** Human Developer Maintainability
 
 **Scoring Impact (Priority 1 Gate):**
-- ≥10 blocking issues: Overall score capped at 60/100 (NEEDS_REFINEMENT)
-- ≥20 blocking issues: Overall score capped at 40/100 (NOT_EXECUTABLE)
+- ≥10 blocking issues: Overall score capped at 60/100 (NEEDS_WORK)
+- ≥20 blocking issues: Overall score capped at 40/100 (POOR_PLAN)
 
 ## Quick Start
 
@@ -98,10 +99,22 @@ model: claude-sonnet-45
 ```text
 Use the plan-reviewer skill.
 
-target_files: reviews/plan-X-sonnet-2026-01-06.md, reviews/plan-X-gpt-2026-01-06.md
+review_files: reviews/plan-X-sonnet-2026-01-06.md, reviews/plan-X-gpt-2026-01-06.md
 original_document: plans/X.md
 review_date: 2026-01-06
 review_mode: META-REVIEW
+model: claude-sonnet-45
+```
+
+**DELTA mode (track issue resolution):**
+
+```text
+Use the plan-reviewer skill.
+
+target_file: plans/IMPROVE_RULE_LOADING.md
+baseline_review: reviews/plan-reviews/IMPROVE_RULE_LOADING-claude-sonnet-45-2026-01-01.md
+review_date: 2026-01-06
+review_mode: DELTA
 model: claude-sonnet-45
 ```
 
@@ -109,10 +122,11 @@ model: claude-sonnet-45
 
 The skill writes reviews to the output directory:
 
-- Default FULL: `reviews/plan-reviews/plan-IMPROVE_RULE_LOADING-claude-sonnet-45-2026-01-06.md`
-- Default COMPARISON: `reviews/summaries/_comparison-claude-sonnet-45-2026-01-06.md`
-- Default META-REVIEW: `reviews/summaries/_meta-IMPROVE_RULE_LOADING-claude-sonnet-45-2026-01-06.md`
-- With `output_root: quarterly-audit/`: `quarterly-audit/plan-reviews/plan-...`
+- Default FULL: `reviews/plan-reviews/IMPROVE_RULE_LOADING-claude-sonnet-45-2026-01-06.md`
+- Default COMPARISON: `reviews/summaries/_comparison-<plan-set-id>-claude-sonnet-45-2026-01-06.md`
+- Default META-REVIEW: `reviews/summaries/_meta-IMPROVE_RULE_LOADING-2026-01-06.md`
+- Default DELTA: `reviews/plan-reviews/IMPROVE_RULE_LOADING-delta-2026-01-01-to-2026-01-06-claude-sonnet-45.md`
+- With `output_root: quarterly-audit/`: `quarterly-audit/plan-reviews/...`
 
 If the file already exists, suffixes are appended: `-01.md`, `-02.md`, etc.
 
@@ -159,6 +173,19 @@ review_mode: META-REVIEW
 - Identifying calibration issues
 - Building consensus score
 
+### DELTA Mode (Track Issue Resolution)
+
+Use after applying fixes from a prior review. Compares current plan against baseline review to track issue resolution and detect regressions.
+
+```text
+review_mode: DELTA
+```
+
+**Best for:**
+- Tracking improvement progress after fixes
+- Verifying issues from prior review are resolved
+- Understanding score changes between versions
+
 ## Review Dimensions
 
 ### Critical Dimensions (75 points)
@@ -201,14 +228,21 @@ review_mode: META-REVIEW
 ## Agent Executability Verdicts
 
 **Score Ranges:**
-- **90-100 (EXECUTABLE):** Agent can execute as-is
-- **80-89 (EXECUTABLE_WITH_REFINEMENTS):** Minor refinements recommended
-- **60-79 (NEEDS_REFINEMENT):** Significant gaps; agent may fail
-- **<60 (NOT_EXECUTABLE):** Major rework required
+- **90-100 (EXCELLENT_PLAN):** Ready for execution
+- **80-89 (GOOD_PLAN):** Minor refinements needed
+- **60-79 (NEEDS_WORK):** Significant refinement required
+- **40-59 (POOR_PLAN):** Not executable, major revision needed
+- **<40 (INADEQUATE_PLAN):** Rewrite from scratch
 
-**Priority 1 Overrides:**
-- ≥10 blocking issues: Verdict capped at NEEDS_REFINEMENT (max 60/100)
-- ≥20 blocking issues: Verdict = NOT_EXECUTABLE (max 40/100)
+**Critical Dimension Overrides:**
+- Executability ≤4/10 → Minimum NEEDS_WORK
+- Completeness ≤4/10 → Minimum NEEDS_WORK
+- Success Criteria ≤4/10 → Minimum NEEDS_WORK
+- 2+ critical dimensions ≤4/10 → POOR_PLAN
+
+**Blocking Issue Caps:**
+- ≥10 blocking issues: Score capped at 60/100 (NEEDS_WORK)
+- ≥20 blocking issues: Score capped at 40/100 (POOR_PLAN)
 
 ## Mandatory Verification Tables
 
@@ -253,7 +287,7 @@ Compare multiple approaches and get a recommendation.
 ```text
 Use the plan-reviewer skill.
 
-target_files: reviews/plan-X-claude-2026-01-06.md, reviews/plan-X-gpt-2026-01-06.md
+review_files: reviews/plan-X-claude-2026-01-06.md, reviews/plan-X-gpt-2026-01-06.md
 original_document: plans/X.md
 review_date: 2026-01-06
 review_mode: META-REVIEW
@@ -261,6 +295,20 @@ model: claude-sonnet-45
 ```
 
 After multiple models review the same plan, analyze consistency.
+
+### Tracking Plan Improvements
+
+```text
+Use the plan-reviewer skill.
+
+target_file: plans/X.md
+baseline_review: reviews/plan-reviews/X-claude-sonnet-45-2026-01-01.md
+review_date: 2026-01-06
+review_mode: DELTA
+model: claude-sonnet-45
+```
+
+After applying fixes from a prior review, track issue resolution.
 
 ## FAQ
 
@@ -302,10 +350,15 @@ Use plan-reviewer for plans an agent will execute. Use doc-reviewer for document
 
 ### Q: How long does a FULL review take?
 
-**A:** Depends on plan size:
-- Small plan (<100 lines): 2-5 minutes
-- Medium plan (100-300 lines): 5-10 minutes
-- Large plan (>300 lines): 10-20 minutes
+**A:** Depends on plan size and model:
+- Small plan (<100 lines): 30-60 seconds
+- Medium plan (100-500 lines): 60-120 seconds
+- Large plan (>500 lines): 2-5 minutes
+
+**Timing thresholds** (with `timing_enabled: true`):
+- Error threshold: <15 seconds (possible shortcut detected)
+- Warning threshold: <30 seconds (unusually fast)
+- Long threshold: >720 seconds (possible issue)
 
 ### Q: Where does the rubric come from?
 
@@ -329,7 +382,8 @@ If a plan references rules:
 
 For detailed documentation:
 - **Skill README:** `skills/plan-reviewer/README.md`
-- **Workflow guides:** `skills/plan-reviewer/workflows/*.md`
+- **Workflow guides:** `skills/plan-reviewer/workflows/*.md` (includes `delta-review.md` for DELTA mode)
 - **Examples:** `skills/plan-reviewer/examples/*.md`
 - **Validation tests:** `skills/plan-reviewer/tests/*.md`
+- **Timing system:** `skills/skill-timing/README.md`
 

@@ -410,16 +410,116 @@ dependencies: []
 
 **plan-reviewer Skill (Deployed by Default):**
 
+Reviews LLM-generated implementation plans for autonomous agent executability using an 8-dimension rubric (100 points total). Supports 4 review modes and produces deterministic scores with <±2 point variance.
+
+**See:** [Using the Plan Reviewer Skill](USING_PLAN_REVIEWER_SKILL.md) for quick start guide, examples, and FAQ.
+
+**Core Files:**
+
 | Component | Purpose |
 |-----------|---------|
-| `SKILL.md` | Implementation plan review with 3 modes |
-| `workflows/input-validation.md` | Input checking procedures |
-| `workflows/model-slugging.md` | Model name normalization |
-| `workflows/review-execution.md` | Review generation steps |
-| `workflows/file-write.md` | Output file handling |
-| `workflows/error-handling.md` | Error recovery patterns |
-| `examples/` | FULL, COMPARISON, META examples |
-| `tests/` | Input, mode, output handling tests |
+| `SKILL.md` | Main entrypoint with 4 modes, scoring formula, determinism requirements, workflow orchestration |
+| `README.md` | Usage documentation with quick start, file structure, review dimensions |
+
+**Review Modes:**
+
+| Mode | Purpose | Output Location |
+|------|---------|-----------------|
+| **FULL** | Comprehensive single-plan review (all 8 dimensions) | `reviews/plan-reviews/<plan>-<model>-<date>.md` |
+| **COMPARISON** | Rank multiple plans, declare winner with justification | `reviews/summaries/_comparison-<id>-<model>-<date>.md` |
+| **META-REVIEW** | Analyze review consistency across multiple reviewers | `reviews/summaries/_meta-<doc>-<date>.md` |
+| **DELTA** | Track issue resolution between plan versions | `reviews/plan-reviews/<plan>-delta-<old>-to-<new>-<model>.md` |
+
+**Scoring System (100 points):**
+
+| Dimension | Weight | Max Points | Focus |
+|-----------|--------|------------|-------|
+| Executability | 4 | 20 | Can agent execute without judgment? |
+| Completeness | 4 | 20 | Are all steps present? |
+| Success Criteria | 4 | 20 | Are completion signals verifiable? |
+| Scope | 3 | 15 | Is work bounded? |
+| Dependencies | 2 | 10 | Are prerequisites clear? |
+| Decomposition | 1 | 5 | Are tasks right-sized? |
+| Context | 1 | 5 | Is background provided? |
+| Risk Awareness | 1 | 5 | Are risks documented? |
+
+**Verdict Thresholds:**
+
+| Score | Verdict | Meaning |
+|-------|---------|---------|
+| 90-100 | EXCELLENT_PLAN | Ready for execution |
+| 80-89 | GOOD_PLAN | Minor refinements needed |
+| 60-79 | NEEDS_WORK | Significant refinement required |
+| 40-59 | POOR_PLAN | Not executable, major revision |
+| <40 | INADEQUATE_PLAN | Rewrite from scratch |
+
+**Rubrics (8 dimensions + overlap resolution):**
+
+| File | Purpose |
+|------|---------|
+| `rubrics/executability.md` | Blocking issue detection: ambiguous phrases, implicit commands, missing branches, undefined thresholds |
+| `rubrics/completeness.md` | Phase coverage: setup, validation, cleanup, error recovery |
+| `rubrics/success-criteria.md` | Agent-verifiable criteria: exit codes, file existence, measurable outputs |
+| `rubrics/scope.md` | Boundary definition: start/end states, exclusions, termination conditions |
+| `rubrics/dependencies.md` | Prerequisite clarity: tool requirements, ordering, access needs |
+| `rubrics/decomposition.md` | Task granularity: single-action steps, parallelization |
+| `rubrics/context.md` | Background provision: rationale, domain terms, assumptions |
+| `rubrics/risk-awareness.md` | Risk documentation: failure scenarios, mitigations, rollback |
+| `rubrics/_overlap-resolution.md` | Prevents double-counting: 10 issue types, 8 IF-THEN rules |
+
+**Workflows (8 workflow files):**
+
+| File | Purpose |
+|------|---------|
+| `workflows/input-validation.md` | Input checking: required params, mode-specific validation, error messages |
+| `workflows/model-slugging.md` | Model name normalization for filenames |
+| `workflows/review-execution.md` | 3-phase review: (1) batch load rubrics, (2) fill worksheets, (3) calculate scores |
+| `workflows/delta-review.md` | DELTA mode: 5-phase workflow for tracking issue resolution |
+| `workflows/file-write.md` | Output handling: path computation, no-overwrite safety, collision avoidance |
+| `workflows/error-handling.md` | Error recovery: 10 error patterns with resolution steps |
+| `workflows/consistency-check.md` | Score locking, variance thresholds, inter-review consistency |
+| `workflows/issue-inventory.md` | Issue ID format, status tracking across reviews |
+
+**Examples (4 walkthrough files):**
+
+| File | Purpose |
+|------|---------|
+| `examples/full-review.md` | Complete FULL mode walkthrough with scoring |
+| `examples/comparison-review.md` | COMPARISON mode with 3 plans ranked |
+| `examples/meta-review.md` | META-REVIEW analyzing consistency |
+| `examples/edge-cases.md` | Ambiguous scenarios and resolutions |
+
+**Tests (6 test files):**
+
+| File | Purpose |
+|------|---------|
+| `tests/README.md` | Test overview and instructions |
+| `tests/test-inputs.md` | Input validation test cases |
+| `tests/test-modes.md` | Review mode test cases |
+| `tests/test-outputs.md` | Output handling test cases |
+| `tests/test-invocation-full.md` | FULL mode invocation tests |
+| `tests/test-invocation-comparison.md` | COMPARISON mode invocation tests |
+
+**Testing and Maintenance:**
+
+| File | Purpose |
+|------|---------|
+| `testing/TESTING.md` | Skill health checks for maintainers |
+
+**Determinism Requirements:**
+
+The skill enforces strict determinism for reproducible scores:
+
+1. **Batch Load Rubrics** — All 9 files (8 rubrics + overlap resolution) loaded BEFORE reading plan
+2. **Create Worksheets First** — All 8 empty worksheets prepared BEFORE reading plan
+3. **Systematic Enumeration** — Read plan from line 1 to END (no skipping)
+4. **Use Pattern Lists** — Only count patterns from rubric inventories (don't invent)
+5. **Check Non-Issues** — Always filter false positives before final count
+6. **Apply Overlap Resolution** — Check `_overlap-resolution.md` for ambiguous issues
+7. **Include Worksheets** — Copy completed worksheets into review output
+8. **Use Score Matrices** — Look up scores in decision tables (no interpretation)
+
+**Expected Variance:** ±1 blocking issue, ±1 dimension point, ±2 overall points.
 
 **Quality Threshold for Cross-Skill Validation:**
 
@@ -605,10 +705,12 @@ ai_coding_rules/
   - Includes: SKILL.md, README.md, VALIDATION.md, workflows/, examples/, tests/
   - Trigger keywords: "review docs", "audit documentation", "check doc quality"
 - **plan-reviewer/** (deployed by default):
-  - Reviews implementation plans for completeness, risk assessment, and feasibility
-  - Writes results to `reviews/` with no-overwrite safety
-  - Includes: SKILL.md, README.md, VALIDATION.md, workflows/, examples/, tests/
-  - Trigger keywords: "review plan", "audit implementation plan", "check plan quality"
+  - Reviews implementation plans for agent executability using 8-dimension rubric (100 points)
+  - Supports 4 modes: FULL (single plan), COMPARISON (rank multiple), META-REVIEW (consistency), DELTA (track fixes)
+  - Verdict ranges: EXCELLENT_PLAN (90-100), GOOD_PLAN (80-89), NEEDS_WORK (60-79), POOR_PLAN (40-59), INADEQUATE_PLAN (<40)
+  - Writes results to `reviews/plan-reviews/` or `reviews/summaries/` with no-overwrite safety
+  - Includes: SKILL.md, README.md, workflows/ (including delta-review.md), examples/, tests/
+  - Trigger keywords: "review plan", "compare plans", "plan quality", "meta-review", "plan executability"
 - All skills feature:
   - Enhanced YAML frontmatter (version, author, tags, dependencies)
   - Inline validation snippets (hybrid code embedding)

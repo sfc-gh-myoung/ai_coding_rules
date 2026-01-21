@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **feat(plan-reviewer):** major skill overhaul for deterministic scoring
+  - Updated verdict names: EXECUTABLE → EXCELLENT_PLAN, EXECUTABLE_WITH_REFINEMENTS → GOOD_PLAN, NEEDS_REFINEMENT → NEEDS_WORK, NOT_EXECUTABLE → POOR_PLAN/INADEQUATE_PLAN
+  - Added DELTA mode for tracking issue resolution between plan versions
+  - Enhanced all 8 rubrics with complete pattern inventories, score decision matrices, and mandatory counting worksheets
+  - Added workflows: delta-review.md, consistency-check.md, issue-inventory.md
+  - Updated timing thresholds: 15s error, 30s warning (based on empirical data from 10 runs)
+  - Updated documentation: USING_PLAN_REVIEWER_SKILL.md, README.md, ARCHITECTURE.md
+
 ## [3.5.2] - 2026-01-20
 
 ### Chore

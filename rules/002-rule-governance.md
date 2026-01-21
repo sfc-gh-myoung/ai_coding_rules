@@ -444,7 +444,7 @@ structure:
   Contract_subsections: 7 Markdown ### headers required
 ```
 
----
+### LoadTrigger Specification
 
 ## LoadTrigger Guidelines
 
@@ -559,26 +559,26 @@ Triggers on: pyproject.toml file OR "python-project" keyword
 
 ### LoadTrigger Anti-Patterns
 
-**❌ Too Generic:**
+**[BAD] Too Generic:**
 ```markdown
 **LoadTrigger:** kw:code, kw:file
 ```
 Problems: Matches almost everything, no specificity
 
-**❌ Redundant Keywords:**
+**[BAD] Redundant Keywords:**
 ```markdown
 **LoadTrigger:** kw:python, kw:py, kw:python-lang, kw:python-code
 ```
 Problems: All synonyms, no additional value
 
-**❌ Wrong Context:**
+**[BAD] Wrong Context:**
 ```markdown
 # In 000-global-core.md
 **LoadTrigger:** kw:core
 ```
 Problems: Foundation rules should NOT have LoadTriggers
 
-**✅ Good LoadTrigger:**
+**[GOOD] Good LoadTrigger:**
 ```markdown
 **LoadTrigger:** ext:.sql, kw:snowflake, kw:query
 ```
@@ -622,11 +622,10 @@ The index organizes rules by trigger type:
 
 When creating or updating a rule, ask:
 
-1. **Is this a foundation rule?** → No LoadTrigger (always loaded)
-2. **Does it have a parent rule via Depends?** → No LoadTrigger (loaded by parent)
-3. **Does it apply to specific file types?** → Add ext:/file: triggers
-4. **Does it guide specific activities?** → Add kw: triggers
-5. **Is it highly specialized?** → Skip LoadTrigger (on-demand only)
+1. **Is this a foundation rule?** Then use: No LoadTrigger (always loaded)
+2. **Does it have a parent rule via Depends?** Then use: No LoadTrigger (loaded by parent)
+3. **Does it apply to specific file types?** Then use: Add ext:/file: triggers
+4. **Does it guide specific activities?** Then use: Add kw: triggers
+5. **Is it highly specialized?** Then use: Skip LoadTrigger (on-demand only)
 
 **Refer to:** `docs/loadtrigger_decisions.md` for detailed categorization and rationale for all rules in the repository.
-

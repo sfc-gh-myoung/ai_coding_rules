@@ -182,6 +182,8 @@ These actions MUST trigger rules/RULES_INDEX.md search regardless of agent's pri
 - **git commit, git push, git merge:**
   - EXECUTE: `grep -i "git" rules/RULES_INDEX.md`
   - LOAD: rules/803-project-git-workflow.md (if found)
+  - MANDATORY: Verify CHANGELOG.md reflects all staged changes before committing
+  - MANDATORY: If on `main` or `master` branch, ASK USER to confirm before committing
   - ASK USER: About AI attribution footer (rule 803 requirement)
   - REASON: Project may override system prompt's commit behavior
 

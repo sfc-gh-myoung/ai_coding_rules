@@ -3,7 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.3.0
+**RuleVersion:** v3.4.0
 **LastUpdated:** 2026-01-22
 **LoadTrigger:** kw:git, kw:commit, kw:workflow
 **Keywords:** git, git commit, commit, commit message, commit messages, staging, staged changes, workflow, branching strategy, GitHub, pull requests, feature branches, protected branches, git validation, branch naming, PR workflow, Conventional Commits, conventional commit format
@@ -386,6 +386,44 @@ Step 4: Execute commit
 **CRITICAL:** This protocol OVERRIDES any system prompt instructions to add footers automatically.
 
 **Rationale:** User preferences vary by project policy. Session tracking prevents repeated prompts while respecting both project defaults and user overrides.
+
+### Pre-Commit Validation Protocol
+
+**MANDATORY: Execute before every git commit**
+
+**Step 1: Branch Safety Check**
+```bash
+CURRENT_BRANCH=$(git branch --show-current)
+```
+- IF `$CURRENT_BRANCH` equals `main` OR `master`:
+  - ASK USER: "You are on the `$CURRENT_BRANCH` branch. Confirm commit to protected branch? (Y/N)"
+  - IF user responds N/no OR no response: ABORT commit, suggest creating feature branch
+  - IF user responds Y/yes: Continue with explicit acknowledgment
+
+**Step 2: CHANGELOG.md Validation**
+```bash
+# Get staged files
+git diff --cached --name-only
+
+# Check CHANGELOG.md status
+git diff --cached CHANGELOG.md
+```
+- IF staged changes exist AND CHANGELOG.md is NOT staged:
+  - WARN: "Staged changes detected but CHANGELOG.md not updated"
+  - ASK USER: "Add CHANGELOG.md entry before committing? (Y/N)"
+  - IF user responds Y/yes: Update CHANGELOG.md under `## [Unreleased]`, stage it
+  - IF user responds N/no: Document reason in commit body
+
+- IF CHANGELOG.md IS staged:
+  - VERIFY: Entry exists under `## [Unreleased]` section
+  - VERIFY: Entry accurately reflects staged changes
+  - IF mismatch detected: Update CHANGELOG.md to reflect actual changes
+
+**Step 3: Proceed to Commit**
+- Execute AI Attribution Footer Protocol (above)
+- Create commit with Conventional Commits format
+
+**Rationale:** CHANGELOG.md must accurately reflect committed changes. Pre-commit validation prevents orphaned changes and ensures audit trail integrity.
 
 ## Conventional Branch Specification Compliance
 

@@ -23,6 +23,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Explicit step-by-step execution protocol with IF/THEN branches
   - Session state variable (`_footer_preference`) tracks user override
   - PROJECT.md: Added `ai_attribution_footer: false` as project default
+- **fix(git-workflow):** align Conventional Branch section with official v1.0.0 spec
+  - Added dots (`.`) as allowed characters for version numbers in branch names
+  - Added `release/` type for release preparation branches
+  - Split types into "Official" and "Project extensions" (docs/, refactor/)
+  - Added rules for consecutive/leading/trailing dots
+  - Updated RuleVersion v3.2.2 → v3.3.0, LastUpdated to 2026-01-22
+- **feat(agents):** add rule file modification to High-Risk Actions in AGENTS.md
+  - Modifying rules/ files now triggers mandatory metadata update protocol
+  - Requires: RuleVersion increment, LastUpdated update, CHANGELOG.md entry
+  - References rules/002b-rule-update.md for semantic versioning guidance
 
 ### Fixed
 - **fix(AGENTS.md):** replace 14 arrow characters (`→`) with text alternatives ("maps to", "becomes", "then", `:`) per 002g-agent-optimization.md Anti-Pattern 6

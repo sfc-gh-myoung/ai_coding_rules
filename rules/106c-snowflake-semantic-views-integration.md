@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-20
 **LoadTrigger:** kw:semantic-integration
 **Keywords:** RBAC, masking policy, row access policy, Generator workflow, iterative development, synonyms, natural language queries, cortex analyst, agent integration, semantic view security, analyst troubleshooting, fix analyst, debug analyst
-**TokenBudget:** ~8600
+**TokenBudget:** ~9250
 **ContextTier:** Medium
 **Depends:** 106-snowflake-semantic-views-core.md, 106b-snowflake-semantic-views-querying.md
 

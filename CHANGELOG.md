@@ -33,6 +33,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Modifying rules/ files now triggers mandatory metadata update protocol
   - Requires: RuleVersion increment, LastUpdated update, CHANGELOG.md entry
   - References rules/002b-rule-update.md for semantic versioning guidance
+- **feat(git-workflow):** add Pre-Commit Validation Protocol to 803-project-git-workflow.md
+  - Step 1: Branch safety check - confirm before committing to main/master
+  - Step 2: CHANGELOG.md validation - ensure staged changes are documented
+  - Step 3: Proceed to commit with existing protocols
+  - Updated RuleVersion v3.3.0 → v3.4.0
+- **feat(agents):** add CHANGELOG and protected branch checks to git commit High-Risk Action
+  - MANDATORY: Verify CHANGELOG.md reflects staged changes before committing
+  - MANDATORY: Confirm with user before committing to main/master branch
 
 ### Fixed
 - **fix(AGENTS.md):** replace 14 arrow characters (`→`) with text alternatives ("maps to", "becomes", "then", `:`) per 002g-agent-optimization.md Anti-Pattern 6

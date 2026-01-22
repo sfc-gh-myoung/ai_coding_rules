@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 106a-snowflake-semantic-views-advanced.md: ~6800 → ~7850
   - 106c-snowflake-semantic-views-integration.md: ~8600 → ~9250
   - Regenerated RULES_INDEX.md
+- **refactor(git-workflow):** make AI attribution footer protocol deterministic
+  - Added hybrid governance: PROJECT.md sets project default, 803 defines session protocol
+  - New resolution order: session state → PROJECT.md setting → user prompt
+  - Explicit step-by-step execution protocol with IF/THEN branches
+  - Session state variable (`_footer_preference`) tracks user override
+  - PROJECT.md: Added `ai_attribution_footer: false` as project default
 
 ### Fixed
 - **fix(AGENTS.md):** replace 14 arrow characters (`→`) with text alternatives ("maps to", "becomes", "then", `:`) per 002g-agent-optimization.md Anti-Pattern 6

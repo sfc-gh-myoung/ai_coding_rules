@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.2.2
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-01-22
 **LoadTrigger:** kw:git, kw:commit, kw:workflow
 **Keywords:** git, git commit, commit, commit message, commit messages, staging, staged changes, workflow, branching strategy, GitHub, pull requests, feature branches, protected branches, git validation, branch naming, PR workflow, Conventional Commits, conventional commit format
 **TokenBudget:** ~6500
@@ -398,18 +398,25 @@ Step 4: Execute commit
 ```
 
 ### Required Format Rules
-1. Use lowercase letters (a-z), numbers (0-9), hyphens (-) only
-2. No consecutive hyphens (no `--`)
-3. No leading or trailing hyphens
-4. No spaces or special characters
-5. Keep descriptions clear and concise (3-5 words ideal)
+1. Use lowercase letters (a-z), numbers (0-9), hyphens (-), and dots (.) only
+2. Dots allowed in descriptions for version numbers (e.g., `release/v1.2.0`)
+3. No consecutive hyphens or dots (no `--` or `..`)
+4. No leading or trailing hyphens or dots
+5. No spaces or special characters (underscores, etc.)
+6. Keep descriptions clear and concise (3-5 words ideal)
 
 ### Supported Types
+
+**Official Conventional Branch types:**
 - `feature/` (or `feat/`) - New features
-- `fix/` (or `bugfix/` or `hotfix/`) - Bug fixes
-- `docs/` - Documentation changes
-- `refactor/` - Code refactoring
-- `chore/` - Maintenance tasks
+- `bugfix/` (or `fix/`) - Bug fixes
+- `hotfix/` - Urgent fixes (security patches, critical bugs)
+- `release/` - Release preparation branches (e.g., `release/v1.2.0`)
+- `chore/` - Non-code tasks (dependencies, config updates)
+
+**Project extensions (commonly used, not in official spec):**
+- `docs/` - Documentation-only changes
+- `refactor/` - Code refactoring without behavior change
 
 ### Examples
 ```bash

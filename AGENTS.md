@@ -210,6 +210,13 @@ These actions MUST trigger rules/RULES_INDEX.md search regardless of agent's pri
   - LOAD: Domain security rule (if found)
   - REASON: Security practices vary by technology
 
+- **Modifying files in rules/ directory:**
+  - LOAD: rules/002b-rule-update.md
+  - MANDATORY: Update RuleVersion (increment per semantic versioning)
+  - MANDATORY: Update LastUpdated to current date (YYYY-MM-DD)
+  - MANDATORY: Update CHANGELOG.md with change details
+  - REASON: Rule metadata must stay current for version tracking
+
 **Rationale:** These actions have project-specific conventions that generic knowledge may violate (e.g., commit message format, test frameworks, deployment procedures).
 
 **Rule Loading Failures:**

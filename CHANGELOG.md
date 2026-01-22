@@ -10,7 +10,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - **fix(AGENTS.md):** replace 14 arrow characters (`→`) with text alternatives ("maps to", "becomes", "then", `:`) per 002g-agent-optimization.md Anti-Pattern 6
 
+### Added
+- **docs:** standardize Last Updated timestamps across all documentation
+  - Added `**Last Updated:** 2026-01-21` to AGENTS.md and 6 docs/*.md files
+
 ### Changed
+- **feat(doc-reviewer):** determinism improvements aligned with plan-reviewer patterns
+  - Enhanced all 6 rubrics with Mandatory Verification Tables and Score Decision Matrices
+  - Added `_overlap-resolution.md` for cross-dimension finding deduplication
+  - Fixed USING_DOC_REVIEWER_SKILL.md: dimension groupings (70/30 to 50/35/15), verification table count (4 to 6)
+  - 3-phase workflow: batch rubric loading, fill dimension tables, then score
+- **feat(rule-reviewer):** determinism improvements aligned with plan-reviewer patterns
+  - Enhanced all 7 rubrics with Mandatory Issue Inventories and Score Decision Matrices
+  - Added `_overlap-resolution.md` for cross-dimension finding deduplication
+  - Fixed USING_RULE_REVIEW_SKILL.md: Token Efficiency points (5 to 10)
+  - 3-phase workflow: batch rubric loading, fill dimension inventories, then score
+- **feat(bulk-rule-reviewer):** documentation accuracy updates
+  - Fixed USING_BULK_RULE_REVIEWER_SKILL.md: dimension count (6 to 7 includes cross-agent-consistency)
+  - Added cross-agent-consistency.md to rubric list documentation
 - **feat(plan-reviewer):** major skill overhaul for deterministic scoring
   - Updated verdict names: EXECUTABLE → EXCELLENT_PLAN, EXECUTABLE_WITH_REFINEMENTS → GOOD_PLAN, NEEDS_REFINEMENT → NEEDS_WORK, NOT_EXECUTABLE → POOR_PLAN/INADEQUATE_PLAN
   - Added DELTA mode for tracking issue resolution between plan versions

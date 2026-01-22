@@ -1,5 +1,7 @@
 # Example Git Workflow: Feature Development to Release
 
+**Last Updated:** 2026-01-21
+
 This document provides a complete example of the git workflow for developing a feature, preparing a release, and merging changes into release branches for multiple remotes.
 
 ## Scenario

@@ -1,5 +1,74 @@
 # Consistency Rubric (5 points)
 
+## Mandatory Verification Table (REQUIRED)
+
+**CRITICAL:** You MUST create and fill this table BEFORE calculating score.
+
+### Why This Is Required
+
+- **Eliminates counting variance:** Same doc → same table → same score
+- **Prevents missed issues:** Systematic tracking catches all
+- **Provides evidence:** Table shows exactly what was found
+- **Enables audit:** Users can verify scoring decisions
+
+### Verification Table Template
+
+**Formatting Consistency:**
+
+| Element | Variation 1 | Count | Variation 2 | Count | Consistent? |
+|---------|-------------|-------|-------------|-------|-------------|
+| Code blocks | Fenced | 45 | Indented | 3 | No |
+| List markers | `-` | 32 | `*` | 5 | No |
+| Heading caps | Title case | 15 | Sentence | 3 | No |
+
+**Terminology Consistency:**
+
+| Term 1 | Occurrences | Term 2 | Occurrences | Same Concept? |
+|--------|-------------|--------|-------------|---------------|
+| MyApp | 15 | my-app | 8 | Yes (inconsistent) |
+| API endpoint | 10 | API route | 4 | Yes (inconsistent) |
+| config | 6 | configuration | 3 | Yes (inconsistent) |
+
+**Code Style Consistency:**
+
+| Element | Style 1 | Count | Style 2 | Count | Consistent? |
+|---------|---------|-------|---------|-------|-------------|
+| Python naming | snake_case | 10 | camelCase | 2 | No |
+| Quotes | Single `'` | 15 | Double `"` | 8 | No |
+
+**Convention Compliance (if rules exist):**
+
+| Rule | Requirement | Compliant? | Fix |
+|------|-------------|------------|-----|
+| 801 | Badges at top | Y/N | |
+| 801 | MIT license | Y/N | |
+
+### Verification Protocol (5 Steps)
+
+**Step 1: Create Empty Tables**
+- Copy all templates above
+- Do NOT start reading doc yet
+
+**Step 2: Read Doc Systematically**
+- Start at line 1, read to END
+- Track each formatting element variation
+- Track each terminology usage
+- Track code style across examples
+
+**Step 3: Check Convention Compliance**
+- If project rules exist: Check each requirement
+- Mark Y/N for each
+
+**Step 4: Calculate Totals**
+- Count formatting inconsistencies
+- Count terminology variations
+- Count code style inconsistencies
+- Count convention violations
+
+**Step 5: Look Up Score**
+- Use Scoring Formula with counts
+- Record score with table evidence
+
 ## Scoring Formula
 
 **Raw Score:** 0-10
@@ -318,3 +387,31 @@ Use during review:
 - **Heading caps** - Variations Found: Title, sentence, mixed, Occurrences: 15, 12, 3, Recommendation: Standardize on title case
 
 **Total inconsistencies:** 4 issues → Score: 6/10 (3 points)
+
+## Non-Issues (Do NOT Count as Inconsistent)
+
+**Review EACH flagged item against this list before counting.**
+
+### Pattern 1: Intentional Style Variation
+**Pattern:** Different styles for different contexts
+**Example:** Fenced blocks for code, indented for output
+**Why NOT an issue:** Intentional distinction between content types
+**Action:** Remove from table with note "Intentional context variation"
+
+### Pattern 2: External Content
+**Pattern:** Inconsistency in quoted/embedded external content
+**Example:** External API response uses different naming convention
+**Why NOT an issue:** Content from external source
+**Action:** Remove from table with note "External content"
+
+### Pattern 3: Code vs Prose Naming
+**Pattern:** Different naming in code vs prose
+**Example:** `process_data()` in code, "process data function" in prose
+**Why NOT an issue:** Natural language vs code conventions differ
+**Action:** Remove from table with note "Code vs prose convention"
+
+### Pattern 4: Minor Variations in Long Documents
+**Pattern:** 1-2 inconsistencies in 300+ line document
+**Example:** One `*` marker among 50 `-` markers
+**Why NOT an issue:** Minor in proportion to document size
+**Action:** Mark as "Minor" with reduced weight (0.05 instead of 0.15)

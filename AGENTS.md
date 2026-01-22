@@ -1,5 +1,7 @@
 # AI Agent Bootstrap Protocol
 
+**Last Updated:** 2026-01-21
+
 > **CRITICAL: DO NOT SUMMARIZE THIS FILE**
 >
 > This file defines the mandatory rule loading protocol and MODE/ACT framework

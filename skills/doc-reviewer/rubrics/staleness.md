@@ -1,5 +1,77 @@
 # Staleness Rubric (10 points)
 
+## Mandatory Verification Table (REQUIRED)
+
+**CRITICAL:** You MUST create and fill this table BEFORE calculating score.
+
+### Why This Is Required
+
+- **Eliminates link variance:** Same doc → same table → same score
+- **Prevents missed issues:** Systematic check catches all
+- **Provides evidence:** Table shows exactly what was verified
+- **Enables audit:** Users can verify scoring decisions
+
+### Verification Table Template
+
+**External Link Status:**
+
+| Line | URL | Status | Response Time | Action |
+|------|-----|--------|---------------|--------|
+| 23 | https://docs.python.org/3/ | 200 | 0.3s | None |
+| 45 | https://oldsite.com | 404 | - | Remove |
+| 67 | https://api.v1.com | 301 | 0.5s | Update to v2 |
+
+**Tool Version Currency:**
+
+| Line | Tool | Doc Version | Current Version | Status |
+|------|------|-------------|-----------------|--------|
+| 34 | Python | 3.8 | 3.12 | Outdated (EOL) |
+| 56 | Node.js | 18.x | 20.x | Prev LTS (OK) |
+| 78 | React | 18 | 18 | Current |
+
+**Deprecated Patterns:**
+
+| Line | Pattern Found | Current Alternative |
+|------|---------------|---------------------|
+| 89 | `npm install --save` | `npm install` |
+| 112 | `var` keyword | `const`/`let` |
+| 145 | `setup.py install` | `pip install .` |
+
+**Screenshot Currency (if applicable):**
+
+| Line | Image | Matches Current UI? | Action |
+|------|-------|---------------------|--------|
+| 200 | dashboard.png | No | Update |
+| 250 | login.gif | Yes | None |
+
+### Verification Protocol (5 Steps)
+
+**Step 1: Create Empty Tables**
+- Copy all templates above
+- Do NOT start reading doc yet
+
+**Step 2: Read Doc Systematically**
+- Start at line 1, read to END
+- Record every external URL
+- Record every tool/version reference
+- Record every code pattern
+- Note any screenshots/images
+
+**Step 3: Verify Each Item**
+- Links: `curl -I --max-time 5 [URL] 2>&1 | head -1`
+- Tool versions: Compare to current releases
+- Patterns: Check against deprecated list
+
+**Step 4: Calculate Totals**
+- Link validity %: `(valid links / total links) × 100`
+- Count outdated tools
+- Count deprecated patterns
+
+**Step 5: Look Up Score**
+- Use link validity % as base
+- Apply deductions for outdated tools/patterns
+- Record score with table evidence
+
 ## Scoring Formula
 
 **Raw Score:** 0-10
@@ -287,3 +359,31 @@ Use during review:
 - Redirects: 1 (25%)
 - Action required: 3 links need updates
 - Score: 4/10 (4 points) due to <60% valid
+
+## Non-Issues (Do NOT Count as Stale)
+
+**Review EACH flagged item against this list before counting.**
+
+### Pattern 1: Temporary Network Issue
+**Pattern:** Link times out but is known to be valid
+**Example:** Link to well-known site that's temporarily slow
+**Why NOT an issue:** Transient network issue, not broken link
+**Action:** Retest later, remove if transient
+
+### Pattern 2: Auth-Required Links
+**Pattern:** Link returns 401/403 because it requires authentication
+**Example:** Private repository or members-only documentation
+**Why NOT an issue:** Link is valid, just requires login
+**Action:** Remove from table with note "Auth required"
+
+### Pattern 3: Working Redirects
+**Pattern:** Link redirects (301/302) but reaches valid content
+**Example:** Old URL redirects to new URL that works
+**Why NOT an issue:** Content is accessible (update recommended but not broken)
+**Action:** Mark as "Update recommended" not "Broken"
+
+### Pattern 4: Still-Supported Versions
+**Pattern:** Version not latest but still receiving updates
+**Example:** Node.js 18 LTS when 20 is current
+**Why NOT an issue:** Previous LTS is still supported
+**Action:** Remove from table with note "Prev LTS, still supported"

@@ -1,5 +1,7 @@
 # Schema Migration Guide: v3.1 → v3.2
 
+**Last Updated:** 2026-01-21
+
 **Version:** 3.2  
 **Date:** 2025-01-05  
 **Scope:** Rule schema format changes  

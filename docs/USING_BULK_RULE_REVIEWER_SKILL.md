@@ -2,7 +2,7 @@
 
 **Note:** The Bulk Rule Reviewer Skill is **not deployed** to team projects. It remains in the ai_coding_rules source repository for internal use only.
 
-**Last Updated:** 2026-01-13
+**Last Updated:** 2026-01-21
 
 ## Background
 
@@ -123,7 +123,7 @@ The master summary includes:
 ## Review Modes
 
 **FULL Mode (Comprehensive):**
-- All 6 dimensions evaluated per rule
+- All 7 dimensions evaluated per rule
 - Expected duration: 5-10 hours for 121 rules
 - Use for: Quarterly audits, pre-release validation
 
@@ -220,7 +220,7 @@ This writes reviews to `quarterly-audit/rule-reviews/` and summary to `quarterly
 
 ### Q: Where does the rubric come from?
 
-**A:** The skill invokes the rule-reviewer skill for each rule, which uses rubric files in `skills/rule-reviewer/rubrics/` (actionability.md, completeness.md, consistency.md, parsability.md, token-efficiency.md, staleness.md) as the rubric.
+**A:** The skill invokes the rule-reviewer skill for each rule, which uses rubric files in `skills/rule-reviewer/rubrics/` (actionability.md, completeness.md, consistency.md, parsability.md, token-efficiency.md, staleness.md, cross-agent-consistency.md) plus `_overlap-resolution.md` as the rubric.
 
 ### Q: Can I run reviews in parallel?
 

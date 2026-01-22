@@ -1,5 +1,64 @@
 # Completeness Rubric (25 points)
 
+## Mandatory Issue Inventory (REQUIRED)
+
+**CRITICAL:** You MUST create and fill this inventory BEFORE calculating score.
+
+### Why This Is Required
+
+- **Eliminates counting variance:** Same rule → same inventory → same score
+- **Prevents false negatives:** Systematic enumeration catches all gaps
+- **Provides evidence:** Inventory shows exactly what was evaluated
+- **Enables verification:** Users can audit scoring decisions
+
+### Inventory Template
+
+| Line | Category | Item | Present? | Recovery Steps? | Notes |
+|------|----------|------|----------|-----------------|-------|
+| - | Error Scenarios | Input validation | Y/N | Y/N | |
+| - | Error Scenarios | Execution errors | Y/N | Y/N | |
+| - | Error Scenarios | External dependencies | Y/N | Y/N | |
+| - | Error Scenarios | State inconsistencies | Y/N | Y/N | |
+| - | Error Scenarios | Resource exhaustion | Y/N | Y/N | |
+| - | Edge Cases | Boundary conditions | Y/N | - | Count: /4 |
+| - | Edge Cases | Concurrency | Y/N | - | Count: /3 |
+| - | Edge Cases | State transitions | Y/N | - | Count: /3 |
+| - | Edge Cases | Data anomalies | Y/N | - | Count: /4 |
+| - | Prerequisites | Tools required | Y/N | Versioned? | |
+| - | Prerequisites | Permissions needed | Y/N | - | |
+| - | Prerequisites | Environment state | Y/N | - | |
+| - | Prerequisites | Data requirements | Y/N | - | |
+| - | Validation | Pre-execution | Y/N | Commands? | |
+| - | Validation | During execution | Y/N | Commands? | |
+| - | Validation | Post-execution | Y/N | Commands? | |
+
+### Counting Protocol (5 Steps)
+
+**Step 1: Create Empty Inventory**
+- Copy template above into working document
+- Do NOT start reading rule yet
+
+**Step 2: Read Rule Systematically**
+- Start at line 1, read to END (no skipping)
+- For EACH category item: Mark Y/N with line reference
+- Note partial coverage with line numbers
+
+**Step 3: Calculate Raw Totals**
+- Error scenarios: Count present with recovery (max 5)
+- Edge cases: Calculate coverage percentage
+- Prerequisites: Count present with versions (max 4)
+- Validation: Count phases present (max 3)
+
+**Step 4: Check Non-Issues List**
+- Review EACH "N" item in inventory
+- Check against "Non-Issues" section below
+- Mark justified absences
+- Recalculate totals
+
+**Step 5: Look Up Score**
+- Use adjusted totals in Score Decision Matrix
+- Record score with inventory evidence
+
 ## Scoring Formula
 
 **Raw Score:** 0-10
@@ -356,3 +415,43 @@ If **both** Actionability ≤4/10 **and** Completeness ≤4/10:
 **If variance exceeds threshold:**
 - Re-count using checklists above
 - Document ambiguous cases
+
+## Non-Issues (Do NOT Count as Missing)
+
+**Review EACH flagged gap against this list before counting.**
+
+### Pattern 1: Intentionally Out of Scope
+**Pattern:** Coverage area explicitly marked as out of scope
+**Example:** Rule states "This rule does not cover error recovery for network failures"
+**Why NOT an issue:** Scope is intentionally limited
+**Action:** Remove from inventory with note "Explicitly out of scope"
+
+### Pattern 2: Covered by Referenced Rule
+**Pattern:** Coverage area is handled by a dependency
+**Example:** Error handling covered by 000-global-core.md listed in Depends
+**Why NOT an issue:** Dependency provides the coverage
+**Action:** Remove from inventory with note "Covered by [dependency]"
+
+### Pattern 3: Not Applicable to Domain
+**Pattern:** Coverage area doesn't apply to rule's domain
+**Example:** Concurrency edge cases for a single-threaded CLI tool
+**Why NOT an issue:** Domain doesn't require this coverage
+**Action:** Remove from inventory with note "Not applicable to domain"
+
+### Pattern 4: Implicit in Examples
+**Pattern:** Coverage is demonstrated in examples but not explicit prose
+**Example:** Error handling shown in code example but not in dedicated section
+**Why NOT an issue:** Coverage exists in alternative form (count as partial)
+**Action:** Mark as "Partial" in inventory, not "Missing"
+
+### Pattern 5: Version Agnostic by Design
+**Pattern:** Tool references intentionally omit versions
+**Example:** "Python 3.x" where any 3.x version works
+**Why NOT an issue:** Version flexibility is intentional
+**Action:** Remove from inventory with note "Version agnostic by design"
+
+### Pattern 6: Self-Evident Prerequisites
+**Pattern:** Prerequisites that are obvious from context
+**Example:** "Snowflake account required" for a Snowflake-specific rule
+**Why NOT an issue:** Prerequisite is self-evident from rule title/scope
+**Action:** Remove from inventory with note "Self-evident from context"

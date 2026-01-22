@@ -143,6 +143,9 @@ Authoritative guidance for creating Snowflake Native Semantic Views using the `C
 > 4. Never assume mapping syntax - always verify logical_name AS physical_column order
 > 5. Test queries against the semantic view before using in production
 > 6. Check for COMMENT syntax (must have equals sign: `COMMENT = 'text'`)
+> 7. **CRITICAL: Validate physical column names exist** - Use `DESCRIBE TABLE <base_table>` to verify every column referenced in FACTS/DIMENSIONS actually exists in the base table
+> 8. **Cross-reference column mappings** - Compare semantic view DDL against actual table schema; mismatched column names are the #1 cause of semantic view failures
+> 9. **Test with Cortex Analyst after creation** - Run a simple NLQ query to verify the semantic view works end-to-end
 >
 > **STOP Gate - Prerequisites Check:**
 > Before creating or modifying any semantic view, verify ALL of these conditions:
@@ -166,7 +169,8 @@ Authoritative guidance for creating Snowflake Native Semantic Views using the `C
 
 - [ ] All table references include database and schema qualifiers
 - [ ] PRIMARY KEY defined for all tables in TABLES block (uses physical columns only)
-- [ ] All mapping syntax follows `logical_name AS physical_column` (not reversed)
+- [ ] All mapping syntax follows `alias.physical_column AS logical_name` (not reversed)
+- [ ] **Physical columns verified** - Ran `DESCRIBE TABLE` and confirmed every column in FACTS/DIMENSIONS exists
 - [ ] All COMMENT clauses use equals sign: `COMMENT = 'text'`
 - [ ] DIMENSIONS use simple columns only (no CAST, DATE_TRUNC, or complex functions)
 - [ ] At least one dimension or metric defined
@@ -177,6 +181,12 @@ Authoritative guidance for creating Snowflake Native Semantic Views using the `C
 - [ ] No `&` or template characters in SYNONYMS, COMMENT, or identifiers (for CLI compatibility)
 - [ ] DDL validated with `SHOW SEMANTIC VIEWS`
 - [ ] Test queries run successfully against the view
+- [ ] **Cortex Analyst validated** - Ran test NLQ query to confirm end-to-end functionality:
+  ```bash
+  snow cortex analyst query \
+    --semantic-view "DB.SCHEMA.SEM_VIEW_NAME" \
+    --question "Simple test question for this domain"
+  ```
 
 ## Anti-Patterns and Common Mistakes
 
@@ -509,7 +519,67 @@ CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
 - See `106c-snowflake-semantic-views-integration` for using verified queries with Cortex Analyst
 - See `106c-snowflake-semantic-views-integration` for integration patterns
 
-**Anti-Pattern 6: Using Template Characters in SYNONYMS or COMMENT**
+**Anti-Pattern 6: Referencing Non-Existent Physical Columns**
+```sql
+-- Bad: Using column names that don't exist in the base table
+CREATE OR REPLACE SEMANTIC VIEW PROD.GRID_DATA.SEM_TRANSFORMER_HEALTH
+  TABLES (
+    tfm AS PROD.GRID_DATA.TRANSFORMER_DATA
+      PRIMARY KEY (equipment_id, timestamp)
+  )
+  FACTS (
+    tfm.load_kilowatts AS load_kw,      -- "load_kilowatts" doesn't exist!
+    tfm.ambient_temperature AS temp_c   -- "ambient_temperature" doesn't exist!
+  )
+  DIMENSIONS (
+    tfm.transformer_id AS equipment_id  -- "transformer_id" doesn't exist!
+  );
+-- Error: Column 'LOAD_KILOWATTS' does not exist in table 'TRANSFORMER_DATA'
+-- Or worse: DDL may succeed but queries fail with cryptic errors
+```
+**Problem:** Semantic view creation may succeed but Cortex Analyst queries fail; silent failures; debugging nightmare; production outages; users get errors like "invalid identifier"; root cause is using invented/friendly column names instead of actual physical column names.
+
+**Correct Pattern:**
+```sql
+-- Good: ALWAYS verify physical column names first
+-- Step 1: Check actual column names in base table
+DESCRIBE TABLE PROD.GRID_DATA.TRANSFORMER_DATA;
+-- Returns: EQUIPMENT_ID, TIMESTAMP, LOAD_KW, AMBIENT_TEMP_C, ...
+
+-- Step 2: Use exact column names from DESCRIBE output
+CREATE OR REPLACE SEMANTIC VIEW PROD.GRID_DATA.SEM_TRANSFORMER_HEALTH
+  TABLES (
+    tfm AS PROD.GRID_DATA.TRANSFORMER_DATA
+      PRIMARY KEY (equipment_id, timestamp)
+  )
+  FACTS (
+    tfm.load_kw AS load_kw,           -- Matches actual column: LOAD_KW
+    tfm.ambient_temp_c AS temp_c      -- Matches actual column: AMBIENT_TEMP_C
+  )
+  DIMENSIONS (
+    tfm.equipment_id AS equipment_id  -- Matches actual column: EQUIPMENT_ID
+  );
+
+-- Step 3: Verify after creation
+SELECT GET_DDL('SEMANTIC_VIEW', 'PROD.GRID_DATA.SEM_TRANSFORMER_HEALTH');
+```
+**Benefits:** Queries work correctly; no silent failures; Cortex Analyst returns valid results; maintainable; debuggable; professional.
+
+**Common Mistake Pattern:**
+```sql
+-- The mapping syntax is: alias.physical_column AS logical_name
+-- NOT: alias.logical_name AS physical_column (reversed!)
+-- NOT: alias.invented_name AS logical_name (column doesn't exist!)
+
+-- WRONG: Using friendly names that don't exist
+tfm.load_kilowatts AS load_kw      -- "load_kilowatts" is invented
+
+-- CORRECT: Using actual column names
+tfm.load_kw AS load_kw             -- "load_kw" exists in table
+tfm.load_kw AS load_kilowatts      -- Can map to friendly logical name
+```
+
+**Anti-Pattern 7: Using Template Characters in SYNONYMS or COMMENT**
 ```sql
 -- Bad: & and other template characters in SYNONYMS
 CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
@@ -863,7 +933,8 @@ FACTS (
 - Simple expressions allowed: `physical_column`, `col1 * col2`, `DATEDIFF('day', col1, col2)`
 - Complex functions (CAST, DATE_TRUNC, CASE) may not be supported - test carefully
 - Facts are additive by nature - document non-additive facts clearly
-- **Mapping format:** `logical_name AS physical_expression` (NOT reversed)
+- **Mapping format:** `alias.physical_column AS logical_name` (NOT reversed)
+- **CRITICAL:** The `physical_column` MUST be an actual column in the base table - verify with `DESCRIBE TABLE`
 
 **Examples:**
 ```sql
@@ -892,8 +963,16 @@ DIMENSIONS (
 - Dimensions are typically categorical: `VARCHAR`, `STRING`, `DATE`, `TIMESTAMP`
 - **Simple columns only** - no CAST, DATE_TRUNC, or complex expressions
 - Temporal dimensions: Use raw timestamp/date columns, not derived date parts
-- **Mapping format:** `logical_name AS physical_column` (NOT reversed)
+- **Mapping format:** `alias.physical_column AS logical_name` (NOT reversed)
+- **CRITICAL:** The `physical_column` MUST be an actual column in the base table - verify with `DESCRIBE TABLE`
 - Synonyms are critical for NLQ: `WITH SYNONYMS ('equipment ID', 'transformer ID', 'unit ID')`
+
+**Pre-Creation Validation:**
+```sql
+-- ALWAYS run this before writing semantic view DDL
+DESCRIBE TABLE PROD.GRID_DATA.TRANSFORMER_DATA;
+-- Copy exact column names from output into your FACTS and DIMENSIONS
+```
 
 **Examples:**
 ```sql

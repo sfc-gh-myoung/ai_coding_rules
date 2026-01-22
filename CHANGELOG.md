@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **106-snowflake-semantic-views-core.md:** Added 3 critical validation steps (DESCRIBE TABLE, cross-reference mappings, Cortex Analyst test), new Anti-Pattern 6 (non-existent columns), mapping syntax clarification
   - **106a-snowflake-semantic-views-advanced.md:** Added Anti-Pattern 5 (non-existent columns), post-creation validation section 4.9, mandatory physical column verification in checklist
   - **106c-snowflake-semantic-views-integration.md:** Added Approach Selection section (SQL DDL vs YAML decision tree), hybrid approach documentation
+- **chore(rules):** update TokenBudget metadata for semantic view rules
+  - 106-snowflake-semantic-views-core.md: ~9000 → ~9600
+  - 106a-snowflake-semantic-views-advanced.md: ~6800 → ~7850
+  - 106c-snowflake-semantic-views-integration.md: ~8600 → ~9250
+  - Regenerated RULES_INDEX.md
 
 ### Fixed
 - **fix(AGENTS.md):** replace 14 arrow characters (`→`) with text alternatives ("maps to", "becomes", "then", `:`) per 002g-agent-optimization.md Anti-Pattern 6

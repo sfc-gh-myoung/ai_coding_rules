@@ -1,5 +1,71 @@
 # Completeness Rubric (25 points)
 
+## Mandatory Verification Table (REQUIRED)
+
+**CRITICAL:** You MUST create and fill this table BEFORE calculating score.
+
+### Why This Is Required
+
+- **Eliminates coverage variance:** Same doc → same table → same score
+- **Prevents missed gaps:** Systematic inventory catches all
+- **Provides evidence:** Table shows exactly what was evaluated
+- **Enables audit:** Users can verify scoring decisions
+
+### Verification Table Template
+
+**Feature Coverage:**
+
+| Feature | Location | Documented? | Gap |
+|---------|----------|-------------|-----|
+| User auth | `src/auth.py` | Yes | - |
+| Data export | `src/export.py` | No | Need export docs |
+| API integration | `src/api/` | Yes | - |
+| Caching | `src/cache.py` | No | Need caching docs |
+
+**Setup Steps:**
+
+| Step | Present? | Complete? | Gap |
+|------|----------|-----------|-----|
+| Prerequisites | Y/N | Y/N | |
+| Installation | Y/N | Y/N | |
+| Configuration | Y/N | Y/N | |
+| Verification | Y/N | Y/N | |
+| Common errors | Y/N | Y/N | |
+
+**Troubleshooting Coverage:**
+
+| Error Type | Documented? | Has Resolution? |
+|------------|-------------|-----------------|
+| Installation errors | Y/N | Y/N |
+| Runtime errors | Y/N | Y/N |
+| Usage errors | Y/N | Y/N |
+
+### Verification Protocol (5 Steps)
+
+**Step 1: Create Empty Tables**
+- Copy all templates above
+- Do NOT start reading doc yet
+
+**Step 2: Discover Features**
+- List directory structure: `ls -la src/`
+- Identify all major features/modules
+- Add each to Feature Coverage table
+
+**Step 3: Read Doc Systematically**
+- Read from line 1 to END
+- Mark Y/N for each feature
+- Mark Y/N for each setup step
+- Mark Y/N for troubleshooting coverage
+
+**Step 4: Calculate Coverage**
+- Feature %: `(documented features / total features) × 100`
+- Setup %: `(complete steps / required steps) × 100`
+
+**Step 5: Look Up Score**
+- Use feature coverage % in Score Decision Matrix
+- Apply deductions for missing setup/troubleshooting
+- Record score with table evidence
+
 ## Scoring Formula
 
 **Raw Score:** 0-10
@@ -242,3 +308,31 @@ Use during review:
 - **Troubleshooting** - Items: 10 common errors, Documented: 6, Missing: 4, Coverage %: 60%
 
 **Overall:** 41/48 documented = 85% → Score: 6/10 (15 points)
+
+## Non-Issues (Do NOT Count as Missing)
+
+**Review EACH flagged item against this list before counting.**
+
+### Pattern 1: Internal/Private Features
+**Pattern:** Feature is internal implementation detail
+**Example:** Private helper function `_format_internal()` not documented
+**Why NOT an issue:** Internal features don't need public docs
+**Action:** Remove from table with note "Internal/private"
+
+### Pattern 2: Self-Evident Prerequisites
+**Pattern:** Prerequisite obvious from project context
+**Example:** README doesn't say "computer required"
+**Why NOT an issue:** Obvious prerequisites don't need explicit docs
+**Action:** Remove from table with note "Self-evident"
+
+### Pattern 3: Covered in External Docs
+**Pattern:** Feature documented in linked external resource
+**Example:** "See API docs at https://api.example.com/docs"
+**Why NOT an issue:** Coverage exists via external reference
+**Action:** Remove from table with note "External docs"
+
+### Pattern 4: Deprecated/Removed Features
+**Pattern:** Feature no longer exists in current version
+**Example:** v1 feature removed in v2, not in current docs
+**Why NOT an issue:** Feature doesn't exist to document
+**Action:** Remove from table with note "Deprecated/removed"

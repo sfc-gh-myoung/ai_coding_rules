@@ -1,5 +1,7 @@
 # Token Budget Update Script
 
+**Last Updated:** 2026-01-21
+
 ## Quick Reference
 
 ### Purpose

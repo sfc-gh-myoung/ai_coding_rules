@@ -1,5 +1,75 @@
 # Staleness Rubric (10 points)
 
+## Mandatory Issue Inventory (REQUIRED)
+
+**CRITICAL:** You MUST create and fill this inventory BEFORE calculating score.
+
+### Why This Is Required
+
+- **Eliminates counting variance:** Same rule → same inventory → same score
+- **Prevents false negatives:** Systematic checks catch all staleness issues
+- **Provides evidence:** Inventory shows exactly what was evaluated
+- **Enables verification:** Users can audit scoring decisions
+
+### Inventory Template
+
+**LastUpdated Assessment:**
+
+| Metric | Value |
+|--------|-------|
+| LastUpdated value | YYYY-MM-DD |
+| Review date | YYYY-MM-DD |
+| Days stale | NNN |
+| Staleness tier | X/5 |
+
+**Deprecated Tools:**
+
+| Line | Tool Found | Status | Replacement |
+|------|------------|--------|-------------|
+| 45 | ruff | Current | - |
+| 67 | flake8 | Deprecated | ruff |
+| 89 | black | Deprecated | ruff format |
+
+**Deprecated Patterns:**
+
+| Line | Pattern Found | Status | Replacement |
+|------|---------------|--------|-------------|
+| 30 | pyproject.toml | Current | - |
+| 120 | requirements.txt | Deprecated | pyproject.toml + uv |
+
+**External Links:**
+
+| Line | URL | Status | Notes |
+|------|-----|--------|-------|
+| 150 | https://docs.snowflake.com/... | 200 | Valid |
+| 180 | https://old-blog.example.com | 404 | Broken |
+
+### Counting Protocol (5 Steps)
+
+**Step 1: Create Empty Inventory**
+- Copy templates above into working document
+- Do NOT start reading rule yet
+
+**Step 2: Calculate Days Stale**
+- Extract LastUpdated from metadata
+- Calculate: review_date - last_updated
+- Look up staleness tier
+
+**Step 3: Read Rule Systematically**
+- Start at line 1, read to END (no skipping)
+- Check each tool reference against deprecated list
+- Check each pattern against deprecated list
+- Record each external link
+
+**Step 4: Verify External Links**
+- Test each URL: `curl -I --max-time 5 [URL]`
+- Record status codes
+- Count broken links (404, timeout, connection refused)
+
+**Step 5: Look Up Score**
+- Use adjusted totals in Score Decision Matrix
+- Record score with inventory evidence
+
 ## Scoring Formula
 
 **Raw Score:** 0-10
@@ -431,3 +501,31 @@ Node.js 20+  = Current (LTS)
 - Re-check after 24 hours
 - Document transient vs persistent failures
 - Count persistent failures only
+
+## Non-Issues (Do NOT Count as Stale)
+
+**Review EACH flagged item against this list before counting.**
+
+### Pattern 1: Legacy Documentation Section
+**Pattern:** Deprecated tool in clearly marked "Legacy" or "Migration" section
+**Example:** "## Legacy: Using flake8 (for migration from older projects)"
+**Why NOT an issue:** Intentionally documenting old patterns for migration
+**Action:** Remove from inventory with note "Legacy section (intentional)"
+
+### Pattern 2: Version Flexibility
+**Pattern:** Version range that includes older but still supported versions
+**Example:** "Python 3.9+" where 3.9 is still receiving security updates
+**Why NOT an issue:** Version is still supported (not EOL)
+**Action:** Remove from inventory with note "Still supported version"
+
+### Pattern 3: Redirected Link (Works)
+**Pattern:** Link returns 301/302 but redirects to valid content
+**Example:** Old URL redirects to new URL that returns 200
+**Why NOT an issue:** Content is accessible (recommend update, but not broken)
+**Action:** Mark as "Update recommended" not "Broken"
+
+### Pattern 4: Tool Still Functional
+**Pattern:** Tool marked as "deprecated" but still works and is maintained
+**Example:** "black" is superseded by ruff but still actively maintained
+**Why NOT an issue:** Tool is functional (recommend update, but not broken)
+**Action:** Mark as "Update recommended" with severity 0.5 (not 1.0)

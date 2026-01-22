@@ -1,5 +1,52 @@
 # Accuracy Rubric (25 points)
 
+## Mandatory Verification Table (REQUIRED)
+
+**CRITICAL:** You MUST create and fill this table BEFORE calculating score.
+
+### Why This Is Required
+
+- **Eliminates validation variance:** Same doc → same table → same score
+- **Prevents missed references:** Systematic check catches all
+- **Provides evidence:** Table shows exactly what was verified
+- **Enables audit:** Users can verify scoring decisions
+
+### Verification Table Template
+
+| Line | Reference | Type | Status | Fix Needed |
+|------|-----------|------|--------|------------|
+| 23 | `src/main.py` | File | Valid | - |
+| 45 | `npm test` | Command | Invalid | Use `task test` |
+| 67 | `getData()` | Function | Wrong | Should be `get_data()` |
+| 89 | `UserManager` | Class | Valid | - |
+
+### Verification Protocol (5 Steps)
+
+**Step 1: Create Empty Table**
+- Copy template above
+- Do NOT start reading doc yet
+
+**Step 2: Extract All References**
+- Read doc from line 1 to END
+- For EACH file path: Add row with line number
+- For EACH command: Add row with line number
+- For EACH function/class name: Add row with line number
+- For EACH code example: Add row with line number
+
+**Step 3: Verify Each Reference**
+- File paths: `test -f [path] && echo "EXISTS" || echo "MISSING"`
+- Commands: Test execution (safe commands only)
+- Function/class names: `grep -r "def [name]" src/` or `grep -r "class [name]" src/`
+- Code examples: Check syntax and imports
+
+**Step 4: Calculate Coverage**
+- Count valid vs total references
+- Calculate percentage: `(valid / total) × 100`
+
+**Step 5: Look Up Score**
+- Use percentage in Score Decision Matrix
+- Record score with table evidence
+
 ## Scoring Formula
 
 **Raw Score:** 0-10
@@ -245,3 +292,43 @@ Create this table during review:
 - Valid: 4 (67%)
 - Invalid: 2 (33%)
 - Score: 5/10 (12.5 points) based on 67% accuracy
+
+## Non-Issues (Do NOT Count as Invalid)
+
+**Review EACH flagged item against this list before counting.**
+
+### Pattern 1: Example/Placeholder Paths
+**Pattern:** Path is clearly a placeholder in example
+**Example:** `path/to/your/file.py` or `<your-project>/config.json`
+**Why NOT an issue:** Clearly meant to be replaced by user
+**Action:** Remove from table with note "Placeholder path"
+
+### Pattern 2: External Tool References
+**Pattern:** Reference to external tool that isn't in this codebase
+**Example:** `npm install` when documenting npm usage
+**Why NOT an issue:** External tool reference, not local file
+**Action:** Remove from table with note "External tool"
+
+### Pattern 3: Conditional/Optional Paths
+**Pattern:** Path mentioned as optional or conditional
+**Example:** "If using Docker, see `docker/compose.yaml`"
+**Why NOT an issue:** File may not exist in all configurations
+**Action:** Remove from table with note "Optional/conditional"
+
+### Pattern 4: Future/Planned References
+**Pattern:** Reference to upcoming or planned feature
+**Example:** "In v2.0, will be located at `src/new/location.py`"
+**Why NOT an issue:** Future path, not current reference
+**Action:** Remove from table with note "Future reference"
+
+### Pattern 5: Generic Examples
+**Pattern:** Example showing pattern rather than real reference
+**Example:** `grep "pattern" src/*.py` showing how to search
+**Why NOT an issue:** Illustrating technique, not referencing file
+**Action:** Remove from table with note "Generic example"
+
+### Pattern 6: Test-Only Commands
+**Pattern:** Command only works in test/CI environment
+**Example:** `task ci-test` that requires CI environment
+**Why NOT an issue:** Not meant to run locally
+**Action:** Remove from table with note "CI/test only"

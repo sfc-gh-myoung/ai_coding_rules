@@ -362,7 +362,7 @@ Use plan-reviewer for plans an agent will execute. Use doc-reviewer for document
 
 ### Q: Where does the rubric come from?
 
-**A:** The skill uses rubric files in `skills/plan-reviewer/rubrics/` (executability.md, completeness.md, success-criteria.md, scope.md, dependencies.md, decomposition.md, context.md, risk-awareness.md) as the rubric and required output format.
+**A:** The skill uses rubric files in `skills/plan-reviewer/rubrics/` (executability.md, completeness.md, success-criteria.md, scope.md, dependencies.md, decomposition.md, context.md, risk-awareness.md) plus `_overlap-resolution.md` as the rubric. Each rubric includes a Mandatory Worksheet template and Non-Issues section for deterministic scoring.
 
 ## Integration with Other Skills
 

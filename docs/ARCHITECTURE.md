@@ -1,5 +1,7 @@
 # Architecture: AI Coding Rules (v3.5.2)
 
+**Last Updated:** 2026-01-21
+
 ## Table of Contents
 
 - [System Overview](#system-overview)

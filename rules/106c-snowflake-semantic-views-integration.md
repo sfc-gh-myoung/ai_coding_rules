@@ -105,6 +105,72 @@ Comprehensive guidance for integrating Snowflake Semantic Views with Cortex Anal
 
 ### Post-Execution Checklist
 
+- [ ] Semantic view tested with Cortex Analyst REST API or SnowCLI
+- [ ] Natural language queries return expected results
+- [ ] Governance policies applied to base tables (not semantic view)
+- [ ] Synonyms added for key business terms
+- [ ] Approach documented (SQL DDL vs YAML) with rationale
+
+## Approach Selection: SQL DDL vs YAML Semantic Models
+
+### Decision Tree
+
+**Use CREATE SEMANTIC VIEW (SQL DDL) when:**
+- [ ] Simple to moderate complexity views (single table or well-defined star schema)
+- [ ] No verified queries (VQRs) required
+- [ ] SQL-based version control preferred (standard migrations)
+- [ ] Single source of truth should be the database object
+- [ ] CI/CD uses SQL deployment scripts
+- [ ] Team is more comfortable with SQL than YAML
+
+**Use YAML Semantic Model Files when:**
+- [ ] **Verified queries (VQRs) are required** (YAML-only feature - cannot be done in DDL)
+- [ ] Complex custom instructions needed for Cortex Analyst
+- [ ] Team prefers file-based configuration management
+- [ ] Need `semantic_model_file` parameter in REST API calls
+- [ ] Integration with existing YAML-based CI/CD pipelines
+- [ ] Want to version control semantic model separately from database objects
+
+**CRITICAL:** Verified queries (VQRs) are ONLY available in YAML format. If you need VQRs to improve Cortex Analyst accuracy for specific questions, you MUST use YAML.
+
+### Comparison: SQL DDL vs YAML
+
+**SQL DDL (`CREATE SEMANTIC VIEW`):**
+- Version control: SQL migrations
+- Verified queries (VQR): Not supported
+- REST API parameter: `semantic_view`
+- Deployment: `CREATE SEMANTIC VIEW` DDL
+- Database object: Yes (queryable)
+- Cortex Analyst: Full support
+- Synonyms: `WITH SYNONYMS`
+- Comments: `COMMENT = 'text'`
+
+**YAML Semantic Model File:**
+- Version control: File-based
+- Verified queries (VQR): **Supported** (YAML-only feature)
+- REST API parameter: `semantic_model_file`
+- Deployment: PUT to stage
+- Database object: No (file only)
+- Cortex Analyst: Full support
+- Synonyms: `synonyms:` list
+- Comments: `description:` text
+
+### When to Migrate from DDL to YAML
+
+Consider migrating if:
+1. Cortex Analyst accuracy is poor and you need VQRs to guide it
+2. Users ask the same questions repeatedly and you want guaranteed SQL
+3. Complex business logic requires explicit SQL examples
+
+### Hybrid Approach
+
+You can use both:
+1. Create SQL DDL semantic view for direct SEMANTIC_VIEW() queries
+2. Create YAML file with same structure plus VQRs for Cortex Analyst accuracy
+3. Reference YAML via `semantic_model_file` when calling Cortex Analyst REST API
+
+### Post-Execution Checklist
+
 - [ ] Semantic view includes WITH SYNONYMS for key business terms
 - [ ] COMMENT clauses provide business definitions
 - [ ] Cortex Analyst REST API tested with `semantic_view` parameter

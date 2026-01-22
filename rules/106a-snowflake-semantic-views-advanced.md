@@ -227,6 +227,54 @@ CREATE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
 ```
 **Benefits:** Correct clause order: TABLES, then FACTS, then DIMENSIONS, then METRICS.
 
+**Anti-Pattern 5: Referencing Non-Existent Physical Columns (Most Common Error)**
+```sql
+-- INCORRECT - Using column names that don't exist in base table
+CREATE SEMANTIC VIEW PROD.GRID_DATA.SEM_TRANSFORMER_HEALTH
+  TABLES (
+    tfm AS PROD.GRID_DATA.TRANSFORMER_DATA
+      PRIMARY KEY (equipment_id, timestamp)
+  )
+  FACTS (
+    tfm.load_kilowatts AS load_kw,      -- "load_kilowatts" doesn't exist!
+    tfm.ambient_temperature AS temp_c   -- "ambient_temperature" doesn't exist!
+  )
+  DIMENSIONS (
+    tfm.transformer_id AS equipment_id  -- "transformer_id" doesn't exist!
+  );
+-- May succeed but Cortex Analyst queries fail with "invalid identifier"
+```
+**Problem:** DDL may compile but queries fail; silent failures; the physical column name (left side of AS) must exist in the base table; using invented/friendly names instead of actual column names is the #1 cause of semantic view failures.
+
+**Correct Pattern:**
+```sql
+-- Step 1: ALWAYS verify physical column names first
+DESCRIBE TABLE PROD.GRID_DATA.TRANSFORMER_DATA;
+-- Output shows: EQUIPMENT_ID, TIMESTAMP, LOAD_KW, AMBIENT_TEMP_C, ...
+
+-- Step 2: Use exact column names from DESCRIBE output
+CREATE SEMANTIC VIEW PROD.GRID_DATA.SEM_TRANSFORMER_HEALTH
+  TABLES (
+    tfm AS PROD.GRID_DATA.TRANSFORMER_DATA
+      PRIMARY KEY (equipment_id, timestamp)
+  )
+  FACTS (
+    tfm.load_kw AS load_kw,           -- "load_kw" matches actual column
+    tfm.ambient_temp_c AS temp_c      -- "ambient_temp_c" matches actual column
+  )
+  DIMENSIONS (
+    tfm.equipment_id AS equipment_id  -- "equipment_id" matches actual column
+  );
+
+-- Step 3: Validate with Cortex Analyst test query
+-- snow cortex analyst query --semantic-view "..." --question "test question"
+```
+**Benefits:** Queries work; no silent failures; Cortex Analyst returns valid results.
+
+**Key Insight:** The mapping syntax `alias.PHYSICAL_COLUMN AS logical_name` means:
+- `PHYSICAL_COLUMN` = Must exist in the base table (verify with DESCRIBE TABLE)
+- `logical_name` = Business-friendly name for Cortex Analyst (can be anything)
+
 ## Output Format Examples
 
 ```sql
@@ -852,6 +900,11 @@ CREATE OR REPLACE SEMANTIC VIEW my_view
 -- [ ] Window function metrics not used in other expressions
 -- [ ] Only scalar functions in dimensions (no table functions)
 -- [ ] No template characters in SYNONYMS or COMMENT (& <% %> {{ }})
+-- [ ] **CRITICAL: All physical column names verified against base table**
+
+-- MANDATORY: Verify physical columns exist BEFORE writing DDL
+DESCRIBE TABLE my_schema.my_base_table;
+-- Copy exact column names into your FACTS and DIMENSIONS sections
 
 -- Validate after creation:
 SHOW SEMANTIC VIEWS IN SCHEMA my_schema;
@@ -859,6 +912,59 @@ DESCRIBE SEMANTIC VIEW my_schema.my_view;
 SHOW SEMANTIC DIMENSIONS IN SEMANTIC VIEW my_schema.my_view;
 SHOW SEMANTIC METRICS IN SEMANTIC VIEW my_schema.my_view;
 ```
+
+### 4.9 Post-Creation Physical Column Validation
+
+**Purpose:** Verify that all physical column references in a semantic view actually exist in the base tables. This catches the most common semantic view error.
+
+**Validation Pattern:**
+```sql
+-- Step 1: Extract semantic view DDL
+SELECT GET_DDL('SEMANTIC_VIEW', 'DB.SCHEMA.SEM_VIEW_NAME') AS ddl;
+
+-- Step 2: For each base table in the semantic view, list actual columns
+DESCRIBE TABLE DB.SCHEMA.BASE_TABLE_1;
+DESCRIBE TABLE DB.SCHEMA.BASE_TABLE_2;
+
+-- Step 3: Cross-reference - ensure every column in DDL exists in base table
+-- Look for patterns like: alias.COLUMN_NAME AS logical_name
+-- Verify each COLUMN_NAME appears in the DESCRIBE output
+
+-- Step 4: Test individual columns with direct queries
+SELECT DISTINCT equipment_id FROM DB.SCHEMA.TRANSFORMER_DATA LIMIT 1;
+SELECT DISTINCT load_kw FROM DB.SCHEMA.TRANSFORMER_DATA LIMIT 1;
+-- If these fail, the column name is wrong
+
+-- Step 5: Test semantic view with Cortex Analyst
+-- This is the ultimate validation - if NLQ works, columns are correct
+```
+
+**Automated Validation Query:**
+```sql
+-- Compare semantic view columns against base table schema
+WITH semantic_columns AS (
+  -- Parse column names from GET_DDL output (manual review)
+  SELECT 'equipment_id' AS column_name UNION ALL
+  SELECT 'load_kw' UNION ALL
+  SELECT 'timestamp'
+),
+actual_columns AS (
+  SELECT COLUMN_NAME
+  FROM DB.INFORMATION_SCHEMA.COLUMNS
+  WHERE TABLE_SCHEMA = 'GRID_DATA'
+    AND TABLE_NAME = 'TRANSFORMER_DATA'
+)
+SELECT
+  s.column_name,
+  CASE WHEN a.COLUMN_NAME IS NOT NULL THEN 'EXISTS' ELSE 'MISSING' END AS status
+FROM semantic_columns s
+LEFT JOIN actual_columns a ON UPPER(s.column_name) = UPPER(a.COLUMN_NAME);
+```
+
+**When Validation Fails:**
+- Column shows 'MISSING': The physical column name in the semantic view doesn't exist
+- Fix: Update semantic view DDL to use the actual column name from DESCRIBE TABLE
+- Common cause: Using friendly/business names instead of actual database column names
 
 ### 4.8 Template Character Validation (CLI Compatibility)
 

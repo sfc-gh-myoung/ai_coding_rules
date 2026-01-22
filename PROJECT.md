@@ -166,6 +166,18 @@ Before ANY git commit:
 - Read access to source repository
 - Write access to destination directory
 
+### AI Commit Attribution
+
+**Project Default:** `ai_attribution_footer: false`
+
+This project does NOT include AI attribution footers in commit messages by default.
+Users may override per-session by responding to the prompt defined in `803-project-git-workflow.md`.
+
+**Valid values:**
+- `true` - Always include AI attribution footer
+- `false` - Never include AI attribution footer (default for this project)
+- `ask` - Prompt user on first commit each session
+
 ## Key Workflows
 
 ### Creating a New Rule

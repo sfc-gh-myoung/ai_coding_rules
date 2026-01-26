@@ -169,6 +169,296 @@ You can use both:
 2. Create YAML file with same structure plus VQRs for Cortex Analyst accuracy
 3. Reference YAML via `semantic_model_file` when calling Cortex Analyst REST API
 
+## Verified Query Repository (VQR)
+
+### What is VQR?
+
+The Verified Query Repository (VQR) is a YAML-only feature that allows you to provide Cortex Analyst with pre-verified question-SQL pairs. When users ask questions similar to verified queries, Cortex Analyst uses the verified SQL directly instead of generating new SQL, ensuring accuracy for critical business questions.
+
+**Key Benefits:**
+- Guaranteed accuracy for high-stakes questions
+- Reduced SQL generation errors
+- Faster response times for common questions
+- Onboarding questions for new users
+
+### VQR Syntax Requirements
+
+> **CRITICAL: Table Naming in VQR SQL**
+> VQR SQL uses **logical table names** with a **double underscore prefix (`__`)**.
+> - Reference tables as `__logical_name` (from `tables.name` in YAML)
+> - Do NOT use physical table names (e.g., `DATABASE.SCHEMA.TABLE`)
+> - This is the #1 VQR error - using physical names instead of `__logical_name`
+
+**VQR YAML Structure:**
+```yaml
+verified_queries:
+  - name: query_identifier          # Unique identifier (snake_case)
+    question: "Natural language question?"
+    sql: |
+      SELECT column1, SUM(metric)
+      FROM __logical_table_name     # CRITICAL: __ prefix + logical name
+      WHERE condition
+      GROUP BY column1
+    verified_at: 1737590400         # Unix timestamp when verified
+    verified_by: team_name          # Who verified this query
+    use_as_onboarding_question: true  # Optional: show in Snowsight onboarding
+```
+
+**Complete VQR Example:**
+```yaml
+name: sales_semantic_model
+description: Sales analytics with verified queries
+
+tables:
+  - name: sales_data                # <-- Logical name used in VQR as __sales_data
+    base_table:
+      database: ANALYTICS
+      schema: CORE
+      table: SALES_FACT             # <-- Physical table (NOT used in VQR SQL)
+    
+    dimensions:
+      - name: sale_date
+        expr: order_date
+        data_type: DATE
+        description: Date of sale
+      - name: region
+        expr: sales_region
+        data_type: VARCHAR
+        description: Sales region
+      - name: product_category
+        expr: category
+        data_type: VARCHAR
+        description: Product category
+
+    metrics:
+      - name: total_revenue
+        expr: SUM(amount)
+        description: Total sales revenue
+      - name: order_count
+        expr: COUNT(*)
+        description: Number of orders
+
+verified_queries:
+  - name: revenue_by_region
+    question: "What is the total revenue by region?"
+    sql: |
+      SELECT 
+        region,
+        SUM(total_revenue) AS revenue
+      FROM __sales_data
+      GROUP BY region
+      ORDER BY revenue DESC
+    verified_at: 1737590400
+    verified_by: analytics_team
+    use_as_onboarding_question: true
+
+  - name: monthly_trend
+    question: "Show me the monthly revenue trend"
+    sql: |
+      SELECT 
+        DATE_TRUNC('MONTH', sale_date) AS month,
+        SUM(total_revenue) AS revenue
+      FROM __sales_data
+      GROUP BY month
+      ORDER BY month
+    verified_at: 1737590400
+    verified_by: analytics_team
+    use_as_onboarding_question: true
+
+  - name: top_categories
+    question: "What are the top 5 product categories by revenue?"
+    sql: |
+      SELECT 
+        product_category,
+        SUM(total_revenue) AS revenue,
+        SUM(order_count) AS orders
+      FROM __sales_data
+      GROUP BY product_category
+      ORDER BY revenue DESC
+      LIMIT 5
+    verified_at: 1737590400
+    verified_by: analytics_team
+
+  - name: last_month_performance
+    question: "How did we perform last month?"
+    sql: |
+      SELECT 
+        SUM(total_revenue) AS revenue,
+        SUM(order_count) AS orders,
+        SUM(total_revenue) / NULLIF(SUM(order_count), 0) AS avg_order_value
+      FROM __sales_data
+      WHERE sale_date >= DATE_TRUNC('MONTH', DATEADD('MONTH', -1, CURRENT_DATE()))
+        AND sale_date < DATE_TRUNC('MONTH', CURRENT_DATE())
+    verified_at: 1737590400
+    verified_by: analytics_team
+```
+
+### Common VQR Mistakes
+
+```yaml
+# WRONG: Using physical table name
+sql: SELECT * FROM ANALYTICS.CORE.SALES_FACT
+# Error: Cortex Analyst can't find the table reference
+
+# WRONG: Using single underscore
+sql: SELECT * FROM _sales_data
+# Error: Invalid table reference syntax
+
+# WRONG: Using model name instead of table name
+sql: SELECT * FROM sales_semantic_model
+# Error: Reference should be __<table_name>, not model name
+
+# CORRECT: Double underscore + logical table name
+sql: SELECT * FROM __sales_data
+# Success: Matches tables[].name from YAML definition
+```
+
+### Suggested Queries (Preview Feature)
+
+Snowflake provides AI-generated query suggestions to help populate your VQR. This feature analyzes your semantic model and usage patterns to suggest verified queries.
+
+**Accessing Suggested Queries in Snowsight:**
+1. Navigate to **AI & ML** → **Cortex Analyst**
+2. Select your semantic model
+3. Click **Verified Queries** tab
+4. Click **Review Suggestions** button
+5. Review AI-suggested questions and SQL
+6. Accept, modify, or reject each suggestion
+7. Accepted queries are added to your VQR
+
+**Suggested Queries via API:**
+
+```python
+import requests
+
+# Get suggested queries for a semantic model
+url = f"https://{account}.snowflakecomputing.com/api/v2/cortex/analyst/suggestions"
+
+headers = {
+    "Authorization": f"Bearer {token}",
+    "Content-Type": "application/json"
+}
+
+payload = {
+    "semantic_model_file": "@ANALYTICS.MODELS/sales_semantic_model.yaml",
+    "mode": "ca_requests_based",  # or "query_history_based"
+    "limit": 10
+}
+
+response = requests.post(url, headers=headers, json=payload)
+suggestions = response.json()
+
+for suggestion in suggestions.get("suggestions", []):
+    print(f"Question: {suggestion['question']}")
+    print(f"SQL: {suggestion['sql']}")
+    print(f"Score: {suggestion['score']}")
+    print("---")
+```
+
+**Suggestion Modes:**
+- `ca_requests_based`: Analyzes Cortex Analyst request history
+- `query_history_based`: Analyzes Snowflake query history
+
+### VQR Deployment Workflow
+
+**Step 1: Create YAML semantic model with verified queries**
+```yaml
+# sales_model.yaml
+name: sales_analysis
+tables:
+  - name: sales_data
+    base_table:
+      database: PROD
+      schema: ANALYTICS  
+      table: SALES_FACT
+    dimensions:
+      - name: sale_date
+        expr: order_date
+        data_type: DATE
+    metrics:
+      - name: total_revenue
+        expr: SUM(amount)
+
+verified_queries:
+  - name: monthly_revenue
+    question: "What is total revenue by month?"
+    sql: |
+      SELECT DATE_TRUNC('MONTH', sale_date) AS month, SUM(total_revenue)
+      FROM __sales_data
+      GROUP BY month
+    verified_at: 1737590400
+    verified_by: data_team
+```
+
+**Step 2: Upload to Snowflake stage**
+```sql
+-- Create stage if needed
+CREATE STAGE IF NOT EXISTS PROD.ANALYTICS.SEMANTIC_MODELS;
+
+-- Upload YAML file
+PUT file:///path/to/sales_model.yaml @PROD.ANALYTICS.SEMANTIC_MODELS/;
+
+-- Verify upload
+LIST @PROD.ANALYTICS.SEMANTIC_MODELS/;
+```
+
+**Step 3: Test with Cortex Analyst REST API**
+```python
+import requests
+
+url = f"https://{account}.snowflakecomputing.com/api/v2/cortex/analyst/message"
+
+headers = {
+    "Authorization": f"Bearer {token}",
+    "Content-Type": "application/json"
+}
+
+# Use semantic_model_file for YAML with VQRs
+payload = {
+    "semantic_model_file": "@PROD.ANALYTICS.SEMANTIC_MODELS/sales_model.yaml",
+    "messages": [
+        {"role": "user", "content": "What is total revenue by month?"}
+    ]
+}
+
+response = requests.post(url, headers=headers, json=payload)
+result = response.json()
+
+# Response should match verified query SQL exactly
+print(result["message"]["content"])
+```
+
+**Step 4: Validate VQR matching**
+```bash
+# Test with SnowCLI
+snow cortex analyst query \
+  --semantic-model-file "@PROD.ANALYTICS.SEMANTIC_MODELS/sales_model.yaml" \
+  --question "What is total revenue by month?"
+
+# Compare generated SQL with verified query SQL
+# If VQR matched, SQL should be identical to verified_queries[].sql
+```
+
+### VQR Best Practices
+
+**When to Add Verified Queries:**
+- High-stakes business questions (revenue, KPIs, compliance)
+- Frequently asked questions that Cortex Analyst struggles with
+- Complex queries with specific business logic
+- Questions where precision is critical
+
+**VQR Design Guidelines:**
+1. **Use natural language questions** - Match how users actually ask
+2. **Test SQL independently** - Verify SQL returns correct results before adding to VQR
+3. **Include variations** - Add multiple verified queries for similar questions
+4. **Set onboarding questions** - Guide new users with `use_as_onboarding_question: true`
+5. **Update timestamps** - Re-verify queries when underlying data changes
+6. **Document verifiers** - Track who approved each query
+
+**VQR vs Custom Instructions:**
+- **VQR:** Use for specific question-to-SQL mappings
+- **Custom Instructions:** Use for general guidance on SQL generation style
+
 ### Post-Execution Checklist
 
 - [ ] Semantic view includes WITH SYNONYMS for key business terms

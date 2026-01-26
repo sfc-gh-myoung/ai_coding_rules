@@ -629,3 +629,84 @@ When creating or updating a rule, ask:
 5. **Is it highly specialized?** Then use: Skip LoadTrigger (on-demand only)
 
 **Refer to:** `docs/loadtrigger_decisions.md` for detailed categorization and rationale for all rules in the repository.
+
+## Rule Examples
+
+### Purpose
+
+The `rules/examples/` directory contains validated, complete implementation examples that accompany complex rule files. These examples provide concrete reference implementations that improve agent accuracy when creating configurations.
+
+### When Examples Are Needed
+
+**Add examples for:**
+- Complex multi-tool orchestration (Cortex Agents, Cortex Search)
+- Multi-step configurations (Semantic Views with VQRs)
+- Language-variant patterns (SQL DDL vs Python SDK)
+
+**Skip examples for:**
+- Simple, self-contained rules
+- Rules with inline code blocks that are sufficient
+
+### Example File Structure
+
+Example files follow a lightweight schema different from rule files:
+
+```markdown
+# NNN Example: Topic (Language)
+
+> **EXAMPLE FILE** - Reference implementation for `NNN-rule-name.md`
+> Not a rule file. Not validated against rule-schema.yml.
+
+## Context
+
+**Parent Rule:** NNN-rule-name.md
+**Demonstrates:** What pattern this shows
+**Use When:** Activation scenario
+**Version:** 1.0
+**Last Validated:** YYYY-MM-DD
+
+## Prerequisites
+
+- [ ] Requirement 1
+- [ ] Requirement 2
+
+## Implementation
+
+```sql|python|yaml
+-- Complete, runnable code
+```
+
+## Validation
+
+```bash
+-- Verification commands
+```
+
+**Expected Result:** What success looks like
+```
+
+### Example Discovery
+
+**For agents:** When loading a rule with complex patterns, check for companion examples:
+
+```
+rules/examples/NNN-topic-variant-example.md
+```
+
+Example naming follows pattern: `{rule-number}-{topic}-{variant}-example.md`
+
+**Examples:** `115-cortex-agent-hybrid-sql-example.md`, `106-semantic-view-yaml-vqr-example.md`
+
+### Validation
+
+Example files are validated separately from rule files:
+
+```bash
+# Validate all examples
+task examples:validate
+
+# Validate examples (verbose)
+task examples:validate:verbose
+```
+
+Examples are validated against `schemas/example-schema.yml`, not `schemas/rule-schema.yml`.

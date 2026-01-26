@@ -73,6 +73,10 @@ Comprehensive patterns to design, configure, secure, and operate Cortex Agents i
 - **106c-snowflake-semantic-views-integration.md** - Cortex Analyst with semantic views
 - **116-snowflake-cortex-search.md** - Cortex Search for document retrieval in agents
 
+**Examples:**
+- **examples/115-cortex-agent-hybrid-sql-example.md** - Hybrid agent (Semantic View + Cortex Search) using SQL DDL
+- **examples/115-cortex-agent-hybrid-python-example.md** - Hybrid agent using Python SDK
+
 ### External Documentation
 
 - [Snowflake Cortex Agents Documentation](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents) - Official agent creation and management
@@ -570,6 +574,152 @@ Description: "Use this tool for quantitative portfolio analysis including holdin
 - **Warehouse:** MUST specify explicitly (see Anti-Pattern 4 for failures)
 - **Query Timeout:** Timeout in seconds to prevent runaway queries
 - **Description:** Three parts: purpose, capabilities, when-to-use
+
+### Improving Agent Accuracy with Verified Queries (VQR)
+
+When Cortex Analyst tools in your agent produce incorrect SQL for specific questions, use the Verified Query Repository (VQR) to guarantee accuracy.
+
+**When to Add VQRs for Agents:**
+- Agent repeatedly generates wrong SQL for specific business questions
+- High-stakes questions where accuracy is critical (revenue, compliance, KPIs)
+- Complex queries with business logic the agent doesn't infer correctly
+- Frequently asked questions that need consistent answers
+
+**VQR Integration Pattern:**
+
+Instead of using `semantic_view` parameter, use `semantic_model_file` to reference a YAML file with verified queries:
+
+```python
+from snowflake.core import Root
+from snowflake.core.cortex import Agent
+
+# Option 1: Semantic View (no VQR support)
+agent_without_vqr = Agent(
+    name="sales_agent",
+    tools=[{
+        "tool_spec": {
+            "type": "cortex_analyst_text_to_sql",
+            "name": "sales_analyzer",
+            "spec": {
+                "semantic_view_fqn": "ANALYTICS.AI.SALES_VIEW",  # No VQR
+                "description": "Sales data analysis"
+            }
+        }
+    }]
+)
+
+# Option 2: YAML Semantic Model with VQR (recommended for accuracy)
+agent_with_vqr = Agent(
+    name="sales_agent_accurate",
+    tools=[{
+        "tool_spec": {
+            "type": "cortex_analyst_text_to_sql",
+            "name": "sales_analyzer",
+            "spec": {
+                "semantic_model_file": "@ANALYTICS.MODELS/sales_model.yaml",  # Has VQRs
+                "description": "Sales data analysis with verified queries for accuracy"
+            }
+        }
+    }]
+)
+```
+
+**VQR YAML for Agent Tools:**
+
+> **CRITICAL: VQR SQL uses `__logical_table_name` (double underscore prefix)**
+> - Reference tables as `__table_name` from YAML `tables.name`
+> - Do NOT use physical database.schema.table names
+
+```yaml
+# File: @ANALYTICS.MODELS/sales_model.yaml
+name: sales_analysis
+description: Sales semantic model with verified queries for agent accuracy
+
+tables:
+  - name: sales_data  # Referenced as __sales_data in VQR SQL
+    base_table:
+      database: ANALYTICS
+      schema: CORE
+      table: SALES_FACT
+    dimensions:
+      - name: region
+        expr: sales_region
+        data_type: VARCHAR
+      - name: sale_date
+        expr: order_date
+        data_type: DATE
+    metrics:
+      - name: total_revenue
+        expr: SUM(amount)
+      - name: order_count
+        expr: COUNT(*)
+
+# Add VQRs for questions where agent was generating incorrect SQL
+verified_queries:
+  - name: quarterly_revenue
+    question: "What is quarterly revenue by region?"
+    sql: |
+      SELECT 
+        region,
+        DATE_TRUNC('QUARTER', sale_date) AS quarter,
+        SUM(total_revenue) AS revenue
+      FROM __sales_data  # CRITICAL: __ prefix + logical name
+      GROUP BY region, quarter
+      ORDER BY quarter, revenue DESC
+    verified_at: 1737590400
+    verified_by: data_team
+    use_as_onboarding_question: true
+
+  - name: yoy_growth
+    question: "What is year over year revenue growth?"
+    sql: |
+      WITH yearly AS (
+        SELECT 
+          YEAR(sale_date) AS year,
+          SUM(total_revenue) AS revenue
+        FROM __sales_data
+        GROUP BY year
+      )
+      SELECT 
+        year,
+        revenue,
+        LAG(revenue) OVER (ORDER BY year) AS prev_year,
+        (revenue - LAG(revenue) OVER (ORDER BY year)) / 
+          NULLIF(LAG(revenue) OVER (ORDER BY year), 0) * 100 AS yoy_growth_pct
+      FROM yearly
+      ORDER BY year DESC
+    verified_at: 1737590400
+    verified_by: data_team
+```
+
+**VQR Workflow for Agent Improvement:**
+
+1. **Identify problem queries:** Review agent traces to find incorrect SQL generation
+2. **Write correct SQL:** Create the accurate query manually
+3. **Add to VQR:** Add question-SQL pair to YAML semantic model
+4. **Upload to stage:** `PUT file://model.yaml @STAGE/`
+5. **Update agent:** Switch from `semantic_view_fqn` to `semantic_model_file`
+6. **Test:** Verify agent now uses verified query SQL
+
+**Agent Planning Instructions for VQR:**
+
+When agent has VQR-enabled tools, update planning instructions to leverage verified queries:
+
+```yaml
+planning_instructions: |
+  Tool Selection and Usage:
+  1. For quantitative questions, use the sales_analyzer tool
+  2. The tool has verified queries for common questions - expect accurate results for:
+     - Quarterly revenue by region
+     - Year over year growth calculations
+     - Top customers/products analysis
+  3. For questions matching verified queries, results are guaranteed accurate
+  4. For novel questions, the tool generates SQL - verify complex results
+```
+
+**See Also:**
+- `106c-snowflake-semantic-views-integration.md` - Complete VQR documentation and syntax
+- [Verified Query Repository](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst/verified-query-repository) - Official documentation
 
 **REST API Configuration with tool_resources:**
 

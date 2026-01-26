@@ -124,6 +124,12 @@ MODE: PLAN
 
    **Token Optimization Note:** DEFER specialized rules until task list defined in PLAN mode. Load during ACT phase based on specific tasks.
 
+   **C. Check for Rule Examples (for complex configurations)**
+   - IF loaded rule involves multi-tool orchestration (Cortex Agent, Cortex Search, Semantic View):
+     - CHECK for companion example: `rules/examples/{rule-number}-*-example.md`
+     - IF example exists: Load example for concrete reference implementation
+   - Example patterns: `115-cortex-agent-hybrid-sql-example.md`, `106-semantic-view-yaml-vqr-example.md`
+
 4. **Declare MODE** - First line of response: `MODE: [PLAN|ACT]`
    - Default: MODE: PLAN
    - ACT only after user types "ACT"

@@ -46,6 +46,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **fix(AGENTS.md):** replace 14 arrow characters (`→`) with text alternatives ("maps to", "becomes", "then", `:`) per 002g-agent-optimization.md Anti-Pattern 6
 
 ### Added
+- **feat(examples):** add reference implementations for Cortex components
+  - `rules/examples/106-semantic-view-ddl-example.md` - SQL DDL approach for semantic views
+  - `rules/examples/106-semantic-view-yaml-vqr-example.md` - YAML with verified queries (VQRs)
+  - `rules/examples/115-cortex-agent-hybrid-python-example.md` - Python SDK hybrid agent
+  - `rules/examples/115-cortex-agent-hybrid-sql-example.md` - SQL DDL hybrid agent
+  - `rules/examples/116-cortex-search-service-example.md` - Cortex Search service setup
+- **feat(schemas):** add example-schema.yml for validating example files
+  - Structure validation for example files in rules/examples/
+  - Required sections: Context, Prerequisites, Implementation, Validation
+  - Context field validation for Parent Rule, Version, Last Validated
+- **feat(scripts):** enhance scripts to handle examples directory
+  - index_generator.py: skip examples/ during rule indexing
+  - keyword_generator.py: skip examples/ during keyword extraction
+  - rule_deployer.py: copy examples/ directory during deployment
+  - schema_validator.py: add ExampleValidator class with --examples flag
 - **docs:** standardize Last Updated timestamps across all documentation
   - Added `**Last Updated:** 2026-01-21` to AGENTS.md and 6 docs/*.md files
 

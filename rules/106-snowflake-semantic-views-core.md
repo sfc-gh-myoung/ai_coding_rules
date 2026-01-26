@@ -68,6 +68,10 @@ Authoritative guidance for creating Snowflake Native Semantic Views using the `C
 - **100-snowflake-core.md** - DDL fundamentals and object naming conventions
 - **107-snowflake-security-governance.md** - Masking policies and row access policies on semantic views
 
+**Examples:**
+- **examples/106-semantic-view-ddl-example.md** - Creating semantic views using SQL DDL
+- **examples/106-semantic-view-yaml-vqr-example.md** - YAML-based semantic model with verified queries
+
 ### External Documentation
 - [Snowflake Semantic Views Documentation](https://docs.snowflake.com/en/user-guide/semantic-views) - Official semantic view syntax and examples
 - [Cortex Analyst with Semantic Views](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst) - Using semantic views for natural language queries
@@ -431,7 +435,13 @@ CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
 ```
 **Problem:** DDL syntax limitation; verified queries unsupported in CREATE SEMANTIC VIEW; Cortex Analyst features blocked; workarounds needed; confusion; incomplete semantic model; reduced query accuracy
 
-**Correct Pattern:**
+**Correct Pattern - YAML Verified Query Repository (VQR):**
+
+> **CRITICAL: VQR SQL Syntax - Table Naming**
+> In verified queries, table references use **logical table names** with a **double underscore prefix (`__`)**.
+> - Use `__sales_data` (logical name from YAML `tables.name`), NOT the physical table name
+> - This is the most common VQR error - using physical table names instead of `__logical_name`
+
 ```yaml
 # File: sales_semantic_model.yaml
 # Upload to Snowflake stage: @analytics.models/sales_semantic_model.yaml
@@ -440,11 +450,11 @@ name: sales_analysis
 description: Sales analysis semantic model with verified queries
 
 tables:
-  - name: sales_data
+  - name: sales_data  # <-- This logical name becomes __sales_data in VQR SQL
     base_table:
       database: PROD
       schema: SALES
-      table: SALES_FACT
+      table: SALES_FACT  # <-- Physical table (NOT used in VQR SQL)
 
     dimensions:
       - name: sale_date
@@ -463,33 +473,63 @@ tables:
           - "revenue"
           - "sales total"
 
-# Verified queries - ONLY supported in YAML format
+# Verified Query Repository (VQR) - ONLY supported in YAML format
+# SQL uses __logical_table_name (double underscore + name from tables.name)
 verified_queries:
   - name: monthly_revenue
-    question: What is the total revenue by month?
+    question: "What is the total revenue by month?"
     sql: |
       SELECT
         DATE_TRUNC('MONTH', sale_date) AS month,
         SUM(total_revenue) AS revenue
-      FROM sales_analysis
+      FROM __sales_data  -- CRITICAL: __ prefix + logical table name
       GROUP BY month
       ORDER BY month DESC
-    verified_at: 1701734400
+    verified_at: 1737590400  # Unix timestamp
     verified_by: analytics_team
-    use_as_onboarding_question: true
+    use_as_onboarding_question: true  # Shows in Snowsight onboarding
 
   - name: top_products
-    question: What are the top 10 products by revenue?
+    question: "What are the top 10 products by revenue?"
     sql: |
       SELECT
         product_name,
         SUM(total_revenue) AS revenue
-      FROM sales_analysis
+      FROM __sales_data  -- Use __ prefix, NOT physical table name
       GROUP BY product_name
       ORDER BY revenue DESC
       LIMIT 10
-    verified_at: 1701734400
+    verified_at: 1737590400
     verified_by: analytics_team
+
+  - name: california_profit
+    question: "What was the profit from California last month?"
+    sql: |
+      SELECT SUM(profit) AS total_profit
+      FROM __sales_data
+      WHERE state = 'CA'
+        AND sale_date >= DATE_TRUNC('MONTH', DATEADD('MONTH', -1, CURRENT_DATE()))
+        AND sale_date < DATE_TRUNC('MONTH', CURRENT_DATE())
+    verified_at: 1737590400
+    verified_by: analytics_team
+```
+
+**VQR SQL Syntax Rules:**
+1. **Table references:** Use `__logical_name` (double underscore + `tables.name` from YAML)
+2. **Column references:** Use logical column names from dimensions/metrics (e.g., `sale_date`, `total_revenue`)
+3. **Aggregations:** Can use aggregation functions directly or reference pre-defined metrics
+4. **Standard SQL:** Supports standard Snowflake SQL functions (DATE_TRUNC, SUM, etc.)
+
+**Common VQR Mistakes:**
+```yaml
+# WRONG: Using physical table name
+sql: SELECT * FROM PROD.SALES.SALES_FACT  # Physical name - will fail!
+
+# WRONG: Using single underscore
+sql: SELECT * FROM _sales_data  # Single underscore - wrong syntax!
+
+# CORRECT: Double underscore + logical name
+sql: SELECT * FROM __sales_data  # Matches tables.name in YAML
 ```
 
 ```sql
@@ -510,14 +550,14 @@ CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
 
 -- Verified queries remain in YAML file uploaded to stage
 -- Cortex Analyst references YAML file for verified queries
--- See 106c-snowflake-semantic-views-integration for integration patterns
+-- See 106c-snowflake-semantic-views-integration for VQR integration patterns
 ```
 **Benefits:** Proper separation of concerns; verified queries supported; Cortex Analyst fully functional; improved query accuracy; maintainable; follows Snowflake architecture; clear documentation
 
 **Reference:**
-- See [Snowflake Semantic Model Specification](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst/semantic-model-spec) for complete YAML format
+- See [Verified Query Repository](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst/verified-query-repository) for complete VQR documentation
+- See [Verified Query Suggestions](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst/verified-query-suggestions) for AI-suggested queries (Preview)
 - See `106c-snowflake-semantic-views-integration` for using verified queries with Cortex Analyst
-- See `106c-snowflake-semantic-views-integration` for integration patterns
 
 **Anti-Pattern 6: Referencing Non-Existent Physical Columns**
 ```sql

@@ -1391,6 +1391,186 @@ class SchemaValidator:
         return json.dumps(output, indent=2)
 
 
+class ExampleValidator:
+    """Validates example files against example-schema.yml."""
+
+    def __init__(self, schema_path: Path | None = None, debug: bool = False):
+        """Initialize validator with example schema.
+
+        Args:
+            schema_path: Path to example YAML schema file. Defaults to schemas/example-schema.yml
+            debug: Enable debug logging
+        """
+        if schema_path is None:
+            schema_path = project_root / "schemas" / "example-schema.yml"
+
+        self.schema_path = schema_path
+        self.debug = debug
+        self.schema = self._load_schema()
+
+    def _load_schema(self) -> dict[str, Any]:
+        """Load and validate example YAML schema file."""
+        if not self.schema_path.exists():
+            raise FileNotFoundError(f"Example schema file not found: {self.schema_path}")
+
+        with open(self.schema_path) as f:
+            schema = yaml.safe_load(f)
+
+        return schema
+
+    def _debug(self, message: str, context: dict[str, Any] | None = None) -> None:
+        """Log debug message if debug mode enabled."""
+        if not self.debug:
+            return
+
+        print(f"[DEBUG] {message}", file=sys.stderr)
+        if context:
+            for key, value in context.items():
+                print(f"  {key}: {value}", file=sys.stderr)
+
+    def validate_file(self, file_path: Path) -> ValidationResult:
+        """Validate a single example file against the schema.
+
+        Args:
+            file_path: Path to example file to validate
+
+        Returns:
+            ValidationResult with errors and passed checks
+        """
+        result = ValidationResult(file_path=file_path)
+
+        try:
+            with open(file_path) as f:
+                content = f.read()
+        except Exception as e:
+            result.errors.append(
+                ValidationError(
+                    severity="CRITICAL",
+                    message=f"Failed to read file: {e}",
+                    error_group="File",
+                )
+            )
+            return result
+
+        lines = content.split("\n")
+
+        # Validate required sections
+        for section in self.schema.get("required_sections", []):
+            self._validate_section(content, lines, result, section)
+
+        # Validate context fields
+        for ctx_field in self.schema.get("context_fields", []):
+            self._validate_context_field(content, result, ctx_field)
+
+        return result
+
+    def _validate_section(
+        self, content: str, lines: list[str], result: ValidationResult, section: dict
+    ) -> None:
+        """Validate a required section exists."""
+        name = section.get("name", "Unknown")
+        pattern = section.get("pattern")
+        heading = section.get("heading")
+
+        found = False
+
+        if pattern:
+            if re.search(pattern, content, re.MULTILINE):
+                found = True
+        elif heading:
+            for line in lines:
+                if line.strip() == heading:
+                    found = True
+                    break
+
+        if found:
+            result.passed_checks += 1
+            # Check must_contain if specified
+            if section.get("must_contain"):
+                if section["must_contain"] in content:
+                    result.passed_checks += 1
+                else:
+                    result.errors.append(
+                        ValidationError(
+                            severity=section.get("severity", "HIGH"),
+                            message=f"{name} section must contain {section['must_contain']}",
+                            error_group=section.get("error_group", "Structure"),
+                        )
+                    )
+        else:
+            result.errors.append(
+                ValidationError(
+                    severity=section.get("severity", "HIGH"),
+                    message=section.get("error_message", f"Missing required section: {name}"),
+                    error_group=section.get("error_group", "Structure"),
+                )
+            )
+
+    def _validate_context_field(self, content: str, result: ValidationResult, field: dict) -> None:
+        """Validate a context field format."""
+        name = field.get("name", "Unknown")
+        pattern = field.get("pattern")
+
+        if pattern and re.search(pattern, content):
+            result.passed_checks += 1
+        else:
+            result.errors.append(
+                ValidationError(
+                    severity=field.get("severity", "MEDIUM"),
+                    message=field.get("error_message", f"Invalid format for {name}"),
+                    error_group="Context",
+                )
+            )
+
+    def validate_directory(self, directory: Path) -> list[ValidationResult]:
+        """Validate all example files in a directory.
+
+        Args:
+            directory: Directory containing example files (typically rules/examples/)
+
+        Returns:
+            List of ValidationResults
+        """
+        results = []
+        example_files = sorted(directory.glob("*.md"))
+
+        for file_path in example_files:
+            result = self.validate_file(file_path)
+            results.append(result)
+
+        return results
+
+    def format_result(self, result: ValidationResult, detailed: bool = True) -> str:
+        """Format validation result for console output."""
+        output = []
+        output.append("=" * 80)
+        output.append(f"EXAMPLE VALIDATION: {result.file_path}")
+        output.append("=" * 80)
+        output.append("")
+        output.append("SUMMARY:")
+        output.append(f"  ❌ CRITICAL: {result.critical_count}")
+        output.append(f"  ⚠️  HIGH: {result.high_count}")
+        output.append(f"  ℹ️  MEDIUM: {result.medium_count}")
+        output.append(f"  ✓ Passed: {result.passed_checks} checks")
+        output.append("")
+
+        if not result.errors:
+            output.append("✅ All validations passed!")
+            output.append("")
+            output.append("=" * 80)
+            return "\n".join(output)
+
+        for error in result.errors:
+            if detailed:
+                output.append(error.format_detailed())
+            else:
+                output.append(f"[{error.error_group}] {error.message}")
+
+        output.append("")
+        output.append("=" * 80)
+        return "\n".join(output)
+
+
 def main():
     """CLI entry point for schema validator."""
     parser = argparse.ArgumentParser(description="Validate AI coding rules against YAML schema")
@@ -1432,10 +1612,64 @@ def main():
         action="store_true",
         help="Enable debug logging to stderr",
     )
+    parser.add_argument(
+        "--examples",
+        action="store_true",
+        help="Validate example files in rules/examples/ against example-schema.yml",
+    )
 
     args = parser.parse_args()
 
-    # Initialize validator
+    # Handle --examples mode separately
+    if args.examples:
+        try:
+            example_validator = ExampleValidator(debug=args.debug)
+        except Exception as e:
+            print(f"Error loading example schema: {e}", file=sys.stderr)
+            return 1
+
+        # Determine examples directory
+        if args.path.is_dir():
+            examples_dir = args.path
+        else:
+            # Assume rules/examples/ if a file is specified
+            examples_dir = (
+                args.path.parent
+                if "examples" in str(args.path)
+                else project_root / "rules" / "examples"
+            )
+
+        if not examples_dir.exists():
+            print(f"Examples directory not found: {examples_dir}")
+            return 0  # Not an error if no examples exist yet
+
+        results = example_validator.validate_directory(examples_dir)
+
+        if not results:
+            print(f"No example files found in {examples_dir}")
+            return 0
+
+        if args.verbose:
+            for result in results:
+                print(example_validator.format_result(result, detailed=True))
+                print()
+
+        # Print summary
+        total_files = len(results)
+        failed = sum(1 for r in results if r.has_critical_or_high)
+        clean = sum(1 for r in results if r.is_clean)
+
+        print("=" * 80)
+        print("EXAMPLE VALIDATION SUMMARY")
+        print("=" * 80)
+        print(f"Total examples: {total_files}")
+        print(f"✅ Valid: {clean}")
+        print(f"❌ Invalid: {failed}")
+        print("=" * 80)
+
+        return 1 if failed > 0 else 0
+
+    # Initialize validator for rule files
     try:
         validator = SchemaValidator(schema_path=args.schema, debug=args.debug)
     except Exception as e:

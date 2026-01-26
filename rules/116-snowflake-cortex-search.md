@@ -58,6 +58,9 @@ Reliable patterns for building and querying Cortex Search indices, including dat
 - **111-snowflake-observability-core.md** - Logging and performance monitoring
 - **119-snowflake-warehouse-management.md** - Warehouse sizing and management
 
+**Examples:**
+- **examples/116-cortex-search-service-example.md** - Creating and using Cortex Search service
+
 ### External Documentation
 
 - [Cortex Search Overview](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-search/cortex-search-overview) - Indexing and retrieval concepts

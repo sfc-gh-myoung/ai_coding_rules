@@ -371,6 +371,9 @@ class KeywordExtractor:
         for filepath in sorted(self.corpus_dir.rglob("*.md")):
             if filepath.name in SKIP_FILES:
                 continue
+            # Skip examples directory (not rules, deployed separately)
+            if "examples" in filepath.parts:
+                continue
 
             try:
                 content = filepath.read_text(encoding="utf-8")

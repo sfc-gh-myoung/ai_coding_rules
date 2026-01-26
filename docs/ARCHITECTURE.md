@@ -587,6 +587,12 @@ ai_coding_rules/
 │   ├── 221f-python-htmx-integrations.md
 │   ├── 500-frontend-htmx-core.md
 │   ├── 600-golang-core.md      # Go/Golang foundation
+│   ├── examples/               # Validated implementation examples
+│   │   ├── 115-cortex-agent-hybrid-sql-example.md
+│   │   ├── 115-cortex-agent-hybrid-python-example.md
+│   │   ├── 106-semantic-view-ddl-example.md
+│   │   ├── 106-semantic-view-yaml-vqr-example.md
+│   │   └── 116-cortex-search-service-example.md
 │   └── ... (122 total)
 │
 ├── scripts/                    # Automation and validation
@@ -598,7 +604,8 @@ ai_coding_rules/
 │   └── index_generator.py      # Generates RULES_INDEX.md
 │
 ├── schemas/                    # Validation schemas
-│   ├── rule-schema.yml         # Schema definition
+│   ├── rule-schema.yml         # Rule file schema definition
+│   ├── example-schema.yml      # Example file schema definition
 │   └── README.md               # Schema documentation
 │
 ├── tests/                      # Test suite (100+ passing tests)
@@ -668,6 +675,13 @@ ai_coding_rules/
 - No generation required
 - 122 rules covering all domains (including 8 HTMX rules, Go/Golang core, and Alpine.js)
 
+**`rules/examples/`** — Validated implementation examples
+- Complete, runnable reference implementations for complex rules
+- Validated separately against `schemas/example-schema.yml`
+- Not rule files (not validated against rule-schema.yml)
+- Naming pattern: `{rule-number}-{topic}-{variant}-example.md`
+- Used by agents for concrete patterns when implementing Cortex Agents, Semantic Views, Cortex Search
+
 **`scripts/`** — Automation and validation tools
 - `template_generator.py` creates new rules compliant with the schema
 - `rule_deployer.py` copies rules to target projects
@@ -677,7 +691,8 @@ ai_coding_rules/
 - `index_generator.py` generates RULES_INDEX.md catalog
 
 **`schemas/`** — Declarative validation
-- `rule-schema.yml` defines all requirements
+- `rule-schema.yml` defines all requirements for rule files
+- `example-schema.yml` defines validation for example files
 - Used by schema_validator.py
 - Single source of truth for validation logic
 

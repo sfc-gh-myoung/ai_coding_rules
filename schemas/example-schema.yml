@@ -1,0 +1,102 @@
+# YAML Schema for Rule Example Files v1.0
+# ==============================================================================
+# Purpose: Validation schema for example files in rules/examples/
+# Usage: python scripts/schema_validator.py rules/examples/ --examples
+# ==============================================================================
+
+$schema: "http://json-schema.org/draft-07/schema#"
+version: "1.0"
+description: "Structure validation for rule example files"
+last_updated: "2026-01-23"
+
+# ==============================================================================
+# IDENTIFICATION
+# ==============================================================================
+identification:
+  directory: "rules/examples"
+  pattern: "^\\d{3}[a-z]?-.+-example\\.md$"
+  description: "Example files must be in rules/examples/ and follow naming pattern NNN-topic-example.md"
+
+# ==============================================================================
+# REQUIRED SECTIONS
+# ==============================================================================
+required_sections:
+  - name: "Title"
+    pattern: "^# \\d{3}[a-z]? Example:"
+    error_message: "Example file must have H1 title matching pattern: # NNN Example: Topic (Language)"
+    severity: "CRITICAL"
+    error_group: "Structure"
+
+  - name: "Header blockquote"
+    pattern: ">.*EXAMPLE FILE"
+    error_message: "Example file must have blockquote indicating it's an EXAMPLE FILE"
+    severity: "HIGH"
+    error_group: "Structure"
+
+  - name: "Context"
+    heading: "## Context"
+    required_fields:
+      - "Parent Rule:"
+      - "Demonstrates:"
+      - "Use When:"
+      - "Version:"
+      - "Last Validated:"
+    error_message: "Context section must contain all required fields"
+    severity: "CRITICAL"
+    error_group: "Context"
+
+  - name: "Prerequisites"
+    heading: "## Prerequisites"
+    error_message: "Prerequisites section is required"
+    severity: "HIGH"
+    error_group: "Structure"
+
+  - name: "Implementation"
+    heading: "## Implementation"
+    must_contain: "```"
+    error_message: "Implementation section must contain code block"
+    severity: "CRITICAL"
+    error_group: "Implementation"
+
+  - name: "Validation"
+    heading: "## Validation"
+    error_message: "Validation section is required"
+    severity: "HIGH"
+    error_group: "Structure"
+
+# ==============================================================================
+# CONTEXT FIELD VALIDATION
+# ==============================================================================
+context_fields:
+  - name: "Parent Rule"
+    pattern: "\\*\\*Parent Rule:\\*\\*\\s+\\d{3}[a-z]?-[a-zA-Z0-9_-]+\\.md"
+    error_message: "Parent Rule must reference a valid rule file (e.g., 115-snowflake-cortex-agents-core.md)"
+    severity: "HIGH"
+
+  - name: "Version"
+    pattern: "\\*\\*Version:\\*\\*\\s+\\d+\\.\\d+"
+    error_message: "Version must be in format N.N (e.g., 1.0)"
+    severity: "MEDIUM"
+
+  - name: "Last Validated"
+    pattern: "\\*\\*Last Validated:\\*\\*\\s+\\d{4}-\\d{2}-\\d{2}"
+    error_message: "Last Validated must be date format YYYY-MM-DD"
+    severity: "HIGH"
+
+# ==============================================================================
+# ERROR REPORTING
+# ==============================================================================
+error_reporting:
+  group_by: "section"
+  error_groups:
+    - "Structure"
+    - "Context"
+    - "Implementation"
+  show_fix_suggestions: true
+  severity_levels:
+    CRITICAL:
+      fail_validation: true
+    HIGH:
+      fail_validation: true
+    MEDIUM:
+      fail_validation: false

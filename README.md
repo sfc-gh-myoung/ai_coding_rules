@@ -677,6 +677,7 @@ For questions or discussions, file an issue on the repository.
 ```ascii
 ai_coding_rules/
 ├── rules/                  ← Production-ready rules (122 total)
+│   └── examples/           ← Validated implementation examples
 ├── AGENTS.md               ← Rule loading protocol for AI assistants
 ├── rules/RULES_INDEX.md          ← Searchable rule catalog
 ├── scripts/                ← Validation and deployment tools
@@ -693,7 +694,7 @@ ai_coding_rules/
 │   ├── TOKEN_BUDGETS.md        ← Token budget guidelines
 │   └── USING_*.md              ← Skill usage guides
 ├── tests/                  ← Test suite (98% coverage)
-├── schemas/                ← YAML schemas for rule validation
+├── schemas/                ← YAML schemas for rule/example validation
 ├── prompts/                ← User prompt templates
 └── skills/                 ← Claude Agent Skills (6 total)
     ├── rule-reviewer/          ← Review individual rules

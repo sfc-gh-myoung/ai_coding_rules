@@ -29,6 +29,10 @@ Deploying and managing containerized apps on SPCS: compute pools, service specs,
 
 **Related:** 105 (cost), 107 (security), 111 (observability), 119 (warehouse mgmt)
 
+### Related Examples
+
+- **examples/120-spcs-service-spec-example.md** - Production SPCS YAML spec with security, logging, RBAC
+
 ### External Documentation
 - [SPCS Overview](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/overview)
 - [Service Specification](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/specification-reference)

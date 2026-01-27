@@ -50,6 +50,12 @@ Core patterns to design, configure, and deploy Cortex Agents including agent arc
 - **115b-snowflake-cortex-agents-operations.md** - Testing, RBAC, observability
 - **116-snowflake-cortex-search.md** - Cortex Search for document retrieval
 
+### Related Examples
+
+- **examples/115-cortex-agent-prerequisites-example.md** - Pre-flight validation workflow
+- **examples/115-cortex-agent-hybrid-sql-example.md** - Multi-tool agent (SQL DDL)
+- **examples/115-cortex-agent-hybrid-python-example.md** - Multi-tool agent (Python SDK)
+
 ### External Documentation
 - [Cortex Agents Documentation](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents)
 - [Cortex Agent Tools](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents-tools)

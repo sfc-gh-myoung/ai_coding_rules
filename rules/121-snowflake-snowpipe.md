@@ -37,6 +37,10 @@ Comprehensive best practices for continuous file-based data ingestion using Snow
 - **121b-snowflake-snowpipe-monitoring.md** - Monitoring and cost tracking
 - **104-snowflake-streams-tasks.md** - Incremental pipelines and CDC
 
+### Related Examples
+
+- **examples/121-snowpipe-auto-ingest-example.md** - Complete AWS S3 auto-ingest setup with SNS
+
 ### External Documentation
 
 - [Snowpipe Introduction](https://docs.snowflake.com/en/user-guide/data-load-snowpipe-intro)

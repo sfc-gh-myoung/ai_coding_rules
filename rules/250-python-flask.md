@@ -3,844 +3,267 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.0.2
+**LastUpdated:** 2026-01-27
 **LoadTrigger:** kw:flask, kw:web
-**Keywords:** Flask, web development, blueprints, Flask-SQLAlchemy, templates, routing, Flask extensions, application factory, Jinja2, Flask-WTF, CSRF protection
-**TokenBudget:** ~6800
+**Keywords:** Flask, web, blueprints, Flask-SQLAlchemy, templates, routing, application factory
+**TokenBudget:** ~5000
 **ContextTier:** High
 **Depends:** 200-python-core.md
 
 ## Scope
 
 **What This Rule Covers:**
-Comprehensive Flask development best practices, organized into focused patterns that cover all aspects of modern web application development including application architecture, security, templating, database integration, and deployment for building maintainable, secure web applications.
+Flask application development: factory pattern, blueprints, security, SQLAlchemy, templates, deployment.
 
-**When to Load This Rule:**
-- Building Flask web applications
-- Implementing application factory pattern
-- Organizing code with blueprints
-- Securing Flask applications (CSRF, authentication)
-- Integrating Flask-SQLAlchemy for database operations
-- Deploying Flask applications to production
-- Testing Flask applications
+**When to Load:**
+- Building Flask applications
+- Implementing factory pattern and blueprints
+- Securing Flask apps (CSRF, auth)
+- Deploying to production
 
 ## References
 
 ### Dependencies
+**Must Load First:** 200-python-core.md
 
-**Must Load First:**
-- **200-python-core.md** - Core Python patterns and uv usage
-
-**Related:**
-- **203-python-project-setup.md** - Python project structure and packaging
-- **201-python-lint-format.md** - Ruff linting and formatting standards
-- **230-python-pydantic.md** - Pydantic integration for data validation
+**Related:** 203-python-project-setup.md, 201-python-lint-format.md
 
 ### External Documentation
-
 - [Flask Documentation](https://flask.palletsprojects.com/en/stable/)
-- [Flask User's Guide](https://flask.palletsprojects.com/en/stable/#user-s-guide)
-- [Flask API Reference](https://flask.palletsprojects.com/en/stable/#api-reference)
-- [Jinja2 Documentation](https://jinja.palletsprojects.com/)
-- [Werkzeug Documentation](https://werkzeug.palletsprojects.com/)
 - [SQLAlchemy Documentation](https://docs.sqlalchemy.org/)
 
 ## Contract
 
 ### Inputs and Prerequisites
-
-Python 3.11+, Flask framework, understanding of web application architecture, knowledge of HTTP protocols
+Python 3.11+, Flask framework, HTTP protocols understanding
 
 ### Mandatory
-
-Application factory pattern, blueprints, Flask-WTF for forms, Flask-SQLAlchemy for database, CSRF protection, environment-based configuration, Jinja2 templates
-
-### Forbidden
-
-Global Flask instance, hardcoded secrets in code, development server in production, storing passwords in plaintext, disabled CSRF protection
-
-### Execution Steps
-
-1. Create Flask app using application factory pattern
-2. Organize code into blueprints for modularity
-3. Configure environment-based settings (development, production, testing)
-4. Enable CSRF protection with Flask-WTF
-5. Integrate Flask-SQLAlchemy for database operations
-6. Implement proper error handling and logging
-7. Create Jinja2 templates with auto-escaping
-8. Test with Flask test client
-9. Deploy with production WSGI server (Gunicorn)
-
-### Output Format
-
-Flask application with factory pattern, modular blueprints, secure configuration, proper error handling, production-ready deployment
-
-### Validation
-
-**Pre-Task-Completion Checks:**
-- App created via factory function
+- Application factory pattern
 - Blueprints for modular organization
+- Flask-WTF for forms, Flask-SQLAlchemy for DB
 - CSRF protection enabled
 - Environment-based configuration
-- Templates use auto-escaping
-- Flask-SQLAlchemy configured
+- Jinja2 templates with auto-escaping
 
-**Success Criteria:**
-- Application starts without errors
-- All routes accessible
-- CSRF protection working
-- Database connections successful
+### Forbidden
+- Global Flask instance
+- Hardcoded secrets
+- Development server in production
+- Plaintext passwords
+- Disabled CSRF protection
+
+### Execution Steps
+1. Create app via factory function
+2. Organize into blueprints
+3. Configure environment-based settings
+4. Enable CSRF with Flask-WTF
+5. Integrate Flask-SQLAlchemy
+6. Implement error handling/logging
+7. Create Jinja2 templates
+8. Test with Flask test client
+9. Deploy with Gunicorn
+
+### Output Format
+Flask app with factory pattern, blueprints, secure config, production-ready deployment
+
+### Validation
+- App created via factory
+- Blueprints registered
+- CSRF enabled
+- Environment config working
 - Tests passing
-- Production deployment ready
-
-**Negative Tests:**
-- Global Flask instance (should be avoided)
-- Hardcoded secrets (should fail security review)
-- Development server in production (should be flagged)
-- Missing CSRF protection (should fail security tests)
-
-### Design Principles
-
-1. **Application Factory Pattern** - Use factory functions for app creation and configuration
-2. **Blueprint Modularization** - Organize code into logical, reusable blueprints
-3. **Security by Design** - Implement CSRF protection, input validation, and secure sessions
-4. **Configuration Management** - Environment-based configuration with proper secret handling
-5. **Template Security** - Proper Jinja2 templating with XSS protection
-6. **Database Best Practices** - Use SQLAlchemy with proper session management
-7. **Error Handling Excellence** - Custom error pages and comprehensive logging
-8. **Testing Strategy** - Unit and integration testing with Flask's test client
-9. **Production Readiness** - WSGI deployment with proper monitoring and logging
-10. **Extension Integration** - Proper use of Flask ecosystem extensions
-11. **Request Context Management** - Understand and leverage Flask's application and request contexts
 
 ### Post-Execution Checklist
-
-- [ ] App created via factory function
-- [ ] Blueprints for modular organization
+- [ ] Factory function creates app
+- [ ] Blueprints organized
 - [ ] CSRF protection enabled
-- [ ] Environment-based configuration
+- [ ] Environment-based config
 - [ ] Templates use auto-escaping
 - [ ] Flask-SQLAlchemy configured
 - [ ] Error handlers registered
-- [ ] Logging configured
-- [ ] Tests written and passing
-- [ ] Production deployment configured
+- [ ] Tests passing
 
 ## Anti-Patterns and Common Mistakes
 
-### Anti-Pattern 1: Using Flask's Development Server in Production
-
-**Problem:** Running `flask run` or `app.run()` in production instead of a production WSGI server like Gunicorn or uWSGI.
-
-**Why It Fails:** Development server is single-threaded, not designed for concurrent requests. No process management or auto-restart on crashes. Security features disabled. Performance is 10-100x worse than production servers.
+### Anti-Pattern 1: Development Server in Production
+```python
+# WRONG
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
+```
+**Problem:** Single-threaded, no fault tolerance, 10-100x slower than production servers.
 
 **Correct Pattern:**
-```python
-# BAD: Development server in production
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)  # Single-threaded, no fault tolerance
-
-# GOOD: Production deployment with Gunicorn
-# gunicorn --workers 4 --bind 0.0.0.0:5000 wsgi:app
-
-# wsgi.py
-from app import create_app
-app = create_app()
-
-# Dockerfile
-CMD ["gunicorn", "--workers", "4", "--bind", "0.0.0.0:5000", "wsgi:app"]
+```bash
+gunicorn --workers 4 --bind 0.0.0.0:5000 wsgi:app
 ```
 
-### Anti-Pattern 2: Storing Secrets in Flask Config Files
-
-**Problem:** Hardcoding SECRET_KEY, database passwords, or API keys in config.py or directly in application code.
-
-**Why It Fails:** Secrets committed to version control. Visible to anyone with repo access. Cannot rotate without code changes. Different environments require code modification. Security audit failures.
-
-**Correct Pattern:**
+### Anti-Pattern 2: Hardcoded Secrets
 ```python
-# BAD: Hardcoded secrets
+# WRONG
 class Config:
     SECRET_KEY = "super-secret-key-12345"
-    SQLALCHEMY_DATABASE_URI = "postgresql://user:password@localhost/db"
+```
+**Problem:** Secrets in version control, cannot rotate, security audit failure.
 
-# GOOD: Environment variables with validation
-import os
-
+**Correct Pattern:**
+```python
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY")
-    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
-
     def __init__(self):
         if not self.SECRET_KEY:
-            raise ValueError("SECRET_KEY environment variable required")
-
-# Or use python-dotenv for local development
-from dotenv import load_dotenv
-load_dotenv()  # Loads from .env file (not committed to git)
+            raise ValueError("SECRET_KEY required")
 ```
 
-> **Investigation Required**
-> When applying this rule:
-> 1. **Read existing Flask app structure BEFORE adding routes** - Check app.py, blueprints/, models/ organization
-> 2. **Verify application factory usage** - Check if create_app() exists or if global Flask instance is used
-> 3. **Never speculate about blueprint structure** - Read existing blueprints to understand registration patterns
-> 4. **Check for Flask extensions** - Don't create duplicate extension instances (db, csrf, login_manager)
-> 5. **Make grounded recommendations based on investigated app structure** - Match existing patterns
->
-> **Anti-Pattern:**
-> "Based on typical Flask apps, you probably use this blueprint structure..."
-> "Let me add this route - it should work with standard patterns..."
->
-> **Correct Pattern:**
-> "Let me check your existing Flask app structure first."
-> [reads app.py, blueprints/, checks for factory pattern and extensions]
-> "I see you're using application factory with blueprints in blueprints/ and Flask-SQLAlchemy. Here's a new route following the same pattern..."
+## Implementation Details
 
-## Output Format Examples
-
-```python
-# Investigation: Check current implementation
-# Read existing files, understand patterns
-
-# Implementation: Following uv + ruff + pytest standards
-from typing import Protocol
-from datetime import datetime, UTC
-
-class ServiceProtocol(Protocol):
-    """Clear contract for service implementations."""
-
-    def process(self, data: dict) -> dict:
-        """Process data following validation rules."""
-        ...
-
-def implementation_function(input_data: dict) -> dict:
-    """
-    Implement feature following project conventions.
-
-    Args:
-        input_data: Validated input following schema
-
-    Returns:
-        Processed result with metadata
-
-    Raises:
-        ValueError: If input validation fails
-    """
-    # Use datetime.now(UTC) not datetime.utcnow()
-    timestamp = datetime.now(UTC)
-
-    # Implement business logic
-    result = {"status": "success", "timestamp": timestamp}
-    return result
-
-# Validation: Test the implementation
-def test_implementation_function():
-    """Test following AAA pattern."""
-    # Arrange
-    test_input = {"key": "value"}
-
-    # Act
-    result = implementation_function(test_input)
-
-    # Assert
-    assert result["status"] == "success"
-    assert "timestamp" in result
+### Project Structure
+```
+app/
+├── __init__.py         # Factory
+├── config.py           # Configuration
+├── extensions.py       # Extensions
+├── models/             # SQLAlchemy models
+├── blueprints/
+│   ├── auth/          # Auth routes/forms
+│   ├── main/          # Main routes
+│   └── api/           # API endpoints
+├── templates/
+└── static/
 ```
 
-```bash
-# Validation commands
-uvx ruff check .
-uvx ruff format --check .
-uv run pytest tests/
-```
-
-## Flask Rule Categories
-
-### Core Development Patterns (This File)
-- Application structure and factory pattern
-- Blueprint organization and registration
-- Request handling and routing
-- Template rendering with Jinja2
-- Configuration management
-- Integration with Python core rules
-
-### [SECURE] Security and Forms
-**Related Extensions:** Flask-WTF, Flask-Login, Flask-Security
-- CSRF protection and form validation
-- User authentication and session management
-- Input sanitization and XSS prevention
-- Security headers and HTTPS enforcement
-- Password hashing and secure storage
-
-### Database and Models
-**Related Extensions:** Flask-SQLAlchemy, Flask-Migrate
-- SQLAlchemy integration patterns
-- Database session management
-- Migration strategies
-- Model relationships and queries
-
-## Quick Reference
-
-### Development Workflow
-```bash
-# Setup (following 200-python-core.md)
-uv add flask
-uv run flask --app app run --debug
-
-# Testing
-uv run pytest tests/ -v --cov=app
-
-# Linting (see 201-python-lint-format.md for complete configuration)
-uvx ruff check . && uvx ruff format .
-```
-
-### Essential Patterns
-- **Application Factory**: Create apps through factory functions
-- **Blueprint Organization**: Separate concerns into logical modules
-- **Context Management**: Understand application and request contexts
-- **Template Inheritance**: Use Jinja2 template inheritance effectively
-- **Error Handling**: Custom error pages and proper exception handling
-- **Configuration**: Environment-based settings with proper validation
-
-## Application Structure and Organization
-
-### Project Layout
-- **Always:** Use the application factory pattern for Flask applications.
-- **Always:** Organize code using blueprints for modular architecture.
-- **Always:** Follow the project structure from `203-python-project-setup.md` with proper `__init__.py` files.
-
-Recommended directory structure for `app/`:
-- `__init__.py` - Application factory
-- `config.py` - Configuration classes
-- **models/** - SQLAlchemy models
-  - `__init__.py`, `user.py`, `post.py`
-- **blueprints/** - Route modules
-  - `__init__.py`
-  - **auth/** - `__init__.py`, `routes.py` (Authentication routes), `forms.py` (WTForms forms)
-  - **main/** - `__init__.py`, `routes.py` (Main application routes)
-  - **api/** - `__init__.py`, `routes.py` (API endpoints)
-- **templates/** - Jinja2 templates
-  - `base.html` - Base template
-  - **auth/**, **main/**
-- **static/** - Static assets
-  - **css/**, **js/**, **images/**
-- `extensions.py` - Extension initialization
-
-### Application Factory Pattern
-- **Requirement:** Create Flask app instance through a factory function.
-- **Always:** Separate app creation from configuration and extension initialization.
-- **Reference:** [Flask Application Factories](https://flask.palletsprojects.com/en/stable/patterns/appfactories/)
-
+### Application Factory
 ```python
 # app/__init__.py
 from flask import Flask
 from app.config import Config
 from app.extensions import db, migrate, login_manager, csrf
 from app.blueprints.main import main_bp
-from app.blueprints.auth import auth_bp
 
 def create_app(config_class=Config):
-    """Create and configure Flask application."""
     app = Flask(__name__)
     app.config.from_object(config_class)
-
-    # Initialize extensions
+    
     db.init_app(app)
     migrate.init_app(app, db)
-    login_manager.init_app(app)
     csrf.init_app(app)
-
-    # Register blueprints
+    
     app.register_blueprint(main_bp)
-    app.register_blueprint(auth_bp, url_prefix='/auth')
-
-    # Register error handlers
     register_error_handlers(app)
-
     return app
-
-def register_error_handlers(app):
-    """Register custom error handlers."""
-    @app.errorhandler(404)
-    def not_found_error(error):
-        return render_template('errors/404.html'), 404
-
-    @app.errorhandler(500)
-    def internal_error(error):
-        db.session.rollback()
-        return render_template('errors/500.html'), 500
 ```
 
-### Extension Management
-- **Always:** Initialize extensions in a separate module for clean separation.
-- **Rule:** Use `init_app()` pattern for all extensions to support application factory.
-
+### Extensions
 ```python
 # app/extensions.py
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
-from flask_caching import Cache
 
 db = SQLAlchemy()
 migrate = Migrate()
-login_manager = LoginManager()
 csrf = CSRFProtect()
-cache = Cache()
-
-# Configure login manager
-login_manager.login_view = 'auth.login'
-login_manager.login_message = 'Please log in to access this page.'
-login_manager.login_message_category = 'info'
 ```
 
-## Blueprint Architecture and Modular Design
-
-### Blueprint Organization
-- **Always:** Use blueprints to organize related functionality.
-- **Always:** Group routes, forms, and templates by feature area.
-- **Reference:** [Modular Applications with Blueprints](https://flask.palletsprojects.com/en/stable/blueprints/)
-
+### Blueprint Pattern
 ```python
 # app/blueprints/auth/__init__.py
 from flask import Blueprint
-
 auth_bp = Blueprint('auth', __name__, template_folder='templates')
-
 from app.blueprints.auth import routes
 ```
 
 ```python
 # app/blueprints/auth/routes.py
-from flask import render_template, redirect, url_for, flash, request
-from flask_login import login_user, logout_user, login_required, current_user
-from app.blueprints.auth import auth_bp
-from app.blueprints.auth.forms import LoginForm, RegistrationForm
-from app.models.user import User
-from app.extensions import db
-
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
-    """User login route."""
-    if current_user.is_authenticated:
-        return redirect(url_for('main.index'))
-
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user and user.check_password(form.password.data):
-            login_user(user, remember=form.remember_me.data)
-            next_page = request.args.get('next')
-            return redirect(next_page or url_for('main.index'))
-        flash('Invalid email or password', 'error')
-
+            login_user(user)
+            return redirect(url_for('main.index'))
     return render_template('auth/login.html', form=form)
-
-@auth_bp.route('/logout')
-@login_required
-def logout():
-    """User logout route."""
-    logout_user()
-    flash('You have been logged out.', 'info')
-    return redirect(url_for('main.index'))
 ```
 
-### Blueprint Registration
-- **Always:** Register blueprints in the application factory.
-- **Rule:** Use consistent URL prefixes for blueprint organization.
-- **Always:** Group related blueprints with appropriate prefixes.
-
-```python
-# In create_app() function
-app.register_blueprint(main_bp)
-app.register_blueprint(auth_bp, url_prefix='/auth')
-app.register_blueprint(api_bp, url_prefix='/api/v1')
-app.register_blueprint(admin_bp, url_prefix='/admin')
-```
-
-## Configuration Management
-
-### Environment-Based Configuration
-- **Always:** Use class-based configuration for different environments.
-- **Always:** Store sensitive information in environment variables.
-- **Reference:** [Configuration Handling](https://flask.palletsprojects.com/en/stable/config/)
-
+### Configuration
 ```python
 # app/config.py
 import os
 from datetime import timedelta
 
 class Config:
-    """Base configuration class."""
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///app.db'
+    SECRET_KEY = os.environ.get('SECRET_KEY')
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-
-    # Session configuration
-    PERMANENT_SESSION_LIFETIME = timedelta(hours=1)
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SAMESITE = 'Lax'
-
-    # CSRF configuration
-    WTF_CSRF_TIME_LIMIT = 3600
-
-    # Mail configuration
-    MAIL_SERVER = os.environ.get('MAIL_SERVER')
-    MAIL_PORT = int(os.environ.get('MAIL_PORT') or 587)
-    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'true').lower() in ['true', 'on', '1']
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
-    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
 
 class DevelopmentConfig(Config):
-    """Development configuration."""
     DEBUG = True
     SESSION_COOKIE_SECURE = False
 
 class ProductionConfig(Config):
-    """Production configuration."""
     DEBUG = False
 
-    @classmethod
-    def init_app(cls, app):
-        Config.init_app(app)
-
-        # Log to syslog in production
-        import logging
-        from logging.handlers import SysLogHandler
-        syslog_handler = SysLogHandler()
-        syslog_handler.setLevel(logging.WARNING)
-        app.logger.addHandler(syslog_handler)
-
 class TestingConfig(Config):
-    """Testing configuration."""
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
     WTF_CSRF_ENABLED = False
-    SESSION_COOKIE_SECURE = False
-
-config = {
-    'development': DevelopmentConfig,
-    'production': ProductionConfig,
-    'testing': TestingConfig,
-    'default': DevelopmentConfig
-}
 ```
 
-## Database Integration and Models
-
-### SQLAlchemy Integration
-- **Always:** Use Flask-SQLAlchemy for database operations.
-- **Always:** Implement proper model relationships and constraints.
-- **Reference:** [SQLAlchemy in Flask](https://flask.palletsprojects.com/en/stable/patterns/sqlalchemy/)
-
+### Forms with CSRF
 ```python
-# app/models/user.py
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField
+from wtforms.validators import DataRequired, Email
+
+class LoginForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired()])
+```
+
+### Model Example
+```python
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.extensions import db
-from datetime import datetime
 
 class User(UserMixin, db.Model):
-    """User model with authentication support."""
     __tablename__ = 'users'
-
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
-    username = db.Column(db.String(80), unique=True, nullable=False, index=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    is_active = db.Column(db.Boolean, default=True)
-
-    # Relationships
-    posts = db.relationship('Post', backref='author', lazy='dynamic', cascade='all, delete-orphan')
-
+    
     def set_password(self, password):
-        """Hash and set user password."""
         self.password_hash = generate_password_hash(password)
-
+    
     def check_password(self, password):
-        """Check if provided password matches hash."""
         return check_password_hash(self.password_hash, password)
-
-    def __repr__(self):
-        return f'<User {self.username}>'
-
-class Post(db.Model):
-    """Post model with user relationship."""
-    __tablename__ = 'posts'
-
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
-    content = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-
-    def __repr__(self):
-        return f'<Post {self.title}>'
 ```
 
-### Database Session Management
-- **Always:** Use proper session management with context handling.
-- **Rule:** Always handle database exceptions and rollback on errors.
-
+### Error Handlers
 ```python
-# Proper session management in routes
-@main_bp.route('/create_post', methods=['GET', 'POST'])
-@login_required
-def create_post():
-    """Create a new post."""
-    form = PostForm()
-    if form.validate_on_submit():
-        try:
-            post = Post(
-                title=form.title.data,
-                content=form.content.data,
-                user_id=current_user.id
-            )
-            db.session.add(post)
-            db.session.commit()
-            flash('Your post has been created!', 'success')
-            return redirect(url_for('main.index'))
-        except Exception as e:
-            db.session.rollback()
-            flash('An error occurred while creating your post.', 'error')
-            app.logger.error(f'Error creating post: {e}')
-
-    return render_template('main/create_post.html', form=form)
-```
-
-## Security Best Practices
-
-### CSRF Protection
-- **Always:** Enable CSRF protection for all forms.
-- **Always:** Use Flask-WTF for form handling and validation.
-- **Reference:** [Security Considerations](https://flask.palletsprojects.com/en/stable/security/)
-
-```python
-# app/blueprints/auth/forms.py
-from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, TextAreaField
-from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
-from app.models.user import User
-
-class LoginForm(FlaskForm):
-    """User login form with CSRF protection."""
-    email = StringField('Email', validators=[DataRequired(), Email()])
-    password = PasswordField('Password', validators=[DataRequired()])
-    remember_me = BooleanField('Remember Me')
-
-class RegistrationForm(FlaskForm):
-    """User registration form with validation."""
-    username = StringField('Username', validators=[
-        DataRequired(),
-        Length(min=4, max=20)
-    ])
-    email = StringField('Email', validators=[DataRequired(), Email()])
-    password = PasswordField('Password', validators=[
-        DataRequired(),
-        Length(min=8)
-    ])
-    password2 = PasswordField('Repeat Password', validators=[
-        DataRequired(),
-        EqualTo('password')
-    ])
-
-    def validate_username(self, username):
-        """Check if username is already taken."""
-        user = User.query.filter_by(username=username.data).first()
-        if user:
-            raise ValidationError('Username already exists. Choose a different one.')
-
-    def validate_email(self, email):
-        """Check if email is already registered."""
-        user = User.query.filter_by(email=email.data).first()
-        if user:
-            raise ValidationError('Email already registered. Choose a different one.')
-```
-
-### Input Validation and Sanitization
-- **Always:** Validate all user input using WTForms validators.
-- **Always:** Use Jinja2's auto-escaping for XSS prevention.
-- **Rule:** Never trust user input without proper validation.
-
-```python
-# Custom validators
-from wtforms.validators import ValidationError
-import re
-
-def validate_strong_password(form, field):
-    """Validate password strength."""
-    password = field.data
-    if len(password) < 8:
-        raise ValidationError('Password must be at least 8 characters long.')
-    if not re.search(r'[A-Z]', password):
-        raise ValidationError('Password must contain at least one uppercase letter.')
-    if not re.search(r'[a-z]', password):
-        raise ValidationError('Password must contain at least one lowercase letter.')
-    if not re.search(r'\d', password):
-        raise ValidationError('Password must contain at least one digit.')
-```
-
-## Template Management and Rendering
-
-### Jinja2 Template Best Practices
-- **Always:** Use template inheritance for consistent layouts.
-- **Always:** Leverage Jinja2's auto-escaping for security.
-- **Reference:** [Templates](https://flask.palletsprojects.com/en/stable/templating/)
-
-```html
-<!-- templates/base.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}My Flask App{% endblock %}</title>
-    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
-</head>
-<body>
-    <nav class="navbar">
-        <a href="{{ url_for('main.index') }}">Home</a>
-        {% if current_user.is_authenticated %}
-            <a href="{{ url_for('main.profile') }}">Profile</a>
-            <a href="{{ url_for('auth.logout') }}">Logout</a>
-        {% else %}
-            <a href="{{ url_for('auth.login') }}">Login</a>
-            <a href="{{ url_for('auth.register') }}">Register</a>
-        {% endif %}
-    </nav>
-
-    <main class="container">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-
-        {% block content %}{% endblock %}
-    </main>
-
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-</body>
-</html>
-```
-
-### Context Processors and Template Functions
-- **Always:** Use context processors for commonly needed template data.
-- **Rule:** Register custom template filters and functions appropriately.
-
-```python
-# In application factory or blueprint
-@app.context_processor
-def inject_user():
-    """Inject common template variables."""
-    return {
-        'current_year': datetime.utcnow().year,
-        'app_name': app.config.get('APP_NAME', 'Flask App')
-    }
-
-@app.template_filter('datetime')
-def datetime_filter(value, format='%Y-%m-%d %H:%M'):
-    """Format datetime for templates."""
-    if value is None:
-        return ""
-    return value.strftime(format)
-```
-
-## Error Handling and Logging
-
-### Custom Error Pages
-- **Always:** Implement custom error handlers for better user experience.
-- **Always:** Log errors appropriately for debugging and monitoring.
-- **Reference:** [Handling Application Errors](https://flask.palletsprojects.com/en/stable/errorhandling/)
-
-```python
-# Error handlers in application factory
 def register_error_handlers(app):
-    """Register custom error handlers."""
-
-    @app.errorhandler(400)
-    def bad_request(error):
-        return render_template('errors/400.html'), 400
-
-    @app.errorhandler(403)
-    def forbidden(error):
-        return render_template('errors/403.html'), 403
-
     @app.errorhandler(404)
-    def not_found(error):
         return render_template('errors/404.html'), 404
-
+    
     @app.errorhandler(500)
     def internal_error(error):
         db.session.rollback()
-        app.logger.error(f'Server Error: {error}')
         return render_template('errors/500.html'), 500
-
-    @app.errorhandler(CSRFError)
-    def handle_csrf_error(e):
-        flash('The form has expired. Please try again.', 'error')
-        return redirect(request.referrer or url_for('main.index'))
 ```
 
-### Logging Configuration
-- **Always:** Configure proper logging for different environments.
-- **Rule:** Use structured logging for better debugging and monitoring.
-
+### Testing
 ```python
-# Logging configuration in config.py
-import logging
-from logging.handlers import RotatingFileHandler
-import os
-
-def configure_logging(app):
-    """Configure application logging."""
-    if not app.debug and not app.testing:
-        # Production logging
-        if not os.path.exists('logs'):
-            os.mkdir('logs')
-
-        file_handler = RotatingFileHandler(
-            'logs/app.log',
-            maxBytes=10240000,
-            backupCount=10
-        )
-        file_handler.setFormatter(logging.Formatter(
-            '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
-        ))
-        file_handler.setLevel(logging.INFO)
-        app.logger.addHandler(file_handler)
-
-        app.logger.setLevel(logging.INFO)
-        app.logger.info('Application startup')
-```
-
-## Testing Strategies
-
-### Flask Test Client
-- **Always:** Use Flask's built-in test client for testing routes.
-- **Always:** Test both successful and error scenarios.
-- **Reference:** [Testing Flask Applications](https://flask.palletsprojects.com/en/stable/testing/)
-
-```python
-# tests/test_auth.py
 import pytest
 from app import create_app, db
-from app.models.user import User
 from app.config import TestingConfig
 
 @pytest.fixture
 def app():
-    """Create application for testing."""
     app = create_app(TestingConfig)
-
     with app.app_context():
         db.create_all()
         yield app
@@ -848,85 +271,45 @@ def app():
 
 @pytest.fixture
 def client(app):
-    """Create test client."""
     return app.test_client()
 
-@pytest.fixture
-def runner(app):
-    """Create test CLI runner."""
-    return app.test_cli_runner()
-
 def test_login_page(client):
-    """Test login page loads correctly."""
     response = client.get('/auth/login')
     assert response.status_code == 200
-    assert b'Login' in response.data
-
-def test_user_registration(client, app):
-    """Test user registration process."""
-    response = client.post('/auth/register', data={
-        'username': 'testuser',
-        'email': 'test@example.com',
-        'password': 'TestPass123',
-        'password2': 'TestPass123'
-    }, follow_redirects=True)
-
-    assert response.status_code == 200
-
-    with app.app_context():
-        user = User.query.filter_by(email='test@example.com').first()
-        assert user is not None
-        assert user.username == 'testuser'
 ```
 
-## Production Deployment
+### Base Template
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}App{% endblock %}</title>
+</head>
+<body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+</body>
+</html>
+```
 
-### WSGI Configuration
-- **Always:** Use a production WSGI server like Gunicorn or uWSGI.
-- **Always:** Configure proper environment variables for production.
-
+### Production Deployment
 ```python
 # wsgi.py
-import os
 from app import create_app
-from app.config import config
-
-config_name = os.environ.get('FLASK_ENV', 'production')
-app = create_app(config[config_name])
-
-if __name__ == "__main__":
-    app.run()
+app = create_app()
 ```
 
-### Production Checklist
-- **Critical:** Set `SECRET_KEY` to a secure random value
-- **Critical:** Disable debug mode in production
-- **Critical:** Use HTTPS with proper SSL certificates
-- **Critical:** Configure proper database connection pooling
-- **Critical:** Set up monitoring and logging
-- **Critical:** Enable CSRF protection
-- **Critical:** Configure secure session cookies
-
-## Integration with Python Core Rules
-
-### Compliance with Existing Rules
-- **Always:** Follow all directives from `200-python-core.md` for Python best practices.
-- **Always:** Use `uv run flask` instead of bare `flask` for development.
-- **Always:** Apply linting and formatting rules from `201-python-lint-format.md`.
-- **Always:** Follow project setup patterns from `203-python-project-setup.md`.
-
-### Development Commands
 ```bash
-# Following Python core rules from 200-python-core.md
-uv add flask flask-sqlalchemy flask-migrate flask-login flask-wtf
+# Development
 uv run flask --app app run --debug
-uv run flask --app app db init
-uv run flask --app app db migrate -m "Initial migration"
-uv run flask --app app db upgrade
 
-# Testing with coverage
-uv run pytest tests/ -v --cov=app --cov-report=html
+# Production
+gunicorn --workers 4 --bind 0.0.0.0:5000 wsgi:app
 
-# Linting and formatting
-uvx ruff check . && uvx ruff format .
+# Testing
+uv run pytest tests/ -v --cov=app
 ```

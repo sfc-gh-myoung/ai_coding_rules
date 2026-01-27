@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-20
 **LoadTrigger:** kw:notebook, kw:jupyter
 **Keywords:** ML, reproducible notebooks, nbqa, notebook linting, code quality, Python, create notebook, debug notebook, notebook execution, notebook testing, notebook deployment, kernel management, cell execution
-**TokenBudget:** ~4150
+**TokenBudget:** ~5050
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 201-python-lint-format.md
 
@@ -298,16 +298,14 @@ When adding cells programmatically or copying from other notebooks, ensure metad
 ```
 
 **Common Naming Prefixes:**
-| Prefix | Usage | Examples |
-|--------|-------|----------|
-| `setup_` | Environment/config cells | `setup_imports`, `setup_session` |
-| `config_` | Configuration parameters | `config_demo_scenario`, `config_warehouse` |
-| `load_` | Data loading cells | `load_customer_data`, `load_features` |
-| `validate_` | Validation/quality checks | `validate_data_quality`, `validate_schema` |
-| `train_` | Model training cells | `train_random_forest`, `train_xgboost` |
-| `step_header_` | Step description markdown | `step_header_data_prep` |
-| `teaching_` | Educational content | `teaching_class_imbalance` |
-| `checkpoint_` | Validation checkpoints | `checkpoint_data_prep_validation` |
+- `setup_` - Environment/config cells (e.g., `setup_imports`, `setup_session`)
+- `config_` - Configuration parameters (e.g., `config_demo_scenario`, `config_warehouse`)
+- `load_` - Data loading cells (e.g., `load_customer_data`, `load_features`)
+- `validate_` - Validation/quality checks (e.g., `validate_data_quality`, `validate_schema`)
+- `train_` - Model training cells (e.g., `train_random_forest`, `train_xgboost`)
+- `step_header_` - Step description markdown (e.g., `step_header_data_prep`)
+- `teaching_` - Educational content (e.g., `teaching_class_imbalance`)
+- `checkpoint_` - Validation checkpoints (e.g., `checkpoint_data_prep_validation`)
 
 ## Data & Performance
 - **Requirement:** Never hard-code credentials or sensitive information. Use environment variables or a secrets manager.

@@ -632,7 +632,7 @@ These skills are used only for ai_coding_rules project maintenance and are exclu
 
 **bulk-rule-reviewer** — Orchestrate bulk rule reviews
 - **Purpose:** Execute comprehensive reviews on all rules in `rules/` directory with consolidated priority reporting
-- **Expected duration:** 5-10 hours for 122 rules (3-5 min per rule, sequential execution)
+- **Expected duration:** 5-10 hours for 124 rules (3-5 min per rule, sequential execution)
 - **Resume capability:** Skip existing reviews to resume after interruption
 - **Output:** Individual review files + master summary report with priority tiers
 - **Trigger keywords:** "bulk review rules", "review all rules", "audit rule repository"

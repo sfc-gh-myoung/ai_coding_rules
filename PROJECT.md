@@ -355,15 +355,15 @@ Automated Merge Procedure:
 
 **Deployment with >100 rules:**
 - **Command:** `task deploy DEST=/path`
-- **Expected duration:** ~30 seconds for 122 rules + 6 skills
+- **Expected duration:** ~30 seconds for 124 rules + 6 skills
 - **Progress monitoring:** Watch output for "Copying rules/" and "Copying skills/"
 - **Verification:** Check destination has correct count: `ls /path/rules/*.md | wc -l`
 
 **Index generation with >100 rules:**
 - **Command:** `task index:generate`
-- **Expected duration:** ~15 seconds for 122 rules
+- **Expected duration:** ~15 seconds for 124 rules
 - **Progress:** Shows "Processing rules..." with count
-- **Output:** RULES_INDEX.md regenerated (~50KB for 122 rules)
+- **Output:** RULES_INDEX.md regenerated (~50KB for 124 rules)
 
 ## Important File Locations
 

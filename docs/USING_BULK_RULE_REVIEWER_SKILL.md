@@ -16,7 +16,7 @@ Key behaviors:
 - Creates master summary report in `{output_root}summaries/`
 - Default `output_root`: `reviews/`
 - Supports resume capability for long-running batches
-- Expected execution time: 5-10 hours for 121 rules (sequential)
+- Expected execution time: 5-10 hours for 124 rules (sequential)
 
 ## Why Not Deployed?
 
@@ -124,7 +124,7 @@ The master summary includes:
 
 **FULL Mode (Comprehensive):**
 - All 7 dimensions evaluated per rule
-- Expected duration: 5-10 hours for 121 rules
+- Expected duration: 5-10 hours for 124 rules
 - Use for: Quarterly audits, pre-release validation
 
 **FOCUSED Mode (Targeted):**
@@ -212,7 +212,7 @@ This writes reviews to `quarterly-audit/rule-reviews/` and summary to `quarterly
 
 ### Q: How long does a full review take?
 
-**A:** For 121 rules in FULL mode: 5-10 hours (3-5 minutes per rule). This is EXPECTED and REQUIRED for quality reviews.
+**A:** For 124 rules in FULL mode: 5-10 hours (3-5 minutes per rule). This is EXPECTED and REQUIRED for quality reviews.
 
 ### Q: Why is it so slow?
 

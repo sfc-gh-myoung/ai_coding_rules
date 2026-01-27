@@ -673,7 +673,7 @@ ai_coding_rules/
 - Production-ready files
 - Directly editable
 - No generation required
-- 122 rules covering all domains (including 8 HTMX rules, Go/Golang core, and Alpine.js)
+- 124 rules covering all domains (including 8 HTMX rules, Go/Golang core, and Alpine.js)
 
 **`rules/examples/`** — Validated implementation examples
 - Complete, runnable reference implementations for complex rules
@@ -1047,7 +1047,7 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 **Target Structure (in user's project):**
 ```
 /path/to/user-project/
-├── rules/                  # 122 rule files
+├── rules/                  # 124 rule files
 │   ├── 000-global-core.md
 │   ├── 100-snowflake-core.md
 │   └── ...
@@ -1113,8 +1113,8 @@ Validation:
 
 Deployment:
   → Creating destination rules/ directory
-  → Copying 122 rule files...
-  ✓ Copied 122 rules to /path/to/project/rules/
+  → Copying 124 rule files...
+  ✓ Copied 124 rules to /path/to/project/rules/
   ✓ Copied AGENTS.md to /path/to/project/
   ✓ Copied RULES_INDEX.md to /path/to/project/
 

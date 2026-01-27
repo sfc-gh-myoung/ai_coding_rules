@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-20
 **LoadTrigger:** kw:cost, kw:budget, kw:billing
 **Keywords:** budget alerts, spend tracking, Snowflake, SQL, CREDIT_QUOTA, WAREHOUSE_METERING_HISTORY, object tagging, monitor credits, warehouse spending, cost alerts, credit limits, budget management, resource monitor, tag enforcement
-**TokenBudget:** ~1900
+**TokenBudget:** ~2100
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 
@@ -182,6 +182,33 @@ ALTER WAREHOUSE WH_ANALYTICS_M SET RESOURCE_MONITOR = rm_analytics_monthly;
 - **Always:** Follow comprehensive warehouse management practices in `119-snowflake-warehouse-management.md` for type selection, sizing, tagging, and configuration.
 - **Requirement:** Verify all warehouses follow mandatory tagging and resource monitor association requirements.
 - **Always:** Apply object tagging for cost attribution and chargeback. See `123-snowflake-object-tagging.md` for comprehensive tagging patterns and cost tracking queries.
+
+## Cost Analysis Queries
+
+### WAREHOUSE_METERING_HISTORY Query
+```sql
+-- Credit usage by warehouse over last 30 days
+SELECT 
+    warehouse_name,
+    DATE_TRUNC('DAY', start_time) AS usage_date,
+    SUM(credits_used) AS daily_credits,
+    SUM(credits_used_compute) AS compute_credits,
+    SUM(credits_used_cloud_services) AS cloud_services_credits
+FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY
+WHERE start_time >= DATEADD('DAY', -30, CURRENT_TIMESTAMP())
+GROUP BY warehouse_name, usage_date
+ORDER BY warehouse_name, usage_date;
+
+-- Top credit consumers
+SELECT 
+    warehouse_name,
+    SUM(credits_used) AS total_credits
+FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY
+WHERE start_time >= DATEADD('DAY', -30, CURRENT_TIMESTAMP())
+GROUP BY warehouse_name
+ORDER BY total_credits DESC
+LIMIT 10;
+```
 
 ## Resource Management
 - **Always:** Use Resource Monitors to track and control credit usage.

@@ -63,6 +63,10 @@ Execute comprehensive agent-centric reviews on all rule files in `rules/` direct
 - "The user won't notice if I..."
 - "I should ask about time constraints"
 - "Let me create a faster approach"
+- "Let me batch these rules together"
+- "I can validate multiple rules at once"
+- "Let me process rules 4-8 efficiently"
+- "I'll read several rules before reviewing"
 
 **Required Mindset:**
 - "I will complete the full process for each rule"
@@ -87,6 +91,50 @@ Execute comprehensive agent-centric reviews on all rule files in `rules/` direct
   - Recommending rule consolidation
 
 **The user has already considered timing and scope. Proceed with the work.**
+
+### MANDATORY: One Rule At A Time
+
+**NEVER batch multiple rules.** Each rule MUST be processed individually:
+
+1. Read ONE rule file completely
+2. Run schema validator for THAT rule
+3. Apply ALL 7 rubrics to THAT rule
+4. Write review file for THAT rule
+5. THEN move to next rule
+
+**Forbidden patterns:**
+- `for f in rules/*.md; do` (batch shell loops for validation)
+- Reading multiple rules before writing any reviews
+- "Let me process rules 4-8 together"
+- Creating templates to speed up reviews
+- Parallelizing any review steps
+- Combining schema validation for multiple files
+- "Efficient batch processing"
+
+**Why batching fails:**
+- Context overflow loses rubric details mid-batch
+- Template-based reviews miss rule-specific issues
+- Shortcut thinking violates rubric requirements
+- Evidence requirements (15+ line refs) impossible without focused reading
+
+**Canary Check - Batching Detection:**
+
+Before EACH rule review, verify:
+- [ ] I am reviewing exactly ONE rule
+- [ ] I have not combined multiple rules in this tool call
+- [ ] My previous tool call was for ONE rule only
+- [ ] I am NOT creating a "faster approach"
+
+If ANY check fails: STOP, re-read Anti-Optimization Protocol, resume with ONE rule.
+
+### Required Progress Output
+
+After EACH rule review, output exactly:
+```
+[N/124] Complete: {filename} → {score}/100
+```
+
+This output MUST appear after writing EACH review file. If you see yourself planning to output multiple completion messages at once, you are batching - STOP immediately.
 
 ### MANDATORY ENFORCEMENT
 

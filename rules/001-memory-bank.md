@@ -29,6 +29,10 @@ Memory bank patterns for AI context preservation across sessions. All writes sco
 
 **Related:** 002-rule-governance.md, 003-context-engineering.md
 
+### Related Examples
+
+- **examples/001-memory-bank-templates-example.md** - Complete file templates with size budgets
+
 ### External Documentation
 - [Effective Context Engineering](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)
 

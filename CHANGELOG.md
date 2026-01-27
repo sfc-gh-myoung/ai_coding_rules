@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **feat(examples):** add 5 example files recovering patterns from token reduction
+  - `rules/examples/121-snowpipe-auto-ingest-example.md` - Complete AWS S3 auto-ingest setup with SNS
+  - `rules/examples/120-spcs-service-spec-example.md` - Production SPCS YAML spec with security, logging, RBAC
+  - `rules/examples/115-cortex-agent-prerequisites-example.md` - Pre-flight validation workflow
+  - `rules/examples/001-memory-bank-templates-example.md` - Complete file templates with size budgets
+  - `rules/examples/106-semantic-view-workarounds-example.md` - Dimension transformation workarounds
+
+### Changed
+- **feat(rules):** add Related Examples section to 5 rule files
+  - `001-memory-bank.md` - Reference to templates example
+  - `106-snowflake-semantic-views-core.md` - Reference to 3 semantic view examples
+  - `115-snowflake-cortex-agents-core.md` - Reference to 3 cortex agent examples
+  - `120-snowflake-spcs.md` - Reference to SPCS example
+  - `121-snowflake-snowpipe.md` - Reference to Snowpipe example
+- **docs(rules):** update 002-rule-governance.md example list with 3 new examples
+- **feat(skills):** update bulk-rule-reviewer SKILL.md
+
 ### Changed
 - **feat(rules):** enhance semantic view rules with physical column validation (106, 106a, 106c)
   - **106-snowflake-semantic-views-core.md:** Added 3 critical validation steps (DESCRIBE TABLE, cross-reference mappings, Cortex Analyst test), new Anti-Pattern 6 (non-existent columns), mapping syntax clarification

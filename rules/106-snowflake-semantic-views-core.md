@@ -34,6 +34,12 @@ Creating Snowflake Native Semantic Views using `CREATE SEMANTIC VIEW` DDL: struc
 **Must Load First:**
 - **100-snowflake-core.md** - Snowflake SQL patterns
 
+### Related Examples
+
+- **examples/106-semantic-view-ddl-example.md** - Complete DDL creation workflow
+- **examples/106-semantic-view-yaml-vqr-example.md** - YAML with verified queries
+- **examples/106-semantic-view-workarounds-example.md** - Dimension transformation workarounds
+
 ### External Documentation
 - [Snowflake Semantic Views](https://docs.snowflake.com/en/user-guide/semantic-views)
 - [Cortex Analyst](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst)

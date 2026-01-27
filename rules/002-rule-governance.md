@@ -695,7 +695,7 @@ rules/examples/NNN-topic-variant-example.md
 
 Example naming follows pattern: `{rule-number}-{topic}-{variant}-example.md`
 
-**Examples:** `115-cortex-agent-hybrid-sql-example.md`, `106-semantic-view-yaml-vqr-example.md`
+**Examples:** `115-cortex-agent-hybrid-sql-example.md`, `106-semantic-view-yaml-vqr-example.md`, `121-snowpipe-auto-ingest-example.md`, `120-spcs-service-spec-example.md`, `001-memory-bank-templates-example.md`
 
 ### Validation
 

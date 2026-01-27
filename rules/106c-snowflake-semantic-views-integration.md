@@ -1,70 +1,62 @@
-# Snowflake Semantic Views: Integration and Development
+# Snowflake Semantic Views: Integration and Governance
 
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-01-27
 **LoadTrigger:** kw:semantic-integration
-**Keywords:** RBAC, masking policy, row access policy, Generator workflow, iterative development, synonyms, natural language queries, cortex analyst, agent integration, semantic view security, analyst troubleshooting, fix analyst, debug analyst
-**TokenBudget:** ~9250
+**Keywords:** RBAC, masking policy, row access policy, cortex analyst, agent integration, semantic view security, analyst troubleshooting, fix analyst, debug analyst, synonyms, natural language queries
+**TokenBudget:** ~2800
 **ContextTier:** Medium
 **Depends:** 106-snowflake-semantic-views-core.md, 106b-snowflake-semantic-views-querying.md
 
 ## Scope
 
 **What This Rule Covers:**
-Comprehensive guidance for integrating Snowflake Semantic Views with Cortex Analyst and Cortex Agent, applying governance and security controls, and following production-ready development workflows including the Semantic View Generator tool.
+Integrating Snowflake Semantic Views with Cortex Analyst and Cortex Agent, applying governance and security controls, and troubleshooting integration issues.
 
 **When to Load This Rule:**
 - Integrating semantic views with Cortex Analyst
 - Using semantic views with Cortex Agent
 - Applying security policies to semantic views
-- Using the Semantic View Generator tool
-- Implementing production workflows for semantic views
+- Troubleshooting Cortex Analyst integration
+
+**For development workflows and VQR, see `106d-snowflake-semantic-views-development.md`.**
 
 ## References
 
 ### Dependencies
 
 **Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates
-- **106-snowflake-semantic-views-core.md** - Semantic Views DDL fundamentals
-- **106b-snowflake-semantic-views-querying.md** - Querying semantic views
+- **000-global-core.md** - Foundation rule
+- **106-snowflake-semantic-views-core.md** - DDL fundamentals
+- **106b-snowflake-semantic-views-querying.md** - Query patterns
 
 ### External Documentation
-- [Cortex Analyst Documentation](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst) - REST API usage and integration
-- [Cortex Analyst REST API](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst#rest-api) - API endpoint reference
-- [Cortex Agent Documentation](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents) - Agent grounding patterns
-- [Semantic View Generator](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst/semantic-model-generator) - Automated view creation tool
-- [Masking Policies](https://docs.snowflake.com/en/user-guide/security-column-ddm) - Data masking documentation
-- [Row Access Policies](https://docs.snowflake.com/en/user-guide/security-row) - Row-level security documentation
-- [RBAC Overview](https://docs.snowflake.com/en/user-guide/security-access-control-overview) - Role-based access control
+- [Cortex Analyst Documentation](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst)
+- [Cortex Agent Documentation](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents)
+- [Masking Policies](https://docs.snowflake.com/en/user-guide/security-column-ddm)
+- [Row Access Policies](https://docs.snowflake.com/en/user-guide/security-row)
 
 ### Related Rules
-- **Semantic Views Core**: `106-snowflake-semantic-views-core.md` - DDL creation, validation rules, components
-- **Semantic Views Querying**: `106b-snowflake-semantic-views-querying.md` - Query patterns and testing
-- **Snowflake Core**: `100-snowflake-core.md` - Foundational Snowflake practices
-- **Cortex AI/SQL**: `114-snowflake-cortex-aisql.md` - Cortex functions and patterns
-- **Cortex Agents**: `115-snowflake-cortex-agents-core.md` - Agent design and configuration
-- **Security Governance**: `107-snowflake-security-governance.md` - Security policies and governance
+- **106d-snowflake-semantic-views-development.md** - VQR, Generator workflow
+- **115-snowflake-cortex-agents-core.md** - Agent design and configuration
+- **107-snowflake-security-governance.md** - Security policies
 
 ## Contract
 
 ### Inputs and Prerequisites
 
-- Semantic view exists in DATABASE.SCHEMA (created via `CREATE SEMANTIC VIEW`)
-- Cortex Analyst/Agent access enabled in account
+- Semantic view exists (created via `CREATE SEMANTIC VIEW`)
+- Cortex Analyst/Agent access enabled
 - Governance policies defined (masking, row access)
-- Snowflake CLI configured (for testing)
 
 ### Mandatory
 
 - Cortex Analyst REST API with `semantic_view` parameter
 - Cortex Agent Python SDK (`snowflake.core.cortex.Agent`)
-- Semantic View Generator (Snowsight UI or API)
-- SnowCLI cortex analyst commands
-- Standard Snowflake governance (masking policies, row access policies, RBAC)
+- Standard Snowflake governance via base tables
 
 ### Forbidden
 
@@ -73,12 +65,11 @@ Comprehensive guidance for integrating Snowflake Semantic Views with Cortex Anal
 
 ### Execution Steps
 
-1. Create semantic view with comprehensive synonyms and comments
+1. Create semantic view with synonyms and comments
 2. Test with Cortex Analyst REST API or SnowCLI
-3. Apply governance policies to base tables (not semantic views)
-4. Use Generator for initial structure, refine iteratively
-5. Validate natural language query accuracy
-6. Document business context and usage patterns
+3. Apply governance policies to base tables
+4. Validate natural language query accuracy
+5. Configure Cortex Agent grounding (if applicable)
 
 ### Output Format
 
@@ -88,537 +79,44 @@ Comprehensive guidance for integrating Snowflake Semantic Views with Cortex Anal
 
 ### Validation
 
-- Cortex Analyst accepts semantic view and returns valid responses
-- Natural language queries match expected business logic
-- Governance policies enforce security correctly
-- Generator output produces valid DDL
-- Iterative refinements improve query accuracy
+- Cortex Analyst returns valid responses
+- Natural language queries match business logic
+- Governance policies enforce correctly
 
 ### Design Principles
 
-- **Dual approach support**: Use `semantic_view` parameter for DDL-based views (preferred); use `semantic_model_file` for YAML-based models when verified queries or stage-based workflows are needed
-- **Governance via base tables**: Apply masking and row access policies to underlying tables
-- **Iterative refinement**: Start with Generator, enhance with synonyms and comments
-- **Natural language focus**: Optimize for business user queries, not technical SQL
-- **Security inheritance**: Semantic views inherit RBAC and policies from base tables
-- **Development workflow**: Generate, then Validate, then Enhance, then Test, then Deploy
+- **Dual approach support**: `semantic_view` for DDL-based; `semantic_model_file` for YAML with VQR
+- **Governance via base tables**: Apply policies to underlying tables
+- **Security inheritance**: Semantic views inherit RBAC from base tables
 
 ### Post-Execution Checklist
 
-- [ ] Semantic view tested with Cortex Analyst REST API or SnowCLI
+- [ ] Cortex Analyst tested with `semantic_view` parameter
 - [ ] Natural language queries return expected results
-- [ ] Governance policies applied to base tables (not semantic view)
+- [ ] Governance policies applied to base tables
 - [ ] Synonyms added for key business terms
-- [ ] Approach documented (SQL DDL vs YAML) with rationale
 
-## Approach Selection: SQL DDL vs YAML Semantic Models
-
-### Decision Tree
+## Approach Selection: SQL DDL vs YAML
 
 **Use CREATE SEMANTIC VIEW (SQL DDL) when:**
-- [ ] Simple to moderate complexity views (single table or well-defined star schema)
-- [ ] No verified queries (VQRs) required
-- [ ] SQL-based version control preferred (standard migrations)
-- [ ] Single source of truth should be the database object
-- [ ] CI/CD uses SQL deployment scripts
-- [ ] Team is more comfortable with SQL than YAML
+- Simple to moderate complexity views
+- No verified queries (VQRs) required
+- SQL-based version control preferred
 
 **Use YAML Semantic Model Files when:**
-- [ ] **Verified queries (VQRs) are required** (YAML-only feature - cannot be done in DDL)
-- [ ] Complex custom instructions needed for Cortex Analyst
-- [ ] Team prefers file-based configuration management
-- [ ] Need `semantic_model_file` parameter in REST API calls
-- [ ] Integration with existing YAML-based CI/CD pipelines
-- [ ] Want to version control semantic model separately from database objects
-
-**CRITICAL:** Verified queries (VQRs) are ONLY available in YAML format. If you need VQRs to improve Cortex Analyst accuracy for specific questions, you MUST use YAML.
-
-### Comparison: SQL DDL vs YAML
-
-**SQL DDL (`CREATE SEMANTIC VIEW`):**
-- Version control: SQL migrations
-- Verified queries (VQR): Not supported
-- REST API parameter: `semantic_view`
-- Deployment: `CREATE SEMANTIC VIEW` DDL
-- Database object: Yes (queryable)
-- Cortex Analyst: Full support
-- Synonyms: `WITH SYNONYMS`
-- Comments: `COMMENT = 'text'`
-
-**YAML Semantic Model File:**
-- Version control: File-based
-- Verified queries (VQR): **Supported** (YAML-only feature)
-- REST API parameter: `semantic_model_file`
-- Deployment: PUT to stage
-- Database object: No (file only)
-- Cortex Analyst: Full support
-- Synonyms: `synonyms:` list
-- Comments: `description:` text
-
-### When to Migrate from DDL to YAML
-
-Consider migrating if:
-1. Cortex Analyst accuracy is poor and you need VQRs to guide it
-2. Users ask the same questions repeatedly and you want guaranteed SQL
-3. Complex business logic requires explicit SQL examples
-
-### Hybrid Approach
-
-You can use both:
-1. Create SQL DDL semantic view for direct SEMANTIC_VIEW() queries
-2. Create YAML file with same structure plus VQRs for Cortex Analyst accuracy
-3. Reference YAML via `semantic_model_file` when calling Cortex Analyst REST API
-
-## Verified Query Repository (VQR)
-
-### What is VQR?
-
-The Verified Query Repository (VQR) is a YAML-only feature that allows you to provide Cortex Analyst with pre-verified question-SQL pairs. When users ask questions similar to verified queries, Cortex Analyst uses the verified SQL directly instead of generating new SQL, ensuring accuracy for critical business questions.
-
-**Key Benefits:**
-- Guaranteed accuracy for high-stakes questions
-- Reduced SQL generation errors
-- Faster response times for common questions
-- Onboarding questions for new users
-
-### VQR Syntax Requirements
-
-> **CRITICAL: Table Naming in VQR SQL**
-> VQR SQL uses **logical table names** with a **double underscore prefix (`__`)**.
-> - Reference tables as `__logical_name` (from `tables.name` in YAML)
-> - Do NOT use physical table names (e.g., `DATABASE.SCHEMA.TABLE`)
-> - This is the #1 VQR error - using physical names instead of `__logical_name`
-
-**VQR YAML Structure:**
-```yaml
-verified_queries:
-  - name: query_identifier          # Unique identifier (snake_case)
-    question: "Natural language question?"
-    sql: |
-      SELECT column1, SUM(metric)
-      FROM __logical_table_name     # CRITICAL: __ prefix + logical name
-      WHERE condition
-      GROUP BY column1
-    verified_at: 1737590400         # Unix timestamp when verified
-    verified_by: team_name          # Who verified this query
-    use_as_onboarding_question: true  # Optional: show in Snowsight onboarding
-```
-
-**Complete VQR Example:**
-```yaml
-name: sales_semantic_model
-description: Sales analytics with verified queries
-
-tables:
-  - name: sales_data                # <-- Logical name used in VQR as __sales_data
-    base_table:
-      database: ANALYTICS
-      schema: CORE
-      table: SALES_FACT             # <-- Physical table (NOT used in VQR SQL)
-    
-    dimensions:
-      - name: sale_date
-        expr: order_date
-        data_type: DATE
-        description: Date of sale
-      - name: region
-        expr: sales_region
-        data_type: VARCHAR
-        description: Sales region
-      - name: product_category
-        expr: category
-        data_type: VARCHAR
-        description: Product category
-
-    metrics:
-      - name: total_revenue
-        expr: SUM(amount)
-        description: Total sales revenue
-      - name: order_count
-        expr: COUNT(*)
-        description: Number of orders
-
-verified_queries:
-  - name: revenue_by_region
-    question: "What is the total revenue by region?"
-    sql: |
-      SELECT 
-        region,
-        SUM(total_revenue) AS revenue
-      FROM __sales_data
-      GROUP BY region
-      ORDER BY revenue DESC
-    verified_at: 1737590400
-    verified_by: analytics_team
-    use_as_onboarding_question: true
-
-  - name: monthly_trend
-    question: "Show me the monthly revenue trend"
-    sql: |
-      SELECT 
-        DATE_TRUNC('MONTH', sale_date) AS month,
-        SUM(total_revenue) AS revenue
-      FROM __sales_data
-      GROUP BY month
-      ORDER BY month
-    verified_at: 1737590400
-    verified_by: analytics_team
-    use_as_onboarding_question: true
-
-  - name: top_categories
-    question: "What are the top 5 product categories by revenue?"
-    sql: |
-      SELECT 
-        product_category,
-        SUM(total_revenue) AS revenue,
-        SUM(order_count) AS orders
-      FROM __sales_data
-      GROUP BY product_category
-      ORDER BY revenue DESC
-      LIMIT 5
-    verified_at: 1737590400
-    verified_by: analytics_team
-
-  - name: last_month_performance
-    question: "How did we perform last month?"
-    sql: |
-      SELECT 
-        SUM(total_revenue) AS revenue,
-        SUM(order_count) AS orders,
-        SUM(total_revenue) / NULLIF(SUM(order_count), 0) AS avg_order_value
-      FROM __sales_data
-      WHERE sale_date >= DATE_TRUNC('MONTH', DATEADD('MONTH', -1, CURRENT_DATE()))
-        AND sale_date < DATE_TRUNC('MONTH', CURRENT_DATE())
-    verified_at: 1737590400
-    verified_by: analytics_team
-```
-
-### Common VQR Mistakes
-
-```yaml
-# WRONG: Using physical table name
-sql: SELECT * FROM ANALYTICS.CORE.SALES_FACT
-# Error: Cortex Analyst can't find the table reference
-
-# WRONG: Using single underscore
-sql: SELECT * FROM _sales_data
-# Error: Invalid table reference syntax
-
-# WRONG: Using model name instead of table name
-sql: SELECT * FROM sales_semantic_model
-# Error: Reference should be __<table_name>, not model name
-
-# CORRECT: Double underscore + logical table name
-sql: SELECT * FROM __sales_data
-# Success: Matches tables[].name from YAML definition
-```
-
-### Suggested Queries (Preview Feature)
-
-Snowflake provides AI-generated query suggestions to help populate your VQR. This feature analyzes your semantic model and usage patterns to suggest verified queries.
-
-**Accessing Suggested Queries in Snowsight:**
-1. Navigate to **AI & ML** → **Cortex Analyst**
-2. Select your semantic model
-3. Click **Verified Queries** tab
-4. Click **Review Suggestions** button
-5. Review AI-suggested questions and SQL
-6. Accept, modify, or reject each suggestion
-7. Accepted queries are added to your VQR
-
-**Suggested Queries via API:**
-
-```python
-import requests
-
-# Get suggested queries for a semantic model
-url = f"https://{account}.snowflakecomputing.com/api/v2/cortex/analyst/suggestions"
-
-headers = {
-    "Authorization": f"Bearer {token}",
-    "Content-Type": "application/json"
-}
-
-payload = {
-    "semantic_model_file": "@ANALYTICS.MODELS/sales_semantic_model.yaml",
-    "mode": "ca_requests_based",  # or "query_history_based"
-    "limit": 10
-}
-
-response = requests.post(url, headers=headers, json=payload)
-suggestions = response.json()
-
-for suggestion in suggestions.get("suggestions", []):
-    print(f"Question: {suggestion['question']}")
-    print(f"SQL: {suggestion['sql']}")
-    print(f"Score: {suggestion['score']}")
-    print("---")
-```
-
-**Suggestion Modes:**
-- `ca_requests_based`: Analyzes Cortex Analyst request history
-- `query_history_based`: Analyzes Snowflake query history
-
-### VQR Deployment Workflow
-
-**Step 1: Create YAML semantic model with verified queries**
-```yaml
-# sales_model.yaml
-name: sales_analysis
-tables:
-  - name: sales_data
-    base_table:
-      database: PROD
-      schema: ANALYTICS  
-      table: SALES_FACT
-    dimensions:
-      - name: sale_date
-        expr: order_date
-        data_type: DATE
-    metrics:
-      - name: total_revenue
-        expr: SUM(amount)
-
-verified_queries:
-  - name: monthly_revenue
-    question: "What is total revenue by month?"
-    sql: |
-      SELECT DATE_TRUNC('MONTH', sale_date) AS month, SUM(total_revenue)
-      FROM __sales_data
-      GROUP BY month
-    verified_at: 1737590400
-    verified_by: data_team
-```
-
-**Step 2: Upload to Snowflake stage**
-```sql
--- Create stage if needed
-CREATE STAGE IF NOT EXISTS PROD.ANALYTICS.SEMANTIC_MODELS;
-
--- Upload YAML file
-PUT file:///path/to/sales_model.yaml @PROD.ANALYTICS.SEMANTIC_MODELS/;
-
--- Verify upload
-LIST @PROD.ANALYTICS.SEMANTIC_MODELS/;
-```
-
-**Step 3: Test with Cortex Analyst REST API**
-```python
-import requests
-
-url = f"https://{account}.snowflakecomputing.com/api/v2/cortex/analyst/message"
-
-headers = {
-    "Authorization": f"Bearer {token}",
-    "Content-Type": "application/json"
-}
-
-# Use semantic_model_file for YAML with VQRs
-payload = {
-    "semantic_model_file": "@PROD.ANALYTICS.SEMANTIC_MODELS/sales_model.yaml",
-    "messages": [
-        {"role": "user", "content": "What is total revenue by month?"}
-    ]
-}
-
-response = requests.post(url, headers=headers, json=payload)
-result = response.json()
-
-# Response should match verified query SQL exactly
-print(result["message"]["content"])
-```
-
-**Step 4: Validate VQR matching**
-```bash
-# Test with SnowCLI
-snow cortex analyst query \
-  --semantic-model-file "@PROD.ANALYTICS.SEMANTIC_MODELS/sales_model.yaml" \
-  --question "What is total revenue by month?"
-
-# Compare generated SQL with verified query SQL
-# If VQR matched, SQL should be identical to verified_queries[].sql
-```
-
-### VQR Best Practices
-
-**When to Add Verified Queries:**
-- High-stakes business questions (revenue, KPIs, compliance)
-- Frequently asked questions that Cortex Analyst struggles with
-- Complex queries with specific business logic
-- Questions where precision is critical
-
-**VQR Design Guidelines:**
-1. **Use natural language questions** - Match how users actually ask
-2. **Test SQL independently** - Verify SQL returns correct results before adding to VQR
-3. **Include variations** - Add multiple verified queries for similar questions
-4. **Set onboarding questions** - Guide new users with `use_as_onboarding_question: true`
-5. **Update timestamps** - Re-verify queries when underlying data changes
-6. **Document verifiers** - Track who approved each query
-
-**VQR vs Custom Instructions:**
-- **VQR:** Use for specific question-to-SQL mappings
-- **Custom Instructions:** Use for general guidance on SQL generation style
-
-### Post-Execution Checklist
-
-- [ ] Semantic view includes WITH SYNONYMS for key business terms
-- [ ] COMMENT clauses provide business definitions
-- [ ] Cortex Analyst REST API tested with `semantic_view` parameter
-- [ ] Governance policies applied to base tables (not semantic views)
-- [ ] Generator output validated before execution
-- [ ] Natural language queries tested and refined
-- [ ] Security inheritance verified (RBAC, masking, row access)
-
-## Anti-Patterns and Common Mistakes
-
-### Anti-Pattern 1: Applying Governance Policies to Semantic Views Directly
-
-**Problem:** Creating masking policies or row access policies on the semantic view itself instead of the underlying base tables.
-
-**Why It Fails:** Semantic views are metadata layers, not data containers. Policies applied directly to semantic views don't enforce at query time. Users bypass security controls when querying through Cortex Analyst.
-
-**Correct Pattern:**
-```sql
--- BAD: Policy on semantic view (doesn't work)
-ALTER SEMANTIC VIEW SEM_SALES
-  ADD ROW ACCESS POLICY rap_region ON (region);
-
--- GOOD: Policy on base table (enforced correctly)
-ALTER TABLE SALES_FACT
-  ADD ROW ACCESS POLICY rap_region ON (region);
-
--- Semantic view inherits security from base tables automatically
--- Cortex Analyst queries respect policies on underlying data
-```
-
-### Anti-Pattern 2: Skipping Synonyms for Business Terms
-
-**Problem:** Creating semantic views with only technical column names, without adding WITH SYNONYMS for business terminology variations.
-
-**Why It Fails:** Business users ask "What are our Q4 revenues?" not "What is the sum of amount where fiscal_quarter = 4?". Without synonyms, Cortex Analyst fails to match natural language to schema, returning errors or incorrect results.
-
-**Correct Pattern:**
-```sql
--- BAD: No synonyms, poor NLQ matching
-CREATE SEMANTIC VIEW SEM_SALES AS
-  SELECT amount, fiscal_quarter, region FROM SALES_FACT;
-
--- GOOD: Comprehensive synonyms for natural language
-CREATE SEMANTIC VIEW SEM_SALES AS
-  SELECT
-    amount WITH SYNONYMS = ('revenue', 'sales', 'income', 'total'),
-    fiscal_quarter WITH SYNONYMS = ('quarter', 'Q1', 'Q2', 'Q3', 'Q4', 'period'),
-    region WITH SYNONYMS = ('territory', 'area', 'market', 'geography')
-  FROM SALES_FACT;
-```
-
-## Post-Execution Checklist
-
-**Integration:**
-- [ ] Cortex Analyst tested with `semantic_view` parameter in REST API
-- [ ] Cortex Agent grounding sources include fully qualified semantic view names
-- [ ] Natural language queries tested with SnowCLI
-- [ ] Synonym effectiveness validated with business user queries
-- [ ] Approach documented (SQL DDL vs YAML with rationale if YAML chosen)
-
-**Governance:**
-- [ ] RBAC configured via base table privileges
-- [ ] Masking policies applied to base tables (not semantic views)
-- [ ] Row access policies applied to base tables (not semantic views)
-- [ ] Security inheritance tested and verified
-- [ ] Audit logging enabled for compliance
-- [ ] No direct governance policies on semantic views
-
-**Development:**
-- [ ] Generator used for initial structure (if applicable)
-- [ ] Generator output validated before execution
-- [ ] Iterative workflow followed (Generate, then Validate, then Enhance, then Test)
-- [ ] WITH SYNONYMS added for all key fields
-- [ ] COMMENT clauses include business definitions
-- [ ] Natural language queries tested and refined
-- [ ] Performance validated via Query Profile
-- [ ] Documentation created for business users
-
-## Output Format Examples
-  - Missing synonyms cause natural language query failures
-  - Incorrect RBAC prevents unauthorized access
-  - Generator output requires validation (may misclassify columns)
-  - Governance gaps expose sensitive data
-
-## Output Format Examples
-
-```python
-# Cortex Analyst Integration with Semantic View
-# Purpose: <integration objective>
-# Semantic View: <view_name>
-# Use Case: <business use case>
-
-import requests
-import snowflake.connector
-
-# Step 1: Verify semantic view is accessible
-conn = snowflake.connector.connect(...)
-cursor = conn.cursor()
-cursor.execute("SHOW SEMANTIC VIEWS LIKE '<view_name>'")
-print(cursor.fetchall())
-
-# Step 2: Test semantic view query directly
-cursor.execute("""
-  SELECT dimension_1, metric_1
-  FROM SEMANTIC_VIEW(<database>.<schema>.<view_name>)
-  LIMIT 10
-""")
-print(cursor.fetchall())
-
-# Step 3: Call Cortex Analyst REST API
-url = f"https://{account}.snowflakecomputing.com/api/v2/cortex/analyst/message"
-headers = {
-    "Authorization": f"Bearer {token}",
-    "Content-Type": "application/json"
-}
-payload = {
-    "messages": [
-        {"role": "user", "content": "What are the top 5 <metrics> by <dimension>?"}
-    ],
-    "semantic_view": f"{database}.{schema}.{view_name}"
-}
-response = requests.post(url, headers=headers, json=payload)
-print(response.json())
-
-# Step 4: Verify governance (masking, row access)
-cursor.execute("SELECT CURRENT_ROLE(), CURRENT_USER()")
-print(cursor.fetchall())
-```
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Verify semantic view exists and is accessible BEFORE integrating** - Run `SHOW SEMANTIC VIEWS` and test queries
-> 2. **Check RBAC grants** - Confirm role has SELECT on semantic view and USAGE on database/schema
-> 3. **Never assume security policies exist** - Query `INFORMATION_SCHEMA.POLICY_REFERENCES` to verify masking/row access policies
-> 4. **Test Cortex Analyst queries** - Use REST API or Snowsight UI to validate natural language queries work
-> 5. **Validate Generator output** - Always review and test generated DDL before deploying
-> 6. **Make grounded recommendations based on investigated permissions and policies** - Don't suggest integrations without verifying access
->
-> **Anti-Pattern:**
-> "Just connect Cortex Analyst to this semantic view..."
-> "The governance policies should automatically apply..."
->
-> **Correct Pattern:**
-> "Let me verify the semantic view is accessible and properly secured."
-> [runs SHOW SEMANTIC VIEWS and checks POLICY_REFERENCES]
-> "I see the view exists and has masking policies on <columns>. Let me verify your role has the necessary grants..."
-> [runs SHOW GRANTS]
-> "Your role has SELECT access. Here's the Cortex Analyst integration code with proper error handling..."
+- **Verified queries (VQRs) required** (YAML-only feature)
+- Complex custom instructions needed
+- Integration with YAML-based CI/CD
+
+**CRITICAL:** VQRs are ONLY available in YAML format. See `106d-snowflake-semantic-views-development.md` for VQR patterns.
 
 ## Cortex Analyst Integration
 
-### 1.1 REST API Usage (Native Semantic Views)
+### REST API Usage
 
 ```python
 import requests
-import json
 
-# Cortex Analyst with NATIVE semantic view (no YAML needed)
 url = f"https://{account}.snowflakecomputing.com/api/v2/cortex/analyst/message"
 
 headers = {
@@ -626,79 +124,59 @@ headers = {
     "Content-Type": "application/json"
 }
 
+# Native semantic view (no YAML needed)
 payload = {
-    "semantic_view": "PROD.GRID_DATA.SEM_TRANSFORMER_HEALTH",  # Native semantic view
+    "semantic_view": "PROD.GRID_DATA.SEM_TRANSFORMER_HEALTH",
     "messages": [
-        {
-            "role": "user",
-            "content": "Which transformers have the highest average load this month?"
-        }
+        {"role": "user", "content": "Which transformers have the highest load?"}
     ]
 }
 
 response = requests.post(url, headers=headers, json=payload)
-result = response.json()
-print(result["message"]["content"])  # Natural language response
+print(response.json()["message"]["content"])
 ```
 
-**Key Differences from YAML Approach:**
-- **Native views:** Use `"semantic_view": "DB.SCHEMA.VIEW_NAME"`
-- **Legacy YAML (staged file):** Use `"semantic_model_file": "@DB.SCHEMA.STAGE/path/model.yaml"`
-- **No staging:** No need to upload files to internal stages
-- **Version control:** DDL changes tracked via SQL migrations
+**Key Differences:**
+- **Native views:** `"semantic_view": "DB.SCHEMA.VIEW_NAME"`
+- **YAML (with VQR):** `"semantic_model_file": "@DB.SCHEMA.STAGE/model.yaml"`
 
-### 1.2 Cortex Agent Integration
+### Cortex Agent Integration
 
 ```python
 from snowflake.core import Root
 from snowflake.core.cortex import Agent
 
-# Initialize Snowflake connection
 root = Root(session)
 
-# Create agent grounded on native semantic views
 agent = root.databases["PROD"].schemas["GRID_DATA"].cortex_agents.create(
     Agent(
         name="grid_ops_assistant",
         grounding_sources=[
             "PROD.GRID_DATA.SEM_TRANSFORMER_HEALTH",
-            "PROD.GRID_DATA.SEM_ASSET_INVENTORY",
-            "PROD.GRID_DATA.SEM_CUSTOMER_OUTAGE_IMPACT"
+            "PROD.GRID_DATA.SEM_ASSET_INVENTORY"
         ],
-        instructions="You are a grid operations expert. Answer questions about transformer health, asset inventory, and customer impact.",
+        instructions="Answer questions about transformer health and assets.",
         model="mistral-large2"
     )
 )
 
-# Query the agent
 response = agent.invoke("Show me transformers at risk of failure")
-print(response["content"])
 ```
 
-### 1.3 SnowCLI Testing Pattern
+### SnowCLI Testing
 
 ```bash
-# Test semantic view with Cortex Analyst via SnowCLI
 snow cortex analyst query \
   --semantic-view "PROD.GRID_DATA.SEM_TRANSFORMER_HEALTH" \
-  --question "What is the average load for transformers in the last 24 hours?"
+  --question "What is the average load for transformers?"
 
 # Test synonym effectiveness
 snow cortex analyst query \
   --semantic-view "SAMPLE_DATA.TPCDS_SF10TCL.TPCDS_SEMANTIC_VIEW_SM" \
-  --question "Show me revenue by product category for last year"
-
-# Test multi-dimensional queries
-snow cortex analyst query \
-  --semantic-view "SAMPLE_DATA.TPCDS_SF10TCL.TPCDS_SEMANTIC_VIEW_SM" \
-  --question "Compare sales in California vs Texas for electronics"
+  --question "Show me revenue by product category"
 ```
 
-### 1.4 Synonym Design for Natural Language Queries
-
-**Purpose:** Synonyms map business terminology to technical column names for accurate natural language query resolution.
-
-**Effective Synonym Patterns:**
+### Synonym Design for NLQ
 
 ```sql
 CREATE OR REPLACE SEMANTIC VIEW SAMPLE_DATA.TPCDS_SF10TCL.SEM_CUSTOMER
@@ -709,41 +187,12 @@ CREATE OR REPLACE SEMANTIC VIEW SAMPLE_DATA.TPCDS_SF10TCL.SEM_CUSTOMER
   )
   DIMENSIONS (
     customer.C_BIRTH_COUNTRY AS c_birth_country
-      WITH SYNONYMS (
-        'country',               -- Common term
-        'birth country',         -- Explicit
-        'nationality',           -- Business term
-        'nation',                -- Alternative
-        'country of origin'      -- Descriptive
-      )
-      COMMENT = 'Country where customer was born',
-
-    customer.C_BIRTH_YEAR AS c_birth_year
-      WITH SYNONYMS (
-        'birth year',
-        'year of birth',
-        'year born',
-        'age cohort'
-      )
-      COMMENT = 'Year customer was born (for demographic analysis)'
+      WITH SYNONYMS ('country', 'birth country', 'nationality')
+      COMMENT = 'Country where customer was born'
   )
   METRICS (
     customer.customer_count AS COUNT(DISTINCT C_CUSTOMER_SK)
-      WITH SYNONYMS (
-        'total customers',
-        'number of customers',
-        'customer count',
-        'count of customers',
-        'how many customers'
-      ),
-
-    customer.unique_countries AS COUNT(DISTINCT C_BIRTH_COUNTRY)
-      WITH SYNONYMS (
-        'countries represented',
-        'country diversity',
-        'countries',
-        'number of countries'
-      )
+      WITH SYNONYMS ('total customers', 'number of customers', 'how many customers')
   );
 ```
 
@@ -751,632 +200,182 @@ CREATE OR REPLACE SEMANTIC VIEW SAMPLE_DATA.TPCDS_SF10TCL.SEM_CUSTOMER
 - Include common business terms users actually say
 - Add plural and singular forms
 - Include abbreviations and acronyms
-- Add descriptive phrases ("how many X")
 - Test with actual user questions
 
-## 2) Governance and Security
+## Governance and Security
 
-### 2.1 Access Control
+### Access Control (RBAC)
 
-**Semantic views inherit RBAC from base tables:**
+Semantic views inherit RBAC from base tables:
 
 ```sql
 -- Grant SELECT on base table (semantic view inherits)
 GRANT SELECT ON TABLE PROD.GRID_DATA.GRID_ASSETS TO ROLE BI_ANALYST;
-
--- Grant USAGE on semantic view schema
 GRANT USAGE ON SCHEMA PROD.GRID_DATA TO ROLE BI_ANALYST;
 
--- No special semantic view privilege needed - standard Snowflake RBAC
-```
-
-**Role-Based Access Pattern:**
-
-```sql
--- Create role hierarchy for semantic view access
+-- Role hierarchy pattern
 CREATE ROLE IF NOT EXISTS DATA_ANALYST;
-CREATE ROLE IF NOT EXISTS DATA_SCIENTIST;
-CREATE ROLE IF NOT EXISTS BUSINESS_USER;
-
--- Grant access to semantic view schema
 GRANT USAGE ON SCHEMA PROD.ANALYTICS TO ROLE DATA_ANALYST;
-GRANT USAGE ON SCHEMA PROD.ANALYTICS TO ROLE DATA_SCIENTIST;
-GRANT USAGE ON SCHEMA PROD.ANALYTICS TO ROLE BUSINESS_USER;
-
--- Grant access to underlying tables (semantic views inherit)
 GRANT SELECT ON ALL TABLES IN SCHEMA PROD.RAW_DATA TO ROLE DATA_ANALYST;
-GRANT SELECT ON ALL TABLES IN SCHEMA PROD.RAW_DATA TO ROLE DATA_SCIENTIST;
-
--- Business users only access via semantic views (no direct table access)
--- They get access through semantic view inheritance only
 ```
 
-### 2.2 Data Masking
+### Data Masking
 
-**Apply masking to base tables (semantic views reflect masked data):**
+Apply masking to base tables (semantic views reflect masked data):
 
 ```sql
--- Create masking policy
-CREATE OR REPLACE MASKING POLICY PROD.GOVERNANCE.MASK_PII AS (val STRING) RETURNS STRING ->
+CREATE OR REPLACE MASKING POLICY PROD.GOVERNANCE.MASK_PII 
+  AS (val STRING) RETURNS STRING ->
   CASE
     WHEN CURRENT_ROLE() IN ('ADMIN', 'DATA_STEWARD') THEN val
     ELSE '***MASKED***'
   END;
 
--- Apply to base table (semantic view automatically uses masked data)
+-- Apply to base table
 ALTER TABLE PROD.CUSTOMER_DATA.CUSTOMERS
   MODIFY COLUMN customer_email SET MASKING POLICY PROD.GOVERNANCE.MASK_PII;
 
--- When querying semantic view, masking applies automatically
-SELECT * FROM SEMANTIC_VIEW(
-  PROD.ANALYTICS.SEM_CUSTOMERS
-  DIMENSIONS customer_name, customer_email
-  METRICS customer_count
-);
--- Output: customer_email shows '***MASKED***' for non-privileged roles
+-- Masking applies automatically through semantic view
 ```
 
-**Conditional Masking Pattern:**
+### Row Access Policies
+
+Apply row-level security to base tables:
 
 ```sql
--- Partial masking based on role
-CREATE OR REPLACE MASKING POLICY PROD.GOVERNANCE.MASK_SSN AS (val STRING) RETURNS STRING ->
-  CASE
-    WHEN CURRENT_ROLE() = 'ADMIN' THEN val                    -- Full access
-    WHEN CURRENT_ROLE() = 'DATA_ANALYST' THEN CONCAT('XXX-XX-', RIGHT(val, 4))  -- Last 4 digits
-    ELSE 'XXX-XX-XXXX'                                        -- Fully masked
-  END;
-
-ALTER TABLE PROD.CUSTOMER_DATA.CUSTOMERS
-  MODIFY COLUMN customer_ssn SET MASKING POLICY PROD.GOVERNANCE.MASK_SSN;
-```
-
-### 2.3 Row Access Policies
-
-**Apply row-level security to base tables:**
-
-```sql
--- Create row access policy
-CREATE OR REPLACE ROW ACCESS POLICY PROD.GOVERNANCE.RESTRICT_REGION AS (region STRING) RETURNS BOOLEAN ->
+CREATE OR REPLACE ROW ACCESS POLICY PROD.GOVERNANCE.RESTRICT_REGION 
+  AS (region STRING) RETURNS BOOLEAN ->
   CASE
     WHEN CURRENT_ROLE() = 'ADMIN' THEN TRUE
     WHEN CURRENT_ROLE() = 'ANALYST_WEST' AND region = 'WEST' THEN TRUE
-    WHEN CURRENT_ROLE() = 'ANALYST_EAST' AND region = 'EAST' THEN TRUE
     ELSE FALSE
   END;
 
--- Apply to base table
 ALTER TABLE PROD.GRID_DATA.GRID_ASSETS
   ADD ROW ACCESS POLICY PROD.GOVERNANCE.RESTRICT_REGION ON (region);
-
--- When querying semantic view, row filtering applies automatically
-SELECT * FROM SEMANTIC_VIEW(
-  PROD.ANALYTICS.SEM_GRID_ASSETS
-  DIMENSIONS region, asset_type
-  METRICS asset_count
-);
--- Output: Only shows rows for user's assigned region
 ```
 
-**Multi-Condition Row Access:**
+### Governance Checklist
+
+- [ ] RBAC configured via base table privileges
+- [ ] Masking policies applied to base tables
+- [ ] Row access policies applied to base tables
+- [ ] Schema privileges granted (USAGE on schema)
+- [ ] Audit logging enabled
+- [ ] **No direct policies on semantic views**
+
+## Anti-Patterns
+
+### Anti-Pattern 1: Applying Policies to Semantic Views Directly
 
 ```sql
--- Row access based on multiple conditions
-CREATE OR REPLACE ROW ACCESS POLICY PROD.GOVERNANCE.RESTRICT_SALES_ACCESS
-  AS (region STRING, department STRING) RETURNS BOOLEAN ->
-  CASE
-    WHEN CURRENT_ROLE() = 'ADMIN' THEN TRUE
-    WHEN CURRENT_ROLE() = 'REGIONAL_MANAGER' AND region IN (
-      SELECT region FROM PROD.HR.MANAGER_ASSIGNMENTS WHERE manager_user = CURRENT_USER()
-    ) THEN TRUE
-    WHEN CURRENT_ROLE() = 'DEPT_ANALYST' AND department IN (
-      SELECT department FROM PROD.HR.DEPT_ASSIGNMENTS WHERE analyst_user = CURRENT_USER()
-    ) THEN TRUE
-    ELSE FALSE
-  END;
+-- BAD: Policy on semantic view (doesn't work)
+ALTER SEMANTIC VIEW SEM_SALES
+  ADD ROW ACCESS POLICY rap_region ON (region);
 
-ALTER TABLE PROD.SALES.DAILY_SALES
-  ADD ROW ACCESS POLICY PROD.GOVERNANCE.RESTRICT_SALES_ACCESS ON (region, department);
+-- GOOD: Policy on base table
+ALTER TABLE SALES_FACT
+  ADD ROW ACCESS POLICY rap_region ON (region);
 ```
 
-### 2.4 Governance Checklist
-
-**Before deploying semantic views to production:**
-
-- [ ] **RBAC configured** - Roles have appropriate base table privileges
-- [ ] **Masking policies applied** - PII/sensitive columns masked on base tables
-- [ ] **Row access policies applied** - Row-level security enforced on base tables
-- [ ] **Schema privileges granted** - Users have USAGE on semantic view schema
-- [ ] **Warehouse access configured** - Users assigned to appropriate warehouses
-- [ ] **Audit logging enabled** - Query history captured for compliance
-- [ ] **No direct policy on semantic views** - All governance via base tables
-- [ ] **Security inheritance tested** - Verified policies apply through semantic views
-
-## 3) Development Best Practices
-
-### 3.1 Semantic View Generator Tool
-
-**Purpose:** Automate initial semantic view creation from existing tables to accelerate development.
-
-**When to Use:**
-- Starting new semantic view from scratch
-- Exploring unfamiliar database schemas
-- Creating baseline views for iterative refinement
-- Rapid prototyping for Cortex Analyst testing
-
-**Generator Workflow:**
+### Anti-Pattern 2: Skipping Synonyms
 
 ```sql
--- Step 1: Verify Generator availability (requires ACCOUNTADMIN or appropriate role)
-SHOW PARAMETERS LIKE 'CORTEX%' IN ACCOUNT;
+-- BAD: No synonyms
+CREATE SEMANTIC VIEW SEM_SALES AS
+  SELECT amount, fiscal_quarter FROM SALES_FACT;
 
--- Step 2: Use Generator to create semantic view from base table
--- The Generator analyzes table structure and suggests semantic view DDL
--- (Generator UI available in Snowsight or via API)
-
--- Step 3: Review generated DDL before execution
--- Generator produces CREATE SEMANTIC VIEW statement with:
--- - Inferred PRIMARY KEY from table constraints
--- - Numeric columns as FACTS
--- - String/date columns as DIMENSIONS
--- - Common aggregations as METRICS
-
--- Step 4: Execute generated DDL
-CREATE OR REPLACE SEMANTIC VIEW SAMPLE_DATA.TPCDS_SF10TCL.SEM_CUSTOMER
-  TABLES (
-    customer AS SAMPLE_DATA.TPCDS_SF10TCL.CUSTOMER
-      PRIMARY KEY (C_CUSTOMER_SK)
-  )
-  FACTS (
-    customer.C_BIRTH_YEAR AS c_birth_year
-  )
-  DIMENSIONS (
-    customer.C_CUSTOMER_SK AS c_customer_sk,
-    customer.C_CUSTOMER_ID AS c_customer_id,
-    customer.C_FIRST_NAME AS c_first_name,
-    customer.C_LAST_NAME AS c_last_name,
-    customer.C_BIRTH_COUNTRY AS c_birth_country
-  )
-  METRICS (
-    customer.customer_count AS COUNT(DISTINCT C_CUSTOMER_SK)
-  );
-
--- Step 5: Validate creation
-SHOW SEMANTIC VIEWS IN SCHEMA SAMPLE_DATA.TPCDS_SF10TCL;
+-- GOOD: Comprehensive synonyms
+CREATE SEMANTIC VIEW SEM_SALES AS
+  SELECT
+    amount WITH SYNONYMS = ('revenue', 'sales', 'income'),
+    fiscal_quarter WITH SYNONYMS = ('quarter', 'Q1', 'Q2', 'Q3', 'Q4')
+  FROM SALES_FACT;
 ```
 
-**Generator Limitations:**
-- Cannot infer complex business logic (e.g., calculated facts)
-- May misclassify columns (review FACTS vs DIMENSIONS)
-- Does not add synonyms or comments automatically
-- Cannot create relationships between semantic views
+## Troubleshooting
 
-**Post-Generation Refinement Checklist:**
-- [ ] Verify PRIMARY KEY is correct for business grain
-- [ ] Review FACTS classification (should be numeric measures)
-- [ ] Review DIMENSIONS classification (should be categorical/temporal)
-- [ ] Add WITH SYNONYMS for natural language query matching
-- [ ] Add COMMENT clauses for business definitions
-- [ ] Test with sample Cortex Analyst queries
+### Error: "View not accessible" or "SELECT denied"
 
-### 3.2 Iterative Development Workflow
-
-**MANDATORY:**
-**Follow this workflow for production-ready semantic views:**
-
-**Phase 1: Generate and Validate Base Structure**
-
-```sql
--- 1. Read base table structure BEFORE generating
-DESCRIBE TABLE SAMPLE_DATA.TPCDS_SF10TCL.STORE_SALES;
-
--- 2. Generate or write minimal semantic view
-CREATE OR REPLACE SEMANTIC VIEW SAMPLE_DATA.TPCDS_SF10TCL.SEM_STORE_SALES
-  TABLES (
-    sales AS SAMPLE_DATA.TPCDS_SF10TCL.STORE_SALES
-      PRIMARY KEY (SS_SOLD_DATE_SK, SS_ITEM_SK, SS_CUSTOMER_SK)
-  )
-  FACTS (
-    sales.sales_price AS SS_SALES_PRICE,
-    sales.quantity AS SS_QUANTITY
-  )
-  DIMENSIONS (
-    sales.item_sk AS SS_ITEM_SK,
-    sales.customer_sk AS SS_CUSTOMER_SK,
-    sales.sold_date_sk AS SS_SOLD_DATE_SK
-  )
-  METRICS (
-    sales.total_sales AS SUM(SS_SALES_PRICE),
-    sales.total_quantity AS SUM(SS_QUANTITY)
-  );
-
--- 3. Verify structure
-SHOW SEMANTIC VIEWS LIKE 'SEM_STORE_SALES' IN SCHEMA SAMPLE_DATA.TPCDS_SF10TCL;
-SHOW SEMANTIC DIMENSIONS IN SEMANTIC VIEW SAMPLE_DATA.TPCDS_SF10TCL.SEM_STORE_SALES;
-SHOW SEMANTIC METRICS IN SEMANTIC VIEW SAMPLE_DATA.TPCDS_SF10TCL.SEM_STORE_SALES;
-
--- 4. Test basic query
-SELECT * FROM SEMANTIC_VIEW (
-  SAMPLE_DATA.TPCDS_SF10TCL.SEM_STORE_SALES
-  METRICS total_sales, total_quantity
-  DIMENSIONS SS_ITEM_SK
-) LIMIT 10;
-```
-
-**Phase 2: Add Business Context**
-
-```sql
--- 5. Add synonyms for natural language querying
-CREATE OR REPLACE SEMANTIC VIEW SAMPLE_DATA.TPCDS_SF10TCL.SEM_STORE_SALES
-  TABLES (
-    sales AS SAMPLE_DATA.TPCDS_SF10TCL.STORE_SALES
-      PRIMARY KEY (SS_SOLD_DATE_SK, SS_ITEM_SK, SS_CUSTOMER_SK)
-      WITH SYNONYMS ('store sales', 'retail transactions', 'sales data')
-  )
-  FACTS (
-    sales.sales_price AS SS_SALES_PRICE
-      WITH SYNONYMS ('price', 'revenue', 'amount'),
-    sales.quantity AS SS_QUANTITY
-      WITH SYNONYMS ('qty', 'units sold', 'volume')
-  )
-  DIMENSIONS (
-    sales.item_sk AS SS_ITEM_SK
-      WITH SYNONYMS ('item', 'product', 'SKU'),
-    sales.customer_sk AS SS_CUSTOMER_SK
-      WITH SYNONYMS ('customer', 'buyer'),
-    sales.sold_date_sk AS SS_SOLD_DATE_SK
-      WITH SYNONYMS ('date', 'transaction date', 'sale date')
-  )
-  METRICS (
-    sales.total_sales AS SUM(SS_SALES_PRICE)
-      WITH SYNONYMS ('total revenue', 'gross sales'),
-    sales.total_quantity AS SUM(SS_QUANTITY)
-      WITH SYNONYMS ('total units', 'total volume')
-  );
-
--- 6. Add comments for business definitions
-CREATE OR REPLACE SEMANTIC VIEW SAMPLE_DATA.TPCDS_SF10TCL.SEM_STORE_SALES
-  TABLES (
-    sales AS SAMPLE_DATA.TPCDS_SF10TCL.STORE_SALES
-      PRIMARY KEY (SS_SOLD_DATE_SK, SS_ITEM_SK, SS_CUSTOMER_SK)
-      WITH SYNONYMS ('store sales', 'retail transactions')
-      COMMENT = 'Retail store sales transactions from TPC-DS dataset'
-  )
-  FACTS (
-    sales.sales_price AS SS_SALES_PRICE
-      WITH SYNONYMS ('price', 'revenue', 'amount')
-      COMMENT = 'Sales price per item (excludes tax)',
-    sales.quantity AS SS_QUANTITY
-      WITH SYNONYMS ('qty', 'units sold')
-      COMMENT = 'Quantity of items sold'
-  )
-  DIMENSIONS (
-    sales.item_sk AS SS_ITEM_SK
-      WITH SYNONYMS ('item', 'product')
-      COMMENT = 'Surrogate key for item dimension',
-    sales.customer_sk AS SS_CUSTOMER_SK
-      WITH SYNONYMS ('customer', 'buyer')
-      COMMENT = 'Surrogate key for customer dimension',
-    sales.sold_date_sk AS SS_SOLD_DATE_SK
-      WITH SYNONYMS ('date', 'transaction date')
-      COMMENT = 'Surrogate key for date dimension'
-  )
-  METRICS (
-    sales.total_sales AS SUM(SS_SALES_PRICE)
-      WITH SYNONYMS ('total revenue', 'gross sales')
-      COMMENT = 'Sum of all sales prices',
-    sales.total_quantity AS SUM(SS_QUANTITY)
-      WITH SYNONYMS ('total units')
-      COMMENT = 'Sum of quantities sold'
-  )
-  COMMENT = 'Store sales semantic view for Cortex Analyst natural language queries';
-```
-
-**Phase 3: Test with Cortex Analyst**
-
-```python
-# 7. Test natural language queries
-import requests
-
-url = f"https://{account}.snowflakecomputing.com/api/v2/cortex/analyst/message"
-headers = {
-    "Authorization": f"Bearer {token}",
-    "Content-Type": "application/json"
-}
-
-# Test queries demonstrating synonyms
-test_queries = [
-    "What are the top 10 items by revenue?",  # Tests 'revenue' synonym
-    "Show me total units sold by customer",    # Tests 'units' synonym
-    "Which products have the highest volume?", # Tests 'product' and 'volume' synonyms
-]
-
-for query in test_queries:
-    payload = {
-        "semantic_view": "SAMPLE_DATA.TPCDS_SF10TCL.SEM_STORE_SALES",
-        "messages": [{"role": "user", "content": query}]
-    }
-    response = requests.post(url, headers=headers, json=payload)
-    print(f"Query: {query}")
-    print(f"Response: {response.json()}\n")
-```
-
-**Phase 4: Performance Validation**
-
-```sql
--- 8. Verify base table performance (semantic views are metadata only)
--- Check clustering and partitioning on base table
-SHOW CLUSTERING KEYS IN TABLE SAMPLE_DATA.TPCDS_SF10TCL.STORE_SALES;
-
--- Test query performance with filters
-SELECT * FROM SEMANTIC_VIEW (
-  SAMPLE_DATA.TPCDS_SF10TCL.SEM_STORE_SALES
-  METRICS total_sales
-  DIMENSIONS SS_SOLD_DATE_SK
-)
-WHERE SS_SOLD_DATE_SK >= 2451545  -- Date filter for partition pruning
-  AND SS_SOLD_DATE_SK <= 2451910
-ORDER BY total_sales DESC
-LIMIT 100;
-
--- Review Query Profile for pruning efficiency
--- (Use Snowsight Query History > Query Profile)
-```
-
-### 3.3 Common Development Patterns
-
-**Pattern 1: Time-Based Analysis Views**
-
-```sql
--- Optimized for temporal queries with date dimension
-CREATE OR REPLACE SEMANTIC VIEW ANALYTICS.SEMANTIC.SALES_TEMPORAL
-  TABLES (
-    sales AS ANALYTICS.CORE.DAILY_SALES
-      PRIMARY KEY (sale_date, product_id)
-      WITH SYNONYMS ('sales', 'transactions')
-  )
-  FACTS (
-    sales.revenue AS revenue,
-    sales.cost AS cost,
-    sales.profit AS profit  -- Pre-calculated: revenue - cost
-  )
-  DIMENSIONS (
-    sales.sale_date AS sale_date
-      WITH SYNONYMS ('date', 'transaction date', 'day')
-      COMMENT = 'Date of sale transaction',
-    sales.product_id AS product_id
-      WITH SYNONYMS ('product', 'item', 'SKU'),
-    sales.region AS region
-      WITH SYNONYMS ('location', 'territory')
-  )
-  METRICS (
-    sales.total_revenue AS SUM(revenue)
-      WITH SYNONYMS ('total sales', 'gross revenue'),
-    sales.total_profit AS SUM(profit)
-      WITH SYNONYMS ('net profit', 'earnings'),
-    sales.avg_revenue AS AVG(revenue)
-      WITH SYNONYMS ('average sale', 'mean revenue')
-  )
-  COMMENT = 'Daily sales semantic view optimized for temporal analysis';
-```
-
-**Pattern 2: Aggregated Fact Views**
-
-```sql
--- Pre-aggregated facts for performance
-CREATE OR REPLACE SEMANTIC VIEW ANALYTICS.SEMANTIC.MONTHLY_SALES
-  TABLES (
-    monthly AS ANALYTICS.AGGREGATE.MONTHLY_SALES_AGG  -- Pre-aggregated base
-      PRIMARY KEY (year_month, product_category)
-  )
-  FACTS (
-    monthly.sales_amount AS sales_amount,
-    monthly.units_sold AS units_sold,
-    monthly.customer_count AS customer_count  -- Already aggregated
-  )
-  DIMENSIONS (
-    monthly.year_month AS year_month
-      WITH SYNONYMS ('month', 'period', 'year-month')
-      COMMENT = 'Year-month in YYYY-MM format',
-    monthly.product_category AS product_category
-      WITH SYNONYMS ('category', 'product type')
-  )
-  METRICS (
-    monthly.total_sales AS SUM(sales_amount),
-    monthly.total_units AS SUM(units_sold),
-    monthly.avg_monthly_sales AS AVG(sales_amount)
-      WITH SYNONYMS ('average monthly revenue')
-  )
-  COMMENT = 'Monthly aggregated sales for trend analysis';
-```
-
-**Pattern 3: Multi-Dimensional Views**
-
-```sql
--- Complex dimensional analysis
-CREATE OR REPLACE SEMANTIC VIEW ANALYTICS.SEMANTIC.SALES_CUBE
-  TABLES (
-    sales AS ANALYTICS.CORE.SALES_FACT
-      PRIMARY KEY (sale_id)
-  )
-  FACTS (
-    sales.amount AS amount,
-    sales.quantity AS quantity,
-    sales.discount AS discount
-  )
-  DIMENSIONS (
-    sales.product_id AS product_id
-      WITH SYNONYMS ('product', 'item'),
-    sales.customer_id AS customer_id
-      WITH SYNONYMS ('customer', 'buyer'),
-    sales.store_id AS store_id
-      WITH SYNONYMS ('store', 'location'),
-    sales.sale_date AS sale_date
-      WITH SYNONYMS ('date', 'transaction date'),
-    sales.channel AS channel
-      WITH SYNONYMS ('sales channel', 'channel type')
-      COMMENT = 'Online, In-Store, Mobile'
-  )
-  METRICS (
-    sales.revenue AS SUM(amount),
-    sales.total_quantity AS SUM(quantity),
-    sales.avg_discount AS AVG(discount)
-      WITH SYNONYMS ('average discount rate'),
-    sales.transaction_count AS COUNT(*)
-      WITH SYNONYMS ('number of sales', 'sale count')
-  )
-  COMMENT = 'Multi-dimensional sales cube for slice-and-dice analysis';
-```
-
-### 3.4 Development Checklist for AI Agents
-
-**MANDATORY:**
-**Before creating semantic view, verify:**
-- [ ] Read base table structure with DESCRIBE TABLE
-- [ ] Understand business grain and primary key
-- [ ] Identify numeric columns for FACTS
-- [ ] Identify categorical/temporal columns for DIMENSIONS
-- [ ] Document intended metrics and aggregations
-
-**During semantic view creation:**
-- [ ] Use correct mapping syntax: `logical_name AS physical_column`
-- [ ] Follow clause order: TABLES, then FACTS, then DIMENSIONS, then METRICS
-- [ ] Add WITH SYNONYMS for all business-critical fields
-- [ ] Include COMMENT clauses with business definitions
-- [ ] Use equals sign in COMMENT syntax: `COMMENT = 'text'`
-
-**After semantic view creation:**
-- [ ] Verify with SHOW SEMANTIC VIEWS
-- [ ] Test basic query with SEMANTIC_VIEW()
-- [ ] Validate metric calculations against base table
-- [ ] Test Cortex Analyst natural language queries
-- [ ] Review Query Profile for performance
-- [ ] Document view purpose and usage examples
-
-## 4) Cortex Analyst Troubleshooting
-
-Common errors when using semantic views with Cortex Analyst and their solutions.
-
-### Error: "View not accessible" or "SELECT command denied"
-
-**Cause:** Agent role lacks SELECT permission on semantic view
-
-**Solutions:**
 ```sql
 -- 1. Verify view exists
 SHOW SEMANTIC VIEWS LIKE '{VIEW_NAME}' IN SCHEMA {DATABASE}.{SCHEMA};
 
--- 2. Grant SELECT to agent role
+-- 2. Grant SELECT
 GRANT SELECT ON SEMANTIC VIEW {DATABASE}.{SCHEMA}.{VIEW_NAME} TO ROLE agent_runner;
 
--- 3. Verify grant applied
-SHOW GRANTS TO ROLE agent_runner;
-
--- 4. Test access with agent role
+-- 3. Test access
 USE ROLE agent_runner;
 SELECT * FROM SEMANTIC_VIEW({DATABASE}.{SCHEMA}.{VIEW_NAME} DIMENSIONS dim1) LIMIT 1;
 ```
 
-### Error: "No data returned from Analyst" or "Empty results"
+### Error: "No data returned" or "Empty results"
 
-**Cause:** Semantic view empty, query doesn't match available data, or grain mismatch
-
-**Solutions:**
 ```sql
 -- 1. Verify view has data
-SELECT COUNT(*) AS row_count
-FROM SEMANTIC_VIEW({DATABASE}.{SCHEMA}.{SEMANTIC_VIEW} DIMENSIONS dim1);
+SELECT COUNT(*) FROM SEMANTIC_VIEW({DATABASE}.{SCHEMA}.{VIEW} DIMENSIONS dim1);
 
--- 2. Check view structure
-SHOW SEMANTIC DIMENSIONS IN SEMANTIC VIEW {DATABASE}.{SCHEMA}.{VIEW_NAME};
-SHOW SEMANTIC METRICS IN SEMANTIC VIEW {DATABASE}.{SCHEMA}.{VIEW_NAME};
-
--- 3. Test with simple query first
-SELECT * FROM SEMANTIC_VIEW({DATABASE}.{SCHEMA}.{VIEW_NAME} DIMENSIONS dim1 METRICS metric1) LIMIT 10;
-
--- 4. Verify measures and dimensions are populated
-SELECT
-    COUNT(*) AS total_rows,
-    COUNT(DISTINCT dimension_column) AS unique_dimensions
-FROM SEMANTIC_VIEW({DATABASE}.{SCHEMA}.{VIEW_NAME} DIMENSIONS dimension_column);
+-- 2. Check structure
+SHOW SEMANTIC DIMENSIONS IN SEMANTIC VIEW {DATABASE}.{SCHEMA}.{VIEW};
+SHOW SEMANTIC METRICS IN SEMANTIC VIEW {DATABASE}.{SCHEMA}.{VIEW};
 ```
 
 ### Error: "Invalid semantic view structure"
 
-**Cause:** View missing required columns, comments, or proper grain definition
-
-**Solutions:**
 ```sql
--- INCORRECT - Using SELECT *
-CREATE VIEW semantic_sales AS
-SELECT * FROM raw_sales;
+-- WRONG: Using SELECT *
+CREATE VIEW semantic_sales AS SELECT * FROM raw_sales;
 
--- CORRECT - Explicit columns with comments (use CREATE SEMANTIC VIEW)
+-- CORRECT: Use CREATE SEMANTIC VIEW with explicit structure
 CREATE OR REPLACE SEMANTIC VIEW {DATABASE}.{SCHEMA}.semantic_sales
-  TABLES (
-    sales AS {DATABASE}.{SCHEMA}.sales
-      PRIMARY KEY (sale_id)
-  )
-  FACTS (
-    sales.amount AS amount
-      COMMENT = 'Sales amount for aggregation'
-  )
-  DIMENSIONS (
-    sales.sale_id AS sale_id
-      COMMENT = 'Surrogate key',
-    sales.customer_id AS customer_id
-      COMMENT = 'Foreign key to customers',
-    sales.sale_date AS sale_date
-      COMMENT = 'Transaction date'
-  )
-  METRICS (
-    sales.total_revenue AS SUM(amount)
-      COMMENT = 'Total sales revenue'
-  );
-
--- Verify structure
-SHOW SEMANTIC DIMENSIONS IN SEMANTIC VIEW {DATABASE}.{SCHEMA}.semantic_sales;
-SHOW SEMANTIC METRICS IN SEMANTIC VIEW {DATABASE}.{SCHEMA}.semantic_sales;
+  TABLES (sales AS {DATABASE}.{SCHEMA}.sales PRIMARY KEY (sale_id))
+  FACTS (sales.amount AS amount COMMENT = 'Sales amount')
+  DIMENSIONS (sales.sale_date AS sale_date COMMENT = 'Transaction date')
+  METRICS (sales.total_revenue AS SUM(amount) COMMENT = 'Total revenue');
 ```
 
-### Error: "Tool configuration failed" or "Analyst tool not working"
+### Error: "Tool configuration failed"
 
-**Cause:** Semantic view name incorrect, tool description missing, or insufficient permissions
-
-**Solutions:**
 ```sql
 -- 1. Verify semantic view name is fully qualified
--- INCORRECT
-Tool: portfolio_view  -- Missing database and schema
-
--- CORRECT
-Tool: ANALYTICS.SEMANTIC.PORTFOLIO_VIEW  -- Fully qualified
+-- WRONG: portfolio_view
+-- CORRECT: ANALYTICS.SEMANTIC.PORTFOLIO_VIEW
 
 -- 2. Test semantic view directly
 SELECT * FROM SEMANTIC_VIEW(ANALYTICS.SEMANTIC.PORTFOLIO_VIEW DIMENSIONS dim1) LIMIT 5;
 
--- 3. Verify role has all required permissions
+-- 3. Verify role permissions
 SHOW GRANTS TO ROLE agent_runner;
-
--- Required grants:
--- - USAGE on database
--- - USAGE on schema
--- - SELECT on semantic view
--- - USAGE on warehouse
 ```
 
-### Error: "Permission denied on CORTEX.ANALYST function"
+## Output Format Examples
 
-**Cause:** Missing USAGE grant on Cortex functions
+```python
+# Complete Cortex Analyst integration pattern
+import requests
+import snowflake.connector
 
-**Solutions:**
-```sql
--- Grant Cortex function access (if required by your account setup)
--- Note: Cortex functions are typically available by default
+# Step 1: Verify semantic view
+conn = snowflake.connector.connect(...)
+cursor = conn.cursor()
+cursor.execute("SHOW SEMANTIC VIEWS LIKE 'SEM_SALES'")
+print(cursor.fetchall())
 
--- Verify current role
-SELECT CURRENT_ROLE(), CURRENT_USER();
+# Step 2: Test direct query
+cursor.execute("""
+  SELECT dimension_1, metric_1
+  FROM SEMANTIC_VIEW(PROD.ANALYTICS.SEM_SALES)
+  LIMIT 10
+""")
 
--- Test Cortex function access
-SELECT SNOWFLAKE.CORTEX.COMPLETE('llama3.1-8b', 'Test query');
+# Step 3: Call Cortex Analyst
+url = f"https://{account}.snowflakecomputing.com/api/v2/cortex/analyst/message"
+payload = {
+    "messages": [{"role": "user", "content": "Top 5 products by revenue?"}],
+    "semantic_view": f"{database}.{schema}.{view_name}"
+}
+response = requests.post(url, headers=headers, json=payload)
+
+# Step 4: Verify governance
+cursor.execute("SELECT CURRENT_ROLE(), CURRENT_USER()")
 ```

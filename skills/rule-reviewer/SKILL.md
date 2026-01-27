@@ -587,6 +587,19 @@ Before considering review complete:
 - [ ] Line numbers provided for fixes
 - [ ] Review written to {output_root}/rule-reviews/
 - [ ] File path confirmed
+- [ ] **Review file ≥2500 bytes (drift check)**
+
+## Context Preservation (Bulk Reviews)
+
+When invoked by `bulk-rule-reviewer`, this skill may experience context drift after 10-20 rules.
+
+**Structural Safeguards:**
+
+1. **Pre-write verification:** Check review has ≥15 line refs, score table, verdict before writing
+2. **Post-write size check:** If <2500 bytes, flag potential drift
+3. **Periodic refresh:** Every 10 rules, re-read `bulk-rule-reviewer/CRITICAL_CONTEXT.md`
+
+**See:** `workflows/review-execution.md` Pre-Write Output Verification section
 
 ## Version History
 

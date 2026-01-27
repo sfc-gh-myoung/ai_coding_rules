@@ -91,6 +91,31 @@ A **Context Anchor** is a section of skill documentation that:
    - Relevant rubric being scored
    - Review in progress
 
+### Structural Enforcement (PRIMARY MECHANISM)
+
+**Behavioral guidance alone is insufficient.** LLMs summarize "older" context regardless of instructions.
+
+**Solution: Periodic file re-reads inject fresh context that cannot be summarized:**
+
+```python
+# Every 10 rules - mandatory
+if rule_number % 10 == 0:
+    read_file("skills/bulk-rule-reviewer/CRITICAL_CONTEXT.md")
+
+# On drift detection - immediate
+if previous_review_size < 2500:
+    read_file("skills/bulk-rule-reviewer/CRITICAL_CONTEXT.md")
+    read_file("skills/bulk-rule-reviewer/SKILL.md")
+```
+
+**CRITICAL_CONTEXT.md contains (~150 tokens):**
+- Evidence requirements table
+- Review output format template
+- Quality gate thresholds
+- Score table format
+
+**Why this works:** File reads are "new" content that gets full attention weight, unlike "old" content from conversation start that gets summarized.
+
 ### Detection of Anchor Loss
 
 **Symptoms indicating anchors have faded:**

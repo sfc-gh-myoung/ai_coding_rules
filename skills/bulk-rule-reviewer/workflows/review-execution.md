@@ -250,6 +250,40 @@ print(f"{'='*60}\n")
 return results
 ```
 
+### Step 4: Drift Detection After Each Review (MANDATORY)
+
+**After writing each review file, check for context drift:**
+
+```python
+def check_for_drift(review_path, rule_number):
+    """Detect optimization drift via review quality indicators."""
+    import os
+    
+    review_size = os.path.getsize(review_path)
+    
+    # Size-based drift detection
+    if review_size < 2500:
+        print(f"DRIFT DETECTED at rule #{rule_number}: Review only {review_size} bytes")
+        print("Executing context refresh...")
+        read_file("skills/bulk-rule-reviewer/CRITICAL_CONTEXT.md")
+        return True
+    
+    # Periodic context refresh (every 10 rules)
+    if rule_number % 10 == 0:
+        print(f"Context refresh at rule #{rule_number}")
+        read_file("skills/bulk-rule-reviewer/CRITICAL_CONTEXT.md")
+    
+    return False
+
+# In main loop, after writing review:
+drift_detected = check_for_drift(review_path, completed)
+if drift_detected:
+    # Re-read full SKILL.md if drift detected
+    read_file("skills/bulk-rule-reviewer/SKILL.md")
+```
+
+**Why structural enforcement?** LLM context summarization drops "older" content (skill instructions from start) to make room for "newer" content (rules and reviews). File re-reads inject fresh context that cannot be summarized.
+
 ## Helper Functions
 
 ### extract_rule_name(file_path)

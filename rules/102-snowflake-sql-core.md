@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.1
-**LastUpdated:** 2026-01-20
-**Keywords:** SQL files, file headers, COPY INTO, FILE_FORMAT, CREATE VIEW, fully qualified names, idempotent, reserved characters, CLI compatibility, ON_ERROR
-**TokenBudget:** ~3000
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-01-27
+**Keywords:** SQL files, file headers, COPY INTO, FILE_FORMAT, CREATE VIEW, fully qualified names, idempotent, reserved characters, CLI compatibility, ON_ERROR, JOIN, ambiguous column, table alias
+**TokenBudget:** ~3400
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 **LoadTrigger:** ext:.sql, kw:sql
@@ -111,6 +111,7 @@ SQL files with .sql extension, UTF-8 encoding, Unix line endings
 - [ ] No reserved characters (`&`, `<%`, `%>`, `{{`, `}}`)
 - [ ] COPY INTO uses ON_ERROR outside FILE_FORMAT
 - [ ] CREATE VIEW places COMMENT before AS
+- [ ] JOINs use table aliases and qualify all columns
 - [ ] SQL executes without errors via CLI
 
 ## File Header Standard
@@ -471,3 +472,31 @@ COMMENT = 'Sales & Marketing data'
 ```sql
 COMMENT = 'Sales and Marketing data'
 ```
+
+### Anti-Pattern 5: Unqualified Columns in JOINs
+
+**Problem:**
+```sql
+-- Both tables have ERROR_COUNT column - ambiguous
+SELECT
+    SUM(TOTAL_QUERIES) AS TOTAL_OPS,
+    SUM(ERROR_COUNT) AS ERROR_COUNT
+FROM latest_metrics l
+LEFT JOIN worker_heartbeats h
+  ON h.RUN_ID = l.RUN_ID AND h.WORKER_ID = l.WORKER_ID;
+```
+
+**Why It Fails:** When joining tables that share column names, Snowflake throws `SQL compilation error: ambiguous column name`. Common offenders: `ERROR_COUNT`, `STATUS`, `TIMESTAMP`, `ID`, `NAME`, `CREATED_AT`, `UPDATED_AT`.
+
+**Correct Pattern:**
+```sql
+-- Always qualify columns with table alias in JOINs
+SELECT
+    SUM(l.TOTAL_QUERIES) AS TOTAL_OPS,
+    SUM(l.ERROR_COUNT) AS ERROR_COUNT
+FROM latest_metrics l
+LEFT JOIN worker_heartbeats h
+  ON h.RUN_ID = l.RUN_ID AND h.WORKER_ID = l.WORKER_ID;
+```
+
+**Rule:** When writing JOINs, qualify ALL columns in the SELECT clause with table aliases, even if currently unambiguous. This prevents future breakage when columns are added to joined tables.

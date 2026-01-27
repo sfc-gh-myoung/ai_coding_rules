@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-27
 **LoadTrigger:** kw:semantic-generator, kw:vqr
 **Keywords:** VQR, verified queries, Generator workflow, iterative development, YAML semantic model, semantic model file, onboarding questions, development workflow, verified query repository, semantic view generator
-**TokenBudget:** ~3050
+**TokenBudget:** ~3400
 **ContextTier:** Medium
 **Depends:** 106-snowflake-semantic-views-core.md
 

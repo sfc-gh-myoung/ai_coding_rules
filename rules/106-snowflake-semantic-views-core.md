@@ -8,7 +8,7 @@
 **RuleVersion:** v3.0.1
 **LastUpdated:** 2026-01-27
 **Keywords:** TABLES, RELATIONSHIPS, PRIMARY KEY, semantic view, create semantic view, SQL, YAML, NLQ, mapping syntax
-**TokenBudget:** ~2100
+**TokenBudget:** ~2250
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 **LoadTrigger:** kw:semantic-view, kw:semantic-model
@@ -235,6 +235,22 @@ CREATE OR REPLACE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
 - Categorical/temporal attributes
 - **Simple columns only** - no CAST, DATE_TRUNC
 - Mapping: `alias.physical_col AS logical_name`
+- For temporal granularity (TIME_GRAIN), pre-compute in base view:
+
+```sql
+-- Base view with pre-computed time grains
+CREATE VIEW sales_base AS
+SELECT *, DATE_TRUNC('MONTH', order_date) AS order_month,
+         DATE_TRUNC('QUARTER', order_date) AS order_quarter
+FROM raw_sales;
+
+-- Semantic view uses simple columns
+DIMENSIONS (
+  s.order_date AS order_date,
+  s.order_month AS order_month WITH SYNONYMS ('month', 'monthly'),
+  s.order_quarter AS order_quarter WITH SYNONYMS ('quarter', 'quarterly')
+)
+```
 
 **METRICS Block:**
 - Aggregations: COUNT, SUM, AVG, MIN, MAX

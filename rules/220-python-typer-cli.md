@@ -416,7 +416,8 @@ def risky_operation(
 
 ```python
 # src/myapp/config/settings.py
-from pydantic import BaseSettings, Field
+from pydantic_settings import BaseSettings
+from pydantic import Field
 from pathlib import Path
 from typing import Optional
 

@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-27
 **LoadTrigger:** kw:taskfile-includes, kw:taskfile-help, kw:categorized-help
 **Keywords:** categorized help, subtask files, includes, AI agent, machine-readable, cross-platform, task namespaces, portable tasks, task discovery
-**TokenBudget:** ~2350
+**TokenBudget:** ~2750
 **ContextTier:** Low
 **Depends:** 820-taskfile-automation.md
 

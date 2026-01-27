@@ -561,7 +561,7 @@ uv run python -m pytest tests/test_performance.py -v
 ### Configuration Integration
 ```python
 # app/config.py - Monitoring settings
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 from typing import Optional
 
 class Settings(BaseSettings):

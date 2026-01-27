@@ -6,7 +6,7 @@
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-01-27
 **Keywords:** Python docstrings, documentation, comments, pydocstyle, Ruff DOC rules, Google style, NumPy style, PEP 257, semantic depth, side effects
-**TokenBudget:** ~6000
+**TokenBudget:** ~2450
 **ContextTier:** High
 **Depends:** 200-python-core.md, 201-python-lint-format.md
 **LoadTrigger:** kw:docstring, kw:documentation, kw:comments

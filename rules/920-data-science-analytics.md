@@ -6,7 +6,7 @@
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-01-27
 **Keywords:** Data science, Snowflake, pandas, Snowpark, ML, model lifecycle, feature engineering, NaN handling, model versioning, Jupyter
-**TokenBudget:** ~6000
+**TokenBudget:** ~2600
 **ContextTier:** High
 **Depends:** 200-python-core.md, 000-global-core.md
 

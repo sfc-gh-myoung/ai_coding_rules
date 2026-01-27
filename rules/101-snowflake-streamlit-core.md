@@ -8,7 +8,7 @@
 **RuleVersion:** v3.1.1
 **LastUpdated:** 2026-01-27
 **Keywords:** Streamlit, SiS, SPCS, navigation, multipage, session state, config.toml, theming
-**TokenBudget:** ~5000
+**TokenBudget:** ~1600
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 **LoadTrigger:** kw:streamlit, kw:dashboard

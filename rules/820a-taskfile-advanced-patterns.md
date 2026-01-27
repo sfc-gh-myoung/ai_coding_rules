@@ -332,6 +332,57 @@ tasks:
       - task: test
 ```
 
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: OS-Specific Commands Without Platform Guards
+
+**Problem:** Using platform-specific commands (e.g., `open`, `xdg-open`, `brew`) without `platforms:` guards.
+
+**Why It Fails:** Tasks fail silently or with confusing errors on unsupported platforms. CI/CD pipelines break when run on different OS than development machines.
+
+**Correct Pattern:**
+```yaml
+# WRONG: macOS-only command without guard
+tasks:
+  open:docs:
+    cmds:
+      - open docs/index.html  # Fails on Linux/Windows
+
+# CORRECT: Platform-guarded with alternatives
+tasks:
+  open:docs:
+    platforms: [darwin]
+    cmds:
+      - open docs/index.html
+
+  open:docs:linux:
+    platforms: [linux]
+    cmds:
+      - xdg-open docs/index.html
+```
+
+### Anti-Pattern 2: Missing Descriptions on Public Tasks
+
+**Problem:** Omitting `desc:` fields on tasks intended for user invocation.
+
+**Why It Fails:** `task --list` shows empty descriptions, making task discovery impossible. AI agents cannot determine task purpose without descriptions.
+
+**Correct Pattern:**
+```yaml
+# WRONG: No description
+tasks:
+  lint:
+    cmds:
+      - ruff check .
+
+# CORRECT: Clear description for discovery
+tasks:
+  lint:
+    desc: "Run Ruff linter on all Python files"
+    cmds:
+      - ruff check .
+```
+
 ## Example Portable Taskfile
 
 ```yaml

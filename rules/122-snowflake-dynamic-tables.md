@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-27
 **LoadTrigger:** kw:dynamic-table, kw:incremental
 **Keywords:** automatic pipelines, DOWNSTREAM, FULL, warehouse sizing, data freshness, dynamic table lag, refresh frequency, pipeline automation
-**TokenBudget:** ~5500
+**TokenBudget:** ~2300
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 104-snowflake-streams-tasks.md, 119-snowflake-warehouse-management.md
 

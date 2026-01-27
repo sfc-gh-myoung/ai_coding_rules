@@ -6,7 +6,7 @@
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-01-27
 **Keywords:** Data modeling, naming conventions, Kimball, dimensional modeling, fact tables, dimension tables, foreign keys, view taxonomy, data generation, backward compatibility, surrogate keys
-**TokenBudget:** ~6000
+**TokenBudget:** ~3000
 **ContextTier:** High
 **Depends:** 130-snowflake-demo-sql.md, 131-snowflake-demo-creation.md
 

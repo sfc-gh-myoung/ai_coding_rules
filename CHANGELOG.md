@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **fix(rules):** add Anti-Patterns sections to pass schema validation
+  - `106c-snowflake-semantic-views-integration.md` - Restructured anti-patterns with Problem/Why It Fails/Correct Pattern format
+  - `106d-snowflake-semantic-views-development.md` - Added anti-patterns for VQR physical names, unvalidated Generator output
+  - `820a-taskfile-advanced-patterns.md` - Added anti-patterns for platform guards, missing descriptions
+- **chore(rules):** update LastUpdated metadata to 2026-01-27 across 19 rule files
+
 ### Added
 - **feat(examples):** add 5 example files recovering patterns from token reduction
   - `rules/examples/121-snowpipe-auto-ingest-example.md` - Complete AWS S3 auto-ingest setup with SNS

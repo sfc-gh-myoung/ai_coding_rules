@@ -8,7 +8,7 @@
 **RuleVersion:** v3.0.1
 **LastUpdated:** 2026-01-27
 **Keywords:** TABLES, RELATIONSHIPS, PRIMARY KEY, semantic view, create semantic view, SQL, YAML, NLQ, mapping syntax
-**TokenBudget:** ~5000
+**TokenBudget:** ~2100
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 **LoadTrigger:** kw:semantic-view, kw:semantic-model

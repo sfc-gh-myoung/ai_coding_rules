@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-27
 **LoadTrigger:** kw:semantic-query, kw:analyst
 **Keywords:** window functions, dimension compatibility, testing, validation, TPC-DS, SEMANTIC_VIEW function, query patterns
-**TokenBudget:** ~6000
+**TokenBudget:** ~2300
 **ContextTier:** High
 **Depends:** 106-snowflake-semantic-views-core.md
 

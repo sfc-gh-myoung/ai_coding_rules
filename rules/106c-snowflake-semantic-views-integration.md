@@ -264,33 +264,44 @@ ALTER TABLE PROD.GRID_DATA.GRID_ASSETS
 - [ ] Audit logging enabled
 - [ ] **No direct policies on semantic views**
 
-## Anti-Patterns
+## Anti-Patterns and Common Mistakes
 
 ### Anti-Pattern 1: Applying Policies to Semantic Views Directly
 
+**Problem:** Attempting to add governance policies (masking, row access) directly to semantic views.
+
+**Why It Fails:** Semantic views don't support direct policy attachment. Policies applied to semantic views are silently ignored, creating false security assumptions.
+
+**Correct Pattern:**
 ```sql
--- BAD: Policy on semantic view (doesn't work)
+-- WRONG: Policy on semantic view (silently ignored)
 ALTER SEMANTIC VIEW SEM_SALES
   ADD ROW ACCESS POLICY rap_region ON (region);
 
--- GOOD: Policy on base table
+-- CORRECT: Policy on base table (inherited by semantic view)
 ALTER TABLE SALES_FACT
   ADD ROW ACCESS POLICY rap_region ON (region);
 ```
 
-### Anti-Pattern 2: Skipping Synonyms
+### Anti-Pattern 2: Skipping Synonyms for Business Terms
 
+**Problem:** Creating semantic views without synonyms, expecting Cortex Analyst to understand business terminology.
+
+**Why It Fails:** Cortex Analyst cannot infer that "revenue" means `amount` or "Q1" refers to `fiscal_quarter`. Natural language queries fail to match columns without explicit synonyms.
+
+**Correct Pattern:**
 ```sql
--- BAD: No synonyms
-CREATE SEMANTIC VIEW SEM_SALES AS
-  SELECT amount, fiscal_quarter FROM SALES_FACT;
+-- WRONG: No synonyms (NLQ fails on business terms)
+CREATE SEMANTIC VIEW SEM_SALES
+  FACTS (sales.amount AS amount);
 
--- GOOD: Comprehensive synonyms
-CREATE SEMANTIC VIEW SEM_SALES AS
-  SELECT
-    amount WITH SYNONYMS = ('revenue', 'sales', 'income'),
-    fiscal_quarter WITH SYNONYMS = ('quarter', 'Q1', 'Q2', 'Q3', 'Q4')
-  FROM SALES_FACT;
+-- CORRECT: Comprehensive synonyms for NLQ matching
+CREATE SEMANTIC VIEW SEM_SALES
+  FACTS (
+    sales.amount AS amount
+      WITH SYNONYMS ('revenue', 'sales', 'income', 'total')
+      COMMENT = 'Transaction amount in USD'
+  );
 ```
 
 ## Troubleshooting

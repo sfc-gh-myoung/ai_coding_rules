@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-27
 **LoadTrigger:** kw:snowpipe, kw:streaming
 **Keywords:** snowpipe, auto-ingest, REST API, file-based ingestion, event notifications, COPY INTO, pipe management, serverless ingestion
-**TokenBudget:** ~6000
+**TokenBudget:** ~2600
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 108-snowflake-data-loading.md
 

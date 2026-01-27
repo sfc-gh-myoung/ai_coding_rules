@@ -6,7 +6,7 @@
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-01-27
 **Keywords:** Business intelligence, dashboards, KPIs, reporting, visualization, stakeholder reports, metrics, Snowsight, executive dashboards, data storytelling, WCAG accessibility
-**TokenBudget:** ~6000
+**TokenBudget:** ~2750
 **ContextTier:** High
 **Depends:** 000-global-core.md, 100-snowflake-core.md
 

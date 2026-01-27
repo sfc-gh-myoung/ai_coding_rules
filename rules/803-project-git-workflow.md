@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-27
 **LoadTrigger:** kw:git, kw:commit, kw:workflow
 **Keywords:** git, commit, commit message, workflow, branching, GitHub, pull requests, feature branches, Conventional Commits, branch naming
-**TokenBudget:** ~5500
+**TokenBudget:** ~2050
 **ContextTier:** Medium
 **Depends:** 800-project-changelog.md, 802-project-contributing.md
 

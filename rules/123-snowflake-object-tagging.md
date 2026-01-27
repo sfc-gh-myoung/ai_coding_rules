@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-27
 **LoadTrigger:** kw:tag, kw:tagging, kw:metadata
 **Keywords:** cost attribution, resource tagging, governance tags, masking policies, row access policies, tag lineage, tag management
-**TokenBudget:** ~6000
+**TokenBudget:** ~2500
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md, 107-snowflake-security-governance.md
 

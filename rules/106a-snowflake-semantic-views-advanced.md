@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-27
 **LoadTrigger:** kw:semantic-view-advanced
 **Keywords:** validation rules, semantic model quality, semantic view pitfalls, debug semantic view, validation failures, relationship errors
-**TokenBudget:** ~5500
+**TokenBudget:** ~1900
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 106-snowflake-semantic-views-core.md
 

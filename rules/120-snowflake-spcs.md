@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-27
 **LoadTrigger:** kw:spcs, kw:container
 **Keywords:** SPCS, compute pools, OCI images, service spec, container deployment, service logs, platform events
-**TokenBudget:** ~5000
+**TokenBudget:** ~1900
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 

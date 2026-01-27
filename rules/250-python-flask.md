@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-27
 **LoadTrigger:** kw:flask, kw:web
 **Keywords:** Flask, web, blueprints, Flask-SQLAlchemy, templates, routing, application factory
-**TokenBudget:** ~5000
+**TokenBudget:** ~1850
 **ContextTier:** High
 **Depends:** 200-python-core.md
 

@@ -6,7 +6,7 @@
 **RuleVersion:** v3.0.2
 **LastUpdated:** 2026-01-27
 **Keywords:** memory bank, context, session recovery, progress tracking, compaction, rapid recovery
-**TokenBudget:** ~5000
+**TokenBudget:** ~1300
 **ContextTier:** Critical
 **Depends:** 000-global-core.md
 

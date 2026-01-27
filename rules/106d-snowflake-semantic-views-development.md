@@ -396,6 +396,46 @@ for query in test_queries:
 - [ ] Test Cortex Analyst NLQ queries
 - [ ] Document view purpose
 
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Using Physical Table Names in VQR SQL
+
+**Problem:** Writing VQR SQL with fully qualified physical table names instead of logical names.
+
+**Why It Fails:** Cortex Analyst expects `__logical_name` syntax in VQR SQL. Physical table names cause query resolution failures and "table not found" errors.
+
+**Correct Pattern:**
+```yaml
+# WRONG: Physical table name
+verified_queries:
+  - name: revenue_query
+    sql: SELECT * FROM ANALYTICS.CORE.SALES_FACT
+
+# CORRECT: Logical name with __ prefix
+verified_queries:
+  - name: revenue_query
+    sql: SELECT * FROM __sales_data  # matches tables.name in YAML
+```
+
+### Anti-Pattern 2: Deploying Generator Output Without Validation
+
+**Problem:** Executing Generator-produced DDL directly without reviewing column classifications.
+
+**Why It Fails:** Generator may misclassify columns (e.g., numeric IDs as FACTS instead of DIMENSIONS). Incorrect classifications cause wrong aggregations and misleading query results.
+
+**Correct Pattern:**
+```sql
+-- WRONG: Execute Generator output blindly
+CREATE SEMANTIC VIEW SEM_ORDERS ...;  -- Generator output, unreviewed
+
+-- CORRECT: Review and validate before execution
+-- Step 1: Check FACTS are actual measures (not IDs)
+-- Step 2: Check DIMENSIONS are categorical/temporal
+-- Step 3: Verify PRIMARY KEY matches business grain
+-- Step 4: Add synonyms and comments
+-- Step 5: Execute validated DDL
+```
+
 ## Output Format Examples
 
 ```yaml

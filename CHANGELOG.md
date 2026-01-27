@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `106d-snowflake-semantic-views-development.md` - Added anti-patterns for VQR physical names, unvalidated Generator output
   - `820a-taskfile-advanced-patterns.md` - Added anti-patterns for platform guards, missing descriptions
 - **chore(rules):** update LastUpdated metadata to 2026-01-27 across 19 rule files
+- **docs(readme):** update rule count from 122 to 124
 
 ### Added
 - **feat(examples):** add 5 example files recovering patterns from token reduction

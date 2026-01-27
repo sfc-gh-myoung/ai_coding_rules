@@ -153,14 +153,18 @@ This skill MUST execute the complete rule-reviewer workflow for each rule file.
 - Summarize completed review contents SECOND
 - NEVER summarize anchor sections
 
-**See:** `workflows/context-anchor.md` for full protocol
+**Structural Enforcement (NEW):** Re-read `CRITICAL_CONTEXT.md` every 10 rules:
 
-**Verification:** Every 10 rules, confirm you can recite from memory:
-- The 6 Forbidden Optimization Thoughts
-- Why Skills ≠ Rules for token efficiency
-- The 5 evidence requirements for valid reviews
+```python
+if rule_number % 10 == 0:
+    read_file("skills/bulk-rule-reviewer/CRITICAL_CONTEXT.md")
+```
 
-**If unable to recite → Anchors have faded → Re-read SKILL.md immediately**
+**Drift Detection:** If any review file is <2500 bytes, immediately re-read:
+1. `CRITICAL_CONTEXT.md` (output format requirements)
+2. `SKILL.md` (full protocol)
+
+**See:** `workflows/context-anchor.md` and `workflows/inter-rule-gate.md` for full protocol
 
 ### How Skills Work Together
 

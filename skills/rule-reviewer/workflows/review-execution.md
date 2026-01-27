@@ -167,6 +167,32 @@ Before submitting review, verify:
 
 **If ANY checkbox NO:** Review is INVALID, regenerate from Phase 1.
 
+### Pre-Write Output Verification (MANDATORY)
+
+**Before writing review file, verify these structural requirements:**
+
+| Requirement | Check |
+|-------------|-------|
+| Score table present | 7 rows (all dimensions) with scores |
+| Line references | ≥15 distinct line citations |
+| Direct quotes | ≥3 with line numbers |
+| Verdict section | One of: EXECUTABLE, EXECUTABLE_WITH_REFINEMENTS, NEEDS_REFINEMENT, NOT_EXECUTABLE |
+| Recommendations | ≥1 with line numbers (even for 95+ scores) |
+
+**If ANY requirement missing:**
+1. STOP - Do not write incomplete review
+2. Re-read relevant rubric(s)
+3. Add missing content
+4. Re-verify before write
+
+**Post-Write Size Check:**
+```python
+review_size = os.path.getsize(review_path)
+if review_size < 2500:
+    print(f"WARNING: Review only {review_size} bytes - may indicate drift")
+    print("Recommended: Re-read SKILL.md before next review")
+```
+
 ### Expected Variance
 
 - Issue counts: ±1 item

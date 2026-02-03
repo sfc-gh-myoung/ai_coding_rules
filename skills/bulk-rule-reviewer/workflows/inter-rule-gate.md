@@ -110,14 +110,26 @@ for i, rule_file in enumerate(rule_files):
 - 20 gates × 10 sec = ~3 minutes additional time
 - Prevention value: Avoids complete redo of compromised batch
 
-## Context Window Consideration
+## Context Refresh (MANDATORY)
 
-The gate protocol itself is short (~200 tokens) and does NOT require loading additional files. The key action is:
-1. Mentally re-activate the anti-optimization mindset
-2. Answer self-assessment honestly
-3. Commit to proper process
+**Every 10 rules (N % 10 == 0):** Force re-read of critical context:
 
-**This is a cognitive checkpoint, not a context-loading event.**
+```python
+if rule_number % 10 == 0:
+    read_file("skills/bulk-rule-reviewer/CRITICAL_CONTEXT.md")
+    print(f"Context refreshed at rule #{rule_number}")
+```
+
+**Drift Detection Trigger:** If previous review file size < 2500 bytes:
+
+```python
+if previous_review_size < 2500:
+    print("DRIFT DETECTED: Review too short")
+    read_file("skills/bulk-rule-reviewer/CRITICAL_CONTEXT.md")
+    read_file("skills/bulk-rule-reviewer/SKILL.md")  # Full re-read
+```
+
+**Why file re-read, not memory?** LLM context management summarizes "older" content (skill instructions loaded at start) to make room for "newer" content (rules being processed). Periodic file re-reads inject fresh context that cannot be summarized away.
 
 ## Integration with Other Protocols
 

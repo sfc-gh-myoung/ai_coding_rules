@@ -1,4 +1,6 @@
-# Architecture: AI Coding Rules (v3.5.2)
+# Architecture: AI Coding Rules (v3.5.3)
+
+**Last Updated:** 2026-01-21
 
 ## Table of Contents
 
@@ -17,7 +19,7 @@
 
 ## System Overview
 
-> **Version Note:** This document describes project version v3.5.2. The rule schema version (v3.2) is separate from the project version. Schema version appears in rule metadata (`SchemaVersion: v3.2`), while project version tracks releases.
+> **Version Note:** This document describes project version v3.5.3. The rule schema version (v3.2) is separate from the project version. Schema version appears in rule metadata (`SchemaVersion: v3.2`), while project version tracks releases.
 
 ### Core Architecture Principles
 
@@ -410,16 +412,116 @@ dependencies: []
 
 **plan-reviewer Skill (Deployed by Default):**
 
+Reviews LLM-generated implementation plans for autonomous agent executability using an 8-dimension rubric (100 points total). Supports 4 review modes and produces deterministic scores with <±2 point variance.
+
+**See:** [Using the Plan Reviewer Skill](USING_PLAN_REVIEWER_SKILL.md) for quick start guide, examples, and FAQ.
+
+**Core Files:**
+
 | Component | Purpose |
 |-----------|---------|
-| `SKILL.md` | Implementation plan review with 3 modes |
-| `workflows/input-validation.md` | Input checking procedures |
-| `workflows/model-slugging.md` | Model name normalization |
-| `workflows/review-execution.md` | Review generation steps |
-| `workflows/file-write.md` | Output file handling |
-| `workflows/error-handling.md` | Error recovery patterns |
-| `examples/` | FULL, COMPARISON, META examples |
-| `tests/` | Input, mode, output handling tests |
+| `SKILL.md` | Main entrypoint with 4 modes, scoring formula, determinism requirements, workflow orchestration |
+| `README.md` | Usage documentation with quick start, file structure, review dimensions |
+
+**Review Modes:**
+
+| Mode | Purpose | Output Location |
+|------|---------|-----------------|
+| **FULL** | Comprehensive single-plan review (all 8 dimensions) | `reviews/plan-reviews/<plan>-<model>-<date>.md` |
+| **COMPARISON** | Rank multiple plans, declare winner with justification | `reviews/summaries/_comparison-<id>-<model>-<date>.md` |
+| **META-REVIEW** | Analyze review consistency across multiple reviewers | `reviews/summaries/_meta-<doc>-<date>.md` |
+| **DELTA** | Track issue resolution between plan versions | `reviews/plan-reviews/<plan>-delta-<old>-to-<new>-<model>.md` |
+
+**Scoring System (100 points):**
+
+| Dimension | Weight | Max Points | Focus |
+|-----------|--------|------------|-------|
+| Executability | 4 | 20 | Can agent execute without judgment? |
+| Completeness | 4 | 20 | Are all steps present? |
+| Success Criteria | 4 | 20 | Are completion signals verifiable? |
+| Scope | 3 | 15 | Is work bounded? |
+| Dependencies | 2 | 10 | Are prerequisites clear? |
+| Decomposition | 1 | 5 | Are tasks right-sized? |
+| Context | 1 | 5 | Is background provided? |
+| Risk Awareness | 1 | 5 | Are risks documented? |
+
+**Verdict Thresholds:**
+
+| Score | Verdict | Meaning |
+|-------|---------|---------|
+| 90-100 | EXCELLENT_PLAN | Ready for execution |
+| 80-89 | GOOD_PLAN | Minor refinements needed |
+| 60-79 | NEEDS_WORK | Significant refinement required |
+| 40-59 | POOR_PLAN | Not executable, major revision |
+| <40 | INADEQUATE_PLAN | Rewrite from scratch |
+
+**Rubrics (8 dimensions + overlap resolution):**
+
+| File | Purpose |
+|------|---------|
+| `rubrics/executability.md` | Blocking issue detection: ambiguous phrases, implicit commands, missing branches, undefined thresholds |
+| `rubrics/completeness.md` | Phase coverage: setup, validation, cleanup, error recovery |
+| `rubrics/success-criteria.md` | Agent-verifiable criteria: exit codes, file existence, measurable outputs |
+| `rubrics/scope.md` | Boundary definition: start/end states, exclusions, termination conditions |
+| `rubrics/dependencies.md` | Prerequisite clarity: tool requirements, ordering, access needs |
+| `rubrics/decomposition.md` | Task granularity: single-action steps, parallelization |
+| `rubrics/context.md` | Background provision: rationale, domain terms, assumptions |
+| `rubrics/risk-awareness.md` | Risk documentation: failure scenarios, mitigations, rollback |
+| `rubrics/_overlap-resolution.md` | Prevents double-counting: 10 issue types, 8 IF-THEN rules |
+
+**Workflows (8 workflow files):**
+
+| File | Purpose |
+|------|---------|
+| `workflows/input-validation.md` | Input checking: required params, mode-specific validation, error messages |
+| `workflows/model-slugging.md` | Model name normalization for filenames |
+| `workflows/review-execution.md` | 3-phase review: (1) batch load rubrics, (2) fill worksheets, (3) calculate scores |
+| `workflows/delta-review.md` | DELTA mode: 5-phase workflow for tracking issue resolution |
+| `workflows/file-write.md` | Output handling: path computation, no-overwrite safety, collision avoidance |
+| `workflows/error-handling.md` | Error recovery: 10 error patterns with resolution steps |
+| `workflows/consistency-check.md` | Score locking, variance thresholds, inter-review consistency |
+| `workflows/issue-inventory.md` | Issue ID format, status tracking across reviews |
+
+**Examples (4 walkthrough files):**
+
+| File | Purpose |
+|------|---------|
+| `examples/full-review.md` | Complete FULL mode walkthrough with scoring |
+| `examples/comparison-review.md` | COMPARISON mode with 3 plans ranked |
+| `examples/meta-review.md` | META-REVIEW analyzing consistency |
+| `examples/edge-cases.md` | Ambiguous scenarios and resolutions |
+
+**Tests (6 test files):**
+
+| File | Purpose |
+|------|---------|
+| `tests/README.md` | Test overview and instructions |
+| `tests/test-inputs.md` | Input validation test cases |
+| `tests/test-modes.md` | Review mode test cases |
+| `tests/test-outputs.md` | Output handling test cases |
+| `tests/test-invocation-full.md` | FULL mode invocation tests |
+| `tests/test-invocation-comparison.md` | COMPARISON mode invocation tests |
+
+**Testing and Maintenance:**
+
+| File | Purpose |
+|------|---------|
+| `testing/TESTING.md` | Skill health checks for maintainers |
+
+**Determinism Requirements:**
+
+The skill enforces strict determinism for reproducible scores:
+
+1. **Batch Load Rubrics** — All 9 files (8 rubrics + overlap resolution) loaded BEFORE reading plan
+2. **Create Worksheets First** — All 8 empty worksheets prepared BEFORE reading plan
+3. **Systematic Enumeration** — Read plan from line 1 to END (no skipping)
+4. **Use Pattern Lists** — Only count patterns from rubric inventories (don't invent)
+5. **Check Non-Issues** — Always filter false positives before final count
+6. **Apply Overlap Resolution** — Check `_overlap-resolution.md` for ambiguous issues
+7. **Include Worksheets** — Copy completed worksheets into review output
+8. **Use Score Matrices** — Look up scores in decision tables (no interpretation)
+
+**Expected Variance:** ±1 blocking issue, ±1 dimension point, ±2 overall points.
 
 **Quality Threshold for Cross-Skill Validation:**
 
@@ -485,7 +587,18 @@ ai_coding_rules/
 │   ├── 221f-python-htmx-integrations.md
 │   ├── 500-frontend-htmx-core.md
 │   ├── 600-golang-core.md      # Go/Golang foundation
-│   └── ... (122 total)
+│   ├── examples/               # Validated implementation examples
+│   │   ├── 001-memory-bank-templates-example.md
+│   │   ├── 106-semantic-view-ddl-example.md
+│   │   ├── 106-semantic-view-workarounds-example.md
+│   │   ├── 106-semantic-view-yaml-vqr-example.md
+│   │   ├── 115-cortex-agent-hybrid-python-example.md
+│   │   ├── 115-cortex-agent-hybrid-sql-example.md
+│   │   ├── 115-cortex-agent-prerequisites-example.md
+│   │   ├── 116-cortex-search-service-example.md
+│   │   ├── 120-spcs-service-spec-example.md
+│   │   └── 121-snowpipe-auto-ingest-example.md
+│   └── ... (125 total)
 │
 ├── scripts/                    # Automation and validation
 │   ├── template_generator.py  # Creates new rule templates
@@ -496,7 +609,8 @@ ai_coding_rules/
 │   └── index_generator.py      # Generates RULES_INDEX.md
 │
 ├── schemas/                    # Validation schemas
-│   ├── rule-schema.yml         # Schema definition
+│   ├── rule-schema.yml         # Rule file schema definition
+│   ├── example-schema.yml      # Example file schema definition
 │   └── README.md               # Schema documentation
 │
 ├── tests/                      # Test suite (100+ passing tests)
@@ -564,7 +678,14 @@ ai_coding_rules/
 - Production-ready files
 - Directly editable
 - No generation required
-- 122 rules covering all domains (including 8 HTMX rules, Go/Golang core, and Alpine.js)
+- 125 rules covering all domains (including 8 HTMX rules, Go/Golang core, and Alpine.js)
+
+**`rules/examples/`** — Validated implementation examples
+- Complete, runnable reference implementations for complex rules
+- Validated separately against `schemas/example-schema.yml`
+- Not rule files (not validated against rule-schema.yml)
+- Naming pattern: `{rule-number}-{topic}-{variant}-example.md`
+- Used by agents for concrete patterns when implementing Cortex Agents, Semantic Views, Cortex Search
 
 **`scripts/`** — Automation and validation tools
 - `template_generator.py` creates new rules compliant with the schema
@@ -575,7 +696,8 @@ ai_coding_rules/
 - `index_generator.py` generates RULES_INDEX.md catalog
 
 **`schemas/`** — Declarative validation
-- `rule-schema.yml` defines all requirements
+- `rule-schema.yml` defines all requirements for rule files
+- `example-schema.yml` defines validation for example files
 - Used by schema_validator.py
 - Single source of truth for validation logic
 
@@ -605,10 +727,12 @@ ai_coding_rules/
   - Includes: SKILL.md, README.md, VALIDATION.md, workflows/, examples/, tests/
   - Trigger keywords: "review docs", "audit documentation", "check doc quality"
 - **plan-reviewer/** (deployed by default):
-  - Reviews implementation plans for completeness, risk assessment, and feasibility
-  - Writes results to `reviews/` with no-overwrite safety
-  - Includes: SKILL.md, README.md, VALIDATION.md, workflows/, examples/, tests/
-  - Trigger keywords: "review plan", "audit implementation plan", "check plan quality"
+  - Reviews implementation plans for agent executability using 8-dimension rubric (100 points)
+  - Supports 4 modes: FULL (single plan), COMPARISON (rank multiple), META-REVIEW (consistency), DELTA (track fixes)
+  - Verdict ranges: EXCELLENT_PLAN (90-100), GOOD_PLAN (80-89), NEEDS_WORK (60-79), POOR_PLAN (40-59), INADEQUATE_PLAN (<40)
+  - Writes results to `reviews/plan-reviews/` or `reviews/summaries/` with no-overwrite safety
+  - Includes: SKILL.md, README.md, workflows/ (including delta-review.md), examples/, tests/
+  - Trigger keywords: "review plan", "compare plans", "plan quality", "meta-review", "plan executability"
 - All skills feature:
   - Enhanced YAML frontmatter (version, author, tags, dependencies)
   - Inline validation snippets (hybrid code embedding)
@@ -915,7 +1039,7 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 ### Deployment Architecture
 
 **Source Files (in ai_coding_rules repository):**
-- `rules/` — 122 production-ready rule files
+- `rules/` — 125 production-ready rule files
 - `AGENTS.md` — Discovery guide with loading protocol
 - `RULES_INDEX.md` — Searchable catalog with keywords
 
@@ -928,7 +1052,7 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 **Target Structure (in user's project):**
 ```
 /path/to/user-project/
-├── rules/                  # 122 rule files
+├── rules/                  # 124 rule files
 │   ├── 000-global-core.md
 │   ├── 100-snowflake-core.md
 │   └── ...
@@ -987,15 +1111,15 @@ Configuration:
   Mode: LIVE (files will be copied)
 
 Validation:
-  ✓ Source rules/ directory exists (122 files)
+  ✓ Source rules/ directory exists (125 files)
   ✓ Source AGENTS.md exists
   ✓ Source RULES_INDEX.md exists
   ✓ Destination writable
 
 Deployment:
   → Creating destination rules/ directory
-  → Copying 122 rule files...
-  ✓ Copied 122 rules to /path/to/project/rules/
+  → Copying 124 rule files...
+  ✓ Copied 125 rules to /path/to/project/rules/
   ✓ Copied AGENTS.md to /path/to/project/
   ✓ Copied RULES_INDEX.md to /path/to/project/
 

@@ -163,20 +163,60 @@ Version coverage % = (tools with versions / tools listed) × 100
 - 1-2/6 elements: -2 points
 - 0/6 elements: -3 points
 
-## Score Decision Matrix
+## Score Decision Matrix (ENHANCED)
 
-**Score Tier Criteria:**
-- **10/10 (10 pts):** 5/5 categories, 100% tool versions, explicit ordering, complete access, 6/6 environment
-- **9/10 (9 pts):** 5/5 categories, 95-99% tool versions, explicit ordering, access with verification, 5-6/6 environment
-- **8/10 (8 pts):** 5/5 categories, 90-94% tool versions, explicit ordering, access stated, 5/6 environment
-- **7/10 (7 pts):** 4/5 categories, 85-89% tool versions, mostly explicit ordering, access stated, 4/6 environment
-- **6/10 (6 pts):** 4/5 categories, 80-84% tool versions, mostly explicit ordering, access stated, 3-4/6 environment
-- **5/10 (5 pts):** 3/5 categories, 70-79% tool versions, some ordering, partial access, 2-3/6 environment
-- **4/10 (4 pts):** 3/5 categories, 60-69% tool versions, some ordering, partial access, 2/6 environment
-- **3/10 (3 pts):** 2/5 categories, 50-59% tool versions, unclear ordering, missing access, 1/6 environment
-- **2/10 (2 pts):** 2/5 categories, 40-49% tool versions, unclear ordering, missing access, 0-1/6 environment
-- **1/10 (1 pt):** 1/5 categories, 30-39% tool versions, no ordering, missing access, 0/6 environment
-- **0/10 (0 pts):** 0/5 categories, <30% tool versions, no ordering, no access, no environment
+**Purpose:** Convert dependency category coverage and specification quality into dimension score. No interpretation needed - just look up the tier.
+
+### Input Values
+
+From completed worksheet:
+- **Categories Addressed:** Count of 5 types (Tool/Access/Ordering/Environment/Data)
+- **Tool Version Coverage %:** Tools with versions / Total tools × 100
+- **Ordering Clarity:** Explicit with rationale / Explicit without / Some implicit / Unclear
+- **Access Requirements:** Complete with verification / Listed only / Missing
+- **Environment Assumptions:** Count of 6 elements documented
+
+### Scoring Table
+
+| Categories | Versions % | Ordering | Access | Environment | Tier | Raw Score | × Weight | Points |
+|------------|------------|----------|--------|-------------|------|-----------|----------|--------|
+| 5/5 | 100% | Explicit+rationale | Complete+verify | 6/6 | Perfect | 10/10 | × 1 | 10 |
+| 5/5 | 95-99% | Explicit | Complete+verify | 5-6/6 | Near-Perfect | 9/10 | × 1 | 9 |
+| 5/5 | 90-94% | Explicit | Stated | 5/6 | Excellent | 8/10 | × 1 | 8 |
+| 4/5 | 85-89% | Mostly explicit | Stated | 4/6 | Good | 7/10 | × 1 | 7 |
+| 4/5 | 80-84% | Mostly explicit | Stated | 3-4/6 | Acceptable | 6/10 | × 1 | 6 |
+| 3/5 | 70-79% | Some | Partial | 2-3/6 | Borderline | 5/10 | × 1 | 5 |
+| 3/5 | 60-69% | Some | Partial | 2/6 | Below Standard | 4/10 | × 1 | 4 |
+| 2/5 | 50-59% | Unclear | Missing | 1/6 | Poor | 3/10 | × 1 | 3 |
+| 2/5 | 40-49% | Unclear | Missing | 0-1/6 | Very Poor | 2/10 | × 1 | 2 |
+| 1/5 | 30-39% | None | Missing | 0/6 | Critical | 1/10 | × 1 | 1 |
+| 0/5 | <30% | None | Missing | 0/6 | No Dependencies | 0/10 | × 1 | 0 |
+
+### Tie-Breaking Algorithm (Deterministic)
+
+**When category count falls exactly on tier boundary:**
+
+1. **Check Version Coverage:** If versions > tier requirement → HIGHER tier
+2. **Check Ordering Clarity:** If ordering is explicit with rationale → HIGHER tier
+3. **Check Access Verification:** If access includes verification commands → HIGHER tier
+4. **Default:** LOWER tier (conservative - missing dependencies cause failures)
+
+### Edge Cases
+
+**Edge Case 1: Standard system tools (no version needed)**
+- **Example:** "git, curl, bash" without versions
+- **Rule:** Standard system tools don't penalize version coverage
+- **Rationale:** These are available on all systems at compatible versions
+
+**Edge Case 2: Implicit ordering from phase structure**
+- **Example:** "Phase 1 before Phase 2" without explicit statement
+- **Rule:** Count phase ordering as implicit but acceptable
+- **Rationale:** Phase structure provides ordering
+
+**Edge Case 3: Minimum versions vs exact versions**
+- **Example:** "Python 3.11+" vs "Python 3.11.4"
+- **Rule:** Both count as versioned
+- **Rationale:** Minimum version is often more appropriate
 
 ## Dependency Category Details
 
@@ -402,6 +442,422 @@ During review, verify:
 - [ ] Environment assumptions explicit (OS, shell, network, disk, memory, ports)
 - [ ] Data dependencies listed
 - [ ] Data verification commands provided
+
+## Non-Issues (Do NOT Count)
+
+**Purpose:** Eliminate false positives by explicitly defining what is NOT a dependencies issue.
+
+### Pattern 1: Minimum Version Specified
+
+**Example:**
+```markdown
+"Python 3.11+" (with + suffix)
+```
+**Why NOT an issue:** "+" indicates minimum version, acceptable specification  
+**Overlap check:** N/A - version constraint provided  
+**Correct action:** Count as versioned (meets "version specified" requirement)
+
+### Pattern 2: Standard System Tools (No Version Needed)
+
+**Example:**
+```markdown
+"Uses: bash, curl, grep, sed"
+```
+**Why NOT an issue:** System utilities are standard, version rarely matters  
+**Overlap check:** N/A - ubiquitous tools  
+**Correct action:** Do not penalize missing versions for standard *nix utilities
+
+### Pattern 3: Ordering Implied by Phase Structure
+
+**Example:**
+```markdown
+Phase 1: Setup
+Phase 2: Implementation (implicitly depends on Phase 1)
+Phase 3: Validation
+```
+**Why NOT an issue:** Phase numbering implies sequential ordering  
+**Overlap check:** Not Executability - execution order is clear  
+**Correct action:** Count phase structure as explicit ordering
+
+### Pattern 4: Data Dependencies Implied by Task Type
+
+**Example:**
+```markdown
+Task: "Migrate users table"
+```
+**Why NOT an issue:** Migration implies users table must exist  
+**Overlap check:** May be Completeness if setup section missing, but not Dependencies  
+**Correct action:** Implied dependencies acceptable for domain-standard operations
+
+## Complete Pattern Inventory
+
+**Purpose:** Eliminate interpretation variance by providing exhaustive lists. If it's not in this list, don't invent it. Match case-insensitive.
+
+### Category 1: Tool Dependency Indicators (25 Patterns)
+
+**Explicit Tool References (count as present):**
+1. "Python X.Y+"
+2. "Node.js X+"
+3. "npm X+"
+4. "Docker X+"
+5. "PostgreSQL X+"
+6. "MySQL X+"
+7. "Redis X+"
+8. "MongoDB X+"
+9. "git"
+10. "curl"
+11. "wget"
+12. "make"
+13. "cargo"
+14. "go"
+15. "java"
+16. "pip"
+17. "poetry"
+18. "uv"
+19. "yarn"
+20. "pnpm"
+21. "brew"
+22. "apt"
+23. "yum"
+24. "dnf"
+25. "pacman"
+
+**Regex Patterns:**
+```regex
+\b(python|node|npm|docker|postgres|mysql|redis|mongo|git|curl|make|cargo|go|java|pip|poetry|uv|yarn)\s*(\d+\.?\d*\.?\d*\+?)?\b
+\b(brew|apt|yum|dnf|pacman)\s+(install|update)\b
+```
+
+**Context Rules:**
+- Tool name + version → Count as versioned
+- Tool name only (no version) → Count as unversioned
+- Exception: Standard system tools (git, curl, grep, sed) don't need versions
+
+### Category 2: Access Requirement Indicators (20 Patterns)
+
+**Credential/Permission Patterns:**
+1. "API key"
+2. "access token"
+3. "personal access token"
+4. "PAT"
+5. "secret key"
+6. "AWS credentials"
+7. "AWS_ACCESS_KEY"
+8. "AWS_SECRET_KEY"
+9. "service account"
+10. "SSH key"
+11. "database password"
+12. "DB_PASSWORD"
+13. "authentication"
+14. "authorization"
+15. "permission"
+16. "role"
+17. "IAM"
+18. "RBAC"
+19. "OAuth"
+20. "credentials"
+
+**Regex Patterns:**
+```regex
+\b(api|access|secret|auth)\s*(key|token)\b
+\b(AWS|GCP|Azure|GitHub|GitLab)\s*(credentials?|token|key)\b
+\bservice\s+account\b
+\bSSH\s*key\b
+\b(DB|DATABASE)_(PASSWORD|USER|HOST|URL)\b
+\b(IAM|RBAC|OAuth)\b
+```
+
+**Context Rules:**
+- Credential mentioned → Check for verification command
+- With verification command → Complete access requirement
+- Without verification command → Incomplete (flag)
+
+### Category 3: Ordering Dependency Indicators (15 Patterns)
+
+**Explicit Ordering Patterns:**
+1. "depends on"
+2. "requires"
+3. "after"
+4. "before"
+5. "must complete first"
+6. "prerequisite"
+7. "blocked by"
+8. "blocks"
+9. "can run in parallel"
+10. "parallelizable"
+11. "sequential"
+12. "in order"
+13. "step X then step Y"
+14. "Phase 1, Phase 2"
+15. "→" (arrow notation)
+
+**Regex Patterns:**
+```regex
+\b(depends?\s+on|requires?|after|before|blocked\s+by|blocks)\b
+\bstep\s+\d+\s+(then|before|after)\s+step\s+\d+\b
+\b(sequential|parallel|in\s+order)\b
+\bphase\s+\d+\b
+```
+
+**Context Rules:**
+- Explicit "depends on" → Clear ordering
+- Phase numbering → Implicit sequential ordering
+- No ordering language + numbered list → Weak implicit ordering
+
+### Category 4: Environment Assumption Patterns (6 Categories)
+
+**Operating System:**
+- "macOS", "Darwin", "Mac OS X"
+- "Ubuntu", "Debian", "Linux"
+- "Windows", "Win10", "Win11"
+- "Unix-like", "POSIX"
+
+**Shell Type:**
+- "bash", "zsh", "sh"
+- "PowerShell", "cmd"
+- "fish", "tcsh"
+
+**Network Access:**
+- "internet access", "network access"
+- "offline", "air-gapped"
+- "VPN required", "proxy"
+
+**Disk Space:**
+- "X GB free", "disk space"
+- "storage requirement"
+
+**Memory:**
+- "X GB RAM", "memory"
+- "minimum memory"
+
+**Ports:**
+- "port X available", "ports"
+- "8080", "3000", "5432", "6379"
+
+**Regex Patterns:**
+```regex
+\b(macOS|Ubuntu|Linux|Windows|POSIX)\b
+\b(bash|zsh|sh|PowerShell)\b
+\b(internet|network)\s+access\b
+\b\d+\s*(GB|MB|TB)\s+(free|available|disk|RAM|memory)\b
+\bport\s+\d+\b
+```
+
+### Category 5: Standard System Tools (No Version Needed)
+
+**Tools that don't require version specification:**
+1. git
+2. curl
+3. wget
+4. grep
+5. sed
+6. awk
+7. cat
+8. ls
+9. mv
+10. cp
+11. rm
+12. mkdir
+13. chmod
+14. chown
+15. tar
+16. gzip
+17. unzip
+18. ssh
+19. scp
+20. rsync
+
+**Context Rules:**
+- These tools are ubiquitous and backward-compatible
+- Don't penalize missing versions for standard *nix utilities
+- DO penalize if exotic flags used that require specific version
+
+### Ambiguous Cases Resolution
+
+**Case 1: Minimum version vs exact version**
+
+**Pattern:** "Python 3.11+" vs "Python 3.11.4"
+
+**Ambiguity:** Is minimum version sufficient specification?
+
+**Resolution Rule:**
+- Both count as versioned
+- Minimum version (X+) is often more appropriate for dependencies
+- Exact version needed only for reproducibility requirements
+
+**Case 2: Version in package file vs plan**
+
+**Pattern:** Version in requirements.txt but not in plan text
+
+**Ambiguity:** Does external file count?
+
+**Resolution Rule:**
+- If plan references "see requirements.txt" → Count as versioned
+- If plan doesn't reference file → Count as unversioned in plan
+- Flag: "Versions in requirements.txt, not in plan prerequisites"
+
+**Case 3: Implicit tool from command**
+
+**Pattern:** "Run: pytest tests/" (pytest not listed in prerequisites)
+
+**Ambiguity:** Is tool implicitly a dependency?
+
+**Resolution Rule:**
+- Tools used in commands ARE dependencies
+- If not in prerequisites section → Flag as missing dependency
+- Add to inventory: "pytest used at line X, not in prerequisites"
+
+**Case 4: Ordering from document structure**
+
+**Pattern:** Phase 1, Phase 2, Phase 3 (no explicit "depends on")
+
+**Ambiguity:** Is phase structure explicit ordering?
+
+**Resolution Rule:**
+- Phase numbering = implicit but acceptable ordering
+- Count as "ordering present" (implicit)
+- Would be "explicit" if "Phase 2 depends on Phase 1" stated
+
+**Case 5: Access verification in different section**
+
+**Pattern:** Access requirements in Prerequisites, verification in Validation
+
+**Ambiguity:** Is separated verification acceptable?
+
+**Resolution Rule:**
+- Verification in same plan = acceptable
+- Search entire plan before flagging missing verification
+- Flag only if NO verification anywhere
+
+**Case 6: Environment assumptions implied**
+
+**Pattern:** "Run on local development machine"
+
+**Ambiguity:** Does this count as environment documentation?
+
+**Resolution Rule:**
+- Vague reference = NOT documented
+- Need specific: OS, shell, disk, memory, ports, network
+- "Local machine" ≠ environment specification
+
+**Case 7: Data dependency from task description**
+
+**Pattern:** "Migrate users table" (implies users table exists)
+
+**Ambiguity:** Is implied data dependency documented?
+
+**Resolution Rule:**
+- Implied dependencies acceptable for domain-standard operations
+- Explicit verification preferred ("Verify users table has ≥1000 rows")
+- Don't penalize obvious implications
+
+**Case 8: Credential placeholder vs actual requirement**
+
+**Pattern:** "$DB_PASSWORD" in example code
+
+**Ambiguity:** Is this a documented access requirement?
+
+**Resolution Rule:**
+- Env var placeholder = access requirement identified
+- Still need: how to obtain, verification command
+- Partial credit: requirement identified, verification missing
+
+## Anti-Pattern Examples (Common Mistakes)
+
+**❌ WRONG (False Positive):**
+- Flagged: "Node.js 20+" as "version not specified"
+- Rationale given: "Exact version needed"
+- Problem: Minimum version constraint is valid specification
+- Impact: Tool version coverage % incorrectly reduced
+
+**✅ CORRECT:**
+- "20+" counted as versioned
+- Rationale: Minimum version is valid constraint
+- Condition: Would be flagged IF just "Node.js" without any version
+
+**❌ WRONG (False Positive):**
+- Flagged: "Missing ordering dependencies"
+- Rationale given: "No explicit 'depends on' statements"
+- Problem: Plan uses Phase 1/2/3 structure (implicit ordering)
+- Impact: Ordering marked as "unclear" incorrectly
+
+**✅ CORRECT:**
+- Phase structure counts as explicit ordering
+- Rationale: Sequential phases = sequential dependencies
+- Condition: Would be flagged IF tasks out of order or no structure
+
+## Ambiguous Case Resolution Rules (REQUIRED)
+
+**Purpose:** Provide deterministic scoring when dependency documentation is borderline.
+
+### Rule 1: Same-File Context
+**Count category as present if:** At least one item in that category documented  
+**Count category as missing if:** Zero items in that category
+
+### Rule 2: Adjectives Without Quantifiers
+**Count version as specified if:** Any version constraint (exact, minimum with +, range)  
+**Count version as NOT specified if:** Tool listed without any version information
+
+### Rule 3: Pattern Variations
+**Count ordering as explicit if:** "depends on", phase numbers, or "after X" stated  
+**Count ordering as implicit if:** Only sequential listing without dependency notation
+
+### Rule 4: Default Resolution
+**Still uncertain after Rules 1-3?** → Count as missing/unspecified (conservative scoring)
+
+### Borderline Cases Template
+
+Document borderline decisions in your worksheet:
+
+```markdown
+### Category/Tool: "[Name]"
+- **Decision:** Present [Y/N], Version specified [Y/N], Complete [Y/N]
+- **Rule Applied:** [1/2/3/4]
+- **Reasoning:** [Explain why this classification]
+- **Alternative:** [Other interpretation and why rejected]
+- **Confidence:** [HIGH/MEDIUM/LOW]
+```
+
+## Mandatory Counting Worksheet (REQUIRED)
+
+**CRITICAL:** You MUST create and fill this worksheet BEFORE calculating score.
+
+### Worksheet Template
+
+**Dependency Categories (0-5):**
+| Category | Present? | Complete? | Missing Items |
+|----------|----------|-----------|---------------|
+| Tool dependencies | Y/N | Y/N | |
+| Access requirements | Y/N | Y/N | |
+| Ordering dependencies | Y/N | Y/N | |
+| Environment assumptions | Y/N | Y/N | |
+| Data dependencies | Y/N | Y/N | |
+| **TOTAL** | | | **___/5** |
+
+**Tool Version Coverage:**
+| Tool | Listed? | Version Specified? |
+|------|---------|-------------------|
+| [Tool 1] | Y/N | Y/N |
+| [Tool 2] | Y/N | Y/N |
+| **COVERAGE** | | **___% versioned** |
+
+**Environment Elements (0-6):**
+| Element | Documented? |
+|---------|-------------|
+| Operating system | Y/N |
+| Shell type | Y/N |
+| Network access | Y/N |
+| Disk space | Y/N |
+| Memory | Y/N |
+| Available ports | Y/N |
+| **TOTAL** | **___/6** |
+
+### Counting Protocol
+
+1. Fill each section systematically
+2. Calculate coverage percentages
+3. Use Score Decision Matrix to determine raw score
+4. Include completed worksheet in review output
 
 ## Inter-Run Consistency Target
 

@@ -368,6 +368,20 @@ tasks:
     cmds:
       - "{{.PYTHON}} scripts/schema_validator.py rules/ --verbose"
 
+  examples:validate:
+    desc: "Validate example files in rules/examples/"
+    deps:
+      - env:sync
+    cmds:
+      - "{{.PYTHON}} scripts/schema_validator.py rules/examples/ --examples"
+
+  examples:validate:verbose:
+    desc: "Validate example files in rules/examples/ (verbose)"
+    deps:
+      - env:sync
+    cmds:
+      - "{{.PYTHON}} scripts/schema_validator.py rules/examples/ --examples --verbose"
+
   rule:new:
     desc: "Generate v3.0 rule template (requires FILENAME=)"
     silent: true
@@ -542,6 +556,7 @@ tasks:
       - task: quality:check
       - task: test:all
       - task: rules:validate
+      - task: examples:validate
       - task: index:check
 
   # Maintenance

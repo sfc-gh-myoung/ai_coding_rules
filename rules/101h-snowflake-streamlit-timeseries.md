@@ -6,7 +6,7 @@
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-01-12
 **Keywords:** time series smoothing, data aggregation, resample, SCADA data, high-frequency data, trend analysis, rolling average, EWMA, exponential smoothing
-**TokenBudget:** ~1650
+**TokenBudget:** ~1850
 **ContextTier:** Low
 **Depends:** 101a-snowflake-streamlit-visualization.md
 
@@ -187,6 +187,38 @@ else:
 - **median:** Robust to outliers, good for noisy data
 - **max:** Preserves peak values (voltage spikes, load peaks)
 - **min:** Preserves valley values (voltage sags)
+- **ewma:** Exponentially weighted moving average for adaptive smoothing
+
+### EWMA (Exponentially Weighted Moving Average)
+
+For adaptive smoothing that gives more weight to recent observations:
+
+```python
+def ewma_smooth(
+    df: pd.DataFrame,
+    value_col: str,
+    span: int = 12,
+) -> pd.Series:
+    """
+    Apply EWMA smoothing. Recent values weighted more heavily.
+    
+    Args:
+        df: DataFrame with time series
+        value_col: Column to smooth
+        span: Decay span (higher = smoother, lower = more reactive)
+    
+    Returns:
+        EWMA-smoothed series
+    """
+    return df[value_col].ewm(span=span, adjust=False).mean()
+
+# Usage
+df['voltage_ewma'] = ewma_smooth(df, 'voltage_kv', span=12)
+```
+
+**When to use EWMA vs resampling:**
+- **EWMA:** Preserves original time resolution, smooths noise adaptively
+- **Resampling:** Reduces data points, fixed time intervals
 
 ## Performance Impact
 

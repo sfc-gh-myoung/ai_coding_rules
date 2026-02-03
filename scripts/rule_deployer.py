@@ -398,6 +398,28 @@ def deploy_rules(
         log_info("Copying root files (AGENTS.md, rules/RULES_INDEX.md)...", verbose)
         root_copied, root_failed = copy_root_files(project_root, dest, dry_run, verbose)
 
+        # Copy examples/ subdirectory if it exists
+        examples_src = project_root / "rules" / "examples"
+        if examples_src.exists() and examples_src.is_dir():
+            dest_rules_dir = dest / "rules"
+            examples_dest = dest_rules_dir / "examples"
+            try:
+                if not dry_run:
+                    if examples_dest.exists():
+                        shutil.rmtree(examples_dest)
+                    shutil.copytree(examples_src, examples_dest)
+                    example_files = list(examples_src.glob("*.md"))
+                    log_info(f"Copied examples/ ({len(example_files)} files)", verbose)
+                    root_copied += len(example_files)
+                else:
+                    example_files = list(examples_src.glob("*.md"))
+                    log_info(
+                        f"[DRY RUN] Would copy examples/ ({len(example_files)} files)", verbose
+                    )
+            except Exception as e:
+                log_error(f"Failed to copy examples/: {e}")
+                root_failed += 1
+
         # Copy skills unless explicitly skipped
         if not skip_skills:
             log_info("Copying skills directory (respecting pyproject.toml exclusions)...", verbose)

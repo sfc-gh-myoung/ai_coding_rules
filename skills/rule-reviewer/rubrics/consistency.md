@@ -1,5 +1,73 @@
 # Consistency Rubric (15 points)
 
+## Mandatory Issue Inventory (REQUIRED)
+
+**CRITICAL:** You MUST create and fill this inventory BEFORE calculating score.
+
+### Why This Is Required
+
+- **Eliminates counting variance:** Same rule → same inventory → same score
+- **Prevents false negatives:** Systematic tracking catches all inconsistencies
+- **Provides evidence:** Inventory shows exactly what was found
+- **Enables verification:** Users can audit scoring decisions
+
+### Inventory Template
+
+**Contradictions:**
+
+| Line A | Line B | Statement A | Statement B | Type |
+|--------|--------|-------------|-------------|------|
+| 45 | 200 | "Always use X" | "Never use X" | Direct |
+| 36 | 150 | "Large = >10M" | "Large = >5M" | Threshold |
+
+**Terminology Variations:**
+
+| Term 1 | Lines | Term 2 | Lines | Same Concept? |
+|--------|-------|--------|-------|---------------|
+| surgical edits | 45, 120 | minimal changes | 200 | Y/N |
+| task | 30, 60 | action item | 150 | Y/N |
+
+**Example Compliance:**
+
+| Line | Example Type | Mandate | Compliant? |
+|------|--------------|---------|------------|
+| 67 | SQL query | No SELECT * | Y/N |
+| 134 | Python | Use ruff | Y/N |
+
+**Dependency Status:**
+
+| Dependency | Exists? | Referenced? | Valid? |
+|------------|---------|-------------|--------|
+| 000-global-core.md | Y/N | Y/N | Y/N |
+
+### Counting Protocol (5 Steps)
+
+**Step 1: Create Empty Inventory**
+- Copy all four templates above into working document
+- Do NOT start reading rule yet
+
+**Step 2: Read Rule Systematically**
+- Start at line 1, read to END (no skipping)
+- Track each key term with all line numbers
+- Note each code example with line number
+- Record each threshold/value definition
+
+**Step 3: Calculate Raw Totals**
+- Contradictions: Count direct conflicts
+- Terminology: Count variations without defined equivalence
+- Examples: Calculate compliance percentage
+- Dependencies: Count issues
+
+**Step 4: Check Non-Issues List**
+- Review EACH flagged item in inventory
+- Check against "Non-Issues" section below
+- Remove false positives with note
+- Recalculate totals
+
+**Step 5: Look Up Score**
+- Use adjusted totals in Score Decision Matrix
+- Record score with inventory evidence
+
 ## Scoring Formula
 
 **Raw Score:** 0-10
@@ -317,3 +385,31 @@ Section B: "In development only: SELECT * for exploration, replace before commit
 - Use tracking tables (provided above)
 - Document each issue with line numbers
 - Note ambiguous cases
+
+## Non-Issues (Do NOT Count)
+
+**Review EACH flagged item against this list before counting.**
+
+### Pattern 1: Defined Synonyms
+**Pattern:** Two terms used, but explicitly defined as equivalent
+**Example:** "surgical edits (also called minimal changes)" - then uses both terms
+**Why NOT an issue:** Equivalence is explicitly stated
+**Action:** Remove from inventory with note "Explicitly defined as synonyms"
+
+### Pattern 2: Intentional Distinctions
+**Pattern:** Different terms for intentionally different concepts
+**Example:** "error" (recoverable) vs "failure" (fatal) used consistently
+**Why NOT an issue:** Terms have different meanings in context
+**Action:** Remove from inventory with note "Intentional distinction"
+
+### Pattern 3: Severity Levels
+**Pattern:** "must", "should", "may" used at different severity levels
+**Example:** "must" for critical, "should" for recommended, "may" for optional
+**Why NOT an issue:** RFC 2119 style usage is intentional
+**Action:** Remove from inventory with note "Severity levels"
+
+### Pattern 4: Anti-Examples
+**Pattern:** Example shows what NOT to do
+**Example:** Example marked "BAD:" uses SELECT * to show incorrect usage
+**Why NOT an issue:** Example demonstrates the violation intentionally
+**Action:** Remove from inventory with note "Anti-example (intentional)"

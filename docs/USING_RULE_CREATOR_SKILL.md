@@ -2,7 +2,7 @@
 
 **Note:** The Rule Creator Skill is **not deployed** to team projects. It remains in the ai_coding_rules source repository for internal use only.
 
-**Last Updated:** 2026-01-07
+**Last Updated:** 2026-01-21
 
 ## Background
 

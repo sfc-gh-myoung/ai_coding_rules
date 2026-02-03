@@ -1,5 +1,70 @@
 # Token Efficiency Rubric (10 points)
 
+## Mandatory Issue Inventory (REQUIRED)
+
+**CRITICAL:** You MUST create and fill this inventory BEFORE calculating score.
+
+### Why This Is Required
+
+- **Eliminates counting variance:** Same rule → same inventory → same score
+- **Prevents false negatives:** Systematic tracking catches all redundancies
+- **Provides evidence:** Inventory shows exactly what was measured
+- **Enables verification:** Users can audit scoring decisions
+
+### Inventory Template
+
+**Token Budget Check:**
+
+| Metric | Value |
+|--------|-------|
+| Declared budget | ~NNNN |
+| Actual tokens | NNNN |
+| Variance | N.N% |
+| Variance tier | X/5 |
+
+**Redundancy Instances:**
+
+| First Occurrence | Repeated At | Content (first 30 chars) | Word Count |
+|------------------|-------------|--------------------------|------------|
+| Line 36 | Line 86 | "Large table: >10M rows..." | 28 |
+| Line 100 | Line 200 | "Error handling example..." | 45 |
+
+**Structure Assessment:**
+
+| Metric | Count |
+|--------|-------|
+| Total content lines | NNN |
+| Structured lines (lists, tables, code) | NNN |
+| Prose lines | NNN |
+| Structure ratio | NN% |
+
+### Counting Protocol (5 Steps)
+
+**Step 1: Create Empty Inventory**
+- Copy templates above into working document
+- Do NOT start reading rule yet
+
+**Step 2: Run Token Validator (if available)**
+- Execute: `uv run python scripts/token_validator.py [target_file]`
+- Record declared, actual, and variance
+- If unavailable: Estimate using formula (Words × 1.3 + Code lines × 4)
+
+**Step 3: Read Rule Systematically**
+- Start at line 1, read to END (no skipping)
+- Track each definition/example with line number
+- Note any repetitions in Redundancy table
+- Count structured vs prose lines
+
+**Step 4: Check Non-Issues List**
+- Review EACH flagged redundancy
+- Check against "Non-Issues" section below
+- Remove intentional repetitions (marked as such)
+- Recalculate totals
+
+**Step 5: Look Up Score**
+- Use adjusted totals in Score Decision Matrix
+- Record score with inventory evidence
+
 ## Scoring Formula
 
 **Raw Score:** 0-10
@@ -534,3 +599,31 @@ Include in review for reference:
 ```
 
 This helps project maintainers understand document size without scoring against a declared budget.
+
+## Non-Issues (Do NOT Count as Redundancy)
+
+**Review EACH flagged item against this list before counting.**
+
+### Pattern 1: Intentional Repetition for Emphasis
+**Pattern:** Content repeated with explicit "reminder" or "important" marker
+**Example:** "IMPORTANT: As noted above, always validate inputs"
+**Why NOT an issue:** Intentional emphasis for critical information
+**Action:** Remove from inventory with note "Intentional emphasis"
+
+### Pattern 2: Summary That References
+**Pattern:** Summary section that references detailed section
+**Example:** "Overview: Use clustering (see Clustering Details section)"
+**Why NOT an issue:** Summary provides navigation, not duplication
+**Action:** Remove from inventory with note "Summary with reference"
+
+### Pattern 3: Template Sections
+**Pattern:** Repeated structure in template/example sections
+**Example:** Multiple "## Example N" sections with similar structure
+**Why NOT an issue:** Templates intentionally show repeated patterns
+**Action:** Remove from inventory with note "Template structure"
+
+### Pattern 4: Progressive Disclosure
+**Pattern:** Brief mention followed by detailed section
+**Example:** "Configure timeouts (detailed in Configuration section)"
+**Why NOT an issue:** Progressive disclosure is good practice
+**Action:** Remove from inventory with note "Progressive disclosure"

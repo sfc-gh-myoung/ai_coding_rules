@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
-**Keywords:** Python docstrings, documentation, comments, pydocstyle, Ruff DOC rules, API documentation, Google style, NumPy style, PEP 257, code quality, semantic depth, side effects, preconditions, performance, thread safety
-**TokenBudget:** ~8400
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-01-27
+**Keywords:** Python docstrings, documentation, comments, pydocstyle, Ruff DOC rules, Google style, NumPy style, PEP 257, semantic depth, side effects
+**TokenBudget:** ~2450
 **ContextTier:** High
 **Depends:** 200-python-core.md, 201-python-lint-format.md
 **LoadTrigger:** kw:docstring, kw:documentation, kw:comments
@@ -14,16 +14,13 @@
 ## Scope
 
 **What This Rule Covers:**
-Clear, enforceable standards for Python documentation (project docs), source code comments, and docstrings, aligned with PEP 257, PEP 8, and modern tooling (Ruff pydocstyle, Sphinx Napoleon). Covers Google and NumPy docstring styles, semantic depth requirements, side effects documentation, preconditions, performance considerations, thread safety, and enforcement patterns.
+Clear, enforceable standards for Python documentation, source code comments, and docstrings aligned with PEP 257 and modern tooling (Ruff pydocstyle, Sphinx Napoleon). Covers Google and NumPy styles, semantic depth requirements, side effects documentation.
 
 **When to Load This Rule:**
 - Writing or reviewing Python docstrings
 - Setting up docstring standards for a new project
-- Configuring Ruff pydocstyle rules (D rules)
-- Documenting public APIs (modules, classes, functions, methods)
-- Addressing docstring lint errors
-- Setting up Sphinx documentation generation
-- Enforcing documentation quality in code reviews
+- Configuring Ruff pydocstyle rules
+- Documenting public APIs
 
 ## References
 
@@ -33,17 +30,12 @@ Clear, enforceable standards for Python documentation (project docs), source cod
 - **200-python-core.md** - Python foundation patterns
 - **201-python-lint-format.md** - Ruff configuration and linting
 
-**Related:**
-- **203-python-project-setup.md** - Project configuration
-- **206-python-pytest.md** - Type hints that complement docstrings
-
 ### External Documentation
 
 - [PEP 257](https://peps.python.org/pep-0257/) - Docstring conventions
-- [PEP 8](https://peps.python.org/pep-0008/) - Style guide for Python code
-- [Google Style Guide](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings) - Google docstring format
-- [NumPy Style Guide](https://numpydoc.readthedocs.io/en/latest/format.html) - NumPy docstring format
-- [Sphinx Napoleon](https://www.sphinx-doc.org/en/master/usage/extensions/napoleon.html) - Parsing Google/NumPy docstrings
+- [Google Style Guide](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings)
+- [NumPy Style Guide](https://numpydoc.readthedocs.io/en/latest/format.html)
+- [Sphinx Napoleon](https://www.sphinx-doc.org/en/master/usage/extensions/napoleon.html)
 
 ## Contract
 
@@ -52,915 +44,274 @@ Clear, enforceable standards for Python documentation (project docs), source cod
 - Python 3.11+ codebase
 - pyproject.toml for configuration
 - Ruff for linting (pydocstyle rules)
-- Optional: Sphinx with Napoleon for documentation generation
 
 ### Mandatory
 
-- **Choose ONE docstring style** - Google (recommended) or NumPy, configure in pyproject.toml
+- **Choose ONE docstring style** - Google (recommended) or NumPy
 - **All public APIs need docstrings** - Modules, classes, functions, methods
-- **Enable Ruff D rules** - `select = ["D"]` in [tool.ruff.lint]
+- **Enable Ruff D rules** - `select = ["D"]` in pyproject.toml
 - **Docstrings must be semantically valuable** - Explain context, side effects, preconditions
 - **Document all side effects** - I/O, state mutations, subprocess calls, network requests
 - **Follow PEP 257** - One-line summary, blank line, then details
-- **Never mix docstring styles** - Consistency across entire project
 
 ### Forbidden
 
-- Mixing Google and NumPy docstring styles in the same project
+- Mixing Google and NumPy styles in the same project
 - Missing docstrings for public APIs
 - Duplicating type information already in type hints
 - Comments that merely restate the code ("what" instead of "why")
-- Inconsistent, ad-hoc documentation styles
 
 ### Execution Steps
 
-1. Choose one docstring style for the repo: Google (recommended) or NumPy
-2. Configure Ruff pydocstyle rules and convention in pyproject.toml
-3. Add docstrings to all public modules, classes, functions, methods
-4. Use comments to explain "why" and intent; avoid restating code
-5. Document side effects, preconditions, performance, thread safety
-6. Run `uvx ruff check .` to validate D rules pass
-7. Review and fix common mistakes via lint and code review
+1. Choose one docstring style (Google recommended)
+2. Configure Ruff pydocstyle rules in pyproject.toml
+3. Add docstrings to all public modules, classes, functions
+4. Use comments to explain "why" and intent
+5. Document side effects, preconditions, performance
+6. Run `uvx ruff check .` to validate
 
 ### Output Format
 
-Documentation produces:
 - Docstrings following Google or NumPy style
 - Comments explaining intent and trade-offs
 - Updated pyproject.toml with pydocstyle configuration
-- Optional: Generated Sphinx documentation
 
 ### Validation
 
-**Pre-Task-Completion Checks:**
-- [ ] pyproject.toml has `[tool.ruff.lint.pydocstyle]` with convention
-- [ ] All public functions have docstrings
-- [ ] All classes have docstrings
-- [ ] Docstrings start with one-line summary
-- [ ] Args, Returns, Raises documented with semantic meaning
-- [ ] Side effects explicitly documented
-- [ ] `uvx ruff check .` passes D rules
-
 **Success Criteria:**
-- `uvx ruff check .` passes all D rules (0 errors)
+- `uvx ruff check .` passes all D rules
 - Docstrings provide semantic value beyond type hints
 - Comments explain "why", not "what"
-- Docs build successfully (if using Sphinx)
-
-**Negative Tests:**
-- Missing docstrings should trigger D rules
-- Malformed docstrings should be caught by Ruff
-- Inconsistent styles should fail validation
 
 ### Design Principles
 
-- **Consistency:** One docstring style per project (Google or NumPy)
-- **Semantic depth:** Document behavior, constraints, side-effects, not just syntax
+- **Consistency:** One docstring style per project
+- **Semantic depth:** Document behavior, constraints, side-effects
 - **PEP compliance:** Follow PEP 257 for docstrings, PEP 8 for comments
 - **Type hints first:** Use type annotations; don't duplicate in docstrings
-- **High-signal comments:** Explain intent and trade-offs, not obvious code
 
 ### Post-Execution Checklist
 
 - [ ] pyproject.toml has `[tool.ruff.lint.pydocstyle]` with convention
 - [ ] All public functions have docstrings
 - [ ] All classes have docstrings
-- [ ] Docstrings start with one-line summary
-- [ ] Args, Returns, Raises documented with semantic meaning
-- [ ] Side effects explicitly documented (I/O, state, subprocess, network)
-- [ ] Preconditions and performance expectations documented
-- [ ] Thread safety / concurrency behavior documented
+- [ ] Side effects explicitly documented
+- [ ] Preconditions and performance documented
 - [ ] `uvx ruff check .` passes D rules
-- [ ] Comments explain "why", not "what"
 
 ## Anti-Patterns and Common Mistakes
 
-### Anti-Pattern 1: Stale Docstrings That Don't Match Code
+### Anti-Pattern 1: Stale Docstrings
 
-**Problem:** Docstrings that describe outdated behavior, wrong parameter names, or removed functionality because they weren't updated when code changed.
-
-**Why It Fails:** Misleading documentation is worse than no documentation. Developers trust docstrings and write incorrect code based on them. IDE tooltips show wrong information. Auto-generated API docs become unreliable.
-
-**Correct Pattern:**
 ```python
-# BAD: Stale docstring (function signature changed)
+# BAD: Docstring doesn't match signature
 def calculate_total(items, tax_rate, discount=0):
-    """Calculate total price for items.
-
+    """Calculate total price.
     Args:
         items: List of item prices
         tax: Tax percentage  # Wrong name!
-        # discount parameter not documented
     """
+```
 
-# GOOD: Docstring matches current signature
+**Problem:** Misleading documentation is worse than none. IDE tooltips show wrong info.
+
+**Correct Pattern:**
+```python
 def calculate_total(items: list[float], tax_rate: float, discount: float = 0) -> float:
     """Calculate total price for items with tax and discount.
-
     Args:
         items: List of item prices in dollars.
         tax_rate: Tax rate as decimal (e.g., 0.08 for 8%).
-        discount: Discount amount to subtract. Defaults to 0.
-
-    Returns:
-        Total price after tax and discount.
+        discount: Discount amount to subtract.
     """
 ```
 
 ### Anti-Pattern 2: Over-Commenting Obvious Code
 
-**Problem:** Adding comments that simply restate what the code does, rather than explaining why or providing context.
+```python
+# BAD: Restates the obvious
+counter += 1  # Increment counter by 1
+if user.role == "admin":  # Check if user is admin
+    return True  # Return true
+```
 
-**Why It Fails:** Clutters code with noise. Comments become stale faster than code. Developers learn to ignore comments. Obscures genuinely important explanatory comments.
+**Problem:** Clutters code, comments become stale, obscures important explanations.
 
 **Correct Pattern:**
 ```python
-# BAD: Comments that restate the obvious
-# Increment counter by 1
-counter += 1
-# Check if user is admin
-if user.role == "admin":
-    # Return true
-    return True
-
-# GOOD: Comments explain WHY, not WHAT
 # Rate limit resets every hour; increment tracks requests in current window
 counter += 1
-# Admin bypass needed for emergency access during outages (see incident #1234)
+# Admin bypass for emergency access during outages (see incident #1234)
 if user.role == "admin":
     return True
 ```
 
-## Post-Execution Checklist
+## Ruff Configuration
 
-### Syntax Compliance (Automated)
-- [ ] One docstring style chosen and configured (Google/NumPy)
-- [ ] Ruff D-rules enabled with correct convention
-- [ ] Public APIs have docstrings with summaries and details
-- [ ] No duplicated types in docstrings when type hints exist
-- [ ] Comments explain intent; no commented-out code remains
-- [ ] Optional docs build (Sphinx+Napoleon) succeeds
-- [ ] `uvx ruff check .` passes including D-rules
-
-### Quality Standards (Manual Review)
-- [ ] Module docstrings explain architectural context (not just file contents)
-- [ ] Function docstrings document all side effects (I/O, state, subprocess, network)
-- [ ] Preconditions explicitly listed for functions with dependencies
-- [ ] Performance expectations documented for operations >1 second
-- [ ] Thread safety / concurrency behavior explicitly stated
-- [ ] Argument descriptions explain semantics, constraints, units (not just types)
-- [ ] Return value descriptions explain contents and structure
-- [ ] Exception docstrings list triggers and handling strategies
-- [ ] Dataclass fields document meaning and constraints
-- [ ] Examples show realistic usage patterns (not toy code)
-
-## Validation
-- **Lint:** `uvx ruff check .` must pass, including D-rules
-- **Format:** `uvx ruff format --check .` passes
-- **Docs (optional):** `sphinx-build -b html docs/ docs/_build/html` completes without errors
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Read pyproject.toml BEFORE adding docstrings** - Check if pydocstyle convention is already set
-> 2. **Check existing docstring style** - Read a few functions/classes to see Google vs NumPy
-> 3. **Never assume docstring format** - Match project's existing convention
-> 4. **Verify Ruff D rules enabled** - Check [tool.ruff.lint] select field
-> 5. **Read module docstrings** - Understand project's documentation standards
-> 6. **Investigate architectural context** - Understand how the module/function fits in the system
-> 7. **Identify side effects** - Look for file I/O, network calls, subprocess execution, state mutations
-> 8. **Determine performance characteristics** - Check if operations are fast (<100ms) or slow (>1s)
-> 9. **Check concurrency behavior** - Look for threading, async/await, shared state access
-> 10. **Understand failure modes** - What can go wrong? What exceptions are raised? What are recovery strategies?
->
-> **Anti-Pattern:**
-> "Adding Google-style docstrings... (without checking existing style)"
-> "Here's the documentation... (without matching project convention)"
-> Writing "Execute SQL file" for a function that modifies database, spawns subprocess, logs to console
->
-> **Correct Pattern:**
-> "Let me check your existing docstring style first."
-> [reads files, checks pyproject.toml pydocstyle config]
-> "I see you use Google-style docstrings. Adding documentation following this convention..."
-> [investigates code to understand side effects, performance, concurrency]
-> "This function modifies Snowflake database, spawns snow CLI subprocess, and writes progress to console. Documenting all side effects..."
-
-## Output Format Examples
-
-```python
-# Investigation: Check current implementation
-# Read existing files, understand patterns
-
-# Implementation: Following uv + ruff + pytest standards
-from typing import Protocol
-from datetime import datetime, UTC
-
-class ServiceProtocol(Protocol):
-    """Clear contract for service implementations."""
-
-    def process(self, data: dict) -> dict:
-        """Process data following validation rules."""
-        ...
-
-def implementation_function(input_data: dict) -> dict:
-    """
-    Implement feature following project conventions.
-
-    Args:
-        input_data: Validated input following schema
-
-    Returns:
-        Processed result with metadata
-
-    Raises:
-        ValueError: If input validation fails
-    """
-    # Use datetime.now(UTC) not datetime.utcnow()
-    timestamp = datetime.now(UTC)
-
-    # Implement business logic
-    result = {"status": "success", "timestamp": timestamp}
-    return result
-
-# Validation: Test the implementation
-def test_implementation_function():
-    """Test following AAA pattern."""
-    # Arrange
-    test_input = {"key": "value"}
-
-    # Act
-    result = implementation_function(test_input)
-
-    # Assert
-    assert result["status"] == "success"
-    assert "timestamp" in result
-```
-
-```bash
-# Validation commands
-uvx ruff check .
-uvx ruff format --check .
-uv run pytest tests/
-```
-
-## Docstring Standards (PEP 257 + Google/NumPy)
-- **Requirement:** Use triple double-quotes for all docstrings. First line is a concise imperative summary ending with a period.
-- **Requirement:** For multi-line docstrings, include a blank line after the summary, then details.
-- **Requirement:** Maintain a single consistent style across the repo: Google (recommended) or NumPy.
-- **Requirement:** Provide docstrings for all public modules, packages, classes, functions, and methods.
-- **Rule:** Private helpers may omit docstrings if trivially obvious; otherwise document rationale and behavior.
-- **Requirement:** Do not duplicate type annotations in docstrings; focus on semantics, constraints, and units.
-- **Requirement:** Document non-trivial exceptions in a `Raises` section; document side-effects (I/O, logging, network, global state).
-- **Requirement:** Place module docstrings as the first statement in the file. Describe purpose, public APIs, environment variables, and notable side-effects.
-- **Rule:** Property docstrings should describe the attribute (not "Get X").
-
-### 1.1 Google-style Examples
-```python
-def fetch_user(user_id: str, include_roles: bool = False) -> User:
-    """Fetch user by identifier.
-
-    Args:
-      user_id: Stable user identifier (UUID string).
-      include_roles: When true, also loads role memberships.
-
-    Returns:
-      User: Hydrated user object. If `include_roles` is true, roles are populated.
-
-    Raises:
-      UserNotFoundError: If the user_id does not exist.
-      PermissionError: If the caller lacks access to this user.
-
-    """
-
-class RateLimiter:
-    """Token-bucket rate limiter.
-
-    Controls request throughput using a token bucket with burst capacity.
-    Thread-safe for concurrent callers.
-    """
-
-"""Payment processing integration.
-
-Exposes public entry points for charge and refund workflows.
-Reads API keys from environment variables. Emits audit logs to `payments_audit`.
-"""
-```
-
-### 1.2 Docstring Quality Standards Beyond Syntax
-
-**Critical:** Docstrings must be **semantically valuable**, not just syntactically correct. A docstring that passes Ruff D-rules but provides no useful information is a failed docstring.
-
-#### The Five Questions Every Docstring Must Answer
-
-1. **What** - One-line imperative summary (keep concise)
-2. **Why** - Purpose and context (why does this exist?)
-3. **When** - Preconditions, constraints, valid states
-4. **How** - Key behavioral details (not implementation)
-5. **Effects** - Side effects, state changes, I/O operations
-
-#### Module Docstrings - Architectural Context Required
-
-**Anti-Pattern (Minimal):**
-```python
-"""Core operations for demo management (data, database, apps, deployment)."""
-```
-[FAIL] Just lists file contents (obvious from code)
-[FAIL] No explanation of architectural role
-[FAIL] No usage patterns or entry points
-[FAIL] Missing side effects
-
-**Correct Pattern (Valuable):**
-```python
-"""Core business logic for Snowflake demo lifecycle management.
-
-This module provides manager classes that orchestrate demo operations by coordinating
-between the Snowflake CLI wrapper, local file system operations, and user feedback.
-Each manager handles a specific domain (data, database, apps, deployment) and follows
-a consistent pattern:
-
-1. Initialize with Config and Console instances
-2. Validate preconditions (files exist, Snowflake accessible)
-3. Execute operations with progress tracking and error handling
-4. Return OperationResult with success status, timing, and details
-
-Public API:
-    - DataManager: Generate and upload synthetic data
-    - DatabaseManager: Create/load/teardown Snowflake infrastructure
-    - AppManager: Deploy Streamlit apps and Jupyter notebooks
-    - DeploymentManager: Orchestrate full deployment workflow
-
-Side Effects:
-    - Modifies Snowflake database objects (tables, views, stages, agents)
-    - Writes/reads local CSV files in config.data_path
-    - Executes external processes (uv/python, snow CLI)
-    - Prints progress/status to console via Rich
-
-Thread Safety:
-    Not thread-safe. Create separate instances for concurrent operations.
-
-Example:
-    >>> config = Config.load(demo_path="./my_demo")
-    >>> manager = DatabaseManager(config)
-    >>> result = manager.setup()
-    >>> if result.success:
-    ...     print(f"Setup completed in {result.duration:.2f}s")
-"""
-```
-[PASS] Explains WHY and HOW the module fits in architecture
-[PASS] Documents patterns and entry points
-[PASS] Lists all side effects explicitly
-[PASS] Warns about thread safety
-[PASS] Provides realistic usage example
-
-#### Function Docstrings - Document Behavior, Not Implementation
-
-**Anti-Pattern (Minimal):**
-```python
-def generate(self) -> OperationResult:
-    """Generate synthetic mortgage data using existing script."""
-```
-[FAIL] Doesn't explain WHAT data or HOW MUCH
-[FAIL] No mention of where output goes
-[FAIL] Missing preconditions
-[FAIL] No performance expectations
-[FAIL] Doesn't warn about overwriting files
-
-**Correct Pattern (Valuable):**
-```python
-def generate(self) -> OperationResult:
-    """Generate synthetic mortgage data files required for the demo.
-
-    Executes the data generation script (scripts/generate_all_data.py) which creates
-    CSV files for the mortgage demo domain model:
-        - borrowers.csv (~10K records)
-        - properties.csv (~10K records)
-        - loans.csv (~10K records)
-        - payments.csv (~100K records)
-        - property_inspections.csv (~5K records)
-
-    Files are written to config.data_path (default: data/generated/) with deterministic
-    seeding for reproducible data. Existing files are overwritten without confirmation.
-
-    Preconditions:
-        - Python data generation script must exist at config.scripts_path/generate_all_data.py
-        - Python environment must have faker, pandas dependencies installed
-        - Sufficient disk space (~50MB for generated CSV files)
-
-    Performance:
-        Typical execution time is 30-60 seconds depending on CPU and disk I/O.
-        Progress indicator shows activity but not granular percentage.
-
-    Returns:
-        OperationResult with:
-            - success=True if all CSV files generated successfully
-            - duration: actual generation time in seconds
-            - details['csv_files']: count of CSV files created
-            - details['output_dir']: absolute path where files were written
-
-    Side Effects:
-        - Creates config.data_path directory if it doesn't exist
-        - Overwrites existing CSV files without warning
-        - Spawns subprocess running Python script
-        - Prints progress spinner to console
-
-    Example:
-        >>> manager = DataManager(config)
-        >>> result = manager.generate()
-        >>> print(f"{result.details['csv_files']} files in {result.duration:.1f}s")
-        5 files in 45.3s
-    """
-```
-[PASS] Explains WHAT, WHY, WHERE, and HOW
-[PASS] Documents preconditions and performance
-[PASS] Warns about destructive behavior (overwrites)
-[PASS] Specifies all side effects
-[PASS] Example shows realistic usage
-
-#### Dataclass Docstrings - Document Field Semantics
-
-**Anti-Pattern (Minimal):**
-```python
-@dataclass
-class OperationResult:
-    """Result of an operation execution."""
-
-    success: bool
-    message: str
-    duration: float = 0.0
-    details: dict[str, Any] = field(default_factory=dict)
-```
-[FAIL] Just repeats the class name
-[FAIL] No explanation of field semantics
-[FAIL] No usage guidance
-
-**Correct Pattern (Valuable):**
-```python
-@dataclass
-class OperationResult:
-    """Standardized outcome from a manager operation with timing and diagnostic data.
-
-    Used as the return type for all manager operations (setup, teardown, generate, etc.)
-    to provide consistent success/failure reporting across the CLI and web interfaces.
-
-    Attributes:
-        success: True if operation completed without errors. False means the operation
-            failed and may require user intervention (check message/details for cause).
-        message: Human-readable summary of what happened. On success, describes what was
-            accomplished (e.g., "5 tables created"). On failure, describes the error.
-        duration: Wall-clock time in seconds from operation start to completion. Useful
-            for performance analysis and user feedback. Defaults to 0.0 if timing unavailable.
-        details: Optional diagnostic data specific to the operation. May contain:
-            - stdout/stderr from subprocess execution
-            - counts of objects created/modified
-            - file paths for artifacts generated
-            - error details for troubleshooting
-
-    Example:
-        >>> result = manager.setup()
-        >>> if not result.success:
-        ...     logger.error(f"Setup failed: {result.message}")
-        ...     logger.debug(f"Details: {result.details}")
-    """
-
-    success: bool
-    message: str
-    duration: float = 0.0
-    details: dict[str, Any] = field(default_factory=dict)
-```
-[PASS] Explains the PURPOSE and CONTEXT
-[PASS] Documents field semantics and constraints
-[PASS] Shows example usage
-[PASS] Explains what goes in `details` dict
-
-#### Exception Docstrings - Document Triggers and Handling
-
-**Anti-Pattern (Minimal):**
-```python
-class ConfigError(DemoManagerError):
-    """Configuration-related errors (invalid config, missing files, etc.)."""
-```
-[FAIL] Lists categories but not WHEN to use
-[FAIL] No examples of what triggers this
-[FAIL] No handling guidance
-
-**Correct Pattern (Valuable):**
-```python
-class ConfigError(DemoManagerError):
-    """Raised when configuration is missing, malformed, or contains invalid values.
-
-    This exception indicates a problem with the configuration file (demo_manager.yaml)
-    or environment variables that must be fixed before the application can proceed.
-    Unlike operational errors, ConfigErrors typically require user intervention to fix
-    the configuration source, not retry logic.
-
-    Common Triggers:
-        - YAML syntax errors in config file
-        - Missing required fields (snowflake.database, snowflake.schemas)
-        - Invalid data types (port as string instead of int)
-        - File paths that don't exist (sql_dir, data_dir)
-        - Mutually exclusive options set simultaneously
-
-    Handling:
-        ConfigErrors should be caught at application startup and presented to the user
-        with actionable fix instructions. Do not retry operations that fail with ConfigError.
-
-    Example:
-        >>> try:
-        ...     config = Config.load("bad_config.yaml")
-        ... except ConfigError as e:
-        ...     print(f"Configuration error: {e}")
-        ...     print("Fix your config file and try again")
-        ...     sys.exit(1)
-    """
-```
-[PASS] Explains WHEN and WHY this exception is raised
-[PASS] Lists concrete trigger scenarios
-[PASS] Provides handling guidance
-[PASS] Shows realistic usage pattern
-
-#### Side Effects Documentation - Always Explicit
-
-**Required:** Document ALL side effects in a dedicated section or inline notes:
-
-```python
-def execute_operation(operation_id: str, operation_type: OperationType, config: Config):
-    """Execute a long-running manager operation asynchronously in a background thread.
-
-    Called by FastAPI BackgroundTasks to run operations without blocking HTTP responses.
-    Updates the OPERATIONS dict (in-memory state store) with progress and results that
-    can be polled via GET /api/operations/{operation_id}.
-
-    Side Effects:
-        - Mutates OPERATIONS dict (global state)
-        - Modifies Snowflake database objects (depending on operation_type)
-        - Writes/reads local file system
-        - Spawns subprocesses (snow CLI, python scripts)
-        - May run for minutes (database setup, data generation)
-        - Prints to stdout/stderr (subprocess output)
-
-    Concurrency:
-        Not thread-safe. FastAPI BackgroundTasks runs in thread pool, so multiple
-        operations can execute concurrently. OPERATIONS dict writes are not synchronized,
-        which can cause race conditions if the same operation_id is reused.
-
-    Args:
-        operation_id: UUID string tracking this operation instance. Must be unique.
-        operation_type: Enum specifying which manager method to invoke.
-        config: Configuration with Snowflake credentials and file paths.
-    """
-```
-[PASS] Lists ALL side effects (I/O, state, process, network)
-[PASS] Documents concurrency behavior
-[PASS] Warns about race conditions
-[PASS] Estimates runtime ("may run for minutes")
-
-## Comment Standards (PEP 8)
-- **Requirement:** Comments must explain intent, rationale, and trade-offs—the "why"—not restate the code.
-- **Requirement:** Place block comments above the code they describe; keep inline comments short and sparing.
-- **Requirement:** Remove commented-out code. Use version control or link to issues instead.
-- **Rule:** Prefer references to requirements or tickets over long narrative comments.
-- **Rule:** Keep comments up to date; when behavior changes, update adjacent comments/docstrings.
-
-## Project Documentation (Optional)
-- **Rule:** If publishing developer docs, use Sphinx with Napoleon to parse Google/NumPy docstrings.
-- **Rule:** Consider AutoAPI/Autodoc to generate API docs from code; use Intersphinx for cross-project links.
-- **Consider:** Add a `docs/` folder with a minimal Sphinx configuration and CI job to build docs on PRs.
-
-## Enforcement with Ruff (pydocstyle)
-- **Requirement:** Enable pydocstyle (D) rules in Ruff and set a single convention.
-
-Example `pyproject.toml` snippet:
 ```toml
-[tool.ruff]
-target-version = "py311"
-
 [tool.ruff.lint]
 select = ["E", "W", "F", "I", "B", "C4", "UP", "D"]
-ignore = []
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"  # or "numpy"
 ```
 
-## Common Mistakes & How to Prevent Them
+## Google-style Example
 
-### Syntax Mistakes (Caught by Ruff)
-- **Missing docstrings on public APIs** - Enforce D-rules; PRs must add docstrings.
-- **Parameter lists out of sync with signatures** - CI lint must fail; reviewers verify.
-- **Duplicated types in docstrings when hints exist** - Remove types; describe semantics/units.
-- **No blank line after summary** - Enforce PEP 257 via Ruff.
-- **Module docstrings not first** - Enforce placement; move to top.
-- **Inconsistent styles** - Pick one project-wide style; document in README.
-
-### Quality Mistakes (NOT Caught by Ruff - Requires Human/AI Review)
-
-#### Mistake 1: Restating the Function Name
-
-**Anti-Pattern:**
 ```python
-def get_user(user_id: str) -> User:
-    """Get user."""  # [FAIL] Just repeats function name
-```
-
-**Correct:**
-```python
-def get_user(user_id: str) -> User:
-    """Fetch user account from database by unique identifier.
+def fetch_user(user_id: str, include_roles: bool = False) -> User:
+    """Fetch user by identifier.
 
     Args:
-        user_id: UUID string of user account to retrieve.
+        user_id: Stable user identifier (UUID string).
+        include_roles: When true, also loads role memberships.
 
     Returns:
-        User object with profile, preferences, and role memberships.
+        User: Hydrated user object. If `include_roles` is true, roles are populated.
 
     Raises:
-        UserNotFoundError: If user_id does not exist in database.
-
-    Side Effects:
-        Queries users table via database connection pool.
+        UserNotFoundError: If the user_id does not exist.
+        PermissionError: If the caller lacks access.
     """
 ```
 
-#### Mistake 2: Missing Side Effects Documentation
+## Docstring Quality Standards
 
-**Anti-Pattern:**
+### The Five Questions Every Docstring Must Answer
+
+1. **What** - One-line imperative summary
+2. **Why** - Purpose and context
+3. **When** - Preconditions, constraints, valid states
+4. **How** - Key behavioral details
+5. **Effects** - Side effects, state changes, I/O
+
+### Module Docstrings - Architectural Context Required
+
 ```python
-def save_report(data: dict) -> None:
-    """Save report data."""  # [FAIL] No mention of file I/O
+# BAD
+"""Core operations for demo management."""
+
+# GOOD
+"""Core business logic for Snowflake demo lifecycle management.
+
+This module provides manager classes that orchestrate demo operations.
+Each manager handles a specific domain (data, database, apps, deployment).
+
+Public API:
+    - DataManager: Generate and upload synthetic data
+    - DatabaseManager: Create/teardown Snowflake infrastructure
+
+Side Effects:
+    - Modifies Snowflake database objects
+    - Writes/reads local CSV files
+    - Executes external processes (snow CLI)
+
+Thread Safety: Not thread-safe. Create separate instances for concurrent operations.
+"""
 ```
 
-**Correct:**
+### Function Docstrings - Document Behavior
+
 ```python
-def save_report(data: dict) -> None:
-    """Persist report data to JSON file and upload to S3 bucket.
+# BAD
+def generate(self) -> OperationResult:
+    """Generate synthetic data."""
 
-    Args:
-        data: Report data dictionary with 'title', 'content', 'timestamp' keys.
+# GOOD
+def generate(self) -> OperationResult:
+    """Generate synthetic mortgage data files for the demo.
 
-    Side Effects:
-        - Writes JSON file to ./reports/{timestamp}.json (overwrites if exists)
-        - Uploads file to S3 bucket configured in AWS_BUCKET env var
-        - Requires AWS credentials in environment or ~/.aws/credentials
-        - Prints upload progress to stdout
-        - May take 5-10 seconds for large reports (>10MB)
-
-    Raises:
-        ValueError: If required keys missing from data dict.
-        S3Error: If AWS credentials invalid or bucket inaccessible.
-    """
-```
-
-#### Mistake 3: Vague Argument Descriptions
-
-**Anti-Pattern:**
-```python
-def process_data(data: dict, options: dict) -> dict:
-    """Process data.
-
-    Args:
-        data: Data object.  # [FAIL] What's in it? What format?
-        options: Options.  # [FAIL] What options? What do they do?
-
-    Returns:
-        dict: Results.  # [FAIL] What results? What keys?
-    """
-```
-
-**Correct:**
-```python
-def process_data(data: dict, options: dict) -> dict:
-    """Transform raw sensor data into aggregated metrics with configurable sampling.
-
-    Args:
-        data: Raw sensor readings with keys:
-            - 'sensor_id' (str): Unique sensor identifier
-            - 'readings' (list[float]): Numeric measurements
-            - 'timestamp' (datetime): Collection time in UTC
-        options: Processing configuration with keys:
-            - 'sampling_rate' (int): Sample every Nth reading (default: 1 = all)
-            - 'aggregation' (str): 'mean' | 'median' | 'sum' (default: 'mean')
-            - 'outlier_threshold' (float): Std devs for outlier removal (default: 3.0)
-
-    Returns:
-        dict with keys:
-            - 'sensor_id' (str): Same as input
-            - 'metric' (float): Aggregated value per options.aggregation
-            - 'sample_count' (int): Number of readings used
-            - 'outliers_removed' (int): Count of outliers filtered
-    """
-```
-
-#### Mistake 4: No Preconditions or Performance Expectations
-
-**Anti-Pattern:**
-```python
-def migrate_database() -> None:
-    """Run database migrations."""  # [FAIL] No preconditions, no timing
-```
-
-**Correct:**
-```python
-def migrate_database() -> None:
-    """Apply pending schema migrations to production database.
+    Executes data generation script creating CSVs (borrowers, properties, loans).
+    Files written to config.data_path. Existing files overwritten without warning.
 
     Preconditions:
-        - Database connection must be established (call connect() first)
-        - User must have ALTER TABLE privileges
-        - Database must be at least version 5.7 (MySQL) or 12 (PostgreSQL)
-        - All application servers should be in maintenance mode
-        - Backup completed within last hour (verify externally)
+        - Python script must exist at config.scripts_path/generate_all_data.py
+        - Python environment must have faker, pandas dependencies
 
-    Performance:
-        - Typical migration: 30-60 seconds
-        - Large table migrations (>1M rows): 5-15 minutes
-        - Blocks writes to affected tables during execution
-        - Does NOT automatically rollback on failure
+    Performance: 30-60 seconds depending on CPU and disk I/O.
 
     Side Effects:
-        - Modifies database schema (tables, columns, indexes)
-        - Writes migration history to schema_migrations table
-        - Logs SQL statements to migration.log
-        - May lock tables temporarily (blocks concurrent writes)
-
-    Raises:
-        MigrationError: If migration SQL fails or version conflict detected.
-        ConnectionError: If database connection lost during migration.
+        - Creates config.data_path directory if missing
+        - Overwrites existing CSV files
+        - Spawns subprocess running Python script
+        - Prints progress spinner to console
     """
 ```
 
-#### Mistake 5: Missing Thread Safety / Concurrency Notes
+### Side Effects Documentation - Always Explicit
 
-**Anti-Pattern:**
 ```python
-class Cache:
-    """Simple in-memory cache."""  # [FAIL] Thread safe? Async safe?
+def execute_operation(operation_id: str, operation_type: OperationType):
+    """Execute long-running operation asynchronously in background thread.
 
-    def __init__(self):
-        self._data = {}
-```
-
-**Correct:**
-```python
-class Cache:
-    """Simple in-memory cache with TTL support.
-
-    Thread Safety:
-        NOT thread-safe. Dictionary mutations are not synchronized. For multi-threaded
-        usage, wrap get/set calls with threading.Lock or use thread-local storage.
+    Side Effects:
+        - Mutates OPERATIONS dict (global state)
+        - Modifies Snowflake database objects
+        - Writes/reads local file system
+        - Spawns subprocesses (snow CLI)
+        - May run for minutes
 
     Concurrency:
-        NOT async-safe. Use asyncio.Lock for async/await contexts.
-
-    Memory Management:
-        No automatic eviction. Items remain until explicitly cleared or process restarts.
-        Monitor memory usage; consider TTL or LRU eviction for long-running processes.
-
-    Example:
-        >>> cache = Cache()
-        >>> cache.set("key", "value", ttl=60)  # Expires after 60 seconds
-        >>> value = cache.get("key")  # Returns "value" or None if expired
-    """
-
-    def __init__(self):
-        self._data: dict[str, tuple[Any, float]] = {}  # (value, expiry_timestamp)
-```
-
-#### Mistake 6: Exception Docstrings Without Handling Guidance
-
-**Anti-Pattern:**
-```python
-class DatabaseError(Exception):
-    """Database error."""  # [FAIL] What causes it? How to handle?
-```
-
-**Correct:**
-```python
-class DatabaseError(Exception):
-    """Raised when database operations fail due to connectivity or query errors.
-
-    Common Triggers:
-        - Connection timeout (database unreachable)
-        - Invalid SQL syntax in query
-        - Constraint violations (unique key, foreign key)
-        - Insufficient privileges for operation
-        - Database server out of disk space
-
-    Handling:
-        For transient errors (connection timeout, deadlock), retry with exponential backoff.
-        For permanent errors (syntax, privileges), log error and notify operations team.
-        Do NOT retry for constraint violations; these indicate data/logic bugs.
-
-    Example:
-        >>> try:
-        ...     db.execute("INSERT INTO users ...")
-        ... except DatabaseError as e:
-        ...     if "timeout" in str(e).lower():
-        ...         retry_with_backoff()
-        ...     else:
-        ...         logger.error(f"Permanent DB error: {e}")
-        ...         raise
+        Not thread-safe. OPERATIONS dict writes are not synchronized.
     """
 ```
 
-### Prevention Strategies
+## Comment Standards (PEP 8)
 
-1. **Code Review Checklist** - Add docstring quality items:
-   - [ ] Side effects documented?
-   - [ ] Performance characteristics noted for slow operations (>1s)?
-   - [ ] Thread safety explicit?
-   - [ ] Preconditions listed?
-   - [ ] Arguments describe semantics, not just types?
+- Comments explain intent, rationale, and trade-offs ("why" not "what")
+- Block comments above code they describe
+- Remove commented-out code; use version control
+- Keep comments up to date when behavior changes
 
-2. **Pre-Commit Hook** - Add custom validation:
-   ```python
-   # Check for common anti-patterns
-   MINIMAL_PATTERNS = [
-       r'""".*\."""$',  # One-liner with no details
-       r'"""Get |"""Set ',  # Getter/setter without context
-   ]
-   ```
+## Docstring Quality Checklist
 
-3. **Documentation Review** - Periodic audit:
-   - Sample 10 random functions
-   - Check against quality standards
-   - Update docstrings to match current code behavior
+**For Function/Method Docstrings:**
+- [ ] Purpose: What does this accomplish? (Not just "what" but "why")
+- [ ] Args Semantics: Meaning, constraints, units, valid ranges
+- [ ] Returns Semantics: What's in return value, when it's None/empty
+- [ ] Preconditions: What must be true before calling?
+- [ ] Side Effects: File I/O, DB operations, network, subprocess, state mutations
+- [ ] Performance: For operations >1 second
+- [ ] Concurrency: Thread-safe? Async-safe? Locks required?
+- [ ] Error Handling: What triggers exceptions? Should callers retry?
 
-## Docstring Semantic Depth Checklist
+**For Class Docstrings:**
+- [ ] Purpose: What abstraction does this represent?
+- [ ] Lifecycle: Construction, cleanup, resource management
+- [ ] Thread Safety: Safe for concurrent use?
+- [ ] Key Methods: List 3-5 most important methods
 
-Use this checklist when writing or reviewing docstrings to ensure semantic value beyond syntax compliance.
+**For Exception Docstrings:**
+- [ ] Triggers: Concrete scenarios that raise this exception
+- [ ] Handling Strategy: Retry? Log? Re-raise?
+- [ ] Recovery: What actions can resolve this error?
 
-### For Module Docstrings
+## Common Quality Mistakes (Not Caught by Ruff)
 
-- [ ] **Purpose**: Why does this module exist? What problem does it solve?
-- [ ] **Architecture**: How does it fit in the overall system?
-- [ ] **Public API**: What are the main entry points developers will use?
-- [ ] **Side Effects**: Does it modify global state, spawn processes, make network calls?
-- [ ] **Environment**: Does it read environment variables or require external services?
-- [ ] **Thread Safety**: Can this module be used safely across multiple threads?
-- [ ] **Example**: Show realistic usage of the module's main functionality
+**Mistake 1: Restating Function Name**
+```python
+# BAD: def get_user(...): """Get user."""
+# GOOD: def get_user(...): """Fetch user account from database by unique identifier."""
+```
 
-### For Function/Method Docstrings
+**Mistake 2: Missing Side Effects**
+```python
+# BAD: """Save report data."""
+# GOOD: """Persist report to JSON file and upload to S3 bucket.
+#        Side Effects: Writes to ./reports/, uploads to AWS_BUCKET, prints progress."""
+```
 
-- [ ] **Purpose**: What does this function accomplish? (Not just "what" but "why")
-- [ ] **Args Semantics**: Describe meaning, constraints, units, valid ranges (not just types)
-- [ ] **Returns Semantics**: Describe what's in the return value, when it's None/empty
-- [ ] **Preconditions**: What must be true before calling? (auth, connection, file exists, etc.)
-- [ ] **Side Effects**: List ALL:
-  - [ ] File I/O (reads/writes, where, overwrite behavior)
-  - [ ] Database operations (queries, mutations, transactions)
-  - [ ] Network calls (APIs, services, timeouts)
-  - [ ] Subprocess execution (commands, signals, environment)
-  - [ ] State mutations (global vars, class attributes, caches)
-  - [ ] Console output (logging, printing, progress)
-- [ ] **Performance**: For operations >1 second:
-  - [ ] Typical execution time
-  - [ ] What factors affect performance (data size, network, disk I/O)
-  - [ ] Blocking behavior (synchronous, async, background)
-- [ ] **Concurrency**: For functions accessing shared state:
-  - [ ] Thread-safe? Reentrant? Async-safe?
-  - [ ] Locks required? Race conditions possible?
-- [ ] **Error Handling**: For each exception:
-  - [ ] What triggers this exception? (Concrete scenarios)
-  - [ ] Should callers retry? How?
-  - [ ] What recovery actions are possible?
-- [ ] **Example**: Show realistic usage with expected output
+**Mistake 3: Vague Arguments**
+```python
+# BAD: Args: data: Data object. options: Options.
+# GOOD: Args: data: Raw sensor readings with 'sensor_id' (str), 'readings' (list[float]).
+#             options: Processing config with 'sampling_rate' (int), 'aggregation' (str).
+```
 
-### For Class Docstrings
-
-- [ ] **Purpose**: What abstraction does this class represent?
-- [ ] **Lifecycle**: How to construct? When to destroy? Resource cleanup?
-- [ ] **State Management**: What state does it maintain? When is it valid?
-- [ ] **Thread Safety**: Safe for concurrent use? Requires synchronization?
-- [ ] **Key Methods**: List 3-5 most important methods with one-line descriptions
-- [ ] **Side Effects**: What system resources does it use? (files, network, memory)
-- [ ] **Example**: Show construction, typical operations, cleanup
-
-### For Dataclass/Model Docstrings
-
-- [ ] **Purpose**: What data does this represent? (Business concept, not technical structure)
-- [ ] **Field Semantics**: For each field:
-  - [ ] What does it mean? (Not just type)
-  - [ ] Constraints? (range, format, uniqueness)
-  - [ ] Optional or required? Default behavior?
-  - [ ] Units? (seconds vs milliseconds, bytes vs KB)
-- [ ] **Validation**: What validation rules apply?
-- [ ] **Relationships**: Does it reference other models? How?
-- [ ] **Example**: Show construction and common field values
-
-### For Exception Docstrings
-
-- [ ] **Triggers**: List 3-5 concrete scenarios that raise this exception
-- [ ] **Error Categories**: Transient (retry) vs permanent (fix code) vs user error (validate input)
-- [ ] **Handling Strategy**: Should callers retry? Log? Re-raise? Ignore?
-- [ ] **Recovery**: What actions can resolve this error?
-- [ ] **Example**: Show try/except with appropriate handling
-
-## Python Docs & Comments Plan
-- Style: Google | NumPy
-- Ruff: select includes D; convention set to style
-- Scope: Public APIs fully documented; comments updated for intent
-
-## Changes
-- Update pyproject ruff config
-- Add/repair docstrings
-- Remove commented-out code
+**Mistake 4: No Preconditions/Performance**
+```python
+# BAD: """Run database migrations."""
+# GOOD: """Apply pending schema migrations.
+#        Preconditions: Connection established, ALTER TABLE privileges.
+#        Performance: 30-60s typical, 5-15min for tables >1M rows."""
 ```

@@ -1,6 +1,6 @@
 # Using the Skill Timing Skill
 
-**Last Updated:** 2026-01-07
+**Last Updated:** 2026-01-21
 
 The Skill Timing Skill provides execution timing instrumentation for measuring and analyzing skill performance.
 

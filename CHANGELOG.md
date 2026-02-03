@@ -7,24 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.5.3] - 2026-02-03
+
 ### Added
 - **feat(skills):** add context preservation mechanisms to prevent drift during bulk reviews
   - `CRITICAL_CONTEXT.md` - Minimal (~150 tokens) file with essential output format, evidence requirements, quality gates
   - Structural enforcement via periodic file re-reads (every 10 rules) instead of behavioral guidance
   - Drift detection: review file size <2500 bytes triggers automatic context refresh
   - Pre-write output verification checklist in rule-reviewer workflow
-
-### Changed
-- **feat(skills):** enhance bulk-rule-reviewer with structural context preservation
-  - `SKILL.md` - Updated Context Anchor Protocol to use file re-reads
-  - `workflows/inter-rule-gate.md` - Added mandatory context refresh every 10 rules
-  - `workflows/review-execution.md` - Added drift detection after each review write
-  - `workflows/context-anchor.md` - Added Structural Enforcement section
-- **feat(skills):** enhance rule-reviewer with drift safeguards
-  - `SKILL.md` - Added Context Preservation section and drift check to quality checklist
-  - `workflows/review-execution.md` - Added Pre-Write Output Verification and post-write size check
-
-### Added
 - **feat(examples):** add 5 example files recovering patterns from token reduction
   - `rules/examples/121-snowpipe-auto-ingest-example.md` - Complete AWS S3 auto-ingest setup with SNS
   - `rules/examples/120-spcs-service-spec-example.md` - Production SPCS YAML spec with security, logging, RBAC
@@ -50,6 +40,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added `**Last Updated:** 2026-01-21` to AGENTS.md and 6 docs/*.md files
 
 ### Changed
+- **feat(skills):** enhance bulk-rule-reviewer with structural context preservation
+  - `SKILL.md` - Updated Context Anchor Protocol to use file re-reads
+  - `workflows/inter-rule-gate.md` - Added mandatory context refresh every 10 rules
+  - `workflows/review-execution.md` - Added drift detection after each review write
+  - `workflows/context-anchor.md` - Added Structural Enforcement section
+- **feat(skills):** enhance rule-reviewer with drift safeguards
+  - `SKILL.md` - Added Context Preservation section and drift check to quality checklist
+  - `workflows/review-execution.md` - Added Pre-Write Output Verification and post-write size check
 - **fix(rules):** correct TokenBudget metadata based on tiktoken validation
   - `106d-snowflake-semantic-views-development.md`: ~3050 → ~3400
   - `820a-taskfile-advanced-patterns.md`: ~2350 → ~2750

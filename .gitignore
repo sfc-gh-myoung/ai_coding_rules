@@ -208,6 +208,7 @@ plans/*
 !plans/.gitkeep
 reviews/*
 !reviews/.gitkeep
+.cortex/
 
 # Lock files
 uv.lock

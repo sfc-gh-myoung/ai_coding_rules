@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-20
 **LoadTrigger:** kw:notebook, kw:jupyter
 **Keywords:** ML, reproducible notebooks, nbqa, notebook linting, code quality, Python, create notebook, debug notebook, notebook execution, notebook testing, notebook deployment, kernel management, cell execution
-**TokenBudget:** ~4150
+**TokenBudget:** ~5050
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 201-python-lint-format.md
 
@@ -231,6 +231,82 @@ monthly_summary = customers_df.group_by("REGISTRATION_MONTH").agg(
 - **Always:** Group related cells with consistent prefixes (e.g., `data_ingestion_customers`, `data_ingestion_orders`).
 - **Requirement:** For parameterized notebooks, use descriptive parameter cell names (e.g., `config_environment_settings`, `params_date_range`).
 
+### Cell Metadata Validation
+
+**Inline Validation (run directly):**
+```bash
+python3 -c "
+import json, re, sys
+nb_path = 'notebooks/your_notebook.ipynb'  # Update path
+with open(nb_path) as f:
+    nb = json.load(f)
+issues = []
+for i, cell in enumerate(nb['cells']):
+    name = cell.get('metadata', {}).get('name')
+    if not name:
+        issues.append(f'Cell {i}: Missing name in metadata')
+    elif re.match(r'^(cell|Cell|untitled|Untitled)\d*$', name):
+        issues.append(f'Cell {i}: Generic name \"{name}\" - use descriptive action_subject format')
+    elif not re.match(r'^[a-z][a-z0-9_]*$', name):
+        issues.append(f'Cell {i}: Name \"{name}\" should be lowercase with underscores')
+if issues:
+    print('\n'.join(issues))
+    sys.exit(1)
+print(f'All {len(nb[\"cells\"])} cells have valid names')
+"
+```
+
+**Fix cells with missing/generic names:**
+```bash
+python3 -c "
+import json
+nb_path = 'notebooks/your_notebook.ipynb'  # Update path
+with open(nb_path) as f:
+    nb = json.load(f)
+# Define fixes: {cell_index: 'new_name'}
+fixes = {
+    0: 'intro_header',
+    1: 'setup_imports',
+    # Add more as needed
+}
+for idx, new_name in fixes.items():
+    if 'metadata' not in nb['cells'][idx]:
+        nb['cells'][idx]['metadata'] = {}
+    nb['cells'][idx]['metadata']['name'] = new_name
+    print(f'Cell {idx}: Set name to \"{new_name}\"')
+with open(nb_path, 'w') as f:
+    json.dump(nb, f, indent=1)
+print('Done')
+"
+```
+
+**What validation checks:**
+1. All cells have a `name` field in metadata
+2. Names are not generic (cell1, cell2, untitled, etc.)
+3. Names follow `action_subject` format (lowercase with underscores)
+
+**Creating New Cells with Proper Metadata:**
+When adding cells programmatically or copying from other notebooks, ensure metadata includes the name field:
+```json
+{
+  "cell_type": "code",
+  "metadata": {
+    "name": "load_customer_data"
+  },
+  "source": ["# Your code here"]
+}
+```
+
+**Common Naming Prefixes:**
+- `setup_` - Environment/config cells (e.g., `setup_imports`, `setup_session`)
+- `config_` - Configuration parameters (e.g., `config_demo_scenario`, `config_warehouse`)
+- `load_` - Data loading cells (e.g., `load_customer_data`, `load_features`)
+- `validate_` - Validation/quality checks (e.g., `validate_data_quality`, `validate_schema`)
+- `train_` - Model training cells (e.g., `train_random_forest`, `train_xgboost`)
+- `step_header_` - Step description markdown (e.g., `step_header_data_prep`)
+- `teaching_` - Educational content (e.g., `teaching_class_imbalance`)
+- `checkpoint_` - Validation checkpoints (e.g., `checkpoint_data_prep_validation`)
+
 ## Data & Performance
 - **Requirement:** Never hard-code credentials or sensitive information. Use environment variables or a secrets manager.
 - **Always:** Follow the rules in `100-snowflake-core.md` for performant, cost-effective queries.
@@ -283,12 +359,36 @@ format-notebooks-fix:
     - uvx nbqa ruff format notebooks/
     - uvx nbqa ruff check --fix notebooks/
 
+validate-notebook-metadata:
+  desc: "Verify all notebook cells have proper metadata names"
+  cmds:
+    - |
+      python3 -c "
+      import json, re, sys, glob
+      issues = []
+      for nb_path in glob.glob('notebooks/**/*.ipynb', recursive=True):
+          if '.ipynb_checkpoints' in nb_path: continue
+          with open(nb_path) as f:
+              nb = json.load(f)
+          for i, cell in enumerate(nb['cells']):
+              name = cell.get('metadata', {}).get('name')
+              if not name:
+                  issues.append(f'{nb_path} cell {i}: Missing name')
+              elif re.match(r'^(cell|Cell|untitled)\d*$', name):
+                  issues.append(f'{nb_path} cell {i}: Generic name \"{name}\"')
+      if issues:
+          print('\n'.join(issues))
+          sys.exit(1)
+      print('All notebooks have valid cell names')
+      "
+
 lint:
   desc: "Run all linting checks"
   cmds:
     - task: lint-ruff
     - task: lint-markdown
     - task: lint-notebooks
+    - task: validate-notebook-metadata
 ```
 
 #### Pre-Task-Completion Validation

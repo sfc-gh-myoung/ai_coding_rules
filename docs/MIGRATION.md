@@ -1,5 +1,7 @@
 # Migration Guides
 
+**Last Updated:** 2026-01-21
+
 ## Overview
 
 This directory contains migration guides for different aspects of the AI Coding Rules project:

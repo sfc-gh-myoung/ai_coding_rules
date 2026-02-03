@@ -2,7 +2,7 @@
 
 **Note:** The Bulk Rule Reviewer Skill is **not deployed** to team projects. It remains in the ai_coding_rules source repository for internal use only.
 
-**Last Updated:** 2026-01-13
+**Last Updated:** 2026-01-21
 
 ## Background
 
@@ -16,7 +16,7 @@ Key behaviors:
 - Creates master summary report in `{output_root}summaries/`
 - Default `output_root`: `reviews/`
 - Supports resume capability for long-running batches
-- Expected execution time: 5-10 hours for 121 rules (sequential)
+- Expected execution time: 5-10 hours for 124 rules (sequential)
 
 ## Why Not Deployed?
 
@@ -123,8 +123,8 @@ The master summary includes:
 ## Review Modes
 
 **FULL Mode (Comprehensive):**
-- All 6 dimensions evaluated per rule
-- Expected duration: 5-10 hours for 121 rules
+- All 7 dimensions evaluated per rule
+- Expected duration: 5-10 hours for 124 rules
 - Use for: Quarterly audits, pre-release validation
 
 **FOCUSED Mode (Targeted):**
@@ -212,7 +212,7 @@ This writes reviews to `quarterly-audit/rule-reviews/` and summary to `quarterly
 
 ### Q: How long does a full review take?
 
-**A:** For 121 rules in FULL mode: 5-10 hours (3-5 minutes per rule). This is EXPECTED and REQUIRED for quality reviews.
+**A:** For 124 rules in FULL mode: 5-10 hours (3-5 minutes per rule). This is EXPECTED and REQUIRED for quality reviews.
 
 ### Q: Why is it so slow?
 
@@ -220,7 +220,7 @@ This writes reviews to `quarterly-audit/rule-reviews/` and summary to `quarterly
 
 ### Q: Where does the rubric come from?
 
-**A:** The skill invokes the rule-reviewer skill for each rule, which uses rubric files in `skills/rule-reviewer/rubrics/` (actionability.md, completeness.md, consistency.md, parsability.md, token-efficiency.md, staleness.md) as the rubric.
+**A:** The skill invokes the rule-reviewer skill for each rule, which uses rubric files in `skills/rule-reviewer/rubrics/` (actionability.md, completeness.md, consistency.md, parsability.md, token-efficiency.md, staleness.md, cross-agent-consistency.md) plus `_overlap-resolution.md` as the rubric.
 
 ### Q: Can I run reviews in parallel?
 

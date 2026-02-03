@@ -178,22 +178,62 @@ Coverage % = (items addressed / 12 total) × 100
 - 20-39% (3-4/12): -3 points
 - <20% (0-2/12): -4 points
 
-## Score Decision Matrix
+## Score Decision Matrix (ENHANCED)
 
-**Score Tier Criteria:**
-- **10/10 (20 pts):** 5/5 setup, 3/3 validation, 5+ error recovery, complete cleanup, 90%+ edge cases
-- **9/10 (18 pts):** 5/5 setup, 3/3 validation, 4+ error recovery, complete cleanup, 85-89% edge cases
-- **8/10 (16 pts):** 5/5 setup, 3/3 validation, 4 error recovery, complete cleanup, 80-84% edge cases
-- **7/10 (14 pts):** 4/5 setup, 2-3/3 validation, 3 error recovery, partial cleanup, 70-79% edge cases
-- **6/10 (12 pts):** 4/5 setup, 2-3/3 validation, 2-3 error recovery, partial cleanup, 60-69% edge cases
-- **5/10 (10 pts):** 3/5 setup, 2/3 validation, 2 error recovery, minimal cleanup, 50-59% edge cases
-- **4/10 (8 pts):** 3/5 setup, 1-2/3 validation, 1 error recovery, minimal cleanup, 40-49% edge cases
-- **3/10 (6 pts):** 2/5 setup, 1/3 validation, 0-1 error recovery, missing cleanup, 30-39% edge cases
-- **2/10 (4 pts):** 2/5 setup, 0-1/3 validation, 0 error recovery, missing cleanup, 20-29% edge cases
-- **1/10 (2 pts):** 1/5 setup, 0/3 validation, 0 error recovery, missing cleanup, 10-19% edge cases
-- **0/10 (0 pts):** 0/5 setup, 0/3 validation, 0 error recovery, missing cleanup, <10% edge cases
+**Purpose:** Convert completeness metrics into dimension score. No interpretation needed - just look up the tier.
 
-**Critical gate:** If error recovery = 0, cap at 4/10 (8 points)
+### Input Values
+
+From completed worksheet:
+- **Setup Elements:** Count of 5 types (Prerequisites/Environment/Dependencies/Config/Initial state)
+- **Validation Phases:** Count of 3 types (Pre/During/Post execution)
+- **Error Recovery Scenarios:** Count with recovery steps documented
+- **Cleanup:** Complete with verification / Present / Minimal / Missing
+- **Edge Case Coverage %:** Edge cases addressed / Total identified × 100
+
+### Scoring Table
+
+| Setup | Validation | Error Recovery | Cleanup | Edge Cases | Tier | Raw Score | × Weight | Points |
+|-------|------------|----------------|---------|------------|------|-----------|----------|--------|
+| 5/5 | 3/3 | 5+ | Complete+verify | 90%+ | Perfect | 10/10 | × 2 | 20 |
+| 5/5 | 3/3 | 4+ | Complete+verify | 85-89% | Near-Perfect | 9/10 | × 2 | 18 |
+| 5/5 | 3/3 | 4 | Complete | 80-84% | Excellent | 8/10 | × 2 | 16 |
+| 4/5 | 2-3/3 | 3 | Partial | 70-79% | Good | 7/10 | × 2 | 14 |
+| 4/5 | 2-3/3 | 2-3 | Partial | 60-69% | Acceptable | 6/10 | × 2 | 12 |
+| 3/5 | 2/3 | 2 | Minimal | 50-59% | Borderline | 5/10 | × 2 | 10 |
+| 3/5 | 1-2/3 | 1 | Minimal | 40-49% | Below Standard | 4/10 | × 2 | 8 |
+| 2/5 | 1/3 | 0-1 | Missing | 30-39% | Poor | 3/10 | × 2 | 6 |
+| 2/5 | 0-1/3 | 0 | Missing | 20-29% | Very Poor | 2/10 | × 2 | 4 |
+| 1/5 | 0/3 | 0 | Missing | 10-19% | Critical | 1/10 | × 2 | 2 |
+| 0/5 | 0/3 | 0 | Missing | <10% | Incomplete | 0/10 | × 2 | 0 |
+
+**Critical Gate:** If error recovery = 0, cap at 4/10 (8 points)
+
+### Tie-Breaking Algorithm (Deterministic)
+
+**When setup count falls exactly on tier boundary:**
+
+1. **Check Validation Phases:** If validation > tier requirement → HIGHER tier
+2. **Check Error Recovery:** If error scenarios > tier requirement → HIGHER tier
+3. **Check Cleanup Quality:** If cleanup has verification → HIGHER tier
+4. **Default:** LOWER tier (conservative - missing completeness causes failures)
+
+### Edge Cases
+
+**Edge Case 1: Implicit setup from standard tools**
+- **Example:** "Run pytest" (no explicit environment setup)
+- **Rule:** Don't penalize if standard tooling handles setup
+- **Rationale:** pytest handles its own setup
+
+**Edge Case 2: Error recovery delegated to framework**
+- **Example:** "Use retry decorator with 3 attempts"
+- **Rule:** Count framework-level recovery as valid
+- **Rationale:** Framework handles error scenarios
+
+**Edge Case 3: Cleanup not needed (read-only operations)**
+- **Example:** Plan only reads data, no modifications
+- **Rule:** Don't penalize missing cleanup for read-only plans
+- **Rationale:** Nothing to clean up
 
 ## Required Components Checklist
 
@@ -407,6 +447,512 @@ Recovery:
 3. Add timeout and permission error handling
 4. Complete cleanup section
 ```
+
+## Completeness Checklist
+
+During review, verify Setup, Validation, Error Recovery, Cleanup, Edge Cases coverage.
+
+## Non-Issues (Do NOT Count)
+
+**Purpose:** Eliminate false positives by explicitly defining what is NOT a completeness issue.
+
+### Pattern 1: Setup Implicitly Complete from Context
+
+**Example:**
+```markdown
+Prerequisites: "Python 3.11+ (per system requirements)"
+```
+**Why NOT an issue:** System requirements referenced, not missing  
+**Overlap check:** Not Context issue - reference provided  
+**Correct action:** Count as present if reference is valid
+
+### Pattern 2: Error Recovery Covered Elsewhere
+
+**Example:**
+```markdown
+Error handling: "See Error Recovery section below"
+(Error Recovery section exists with 4+ scenarios)
+```
+**Why NOT an issue:** Error recovery exists, just in separate section  
+**Overlap check:** See _overlap-resolution.md Rule 2 (Completeness primary)  
+**Correct action:** Count if referenced section exists and is complete
+
+### Pattern 3: Cleanup Not Needed for Read-Only Operations
+
+**Example:**
+```markdown
+Task: "Analyze log files and generate report"
+(No cleanup section)
+```
+**Why NOT an issue:** Read-only analysis creates no artifacts needing cleanup  
+**Overlap check:** Not a Risk issue (no state changes)  
+**Correct action:** Do not penalize missing cleanup for read-only plans
+
+### Pattern 4: Edge Cases Handled by Design
+
+**Example:**
+```markdown
+"Process uses idempotent operations - safe for reruns"
+```
+**Why NOT an issue:** Idempotency handles partial completion by design  
+**Overlap check:** N/A - architectural choice  
+**Correct action:** Count idempotency as covering partial completion edge cases
+
+## Complete Pattern Inventory
+
+**Purpose:** Eliminate interpretation variance by providing exhaustive lists. If it's not in this list, don't invent it. Match case-insensitive.
+
+### Category 1: Setup Element Indicators (5 Types)
+
+**Type 1 - Prerequisites Verification:**
+- "verify prerequisites"
+- "check requirements"
+- "prerequisite check"
+- "system requirements"
+- Version check commands (`python --version`, `node --version`)
+- Availability checks (`which python`, `command -v`)
+
+**Type 2 - Environment Preparation:**
+- "create environment"
+- "setup environment"
+- "venv", "virtualenv"
+- "conda env"
+- "nvm use"
+- "source activate"
+- ".venv", ".env"
+
+**Type 3 - Dependency Installation:**
+- "pip install"
+- "npm install"
+- "yarn install"
+- "poetry install"
+- "uv pip install"
+- "cargo build"
+- "go mod download"
+- "bundle install"
+- "requirements.txt"
+- "package.json"
+
+**Type 4 - Configuration Setup:**
+- "configure", "configuration"
+- "cp .env.example .env"
+- "edit config"
+- "set environment variables"
+- "config.yaml", "settings.json"
+- "DATABASE_URL", "API_KEY"
+
+**Type 5 - Initial State Verification:**
+- "verify setup"
+- "smoke test"
+- "sanity check"
+- "test connection"
+- "health check"
+- "ping", "curl localhost"
+
+**Regex Patterns:**
+```regex
+\b(verify|check)\s+(prerequisites?|requirements?|setup)\b
+\b(create|setup|activate)\s+(environment|venv|virtualenv)\b
+\b(pip|npm|yarn|poetry|uv|cargo|go\s+mod)\s+(install|sync|build|download)\b
+\b(configure|configuration|config)\b
+\bcp\s+\.env
+\b(smoke|sanity)\s+(test|check)\b
+\bhealth\s*check\b
+```
+
+### Category 2: Validation Phase Indicators (3 Types)
+
+**Type 1 - Pre-execution Validation:**
+- "before starting"
+- "pre-flight check"
+- "prerequisites met"
+- "verify inputs"
+- "check input files"
+- "validate configuration"
+- "ensure ready"
+
+**Type 2 - During-execution Validation:**
+- "progress check"
+- "monitor progress"
+- "watch logs"
+- "tail -f"
+- "check status"
+- "no errors during"
+- "resource usage"
+- "htop", "top"
+
+**Type 3 - Post-execution Validation:**
+- "after completion"
+- "verify output"
+- "check results"
+- "validate output"
+- "integration test"
+- "end-to-end test"
+- "final verification"
+
+**Regex Patterns:**
+```regex
+\b(before|pre[-\s]?(flight|execution|start)|prerequisites?\s+met)\b
+\b(progress|monitor|watch|during|status)\s+(check|logs?|execution)\b
+\btail\s+-f\b
+\b(after|post[-\s]?(execution|completion)|final)\s+(verification|check|validation)\b
+\b(verify|validate|check)\s+(output|results?)\b
+```
+
+### Category 3: Error Recovery Indicators (6 Scenarios)
+
+**Scenario 1 - Input Validation Failure:**
+- "invalid input"
+- "validation error"
+- "ValidationError"
+- "malformed data"
+- "parse error"
+- "schema violation"
+
+**Scenario 2 - Execution Errors:**
+- "timeout"
+- "crash"
+- "exception"
+- "exit code non-zero"
+- "process killed"
+- "OOM" (out of memory)
+- "stack trace"
+
+**Scenario 3 - External Dependency Failure:**
+- "connection refused"
+- "network error"
+- "API error"
+- "service unavailable"
+- "503", "504"
+- "timeout connecting"
+- "DNS failure"
+
+**Scenario 4 - Permission/Access Errors:**
+- "permission denied"
+- "access denied"
+- "unauthorized"
+- "403", "401"
+- "authentication failed"
+- "insufficient privileges"
+
+**Scenario 5 - Resource Exhaustion:**
+- "disk full"
+- "out of memory"
+- "resource exhausted"
+- "quota exceeded"
+- "rate limited"
+- "too many connections"
+
+**Scenario 6 - State Corruption:**
+- "corrupted"
+- "inconsistent state"
+- "data integrity"
+- "rollback required"
+- "transaction failed"
+- "deadlock"
+
+**Regex Patterns:**
+```regex
+\b(invalid|validation|parse)\s*(input|error|failed)\b
+\b(timeout|crash|exception|killed|OOM)\b
+\b(connection|network|API|service)\s*(refused|error|unavailable|failed)\b
+\b(permission|access|authentication)\s*(denied|failed|error)\b
+\b(disk|memory|resource|quota)\s*(full|exhausted|exceeded)\b
+\b(corrupted|inconsistent|integrity|rollback|deadlock)\b
+```
+
+### Category 4: Cleanup Indicators (4 Elements)
+
+**Element 1 - Temporary Files:**
+- "rm -rf /tmp/"
+- "remove temp"
+- "delete temporary"
+- "cleanup temp"
+- "*.tmp"
+- "/tmp/process-*"
+
+**Element 2 - Resources Released:**
+- "stop service"
+- "docker-compose down"
+- "kill process"
+- "close connection"
+- "release lock"
+- "shutdown"
+
+**Element 3 - State Reset:**
+- "reset state"
+- "restore original"
+- "revert changes"
+- "rollback"
+- "undo"
+- "reset to baseline"
+
+**Element 4 - Cleanup Verification:**
+- "verify cleanup"
+- "confirm removed"
+- "check no leftover"
+- "verify stopped"
+- "ensure clean"
+
+**Regex Patterns:**
+```regex
+\brm\s+(-rf?\s+)?(/tmp/|temp|temporary)\b
+\b(stop|down|kill|close|release|shutdown)\s+(service|process|connection|lock)\b
+\b(reset|restore|revert|rollback|undo)\s+(state|original|changes|baseline)\b
+\b(verify|confirm|check|ensure)\s+(cleanup|removed|stopped|clean)\b
+```
+
+### Category 5: Edge Case Indicators (12 Types)
+
+**Empty States (3):**
+1. "empty database" / "no records"
+2. "no users" / "first user"
+3. "cold cache" / "cache miss"
+
+**Concurrent Execution (3):**
+4. "concurrent" / "parallel execution"
+5. "race condition" / "lock"
+6. "multiple instances" / "dual runs"
+
+**Partial Completion (3):**
+7. "interrupted" / "partial"
+8. "resume" / "checkpoint"
+9. "idempotent" / "rerun safe"
+
+**Resource Constraints (3):**
+10. "disk full" / "low disk"
+11. "memory limit" / "low memory"
+12. "network failure" / "offline"
+
+**Regex Patterns:**
+```regex
+\b(empty|no)\s+(database|records?|users?|data)\b
+\b(cold|clear|miss)\s*cache\b
+\b(concurrent|parallel|simultaneous)\s+(execution|runs?|instances?)\b
+\b(race\s+condition|lock|mutex|semaphore)\b
+\b(interrupted|partial|incomplete)\s*(completion|execution|run)?\b
+\b(resume|checkpoint|idempotent|rerun)\b
+\b(disk|memory|network)\s+(full|limit|failure|offline)\b
+```
+
+### Ambiguous Cases Resolution
+
+**Case 1: Setup via standard tool**
+
+**Pattern:** "Run pytest" (no explicit environment setup)
+
+**Ambiguity:** Is setup implicitly handled?
+
+**Resolution Rule:**
+- Standard tools (pytest, npm) handle their own setup
+- Don't penalize if tool manages setup
+- Still prefer explicit setup documentation
+
+**Case 2: Error recovery in framework**
+
+**Pattern:** "Use retry decorator with 3 attempts"
+
+**Ambiguity:** Does framework recovery count?
+
+**Resolution Rule:**
+- Framework-level recovery = valid error handling
+- Count as covered for that error type
+- Document: "Error recovery via [framework]"
+
+**Case 3: Cleanup not needed**
+
+**Pattern:** Plan only reads data, creates no artifacts
+
+**Ambiguity:** Is missing cleanup a gap?
+
+**Resolution Rule:**
+- Read-only operations don't need cleanup
+- Don't penalize missing cleanup for read-only plans
+- Flag: "Cleanup N/A (read-only)"
+
+**Case 4: Edge cases by design**
+
+**Pattern:** "Idempotent operations - safe for reruns"
+
+**Ambiguity:** Does idempotency cover partial completion?
+
+**Resolution Rule:**
+- Idempotency addresses interrupted/partial completion
+- Count as 3/3 partial completion edge cases covered
+- Document: "Partial completion via idempotency"
+
+**Case 5: Validation at phase level only**
+
+**Pattern:** Each phase has verification, but tasks don't
+
+**Ambiguity:** Is phase-level validation sufficient?
+
+**Resolution Rule:**
+- Phase-level validation = acceptable
+- Covers all tasks within phase
+- Count as 3/3 validation phases if each phase has pre/during/post
+
+**Case 6: Error recovery referenced elsewhere**
+
+**Pattern:** "Error handling: See Troubleshooting Guide"
+
+**Ambiguity:** Does external reference count?
+
+**Resolution Rule:**
+- External reference to existing doc = partial credit
+- Full credit requires inline recovery steps
+- Count as 1 scenario (generic reference)
+
+**Case 7: Implicit pre-execution validation**
+
+**Pattern:** "Verify prerequisites in Phase 0"
+
+**Ambiguity:** Is prerequisite check = pre-execution validation?
+
+**Resolution Rule:**
+- Prerequisites verification = pre-execution validation
+- Count as present if Phase 0 has verification commands
+- Same function, different label
+
+**Case 8: Resource constraints out of scope**
+
+**Pattern:** "Assuming adequate resources available"
+
+**Ambiguity:** Is assumption = addressing edge case?
+
+**Resolution Rule:**
+- Assumption ≠ addressing edge case
+- Need: what to do IF resources insufficient
+- Don't count assumptions as coverage
+
+## Anti-Pattern Examples (Common Mistakes)
+
+**❌ WRONG (False Positive):**
+- Flagged: "Missing cleanup section"
+- Rationale given: "No cleanup documented"
+- Problem: Plan is read-only analysis (no artifacts created)
+- Impact: Incorrect -3 point deduction
+
+**✅ CORRECT:**
+- Not flagged for missing cleanup
+- Rationale: Read-only operations don't require cleanup
+- Condition: Would be flagged IF plan creates temp files or changes state
+
+**❌ WRONG (False Positive):**
+- Flagged: "Only 2 error scenarios documented"
+- Rationale given: "Missing timeout, permission errors"
+- Problem: Plan scope doesn't involve network or permissions
+- Impact: Incorrect -2 point deduction for irrelevant scenarios
+
+**✅ CORRECT:**
+- Count scenarios relevant to plan scope
+- Rationale: File-only plan doesn't need network error handling
+- Condition: Would be flagged IF plan involves network/permissions
+
+## Ambiguous Case Resolution Rules (REQUIRED)
+
+**Purpose:** Provide deterministic scoring when completeness elements are borderline.
+
+### Rule 1: Same-File Context
+**Count element as present if:** Element explicitly documented in plan (may be in different section)  
+**Count element as missing if:** No mention of element type anywhere in plan
+
+### Rule 2: Adjectives Without Quantifiers
+**Count as addressed if:** Specific steps, commands, or checks provided  
+**Count as NOT addressed if:** Only vague mention ("handle errors", "clean up")
+
+### Rule 3: Pattern Variations
+**Count error recovery as complete if:** Detection AND recovery steps AND verification provided  
+**Count error recovery as incomplete if:** Missing detection OR recovery OR verification
+
+### Rule 4: Default Resolution
+**Still uncertain after Rules 1-3?** → Count as missing/incomplete (conservative scoring)
+
+### Borderline Cases Template
+
+Document borderline decisions in your worksheet:
+
+```markdown
+### Element: "[Element Name]"
+- **Decision:** Present [Y/N], Complete [Y/N]
+- **Rule Applied:** [1/2/3/4]
+- **Reasoning:** [Explain why this classification]
+- **Alternative:** [Other interpretation and why rejected]
+- **Confidence:** [HIGH/MEDIUM/LOW]
+```
+
+## Mandatory Counting Worksheet (REQUIRED)
+
+**CRITICAL:** You MUST create and fill this worksheet BEFORE calculating score.
+
+### Why This Is Required
+- **Eliminates counting variance:** Same plan → same worksheet → same score
+- **Prevents false negatives:** Checklist-based enumeration catches all gaps
+- **Provides evidence:** Worksheet shows exactly what was counted
+
+### Worksheet Template
+
+**Setup Elements (0-5):**
+| Element | Present? | Lines | Notes |
+|---------|----------|-------|-------|
+| Prerequisites verification | Y/N | | |
+| Environment preparation | Y/N | | |
+| Dependency installation | Y/N | | |
+| Configuration setup | Y/N | | |
+| Initial state verification | Y/N | | |
+| **TOTAL** | | | **___/5** |
+
+**Validation Phases (0-3):**
+| Phase | Present? | Commands? | Expected Output? |
+|-------|----------|-----------|------------------|
+| Pre-execution | Y/N | Y/N | Y/N |
+| During execution | Y/N | Y/N | Y/N |
+| Post-execution | Y/N | Y/N | Y/N |
+| **TOTAL** | | | **___/3** |
+
+**Error Recovery Scenarios:**
+| Scenario | Documented? | Has Recovery Steps? |
+|----------|-------------|---------------------|
+| Input validation failures | Y/N | Y/N |
+| Execution errors (timeout, crash) | Y/N | Y/N |
+| External dependency failures | Y/N | Y/N |
+| Permission/access errors | Y/N | Y/N |
+| Resource exhaustion | Y/N | Y/N |
+| State corruption | Y/N | Y/N |
+| **TOTAL WITH RECOVERY** | | **___** |
+
+**Cleanup Elements (0-4):**
+| Element | Present? |
+|---------|----------|
+| Temporary files removal | Y/N |
+| Resources released | Y/N |
+| State reset | Y/N |
+| Verification of cleanup | Y/N |
+| **TOTAL** | **___/4** |
+
+**Edge Case Coverage (0-12):**
+| Category | Item | Addressed? |
+|----------|------|------------|
+| Empty states | Empty DB | Y/N |
+| Empty states | No users | Y/N |
+| Empty states | Cold cache | Y/N |
+| Concurrent | Dual runs | Y/N |
+| Concurrent | Locks | Y/N |
+| Concurrent | Races | Y/N |
+| Partial completion | Interrupted | Y/N |
+| Partial completion | Resume | Y/N |
+| Partial completion | Idempotency | Y/N |
+| Resources | Disk full | Y/N |
+| Resources | Memory | Y/N |
+| Resources | Network | Y/N |
+| **TOTAL** | | **___/12** |
+
+### Counting Protocol
+
+1. Fill each section systematically
+2. Calculate totals for each category
+3. Use Score Decision Matrix to determine raw score
+4. Include completed worksheet in review output
 
 ## Inter-Run Consistency Target
 

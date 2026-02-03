@@ -63,6 +63,10 @@ Execute comprehensive agent-centric reviews on all rule files in `rules/` direct
 - "The user won't notice if I..."
 - "I should ask about time constraints"
 - "Let me create a faster approach"
+- "Let me batch these rules together"
+- "I can validate multiple rules at once"
+- "Let me process rules 4-8 efficiently"
+- "I'll read several rules before reviewing"
 
 **Required Mindset:**
 - "I will complete the full process for each rule"
@@ -88,6 +92,50 @@ Execute comprehensive agent-centric reviews on all rule files in `rules/` direct
 
 **The user has already considered timing and scope. Proceed with the work.**
 
+### MANDATORY: One Rule At A Time
+
+**NEVER batch multiple rules.** Each rule MUST be processed individually:
+
+1. Read ONE rule file completely
+2. Run schema validator for THAT rule
+3. Apply ALL 7 rubrics to THAT rule
+4. Write review file for THAT rule
+5. THEN move to next rule
+
+**Forbidden patterns:**
+- `for f in rules/*.md; do` (batch shell loops for validation)
+- Reading multiple rules before writing any reviews
+- "Let me process rules 4-8 together"
+- Creating templates to speed up reviews
+- Parallelizing any review steps
+- Combining schema validation for multiple files
+- "Efficient batch processing"
+
+**Why batching fails:**
+- Context overflow loses rubric details mid-batch
+- Template-based reviews miss rule-specific issues
+- Shortcut thinking violates rubric requirements
+- Evidence requirements (15+ line refs) impossible without focused reading
+
+**Canary Check - Batching Detection:**
+
+Before EACH rule review, verify:
+- [ ] I am reviewing exactly ONE rule
+- [ ] I have not combined multiple rules in this tool call
+- [ ] My previous tool call was for ONE rule only
+- [ ] I am NOT creating a "faster approach"
+
+If ANY check fails: STOP, re-read Anti-Optimization Protocol, resume with ONE rule.
+
+### Required Progress Output
+
+After EACH rule review, output exactly:
+```
+[N/124] Complete: {filename} → {score}/100
+```
+
+This output MUST appear after writing EACH review file. If you see yourself planning to output multiple completion messages at once, you are batching - STOP immediately.
+
 ### MANDATORY ENFORCEMENT
 
 This skill MUST execute the complete rule-reviewer workflow for each rule file.
@@ -105,14 +153,18 @@ This skill MUST execute the complete rule-reviewer workflow for each rule file.
 - Summarize completed review contents SECOND
 - NEVER summarize anchor sections
 
-**See:** `workflows/context-anchor.md` for full protocol
+**Structural Enforcement (NEW):** Re-read `CRITICAL_CONTEXT.md` every 10 rules:
 
-**Verification:** Every 10 rules, confirm you can recite from memory:
-- The 6 Forbidden Optimization Thoughts
-- Why Skills ≠ Rules for token efficiency
-- The 5 evidence requirements for valid reviews
+```python
+if rule_number % 10 == 0:
+    read_file("skills/bulk-rule-reviewer/CRITICAL_CONTEXT.md")
+```
 
-**If unable to recite → Anchors have faded → Re-read SKILL.md immediately**
+**Drift Detection:** If any review file is <2500 bytes, immediately re-read:
+1. `CRITICAL_CONTEXT.md` (output format requirements)
+2. `SKILL.md` (full protocol)
+
+**See:** `workflows/context-anchor.md` and `workflows/inter-rule-gate.md` for full protocol
 
 ### How Skills Work Together
 

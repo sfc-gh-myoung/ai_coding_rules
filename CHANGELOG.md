@@ -7,6 +7,130 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.5.3] - 2026-02-03
+
+### Added
+- **feat(skills):** add context preservation mechanisms to prevent drift during bulk reviews
+  - `CRITICAL_CONTEXT.md` - Minimal (~150 tokens) file with essential output format, evidence requirements, quality gates
+  - Structural enforcement via periodic file re-reads (every 10 rules) instead of behavioral guidance
+  - Drift detection: review file size <2500 bytes triggers automatic context refresh
+  - Pre-write output verification checklist in rule-reviewer workflow
+- **feat(examples):** add 5 example files recovering patterns from token reduction
+  - `rules/examples/121-snowpipe-auto-ingest-example.md` - Complete AWS S3 auto-ingest setup with SNS
+  - `rules/examples/120-spcs-service-spec-example.md` - Production SPCS YAML spec with security, logging, RBAC
+  - `rules/examples/115-cortex-agent-prerequisites-example.md` - Pre-flight validation workflow
+  - `rules/examples/001-memory-bank-templates-example.md` - Complete file templates with size budgets
+  - `rules/examples/106-semantic-view-workarounds-example.md` - Dimension transformation workarounds
+- **feat(examples):** add reference implementations for Cortex components
+  - `rules/examples/106-semantic-view-ddl-example.md` - SQL DDL approach for semantic views
+  - `rules/examples/106-semantic-view-yaml-vqr-example.md` - YAML with verified queries (VQRs)
+  - `rules/examples/115-cortex-agent-hybrid-python-example.md` - Python SDK hybrid agent
+  - `rules/examples/115-cortex-agent-hybrid-sql-example.md` - SQL DDL hybrid agent
+  - `rules/examples/116-cortex-search-service-example.md` - Cortex Search service setup
+- **feat(schemas):** add example-schema.yml for validating example files
+  - Structure validation for example files in rules/examples/
+  - Required sections: Context, Prerequisites, Implementation, Validation
+  - Context field validation for Parent Rule, Version, Last Validated
+- **feat(scripts):** enhance scripts to handle examples directory
+  - index_generator.py: skip examples/ during rule indexing
+  - keyword_generator.py: skip examples/ during keyword extraction
+  - rule_deployer.py: copy examples/ directory during deployment
+  - schema_validator.py: add ExampleValidator class with --examples flag
+- **docs:** standardize Last Updated timestamps across all documentation
+  - Added `**Last Updated:** 2026-01-21` to AGENTS.md and 6 docs/*.md files
+
+### Changed
+- **feat(skills):** enhance bulk-rule-reviewer with structural context preservation
+  - `SKILL.md` - Updated Context Anchor Protocol to use file re-reads
+  - `workflows/inter-rule-gate.md` - Added mandatory context refresh every 10 rules
+  - `workflows/review-execution.md` - Added drift detection after each review write
+  - `workflows/context-anchor.md` - Added Structural Enforcement section
+- **feat(skills):** enhance rule-reviewer with drift safeguards
+  - `SKILL.md` - Added Context Preservation section and drift check to quality checklist
+  - `workflows/review-execution.md` - Added Pre-Write Output Verification and post-write size check
+- **fix(rules):** correct TokenBudget metadata based on tiktoken validation
+  - `106d-snowflake-semantic-views-development.md`: ~3050 → ~3400
+  - `820a-taskfile-advanced-patterns.md`: ~2350 → ~2750
+- **fix(rules):** update deprecated pydantic imports
+  - `210d-python-fastapi-monitoring.md`: `pydantic.BaseSettings` → `pydantic_settings.BaseSettings`
+  - `220-python-typer-cli.md`: split BaseSettings import for pydantic v2 compatibility
+- **feat(rules):** add cross-reference to `101c-snowflake-streamlit-security.md`
+  - Added `100-snowflake-core.md` for base credential patterns
+- **feat(rules):** enhance time series and cost governance rules
+  - `101h-snowflake-streamlit-timeseries.md`: Added EWMA pattern with code example (~1650 → ~1850 tokens)
+  - `105-snowflake-cost-governance.md`: Added WAREHOUSE_METERING_HISTORY query examples (~1900 → ~2100 tokens)
+  - `106-snowflake-semantic-views-core.md`: Added TIME_GRAIN example with pre-computed base view pattern (~2100 → ~2250 tokens)
+- **fix(rules):** add Anti-Patterns sections to pass schema validation
+  - `106c-snowflake-semantic-views-integration.md` - Restructured anti-patterns with Problem/Why It Fails/Correct Pattern format
+  - `106d-snowflake-semantic-views-development.md` - Added anti-patterns for VQR physical names, unvalidated Generator output
+  - `820a-taskfile-advanced-patterns.md` - Added anti-patterns for platform guards, missing descriptions
+- **chore(rules):** update LastUpdated metadata to 2026-01-27 across 19 rule files
+- **docs(readme):** update rule count from 122 to 124
+- **feat(rules):** add Related Examples section to 5 rule files
+  - `001-memory-bank.md` - Reference to templates example
+  - `106-snowflake-semantic-views-core.md` - Reference to 3 semantic view examples
+  - `115-snowflake-cortex-agents-core.md` - Reference to 3 cortex agent examples
+  - `120-snowflake-spcs.md` - Reference to SPCS example
+  - `121-snowflake-snowpipe.md` - Reference to Snowpipe example
+- **docs(rules):** update 002-rule-governance.md example list with 3 new examples
+- **feat(skills):** update bulk-rule-reviewer SKILL.md
+- **feat(rules):** enhance semantic view rules with physical column validation (106, 106a, 106c)
+  - **106-snowflake-semantic-views-core.md:** Added 3 critical validation steps (DESCRIBE TABLE, cross-reference mappings, Cortex Analyst test), new Anti-Pattern 6 (non-existent columns), mapping syntax clarification
+  - **106a-snowflake-semantic-views-advanced.md:** Added Anti-Pattern 5 (non-existent columns), post-creation validation section 4.9, mandatory physical column verification in checklist
+  - **106c-snowflake-semantic-views-integration.md:** Added Approach Selection section (SQL DDL vs YAML decision tree), hybrid approach documentation
+- **chore(rules):** update TokenBudget metadata for semantic view rules
+  - 106-snowflake-semantic-views-core.md: ~9000 → ~9600
+  - 106a-snowflake-semantic-views-advanced.md: ~6800 → ~7850
+  - 106c-snowflake-semantic-views-integration.md: ~8600 → ~9250
+  - Regenerated RULES_INDEX.md
+- **refactor(git-workflow):** make AI attribution footer protocol deterministic
+  - Added hybrid governance: PROJECT.md sets project default, 803 defines session protocol
+  - New resolution order: session state → PROJECT.md setting → user prompt
+  - Explicit step-by-step execution protocol with IF/THEN branches
+  - Session state variable (`_footer_preference`) tracks user override
+  - PROJECT.md: Added `ai_attribution_footer: false` as project default
+- **fix(git-workflow):** align Conventional Branch section with official v1.0.0 spec
+  - Added dots (`.`) as allowed characters for version numbers in branch names
+  - Added `release/` type for release preparation branches
+  - Split types into "Official" and "Project extensions" (docs/, refactor/)
+  - Added rules for consecutive/leading/trailing dots
+  - Updated RuleVersion v3.2.2 → v3.3.0, LastUpdated to 2026-01-22
+- **feat(agents):** add rule file modification to High-Risk Actions in AGENTS.md
+  - Modifying rules/ files now triggers mandatory metadata update protocol
+  - Requires: RuleVersion increment, LastUpdated update, CHANGELOG.md entry
+  - References rules/002b-rule-update.md for semantic versioning guidance
+- **feat(git-workflow):** add Pre-Commit Validation Protocol to 803-project-git-workflow.md
+  - Step 1: Branch safety check - confirm before committing to main/master
+  - Step 2: CHANGELOG.md validation - ensure staged changes are documented
+  - Step 3: Proceed to commit with existing protocols
+  - Updated RuleVersion v3.3.0 → v3.4.0
+- **feat(agents):** add CHANGELOG and protected branch checks to git commit High-Risk Action
+  - MANDATORY: Verify CHANGELOG.md reflects staged changes before committing
+  - MANDATORY: Confirm with user before committing to main/master branch
+- **feat(doc-reviewer):** determinism improvements aligned with plan-reviewer patterns
+  - Enhanced all 6 rubrics with Mandatory Verification Tables and Score Decision Matrices
+  - Added `_overlap-resolution.md` for cross-dimension finding deduplication
+  - Fixed USING_DOC_REVIEWER_SKILL.md: dimension groupings (70/30 to 50/35/15), verification table count (4 to 6)
+  - 3-phase workflow: batch rubric loading, fill dimension tables, then score
+- **feat(rule-reviewer):** determinism improvements aligned with plan-reviewer patterns
+  - Enhanced all 7 rubrics with Mandatory Issue Inventories and Score Decision Matrices
+  - Added `_overlap-resolution.md` for cross-dimension finding deduplication
+  - Fixed USING_RULE_REVIEW_SKILL.md: Token Efficiency points (5 to 10)
+  - 3-phase workflow: batch rubric loading, fill dimension inventories, then score
+- **feat(bulk-rule-reviewer):** documentation accuracy updates
+  - Fixed USING_BULK_RULE_REVIEWER_SKILL.md: dimension count (6 to 7 includes cross-agent-consistency)
+  - Added cross-agent-consistency.md to rubric list documentation
+- **feat(plan-reviewer):** major skill overhaul for deterministic scoring
+  - Updated verdict names: EXECUTABLE → EXCELLENT_PLAN, EXECUTABLE_WITH_REFINEMENTS → GOOD_PLAN, NEEDS_REFINEMENT → NEEDS_WORK, NOT_EXECUTABLE → POOR_PLAN/INADEQUATE_PLAN
+  - Added DELTA mode for tracking issue resolution between plan versions
+  - Enhanced all 8 rubrics with complete pattern inventories, score decision matrices, and mandatory counting worksheets
+  - Added workflows: delta-review.md, consistency-check.md, issue-inventory.md
+  - Updated timing thresholds: 15s error, 30s warning (based on empirical data from 10 runs)
+  - Updated documentation: USING_PLAN_REVIEWER_SKILL.md, README.md, ARCHITECTURE.md
+
+### Fixed
+- **fix(AGENTS.md):** replace 14 arrow characters (`→`) with text alternatives ("maps to", "becomes", "then", `:`) per 002g-agent-optimization.md Anti-Pattern 6
+
 ## [3.5.2] - 2026-01-20
 
 ### Chore
@@ -16,8 +140,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated version references in docs/ARCHITECTURE.md: 3.5.0 → 3.5.2
   - Updated rule count references in docs/ARCHITECTURE.md: 113 → 122 (9 locations)
   - Updated TokenBudget in 3 rules: 002-rule-governance.md (~3800 → ~5300), 121a-snowflake-snowpipe-streaming.md (~6000 → ~6300), 207-python-logging.md (~2900 → ~3050)
-
-## [3.5.2] - 2026-01-20
 
 ### Added
 - **feat(loadtrigger):** implement LoadTrigger metadata across 67 rules (69% coverage, 125% of target)

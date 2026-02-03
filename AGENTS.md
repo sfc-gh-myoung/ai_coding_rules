@@ -1,5 +1,7 @@
 # AI Agent Bootstrap Protocol
 
+**Last Updated:** 2026-01-21
+
 > **CRITICAL: DO NOT SUMMARIZE THIS FILE**
 >
 > This file defines the mandatory rule loading protocol and MODE/ACT framework
@@ -18,11 +20,11 @@
 > - THEN agent MUST use: `read_file("rules/000-global-core.md")`
 > - NEVER use bare filename in tool calls
 >
-> **Pattern:** `[documented-name]` → `rules/[documented-name]`
+> **Pattern:** `[documented-name]` maps to `rules/[documented-name]`
 >
 > **Examples:**
-> - Documentation: `000-global-core.md` → Tool call: `read_file("rules/000-global-core.md")`
-> - Documentation: `Depends: 100-snowflake-core.md` → Tool call: `read_file("rules/100-snowflake-core.md")`
+> - Documentation: `000-global-core.md` maps to Tool call: `read_file("rules/000-global-core.md")`
+> - Documentation: `Depends: 100-snowflake-core.md` maps to Tool call: `read_file("rules/100-snowflake-core.md")`
 
 **FIRST ACTION EVERY RESPONSE:**
 
@@ -89,7 +91,7 @@ MODE: PLAN
    **Keyword Extraction Algorithm:**
    1. Parse user request into tokens
    2. Identify technology nouns (Python, Streamlit, Docker, pytest)
-   3. Identify activity verbs as nouns (test → testing, deploy → deployment)
+   3. Identify activity verbs as nouns (test becomes testing, deploy becomes deployment)
    4. Identify file/artifact types (README, CHANGELOG, Dockerfile)
    5. Select 2-4 most specific terms (prefer "pytest" over "test", "Streamlit" over "app")
    6. Exclude generic terms (code, file, project, fix, help)
@@ -111,16 +113,22 @@ MODE: PLAN
    - IF PROJECT.md loaded: Reference "Rule Organization by Domain" section for complete mapping
    - ELSE: READ rules/RULES_INDEX.md Rule Catalog section
    - MATCH: User request domain to catalog domain:
-     - "SQL query" → Snowflake (100-series)
-     - "Python script" → Python (200-series)
-     - "React app" → Frontend (400-series)
-     - "Shell script" → Shell (300-series)
-     - "Go code" → Go (600-series)
-     - "Documentation" → Project (800-series)
+     - "SQL query": Snowflake (100-series)
+     - "Python script": Python (200-series)
+     - "React app": Frontend (400-series)
+     - "Shell script": Shell (300-series)
+     - "Go code": Go (600-series)
+     - "Documentation": Project (800-series)
    - LOAD: Domain core rule for matched domain
    - DECLARE: "No activity rules found, loaded [domain] core"
 
    **Token Optimization Note:** DEFER specialized rules until task list defined in PLAN mode. Load during ACT phase based on specific tasks.
+
+   **C. Check for Rule Examples (for complex configurations)**
+   - IF loaded rule involves multi-tool orchestration (Cortex Agent, Cortex Search, Semantic View):
+     - CHECK for companion example: `rules/examples/{rule-number}-*-example.md`
+     - IF example exists: Load example for concrete reference implementation
+   - Example patterns: `115-cortex-agent-hybrid-sql-example.md`, `106-semantic-view-yaml-vqr-example.md`
 
 4. **Declare MODE** - First line of response: `MODE: [PLAN|ACT]`
    - Default: MODE: PLAN
@@ -161,10 +169,10 @@ Compare CURRENT request to PREVIOUS request:
 - IF primary verb changed: TASK SWITCH (check for activity rules)
 - IF technology keyword changed: TASK SWITCH (search RULES_INDEX.md)
 
-**Examples (Previous → Current → Switch?):**
-- "edit auth.py" → "test auth.py" → YES (verb change: edit→test)
-- "format code" → "lint code" → NO (same domain, same file)
-- "write README.md" → "git commit" → YES (activity change: write→commit)
+**Examples (Previous then Current then Switch?):**
+- "edit auth.py" then "test auth.py": YES (verb change: edit to test)
+- "format code" then "lint code": NO (same domain, same file)
+- "write README.md" then "git commit": YES (activity change: write to commit)
 
 **On Task Switch - STOP and Re-evaluate:**
 1. STOP - Do not proceed with previous rule context
@@ -180,6 +188,8 @@ These actions MUST trigger rules/RULES_INDEX.md search regardless of agent's pri
 - **git commit, git push, git merge:**
   - EXECUTE: `grep -i "git" rules/RULES_INDEX.md`
   - LOAD: rules/803-project-git-workflow.md (if found)
+  - MANDATORY: Verify CHANGELOG.md reflects all staged changes before committing
+  - MANDATORY: If on `main` or `master` branch, ASK USER to confirm before committing
   - ASK USER: About AI attribution footer (rule 803 requirement)
   - REASON: Project may override system prompt's commit behavior
 
@@ -207,6 +217,13 @@ These actions MUST trigger rules/RULES_INDEX.md search regardless of agent's pri
   - EXECUTE: `grep -i "security" rules/RULES_INDEX.md`
   - LOAD: Domain security rule (if found)
   - REASON: Security practices vary by technology
+
+- **Modifying files in rules/ directory:**
+  - LOAD: rules/002b-rule-update.md
+  - MANDATORY: Update RuleVersion (increment per semantic versioning)
+  - MANDATORY: Update LastUpdated to current date (YYYY-MM-DD)
+  - MANDATORY: Update CHANGELOG.md with change details
+  - REASON: Rule metadata must stay current for version tracking
 
 **Rationale:** These actions have project-specific conventions that generic knowledge may violate (e.g., commit message format, test frameworks, deployment procedures).
 

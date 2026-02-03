@@ -587,6 +587,19 @@ Before considering review complete:
 - [ ] Line numbers provided for fixes
 - [ ] Review written to {output_root}/rule-reviews/
 - [ ] File path confirmed
+- [ ] **Review file ≥2500 bytes (drift check)**
+
+## Context Preservation (Bulk Reviews)
+
+When invoked by `bulk-rule-reviewer`, this skill may experience context drift after 10-20 rules.
+
+**Structural Safeguards:**
+
+1. **Pre-write verification:** Check review has ≥15 line refs, score table, verdict before writing
+2. **Post-write size check:** If <2500 bytes, flag potential drift
+3. **Periodic refresh:** Every 10 rules, re-read `bulk-rule-reviewer/CRITICAL_CONTEXT.md`
+
+**See:** `workflows/review-execution.md` Pre-Write Output Verification section
 
 ## Version History
 
@@ -597,3 +610,54 @@ Before considering review complete:
 - **v1.2.0:** Added Agent Execution Test
 - **v1.1.0:** Added no-overwrite safety
 - **v1.0.0:** Initial release
+
+## Determinism Requirements
+
+**Purpose:** Reduce score variance from ±5-8 points to <±2 points across runs.
+
+### Mandatory Behaviors (ALWAYS DO)
+
+1. **Batch-load all rubrics BEFORE reading target rule** - See `workflows/review-execution.md` Phase 1
+2. **Create ALL 7 inventories BEFORE reading target rule** - Empty templates from each rubric
+3. **Read target rule from line 1 to END** - No skipping sections
+4. **Fill inventories systematically** - One dimension at a time, in order
+5. **Check Non-Issues list for EACH flagged item** - Remove false positives with notes
+6. **Apply overlap resolution rules** - Assign each issue to ONE dimension only
+7. **Use Score Decision Matrix for EVERY score** - Look up tier from count/percentage
+8. **Include completed inventories in review output** - As evidence for scoring
+
+### Prohibited Behaviors (NEVER DO)
+
+1. **NEVER read target rule before loading rubrics** - Anchors interpretation incorrectly
+2. **NEVER skip inventory creation** - Leads to inconsistent counting
+3. **NEVER estimate scores without counting** - Creates variance
+4. **NEVER double-count issues across dimensions** - Use overlap resolution
+5. **NEVER flag items without checking Non-Issues list** - Creates false positives
+6. **NEVER omit inventories from review output** - Prevents verification
+7. **NEVER score on "feel" or "impression"** - Use decision matrices only
+8. **NEVER start scoring before completing all inventories** - Order matters
+
+### Expected Variance Tolerance
+
+| Component | Expected Variance |
+|-----------|-------------------|
+| Issue counts per dimension | ±1 item |
+| Dimension scores | ±1 point |
+| Overall score | ±2 points |
+
+**If variance exceeds tolerance:** Review inventory counting, check Non-Issues application, verify overlap resolution.
+
+### Self-Verification Checklist
+
+Before submitting ANY review, verify:
+
+- [ ] All 8 rubric files read BEFORE reading target rule?
+- [ ] All 7 inventories created (even if empty)?
+- [ ] Target rule read line 1 to END (no skipping)?
+- [ ] Each inventory filled using only rubric-defined patterns?
+- [ ] Non-Issues list checked for EVERY flagged item?
+- [ ] Overlap resolution applied to multi-dimension issues?
+- [ ] All inventories included in review output?
+- [ ] All scores from Score Decision Matrix lookups?
+
+**If ANY checkbox is NO:** Review is INVALID. Regenerate from Phase 1.

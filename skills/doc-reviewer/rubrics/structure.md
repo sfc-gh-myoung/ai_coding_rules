@@ -1,5 +1,75 @@
 # Structure Rubric (15 points)
 
+## Mandatory Verification Table (REQUIRED)
+
+**CRITICAL:** You MUST create and fill this table BEFORE calculating score.
+
+### Why This Is Required
+
+- **Eliminates order variance:** Same doc → same table → same score
+- **Prevents missed issues:** Systematic check catches all
+- **Provides evidence:** Table shows exactly what was evaluated
+- **Enables audit:** Users can verify scoring decisions
+
+### Verification Table Template
+
+**Section Order Check (for README):**
+
+| Expected Order | Section | Present? | Actual Position | In Order? |
+|----------------|---------|----------|-----------------|-----------|
+| 1 | Title & badges | Y/N | | Y/N |
+| 2 | Brief description | Y/N | | Y/N |
+| 3 | Key features | Y/N | | Y/N |
+| 4 | Quick start | Y/N | | Y/N |
+| 5 | Installation | Y/N | | Y/N |
+| 6 | Usage | Y/N | | Y/N |
+| 7 | Configuration | Y/N | | Y/N |
+| 8 | Documentation links | Y/N | | Y/N |
+| 9 | Contributing | Y/N | | Y/N |
+| 10 | License | Y/N | | Y/N |
+
+**Heading Hierarchy:**
+
+| Line | Heading | Level | Expected Level | Valid? |
+|------|---------|-------|----------------|--------|
+| 1 | Project Title | H1 | H1 | Y |
+| 10 | Getting Started | H3 | H2 | N (skip) |
+| 25 | Installation | H2 | H2 | Y |
+
+**Navigation Check (if >300 lines):**
+
+| Element | Present? |
+|---------|----------|
+| Table of contents | Y/N |
+| Section links work | Y/N |
+| Cross-references valid | Y/N |
+
+### Verification Protocol (5 Steps)
+
+**Step 1: Create Empty Tables**
+- Copy all templates above
+- Do NOT start reading doc yet
+
+**Step 2: Read Doc Systematically**
+- Note each section heading with line number
+- Check heading levels (H1, H2, H3...)
+- Check if sections follow expected order
+
+**Step 3: Verify Navigation**
+- If doc >300 lines: Check for TOC
+- Test all internal links
+- Test all cross-references
+
+**Step 4: Calculate Totals**
+- Count sections out of order
+- Count heading hierarchy violations
+- Note missing navigation elements
+
+**Step 5: Look Up Score**
+- Use section order result as base
+- Apply deductions for hierarchy/navigation issues
+- Record score with table evidence
+
 ## Scoring Formula
 
 **Raw Score:** 0-10
@@ -301,3 +371,31 @@ During review, verify:
 - [ ] TOC present if >300 lines
 - [ ] All cross-references work
 - [ ] Sections are right-sized (not too long/short)
+
+## Non-Issues (Do NOT Count as Structure Problems)
+
+**Review EACH flagged item against this list before counting.**
+
+### Pattern 1: Intentional Order Variation
+**Pattern:** Non-standard order that makes sense for context
+**Example:** "Quick Start" before "Installation" for experienced users
+**Why NOT an issue:** Order variation is justified by purpose
+**Action:** Remove from table with note "Intentional order"
+
+### Pattern 2: Short Documents
+**Pattern:** Document <100 lines without TOC
+**Example:** Simple README without table of contents
+**Why NOT an issue:** TOC not needed for short docs
+**Action:** Remove from table with note "Short doc, TOC not required"
+
+### Pattern 3: Alternative Structures
+**Pattern:** Non-README documentation with different structure
+**Example:** API reference that starts with endpoints, not overview
+**Why NOT an issue:** Different doc types have different structures
+**Action:** Remove from table with note "Alternative doc type"
+
+### Pattern 4: Flat Hierarchy by Design
+**Pattern:** Document intentionally using only H2 headings
+**Example:** FAQ with all questions at same level
+**Why NOT an issue:** Flat structure is appropriate for content
+**Action:** Remove from table with note "Flat hierarchy by design"

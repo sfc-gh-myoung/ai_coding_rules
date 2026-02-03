@@ -1,6 +1,6 @@
 # Using the Doc Reviewer Skill
 
-**Last Updated:** 2026-01-13
+**Last Updated:** 2026-01-21
 
 The Doc Reviewer Skill automates comprehensive documentation reviews for your project. It evaluates `README.md`, `CONTRIBUTING.md`, and files in `docs/` against six quality dimensions using a 100-point scoring system.
 
@@ -135,7 +135,7 @@ review_mode: STALENESS
 
 ## Review Dimensions
 
-### Critical Dimensions (70 points)
+### Critical Dimensions (50 points)
 
 **Accuracy (25 points):**
 - Code references exist in codebase
@@ -147,17 +147,19 @@ review_mode: STALENESS
 - Prerequisites documented
 - Error paths explained
 
+### Important Dimensions (35 points)
+
 **Clarity (20 points):**
 - Language is accessible
 - Jargon defined
 - Formatting aids readability
 
-### Standard Dimensions (30 points)
-
 **Structure (15 points):**
 - Logical organization
 - Clear hierarchy
 - Easy navigation
+
+### Standard Dimensions (15 points)
 
 **Staleness (10 points):**
 - Links valid
@@ -181,10 +183,14 @@ review_mode: STALENESS
 
 Reviews include these verification tables to support scoring:
 
-1. **Accuracy Check Table** — Lists code references and verifies they exist in the codebase
-2. **Link Validation Table** — Checks internal links, flags external URLs
-3. **Style Guide Compliance Check** — Compares against project rules (801, 802) and templates
-4. **Readability Assessment** — Qualitative clarity evaluation for target audience
+1. **Accuracy Verification Table** — Lists code references (file paths, commands, functions) and verifies they exist
+2. **Completeness Table** — Tracks features documented vs undocumented  
+3. **Clarity Table** — Jargon audit, concept order, new user accessibility
+4. **Structure Table** — Section order, heading hierarchy, navigation
+5. **Staleness Table** — Link validation, tool versions, deprecated patterns
+6. **Consistency Table** — Formatting, terminology, code style compliance
+
+**Note:** Tables are now part of the determinism improvements (batch rubric loading workflow).
 
 ## Configuration
 
@@ -299,7 +305,7 @@ This writes reviews to `quarterly-audit/doc-reviews/` instead of `reviews/doc-re
 
 ### Q: Where does the rubric come from?
 
-**A:** The skill uses rubric files in `skills/doc-reviewer/rubrics/` (accuracy.md, completeness.md, clarity.md, structure.md, staleness.md, consistency.md) as the rubric and required output format.
+**A:** The skill uses rubric files in `skills/doc-reviewer/rubrics/` (accuracy.md, completeness.md, clarity.md, structure.md, staleness.md, consistency.md) plus `_overlap-resolution.md` as the rubric and required output format. Each rubric includes a Mandatory Verification Table template and Non-Issues section for deterministic scoring.
 
 ## Support
 

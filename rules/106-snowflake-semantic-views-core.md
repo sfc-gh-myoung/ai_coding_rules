@@ -1,17 +1,14 @@
 # Snowflake Native Semantic Views: Core DDL
 
-> **CORE RULE: PRESERVE WHEN POSSIBLE**
->
-> This rule defines essential Semantic Views patterns. Load for Semantic Views tasks.
-> Specialized rules depend on this foundation.
+> **CORE RULE:** Essential Semantic Views patterns for DDL creation and validation.
 
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-12
-**Keywords:** TABLES, RELATIONSHIPS, PRIMARY KEY, validation rules, semantic view error, create semantic view, debug semantic view, SQL, verified queries, VQR, YAML semantic model, NLQ, mapping syntax, granularity rules
-**TokenBudget:** ~9000
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-01-27
+**Keywords:** TABLES, RELATIONSHIPS, PRIMARY KEY, semantic view, create semantic view, SQL, YAML, NLQ, mapping syntax
+**TokenBudget:** ~2250
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 **LoadTrigger:** kw:semantic-view, kw:semantic-model
@@ -19,996 +16,280 @@
 ## Scope
 
 **What This Rule Covers:**
-Authoritative guidance for creating Snowflake Native Semantic Views using the `CREATE SEMANTIC VIEW` DDL syntax. Focuses on DDL structure, component definitions, anti-patterns, and comprehensive validation rules to prevent errors during semantic view creation.
+Creating Snowflake Native Semantic Views using `CREATE SEMANTIC VIEW` DDL: structure, components, and validation.
 
-**When to Load This Rule:**
-- Creating semantic views with CREATE SEMANTIC VIEW DDL
-- Defining TABLES, RELATIONSHIPS, and PRIMARY KEY components
-- Implementing validation rules and mappings
+**When to Load:**
+- Creating semantic views with DDL
+- Defining TABLES, RELATIONSHIPS, PRIMARY KEY
 - Debugging semantic view creation errors
-- Understanding semantic view best practices
 
-**For querying semantic views and testing strategies, see `106b-snowflake-semantic-views-querying.md`.**
-**For Cortex Analyst integration and development workflows, see `106c-snowflake-semantic-views-integration.md`.**
-
-**Application:** Snowflake native semantic view DDL creation and validation
-
-**Progressive Disclosure - Token Budget:**
-- Quick Start + Contract: ~500 tokens (always load for semantic view tasks)
-- + Core DDL Patterns (sections 1-3): ~1500 tokens (load for creation)
-- + Validation & Troubleshooting (sections 4-5): ~2300 tokens (load for debugging)
-- + Complete Reference: ~2800 tokens (full semantic view guide)
-
-**Recommended Loading Strategy:**
-- **Understanding semantic views**: Quick Start only
-- **Creating views**: + Core DDL Patterns
-- **Debugging issues**: + Validation & Troubleshooting
-- **Advanced patterns**: + 106a (advanced), 106b (querying)
+**Related Rules:**
+- **106a** - Advanced patterns, validation rules
+- **106b** - Query patterns, SEMANTIC_VIEW() function
+- **106c** - Cortex Analyst/Agent integration
 
 ## References
 
 ### Dependencies
-
 **Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates
-- **100-snowflake-core.md** - Snowflake SQL patterns and best practices
+- **100-snowflake-core.md** - Snowflake SQL patterns
 
-### Related Rules
+### Related Examples
 
-**Closely Related** (consider loading together):
-- **106a-snowflake-semantic-views-advanced.md** - Anti-patterns, validation rules, quality checks, compliance requirements
-- **106b-snowflake-semantic-views-querying.md** - Query patterns using SEMANTIC_VIEW() function, result processing
-- **106c-snowflake-semantic-views-integration.md** - Integration with Cortex Analyst, Cortex Agents, and troubleshooting
-
-**Sometimes Related** (load if specific scenario):
-- **115-snowflake-cortex-agents-core.md** - Configuring semantic views as tools for Cortex Agents
-- **103-snowflake-performance-tuning.md** - Optimizing base tables that semantic views reference
-
-**Complementary** (different aspects of same domain):
-- **100-snowflake-core.md** - DDL fundamentals and object naming conventions
-- **107-snowflake-security-governance.md** - Masking policies and row access policies on semantic views
+- **examples/106-semantic-view-ddl-example.md** - Complete DDL creation workflow
+- **examples/106-semantic-view-yaml-vqr-example.md** - YAML with verified queries
+- **examples/106-semantic-view-workarounds-example.md** - Dimension transformation workarounds
 
 ### External Documentation
-- [Snowflake Semantic Views Documentation](https://docs.snowflake.com/en/user-guide/semantic-views) - Official semantic view syntax and examples
-- [Cortex Analyst with Semantic Views](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst) - Using semantic views for natural language queries
-- [Semantic View Best Practices](https://docs.snowflake.com/en/user-guide/semantic-views-best-practices) - Guidelines for building effective semantic models
+- [Snowflake Semantic Views](https://docs.snowflake.com/en/user-guide/semantic-views)
+- [Cortex Analyst](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst)
 
 ## Contract
 
 ### Inputs and Prerequisites
-
-- Target DATABASE.SCHEMA with appropriate privileges
-- Warehouse context with `CREATE SEMANTIC VIEW` privilege
-- Physical base tables/views with defined structure
-- Business glossary for naming dimensions, facts, and metrics
+- Target DATABASE.SCHEMA with privileges
+- Physical base tables with defined structure
+- Business glossary for naming
 
 ### Mandatory
-
-- `CREATE SEMANTIC VIEW` DDL syntax
-- `SHOW SEMANTIC VIEWS`, `SHOW SEMANTIC DIMENSIONS`, `SHOW SEMANTIC METRICS`
-- Snowflake CLI for validation
+- `CREATE SEMANTIC VIEW` DDL
+- `SHOW SEMANTIC VIEWS/DIMENSIONS/METRICS`
 
 ### Forbidden
-
-- Regular `CREATE VIEW` when semantic view is appropriate
 - CAST, DATE_TRUNC in DIMENSIONS (use simple columns)
-- Verified queries in DDL (must use YAML semantic model files)
+- Verified queries in DDL (use YAML files)
 
 ### Approach Selection
+**SQL (Preferred):** Use `CREATE SEMANTIC VIEW` for structure, synonyms, relationships.
 
-**SQL (Preferred - Default):** Use `CREATE SEMANTIC VIEW` DDL for structure definition, synonyms, relationships, and standard semantic models. Provides version control via SQL migrations and native database object management.
-
-**YAML (Alternative - Stage-Based):** Use YAML semantic model files uploaded to stages when:
-- Verified queries (VQR) are required (YAML-only feature)
-- Team prefers file-based configuration management
-- Integration with existing YAML-based CI/CD pipelines
-- Referencing models via `semantic_model_file` parameter in Cortex Analyst REST API
+**YAML (Alternative):** Use for verified queries (VQR), file-based CI/CD, or `semantic_model_file` parameter.
 
 ### Execution Steps
-
-1. Define TABLES block with physical base table references and PRIMARY KEY
-2. Declare FACTS (numeric measures at row level)
-3. Declare DIMENSIONS (categorical and temporal attributes - simple columns only)
-4. Define METRICS (aggregations over facts/dimensions)
-5. Add WITH SYNONYMS for improved NLQ accuracy
-6. Add COMMENT clauses for documentation (use `=` syntax)
-7. Validate using `SHOW SEMANTIC VIEWS`
+1. Define TABLES with PRIMARY KEY
+2. Declare FACTS (numeric at row level)
+3. Declare DIMENSIONS (simple columns only)
+4. Define METRICS (aggregations)
+5. Add SYNONYMS for NLQ accuracy
+6. Add COMMENT clauses (use `=` syntax)
+7. Validate with SHOW commands
 
 ### Output Format
-
-- Minimal, runnable `CREATE SEMANTIC VIEW` DDL statements
-- Clear separation of TABLES, FACTS, DIMENSIONS, METRICS blocks
+Minimal, runnable `CREATE SEMANTIC VIEW` DDL with TABLES, FACTS, DIMENSIONS, METRICS blocks
 
 ### Validation
-
-- DDL compiles without syntax errors
-- `SHOW SEMANTIC VIEWS` confirms object creation
-- `SHOW SEMANTIC DIMENSIONS/METRICS` validates structure
-- Validation rules pass (relationships, granularity, expressions)
+DDL compiles; SHOW commands confirm creation; validation rules pass
 
 ### Design Principles
+- **Clause ordering:** TABLES, then FACTS, then DIMENSIONS, then METRICS
+- **Simple expressions:** DIMENSIONS use simple columns only
+- **Comment syntax:** Use `COMMENT = 'text'` (with equals)
+- **Physical columns:** Verify with DESCRIBE TABLE before creating
 
-- **Native database objects**: Semantic views are schema-level objects stored in Snowflake's metadata
-- **Explicit syntax**: Column mappings use `logical_name AS physical_expression` format
-- **Clause ordering**: Must follow TABLES, then FACTS, then DIMENSIONS, then METRICS sequence
-- **Simple expressions**: DIMENSIONS use simple columns only (no CAST, DATE_TRUNC)
-- **Comment syntax**: Use `COMMENT = 'text'` (with equals sign)
-- **Validation first**: Understand validation rules to prevent errors
-
-> **Investigation Required**
-> When working with semantic views:
-> 1. Check if semantic view exists first with `SHOW SEMANTIC VIEWS LIKE '%name%';`
-> 2. Read the DDL structure before making recommendations - use `GET_DDL('SEMANTIC_VIEW', 'DB.SCHEMA.VIEW')`
-> 3. Verify base tables exist and are populated - query them directly first
-> 4. Never assume mapping syntax - always verify logical_name AS physical_column order
-> 5. Test queries against the semantic view before using in production
-> 6. Check for COMMENT syntax (must have equals sign: `COMMENT = 'text'`)
+> **STOP Gate:** Before creating semantic views:
+> - [ ] Base tables exist with data
+> - [ ] User has CREATE SEMANTIC VIEW privilege
+> - [ ] Physical column names verified via DESCRIBE TABLE
 >
-> **STOP Gate - Prerequisites Check:**
-> Before creating or modifying any semantic view, verify ALL of these conditions:
-> - [ ] Base tables exist: Run `SHOW TABLES IN SCHEMA` to confirm physical tables are present
-> - [ ] Tables have data: Run `SELECT COUNT(*) FROM base_table` to verify non-zero row count
-> - [ ] User has CREATE SEMANTIC VIEW privilege: Run `SHOW GRANTS ON SCHEMA schema_name`
-> - [ ] Warehouse context is set: Run `SELECT CURRENT_WAREHOUSE()` to confirm active warehouse
->
-> IF ANY condition fails, STOP immediately and report the missing prerequisite to the user.
-> DO NOT proceed with semantic view creation using assumptions or placeholder values.
->
-> **Anti-Pattern:**
-> "Based on typical patterns, this view probably maps customer_id to..."
->
-> **Correct Pattern:**
-> "Let me read the semantic view DDL first to give accurate guidance."
-> [reads DDL using GET_DDL or SHOW commands]
-> "After reviewing the DDL, I found the view maps customer_id AS cust_id. Here's my recommendation..."
+> **CRITICAL:** Run `DESCRIBE TABLE <base_table>` and use exact column names in DDL.
 
 ### Post-Execution Checklist
-
-- [ ] All table references include database and schema qualifiers
-- [ ] PRIMARY KEY defined for all tables in TABLES block (uses physical columns only)
-- [ ] All mapping syntax follows `logical_name AS physical_column` (not reversed)
-- [ ] All COMMENT clauses use equals sign: `COMMENT = 'text'`
-- [ ] DIMENSIONS use simple columns only (no CAST, DATE_TRUNC, or complex functions)
+- [ ] All mapping syntax: `alias.physical_column AS logical_name`
+- [ ] Physical columns verified against base table
+- [ ] COMMENT uses equals sign
+- [ ] DIMENSIONS use simple columns only
 - [ ] At least one dimension or metric defined
-- [ ] Relationships validated (many-to-one, no circular, no self-ref, no multi-path)
-- [ ] Cross-table references use defined relationships (not direct column refs)
-- [ ] Granularity rules respected (aggregate when referencing higher granularity)
-- [ ] Window function metrics do not nest (not used in dimensions, facts, or other metrics)
-- [ ] No `&` or template characters in SYNONYMS, COMMENT, or identifiers (for CLI compatibility)
-- [ ] DDL validated with `SHOW SEMANTIC VIEWS`
-- [ ] Test queries run successfully against the view
+- [ ] Test with Cortex Analyst NLQ query
 
 ## Anti-Patterns and Common Mistakes
 
-**Anti-Pattern 1: Not Following TABLES, FACTS, DIMENSIONS, METRICS Sequence**
+### Anti-Pattern 1: Wrong Clause Order
 ```sql
--- Bad: Wrong clause ordering
-CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
-  DIMENSIONS (
-    customer_id AS customers.customer_id
-  )
-  TABLES (
-    sales_data AS sales
-  )
-  METRICS (
-    total_revenue AS SUM(sales.amount)
-  );
--- Error: Syntax error - clauses out of order!
+-- WRONG: DIMENSIONS before TABLES
+CREATE SEMANTIC VIEW v AS DIMENSIONS (...) TABLES (...);
 ```
-**Problem:** Syntax errors; semantic view creation fails; deployment blocked; unprofessional; confusion; documentation misalignment
+**Problem:** Syntax error - clauses out of order.
+
+**Correct Pattern:** Order: TABLES, FACTS, DIMENSIONS, METRICS
+
+### Anti-Pattern 2: Complex Expressions in DIMENSIONS
+```sql
+-- WRONG: DATE_TRUNC in dimensions
+DIMENSIONS (sale_month AS DATE_TRUNC('MONTH', order_date))
+```
+**Problem:** Functions not allowed in dimensions.
+
+**Correct Pattern:** Use simple column references; pre-compute in base view if needed.
+
+### Anti-Pattern 3: Missing Equals in COMMENT
+```sql
+-- WRONG
+COMMENT 'text'
+-- CORRECT
+COMMENT = 'text'
+```
+
+### Anti-Pattern 4: Referencing Non-Existent Columns
+```sql
+-- WRONG: Using invented column names
+FACTS (tfm.load_kilowatts AS load_kw)  -- "load_kilowatts" doesn't exist!
+```
+**Problem:** DDL may compile but Cortex Analyst queries fail.
 
 **Correct Pattern:**
 ```sql
--- Good: Correct clause sequence
-CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
-  TABLES (
-    sales_data AS sales,
-    customer_data AS customers
-  )
-  RELATIONSHIPS (
-    sales.customer_id = customers.customer_id
-  )
-  DIMENSIONS (
-    customer_id AS customers.customer_id
-      COMMENT 'Unique customer identifier'
-      SYNONYMS ('cust id', 'customer number'),
-    customer_name AS customers.name
-      COMMENT 'Customer full name'
-      SYNONYMS ('cust name', 'client name')
-  )
-  METRICS (
-    total_revenue AS SUM(sales.amount)
-      COMMENT 'Total sales revenue'
-      SYNONYMS ('revenue', 'sales total', 'income'),
-    order_count AS COUNT(sales.order_id)
-      COMMENT 'Number of orders'
-      SYNONYMS ('num orders', 'order total')
-  );
+DESCRIBE TABLE PROD.GRID_DATA.TRANSFORMER_DATA;
+-- Use exact column names from output
+FACTS (tfm.load_kw AS load_kw)  -- Matches actual column
 ```
-**Benefits:** Valid DDL; successful deployment; Cortex Analyst compatible; professional; clear structure; maintainable
 
-**Anti-Pattern 2: Using Complex Expressions in DIMENSIONS (CAST, DATE_TRUNC Not Allowed)**
+### Anti-Pattern 5: Template Characters in SYNONYMS
 ```sql
--- Bad: Complex transformations in DIMENSIONS
-CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
-  TABLES (
-    sales_data AS sales
-  )
-  DIMENSIONS (
-    sale_month AS DATE_TRUNC('MONTH', sales.order_date)  -- NOT ALLOWED!
-      COMMENT 'Month of sale',
-    revenue_category AS CASE WHEN sales.amount > 1000 THEN 'High' ELSE 'Low' END  -- NOT ALLOWED!
-      COMMENT 'Revenue category'
-  );
--- Error: DATE_TRUNC and CASE not supported in DIMENSIONS!
+-- WRONG: & causes CLI issues
+SYNONYMS ('R&D', 'Sales & Marketing')
+-- CORRECT
+SYNONYMS ('R and D', 'Sales and Marketing')
 ```
-**Problem:** Syntax errors; deployment failure; Cortex Analyst can't parse; query failures; wasted development time; emergency fixes
+**Problem:** CLI interprets `&` as template variable.
 
-**Correct Pattern:**
-```sql
--- Good: Simple column references only in DIMENSIONS
--- Option 1: Use simple columns from base tables
-CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
-  TABLES (
-    sales_data AS sales
-  )
-  DIMENSIONS (
-    order_date AS sales.order_date
-      COMMENT 'Date of sale'
-      SYNONYMS ('sale date', 'order day', 'purchase date'),
-    amount AS sales.amount
-      COMMENT 'Sale amount in USD'
-      SYNONYMS ('price', 'revenue', 'sale value')
-  )
-  METRICS (
-    monthly_revenue AS SUM(sales.amount)
-      COMMENT 'Revenue by month'
-      SYNONYMS ('monthly sales')
-  );
-
--- Option 2: Pre-compute transformations in base tables or views
-CREATE OR REPLACE VIEW sales_enriched AS
-SELECT
-  *,
-  DATE_TRUNC('MONTH', order_date) AS sale_month,
-  CASE WHEN amount > 1000 THEN 'High' ELSE 'Low' END AS revenue_category
-FROM sales_data;
-
--- Then use simple columns in semantic view
-CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
-  TABLES (
-    sales_enriched AS sales
-  )
-  DIMENSIONS (
-    sale_month AS sales.sale_month  -- Simple column reference
-      COMMENT 'Month of sale',
-    revenue_category AS sales.revenue_category  -- Simple column reference
-      COMMENT 'Revenue category'
-  );
-```
-**Benefits:** Valid syntax; deployment succeeds; Cortex Analyst compatible; query reliability; maintainable; professional; separation of concerns
-
-**Anti-Pattern 3: Missing Equals Sign in COMMENT Syntax**
-```sql
--- Bad: COMMENT without equals sign
-CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
-  TABLES (
-    sales_data AS sales
-  )
-  DIMENSIONS (
-    customer_id AS sales.customer_id
-      COMMENT 'Customer identifier'  -- Missing "="!
-      SYNONYMS ('cust id')
-  );
--- Error: Syntax error near 'Customer identifier'
-```
-**Problem:** Syntax error; deployment fails; confusing error message; delayed deployments; frustration; unprofessional
-
-**Correct Pattern:**
-```sql
--- Good: COMMENT = 'text' (with equals sign)
-CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
-  TABLES (
-    sales_data AS sales
-  )
-  DIMENSIONS (
-    customer_id AS sales.customer_id
-      COMMENT = 'Customer identifier'  -- Correct syntax with "="
-      SYNONYMS ('cust id', 'customer number'),
-    product_id AS sales.product_id
-      COMMENT = 'Product identifier'
-      SYNONYMS ('prod id', 'item id')
-  )
-  METRICS (
-    total_revenue AS SUM(sales.amount)
-      COMMENT = 'Total sales revenue'
-      SYNONYMS ('revenue', 'sales')
-  );
-```
-**Benefits:** Valid syntax; successful deployment; clear documentation; Cortex Analyst compatible; professional; no deployment delays
-
-**Anti-Pattern 4: Not Validating Semantic View DDL Before Deployment**
-```sql
--- Bad: Deploy semantic view without testing
-CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
-  TABLES (
-    sales_data AS sales,
-    customer_data AS customers
-  )
-  RELATIONSHIPS (
-    sales.cust_id = customers.customer_id  -- Typo! Should be customer_id
-  )
-  DIMENSIONS (
-    customer_name AS customers.name
-      COMMENT = 'Customer name'
-      SYNONYMS ('cust name')
-  );
--- Deploy to production... Error: Column 'cust_id' not found!
--- Production outage, users can't query!
-```
-**Problem:** Production deployment failures; user impact; emergency rollback; untested DDL; wasted time; unprofessional; reputation damage
-
-**Correct Pattern:**
-```sql
--- Good: Validate before deploying
-
--- Step 1: Verify base tables exist and check column names
-SHOW TABLES LIKE 'sales_data';
-SHOW TABLES LIKE 'customer_data';
-
-DESC TABLE sales_data;
-DESC TABLE customer_data;
-
--- Step 2: Test join logic in standard SQL first
-SELECT
-  s.*,
-  c.name
-FROM sales_data s
-JOIN customer_data c ON s.customer_id = c.customer_id  -- Verified column names!
-LIMIT 10;
-
--- Step 3: Create semantic view in DEV first
-CREATE OR REPLACE SEMANTIC VIEW dev_db.analytics.sales_analysis AS
-  TABLES (
-    sales_data AS sales,
-    customer_data AS customers
-  )
-  RELATIONSHIPS (
-    sales.customer_id = customers.customer_id  -- Correct column name
-  )
-  DIMENSIONS (
-    customer_name AS customers.name
-      COMMENT = 'Customer name'
-      SYNONYMS ('cust name', 'client name')
-  );
-
--- Step 4: Test semantic view with Cortex Analyst
--- Use Snowsight or Python SDK to test natural language queries
--- Example: "What is the total revenue by customer name?"
-
--- Step 5: Verify results
-SELECT * FROM dev_db.analytics.sales_analysis LIMIT 10;
-
--- Step 6: Only deploy to production after successful validation
-CREATE OR REPLACE SEMANTIC VIEW prod_db.analytics.sales_analysis AS
-  -- Copy validated DDL here
-  ...;
-```
-**Benefits:** No production failures; validated before deployment; user confidence; professional; tested thoroughly; reliable; no emergency fixes
-
-**Anti-Pattern 5: Attempting to Define Verified Queries in DDL**
-```sql
--- Bad: Trying to add verified queries in CREATE SEMANTIC VIEW DDL
-CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
-  TABLES (
-    sales_data AS sales
-      PRIMARY KEY (sale_id)
-  )
-  DIMENSIONS (
-    sale_date AS sales.order_date
-      COMMENT = 'Date of sale'
-  )
-  METRICS (
-    total_revenue AS SUM(sales.amount)
-      COMMENT = 'Total sales revenue'
-  )
-  -- VERIFIED_QUERIES (  -- NOT SUPPORTED!
-  --   'Monthly Revenue' AS
-  --     QUESTION 'What is the total revenue by month?'
-  --     SQL 'SELECT ...'
-  -- );
--- Error: VERIFIED_QUERIES clause does not exist in DDL syntax!
-```
-**Problem:** DDL syntax limitation; verified queries unsupported in CREATE SEMANTIC VIEW; Cortex Analyst features blocked; workarounds needed; confusion; incomplete semantic model; reduced query accuracy
-
-**Correct Pattern:**
-```yaml
-# File: sales_semantic_model.yaml
-# Upload to Snowflake stage: @analytics.models/sales_semantic_model.yaml
-
-name: sales_analysis
-description: Sales analysis semantic model with verified queries
-
-tables:
-  - name: sales_data
-    base_table:
-      database: PROD
-      schema: SALES
-      table: SALES_FACT
-
-    dimensions:
-      - name: sale_date
-        expr: order_date
-        data_type: DATE
-        description: Date of sale
-        synonyms:
-          - "order date"
-          - "purchase date"
-
-    metrics:
-      - name: total_revenue
-        expr: SUM(amount)
-        description: Total sales revenue
-        synonyms:
-          - "revenue"
-          - "sales total"
-
-# Verified queries - ONLY supported in YAML format
-verified_queries:
-  - name: monthly_revenue
-    question: What is the total revenue by month?
-    sql: |
-      SELECT
-        DATE_TRUNC('MONTH', sale_date) AS month,
-        SUM(total_revenue) AS revenue
-      FROM sales_analysis
-      GROUP BY month
-      ORDER BY month DESC
-    verified_at: 1701734400
-    verified_by: analytics_team
-    use_as_onboarding_question: true
-
-  - name: top_products
-    question: What are the top 10 products by revenue?
-    sql: |
-      SELECT
-        product_name,
-        SUM(total_revenue) AS revenue
-      FROM sales_analysis
-      GROUP BY product_name
-      ORDER BY revenue DESC
-      LIMIT 10
-    verified_at: 1701734400
-    verified_by: analytics_team
-```
-
-```sql
--- Then use CREATE SEMANTIC VIEW for DDL structure (without verified queries)
-CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
-  TABLES (
-    sales_data AS sales
-      PRIMARY KEY (sale_id)
-  )
-  DIMENSIONS (
-    sale_date AS sales.order_date
-      COMMENT = 'Date of sale'
-  )
-  METRICS (
-    total_revenue AS SUM(sales.amount)
-      COMMENT = 'Total sales revenue'
-  );
-
--- Verified queries remain in YAML file uploaded to stage
--- Cortex Analyst references YAML file for verified queries
--- See 106c-snowflake-semantic-views-integration for integration patterns
-```
-**Benefits:** Proper separation of concerns; verified queries supported; Cortex Analyst fully functional; improved query accuracy; maintainable; follows Snowflake architecture; clear documentation
-
-**Reference:**
-- See [Snowflake Semantic Model Specification](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst/semantic-model-spec) for complete YAML format
-- See `106c-snowflake-semantic-views-integration` for using verified queries with Cortex Analyst
-- See `106c-snowflake-semantic-views-integration` for integration patterns
-
-**Anti-Pattern 6: Using Template Characters in SYNONYMS or COMMENT**
-```sql
--- Bad: & and other template characters in SYNONYMS
-CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
-  TABLES (
-    sales_data AS sales
-      PRIMARY KEY (sale_id)
-  )
-  DIMENSIONS (
-    department AS sales.department
-      COMMENT = 'Sales & Marketing department'  -- & causes CLI issues!
-      SYNONYMS ('R&D', 'Sales & Marketing', 'S&M')  -- & interpreted as template variable!
-  )
-  METRICS (
-    total_revenue AS SUM(sales.amount)
-      COMMENT = 'Revenue for <%REGION%>'  -- <% %> are SnowSQL variables!
-  );
--- Snowflake CLI error: "undefined variable 'D'" or similar cryptic message
--- Deployment fails with confusing error, hard to debug!
-```
-**Problem:** Snowflake CLI (`snow sql`) interprets `&` as template variable prefix; SnowSQL interprets `<%` and `%>` as variable delimiters; deployment fails with cryptic errors; hard to debug; wasted time; blocks CI/CD pipelines
-
-**Correct Pattern:**
-```sql
--- Good: Avoid template characters, use alternatives
-CREATE OR REPLACE SEMANTIC VIEW sales_analysis AS
-  TABLES (
-    sales_data AS sales
-      PRIMARY KEY (sale_id)
-  )
-  DIMENSIONS (
-    department AS sales.department
-      COMMENT = 'Sales and Marketing department'  -- Use 'and' instead of '&'
-      SYNONYMS ('R and D', 'Research and Development', 'Sales and Marketing')
-  )
-  METRICS (
-    total_revenue AS SUM(sales.amount)
-      COMMENT = 'Revenue by region'  -- Plain text, no template syntax
-  );
--- Deploys successfully via CLI, Snowsight, and CI/CD pipelines!
-```
-**Benefits:** CLI compatible; no deployment errors; CI/CD friendly; clear error-free execution; professional; maintainable
-
-**Characters to Avoid:**
-- `&` - Snowflake CLI template variable prefix
-- `<%` and `%>` - SnowSQL variable delimiters
-- `{{` and `}}` - Common templating syntax (Jinja2, dbt)
-
-**Alternatives:**
-- **`R&D`** - Use `R and D` or `Research and Development` instead
-- **`Sales & Marketing`** - Use `Sales and Marketing` instead
-- **`P&L`** - Use `P and L` or `Profit and Loss` instead
-- **`M&A`** - Use `M and A` or `Mergers and Acquisitions` instead
-
-## Output Format Examples
-
-```sql
--- Semantic view definition with all required blocks
-CREATE OR REPLACE SEMANTIC VIEW SEM_ASSET_PERFORMANCE
-  AS
-    SEMANTIC CATEGORY = 'Energy Grid Analytics'
-    COMMENT = 'Semantic view for asset performance analysis including failure rates, maintenance costs, and asset metadata'
-    TABLES (
-      assets (ALIAS = asset) (COMMENT = 'Grid assets including transformers, substations, and distribution lines'),
-      failure_events (ALIAS = failure) (COMMENT = 'Asset failure events with timestamps and costs'),
-      maintenance_logs (ALIAS = maint) (COMMENT = 'Preventive and corrective maintenance records')
-    )
-    RELATIONSHIPS (
-      asset.asset_id = failure.asset_id identifier = 'asset_failure_rel',
-      asset.asset_id = maint.asset_id identifier = 'asset_maintenance_rel'
-    )
-    DIMENSIONS (
-      asset.asset_id AS asset_id
-        WITH SYNONYMS ('equipment ID', 'transformer ID', 'asset number')
-        COMMENT = 'Unique identifier for grid assets',
-      asset.asset_type AS asset_type
-        WITH SYNONYMS ('equipment type', 'asset category')
-        COMMENT = 'Type of asset: TRANSFORMER, SUBSTATION, DISTRIBUTION_LINE',
-      asset.install_date AS install_date
-        WITH SYNONYMS ('installation date', 'commissioned date')
-        COMMENT = 'Date the asset was installed',
-      failure.failure_time AS failure_timestamp
-        WITH SYNONYMS ('failure date', 'breakdown time', 'outage time')
-        COMMENT = 'Timestamp when failure occurred'
-    )
-    METRICS (
-      asset.asset_count AS COUNT(DISTINCT asset_id)
-        WITH SYNONYMS ('number of assets', 'total assets', 'equipment count')
-        COMMENT = 'Total number of unique assets',
-      failure.failure_count AS COUNT(*)
-        WITH SYNONYMS ('number of failures', 'total failures', 'breakdown count')
-        COMMENT = 'Total number of failure events',
-      failure.avg_repair_cost AS AVG(repair_cost)
-        WITH SYNONYMS ('average repair cost', 'mean repair cost')
-        COMMENT = 'Average cost to repair asset failures',
-      maint.total_maintenance_cost AS SUM(maintenance_cost)
-        WITH SYNONYMS ('total maintenance spend', 'maintenance expenses')
-        COMMENT = 'Sum of all maintenance costs'
-    );
-
--- Test the semantic view with Cortex Analyst
-SELECT *
-FROM TABLE(ANALYST_SEMANTIC_VIEW_QUERY(
-  'SEM_ASSET_PERFORMANCE',
-  'What is the average repair cost by asset type?'
-));
-```
-
-## Native Semantic View Syntax
+## Implementation Details
 
 ### Complete DDL Structure
-
 ```sql
-CREATE [OR REPLACE] SEMANTIC VIEW <database>.<schema>.<view_name>
+CREATE [OR REPLACE] SEMANTIC VIEW <db>.<schema>.<view>
   TABLES (
-    <table_alias> AS <database>.<schema>.<physical_table>
-      PRIMARY KEY (<column1>[, <column2>, ...])
-      [WITH SYNONYMS ('<syn1>', '<syn2>', ...)]
-      [COMMENT = '<table_description>']
+    <alias> AS <db>.<schema>.<table>
+      PRIMARY KEY (<col>)
+      [WITH SYNONYMS ('<syn>')]
+      [COMMENT = '<desc>']
   )
   FACTS (
-    <table_alias>.<logical_name> AS <physical_column_or_expression>
-      [WITH SYNONYMS ('<syn1>', '<syn2>', ...)]
-      [COMMENT = '<fact_description>'],
-    ...
+    <alias>.<logical_name> AS <physical_col>
+      [WITH SYNONYMS ('<syn>')]
+      [COMMENT = '<desc>']
   )
   DIMENSIONS (
-    <table_alias>.<logical_name> AS <physical_column>
-      [WITH SYNONYMS ('<syn1>', '<syn2>', ...)]
-      [COMMENT = '<dimension_description>'],
-    ...
+    <alias>.<logical_name> AS <physical_col>
+      [WITH SYNONYMS ('<syn>')]
+      [COMMENT = '<desc>']
   )
   METRICS (
-    <table_alias>.<metric_name> AS <aggregate_function>(<expression>)
-      [WITH SYNONYMS ('<syn1>', '<syn2>', ...)]
-      [COMMENT = '<metric_description>'],
-    ...
-  )
-  [COMMENT = '<overall_view_description>'];
+    <alias>.<metric_name> AS <aggregate>(<expr>)
+      [WITH SYNONYMS ('<syn>')]
+      [COMMENT = '<desc>']
+  );
 ```
 
-### Minimal Working Example
-
+### Minimal Example
 ```sql
--- Filename: create_semantic_view_minimal.sql
--- Description: Minimal semantic view for asset inventory
-
-CREATE OR REPLACE SEMANTIC VIEW PROD.GRID_DATA.SEM_ASSET_INVENTORY
+CREATE OR REPLACE SEMANTIC VIEW PROD.DATA.SEM_INVENTORY
   TABLES (
-    asset AS PROD.GRID_DATA.GRID_ASSETS
-      PRIMARY KEY (asset_id)
+    asset AS PROD.DATA.ASSETS PRIMARY KEY (asset_id)
   )
   FACTS (
     asset.rated_capacity AS rated_capacity
   )
   DIMENSIONS (
     asset.asset_id AS asset_id,
-    asset.asset_type AS asset_type,
-    asset.asset_name AS asset_name
+    asset.asset_type AS asset_type
   )
   METRICS (
     asset.asset_count AS COUNT(DISTINCT asset_id)
   );
 ```
 
-### Production Example with Synonyms and Comments
-
+### Multi-Table with Relationships
 ```sql
--- Filename: create_semantic_view_transformer_health.sql
--- Description: Semantic view for transformer health monitoring with NLQ synonyms
-
-CREATE OR REPLACE SEMANTIC VIEW PROD.GRID_DATA.SEM_TRANSFORMER_HEALTH
+CREATE OR REPLACE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
   TABLES (
-    tfm AS PROD.GRID_DATA.TRANSFORMER_DATA
-      PRIMARY KEY (equipment_id, timestamp)
-      WITH SYNONYMS ('transformers', 'equipment')
-      COMMENT = 'Transformer telemetry and health metrics'
-  )
-  FACTS (
-    tfm.load_kw AS load_kw
-      WITH SYNONYMS ('power draw', 'load'),
-    tfm.ambient_temp_c AS ambient_temp_c
-      WITH SYNONYMS ('temperature', 'temp'),
-    tfm.failure_imminent AS failure_imminent
-      WITH SYNONYMS ('at risk', 'failing')
-  )
-  DIMENSIONS (
-    tfm.transformer_id AS equipment_id
-      WITH SYNONYMS ('equipment ID', 'transformer ID')
-      COMMENT = 'Unique transformer identifier',
-    tfm.substation AS substation_id
-      WITH SYNONYMS ('substation', 'location'),
-    tfm.event_timestamp AS timestamp
-      WITH SYNONYMS ('time', 'date', 'reading time')
-      COMMENT = 'Telemetry reading timestamp'
-  )
-  METRICS (
-    tfm.avg_load AS AVG(load_kw)
-      WITH SYNONYMS ('average load', 'mean power'),
-    tfm.max_load AS MAX(load_kw)
-      WITH SYNONYMS ('peak load', 'maximum power'),
-    tfm.reading_count AS COUNT(*)
-      WITH SYNONYMS ('total readings', 'observation count')
-  )
-  COMMENT = 'Transformer health and performance metrics for Cortex Analyst NLQ';
-```
-
-## 2) Semantic View Components
-
-### TABLES Block
-
-**Purpose:** Defines the physical base tables and their aliases for the semantic view.
-
-**Syntax:**
-```sql
-TABLES (
-  <alias> AS <database>.<schema>.<table>
-    PRIMARY KEY (<column>[, <column>, ...])  -- Required for relationships
-    [WITH SYNONYMS ('<syn1>', '<syn2>', ...)]
-    [COMMENT = '<description>']
-)
-```
-
-**Rules:**
-- Each semantic view has exactly ONE TABLES block (no joins - relationships are defined separately)
-- `PRIMARY KEY` is required if this semantic view will be used in relationships with other semantic views
-- Composite primary keys are supported: `PRIMARY KEY (col1, col2, col3)`
-- Synonyms improve NLQ matching (e.g., "equipment" for "transformer", "units" for "assets")
-- Only one base table per semantic view - use relationships to connect multiple semantic views
-
-**Multi-Table Semantic Views:**
-
-When creating semantic views that reference multiple tables, define relationships between them:
-
-```sql
--- Example: Multi-table semantic view with relationships
-CREATE OR REPLACE SEMANTIC VIEW SAMPLE_DATA.TPCDS_SF10TCL.TPCDS_SEMANTIC_VIEW_SM
-  TABLES (
-    CUSTOMER PRIMARY KEY (C_CUSTOMER_SK),
-    DATE AS DATE_DIM PRIMARY KEY (D_DATE_SK),
-    DEMO AS CUSTOMER_DEMOGRAPHICS PRIMARY KEY (CD_DEMO_SK),
-    ITEM PRIMARY KEY (I_ITEM_SK),
-    STORE PRIMARY KEY (S_STORE_SK),
-    STORESALES AS STORE_SALES
-      PRIMARY KEY (SS_SOLD_DATE_SK, SS_CDEMO_SK, SS_ITEM_SK, SS_STORE_SK, SS_CUSTOMER_SK)
+    customer PRIMARY KEY (c_custkey),
+    orders PRIMARY KEY (o_orderkey)
   )
   RELATIONSHIPS (
-    SALESTOCUSTOMER AS STORESALES(SS_CUSTOMER_SK) REFERENCES CUSTOMER(C_CUSTOMER_SK),
-    SALESTODATE AS STORESALES(SS_SOLD_DATE_SK) REFERENCES DATE(D_DATE_SK),
-    SALESTODEMO AS STORESALES(SS_CDEMO_SK) REFERENCES DEMO(CD_DEMO_SK),
-    SALESTOITEM AS STORESALES(SS_ITEM_SK) REFERENCES ITEM(I_ITEM_SK),
-    SALETOSTORE AS STORESALES(SS_STORE_SK) REFERENCES STORE(S_STORE_SK)
+    orders_to_customer AS orders(o_custkey) REFERENCES customer(c_custkey)
   )
   FACTS (
-    ITEM.COST AS i_wholesale_cost,
-    ITEM.PRICE AS i_current_price,
-    STORE.TAX_RATE AS S_TAX_PRECENTAGE
+    orders.amount AS o_totalprice
   )
   DIMENSIONS (
-    CUSTOMER.BIRTHYEAR AS C_BIRTH_YEAR,
-    CUSTOMER.COUNTRY AS C_BIRTH_COUNTRY,
-    DATE.DATE AS D_DATE,
-    DATE.MONTH AS D_MOY,
-    DATE.YEAR AS D_YEAR,
-    ITEM.BRAND AS I_BRAND_NAME,
-    ITEM.CATEGORY AS I_CATEGORY,
-    STORE.STATE AS S_STATE
+    customer.name AS c_name WITH SYNONYMS ('customer name'),
+    orders.date AS o_orderdate WITH SYNONYMS ('order date')
   )
   METRICS (
-    STORESALES.TotalSalesQuantity AS SUM(SS_QUANTITY)
+    orders.total_revenue AS SUM(o_totalprice) WITH SYNONYMS ('revenue', 'sales')
   );
 ```
 
-**RELATIONSHIPS Block:**
+### Component Rules
 
-**Purpose:** Define foreign key relationships between tables in multi-table semantic views.
+**TABLES Block:**
+- One TABLES block per view
+- PRIMARY KEY required for relationships
+- Composite keys supported: `PRIMARY KEY (col1, col2)`
 
-**Syntax:**
-```sql
-RELATIONSHIPS (
-  <relationship_name> AS <child_table>(<fk_column>) REFERENCES <parent_table>(<pk_column>),
-  ...
-)
-```
+**FACTS Block:**
+- Numeric measures at row level
+- Simple expressions: `physical_column`, `col1 * col2`
+- Mapping: `alias.physical_col AS logical_name`
 
-**Rules:**
-- Relationship names must be unique within the semantic view
-- Foreign key column must exist in child table
-- Referenced primary key must match PRIMARY KEY definition in TABLES block
-- Enables Cortex Analyst to perform automatic joins across tables
-- Required for multi-table semantic views to function correctly
-
-**Time-Based Filtering Pattern:**
-
-For semantic views with temporal dimensions, optimize for time-range queries:
+**DIMENSIONS Block:**
+- Categorical/temporal attributes
+- **Simple columns only** - no CAST, DATE_TRUNC
+- Mapping: `alias.physical_col AS logical_name`
+- For temporal granularity (TIME_GRAIN), pre-compute in base view:
 
 ```sql
--- Example: Semantic view optimized for time-range filtering
-CREATE OR REPLACE SEMANTIC VIEW ANALYTICS.SEMANTIC.SALES_BY_TIME
-  TABLES (
-    sales AS ANALYTICS.CORE.SALES_FACT
-      PRIMARY KEY (sale_id)
-      WITH SYNONYMS ('sales transactions', 'orders')
-  )
-  FACTS (
-    sales.amount AS amount,
-    sales.quantity AS quantity
-  )
-  DIMENSIONS (
-    sales.sale_date AS sale_date
-      WITH SYNONYMS ('date', 'transaction date', 'order date')
-      COMMENT = 'Date of sale - use for time-range filtering',
-    sales.sale_year AS YEAR(sale_date)
-      WITH SYNONYMS ('year', 'fiscal year')
-      COMMENT = 'Extracted year for annual analysis',
-    sales.sale_month AS MONTH(sale_date)
-      WITH SYNONYMS ('month', 'month number')
-      COMMENT = 'Extracted month (1-12)',
-    sales.product_id AS product_id,
-    sales.region AS region
-  )
-  METRICS (
-    sales.total_revenue AS SUM(amount),
-    sales.daily_avg_revenue AS AVG(amount)
-      WITH SYNONYMS ('average daily sales', 'mean revenue per day')
-  )
-  COMMENT = 'Sales semantic view with temporal dimensions for time-series analysis';
-```
+-- Base view with pre-computed time grains
+CREATE VIEW sales_base AS
+SELECT *, DATE_TRUNC('MONTH', order_date) AS order_month,
+         DATE_TRUNC('QUARTER', order_date) AS order_quarter
+FROM raw_sales;
 
-**Best Practices for Time Dimensions:**
-- Include raw timestamp/date column as primary temporal dimension
-- Add extracted time parts (year, month, quarter) as separate dimensions for easier filtering
-- Use synonyms like "last year", "this month", "recent" to improve NLQ matching
-- Ensure base table has clustering or partitioning on date column for performance
-
-### FACTS Block
-
-**Purpose:** Numeric measures at row level (not aggregated).
-
-**Syntax:**
-```sql
-FACTS (
-  <alias>.<logical_name> AS <physical_column_or_expression>
-    [WITH SYNONYMS ('<syn1>', '<syn2>', ...)]
-    [COMMENT = '<description>'],
-  ...
-)
-```
-
-**Rules:**
-- Facts are typically numeric: `INTEGER`, `NUMBER`, `FLOAT`, `DECIMAL`
-- Simple expressions allowed: `physical_column`, `col1 * col2`, `DATEDIFF('day', col1, col2)`
-- Complex functions (CAST, DATE_TRUNC, CASE) may not be supported - test carefully
-- Facts are additive by nature - document non-additive facts clearly
-- **Mapping format:** `logical_name AS physical_expression` (NOT reversed)
-
-**Examples:**
-```sql
-FACTS (
-  asset.rated_capacity AS rated_capacity,
-  tfm.load_kw AS load_kw,
-  tfm.days_since_maint AS DATEDIFF('day', last_maint_date, CURRENT_DATE())
-)
-```
-
-### DIMENSIONS Block
-
-**Purpose:** Categorical and temporal attributes for grouping and filtering.
-
-**Syntax:**
-```sql
+-- Semantic view uses simple columns
 DIMENSIONS (
-  <alias>.<logical_name> AS <physical_column>
-    [WITH SYNONYMS ('<syn1>', '<syn2>', ...)]
-    [COMMENT = '<dimension_description>'],
-  ...
+  s.order_date AS order_date,
+  s.order_month AS order_month WITH SYNONYMS ('month', 'monthly'),
+  s.order_quarter AS order_quarter WITH SYNONYMS ('quarter', 'quarterly')
 )
 ```
 
-**Rules:**
-- Dimensions are typically categorical: `VARCHAR`, `STRING`, `DATE`, `TIMESTAMP`
-- **Simple columns only** - no CAST, DATE_TRUNC, or complex expressions
-- Temporal dimensions: Use raw timestamp/date columns, not derived date parts
-- **Mapping format:** `logical_name AS physical_column` (NOT reversed)
-- Synonyms are critical for NLQ: `WITH SYNONYMS ('equipment ID', 'transformer ID', 'unit ID')`
+**METRICS Block:**
+- Aggregations: COUNT, SUM, AVG, MIN, MAX
+- Mapping: `metric_name AS aggregate(expression)`
 
-**Examples:**
-```sql
-DIMENSIONS (
-  asset.asset_id AS asset_id,
-  asset.asset_type AS asset_type,
-  tfm.event_timestamp AS timestamp,  -- Simple timestamp
-  tfm.substation AS substation_id    -- Simple column
-  -- tfm.reading_date AS CAST(timestamp AS DATE)  -- CAST not supported
-)
+### YAML Verified Queries (VQR)
+
+VQR only supported in YAML files (not DDL). Table references use `__logical_name`:
+
+```yaml
+verified_queries:
+  - name: monthly_revenue
+    question: "What is total revenue by month?"
+    sql: |
+      SELECT DATE_TRUNC('MONTH', sale_date) AS month, SUM(total_revenue) AS revenue
+      FROM __sales_data  -- Double underscore + logical table name
+      GROUP BY month
 ```
 
-### METRICS Block
-
-**Purpose:** Aggregations over facts and/or dimensions.
-
-**Syntax:**
-```sql
-METRICS (
-  <alias>.<metric_name> AS <aggregate_function>(<expression>)
-    [WITH SYNONYMS ('<syn1>', '<syn2>', ...)]
-    [COMMENT = '<description>'],
-  ...
-)
+**Common VQR Mistake:**
+```yaml
+# WRONG: Using physical table name
+sql: SELECT * FROM PROD.SALES.SALES_FACT
+# CORRECT: Double underscore + logical name
+sql: SELECT * FROM __sales_data
 ```
 
-**Rules:**
-- Aggregates: `COUNT(*)`, `COUNT(DISTINCT col)`, `SUM(col)`, `AVG(col)`, `MIN(col)`, `MAX(col)`
-- Simple expressions supported: `SUM(col1 * col2)`, `AVG(CASE WHEN ... THEN 1 ELSE 0 END)` (test carefully)
-- Complex CASE expressions may fail - use simple metrics first
-- Metrics are automatically computed by Cortex Analyst when user asks questions
-- **Mapping format:** `metric_name AS aggregate_expression`
-
-**Examples:**
+### Prerequisites Verification
 ```sql
-METRICS (
-  asset.asset_count AS COUNT(DISTINCT asset_id),
-  tfm.avg_load AS AVG(load_kw),
-  tfm.max_load AS MAX(load_kw),
-  tfm.total_readings AS COUNT(*),
-  ami.total_outages AS SUM(outage_flag)  -- Simple SUM on flag
-  -- ami.customers_impacted AS SUM(CASE WHEN outage_flag = 1 THEN 1 ELSE 0 END)  -- May fail
-)
+SHOW TABLES LIKE '%table_name%';
+DESCRIBE TABLE db.schema.table;
+SHOW GRANTS ON SCHEMA db.schema;
+SELECT CURRENT_WAREHOUSE();
 ```
 
-## Prerequisites Validation
-
-Before creating semantic views, verify your environment meets requirements.
-
-### Prerequisites Checklist
-
-- [ ] Snowflake account has Cortex Analyst capability enabled (for NLQ usage)
-- [ ] Base tables/views for semantic layer exist and are populated
-- [ ] Required permissions granted (CREATE SEMANTIC VIEW, SELECT on source tables)
-- [ ] Understanding of business metrics and grain for semantic modeling
-- [ ] Warehouse available for query execution
-
-### Verification Commands
-
-**Check Cortex Availability:**
+### Post-Creation Validation
 ```sql
--- Verify Cortex features available (for Cortex Analyst integration)
-SHOW PARAMETERS LIKE 'CORTEX%' IN ACCOUNT;
-```
-
-**Check Semantic View Generator Availability:**
-```sql
--- Check account capabilities for Generator
-SELECT SYSTEM$GET_ACCOUNT_CAPABILITIES() AS capabilities;
-
--- Alternative: Check via Snowsight UI
--- Navigate to: Data, then Databases, then [Your Database], then [Schema]
--- Look for "Generate Semantic View" button on table context menu
-```
-
-**Verify Base Tables:**
-```sql
--- Check source tables exist and have data
-SELECT
-    TABLE_CATALOG,
-    TABLE_SCHEMA,
-    TABLE_NAME,
-    ROW_COUNT
-FROM {DATABASE}.INFORMATION_SCHEMA.TABLES
-WHERE TABLE_SCHEMA = '{SCHEMA}'
-  AND TABLE_TYPE = 'BASE TABLE';
-
--- Check table structure for semantic view candidates
-DESCRIBE TABLE {DATABASE}.{SCHEMA}.{TABLE};
-
--- Identify columns for FACTS vs DIMENSIONS
-SELECT
-    COLUMN_NAME,
-    DATA_TYPE,
-    IS_NULLABLE,
-    COMMENT
-FROM {DATABASE}.INFORMATION_SCHEMA.COLUMNS
-WHERE TABLE_SCHEMA = '{SCHEMA}'
-  AND TABLE_NAME = '{TABLE}'
-ORDER BY ORDINAL_POSITION;
-```
-
-**Verify Semantic View Creation Permissions:**
-```sql
--- Check you can create semantic views in target schema
-SHOW GRANTS ON SCHEMA {DATABASE}.{SCHEMA};
-
--- Required grants:
--- - CREATE SEMANTIC VIEW on schema
--- - SELECT on source tables
--- - USAGE on database and schema
-
--- Verify role has necessary privileges
-SELECT
-    CURRENT_ROLE() AS current_role,
-    CURRENT_DATABASE() AS current_database,
-    CURRENT_SCHEMA() AS current_schema;
+SHOW SEMANTIC VIEWS LIKE '%view_name%';
+SHOW SEMANTIC DIMENSIONS IN SEMANTIC VIEW db.schema.view;
+SHOW SEMANTIC METRICS IN SEMANTIC VIEW db.schema.view;
+SELECT GET_DDL('SEMANTIC_VIEW', 'db.schema.view');
 ```

@@ -2,7 +2,7 @@
 
 **Note:** The Rule Reviewer Skill is **not deployed** to team projects. It remains in the ai_coding_rules source repository for internal use only.
 
-**Last Updated:** 2026-01-13
+**Last Updated:** 2026-01-21
 
 ## Background
 
@@ -61,7 +61,7 @@ Reviews evaluate rules against the priority order defined in `000-global-core.md
 - Metadata in correct format
 - Section headers at correct levels
 
-**Token Efficiency (5 points):**
+**Token Efficiency (10 points):**
 - Content density appropriate
 - No redundant explanations
 - TokenBudget accurate (within ±5% threshold)
@@ -190,8 +190,7 @@ The output filename always uses the base filename (without extension) of `target
 
 ### Q: Where does the rubric come from?
 
-**A:** The skill uses rubric files in `skills/rule-reviewer/rubrics/` (actionability.md, completeness.md, consistency.md, parsability.md, token-efficiency.md, staleness.md, cross-agent-consistency.md) as the rubric and required
-output format and writes the final review to `reviews/`.
+**A:** The skill uses rubric files in `skills/rule-reviewer/rubrics/` (actionability.md, completeness.md, consistency.md, parsability.md, token-efficiency.md, staleness.md, cross-agent-consistency.md) plus `_overlap-resolution.md` as the rubric. Each rubric includes a Mandatory Issue Inventory template and Non-Issues section for deterministic scoring.
 
 ### Q: Can I use rule-reviewer in a deployed project?
 

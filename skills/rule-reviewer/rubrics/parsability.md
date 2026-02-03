@@ -1,5 +1,77 @@
 # Parsability Rubric (15 points)
 
+## Mandatory Issue Inventory (REQUIRED)
+
+**CRITICAL:** You MUST create and fill this inventory BEFORE calculating score.
+
+### Why This Is Required
+
+- **Eliminates counting variance:** Same rule → same inventory → same score
+- **Prevents false negatives:** Systematic checks catch all issues
+- **Provides evidence:** Inventory shows exactly what was found
+- **Enables verification:** Users can audit scoring decisions
+
+### Inventory Template
+
+**Schema Validation Errors:**
+
+| Line | Severity | Error Description |
+|------|----------|-------------------|
+| 10 | HIGH | Missing Depends field |
+| 45 | MEDIUM | Section order violation |
+| 78 | LOW | Inconsistent list markers |
+
+**Metadata Field Checklist:**
+
+| Field | Present? | Valid Format? | Notes |
+|-------|----------|---------------|-------|
+| SchemaVersion | Y/N | Y/N | Expected: v3.2 |
+| RuleVersion | Y/N | Y/N | Expected: vX.Y.Z |
+| LastUpdated | Y/N | Y/N | Expected: YYYY-MM-DD |
+| Keywords | Y/N | Y/N | Expected: 3+ terms |
+| TokenBudget | Y/N | Y/N | Expected: ~NNNN |
+| ContextTier | Y/N | Y/N | Expected: Critical/High/Medium/Low |
+| Depends | Y/N | Y/N | Expected: list or "None" |
+
+**Markdown Issues:**
+
+| Line | Issue Type | Description |
+|------|------------|-------------|
+| 45 | Heading skip | H1 to H3 |
+| 90 | Missing lang tag | Code block |
+
+**Visual Formatting Issues:**
+
+| Line | Pattern Type | Description |
+|------|--------------|-------------|
+| 150 | Arrow | Unicode arrow character |
+
+### Counting Protocol (5 Steps)
+
+**Step 1: Create Empty Inventory**
+- Copy all templates above into working document
+- Do NOT start reading rule yet
+
+**Step 2: Run Schema Validator (if available)**
+- Execute: `uv run python scripts/schema_validator.py [target_file]`
+- Record all errors by severity with line numbers
+- If unavailable: Note "Manual assessment" and proceed
+
+**Step 3: Read Rule Systematically**
+- Check each metadata field against checklist
+- Scan for markdown structure issues
+- Scan for visual formatting patterns
+
+**Step 4: Check Non-Issues List**
+- Review EACH flagged item in inventory
+- Check against "Non-Issues" section below
+- Remove false positives with note
+- Recalculate totals
+
+**Step 5: Look Up Score**
+- Use adjusted totals in Score Decision Matrix
+- Record score with inventory evidence
+
 ## Scoring Formula
 
 **Raw Score:** 0-10
@@ -501,3 +573,31 @@ $ uv run python scripts/schema_validator.py rules/example.md
    - Currency (tools and patterns)
 
 **Project files ARE agent-executable documents** - they just follow a different schema than domain rules.
+
+## Non-Issues (Do NOT Count)
+
+**Review EACH flagged item against this list before counting.**
+
+### Pattern 1: Intentional Code Block Without Language
+**Pattern:** Code block without language tag showing generic output
+**Example:** ``` block showing command output (not source code)
+**Why NOT an issue:** Output blocks don't need language tags
+**Action:** Remove from inventory with note "Output block, not source"
+
+### Pattern 2: Markdown Tables with Alignment
+**Pattern:** Table using alignment syntax (`:---`, `:---:`, `---:`)
+**Example:** `| Header | Another |` with `|:---|---:|` separator
+**Why NOT an issue:** Valid markdown table syntax
+**Action:** Remove from inventory with note "Valid alignment syntax"
+
+### Pattern 3: Inline Code for Commands
+**Pattern:** Single backticks for inline commands
+**Example:** `Run the \`validate\` command`
+**Why NOT an issue:** Inline code is appropriate for short commands
+**Action:** Remove from inventory with note "Inline code is appropriate"
+
+### Pattern 4: Nested Lists with Mixed Indent
+**Pattern:** Nested list items with varying indentation
+**Example:** Some items at 2 spaces, some at 4 spaces
+**Why NOT an issue:** Most markdown parsers handle this correctly
+**Action:** Remove if consistent within nesting level

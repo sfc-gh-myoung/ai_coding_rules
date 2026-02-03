@@ -34,6 +34,7 @@ Comprehensive security guidance for Streamlit applications including input valid
 - **107-snowflake-security-governance.md** - Snowflake security and RBAC
 
 **Related:**
+- **100-snowflake-core.md** - Base Snowflake connection and credential patterns
 - **200-python-core.md** - Python security patterns
 
 ### External Documentation

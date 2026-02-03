@@ -1,5 +1,70 @@
 # Clarity Rubric (20 points)
 
+## Mandatory Verification Table (REQUIRED)
+
+**CRITICAL:** You MUST create and fill this table BEFORE calculating score.
+
+### Why This Is Required
+
+- **Eliminates jargon variance:** Same doc → same table → same score
+- **Prevents missed terms:** Systematic scan catches all
+- **Provides evidence:** Table shows exactly what was evaluated
+- **Enables audit:** Users can verify scoring decisions
+
+### Verification Table Template
+
+**Jargon Audit:**
+
+| Line | Term | Explained? | Fix Needed |
+|------|------|------------|------------|
+| 45 | "idempotent" | No | Add: "produces same result when repeated" |
+| 67 | "webhook" | No | Add: "HTTP callback when event occurs" |
+| 12 | "API" | Yes | - |
+| 89 | "CRDT" | No | Add: "Conflict-free Replicated Data Type" |
+
+**Concept Order:**
+
+| Line Used | Concept | Line Explained | Order OK? |
+|-----------|---------|----------------|-----------|
+| 10 | webhook | 50 | No (used before explained) |
+| 25 | API | 5 | Yes |
+| 60 | cache | 55 | Yes |
+
+**New User Test:**
+
+| Scenario | Passes? |
+|----------|---------|
+| Can understand what project does | Y/N |
+| Can install and run it | Y/N |
+| Can complete basic task | Y/N |
+| Can troubleshoot basic error | Y/N |
+
+### Verification Protocol (5 Steps)
+
+**Step 1: Create Empty Tables**
+- Copy all templates above
+- Do NOT start reading doc yet
+
+**Step 2: Read Doc Systematically**
+- Start at line 1, read to END (no skipping)
+- For EACH technical term: Add row to Jargon table
+- For EACH concept: Note line introduced and line used
+
+**Step 3: Perform New User Test**
+- Mentally simulate new user experience
+- Answer each scenario Y/N
+- Note specific failures
+
+**Step 4: Calculate Totals**
+- Count unexplained jargon
+- Count concepts out of order
+- Count New User Test passes (0-4)
+
+**Step 5: Look Up Score**
+- Use New User Test result as base
+- Apply deductions for jargon/order issues
+- Record score with table evidence
+
 ## Scoring Formula
 
 **Raw Score:** 0-10
@@ -272,3 +337,31 @@ During review, verify:
 - [ ] Error messages explained
 - [ ] "Why" provided for non-obvious choices
 - [ ] Can new user complete basic task
+
+## Non-Issues (Do NOT Count as Jargon)
+
+**Review EACH flagged item against this list before counting.**
+
+### Pattern 1: Industry Standard Terms
+**Pattern:** Common technical term with well-known meaning
+**Example:** "API", "HTTP", "JSON", "CLI"
+**Why NOT an issue:** Universally understood in tech context
+**Action:** Remove from table with note "Standard term"
+
+### Pattern 2: Already Defined Earlier
+**Pattern:** Term defined earlier in same document
+**Example:** "webhook" at line 100, defined at line 10
+**Why NOT an issue:** Definition exists earlier in doc
+**Action:** Remove from table with note "Defined at line N"
+
+### Pattern 3: Target Audience Term
+**Pattern:** Term expected to be known by target audience
+**Example:** "Docker container" in DevOps documentation
+**Why NOT an issue:** Target audience knows this term
+**Action:** Remove from table with note "Audience term"
+
+### Pattern 4: Linked Definition
+**Pattern:** Term with hyperlink to definition
+**Example:** "[idempotent](https://en.wikipedia.org/wiki/Idempotence)"
+**Why NOT an issue:** Definition accessible via link
+**Action:** Remove from table with note "Linked"

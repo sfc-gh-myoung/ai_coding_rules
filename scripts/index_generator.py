@@ -233,6 +233,9 @@ def scan_rules(rules_dir: Path) -> list[RuleMetadata]:
         # Skip documentation and discovery files
         if filepath.name in SKIP_FILES:
             continue
+        # Skip examples directory (not rules, deployed separately)
+        if "examples" in filepath.parts:
+            continue
 
         # Extract metadata
         try:

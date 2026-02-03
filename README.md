@@ -1,10 +1,10 @@
 # AI Coding Rules
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://opensource.org/license/apache-2-0)
-![Version](https://img.shields.io/badge/version-3.5.2-blue)
+![Version](https://img.shields.io/badge/version-3.5.3-blue)
 [![CI](https://github.com/sfc-gh-myoung/ai_coding_rules/actions/workflows/ci.yml/badge.svg)](https://github.com/sfc-gh-myoung/ai_coding_rules/actions/workflows/ci.yml)
 ![Tests](https://img.shields.io/badge/tests-100%25%20passing-brightgreen)
-![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen)
+![Coverage](https://img.shields.io/badge/coverage-93%25-brightgreen)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Task](https://img.shields.io/badge/Task-Taskfile-brightgreen)](https://taskfile.dev)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/sfc-gh-myoung/ai_coding_rules)
@@ -34,7 +34,7 @@ This repository provides a **universal ai coding rule system** designed to work 
 
 ## Key Features
 
-- **📚 122 Production-Ready Rules** — Comprehensive coverage across Snowflake, Python, Go, React, HTMX, Alpine.js, Docker, Shell scripting, and project management
+- **📚 125 Production-Ready Rules** — Comprehensive coverage across Snowflake, Python, Go, React, HTMX, Alpine.js, Docker, Shell scripting, and project management
 - **🔄 Universal Format** — Write once, use everywhere: Cursor, VS Code, Claude, ChatGPT, GitHub Copilot, and more
 - **🤖 Intelligent Discovery** — AI assistants automatically find and load relevant rules using semantic keyword matching (matching by meaning, not just exact text)
 - **🎯 Dependency-Aware** — Explicit dependency chains ensure rules load in the correct order
@@ -594,10 +594,11 @@ These skills are deployed by default when running `task deploy`:
 - **Skill file:** [skills/doc-reviewer/SKILL.md](skills/doc-reviewer/SKILL.md)
 
 **plan-reviewer** — Review implementation plans for agent executability
-- **Purpose:** Evaluate implementation plans across 8 dimensions for agent execution reliability
-- **Scoring:** 100-point system with Priority Compliance Gate (blocking issues cap scores)
-- **Dimensions:** Actionability, Completeness, Consistency, Clarity, Feasibility, Dependencies, Error Handling, Validation
-- **Trigger keywords:** "review plan", "audit implementation plan", "check plan quality"
+- **Purpose:** Evaluate LLM-generated plans across 8 dimensions for autonomous agent execution
+- **Modes:** FULL (single plan), COMPARISON (rank multiple), META-REVIEW (consistency), DELTA (track fixes)
+- **Scoring:** 100-point system with weighted dimensions (Executability 20, Completeness 20, Success Criteria 20, Scope 15, Dependencies 10, Decomposition 5, Context 5, Risk Awareness 5)
+- **Verdicts:** EXCELLENT_PLAN (90-100), GOOD_PLAN (80-89), NEEDS_WORK (60-79), POOR_PLAN (40-59), INADEQUATE_PLAN (<40)
+- **Trigger keywords:** "review plan", "compare plans", "plan quality", "meta-review", "plan executability"
 - **Usage guide:** [docs/USING_PLAN_REVIEWER_SKILL.md](docs/USING_PLAN_REVIEWER_SKILL.md)
 - **Skill file:** [skills/plan-reviewer/SKILL.md](skills/plan-reviewer/SKILL.md)
 
@@ -631,7 +632,7 @@ These skills are used only for ai_coding_rules project maintenance and are exclu
 
 **bulk-rule-reviewer** — Orchestrate bulk rule reviews
 - **Purpose:** Execute comprehensive reviews on all rules in `rules/` directory with consolidated priority reporting
-- **Expected duration:** 5-10 hours for 122 rules (3-5 min per rule, sequential execution)
+- **Expected duration:** 5-10 hours for 124 rules (3-5 min per rule, sequential execution)
 - **Resume capability:** Skip existing reviews to resume after interruption
 - **Output:** Individual review files + master summary report with priority tiers
 - **Trigger keywords:** "bulk review rules", "review all rules", "audit rule repository"
@@ -675,7 +676,8 @@ For questions or discussions, file an issue on the repository.
 
 ```ascii
 ai_coding_rules/
-├── rules/                  ← Production-ready rules (122 total)
+├── rules/                  ← Production-ready rules (125 total)
+│   └── examples/           ← Validated implementation examples (10 total)
 ├── AGENTS.md               ← Rule loading protocol for AI assistants
 ├── rules/RULES_INDEX.md          ← Searchable rule catalog
 ├── scripts/                ← Validation and deployment tools
@@ -692,7 +694,7 @@ ai_coding_rules/
 │   ├── TOKEN_BUDGETS.md        ← Token budget guidelines
 │   └── USING_*.md              ← Skill usage guides
 ├── tests/                  ← Test suite (98% coverage)
-├── schemas/                ← YAML schemas for rule validation
+├── schemas/                ← YAML schemas for rule/example validation
 ├── prompts/                ← User prompt templates
 └── skills/                 ← Claude Agent Skills (6 total)
     ├── rule-reviewer/          ← Review individual rules
@@ -705,7 +707,7 @@ ai_coding_rules/
 
 **Key Concepts:**
 
-- **rules/** — Production-ready rules, deploy directly (no generation needed)
+- **rules/** — Production-ready rules (125 total), deploy directly (no generation needed)
 - **AGENTS.md** — AI discovery protocol in project root
 - **rules/RULES_INDEX.md** — Searchable catalog in project root
 - **scripts/** — Validation (`schema_validator.py`), deployment (`rule_deployer.py`)

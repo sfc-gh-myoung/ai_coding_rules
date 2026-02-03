@@ -1,5 +1,7 @@
 # Memory Bank System
 
+**Last Updated:** 2026-01-21
+
 > **Note:** This is an optional advanced feature for complex, long-running projects. Skip this section if you're just getting started with AI Coding Rules.
 
 ## Overview

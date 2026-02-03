@@ -34,7 +34,7 @@ This repository provides a **universal ai coding rule system** designed to work 
 
 ## Key Features
 
-- **📚 124 Production-Ready Rules** — Comprehensive coverage across Snowflake, Python, Go, React, HTMX, Alpine.js, Docker, Shell scripting, and project management
+- **📚 125 Production-Ready Rules** — Comprehensive coverage across Snowflake, Python, Go, React, HTMX, Alpine.js, Docker, Shell scripting, and project management
 - **🔄 Universal Format** — Write once, use everywhere: Cursor, VS Code, Claude, ChatGPT, GitHub Copilot, and more
 - **🤖 Intelligent Discovery** — AI assistants automatically find and load relevant rules using semantic keyword matching (matching by meaning, not just exact text)
 - **🎯 Dependency-Aware** — Explicit dependency chains ensure rules load in the correct order
@@ -676,8 +676,8 @@ For questions or discussions, file an issue on the repository.
 
 ```ascii
 ai_coding_rules/
-├── rules/                  ← Production-ready rules (124 total)
-│   └── examples/           ← Validated implementation examples
+├── rules/                  ← Production-ready rules (125 total)
+│   └── examples/           ← Validated implementation examples (10 total)
 ├── AGENTS.md               ← Rule loading protocol for AI assistants
 ├── rules/RULES_INDEX.md          ← Searchable rule catalog
 ├── scripts/                ← Validation and deployment tools
@@ -707,7 +707,7 @@ ai_coding_rules/
 
 **Key Concepts:**
 
-- **rules/** — Production-ready rules, deploy directly (no generation needed)
+- **rules/** — Production-ready rules (125 total), deploy directly (no generation needed)
 - **AGENTS.md** — AI discovery protocol in project root
 - **rules/RULES_INDEX.md** — Searchable catalog in project root
 - **scripts/** — Validation (`schema_validator.py`), deployment (`rule_deployer.py`)

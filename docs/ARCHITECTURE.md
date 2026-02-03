@@ -588,12 +588,17 @@ ai_coding_rules/
 │   ├── 500-frontend-htmx-core.md
 │   ├── 600-golang-core.md      # Go/Golang foundation
 │   ├── examples/               # Validated implementation examples
-│   │   ├── 115-cortex-agent-hybrid-sql-example.md
-│   │   ├── 115-cortex-agent-hybrid-python-example.md
+│   │   ├── 001-memory-bank-templates-example.md
 │   │   ├── 106-semantic-view-ddl-example.md
+│   │   ├── 106-semantic-view-workarounds-example.md
 │   │   ├── 106-semantic-view-yaml-vqr-example.md
-│   │   └── 116-cortex-search-service-example.md
-│   └── ... (122 total)
+│   │   ├── 115-cortex-agent-hybrid-python-example.md
+│   │   ├── 115-cortex-agent-hybrid-sql-example.md
+│   │   ├── 115-cortex-agent-prerequisites-example.md
+│   │   ├── 116-cortex-search-service-example.md
+│   │   ├── 120-spcs-service-spec-example.md
+│   │   └── 121-snowpipe-auto-ingest-example.md
+│   └── ... (125 total)
 │
 ├── scripts/                    # Automation and validation
 │   ├── template_generator.py  # Creates new rule templates
@@ -673,7 +678,7 @@ ai_coding_rules/
 - Production-ready files
 - Directly editable
 - No generation required
-- 124 rules covering all domains (including 8 HTMX rules, Go/Golang core, and Alpine.js)
+- 125 rules covering all domains (including 8 HTMX rules, Go/Golang core, and Alpine.js)
 
 **`rules/examples/`** — Validated implementation examples
 - Complete, runnable reference implementations for complex rules
@@ -1034,7 +1039,7 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 ### Deployment Architecture
 
 **Source Files (in ai_coding_rules repository):**
-- `rules/` — 122 production-ready rule files
+- `rules/` — 125 production-ready rule files
 - `AGENTS.md` — Discovery guide with loading protocol
 - `RULES_INDEX.md` — Searchable catalog with keywords
 
@@ -1106,7 +1111,7 @@ Configuration:
   Mode: LIVE (files will be copied)
 
 Validation:
-  ✓ Source rules/ directory exists (122 files)
+  ✓ Source rules/ directory exists (125 files)
   ✓ Source AGENTS.md exists
   ✓ Source RULES_INDEX.md exists
   ✓ Destination writable
@@ -1114,7 +1119,7 @@ Validation:
 Deployment:
   → Creating destination rules/ directory
   → Copying 124 rule files...
-  ✓ Copied 124 rules to /path/to/project/rules/
+  ✓ Copied 125 rules to /path/to/project/rules/
   ✓ Copied AGENTS.md to /path/to/project/
   ✓ Copied RULES_INDEX.md to /path/to/project/
 

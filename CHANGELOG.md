@@ -23,6 +23,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Pod management for Kubernetes-style container grouping
 
 ### Changed
+- **fix(AGENTS):** improve partial rule loading and ACT recognition
+  - Step 3D: if one rule fails but others load successfully, continue with loaded rules instead of stopping
+  - ACT recognition: trailing punctuation tolerated ("ACT.", "ACT!"), typos explicitly rejected ("ATC", "ACTT")
+- **fix(tools):** agent_eval test_cases.yaml improvements (v1.3.0 → v1.3.1)
+  - TC-060: expanded validation criteria regex to include `read_file|analyze|review|syntax`
+  - TC-035: added second criterion for partial rule loading verification
+  - TC-057: updated test_note to reference AGENTS.md explicit punctuation support
+  - Metadata: corrected total_tests from 51 to 55
 - **refactor(rules):** rename 350-docker-best-practices.md to 350-docker-core.md (v3.0.0 → v3.1.0)
   - Aligns naming convention with other domain core rules (*-core.md pattern)
   - No content changes, filename and title only

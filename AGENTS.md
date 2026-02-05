@@ -104,7 +104,8 @@ C. Load domain rules for file extensions:
 D. Load activity rules from Step 2 matches:
    - For EACH rule matched in Step 2: Execute `read_file("rules/[rule-name].md")`
    - If read succeeds: Rule is loaded
-   - If read fails: Note "Rule load failed: [filename] not found" and offer options: (A) Provide correct path, (B) Proceed without this rule, (C) Cancel task
+   - If read fails AND this is the ONLY matched rule: Note "Rule load failed: [filename] not found" and offer options: (A) Provide correct path, (B) Proceed without this rule, (C) Cancel task
+   - If read fails AND other rules loaded successfully: Note "Rule load failed: [filename]" in Rules Loaded section, continue with successfully loaded rules
 
 E. Check for rule examples (complex configurations only):
    - If loaded rule involves Cortex Agent, Cortex Search, or Semantic View:
@@ -190,8 +191,8 @@ Gate 3 failures:
 **MODE and ACT Authorization:**
 - Default: MODE: PLAN
 - ACT only after user types "ACT" (case-insensitive exact match)
-- Recognized: "ACT", "act", "Act", "ACT on items 1-3" (partial)
-- NOT recognized: "proceed", "go ahead", "yes", "okay", "yes please", "do it", "make the changes", "sounds good"
+- Recognized: "ACT", "act", "Act", "ACT on items 1-3" (partial), "ACT.", "ACT!" (trailing punctuation tolerated)
+- NOT recognized: "proceed", "go ahead", "yes", "okay", "yes please", "do it", "make the changes", "sounds good", "ATC", "ACTT" (typos)
 - For MODE transition rules and workflow behavior, see rules/000-global-core.md
 
 **Rule Loading Definition:**

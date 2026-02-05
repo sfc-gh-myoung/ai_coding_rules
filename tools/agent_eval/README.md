@@ -17,8 +17,8 @@ uv run agent-eval run
 # List saved results
 uv run python -m tools.agent_eval list
 
-# Compare baseline vs current results
-uv run python -m tools.agent_eval compare
+# Compare two result files
+uv run python -m tools.agent_eval compare -b <baseline.yaml> -t <target.yaml>
 ```
 
 ## Module Structure
@@ -52,9 +52,8 @@ tools/agent_eval/
 - **`run`** - Run automated evaluation via Snowflake Cortex
 - **`list`** - List all saved result files
 - **`show`** - Show details of a single result file
-- **`compare`** - Compare two result files
-- **`report`** - Generate markdown comparison report
-- **`baseline`** - Run evaluation and save as baseline
+- **`compare`** - Compare two result files (requires `-b` and `-t`)
+- **`report`** - Generate markdown comparison report (requires `-b` and `-t`)
 
 ## Example Usage
 
@@ -71,10 +70,11 @@ uv run python -m tools.agent_eval run -C protocol_compliance,rule_discovery
 # Dry run to validate test cases
 uv run python -m tools.agent_eval run --dry-run
 
-# Compare different AGENTS.md versions
-uv run python -m tools.agent_eval -a ../AGENTS_v1.md run -b
-uv run python -m tools.agent_eval -a ../AGENTS_v2.md run
-uv run python -m tools.agent_eval compare
+# Compare two result files
+uv run python -m tools.agent_eval compare -b 2026-02-05_074428_claude-opus-4-5.yaml -t 2026-02-05_074428_claude-sonnet-4-5.yaml
+
+# Generate markdown comparison report
+uv run python -m tools.agent_eval report -b baseline.yaml -t current.yaml
 ```
 
 ## Available Models

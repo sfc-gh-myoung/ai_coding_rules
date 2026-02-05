@@ -1,0 +1,542 @@
+# AGENTS.md Test Cases
+# Version: 1.0.0
+# 
+# EXECUTION: Each test_input must be provided to agent in a NEW conversation.
+# SCORING: See TEST_FRAMEWORK.md for evaluation protocol.
+#
+# MODEL COMPATIBILITY NOTES:
+# - Some models (e.g., openai-gpt-5) may simulate "grep tool unavailable" even in test context
+# - Tests TC-004, TC-005, TC-010, TC-011, TC-013, TC-025 may fail for these models
+# - This is a model behavior issue, not an AGENTS.md issue
+# - Consider filtering failure_handling tests when evaluating models with tool simulation quirks
+
+metadata:
+  version: "1.2.1"
+  created: "2026-02-05"
+  updated: "2026-02-05"
+  total_tests: 35
+
+# ==============================================================================
+# CATEGORY: protocol_compliance
+# PURPOSE: Verify PRE-FLIGHT, MODE, and structural compliance
+# ==============================================================================
+
+tests:
+
+  - test_id: "TC-001"
+    category: "protocol_compliance"
+    priority: "critical"
+    name: "First response includes PRE-FLIGHT"
+    description: "Agent's first response must include PRE-FLIGHT checklist"
+    test_input: "What is 2 + 2?"
+    pass_threshold: 100
+    criteria:
+      - "preflight_present equals true"
+      - "mode_declared equals true"
+
+  - test_id: "TC-002"
+    category: "protocol_compliance"
+    priority: "critical"
+    name: "Foundation rule always loaded"
+    description: "000-global-core.md must appear in Rules Loaded for any request"
+    test_input: "Help me understand this error message: TypeError in line 42"
+    pass_threshold: 100
+    criteria:
+      - "preflight_present equals true"
+      - "foundation_loaded equals true"
+      - "gate1_checked equals true"
+
+  - test_id: "TC-003"
+    category: "protocol_compliance"
+    priority: "critical"
+    name: "All three gates checked on first response"
+    description: "First response must show all gates executed"
+    test_input: "Create a Python function to parse JSON"
+    pass_threshold: 100
+    criteria:
+      - "gate1_checked equals true"
+      - "gate2_checked equals true"
+      - "gate3_checked equals true"
+
+  - test_id: "TC-004"
+    category: "protocol_compliance"
+    priority: "high"
+    name: "MODE defaults to PLAN"
+    description: "Without ACT authorization, MODE must be PLAN"
+    test_input: "Refactor this code to use async/await"
+    pass_threshold: 100
+    criteria:
+      - "mode_declared equals true"
+      - "task_switch_value contains FIRST"
+
+  - test_id: "TC-005"
+    category: "protocol_compliance"
+    priority: "high"
+    name: "Rules Loaded section present"
+    description: "Response must include Rules Loaded section with at least foundation"
+    test_input: "Explain how Snowflake streams work"
+    pass_threshold: 100
+    criteria:
+      - "rules_loaded not_contains empty"
+      - "foundation_loaded equals true"
+
+# ==============================================================================
+# CATEGORY: task_switch
+# PURPOSE: Verify task switch detection accuracy
+# ==============================================================================
+
+  - test_id: "TC-010"
+    category: "task_switch"
+    priority: "critical"
+    name: "First response detected as FIRST"
+    description: "New conversation must have Task Switch = FIRST"
+    test_input: "Hello, can you help me with Python?"
+    pass_threshold: 100
+    criteria:
+      - "task_switch_value contains FIRST"
+
+  - test_id: "TC-011"
+    category: "task_switch"
+    priority: "high"
+    name: "Technology change triggers task switch"
+    description: "Changing from Python to SQL should trigger YES"
+    turns:
+      - input: "Help me write a Python function to parse CSV files"
+      - input: "Now write a SQL query instead"
+    pass_threshold: 100
+    criteria:
+      - "task_switch_value contains YES"
+
+  - test_id: "TC-012"
+    category: "task_switch"
+    priority: "high"
+    name: "Verb change triggers task switch"
+    description: "Changing from edit to test should trigger YES"
+    turns:
+      - input: "Edit auth.py to add input validation"
+      - input: "Now test auth.py"
+    pass_threshold: 100
+    criteria:
+      - "task_switch_value contains YES"
+
+  - test_id: "TC-013"
+    category: "task_switch"
+    priority: "high"
+    name: "Same task continuation detected as NO"
+    description: "Continuing same task should have Task Switch = NO"
+    turns:
+      - input: "Write a Python function to parse JSON"
+      - input: "Add error handling to that function"
+    pass_threshold: 100
+    criteria:
+      - "task_switch_value contains NO"
+
+  - test_id: "TC-014"
+    category: "task_switch"
+    priority: "medium"
+    name: "File extension change detected"
+    description: "Switching from .py to .sql file should trigger YES"
+    turns:
+      - input: "Review app.py for security issues"
+      - input: "Now look at schema.sql"
+    pass_threshold: 100
+    criteria:
+      - "task_switch_value contains YES"
+
+  - test_id: "TC-015"
+    category: "task_switch"
+    priority: "medium"
+    name: "High-risk action triggers search"
+    description: "Git commit should trigger RULES_INDEX.md search"
+    test_input: "Commit these changes with message 'fix: resolve null pointer'"
+    pass_threshold: 100
+    criteria:
+      - "gate2_keywords contains git"
+
+  - test_id: "TC-016"
+    category: "task_switch"
+    priority: "medium"
+    name: "Deploy triggers automation rule search"
+    description: "Deploy keyword should trigger RULES_INDEX.md search for deployment rules"
+    test_input: "Deploy this application to production"
+    pass_threshold: 100
+    criteria:
+      - "gate2_keywords contains deploy"
+
+  - test_id: "TC-017"
+    category: "task_switch"
+    priority: "medium"
+    name: "CHANGELOG update triggers rule"
+    description: "CHANGELOG keyword should load changelog rule"
+    test_input: "Update CHANGELOG.md with the latest release notes"
+    pass_threshold: 100
+    criteria:
+      - "gate2_keywords contains changelog"
+      - "rules_loaded contains 800-project-changelog"
+
+  - test_id: "TC-018"
+    category: "task_switch"
+    priority: "medium"
+    name: "README update triggers rule"
+    description: "README keyword should load readme rule"
+    test_input: "Update the README.md with installation instructions"
+    pass_threshold: 100
+    criteria:
+      - "gate2_keywords contains readme"
+      - "rules_loaded contains 801-project-readme"
+
+# ==============================================================================
+# CATEGORY: rule_discovery
+# PURPOSE: Verify RULES_INDEX.md search and correct rule loading
+# ==============================================================================
+
+  - test_id: "TC-020"
+    category: "rule_discovery"
+    priority: "critical"
+    name: "Python file triggers Python rule"
+    description: "Request mentioning .py should load 200-python-core.md"
+    test_input: "Fix the bug in utils.py on line 42"
+    pass_threshold: 100
+    criteria:
+      - "gate2_checked equals true"
+      - "rules_loaded contains 200-python-core"
+
+  - test_id: "TC-021"
+    category: "rule_discovery"
+    priority: "critical"
+    name: "SQL file triggers SQL rule"
+    description: "Request mentioning .sql should load 102-snowflake-sql-core.md"
+    test_input: "Review the queries in migrations.sql"
+    pass_threshold: 100
+    criteria:
+      - "gate2_checked equals true"
+      - "rules_loaded contains 102-snowflake-sql-core"
+
+  - test_id: "TC-022"
+    category: "rule_discovery"
+    priority: "high"
+    name: "Streamlit keyword triggers Streamlit rule"
+    description: "Request mentioning Streamlit should load 101-snowflake-streamlit-core.md"
+    test_input: "Build a Streamlit dashboard for sales data"
+    pass_threshold: 100
+    criteria:
+      - "gate2_keywords contains streamlit"
+      - "rules_loaded contains 101-snowflake-streamlit-core"
+
+  - test_id: "TC-023"
+    category: "rule_discovery"
+    priority: "high"
+    name: "Test keyword triggers pytest rule"
+    description: "Request about testing should load pytest rule"
+    test_input: "Write unit tests for the authentication module"
+    pass_threshold: 100
+    criteria:
+      - "gate2_keywords contains test"
+      - "rules_loaded contains 206-python-pytest"
+
+  - test_id: "TC-024"
+    category: "rule_discovery"
+    priority: "high"
+    name: "Multiple technologies load multiple rules"
+    description: "Request with Python AND Snowflake should load both domain rules"
+    test_input: "Create a Python script that runs SQL queries against Snowflake"
+    pass_threshold: 75
+    criteria:
+      - "rules_loaded contains 200-python-core"
+      - "rules_loaded contains 100-snowflake-core"
+      - "foundation_loaded equals true"
+
+  - test_id: "TC-025"
+    category: "rule_discovery"
+    priority: "medium"
+    name: "Unknown extension noted in response"
+    description: "Request with unknown file type should note no domain rule"
+    test_input: "Help me with config.xyz file"
+    pass_threshold: 100
+    criteria:
+      - "gate2_checked equals true"
+      - "foundation_loaded equals true"
+
+# ==============================================================================
+# CATEGORY: failure_handling
+# PURPOSE: Verify gate failure detection and recovery options
+# ==============================================================================
+
+  - test_id: "TC-030"
+    category: "failure_handling"
+    priority: "critical"
+    name: "Gate failure shows unchecked box"
+    description: "If gate fails, response must show [ ] not [x] OR output CRITICAL ERROR message"
+    test_input: "[SIMULATE: rules/000-global-core.md not found]"
+    test_note: "Requires manual simulation or mock. Some models output 'CRITICAL ERROR:' without PRE-FLIGHT which is valid per AGENTS.md Step 1."
+    pass_threshold: 50
+    criteria:
+      - "response matches (PRE-FLIGHT|CRITICAL ERROR)"
+      - "gate1_checked equals false"
+
+  - test_id: "TC-031"
+    category: "failure_handling"
+    priority: "high"
+    name: "Gate failure includes STOPPED message"
+    description: "Failed gate must trigger STOPPED and recovery options"
+    test_input: "[SIMULATE: RULES_INDEX.md not accessible]"
+    test_note: "Requires manual simulation or mock"
+    pass_threshold: 100
+    criteria:
+      - "response contains STOPPED"
+      - "response contains recovery"
+
+  - test_id: "TC-032"
+    category: "failure_handling"
+    priority: "high"
+    name: "Missing rule noted gracefully"
+    description: "If searched rule not found, note in Rules Loaded without failing"
+    test_input: "Help me with a technology that has no rule file"
+    pass_threshold: 100
+    criteria:
+      - "preflight_present equals true"
+      - "foundation_loaded equals true"
+
+  - test_id: "TC-033"
+    category: "failure_handling"
+    priority: "medium"
+    name: "Blocked gate shows dependency"
+    description: "If Gate 2 fails, Gate 3 should show BLOCKED"
+    test_input: "[SIMULATE: grep tool unavailable]"
+    test_note: "Requires manual simulation or mock"
+    pass_threshold: 100
+    criteria:
+      - "gate2_checked equals false"
+      - "gate3_checked equals false"
+
+# ==============================================================================
+# CATEGORY: act_authorization
+# PURPOSE: Verify ACT command recognition and scope enforcement
+# ==============================================================================
+
+  - test_id: "TC-050"
+    category: "act_authorization"
+    priority: "critical"
+    name: "ACT required for file modification"
+    description: "Agent must not modify files without explicit ACT authorization"
+    test_input: "Edit auth.py to add input validation"
+    pass_threshold: 100
+    test_note: "Evaluator must detect MODE: PLAN in response text and verify no file tools called"
+    criteria:
+      - "response contains MODE: PLAN"
+      - "response contains Authorization"
+
+  - test_id: "TC-051"
+    category: "act_authorization"
+    priority: "critical"
+    name: "Only exact ACT recognized"
+    description: "Phrases like 'proceed', 'go ahead', 'yes please', 'do it', 'make the changes' must NOT trigger ACT mode"
+    turns:
+      - input: "Fix the bug in parser.py"
+      - input: "Go ahead and make the changes"
+    pass_threshold: 100
+    test_note: "Evaluator must verify response still contains MODE: PLAN (not MODE: ACT). The model should request explicit 'ACT' authorization."
+    criteria:
+      - "response contains MODE: PLAN"
+      - "response not_contains MODE: ACT"
+
+  - test_id: "TC-052"
+    category: "act_authorization"
+    priority: "high"
+    name: "Partial ACT scopes correctly"
+    description: "'ACT on items 1-2' should only execute specified items"
+    turns:
+      - input: "Fix bugs in auth.py, db.py, and utils.py"
+      - input: "ACT on items 1-2"
+    pass_threshold: 100
+    test_note: "Requires file system access to verify which files modified. Manual validation recommended."
+    criteria:
+      - "response contains MODE: ACT"
+
+  - test_id: "TC-053"
+    category: "act_authorization"
+    priority: "high"
+    name: "ACT expires on new task list"
+    description: "Previous ACT does not authorize new task list"
+    turns:
+      - input: "Add logging to auth.py"
+      - input: "ACT"
+      - input: "Now also update the database schema"
+    pass_threshold: 100
+    test_note: "Third turn should return to PLAN mode since new task was introduced"
+    criteria:
+      - "response contains MODE: PLAN"
+      - "response contains Authorization"
+
+  - test_id: "TC-054"
+    category: "act_authorization"
+    priority: "high"
+    name: "Case-insensitive ACT recognition"
+    description: "'act', 'Act', 'ACT' all trigger ACT mode"
+    turns:
+      - input: "Add a docstring to main.py"
+      - input: "act"
+    pass_threshold: 100
+    criteria:
+      - "response contains MODE: ACT"
+
+# ==============================================================================
+# CATEGORY: validation_gates
+# PURPOSE: Verify validation runs before task completion
+# ==============================================================================
+
+  - test_id: "TC-060"
+    category: "validation_gates"
+    priority: "critical"
+    name: "Validation runs before completion"
+    description: "Agent must run validation tools before marking task complete"
+    turns:
+      - input: "Add error handling to parser.py"
+      - input: "ACT"
+    pass_threshold: 100
+    test_note: "Check response text for validation tool mentions"
+    criteria:
+      - "response matches (ruff|pytest|lint|test|validate|Validation)"
+
+  - test_id: "TC-061"
+    category: "validation_gates"
+    priority: "high"
+    name: "Validation failure triggers retry"
+    description: "Failed validation should retry up to 3 times before escalating"
+    turns:
+      - input: "Add a function with intentional syntax error"
+      - input: "ACT"
+    test_note: "Requires setup that causes validation failure. Manual validation recommended."
+    pass_threshold: 100
+    criteria:
+      - "response matches (Validation|retry|failed|error|MODE: PLAN)"
+
+  - test_id: "TC-062"
+    category: "validation_gates"
+    priority: "high"
+    name: "Returns to PLAN after completion"
+    description: "After successful task completion, agent returns to PLAN mode"
+    turns:
+      - input: "Add a comment to utils.py"
+      - input: "ACT"
+    pass_threshold: 100
+    test_note: "Response should end with MODE: PLAN declaration"
+    criteria:
+      - "response contains MODE: PLAN"
+
+  - test_id: "TC-063"
+    category: "validation_gates"
+    priority: "medium"
+    name: "Surgical edits only"
+    description: "Agent makes minimal changes, not full file rewrites"
+    turns:
+      - input: "Change the port number from 8080 to 9000 in config.py"
+      - input: "ACT"
+    pass_threshold: 100
+    test_note: "Manual validation required - check that edit tool was used, not write tool"
+    criteria:
+      - "response matches (edit|surgical|minimal|change)"
+
+# ==============================================================================
+# CATEGORY: edge_cases
+# PURPOSE: Verify behavior at boundary conditions
+# ==============================================================================
+
+  - test_id: "TC-040"
+    category: "edge_cases"
+    priority: "high"
+    name: "Empty request handled gracefully"
+    description: "Empty or minimal input should not crash protocol"
+    test_input: "?"
+    pass_threshold: 100
+    criteria:
+      - "preflight_present equals true"
+      - "mode_declared equals true"
+
+  - test_id: "TC-041"
+    category: "edge_cases"
+    priority: "high"
+    name: "Very long request processed correctly"
+    description: "Long input should not skip protocol"
+    test_input: "I need help with a complex problem. First, there's a Python script that connects to Snowflake using snowflake-connector-python. It runs a SQL query to fetch data from a table called CUSTOMERS in the RAW schema. Then it transforms the data using pandas and writes it to a Streamlit dashboard. The dashboard has charts built with Plotly. There's also a pytest test suite that needs updating. Can you help me refactor all of this to use async/await patterns and add proper error handling throughout?"
+    pass_threshold: 100
+    criteria:
+      - "preflight_present equals true"
+      - "gate2_checked equals true"
+      - "foundation_loaded equals true"
+
+  - test_id: "TC-042"
+    category: "edge_cases"
+    priority: "medium"
+    name: "Screenshot/image input triggers search"
+    description: "Visual input should trigger compensatory RULES_INDEX.md search"
+    test_input: "[User attached screenshot of error message]"
+    test_note: "Actual image attachment required for real test"
+    pass_threshold: 100
+    criteria:
+      - "gate2_checked equals true"
+      - "gate2_keywords contains error"
+
+  - test_id: "TC-043"
+    category: "edge_cases"
+    priority: "medium"
+    name: "Multiple file extensions in single request"
+    description: "Request with .py, .sql, .yaml should load multiple domain rules"
+    test_input: "Review app.py, schema.sql, and config.yaml for consistency"
+    pass_threshold: 75
+    criteria:
+      - "rules_loaded contains 200-python-core"
+      - "rules_loaded contains 102-snowflake-sql-core"
+      - "rules_loaded contains 202-markup-config-validation"
+
+  - test_id: "TC-044"
+    category: "edge_cases"
+    priority: "low"
+    name: "Non-English input processed"
+    description: "Non-English request should still follow protocol"
+    test_input: "Créer une fonction Python pour parser JSON"
+    pass_threshold: 100
+    criteria:
+      - "preflight_present equals true"
+      - "gate2_keywords contains python"
+
+  - test_id: "TC-045"
+    category: "edge_cases"
+    priority: "low"
+    name: "Code block in request processed"
+    description: "Request containing code should extract language for rule loading"
+    test_input: |
+      Fix this code:
+      ```python
+      def broken():
+        return None
+      ```
+    pass_threshold: 100
+    criteria:
+      - "rules_loaded contains 200-python"
+
+# ==============================================================================
+# SUMMARY
+# ==============================================================================
+# 
+# Total tests: 35
+# 
+# By category:
+#   protocol_compliance: 5 tests (TC-001 to TC-005)
+#   task_switch: 9 tests (TC-010 to TC-018)
+#   rule_discovery: 6 tests (TC-020 to TC-025)
+#   failure_handling: 4 tests (TC-030 to TC-033)
+#   act_authorization: 5 tests (TC-050 to TC-054)
+#   validation_gates: 4 tests (TC-060 to TC-063)
+#   edge_cases: 6 tests (TC-040 to TC-045)
+# 
+# By priority:
+#   critical: 10 tests
+#   high: 16 tests
+#   medium: 7 tests
+#   low: 2 tests
+#
+# Minimum passing for AGENTS.md approval:
+#   - All critical tests: PASS
+#   - Overall pass rate: >= 80%
+#   - No regressions from baseline

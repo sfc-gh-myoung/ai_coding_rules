@@ -347,7 +347,7 @@ If the answer is no, revise for Priority 1 compliance.
 
 **ACT Recognition Rules:**
 - **Recognized:** "ACT", "act", "Act" (case-insensitive exact match)
-- **NOT recognized:** "proceed", "go ahead", "yes", "okay"
+- **NOT recognized:** "proceed", "go ahead", "yes", "okay", "yes please", "do it", "make the changes", "sounds good"
 - **Scope:** Applies to most recent task list in PLAN
 - **Expires:** When new task list is presented
 - **Partial auth:** "ACT on items 1-3" executes specified items only

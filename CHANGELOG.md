@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **feat(tools):** add agent_eval framework for AGENTS.md compliance testing
+  - `tools/agent_eval/cli.py` - CLI with Snowflake Cortex REST API integration for model evaluation
+  - `tools/agent_eval/models.py` - Dataclasses for test cases, results, and evaluation metadata
+  - `tools/agent_eval/parsers.py` - Response parsing and criterion-based scoring utilities
+  - `tools/agent_eval/test_cases.yaml` - 35 test cases across 7 categories (protocol_compliance, task_switch, rule_discovery, failure_handling, act_authorization, validation_gates, edge_cases)
+  - Supports multi-turn conversations, parallel execution, and baseline comparison
+  - PEP 561 typed package with results directory for timestamped evaluation reports
+- **feat(rules):** add 351-podman-core.md for Podman container development
+  - Containerfile authoring and multi-stage builds with Buildah
+  - Rootless container execution and security patterns
+  - Podman Compose for development environments
+  - Quadlet integration for systemd service deployment
+  - Pod management for Kubernetes-style container grouping
+
+### Changed
+- **refactor(rules):** rename 350-docker-best-practices.md to 350-docker-core.md (v3.0.0 → v3.1.0)
+  - Aligns naming convention with other domain core rules (*-core.md pattern)
+  - No content changes, filename and title only
+
 ## [3.5.3] - 2026-02-03
 
 ### Added

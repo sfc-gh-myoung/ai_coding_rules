@@ -1,10 +1,10 @@
-# Docker and Dockerfile Best Practices
+# Docker Core
 
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-02-04
 **Keywords:** Docker, Dockerfile, containers, multi-stage builds, layer caching, image optimization, docker-compose, BuildKit, distroless, security scanning, SBOM, non-root, healthcheck
 **TokenBudget:** ~3150
 **ContextTier:** Medium

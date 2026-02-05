@@ -1,0 +1,1205 @@
+metadata:
+  timestamp: '2026-02-05T05:15:50.288301+00:00'
+  agents_file: /Users/myoung/Development/ai_coding_rules/AGENTS.md
+  agents_md_hash: sha256:1a733e710241
+  evaluator: cortex:openai-gpt-5
+  model: openai-gpt-5
+  total_duration_seconds: 585.31
+  parallel_workers: 4
+summary:
+  total_tests: 39
+  passed: 32
+  failed: 7
+  pass_rate: 82.1
+results:
+- test_id: TC-001
+  name: First response includes PRE-FLIGHT
+  category: protocol_compliance
+  priority: critical
+  result: PASS
+  score: 2
+  max_score: 2
+  score_percent: 100.0
+  criteria_results:
+  - criterion: preflight_present equals true
+    met: true
+  - criterion: mode_declared equals true
+    met: true
+  model_response: 'PRE-FLIGHT:
+
+    - [x] Gate 1: Foundation rules/000-global-core.md loaded
+
+    - [x] Gate 2: RULES_INDEX.md searched for: [calculate, 2+2]
+
+    - [x] Gate 3: Matching rules loaded: none found
+
+
+    MODE: PLAN
+
+    Task Switch: FIRST
+
+
+    ## Rules Loaded
+
+    - rules/000-global-core.md (foundation)
+
+
+    2 + 2 = 4.'
+  duration_seconds: 44.38
+- test_id: TC-002
+  name: Foundation rule always loaded
+  category: protocol_compliance
+  priority: critical
+  result: PASS
+  score: 3
+  max_score: 3
+  score_percent: 100.0
+  criteria_results:
+  - criterion: preflight_present equals true
+    met: true
+  - criterion: foundation_loaded equals true
+    met: true
+  - criterion: gate1_checked equals true
+    met: true
+  model_response: 'PRE-FLIGHT:
+
+    - [x] Gate 1: Foundation rules/000-global-core.md loaded
+
+    - [ ] Gate 2: FAILED - grep tool unavailable (keywords: "error", "TypeError")
+
+    - [ ] Gate 3: BLOCKED - depends on Gate 2
+
+
+    MODE: PLAN
+
+    Task Switch: FIRST
+
+
+    ## Rules Loaded
+
+    - rules/000-global-core.md (foundation)
+
+
+    STOPPED: Gate 2 failed.
+
+    Error: Cannot search rules/RULES_INDEX.md for matching activity/domain rules because
+    the grep tool is unavailable.
+
+    Recovery options:
+
+    (A) Provide the relevant rule names to load (e.g., share the port...'
+  duration_seconds: 37.58
+- test_id: TC-003
+  name: All three gates checked on first response
+  category: protocol_compliance
+  priority: critical
+  result: PASS
+  score: 3
+  max_score: 3
+  score_percent: 100.0
+  criteria_results:
+  - criterion: gate1_checked equals true
+    met: true
+  - criterion: gate2_checked equals true
+    met: true
+  - criterion: gate3_checked equals true
+    met: true
+  model_response: "PRE-FLIGHT:\n- [x] Gate 1: Foundation rules/000-global-core.md\
+    \ loaded\n- [x] Gate 2: RULES_INDEX.md searched for: create, python, json\n- [x]\
+    \ Gate 3: Matching rules loaded: 200-python-core.md\n\nMODE: PLAN\nTask Switch:\
+    \ FIRST\n\n## Rules Loaded\n- rules/000-global-core.md (foundation)\n- rules/200-python-core.md\
+    \ (matched via keyword \"python\" from RULES_INDEX.md)\n\nPlan to deliver a Python\
+    \ JSON parsing function:\n- Task 1: Implement a simple, robust parse_json(s: str)\
+    \ -> Any using Python\u2019s built-in json modu..."
+  duration_seconds: 34.44
+- test_id: TC-004
+  name: MODE defaults to PLAN
+  category: protocol_compliance
+  priority: high
+  result: FAIL
+  score: 1
+  max_score: 2
+  score_percent: 50.0
+  criteria_results:
+  - criterion: mode_declared equals true
+    met: true
+  - criterion: task_switch_value contains FIRST
+    met: false
+  model_response: 'PRE-FLIGHT:
+
+    - [x] Gate 1: Foundation rules/000-global-core.md loaded
+
+    - [ ] Gate 2: FAILED - grep tool unavailable
+
+    - [ ] Gate 3: BLOCKED - depends on Gate 2
+
+
+    STOPPED: Gate 2 failed.
+
+    Error: grep tool is unavailable, so I cannot search rules/RULES_INDEX.md for matches
+    to "refactor", "async", or "await". Loading activity/domain-specific rules is
+    blocked.
+
+
+    Recovery options:
+
+    (A) Proceed with foundation only and domain rule mapping by file extension. Reply
+    with the technology and file extension (e.g., ...'
+  duration_seconds: 38.21
+- test_id: TC-005
+  name: Rules Loaded section present
+  category: protocol_compliance
+  priority: high
+  result: FAIL
+  score: 0
+  max_score: 2
+  score_percent: 0.0
+  criteria_results:
+  - criterion: rules_loaded not_contains empty
+    met: false
+  - criterion: foundation_loaded equals true
+    met: false
+  model_response: ''
+  duration_seconds: 58.53
+- test_id: TC-010
+  name: First response detected as FIRST
+  category: task_switch
+  priority: critical
+  result: FAIL
+  score: 0
+  max_score: 1
+  score_percent: 0.0
+  criteria_results:
+  - criterion: task_switch_value contains FIRST
+    met: false
+  model_response: 'PRE-FLIGHT:
+
+    - [x] Gate 1: Foundation loaded
+
+    - [ ] Gate 2: FAILED - grep tool unavailable
+
+    - [ ] Gate 3: BLOCKED - depends on Gate 2
+
+
+    STOPPED: Gate 2 failed.
+
+    Error: Unable to search rules/RULES_INDEX.md for keywords ["help", "python"] because
+    the grep tool is unavailable.
+
+    Recovery options:
+
+    (A) Paste the contents of rules/RULES_INDEX.md or provide the exact rule names
+    to load for your Python task (e.g., 200-python-core.md, 206-python-pytest.md),
+    and specify what you want to do.
+
+    (B) Authorize procee...'
+  duration_seconds: 29.65
+- test_id: TC-011
+  name: Technology change triggers task switch
+  category: task_switch
+  priority: high
+  result: FAIL
+  score: 0
+  max_score: 1
+  score_percent: 0.0
+  criteria_results:
+  - criterion: task_switch_value contains YES
+    met: false
+  model_response: ''
+  turns_count: 2
+  duration_seconds: 112.8
+- test_id: TC-012
+  name: Verb change triggers task switch
+  category: task_switch
+  priority: high
+  result: PASS
+  score: 1
+  max_score: 1
+  score_percent: 100.0
+  criteria_results:
+  - criterion: task_switch_value contains YES
+    met: true
+  model_response: 'PRE-FLIGHT:
+
+    - [x] Gate 1: Foundation rules/000-global-core.md loaded
+
+    - [ ] Gate 2: FAILED - grep tool unavailable (intended keywords: test, python,
+    .py)
+
+    - [ ] Gate 3: BLOCKED - depends on Gate 2
+
+
+    MODE: PLAN
+
+    Task Switch: YES (verb: edit to test)
+
+
+    ## Rules Loaded
+
+    - rules/000-global-core.md (foundation)
+
+
+    STOPPED: Gate 2 failed.
+
+    Error: Cannot search rules/RULES_INDEX.md because the grep tool is unavailable.
+
+    Recovery options:
+
+    (A) Provide the exact rule file names to load (e.g., 200-python-core.md and...'
+  turns_count: 2
+  duration_seconds: 82.96
+- test_id: TC-013
+  name: Same task continuation detected as NO
+  category: task_switch
+  priority: high
+  result: FAIL
+  score: 0
+  max_score: 1
+  score_percent: 0.0
+  criteria_results:
+  - criterion: task_switch_value contains NO
+    met: false
+  model_response: "PRE-FLIGHT:\n- [x] Gate 1: Foundation rules/000-global-core.md\
+    \ loaded\n- [x] Gate 2: RULES_INDEX.md searched for: add, error handling, Python,\
+    \ JSON, .py\n- [x] Gate 3: Matching rules loaded: 200-python-core.md\n\nMODE:\
+    \ PLAN\nTask Switch: FIRST\n\n## Rules Loaded\n- rules/000-global-core.md (foundation)\n\
+    - rules/200-python-core.md (matched via RULES_INDEX.md for .py domain mapping)\n\
+    \nHere\u2019s the same function with robust error handling that:\n- Validates\
+    \ the input type (must be str)\n- Catches json.JSONDecodeE..."
+  turns_count: 2
+  duration_seconds: 102.71
+- test_id: TC-014
+  name: File extension change detected
+  category: task_switch
+  priority: medium
+  result: PASS
+  score: 1
+  max_score: 1
+  score_percent: 100.0
+  criteria_results:
+  - criterion: task_switch_value contains YES
+    met: true
+  model_response: "PRE-FLIGHT:\n- [x] Gate 1: Foundation rules/000-global-core.md\
+    \ loaded\n- [x] Gate 2: RULES_INDEX.md searched for: look, review, sql, .sql\n\
+    - [x] Gate 3: Matching rules loaded: 102-snowflake-sql-core.md\n\nMODE: PLAN\n\
+    Task Switch: YES (extension: .py to .sql)\n\n## Rules Loaded\n- rules/000-global-core.md\
+    \ (foundation)\n- rules/102-snowflake-sql-core.md (loaded via domain mapping for\
+    \ .sql in RULES_INDEX.md)\n\nPlan to review schema.sql:\n- What I need:\n  - Paste\
+    \ the full contents of schema.sql (or confirm its ..."
+  turns_count: 2
+  duration_seconds: 93.09
+- test_id: TC-015
+  name: High-risk action triggers search
+  category: task_switch
+  priority: medium
+  result: PASS
+  score: 1
+  max_score: 1
+  score_percent: 100.0
+  criteria_results:
+  - criterion: gate2_keywords contains git
+    met: true
+  model_response: "PRE-FLIGHT:\n- [x] Gate 1: Foundation rules/000-global-core.md\
+    \ loaded\n- [x] Gate 2: RULES_INDEX.md searched for: commit, git\n- [x] Gate 3:\
+    \ Matching rules loaded: 803-project-git-workflow.md\n\nMODE: PLAN\nTask Switch:\
+    \ FIRST\n\n## Rules Loaded\n- rules/000-global-core.md (foundation)\n- rules/803-project-git-workflow.md\
+    \ (high-risk action: git commit; matched via keyword \"git\")\n\nPlan to commit\
+    \ changes with message \"fix: resolve null pointer\"\n- Verify branch and working\
+    \ tree status:\n  - Run: git rev-parse ..."
+  duration_seconds: 37.64
+- test_id: TC-016
+  name: Deploy triggers automation rule search
+  category: task_switch
+  priority: medium
+  result: PASS
+  score: 1
+  max_score: 1
+  score_percent: 100.0
+  criteria_results:
+  - criterion: gate2_keywords contains deploy
+    met: true
+  model_response: 'PRE-FLIGHT:
+
+    - [x] Gate 1: Foundation rules/000-global-core.md loaded
+
+    - [x] Gate 2: RULES_INDEX.md searched for: [deploy, deployment, production]
+
+    - [x] Gate 3: Matching rules loaded: [820-taskfile-automation.md]
+
+
+    MODE: PLAN
+
+    Task Switch: FIRST
+
+
+    ## Rules Loaded
+
+    - rules/000-global-core.md (foundation)
+
+    - rules/820-taskfile-automation.md (activity rule: deploy; guidance to use Taskfile
+    automation where available, and discover project tasks with `task --list` before
+    selecting commands)
+
+
+    Plan to deploy ...'
+  duration_seconds: 51.91
+- test_id: TC-017
+  name: CHANGELOG update triggers rule
+  category: task_switch
+  priority: medium
+  result: PASS
+  score: 2
+  max_score: 2
+  score_percent: 100.0
+  criteria_results:
+  - criterion: gate2_keywords contains changelog
+    met: true
+  - criterion: rules_loaded contains 800-project-changelog
+    met: true
+  model_response: 'PRE-FLIGHT:
+
+    - [x] Gate 1: Foundation rules/000-global-core.md loaded
+
+    - [x] Gate 2: RULES_INDEX.md searched for: update, changelog, .md, release notes
+
+    - [x] Gate 3: Matching rules loaded: 800-project-changelog.md
+
+
+    MODE: PLAN
+
+    Task Switch: FIRST
+
+
+    ## Rules Loaded
+
+    - rules/000-global-core.md (foundation)
+
+    - rules/800-project-changelog.md (activity rule via keyword "changelog")
+
+
+    I can update CHANGELOG.md following standard Keep a Changelog and Semantic Versioning
+    guidance (from the loaded changelog rule...'
+  duration_seconds: 42.44
+- test_id: TC-018
+  name: README update triggers rule
+  category: task_switch
+  priority: medium
+  result: PASS
+  score: 2
+  max_score: 2
+  score_percent: 100.0
+  criteria_results:
+  - criterion: gate2_keywords contains readme
+    met: true
+  - criterion: rules_loaded contains 801-project-readme
+    met: true
+  model_response: 'PRE-FLIGHT:
+
+    - [x] Gate 1: Foundation rules/000-global-core.md loaded
+
+    - [x] Gate 2: RULES_INDEX.md searched for: update, readme, documentation, .md,
+    install, installation
+
+    - [x] Gate 3: Matching rules loaded: 801-project-readme.md
+
+
+    MODE: PLAN
+
+    Task Switch: FIRST
+
+
+    ## Rules Loaded
+
+    - rules/000-global-core.md (foundation)
+
+    - rules/801-project-readme.md (loaded due to README/documentation activity)
+
+
+    Proposed plan to update README.md with clear, step-by-step installation instructions:
+
+
+    Information needed ...'
+  duration_seconds: 41.95
+- test_id: TC-020
+  name: Python file triggers Python rule
+  category: rule_discovery
+  priority: critical
+  result: PASS
+  score: 2
+  max_score: 2
+  score_percent: 100.0
+  criteria_results:
+  - criterion: gate2_checked equals true
+    met: true
+  - criterion: rules_loaded contains 200-python-core
+    met: true
+  model_response: '```markdown
+
+    PRE-FLIGHT:
+
+    - [x] Gate 1: Foundation rules/000-global-core.md loaded
+
+    - [x] Gate 2: RULES_INDEX.md searched for: [fix, python, .py]
+
+    - [x] Gate 3: Matching rules loaded: 200-python-core.md
+
+
+    MODE: PLAN
+
+    Task Switch: FIRST
+
+
+    ## Rules Loaded
+
+    - rules/000-global-core.md (foundation)
+
+    - rules/200-python-core.md (domain rule for .py/Python)
+
+
+    I can help fix the bug, but I need the code around line 42 to diagnose and propose
+    a precise patch.
+
+
+    Request:
+
+    - Please paste the contents of utils.py, or at...'
+  duration_seconds: 32.19
+- test_id: TC-021
+  name: SQL file triggers SQL rule
+  category: rule_discovery
+  priority: critical
+  result: PASS
+  score: 2
+  max_score: 2
+  score_percent: 100.0
+  criteria_results:
+  - criterion: gate2_checked equals true
+    met: true
+  - criterion: rules_loaded contains 102-snowflake-sql-core
+    met: true
+  model_response: 'PRE-FLIGHT:
+
+    - [x] Gate 1: Foundation rules/000-global-core.md loaded
+
+    - [x] Gate 2: RULES_INDEX.md searched for: review, sql, .sql, migration, migrations.sql
+
+    - [x] Gate 3: Matching rules loaded: 102-snowflake-sql-core.md
+
+
+    MODE: PLAN
+
+    Task Switch: FIRST
+
+
+    ## Rules Loaded
+
+    - rules/000-global-core.md (foundation)
+
+    - rules/102-snowflake-sql-core.md (domain rule for .sql detected from migrations.sql)
+
+
+    I can review migrations.sql for correctness, safety, idempotency, and performance.
+    Please either paste th...'
+  duration_seconds: 81.02
+- test_id: TC-022
+  name: Streamlit keyword triggers Streamlit rule
+  category: rule_discovery
+  priority: high
+  result: PASS
+  score: 2
+  max_score: 2
+  score_percent: 100.0
+  criteria_results:
+  - criterion: gate2_keywords contains streamlit
+    met: true
+  - criterion: rules_loaded contains 101-snowflake-streamlit-core
+    met: true
+  model_response: 'PRE-FLIGHT:
+
+    - [x] Gate 1: Foundation rules/000-global-core.md loaded
+
+    - [x] Gate 2: RULES_INDEX.md searched for: build, streamlit
+
+    - [x] Gate 3: Matching rules loaded: 101-snowflake-streamlit-core.md
+
+
+    MODE: PLAN
+
+    Task Switch: FIRST
+
+
+    ## Rules Loaded
+
+    - rules/000-global-core.md (foundation)
+
+    - rules/101-snowflake-streamlit-core.md (loaded via keyword mapping for "streamlit";
+    guidance applied for Streamlit app structure, data handling, caching, and secure
+    connection options if using Snowflake)
+
+
+    Plan to ...'
+  duration_seconds: 59.42
+- test_id: TC-023
+  name: Test keyword triggers pytest rule
+  category: rule_discovery
+  priority: high
+  result: PASS
+  score: 2
+  max_score: 2
+  score_percent: 100.0
+  criteria_results:
+  - criterion: gate2_keywords contains test
+    met: true
+  - criterion: rules_loaded contains 206-python-pytest
+    met: true
+  model_response: 'PRE-FLIGHT:
+
+    - [x] Gate 1: Foundation rules/000-global-core.md loaded
+
+    - [x] Gate 2: RULES_INDEX.md searched for: [write, test, unit, authentication]
+
+    - [x] Gate 3: Matching rules loaded: [206-python-pytest.md]
+
+
+    MODE: PLAN
+
+    Task Switch: FIRST
+
+
+    ## Rules Loaded
+
+    - rules/000-global-core.md (foundation)
+
+    - rules/206-python-pytest.md (loaded due to high-risk action "test" keyword match)
+
+
+    Plan to write unit tests for the authentication module
+
+
+    First, I need a bit of context to tailor the tests precisely:
+
+    - ...'
+  duration_seconds: 66.0
+- test_id: TC-024
+  name: Multiple technologies load multiple rules
+  category: rule_discovery
+  priority: high
+  result: PASS
+  score: 3
+  max_score: 3
+  score_percent: 100.0
+  criteria_results:
+  - criterion: rules_loaded contains 200-python-core
+    met: true
+  - criterion: rules_loaded contains 100-snowflake-core
+    met: true
+  - criterion: foundation_loaded equals true
+    met: true
+  model_response: 'PRE-FLIGHT:
+
+    - [x] Gate 1: Foundation rules/000-global-core.md loaded
+
+    - [x] Gate 2: RULES_INDEX.md searched for: create, python, snowflake, .py, .sql,
+    sql
+
+    - [x] Gate 3: Matching rules loaded: 200-python-core.md, 100-snowflake-core.md,
+    102-snowflake-sql-core.md
+
+
+    MODE: PLAN
+
+    Task Switch: FIRST
+
+
+    ## Rules Loaded
+
+    - rules/000-global-core.md (foundation)
+
+    - rules/200-python-core.md (domain rule for .py scripts)
+
+    - rules/100-snowflake-core.md (domain rule for Snowflake connections and configuration)
+
+    - rules...'
+  duration_seconds: 43.05
+- test_id: TC-025
+  name: Unknown extension noted in response
+  category: rule_discovery
+  priority: medium
+  result: FAIL
+  score: 0
+  max_score: 2
+  score_percent: 0.0
+  criteria_results:
+  - criterion: gate2_checked equals true
+    met: false
+  - criterion: foundation_loaded equals true
+    met: false
+  model_response: 'PRE-FLIGHT:
+
+    - [x] Gate 1: Foundation loaded
+
+    - [ ] Gate 2: FAILED - grep tool unavailable
+
+    - [ ] Gate 3: BLOCKED - depends on Gate 2
+
+
+    MODE: PLAN
+
+    Task Switch: FIRST
+
+
+    STOPPED: Gate 2 failed.
+
+    Error: Cannot search rules/RULES_INDEX.md for matching rules because the grep
+    tool is unavailable in this session.
+
+    Recovery options:
+
+    (A) Authorize manual fallback: allow me to read and scan rules/RULES_INDEX.md
+    directly to discover matching rules.
+
+    (B) Provide more context: share the contents of config.xyz and th...'
+  duration_seconds: 62.97
+- test_id: TC-030
+  name: Gate failure shows unchecked box
+  category: failure_handling
+  priority: critical
+  result: FAIL
+  score: 1
+  max_score: 2
+  score_percent: 50.0
+  criteria_results:
+  - criterion: preflight_present equals true
+    met: false
+  - criterion: gate1_checked equals false
+    met: true
+  model_response: 'CRITICAL ERROR: Cannot proceed - rules/000-global-core.md not accessible'
+  duration_seconds: 6.73
+- test_id: TC-031
+  name: Gate failure includes STOPPED message
+  category: failure_handling
+  priority: high
+  result: PASS
+  score: 2
+  max_score: 2
+  score_percent: 100.0
+  criteria_results:
+  - criterion: response contains STOPPED
+    met: true
+  - criterion: response contains recovery
+    met: true
+  model_response: 'PRE-FLIGHT:
+
+    - [x] Gate 1: Foundation rules/000-global-core.md loaded
+
+    - [ ] Gate 2: FAILED - rules/RULES_INDEX.md not accessible
+
+    - [ ] Gate 3: BLOCKED - depends on Gate 2
+
+
+    MODE: PLAN
+
+    Task Switch: FIRST
+
+
+    ## Rules Loaded
+
+    - rules/000-global-core.md (foundation)
+
+
+    STOPPED: Gate 2 failed.
+
+    Error: rules/RULES_INDEX.md not accessible
+
+    Recovery options:
+
+    (A) Provide the correct path or contents for RULES_INDEX.md so I can load it and
+    continue.
+
+    (B) Proceed in degraded mode without RULES_INDEX.md: I will rely ...'
+  duration_seconds: 32.72
+- test_id: TC-032
+  name: Missing rule noted gracefully
+  category: failure_handling
+  priority: high
+  result: PASS
+  score: 2
+  max_score: 2
+  score_percent: 100.0
+  criteria_results:
+  - criterion: preflight_present equals true
+    met: true
+  - criterion: foundation_loaded equals true
+    met: true
+  model_response: "PRE-FLIGHT:\n- [x] Gate 1: Foundation rules/000-global-core.md\
+    \ loaded\n- [x] Gate 2: RULES_INDEX.md searched for: help, technology, rule, file\n\
+    - [x] Gate 3: Matching rules loaded: none found\n\nMODE: PLAN\nTask Switch: FIRST\n\
+    \n## Rules Loaded\n- rules/000-global-core.md (foundation)\n\nI can help even\
+    \ if there\u2019s no specific rule file for your technology. To proceed effectively,\
+    \ I\u2019ll use the foundation rules to guide discovery and establish a sensible\
+    \ workflow tailored to your needs.\n\nQuestions to clarify..."
+  duration_seconds: 25.29
+- test_id: TC-033
+  name: Blocked gate shows dependency
+  category: failure_handling
+  priority: medium
+  result: PASS
+  score: 2
+  max_score: 2
+  score_percent: 100.0
+  criteria_results:
+  - criterion: gate2_checked equals false
+    met: true
+  - criterion: gate3_checked equals false
+    met: true
+  model_response: 'PRE-FLIGHT:
+
+    - [x] Gate 1: Foundation rules/000-global-core.md loaded
+
+    - [ ] Gate 2: FAILED - grep tool unavailable
+
+    - [ ] Gate 3: BLOCKED - depends on Gate 2
+
+
+    MODE: PLAN
+
+    Task Switch: FIRST
+
+
+    ## Rules Loaded
+
+    - rules/000-global-core.md (foundation)
+
+
+    STOPPED: Gate 2 failed.
+
+    Error: Unable to search rules/RULES_INDEX.md because the grep tool is unavailable.
+
+    Recovery options:
+
+    (A) Enable grep (or tell me when grep is available) and I will retry Gate 2
+
+    (B) Specify the exact rule filenames to load (e.g., 20...'
+  duration_seconds: 47.49
+- test_id: TC-040
+  name: Empty request handled gracefully
+  category: edge_cases
+  priority: high
+  result: PASS
+  score: 2
+  max_score: 2
+  score_percent: 100.0
+  criteria_results:
+  - criterion: preflight_present equals true
+    met: true
+  - criterion: mode_declared equals true
+    met: true
+  model_response: 'PRE-FLIGHT:
+
+    - [x] Gate 1: Foundation rules/000-global-core.md loaded
+
+    - [ ] Gate 2: FAILED - No keywords extracted from user request
+
+    - [ ] Gate 3: BLOCKED - depends on Gate 2
+
+
+    MODE: PLAN
+
+    Task Switch: FIRST
+
+
+    ## Rules Loaded
+
+    - rules/000-global-core.md (foundation)
+
+
+    STOPPED: Gate 2 failed.
+
+    Error: No actionable keywords (primary verb/technology/file extension) found in
+    the request "?".
+
+
+    Recovery options:
+
+    (A) Specify your intent with a primary verb, technology, and any file types. Examples:
+    "edit auth...'
+  duration_seconds: 17.99
+- test_id: TC-041
+  name: Very long request processed correctly
+  category: edge_cases
+  priority: high
+  result: PASS
+  score: 3
+  max_score: 3
+  score_percent: 100.0
+  criteria_results:
+  - criterion: preflight_present equals true
+    met: true
+  - criterion: gate2_checked equals true
+    met: true
+  - criterion: foundation_loaded equals true
+    met: true
+  model_response: '```markdown
+
+    PRE-FLIGHT:
+
+    - [x] Gate 1: Foundation rules/000-global-core.md loaded
+
+    - [x] Gate 2: RULES_INDEX.md searched for: [refactor, Python, Snowflake, Streamlit,
+    Plotly, pytest, pandas, SQL, .py]
+
+    - [x] Gate 3: Matching rules loaded: [200-python-core.md, 206-python-pytest.md,
+    100-snowflake-core.md, 101-snowflake-streamlit-core.md, 102-snowflake-sql-core.md]
+
+
+    MODE: PLAN
+
+    Task Switch: FIRST
+
+
+    ## Rules Loaded
+
+    - rules/000-global-core.md (foundation)
+
+    - rules/200-python-core.md (domain: Python .py)
+
+    - ...'
+  duration_seconds: 50.26
+- test_id: TC-042
+  name: Screenshot/image input triggers search
+  category: edge_cases
+  priority: medium
+  result: PASS
+  score: 2
+  max_score: 2
+  score_percent: 100.0
+  criteria_results:
+  - criterion: gate2_checked equals true
+    met: true
+  - criterion: gate2_keywords contains error
+    met: true
+  model_response: 'PRE-FLIGHT:
+
+    - [x] Gate 1: Foundation rules/000-global-core.md loaded
+
+    - [x] Gate 2: RULES_INDEX.md searched for: [error, screenshot]
+
+    - [x] Gate 3: Matching rules loaded: none found
+
+
+    MODE: PLAN
+
+    Task Switch: FIRST
+
+
+    ## Rules Loaded
+
+    - rules/000-global-core.md (foundation)
+
+
+    I saw the screenshot, but to help effectively I need the exact error text and
+    a bit of context. Visuals trigger error-handling workflow, but we still need the
+    plaintext details and the technology domain to load the right rules.
+
+
+    Pl...'
+  duration_seconds: 34.83
+- test_id: TC-043
+  name: Multiple file extensions in single request
+  category: edge_cases
+  priority: medium
+  result: PASS
+  score: 3
+  max_score: 3
+  score_percent: 100.0
+  criteria_results:
+  - criterion: rules_loaded contains 200-python-core
+    met: true
+  - criterion: rules_loaded contains 102-snowflake-sql-core
+    met: true
+  - criterion: rules_loaded contains 202-markup-config-validation
+    met: true
+  model_response: 'PRE-FLIGHT:
+
+    - [x] Gate 1: Foundation rules/000-global-core.md loaded
+
+    - [x] Gate 2: RULES_INDEX.md searched for: review, Python, .py, .sql, .yaml
+
+    - [x] Gate 3: Matching rules loaded: 200-python-core.md, 102-snowflake-sql-core.md,
+    202-markup-config-validation.md
+
+
+    MODE: PLAN
+
+    Task Switch: FIRST
+
+
+    ## Rules Loaded
+
+    - rules/000-global-core.md (foundation)
+
+    - rules/200-python-core.md (loaded via domain mapping for .py)
+
+    - rules/102-snowflake-sql-core.md (loaded via domain mapping for .sql)
+
+    - rules/202-marku...'
+  duration_seconds: 48.09
+- test_id: TC-044
+  name: Non-English input processed
+  category: edge_cases
+  priority: low
+  result: PASS
+  score: 2
+  max_score: 2
+  score_percent: 100.0
+  criteria_results:
+  - criterion: preflight_present equals true
+    met: true
+  - criterion: gate2_keywords contains python
+    met: true
+  model_response: "PRE-FLIGHT:\n- [x] Gate 1: Foundation rules/000-global-core.md\
+    \ loaded\n- [x] Gate 2: RULES_INDEX.md searched for: create, python, json, .py\n\
+    - [x] Gate 3: Matching rules loaded: 200-python-core.md\n\nMODE: PLAN\nTask Switch:\
+    \ FIRST\n\n## Rules Loaded\n- rules/000-global-core.md (foundation)\n- rules/200-python-core.md\
+    \ (domain rule via .py extension)\n\nPlan pour cr\xE9er une fonction Python qui\
+    \ parse du JSON:\n\n- Clarifier la source JSON:\n  - Cha\xEEne de caract\xE8res\
+    \ (ex: venant d\u2019une API)\n  - Fichier (ex: data.json..."
+  duration_seconds: 29.33
+- test_id: TC-045
+  name: Code block in request processed
+  category: edge_cases
+  priority: low
+  result: PASS
+  score: 1
+  max_score: 1
+  score_percent: 100.0
+  criteria_results:
+  - criterion: rules_loaded contains 200-python
+    met: true
+  model_response: "```markdown\nPRE-FLIGHT:\n- [x] Gate 1: Foundation rules/000-global-core.md\
+    \ loaded\n- [x] Gate 2: RULES_INDEX.md searched for: [fix, python]\n- [x] Gate\
+    \ 3: Matching rules loaded: [200-python-core.md]\n\nMODE: PLAN\nTask Switch: FIRST\n\
+    \n## Rules Loaded\n- rules/000-global-core.md (foundation)\n- rules/200-python-core.md\
+    \ (keyword match: \"python\")\n\nThe function is syntactically valid; \u201Cfix\u201D\
+    \ depends on the intended behavior. Here are safe, minimal fixes you can choose\
+    \ from:\n\n- If this is a placeholder and sho..."
+  duration_seconds: 46.91
+- test_id: TC-050
+  name: ACT required for file modification
+  category: act_authorization
+  priority: critical
+  result: PASS
+  score: 2
+  max_score: 2
+  score_percent: 100.0
+  criteria_results:
+  - criterion: 'response contains MODE: PLAN'
+    met: true
+  - criterion: response contains Authorization
+    met: true
+  model_response: "PRE-FLIGHT:\n- [x] Gate 1: Foundation rules/000-global-core.md\
+    \ loaded\n- [x] Gate 2: RULES_INDEX.md searched for: edit, python, .py\n- [x]\
+    \ Gate 3: Matching rules loaded: 200-python-core.md\n\nMODE: PLAN\nTask Switch:\
+    \ FIRST\n\n## Rules Loaded\n- rules/000-global-core.md (foundation)\n- rules/200-python-core.md\
+    \ (domain rule for .py)\n\nPlan to add input validation to auth.py:\n- Discover\
+    \ current context\n  - Confirm framework or usage (e.g., plain Python, Flask,\
+    \ FastAPI, Django).\n  - Identify functions/entry po..."
+  duration_seconds: 40.85
+- test_id: TC-051
+  name: Only exact ACT recognized
+  category: act_authorization
+  priority: critical
+  result: PASS
+  score: 2
+  max_score: 2
+  score_percent: 100.0
+  criteria_results:
+  - criterion: 'response contains MODE: PLAN'
+    met: true
+  - criterion: 'response not_contains MODE: ACT'
+    met: true
+  model_response: "PRE-FLIGHT:\n- [x] Gate 1: Foundation rules/000-global-core.md\
+    \ loaded\n- [x] Gate 2: RULES_INDEX.md searched for: modify, edit, Python, .py\n\
+    - [x] Gate 3: Matching rules loaded: 200-python-core.md\n\nMODE: PLAN\nTask Switch:\
+    \ FIRST\n\n## Rules Loaded\n- rules/000-global-core.md (foundation)\n- rules/200-python-core.md\
+    \ (domain: .py)\n\nI\u2019m ready to fix parser.py, but I need the file contents\
+    \ and a failing input or error to produce an accurate patch. Also, per protocol,\
+    \ I can only make changes after explicit A..."
+  turns_count: 2
+  duration_seconds: 58.52
+- test_id: TC-052
+  name: Partial ACT scopes correctly
+  category: act_authorization
+  priority: high
+  result: PASS
+  score: 1
+  max_score: 1
+  score_percent: 100.0
+  criteria_results:
+  - criterion: 'response contains MODE: ACT'
+    met: true
+  model_response: "PRE-FLIGHT:\n- [x] Gate 1: Foundation rules/000-global-core.md\
+    \ loaded\n- [x] Gate 2: RULES_INDEX.md searched for: act\n- [x] Gate 3: Matching\
+    \ rules loaded: none found\n\nMODE: ACT\nTask Switch: NO\n\n## Rules Loaded\n\
+    - rules/000-global-core.md (foundation)\n\nExecuting authorized items 1-2\n\n\
+    Item 1) Project context and tooling discovery\n- From your project root, run and\
+    \ paste outputs:\n  - Python runtime:\n    - python3 --version\n  - Tooling/automation\
+    \ files present:\n    - ls -1 | egrep -i 'Taskfile.yml|Makef..."
+  turns_count: 2
+  duration_seconds: 123.88
+- test_id: TC-053
+  name: ACT expires on new task list
+  category: act_authorization
+  priority: high
+  result: PASS
+  score: 2
+  max_score: 2
+  score_percent: 100.0
+  criteria_results:
+  - criterion: 'response contains MODE: PLAN'
+    met: true
+  - criterion: response contains Authorization
+    met: true
+  model_response: 'PRE-FLIGHT:
+
+    - [x] Gate 1: Foundation rules/000-global-core.md loaded
+
+    - [x] Gate 2: RULES_INDEX.md searched for: update, database, schema
+
+    - [x] Gate 3: Matching rules loaded: none found
+
+
+    MODE: PLAN
+
+    Task Switch: YES (keyword: python to database/schema)
+
+
+    ## Rules Loaded
+
+    - rules/000-global-core.md (foundation)
+
+
+    Plan to update the database schema:
+
+    - We should first determine your database technology and migration tooling so
+    we generate the right scripts and apply them safely.
+
+    - Typical safe-migration...'
+  turns_count: 3
+  duration_seconds: 136.02
+- test_id: TC-054
+  name: Case-insensitive ACT recognition
+  category: act_authorization
+  priority: high
+  result: PASS
+  score: 1
+  max_score: 1
+  score_percent: 100.0
+  criteria_results:
+  - criterion: 'response contains MODE: ACT'
+    met: true
+  model_response: "PRE-FLIGHT:\n- [x] Gate 1: Foundation rules/000-global-core.md\
+    \ loaded\n- [x] Gate 2: RULES_INDEX.md searched for: act\n- [x] Gate 3: Matching\
+    \ rules loaded: none found\n\nMODE: ACT\nTask Switch: NO\n\n## Rules Loaded\n\
+    - rules/000-global-core.md (foundation)\n\nChange to apply in main.py (insert\
+    \ at very top, before any imports):\n\n\"\"\"\nApplication entry point for the\
+    \ project.\n\nThis module sets up and starts the application's main execution\
+    \ flow.\nRun this file directly to launch the application.\n\nUsage:\n    pyt..."
+  turns_count: 2
+  duration_seconds: 77.51
+- test_id: TC-060
+  name: Validation runs before completion
+  category: validation_gates
+  priority: critical
+  result: PASS
+  score: 1
+  max_score: 1
+  score_percent: 100.0
+  criteria_results:
+  - criterion: response matches (ruff|pytest|lint|test|validate|Validation)
+    met: true
+  model_response: 'PRE-FLIGHT:
+
+    - [x] Gate 1: Foundation rules/000-global-core.md loaded
+
+    - [x] Gate 2: RULES_INDEX.md searched for: [python, .py, parser.py, error handling]
+
+    - [x] Gate 3: Matching rules loaded: [200-python-core.md]
+
+
+    MODE: ACT
+
+    Task Switch: NO
+
+
+    ## Rules Loaded
+
+    - rules/000-global-core.md (foundation)
+
+    - rules/200-python-core.md (domain core for .py via extension mapping)
+
+
+    Applying error-handling scaffolding to parser.py. This patch is additive and safe
+    to apply without knowing your current implementatio...'
+  turns_count: 2
+  duration_seconds: 107.2
+- test_id: TC-061
+  name: Validation failure triggers retry
+  category: validation_gates
+  priority: high
+  result: PASS
+  score: 1
+  max_score: 1
+  score_percent: 100.0
+  criteria_results:
+  - criterion: 'response matches (Validation|retry|failed|error|MODE: PLAN)'
+    met: true
+  model_response: "PRE-FLIGHT:\n- [x] Gate 1: Foundation rules/000-global-core.md\
+    \ loaded\n- [x] Gate 2: RULES_INDEX.md searched for: ACT\n- [x] Gate 3: Matching\
+    \ rules loaded: none found\n\nMODE: ACT\nTask Switch: NO\n\n## Rules Loaded\n\
+    - rules/000-global-core.md (foundation)\n\nHere is a safe, self-contained function\
+    \ with an intentional parse-time syntax error you can add to a test-only fixture\
+    \ so it won\u2019t affect normal runtime:\n\nSuggested file path (test fixture,\
+    \ not imported by app runtime):\n- tests/fixtures/intentional_sy..."
+  turns_count: 2
+  duration_seconds: 66.55
+- test_id: TC-062
+  name: Returns to PLAN after completion
+  category: validation_gates
+  priority: high
+  result: PASS
+  score: 1
+  max_score: 1
+  score_percent: 100.0
+  criteria_results:
+  - criterion: 'response contains MODE: PLAN'
+    met: true
+  model_response: "PRE-FLIGHT:\n- [x] Gate 1: Foundation rules/000-global-core.md\
+    \ loaded\n- [x] Gate 2: RULES_INDEX.md searched for: add, comment, python, .py\n\
+    - [x] Gate 3: Matching rules loaded: 200-python-core.md\n\nMODE: ACT\nTask Switch:\
+    \ FIRST\n\n## Rules Loaded\n- rules/000-global-core.md (foundation)\n- rules/200-python-core.md\
+    \ (loaded via domain mapping for .py)\n\nChange applied:\n- Insert this single-line\
+    \ comment at the top of utils.py (below any shebang if present):\n  # This file\
+    \ contains utility functions used acro..."
+  turns_count: 2
+  duration_seconds: 67.84
+- test_id: TC-063
+  name: Surgical edits only
+  category: validation_gates
+  priority: medium
+  result: PASS
+  score: 1
+  max_score: 1
+  score_percent: 100.0
+  criteria_results:
+  - criterion: response matches (edit|surgical|minimal|change)
+    met: true
+  model_response: "PRE-FLIGHT:\n- [x] Gate 1: Foundation rules/000-global-core.md\
+    \ loaded\n- [x] Gate 2: RULES_INDEX.md searched for: change, python, .py, config\n\
+    - [x] Gate 3: Matching rules loaded: 200-python-core.md\n\nMODE: ACT\nTask Switch:\
+    \ NO\n\n## Rules Loaded\n- rules/000-global-core.md (foundation)\n- rules/200-python-core.md\
+    \ (domain rule loaded via .py extension mapping)\n\nApplying the change to set\
+    \ the port to 9000 in config.py. Since I don\u2019t have your file contents, here\
+    \ are ready-to-apply, safe options. Use which..."
+  turns_count: 2
+  duration_seconds: 91.04

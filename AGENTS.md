@@ -53,9 +53,15 @@ Execute: `read_file("rules/000-global-core.md")`
 **Step 2: Search RULES_INDEX.md**
 
 A. Extract keywords from user request:
-   1. Identify the PRIMARY VERB (test, deploy, lint, commit, etc.)
+   1. Identify the PRIMARY VERB (test, deploy, lint, commit, help, fix, create, etc.)
    2. Identify the PRIMARY TECHNOLOGY (Python, Docker, Snowflake, etc.)
-   3. Identify any FILE EXTENSIONS mentioned (.py, .sql, .tsx, etc.)
+   3. Identify any FILE EXTENSIONS mentioned (.py, .sql, .tsx, .xyz, etc.)
+   
+   **CRITICAL:** If ANY word in the request could be a keyword, extract it. Gate 2 should ONLY fail if:
+   - The grep tool is unavailable, OR
+   - The request is truly empty (e.g., just "?" or whitespace)
+   
+   **DO NOT fail Gate 2** for vague requests - always extract at least the verb or noun.
 
 B. Execute search:
    - If bash tool available: Execute `grep -i "KEYWORD" rules/RULES_INDEX.md` for each keyword
@@ -105,7 +111,7 @@ D. Load activity rules from Step 2 matches:
    - For EACH rule matched in Step 2: Execute `read_file("rules/[rule-name].md")`
    - If read succeeds: Rule is loaded
    - If read fails AND this is the ONLY matched rule: Note "Rule load failed: [filename] not found" and offer options: (A) Provide correct path, (B) Proceed without this rule, (C) Cancel task
-   - If read fails AND other rules loaded successfully: Note "Rule load failed: [filename]" in Rules Loaded section, continue with successfully loaded rules
+   - If read fails AND other rules loaded successfully: Note "Rule load failed: [filename]" in Rules Loaded section, PROCEED with successfully loaded rules (partial success = continue)
 
 E. Check for rule examples (complex configurations only):
    - If loaded rule involves Cortex Agent, Cortex Search, or Semantic View:
@@ -114,7 +120,9 @@ E. Check for rule examples (complex configurations only):
 
 **Step 4: Generate Response Header**
 
-Output this exact structure at the start of every response:
+Output this exact structure at the start of **EVERY** response (including clarifications, rejections, typo corrections, and error messages):
+
+**CRITICAL:** This header is MANDATORY for ALL responses - no exceptions. Even when correcting user typos (e.g., "ATC" instead of "ACT") or asking for clarification, include the full PRE-FLIGHT and MODE declaration.
 
 ```markdown
 PRE-FLIGHT:
@@ -147,11 +155,20 @@ Task complete.
 
 **PLAN Mode Response Rules (CRITICAL):**
 - If response includes a Task List: MUST end with `Authorization (required): Reply with \`ACT\` (or \`ACT on items 1-3\`).`
+- **Even when asking clarifying questions**, if you've proposed any tasks, include the Authorization prompt
 - Omitting the Authorization prompt when a Task List is present = INVALID response
 
 **ACT Mode Response Rules (CRITICAL):**
 - After completing all authorized tasks: MUST declare `MODE: PLAN` at end of response
 - Omitting `MODE: PLAN` after ACT completion = INVALID response
+- ACT responses MUST explicitly mention validation intent or tool names (e.g., "Validation:", "Running ruff check", "Will verify with pytest", "Checking syntax")
+- **Response ending format for completed ACT:**
+  ```
+  [... task execution content ...]
+  
+  MODE: PLAN
+  Task complete.
+  ```
 
 **If ANY gate fails, output this format:**
 
@@ -188,11 +205,38 @@ Gate 3 failures:
 - "Dependency [name] could not be loaded"
 - "All matched rules failed to load"
 
+**Partial Rule Loading (CRITICAL - READ CAREFULLY):**
+- If SOME rules load and SOME fail: Gate 3 = PASS (mark `[x]`) and CONTINUE with task
+- **DO NOT STOP** when partial failure occurs - proceed with successfully loaded rules
+- List loaded rules + note failures in Rules Loaded section
+- Only mark Gate 3 as FAILED (`[ ]`) when **ALL** matched rules fail to load
+- "Partial failure" means CONTINUE, not STOP
+
+**Example - Partial Success:**
+```markdown
+PRE-FLIGHT:
+- [x] Gate 1: Foundation rules/000-global-core.md loaded
+- [x] Gate 2: RULES_INDEX.md searched for: python, sql
+- [x] Gate 3: Matching rules loaded: 102-snowflake-sql-core.md (200-python-core.md failed)
+
+## Rules Loaded
+- rules/000-global-core.md (foundation)
+- rules/102-snowflake-sql-core.md (for .sql extension)
+- ⚠️ Rule load failed: 200-python-core.md not found
+```
+Note: Gate 3 shows `[x]` because SQL rule loaded successfully. Continue with available rules.
+
 **MODE and ACT Authorization:**
 - Default: MODE: PLAN
 - ACT only after user types "ACT" (case-insensitive exact match)
-- Recognized: "ACT", "act", "Act", "ACT on items 1-3" (partial), "ACT.", "ACT!" (trailing punctuation tolerated)
+- Recognized (MUST trigger MODE: ACT): "ACT", "act", "Act", "ACT on items 1-3" (partial), "ACT.", "ACT!", "ACT?"
+- **Trailing punctuation (., !, ?) MUST be tolerated** - strip punctuation before matching
+- **Case-insensitive:** "act", "ACT", "Act" are ALL valid and MUST trigger MODE: ACT
+- **Partial authorization:** "ACT on items 1-2" MUST trigger MODE: ACT (scoped to specified items)
+- **CRITICAL - Exact match required:** ACT must be the ENTIRE message (after stripping punctuation) OR start with "ACT on"
+- **Embedded ACT is NOT valid:** "I think you should act on this" contains "act" but is NOT authorization
 - NOT recognized: "proceed", "go ahead", "yes", "okay", "yes please", "do it", "make the changes", "sounds good", "ATC", "ACTT" (typos)
+- NOT recognized: Sentences containing "act" as a word (e.g., "please act on this", "you should act now") - these are NOT authorization
 - For MODE transition rules and workflow behavior, see rules/000-global-core.md
 
 **Rule Loading Definition:**

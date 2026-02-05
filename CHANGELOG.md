@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **fix(AGENTS):** strengthen protocol compliance for cross-model consistency
+  - Step 2A: Gate 2 should only fail if grep unavailable or request truly empty (not for vague requests)
+  - Step 4: PRE-FLIGHT header mandatory for ALL responses including typo corrections and clarifications
+  - PLAN mode: Authorization prompt required even when asking clarifying questions with proposed tasks
+  - ACT mode: Added explicit response ending format with MODE: PLAN declaration
+  - ACT recognition: Case-insensitive matching, partial authorization ("ACT on items 1-2"), embedded rejection
+  - Partial rule loading: Explicit "DO NOT STOP" guidance with example showing Gate 3 partial success
+- **refactor(tools):** agent_eval CLI simplification
+  - Removed `--baseline` flag and `baseline` command - use timestamped files with `compare` instead
+  - `compare` and `report` commands now require explicit `-b` and `-t` arguments
+  - `list` command now shows test count column
+  - Removed BASELINE.yaml and RESULTS.yaml symlinks in favor of explicit file references
+- **fix(tools):** agent_eval test_cases.yaml improvements
+  - Added `query_ids` field to all test cases for execution debugging
+  - Updated README with correct compare/report usage examples
+
 ### Added
 - **feat(tools):** add agent_eval framework for AGENTS.md compliance testing
   - `tools/agent_eval/cli.py` - CLI with Snowflake Cortex REST API integration for model evaluation

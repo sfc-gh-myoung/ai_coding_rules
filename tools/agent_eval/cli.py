@@ -38,8 +38,6 @@ err_console = Console(stderr=True)
 TOOLS_DIR = Path(__file__).parent
 TEST_CASES_FILE = TOOLS_DIR / "test_cases.yaml"
 RESULTS_DIR = TOOLS_DIR / "results"
-BASELINE_FILE = RESULTS_DIR / "BASELINE.yaml"
-RESULTS_FILE = RESULTS_DIR / "RESULTS.yaml"
 COMPARISON_FILE = RESULTS_DIR / "COMPARISON.md"
 DEFAULT_AGENTS_FILE = TOOLS_DIR.parent.parent / "AGENTS.md"
 
@@ -131,13 +129,12 @@ def get_agents_md_hash() -> str:
     return hash_value
 
 
-def generate_result_filename(model: str, *, is_baseline: bool = False) -> Path:
+def generate_result_filename(model: str) -> Path:
     """Generate a unique filename for results based on timestamp and model."""
     RESULTS_DIR.mkdir(exist_ok=True)
     timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
     model_slug = model.replace(".", "-")
-    prefix = "baseline_" if is_baseline else ""
-    filepath = RESULTS_DIR / f"{prefix}{timestamp}_{model_slug}.yaml"
+    filepath = RESULTS_DIR / f"{timestamp}_{model_slug}.yaml"
     log_debug(f"Generated result filename: {filepath}")
     return filepath
 
@@ -518,10 +515,6 @@ def run(
         str,
         typer.Option("-m", "--model", help="Cortex model to use"),
     ] = DEFAULT_MODEL,
-    baseline: Annotated[
-        bool,
-        typer.Option("-b", "--baseline", help="Save as baseline"),
-    ] = False,
     tests: Annotated[
         str | None,
         typer.Option("-t", "--tests", help="Comma-separated test IDs"),
@@ -655,11 +648,8 @@ def run(
     results["metadata"]["total_duration_seconds"] = round(overall_duration, 2)
     results["metadata"]["parallel_workers"] = parallel
 
-    timestamped_file = generate_result_filename(model, is_baseline=baseline)
+    timestamped_file = generate_result_filename(model)
     save_results(results, timestamped_file)
-
-    symlink_target = BASELINE_FILE if baseline else RESULTS_FILE
-    save_results(results, symlink_target)
 
     console.print()
     summary_table = Table(title="Results Summary", box=box.ROUNDED)
@@ -712,6 +702,7 @@ def list_cmd() -> None:
     table = Table(title=f"Saved Results ({len(files)} files)", box=box.ROUNDED)
     table.add_column("Filename", style="cyan")
     table.add_column("Pass Rate", justify="right", style="green")
+    table.add_column("Tests", justify="right", style="white")
     table.add_column("Model", style="yellow")
     table.add_column("Evaluator", style="blue")
     table.add_column("Runtime", justify="right", style="dim")
@@ -722,7 +713,9 @@ def list_cmd() -> None:
         try:
             data = load_results(f)
             if data:
-                pass_rate = f"{data.get('summary', {}).get('pass_rate', 'N/A')}%"
+                summary = data.get("summary", {})
+                pass_rate = f"{summary.get('pass_rate', 'N/A')}%"
+                tests = str(summary.get("total_tests", 0))
                 model = data.get("metadata", {}).get("model", "unknown")
                 evaluator = data.get("metadata", {}).get("evaluator", "-")
                 total_duration = data.get("metadata", {}).get("total_duration_seconds")
@@ -731,10 +724,10 @@ def list_cmd() -> None:
                 if agents_file != "-":
                     agents_file = Path(agents_file).name
                 timestamp = data.get("metadata", {}).get("timestamp", "")[:19]
-                table.add_row(f.name, pass_rate, model, evaluator, runtime, agents_file, timestamp)
+                table.add_row(f.name, pass_rate, tests, model, evaluator, runtime, agents_file, timestamp)
         except (yaml.YAMLError, OSError) as e:
             log_debug(f"Error loading {f}: {e}")
-            table.add_row(f.name, "[red]ERROR[/]", "", "", "", "", "")
+            table.add_row(f.name, "[red]ERROR[/]", "", "", "", "", "", "")
 
     console.print(table)
     console.print()
@@ -847,17 +840,17 @@ def show(
 @app.command()
 def compare(
     baseline: Annotated[
-        str | None,
-        typer.Option("--baseline", "-b", help="Baseline result file (default: BASELINE.yaml)"),
-    ] = None,
+        str,
+        typer.Option("--baseline", "-b", help="Baseline result file"),
+    ],
     target: Annotated[
-        str | None,
-        typer.Option("--target", "-t", help="Target result file to compare (default: RESULTS.yaml)"),
-    ] = None,
+        str,
+        typer.Option("--target", "-t", help="Target result file to compare"),
+    ],
 ) -> None:
     """Compare two result files."""
-    path1 = resolve_result_path(baseline) if baseline else BASELINE_FILE
-    path2 = resolve_result_path(target) if target else RESULTS_FILE
+    path1 = resolve_result_path(baseline)
+    path2 = resolve_result_path(target)
 
     baseline_data = load_results(path1)
     current_data = load_results(path2)
@@ -921,17 +914,17 @@ def compare(
 @app.command()
 def report(
     baseline: Annotated[
-        str | None,
-        typer.Option("--baseline", "-b", help="Baseline result file (default: BASELINE.yaml)"),
-    ] = None,
+        str,
+        typer.Option("--baseline", "-b", help="Baseline result file"),
+    ],
     target: Annotated[
-        str | None,
-        typer.Option("--target", "-t", help="Target result file to compare (default: RESULTS.yaml)"),
-    ] = None,
+        str,
+        typer.Option("--target", "-t", help="Target result file to compare"),
+    ],
 ) -> None:
     """Generate markdown comparison report."""
-    path1 = resolve_result_path(baseline) if baseline else BASELINE_FILE
-    path2 = resolve_result_path(target) if target else RESULTS_FILE
+    path1 = resolve_result_path(baseline)
+    path2 = resolve_result_path(target)
 
     baseline_data = load_results(path1)
     current_data = load_results(path2)
@@ -953,17 +946,6 @@ def report(
     log_success(f"Report saved: {COMPARISON_FILE}")
     console.print()
     console.print(Syntax(report_text, "markdown"))
-
-
-@app.command("baseline")
-def baseline_cmd(
-    model: Annotated[
-        str,
-        typer.Option("-m", "--model", help="Cortex model to use"),
-    ] = DEFAULT_MODEL,
-) -> None:
-    """Run evaluation and save as baseline."""
-    run(model=model, baseline=True, tests=None, dry_run=False)
 
 
 if __name__ == "__main__":

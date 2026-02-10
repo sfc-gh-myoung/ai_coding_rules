@@ -1,6 +1,6 @@
 # Architecture: AI Coding Rules (v3.5.3)
 
-**Last Updated:** 2026-01-21
+**Last Updated:** 2026-02-10
 
 ## Table of Contents
 
@@ -657,6 +657,14 @@ ai_coding_rules/
 │       ├── workflows/               # Input, execution, output, error handling
 │       ├── examples/                # FULL, COMPARISON, META + edge-cases.md
 │       └── tests/                   # Input, mode, output test cases
+│
+├── tools/                      # Evaluation and testing tools
+│   └── agent_eval/             # AGENTS.md effectiveness evaluation
+│       ├── __init__.py             # Package metadata
+│       ├── cli.py                  # Typer CLI commands
+│       ├── evaluator.py            # Core evaluation logic
+│       ├── test_cases.yaml         # Test definitions
+│       └── README.md               # Tool documentation
 │
 ├── docs/                       # Project documentation
 │   ├── ARCHITECTURE.md         # This file
@@ -1958,13 +1966,6 @@ python scripts/deploy_cursor.py --dest ~/project/.cursor/rules/
 - No maintenance of multiple source formats
 
 ## Related Documentation
-
-### Migration Guides
-
-For migration paths and historical context:
-
-- **[Migration Guides](MIGRATION.md)** - Project architecture migrations (v2.x → v3.0) and schema migrations (v3.1 → v3.2)
-- **[Schema Migration Guide](MIGRATION_SCHEMA_v3.1_to_v3.2.md)** - Detailed guide for schema v3.1 → v3.2 changes
 
 ### Core Documentation
 

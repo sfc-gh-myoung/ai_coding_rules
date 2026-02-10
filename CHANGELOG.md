@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **docs(tools):** add agent_eval tool reference to README.md and ARCHITECTURE.md
+  - Added `tools/` directory to Project Structure with link to tool README
+  - Added `tools/agent_eval/` section in ARCHITECTURE.md Directory Structure
+  - Documents purpose: AGENTS.md effectiveness evaluation via Snowflake Cortex
+
+### Removed
+- **docs(migration):** remove deprecated migration documentation
+  - Deleted `docs/MIGRATION.md` (v2.x → v3.0 migration guide)
+  - Deleted `docs/MIGRATION_SCHEMA_v3.1_to_v3.2.md` (schema migration guide)
+  - Removed migration references from ARCHITECTURE.md, CHANGELOG.md, CONTRIBUTING.md
+
 ### Changed
 - **refactor(core):** move MODE:PLAN/ACT framework from 000-global-core.md to AGENTS.md
   - 000-global-core.md reduced from ~5750 to ~3500 tokens (~40% reduction)
@@ -1444,7 +1456,6 @@ Processed 2 retrospective findings from Cortex Agent testing project:
 - "Example Prompts" section in main README.md linking to prompt templates
 - Production-ready rule system with 87 rules in `rules/` directory
 - Simplified deployment script with agent-agnostic `--dest` flag
-- Comprehensive migration guide (docs/MIGRATION.md)
 - Test suite for deployment and validation scripts
 
 ### Changed

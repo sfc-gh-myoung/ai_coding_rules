@@ -703,6 +703,8 @@ ai_coding_rules/
     ├── plan-reviewer/          ← Review LLM-generated plans
     ├── rule-creator/           ← Create new rules (internal)
     └── skill-timing/           ← Measure skill performance
+├── tools/                  ← Evaluation and testing tools
+│   └── agent_eval/             ← AGENTS.md effectiveness evaluation ([README](tools/agent_eval/README.md))
 ```
 
 **Key Concepts:**
@@ -711,6 +713,7 @@ ai_coding_rules/
 - **AGENTS.md** — AI discovery protocol in project root
 - **rules/RULES_INDEX.md** — Searchable catalog in project root
 - **scripts/** — Validation (`schema_validator.py`), deployment (`rule_deployer.py`)
+- **tools/** — Evaluation tools (`agent_eval` for AGENTS.md testing)
 
 **Workflows:**
 

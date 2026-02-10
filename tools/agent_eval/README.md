@@ -50,6 +50,7 @@ tools/agent_eval/
 ### Commands
 
 - **`run`** - Run automated evaluation via Snowflake Cortex
+- **`models`** - List available Cortex models from Snowflake
 - **`list`** - List all saved result files
 - **`show`** - Show details of a single result file
 - **`compare`** - Compare two result files (requires `-b` and `-t`)
@@ -79,34 +80,15 @@ uv run python -m tools.agent_eval report -b baseline.yaml -t current.yaml
 
 ## Available Models
 
-The following models are available via **Snowflake Cortex REST API** (requires `CORTEX_ENABLED_CROSS_REGION = 'ANY_REGION'` for full access):
+List available Cortex REST API models:
 
-| Provider | Model | Notes |
-|----------|-------|-------|
-| **Anthropic** | `claude-sonnet-4-5` | GA |
-| | `claude-opus-4-5` | Preview |
-| | `claude-haiku-4-5` | Preview |
-| | `claude-4-sonnet` | GA |
-| | `claude-4-opus` | GA |
-| | `claude-3-7-sonnet` | GA |
-| | `claude-3-5-sonnet` | GA |
-| **OpenAI** | `openai-gpt-4.1` | GA |
-| | `openai-gpt-5` | Preview |
-| | `openai-gpt-5-mini` | Preview |
-| | `openai-gpt-5-nano` | Preview |
-| | `openai-gpt-5-chat` | GA |
-| | `openai-gpt-oss-120b` | Preview |
-| **Meta** | `llama4-maverick` | GA |
-| | `llama3.1-405b` | GA |
-| | `llama3.1-70b` | GA |
-| | `llama3.1-8b` | GA |
-| **Mistral** | `mistral-large2` | GA |
-| | `mistral-large` | GA |
-| | `mistral-7b` | GA |
-| **Snowflake** | `snowflake-llama-3.3-70b` | GA |
-| **DeepSeek** | `deepseek-r1` | GA |
+```bash
+uv run python -m tools.agent_eval models
+```
 
-> **Note:** Some models available via SQL `SNOWFLAKE.CORTEX.COMPLETE()` are not available via REST API. This tool uses the REST API.
+**Important:** This shows models available for the Cortex REST API (`/api/v2/cortex/inference:complete`). The SQL `COMPLETE()` function has a different (typically larger) set of models. There is no programmatic API to query REST API model availability, so the list is manually maintained.
+
+> **Note:** Model availability varies by region. Set `CORTEX_ENABLED_CROSS_REGION = 'ANY_REGION'` for full access.
 
 **Recommendations:**
 - **Highest quality:** `claude-sonnet-4-5`, `claude-4-sonnet`, `openai-gpt-4.1`
@@ -138,3 +120,17 @@ Or ensure dev dependencies are available:
 ```bash
 uv sync --group dev
 ```
+
+## Output Format
+
+Results are saved as YAML files in `results/` with the following structure:
+
+- **metadata**: Model, timestamp, agents file, total duration
+- **summary**: Pass rate, total/passed/failed counts
+- **results**: Per-test details including:
+  - `test_id`, `passed`, `score`
+  - `model_response` (truncated)
+  - `request_id` - Snowflake query UUID for debugging
+  - `duration_seconds`
+
+The `request_id` can be used to look up query details in Snowflake's query history.

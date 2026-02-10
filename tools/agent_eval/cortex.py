@@ -21,6 +21,8 @@ except ImportError:
 from tools.agent_eval.models import (
     DEFAULT_MAX_RETRIES,
     DEFAULT_TIMEOUT_SECONDS,
+    SUPPORTED_MODELS,
+    CortexResponse,
 )
 
 
@@ -48,9 +50,7 @@ def load_snowflake_config(connection_name: str) -> dict[str, Any]:
         config_file = config_path
     else:
         raise FileNotFoundError(
-            f"No Snowflake config found. Expected:\n"
-            f"  - {connections_path}\n"
-            f"  - {config_path}"
+            f"No Snowflake config found. Expected:\n  - {connections_path}\n  - {config_path}"
         )
 
     with open(config_file, "rb") as f:
@@ -88,9 +88,7 @@ class CortexClient:
             RuntimeError: If requests library is not available.
         """
         if not REQUESTS_AVAILABLE:
-            raise RuntimeError(
-                "requests not installed. Install with: uv add requests"
-            )
+            raise RuntimeError("requests not installed. Install with: uv add requests")
 
         self.model = model
         self.connection_name = connection_name
@@ -149,7 +147,7 @@ class CortexClient:
         messages: list[dict[str, str]],
         temperature: float = 0,
         max_tokens: int = 4096,
-    ) -> str:
+    ) -> CortexResponse:
         """Call Snowflake Cortex REST API with retry logic.
 
         Args:
@@ -158,7 +156,7 @@ class CortexClient:
             max_tokens: Maximum tokens in response.
 
         Returns:
-            Model response text.
+            CortexResponse with text and request_id.
 
         Raises:
             RuntimeError: If API call fails after all retries.
@@ -207,12 +205,15 @@ class CortexClient:
                     raise RuntimeError(error_msg)
 
                 full_response = ""
+                request_id: str | None = None
                 for line in response.iter_lines():
                     if line:
                         line_str = line.decode("utf-8")
                         if line_str.startswith("data:"):
                             try:
                                 data = json.loads(line_str[5:].strip())
+                                if request_id is None and "id" in data:
+                                    request_id = data["id"]
                                 if data.get("choices"):
                                     delta = data["choices"][0].get("delta", {})
                                     content = delta.get("content", "")
@@ -220,7 +221,7 @@ class CortexClient:
                             except json.JSONDecodeError:
                                 continue
 
-                return full_response
+                return CortexResponse(text=full_response, request_id=request_id)
 
             except (Timeout, ReadTimeout) as e:
                 last_error = e
@@ -238,6 +239,26 @@ class CortexClient:
                     continue
                 raise RuntimeError(f"Connection failed: {e}") from e
 
-        raise RuntimeError(
-            f"Failed after {self.max_retries} attempts: {last_error}"
-        )
+        raise RuntimeError(f"Failed after {self.max_retries} attempts: {last_error}")
+
+
+def list_available_models(
+    connection_name: str = "default",
+) -> tuple[list[str], str | None]:
+    """Return available Cortex REST API models.
+
+    NOTE: There is no programmatic way to query available models for the
+    Cortex REST API (/api/v2/cortex/inference:complete). The SHOW MODELS
+    SQL command returns models for COMPLETE() SQL function, which has a
+    different (larger) set than the REST API.
+
+    This function returns SUPPORTED_MODELS, which is manually curated
+    based on: https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-rest-api
+
+    Args:
+        connection_name: Snowflake connection name (unused, kept for compatibility).
+
+    Returns:
+        Tuple of (model list, None).
+    """
+    return list(SUPPORTED_MODELS), None

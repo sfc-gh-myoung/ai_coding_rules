@@ -5,6 +5,14 @@ from pathlib import Path
 
 
 @dataclass
+class CortexResponse:
+    """Response from Cortex REST API."""
+
+    text: str
+    request_id: str | None = None
+
+
+@dataclass
 class CriterionResult:
     """Result of evaluating a single criterion."""
 
@@ -29,6 +37,7 @@ class TestResult:
     error: str | None = None
     duration_seconds: float = 0.0
     turns_count: int | None = None
+    request_id: str | None = None
 
 
 @dataclass

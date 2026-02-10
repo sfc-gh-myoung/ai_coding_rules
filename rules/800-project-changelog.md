@@ -226,6 +226,40 @@ Copying raw commit messages or technical details into changelog.
 - Resolved login failures for users with special characters in passwords
 ```
 
+### Pattern 4: Duplicate Category Headings
+
+**Problem:**
+Multiple instances of the same category heading (e.g., two `### Added` sections) within the same version block.
+
+**Why It Fails:**
+- Breaks Keep a Changelog structure expectations
+- Confuses readers scanning for specific change types
+- Complicates automated changelog parsing and tooling
+- Creates inconsistent documentation that is harder to maintain
+
+**Correct Pattern:**
+```markdown
+# ❌ WRONG - Duplicate category headings
+## [Unreleased]
+### Added
+- Feature A
+
+### Fixed
+- Bug B
+
+### Added
+- Feature C
+
+# ✅ CORRECT - Single heading per category
+## [Unreleased]
+### Added
+- Feature A
+- Feature C
+
+### Fixed
+- Bug B
+```
+
 ## Output Format Examples
 
 ```markdown
@@ -277,6 +311,7 @@ Preview:
   - **Removed** for now removed features
   - **Fixed** for any bug fixes
   - **Security** for vulnerability fixes (with CVE references when applicable)
+- **Requirement:** Maintain exactly ONE instance of each category heading (Added, Changed, Deprecated, Removed, Fixed, Security) within each version section. Consolidate all entries of the same type under a single heading.
 - **Requirement:** Each entry is a single line with human-readable summary.
 - **Requirement:** Use Conventional Commit format for consistency: `type(scope): summary`
   - This is the PREFERRED format per [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/#specification)

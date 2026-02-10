@@ -1,6 +1,6 @@
 # AI Agent Bootstrap Protocol
 
-**Last Updated:** 2026-02-05
+**Last Updated:** 2026-02-06
 
 > **CRITICAL: DO NOT SUMMARIZE THIS FILE**
 >
@@ -65,7 +65,7 @@ A. Extract keywords from user request:
 
 B. Execute search:
    - If bash tool available: Execute `grep -i "KEYWORD" rules/RULES_INDEX.md` for each keyword
-   - If bash unavailable: Gate 2 = FAILED. Output "[ ] Gate 2: FAILED - grep tool unavailable" and "[ ] Gate 3: BLOCKED - depends on Gate 2". Offer recovery options.
+   - **If grep unavailable: AUTOMATICALLY read rules/RULES_INDEX.md and manually scan for keywords (do NOT stop).** Mark Gate 2 as PASSED if manual scan succeeds. This is the REQUIRED fallback - do not offer recovery options, just execute the fallback.
    - If grep returns matches (exit 0): Record matched rules for Step 3
    - If grep returns no matches (exit 1): Note "No rules found for [keyword]"
    - If grep returns error (exit 2): Fall back to reading rules/RULES_INDEX.md and manually scanning
@@ -76,7 +76,7 @@ C. High-risk actions (MANDATORY additional search):
    - test/pytest: Search "test", expect 206-python-pytest.md
    - README/documentation: Search "readme", expect 801-project-readme.md
    - CHANGELOG: Search "changelog", expect 800-project-changelog.md
-   - Modifying files in rules/: Search "rule", expect 002b-rule-update.md
+   - Modifying files in rules/: Load 002-rule-governance.md (per RULES_INDEX.md Section 1)
 
 **Step 3: Load Matching Rules**
 
@@ -111,7 +111,11 @@ D. Load activity rules from Step 2 matches:
    - For EACH rule matched in Step 2: Execute `read_file("rules/[rule-name].md")`
    - If read succeeds: Rule is loaded
    - If read fails AND this is the ONLY matched rule: Note "Rule load failed: [filename] not found" and offer options: (A) Provide correct path, (B) Proceed without this rule, (C) Cancel task
-   - If read fails AND other rules loaded successfully: Note "Rule load failed: [filename]" in Rules Loaded section, PROCEED with successfully loaded rules (partial success = continue)
+   - If read fails AND other rules loaded successfully:
+     1. Note "Rule load failed: [filename]" in Rules Loaded section
+     2. Mark Gate 3 as PASSED (`[x]`) - partial success counts as success
+     3. **CONTINUE WITH TASK** - do NOT stop, do NOT offer recovery options
+     4. Proceed using foundation + successfully loaded rules
 
 E. Check for rule examples (complex configurations only):
    - If loaded rule involves Cortex Agent, Cortex Search, or Semantic View:
@@ -140,7 +144,7 @@ Task Switch: [FIRST | NO | YES (reason)]
 [Response content...]
 
 [If MODE: PLAN with task list, MUST end with:]
-Authorization (required): Reply with `ACT` (or `ACT on items 1-3`).
+Authorization (required): Reply with `ACT` (or `ACT on items 1-N`).
 
 [If MODE: ACT completing task, MUST end with:]
 MODE: PLAN
@@ -154,7 +158,7 @@ Task complete.
 - List actual rules loaded (or "none found") in Gate 3
 
 **PLAN Mode Response Rules (CRITICAL):**
-- If response includes a Task List: MUST end with `Authorization (required): Reply with \`ACT\` (or \`ACT on items 1-3\`).`
+- If response includes a Task List: MUST end with `Authorization (required): Reply with \`ACT\` (or \`ACT on items 1-N\`).`
 - **Even when asking clarifying questions**, if you've proposed any tasks, include the Authorization prompt
 - Omitting the Authorization prompt when a Task List is present = INVALID response
 
@@ -197,7 +201,7 @@ Gate 1 failures:
 
 Gate 2 failures:
 - "rules/RULES_INDEX.md not found"
-- "grep tool unavailable" (do NOT attempt manual scan fallback - mark as FAILED)
+- "grep tool unavailable" → **AUTO-FALLBACK:** Read RULES_INDEX.md directly and scan manually. Do NOT mark as FAILED if fallback succeeds.
 - "No keywords extracted from user request"
 
 Gate 3 failures:
@@ -229,15 +233,41 @@ Note: Gate 3 shows `[x]` because SQL rule loaded successfully. Continue with ava
 **MODE and ACT Authorization:**
 - Default: MODE: PLAN
 - ACT only after user types "ACT" (case-insensitive exact match)
-- Recognized (MUST trigger MODE: ACT): "ACT", "act", "Act", "ACT on items 1-3" (partial), "ACT.", "ACT!", "ACT?"
-- **Trailing punctuation (., !, ?) MUST be tolerated** - strip punctuation before matching
-- **Case-insensitive:** "act", "ACT", "Act" are ALL valid and MUST trigger MODE: ACT
-- **Partial authorization:** "ACT on items 1-2" MUST trigger MODE: ACT (scoped to specified items)
+
+**⚠️ MANDATORY PRE-PROCESSING (execute BEFORE checking for ACT):**
+```
+Step 1: Get user message
+Step 2: Strip leading/trailing whitespace
+Step 3: Strip trailing punctuation: remove any `.`, `!`, `?` from END of string
+Step 4: NOW check if result equals "ACT" (case-insensitive) or starts with "ACT on"
+```
+
+**Examples of VALID ACT authorization (all MUST trigger MODE: ACT):**
+| User Input | After Strip | Result |
+|------------|-------------|--------|
+| `ACT` | `ACT` | ✅ VALID → MODE: ACT |
+| `act` | `act` | ✅ VALID → MODE: ACT |
+| `Act` | `Act` | ✅ VALID → MODE: ACT |
+| `ACT.` | `ACT` | ✅ VALID → MODE: ACT |
+| `ACT!` | `ACT` | ✅ VALID → MODE: ACT |
+| `ACT?` | `ACT` | ✅ VALID → MODE: ACT |
+| `act.` | `act` | ✅ VALID → MODE: ACT |
+| `ACT on items 1-2` | `ACT on items 1-2` | ✅ VALID → MODE: ACT (scoped) |
+
+**Examples of INVALID (must NOT trigger MODE: ACT):**
+| User Input | Reason |
+|------------|--------|
+| `proceed` | Not "ACT" |
+| `go ahead` | Not "ACT" |
+| `Yes I want you to ACT` | "ACT" embedded in sentence |
+| `ATC` | Typo |
+
+- **Partial authorization:** "ACT on items 1-N" MUST trigger MODE: ACT (scoped to specified items)
 - **CRITICAL - Exact match required:** ACT must be the ENTIRE message (after stripping punctuation) OR start with "ACT on"
 - **Embedded ACT is NOT valid:** "I think you should act on this" contains "act" but is NOT authorization
 - NOT recognized: "proceed", "go ahead", "yes", "okay", "yes please", "do it", "make the changes", "sounds good", "ATC", "ACTT" (typos)
 - NOT recognized: Sentences containing "act" as a word (e.g., "please act on this", "you should act now") - these are NOT authorization
-- For MODE transition rules and workflow behavior, see rules/000-global-core.md
+- For MODE transition rules and workflow behavior, see the "Mode-Based Workflow" section below
 
 **Rule Loading Definition:**
 Loading = Read file + Apply guidance + Declare in `## Rules Loaded` section. All three required.
@@ -251,6 +281,127 @@ NEVER declare a rule in `## Rules Loaded` unless `read_file` returned successful
 > The sections below provide reference information for specific situations.
 > Consult only when the EXECUTION SEQUENCE above directs you to look up information.
 > Do NOT read these sections sequentially during normal operation.
+
+### Mode-Based Workflow
+
+**PLAN Mode (Default):**
+- Information gathering and analysis only
+- Read-only tools permitted
+- Present clear task list for user confirmation
+- No file or system modifications allowed
+
+**ACT Mode (After Authorization):**
+- Entered only when user types "ACT"
+- File modifications permitted
+- System-modifying commands allowed
+- **Declare MODE change:** State "MODE: ACT" at start of response when entering ACT mode
+- Return to PLAN immediately after task completion
+- **Declare return:** State "MODE: PLAN" when returning to PLAN mode after completion
+
+**ACT Recognition Rules:** See "MODE and ACT Authorization" in Step 4 for complete recognition rules.
+- **Scope:** Applies to most recent task list in PLAN
+- **Expires:** When new task list is presented
+
+### Clarification Gate (Options-Based Questions)
+
+Gather details in PLAN without expiring ACT scope:
+- Use **A/B/C/D/E** choices for ambiguous input
+- Bundle 3-5 questions per message
+- Mark **(recommended)** default when safe
+- Preserve ACT scope (don't present new task list while clarifying)
+- Max 1 clarification round (then proceed with stated assumptions)
+
+### MODE Transitions
+
+**PLAN to ACT:**
+- Trigger: User types "ACT"
+- Required: Task list must be presented first
+- Declaration: "MODE: ACT" at start of next response
+
+**ACT to ACT (Validation Loop):**
+- Trigger: Validation failure
+- Max loops: 3 attempts (then escalate to PLAN)
+- Declaration: Stay in ACT, no re-declaration needed
+
+**ACT to PLAN:**
+- Trigger: Successful validation + doc update
+- Automatic: No user input needed
+- Declaration: "MODE: PLAN" at end of response
+
+**PLAN to PLAN:**
+- Trigger: Any non-"ACT" user input
+- Default: Always return to PLAN after ACT completion
+
+**Validation Retry:** Max 3 attempts. After 3 failures, return to PLAN with error report and request guidance.
+
+### Protocol Enforcement
+
+**CRITICAL violations:** ACT without authorization, file modification in PLAN
+**HIGH violations:** MODE not declared, rules not listed, validation skipped
+**MEDIUM violations:** Language-specific rules not loaded for file edits
+
+**Required gates:** MODE declared, then Rules listed, then PLAN protection, then Explicit ACT prompt, then ACT authorization, then Validation executed, then Language rules loaded
+
+### ACT Mode Requirements (Quality Gates)
+
+When operating in ACT mode after authorization, these requirements MUST be met:
+
+**Validation Gate:**
+- Run appropriate validation tools before marking task complete
+- Python: `uvx ruff check .` and `uvx ruff format --check .` and `uv run pytest`
+- SQL: Compile check with `snowflake_sql_execute` (only_compile=true)
+- Shell: `shellcheck script.sh`
+
+**Surgical Edits Gate:**
+- Make ONLY minimal changes required for the task
+- Preserve existing code patterns, style, and conventions
+- Use `edit` tool for targeted replacements, NOT `write` for entire files
+- Show deltas (what changed) not entire file rewrites
+
+**Return to PLAN Gate:**
+- After task completion, explicitly declare `MODE: PLAN` in response
+- Confirms you are no longer making modifications
+- Ready for next user instruction
+
+### MODE Anti-Patterns
+
+**Anti-Pattern 1: Starting work without PLAN mode**
+
+**Problem:** Immediately modifying files without presenting a task list or awaiting authorization.
+
+**Why It Fails:** Violates the PLAN/ACT protocol; user loses control over changes; may cause unintended modifications.
+
+**Correct Pattern:**
+```markdown
+User: Can you update the config file to use port 8080?
+AI: MODE: PLAN
+
+## Rules Loaded
+- rules/000-global-core.md (foundation)
+
+Task List:
+1. Read current config file
+2. Update port setting to 8080
+3. Validate config syntax
+
+Authorization (required): Reply with `ACT` (or `ACT on items 1-N`).
+```
+
+**Anti-Pattern 2: Skipping validation steps**
+
+**Problem:** Marking a task complete without running linting, tests, or verification.
+
+**Why It Fails:** Introduces bugs and regressions; violates ACT mode quality gates; erodes trust.
+
+**Correct Pattern:**
+```markdown
+AI: Changes made. Validating:
+[runs uvx ruff check .]
+[runs uv run pytest]
+
+Validation: Linting clean, Tests passing (15/15)
+Task complete.
+```
 
 ### Search Triggers
 
@@ -279,15 +430,7 @@ NEVER declare a rule in `## Rules Loaded` unless `read_file` returned successful
 
 ### High-Risk Actions
 
-These actions MUST trigger rules/RULES_INDEX.md search regardless of agent's prior knowledge:
-
-- **git commit, git push, git merge:** Search "git", load 803-project-git-workflow.md
-- **deploy, deployment:** Search "deploy", load 820-taskfile-automation.md
-- **test, pytest:** Search "test", load 206-python-pytest.md
-- **README, documentation:** Search "readme", load 801-project-readme.md
-- **CHANGELOG:** Search "changelog", load 800-project-changelog.md
-- **security, credentials:** Search "security", load domain security rule
-- **Modifying files in rules/:** Load 002b-rule-update.md
+See Step 2C for the authoritative list of high-risk actions that trigger mandatory RULES_INDEX.md search.
 
 ### Rule Loading Failures
 

@@ -107,7 +107,7 @@ Now respond to the user's request following this protocol exactly."""
         self,
         user_message: str,
         conversation_history: list[dict[str, str]] | None = None,
-    ) -> str:
+    ) -> tuple[str, str | None]:
         """Call Snowflake Cortex REST API.
 
         Args:
@@ -115,7 +115,7 @@ Now respond to the user's request following this protocol exactly."""
             conversation_history: Optional list of prior messages for multi-turn tests.
 
         Returns:
-            Model response text.
+            Tuple of (response_text, request_id).
         """
         if not self.client:
             self.connect()
@@ -126,7 +126,8 @@ Now respond to the user's request following this protocol exactly."""
             messages.extend(conversation_history)
         messages.append({"role": "user", "content": user_message})
 
-        return self.client.complete(messages)  # type: ignore[union-attr]
+        result = self.client.complete(messages)  # type: ignore[union-attr]
+        return result.text, result.request_id
 
     def evaluate_test(self, test_case: dict[str, Any]) -> dict[str, Any]:
         """Evaluate a single test case using Cortex REST API.
@@ -145,14 +146,17 @@ Now respond to the user's request following this protocol exactly."""
 
         if turns:
             conversation_history: list[dict[str, str]] = []
+            request_id: str | None = None
 
             for i, turn in enumerate(turns):
                 turn_input = turn["input"]
                 is_final = i == len(turns) - 1
 
-                response = self.call_cortex_complete(
+                response, req_id = self.call_cortex_complete(
                     turn_input, conversation_history if conversation_history else None
                 )
+                if req_id:
+                    request_id = req_id
 
                 conversation_history.append({"role": "user", "content": turn_input})
                 conversation_history.append({"role": "assistant", "content": response})
@@ -164,6 +168,7 @@ Now respond to the user's request following this protocol exactly."""
                     else:
                         result["model_response"] = response
                     result["turns_count"] = len(turns)
+                    result["request_id"] = request_id
                     duration = time.perf_counter() - test_start
                     result["duration_seconds"] = round(duration, 2)
                     if self.state:
@@ -171,7 +176,7 @@ Now respond to the user's request following this protocol exactly."""
                     return result
 
         test_input = test_case["test_input"]
-        response = self.call_cortex_complete(test_input)
+        response, request_id = self.call_cortex_complete(test_input)
 
         result = score_response(test_case, response)
 
@@ -180,6 +185,7 @@ Now respond to the user's request following this protocol exactly."""
         else:
             result["model_response"] = response
 
+        result["request_id"] = request_id
         duration = time.perf_counter() - test_start
         result["duration_seconds"] = round(duration, 2)
         if self.state:

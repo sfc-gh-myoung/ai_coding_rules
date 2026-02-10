@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **refactor(core):** move MODE:PLAN/ACT framework from 000-global-core.md to AGENTS.md
+  - 000-global-core.md reduced from ~5750 to ~3500 tokens (~40% reduction)
+  - AGENTS.md now contains complete mode workflow, transitions, and ACT requirements
+  - 000-global-core.md focuses on validation, surgical edits, and context management
+  - Clear separation: AGENTS.md = bootstrap + MODE framework, 000-global-core.md = operational behavior
+- **feat(governance):** expand design priorities hierarchy in 002-rule-governance.md
+  - Added quantified priority weighting (P1: 50% overhead, P2: 30%, P3: baseline, P4: none)
+  - Added trade-off examples and guidance for priority conflicts
+  - Added keywords: design priorities, agent optimization
+  - TokenBudget updated from ~5700 to ~6200
 - **fix(AGENTS):** strengthen protocol compliance for cross-model consistency
   - Step 2A: Gate 2 should only fail if grep unavailable or request truly empty (not for vague requests)
   - Step 4: PRE-FLIGHT header mandatory for ALL responses including typo corrections and clarifications
@@ -25,6 +35,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated README with correct compare/report usage examples
 
 ### Added
+- **feat(tools):** add `models` command to agent_eval CLI
+  - Lists available Cortex REST API models dynamically from Snowflake
+  - Removed static SUPPORTED_MODELS list in favor of runtime discovery
+  - Updated README with output format documentation (request_id for debugging)
 - **feat(tools):** add agent_eval framework for AGENTS.md compliance testing
   - `tools/agent_eval/cli.py` - CLI with Snowflake Cortex REST API integration for model evaluation
   - `tools/agent_eval/models.py` - Dataclasses for test cases, results, and evaluation metadata

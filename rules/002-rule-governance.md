@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.2.2
-**LastUpdated:** 2026-01-20
-**Keywords:** rule governance, schema, metadata requirements, validation, schema compliance, rule structure, semantic discovery, RULES_INDEX, descriptive headings
-**TokenBudget:** ~5700
+**RuleVersion:** v3.2.3
+**LastUpdated:** 2026-02-06
+**Keywords:** rule governance, schema, metadata requirements, validation, schema compliance, rule structure, semantic discovery, RULES_INDEX, descriptive headings, design priorities, agent optimization
+**TokenBudget:** ~6200
 **ContextTier:** Critical
 **Depends:** 000-global-core.md
 **LoadTrigger:** dir:rules/
@@ -172,23 +172,15 @@ Markdown file (.md) with:
 
 ### Context Preservation Mechanisms
 
-**Primary Mechanism: Natural Language Markers (Universal)**
+See `000-global-core.md` §Context Window Management Protocol for canonical marker definitions and preservation priority order.
 
-All rules use natural language importance markers that work across all LLM providers:
-
-**Importance Markers:**
-- **CRITICAL: DO NOT SUMMARIZE** - Bootstrap files (AGENTS.md, 000-global-core.md), never summarize
-- **CORE RULE: PRESERVE WHEN POSSIBLE** - Domain cores (*-core.md files), preserve for domain tasks
-- **FOUNDATION RULE: PRESERVE WHEN POSSIBLE** - Governance rules (002-series), preserve for rule work
+**Quick Reference - Importance Markers:**
+- **CRITICAL: DO NOT SUMMARIZE** - Bootstrap files (AGENTS.md, 000-global-core.md)
+- **CORE RULE: PRESERVE WHEN POSSIBLE** - Domain cores (*-core.md files)
+- **FOUNDATION RULE: PRESERVE WHEN POSSIBLE** - Governance rules (002-series)
 - **(none)** - Standard rules, can be summarized if needed
 
-**Secondary Mechanism: ContextTier Metadata (Project-Specific)**
-
-The `ContextTier` field (Critical/High/Medium/Low) provides fine-grained prioritization
-within natural language tiers. This metadata is validated by schema but not universally
-recognized by all LLMs - rely on natural language markers as primary signal.
-
-See `000-global-core.md`, section "Context Window Management Protocol" for full details.
+**ContextTier Metadata:** Provides fine-grained prioritization within tiers. See 000-global-core.md for details.
 
 ### Contract Structure (v3.2 - Markdown Headers)
 
@@ -315,11 +307,57 @@ If both options fail, note the validation gap in commit message and request revi
 
 ## Key Principles
 
-- **Priority Hierarchy:** All rules follow the design priorities defined in `000-global-core.md`:
-  1. **Priority 1 (CRITICAL):** Agent understanding and execution reliability
-  2. **Priority 2 (HIGH):** Rule discovery efficacy and determinism
-  3. **Priority 3 (HIGH):** Context window and token utilization efficiency
-  4. **Priority 4 (LOW):** Human developer maintainability
+- **Priority Hierarchy:** All rules in this repository target **autonomous AI agents**, not human developers. Design decisions must follow this priority order:
+
+  **Priority 1 (CRITICAL): Agent Understanding and Execution Reliability**
+  - Instructions must be unambiguous and deterministic
+  - All conditionals must have explicit branches (if X, then Y; else Z)
+  - Subjective terms must be quantified (e.g., "large table" becomes ">1M rows")
+  - No visual formatting agents cannot interpret (ASCII tables, diagrams, arrow characters)
+  - Use imperative voice for all instructions
+  - Recommendations must work universally across ALL agents and LLMs (GPT, Claude, Gemini, Cursor, Cline, Claude Code, Gemini CLI, GitHub Copilot)
+
+  **Priority 2 (HIGH): Rule Discovery Efficacy and Determinism**
+  - Keywords must enable reliable semantic discovery
+  - Rule loading must be deterministic (same input produces same rules loaded)
+  - Dependencies must be explicit and acyclic
+  - rules/RULES_INDEX.md must be accurate and current
+
+  **Priority 3 (HIGH): Context Window and Token Utilization Efficiency**
+  - Minimize tokens without sacrificing Priority 1 or Priority 2
+  - Use structured lists over prose paragraphs
+  - Front-load critical information in each section
+  - Reference other rules instead of duplicating content
+  - TokenBudget must be within ±5% of actual
+
+  **Priority 4 (LOW): Human Developer Maintainability**
+  - Maintain logical organization for human reviewers
+  - Use consistent terminology across all rules
+  - Provide examples for complex patterns
+  - Priorities 1, 2, and 3 significantly outweigh Priority 4
+
+  **Design Test:** When in doubt, ask: "Can an agent execute this without judgment?" If the answer is no, revise for Priority 1 compliance.
+
+  **Priority Weighting (Quantified):**
+  - Priority 1: Accept up to 50% token overhead for explicit error handling
+  - Priority 2: Accept up to 30% token overhead for semantic discovery metadata
+  - Priority 3: Minimize tokens without sacrificing P1/P2 (baseline target)
+  - Priority 4: Optimize only after P1-P3 satisfied (no token overhead allowed)
+
+  **Trade-off Examples:**
+  - 200 tokens of explicit conditionals (P1) vs 50 tokens of prose (P4) - Choose P1
+  - 100 tokens of Keywords field (P2) vs 20 tokens minimal (P3) - Choose P2
+  - Verbose examples (P1) vs terse references (P3) - Choose P1 if aids executability
+  - 150 tokens for human maintainability (P4) vs 100 tokens P1 alternative - Choose P1
+
+  **Trade-off Guidance:**
+  - More tokens for explicit error handling: Priority 1 wins
+  - Repeated key terms for clarity: Priority 1 wins
+  - Complete examples over terse references: Priority 1 wins
+  - Verbose discovery metadata over compact: Priority 2 wins over Priority 3
+
+  **See:** `002g-agent-optimization.md` for detailed formatting patterns.
+
 - **Schema Compliance:** All rules must validate against schemas/rule-schema.yml with zero CRITICAL errors
 - **CommonMark Compliance:** All Markdown must follow [CommonMark spec](https://spec.commonmark.org/) for consistent parsing
 - **Semantic Discovery:** Keywords (5-20) enable AI agents to automatically discover relevant rules

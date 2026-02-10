@@ -9,29 +9,28 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-01-13
-**Keywords:** PLAN mode, ACT mode, workflow, safety, confirmation, validation, surgical edits, minimal changes, mode violations, prompt engineering, task list, read-only, authorization
-**TokenBudget:** ~5750
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-02-06
+**Keywords:** workflow, safety, confirmation, validation, surgical edits, minimal changes, prompt engineering, task list, context window, professional communication
+**TokenBudget:** ~3500
 **ContextTier:** Critical
 **Depends:** None
 
 ## Scope
 
 **What This Rule Covers:**
-Foundational operating contract for all AI coding assistants, ensuring reliable, safe, and consistent workflows through mode-based operations, task confirmation protocols, and professional communication standards.
+Foundational operating contract for all AI coding assistants, ensuring reliable, safe, and consistent workflows through validation protocols, surgical editing principles, and professional communication standards.
 
 **When to Load This Rule:**
 - **ALWAYS** - This is the foundation rule loaded by all agents for every response
-- Defines MODE transitions (PLAN/ACT workflow)
-- Establishes task confirmation protocol
-- Specifies validation requirements
+- Establishes validation requirements
 - Sets professional communication standards
 - Guides context window management
+- Defines surgical editing principles
 
-> **Note:** This rule assumes the AGENTS.md bootstrap protocol (steps 1-5) has been completed.
-> AGENTS.md defines WHAT to load and WHEN. This rule defines operational behavior AFTER loading:
-> MODE transitions, task confirmation, validation commands, and communication standards.
+> **Note:** This rule assumes the AGENTS.md bootstrap protocol has been completed.
+> AGENTS.md defines the MODE:PLAN/ACT framework. This rule defines operational behavior:
+> validation commands, surgical edits, communication standards, and context management.
 
 ## References
 
@@ -41,7 +40,7 @@ Foundational operating contract for all AI coding assistants, ensuring reliable,
 - None (this IS the foundation)
 
 **Related:**
-- **AGENTS.md** - Bootstrap protocol and rule discovery (always loaded with this rule)
+- **AGENTS.md** - Bootstrap protocol, MODE:PLAN/ACT framework, and rule discovery
 - **001-memory-bank.md** - Context continuity across sessions
 - **002-rule-governance.md** - Rule authoring standards
 - **002a-rule-creation.md** - Creating new rules
@@ -66,42 +65,31 @@ Foundational operating contract for all AI coding assistants, ensuring reliable,
 
 ### Mandatory
 
-- **PLAN mode:** Read-only tools only (read_file, list_dir, grep, search, etc.)
-- **ACT mode:** All tools permitted after explicit user authorization
-- **MODE declaration:** First line of every response must be `MODE: [PLAN|ACT]`
-- **Rules loaded:** Second section must list all loaded rules
+- **Rules loaded:** List all loaded rules in response
 - **Task list:** Present task list before any modifications
-- **ACT authorization:** User must type "ACT" to authorize changes
 - **Validation:** Run appropriate tests/lints before marking complete
+- **Surgical edits:** Make minimal, targeted changes only
 
 ### Forbidden
 
-- **PLAN mode:** Any file-modifying tool or system-modifying command
-- **PLAN mode:** Never modify files without explicit "ACT" authorization
-- **ACT mode:** None, beyond project-specific security restrictions
-- **All modes:** Never declare rule as loaded when `read_file` failed
+- **File modifications without authorization:** See AGENTS.md for MODE:PLAN/ACT protocol
+- **False rule declaration:** Never declare rule as loaded when `read_file` failed
 
 ### Execution Steps
 
-1. Start in PLAN mode: gather context and propose task list
-2. Declare MODE at start of response
-3. List all loaded rules in `## Rules Loaded` section
-4. Present clear task list for user confirmation
-5. End PLAN response with explicit ACT prompt: `Authorization (required): Reply with \`ACT\` (or \`ACT on items 1-3\`).`
-6. Await explicit "ACT" from user before any file modifications
-7. Declare MODE: ACT when entering ACT mode
-8. Perform minimal, surgical edits
-9. Validate changes immediately (lint, test, format)
-10. Return to PLAN mode after completion
-11. Declare MODE: PLAN when returning
+1. List all loaded rules in `## Rules Loaded` section
+2. Present clear task list for user confirmation
+3. Perform minimal, surgical edits
+4. Validate changes immediately (lint, test, format)
+5. Update relevant documentation
 
 ### Output Format
 
 **Required Response Structure:**
 
-```markdown
-MODE: [PLAN|ACT]
+See AGENTS.md for complete response format including MODE declaration.
 
+```markdown
 ## Rules Loaded
 - rules/000-global-core.md (foundation)
 - rules/[domain-core].md (technology domain)
@@ -110,65 +98,26 @@ MODE: [PLAN|ACT]
 [Response content: analysis, task list, implementation, or code]
 ```
 
-**PLAN Phase Example:**
-```markdown
-MODE: PLAN
-
-## Rules Loaded
-- rules/000-global-core.md (foundation)
-- rules/100-snowflake-core.md (domain)
-
-Analysis: [2-3 sentence summary]
-
-Task List:
-1. [Action step 1]
-2. [Action step 2]
-3. [Validation step]
-
-Authorization (required): Reply with `ACT`.
-```
-
-**ACT Phase Example:**
-```markdown
-MODE: ACT
-
-[Implementation: code/changes]
-
-Validation: [test/lint results]
-
-MODE: PLAN
-Task complete.
-```
-
 ### Validation
 
 **Pre-Task-Completion Validation Gate (CRITICAL):**
 
-Reference: Complete validation protocol in `AGENTS.md`
+Reference: See `AGENTS.md` for complete MODE validation and authorization protocol.
 
-**MODE Validation:**
-- **CRITICAL:** MODE declared at start of response
+**Rules Validation:**
 - **CRITICAL:** Rules loaded section present with all loaded rules
-- **CRITICAL:** PLAN mode uses read-only tools only
-- **CRITICAL:** ACT mode only entered after explicit "ACT" authorization
+- **CRITICAL:** Never declare rule as loaded when `read_file` failed
 
 **Task Confirmation:**
 - **CRITICAL:** Task list presented before modifications
-- **CRITICAL:** Explicit ACT prompt at end of PLAN response
-- **CRITICAL:** User authorization obtained before changes
+- **CRITICAL:** User authorization obtained before changes (see AGENTS.md)
 
-**Code Quality (ACT mode):**
+**Code Quality:**
 - **CRITICAL:** Surgical edits only (minimal changes)
 - **CRITICAL:** Validation executed (lint, format, test)
 - **CRITICAL:** Language-specific rules loaded for domain work
 
-**Return to PLAN:**
-- **CRITICAL:** MODE: PLAN declared after task completion
-- **CRITICAL:** Ready for next instruction
-
 **Success Criteria:**
-- Mode transitions correct
-- User authorization obtained
 - Minimal edits applied
 - Validation passes
 - Documentation current
@@ -176,7 +125,6 @@ Reference: Complete validation protocol in `AGENTS.md`
 **Validation Protocol:**
 - **Rule:** Run validation immediately after modifications
 - **Rule:** Do not mark tasks complete if ANY check fails
-- **Rule:** Return to PLAN after successful validation
 
 **Validation Error Message Format:**
 
@@ -231,19 +179,17 @@ tests/test_api.py::test_login - AssertionError: assert 401 == 200
 **Anti-Pattern Examples:**
 - "Based on typical projects, you probably have this file structure..."
 - "Let me modify this file - it should work..."
-- Starting work without MODE declaration
 - File edits without presenting task list
 
 **Correct Pattern:**
 - "Let me check your project structure first."
 - [reads directory structure, examines key files]
 - "I see you're using [specific pattern]. Here's my task list..."
-- [awaits ACT authorization]
+- [awaits authorization per AGENTS.md]
 
 ### Design Principles
 
-- **Mode-Based Workflow:** Start in PLAN (read-only), transition to ACT only after explicit user authorization
-- **Task Confirmation:** Always present task list and await "ACT" command before modifications
+- **Task Confirmation:** Always present task list before modifications (see AGENTS.md for authorization protocol)
 - **Surgical Editing:** Make minimal, targeted changes - preserve existing patterns
 - **Professional Communication:** Concise, code-first solutions with technical tone
 - **Validation First:** Test, lint, and verify all changes before completion
@@ -252,154 +198,19 @@ tests/test_api.py::test_login - AssertionError: assert 401 == 200
 
 **Before Starting:**
 - [ ] Foundation rule loaded (000-global-core.md)
-- [ ] Understanding of MODE workflow (PLAN/ACT)
-- [ ] Knowledge of task confirmation protocol
+- [ ] Understanding of AGENTS.md authorization protocol
 - [ ] Awareness of validation requirements
 
 **After Completion:**
-- [ ] **CRITICAL:** Declared current MODE at start of response
-- [ ] **CRITICAL:** Started in PLAN mode
 - [ ] **CRITICAL:** Listed loaded rules explicitly (## Rules Loaded format)
 - [ ] **CRITICAL:** Presented clear task list
 - [ ] **CRITICAL:** Disclosed loaded rule filenames
-- [ ] **CRITICAL:** Received explicit "ACT" authorization
 - [ ] Made minimal, surgical edits
 - [ ] Validated changes work correctly
-- [ ] Returned to PLAN mode after completion
 - [ ] Updated relevant documentation
 - [ ] No unauthorized modifications made
 
-## Rule Design Priorities (Hierarchy)
-
-All rules in this repository target **autonomous AI agents**, not human developers.
-Design decisions must follow this priority order:
-
-**Priority 1 (CRITICAL): Agent Understanding and Execution Reliability**
-- Instructions must be unambiguous and deterministic
-- All conditionals must have explicit branches (if X, then Y; else Z)
-- Subjective terms must be quantified (e.g., "large table" becomes ">1M rows")
-- No visual formatting agents cannot interpret (ASCII tables, diagrams, arrow characters)
-- Use imperative voice for all instructions
-- Recommendations must work universally across ALL agents and LLMs (GPT, Claude, Gemini, Cursor, Cline, Claude Code, Gemini CLI, GitHub Copilot)
-
-**Priority 2 (HIGH): Rule Discovery Efficacy and Determinism**
-- Keywords must enable reliable semantic discovery
-- Rule loading must be deterministic (same input produces same rules loaded)
-- Dependencies must be explicit and acyclic
-- rules/RULES_INDEX.md must be accurate and current
-
-**Priority 3 (HIGH): Context Window and Token Utilization Efficiency**
-- Minimize tokens without sacrificing Priority 1 or Priority 2
-- Use structured lists over prose paragraphs
-- Front-load critical information in each section
-- Reference other rules instead of duplicating content
-- TokenBudget must be within ±5% of actual
-
-**Priority 4 (LOW): Human Developer Maintainability**
-- Maintain logical organization for human reviewers
-- Use consistent terminology across all rules
-- Provide examples for complex patterns
-- Priorities 1, 2, and 3 significantly outweigh Priority 4
-
-**Design Test:** When in doubt, ask: "Can an agent execute this without judgment?"
-If the answer is no, revise for Priority 1 compliance.
-
-**Priority Weighting (Quantified):**
-- Priority 1: Accept up to 50% token overhead for explicit error handling
-- Priority 2: Accept up to 30% token overhead for semantic discovery metadata
-- Priority 3: Minimize tokens without sacrificing P1/P2 (baseline target)
-- Priority 4: Optimize only after P1-P3 satisfied (no token overhead allowed)
-
-**Trade-off Examples:**
-- 200 tokens of explicit conditionals (P1) vs 50 tokens of prose (P4) - Choose P1
-- 100 tokens of Keywords field (P2) vs 20 tokens minimal (P3) - Choose P2
-- Verbose examples (P1) vs terse references (P3) - Choose P1 if aids executability
-- 150 tokens for human maintainability (P4) vs 100 tokens P1 alternative - Choose P1
-
-**Trade-off Guidance:**
-- More tokens for explicit error handling: Priority 1 wins
-- Repeated key terms for clarity: Priority 1 wins
-- Complete examples over terse references: Priority 1 wins
-- Verbose discovery metadata over compact: Priority 2 wins over Priority 3
-
-**See:** `002g-agent-optimization.md` for detailed formatting patterns.
-
 ## Key Principles
-
-### Mode-Based Workflow
-
-> **Note:** MODE declaration format is defined in AGENTS.md step 4.
-> This section defines MODE *behavior* and *transitions*.
-
-**PLAN Mode (Default):**
-- Information gathering and analysis only
-- Read-only tools permitted
-- Present clear task list for user confirmation
-- No file or system modifications allowed
-
-**ACT Mode (After Authorization):**
-- Entered only when user types "ACT"
-- File modifications permitted
-- System-modifying commands allowed
-- **Declare MODE change:** State "MODE: ACT" at start of response when entering ACT mode
-- Return to PLAN immediately after task completion
-- **Declare return:** State "MODE: PLAN" when returning to PLAN mode after completion
-
-**ACT Recognition Rules:**
-- **Recognized:** "ACT", "act", "Act" (case-insensitive exact match)
-- **NOT recognized:** "proceed", "go ahead", "yes", "okay", "yes please", "do it", "make the changes", "sounds good"
-- **Scope:** Applies to most recent task list in PLAN
-- **Expires:** When new task list is presented
-- **Partial auth:** "ACT on items 1-3" executes specified items only
-
-### Clarification Gate (Options-Based Questions)
-
-Gather details in PLAN without expiring ACT scope:
-- Use **A/B/C/D/E** choices for ambiguous input
-- Bundle 3-5 questions per message
-- Mark **(recommended)** default when safe
-- Preserve ACT scope (don't present new task list while clarifying)
-- Max 1 clarification round (then proceed with stated assumptions)
-
-### MODE Transitions
-
-**PLAN to ACT:**
-- Trigger: User types "ACT"
-- Required: Task list must be presented first
-- Declaration: "MODE: ACT" at start of next response
-
-**ACT to ACT (Validation Loop):**
-- Trigger: Validation failure
-- Max loops: 3 attempts (then escalate to PLAN)
-- Declaration: Stay in ACT, no re-declaration needed
-
-**ACT to PLAN:**
-- Trigger: Successful validation + doc update
-- Automatic: No user input needed
-- Declaration: "MODE: PLAN" at end of response
-
-**PLAN to PLAN:**
-- Trigger: Any non-"ACT" user input
-- Default: Always return to PLAN after ACT completion
-
-**Validation Retry:** Max 3 attempts. After 3 failures, return to PLAN with error report and request guidance.
-
-### Protocol Enforcement
-
-**CRITICAL violations:** ACT without authorization, file modification in PLAN
-**HIGH violations:** MODE not declared, rules not listed, validation skipped
-**MEDIUM violations:** Language-specific rules not loaded for file edits
-
-**Required gates:** MODE declared, then Rules listed, then PLAN protection, then Explicit ACT prompt, then ACT authorization, then Validation executed, then Language rules loaded
-
-### Task Confirmation Protocol
-
-- **Mandatory:** Present task list before any modifications
-- **Mandatory:** Disclose all loaded rule filenames that informed the plan
-- **Mandatory:** User must type "ACT" to authorize changes
-- **Mandatory:** If a Task List is present in PLAN, end the response with: `Authorization (required): Reply with \`ACT\` (or \`ACT on items 1-3\`).`
-- **Critical:** Never modify files without explicit authorization
-- **Exception:** Only if user explicitly overrides ("proceed without asking" AND "ACT")
 
 ### Surgical Editing Principle
 
@@ -410,10 +221,10 @@ Gather details in PLAN without expiring ACT scope:
 
 ### Multi-File Task Protocol
 
-**Atomic Changes:** Tightly coupled files (refactoring, API contracts, schema) require single ACT
-**Progressive Changes:** Loosely coupled files (independent features) allow multiple ACTs
+**Atomic Changes:** Tightly coupled files (refactoring, API contracts, schema) require single authorization
+**Progressive Changes:** Loosely coupled files (independent features) allow multiple authorizations
 
-**Rollback:** If validation fails, revert ALL files to original state, return to PLAN
+**Rollback:** If validation fails, revert ALL files to original state
 
 **Details:** See 002d-advanced-rule-patterns.md, section "Multi-File Task Patterns"
 
@@ -433,7 +244,7 @@ Gather details in PLAN without expiring ACT scope:
 - **Taskfile-first (project standards):** If the project provides an automation entrypoint (prefer
   `Taskfile.yml`), run validation via project-defined tasks:
   - **If task exits 0:** Success, continue to next validation step
-  - **If task exits non-zero:** Report failure with task output, STOP and return to PLAN mode
+  - **If task exits non-zero:** Report failure with task output, STOP
   - **If Taskfile.yml missing OR task not found:** Fall back to direct tool commands
   - **Common tasks:** `task validate`, `task check`, `task ci`, `task lint`, `task test`
 
@@ -465,19 +276,13 @@ Gather details in PLAN without expiring ACT scope:
 
 ## Anti-Patterns and Common Mistakes
 
-### Critical Violations (Automatic Response Invalidation)
+### Critical Violations
 
-These violations result in INVALID responses that must be regenerated:
-
-**Critical Violations:**
-- **MODE not declared:** First line must be `MODE: [PLAN|ACT]` - Regenerate with MODE as first line
+**Critical Violations (see AGENTS.md for MODE-related violations):**
 - **Rules not listed:** Missing `## Rules Loaded` section - Add section listing all loaded rules
-- **File edit in PLAN:** File modification in PLAN mode - STOP, present task list, await "ACT"
-- **ACT without authorization:** Entered ACT without user "ACT" - Revert changes, apologize, return to PLAN
 - **False rule declaration:** Declared rule as loaded when `read_file` failed - STOP, remove false declaration, report failure to user with options (A) Provide correct path, (B) Proceed without rule, (C) Cancel task
 
 **High Priority Violations:**
-- **Task list missing ACT prompt:** PLAN with Task List must end with authorization prompt - Regenerate with explicit ACT prompt
 - **Skipped validation:** Changes made without lint/test - Execute validation before marking complete
 - **Language rules missing:** Working with .py/.sql/.sh/.go without domain rules - Load appropriate domain rules
 
@@ -489,52 +294,9 @@ These violations result in INVALID responses that must be regenerated:
 - Requires rules: "Run pytest", "Lint this file", "Fix the bug in auth.py"
 - No rules needed: "Show project structure", "What files changed?", "Move this folder"
 
-### ACT Mode Requirements (Quality Gates)
-
-When operating in ACT mode after authorization, these requirements MUST be met:
-
-**Validation Gate:**
-- Run appropriate validation tools before marking task complete
-- Python: `uvx ruff check .` and `uvx ruff format --check .` and `uv run pytest`
-- SQL: Compile check with `snowflake_sql_execute` (only_compile=true)
-- Shell: `shellcheck script.sh`
-
-**Surgical Edits Gate:**
-- Make ONLY minimal changes required for the task
-- Preserve existing code patterns, style, and conventions
-- Use `edit` tool for targeted replacements, NOT `write` for entire files
-- Show deltas (what changed) not entire file rewrites
-
-**Return to PLAN Gate:**
-- After task completion, explicitly declare `MODE: PLAN` in response
-- Confirms you are no longer making modifications
-- Ready for next user instruction
-
 ### Common Anti-Patterns
 
-**Anti-Pattern 1: Starting work without PLAN mode**
-
-**Problem:** Immediately modifying files without presenting a task list or awaiting authorization.
-
-**Why It Fails:** Violates the PLAN/ACT protocol; user loses control over changes; may cause unintended modifications.
-
-**Correct Pattern:**
-```markdown
-User: Can you update the config file to use port 8080?
-AI: MODE: PLAN
-
-## Rules Loaded
-- rules/000-global-core.md (foundation)
-
-Task List:
-1. Read current config file
-2. Update port setting to 8080
-3. Validate config syntax
-
-Authorization (required): Reply with `ACT` (or `ACT on items 1-3`).
-```
-
-**Anti-Pattern 2: Broad rewrites instead of surgical edits**
+**Anti-Pattern 1: Broad rewrites instead of surgical edits**
 
 **Problem:** Rewriting entire files or functions when only a small change is needed.
 
@@ -547,23 +309,7 @@ old_string: "    result = old_logic()"
 new_string: "    result = new_logic()"
 ```
 
-**Anti-Pattern 3: Skipping validation steps**
-
-**Problem:** Marking a task complete without running linting, tests, or verification.
-
-**Why It Fails:** Introduces bugs and regressions; violates ACT mode quality gates; erodes trust.
-
-**Correct Pattern:**
-```markdown
-AI: Changes made. Validating:
-[runs uvx ruff check .]
-[runs uv run pytest]
-
-Validation: Linting clean, Tests passing (15/15)
-Task complete.
-```
-
-**Anti-Pattern 4: No recovery strategy for resource exhaustion**
+**Anti-Pattern 2: No recovery strategy for resource exhaustion**
 
 **Problem:** Tool failures due to resource limits (context overflow, timeout, rate limiting) with no recovery path.
 
@@ -620,10 +366,9 @@ maintain consistent behavior. This protocol works across all LLM providers.
 
 **NEVER:**
 
-- Summarize or compact AGENTS.md (breaks MODE/ACT protocol)
+- Summarize or compact AGENTS.md (breaks bootstrap and authorization protocol)
 - Summarize or compact 000-global-core.md (breaks foundation patterns)
 - Drop the active domain -core.md file while working in that domain
-- Lose awareness of which MODE you're in (PLAN vs ACT)
 - Forget the rule loading protocol
 
 ### Context Management Decision Tree

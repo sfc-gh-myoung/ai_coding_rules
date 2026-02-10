@@ -6,7 +6,7 @@
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-02-05
 **Keywords:** Podman, Containerfile, containers, rootless containers, buildah, podman-compose, pods, daemonless, systemd, quadlet, image optimization, non-root, healthcheck, security scanning, SBOM
-**TokenBudget:** ~3200
+**TokenBudget:** ~3650
 **ContextTier:** Medium
 **Depends:** 000-global-core.md, 202-markup-config-validation.md
 **LoadTrigger:** file:Containerfile, file:podman-compose.yml, file:podman-compose.yaml, kw:podman, kw:buildah

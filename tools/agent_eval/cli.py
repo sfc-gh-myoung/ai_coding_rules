@@ -23,12 +23,12 @@ from rich.syntax import Syntax
 from rich.table import Table
 
 from tools.agent_eval import __app_name__, __version__
+from tools.agent_eval.cortex import list_available_models
 from tools.agent_eval.evaluator import CortexEvaluator
 from tools.agent_eval.models import (
     DEFAULT_MAX_RETRIES,
     DEFAULT_MODEL,
     DEFAULT_TIMEOUT_SECONDS,
-    SUPPORTED_MODELS,
     State,
 )
 
@@ -181,9 +181,7 @@ def load_results(filepath: Path) -> dict[str, Any] | None:
         return yaml.safe_load(f)
 
 
-def compare_results(
-    baseline: dict[str, Any], current: dict[str, Any]
-) -> dict[str, Any]:
+def compare_results(baseline: dict[str, Any], current: dict[str, Any]) -> dict[str, Any]:
     """Compare current results to baseline."""
     baseline_by_id = {r["test_id"]: r for r in baseline.get("results", [])}
     current_by_id = {r["test_id"]: r for r in current.get("results", [])}
@@ -207,9 +205,7 @@ def compare_results(
     for test_id in sorted(all_ids):
         b_result = baseline_by_id.get(test_id, {}).get("result")
         c_result = current_by_id.get(test_id, {}).get("result")
-        name = current_by_id.get(test_id, baseline_by_id.get(test_id, {})).get(
-            "name", ""
-        )
+        name = current_by_id.get(test_id, baseline_by_id.get(test_id, {})).get("name", "")
 
         entry = {"test_id": test_id, "name": name}
 
@@ -360,21 +356,24 @@ def _run_sequential(
     max_retries: int,
 ) -> None:
     """Run tests sequentially with progress bar."""
-    with CortexEvaluator(
-        model,
-        state.connection,
-        timeout=timeout,
-        max_retries=max_retries,
-        agents_file=state.agents_file,
-        state=state,
-    ) as evaluator, Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        BarColumn(),
-        TaskProgressColumn(),
-        TextColumn("[dim]{task.fields[elapsed]}[/dim]"),
-        console=console,
-    ) as progress:
+    with (
+        CortexEvaluator(
+            model,
+            state.connection,
+            timeout=timeout,
+            max_retries=max_retries,
+            agents_file=state.agents_file,
+            state=state,
+        ) as evaluator,
+        Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TaskProgressColumn(),
+            TextColumn("[dim]{task.fields[elapsed]}[/dim]"),
+            console=console,
+        ) as progress,
+    ):
         task = progress.add_task("Running tests...", total=len(test_list), elapsed="")
 
         for test in test_list:
@@ -469,9 +468,7 @@ def _run_parallel(
         )
 
         with ThreadPoolExecutor(max_workers=workers) as executor:
-            future_to_test = {
-                executor.submit(evaluate_single, test): test for test in test_list
-            }
+            future_to_test = {executor.submit(evaluate_single, test): test for test in test_list}
 
             for future in as_completed(future_to_test):
                 test = future_to_test[future]
@@ -549,9 +546,11 @@ def run(
     ] = DEFAULT_MAX_RETRIES,
 ) -> None:
     """Run automated evaluation via Snowflake Cortex."""
-    if model not in SUPPORTED_MODELS:
+    available_models, _ = list_available_models(state.connection)
+    if model.lower() not in [m.lower() for m in available_models]:
         log_error(f"Unknown model: {model}")
-        log_info(f"Supported: {', '.join(SUPPORTED_MODELS)}")
+        log_info(f"Available: {', '.join(available_models)}")
+        log_info("Run 'models' command to see all available models")
         raise typer.Exit(1)
 
     log_section(f"Automated Evaluation\nModel: {model}")
@@ -724,7 +723,9 @@ def list_cmd() -> None:
                 if agents_file != "-":
                     agents_file = Path(agents_file).name
                 timestamp = data.get("metadata", {}).get("timestamp", "")[:19]
-                table.add_row(f.name, pass_rate, tests, model, evaluator, runtime, agents_file, timestamp)
+                table.add_row(
+                    f.name, pass_rate, tests, model, evaluator, runtime, agents_file, timestamp
+                )
         except (yaml.YAMLError, OSError) as e:
             log_debug(f"Error loading {f}: {e}")
             table.add_row(f.name, "[red]ERROR[/]", "", "", "", "", "", "")
@@ -733,6 +734,24 @@ def list_cmd() -> None:
     console.print()
     log_info("Use 'show <filename>' to inspect a result file")
     log_info("Use 'compare -b <baseline> -t <target>' to compare files")
+
+
+@app.command("models")
+def models_cmd() -> None:
+    """List available Cortex REST API models."""
+    models, _ = list_available_models(state.connection)
+
+    table = Table(title=f"Cortex REST API Models ({len(models)})", box=box.ROUNDED)
+    table.add_column("#", style="dim", justify="right")
+    table.add_column("Model", style="cyan")
+
+    for i, model in enumerate(sorted(models), 1):
+        table.add_row(str(i), model)
+
+    console.print(table)
+    console.print()
+    log_info("Models shown are for REST API (/api/v2/cortex/inference:complete)")
+    log_info("SQL COMPLETE() function may have different models - use SHOW MODELS")
 
 
 @app.command()
@@ -801,6 +820,7 @@ def show(
     results_table.add_column("Name")
     results_table.add_column("Result", justify="center")
     results_table.add_column("Score", justify="right")
+    results_table.add_column("Request ID", style="dim")
 
     for result in data.get("results", []):
         result_str = result.get("result", "N/A")
@@ -812,12 +832,16 @@ def show(
             result_styled = f"[yellow]{result_str}[/]"
 
         score = f"{result.get('score', 0)}/{result.get('max_score', 0)}"
+        request_id = result.get("request_id", "") or ""
+        if request_id and len(request_id) > 12:
+            request_id = request_id[:12] + "..."
 
         results_table.add_row(
             result.get("test_id", ""),
             result.get("name", ""),
             result_styled,
             score,
+            request_id,
         )
 
     console.print(results_table)
@@ -877,9 +901,7 @@ def compare(
         baseline_data["metadata"].get(
             "model", baseline_data["metadata"].get("evaluator", "unknown")
         ),
-        current_data["metadata"].get(
-            "model", current_data["metadata"].get("evaluator", "unknown")
-        ),
+        current_data["metadata"].get("model", current_data["metadata"].get("evaluator", "unknown")),
     )
     table.add_row(
         "Pass Rate",

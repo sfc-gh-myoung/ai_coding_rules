@@ -40,16 +40,12 @@ def extract_fields(response: str) -> dict[str, Any]:
     if task_switch_match:
         fields["task_switch_value"] = task_switch_match.group(1).strip()
 
-    rules_section = re.search(
-        r"## Rules Loaded\n((?:- .+\n?)+)", response, re.MULTILINE
-    )
+    rules_section = re.search(r"## Rules Loaded\n((?:- .+\n?)+)", response, re.MULTILINE)
     if rules_section:
         rules_text = rules_section.group(1)
         fields["rules_loaded"] = re.findall(r"rules/([^\s\)]+)", rules_text)
 
-    fields["foundation_loaded"] = any(
-        "000-global-core" in r for r in fields["rules_loaded"]
-    )
+    fields["foundation_loaded"] = any("000-global-core" in r for r in fields["rules_loaded"])
 
     return fields
 

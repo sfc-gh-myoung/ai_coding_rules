@@ -141,8 +141,6 @@ python scripts/schema_validator.py rules/100-snowflake-core.md --verbose
 python scripts/schema_validator.py rules/ --schema custom-schema.yml
 ```
 
-See `docs/SCHEMA_VALIDATION_MIGRATION.md` for detailed migration guide.
-
 **Other Validation Tools**
 
 ```bash

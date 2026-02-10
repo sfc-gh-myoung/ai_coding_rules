@@ -218,6 +218,7 @@ tests/test_api.py::test_login - AssertionError: assert 401 == 200
 - Preserve existing code patterns and style
 - Show deltas, not entire files
 - Maintain backward compatibility when possible
+- **Update LastUpdated field:** If edited file contains `LastUpdated:`, `**LastUpdated:**`, or `**Last Updated:**`, set value to current date in YYYY-MM-DD format
 
 ### Multi-File Task Protocol
 

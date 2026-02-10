@@ -1,6 +1,6 @@
 # AI Agent Bootstrap Protocol
 
-**Last Updated:** 2026-02-06
+**Last Updated:** 2026-02-10
 
 > **CRITICAL: DO NOT SUMMARIZE THIS FILE**
 >
@@ -31,6 +31,15 @@ Execute this decision tree:
    - If technology keyword changed (e.g., Python to Docker): Task Switch = YES (keyword: X to Y)
    - If high-risk action detected (git, commit, push, deploy, test, security): Task Switch = YES (high-risk: action)
    - If NONE of above changed: Task Switch = NO
+
+   **Task Switch = NO when (explicit examples):**
+   - Same file extension AND same verb AND same technology
+   - Follow-up request on the same topic (e.g., "add error handling to that function")
+   - Clarification or refinement of previous request
+   - User provides information requested by agent
+   
+   **Common mistake:** Treating any follow-up message as a new task (FIRST).
+   A follow-up IS a continuation (NO) unless file/verb/technology explicitly changed.
 
 3. Determine execution path
    - If Task Switch = FIRST: Execute Steps 1-4
@@ -261,6 +270,26 @@ Step 4: NOW check if result equals "ACT" (case-insensitive) or starts with "ACT 
 | `go ahead` | Not "ACT" |
 | `Yes I want you to ACT` | "ACT" embedded in sentence |
 | `ATC` | Typo |
+
+**CRITICAL: When user sends a typo (e.g., "ATC", "AC", "ACTT"):**
+- You MUST still include the full PRE-FLIGHT header with MODE: PLAN
+- You MUST NOT skip the response structure even when correcting user input
+- Respond helpfully but maintain protocol compliance
+- Example:
+  ```
+  PRE-FLIGHT:
+  - [x] Gate 1: Foundation rules/000-global-core.md loaded
+  - [x] Gate 2: RULES_INDEX.md searched for: [keywords]
+  - [x] Gate 3: Matching rules loaded: [rules]
+  
+  MODE: PLAN
+  Task Switch: NO
+  
+  ## Rules Loaded
+  - rules/000-global-core.md (foundation)
+  
+  Did you mean "ACT"? Please reply with `ACT` to proceed.
+  ```
 
 - **Partial authorization:** "ACT on items 1-N" MUST trigger MODE: ACT (scoped to specified items)
 - **CRITICAL - Exact match required:** ACT must be the ENTIRE message (after stripping punctuation) OR start with "ACT on"

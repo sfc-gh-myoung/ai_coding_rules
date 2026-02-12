@@ -114,6 +114,95 @@ The rules in `rules/` directory provide **recommendations** and **preferences** 
 
 **Skills:** 3 deployed (doc-reviewer, plan-reviewer, skill-timing), 3 internal-only (rule-creator, rule-reviewer, bulk-rule-reviewer)
 
+### Component Relationships
+
+```
+AGENTS.md (Bootstrap Protocol)
+    │
+    ├─ loads ─────────────────► rules/000-global-core.md (Foundation)
+    │                                    │
+    │                                    ├─ searches ──► rules/RULES_INDEX.md (Catalog)
+    │                                    │                       │
+    │                                    │                       └─ loads ──► rules/XXX-domain.md
+    │                                    │
+    │                                    └─ references ► PROJECT.md (This File)
+    │
+    └─ deploys via ───────────► scripts/rule_deployer.py
+                                        │
+                                        ├─► TARGET/rules/
+                                        ├─► TARGET/skills/ (deployed only)
+                                        └─► TARGET/AGENTS.md
+
+Validation Flow:
+    scripts/schema_validator.py ◄── validates ──► schemas/rule-schema.yml
+    scripts/index_generator.py  ─── generates ──► rules/RULES_INDEX.md
+    scripts/template_generator.py ── creates ───► rules/XXX-new-rule.md
+
+Skill Output:
+    skills/rule-reviewer/    ─── writes to ───► reviews/rule-reviews/
+    skills/doc-reviewer/     ─── writes to ───► reviews/doc-reviews/
+    skills/plan-reviewer/    ─── writes to ───► reviews/plan-reviews/
+```
+
+### Rules Domain Mapping
+
+| Range | Domain | Count | Key Rules |
+|-------|--------|-------|-----------|
+| 000-099 | Core/Foundation | 12 | `000-global-core`, `002-rule-governance`, `003-context-engineering` |
+| 100-199 | Snowflake | 58 | SQL (`102`), Streamlit (`101`), Cortex AI (`115-117`), Security (`130-133`) |
+| 200-299 | Python | 27 | Core (`200`), FastAPI (`210`), Pytest (`206`), Pydantic (`207`), HTMX (`221`) |
+| 300-349 | Shell | 7 | Bash (`300`), Zsh (`301`) |
+| 350-399 | Containers | 2 | Docker (`350`), Podman (`351`) |
+| 400-499 | Frontend/JS | 5 | JavaScript (`420`), TypeScript (`430`), React (`440`), Alpine.js (`450`) |
+| 500-599 | Frontend | 2 | HTMX frontend (`500`), Browser globals (`510`) |
+| 600-699 | Go | 1 | `600-golang-core` |
+| 800-899 | Project Mgmt | 5 | Changelog (`800`), README (`801`), Git (`803`), Taskfile (`820`) |
+| 900-999 | Analytics | 4 | Data science (`900`), Governance (`910`), Business analytics (`920`) |
+
+**Usage:** When creating a new rule, select the appropriate range based on domain. Use `task rule:new FILENAME=1XX-snowflake-feature` for Snowflake rules, `2XX-python-feature` for Python, etc.
+
+### Scripts Reference
+
+| Script | Purpose | Task Command |
+|--------|---------|--------------|
+| `schema_validator.py` | Validate rules against v3.2 schema | `task rules:validate` |
+| `index_generator.py` | Generate RULES_INDEX.md from metadata | `task index:generate` |
+| `template_generator.py` | Create new v3.2-compliant rule templates | `task rule:new` |
+| `rule_deployer.py` | Deploy rules + skills to target projects | `task deploy` |
+| `token_validator.py` | Check TokenBudget accuracy (±10%) | `task tokens:check` |
+| `keyword_generator.py` | TF-IDF keyword suggestions | `task keywords:suggest` |
+| `badge_updater.py` | Update README badges (version, coverage) | `task badges:update` |
+| `validate_index_references.py` | Verify RULES_INDEX.md references | (used by CI) |
+
+### Skills Deployment Matrix
+
+| Skill | Deployed | Purpose | Output Directory |
+|-------|----------|---------|------------------|
+| `doc-reviewer/` | Yes | Review documentation quality | `reviews/doc-reviews/` |
+| `plan-reviewer/` | Yes | Review LLM plans for executability | `reviews/plan-reviews/` |
+| `skill-timing/` | Yes | Measure skill execution time | N/A |
+| `rule-reviewer/` | No | Review rule quality (internal) | `reviews/rule-reviews/` |
+| `rule-creator/` | No | Create new rules (internal) | N/A |
+| `bulk-rule-reviewer/` | No | Bulk rule reviews (internal) | `reviews/rule-reviews/` |
+
+**Configuration:** Exclusions defined in `pyproject.toml [tool.rule_deployer].exclude_skills`
+
+### Rules Examples
+
+The `rules/examples/` directory contains validated implementation examples for complex Snowflake configurations:
+
+| Example File | Purpose |
+|--------------|---------|
+| `115-cortex-agent-*-example.md` | Cortex Agent setup patterns (prerequisites, hybrid SQL/Python) |
+| `116-cortex-search-service-example.md` | Cortex Search Service configuration |
+| `106-semantic-view-*-example.md` | Semantic View YAML, DDL, and workarounds |
+| `120-spcs-service-spec-example.md` | SPCS container service specifications |
+| `121-snowpipe-auto-ingest-example.md` | Snowpipe auto-ingest configuration |
+| `001-memory-bank-templates-example.md` | Memory Bank template patterns |
+
+**Usage:** Load parent rule + example when working on complex Snowflake features.
+**Validation:** `task examples:validate`
+
 ## Required Permissions
 
 AI assistants must verify they have necessary permissions before performing operations.
@@ -557,6 +646,81 @@ uv run pytest tests/test_schema_validator.py -v  # Specific test
 - **docs/ARCHITECTURE.md** - System design, technical decisions
 - **docs/MEMORY_BANK.md** - Context continuity system (optional)
 - **docs/USING_*_SKILL.md** - Individual skill usage guides
+
+## Common Task Patterns
+
+### Adding a New Snowflake Rule
+
+```bash
+# 1. Create rule in appropriate range (100-199)
+task rule:new FILENAME=1XX-snowflake-feature TIER=High
+
+# 2. Edit rule content
+vim rules/1XX-snowflake-feature.md
+
+# 3. If complex feature, add example
+vim rules/examples/1XX-snowflake-feature-example.md
+
+# 4. Validate and update index
+task validate && task index:generate
+
+# 5. Commit (only after validation passes)
+git add rules/ && git commit -m "feat(snowflake): add 1XX rule for feature"
+```
+
+### Fixing Validation Failures
+
+```bash
+# Step 1: Auto-fix lint and format issues
+task quality:fix
+
+# Step 2: Fix type errors manually (ty shows locations)
+uvx ty check .
+
+# Step 3: Review and fix test failures
+uv run pytest -v --tb=short
+
+# Step 4: Fix schema validation errors
+task rules:validate:verbose
+# Fix errors in order: CRITICAL → HIGH → MEDIUM → LOW
+
+# Step 5: Re-run full validation
+task validate
+```
+
+### Deploying to Another Project
+
+```bash
+# Preview what will be deployed
+task deploy:dry DEST=~/other-project
+
+# Execute deployment
+task deploy DEST=~/other-project
+
+# Verify deployment
+ls ~/other-project/rules/ | wc -l      # Should be ~125
+ls ~/other-project/skills/ | wc -l     # Should be 3 (deployed skills)
+cat ~/other-project/AGENTS.md | head   # Verify bootstrap protocol
+```
+
+### Updating Multiple Rules (Bulk Operations)
+
+```bash
+# Update token budgets for all rules
+task tokens:update
+
+# Regenerate keywords using TF-IDF
+task keywords:all
+
+# Validate all rules
+task rules:validate
+
+# Regenerate index after bulk changes
+task index:generate
+
+# Run full validation
+task validate
+```
 
 ## Troubleshooting
 

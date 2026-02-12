@@ -16,7 +16,7 @@ except ImportError:
 try:
     import tomllib
 except ImportError:
-    import tomli as tomllib
+    import tomli as tomllib  # ty: ignore[unresolved-import]
 
 from tools.agent_eval.models import (
     DEFAULT_MAX_RETRIES,
@@ -240,6 +240,48 @@ class CortexClient:
                 raise RuntimeError(f"Connection failed: {e}") from e
 
         raise RuntimeError(f"Failed after {self.max_retries} attempts: {last_error}")
+
+
+def verify_connection(connection_name: str = "default") -> dict[str, str]:
+    """Verify Snowflake connection and return connection details.
+
+    Args:
+        connection_name: Name of the connection in the config file.
+
+    Returns:
+        Dict with account, user, and connection_name on success.
+
+    Raises:
+        RuntimeError: If connection verification fails.
+    """
+    try:
+        config = load_snowflake_config(connection_name)
+    except FileNotFoundError as e:
+        raise RuntimeError(f"Connection config not found: {e}") from e
+    except ValueError as e:
+        raise RuntimeError(f"Connection '{connection_name}' invalid: {e}") from e
+
+    account = config.get("account", config.get("accountname", ""))
+    if not account:
+        raise RuntimeError(
+            f"No account found in connection '{connection_name}'. "
+            "Check ~/.snowflake/connections.toml"
+        )
+
+    token = config.get("token") or config.get("password")
+    if not token:
+        raise RuntimeError(
+            f"No token/password found in connection '{connection_name}'. "
+            "Cortex REST API requires a PAT or password."
+        )
+
+    user = config.get("user", "unknown")
+
+    return {
+        "connection_name": connection_name,
+        "account": account,
+        "user": user,
+    }
 
 
 def list_available_models(

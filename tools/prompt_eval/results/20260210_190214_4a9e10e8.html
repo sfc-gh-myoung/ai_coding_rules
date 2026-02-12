@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompt Evaluation Report</title>
+    <style>
+        :root {
+            --bg: #1a1a2e;
+            --surface: #16213e;
+            --text: #eaeaea;
+            --text-muted: #a0a0a0;
+            --border: #0f3460;
+            --accent: #e94560;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1, h2, h3 { margin: 1.5rem 0 1rem; }
+        h1 { color: var(--accent); }
+        .meta { color: var(--text-muted); margin-bottom: 1rem; }
+        .score-badge {
+            display: inline-block;
+            font-size: 2rem;
+            font-weight: bold;
+            padding: 0.5rem 1.5rem;
+            border-radius: 8px;
+            background: #2ecc71;
+            color: white;
+            margin: 1rem 0;
+        }
+        section {
+            background: var(--surface);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border: 1px solid var(--border);
+        }
+        pre.prompt-text {
+            background: var(--bg);
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        th { color: var(--text-muted); font-weight: 600; }
+        .progress-bar {
+            background: var(--bg);
+            border-radius: 4px;
+            height: 8px;
+            width: 100px;
+            overflow: hidden;
+        }
+        .progress-fill { height: 100%; transition: width 0.3s; }
+        .issues-list { list-style: none; }
+        .issue {
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            border-radius: 4px;
+            border-left: 4px solid;
+        }
+        .issue.critical { border-color: #e74c3c; background: rgba(231,76,60,0.1); }
+        .issue.high { border-color: #e67e22; background: rgba(230,126,34,0.1); }
+        .issue.medium { border-color: #f1c40f; background: rgba(241,196,15,0.1); }
+        .issue.low { border-color: #2ecc71; background: rgba(46,204,113,0.1); }
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            background: var(--border);
+            margin-right: 0.5rem;
+        }
+        code { background: var(--bg); padding: 0.2rem 0.4rem; border-radius: 3px; }
+        .no-issues { color: #2ecc71; font-style: italic; }
+        ul { margin: 1rem 0; padding-left: 1.5rem; }
+        li { margin: 0.5rem 0; }
+        .explanation { font-style: italic; color: var(--text-muted); margin-top: 1rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Prompt Evaluation Report</h1>
+        <p class="meta">
+            2026-02-10 19:02:14 | Model: claude-sonnet-4-5
+        </p>
+        <div class="score-badge">A - 90.0/100.0</div>
+
+        <section>
+            <h2>Original Prompt</h2>
+            <pre class="prompt-text">Write a function that does something with data. Make sure it works correctly and handles edge cases. The code should be good quality.</pre>
+        </section>
+
+        <section>
+            <h2>Dimension Scores</h2>
+            <table>
+                <thead>
+                    <tr><th>Dimension</th><th>Score</th><th>Progress</th><th>Points</th></tr>
+                </thead>
+                <tbody>
+                    
+        <tr>
+            <td>Actionability</td>
+            <td>8/10</td>
+            <td>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 80.0%; background: #2ecc71;"></div>
+                </div>
+            </td>
+            <td>20.0/25</td>
+        </tr>
+        <tr>
+            <td>Completeness</td>
+            <td>10/10</td>
+            <td>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 100.0%; background: #2ecc71;"></div>
+                </div>
+            </td>
+            <td>25.0/25</td>
+        </tr>
+        <tr>
+            <td>Token Efficiency</td>
+            <td>10/10</td>
+            <td>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 100.0%; background: #2ecc71;"></div>
+                </div>
+            </td>
+            <td>10.0/10</td>
+        </tr>
+        <tr>
+            <td>Cross-Agent Consistency</td>
+            <td>10/10</td>
+            <td>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 100.0%; background: #2ecc71;"></div>
+                </div>
+            </td>
+            <td>10.0/10</td>
+        </tr>
+        <tr>
+            <td>Consistency</td>
+            <td>10/10</td>
+            <td>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 100.0%; background: #2ecc71;"></div>
+                </div>
+            </td>
+            <td>10.0/10</td>
+        </tr>
+        <tr>
+            <td>Parsability</td>
+            <td>10/10</td>
+            <td>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 100.0%; background: #2ecc71;"></div>
+                </div>
+            </td>
+            <td>10.0/10</td>
+        </tr>
+        <tr>
+            <td>Context Grounding</td>
+            <td>10/10</td>
+            <td>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 100.0%; background: #2ecc71;"></div>
+                </div>
+            </td>
+            <td>5.0/10</td>
+        </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section>
+            <h2>Issues Found</h2>
+            <ul class='issues-list'>
+            <li class="issue medium">
+                <span class="badge">Actionability</span>
+                <code>"should be"</code>
+                <span class="problem">Pattern match: \bshould be\b...</span>
+            </li></ul>
+        </section>
+
+        
+    </div>
+</body>
+</html>

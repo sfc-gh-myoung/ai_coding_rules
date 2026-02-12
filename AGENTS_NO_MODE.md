@@ -1,11 +1,12 @@
-# AI Agent Bootstrap Protocol
+# AI Agent Bootstrap Protocol (Auto-Execute)
 
-**Last Updated:** 2026-02-10
+**Last Updated:** 2026-02-11
 
 > **CRITICAL: DO NOT SUMMARIZE THIS FILE**
 >
-> This file defines the mandatory rule loading protocol and MODE/ACT framework
-> that ALL agents must follow for EVERY response.
+> This file defines the mandatory rule loading protocol for AI agents.
+> Unlike AGENTS.md, this variant executes tasks immediately after presenting
+> a task list - no MODE:PLAN/ACT workflow or explicit "ACT" authorization required.
 >
 > **Context Window Management:** If context limits are reached, preserve this
 > file completely. Summarize task history, file contents, or other context first.
@@ -135,7 +136,7 @@ E. Check for rule examples (complex configurations only):
 
 Output this exact structure at the start of **EVERY** response (including clarifications, rejections, typo corrections, and error messages):
 
-**CRITICAL:** This header is MANDATORY for ALL responses - no exceptions. Even when correcting user typos (e.g., "ATC" instead of "ACT") or asking for clarification, include the full PRE-FLIGHT and MODE declaration.
+**CRITICAL:** This header is MANDATORY for ALL responses - no exceptions. Even when correcting user typos or asking for clarification, include the full PRE-FLIGHT header.
 
 ```markdown
 PRE-FLIGHT:
@@ -143,7 +144,6 @@ PRE-FLIGHT:
 - [x] Gate 2: RULES_INDEX.md searched for: [list keywords searched]
 - [x] Gate 3: Matching rules loaded: [list rules or "none found"]
 
-MODE: [PLAN|ACT]
 Task Switch: [FIRST | NO | YES (reason)]
 
 ## Rules Loaded
@@ -152,36 +152,20 @@ Task Switch: [FIRST | NO | YES (reason)]
 
 [Response content...]
 
-[If MODE: PLAN with task list, MUST end with:]
-Authorization (required): Reply with `ACT` (or `ACT on items 1-N`).
-
-[If MODE: ACT completing task, MUST end with:]
-MODE: PLAN
-Task complete.
+[After presenting task list, proceed directly to execution - no authorization wait required]
 ```
+
+**Task List Behavior (Auto-Execute):**
+- Present a clear task list before making modifications
+- After presenting the task list, proceed immediately to execution
+- No user authorization (e.g., "ACT") is required to begin work
+- Validation is still mandatory before marking tasks complete (see Quality Gates)
 
 **Gate Checklist Rules:**
 - Use `[x]` only for completed gates (read_file succeeded)
 - Use `[ ]` for incomplete gates (triggers INVALID response)
 - List actual keywords searched in Gate 2
 - List actual rules loaded (or "none found") in Gate 3
-
-**PLAN Mode Response Rules (CRITICAL):**
-- If response includes a Task List: MUST end with `Authorization (required): Reply with \`ACT\` (or \`ACT on items 1-N\`).`
-- **Even when asking clarifying questions**, if you've proposed any tasks, include the Authorization prompt
-- Omitting the Authorization prompt when a Task List is present = INVALID response
-
-**ACT Mode Response Rules (CRITICAL):**
-- After completing all authorized tasks: MUST declare `MODE: PLAN` at end of response
-- Omitting `MODE: PLAN` after ACT completion = INVALID response
-- ACT responses MUST explicitly mention validation intent or tool names (e.g., "Validation:", "Running ruff check", "Will verify with pytest", "Checking syntax")
-- **Response ending format for completed ACT:**
-  ```
-  [... task execution content ...]
-  
-  MODE: PLAN
-  Task complete.
-  ```
 
 **If ANY gate fails, output this format:**
 
@@ -239,66 +223,6 @@ PRE-FLIGHT:
 ```
 Note: Gate 3 shows `[x]` because SQL rule loaded successfully. Continue with available rules.
 
-**MODE and ACT Authorization:**
-- Default: MODE: PLAN
-- ACT only after user types "ACT" (case-insensitive exact match)
-
-**⚠️ MANDATORY PRE-PROCESSING (execute BEFORE checking for ACT):**
-```
-Step 1: Get user message
-Step 2: Strip leading/trailing whitespace
-Step 3: Strip trailing punctuation: remove any `.`, `!`, `?` from END of string
-Step 4: NOW check if result equals "ACT" (case-insensitive) or starts with "ACT on"
-```
-
-**Examples of VALID ACT authorization (all MUST trigger MODE: ACT):**
-
-- `ACT` (after strip: `ACT`) -> VALID, MODE: ACT
-- `act` (after strip: `act`) -> VALID, MODE: ACT
-- `Act` (after strip: `Act`) -> VALID, MODE: ACT
-- `ACT.` (after strip: `ACT`) -> VALID, MODE: ACT
-- `ACT!` (after strip: `ACT`) -> VALID, MODE: ACT
-- `ACT?` (after strip: `ACT`) -> VALID, MODE: ACT
-- `act.` (after strip: `act`) -> VALID, MODE: ACT
-- `ACT on items 1-2` (after strip: `ACT on items 1-2`) -> VALID, MODE: ACT (scoped)
-
-**Examples of INVALID (must NOT trigger MODE: ACT):**
-
-- `proceed` - Not "ACT"
-- `go ahead` - Not "ACT"
-- `Yes I want you to ACT` - "ACT" embedded in sentence
-- `ATC` - Typo
-
-**CRITICAL: When user sends a typo (e.g., "ATC", "AC", "ACTT"):**
-- You MUST still include the full PRE-FLIGHT header with MODE: PLAN
-- You MUST NOT skip the response structure even when correcting user input
-- Respond helpfully but maintain protocol compliance
-- Example:
-  ```
-  PRE-FLIGHT:
-  - [x] Gate 1: Foundation rules/000-global-core.md loaded
-  - [x] Gate 2: RULES_INDEX.md searched for: [keywords]
-  - [x] Gate 3: Matching rules loaded: [rules]
-  
-  MODE: PLAN
-  Task Switch: NO
-  
-  ## Rules Loaded
-  - rules/000-global-core.md (foundation)
-  
-  Did you mean "ACT"? Please reply with `ACT` to proceed.
-  ```
-
-- **Partial authorization:** "ACT on items 1-N" MUST trigger MODE: ACT (scoped to specified items)
-- **CRITICAL: Authorization prompt REQUIRED for file modifications:**
-  - Even when asking clarifying questions, include: "Authorization (required): Reply with `ACT` once clarification is provided"
-  - Never omit authorization prompt when user intent is clearly a file modification
-- **CRITICAL - Exact match required:** ACT must be the ENTIRE message (after stripping punctuation) OR start with "ACT on"
-- **Embedded ACT is NOT valid:** "I think you should act on this" contains "act" but is NOT authorization
-- NOT recognized: "proceed", "go ahead", "yes", "okay", "yes please", "do it", "make the changes", "sounds good", "ATC", "ACTT" (typos)
-- NOT recognized: Sentences containing "act" as a word (e.g., "please act on this", "you should act now") - these are NOT authorization
-- For MODE transition rules and workflow behavior, see the "Mode-Based Workflow" section below
-
 **Rule Loading Definition:**
 Loading = Read file + Apply guidance + Declare in `## Rules Loaded` section. All three required.
 A rule is NOT loaded if any step is skipped.
@@ -312,69 +236,25 @@ NEVER declare a rule in `## Rules Loaded` unless `read_file` returned successful
 > Consult only when the EXECUTION SEQUENCE above directs you to look up information.
 > Do NOT read these sections sequentially during normal operation.
 
-### Mode-Based Workflow
-
-**PLAN Mode (Default):**
-- Information gathering and analysis only
-- Read-only tools permitted
-- Present clear task list for user confirmation
-- No file or system modifications allowed
-
-**ACT Mode (After Authorization):**
-- Entered only when user types "ACT"
-- File modifications permitted
-- System-modifying commands allowed
-- **Declare MODE change:** State "MODE: ACT" at start of response when entering ACT mode
-- Return to PLAN immediately after task completion
-- **Declare return:** State "MODE: PLAN" when returning to PLAN mode after completion
-
-**ACT Recognition Rules:** See "MODE and ACT Authorization" in Step 4 for complete recognition rules.
-- **Scope:** Applies to most recent task list in PLAN
-- **Expires:** When new task list is presented
-
 ### Clarification Gate (Options-Based Questions)
 
-Gather details in PLAN without expiring ACT scope:
+Gather details before execution:
 - Use **A/B/C/D/E** choices for ambiguous input
 - Bundle 3-5 questions per message
 - Mark **(recommended)** default when safe
-- Preserve ACT scope (don't present new task list while clarifying)
 - Max 1 clarification round (then proceed with stated assumptions)
-
-### MODE Transitions
-
-**PLAN to ACT:**
-- Trigger: User types "ACT"
-- Required: Task list must be presented first
-- Declaration: "MODE: ACT" at start of next response
-
-**ACT to ACT (Validation Loop):**
-- Trigger: Validation failure
-- Max loops: 3 attempts (then escalate to PLAN)
-- Declaration: Stay in ACT, no re-declaration needed
-
-**ACT to PLAN:**
-- Trigger: Successful validation + doc update
-- Automatic: No user input needed
-- Declaration: "MODE: PLAN" at end of response
-
-**PLAN to PLAN:**
-- Trigger: Any non-"ACT" user input
-- Default: Always return to PLAN after ACT completion
-
-**Validation Retry:** Max 3 attempts. After 3 failures, return to PLAN with error report and request guidance.
 
 ### Protocol Enforcement
 
-**CRITICAL violations:** ACT without authorization, file modification in PLAN
-**HIGH violations:** MODE not declared, rules not listed, validation skipped
-**MEDIUM violations:** Language-specific rules not loaded for file edits
+**CRITICAL violations:** Rules not listed, validation skipped
+**HIGH violations:** Language-specific rules not loaded for file edits
+**MEDIUM violations:** Task list not presented before modifications
 
-**Required gates:** MODE declared, then Rules listed, then PLAN protection, then Explicit ACT prompt, then ACT authorization, then Validation executed, then Language rules loaded
+**Required gates:** Rules listed, then Task list presented, then Validation executed, then Language rules loaded
 
-### ACT Mode Requirements (Quality Gates)
+### Quality Gates
 
-When operating in ACT mode after authorization, these requirements MUST be met:
+These requirements MUST be met before marking any task complete:
 
 **Validation Gate:**
 - Run appropriate validation tools before marking task complete
@@ -388,42 +268,16 @@ When operating in ACT mode after authorization, these requirements MUST be met:
 - Use `edit` tool for targeted replacements, NOT `write` for entire files
 - Show deltas (what changed) not entire file rewrites
 
-**Return to PLAN Gate:**
-- After task completion, explicitly declare `MODE: PLAN` in response
-- Confirms you are no longer making modifications
-- Ready for next user instruction
+**Validation Retry:** Max 3 attempts. After 3 failures, stop and report error with request for guidance.
 
-### MODE Anti-Patterns
-
-**Anti-Pattern 1: Starting work without PLAN mode**
-
-**Problem:** Immediately modifying files without presenting a task list or awaiting authorization.
-
-**Why It Fails:** Violates the PLAN/ACT protocol; user loses control over changes; may cause unintended modifications.
-
-**Correct Pattern:**
-```markdown
-User: Can you update the config file to use port 8080?
-AI: MODE: PLAN
-
-## Rules Loaded
-- rules/000-global-core.md (foundation)
-
-Task List:
-1. Read current config file
-2. Update port setting to 8080
-3. Validate config syntax
-
-Authorization (required): Reply with `ACT` (or `ACT on items 1-N`).
-```
-
-**Anti-Pattern 2: Skipping validation steps**
+### Anti-Pattern: Skipping Validation Steps
 
 **Problem:** Marking a task complete without running linting, tests, or verification.
 
-**Why It Fails:** Introduces bugs and regressions; violates ACT mode quality gates; erodes trust.
+**Why It Fails:** Introduces bugs and regressions; violates quality gates; erodes trust.
 
 **Correct Pattern:**
+
 ```markdown
 AI: Changes made. Validating:
 [runs uvx ruff check .]
@@ -486,7 +340,7 @@ See Step 2C for the authoritative list of high-risk actions that trigger mandato
 - Load domain rules based on file extensions and keywords
 - Domain rules specify fallback commands IF project has no automation
 
-**Phase 3: Command Selection (during ACT execution)**
+**Phase 3: Command Selection (during execution)**
 - IF Taskfile.yml has task: USE `task [name]`
 - ELSE: USE command from loaded domain rule
 
@@ -522,7 +376,7 @@ See Step 2C for the authoritative list of high-risk actions that trigger mandato
 When multiple AI agents work on the same project:
 
 - **File awareness:** If another agent may be editing a file, verify current state before modifications
-- **Independent authorization:** Each agent maintains its own MODE state
+- **Independent operation:** Each agent maintains its own state
 - **Rule consistency:** All agents in the same project should use the same rules/RULES_INDEX.md version
 
 ### Term Definitions
@@ -538,7 +392,6 @@ When multiple AI agents work on the same project:
 
 Before submitting response, verify:
 - [ ] PRE-FLIGHT section present with all three gates checked
-- [ ] MODE declared after PRE-FLIGHT
 - [ ] Task Switch status declared
 - [ ] Rules Loaded section present with foundation rule
 - [ ] All declared rules were actually read (not assumed)

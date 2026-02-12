@@ -7,7 +7,7 @@ All rules and skills are production-ready with no generation step required.
 Features:
     - Copies rules/*.md to DEST/rules/
     - Copies skills/ to DEST/skills/ (respects pyproject.toml exclusions)
-    - Copies AGENTS.md to DEST/
+    - Copies AGENTS.md to DEST/ (or AGENTS_NO_MODE.md as AGENTS.md with --no-mode)
     - Copies rules/RULES_INDEX.md to DEST/rules/
     - Validates source files exist before copying
     - Supports dry-run mode for safety
@@ -17,6 +17,7 @@ Usage:
     python scripts/rule_deployer.py --dest /path/to/project
     python scripts/rule_deployer.py --dest ~/my-project --dry-run
     python scripts/rule_deployer.py --dest . --skip-skills
+    python scripts/rule_deployer.py --dest /path/to/project --no-mode
 """
 
 from __future__ import annotations
@@ -50,13 +51,14 @@ def log_warning(message: str) -> None:
 
 
 def validate_source_structure(
-    project_root: Path, only_skills: bool = False
+    project_root: Path, only_skills: bool = False, no_mode: bool = False
 ) -> tuple[bool, list[str]]:
     """Validate that source structure exists and is complete.
 
     Args:
         project_root: Root directory of the project
         only_skills: If True, only validate skills directory (skip rules validation)
+        no_mode: If True, validate AGENTS_NO_MODE.md exists instead of AGENTS.md
 
     Returns:
         Tuple of (is_valid, error_messages)
@@ -65,7 +67,8 @@ def validate_source_structure(
 
     # Check required source files
     rules_dir = project_root / "rules"
-    agents_md = project_root / "AGENTS.md"
+    agents_md_name = "AGENTS_NO_MODE.md" if no_mode else "AGENTS.md"
+    agents_md = project_root / agents_md_name
     rules_index_md = project_root / "rules" / "RULES_INDEX.md"
     skills_dir = project_root / "skills"
 
@@ -96,7 +99,7 @@ def validate_source_structure(
                 errors.append(f"No .md files found in source rules directory: {rules_dir}")
 
         if not agents_md.exists():
-            errors.append(f"AGENTS.md not found in project root: {agents_md}")
+            errors.append(f"{agents_md_name} not found in project root: {agents_md}")
 
         if not rules_index_md.exists():
             errors.append(f"rules/RULES_INDEX.md not found: {rules_index_md}")
@@ -154,9 +157,15 @@ def copy_rules(
 
 
 def copy_root_files(
-    project_root: Path, dest_dir: Path, dry_run: bool = False, verbose: bool = True
+    project_root: Path,
+    dest_dir: Path,
+    dry_run: bool = False,
+    verbose: bool = True,
+    no_mode: bool = False,
 ) -> tuple[int, int]:
     """Copy AGENTS.md to destination root and rules/RULES_INDEX.md to destination rules/.
+
+    When no_mode is True, copies AGENTS_NO_MODE.md as AGENTS.md to the destination.
 
     Returns:
         Tuple of (files_copied, files_failed)
@@ -165,17 +174,19 @@ def copy_root_files(
     files_failed = 0
 
     # Copy AGENTS.md to destination root
+    # When no_mode=True, source is AGENTS_NO_MODE.md but destination is still AGENTS.md
     try:
-        source_file = project_root / "AGENTS.md"
+        source_name = "AGENTS_NO_MODE.md" if no_mode else "AGENTS.md"
+        source_file = project_root / source_name
         dest_file = dest_dir / "AGENTS.md"
         if not dry_run:
             shutil.copy2(source_file, dest_file)
-            log_info(f"Copied: AGENTS.md → {dest_file}", verbose)
+            log_info(f"Copied: {source_name} → {dest_file}", verbose)
         else:
-            log_info(f"[DRY RUN] Would copy: AGENTS.md → {dest_file}", verbose)
+            log_info(f"[DRY RUN] Would copy: {source_name} → {dest_file}", verbose)
         files_copied += 1
     except Exception as e:
-        log_error(f"Failed to copy AGENTS.md: {e}")
+        log_error(f"Failed to copy {source_name}: {e}")
         files_failed += 1
 
     # Copy rules/RULES_INDEX.md to destination rules/
@@ -330,6 +341,7 @@ def deploy_rules(
     only_skills: bool = False,
     dry_run: bool = False,
     verbose: bool = True,
+    no_mode: bool = False,
 ) -> bool:
     """Deploy rules and skills to destination directory.
 
@@ -339,6 +351,7 @@ def deploy_rules(
         only_skills: If True, deploy only skills/ directory (skip rules and root files)
         dry_run: If True, don't actually copy files
         verbose: If True, print detailed logging
+        no_mode: If True, deploy AGENTS_NO_MODE.md as AGENTS.md
 
     Returns:
         True if deployment successful, False otherwise
@@ -357,8 +370,13 @@ def deploy_rules(
         log_error("Cannot use both --only-skills and --skip-skills flags together")
         return False
 
+    if no_mode:
+        log_info("NO-MODE: Will deploy AGENTS_NO_MODE.md as AGENTS.md", verbose)
+
     # Validate source structure
-    is_valid, errors = validate_source_structure(project_root, only_skills=only_skills)
+    is_valid, errors = validate_source_structure(
+        project_root, only_skills=only_skills, no_mode=no_mode
+    )
     if not is_valid:
         log_error("Source structure validation failed:")
         for error in errors:
@@ -396,7 +414,9 @@ def deploy_rules(
 
         # Copy root files
         log_info("Copying root files (AGENTS.md, rules/RULES_INDEX.md)...", verbose)
-        root_copied, root_failed = copy_root_files(project_root, dest, dry_run, verbose)
+        root_copied, root_failed = copy_root_files(
+            project_root, dest, dry_run, verbose, no_mode=no_mode
+        )
 
         # Copy examples/ subdirectory if it exists
         examples_src = project_root / "rules" / "examples"
@@ -484,6 +504,9 @@ Examples:
   Deploy only skills (for agent configuration directories):
     python scripts/rule_deployer.py --dest ~/.claude/skills --only-skills
 
+  Deploy with AGENTS_NO_MODE.md (no PLAN/ACT workflow):
+    python scripts/rule_deployer.py --dest /path/to/project --no-mode
+
   Deploy with verbose output:
     python scripts/rule_deployer.py --dest . --verbose
         """,
@@ -520,6 +543,12 @@ Examples:
         help="Deploy only skills/ directory (skip rules and root files)",
     )
 
+    parser.add_argument(
+        "--no-mode",
+        action="store_true",
+        help="Deploy AGENTS_NO_MODE.md as AGENTS.md (simplified workflow without PLAN/ACT)",
+    )
+
     args = parser.parse_args()
 
     # Handle quiet mode
@@ -541,6 +570,7 @@ Examples:
         only_skills=args.only_skills,
         dry_run=args.dry_run,
         verbose=verbose,
+        no_mode=args.no_mode,
     )
 
     return 0 if success else 1

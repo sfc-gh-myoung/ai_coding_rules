@@ -8,18 +8,73 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **feat(tools):** add prompt_eval tool for LLM prompt quality evaluation
+  - New `tools/prompt_eval/` package with CLI, REST API, and web UI interfaces
+  - 6-dimension scoring system (100-point scale): actionability, completeness, token efficiency, cross-agent consistency, parsability, context grounding
+  - Automatic prompt rewriting with dimension-specific improvements
+  - HTML report generation with detailed scoring breakdowns
+  - Snowflake Cortex integration for LLM-powered evaluation
+  - New `prompt-eval` entry point and dependency group in pyproject.toml
+- **feat(AGENTS):** add AGENTS_NO_MODE.md simplified bootstrap protocol
+  - Variant of AGENTS.md without PLAN/ACT workflow for immediate task execution
+  - Deployable via `--no-mode` flag on rule_deployer.py
+- **feat(deploy):** add --no-mode flag to rule_deployer.py and Taskfile deploy tasks
+  - `--no-mode` deploys AGENTS_NO_MODE.md as AGENTS.md to target projects
+  - New `deploy:no-mode` task in Taskfile.yml
+  - `NO_MODE=true` variable support on existing deploy, deploy:dry, deploy:verbose tasks
+- **feat(AGENTS):** add authorization prompt requirement for file modifications
+  - Even when asking clarifying questions, must include: "Authorization (required): Reply with `ACT` once clarification is provided"
+  - Addresses TC-050 test failure where authorization prompt was omitted during clarification
+- **feat(AGENTS):** add explicit Task Switch = NO examples to reduce false positives
+  - Same file/verb/technology, follow-up requests, clarifications are continuations (NO)
+  - Common mistake guidance: treating follow-ups as new tasks (FIRST)
+- **feat(AGENTS):** add typo handling guidance with PRE-FLIGHT requirement
+  - Typos like "ATC", "AC", "ACTT" must still include full PRE-FLIGHT header
+  - Must not skip response structure even when correcting user input
+- **feat(rules):** add LastUpdated maintenance rule to 000-global-core.md
+  - Surgical Editing Principle now includes: update LastUpdated field if present
+  - Supports patterns: `LastUpdated:`, `**LastUpdated:**`, `**Last Updated:**`
+- **feat(tools):** add `models` command to agent_eval CLI
+  - Lists available Cortex REST API models dynamically from Snowflake
+  - Removed static SUPPORTED_MODELS list in favor of runtime discovery
+  - Updated README with output format documentation (request_id for debugging)
+- **feat(tools):** add agent_eval framework for AGENTS.md compliance testing
+  - `tools/agent_eval/cli.py` - CLI with Snowflake Cortex REST API integration for model evaluation
+  - `tools/agent_eval/models.py` - Dataclasses for test cases, results, and evaluation metadata
+  - `tools/agent_eval/parsers.py` - Response parsing and criterion-based scoring utilities
+  - `tools/agent_eval/test_cases.yaml` - 35 test cases across 7 categories (protocol_compliance, task_switch, rule_discovery, failure_handling, act_authorization, validation_gates, edge_cases)
+  - Supports multi-turn conversations, parallel execution, and baseline comparison
+  - PEP 561 typed package with results directory for timestamped evaluation reports
+- **feat(tools):** add connection verification to agent_eval CLI
+  - Verifies Snowflake connection before test execution
+  - Displays connection name, account, and user in header panel
+- **feat(rules):** add 351-podman-core.md for Podman container development
+  - Containerfile authoring and multi-stage builds with Buildah
+  - Rootless container execution and security patterns
+  - Podman Compose for development environments
+  - Quadlet integration for systemd service deployment
+  - Pod management for Kubernetes-style container grouping
+
+### Changed
+- **feat(PROJECT):** expand PROJECT.md with architecture reference content
+  - Component relationships diagram showing rule loading and deployment flows
+  - Rules domain mapping table (000-999 ranges with counts and key rules)
+  - Scripts reference table mapping scripts to task commands
+  - Skills deployment matrix with output directories
+  - Rules examples reference table
+  - Common task patterns section (new rule, fixing validation, deploying, bulk operations)
+- **docs(tools):** update agent_eval README to use `agent-eval` as primary CLI invocation
+  - `agent-eval` is now the primary command in Quick Start and all examples
+  - `uv run python -m tools.agent_eval` documented as alternative fallback
+- **feat(tools):** enhance agent_eval parallel execution progress display
+  - Overall progress bar shows completion count, pass/fail counters (✓ N | ✗ N)
+  - Individual progress tasks appear for each actively running test
+  - Tasks dynamically added when test starts, removed when complete
+  - Thread-safe tracking with `threading.Lock()` for concurrent updates
 - **docs(tools):** add agent_eval tool reference to README.md and ARCHITECTURE.md
   - Added `tools/` directory to Project Structure with link to tool README
   - Added `tools/agent_eval/` section in ARCHITECTURE.md Directory Structure
   - Documents purpose: AGENTS.md effectiveness evaluation via Snowflake Cortex
-
-### Removed
-- **docs(migration):** remove deprecated migration documentation
-  - Deleted `docs/MIGRATION.md` (v2.x → v3.0 migration guide)
-  - Deleted `docs/MIGRATION_SCHEMA_v3.1_to_v3.2.md` (schema migration guide)
-  - Removed migration references from ARCHITECTURE.md, CHANGELOG.md, CONTRIBUTING.md
-
-### Changed
 - **refactor(core):** move MODE:PLAN/ACT framework from 000-global-core.md to AGENTS.md
   - 000-global-core.md reduced from ~5750 to ~3500 tokens (~40% reduction)
   - AGENTS.md now contains complete mode workflow, transitions, and ACT requirements
@@ -37,6 +92,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - ACT mode: Added explicit response ending format with MODE: PLAN declaration
   - ACT recognition: Case-insensitive matching, partial authorization ("ACT on items 1-2"), embedded rejection
   - Partial rule loading: Explicit "DO NOT STOP" guidance with example showing Gate 3 partial success
+- **fix(AGENTS):** replace table format with list format for ACT recognition examples
+  - Improves cross-model compatibility by removing Markdown tables from protocol-critical sections
+  - Arrow characters replaced with `->` text
+- **fix(AGENTS):** improve partial rule loading and ACT recognition
+  - Step 3D: if one rule fails but others load successfully, continue with loaded rules instead of stopping
+  - ACT recognition: trailing punctuation tolerated ("ACT.", "ACT!"), typos explicitly rejected ("ATC", "ACTT")
 - **refactor(tools):** agent_eval CLI simplification
   - Removed `--baseline` flag and `baseline` command - use timestamped files with `compare` instead
   - `compare` and `report` commands now require explicit `-b` and `-t` arguments
@@ -45,30 +106,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **fix(tools):** agent_eval test_cases.yaml improvements
   - Added `query_ids` field to all test cases for execution debugging
   - Updated README with correct compare/report usage examples
-
-### Added
-- **feat(tools):** add `models` command to agent_eval CLI
-  - Lists available Cortex REST API models dynamically from Snowflake
-  - Removed static SUPPORTED_MODELS list in favor of runtime discovery
-  - Updated README with output format documentation (request_id for debugging)
-- **feat(tools):** add agent_eval framework for AGENTS.md compliance testing
-  - `tools/agent_eval/cli.py` - CLI with Snowflake Cortex REST API integration for model evaluation
-  - `tools/agent_eval/models.py` - Dataclasses for test cases, results, and evaluation metadata
-  - `tools/agent_eval/parsers.py` - Response parsing and criterion-based scoring utilities
-  - `tools/agent_eval/test_cases.yaml` - 35 test cases across 7 categories (protocol_compliance, task_switch, rule_discovery, failure_handling, act_authorization, validation_gates, edge_cases)
-  - Supports multi-turn conversations, parallel execution, and baseline comparison
-  - PEP 561 typed package with results directory for timestamped evaluation reports
-- **feat(rules):** add 351-podman-core.md for Podman container development
-  - Containerfile authoring and multi-stage builds with Buildah
-  - Rootless container execution and security patterns
-  - Podman Compose for development environments
-  - Quadlet integration for systemd service deployment
-  - Pod management for Kubernetes-style container grouping
-
-### Changed
-- **fix(AGENTS):** improve partial rule loading and ACT recognition
-  - Step 3D: if one rule fails but others load successfully, continue with loaded rules instead of stopping
-  - ACT recognition: trailing punctuation tolerated ("ACT.", "ACT!"), typos explicitly rejected ("ATC", "ACTT")
 - **fix(tools):** agent_eval test_cases.yaml improvements (v1.3.0 → v1.3.1)
   - TC-060: expanded validation criteria regex to include `read_file|analyze|review|syntax`
   - TC-035: added second criterion for partial rule loading verification
@@ -77,6 +114,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **refactor(rules):** rename 350-docker-best-practices.md to 350-docker-core.md (v3.0.0 → v3.1.0)
   - Aligns naming convention with other domain core rules (*-core.md pattern)
   - No content changes, filename and title only
+
+### Removed
+- **docs(migration):** remove deprecated migration documentation
+  - Deleted `docs/MIGRATION.md` (v2.x → v3.0 migration guide)
+  - Deleted `docs/MIGRATION_SCHEMA_v3.1_to_v3.2.md` (schema migration guide)
+  - Removed migration references from ARCHITECTURE.md, CHANGELOG.md, CONTRIBUTING.md
+
+### Fixed
+- **test(validation):** add ExampleValidator test suite to test_schema_validator.py
+  - ~1005 lines covering ExampleValidator class (compliant content, missing sections, context validation, batch validation)
+  - Improves test coverage from 93% to 99%
 
 ## [3.5.3] - 2026-02-03
 

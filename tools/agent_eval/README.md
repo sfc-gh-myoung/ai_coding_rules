@@ -6,19 +6,20 @@
 ## Quick Start
 
 ```bash
-# From ai_coding_rules root directory:
-
 # Run evaluation with default model (claude-sonnet-4-5)
-uv run python -m tools.agent_eval run
-
-# Or using the installed command:
-uv run agent-eval run
+agent-eval run
 
 # List saved results
-uv run python -m tools.agent_eval list
+agent-eval list
 
 # Compare two result files
-uv run python -m tools.agent_eval compare -b <baseline.yaml> -t <target.yaml>
+agent-eval compare -b <baseline.yaml> -t <target.yaml>
+```
+
+**Alternative:** If `agent-eval` is not on your PATH, use the module invocation:
+
+```bash
+uv run python -m tools.agent_eval run
 ```
 
 ## Module Structure
@@ -60,30 +61,51 @@ tools/agent_eval/
 
 ```bash
 # Run all tests with parallel workers
-uv run python -m tools.agent_eval run -m claude-opus-4-5 -p 5
+agent-eval run -m claude-opus-4-5 -p 5
 
 # Run only critical priority tests
-uv run python -m tools.agent_eval run -P critical
+agent-eval run -P critical
 
 # Run specific test categories
-uv run python -m tools.agent_eval run -C protocol_compliance,rule_discovery
+agent-eval run -C protocol_compliance,rule_discovery
 
 # Dry run to validate test cases
-uv run python -m tools.agent_eval run --dry-run
+agent-eval run --dry-run
 
 # Compare two result files
-uv run python -m tools.agent_eval compare -b 2026-02-05_074428_claude-opus-4-5.yaml -t 2026-02-05_074428_claude-sonnet-4-5.yaml
+agent-eval compare -b 2026-02-05_074428_claude-opus-4-5.yaml -t 2026-02-05_074428_claude-sonnet-4-5.yaml
 
 # Generate markdown comparison report
-uv run python -m tools.agent_eval report -b baseline.yaml -t current.yaml
+agent-eval report -b baseline.yaml -t current.yaml
 ```
+
+## Parallel Execution
+
+Use `-p` / `--parallel` to run tests concurrently with multiple workers:
+
+```bash
+agent-eval run -p 4
+```
+
+The progress display shows:
+
+```
+⠋ Overall Progress  ████████████░░░░░░░░░░░░  60%  6/10 | ✓ 4 | ✗ 2
+⠋   TC005           ━━━━━━━━━━━━━━━━━━━━━━━━       PRE-FLIGHT Gate 1 foundati...
+⠋   TC008           ━━━━━━━━━━━━━━━━━━━━━━━━       MODE declaration after AUT...
+⠋   TC012           ━━━━━━━━━━━━━━━━━━━━━━━━       Task Switch detection on f...
+```
+
+- **Overall Progress**: Completion percentage, count, and pass (✓) / fail (✗) totals
+- **Active tests**: Individual tasks appear when a test starts executing and disappear when complete
+- Up to `N` active tests shown (where `N` is the worker count)
 
 ## Available Models
 
 List available Cortex REST API models:
 
 ```bash
-uv run python -m tools.agent_eval models
+agent-eval models
 ```
 
 **Important:** This shows models available for the Cortex REST API (`/api/v2/cortex/inference:complete`). The SQL `COMPLETE()` function has a different (typically larger) set of models. There is no programmatic API to query REST API model availability, so the list is manually maintained.

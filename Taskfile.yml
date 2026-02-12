@@ -117,6 +117,9 @@ tasks:
         echo "{{.E_DEPLOY}}DEPLOYMENT"
         echo "{{.BORDER_SINGLE}}"
         echo "  task deploy DEST=<path>       Deploy production rules"
+        echo "  task deploy DEST=<path> NO_MODE=true"
+        echo "                                Deploy with AGENTS_NO_MODE.md"
+        echo "  task deploy:no-mode DEST=...  Deploy with no PLAN/ACT workflow"
         echo "  task deploy:dry DEST=<path>   Preview deployment"
         echo "  task deploy:verbose DEST=...  Deploy with verbose output"
         echo "  task deploy:no-skills DEST=   Deploy rules only (skip skills)"
@@ -250,11 +253,11 @@ tasks:
       - task: quality:markdown:docs
 
   quality:markdown:rules:
-    desc: "Run pymarkdownlnt for agent-facing Markdown (rules/ + AGENTS.md + PROJECT.md)"
+    desc: "Run pymarkdownlnt for agent-facing Markdown (rules/ + AGENTS.md + AGENTS_NO_MODE.md + PROJECT.md)"
     deps:
       - _check:uvx
     cmds:
-      - "{{.UVX}} pymarkdownlnt --config pymarkdown.rules.json scan rules/ AGENTS.md PROJECT.md"
+      - "{{.UVX}} pymarkdownlnt --config pymarkdown.rules.json scan rules/ AGENTS.md AGENTS_NO_MODE.md PROJECT.md"
 
   quality:markdown:docs:
     desc: "Run pymarkdownlnt for human-facing docs (docs/ + top-level docs)"
@@ -412,31 +415,31 @@ tasks:
 
   # Deployment
   deploy:
-    desc: "Deploy production-ready rules (requires DEST=)"
+    desc: "Deploy production-ready rules (requires DEST=, optional NO_MODE=true)"
     requires:
       vars: [DEST]
     deps:
       - env:sync
     cmds:
-      - "{{.PYTHON}} scripts/rule_deployer.py --dest '{{.DEST}}'"
+      - "{{.PYTHON}} scripts/rule_deployer.py --dest '{{.DEST}}'{{if eq .NO_MODE \"true\"}} --no-mode{{end}}"
 
   deploy:dry:
-    desc: "Preview deployment (requires DEST=)"
+    desc: "Preview deployment (requires DEST=, optional NO_MODE=true)"
     requires:
       vars: [DEST]
     deps:
       - env:sync
     cmds:
-      - "{{.PYTHON}} scripts/rule_deployer.py --dest '{{.DEST}}' --dry-run"
+      - "{{.PYTHON}} scripts/rule_deployer.py --dest '{{.DEST}}' --dry-run{{if eq .NO_MODE \"true\"}} --no-mode{{end}}"
 
   deploy:verbose:
-    desc: "Deploy with verbose output (requires DEST=)"
+    desc: "Deploy with verbose output (requires DEST=, optional NO_MODE=true)"
     requires:
       vars: [DEST]
     deps:
       - env:sync
     cmds:
-      - "{{.PYTHON}} scripts/rule_deployer.py --dest '{{.DEST}}' --verbose"
+      - "{{.PYTHON}} scripts/rule_deployer.py --dest '{{.DEST}}' --verbose{{if eq .NO_MODE \"true\"}} --no-mode{{end}}"
 
   deploy:no-skills:
     desc: "Deploy rules only, skip skills (requires DEST=)"
@@ -455,6 +458,15 @@ tasks:
       - env:sync
     cmds:
       - "{{.PYTHON}} scripts/rule_deployer.py --dest '{{.DEST}}' --only-skills"
+
+  deploy:no-mode:
+    desc: "Deploy rules with AGENTS_NO_MODE.md (no PLAN/ACT workflow, requires DEST=)"
+    requires:
+      vars: [DEST]
+    deps:
+      - env:sync
+    cmds:
+      - "{{.PYTHON}} scripts/rule_deployer.py --dest '{{.DEST}}' --no-mode"
 
   # Token Budgets
   tokens:update:

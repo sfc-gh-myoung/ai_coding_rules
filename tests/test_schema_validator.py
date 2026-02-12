@@ -4715,3 +4715,1008 @@ Validation criteria.
         # References to AGENTS.md should be allowed
         # Test passes if validation completes without crash
         assert result is not None
+
+
+class TestExampleValidator:
+    """Tests for ExampleValidator class (lines 1404-1571)."""
+
+    @pytest.fixture
+    def example_validator(self):
+        """Create ExampleValidator with default schema."""
+        from scripts.schema_validator import ExampleValidator
+
+        return ExampleValidator()
+
+    @pytest.fixture
+    def compliant_example_content(self) -> str:
+        """Fully compliant example file content."""
+        return """# 115 Example: Cortex Agent Setup (Python)
+
+> **EXAMPLE FILE** - Reference implementation for Cortex Agent configuration.
+
+## Context
+
+**Parent Rule:** 115-snowflake-cortex-agents-core.md
+**Demonstrates:** Basic agent setup
+**Use When:** Creating a new Cortex Agent
+**Version:** 1.0
+**Last Validated:** 2025-01-20
+
+## Prerequisites
+
+- Snowflake account with Cortex enabled
+- Python 3.11+
+
+## Implementation
+
+```python
+# Example agent setup
+agent = CortexAgent(name="test")
+```
+
+## Validation
+
+- Verify agent responds to queries
+"""
+
+    @pytest.fixture
+    def incomplete_example_content(self) -> str:
+        """Example file missing required sections."""
+        return """# Some Random Title
+
+No blockquote here.
+
+## Context
+
+**Parent Rule:** not-a-valid-ref
+**Version:** not-valid
+
+## Implementation
+
+No code block here.
+"""
+
+    @pytest.mark.unit
+    def test_example_validator_init_default_schema(self, example_validator):
+        """Test ExampleValidator loads default example schema."""
+        assert example_validator.schema is not None
+        assert "required_sections" in example_validator.schema
+
+    @pytest.mark.unit
+    def test_example_validator_init_custom_schema(self, tmp_path):
+        """Test ExampleValidator with custom schema path."""
+        from scripts.schema_validator import ExampleValidator
+
+        custom_schema = tmp_path / "custom-example-schema.yml"
+        custom_schema.write_text("""
+required_sections: []
+context_fields: []
+""")
+        validator = ExampleValidator(schema_path=custom_schema)
+        assert validator.schema is not None
+
+    @pytest.mark.unit
+    def test_example_validator_missing_schema_raises(self, tmp_path):
+        """Test ExampleValidator raises when schema file not found."""
+        from scripts.schema_validator import ExampleValidator
+
+        missing_path = tmp_path / "nonexistent.yml"
+        with pytest.raises(FileNotFoundError, match="Example schema file not found"):
+            ExampleValidator(schema_path=missing_path)
+
+    @pytest.mark.unit
+    def test_example_validator_debug_mode(self, tmp_path, capsys):
+        """Test ExampleValidator debug output."""
+        from scripts.schema_validator import ExampleValidator
+
+        custom_schema = tmp_path / "schema.yml"
+        custom_schema.write_text("""
+required_sections: []
+context_fields: []
+""")
+        validator = ExampleValidator(schema_path=custom_schema, debug=True)
+
+        # Debug method should print to stderr
+        validator._debug("Test message", {"key": "value"})
+        captured = capsys.readouterr()
+        assert "Test message" in captured.err
+        assert "key: value" in captured.err
+
+    @pytest.mark.unit
+    def test_example_validator_debug_no_context(self, tmp_path, capsys):
+        """Test ExampleValidator debug without context dict."""
+        from scripts.schema_validator import ExampleValidator
+
+        custom_schema = tmp_path / "schema.yml"
+        custom_schema.write_text("""
+required_sections: []
+context_fields: []
+""")
+        validator = ExampleValidator(schema_path=custom_schema, debug=True)
+        validator._debug("Simple message")
+        captured = capsys.readouterr()
+        assert "Simple message" in captured.err
+
+    @pytest.mark.unit
+    def test_example_validator_debug_off(self, tmp_path, capsys):
+        """Test ExampleValidator debug disabled produces no output."""
+        from scripts.schema_validator import ExampleValidator
+
+        custom_schema = tmp_path / "schema.yml"
+        custom_schema.write_text("""
+required_sections: []
+context_fields: []
+""")
+        validator = ExampleValidator(schema_path=custom_schema, debug=False)
+        validator._debug("Should not appear")
+        captured = capsys.readouterr()
+        assert captured.err == ""
+
+    @pytest.mark.unit
+    def test_example_validator_validate_compliant_file(
+        self, example_validator, compliant_example_content, tmp_path
+    ):
+        """Test ExampleValidator validates a compliant example file."""
+        example_file = tmp_path / "115-cortex-agent-example.md"
+        example_file.write_text(compliant_example_content)
+
+        result = example_validator.validate_file(example_file)
+
+        assert result.file_path == example_file
+        assert result.passed_checks > 0
+
+    @pytest.mark.unit
+    def test_example_validator_validate_incomplete_file(
+        self, example_validator, incomplete_example_content, tmp_path
+    ):
+        """Test ExampleValidator detects errors in incomplete example."""
+        example_file = tmp_path / "bad-example.md"
+        example_file.write_text(incomplete_example_content)
+
+        result = example_validator.validate_file(example_file)
+
+        assert len(result.errors) > 0
+        error_groups = {e.error_group for e in result.errors}
+        assert "Structure" in error_groups or "Context" in error_groups
+
+    @pytest.mark.unit
+    def test_example_validator_file_read_error(self, example_validator, tmp_path):
+        """Test ExampleValidator handles file read errors."""
+        import os
+
+        bad_file = tmp_path / "unreadable-example.md"
+        bad_file.write_text("content")
+        os.chmod(bad_file, 0o000)
+
+        try:
+            result = example_validator.validate_file(bad_file)
+            assert len(result.errors) > 0
+            assert result.errors[0].severity == "CRITICAL"
+            assert "Failed to read file" in result.errors[0].message
+        finally:
+            os.chmod(bad_file, 0o644)
+
+    @pytest.mark.unit
+    def test_example_validator_validate_section_by_heading(self, example_validator, tmp_path):
+        """Test _validate_section using heading match (not pattern)."""
+        example_file = tmp_path / "heading-test.md"
+        example_file.write_text("""# 100 Example: Test (Python)
+
+> **EXAMPLE FILE** - Test
+
+## Prerequisites
+
+- Item 1
+
+## Implementation
+
+```python
+pass
+```
+
+## Validation
+
+Check it.
+""")
+
+        result = example_validator.validate_file(example_file)
+        assert result is not None
+
+        # Prerequisites, Implementation, and Validation should be found by heading
+        found_sections = [
+            s["name"]
+            for s in example_validator.schema.get("required_sections", [])
+            if s.get("heading")
+        ]
+        assert len(found_sections) > 0  # Schema defines heading-based sections
+
+    @pytest.mark.unit
+    def test_example_validator_validate_section_must_contain(self, example_validator, tmp_path):
+        """Test _validate_section with must_contain requirement."""
+        # Implementation section requires code blocks (must_contain: "```")
+        example_file = tmp_path / "no-code-example.md"
+        example_file.write_text("""# 100 Example: Test (Python)
+
+> **EXAMPLE FILE** - Test
+
+## Context
+
+**Parent Rule:** 100-snowflake-core.md
+**Demonstrates:** Test
+**Use When:** Testing
+**Version:** 1.0
+**Last Validated:** 2025-01-20
+
+## Prerequisites
+
+- Item 1
+
+## Implementation
+
+No code block here, just text.
+
+## Validation
+
+Check it.
+""")
+
+        result = example_validator.validate_file(example_file)
+
+        # Should detect missing code block in Implementation
+        impl_errors = [e for e in result.errors if e.error_group == "Implementation"]
+        assert len(impl_errors) > 0
+
+    @pytest.mark.unit
+    def test_example_validator_validate_context_field_invalid(self, example_validator, tmp_path):
+        """Test _validate_context_field with invalid field format."""
+        example_file = tmp_path / "bad-context-example.md"
+        example_file.write_text("""# 100 Example: Test (Python)
+
+> **EXAMPLE FILE** - Test
+
+## Context
+
+**Parent Rule:** not-a-valid-format
+**Demonstrates:** Test
+**Use When:** Testing
+**Version:** invalid
+**Last Validated:** not-a-date
+
+## Prerequisites
+
+- Item 1
+
+## Implementation
+
+```python
+pass
+```
+
+## Validation
+
+Check it.
+""")
+
+        result = example_validator.validate_file(example_file)
+
+        context_errors = [e for e in result.errors if e.error_group == "Context"]
+        assert len(context_errors) > 0
+
+    @pytest.mark.unit
+    def test_example_validator_validate_directory(self, example_validator, tmp_path):
+        """Test ExampleValidator.validate_directory validates all .md files."""
+        examples_dir = tmp_path / "examples"
+        examples_dir.mkdir()
+
+        # Create 2 example files
+        for i in range(2):
+            f = examples_dir / f"10{i}-test-example.md"
+            f.write_text(f"""# 10{i} Example: Test {i} (Python)
+
+> **EXAMPLE FILE** - Test
+
+## Context
+
+**Parent Rule:** 10{i}-test-core.md
+**Demonstrates:** Test
+**Use When:** Testing
+**Version:** 1.0
+**Last Validated:** 2025-01-20
+
+## Prerequisites
+
+- Item
+
+## Implementation
+
+```python
+pass
+```
+
+## Validation
+
+Check.
+""")
+
+        results = example_validator.validate_directory(examples_dir)
+
+        assert len(results) == 2
+        assert all(isinstance(r, ValidationResult) for r in results)
+
+    @pytest.mark.unit
+    def test_example_validator_validate_directory_empty(self, example_validator, tmp_path):
+        """Test ExampleValidator.validate_directory with empty directory."""
+        empty_dir = tmp_path / "empty_examples"
+        empty_dir.mkdir()
+
+        results = example_validator.validate_directory(empty_dir)
+
+        assert results == []
+
+    @pytest.mark.unit
+    def test_example_validator_format_result_clean(
+        self, example_validator, compliant_example_content, tmp_path
+    ):
+        """Test ExampleValidator.format_result with clean result."""
+        example_file = tmp_path / "clean-example.md"
+        example_file.write_text(compliant_example_content)
+
+        result = example_validator.validate_file(example_file)
+
+        # Even if not perfectly clean, test format_result works
+        formatted = example_validator.format_result(result, detailed=True)
+        assert "EXAMPLE VALIDATION" in formatted
+        assert str(example_file) in formatted
+
+    @pytest.mark.unit
+    def test_example_validator_format_result_with_errors(
+        self, example_validator, incomplete_example_content, tmp_path
+    ):
+        """Test ExampleValidator.format_result with errors."""
+        example_file = tmp_path / "bad-example.md"
+        example_file.write_text(incomplete_example_content)
+
+        result = example_validator.validate_file(example_file)
+
+        formatted_detailed = example_validator.format_result(result, detailed=True)
+        assert "EXAMPLE VALIDATION" in formatted_detailed
+
+        formatted_brief = example_validator.format_result(result, detailed=False)
+        assert "EXAMPLE VALIDATION" in formatted_brief
+
+    @pytest.mark.unit
+    def test_example_validator_format_result_clean_pass(self, example_validator, tmp_path):
+        """Test format_result when no errors exist (clean pass path)."""
+        result = ValidationResult(file_path=tmp_path / "clean.md")
+        result.passed_checks = 10
+
+        formatted = example_validator.format_result(result, detailed=True)
+        assert "All validations passed" in formatted
+
+
+class TestCLIExamplesMode:
+    """Tests for main() --examples mode (lines 1625-1670)."""
+
+    @pytest.mark.unit
+    def test_main_examples_mode_with_directory(self, tmp_path, monkeypatch, capsys):
+        """Test --examples mode validates example files in directory."""
+        examples_dir = tmp_path / "examples"
+        examples_dir.mkdir()
+
+        example_file = examples_dir / "100-test-example.md"
+        example_file.write_text("""# 100 Example: Test (Python)
+
+> **EXAMPLE FILE** - Test reference
+
+## Context
+
+**Parent Rule:** 100-snowflake-core.md
+**Demonstrates:** Test
+**Use When:** Testing
+**Version:** 1.0
+**Last Validated:** 2025-01-20
+
+## Prerequisites
+
+- Python 3.11+
+
+## Implementation
+
+```python
+pass
+```
+
+## Validation
+
+- Check results
+""")
+
+        test_args = ["schema_validator.py", str(examples_dir), "--examples"]
+        monkeypatch.setattr(sys, "argv", test_args)
+
+        main()
+        captured = capsys.readouterr()
+
+        assert "EXAMPLE VALIDATION SUMMARY" in captured.out
+        assert "Total examples:" in captured.out
+
+    @pytest.mark.unit
+    def test_main_examples_mode_verbose(self, tmp_path, monkeypatch, capsys):
+        """Test --examples mode with --verbose flag."""
+        examples_dir = tmp_path / "examples"
+        examples_dir.mkdir()
+
+        example_file = examples_dir / "100-test-example.md"
+        example_file.write_text("""# 100 Example: Test (Python)
+
+> **EXAMPLE FILE** - Test
+
+## Context
+
+**Parent Rule:** 100-test-core.md
+**Version:** 1.0
+**Last Validated:** 2025-01-20
+
+## Prerequisites
+
+- Item
+
+## Implementation
+
+```python
+pass
+```
+
+## Validation
+
+Check.
+""")
+
+        test_args = ["schema_validator.py", str(examples_dir), "--examples", "--verbose"]
+        monkeypatch.setattr(sys, "argv", test_args)
+
+        main()
+        captured = capsys.readouterr()
+
+        assert "EXAMPLE VALIDATION" in captured.out
+
+    @pytest.mark.unit
+    def test_main_examples_mode_missing_directory(self, tmp_path, monkeypatch, capsys):
+        """Test --examples mode with nonexistent examples directory."""
+        missing_dir = tmp_path / "nonexistent"
+
+        test_args = ["schema_validator.py", str(missing_dir), "--examples"]
+        monkeypatch.setattr(sys, "argv", test_args)
+
+        exit_code = main()
+        captured = capsys.readouterr()
+
+        assert exit_code == 0
+        assert "No example files found" in captured.out
+
+    @pytest.mark.unit
+    def test_main_examples_mode_empty_directory(self, tmp_path, monkeypatch, capsys):
+        """Test --examples mode with empty examples directory."""
+        empty_dir = tmp_path / "empty_examples"
+        empty_dir.mkdir()
+
+        test_args = ["schema_validator.py", str(empty_dir), "--examples"]
+        monkeypatch.setattr(sys, "argv", test_args)
+
+        exit_code = main()
+        captured = capsys.readouterr()
+
+        assert exit_code == 0
+        assert "No example files found" in captured.out
+
+    @pytest.mark.unit
+    def test_main_examples_mode_with_file_path(self, tmp_path, monkeypatch, capsys):
+        """Test --examples mode when given a file instead of directory."""
+        # Create examples directory structure
+        examples_dir = tmp_path / "examples"
+        examples_dir.mkdir()
+
+        example_file = examples_dir / "100-test-example.md"
+        example_file.write_text("""# 100 Example: Test (Python)
+
+> **EXAMPLE FILE** - Test
+
+## Context
+
+**Parent Rule:** 100-test-core.md
+**Version:** 1.0
+**Last Validated:** 2025-01-20
+
+## Prerequisites
+
+- Item
+
+## Implementation
+
+```python
+pass
+```
+
+## Validation
+
+Check.
+""")
+
+        # Pass a file path with "examples" in path - should use parent as directory
+        test_args = ["schema_validator.py", str(example_file), "--examples"]
+        monkeypatch.setattr(sys, "argv", test_args)
+
+        main()
+        captured = capsys.readouterr()
+
+        assert "EXAMPLE VALIDATION SUMMARY" in captured.out
+
+    @pytest.mark.unit
+    def test_main_examples_mode_invalid_schema(self, tmp_path, monkeypatch, capsys):
+        """Test --examples mode when example schema fails to load."""
+        examples_dir = tmp_path / "examples"
+        examples_dir.mkdir()
+
+        test_args = [
+            "schema_validator.py",
+            str(examples_dir),
+            "--examples",
+        ]
+        monkeypatch.setattr(sys, "argv", test_args)
+
+        # Patch ExampleValidator to raise on init
+        import scripts.schema_validator as sv
+
+        original_init = sv.ExampleValidator.__init__
+
+        def failing_init(self, **kwargs):
+            raise ValueError("Schema broken")
+
+        monkeypatch.setattr(sv.ExampleValidator, "__init__", failing_init)
+
+        exit_code = main()
+        captured = capsys.readouterr()
+
+        assert exit_code == 1
+        assert "Error loading example schema" in captured.err
+
+        # Restore
+        monkeypatch.setattr(sv.ExampleValidator, "__init__", original_init)
+
+    @pytest.mark.unit
+    def test_main_examples_mode_with_failures(self, tmp_path, monkeypatch, capsys):
+        """Test --examples mode returns exit code 1 when examples fail validation."""
+        examples_dir = tmp_path / "examples"
+        examples_dir.mkdir()
+
+        # Create an invalid example file (missing required sections)
+        bad_file = examples_dir / "100-bad-example.md"
+        bad_file.write_text("""# Bad Example
+
+No required sections here.
+""")
+
+        test_args = ["schema_validator.py", str(examples_dir), "--examples"]
+        monkeypatch.setattr(sys, "argv", test_args)
+
+        exit_code = main()
+
+        assert exit_code == 1
+
+
+class TestFormatRestrictionEdgeCases:
+    """Tests for format restriction edge cases (lines 934, 991, 1097, 1113)."""
+
+    @pytest.fixture
+    def schema_validator(self):
+        """Create SchemaValidator instance."""
+        return SchemaValidator()
+
+    @pytest.mark.unit
+    def test_numbered_h2_sections_detected(self, schema_validator, tmp_path):
+        """Test that numbered H2 sections like '## 1. Section' are detected (line 934)."""
+        content = """# Test Rule
+
+## Metadata
+
+**SchemaVersion:** v3.2
+**RuleVersion:** v1.0.0
+**LastUpdated:** 2025-01-05
+**Keywords:** test, validation, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, references, examples, rules
+**TokenBudget:** ~500
+**ContextTier:** High
+**Depends:** 000-global-core.md
+
+## 1. Scope
+
+**What This Rule Covers:**
+Numbered section test.
+
+**When to Load This Rule:**
+Testing numbered sections.
+
+## 2. References
+
+### Dependencies
+
+**Must Load First:**
+- **000-global-core.md**
+
+## 3. Contract
+
+### Inputs and Prerequisites
+
+None
+
+### Mandatory
+
+All tools
+
+### Forbidden
+
+None
+
+### Execution Steps
+
+1. Test step
+
+### Output Format
+
+Test output
+
+### Validation
+
+Test validation
+
+### Post-Execution Checklist
+
+- [ ] Check
+
+## 4. Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Example**
+```python
+# Bad
+pass
+```
+**Problem:** Issue
+
+**Correct Pattern:**
+```python
+# Good
+pass
+```
+**Benefits:** Better
+"""
+        rule_file = tmp_path / "numbered-sections.md"
+        rule_file.write_text(content)
+
+        result = schema_validator.validate_file(rule_file)
+
+        format_errors = [e for e in result.errors if e.error_group == "Format"]
+        numbered_errors = [e for e in format_errors if "numbered" in e.message.lower()]
+
+        assert len(numbered_errors) > 0, "Should detect numbered H2 sections"
+
+    @pytest.mark.unit
+    def test_yaml_frontmatter_detected(self, schema_validator, tmp_path):
+        """Test that YAML frontmatter (---) at start is detected (line 991)."""
+        content = """---
+title: Test Rule
+---
+
+# Test Rule
+
+## Metadata
+
+**SchemaVersion:** v3.2
+**RuleVersion:** v1.0.0
+**LastUpdated:** 2025-01-05
+**Keywords:** test, validation, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, references, examples, rules
+**TokenBudget:** ~500
+**ContextTier:** High
+**Depends:** 000-global-core.md
+
+## Scope
+
+**What This Rule Covers:**
+YAML frontmatter test.
+
+**When to Load This Rule:**
+Testing YAML frontmatter.
+"""
+        rule_file = tmp_path / "yaml-frontmatter.md"
+        rule_file.write_text(content)
+
+        result = schema_validator.validate_file(rule_file)
+
+        format_errors = [e for e in result.errors if e.error_group == "Format"]
+        yaml_errors = [
+            e
+            for e in format_errors
+            if "yaml" in e.message.lower() or "frontmatter" in e.message.lower()
+        ]
+
+        assert len(yaml_errors) > 0, "Should detect YAML frontmatter"
+
+    @pytest.mark.unit
+    def test_horizontal_rule_detected(self, schema_validator, tmp_path):
+        """Test that horizontal rules (---) are detected (line 1113)."""
+        content = """# Test Rule
+
+**SchemaVersion:** v3.1
+**RuleVersion:** v1.0.0
+**Keywords:** test, validation, patterns, checking, verification
+**TokenBudget:** ~500
+**ContextTier:** Medium
+**Depends:** rules/000-global-core.md
+
+## Purpose
+
+Some content here.
+
+---
+
+More content after separator.
+
+## Rule Scope
+
+Test scope.
+"""
+        rule_file = tmp_path / "hr-rule.md"
+        rule_file.write_text(content)
+
+        result = schema_validator.validate_file(rule_file)
+
+        hr_errors = [
+            e
+            for e in result.errors
+            if e.error_group == "Priority 2" and "Horizontal rule" in e.message
+        ]
+
+        assert len(hr_errors) > 0, "Should detect horizontal rule separator"
+        assert hr_errors[0].severity == "MEDIUM"
+
+
+class TestOtherEdgeCases:
+    """Tests for remaining edge cases."""
+
+    @pytest.fixture
+    def schema_validator(self):
+        """Create SchemaValidator instance."""
+        return SchemaValidator()
+
+    @pytest.mark.unit
+    def test_empty_depends_field_error(self, schema_validator, tmp_path):
+        """Test that empty Depends field triggers error (lines 536-539).
+
+        The regex `(.+)` requires at least one char, so we use unittest.mock.patch
+        to intercept re.search and return a whitespace-only Depends value.
+        """
+        import re as _re
+        from unittest.mock import patch
+
+        content = """# Test Rule
+
+## Metadata
+
+**SchemaVersion:** v3.2
+**RuleVersion:** v1.0.0
+**LastUpdated:** 2025-01-05
+**Keywords:** test, validation, schema, metadata, structure, content, format, compliance, checklist, anti-patterns, contract, references, examples, rules
+**TokenBudget:** ~500
+**ContextTier:** High
+**Depends:** .
+
+## Scope
+
+**What This Rule Covers:**
+Empty depends test.
+
+**When to Load This Rule:**
+Testing empty depends field.
+"""
+        result = ValidationResult(file_path=tmp_path / "test.md")
+        lines = content.split("\n")
+
+        original_search = _re.search
+
+        def mock_search(pattern, string, flags=0):
+            match = original_search(pattern, string, flags)
+            if match and "Depends" in pattern:
+
+                class MockMatch:
+                    def __init__(self, real_match):
+                        self._real = real_match
+
+                    def group(self, n=0):
+                        if n == 1:
+                            return "   "  # whitespace only
+                        return self._real.group(n)
+
+                    def start(self):
+                        return self._real.start()
+
+                return MockMatch(match)
+            return match
+
+        with patch("scripts.schema_validator.re.search", side_effect=mock_search):
+            schema_validator._validate_metadata(content, lines, result)
+
+        metadata_errors = [e for e in result.errors if e.error_group == "Metadata"]
+        depends_errors = [
+            e for e in metadata_errors if "Depends" in e.message or "depends" in e.message.lower()
+        ]
+
+        assert len(depends_errors) > 0, "Should detect empty Depends field"
+
+    @pytest.mark.unit
+    def test_section_order_diff_unexpected_section(self, schema_validator):
+        """Test _format_section_order_diff with section not in expected list (lines 764-765)."""
+        expected = ["Scope", "References", "Contract"]
+        actual = ["Scope", "Unknown Section", "Contract"]
+
+        diff = schema_validator._format_section_order_diff(expected, actual)
+
+        assert "not in expected list" in diff
+        assert "Unknown Section" in diff
+
+    @pytest.mark.unit
+    def test_format_result_warnings_only(self, schema_validator, tmp_path):
+        """Test format_result with only MEDIUM errors, no CRITICAL/HIGH (line 1257)."""
+        result = ValidationResult(file_path=tmp_path / "test.md")
+        result.errors = [
+            ValidationError(
+                severity="MEDIUM",
+                message="Minor issue 1",
+                error_group="Format",
+                line_num=10,
+            ),
+            ValidationError(
+                severity="MEDIUM",
+                message="Minor issue 2",
+                error_group="Format",
+                line_num=20,
+            ),
+        ]
+        result.passed_checks = 15
+
+        formatted = schema_validator.format_result(result, detailed=True)
+
+        assert "WARNINGS ONLY" in formatted
+        assert "MEDIUM" in formatted
+
+    @pytest.mark.unit
+    def test_format_result_non_detailed(self, schema_validator, tmp_path):
+        """Test format_result with detailed=False."""
+        result = ValidationResult(file_path=tmp_path / "test.md")
+        result.errors = [
+            ValidationError(
+                severity="HIGH",
+                message="Test error",
+                error_group="Metadata",
+                line_num=5,
+                fix_suggestion="Fix it",
+            ),
+        ]
+
+        formatted = schema_validator.format_result(result, detailed=False)
+
+        assert "FAILED" in formatted
+        assert "[Metadata] Test error" in formatted
+
+    @pytest.mark.unit
+    def test_validate_agents_md_read_error(self, schema_validator, tmp_path):
+        """Test validate_agents_md when file exists but can't be read (lines 1314-1322)."""
+        import os
+
+        agents_file = tmp_path / "AGENTS.md"
+        agents_file.write_text("content")
+        os.chmod(agents_file, 0o000)
+
+        try:
+            result = schema_validator.validate_agents_md(agents_file)
+            assert len(result.errors) > 0
+            assert result.errors[0].severity == "CRITICAL"
+            assert "Failed to read AGENTS.md" in result.errors[0].message
+        finally:
+            os.chmod(agents_file, 0o644)
+
+    @pytest.mark.unit
+    def test_validate_agents_md_missing_returns_clean(self, schema_validator, tmp_path):
+        """Test validate_agents_md with non-existent file returns clean result."""
+        missing = tmp_path / "AGENTS.md"
+
+        result = schema_validator.validate_agents_md(missing)
+
+        assert result.is_clean
+
+    @pytest.mark.unit
+    def test_format_json_with_warnings(self, schema_validator, tmp_path):
+        """Test format_json includes warning files (not just failed)."""
+        import json
+
+        results = [
+            ValidationResult(
+                file_path=tmp_path / "clean.md",
+                errors=[],
+                passed_checks=10,
+            ),
+            ValidationResult(
+                file_path=tmp_path / "warning.md",
+                errors=[
+                    ValidationError(
+                        severity="MEDIUM",
+                        message="Warning",
+                        error_group="Format",
+                        line_num=1,
+                    ),
+                ],
+                passed_checks=5,
+            ),
+            ValidationResult(
+                file_path=tmp_path / "failed.md",
+                errors=[
+                    ValidationError(
+                        severity="CRITICAL",
+                        message="Failure",
+                        error_group="Structure",
+                        line_num=1,
+                    ),
+                ],
+                passed_checks=3,
+            ),
+        ]
+
+        json_str = schema_validator.format_json(results)
+        data = json.loads(json_str)
+
+        assert data["summary"]["total_files"] == 3
+        assert data["summary"]["clean"] == 1
+        assert data["summary"]["warnings_only"] == 1
+        assert data["summary"]["failed"] == 1
+        assert len(data["failed_files"]) == 1
+        assert len(data["warning_files"]) == 1
+
+    @pytest.mark.unit
+    def test_validation_error_format_detailed_all_fields(self):
+        """Test ValidationError.format_detailed with all optional fields populated."""
+        error = ValidationError(
+            severity="HIGH",
+            message="Test error with all fields",
+            error_group="Metadata",
+            line_num=42,
+            fix_suggestion="Do something",
+            docs_reference="002-rule-governance.md",
+            context="test context",
+            actual_value="actual",
+            expected_value="expected",
+            matched_items=["item1", "item2", "item3", "item4", "item5", "item6", "item7"],
+            line_preview="x" * 150,  # Long line to trigger truncation
+        )
+
+        formatted = error.format_detailed()
+
+        assert "Line: 42" in formatted
+        assert "Expected: expected" in formatted
+        assert "Actual:   actual" in formatted
+        assert "Found 7 items:" in formatted
+        assert "... and 2 more" in formatted
+        assert "..." in formatted  # Line preview truncation
+        assert "Fix: Do something" in formatted
+        assert "Reference: 002-rule-governance.md" in formatted
+
+    @pytest.mark.unit
+    def test_main_cli_invalid_path(self, tmp_path, monkeypatch, capsys):
+        """Test main CLI with path that is neither file nor directory."""
+        # Use a path that doesn't exist
+        bad_path = tmp_path / "nonexistent"
+
+        test_args = ["schema_validator.py", str(bad_path)]
+        monkeypatch.setattr(sys, "argv", test_args)
+
+        exit_code = main()
+        captured = capsys.readouterr()
+
+        assert exit_code == 1
+        assert "not a file or directory" in captured.err

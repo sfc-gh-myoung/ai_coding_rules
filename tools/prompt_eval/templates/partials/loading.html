@@ -1,0 +1,29 @@
+<div class="loading-container" id="loading-progress">
+    <div class="loading-spinner"></div>
+    <div class="loading-text" id="loading-stage-text">Evaluating prompt&hellip;</div>
+    <div class="loading-elapsed" id="loading-elapsed">0s</div>
+</div>
+
+<script>
+(function() {
+    var seconds = 0;
+    var elapsedEl = document.getElementById("loading-elapsed");
+
+    var elapsedTimer = setInterval(function() {
+        seconds++;
+        elapsedEl.textContent = seconds + "s";
+    }, 1000);
+
+    // Clean up when HTMX swaps in the results (removes this element)
+    var container = document.getElementById("loading-progress");
+    if (container) {
+        var observer = new MutationObserver(function(mutations) {
+            if (!document.contains(container)) {
+                clearInterval(elapsedTimer);
+                observer.disconnect();
+            }
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+    }
+})();
+</script>

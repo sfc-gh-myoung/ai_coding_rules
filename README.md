@@ -4,7 +4,7 @@
 ![Version](https://img.shields.io/badge/version-3.5.3-blue)
 [![CI](https://github.com/sfc-gh-myoung/ai_coding_rules/actions/workflows/ci.yml/badge.svg)](https://github.com/sfc-gh-myoung/ai_coding_rules/actions/workflows/ci.yml)
 ![Tests](https://img.shields.io/badge/tests-100%25%20passing-brightgreen)
-![Coverage](https://img.shields.io/badge/coverage-93%25-brightgreen)
+![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Task](https://img.shields.io/badge/Task-Taskfile-brightgreen)](https://taskfile.dev)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/sfc-gh-myoung/ai_coding_rules)
@@ -34,7 +34,7 @@ This repository provides a **universal ai coding rule system** designed to work 
 
 ## Key Features
 
-- **📚 125 Production-Ready Rules** — Comprehensive coverage across Snowflake, Python, Go, React, HTMX, Alpine.js, Docker, Shell scripting, and project management
+- **📚 126 Production-Ready Rules** — Comprehensive coverage across Snowflake, Python, Go, React, HTMX, Alpine.js, Docker, Podman, Shell scripting, and project management
 - **🔄 Universal Format** — Write once, use everywhere: Cursor, VS Code, Claude, ChatGPT, GitHub Copilot, and more
 - **🤖 Intelligent Discovery** — AI assistants automatically find and load relevant rules using semantic keyword matching (matching by meaning, not just exact text)
 - **🎯 Dependency-Aware** — Explicit dependency chains ensure rules load in the correct order
@@ -97,6 +97,7 @@ This repository contains multiple documentation files for different audiences:
 |------|---------|--------------|
 | **README.md** | Project overview, setup, usage | Start here (you are here) |
 | **AGENTS.md** | Minimal bootstrap protocol for rule loading | AI agents: first action every response |
+| **AGENTS_NO_MODE.md** | Simplified bootstrap without PLAN/ACT workflow | AI agents: when immediate execution preferred |
 | **PROJECT.md** | Project-specific tooling and guidelines | AI agents: auto-loaded by supporting tools |
 | **rules/000-global-core.md** | Execution protocols (MODE, validation, workflows) | AI agents: after loading foundation |
 | **CONTRIBUTING.md** | Development guidelines, PR process | When contributing rules |
@@ -341,7 +342,7 @@ AI assistants automatically discover and load relevant rules based on your task 
 
   User Task                    AI Agent Actions
   ─────────                   ──────────────────
-     
+
   📝 "Build a                 ┌──────────────────┐
    Snowflake                  │ 1. Read          │
    Streamlit                  │   AGENTS.md      │◄─── Loading Protocol
@@ -389,10 +390,10 @@ Example Loading Sequence:
 - "testing" → loads `206-python-pytest.md`
 
 > **💡 Pro Tip: Keywords Drive Discovery**
-> 
-> The `Keywords` metadata in each rule enables semantic search. When you say "optimize Streamlit performance," 
+>
+> The `Keywords` metadata in each rule enables semantic search. When you say "optimize Streamlit performance,"
 > the AI searches rules/RULES_INDEX.md for rules with keywords: "performance", "streamlit", "caching", "optimization".
-> 
+>
 > **This is why well-crafted prompts matter** - specific keywords help the AI load the most relevant rules.
 > See [prompts/README.md](prompts/README.md) for effective prompt patterns.
 
@@ -576,7 +577,7 @@ You can also use these skill by telling Claude Code to explicitly load the skill
 
 #### Cortex Code CLI
 You can use these skills in Cortex Code CLI by running the skill add command.
-- Prompt: `/skill add <project_path>/skills/<skill_name>` 
+- Prompt: `/skill add <project_path>/skills/<skill_name>`
 
 You can also use these skills by telling Cortex Code CLI to explicitly load the skill in your prompt.
 - Prompt: `Load skills/<skill_name>/SKILL.md`
@@ -676,7 +677,7 @@ For questions or discussions, file an issue on the repository.
 
 ```ascii
 ai_coding_rules/
-├── rules/                  ← Production-ready rules (125 total)
+├── rules/                  ← Production-ready rules (126 total)
 │   └── examples/           ← Validated implementation examples (10 total)
 ├── AGENTS.md               ← Rule loading protocol for AI assistants
 ├── rules/RULES_INDEX.md          ← Searchable rule catalog
@@ -704,16 +705,18 @@ ai_coding_rules/
     ├── rule-creator/           ← Create new rules (internal)
     └── skill-timing/           ← Measure skill performance
 ├── tools/                  ← Evaluation and testing tools
-│   └── agent_eval/             ← AGENTS.md effectiveness evaluation ([README](tools/agent_eval/README.md))
+│   ├── agent_eval/             ← AGENTS.md effectiveness evaluation ([README](tools/agent_eval/README.md))
+│   └── prompt_eval/            ← Prompt quality evaluation across 6 dimensions ([README](tools/prompt_eval/README.md))
 ```
 
 **Key Concepts:**
 
-- **rules/** — Production-ready rules (125 total), deploy directly (no generation needed)
+- **rules/** — Production-ready rules (126 total), deploy directly (no generation needed)
 - **AGENTS.md** — AI discovery protocol in project root
+- **AGENTS_NO_MODE.md** — Simplified protocol without PLAN/ACT workflow
 - **rules/RULES_INDEX.md** — Searchable catalog in project root
 - **scripts/** — Validation (`schema_validator.py`), deployment (`rule_deployer.py`)
-- **tools/** — Evaluation tools (`agent_eval` for AGENTS.md testing)
+- **tools/** — Evaluation tools (`agent_eval` for AGENTS.md testing, `prompt_eval` for prompt quality scoring)
 
 **Workflows:**
 
@@ -745,6 +748,7 @@ task deploy DEST=~/my-project          # Deploy rules to project
 task deploy:dry DEST=~/my-project      # Preview deployment
 task deploy:verbose DEST=~/my-project  # Deploy with verbose output
 task deploy:no-skills DEST=~/my-project # Deploy rules only (skip skills)
+task deploy:no-mode DEST=~/my-project  # Deploy without PLAN/ACT workflow
 task deploy:only-skills DEST=~/.claude/skills # Deploy only skills (for agent configs)
 
 # Rule Management
@@ -804,8 +808,8 @@ The rules are organized by domain using a three-digit numbering system. Each cat
 | **Core Foundation** | 000-099 | 12 | Universal patterns | Operating principles, memory bank, rule governance, context engineering, tool design, skills |
 | **Snowflake** | 100-199 | 58 | Data platform | SQL, Streamlit, performance, Cortex AI, security, notebooks, pipelines, demo creation |
 | **Python** | 200-299 | 27 | Software engineering | Core patterns, FastAPI, Flask, Typer CLI, Pydantic, pytest, Pandas, **HTMX** |
-| **Shell Scripts** | 300-399 | 7 | Automation | Bash and Zsh scripting, security, testing |
-| **Frontend/Containers** | 400-499 | 5 | Infrastructure & UI | Docker, JavaScript, TypeScript, React, **HTMX frontend** |
+| **Shell/Containers** | 300-399 | 9 | Automation & Infrastructure | Bash and Zsh scripting, security, testing, Docker, **Podman** |
+| **Frontend (JS/TS)** | 400-499 | 3 | Client-side frameworks | JavaScript, TypeScript, React, **HTMX frontend** |
 | **Frontend** | 500-599 | 2 | Client-side | HTMX frontend, browser globals |
 | **Systems/Backend Languages** | 600-699 | 1 | Backend development | **Go/Golang** core patterns, error handling, concurrency |
 | **Reserved** | 700-799 | 0 | Future use | Reserved for future domain expansion |
@@ -865,6 +869,44 @@ The rules use a structured directive language with clear priority levels to guid
 
 This hierarchy ensures consistent interpretation across different AI models and provides clear guidance on the relative importance of each directive.
 
+## Evaluation Tools
+
+### agent_eval — AGENTS.md Effectiveness Testing
+
+Tests whether AI agents correctly follow the `AGENTS.md` bootstrap protocol by sending evaluation prompts through Snowflake Cortex and scoring responses against expected behaviors.
+
+```bash
+uv run agent-eval run                    # Run all evaluation tests
+uv run agent-eval run --parallel         # Run tests in parallel
+uv run agent-eval run -t test_name       # Run a specific test
+```
+
+**Features:** Connection verification, parallel execution with per-test progress tracking, thread-safe counters, configurable Cortex model selection. See [tools/agent_eval/README.md](tools/agent_eval/README.md) for full documentation.
+
+### prompt_eval — Prompt Quality Evaluation
+
+Evaluates and improves prompts for LLM/agent execution quality across 6 weighted dimensions on a 100-point scale (letter grade A–F), then generates improved versions optimized for any LLM or coding agent.
+
+```bash
+uv run prompt-eval eval prompt.txt       # Evaluate a prompt file
+uv run prompt-eval eval -                # Evaluate from stdin
+uv run prompt-eval eval prompt.txt --no-rewrite  # Score only, skip rewrite
+uv run prompt-eval api                   # Start web UI at localhost:8000
+```
+
+**Scoring Dimensions:**
+
+| Dimension | Weight | What It Measures |
+|-----------|--------|------------------|
+| Actionability | 25 pts | Clear, unambiguous instructions an agent can execute |
+| Completeness | 25 pts | All necessary context, constraints, and outputs included |
+| Token Efficiency | 10 pts | Concise without redundancy |
+| Cross-Agent Consistency | 10 pts | Works reliably across different LLMs |
+| Parsability | 10 pts | Structured formatting agents can parse |
+| Context Grounding | 10 pts (bonus) | References concrete files, functions, or project context |
+
+**Interfaces:** CLI, REST API, and web UI. **Output formats:** Markdown (default), JSON, HTML. See [tools/prompt_eval/README.md](tools/prompt_eval/README.md) for full documentation.
+
 ## Rule Architecture
 
 The project uses a **production-ready rules architecture**. Rules are authored once in universal Markdown format and work everywhere without transformation.
@@ -919,7 +961,7 @@ def load_rule_with_dependencies(rule_name, rules_dir="rules"):
     """Load a rule and all its dependencies in correct order."""
     loaded = []
     to_load = [rule_name]
-    
+
     while to_load:
         current = to_load.pop(0)
         if current not in loaded and current != "None":
@@ -927,16 +969,16 @@ def load_rule_with_dependencies(rule_name, rules_dir="rules"):
             rule_path = Path(rules_dir) / current
             if rule_path.exists():
                 content = rule_path.read_text()
-                
+
                 # Extract dependencies
                 depends_match = re.search(r'\*\*Depends:\*\* (.+)', content)
                 if depends_match:
                     deps = depends_match.group(1).split(', ')
                     # Add dependencies to load queue (they'll load first)
                     to_load = [f"{d}.md" for d in deps if d != "None"] + to_load
-                
+
                 loaded.append(current)
-    
+
     return loaded  # Returns rules in dependency order
 
 # Example usage
@@ -992,7 +1034,6 @@ uv run scripts/rule_deployer.py --dest ~/my-project
 ls scripts/rule_deployer.py scripts/schema_validator.py Taskfile.yml rules/
 ```
 
-
 ### Task Command Not Found
 
 **Problem:** `task: command not found` or `bash: task: command not found`
@@ -1033,7 +1074,6 @@ task --version
 # Should show: Task version: v3.x.x
 ```
 
-
 ### Python Version Conflicts
 
 **Problem:** Wrong Python version or dependency conflicts
@@ -1073,7 +1113,6 @@ source .venv/bin/activate  # Linux/macOS
 pip install -e ".[dev]"
 ```
 
-
 ### IDE Not Recognizing Rules
 
 **Problem:** AI assistant not using deployed rules
@@ -1101,7 +1140,6 @@ ls rules/*.md | wc -l
    - Ask: "What rules are available for Snowflake development?"
    - AI should reference rules/RULES_INDEX.md and list rules
    - If not working, verify rules/RULES_INDEX.md is in context
-
 
 ### How to Verify Rules Are Working
 
@@ -1137,7 +1175,6 @@ grep -i "fastapi" rules/RULES_INDEX.md
 grep -i "snowflake" rules/RULES_INDEX.md
 ```
 
-
 ### Permission Errors During Deployment
 
 **Problem:** Permission denied when deploying rules
@@ -1164,7 +1201,6 @@ task deploy DEST=/tmp/rules-output
 # If cloned repository has wrong permissions
 chmod -R u+w .
 ```
-
 
 ### Give Specific Rules
 

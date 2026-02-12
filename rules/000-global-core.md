@@ -316,7 +316,7 @@ new_string: "    result = new_logic()"
 
 **Why It Fails:** Agent blocks on errors without actionable recovery; user left without guidance.
 
-**Recovery Patterns by Error Type:**
+**Correct Pattern:**
 
 ```markdown
 Context Overflow:

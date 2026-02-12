@@ -274,8 +274,8 @@ Rules use 3-digit prefixes for logical organization:
 | **000-099** | Core/Foundational | 000-global-core, 002-rule-governance |
 | **100-199** | Snowflake Ecosystem | 100-snowflake-core, 101-snowflake-streamlit-core |
 | **200-299** | Python Ecosystem | 200-python-core, 201-python-lint-format, 221-python-htmx-core, 221b-python-htmx-flask, 221c-python-htmx-fastapi |
-| **300-399** | Shell/Bash Scripting | 300-bash-scripting-core, 310-zsh-scripting-core |
-| **400-499** | Frontend/Containers | 350-docker-best-practices, 420-javascript-core, 430-typescript-core, 440-react-core, 441-react-backend |
+| **300-399** | Shell/Bash Scripting & Containers | 300-bash-scripting-core, 310-zsh-scripting-core, 350-docker-best-practices, 351-podman-best-practices |
+| **400-499** | Frontend (JavaScript/TypeScript) | 420-javascript-core, 430-typescript-core, 440-react-core, 441-react-backend |
 | **500-599** | Frontend | 500-frontend-htmx-core, 501-frontend-browser-globals-collisions |
 | **600-699** | Systems/Backend Languages | 600-golang-core (Go project structure, error handling, interfaces, testing, concurrency) |
 | **800-899** | Project Management | 800-project-changelog, 801-project-readme, 802-project-contributing, 803-project-git-workflow, 820-taskfile-automation |
@@ -598,7 +598,7 @@ ai_coding_rules/
 │   │   ├── 116-cortex-search-service-example.md
 │   │   ├── 120-spcs-service-spec-example.md
 │   │   └── 121-snowpipe-auto-ingest-example.md
-│   └── ... (125 total)
+│   └── ... (126 total)
 │
 ├── scripts/                    # Automation and validation
 │   ├── template_generator.py  # Creates new rule templates
@@ -613,7 +613,7 @@ ai_coding_rules/
 │   ├── example-schema.yml      # Example file schema definition
 │   └── README.md               # Schema documentation
 │
-├── tests/                      # Test suite (100+ passing tests)
+├── tests/                      # Test suite (500+ passing tests)
 │   ├── test_template_generator.py
 │   ├── test_rule_deployer.py
 │   ├── test_schema_validator.py
@@ -659,11 +659,20 @@ ai_coding_rules/
 │       └── tests/                   # Input, mode, output test cases
 │
 ├── tools/                      # Evaluation and testing tools
-│   └── agent_eval/             # AGENTS.md effectiveness evaluation
+│   ├── agent_eval/             # AGENTS.md effectiveness evaluation
+│   │   ├── __init__.py             # Package metadata
+│   │   ├── cli.py                  # Typer CLI commands
+│   │   ├── evaluator.py            # Core evaluation logic
+│   │   ├── test_cases.yaml         # Test definitions
+│   │   └── README.md               # Tool documentation
+│   └── prompt_eval/            # Prompt quality evaluation (6-dimension scoring)
 │       ├── __init__.py             # Package metadata
-│       ├── cli.py                  # Typer CLI commands
+│       ├── cli.py                  # Typer CLI (eval, models, api commands)
+│       ├── cortex.py               # Snowflake Cortex integration
 │       ├── evaluator.py            # Core evaluation logic
-│       ├── test_cases.yaml         # Test definitions
+│       ├── formatter.py            # Output formatting (markdown, JSON, HTML)
+│       ├── api.py                  # FastAPI REST API + web UI
+│       ├── templates/              # Jinja2 HTML templates
 │       └── README.md               # Tool documentation
 │
 ├── docs/                       # Project documentation
@@ -672,6 +681,7 @@ ai_coding_rules/
 │   └── MEMORY_BANK.md          # Memory Bank system guide
 │
 ├── AGENTS.md                   # Minimal AI agent bootstrap protocol (project root)
+├── AGENTS_NO_MODE.md           # Simplified bootstrap without PLAN/ACT workflow
 ├── RULES_INDEX.md              # Searchable rule catalog with loading strategy (project root)
 ├── CHANGELOG.md                # Version history (Keep a Changelog v1.1.0)
 ├── CONTRIBUTING.md             # Contribution guidelines
@@ -686,7 +696,7 @@ ai_coding_rules/
 - Production-ready files
 - Directly editable
 - No generation required
-- 125 rules covering all domains (including 8 HTMX rules, Go/Golang core, and Alpine.js)
+- 126 rules covering all domains (including 8 HTMX rules, Go/Golang core, Alpine.js, and Podman)
 
 **`rules/examples/`** — Validated implementation examples
 - Complete, runnable reference implementations for complex rules
@@ -1047,7 +1057,7 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 ### Deployment Architecture
 
 **Source Files (in ai_coding_rules repository):**
-- `rules/` — 125 production-ready rule files
+- `rules/` — 126 production-ready rule files
 - `AGENTS.md` — Discovery guide with loading protocol
 - `RULES_INDEX.md` — Searchable catalog with keywords
 
@@ -1119,15 +1129,15 @@ Configuration:
   Mode: LIVE (files will be copied)
 
 Validation:
-  ✓ Source rules/ directory exists (125 files)
+  ✓ Source rules/ directory exists (126 files)
   ✓ Source AGENTS.md exists
   ✓ Source RULES_INDEX.md exists
   ✓ Destination writable
 
 Deployment:
   → Creating destination rules/ directory
-  → Copying 124 rule files...
-  ✓ Copied 125 rules to /path/to/project/rules/
+  → Copying 126 rule files...
+  ✓ Copied 126 rules to /path/to/project/rules/
   ✓ Copied AGENTS.md to /path/to/project/
   ✓ Copied RULES_INDEX.md to /path/to/project/
 
@@ -1215,6 +1225,45 @@ AI Response:
   [Analysis and task list...]
 ```
 
+## Evaluation Tools
+
+### agent_eval — AGENTS.md Effectiveness Testing
+
+Tests whether AI agents correctly follow the `AGENTS.md` bootstrap protocol by sending evaluation prompts through Snowflake Cortex and scoring responses against expected behaviors.
+
+**Architecture:**
+- `cli.py` — Typer CLI with `run`, `list`, `verify` commands
+- `evaluator.py` — Core evaluation logic with Cortex LLM integration
+- `cortex.py` — Snowflake Cortex REST API client with `verify_connection()`
+- `test_cases.yaml` — Declarative test definitions with expected behaviors
+
+**Features:** Connection verification, parallel execution with per-test progress tracking, thread-safe counters, configurable Cortex model selection.
+
+### prompt_eval — Prompt Quality Evaluation
+
+Evaluates and improves prompts for LLM/agent execution quality across 6 weighted dimensions on a 100-point scale (letter grade A–F), then generates improved versions optimized for any coding agent.
+
+**Architecture:**
+- `cli.py` — Typer CLI with `eval`, `models`, `api` commands
+- `evaluator.py` — Core evaluation logic with structured dimension scoring
+- `cortex.py` — Snowflake Cortex REST API client for LLM analysis
+- `formatter.py` — Output formatting (Markdown tables, JSON, standalone HTML reports)
+- `api.py` — FastAPI REST API with web UI for interactive evaluation
+- `templates/` — Jinja2 HTML templates for the web interface
+
+**Scoring Dimensions (100-point scale):**
+
+| Dimension | Weight | What It Measures |
+|-----------|--------|------------------|
+| Actionability | 25 pts | Clear, unambiguous instructions an agent can execute |
+| Completeness | 25 pts | All necessary context, constraints, and outputs included |
+| Token Efficiency | 10 pts | Concise without redundancy |
+| Cross-Agent Consistency | 10 pts | Works reliably across different LLMs |
+| Parsability | 10 pts | Structured formatting agents can parse |
+| Context Grounding | 10 pts (bonus) | References concrete files, functions, or project context |
+
+**Interfaces:** CLI, REST API (`/api/evaluate` endpoint), and web UI (dark-theme with progress bars).
+
 ## Testing Infrastructure
 
 ### Test Suite Overview
@@ -1222,7 +1271,7 @@ AI Response:
 v3.0 includes comprehensive test coverage ensuring script reliability:
 
 **Test Statistics:**
-- **100+ passing tests** across 5 test files
+- **500+ passing tests** across 10 test files
 - **Comprehensive coverage** across all production scripts
 - **pytest-based** test framework
 - **Fixture-driven** test data management
@@ -1441,12 +1490,16 @@ python scripts/rule_deployer.py --dest PATH [OPTIONS]
 - `--dest PATH` — Destination directory (required)
 - `--dry-run` — Preview without copying files
 - `--verbose` — Detailed logging output
+- `--no-mode` — Deploy AGENTS_NO_MODE.md as AGENTS.md (removes PLAN/ACT workflow)
+- `--skip-skills` — Deploy rules only, skip skills directory
+- `--only-skills` — Deploy only skills directory (for agent config directories)
 
 **Features:**
 - Validates source files exist
 - Checks destination writability
 - Copies rules/ directory
-- Copies AGENTS.md and RULES_INDEX.md
+- Copies skills/ directory (excludes internal-only skills configured in pyproject.toml)
+- Copies AGENTS.md and RULES_INDEX.md (or AGENTS_NO_MODE.md with `--no-mode`)
 - Detailed deployment report
 
 **Example:**
@@ -1661,17 +1714,17 @@ flowchart TD
 
 ```mermaid
 graph TD
-    Root[ai_coding_rules/] --> Rules[rules/<br/>122 production files]
-    Root --> Scripts[scripts/<br/>5 Python scripts]
+    Root[ai_coding_rules/] --> Rules[rules/<br/>126 production files]
+    Root --> Scripts[scripts/<br/>8 Python scripts]
     Root --> Schemas[schemas/<br/>v3.0 YAML schema]
-    Root --> Tests[tests/<br/>91 passing tests]
+    Root --> Tests[tests/<br/>544 passing tests]
     Root --> Prompts[prompts/<br/>Example prompts]
     Root --> Docs[docs/<br/>Documentation]
     Root --> RootFiles[Root Files]
     
     Rules --> Rule1[000-global-core.md]
     Rules --> Rule2[100-snowflake-core.md]
-    Rules --> Rule3[... 122 total]
+    Rules --> Rule3[... 126 total]
     
     Scripts --> S1[template_generator.py]
     Scripts --> S2[rule_deployer.py]

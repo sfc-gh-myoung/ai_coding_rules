@@ -1,6 +1,7 @@
 """CLI commands for AGENTS.md evaluation tool."""
 
 import hashlib
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import UTC, datetime
@@ -23,7 +24,7 @@ from rich.syntax import Syntax
 from rich.table import Table
 
 from tools.agent_eval import __app_name__, __version__
-from tools.agent_eval.cortex import list_available_models
+from tools.agent_eval.cortex import list_available_models, verify_connection
 from tools.agent_eval.evaluator import CortexEvaluator
 from tools.agent_eval.models import (
     DEFAULT_MAX_RETRIES,
@@ -49,14 +50,24 @@ app = typer.Typer(
 state = State()
 
 
-def print_header() -> None:
-    """Print colorful application header with name and version."""
+def print_header(connection_info: dict[str, str] | None = None) -> None:
+    """Print colorful application header with name, version, and connection info."""
     header_text = f"[bold magenta]{__app_name__}[/bold magenta] [dim]v{__version__}[/dim]"
     subtitle = "[cyan]AGENTS.md Protocol Compliance Evaluator[/cyan]"
+
+    if connection_info:
+        conn_line = (
+            f"\n[dim]Connection:[/dim] [green]{connection_info['connection_name']}[/green] "
+            f"[dim]|[/dim] [blue]{connection_info['account']}[/blue] "
+            f"[dim]|[/dim] [yellow]{connection_info['user']}[/yellow]"
+        )
+    else:
+        conn_line = ""
+
     console.print()
     console.print(
         Panel(
-            f"{header_text}\n{subtitle}",
+            f"{header_text}\n{subtitle}{conn_line}",
             box=box.DOUBLE_EDGE,
             border_style="bright_blue",
             padding=(0, 2),
@@ -335,7 +346,16 @@ def callback(
     else:
         state.agents_file = DEFAULT_AGENTS_FILE
 
-    print_header()
+    # Verify connection before proceeding
+    try:
+        connection_info = verify_connection(connection)
+    except RuntimeError as e:
+        print_header()  # Show header without connection info
+        log_error(f"Connection failed: {e}")
+        log_error("Cannot proceed without valid Snowflake connection. Exiting.")
+        raise typer.Exit(1) from None
+
+    print_header(connection_info)
 
     if state.agents_file != DEFAULT_AGENTS_FILE:
         log_info(f"Using protocol: {state.agents_file}")
@@ -416,7 +436,8 @@ def _run_parallel(
     max_retries: int,
     workers: int,
 ) -> None:
-    """Run tests in parallel using ThreadPoolExecutor."""
+    """Run tests in parallel with live progress for active tests."""
+    # Warm up connection
     with CortexEvaluator(
         model,
         state.connection,
@@ -427,48 +448,80 @@ def _run_parallel(
     ) as _:
         pass
 
-    def evaluate_single(test: dict[str, Any]) -> dict[str, Any]:
-        """Evaluate a single test (for parallel execution)."""
-        evaluator = CortexEvaluator(
-            model,
-            state.connection,
-            timeout=timeout,
-            max_retries=max_retries,
-            agents_file=state.agents_file,
-            state=state,
-        )
-        evaluator.quiet = True
-        with evaluator:
-            try:
-                return evaluator.evaluate_test(test)
-            except (RuntimeError, ValueError, KeyError) as e:
-                log_debug(f"Test {test['test_id']} error: {e}")
-                return {
-                    "test_id": test["test_id"],
-                    "name": test["name"],
-                    "category": test["category"],
-                    "priority": test["priority"],
-                    "result": "ERROR",
-                    "error": str(e),
-                }
+    # Thread-safe tracking of active test tasks
+    active_tasks: dict[str, int] = {}  # test_id -> task_id
+    lock = threading.Lock()
+    completed_count = [0]  # Use list for mutable reference in nested function
+    passed_count = [0]
+    failed_count = [0]
 
-    completed = 0
-    with Progress(
+    # Create progress display with overall bar and space for active tests
+    progress = Progress(
         SpinnerColumn(),
         TextColumn("[progress.description]{task.description}"),
-        BarColumn(),
+        BarColumn(bar_width=30),
         TaskProgressColumn(),
-        TextColumn("[dim]{task.fields[status]}[/dim]"),
+        TextColumn("{task.fields[status]}"),
         console=console,
-    ) as progress:
-        task = progress.add_task(
-            f"Running {len(test_list)} tests...",
+        refresh_per_second=4,
+    )
+
+    def evaluate_with_tracking(test: dict[str, Any]) -> dict[str, Any]:
+        """Evaluate test with progress tracking."""
+        test_id = test["test_id"]
+        test_name = test["name"][:35] + "..." if len(test["name"]) > 35 else test["name"]
+
+        # Add task for this test when it starts running
+        with lock:
+            task_id = progress.add_task(
+                f"  [cyan]{test_id}[/cyan]",
+                total=None,  # Indeterminate (spinner)
+                status=f"[dim]{test_name}[/dim]",
+            )
+            active_tasks[test_id] = task_id
+
+        try:
+            evaluator = CortexEvaluator(
+                model,
+                state.connection,
+                timeout=timeout,
+                max_retries=max_retries,
+                agents_file=state.agents_file,
+                state=state,
+            )
+            evaluator.quiet = True
+            with evaluator:
+                try:
+                    return evaluator.evaluate_test(test)
+                except (RuntimeError, ValueError, KeyError) as e:
+                    log_debug(f"Test {test_id} error: {e}")
+                    return {
+                        "test_id": test_id,
+                        "name": test["name"],
+                        "category": test["category"],
+                        "priority": test["priority"],
+                        "result": "ERROR",
+                        "error": str(e),
+                    }
+        finally:
+            # Remove task when done
+            with lock:
+                task_id = active_tasks.pop(test_id, None)
+                if task_id is not None:
+                    progress.remove_task(task_id)
+
+    with progress:
+        # Overall progress bar at top
+        overall_task = progress.add_task(
+            "[bold]Overall Progress[/bold]",
             total=len(test_list),
-            status=f"0/{len(test_list)}",
+            status=f"[dim]0/{len(test_list)} | ✓ 0 | ✗ 0[/dim]",
         )
 
         with ThreadPoolExecutor(max_workers=workers) as executor:
-            future_to_test = {executor.submit(evaluate_single, test): test for test in test_list}
+            future_to_test = {
+                executor.submit(evaluate_with_tracking, test): test for test in test_list
+            }
 
             for future in as_completed(future_to_test):
                 test = future_to_test[future]
@@ -478,8 +531,10 @@ def _run_parallel(
 
                     if result["result"] == "PASS":
                         results["summary"]["passed"] += 1
+                        passed_count[0] += 1
                     else:
                         results["summary"]["failed"] += 1
+                        failed_count[0] += 1
 
                 except Exception as e:
                     log_error(f"Unexpected error in {test['test_id']}: {e}")
@@ -494,14 +549,18 @@ def _run_parallel(
                         }
                     )
                     results["summary"]["failed"] += 1
+                    failed_count[0] += 1
 
-                completed += 1
+                completed_count[0] += 1
                 progress.update(
-                    task,
-                    description=f"[cyan]{test['test_id']}[/] done",
-                    status=f"{completed}/{len(test_list)}",
+                    overall_task,
+                    completed=completed_count[0],
+                    status=(
+                        f"[dim]{completed_count[0]}/{len(test_list)}[/dim] | "
+                        f"[green]✓ {passed_count[0]}[/green] | "
+                        f"[red]✗ {failed_count[0]}[/red]"
+                    ),
                 )
-                progress.advance(task)
 
     results["results"].sort(key=lambda x: x["test_id"])
 
@@ -699,14 +758,14 @@ def list_cmd() -> None:
         raise typer.Exit(0)
 
     table = Table(title=f"Saved Results ({len(files)} files)", box=box.ROUNDED)
-    table.add_column("Filename", style="cyan")
+    table.add_column("Filename", style="cyan", overflow="fold")
     table.add_column("Pass Rate", justify="right", style="green")
     table.add_column("Tests", justify="right", style="white")
-    table.add_column("Model", style="yellow")
-    table.add_column("Evaluator", style="blue")
+    table.add_column("Model", style="yellow", overflow="fold")
+    table.add_column("Evaluator", style="blue", overflow="fold")
     table.add_column("Runtime", justify="right", style="dim")
-    table.add_column("Agents File", style="magenta")
-    table.add_column("Date", style="dim")
+    table.add_column("Agents File", style="magenta", overflow="fold")
+    table.add_column("Date", style="dim", overflow="fold")
 
     for f in files:
         try:

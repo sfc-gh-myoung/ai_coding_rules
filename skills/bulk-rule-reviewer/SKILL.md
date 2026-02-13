@@ -29,7 +29,7 @@ Execute comprehensive agent-centric reviews on all rule files in `rules/` direct
   - Examples: `rules/100-*.md` (Snowflake only), `rules/*-core.md` (cores only)
 - **skip_existing**: Boolean (default: true) - Resume capability
 - **overwrite**: Boolean (default: false) - If true, overwrite existing review files. If false, use sequential numbering (-01, -02, etc.) for conflicts
-- **max_parallel**: Integer 1-10 (default: 1) - Concurrent reviews
+- **max_parallel**: Integer 1-10 (default: 5) - Concurrent sub-agent workers. Set to 1 for sequential execution (legacy behavior)
 - **output_root**: Root directory for output files (default: `reviews/`). Subdirectories `rule-reviews/` and `summaries/` appended automatically. Supports relative paths including `../`.
 - **timing_enabled**: `true` | `false` (default: `false`) - Enable execution timing
 
@@ -559,7 +559,40 @@ Find all `.md` files in `rules/` directory, apply filter_pattern, sort alphabeti
 
 **See:** `../skill-timing/workflows/timing-checkpoint.md`
 
-### Stage 2: Review Execution
+### Stage 2: Review Execution (Parallel or Sequential)
+
+**Execution mode depends on `max_parallel` parameter:**
+
+#### Parallel Execution (default: max_parallel ≥ 2)
+
+When `max_parallel >= 2`, use parallel sub-agents for faster execution:
+
+1. **Partition rules** into N groups (where N = max_parallel)
+2. **Launch N sub-agents** in background, each assigned a group
+3. **Each sub-agent** loads rule-reviewer skill and processes its rules independently
+4. **Monitor progress** via agent_output polling
+5. **Aggregate results** when all sub-agents complete
+
+**Benefits:**
+- 5× speedup (1-2 hours instead of 5-10 hours)
+- Fresh context per sub-agent (eliminates drift)
+- Isolated failures (one agent failing doesn't stop others)
+
+**See:** `workflows/parallel-execution.md` for full implementation
+**See:** `workflows/subagent-prompt-template.md` for sub-agent prompt
+
+**File writes:** All sub-agents write directly to `{output_root}/rule-reviews/`. No conflicts because each sub-agent reviews different rules (unique filenames).
+
+#### Sequential Execution (max_parallel = 1)
+
+When `max_parallel = 1`, use legacy sequential processing (single agent reviews all rules).
+
+**Use sequential when:**
+- Debugging/troubleshooting the skill
+- Very small rule sets (< 10 rules)
+- Explicit user preference
+
+---
 
 **CRITICAL: This is where shortcut temptation peaks. Resist it.**
 

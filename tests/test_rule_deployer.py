@@ -231,6 +231,126 @@ class TestCopyRootFiles:
         assert not (dest_dir / "AGENTS.md").exists()  # No actual copy
         assert not (dest_dir / "rules" / "RULES_INDEX.md").exists()
 
+    @pytest.mark.unit
+    def test_rules_index_split_mode_substitutes_paths(
+        self, mock_project_root: Path, tmp_path: Path
+    ) -> None:
+        """Test RULES_INDEX.md path substitution in split deployment mode.
+
+        In split mode, `rules/` prefixes in RULES_INDEX.md should be replaced
+        with the actual rules destination path for correct agent rule loading.
+        """
+        # Arrange
+        rules_index = mock_project_root / "rules" / "RULES_INDEX.md"
+        rules_index.write_text(
+            "Load: rules/000-global-core.md\n"
+            "Also: rules/200-python-core.md\n"
+            "Skills at: skills/my-skill/SKILL.md\n"
+        )
+        agents_dest = tmp_path / "agents"
+        agents_dest.mkdir()
+        # Use path names that don't contain "rules" or "skills" to avoid
+        # false positives in substring matching
+        rules_dest = tmp_path / "deployed-rules-dir"
+        rules_dest.mkdir()
+        skills_dest = tmp_path / "deployed-skills-dir"
+        skills_dest.mkdir()
+
+        paths = dr.DeploymentPaths(
+            agents=agents_dest,
+            rules=rules_dest,
+            skills=skills_dest,
+        )
+
+        # Act
+        files_copied, files_failed = dr.copy_root_files(
+            mock_project_root, agents_dest, dry_run=False, verbose=False, paths=paths
+        )
+
+        # Assert
+        assert files_copied == 2
+        assert files_failed == 0
+        result_file = rules_dest / "RULES_INDEX.md"
+        assert result_file.exists()
+        content = result_file.read_text()
+        # Verify rules/ prefix was replaced with actual path
+        assert f"{rules_dest}/000-global-core.md" in content
+        assert f"{rules_dest}/200-python-core.md" in content
+        # Verify skills/ prefix was replaced
+        assert f"{skills_dest}/my-skill/SKILL.md" in content
+        # Verify original prefixes are gone (check for the exact prefix pattern)
+        assert "Load: rules/" not in content
+        assert "Also: rules/" not in content
+        assert "Skills at: skills/" not in content
+
+    @pytest.mark.unit
+    def test_rules_index_unified_mode_unchanged(
+        self, mock_project_root: Path, dest_dir: Path
+    ) -> None:
+        """Test RULES_INDEX.md is copied unchanged in unified deployment mode.
+
+        In unified mode (no paths argument), RULES_INDEX.md should be copied
+        as-is without any path substitution. The `rules/` prefix is correct
+        for unified deployments where rules are at DEST/rules/.
+        """
+        # Arrange
+        original_content = "Load: rules/000-global-core.md\nAlso: rules/200-python-core.md\n"
+        rules_index = mock_project_root / "rules" / "RULES_INDEX.md"
+        rules_index.write_text(original_content)
+
+        # Act
+        files_copied, files_failed = dr.copy_root_files(
+            mock_project_root, dest_dir, dry_run=False, verbose=False, paths=None
+        )
+
+        # Assert
+        assert files_copied == 2
+        assert files_failed == 0
+        result_file = dest_dir / "rules" / "RULES_INDEX.md"
+        assert result_file.exists()
+        content = result_file.read_text()
+        # Content should be unchanged - rules/ prefix retained
+        assert content == original_content
+
+    @pytest.mark.unit
+    def test_rules_index_split_mode_without_skills(
+        self, mock_project_root: Path, tmp_path: Path
+    ) -> None:
+        """Test RULES_INDEX.md substitution when skills_dest is None.
+
+        When deploying without skills, only rules/ paths should be substituted.
+        skills/ references should remain unchanged.
+        """
+        # Arrange
+        rules_index = mock_project_root / "rules" / "RULES_INDEX.md"
+        rules_index.write_text(
+            "Load: rules/000-global-core.md\nSkills at: skills/my-skill/SKILL.md\n"
+        )
+        agents_dest = tmp_path / "agents"
+        agents_dest.mkdir()
+        rules_dest = tmp_path / "custom-rules"
+        rules_dest.mkdir()
+
+        paths = dr.DeploymentPaths(
+            agents=agents_dest,
+            rules=rules_dest,
+            skills=None,  # No skills destination
+        )
+
+        # Act
+        files_copied, files_failed = dr.copy_root_files(
+            mock_project_root, agents_dest, dry_run=False, verbose=False, paths=paths
+        )
+
+        # Assert
+        assert files_copied == 2
+        assert files_failed == 0
+        content = (rules_dest / "RULES_INDEX.md").read_text()
+        # rules/ should be substituted
+        assert f"{rules_dest}/000-global-core.md" in content
+        # skills/ should remain unchanged (no skills_dest)
+        assert "skills/my-skill/SKILL.md" in content
+
 
 class TestDeployRules:
     """Test end-to-end deployment functionality."""
@@ -288,12 +408,12 @@ class TestCLIArguments:
 
     @pytest.mark.unit
     def test_dest_required(self) -> None:
-        """Test that --dest argument is required."""
-        # Act & Assert
-        with pytest.raises(SystemExit) as exc_info, patch("sys.argv", ["rule_deployer.py"]):
-            dr.main()
+        """Test that at least one destination argument is required."""
+        # Act - no destination args provided, main() returns 1 (no SystemExit)
+        with patch("sys.argv", ["rule_deployer.py"]):
+            exit_code = dr.main()
 
-        assert exc_info.value.code != 0
+        assert exit_code == 1
 
     @pytest.mark.integration
     def test_dry_run_flag(self, mock_project_root: Path, tmp_path: Path) -> None:
@@ -314,6 +434,137 @@ class TestCLIArguments:
         # Assert
         assert exit_code == 0
         assert not (dest / "rules").exists()  # Dry run - no copy
+
+
+class TestValidateSplitDestinations:
+    """Tests for validate_split_destinations with force and prompt behavior."""
+
+    @pytest.mark.unit
+    def test_force_creates_missing_directories(self, tmp_path: Path) -> None:
+        """Test --force creates missing directories without prompting."""
+        agents = tmp_path / "agents"
+        rules = tmp_path / "rules"
+
+        is_valid, errors = dr.validate_split_destinations(agents, rules, None, force=True)
+
+        assert is_valid is True
+        assert errors == []
+        assert agents.exists()
+        assert rules.exists()
+
+    @pytest.mark.unit
+    def test_force_creates_all_three_directories(self, tmp_path: Path) -> None:
+        """Test --force creates agents, rules, and skills directories."""
+        agents = tmp_path / "agents"
+        rules = tmp_path / "rules"
+        skills = tmp_path / "skills"
+
+        is_valid, _errors = dr.validate_split_destinations(agents, rules, skills, force=True)
+
+        assert is_valid is True
+        assert agents.exists()
+        assert rules.exists()
+        assert skills.exists()
+
+    @pytest.mark.unit
+    def test_force_creates_nested_directories(self, tmp_path: Path) -> None:
+        """Test --force creates nested directory paths."""
+        agents = tmp_path / "deep" / "nested" / "agents"
+        rules = tmp_path / "deep" / "nested" / "rules"
+
+        is_valid, _errors = dr.validate_split_destinations(agents, rules, None, force=True)
+
+        assert is_valid is True
+        assert agents.exists()
+        assert rules.exists()
+
+    @pytest.mark.unit
+    def test_prompt_accepts_creates_directory(self, tmp_path: Path) -> None:
+        """Test interactive prompt creates directory when user types 'y'."""
+        agents = tmp_path / "agents"
+        rules = tmp_path / "rules"
+
+        with patch("scripts.rule_deployer.input", return_value="y"):
+            is_valid, _errors = dr.validate_split_destinations(agents, rules, None)
+
+        assert is_valid is True
+        assert agents.exists()
+        assert rules.exists()
+
+    @pytest.mark.unit
+    def test_prompt_accepts_empty_input(self, tmp_path: Path) -> None:
+        """Test interactive prompt creates directory on empty input (default Y)."""
+        agents = tmp_path / "agents"
+        rules = tmp_path / "rules"
+
+        with patch("scripts.rule_deployer.input", return_value=""):
+            is_valid, _errors = dr.validate_split_destinations(agents, rules, None)
+
+        assert is_valid is True
+        assert agents.exists()
+        assert rules.exists()
+
+    @pytest.mark.unit
+    def test_prompt_declines_returns_error(self, tmp_path: Path) -> None:
+        """Test interactive prompt returns error when user types 'n'."""
+        agents = tmp_path / "agents"
+        rules = tmp_path / "rules"
+
+        with patch("scripts.rule_deployer.input", return_value="n"):
+            is_valid, errors = dr.validate_split_destinations(agents, rules, None)
+
+        assert is_valid is False
+        assert len(errors) == 2
+        assert not agents.exists()
+        assert not rules.exists()
+
+    @pytest.mark.unit
+    def test_eof_in_noninteractive_returns_error(self, tmp_path: Path) -> None:
+        """Test EOFError (non-interactive) is treated as decline."""
+        agents = tmp_path / "agents"
+        rules = tmp_path / "rules"
+
+        with patch("scripts.rule_deployer.input", side_effect=EOFError):
+            is_valid, _errors = dr.validate_split_destinations(agents, rules, None)
+
+        assert is_valid is False
+        assert not agents.exists()
+
+    @pytest.mark.unit
+    def test_existing_directories_pass_without_prompt(self, tmp_path: Path) -> None:
+        """Test existing directories pass validation without any prompt."""
+        agents = tmp_path / "agents"
+        rules = tmp_path / "rules"
+        agents.mkdir()
+        rules.mkdir()
+
+        # No mock needed - input should never be called
+        is_valid, errors = dr.validate_split_destinations(agents, rules, None)
+
+        assert is_valid is True
+        assert errors == []
+
+    @pytest.mark.unit
+    def test_dependency_errors_skip_directory_check(self, tmp_path: Path) -> None:
+        """Test dependency errors bail before prompting about directories."""
+        agents = tmp_path / "agents"  # Does not exist
+
+        # --agents-dest without --rules-dest should fail on dependency, not prompt
+        is_valid, errors = dr.validate_split_destinations(agents, None, None)
+
+        assert is_valid is False
+        assert any("requires --rules-dest" in e for e in errors)
+        assert not agents.exists()
+
+    @pytest.mark.unit
+    def test_force_does_not_affect_dependency_validation(self, tmp_path: Path) -> None:
+        """Test --force doesn't bypass dependency validation rules."""
+        agents = tmp_path / "agents"
+
+        is_valid, errors = dr.validate_split_destinations(agents, None, None, force=True)
+
+        assert is_valid is False
+        assert any("requires --rules-dest" in e for e in errors)
 
 
 class TestValidateSourceStructureExtended:
@@ -1079,12 +1330,13 @@ class TestMainFunctionAndCLI:
 
     @pytest.mark.unit
     def test_main_with_missing_dest_argument(self) -> None:
-        """Test main function when dest argument is None (shouldn't happen with argparse)."""
-        # This tests the validation at lines 422-424
-        # In practice, argparse ensures --dest is provided, but we test the check
-        with patch("sys.argv", ["rule_deployer.py"]), pytest.raises(SystemExit):
-            # argparse will exit when required arg is missing
-            dr.main()
+        """Test main function when no destination arguments are provided."""
+        # With split mode, --dest is optional so argparse won't exit.
+        # Instead, main() returns 1 when no destinations are specified.
+        with patch("sys.argv", ["rule_deployer.py"]):
+            exit_code = dr.main()
+
+        assert exit_code == 1
 
     @pytest.mark.unit
     def test_main_dest_validation_when_none(self, capsys) -> None:
@@ -1095,11 +1347,15 @@ class TestMainFunctionAndCLI:
             (),
             {
                 "dest": None,
+                "agents_dest": None,
+                "rules_dest": None,
+                "skills_dest": None,
                 "dry_run": False,
                 "verbose": True,
                 "quiet": False,
                 "skip_skills": False,
                 "only_skills": False,
+                "no_mode": False,
             },
         )()
 
@@ -1110,7 +1366,7 @@ class TestMainFunctionAndCLI:
         # Assert
         assert exit_code == 1
         captured = capsys.readouterr()
-        assert "Error: --dest argument is required" in captured.err
+        assert "Must specify either --dest or at least one split destination" in captured.err
 
     @pytest.mark.integration
     def test_cli_only_skills_flag(self, mock_project_root: Path, tmp_path: Path, capsys) -> None:

@@ -336,13 +336,14 @@ class TestCLIArguments:
     """Test command-line argument parsing."""
 
     @pytest.mark.unit
-    def test_dest_required(self) -> None:
-        """Test that --dest argument is required."""
-        # Act & Assert
-        with pytest.raises(SystemExit) as exc_info, patch("sys.argv", ["rule_deployer.py"]):
-            dr.main()
+    def test_no_destination_required(self) -> None:
+        """Test that either --dest or split destinations are required."""
+        # Act - call main with no destination arguments
+        with patch("sys.argv", ["rule_deployer.py"]):
+            exit_code = dr.main()
 
-        assert exc_info.value.code != 0
+        # Assert - should return non-zero exit code
+        assert exit_code == 1
 
     @pytest.mark.integration
     def test_dry_run_flag(self, mock_project_root: Path, tmp_path: Path) -> None:
@@ -408,6 +409,253 @@ class TestCLIArguments:
 
         # Assert
         assert exit_code == 1  # Should return error code
+
+
+class TestResolvePaths:
+    """Test path resolution for unified and split deployment modes."""
+
+    @pytest.mark.unit
+    def test_unified_mode_paths(self) -> None:
+        """Test path resolution in unified mode."""
+        # Arrange
+        dest = Path("/tmp/project")
+
+        # Act
+        paths = dr.resolve_paths(dest=dest)
+
+        # Assert - use resolve() to handle symlinks like /tmp -> /private/tmp on macOS
+        assert paths.agents == dest.resolve()
+        assert paths.rules == dest.resolve() / "rules"
+        assert paths.skills == dest.resolve() / "skills"
+
+    @pytest.mark.unit
+    def test_split_mode_paths(self) -> None:
+        """Test path resolution in split mode."""
+        # Arrange
+        agents = Path("/tmp/agents")
+        rules = Path("/tmp/rules")
+        skills = Path("/tmp/skills")
+
+        # Act
+        paths = dr.resolve_paths(
+            agents_dest=agents,
+            rules_dest=rules,
+            skills_dest=skills,
+        )
+
+        # Assert
+        assert paths.agents == agents.resolve()
+        assert paths.rules == rules.resolve()
+        assert paths.skills == skills.resolve()
+
+    @pytest.mark.unit
+    def test_split_mode_partial_paths(self) -> None:
+        """Test path resolution with only some split destinations."""
+        # Arrange
+        agents = Path("/tmp/agents")
+        rules = Path("/tmp/rules")
+
+        # Act
+        paths = dr.resolve_paths(
+            agents_dest=agents,
+            rules_dest=rules,
+        )
+
+        # Assert
+        assert paths.agents == agents.resolve()
+        assert paths.rules == rules.resolve()
+        assert paths.skills is None
+
+
+class TestSplitDestinationValidation:
+    """Test validation of split destination arguments."""
+
+    @pytest.mark.unit
+    def test_agents_requires_rules(self) -> None:
+        """Test that --agents-dest requires --rules-dest."""
+        # Act
+        is_valid, errors = dr.validate_split_destinations(
+            agents_dest=Path("/tmp/agents"),
+            rules_dest=None,
+            skills_dest=None,
+        )
+
+        # Assert
+        assert not is_valid
+        assert any("--agents-dest requires --rules-dest" in e for e in errors)
+
+    @pytest.mark.unit
+    def test_skills_requires_agents(self) -> None:
+        """Test that --skills-dest requires --agents-dest."""
+        # Act
+        is_valid, errors = dr.validate_split_destinations(
+            agents_dest=None,
+            rules_dest=Path("/tmp/rules"),
+            skills_dest=Path("/tmp/skills"),
+        )
+
+        # Assert
+        assert not is_valid
+        assert any("--skills-dest requires --agents-dest" in e for e in errors)
+
+    @pytest.mark.unit
+    def test_valid_split_destinations(self, tmp_path: Path) -> None:
+        """Test valid split destination configuration."""
+        # Arrange - create actual directories
+        agents_dir = tmp_path / "agents"
+        rules_dir = tmp_path / "rules"
+        agents_dir.mkdir()
+        rules_dir.mkdir()
+
+        # Act
+        is_valid, errors = dr.validate_split_destinations(
+            agents_dest=agents_dir,
+            rules_dest=rules_dir,
+            skills_dest=None,
+        )
+
+        # Assert
+        assert is_valid
+        assert len(errors) == 0
+
+
+class TestDirectoryExistence:
+    """Test directory existence validation."""
+
+    @pytest.mark.unit
+    def test_missing_agents_directory(self) -> None:
+        """Test validation fails for missing agents directory."""
+        # Act
+        is_valid, errors = dr.validate_split_destinations(
+            agents_dest=Path("/nonexistent/agents"),
+            rules_dest=Path("/tmp"),
+            skills_dest=None,
+        )
+
+        # Assert
+        assert not is_valid
+        assert any("does not exist" in e for e in errors)
+
+    @pytest.mark.unit
+    def test_missing_rules_directory(self) -> None:
+        """Test validation fails for missing rules directory."""
+        # Act
+        is_valid, errors = dr.validate_split_destinations(
+            agents_dest=Path("/tmp"),
+            rules_dest=Path("/nonexistent/rules"),
+            skills_dest=None,
+        )
+
+        # Assert
+        assert not is_valid
+        assert any("does not exist" in e for e in errors)
+
+
+class TestTemplateSubstitution:
+    """Test template loading and path substitution."""
+
+    @pytest.mark.unit
+    def test_substitute_template_rules_path(self) -> None:
+        """Test rules path substitution in templates."""
+        # Arrange
+        template = "Load file: {{rules_path}}/000-global-core.md"
+        paths = dr.DeploymentPaths(
+            agents=Path("/project"),
+            rules=Path("/project/rules"),
+            skills=Path("/project/skills"),
+        )
+
+        # Act
+        result = dr.substitute_template(template, paths)
+
+        # Assert
+        assert "{{rules_path}}" not in result
+        assert "/project/rules/000-global-core.md" in result
+
+    @pytest.mark.unit
+    def test_substitute_template_skills_path(self) -> None:
+        """Test skills path substitution in templates."""
+        # Arrange
+        template = "Skills in: {{skills_path}}/my-skill"
+        paths = dr.DeploymentPaths(
+            agents=Path("/project"),
+            rules=Path("/project/rules"),
+            skills=Path("/custom/skills"),
+        )
+
+        # Act
+        result = dr.substitute_template(template, paths)
+
+        # Assert
+        assert "{{skills_path}}" not in result
+        assert "/custom/skills/my-skill" in result
+
+    @pytest.mark.unit
+    def test_substitute_template_both_paths(self) -> None:
+        """Test substitution of both rules and skills paths."""
+        # Arrange
+        template = "Rules: {{rules_path}}/test.md, Skills: {{skills_path}}/skill"
+        paths = dr.DeploymentPaths(
+            agents=Path("/a"),
+            rules=Path("/b"),
+            skills=Path("/c"),
+        )
+
+        # Act
+        result = dr.substitute_template(template, paths)
+
+        # Assert
+        assert "{{rules_path}}" not in result
+        assert "{{skills_path}}" not in result
+        assert "/b/test.md" in result
+        assert "/c/skill" in result
+
+
+class TestSplitDeploymentIntegration:
+    """Integration tests for split deployment."""
+
+    @pytest.mark.integration
+    def test_split_deployment_dry_run(self, tmp_path: Path) -> None:
+        """Test split deployment in dry-run mode."""
+        # Arrange
+        agents_dest = tmp_path / "agents"
+        rules_dest = tmp_path / "rules"
+        skills_dest = tmp_path / "skills"
+        agents_dest.mkdir()
+        rules_dest.mkdir()
+        skills_dest.mkdir()
+
+        # Act - directly test deploy_rules with split mode (dry run)
+        success = dr.deploy_rules(
+            agents_dest=agents_dest,
+            rules_dest=rules_dest,
+            skills_dest=skills_dest,
+            dry_run=True,
+            verbose=False,
+        )
+
+        # Assert - dry run should succeed but not create files
+        assert success is True
+        assert not list(agents_dest.glob("*.md"))  # No files in dry run
+        assert not list(rules_dest.glob("*.md"))  # No files in dry run
+
+    @pytest.mark.integration
+    def test_backward_compatibility_unified_mode(self, tmp_path: Path) -> None:
+        """Test that unified mode (--dest) still works correctly."""
+        # Arrange
+        dest = tmp_path / "unified"
+        dest.mkdir()
+
+        # Act - use unified mode (dry run)
+        success = dr.deploy_rules(
+            dest=dest,
+            dry_run=True,
+            verbose=False,
+        )
+
+        # Assert - unified mode should work correctly
+        assert success is True
+        assert not (dest / "rules").exists()  # No files in dry run
 
 
 # Run tests with: pytest tests/test_deployment.py -v

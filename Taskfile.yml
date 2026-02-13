@@ -116,7 +116,12 @@ tasks:
         echo
         echo "{{.E_DEPLOY}}DEPLOYMENT"
         echo "{{.BORDER_SINGLE}}"
-        echo "  task deploy DEST=<path>       Deploy production rules"
+        echo "  task deploy DEST=<path>       Deploy production rules (unified)"
+        echo "  task deploy:split             Deploy to separate directories"
+        echo "       AGENTS=<path>            - AGENTS.md destination"
+        echo "       RULES=<path>             - rules/ destination"
+        echo "       SKILLS=<path>            - skills/ destination (optional)"
+        echo "       FORCE=true               - create dirs if missing (no prompt)"
         echo "  task deploy DEST=<path> NO_MODE=true"
         echo "                                Deploy with AGENTS_NO_MODE.md"
         echo "  task deploy:no-mode DEST=...  Deploy with no PLAN/ACT workflow"
@@ -253,11 +258,11 @@ tasks:
       - task: quality:markdown:docs
 
   quality:markdown:rules:
-    desc: "Run pymarkdownlnt for agent-facing Markdown (rules/ + AGENTS.md + AGENTS_NO_MODE.md + PROJECT.md)"
+    desc: "Run pymarkdownlnt for agent-facing Markdown (rules/ + templates/ + AGENTS.md + AGENTS_NO_MODE.md + PROJECT.md)"
     deps:
       - _check:uvx
     cmds:
-      - "{{.UVX}} pymarkdownlnt --config pymarkdown.rules.json scan rules/ AGENTS.md AGENTS_NO_MODE.md PROJECT.md"
+      - "{{.UVX}} pymarkdownlnt --config pymarkdown.rules.json scan rules/ templates/ AGENTS.md AGENTS_NO_MODE.md PROJECT.md"
 
   quality:markdown:docs:
     desc: "Run pymarkdownlnt for human-facing docs (docs/ + top-level docs)"
@@ -468,6 +473,52 @@ tasks:
     cmds:
       - "{{.PYTHON}} scripts/rule_deployer.py --dest '{{.DEST}}' --no-mode"
 
+  deploy:split:
+    desc: "Deploy to separate directories (requires AGENTS=, RULES=; SKILLS= optional)"
+    requires:
+      vars: [AGENTS, RULES]
+    deps:
+      - env:sync
+    cmds:
+      - "{{.PYTHON}} scripts/rule_deployer.py --agents-dest '{{.AGENTS}}' --rules-dest '{{.RULES}}'{{if .SKILLS}} --skills-dest '{{.SKILLS}}'{{end}}{{if eq .NO_MODE \"true\"}} --no-mode{{end}}{{if eq .DRY_RUN \"true\"}} --dry-run{{end}}{{if eq .FORCE \"true\"}} --force{{end}}"
+
+  deploy:split:dry:
+    desc: "Preview split deployment (requires AGENTS=, RULES=; SKILLS= optional)"
+    requires:
+      vars: [AGENTS, RULES]
+    deps:
+      - env:sync
+    cmds:
+      - "{{.PYTHON}} scripts/rule_deployer.py --agents-dest '{{.AGENTS}}' --rules-dest '{{.RULES}}'{{if .SKILLS}} --skills-dest '{{.SKILLS}}'{{end}} --dry-run"
+
+  # Template Management
+  templates:sync:
+    desc: "Sync AGENTS.md templates from source files"
+    deps:
+      - env:sync
+    sources:
+      - AGENTS.md
+      - AGENTS_NO_MODE.md
+    generates:
+      - templates/AGENTS_MODE.md.template
+      - templates/AGENTS_NO_MODE.md.template
+    cmds:
+      - "{{.PYTHON}} scripts/template_sync.py"
+
+  templates:check:
+    desc: "Check if templates are in sync (for CI)"
+    deps:
+      - env:sync
+    cmds:
+      - "{{.PYTHON}} scripts/template_sync.py --check"
+
+  templates:dry:
+    desc: "Preview template sync without changes"
+    deps:
+      - env:sync
+    cmds:
+      - "{{.PYTHON}} scripts/template_sync.py --dry-run"
+
   # Token Budgets
   tokens:update:
     desc: "Update token budgets in rules/"
@@ -570,6 +621,7 @@ tasks:
       - task: rules:validate
       - task: examples:validate
       - task: index:check
+      - task: templates:check
 
   # Maintenance
   clean:cache:

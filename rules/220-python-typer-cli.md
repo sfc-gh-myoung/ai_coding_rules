@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**LastUpdated:** 2026-02-12
 **Keywords:** Typer, CLI development, command-line interface, click, argument parsing, CLI testing, typer.Argument, typer.Option, CliRunner, rich console
 **TokenBudget:** ~4850
 **ContextTier:** High
@@ -247,9 +247,35 @@ myapp = "myapp.cli.main:app"
 ```
 
 ### Recommended Project Structure
-- **Rule:** Use `src/` layout for CLI applications to avoid import conflicts
+- **Default:** Use flat layout (`myapp/` at project root) for CLI applications, especially with `uv`. See `203-python-project-setup.md` Layout Selection for guidance.
+- **Consider:** Use `src/` layout for large CLI projects where import isolation matters.
 - **Rule:** Separate CLI logic from business logic in different modules
 - **Always:** Create dedicated CLI module structure:
+
+#### Flat Layout (Default)
+
+Directory structure for `cli-project/`:
+- `pyproject.toml`
+- **myapp/** - Application package
+  - `__init__.py`
+  - **cli/** - CLI layer
+    - `__init__.py`
+    - `main.py` - Main CLI app and entry point
+    - **commands/** - Command modules
+      - `__init__.py`
+      - `config.py` - Config-related commands
+      - `data.py` - Data processing commands
+    - `utils.py` - CLI utilities and helpers
+  - **core/** - Business logic (CLI-independent)
+    - `__init__.py`, `models.py`, `services.py`
+  - **config/** - Configuration
+    - `__init__.py`, `settings.py`
+- **tests/** - Test suite
+  - `__init__.py`
+  - **cli/** - `test_commands.py`
+  - **core/** - `test_services.py`
+
+#### src/ Layout (Large Projects)
 
 Directory structure for `cli-project/`:
 - `pyproject.toml`
@@ -277,7 +303,7 @@ Directory structure for `cli-project/`:
 ### Main Application Setup
 - **Rule:** Create a main Typer app with proper configuration:
 ```python
-# src/myapp/cli/main.py
+# myapp/cli/main.py (flat layout) or src/myapp/cli/main.py (src/ layout)
 import typer
 from typing_extensions import Annotated
 
@@ -322,7 +348,7 @@ if __name__ == "__main__":
 - **Always:** Use `Annotated` for parameter metadata with Python 3.9+
 
 ```python
-# src/myapp/cli/commands/data.py
+# myapp/cli/commands/data.py (flat layout) or src/myapp/cli/commands/data.py (src/ layout)
 import typer
 from pathlib import Path
 from typing_extensions import Annotated
@@ -415,7 +441,7 @@ def risky_operation(
 - **Always:** Follow the precedence: CLI options > Environment > Config file > Defaults
 
 ```python
-# src/myapp/config/settings.py
+# myapp/config/settings.py (flat layout) or src/myapp/config/settings.py (src/ layout)
 from pydantic_settings import BaseSettings
 from pydantic import Field
 from pathlib import Path
@@ -607,10 +633,9 @@ myapp = "myapp.cli.main:app"
 - **Always:** Include CLI testing dependencies
 
 ```bash
-# Development setup with uv
-uv venv && source .venv/bin/activate
-uv pip install -e ".[dev]"
-myapp --install-completion
+# Development setup with uv (modern workflow)
+uv sync --all-groups
+uv run myapp --install-completion
 ```
 
 ### Cross-Platform Considerations

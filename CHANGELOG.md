@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **feat(skills):** add parallel sub-agent execution to bulk-rule-reviewer skill
+  - New `workflows/parallel-execution.md` for parallel orchestration strategy
+  - New `workflows/subagent-prompt-template.md` with complete sub-agent prompts
+  - 5× speedup (1-2 hours vs 5-10 hours for 113 rules)
+  - Fresh context per sub-agent eliminates context drift after rule 50+
+  - Isolated failures (one sub-agent failing doesn't stop others)
+  - Default `max_parallel: 5` (was 1), opt-in sequential with `max_parallel: 1`
 - **feat(tools):** add prompt_eval tool for LLM prompt quality evaluation
   - New `tools/prompt_eval/` package with CLI, REST API, and web UI interfaces
   - 6-dimension scoring system (100-point scale): actionability, completeness, token efficiency, cross-agent consistency, parsability, context grounding
@@ -56,6 +63,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Pod management for Kubernetes-style container grouping
 
 ### Changed
+- **feat(rules):** add flat layout as default recommendation for Python project structure (203, 220)
+  - New Layout Selection section in 203-python-project-setup.md with decision criteria (flat default, src/ for large projects)
+  - Flat-layout CLI example added alongside existing src/ layout example in both 203 and 220
+  - Removed absolute `src/` layout mandate for CLI apps; replaced with layout-neutral guidance
+  - Hatchling build config shows both `packages = ["myapp"]` (flat) and `packages = ["src/myapp"]` (src/)
+  - Console scripts annotated with layout context; test config labeled by layout
+  - 220-python-typer-cli.md: code path comments updated for both layouts, installation modernized (`uv sync` replaces `uv pip install`)
+  - RULES_INDEX.md: added `flat layout` to 203 keywords and description
+  - All three rules (200, 203, 220) verified for cross-rule consistency
 - **feat(PROJECT):** expand PROJECT.md with architecture reference content
   - Component relationships diagram showing rule loading and deployment flows
   - Rules domain mapping table (000-999 ranges with counts and key rules)

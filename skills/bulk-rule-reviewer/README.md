@@ -12,20 +12,19 @@ The **bulk-rule-reviewer** skill executes comprehensive agent-centric reviews on
 - Technical debt tracking and prioritization
 - Baseline quality measurement
 
-**Expected Execution Time:** 5-10 hours for 113 rules (sequential, 3-5 min per rule)
+**Expected Execution Time:** 1-2 hours for 113 rules (parallel with 5 workers), 5-10 hours sequential
 
 ---
 
 ## ⚠️ Execution Integrity Warning
 
-**CRITICAL:** This skill takes 5-10 hours to complete for 113 rules. This is EXPECTED and REQUIRED.
+**CRITICAL:** This skill takes 1-2 hours to complete for 113 rules (parallel) or 5-10 hours (sequential). This is EXPECTED and REQUIRED.
 
 ### Common Agent Shortcuts (ALL FORBIDDEN)
 
 Agents executing this skill may attempt to optimize by:
 - Batch-processing multiple rules at once (FORBIDDEN)
 - Running abbreviated reviews to save time (FORBIDDEN)
-- Parallel execution without explicit permission (FORBIDDEN)
 - Skipping rubric consultation to save tokens (FORBIDDEN)
 
 **These shortcuts WILL compromise review quality.**
@@ -44,7 +43,7 @@ Agents executing this skill may attempt to optimize by:
 - Spot-check reviews for complete sections
 
 **Red Flags:**
-- ⚠️ Execution completes in < 2 hours for 100+ rules
+- ⚠️ Execution completes in < 30 minutes for 100+ rules (parallel) or < 2 hours (sequential)
 - ⚠️ Review files < 2000 bytes
 - ⚠️ Missing sections in review files
 - ⚠️ Schema validation not executed
@@ -159,7 +158,7 @@ When enabled, the output includes:
 |-----------|------|---------|-------------|---------|
 | `filter_pattern` | Glob | `rules/*.md` | Filter rules by pattern | `rules/100-*.md` |
 | `skip_existing` | Boolean | `true` | Skip files with existing reviews | `true`, `false` |
-| `max_parallel` | Integer | `1` | Max concurrent reviews | `1` (sequential) |
+| `max_parallel` | Integer | `5` | Max concurrent sub-agents (1-10) | `5` (parallel), `1` (sequential) |
 | `timing_enabled` | Boolean | `false` | Enable execution timing | `true`, `false` |
 
 ---
@@ -183,11 +182,33 @@ model: claude-sonnet-45
 - 113 individual reviews: `reviews/000-global-core-claude-sonnet-45-2026-01-06.md`, etc.
 - Master summary: `reviews/_bulk-review-claude-sonnet-45-2026-01-06.md`
 
+**Expected Duration:** 1-2 hours (parallel with 5 workers)
+
+---
+
+### Example 2: Sequential Execution (Legacy Mode)
+
+**Scenario:** Single-threaded review when parallel execution is not desired
+
+**Invocation:**
+```
+Use the bulk-rule-reviewer skill.
+
+review_date: 2026-01-06
+review_mode: FULL
+model: claude-sonnet-45
+max_parallel: 1
+```
+
+**Output:**
+- 113 individual reviews (processed one at a time)
+- Master summary: `reviews/_bulk-review-claude-sonnet-45-2026-01-06.md`
+
 **Expected Duration:** 5.6-9.4 hours (sequential)
 
 ---
 
-### Example 2: Review Snowflake Rules Only
+### Example 3: Review Snowflake Rules Only
 
 **Scenario:** Pre-release validation for Snowflake-specific features
 
@@ -209,7 +230,7 @@ filter_pattern: rules/100-*.md
 
 ---
 
-### Example 3: Staleness Check (Quick Audit)
+### Example 4: Staleness Check (Quick Audit)
 
 **Scenario:** Check if rules need updates due to outdated references
 
@@ -341,7 +362,7 @@ skip_existing: true
 
 ## Workflow Stages
 
-The skill executes in 4 sequential stages:
+The skill executes in 4 stages:
 
 ### Stage 1: Discovery (workflows/discovery.md)
 - Find all `.md` files in `rules/` directory
@@ -350,14 +371,25 @@ The skill executes in 4 sequential stages:
 - **Duration:** <1 second
 
 ### Stage 2: Review Execution (workflows/review-execution.md)
+
+**Parallel Mode (default, max_parallel ≥ 2):**
+- Partition rules into N groups (where N = max_parallel)
+- Launch N sub-agents in background, each with fresh context
+- Each sub-agent loads rule-reviewer skill and processes its rules
+- Monitor progress via agent_output polling
+- Aggregate results when all sub-agents complete
+- **Duration:** 1-2 hours for 113 rules (with 5 workers)
+- **Benefits:** Fresh context eliminates drift, isolated failures, 5× speedup
+
+**Sequential Mode (max_parallel = 1):**
 - Load rule-reviewer/SKILL.md to understand workflow
 - For each rule: follow the documented review process
 - Load rubrics/ progressively for dimension scoring
 - Handle errors gracefully (continue on failure)
-- Track progress with console output
 - **Duration:** 3-5 min per rule × 113 rules = 5.6-9.4 hours
 
 ### Stage 3: Aggregation (workflows/aggregation.md)
+- Normalize results from parallel sub-agents or sequential execution
 - Extract scores/verdicts from review files
 - Calculate statistics (averages, distributions)
 - Group by priority tiers
@@ -491,11 +523,11 @@ filter_pattern: rules/[12]*.md
 
 ## Performance Notes
 
-- **Sequential execution:** 1 review at a time (default: `max_parallel=1`)
+- **Parallel execution (default):** 5 sub-agents, 1-2 hours for 113 rules
+- **Sequential execution:** 1 review at a time (`max_parallel: 1`), 5-10 hours
 - **Average review time:** 3-5 minutes per rule
-- **Total time (113 rules):** 5.6-9.4 hours
-- **Context efficiency:** Only first 150 lines of each review file loaded
-- **Resume capability:** Critical for long-running batches
+- **Context efficiency:** Fresh context per sub-agent eliminates drift
+- **Resume capability:** Critical for both parallel and sequential modes
 
 ---
 
@@ -614,11 +646,13 @@ skills/bulk-rule-reviewer/
 ├── tests/                 # Skill test cases
 │   └── validation-tests.md    # Validation test cases
 └── workflows/             # Stage-specific detailed guides
-    ├── discovery.md           # Stage 1: File discovery
-    ├── review-execution.md    # Stage 2: Rule-reviewer orchestration
-    ├── aggregation.md         # Stage 3: Score extraction and statistics
-    ├── summary-report.md      # Stage 4: Master report generation
-    └── input-validation.md    # Input validation workflow
+    ├── discovery.md               # Stage 1: File discovery
+    ├── review-execution.md        # Stage 2: Rule-reviewer orchestration
+    ├── parallel-execution.md      # Parallel sub-agent strategy
+    ├── subagent-prompt-template.md # Sub-agent prompt template
+    ├── aggregation.md             # Stage 3: Score extraction and statistics
+    ├── summary-report.md          # Stage 4: Master report generation
+    └── input-validation.md        # Input validation workflow
 ```
 
 ---

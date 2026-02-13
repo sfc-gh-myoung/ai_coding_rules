@@ -546,8 +546,8 @@ User: "Write tests for my Streamlit dashboard"
 - Keywords: YAML, configuration files, YAML syntax, parsing errors, indentation, anchors, aliases, Markdown, markdown linting, pymarkdownlnt, markup validation, TOML, environment files
 - Depends: —
 
-**`203-python-project-setup.md`** - Essential Python project setup and packaging guidance covering package structure, pyproject.toml configuration, dependency management, and build error prevention. Includes __init__.py requirements, hatchling build system configuration, uv-based dependency management, virtual environment setup, and modern packaging patterns (src layout, optional dependencies, entry points).
-- Keywords: Python packaging, project structure, setup.py, pyproject.toml, dependencies, package distribution, __init__.py, hatchling, uv, src layout
+**`203-python-project-setup.md`** - Essential Python project setup and packaging guidance covering package structure, pyproject.toml configuration, dependency management, and build error prevention. Includes __init__.py requirements, hatchling build system configuration, uv-based dependency management, virtual environment setup, and modern packaging patterns (flat layout, src layout, optional dependencies, entry points).
+- Keywords: Python packaging, project structure, setup.py, pyproject.toml, dependencies, package distribution, __init__.py, hatchling, uv, flat layout, src layout
 - Depends: `200-python-core.md`
 
 **`204-python-docs-comments.md`** - Clear, enforceable standards for Python documentation, source code comments, and docstrings aligned with PEP 257 and modern tooling (Ruff pydocstyle, Sphinx Napoleon). Covers Google and NumPy styles, semantic depth requirements, side effects documentation.

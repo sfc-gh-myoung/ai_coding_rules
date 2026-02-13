@@ -633,7 +633,8 @@ These skills are used only for ai_coding_rules project maintenance and are exclu
 
 **bulk-rule-reviewer** — Orchestrate bulk rule reviews
 - **Purpose:** Execute comprehensive reviews on all rules in `rules/` directory with consolidated priority reporting
-- **Expected duration:** 5-10 hours for 124 rules (3-5 min per rule, sequential execution)
+- **Expected duration:** 1-2 hours with parallel sub-agents (default), 5-10 hours sequential
+- **Parallel execution:** Launches 5 sub-agents by default, each with fresh context (eliminates drift)
 - **Resume capability:** Skip existing reviews to resume after interruption
 - **Output:** Individual review files + master summary report with priority tiers
 - **Trigger keywords:** "bulk review rules", "review all rules", "audit rule repository"
@@ -750,6 +751,15 @@ task deploy:verbose DEST=~/my-project  # Deploy with verbose output
 task deploy:no-skills DEST=~/my-project # Deploy rules only (skip skills)
 task deploy:no-mode DEST=~/my-project  # Deploy without PLAN/ACT workflow
 task deploy:only-skills DEST=~/.claude/skills # Deploy only skills (for agent configs)
+
+# Split Deployment (separate directories for agents, rules, skills)
+task deploy:split AGENTS=~/.claude RULES=~/.claude/rules  # Deploy to separate dirs
+task deploy:split AGENTS=~/.claude RULES=~/.claude/rules SKILLS=~/.claude/skills  # With skills
+task deploy:split:dry AGENTS=~/.claude RULES=~/.claude/rules  # Preview split deployment
+
+# Template Sync (maintain template placeholders)
+task templates:check                   # Check if templates are in sync (CI)
+task templates:sync                    # Sync templates from source files
 
 # Rule Management
 task rule:new FILENAME=100-example     # Create new rule from template

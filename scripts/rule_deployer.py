@@ -27,6 +27,153 @@ import shutil
 import sys
 import tomllib
 from pathlib import Path
+from typing import NamedTuple
+
+
+class DeploymentPaths(NamedTuple):
+    """Resolved deployment paths for split or unified deployment."""
+
+    agents: Path | None
+    rules: Path | None
+    skills: Path | None
+
+
+def resolve_paths(
+    dest: Path | None = None,
+    agents_dest: Path | None = None,
+    rules_dest: Path | None = None,
+    skills_dest: Path | None = None,
+) -> DeploymentPaths:
+    """Resolve deployment paths to absolute paths.
+
+    Args:
+        dest: Single destination for unified deployment
+        agents_dest: Destination for AGENTS.md (split mode)
+        rules_dest: Destination for rules/ directory (split mode)
+        skills_dest: Destination for skills/ directory (split mode)
+
+    Returns:
+        DeploymentPaths with resolved absolute paths
+    """
+    if dest:
+        # Unified deployment mode
+        base = dest.expanduser().resolve()
+        return DeploymentPaths(
+            agents=base,
+            rules=base / "rules",
+            skills=base / "skills",
+        )
+    # Split deployment mode
+    return DeploymentPaths(
+        agents=agents_dest.expanduser().resolve() if agents_dest else None,
+        rules=rules_dest.expanduser().resolve() if rules_dest else None,
+        skills=skills_dest.expanduser().resolve() if skills_dest else None,
+    )
+
+
+def substitute_template(template_content: str, paths: DeploymentPaths) -> str:
+    """Replace placeholders with resolved absolute paths.
+
+    Args:
+        template_content: Template content with {{rules_path}} and {{skills_path}} placeholders
+        paths: Resolved deployment paths
+
+    Returns:
+        Content with placeholders replaced by absolute paths
+    """
+    result = template_content
+    if paths.rules:
+        result = result.replace("{{rules_path}}", str(paths.rules))
+    if paths.skills:
+        result = result.replace("{{skills_path}}", str(paths.skills))
+    return result
+
+
+def load_template(project_root: Path, no_mode: bool = False) -> str | None:
+    """Load AGENTS template file content.
+
+    Args:
+        project_root: Root directory of the project
+        no_mode: If True, load AGENTS_NO_MODE.md.template
+
+    Returns:
+        Template content as string, or None if template not found
+    """
+    template_name = "AGENTS_NO_MODE.md.template" if no_mode else "AGENTS_MODE.md.template"
+    template_path = project_root / "templates" / template_name
+    if template_path.exists():
+        return template_path.read_text()
+    return None
+
+
+def _prompt_create_directory(path: Path, flag_name: str) -> bool:
+    """Prompt user to create a missing directory.
+
+    Args:
+        path: The directory path to create
+        flag_name: The CLI flag name for display (e.g., '--agents-dest')
+
+    Returns:
+        True if directory was created, False if user declined
+    """
+    try:
+        response = input(f"{flag_name} directory does not exist: {path}\nCreate it? [Y/n] ")
+    except EOFError:
+        # Non-interactive environment, treat as decline
+        return False
+    if response.strip().lower() in ("", "y", "yes"):
+        path.mkdir(parents=True, exist_ok=True)
+        log_success(f"Created directory: {path}")
+        return True
+    return False
+
+
+def validate_split_destinations(
+    agents_dest: Path | None,
+    rules_dest: Path | None,
+    skills_dest: Path | None,
+    *,
+    force: bool = False,
+) -> tuple[bool, list[str]]:
+    """Validate split destination arguments.
+
+    Args:
+        agents_dest: Destination for AGENTS.md
+        rules_dest: Destination for rules/
+        skills_dest: Destination for skills/
+        force: If True, create missing directories without prompting
+
+    Returns:
+        Tuple of (is_valid, error_messages)
+    """
+    errors = []
+
+    # Rule: --agents-dest requires --rules-dest (AGENTS.md references rules)
+    if agents_dest and not rules_dest:
+        errors.append("--agents-dest requires --rules-dest (AGENTS.md references rules paths)")
+
+    # Rule: --skills-dest requires --agents-dest (if skills are referenced)
+    if skills_dest and not agents_dest:
+        errors.append("--skills-dest requires --agents-dest")
+
+    # Bail early on dependency errors before checking directories
+    if errors:
+        return (False, errors)
+
+    # Validate directories exist, offering to create if missing
+    for flag_name, dest in [
+        ("--agents-dest", agents_dest),
+        ("--rules-dest", rules_dest),
+        ("--skills-dest", skills_dest),
+    ]:
+        if dest and not dest.exists():
+            if force:
+                dest.mkdir(parents=True, exist_ok=True)
+                log_success(f"Created directory: {dest}")
+            elif not _prompt_create_directory(dest, flag_name):
+                errors.append(f"{flag_name} directory does not exist: {dest}")
+
+    return (len(errors) == 0, errors)
 
 
 def log_info(message: str, verbose: bool = True) -> None:
@@ -108,11 +255,23 @@ def validate_source_structure(
 
 
 def copy_rules(
-    source_dir: Path, dest_dir: Path, dry_run: bool = False, verbose: bool = True
+    source_dir: Path,
+    dest_dir: Path,
+    dry_run: bool = False,
+    verbose: bool = True,
+    direct_copy: bool = False,
 ) -> tuple[int, int]:
     """Copy rule files from source to destination.
 
     Skips RULES_INDEX.md as it's handled separately by copy_root_files().
+
+    Args:
+        source_dir: Source rules directory
+        dest_dir: Destination directory
+        dry_run: If True, don't actually copy files
+        verbose: If True, print detailed logging
+        direct_copy: If True, copy directly to dest_dir (split mode).
+                    If False, copy to dest_dir/rules/ (unified mode).
 
     Returns:
         Tuple of (files_copied, files_failed)
@@ -129,8 +288,8 @@ def copy_rules(
 
     log_info(f"Found {len(rule_files)} rule files to copy", verbose)
 
-    # Create destination rules directory
-    dest_rules_dir = dest_dir / "rules"
+    # Determine target directory
+    dest_rules_dir = dest_dir if direct_copy else dest_dir / "rules"
     if not dry_run:
         dest_rules_dir.mkdir(parents=True, exist_ok=True)
         log_info(f"Created destination directory: {dest_rules_dir}", verbose)
@@ -162,10 +321,20 @@ def copy_root_files(
     dry_run: bool = False,
     verbose: bool = True,
     no_mode: bool = False,
+    paths: DeploymentPaths | None = None,
 ) -> tuple[int, int]:
     """Copy AGENTS.md to destination root and rules/RULES_INDEX.md to destination rules/.
 
     When no_mode is True, copies AGENTS_NO_MODE.md as AGENTS.md to the destination.
+    When paths is provided (split mode), uses template substitution for AGENTS.md.
+
+    Args:
+        project_root: Root directory of the project
+        dest_dir: Destination directory for AGENTS.md
+        dry_run: If True, don't actually copy files
+        verbose: If True, print detailed logging
+        no_mode: If True, use AGENTS_NO_MODE template/file
+        paths: DeploymentPaths for template substitution (split mode)
 
     Returns:
         Tuple of (files_copied, files_failed)
@@ -177,31 +346,77 @@ def copy_root_files(
     # When no_mode=True, source is AGENTS_NO_MODE.md but destination is still AGENTS.md
     try:
         source_name = "AGENTS_NO_MODE.md" if no_mode else "AGENTS.md"
-        source_file = project_root / source_name
         dest_file = dest_dir / "AGENTS.md"
-        if not dry_run:
-            shutil.copy2(source_file, dest_file)
-            log_info(f"Copied: {source_name} → {dest_file}", verbose)
+
+        # Check if we should use template substitution (split mode)
+        template_content = load_template(project_root, no_mode=no_mode) if paths else None
+
+        if template_content and paths:
+            # Split mode: use template with path substitution
+            substituted_content = substitute_template(template_content, paths)
+            # Remove template header comment from output
+            lines = substituted_content.split("\n")
+            if lines and lines[0].startswith("<!-- Template:"):
+                substituted_content = "\n".join(lines[2:])  # Skip header and blank line
+
+            if not dry_run:
+                dest_file.write_text(substituted_content)
+                log_info(
+                    f"Generated: AGENTS.md (from template with path substitution) → {dest_file}",
+                    verbose,
+                )
+            else:
+                log_info(
+                    f"[DRY RUN] Would generate: AGENTS.md (from template) → {dest_file}", verbose
+                )
         else:
-            log_info(f"[DRY RUN] Would copy: {source_name} → {dest_file}", verbose)
+            # Unified mode: direct copy
+            source_file = project_root / source_name
+            if not dry_run:
+                shutil.copy2(source_file, dest_file)
+                log_info(f"Copied: {source_name} → {dest_file}", verbose)
+            else:
+                log_info(f"[DRY RUN] Would copy: {source_name} → {dest_file}", verbose)
         files_copied += 1
     except Exception as e:
-        log_error(f"Failed to copy {source_name}: {e}")
+        log_error(f"Failed to copy/generate AGENTS.md: {e}")
         files_failed += 1
 
     # Copy rules/RULES_INDEX.md to destination rules/
+    # In split mode, rules_dest is used instead of dest_dir/rules
+    # and path prefixes are substituted to match deployed locations
     try:
         source_file = project_root / "rules" / "RULES_INDEX.md"
-        dest_rules_dir = dest_dir / "rules"
+        dest_rules_dir = paths.rules if paths and paths.rules else dest_dir / "rules"
         dest_file = dest_rules_dir / "RULES_INDEX.md"
 
-        # Ensure destination rules directory exists
-        if not dry_run:
-            dest_rules_dir.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(source_file, dest_file)
-            log_info(f"Copied: rules/RULES_INDEX.md → {dest_file}", verbose)
+        if paths and paths.rules:
+            # Split mode: substitute rules/ and skills/ path prefixes
+            content = source_file.read_text()
+            content = content.replace("rules/", str(paths.rules) + "/")
+            if paths.skills:
+                content = content.replace("skills/", str(paths.skills) + "/")
+
+            if not dry_run:
+                dest_rules_dir.mkdir(parents=True, exist_ok=True)
+                dest_file.write_text(content)
+                log_info(
+                    f"Generated: RULES_INDEX.md (with path substitution) → {dest_file}",
+                    verbose,
+                )
+            else:
+                log_info(
+                    f"[DRY RUN] Would generate: RULES_INDEX.md (with path substitution) → {dest_file}",
+                    verbose,
+                )
         else:
-            log_info(f"[DRY RUN] Would copy: rules/RULES_INDEX.md → {dest_file}", verbose)
+            # Unified mode: direct copy
+            if not dry_run:
+                dest_rules_dir.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(source_file, dest_file)
+                log_info(f"Copied: rules/RULES_INDEX.md → {dest_file}", verbose)
+            else:
+                log_info(f"[DRY RUN] Would copy: rules/RULES_INDEX.md → {dest_file}", verbose)
         files_copied += 1
     except Exception as e:
         log_error(f"Failed to copy rules/RULES_INDEX.md: {e}")
@@ -245,12 +460,24 @@ def load_skill_exclusions(project_root: Path) -> set[str]:
 
 
 def copy_skills(
-    project_root: Path, dest_dir: Path, dry_run: bool = False, verbose: bool = True
+    project_root: Path,
+    dest_dir: Path,
+    dry_run: bool = False,
+    verbose: bool = True,
+    direct_copy: bool = False,
 ) -> tuple[int, int, int]:
     """Copy skills/ directory to destination, respecting exclusions.
 
     Exclusions are loaded from [tool.rule_deployer] in pyproject.toml.
     Copies both files and directories, skipping excluded items.
+
+    Args:
+        project_root: Project root directory
+        dest_dir: Destination directory
+        dry_run: If True, don't actually copy files
+        verbose: If True, print detailed logging
+        direct_copy: If True, copy directly to dest_dir (split mode).
+                    If False, copy to dest_dir/skills/ (unified mode).
 
     Returns:
         Tuple of (skills_count, files_copied, files_failed)
@@ -260,7 +487,7 @@ def copy_skills(
     files_failed = 0
 
     source_skills_dir = project_root / "skills"
-    dest_skills_dir = dest_dir / "skills"
+    dest_skills_dir = dest_dir if direct_copy else dest_dir / "skills"
 
     if not source_skills_dir.exists():
         log_warning(f"Skills directory not found: {source_skills_dir}")
@@ -336,7 +563,10 @@ def copy_skills(
 
 
 def deploy_rules(
-    dest: Path,
+    dest: Path | None = None,
+    agents_dest: Path | None = None,
+    rules_dest: Path | None = None,
+    skills_dest: Path | None = None,
     skip_skills: bool = False,
     only_skills: bool = False,
     dry_run: bool = False,
@@ -345,10 +575,17 @@ def deploy_rules(
 ) -> bool:
     """Deploy rules and skills to destination directory.
 
+    Supports two deployment modes:
+    1. Unified mode (--dest): All files go to single destination
+    2. Split mode (--agents-dest, --rules-dest, --skills-dest): Files go to separate destinations
+
     Args:
-        dest: Destination directory path
-        skip_skills: If True, skip deploying skills/ directory (default: False, skills deployed)
-        only_skills: If True, deploy only skills/ directory (skip rules and root files)
+        dest: Single destination directory path (unified mode)
+        agents_dest: Destination for AGENTS.md (split mode)
+        rules_dest: Destination for rules/ directory (split mode)
+        skills_dest: Destination for skills/ directory (split mode)
+        skip_skills: If True, skip deploying skills/ directory
+        only_skills: If True, deploy only skills/ directory
         dry_run: If True, don't actually copy files
         verbose: If True, print detailed logging
         no_mode: If True, deploy AGENTS_NO_MODE.md as AGENTS.md
@@ -360,8 +597,21 @@ def deploy_rules(
     script_dir = Path(__file__).resolve().parent
     project_root = script_dir.parent
 
+    # Determine deployment mode
+    is_split_mode = bool(agents_dest or rules_dest or skills_dest)
+    paths = resolve_paths(dest, agents_dest, rules_dest, skills_dest)
+
     log_info(f"Project root: {project_root}", verbose)
-    log_info(f"Destination: {dest}", verbose)
+    if is_split_mode:
+        log_info("SPLIT DEPLOYMENT MODE", verbose)
+        if paths.agents:
+            log_info(f"  AGENTS.md destination: {paths.agents}", verbose)
+        if paths.rules:
+            log_info(f"  Rules destination: {paths.rules}", verbose)
+        if paths.skills:
+            log_info(f"  Skills destination: {paths.skills}", verbose)
+    else:
+        log_info(f"Destination: {dest}", verbose)
 
     if dry_run:
         log_warning("DRY RUN MODE - No files will be copied")
@@ -385,8 +635,9 @@ def deploy_rules(
 
     log_success("Source structure validation passed")
 
-    # Ensure destination exists
-    if not dry_run:
+    # In split mode, directories must already exist (validated earlier)
+    # In unified mode, create destination if needed
+    if not dry_run and not is_split_mode and dest:
         dest.mkdir(parents=True, exist_ok=True)
         log_info(f"Ensured destination directory exists: {dest}", verbose)
 
@@ -403,49 +654,86 @@ def deploy_rules(
         # Skills-only deployment mode
         log_info("SKILLS-ONLY DEPLOYMENT MODE", verbose)
         log_info("Copying skills directory (respecting pyproject.toml exclusions)...", verbose)
-        skills_count, skills_files_copied, skills_failed = copy_skills(
-            project_root, dest, dry_run, verbose
-        )
+        skills_dest_dir = paths.skills if is_split_mode and paths.skills else dest
+        if skills_dest_dir:
+            skills_count, skills_files_copied, skills_failed = copy_skills(
+                project_root, skills_dest_dir, dry_run, verbose, direct_copy=is_split_mode
+            )
+        else:
+            log_error("No destination specified for skills")
+            return False
     else:
         # Normal deployment mode (rules + optional skills)
-        # Copy rules
-        log_info("Copying rule files...", verbose)
-        rules_copied, rules_failed = copy_rules(project_root / "rules", dest, dry_run, verbose)
+        # Determine destination directories
+        rules_dest_dir = paths.rules if is_split_mode else dest
+        agents_dest_dir = paths.agents if is_split_mode else dest
 
-        # Copy root files
-        log_info("Copying root files (AGENTS.md, rules/RULES_INDEX.md)...", verbose)
-        root_copied, root_failed = copy_root_files(
-            project_root, dest, dry_run, verbose, no_mode=no_mode
-        )
+        # Copy rules
+        if rules_dest_dir:
+            log_info("Copying rule files...", verbose)
+            rules_copied, rules_failed = copy_rules(
+                project_root / "rules",
+                rules_dest_dir,
+                dry_run,
+                verbose,
+                direct_copy=is_split_mode,
+            )
+
+        # Copy root files (AGENTS.md with template substitution in split mode)
+        if agents_dest_dir:
+            log_info("Copying root files (AGENTS.md, rules/RULES_INDEX.md)...", verbose)
+            root_copied, root_failed = copy_root_files(
+                project_root,
+                agents_dest_dir,
+                dry_run,
+                verbose,
+                no_mode=no_mode,
+                paths=paths if is_split_mode else None,
+            )
 
         # Copy examples/ subdirectory if it exists
         examples_src = project_root / "rules" / "examples"
-        if examples_src.exists() and examples_src.is_dir():
-            dest_rules_dir = dest / "rules"
-            examples_dest = dest_rules_dir / "examples"
-            try:
-                if not dry_run:
-                    if examples_dest.exists():
-                        shutil.rmtree(examples_dest)
-                    shutil.copytree(examples_src, examples_dest)
-                    example_files = list(examples_src.glob("*.md"))
-                    log_info(f"Copied examples/ ({len(example_files)} files)", verbose)
-                    root_copied += len(example_files)
-                else:
-                    example_files = list(examples_src.glob("*.md"))
-                    log_info(
-                        f"[DRY RUN] Would copy examples/ ({len(example_files)} files)", verbose
-                    )
-            except Exception as e:
-                log_error(f"Failed to copy examples/: {e}")
-                root_failed += 1
+        if examples_src.exists() and examples_src.is_dir() and rules_dest_dir:
+            # In split mode, examples go under rules destination
+            # In unified mode, examples go under dest/rules
+            if is_split_mode:
+                examples_dest = rules_dest_dir / "examples"
+            elif dest:
+                dest_rules_dir = dest / "rules"
+                examples_dest = dest_rules_dir / "examples"
+            else:
+                examples_dest = None
+
+            if examples_dest:
+                try:
+                    if not dry_run:
+                        if examples_dest.exists():
+                            shutil.rmtree(examples_dest)
+                        shutil.copytree(examples_src, examples_dest)
+                        example_files = list(examples_src.glob("*.md"))
+                        log_info(f"Copied examples/ ({len(example_files)} files)", verbose)
+                        root_copied += len(example_files)
+                    else:
+                        example_files = list(examples_src.glob("*.md"))
+                        log_info(
+                            f"[DRY RUN] Would copy examples/ ({len(example_files)} files)", verbose
+                        )
+                except Exception as e:
+                    log_error(f"Failed to copy examples/: {e}")
+                    root_failed += 1
 
         # Copy skills unless explicitly skipped
         if not skip_skills:
-            log_info("Copying skills directory (respecting pyproject.toml exclusions)...", verbose)
-            skills_count, skills_files_copied, skills_failed = copy_skills(
-                project_root, dest, dry_run, verbose
-            )
+            skills_dest_dir = paths.skills if is_split_mode else dest
+            if skills_dest_dir:
+                log_info(
+                    "Copying skills directory (respecting pyproject.toml exclusions)...", verbose
+                )
+                skills_count, skills_files_copied, skills_failed = copy_skills(
+                    project_root, skills_dest_dir, dry_run, verbose, direct_copy=is_split_mode
+                )
+            elif is_split_mode:
+                log_info("Skipping skills deployment (no --skills-dest specified)", verbose)
         else:
             log_info("Skipping skills deployment (--skip-skills flag set)", verbose)
 
@@ -459,6 +747,26 @@ def deploy_rules(
     else:
         print("DEPLOYMENT SUMMARY")
     print("=" * 60)
+
+    # Show deployment locations
+    if only_skills:
+        skills_dest_dir = paths.skills if is_split_mode and paths.skills else dest
+        if skills_dest_dir:
+            print(f"SKILLS:            {skills_dest_dir}")
+    elif is_split_mode:
+        if paths.agents:
+            print(f"AGENTS:            {paths.agents}/AGENTS.md")
+        if paths.rules:
+            print(f"RULES:             {paths.rules}/")
+        if paths.skills:
+            print(f"SKILLS:            {paths.skills}/")
+    else:
+        print(f"DEST:              {dest}")
+        print(f"  AGENTS:          {dest}/AGENTS.md")
+        print(f"  RULES:           {dest}/rules/")
+        if not skip_skills:
+            print(f"  SKILLS:          {dest}/skills/")
+    print()
 
     if only_skills:
         # Skills-only summary
@@ -492,8 +800,14 @@ def main() -> int:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  Deploy rules and skills to a project directory:
+  Deploy rules and skills to a project directory (unified mode):
     python scripts/rule_deployer.py --dest /path/to/project
+
+  Deploy to separate destinations (split mode):
+    python scripts/rule_deployer.py --agents-dest ~/project --rules-dest ~/project/rules --skills-dest ~/project/skills
+
+  Deploy only AGENTS.md and rules (no skills, split mode):
+    python scripts/rule_deployer.py --agents-dest ~/project --rules-dest ~/project/rules
 
   Dry run to see what would be copied:
     python scripts/rule_deployer.py --dest ~/my-project --dry-run
@@ -512,11 +826,30 @@ Examples:
         """,
     )
 
+    # Unified destination (mutually exclusive with split destinations)
     parser.add_argument(
         "--dest",
         type=Path,
-        required=True,
-        help="Destination directory (REQUIRED). Rules and skills will be copied to DEST/",
+        help="Destination directory for unified deployment. Rules go to DEST/rules/, skills to DEST/skills/",
+    )
+
+    # Split destination arguments
+    parser.add_argument(
+        "--agents-dest",
+        type=Path,
+        help="Destination directory for AGENTS.md (split mode). Requires --rules-dest.",
+    )
+
+    parser.add_argument(
+        "--rules-dest",
+        type=Path,
+        help="Destination directory for rules/ (split mode). Can be used with --agents-dest.",
+    )
+
+    parser.add_argument(
+        "--skills-dest",
+        type=Path,
+        help="Destination directory for skills/ (split mode). Requires --agents-dest.",
     )
 
     parser.add_argument(
@@ -544,6 +877,13 @@ Examples:
     )
 
     parser.add_argument(
+        "-f",
+        "--force",
+        action="store_true",
+        help="Create destination directories if they don't exist (no prompt)",
+    )
+
+    parser.add_argument(
         "--no-mode",
         action="store_true",
         help="Deploy AGENTS_NO_MODE.md as AGENTS.md (simplified workflow without PLAN/ACT)",
@@ -554,18 +894,53 @@ Examples:
     # Handle quiet mode
     verbose = args.verbose and not args.quiet
 
-    # Validate destination is provided
-    if not args.dest:
-        log_error("Error: --dest argument is required")
+    # Normalize paths: expand ~ and resolve relative paths
+    if args.dest:
+        args.dest = args.dest.expanduser()
+    if args.agents_dest:
+        args.agents_dest = args.agents_dest.expanduser()
+    if args.rules_dest:
+        args.rules_dest = args.rules_dest.expanduser()
+    if args.skills_dest:
+        args.skills_dest = args.skills_dest.expanduser()
+
+    # Determine if using split mode
+    has_split_args = args.agents_dest or args.rules_dest or args.skills_dest
+
+    # Validate mutual exclusivity: --dest XOR split destinations
+    if args.dest and has_split_args:
+        log_error(
+            "Cannot use --dest with split destination arguments (--agents-dest, --rules-dest, --skills-dest)"
+        )
+        log_error(
+            "Use either --dest for unified deployment OR split destinations for separate directories"
+        )
+        return 1
+
+    # Validate that at least one destination is provided
+    if not args.dest and not has_split_args:
+        log_error(
+            "Error: Must specify either --dest or at least one split destination (--agents-dest, --rules-dest, --skills-dest)"
+        )
         parser.print_help()
         return 1
 
-    # Resolve destination path
-    dest_path = args.dest.resolve()
+    # Validate split destination dependencies and directory existence
+    if has_split_args:
+        is_valid, errors = validate_split_destinations(
+            args.agents_dest, args.rules_dest, args.skills_dest, force=args.force
+        )
+        if not is_valid:
+            for error in errors:
+                log_error(error)
+            return 1
 
     # Deploy
     success = deploy_rules(
-        dest=dest_path,
+        dest=args.dest,
+        agents_dest=args.agents_dest,
+        rules_dest=args.rules_dest,
+        skills_dest=args.skills_dest,
         skip_skills=args.skip_skills,
         only_skills=args.only_skills,
         dry_run=args.dry_run,

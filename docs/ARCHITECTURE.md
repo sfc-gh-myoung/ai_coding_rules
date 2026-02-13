@@ -1,6 +1,6 @@
 # Architecture: AI Coding Rules (v3.5.3)
 
-**Last Updated:** 2026-02-10
+**Last Updated:** 2026-02-12
 
 ## Table of Contents
 
@@ -1100,6 +1100,27 @@ task deploy:dry -- --dest /path/to/project
 task deploy:verbose -- --dest /path/to/project
 ```
 
+**Split Deployment (Multi-Destination):**
+
+For AI assistants that require separate directories for agents, rules, and skills:
+
+```bash
+# Deploy AGENTS.md and rules to separate directories
+task deploy:split AGENTS=~/.claude RULES=~/.claude/rules
+
+# With separate skills directory
+task deploy:split AGENTS=~/.claude RULES=~/.claude/rules SKILLS=~/.claude/skills
+
+# Preview split deployment
+task deploy:split:dry AGENTS=~/.claude RULES=~/.claude/rules
+```
+
+Split mode uses template-based deployment with placeholder substitution:
+- `{{rules_path}}` → Absolute path to rules directory
+- `{{skills_path}}` → Absolute path to skills directory
+
+This ensures AGENTS.md contains correct absolute paths regardless of deployment structure.
+
 **Direct Script Usage:**
 
 ```bash
@@ -1114,6 +1135,10 @@ python scripts/rule_deployer.py --dest /path/to/project --dry-run
 
 # Verbose mode
 python scripts/rule_deployer.py --dest /path/to/project --verbose
+
+# Split deployment (direct script)
+python scripts/rule_deployer.py --agents-dest ~/.claude --rules-dest ~/.claude/rules
+python scripts/rule_deployer.py --agents-dest ~/.claude --rules-dest ~/.claude/rules --skills-dest ~/.claude/skills
 ```
 
 **Output:**
@@ -1483,16 +1508,30 @@ python scripts/template_generator.py 300-bash-example \
 
 **Usage:**
 ```bash
+# Unified deployment (single directory)
 python scripts/rule_deployer.py --dest PATH [OPTIONS]
+
+# Split deployment (separate directories)
+python scripts/rule_deployer.py --agents-dest PATH --rules-dest PATH [--skills-dest PATH] [OPTIONS]
 ```
 
 **Options:**
-- `--dest PATH` — Destination directory (required)
+- `--dest PATH` — Destination directory (unified mode)
+- `--agents-dest PATH` — AGENTS.md destination (split mode, requires --rules-dest)
+- `--rules-dest PATH` — Rules directory destination (split mode)
+- `--skills-dest PATH` — Skills directory destination (split mode, optional)
 - `--dry-run` — Preview without copying files
 - `--verbose` — Detailed logging output
 - `--no-mode` — Deploy AGENTS_NO_MODE.md as AGENTS.md (removes PLAN/ACT workflow)
 - `--skip-skills` — Deploy rules only, skip skills directory
 - `--only-skills` — Deploy only skills directory (for agent config directories)
+
+**Split Deployment Features:**
+- Template-based AGENTS.md with placeholder substitution
+- `{{rules_path}}` resolved to absolute rules directory path
+- `{{skills_path}}` resolved to absolute skills directory path
+- Validates destination directories exist (does not auto-create)
+- Validates dependency: `--agents-dest` requires `--rules-dest`
 
 **Features:**
 - Validates source files exist
@@ -1504,12 +1543,49 @@ python scripts/rule_deployer.py --dest PATH [OPTIONS]
 
 **Example:**
 ```bash
+# Unified deployment
+python scripts/rule_deployer.py --dest ~/my-project --verbose
+
+# Split deployment
 python scripts/rule_deployer.py \
-  --dest ~/my-project \
-  --verbose
+  --agents-dest ~/.claude \
+  --rules-dest ~/.claude/rules \
+  --skills-dest ~/.claude/skills
 ```
 
-### 3. schema_validator.py
+### 3. template_sync.py
+
+**Purpose:** Synchronize AGENTS.md templates with source files
+
+**Usage:**
+```bash
+python scripts/template_sync.py [OPTIONS]
+```
+
+**Options:**
+- `--check` — Check if templates are in sync (exit 1 if not)
+- `--dry-run` — Preview changes without writing files
+- `--verbose` — Show detailed output
+
+**Features:**
+- Bidirectional sync between source files and templates
+- Converts `rules/` and `skills/` paths to `{{rules_path}}/` and `{{skills_path}}/` placeholders
+- Preserves template header comments
+- Integrated into CI via `task templates:check`
+
+**Example:**
+```bash
+# Sync templates from source files
+python scripts/template_sync.py
+
+# Check sync status (for CI)
+python scripts/template_sync.py --check
+
+# Preview changes
+python scripts/template_sync.py --dry-run
+```
+
+### 4. schema_validator.py
 
 **Purpose:** Validate rules against schema
 
@@ -1605,7 +1681,7 @@ python scripts/index_generator.py [OPTIONS]
 python scripts/index_generator.py --verbose
 ```
 
-### 6. keyword_generator.py
+### 7. keyword_generator.py
 
 **Purpose:** Generate semantically relevant keywords for rule files using TF-IDF and multi-signal extraction
 
@@ -1845,6 +1921,57 @@ if sections["Contract"]["line"] > 160:
 - Added 4 new validation rules without code changes
 - Schema v3.0 phases (1-3) only required schema edits
 - Contributors understand requirements from schema alone
+
+### Why Parallel Sub-Agents for Bulk Operations?
+
+**Decision:** Use parallel sub-agents (not sequential in-context execution) for bulk rule reviews
+
+**Rationale:**
+
+1. **Context Drift Prevention** — Fresh context per sub-agent eliminates quality degradation after 50+ rules
+2. **Speed** — 5× faster execution (1-2 hours vs 5-10 hours for 113 rules)
+3. **Isolation** — One sub-agent failing doesn't stop others; partial results preserved
+4. **Full Protocol Preservation** — Each sub-agent loads complete anti-optimization protocols
+5. **No File Conflicts** — Unique filenames (rule-name-model-date.md) prevent write races
+
+**Architecture:**
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    BULK-RULE-REVIEWER (Coordinator)                      │
+│   • Partitions rules into N groups                                       │
+│   • Launches N sub-agents in background                                  │
+│   • Monitors progress via agent_output polling                           │
+│   • Aggregates results when all complete                                 │
+└─────────────────────────────────────────────────────────────────────────┘
+         │              │              │              │              │
+         ▼              ▼              ▼              ▼              ▼
+   ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐
+   │ Worker 1 │  │ Worker 2 │  │ Worker 3 │  │ Worker 4 │  │ Worker 5 │
+   │ Rules    │  │ Rules    │  │ Rules    │  │ Rules    │  │ Rules    │
+   │ 1-23     │  │ 24-46    │  │ 47-69    │  │ 70-92    │  │ 93-113   │
+   └──────────┘  └──────────┘  └──────────┘  └──────────┘  └──────────┘
+         │              │              │              │              │
+         ▼              ▼              ▼              ▼              ▼
+   ┌──────────────────────────────────────────────────────────────────┐
+   │           Direct File Writes (No Conflicts)                       │
+   │   reviews/rule-reviews/rule-name-claude-sonnet-4-2026-02-12.md   │
+   └──────────────────────────────────────────────────────────────────┘
+```
+
+**Trade-offs Accepted:**
+- More complex orchestration logic
+- Requires agent_output polling for progress
+- Higher token usage (duplicate protocol loading per sub-agent)
+
+**Why Not Sequential?**
+- Context drift causes quality degradation in long sessions
+- Single-threaded: 5-10 hours for 100+ rules
+- One failure can halt entire process
+- Available as fallback via `max_parallel: 1`
+
+**Implementation Files:**
+- `skills/bulk-rule-reviewer/workflows/parallel-execution.md` — Orchestration strategy
+- `skills/bulk-rule-reviewer/workflows/subagent-prompt-template.md` — Sub-agent prompt
 
 ## Extension Points
 

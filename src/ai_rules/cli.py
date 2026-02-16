@@ -9,6 +9,7 @@ from ai_rules import __version__
 from ai_rules.commands import badges
 from ai_rules.commands.refs import refs
 from ai_rules.commands.new import new as new_command
+from ai_rules.commands.deploy import deploy
 
 console = Console()
 
@@ -22,6 +23,7 @@ app = typer.Typer(
 app.command(name="badges")(badges.badges)
 app.command()(refs)
 app.command(name="new")(new_command)
+app.command(name="deploy")(deploy)
 
 
 def version_callback(value: bool) -> None:

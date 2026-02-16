@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Deploy production-ready AI coding rules and skills to target projects.
 
+DEPRECATED: Use 'ai-rules deploy' instead. See: ai-rules --help
+
 This script copies rules and skills from the source directories to a destination.
 All rules and skills are production-ready with no generation step required.
 
@@ -828,6 +830,13 @@ def deploy_rules(
 
 def main() -> int:
     """Main entry point."""
+    import warnings
+
+    warnings.warn(
+        "This script is deprecated. Use 'ai-rules deploy' instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     parser = argparse.ArgumentParser(
         description="Deploy production-ready AI coding rules to target project",
         formatter_class=argparse.RawDescriptionHelpFormatter,

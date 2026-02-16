@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Validate that all rule references in RULES_INDEX.md map to actual files.
 
+DEPRECATED: Use 'ai-rules refs' instead. See: ai-rules --help
+
 This script ensures 100% mapping between:
 1. Rule filenames referenced in RULES_INDEX.md → actual files in rules/
 2. Rule files in rules/ → referenced in RULES_INDEX.md (optional orphan check)
@@ -105,6 +107,13 @@ def main() -> int:
     Returns:
         Exit code (0 = success, 1 = validation failed)
     """
+    import warnings
+
+    warnings.warn(
+        "This script is deprecated. Use 'ai-rules refs' instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     parser = argparse.ArgumentParser(
         description="Validate rule references in RULES_INDEX.md",
         formatter_class=argparse.RawDescriptionHelpFormatter,

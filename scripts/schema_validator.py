@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Schema-based validator for AI coding rules.
 
+DEPRECATED: Use 'ai-rules validate' instead. See: ai-rules --help
+
 This validator uses YAML schema definitions to validate rule files against
 002-rule-governance.md v3.0 standards. It replaces regex-based validation
 with a declarative, maintainable schema approach.
@@ -1573,6 +1575,13 @@ class ExampleValidator:
 
 def main():
     """CLI entry point for schema validator."""
+    import warnings
+
+    warnings.warn(
+        "This script is deprecated. Use 'ai-rules validate' instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     parser = argparse.ArgumentParser(description="Validate AI coding rules against YAML schema")
     parser.add_argument(
         "path",

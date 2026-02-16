@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Update token budgets for AI coding rule files in rules/ directory.
 
+DEPRECATED: Use 'ai-rules tokens' instead. See: ai-rules --help
+
 This script analyzes all rule files, calculates accurate token estimates,
 and updates TokenBudget metadata to reflect current file sizes.
 
@@ -315,7 +317,13 @@ class TokenBudgetUpdater:
 def main() -> int:
     """Main entry point for token budget updater."""
     import argparse
+    import warnings
 
+    warnings.warn(
+        "This script is deprecated. Use 'ai-rules tokens' instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     parser = argparse.ArgumentParser(
         description="Update token budgets for AI coding rule files (single file or directory)",
         formatter_class=argparse.RawDescriptionHelpFormatter,

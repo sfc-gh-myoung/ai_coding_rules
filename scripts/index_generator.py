@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Auto-generate project root RULES_INDEX.md from production-ready rule file metadata.
 
+DEPRECATED: Use 'ai-rules index' instead. See: ai-rules --help
+
 This script scans the rules/ directory, extracts metadata from rule files,
 and generates a comprehensive RULES_INDEX.md table for semantic rule discovery
 in the project root.
@@ -691,6 +693,13 @@ def main() -> int:
     Returns:
         Exit code (0 = success, 1 = error/check failed)
     """
+    import warnings
+
+    warnings.warn(
+        "This script is deprecated. Use 'ai-rules index' instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     # Parse arguments
     parser = argparse.ArgumentParser(
         description="Auto-generate RULES_INDEX.md from production-ready rule metadata",

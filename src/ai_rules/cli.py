@@ -13,6 +13,7 @@ from ai_rules.commands.tokens import tokens
 from ai_rules.commands.deploy import deploy
 from ai_rules.commands.index import index
 from ai_rules.commands.keywords import keywords
+from ai_rules.commands.validate import validate
 
 console = Console()
 
@@ -30,6 +31,7 @@ app.command(name="tokens")(tokens)
 app.command(name="deploy")(deploy)
 app.command(name="index")(index)
 app.command(name="keywords")(keywords)
+app.command(name="validate")(validate)
 
 
 def version_callback(value: bool) -> None:

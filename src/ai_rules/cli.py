@@ -11,6 +11,7 @@ from ai_rules.commands.refs import refs
 from ai_rules.commands.new import new as new_command
 from ai_rules.commands.tokens import tokens
 from ai_rules.commands.deploy import deploy
+from ai_rules.commands.index import index
 
 console = Console()
 
@@ -26,6 +27,7 @@ app.command()(refs)
 app.command(name="new")(new_command)
 app.command(name="tokens")(tokens)
 app.command(name="deploy")(deploy)
+app.command(name="index")(index)
 
 
 def version_callback(value: bool) -> None:

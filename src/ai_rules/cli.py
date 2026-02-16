@@ -7,12 +7,12 @@ from rich.console import Console
 
 from ai_rules import __version__
 from ai_rules.commands import badges
-from ai_rules.commands.refs import refs
-from ai_rules.commands.new import new as new_command
-from ai_rules.commands.tokens import tokens
 from ai_rules.commands.deploy import deploy
 from ai_rules.commands.index import index
 from ai_rules.commands.keywords import keywords
+from ai_rules.commands.new import new as new_command
+from ai_rules.commands.refs import refs
+from ai_rules.commands.tokens import tokens
 from ai_rules.commands.validate import validate
 
 console = Console()

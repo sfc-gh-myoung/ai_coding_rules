@@ -50,7 +50,9 @@ class TestNewCommandHappyPath:
 
     def test_create_rule_with_letter_suffix(self, tmp_path: Path):
         """Test creating a rule file with letter suffix (e.g., 111a-example)."""
-        result = runner.invoke(app, ["new", "111a-snowflake-feature", "--output-dir", str(tmp_path)])
+        result = runner.invoke(
+            app, ["new", "111a-snowflake-feature", "--output-dir", str(tmp_path)]
+        )
 
         assert result.exit_code == 0
 
@@ -92,7 +94,14 @@ class TestNewCommandContextTier:
         """Test error with invalid context tier."""
         result = runner.invoke(
             app,
-            ["new", "100-test-rule", "--output-dir", str(tmp_path), "--context-tier", "InvalidTier"],
+            [
+                "new",
+                "100-test-rule",
+                "--output-dir",
+                str(tmp_path),
+                "--context-tier",
+                "InvalidTier",
+            ],
         )
 
         assert result.exit_code == 1
@@ -131,7 +140,14 @@ class TestNewCommandKeywords:
         too_many_keywords = ", ".join([f"keyword{i}" for i in range(25)])
         result = runner.invoke(
             app,
-            ["new", "100-test-rule", "--output-dir", str(tmp_path), "--keywords", too_many_keywords],
+            [
+                "new",
+                "100-test-rule",
+                "--output-dir",
+                str(tmp_path),
+                "--keywords",
+                too_many_keywords,
+            ],
         )
 
         assert result.exit_code == 1
@@ -152,7 +168,15 @@ class TestNewCommandForce:
         # Overwrite with different tier using --force
         result2 = runner.invoke(
             app,
-            ["new", "100-test-rule", "--output-dir", str(tmp_path), "--context-tier", "Critical", "--force"],
+            [
+                "new",
+                "100-test-rule",
+                "--output-dir",
+                str(tmp_path),
+                "--context-tier",
+                "Critical",
+                "--force",
+            ],
         )
         assert result2.exit_code == 0
 

@@ -503,8 +503,10 @@ def new(
         # Show success panel with summary
         # Parse filename to get metadata for summary
         try:
-            number, slug, title = TemplateGenerator.parse_rule_filename(filename)
-            actual_keywords = keywords if keywords else TemplateGenerator.get_default_keywords(number, slug)
+            number, slug, _title = TemplateGenerator.parse_rule_filename(filename)
+            actual_keywords = (
+                keywords if keywords else TemplateGenerator.get_default_keywords(number, slug)
+            )
         except ValueError:
             actual_keywords = keywords or "auto-generated"
 
@@ -514,18 +516,22 @@ def new(
             f"[bold green]Keywords:[/bold green] {actual_keywords}"
         )
 
-        console.print(Panel(summary, title="[bold]Generated Rule Template[/bold]", border_style="green"))
+        console.print(
+            Panel(summary, title="[bold]Generated Rule Template[/bold]", border_style="green")
+        )
 
         log_success(f"Created rule template: {output_path}")
         console.print()
         console.print("[bold]Next steps:[/bold]")
-        console.print(f"  1. Edit [cyan]{output_path}[/cyan] and replace all placeholders with actual content")
+        console.print(
+            f"  1. Edit [cyan]{output_path}[/cyan] and replace all placeholders with actual content"
+        )
         console.print(f"  2. Validate: [cyan]ai-rules validate {output_path}[/cyan]")
         console.print("  3. Add to [cyan]rules/RULES_INDEX.md[/cyan]")
 
     except (ValueError, FileExistsError) as e:
         log_error(str(e))
-        raise typer.Exit(1)
+        raise typer.Exit(1) from None
     except Exception as e:
         log_error(f"Unexpected error: {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from None

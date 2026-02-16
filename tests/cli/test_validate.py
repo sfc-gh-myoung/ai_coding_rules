@@ -9,7 +9,6 @@ Tests follow pytest best practices:
 """
 
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 from typer.testing import CliRunner
@@ -155,7 +154,7 @@ Content here.
 @pytest.fixture
 def minimal_schema(tmp_path: Path) -> Path:
     """Create a minimal valid schema for testing."""
-    schema_content = '''version: "3.2"
+    schema_content = """version: "3.2"
 metadata:
   header:
     required: true
@@ -202,14 +201,16 @@ structure:
 content_rules: {}
 restrictions: {}
 link_validation: {}
-'''
+"""
     schema_path = tmp_path / "test-schema.yml"
     schema_path.write_text(schema_content)
     return schema_path
 
 
 @pytest.fixture
-def rules_dir_with_files(tmp_path: Path, valid_rule_content: str, invalid_rule_content: str) -> Path:
+def rules_dir_with_files(
+    tmp_path: Path, valid_rule_content: str, invalid_rule_content: str
+) -> Path:
     """Create a rules directory with multiple rule files."""
     rules_dir = tmp_path / "rules"
     rules_dir.mkdir()
@@ -297,7 +298,11 @@ class TestValidateHappyPath:
 
     @pytest.mark.unit
     def test_validate_with_custom_schema(
-        self, tmp_path: Path, valid_rule_content: str, minimal_schema: Path, monkeypatch: pytest.MonkeyPatch
+        self,
+        tmp_path: Path,
+        valid_rule_content: str,
+        minimal_schema: Path,
+        monkeypatch: pytest.MonkeyPatch,
     ):
         """Test validating with a custom schema file."""
         # Arrange
@@ -326,7 +331,11 @@ class TestValidationFailures:
 
     @pytest.mark.unit
     def test_validate_invalid_rule_reports_errors(
-        self, tmp_path: Path, invalid_rule_content: str, minimal_schema: Path, monkeypatch: pytest.MonkeyPatch
+        self,
+        tmp_path: Path,
+        invalid_rule_content: str,
+        minimal_schema: Path,
+        monkeypatch: pytest.MonkeyPatch,
     ):
         """Test that invalid rules report errors."""
         # Arrange
@@ -420,7 +429,11 @@ class TestVerboseQuietModes:
 
     @pytest.mark.unit
     def test_verbose_shows_detailed_output(
-        self, tmp_path: Path, valid_rule_content: str, minimal_schema: Path, monkeypatch: pytest.MonkeyPatch
+        self,
+        tmp_path: Path,
+        valid_rule_content: str,
+        minimal_schema: Path,
+        monkeypatch: pytest.MonkeyPatch,
     ):
         """Test that --verbose shows detailed output."""
         # Arrange
@@ -433,7 +446,9 @@ class TestVerboseQuietModes:
         monkeypatch.setattr(validate_module, "find_project_root", lambda: tmp_path)
 
         # Act
-        result = runner.invoke(app, ["validate", str(rule_file), "--schema", str(minimal_schema), "--verbose"])
+        result = runner.invoke(
+            app, ["validate", str(rule_file), "--schema", str(minimal_schema), "--verbose"]
+        )
 
         # Assert - verbose mode should show more details
         # The exact output depends on validation results
@@ -441,7 +456,11 @@ class TestVerboseQuietModes:
 
     @pytest.mark.unit
     def test_quiet_mode_minimal_output(
-        self, tmp_path: Path, valid_rule_content: str, minimal_schema: Path, monkeypatch: pytest.MonkeyPatch
+        self,
+        tmp_path: Path,
+        valid_rule_content: str,
+        minimal_schema: Path,
+        monkeypatch: pytest.MonkeyPatch,
     ):
         """Test that --quiet produces minimal output."""
         # Arrange
@@ -455,7 +474,9 @@ class TestVerboseQuietModes:
         monkeypatch.setattr(validate_module, "find_project_root", lambda: tmp_path)
 
         # Act
-        result = runner.invoke(app, ["validate", str(rules_dir), "--schema", str(minimal_schema), "--quiet"])
+        result = runner.invoke(
+            app, ["validate", str(rules_dir), "--schema", str(minimal_schema), "--quiet"]
+        )
 
         # Assert - quiet mode should not show TIP messages
         assert "TIP:" not in result.output
@@ -471,7 +492,11 @@ class TestJsonOutput:
 
     @pytest.mark.unit
     def test_json_output_is_valid_json(
-        self, tmp_path: Path, valid_rule_content: str, minimal_schema: Path, monkeypatch: pytest.MonkeyPatch
+        self,
+        tmp_path: Path,
+        valid_rule_content: str,
+        minimal_schema: Path,
+        monkeypatch: pytest.MonkeyPatch,
     ):
         """Test that --json outputs valid JSON."""
         import json as json_lib
@@ -487,7 +512,9 @@ class TestJsonOutput:
         monkeypatch.setattr(validate_module, "find_project_root", lambda: tmp_path)
 
         # Act
-        result = runner.invoke(app, ["validate", str(rules_dir), "--schema", str(minimal_schema), "--json"])
+        result = runner.invoke(
+            app, ["validate", str(rules_dir), "--schema", str(minimal_schema), "--json"]
+        )
 
         # Assert
         # Try to parse the output as JSON
@@ -503,7 +530,11 @@ class TestJsonOutput:
 
     @pytest.mark.unit
     def test_json_output_contains_summary(
-        self, tmp_path: Path, valid_rule_content: str, minimal_schema: Path, monkeypatch: pytest.MonkeyPatch
+        self,
+        tmp_path: Path,
+        valid_rule_content: str,
+        minimal_schema: Path,
+        monkeypatch: pytest.MonkeyPatch,
     ):
         """Test that JSON output contains summary information."""
         import json as json_lib
@@ -520,7 +551,9 @@ class TestJsonOutput:
         monkeypatch.setattr(validate_module, "find_project_root", lambda: tmp_path)
 
         # Act
-        result = runner.invoke(app, ["validate", str(rules_dir), "--schema", str(minimal_schema), "--json"])
+        result = runner.invoke(
+            app, ["validate", str(rules_dir), "--schema", str(minimal_schema), "--json"]
+        )
 
         # Assert
         if result.output.strip().startswith("{"):
@@ -541,7 +574,11 @@ class TestDirectoryScanning:
 
     @pytest.mark.unit
     def test_validate_directory_scans_md_files(
-        self, tmp_path: Path, valid_rule_content: str, minimal_schema: Path, monkeypatch: pytest.MonkeyPatch
+        self,
+        tmp_path: Path,
+        valid_rule_content: str,
+        minimal_schema: Path,
+        monkeypatch: pytest.MonkeyPatch,
     ):
         """Test that validating a directory scans all .md files."""
         # Arrange
@@ -557,10 +594,13 @@ class TestDirectoryScanning:
         monkeypatch.setattr(validate_module, "find_project_root", lambda: tmp_path)
 
         # Act
-        result = runner.invoke(app, ["validate", str(rules_dir), "--schema", str(minimal_schema), "--json"])
+        result = runner.invoke(
+            app, ["validate", str(rules_dir), "--schema", str(minimal_schema), "--json"]
+        )
 
         # Assert
         import json as json_lib
+
         try:
             data = json_lib.loads(result.output)
             # Should only find .md files
@@ -632,7 +672,9 @@ class TestErrorCases:
         nonexistent_schema = tmp_path / "nonexistent-schema.yml"
 
         # Act
-        result = runner.invoke(app, ["validate", str(rule_file), "--schema", str(nonexistent_schema)])
+        result = runner.invoke(
+            app, ["validate", str(rule_file), "--schema", str(nonexistent_schema)]
+        )
 
         # Assert
         assert result.exit_code == 1
@@ -740,11 +782,15 @@ class TestValidationResultClass:
         assert not result.has_critical_or_high
 
         # Only MEDIUM
-        result.errors = [validate_module.ValidationError(severity="MEDIUM", message="m", error_group="A")]
+        result.errors = [
+            validate_module.ValidationError(severity="MEDIUM", message="m", error_group="A")
+        ]
         assert not result.has_critical_or_high
 
         # With HIGH
-        result.errors.append(validate_module.ValidationError(severity="HIGH", message="h", error_group="A"))
+        result.errors.append(
+            validate_module.ValidationError(severity="HIGH", message="h", error_group="A")
+        )
         assert result.has_critical_or_high
 
     @pytest.mark.unit
@@ -754,7 +800,9 @@ class TestValidationResultClass:
 
         assert result.is_clean
 
-        result.errors.append(validate_module.ValidationError(severity="INFO", message="x", error_group="A"))
+        result.errors.append(
+            validate_module.ValidationError(severity="INFO", message="x", error_group="A")
+        )
         assert not result.is_clean
 
     @pytest.mark.unit
@@ -926,7 +974,11 @@ class TestValidateIntegration:
 
     @pytest.mark.unit
     def test_validate_single_file_summary_output(
-        self, tmp_path: Path, valid_rule_content: str, minimal_schema: Path, monkeypatch: pytest.MonkeyPatch
+        self,
+        tmp_path: Path,
+        valid_rule_content: str,
+        minimal_schema: Path,
+        monkeypatch: pytest.MonkeyPatch,
     ):
         """Test that single file validation shows summary output."""
         # Arrange
@@ -949,7 +1001,11 @@ class TestValidateIntegration:
 
     @pytest.mark.unit
     def test_validate_directory_summary_output(
-        self, tmp_path: Path, valid_rule_content: str, minimal_schema: Path, monkeypatch: pytest.MonkeyPatch
+        self,
+        tmp_path: Path,
+        valid_rule_content: str,
+        minimal_schema: Path,
+        monkeypatch: pytest.MonkeyPatch,
     ):
         """Test that directory validation shows summary output."""
         # Arrange

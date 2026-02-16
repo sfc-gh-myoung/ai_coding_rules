@@ -254,7 +254,7 @@ class CortexClient:
         for line in body.splitlines():
             if not line.startswith("data: "):
                 continue
-            raw = line[len("data: "):]
+            raw = line[len("data: ") :]
             # SSE streams may end with a ``data: [DONE]`` sentinel.
             if raw.strip() == "[DONE]":
                 continue
@@ -272,8 +272,7 @@ class CortexClient:
                 pass
         if not fragments:
             raise CortexError(
-                "SSE response contained no content fragments. "
-                f"Body preview: {body[:500]}"
+                f"SSE response contained no content fragments. Body preview: {body[:500]}"
             )
         return "".join(fragments)
 
@@ -329,16 +328,14 @@ class CortexClient:
                     # Handle SSE streaming responses from Cortex API.
                     if "text/event-stream" in content_type:
                         logger.debug(
-                            "REST API returned SSE stream: model=%s, "
-                            "elapsed=%.1fs, body_len=%d",
+                            "REST API returned SSE stream: model=%s, elapsed=%.1fs, body_len=%d",
                             model,
                             elapsed,
                             len(response.text or ""),
                         )
                         text = self._parse_sse_response(response.text)
                         logger.debug(
-                            "REST API success (SSE): model=%s, "
-                            "elapsed=%.1fs, content_len=%d",
+                            "REST API success (SSE): model=%s, elapsed=%.1fs, content_len=%d",
                             model,
                             elapsed,
                             len(text),

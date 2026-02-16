@@ -197,18 +197,18 @@ def badges(
         project_root = find_project_root()
     except FileNotFoundError:
         log_error("Could not find project root (no pyproject.toml found)")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from None
 
     pyproject_path = project_root / "pyproject.toml"
     readme_path = project_root / "README.md"
 
     if not pyproject_path.exists():
         log_error(f"{pyproject_path} not found")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from None
 
     if not readme_path.exists():
         log_error(f"{readme_path} not found")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from None
 
     try:
         version = extract_version(pyproject_path)
@@ -233,4 +233,4 @@ def badges(
 
     except Exception as e:
         log_error(f"{e}")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from None

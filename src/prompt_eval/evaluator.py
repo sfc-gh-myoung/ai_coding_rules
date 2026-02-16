@@ -1,6 +1,5 @@
 """Core evaluation logic for prompt scoring."""
 
-import time
 from collections.abc import Callable
 
 from .cortex import CortexClient, CortexConfig, CortexError

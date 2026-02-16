@@ -172,9 +172,7 @@ class TestIndexCheckMode:
     """Test --check mode for CI."""
 
     @pytest.mark.unit
-    def test_check_passes_when_up_to_date(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ):
+    def test_check_passes_when_up_to_date(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         """Test --check returns 0 when index is up-to-date."""
         # Arrange
         rules_dir = tmp_path / "rules"
@@ -194,9 +192,7 @@ class TestIndexCheckMode:
         assert "up-to-date" in result.output
 
     @pytest.mark.unit
-    def test_check_fails_when_outdated(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ):
+    def test_check_fails_when_outdated(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         """Test --check returns 1 when index is outdated."""
         # Arrange
         rules_dir = tmp_path / "rules"
@@ -217,9 +213,7 @@ class TestIndexCheckMode:
         assert "out of date" in result.output
 
     @pytest.mark.unit
-    def test_check_fails_when_index_missing(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ):
+    def test_check_fails_when_index_missing(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         """Test --check returns 1 when index doesn't exist."""
         # Arrange
         rules_dir = tmp_path / "rules"
@@ -236,9 +230,7 @@ class TestIndexCheckMode:
         assert "does not exist" in result.output
 
     @pytest.mark.unit
-    def test_check_shows_diff_when_outdated(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ):
+    def test_check_shows_diff_when_outdated(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         """Test --check shows diff output when outdated."""
         # Arrange
         rules_dir = tmp_path / "rules"
@@ -264,9 +256,7 @@ class TestIndexDryRun:
     """Test --dry-run flag."""
 
     @pytest.mark.unit
-    def test_dry_run_does_not_write_file(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ):
+    def test_dry_run_does_not_write_file(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         """Test --dry-run does not create/modify files."""
         # Arrange
         rules_dir = tmp_path / "rules"
@@ -285,9 +275,7 @@ class TestIndexDryRun:
         assert not index_file.exists()
 
     @pytest.mark.unit
-    def test_dry_run_shows_generated_content(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ):
+    def test_dry_run_shows_generated_content(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         """Test --dry-run shows what would be generated."""
         # Arrange
         rules_dir = tmp_path / "rules"
@@ -306,9 +294,7 @@ class TestIndexDryRun:
         assert "AUTO-GENERATED FILE" in result.output or "Rules Index" in result.output
 
     @pytest.mark.unit
-    def test_dry_run_short_flag(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ):
+    def test_dry_run_short_flag(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         """Test -n works as --dry-run."""
         # Arrange
         rules_dir = tmp_path / "rules"
@@ -330,9 +316,7 @@ class TestIndexRulesDir:
     """Test --rules-dir option."""
 
     @pytest.mark.unit
-    def test_custom_rules_directory(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ):
+    def test_custom_rules_directory(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         """Test using custom rules directory."""
         # Arrange
         custom_rules = tmp_path / "custom" / "rules"
@@ -349,9 +333,7 @@ class TestIndexRulesDir:
         assert (custom_rules / "RULES_INDEX.md").exists()
 
     @pytest.mark.unit
-    def test_auto_detects_rules_dir(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ):
+    def test_auto_detects_rules_dir(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         """Test auto-detection of rules/ directory."""
         # Arrange
         rules_dir = tmp_path / "rules"
@@ -407,9 +389,7 @@ class TestIndexErrorCases:
         assert "No rule files found" in result.output
 
     @pytest.mark.unit
-    def test_skips_readme_and_changelog(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ):
+    def test_skips_readme_and_changelog(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         """Test that README.md and CHANGELOG.md are skipped."""
         # Arrange
         rules_dir = tmp_path / "rules"
@@ -526,9 +506,7 @@ class TestIndexLoadTriggers:
     """Test LoadTrigger parsing and loading strategy generation."""
 
     @pytest.mark.unit
-    def test_generates_loading_strategy(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ):
+    def test_generates_loading_strategy(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         """Test that loading strategy section is generated."""
         # Arrange
         rules_dir = tmp_path / "rules"
@@ -592,9 +570,7 @@ class TestIndexDomainGrouping:
         assert "Python (200-series)" in content
 
     @pytest.mark.unit
-    def test_sorts_rules_within_domain(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ):
+    def test_sorts_rules_within_domain(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         """Test rules are sorted by filename within domain."""
         # Arrange
         rules_dir = tmp_path / "rules"
@@ -631,4 +607,6 @@ class TestIndexDomainGrouping:
         catalog_section = content.split("## Rule Catalog")[-1]
         pos_200 = catalog_section.find("**`200-python-core.md`**")
         pos_201 = catalog_section.find("**`201-python-advanced.md`**")
-        assert pos_200 < pos_201, f"200 should come before 201 in catalog (200 at {pos_200}, 201 at {pos_201})"
+        assert pos_200 < pos_201, (
+            f"200 should come before 201 in catalog (200 at {pos_200}, 201 at {pos_201})"
+        )

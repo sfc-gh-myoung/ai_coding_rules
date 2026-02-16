@@ -17,7 +17,6 @@ from typer.testing import CliRunner
 from ai_rules.cli import app
 from ai_rules.commands import badges
 
-
 runner = CliRunner()
 
 
@@ -117,9 +116,7 @@ class TestBadgesDryRun:
     """Test --dry-run flag behavior."""
 
     @pytest.mark.unit
-    def test_dry_run_does_not_modify_readme(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ):
+    def test_dry_run_does_not_modify_readme(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         """Test that --dry-run does not write to README."""
         # Arrange
         pyproject = tmp_path / "pyproject.toml"
@@ -150,9 +147,7 @@ class TestBadgesDryRun:
         assert readme.read_text() == original_content
 
     @pytest.mark.unit
-    def test_dry_run_shows_planned_changes(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ):
+    def test_dry_run_shows_planned_changes(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         """Test that --dry-run shows what would change."""
         # Arrange
         pyproject = tmp_path / "pyproject.toml"
@@ -160,8 +155,7 @@ class TestBadgesDryRun:
 
         readme = tmp_path / "README.md"
         readme.write_text(
-            "# Project\n"
-            "![Version](https://img.shields.io/badge/version-1.0.0-blue)\n"
+            "# Project\n![Version](https://img.shields.io/badge/version-1.0.0-blue)\n"
         )
 
         htmlcov = tmp_path / "htmlcov"
@@ -220,6 +214,7 @@ class TestBadgesErrorHandling:
     @pytest.mark.unit
     def test_missing_project_root(self, monkeypatch: pytest.MonkeyPatch):
         """Test error when project root cannot be found."""
+
         # Arrange
         def raise_not_found():
             raise FileNotFoundError("Could not find project root")
@@ -234,9 +229,7 @@ class TestBadgesErrorHandling:
         assert "project root" in result.output.lower()
 
     @pytest.mark.unit
-    def test_missing_version_in_pyproject(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ):
+    def test_missing_version_in_pyproject(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         """Test error when version is missing from pyproject.toml."""
         # Arrange
         pyproject = tmp_path / "pyproject.toml"
@@ -391,11 +384,7 @@ class TestUpdateReadmeBadges:
         """Test inserting badges when they don't exist."""
         # Arrange
         readme = tmp_path / "README.md"
-        readme.write_text(
-            "# Project\n"
-            "[![License: Apache-2.0](link)]\n"
-            "Content here\n"
-        )
+        readme.write_text("# Project\n[![License: Apache-2.0](link)]\nContent here\n")
 
         # Act
         badges.update_readme_badges(readme, "1.0.0", 90.0, 85.0)

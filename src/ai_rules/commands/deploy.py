@@ -607,8 +607,10 @@ def build_deployment_tree(
     """
     if only_skills:
         skills_dest_dir = paths.skills if is_split_mode and paths.skills else dest
-        tree = Tree(f"[bold green]Deployment Summary[/bold green]")
-        tree.add(f"[cyan]skills/[/cyan] -> {skills_dest_dir} ({skills_count} skills, {skills_files_copied} files)")
+        tree = Tree("[bold green]Deployment Summary[/bold green]")
+        tree.add(
+            f"[cyan]skills/[/cyan] -> {skills_dest_dir} ({skills_count} skills, {skills_files_copied} files)"
+        )
         return tree
 
     if is_split_mode:
@@ -618,11 +620,11 @@ def build_deployment_tree(
         if paths.rules:
             tree.add(f"[cyan]rules/[/cyan] -> {paths.rules}/ ({rules_copied} files)")
         else:
-            tree.add(f"[dim]rules/ (not copied, CWD reference)[/dim]")
+            tree.add("[dim]rules/ (not copied, CWD reference)[/dim]")
         if paths.skills:
             tree.add(f"[cyan]skills/[/cyan] -> {paths.skills}/ ({skills_count} skills)")
         else:
-            tree.add(f"[dim]skills/ (not copied, CWD reference)[/dim]")
+            tree.add("[dim]skills/ (not copied, CWD reference)[/dim]")
     else:
         tree = Tree(f"[bold green]Deployment to {dest}[/bold green]")
         tree.add(f"[cyan]AGENTS.md[/cyan] ({root_copied} root files)")
@@ -820,8 +822,15 @@ def deploy_rules(
 
     # Build and display deployment tree
     tree = build_deployment_tree(
-        paths, dest, is_split_mode, skip_skills, only_skills,
-        rules_copied, root_copied, skills_count, skills_files_copied
+        paths,
+        dest,
+        is_split_mode,
+        skip_skills,
+        only_skills,
+        rules_copied,
+        root_copied,
+        skills_count,
+        skills_files_copied,
     )
     console.print(tree)
     console.print()
@@ -836,7 +845,7 @@ def deploy_rules(
         if not skip_skills:
             console.print(f"[bold]Skills copied:[/bold]     {skills_count}")
         else:
-            console.print(f"[bold]Skills copied:[/bold]     0 (skipped)")
+            console.print("[bold]Skills copied:[/bold]     0 (skipped)")
         console.print(f"[bold]Files copied:[/bold]      {total_files}")
 
     console.print(f"[bold]Total failed:[/bold]      {total_failed}")
@@ -953,7 +962,6 @@ def deploy(
         ai-rules deploy --split --agents-dest ~/project --rules-dest ~/project/rules
 
     Examples:
-
         # Deploy rules and skills to a project directory
 
         ai-rules deploy /path/to/project
@@ -986,7 +994,7 @@ def deploy(
         project_root = find_project_root()
     except FileNotFoundError:
         log_error("Could not find project root (no pyproject.toml found)")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from None
 
     # Normalize paths: expand ~ and resolve relative paths
     if dest:
@@ -1004,7 +1012,7 @@ def deploy(
     # If --split flag used, require at least one split destination
     if split and not has_split_args:
         log_error("--split requires at least one of: --agents-dest, --rules-dest, --skills-dest")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from None
 
     # If split args provided without --split flag, treat as split mode
     if has_split_args:
@@ -1019,7 +1027,7 @@ def deploy(
         log_error(
             "Use either positional DEST for unified deployment OR --split with separate directories"
         )
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from None
 
     # Validate that at least one destination is provided
     if not dest and not split:
@@ -1027,7 +1035,7 @@ def deploy(
             "Must specify either DEST or use --split with at least one destination "
             "(--agents-dest, --rules-dest, --skills-dest)"
         )
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from None
 
     # Validate split destination dependencies and directory existence
     if split:
@@ -1037,7 +1045,7 @@ def deploy(
         if not is_valid:
             for error in errors:
                 log_error(error)
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=1) from None
 
     # Deploy
     success = deploy_rules(
@@ -1054,4 +1062,4 @@ def deploy(
     )
 
     if not success:
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from None

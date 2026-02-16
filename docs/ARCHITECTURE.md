@@ -1,16 +1,20 @@
 # Architecture: AI Coding Rules (v3.5.3)
 
-**Last Updated:** 2026-02-12
+**Last Updated:** 2026-02-16
 
 ## Table of Contents
 
 - [System Overview](#system-overview)
 - [Production-Ready Rules System](#production-ready-rules-system)
 - [Directory Structure](#directory-structure)
+- [Package Layout](#package-layout)
+- [CLI Architecture](#cli-architecture)
+- [Migration Notes](#migration-notes)
 - [Rule Creation Workflow](#rule-creation-workflow)
 - [Schema Validation System](#schema-validation-system)
 - [Deployment System](#deployment-system)
 - [Testing Infrastructure](#testing-infrastructure)
+- [Makefile Architecture](#makefile-architecture)
 - [Scripts Reference](#scripts-reference)
 - [Architecture Diagrams](#architecture-diagrams)
 - [Design Decisions](#design-decisions)
@@ -572,6 +576,44 @@ The 600s range is reserved for systems and backend programming languages, with G
 
 ```
 ai_coding_rules/
+├── src/                        # Python packages (installable via pip/uv)
+│   ├── ai_rules/               # Main CLI package (ai-rules command)
+│   │   ├── __init__.py             # Package metadata (__version__)
+│   │   ├── __main__.py             # Entry point for `python -m ai_rules`
+│   │   ├── cli.py                  # Typer app with 8 registered commands
+│   │   ├── _shared/                # Shared utilities
+│   │   │   ├── console.py          # Rich console helpers (log_info, log_success, etc.)
+│   │   │   └── paths.py            # Project root detection, rules/schemas paths
+│   │   └── commands/               # Individual command modules
+│   │       ├── badges.py           # Update README badges
+│   │       ├── deploy.py           # Deploy rules to projects
+│   │       ├── index.py            # Generate RULES_INDEX.md
+│   │       ├── keywords.py         # TF-IDF keyword extraction
+│   │       ├── new.py              # Create new rule templates
+│   │       ├── refs.py             # Validate index references
+│   │       ├── tokens.py           # Token budget validation
+│   │       └── validate.py         # Schema validation
+│   ├── agent_eval/             # AGENTS.md effectiveness evaluation
+│   │   ├── __init__.py             # Package metadata
+│   │   ├── __main__.py             # Entry point for `python -m agent_eval`
+│   │   ├── cli.py                  # Typer CLI (run, list, verify commands)
+│   │   ├── cortex.py               # Snowflake Cortex REST API client
+│   │   ├── evaluator.py            # Core evaluation logic
+│   │   ├── models.py               # Data models
+│   │   └── parsers.py              # Response parsing
+│   └── prompt_eval/            # Prompt quality evaluation (6-dimension scoring)
+│       ├── __init__.py             # Package metadata
+│       ├── __main__.py             # Entry point for `python -m prompt_eval`
+│       ├── cli.py                  # Typer CLI (eval, models, api commands)
+│       ├── cortex.py               # Snowflake Cortex integration
+│       ├── evaluator.py            # Core evaluation logic
+│       ├── formatters.py           # Output formatting (markdown, JSON, HTML)
+│       ├── dimensions.py           # Scoring dimension definitions
+│       ├── models.py               # Data models
+│       ├── rewriter.py             # Prompt improvement suggestions
+│       ├── api.py                  # FastAPI REST API + web UI
+│       └── templates/              # Jinja2 HTML templates
+│
 ├── rules/                      # Production-ready rule files
 │   ├── 000-global-core.md      # Foundation (ContextTier: Critical)
 │   ├── 001-memory-bank.md      # Universal memory bank system
@@ -600,8 +642,8 @@ ai_coding_rules/
 │   │   └── 121-snowpipe-auto-ingest-example.md
 │   └── ... (126 total)
 │
-├── scripts/                    # Automation and validation
-│   ├── template_generator.py  # Creates new rule templates
+├── scripts/                    # Legacy scripts (being migrated to src/ai_rules/)
+│   ├── template_generator.py   # Creates new rule templates
 │   ├── rule_deployer.py        # Deploys rules to projects
 │   ├── schema_validator.py     # Schema validation
 │   ├── token_validator.py      # Token budget validation
@@ -658,23 +700,6 @@ ai_coding_rules/
 │       ├── examples/                # FULL, COMPARISON, META + edge-cases.md
 │       └── tests/                   # Input, mode, output test cases
 │
-├── tools/                      # Evaluation and testing tools
-│   ├── agent_eval/             # AGENTS.md effectiveness evaluation
-│   │   ├── __init__.py             # Package metadata
-│   │   ├── cli.py                  # Typer CLI commands
-│   │   ├── evaluator.py            # Core evaluation logic
-│   │   ├── test_cases.yaml         # Test definitions
-│   │   └── README.md               # Tool documentation
-│   └── prompt_eval/            # Prompt quality evaluation (6-dimension scoring)
-│       ├── __init__.py             # Package metadata
-│       ├── cli.py                  # Typer CLI (eval, models, api commands)
-│       ├── cortex.py               # Snowflake Cortex integration
-│       ├── evaluator.py            # Core evaluation logic
-│       ├── formatter.py            # Output formatting (markdown, JSON, HTML)
-│       ├── api.py                  # FastAPI REST API + web UI
-│       ├── templates/              # Jinja2 HTML templates
-│       └── README.md               # Tool documentation
-│
 ├── docs/                       # Project documentation
 │   ├── ARCHITECTURE.md         # This file
 │   ├── USING_RULE_REVIEW_SKILL.md # How to use rule-reviewer in Claude Code / Cursor
@@ -688,8 +713,8 @@ ai_coding_rules/
 ├── CHANGELOG.md                # Version history (Keep a Changelog v1.1.0)
 ├── CONTRIBUTING.md             # Contribution guidelines
 ├── README.md                   # Project overview and quick start
-├── dev                         # Task automation (./dev wrapper script)
-└── pyproject.toml              # Python dependencies (uv-based)
+├── Makefile                    # Task automation (replaces ./dev script)
+└── pyproject.toml              # Python dependencies and CLI entry points (uv/hatchling)
 ```
 
 ### Key Directory Roles
@@ -707,13 +732,21 @@ ai_coding_rules/
 - Naming pattern: `{rule-number}-{topic}-{variant}-example.md`
 - Used by agents for concrete patterns when implementing Cortex Agents, Semantic Views, Cortex Search
 
-**`scripts/`** — Automation and validation tools
-- `template_generator.py` creates new rules compliant with the schema
-- `rule_deployer.py` copies rules to target projects
-- `schema_validator.py` validates rules against schema
-- `token_validator.py` checks token budget accuracy
-- `keyword_generator.py` extracts semantic keywords using TF-IDF analysis
-- `index_generator.py` generates RULES_INDEX.md catalog
+**`src/`** — Python packages (installable via pip/uv)
+- Three packages with CLI entry points defined in `pyproject.toml`
+- `ai_rules/` — Main CLI for rule management (8 commands)
+- `agent_eval/` — AGENTS.md effectiveness testing
+- `prompt_eval/` — Prompt quality evaluation with 6-dimension scoring
+- Build system: hatchling with `packages = ["src/ai_rules", "src/agent_eval", "src/prompt_eval"]`
+
+**`scripts/`** — Legacy automation scripts (being migrated to `src/ai_rules/`)
+- These scripts are still functional but prefer using the `ai-rules` CLI
+- `template_generator.py` → `ai-rules new`
+- `rule_deployer.py` → `ai-rules deploy`
+- `schema_validator.py` → `ai-rules validate`
+- `token_validator.py` → `ai-rules tokens`
+- `keyword_generator.py` → `ai-rules keywords`
+- `index_generator.py` → `ai-rules index`
 
 **`templates/`** — Source of truth for AGENTS.md variants
 - `AGENTS_MODE.md.template` — Full PLAN/ACT bootstrap protocol (deployed as AGENTS.md by default)
@@ -765,6 +798,165 @@ ai_coding_rules/
   - Self-validation procedures and test cases
   - Cross-skill integration (rule-reviewer validates rule-creator output)
 
+## Package Layout
+
+The project uses a modern Python package structure with three installable packages under `src/`.
+
+### Entry Points (pyproject.toml)
+
+```toml
+[project.scripts]
+ai-rules = "ai_rules.cli:app"       # Main CLI for rule management
+agent-eval = "agent_eval.cli:app"   # AGENTS.md effectiveness testing
+prompt-eval = "prompt_eval.cli:app" # Prompt quality evaluation
+```
+
+### Build Configuration
+
+```toml
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ai_rules", "src/agent_eval", "src/prompt_eval"]
+```
+
+### Package Descriptions
+
+| Package | Entry Point | Purpose |
+|---------|-------------|---------|
+| `ai_rules` | `ai-rules` | Unified CLI for all rule management operations |
+| `agent_eval` | `agent-eval` | Test AGENTS.md bootstrap effectiveness via Cortex |
+| `prompt_eval` | `prompt-eval` | Evaluate and improve prompt quality (6 dimensions) |
+
+### Installation
+
+```bash
+# Development install (editable mode with all dependencies)
+uv sync --all-groups
+
+# Install specific extras
+uv sync --extra agent-eval
+uv sync --extra prompt-eval
+```
+
+## CLI Architecture
+
+The `ai-rules` CLI uses [Typer](https://typer.tiangolo.com/) for command registration with a modular command structure.
+
+### Command Registration (cli.py)
+
+```python
+# src/ai_rules/cli.py
+import typer
+from ai_rules.commands import badges, deploy, index, keywords, new, refs, tokens, validate
+
+app = typer.Typer(name="ai-rules", help="Unified CLI for AI coding rules management.")
+
+# Register 8 commands
+app.command(name="badges")(badges.badges)
+app.command()(refs)
+app.command(name="new")(new_command)
+app.command(name="tokens")(tokens)
+app.command(name="deploy")(deploy)
+app.command(name="index")(index)
+app.command(name="keywords")(keywords)
+app.command(name="validate")(validate)
+```
+
+### Available Commands
+
+| Command | Description | Example |
+|---------|-------------|---------|
+| `ai-rules new` | Generate new rule template | `ai-rules new 300-example --context-tier High` |
+| `ai-rules validate` | Validate rules against schema | `ai-rules validate rules/` |
+| `ai-rules deploy` | Deploy rules to target project | `ai-rules deploy /path/to/project` |
+| `ai-rules index` | Generate RULES_INDEX.md | `ai-rules index --check` |
+| `ai-rules tokens` | Update token budgets | `ai-rules tokens rules/ --dry-run` |
+| `ai-rules keywords` | Extract/update keywords | `ai-rules keywords rules/100-snowflake-core.md --corpus` |
+| `ai-rules badges` | Update README badges | `ai-rules badges` |
+| `ai-rules refs` | Validate index references | `ai-rules refs` |
+
+### Shared Utilities (_shared/)
+
+```python
+# src/ai_rules/_shared/paths.py
+def find_project_root() -> Path:
+    """Find project root by looking for pyproject.toml."""
+    
+def get_rules_dir(project_root: Path | None = None) -> Path:
+    """Get the rules directory path."""
+
+# src/ai_rules/_shared/console.py  
+def log_info(message: str) -> None:     # [blue]ℹ[/blue] message
+def log_success(message: str) -> None:  # [green]✓[/green] message
+def log_warning(message: str) -> None:  # [yellow]⚠[/yellow] message
+def log_error(message: str) -> None:    # [red]✗[/red] message (stderr)
+```
+
+### Makefile Integration
+
+The `Makefile` delegates to the `ai-rules` CLI for most operations:
+
+```makefile
+# Rules management targets delegate to ai-rules CLI
+rules-validate:
+	$(UV) run ai-rules validate rules/
+
+index-generate:
+	$(UV) run ai-rules index
+
+rule-new:
+	$(UV) run ai-rules new $(FILENAME) $(if $(TIER),--context-tier $(TIER))
+
+deploy:
+	$(UV) run ai-rules deploy $(DEST)
+```
+
+## Migration Notes
+
+### tools/ → src/ Migration
+
+The evaluation tools have been restructured as proper Python packages:
+
+| Old Location | New Location | Entry Point |
+|--------------|--------------|-------------|
+| `tools/agent_eval/` | `src/agent_eval/` | `agent-eval` |
+| `tools/prompt_eval/` | `src/prompt_eval/` | `prompt-eval` |
+| N/A (new) | `src/ai_rules/` | `ai-rules` |
+
+**Benefits:**
+- Packages are now pip-installable (`pip install -e .`)
+- Proper `__main__.py` support (`python -m ai_rules`)
+- Shared utilities in `_shared/` avoid code duplication
+- Entry points work system-wide after installation
+
+### ./dev → Makefile Migration
+
+The `./dev` bash script has been replaced with a standard `Makefile`:
+
+| Old Command | New Command |
+|-------------|-------------|
+| `./dev test` | `make test` |
+| `./dev test:all` | `make test` |
+| `./dev quality:fix` | `make quality-fix` |
+| `./dev lint` | `make lint` |
+| `./dev lint:fix` | `make lint-fix` |
+| `./dev rule:new FILENAME=xxx` | `make rule-new FILENAME=xxx` |
+| `./dev deploy -- --dest /path` | `make deploy DEST=/path` |
+| `./dev tokens:update` | `make tokens-update` |
+| `./dev index:generate` | `make index-generate` |
+| `./dev validate` | `make validate` |
+| `./dev status` | `make status` |
+
+**Benefits:**
+- Standard build tool familiar to most developers
+- Better IDE integration and tab-completion
+- Parallel execution with `make -j`
+- Clear dependency tracking between targets
+- Self-documenting via `make help`
+
 ## Rule Creation Workflow
 
 ### Creating a New Rule
@@ -773,16 +965,16 @@ ai_coding_rules/
 
 ```bash
 # Basic usage (generates in rules/ directory)
-./dev rule:new FILENAME=300-example-rule
+make rule-new FILENAME=300-example-rule
 
 # With custom context tier
-./dev rule:new FILENAME=300-example-rule TIER=High
+make rule-new FILENAME=300-example-rule TIER=High
 
-# With custom keywords (10-15 required)
-./dev rule:new FILENAME=300-example-rule KEYWORDS="keyword1, keyword2, ... (10-15 total)"
+# With custom keywords (5-20 required)
+ai-rules new 300-example-rule --keywords "keyword1, keyword2, ... (5-20 total)"
 
 # Overwrite existing file (use with caution)
-./dev rule:new:force FILENAME=300-example-rule
+make rule-new-force FILENAME=300-example-rule
 ```
 
 **What Happens:**
@@ -832,13 +1024,13 @@ Edit `rules/300-example-rule.md`:
 
 ```bash
 # Validate single rule
-python scripts/schema_validator.py rules/300-example-rule.md
+ai-rules validate rules/300-example-rule.md
 
 # Validate all rules
-./dev test:all
+make rules-validate
 
 # Verbose output
-python scripts/schema_validator.py rules/300-example-rule.md --verbose
+ai-rules validate rules/300-example-rule.md --verbose
 ```
 
 **Validation Checks:**
@@ -854,7 +1046,7 @@ python scripts/schema_validator.py rules/300-example-rule.md --verbose
 
 ```bash
 # Regenerate RULES_INDEX.md to include new rule
-python scripts/index_generator.py
+make index-generate
 ```
 
 **Step 5: Commit**
@@ -1031,22 +1223,23 @@ SUMMARY:
 ```bash
 # .git/hooks/pre-commit
 #!/bin/bash
-python scripts/schema_validator.py rules/ --strict
+uv run ai-rules validate rules/ --strict
 ```
 
-**Dev Script Automation:**
+**Makefile Automation:**
 ```bash
-# ./dev wrapper provides task-like commands
-./dev test:all    # Run all pytest tests
-./dev test        # Alias for test:all
+# Makefile provides task targets
+make test             # Run all pytest tests
+make rules-validate   # Validate all rules
+make validate         # Run all CI/CD checks
 ```
 
 **CI/CD Pipeline:**
 
 See `.github/workflows/ci.yml` for the complete workflow. The `validate` job runs:
 ```bash
-uv run python scripts/schema_validator.py rules/
-uv run python scripts/index_generator.py --check
+uv run ai-rules validate rules/
+uv run ai-rules index --check
 ```
 
 ## Deployment System
@@ -1086,19 +1279,19 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 
 ```bash
 # Deploy to current directory
-./dev deploy -- --dest .
+make deploy DEST=.
 
 # Deploy to specific path
-./dev deploy -- --dest /path/to/project
+make deploy DEST=/path/to/project
 
 # Deploy to home directory project
-./dev deploy -- --dest ~/my-project
+make deploy DEST=~/my-project
 
 # Dry-run (preview without copying)
-./dev deploy:dry -- --dest /path/to/project
+make deploy-dry DEST=/path/to/project
 
 # Verbose output
-./dev deploy:verbose -- --dest /path/to/project
+make deploy-verbose DEST=/path/to/project
 ```
 
 **Split Deployment (Multi-Destination):**
@@ -1107,16 +1300,16 @@ For AI assistants that require separate directories for agents, rules, and skill
 
 ```bash
 # Deploy only AGENTS.md (rules/skills paths reference CWD)
-./dev deploy:split AGENTS=~/.claude
+make deploy-split AGENTS=~/.claude
 
 # Deploy AGENTS.md and rules to separate directories
-./dev deploy:split AGENTS=~/.claude RULES=~/.claude/rules
+make deploy-split AGENTS=~/.claude RULES=~/.claude/rules
 
 # With separate skills directory
-./dev deploy:split AGENTS=~/.claude RULES=~/.claude/rules SKILLS=~/.claude/skills
+make deploy-split AGENTS=~/.claude RULES=~/.claude/rules SKILLS=~/.claude/skills
 
 # Preview split deployment
-./dev deploy:split:dry AGENTS=~/.claude
+make deploy-split AGENTS=~/.claude DRY_RUN=1
 ```
 
 When only `AGENTS=` is specified (AGENTS-only mode):
@@ -1130,24 +1323,24 @@ Split mode uses template-based deployment with placeholder substitution:
 
 This ensures AGENTS.md contains correct absolute paths regardless of deployment structure.
 
-**Direct Script Usage:**
+**Direct CLI Usage:**
 
 ```bash
-# Using Python directly
-python scripts/rule_deployer.py --dest /path/to/project
+# Using ai-rules CLI directly
+ai-rules deploy /path/to/project
 
 # With uv
-uv run scripts/rule_deployer.py --dest /path/to/project
+uv run ai-rules deploy /path/to/project
 
 # Dry-run mode
-python scripts/rule_deployer.py --dest /path/to/project --dry-run
+ai-rules deploy /path/to/project --dry-run
 
 # Verbose mode
-python scripts/rule_deployer.py --dest /path/to/project --verbose
+ai-rules deploy /path/to/project --verbose
 
-# Split deployment (direct script)
-python scripts/rule_deployer.py --agents-dest ~/.claude --rules-dest ~/.claude/rules
-python scripts/rule_deployer.py --agents-dest ~/.claude --rules-dest ~/.claude/rules --skills-dest ~/.claude/skills
+# Split deployment
+ai-rules deploy --split --agents-dest ~/.claude --rules-dest ~/.claude/rules
+ai-rules deploy --split --agents-dest ~/.claude --rules-dest ~/.claude/rules --skills-dest ~/.claude/skills
 ```
 
 **Output:**
@@ -1361,15 +1554,14 @@ v3.0 includes comprehensive test coverage ensuring script reliability:
 
 **All Tests:**
 ```bash
-# Using ./dev (recommended)
-./dev test                 # Alias for test:all
-./dev test:all             # Run all tests
+# Using make (recommended)
+make test                  # Run all tests
 
 # Using pytest directly
 uv run pytest tests/ -v
 
 # With coverage report
-./dev test:coverage
+make test-coverage
 ```
 
 **Single Test File:**
@@ -1384,8 +1576,11 @@ uv run pytest tests/test_schema_validator.py::test_validate_metadata_fields -v
 
 **Coverage Report:**
 ```bash
-./dev test:coverage
+make test-coverage
 # Generates htmlcov/index.html
+
+# Open coverage report in browser (macOS)
+make test-coverage-open
 ```
 
 ### Test Fixtures
@@ -1424,57 +1619,52 @@ test:
     - run: uv run pytest tests/ -v
 ```
 
-## Dev Script Architecture
+## Makefile Architecture
 
-The project uses a `./dev` bash wrapper for automation with a comprehensive categorized structure:
+The project uses a standard `Makefile` for task automation, replacing the previous `./dev` bash script.
 
 ### Key Design Patterns
 
-**1. Precondition Checks (Internal)**
-The dev script validates required tools before running commands:
+**1. Precondition Checks**
+The Makefile validates required tools via the `preflight` target:
 - Validates uv is installed
-- Validates uvx is installed  
-- Validates coreutils (awk, find, wc, tr)
+- Validates pyproject.toml exists
 
-**2. Automatic Environment Setup**
-Most commands include automatic dependency installation via `uv sync`.
+**2. CLI Delegation**
+Most targets delegate to the `ai-rules` CLI for actual work:
+```makefile
+rules-validate:
+	$(UV) run ai-rules validate rules/
+```
 
-**3. Ergonomic Aliases**
-Common commands have short aliases:
-- `./dev fix` or `./dev qf` → `./dev quality:fix`
-- `./dev test` or `./dev t` → `./dev test:all`
-- `./dev validate` or `./dev ci` → `./dev validate:ci`
-- `./dev lint` → `./dev quality:lint`
-- `./dev lint:fix` → `./dev quality:lint:fix`
-- `./dev fmt` or `./dev format` → `./dev quality:format`
-- `./dev fmt:fix` or `./dev format:fix` → `./dev quality:format:fix`
-- `./dev type` or `./dev type-check` → `./dev quality:typecheck`
-
-**4. Categorized Help**
-Running `./dev` (default) shows a categorized menu with quickstart guide.
-Use `./dev ASCII=true` for terminals without Unicode support.
+**3. Self-Documenting Help**
+Running `make` or `make help` shows a categorized menu of all available targets.
 
 ### Command Categories
 
-| Category | Commands | Purpose |
-|----------|----------|---------|
-| **Environment** | `env:python`, `env:sync`, `env:deps` | Python setup |
-| **Quality** | `quality:*`, `fix` | Linting, formatting, type checking |
-| **Testing** | `test`, `test:coverage` | pytest execution |
-| **Rules** | `rules:validate`, `rule:new` | Rule management |
-| **Index** | `index:generate`, `index:check` | RULES_INDEX.md |
-| **Deployment** | `deploy`, `deploy:dry` | Rule deployment |
-| **Tokens** | `tokens:update`, `tokens:check` | Token budget management |
-| **Keywords** | `keywords:suggest`, `keywords:update` | Keyword generation |
+| Category | Make Target | Purpose |
+|----------|-------------|---------|
+| **Environment** | `env-python`, `env-sync`, `env-deps` | Python setup |
+| **Quality** | `lint`, `format`, `typecheck`, `quality-fix` | Linting, formatting, type checking |
+| **Testing** | `test`, `test-coverage` | pytest execution |
+| **Rules** | `rules-validate`, `rule-new` | Rule management |
+| **Index** | `index-generate`, `index-check` | RULES_INDEX.md |
+| **Deployment** | `deploy`, `deploy-dry` | Rule deployment |
+| **Tokens** | `tokens-update`, `tokens-check` | Token budget management |
+| **Keywords** | `keywords-suggest`, `keywords-update` | Keyword generation |
 | **Validation** | `validate`, `preflight` | CI/CD checks |
-| **Cleanup** | `clean:cache`, `clean:venv`, `clean:all` | File cleanup |
+| **Cleanup** | `clean-cache`, `clean-venv`, `clean` | File cleanup |
 | **Status** | `status` | Project summary |
 
 ## Scripts Reference
 
+> **Note:** The scripts in `scripts/` are being migrated to the `ai-rules` CLI. Prefer using CLI commands (e.g., `ai-rules new` instead of `python scripts/template_generator.py`).
+
 ### 1. template_generator.py
 
 **Purpose:** Create new v3.2-compliant rule templates
+
+**CLI Alternative:** `ai-rules new FILENAME [OPTIONS]`
 
 **Usage:**
 ```bash
@@ -1504,6 +1694,8 @@ python scripts/template_generator.py 300-bash-example \
 ### 2. rule_deployer.py
 
 **Purpose:** Deploy production-ready rules to target projects
+
+**CLI Alternative:** `ai-rules deploy PATH [OPTIONS]`
 
 **Usage:**
 ```bash
@@ -1556,6 +1748,8 @@ python scripts/rule_deployer.py \
 
 **Purpose:** Validate rules against schema
 
+**CLI Alternative:** `ai-rules validate PATH [OPTIONS]`
+
 **Usage:**
 ```bash
 python scripts/schema_validator.py PATH [OPTIONS]
@@ -1583,6 +1777,8 @@ python scripts/schema_validator.py rules/ --verbose --strict
 ### 4. token_validator.py
 
 **Purpose:** Validate TokenBudget accuracy against actual token counts
+
+**CLI Alternative:** `ai-rules tokens PATH [OPTIONS]`
 
 > **WARNING:** Running without `--dry-run` will **automatically update** TokenBudget values in rule files. Use `--dry-run` to preview changes first.
 
@@ -1624,6 +1820,8 @@ python scripts/token_validator.py rules/ --threshold 10
 
 **Purpose:** Generate RULES_INDEX.md catalog from rule files
 
+**CLI Alternative:** `ai-rules index [OPTIONS]`
+
 **Usage:**
 ```bash
 python scripts/index_generator.py [OPTIONS]
@@ -1651,6 +1849,8 @@ python scripts/index_generator.py --verbose
 ### 6. keyword_generator.py
 
 **Purpose:** Generate semantically relevant keywords for rule files using TF-IDF and multi-signal extraction
+
+**CLI Alternative:** `ai-rules keywords PATH [OPTIONS]`
 
 **Usage:**
 ```bash

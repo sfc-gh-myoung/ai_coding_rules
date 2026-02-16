@@ -49,7 +49,7 @@ uv run prompt-eval api
 **Alternative:** If `prompt-eval` is not on your PATH, use the module invocation:
 
 ```bash
-uv run python -m tools.prompt_eval eval prompt.txt
+uv run python -m prompt_eval eval prompt.txt
 ```
 
 ## Usage
@@ -243,9 +243,9 @@ The root URL (`/`) also serves the evaluation form.
 ## Module Structure
 
 ```
-tools/prompt_eval/
+src/prompt_eval/
 ├── __init__.py          # Package exports, version
-├── __main__.py          # Entry: `python -m tools.prompt_eval`
+├── __main__.py          # Entry: `python -m prompt_eval`
 ├── cli.py               # Typer CLI (eval, models, api commands)
 ├── evaluator.py         # PromptEvaluator - scores across dimensions
 ├── rewriter.py          # PromptRewriter - generates improved prompts

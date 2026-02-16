@@ -4,14 +4,14 @@ import time
 from pathlib import Path
 from typing import Any
 
-from tools.agent_eval.cortex import CortexClient
-from tools.agent_eval.models import (
+from agent_eval.cortex import CortexClient
+from agent_eval.models import (
     DEFAULT_MAX_RETRIES,
     DEFAULT_RESPONSE_TRUNCATE_LENGTH,
     DEFAULT_TIMEOUT_SECONDS,
     State,
 )
-from tools.agent_eval.parsers import score_response
+from agent_eval.parsers import score_response
 
 
 class CortexEvaluator:

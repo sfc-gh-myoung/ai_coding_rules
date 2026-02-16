@@ -18,7 +18,7 @@ try:
 except ImportError:
     import tomli as tomllib  # ty: ignore[unresolved-import]
 
-from tools.agent_eval.models import (
+from agent_eval.models import (
     DEFAULT_MAX_RETRIES,
     DEFAULT_TIMEOUT_SECONDS,
     SUPPORTED_MODELS,

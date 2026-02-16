@@ -23,10 +23,10 @@ from rich.progress import (
 from rich.syntax import Syntax
 from rich.table import Table
 
-from tools.agent_eval import __app_name__, __version__
-from tools.agent_eval.cortex import list_available_models, verify_connection
-from tools.agent_eval.evaluator import CortexEvaluator
-from tools.agent_eval.models import (
+from agent_eval import __app_name__, __version__
+from agent_eval.cortex import list_available_models, verify_connection
+from agent_eval.evaluator import CortexEvaluator
+from agent_eval.models import (
     DEFAULT_MAX_RETRIES,
     DEFAULT_MODEL,
     DEFAULT_TIMEOUT_SECONDS,

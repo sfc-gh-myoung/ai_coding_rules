@@ -1,4 +1,4 @@
-"""Entry point for python -m tools.prompt_eval."""
+"""Entry point for python -m prompt_eval."""
 
 from .cli import app
 

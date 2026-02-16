@@ -8,6 +8,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **feat(cli):** add `ai-rules` CLI with 8 subcommands for rule management
+  - `validate` — Run schema validation on rule files
+  - `index` — Generate RULES_INDEX.md from rule files
+  - `keywords` — Extract and analyze keywords from rules
+  - `deploy` — Deploy rules and skills to target directories
+  - `tokens` — Validate and update TokenBudget metadata
+  - `new` — Create new rule files from templates
+  - `badges` — Generate and update README badges
+  - `refs` — Check and fix cross-references between rules
+  - Built with Typer and Rich for modern CLI experience
+  - Entry point: `ai-rules` (via pyproject.toml console_scripts)
+- **feat(build):** add Makefile as primary development automation entry point
+  - Replaces `./dev` bash wrapper with standard Make targets
+  - Targets: `make lint`, `make test`, `make validate`, `make help`, etc.
+  - Self-documenting help via `make help`
+- **feat(layout):** migrate `tools/` to `src/` layout for standard Python packaging
+  - `tools/agent_eval/` → `src/agent_eval/`
+  - `tools/prompt_eval/` → `src/prompt_eval/`
+  - New `src/ai_rules/` package for CLI implementation
+  - Follows PEP 621 src-layout conventions
+- **feat(tests):** add CLI test suite in `tests/cli/`
+  - Unit tests for all 8 CLI subcommands
+  - Integration tests for end-to-end CLI workflows
+  - Pytest fixtures for CLI runner isolation
 - `./dev` bash wrapper script replacing Taskfile.yml as the single entry point for all development commands
 - `scripts/clean.sh` for cache/venv/all cleanup operations
 - `scripts/validate.sh` for composite CI validation
@@ -69,6 +93,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Pod management for Kubernetes-style container grouping
 
 ### Changed
+- **refactor(layout):** migrate `tools/` directory to `src/` layout
+  - `tools/agent_eval/` → `src/agent_eval/`
+  - `tools/prompt_eval/` → `src/prompt_eval/`
+  - CLI code consolidated in `src/ai_rules/`
+  - Import paths updated throughout codebase
+- **refactor(build):** replace `./dev` bash wrapper with Makefile
+  - All `./dev <command>` invocations now use `make <target>`
+  - Makefile provides standard GNU Make interface
+  - Updated documentation references (CONTRIBUTING.md, PROJECT.md, README.md)
+- **feat(deps):** promote `typer` and `rich` from dev to runtime dependencies
+  - Required for `ai-rules` CLI functionality
+  - Moved from `[project.optional-dependencies]` to `[project.dependencies]` in pyproject.toml
 - **feat(rules):** add flat layout as default recommendation for Python project structure (203, 220)
   - New Layout Selection section in 203-python-project-setup.md with decision criteria (flat default, src/ for large projects)
   - Flat-layout CLI example added alongside existing src/ layout example in both 203 and 220
@@ -145,6 +181,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **chore(rules):** update TokenBudget in 203-python-project-setup.md (~3600 → ~4150) and 800-project-changelog.md (~3350 → ~3600)
 - **chore(pyproject):** clear default `exclude_skills` list in `[tool.rule_deployer]` (skills no longer excluded by default)
 - **chore(templates):** streamline AGENTS_NO_MODE.md.template header — remove redundant comparison to AGENTS.md and authorization note
+
+### Deprecated
+- **scripts/*.py** — Legacy Python scripts deprecated in favor of `ai-rules` CLI
+  - `scripts/schema_validator.py` → `ai-rules validate`
+  - `scripts/index_generator.py` → `ai-rules index`
+  - `scripts/keyword_generator.py` → `ai-rules keywords`
+  - `scripts/rule_deployer.py` → `ai-rules deploy`
+  - `scripts/token_validator.py` → `ai-rules tokens`
+  - `scripts/template_generator.py` → `ai-rules new`
+  - `scripts/badge_generator.py` → `ai-rules badges`
+  - `scripts/ref_checker.py` → `ai-rules refs`
+  - Scripts remain functional but will be removed in a future major version
 
 ### Removed
 - `Taskfile.yml` — all commands migrated to `./dev` wrapper using `uv`/`uvx`

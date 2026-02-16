@@ -6,6 +6,7 @@ import typer
 from rich.console import Console
 
 from ai_rules import __version__
+from ai_rules.commands.refs import refs
 
 console = Console()
 
@@ -14,6 +15,9 @@ app = typer.Typer(
     help="Unified CLI for AI coding rules management.",
     no_args_is_help=True,
 )
+
+# Register commands
+app.command()(refs)
 
 
 def version_callback(value: bool) -> None:

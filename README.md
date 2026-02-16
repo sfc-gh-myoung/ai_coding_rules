@@ -14,7 +14,7 @@
 
 **What:** Universal AI coding rule system working with any assistant/IDE  
 **Works with:** Cursor, Claude Code, GitHub Copilot, VS Code, ChatGPT, and more  
-**Deploy:** 2 commands (`git clone` + `./dev deploy`)  
+**Deploy:** 2 commands (`git clone` + `make deploy DEST=...`)  
 **Benefit:** production-ready rules, automatic discovery, zero vendor lock-in
 
 **Quick Checklist:**
@@ -94,14 +94,14 @@ This repository contains multiple documentation files for different audiences:
 |------|---------|--------------|
 | **README.md** | Project overview, setup, usage | Start here (you are here) |
 | **AGENTS.md** | Minimal bootstrap protocol for rule loading | AI agents: first action every response |
-| **AGENTS_NO_MODE.md** | Simplified bootstrap without PLAN/ACT workflow | AI agents: deployed via `./dev deploy:no-mode` from templates/ |
+| **AGENTS_NO_MODE.md** | Simplified bootstrap without PLAN/ACT workflow | AI agents: deployed via `make deploy-no-mode DEST=...` from templates/ |
 | **PROJECT.md** | Project-specific tooling and guidelines | AI agents: auto-loaded by supporting tools |
 | **rules/000-global-core.md** | Execution protocols (MODE, validation, workflows) | AI agents: after loading foundation |
 | **CONTRIBUTING.md** | Development guidelines, PR process | When contributing rules |
 | **docs/ARCHITECTURE.md** | System architecture, design decisions | When understanding internals or extending |
 | **docs/MEMORY_BANK.md** | Memory Bank system for long-running projects | When using Memory Bank (optional) |
 | **CHANGELOG.md** | Version history, changes | When checking updates |
-| **./dev** | Development command wrapper (replaces Taskfile.yml) | When running tasks |
+| **Makefile** | Development command targets (replaces ./dev) | When running tasks |
 
 ### Production-Ready Rules
 
@@ -135,10 +135,12 @@ git clone git@github.com:sfc-gh-myoung/ai_coding_rules.git
 ### Deploy rules to your project
 
 ```bash
-cd ai_coding_rules && python scripts/rule_deployer.py --dest ~/my-project
+cd ai_coding_rules
+uv sync --all-groups                     # Install dependencies
+make deploy DEST=~/my-project            # Deploy rules
 
-# Or use ./dev:
-cd ai_coding_rules && ./dev deploy DEST=~/my-project
+# Or use the CLI directly:
+uv run ai-rules deploy ~/my-project
 ```
 
 ### Use in your AI assistant
@@ -192,9 +194,10 @@ Learn how to use AI Coding Rules through practical demonstrations:
 **Basic Deployment (Rules + Skills):**
 
 ```bash
-python scripts/rule_deployer.py --dest ~/my-project
-# Or use ./dev:
-./dev deploy DEST=~/my-project
+make deploy DEST=~/my-project
+
+# Or use the CLI directly:
+uv run ai-rules deploy ~/my-project
 ```
 
 **What happens:**
@@ -222,9 +225,10 @@ exclude_skills = [
 **Deploy Skills Only (Agent Configuration Directories):**
 
 ```bash
-python scripts/rule_deployer.py --dest ~/.claude/skills --only-skills
-# Or use ./dev:
-./dev deploy:only-skills DEST=~/.claude/skills
+make deploy-only-skills DEST=~/.claude/skills
+
+# Or use the CLI directly:
+uv run ai-rules deploy ~/.claude/skills --only-skills
 ```
 
 **What happens:**
@@ -237,29 +241,31 @@ python scripts/rule_deployer.py --dest ~/.claude/skills --only-skills
 
 ```bash
 # Claude Code (Cursor/Windsurf)
-./dev deploy:only-skills DEST=~/.claude/skills
+make deploy-only-skills DEST=~/.claude/skills
 
 # Cortex Code
-./dev deploy:only-skills DEST=~/.snowflake/cortex/skills
+make deploy-only-skills DEST=~/.snowflake/cortex/skills
 
 # Custom project location
-./dev deploy:only-skills DEST=./my-project/.ai/skills
+make deploy-only-skills DEST=./my-project/.ai/skills
 ```
 
 **Deploy Rules Only (Skip Skills):**
 
 ```bash
-python scripts/rule_deployer.py --dest ~/my-project --skip-skills
-# Or use ./dev:
-./dev deploy:no-skills DEST=~/my-project
+make deploy-no-skills DEST=~/my-project
+
+# Or use the CLI directly:
+uv run ai-rules deploy ~/my-project --skip-skills
 ```
 
 **Preview Before Deploying:**
 
 ```bash
-python scripts/rule_deployer.py --dest ~/my-project --dry-run
-# Or use ./dev:
-./dev deploy:dry DEST=~/my-project
+make deploy-dry DEST=~/my-project
+
+# Or use the CLI directly:
+uv run ai-rules deploy ~/my-project --dry-run
 ```
 
 **What happens:**
@@ -280,16 +286,16 @@ Track rule updates via git submodule:
 git submodule add https://github.com/sfc-gh-myoung/ai_coding_rules.git .ai-rules
 
 cd .ai-rules
-
-./dev deploy DEST=..   # Deploy to parent project
+uv sync --all-groups
+make deploy DEST=..   # Deploy to parent project
 
 # Update rules later
-cd .ai-rules && git pull && ./dev deploy DEST=..
+cd .ai-rules && git pull && make deploy DEST=..
 ```
 
-### Option: Deployment Using Python Script Directly
+### Option: Deployment Using CLI Directly
 
-You can also use the Python deployment script directly:
+You can also use the `ai-rules` CLI directly:
 
 ```bash
 # Clone the rules repository (choose one)
@@ -302,8 +308,8 @@ cd /tmp/ai-rules
 # Install Python dependencies
 uv sync --all-groups
 
-# Deploy using Python script (handles everything automatically)
-uv run python scripts/rule_deployer.py --dest ~/my-project
+# Deploy using CLI (handles everything automatically)
+uv run ai-rules deploy ~/my-project
 
 # Verify deployment
 ls ~/my-project/rules/*.md | wc -l
@@ -654,7 +660,7 @@ exclude_skills = [
 To deploy only skills (useful for agent configuration directories):
 
 ```bash
-./dev deploy:only-skills DEST=~/.claude/skills
+make deploy-only-skills DEST=~/.claude/skills
 ```
 
 ## Contributing
@@ -675,6 +681,12 @@ For questions or discussions, file an issue on the repository.
 
 ```ascii
 ai_coding_rules/
+├── src/                    ← Python packages (CLI tools, evaluators)
+│   ├── ai_rules/               ← Unified CLI: ai-rules (8 subcommands)
+│   │   ├── cli.py                  ← Main CLI entry point
+│   │   └── commands/               ← Subcommands: validate, index, keywords, deploy, tokens, new, badges, refs
+│   ├── agent_eval/             ← AGENTS.md effectiveness evaluation CLI
+│   └── prompt_eval/            ← Prompt quality evaluation CLI
 ├── rules/                  ← Production-ready rules (126 total)
 │   └── examples/           ← Validated implementation examples (10 total)
 ├── AGENTS.md               ← Rule loading protocol for AI assistants
@@ -682,14 +694,7 @@ ai_coding_rules/
 ├── templates/              ← Source of truth for AGENTS.md variants
 │   ├── AGENTS_MODE.md.template       ← Full PLAN/ACT protocol
 │   └── AGENTS_NO_MODE.md.template    ← Simplified (no-mode) protocol
-├── scripts/                ← Validation and deployment tools
-│   ├── index_generator.py      ← Generate rules/RULES_INDEX.md
-│   ├── rule_deployer.py        ← Deploy rules to projects
-│   ├── schema_validator.py     ← Validate rule structure
-│   ├── template_generator.py   ← Create new rule templates
-│   ├── keyword_generator.py    ← Generate semantic keywords for rules
-│   ├── token_validator.py      ← Validate token budgets
-│   └── badge_updater.py        ← Update README badges
+├── scripts/                ← Legacy scripts (being migrated to src/ai_rules)
 ├── docs/                   ← Documentation (12 files)
 │   ├── ARCHITECTURE.md         ← System design decisions
 │   ├── MEMORY_BANK.md          ← Memory Bank system
@@ -698,112 +703,135 @@ ai_coding_rules/
 ├── tests/                  ← Test suite (98% coverage)
 ├── schemas/                ← YAML schemas for rule/example validation
 ├── prompts/                ← User prompt templates
-└── skills/                 ← Claude Agent Skills (6 total)
-    ├── rule-reviewer/          ← Review individual rules
-    ├── bulk-rule-reviewer/     ← Review all rules at once
-    ├── doc-reviewer/           ← Review documentation
-    ├── plan-reviewer/          ← Review LLM-generated plans
-    ├── rule-creator/           ← Create new rules (internal)
-    └── skill-timing/           ← Measure skill performance
-├── tools/                  ← Evaluation and testing tools
-│   ├── agent_eval/             ← AGENTS.md effectiveness evaluation ([README](tools/agent_eval/README.md))
-│   └── prompt_eval/            ← Prompt quality evaluation across 6 dimensions ([README](tools/prompt_eval/README.md))
+├── skills/                 ← Claude Agent Skills (6 total)
+│   ├── rule-reviewer/          ← Review individual rules
+│   ├── bulk-rule-reviewer/     ← Review all rules at once
+│   ├── doc-reviewer/           ← Review documentation
+│   ├── plan-reviewer/          ← Review LLM-generated plans
+│   ├── rule-creator/           ← Create new rules (internal)
+│   └── skill-timing/           ← Measure skill performance
+└── Makefile                ← Development commands (replaces ./dev)
 ```
 
 **Key Concepts:**
 
+- **src/** — Python packages for CLI tools (`ai-rules`, `agent-eval`, `prompt-eval`)
 - **rules/** — Production-ready rules (126 total), deploy directly (no generation needed)
 - **AGENTS.md** — AI discovery protocol in project root
-- **templates/** — Source of truth for AGENTS.md variants (used by `rule_deployer.py`)
+- **templates/** — Source of truth for AGENTS.md variants (used by `ai-rules deploy`)
 - **rules/RULES_INDEX.md** — Searchable catalog in project root
-- **scripts/** — Validation (`schema_validator.py`), deployment (`rule_deployer.py`)
-- **tools/** — Evaluation tools (`agent_eval` for AGENTS.md testing, `prompt_eval` for prompt quality scoring)
+- **Makefile** — Development targets (run `make help` for full list)
 
 **Workflows:**
 
 ```bash
 # For users: Deploy rules
-./dev deploy DEST=~/my-project
+make deploy DEST=~/my-project
 
 # For contributors: Edit and validate
 vim rules/200-python-core.md
-./dev rules:validate          # Validate changes
-./dev index:generate          # Update rules/RULES_INDEX.md
+make rules-validate           # Validate changes
+make index-generate           # Update rules/RULES_INDEX.md
 git add rules/ rules/RULES_INDEX.md && git commit -m "feat: update Python rules"
 ```
 
+## CLI Commands
+
+The `ai-rules` CLI provides 8 subcommands for rules management:
+
+```bash
+# Show help and all available commands
+uv run ai-rules --help
+```
+
+| Command | Description |
+|---------|-------------|
+| `ai-rules validate` | Validate rule files against v3.2 schema |
+| `ai-rules index` | Generate RULES_INDEX.md from rules/ metadata |
+| `ai-rules keywords` | Suggest/update keywords using TF-IDF analysis |
+| `ai-rules deploy` | Deploy rules and skills to target projects |
+| `ai-rules tokens` | Validate and update TokenBudget metadata |
+| `ai-rules new` | Generate new rule file from v3.2 template |
+| `ai-rules badges` | Update README badges (version, tests, coverage) |
+| `ai-rules refs` | Validate rule references in RULES_INDEX.md |
+
+**Additional CLIs:**
+
+| CLI | Description |
+|-----|-------------|
+| `uv run agent-eval` | Test AGENTS.md effectiveness with Cortex evaluation |
+| `uv run prompt-eval` | Evaluate and improve prompt quality (6 dimensions, 100-point scale) |
+
 ## Development Commands
 
-Run `./dev` to see the full categorized command list with quickstart guide.
+Run `make help` to see the full categorized command list.
 
 ```bash
 # Quickstart (most common commands)
-./dev quality:fix                       # Fix all code quality issues (alias: fix, qf)
-./dev test                              # Run all pytest tests (alias for test:all)
-./dev validate                          # Run all CI/CD checks (alias for validate:ci)
-./dev index:generate                    # Regenerate rules/RULES_INDEX.md
-./dev deploy DEST=~/my-project          # Deploy rules to project
+make quality-fix                        # Fix all code quality issues
+make test                               # Run all pytest tests
+make validate                           # Run all CI/CD checks
+make index-generate                     # Regenerate rules/RULES_INDEX.md
+make deploy DEST=~/my-project           # Deploy rules to project
 
 # Deployment
-./dev deploy DEST=~/my-project          # Deploy rules to project
-./dev deploy:dry DEST=~/my-project      # Preview deployment
-./dev deploy:verbose DEST=~/my-project  # Deploy with verbose output
-./dev deploy:no-skills DEST=~/my-project # Deploy rules only (skip skills)
-./dev deploy:no-mode DEST=~/my-project  # Deploy without PLAN/ACT workflow
-./dev deploy:only-skills DEST=~/.claude/skills # Deploy only skills (for agent configs)
+make deploy DEST=~/my-project           # Deploy rules to project
+make deploy-dry DEST=~/my-project       # Preview deployment
+make deploy-verbose DEST=~/my-project   # Deploy with verbose output
+make deploy-no-skills DEST=~/my-project # Deploy rules only (skip skills)
+make deploy-no-mode DEST=~/my-project   # Deploy without PLAN/ACT workflow
+make deploy-only-skills DEST=~/.claude/skills # Deploy only skills
 
-# Split Deployment (separate directories for agents, rules, skills)
-./dev deploy:split AGENTS=~/.claude                                     # AGENTS-only (rules/skills ref CWD)
-./dev deploy:split AGENTS=~/.claude RULES=~/.claude/rules               # Deploy agents + rules
-./dev deploy:split AGENTS=~/.claude RULES=~/.claude/rules SKILLS=~/.claude/skills  # With skills
-./dev deploy:split:dry AGENTS=~/.claude                                 # Preview split deployment
+# Split Deployment (separate directories)
+make deploy-split AGENTS=~/.claude                                    # AGENTS-only
+make deploy-split AGENTS=~/.claude RULES=~/.claude/rules              # Agents + rules
+make deploy-split AGENTS=~/.claude RULES=~/.claude/rules SKILLS=~/.claude/skills
 
 # Rule Management
-./dev rule:new FILENAME=100-example     # Create new rule from template
-./dev rules:validate                    # Validate all rules against schema
-./dev rules:validate:verbose            # Validate with detailed errors
+make rule-new FILENAME=100-example      # Create new rule from template
+make rules-validate                     # Validate all rules against schema
+make rules-validate-verbose             # Validate with detailed errors
 
 # Index Management
-./dev index:generate                    # Generate rules/RULES_INDEX.md
-./dev index:check                       # Check if index is current
+make index-generate                     # Generate rules/RULES_INDEX.md
+make index-check                        # Check if index is current
 
 # Token Management
-./dev tokens:update                     # Update token budgets in all rules
-./dev tokens:check                      # Check token budget accuracy (all files)
-./dev tokens:update:file FILE=...       # Update single file token budget
-./dev tokens:check:file FILE=...        # Check single file token budget
+make tokens-update                      # Update token budgets in all rules
+make tokens-check                       # Check token budget accuracy
+make tokens-update-file FILE=...        # Update single file token budget
 
 # Keyword Generation
-./dev keywords:suggest FILE=...         # Suggest keywords for a rule
-./dev keywords:update FILE=...          # Update keywords in-place
-./dev keywords:all                      # Suggest keywords for all rules
+make keywords-suggest FILE=...          # Suggest keywords for a rule
+make keywords-update FILE=...           # Update keywords in-place
+make keywords-all                       # Suggest keywords for all rules
 
 # Quality & Testing
-./dev quality:check                     # Run all quality checks
-./dev quality:fix                       # Fix all quality issues (alias: fix, qf)
-./dev quality:lint                      # Run ruff linter (check only)
-./dev quality:format                    # Run ruff formatter (check only)
-./dev quality:typecheck                 # Run ty type checker (aliases: type, type-check)
-./dev quality:markdown                  # Run pymarkdownlnt Markdown linter
-./dev test                              # Run all pytest tests (alias for test:all)
-./dev test:coverage                     # Run tests with coverage report
+make quality-check                      # Run all quality checks
+make quality-fix                        # Fix all quality issues
+make lint                               # Run ruff linter (check only)
+make format                             # Run ruff formatter (check only)
+make typecheck                          # Run ty type checker
+make markdown                           # Run pymarkdownlnt Markdown linter
+make test                               # Run all pytest tests
+make test-coverage                      # Run tests with coverage report
 
 # Validation & CI
-./dev validate                          # Run all CI/CD checks (alias for validate:ci)
-./dev preflight                         # Verify environment is ready
+make validate                           # Run all CI/CD checks
+make preflight                          # Verify environment is ready
 
 # Environment
-./dev env:python                        # Pin Python 3.11 and create venv
-./dev env:sync                          # Sync dev dependencies (fast)
-./dev env:deps                          # Lock and sync dependencies
+make env-python                         # Pin Python 3.11 and create venv
+make env-sync                           # Sync dev dependencies (fast)
+make env-deps                           # Lock and sync dependencies
 
 # Cleanup
-./dev clean:cache                       # Remove Python cache files
-./dev clean:venv                        # Remove virtual environment
-./dev clean:all                         # Remove all generated files
+make clean-cache                        # Remove Python cache files
+make clean-venv                         # Remove virtual environment
+make clean                              # Remove all generated files
 
 # Status
-./dev status                            # Show project status summary
+make status                             # Show project status summary
 ```
 
 ## Rule Categories
@@ -1017,9 +1045,9 @@ python --version
 2. **Install Dependencies**
 
 ```bash
-./dev env:deps
+make env-sync
 # OR directly:
-uv sync
+uv sync --all-groups
 ```
 
 3. **Check for Errors**
@@ -1027,18 +1055,18 @@ uv sync
    - Review terminal output for error messages
    - Look for permission issues or missing dependencies
 
-4. **Try Direct Script**
+4. **Try Direct CLI**
 
 ```bash
 # For deployment
-uv run scripts/rule_deployer.py --dest ~/my-project
+uv run ai-rules deploy ~/my-project
 ```
 
 5. **Verify Project Structure**
 
 ```bash
 # Check required files exist
-ls scripts/rule_deployer.py scripts/schema_validator.py dev rules/
+ls src/ai_rules/cli.py Makefile rules/
 ```
 
 ### Python Version Conflicts
@@ -1058,15 +1086,15 @@ python3 --version
 2. **Use uv to Pin Version**
 
 ```bash
-./dev env:python
+make env-python
 # Creates .python-version file pinning to 3.11
 ```
 
 3. **Clean and Reinstall**
 
 ```bash
-./dev clean:venv   # Remove virtual environment
-./dev env:deps     # Reinstall dependencies
+make clean-venv    # Remove virtual environment
+make env-sync      # Reinstall dependencies
 ```
 
 4. **Manual venv Setup (fallback)**
@@ -1157,10 +1185,10 @@ touch test.txt && rm test.txt
 2. **Use Custom Destination**
 ```bash
 # Deploy to home directory
-./dev deploy DEST=~/ai-coding-rules-output
+make deploy DEST=~/ai-coding-rules-output
 
 # Or use absolute path
-./dev deploy DEST=/tmp/rules-output
+make deploy DEST=/tmp/rules-output
 ```
 
 3. **Fix Repository Permissions**
@@ -1183,14 +1211,14 @@ Most of the LLMs and agentic tools will generally do a good job of following the
 
 **Get Help:**
 - **Check Issues:** [GitHub Issues](https://github.com/sfc-gh-myoung/ai_coding_rules/issues)
-- **Review Validation:** Run `./dev rules:validate` to check rule structure
-- **Enable Debug Mode:** `./dev deploy:verbose DEST=~/path` for detailed output
+- **Review Validation:** Run `make rules-validate` to check rule structure
+- **Enable Debug Mode:** `make deploy-verbose DEST=~/path` for detailed output
 - **Check Logs:** Review terminal output for specific error messages
 
 **Common Fixes:**
 - Update uv: `curl -LsSf https://astral.sh/uv/install.sh | sh`
 - Clear cache: `rm -rf .venv __pycache__`
-- Reinstall dependencies: `./dev clean:venv && ./dev env:sync`
+- Reinstall dependencies: `make clean-venv && make env-sync`
 
 ## License
 
@@ -1220,20 +1248,21 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 
 ### Common Commands
 
-**With ./dev wrapper:**
+**With make:**
 ```bash
 # Deploy/update rules
 git clone https://github.com/sfc-gh-myoung/ai_coding_rules.git /tmp/ai-rules
 cd /tmp/ai-rules
-./dev deploy DEST=~/my-project
+uv sync --all-groups
+make deploy DEST=~/my-project
 ```
 
-**With Python script directly:**
+**With ai-rules CLI directly:**
 ```bash
-# Deploy/update rules using Python script
+# Deploy/update rules using CLI
 cd /tmp/ai-rules
 uv sync --all-groups
-uv run python scripts/rule_deployer.py --dest ~/my-project
+uv run ai-rules deploy ~/my-project
 ```
 
 **General:**

@@ -363,7 +363,7 @@ def api(
         import uvicorn
 
         uvicorn.run(
-            "tools.prompt_eval.api:app",
+            "prompt_eval.api:app",
             host=host,
             port=port,
             reload=reload,

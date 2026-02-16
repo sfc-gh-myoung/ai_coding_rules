@@ -198,7 +198,7 @@ class CortexClient:
             List of model names.
         """
         # Import here to avoid circular dependency
-        from tools.prompt_eval.models import SUPPORTED_MODELS
+        from prompt_eval.models import SUPPORTED_MODELS
 
         return SUPPORTED_MODELS
 

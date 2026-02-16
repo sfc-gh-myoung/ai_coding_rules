@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["tools"]
+packages = ["src/agent_eval", "src/prompt_eval"]
 
 [project]
 name = "ai_coding_rules"
@@ -67,8 +67,8 @@ dev = [
 ]
 
 [project.scripts]
-agent-eval = "tools.agent_eval.cli:app"
-prompt-eval = "tools.prompt_eval.cli:app"
+agent-eval = "agent_eval.cli:app"
+prompt-eval = "prompt_eval.cli:app"
 
 [project.urls]
 Homepage = "https://github.com/sfc-gh-myoung/ai_coding_rules"
@@ -128,7 +128,7 @@ addopts = [
 ]
 
 [tool.coverage.run]
-source = ["scripts", "tools"]
+source = ["scripts", "src/agent_eval", "src/prompt_eval"]
 omit = [
     "tests/*",
     ".venv/*",

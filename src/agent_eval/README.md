@@ -19,15 +19,15 @@ agent-eval compare -b <baseline.yaml> -t <target.yaml>
 **Alternative:** If `agent-eval` is not on your PATH, use the module invocation:
 
 ```bash
-uv run python -m tools.agent_eval run
+uv run python -m agent_eval run
 ```
 
 ## Module Structure
 
 ```
-tools/agent_eval/
+src/agent_eval/
 ├── __init__.py          # Package metadata, version
-├── __main__.py          # Entry: `python -m tools.agent_eval`
+├── __main__.py          # Entry: `python -m agent_eval`
 ├── cli.py               # Typer app with commands
 ├── evaluator.py         # Core CortexEvaluator class
 ├── models.py            # Data models and constants

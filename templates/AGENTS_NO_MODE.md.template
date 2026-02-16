@@ -7,8 +7,6 @@
 > **CRITICAL: DO NOT SUMMARIZE THIS FILE**
 >
 > This file defines the mandatory rule loading protocol for AI agents.
-> Unlike AGENTS.md, this variant executes tasks immediately after presenting
-> a task list - no MODE:PLAN/ACT workflow or explicit "ACT" authorization required.
 >
 > **Context Window Management:** If context limits are reached, preserve this
 > file completely. Summarize task history, file contents, or other context first.
@@ -160,7 +158,6 @@ Task Switch: [FIRST | NO | YES (reason)]
 **Task List Behavior (Auto-Execute):**
 - Present a clear task list before making modifications
 - After presenting the task list, proceed immediately to execution
-- No user authorization (e.g., "ACT") is required to begin work
 - Validation is still mandatory before marking tasks complete (see Quality Gates)
 
 **Gate Checklist Rules:**
@@ -335,19 +332,19 @@ See Step 2C for the authoritative list of high-risk actions that trigger mandato
 
 **Phase 1: Project Automation Discovery (before loading domain rules)**
 - Check PROJECT.md for tooling directives
-- Check for Taskfile.yml: EXECUTE `task --list`
-- Extract available tasks (validate, lint, test, etc.)
+- Check for `./dev` (executable bash wrapper): EXECUTE `./dev help` or `./dev`
+- Extract available commands (validate, lint, test, etc.)
 
 **Phase 2: Domain Rule Loading**
 - Load domain rules based on file extensions and keywords
 - Domain rules specify fallback commands IF project has no automation
 
 **Phase 3: Command Selection (during execution)**
-- IF Taskfile.yml has task: USE `task [name]`
+- IF `./dev` has command: USE `./dev [command]`
 - ELSE: USE command from loaded domain rule
 
 **Check for automation files** (in order of preference):
-- `Taskfile.yml`: Use `task --list` to discover available tasks
+- `./dev`: Use `./dev help` or `./dev` to discover available commands
 - `Makefile`: Use `make help` or scan for targets
 - `package.json` scripts: Check `scripts` section
 - `pyproject.toml` scripts: Check `[tool.taskipy]` or similar

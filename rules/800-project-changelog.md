@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-20
 **LoadTrigger:** kw:changelog, file:CHANGELOG.md
 **Keywords:** CHANGELOG, changelog format, semantic versioning, release notes, conventional commits, Unreleased section, scope patterns, project governance, git workflow, version control
-**TokenBudget:** ~3350
+**TokenBudget:** ~3600
 **ContextTier:** Medium
 **Depends:** 000-global-core.md
 

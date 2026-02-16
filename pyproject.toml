@@ -154,7 +154,4 @@ exclude_lines = [
 [tool.rule_deployer]
 # Skills to exclude from deployment (internal use only)
 exclude_skills = [
-    "rule-creator/",
-    "rule-reviewer/",
-    "bulk-rule-reviewer/",
 ]

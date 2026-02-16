@@ -481,19 +481,19 @@ See Step 2C for the authoritative list of high-risk actions that trigger mandato
 
 **Phase 1: Project Automation Discovery (before loading domain rules)**
 - Check PROJECT.md for tooling directives
-- Check for Taskfile.yml: EXECUTE `task --list`
-- Extract available tasks (validate, lint, test, etc.)
+- Check for `./dev` script: EXECUTE `./dev help` (or `./dev` which shows help by default)
+- Extract available commands (validate, lint, test, etc.)
 
 **Phase 2: Domain Rule Loading**
 - Load domain rules based on file extensions and keywords
 - Domain rules specify fallback commands IF project has no automation
 
 **Phase 3: Command Selection (during ACT execution)**
-- IF Taskfile.yml has task: USE `task [name]`
+- IF `./dev` has command: USE `./dev [command]`
 - ELSE: USE command from loaded domain rule
 
 **Check for automation files** (in order of preference):
-- `Taskfile.yml`: Use `task --list` to discover available tasks
+- `./dev`: Executable bash wrapper; use `./dev help` to discover available commands
 - `Makefile`: Use `make help` or scan for targets
 - `package.json` scripts: Check `scripts` section
 - `pyproject.toml` scripts: Check `[tool.taskipy]` or similar

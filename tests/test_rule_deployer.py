@@ -545,26 +545,27 @@ class TestValidateSplitDestinations:
         assert errors == []
 
     @pytest.mark.unit
-    def test_dependency_errors_skip_directory_check(self, tmp_path: Path) -> None:
-        """Test dependency errors bail before prompting about directories."""
-        agents = tmp_path / "agents"  # Does not exist
+    def test_agents_only_is_valid(self, tmp_path: Path) -> None:
+        """Test --agents-dest without --rules-dest is now valid (AGENTS-only mode)."""
+        agents = tmp_path / "agents"
+        agents.mkdir()
 
-        # --agents-dest without --rules-dest should fail on dependency, not prompt
         is_valid, errors = dr.validate_split_destinations(agents, None, None)
 
-        assert is_valid is False
-        assert any("requires --rules-dest" in e for e in errors)
-        assert not agents.exists()
+        assert is_valid is True
+        assert errors == []
 
     @pytest.mark.unit
     def test_force_does_not_affect_dependency_validation(self, tmp_path: Path) -> None:
         """Test --force doesn't bypass dependency validation rules."""
-        agents = tmp_path / "agents"
+        skills = tmp_path / "skills"
+        skills.mkdir()
 
-        is_valid, errors = dr.validate_split_destinations(agents, None, None, force=True)
+        # --skills-dest without --agents-dest should fail even with force
+        is_valid, errors = dr.validate_split_destinations(None, None, skills, force=True)
 
         assert is_valid is False
-        assert any("requires --rules-dest" in e for e in errors)
+        assert any("requires --agents-dest" in e for e in errors)
 
 
 class TestValidateSourceStructureExtended:
@@ -1391,6 +1392,141 @@ class TestMainFunctionAndCLI:
         assert not (dest / "rules").exists()
         captured = capsys.readouterr()
         assert "SKILLS-ONLY DEPLOYMENT SUMMARY" in captured.out
+
+
+class TestSubstituteTemplateAgentsOnly:
+    """Tests for substitute_template when rules/skills paths are None (AGENTS-only mode)."""
+
+    @pytest.mark.unit
+    def test_substitute_template_none_rules_uses_cwd(self, tmp_path: Path) -> None:
+        """When paths.rules is None, {{rules_path}} is replaced with CWD/rules."""
+        paths = dr.DeploymentPaths(agents=tmp_path / "agents", rules=None, skills=None)
+        template = "Load rules from: {{rules_path}}/RULES_INDEX.md"
+
+        result = dr.substitute_template(template, paths)
+
+        expected_rules = str(Path.cwd() / "rules")
+        assert expected_rules in result
+        assert "{{rules_path}}" not in result
+
+    @pytest.mark.unit
+    def test_substitute_template_none_skills_uses_cwd(self, tmp_path: Path) -> None:
+        """When paths.skills is None, {{skills_path}} is replaced with CWD/skills."""
+        paths = dr.DeploymentPaths(agents=tmp_path / "agents", rules=None, skills=None)
+        template = "Skills at: {{skills_path}}/my-skill/SKILL.md"
+
+        result = dr.substitute_template(template, paths)
+
+        expected_skills = str(Path.cwd() / "skills")
+        assert expected_skills in result
+        assert "{{skills_path}}" not in result
+
+    @pytest.mark.unit
+    def test_substitute_template_both_none_replaces_both(self, tmp_path: Path) -> None:
+        """Both placeholders replaced with CWD-based paths when both are None."""
+        paths = dr.DeploymentPaths(agents=tmp_path / "agents", rules=None, skills=None)
+        template = "Rules: {{rules_path}}/index\nSkills: {{skills_path}}/tool"
+
+        result = dr.substitute_template(template, paths)
+
+        assert str(Path.cwd() / "rules") + "/index" in result
+        assert str(Path.cwd() / "skills") + "/tool" in result
+        assert "{{rules_path}}" not in result
+        assert "{{skills_path}}" not in result
+
+    @pytest.mark.unit
+    def test_substitute_template_with_explicit_paths_ignores_cwd(self, tmp_path: Path) -> None:
+        """When paths.rules and paths.skills are set, CWD is not used."""
+        rules_dest = tmp_path / "my-rules"
+        skills_dest = tmp_path / "my-skills"
+        paths = dr.DeploymentPaths(agents=tmp_path / "agents", rules=rules_dest, skills=skills_dest)
+        template = "Rules: {{rules_path}}/index\nSkills: {{skills_path}}/tool"
+
+        result = dr.substitute_template(template, paths)
+
+        assert f"{rules_dest}/index" in result
+        assert f"{skills_dest}/tool" in result
+        assert str(Path.cwd()) not in result
+
+
+class TestAgentsOnlySplitDeployment:
+    """Integration tests for AGENTS-only split deployment mode."""
+
+    @pytest.mark.integration
+    def test_agents_only_deploys_only_agents_md(
+        self, mock_project_root: Path, tmp_path: Path
+    ) -> None:
+        """AGENTS-only mode deploys AGENTS.md but no rules, skills, or RULES_INDEX.md."""
+        agents_dest = tmp_path / "agents_out"
+        agents_dest.mkdir()
+
+        paths = dr.DeploymentPaths(agents=agents_dest, rules=None, skills=None)
+
+        files_copied, files_failed = dr.copy_root_files(
+            mock_project_root, agents_dest, dry_run=False, verbose=False, paths=paths
+        )
+
+        # AGENTS.md should be deployed
+        assert (agents_dest / "AGENTS.md").exists()
+        assert files_copied == 1
+        assert files_failed == 0
+
+        # RULES_INDEX.md should NOT be deployed anywhere
+        assert not (agents_dest / "rules").exists()
+        assert not (agents_dest / "RULES_INDEX.md").exists()
+
+    @pytest.mark.integration
+    def test_agents_only_dry_run_copies_nothing(
+        self, mock_project_root: Path, tmp_path: Path
+    ) -> None:
+        """AGENTS-only dry run reports what would happen without writing files."""
+        agents_dest = tmp_path / "agents_out"
+        agents_dest.mkdir()
+
+        paths = dr.DeploymentPaths(agents=agents_dest, rules=None, skills=None)
+
+        files_copied, files_failed = dr.copy_root_files(
+            mock_project_root, agents_dest, dry_run=True, verbose=False, paths=paths
+        )
+
+        assert files_copied == 1
+        assert files_failed == 0
+        # Dry run should not create AGENTS.md
+        assert not (agents_dest / "AGENTS.md").exists()
+
+    @pytest.mark.unit
+    def test_validate_split_destinations_skills_without_agents_fails(self, tmp_path: Path) -> None:
+        """--skills-dest without --agents-dest should still be an error."""
+        skills = tmp_path / "skills"
+        skills.mkdir()
+
+        is_valid, errors = dr.validate_split_destinations(None, None, skills)
+
+        assert is_valid is False
+        assert any("requires --agents-dest" in e for e in errors)
+
+    @pytest.mark.integration
+    def test_agents_only_summary_shows_cwd_references(
+        self, mock_project_root: Path, tmp_path: Path, capsys
+    ) -> None:
+        """Summary output shows CWD reference lines when rules/skills are None."""
+        agents_dest = tmp_path / "agents_out"
+        agents_dest.mkdir()
+
+        with patch("scripts.rule_deployer.Path") as mock_path:
+            mock_path(__file__).resolve.return_value.parent.parent = mock_project_root
+            # Need Path.cwd() to work for CWD reference in summary
+            mock_path.cwd.return_value = Path.cwd()
+            # Need real Path for everything else
+            mock_path.side_effect = Path
+
+            success = dr.deploy_rules(agents_dest=agents_dest, dry_run=False, verbose=False)
+
+        assert success is True
+        captured = capsys.readouterr()
+        assert "RULES (ref):" in captured.out
+        assert "not copied, CWD reference" in captured.out
+        assert "SKILLS (ref):" in captured.out
 
 
 # Run tests with: pytest tests/test_rule_deployer.py -v

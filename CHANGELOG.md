@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- `./dev` bash wrapper script replacing Taskfile.yml as the single entry point for all development commands
+- `scripts/clean.sh` for cache/venv/all cleanup operations
+- `scripts/validate.sh` for composite CI validation
+- `scripts/status.sh` for project status summary
+- AGENTS-only split deploy mode — `deploy:split` now works with `--agents-dest` alone (no `--rules-dest` required)
+- Template fallback in `rule_deployer.py` — if `AGENTS.md` source is missing, auto-generates from template
 - **feat(skills):** add parallel sub-agent execution to bulk-rule-reviewer skill
   - New `workflows/parallel-execution.md` for parallel orchestration strategy
   - New `workflows/subagent-prompt-template.md` with complete sub-agent prompts
@@ -130,8 +136,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **refactor(rules):** rename 350-docker-best-practices.md to 350-docker-core.md (v3.0.0 → v3.1.0)
   - Aligns naming convention with other domain core rules (*-core.md pattern)
   - No content changes, filename and title only
+- **refactor(docs):** replace all `task` / `Taskfile.yml` references with `./dev` wrapper across documentation
+  - Updated CONTRIBUTING.md, PROJECT.md, README.md, docs/ARCHITECTURE.md
+  - Templates (`AGENTS_MODE.md.template`, `AGENTS_NO_MODE.md.template`) now reference `./dev` for automation discovery
+  - README.md removes Task badge and prerequisite; `./dev` listed as documentation entry point
+- **refactor(deploy):** `rule_deployer.py` now uses CWD-based absolute paths for rules/skills when not deployed in split mode
+- **refactor(deploy):** remove `--agents-dest requires --rules-dest` validation constraint, enabling AGENTS-only deployments
+- **chore(rules):** update TokenBudget in 203-python-project-setup.md (~3600 → ~4150) and 800-project-changelog.md (~3350 → ~3600)
+- **chore(pyproject):** clear default `exclude_skills` list in `[tool.rule_deployer]` (skills no longer excluded by default)
+- **chore(templates):** streamline AGENTS_NO_MODE.md.template header — remove redundant comparison to AGENTS.md and authorization note
 
 ### Removed
+- `Taskfile.yml` — all commands migrated to `./dev` wrapper using `uv`/`uvx`
+- `AGENTS.md` and `AGENTS_NO_MODE.md` — now generated from templates at deploy time; source `.gitignore`d
+- `scripts/template_sync.py` — no longer needed since AGENTS.md is generated from templates, not synced from source
 - **docs(migration):** remove deprecated migration documentation
   - Deleted `docs/MIGRATION.md` (v2.x → v3.0 migration guide)
   - Deleted `docs/MIGRATION_SCHEMA_v3.1_to_v3.2.md` (schema migration guide)
@@ -141,6 +159,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **test(validation):** add ExampleValidator test suite to test_schema_validator.py
   - ~1005 lines covering ExampleValidator class (compliant content, missing sections, context validation, batch validation)
   - Improves test coverage from 93% to 99%
+- **test(deploy):** update test_deployment.py and test_rule_deployer.py for `./dev` migration
+  - Tests now reference `./dev` wrapper instead of `Taskfile.yml`
+  - Added tests for AGENTS-only split deployment and template fallback in deployer
 
 ## [3.5.3] - 2026-02-03
 

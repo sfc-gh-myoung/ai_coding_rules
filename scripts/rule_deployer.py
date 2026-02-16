@@ -84,8 +84,14 @@ def substitute_template(template_content: str, paths: DeploymentPaths) -> str:
     result = template_content
     if paths.rules:
         result = result.replace("{{rules_path}}", str(paths.rules))
+    else:
+        # AGENTS-only mode: use CWD-based absolute path as reference
+        result = result.replace("{{rules_path}}", str(Path.cwd() / "rules"))
     if paths.skills:
         result = result.replace("{{skills_path}}", str(paths.skills))
+    else:
+        # AGENTS-only mode: use CWD-based absolute path as reference
+        result = result.replace("{{skills_path}}", str(Path.cwd() / "skills"))
     return result
 
 
@@ -118,7 +124,7 @@ def _prompt_create_directory(path: Path, flag_name: str) -> bool:
     """
     try:
         response = input(f"{flag_name} directory does not exist: {path}\nCreate it? [Y/n] ")
-    except EOFError:
+    except (EOFError, OSError):
         # Non-interactive environment, treat as decline
         return False
     if response.strip().lower() in ("", "y", "yes"):
@@ -147,10 +153,6 @@ def validate_split_destinations(
         Tuple of (is_valid, error_messages)
     """
     errors = []
-
-    # Rule: --agents-dest requires --rules-dest (AGENTS.md references rules)
-    if agents_dest and not rules_dest:
-        errors.append("--agents-dest requires --rules-dest (AGENTS.md references rules paths)")
 
     # Rule: --skills-dest requires --agents-dest (if skills are referenced)
     if skills_dest and not agents_dest:
@@ -246,7 +248,13 @@ def validate_source_structure(
                 errors.append(f"No .md files found in source rules directory: {rules_dir}")
 
         if not agents_md.exists():
-            errors.append(f"{agents_md_name} not found in project root: {agents_md}")
+            # Fall back to template file
+            template_name = "AGENTS_NO_MODE.md.template" if no_mode else "AGENTS_MODE.md.template"
+            template_path = project_root / "templates" / template_name
+            if not template_path.exists():
+                errors.append(
+                    f"{agents_md_name} not found in project root or templates/: {agents_md}"
+                )
 
         if not rules_index_md.exists():
             errors.append(f"rules/RULES_INDEX.md not found: {rules_index_md}")
@@ -370,9 +378,25 @@ def copy_root_files(
                     f"[DRY RUN] Would generate: AGENTS.md (from template) → {dest_file}", verbose
                 )
         else:
-            # Unified mode: direct copy
+            # Unified mode: direct copy or template fallback
             source_file = project_root / source_name
-            if not dry_run:
+            template_content_fallback = (
+                load_template(project_root, no_mode=no_mode) if not source_file.exists() else None
+            )
+            if template_content_fallback:
+                # Source file missing, use template (strip header comment)
+                lines = template_content_fallback.split("\n")
+                if lines and lines[0].startswith("<!-- Template:"):
+                    template_content_fallback = "\n".join(lines[2:])
+                if not dry_run:
+                    dest_file.write_text(template_content_fallback)
+                    log_info(f"Generated: AGENTS.md (from template) → {dest_file}", verbose)
+                else:
+                    log_info(
+                        f"[DRY RUN] Would generate: AGENTS.md (from template) → {dest_file}",
+                        verbose,
+                    )
+            elif not dry_run:
                 shutil.copy2(source_file, dest_file)
                 log_info(f"Copied: {source_name} → {dest_file}", verbose)
             else:
@@ -385,42 +409,47 @@ def copy_root_files(
     # Copy rules/RULES_INDEX.md to destination rules/
     # In split mode, rules_dest is used instead of dest_dir/rules
     # and path prefixes are substituted to match deployed locations
-    try:
-        source_file = project_root / "rules" / "RULES_INDEX.md"
-        dest_rules_dir = paths.rules if paths and paths.rules else dest_dir / "rules"
-        dest_file = dest_rules_dir / "RULES_INDEX.md"
+    # Skip entirely when in split mode and rules path is None (AGENTS-only)
+    if paths and paths.rules is None:
+        # AGENTS-only split mode: no rules copied, skip RULES_INDEX.md
+        pass
+    else:
+        try:
+            source_file = project_root / "rules" / "RULES_INDEX.md"
+            dest_rules_dir = paths.rules if paths and paths.rules else dest_dir / "rules"
+            dest_file = dest_rules_dir / "RULES_INDEX.md"
 
-        if paths and paths.rules:
-            # Split mode: substitute rules/ and skills/ path prefixes
-            content = source_file.read_text()
-            content = content.replace("rules/", str(paths.rules) + "/")
-            if paths.skills:
-                content = content.replace("skills/", str(paths.skills) + "/")
+            if paths and paths.rules:
+                # Split mode: substitute rules/ and skills/ path prefixes
+                content = source_file.read_text()
+                content = content.replace("rules/", str(paths.rules) + "/")
+                if paths.skills:
+                    content = content.replace("skills/", str(paths.skills) + "/")
 
-            if not dry_run:
-                dest_rules_dir.mkdir(parents=True, exist_ok=True)
-                dest_file.write_text(content)
-                log_info(
-                    f"Generated: RULES_INDEX.md (with path substitution) → {dest_file}",
-                    verbose,
-                )
+                if not dry_run:
+                    dest_rules_dir.mkdir(parents=True, exist_ok=True)
+                    dest_file.write_text(content)
+                    log_info(
+                        f"Generated: RULES_INDEX.md (with path substitution) → {dest_file}",
+                        verbose,
+                    )
+                else:
+                    log_info(
+                        f"[DRY RUN] Would generate: RULES_INDEX.md (with path substitution) → {dest_file}",
+                        verbose,
+                    )
             else:
-                log_info(
-                    f"[DRY RUN] Would generate: RULES_INDEX.md (with path substitution) → {dest_file}",
-                    verbose,
-                )
-        else:
-            # Unified mode: direct copy
-            if not dry_run:
-                dest_rules_dir.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(source_file, dest_file)
-                log_info(f"Copied: rules/RULES_INDEX.md → {dest_file}", verbose)
-            else:
-                log_info(f"[DRY RUN] Would copy: rules/RULES_INDEX.md → {dest_file}", verbose)
-        files_copied += 1
-    except Exception as e:
-        log_error(f"Failed to copy rules/RULES_INDEX.md: {e}")
-        files_failed += 1
+                # Unified mode: direct copy
+                if not dry_run:
+                    dest_rules_dir.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(source_file, dest_file)
+                    log_info(f"Copied: rules/RULES_INDEX.md → {dest_file}", verbose)
+                else:
+                    log_info(f"[DRY RUN] Would copy: rules/RULES_INDEX.md → {dest_file}", verbose)
+            files_copied += 1
+        except Exception as e:
+            log_error(f"Failed to copy rules/RULES_INDEX.md: {e}")
+            files_failed += 1
 
     return (files_copied, files_failed)
 
@@ -758,8 +787,12 @@ def deploy_rules(
             print(f"AGENTS:            {paths.agents}/AGENTS.md")
         if paths.rules:
             print(f"RULES:             {paths.rules}/")
+        else:
+            print(f"RULES (ref):       {Path.cwd()}/rules (not copied, CWD reference)")
         if paths.skills:
             print(f"SKILLS:            {paths.skills}/")
+        else:
+            print(f"SKILLS (ref):      {Path.cwd()}/skills (not copied, CWD reference)")
     else:
         print(f"DEST:              {dest}")
         print(f"  AGENTS:          {dest}/AGENTS.md")

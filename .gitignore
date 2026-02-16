@@ -212,3 +212,6 @@ reviews/*
 
 # Lock files
 uv.lock
+
+# AGENTS.md should be generated
+AGENTS.md

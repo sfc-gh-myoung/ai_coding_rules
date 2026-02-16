@@ -6,7 +6,6 @@
 ![Tests](https://img.shields.io/badge/tests-100%25%20passing-brightgreen)
 ![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Task](https://img.shields.io/badge/Task-Taskfile-brightgreen)](https://taskfile.dev)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/sfc-gh-myoung/ai_coding_rules)
 
 > **One universal ai coding rule set for all AI assistants, IDEs, and agents — portable, intelligent, and IDE-agnostic**
@@ -15,7 +14,7 @@
 
 **What:** Universal AI coding rule system working with any assistant/IDE  
 **Works with:** Cursor, Claude Code, GitHub Copilot, VS Code, ChatGPT, and more  
-**Deploy:** 2 commands (`git clone` + `task deploy`)  
+**Deploy:** 2 commands (`git clone` + `./dev deploy`)  
 **Benefit:** production-ready rules, automatic discovery, zero vendor lock-in
 
 **Quick Checklist:**
@@ -30,7 +29,7 @@ This repository provides a **universal ai coding rule system** designed to work 
 
 **What you get:** A comprehensive collection of production-ready engineering rules covering Python, SQL, Snowflake, Go, Docker, Shell scripting, React, HTMX, Alpine.js, data engineering, analytics, and project governance. The rules work seamlessly with AI coding assistants including Cursor, Claude Code, GitHub Copilot, Visual Studio Code, and others.
 
-**Important:** Some aspects of the rules are opinionated, particularly regarding naming conventions, project structure, usage of uv/uvx/ruff/Task, and documentation standards. You are **encouraged to review and adjust** the rules to align with your best practices or preferred approaches.
+**Important:** Some aspects of the rules are opinionated, particularly regarding naming conventions, project structure, usage of uv/uvx/ruff, and documentation standards. You are **encouraged to review and adjust** the rules to align with your best practices or preferred approaches.
 
 ## Key Features
 
@@ -77,7 +76,6 @@ This project was inspired, in part, by:
 Before getting started, ensure you have:
 
 - **Python 3.11+** — [Download Python](https://www.python.org/downloads/)
-- **Task** — Automation tool: [Installation guide](https://taskfile.dev/installation/)
 - **Git** — For cloning repository: [Install Git](https://git-scm.com/downloads)
 - **uv** — Python package manager: [Install uv](https://docs.astral.sh/uv/)
 
@@ -85,7 +83,6 @@ Before getting started, ensure you have:
 
 ```bash
 python --version  # Should show 3.11 or higher
-task --version    # Should show Task version
 git --version     # Should show Git version
 ```
 
@@ -97,14 +94,14 @@ This repository contains multiple documentation files for different audiences:
 |------|---------|--------------|
 | **README.md** | Project overview, setup, usage | Start here (you are here) |
 | **AGENTS.md** | Minimal bootstrap protocol for rule loading | AI agents: first action every response |
-| **AGENTS_NO_MODE.md** | Simplified bootstrap without PLAN/ACT workflow | AI agents: when immediate execution preferred |
+| **AGENTS_NO_MODE.md** | Simplified bootstrap without PLAN/ACT workflow | AI agents: deployed via `./dev deploy:no-mode` from templates/ |
 | **PROJECT.md** | Project-specific tooling and guidelines | AI agents: auto-loaded by supporting tools |
 | **rules/000-global-core.md** | Execution protocols (MODE, validation, workflows) | AI agents: after loading foundation |
 | **CONTRIBUTING.md** | Development guidelines, PR process | When contributing rules |
 | **docs/ARCHITECTURE.md** | System architecture, design decisions | When understanding internals or extending |
 | **docs/MEMORY_BANK.md** | Memory Bank system for long-running projects | When using Memory Bank (optional) |
 | **CHANGELOG.md** | Version history, changes | When checking updates |
-| **Taskfile.yml** | Build automation reference | When running tasks |
+| **./dev** | Development command wrapper (replaces Taskfile.yml) | When running tasks |
 
 ### Production-Ready Rules
 
@@ -140,8 +137,8 @@ git clone git@github.com:sfc-gh-myoung/ai_coding_rules.git
 ```bash
 cd ai_coding_rules && python scripts/rule_deployer.py --dest ~/my-project
 
-# Or use task:
-cd ai_coding_rules && task deploy DEST=~/my-project
+# Or use ./dev:
+cd ai_coding_rules && ./dev deploy DEST=~/my-project
 ```
 
 ### Use in your AI assistant
@@ -196,8 +193,8 @@ Learn how to use AI Coding Rules through practical demonstrations:
 
 ```bash
 python scripts/rule_deployer.py --dest ~/my-project
-# Or use task:
-task deploy DEST=~/my-project
+# Or use ./dev:
+./dev deploy DEST=~/my-project
 ```
 
 **What happens:**
@@ -226,8 +223,8 @@ exclude_skills = [
 
 ```bash
 python scripts/rule_deployer.py --dest ~/.claude/skills --only-skills
-# Or use task:
-task deploy:only-skills DEST=~/.claude/skills
+# Or use ./dev:
+./dev deploy:only-skills DEST=~/.claude/skills
 ```
 
 **What happens:**
@@ -240,29 +237,29 @@ task deploy:only-skills DEST=~/.claude/skills
 
 ```bash
 # Claude Code (Cursor/Windsurf)
-task deploy:only-skills DEST=~/.claude/skills
+./dev deploy:only-skills DEST=~/.claude/skills
 
 # Cortex Code
-task deploy:only-skills DEST=~/.snowflake/cortex/skills
+./dev deploy:only-skills DEST=~/.snowflake/cortex/skills
 
 # Custom project location
-task deploy:only-skills DEST=./my-project/.ai/skills
+./dev deploy:only-skills DEST=./my-project/.ai/skills
 ```
 
 **Deploy Rules Only (Skip Skills):**
 
 ```bash
 python scripts/rule_deployer.py --dest ~/my-project --skip-skills
-# Or use task:
-task deploy:no-skills DEST=~/my-project
+# Or use ./dev:
+./dev deploy:no-skills DEST=~/my-project
 ```
 
 **Preview Before Deploying:**
 
 ```bash
 python scripts/rule_deployer.py --dest ~/my-project --dry-run
-# Or use task:
-task deploy:dry DEST=~/my-project
+# Or use ./dev:
+./dev deploy:dry DEST=~/my-project
 ```
 
 **What happens:**
@@ -284,15 +281,15 @@ git submodule add https://github.com/sfc-gh-myoung/ai_coding_rules.git .ai-rules
 
 cd .ai-rules
 
-task deploy DEST=..   # Deploy to parent project
+./dev deploy DEST=..   # Deploy to parent project
 
 # Update rules later
-cd .ai-rules && git pull && task deploy DEST=..
+cd .ai-rules && git pull && ./dev deploy DEST=..
 ```
 
-### Option: Deployment Without Task
+### Option: Deployment Using Python Script Directly
 
-If you don't have Task installed, use the Python deployment script directly:
+You can also use the Python deployment script directly:
 
 ```bash
 # Clone the rules repository (choose one)
@@ -570,7 +567,7 @@ You can use these skills in Cursor by telling Cursor to explicitly load the skil
 - Prompt: `Load skills/<skill_name>/SKILL.md`
 
 #### Claude Code
-You can use these skills in Claude Code by deploying the skills to the `.claude/skills` directory, either project or personal locations using the `task deploy` command or via filesystem `cp` command.
+You can use these skills in Claude Code by deploying the skills to the `.claude/skills` directory, either project or personal locations using the `./dev deploy` command or via filesystem `cp` command.
 
 You can also use these skill by telling Claude Code to explicitly load the skill in your prompt.
 - Prompt: `Load skills/<skill_name>/SKILL.md`
@@ -584,7 +581,7 @@ You can also use these skills by telling Cortex Code CLI to explicitly load the 
 
 ### Deployed Skills (Available in Target Projects)
 
-These skills are deployed by default when running `task deploy`:
+These skills are deployed by default when running `./dev deploy`:
 
 **doc-reviewer** — Automate documentation quality reviews
 - **Purpose:** Review documentation files for quality, completeness, and staleness
@@ -657,7 +654,7 @@ exclude_skills = [
 To deploy only skills (useful for agent configuration directories):
 
 ```bash
-task deploy:only-skills DEST=~/.claude/skills
+./dev deploy:only-skills DEST=~/.claude/skills
 ```
 
 ## Contributing
@@ -682,6 +679,9 @@ ai_coding_rules/
 │   └── examples/           ← Validated implementation examples (10 total)
 ├── AGENTS.md               ← Rule loading protocol for AI assistants
 ├── rules/RULES_INDEX.md          ← Searchable rule catalog
+├── templates/              ← Source of truth for AGENTS.md variants
+│   ├── AGENTS_MODE.md.template       ← Full PLAN/ACT protocol
+│   └── AGENTS_NO_MODE.md.template    ← Simplified (no-mode) protocol
 ├── scripts/                ← Validation and deployment tools
 │   ├── index_generator.py      ← Generate rules/RULES_INDEX.md
 │   ├── rule_deployer.py        ← Deploy rules to projects
@@ -714,7 +714,7 @@ ai_coding_rules/
 
 - **rules/** — Production-ready rules (126 total), deploy directly (no generation needed)
 - **AGENTS.md** — AI discovery protocol in project root
-- **AGENTS_NO_MODE.md** — Simplified protocol without PLAN/ACT workflow
+- **templates/** — Source of truth for AGENTS.md variants (used by `rule_deployer.py`)
 - **rules/RULES_INDEX.md** — Searchable catalog in project root
 - **scripts/** — Validation (`schema_validator.py`), deployment (`rule_deployer.py`)
 - **tools/** — Evaluation tools (`agent_eval` for AGENTS.md testing, `prompt_eval` for prompt quality scoring)
@@ -723,90 +723,87 @@ ai_coding_rules/
 
 ```bash
 # For users: Deploy rules
-task deploy DEST=~/my-project
+./dev deploy DEST=~/my-project
 
 # For contributors: Edit and validate
 vim rules/200-python-core.md
-task rules:validate          # Validate changes
-task index:generate          # Update rules/RULES_INDEX.md
+./dev rules:validate          # Validate changes
+./dev index:generate          # Update rules/RULES_INDEX.md
 git add rules/ rules/RULES_INDEX.md && git commit -m "feat: update Python rules"
 ```
 
 ## Development Commands
 
-Run `task` to see the full categorized command list with quickstart guide.
+Run `./dev` to see the full categorized command list with quickstart guide.
 
 ```bash
 # Quickstart (most common commands)
-task quality:fix                       # Fix all code quality issues (alias: fix, qf)
-task test                              # Run all pytest tests (alias for test:all)
-task validate                          # Run all CI/CD checks (alias for validate:ci)
-task index:generate                    # Regenerate rules/RULES_INDEX.md
-task deploy DEST=~/my-project          # Deploy rules to project
+./dev quality:fix                       # Fix all code quality issues (alias: fix, qf)
+./dev test                              # Run all pytest tests (alias for test:all)
+./dev validate                          # Run all CI/CD checks (alias for validate:ci)
+./dev index:generate                    # Regenerate rules/RULES_INDEX.md
+./dev deploy DEST=~/my-project          # Deploy rules to project
 
 # Deployment
-task deploy DEST=~/my-project          # Deploy rules to project
-task deploy:dry DEST=~/my-project      # Preview deployment
-task deploy:verbose DEST=~/my-project  # Deploy with verbose output
-task deploy:no-skills DEST=~/my-project # Deploy rules only (skip skills)
-task deploy:no-mode DEST=~/my-project  # Deploy without PLAN/ACT workflow
-task deploy:only-skills DEST=~/.claude/skills # Deploy only skills (for agent configs)
+./dev deploy DEST=~/my-project          # Deploy rules to project
+./dev deploy:dry DEST=~/my-project      # Preview deployment
+./dev deploy:verbose DEST=~/my-project  # Deploy with verbose output
+./dev deploy:no-skills DEST=~/my-project # Deploy rules only (skip skills)
+./dev deploy:no-mode DEST=~/my-project  # Deploy without PLAN/ACT workflow
+./dev deploy:only-skills DEST=~/.claude/skills # Deploy only skills (for agent configs)
 
 # Split Deployment (separate directories for agents, rules, skills)
-task deploy:split AGENTS=~/.claude RULES=~/.claude/rules  # Deploy to separate dirs
-task deploy:split AGENTS=~/.claude RULES=~/.claude/rules SKILLS=~/.claude/skills  # With skills
-task deploy:split:dry AGENTS=~/.claude RULES=~/.claude/rules  # Preview split deployment
-
-# Template Sync (maintain template placeholders)
-task templates:check                   # Check if templates are in sync (CI)
-task templates:sync                    # Sync templates from source files
+./dev deploy:split AGENTS=~/.claude                                     # AGENTS-only (rules/skills ref CWD)
+./dev deploy:split AGENTS=~/.claude RULES=~/.claude/rules               # Deploy agents + rules
+./dev deploy:split AGENTS=~/.claude RULES=~/.claude/rules SKILLS=~/.claude/skills  # With skills
+./dev deploy:split:dry AGENTS=~/.claude                                 # Preview split deployment
 
 # Rule Management
-task rule:new FILENAME=100-example     # Create new rule from template
-task rules:validate                    # Validate all rules against schema
-task rules:validate:verbose            # Validate with detailed errors
+./dev rule:new FILENAME=100-example     # Create new rule from template
+./dev rules:validate                    # Validate all rules against schema
+./dev rules:validate:verbose            # Validate with detailed errors
 
 # Index Management
-task index:generate                    # Generate rules/RULES_INDEX.md
-task index:check                       # Check if index is current
+./dev index:generate                    # Generate rules/RULES_INDEX.md
+./dev index:check                       # Check if index is current
 
 # Token Management
-task tokens:update                     # Update token budgets in all rules
-task tokens:check                      # Check token budget accuracy (all files)
-task tokens:update:file FILE=...       # Update single file token budget
-task tokens:check:file FILE=...        # Check single file token budget
+./dev tokens:update                     # Update token budgets in all rules
+./dev tokens:check                      # Check token budget accuracy (all files)
+./dev tokens:update:file FILE=...       # Update single file token budget
+./dev tokens:check:file FILE=...        # Check single file token budget
 
 # Keyword Generation
-task keywords:suggest FILE=...         # Suggest keywords for a rule
-task keywords:update FILE=...          # Update keywords in-place
-task keywords:all                      # Suggest keywords for all rules
+./dev keywords:suggest FILE=...         # Suggest keywords for a rule
+./dev keywords:update FILE=...          # Update keywords in-place
+./dev keywords:all                      # Suggest keywords for all rules
 
 # Quality & Testing
-task quality:check                     # Run all quality checks
-task quality:fix                       # Fix all quality issues (alias: fix, qf)
-task quality:lint                      # Run ruff linter (check only)
-task quality:format                    # Run ruff formatter (check only)
-task quality:typecheck                 # Run ty type checker (aliases: type, type-check)
-task quality:markdown                  # Run pymarkdownlnt Markdown linter
-task test                              # Run all pytest tests (alias for test:all)
-task test:coverage                     # Run tests with coverage report
+./dev quality:check                     # Run all quality checks
+./dev quality:fix                       # Fix all quality issues (alias: fix, qf)
+./dev quality:lint                      # Run ruff linter (check only)
+./dev quality:format                    # Run ruff formatter (check only)
+./dev quality:typecheck                 # Run ty type checker (aliases: type, type-check)
+./dev quality:markdown                  # Run pymarkdownlnt Markdown linter
+./dev test                              # Run all pytest tests (alias for test:all)
+./dev test:coverage                     # Run tests with coverage report
 
 # Validation & CI
-task validate                          # Run all CI/CD checks (alias for validate:ci)
-task preflight                         # Verify environment is ready
+./dev validate                          # Run all CI/CD checks (alias for validate:ci)
+./dev preflight                         # Verify environment is ready
 
 # Environment
-task env:python                        # Pin Python 3.11 and create venv
-task env:sync                          # Sync dev dependencies (fast)
-task env:deps                          # Lock and sync dependencies
+./dev env:python                        # Pin Python 3.11 and create venv
+./dev env:sync                          # Sync dev dependencies (fast)
+./dev env:deps                          # Lock and sync dependencies
 
 # Cleanup
-task clean:cache                       # Remove Python cache files
-task clean:venv                        # Remove virtual environment
-task clean:all                         # Remove all generated files
+./dev clean:cache                       # Remove Python cache files
+./dev clean:venv                        # Remove virtual environment
+./dev clean:all                         # Remove all generated files
 
 # Status
-task status                            # Show project status summary
+./dev status                            # Show project status summary
 ```
 
 ## Rule Categories
@@ -1020,8 +1017,8 @@ python --version
 2. **Install Dependencies**
 
 ```bash
-task env:deps
-# OR without Task:
+./dev env:deps
+# OR directly:
 uv sync
 ```
 
@@ -1041,47 +1038,7 @@ uv run scripts/rule_deployer.py --dest ~/my-project
 
 ```bash
 # Check required files exist
-ls scripts/rule_deployer.py scripts/schema_validator.py Taskfile.yml rules/
-```
-
-### Task Command Not Found
-
-**Problem:** `task: command not found` or `bash: task: command not found`
-
-**Solutions:**
-
-**Option A - Install Task (Recommended)**
-
-```bash
-# macOS
-brew install go-task/tap/go-task
-
-# Linux
-sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b ~/.local/bin
-
-# Windows (PowerShell)
-choco install go-task
-```
-
-**Option B - Deployment Without Task**
-
-See [Deployment Without Task](#option-deployment-without-task) in Quick Start for complete instructions.
-
-Quick example for universal rules:
-
-```bash
-cd /tmp/ai-rules
-uv sync --all-groups
-uv run python scripts/rule_deployer.py --dest ~/my-project
-```
-
-**Validation:**
-
-```bash
-# If Task installed successfully
-task --version
-
-# Should show: Task version: v3.x.x
+ls scripts/rule_deployer.py scripts/schema_validator.py dev rules/
 ```
 
 ### Python Version Conflicts
@@ -1101,15 +1058,15 @@ python3 --version
 2. **Use uv to Pin Version**
 
 ```bash
-task env:python
+./dev env:python
 # Creates .python-version file pinning to 3.11
 ```
 
 3. **Clean and Reinstall**
 
 ```bash
-task clean:venv   # Remove virtual environment
-task env:deps     # Reinstall dependencies
+./dev clean:venv   # Remove virtual environment
+./dev env:deps     # Reinstall dependencies
 ```
 
 4. **Manual venv Setup (fallback)**
@@ -1200,10 +1157,10 @@ touch test.txt && rm test.txt
 2. **Use Custom Destination**
 ```bash
 # Deploy to home directory
-task deploy DEST=~/ai-coding-rules-output
+./dev deploy DEST=~/ai-coding-rules-output
 
 # Or use absolute path
-task deploy DEST=/tmp/rules-output
+./dev deploy DEST=/tmp/rules-output
 ```
 
 3. **Fix Repository Permissions**
@@ -1226,14 +1183,14 @@ Most of the LLMs and agentic tools will generally do a good job of following the
 
 **Get Help:**
 - **Check Issues:** [GitHub Issues](https://github.com/sfc-gh-myoung/ai_coding_rules/issues)
-- **Review Validation:** Run `task rules:validate` to check rule structure
-- **Enable Debug Mode:** `task deploy:verbose DEST=~/path` for detailed output
+- **Review Validation:** Run `./dev rules:validate` to check rule structure
+- **Enable Debug Mode:** `./dev deploy:verbose DEST=~/path` for detailed output
 - **Check Logs:** Review terminal output for specific error messages
 
 **Common Fixes:**
 - Update uv: `curl -LsSf https://astral.sh/uv/install.sh | sh`
 - Clear cache: `rm -rf .venv __pycache__`
-- Reinstall dependencies: `task clean:venv && task env:sync`
+- Reinstall dependencies: `./dev clean:venv && ./dev env:sync`
 
 ## License
 
@@ -1263,15 +1220,15 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 
 ### Common Commands
 
-**With Task:**
+**With ./dev wrapper:**
 ```bash
 # Deploy/update rules
 git clone https://github.com/sfc-gh-myoung/ai_coding_rules.git /tmp/ai-rules
 cd /tmp/ai-rules
-task deploy DEST=~/my-project
+./dev deploy DEST=~/my-project
 ```
 
-**Without Task (Python script):**
+**With Python script directly:**
 ```bash
 # Deploy/update rules using Python script
 cd /tmp/ai-rules

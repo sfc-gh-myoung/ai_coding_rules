@@ -18,7 +18,7 @@ Thank you for your interest in contributing to AI Coding Rules! This project pro
 3. **Set up** the development environment:
 
    ```bash
-   task env:deps
+   ./dev env:deps
    ```
 
 4. **Create** a feature branch:
@@ -40,6 +40,9 @@ ai_coding_rules/
 │   └── ...
 ├── AGENTS.md               ← Minimal bootstrap protocol (project root)
 ├── RULES_INDEX.md          ← Rule catalog with loading strategy (project root)
+├── templates/              ← Source of truth for AGENTS.md variants
+│   ├── AGENTS_MODE.md.template       ← Full PLAN/ACT protocol
+│   └── AGENTS_NO_MODE.md.template    ← Simplified (no-mode) protocol
 ├── scripts/                ← Validation and deployment tools
 │   ├── index_generator.py      ← Generate RULES_INDEX.md
 │   ├── rule_deployer.py        ← Deploy rules to projects
@@ -57,10 +60,10 @@ ai_coding_rules/
 
 | What You're Editing | Where to Edit | What Happens |
 |---------------------|---------------|--------------|
-| Rule content | `rules/XXX-rule-name.md` | Validate with `task rules:validate` |
-| Bootstrap protocol | `AGENTS.md` (project root) | Minimal rule loading sequence |
+| Rule content | `rules/XXX-rule-name.md` | Validate with `./dev rules:validate` |
+| Bootstrap protocol | `templates/AGENTS_MODE.md.template` | Source of truth; deployed via `rule_deployer.py` |
 | Execution protocols | `rules/000-global-core.md` | MODE transitions, validation, workflows |
-| Rule catalog | `RULES_INDEX.md` (project root) | Regenerate with `task index:generate` |
+| Rule catalog | `RULES_INDEX.md` (project root) | Regenerate with `./dev index:generate` |
 | Deployment script | `scripts/rule_deployer.py` | Test with `--dry-run` flag |
 
 ## 📋 Development Workflow
@@ -73,13 +76,13 @@ We use modern Python tooling for consistent development:
 - **uv** - Fast Python package installer and resolver
 - **Ruff** - Lightning-fast linting and formatting
 - **ty** - Fast type checker (Astral toolchain)
-- **Task** - Simple task runner for automation
+- **./dev** - Simple bash wrapper for automation
 
 ```bash
 # Python environment with uv (recommended)
-task env:sync              # Sync dev dependencies (fast)
-task env:python            # Pin Python version and create venv
-task env:deps              # Lock and sync dependencies
+./dev env:sync              # Sync dev dependencies (fast)
+./dev env:python            # Pin Python version and create venv
+./dev env:deps              # Lock and sync dependencies
 
 # Alternative with pip (fallback)
 python -m venv .venv
@@ -91,16 +94,16 @@ pip install -e ".[dev]"
 
 ```bash
 # Quality tasks (recommended)
-task quality:check        # Run all quality checks (lint, format, type, markdown)
-task quality:fix          # Fix all quality issues (alias: fix, qf)
-task quality:lint         # Run ruff linter (check only)
-task quality:format       # Run ruff formatter (check only)
-task quality:typecheck    # Run ty type checker (aliases: type, type-check)
-task quality:markdown     # Run pymarkdownlnt Markdown linter
-task quality:lint:fix     # Auto-fix linting issues
-task quality:format:fix   # Apply formatting
+./dev quality:check        # Run all quality checks (lint, format, type, markdown)
+./dev quality:fix          # Fix all quality issues (alias: fix, qf)
+./dev quality:lint         # Run ruff linter (check only)
+./dev quality:format       # Run ruff formatter (check only)
+./dev quality:typecheck    # Run ty type checker (aliases: type, type-check)
+./dev quality:markdown     # Run pymarkdownlnt Markdown linter
+./dev quality:lint:fix     # Auto-fix linting issues
+./dev quality:format:fix   # Apply formatting
 
-# Manual commands (if task unavailable)
+# Manual commands (if ./dev unavailable)
 uv sync --all-groups         # Ensure dev deps installed (ruff, ty, pytest, ...)
 uv run ruff check .          # Check linting
 uv run ruff format --check . # Check formatting
@@ -154,20 +157,20 @@ python scripts/index_generator.py --dry-run
 ### Utilities
 
 ```bash
-task clean:cache         # Remove Python cache files
-task clean:venv          # Remove virtual environment
-task clean:all           # Remove all generated files
-task status              # Show project status summary
-task preflight           # Verify environment is ready
-task -l                  # List all available tasks (standard view)
-task                     # Show categorized task list with quickstart
+./dev clean:cache         # Remove Python cache files
+./dev clean:venv          # Remove virtual environment
+./dev clean:all           # Remove all generated files
+./dev status              # Show project status summary
+./dev preflight           # Verify environment is ready
+./dev -l                  # List all available tasks (standard view)
+./dev                     # Show categorized task list with quickstart
 ```
 
 ### Configuration Safety Guidelines
 
 - **YAML Safety**: Avoid Unicode characters (bullets, checkmarks) that cause parsing errors
 - **Shell Quoting**: Quote arguments with special characters: `".[dev]"` not `.[dev]`
-- **Taskfile Validation**: Always test with `task --list` after YAML changes
+- **Dev Script Validation**: Always test with `./dev --list` after script changes
 - **Python Packaging**: Ensure `__init__.py` files exist before `uv pip install -e .`
 
 ### Testing Your Changes
@@ -188,10 +191,10 @@ python scripts/index_generator.py
 python scripts/rule_deployer.py --dest /tmp/test --dry-run
 
 # 5. Run test suite
-task test
+./dev test
 
 # 6. Run all quality checks
-task quality:check
+./dev quality:check
 ```
 
 **Important:** Commit your rule changes:
@@ -231,13 +234,13 @@ Example: `rules/250-python-flask.md`
 Use the template generator to create v3.0 compliant rule files:
 
 ```bash
-# Using Task (recommended - includes automatic validation)
-task rule:new FILENAME=100-snowflake-example
-task rule:new FILENAME=200-python-example TIER=High
-task rule:new FILENAME=300-react-hooks KEYWORDS="react, hooks, state, effects, custom hooks, lifecycle, functional components, useState, useEffect, optimization, performance, patterns, best practices, debugging, testing"
+# Using ./dev (recommended - includes automatic validation)
+./dev rule:new FILENAME=100-snowflake-example
+./dev rule:new FILENAME=200-python-example TIER=High
+./dev rule:new FILENAME=300-react-hooks KEYWORDS="react, hooks, state, effects, custom hooks, lifecycle, functional components, useState, useEffect, optimization, performance, patterns, best practices, debugging, testing"
 
 # Overwrite existing file
-task rule:new:force FILENAME=100-example TIER=High
+./dev rule:new:force FILENAME=100-example TIER=High
 
 # Using Python script directly
 python scripts/template_generator.py 100-snowflake-example
@@ -253,13 +256,13 @@ python scripts/template_generator.py 100-example --output-dir custom/
 - ✅ **Auto-generated Keywords** - Smart keyword generation based on rule number and slug
 - ✅ **Complete Structure** - All required sections with placeholders
 - ✅ **Inline Guidance** - Comments explaining each section's purpose
-- ✅ **Automatic Validation** - Task version validates immediately after generation
+- ✅ **Automatic Validation** - ./dev version validates immediately after generation
 
 **Next Steps After Generation:**
 
 1. Edit the generated file and replace placeholders with actual content
-2. Validation: Already done if using `task rule:new`, otherwise run `task rules:validate:verbose`
-3. Add to RULES_INDEX.md: `task index:generate`
+2. Validation: Already done if using `./dev rule:new`, otherwise run `./dev rules:validate:verbose`
+3. Add to RULES_INDEX.md: `./dev index:generate`
 
 ### Rule Structure (v3.0+)
 
@@ -411,9 +414,9 @@ Use our issue templates:
 ### Before Submitting
 
 - [ ] **Test** your changes locally
-- [ ] **Run** `task quality:check` and fix any issues (or `task quality:fix`)
-- [ ] **Test** rule deployment with `task deploy:dry DEST=/tmp/test`
-- [ ] **Run** `task validate` to run all CI/CD checks
+- [ ] **Run** `./dev quality:check` and fix any issues (or `./dev quality:fix`)
+- [ ] **Test** rule deployment with `./dev deploy:dry DEST=/tmp/test`
+- [ ] **Run** `./dev validate` to run all CI/CD checks
 - [ ] **Update** documentation if needed
 - [ ] **Add** yourself to contributors if first contribution
 
@@ -530,8 +533,8 @@ This project follows industry standards for Git workflow:
 # 1. Create feature branch
 git checkout -b feature/add-terraform-rules
 
-# 2. Generate template using Task (includes automatic validation)
-task rule:new FILENAME=450-terraform-best-practices TIER=High
+# 2. Generate template using ./dev (includes automatic validation)
+./dev rule:new FILENAME=450-terraform-best-practices TIER=High
 # Or use Python script directly:
 # python scripts/template_generator.py 450-terraform-best-practices --context-tier High
 
@@ -540,14 +543,14 @@ vim rules/450-terraform-best-practices.md
 # Replace all placeholders with actual content
 
 # 4. Validate the rule again after editing
-task rules:validate:verbose
+./dev rules:validate:verbose
 # Or: python scripts/schema_validator.py rules/450-terraform-best-practices.md --verbose
 
 # 5. Regenerate RULES_INDEX.md
-task index:generate
+./dev index:generate
 
 # 6. Run quality checks
-task quality:check
+./dev quality:check
 
 # 7. Commit the new rule and updated index
 git add rules/450-terraform-best-practices.md
@@ -582,11 +585,11 @@ vim rules/200-python-core.md
 python scripts/schema_validator.py rules/200-python-core.md --verbose
 
 # 4. Update index if metadata changed
-task index:generate
+./dev index:generate
 
 # 5. Run quality checks
-task quality:lint
-task quality:format
+./dev quality:lint
+./dev quality:format
 
 # 6. Commit changes
 git add rules/200-python-core.md
@@ -633,7 +636,7 @@ git commit  # WRONG - RULES_INDEX.md not updated
 ✅ **Always regenerate index after rule changes**
 ```bash
 vim rules/450-new-rule.md
-task index:generate
+./dev index:generate
 git add rules/450-new-rule.md RULES_INDEX.md
 git commit  # CORRECT
 ```
@@ -808,11 +811,11 @@ In my experience, you will get consistently better results when you provide live
 
 **Monthly:** Check for rule updates
 ```bash
-# With Task:
+# With ./dev:
 cd /tmp/ai-rules && git pull
-task deploy DEST=~/my-project
+./dev deploy DEST=~/my-project
 
-# Without Task (Python script):
+# Without ./dev (Python script):
 cd /tmp/ai-rules && git pull
 uv sync --all-groups
 uv run python scripts/rule_deployer.py --dest ~/my-project
@@ -850,8 +853,8 @@ All rules in this repository follow **Section 11: Universal Compatibility Standa
 - ✅ **Standardized code block tags** - Consistent syntax highlighting
 
 **For Contributors:**
-- **Validate rules:** `task rules:validate` - Check all rules against schema
-- **Run all CI checks:** `task validate` - Run quality, tests, rules validation
+- **Validate rules:** `./dev rules:validate` - Check all rules against schema
+- **Run all CI checks:** `./dev validate` - Run quality, tests, rules validation
 - **Complete standards:** See `rules/002-rule-governance.md` Section 11
 
 **Validation Tools:**

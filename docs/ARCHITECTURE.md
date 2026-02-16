@@ -681,12 +681,14 @@ ai_coding_rules/
 │   └── MEMORY_BANK.md          # Memory Bank system guide
 │
 ├── AGENTS.md                   # Minimal AI agent bootstrap protocol (project root)
-├── AGENTS_NO_MODE.md           # Simplified bootstrap without PLAN/ACT workflow
 ├── RULES_INDEX.md              # Searchable rule catalog with loading strategy (project root)
+├── templates/                  # Source of truth for AGENTS.md variants
+│   ├── AGENTS_MODE.md.template     # Template for AGENTS.md (full PLAN/ACT protocol)
+│   └── AGENTS_NO_MODE.md.template  # Template for no-mode AGENTS.md
 ├── CHANGELOG.md                # Version history (Keep a Changelog v1.1.0)
 ├── CONTRIBUTING.md             # Contribution guidelines
 ├── README.md                   # Project overview and quick start
-├── Taskfile.yml                # Task automation (Task v3)
+├── dev                         # Task automation (./dev wrapper script)
 └── pyproject.toml              # Python dependencies (uv-based)
 ```
 
@@ -712,6 +714,11 @@ ai_coding_rules/
 - `token_validator.py` checks token budget accuracy
 - `keyword_generator.py` extracts semantic keywords using TF-IDF analysis
 - `index_generator.py` generates RULES_INDEX.md catalog
+
+**`templates/`** — Source of truth for AGENTS.md variants
+- `AGENTS_MODE.md.template` — Full PLAN/ACT bootstrap protocol (deployed as AGENTS.md by default)
+- `AGENTS_NO_MODE.md.template` — Simplified bootstrap without PLAN/ACT workflow (deployed via `--no-mode`)
+- Used by `rule_deployer.py` for split deployment with placeholder substitution
 
 **`schemas/`** — Declarative validation
 - `rule-schema.yml` defines all requirements for rule files
@@ -766,16 +773,16 @@ ai_coding_rules/
 
 ```bash
 # Basic usage (generates in rules/ directory)
-task rule:new FILENAME=300-example-rule
+./dev rule:new FILENAME=300-example-rule
 
 # With custom context tier
-task rule:new FILENAME=300-example-rule TIER=High
+./dev rule:new FILENAME=300-example-rule TIER=High
 
 # With custom keywords (10-15 required)
-task rule:new FILENAME=300-example-rule KEYWORDS="keyword1, keyword2, ... (10-15 total)"
+./dev rule:new FILENAME=300-example-rule KEYWORDS="keyword1, keyword2, ... (10-15 total)"
 
 # Overwrite existing file (use with caution)
-task rule:new:force FILENAME=300-example-rule
+./dev rule:new:force FILENAME=300-example-rule
 ```
 
 **What Happens:**
@@ -828,7 +835,7 @@ Edit `rules/300-example-rule.md`:
 python scripts/schema_validator.py rules/300-example-rule.md
 
 # Validate all rules
-task test:all
+./dev test:all
 
 # Verbose output
 python scripts/schema_validator.py rules/300-example-rule.md --verbose
@@ -1027,17 +1034,11 @@ SUMMARY:
 python scripts/schema_validator.py rules/ --strict
 ```
 
-**Task Automation:**
-```yaml
-# Taskfile.yml
-tasks:
-  test:all:
-    desc: "Run all pytest tests"
-    aliases: [test, t]
-    deps:
-      - env:sync
-    cmds:
-      - "{{.UV}} run pytest tests/ -v"
+**Dev Script Automation:**
+```bash
+# ./dev wrapper provides task-like commands
+./dev test:all    # Run all pytest tests
+./dev test        # Alias for test:all
 ```
 
 **CI/CD Pipeline:**
@@ -1085,19 +1086,19 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 
 ```bash
 # Deploy to current directory
-task deploy -- --dest .
+./dev deploy -- --dest .
 
 # Deploy to specific path
-task deploy -- --dest /path/to/project
+./dev deploy -- --dest /path/to/project
 
 # Deploy to home directory project
-task deploy -- --dest ~/my-project
+./dev deploy -- --dest ~/my-project
 
 # Dry-run (preview without copying)
-task deploy:dry -- --dest /path/to/project
+./dev deploy:dry -- --dest /path/to/project
 
 # Verbose output
-task deploy:verbose -- --dest /path/to/project
+./dev deploy:verbose -- --dest /path/to/project
 ```
 
 **Split Deployment (Multi-Destination):**
@@ -1105,15 +1106,23 @@ task deploy:verbose -- --dest /path/to/project
 For AI assistants that require separate directories for agents, rules, and skills:
 
 ```bash
+# Deploy only AGENTS.md (rules/skills paths reference CWD)
+./dev deploy:split AGENTS=~/.claude
+
 # Deploy AGENTS.md and rules to separate directories
-task deploy:split AGENTS=~/.claude RULES=~/.claude/rules
+./dev deploy:split AGENTS=~/.claude RULES=~/.claude/rules
 
 # With separate skills directory
-task deploy:split AGENTS=~/.claude RULES=~/.claude/rules SKILLS=~/.claude/skills
+./dev deploy:split AGENTS=~/.claude RULES=~/.claude/rules SKILLS=~/.claude/skills
 
 # Preview split deployment
-task deploy:split:dry AGENTS=~/.claude RULES=~/.claude/rules
+./dev deploy:split:dry AGENTS=~/.claude
 ```
+
+When only `AGENTS=` is specified (AGENTS-only mode):
+- Only AGENTS.md is deployed to the target directory
+- `{{rules_path}}` and `{{skills_path}}` in AGENTS.md are replaced with CWD-based absolute paths
+- No rules, skills, or RULES_INDEX.md files are copied
 
 Split mode uses template-based deployment with placeholder substitution:
 - `{{rules_path}}` → Absolute path to rules directory
@@ -1352,15 +1361,15 @@ v3.0 includes comprehensive test coverage ensuring script reliability:
 
 **All Tests:**
 ```bash
-# Using Task (recommended)
-task test                 # Alias for test:all
-task test:all             # Run all tests
+# Using ./dev (recommended)
+./dev test                 # Alias for test:all
+./dev test:all             # Run all tests
 
 # Using pytest directly
 uv run pytest tests/ -v
 
 # With coverage report
-task test:coverage
+./dev test:coverage
 ```
 
 **Single Test File:**
@@ -1375,7 +1384,7 @@ uv run pytest tests/test_schema_validator.py::test_validate_metadata_fields -v
 
 **Coverage Report:**
 ```bash
-task test:coverage
+./dev test:coverage
 # Generates htmlcov/index.html
 ```
 
@@ -1415,50 +1424,40 @@ test:
     - run: uv run pytest tests/ -v
 ```
 
-## Taskfile Architecture
+## Dev Script Architecture
 
-The project uses Task v3 for automation with a comprehensive categorized structure:
+The project uses a `./dev` bash wrapper for automation with a comprehensive categorized structure:
 
 ### Key Design Patterns
 
-**1. Precondition Tasks (Internal)**
-```yaml
-_check:uv:      # Validates uv is installed
-_check:uvx:     # Validates uvx is installed  
-_check:coreutils:  # Validates awk, find, wc, tr
-_check:xdg-open:   # Validates xdg-open (Linux only)
-```
+**1. Precondition Checks (Internal)**
+The dev script validates required tools before running commands:
+- Validates uv is installed
+- Validates uvx is installed  
+- Validates coreutils (awk, find, wc, tr)
 
 **2. Automatic Environment Setup**
-Most tasks include `deps: [env:sync]` for automatic dependency installation.
+Most commands include automatic dependency installation via `uv sync`.
 
-**3. Fingerprinting**
-Tasks use `sources:` and `generates:` for intelligent caching:
-```yaml
-env:sync:
-  sources: [pyproject.toml, uv.lock]
-  generates: [.venv/pyvenv.cfg]
-```
+**3. Ergonomic Aliases**
+Common commands have short aliases:
+- `./dev fix` or `./dev qf` → `./dev quality:fix`
+- `./dev test` or `./dev t` → `./dev test:all`
+- `./dev validate` or `./dev ci` → `./dev validate:ci`
+- `./dev lint` → `./dev quality:lint`
+- `./dev lint:fix` → `./dev quality:lint:fix`
+- `./dev fmt` or `./dev format` → `./dev quality:format`
+- `./dev fmt:fix` or `./dev format:fix` → `./dev quality:format:fix`
+- `./dev type` or `./dev type-check` → `./dev quality:typecheck`
 
-**4. Ergonomic Aliases**
-Common tasks have short aliases:
-- `task fix` or `task qf` → `task quality:fix`
-- `task test` or `task t` → `task test:all`
-- `task validate` or `task ci` → `task validate:ci`
-- `task lint` → `task quality:lint`
-- `task lint:fix` → `task quality:lint:fix`
-- `task fmt` or `task format` → `task quality:format`
-- `task fmt:fix` or `task format:fix` → `task quality:format:fix`
-- `task type` or `task type-check` → `task quality:typecheck`
+**4. Categorized Help**
+Running `./dev` (default) shows a categorized menu with quickstart guide.
+Use `./dev ASCII=true` for terminals without Unicode support.
 
-**5. Categorized Help**
-Running `task` (default) shows a categorized menu with quickstart guide.
-Use `task ASCII=true` for terminals without Unicode support.
+### Command Categories
 
-### Task Categories
-
-| Category | Tasks | Purpose |
-|----------|-------|---------|
+| Category | Commands | Purpose |
+|----------|----------|---------|
 | **Environment** | `env:python`, `env:sync`, `env:deps` | Python setup |
 | **Quality** | `quality:*`, `fix` | Linting, formatting, type checking |
 | **Testing** | `test`, `test:coverage` | pytest execution |
@@ -1553,39 +1552,7 @@ python scripts/rule_deployer.py \
   --skills-dest ~/.claude/skills
 ```
 
-### 3. template_sync.py
-
-**Purpose:** Synchronize AGENTS.md templates with source files
-
-**Usage:**
-```bash
-python scripts/template_sync.py [OPTIONS]
-```
-
-**Options:**
-- `--check` — Check if templates are in sync (exit 1 if not)
-- `--dry-run` — Preview changes without writing files
-- `--verbose` — Show detailed output
-
-**Features:**
-- Bidirectional sync between source files and templates
-- Converts `rules/` and `skills/` paths to `{{rules_path}}/` and `{{skills_path}}/` placeholders
-- Preserves template header comments
-- Integrated into CI via `task templates:check`
-
-**Example:**
-```bash
-# Sync templates from source files
-python scripts/template_sync.py
-
-# Check sync status (for CI)
-python scripts/template_sync.py --check
-
-# Preview changes
-python scripts/template_sync.py --dry-run
-```
-
-### 4. schema_validator.py
+### 3. schema_validator.py
 
 **Purpose:** Validate rules against schema
 
@@ -1681,7 +1648,7 @@ python scripts/index_generator.py [OPTIONS]
 python scripts/index_generator.py --verbose
 ```
 
-### 7. keyword_generator.py
+### 6. keyword_generator.py
 
 **Purpose:** Generate semantically relevant keywords for rule files using TF-IDF and multi-signal extraction
 
@@ -1739,11 +1706,11 @@ python scripts/keyword_generator.py rules/ --corpus
 ```mermaid
 flowchart TD
     Start([User: Create New Rule]) --> Generate
-    Generate[task rule:new FILENAME=XXX] --> Template
+    Generate[./dev rule:new FILENAME=XXX] --> Template
     Template[template_generator.py] --> Create[Create rules/XXX.md<br/>with v3.0 structure]
     Create --> Edit[User: Edit Content]
     Edit --> Validate{Validate?}
-    Validate -->|task test:all| SchemaVal[schema_validator.py]
+    Validate -->|./dev test:all| SchemaVal[schema_validator.py]
     SchemaVal --> Pass{Passed?}
     Pass -->|No| Fix[Fix Errors]
     Fix --> Edit
@@ -1764,7 +1731,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     Start([User: Deploy Rules]) --> Command
-    Command[task deploy -- --dest PATH] --> Deployer
+    Command[./dev deploy -- --dest PATH] --> Deployer
     Deployer[rule_deployer.py] --> Validate{Validate Source}
     Validate -->|Fail| Error[Error: Missing Files]
     Validate -->|Pass| CheckDest{Check Destination}
@@ -1791,7 +1758,7 @@ flowchart TD
 ```mermaid
 graph TD
     Root[ai_coding_rules/] --> Rules[rules/<br/>126 production files]
-    Root --> Scripts[scripts/<br/>8 Python scripts]
+    Root --> Scripts[scripts/<br/>7 Python scripts]
     Root --> Schemas[schemas/<br/>v3.0 YAML schema]
     Root --> Tests[tests/<br/>544 passing tests]
     Root --> Prompts[prompts/<br/>Example prompts]
@@ -1826,7 +1793,7 @@ graph TD
     RootFiles --> RF2[RULES_INDEX.md]
     RootFiles --> RF3[CHANGELOG.md]
     RootFiles --> RF4[README.md]
-    RootFiles --> RF5[Taskfile.yml]
+    RootFiles --> RF5[dev]
     
     style Root fill:#e1f5ff
     style Rules fill:#fff4e1
@@ -2027,7 +1994,7 @@ Tested on GPT-4o, GPT-5.1, GPT-5.2, Claude Sonnet 4.5, Claude Opus 4.5, Gemini 2
 **Process:**
 
 1. **Choose Number** — Follow numbering system (see [Rule Numbering System](#rule-numbering-system))
-2. **Generate Template** — `task rule:new FILENAME=XXX-description`
+2. **Generate Template** — `./dev rule:new FILENAME=XXX-description`
 3. **Fill Content** — Edit `rules/XXX-description.md`
 4. **Select Keywords** — 10-15 terms for semantic discovery
 5. **Validate** — `python scripts/schema_validator.py rules/XXX-description.md`
@@ -2082,7 +2049,7 @@ metadata:
 1. **Create Script** — `scripts/custom_task.py`
 2. **Follow Patterns** — Use existing scripts as templates
 3. **Add Tests** — `tests/test_custom_task.py`
-4. **Add Task** — Update `Taskfile.yml`
+4. **Add Command** — Update `./dev` script
 5. **Document** — Add to CONTRIBUTING.md
 
 **Example:**
@@ -2102,13 +2069,12 @@ def audit_rule(rule_path: Path) -> list[str]:
     return issues
 ```
 
-```yaml
-# Taskfile.yml
-tasks:
-  audit:custom:
-    desc: "Run organization-specific audit"
-    cmds:
-      - python scripts/custom_audit.py rules/
+```bash
+# Add to ./dev script
+audit:custom)
+  # Run organization-specific audit
+  python scripts/custom_audit.py rules/
+  ;;
 ```
 
 ### IDE-Specific Enhancements

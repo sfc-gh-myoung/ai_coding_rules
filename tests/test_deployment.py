@@ -471,20 +471,6 @@ class TestSplitDestinationValidation:
     """Test validation of split destination arguments."""
 
     @pytest.mark.unit
-    def test_agents_requires_rules(self) -> None:
-        """Test that --agents-dest requires --rules-dest."""
-        # Act
-        is_valid, errors = dr.validate_split_destinations(
-            agents_dest=Path("/tmp/agents"),
-            rules_dest=None,
-            skills_dest=None,
-        )
-
-        # Assert
-        assert not is_valid
-        assert any("--agents-dest requires --rules-dest" in e for e in errors)
-
-    @pytest.mark.unit
     def test_skills_requires_agents(self) -> None:
         """Test that --skills-dest requires --agents-dest."""
         # Act
@@ -523,8 +509,11 @@ class TestDirectoryExistence:
     """Test directory existence validation."""
 
     @pytest.mark.unit
-    def test_missing_agents_directory(self) -> None:
+    def test_missing_agents_directory(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test validation fails for missing agents directory."""
+        # Arrange - mock prompt so it doesn't call input()
+        monkeypatch.setattr(dr, "_prompt_create_directory", lambda path, flag_name: False)
+
         # Act
         is_valid, errors = dr.validate_split_destinations(
             agents_dest=Path("/nonexistent/agents"),
@@ -537,8 +526,11 @@ class TestDirectoryExistence:
         assert any("does not exist" in e for e in errors)
 
     @pytest.mark.unit
-    def test_missing_rules_directory(self) -> None:
+    def test_missing_rules_directory(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test validation fails for missing rules directory."""
+        # Arrange - mock prompt so it doesn't call input()
+        monkeypatch.setattr(dr, "_prompt_create_directory", lambda path, flag_name: False)
+
         # Act
         is_valid, errors = dr.validate_split_destinations(
             agents_dest=Path("/tmp"),

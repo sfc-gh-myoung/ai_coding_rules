@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Generate semantically relevant keywords for AI coding rule files.
 
+DEPRECATED: Use 'ai-rules keywords' instead. See: ai-rules --help
+
 This script analyzes rule files using TF-IDF and multi-signal extraction
 to suggest 10-15 optimal keywords for the **Keywords:** metadata field.
 
@@ -751,6 +753,13 @@ def print_diff(result: ExtractionResult) -> None:
 
 def main() -> int:
     """CLI entry point for token generator."""
+    import warnings
+
+    warnings.warn(
+        "This script is deprecated. Use 'ai-rules keywords' instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     parser = argparse.ArgumentParser(
         description="Generate semantically relevant keywords for AI coding rule files",
         formatter_class=argparse.RawDescriptionHelpFormatter,

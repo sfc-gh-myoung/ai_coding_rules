@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Generate rule file templates compliant with v3.2 schema.
 
+DEPRECATED: Use 'ai-rules new' instead. See: ai-rules --help
+
 This script creates new rule files with all required sections and placeholders,
 making it easier for users to create rules that pass schema validation.
 
@@ -427,6 +429,13 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 
 def main():
     """CLI entry point."""
+    import warnings
+
+    warnings.warn(
+        "This script is deprecated. Use 'ai-rules new' instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     parser = argparse.ArgumentParser(
         description="Generate v3.2 compliant rule file templates",
         formatter_class=argparse.RawDescriptionHelpFormatter,

@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Update README badges with current version, test pass percentage, and coverage percentage."""
+"""Update README badges with current version, test pass percentage, and coverage percentage.
+
+DEPRECATED: Use 'ai-rules badges' instead. See: ai-rules --help
+"""
 
 import re
 import subprocess
@@ -161,6 +164,13 @@ def update_readme_badges(
 
 def main() -> int:
     """Main entry point."""
+    import warnings
+
+    warnings.warn(
+        "This script is deprecated. Use 'ai-rules badges' instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     project_root = Path(__file__).parent.parent
     pyproject_path = project_root / "pyproject.toml"
     readme_path = project_root / "README.md"

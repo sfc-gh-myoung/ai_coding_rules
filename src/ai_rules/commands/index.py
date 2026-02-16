@@ -17,7 +17,6 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
-from rich.console import Console
 from rich.panel import Panel
 from rich.syntax import Syntax
 from rich.text import Text
@@ -797,11 +796,11 @@ def index(
                 rules_dir = Path("rules")
             else:
                 log_error("rules/ directory not found in current directory")
-                raise typer.Exit(code=1)
+                raise typer.Exit(code=1) from None
 
     if not rules_dir.exists():
         log_error(f"Rules directory not found: {rules_dir}")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from None
 
     log_info(f"Using {rules_dir}/ directory")
 
@@ -811,11 +810,11 @@ def index(
         rules = scan_rules(rules_dir)
     except Exception as e:
         log_error(f"Error scanning rules: {e}")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from None
 
     if not rules:
         log_error(f"No rule files found in {rules_dir}")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from None
 
     log_success(f"Found {len(rules)} rule files")
 
@@ -824,7 +823,7 @@ def index(
         content = generate_rules_index(rules)
     except Exception as e:
         log_error(f"Error generating RULES_INDEX.md: {e}")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from None
 
     # Handle modes
     if dry_run:
@@ -848,13 +847,13 @@ def index(
         if not output_path.exists():
             log_error(f"{output_path} does not exist")
             console.print("\n[yellow]Run:[/yellow] ai-rules index")
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=1) from None
 
         try:
             current_content = output_path.read_text(encoding="utf-8")
         except Exception as e:
             log_error(f"Error reading {output_path}: {e}")
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=1) from None
 
         if _normalize_for_check(current_content) == _normalize_for_check(content):
             log_success("RULES_INDEX.md is up-to-date")
@@ -866,7 +865,7 @@ def index(
             console.print()
             console.print("[yellow]Run to update:[/yellow]")
             console.print("  ai-rules index")
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=1) from None
 
     # Write to file
     try:
@@ -875,4 +874,4 @@ def index(
         log_info(f"{len(rules)} rules indexed")
     except Exception as e:
         log_error(f"Error writing {output_path}: {e}")
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=1) from None

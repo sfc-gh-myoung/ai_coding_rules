@@ -12,7 +12,6 @@ from __future__ import annotations
 
 from pathlib import Path
 from textwrap import dedent
-from unittest.mock import MagicMock, patch
 
 import pytest
 from typer.testing import CliRunner
@@ -161,7 +160,7 @@ class TestKeywordsUpdateFlag:
         rule_file = tmp_path / "100-snowflake-core.md"
         rule_file.write_text(SAMPLE_RULE_CONTENT)
 
-        original_content = rule_file.read_text()
+        rule_file.read_text()
 
         result = runner.invoke(app, ["keywords", str(rule_file), "--update"])
 
@@ -313,9 +312,7 @@ class TestKeywordsDebugFlag:
         rule_file = rules_dir / "100-snowflake-core.md"
         rule_file.write_text(SAMPLE_RULE_CONTENT)
 
-        result = runner.invoke(
-            app, ["keywords", str(rule_file), "--corpus", "--debug"]
-        )
+        result = runner.invoke(app, ["keywords", str(rule_file), "--corpus", "--debug"])
 
         assert result.exit_code == 0
         # Debug output should show corpus building info

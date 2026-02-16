@@ -338,9 +338,7 @@ class TestDeployOnlySkills:
         """Test that --only-skills and --skip-skills cannot be used together."""
         monkeypatch.setattr(deploy_module, "find_project_root", lambda: source_project)
 
-        result = runner.invoke(
-            app, ["deploy", str(dest_dir), "--only-skills", "--skip-skills"]
-        )
+        result = runner.invoke(app, ["deploy", str(dest_dir), "--only-skills", "--skip-skills"])
 
         assert result.exit_code == 1
         assert "Cannot use both" in result.output
@@ -581,7 +579,7 @@ class TestDeployCopyFunctions:
     @pytest.mark.unit
     def test_copy_skills(self, source_project: Path, dest_dir: Path):
         """Test copy_skills function."""
-        skills_count, files_copied, failed = deploy_module.copy_skills(
+        skills_count, _files_copied, failed = deploy_module.copy_skills(
             source_project, dest_dir, dry_run=False, verbose=False
         )
 

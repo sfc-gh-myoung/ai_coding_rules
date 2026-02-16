@@ -22,7 +22,7 @@ import typer
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 
-from ai_rules._shared.console import console, log_error, log_info, log_success, log_warning
+from ai_rules._shared.console import console, log_error, log_info, log_success
 
 
 @dataclass
@@ -271,7 +271,9 @@ def _print_detailed_results(analyses: list[TokenBudgetAnalysis]) -> None:
     table.add_column("Status", justify="center")
 
     for analysis in analyses:
-        current_str = f"~{analysis.current_budget}" if analysis.current_budget else "[dim]MISSING[/dim]"
+        current_str = (
+            f"~{analysis.current_budget}" if analysis.current_budget else "[dim]MISSING[/dim]"
+        )
         diff_str = (
             f"{analysis.diff_percentage:+.1f}%"
             if analysis.diff_percentage is not None
@@ -367,7 +369,6 @@ def tokens(
     when the difference exceeds the threshold.
 
     Examples:
-
         # Validate single rule file
         ai-rules tokens rules/100-snowflake-core.md
 
@@ -422,7 +423,9 @@ def tokens(
             raise typer.Exit(1)
 
         console.print()
-        current_str = f"~{analysis.current_budget}" if analysis.current_budget else "[yellow]MISSING[/yellow]"
+        current_str = (
+            f"~{analysis.current_budget}" if analysis.current_budget else "[yellow]MISSING[/yellow]"
+        )
         diff_str = (
             f"{analysis.diff_percentage:+.1f}%"
             if analysis.diff_percentage is not None
@@ -444,7 +447,9 @@ def tokens(
                 )
             else:
                 if updater.update_file(analysis):
-                    log_success(f"Updated TokenBudget: {current_str} → ~{analysis.suggested_budget}")
+                    log_success(
+                        f"Updated TokenBudget: {current_str} → ~{analysis.suggested_budget}"
+                    )
                 else:
                     log_error("Failed to update file")
                     raise typer.Exit(1)

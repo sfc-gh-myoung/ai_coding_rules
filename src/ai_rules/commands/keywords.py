@@ -7,7 +7,6 @@ to suggest 10-15 optimal keywords for the **Keywords:** metadata field.
 from __future__ import annotations
 
 import re
-import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Annotated
@@ -17,7 +16,14 @@ from rich.columns import Columns
 from rich.panel import Panel
 from rich.table import Table
 
-from ai_rules._shared.console import console, err_console, log_error, log_info, log_success, log_warning
+from ai_rules._shared.console import (
+    console,
+    err_console,
+    log_error,
+    log_info,
+    log_success,
+    log_warning,
+)
 
 # Lazy import sklearn to avoid startup penalty
 _TfidfVectorizer = None
@@ -28,6 +34,7 @@ def _get_tfidf_vectorizer():
     global _TfidfVectorizer
     if _TfidfVectorizer is None:
         from sklearn.feature_extraction.text import TfidfVectorizer
+
         _TfidfVectorizer = TfidfVectorizer
     return _TfidfVectorizer
 
@@ -763,9 +770,13 @@ def print_diff_rich(result: ExtractionResult) -> None:
 
     # Summary
     if result.removed:
-        console.print(f"  [red]- Removed ({len(result.removed)}):[/red] {', '.join(sorted(result.removed))}")
+        console.print(
+            f"  [red]- Removed ({len(result.removed)}):[/red] {', '.join(sorted(result.removed))}"
+        )
     if result.added:
-        console.print(f"  [green]+ Added ({len(result.added)}):[/green] {', '.join(sorted(result.added))}")
+        console.print(
+            f"  [green]+ Added ({len(result.added)}):[/green] {', '.join(sorted(result.added))}"
+        )
     if result.kept:
         console.print(f"  [dim]= Kept ({len(result.kept)}):[/dim] {', '.join(sorted(result.kept))}")
 
@@ -781,7 +792,9 @@ def print_suggestions_table(results: list[ExtractionResult]) -> None:
         table.add_row(
             result.file_path.name,
             ", ".join(result.current_keywords) if result.current_keywords else "[dim]None[/dim]",
-            ", ".join(result.suggested_keywords) if result.suggested_keywords else "[dim]None[/dim]",
+            ", ".join(result.suggested_keywords)
+            if result.suggested_keywords
+            else "[dim]None[/dim]",
         )
 
     console.print(table)
@@ -886,7 +899,7 @@ def keywords(
     except ImportError as e:
         log_error(f"Missing dependency: {e}")
         log_info("Install scikit-learn: pip install scikit-learn")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from None
 
     # Process file(s)
     if path.is_file():

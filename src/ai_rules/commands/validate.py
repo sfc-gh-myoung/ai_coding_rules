@@ -21,7 +21,12 @@ from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 
-from ai_rules._shared.console import console, err_console, log_error, log_info, log_success, log_warning
+from ai_rules._shared.console import (
+    console,
+    err_console,
+    log_error,
+    log_info,
+)
 from ai_rules._shared.paths import find_project_root, get_schemas_dir
 
 
@@ -1226,7 +1231,9 @@ class SchemaValidator:
                 continue
 
             color = {"CRITICAL": "red", "HIGH": "yellow", "MEDIUM": "blue", "INFO": "dim"}[severity]
-            console.print(f"\n[{color} bold]{severity} ISSUES ({len(errors_at_level)}):[/{color} bold]")
+            console.print(
+                f"\n[{color} bold]{severity} ISSUES ({len(errors_at_level)}):[/{color} bold]"
+            )
 
             # Group by error_group
             groups: dict[str, list[ValidationError]] = {}
@@ -1649,7 +1656,7 @@ def validate(
         project_root = find_project_root()
     except FileNotFoundError:
         log_error("Could not find project root (no pyproject.toml found)")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from None
 
     # Handle --examples mode separately
     if examples:
@@ -1657,7 +1664,7 @@ def validate(
             example_validator = ExampleValidator(debug=debug, project_root=project_root)
         except Exception as e:
             log_error(f"Error loading example schema: {e}")
-            raise typer.Exit(1)
+            raise typer.Exit(1) from None
 
         # Determine examples directory
         if path.is_dir():
@@ -1665,9 +1672,7 @@ def validate(
         else:
             # Assume rules/examples/ if a file is specified
             examples_dir = (
-                path.parent
-                if "examples" in str(path)
-                else project_root / "rules" / "examples"
+                path.parent if "examples" in str(path) else project_root / "rules" / "examples"
             )
 
         if not examples_dir.exists():
@@ -1699,7 +1704,7 @@ def validate(
         console.print(summary_table)
 
         if failed > 0:
-            raise typer.Exit(1)
+            raise typer.Exit(1) from None
         raise typer.Exit(0)
 
     # Initialize validator for rule files
@@ -1707,7 +1712,7 @@ def validate(
         validator = SchemaValidator(schema_path=schema, debug=debug, project_root=project_root)
     except Exception as e:
         log_error(f"Error loading schema: {e}")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from None
 
     # Validate file or directory
     if path.is_file():
@@ -1719,7 +1724,7 @@ def validate(
         validator.format_result(result, detailed=verbose)
 
         if result.has_critical_or_high or (strict and result.errors):
-            raise typer.Exit(1)
+            raise typer.Exit(1) from None
         raise typer.Exit(0)
 
     elif path.is_dir():
@@ -1763,7 +1768,7 @@ def validate(
             failed = sum(1 for r in results if r.has_critical_or_high)
             warnings = sum(1 for r in results if r.errors and not r.has_critical_or_high)
             if failed > 0 or (strict and warnings > 0):
-                raise typer.Exit(1)
+                raise typer.Exit(1) from None
             raise typer.Exit(0)
 
         # Print individual results only in verbose mode
@@ -1802,19 +1807,23 @@ def validate(
                 console.print("\n[yellow bold]WARNING FILES (showing first 5):[/yellow bold]")
                 warning_results = [r for r in results if r.errors and not r.has_critical_or_high]
                 for i, result in enumerate(warning_results[:5], 1):
-                    console.print(f"  {i}. [yellow]{result.file_path.name}[/yellow] ({result.medium_count} MEDIUM)")
+                    console.print(
+                        f"  {i}. [yellow]{result.file_path.name}[/yellow] ({result.medium_count} MEDIUM)"
+                    )
                 if len(warning_results) > 5:
                     console.print(f"  ... and {len(warning_results) - 5} more")
 
             # Helpful tip for detailed inspection
             if failed > 0 or warnings > 0:
                 console.print()
-                log_info("TIP: Run with --verbose to see detailed reports, or validate individual file")
+                log_info(
+                    "TIP: Run with --verbose to see detailed reports, or validate individual file"
+                )
 
         if failed > 0 or (strict and warnings > 0):
-            raise typer.Exit(1)
+            raise typer.Exit(1) from None
         raise typer.Exit(0)
 
     else:
         log_error(f"{path} is not a file or directory")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from None

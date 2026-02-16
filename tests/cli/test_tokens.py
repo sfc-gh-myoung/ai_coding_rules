@@ -19,7 +19,6 @@ from typer.testing import CliRunner
 from ai_rules.cli import app
 from ai_rules.commands import tokens
 
-
 runner = CliRunner()
 
 
@@ -85,20 +84,22 @@ class TestTokensSingleFile:
         mock_encoding = MagicMock()
         mock_encoding.encode.return_value = [1] * 95  # ~95 tokens, within 5% of 100
 
-        with patch.object(tokens.TokenBudgetUpdater, "__init__", lambda self, config: None):
-            with patch.object(tokens, "TokenBudgetUpdater") as MockUpdater:
-                mock_instance = MagicMock()
-                MockUpdater.return_value = mock_instance
-                mock_instance.analyze_file.return_value = tokens.TokenBudgetAnalysis(
-                    file_path=rule_file,
-                    current_budget=100,
-                    estimated_tokens=95,
-                    suggested_budget=100,
-                    diff_percentage=-5.0,
-                    needs_update=False,
-                )
+        with (
+            patch.object(tokens.TokenBudgetUpdater, "__init__", lambda self, config: None),
+            patch.object(tokens, "TokenBudgetUpdater") as MockUpdater,
+        ):
+            mock_instance = MagicMock()
+            MockUpdater.return_value = mock_instance
+            mock_instance.analyze_file.return_value = tokens.TokenBudgetAnalysis(
+                file_path=rule_file,
+                current_budget=100,
+                estimated_tokens=95,
+                suggested_budget=100,
+                diff_percentage=-5.0,
+                needs_update=False,
+            )
 
-                result = runner.invoke(app, ["tokens", str(rule_file)])
+            result = runner.invoke(app, ["tokens", str(rule_file)])
 
         assert result.exit_code == 0
         assert "No update needed" in result.output or "within threshold" in result.output.lower()

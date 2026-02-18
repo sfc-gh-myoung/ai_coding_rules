@@ -548,7 +548,7 @@ Learn how to write effective prompts that help AI assistants automatically disco
 
 ```
 Task: Fix all Ruff linting errors in Python validation scripts
-Files: scripts/rule_validator.py, scripts/index_generator.py
+Files: src/ai_rules/commands/validate.py, src/ai_rules/commands/index.py
 Errors: 9 total (F841 unused variables, UP037 quoted type annotations)
 ```
 
@@ -573,7 +573,7 @@ You can use these skills in Cursor by telling Cursor to explicitly load the skil
 - Prompt: `Load skills/<skill_name>/SKILL.md`
 
 #### Claude Code
-You can use these skills in Claude Code by deploying the skills to the `.claude/skills` directory, either project or personal locations using the `./dev deploy` command or via filesystem `cp` command.
+You can use these skills in Claude Code by deploying the skills to the `.claude/skills` directory, either project or personal locations using the `make deploy` command or via filesystem `cp` command.
 
 You can also use these skill by telling Claude Code to explicitly load the skill in your prompt.
 - Prompt: `Load skills/<skill_name>/SKILL.md`
@@ -587,7 +587,7 @@ You can also use these skills by telling Cortex Code CLI to explicitly load the 
 
 ### Deployed Skills (Available in Target Projects)
 
-These skills are deployed by default when running `./dev deploy`:
+These skills are deployed by default when running `make deploy`:
 
 **doc-reviewer** — Automate documentation quality reviews
 - **Purpose:** Review documentation files for quality, completeness, and staleness
@@ -694,7 +694,6 @@ ai_coding_rules/
 ├── templates/              ← Source of truth for AGENTS.md variants
 │   ├── AGENTS_MODE.md.template       ← Full PLAN/ACT protocol
 │   └── AGENTS_NO_MODE.md.template    ← Simplified (no-mode) protocol
-├── scripts/                ← Legacy scripts (being migrated to src/ai_rules)
 ├── docs/                   ← Documentation (12 files)
 │   ├── ARCHITECTURE.md         ← System design decisions
 │   ├── MEMORY_BANK.md          ← Memory Bank system
@@ -710,7 +709,7 @@ ai_coding_rules/
 │   ├── plan-reviewer/          ← Review LLM-generated plans
 │   ├── rule-creator/           ← Create new rules (internal)
 │   └── skill-timing/           ← Measure skill performance
-└── Makefile                ← Development commands (replaces ./dev)
+└── Makefile                ← Development commands (make help for full list)
 ```
 
 **Key Concepts:**

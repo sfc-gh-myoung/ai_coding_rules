@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.2
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.0.3
+**LastUpdated:** 2026-02-18
 **LoadTrigger:** kw:changelog, file:CHANGELOG.md
 **Keywords:** CHANGELOG, changelog format, semantic versioning, release notes, conventional commits, Unreleased section, scope patterns, project governance, git workflow, version control
 **TokenBudget:** ~3600

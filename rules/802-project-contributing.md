@@ -153,7 +153,7 @@ git commit -m "docs(readme): update Quick Start with dual-platform git clone"
 ### Anti-Pattern 3: Skipping Validation
 ```bash
 # Bad: Commit without validation
-git add rules/new-rule.md
+git add rules/<your-new-rule>.md
 git commit -m "feat(rule): add new rule"
 git push
 ```
@@ -162,10 +162,10 @@ git push
 **Correct Pattern:**
 ```bash
 # Good: Validate before commit
-vim rules/new-rule.md
+vim rules/<your-new-rule>.md
 task rules:validate  # Ensure compliance
 task lint           # Check code quality
-git add rules/new-rule.md
+git add rules/<your-new-rule>.md
 git commit -m "feat(rule): add new rule"
 ```
 **Benefits:** Catch errors early, ensure governance compliance, pass CI checks

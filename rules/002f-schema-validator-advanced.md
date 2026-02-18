@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-01-13
+**RuleVersion:** v1.0.1
+**LastUpdated:** 2026-02-18
 **Keywords:** schema validator, CI/CD integration, automation workflow, JSON parsing, programmatic validation, pre-commit hooks, GitHub Actions, batch validation, error automation, validation scripts
 **TokenBudget:** ~2650
 **ContextTier:** Medium
@@ -39,7 +39,7 @@ Advanced automation patterns for schema validation including programmatic output
 ### External Documentation
 
 - **Schema Definition:** `schemas/rule-schema.yml` - Authoritative v3.2 schema
-- **Validator Script:** `scripts/schema_validator.py` - Validation implementation
+- **Validator CLI:** `uv run ai-rules validate` - Validation command
 
 ## Contract
 
@@ -52,7 +52,7 @@ Advanced automation patterns for schema validation including programmatic output
 
 ### Mandatory
 
-- `scripts/schema_validator.py`
+- `ai-rules validate` CLI command
 - `schemas/rule-schema.yml`
 - Python 3 with PyYAML
 - CI/CD configuration files
@@ -112,7 +112,7 @@ import json
 import subprocess
 
 result = subprocess.run(
-    ['python3', 'scripts/schema_validator.py', 'rules/', '--json'],
+    ['ai-rules', 'validate', 'rules/', '--json'],
     capture_output=True,
     text=True
 )
@@ -145,7 +145,7 @@ for file_info in data['failed_files']:
   },
   "failed_files": [
     {
-      "path": "rules/bad-rule.md",
+      "path": "rules/<example-rule>.md",
       "critical_count": 2,
       "high_count": 1,
       "medium_count": 0,
@@ -218,7 +218,7 @@ import sys
 def validate_file(file_path):
     """Run validator and return parsed results."""
     result = subprocess.run(
-        ['python3', 'scripts/schema_validator.py', file_path, '--json'],
+        ['ai-rules', 'validate', file_path, '--json'],
         capture_output=True,
         text=True
     )
@@ -287,7 +287,7 @@ if __name__ == '__main__':
 #!/bin/bash
 # .git/hooks/pre-commit
 
-python3 scripts/schema_validator.py rules/
+uv run ai-rules validate rules/
 
 if [ $? -ne 0 ]; then
     echo "[FAIL] Validation failed. Fix errors before committing."
@@ -321,9 +321,9 @@ jobs:
         with:
           python-version: '3.10'
       - name: Install dependencies
-        run: pip install PyYAML
+        run: pip install uv && uv sync
       - name: Validate rules
-        run: python3 scripts/schema_validator.py rules/
+        run: uv run ai-rules validate rules/
 ```
 
 ### GitLab CI Configuration
@@ -333,8 +333,8 @@ validate-rules:
   stage: test
   image: python:3.10
   script:
-    - pip install PyYAML
-    - python3 scripts/schema_validator.py rules/
+    - pip install uv && uv sync
+    - uv run ai-rules validate rules/
   rules:
     - changes:
         - rules/**/*.md
@@ -352,11 +352,11 @@ validate-rules:
 ```yaml
 # BAD
 - name: Validate rules
-  run: python3 scripts/schema_validator.py rules/ || true
+  run: uv run ai-rules validate rules/ || true
 
 # GOOD
 - name: Validate rules
-  run: python3 scripts/schema_validator.py rules/
+  run: uv run ai-rules validate rules/
   # No error suppression - fix rules before merging
 ```
 
@@ -391,7 +391,7 @@ else:
 **Correct Pattern:**
 ```bash
 # Track warnings over time
-python3 scripts/schema_validator.py rules/ --json | jq '.summary'
+uv run ai-rules validate rules/ --json | jq '.summary'
 # Schedule cleanup sprints: target <10 MEDIUM across all rules
 ```
 

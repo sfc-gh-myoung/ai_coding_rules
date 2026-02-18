@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.2.3
-**LastUpdated:** 2026-02-06
+**RuleVersion:** v3.2.4
+**LastUpdated:** 2026-02-18
 **Keywords:** rule governance, schema, metadata requirements, validation, schema compliance, rule structure, semantic discovery, RULES_INDEX, descriptive headings, design priorities, agent optimization
 **TokenBudget:** ~6200
 **ContextTier:** Critical
@@ -26,7 +26,7 @@ Schema standards (v3.2) for AI coding rule files. Defines required sections, met
 - Updating existing rules (also load 002b-rule-update.md for versioning)
 - Reviewing rule compliance
 - Understanding schema validation requirements
-- Working with schema_validator.py
+- Working with `ai-rules validate`
 
 ## References
 
@@ -60,7 +60,7 @@ Schema standards (v3.2) for AI coding rule files. Defines required sections, met
 ### Mandatory
 
 - Text editor
-- `schema_validator.py` script
+- `ai-rules validate` CLI command
 - Access to existing `rules/` directory
 - `schemas/rule-schema.yml` file (v3.2)
 
@@ -83,7 +83,7 @@ Schema standards (v3.2) for AI coding rule files. Defines required sections, met
 5. Write required sections in order: Scope, References, Contract, Anti-Patterns (optional)
 6. Add Contract section with Markdown subsections (###): Inputs and Prerequisites, Mandatory, Forbidden, Execution Steps, Output Format, Validation, Design Principles, Post-Execution Checklist
 7. Use descriptive section names (not numbered: "## Environment Setup" not "## 1. Environment Setup")
-8. Validate with `schema_validator.py` before committing
+8. Validate with `ai-rules validate` before committing
 
 ### Output Format
 
@@ -102,10 +102,10 @@ Markdown file (.md) with:
 - Contract has Markdown subsections (###), not XML tags
 - No numbered section headings
 - Keywords count is 5-20 terms (semantic and discoverable)
-- schema_validator.py ready to run
+- schema validation ready to run
 
 **Success Criteria:**
-- `python3 scripts/schema_validator.py rules/NNN-rule.md` returns zero CRITICAL errors
+- `uv run ai-rules validate rules/<your-rule>.md` returns zero CRITICAL errors
 - All metadata fields parse correctly
 - All required sections found in correct order
 - Contract Markdown subsections validated successfully
@@ -123,7 +123,7 @@ Markdown file (.md) with:
 
 **Error Recovery:**
 - **Permission denied on rules/:** Report error, suggest checking file permissions or running as different user
-- **Validator script not found:** Check scripts/ directory exists, offer to create from schema
+- **Validator script not found:** Check `uv run ai-rules validate` is available, offer to install CLI
 - **Schema file missing:** Report which schema version expected, provide path to download/create
 
 ### Post-Execution Checklist
@@ -134,7 +134,7 @@ Markdown file (.md) with:
 - [ ] Contract section uses Markdown headers (###), not XML tags
 - [ ] No numbered section headings (## 1., ## 2., etc.)
 - [ ] Keywords count is 5-20 terms (semantic and discoverable)
-- [ ] schema_validator.py runs with 0 CRITICAL errors
+- [ ] `uv run ai-rules validate` runs with 0 CRITICAL errors
 - [ ] TokenBudget reflects actual file size (±10% acceptable)
 - [ ] File added to RULES_INDEX.md with keywords
 - [ ] Dependencies declared in Depends metadata
@@ -233,10 +233,10 @@ See `002e-schema-validator-usage.md` for complete validation commands, options, 
 Quick reference:
 ```bash
 # Validate single file
-python3 scripts/schema_validator.py rules/NNN-rule.md
+uv run ai-rules validate rules/<your-rule>.md
 
 # Validate all rules
-python3 scripts/schema_validator.py rules/
+uv run ai-rules validate rules/
 ```
 
 ### Success Criteria
@@ -261,15 +261,12 @@ python3 scripts/schema_validator.py rules/
 
 ### Validator Not Available
 
-If schema_validator.py fails or is not found:
+If `ai-rules validate` fails or is not found:
 
 **Option 1: Install Dependencies**
 ```bash
 # Using uv (recommended)
 uv sync
-
-# Or using pip
-pip install -r requirements.txt
 ```
 
 **Option 2: Manual Verification**
@@ -443,17 +440,17 @@ All rule files MUST follow [CommonMark specification](https://spec.commonmark.or
 
 ```bash
 # Create new rule file
-vim rules/NNN-new-rule.md
+vim rules/<your-new-rule>.md
 
 # Fill metadata and all required sections
 # Update: Keywords, TokenBudget, ContextTier, Depends
 
 # Validate
-python3 scripts/schema_validator.py rules/NNN-new-rule.md
+uv run ai-rules validate rules/<your-new-rule>.md
 
 # Expected output (success):
 ================================================================================
-VALIDATION REPORT: rules/NNN-new-rule.md
+VALIDATION REPORT: rules/<your-new-rule>.md
 ================================================================================
 [PASS] Passed: 458 checks
 
@@ -627,7 +624,7 @@ Benefits: Specific extension + domain keywords
 When you add LoadTrigger to a rule, it automatically appears in `RULES_INDEX.md` after running:
 
 ```bash
-python3 scripts/index_generator.py
+uv run ai-rules index generate
 ```
 
 The index organizes rules by trigger type:
@@ -645,8 +642,8 @@ The index organizes rules by trigger type:
 
 **After adding LoadTrigger:**
 
-1. Regenerate index: `python3 scripts/index_generator.py`
-2. Validate references: `uv run python scripts/validate_index_references.py --index-path rules/RULES_INDEX.md`
+1. Regenerate index: `uv run ai-rules index generate`
+2. Validate references: `uv run ai-rules refs check`
 3. Run tests: `uv run pytest --tb=short -q`
 4. Check formatting: `uvx ruff check .`
 

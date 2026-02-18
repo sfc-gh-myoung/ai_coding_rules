@@ -76,17 +76,17 @@ class TestIndexHelp:
         """Test --help shows command description."""
         result = runner.invoke(app, ["index", "--help"])
         assert result.exit_code == 0
-        assert "Generate RULES_INDEX.md" in result.output
-        assert "--check" in result.output
-        assert "--dry-run" in result.output
-        assert "--rules-dir" in result.output
+        assert "Generate and check" in result.output
+        assert "generate" in result.output
+        assert "check" in result.output
 
     @pytest.mark.unit
     def test_help_shows_examples(self):
-        """Test --help includes usage examples."""
+        """Test --help includes subcommand names."""
         result = runner.invoke(app, ["index", "--help"])
         assert result.exit_code == 0
-        assert "ai-rules index" in result.output
+        assert "generate" in result.output
+        assert "check" in result.output
 
 
 class TestIndexHappyPath:
@@ -104,7 +104,7 @@ class TestIndexHappyPath:
         monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
 
         # Act
-        result = runner.invoke(app, ["index", "--rules-dir", str(rules_dir)])
+        result = runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
 
         # Assert
         assert result.exit_code == 0
@@ -133,7 +133,7 @@ class TestIndexHappyPath:
         monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
 
         # Act
-        result = runner.invoke(app, ["index", "--rules-dir", str(rules_dir)])
+        result = runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
 
         # Assert
         assert result.exit_code == 0
@@ -159,7 +159,7 @@ class TestIndexHappyPath:
         monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
 
         # Act
-        result = runner.invoke(app, ["index", "--rules-dir", str(rules_dir)])
+        result = runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
 
         # Assert
         assert result.exit_code == 0
@@ -182,10 +182,10 @@ class TestIndexCheckMode:
         monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
 
         # First, generate the index
-        runner.invoke(app, ["index", "--rules-dir", str(rules_dir)])
+        runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
 
         # Act - run check
-        result = runner.invoke(app, ["index", "--check", "--rules-dir", str(rules_dir)])
+        result = runner.invoke(app, ["index", "check", "--rules-dir", str(rules_dir)])
 
         # Assert
         assert result.exit_code == 0
@@ -206,7 +206,7 @@ class TestIndexCheckMode:
         monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
 
         # Act
-        result = runner.invoke(app, ["index", "--check", "--rules-dir", str(rules_dir)])
+        result = runner.invoke(app, ["index", "check", "--rules-dir", str(rules_dir)])
 
         # Assert
         assert result.exit_code == 1
@@ -223,7 +223,7 @@ class TestIndexCheckMode:
         monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
 
         # Act
-        result = runner.invoke(app, ["index", "--check", "--rules-dir", str(rules_dir)])
+        result = runner.invoke(app, ["index", "check", "--rules-dir", str(rules_dir)])
 
         # Assert
         assert result.exit_code == 1
@@ -244,7 +244,7 @@ class TestIndexCheckMode:
         monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
 
         # Act
-        result = runner.invoke(app, ["index", "--check", "--rules-dir", str(rules_dir)])
+        result = runner.invoke(app, ["index", "check", "--rules-dir", str(rules_dir)])
 
         # Assert
         assert result.exit_code == 1
@@ -266,7 +266,9 @@ class TestIndexDryRun:
         monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
 
         # Act
-        result = runner.invoke(app, ["index", "--dry-run", "--rules-dir", str(rules_dir)])
+        result = runner.invoke(
+            app, ["index", "generate", "--dry-run", "--rules-dir", str(rules_dir)]
+        )
 
         # Assert
         assert result.exit_code == 0
@@ -285,7 +287,9 @@ class TestIndexDryRun:
         monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
 
         # Act
-        result = runner.invoke(app, ["index", "--dry-run", "--rules-dir", str(rules_dir)])
+        result = runner.invoke(
+            app, ["index", "generate", "--dry-run", "--rules-dir", str(rules_dir)]
+        )
 
         # Assert
         assert result.exit_code == 0
@@ -304,7 +308,7 @@ class TestIndexDryRun:
         monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
 
         # Act
-        result = runner.invoke(app, ["index", "-n", "--rules-dir", str(rules_dir)])
+        result = runner.invoke(app, ["index", "generate", "-n", "--rules-dir", str(rules_dir)])
 
         # Assert
         assert result.exit_code == 0
@@ -326,7 +330,7 @@ class TestIndexRulesDir:
         monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
 
         # Act
-        result = runner.invoke(app, ["index", "--rules-dir", str(custom_rules)])
+        result = runner.invoke(app, ["index", "generate", "--rules-dir", str(custom_rules)])
 
         # Assert
         assert result.exit_code == 0
@@ -346,7 +350,7 @@ class TestIndexRulesDir:
         monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
 
         # Act - no --rules-dir specified
-        result = runner.invoke(app, ["index"])
+        result = runner.invoke(app, ["index", "generate"])
 
         # Assert
         assert result.exit_code == 0
@@ -365,7 +369,7 @@ class TestIndexErrorCases:
         monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
 
         # Act
-        result = runner.invoke(app, ["index", "--rules-dir", str(missing_dir)])
+        result = runner.invoke(app, ["index", "generate", "--rules-dir", str(missing_dir)])
 
         # Assert
         assert result.exit_code == 1
@@ -382,7 +386,7 @@ class TestIndexErrorCases:
         monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
 
         # Act
-        result = runner.invoke(app, ["index", "--rules-dir", str(rules_dir)])
+        result = runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
 
         # Assert
         assert result.exit_code == 1
@@ -401,7 +405,7 @@ class TestIndexErrorCases:
         monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
 
         # Act
-        result = runner.invoke(app, ["index", "--rules-dir", str(rules_dir)])
+        result = runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
 
         # Assert
         assert result.exit_code == 0
@@ -423,7 +427,7 @@ class TestIndexMetadataExtraction:
         monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
 
         # Act
-        result = runner.invoke(app, ["index", "--rules-dir", str(rules_dir)])
+        result = runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
 
         # Assert
         assert result.exit_code == 0
@@ -442,7 +446,7 @@ class TestIndexMetadataExtraction:
         monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
 
         # Act
-        result = runner.invoke(app, ["index", "--rules-dir", str(rules_dir)])
+        result = runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
 
         # Assert
         assert result.exit_code == 0
@@ -461,7 +465,7 @@ class TestIndexMetadataExtraction:
         monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
 
         # Act
-        result = runner.invoke(app, ["index", "--rules-dir", str(rules_dir)])
+        result = runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
 
         # Assert
         assert result.exit_code == 0
@@ -494,7 +498,7 @@ class TestIndexMetadataExtraction:
         monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
 
         # Act
-        result = runner.invoke(app, ["index", "--rules-dir", str(rules_dir)])
+        result = runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
 
         # Assert
         assert result.exit_code == 0
@@ -517,7 +521,7 @@ class TestIndexLoadTriggers:
         monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
 
         # Act
-        result = runner.invoke(app, ["index", "--rules-dir", str(rules_dir)])
+        result = runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
 
         # Assert
         assert result.exit_code == 0
@@ -536,7 +540,7 @@ class TestIndexLoadTriggers:
         monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
 
         # Act
-        result = runner.invoke(app, ["index", "--rules-dir", str(rules_dir)])
+        result = runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
 
         # Assert
         assert result.exit_code == 0
@@ -560,7 +564,7 @@ class TestIndexDomainGrouping:
         monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
 
         # Act
-        result = runner.invoke(app, ["index", "--rules-dir", str(rules_dir)])
+        result = runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
 
         # Assert
         assert result.exit_code == 0
@@ -597,7 +601,7 @@ class TestIndexDomainGrouping:
         monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
 
         # Act
-        result = runner.invoke(app, ["index", "--rules-dir", str(rules_dir)])
+        result = runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
 
         # Assert
         assert result.exit_code == 0
@@ -610,3 +614,497 @@ class TestIndexDomainGrouping:
         assert pos_200 < pos_201, (
             f"200 should come before 201 in catalog (200 at {pos_200}, 201 at {pos_201})"
         )
+
+
+# ============================================================================
+# extract_scope_from_content edge cases (lines 85, 98, 109-117)
+# ============================================================================
+
+
+class TestExtractScopeEdgeCases:
+    """Test extract_scope_from_content edge cases."""
+
+    @pytest.mark.unit
+    def test_scope_hits_next_section(self):
+        """Test scope extraction stops at next ## heading."""
+        content = dedent("""\
+            ## Scope
+
+            ## Next Section
+            This is a different section.
+        """)
+
+        result = index_module.extract_scope_from_content(content)
+
+        assert result == "No scope provided"
+
+    @pytest.mark.unit
+    def test_scope_marker_content_on_same_line(self):
+        """Test scope with content on same line as marker."""
+        content = dedent("""\
+            ## Scope
+
+            **What This Rule Covers:** Inline scope description here.
+        """)
+
+        result = index_module.extract_scope_from_content(content)
+
+        assert result == "Inline scope description here."
+
+    @pytest.mark.unit
+    def test_scope_marker_content_on_next_line(self):
+        """Test scope with content on next line after marker."""
+        content = dedent("""\
+            ## Scope
+
+            **What This Rule Covers:**
+            Content on next line after marker.
+        """)
+
+        result = index_module.extract_scope_from_content(content)
+
+        assert result == "Content on next line after marker."
+
+    @pytest.mark.unit
+    def test_scope_marker_no_content(self):
+        """Test scope with marker but no content following."""
+        content = dedent("""\
+            ## Scope
+
+            **What This Rule Covers:**
+            **Another Bold Field:** something
+        """)
+
+        result = index_module.extract_scope_from_content(content)
+
+        # Marker found but no plain text content follows
+        assert result == "No scope provided"
+
+    @pytest.mark.unit
+    def test_scope_plain_text_format(self):
+        """Test scope with plain text (no marker) after ## Scope."""
+        content = dedent("""\
+            ## Scope
+
+            This rule covers plain text scope.
+        """)
+
+        result = index_module.extract_scope_from_content(content)
+
+        assert result == "This rule covers plain text scope."
+
+    @pytest.mark.unit
+    def test_scope_not_found(self):
+        """Test when no ## Scope heading exists."""
+        content = "# Title\n\nSome content without scope section.\n"
+
+        result = index_module.extract_scope_from_content(content)
+
+        assert result == "No scope provided"
+
+
+# ============================================================================
+# extract_metadata edge cases (lines 138-139, 189)
+# ============================================================================
+
+
+class TestExtractMetadataEdgeCases:
+    """Test extract_metadata error paths."""
+
+    @pytest.mark.unit
+    def test_extract_metadata_read_failure(self, tmp_path: Path):
+        """Test extract_metadata raises ValueError on read failure."""
+        nonexistent = tmp_path / "nonexistent.md"
+
+        with pytest.raises(ValueError, match="Failed to read"):
+            index_module.extract_metadata(nonexistent)
+
+    @pytest.mark.unit
+    def test_extract_metadata_missing_scope_warning(self, tmp_path: Path):
+        """Test extract_metadata warns about missing scope."""
+        rule_file = tmp_path / "000-test.md"
+        rule_file.write_text(
+            dedent("""\
+            # 000-test: Test Rule
+
+            ## Metadata
+
+            **Keywords:** test, example
+            **Depends:** None
+        """)
+        )
+
+        metadata = index_module.extract_metadata(rule_file)
+
+        # Should still return metadata, scope defaults to "No scope provided"
+        assert metadata.scope == "No scope provided"
+        assert metadata.keywords == "test, example"
+
+    @pytest.mark.unit
+    def test_extract_metadata_with_load_trigger(self, tmp_path: Path):
+        """Test extract_metadata parses LoadTrigger field."""
+        rule_file = tmp_path / "200-test.md"
+        rule_file.write_text(
+            dedent("""\
+            # 200-test: Python Test
+
+            ## Metadata
+
+            **Keywords:** python
+            **Depends:** None
+            **LoadTrigger:** ext:.py, file:pyproject.toml
+
+            ## Scope
+
+            Python test rule.
+        """)
+        )
+
+        metadata = index_module.extract_metadata(rule_file)
+
+        assert metadata.load_trigger == "ext:.py, file:pyproject.toml"
+
+
+# ============================================================================
+# scan_rules edge cases (lines 230, 236-241)
+# ============================================================================
+
+
+class TestScanRulesEdgeCases:
+    """Test scan_rules edge cases."""
+
+    @pytest.mark.unit
+    def test_scan_rules_skips_examples_directory(self, tmp_path: Path):
+        """Test scan_rules skips files in examples/ subdirectory."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "000-test.md").write_text(SAMPLE_RULE_CONTENT)
+
+        examples_dir = rules_dir / "examples"
+        examples_dir.mkdir()
+        (examples_dir / "example.md").write_text("# Example\n**Keywords:** example\n")
+
+        rules = index_module.scan_rules(rules_dir)
+
+        assert len(rules) == 1
+        assert rules[0].filename == "000-test.md"
+
+    @pytest.mark.unit
+    def test_scan_rules_handles_value_error(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        """Test scan_rules handles ValueError from extract_metadata."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "000-good.md").write_text(SAMPLE_RULE_CONTENT)
+        (rules_dir / "100-bad.md").write_text("# Bad\n**Keywords:** test\n")
+
+        original_extract = index_module.extract_metadata
+
+        def patched_extract(filepath):
+            if "100-bad" in str(filepath):
+                raise ValueError("Test error")
+            return original_extract(filepath)
+
+        monkeypatch.setattr(index_module, "extract_metadata", patched_extract)
+
+        rules = index_module.scan_rules(rules_dir)
+
+        # Should only have the good rule
+        assert len(rules) == 1
+
+    @pytest.mark.unit
+    def test_scan_rules_handles_generic_exception(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ):
+        """Test scan_rules handles generic Exception from extract_metadata."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "000-good.md").write_text(SAMPLE_RULE_CONTENT)
+        (rules_dir / "100-broken.md").write_text("# Broken\n**Keywords:** test\n")
+
+        original_extract = index_module.extract_metadata
+
+        def patched_extract(filepath):
+            if "100-broken" in str(filepath):
+                raise RuntimeError("Unexpected error")
+            return original_extract(filepath)
+
+        monkeypatch.setattr(index_module, "extract_metadata", patched_extract)
+
+        rules = index_module.scan_rules(rules_dir)
+
+        assert len(rules) == 1
+
+
+# ============================================================================
+# parse_load_triggers (lines 431, 434-437)
+# ============================================================================
+
+
+class TestParseLoadTriggersEdgeCases:
+    """Test parse_load_triggers with all trigger types."""
+
+    @pytest.mark.unit
+    def test_all_trigger_types(self):
+        """Test parsing dir:, ext:, file:, and kw: triggers."""
+        rules = [
+            index_module.RuleMetadata(
+                filename="100-test.md",
+                filepath=Path("100-test.md"),
+                keywords="test",
+                depends="—",
+                scope="Test",
+                load_trigger="dir:skills/, ext:.py, file:Dockerfile, kw:test",
+            ),
+        ]
+
+        dir_t, ext_t, file_t, kw_t = index_module.parse_load_triggers(rules)
+
+        assert dir_t == {"skills/": "100-test.md"}
+        assert ext_t == {".py": "100-test.md"}
+        assert file_t == {"Dockerfile": "100-test.md"}
+        assert kw_t == {"test": "100-test.md"}
+
+    @pytest.mark.unit
+    def test_no_load_trigger(self):
+        """Test rules without load_trigger are skipped."""
+        rules = [
+            index_module.RuleMetadata(
+                filename="000-test.md",
+                filepath=Path("000-test.md"),
+                keywords="test",
+                depends="—",
+                scope="Test",
+                load_trigger=None,
+            ),
+        ]
+
+        dir_t, ext_t, file_t, kw_t = index_module.parse_load_triggers(rules)
+
+        assert dir_t == {}
+        assert ext_t == {}
+        assert file_t == {}
+        assert kw_t == {}
+
+
+# ============================================================================
+# generate_loading_strategy edge cases (lines 460, 469, 480, 484-485)
+# ============================================================================
+
+
+class TestGenerateLoadingStrategyEdgeCases:
+    """Test generate_loading_strategy with various trigger combinations."""
+
+    @pytest.mark.unit
+    def test_no_triggers_defined(self):
+        """Test loading strategy with no triggers at all."""
+        rules = [
+            index_module.RuleMetadata(
+                filename="000-test.md",
+                filepath=Path("000-test.md"),
+                keywords="test",
+                depends="—",
+                scope="Test",
+                load_trigger=None,
+            ),
+        ]
+
+        result = index_module.generate_loading_strategy(rules)
+
+        assert "No directory-based triggers defined" in result
+        assert "No extension-based triggers defined" in result
+        assert "No keyword-based triggers defined" in result
+
+    @pytest.mark.unit
+    def test_with_dir_and_kw_triggers(self):
+        """Test loading strategy with dir and keyword triggers."""
+        rules = [
+            index_module.RuleMetadata(
+                filename="100-test.md",
+                filepath=Path("100-test.md"),
+                keywords="test",
+                depends="—",
+                scope="Test",
+                load_trigger="dir:skills/, kw:testing, kw:pytest",
+            ),
+        ]
+
+        result = index_module.generate_loading_strategy(rules)
+
+        assert "skills/" in result
+        assert "testing" in result
+        assert "pytest" in result
+
+    @pytest.mark.unit
+    def test_with_file_triggers(self):
+        """Test loading strategy with file: triggers grouped with ext:."""
+        rules = [
+            index_module.RuleMetadata(
+                filename="350-docker.md",
+                filepath=Path("350-docker.md"),
+                keywords="docker",
+                depends="—",
+                scope="Docker",
+                load_trigger="file:Dockerfile, ext:.dockerfile",
+            ),
+        ]
+
+        result = index_module.generate_loading_strategy(rules)
+
+        assert "Dockerfile" in result
+        assert ".dockerfile" in result
+
+
+# ============================================================================
+# _show_diff edge cases (lines 723, 738)
+# ============================================================================
+
+
+class TestShowDiffEdgeCases:
+    """Test _show_diff function."""
+
+    @pytest.mark.unit
+    def test_show_diff_no_differences(self):
+        """Test _show_diff with identical content (no diff)."""
+        content = "# Same Content\nLine 1\nLine 2\n"
+
+        # Should not raise
+        index_module._show_diff(content, content)
+
+    @pytest.mark.unit
+    def test_show_diff_large_diff_truncated(self):
+        """Test _show_diff truncates output for large diffs."""
+        current = "\n".join([f"old line {i}" for i in range(200)])
+        generated = "\n".join([f"new line {i}" for i in range(200)])
+
+        # Should not raise (truncation at 100 lines)
+        index_module._show_diff(current, generated)
+
+
+# ============================================================================
+# index CLI fallback and error paths (lines 793-799, 811-813, 824-826, 854-856, 875-877)
+# ============================================================================
+
+
+class TestIndexCLIEdgeCases:
+    """Test index CLI command error paths."""
+
+    @pytest.mark.unit
+    def test_fallback_to_cwd_rules_dir(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        """Test fallback to cwd rules/ when project root not found."""
+        # Create rules/ in tmp_path
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "000-test.md").write_text(SAMPLE_RULE_CONTENT)
+
+        def raise_not_found():
+            raise FileNotFoundError("No project root")
+
+        monkeypatch.setattr(index_module, "find_project_root", raise_not_found)
+        monkeypatch.chdir(tmp_path)
+
+        result = runner.invoke(app, ["index", "generate"])
+
+        assert result.exit_code == 0
+
+    @pytest.mark.unit
+    def test_fallback_no_rules_dir_anywhere(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        """Test error when neither project root nor cwd has rules/."""
+
+        def raise_not_found():
+            raise FileNotFoundError("No project root")
+
+        monkeypatch.setattr(index_module, "find_project_root", raise_not_found)
+        monkeypatch.chdir(tmp_path)  # tmp_path has no rules/
+
+        result = runner.invoke(app, ["index", "generate"])
+
+        assert result.exit_code == 1
+        assert "not found" in result.output
+
+    @pytest.mark.unit
+    def test_scan_rules_exception(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        """Test index CLI handles scan_rules exception."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "000-test.md").write_text(SAMPLE_RULE_CONTENT)
+
+        monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
+
+        def raising_scan(path):
+            raise RuntimeError("Scan failed")
+
+        monkeypatch.setattr(index_module, "scan_rules", raising_scan)
+
+        result = runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
+
+        assert result.exit_code == 1
+        assert "Error scanning" in result.output
+
+    @pytest.mark.unit
+    def test_generate_rules_index_exception(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        """Test index CLI handles generate_rules_index exception."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "000-test.md").write_text(SAMPLE_RULE_CONTENT)
+
+        monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
+
+        def raising_generate(rules):
+            raise RuntimeError("Generation failed")
+
+        monkeypatch.setattr(index_module, "generate_rules_index", raising_generate)
+
+        result = runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
+
+        assert result.exit_code == 1
+        assert "Error generating" in result.output
+
+    @pytest.mark.unit
+    def test_check_mode_read_exception(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        """Test --check handles read exception on existing file."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "000-test.md").write_text(SAMPLE_RULE_CONTENT)
+        # Create index file but make it unreadable
+        index_file = rules_dir / "RULES_INDEX.md"
+        index_file.write_text("# Index\n")
+
+        monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
+
+        # Patch read_text to raise
+        original_read_text = Path.read_text
+
+        def failing_read_text(self, **kwargs):
+            if self.name == "RULES_INDEX.md":
+                raise PermissionError("Permission denied")
+            return original_read_text(self, **kwargs)
+
+        monkeypatch.setattr(Path, "read_text", failing_read_text)
+
+        result = runner.invoke(app, ["index", "check", "--rules-dir", str(rules_dir)])
+
+        assert result.exit_code == 1
+        assert "Error reading" in result.output
+
+    @pytest.mark.unit
+    def test_write_exception(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        """Test index CLI handles write exception."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "000-test.md").write_text(SAMPLE_RULE_CONTENT)
+
+        monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
+
+        original_write_text = Path.write_text
+
+        def failing_write_text(self, content, **kwargs):
+            if self.name == "RULES_INDEX.md":
+                raise PermissionError("Permission denied")
+            return original_write_text(self, content, **kwargs)
+
+        monkeypatch.setattr(Path, "write_text", failing_write_text)
+
+        result = runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
+
+        assert result.exit_code == 1
+        assert "Error writing" in result.output

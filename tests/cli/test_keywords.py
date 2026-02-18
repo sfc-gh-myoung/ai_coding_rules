@@ -521,3 +521,310 @@ class TestConstantSets:
         """Test COMPOUND_TERMS has expected mappings."""
         assert keywords_module.COMPOUND_TERMS["session state"] == "session_state"
         assert keywords_module.COMPOUND_TERMS["dynamic table"] == "dynamic_table"
+
+
+class TestKeywordCandidateEdgeCases:
+    """Test KeywordCandidate edge cases."""
+
+    @pytest.mark.unit
+    def test_not_equal_to_non_candidate(self):
+        """Test KeywordCandidate.__eq__ returns False for non-KeywordCandidate objects (line 308)."""
+        c = keywords_module.KeywordCandidate(term="snowflake", score=1.0, source="test")
+        assert c != "snowflake"
+        assert c != 42
+        assert c != None  # noqa: E711
+
+
+class TestBuildCorpusEdgeCases:
+    """Test _build_corpus edge cases."""
+
+    @pytest.mark.unit
+    def test_corpus_dir_does_not_exist(self, tmp_path: Path):
+        """Test _build_corpus returns early when corpus_dir doesn't exist (line 368)."""
+        nonexistent = tmp_path / "nonexistent"
+        extractor = keywords_module.KeywordExtractor(corpus_dir=nonexistent, debug=False)
+        # Should not crash; corpus_docs should be empty
+        assert len(extractor.corpus_docs) == 0
+
+    @pytest.mark.unit
+    def test_corpus_skips_skip_files(self, tmp_path: Path):
+        """Test _build_corpus skips files in SKIP_FILES (line 375)."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "README.md").write_text("# README")
+        (rules_dir / "100-valid-rule.md").write_text("# Valid Rule\n\nSome content here.")
+
+        extractor = keywords_module.KeywordExtractor(corpus_dir=rules_dir, debug=False)
+        # Only the valid rule should be in corpus
+        assert len(extractor.corpus_docs) == 1
+
+    @pytest.mark.unit
+    def test_corpus_skips_examples_directory(self, tmp_path: Path):
+        """Test _build_corpus skips files in examples/ subdirectory (line 378)."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        examples_dir = rules_dir / "examples"
+        examples_dir.mkdir()
+        (examples_dir / "100-example.md").write_text("# Example")
+        (rules_dir / "100-valid-rule.md").write_text("# Valid Rule\n\nContent.")
+
+        extractor = keywords_module.KeywordExtractor(corpus_dir=rules_dir, debug=False)
+        assert len(extractor.corpus_docs) == 1
+
+    @pytest.mark.unit
+    def test_corpus_handles_read_exception(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        """Test _build_corpus handles exception reading a file (lines 386-387)."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "100-valid.md").write_text("# Valid content")
+
+        original_read = Path.read_text
+
+        def failing_read(self, *args, **kwargs):
+            if "100-valid.md" in str(self):
+                raise PermissionError("denied")
+            return original_read(self, *args, **kwargs)
+
+        monkeypatch.setattr(Path, "read_text", failing_read)
+
+        # Should not crash, just skip the file
+        extractor = keywords_module.KeywordExtractor(corpus_dir=rules_dir, debug=True)
+        assert len(extractor.corpus_docs) == 0
+
+
+class TestExtractHeadersEdgeCases:
+    """Test header extraction edge cases."""
+
+    @pytest.mark.unit
+    def test_header_words_filtered_by_stop_terms(self, tmp_path: Path):
+        """Test that stop terms in headers are excluded (line 466)."""
+        extractor = keywords_module.KeywordExtractor()
+        rule_file = tmp_path / "100-test.md"
+        # "data" and "code" and "should" are in STOP_TERMS
+        rule_file.write_text(
+            "# 100-test: Test Rule\n\n"
+            "## Metadata\n\n"
+            "**Keywords:** test\n\n"
+            "## Data Code Should\n\n"
+            "## Snowflake Integration\n\n"
+            "Some content about snowflake integration."
+        )
+
+        result = extractor.suggest_keywords(rule_file, count=20)
+        candidate_terms = [c.term.lower() for c in result.candidates if c.source == "header"]
+        # "snowflake" and "integration" should be present from the non-stop-terms header
+        assert "snowflake" in candidate_terms or "integration" in candidate_terms
+
+
+class TestExtractEmphasizedTermsEdgeCases:
+    """Test emphasized term extraction edge cases."""
+
+    @pytest.mark.unit
+    def test_bold_terms_extracted(self, tmp_path: Path):
+        """Test bold terms are extracted as candidates (lines 523-526)."""
+        extractor = keywords_module.KeywordExtractor()
+        rule_file = tmp_path / "100-test.md"
+        rule_file.write_text(
+            "# 100-test: Test Rule\n\n"
+            "## Metadata\n\n"
+            "**Keywords:** test\n\n"
+            "## Content\n\n"
+            "Use **Snowpark** for data processing.\n"
+            "The **streaming** approach is recommended.\n"
+        )
+
+        result = extractor.suggest_keywords(rule_file, count=20)
+        candidate_terms = [c.term.lower() for c in result.candidates if c.source == "emphasis"]
+        assert "snowpark" in candidate_terms or "streaming" in candidate_terms
+
+    @pytest.mark.unit
+    def test_backtick_terms_skip_file_extensions(self, tmp_path: Path):
+        """Test backtick terms with file extensions are skipped (line 537)."""
+        extractor = keywords_module.KeywordExtractor()
+        rule_file = tmp_path / "100-test.md"
+        rule_file.write_text(
+            "# 100-test: Test Rule\n\n"
+            "## Metadata\n\n"
+            "**Keywords:** test\n\n"
+            "## Content\n\n"
+            "Edit `config.py` and `schema.yml` files.\n"
+            "Use `pytest` for testing.\n"
+        )
+
+        result = extractor.suggest_keywords(rule_file, count=20)
+        emphasis_terms = [c.term.lower() for c in result.candidates if c.source == "emphasis"]
+        # config.py and schema.yml should be filtered out, pytest should be kept
+        assert "config.py" not in emphasis_terms
+        assert "schema.yml" not in emphasis_terms
+
+    @pytest.mark.unit
+    def test_backtick_stop_terms_filtered(self, tmp_path: Path):
+        """Test backtick terms in STOP_TERMS are filtered (line 539)."""
+        extractor = keywords_module.KeywordExtractor()
+        rule_file = tmp_path / "100-test.md"
+        rule_file.write_text(
+            "# 100-test: Test Rule\n\n"
+            "## Metadata\n\n"
+            "**Keywords:** test\n\n"
+            "## Content\n\n"
+            "The `data` field and `code` block.\n"
+        )
+
+        result = extractor.suggest_keywords(rule_file, count=20)
+        emphasis_terms = [c.term.lower() for c in result.candidates if c.source == "emphasis"]
+        assert "data" not in emphasis_terms
+        assert "code" not in emphasis_terms
+
+
+class TestExtractTfidfEdgeCases:
+    """Test TF-IDF extraction edge cases."""
+
+    @pytest.mark.unit
+    def test_tfidf_document_not_in_corpus(self, tmp_path: Path):
+        """Test TF-IDF for document not in corpus (lines 574-577)."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        # Create corpus with one file
+        (rules_dir / "100-core.md").write_text(
+            "# 100-core: Core Rule\n\n## Content\n\nSnowflake SQL best practices."
+        )
+
+        # Create a separate file NOT in the corpus dir
+        other_file = tmp_path / "200-other.md"
+        other_file.write_text(
+            "# 200-other: Other Rule\n\n"
+            "## Metadata\n\n"
+            "**Keywords:** python\n\n"
+            "## Content\n\n"
+            "Python pytest testing automation framework."
+        )
+
+        extractor = keywords_module.KeywordExtractor(corpus_dir=rules_dir, debug=False)
+        result = extractor.suggest_keywords(other_file, count=10)
+        # Should still produce suggestions
+        assert len(result.suggested_keywords) > 0
+
+
+class TestRankKeywordsEdgeCases:
+    """Test rank_keywords edge cases."""
+
+    @pytest.mark.unit
+    def test_stop_terms_excluded_from_ranking(self):
+        """Test that stop terms are excluded during ranking (line 648)."""
+        extractor = keywords_module.KeywordExtractor()
+        candidates = [
+            keywords_module.KeywordCandidate(term="data", score=10.0, source="test"),
+            keywords_module.KeywordCandidate(term="snowflake", score=5.0, source="test"),
+        ]
+        ranked = extractor.rank_keywords(candidates, count=5)
+        assert "data" not in ranked
+        assert "snowflake" in ranked
+
+    @pytest.mark.unit
+    def test_uppercase_display_form_preferred(self):
+        """Test uppercase display form is preferred over lowercase (line 658)."""
+        extractor = keywords_module.KeywordExtractor()
+        candidates = [
+            keywords_module.KeywordCandidate(term="snowflake", score=3.0, source="test"),
+            keywords_module.KeywordCandidate(term="Snowflake", score=2.0, source="test"),
+        ]
+        ranked = extractor.rank_keywords(candidates, count=5)
+        assert "Snowflake" in ranked
+
+
+class TestKeywordsCLICorpusEdgeCases:
+    """Test keywords CLI corpus directory resolution."""
+
+    @pytest.mark.unit
+    def test_corpus_with_directory_path(self, tmp_path: Path):
+        """Test --corpus when path is a directory sets corpus_dir to that dir (line 880)."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "100-test.md").write_text(
+            "# 100-test: Test\n\n## Metadata\n\n"
+            "**Keywords:** test\n\n## Content\n\nSnowflake content."
+        )
+
+        result = runner.invoke(app, ["keywords", str(rules_dir), "--corpus"])
+        assert result.exit_code == 0
+
+    @pytest.mark.unit
+    def test_corpus_finds_rules_dir_in_parent(self, tmp_path: Path):
+        """Test --corpus finds rules/ dir searching parent directories (lines 887-891)."""
+        # Create structure: tmp_path/project/rules/100-test.md
+        project_dir = tmp_path / "project"
+        project_dir.mkdir()
+        rules_dir = project_dir / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "100-test.md").write_text(
+            "# 100-test: Test\n\n## Metadata\n\n"
+            "**Keywords:** test\n\n## Content\n\nSnowflake content."
+        )
+
+        # Put the file in a subdir (NOT named "rules") so the fallback search kicks in
+        sub_dir = project_dir / "other"
+        sub_dir.mkdir()
+        target_file = sub_dir / "200-other.md"
+        target_file.write_text(
+            "# 200-other: Other\n\n## Metadata\n\n"
+            "**Keywords:** other\n\n## Content\n\nPython content."
+        )
+
+        result = runner.invoke(app, ["keywords", str(target_file), "--corpus"])
+        assert result.exit_code == 0
+
+    @pytest.mark.unit
+    def test_import_error_handling(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        """Test ImportError when scikit-learn is missing (lines 899-902)."""
+        rule_file = tmp_path / "100-test.md"
+        rule_file.write_text("# Test\n\n## Metadata\n\n**Keywords:** test\n")
+
+        monkeypatch.setattr(
+            keywords_module,
+            "KeywordExtractor",
+            lambda **kwargs: (_ for _ in ()).throw(ImportError("No module named 'sklearn'")),
+        )
+
+        result = runner.invoke(app, ["keywords", str(rule_file)])
+        assert result.exit_code == 1
+        assert "Missing dependency" in result.output or "scikit-learn" in result.output
+
+
+class TestKeywordsCLIProcessingEdgeCases:
+    """Test keywords CLI file processing edge cases."""
+
+    @pytest.mark.unit
+    def test_exception_processing_file(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        """Test exception during file processing is caught (lines 934-935)."""
+        rule_file = tmp_path / "100-test.md"
+        rule_file.write_text(
+            "# 100-test: Test\n\n## Metadata\n\n**Keywords:** test\n\n## Content\n\nContent."
+        )
+
+        def failing_suggest(self, file_path, count=12):
+            raise RuntimeError("extraction failed")
+
+        monkeypatch.setattr(keywords_module.KeywordExtractor, "suggest_keywords", failing_suggest)
+
+        result = runner.invoke(app, ["keywords", str(rule_file)])
+        assert result.exit_code == 0  # errors are logged but don't abort
+        assert "Error processing" in result.output
+
+    @pytest.mark.unit
+    def test_exception_processing_file_debug_reraises(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ):
+        """Test exception with --debug re-raises (lines 936-937)."""
+        rule_file = tmp_path / "100-test.md"
+        rule_file.write_text(
+            "# 100-test: Test\n\n## Metadata\n\n**Keywords:** test\n\n## Content\n\nContent."
+        )
+
+        def failing_suggest(self, file_path, count=12):
+            raise RuntimeError("extraction failed")
+
+        monkeypatch.setattr(keywords_module.KeywordExtractor, "suggest_keywords", failing_suggest)
+
+        result = runner.invoke(app, ["keywords", str(rule_file), "--debug"])
+        # With debug, the exception is re-raised causing non-zero exit
+        assert result.exit_code != 0

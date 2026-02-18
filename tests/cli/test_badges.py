@@ -32,12 +32,13 @@ class TestBadgesHelpOutput:
         # Assert
         assert result.exit_code == 0
         assert "Update README badges" in result.output
+        assert "update" in result.output
 
     @pytest.mark.unit
     def test_badges_help_shows_dry_run_option(self):
-        """Test that --help shows --dry-run option."""
+        """Test that --help for update subcommand shows --dry-run option."""
         # Act
-        result = runner.invoke(app, ["badges", "--help"])
+        result = runner.invoke(app, ["badges", "update", "--help"])
 
         # Assert
         assert result.exit_code == 0
@@ -71,7 +72,7 @@ class TestBadgesHappyPath:
 
         with patch.object(badges, "get_test_percentage", return_value=(98, 100, 98.0)):
             # Act
-            result = runner.invoke(app, ["badges"])
+            result = runner.invoke(app, ["badges", "update"])
 
         # Assert
         assert result.exit_code == 0
@@ -103,7 +104,7 @@ class TestBadgesHappyPath:
 
         with patch.object(badges, "get_test_percentage", return_value=(100, 100, 100.0)):
             # Act
-            result = runner.invoke(app, ["badges"])
+            result = runner.invoke(app, ["badges", "update"])
 
         # Assert
         assert result.exit_code == 0
@@ -138,7 +139,7 @@ class TestBadgesDryRun:
 
         with patch.object(badges, "get_test_percentage", return_value=(90, 100, 90.0)):
             # Act
-            result = runner.invoke(app, ["badges", "--dry-run"])
+            result = runner.invoke(app, ["badges", "update", "--dry-run"])
 
         # Assert
         assert result.exit_code == 0
@@ -166,7 +167,7 @@ class TestBadgesDryRun:
 
         with patch.object(badges, "get_test_percentage", return_value=(85, 100, 85.0)):
             # Act
-            result = runner.invoke(app, ["badges", "--dry-run"])
+            result = runner.invoke(app, ["badges", "update", "--dry-run"])
 
         # Assert
         assert result.exit_code == 0
@@ -188,7 +189,7 @@ class TestBadgesErrorHandling:
         monkeypatch.setattr(badges, "find_project_root", lambda: tmp_path)
 
         # Act
-        result = runner.invoke(app, ["badges"])
+        result = runner.invoke(app, ["badges", "update"])
 
         # Assert
         assert result.exit_code == 1
@@ -205,7 +206,7 @@ class TestBadgesErrorHandling:
         monkeypatch.setattr(badges, "find_project_root", lambda: tmp_path)
 
         # Act
-        result = runner.invoke(app, ["badges"])
+        result = runner.invoke(app, ["badges", "update"])
 
         # Assert
         assert result.exit_code == 1
@@ -222,7 +223,7 @@ class TestBadgesErrorHandling:
         monkeypatch.setattr(badges, "find_project_root", raise_not_found)
 
         # Act
-        result = runner.invoke(app, ["badges"])
+        result = runner.invoke(app, ["badges", "update"])
 
         # Assert
         assert result.exit_code == 1
@@ -241,7 +242,7 @@ class TestBadgesErrorHandling:
         monkeypatch.setattr(badges, "find_project_root", lambda: tmp_path)
 
         # Act
-        result = runner.invoke(app, ["badges"])
+        result = runner.invoke(app, ["badges", "update"])
 
         # Assert
         assert result.exit_code == 1
@@ -417,3 +418,92 @@ class TestUpdateReadmeBadges:
         assert "## Features" in content
         assert "- Feature 1" in content
         assert "- Feature 2" in content
+
+
+class TestGetTestPercentageEdgeCases:
+    """Test edge cases in get_test_percentage."""
+
+    @pytest.mark.unit
+    @patch("subprocess.run")
+    def test_no_passed_no_failed_returns_zero(self, mock_run: MagicMock):
+        """Test returns zeros when pytest output has no passed/failed counts."""
+        # Arrange — output with no "passed" or "failed" tokens
+        mock_run.return_value = MagicMock(
+            stdout="no tests ran in 0.01s\n",
+            stderr="",
+        )
+
+        # Act
+        passed, total, percentage = badges.get_test_percentage()
+
+        # Assert
+        assert passed == 0
+        assert total == 0
+        assert percentage == 0.0
+
+    @pytest.mark.unit
+    @patch("subprocess.run")
+    def test_timeout_returns_zero(self, mock_run: MagicMock):
+        """Test returns zeros when pytest times out."""
+        import subprocess
+
+        # Arrange
+        mock_run.side_effect = subprocess.TimeoutExpired(cmd="pytest", timeout=60)
+
+        # Act
+        passed, total, percentage = badges.get_test_percentage()
+
+        # Assert
+        assert passed == 0
+        assert total == 0
+        assert percentage == 0.0
+
+    @pytest.mark.unit
+    @patch("subprocess.run")
+    def test_generic_exception_returns_zero(self, mock_run: MagicMock):
+        """Test returns zeros when subprocess raises generic exception."""
+        # Arrange
+        mock_run.side_effect = OSError("Command not found")
+
+        # Act
+        passed, total, percentage = badges.get_test_percentage()
+
+        # Assert
+        assert passed == 0
+        assert total == 0
+        assert percentage == 0.0
+
+
+class TestGetCoveragePercentageEdgeCases:
+    """Test edge cases in get_coverage_percentage."""
+
+    @pytest.mark.unit
+    def test_no_match_in_html_returns_zero(self, tmp_path: Path):
+        """Test returns 0 when htmlcov/index.html has no coverage span."""
+        # Arrange
+        htmlcov = tmp_path / "htmlcov"
+        htmlcov.mkdir()
+        (htmlcov / "index.html").write_text("<html><body>No coverage here</body></html>")
+
+        # Act
+        coverage = badges.get_coverage_percentage(tmp_path)
+
+        # Assert
+        assert coverage == 0.0
+
+    @pytest.mark.unit
+    def test_read_exception_returns_zero(self, tmp_path: Path):
+        """Test returns 0 when reading htmlcov/index.html raises exception."""
+        # Arrange
+        htmlcov = tmp_path / "htmlcov"
+        htmlcov.mkdir()
+        html_file = htmlcov / "index.html"
+        html_file.write_text('<span class="pc_cov">96%</span>')
+
+        # Make reading fail by replacing read_text with an error
+        with patch.object(Path, "read_text", side_effect=PermissionError("denied")):
+            # Act
+            coverage = badges.get_coverage_percentage(tmp_path)
+
+        # Assert
+        assert coverage == 0.0

@@ -20,6 +20,12 @@ class TestRefsHelp:
         result = runner.invoke(app, ["refs", "--help"])
         assert result.exit_code == 0
         assert "Validate rule references" in result.output
+        assert "check" in result.output
+
+    def test_help_shows_check_options(self):
+        """Test check subcommand --help shows options."""
+        result = runner.invoke(app, ["refs", "check", "--help"])
+        assert result.exit_code == 0
         assert "--check-orphans" in result.output
         assert "--verbose" in result.output
         assert "--index-path" in result.output
@@ -50,7 +56,7 @@ class TestRefsHappyPath:
 
         result = runner.invoke(
             app,
-            ["refs", "--index-path", str(index_file), "--rules-dir", str(rules_dir)],
+            ["refs", "check", "--index-path", str(index_file), "--rules-dir", str(rules_dir)],
         )
 
         assert result.exit_code == 0
@@ -66,7 +72,7 @@ class TestRefsHappyPath:
 
         result = runner.invoke(
             app,
-            ["refs", "--index-path", str(index_file), "--rules-dir", str(rules_dir)],
+            ["refs", "check", "--index-path", str(index_file), "--rules-dir", str(rules_dir)],
         )
 
         assert result.exit_code == 0
@@ -87,7 +93,7 @@ class TestRefsBrokenReferences:
 
         result = runner.invoke(
             app,
-            ["refs", "--index-path", str(index_file), "--rules-dir", str(rules_dir)],
+            ["refs", "check", "--index-path", str(index_file), "--rules-dir", str(rules_dir)],
         )
 
         assert result.exit_code == 1
@@ -104,7 +110,7 @@ class TestRefsBrokenReferences:
 
         result = runner.invoke(
             app,
-            ["refs", "--index-path", str(index_file), "--rules-dir", str(rules_dir)],
+            ["refs", "check", "--index-path", str(index_file), "--rules-dir", str(rules_dir)],
         )
 
         assert result.exit_code == 1
@@ -131,6 +137,7 @@ class TestRefsCheckOrphans:
             app,
             [
                 "refs",
+                "check",
                 "--index-path",
                 str(index_file),
                 "--rules-dir",
@@ -155,7 +162,7 @@ class TestRefsCheckOrphans:
 
         result = runner.invoke(
             app,
-            ["refs", "--index-path", str(index_file), "--rules-dir", str(rules_dir)],
+            ["refs", "check", "--index-path", str(index_file), "--rules-dir", str(rules_dir)],
         )
 
         assert result.exit_code == 0
@@ -179,6 +186,7 @@ class TestRefsVerbose:
             app,
             [
                 "refs",
+                "check",
                 "--index-path",
                 str(index_file),
                 "--rules-dir",
@@ -202,7 +210,7 @@ class TestRefsVerbose:
 
         result = runner.invoke(
             app,
-            ["refs", "--index-path", str(index_file), "--rules-dir", str(rules_dir), "-v"],
+            ["refs", "check", "--index-path", str(index_file), "--rules-dir", str(rules_dir), "-v"],
         )
 
         assert result.exit_code == 0
@@ -220,7 +228,7 @@ class TestRefsErrorCases:
 
         result = runner.invoke(
             app,
-            ["refs", "--index-path", str(index_file), "--rules-dir", str(rules_dir)],
+            ["refs", "check", "--index-path", str(index_file), "--rules-dir", str(rules_dir)],
         )
 
         assert result.exit_code == 1
@@ -234,7 +242,7 @@ class TestRefsErrorCases:
 
         result = runner.invoke(
             app,
-            ["refs", "--index-path", str(index_file), "--rules-dir", str(rules_dir)],
+            ["refs", "check", "--index-path", str(index_file), "--rules-dir", str(rules_dir)],
         )
 
         assert result.exit_code == 1
@@ -258,7 +266,7 @@ class TestRefsEdgeCases:
 
         result = runner.invoke(
             app,
-            ["refs", "--index-path", str(index_file), "--rules-dir", str(rules_dir)],
+            ["refs", "check", "--index-path", str(index_file), "--rules-dir", str(rules_dir)],
         )
 
         assert result.exit_code == 0
@@ -279,6 +287,7 @@ class TestRefsEdgeCases:
             app,
             [
                 "refs",
+                "check",
                 "--index-path",
                 str(index_file),
                 "--rules-dir",

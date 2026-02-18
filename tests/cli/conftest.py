@@ -5,7 +5,17 @@ from pathlib import Path
 import pytest
 from typer.testing import CliRunner
 
+from ai_rules import cli as _cli_mod
+from ai_rules._shared import console as _console_mod
 from ai_rules.cli import app
+
+# Disable ALL ANSI escape sequences (colors, bold, dim, etc.) from Rich
+# Console singletons used by CLI commands.  NO_COLOR only strips colors but
+# preserves style codes like \x1b[1m (bold), which still break plain-text
+# assertions in CliRunner output.  Setting color_system=None on each Console
+# instance disables every kind of ANSI output.
+for _c in (_console_mod.console, _console_mod.err_console, _cli_mod.console):
+    _c._color_system = None
 
 
 @pytest.fixture

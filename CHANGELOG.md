@@ -181,6 +181,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **chore(rules):** update TokenBudget in 203-python-project-setup.md (~3600 → ~4150) and 800-project-changelog.md (~3350 → ~3600)
 - **chore(pyproject):** clear default `exclude_skills` list in `[tool.rule_deployer]` (skills no longer excluded by default)
 - **chore(templates):** streamline AGENTS_NO_MODE.md.template header — remove redundant comparison to AGENTS.md and authorization note
+- **refactor(cli):** convert `badges`, `refs`, and `index` from flat commands to Typer sub-apps with explicit subcommands (`badges update`, `refs check`, `index generate`, `index check`)
+- **refactor(cli):** make positional arguments optional on `validate`, `keywords`, `new`, and `deploy` — shows help instead of erroring when called with no arguments
+- **refactor(Makefile):** rename `test-coverage` / `test-coverage-open` targets to `test-cov` / `test-cov-open`
+- **refactor(Makefile):** update Make targets for new CLI sub-command syntax (`index generate`, `badges update`, `refs check`)
+- **feat(AGENTS):** add context continuation check (Step 0.5) and mandatory Gate 2 verification (Step 2D) to bootstrap protocol templates
+- **chore(pyproject):** add pytest `filterwarnings` for deprecated script warnings and `ty` type checker overrides for `prompt_eval` and `tests`
 
 ### Deprecated
 - **scripts/*.py** — Legacy Python scripts deprecated in favor of `ai-rules` CLI
@@ -210,6 +216,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **test(deploy):** update test_deployment.py and test_rule_deployer.py for `./dev` migration
   - Tests now reference `./dev` wrapper instead of `Taskfile.yml`
   - Added tests for AGENTS-only split deployment and template fallback in deployer
+- **fix(validate):** remove Mermaid diagram detection from schema validator (no longer a Priority 1 violation)
+- **fix(validate):** remove placeholder-aware reference checking and simplify section detection regex
+- **fix(scripts):** rename `warnings` variable to `warning_count` in `schema_validator.py` to avoid shadowing built-in
+- **fix(tokens):** exclude `RULES_INDEX.md` from token budget analysis and improve summary label clarity
+- **test(cli):** expand test suites with +5200 lines across 12 files covering sub-app refactor, edge cases, and comprehensive validation coverage
 
 ## [3.5.3] - 2026-02-03
 

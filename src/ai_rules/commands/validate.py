@@ -304,10 +304,7 @@ class SchemaValidator:
             if tracker and tracker.in_code_block:
                 continue
 
-            if section_start is None and re.match(r"^##\s+(?:\d+\.\s+)?(.+)$", line):
-                match = re.match(r"^##\s+(?:\d+\.\s+)?(.+)$", line)
-                if match is None:  # Guard for type checker (already validated above)
-                    continue
+            if section_start is None and (match := re.match(r"^##\s+(?:\d+\.\s+)?(.+)$", line)):
                 section_text = match.group(1).strip()
                 normalized = self._normalize_section_name(section_text)
 
@@ -1037,7 +1034,6 @@ class SchemaValidator:
         tree_pattern = re.compile(r"[├└│]")
         table_pattern = re.compile(r"\|[-]+\|")
         arrow_pattern = re.compile(r"→")
-        mermaid_pattern = re.compile(r"```mermaid", re.IGNORECASE)
         hr_pattern = re.compile(r"^---+\s*$")
 
         # Pattern to remove inline code before checking
@@ -1101,21 +1097,6 @@ class SchemaValidator:
                     )
                 )
 
-            # Check for Mermaid diagrams (Priority 1 violation)
-            # Only flag actual mermaid code fence openings (not examples in docs)
-            if mermaid_pattern.match(line.strip()):
-                result.errors.append(
-                    ValidationError(
-                        severity="HIGH",
-                        message="Priority 1 violation: Mermaid diagram detected",
-                        error_group="Priority 1",
-                        line_num=i,
-                        line_preview=line.strip()[:80],
-                        fix_suggestion="Replace with structured conditional lists. See 002e-agent-optimization.md Anti-Pattern 8",
-                        docs_reference="002e-agent-optimization.md",
-                    )
-                )
-
             # Check for horizontal rule separators (Priority 1 violation)
             # Only flag standalone --- lines, not YAML frontmatter or table separators
             # Skip line 1 (could be YAML frontmatter start)
@@ -1174,15 +1155,9 @@ class SchemaValidator:
             ref_config = link_config["rule_references"]
             pattern = ref_config["pattern"]
             check_exists = ref_config.get("check_exists", True)
-            placeholders = ref_config.get("allowed_placeholders", [])
 
             for match in re.finditer(pattern, content):
                 ref_path = match.group(0)
-
-                # Skip placeholders
-                if any(ph in ref_path for ph in placeholders):
-                    result.passed_checks += 1
-                    continue
 
                 # Check if file exists
                 if check_exists:
@@ -1572,12 +1547,14 @@ class ExampleValidator:
 
 
 def validate(
+    ctx: typer.Context,
     path: Annotated[
-        Path,
+        Path | None,
         typer.Argument(
             help="Path to rule file or directory to validate.",
+            show_default=False,
         ),
-    ],
+    ] = None,
     schema: Annotated[
         Path | None,
         typer.Option(
@@ -1651,6 +1628,10 @@ def validate(
         # Validate example files
         ai-rules validate rules/examples/ --examples
     """
+    if path is None:
+        console.print(ctx.get_help())
+        raise typer.Exit(0)
+
     # Resolve project root
     try:
         project_root = find_project_root()

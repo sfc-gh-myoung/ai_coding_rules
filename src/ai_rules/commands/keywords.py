@@ -801,12 +801,14 @@ def print_suggestions_table(results: list[ExtractionResult]) -> None:
 
 
 def keywords(
+    ctx: typer.Context,
     path: Annotated[
-        Path,
+        Path | None,
         typer.Argument(
             help="Path to rule file or directory.",
+            show_default=False,
         ),
-    ],
+    ] = None,
     update: Annotated[
         bool,
         typer.Option(
@@ -868,6 +870,10 @@ def keywords(
         # Analyze all rules in a directory
         ai-rules keywords rules/
     """
+    if path is None:
+        console.print(ctx.get_help())
+        raise typer.Exit(0)
+
     # Validate path
     if not path.exists():
         log_error(f"Path does not exist: {path}")

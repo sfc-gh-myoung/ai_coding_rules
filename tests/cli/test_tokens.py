@@ -364,11 +364,11 @@ class TestTokensErrorHandling:
 
     @pytest.mark.unit
     def test_missing_path(self):
-        """Test error when no path provided."""
+        """Test error when no path provided (path is required)."""
         result = runner.invoke(app, ["tokens"])
 
-        assert result.exit_code != 0
-        assert "Missing argument" in result.output or "PATH" in result.output
+        assert result.exit_code == 2
+        assert "Missing argument" in result.output or "Usage" in result.output
 
     @pytest.mark.unit
     def test_nonexistent_path(self, tmp_path: Path):
@@ -583,3 +583,408 @@ class TestTokensEdgeCases:
         assert result.exit_code == 0
         # Dry-run mode shows "No files will be modified"
         assert "no files will be modified" in result.output.lower()
+
+
+# ============================================================================
+# TokenBudgetUpdater.update_file Tests
+# ============================================================================
+
+
+class TestUpdateFileMethod:
+    """Test TokenBudgetUpdater.update_file method paths."""
+
+    @pytest.mark.unit
+    def test_update_file_not_needs_update(self, tmp_path: Path):
+        """Test update_file returns False when needs_update is False."""
+        updater = tokens.TokenBudgetUpdater(tokens.UpdateConfig(dry_run=False))
+        analysis = tokens.TokenBudgetAnalysis(
+            file_path=tmp_path / "test.md",
+            current_budget=100,
+            estimated_tokens=98,
+            suggested_budget=100,
+            diff_percentage=-2.0,
+            needs_update=False,
+        )
+
+        result = updater.update_file(analysis)
+
+        assert result is False
+
+    @pytest.mark.unit
+    def test_update_file_dry_run(self, tmp_path: Path):
+        """Test update_file returns True without modifying in dry_run."""
+        rule_file = tmp_path / "test.md"
+        original = "# Test\n**TokenBudget:** ~100\nContent.\n"
+        rule_file.write_text(original)
+
+        updater = tokens.TokenBudgetUpdater(tokens.UpdateConfig(dry_run=True))
+        analysis = tokens.TokenBudgetAnalysis(
+            file_path=rule_file,
+            current_budget=100,
+            estimated_tokens=200,
+            suggested_budget=200,
+            diff_percentage=100.0,
+            needs_update=True,
+        )
+
+        result = updater.update_file(analysis)
+
+        assert result is True
+        assert rule_file.read_text() == original  # File unchanged
+
+    @pytest.mark.unit
+    def test_update_file_replaces_existing_budget(self, tmp_path: Path):
+        """Test update_file replaces existing budget value."""
+        rule_file = tmp_path / "test.md"
+        rule_file.write_text("# Test\n**TokenBudget:** ~100\nContent.\n")
+
+        updater = tokens.TokenBudgetUpdater(tokens.UpdateConfig(dry_run=False))
+        analysis = tokens.TokenBudgetAnalysis(
+            file_path=rule_file,
+            current_budget=100,
+            estimated_tokens=200,
+            suggested_budget=200,
+            diff_percentage=100.0,
+            needs_update=True,
+        )
+
+        result = updater.update_file(analysis)
+
+        assert result is True
+        assert "**TokenBudget:** ~200" in rule_file.read_text()
+
+    @pytest.mark.unit
+    def test_update_file_inserts_budget_when_missing(self, tmp_path: Path):
+        """Test update_file inserts budget after Keywords when current_budget is None."""
+        rule_file = tmp_path / "test.md"
+        rule_file.write_text("# Test\n**Keywords:** a, b, c\nContent here.\n")
+
+        updater = tokens.TokenBudgetUpdater(tokens.UpdateConfig(dry_run=False))
+        analysis = tokens.TokenBudgetAnalysis(
+            file_path=rule_file,
+            current_budget=None,
+            estimated_tokens=150,
+            suggested_budget=150,
+            diff_percentage=None,
+            needs_update=True,
+        )
+
+        result = updater.update_file(analysis)
+
+        assert result is True
+        content = rule_file.read_text()
+        assert "**TokenBudget:** ~150" in content
+        # Should be after Keywords line
+        lines = content.split("\n")
+        kw_idx = next(i for i, line in enumerate(lines) if "Keywords" in line)
+        tb_idx = next(i for i, line in enumerate(lines) if "TokenBudget" in line)
+        assert tb_idx == kw_idx + 1
+
+    @pytest.mark.unit
+    def test_update_file_content_unchanged_returns_false(self, tmp_path: Path):
+        """Test update_file returns False when content unchanged after replacement."""
+        rule_file = tmp_path / "test.md"
+        # File has no Keywords line and no existing budget, so regex insert fails
+        rule_file.write_text("# Test\nNo keywords here.\n")
+
+        updater = tokens.TokenBudgetUpdater(tokens.UpdateConfig(dry_run=False))
+        analysis = tokens.TokenBudgetAnalysis(
+            file_path=rule_file,
+            current_budget=None,
+            estimated_tokens=100,
+            suggested_budget=100,
+            diff_percentage=None,
+            needs_update=True,
+        )
+
+        result = updater.update_file(analysis)
+
+        assert result is False
+
+    @pytest.mark.unit
+    def test_update_file_exception_returns_false(self, tmp_path: Path):
+        """Test update_file returns False when an exception occurs."""
+        updater = tokens.TokenBudgetUpdater(tokens.UpdateConfig(dry_run=False))
+        analysis = tokens.TokenBudgetAnalysis(
+            file_path=tmp_path / "nonexistent.md",
+            current_budget=100,
+            estimated_tokens=200,
+            suggested_budget=200,
+            diff_percentage=100.0,
+            needs_update=True,
+        )
+
+        result = updater.update_file(analysis)
+
+        assert result is False
+
+
+# ============================================================================
+# TokenBudgetUpdater.analyze_all and update_all Tests
+# ============================================================================
+
+
+class TestAnalyzeAndUpdateAll:
+    """Test analyze_all and update_all methods."""
+
+    @pytest.mark.unit
+    def test_analyze_all_scans_directory(self, tmp_path: Path):
+        """Test analyze_all processes all .md files in directory."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "100-a.md").write_text("# A\n**TokenBudget:** ~100\nContent A.\n")
+        (rules_dir / "200-b.md").write_text("# B\n**TokenBudget:** ~200\nContent B.\n")
+        (rules_dir / "not-md.txt").write_text("Not a markdown file.\n")
+
+        updater = tokens.TokenBudgetUpdater()
+
+        results = updater.analyze_all(rules_dir)
+
+        assert len(results) == 2
+        filenames = [r.file_path.name for r in results]
+        assert "100-a.md" in filenames
+        assert "200-b.md" in filenames
+
+    @pytest.mark.unit
+    def test_update_all_returns_count(self, tmp_path: Path):
+        """Test update_all returns analyses and update count."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "100-a.md").write_text("# A\n**TokenBudget:** ~1\nContent.\n")
+
+        updater = tokens.TokenBudgetUpdater(tokens.UpdateConfig(dry_run=False))
+
+        analyses, count = updater.update_all(rules_dir)
+
+        assert len(analyses) == 1
+        assert isinstance(count, int)
+
+
+# ============================================================================
+# Print Helper Function Tests
+# ============================================================================
+
+
+class TestPrintHelpers:
+    """Test _print_summary, _print_detailed_results, _print_update_details."""
+
+    @pytest.mark.unit
+    def test_print_summary_dry_run(self):
+        """Test _print_summary with dry_run=True."""
+        analyses = [
+            tokens.TokenBudgetAnalysis(
+                file_path=Path("test.md"),
+                current_budget=100,
+                estimated_tokens=98,
+                suggested_budget=100,
+                diff_percentage=-2.0,
+                needs_update=False,
+            ),
+        ]
+
+        # Should not raise
+        tokens._print_summary(analyses, 0, 5.0, dry_run=True)
+
+    @pytest.mark.unit
+    def test_print_summary_not_dry_run(self):
+        """Test _print_summary with dry_run=False."""
+        analyses = [
+            tokens.TokenBudgetAnalysis(
+                file_path=Path("test.md"),
+                current_budget=100,
+                estimated_tokens=200,
+                suggested_budget=200,
+                diff_percentage=100.0,
+                needs_update=True,
+            ),
+            tokens.TokenBudgetAnalysis(
+                file_path=Path("err.md"),
+                current_budget=None,
+                estimated_tokens=0,
+                suggested_budget=0,
+                diff_percentage=None,
+                needs_update=False,
+                error="Read error",
+            ),
+        ]
+
+        # Should not raise
+        tokens._print_summary(analyses, 1, 5.0, dry_run=False)
+
+    @pytest.mark.unit
+    def test_print_detailed_results_all_statuses(self):
+        """Test _print_detailed_results with all status types."""
+        analyses = [
+            tokens.TokenBudgetAnalysis(
+                file_path=Path("ok.md"),
+                current_budget=100,
+                estimated_tokens=98,
+                suggested_budget=100,
+                diff_percentage=-2.0,
+                needs_update=False,
+            ),
+            tokens.TokenBudgetAnalysis(
+                file_path=Path("update.md"),
+                current_budget=100,
+                estimated_tokens=120,
+                suggested_budget=150,
+                diff_percentage=20.0,
+                needs_update=True,
+            ),
+            tokens.TokenBudgetAnalysis(
+                file_path=Path("missing.md"),
+                current_budget=None,
+                estimated_tokens=50,
+                suggested_budget=50,
+                diff_percentage=None,
+                needs_update=True,
+            ),
+            tokens.TokenBudgetAnalysis(
+                file_path=Path("major.md"),
+                current_budget=100,
+                estimated_tokens=300,
+                suggested_budget=300,
+                diff_percentage=200.0,
+                needs_update=True,
+            ),
+            tokens.TokenBudgetAnalysis(
+                file_path=Path("error.md"),
+                current_budget=None,
+                estimated_tokens=0,
+                suggested_budget=0,
+                diff_percentage=None,
+                needs_update=False,
+                error="Read error",
+            ),
+        ]
+
+        # Should not raise
+        tokens._print_detailed_results(analyses)
+
+    @pytest.mark.unit
+    def test_print_update_details_empty(self):
+        """Test _print_update_details with no updates."""
+        analyses = [
+            tokens.TokenBudgetAnalysis(
+                file_path=Path("ok.md"),
+                current_budget=100,
+                estimated_tokens=98,
+                suggested_budget=100,
+                diff_percentage=-2.0,
+                needs_update=False,
+            ),
+        ]
+
+        # Should return early without printing
+        tokens._print_update_details(analyses, dry_run=False)
+
+    @pytest.mark.unit
+    def test_print_update_details_with_current_budget(self):
+        """Test _print_update_details with existing budget."""
+        analyses = [
+            tokens.TokenBudgetAnalysis(
+                file_path=Path("update.md"),
+                current_budget=100,
+                estimated_tokens=200,
+                suggested_budget=200,
+                diff_percentage=100.0,
+                needs_update=True,
+            ),
+        ]
+
+        # Should not raise
+        tokens._print_update_details(analyses, dry_run=True)
+
+    @pytest.mark.unit
+    def test_print_update_details_without_current_budget(self):
+        """Test _print_update_details with missing budget."""
+        analyses = [
+            tokens.TokenBudgetAnalysis(
+                file_path=Path("missing.md"),
+                current_budget=None,
+                estimated_tokens=100,
+                suggested_budget=100,
+                diff_percentage=None,
+                needs_update=True,
+            ),
+        ]
+
+        # Should not raise
+        tokens._print_update_details(analyses, dry_run=False)
+
+
+# ============================================================================
+# CLI Branch Tests
+# ============================================================================
+
+
+class TestTokensCLIBranches:
+    """Test CLI branch paths not covered by existing tests."""
+
+    @pytest.mark.unit
+    def test_single_file_update_fails(self, tmp_path: Path):
+        """Test single file mode when update_file returns False."""
+        rule_file = tmp_path / "test.md"
+        rule_file.write_text("# Test\n**TokenBudget:** ~100\nContent.\n")
+
+        with patch.object(tokens, "TokenBudgetUpdater") as MockUpdater:
+            mock_instance = MagicMock()
+            MockUpdater.return_value = mock_instance
+            mock_instance.analyze_file.return_value = tokens.TokenBudgetAnalysis(
+                file_path=rule_file,
+                current_budget=100,
+                estimated_tokens=200,
+                suggested_budget=200,
+                diff_percentage=100.0,
+                needs_update=True,
+            )
+            mock_instance.update_file.return_value = False
+
+            result = runner.invoke(app, ["tokens", str(rule_file)])
+
+        assert result.exit_code == 1
+        assert "Failed to update" in result.output or "error" in result.output.lower()
+
+    @pytest.mark.unit
+    def test_directory_with_detailed_flag(self, tmp_path: Path):
+        """Test directory mode with --detailed flag calls _print_detailed_results."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "100-test.md").write_text("# Test\n**TokenBudget:** ~100\n")
+
+        with patch.object(tokens, "TokenBudgetUpdater") as MockUpdater:
+            mock_instance = MagicMock()
+            MockUpdater.return_value = mock_instance
+            mock_instance.update_all.return_value = (
+                [
+                    tokens.TokenBudgetAnalysis(
+                        file_path=rules_dir / "100-test.md",
+                        current_budget=100,
+                        estimated_tokens=98,
+                        suggested_budget=100,
+                        diff_percentage=-2.0,
+                        needs_update=False,
+                    ),
+                ],
+                0,
+            )
+            mock_instance.config = tokens.UpdateConfig(dry_run=False, verbose=True)
+
+            result = runner.invoke(app, ["tokens", str(rules_dir), "--detailed"])
+
+        assert result.exit_code == 0
+
+    @pytest.mark.unit
+    def test_neither_file_nor_dir(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        """Test path that is neither file nor directory."""
+        # Create a path that exists() returns True but is_file/is_dir return False
+        weird_path = tmp_path / "weird"
+        weird_path.write_text("data")
+
+        with (
+            patch.object(Path, "is_file", return_value=False),
+            patch.object(Path, "is_dir", return_value=False),
+        ):
+            result = runner.invoke(app, ["tokens", str(weird_path)])
+
+        assert result.exit_code == 1

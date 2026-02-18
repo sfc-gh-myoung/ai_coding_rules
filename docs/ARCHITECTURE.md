@@ -902,16 +902,16 @@ The `Makefile` delegates to the `ai-rules` CLI for most operations:
 ```makefile
 # Rules management targets delegate to ai-rules CLI
 rules-validate:
-	$(UV) run ai-rules validate rules/
+    $(UV) run ai-rules validate rules/
 
 index-generate:
-	$(UV) run ai-rules index
+    $(UV) run ai-rules index
 
 rule-new:
-	$(UV) run ai-rules new $(FILENAME) $(if $(TIER),--context-tier $(TIER))
+    $(UV) run ai-rules new $(FILENAME) $(if $(TIER),--context-tier $(TIER))
 
 deploy:
-	$(UV) run ai-rules deploy $(DEST)
+    $(UV) run ai-rules deploy $(DEST)
 ```
 
 ## Migration Notes
@@ -1561,7 +1561,7 @@ make test                  # Run all tests
 uv run pytest tests/ -v
 
 # With coverage report
-make test-coverage
+make test-cov
 ```
 
 **Single Test File:**
@@ -1576,11 +1576,11 @@ uv run pytest tests/test_schema_validator.py::test_validate_metadata_fields -v
 
 **Coverage Report:**
 ```bash
-make test-coverage
+make test-cov
 # Generates htmlcov/index.html
 
 # Open coverage report in browser (macOS)
-make test-coverage-open
+make test-cov-open
 ```
 
 ### Test Fixtures
@@ -1634,7 +1634,7 @@ The Makefile validates required tools via the `preflight` target:
 Most targets delegate to the `ai-rules` CLI for actual work:
 ```makefile
 rules-validate:
-	$(UV) run ai-rules validate rules/
+    $(UV) run ai-rules validate rules/
 ```
 
 **3. Self-Documenting Help**
@@ -1646,7 +1646,7 @@ Running `make` or `make help` shows a categorized menu of all available targets.
 |----------|-------------|---------|
 | **Environment** | `env-python`, `env-sync`, `env-deps` | Python setup |
 | **Quality** | `lint`, `format`, `typecheck`, `quality-fix` | Linting, formatting, type checking |
-| **Testing** | `test`, `test-coverage` | pytest execution |
+| **Testing** | `test`, `test-cov` | pytest execution |
 | **Rules** | `rules-validate`, `rule-new` | Rule management |
 | **Index** | `index-generate`, `index-check` | RULES_INDEX.md |
 | **Deployment** | `deploy`, `deploy-dry` | Rule deployment |

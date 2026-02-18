@@ -103,7 +103,15 @@ def validate_references(
     return broken_refs, orphaned_files
 
 
-def refs(
+refs_app = typer.Typer(
+    name="refs",
+    help="Validate rule references in RULES_INDEX.md.",
+    no_args_is_help=True,
+)
+
+
+@refs_app.command(name="check")
+def check(
     check_orphans: Annotated[
         bool,
         typer.Option(
@@ -134,7 +142,7 @@ def refs(
         ),
     ] = Path("rules"),
 ) -> None:
-    """Validate rule references in RULES_INDEX.md.
+    """Validate that all rule references in RULES_INDEX.md map to actual files.
 
     Ensures all rule filenames referenced in RULES_INDEX.md map to actual
     files in the rules/ directory.

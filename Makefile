@@ -49,8 +49,8 @@ help: ## Show this help message
 	@echo "TESTING"
 	@echo "────────────────────────────────────────────────────────────────────────"
 	@echo "  make test                     Run all pytest tests"
-	@echo "  make test-coverage            Run tests with coverage report"
-	@echo "  make test-coverage-open       Coverage + open in browser (macOS)"
+	@echo "  make test-cov                 Run tests with coverage report"
+	@echo "  make test-cov-open            Coverage + open in browser (macOS)"
 	@echo ""
 	@echo "RULES MANAGEMENT"
 	@echo "────────────────────────────────────────────────────────────────────────"
@@ -167,12 +167,12 @@ quality-fix: lint-fix format-fix ## Fix all quality issues
 test: ## Run all pytest tests
 	$(UV) run pytest tests/ --tb=short
 
-.PHONY: test-coverage
-test-coverage: ## Run tests with coverage report
+.PHONY: test-cov
+test-cov: ## Run tests with coverage report
 	$(UV) run pytest --cov=scripts --cov=src/ai_rules --cov-report=term-missing --cov-report=html tests/
 
-.PHONY: test-coverage-open
-test-coverage-open: test-coverage ## Coverage + open in browser (macOS)
+.PHONY: test-cov-open
+test-cov-open: test-cov ## Coverage + open in browser (macOS)
 	@if [ "$$(uname)" = "Darwin" ]; then \
 		open htmlcov/index.html; \
 	elif [ "$$(uname)" = "Linux" ]; then \
@@ -203,15 +203,15 @@ examples-validate-verbose: ## Validate examples (verbose)
 
 .PHONY: index-generate
 index-generate: ## Generate rules/RULES_INDEX.md from rules/
-	$(UV) run ai-rules index
+	$(UV) run ai-rules index generate
 
 .PHONY: index-check
 index-check: ## Check if RULES_INDEX.md is current
-	$(UV) run ai-rules index --check
+	$(UV) run ai-rules index check
 
 .PHONY: index-dry
 index-dry: ## Preview index generation
-	$(UV) run ai-rules index --dry-run
+	$(UV) run ai-rules index generate --dry-run
 
 .PHONY: rule-new
 rule-new: ## Generate new rule template (FILENAME=... required)
@@ -335,11 +335,11 @@ keywords-all: ## Suggest keywords for all rules
 .PHONY: badges-update
 badges-update: ## Update README badges
 	$(UV) run pytest --cov=scripts --cov=src/ai_rules --cov-report=term-missing --cov-report=html tests/
-	$(UV) run ai-rules badges
+	$(UV) run ai-rules badges update
 
 .PHONY: refs-check
 refs-check: ## Validate index references
-	$(UV) run ai-rules refs
+	$(UV) run ai-rules refs check
 
 # ============================================================================
 # Validation & CI

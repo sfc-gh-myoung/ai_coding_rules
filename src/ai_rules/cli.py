@@ -6,12 +6,12 @@ import typer
 from rich.console import Console
 
 from ai_rules import __version__
-from ai_rules.commands import badges
+from ai_rules.commands.badges import badges_app
 from ai_rules.commands.deploy import deploy
-from ai_rules.commands.index import index
+from ai_rules.commands.index import index_app
 from ai_rules.commands.keywords import keywords
 from ai_rules.commands.new import new as new_command
-from ai_rules.commands.refs import refs
+from ai_rules.commands.refs import refs_app
 from ai_rules.commands.tokens import tokens
 from ai_rules.commands.validate import validate
 
@@ -24,12 +24,12 @@ app = typer.Typer(
 )
 
 # Register commands
-app.command(name="badges")(badges.badges)
-app.command()(refs)
+app.add_typer(badges_app, name="badges")
+app.add_typer(refs_app, name="refs")
 app.command(name="new")(new_command)
 app.command(name="tokens")(tokens)
 app.command(name="deploy")(deploy)
-app.command(name="index")(index)
+app.add_typer(index_app, name="index")
 app.command(name="keywords")(keywords)
 app.command(name="validate")(validate)
 

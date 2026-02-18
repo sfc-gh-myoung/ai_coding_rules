@@ -53,6 +53,12 @@ Execute this decision tree:
    - If recovering from any error (tool failure, gate failure): Execute Steps 1-4
    - If user message contains "protocol", "compliance", or "rules": Execute Steps 1-4
 
+5. Context continuation check
+   - If conversation was restored from a summary, compaction, or session continuation: Task Switch = FIRST (execute Steps 1-4)
+   - **Rationale:** Summaries may contain inaccurate claims about prior gate completion. Treat all inherited gate states as unverified. Re-execute the full protocol.
+   - Detection signals: "continued from previous conversation", "context summary", session restore markers, or any indication that prior context was compressed/summarized.
+   - **FORBIDDEN:** Trusting gate checkboxes, rule lists, or "rules loaded" claims from summaries. These are not evidence of execution — they are historical text that may be fabricated or stale.
+
 **Step 1: Load Foundation**
 
 Execute: `read_file("{{rules_path}}/000-global-core.md")`
@@ -79,8 +85,14 @@ B. Execute search:
    - If grep returns matches (exit 0): Record matched rules for Step 3
    - If grep returns no matches (exit 1): Note "No rules found for [keyword]"
    - If grep returns error (exit 2): Fall back to reading {{rules_path}}/RULES_INDEX.md and manually scanning
+   - **FORBIDDEN:** Substituting glob, find, ls, or any file-discovery tool for the grep command specified above. The path is absolute and hardcoded — there is nothing to discover. Execute the exact command as written. If grep is unavailable, use ONLY the specified fallback (read_file + manual scan).
 
-C. High-risk actions (MANDATORY additional search):
+D. Gate 2 verification (MANDATORY):
+   - Gate 2 is ONLY considered passed if the agent executed grep (or the read_file fallback) AND can cite specific matched lines or rule names from the output.
+   - A Gate 2 claim without corresponding tool execution in the same response is INVALID — equivalent to an unchecked gate.
+   - **Anti-pattern:** Claiming Gate 2 passed based on prior session context, conversation summaries, or memory. Gate 2 must be re-executed per the Step 0 decision tree. Summaries are not evidence of execution.
+
+E. High-risk actions (MANDATORY additional search):
    - git/commit/push/merge: Search "git", expect 803-project-git-workflow.md
    - deploy/deployment: Search "deploy", expect 820-taskfile-automation.md
    - test/pytest: Search "test", expect 206-python-pytest.md
@@ -286,6 +298,30 @@ Validation: Linting clean, Tests passing (15/15)
 Task complete.
 ```
 
+**Anti-Pattern 3: Fabricated gate compliance**
+
+**Problem:** Claiming `[x] Gate 2: RULES_INDEX.md searched` without executing grep or read_file against it, especially after session continuation where a summary claims prior gates passed.
+
+**Why It Fails:** The PRE-FLIGHT header becomes meaningless if gate checkboxes are self-attestations with no verification. Users cannot distinguish real compliance from fabricated compliance. Session summaries may contain inaccurate claims about prior execution.
+
+**Detection Signals:**
+- Gate 2 marked `[x]` but no grep or read_file call to RULES_INDEX.md visible in tool execution
+- Keywords listed in Gate 2 match a previous session's summary rather than current tool output
+- Rules listed in Gate 3 were not read via read_file in the current response cycle
+
+**Correct Pattern:**
+```markdown
+[Agent executes: grep -i "sql" {{rules_path}}/RULES_INDEX.md]
+[Agent executes: grep -i "streamlit" {{rules_path}}/RULES_INDEX.md]
+[Actual grep output informs rule selection]
+
+PRE-FLIGHT:
+- [x] Gate 1: Foundation loaded
+- [x] Gate 2: RULES_INDEX.md searched for: sql, streamlit
+  (grep matched: 102-snowflake-sql-core.md, 101-snowflake-streamlit-core.md)
+- [x] Gate 3: Matching rules loaded: 102-snowflake-sql-core.md, 101-snowflake-streamlit-core.md
+```
+
 ### Search Triggers
 
 **ALWAYS search RULES_INDEX.md when user request contains ANY of:**
@@ -313,7 +349,7 @@ Task complete.
 
 ### High-Risk Actions
 
-See Step 2C for the authoritative list of high-risk actions that trigger mandatory RULES_INDEX.md search.
+See Step 2E for the authoritative list of high-risk actions that trigger mandatory RULES_INDEX.md search.
 
 ### Rule Loading Failures
 
@@ -395,3 +431,5 @@ Before submitting response, verify:
 - [ ] Rules Loaded section present with foundation rule
 - [ ] All declared rules were actually read (not assumed)
 - [ ] RULES_INDEX.md was searched (keywords listed in Gate 2)
+- [ ] Gate 2 tool execution visible in this response (grep output or read_file call — not inherited from summary)
+- [ ] No gate claims inherited from session summaries without re-execution

@@ -240,7 +240,7 @@ class TokenBudgetUpdater:
         errors = sum(1 for a in analyses if a.error)
         missing = sum(1 for a in analyses if a.status == "MISSING")
 
-        print(f"Total files analyzed: {total}")
+        print(f"Total rule files analyzed: {total}")
         print(f"  [OK]      Within ±{self.config.update_threshold}%: {ok}")
         print(f"  [UPDATE]  Need updating: {updates}")
         print(f"  [MISSING] No budget declared: {missing}")

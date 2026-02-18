@@ -814,7 +814,7 @@ make format                             # Run ruff formatter (check only)
 make typecheck                          # Run ty type checker
 make markdown                           # Run pymarkdownlnt Markdown linter
 make test                               # Run all pytest tests
-make test-coverage                      # Run tests with coverage report
+make test-cov                           # Run tests with coverage report
 
 # Validation & CI
 make validate                           # Run all CI/CD checks

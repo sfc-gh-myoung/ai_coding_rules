@@ -776,11 +776,10 @@ def deploy_rules(
             # In unified mode, examples go under dest/rules
             if is_split_mode:
                 examples_dest = rules_dest_dir / "examples"
-            elif dest:
+            else:
+                assert dest is not None  # unified mode always has dest
                 dest_rules_dir = dest / "rules"
                 examples_dest = dest_rules_dir / "examples"
-            else:
-                examples_dest = None
 
             if examples_dest:
                 try:
@@ -861,6 +860,7 @@ def deploy_rules(
 
 
 def deploy(
+    ctx: typer.Context,
     dest: Annotated[
         Path | None,
         typer.Argument(
@@ -1031,11 +1031,8 @@ def deploy(
 
     # Validate that at least one destination is provided
     if not dest and not split:
-        log_error(
-            "Must specify either DEST or use --split with at least one destination "
-            "(--agents-dest, --rules-dest, --skills-dest)"
-        )
-        raise typer.Exit(code=1) from None
+        console.print(ctx.get_help())
+        raise typer.Exit(0)
 
     # Validate split destination dependencies and directory existence
     if split:

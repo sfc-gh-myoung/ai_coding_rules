@@ -326,3 +326,116 @@ class TestNewCommandTemplateContent:
         keyword_list = [kw.strip() for kw in keywords.split(",")]
 
         assert 5 <= len(keyword_list) <= 20
+
+
+class TestTemplateGeneratorDirect:
+    """Test TemplateGenerator methods directly for uncovered branches."""
+
+    def test_get_default_keywords_out_of_range(self):
+        """Test fallback keywords for number outside all RANGE_KEYWORDS ranges."""
+        from ai_rules.commands.new import TemplateGenerator
+
+        # Number > 999 is outside all defined ranges
+        keywords = TemplateGenerator.get_default_keywords(1500, "custom-tool")
+        assert "custom" in keywords
+        assert "specialized" in keywords
+
+    def test_get_default_keywords_few_keywords_gets_fillers(self, monkeypatch: pytest.MonkeyPatch):
+        """Test that filler keywords are added when combined count < 5 (lines 294-301)."""
+        from ai_rules.commands.new import TemplateGenerator
+
+        # Override RANGE_KEYWORDS so matching range returns very few keywords,
+        # ensuring combined deduped list has < 5 items and fillers are triggered.
+        monkeypatch.setattr(
+            TemplateGenerator,
+            "RANGE_KEYWORDS",
+            {(0, 99): "core"},
+        )
+
+        keywords = TemplateGenerator.get_default_keywords(50, "x")
+        keyword_list = [kw.strip() for kw in keywords.split(",")]
+        assert len(keyword_list) >= 5
+        # Should include fillers
+        assert any(
+            filler in keyword_list
+            for filler in [
+                "implementation",
+                "best practices",
+                "patterns",
+                "guidelines",
+                "optimization",
+            ]
+        )
+
+    def test_generate_template_invalid_context_tier(self):
+        """Test ValueError for invalid context tier in generate_template."""
+        from ai_rules.commands.new import TemplateGenerator
+
+        with pytest.raises(ValueError, match="Context tier must be one of"):
+            TemplateGenerator.generate_template("100-test-rule", context_tier="Invalid")
+
+    def test_format_success_message(self):
+        """Test format_success_message returns expected content."""
+        from ai_rules.commands.new import TemplateGenerator
+
+        msg = TemplateGenerator.format_success_message(Path("/tmp/100-test-rule.md"))
+        assert "Created rule template" in msg
+        assert "Next steps" in msg
+        assert "100-test-rule.md" in msg
+
+    def test_format_error_message(self):
+        """Test format_error_message returns expected content."""
+        from ai_rules.commands.new import TemplateGenerator
+
+        msg = TemplateGenerator.format_error_message(ValueError("something broke"))
+        assert "Error" in msg
+        assert "something broke" in msg
+
+
+class TestNewCLIEdgeCases:
+    """Test CLI edge cases for uncovered branches in the new() function."""
+
+    def test_parse_failure_in_summary_fallback(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ):
+        """Test that ValueError during summary parse_rule_filename falls back gracefully.
+
+        Lines 510-511: When create_rule_file succeeds but the summary
+        parse_rule_filename call raises ValueError, it falls back to
+        'auto-generated' keywords.
+        """
+        from ai_rules.commands.new import TemplateGenerator
+
+        # We need create_rule_file to succeed, then the summary parse to fail.
+        # Use monkeypatch to make parse_rule_filename fail only on the second call.
+        original_parse = TemplateGenerator.parse_rule_filename
+        call_count = [0]
+
+        @staticmethod
+        def patched_parse(filename):
+            call_count[0] += 1
+            if call_count[0] > 1:
+                raise ValueError("parse failed on summary")
+            return original_parse(filename)
+
+        monkeypatch.setattr(TemplateGenerator, "parse_rule_filename", patched_parse)
+
+        result = runner.invoke(app, ["new", "100-test-rule", "--output-dir", str(tmp_path)])
+        assert result.exit_code == 0
+
+    def test_unexpected_exception_handler(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        """Test that unexpected exceptions are caught and exit with code 1.
+
+        Lines 535-537: generic Exception handler in new() CLI function.
+        """
+        from ai_rules.commands.new import TemplateGenerator
+
+        monkeypatch.setattr(
+            TemplateGenerator,
+            "create_rule_file",
+            staticmethod(lambda **kwargs: (_ for _ in ()).throw(RuntimeError("disk on fire"))),
+        )
+
+        result = runner.invoke(app, ["new", "100-test-rule", "--output-dir", str(tmp_path)])
+        assert result.exit_code == 1
+        assert "Unexpected error" in result.output or "disk on fire" in result.output

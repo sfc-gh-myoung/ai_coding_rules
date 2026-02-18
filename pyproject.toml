@@ -125,6 +125,9 @@ addopts = [
     "--strict-config",
     "-v",
 ]
+filterwarnings = [
+    "ignore:This script is deprecated:DeprecationWarning",
+]
 
 [tool.coverage.run]
 source = ["scripts", "src/agent_eval", "src/prompt_eval", "src/ai_rules"]
@@ -150,7 +153,17 @@ exclude_lines = [
     "@(abc\\.)?abstractmethod",
 ]
 
+[[tool.ty.overrides]]
+include = ["src/prompt_eval/**"]
+[tool.ty.overrides.rules]
+unresolved-import = "ignore"  # optional deps (fastapi, pydantic, uvicorn) not in dev group
+
+[[tool.ty.overrides]]
+include = ["tests/**"]
+[tool.ty.overrides.rules]
+invalid-argument-type = "ignore"  # LiteralString vs str in test fixtures
+invalid-assignment = "ignore"  # list[LiteralString] vs list[str] in test fixtures
+
 [tool.rule_deployer]
-# Skills to exclude from deployment (internal use only)
 exclude_skills = [
 ]

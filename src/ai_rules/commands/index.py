@@ -734,8 +734,6 @@ def _show_diff(current: str, generated: str) -> None:
             diff_text.append(line + "\n", style="green")
         elif line.startswith("-"):
             diff_text.append(line + "\n", style="red")
-        else:
-            diff_text.append(line + "\n")
 
     if len(diff) > 100:
         diff_text.append(f"\n... ({len(diff) - 100} more lines)\n", style="dim")
@@ -743,49 +741,27 @@ def _show_diff(current: str, generated: str) -> None:
     console.print(Panel(diff_text, title="[bold]Diff[/bold]", border_style="yellow"))
 
 
-def index(
-    check: Annotated[
-        bool,
-        typer.Option(
-            "--check",
-            help="Check if RULES_INDEX.md is up-to-date (exit 1 if not, for CI).",
-        ),
-    ] = False,
-    dry_run: Annotated[
-        bool,
-        typer.Option(
-            "--dry-run",
-            "-n",
-            help="Print generated content without writing to file.",
-        ),
-    ] = False,
-    rules_dir: Annotated[
-        Path | None,
-        typer.Option(
-            "--rules-dir",
-            help="Path to rules directory (default: rules/).",
-        ),
-    ] = None,
-) -> None:
-    """Generate RULES_INDEX.md from production-ready rule metadata.
+index_app = typer.Typer(
+    name="index",
+    help="Generate and check RULES_INDEX.md from rule metadata.",
+    no_args_is_help=True,
+)
 
-    Scans the rules/ directory, extracts metadata from rule files,
-    and generates a comprehensive index for semantic rule discovery.
 
-    Examples:
-        # Generate RULES_INDEX.md
-        ai-rules index
+def _scan_and_generate(
+    rules_dir: Path | None,
+) -> tuple[list[RuleMetadata], str, Path]:
+    """Shared preamble: resolve rules dir, scan, and generate content.
 
-        # Check if up-to-date (CI mode)
-        ai-rules index --check
+    Args:
+        rules_dir: Optional explicit rules directory path.
 
-        # Preview output without writing
-        ai-rules index --dry-run
+    Returns:
+        Tuple of (rules list, generated content, resolved rules_dir).
 
-        # Use custom rules directory
-        ai-rules index --rules-dir custom/rules
+    Raises:
+        typer.Exit: On any failure (missing dir, no rules, generation error).
     """
-    # Auto-detect rules directory if not specified
     if rules_dir is None:
         try:
             project_root = find_project_root()
@@ -825,7 +801,44 @@ def index(
         log_error(f"Error generating RULES_INDEX.md: {e}")
         raise typer.Exit(code=1) from None
 
-    # Handle modes
+    return rules, content, rules_dir
+
+
+@index_app.command(name="generate")
+def generate(
+    dry_run: Annotated[
+        bool,
+        typer.Option(
+            "--dry-run",
+            "-n",
+            help="Print generated content without writing to file.",
+        ),
+    ] = False,
+    rules_dir: Annotated[
+        Path | None,
+        typer.Option(
+            "--rules-dir",
+            help="Path to rules directory (default: rules/).",
+        ),
+    ] = None,
+) -> None:
+    """Generate RULES_INDEX.md from production-ready rule metadata.
+
+    Scans the rules/ directory, extracts metadata from rule files,
+    and generates a comprehensive index for semantic rule discovery.
+
+    Examples:
+        # Generate RULES_INDEX.md
+        ai-rules index generate
+
+        # Preview output without writing
+        ai-rules index generate --dry-run
+
+        # Use custom rules directory
+        ai-rules index generate --rules-dir custom/rules
+    """
+    rules, content, rules_dir = _scan_and_generate(rules_dir)
+
     if dry_run:
         # Print to stdout with Rich formatting
         console.print()
@@ -839,39 +852,59 @@ def index(
             console.print(f"\n[dim]... ({len(lines) - 100} more lines)[/dim]")
         return
 
-    # Determine output path (inside rules_dir, not project root)
-    output_path = rules_dir / "RULES_INDEX.md"
-
-    if check:
-        # Compare with existing
-        if not output_path.exists():
-            log_error(f"{output_path} does not exist")
-            console.print("\n[yellow]Run:[/yellow] ai-rules index")
-            raise typer.Exit(code=1) from None
-
-        try:
-            current_content = output_path.read_text(encoding="utf-8")
-        except Exception as e:
-            log_error(f"Error reading {output_path}: {e}")
-            raise typer.Exit(code=1) from None
-
-        if _normalize_for_check(current_content) == _normalize_for_check(content):
-            log_success("RULES_INDEX.md is up-to-date")
-            return
-        else:
-            log_error("RULES_INDEX.md is out of date")
-            console.print()
-            _show_diff(current_content, content)
-            console.print()
-            console.print("[yellow]Run to update:[/yellow]")
-            console.print("  ai-rules index")
-            raise typer.Exit(code=1) from None
-
     # Write to file
+    output_path = rules_dir / "RULES_INDEX.md"
     try:
         output_path.write_text(content, encoding="utf-8")
         log_success(f"Generated {output_path}")
         log_info(f"{len(rules)} rules indexed")
     except Exception as e:
         log_error(f"Error writing {output_path}: {e}")
+        raise typer.Exit(code=1) from None
+
+
+@index_app.command(name="check")
+def check(
+    rules_dir: Annotated[
+        Path | None,
+        typer.Option(
+            "--rules-dir",
+            help="Path to rules directory (default: rules/).",
+        ),
+    ] = None,
+) -> None:
+    """Check if RULES_INDEX.md is up-to-date (exit 1 if not, for CI).
+
+    Examples:
+        # Check if up-to-date
+        ai-rules index check
+
+        # Check with custom rules directory
+        ai-rules index check --rules-dir custom/rules
+    """
+    _rules, content, rules_dir = _scan_and_generate(rules_dir)
+
+    output_path = rules_dir / "RULES_INDEX.md"
+
+    if not output_path.exists():
+        log_error(f"{output_path} does not exist")
+        console.print("\n[yellow]Run:[/yellow] ai-rules index generate")
+        raise typer.Exit(code=1) from None
+
+    try:
+        current_content = output_path.read_text(encoding="utf-8")
+    except Exception as e:
+        log_error(f"Error reading {output_path}: {e}")
+        raise typer.Exit(code=1) from None
+
+    if _normalize_for_check(current_content) == _normalize_for_check(content):
+        log_success("RULES_INDEX.md is up-to-date")
+        return
+    else:
+        log_error("RULES_INDEX.md is out of date")
+        console.print()
+        _show_diff(current_content, content)
+        console.print()
+        console.print("[yellow]Run to update:[/yellow]")
+        console.print("  ai-rules index generate")
         raise typer.Exit(code=1) from None

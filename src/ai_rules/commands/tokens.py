@@ -193,7 +193,7 @@ class TokenBudgetUpdater:
             List of TokenBudgetAnalysis results
         """
         results = []
-        md_files = sorted(directory.glob("*.md"))
+        md_files = sorted(f for f in directory.glob("*.md") if f.name != "RULES_INDEX.md")
 
         with Progress(
             SpinnerColumn(),
@@ -246,7 +246,7 @@ def _print_summary(
     errors = sum(1 for a in analyses if a.error)
     missing = sum(1 for a in analyses if a.status == "MISSING")
 
-    console.print(f"Total files analyzed: [cyan]{total}[/cyan]")
+    console.print(f"Total rule files analyzed: [cyan]{total}[/cyan]")
     console.print(f"  [green]OK[/green]      Within ±{threshold}%: {ok}")
     console.print(f"  [yellow]UPDATE[/yellow]  Need updating: {updates}")
     console.print(f"  [blue]MISSING[/blue] No budget declared: {missing}")

@@ -178,7 +178,15 @@ def update_readme_badges(
     readme_path.write_text("\n".join(lines))
 
 
-def badges(
+badges_app = typer.Typer(
+    name="badges",
+    help="Update README badges with version, test pass rate, and coverage.",
+    no_args_is_help=True,
+)
+
+
+@badges_app.command(name="update")
+def update(
     dry_run: Annotated[
         bool,
         typer.Option(

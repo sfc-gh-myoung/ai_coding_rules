@@ -576,7 +576,7 @@ class TestOutputFormatting:
         captured = capsys.readouterr()
 
         # Assert
-        assert "Total files analyzed: 3" in captured.out
+        assert "Total rule files analyzed: 3" in captured.out
         assert "OK" in captured.out or "MISSING" in captured.out
 
     @pytest.mark.unit

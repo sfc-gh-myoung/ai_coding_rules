@@ -431,12 +431,14 @@ CONTEXT_TIERS = ["Critical", "High", "Medium", "Low"]
 
 @app.command()
 def new(
+    ctx: typer.Context,
     filename: Annotated[
-        str,
+        str | None,
         typer.Argument(
             help="Rule filename (e.g., 100-snowflake-sql, 111a-snowflake-feature)",
+            show_default=False,
         ),
-    ],
+    ] = None,
     output_dir: Annotated[
         Path,
         typer.Option(
@@ -485,6 +487,10 @@ def new(
         # Overwrite existing file
         ai-rules new 100-example --force
     """
+    if filename is None:
+        console.print(ctx.get_help())
+        raise typer.Exit(0)
+
     # Validate context tier
     if context_tier not in CONTEXT_TIERS:
         log_error(f"Invalid context tier: {context_tier}")

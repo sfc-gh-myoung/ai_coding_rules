@@ -1714,8 +1714,8 @@ def main():
         if args.json:
             print(validator.format_json(results))
             failed = sum(1 for r in results if r.has_critical_or_high)
-            warnings = sum(1 for r in results if r.errors and not r.has_critical_or_high)
-            if failed > 0 or (args.strict and warnings > 0):
+            warning_count = sum(1 for r in results if r.errors and not r.has_critical_or_high)
+            if failed > 0 or (args.strict and warning_count > 0):
                 return 1
             return 0
 
@@ -1728,7 +1728,7 @@ def main():
         # Print summary
         total_files = len(results)
         failed = sum(1 for r in results if r.has_critical_or_high)
-        warnings = sum(1 for r in results if r.errors and not r.has_critical_or_high)
+        warning_count = sum(1 for r in results if r.errors and not r.has_critical_or_high)
         clean = sum(1 for r in results if r.is_clean)
 
         print("=" * 80)
@@ -1736,7 +1736,7 @@ def main():
         print("=" * 80)
         print(f"Total files: {total_files}")
         print(f"✅ Clean: {clean}")
-        print(f"⚠️  Warnings only: {warnings}")
+        print(f"⚠️  Warnings only: {warning_count}")
         print(f"❌ Failed: {failed}")
 
         # Show failed files list (unless --quiet mode)
@@ -1751,7 +1751,7 @@ def main():
                     )
 
             # Show warning files preview (first 5)
-            if warnings > 0:
+            if warning_count > 0:
                 print()
                 print("⚠️  WARNING FILES (showing first 5):")
                 warning_results = [r for r in results if r.errors and not r.has_critical_or_high]
@@ -1761,7 +1761,7 @@ def main():
                     print(f"  ... and {len(warning_results) - 5} more")
 
             # Helpful tip for detailed inspection
-            if failed > 0 or warnings > 0:
+            if failed > 0 or warning_count > 0:
                 print()
                 print(
                     "💡 TIP: Run with --verbose to see detailed reports, or validate individual file"
@@ -1769,7 +1769,7 @@ def main():
 
         print("=" * 80)
 
-        if failed > 0 or (args.strict and (warnings > 0)):
+        if failed > 0 or (args.strict and (warning_count > 0)):
             return 1
         return 0
 

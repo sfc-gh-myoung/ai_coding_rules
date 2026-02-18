@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from textwrap import dedent
+from unittest.mock import patch
 
 from typer.testing import CliRunner
 
@@ -299,3 +300,65 @@ class TestRefsEdgeCases:
         assert result.exit_code == 0
         assert "README.md" not in result.output
         assert "CHANGELOG.md" not in result.output
+
+
+class TestRefsDefaultPathResolution:
+    """Test default path resolution via find_project_root()."""
+
+    def test_resolves_defaults_from_project_root(self, tmp_path: Path):
+        """Test check resolves index_path and rules_dir from project root when not provided."""
+        # Set up a fake project with pyproject.toml
+        (tmp_path / "pyproject.toml").write_text("[project]\nname = 'test'\n")
+
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "RULES_INDEX.md").write_text(
+            dedent("""
+            # Rule Index
+            - 000-global-core.md
+            """)
+        )
+        (rules_dir / "000-global-core.md").write_text("content")
+
+        with patch("ai_rules.commands.refs.find_project_root", return_value=tmp_path):
+            result = runner.invoke(app, ["refs", "check"])
+
+        assert result.exit_code == 0
+        assert "VALIDATION PASSED" in result.output
+
+    def test_explicit_paths_override_project_root(self, tmp_path: Path):
+        """Test explicit --index-path and --rules-dir override project root defaults."""
+        # Create explicit paths (not under any pyproject.toml)
+        index_file = tmp_path / "custom" / "RULES_INDEX.md"
+        index_file.parent.mkdir()
+        index_file.write_text("Rules: 000-test.md")
+
+        custom_rules = tmp_path / "custom" / "rules"
+        custom_rules.mkdir()
+        (custom_rules / "000-test.md").write_text("content")
+
+        result = runner.invoke(
+            app,
+            [
+                "refs",
+                "check",
+                "--index-path",
+                str(index_file),
+                "--rules-dir",
+                str(custom_rules),
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert "VALIDATION PASSED" in result.output
+
+    def test_error_when_no_project_root_found(self):
+        """Test exit code 1 when find_project_root() raises FileNotFoundError."""
+        with patch(
+            "ai_rules.commands.refs.find_project_root",
+            side_effect=FileNotFoundError("no pyproject.toml"),
+        ):
+            result = runner.invoke(app, ["refs", "check"])
+
+        assert result.exit_code == 1
+        assert "Could not find project root" in result.output

@@ -15,6 +15,7 @@ import typer
 from rich.table import Table
 
 from ai_rules._shared.console import console, log_error, log_info, log_success, log_warning
+from ai_rules._shared.paths import find_project_root, get_rules_dir
 
 # Regex to find rule file references (NNN-*.md or NNNx-*.md patterns)
 # Matches patterns like: 000-global-core.md, 101a-snowflake-streamlit-visualization.md
@@ -128,25 +129,37 @@ def check(
         ),
     ] = False,
     index_path: Annotated[
-        Path,
+        Path | None,
         typer.Option(
             "--index-path",
             help="Path to RULES_INDEX.md.",
         ),
-    ] = Path("RULES_INDEX.md"),
+    ] = None,
     rules_dir: Annotated[
-        Path,
+        Path | None,
         typer.Option(
             "--rules-dir",
             help="Path to rules directory.",
         ),
-    ] = Path("rules"),
+    ] = None,
 ) -> None:
     """Validate that all rule references in RULES_INDEX.md map to actual files.
 
     Ensures all rule filenames referenced in RULES_INDEX.md map to actual
     files in the rules/ directory.
     """
+    # Resolve defaults from project root when not explicitly provided
+    if index_path is None or rules_dir is None:
+        try:
+            project_root = find_project_root()
+        except FileNotFoundError:
+            log_error("Could not find project root (no pyproject.toml found)")
+            raise typer.Exit(1) from None
+        if index_path is None:
+            index_path = project_root / "rules" / "RULES_INDEX.md"
+        if rules_dir is None:
+            rules_dir = get_rules_dir(project_root)
+
     # Validate paths exist
     if not index_path.exists():
         log_error(f"{index_path} not found")

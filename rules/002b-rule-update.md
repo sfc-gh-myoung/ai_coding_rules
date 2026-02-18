@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.1
-**LastUpdated:** 2026-01-13
+**RuleVersion:** v1.0.2
+**LastUpdated:** 2026-02-18
 **Keywords:** rule update, rule maintenance, versioning, RuleVersion, LastUpdated, semantic versioning, MAJOR, MINOR, PATCH, rule modification, keyword expansion, scope updates, metadata updates, CHANGELOG updates
 **TokenBudget:** ~4500
 **ContextTier:** High
@@ -53,13 +53,13 @@ Workflow and best practices for updating and maintaining existing rule files. Co
 
 - Existing rule file to update
 - Understanding of change type (content, metadata, structure)
-- Access to `schema_validator.py` script
+- Access to `ai-rules validate` CLI command
 - Understanding of semantic versioning principles
 
 ### Mandatory
 
 - Text editor
-- `schema_validator.py` script
+- `ai-rules validate` CLI command
 - Git for tracking changes
 - Access to CHANGELOG.md
 
@@ -80,7 +80,7 @@ Workflow and best practices for updating and maintaining existing rule files. Co
 5. Update LastUpdated to current date (YYYY-MM-DD)
 6. Update Keywords if adding new discoverable terms
 7. Update TokenBudget if file size changed significantly
-8. Validate with `schema_validator.py` (must pass with 0 CRITICAL errors)
+8. Validate with `ai-rules validate` (must pass with 0 CRITICAL errors)
 9. Update CHANGELOG.md with change details
 10. Regenerate RULES_INDEX.md with `task index:generate`
 
@@ -100,11 +100,11 @@ Updated rule file with:
 - LastUpdated set to current date
 - Keywords updated if new terms added
 - TokenBudget reflects actual file size (±10%)
-- schema_validator.py ready to run
+- `ai-rules validate` ready to run
 - CHANGELOG.md entry prepared
 
 **Success Criteria:**
-- `schema_validator.py rules/NNN-rule.md` returns 0 CRITICAL errors
+- `uv run ai-rules validate rules/<your-rule>.md` returns 0 CRITICAL errors
 - RuleVersion follows semantic versioning (vX.Y.Z)
 - LastUpdated is current date (YYYY-MM-DD)
 - CHANGELOG.md has entry for this update
@@ -258,11 +258,11 @@ Is the change related to existing rule's scope?
 
 ```bash
 # Open rule file
-vim rules/NNN-rule.md
+vim rules/<your-rule>.md
 
 # Check current version
-grep "RuleVersion" rules/NNN-rule.md
-grep "LastUpdated" rules/NNN-rule.md
+grep "RuleVersion" rules/<your-rule>.md
+grep "LastUpdated" rules/<your-rule>.md
 ```
 
 ### Step 2: Determine Change Type
@@ -349,7 +349,7 @@ code example
 **TokenBudget (if file size changed significantly):**
 ```bash
 # Check current token count
-wc -l rules/NNN-rule.md
+wc -l rules/<your-rule>.md
 # Estimate: ~2 tokens per line average
 # Update TokenBudget to reflect new size (±10% acceptable)
 ```
@@ -358,7 +358,7 @@ wc -l rules/NNN-rule.md
 
 ```bash
 # Run schema validator
-uv run python scripts/schema_validator.py rules/NNN-rule.md
+uv run ai-rules validate rules/<your-rule>.md
 
 # Expected output:
 # All validations passed!
@@ -389,7 +389,7 @@ Add entry under `## [Unreleased]` section:
 task index:generate
 
 # Or directly:
-uv run python scripts/index_generator.py
+uv run ai-rules index generate
 ```
 
 ## Common Update Scenarios
@@ -501,7 +501,7 @@ Content: "Use the validation command"
 ```bash
 # Always increment version for ANY change
 # Before editing:
-grep "RuleVersion" rules/NNN-rule.md  # Note current version
+grep "RuleVersion" rules/<your-rule>.md  # Note current version
 
 # After editing:
 # Update RuleVersion based on change type (MAJOR/MINOR/PATCH)
@@ -564,14 +564,14 @@ v3.1.0 to v3.1.1  # Correct
 
 ### Anti-Pattern 5: Skipping Validation
 
-**Problem:** Not running schema_validator.py after making changes.
+**Problem:** Not running `ai-rules validate` after making changes.
 
 **Why It Fails:** May introduce schema violations; breaks CI/CD; wastes review time; degrades rule quality.
 
 **Correct Pattern:**
 ```bash
 # Always validate after changes
-uv run python scripts/schema_validator.py rules/NNN-rule.md
+uv run ai-rules validate rules/<your-rule>.md
 
 # Fix any errors before committing
 # Re-validate until 0 CRITICAL errors
@@ -601,7 +601,7 @@ vim rules/803-project-git-workflow.md
 # **Keywords:** git, git commit, commit message, workflow, branching strategy
 
 # Step 4: Validate
-uv run python scripts/schema_validator.py rules/803-project-git-workflow.md
+uv run ai-rules validate rules/803-project-git-workflow.md
 # All validations passed!
 
 # Step 5: Update CHANGELOG.md
@@ -623,11 +623,11 @@ task index:generate
 # **LastUpdated:** 2026-01-07
 
 # Step 3: Validate
-uv run python scripts/schema_validator.py rules/NNN-rule.md
+uv run ai-rules validate rules/<your-rule>.md
 # All validations passed!
 
 # Step 4: Update CHANGELOG.md
-# - **fix(rules):** correct typo in NNN-rule.md (v2.1.0 to v2.1.1)
+# - **fix(rules):** correct typo in <your-rule>.md (v2.1.0 to v2.1.1)
 
 # Step 5: Regenerate index
 task index:generate

@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.2
-**LastUpdated:** 2026-01-13
+**RuleVersion:** v3.0.3
+**LastUpdated:** 2026-02-18
 **Keywords:** token budget, optimization, performance, rule sizing, progressive loading, context window, model limits, cost efficiency, caching, batch loading
 **TokenBudget:** ~5150
 **ContextTier:** High
@@ -41,7 +41,7 @@ Guidelines for optimizing rule token budgets, sizing rules appropriately, and lo
 
 - **Schema Definition:** `schemas/rule-schema.yml` - Authoritative v3.2 schema
 - **Rules Index:** `RULES_INDEX.md` - Master index with current token budgets
-- **Token Validator:** `scripts/token_validator.py` - Script for measuring actual token counts
+- **Token Validator:** `ai-rules tokens` - CLI command for measuring actual token counts
 
 ## Contract
 
@@ -54,8 +54,8 @@ Guidelines for optimizing rule token budgets, sizing rules appropriately, and lo
 
 ### Mandatory
 
-- `token_validator.py` script
-- `schema_validator.py` script
+- `ai-rules tokens` CLI command
+- `ai-rules validate` CLI command
 - Word count tools (wc)
 - Model context window knowledge
 
@@ -71,7 +71,7 @@ Guidelines for optimizing rule token budgets, sizing rules appropriately, and lo
 2. Choose appropriate TokenBudget tier based on size
 3. Set ContextTier to match tier (Small=Critical/High, Standard=High/Medium, etc.)
 4. Verify rule focuses on single concept
-5. Run `token_validator.py` to confirm actual count
+5. Run `ai-rules tokens` to confirm actual count
 6. Split rule if >5000 tokens or covers multiple unrelated topics
 
 ### Output Format
@@ -89,14 +89,14 @@ Rule file with:
 - ContextTier matches TokenBudget tier appropriately
 - Rule size calculated or estimated
 - Rule focuses on single concept (not multi-topic)
-- token_validator.py ready to run
+- `ai-rules tokens` ready to run
 
 **Success Criteria:**
 - TokenBudget format: `~NUMBER` (e.g., ~2500)
 - ContextTier matches tier: Small=Critical/High, Standard=High/Medium, etc.
 - Actual token count within +/-5% of declared budget (validator default)
 - Rule size 2000-3500 tokens (preferred) or <5000 tokens (maximum)
-- `token_validator.py` passes without update warnings
+- `ai-rules tokens` passes without update warnings
 
 **Negative Tests:**
 - Text label TokenBudget (small/medium/large) triggers validation error
@@ -105,7 +105,7 @@ Rule file with:
 - Rule >5500 tokens triggers split recommendation
 
 **Error Recovery:**
-- **token_validator.py not found:** Check scripts/ exists, fall back to word count estimate (words x 1.33)
+- **`ai-rules tokens` not found:** Check `uv run ai-rules tokens` is available, fall back to word count estimate (words x 1.33)
 - **Validator fails to parse rule:** Check for malformed YAML/frontmatter, validate Markdown syntax first
 - **Token count wildly off:** Re-run validator, check for binary content or encoding issues
 
@@ -114,7 +114,7 @@ Rule file with:
 - [ ] TokenBudget declared with `~NUMBER` format (no text labels)
 - [ ] ContextTier matches TokenBudget tier appropriately
 - [ ] Rule size 2000-3500 tokens (optimal) or <5000 tokens (preferred)
-- [ ] `token_validator.py` confirms budget within +/-10% of actual
+- [ ] `ai-rules tokens` confirms budget within +/-10% of actual
 - [ ] Rule focuses on single concept (not multi-topic)
 - [ ] Dependencies declared to avoid loading duplicate content
 - [ ] Rule added to appropriate tier for progressive loading
@@ -168,7 +168,7 @@ Rule file with:
 
 > **IMPORTANT:** Token budget examples are point-in-time snapshots. Before relying on specific values for budget calculations:
 > 1. Check **RULES_INDEX.md** (auto-generated, always current)
-> 2. Or run: `python3 scripts/token_validator.py rules/002-rule-governance.md --detailed`
+> 2. Or run: `uv run ai-rules tokens rules/002-rule-governance.md --detailed`
 > 3. Trust declared metadata over narrative examples
 
 ## Token Budget Tiers
@@ -492,19 +492,19 @@ Total context: ~16,500 tokens (temporary spike)
 
 ## Token Budget Validation
 
-### Running token_validator.py
+### Running ai-rules tokens
 
 > **WARNING:** Running without `--dry-run` will **automatically update** TokenBudget values in rule files. Use `--dry-run` to preview changes first.
 
 ```bash
 # Validate single file (read-only check)
-python3 scripts/token_validator.py rules/002-rule-governance.md --detailed
+uv run ai-rules tokens rules/002-rule-governance.md --detailed
 
 # Validate all rules (read-only check)
-python3 scripts/token_validator.py rules/ --detailed --dry-run
+uv run ai-rules tokens rules/ --detailed --dry-run
 
 # Auto-update all rules exceeding threshold
-python3 scripts/token_validator.py rules/
+uv run ai-rules tokens rules/
 
 # Output example:
 # rules/002-rule-governance.md:
@@ -518,7 +518,7 @@ python3 scripts/token_validator.py rules/
 **Quick Estimate:**
 ```bash
 # Word count
-wc -w rules/NNN-rule.md
+wc -w rules/<your-rule>.md
 # 2100 words
 
 # Convert to tokens (multiply by ~1.33)

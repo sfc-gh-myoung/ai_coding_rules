@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-01-13
+**RuleVersion:** v3.2.2
+**LastUpdated:** 2026-02-18
 **Keywords:** rule creation, workflow, step-by-step guide, naming conventions, metadata setup, v3.2 schema, validation, rule numbering, from scratch, new rule
 **TokenBudget:** ~5400
 **ContextTier:** High
@@ -57,7 +57,7 @@ Step-by-step workflow for creating new rules from scratch. Covers rule numbering
 ### Mandatory
 
 - Text editor
-- `schema_validator.py` script
+- `ai-rules validate` CLI command
 - `RULES_INDEX.md` access
 - Access to existing rules/ directory for reference
 
@@ -75,12 +75,12 @@ Step-by-step workflow for creating new rules from scratch. Covers rule numbering
 
 1. Choose rule number from appropriate range (000-099 core, 100-199 Snowflake, etc.)
 2. Review existing rules in same category for patterns and structure
-3. Create new file `rules/NNN-technology-aspect.md` with H1 title and `## Metadata` header
+3. Create new file `rules/<NNN>-<technology>-<aspect>.md` with H1 title and `## Metadata` header
 4. Fill required metadata fields (SchemaVersion: v3.2, RuleVersion, Keywords: 5-20 terms, TokenBudget, ContextTier, Depends)
 5. Write required sections in v3.2 order: Scope, References, Contract, Anti-Patterns (optional)
 6. Add Contract section with Markdown subsections (###), NOT XML tags
 7. Use descriptive section names (not numbered: "Environment Setup" not "1. Environment Setup")
-8. Validate with `schema_validator.py` (must pass with 0 CRITICAL errors)
+8. Validate with `ai-rules validate` (must pass with 0 CRITICAL errors)
 9. Add rule to `RULES_INDEX.md` with keywords
 
 ### Output Format
@@ -104,7 +104,7 @@ Markdown file named `NNN-technology-aspect.md` with:
 - Keywords count is 5-20 terms
 
 **Success Criteria:**
-- `schema_validator.py` returns 0 CRITICAL errors
+- `ai-rules validate` returns 0 CRITICAL errors
 - File named correctly (NNN-technology-aspect.md)
 - All required metadata fields present and formatted correctly
 - All required sections present in v3.2 order
@@ -132,14 +132,14 @@ Markdown file named `NNN-technology-aspect.md` with:
 
 **Anti-Pattern 1: Skipping Schema Validation**
 
-**Problem:** Creating rule files without running schema_validator.py before committing.
+**Problem:** Creating rule files without running `ai-rules validate` before committing.
 
 **Why It Fails:** Introduces CRITICAL/HIGH errors that break rule compliance; wastes time in code review.
 
 **Correct Pattern:**
 ```bash
 # Always validate before committing
-python3 scripts/schema_validator.py rules/NNN-new-rule.md
+uv run ai-rules validate rules/<your-new-rule>.md
 # Fix all CRITICAL errors before commit
 ```
 
@@ -412,7 +412,7 @@ Add an importance marker after the title for foundation rules:
 - Large rule (~800 lines): `~1800`
 - Very large rule (~1200 lines): `~2500`
 
-**Validation:** Run `python3 scripts/token_validator.py` after creation to get actual count.
+**Validation:** Run `uv run ai-rules tokens` after creation to get actual count.
 
 ### ContextTier Selection
 
@@ -520,7 +520,7 @@ Description of expected output format (file type, structure, content)
 - Include required access permissions
 
 **Mandatory:**
-- List exact tool names (e.g., `schema_validator.py`, not "validator")
+- List exact tool names (e.g., `ai-rules validate`, not "validator")
 - Include required libraries with versions if critical
 - Specify required file access
 
@@ -550,7 +550,7 @@ Description of expected output format (file type, structure, content)
 
 **Why:** Ensures AI agents read requirements early before processing detailed content.
 
-## Validate with schema_validator.py
+## Validate with ai-rules validate
 
 ### Running Validation
 
@@ -560,10 +560,10 @@ Quick reference:
 
 ```bash
 # Validate single file
-python3 scripts/schema_validator.py rules/NNN-new-rule.md
+uv run ai-rules validate rules/<your-new-rule>.md
 
 # Verbose output (detailed checks)
-python3 scripts/schema_validator.py rules/NNN-new-rule.md --verbose
+uv run ai-rules validate rules/<your-new-rule>.md --verbose
 ```
 
 ### Common Errors and Fixes
@@ -636,7 +636,7 @@ These checks ensure efficient context window usage:
 
 ### Final Validation
 
-- [ ] `python3 scripts/schema_validator.py rules/NNN-rule.md` returns 0 CRITICAL errors
+- [ ] `uv run ai-rules validate rules/<your-rule>.md` returns 0 CRITICAL errors
 - [ ] Rule added to RULES_INDEX.md with keywords
 - [ ] No emojis in rule file content
 - [ ] Existing rules reviewed for structural patterns
@@ -644,8 +644,8 @@ These checks ensure efficient context window usage:
 ## Validation
 
 **Success Checks:**
-- New rule file exists at `rules/NNN-technology-aspect.md`
-- `python3 scripts/schema_validator.py rules/NNN-new-rule.md` returns 0 CRITICAL errors
+- New rule file exists at `rules/<NNN>-<technology>-<aspect>.md`
+- `uv run ai-rules validate rules/<your-new-rule>.md` returns 0 CRITICAL errors
 - All 6 metadata fields present and correctly formatted
 - All required sections present in v3.2 order
 - Contract has all Markdown subsections (###) before line 160
@@ -684,7 +684,7 @@ vim rules/121-snowflake-snowpipe.md
 # [Edit file with all 9 required sections]
 
 # Step 5: Validate
-python3 scripts/schema_validator.py rules/121-snowflake-snowpipe.md
+uv run ai-rules validate rules/121-snowflake-snowpipe.md
 # [PASS] RESULT: PASSED
 
 # Step 6: Add to index
@@ -712,6 +712,6 @@ vim rules/101d-snowflake-streamlit-testing.md
 # Write all required sections
 
 # Validate
-python3 scripts/schema_validator.py rules/101d-snowflake-streamlit-testing.md
+uv run ai-rules validate rules/101d-snowflake-streamlit-testing.md
 # [PASS] RESULT: PASSED
 ```

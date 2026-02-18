@@ -103,6 +103,8 @@ E. High-risk actions (MANDATORY additional search):
 
 **Step 3: Load Matching Rules**
 
+> For detailed rule selection workflows, dependency resolution, and token budget management, use the `rule-loader` skill.
+
 A. Check for PROJECT.md:
    - Execute: Check if PROJECT.md exists in workspace root
    - If exists: Load via read_file, extract project context
@@ -541,6 +543,8 @@ See Step 2E for the authoritative list of high-risk actions that trigger mandato
 - `requirements.txt` only means project uses **pip** (bare commands or venv activation)
 
 ### Rule Discovery Reference
+
+> For complete loading workflows, worked examples, and test scenarios, use the `rule-loader` skill.
 
 **Authoritative Source:** {{rules_path}}/RULES_INDEX.md
 - Section 1: Rule Catalog (domain organization)

@@ -91,6 +91,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Podman Compose for development environments
   - Quadlet integration for systemd service deployment
   - Pod management for Kubernetes-style container grouping
+- **feat(rules):** add 102b-snowflake-sql-procedures.md for SQL stored procedures and UDFs
+  - Dollar quoting (`$$`), EXECUTE AS security model, EXECUTE IMMEDIATE with bind variables
+  - Structural templates, nested quoting rules, and decision matrix for security context
+- **feat(rules):** add 821-makefile-automation.md for GNU Make project automation
+  - Targets, .PHONY, self-documenting help, uv/uvx integration, error handling patterns
+- **feat(rules):** add 821a-makefile-advanced-patterns.md for advanced Makefile patterns
+  - Categorized help output, conditional logic, includes, platform detection, AI agent integration
+- **feat(examples):** add 821-makefile-automation-example.md reference implementation
+- **feat(skills):** add `rule-loader` skill for structured rule selection workflows
+  - Domain matching, activity matching, dependency resolution, and token budget workflows
+  - 3 worked examples (Python API, Streamlit dashboard, multi-domain)
+  - Test scenarios for validation
+- **feat(rules):** add `&` ampersand error message pattern and seed data examples to 102-snowflake-sql-core.md
+  - Documents `snow sql` template rendering errors caused by `&` in string literals
 
 ### Changed
 - **refactor(layout):** migrate `tools/` directory to `src/` layout
@@ -187,6 +201,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **refactor(Makefile):** update Make targets for new CLI sub-command syntax (`index generate`, `badges update`, `refs check`)
 - **feat(AGENTS):** add context continuation check (Step 0.5) and mandatory Gate 2 verification (Step 2D) to bootstrap protocol templates
 - **chore(pyproject):** add pytest `filterwarnings` for deprecated script warnings and `ty` type checker overrides for `prompt_eval` and `tests`
+- **feat(governance):** normalize placeholder filenames across governance rules (002, 002a, 002b, 002c, 002e, 002f, 802) — replace `NNN-rule.md` / `bad-rule.md` with `<your-rule>.md` / `<example-rule>.md`
+- **feat(index):** regenerate RULES_INDEX.md with 102b, 821, 821a entries and activity keywords
+- **refactor(docs):** remove legacy `scripts/` reference section from ARCHITECTURE.md — all script documentation replaced with `ai-rules` CLI equivalents, Mermaid diagrams and directory trees updated
+- **docs(readme):** update file paths from `scripts/` to `src/`, `./dev` to `make`, remove `scripts/` from project directory tree
+- **feat(templates):** add `rule-loader` skill cross-references to AGENTS_MODE and AGENTS_NO_MODE bootstrap templates
+- **chore(pyproject):** bump `requires-python` from `>=3.11` to `>=3.12` and add Python 3.12 classifier
+- **chore(pyproject):** update all dependency version minimums to latest stable releases
+  - Runtime: pyyaml 6.0→6.0.3, typer 0.9→0.17, rich 13.0→14.0
+  - Moved scikit-learn (1.3→1.8) and tiktoken (0.5→0.12) from dev to runtime dependencies (used by `ai-rules` CLI)
+  - Optional (agent-eval/prompt-eval): requests 2.28→2.32, fastapi 0.109→0.115, uvicorn 0.27→0.41, jinja2 3.1→3.1.6, python-multipart 0.0.6→0.0.22
+  - Added pydantic>=2.12.5 to prompt-eval (explicitly imported in `api.py`)
+  - Dev: ruff 0.1→0.15, pytest 7.4→9.0, pytest-cov 4.1→7.0, ty pinned to >=0.0.17
+  - Removed redundant typer, rich, requests from dev group (already in runtime/optional deps)
 
 ### Deprecated
 - **scripts/*.py** — Legacy Python scripts deprecated in favor of `ai-rules` CLI
@@ -221,6 +248,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **fix(scripts):** rename `warnings` variable to `warning_count` in `schema_validator.py` to avoid shadowing built-in
 - **fix(tokens):** exclude `RULES_INDEX.md` from token budget analysis and improve summary label clarity
 - **test(cli):** expand test suites with +5200 lines across 12 files covering sub-app refactor, edge cases, and comprehensive validation coverage
+- **fix(lint):** add `"code_blocks": false` to `no-hard-tabs` in pymarkdown.rules.json — allow tabs in fenced code blocks (Makefile examples require real tabs)
+- **fix(rules):** strip trailing null bytes from 002a-rule-creation.md, 002b-rule-update.md, 102b-snowflake-sql-procedures.md
 
 ## [3.5.3] - 2026-02-03
 

@@ -16,14 +16,14 @@ logger = logging.getLogger("prompt_eval.cortex")
 
 # Try to import snowflake connector (optional — only needed for SQL fallback)
 try:
-    import snowflake.connector  # ty: ignore[unresolved-import]
+    import snowflake.connector
 
     HAS_SNOWFLAKE = True
 except ImportError:
     HAS_SNOWFLAKE = False
 
 if TYPE_CHECKING:
-    import snowflake.connector  # ty: ignore[unresolved-import]
+    import snowflake.connector
 
 CONNECTIONS_TOML = Path.home() / ".snowflake" / "connections.toml"
 

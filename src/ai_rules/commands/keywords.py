@@ -1,15 +1,27 @@
 """Keyword generator command for ai-rules CLI.
 
-This command analyzes rule files using TF-IDF and multi-signal extraction
-to suggest 10-15 optimal keywords for the **Keywords:** metadata field.
+This command analyzes rule files using claude-sonnet-4-5 via Snowflake Cortex to
+summarize rule content into 5-20 contextually meaningful keywords for the
+**Keywords:** metadata field. High-confidence heuristic signals (technology terms,
+code languages) supplement the LLM output. Results are cached based on file
+content hash to avoid redundant API calls.
 """
 
 from __future__ import annotations
 
+import contextlib
+import hashlib
+import json
 import re
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Any
+
+try:
+    import tomllib
+except ImportError:
+    import tomli as tomllib  # type: ignore[import-untyped,no-redef]
 
 import typer
 from rich.columns import Columns
@@ -25,21 +37,7 @@ from ai_rules._shared.console import (
     log_warning,
 )
 
-# Lazy import sklearn to avoid startup penalty
-_TfidfVectorizer = None
-
-
-def _get_tfidf_vectorizer():
-    """Lazy import of TfidfVectorizer."""
-    global _TfidfVectorizer
-    if _TfidfVectorizer is None:
-        from sklearn.feature_extraction.text import TfidfVectorizer
-
-        _TfidfVectorizer = TfidfVectorizer
-    return _TfidfVectorizer
-
-
-# Files to skip when building corpus
+# Files to skip when processing directories
 SKIP_FILES = {
     "README.md",
     "CHANGELOG.md",
@@ -49,7 +47,7 @@ SKIP_FILES = {
     "RULES_INDEX.md",
 }
 
-# Domain-specific technology terms to prioritize
+# Domain-specific technology terms (optional context for prompt enrichment)
 TECHNOLOGY_TERMS = {
     # Snowflake ecosystem
     "snowflake",
@@ -115,6 +113,7 @@ STOP_TERMS = {
     "data",
     "code",
     "file",
+    "files",
     "example",
     "function",
     "method",
@@ -122,6 +121,7 @@ STOP_TERMS = {
     "variable",
     "value",
     "type",
+    "types",
     "string",
     "number",
     "list",
@@ -132,6 +132,18 @@ STOP_TERMS = {
     "import",
     "module",
     "package",
+    "new",
+    "name",
+    "description",
+    "text",
+    "field",
+    "fields",
+    "required",
+    "order",
+    "structure",
+    "standard",
+    "default",
+    "actual",
     # Generic document terms
     "section",
     "rule",
@@ -170,6 +182,18 @@ STOP_TERMS = {
     "running",
     "check",
     "checking",
+    "make",
+    "making",
+    "start",
+    "stop",
+    "fix",
+    "apply",
+    "load",
+    "loaded",
+    "loading",
+    "validate",
+    "detect",
+    "detection",
     # Schema/metadata terms (present in all rules)
     "metadata",
     "schemaversion",
@@ -187,8 +211,60 @@ STOP_TERMS = {
     "markdown",
     "heading",
     "table",
+    "tables",
     "link",
     "image",
+    # v3.2 schema section headings (appear in 100+ rules as boilerplate)
+    "inputs",
+    "prerequisites",
+    "execution",
+    "steps",
+    "step",
+    "dependencies",
+    "context",
+    "management",
+    "protocol",
+    "principles",
+    "design",
+    "task",
+    "tasks",
+    "priority",
+    "critical",
+    "scenario",
+    "triggers",
+    "trigger",
+    "changes",
+    "changed",
+    "workflow",
+    "related",
+    "external",
+    "information",
+    "decision",
+    "recommendations",
+    "selection",
+    "choice",
+    "approach",
+    "correct",
+    "wrong",
+    "good",
+    "bad",
+    "over",
+    "words",
+    "are",
+    "explicit",
+    "verbose",
+    "violations",
+    "missing",
+    "instead",
+    "right",
+    "too",
+    "generic",
+    "specific",
+    "common",
+    "issues",
+    "pitfall",
+    "pitfalls",
+    "progress",
     # Common rule section terms (appear in all rules)
     "anti-pattern",
     "anti-patterns",
@@ -203,8 +279,20 @@ STOP_TERMS = {
     "summary",
     "checklist",
     "output",
+    "outputs",
     "format",
     "examples",
+    "quick",
+    "handling",
+    "implementation",
+    "details",
+    "testing",
+    "naming",
+    "convention",
+    "conventions",
+    "considerations",
+    "strategies",
+    "strategy",
     # Common English words that slip through
     "and",
     "the",
@@ -252,42 +340,200 @@ STOP_TERMS = {
     "often",
     "usually",
     "sometimes",
+    # Additional generic words observed in heuristic output
+    "first",
+    "second",
+    "third",
+    "command",
+    "window",
+    "tree",
+    "preservation",
+    "recognition",
+    "definition",
+    "session",
+    "pollution",
+    "template",
+    "initialization",
+    "choose",
+    "guidance",
+    "split",
+    "detailed",
+    "parallel",
+    "investigation",
+    "constraints",
+    "success",
+    "failure",
+    "count",
+    "fixes",
+    "version",
+    "total",
+    "lines",
+    "basic",
+    "advanced",
+    "simple",
+    "complex",
+    "large",
+    "small",
+    "existing",
+    "available",
+    "current",
+    "major",
+    "minor",
+    "read",
+    "write",
+    "find",
+    "determine",
+    "process",
+    "optional",
+    "response",
+    "request",
+    "system",
+    "model",
+    "models",
+    "result",
+    "results",
+    "general",
+    "review",
+    "ensure",
+    "key",
+    "point",
+    "points",
+    "level",
+    "levels",
+    "single",
+    "multiple",
+    "primary",
+    "secondary",
+    "full",
+    "empty",
+    "top",
+    "bottom",
+    "above",
+    "below",
+    "inside",
+    "outside",
+    "before",
+    "after",
+    "between",
+    "through",
+    "across",
+    "within",
+    "without",
+    "during",
+    "about",
+    "like",
+    "into",
+    "down",
+    "back",
+    "next",
+    "last",
+    "end",
+    "need",
+    "needs",
+    "different",
+    "proper",
+    "clear",
+    "avoid",
+    "include",
+    "includes",
+    "state",
+    "based",
+    "spec",
+    "original",
+    "correctly",
+    "content",
+    "automatically",
+    "manual",
+    "pair",
+    "formula",
+    "sections",
+    "subsection",
+    "commands",
+    "options",
+    "severity",
+    "budget",
+    "sizing",
+    "size",
+    "declaration",
+    "techniques",
+    "scenarios",
+    "change",
+    "automated",
+    "script",
+    "integration",
+    "complexity",
+    "curation",
+    "compact",
+    "tier",
+    "responsibilities",
+    "similar",
+    "fill",
+    "requirements",
+    "estimation",
+    "placement",
+    "optimized",
+    "buried",
+    "tool",
+    "tools",
+    "parameter",
+    "parameters",
+    "parsing",
+    "log",
+    "recovery",
+    "specialized",
+    "tokens",
+    "methods",
+    "fundamentals",
+    "boundaries",
+    "specifications",
+    "behaviors",
+    "viable",
+    "discoverability",
+    "migration",
 }
 
-# Compound terms to preserve (matched as phrases)
-COMPOUND_TERMS = {
-    "session state": "session_state",
-    "semantic view": "semantic_view",
-    "semantic views": "semantic_views",
-    "dynamic table": "dynamic_table",
-    "dynamic tables": "dynamic_tables",
-    "cortex agent": "cortex_agent",
-    "cortex agents": "cortex_agents",
-    "cortex search": "cortex_search",
-    "cortex analyst": "cortex_analyst",
-    "feature store": "feature_store",
-    "model registry": "model_registry",
-    "data quality": "data_quality",
-    "data loading": "data_loading",
-    "data governance": "data_governance",
-    "cost governance": "cost_governance",
-    "resource monitor": "resource_monitor",
-    "virtual warehouse": "virtual_warehouse",
-    "compute pool": "compute_pool",
-    "event table": "event_table",
-    "planning instructions": "planning_instructions",
-    "response instructions": "response_instructions",
-    "type checking": "type_checking",
-    "type hints": "type_hints",
-    "dependency management": "dependency_management",
-    "virtual environment": "virtual_environment",
-    "error handling": "error_handling",
-    "input validation": "input_validation",
-    "access control": "access_control",
-    "row access policy": "row_access_policy",
-    "masking policy": "masking_policy",
-    "object tagging": "object_tagging",
-}
+# Default cache file path
+CACHE_FILENAME = ".keywords-cache.json"
+
+
+def load_snowflake_config(connection_name: str) -> dict[str, Any]:
+    """Load connection config from ~/.snowflake/connections.toml or config.toml.
+
+    Args:
+        connection_name: Name of the connection in the config file.
+
+    Returns:
+        Dict with account, user, and authentication details.
+
+    Raises:
+        FileNotFoundError: If no config file exists.
+        ValueError: If connection_name not found in config.
+    """
+    snowflake_dir = Path.home() / ".snowflake"
+    connections_path = snowflake_dir / "connections.toml"
+    config_path = snowflake_dir / "config.toml"
+
+    config_file = None
+    if connections_path.exists():
+        config_file = connections_path
+    elif config_path.exists():
+        config_file = config_path
+    else:
+        raise FileNotFoundError(
+            f"No Snowflake config found. Expected:\n  - {connections_path}\n  - {config_path}"
+        )
+
+    with open(config_file, "rb") as f:
+        config = tomllib.load(f)
+
+    if connection_name not in config:
+        available = list(config.keys())
+        raise ValueError(
+            f"Connection '{connection_name}' not found in {config_file.name}. "
+            f"Available: {available}"
+        )
+
+    return config[connection_name]
 
 
 @dataclass
@@ -296,7 +542,7 @@ class KeywordCandidate:
 
     term: str
     score: float
-    source: str  # "tfidf", "header", "code_lang", "emphasis", "technology"
+    source: str  # "llm", "header", "code_lang", "emphasis", "technology"
 
     def __hash__(self) -> int:
         """Hash by normalized term for deduplication."""
@@ -337,101 +583,289 @@ class ExtractionResult:
         return {k for k in self.current_keywords if k.lower() in suggested_lower}
 
 
-class KeywordExtractor:
-    """Extract and rank keywords from rule files using TF-IDF and multi-signal analysis."""
+def _deduplicate_across_rules(
+    results: list[ExtractionResult],
+    max_overlap: int = 2,
+) -> None:
+    """Remove over-shared keywords from rules where they're least relevant.
 
-    def __init__(self, corpus_dir: Path | None = None, debug: bool = False):
+    For keywords appearing in more than *max_overlap* rules, keep the keyword
+    only in the top *max_overlap* rules (ranked by how often the keyword term
+    appears in the rule file content). Mutates ``suggested_keywords`` in place.
+
+    Args:
+        results: Extraction results to deduplicate across.
+        max_overlap: Maximum number of rules that may share a keyword.
+    """
+    # Build frequency map: lowered keyword -> list of (result, body_count)
+    keyword_owners: dict[str, list[tuple[ExtractionResult, int]]] = {}
+    for result in results:
+        content = result.file_path.read_text(encoding="utf-8").lower()
+        for kw in result.suggested_keywords:
+            key = kw.lower()
+            body_count = content.count(key)
+            keyword_owners.setdefault(key, []).append((result, body_count))
+
+    # For keywords in too many rules, keep only the top-scoring ones
+    for key, owners in keyword_owners.items():
+        if len(owners) <= max_overlap:
+            continue
+        # Sort by body count descending; keep top max_overlap
+        owners.sort(key=lambda x: x[1], reverse=True)
+        keep_results = {id(r) for r, _ in owners[:max_overlap]}
+        for result, _ in owners[max_overlap:]:
+            if id(result) not in keep_results:
+                result.suggested_keywords = [
+                    kw for kw in result.suggested_keywords if kw.lower() != key
+                ]
+
+
+def _content_hash(content: str) -> str:
+    """Compute SHA-256 hash of file content."""
+    return hashlib.sha256(content.encode("utf-8")).hexdigest()
+
+
+def _load_cache(cache_path: Path) -> dict:
+    """Load keyword cache from disk."""
+    if cache_path.exists():
+        try:
+            return json.loads(cache_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            return {}
+    return {}
+
+
+def _save_cache(cache_path: Path, cache: dict) -> None:
+    """Save keyword cache to disk."""
+    with contextlib.suppress(OSError):
+        cache_path.write_text(json.dumps(cache, indent=2), encoding="utf-8")
+
+
+def _get_cached_keywords(cache: dict, file_key: str, content_hash: str) -> list[str] | None:
+    """Get cached keywords if content hash matches."""
+    entry = cache.get(file_key)
+    if entry and entry.get("hash") == content_hash:
+        return entry.get("keywords")
+    return None
+
+
+def _set_cached_keywords(cache: dict, file_key: str, content_hash: str, kws: list[str]) -> None:
+    """Store keywords in cache with content hash."""
+    cache[file_key] = {"hash": content_hash, "keywords": kws}
+
+
+def _parse_cortex_sse_response(raw: str) -> str:
+    """Parse a Cortex streaming SSE response into the full text.
+
+    The Cortex inference API returns Server-Sent Events where each line
+    is ``data: {JSON}``. Each JSON chunk contains a delta with partial
+    content. This function concatenates all deltas into the complete text.
+    """
+    parts: list[str] = []
+    for line in raw.splitlines():
+        line = line.strip()
+        if not line.startswith("data:"):
+            continue
+        payload = line[len("data:") :].strip()
+        if payload == "[DONE]":
+            break
+        try:
+            chunk = json.loads(payload)
+            choices = chunk.get("choices", [])
+            if choices:
+                delta = choices[0].get("delta", {})
+                content = delta.get("content", "")
+                if content:
+                    parts.append(content)
+        except (json.JSONDecodeError, IndexError, KeyError):
+            continue
+    return "".join(parts)
+
+
+def _call_cortex_complete(
+    content: str,
+    connection_name: str = "default",
+    count: int = 15,
+    debug: bool = False,
+) -> list[str]:
+    """Call Cortex REST API to generate keywords for rule content.
+
+    Uses claude-sonnet-4-5 to summarize the rule into 5-20 contextually meaningful
+    keywords and phrases for semantic discovery.
+
+    Args:
+        content: The rule file content.
+        connection_name: Snowflake connection name from ~/.snowflake/connections.toml.
+        count: Maximum number of keywords (LLM chooses 5-20 based on rule complexity).
+        debug: Enable debug output.
+
+    Returns:
+        List of keyword strings from the LLM.
+
+    Raises:
+        RuntimeError: If API call fails after retries.
+    """
+    import requests
+
+    config = load_snowflake_config(connection_name)
+    account = config.get("account", config.get("accountname", ""))
+    token = config.get("token") or config.get("password", "")
+
+    if not account or not token:
+        raise RuntimeError(
+            f"Snowflake connection '{connection_name}' is missing 'account' or "
+            f"'token'/'password'. Check ~/.snowflake/connections.toml."
+        )
+
+    stop_terms_list = ", ".join(sorted(STOP_TERMS))
+
+    prompt = f"""You are a senior technical writer summarizing AI coding rule files into discovery keywords.
+
+Your task: Read the rule file below, understand its core purpose and distinguishing concepts, then distill that understanding into 5 to {count} keywords or short phrases.
+
+These keywords populate the **Keywords:** metadata field used by AI agents to discover which rules to load via grep/search against a RULES_INDEX.md file.
+
+Step 1 — Understand the rule:
+- What specific technology, framework, or tool does this rule govern?
+- What actions, patterns, or workflows does it prescribe?
+- What distinguishes this rule from other rules in the same domain?
+
+Step 2 — Generate keywords that:
+- Capture the core concepts, technologies, and actionable patterns in this rule
+- Include proper nouns with correct casing (e.g., "Snowflake", "FastAPI", "RBAC")
+- Include compound phrases where meaningful (e.g., "cortex agent", "masking policy", "session state")
+- Use lowercase for multi-word descriptive terms (e.g., "error handling", "dynamic table")
+- Would help an AI agent searching for rules relevant to a specific task
+- Are specific enough to distinguish THIS rule from other rules
+
+Do NOT include any of these generic terms (they appear in every rule and have no discovery value):
+{stop_terms_list}
+
+CRITICAL — Never use bare single-word domain terms. Always qualify with the specific aspect this rule covers:
+- BAD:  "SQL", "testing", "performance", "validation", "security"
+- GOOD: "SQL file formatting", "pytest fixtures", "query partition pruning", "schema compliance validation", "RBAC role grants"
+Each keyword must be specific enough that an agent could identify THIS rule from the keyword alone, without needing the rule filename.
+
+Return ONLY a JSON array of 5 to {count} strings. No explanation, no markdown, no other text.
+
+Rule file content:
+---
+{content[:32000]}
+---"""
+
+    if ".snowflakecomputing.com" in account:
+        url = f"https://{account}/api/v2/cortex/inference:complete"
+    else:
+        url = f"https://{account}.snowflakecomputing.com/api/v2/cortex/inference:complete"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+        "X-Snowflake-Authorization-Token-Type": "PROGRAMMATIC_ACCESS_TOKEN",
+    }
+    payload = {
+        "model": "claude-sonnet-4-5",
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": 500,
+        "temperature": 0.1,
+    }
+
+    # Retry with exponential backoff (per rule 118)
+    max_retries = 3
+    base_delay = 1.0
+
+    last_error = None
+    for attempt in range(max_retries):
+        try:
+            if debug:
+                err_console.print(
+                    f"[dim][DEBUG] Cortex API attempt {attempt + 1}/{max_retries}[/dim]"
+                )
+
+            resp = requests.post(url, headers=headers, json=payload, timeout=30)
+
+            if resp.status_code == 200:
+                text = _parse_cortex_sse_response(resp.text)
+
+                if debug:
+                    err_console.print(f"[dim][DEBUG] LLM response text: {text[:200]}[/dim]")
+
+                return _parse_keyword_response(text, count)
+
+            elif resp.status_code in (429, 503, 504):
+                delay = base_delay * (2**attempt)
+                if debug:
+                    err_console.print(
+                        f"[dim][DEBUG] Retryable error {resp.status_code}, "
+                        f"waiting {delay:.1f}s[/dim]"
+                    )
+                time.sleep(delay)
+                last_error = RuntimeError(
+                    f"Cortex API returned {resp.status_code}: {resp.text[:200]}"
+                )
+            else:
+                raise RuntimeError(f"Cortex API returned {resp.status_code}: {resp.text[:200]}")
+
+        except requests.exceptions.RequestException as e:
+            last_error = RuntimeError(f"Cortex API request failed: {e}")
+            if attempt < max_retries - 1:
+                delay = base_delay * (2**attempt)
+                time.sleep(delay)
+
+    raise last_error or RuntimeError("Cortex API call failed after retries")
+
+
+def _parse_keyword_response(text: str, count: int) -> list[str]:
+    """Parse LLM response text into a list of keywords.
+
+    Handles JSON arrays, comma-separated lists, and newline-separated lists.
+    """
+    text = text.strip()
+
+    # Try JSON array first
+    try:
+        # Find JSON array in response (may be wrapped in markdown code block)
+        json_match = re.search(r"\[.*?\]", text, re.DOTALL)
+        if json_match:
+            parsed = json.loads(json_match.group())
+            if isinstance(parsed, list) and all(isinstance(k, str) for k in parsed):
+                return [k.strip() for k in parsed if k.strip()][:count]
+    except (json.JSONDecodeError, TypeError):
+        pass
+
+    # Fallback: try comma-separated
+    if "," in text:
+        keywords = [k.strip().strip('"').strip("'") for k in text.split(",")]
+        keywords = [k for k in keywords if k and k.lower() not in STOP_TERMS]
+        if keywords:
+            return keywords[:count]
+
+    # Fallback: newline-separated (strip bullet markers)
+    lines = text.strip().splitlines()
+    keywords = []
+    for line in lines:
+        line = re.sub(r"^[\s\-*\d.]+", "", line).strip().strip('"').strip("'")
+        if line and line.lower() not in STOP_TERMS:
+            keywords.append(line)
+    return keywords[:count]
+
+
+class KeywordExtractor:
+    """Extract and rank keywords from rule files using Cortex LLM and heuristic signals."""
+
+    def __init__(self, *, debug: bool = False, connection_name: str = "default"):
         """Initialize the keyword extractor.
 
         Args:
-            corpus_dir: Directory containing rule files for TF-IDF corpus.
-                       If None, TF-IDF scoring is disabled.
             debug: Enable debug output
+            connection_name: Snowflake connection name for Cortex API calls.
         """
-        self.corpus_dir = corpus_dir
         self.debug = debug
-        self.vectorizer = None
-        self.corpus_docs: list[str] = []
-        self.corpus_paths: list[Path] = []
-
-        if corpus_dir:
-            self._build_corpus()
+        self.connection_name = connection_name
 
     def _debug(self, message: str) -> None:
         """Print debug message if debug mode enabled."""
         if self.debug:
             err_console.print(f"[dim][DEBUG] {message}[/dim]")
-
-    def _build_corpus(self) -> None:
-        """Build TF-IDF corpus from all rule files in corpus_dir."""
-        if not self.corpus_dir or not self.corpus_dir.exists():
-            return
-
-        self._debug(f"Building corpus from {self.corpus_dir}")
-
-        # Collect all rule files
-        for filepath in sorted(self.corpus_dir.rglob("*.md")):
-            if filepath.name in SKIP_FILES:
-                continue
-            # Skip examples directory (not rules, deployed separately)
-            if "examples" in filepath.parts:
-                continue
-
-            try:
-                content = filepath.read_text(encoding="utf-8")
-                # Preprocess for TF-IDF
-                processed = self._preprocess_for_tfidf(content)
-                self.corpus_docs.append(processed)
-                self.corpus_paths.append(filepath)
-            except Exception as e:
-                self._debug(f"Error reading {filepath}: {e}")
-
-        self._debug(f"Corpus contains {len(self.corpus_docs)} documents")
-
-        if self.corpus_docs:
-            # Build TF-IDF vectorizer
-            TfidfVectorizer = _get_tfidf_vectorizer()
-            # Use max_df=1.0 for small corpora to avoid ValueError
-            # (max_df=0.8 with <2 docs causes issues)
-            max_df = 1.0 if len(self.corpus_docs) < 3 else 0.8
-            self.vectorizer = TfidfVectorizer(
-                max_features=1000,
-                stop_words="english",
-                ngram_range=(1, 2),  # Unigrams and bigrams
-                min_df=1,
-                max_df=max_df,  # Ignore terms in >80% of docs (when corpus large enough)
-                token_pattern=r"(?u)\b[a-zA-Z_][a-zA-Z0-9_]{2,}\b",
-            )
-            self.vectorizer.fit(self.corpus_docs)
-
-    def _preprocess_for_tfidf(self, content: str) -> str:
-        """Preprocess content for TF-IDF analysis.
-
-        - Replace compound terms with underscored versions
-        - Remove code blocks (they skew term frequency)
-        - Remove URLs and file paths
-        - Normalize whitespace
-        """
-        text = content
-
-        # Replace compound terms
-        for phrase, replacement in COMPOUND_TERMS.items():
-            text = re.sub(re.escape(phrase), replacement, text, flags=re.IGNORECASE)
-
-        # Remove code blocks
-        text = re.sub(r"```[\s\S]*?```", " ", text)
-        text = re.sub(r"`[^`]+`", " ", text)
-
-        # Remove URLs
-        text = re.sub(r"https?://\S+", " ", text)
-
-        # Remove file paths
-        text = re.sub(r"[\w/.-]+\.(py|md|sql|yml|yaml|toml|json|sh)", " ", text)
-
-        # Normalize whitespace
-        text = " ".join(text.split())
-
-        return text
 
     def _extract_headers(self, content: str) -> list[KeywordCandidate]:
         """Extract keywords from H2 and H3 headers."""
@@ -442,27 +876,86 @@ class KeywordExtractor:
         for match in re.finditer(header_pattern, content, re.MULTILINE):
             header_text = match.group(1).strip()
 
-            # Skip common section names
+            # Skip all v3.2 schema boilerplate section names
             if header_text.lower() in {
                 "metadata",
                 "purpose",
+                "scope",
                 "rule scope",
+                "quick start",
                 "quick start tl;dr",
                 "contract",
-                "anti-patterns and common mistakes",
-                "post-execution checklist",
+                "inputs and prerequisites",
+                "mandatory",
+                "forbidden",
+                "execution steps",
+                "output format",
                 "validation",
+                "post-execution checklist",
+                "anti-patterns and common mistakes",
                 "output format examples",
                 "references",
                 "external documentation",
                 "related rules",
+                "dependencies",
+                "design principles",
+                "key principles",
+                "implementation details",
+                "performance optimization",
+                "performance considerations",
+                "performance and optimization",
+                "troubleshooting",
+                "validation checklist",
+                "rules loaded",
+                "unreleased",
+                "fixed",
+                "added",
+                "changed",
+                "deprecated",
+                "quantification standards",
+                "related examples",
             }:
                 continue
 
-            # Extract meaningful terms from header
-            words = re.findall(r"\b[a-zA-Z][a-zA-Z0-9_-]{2,}\b", header_text)
-            for word in words:
-                if word.lower() not in STOP_TERMS:
+            # Keep the full header text as a compound phrase if it's
+            # domain-specific (not just boilerplate words)
+            # Strip inline markdown formatting (bold, italic, backticks)
+            clean_header = re.sub(r"[*_`]", "", header_text).strip()
+            # Strip common numbered prefixes like "Step 1:", "Scenario 4:", "Anti-Pattern 1:"
+            clean_header = re.sub(
+                r"^(?:Step \d+|Scenario \d+|Anti-Pattern \d+|Priority \d+|Phase \d+|Option \d+|Example \d+)\s*[:—–-]\s*",
+                "",
+                clean_header,
+            ).strip()
+            # Strip trailing parenthetical qualifiers like "(CRITICAL - Must Pass)"
+            clean_header = re.sub(r"\s*\([^)]*\)\s*$", "", clean_header).strip()
+            # Strip "Error N:" prefixes
+            clean_header = re.sub(r"^Error \d+\s*:\s*", "", clean_header).strip()
+            # Strip any remaining leading/trailing colons or markdown artifacts
+            clean_header = clean_header.strip(":").strip()
+            # Skip question-form headers ("What is...?", "How to...?")
+            if clean_header.endswith("?"):
+                continue
+            # Skip headers with special characters (≤, >, ~, =, ---) — usually not keywords
+            if re.search(r"[≤≥<>=~]|^---$", clean_header):
+                continue
+            # Skip headers that are too long (>45 chars) — not useful as keywords
+            if len(clean_header) > 45:
+                continue
+            # Skip if cleaned header is empty
+            if not clean_header:
+                continue
+
+            header_words = re.findall(r"\b[a-zA-Z][a-zA-Z0-9_-]{2,}\b", clean_header)
+            non_stop_words = [w for w in header_words if w.lower() not in STOP_TERMS]
+
+            # If the header has 2+ meaningful words, keep as compound phrase
+            if len(non_stop_words) >= 2:
+                candidates.append(KeywordCandidate(term=clean_header, score=0.9, source="header"))
+            elif len(non_stop_words) == 1:
+                word = non_stop_words[0]
+                # Only keep single words that look like proper nouns or tech terms
+                if word[0].isupper() or word.lower() in TECHNOLOGY_TERMS:
                     candidates.append(KeywordCandidate(term=word, score=0.8, source="header"))
 
         return candidates
@@ -519,21 +1012,59 @@ class KeywordExtractor:
             # Skip if it looks like a label (ends with :)
             if term.endswith(":"):
                 continue
-            # Extract individual words
+            # Skip common schema metadata field names
+            if term.lower() in {
+                "schemaversion",
+                "ruleversion",
+                "lastupdated",
+                "keywords",
+                "tokenbudget",
+                "contexttier",
+                "depends",
+                "what this rule covers",
+                "when to load this rule",
+                "must load first",
+                "note",
+                "critical",
+                "always",
+                "never",
+            }:
+                continue
+            # Extract words and check if the term is meaningful
             words = re.findall(r"\b[a-zA-Z][a-zA-Z0-9_-]{2,}\b", term)
-            for word in words:
-                if word.lower() not in STOP_TERMS:
+            non_stop_words = [w for w in words if w.lower() not in STOP_TERMS]
+            # Keep compound phrases with 2+ meaningful words (cap length)
+            if len(non_stop_words) >= 2 and len(term) <= 50:
+                candidates.append(KeywordCandidate(term=term, score=0.6, source="emphasis"))
+            elif len(non_stop_words) == 1:
+                word = non_stop_words[0]
+                # Only keep single words that look like proper nouns or tech terms
+                if word[0].isupper() or word.lower() in TECHNOLOGY_TERMS:
                     candidates.append(KeywordCandidate(term=word, score=0.5, source="emphasis"))
 
         # Backtick terms: `term`
         backtick_pattern = r"`([^`]+)`"
         for match in re.finditer(backtick_pattern, content):
             term = match.group(1)
-            # Skip if it looks like code/command
+            # Skip multi-line matches (from code blocks) and markdown artifacts
+            if "\n" in term or "*" in term:
+                continue
+            # Skip if it looks like code/command (has spaces, paths, function calls)
             if " " in term or "/" in term or "(" in term:
                 continue
+            # Skip CLI flags like --json, --schema
+            if term.startswith("-"):
+                continue
             # Skip file paths and extensions
-            if "." in term and term.split(".")[-1] in {"py", "md", "sql", "yml", "yaml"}:
+            if "." in term and term.split(".")[-1] in {
+                "py",
+                "md",
+                "sql",
+                "yml",
+                "yaml",
+                "toml",
+                "json",
+            }:
                 continue
             if term.lower() not in STOP_TERMS and len(term) > 2:
                 candidates.append(KeywordCandidate(term=term, score=0.4, source="emphasis"))
@@ -553,49 +1084,6 @@ class KeywordExtractor:
 
         return candidates
 
-    def _extract_tfidf_terms(
-        self, content: str, file_path: Path, top_n: int = 20
-    ) -> list[KeywordCandidate]:
-        """Extract top TF-IDF terms for this document."""
-        candidates = []
-
-        if not self.vectorizer:
-            return candidates
-
-        # Find document index in corpus
-        doc_idx = None
-        for i, path in enumerate(self.corpus_paths):
-            if path == file_path:
-                doc_idx = i
-                break
-
-        if doc_idx is None:
-            # Document not in corpus, transform it
-            processed = self._preprocess_for_tfidf(content)
-            tfidf_matrix = self.vectorizer.transform([processed])
-            feature_names = self.vectorizer.get_feature_names_out()
-            scores = tfidf_matrix.toarray()[0]
-        else:
-            # Get pre-computed TF-IDF scores
-            tfidf_matrix = self.vectorizer.transform(self.corpus_docs)
-            feature_names = self.vectorizer.get_feature_names_out()
-            scores = tfidf_matrix.toarray()[doc_idx]
-
-        # Get top N terms by TF-IDF score
-        top_indices = scores.argsort()[-top_n:][::-1]
-
-        for idx in top_indices:
-            term = feature_names[idx]
-            score = scores[idx]
-            if score > 0 and term.lower() not in STOP_TERMS:
-                # Convert underscored compounds back to spaces
-                display_term = term.replace("_", " ")
-                candidates.append(
-                    KeywordCandidate(term=display_term, score=float(score), source="tfidf")
-                )
-
-        return candidates
-
     def _extract_current_keywords(self, content: str) -> list[str]:
         """Extract current keywords from the **Keywords:** metadata field."""
         pattern = r"\*\*Keywords:\*\*\s*(.+)"
@@ -605,94 +1093,147 @@ class KeywordExtractor:
             return [k.strip() for k in keywords_str.split(",") if k.strip()]
         return []
 
-    def extract_candidates(self, content: str, file_path: Path) -> list[KeywordCandidate]:
-        """Extract all keyword candidates from content using multiple signals.
-
-        Args:
-            content: Rule file content
-            file_path: Path to the rule file (for TF-IDF lookup)
-
-        Returns:
-            List of KeywordCandidate objects with scores
-        """
+    def _collect_heuristic_candidates(self, content: str) -> list[KeywordCandidate]:
+        """Collect keyword candidates from all heuristic signals."""
         candidates = []
-
-        # Extract from different sources
         candidates.extend(self._extract_headers(content))
         candidates.extend(self._extract_code_languages(content))
         candidates.extend(self._extract_emphasized_terms(content))
         candidates.extend(self._extract_technology_terms(content))
-        candidates.extend(self._extract_tfidf_terms(content, file_path))
-
         return candidates
 
-    def rank_keywords(self, candidates: list[KeywordCandidate], count: int = 12) -> list[str]:
-        """Rank and deduplicate candidates to produce final keyword list.
-
-        Args:
-            candidates: List of KeywordCandidate objects
-            count: Target number of keywords (10-15 range)
-
-        Returns:
-            List of keywords sorted by relevance
-        """
-        # Aggregate scores by normalized term
+    def _rank_heuristic_keywords(
+        self, candidates: list[KeywordCandidate], count: int = 12
+    ) -> list[str]:
+        """Rank and deduplicate heuristic candidates (fallback when no API)."""
         term_scores: dict[str, float] = {}
-        term_display: dict[str, str] = {}  # Track best display form
+        term_display: dict[str, str] = {}
 
         for candidate in candidates:
             key = candidate.term.lower()
-
-            # Skip stop terms
             if key in STOP_TERMS:
                 continue
-
-            # Aggregate score
             if key not in term_scores:
                 term_scores[key] = 0.0
                 term_display[key] = candidate.term
             term_scores[key] += candidate.score
-
-            # Prefer display form with proper casing
             if candidate.term[0].isupper() and not term_display[key][0].isupper():
                 term_display[key] = candidate.term
 
-        # Sort by score descending
         sorted_terms = sorted(term_scores.items(), key=lambda x: x[1], reverse=True)
+        return [term_display[key] for key, _score in sorted_terms[:count]]
 
-        # Return top N with proper display form
-        result = []
-        for key, _score in sorted_terms[:count]:
-            result.append(term_display[key])
+    @staticmethod
+    def _merge_llm_with_heuristics(
+        llm_keywords: list[str],
+        heuristic_candidates: list[KeywordCandidate],
+        count: int,
+    ) -> list[str]:
+        """Merge LLM keywords with high-confidence heuristic candidates.
+
+        The LLM output is the primary set. High-confidence heuristic terms
+        (technology matches, code languages) that the LLM missed are appended
+        up to the count limit.
+
+        Args:
+            llm_keywords: Keywords from the LLM.
+            heuristic_candidates: Pre-extracted heuristic candidates.
+            count: Maximum number of keywords.
+
+        Returns:
+            Merged keyword list, LLM terms first.
+        """
+        result = list(llm_keywords)
+        result_lower = {k.lower() for k in result}
+
+        # Only supplement with high-confidence signals the LLM missed
+        high_confidence_sources = {"technology", "code_lang"}
+        supplements = {}
+        for c in heuristic_candidates:
+            if c.source in high_confidence_sources and c.term.lower() not in result_lower:
+                key = c.term.lower()
+                if key not in STOP_TERMS and key not in supplements:
+                    supplements[key] = c.term
+
+        # Sort supplements by term for deterministic output
+        for term in sorted(supplements.values()):
+            if len(result) >= count:
+                break
+            result.append(term)
 
         return result
 
-    def suggest_keywords(self, file_path: Path, count: int = 12) -> ExtractionResult:
+    def suggest_keywords(
+        self,
+        file_path: Path,
+        count: int = 15,
+        *,
+        use_api: bool = True,
+        cache: dict | None = None,
+        force: bool = False,
+    ) -> ExtractionResult:
         """Analyze a rule file and suggest keywords.
 
         Args:
             file_path: Path to rule file
-            count: Target number of keywords
+            count: Maximum number of keywords (LLM chooses 5-20 based on complexity)
+            use_api: Whether to use Cortex API (False = heuristic-only fallback)
+            cache: Optional keyword cache dict
+            force: Bypass cache even if hash matches
 
         Returns:
             ExtractionResult with current and suggested keywords
         """
         content = file_path.read_text(encoding="utf-8")
-
-        # Extract current keywords
         current = self._extract_current_keywords(content)
+        heuristic_candidates = self._collect_heuristic_candidates(content)
 
-        # Extract candidates
-        candidates = self.extract_candidates(content, file_path)
+        # Check cache
+        if cache is not None and not force:
+            file_key = str(file_path.resolve())
+            ch = _content_hash(content)
+            cached = _get_cached_keywords(cache, file_key, ch)
+            if cached is not None:
+                self._debug(f"Cache hit for {file_path.name}")
+                return ExtractionResult(
+                    file_path=file_path,
+                    current_keywords=current,
+                    suggested_keywords=cached,
+                    candidates=heuristic_candidates,
+                )
 
-        # Rank and select
-        suggested = self.rank_keywords(candidates, count)
+        # Try Cortex API
+        suggested = []
+        if use_api:
+            try:
+                suggested = _call_cortex_complete(
+                    content, connection_name=self.connection_name, count=count, debug=self.debug
+                )
+            except RuntimeError as e:
+                self._debug(f"Cortex API failed, falling back to heuristic: {e}")
+                log_warning(f"Cortex API unavailable, using heuristic fallback: {e}")
+
+        # Fallback to heuristic ranking if API didn't produce results
+        if not suggested:
+            suggested = self._rank_heuristic_keywords(heuristic_candidates, count)
+        else:
+            # Merge LLM output with high-confidence heuristic terms
+            suggested = self._merge_llm_with_heuristics(suggested, heuristic_candidates, count)
+
+        # Filter stop terms from LLM output as post-processing
+        suggested = [k for k in suggested if k.lower() not in STOP_TERMS][:count]
+
+        # Update cache
+        if cache is not None:
+            file_key = str(file_path.resolve())
+            ch = _content_hash(content)
+            _set_cached_keywords(cache, file_key, ch, suggested)
 
         return ExtractionResult(
             file_path=file_path,
             current_keywords=current,
             suggested_keywords=suggested,
-            candidates=candidates,
+            candidates=heuristic_candidates,
         )
 
 
@@ -809,6 +1350,14 @@ def keywords(
             show_default=False,
         ),
     ] = None,
+    connection: Annotated[
+        str,
+        typer.Option(
+            "-c",
+            "--connection",
+            help="Snowflake connection name from ~/.snowflake/connections.toml.",
+        ),
+    ] = "default",
     update: Annotated[
         bool,
         typer.Option(
@@ -825,12 +1374,12 @@ def keywords(
             help="Show diff between current and suggested keywords.",
         ),
     ] = False,
-    corpus: Annotated[
+    force: Annotated[
         bool,
         typer.Option(
-            "--corpus",
-            "-c",
-            help="Build TF-IDF corpus from rules directory for better scoring.",
+            "--force",
+            "-f",
+            help="Bypass cache and re-generate keywords.",
         ),
     ] = False,
     count: Annotated[
@@ -838,9 +1387,17 @@ def keywords(
         typer.Option(
             "--count",
             "-n",
-            help="Target number of keywords.",
+            help="Maximum number of keywords (LLM chooses 5 to this limit).",
         ),
-    ] = 12,
+    ] = 15,
+    deduplicate: Annotated[
+        bool,
+        typer.Option(
+            "--deduplicate",
+            "-D",
+            help="Remove over-shared keywords across rules (directory only).",
+        ),
+    ] = False,
     debug: Annotated[
         bool,
         typer.Option(
@@ -851,12 +1408,21 @@ def keywords(
 ) -> None:
     """Generate semantically relevant keywords for AI coding rule files.
 
-    Uses TF-IDF vectorization and multi-signal extraction to suggest
-    optimal keywords for the **Keywords:** metadata field.
+    Uses claude-sonnet-4-5 via Snowflake Cortex to summarize rule content into
+    contextually meaningful keywords. High-confidence heuristic signals
+    (technology terms, code languages) supplement LLM output.
+    Results are cached based on file content hash.
+
+    Reads Snowflake credentials from ~/.snowflake/connections.toml using the
+    'default' connection. Override with -c/--connection. Falls back to
+    heuristic extraction when credentials are not available.
 
     Examples:
         # Suggest keywords for a single file
         ai-rules keywords rules/100-snowflake-core.md
+
+        # Use a specific Snowflake connection
+        ai-rules keywords rules/ -c my_connection
 
         # Update the Keywords field in-place
         ai-rules keywords rules/100-snowflake-core.md --update
@@ -864,8 +1430,8 @@ def keywords(
         # Show diff between current and suggested keywords
         ai-rules keywords rules/100-snowflake-core.md --diff
 
-        # Build corpus from all rules for better TF-IDF scoring
-        ai-rules keywords rules/100-snowflake-core.md --corpus
+        # Bypass cache and re-generate
+        ai-rules keywords rules/100-snowflake-core.md --force
 
         # Analyze all rules in a directory
         ai-rules keywords rules/
@@ -879,33 +1445,28 @@ def keywords(
         log_error(f"Path does not exist: {path}")
         raise typer.Exit(1)
 
-    # Determine corpus directory
-    corpus_dir = None
-    if corpus:
-        if path.is_dir():
-            corpus_dir = path
-        else:
-            # Use parent directory if it's named 'rules'
-            if path.parent.name == "rules":
-                corpus_dir = path.parent
-            else:
-                # Try to find rules/ in common locations
-                for parent in [path.parent, path.parent.parent]:
-                    rules_dir = parent / "rules"
-                    if rules_dir.exists():
-                        corpus_dir = rules_dir
-                        break
-
-        if corpus_dir:
-            log_info(f"Building TF-IDF corpus from {corpus_dir}")
-
     # Initialize extractor
+    extractor = KeywordExtractor(debug=debug, connection_name=connection)
+
+    # Determine if API is available by checking for valid connection config
+    use_api = True
     try:
-        extractor = KeywordExtractor(corpus_dir=corpus_dir, debug=debug)
-    except ImportError as e:
-        log_error(f"Missing dependency: {e}")
-        log_info("Install scikit-learn: pip install scikit-learn")
-        raise typer.Exit(1) from None
+        config = load_snowflake_config(connection)
+        account = config.get("account", config.get("accountname", ""))
+        token = config.get("token") or config.get("password", "")
+        if not account or not token:
+            use_api = False
+            log_info(
+                f"Connection '{connection}' missing account or token; using heuristic fallback"
+            )
+    except (FileNotFoundError, ValueError) as e:
+        use_api = False
+        log_info(f"Snowflake connection not available; using heuristic fallback: {e}")
+
+    # Load cache
+    cache_dir = path if path.is_dir() else path.parent
+    cache_path = cache_dir / CACHE_FILENAME
+    cache = _load_cache(cache_path)
 
     # Process file(s)
     if path.is_file():
@@ -924,23 +1485,38 @@ def keywords(
 
     for file_path in files:
         try:
-            result = extractor.suggest_keywords(file_path, count=count)
+            result = extractor.suggest_keywords(
+                file_path,
+                count=count,
+                use_api=use_api,
+                cache=cache,
+                force=force,
+            )
             results.append(result)
-
-            if diff:
-                print_diff_rich(result)
-            elif update:
-                if update_keywords_in_file(file_path, result.suggested_keywords):
-                    log_success(f"Updated: {file_path.name}")
-                    updated_count += 1
-                else:
-                    log_info(f"No change: {file_path.name}")
-                    unchanged_count += 1
 
         except Exception as e:
             log_error(f"Error processing {file_path}: {e}")
             if debug:
                 raise
+
+    # Cross-rule deduplication (directory mode only)
+    if deduplicate and len(results) > 1:
+        _deduplicate_across_rules(results)
+
+    # Output results
+    for result in results:
+        if diff:
+            print_diff_rich(result)
+        elif update:
+            if update_keywords_in_file(result.file_path, result.suggested_keywords):
+                log_success(f"Updated: {result.file_path.name}")
+                updated_count += 1
+            else:
+                log_info(f"No change: {result.file_path.name}")
+                unchanged_count += 1
+
+    # Save cache after processing
+    _save_cache(cache_path, cache)
 
     # Print summary for non-diff, non-update mode
     if not diff and not update:

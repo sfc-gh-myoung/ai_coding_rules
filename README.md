@@ -3,7 +3,7 @@
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://opensource.org/license/apache-2-0)
 ![Version](https://img.shields.io/badge/version-3.5.3-blue)
 [![CI](https://github.com/sfc-gh-myoung/ai_coding_rules/actions/workflows/ci.yml/badge.svg)](https://github.com/sfc-gh-myoung/ai_coding_rules/actions/workflows/ci.yml)
-![Tests](https://img.shields.io/badge/tests-100%25%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-0%25%20passing-red)
 ![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/sfc-gh-myoung/ai_coding_rules)
@@ -33,7 +33,7 @@ This repository provides a **universal ai coding rule system** designed to work 
 
 ## Key Features
 
-- **📚 126 Production-Ready Rules** — Comprehensive coverage across Snowflake, Python, Go, React, HTMX, Alpine.js, Docker, Podman, Shell scripting, and project management
+- **📚 128 Production-Ready Rules** — Comprehensive coverage across Snowflake, Python, Go, React, HTMX, Alpine.js, Docker, Podman, Shell scripting, and project management
 - **🔄 Universal Format** — Write once, use everywhere: Cursor, VS Code, Claude, ChatGPT, GitHub Copilot, and more
 - **🤖 Intelligent Discovery** — AI assistants automatically find and load relevant rules using semantic keyword matching (matching by meaning, not just exact text)
 - **🎯 Dependency-Aware** — Explicit dependency chains ensure rules load in the correct order
@@ -547,7 +547,7 @@ Learn how to write effective prompts that help AI assistants automatically disco
 **Quick preview:**
 
 ```
-Task: Fix all Ruff linting errors in Python validation scripts
+Task: Fix all Ruff linting errors in Python validation modules
 Files: src/ai_rules/commands/validate.py, src/ai_rules/commands/index.py
 Errors: 9 total (F841 unused variables, UP037 quoted type annotations)
 ```
@@ -687,7 +687,7 @@ ai_coding_rules/
 │   │   └── commands/               ← Subcommands: validate, index, keywords, deploy, tokens, new, badges, refs
 │   ├── agent_eval/             ← AGENTS.md effectiveness evaluation CLI
 │   └── prompt_eval/            ← Prompt quality evaluation CLI
-├── rules/                  ← Production-ready rules (126 total)
+├── rules/                  ← Production-ready rules (128 total)
 │   └── examples/           ← Validated implementation examples (10 total)
 ├── AGENTS.md               ← Rule loading protocol for AI assistants
 ├── rules/RULES_INDEX.md          ← Searchable rule catalog
@@ -702,12 +702,13 @@ ai_coding_rules/
 ├── tests/                  ← Test suite (98% coverage)
 ├── schemas/                ← YAML schemas for rule/example validation
 ├── prompts/                ← User prompt templates
-├── skills/                 ← Claude Agent Skills (6 total)
+├── skills/                 ← Claude Agent Skills (7 total)
 │   ├── rule-reviewer/          ← Review individual rules
 │   ├── bulk-rule-reviewer/     ← Review all rules at once
 │   ├── doc-reviewer/           ← Review documentation
 │   ├── plan-reviewer/          ← Review LLM-generated plans
 │   ├── rule-creator/           ← Create new rules (internal)
+│   ├── rule-loader/            ← Load rules for tasks
 │   └── skill-timing/           ← Measure skill performance
 └── Makefile                ← Development commands (make help for full list)
 ```
@@ -715,7 +716,7 @@ ai_coding_rules/
 **Key Concepts:**
 
 - **src/** — Python packages for CLI tools (`ai-rules`, `agent-eval`, `prompt-eval`)
-- **rules/** — Production-ready rules (126 total), deploy directly (no generation needed)
+- **rules/** — Production-ready rules (128 total), deploy directly (no generation needed)
 - **AGENTS.md** — AI discovery protocol in project root
 - **templates/** — Source of truth for AGENTS.md variants (used by `ai-rules deploy`)
 - **rules/RULES_INDEX.md** — Searchable catalog in project root

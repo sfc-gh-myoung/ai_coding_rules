@@ -169,7 +169,7 @@ test: ## Run all pytest tests
 
 .PHONY: test-cov
 test-cov: ## Run tests with coverage report
-	$(UV) run pytest --cov=scripts --cov=src/ai_rules --cov-report=term-missing --cov-report=html tests/
+	$(UV) run pytest --cov=src/ai_rules --cov-report=term-missing --cov-report=html tests/
 
 .PHONY: test-cov-open
 test-cov-open: test-cov ## Coverage + open in browser (macOS)
@@ -388,7 +388,7 @@ status: ## Show project status summary
 	@echo "Examples: $$(ls rules/examples/*.md 2>/dev/null | wc -l | tr -d ' ') files in rules/examples/"
 	@echo "Skills:   $$(ls skills/*.md 2>/dev/null | wc -l | tr -d ' ') files in skills/"
 	@echo "Tests:    $$(find tests -name 'test_*.py' | wc -l | tr -d ' ') test files"
-	@echo "Scripts:  $$(ls scripts/*.py 2>/dev/null | wc -l | tr -d ' ') files in scripts/"
+
 	@echo ""
 	@echo "Python:   $$(python3 --version 2>/dev/null || echo 'not found')"
 	@echo "UV:       $$($(UV) --version 2>/dev/null || echo 'not found')"

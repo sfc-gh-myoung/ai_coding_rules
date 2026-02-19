@@ -10,6 +10,7 @@ Tests follow pytest best practices:
 
 from __future__ import annotations
 
+import time
 from pathlib import Path
 from textwrap import dedent
 
@@ -91,9 +92,10 @@ class TestKeywordsHelp:
         assert result.exit_code == 0
         assert "--update" in result.output
         assert "--diff" in result.output
-        assert "--corpus" in result.output
+        assert "--force" in result.output
         assert "--count" in result.output
         assert "--debug" in result.output
+        assert "--connection" in result.output
 
     @pytest.mark.unit
     def test_help_shows_path_argument(self):
@@ -228,52 +230,6 @@ class TestKeywordsDiffFlag:
         assert rule_file.read_text() == original_content
 
 
-class TestKeywordsCorpusFlag:
-    """Test --corpus flag behavior."""
-
-    @pytest.mark.unit
-    def test_corpus_builds_from_directory(self, tmp_path: Path):
-        """Test --corpus builds TF-IDF from directory."""
-        rules_dir = tmp_path / "rules"
-        rules_dir.mkdir()
-
-        # Create multiple files for corpus
-        (rules_dir / "100-snowflake-core.md").write_text(SAMPLE_RULE_CONTENT)
-        (rules_dir / "200-python-core.md").write_text(
-            dedent("""
-            # 200-python-core: Python Core
-
-            ## Metadata
-
-            **Keywords:** python, pytest, ruff
-
-            ## Content
-
-            Python best practices and pytest testing.
-            """).strip()
-        )
-
-        result = runner.invoke(
-            app, ["keywords", str(rules_dir / "100-snowflake-core.md"), "--corpus"]
-        )
-
-        assert result.exit_code == 0
-        assert "Building TF-IDF corpus" in result.output or "100-snowflake-core.md" in result.output
-
-    @pytest.mark.unit
-    def test_corpus_with_parent_rules_dir(self, tmp_path: Path):
-        """Test --corpus finds rules dir from parent."""
-        rules_dir = tmp_path / "rules"
-        rules_dir.mkdir()
-
-        rule_file = rules_dir / "100-snowflake-core.md"
-        rule_file.write_text(SAMPLE_RULE_CONTENT)
-
-        result = runner.invoke(app, ["keywords", str(rule_file), "--corpus"])
-
-        assert result.exit_code == 0
-
-
 class TestKeywordsCountFlag:
     """Test --count flag behavior."""
 
@@ -307,16 +263,14 @@ class TestKeywordsDebugFlag:
     @pytest.mark.unit
     def test_debug_shows_additional_output(self, tmp_path: Path):
         """Test --debug enables verbose output."""
-        rules_dir = tmp_path / "rules"
-        rules_dir.mkdir()
-        rule_file = rules_dir / "100-snowflake-core.md"
+        rule_file = tmp_path / "100-snowflake-core.md"
         rule_file.write_text(SAMPLE_RULE_CONTENT)
 
-        result = runner.invoke(app, ["keywords", str(rule_file), "--corpus", "--debug"])
+        result = runner.invoke(app, ["keywords", str(rule_file), "--debug"])
 
         assert result.exit_code == 0
-        # Debug output should show corpus building info
-        assert "DEBUG" in result.output or "Building" in result.output
+        # Debug output should show debug info or process the file
+        assert "100-snowflake-core.md" in result.output
 
 
 class TestKeywordsErrorCases:
@@ -360,14 +314,14 @@ class TestKeywordExtractor:
     """Test KeywordExtractor class directly."""
 
     @pytest.mark.unit
-    def test_extractor_without_corpus(self, tmp_path: Path):
-        """Test extractor works without corpus."""
-        extractor = keywords_module.KeywordExtractor(corpus_dir=None, debug=False)
+    def test_extractor_heuristic_fallback(self, tmp_path: Path):
+        """Test extractor works with heuristic fallback (no API)."""
+        extractor = keywords_module.KeywordExtractor(debug=False)
 
         rule_file = tmp_path / "100-test.md"
         rule_file.write_text(SAMPLE_RULE_CONTENT)
 
-        result = extractor.suggest_keywords(rule_file, count=10)
+        result = extractor.suggest_keywords(rule_file, count=10, use_api=False)
 
         assert result.file_path == rule_file
         assert len(result.suggested_keywords) <= 10
@@ -517,10 +471,11 @@ class TestConstantSets:
         assert "should" in keywords_module.STOP_TERMS
 
     @pytest.mark.unit
-    def test_compound_terms_has_mappings(self):
-        """Test COMPOUND_TERMS has expected mappings."""
-        assert keywords_module.COMPOUND_TERMS["session state"] == "session_state"
-        assert keywords_module.COMPOUND_TERMS["dynamic table"] == "dynamic_table"
+    def test_technology_terms_has_key_entries(self):
+        """Test TECHNOLOGY_TERMS has expected technology entries."""
+        assert "snowflake" in keywords_module.TECHNOLOGY_TERMS
+        assert "python" in keywords_module.TECHNOLOGY_TERMS
+        assert "sql" in keywords_module.TECHNOLOGY_TERMS
 
 
 class TestKeywordCandidateEdgeCases:
@@ -533,63 +488,6 @@ class TestKeywordCandidateEdgeCases:
         assert c != "snowflake"
         assert c != 42
         assert c != None  # noqa: E711
-
-
-class TestBuildCorpusEdgeCases:
-    """Test _build_corpus edge cases."""
-
-    @pytest.mark.unit
-    def test_corpus_dir_does_not_exist(self, tmp_path: Path):
-        """Test _build_corpus returns early when corpus_dir doesn't exist (line 368)."""
-        nonexistent = tmp_path / "nonexistent"
-        extractor = keywords_module.KeywordExtractor(corpus_dir=nonexistent, debug=False)
-        # Should not crash; corpus_docs should be empty
-        assert len(extractor.corpus_docs) == 0
-
-    @pytest.mark.unit
-    def test_corpus_skips_skip_files(self, tmp_path: Path):
-        """Test _build_corpus skips files in SKIP_FILES (line 375)."""
-        rules_dir = tmp_path / "rules"
-        rules_dir.mkdir()
-        (rules_dir / "README.md").write_text("# README")
-        (rules_dir / "100-valid-rule.md").write_text("# Valid Rule\n\nSome content here.")
-
-        extractor = keywords_module.KeywordExtractor(corpus_dir=rules_dir, debug=False)
-        # Only the valid rule should be in corpus
-        assert len(extractor.corpus_docs) == 1
-
-    @pytest.mark.unit
-    def test_corpus_skips_examples_directory(self, tmp_path: Path):
-        """Test _build_corpus skips files in examples/ subdirectory (line 378)."""
-        rules_dir = tmp_path / "rules"
-        rules_dir.mkdir()
-        examples_dir = rules_dir / "examples"
-        examples_dir.mkdir()
-        (examples_dir / "100-example.md").write_text("# Example")
-        (rules_dir / "100-valid-rule.md").write_text("# Valid Rule\n\nContent.")
-
-        extractor = keywords_module.KeywordExtractor(corpus_dir=rules_dir, debug=False)
-        assert len(extractor.corpus_docs) == 1
-
-    @pytest.mark.unit
-    def test_corpus_handles_read_exception(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-        """Test _build_corpus handles exception reading a file (lines 386-387)."""
-        rules_dir = tmp_path / "rules"
-        rules_dir.mkdir()
-        (rules_dir / "100-valid.md").write_text("# Valid content")
-
-        original_read = Path.read_text
-
-        def failing_read(self, *args, **kwargs):
-            if "100-valid.md" in str(self):
-                raise PermissionError("denied")
-            return original_read(self, *args, **kwargs)
-
-        monkeypatch.setattr(Path, "read_text", failing_read)
-
-        # Should not crash, just skip the file
-        extractor = keywords_module.KeywordExtractor(corpus_dir=rules_dir, debug=True)
-        assert len(extractor.corpus_docs) == 0
 
 
 class TestExtractHeadersEdgeCases:
@@ -676,118 +574,97 @@ class TestExtractEmphasizedTermsEdgeCases:
         assert "code" not in emphasis_terms
 
 
-class TestExtractTfidfEdgeCases:
-    """Test TF-IDF extraction edge cases."""
-
-    @pytest.mark.unit
-    def test_tfidf_document_not_in_corpus(self, tmp_path: Path):
-        """Test TF-IDF for document not in corpus (lines 574-577)."""
-        rules_dir = tmp_path / "rules"
-        rules_dir.mkdir()
-        # Create corpus with one file
-        (rules_dir / "100-core.md").write_text(
-            "# 100-core: Core Rule\n\n## Content\n\nSnowflake SQL best practices."
-        )
-
-        # Create a separate file NOT in the corpus dir
-        other_file = tmp_path / "200-other.md"
-        other_file.write_text(
-            "# 200-other: Other Rule\n\n"
-            "## Metadata\n\n"
-            "**Keywords:** python\n\n"
-            "## Content\n\n"
-            "Python pytest testing automation framework."
-        )
-
-        extractor = keywords_module.KeywordExtractor(corpus_dir=rules_dir, debug=False)
-        result = extractor.suggest_keywords(other_file, count=10)
-        # Should still produce suggestions
-        assert len(result.suggested_keywords) > 0
-
-
 class TestRankKeywordsEdgeCases:
-    """Test rank_keywords edge cases."""
+    """Test _rank_heuristic_keywords edge cases."""
 
     @pytest.mark.unit
     def test_stop_terms_excluded_from_ranking(self):
-        """Test that stop terms are excluded during ranking (line 648)."""
+        """Test that stop terms are excluded during ranking."""
         extractor = keywords_module.KeywordExtractor()
         candidates = [
             keywords_module.KeywordCandidate(term="data", score=10.0, source="test"),
             keywords_module.KeywordCandidate(term="snowflake", score=5.0, source="test"),
         ]
-        ranked = extractor.rank_keywords(candidates, count=5)
+        ranked = extractor._rank_heuristic_keywords(candidates, count=5)
         assert "data" not in ranked
         assert "snowflake" in ranked
 
     @pytest.mark.unit
     def test_uppercase_display_form_preferred(self):
-        """Test uppercase display form is preferred over lowercase (line 658)."""
+        """Test uppercase display form is preferred over lowercase."""
         extractor = keywords_module.KeywordExtractor()
         candidates = [
             keywords_module.KeywordCandidate(term="snowflake", score=3.0, source="test"),
             keywords_module.KeywordCandidate(term="Snowflake", score=2.0, source="test"),
         ]
-        ranked = extractor.rank_keywords(candidates, count=5)
+        ranked = extractor._rank_heuristic_keywords(candidates, count=5)
         assert "Snowflake" in ranked
 
 
-class TestKeywordsCLICorpusEdgeCases:
-    """Test keywords CLI corpus directory resolution."""
+class TestMergeLlmWithHeuristics:
+    """Test _merge_llm_with_heuristics method."""
 
     @pytest.mark.unit
-    def test_corpus_with_directory_path(self, tmp_path: Path):
-        """Test --corpus when path is a directory sets corpus_dir to that dir (line 880)."""
-        rules_dir = tmp_path / "rules"
-        rules_dir.mkdir()
-        (rules_dir / "100-test.md").write_text(
-            "# 100-test: Test\n\n## Metadata\n\n"
-            "**Keywords:** test\n\n## Content\n\nSnowflake content."
-        )
+    def test_merge_appends_missing_technology_terms(self):
+        """Test that high-confidence heuristic terms supplement LLM output."""
+        extractor = keywords_module.KeywordExtractor()
+        llm_keywords = ["cortex agent", "tool orchestration"]
+        heuristic_candidates = [
+            keywords_module.KeywordCandidate(term="snowflake", score=0.7, source="technology"),
+            keywords_module.KeywordCandidate(term="Python", score=0.6, source="code_lang"),
+        ]
 
-        result = runner.invoke(app, ["keywords", str(rules_dir), "--corpus"])
-        assert result.exit_code == 0
+        result = extractor._merge_llm_with_heuristics(llm_keywords, heuristic_candidates, count=10)
 
-    @pytest.mark.unit
-    def test_corpus_finds_rules_dir_in_parent(self, tmp_path: Path):
-        """Test --corpus finds rules/ dir searching parent directories (lines 887-891)."""
-        # Create structure: tmp_path/project/rules/100-test.md
-        project_dir = tmp_path / "project"
-        project_dir.mkdir()
-        rules_dir = project_dir / "rules"
-        rules_dir.mkdir()
-        (rules_dir / "100-test.md").write_text(
-            "# 100-test: Test\n\n## Metadata\n\n"
-            "**Keywords:** test\n\n## Content\n\nSnowflake content."
-        )
-
-        # Put the file in a subdir (NOT named "rules") so the fallback search kicks in
-        sub_dir = project_dir / "other"
-        sub_dir.mkdir()
-        target_file = sub_dir / "200-other.md"
-        target_file.write_text(
-            "# 200-other: Other\n\n## Metadata\n\n"
-            "**Keywords:** other\n\n## Content\n\nPython content."
-        )
-
-        result = runner.invoke(app, ["keywords", str(target_file), "--corpus"])
-        assert result.exit_code == 0
+        assert result[:2] == ["cortex agent", "tool orchestration"]
+        assert "Python" in result
+        assert "snowflake" in result
 
     @pytest.mark.unit
-    def test_import_error_handling(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-        """Test ImportError when scikit-learn is missing (lines 899-902)."""
-        rule_file = tmp_path / "100-test.md"
-        rule_file.write_text("# Test\n\n## Metadata\n\n**Keywords:** test\n")
+    def test_merge_does_not_duplicate_existing_terms(self):
+        """Test that merge skips terms already in LLM output."""
+        extractor = keywords_module.KeywordExtractor()
+        llm_keywords = ["snowflake", "cortex agent"]
+        heuristic_candidates = [
+            keywords_module.KeywordCandidate(term="snowflake", score=0.7, source="technology"),
+        ]
 
-        monkeypatch.setattr(
-            keywords_module,
-            "KeywordExtractor",
-            lambda **kwargs: (_ for _ in ()).throw(ImportError("No module named 'sklearn'")),
-        )
+        result = extractor._merge_llm_with_heuristics(llm_keywords, heuristic_candidates, count=10)
 
-        result = runner.invoke(app, ["keywords", str(rule_file)])
-        assert result.exit_code == 1
-        assert "Missing dependency" in result.output or "scikit-learn" in result.output
+        assert result.count("snowflake") == 1
+
+    @pytest.mark.unit
+    def test_merge_respects_count_limit(self):
+        """Test that merge stops at count limit."""
+        extractor = keywords_module.KeywordExtractor()
+        llm_keywords = ["term1", "term2"]
+        heuristic_candidates = [
+            keywords_module.KeywordCandidate(term="python", score=0.7, source="technology"),
+            keywords_module.KeywordCandidate(term="SQL", score=0.6, source="code_lang"),
+            keywords_module.KeywordCandidate(term="bash", score=0.6, source="code_lang"),
+        ]
+
+        result = extractor._merge_llm_with_heuristics(llm_keywords, heuristic_candidates, count=3)
+
+        assert len(result) == 3
+        assert result[:2] == ["term1", "term2"]
+
+    @pytest.mark.unit
+    def test_merge_ignores_low_confidence_sources(self):
+        """Test that merge only uses technology and code_lang sources."""
+        extractor = keywords_module.KeywordExtractor()
+        llm_keywords = ["cortex agent"]
+        heuristic_candidates = [
+            keywords_module.KeywordCandidate(term="Integration", score=0.8, source="header"),
+            keywords_module.KeywordCandidate(term="Snowpark", score=0.5, source="emphasis"),
+            keywords_module.KeywordCandidate(term="python", score=0.7, source="technology"),
+        ]
+
+        result = extractor._merge_llm_with_heuristics(llm_keywords, heuristic_candidates, count=10)
+
+        assert "python" in result
+        assert "Integration" not in result
+        assert "Snowpark" not in result
 
 
 class TestKeywordsCLIProcessingEdgeCases:
@@ -828,3 +705,599 @@ class TestKeywordsCLIProcessingEdgeCases:
         result = runner.invoke(app, ["keywords", str(rule_file), "--debug"])
         # With debug, the exception is re-raised causing non-zero exit
         assert result.exit_code != 0
+
+
+class TestParseCortexSseResponse:
+    """Test _parse_cortex_sse_response handles streaming Cortex API output."""
+
+    @pytest.mark.unit
+    def test_concatenates_content_deltas(self):
+        """SSE chunks are concatenated into full text."""
+        raw = (
+            'data: {"choices":[{"delta":{"content":"[\\"hello"}}]}\n\n'
+            'data: {"choices":[{"delta":{"content":"\\", \\"world"}}]}\n\n'
+            'data: {"choices":[{"delta":{"content":"\\"]"}}]}\n\n'
+            "data: [DONE]\n\n"
+        )
+        result = keywords_module._parse_cortex_sse_response(raw)
+        assert result == '["hello", "world"]'
+
+    @pytest.mark.unit
+    def test_skips_non_data_lines(self):
+        """Lines without 'data:' prefix are ignored."""
+        raw = (
+            "event: message\n"
+            'data: {"choices":[{"delta":{"content":"hi"}}]}\n\n'
+            ": comment line\n"
+            "data: [DONE]\n\n"
+        )
+        result = keywords_module._parse_cortex_sse_response(raw)
+        assert result == "hi"
+
+    @pytest.mark.unit
+    def test_handles_empty_response(self):
+        """Empty input returns empty string."""
+        assert keywords_module._parse_cortex_sse_response("") == ""
+
+    @pytest.mark.unit
+    def test_handles_malformed_json(self):
+        """Malformed JSON chunks are skipped without error."""
+        raw = 'data: not-json\n\ndata: {"choices":[{"delta":{"content":"ok"}}]}\n\ndata: [DONE]\n\n'
+        result = keywords_module._parse_cortex_sse_response(raw)
+        assert result == "ok"
+
+
+class TestLoadSnowflakeConfig:
+    """Tests for load_snowflake_config reading ~/.snowflake/connections.toml."""
+
+    @pytest.mark.unit
+    def test_loads_connection_from_connections_toml(self, tmp_path: Path, monkeypatch):
+        """Loads named connection from connections.toml."""
+        snowflake_dir = tmp_path / ".snowflake"
+        snowflake_dir.mkdir()
+        (snowflake_dir / "connections.toml").write_text(
+            '[default]\naccount = "myaccount"\ntoken = "mytoken"\n'
+        )
+        monkeypatch.setattr(Path, "home", lambda: tmp_path)
+
+        config = keywords_module.load_snowflake_config("default")
+
+        assert config["account"] == "myaccount"
+        assert config["token"] == "mytoken"
+
+    @pytest.mark.unit
+    def test_falls_back_to_config_toml(self, tmp_path: Path, monkeypatch):
+        """Uses config.toml when connections.toml does not exist."""
+        snowflake_dir = tmp_path / ".snowflake"
+        snowflake_dir.mkdir()
+        (snowflake_dir / "config.toml").write_text(
+            '[myconn]\naccount = "fallback"\npassword = "pw"\n'
+        )
+        monkeypatch.setattr(Path, "home", lambda: tmp_path)
+
+        config = keywords_module.load_snowflake_config("myconn")
+
+        assert config["account"] == "fallback"
+        assert config["password"] == "pw"
+
+    @pytest.mark.unit
+    def test_raises_on_missing_config_files(self, tmp_path: Path, monkeypatch):
+        """FileNotFoundError when neither config file exists."""
+        snowflake_dir = tmp_path / ".snowflake"
+        snowflake_dir.mkdir()
+        monkeypatch.setattr(Path, "home", lambda: tmp_path)
+
+        with pytest.raises(FileNotFoundError, match="No Snowflake config found"):
+            keywords_module.load_snowflake_config("default")
+
+    @pytest.mark.unit
+    def test_raises_on_missing_connection_name(self, tmp_path: Path, monkeypatch):
+        """ValueError when requested connection name is absent."""
+        snowflake_dir = tmp_path / ".snowflake"
+        snowflake_dir.mkdir()
+        (snowflake_dir / "connections.toml").write_text('[other]\naccount = "x"\ntoken = "y"\n')
+        monkeypatch.setattr(Path, "home", lambda: tmp_path)
+
+        with pytest.raises(ValueError, match="Connection 'default' not found"):
+            keywords_module.load_snowflake_config("default")
+
+
+class TestDeduplicateAcrossRules:
+    """Test _deduplicate_across_rules post-processing."""
+
+    @pytest.mark.unit
+    def test_keywords_within_max_overlap_untouched(self, tmp_path: Path):
+        """Keywords in <=max_overlap rules are not removed."""
+        file_a = tmp_path / "rule-a.md"
+        file_b = tmp_path / "rule-b.md"
+        file_a.write_text("snowflake snowflake snowflake")
+        file_b.write_text("snowflake python python")
+
+        result_a = keywords_module.ExtractionResult(
+            file_path=file_a,
+            suggested_keywords=["snowflake", "cortex"],
+        )
+        result_b = keywords_module.ExtractionResult(
+            file_path=file_b,
+            suggested_keywords=["snowflake", "python"],
+        )
+
+        keywords_module._deduplicate_across_rules([result_a, result_b], max_overlap=2)
+
+        # "snowflake" appears in 2 rules which equals max_overlap=2 — kept in both
+        assert "snowflake" in result_a.suggested_keywords
+        assert "snowflake" in result_b.suggested_keywords
+
+    @pytest.mark.unit
+    def test_keywords_exceeding_max_overlap_pruned(self, tmp_path: Path):
+        """Keywords in >max_overlap rules are kept only in top-scoring rules."""
+        file_a = tmp_path / "rule-a.md"
+        file_b = tmp_path / "rule-b.md"
+        file_c = tmp_path / "rule-c.md"
+        # "pytest" appears most in file_a (3x), then file_b (2x), least in file_c (1x)
+        file_a.write_text("pytest pytest pytest ruff")
+        file_b.write_text("pytest pytest flask")
+        file_c.write_text("pytest django django django")
+
+        result_a = keywords_module.ExtractionResult(
+            file_path=file_a,
+            suggested_keywords=["pytest", "ruff"],
+        )
+        result_b = keywords_module.ExtractionResult(
+            file_path=file_b,
+            suggested_keywords=["pytest", "flask"],
+        )
+        result_c = keywords_module.ExtractionResult(
+            file_path=file_c,
+            suggested_keywords=["pytest", "django"],
+        )
+
+        keywords_module._deduplicate_across_rules([result_a, result_b, result_c], max_overlap=2)
+
+        # "pytest" in 3 rules > max_overlap=2: kept in top-2 by body count (a=3, b=2)
+        assert "pytest" in result_a.suggested_keywords
+        assert "pytest" in result_b.suggested_keywords
+        assert "pytest" not in result_c.suggested_keywords
+        # Other keywords untouched
+        assert "ruff" in result_a.suggested_keywords
+        assert "flask" in result_b.suggested_keywords
+        assert "django" in result_c.suggested_keywords
+
+    @pytest.mark.unit
+    def test_single_result_unaffected(self, tmp_path: Path):
+        """Deduplication with a single result is a no-op."""
+        file_a = tmp_path / "rule-a.md"
+        file_a.write_text("snowflake cortex")
+
+        result_a = keywords_module.ExtractionResult(
+            file_path=file_a,
+            suggested_keywords=["snowflake", "cortex"],
+        )
+
+        keywords_module._deduplicate_across_rules([result_a], max_overlap=2)
+
+        assert result_a.suggested_keywords == ["snowflake", "cortex"]
+
+
+class TestDeduplicateCLIFlag:
+    """Test --deduplicate CLI flag integration."""
+
+    @pytest.mark.unit
+    def test_help_shows_deduplicate_option(self):
+        """Test that --help shows --deduplicate option."""
+        result = runner.invoke(app, ["keywords", "--help"])
+
+        assert result.exit_code == 0
+        assert "--deduplicate" in result.output
+
+    @pytest.mark.unit
+    def test_deduplicate_flag_accepted(self, tmp_path: Path):
+        """Test that --deduplicate flag is accepted without error."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "100-snowflake-core.md").write_text(SAMPLE_RULE_CONTENT)
+        (rules_dir / "200-python-core.md").write_text(SAMPLE_RULE_NO_KEYWORDS)
+
+        result = runner.invoke(app, ["keywords", str(rules_dir), "--deduplicate"])
+
+        assert result.exit_code == 0
+
+
+class TestLoadCacheCorruptFile:
+    """Test _load_cache with corrupt cache files."""
+
+    @pytest.mark.unit
+    def test_corrupt_json_returns_empty_dict(self, tmp_path: Path):
+        """Corrupt JSON in cache file returns {} (lines 632-633)."""
+        cache_file = tmp_path / ".keywords_cache.json"
+        cache_file.write_text("{this is not valid json!!", encoding="utf-8")
+
+        result = keywords_module._load_cache(cache_file)
+
+        assert result == {}
+
+    @pytest.mark.unit
+    def test_nonexistent_cache_returns_empty_dict(self, tmp_path: Path):
+        """Non-existent cache file returns {}."""
+        cache_file = tmp_path / ".keywords_cache.json"
+
+        result = keywords_module._load_cache(cache_file)
+
+        assert result == {}
+
+
+class TestSaveCacheOSError:
+    """Test _save_cache when write fails."""
+
+    @pytest.mark.unit
+    def test_write_to_readonly_path_silently_passes(self, tmp_path: Path):
+        """Write to read-only directory silently passes (lines 641-642)."""
+        # Use a path inside a non-existent directory to trigger OSError
+        bad_path = tmp_path / "nonexistent_dir" / "cache.json"
+
+        # Should not raise
+        keywords_module._save_cache(bad_path, {"key": "value"})
+
+        assert not bad_path.exists()
+
+
+class TestGetCachedKeywordsMiss:
+    """Test _get_cached_keywords cache miss path."""
+
+    @pytest.mark.unit
+    def test_hash_mismatch_returns_none(self):
+        """Hash mismatch returns None (line 649)."""
+        cache = {
+            "file.md": {
+                "hash": "old_hash_abc123",
+                "keywords": ["cached", "keywords"],
+            }
+        }
+
+        result = keywords_module._get_cached_keywords(cache, "file.md", "different_hash_xyz")
+
+        assert result is None
+
+    @pytest.mark.unit
+    def test_missing_key_returns_none(self):
+        """Missing file key returns None."""
+        cache = {}
+
+        result = keywords_module._get_cached_keywords(cache, "file.md", "any_hash")
+
+        assert result is None
+
+
+class TestCallCortexComplete:
+    """Test _call_cortex_complete with mocked requests.post."""
+
+    @pytest.mark.unit
+    def test_missing_account_raises_runtime_error(self, tmp_path: Path, monkeypatch):
+        """Missing account/token raises RuntimeError (line 716)."""
+        monkeypatch.setattr(
+            keywords_module,
+            "load_snowflake_config",
+            lambda conn: {"account": "", "token": ""},
+        )
+
+        with pytest.raises(RuntimeError, match="missing 'account' or"):
+            keywords_module._call_cortex_complete("rule content", connection_name="default")
+
+    @pytest.mark.unit
+    def test_snowflakecomputing_url_format(self, tmp_path: Path, monkeypatch):
+        """Account with .snowflakecomputing.com uses direct URL (line 758)."""
+        monkeypatch.setattr(
+            keywords_module,
+            "load_snowflake_config",
+            lambda conn: {
+                "account": "myorg.snowflakecomputing.com",
+                "token": "tok123",
+            },
+        )
+
+        captured_url = {}
+
+        class FakeResponse:
+            status_code = 200
+            text = 'data: {"choices":[{"delta":{"content":"[\\"kw1\\"]"}}]}\n\ndata: [DONE]\n\n'
+
+        def fake_post(url, **kwargs):
+            captured_url["url"] = url
+            return FakeResponse()
+
+        import requests
+
+        monkeypatch.setattr(requests, "post", fake_post)
+
+        keywords_module._call_cortex_complete("content", connection_name="default")
+
+        assert captured_url["url"] == (
+            "https://myorg.snowflakecomputing.com/api/v2/cortex/inference:complete"
+        )
+
+    @pytest.mark.unit
+    def test_non_retryable_error_raises_immediately(self, monkeypatch):
+        """Non-retryable status code raises RuntimeError immediately (line 807)."""
+        monkeypatch.setattr(
+            keywords_module,
+            "load_snowflake_config",
+            lambda conn: {"account": "myacct", "token": "tok"},
+        )
+
+        class FakeResponse:
+            status_code = 400
+            text = "Bad Request"
+
+        import requests
+
+        monkeypatch.setattr(requests, "post", lambda *a, **kw: FakeResponse())
+
+        with pytest.raises(RuntimeError, match="Cortex API returned 400"):
+            keywords_module._call_cortex_complete("content")
+
+    @pytest.mark.unit
+    def test_retryable_status_codes_retry_then_raise(self, monkeypatch):
+        """Retryable status codes 429/503/504 retry and eventually raise (lines 795-815)."""
+        monkeypatch.setattr(
+            keywords_module,
+            "load_snowflake_config",
+            lambda conn: {"account": "myacct", "token": "tok"},
+        )
+        monkeypatch.setattr(time, "sleep", lambda _: None)  # skip delays
+
+        call_count = {"n": 0}
+
+        class FakeResponse:
+            status_code = 429
+            text = "Rate limited"
+
+        import requests
+
+        def fake_post(*a, **kw):
+            call_count["n"] += 1
+            return FakeResponse()
+
+        monkeypatch.setattr(requests, "post", fake_post)
+
+        with pytest.raises(RuntimeError, match="Cortex API returned 429"):
+            keywords_module._call_cortex_complete("content")
+
+        assert call_count["n"] == 3  # 3 retries
+
+    @pytest.mark.unit
+    def test_request_exception_retries_then_raises(self, monkeypatch):
+        """RequestException is retried then raises (lines 809-813)."""
+        monkeypatch.setattr(
+            keywords_module,
+            "load_snowflake_config",
+            lambda conn: {"account": "myacct", "token": "tok"},
+        )
+        monkeypatch.setattr(time, "sleep", lambda _: None)
+
+        import requests
+
+        def fake_post(*a, **kw):
+            raise requests.exceptions.ConnectionError("Connection refused")
+
+        monkeypatch.setattr(requests, "post", fake_post)
+
+        with pytest.raises(RuntimeError, match="Cortex API request failed"):
+            keywords_module._call_cortex_complete("content")
+
+
+class TestParseKeywordResponseFallbacks:
+    """Test _parse_keyword_response fallback paths."""
+
+    @pytest.mark.unit
+    def test_comma_separated_fallback(self):
+        """Comma-separated text is parsed when JSON fails (lines 837-841)."""
+        text = 'snowflake, cortex agent, "masking policy"'
+
+        result = keywords_module._parse_keyword_response(text, count=10)
+
+        assert "snowflake" in result
+        assert "cortex agent" in result
+
+    @pytest.mark.unit
+    def test_newline_separated_fallback_with_bullets(self):
+        """Newline-separated with bullet markers is parsed (lines 844-850)."""
+        text = "- snowflake\n* cortex agent\n1. masking policy\n2. RBAC"
+
+        result = keywords_module._parse_keyword_response(text, count=10)
+
+        assert "snowflake" in result
+        assert "cortex agent" in result
+        assert "masking policy" in result
+
+
+class TestExtractHeadersEdgeCasesExtended:
+    """Test _extract_headers edge cases for specific uncovered lines."""
+
+    @pytest.mark.unit
+    def test_question_form_header_skipped(self):
+        """Question-form header ending with '?' is skipped (line 939)."""
+        extractor = keywords_module.KeywordExtractor()
+        content = "## What is Snowflake?\n\nSome content."
+
+        candidates = extractor._extract_headers(content)
+
+        header_terms = [c.term for c in candidates]
+        assert not any("What is Snowflake" in t for t in header_terms)
+
+    @pytest.mark.unit
+    def test_special_characters_header_skipped(self):
+        """Header with special characters like ≤ > ~ = is skipped (line 942)."""
+        extractor = keywords_module.KeywordExtractor()
+        content = "## Values ≤ Threshold\n\n## Performance > Baseline\n\nContent."
+
+        candidates = extractor._extract_headers(content)
+
+        header_terms = [c.term for c in candidates]
+        assert not any("Threshold" in t for t in header_terms)
+        assert not any("Baseline" in t for t in header_terms)
+
+    @pytest.mark.unit
+    def test_too_long_header_skipped(self):
+        """Header too long (>45 chars) is skipped (line 945)."""
+        extractor = keywords_module.KeywordExtractor()
+        long_header = "A" * 20 + " " + "B" * 20 + " " + "C" * 10
+        content = f"## {long_header}\n\nContent."
+
+        candidates = extractor._extract_headers(content)
+
+        header_terms = [c.term for c in candidates]
+        assert not any(long_header in t for t in header_terms)
+
+    @pytest.mark.unit
+    def test_empty_cleaned_header_skipped(self):
+        """Empty cleaned header is skipped (line 948)."""
+        extractor = keywords_module.KeywordExtractor()
+        # After stripping markdown formatting and colons, header becomes empty
+        content = "## **:**\n\nContent."
+
+        candidates = extractor._extract_headers(content)
+
+        # Should not produce any candidates from the empty header
+        assert all(c.term.strip() for c in candidates)
+
+    @pytest.mark.unit
+    def test_single_proper_noun_word_from_header(self):
+        """Single proper-noun word extracted from header (line 955)."""
+        extractor = keywords_module.KeywordExtractor()
+        content = "## Snowflake\n\nContent about Snowflake."
+
+        candidates = extractor._extract_headers(content)
+
+        header_terms = [c.term for c in candidates if c.source == "header"]
+        assert "Snowflake" in header_terms
+
+
+class TestExtractEmphasizedTermsExtended:
+    """Test _extract_emphasized_terms for additional uncovered branches."""
+
+    @pytest.mark.unit
+    def test_bold_compound_phrase_with_two_meaningful_words(self):
+        """Bold term with 2+ meaningful words kept as compound phrase (lines 1033, 1039)."""
+        extractor = keywords_module.KeywordExtractor()
+        content = "Use **Cortex Agent** for orchestration.\n"
+
+        candidates = extractor._extract_emphasized_terms(content)
+
+        terms = [c.term for c in candidates if c.source == "emphasis"]
+        assert any("Cortex Agent" in t for t in terms)
+
+    @pytest.mark.unit
+    def test_backtick_term_with_spaces_skipped(self):
+        """Backtick term with spaces is skipped (line 1055)."""
+        extractor = keywords_module.KeywordExtractor()
+        content = "Run `uv run pytest` for testing.\n"
+
+        candidates = extractor._extract_emphasized_terms(content)
+
+        terms = [c.term for c in candidates if c.source == "emphasis"]
+        assert "uv run pytest" not in terms
+
+    @pytest.mark.unit
+    def test_backtick_term_with_path_skipped(self):
+        """Backtick term with slashes is skipped (line 1055)."""
+        extractor = keywords_module.KeywordExtractor()
+        content = "Edit `src/main` carefully.\n"
+
+        candidates = extractor._extract_emphasized_terms(content)
+
+        terms = [c.term for c in candidates if c.source == "emphasis"]
+        assert "src/main" not in terms
+
+    @pytest.mark.unit
+    def test_backtick_term_starting_with_dash_skipped(self):
+        """Backtick term starting with '-' is skipped (line 1058)."""
+        extractor = keywords_module.KeywordExtractor()
+        content = "Use `--verbose` flag for debugging.\n"
+
+        candidates = extractor._extract_emphasized_terms(content)
+
+        terms = [c.term for c in candidates if c.source == "emphasis"]
+        assert "--verbose" not in terms
+
+
+class TestSuggestKeywordsCacheHit:
+    """Test suggest_keywords cache hit path."""
+
+    @pytest.mark.unit
+    def test_cache_hit_returns_cached_keywords(self, tmp_path: Path):
+        """Cached keywords are returned on hash match (lines 1198-1199)."""
+        extractor = keywords_module.KeywordExtractor()
+
+        rule_file = tmp_path / "100-test.md"
+        rule_file.write_text(SAMPLE_RULE_CONTENT)
+
+        content = rule_file.read_text(encoding="utf-8")
+        content_hash = keywords_module._content_hash(content)
+        file_key = str(rule_file.resolve())
+        cache = {
+            file_key: {
+                "hash": content_hash,
+                "keywords": ["cached_kw1", "cached_kw2"],
+            }
+        }
+
+        result = extractor.suggest_keywords(rule_file, cache=cache)
+
+        assert result.suggested_keywords == ["cached_kw1", "cached_kw2"]
+
+
+class TestSuggestKeywordsApiFailureFallback:
+    """Test suggest_keywords when API fails falls back to heuristic."""
+
+    @pytest.mark.unit
+    def test_api_failure_triggers_heuristic_fallback(self, tmp_path: Path, monkeypatch):
+        """RuntimeError from API triggers heuristic fallback (lines 1213-1215)."""
+        extractor = keywords_module.KeywordExtractor()
+
+        rule_file = tmp_path / "100-test.md"
+        rule_file.write_text(SAMPLE_RULE_CONTENT)
+
+        monkeypatch.setattr(
+            keywords_module,
+            "_call_cortex_complete",
+            lambda *a, **kw: (_ for _ in ()).throw(RuntimeError("API down")),
+        )
+
+        result = extractor.suggest_keywords(rule_file, use_api=True)
+
+        # Should still return keywords from heuristic fallback
+        assert len(result.suggested_keywords) > 0
+
+
+class TestKeywordsCLINoPath:
+    """Test keywords() CLI with no path argument."""
+
+    @pytest.mark.unit
+    def test_no_path_shows_help(self):
+        """Invoke with no arguments shows help (lines 1441-1442)."""
+        result = runner.invoke(app, ["keywords"])
+
+        assert result.exit_code == 0
+        assert "Generate semantically relevant keywords" in result.output
+
+
+class TestKeywordsCLIMissingCredentials:
+    """Test keywords() CLI when credentials are missing."""
+
+    @pytest.mark.unit
+    def test_missing_credentials_uses_heuristic_fallback(self, tmp_path: Path, monkeypatch):
+        """Missing credentials triggers heuristic fallback (lines 1459-1465)."""
+        rule_file = tmp_path / "100-test.md"
+        rule_file.write_text(SAMPLE_RULE_CONTENT)
+
+        monkeypatch.setattr(
+            keywords_module,
+            "load_snowflake_config",
+            lambda conn: (_ for _ in ()).throw(FileNotFoundError("No Snowflake config found")),
+        )
+
+        result = runner.invoke(app, ["keywords", str(rule_file)])
+
+        assert result.exit_code == 0
+        # Should still produce output using heuristic fallback
+        assert "100-test.md" in result.output

@@ -104,7 +104,7 @@ The rules in `rules/` directory provide **recommendations** and **preferences** 
 - `rules/` - 122 production-ready Markdown files with embedded metadata (validated against `schemas/rule-schema.yml`)
 - `AGENTS.md` - Bootstrap protocol (always loaded with rules/000-global-core.md)
 - `rules/RULES_INDEX.md` - Auto-generated catalog for keyword-based discovery
-- `scripts/` - Validation/deployment tools (98% test coverage)
+- `src/ai_rules/` - CLI commands for validation/deployment (98% test coverage)
 
 **Rule Organization:** 3-digit prefix (000-999) by domain: Core (000-099), Snowflake (100-199), Python (200-299), Shell (300-399), Frontend/Containers (400-499), Go (600-699), Project (800-899), Analytics (900-999)
 
@@ -127,16 +127,16 @@ AGENTS.md (Bootstrap Protocol)
     │                                    │
     │                                    └─ references ► PROJECT.md (This File)
     │
-    └─ deploys via ───────────► scripts/rule_deployer.py
+    └─ deploys via ───────────► ai-rules deploy (CLI)
                                         │
                                         ├─► TARGET/rules/
                                         ├─► TARGET/skills/ (deployed only)
                                         └─► TARGET/AGENTS.md
 
 Validation Flow:
-    scripts/schema_validator.py ◄── validates ──► schemas/rule-schema.yml
-    scripts/index_generator.py  ─── generates ──► rules/RULES_INDEX.md
-    scripts/template_generator.py ── creates ───► rules/XXX-new-rule.md
+    ai-rules validate    ◄── validates ──► schemas/rule-schema.yml
+    ai-rules index       ─── generates ──► rules/RULES_INDEX.md
+    ai-rules rule new    ── creates ───► rules/XXX-new-rule.md
 
 Skill Output:
     skills/rule-reviewer/    ─── writes to ───► reviews/rule-reviews/
@@ -214,7 +214,7 @@ AI assistants must verify they have necessary permissions before performing oper
 - `schemas/rule-schema.yml` (for schema validation)
 - `rules/RULES_INDEX.md` (for index verification)
 - `AGENTS.md` (for deployment)
-- `scripts/` directory and all .py files (for running validation)
+- `src/ai_rules/` directory and all .py files (for CLI commands)
 - `tests/` directory and all test files (for testing)
 
 **Write permissions required:**
@@ -225,7 +225,6 @@ AI assistants must verify they have necessary permissions before performing oper
 - `plans/` directory (for plan documents, if using plan-reviewer skill)
 
 **Execute permissions required:**
-- Python scripts in `scripts/` directory
 - `./dev` wrapper script (bash)
 
 **Permission Verification Protocol (execute before file operations):**
@@ -296,11 +295,11 @@ git commit -m "feat: add XXX rule for [technology]"
 vim rules/XXX-rule.md
 
 # 2. Validate changes
-uv run python scripts/schema_validator.py rules/XXX-rule.md --verbose
+uv run ai-rules validate rules/XXX-rule.md --verbose
 
 # 3. Update token budget if content changed by >20% (e.g., declared 5000 tokens, actual 6100 tokens)
 #    Check variance: |actual - declared| / declared > 0.20
-uv run python scripts/token_validator.py rules/XXX-rule.md
+uv run ai-rules tokens check rules/XXX-rule.md
 
 # 4. Regenerate index if metadata changed
 ./dev index:generate
@@ -339,7 +338,7 @@ Always investigate before making changes:
 
 ```bash
 # Read files before editing
-uv run python scripts/schema_validator.py rules/XXX-rule.md --verbose
+uv run ai-rules validate rules/XXX-rule.md --verbose
 
 # Check dependencies
 grep "**Depends:**" rules/XXX-rule.md
@@ -354,7 +353,7 @@ Token budgets track context window usage:
 
 ```bash
 # Check single file
-uv run python scripts/token_validator.py rules/XXX-rule.md --dry-run --detailed
+uv run ai-rules tokens check rules/XXX-rule.md --dry-run --detailed
 
 # Update all budgets
 ./dev tokens:update
@@ -506,10 +505,10 @@ Attempt 2: `ssh -T git@github.com` → IF authenticated: Retry → ELSE: STOP, r
 ### Validation Failures
 
 **./dev validate fails:** Run individual checks (`./dev quality:lint`, `./dev test`, etc.), fix in order, re-run after each
-**Schema validation fails:** Run `uv run python scripts/schema_validator.py rules/XXX-rule.md --verbose`, fix CRITICAL → HIGH → MEDIUM → LOW
+**Schema validation fails:** Run `uv run ai-rules validate rules/XXX-rule.md --verbose`, fix CRITICAL → HIGH → MEDIUM → LOW
 
 ---
 
-## Appendix: Direct Script Usage (Advanced)
+## Appendix: CLI Command Usage (Advanced)
 
-**Recommendation:** Use ./dev commands (Quick Reference section). Direct script usage is only for custom CI/CD pipelines or non-./dev automation. All scripts are in `scripts/` directory. Run with: `uv run python scripts/[script_name].py [args]`. Refer to scripts/README.md for complete documentation.
+**Recommendation:** Use ./dev commands (Quick Reference section). Direct CLI usage is only for custom CI/CD pipelines or non-./dev automation. All commands are available via `uv run ai-rules [command]`. Run `uv run ai-rules --help` for complete documentation.

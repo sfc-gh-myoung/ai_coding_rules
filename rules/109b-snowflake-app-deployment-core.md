@@ -9,10 +9,10 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**LastUpdated:** 2026-02-19
 **LoadTrigger:** kw:app-deployment, kw:deploy
 **Keywords:** CREATE NOTEBOOK, stages, deployment automation, SiS, deploy app, deployment pipeline, app publishing, deployment patterns, deploy to snowflake, stage deployment, production deployment, app versioning, automated deployment
-**TokenBudget:** ~5800
+**TokenBudget:** ~6700
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 109-snowflake-notebooks.md, 101-snowflake-streamlit-core.md, 820-taskfile-automation.md
 
@@ -131,7 +131,35 @@ PUT file://@~/apps/*.py @apps_stage/my_app AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
 ```
 **Benefits:** Python imports work correctly; no compression-related errors.
 
-**Anti-Pattern 3: Manual Deployment via Snowsight UI**
+**Anti-Pattern 3: Inverted Compression Flag in Python/CLI Wrappers**
+```python
+# Bad: Flag logic is inverted — --no-auto-compress is NEVER passed
+def stage_copy(path, stage, auto_compress=True, recursive=False):
+    flags = ["--overwrite"]
+    if auto_compress:                   # Only adds flag when True
+        flags.append("--auto-compress") # Wrong flag name AND wrong condition
+    # When auto_compress=False: no flag added → CLI uses default (compress ON)
+    # Result: .py files silently uploaded as .py.gz → SiS TypeError
+```
+**Problem:** The `snow stage copy` CLI **auto-compresses by default**. To disable compression, you must explicitly pass `--no-auto-compress`. A wrapper that only adds a flag when `auto_compress=True` (or uses `--auto-compress` instead of `--no-auto-compress`) never actually disables compression. Files are silently compressed, deployment reports `[PASS]`, but the app fails at runtime with `TypeError`.
+
+**Correct Pattern:**
+```python
+# Good: Default to no compression for application deployments
+def stage_copy(path, stage, auto_compress=False, recursive=False):
+    flags = ["--overwrite"]
+    if not auto_compress:                  # Explicitly disable when False
+        flags.append("--no-auto-compress") # Correct flag name
+    if recursive:
+        flags.append("--recursive")
+    # Default auto_compress=False ensures safe SiS deployments
+```
+**Key Rules:**
+- Default `auto_compress` parameter to `False` for application deployment functions
+- Use `--no-auto-compress` (not `--auto-compress false` or absence of flag)
+- Test by running `LIST @stage` after upload and verifying `.py` not `.py.gz`
+
+**Anti-Pattern 4: Manual Deployment via Snowsight UI**
 ```
 Bad: Manually upload files via UI, then Create app via UI
 ```
@@ -164,6 +192,9 @@ tasks:
 - [ ] silent: true added to tasks with multiple echo statements
 - [ ] Deployment validated end-to-end in Snowflake
 - [ ] AUTO_COMPRESS=FALSE specified for all Streamlit PUT commands (mandatory for SiS)
+- [ ] Python/CLI wrappers pass `--no-auto-compress` (not absence of `--auto-compress`)
+- [ ] Verified with `LIST @stage` that files show `.py` not `.py.gz` after upload
+- [ ] environment.yml with pinned Streamlit version (>=1.50) included in stage
 - [ ] Stage paths match ROOT_LOCATION (no extra subdirectory nesting)
 
 ## Validation
@@ -465,6 +496,54 @@ SELECT '✓ Streamlit application files uploaded' AS progress;
 - Subdirectories allowed for organization: `@STAGE/pages/`, `@STAGE/utils/`
 - ROOT_LOCATION in CREATE STREAMLIT matches: `'@STAGE'` (not `'@STAGE/streamlit'`)
 - **Never** nest in extra subdirectory: `@STAGE/streamlit/`
+- **environment.yml must pin `streamlit>=1.50`** - Without it, SiS defaults to Streamlit 1.22.0 which lacks modern APIs (`st.navigation()`, `st.Page()`, etc.)
+
+### Snowflake CLI Recursive Upload (Recommended for Multi-File Apps)
+
+For Streamlit apps with multiple files (pages, utils, assets), `snow stage copy --recursive`
+is the recommended approach over individual SQL PUT statements:
+
+```bash
+# Upload entire Streamlit app directory recursively
+uvx --from=snowflake-cli==3.14 snow stage copy \
+  --connection default \
+  streamlit/ @DB.SCHEMA.STREAMLIT_STAGE \
+  --recursive \
+  --no-auto-compress \
+  --overwrite
+```
+
+**Advantages over SQL PUT:**
+- Single command uploads all files and preserves directory structure
+- No need to enumerate individual PUT statements per file/glob
+- Handles nested directories (pages/, utils/, assets/) automatically
+- Easier to maintain as app grows
+
+**Complete CLI-Based Deployment Workflow:**
+```bash
+# 1. Drop existing Streamlit object
+uvx --from=snowflake-cli==3.14 snow sql \
+  -q "DROP STREAMLIT IF EXISTS DB.SCHEMA.MY_APP;"
+
+# 2. Remove old stage files
+uvx --from=snowflake-cli==3.14 snow sql \
+  -q "REMOVE @DB.SCHEMA.STREAMLIT_STAGE;"
+
+# 3. Upload all files recursively
+uvx --from=snowflake-cli==3.14 snow stage copy \
+  --connection default \
+  streamlit/ @DB.SCHEMA.STREAMLIT_STAGE \
+  --recursive \
+  --no-auto-compress \
+  --overwrite
+
+# 4. Create Streamlit object
+uvx --from=snowflake-cli==3.14 snow sql \
+  -q "CREATE STREAMLIT DB.SCHEMA.MY_APP
+      ROOT_LOCATION = '@DB.SCHEMA.STREAMLIT_STAGE'
+      MAIN_FILE = 'streamlit_app.py'
+      QUERY_WAREHOUSE = MY_WH;"
+```
 
 **CREATE STREAMLIT Statement (matches upload paths):**
 ```sql

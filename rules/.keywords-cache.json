@@ -1,0 +1,2543 @@
+{
+  "/Users/myoung/Development/ai_coding_rules/rules/000-global-core.md": {
+    "hash": "e62c86a8fa388af5ab5798e0eb162706ca1c224df02bc9f86c31407ba49fe44d",
+    "keywords": [
+      "foundation rule",
+      "surgical edits",
+      "minimal changes",
+      "task confirmation",
+      "authorization protocol",
+      "pre-task validation",
+      "professional communication",
+      "context window management",
+      "rule loading protocol",
+      "validation gate",
+      "Taskfile",
+      "rollback strategy",
+      "delta editing",
+      "rules loaded section"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/001-memory-bank.md": {
+    "hash": "8d4d21a1e41e68dfceeb48031db503434156131d5d998361c19f9d6a683a4594",
+    "keywords": [
+      "memory bank",
+      "activeContext.md",
+      "projectbrief.md",
+      "productContext.md",
+      "systemPatterns.md",
+      "techContext.md",
+      "progress.md",
+      "context preservation",
+      "session recovery",
+      "pruning",
+      "compaction",
+      "Quick Start",
+      "size budgets",
+      "context rot",
+      "archive"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/002-rule-governance.md": {
+    "hash": "135ad3f7ce97b1ff3fd2b43df21f22448733584dfb7aa1f03547dbf5d369d95b",
+    "keywords": [
+      "rule governance",
+      "schema v3.2",
+      "metadata requirements",
+      "schema compliance",
+      "rule structure",
+      "semantic discovery",
+      "RULES_INDEX",
+      "descriptive headings",
+      "agent optimization",
+      "CommonMark",
+      "LoadTrigger",
+      "ai-rules validate",
+      "Contract Markdown subsections",
+      "Bash"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/002a-rule-creation.md": {
+    "hash": "fc837b04df45e1fc7413740ee44a68d73eb67f079432b8c109503434d8e0f521",
+    "keywords": [
+      "rule creation",
+      "step-by-step guide",
+      "naming conventions",
+      "metadata setup",
+      "v3.2 schema",
+      "rule numbering",
+      "from scratch",
+      "new rule",
+      "RuleVersion"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/002b-rule-update.md": {
+    "hash": "f5533be39b2b628132d0b81df3a4b0d38fdf5350bb99a73897085116d714ddcc",
+    "keywords": [
+      "rule update",
+      "rule maintenance",
+      "RuleVersion",
+      "LastUpdated",
+      "semantic versioning",
+      "MAJOR.MINOR.PATCH",
+      "keyword expansion",
+      "metadata updates",
+      "CHANGELOG updates",
+      "ai-rules validate",
+      "schema validation",
+      "version increment",
+      "rule modification",
+      "RULES_INDEX regeneration",
+      "Bash"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/002c-rule-optimization.md": {
+    "hash": "1eb97be1a4e783aec684598b685ca490f99d6a6f93f986a374f3324a8802ac5f",
+    "keywords": [
+      "token budget",
+      "progressive loading",
+      "context window",
+      "rule sizing",
+      "ai-rules tokens",
+      "GPT-4o",
+      "GPT-5.1",
+      "Claude Sonnet",
+      "Gemini",
+      "cost efficiency",
+      "prompt caching",
+      "rule splitting",
+      "loading strategy"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/002d-advanced-rule-patterns.md": {
+    "hash": "33d07791237da3555a4aea04c77cb4ee2188335b7bd8530d68646f478d776034",
+    "keywords": [
+      "system prompt altitude",
+      "Goldilocks Zone",
+      "investigation-first protocol",
+      "anti-pattern library",
+      "multi-session workflows",
+      "state management",
+      "STATE files",
+      "parallel execution",
+      "heuristics",
+      "brittle if-else",
+      "hallucination prevention",
+      "Problem/Correct pairs",
+      "context preservation",
+      "atomic changes",
+      "rollback strategy"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/002e-schema-validator-usage.md": {
+    "hash": "967907f5659692c6900debfd2a1d863c0048f65e26cd824a0a36b454a82d8235",
+    "keywords": [
+      "schema validator",
+      "ai-rules validate",
+      "validation errors",
+      "error resolution",
+      "exit codes",
+      "CRITICAL errors",
+      "HIGH warnings",
+      "MEDIUM info",
+      "severity levels",
+      "command options",
+      "output parsing",
+      "v3.2 schema",
+      "PyYAML",
+      "rule-schema.yml",
+      "Bash"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/002f-schema-validator-advanced.md": {
+    "hash": "3a15c65a38b984260d40a8862b6fb324f95a6f98538c92074837aa4badd13bcf",
+    "keywords": [
+      "schema validator",
+      "CI/CD integration",
+      "automation workflow",
+      "JSON parsing",
+      "programmatic validation",
+      "pre-commit hooks",
+      "GitHub Actions",
+      "GitLab CI",
+      "batch validation",
+      "validation scripts",
+      "automated fixes",
+      "exit code handling",
+      "PyYAML",
+      "pipeline configuration",
+      "Bash"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/002g-agent-optimization.md": {
+    "hash": "64529ce326121e204c0b2b79a533e78ea112c90727dec817ca0e924e7c50d4da",
+    "keywords": [
+      "agent-first design",
+      "LLM comprehension",
+      "ASCII table replacement",
+      "arrow character replacement",
+      "decision tree formatting",
+      "imperative voice",
+      "sequential processing",
+      "terminology consistency",
+      "token efficiency",
+      "structured lists",
+      "explicit instructions",
+      "Mermaid diagram removal",
+      "horizontal rule removal",
+      "front-loading critical information",
+      "schema-critical sections"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/002h-claude-code-skills.md": {
+    "hash": "90d30f49f458c7a7fb7036b6e85bb47c3544122975242da7202e3b84bbe25692",
+    "keywords": [
+      "Claude Code",
+      "skills",
+      "SKILL.md",
+      "skill authoring",
+      "YAML frontmatter",
+      "progressive disclosure",
+      "input contracts",
+      "output contracts",
+      "trigger keywords",
+      "third person description",
+      "MCP tools",
+      "degrees of freedom",
+      "skill testing",
+      "plan-validate-execute",
+      "Bash"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/003-context-engineering.md": {
+    "hash": "f9afec756e4646f82914e36027a65ad1ff8baf93aaad088864c8d078c8c0bf8f",
+    "keywords": [
+      "context engineering",
+      "attention budget",
+      "context rot",
+      "token efficiency",
+      "compaction",
+      "progressive disclosure",
+      "sub-agents",
+      "agentic search",
+      "system prompts",
+      "right altitude",
+      "long-horizon tasks",
+      "memory management",
+      "state tracking",
+      "Python",
+      "fastapi"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/004-tool-design-for-agents.md": {
+    "hash": "5016fce44169c5f4f095ffd12a6958c1ee24ba563d25d3df46af1d78c67ba215",
+    "keywords": [
+      "tool design",
+      "agent tools",
+      "function calling",
+      "single responsibility",
+      "token-efficient outputs",
+      "LLM-friendly parameters",
+      "tool contracts",
+      "minimal tool set",
+      "self-contained tools",
+      "tool overlap",
+      "semantic parameters",
+      "stateless tools",
+      "actionable errors",
+      "tool boundaries",
+      "Python"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/100-snowflake-core.md": {
+    "hash": "188df90c46994cc32a804eea3b576157ce412140e42fd70826590b5c017441bc",
+    "keywords": [
+      "Snowflake",
+      "CTE",
+      "VARIANT",
+      "Streams",
+      "MERGE",
+      "Query Profile",
+      "partition pruning",
+      "masking policy",
+      "row access policy",
+      "COPY INTO",
+      "incremental processing",
+      "QUALIFY",
+      "warehouse sizing",
+      "semi-structured data"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/100f-snowflake-connection-errors.md": {
+    "hash": "ad363c82bc6fd99dd91c800d41579ab49a4323f2b16df85a8fd63d85ac016d14",
+    "keywords": [
+      "Snowflake",
+      "connection errors",
+      "error classification",
+      "network policy",
+      "VPN",
+      "authentication",
+      "error codes",
+      "08001",
+      "390114",
+      "250001",
+      "snowflake.connector",
+      "DatabaseError",
+      "message analysis",
+      "IP allowlist",
+      "Python"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/101-snowflake-streamlit-core.md": {
+    "hash": "3f0b25d2185d22fb16c859f1c820ea3c27430350ef5ca1ebce3d0aea291e19a4",
+    "keywords": [
+      "Streamlit",
+      "SiS",
+      "SPCS",
+      "st.navigation",
+      "multipage",
+      "st.session_state",
+      "config.toml",
+      "theming",
+      "st.set_page_config",
+      "st.secrets",
+      "environment.yml",
+      "AUTO_COMPRESS",
+      "pages/",
+      "st.Page",
+      "pandas NaN"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/101a-snowflake-streamlit-visualization.md": {
+    "hash": "a81312fa953dfa352762d3d4a336eff3b6aa3da79b6ea4454fbadb28515ff116",
+    "keywords": [
+      "Streamlit",
+      "st.plotly_chart",
+      "st.pydeck_chart",
+      "st.altair_chart",
+      "Plotly",
+      "PyDeck",
+      "Altair",
+      "visualization library selection",
+      "interactive charts",
+      "dashboard",
+      "map visualization",
+      "responsive display",
+      "colorblind-safe palette",
+      "WebGL",
+      "Python"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/101b-snowflake-streamlit-performance.md": {
+    "hash": "0338072de4824e5d4d5c08bad0113b4316d15358506d413df7f2efbad0027fa8",
+    "keywords": [
+      "@st.cache_data",
+      "@st.cache_resource",
+      "st.fragment",
+      "Streamlit",
+      "Snowflake",
+      "column normalization",
+      "lowercase columns",
+      "KeyError",
+      "st.spinner",
+      "st.progress",
+      "query loops",
+      "ttl",
+      "load time optimization",
+      "pandas DataFrame",
+      "Python"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/101c-snowflake-streamlit-security.md": {
+    "hash": "c680f2a36036206c95e2de04faf5cc6a15e924022555f1743ed9238551e05929",
+    "keywords": [
+      "st.secrets",
+      "SQL injection prevention",
+      "parameterized queries",
+      "input sanitization",
+      "file upload validation",
+      "authentication patterns",
+      "credentials management",
+      "HTTPS deployment",
+      "RBAC Streamlit",
+      "OWASP",
+      "secrets.toml",
+      "password hashing",
+      "bounds checking",
+      "secure error handling",
+      "Python"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/101d-snowflake-streamlit-testing.md": {
+    "hash": "6ac748bc6dd3abbe9cf73356395af8aca5828439786f8ee8d22ddf9837803677",
+    "keywords": [
+      "AppTest",
+      "Streamlit testing",
+      "pytest",
+      "unittest.mock",
+      "test coverage",
+      "UI testing",
+      "integration testing",
+      "mock Snowflake",
+      "@st.cache_data testing",
+      "@st.cache_resource testing",
+      "test fixtures",
+      "edge case testing",
+      "CI/CD testing",
+      "streamlit.testing.v1",
+      "Python"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/101e-snowflake-streamlit-sql-errors.md": {
+    "hash": "80078b05391f8940b9d26b32301fb6fc98a2eb37470170e1b37616f5cdf02dd4",
+    "keywords": [
+      "SnowparkSQLException",
+      "Streamlit",
+      "st.error",
+      "st.warning",
+      "st.stop",
+      "SQL exception",
+      "query context",
+      "empty DataFrame",
+      "cascade prevention",
+      "numbered queries",
+      "DatabaseError",
+      "connection retry",
+      "exponential backoff",
+      "VPN reconnection",
+      "Python"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/101f-snowflake-streamlit-spcs-errors.md": {
+    "hash": "9ac22b773686ce6d33eb05d789f0370986aed18b3c0e3c42528f8696fcba5e73",
+    "keywords": [
+      "SPCS",
+      "Snowpark Container Services",
+      "Streamlit",
+      "Docker build failure",
+      "container networking",
+      "image registry authentication",
+      "service startup timeout",
+      "port binding",
+      "deployment troubleshooting",
+      "EXTERNAL_ACCESS_INTEGRATIONS",
+      "health check endpoint",
+      "SYSTEM$GET_SERVICE_LOGS",
+      "readinessProbe",
+      "Bash",
+      "YAML"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/101g-snowflake-streamlit-fragments.md": {
+    "hash": "be423d156428e87a2a78e357a8349694fd4fe7d7516b472d29a910ab6dd8df37",
+    "keywords": [
+      "st.fragment",
+      "run_every",
+      "real-time progress",
+      "polling",
+      "live updates",
+      "auto-refresh",
+      "streaming",
+      "monitoring dashboard",
+      "Streamlit",
+      "long-running operations",
+      "st.stop()",
+      "st.session_state",
+      "ThreadPoolExecutor",
+      "progress tracking",
+      "Snowflake stored procedures"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/101h-snowflake-streamlit-timeseries.md": {
+    "hash": "72ea6809b1aaa641b345f7ca3ea56f076d204fcc4a6e554350443acdc0ea45bf",
+    "keywords": [
+      "Streamlit",
+      "time series smoothing",
+      "data aggregation",
+      "resample",
+      "SCADA data",
+      "high-frequency data",
+      "trend analysis",
+      "rolling average",
+      "EWMA",
+      "exponential smoothing",
+      "pandas",
+      "visualization performance",
+      "IoT sensor data",
+      "PMU data",
+      "Python"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/101i-snowflake-streamlit-viz-plotly.md": {
+    "hash": "a372164e007ac2704c5db93e9d127cbcc9d9ed9b7d817a9bfb78c72edc96066f",
+    "keywords": [
+      "plotly",
+      "plotly express",
+      "graph objects",
+      "st.plotly_chart",
+      "interactive charts",
+      "scatter",
+      "line chart",
+      "bar chart",
+      "histogram",
+      "heatmap",
+      "box plot",
+      "violin plot",
+      "sunburst",
+      "treemap",
+      "animations"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/101j-snowflake-streamlit-viz-pydeck.md": {
+    "hash": "aeac2af723da810b90c7e0e610f6a803318622f78e1dc0f835c94af129bf6c5c",
+    "keywords": [
+      "pydeck",
+      "st.pydeck_chart",
+      "deck.gl",
+      "3D visualization",
+      "HexagonLayer",
+      "ScatterplotLayer",
+      "GeoJsonLayer",
+      "ArcLayer",
+      "HeatmapLayer",
+      "ColumnLayer",
+      "PathLayer",
+      "TerrainLayer",
+      "WebGL",
+      "geospatial",
+      "ViewState"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/101k-snowflake-streamlit-viz-altair.md": {
+    "hash": "3c383b6df2b9c0337955e2357febe742a443069c61389288f8cfa91316fc3d59",
+    "keywords": [
+      "Altair",
+      "Vega-Lite",
+      "st.altair_chart",
+      "declarative visualization",
+      "grammar of graphics",
+      "mark_point",
+      "mark_line",
+      "mark_bar",
+      "encoding",
+      "selection_interval",
+      "selection_point",
+      "layered charts",
+      "faceting",
+      "linked views",
+      "vegafusion"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/102-snowflake-sql-core.md": {
+    "hash": "3b94a2aca35d8f4783aca241b1395a0ea7ff0f125a9e6f96d3c8a5b67431c484",
+    "keywords": [
+      "Snowflake",
+      "SQL files",
+      "file headers",
+      "COPY INTO",
+      "FILE_FORMAT",
+      "ON_ERROR",
+      "CREATE VIEW",
+      "fully qualified names",
+      "idempotent",
+      "reserved characters",
+      "CLI compatibility",
+      "snow sql",
+      "snowsql",
+      "enable-templating NONE",
+      "JOIN"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/102a-snowflake-sql-automation.md": {
+    "hash": "8de5a10a8e9b76048fd5e44d5cac55605e2af624a2d5fdcd6da74ae95851a8f0",
+    "keywords": [
+      "Snowflake",
+      "CI/CD",
+      "idempotent",
+      "MERGE",
+      "CREATE TABLE IF NOT EXISTS",
+      "parameterized SQL",
+      "<%VARIABLE%> syntax",
+      "multi-environment",
+      "infrastructure as code",
+      "deployment automation",
+      "production-safe",
+      "GitHub Actions",
+      "Taskfile",
+      "environment portability",
+      "data loss prevention"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/102b-snowflake-sql-procedures.md": {
+    "hash": "94f3446a1154bd6a3e4d3efe26e1d98fc0571a579abb8bdc16e680570aaf355b",
+    "keywords": [
+      "Snowflake",
+      "stored procedure",
+      "CREATE PROCEDURE",
+      "UDF",
+      "CREATE FUNCTION",
+      "dollar quoting",
+      "$$",
+      "EXECUTE AS OWNER",
+      "EXECUTE AS CALLER",
+      "EXECUTE AS RESTRICTED CALLER",
+      "EXECUTE IMMEDIATE",
+      "dynamic SQL",
+      "bind variables",
+      "SQL Scripting",
+      "LANGUAGE SQL"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/103-snowflake-performance-tuning.md": {
+    "hash": "eec75cbf4a4b7dd1ab980b1c06b522678339519910f929bb8659a0d2577ae44f",
+    "keywords": [
+      "Snowflake",
+      "query optimization",
+      "Query Profile",
+      "partition pruning",
+      "micro-partitions",
+      "clustering keys",
+      "warehouse sizing",
+      "QUERY_HISTORY",
+      "spillage",
+      "TableScan",
+      "slow query diagnosis",
+      "WHERE clause optimization",
+      "Partitions Scanned",
+      "Snowsight",
+      "Python"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/104-snowflake-streams-tasks.md": {
+    "hash": "cb95ee8d3af6d021b12ef5e4d15748bf9aba3fe3bb06f821feb258e84bed6770",
+    "keywords": [
+      "Snowflake",
+      "Streams",
+      "CDC",
+      "change data capture",
+      "MERGE",
+      "task DAG",
+      "AFTER dependencies",
+      "SYSTEM$STREAM_HAS_DATA()",
+      "CREATE OR REPLACE TASK",
+      "CREATE STREAM",
+      "Task History",
+      "stream offset",
+      "incremental pipeline",
+      "idempotent MERGE"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/105-snowflake-cost-governance.md": {
+    "hash": "bce3b458a4c6ec11e18213a5aa47e8e01bec9cf5c2c8adc0673ca122176e7f57",
+    "keywords": [
+      "Snowflake",
+      "cost governance",
+      "resource monitor",
+      "CREDIT_QUOTA",
+      "WAREHOUSE_METERING_HISTORY",
+      "budget alerts",
+      "spend tracking",
+      "warehouse right-sizing",
+      "AUTO_SUSPEND",
+      "credit usage",
+      "ACCOUNT_USAGE",
+      "cost attribution",
+      "warehouse sizing",
+      "credit limits",
+      "SQL"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/106-snowflake-semantic-views-core.md": {
+    "hash": "00241ffb55216b89c6c15167d7c2377065dcfb4a853d5e3228800c696e1e3c37",
+    "keywords": [
+      "CREATE SEMANTIC VIEW",
+      "Snowflake",
+      "semantic view",
+      "RELATIONSHIPS",
+      "PRIMARY KEY",
+      "FACTS",
+      "DIMENSIONS",
+      "METRICS",
+      "SYNONYMS",
+      "NLQ",
+      "Cortex Analyst",
+      "YAML",
+      "verified queries",
+      "mapping syntax"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/106a-snowflake-semantic-views-advanced.md": {
+    "hash": "3160f29956f5db054d22352970699ae8c8dc711ac3507cd57fc428446c17fef7",
+    "keywords": [
+      "Snowflake",
+      "semantic view",
+      "validation rules",
+      "relationship errors",
+      "PRIMARY KEY",
+      "many-to-one",
+      "granularity",
+      "DESCRIBE TABLE",
+      "physical column names",
+      "invalid identifier",
+      "Cortex Analyst",
+      "INFORMATION_SCHEMA",
+      "DDL syntax",
+      "SQL"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/106b-snowflake-semantic-views-querying.md": {
+    "hash": "b3f7ec40090baaf209345d1d44f8c755cd0591517c5d0c9504fd5829dedcd68d",
+    "keywords": [
+      "Snowflake",
+      "semantic views",
+      "SEMANTIC_VIEW function",
+      "dimension compatibility",
+      "window function metrics",
+      "TPC-DS",
+      "SHOW SEMANTIC DIMENSIONS",
+      "SHOW SEMANTIC METRICS",
+      "granularity",
+      "PARTITION BY",
+      "ORDER BY",
+      "Cortex Analyst",
+      "query syntax",
+      "WHERE clause restrictions",
+      "Bash"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/106c-snowflake-semantic-views-integration.md": {
+    "hash": "b1757ed475735110b228a2e8d83ea8e98d6e9b3ecf0428bfaa423c0035989830",
+    "keywords": [
+      "Snowflake",
+      "semantic view",
+      "Cortex Analyst",
+      "Cortex Agent",
+      "RBAC",
+      "masking policy",
+      "row access policy",
+      "natural language queries",
+      "synonyms",
+      "grounding sources",
+      "analyst troubleshooting",
+      "security inheritance",
+      "REST API",
+      "SnowCLI",
+      "Bash"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/106d-snowflake-semantic-views-development.md": {
+    "hash": "b6824bfed4ca19d92b73272f15242be4581fc798ba69a84d7eb340411cb19fa1",
+    "keywords": [
+      "Semantic View Generator",
+      "VQR",
+      "Verified Query Repository",
+      "YAML semantic model",
+      "verified queries",
+      "__logical_name",
+      "iterative development",
+      "onboarding questions",
+      "Cortex Analyst",
+      "semantic model file",
+      "verified_at",
+      "use_as_onboarding_question",
+      "suggested queries",
+      "Python",
+      "SQL"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/107-snowflake-security-governance.md": {
+    "hash": "0475cadbe101e35926959c65eadb6dc34a00af335c927c125e4d33017b0e5506",
+    "keywords": [
+      "RBAC",
+      "masking policy",
+      "row access policy",
+      "object tagging",
+      "Data Metric Functions",
+      "DMF",
+      "least privilege",
+      "Snowflake",
+      "role hierarchy",
+      "column-level security",
+      "row-level security",
+      "PII protection",
+      "data classification",
+      "secure views",
+      "data profiling"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/108-snowflake-data-loading.md": {
+    "hash": "c2efba7559b0169872afd6bb184fe89cdbce2af6cf68885f6bcb906b890fd458",
+    "keywords": [
+      "COPY INTO",
+      "Snowflake",
+      "bulk loading",
+      "internal stage",
+      "external stage",
+      "FILE_FORMAT",
+      "ON_ERROR",
+      "VALIDATION_MODE",
+      "PUT command",
+      "GET command",
+      "COPY_HISTORY",
+      "file sizing",
+      "semi-structured data",
+      "data ingestion",
+      "stage management"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/109-snowflake-notebooks.md": {
+    "hash": "ba33bc1a7c7c8c00adfa04f4f3a1c5cd2b12fcd16f70e3c26436b670bd19a0d7",
+    "keywords": [
+      "Snowflake",
+      "Jupyter",
+      "Snowpark",
+      "nbqa",
+      "Ruff",
+      "reproducible notebooks",
+      "cell naming",
+      "deterministic execution",
+      "kernel restart",
+      "Markdown documentation",
+      "secrets management",
+      "Snowpark DataFrames",
+      "notebook linting",
+      "hidden state",
+      "Bash"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/109a-snowflake-notebooks-tutorials.md": {
+    "hash": "42b74c6e04aac42e8c9e5270cd4897cf7a3e72a769bdc758116556a8943f4107",
+    "keywords": [
+      "Snowflake notebooks",
+      "tutorial design",
+      "pedagogical design",
+      "learning objectives",
+      "checkpoint validation",
+      "anti-pattern teaching",
+      "progressive complexity",
+      "teaching point callouts",
+      "educational content",
+      "self-paced learning",
+      "validation gates",
+      "tutorial structure",
+      "two-approach clarification",
+      "Python",
+      "SQL"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/109b-snowflake-app-deployment-core.md": {
+    "hash": "ce4e5a7704796e7d53ba695b35dfae0f5c8738233e48a6a2cc783f9dffb73a21",
+    "keywords": [
+      "Snowflake",
+      "CREATE NOTEBOOK",
+      "CREATE STREAMLIT",
+      "PUT",
+      "REMOVE",
+      "DROP NOTEBOOK",
+      "DROP STREAMLIT",
+      "AUTO_COMPRESS",
+      "ROOT_LOCATION",
+      "Streamlit in Snowflake",
+      "SiS",
+      "stage copy",
+      "Taskfile.yml",
+      "uvx snow",
+      "idempotent"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/109c-snowflake-app-deployment-troubleshooting.md": {
+    "hash": "533c4753d032ee2a74e2a4f85480bfc10daa6101bd6d5dede8d02ca526cd9155",
+    "keywords": [
+      "Snowflake",
+      "Streamlit in Snowflake",
+      "SiS",
+      "TypeError",
+      "AUTO_COMPRESS",
+      "ROOT_LOCATION",
+      "stage file",
+      "REMOVE",
+      "notebook caching",
+      "environment.yml",
+      "diagnostic commands",
+      "LIST @stage",
+      "DESCRIBE STREAMLIT",
+      "deployment workflow",
+      "Bash"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/110-snowflake-model-registry.md": {
+    "hash": "9f8486082c57a4c90080eb447e6534df6119198a2abc6dc8926e4e4323dfa04f",
+    "keywords": [
+      "Snowflake Model Registry",
+      "log_model",
+      "register model",
+      "model versioning",
+      "semantic versioning",
+      "sample_input_data",
+      "model inference",
+      "TargetPlatform",
+      "WAREHOUSE platform",
+      "SNOWPARK_CONTAINER_SERVICES",
+      "model privileges",
+      "OWNERSHIP privilege",
+      "USAGE privilege",
+      "READ privilege",
+      "model metadata"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/111-snowflake-observability-core.md": {
+    "hash": "ced1e59a53cf96cdecfa069a9b644917d0f0b0a9e6884e5aa012a16fab45bc92",
+    "keywords": [
+      "Snowflake",
+      "observability",
+      "LOG_LEVEL",
+      "TRACE_LEVEL",
+      "METRIC_LEVEL",
+      "event table",
+      "telemetry configuration",
+      "OpenTelemetry",
+      "SHOW PARAMETERS",
+      "ACCOUNT_USAGE",
+      "real-time monitoring",
+      "telemetry hierarchy",
+      "retention policy",
+      "System Views latency",
+      "Snowflake Trail"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/111a-snowflake-observability-logging.md": {
+    "hash": "7f5b047b2ab98991c43d434f502922211a10d2c1bcc21a6a67425a4b140a09b8",
+    "keywords": [
+      "Snowflake",
+      "observability",
+      "logging",
+      "event table",
+      "Python logging",
+      "SLF4J",
+      "log level",
+      "DEBUG",
+      "INFO",
+      "WARN",
+      "FATAL",
+      "conditional logging",
+      "sampling",
+      "tight loop logging"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/111b-snowflake-observability-tracing.md": {
+    "hash": "211f761b6e43e07d0d7691e8cfe4c6bc9d0494aa1661898b539e95d17e5318d9",
+    "keywords": [
+      "snowflake-telemetry-python",
+      "create_span",
+      "nested spans",
+      "span attributes",
+      "trace_id",
+      "distributed tracing",
+      "OpenTelemetry",
+      "TRACE_LEVEL",
+      "METRIC_LEVEL",
+      "128 event limit",
+      "performance bottleneck",
+      "telemetry.add_event",
+      "telemetry.set_attribute",
+      "telemetry.emit_metric",
+      "span hierarchy"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/111c-snowflake-observability-monitoring.md": {
+    "hash": "3fb784fdb5cf04a571931ad3c99a1bb5eed8c12705034af493071251687e64f1",
+    "keywords": [
+      "Snowflake",
+      "Snowsight",
+      "ACCOUNT_USAGE",
+      "Query History",
+      "Copy History",
+      "Task History",
+      "Dynamic Tables",
+      "Cortex AI",
+      "token tracking",
+      "event tables",
+      "System Views",
+      "real-time monitoring",
+      "historical analysis",
+      "telemetry cost optimization",
+      "AI cost attribution"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/112-snowflake-snowcli.md": {
+    "hash": "54b614f17e9a56d51b2b7c500312c3c54ddc9998b6f3b1e505c8e7972083569f",
+    "keywords": [
+      "SnowCLI",
+      "snow CLI",
+      "snowflake-cli",
+      "uvx",
+      "Taskfile",
+      "snowflake.yml",
+      "version pinning",
+      "hermetic execution",
+      "stage copy",
+      "no-auto-compress",
+      "recursive upload",
+      "non-interactive",
+      "CI/CD pipelines",
+      "credential security",
+      "profile configuration"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/113-snowflake-feature-store.md": {
+    "hash": "6912b011bb90e3cf822afa8f82782bd010f6fd43a64c49605b070936c9757489",
+    "keywords": [
+      "Snowflake Feature Store",
+      "feature views",
+      "entity modeling",
+      "ASOF JOIN",
+      "point-in-time correctness",
+      "Dynamic Tables",
+      "feature versioning",
+      "ML dataset generation",
+      "feature lineage",
+      "feature engineering",
+      "snowflake-ml-python",
+      "Model Registry integration",
+      "training dataset",
+      "data leakage prevention",
+      "Python"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/114-snowflake-cortex-aisql.md": {
+    "hash": "973dff19e7bc7bb5a643f560eb23b54282a697dc633fa44ee08b519c88bfead0",
+    "keywords": [
+      "Cortex AISQL",
+      "AI_COMPLETE",
+      "AI_CLASSIFY",
+      "AI_EXTRACT",
+      "AI_SENTIMENT",
+      "AI_SUMMARIZE",
+      "AI_AGG",
+      "AI_SUMMARIZE_AGG",
+      "AI_TRANSCRIBE",
+      "AI_EMBED",
+      "TO_FILE",
+      "SNOWFLAKE.CORTEX_USER",
+      "AI_COUNT_TOKENS",
+      "PROMPT",
+      "llama3.1-8b"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/115-snowflake-cortex-agents-core.md": {
+    "hash": "4cd157d8f12973e1a35c0e77c27862dff630c87df67bbc50c528272e65a8c949",
+    "keywords": [
+      "Cortex Agents",
+      "Cortex Analyst",
+      "Cortex Search",
+      "semantic views",
+      "agent archetypes",
+      "multi-tool agents",
+      "planning instructions",
+      "response instructions",
+      "tool configuration",
+      "agent troubleshooting",
+      "agent prerequisites",
+      "CREATE CORTEX AGENT",
+      "AGENT_QUERY",
+      "tool descriptions",
+      "hybrid agents"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/115a-snowflake-cortex-agents-instructions.md": {
+    "hash": "5d97c472ceedf87018d007032ce47d7311d49d02a32cf38ae4fe7f0a8a46324f",
+    "keywords": [
+      "Cortex Agents",
+      "planning instructions",
+      "response instructions",
+      "tool orchestration",
+      "flagging logic",
+      "agent prompts",
+      "multi-tool orchestration",
+      "tool selection",
+      "agent prompting",
+      "instruction patterns",
+      "agent planning",
+      "Cortex Analyst",
+      "Cortex Search",
+      "business rule flagging",
+      "graceful degradation"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/115b-snowflake-cortex-agents-operations.md": {
+    "hash": "f793fccc931849ca0e65d45eced4198f2cf3cc5bde3b9579b7f2e066c14413c4",
+    "keywords": [
+      "Cortex Agents",
+      "agent testing",
+      "component testing",
+      "integration testing",
+      "RBAC",
+      "agent permissions",
+      "AI Observability",
+      "agent tracing",
+      "agent evaluation",
+      "cost monitoring",
+      "agent troubleshooting",
+      "tool selection logic",
+      "agent security",
+      "warehouse sizing",
+      "Python"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/116-snowflake-cortex-search.md": {
+    "hash": "0f8c3e93bab390e4383afc4a1349b235a6eb92b8a2aa2835236f4facb8689589",
+    "keywords": [
+      "Cortex Search",
+      "search service",
+      "CORTEX SEARCH SERVICE",
+      "SEARCH_PREVIEW",
+      "vector similarity",
+      "RAG",
+      "document retrieval",
+      "hybrid search",
+      "embeddings",
+      "metadata filters",
+      "agent tools",
+      "chunking",
+      "AI_EMBED",
+      "search index",
+      "Python"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/117-snowflake-mcp-server.md": {
+    "hash": "08054a2ed858d31e15a4604e9d525d92b9260121f4b23539dda58c84114a1e09",
+    "keywords": [
+      "MCP",
+      "Model Context Protocol",
+      "Snowflake-managed MCP server",
+      "CREATE MCP SERVER",
+      "CORTEX_ANALYST_MESSAGE",
+      "CORTEX_SEARCH_SERVICE_QUERY",
+      "CORTEX_AGENT_RUN",
+      "SYSTEM_EXECUTE_SQL",
+      "tools/list",
+      "tools/call",
+      "initialize",
+      "JSON-RPC",
+      "OAuth",
+      "SECURITY INTEGRATION",
+      "semantic view"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/118-snowflake-cortex-rest-api.md": {
+    "hash": "a72cc94cdb31f6ad2383f443349708d0a8bce424a493609436bf3f0c3eb009c0",
+    "keywords": [
+      "Cortex REST API",
+      "Complete endpoint",
+      "Embed endpoint",
+      "exponential backoff",
+      "idempotency",
+      "rate limits",
+      "SSE",
+      "Server-Sent Events",
+      "streaming responses",
+      "PAT",
+      "OAuth",
+      "JWT",
+      "token verification",
+      "REST vs AISQL",
+      "interactive workloads"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/119-snowflake-warehouse-management.md": {
+    "hash": "f25db04cea1e4c104ef40bc631fab5cce88e22ea6c1765c8b50fddc196e96991",
+    "keywords": [
+      "Snowflake",
+      "virtual warehouses",
+      "warehouse sizing",
+      "auto-suspend",
+      "auto-resume",
+      "GEN 2",
+      "STANDARD_GEN_2",
+      "Snowpark-Optimized",
+      "High-Memory",
+      "MEMORY_16X",
+      "warehouse tagging",
+      "resource monitors",
+      "multi-cluster warehouses",
+      "warehouse cost optimization",
+      "CREATE WAREHOUSE"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/120-snowflake-spcs.md": {
+    "hash": "c0218dd4ca176b17ba888d5a99d49d2ad8261be4dea95a0b9d857ecc338c1dc8",
+    "keywords": [
+      "SPCS",
+      "Snowpark Container Services",
+      "compute pools",
+      "OCI images",
+      "service spec",
+      "container deployment",
+      "GPU workloads",
+      "platform events",
+      "service logs",
+      "health check endpoints",
+      "AUTO_SUSPEND_SECS",
+      "SYSTEM$GET_SERVICE_LOGS",
+      "image repository",
+      "stage volumes",
+      "SNOWFLAKE_JWT"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/121-snowflake-snowpipe.md": {
+    "hash": "1507e25a77c3c930e816b5d1583b14e48c4cb2da33d99251939ecfd9b001b218",
+    "keywords": [
+      "Snowpipe",
+      "auto-ingest",
+      "REST API",
+      "file-based ingestion",
+      "event notifications",
+      "COPY INTO",
+      "pipe management",
+      "serverless ingestion",
+      "SNS",
+      "Event Grid",
+      "Pub/Sub",
+      "file sizing",
+      "PIPE_USAGE_HISTORY",
+      "COPY_HISTORY",
+      "Bash"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/121a-snowflake-snowpipe-streaming.md": {
+    "hash": "9947362bde53072fd2316cd677d7a5c39085c468c9e9065c2b04d0ac0fd6c61e",
+    "keywords": [
+      "Snowpipe Streaming",
+      "streaming SDK",
+      "high-performance streaming",
+      "classic streaming",
+      "channel management",
+      "row-level ingestion",
+      "low-latency ingestion",
+      "offset tracking",
+      "schema evolution",
+      "streaming API",
+      "Java SDK",
+      "Python SDK",
+      ".NET SDK",
+      "sub-second latency",
+      "real-time ingestion"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/121b-snowflake-snowpipe-monitoring.md": {
+    "hash": "2686a50c7fe4a137d21a688971437d9c08c7c8ad5d67c37a6a785756ae6324c9",
+    "keywords": [
+      "Snowpipe",
+      "Snowpipe Streaming",
+      "PIPE_USAGE_HISTORY",
+      "COPY_HISTORY",
+      "LOAD_HISTORY",
+      "METERING_HISTORY",
+      "channel status",
+      "credits per GB",
+      "load latency",
+      "baseline metrics",
+      "alert thresholds",
+      "cost per file",
+      "streaming channels",
+      "ACCOUNT_USAGE",
+      "SQL"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/121c-snowflake-snowpipe-troubleshooting.md": {
+    "hash": "24577c5f4867aa81804f8f2913c566f8ebe0ed05cbadf5b8398e8d435d31de53",
+    "keywords": [
+      "Snowpipe",
+      "Snowpipe Streaming",
+      "pipe errors",
+      "channel errors",
+      "authentication failures",
+      "schema mismatch",
+      "offset tracking",
+      "duplicate data",
+      "latency issues",
+      "diagnostic queries",
+      "COPY_HISTORY",
+      "PIPE_USAGE_HISTORY",
+      "root cause analysis",
+      "JWT token",
+      "cloud event notifications"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/122-snowflake-dynamic-tables.md": {
+    "hash": "b0e9fe97cb8325624a4700d2066e12093adacb05fcc5348875179c067c15e13a",
+    "keywords": [
+      "Snowflake",
+      "Dynamic Tables",
+      "REFRESH_MODE",
+      "INCREMENTAL",
+      "TARGET_LAG",
+      "DOWNSTREAM",
+      "refresh frequency",
+      "data freshness",
+      "pipeline automation",
+      "modular pipelines",
+      "Query Profile",
+      "DYNAMIC_TABLE_REFRESH_HISTORY",
+      "warehouse assignment",
+      "cost optimization",
+      "materialized aggregations"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/123-snowflake-object-tagging.md": {
+    "hash": "f8a81f84b1d06cd534dee26fa4dd142a5edd109c6bc0b10b9eabf5584832336f",
+    "keywords": [
+      "Snowflake",
+      "object tagging",
+      "tag taxonomy",
+      "tag inheritance",
+      "ALLOWED_VALUES",
+      "cost attribution",
+      "chargeback",
+      "tag-based masking",
+      "tag-based row access",
+      "DATA_CLASSIFICATION",
+      "PII_LEVEL",
+      "SEMANTIC_CATEGORY",
+      "TAG_REFERENCES",
+      "tag coverage",
+      "governance enforcement"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/124-snowflake-data-quality-core.md": {
+    "hash": "6e6091c36cb3fa8bf4305cb68dccb27eb0d61e7f9b837e3d2ae3ea8f66715a38",
+    "keywords": [
+      "Snowflake",
+      "Data Metric Functions",
+      "DMF",
+      "data profiling",
+      "expectations",
+      "quality checks",
+      "NULL detection",
+      "uniqueness validation",
+      "freshness monitoring",
+      "anomaly detection",
+      "SNOWFLAKE.CORE",
+      "serverless compute",
+      "Enterprise Edition",
+      "event tables",
+      "EXECUTE DATA METRIC FUNCTION"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/124a-snowflake-data-quality-custom.md": {
+    "hash": "4f5410b73a35d9c3c52c06fdff87fccbe8979aa8b6e70fac52bdfbfae1f8f72b",
+    "keywords": [
+      "custom DMF",
+      "Data Metric Function",
+      "CREATE DATA METRIC FUNCTION",
+      "business rule validation",
+      "custom quality checks",
+      "FLOAT return type",
+      "expectation thresholds",
+      "UDF for quality",
+      "referential integrity check",
+      "revenue validation",
+      "orphaned records",
+      "EXPECT statement",
+      "custom validation logic",
+      "SQL",
+      "dmf"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/124b-snowflake-data-quality-operations.md": {
+    "hash": "bdada170923120ee3e8091b2c889ae9ee187655d698a7814f9fdc59870943d8c",
+    "keywords": [
+      "Snowflake",
+      "Data Quality Monitoring",
+      "DMF scheduling",
+      "DMF evaluation",
+      "quality event tables",
+      "quality alerting",
+      "expectation failures",
+      "remediation workflows",
+      "EXECUTE DATA METRIC FUNCTION",
+      "DMF RBAC",
+      "serverless credit consumption",
+      "DATA_QUALITY_MONITORING_USAGE_HISTORY",
+      "database role limitations",
+      "10000 association limit",
+      "data profiling"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/125-snowflake-role-introspection.md": {
+    "hash": "e4c480dcbddcdf150c3b84238ff5c58dd167e1a4df35f6441921627be2939dc2",
+    "keywords": [
+      "Snowflake",
+      "role introspection",
+      "account roles",
+      "database roles",
+      "SHOW GRANTS",
+      "RBAC",
+      "Python automation",
+      "error 000906",
+      "too many qualifiers",
+      "grants inspection",
+      "programmatic RBAC",
+      "role type detection",
+      "SHOW GRANTS TO DATABASE ROLE",
+      "snowflake-connector-python",
+      "Python"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/130-snowflake-demo-sql.md": {
+    "hash": "bfdca2dbd8390498867e2e83c9b8c882740100f163cc07da12eadc878c03021c",
+    "keywords": [
+      "Snowflake",
+      "demo SQL",
+      "workshop",
+      "teardown",
+      "progress indicators",
+      "rerunnable demos",
+      "CREATE OR REPLACE",
+      "educational SQL",
+      "demo patterns",
+      "setup scripts",
+      "customer learning",
+      "per-schema isolation",
+      "inline documentation",
+      "idempotent patterns",
+      "schema-based naming"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/131-snowflake-demo-creation.md": {
+    "hash": "e1b4b1e8771a4e95da890f90715d03147eace02adc47711bd4946c0580e49283",
+    "keywords": [
+      "Snowflake",
+      "Streamlit",
+      "Faker",
+      "synthetic data generation",
+      "demo applications",
+      "narrative design",
+      "reproducible data",
+      "progressive disclosure",
+      "batch generation",
+      "offline fallback",
+      "pre-warmed caches",
+      "seeded randomness",
+      "correlated data",
+      "DemoScenario",
+      "Python"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/132-snowflake-demo-modeling.md": {
+    "hash": "33f13a913e2f96a11c6de0860d3c6c5a18ceb3b68b15bc9cae98fa5e77a5d339",
+    "keywords": [
+      "Snowflake",
+      "dimensional modeling",
+      "Kimball",
+      "fact tables",
+      "dimension tables",
+      "surrogate keys",
+      "foreign key constraints",
+      "view taxonomy",
+      "VW_BA_",
+      "VW_EXEC_",
+      "VW_DS_",
+      "Python data generator",
+      "referential integrity",
+      "backward compatibility",
+      "DDL COMMENT"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/200-python-core.md": {
+    "hash": "9592b0aff4f239cd040d2a124cd272c123ccf22797ee88fe84c1cf87afa4f57f",
+    "keywords": [
+      "Python",
+      "uv",
+      "Ruff",
+      "pyproject.toml",
+      "dependency management",
+      "virtual environments",
+      "pytest",
+      "uv run",
+      "uvx",
+      "ty",
+      "type checking",
+      "mypy",
+      "type hints",
+      "datetime.now(UTC)",
+      "toolchain detection"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/201-python-lint-format.md": {
+    "hash": "a5cc0bf5926b7e3c8fed223520d2b211068720988cf19f1d10d856f3e6324365",
+    "keywords": [
+      "Ruff",
+      "ruff check",
+      "ruff format",
+      "pyproject.toml",
+      "pydocstyle",
+      "uvx",
+      "pre-commit",
+      "zero errors",
+      "D rules",
+      "target-version",
+      "flake8",
+      "black",
+      "isort",
+      "tool isolation",
+      "Bash"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/202-markup-config-validation.md": {
+    "hash": "bd9327b6766203d12e0959e08f6dc62915be3d83fd3f159be1ff5c7b26a7b540",
+    "keywords": [
+      "YAML",
+      "YAML syntax",
+      "YAML indentation",
+      "YAML quoting",
+      "yamllint",
+      "TOML",
+      "pyproject.toml",
+      "Markdown linting",
+      "pymarkdownlnt",
+      "Taskfile.yml",
+      "configuration validation",
+      ".env files",
+      "secrets management",
+      "parsing errors",
+      "Bash"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/203-python-project-setup.md": {
+    "hash": "d5ab6ea62f67ac33645460ff075a7989ad97fbee318ebf185076f6f28f43182c",
+    "keywords": [
+      "Python packaging",
+      "pyproject.toml",
+      "hatchling",
+      "uv",
+      "__init__.py",
+      "flat layout",
+      "src layout",
+      "virtual environment",
+      "editable install",
+      "console scripts",
+      "optional-dependencies",
+      "build backend",
+      "package discovery",
+      "uv add",
+      "Bash"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/204-python-docs-comments.md": {
+    "hash": "153f5a1535f898e15a4d997465413add37341c2540ab1e9fb19a70d0fb6bb4b7",
+    "keywords": [
+      "Python",
+      "docstrings",
+      "PEP 257",
+      "pydocstyle",
+      "Ruff DOC",
+      "Google style",
+      "NumPy style",
+      "Sphinx Napoleon",
+      "semantic depth",
+      "side effects documentation",
+      "public API documentation",
+      "preconditions",
+      "thread safety",
+      "performance documentation",
+      "TOML"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/205-python-classes.md": {
+    "hash": "407a557e4b1fdbe24aa86ad9316bcbea3a7836e360004ad60559980d53e2fb60",
+    "keywords": [
+      "Python classes",
+      "OOP",
+      "dataclasses",
+      "@property",
+      "composition over inheritance",
+      "ABC",
+      "encapsulation",
+      "frozen",
+      "slots",
+      "context managers",
+      "__repr__",
+      "dependency injection",
+      "Python",
+      "pytest"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/206-python-pytest.md": {
+    "hash": "a45bba91681eb2fdf588fc180306e39df04bab3ae44ba62a26cad4ba349854bd",
+    "keywords": [
+      "pytest",
+      "fixtures",
+      "parametrization",
+      "test isolation",
+      "mocking",
+      "AAA pattern",
+      "test markers",
+      "uv run pytest",
+      "monkeypatch",
+      "tmp_path",
+      "capsys",
+      "caplog",
+      "pytest.raises",
+      "pytest-cov",
+      "conftest.py"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/207-python-logging.md": {
+    "hash": "83efa945df8721ca25a4e4baaef927d3bef4f1a72adc466e36c65a40e0e06534",
+    "keywords": [
+      "Python logging",
+      "logger",
+      "handlers",
+      "formatters",
+      "log levels",
+      "WebLogHandler",
+      "Rich console",
+      "SSE streaming",
+      "structured logging",
+      "operation ID",
+      "thread safety",
+      "log hierarchy",
+      "log propagation",
+      "dual output",
+      "WebSocket streaming"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/210-python-fastapi-core.md": {
+    "hash": "b3de52f15bc742601e2875e2ca1ce38933be8cd8e8912a78be9b4f90f84594f2",
+    "keywords": [
+      "FastAPI",
+      "Pydantic",
+      "async def",
+      "APIRouter",
+      "dependency injection",
+      "application factory",
+      "uvicorn",
+      "request validation",
+      "response models",
+      "AsyncSession",
+      "loop.call_soon_threadsafe",
+      "asyncio.to_thread",
+      "global exception handlers",
+      "REST API",
+      "Python"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/210a-python-fastapi-security.md": {
+    "hash": "9d61e60e8814672453e0fe480cc0e7ac1cc1d84e567c7ef55c657afa7ede5f29",
+    "keywords": [
+      "FastAPI",
+      "OAuth2",
+      "JWT",
+      "authentication",
+      "authorization",
+      "RBAC",
+      "bcrypt",
+      "passlib",
+      "HTTPBearer",
+      "CORS",
+      "security middleware",
+      "password hashing",
+      "token validation",
+      "production hardening",
+      "Bash"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/210b-python-fastapi-testing.md": {
+    "hash": "2e38305cd9ee80037bc764b7e9685ca49560172cc819cd6544b2f8fee08f5045",
+    "keywords": [
+      "FastAPI",
+      "TestClient",
+      "pytest-asyncio",
+      "httpx.AsyncClient",
+      "dependency_overrides",
+      "AAA pattern",
+      "async endpoint testing",
+      "test database isolation",
+      "conftest.py",
+      "pytest fixtures",
+      "mocking external services",
+      "API endpoint testing",
+      "test factories",
+      "Python",
+      "TOML"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/210c-python-fastapi-deployment.md": {
+    "hash": "4cfa165a5e0719a99ca010bb01e0e739229279a99f4c6f8d60a057eda5b2e8f7",
+    "keywords": [
+      "FastAPI",
+      "Uvicorn",
+      "Gunicorn",
+      "UvicornWorker",
+      "ASGI",
+      "Docker",
+      "multi-stage build",
+      "production deployment",
+      "health checks",
+      "OpenAPI",
+      "API documentation",
+      "gunicorn.conf.py",
+      "non-root user",
+      "worker processes",
+      "HEALTHCHECK"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/210d-python-fastapi-monitoring.md": {
+    "hash": "e19339037c054a75ad80a74d6b6a90b230b2144ae0e1dca2a4048687a8a491c2",
+    "keywords": [
+      "FastAPI",
+      "health checks",
+      "structured logging",
+      "Redis",
+      "correlation IDs",
+      "observability",
+      "caching",
+      "connection pooling",
+      "JSON logging",
+      "readiness probe",
+      "liveness probe",
+      "performance metrics",
+      "request tracing",
+      "sanitization",
+      "Bash"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/220-python-typer-cli.md": {
+    "hash": "3c228a9c3534b926d9ab37f94fb91f5d2286864876a79dd98f90d917315b03ce",
+    "keywords": [
+      "Typer",
+      "CLI development",
+      "command-line interface",
+      "typer.Argument",
+      "typer.Option",
+      "typer.Exit",
+      "CliRunner",
+      "rich console",
+      "console scripts",
+      "argument parsing",
+      "CLI testing",
+      "exit codes",
+      "Annotated parameters",
+      "pyproject.toml scripts",
+      "Bash"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/221-python-htmx-core.md": {
+    "hash": "f8ceae094b530341bfce8e6d438b40428c222cc1186448fb48c0aa315cc34e31",
+    "keywords": [
+      "htmx",
+      "hypermedia",
+      "HATEOAS",
+      "HX-Request",
+      "HX-Trigger",
+      "partial rendering",
+      "SSE",
+      "WebSockets",
+      "CSRF",
+      "XSS",
+      "HTTP headers",
+      "swap strategies",
+      "oob swaps",
+      "Flask",
+      "FastAPI"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/221a-python-htmx-templates.md": {
+    "hash": "885f2275eebd93c27d2f27ebe57e174921bbf2c0c9a3e1dc0b00a74bb4c0b5c2",
+    "keywords": [
+      "jinja2",
+      "HTMX",
+      "partials",
+      "fragments",
+      "template composition",
+      "conditional rendering",
+      "template organization",
+      "reusable components",
+      "template context",
+      "HX-Request",
+      "template inheritance",
+      "macros",
+      "CSRF token",
+      "element IDs",
+      "HTML"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/221b-python-htmx-flask.md": {
+    "hash": "da1b6256d43e327ebdf4b71bbf11762446581129333e63b9ac9ba06014ea6295",
+    "keywords": [
+      "Flask",
+      "Flask-HTMX",
+      "flask-htmx extension",
+      "Flask blueprints",
+      "Flask-Login",
+      "Flask-WTF",
+      "CSRF protection",
+      "Flask routes",
+      "Flask decorators",
+      "Flask session",
+      "htmx request detection",
+      "unauthorized handler",
+      "Flask error handlers",
+      "Jinja2",
+      "Bash"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/221c-python-htmx-fastapi.md": {
+    "hash": "115de3ec5b0602e0f5c399ab149b38379b2751699fd53e5449e2a259c29e5b3a",
+    "keywords": [
+      "FastAPI",
+      "HTMX",
+      "Jinja2Templates",
+      "async routes",
+      "dependency injection",
+      "Pydantic",
+      "BackgroundTasks",
+      "HTMX detection",
+      "SSE",
+      "StreamingResponse",
+      "CSRF protection",
+      "OAuth2",
+      "JWT",
+      "Starlette",
+      "Bash"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/221d-python-htmx-testing.md": {
+    "hash": "2800df0661bcf00842e6fa2c69bb7b103badb9ead34b57f55d5fa59135003476",
+    "keywords": [
+      "HTMX",
+      "pytest",
+      "HX-Request",
+      "HX-Trigger",
+      "HX-Redirect",
+      "HX-Retarget",
+      "BeautifulSoup",
+      "Flask test_client",
+      "FastAPI TestClient",
+      "partial rendering",
+      "HTML parsing",
+      "pytest-mock",
+      "endpoint testing",
+      "form validation testing",
+      "Python"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/221e-python-htmx-patterns.md": {
+    "hash": "bd7b5f2c7ca021cc477b91ee5c89af4ddbad2f9ae27dff51c1a501f905abd418",
+    "keywords": [
+      "HTMX",
+      "crud operations",
+      "inline editing",
+      "forms",
+      "server-side validation",
+      "infinite scroll",
+      "lazy loading",
+      "search",
+      "autocomplete",
+      "SSE",
+      "polling",
+      "modals",
+      "progressive enhancement",
+      "multi-step forms",
+      "HTML"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/221f-python-htmx-integrations.md": {
+    "hash": "ee5a0984aa8a3a9bf3fac2cf7464c174b593494483d111937d7db1a7be359abc",
+    "keywords": [
+      "Alpine.js",
+      "_hyperscript",
+      "Tailwind CSS",
+      "Bootstrap",
+      "FontAwesome",
+      "Heroicons",
+      "Chart.js",
+      "htmx:afterSwap",
+      "htmx:beforeSwap",
+      "client-side state",
+      "chart reinitialization",
+      "memory cleanup",
+      "plugin reinitialization",
+      "CSS framework styling",
+      "icon rendering"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/221g-python-htmx-sse.md": {
+    "hash": "47847c6c19939dcff8204416479b9d06149cf4dd0f5668939998da049509ddc1",
+    "keywords": [
+      "SSE",
+      "server-sent events",
+      "HTMX",
+      "Alpine.js",
+      "EventSource",
+      "real-time updates",
+      "sse-starlette",
+      "EventSourceResponse",
+      "htmx.trigger",
+      "asyncio.to_thread",
+      "call_soon_threadsafe",
+      "event type matching",
+      "SSE manager",
+      "text/event-stream",
+      "HTML"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/230-python-pydantic.md": {
+    "hash": "36264171a41e0aaabc09848b975bf58cc0d50311eecf796928178139601bc4b8",
+    "keywords": [
+      "Pydantic",
+      "BaseModel",
+      "field_validator",
+      "model_validator",
+      "EmailStr",
+      "pydantic-settings",
+      "BaseSettings",
+      "model_dump",
+      "model_validate",
+      "ValidationError",
+      "ConfigDict",
+      "from_attributes",
+      "response_model",
+      "Bash"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/240-python-faker.md": {
+    "hash": "14a436eda954350ccb895ebeea566015f85a1c3830e83aa2d630d9a2be782ce2",
+    "keywords": [
+      "Faker",
+      "test data generation",
+      "fake data",
+      "synthetic data",
+      "pytest fixtures",
+      "seeding",
+      "deterministic testing",
+      "custom providers",
+      "BaseProvider",
+      "localization",
+      "Factory Boy",
+      "pytest-faker",
+      "reproducible tests",
+      "Faker.seed()",
+      "domain-specific providers"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/250-python-flask.md": {
+    "hash": "50100807308ba1d2f2d7fb999a56b387901fe3a27bf9bdcc812a65f224904331",
+    "keywords": [
+      "Flask",
+      "application factory",
+      "blueprints",
+      "Flask-SQLAlchemy",
+      "Flask-WTF",
+      "CSRF protection",
+      "Jinja2",
+      "Gunicorn",
+      "environment-based configuration",
+      "Flask-Login",
+      "modular organization",
+      "production deployment",
+      "auto-escaping",
+      "Bash",
+      "HTML"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/251-python-datetime-handling.md": {
+    "hash": "4accfa478440b908dbde92514dc993b7e47264b7a8987eb1735e50e5f0b49c24",
+    "keywords": [
+      "datetime",
+      "pandas",
+      "timezone",
+      "datetime64",
+      "timedelta",
+      "UTC",
+      "date arithmetic",
+      "tz_localize",
+      "tz_convert",
+      "datetime.now(UTC)",
+      "pd.Timestamp",
+      "pd.DateOffset",
+      "to_pydatetime",
+      "Pandas 2.x compatibility",
+      "Plotly datetime rendering"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/252-python-pandas.md": {
+    "hash": "beffad4ce32ad1d6f4790beeaa445c36e2b65216ff5428b57bfaf49751565952",
+    "keywords": [
+      "pandas",
+      "DataFrame",
+      "Series",
+      "vectorization",
+      "SettingWithCopyWarning",
+      "memory optimization",
+      "dtypes",
+      "categorical",
+      "groupby",
+      "merge",
+      "join",
+      "concat",
+      "performance",
+      "method chaining",
+      ".loc"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/300-bash-scripting-core.md": {
+    "hash": "3212312b682ca9d379b1100bf437a4788c6dca488399dc47bb2486586057aa51",
+    "keywords": [
+      "Bash",
+      "shell scripting",
+      "set -euo pipefail",
+      "strict mode",
+      "shellcheck",
+      "trap",
+      "exit codes",
+      "quote variables",
+      "local variables",
+      "input validation",
+      "cleanup handlers",
+      "#!/usr/bin/env bash",
+      "IFS",
+      "glob patterns",
+      "mktemp"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/300a-bash-security.md": {
+    "hash": "8cc591ba0c786301e91f7dff42b63e95f8ea91480b2f32239ada1318562efdf6",
+    "keywords": [
+      "Bash",
+      "shell security",
+      "input validation",
+      "command injection",
+      "path traversal",
+      "sanitization",
+      "secrets management",
+      "file permissions",
+      "privilege escalation",
+      "eval prevention",
+      "credential storage",
+      "SQL injection prevention",
+      "directory traversal",
+      "shellcheck",
+      "secure shell scripts"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/300b-bash-testing-tooling.md": {
+    "hash": "c4259da80d0af224fa70fcc855a8115eca98774a5271d5d7252e918b9b86ea40",
+    "keywords": [
+      "Bash",
+      "ShellCheck",
+      "bats",
+      "shell script testing",
+      "CI/CD",
+      "debugging",
+      "static analysis",
+      "linting",
+      "test automation",
+      "pre-commit hooks",
+      "debug mode",
+      "trace logging",
+      "unit testing",
+      "integration testing",
+      "YAML"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/310-zsh-scripting-core.md": {
+    "hash": "bdeaa65845c0357ccbdd2dd48afaefcc7f725e4cb76adce01c5dbf63e89d2e69",
+    "keywords": [
+      "Zsh",
+      "Z shell",
+      "emulate",
+      "setopt",
+      "parameter expansion",
+      "zsh arrays",
+      "1-indexed arrays",
+      "KSH_ARRAYS",
+      "EXTENDED_GLOB",
+      "globbing",
+      "zparseopts",
+      "zmodload",
+      "autoload",
+      "funcstack",
+      "oh-my-zsh"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/310a-zsh-advanced-features.md": {
+    "hash": "071fa12588b4e14f334a3f4a77ce919859c1729c62dea97c24c5e1682acbd51a",
+    "keywords": [
+      "Zsh",
+      "completion system",
+      "compinit",
+      "zstyle",
+      "autoload",
+      "hooks",
+      "precmd",
+      "preexec",
+      "zsh modules",
+      "zmodload",
+      "performance optimization",
+      "async operations",
+      "prompt engineering",
+      "vcs_info",
+      "zprof"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/310b-zsh-compatibility.md": {
+    "hash": "cdda04edc3db6f3392d355f1498c5e31a117d680015e6568e4b7fd9e7c85229d",
+    "keywords": [
+      "Zsh",
+      "bash vs zsh",
+      "cross-shell",
+      "portable scripts",
+      "shell compatibility",
+      "emulate",
+      "POSIX compliance",
+      "setopt",
+      "array indexing",
+      "shell migration",
+      "feature detection",
+      "shebang",
+      "checkbashisms",
+      "Bash",
+      "ci/cd"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/350-docker-core.md": {
+    "hash": "304498d42f84e897e733b9ca67fdc5e125da5cc74252635107978d91fb6358b5",
+    "keywords": [
+      "Docker",
+      "Dockerfile",
+      "containers",
+      "multi-stage builds",
+      "layer caching",
+      "image optimization",
+      "docker-compose",
+      "BuildKit",
+      "distroless",
+      "security scanning",
+      "SBOM",
+      "non-root",
+      "healthcheck",
+      "digest pinning",
+      "cosign"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/351-podman-core.md": {
+    "hash": "e072550b1f69f1ac4fc48158aa60fef0a6204bfd5f8796bef0a3513528d1effe",
+    "keywords": [
+      "Podman",
+      "Containerfile",
+      "rootless containers",
+      "buildah",
+      "podman-compose",
+      "pods",
+      "daemonless",
+      "systemd",
+      "quadlet",
+      "multi-stage builds",
+      "non-root USER",
+      "healthcheck",
+      "digest pinning",
+      "Trivy",
+      "cosign"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/420-javascript-core.md": {
+    "hash": "9e7a72c771cadc3e9b023f5cc3b7c1f15b8744b11c27de1d215521e155abea5d",
+    "keywords": [
+      "JavaScript",
+      "ES2024",
+      "ESM",
+      "Node.js",
+      "JSDoc",
+      "Biome",
+      "node:test",
+      "immutability",
+      "async/await",
+      "functional programming",
+      "toSorted",
+      "Object.groupBy",
+      "top-level await",
+      "Promise.allSettled",
+      "@ts-check"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/421-javascript-alpinejs-core.md": {
+    "hash": "89ec00d64c7283e4c2a7d1ac6cb7cc672bb107dbcbe4a6416c14c8f3ddf7182f",
+    "keywords": [
+      "Alpine.js",
+      "x-data",
+      "x-bind",
+      "x-on",
+      "x-model",
+      "x-show",
+      "x-if",
+      "x-for",
+      "x-text",
+      "x-html",
+      "x-cloak",
+      "x-transition",
+      "x-init",
+      "x-effect",
+      "$el"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/430-typescript-core.md": {
+    "hash": "1d438cabb5ab5e1f2fb87e30edb4217f2dcb740affacc0b28833f7d0f18d34cd",
+    "keywords": [
+      "TypeScript",
+      "Zod",
+      "strict mode",
+      "type inference",
+      "satisfies operator",
+      "union types",
+      "runtime validation",
+      "unknown narrowing",
+      "Matt Pocock",
+      "Total TypeScript",
+      "ts-reset",
+      "branded types",
+      "generic constraints",
+      "no enums",
+      "no any"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/440-react-core.md": {
+    "hash": "d215bd9b30c300f7d8798b2d3d0e01250104acab66a114fd480683ac21d1aee9",
+    "keywords": [
+      "React",
+      "Next.js",
+      "RSC",
+      "Hooks",
+      "Tailwind",
+      "Zustand",
+      "TanStack Query",
+      "Shadcn",
+      "feature-based architecture",
+      "TypeScript",
+      "Vitest",
+      "Testing Library",
+      "functional components",
+      "server components",
+      "named exports"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/441-react-backend.md": {
+    "hash": "fc9833100be1739f49635ca2839da30787587a247d9232e1ddabaea8cf777254",
+    "keywords": [
+      "React backend",
+      "FastAPI",
+      "Flask",
+      "Python API",
+      "CORS",
+      "JWT",
+      "authentication",
+      "API integration",
+      "full-stack",
+      "TanStack Query",
+      "httpOnly cookies",
+      "Next.js API routes",
+      "fetch",
+      "axios",
+      "Bash"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/500-frontend-htmx-core.md": {
+    "hash": "a8dd0b393228af776975ea263aa62d27c0e3f52cca4f0c450e61992d334c7ee3",
+    "keywords": [
+      "HTMX",
+      "hx-get",
+      "hx-post",
+      "hx-swap",
+      "hx-trigger",
+      "hx-target",
+      "hypermedia",
+      "progressive enhancement",
+      "client-side events",
+      "CSS transitions",
+      "htmx:afterSwap",
+      "htmx:beforeRequest",
+      "swap strategies",
+      "hx-indicator",
+      "declarative interactivity"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/501-frontend-browser-globals-collisions.md": {
+    "hash": "c6a80a2cd4b6c04b17b5eb18cca8647d52d200652be7841b2e782ac002f17134",
+    "keywords": [
+      "browser globals",
+      "javascript globals",
+      "window.history",
+      "HTMX history",
+      "Alpine.js",
+      "name collisions",
+      "reserved identifiers",
+      "implicit globals",
+      "historyRestore",
+      "hx-push-url",
+      "popstate",
+      "namespacing",
+      "inline scripts",
+      "Bash",
+      "HTML"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/600-golang-core.md": {
+    "hash": "7c905cc11783c62f5c680d768926350be9ff365e6d7c9506e49f9a3f9d37bf92",
+    "keywords": [
+      "Go",
+      "Golang",
+      "go.mod",
+      "go fmt",
+      "go vet",
+      "golangci-lint",
+      "goroutines",
+      "channels",
+      "context.Context",
+      "defer",
+      "table-driven tests",
+      "race detector",
+      "Effective Go",
+      "idiomatic Go",
+      "Bash"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/800-project-changelog.md": {
+    "hash": "40c7cb1c0627fa7157a1f31fb038215a94eec5f22209a16782764e89d9a67fca",
+    "keywords": [
+      "CHANGELOG",
+      "Keep a Changelog",
+      "Conventional Commits",
+      "semantic versioning",
+      "Unreleased section",
+      "changelog categories",
+      "Security type",
+      "Deprecated type",
+      "user-impact summaries",
+      "version comparison links",
+      "CVE references",
+      "breaking changes",
+      "changelog compliance",
+      "bash",
+      "faker"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/801-project-readme.md": {
+    "hash": "54a74d82c93b6f2c4911f9159a088a2c0b8e95f51464dc96db4b385b5233f0e2",
+    "keywords": [
+      "README.md",
+      "project documentation",
+      "Quick Start",
+      "getting started",
+      "installation instructions",
+      "badges",
+      "Contributing",
+      "License",
+      "CommonMark",
+      "progressive disclosure",
+      "CONTRIBUTING.md",
+      "Quick Overview",
+      "prerequisite verification",
+      "accessibility",
+      "Bash"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/802-project-contributing.md": {
+    "hash": "c6fdd9a3b268740affe1cf06e211787eb80d51badae8eb8e8549422f77494c07",
+    "keywords": [
+      "CONTRIBUTING",
+      "pull requests",
+      "code review",
+      "contribution guidelines",
+      "branching strategy",
+      "Conventional Commits",
+      "rule authoring",
+      "PR templates",
+      "project governance",
+      "git workflow",
+      "fork",
+      "feature branch",
+      "CHANGELOG.md",
+      "Ruff",
+      "uv"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/803-project-git-workflow.md": {
+    "hash": "d092b12457ff30381fad92267475e7211a78d6fbdeb17fe056e27f1c5cd2511f",
+    "keywords": [
+      "git",
+      "commit message",
+      "Conventional Commits",
+      "branching",
+      "feature branches",
+      "GitHub",
+      "pull requests",
+      "branch naming",
+      "CHANGELOG.md",
+      "pre-commit hooks",
+      "branch protection",
+      "GitHub Flow",
+      "AI attribution footer",
+      "Bash",
+      "cortex"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/820-taskfile-automation.md": {
+    "hash": "03e6b885e9868521f3c18497464deedf789f1b79322b7d441dc8770ea2449134",
+    "keywords": [
+      "Taskfile",
+      "Taskfile.yml",
+      "task runner",
+      "Task CLI",
+      "build automation",
+      "portable tasks",
+      "cross-platform",
+      "uvx",
+      "uv run",
+      "command -v",
+      "auto-detection",
+      "preconditions",
+      "pipefail",
+      "namespace:action",
+      "Bash"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/820a-taskfile-advanced-patterns.md": {
+    "hash": "9043088f687824e7458b4c2c24498e6c86547875e6f8b71598bc005c37e5ae7c",
+    "keywords": [
+      "Taskfile",
+      "categorized help",
+      "subtask files",
+      "task namespaces",
+      "cross-platform",
+      "platform guards",
+      "AI agent",
+      "machine-readable",
+      "portable tasks",
+      "task discovery",
+      "idempotent",
+      "preconditions",
+      "YAML",
+      "ci/cd"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/821-makefile-automation.md": {
+    "hash": "d2189a6b7f9b4dd0564546a79651fd9ddde3d1db0b49b53ef5013fdbae5ed780",
+    "keywords": [
+      "Makefile",
+      "GNU Make",
+      "build automation",
+      "make target",
+      ".PHONY",
+      "make help",
+      "portable make",
+      "make variables",
+      "uv",
+      "uvx",
+      "make dependencies",
+      "make cleanup",
+      "self-documenting makefile",
+      "bash"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/821a-makefile-advanced-patterns.md": {
+    "hash": "f23938d53609439049b1ca5df1a730461f57c71fa3607809880a15bed6fe3daf",
+    "keywords": [
+      "Makefile",
+      "categorized help",
+      "ifdef",
+      "ifeq",
+      "ifneq",
+      "simply expanded",
+      "recursively expanded",
+      "variable assignment",
+      "include directives",
+      "platform detection",
+      "conditional logic",
+      "multi-target",
+      "GNU Make",
+      "uname",
+      "bash"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/920-data-science-analytics.md": {
+    "hash": "f5cc4c33ed3a7ab1eafae615e4d9a3365208eafa88706266f394c8bbead1a60f",
+    "keywords": [
+      "Snowflake",
+      "Snowpark",
+      "pandas",
+      "scikit-learn",
+      "Snowflake Model Registry",
+      "model versioning",
+      "feature engineering",
+      "NaN handling",
+      "SHAP values",
+      "Query Profile",
+      "Streamlit caching",
+      "WCAG accessibility",
+      "confusion matrix",
+      "target leakage",
+      "drift detection"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/930-data-governance-quality.md": {
+    "hash": "e945b8b9098aaa41112429e5a79f765ba4806669194a289d0ffef88e3d8794f8",
+    "keywords": [
+      "data governance",
+      "data quality",
+      "Great Expectations",
+      "schema evolution",
+      "data observability",
+      "data drift monitoring",
+      "expectation suites",
+      "data profiling",
+      "quality gates",
+      "data catalog",
+      "metric definitions",
+      "incident response",
+      "backward compatibility",
+      "data lineage",
+      "secrets management"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/940-business-analytics.md": {
+    "hash": "fc8af3b901a2a4783083d3240241f357f2102fa845dd7b8d18ab217dc7ee7153",
+    "keywords": [
+      "business intelligence",
+      "Snowsight",
+      "KPIs",
+      "executive dashboards",
+      "WCAG accessibility",
+      "data storytelling",
+      "stakeholder reports",
+      "colorblind-safe palette",
+      "F-pattern layout",
+      "Z-pattern layout",
+      "ethical visualization",
+      "audience segmentation",
+      "screen reader",
+      "contrast ratio",
+      "metric documentation"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/950-create-dbt-semantic-view.md": {
+    "hash": "84db94793045475d867cca67ff913110d1251c3695025277202eae282d2633e9",
+    "keywords": [
+      "dbt",
+      "dbt-snowflake",
+      "dbt_semantic_view",
+      "semantic view",
+      "Snowflake",
+      "Cortex Analyst",
+      "dbt materialization",
+      "star schema",
+      "ref() function",
+      "source() function",
+      "PRIMARY KEY",
+      "RELATIONSHIPS",
+      "DIMENSIONS",
+      "METRICS",
+      "Bash"
+    ]
+  }
+}

@@ -6,9 +6,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.1.1
-**LastUpdated:** 2026-01-27
+**LastUpdated:** 2026-02-19
 **Keywords:** Streamlit, SiS, SPCS, navigation, multipage, session state, config.toml, theming
-**TokenBudget:** ~1600
+**TokenBudget:** ~1950
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 **LoadTrigger:** kw:streamlit, kw:dashboard
@@ -39,7 +39,7 @@ Foundational Streamlit setup: navigation, state management, deployment (SiS vs S
 ## Contract
 
 ### Inputs and Prerequisites
-- Python 3.11+ with Streamlit 1.46+
+- Python 3.11+ with Streamlit 1.50+
 - Snowflake connection configured
 - Deployment mode identified (SiS vs SPCS)
 
@@ -145,19 +145,46 @@ st.markdown("<style>.my-class { color: red; }</style>", unsafe_allow_html=True)
 ### SiS environment.yml (CRITICAL)
 **Forbidden in SiS:**
 - `python=X.Y` declarations
-- Version specifiers (`>=`, `==`)
 - Non-snowflake channels
 
+**Recommended:** Pin `streamlit` to a specific version to avoid defaulting to an
+older bundled version (e.g., 1.22.0) that lacks newer API features.
+
 ```yaml
-# CORRECT
+# CORRECT - pinned Streamlit version (recommended)
 name: my_app
 channels:
   - snowflake
 dependencies:
-  - streamlit
+  - streamlit=1.51.0
   - pandas
   - plotly
 ```
+
+**Note:** Without an `environment.yml`, SiS defaults to its bundled Streamlit
+version (currently 1.22.0), which does not support `st.navigation()`,
+`st.Page()`, or other modern APIs. Always include `environment.yml` with a
+pinned Streamlit version `>=1.50`.
+
+### SiS File Upload: Compression MUST Be Disabled
+
+**All `.py` and `.yml` files uploaded to a SiS stage MUST use `--no-auto-compress`
+(CLI) or `AUTO_COMPRESS=FALSE` (SQL PUT).** Without this, Snowflake compresses
+files to `.py.gz`, and the Python import system silently fails with
+`TypeError: bad argument type for built-in operation`.
+
+```bash
+# CLI: --no-auto-compress is MANDATORY
+snow stage copy streamlit/ @STAGE --recursive --no-auto-compress --overwrite
+```
+
+```sql
+-- SQL: AUTO_COMPRESS=FALSE is MANDATORY
+PUT file://streamlit_app.py @STAGE AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
+```
+
+**Python wrappers:** Default `auto_compress` to `False` and pass
+`--no-auto-compress` explicitly. See Anti-Pattern in `109b-snowflake-app-deployment-core.md`.
 
 ## Navigation
 

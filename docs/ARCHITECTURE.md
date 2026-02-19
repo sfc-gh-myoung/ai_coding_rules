@@ -1,6 +1,6 @@
 # Architecture: AI Coding Rules (v3.5.3)
 
-**Last Updated:** 2026-02-16
+**Last Updated:** 2026-02-18
 
 ## Table of Contents
 
@@ -339,7 +339,7 @@ Total HTMX token budget: ~9500 tokens across 8 rules
 
 ### Claude Agent Skills Architecture
 
-Starting in v3.4.0, the project includes three Claude Agent Skills following [Anthropic's best practices](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills).
+Starting in v3.4.0, the project includes seven Claude Agent Skills following [Anthropic's best practices](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills).
 
 **Skill Structure (both skills):**
 
@@ -639,7 +639,7 @@ ai_coding_rules/
 │   │   ├── 116-cortex-search-service-example.md
 │   │   ├── 120-spcs-service-spec-example.md
 │   │   └── 121-snowpipe-auto-ingest-example.md
-│   └── ... (126 total)
+│   └── ... (128 total)
 │
 ├── schemas/                    # Validation schemas
 │   ├── rule-schema.yml         # Rule file schema definition
@@ -676,6 +676,8 @@ ai_coding_rules/
 │   │   ├── workflows/               # Input, execution, output, error handling
 │   │   ├── examples/                # FULL, FOCUSED, STALENESS + edge-cases.md
 │   │   └── tests/                   # Input, mode, output test cases
+│   ├── bulk-rule-reviewer/      # Internal-only: orchestrate bulk rule reviews (excluded from deploy)
+│   │   └── SKILL.md                 # Main entrypoint with YAML frontmatter
 │   ├── doc-reviewer/           # Deployed by default: automate doc reviews
 │   │   ├── SKILL.md                 # Main entrypoint with YAML frontmatter
 │   │   ├── README.md                # Usage documentation
@@ -683,13 +685,17 @@ ai_coding_rules/
 │   │   ├── workflows/               # Input, execution, output, error handling
 │   │   ├── examples/                # FULL, FOCUSED, STALENESS + edge-cases.md
 │   │   └── tests/                   # Input, mode, output test cases
-│   └── plan-reviewer/          # Deployed by default: automate plan reviews
-│       ├── SKILL.md                 # Main entrypoint with YAML frontmatter
-│       ├── README.md                # Usage documentation
-│       ├── VALIDATION.md            # Self-validation procedures
-│       ├── workflows/               # Input, execution, output, error handling
-│       ├── examples/                # FULL, COMPARISON, META + edge-cases.md
-│       └── tests/                   # Input, mode, output test cases
+│   ├── plan-reviewer/          # Deployed by default: automate plan reviews
+│   │   ├── SKILL.md                 # Main entrypoint with YAML frontmatter
+│   │   ├── README.md                # Usage documentation
+│   │   ├── VALIDATION.md            # Self-validation procedures
+│   │   ├── workflows/               # Input, execution, output, error handling
+│   │   ├── examples/                # FULL, COMPARISON, META-REVIEW + edge-cases.md
+│   │   └── tests/                   # Input, mode, output test cases
+│   ├── rule-loader/            # Deployed by default: load rules for tasks
+│   │   └── SKILL.md                 # Main entrypoint with YAML frontmatter
+│   └── skill-timing/           # Deployed by default: measure skill performance
+│       └── SKILL.md                 # Main entrypoint with YAML frontmatter
 │
 ├── docs/                       # Project documentation
 │   ├── ARCHITECTURE.md         # This file
@@ -714,7 +720,7 @@ ai_coding_rules/
 - Production-ready files
 - Directly editable
 - No generation required
-- 126 rules covering all domains (including 8 HTMX rules, Go/Golang core, Alpine.js, and Podman)
+- 128 rules covering all domains (including 8 HTMX rules, Go/Golang core, Alpine.js, and Podman)
 
 **`rules/examples/`** — Validated implementation examples
 - Complete, runnable reference implementations for complex rules
@@ -773,6 +779,18 @@ ai_coding_rules/
   - Writes results to `reviews/plan-reviews/` or `reviews/summaries/` with no-overwrite safety
   - Includes: SKILL.md, README.md, workflows/ (including delta-review.md), examples/, tests/
   - Trigger keywords: "review plan", "compare plans", "plan quality", "meta-review", "plan executability"
+- **bulk-rule-reviewer/** (internal-only, excluded from deployment):
+  - Orchestrates bulk rule reviews across all rules in the rules/ directory
+  - Generates prioritized improvement reports
+  - Trigger keywords: "review all rules", "bulk review", "audit all rules"
+- **rule-loader/** (deployed by default):
+  - Determines which rule files to load for a given user request
+  - Matches file extensions, directory paths, and keywords against RULES_INDEX.md
+  - Trigger keywords: "load rules", "select rules", "which rules"
+- **skill-timing/** (deployed by default):
+  - Measures skill execution time and tracks performance
+  - Supports checkpoints, token tracking, anomaly detection, baseline comparison
+  - Trigger keywords: "time skill", "measure duration", "skill performance"
 - All skills feature:
   - Enhanced YAML frontmatter (version, author, tags, dependencies)
   - Inline validation snippets (hybrid code embedding)
@@ -1233,7 +1251,7 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 ### Deployment Architecture
 
 **Source Files (in ai_coding_rules repository):**
-- `rules/` — 126 production-ready rule files
+- `rules/` — 128 production-ready rule files
 - `AGENTS.md` — Discovery guide with loading protocol
 - `RULES_INDEX.md` — Searchable catalog with keywords
 
@@ -1338,15 +1356,15 @@ Configuration:
   Mode: LIVE (files will be copied)
 
 Validation:
-  ✓ Source rules/ directory exists (126 files)
+  ✓ Source rules/ directory exists (128 files)
   ✓ Source AGENTS.md exists
   ✓ Source RULES_INDEX.md exists
   ✓ Destination writable
 
 Deployment:
   → Creating destination rules/ directory
-  → Copying 126 rule files...
-  ✓ Copied 126 rules to /path/to/project/rules/
+  → Copying 128 rule files...
+  ✓ Copied 128 rules to /path/to/project/rules/
   ✓ Copied AGENTS.md to /path/to/project/
   ✓ Copied RULES_INDEX.md to /path/to/project/
 
@@ -1696,7 +1714,7 @@ flowchart TD
 
 ```mermaid
 graph TD
-    Root[ai_coding_rules/] --> Rules[rules/<br/>126 production files]
+    Root[ai_coding_rules/] --> Rules[rules/<br/>128 production files]
     Root --> Src[src/ai_rules/<br/>CLI tool]
     Root --> Schemas[schemas/<br/>v3.0 YAML schema]
     Root --> Tests[tests/<br/>544 passing tests]
@@ -1706,7 +1724,7 @@ graph TD
     
     Rules --> Rule1[000-global-core.md]
     Rules --> Rule2[100-snowflake-core.md]
-    Rules --> Rule3[... 126 total]
+    Rules --> Rule3[... 128 total]
     
     Src --> S1[ai-rules new]
     Src --> S2[ai-rules deploy]

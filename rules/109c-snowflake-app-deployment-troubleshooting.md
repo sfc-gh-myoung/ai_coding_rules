@@ -4,10 +4,10 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**LastUpdated:** 2026-02-19
 **LoadTrigger:** kw:deployment-error
 **Keywords:** Snowflake deployment troubleshooting, Streamlit debugging, SiS TypeError, notebook deployment issues, deployment errors, stage file debugging, AUTO_COMPRESS debugging, ROOT_LOCATION errors, deployment anti-patterns, diagnostic commands, deployment validation, cache issues
-**TokenBudget:** ~5800
+**TokenBudget:** ~7150
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 109-snowflake-notebooks.md, 101-snowflake-streamlit-core.md, 109b-snowflake-app-deployment-core.md
 
@@ -394,6 +394,35 @@ CREATE STREAMLIT APP
     QUERY_WAREHOUSE = WH;
 ```
 
+**Anti-Pattern 7: Inverted Compression Flag Logic in Python Wrappers**
+```python
+# WRONG: Only adds --auto-compress when True, never adds --no-auto-compress when False
+def snow_stage_copy(source, dest, auto_compress=True, recursive=False):
+    flags = ["--overwrite"]
+    if auto_compress:
+        flags.append("--auto-compress")  # Redundant — already the CLI default
+    if recursive:
+        flags.append("--recursive")
+    # When auto_compress=False, NO flag is added → CLI defaults to compress ON
+    # Files silently stored as .py.gz; deployment succeeds but app crashes at runtime
+```
+**Problem:** The `--auto-compress` flag is already the CLI default, so adding it when `True` is redundant. When `False`, no flag is passed, so compression is never actually disabled. Deployment reports `[PASS]` but the app fails with `TypeError: bad argument type for built-in operation` because `.py` files are stored as `.py.gz`.
+
+**Correct Pattern:**
+```python
+# CORRECT: Default auto_compress=False for app deployment, pass --no-auto-compress
+def snow_stage_copy(source, dest, auto_compress=False, recursive=False):
+    flags = ["--overwrite"]
+    if not auto_compress:
+        flags.append("--no-auto-compress")  # Explicitly disables compression
+    if recursive:
+        flags.append("--recursive")
+```
+**Key rules:**
+- Default `auto_compress` to `False` for application deployment functions
+- Pass `--no-auto-compress` when compression is disabled (not absence of `--auto-compress`)
+- Verify with `LIST @stage` that files show `.py` not `.py.gz` after upload
+
 ## Post-Execution Checklist
 
 - [ ] Diagnostic commands executed before suggesting fixes
@@ -406,6 +435,8 @@ CREATE STREAMLIT APP
 - [ ] Explicit REMOVE step included in deployment workflow
 - [ ] Modular task structure (can test individual operations)
 - [ ] No credentials hardcoded in scripts or Taskfiles
+- [ ] Python/CLI wrappers pass `--no-auto-compress` (not absence of `--auto-compress`)
+- [ ] Verified with `LIST @stage` that files show `.py` not `.py.gz` after upload
 
 ## Validation
 
@@ -466,6 +497,12 @@ CREATE STREAMLIT APP
 - Files uploaded to subdirectory (e.g., `@STAGE/streamlit/`)
 - ROOT_LOCATION points to different path (e.g., `@STAGE`)
 - Snowflake cannot find application files
+
+**Cause 3: Inverted Compression Flag in Python/CLI Wrappers**
+- Python wrapper function adds `--auto-compress` when `True` (redundant — already the default)
+- But never adds `--no-auto-compress` when `False` — compression is never actually disabled
+- Deployment reports success (`[PASS]`) but app fails at runtime
+- Especially insidious because `auto_compress=False` in the calling code *looks* correct
 
 **Diagnostic Steps:**
 
@@ -583,6 +620,95 @@ SELECT SYSTEM\$CHECK_FILE_EXISTS('@STAGE/streamlit_app.py');
    uvx snow sql -q "GET @DB.SCHEMA.NOTEBOOK_STAGE/app.ipynb file:///tmp/;"
    grep "your_fix" /tmp/app.ipynb  # Verify fix is in file
    ```
+
+### Issue: "AttributeError: module 'streamlit' has no attribute 'X'"
+
+**Symptoms:**
+- Streamlit app fails with `AttributeError: module 'streamlit' has no attribute 'navigation'`
+  (or `'Page'`, `'dialog'`, `'fragment'`, or other modern API)
+- App works locally but fails when deployed to SiS
+- Error appears immediately on app load or when navigating to a page that uses the missing API
+
+**Root Cause:**
+Missing or incorrect `environment.yml` in the stage. Without `environment.yml`, SiS defaults
+to its bundled Streamlit version (currently **1.22.0**), which predates many modern APIs:
+
+- `st.navigation()` — requires 1.36+ (not available in SiS default 1.22.0)
+- `st.Page()` — requires 1.36+ (not available in SiS default 1.22.0)
+- `st.dialog()` — requires 1.37+ (not available in SiS default 1.22.0)
+- `st.fragment()` — requires 1.37+ (not available in SiS default 1.22.0)
+- `st.rerun()` — requires 1.27+ (not available in SiS default 1.22.0)
+
+**Diagnostic Steps:**
+
+```bash
+# Step 1: Check if environment.yml exists in stage
+uvx snow sql -q "LIST @DB.SCHEMA.STREAMLIT_STAGE;" | grep environment.yml
+
+# If no output -> environment.yml is MISSING (root cause confirmed)
+
+# Step 2: If environment.yml exists, download and check contents
+uvx snow sql -q "GET @DB.SCHEMA.STREAMLIT_STAGE/environment.yml file:///tmp/;"
+cat /tmp/environment.yml
+
+# Check: Does it pin streamlit to a recent version?
+# BAD:  just "- streamlit" (no version, uses bundled default)
+# GOOD: "- streamlit=1.51.0" (explicit pin)
+
+# Step 3: Verify what Streamlit version the app is using
+# Add this temporarily to streamlit_app.py:
+#   import streamlit as st
+#   st.write(f"Streamlit version: {st.__version__}")
+```
+
+**Fix:**
+
+1. **Create `environment.yml`** in your Streamlit app directory:
+   ```yaml
+   name: my_app
+   channels:
+     - snowflake
+   dependencies:
+     - streamlit=1.51.0
+     - pandas
+     - plotly
+   ```
+
+2. **Redeploy with environment.yml included:**
+   ```bash
+   # Using snow stage copy (recommended for multi-file apps)
+   uvx --from=snowflake-cli==3.14 snow stage copy \
+     streamlit/ @DB.SCHEMA.STREAMLIT_STAGE \
+     --recursive --no-auto-compress --overwrite
+
+   # Or using SQL PUT (single file)
+   uvx snow sql -q "PUT file://streamlit/environment.yml
+       @DB.SCHEMA.STREAMLIT_STAGE
+       AUTO_COMPRESS=FALSE OVERWRITE=TRUE;"
+   ```
+
+3. **Recreate the Streamlit object** (environment.yml is read at creation time):
+   ```bash
+   uvx snow sql -q "DROP STREAMLIT IF EXISTS DB.SCHEMA.MY_APP;"
+   uvx snow sql -q "CREATE STREAMLIT DB.SCHEMA.MY_APP
+       ROOT_LOCATION = '@DB.SCHEMA.STREAMLIT_STAGE'
+       MAIN_FILE = 'streamlit_app.py'
+       QUERY_WAREHOUSE = MY_WH;"
+   ```
+
+**Verification:**
+```bash
+# Confirm environment.yml is in stage
+uvx snow sql -q "LIST @DB.SCHEMA.STREAMLIT_STAGE;" | grep environment.yml
+# Expected: environment.yml listed (not .gz)
+
+# Open app in Snowsight - should load without AttributeError
+```
+
+**Prevention:**
+- Always include `environment.yml` with a pinned Streamlit version in your app directory
+- Add `environment.yml` to your deployment precondition checks
+- Pin to `streamlit=1.51.0` (or latest available in snowflake channel)
 
 ### Issue: "REMOVE fails - file not found"
 

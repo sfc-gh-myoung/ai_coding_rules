@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-20
 **LoadTrigger:** kw:data-loading, kw:copy-into, kw:import
 **Keywords:** bulk loading, ON_ERROR, FILE_FORMAT, load data, external stage, internal stage, data ingestion, file upload, COPY error, loading patterns, stage files, PUT command, GET command
-**TokenBudget:** ~2900
+**TokenBudget:** ~3200
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 
@@ -299,3 +299,21 @@ SHOW VIEWS LIKE '%view_name%';
 ## File Preparation and Optimization
 - **Requirement:** Aim for compressed file sizes between 100–250 MB for optimal performance and cost.
 - **Requirement:** For semi-structured data, ensure consistent data types within elements to enable subcolumnarization.
+
+### Data Files vs Application Files: Compression Distinction
+
+Compression behavior differs depending on what you are staging:
+
+- **Data files** (CSV, JSON, Parquet): Compression **ON** (default, recommended) — `AUTO_COMPRESS=TRUE` (default) / `--auto-compress` (default)
+- **Application files** (.py, .yml): Compression **OFF** (mandatory) — `AUTO_COMPRESS=FALSE` / `--no-auto-compress`
+
+- **Data loading (this rule):** Compression is desirable. GZIP reduces transfer time and storage.
+  The default `AUTO_COMPRESS=TRUE` is correct for data files staged via PUT/COPY INTO.
+- **Application deployment (see `109b-snowflake-app-deployment-core.md`):** Compression MUST be
+  disabled. Python's import system cannot read `.py.gz` files, and Streamlit in Snowflake (SiS)
+  will fail with `TypeError: bad argument type for built-in operation` if `.py` files are compressed.
+
+> **Do not apply data loading compression defaults to application deployment.**
+> When writing Python wrappers that call `PUT` or `snow stage copy`, use `AUTO_COMPRESS=FALSE` /
+> `--no-auto-compress` for application files. See `109b-snowflake-app-deployment-core.md` for
+> the correct pattern.

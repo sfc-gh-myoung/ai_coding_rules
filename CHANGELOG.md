@@ -105,6 +105,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Test scenarios for validation
 - **feat(rules):** add `&` ampersand error message pattern and seed data examples to 102-snowflake-sql-core.md
   - Documents `snow sql` template rendering errors caused by `&` in string literals
+- **feat(examples):** add 109b-sis-streamlit-deployment-example.md reference implementation
+  - Complete Streamlit-in-Snowflake deployment workflow with SPCS integration
 
 ### Changed
 - **refactor(layout):** migrate `tools/` directory to `src/` layout
@@ -209,11 +211,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **chore(pyproject):** bump `requires-python` from `>=3.11` to `>=3.12` and add Python 3.12 classifier
 - **chore(pyproject):** update all dependency version minimums to latest stable releases
   - Runtime: pyyaml 6.0→6.0.3, typer 0.9→0.17, rich 13.0→14.0
-  - Moved scikit-learn (1.3→1.8) and tiktoken (0.5→0.12) from dev to runtime dependencies (used by `ai-rules` CLI)
+  - Moved tiktoken (0.5→0.12) from dev to runtime dependencies (used by `ai-rules` CLI)
   - Optional (agent-eval/prompt-eval): requests 2.28→2.32, fastapi 0.109→0.115, uvicorn 0.27→0.41, jinja2 3.1→3.1.6, python-multipart 0.0.6→0.0.22
   - Added pydantic>=2.12.5 to prompt-eval (explicitly imported in `api.py`)
   - Dev: ruff 0.1→0.15, pytest 7.4→9.0, pytest-cov 4.1→7.0, ty pinned to >=0.0.17
   - Removed redundant typer, rich, requests from dev group (already in runtime/optional deps)
+  - Removed scikit-learn from runtime dependencies (no longer used by `keywords` command)
+- **feat(cli):** refactor `keywords` command to use Cortex LLM instead of TF-IDF
+  - Replaced scikit-learn TF-IDF vectorization with claude-sonnet-4-5 via Snowflake Cortex REST API
+  - Added content-hash based caching (`.keywords-cache.json`) to avoid redundant API calls
+  - LLM generates 5-20 contextually meaningful keywords per rule complexity
+  - High-confidence heuristic signals (technology terms, code languages) supplement LLM output
+  - Added `-c/--connection` for Snowflake connection selection
+  - Added `-f/--force` to bypass cache
+  - Added `-D/--deduplicate` for cross-rule keyword deduplication
+  - Expanded STOP_TERMS list to filter generic schema boilerplate
+- **feat(rules):** update Snowflake Streamlit and deployment rules
+  - 101-snowflake-streamlit-core.md: Enhanced session state patterns
+  - 108-snowflake-data-loading.md: Added COPY INTO guidance
+  - 109b-snowflake-app-deployment-core.md: Expanded SPCS deployment patterns
+  - 109c-snowflake-app-deployment-troubleshooting.md: Additional error scenarios
+  - 112-snowflake-snowcli.md: Updated snow CLI command patterns
 
 ### Deprecated
 - **scripts/*.py** — Legacy Python scripts deprecated in favor of `ai-rules` CLI
@@ -231,6 +249,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Taskfile.yml` — all commands migrated to `./dev` wrapper using `uv`/`uvx`
 - `AGENTS.md` and `AGENTS_NO_MODE.md` — now generated from templates at deploy time; source `.gitignore`d
 - `scripts/template_sync.py` — no longer needed since AGENTS.md is generated from templates, not synced from source
+- **refactor(scripts):** delete legacy `scripts/*.py` after migration to `src/ai_rules/`
+  - Removed: badge_updater.py, index_generator.py, keyword_generator.py, rule_deployer.py, schema_validator.py, template_generator.py, token_validator.py, validate_index_references.py
+  - All functionality now available via `ai-rules` CLI
+- **refactor(tests):** delete legacy `tests/test_*.py` for removed scripts
+  - Tests migrated to `tests/cli/` for new CLI structure
 - **docs(migration):** remove deprecated migration documentation
   - Deleted `docs/MIGRATION.md` (v2.x → v3.0 migration guide)
   - Deleted `docs/MIGRATION_SCHEMA_v3.1_to_v3.2.md` (schema migration guide)

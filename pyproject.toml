@@ -38,8 +38,8 @@ dependencies = [
     "pyyaml>=6.0.3",
     "typer>=0.17.0",
     "rich>=14.0.0",
-    "scikit-learn>=1.8.0",  # TF-IDF vectorization for keyword_generator
     "tiktoken>=0.12.0",  # Token counting for GPT models
+    "requests>=2.32.0",  # HTTP client for Cortex REST API
 ]
 
 [project.optional-dependencies]
@@ -129,7 +129,7 @@ filterwarnings = [
 ]
 
 [tool.coverage.run]
-source = ["scripts", "src/agent_eval", "src/prompt_eval", "src/ai_rules"]
+source = ["src/agent_eval", "src/prompt_eval", "src/ai_rules"]
 omit = [
     "tests/*",
     ".venv/*",

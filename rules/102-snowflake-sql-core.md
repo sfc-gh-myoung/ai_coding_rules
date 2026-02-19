@@ -11,7 +11,7 @@
 **RuleVersion:** v1.1.0
 **LastUpdated:** 2026-02-18
 **Keywords:** SQL files, file headers, COPY INTO, FILE_FORMAT, CREATE VIEW, fully qualified names, idempotent, reserved characters, CLI compatibility, ON_ERROR, JOIN, ambiguous column, table alias
-**TokenBudget:** ~3400
+**TokenBudget:** ~3950
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 **LoadTrigger:** ext:.sql, kw:sql
@@ -318,7 +318,7 @@ SQL template rendering error: 'W' is undefined
 SQL template rendering error: 'Ms' is undefined
 ```
 
-The text after `&` is treated as a variable name (e.g., `A&W` → variable `W`, `M&Ms` → variable `Ms`).
+The text after `&` is treated as a variable name (e.g., `A&W` becomes variable `W`, `M&Ms` becomes variable `Ms`).
 
 ### The Fix: `--enable-templating NONE`
 

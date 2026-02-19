@@ -18,11 +18,16 @@ If ANY word could be a keyword, extract it. Only fail if the request is truly em
 
 ### Step 2: Search RULES_INDEX.md
 
-For each extracted keyword:
+Execute a single compound grep combining all keywords:
 
 ```bash
-grep -i "KEYWORD" {rules_path}/RULES_INDEX.md
+grep -iE "KEYWORD1|KEYWORD2|KEYWORD3" {rules_path}/RULES_INDEX.md
 ```
+
+**Expected outcome for typical requests:**
+- 5-50 matching lines for multi-technology requests
+- 1-10 matching lines for single-technology requests
+- 0 lines = ANOMALY (re-execute grep once, then use fallback immediately)
 
 **If grep unavailable:** Read RULES_INDEX.md via `read_file` and manually scan for keywords. This is the required fallback.
 
@@ -53,3 +58,5 @@ If any high-risk keyword is present, the corresponding search is mandatory even 
 - A Gate 2 claim without tool execution is INVALID
 - Never claim Gate 2 passed based on memory or prior session context
 - If grep returns no matches for a keyword: note "No rules found for [keyword]"
+- **Zero results for common keywords (python, docker, deploy, test, snowflake, fastapi) is an ANOMALY** — re-execute grep once, then use read_file fallback
+- **Consistency check:** Keywords searched in Gate 2 must produce rules in Gate 3, or explicitly state "no rules found"

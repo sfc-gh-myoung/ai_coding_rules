@@ -36,6 +36,15 @@ uv run python skills/skill-timing/scripts/skill_timing.py checkpoint \
 - **`review_complete`** - After review/task execution
 - **`file_written`** - After output file write
 
+### Gate Checkpoints
+
+These checkpoints map to the AGENTS.md bootstrap gates and provide visibility into where time is spent during rule loading and gate execution:
+
+- **`gates_started`** - After Gate 1 foundation rule loaded (marks start of gate processing)
+- **`rules_loaded`** - After Gate 3 matching rules loaded (all rule discovery and loading complete)
+- **`work_started`** - After gate processing, when core skill work begins
+- **`work_complete`** - After core skill work finishes (before file write)
+
 ## Error Handling
 
 If this command fails:

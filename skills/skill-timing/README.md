@@ -74,18 +74,12 @@ bash skills/skill-timing/scripts/run_timing.sh baseline compare --run-id a1b2c3d
 
 ```
 ⏱️ Timing Summary
-├── Duration: 3m 45s (225.5s)
-├── Started:  10:30:00 UTC
-├── Ended:    10:33:45 UTC
-├── Run ID:   a1b2c3d4e5f67890
-├── Tokens:   16,700 (12,500 in / 4,200 out) ~$0.04
-└── Baseline: +7.4% vs avg (within normal)
-
-Checkpoints:
-├── skill_loaded      1.2s   (0.5%)
-├── schema_validated  8.5s   (3.8%)
-├── review_complete   210.3s (93.3%)
-└── file_written      222.1s (98.5%)
+├── Duration:    3m 45s (225.5s)
+├── Model:       claude-sonnet-45
+├── Run ID:      a1b2c3d4e5f67890
+├── Checkpoints: gates_started: 9.9s, rules_loaded: 32.3s, work_complete: 210.3s, file_written: 222.1s
+├── Tokens:      16,700 (12,500 in / 4,200 out) ~$0.04
+└── Baseline:    +7.4% vs avg (within normal)
 ```
 
 ### Timing Metadata (in output file)
@@ -103,6 +97,7 @@ The agent must parse the STDOUT and append this section to the output file:
 | Duration | 3m 45s (225.5s) |
 | Model | claude-sonnet-45 |
 | Agent | cursor |
+| Checkpoints | gates_started: 9.9s, rules_loaded: 32.3s, work_complete: 210.3s, file_written: 222.1s |
 | Tokens | 16,700 (12,500 in / 4,200 out) |
 | Cost | ~$0.04 |
 ```

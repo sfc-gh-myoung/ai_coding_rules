@@ -33,41 +33,43 @@ def extract_version(pyproject_path: Path) -> str:
     return match.group(1)
 
 
-def get_test_percentage() -> tuple[int, int, float]:
-    """Run pytest and extract pass percentage.
+def get_test_percentage(pytest_output: str | None = None) -> tuple[int, int, float]:
+    """Extract test pass percentage from pytest output.
+
+    Args:
+        pytest_output: Pre-captured pytest stdout+stderr. If None, runs pytest as subprocess.
 
     Returns:
         Tuple of (passed, total, percentage)
     """
-    try:
-        result = subprocess.run(
-            ["python", "-m", "pytest", "--tb=no", "-q"],
-            capture_output=True,
-            text=True,
-            timeout=60,
-        )
-
-        output = result.stdout + result.stderr
-
-        match = re.search(r"(\d+) passed", output)
-        passed = int(match.group(1)) if match else 0
-
-        match = re.search(r"(\d+) failed", output)
-        failed = int(match.group(1)) if match else 0
-
-        total = passed + failed
-        if total == 0:
+    if pytest_output is None:
+        try:
+            result = subprocess.run(
+                ["python", "-m", "pytest", "--tb=no", "-q"],
+                capture_output=True,
+                text=True,
+                timeout=300,
+            )
+            pytest_output = result.stdout + result.stderr
+        except subprocess.TimeoutExpired:
+            log_warning("pytest timed out")
+            return 0, 0, 0.0
+        except Exception as e:
+            log_warning(f"Failed to run pytest: {e}")
             return 0, 0, 0.0
 
-        percentage = (passed / total) * 100
-        return passed, total, percentage
+    match = re.search(r"(\d+) passed", pytest_output)
+    passed = int(match.group(1)) if match else 0
 
-    except subprocess.TimeoutExpired:
-        log_warning("pytest timed out")
+    match = re.search(r"(\d+) failed", pytest_output)
+    failed = int(match.group(1)) if match else 0
+
+    total = passed + failed
+    if total == 0:
         return 0, 0, 0.0
-    except Exception as e:
-        log_warning(f"Failed to run pytest: {e}")
-        return 0, 0, 0.0
+
+    percentage = (passed / total) * 100
+    return passed, total, percentage
 
 
 def get_coverage_percentage(project_root: Path) -> float:
@@ -195,6 +197,13 @@ def update(
             help="Show what would change without writing.",
         ),
     ] = False,
+    pytest_output: Annotated[
+        str | None,
+        typer.Option(
+            "--pytest-output",
+            help="Path to file containing pytest output. Skips running pytest internally.",
+        ),
+    ] = None,
 ) -> None:
     """Update README badges with version, test pass rate, and coverage.
 
@@ -222,7 +231,15 @@ def update(
         version = extract_version(pyproject_path)
         log_info(f"Version: {version}")
 
-        passed, total, test_percentage = get_test_percentage()
+        captured_output = None
+        if pytest_output is not None:
+            output_path = Path(pytest_output)
+            if output_path.exists():
+                captured_output = output_path.read_text()
+            else:
+                log_warning(f"Pytest output file not found: {pytest_output}, running pytest")
+
+        passed, total, test_percentage = get_test_percentage(captured_output)
         log_info(f"Tests: {passed}/{total} passed ({test_percentage:.1f}%)")
 
         coverage_percentage = get_coverage_percentage(project_root)

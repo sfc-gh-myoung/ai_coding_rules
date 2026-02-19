@@ -22,6 +22,26 @@ from ai_rules.commands import keywords as keywords_module
 
 runner = CliRunner()
 
+# Save reference to real function before autouse fixture patches it
+_real_load_snowflake_config = keywords_module.load_snowflake_config
+
+
+@pytest.fixture(autouse=True)
+def _block_snowflake_config(monkeypatch: pytest.MonkeyPatch):
+    """Prevent real Snowflake config loading in all tests.
+
+    Returns empty credentials so _call_cortex_complete raises RuntimeError
+    (which suggest_keywords catches for heuristic fallback), and the CLI
+    path sets use_api=False.
+
+    Tests that need specific config behavior override this via their own monkeypatch.
+    """
+    monkeypatch.setattr(
+        keywords_module,
+        "load_snowflake_config",
+        lambda conn: {"account": "", "token": ""},
+    )
+
 
 # Sample rule content for testing
 SAMPLE_RULE_CONTENT = dedent("""
@@ -749,6 +769,11 @@ class TestParseCortexSseResponse:
 
 class TestLoadSnowflakeConfig:
     """Tests for load_snowflake_config reading ~/.snowflake/connections.toml."""
+
+    @pytest.fixture(autouse=True)
+    def _restore_real_config_loader(self, monkeypatch: pytest.MonkeyPatch):
+        """Restore the real load_snowflake_config for these tests."""
+        monkeypatch.setattr(keywords_module, "load_snowflake_config", _real_load_snowflake_config)
 
     @pytest.mark.unit
     def test_loads_connection_from_connections_toml(self, tmp_path: Path, monkeypatch):

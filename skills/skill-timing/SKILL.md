@@ -67,6 +67,8 @@ Record an intermediate timing checkpoint.
 
 **Workflow:** See `workflows/timing-checkpoint.md` for predefined checkpoint names and usage guidance.
 
+**Gate-level checkpoints are recommended** for tracking where time is spent during the AGENTS.md bootstrap sequence. Use `gates_started` after Gate 1 and `rules_loaded` after Gate 3 to get visibility into gate overhead vs. core work time.
+
 **Inputs:**
 - `run_id`: Run ID from timing-start (required)
 - `name`: Checkpoint name (required)
@@ -195,6 +197,8 @@ Add a single `[CONDITIONAL] Timing Instrumentation` step (not scattered optional
 | When | Action | Track |
 |------|--------|-------|
 | Before core work | timing-start | Store `_timing_run_id` |
+| After Gate 1 (foundation loaded) | checkpoint: gates_started | - |
+| After Gate 3 (rules loaded) | checkpoint: rules_loaded | - |
 | After setup complete | checkpoint: skill_loaded | - |
 | After core work done | checkpoint: work_complete | - |
 | Before file write | timing-end (compute) | Store `_timing_stdout` |

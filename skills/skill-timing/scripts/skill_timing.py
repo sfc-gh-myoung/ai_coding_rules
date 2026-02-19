@@ -278,35 +278,30 @@ def print_stdout_summary(
     """Print timing summary to STDOUT."""
     print()
     print("⏱️ Timing Summary")
-    print(f"├── Duration: {data['duration_human']} ({data['duration_seconds']}s)")
-    print(f"├── Started:  {data['start_iso'][:19].replace('T', ' ')} UTC")
-    print(f"├── Ended:    {data['end_iso'][:19].replace('T', ' ')} UTC")
-    print(f"├── Run ID:   {data['run_id']}")
+    print(f"├── Duration:    {data['duration_human']} ({data['duration_seconds']}s)")
+    print(f"├── Model:       {data.get('model', 'unknown')}")
+    print(f"├── Run ID:      {data['run_id']}")
+
+    if checkpoints:
+        cp_parts = [f"{cp['name']}: {cp['elapsed_seconds']:.1f}s" for cp in checkpoints]
+        print(f"├── Checkpoints: {', '.join(cp_parts)}")
 
     if tokens:
         print(
-            f"├── Tokens:   {tokens['total_tokens']:,} ({tokens['input_tokens']:,} in / {tokens['output_tokens']:,} out) ~${tokens['estimated_cost_usd']:.2f}"
+            f"├── Tokens:      {tokens['total_tokens']:,} ({tokens['input_tokens']:,} in / {tokens['output_tokens']:,} out) ~${tokens['estimated_cost_usd']:.2f}"
         )
 
     if baseline:
         sign = "+" if baseline["delta_percent"] >= 0 else ""
         print(
-            f"└── Baseline: {sign}{baseline['delta_percent']}% vs avg ({baseline['status'].replace('_', ' ')})"
+            f"└── Baseline:    {sign}{baseline['delta_percent']}% vs avg ({baseline['status'].replace('_', ' ')})"
         )
     else:
-        print("└── Baseline: N/A")
+        print("└── Baseline:    N/A")
         # Helpful hint on first run
         print(
             "    Tip: Set baseline after 5+ runs with: baseline set --skill <name> --mode <mode> --model <model>"
         )
-
-    if checkpoints:
-        print()
-        print("Checkpoints:")
-        for i, cp in enumerate(checkpoints):
-            prefix = "└──" if i == len(checkpoints) - 1 else "├──"
-            pct = (cp["elapsed_seconds"] / data["duration_seconds"]) * 100
-            print(f"{prefix} {cp['name']:<20} {cp['elapsed_seconds']:.1f}s ({pct:.1f}%)")
 
     if alerts:
         print()

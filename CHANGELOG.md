@@ -8,6 +8,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **feat(bootstrap):** add grep anomaly detection and compound search pattern to AGENTS templates
+  - Compound grep pattern (`grep -iE "K1|K2|K3"`) replaces per-keyword searches for efficiency
+  - Grep sanity check (Step 2.C) treats zero results for common keywords as anomaly requiring retry + fallback
+  - Consistency check between Gate 2 (keywords searched) and Gate 3 (rules found)
+  - Keyword extraction heuristic (Step 2.F) for multi-technology requests
+  - Updated `skills/rule-loader/workflows/activity-matching.md` with same guidance
+- **feat(skill-timing):** add gate-level checkpoints for bootstrap performance visibility
+  - New `gates_started` and `rules_loaded` checkpoints track AGENTS.md gate overhead
+  - Compact STDOUT summary with checkpoints inline
+  - Updated timing metadata to include checkpoints row
+- **feat(cli):** add `--pytest-output` flag to `ai-rules badges update`
+  - Accepts pre-captured pytest output file to skip redundant test execution
+  - Makefile target `badges-update` now pipes pytest to temp file for single test run
+  - Increased pytest timeout from 60s to 300s for large test suites
+- **fix(tests):** add autouse fixture blocking Snowflake config in keywords tests
+  - Prevents real credentials lookup during unit tests
+  - `TestLoadSnowflakeConfig` class restores real function for its tests
 - **feat(cli):** add `ai-rules` CLI with 8 subcommands for rule management
   - `validate` — Run schema validation on rule files
   - `index` — Generate RULES_INDEX.md from rule files

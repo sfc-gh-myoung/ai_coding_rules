@@ -334,8 +334,9 @@ keywords-all: ## Suggest keywords for all rules
 
 .PHONY: badges-update
 badges-update: ## Update README badges
-	$(UV) run pytest --cov=scripts --cov=src/ai_rules --cov-report=term-missing --cov-report=html tests/
-	$(UV) run ai-rules badges update
+	$(UV) run pytest --cov=scripts --cov=src/ai_rules --cov-report=term-missing --cov-report=html --tb=no -q tests/ | tee .pytest-output.txt
+	$(UV) run ai-rules badges update --pytest-output .pytest-output.txt
+	@rm -f .pytest-output.txt
 
 .PHONY: refs-check
 refs-check: ## Validate index references

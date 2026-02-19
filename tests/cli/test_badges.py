@@ -448,7 +448,7 @@ class TestGetTestPercentageEdgeCases:
         import subprocess
 
         # Arrange
-        mock_run.side_effect = subprocess.TimeoutExpired(cmd="pytest", timeout=60)
+        mock_run.side_effect = subprocess.TimeoutExpired(cmd="pytest", timeout=300)
 
         # Act
         passed, total, percentage = badges.get_test_percentage()
@@ -472,6 +472,34 @@ class TestGetTestPercentageEdgeCases:
         assert passed == 0
         assert total == 0
         assert percentage == 0.0
+
+    @pytest.mark.unit
+    def test_pre_captured_output_all_passed(self):
+        """Test parsing pre-captured pytest output when all tests pass."""
+        # Arrange
+        output = "======================== 50 passed in 1.0s ========================\n"
+
+        # Act
+        passed, total, percentage = badges.get_test_percentage(pytest_output=output)
+
+        # Assert
+        assert passed == 50
+        assert total == 50
+        assert percentage == 100.0
+
+    @pytest.mark.unit
+    def test_pre_captured_output_with_failures(self):
+        """Test parsing pre-captured pytest output with failures."""
+        # Arrange
+        output = "=============== 45 passed, 5 failed in 2.0s ===============\n"
+
+        # Act
+        passed, total, percentage = badges.get_test_percentage(pytest_output=output)
+
+        # Assert
+        assert passed == 45
+        assert total == 50
+        assert percentage == 90.0
 
 
 class TestGetCoveragePercentageEdgeCases:

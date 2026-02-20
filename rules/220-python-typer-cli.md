@@ -6,7 +6,7 @@
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-02-19
 **Keywords:** Typer, CLI development, command-line interface, click, argument parsing, CLI testing, typer.Argument, typer.Option, CliRunner, rich console, rich progress, rich tables, rich live, dual console, stderr, console output
-**TokenBudget:** ~7500
+**TokenBudget:** ~6850
 **ContextTier:** High
 **Depends:** 200-python-core.md
 **LoadTrigger:** kw:typer, kw:cli

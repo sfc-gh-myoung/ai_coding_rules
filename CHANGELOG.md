@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **feat(rules):** add foreign key dependency ordering guidance to SQL rules
+  - 102-snowflake-sql-core.md: Added FK constraint checklist item for validation
+  - 130-snowflake-demo-sql.md: Added Multi-File Dependencies section with dependency graph examples
+  - 130-snowflake-demo-sql.md: Added Anti-Pattern 5 (FK Reference Before Table Exists) with correct CLI execution order
+  - 130-snowflake-demo-sql.md: Added CLI orchestration alignment checklist items
 - **feat(rules):** expand Typer CLI rule with Rich integration patterns and anti-patterns
   - Add 5 new anti-patterns: `-h` help conflicts, string options without enums, duplicate console code, missing stderr routing, inconsistent progress indicators
   - Add dual-console pattern for stdout/stderr separation in CLI apps

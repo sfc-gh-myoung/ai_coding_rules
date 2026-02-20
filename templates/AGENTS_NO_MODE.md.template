@@ -351,6 +351,25 @@ PRE-FLIGHT:
 - [x] Gate 3: Matching rules loaded: 102-snowflake-sql-core.md, 101-snowflake-streamlit-core.md
 ```
 
+**Anti-Pattern 4: Symptom-only rule loading**
+
+**Problem:** Loading rules for the *error symptom* but not for the *fix implementation*. Example: A CREATE TASK fails, agent loads task rules (104), but the fix requires a wrapper procedure - agent never loads procedure rules (102b).
+
+**Why It Fails:** The fix violates patterns documented in unloaded rules. Agent implements a solution without guidance, missing mandatory elements (COMMENT clauses, fully qualified names, security specifications). Code review catches preventable issues.
+
+**Detection Signals:**
+- Rules loaded match the failing object type, not the objects being created as the fix
+- Fix introduces a different object type (e.g., procedure to fix a task) but no rules for that type loaded
+- Post-implementation checklist items missing because the relevant rule was never consulted
+
+**Correct Pattern:**
+Before implementing a fix, ask: "What object types will I create or modify?"
+- Error involves TASK → load task rules (104)
+- Fix creates PROCEDURE → load procedure rules (102b)
+- Fix modifies SQL file → load SQL file rules (102)
+
+Load rules for BOTH the error domain AND the solution domain.
+
 ### Search Triggers
 
 **ALWAYS search RULES_INDEX.md when user request contains ANY of:**

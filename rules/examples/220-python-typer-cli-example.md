@@ -1,13 +1,26 @@
-# Typer CLI Example: Complete Working Application
+# 220 Example: Typer CLI (Python)
 
-This example demonstrates the patterns from `220-python-typer-cli.md`:
-- Shared console module with dual console (stdout/stderr)
-- Main CLI app with version callback
-- Subcommand registration
-- Rich Table and Live progress
-- CliRunner testing
+> **EXAMPLE FILE** - Reference implementation for `220-python-typer-cli.md`
+> Not a rule file. Not validated against rule-schema.yml.
 
-## Project Structure
+## Context
+
+**Parent Rule:** 220-python-typer-cli.md
+**Demonstrates:** Complete Typer CLI application with shared console module, dual console pattern (stdout/stderr), subcommand registration, Rich Table and Live progress displays, and CliRunner testing
+**Use When:** Building CLI applications with Typer that need consistent output styling, progress displays, and testable command structure
+**Version:** 1.0
+**Last Validated:** 2026-02-20
+
+## Prerequisites
+
+- [ ] Python 3.10+ installed
+- [ ] uv installed for dependency management
+- [ ] pyproject.toml present at project root
+- [ ] Typer and Rich packages available
+
+## Implementation
+
+### Project Structure
 
 ```
 myapp/
@@ -28,7 +41,7 @@ myapp/
         └── test_commands.py    # CliRunner tests
 ```
 
-## Shared Console Module
+### Shared Console Module
 
 ```python
 # myapp/_shared/console.py
@@ -96,7 +109,7 @@ def create_live(renderable, **kwargs) -> Live:
     return Live(renderable, console=_stdout, refresh_per_second=4, **kwargs)
 ```
 
-## Main CLI Application
+### Main CLI Application
 
 ```python
 # myapp/cli/main.py
@@ -158,7 +171,7 @@ if __name__ == "__main__":
     app()
 ```
 
-## Subcommand Module with Rich Table and Live
+### Subcommand Module with Rich Table and Live
 
 ```python
 # myapp/cli/commands/data.py
@@ -269,7 +282,7 @@ def sync(
     log_success(f"Synced {done_count}/{len(items)} items")
 ```
 
-## pyproject.toml Configuration
+### pyproject.toml Configuration
 
 ```toml
 [project]
@@ -291,7 +304,7 @@ build-backend = "hatchling.build"
 testpaths = ["tests"]
 ```
 
-## CliRunner Tests
+### CliRunner Tests
 
 ```python
 # tests/cli/test_commands.py
@@ -382,7 +395,7 @@ class TestEnumValidation:
         # Typer provides helpful error about valid choices
 ```
 
-## Usage Examples
+### Usage Examples
 
 ```bash
 # Install in development mode
@@ -409,3 +422,29 @@ myapp --verbose data list-items
 # Pipe stdout (errors still visible on stderr)
 myapp data list-items 2>/dev/null | jq .
 ```
+
+## Validation
+
+```bash
+# Verify help displays correctly
+myapp --help
+
+# Test subcommand help
+myapp data --help
+
+# Verify list-items works with Rich table output
+myapp data list-items --limit 3
+
+# Verify verbose mode
+myapp --verbose data list-items --limit 2
+
+# Run pytest tests
+uv run pytest tests/cli/test_commands.py -v
+```
+
+**Expected Results:**
+- `myapp --help` displays application help with Rich formatting
+- `myapp data --help` shows data subcommand options
+- `myapp data list-items --limit 3` displays a Rich table with 3 items
+- `myapp --verbose data list-items` shows "Verbose mode enabled" before output
+- All pytest tests pass with exit code 0

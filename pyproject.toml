@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/agent_eval", "src/prompt_eval", "src/ai_rules"]
+packages = ["src/agent_eval", "src/ai_rules"]
 
 [project]
 name = "ai_coding_rules"
@@ -46,15 +46,6 @@ dependencies = [
 agent-eval = [
     "requests>=2.32.5",
 ]
-prompt-eval = [
-    "requests>=2.32.5",
-    "fastapi>=0.115.12",
-    "uvicorn>=0.41.0",
-    "jinja2>=3.1.6",
-    "pydantic>=2.12.5",
-    "python-multipart>=0.0.22",
-]
-
 [dependency-groups]
 dev = [
     "ruff>=0.15.1",
@@ -66,7 +57,6 @@ dev = [
 [project.scripts]
 ai-rules = "ai_rules.cli:app"
 agent-eval = "agent_eval.cli:app"
-prompt-eval = "prompt_eval.cli:app"
 
 [project.urls]
 Homepage = "https://github.com/sfc-gh-myoung/ai_coding_rules"
@@ -129,7 +119,7 @@ filterwarnings = [
 ]
 
 [tool.coverage.run]
-source = ["src/agent_eval", "src/prompt_eval", "src/ai_rules"]
+source = ["src/agent_eval", "src/ai_rules"]
 omit = [
     "tests/*",
     ".venv/*",
@@ -151,11 +141,6 @@ exclude_lines = [
     "class .*\\bProtocol\\):",
     "@(abc\\.)?abstractmethod",
 ]
-
-[[tool.ty.overrides]]
-include = ["src/prompt_eval/**"]
-[tool.ty.overrides.rules]
-unresolved-import = "ignore"  # optional deps (fastapi, pydantic, uvicorn) not in dev group
 
 [[tool.ty.overrides]]
 include = ["tests/**"]

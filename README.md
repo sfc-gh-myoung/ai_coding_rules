@@ -685,8 +685,7 @@ ai_coding_rules/
 │   ├── ai_rules/               ← Unified CLI: ai-rules (8 subcommands)
 │   │   ├── cli.py                  ← Main CLI entry point
 │   │   └── commands/               ← Subcommands: validate, index, keywords, deploy, tokens, new, badges, refs
-│   ├── agent_eval/             ← AGENTS.md effectiveness evaluation CLI
-│   └── prompt_eval/            ← Prompt quality evaluation CLI
+│   └── agent_eval/             ← AGENTS.md effectiveness evaluation CLI
 ├── rules/                  ← Production-ready rules (128 total)
 │   └── examples/           ← Validated implementation examples (10 total)
 ├── AGENTS.md               ← Rule loading protocol for AI assistants
@@ -715,7 +714,7 @@ ai_coding_rules/
 
 **Key Concepts:**
 
-- **src/** — Python packages for CLI tools (`ai-rules`, `agent-eval`, `prompt-eval`)
+- **src/** — Python packages for CLI tools (`ai-rules`, `agent-eval`)
 - **rules/** — Production-ready rules (128 total), deploy directly (no generation needed)
 - **AGENTS.md** — AI discovery protocol in project root
 - **templates/** — Source of truth for AGENTS.md variants (used by `ai-rules deploy`)
@@ -760,7 +759,6 @@ uv run ai-rules --help
 | CLI | Description |
 |-----|-------------|
 | `uv run agent-eval` | Test AGENTS.md effectiveness with Cortex evaluation |
-| `uv run prompt-eval` | Evaluate and improve prompt quality (6 dimensions, 100-point scale) |
 
 ## Development Commands
 
@@ -917,30 +915,6 @@ uv run agent-eval run -t test_name       # Run a specific test
 ```
 
 **Features:** Connection verification, parallel execution with per-test progress tracking, thread-safe counters, configurable Cortex model selection. See [tools/agent_eval/README.md](tools/agent_eval/README.md) for full documentation.
-
-### prompt_eval — Prompt Quality Evaluation
-
-Evaluates and improves prompts for LLM/agent execution quality across 6 weighted dimensions on a 100-point scale (letter grade A–F), then generates improved versions optimized for any LLM or coding agent.
-
-```bash
-uv run prompt-eval eval prompt.txt       # Evaluate a prompt file
-uv run prompt-eval eval -                # Evaluate from stdin
-uv run prompt-eval eval prompt.txt --no-rewrite  # Score only, skip rewrite
-uv run prompt-eval api                   # Start web UI at localhost:8000
-```
-
-**Scoring Dimensions:**
-
-| Dimension | Weight | What It Measures |
-|-----------|--------|------------------|
-| Actionability | 25 pts | Clear, unambiguous instructions an agent can execute |
-| Completeness | 25 pts | All necessary context, constraints, and outputs included |
-| Token Efficiency | 10 pts | Concise without redundancy |
-| Cross-Agent Consistency | 10 pts | Works reliably across different LLMs |
-| Parsability | 10 pts | Structured formatting agents can parse |
-| Context Grounding | 10 pts (bonus) | References concrete files, functions, or project context |
-
-**Interfaces:** CLI, REST API, and web UI. **Output formats:** Markdown (default), JSON, HTML. See [tools/prompt_eval/README.md](tools/prompt_eval/README.md) for full documentation.
 
 ## Rule Architecture
 

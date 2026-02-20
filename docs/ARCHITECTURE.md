@@ -592,26 +592,14 @@ ai_coding_rules/
 │   │       ├── refs.py             # Validate index references
 │   │       ├── tokens.py           # Token budget validation
 │   │       └── validate.py         # Schema validation
-│   ├── agent_eval/             # AGENTS.md effectiveness evaluation
-│   │   ├── __init__.py             # Package metadata
-│   │   ├── __main__.py             # Entry point for `python -m agent_eval`
-│   │   ├── cli.py                  # Typer CLI (run, list, verify commands)
-│   │   ├── cortex.py               # Snowflake Cortex REST API client
-│   │   ├── evaluator.py            # Core evaluation logic
-│   │   ├── models.py               # Data models
-│   │   └── parsers.py              # Response parsing
-│   └── prompt_eval/            # Prompt quality evaluation (6-dimension scoring)
+│   └── agent_eval/             # AGENTS.md effectiveness evaluation
 │       ├── __init__.py             # Package metadata
-│       ├── __main__.py             # Entry point for `python -m prompt_eval`
-│       ├── cli.py                  # Typer CLI (eval, models, api commands)
-│       ├── cortex.py               # Snowflake Cortex integration
+│       ├── __main__.py             # Entry point for `python -m agent_eval`
+│       ├── cli.py                  # Typer CLI (run, list, verify commands)
+│       ├── cortex.py               # Snowflake Cortex REST API client
 │       ├── evaluator.py            # Core evaluation logic
-│       ├── formatters.py           # Output formatting (markdown, JSON, HTML)
-│       ├── dimensions.py           # Scoring dimension definitions
 │       ├── models.py               # Data models
-│       ├── rewriter.py             # Prompt improvement suggestions
-│       ├── api.py                  # FastAPI REST API + web UI
-│       └── templates/              # Jinja2 HTML templates
+│       └── parsers.py              # Response parsing
 │
 ├── rules/                      # Production-ready rule files
 │   ├── 000-global-core.md      # Foundation (ContextTier: Critical)
@@ -733,8 +721,7 @@ ai_coding_rules/
 - Three packages with CLI entry points defined in `pyproject.toml`
 - `ai_rules/` — Main CLI for rule management (8 commands)
 - `agent_eval/` — AGENTS.md effectiveness testing
-- `prompt_eval/` — Prompt quality evaluation with 6-dimension scoring
-- Build system: hatchling with `packages = ["src/ai_rules", "src/agent_eval", "src/prompt_eval"]`
+- Build system: hatchling with `packages = ["src/ai_rules", "src/agent_eval"]`
 
 **`templates/`** — Source of truth for AGENTS.md variants
 - `AGENTS_MODE.md.template` — Full PLAN/ACT bootstrap protocol (deployed as AGENTS.md by default)
@@ -808,7 +795,6 @@ The project uses a modern Python package structure with three installable packag
 [project.scripts]
 ai-rules = "ai_rules.cli:app"       # Main CLI for rule management
 agent-eval = "agent_eval.cli:app"   # AGENTS.md effectiveness testing
-prompt-eval = "prompt_eval.cli:app" # Prompt quality evaluation
 ```
 
 ### Build Configuration
@@ -819,7 +805,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/ai_rules", "src/agent_eval", "src/prompt_eval"]
+packages = ["src/ai_rules", "src/agent_eval"]
 ```
 
 ### Package Descriptions
@@ -828,7 +814,6 @@ packages = ["src/ai_rules", "src/agent_eval", "src/prompt_eval"]
 |---------|-------------|---------|
 | `ai_rules` | `ai-rules` | Unified CLI for all rule management operations |
 | `agent_eval` | `agent-eval` | Test AGENTS.md bootstrap effectiveness via Cortex |
-| `prompt_eval` | `prompt-eval` | Evaluate and improve prompt quality (6 dimensions) |
 
 ### Installation
 
@@ -838,7 +823,6 @@ uv sync --all-groups
 
 # Install specific extras
 uv sync --extra agent-eval
-uv sync --extra prompt-eval
 ```
 
 ## CLI Architecture
@@ -923,7 +907,6 @@ The evaluation tools have been restructured as proper Python packages:
 | Old Location | New Location | Entry Point |
 |--------------|--------------|-------------|
 | `tools/agent_eval/` | `src/agent_eval/` | `agent-eval` |
-| `tools/prompt_eval/` | `src/prompt_eval/` | `prompt-eval` |
 | N/A (new) | `src/ai_rules/` | `ai-rules` |
 
 **Benefits:**
@@ -1465,31 +1448,6 @@ Tests whether AI agents correctly follow the `AGENTS.md` bootstrap protocol by s
 - `test_cases.yaml` — Declarative test definitions with expected behaviors
 
 **Features:** Connection verification, parallel execution with per-test progress tracking, thread-safe counters, configurable Cortex model selection.
-
-### prompt_eval — Prompt Quality Evaluation
-
-Evaluates and improves prompts for LLM/agent execution quality across 6 weighted dimensions on a 100-point scale (letter grade A–F), then generates improved versions optimized for any coding agent.
-
-**Architecture:**
-- `cli.py` — Typer CLI with `eval`, `models`, `api` commands
-- `evaluator.py` — Core evaluation logic with structured dimension scoring
-- `cortex.py` — Snowflake Cortex REST API client for LLM analysis
-- `formatter.py` — Output formatting (Markdown tables, JSON, standalone HTML reports)
-- `api.py` — FastAPI REST API with web UI for interactive evaluation
-- `templates/` — Jinja2 HTML templates for the web interface
-
-**Scoring Dimensions (100-point scale):**
-
-| Dimension | Weight | What It Measures |
-|-----------|--------|------------------|
-| Actionability | 25 pts | Clear, unambiguous instructions an agent can execute |
-| Completeness | 25 pts | All necessary context, constraints, and outputs included |
-| Token Efficiency | 10 pts | Concise without redundancy |
-| Cross-Agent Consistency | 10 pts | Works reliably across different LLMs |
-| Parsability | 10 pts | Structured formatting agents can parse |
-| Context Grounding | 10 pts (bonus) | References concrete files, functions, or project context |
-
-**Interfaces:** CLI, REST API (`/api/evaluate` endpoint), and web UI (dark-theme with progress bars).
 
 ## Testing Infrastructure
 

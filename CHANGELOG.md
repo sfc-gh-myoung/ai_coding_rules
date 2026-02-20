@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **feat(rules):** expand Typer CLI rule with Rich integration patterns and anti-patterns
+  - Add 5 new anti-patterns: `-h` help conflicts, string options without enums, duplicate console code, missing stderr routing, inconsistent progress indicators
+  - Add dual-console pattern for stdout/stderr separation in CLI apps
+  - Add Rich integration patterns: Live displays, Progress bars, Tables, Panels
+  - New companion example `rules/examples/220-python-typer-cli-example.md` with complete implementation
+  - TokenBudget increased from ~4850 to ~7500
+- **feat(bootstrap):** add `ask_user_question` tool tips to AGENTS templates
+  - Replaces 625-line `clarifying-questions` skill with 4-line guidance
+  - Tips: concrete options, no redundant "Other" choices, 12-char header limit
 - **feat(bootstrap):** add grep anomaly detection and compound search pattern to AGENTS templates
   - Compound grep pattern (`grep -iE "K1|K2|K3"`) replaces per-keyword searches for efficiency
   - Grep sanity check (Step 2.C) treats zero results for common keywords as anomaly requiring retry + fallback
@@ -263,6 +272,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Scripts remain functional but will be removed in a future major version
 
 ### Removed
+- **refactor(tools):** remove `prompt_eval` package from project
+  - Experimental tool deprecated; functionality not actively used
+  - Removes ~3,500 lines from `src/prompt_eval/`
+  - pyproject.toml: removed from packages, scripts, coverage, and optional deps
+- **refactor(skills):** remove `clarifying-questions` skill
+  - Replaced with 4-line `ask_user_question` tips in AGENTS templates
+  - 625+ lines of skill files → 4 lines of guidance
 - `Taskfile.yml` — all commands migrated to `./dev` wrapper using `uv`/`uvx`
 - `AGENTS.md` and `AGENTS_NO_MODE.md` — now generated from templates at deploy time; source `.gitignore`d
 - `scripts/template_sync.py` — no longer needed since AGENTS.md is generated from templates, not synced from source

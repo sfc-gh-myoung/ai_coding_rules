@@ -279,6 +279,11 @@ Gather details before execution:
 - Mark **(recommended)** default when safe
 - Max 1 clarification round (then proceed with stated assumptions)
 
+**`ask_user_question` tool tips:**
+- Use concrete options ("PostgreSQL", not "A database")
+- Never add "Other/Custom" options - "Something else" is auto-added
+- Headers max 12 chars: "Database" not "Database Selection"
+
 ### Protocol Enforcement
 
 **CRITICAL violations:** Rules not listed, validation skipped

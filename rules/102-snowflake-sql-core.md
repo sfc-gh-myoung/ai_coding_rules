@@ -9,7 +9,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v1.1.0
-**LastUpdated:** 2026-02-20
+**LastUpdated:** 2026-02-23
 **Keywords:** SQL files, file headers, COPY INTO, FILE_FORMAT, CREATE VIEW, fully qualified names, idempotent, reserved characters, CLI compatibility, ON_ERROR, JOIN, ambiguous column, table alias
 **TokenBudget:** ~3950
 **ContextTier:** High
@@ -114,6 +114,7 @@ SQL files with .sql extension, UTF-8 encoding, Unix line endings
 - [ ] JOINs use table aliases and qualify all columns
 - [ ] SQL executes without errors via CLI
 - [ ] **FK constraints reference existing tables** (or will exist when executed)
+- [ ] **No CHECK constraints** (unsupported in Snowflake)
 
 ## File Header Standard
 

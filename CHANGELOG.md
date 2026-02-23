@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **fix(rules):** remove invalid CHECK constraint references from Snowflake rules
+  - 102-snowflake-sql-core.md: Added checklist item warning that CHECK constraints are unsupported
+  - 121c-snowflake-snowpipe-troubleshooting.md: Replaced CHECK with NOT NULL in constraint validation guidance (Snowflake does not support CHECK constraints)
+
 ### Added
 - **feat(rules):** add foreign key dependency ordering guidance to SQL rules
   - 102-snowflake-sql-core.md: Added FK constraint checklist item for validation

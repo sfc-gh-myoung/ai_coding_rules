@@ -709,17 +709,17 @@ y = training_data.read.to_pandas()['label']
 model = XGBClassifier().fit(X, y)
 
 # Register model with lineage to feature views
-# NOTE: task parameter is REQUIRED if you plan to use MODEL MONITOR for ML Observability
-from snowflake.ml.model import task as ml_task
-
-registry = Registry(session=session)
+# NOTE: options={"enable_monitoring": True} is REQUIRED on Registry if you plan to use MODEL MONITOR
+registry = Registry(
+    session=session,
+    options={"enable_monitoring": True}  # Required for MODEL MONITOR
+)
 model_ref = registry.log_model(
     model,
     model_name="CHURN_PREDICTOR",
     version_name="v1_0_0",  # Use underscores (periods not valid in SQL identifiers)
     sample_input_data=X.head(5),  # Required for schema inference
-    comment=f"Trained on {training_data.name} (Feature Store lineage tracked)",
-    task=ml_task.Task.TABULAR_BINARY_CLASSIFICATION  # Required for MODEL MONITOR
+    comment=f"Trained on {training_data.name} (Feature Store lineage tracked)"
 )
 ```
 

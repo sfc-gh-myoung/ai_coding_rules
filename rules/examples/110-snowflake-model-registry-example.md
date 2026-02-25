@@ -6,9 +6,9 @@
 ## Context
 
 **Parent Rule:** 110-snowflake-model-registry.md
-**Demonstrates:** End-to-end model registration with task parameter for MODEL MONITOR compatibility
+**Demonstrates:** End-to-end model registration with `enable_monitoring` option for MODEL MONITOR compatibility
 **Use When:** Registering ML models that will be monitored for drift and performance degradation
-**Version:** 1.0
+**Version:** 1.1
 **Last Validated:** 2026-02-25
 
 ## Prerequisites
@@ -17,13 +17,12 @@
 - [ ] Role with CREATE MODEL privilege in target schema
 - [ ] Trained sklearn, XGBoost, or compatible model
 - [ ] Sample input data for schema inference
-- [ ] Understanding of model task type (classification vs regression)
 
-## Critical: The task Parameter
+## Critical: The enable_monitoring Option
 
-**Why This Example Exists:** Models registered WITHOUT the `task` parameter cannot be used with MODEL MONITOR. The error message "MODEL does not exist or not authorized" is misleading - the model exists but lacks required task metadata. You must DROP and re-register the model.
+**Why This Example Exists:** Models registered with a Registry that does NOT have `options={"enable_monitoring": True}` cannot be used with MODEL MONITOR. The error message "MODEL does not exist or not authorized" is misleading - the model exists but the Registry wasn't configured for monitoring. You must DROP and re-register the model using a monitoring-enabled Registry.
 
-**Always include `task` parameter when:**
+**Always include `options={"enable_monitoring": True}` when:**
 - You plan to use MODEL MONITOR for ML Observability
 - You want drift detection or performance monitoring
 - You're building production ML pipelines
@@ -79,23 +78,24 @@ CREATE OR REPLACE TABLE ML.MONITORING.CHURN_SCORING_DATA (
 );
 ```
 
-### Step 3: Train and Register Model WITH task Parameter
+### Step 3: Train and Register Model WITH Monitoring-Enabled Registry
 
 ```python
 from snowflake.snowpark import Session
 from snowflake.ml.registry import Registry
-from snowflake.ml.model import task as ml_task
 from sklearn.ensemble import RandomForestClassifier
 import pandas as pd
 
 # Establish session
 session = Session.builder.configs(connection_params).create()
 
-# Initialize registry
+# CRITICAL: Initialize registry WITH enable_monitoring option
+# This is REQUIRED for MODEL MONITOR to work
 registry = Registry(
     session=session,
     database_name="ML",
-    schema_name="REGISTRY"
+    schema_name="REGISTRY",
+    options={"enable_monitoring": True}  # REQUIRED for MODEL MONITOR!
 )
 
 # Prepare training data (example)
@@ -111,8 +111,7 @@ model = RandomForestClassifier(
 )
 model.fit(X, y)
 
-# CRITICAL: Register model WITH task parameter
-# This is REQUIRED for MODEL MONITOR to work
+# Register model - no special parameters needed when Registry has monitoring enabled
 model_ref = registry.log_model(
     model=model,
     model_name="CUSTOMER_CHURN_PREDICTOR",
@@ -135,9 +134,7 @@ model_ref = registry.log_model(
         'recall': 0.79,
         'f1_score': 0.80,
         'auc_roc': 0.91
-    },
-    # CRITICAL: task parameter enables MODEL MONITOR
-    task=ml_task.Task.TABULAR_BINARY_CLASSIFICATION
+    }
 )
 
 print(f"Model registered: {model_ref.model_name} version {model_ref.version_name}")
@@ -252,14 +249,29 @@ GRANT MONITOR ON MODEL MONITOR ML.MONITORING.CHURN_MODEL_MONITOR TO ROLE ml_moni
 
 **Symptom:** CREATE MODEL MONITOR fails with this error even though SHOW MODELS confirms model exists.
 
-**Root Cause:** Model was registered without `task` parameter.
+**Root Cause:** Model was registered using a Registry without `options={"enable_monitoring": True}`.
 
 **Solution:**
-```sql
--- Step 1: Drop the existing model
-DROP MODEL ML.REGISTRY.CUSTOMER_CHURN_PREDICTOR;
+```python
+# Step 1: Drop the existing model
+# DROP MODEL ML.REGISTRY.CUSTOMER_CHURN_PREDICTOR;
 
--- Step 2: Re-register with task parameter (see Step 3 above)
+# Step 2: Re-create Registry with monitoring enabled
+registry = Registry(
+    session=session,
+    database_name="ML",
+    schema_name="REGISTRY",
+    options={"enable_monitoring": True}  # THIS IS THE FIX!
+)
+
+# Step 3: Re-register the model
+model_ref = registry.log_model(
+    model=model,
+    model_name="CUSTOMER_CHURN_PREDICTOR",
+    version_name="V1_0_0",
+    sample_input_data=X.head(5),
+    # ... other parameters
+)
 ```
 
 ### Error: "Invalid identifier 'V1.0.0'"
@@ -278,17 +290,9 @@ DROP MODEL ML.REGISTRY.CUSTOMER_CHURN_PREDICTOR;
 
 **Solution:** Always provide `sample_input_data=X.head(5)` during registration.
 
-## Task Type Reference
-
-| Scenario | Task Type | Import |
-|----------|-----------|--------|
-| Binary classification (churn, fraud, spam) | `TABULAR_BINARY_CLASSIFICATION` | `from snowflake.ml.model import task as ml_task` |
-| Multi-class (categories, sentiment 1-5) | `TABULAR_MULTI_CLASSIFICATION` | `from snowflake.ml.model import task as ml_task` |
-| Regression (price, quantity, duration) | `TABULAR_REGRESSION` | `from snowflake.ml.model import task as ml_task` |
-
 ## Validation Checklist
 
-- [ ] Model registered with `task` parameter
+- [ ] Registry initialized with `options={"enable_monitoring": True}`
 - [ ] Version name uses underscores (not periods)
 - [ ] `sample_input_data` provided for schema inference
 - [ ] Baseline table populated with training distribution sample

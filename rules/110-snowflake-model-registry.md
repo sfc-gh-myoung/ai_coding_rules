@@ -279,49 +279,54 @@ print("✓ Model inference validated, ready for production")
 ```
 **Benefits:** Early error detection; validated inference; confidence in production; no surprises; professional deployment; reliable predictions; user trust
 
-**Anti-Pattern 5: Not Specifying task Parameter When Planning to Use MODEL MONITOR**
+**Anti-Pattern 5: Not Enabling Monitoring on Registry When Planning to Use MODEL MONITOR**
 ```python
-# Bad: Register model without task parameter
+# Bad: Initialize Registry without enable_monitoring option
 from snowflake.ml.registry import Registry
-registry = Registry(session=session)
+
+registry = Registry(
+    session=session,
+    database_name="ML",
+    schema_name="REGISTRY"
+    # Missing options={"enable_monitoring": True}!
+)
 
 registry.log_model(
     model=trained_model,
     model_name="fraud_detector",
     version_name="v1_0_0",
     sample_input_data=sample_df
-    # Missing task parameter!
 )
 
 # Later, try to create MODEL MONITOR...
 # CREATE MODEL MONITOR fraud_monitor...
 # ERROR: "MODEL does not exist or not authorized"
-# The model EXISTS but MODEL MONITOR can't use it without task metadata!
+# The model EXISTS but MODEL MONITOR can't use it without monitoring enabled at registry level!
 ```
-**Problem:** MODEL MONITOR requires models to be registered with a task type; models registered without `task` cannot be monitored; must DROP model and re-register; wasted time; production delays; confusing error message
+**Problem:** MODEL MONITOR requires `options={"enable_monitoring": True}` on the Registry constructor; models registered without this option cannot be monitored; must DROP model and re-register with monitoring-enabled registry; wasted time; production delays; confusing error message
 
 **Correct Pattern:**
 ```python
-# Good: Include task parameter for MODEL MONITOR compatibility
+# Good: Enable monitoring on Registry constructor
 from snowflake.ml.registry import Registry
-from snowflake.ml.model import task as ml_task
 
-registry = Registry(session=session)
+registry = Registry(
+    session=session,
+    database_name="ML",
+    schema_name="REGISTRY",
+    options={"enable_monitoring": True}  # REQUIRED for MODEL MONITOR!
+)
 
 registry.log_model(
     model=trained_model,
     model_name="fraud_detector",
     version_name="v1_0_0",
-    sample_input_data=sample_df,
-    task=ml_task.Task.TABULAR_BINARY_CLASSIFICATION  # Required for MODEL MONITOR!
+    sample_input_data=sample_df
 )
 
-# Valid task types for MODEL MONITOR:
-# - ml_task.Task.TABULAR_BINARY_CLASSIFICATION (two-class: fraud/not fraud, churn/retain)
-# - ml_task.Task.TABULAR_MULTI_CLASSIFICATION (multi-class: categories, sentiment levels)
-# - ml_task.Task.TABULAR_REGRESSION (continuous: price, quantity, duration)
+# Now MODEL MONITOR creation will work!
 ```
-**Benefits:** MODEL MONITOR compatible; ML Observability enabled; drift detection ready; no re-registration required; production-ready; clear task semantics
+**Benefits:** MODEL MONITOR compatible; ML Observability enabled; drift detection ready; no re-registration required; production-ready
 
 ## Model Registry Setup and Organization
 
@@ -494,34 +499,44 @@ def promote_model(source_reg, target_reg, model_name, version_name):
 ## MODEL MONITOR Integration (ML Observability)
 
 ### Prerequisites for MODEL MONITOR
-- **Critical Requirement:** Models MUST be registered with the `task` parameter to use MODEL MONITOR
-- **Rule:** Always specify task type at registration time - cannot be added after registration
-- **Warning:** Models without `task` parameter will cause "MODEL does not exist or not authorized" errors when creating monitors, even though the model exists
-- **Rule:** If model was registered without `task`, you must DROP the model and re-register with `task` parameter
+- **Critical Requirement:** Registry MUST be initialized with `options={"enable_monitoring": True}` to use MODEL MONITOR
+- **Rule:** The `enable_monitoring` option must be set at Registry creation time - models registered without it cannot be monitored
+- **Warning:** Models registered without `enable_monitoring` will cause "MODEL does not exist or not authorized" errors when creating monitors, even though the model exists
+- **Rule:** If model was registered without `enable_monitoring`, you must DROP the model and re-register using a monitoring-enabled Registry
 
-### Supported Task Types
-| Task Type | Import | Use Case |
-|-----------|--------|----------|
-| `TABULAR_BINARY_CLASSIFICATION` | `from snowflake.ml.model import task as ml_task` | Two-class classification (fraud/not fraud, churn/retain) |
-| `TABULAR_MULTI_CLASSIFICATION` | `from snowflake.ml.model import task as ml_task` | Multi-class classification (product categories, sentiment levels) |
-| `TABULAR_REGRESSION` | `from snowflake.ml.model import task as ml_task` | Continuous value prediction (price, quantity, duration) |
+### Registry Initialization for MODEL MONITOR
+```python
+from snowflake.ml.registry import Registry
+
+# REQUIRED: Enable monitoring in options to use MODEL MONITOR
+registry = Registry(
+    session=session,
+    database_name="ML",
+    schema_name="REGISTRY",
+    options={"enable_monitoring": True}  # CRITICAL for MODEL MONITOR!
+)
+```
 
 ### Model Registration for MODEL MONITOR
 ```python
 from snowflake.ml.registry import Registry
-from snowflake.ml.model import task as ml_task
 
-registry = Registry(session=session, database_name="ML", schema_name="REGISTRY")
+# Initialize with monitoring enabled
+registry = Registry(
+    session=session, 
+    database_name="ML", 
+    schema_name="REGISTRY",
+    options={"enable_monitoring": True}  # REQUIRED for MODEL MONITOR
+)
 
-# Register model WITH task parameter for MODEL MONITOR compatibility
+# Register model - no special parameters needed if Registry has monitoring enabled
 model_ref = registry.log_model(
     model=trained_model,
     model_name="customer_churn_predictor",
     version_name="v1_0_0",
     comment="Binary classifier for customer churn prediction",
     sample_input_data=X_test.head(5),
-    conda_dependencies=["scikit-learn", "pandas", "numpy"],
-    task=ml_task.Task.TABULAR_BINARY_CLASSIFICATION  # REQUIRED for MODEL MONITOR
+    conda_dependencies=["scikit-learn", "pandas", "numpy"]
 )
 ```
 

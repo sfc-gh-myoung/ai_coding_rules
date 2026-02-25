@@ -8,7 +8,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.1.0
+**RuleVersion:** v1.2.0
 **LastUpdated:** 2026-02-23
 **Keywords:** SQL files, file headers, COPY INTO, FILE_FORMAT, CREATE VIEW, fully qualified names, idempotent, reserved characters, CLI compatibility, ON_ERROR, JOIN, ambiguous column, table alias
 **TokenBudget:** ~3950

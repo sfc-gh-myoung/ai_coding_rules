@@ -3,18 +3,18 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
-**LoadTrigger:** kw:model-registry, kw:ml-model
-**Keywords:** model governance, model lifecycle, model logging, model inference, RBAC, model privileges, register model, log model, model management, ML registry, model tracking, model metadata, deploy model, model lineage
-**TokenBudget:** ~4250
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-02-25
+**LoadTrigger:** kw:model-registry, kw:ml-model, kw:model-monitor, kw:ml-observability
+**Keywords:** model governance, model lifecycle, model logging, model inference, RBAC, model privileges, register model, log model, model management, ML registry, model tracking, model metadata, deploy model, model lineage, model monitor, ML observability, task parameter, drift detection, baseline data, scoring data
+**TokenBudget:** ~5000
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md
 
 ## Scope
 
 **What This Rule Covers:**
-Comprehensive best practices for using Snowflake Model Registry to manage machine learning models, ensuring secure, performant, and governable ML operations through proper lifecycle management, access control, versioning strategies, and cost optimization.
+Comprehensive best practices for using Snowflake Model Registry to manage machine learning models, ensuring secure, performant, and governable ML operations through proper lifecycle management, access control, versioning strategies, MODEL MONITOR integration for ML Observability, and cost optimization.
 
 **When to Load This Rule:**
 - Logging models to Snowflake Model Registry
@@ -22,6 +22,8 @@ Comprehensive best practices for using Snowflake Model Registry to manage machin
 - Implementing model access control and governance
 - Running model inference in Snowflake
 - Optimizing model registry costs
+- Creating MODEL MONITORs for ML Observability
+- Setting up drift detection and model performance monitoring
 
 ## References
 
@@ -29,6 +31,8 @@ Comprehensive best practices for using Snowflake Model Registry to manage machin
 - [Snowflake Model Registry Overview](https://docs.snowflake.com/en/developer-guide/snowflake-ml/model-registry/overview) - Complete model registry documentation and API reference
 - [Snowflake Model Registry API](https://docs.snowflake.com/en/developer-guide/snowpark-ml/reference/1.2.0/api/registry/snowflake.ml.registry.Registry) - Python API reference for registry operations
 - [Snowflake Model Management](https://docs.snowflake.com/en/developer-guide/snowflake-ml/model-registry/model-management) - Model lifecycle and management best practices
+- [MODEL MONITOR Overview](https://docs.snowflake.com/en/developer-guide/snowflake-ml/model-registry/model-observability) - ML Observability and drift detection
+- [CREATE MODEL MONITOR Syntax](https://docs.snowflake.com/en/sql-reference/sql/create-model-monitor) - SQL reference for MODEL MONITOR creation
 
 ### Related Rules
 - **Snowflake Core**: `100-snowflake-core.md`
@@ -275,6 +279,50 @@ print("✓ Model inference validated, ready for production")
 ```
 **Benefits:** Early error detection; validated inference; confidence in production; no surprises; professional deployment; reliable predictions; user trust
 
+**Anti-Pattern 5: Not Specifying task Parameter When Planning to Use MODEL MONITOR**
+```python
+# Bad: Register model without task parameter
+from snowflake.ml.registry import Registry
+registry = Registry(session=session)
+
+registry.log_model(
+    model=trained_model,
+    model_name="fraud_detector",
+    version_name="v1_0_0",
+    sample_input_data=sample_df
+    # Missing task parameter!
+)
+
+# Later, try to create MODEL MONITOR...
+# CREATE MODEL MONITOR fraud_monitor...
+# ERROR: "MODEL does not exist or not authorized"
+# The model EXISTS but MODEL MONITOR can't use it without task metadata!
+```
+**Problem:** MODEL MONITOR requires models to be registered with a task type; models registered without `task` cannot be monitored; must DROP model and re-register; wasted time; production delays; confusing error message
+
+**Correct Pattern:**
+```python
+# Good: Include task parameter for MODEL MONITOR compatibility
+from snowflake.ml.registry import Registry
+from snowflake.ml.model import task as ml_task
+
+registry = Registry(session=session)
+
+registry.log_model(
+    model=trained_model,
+    model_name="fraud_detector",
+    version_name="v1_0_0",
+    sample_input_data=sample_df,
+    task=ml_task.Task.TABULAR_BINARY_CLASSIFICATION  # Required for MODEL MONITOR!
+)
+
+# Valid task types for MODEL MONITOR:
+# - ml_task.Task.TABULAR_BINARY_CLASSIFICATION (two-class: fraud/not fraud, churn/retain)
+# - ml_task.Task.TABULAR_MULTI_CLASSIFICATION (multi-class: categories, sentiment levels)
+# - ml_task.Task.TABULAR_REGRESSION (continuous: price, quantity, duration)
+```
+**Benefits:** MODEL MONITOR compatible; ML Observability enabled; drift detection ready; no re-registration required; production-ready; clear task semantics
+
 ## Model Registry Setup and Organization
 
 ### Registry Initialization
@@ -442,6 +490,98 @@ def promote_model(source_reg, target_reg, model_name, version_name):
 - **Rule:** Implement retention policies for old model versions
 - **Always:** Archive rather than delete historical model versions
 - **Consider:** Automated cleanup of development versions while preserving production versions
+
+## MODEL MONITOR Integration (ML Observability)
+
+### Prerequisites for MODEL MONITOR
+- **Critical Requirement:** Models MUST be registered with the `task` parameter to use MODEL MONITOR
+- **Rule:** Always specify task type at registration time - cannot be added after registration
+- **Warning:** Models without `task` parameter will cause "MODEL does not exist or not authorized" errors when creating monitors, even though the model exists
+- **Rule:** If model was registered without `task`, you must DROP the model and re-register with `task` parameter
+
+### Supported Task Types
+| Task Type | Import | Use Case |
+|-----------|--------|----------|
+| `TABULAR_BINARY_CLASSIFICATION` | `from snowflake.ml.model import task as ml_task` | Two-class classification (fraud/not fraud, churn/retain) |
+| `TABULAR_MULTI_CLASSIFICATION` | `from snowflake.ml.model import task as ml_task` | Multi-class classification (product categories, sentiment levels) |
+| `TABULAR_REGRESSION` | `from snowflake.ml.model import task as ml_task` | Continuous value prediction (price, quantity, duration) |
+
+### Model Registration for MODEL MONITOR
+```python
+from snowflake.ml.registry import Registry
+from snowflake.ml.model import task as ml_task
+
+registry = Registry(session=session, database_name="ML", schema_name="REGISTRY")
+
+# Register model WITH task parameter for MODEL MONITOR compatibility
+model_ref = registry.log_model(
+    model=trained_model,
+    model_name="customer_churn_predictor",
+    version_name="v1_0_0",
+    comment="Binary classifier for customer churn prediction",
+    sample_input_data=X_test.head(5),
+    conda_dependencies=["scikit-learn", "pandas", "numpy"],
+    task=ml_task.Task.TABULAR_BINARY_CLASSIFICATION  # REQUIRED for MODEL MONITOR
+)
+```
+
+### Creating a MODEL MONITOR
+- **Requirement:** Prepare baseline and scoring data tables before creating monitor
+- **Rule:** Baseline table should contain representative sample of training data distribution
+- **Rule:** Scoring table accumulates production predictions for drift comparison
+
+```sql
+-- Create MODEL MONITOR for drift detection and performance monitoring
+CREATE MODEL MONITOR customer_churn_monitor
+  WITH 
+    MODEL = ML.REGISTRY.CUSTOMER_CHURN_PREDICTOR,
+    VERSION = V1_0_0,
+    SOURCE_TABLE = ML.MONITORING.SCORING_DATA,      -- Production predictions
+    BASELINE_TABLE = ML.MONITORING.BASELINE_DATA,   -- Training distribution sample
+    TIMESTAMP_COLUMN = PREDICTION_TIMESTAMP,
+    PREDICTION_COLUMN = PREDICTION,
+    LABEL_COLUMN = ACTUAL_LABEL,                    -- Optional: for accuracy monitoring
+    ID_COLUMNS = (CUSTOMER_ID),
+    SCHEDULE = 'USING CRON 0 8 * * * America/Los_Angeles';  -- Daily at 8 AM
+
+-- Check monitor status
+SHOW MODEL MONITORS;
+DESC MODEL MONITOR customer_churn_monitor;
+```
+
+### Required Table Structures
+```sql
+-- Baseline table: sample from training data
+CREATE TABLE ML.MONITORING.BASELINE_DATA (
+    CUSTOMER_ID VARCHAR,
+    FEATURE_1 FLOAT,
+    FEATURE_2 FLOAT,
+    -- ... all model input features
+    PREDICTION FLOAT,           -- Model prediction
+    ACTUAL_LABEL INT,           -- Ground truth (if available)
+    PREDICTION_TIMESTAMP TIMESTAMP_NTZ
+);
+
+-- Scoring table: production predictions (append-only)
+CREATE TABLE ML.MONITORING.SCORING_DATA (
+    CUSTOMER_ID VARCHAR,
+    FEATURE_1 FLOAT,
+    FEATURE_2 FLOAT,
+    -- ... all model input features (must match baseline)
+    PREDICTION FLOAT,
+    ACTUAL_LABEL INT,           -- Populated later when ground truth available
+    PREDICTION_TIMESTAMP TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
+);
+```
+
+### MODEL MONITOR Privileges
+```sql
+-- Grant privileges for MODEL MONITOR operations
+GRANT USAGE ON MODEL ML.REGISTRY.CUSTOMER_CHURN_PREDICTOR TO ROLE ml_monitoring;
+GRANT SELECT ON TABLE ML.MONITORING.BASELINE_DATA TO ROLE ml_monitoring;
+GRANT SELECT ON TABLE ML.MONITORING.SCORING_DATA TO ROLE ml_monitoring;
+GRANT CREATE MODEL MONITOR ON SCHEMA ML.MONITORING TO ROLE ml_monitoring;
+```
 
 ## Cost Governance and Optimization
 

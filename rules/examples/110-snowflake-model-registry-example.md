@@ -206,24 +206,55 @@ print(f"Baseline data populated: {len(baseline_final)} rows")
 ### Step 6: Create MODEL MONITOR
 
 ```sql
+-- IMPORTANT: Set explicit session context before CREATE MODEL MONITOR
+-- This ensures model references resolve correctly
+USE DATABASE ML;
+USE SCHEMA MONITORING;
+
 -- Create MODEL MONITOR for drift detection and performance monitoring
-CREATE MODEL MONITOR ML.MONITORING.CHURN_MODEL_MONITOR
+CREATE MODEL MONITOR CHURN_MODEL_MONITOR
   WITH 
-    MODEL = ML.REGISTRY.CUSTOMER_CHURN_PREDICTOR,
+    MODEL = CUSTOMER_CHURN_PREDICTOR,  -- Uses REGISTRY schema, resolved via context
     VERSION = V1_0_0,
-    SOURCE_TABLE = ML.MONITORING.CHURN_SCORING_DATA,
-    BASELINE_TABLE = ML.MONITORING.CHURN_BASELINE_DATA,
+    SOURCE = CHURN_SCORING_DATA,
+    BASELINE = CHURN_BASELINE_DATA,    -- Optional: omit for accuracy-only monitoring
     TIMESTAMP_COLUMN = PREDICTION_TIMESTAMP,
-    PREDICTION_COLUMN = PREDICTION,
-    LABEL_COLUMN = ACTUAL_LABEL,
+    PREDICTION_SCORE_COLUMNS = (PREDICTION),
+    ACTUAL_CLASS_COLUMNS = (ACTUAL_LABEL),
     ID_COLUMNS = (CUSTOMER_ID),
-    SCHEDULE = 'USING CRON 0 8 * * * America/Los_Angeles';
+    WAREHOUSE = ML_WH,
+    REFRESH_INTERVAL = '1 hour',
+    AGGREGATION_WINDOW = '1 day';
 
 -- Verify monitor created successfully
 SHOW MODEL MONITORS;
 
 -- Describe monitor configuration
-DESC MODEL MONITOR ML.MONITORING.CHURN_MODEL_MONITOR;
+DESC MODEL MONITOR CHURN_MODEL_MONITOR;
+```
+
+### Step 6b: Schema Alignment (If Baseline Has Extra Columns)
+
+If your baseline table has columns that don't exist in the scoring table, create an aligned view:
+
+```sql
+-- Create view with only columns that match scoring table
+CREATE OR REPLACE VIEW ML.MONITORING.CHURN_BASELINE_ALIGNED AS
+SELECT 
+    CUSTOMER_ID,
+    ACCOUNT_AGE_DAYS,
+    TOTAL_PURCHASES,
+    AVG_ORDER_VALUE,
+    DAYS_SINCE_LAST_PURCHASE,
+    SUPPORT_TICKETS_30D,
+    PREDICTION,
+    PREDICTION_CLASS,
+    ACTUAL_LABEL,
+    PREDICTION_TIMESTAMP
+FROM ML.MONITORING.CHURN_BASELINE_DATA;
+
+-- Then use the aligned view in MODEL MONITOR
+-- BASELINE = CHURN_BASELINE_ALIGNED
 ```
 
 ### Step 7: Grant MODEL MONITOR Privileges
@@ -289,6 +320,49 @@ model_ref = registry.log_model(
 **Root Cause:** Model was registered without `sample_input_data`.
 
 **Solution:** Always provide `sample_input_data=X.head(5)` during registration.
+
+### Error: Model reference not resolving in CREATE MODEL MONITOR
+
+**Symptom:** CREATE MODEL MONITOR fails even with fully qualified model name.
+
+**Root Cause:** Session context not set explicitly before CREATE statement.
+
+**Solution:**
+```sql
+-- Set context explicitly before CREATE MODEL MONITOR
+USE DATABASE ML;
+USE SCHEMA MONITORING;
+
+-- Then create monitor using unqualified names
+CREATE MODEL MONITOR my_monitor
+  WITH MODEL = MY_MODEL ...
+```
+
+### Error: Schema mismatch between baseline and scoring tables
+
+**Symptom:** MODEL MONITOR creation fails with schema mismatch error when BASELINE specified.
+
+**Root Cause:** Baseline table has columns that don't exist in scoring table (or vice versa).
+
+**Solution:**
+```sql
+-- Option 1: Create monitor WITHOUT baseline (accuracy-only, no drift detection)
+CREATE MODEL MONITOR my_monitor
+  WITH 
+    MODEL = MY_MODEL,
+    SOURCE = SCORING_DATA,
+    -- BASELINE omitted
+    ...
+
+-- Option 2: Create aligned view over baseline
+CREATE VIEW BASELINE_ALIGNED AS
+SELECT col1, col2, col3  -- Only columns that exist in scoring
+FROM BASELINE_DATA;
+
+-- Then use view in monitor
+CREATE MODEL MONITOR my_monitor
+  WITH BASELINE = BASELINE_ALIGNED ...
+```
 
 ## Validation Checklist
 

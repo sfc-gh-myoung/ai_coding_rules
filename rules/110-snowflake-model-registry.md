@@ -544,24 +544,52 @@ model_ref = registry.log_model(
 - **Requirement:** Prepare baseline and scoring data tables before creating monitor
 - **Rule:** Baseline table should contain representative sample of training data distribution
 - **Rule:** Scoring table accumulates production predictions for drift comparison
+- **Critical:** Set explicit session context (USE DATABASE/SCHEMA) before CREATE MODEL MONITOR to ensure model reference resolves correctly
+- **Critical:** Baseline and scoring table schemas MUST match exactly - same columns with same names and compatible types
+- **Tip:** You can create MODEL MONITOR without BASELINE for accuracy-only monitoring; add BASELINE later once schemas align
 
 ```sql
+-- IMPORTANT: Set session context before creating monitor
+USE DATABASE ML;
+USE SCHEMA MONITORING;
+
 -- Create MODEL MONITOR for drift detection and performance monitoring
 CREATE MODEL MONITOR customer_churn_monitor
   WITH 
-    MODEL = ML.REGISTRY.CUSTOMER_CHURN_PREDICTOR,
+    MODEL = CUSTOMER_CHURN_PREDICTOR,  -- Uses current schema context
     VERSION = V1_0_0,
-    SOURCE_TABLE = ML.MONITORING.SCORING_DATA,      -- Production predictions
-    BASELINE_TABLE = ML.MONITORING.BASELINE_DATA,   -- Training distribution sample
+    SOURCE = SCORING_DATA,              -- Production predictions
+    BASELINE = BASELINE_DATA,           -- Training distribution (optional, enables drift)
     TIMESTAMP_COLUMN = PREDICTION_TIMESTAMP,
-    PREDICTION_COLUMN = PREDICTION,
-    LABEL_COLUMN = ACTUAL_LABEL,                    -- Optional: for accuracy monitoring
+    PREDICTION_SCORE_COLUMNS = (PREDICTION),
+    ACTUAL_CLASS_COLUMNS = (ACTUAL_LABEL),  -- Optional: for accuracy monitoring
     ID_COLUMNS = (CUSTOMER_ID),
-    SCHEDULE = 'USING CRON 0 8 * * * America/Los_Angeles';  -- Daily at 8 AM
+    WAREHOUSE = MY_WH,
+    REFRESH_INTERVAL = '1 hour',
+    AGGREGATION_WINDOW = '1 day';
 
 -- Check monitor status
 SHOW MODEL MONITORS;
 DESC MODEL MONITOR customer_churn_monitor;
+```
+
+### Schema Alignment for Baseline/Scoring Tables
+- **Rule:** Both tables must have identical feature columns for drift detection to work
+- **Warning:** Extra columns in baseline that don't exist in scoring will cause schema mismatch errors
+- **Pattern:** Create a view over baseline that selects only the columns present in scoring table
+
+```sql
+-- If baseline has extra columns, create aligned view
+CREATE OR REPLACE VIEW ML.MONITORING.BASELINE_ALIGNED AS
+SELECT 
+    CUSTOMER_ID,
+    FEATURE_1,
+    FEATURE_2,
+    PREDICTION,
+    ACTUAL_LABEL,
+    PREDICTION_TIMESTAMP
+FROM ML.MONITORING.BASELINE_DATA;
+-- Then use BASELINE = BASELINE_ALIGNED in MODEL MONITOR
 ```
 
 ### Required Table Structures

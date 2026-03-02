@@ -209,6 +209,112 @@ echo ""
 rm -f "$TEMP_DIR"/skill-timing-*-complete.json
 rm -f "$TEMP_DIR"/skill-timing-registry.json
 
+# Test 11: JSON output format validation
+echo "TEST 11: JSON output format"
+TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+    --skill json-test --target test.md --model test-model 2>&1)
+TEST_RUN_ID=$(echo "$TEST_OUTPUT" | grep "TIMING_RUN_ID=" | cut -d= -f2)
+
+touch "$PROJECT_ROOT/test-json.md"
+JSON_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+    --run-id "$TEST_RUN_ID" \
+    --output-file "$PROJECT_ROOT/test-json.md" \
+    --skill json-test \
+    --format json 2>&1) || true
+
+if ! echo "$JSON_OUTPUT" | python3 -c "import json,sys; json.load(sys.stdin)" 2>/dev/null; then
+    echo "❌ FAIL: JSON output is not valid JSON"
+    echo "Output was: $JSON_OUTPUT"
+    rm -f "$PROJECT_ROOT/test-json.md"
+    exit 1
+fi
+rm -f "$PROJECT_ROOT/test-json.md"
+echo "✓ PASS: JSON output is valid"
+echo ""
+
+# Test 12: Markdown output format validation
+echo "TEST 12: Markdown output format"
+TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+    --skill md-test --target test.md --model test-model 2>&1)
+TEST_RUN_ID=$(echo "$TEST_OUTPUT" | grep "TIMING_RUN_ID=" | cut -d= -f2)
+
+touch "$PROJECT_ROOT/test-md.md"
+MD_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+    --run-id "$TEST_RUN_ID" \
+    --output-file "$PROJECT_ROOT/test-md.md" \
+    --skill md-test \
+    --format markdown 2>&1) || true
+
+if ! echo "$MD_OUTPUT" | grep -q "## Timing Metadata"; then
+    echo "❌ FAIL: Markdown output missing header"
+    echo "Output was: $MD_OUTPUT"
+    rm -f "$PROJECT_ROOT/test-md.md"
+    exit 1
+fi
+
+if ! echo "$MD_OUTPUT" | grep -q "| Field | Value |"; then
+    echo "❌ FAIL: Markdown output missing table headers"
+    rm -f "$PROJECT_ROOT/test-md.md"
+    exit 1
+fi
+rm -f "$PROJECT_ROOT/test-md.md"
+echo "✓ PASS: Markdown output is valid"
+echo ""
+
+# Test 13: CI mode exit codes
+echo "TEST 13: CI mode (--ci flag)"
+TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+    --skill ci-test --target test.md --model test-model 2>&1)
+TEST_RUN_ID=$(echo "$TEST_OUTPUT" | grep "TIMING_RUN_ID=" | cut -d= -f2)
+
+touch "$PROJECT_ROOT/test-ci.md"
+bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+    --run-id "$TEST_RUN_ID" \
+    --output-file "$PROJECT_ROOT/test-ci.md" \
+    --skill ci-test \
+    --ci > /dev/null 2>&1
+CI_EXIT=$?
+rm -f "$PROJECT_ROOT/test-ci.md"
+
+if [[ "$CI_EXIT" -ne 0 && "$CI_EXIT" -ne 2 && "$CI_EXIT" -ne 3 ]]; then
+    echo "❌ FAIL: Unexpected CI exit code: $CI_EXIT"
+    exit 1
+fi
+echo "✓ PASS: CI mode returns appropriate exit code ($CI_EXIT)"
+echo ""
+
+# Test 14: Analyze --format json
+echo "TEST 14: Analyze command JSON format"
+# Create a test run for analyze
+TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+    --skill analyze-test --target test.md --model test-model 2>&1)
+TEST_RUN_ID=$(echo "$TEST_OUTPUT" | grep "TIMING_RUN_ID=" | cut -d= -f2)
+touch "$PROJECT_ROOT/test-analyze.md"
+bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+    --run-id "$TEST_RUN_ID" \
+    --output-file "$PROJECT_ROOT/test-analyze.md" \
+    --skill analyze-test \
+    --format quiet >/dev/null 2>&1 || true
+rm -f "$PROJECT_ROOT/test-analyze.md"
+
+ANALYZE_JSON=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" analyze \
+    --skill analyze-test \
+    --days 1 \
+    --format json 2>&1)
+
+if ! echo "$ANALYZE_JSON" | python3 -c "import json,sys; d=json.load(sys.stdin); assert 'count' in d" 2>/dev/null; then
+    echo "❌ FAIL: Analyze JSON output invalid"
+    echo "Output was: $ANALYZE_JSON"
+    exit 1
+fi
+echo "✓ PASS: Analyze JSON format valid"
+echo ""
+
+# Final cleanup
+rm -f "$TEMP_DIR"/skill-timing-*-complete.json
+rm -f "$TEMP_DIR"/skill-timing-registry.json
+rm -rf "$PROJECT_ROOT/reviews/.timing-data"
+
 echo "========================================"
-echo "✅ All tests passed!"
+echo "All 14 tests passed!"
 echo "========================================"

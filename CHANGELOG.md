@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **feat(skill-timing):** add JSON Schema enforcement for standardized output validation
+  - New `schemas/timing-output.schema.json` for timing data structure validation
+  - `validate_timing_data()` function for runtime schema compliance
+- **feat(skill-timing):** add CI/CD integration with exit codes and output formats
+  - Exit codes: 0 (success), 1 (error), 2 (shortcut detected), 3 (above baseline)
+  - `--format` flag supporting human, json, markdown, quiet, csv output modes
+  - `--ci` flag for CI-friendly output with non-zero exit on anomalies
+- **feat(skill-timing):** add missing skill components for production readiness
+  - New `examples/` directory with 4 workflow examples (basic, checkpoints, baseline, CI)
+  - New `VALIDATION.md` self-validation procedures document
+- **feat(skill-timing):** expand README.md with comprehensive human-readable documentation
+  - Complete command reference for all 7 commands with argument tables
+  - Output examples, anomaly detection, exit codes, configuration, troubleshooting
+  - Cross-platform support, multi-agent safety, and secure mode documentation
 - **feat(rules):** add comprehensive Streamlit deployment rule with runtime selection guidance
   - New `101l-snowflake-streamlit-deployment.md` covering Container Runtime vs Warehouse Runtime selection
   - External Access Integration (EAI) setup for PyPI package access
@@ -16,22 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **feat(rules):** expand Model Registry rule with ML Observability keywords
   - Added `model-monitor`, `ml-observability` to LoadTrigger and Keywords
   - TokenBudget updated from ~5000 to ~5900
-
-### Changed
-- **refactor(rules):** rename and expand Streamlit deployment error rule
-  - Renamed `101f-snowflake-streamlit-spcs-errors.md` to `101f-snowflake-streamlit-deployment-errors.md`
-  - Now covers both Container Runtime and Warehouse Runtime error scenarios
-  - Deleted legacy SPCS-only error file
-- **feat(cli):** improve validate command output with failed examples listing
-  - Failed examples now shown even without `--verbose` flag
-  - Displays first error message for quick context
-
-### Fixed
-- **fix(rules):** remove invalid CHECK constraint references from Snowflake rules
-  - 102-snowflake-sql-core.md: Added checklist item warning that CHECK constraints are unsupported
-  - 121c-snowflake-snowpipe-troubleshooting.md: Replaced CHECK with NOT NULL in constraint validation guidance (Snowflake does not support CHECK constraints)
-
-### Added
 - **feat(rules):** add foreign key dependency ordering guidance to SQL rules
   - 102-snowflake-sql-core.md: Added FK constraint checklist item for validation
   - 130-snowflake-demo-sql.md: Added Multi-File Dependencies section with dependency graph examples
@@ -162,6 +160,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Documents `snow sql` template rendering errors caused by `&` in string literals
 - **feat(examples):** add 109b-sis-streamlit-deployment-example.md reference implementation
   - Complete Streamlit-in-Snowflake deployment workflow with SPCS integration
+
+### Changed
+- **docs(contributing):** restructure for progressive disclosure and eliminate duplication
+  - Consolidated duplicate "Getting Help" sections into single unified section
+  - Replaced all `./dev` script references with `make` and `uv run ai-rules` commands
+  - Extracted verbose Project Structure to docs/ARCHITECTURE.md reference
+  - Replaced 110-line Rule Structure block with 002-rule-governance.md reference
+  - Added "Who Should Read What" navigation table for quick contributor onboarding
+  - Reordered sections: Types of Contributions and Issue Reporting now appear earlier
+  - Reduced file from 815 to 575 lines (29% reduction)
+- **feat(skill-timing):** upgrade to v1.2.0 with standardized output formatters
+  - Added `--format` and `--ci` flags to `end`, `analyze`, and `aggregate` commands
+  - Standardized formatters for consistent output across all output modes
+  - `check_pricing_staleness()` for model pricing currency validation
+  - `determine_exit_code()` for CI/CD pipeline integration
+- **refactor(rules):** rename and expand Streamlit deployment error rule
+  - Renamed `101f-snowflake-streamlit-spcs-errors.md` to `101f-snowflake-streamlit-deployment-errors.md`
+  - Now covers both Container Runtime and Warehouse Runtime error scenarios
+  - Deleted legacy SPCS-only error file
+- **feat(cli):** improve validate command output with failed examples listing
+  - Failed examples now shown even without `--verbose` flag
+  - Displays first error message for quick context
+
+### Fixed
+- **test(skill-timing):** expand test coverage with 4 new tests (11-14)
+  - JSON format output validation
+  - Markdown format output validation
+  - CI mode exit code verification
+  - Analyze command JSON output validation
+- **fix(rules):** remove invalid CHECK constraint references from Snowflake rules
+  - 102-snowflake-sql-core.md: Added checklist item warning that CHECK constraints are unsupported
+  - 121c-snowflake-snowpipe-troubleshooting.md: Replaced CHECK with NOT NULL in constraint validation guidance (Snowflake does not support CHECK constraints)
+
+## [3.5.3] - 2026-02-18
 
 ### Changed
 - **refactor(layout):** migrate `tools/` directory to `src/` layout

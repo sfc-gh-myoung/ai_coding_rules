@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
-**Keywords:** Typer, CLI development, command-line interface, click, argument parsing, CLI testing, typer.Argument, typer.Option, CliRunner, rich console
-**TokenBudget:** ~4850
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-02-19
+**Keywords:** Typer, CLI development, command-line interface, click, argument parsing, CLI testing, typer.Argument, typer.Option, CliRunner, rich console, rich progress, rich tables, rich live, dual console, stderr, console output
+**TokenBudget:** ~6850
 **ContextTier:** High
 **Depends:** 200-python-core.md
 **LoadTrigger:** kw:typer, kw:cli
@@ -32,6 +32,7 @@ Provide comprehensive guidance for building robust, user-friendly command-line a
 - **203-python-project-setup.md** - Python project structure and packaging
 - **230-python-pydantic.md** - Pydantic integration with Typer
 - **800-project-changelog.md** - Changelog discipline for CLI changes
+- **207-python-logging.md** - CLI apps needing Rich console + Python logger bridge
 
 ## Contract
 
@@ -169,6 +170,99 @@ def export_data(
     save_to_csv(output)
 ```
 
+### Anti-Pattern 3: Option `-h` Conflicts with Help
+
+**Problem:** Defining `-h` as a short option for custom parameters (e.g., `--host`) shadows Typer's built-in `--help` shortcut.
+
+**Why It Fails:** Users expect `-h` to show help; instead they get cryptic errors or unexpected behavior. Muscle memory from other CLIs (git, docker) reinforced `-h` = help.
+
+**Correct Pattern:**
+```python
+# BAD: -h shadows --help
+@app.command()
+def connect(
+    host: Annotated[str, typer.Option("--host", "-h", help="Server host")] = "localhost",
+):
+    ...
+
+# GOOD: Use different short option
+@app.command()
+def connect(
+    host: Annotated[str, typer.Option("--host", "-H", help="Server host")] = "localhost",
+):
+    ...
+```
+
+### Anti-Pattern 4: String Options Without Enum Validation
+
+**Problem:** Accepting arbitrary strings for options that have a fixed set of valid values.
+
+**Why It Fails:** Typos silently produce wrong behavior. No autocompletion in shells. Help text doesn't show valid choices. Runtime errors instead of CLI validation.
+
+**Correct Pattern:**
+```python
+# BAD: Arbitrary string
+@app.command()
+def export(
+    format: Annotated[str, typer.Option(help="Output format")] = "json",
+):
+    if format not in ("json", "csv", "yaml"):
+        raise typer.Exit(1)  # Error happens at runtime
+
+# GOOD: Enum validation at CLI layer
+class OutputFormat(str, Enum):
+    json = "json"
+    csv = "csv"
+    yaml = "yaml"
+
+@app.command()
+def export(
+    format: Annotated[OutputFormat, typer.Option(help="Output format")] = OutputFormat.json,
+):
+    ...  # Typer validates automatically, --help shows choices
+```
+
+### Anti-Pattern 5: Duplicate Console Code Across Packages
+
+**Problem:** Each CLI module creates its own `Console()` instance with inconsistent styling (colors, spinners, error formatting).
+
+**Why It Fails:** Visual inconsistency confuses users. Maintenance burden when updating styles. No central control over stderr vs stdout routing.
+
+**Correct Pattern:**
+```python
+# BAD: Duplicated in every module
+# cli/commands/data.py
+console = Console()
+console.print("[green]Success[/green]")
+
+# cli/commands/config.py  
+console = Console()  # Different instance, maybe different style
+console.print("[bold green]Success![/bold green]")  # Inconsistent
+
+# GOOD: Shared console module
+# myapp/_shared/console.py
+from rich.console import Console
+
+_stdout = Console()
+_stderr = Console(stderr=True)
+
+def log_info(msg: str) -> None:
+    _stdout.print(f"[blue]ℹ[/blue] {msg}")
+
+def log_success(msg: str) -> None:
+    _stdout.print(f"[green]✓[/green] {msg}")
+
+def log_error(msg: str) -> None:
+    _stderr.print(f"[red]✗[/red] {msg}")
+
+def log_warning(msg: str) -> None:
+    _stderr.print(f"[yellow]![/yellow] {msg}")
+
+# cli/commands/data.py
+from myapp._shared.console import log_success, log_error
+log_success("Data exported")
+```
+
 ## Output Format Examples
 
 ```python
@@ -247,9 +341,35 @@ myapp = "myapp.cli.main:app"
 ```
 
 ### Recommended Project Structure
-- **Rule:** Use `src/` layout for CLI applications to avoid import conflicts
+- **Default:** Use flat layout (`myapp/` at project root) for CLI applications, especially with `uv`. See `203-python-project-setup.md` Layout Selection for guidance.
+- **Consider:** Use `src/` layout for large CLI projects where import isolation matters.
 - **Rule:** Separate CLI logic from business logic in different modules
 - **Always:** Create dedicated CLI module structure:
+
+#### Flat Layout (Default)
+
+Directory structure for `cli-project/`:
+- `pyproject.toml`
+- **myapp/** - Application package
+  - `__init__.py`
+  - **cli/** - CLI layer
+    - `__init__.py`
+    - `main.py` - Main CLI app and entry point
+    - **commands/** - Command modules
+      - `__init__.py`
+      - `config.py` - Config-related commands
+      - `data.py` - Data processing commands
+    - `utils.py` - CLI utilities and helpers
+  - **core/** - Business logic (CLI-independent)
+    - `__init__.py`, `models.py`, `services.py`
+  - **config/** - Configuration
+    - `__init__.py`, `settings.py`
+- **tests/** - Test suite
+  - `__init__.py`
+  - **cli/** - `test_commands.py`
+  - **core/** - `test_services.py`
+
+#### src/ Layout (Large Projects)
 
 Directory structure for `cli-project/`:
 - `pyproject.toml`
@@ -277,7 +397,7 @@ Directory structure for `cli-project/`:
 ### Main Application Setup
 - **Rule:** Create a main Typer app with proper configuration:
 ```python
-# src/myapp/cli/main.py
+# myapp/cli/main.py (flat layout) or src/myapp/cli/main.py (src/ layout)
 import typer
 from typing_extensions import Annotated
 
@@ -322,7 +442,7 @@ if __name__ == "__main__":
 - **Always:** Use `Annotated` for parameter metadata with Python 3.9+
 
 ```python
-# src/myapp/cli/commands/data.py
+# myapp/cli/commands/data.py (flat layout) or src/myapp/cli/commands/data.py (src/ layout)
 import typer
 from pathlib import Path
 from typing_extensions import Annotated
@@ -415,7 +535,7 @@ def risky_operation(
 - **Always:** Follow the precedence: CLI options > Environment > Config file > Defaults
 
 ```python
-# src/myapp/config/settings.py
+# myapp/config/settings.py (flat layout) or src/myapp/config/settings.py (src/ layout)
 from pydantic_settings import BaseSettings
 from pydantic import Field
 from pathlib import Path
@@ -607,10 +727,9 @@ myapp = "myapp.cli.main:app"
 - **Always:** Include CLI testing dependencies
 
 ```bash
-# Development setup with uv
-uv venv && source .venv/bin/activate
-uv pip install -e ".[dev]"
-myapp --install-completion
+# Development setup with uv (modern workflow)
+uv sync --all-groups
+uv run myapp --install-completion
 ```
 
 ### Cross-Platform Considerations
@@ -672,4 +791,163 @@ def main(
     )] = False,
 ):
     pass
+```
+
+## Rich Integration Best Practices
+
+### Shared Console Module Pattern
+
+Centralize Rich console configuration in a dedicated module for consistent styling across all CLI commands.
+
+- **Rule:** Create `_shared/console.py` with standardized logging functions
+- **Rule:** Single source of truth for colors, icons, and formatting
+- **Always:** Import shared functions instead of creating local Console instances
+
+```python
+# myapp/_shared/console.py
+"""Centralized console output for consistent CLI styling."""
+from rich.console import Console
+
+_stdout = Console()
+_stderr = Console(stderr=True)
+
+def log_info(msg: str) -> None:
+    """Info message to stdout."""
+    _stdout.print(f"[blue]ℹ[/blue] {msg}")
+
+def log_success(msg: str) -> None:
+    """Success message to stdout."""
+    _stdout.print(f"[green]✓[/green] {msg}")
+
+def log_error(msg: str) -> None:
+    """Error message to stderr."""
+    _stderr.print(f"[red]✗[/red] {msg}")
+
+def log_warning(msg: str) -> None:
+    """Warning message to stderr."""
+    _stderr.print(f"[yellow]![/yellow] {msg}")
+
+def get_console() -> Console:
+    """Get stdout console for tables, progress, etc."""
+    return _stdout
+
+def get_error_console() -> Console:
+    """Get stderr console for error output."""
+    return _stderr
+```
+
+### Dual Console Pattern
+
+Use separate consoles for stdout and stderr to enable proper shell piping and redirection.
+
+- **Rule:** `Console()` for stdout - tables, progress bars, normal output
+- **Rule:** `Console(stderr=True)` for errors and warnings
+- **Benefit:** Users can redirect stdout while still seeing errors: `mycli export 2>/dev/null > data.json`
+
+```python
+from rich.console import Console
+from rich.table import Table
+
+stdout_console = Console()
+stderr_console = Console(stderr=True)
+
+@app.command()
+def list_items():
+    """List items with table output to stdout, errors to stderr."""
+    try:
+        items = fetch_items()
+        table = Table(title="Items")
+        table.add_column("ID")
+        table.add_column("Name")
+        for item in items:
+            table.add_row(str(item.id), item.name)
+        stdout_console.print(table)  # Goes to stdout - can be piped
+    except ConnectionError as e:
+        stderr_console.print(f"[red]Error:[/red] {e}")  # Goes to stderr
+        raise typer.Exit(1)
+```
+
+### Live Progress Display
+
+Use `rich.live.Live` for multi-step operations with real-time status updates.
+
+- **Rule:** Prefer Live over Progress for multi-dimensional status (multiple items with states)
+- **Rule:** Use `live.update()` to refresh display without flicker
+- **Always:** Use context manager for proper cleanup
+
+```python
+from rich.live import Live
+from rich.table import Table
+from rich.console import Console
+
+console = Console()
+
+@app.command()
+def sync_items(items: list[str]):
+    """Sync multiple items with live status table."""
+    status = {item: "pending" for item in items}
+    
+    def make_table() -> Table:
+        table = Table(title="Sync Progress")
+        table.add_column("Item")
+        table.add_column("Status")
+        for item, state in status.items():
+            color = {"pending": "dim", "syncing": "yellow", "done": "green", "failed": "red"}[state]
+            table.add_row(item, f"[{color}]{state}[/{color}]")
+        return table
+    
+    with Live(make_table(), console=console, refresh_per_second=4) as live:
+        for item in items:
+            status[item] = "syncing"
+            live.update(make_table())
+            
+            try:
+                do_sync(item)
+                status[item] = "done"
+            except Exception:
+                status[item] = "failed"
+            
+            live.update(make_table())
+
+    # Final summary
+    done = sum(1 for s in status.values() if s == "done")
+    console.print(f"Completed: {done}/{len(items)}")
+```
+
+### Context Object State Pattern
+
+Use Typer's context object for shared state instead of module-level globals.
+
+- **Rule:** Use `ctx.ensure_object(dict)` in callback to initialize state
+- **Rule:** Access state via `ctx.obj` in commands
+- **Avoid:** Module-level `State()` class instances (hard to test, hidden coupling)
+
+```python
+import typer
+from typing_extensions import Annotated
+
+app = typer.Typer()
+
+@app.callback()
+def main(
+    ctx: typer.Context,
+    verbose: Annotated[bool, typer.Option("--verbose", "-v")] = False,
+    config_file: Annotated[str, typer.Option("--config")] = None,
+):
+    """Initialize shared state via context."""
+    ctx.ensure_object(dict)
+    ctx.obj["verbose"] = verbose
+    ctx.obj["config"] = load_config(config_file) if config_file else {}
+
+@app.command()
+def process(
+    ctx: typer.Context,
+    input_file: Path,
+):
+    """Command that uses shared context state."""
+    if ctx.obj["verbose"]:
+        console.print(f"Processing {input_file}")
+    
+    config = ctx.obj["config"]
+    # Use config...
 ```

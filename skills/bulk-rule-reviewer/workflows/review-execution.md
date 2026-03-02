@@ -23,6 +23,8 @@ This is how skill composition works in Claude Code - orchestrator skills load an
 - `review_mode`: FULL | FOCUSED | STALENESS
 - `model`: Model identifier (e.g., claude-sonnet-45)
 - `skip_existing`: Boolean (default: true)
+- `max_parallel`: Integer 1-10 (default: 5) - Number of concurrent sub-agents
+- `output_root`: Root directory for output files (default: `reviews/`)
 
 ## Outputs
 
@@ -36,6 +38,64 @@ This is how skill composition works in Claude Code - orchestrator skills load an
   - `error_message`: Error details (if FAILED)
 
 ## Implementation
+
+### Step 0: Execution Mode Decision
+
+**CRITICAL: Choose execution path based on `max_parallel` parameter.**
+
+```python
+def choose_execution_mode(max_parallel, rule_file_paths, params):
+    """Route to parallel or sequential execution.
+    
+    Args:
+        max_parallel: Number of concurrent workers (default: 5)
+        rule_file_paths: List of rule files from discovery
+        params: Dict with review_date, review_mode, model, etc.
+    
+    Returns:
+        Results list from chosen execution mode
+    """
+    if max_parallel >= 2:
+        # PARALLEL EXECUTION (default)
+        print(f"Execution mode: PARALLEL ({max_parallel} sub-agents)")
+        print("See: workflows/parallel-execution.md")
+        return execute_parallel(max_parallel, rule_file_paths, params)
+    else:
+        # SEQUENTIAL EXECUTION (legacy)
+        print("Execution mode: SEQUENTIAL (single agent)")
+        return execute_sequential(rule_file_paths, params)
+```
+
+#### Parallel Execution Path (max_parallel ≥ 2)
+
+When parallel mode is selected, delegate to `workflows/parallel-execution.md`:
+
+1. **Partition rules** into `max_parallel` groups
+2. **Launch sub-agents** with prompts from `workflows/subagent-prompt-template.md`
+3. **Monitor progress** via `agent_output` tool
+4. **Aggregate results** when all complete
+
+**Benefits:**
+- 5× speedup (1-2 hours vs 5-10 hours)
+- Fresh context per sub-agent (no drift)
+- Isolated failures
+
+**See:** `workflows/parallel-execution.md` for full implementation
+
+#### Sequential Execution Path (max_parallel = 1)
+
+When sequential mode is selected, continue with the steps below (Step 1 onwards).
+
+**Use sequential when:**
+- Debugging/troubleshooting
+- Very small rule sets (< 10 rules)
+- Explicit user preference
+
+---
+
+## Sequential Execution Implementation
+
+*The following steps apply only when `max_parallel = 1`.*
 
 ### Step 1: Initialize Progress Tracking
 

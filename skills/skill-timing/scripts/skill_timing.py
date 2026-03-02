@@ -7,10 +7,23 @@ Uses only standard library modules for maximum portability.
 Usage:
     python skill_timing.py start --skill NAME --target FILE --model MODEL
     python skill_timing.py checkpoint --run-id ID --name NAME
-    python skill_timing.py end --run-id ID --output-file FILE --skill NAME
-    python skill_timing.py analyze --skill NAME --days 30
+    python skill_timing.py end --run-id ID --output-file FILE --skill NAME [--format human|json|markdown|quiet]
+    python skill_timing.py analyze --skill NAME --days 30 [--format human|json|csv]
     python skill_timing.py baseline set --skill NAME --mode MODE --model MODEL
     python skill_timing.py baseline compare --run-id ID
+
+Output Formats:
+    human    - Human-readable terminal output (default)
+    json     - Machine-readable JSON for CI/CD pipelines
+    markdown - Markdown table for embedding in files
+    quiet    - Exit code only, no output
+    csv      - CSV format for spreadsheet analysis (analyze command only)
+
+Exit Codes:
+    0 - Success (within baseline or no baseline)
+    1 - General error
+    2 - Duration below error threshold (shortcut detected)
+    3 - Duration significantly above baseline
 """
 
 import argparse
@@ -59,6 +72,16 @@ COST_PER_1M_TOKENS = {
 
 TTL_DAYS = 7
 REGISTRY_STALE_HOURS = 24
+
+VERSION = "1.2.0"
+
+EXIT_SUCCESS = 0
+EXIT_ERROR = 1
+EXIT_SHORTCUT_DETECTED = 2
+EXIT_ABOVE_BASELINE = 3
+
+PRICING_LAST_UPDATED = "2026-01-06"
+PRICING_REVIEW_INTERVAL_DAYS = 90
 
 
 # ============================================================================
@@ -109,10 +132,36 @@ def generate_run_id(skill_name: str, target_file: str, model: str) -> str:
 
 
 def format_duration(seconds: float) -> str:
-    """Format seconds as human-readable duration."""
+    """Format seconds as human-readable duration (Xm Ys)."""
     minutes = int(seconds // 60)
     secs = int(seconds % 60)
     return f"{minutes}m {secs}s"
+
+
+def format_duration_seconds(seconds: float) -> str:
+    """Format seconds with 2 decimal places."""
+    return f"{seconds:.2f}s"
+
+
+def format_cost(cost_usd: float) -> str:
+    """Format cost with 4 decimal places and $ prefix."""
+    return f"${cost_usd:.4f}"
+
+
+def format_tokens(count: int) -> str:
+    """Format token count with thousands separator."""
+    return f"{count:,}"
+
+
+def format_baseline_delta(delta_percent: float) -> str:
+    """Format baseline delta with sign and 1 decimal place."""
+    sign = "+" if delta_percent >= 0 else ""
+    return f"{sign}{delta_percent:.1f}%"
+
+
+def format_checkpoint_elapsed(elapsed: float) -> str:
+    """Format checkpoint elapsed time with 2 decimal places."""
+    return f"{elapsed:.2f}s"
 
 
 def calculate_cost(input_tokens: int, output_tokens: int, model: str) -> dict:
@@ -272,51 +321,194 @@ def recover_run_id(skill_name: str, agent_id: str) -> str | None:
     return None
 
 
+def validate_timing_data(data: dict) -> tuple[bool, list[str]]:
+    """Validate timing data against schema (runtime check)."""
+    errors = []
+    required_fields = [
+        "run_id",
+        "skill_name",
+        "model",
+        "start_iso",
+        "end_iso",
+        "duration_seconds",
+        "status",
+    ]
+    for field in required_fields:
+        if field not in data:
+            errors.append(f"Missing required field: {field}")
+    if "run_id" in data and not re.match(r"^[a-f0-9]{16}$", data["run_id"]):
+        errors.append(f"Invalid run_id format: {data['run_id']}")
+    valid_statuses = ["completed", "warning", "error", "missing"]
+    if data.get("status") not in valid_statuses:
+        errors.append(f"Invalid status: {data.get('status')}")
+    if "duration_seconds" in data and data["duration_seconds"] < 0:
+        errors.append(f"Invalid duration: {data['duration_seconds']}")
+    return (len(errors) == 0, errors)
+
+
+def check_pricing_staleness():
+    """Warn if token pricing data is stale."""
+    try:
+        last = datetime.strptime(PRICING_LAST_UPDATED, "%Y-%m-%d")
+        if (datetime.now() - last).days > PRICING_REVIEW_INTERVAL_DAYS:
+            print(
+                f"WARNING: Token pricing data last updated {PRICING_LAST_UPDATED}. "
+                "Consider updating COST_PER_1M_TOKENS.",
+                file=sys.stderr,
+            )
+    except Exception:
+        pass
+
+
+def determine_exit_code(data: dict) -> int:
+    """Determine appropriate exit code based on timing data."""
+    alerts = data.get("alerts", [])
+    for alert in alerts:
+        if alert.get("type") == "error_short_duration":
+            return EXIT_SHORTCUT_DETECTED
+    baseline = data.get("baseline_comparison")
+    if (
+        baseline
+        and baseline.get("status") == "significantly_outside"
+        and baseline.get("delta_percent", 0) > 0
+    ):
+        return EXIT_ABOVE_BASELINE
+    return EXIT_SUCCESS
+
+
 def print_stdout_summary(
     data: dict, checkpoints: list, tokens: dict | None, baseline: dict | None, alerts: list
 ):
-    """Print timing summary to STDOUT."""
+    """Print timing summary to STDOUT in standardized human-readable format."""
+    sep = "-" * 40
     print()
-    print("⏱️ Timing Summary")
-    print(f"├── Duration: {data['duration_human']} ({data['duration_seconds']}s)")
-    print(f"├── Started:  {data['start_iso'][:19].replace('T', ' ')} UTC")
-    print(f"├── Ended:    {data['end_iso'][:19].replace('T', ' ')} UTC")
-    print(f"├── Run ID:   {data['run_id']}")
+    print(f"TIMING: skill-timing v{VERSION}")
+    print(sep)
+    print(f"Run ID:      {data['run_id']}")
+    print(f"Skill:       {data.get('skill_name', 'unknown')}")
+    print(f"Target:      {data.get('target_file', 'unknown')}")
+    print(f"Model:       {data.get('model', 'unknown')}")
+    print(f"Agent:       {data.get('agent', 'unknown')}")
+    print(sep)
+    print(f"Start:       {data.get('start_iso', 'unknown')}")
+    print(f"End:         {data.get('end_iso', 'unknown')}")
+    print(
+        f"Duration:    {data['duration_human']} ({format_duration_seconds(data['duration_seconds'])})"
+    )
+    print(f"Status:      {data.get('status', 'unknown')}")
+    print(sep)
+
+    if checkpoints:
+        print("Checkpoints:")
+        for cp in checkpoints:
+            print(f"  {cp['name']}:  {format_checkpoint_elapsed(cp['elapsed_seconds'])}")
+        print(sep)
 
     if tokens:
         print(
-            f"├── Tokens:   {tokens['total_tokens']:,} ({tokens['input_tokens']:,} in / {tokens['output_tokens']:,} out) ~${tokens['estimated_cost_usd']:.2f}"
+            f"Tokens:      {format_tokens(tokens['total_tokens'])} "
+            f"({format_tokens(tokens['input_tokens'])} in / {format_tokens(tokens['output_tokens'])} out)"
         )
+        print(f"Cost:        {format_cost(tokens['estimated_cost_usd'])}")
+    else:
+        print("Tokens:      N/A")
+        print("Cost:        N/A")
 
     if baseline:
-        sign = "+" if baseline["delta_percent"] >= 0 else ""
         print(
-            f"└── Baseline: {sign}{baseline['delta_percent']}% vs avg ({baseline['status'].replace('_', ' ')})"
+            f"Baseline:    {format_baseline_delta(baseline['delta_percent'])} vs avg "
+            f"({baseline['status'].replace('_', ' ')})"
         )
     else:
-        print("└── Baseline: N/A")
-        # Helpful hint on first run
+        print("Baseline:    N/A")
         print(
             "    Tip: Set baseline after 5+ runs with: baseline set --skill <name> --mode <mode> --model <model>"
         )
 
-    if checkpoints:
-        print()
-        print("Checkpoints:")
-        for i, cp in enumerate(checkpoints):
-            prefix = "└──" if i == len(checkpoints) - 1 else "├──"
-            pct = (cp["elapsed_seconds"] / data["duration_seconds"]) * 100
-            print(f"{prefix} {cp['name']:<20} {cp['elapsed_seconds']:.1f}s ({pct:.1f}%)")
+    print(sep)
 
     if alerts:
-        print()
         for alert in alerts:
             if "error" in alert["type"]:
-                print(f"❌ TIMING ERROR: {alert['message']}")
+                print(f"ERROR: {alert['message']}")
             else:
-                print(f"⚠️ TIMING WARNING: {alert['message']}")
+                print(f"WARNING: {alert['message']}")
+        print(sep)
 
     print()
+
+
+def generate_markdown_table(data: dict) -> str:
+    """Generate standardized markdown timing table for file embedding."""
+    checkpoints = data.get("checkpoints", [])
+    tokens = data.get("tokens")
+    baseline = data.get("baseline_comparison")
+
+    cp_str = "N/A"
+    if checkpoints:
+        cp_parts = [
+            f"{cp['name']}: {format_checkpoint_elapsed(cp['elapsed_seconds'])}"
+            for cp in checkpoints
+        ]
+        cp_str = ", ".join(cp_parts)
+
+    tokens_str = "N/A"
+    cost_str = "N/A"
+    if tokens:
+        tokens_str = (
+            f"{format_tokens(tokens['total_tokens'])} "
+            f"({format_tokens(tokens['input_tokens'])} in / {format_tokens(tokens['output_tokens'])} out)"
+        )
+        cost_str = format_cost(tokens["estimated_cost_usd"])
+
+    baseline_str = "N/A"
+    if baseline:
+        baseline_str = (
+            f"{format_baseline_delta(baseline['delta_percent'])} vs avg "
+            f"({baseline['status'].replace('_', ' ')})"
+        )
+
+    lines = [
+        "## Timing Metadata",
+        "",
+        "| Field | Value |",
+        "|-------|-------|",
+        f"| Run ID | `{data['run_id']}` |",
+        f"| Skill | {data.get('skill_name', 'unknown')} |",
+        f"| Model | {data.get('model', 'unknown')} |",
+        f"| Agent | {data.get('agent', 'unknown')} |",
+        f"| Start (UTC) | {data.get('start_iso', 'unknown')} |",
+        f"| End (UTC) | {data.get('end_iso', 'unknown')} |",
+        f"| Duration | {data['duration_human']} ({format_duration_seconds(data['duration_seconds'])}) |",
+        f"| Status | {data.get('status', 'unknown')} |",
+        f"| Checkpoints | {cp_str} |",
+        f"| Tokens | {tokens_str} |",
+        f"| Cost | {cost_str} |",
+        f"| Baseline | {baseline_str} |",
+    ]
+    return "\n".join(lines)
+
+
+def output_timing_data(data: dict, output_format: str) -> int:
+    """Output timing data in specified format. Returns exit code."""
+    exit_code = determine_exit_code(data)
+
+    if output_format == "json":
+        print(json.dumps(data, indent=2))
+    elif output_format == "markdown":
+        print(generate_markdown_table(data))
+    elif output_format == "quiet":
+        pass
+    else:
+        print_stdout_summary(
+            data,
+            data.get("checkpoints", []),
+            data.get("tokens"),
+            data.get("baseline_comparison"),
+            data.get("alerts", []),
+        )
+
+    return exit_code
 
 
 # ============================================================================
@@ -388,13 +580,19 @@ def cmd_end(args):
     agent_id = f"{agent_name}-{pid}"
 
     run_id = args.run_id
+    output_format = getattr(args, "format", "human")
+    ci_mode = getattr(args, "ci", False)
+
+    if ci_mode:
+        output_format = "json"
 
     # Validate run_id format before attempting file operations
     if run_id != "none" and not re.match(r"^[a-f0-9]{16}$", run_id):
-        print(f"WARNING: Invalid run_id format: {run_id}")
-        print("Expected: 16-character hex string (e.g., a1b2c3d4e5f67890)")
-        print("Attempting registry recovery...")
-        run_id = "none"  # Trigger recovery path
+        if output_format != "quiet":
+            print(f"WARNING: Invalid run_id format: {run_id}", file=sys.stderr)
+            print("Expected: 16-character hex string (e.g., a1b2c3d4e5f67890)", file=sys.stderr)
+            print("Attempting registry recovery...", file=sys.stderr)
+        run_id = "none"
 
     timing_file = get_timing_file(run_id)
 
@@ -404,12 +602,20 @@ def cmd_end(args):
         if recovered_id:
             timing_file = get_timing_file(recovered_id)
             run_id = recovered_id
-            print(f"RECOVERED_RUN_ID={recovered_id}")
+            if output_format not in ("json", "quiet"):
+                print(f"RECOVERED_RUN_ID={recovered_id}")
 
     if not timing_file.exists():
-        print(f"WARNING: Timing file not found for run_id={run_id}")
-        print("TIMING_STATUS=missing")
-        return
+        if output_format == "json":
+            print(
+                json.dumps(
+                    {"error": "timing_file_not_found", "run_id": run_id, "status": "missing"}
+                )
+            )
+        elif output_format != "quiet":
+            print(f"WARNING: Timing file not found for run_id={run_id}")
+            print("TIMING_STATUS=missing")
+        sys.exit(EXIT_ERROR)
 
     data = json.loads(timing_file.read_text())
     end_epoch = time.time()
@@ -417,13 +623,28 @@ def cmd_end(args):
 
     # Validate timing data
     if duration_sec < 0:
-        print(f"ERROR: Negative duration detected ({duration_sec}s) - clock skew")
-        print("TIMING_STATUS=error")
+        if output_format == "json":
+            print(
+                json.dumps(
+                    {
+                        "error": "negative_duration",
+                        "duration_seconds": duration_sec,
+                        "status": "error",
+                    }
+                )
+            )
+        elif output_format != "quiet":
+            print(f"ERROR: Negative duration detected ({duration_sec}s) - clock skew")
+            print("TIMING_STATUS=error")
         timing_file.unlink()
-        return
+        sys.exit(EXIT_ERROR)
 
     if duration_sec < 1:
-        print(f"WARNING: Duration under 1 second ({duration_sec}s) - possible race condition")
+        if output_format not in ("json", "quiet"):
+            print(
+                f"WARNING: Duration under 1 second ({duration_sec}s) - possible race condition",
+                file=sys.stderr,
+            )
         data["status"] = "warning"
     else:
         data["status"] = "completed"
@@ -436,13 +657,17 @@ def cmd_end(args):
     data["output_file"] = args.output_file
 
     # Validate output file exists (for metadata embedding guidance)
-    if args.output_file and not Path(args.output_file).exists():
-        print(f"WARNING: Output file {args.output_file} does not exist yet")
-        print("Note: Timing metadata must be appended after file write completes")
+    if (
+        args.output_file
+        and not Path(args.output_file).exists()
+        and output_format not in ("json", "quiet")
+    ):
+        print(f"WARNING: Output file {args.output_file} does not exist yet", file=sys.stderr)
+        print("Note: Timing metadata must be appended after file write completes", file=sys.stderr)
 
     # Token tracking (optional)
-    tokens = None
     if args.input_tokens > 0 or args.output_tokens > 0:
+        check_pricing_staleness()
         tokens = calculate_cost(args.input_tokens, args.output_tokens, data["model"])
         data["tokens"] = tokens
 
@@ -457,6 +682,14 @@ def cmd_end(args):
     if baseline:
         data["baseline_comparison"] = baseline
 
+    # Validate timing data before output
+    is_valid, validation_errors = validate_timing_data(data)
+    if not is_valid:
+        data["validation_errors"] = validation_errors
+        if output_format not in ("json", "quiet"):
+            for err in validation_errors:
+                print(f"VALIDATION WARNING: {err}", file=sys.stderr)
+
     # Write completed file (ensure directory exists)
     completed_file = get_completed_file(data["run_id"])
     completed_file.parent.mkdir(parents=True, exist_ok=True)
@@ -467,14 +700,17 @@ def cmd_end(args):
     remove_from_registry(args.skill, agent_id)
     cleanup_stale_files()
 
-    # Output
-    print(f"TIMING_DURATION={data['duration_human']} ({data['duration_seconds']}s)")
-    print(f"TIMING_START={data['start_iso']}")
-    print(f"TIMING_END={data['end_iso']}")
-    print(f"TIMING_STATUS={data['status']}")
+    # Output based on format
+    if output_format not in ("json", "markdown", "quiet"):
+        print(
+            f"TIMING_DURATION={data['duration_human']} ({format_duration_seconds(data['duration_seconds'])})"
+        )
+        print(f"TIMING_START={data['start_iso']}")
+        print(f"TIMING_END={data['end_iso']}")
+        print(f"TIMING_STATUS={data['status']}")
 
-    # STDOUT summary
-    print_stdout_summary(data, data.get("checkpoints", []), tokens, baseline, alerts)
+    exit_code = output_timing_data(data, output_format)
+    sys.exit(exit_code)
 
 
 def cmd_baseline_set(args):
@@ -577,6 +813,7 @@ def cmd_analyze(args):
     """Analyze timing data."""
     timing_data_dir = Path("reviews/.timing-data")
     cutoff = time.time() - (args.days * 24 * 60 * 60)
+    output_format = getattr(args, "format", "human")
 
     runs = []
     if timing_data_dir.exists():
@@ -594,7 +831,12 @@ def cmd_analyze(args):
                 pass
 
     if not runs:
-        print("No timing data found matching criteria.")
+        if output_format == "json":
+            print(json.dumps({"count": 0, "runs": [], "error": "no_data"}))
+        elif output_format == "csv":
+            print("skill,model,run_id,duration_seconds,status")
+        else:
+            print("No timing data found matching criteria.")
         return
 
     durations = [r["duration_seconds"] for r in runs]
@@ -602,8 +844,13 @@ def cmd_analyze(args):
 
     avg = sum(durations) / len(durations)
     median = durations[len(durations) // 2]
-    p95_idx = int(len(durations) * 0.95)
-    p95 = durations[p95_idx] if p95_idx < len(durations) else durations[-1]
+    variance = sum((d - avg) ** 2 for d in durations) / len(durations)
+    stddev = variance**0.5
+    p5_idx = max(0, int(len(durations) * 0.05))
+    p5 = durations[p5_idx]
+    p50 = median
+    p95_idx = min(len(durations) - 1, int(len(durations) * 0.95))
+    p95 = durations[p95_idx]
 
     result = {
         "count": len(runs),
@@ -612,20 +859,70 @@ def cmd_analyze(args):
         "median_seconds": round(median, 2),
         "min_seconds": round(min(durations), 2),
         "max_seconds": round(max(durations), 2),
+        "stddev_seconds": round(stddev, 2),
+        "p5_seconds": round(p5, 2),
+        "p50_seconds": round(p50, 2),
         "p95_seconds": round(p95, 2),
         "filters": {"skill": args.skill, "model": args.model, "days": args.days},
     }
 
-    if args.output:
+    if output_format == "json":
+        result["runs"] = [
+            {
+                "run_id": r.get("run_id"),
+                "skill": r.get("skill_name"),
+                "model": r.get("model"),
+                "duration_seconds": r.get("duration_seconds"),
+                "status": r.get("status"),
+            }
+            for r in runs
+        ]
+        print(json.dumps(result, indent=2))
+    elif output_format == "csv":
+        import csv
+        import io
+
+        output = io.StringIO()
+        writer = csv.DictWriter(
+            output, fieldnames=["skill", "model", "run_id", "duration_seconds", "status"]
+        )
+        writer.writeheader()
+        for r in runs:
+            writer.writerow(
+                {
+                    "skill": r.get("skill_name", ""),
+                    "model": r.get("model", ""),
+                    "run_id": r.get("run_id", ""),
+                    "duration_seconds": r.get("duration_seconds", 0),
+                    "status": r.get("status", ""),
+                }
+            )
+        print(output.getvalue(), end="")
+    elif args.output:
         Path(args.output).write_text(json.dumps(result, indent=2))
         print(f"Analysis written to {args.output}")
     else:
-        print(f"Timing Analysis ({len(runs)} runs):")
-        print(f"  Average: {format_duration(avg)} ({avg:.1f}s)")
-        print(f"  Median: {format_duration(median)} ({median:.1f}s)")
-        print(f"  Min: {format_duration(min(durations))} ({min(durations):.1f}s)")
-        print(f"  Max: {format_duration(max(durations))} ({max(durations):.1f}s)")
-        print(f"  P95: {format_duration(p95)} ({p95:.1f}s)")
+        sep = "-" * 40
+        print(f"TIMING: Analysis v{VERSION}")
+        print(sep)
+        print(f"Count:       {len(runs)} runs")
+        print(
+            f"Filters:     skill={args.skill or 'all'}, model={args.model or 'all'}, days={args.days}"
+        )
+        print(sep)
+        print(f"Average:     {format_duration(avg)} ({format_duration_seconds(avg)})")
+        print(f"Median:      {format_duration(median)} ({format_duration_seconds(median)})")
+        print(f"Stddev:      {format_duration_seconds(stddev)}")
+        print(
+            f"Min:         {format_duration(min(durations))} ({format_duration_seconds(min(durations))})"
+        )
+        print(
+            f"Max:         {format_duration(max(durations))} ({format_duration_seconds(max(durations))})"
+        )
+        print(f"P5:          {format_duration(p5)} ({format_duration_seconds(p5)})")
+        print(f"P50:         {format_duration(p50)} ({format_duration_seconds(p50)})")
+        print(f"P95:         {format_duration(p95)} ({format_duration_seconds(p95)})")
+        print(sep)
 
 
 def cmd_aggregate(args):
@@ -636,7 +933,9 @@ def cmd_aggregate(args):
         re.DOTALL,
     )
 
+    output_format = getattr(args, "format", "json")
     results = []
+
     for filepath in args.files:
         try:
             content = Path(filepath).read_text()
@@ -651,10 +950,38 @@ def cmd_aggregate(args):
                     }
                 )
         except Exception as e:
-            print(f"Warning: Could not parse {filepath}: {e}")
+            print(f"Warning: Could not parse {filepath}: {e}", file=sys.stderr)
 
-    Path(args.output).write_text(json.dumps(results, indent=2))
-    print(f"Aggregated {len(results)} timing records to {args.output}")
+    if output_format == "csv":
+        import csv
+        import io
+
+        output = io.StringIO()
+        writer = csv.DictWriter(
+            output, fieldnames=["file", "run_id", "duration_human", "duration_seconds"]
+        )
+        writer.writeheader()
+        for r in results:
+            writer.writerow(r)
+        if args.output:
+            Path(args.output).write_text(output.getvalue())
+            print(f"Aggregated {len(results)} timing records to {args.output}")
+        else:
+            print(output.getvalue(), end="")
+    else:
+        aggregate_data = {
+            "count": len(results),
+            "total_seconds": round(sum(r["duration_seconds"] for r in results), 2),
+            "avg_seconds": round(sum(r["duration_seconds"] for r in results) / len(results), 2)
+            if results
+            else 0,
+            "runs": results,
+        }
+        if args.output:
+            Path(args.output).write_text(json.dumps(aggregate_data, indent=2))
+            print(f"Aggregated {len(results)} timing records to {args.output}")
+        else:
+            print(json.dumps(aggregate_data, indent=2))
 
 
 def main():
@@ -720,6 +1047,17 @@ For detailed documentation, see skills/skill-timing/README.md
         "--output-tokens", default=0, type=int, help="Output token count (optional)"
     )
     end_parser.add_argument("--agent", default=None, help="Agent name (for recovery)")
+    end_parser.add_argument(
+        "--format",
+        choices=["human", "json", "markdown", "quiet"],
+        default="human",
+        help="Output format: human (default), json (machine-readable), markdown (file embed), quiet (exit code only)",
+    )
+    end_parser.add_argument(
+        "--ci",
+        action="store_true",
+        help="CI mode: JSON output to stdout, exit code based on baseline/thresholds",
+    )
     end_parser.set_defaults(func=cmd_end)
 
     # baseline command group
@@ -761,6 +1099,12 @@ For detailed documentation, see skills/skill-timing/README.md
         "--days", default=7, type=int, help="Days of data to analyze (default: 7)"
     )
     analyze_parser.add_argument("--output", default=None, help="Output file path (JSON format)")
+    analyze_parser.add_argument(
+        "--format",
+        choices=["human", "json", "csv"],
+        default="human",
+        help="Output format: human (default), json (machine-readable), csv (spreadsheet)",
+    )
     analyze_parser.set_defaults(func=cmd_analyze)
 
     # aggregate command
@@ -768,7 +1112,15 @@ For detailed documentation, see skills/skill-timing/README.md
         "aggregate", help="Aggregate timing data from review files"
     )
     aggregate_parser.add_argument("files", nargs="*", help="Review files to parse for timing data")
-    aggregate_parser.add_argument("--output", required=True, help="Output file path (JSON format)")
+    aggregate_parser.add_argument(
+        "--output", default=None, help="Output file path (optional, prints to stdout if omitted)"
+    )
+    aggregate_parser.add_argument(
+        "--format",
+        choices=["json", "csv"],
+        default="json",
+        help="Output format: json (default), csv (spreadsheet)",
+    )
     aggregate_parser.set_defaults(func=cmd_aggregate)
 
     args = parser.parse_args()

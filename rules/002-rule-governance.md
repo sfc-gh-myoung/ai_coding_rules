@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.2.2
-**LastUpdated:** 2026-01-20
-**Keywords:** rule governance, schema, metadata requirements, validation, schema compliance, rule structure, semantic discovery, RULES_INDEX, descriptive headings
-**TokenBudget:** ~5700
+**RuleVersion:** v3.2.4
+**LastUpdated:** 2026-02-18
+**Keywords:** rule governance, schema, metadata requirements, validation, schema compliance, rule structure, semantic discovery, RULES_INDEX, descriptive headings, design priorities, agent optimization
+**TokenBudget:** ~6200
 **ContextTier:** Critical
 **Depends:** 000-global-core.md
 **LoadTrigger:** dir:rules/
@@ -26,7 +26,7 @@ Schema standards (v3.2) for AI coding rule files. Defines required sections, met
 - Updating existing rules (also load 002b-rule-update.md for versioning)
 - Reviewing rule compliance
 - Understanding schema validation requirements
-- Working with schema_validator.py
+- Working with `ai-rules validate`
 
 ## References
 
@@ -60,7 +60,7 @@ Schema standards (v3.2) for AI coding rule files. Defines required sections, met
 ### Mandatory
 
 - Text editor
-- `schema_validator.py` script
+- `ai-rules validate` CLI command
 - Access to existing `rules/` directory
 - `schemas/rule-schema.yml` file (v3.2)
 
@@ -83,7 +83,7 @@ Schema standards (v3.2) for AI coding rule files. Defines required sections, met
 5. Write required sections in order: Scope, References, Contract, Anti-Patterns (optional)
 6. Add Contract section with Markdown subsections (###): Inputs and Prerequisites, Mandatory, Forbidden, Execution Steps, Output Format, Validation, Design Principles, Post-Execution Checklist
 7. Use descriptive section names (not numbered: "## Environment Setup" not "## 1. Environment Setup")
-8. Validate with `schema_validator.py` before committing
+8. Validate with `ai-rules validate` before committing
 
 ### Output Format
 
@@ -102,10 +102,10 @@ Markdown file (.md) with:
 - Contract has Markdown subsections (###), not XML tags
 - No numbered section headings
 - Keywords count is 5-20 terms (semantic and discoverable)
-- schema_validator.py ready to run
+- schema validation ready to run
 
 **Success Criteria:**
-- `python3 scripts/schema_validator.py rules/NNN-rule.md` returns zero CRITICAL errors
+- `uv run ai-rules validate rules/<your-rule>.md` returns zero CRITICAL errors
 - All metadata fields parse correctly
 - All required sections found in correct order
 - Contract Markdown subsections validated successfully
@@ -123,7 +123,7 @@ Markdown file (.md) with:
 
 **Error Recovery:**
 - **Permission denied on rules/:** Report error, suggest checking file permissions or running as different user
-- **Validator script not found:** Check scripts/ directory exists, offer to create from schema
+- **Validator script not found:** Check `uv run ai-rules validate` is available, offer to install CLI
 - **Schema file missing:** Report which schema version expected, provide path to download/create
 
 ### Post-Execution Checklist
@@ -134,7 +134,7 @@ Markdown file (.md) with:
 - [ ] Contract section uses Markdown headers (###), not XML tags
 - [ ] No numbered section headings (## 1., ## 2., etc.)
 - [ ] Keywords count is 5-20 terms (semantic and discoverable)
-- [ ] schema_validator.py runs with 0 CRITICAL errors
+- [ ] `uv run ai-rules validate` runs with 0 CRITICAL errors
 - [ ] TokenBudget reflects actual file size (±10% acceptable)
 - [ ] File added to RULES_INDEX.md with keywords
 - [ ] Dependencies declared in Depends metadata
@@ -172,23 +172,15 @@ Markdown file (.md) with:
 
 ### Context Preservation Mechanisms
 
-**Primary Mechanism: Natural Language Markers (Universal)**
+See `000-global-core.md` §Context Window Management Protocol for canonical marker definitions and preservation priority order.
 
-All rules use natural language importance markers that work across all LLM providers:
-
-**Importance Markers:**
-- **CRITICAL: DO NOT SUMMARIZE** - Bootstrap files (AGENTS.md, 000-global-core.md), never summarize
-- **CORE RULE: PRESERVE WHEN POSSIBLE** - Domain cores (*-core.md files), preserve for domain tasks
-- **FOUNDATION RULE: PRESERVE WHEN POSSIBLE** - Governance rules (002-series), preserve for rule work
+**Quick Reference - Importance Markers:**
+- **CRITICAL: DO NOT SUMMARIZE** - Bootstrap files (AGENTS.md, 000-global-core.md)
+- **CORE RULE: PRESERVE WHEN POSSIBLE** - Domain cores (*-core.md files)
+- **FOUNDATION RULE: PRESERVE WHEN POSSIBLE** - Governance rules (002-series)
 - **(none)** - Standard rules, can be summarized if needed
 
-**Secondary Mechanism: ContextTier Metadata (Project-Specific)**
-
-The `ContextTier` field (Critical/High/Medium/Low) provides fine-grained prioritization
-within natural language tiers. This metadata is validated by schema but not universally
-recognized by all LLMs - rely on natural language markers as primary signal.
-
-See `000-global-core.md`, section "Context Window Management Protocol" for full details.
+**ContextTier Metadata:** Provides fine-grained prioritization within tiers. See 000-global-core.md for details.
 
 ### Contract Structure (v3.2 - Markdown Headers)
 
@@ -241,10 +233,10 @@ See `002e-schema-validator-usage.md` for complete validation commands, options, 
 Quick reference:
 ```bash
 # Validate single file
-python3 scripts/schema_validator.py rules/NNN-rule.md
+uv run ai-rules validate rules/<your-rule>.md
 
 # Validate all rules
-python3 scripts/schema_validator.py rules/
+uv run ai-rules validate rules/
 ```
 
 ### Success Criteria
@@ -269,15 +261,12 @@ python3 scripts/schema_validator.py rules/
 
 ### Validator Not Available
 
-If schema_validator.py fails or is not found:
+If `ai-rules validate` fails or is not found:
 
 **Option 1: Install Dependencies**
 ```bash
 # Using uv (recommended)
 uv sync
-
-# Or using pip
-pip install -r requirements.txt
 ```
 
 **Option 2: Manual Verification**
@@ -315,11 +304,57 @@ If both options fail, note the validation gap in commit message and request revi
 
 ## Key Principles
 
-- **Priority Hierarchy:** All rules follow the design priorities defined in `000-global-core.md`:
-  1. **Priority 1 (CRITICAL):** Agent understanding and execution reliability
-  2. **Priority 2 (HIGH):** Rule discovery efficacy and determinism
-  3. **Priority 3 (HIGH):** Context window and token utilization efficiency
-  4. **Priority 4 (LOW):** Human developer maintainability
+- **Priority Hierarchy:** All rules in this repository target **autonomous AI agents**, not human developers. Design decisions must follow this priority order:
+
+  **Priority 1 (CRITICAL): Agent Understanding and Execution Reliability**
+  - Instructions must be unambiguous and deterministic
+  - All conditionals must have explicit branches (if X, then Y; else Z)
+  - Subjective terms must be quantified (e.g., "large table" becomes ">1M rows")
+  - No visual formatting agents cannot interpret (ASCII tables, diagrams, arrow characters)
+  - Use imperative voice for all instructions
+  - Recommendations must work universally across ALL agents and LLMs (GPT, Claude, Gemini, Cursor, Cline, Claude Code, Gemini CLI, GitHub Copilot)
+
+  **Priority 2 (HIGH): Rule Discovery Efficacy and Determinism**
+  - Keywords must enable reliable semantic discovery
+  - Rule loading must be deterministic (same input produces same rules loaded)
+  - Dependencies must be explicit and acyclic
+  - rules/RULES_INDEX.md must be accurate and current
+
+  **Priority 3 (HIGH): Context Window and Token Utilization Efficiency**
+  - Minimize tokens without sacrificing Priority 1 or Priority 2
+  - Use structured lists over prose paragraphs
+  - Front-load critical information in each section
+  - Reference other rules instead of duplicating content
+  - TokenBudget must be within ±5% of actual
+
+  **Priority 4 (LOW): Human Developer Maintainability**
+  - Maintain logical organization for human reviewers
+  - Use consistent terminology across all rules
+  - Provide examples for complex patterns
+  - Priorities 1, 2, and 3 significantly outweigh Priority 4
+
+  **Design Test:** When in doubt, ask: "Can an agent execute this without judgment?" If the answer is no, revise for Priority 1 compliance.
+
+  **Priority Weighting (Quantified):**
+  - Priority 1: Accept up to 50% token overhead for explicit error handling
+  - Priority 2: Accept up to 30% token overhead for semantic discovery metadata
+  - Priority 3: Minimize tokens without sacrificing P1/P2 (baseline target)
+  - Priority 4: Optimize only after P1-P3 satisfied (no token overhead allowed)
+
+  **Trade-off Examples:**
+  - 200 tokens of explicit conditionals (P1) vs 50 tokens of prose (P4) - Choose P1
+  - 100 tokens of Keywords field (P2) vs 20 tokens minimal (P3) - Choose P2
+  - Verbose examples (P1) vs terse references (P3) - Choose P1 if aids executability
+  - 150 tokens for human maintainability (P4) vs 100 tokens P1 alternative - Choose P1
+
+  **Trade-off Guidance:**
+  - More tokens for explicit error handling: Priority 1 wins
+  - Repeated key terms for clarity: Priority 1 wins
+  - Complete examples over terse references: Priority 1 wins
+  - Verbose discovery metadata over compact: Priority 2 wins over Priority 3
+
+  **See:** `002g-agent-optimization.md` for detailed formatting patterns.
+
 - **Schema Compliance:** All rules must validate against schemas/rule-schema.yml with zero CRITICAL errors
 - **CommonMark Compliance:** All Markdown must follow [CommonMark spec](https://spec.commonmark.org/) for consistent parsing
 - **Semantic Discovery:** Keywords (5-20) enable AI agents to automatically discover relevant rules
@@ -405,17 +440,17 @@ All rule files MUST follow [CommonMark specification](https://spec.commonmark.or
 
 ```bash
 # Create new rule file
-vim rules/NNN-new-rule.md
+vim rules/<your-new-rule>.md
 
 # Fill metadata and all required sections
 # Update: Keywords, TokenBudget, ContextTier, Depends
 
 # Validate
-python3 scripts/schema_validator.py rules/NNN-new-rule.md
+uv run ai-rules validate rules/<your-new-rule>.md
 
 # Expected output (success):
 ================================================================================
-VALIDATION REPORT: rules/NNN-new-rule.md
+VALIDATION REPORT: rules/<your-new-rule>.md
 ================================================================================
 [PASS] Passed: 458 checks
 
@@ -589,7 +624,7 @@ Benefits: Specific extension + domain keywords
 When you add LoadTrigger to a rule, it automatically appears in `RULES_INDEX.md` after running:
 
 ```bash
-python3 scripts/index_generator.py
+uv run ai-rules index generate
 ```
 
 The index organizes rules by trigger type:
@@ -607,8 +642,8 @@ The index organizes rules by trigger type:
 
 **After adding LoadTrigger:**
 
-1. Regenerate index: `python3 scripts/index_generator.py`
-2. Validate references: `uv run python scripts/validate_index_references.py --index-path rules/RULES_INDEX.md`
+1. Regenerate index: `uv run ai-rules index generate`
+2. Validate references: `uv run ai-rules refs check`
 3. Run tests: `uv run pytest --tb=short -q`
 4. Check formatting: `uvx ruff check .`
 

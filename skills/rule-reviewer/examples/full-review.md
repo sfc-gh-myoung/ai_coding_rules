@@ -73,7 +73,7 @@ Result: FAILED
 
 **Total:** 6 blocking issues (under threshold of 10, scoring proceeds normally)
 
-### Step 4: Score All 6 Dimensions
+### Step 4: Score All 7 Dimensions
 
 Using weighted formula from SKILL.md:
 - Actionability: 3/5 × 5 = 15/25
@@ -81,9 +81,10 @@ Using weighted formula from SKILL.md:
 - Consistency: 5/5 × 3 = 15/15
 - Parsability: 2/5 × 3 = 6/15 (capped by schema CRITICAL errors)
 - Token Efficiency: 4/5 × 2 = 8/10
+- Rule Size: 8/10 × 2 = 8/10 (480 lines, within target)
 - Staleness: 5/5 × 2 = 10/10
 
-**Overall Score:** 74/100
+**Overall Score:** 82/105
 
 ### Step 5: Generate Review Output
 
@@ -128,7 +129,9 @@ reviews/rule-reviews/801-project-readme-claude-sonnet45-2025-12-12.md
 ## Key Takeaways
 
 1. **Schema validation is mandatory** - Run before dimension scoring
-2. **CRITICAL errors cap Parsability** - 1+ CRITICAL = max 2/5 score
-3. **HIGH errors also cap** - 3+ HIGH = max 3/5 score
-4. **Schema errors go to Critical Issues** - All CRITICAL/HIGH violations listed
-5. **Specific recommendations required** - Include line numbers and fix suggestions from validator
+2. **Line count is 100% deterministic** - `wc -l` for Rule Size dimension
+3. **CRITICAL errors cap Parsability** - 1+ CRITICAL = max 2/5 score
+4. **HIGH errors also cap** - 3+ HIGH = max 3/5 score
+5. **Rule Size flags trigger actions** - >600 lines = SPLITTING_REQUIRED
+6. **Schema errors go to Critical Issues** - All CRITICAL/HIGH violations listed
+7. **Specific recommendations required** - Include line numbers and fix suggestions from validator

@@ -5,10 +5,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-01-27
-**Keywords:** Streamlit, SiS, SPCS, navigation, multipage, session state, config.toml, theming
-**TokenBudget:** ~1600
+**RuleVersion:** v4.0.0
+**LastUpdated:** 2026-03-02
+**Keywords:** Streamlit, Container Runtime, Warehouse Runtime, navigation, multipage, session state, config.toml, theming, st.connection
+**TokenBudget:** ~1800
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 **LoadTrigger:** kw:streamlit, kw:dashboard
@@ -16,35 +16,37 @@
 ## Scope
 
 **What This Rule Covers:**
-Foundational Streamlit setup: navigation, state management, deployment (SiS vs SPCS), theming via config.toml.
+Foundational Streamlit setup: navigation, state management, runtime selection (Container vs Warehouse), theming via config.toml.
 
 **When to Load:**
 - Building Streamlit applications on Snowflake
 - Implementing multipage apps
 - Configuring navigation and themes
-- Deploying to SiS or SPCS
+- Selecting between Container Runtime and Warehouse Runtime
 
 ## References
 
 ### Dependencies
 **Must Load First:** 100-snowflake-core.md
 
-**Related:** 101a (visualization), 101b (performance), 101c (security)
+**Related:** 101a (visualization), 101b (performance), 101c (security), 101l (deployment)
 
 ### External Documentation
 - [Streamlit Documentation](https://docs.streamlit.io/)
 - [Streamlit in Snowflake](https://docs.snowflake.com/en/developer-guide/streamlit/about-streamlit)
+- [Runtime Environments](https://docs.snowflake.com/en/developer-guide/streamlit/app-development/runtime-environments)
 - [Streamlit Navigation](https://docs.streamlit.io/develop/api-reference/navigation)
 
 ## Contract
 
 ### Inputs and Prerequisites
-- Python 3.11+ with Streamlit 1.46+
+- Python 3.11+ with Streamlit 1.50+
 - Snowflake connection configured
-- Deployment mode identified (SiS vs SPCS)
+- Runtime selected (Container Runtime recommended, see 101l)
 
 ### Mandatory
-- **Deployment mode:** Verify SiS vs SPCS first
+- **Runtime selection:** Choose Container or Warehouse Runtime (see 101l-deployment)
+- **Connection:** Use `st.connection("snowflake")` for both runtimes
 - **Theming:** Use .streamlit/config.toml ONLY
 - **Navigation:** st.navigation() OR pages/ (never both)
 - **Page config:** st.set_page_config() ONCE in entrypoint only
@@ -125,39 +127,45 @@ st.markdown("<style>.my-class { color: red; }</style>", unsafe_allow_html=True)
 
 **Correct Pattern:** Use .streamlit/config.toml for all theming.
 
-## Deployment Mode Selection
+## Runtime Selection
 
-### When to Use SiS
-- Rapid prototyping, internal dashboards
-- Snowflake-integrated apps (no external APIs)
-- Teams without containerization expertise
-- Zero infrastructure management
+**See 101l-snowflake-streamlit-deployment.md for complete deployment guidance.**
 
-**Limitations:** Limited packages, managed Streamlit version, no custom system deps.
+### Container Runtime (Recommended)
+- Long-running service with shared instance
+- Uses `pyproject.toml` with PyPI packages via `uv`
+- Requires External Access Integration (EAI)
+- Python 3.11, Streamlit 1.50+
+- Best for: Custom packages, external APIs, production apps
 
-### When to Use SPCS
-- Custom packages needed
-- External API integrations
-- Full runtime control
+### Warehouse Runtime
+- On-demand, per-viewer instances
+- Uses `environment.yml` with Snowflake Anaconda Channel
+- No EAI required (no external network access)
+- Python 3.9-3.11
+- Best for: Rapid prototyping, internal dashboards, no external dependencies
 
-**Requirements:** Docker expertise, higher operational overhead.
-
-### SiS environment.yml (CRITICAL)
-**Forbidden in SiS:**
-- `python=X.Y` declarations
-- Version specifiers (`>=`, `==`)
-- Non-snowflake channels
-
-```yaml
-# CORRECT
-name: my_app
-channels:
-  - snowflake
-dependencies:
-  - streamlit
-  - pandas
-  - plotly
+### Connection Pattern (Both Runtimes)
+```python
+# Recommended - works in both runtimes
+conn = st.connection("snowflake")
+df = conn.query("SELECT * FROM my_table")
 ```
+
+### Stage Upload Requirements
+**All `.py` and config files uploaded to a Streamlit stage MUST disable compression.**
+
+```bash
+# CLI: --no-auto-compress is MANDATORY
+snow stage copy streamlit/ @STAGE --recursive --no-auto-compress --overwrite
+```
+
+```sql
+-- SQL: AUTO_COMPRESS=FALSE is MANDATORY
+PUT file://streamlit_app.py @STAGE AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
+```
+
+Without this, Snowflake compresses files to `.py.gz`, causing silent import failures.
 
 ## Navigation
 

@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-06
-**Keywords:** pytest, testing, fixtures, parametrization, test isolation, mocking, test organization, coverage, AAA pattern, test markers, uv run pytest
+**Keywords:** pytest, testing, fixtures, parametrization, test isolation, mocking, test organization, coverage, AAA pattern, test markers, uv run pytest, unit test, unit tests
 **TokenBudget:** ~3600
 **ContextTier:** High
 **Depends:** 200-python-core.md, 201-python-lint-format.md, 203-python-project-setup.md

@@ -87,6 +87,7 @@ If timing completed (TIMING_STATUS=completed), append this section to the output
 - **Duration** - {{duration_human}} ({{duration_seconds}}s)
 - **Model** - {{model}}
 - **Agent** - {{agent}}
+- **Checkpoints** - {{checkpoint_name1}}: {{elapsed1}}s, {{checkpoint_name2}}: {{elapsed2}}s, ...
 - **Tokens** - {{total_tokens}} ({{input_tokens}} in / {{output_tokens}} out)
 - **Cost** - ~${{estimated_cost_usd}}
 ```

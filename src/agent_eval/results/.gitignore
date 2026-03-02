@@ -1,0 +1,8 @@
+# Results directory - timestamped YAML files
+*.yaml
+
+# Comparison reports
+*.md
+
+# Keep the directory itself
+!.gitkeep

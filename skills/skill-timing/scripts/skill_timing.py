@@ -324,7 +324,15 @@ def recover_run_id(skill_name: str, agent_id: str) -> str | None:
 def validate_timing_data(data: dict) -> tuple[bool, list[str]]:
     """Validate timing data against schema (runtime check)."""
     errors = []
-    required_fields = ["run_id", "skill_name", "model", "start_iso", "end_iso", "duration_seconds", "status"]
+    required_fields = [
+        "run_id",
+        "skill_name",
+        "model",
+        "start_iso",
+        "end_iso",
+        "duration_seconds",
+        "status",
+    ]
     for field in required_fields:
         if field not in data:
             errors.append(f"Missing required field: {field}")
@@ -359,9 +367,12 @@ def determine_exit_code(data: dict) -> int:
         if alert.get("type") == "error_short_duration":
             return EXIT_SHORTCUT_DETECTED
     baseline = data.get("baseline_comparison")
-    if baseline and baseline.get("status") == "significantly_outside":
-        if baseline.get("delta_percent", 0) > 0:
-            return EXIT_ABOVE_BASELINE
+    if (
+        baseline
+        and baseline.get("status") == "significantly_outside"
+        and baseline.get("delta_percent", 0) > 0
+    ):
+        return EXIT_ABOVE_BASELINE
     return EXIT_SUCCESS
 
 
@@ -381,7 +392,9 @@ def print_stdout_summary(
     print(sep)
     print(f"Start:       {data.get('start_iso', 'unknown')}")
     print(f"End:         {data.get('end_iso', 'unknown')}")
-    print(f"Duration:    {data['duration_human']} ({format_duration_seconds(data['duration_seconds'])})")
+    print(
+        f"Duration:    {data['duration_human']} ({format_duration_seconds(data['duration_seconds'])})"
+    )
     print(f"Status:      {data.get('status', 'unknown')}")
     print(sep)
 
@@ -408,7 +421,9 @@ def print_stdout_summary(
         )
     else:
         print("Baseline:    N/A")
-        print("    Tip: Set baseline after 5+ runs with: baseline set --skill <name> --mode <mode> --model <model>")
+        print(
+            "    Tip: Set baseline after 5+ runs with: baseline set --skill <name> --mode <mode> --model <model>"
+        )
 
     print(sep)
 
@@ -431,7 +446,10 @@ def generate_markdown_table(data: dict) -> str:
 
     cp_str = "N/A"
     if checkpoints:
-        cp_parts = [f"{cp['name']}: {format_checkpoint_elapsed(cp['elapsed_seconds'])}" for cp in checkpoints]
+        cp_parts = [
+            f"{cp['name']}: {format_checkpoint_elapsed(cp['elapsed_seconds'])}"
+            for cp in checkpoints
+        ]
         cp_str = ", ".join(cp_parts)
 
     tokens_str = "N/A"
@@ -589,7 +607,11 @@ def cmd_end(args):
 
     if not timing_file.exists():
         if output_format == "json":
-            print(json.dumps({"error": "timing_file_not_found", "run_id": run_id, "status": "missing"}))
+            print(
+                json.dumps(
+                    {"error": "timing_file_not_found", "run_id": run_id, "status": "missing"}
+                )
+            )
         elif output_format != "quiet":
             print(f"WARNING: Timing file not found for run_id={run_id}")
             print("TIMING_STATUS=missing")
@@ -602,7 +624,15 @@ def cmd_end(args):
     # Validate timing data
     if duration_sec < 0:
         if output_format == "json":
-            print(json.dumps({"error": "negative_duration", "duration_seconds": duration_sec, "status": "error"}))
+            print(
+                json.dumps(
+                    {
+                        "error": "negative_duration",
+                        "duration_seconds": duration_sec,
+                        "status": "error",
+                    }
+                )
+            )
         elif output_format != "quiet":
             print(f"ERROR: Negative duration detected ({duration_sec}s) - clock skew")
             print("TIMING_STATUS=error")
@@ -611,7 +641,10 @@ def cmd_end(args):
 
     if duration_sec < 1:
         if output_format not in ("json", "quiet"):
-            print(f"WARNING: Duration under 1 second ({duration_sec}s) - possible race condition", file=sys.stderr)
+            print(
+                f"WARNING: Duration under 1 second ({duration_sec}s) - possible race condition",
+                file=sys.stderr,
+            )
         data["status"] = "warning"
     else:
         data["status"] = "completed"
@@ -624,10 +657,13 @@ def cmd_end(args):
     data["output_file"] = args.output_file
 
     # Validate output file exists (for metadata embedding guidance)
-    if args.output_file and not Path(args.output_file).exists():
-        if output_format not in ("json", "quiet"):
-            print(f"WARNING: Output file {args.output_file} does not exist yet", file=sys.stderr)
-            print("Note: Timing metadata must be appended after file write completes", file=sys.stderr)
+    if (
+        args.output_file
+        and not Path(args.output_file).exists()
+        and output_format not in ("json", "quiet")
+    ):
+        print(f"WARNING: Output file {args.output_file} does not exist yet", file=sys.stderr)
+        print("Note: Timing metadata must be appended after file write completes", file=sys.stderr)
 
     # Token tracking (optional)
     if args.input_tokens > 0 or args.output_tokens > 0:
@@ -666,7 +702,9 @@ def cmd_end(args):
 
     # Output based on format
     if output_format not in ("json", "markdown", "quiet"):
-        print(f"TIMING_DURATION={data['duration_human']} ({format_duration_seconds(data['duration_seconds'])})")
+        print(
+            f"TIMING_DURATION={data['duration_human']} ({format_duration_seconds(data['duration_seconds'])})"
+        )
         print(f"TIMING_START={data['start_iso']}")
         print(f"TIMING_END={data['end_iso']}")
         print(f"TIMING_STATUS={data['status']}")
@@ -807,7 +845,7 @@ def cmd_analyze(args):
     avg = sum(durations) / len(durations)
     median = durations[len(durations) // 2]
     variance = sum((d - avg) ** 2 for d in durations) / len(durations)
-    stddev = variance ** 0.5
+    stddev = variance**0.5
     p5_idx = max(0, int(len(durations) * 0.05))
     p5 = durations[p5_idx]
     p50 = median
@@ -843,19 +881,22 @@ def cmd_analyze(args):
     elif output_format == "csv":
         import csv
         import io
+
         output = io.StringIO()
         writer = csv.DictWriter(
             output, fieldnames=["skill", "model", "run_id", "duration_seconds", "status"]
         )
         writer.writeheader()
         for r in runs:
-            writer.writerow({
-                "skill": r.get("skill_name", ""),
-                "model": r.get("model", ""),
-                "run_id": r.get("run_id", ""),
-                "duration_seconds": r.get("duration_seconds", 0),
-                "status": r.get("status", ""),
-            })
+            writer.writerow(
+                {
+                    "skill": r.get("skill_name", ""),
+                    "model": r.get("model", ""),
+                    "run_id": r.get("run_id", ""),
+                    "duration_seconds": r.get("duration_seconds", 0),
+                    "status": r.get("status", ""),
+                }
+            )
         print(output.getvalue(), end="")
     elif args.output:
         Path(args.output).write_text(json.dumps(result, indent=2))
@@ -865,13 +906,19 @@ def cmd_analyze(args):
         print(f"TIMING: Analysis v{VERSION}")
         print(sep)
         print(f"Count:       {len(runs)} runs")
-        print(f"Filters:     skill={args.skill or 'all'}, model={args.model or 'all'}, days={args.days}")
+        print(
+            f"Filters:     skill={args.skill or 'all'}, model={args.model or 'all'}, days={args.days}"
+        )
         print(sep)
         print(f"Average:     {format_duration(avg)} ({format_duration_seconds(avg)})")
         print(f"Median:      {format_duration(median)} ({format_duration_seconds(median)})")
         print(f"Stddev:      {format_duration_seconds(stddev)}")
-        print(f"Min:         {format_duration(min(durations))} ({format_duration_seconds(min(durations))})")
-        print(f"Max:         {format_duration(max(durations))} ({format_duration_seconds(max(durations))})")
+        print(
+            f"Min:         {format_duration(min(durations))} ({format_duration_seconds(min(durations))})"
+        )
+        print(
+            f"Max:         {format_duration(max(durations))} ({format_duration_seconds(max(durations))})"
+        )
         print(f"P5:          {format_duration(p5)} ({format_duration_seconds(p5)})")
         print(f"P50:         {format_duration(p50)} ({format_duration_seconds(p50)})")
         print(f"P95:         {format_duration(p95)} ({format_duration_seconds(p95)})")
@@ -908,8 +955,11 @@ def cmd_aggregate(args):
     if output_format == "csv":
         import csv
         import io
+
         output = io.StringIO()
-        writer = csv.DictWriter(output, fieldnames=["file", "run_id", "duration_human", "duration_seconds"])
+        writer = csv.DictWriter(
+            output, fieldnames=["file", "run_id", "duration_human", "duration_seconds"]
+        )
         writer.writeheader()
         for r in results:
             writer.writerow(r)
@@ -922,7 +972,9 @@ def cmd_aggregate(args):
         aggregate_data = {
             "count": len(results),
             "total_seconds": round(sum(r["duration_seconds"] for r in results), 2),
-            "avg_seconds": round(sum(r["duration_seconds"] for r in results) / len(results), 2) if results else 0,
+            "avg_seconds": round(sum(r["duration_seconds"] for r in results) / len(results), 2)
+            if results
+            else 0,
             "runs": results,
         }
         if args.output:
@@ -1060,7 +1112,9 @@ For detailed documentation, see skills/skill-timing/README.md
         "aggregate", help="Aggregate timing data from review files"
     )
     aggregate_parser.add_argument("files", nargs="*", help="Review files to parse for timing data")
-    aggregate_parser.add_argument("--output", default=None, help="Output file path (optional, prints to stdout if omitted)")
+    aggregate_parser.add_argument(
+        "--output", default=None, help="Output file path (optional, prints to stdout if omitted)"
+    )
     aggregate_parser.add_argument(
         "--format",
         choices=["json", "csv"],

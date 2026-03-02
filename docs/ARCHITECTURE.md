@@ -1,4 +1,4 @@
-# Architecture: AI Coding Rules (v3.5.3)
+# Architecture: AI Coding Rules (v3.6.0)
 
 **Last Updated:** 2026-03-02
 
@@ -22,7 +22,6 @@
 
 ## System Overview
 
-> **Version Note:** This document describes project version v3.5.3. The rule schema version (v3.2) is separate from the project version. Schema version appears in rule metadata (`SchemaVersion: v3.2`), while project version tracks releases.
 
 ### Core Architecture Principles
 

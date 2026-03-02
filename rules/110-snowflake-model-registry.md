@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-02-25
 **LoadTrigger:** kw:model-registry, kw:ml-model, kw:model-monitor, kw:ml-observability
 **Keywords:** model governance, model lifecycle, model logging, model inference, RBAC, model privileges, register model, log model, model management, ML registry, model tracking, model metadata, deploy model, model lineage, model monitor, ML observability, task parameter, drift detection, baseline data, scoring data
-**TokenBudget:** ~5000
+**TokenBudget:** ~5900
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md
 

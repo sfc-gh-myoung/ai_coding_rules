@@ -1676,6 +1676,19 @@ def validate(
         failed = sum(1 for r in results if r.has_critical_or_high)
         clean = sum(1 for r in results if r.is_clean)
 
+        # List failed examples (even without verbose mode)
+        if failed > 0 and not verbose:
+            console.print("\n[bold red]FAILED EXAMPLES:[/bold red]")
+            for result in results:
+                if result.has_critical_or_high:
+                    console.print(f"  • {result.file_path.name}")
+                    # Show first error for context
+                    for error in result.errors:
+                        if error.severity in ("CRITICAL", "HIGH"):
+                            console.print(f"    [dim]{error.message}[/dim]")
+                            break
+            console.print()
+
         summary_table = Table(title="Example Validation Summary")
         summary_table.add_column("Metric", style="bold")
         summary_table.add_column("Count", justify="right")

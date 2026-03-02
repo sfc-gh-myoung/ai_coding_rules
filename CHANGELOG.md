@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **feat(rules):** add comprehensive Streamlit deployment rule with runtime selection guidance
+  - New `101l-snowflake-streamlit-deployment.md` covering Container Runtime vs Warehouse Runtime selection
+  - External Access Integration (EAI) setup for PyPI package access
+  - Compute pool configuration and dependency file formats (`pyproject.toml` vs `environment.yml`)
+  - Migration guide from Warehouse to Container Runtime
+- **feat(rules):** expand Model Registry rule with ML Observability keywords
+  - Added `model-monitor`, `ml-observability` to LoadTrigger and Keywords
+  - TokenBudget updated from ~5000 to ~5900
+
+### Changed
+- **refactor(rules):** rename and expand Streamlit deployment error rule
+  - Renamed `101f-snowflake-streamlit-spcs-errors.md` to `101f-snowflake-streamlit-deployment-errors.md`
+  - Now covers both Container Runtime and Warehouse Runtime error scenarios
+  - Deleted legacy SPCS-only error file
+- **feat(cli):** improve validate command output with failed examples listing
+  - Failed examples now shown even without `--verbose` flag
+  - Displays first error message for quick context
+
 ### Fixed
 - **fix(rules):** remove invalid CHECK constraint references from Snowflake rules
   - 102-snowflake-sql-core.md: Added checklist item warning that CHECK constraints are unsupported

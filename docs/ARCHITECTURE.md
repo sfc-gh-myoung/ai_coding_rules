@@ -1,6 +1,6 @@
 # Architecture: AI Coding Rules (v3.5.3)
 
-**Last Updated:** 2026-02-18
+**Last Updated:** 2026-03-02
 
 ## Table of Contents
 
@@ -339,7 +339,7 @@ Total HTMX token budget: ~9500 tokens across 8 rules
 
 ### Claude Agent Skills Architecture
 
-Starting in v3.4.0, the project includes seven Claude Agent Skills following [Anthropic's best practices](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills).
+Starting in v3.4.0, the project includes seven Claude Agent Skills following [Anthropic's best practices](https://claude.com/blog/equipping-agents-for-the-real-world-with-agent-skills).
 
 **Skill Structure (both skills):**
 
@@ -621,32 +621,44 @@ ai_coding_rules/
 │   │   ├── 106-semantic-view-ddl-example.md
 │   │   ├── 106-semantic-view-workarounds-example.md
 │   │   ├── 106-semantic-view-yaml-vqr-example.md
+│   │   ├── 109b-sis-streamlit-deployment-example.md
+│   │   ├── 110-snowflake-model-registry-example.md
 │   │   ├── 115-cortex-agent-hybrid-python-example.md
 │   │   ├── 115-cortex-agent-hybrid-sql-example.md
 │   │   ├── 115-cortex-agent-prerequisites-example.md
 │   │   ├── 116-cortex-search-service-example.md
 │   │   ├── 120-spcs-service-spec-example.md
-│   │   └── 121-snowpipe-auto-ingest-example.md
-│   └── ... (128 total)
+│   │   ├── 121-snowpipe-auto-ingest-example.md
+│   │   ├── 220-python-typer-cli-example.md
+│   │   └── 821-makefile-automation-example.md
+│   └── ... (130 total)
 │
 ├── schemas/                    # Validation schemas
 │   ├── rule-schema.yml         # Rule file schema definition
 │   ├── example-schema.yml      # Example file schema definition
 │   └── README.md               # Schema documentation
 │
-├── tests/                      # Test suite (500+ passing tests)
-│   ├── test_template_generator.py
-│   ├── test_rule_deployer.py
-│   ├── test_schema_validator.py
-│   ├── test_token_validator.py
-│   └── test_index_generator.py
+├── tests/                      # Test suite (494 passing tests)
+│   └── cli/                    # CLI command tests
+│       ├── test_badges.py
+│       ├── test_cli_misc.py
+│       ├── test_deploy.py
+│       ├── test_index.py
+│       ├── test_keywords.py
+│       ├── test_new.py
+│       ├── test_paths.py
+│       ├── test_refs.py
+│       ├── test_tokens.py
+│       └── test_validate.py
 │
-├── prompts/                    # Example user prompts and review tools
+├── prompts/                    # Example user prompts
 │   ├── EXAMPLE_PROMPT_01.md    # Linting task example
 │   ├── EXAMPLE_PROMPT_02.md    # Performance optimization example
 │   ├── EXAMPLE_PROMPT_03.md    # Simple task example
-│   ├── RULE_REVIEW_PROMPT.md   # Agent-centric rule review template
-│   ├── ../docs/USING_RULE_REVIEW_PROMPT.md # How to use the rule review prompt
+│   ├── EXAMPLE_PROMPT_04.md    # Additional example
+│   ├── EXAMPLE_PROMPT_05.md    # Additional example
+│   ├── EXAMPLE_PROMPT_06.md    # Additional example
+│   ├── EXAMPLE_PROMPT_07.md    # Additional example
 │   └── README.md               # Prompt writing guide
 │
 ├── skills/                     # Claude Agent Skills (optional deployable artifacts)
@@ -708,7 +720,7 @@ ai_coding_rules/
 - Production-ready files
 - Directly editable
 - No generation required
-- 128 rules covering all domains (including 8 HTMX rules, Go/Golang core, Alpine.js, and Podman)
+- 130 rules covering all domains (including 8 HTMX rules, Go/Golang core, Alpine.js, and Podman)
 
 **`rules/examples/`** — Validated implementation examples
 - Complete, runnable reference implementations for complex rules
@@ -734,16 +746,14 @@ ai_coding_rules/
 - Used by `ai-rules validate`
 - Single source of truth for validation logic
 
-**`prompts/`** — User guidance and review tools
+**`prompts/`** — User guidance
 - Example prompts showing best practices
 - Demonstrates keyword triggers
 - Helps users write effective task descriptions
-- **RULE_REVIEW_PROMPT.md** — Agent-centric rule review prompt template (paste into a model)
-- **USING_RULE_REVIEW_PROMPT.md** — Usage guide (modes, examples, cadence, cross-model workflow)
 
 **`skills/`** — Claude Agent Skills
 - Some skills are excluded from deployment in `pyproject.toml` (`[tool.rule_deployer].exclude_skills`)
-- Follows [Anthropic Agent Skills best practices](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills)
+- Follows [Anthropic Agent Skills best practices](https://claude.com/blog/equipping-agents-for-the-real-world-with-agent-skills)
 - **rule-creator/** (internal-only, excluded from deployment):
   - Creates Cursor rules with template generation and schema validation
   - 5-phase workflow: Discovery → Template → Content → Validation → Indexing
@@ -1053,7 +1063,7 @@ git commit -m "feat(rules): add 300-example-rule for [purpose]"
 - Design patterns: `fixtures`, `caching`, `batching`, `async`
 - Best practices: `error handling`, `type hints`, `documentation`
 
-**Count Target:** Aim for 12-13 keywords (range: 10-15)
+**Count Target:** Aim for 12-13 keywords (range: 5-20)
 
 **Example (200-python-core.md):**
 ```
@@ -1113,7 +1123,7 @@ contract:
 - Required fields: SchemaVersion, RuleVersion, Keywords, TokenBudget, ContextTier, Depends (6 fields)
 - Pattern matching: `**FieldName:** value` format
 - Version validation: SchemaVersion (vX.Y or vX.Y.Z), RuleVersion (vX.Y.Z semver)
-- Count validation: Keywords must be 10-15 terms
+- Count validation: Keywords must be 5-20 terms
 - Enum validation: ContextTier must be Critical|High|Medium|Low
 
 **2. Section Validation**
@@ -1187,7 +1197,7 @@ VALIDATION REPORT: rules/example-bad.md
   Line 45: Contract section missing required tag: <validation>
 
 ⚠️  HIGH WARNINGS (1):
-  Line 12: Keywords count is 8, expected 10-15
+  Line 12: Keywords count is 8, expected 5-20
 
 SUMMARY:
   ❌ CRITICAL: 2
@@ -1234,7 +1244,7 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 ### Deployment Architecture
 
 **Source Files (in ai_coding_rules repository):**
-- `rules/` — 128 production-ready rule files
+- `rules/` — 130 production-ready rule files
 - `AGENTS.md` — Discovery guide with loading protocol
 - `RULES_INDEX.md` — Searchable catalog with keywords
 
@@ -1339,15 +1349,15 @@ Configuration:
   Mode: LIVE (files will be copied)
 
 Validation:
-  ✓ Source rules/ directory exists (128 files)
+  ✓ Source rules/ directory exists (130 files)
   ✓ Source AGENTS.md exists
   ✓ Source RULES_INDEX.md exists
   ✓ Destination writable
 
 Deployment:
   → Creating destination rules/ directory
-  → Copying 128 rule files...
-  ✓ Copied 128 rules to /path/to/project/rules/
+  → Copying 130 rule files...
+  ✓ Copied 130 rules to /path/to/project/rules/
   ✓ Copied AGENTS.md to /path/to/project/
   ✓ Copied RULES_INDEX.md to /path/to/project/
 
@@ -1456,57 +1466,67 @@ Tests whether AI agents correctly follow the `AGENTS.md` bootstrap protocol by s
 v3.0 includes comprehensive test coverage ensuring CLI and tooling reliability:
 
 **Test Statistics:**
-- **500+ passing tests** across 10 test files
+- **494 passing tests** across 10 test files
 - **Comprehensive coverage** across all CLI commands and utilities
 - **pytest-based** test framework
 - **Fixture-driven** test data management
 
 ### Test Files
 
-**`tests/test_template_generator.py`**
-- Template structure validation
-- Metadata generation tests
-- Keyword generation algorithm
-- Output file creation tests
-- Error handling for invalid inputs
+**`tests/cli/test_badges.py`**
+- README badge update tests
+- Badge count verification
 
-**`tests/test_rule_deployer.py`**
+**`tests/cli/test_cli_misc.py`**
+- CLI miscellaneous tests
+- Help command tests
+
+**`tests/cli/test_deploy.py`**
 - Deployment success scenarios
 - Dry-run mode validation
 - Source file validation
 - Destination writability checks
-- Error handling for missing files
+- Split deployment tests
 
-**`tests/test_schema_validator.py`**
-- Schema loading and parsing
-- Metadata validation tests
-- Section validation tests
-- Contract Markdown subsection validation
-- Error reporting accuracy
-
-**`tests/test_token_validator.py`**
-- Token count accuracy
-- TokenBudget format validation
-- Tolerance checks (±5% default threshold)
-- Multiple rule validation
-- Statistical reporting
-
-**`tests/test_keyword_generator.py`**
-- KeywordCandidate dataclass tests
-- ExtractionResult diff calculations
-- Header, code language, emphasis extraction
-- Technology term matching
-- TF-IDF corpus building
-- Ranking and deduplication
-- File update functionality
-- Domain constants validation
-
-**`tests/test_index_generator.py`**
+**`tests/cli/test_index.py`**
 - RULES_INDEX.md generation
 - Metadata extraction accuracy
 - Table formatting validation
 - Dependency parsing
-- Keyword extraction
+
+**`tests/cli/test_keywords.py`**
+- KeywordCandidate dataclass tests
+- ExtractionResult diff calculations
+- Technology term matching
+- TF-IDF corpus building
+- File update functionality
+
+**`tests/cli/test_new.py`**
+- Template structure validation
+- Metadata generation tests
+- Output file creation tests
+- Error handling for invalid inputs
+
+**`tests/cli/test_paths.py`**
+- Path resolution tests
+- Project root detection
+
+**`tests/cli/test_refs.py`**
+- Reference validation tests
+- Cross-file link checking
+
+**`tests/cli/test_tokens.py`**
+- Token count accuracy
+- TokenBudget format validation
+- Tolerance checks (±5% default threshold)
+- Multiple rule validation
+
+**`tests/cli/test_validate.py`**
+- Schema loading and parsing
+- Metadata validation tests
+- Section validation tests
+- Contract validation
+- Error reporting accuracy
 
 ### Running Tests
 
@@ -1524,12 +1544,12 @@ make test-cov
 
 **Single Test File:**
 ```bash
-uv run pytest tests/test_schema_validator.py -v
+uv run pytest tests/cli/test_validate.py -v
 ```
 
 **Specific Test:**
 ```bash
-uv run pytest tests/test_schema_validator.py::test_validate_metadata_fields -v
+uv run pytest tests/cli/test_validate.py::test_validate_metadata_fields -v
 ```
 
 **Coverage Report:**
@@ -1544,10 +1564,8 @@ make test-cov-open
 ### Test Fixtures
 
 **`tests/fixtures/`** — Sample rule files for testing
-- `valid_rule.md` — Fully compliant v3.2 rule
-- `invalid_metadata.md` — Missing Keywords field
-- `invalid_sections.md` — Sections out of order
-- `invalid_contract.md` — Missing Contract subsections
+- `RULES_INDEX_baseline.md` — Baseline index for comparison tests
+- `sample_rules/` — Directory with test rule variations
 
 ### CI/CD Integration
 
@@ -1672,17 +1690,17 @@ flowchart TD
 
 ```mermaid
 graph TD
-    Root[ai_coding_rules/] --> Rules[rules/<br/>128 production files]
+    Root[ai_coding_rules/] --> Rules[rules/<br/>130 production files]
     Root --> Src[src/ai_rules/<br/>CLI tool]
     Root --> Schemas[schemas/<br/>v3.0 YAML schema]
-    Root --> Tests[tests/<br/>544 passing tests]
+    Root --> Tests[tests/<br/>494 passing tests]
     Root --> Prompts[prompts/<br/>Example prompts]
     Root --> Docs[docs/<br/>Documentation]
     Root --> RootFiles[Root Files]
     
     Rules --> Rule1[000-global-core.md]
     Rules --> Rule2[100-snowflake-core.md]
-    Rules --> Rule3[... 128 total]
+    Rules --> Rule3[... 130 total]
     
     Src --> S1[ai-rules new]
     Src --> S2[ai-rules deploy]
@@ -1693,12 +1711,12 @@ graph TD
     
     Schemas --> Schema[rule-schema.yml]
     
-    Tests --> T1[test_template_generator.py]
-    Tests --> T2[test_rule_deployer.py]
-    Tests --> T3[test_schema_validator.py]
-    Tests --> T4[test_token_validator.py]
-    Tests --> T5[test_keyword_generator.py]
-    Tests --> T6[test_index_generator.py]
+    Tests --> T1[cli/test_badges.py]
+    Tests --> T2[cli/test_deploy.py]
+    Tests --> T3[cli/test_validate.py]
+    Tests --> T4[cli/test_tokens.py]
+    Tests --> T5[cli/test_keywords.py]
+    Tests --> T6[cli/test_index.py]
     
     Prompts --> P1[EXAMPLE_PROMPT_01.md]
     Prompts --> P2[EXAMPLE_PROMPT_02.md]
@@ -1855,6 +1873,44 @@ if sections["Contract"]["line"] > 160:
 - `skills/bulk-rule-reviewer/workflows/parallel-execution.md` — Orchestration strategy
 - `skills/bulk-rule-reviewer/workflows/subagent-prompt-template.md` — Sub-agent prompt
 
+## Directive Language Hierarchy
+
+The rules use a structured directive language with clear priority levels to guide both AI agents and human developers.
+
+### Behavioral Control Directives (By Strictness)
+
+| Directive | Category | Priority | Meaning |
+|-----------|----------|----------|---------|
+| **Critical** | System Safety | Highest | Must never violate |
+| **Mandatory** | Non-negotiable | High | Must always follow |
+| **Always** | Universal Practice | High | Should be consistent |
+| **Requirement** | Technical Standard | Medium | Should implement |
+| **Rule** | Best Practice | Medium | Recommended pattern |
+| **Consider** | Optional | Low | Suggestions and alternatives |
+
+### Informational Directives
+
+| Directive | Purpose |
+|-----------|---------|
+| **Error** | Troubleshooting guidance for problem descriptions |
+| **Exception** | Override conditions for special cases |
+| **Forbidden** | Explicitly prohibited actions |
+| **Note** | Cross-references and additional context |
+
+### Usage Examples
+
+```markdown
+Critical: In PLAN mode, you are FORBIDDEN from using ANY file-modifying tools
+Mandatory: You MUST ask for explicit user confirmation of the TASK LIST
+Always: Reference the most recent online official documentation
+Requirement: Use fenced code blocks with language tags
+Rule: Act as a senior, pragmatic software engineer
+Consider: Use tables for structured information
+Avoid: Mixing business logic and UI rendering in a single function
+```
+
+This hierarchy ensures consistent interpretation across different AI models and provides clear guidance on the relative importance of each directive.
+
 ## Extension Points
 
 ### Periodic Rule Review
@@ -1911,7 +1967,7 @@ Tested on GPT-4o, GPT-5.1, GPT-5.2, Claude Sonnet 4.5, Claude Opus 4.5, Gemini 2
 1. **Choose Number** — Follow numbering system (see [Rule Numbering System](#rule-numbering-system))
 2. **Generate Template** — `make rule-new FILENAME=XXX-description`
 3. **Fill Content** — Edit `rules/XXX-description.md`
-4. **Select Keywords** — 10-15 terms for semantic discovery
+4. **Select Keywords** — 5-20 terms for semantic discovery
 5. **Validate** — `make rules-validate` or `uv run ai-rules validate rules/XXX-description.md`
 6. **Update Index** — `make index-generate`
 7. **Commit** — `git commit -m "feat(rules): add XXX-description"`
@@ -1963,7 +2019,7 @@ metadata:
 
 1. **Create Command** — Add a new command module in `src/ai_rules/commands/`
 2. **Follow Patterns** — Use existing commands as templates (e.g., `validate.py`, `index.py`)
-3. **Add Tests** — `tests/test_custom_task.py`
+3. **Add Tests** — `tests/cli/test_custom_task.py`
 4. **Register Command** — Add to `src/ai_rules/cli.py`
 5. **Add Makefile Target** — Add a `make` target that delegates to the CLI
 6. **Document** — Add to CONTRIBUTING.md
@@ -2040,7 +2096,4 @@ uv run ai-rules deploy ~/project/.cursor/rules/
 - **[Schema Documentation](../schemas/README.md)** - Current schema v3.2 specification and field documentation
 - **[Rule Schema YAML](../schemas/rule-schema.yml)** - Declarative validation schema
 
-### Community
 
-- **[GitHub Repository](https://github.com/sfc-gh-myoung/ai_coding_rules)** - Source code and issue tracking
-- **[GitHub Issues](https://github.com/sfc-gh-myoung/ai_coding_rules/issues)** - Report bugs or request features

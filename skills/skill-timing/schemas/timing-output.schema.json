@@ -1,0 +1,183 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "timing-output.schema.json",
+  "title": "Skill Timing Output",
+  "description": "Schema for skill-timing output data. All timing data must conform to this schema.",
+  "type": "object",
+  "required": ["run_id", "skill_name", "model", "start_iso", "end_iso", "duration_seconds", "status"],
+  "additionalProperties": true,
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{16}$",
+      "description": "16-character hex identifier for this timing run"
+    },
+    "skill_name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Name of the skill being timed"
+    },
+    "target_file": {
+      "type": "string",
+      "description": "Path to the primary target file"
+    },
+    "model": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Model slug (e.g., claude-sonnet-45)"
+    },
+    "review_mode": {
+      "type": "string",
+      "default": "FULL",
+      "description": "Review mode if applicable (FULL, FOCUSED, STALENESS)"
+    },
+    "agent": {
+      "type": "string",
+      "description": "Agent identifier (e.g., cortex-code, cursor)"
+    },
+    "pid": {
+      "type": "integer",
+      "description": "Process ID of the timing session"
+    },
+    "start_epoch": {
+      "type": "number",
+      "description": "Unix timestamp of start time"
+    },
+    "start_iso": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC timestamp of start time"
+    },
+    "end_epoch": {
+      "type": "number",
+      "description": "Unix timestamp of end time"
+    },
+    "end_iso": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC timestamp of end time"
+    },
+    "duration_seconds": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Duration in seconds (2 decimal places)"
+    },
+    "duration_human": {
+      "type": "string",
+      "pattern": "^\\d+m \\d+s$",
+      "description": "Human-readable duration (e.g., '3m 45s')"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["completed", "warning", "error", "missing"],
+      "description": "Final status of the timing run"
+    },
+    "output_file": {
+      "type": "string",
+      "description": "Path to the output file where timing metadata is embedded"
+    },
+    "checkpoints": {
+      "type": "array",
+      "description": "Intermediate timing checkpoints",
+      "items": {
+        "type": "object",
+        "required": ["name", "elapsed_seconds"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Checkpoint name (e.g., gates_started, rules_loaded)"
+          },
+          "elapsed_seconds": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Seconds elapsed since start (2 decimal places)"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 UTC timestamp of checkpoint"
+          }
+        }
+      }
+    },
+    "tokens": {
+      "type": "object",
+      "description": "Token usage and cost estimation",
+      "properties": {
+        "input_tokens": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of input tokens"
+        },
+        "output_tokens": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of output tokens"
+        },
+        "total_tokens": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total tokens (input + output)"
+        },
+        "estimated_cost_usd": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Estimated cost in USD (4 decimal places)"
+        }
+      }
+    },
+    "alerts": {
+      "type": "array",
+      "description": "Anomaly alerts triggered during timing",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["error_short_duration", "warning_short_duration", "warning_long_duration"],
+            "description": "Alert type"
+          },
+          "threshold_seconds": {
+            "type": "number",
+            "description": "Threshold that was crossed"
+          },
+          "actual_seconds": {
+            "type": "number",
+            "description": "Actual duration"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable alert message"
+          }
+        }
+      }
+    },
+    "baseline_comparison": {
+      "type": "object",
+      "description": "Comparison against historical baseline",
+      "properties": {
+        "baseline_avg_seconds": {
+          "type": "number",
+          "description": "Baseline average duration"
+        },
+        "baseline_stddev_seconds": {
+          "type": "number",
+          "description": "Baseline standard deviation"
+        },
+        "delta_seconds": {
+          "type": "number",
+          "description": "Difference from baseline average"
+        },
+        "delta_percent": {
+          "type": "number",
+          "description": "Percentage difference from baseline (1 decimal place)"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["within_normal", "slightly_outside", "significantly_outside"],
+          "description": "Baseline comparison status"
+        }
+      }
+    }
+  }
+}

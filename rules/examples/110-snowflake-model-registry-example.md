@@ -364,7 +364,7 @@ CREATE MODEL MONITOR my_monitor
   WITH BASELINE = BASELINE_ALIGNED ...
 ```
 
-## Validation Checklist
+## Validation
 
 - [ ] Registry initialized with `options={"enable_monitoring": True}`
 - [ ] Version name uses underscores (not periods)

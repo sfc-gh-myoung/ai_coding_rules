@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-12
-**Keywords:** st.secrets, SQL injection, authentication, secure streamlit, protect app, credentials management, API keys, environment variables, secure deployment, input sanitization, RBAC streamlit, access control, security patterns
-**TokenBudget:** ~3650
+**RuleVersion:** v4.0.0
+**LastUpdated:** 2026-03-02
+**Keywords:** st.secrets, SQL injection, authentication, secure streamlit, protect app, credentials management, API keys, environment variables, secure deployment, input sanitization, RBAC streamlit, access control, security patterns, Container Runtime, Warehouse Runtime
+**TokenBudget:** ~3850
 **ContextTier:** High
 **Depends:** 101-snowflake-streamlit-core.md, 107-snowflake-security-governance.md
 
@@ -252,29 +252,50 @@ if uploaded_file:
 **MANDATORY:**
 - **Mandatory:** Use `st.secrets` for all sensitive configuration (API keys, passwords, tokens)
 - **Mandatory:** Never hardcode credentials in source code
-- **Always:** For SiS, use Snowflake secrets management
-- **Always:** For SPCS, use Kubernetes secrets or environment variables
 - **Always:** Validate that required secrets exist before use
 
-**Secrets Pattern:**
-```python
-# [PASS] Proper secrets usage
-try:
-    api_key = st.secrets["api"]["key"]
-    db_password = st.secrets["database"]["password"]
-    snowflake_account = st.secrets["snowflake"]["account"]
-except KeyError as e:
-    st.error(f"Missing required secret: {e}")
-    st.stop()
+### Container Runtime Secrets (Recommended)
+Use Snowflake SQL functions to retrieve secrets stored in Snowflake:
 
-# Never do this
-api_key = "sk-1234567890abcdef"  # Hardcoded secret!
-password = "my_password"  # Security violation!
+```python
+# Container Runtime: Use SQL functions for secrets
+import streamlit as st
+
+conn = st.connection("snowflake")
+
+# Retrieve secret from Snowflake secret object
+result = conn.query("SELECT SYSTEM$GET_SECRET('my_secret_name')")
+api_key = result.iloc[0, 0]
+
+# Alternative: Use secrets stored in Snowflake tables with proper RBAC
+result = conn.query("""
+    SELECT secret_value 
+    FROM my_db.secrets.app_secrets 
+    WHERE secret_name = 'api_key'
+""")
+api_key = result.iloc[0, 0]
 ```
 
-**.streamlit/secrets.toml Structure:**
+### Warehouse Runtime Secrets
+Use the `_snowflake` module for secrets:
+
+```python
+# Warehouse Runtime: Use _snowflake module
+import _snowflake
+
+# Get secret from Snowflake secret object
+api_key = _snowflake.get_generic_secret_string('my_secret_name')
+
+# For external access (requires EAI even in Warehouse Runtime for some ops)
+username = _snowflake.get_username_password('my_credential').username
+password = _snowflake.get_username_password('my_credential').password
+```
+
+### Local Development with secrets.toml
+For local development only, use `.streamlit/secrets.toml`:
+
 ```toml
-# Local development only - NEVER commit to version control!
+# .streamlit/secrets.toml - NEVER commit to version control!
 
 [api]
 key = "sk-your-api-key"
@@ -284,19 +305,23 @@ endpoint = "https://api.example.com"
 username = "db_user"
 password = "secure_password"
 host = "db.example.com"
+```
 
-[snowflake]
-account = "your_account"
-user = "your_user"
-password = "your_password"
+```python
+# Local development pattern (works in both runtimes)
+try:
+    api_key = st.secrets["api"]["key"]
+except KeyError as e:
+    st.error(f"Missing required secret: {e}")
+    st.stop()
 ```
 
 **FORBIDDEN:**
-**Security Rules:**
 - Never commit secrets.toml to version control (add to .gitignore)
 - Never log secrets or expose them in error messages
 - Never display secrets in UI (even in debug mode)
 - Never pass secrets in URL parameters
+- Never hardcode credentials: `api_key = "sk-1234567890abcdef"`  # Security violation!
 
 ## Input Validation
 
